@@ -5876,6 +5876,24 @@ export default function App() {
   const surplusGiftAnnual = Math.max(0, E.num(plan?.inheritance?.surplusGift?.annual, 0));
   const compWindow = useMemo(() => E.compensationWindow(plan?.config, plan?.inheritance?.compensationDate),
     [plan?.config, plan?.inheritance?.compensationDate]);
+  // One award, two reliefs that do not compete for it: a credit against the death bill worth the death
+  // rate on the whole payment, and a two-year window in which the same money can be given away outright.
+  // Reported as one pot because that is how a household holds it — headroom, drawn down by gifts, with
+  // the credit sitting behind whatever is left.
+  const compHeadroom = useMemo(() => {
+    const award = Math.max(0, E.num(plan?.inheritance?.compensationPayment, 0));
+    if (!(award > 0)) return null;
+    const rate = E.num(plan?.config?.ihtRate, 40);
+    const chosen = inheritanceView?.chosen;
+    return {
+      award, rate,
+      maxCredit: award * rate / 100,
+      credit: Math.max(0, E.num(chosen?.compensationCredit, 0)),
+      capped: !!chosen?.compensationCreditCapped,
+      given: Math.max(0, E.num(chosen?.compensationGiftsCovered, 0)),
+      left: chosen ? Math.max(0, E.num(chosen.compensationLeftToGive, 0)) : award,
+    };
+  }, [plan?.inheritance?.compensationPayment, plan?.config?.ihtRate, inheritanceView]);
   const updateSurplusGift = (field, value) => setPlan(prev => ({
     ...prev,
     inheritance: {
@@ -8228,7 +8246,7 @@ export default function App() {
                   <div className="pt-2 border-t border-slate-200">
                     <div className="text-slate-700 font-semibold mb-1">Have you received compensation from a government scheme?</div>
                     <span className="text-[10px] text-slate-400 mb-2 block">The <strong>infected blood scheme</strong> (IBCA), Post Office Horizon, Windrush, Grenfell, the Troubles Permanent Disablement scheme and vaccine damage payments all run through the same relief: the inheritance tax on your death is <strong>reduced by {E.num(plan?.config?.ihtRate, 40)}% of the payment</strong>, capped at the bill itself. It applies to a payment <em>received</em> &mdash; there is no test of what you did with it, so money spent, invested, paid into a pension or used to clear a mortgage earns the credit just the same. Enter the payment, not what is left of it.</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Payment received</label>
                         <input type="number" min="0" step="1000" placeholder="0" data-exempt-compensation onFocus={handleFocus} value={plan?.inheritance?.compensationPayment ?? ''} onChange={(e) => updateInheritance('compensationPayment', parseInputNumber(e.target.value))} className={inputCls} />
@@ -8237,31 +8255,40 @@ export default function App() {
                         <label className="text-slate-600 font-semibold block mb-1">Date you received it</label>
                         <input type="date" data-exempt-compensation-date value={plan?.inheritance?.compensationDate ?? ''} onChange={(e) => updateInheritance('compensationDate', e.target.value)} className={inputCls} />
                       </div>
-                      {inheritanceView.chosen && inheritanceView.chosen.compensationCredit > 0 && (
-                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 self-end">
-                          Credit at your chosen death age: <strong>{formatGBP(inheritanceView.chosen.compensationCredit)}</strong> off the bill.
-                          {inheritanceView.chosen.compensationCreditCapped && ' Capped at the tax otherwise due — a credit can take a bill to nothing but never creates a refund.'}
-                        </div>
-                      )}
                     </div>
-                    <span className="text-[10px] text-slate-400 mt-1.5 block">Because it is a credit against the tax rather than a hole in the estate, the estate&rsquo;s value is unchanged: the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are both measured before it. Giving the award away under the two-year window below does not forfeit the credit: they relieve two different events, the death and the gift.</span>
-                    {/* The deadline, spelled out. It is the one fact here that expires. */}
-                    {compWindow ? (
-                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-900 leading-relaxed">
-                        <strong>You have until {compWindow.endDate} to give this money away free of inheritance tax</strong> &mdash; two years from the day you were paid, or from {E.DEFAULT_CONFIG.compensationGiftWindowFrom} if you were already holding it when the relief was announced, whichever is later. Tick <strong>&ldquo;exempt compensation&rdquo;</strong> on a gift dated inside that and it costs no allowance and starts no seven-year clock. A gift in {compWindow.endYear} itself has to beat the anniversary, not the year end.
-                      </div>
-                    ) : (
-                      <span className="text-[10px] text-amber-700 mt-1.5 block">Enter the date you were paid and the tab will work out your two-year gifting deadline. Without it, a gift ticked as exempt compensation is treated as an ordinary gift &mdash; the cautious reading, since the window cannot be checked.</span>
-                    )}
-                    {inheritanceView.chosen && inheritanceView.chosen.compensationGiftsCovered > 0 && (
-                      <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded-xl text-[11px] text-purple-900">
-                        <strong>{formatGBP(inheritanceView.chosen.compensationGiftsCovered)}</strong> of your gifts is treated as coming from the award, so it uses no allowance and starts no seven-year clock. {inheritanceView.chosen.compensationLeftToGive > 0 ? `${formatGBP(inheritanceView.chosen.compensationLeftToGive)} of the award is still available to give this way before the window closes.` : 'The whole award is now accounted for.'} Untick <em>from the compensation</em> on any gift that came from other money.
+                    <span className="text-[10px] text-slate-400 mt-1.5 block">Because it is a credit against the tax rather than a hole in the estate, the estate&rsquo;s value is unchanged: the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are both measured before it.</span>
+                    {/* The award as one pot of headroom: what it takes off the bill, and what is left to
+                        give before the deadline. Two reliefs on two different events, so a gift never
+                        eats the credit — the readout has to say that outright or it will be assumed. */}
+                    {compHeadroom && (
+                      <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-xl text-[11px] text-purple-900 space-y-2">
+                        <div className="font-bold">Your {formatGBP(compHeadroom.award)} award does two separate jobs, and using one does not spend the other.</div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="p-2 bg-white/70 border border-purple-200 rounded-lg">
+                            <div className="font-semibold mb-0.5">Off the bill{compHeadroom.credit > 0 ? <> &mdash; {formatGBP(compHeadroom.credit)}</> : ''}</div>
+                            {compHeadroom.credit > 0 ? (
+                              <div>{compHeadroom.rate}% of the whole {formatGBP(compHeadroom.award)}{compHeadroom.capped ? ', capped at the tax otherwise due — a credit can take a bill to nothing but never creates a refund' : ''}. No deadline, and no test of what became of the money: giving it away, spending it or paying it into a pension all earn the same credit.</div>
+                            ) : (
+                              <div>Nothing to claim at the death age you have chosen, because there is no inheritance tax to reduce. The credit is worth up to {formatGBP(compHeadroom.maxCredit)} against whatever bill there is.</div>
+                            )}
+                          </div>
+                          <div className="p-2 bg-white/70 border border-purple-200 rounded-lg">
+                            <div className="font-semibold mb-0.5">Free to give &mdash; {formatGBP(compHeadroom.left)} of {formatGBP(compHeadroom.award)} left</div>
+                            {compHeadroom.given > 0
+                              ? <div><strong>{formatGBP(compHeadroom.given)}</strong> of your gifts is already drawn from the award: no allowance used, no seven-year clock.{compHeadroom.left <= 0 ? ' The whole award is now accounted for — anything further is an ordinary gift.' : ''}</div>
+                              : <div>Nothing drawn from it yet. A gift dated inside the window draws on this pot automatically while any of it remains, using no allowance and starting no seven-year clock.</div>}
+                            {compWindow
+                              ? <div className="mt-1">The window shuts on <strong>{compWindow.endDate}</strong> &mdash; two years from the day you were paid, or from {E.DEFAULT_CONFIG.compensationGiftWindowFrom} if you were already holding it when the relief was announced, whichever is later. A gift in {compWindow.endYear} itself has to beat the anniversary, not the year end.</div>
+                              : <div className="mt-1 text-amber-700">Enter the date you were paid and the tab will work out your deadline. Until then every gift is priced as an ordinary one &mdash; the cautious reading, since the window cannot be checked.</div>}
+                          </div>
+                        </div>
+                        <div className="text-purple-800">Untick <em>from the compensation</em> on any gift that came from other money. A gift already more than seven years before your death is left alone: it is free anyway, so the award is better spent on one that is not.</div>
                       </div>
                     )}
                     {inheritanceView.chosen && inheritanceView.chosen.compensationGiftsMissed && (
                       <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
                         <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                        <span>One of your gifts is ticked as exempt compensation but is dated after {compWindow ? compWindow.endYear : 'the window'}. It is being priced as an ordinary gift: seven-year clock, and it eats your nil-rate band.</span>
+                        <span>One of your gifts is marked as coming from the compensation but is dated after {compWindow ? compWindow.endYear : 'the window'}. It is being priced as an ordinary gift: seven-year clock, and it eats your nil-rate band.</span>
                       </div>
                     )}
                   </div>

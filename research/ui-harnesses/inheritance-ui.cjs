@@ -64,9 +64,11 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   ok('exempt compensation can be entered', await p.evaluate(()=>!!document.querySelector('[data-exempt-compensation]')));
   await p.locator('[data-exempt-compensation]').fill('300000');
   await p.waitForTimeout(600);
-  ok('and the tab prices it', await p.evaluate(()=>/Credit at your chosen death age/.test(document.body.textContent)));
-  const saved = await p.evaluate(()=>{const m=document.body.textContent.match(/Credit at your chosen death age: £([\d,]+) off the bill/); return m?m[1]:null;});
+  ok('and the tab prices it', await p.evaluate(()=>/Off the bill/.test(document.body.textContent)));
+  // the panel's next line opens with "40% of the whole", so the amount has to be matched by shape
+  const saved = await p.evaluate(()=>{const m=document.body.textContent.match(/Off the bill \u2014 £(\d{1,3}(?:,\d{3})*)/); return m?m[1]:null;});
   ok('at the death rate applied to the payment', saved==='120,000', `£${saved} on £300,000`);
+  ok('and says the two reliefs do not compete', await p.evaluate(()=>/does two separate jobs, and using one does not spend the other/.test(document.body.textContent)));
   await p.locator('[data-exempt-compensation]').fill('');
   await p.waitForTimeout(400);
   ok('and the war pension distinction is recorded', await p.evaluate(()=>/tax-free income, with no bearing on inheritance tax/.test(document.body.textContent)));
@@ -220,7 +222,8 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
    * At a death age far enough out, the 2027 gift has survived seven years on its own and the award is
    * deliberately NOT spent on it - so the badge only appears once the death age brings it inside.
    */
-  ok('an old gift does not consume the award', await p4.evaluate(()=>!/treated as coming from the award/.test(document.body.textContent)));
+  ok('an old gift does not consume the award', await p4.evaluate(()=>!/already drawn from the award/.test(document.body.textContent)));
+  ok('so the whole award still shows as free to give', await p4.evaluate(()=>/£300,000 of £300,000 left/.test(document.body.textContent)));
   const deathAge = await p4.evaluate(()=>{
     const l=[...document.querySelectorAll('label')].find(x=>/Expected age at death/.test(x.textContent));
     const i=l && l.parentElement.querySelector('input'); if(i){i.setAttribute('data-death-age','');return true;} return false;});
@@ -228,13 +231,14 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   await p4.locator('[data-death-age]').fill('66');
   await p4.waitForTimeout(800);
   ok('bringing death inside seven years spends the award on the gift',
-    await p4.evaluate(()=>/of your gifts is treated as coming from the award/.test(document.body.textContent)));
-  ok('and says what is left to give', await p4.evaluate(()=>/still available to give this way/.test(document.body.textContent)));
+    await p4.evaluate(()=>/of your gifts is already drawn from the award/.test(document.body.textContent)));
+  ok('and the headroom falls by the gift', await p4.evaluate(()=>/£200,000 of £300,000 left/.test(document.body.textContent)));
   // the override
   await p4.locator('label', { hasText: /from the compensation/ }).locator('input').first().uncheck();
   await p4.waitForTimeout(700);
   ok('unticking it hands the gift back to the seven-year rule',
-    await p4.evaluate(()=>!/of your gifts is treated as coming from the award/.test(document.body.textContent)));
+    await p4.evaluate(()=>!/of your gifts is already drawn from the award/.test(document.body.textContent)));
+  ok('and the headroom is restored', await p4.evaluate(()=>/£300,000 of £300,000 left/.test(document.body.textContent)));
 
   ok('the s.21 exemption is offered', await p4.evaluate(()=>/Regular gifts out of income/.test(document.body.textContent)));
   ok('and it says what makes it exempt', await p4.evaluate(()=>/habitual/.test(document.body.textContent)));

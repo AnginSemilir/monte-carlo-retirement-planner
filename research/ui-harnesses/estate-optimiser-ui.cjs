@@ -424,8 +424,9 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   await p2.locator('[data-exempt-compensation-date]').fill('2026-02-01');
   await p2.waitForTimeout(700);
   ok('the gifting deadline is worked out from the payment date',
-    await p2.evaluate(()=>/until 2028-02-01 to give this money away/.test(document.body.textContent)));
-  ok('and the credit is priced', await p2.evaluate(()=>/Credit at your chosen death age/.test(document.body.textContent)));
+    await p2.evaluate(()=>/The window shuts on 2028-02-01/.test(document.body.textContent)));
+  ok('and the credit is priced', await p2.evaluate(()=>/Off the bill \u2014 £140,000/.test(document.body.textContent)));
+  ok('and the whole award reads as still giftable', await p2.evaluate(()=>/£350,000 of £350,000 left/.test(document.body.textContent)));
   await p2.click('[data-optimise-estate]');
   await p2.waitForTimeout(2500);
   const lev3 = await p2.evaluate(()=>[...document.querySelector('[data-lever-table]').querySelectorAll('tbody tr')]

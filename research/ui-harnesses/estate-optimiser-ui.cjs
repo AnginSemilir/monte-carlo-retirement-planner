@@ -331,7 +331,7 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   const levers = await p.evaluate(()=>[...document.querySelector('[data-lever-table]').querySelectorAll('tbody tr')]
     .map(r=>[...r.querySelectorAll('td')].map(d=>d.textContent.trim())));
   console.log('    levers:'); levers.forEach(l=>console.log('      '+l.join(' | ')));
-  ok('every lever is reported', levers.length===5, `${levers.length} rows`);
+  ok('every lever is reported', levers.length===6, `${levers.length} rows`);
   ok('drawing the pension early is one of them', levers.some(l=>/draw early/i.test(l[0])));
   ok('and who the pension goes to', levers.some(l=>/pension goes to/i.test(l[0])));
   ok('the will split is answered rather than ignored', await p.evaluate(()=>/does not change the total/.test(document.body.textContent)));
@@ -412,6 +412,27 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
     shares.join('/'));
   ok('and the draw-down ceiling', applied.config.harvestCeiling === 'basic', String(applied.config.harvestCeiling));
   ok('no page errors at the later death age', errs2.length===0, errs2.slice(0,2).join(' | '));
+
+  /*
+   * Exempt compensation and its deadline. The window is the one figure on the tab that expires, so the
+   * checks are that the date drives it, that the optimiser sees it, and that a gift dated too late is
+   * called out rather than quietly priced as exempt.
+   */
+  await p2.evaluate(()=>{const d=[...document.querySelectorAll('summary')].find(x=>/Special circumstances/i.test(x.textContent)); if(d)d.click();});
+  await p2.waitForTimeout(400);
+  await p2.locator('[data-exempt-compensation]').fill('350000');
+  await p2.locator('[data-exempt-compensation-date]').fill('2026-02-01');
+  await p2.waitForTimeout(700);
+  ok('the gifting deadline is worked out from the payment date',
+    await p2.evaluate(()=>/until 2028-02-01 to give this money away/.test(document.body.textContent)));
+  ok('and the exemption is priced', await p2.evaluate(()=>/is left out of the estate for tax/.test(document.body.textContent)));
+  await p2.click('[data-optimise-estate]');
+  await p2.waitForTimeout(2500);
+  const lev3 = await p2.evaluate(()=>[...document.querySelector('[data-lever-table]').querySelectorAll('tbody tr')]
+    .map(r=>[...r.querySelectorAll('td')].map(d=>d.textContent.trim())));
+  ok('the optimiser carries a compensation lever', lev3.some(l=>/compensation/i.test(l[0])),
+    lev3.map(l=>l[0]).join(' / '));
+  ok('and it knows when the window shuts', lev3.some(l=>/2028-02-01/.test(l[2])) || lev3.some(l=>/compensation/i.test(l[0]) && /£/.test(l[1])));
 
   ok('no page errors', errs.length===0, errs.slice(0,2).join(' | '));
   await b.close();

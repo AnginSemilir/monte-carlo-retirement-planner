@@ -46,7 +46,7 @@ console.log('=========== A. IT FINDS WHAT IS THERE ===========');
   const nom = r.levers.find(l => l.key === 'nomination');
   ok('the nomination is found, and is worth something', nom.gain > 10000, gbp(nom.gain));
   ok('it names the heir it would nominate', /Robin/.test(nom.pick), nom.pick);
-  ok('every lever is reported, including the ones worth nothing', r.levers.length === 5,
+  ok('every lever is reported, including the ones worth nothing', r.levers.length === 6,
     r.levers.map(l => `${l.key}:${Math.round(l.gain)}`).join(' '));
 }
 
@@ -158,9 +158,9 @@ console.log('=========== F. IT NEVER RECOMMENDS BREAKING THE PLAN ===========');
   const ctx = E.buildContext(E.resolveMpaa(rebuilt));
   const ev = E.evaluateRows(ctx, E.simulateDeterministic(ctx, 'expected'));
   ok('the winning plan still survives', ev.survived, `fails at ${ev.failAge || 'never'}`);
-  ok('and rebuilding it reproduces the figure the optimiser quoted',
-    Math.abs(E.postTaxInheritanceFor(rebuilt, ctx) - r.best.net) < 2,
-    `${gbp(E.postTaxInheritanceFor(rebuilt, ctx))} against ${gbp(r.best.net)}`);
+  const rebuiltNet = E.estateForPlanAt(rebuilt, ctx, E.simulateDeterministic(ctx, 'expected')).netWithGifts;
+  ok('and rebuilding it reproduces the figure the optimiser quoted', Math.abs(rebuiltNet - r.best.net) < 2,
+    `${gbp(rebuiltNet)} against ${gbp(r.best.net)}`);
   ok('the recommendation is an improvement, not just a change', r.best.net >= r.baseline.net,
     `${gbp(r.baseline.net)} -> ${gbp(r.best.net)}`);
 }
@@ -326,6 +326,99 @@ console.log('=========== J. THE ANSWER AS THINGS TO DO ===========');
   } else {
     ok('no improvement is stated plainly', true, 'fixture had something to improve');
   }
+}
+
+console.log('=========== K. THE COMPENSATION WINDOW, IN THE SEARCH ===========');
+{
+  /*
+   * Holding exempt compensation is already safe, so giving it away wins only where the money would
+   * otherwise be eaten: the exemption is capped at what is still HELD at death, and a household living on
+   * the compensation arrives with none of it left to disregard. This fixture is that household - a big
+   * pension, no house, and the award in cash - and the search has to find the window before it shuts.
+   */
+  const living = household({
+    demo: { currentAgeSelf: 74, terminalAge: 92 }, deathAge: 90, home: 0,
+    pen: 800000, isa: 0, other: 0, cash: 400000,
+    bens: [{ id: 'k', name: 'Child', relationship: 'descendant', sharePct: 100, income: 60000, age: 50 }],
+    inh: { exemptCompensation: 350000, exemptCompensationDate: '2026-02-01' }
+  });
+  living.spending.targetSpend = 42000;
+  // Sequential spends the cash first, which is where the award is sitting - so by 90 there is none of it
+  // left to disregard, and the window is the only way to get it to anyone
+  living.spending.decumulationPolicy = 'Sequential';
+  const r = E.optimizeInheritance(living);
+  ok('the window is worked out from the payment date', r.compensationWindow && r.compensationWindow.endDate === '2028-02-01',
+    r.compensationWindow ? r.compensationWindow.endDate : 'none');
+  const lever = r.levers.find(l => l.key === 'compGift');
+  ok('giving it away is a lever of its own', !!lever);
+  ok('and it earns its place for a household that would spend it', lever.gain > 10000, gbp(lever.gain));
+  ok('the year it names is inside the window', /20(2[678])/.test(lever.pick), lever.pick);
+  ok('and it never claims the exemption twice', (() => {
+    const held = E.estateAtDeath({ ...E.DEFAULT_CONFIG }, { isa: 400000, cash: 300000 },
+      { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true, exemptCompensation: 300000,
+        compensationWindowEndYear: 2028, giftsFromYear: 2026, beneficiaries: [{ id: 'k', name: 'C', relationship: 'descendant', sharePct: 100, income: 0 }] });
+    const gifted = E.estateAtDeath({ ...E.DEFAULT_CONFIG }, { isa: 400000, cash: 0 },
+      { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true, exemptCompensation: 300000,
+        compensationWindowEndYear: 2028, giftsFromYear: 2026, gifts: [{ amount: 300000, year: 2027, exemptCompensation: true }],
+        beneficiaries: [{ id: 'k', name: 'C', relationship: 'descendant', sharePct: 100, income: 0 }] });
+    return gifted.exemptCompensation === 0 && Math.abs(gifted.netIncludingLifetimeGifts - held.netIncludingLifetimeGifts) < 1;
+  })(), 'money given away is no longer in the estate to disregard');
+
+  // and it is dropped once the window has shut
+  const shut = E.optimizeInheritance({ ...living,
+    inheritance: { ...living.inheritance, exemptCompensationDate: '2019-01-01' } });
+  const shutLever = shut.levers.find(l => l.key === 'compGift');
+  ok('a closed window offers nothing', shut.compensationWindow.endDate === '2027-12-04' &&
+    (shutLever.gain === 0 || /2027/.test(shutLever.pick)), `${shut.compensationWindow.endDate}: ${shutLever.pick}`);
+
+  /*
+   * Holding it is fine when the household will still have it: the same award, a house, and money to
+   * spare, and the honest answer is that giving it away gains nothing.
+   */
+  const comfortable = E.optimizeInheritance(household({
+    inh: { exemptCompensation: 300000, exemptCompensationDate: '2026-02-01' } }));
+  const noNeed = comfortable.levers.find(l => l.key === 'compGift');
+  ok('and nothing when the money will still be there', noNeed.gain === 0 && /already outside the estate/.test(noNeed.pick),
+    noNeed.pick);
+
+  /*
+   * A gift is money the heirs receive early. Ranking on the estate alone made every gift look like a loss
+   * of its own size against a few pounds of tax, so no candidate involving one could ever win - which is
+   * why the gift lever read zero on every household before this.
+   */
+  const spender = household({ deathAge: 88, pen: 900000, isa: 50000, other: 0, cash: 300000, home: 400000,
+    bens: [{ id: 'k', name: 'Child', relationship: 'descendant', sharePct: 100, income: 60000, age: 50 }] });
+  spender.spending.targetSpend = 60000;
+  const g = E.optimizeInheritance(spender).levers.find(l => l.key === 'gift');
+  ok('an ordinary gift can now win too', g.gain > 0, `${gbp(g.gain)}: ${g.pick}`);
+
+  /*
+   * Where the window really earns its keep: a death inside seven years. An ordinary gift would fail the
+   * seven-year test and eat the nil-rate band; a compensation gift inside the window does neither. On a
+   * long horizon the search often prefers an ordinary gift instead, which is correct - it does the same
+   * job and is not capped at the size of the award.
+   */
+  const soon = household({
+    demo: { currentAgeSelf: 78, terminalAge: 90 }, deathAge: 82, home: 0,
+    pen: 700000, isa: 0, other: 0, cash: 400000,
+    bens: [{ id: 'k', name: 'Child', relationship: 'descendant', sharePct: 100, income: 60000, age: 50 }],
+    inh: { exemptCompensation: 350000, exemptCompensationDate: '2026-02-01' }
+  });
+  soon.spending.targetSpend = 40000;
+  soon.spending.decumulationPolicy = 'Sequential';
+  const rSoon = E.optimizeInheritance(soon);
+  ok('with a death inside seven years the window beats an ordinary gift',
+    (rSoon.levers.find(l => l.key === 'compGift').gain) >= (rSoon.levers.find(l => l.key === 'gift').gain),
+    `compensation ${gbp(rSoon.levers.find(l => l.key === 'compGift').gain)} against ordinary ${gbp(rSoon.levers.find(l => l.key === 'gift').gain)}`);
+
+  // the action list has to name the deadline, because it is the one thing here that expires
+  const step = E.estateActionPlan(E.normalizePlan(living), {
+    ...r, best: { ...r.best, compGift: { amount: 350000, year: 2028, exemptCompensation: true } }
+  }).find(a => a.key === 'compGift');
+  ok('the action names the amount, the year and the deadline',
+    !!step && /£350,000/.test(step.title) && /2028/.test(step.title) && /2028-02-01/.test(step.body),
+    step ? step.title : 'no step');
+  ok('and warns what happens after it', !!step && /seven-year clock/.test(step.detail));
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

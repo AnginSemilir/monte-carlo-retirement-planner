@@ -666,13 +666,55 @@ console.log('=========== M. COMPENSATION THE TAX NEVER SEES ===========');
    * allowance consumed. Priced beside an identical ordinary gift, which eats £297,000 of the band.
    */
   const ordinary = E.estateAtDeath(cfg, w, { ...base, gifts: [{ amount: 300000, year: 2039 }] });
-  const compGift = E.estateAtDeath(cfg, w, { ...base, gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
+  const compGift = E.estateAtDeath(cfg, w, { ...base, compensationWindowEndYear: 2040,
+    gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
   ok('an ordinary gift inside seven years eats the allowance', ordinary.nrbUsedByGifts > 290000,
     `£${Math.round(ordinary.nrbUsedByGifts).toLocaleString()}`);
   ok('a compensation gift eats none of it', compGift.nrbUsedByGifts === 0 && compGift.gifts.length === 0);
   ok('and costs nothing in tax', compGift.iht < ordinary.iht,
     `£${Math.round(compGift.iht).toLocaleString()} against £${Math.round(ordinary.iht).toLocaleString()}`);
   ok('the flag survives a round trip through the plan', E.normalizeGifts([{ amount: 1000, year: 2030, exemptCompensation: true }])[0].exemptCompensation === true);
+
+  /*
+   * THE DEADLINE. Two years from the day the money was paid, or from 4 December 2025 for anyone already
+   * holding an award when the relief was announced - whichever is later. It is the one figure on this tab
+   * that expires, so a gift ticked as exempt but dated after it has to be priced as the ordinary transfer
+   * it has become, and said out loud rather than quietly downgraded.
+   */
+  const win = (d) => E.compensationWindow(cfg, d);
+  ok('two years run from the day of payment', win('2026-06-15').endDate === '2028-06-15', win('2026-06-15').endDate);
+  ok('and from the announcement for money already held', win('2019-01-01').endDate === '2027-12-04', win('2019-01-01').endDate);
+  ok('a payment on the announcement day gets the full two years', win('2025-12-04').endDate === '2027-12-04');
+  ok('no date, no window', win('') === null && win('not a date') === null);
+  ok('the last wholly safe year is the one before it ends', win('2026-06-15').lastFullYear === 2027);
+
+  const late = E.estateAtDeath(cfg, w, { ...base, compensationWindowEndYear: 2028,
+    gifts: [{ amount: 300000, year: 2035, exemptCompensation: true }] });
+  ok('a gift after the window is priced as an ordinary one', late.nrbUsedByGifts > 290000,
+    `£${Math.round(late.nrbUsedByGifts).toLocaleString()} of band eaten`);
+  ok('and the household is told', late.compensationGiftsMissed === true);
+  const timely = E.estateAtDeath(cfg, w, { ...base, compensationWindowEndYear: 2028,
+    gifts: [{ amount: 300000, year: 2028, exemptCompensation: true }] });
+  ok('one inside it costs nothing', timely.nrbUsedByGifts === 0 && timely.compensationGiftsMissed === false);
+  ok('missing the deadline is expensive', late.iht - timely.iht > 70000,
+    `£${Math.round(late.iht - timely.iht).toLocaleString()}`);
+  const noWindow = E.estateAtDeath(cfg, w, { ...base,
+    gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
+  ok('with no date entered the cautious reading applies', noWindow.nrbUsedByGifts > 290000 && noWindow.compensationGiftsMissed === true);
+
+  /*
+   * A gift is money the heirs receive early, not money that disappears. Counting only the estate made
+   * every gift look like a loss of its own size, so nothing involving a gift could ever win a comparison.
+   */
+  const given = E.estateAtDeath(cfg, w, { ...base, giftsFromYear: 2026,
+    gifts: [{ amount: 300000, year: 2028, exemptCompensation: true }] });
+  ok('a lifetime gift counts towards what the heirs get', near(given.giftsToHeirs, 300000),
+    `£${Math.round(given.giftsToHeirs).toLocaleString()}`);
+  ok('and the inclusive total is the two added together',
+    near(given.netIncludingLifetimeGifts, given.netToBeneficiaries + given.giftsToHeirs));
+  const older = E.estateAtDeath(cfg, w, { ...base, giftsFromYear: 2026,
+    gifts: [{ amount: 300000, year: 2020 }] });
+  ok('money handed over before the plan started is not counted again', older.giftsToHeirs === 0);
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

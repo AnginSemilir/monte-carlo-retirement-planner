@@ -403,7 +403,14 @@ const DEFAULT_CONFIG = {
   ihtRate: 40,                       // headline rate above the available bands
   ihtCharityRate: 36,                // reduced rate where the charitable legacy clears the test below
   ihtCharityThresholdPct: 10,        // % of the baseline estate that must go to charity to earn 36%
-  pensionsInEstateFrom: 2027,        // tax year from which unused pensions count as estate (Finance Act 2026)
+  pensionsInEstateFrom: 2027,
+  /*
+   * The window for giving exempt compensation away. Two years from the day it was paid - and for money
+   * received before the relief was announced on 4 December 2025, two years from that date instead, so
+   * nobody who was already holding an award lost the chance before it existed.
+   */
+  compensationGiftWindowYears: 2,
+  compensationGiftWindowFrom: '2025-12-04',        // tax year from which unused pensions count as estate (Finance Act 2026)
   pensionIncomeTaxFromAge: 75,       // death at or above this age makes inherited pension taxable on the beneficiary
   /*
    * Quick succession relief (s.141 IHTA 1984). Where someone inherits assets on which inheritance tax
@@ -653,7 +660,7 @@ const BLANK_PLAN = Object.freeze({
      * rather than a flag because only what is still HELD is exempt: spend it and there is nothing to
      * disregard.
      */
-    exemptCompensation: '',
+    exemptCompensation: '', exemptCompensationDate: '',
     // gifts already made: { id, amount, year, desc }
     gifts: [],
     /*
@@ -3114,7 +3121,17 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
    * a bank account. Being disregarded, it is also outside the £2m residence-band test, which falls out
    * of taking it off grossEstate before the taper is measured rather than after.
    */
-  const exemptComp = Math.min(Math.max(0, num(opts.exemptCompensation, 0)), willEstate);
+  const compWindowEndYr = num(opts.compensationWindowEndYear, NaN);
+  /*
+   * What has already been given away cannot also be sitting in the estate. Netting the qualifying gifts
+   * off the exemption is what stops the arithmetic paying twice - once for handing the money to an heir
+   * and again for disregarding it at death - which would have the search recommending a gift for a
+   * benefit that does not exist.
+   */
+  const compGifted = (Array.isArray(opts.gifts) ? opts.gifts : []).reduce((t, g) =>
+    (g.exemptCompensation && Number.isFinite(compWindowEndYr) && num(g.year, Infinity) <= compWindowEndYr)
+      ? t + Math.max(0, num(g.amount, 0)) : t, 0);
+  const exemptComp = Math.min(Math.max(0, num(opts.exemptCompensation, 0) - compGifted), willEstate);
   const willChargeable = Math.max(0, willEstate - exemptComp);
   const grossEstate = willChargeable + (pensionCounts ? pen : 0);
 
@@ -3162,9 +3179,11 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
    * clock and no nil-rate band consumed. Such a gift is therefore dropped from this machinery entirely
    * rather than given a special rate inside it - it has already left the plan on the projection side.
    */
+  const inWindow = (g) => !!g.exemptCompensation && Number.isFinite(compWindowEndYr) && num(g.year, Infinity) <= compWindowEndYr;
   const gifts = (Array.isArray(opts.gifts) ? opts.gifts : [])
-    .filter(g => !g.exemptCompensation)
-    .map(g => ({ amount: Math.max(0, num(g.amount, 0)), year: num(g.year, NaN), desc: g.desc }))
+    .filter(g => !inWindow(g))
+    .map(g => (g.exemptCompensation ? { ...g, windowMissed: true } : g))
+    .map(g => ({ amount: Math.max(0, num(g.amount, 0)), year: num(g.year, NaN), desc: g.desc, windowMissed: !!g.windowMissed }))
     .filter(g => g.amount > 0 && Number.isFinite(g.year))
     .map(g => ({ ...g, yearsBefore: deathYear - g.year }))
     .filter(g => g.yearsBefore >= 0)
@@ -3309,6 +3328,27 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
 
   const totalNet = beneficiaries.reduce((t, b) => t + b.net, 0);
   const totalIncomeTax = beneficiaries.reduce((t, b) => t + b.incomeTaxOnPension, 0);
+  /*
+   * WHAT THE HEIRS HAVE ALREADY BEEN HANDED.
+   *
+   * A gift is money that reaches them early, not money that vanishes. Counting only the estate makes
+   * every gift look like a loss of its own size against a few pounds of tax saved, so nothing that
+   * involves giving anything away can ever win a comparison - which is wrong, and wrong in the one
+   * direction that matters when the question is how to get the most to your family.
+   *
+   * Only gifts from `giftsFromYear` onward count. Money handed over before the plan starts is already
+   * theirs and has nothing to do with the choices being compared; including it would flatter every
+   * candidate by the same amount and mislead anyone reading the total.
+   */
+  const giftsFrom = num(opts.giftsFromYear, NaN);
+  const giftsToHeirs = Number.isFinite(giftsFrom)
+    ? (Array.isArray(opts.gifts) ? opts.gifts : []).reduce((t, g) => {
+      const y = num(g.year, NaN), amt = Math.max(0, num(g.amount, 0));
+      if (!Number.isFinite(y) || y < giftsFrom || y > deathYear || amt <= 0) return t;
+      const row = giftRows.find(r => r.year === y && Math.abs(r.amount - amt) < 1);
+      return t + amt - (row ? row.tax : 0);
+    }, 0)
+    : 0;
   return {
     grossEstate, liquid, pension: pen, pensionCounts, homeValue,
     nrb, nrbFull, nrbUsedByGifts: nrbFull - nrb, giftTax, gifts: giftRows,
@@ -3322,8 +3362,13 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     chargeable, iht, ihtBeforeRelief, qsrRelief, qsrPct, activeServiceExempt,
     incomeTaxOnPensions: totalIncomeTax,
     totalTax: iht + totalIncomeTax, netToBeneficiaries: totalNet,
+    giftsToHeirs, netIncludingLifetimeGifts: totalNet + giftsToHeirs,
     effectiveRatePct: grossEstate > 0 ? 100 * (1 - totalNet / grossEstate) : 0,
     exemptCompensation: exemptComp,
+    compensationWindowEndYear: Number.isFinite(compWindowEndYr) ? compWindowEndYr : null,
+    compensationGifted: compGifted,
+    // a gift ticked as compensation but made too late is an ordinary gift, and has to be said out loud
+    compensationGiftsMissed: (Array.isArray(opts.gifts) ? opts.gifts : []).some(g => g.exemptCompensation && !inWindow(g)),
     sharesDeclaredPct: declared, pensionSharesDeclaredPct: declaredPen, beneficiaries,
     // what the heirs actually receive between them, which includes a pension the estate is not taxed on
     inheritedTotal: willEstate + pen,
@@ -3528,16 +3573,57 @@ function estateForPlanAt(plan, ctx, rows) {
       qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
       qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
       exemptCompensation: num(inh.exemptCompensation, 0),
+      compensationWindowEndYear: (compensationWindow(plan.config, inh.exemptCompensationDate) || {}).endYear,
+      giftsFromYear: ctx.baseYear + 1,
       gifts: inh.gifts, beneficiaries: bens });
   const est = ctx.isCouple ? res.second : res;
-  // a plan that ran dry leaves its heirs nothing, whatever the estate arithmetic says about the year it
-  // was priced in - the money was needed before then
-  return { est, row, survived: ev.survived, net: ev.survived ? est.netToBeneficiaries : 0 };
+  /*
+   * Two totals, because two questions. `net` is what comes out of the estate, which is what the tab
+   * reports and what the bequest priority ranks policies on - none of which change the gifts. `netWithGifts`
+   * adds what the heirs were handed during the household's lifetime, and is what the optimiser ranks on,
+   * because it compares candidates that DO change the gifts and would otherwise treat every one of them
+   * as money thrown away.
+   *
+   * A plan that ran dry leaves nothing either way: the money was needed before the estate was ever valued.
+   */
+  return { est, row, survived: ev.survived,
+    net: ev.survived ? est.netToBeneficiaries : 0,
+    netWithGifts: ev.survived ? est.netIncludingLifetimeGifts : 0 };
 }
 
 function postTaxInheritanceFor(plan, ctx) {
   const r = estateForPlanAt(plan, ctx, simulateDeterministic(ctx, 'expected'));
   return r ? r.net : null;
+}
+
+/*
+ * When the door closes on giving exempt compensation away.
+ *
+ * Holding it is safe: it is outside the estate either way. Giving it to somebody else is the part with a
+ * deadline - two years from the day the money was paid, or two years from 4 December 2025 for anyone who
+ * was already holding an award when the relief was announced, whichever is later. Miss it and the same
+ * gift becomes an ordinary transfer with a seven-year clock and a nil-rate band to eat.
+ *
+ * Returned as a date as well as a year, because a plan that works in whole years would otherwise imply
+ * the deadline is the end of December when it is an anniversary.
+ */
+function compensationWindow(cfg, receivedDate) {
+  const c = { ...DEFAULT_CONFIG, ...(cfg || {}) };
+  if (!receivedDate) return null;
+  const received = new Date(receivedDate);
+  if (Number.isNaN(received.getTime())) return null;
+  const floor = new Date(c.compensationGiftWindowFrom || '2025-12-04');
+  const start = received > floor ? received : floor;
+  const end = new Date(start);
+  end.setFullYear(end.getFullYear() + Math.max(0, Math.round(num(c.compensationGiftWindowYears, 2))));
+  return {
+    receivedDate: received.toISOString().slice(0, 10),
+    startsFrom: start.toISOString().slice(0, 10),
+    endDate: end.toISOString().slice(0, 10),
+    endYear: end.getFullYear(),
+    // the last year in which the whole year is safe: a gift in endYear must beat the anniversary
+    lastFullYear: end.getFullYear() - 1
+  };
 }
 
 /*
@@ -3680,9 +3766,11 @@ function optimizeInheritance(rawPlan, opts = {}) {
         : plan.oneOffContributions,
       inheritance: {
         ...inh,
-        gifts: variant.gift > 0
-          ? [...(inh.gifts || []), { id: '__opt', amount: variant.gift, year: giftYear, desc: 'Gift' }]
-          : inh.gifts,
+        gifts: [
+          ...(inh.gifts || []),
+          ...(variant.gift > 0 ? [{ id: '__opt', amount: variant.gift, year: giftYear, desc: 'Gift' }] : []),
+          ...(variant.compGift ? [variant.compGift] : [])
+        ],
         beneficiaries: variant.split
           ? bens.map((b, i) => ({ ...b, pensionSharePct: variant.split[i] }))
           : bens
@@ -3693,7 +3781,8 @@ function optimizeInheritance(rawPlan, opts = {}) {
     const ctx = buildContext(resolveMpaa(p));
     runs++;
     const r = estateForPlanAt(p, ctx, simulateDeterministic(ctx, 'expected'));
-    return { ...variant, net: r.net, est: r.est, row: r.row, survived: r.survived, plan: p, ctx };
+    return { ...variant, net: r.netWithGifts, estateNet: r.net, est: r.est, row: r.row,
+      survived: r.survived, plan: p, ctx };
   };
 
   /*
@@ -3714,6 +3803,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
         qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
         qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         exemptCompensation: num(inh.exemptCompensation, 0),
+        compensationWindowEndYear: (compensationWindow(plan.config, inh.exemptCompensationDate) || {}).endYear,
         gifts: inh.gifts, beneficiaries: bens });
     if (!split || !split.changed || !(split.gain > 0)) return null;
     return evaluate({ ...c, split: split.pcts, splitShares: split.shares,
@@ -3792,6 +3882,28 @@ function optimizeInheritance(rawPlan, opts = {}) {
     }
     return out;
   };
+  /*
+   * GIVING THE COMPENSATION AWAY BEFORE THE WINDOW CLOSES.
+   *
+   * Holding it is already safe - it is outside the estate either way - so this only wins where the money
+   * would otherwise be eaten: the exemption is capped at what is still HELD at death, and a household
+   * that lives on the compensation arrives with less of it to disregard. Handing it over inside the
+   * window locks the whole amount away from both the tax and the spending, at the cost of not having it.
+   * Whether that trade is worth taking is exactly what the search is for.
+   */
+  const compAmount = Math.max(0, num(inh.exemptCompensation, 0));
+  const compWin = compensationWindow(plan.config, inh.exemptCompensationDate);
+  const compYears = compWin
+    ? [...Array(Math.max(0, compWin.endYear - baseCtx.baseYear)).keys()].map(i => baseCtx.baseYear + 1 + i)
+    : [];
+  const COMP_GIFTS = (compAmount > 1000 && compYears.length)
+    ? compYears.map(y => ({
+        year: y,
+        entry: { id: '__compgift', amount: compAmount, year: y, desc: 'Gift of exempt compensation', exemptCompensation: true },
+        label: `give the ${gbp0(compAmount)} of compensation away in ${y}`
+      }))
+    : [];
+
   const RECYCLES = [
     { key: ['pen'], label: 'top up the pension to its allowance each year' },
     { key: ['isa'], label: 'move unwrapped money into the ISA each year' },
@@ -3847,6 +3959,8 @@ function optimizeInheritance(rawPlan, opts = {}) {
   if (onStep) onStep({ label: 'Testing wrapper transfers', value: 0.6 });
   const soloRecycles = RECYCLES.map(r => evaluate({ ...baseline, gift: 0, split: null,
     recycle: r.entries, recycleKey: r.key.join('+'), label: joined(baseline.label, recycleLabel(r)) }));
+  const soloCompGifts = COMP_GIFTS.map(g => evaluate({ ...baseline, gift: 0, split: null,
+    compGift: g.entry, label: joined(baseline.label, g.label) }));
 
   // ---- stacked: the best order, then the best gift on top of it, then the best nomination on top again
   if (onStep) onStep({ label: 'Combining the best of each', value: 0.75 });
@@ -3856,10 +3970,13 @@ function optimizeInheritance(rawPlan, opts = {}) {
   const recycles = RECYCLES.map(r => evaluate({ ...bestGift, recycle: r.entries, recycleKey: r.key.join('+'),
     label: joined(bestGift.label, recycleLabel(r)) }));
   const bestRecycle = bestOf([bestGift, ...recycles]);
+  const compGifts = COMP_GIFTS.map(g => evaluate({ ...bestRecycle, compGift: g.entry,
+    label: joined(bestRecycle.label, g.label) }));
+  const bestComp = bestOf([bestRecycle, ...compGifts]);
   // the split goes last because it is free: it re-prices the estate the winner already reaches
-  const stackedSplit = withBestSplit(bestRecycle);
+  const stackedSplit = withBestSplit(bestComp);
   const noms = stackedSplit ? [stackedSplit] : [];
-  const best = bestOf([bestRecycle, ...noms]);
+  const best = bestOf([bestComp, ...noms]);
 
   /*
    * What each lever is worth ON ITS OWN, from the plan as it stands.
@@ -3877,6 +3994,10 @@ function optimizeInheritance(rawPlan, opts = {}) {
     { key: 'gift', label: 'A gift now', gain: alone(soloGifts), pick: pickOf(soloGifts, giftAmounts.length ? 'No gift helps here' : 'Nothing liquid to give') },
     { key: 'nomination', label: 'Who the pension goes to', gain: alone(soloNoms),
       pick: soloSplit ? splitLabel({ shares: soloSplit.splitShares }) : (bens.length > 1 ? 'No split beats the one you have' : 'Only one heir') },
+    { key: 'compGift', label: 'Giving the exempt compensation away', gain: alone(soloCompGifts),
+      pick: COMP_GIFTS.length
+        ? pickOf(soloCompGifts, `No: holding it is already outside the estate, and the window closes ${compWin ? compWin.endDate : ''}`)
+        : (compAmount > 1000 ? 'The two-year window has closed' : 'No exempt compensation entered') },
     { key: 'recycle', label: 'Moving money between wrappers', gain: alone(soloRecycles),
       pick: pickOf(soloRecycles, RECYCLES.length ? 'No transfer helps here' : 'Nothing spare to move, or no years left to move it') }
   ].sort((a, b) => b.gain - a.gain);
@@ -3921,8 +4042,10 @@ function optimizeInheritance(rawPlan, opts = {}) {
     const r = estateForPlanAt(p, ctx, simulateDeterministic(ctx, 'expected'));
     if (!r) return null;
     const charity = r.est.beneficiaries.find(b => b.id === '__charity');
-    return { pct, ratePct: r.est.ratePct, toCharity: charity ? charity.net : 0,
-      toFamily: r.net - (charity ? charity.net : 0), costToFamily: best.net - (r.net - (charity ? charity.net : 0)) };
+    const toCharity = charity ? charity.net : 0;
+    // measured on the same total the ranking uses, so the cost quoted is comparable with the gain above
+    const toFamily = r.netWithGifts - toCharity;
+    return { pct, ratePct: r.est.ratePct, toCharity, toFamily, costToFamily: best.net - toFamily };
   })();
 
   const spread = (() => {
@@ -3932,13 +4055,14 @@ function optimizeInheritance(rawPlan, opts = {}) {
         beneficiaries: normalizeBeneficiaries(best.plan.inheritance.beneficiaries).map(b => ({ ...b, spreadYears: yrs })) } };
       const ctx = buildContext(resolveMpaa(p));
       runs++;
-      return estateForPlanAt(p, ctx, simulateDeterministic(ctx, 'expected')).net;
+      return estateForPlanAt(p, ctx, simulateDeterministic(ctx, 'expected')).netWithGifts;
     };
     const slow = num(opts.slowSpreadYears, 20);
     return { years: slow, net: at(slow), gain: at(slow) - best.net };
   })();
 
-  const ranked = [baseline, ...orders, ...ceilings, ...soloGifts, ...soloNoms, ...soloRecycles, ...gifts, ...noms, ...recycles]
+  const ranked = [baseline, ...orders, ...ceilings, ...soloGifts, ...soloNoms, ...soloRecycles, ...soloCompGifts,
+    ...gifts, ...noms, ...recycles, ...compGifts]
     .filter(viable)
     .sort((a, b) => b.net - a.net)
     .filter((c, i, all) => i === 0 || Math.abs(c.net - all[i - 1].net) > 1)   // drop exact duplicates
@@ -3946,16 +4070,16 @@ function optimizeInheritance(rawPlan, opts = {}) {
     .map(c => ({ label: c.label, net: c.net, iht: c.est.iht, incomeTax: c.est.incomeTaxOnPensions,
       qsrRelief: c.est.qsrRelief,
       policy: c.policy, drawdown: c.drawdown, harvest: c.harvest, ceiling: c.ceiling, gift: c.gift,
-      split: c.split || null, recycleKey: c.recycleKey || null }));
+      split: c.split || null, recycleKey: c.recycleKey || null, compGift: c.compGift || null }));
 
   return {
-    deathAge, runs, liquidToday, giftYear,
+    deathAge, runs, liquidToday, giftYear, compensationWindow: compWin, exemptCompensation: compAmount,
     baseline: { label: baseline.label, net: baseline.net, iht: baseline.est.iht,
       incomeTax: baseline.est.incomeTaxOnPensions, qsrRelief: baseline.est.qsrRelief, qsrPct: baseline.est.qsrPct },
     best: { label: best.label, net: best.net, iht: best.est.iht, incomeTax: best.est.incomeTaxOnPensions,
       policy: best.policy, drawdown: best.drawdown, harvest: best.harvest, ceiling: best.ceiling,
       gift: best.gift, split: best.split || null, splitShares: best.splitShares || null,
-      recycle: best.recycle || null, recycleKey: best.recycleKey || null,
+      recycle: best.recycle || null, recycleKey: best.recycleKey || null, compGift: best.compGift || null,
       recycleLabel: best.recycleKey ? (RECYCLES.find(r => r.key.join('+') === best.recycleKey) || {}).label : null },
     gain: best.net - baseline.net,
     levers, reasons, ranked, charity: withCharity, spread,
@@ -4127,8 +4251,20 @@ function estateActionPlan(plan, result) {
     });
   }
 
+  // 5b. the compensation gift, which has a deadline nothing else here has
+  if (b.compGift) {
+    const w = result.compensationWindow;
+    out.push({
+      key: 'compGift',
+      title: `Give the ${gbp(b.compGift.amount)} of compensation away in ${b.compGift.year}`,
+      body: `Hand it to the people you want to have it, and keep the paperwork showing what the payment was and when you received it.`
+        + (w ? ` The window closes on ${w.endDate} — two years from the day you were paid, or from 4 December 2025 if you were already holding it when the relief was announced.` : ''),
+      detail: 'Inside the window it costs no allowance and starts no seven-year clock. After it, the same gift is an ordinary transfer that eats your nil-rate band and needs you to survive seven years. Worth doing here because the money would otherwise be spent before it could be left to anyone.'
+    });
+  }
+
   // 6. keeping the paperwork consistent, which is the step that gets skipped
-  if (b.split || b.gift > 0) {
+  if (b.split || b.gift > 0 || b.compGift) {
     out.push({
       key: 'paperwork',
       title: 'Tell whoever holds your will',
@@ -4149,7 +4285,7 @@ function estateActionPlan(plan, result) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, compensationWindow, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -5134,6 +5270,7 @@ export default function App() {
         qsrInheritedValue: E.num(inh.qsrInheritedValue, 0), qsrTaxPaid: E.num(inh.qsrTaxPaid, 0),
         qsrYearsBefore: E.num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         exemptCompensation: E.num(inh.exemptCompensation, 0),
+        compensationWindowEndYear: (E.compensationWindow(plan?.config, inh.exemptCompensationDate) || {}).endYear,
         gifts: inh.gifts, beneficiaries: bens
       });
       const est = isCouple ? res.second : res;
@@ -5642,6 +5779,8 @@ export default function App() {
   const updateGift = (id, patch) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).map(g => g.id === id ? { ...g, ...patch } : g) } }));
   const deleteGift = (id) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).filter(g => g.id !== id) } }));
   const surplusGiftAnnual = Math.max(0, E.num(plan?.inheritance?.surplusGift?.annual, 0));
+  const compWindow = useMemo(() => E.compensationWindow(plan?.config, plan?.inheritance?.exemptCompensationDate),
+    [plan?.config, plan?.inheritance?.exemptCompensationDate]);
   const updateSurplusGift = (field, value) => setPlan(prev => ({
     ...prev,
     inheritance: {
@@ -5985,9 +6124,11 @@ export default function App() {
         oneOffContributions: [...(prev.oneOffContributions || []), ...(b.recycle || []).map(x => ({ ...x, id: 'c_' + Math.random().toString(36).slice(2) }))],
         inheritance: {
           ...inh,
-          gifts: b.gift > 0
-            ? [...(inh.gifts || []), { id: 'gift_' + Date.now(), amount: Math.round(b.gift), year: estatePlan.giftYear, desc: 'Gift (estate plan)' }]
-            : inh.gifts,
+          gifts: [
+            ...(inh.gifts || []),
+            ...(b.gift > 0 ? [{ id: 'gift_' + Date.now(), amount: Math.round(b.gift), year: estatePlan.giftYear, desc: 'Gift (estate plan)' }] : []),
+            ...(b.compGift ? [{ ...b.compGift, id: 'gift_c' + Date.now() }] : [])
+          ],
           beneficiaries: b.split
             ? E.normalizeBeneficiaries(inh.beneficiaries).map((x, i) => ({ ...x, pensionSharePct: b.split[i] }))
             : inh.beneficiaries
@@ -7694,7 +7835,7 @@ export default function App() {
                       className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
                       <Check className="w-3.5 h-3.5" /> Apply this allocation
                     </button>
-                    <span className="text-[10px] text-slate-400">Writes the withdrawal order{estatePlan.best.gift > 0 ? ', the gift' : ''}{estatePlan.best.split ? ', the nomination' : ''}{estatePlan.best.recycle ? ' and the transfers' : ''} into your plan. {estatePlan.runs} projections were run to find it.</span>
+                    <span className="text-[10px] text-slate-400">Writes the withdrawal order{estatePlan.best.gift > 0 ? ', the gift' : ''}{estatePlan.best.split ? ', the nomination' : ''}{estatePlan.best.recycle ? ', the transfers' : ''}{estatePlan.best.compGift ? ' and the compensation gift' : ''} into your plan. {estatePlan.runs} projections were run to find it.</span>
                   </div>
                 </div>
               )}
@@ -7988,13 +8129,30 @@ export default function App() {
                         <label className="text-slate-600 font-semibold block mb-1">Amount still held</label>
                         <input type="number" min="0" step="1000" placeholder="0" data-exempt-compensation onFocus={handleFocus} value={plan?.inheritance?.exemptCompensation ?? ''} onChange={(e) => updateInheritance('exemptCompensation', parseInputNumber(e.target.value))} className={inputCls} />
                       </div>
+                      <div>
+                        <label className="text-slate-600 font-semibold block mb-1">Date you received it</label>
+                        <input type="date" data-exempt-compensation-date value={plan?.inheritance?.exemptCompensationDate ?? ''} onChange={(e) => updateInheritance('exemptCompensationDate', e.target.value)} className={inputCls} />
+                      </div>
                       {inheritanceView.chosen && inheritanceView.chosen.exemptCompensation > 0 && (
-                        <div className="sm:col-span-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 self-end">
+                        <div className="sm:col-span-3 p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900">
                           {formatGBP(inheritanceView.chosen.exemptCompensation)} is left out of the estate for tax at your chosen death age, saving <strong>{formatGBP(inheritanceView.chosen.exemptCompensation * inheritanceView.chosen.ratePct / 100)}</strong> &mdash; and your heirs still receive it. It is also outside the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band test.
                         </div>
                       )}
                     </div>
-                    <span className="text-[10px] text-amber-700 mt-1.5 block">A gift of this money is exempt too, if it is made inside the window the scheme allows &mdash; two years from payment for the infected blood scheme. Tick <strong>&ldquo;exempt compensation&rdquo;</strong> on the gift row and it costs no allowance and starts no seven-year clock. The window is a fact about your payment date that this tool cannot check for you.</span>
+                    {/* The deadline, spelled out. It is the one fact here that expires. */}
+                    {compWindow ? (
+                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-900 leading-relaxed">
+                        <strong>You have until {compWindow.endDate} to give this money away free of inheritance tax</strong> &mdash; two years from the day you were paid, or from {E.DEFAULT_CONFIG.compensationGiftWindowFrom} if you were already holding it when the relief was announced, whichever is later. Tick <strong>&ldquo;exempt compensation&rdquo;</strong> on a gift dated inside that and it costs no allowance and starts no seven-year clock. A gift in {compWindow.endYear} itself has to beat the anniversary, not the year end.
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-amber-700 mt-1.5 block">Enter the date you were paid and the tab will work out your two-year gifting deadline. Without it, a gift ticked as exempt compensation is treated as an ordinary gift &mdash; the cautious reading, since the window cannot be checked.</span>
+                    )}
+                    {inheritanceView.chosen && inheritanceView.chosen.compensationGiftsMissed && (
+                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <span>One of your gifts is ticked as exempt compensation but is dated after {compWindow ? compWindow.endYear : 'the window'}. It is being priced as an ordinary gift: seven-year clock, and it eats your nil-rate band.</span>
+                      </div>
+                    )}
                   </div>
                   <div className="pt-2 border-t border-slate-200">
                     <div className="text-slate-700 font-semibold mb-1">Did you inherit something in the last five years, on which inheritance tax was paid?</div>
@@ -8394,14 +8552,15 @@ export default function App() {
               <p className="text-xs text-slate-600 leading-relaxed">The exemption for <em>normal expenditure out of income</em> (s.21) is immediate, unlimited and needs no seven years: a habitual gift, paid from income rather than capital, that leaves your standard of living intact. This is the only gift that helps someone who does not expect to live seven years, and it is claimed by the executors on form IHT403 — which is far easier when the giver kept a record. The plan checks the arithmetic half of the test, comparing the gift against guaranteed income and earnings less living costs, in the <em>leanest</em> year rather than on average. It excludes pension drawdown from that income figure even though HMRC will often accept regular pension income, because a gift that fails the test becomes an ordinary transfer with a seven-year clock. Whether the gift is genuinely habitual is a question about a pattern of behaviour that no calculator can settle.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">The estate optimiser, and what it will not do</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">The Inheritance tab carries a second search, for households the contributions tournament cannot help because nothing is being paid in. It ranks five choices on one number &mdash; what the heirs keep, after inheritance tax and after their own income tax on drawing an inherited pension down: the <strong>order you draw wrappers down</strong>, <strong>how far up the tax bands you draw the pension each year</strong>, a <strong>gift now</strong>, <strong>how the pension is split between the people inheriting it</strong>, and <strong>moving money between wrappers up to the allowances</strong> (including the £3,600 a year that basic-rate relief buys for £2,880 even with no earnings at all). Each lever is also measured on its own, against your plan untouched, because crediting whichever was searched first with everything the others deliver would send you after the wrong one.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">The Inheritance tab carries a second search, for households the contributions tournament cannot help because nothing is being paid in. It ranks six choices on one number &mdash; what the heirs keep, counting both the estate and anything handed over in the meantime, after inheritance tax and after their own income tax on drawing an inherited pension down: the <strong>order you draw wrappers down</strong>, <strong>how far up the tax bands you draw the pension each year</strong>, a <strong>gift now</strong>, <strong>how the pension is split between the people inheriting it</strong>, <strong>moving money between wrappers up to the allowances</strong> (including the £3,600 a year that basic-rate relief buys for £2,880 even with no earnings at all), and <strong>giving exempt compensation away before its window closes</strong>. Each lever is also measured on its own, against your plan untouched, because crediting whichever was searched first with everything the others deliver would send you after the wrong one.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Two of those deserve a note. <strong>Drawing the pension past the tax-free allowance</strong> costs 20% today and only pays off if you die at 75 or over, when the pension is taxed twice &mdash; by the estate, then by the heir. The sign flips on the death age, so it is searched rather than recommended. And the <strong>pension split</strong> is swept in 5% steps rather than handed to whoever earns least, because that rule of thumb breaks on a large pot: £1.5m drawn over five years reaches the additional rate whoever receives it, while splitting it uses two sets of allowances. On one household here, half to a four-year-old and half to a £150,000 earner beat all of it to the four-year-old by £18,842.</p>
               <p className="text-xs text-slate-600 leading-relaxed">One thing the search will tell you it cannot improve: <strong>who receives which asset under your will</strong>. Inheritance tax is charged on the estate before it is divided, so among beneficiaries who are all taxable, giving one the house and another the ISA changes who gets what and not what survives. It moves the total only when someone exempt is named &mdash; a spouse or a charity &mdash; and then it is a question about who you want to benefit rather than about tax.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Two things it deliberately refuses. It will not search <strong>how long your heirs take the pension</strong>, because that is their decision made after your death, and a candidate that won by assuming twenty years of patience from someone else would not be a plan &mdash; it is reported as a sensitivity instead. And it will not rank a <strong>charitable gift</strong>: leaving 10% cuts the rate from 40% to 36% but always leaves the family with less, so ranking it on what the heirs keep would score a donation as a failure. The cost and the benefit are both shown, and the choice stays yours. Nor will it recommend anything that leaves you short: a variant that breaks a plan which otherwise survives is rejected rather than ranked, however well it does for the estate.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Compensation the tax never sees</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Payments under the <strong>infected blood scheme</strong> administered by IBCA are exempt from income tax, capital gains tax and inheritance tax, and where the eligible infected or affected person had already died when payment was made, the first living recipient carries an <strong>inheritance tax credit</strong> so the value passes on without a charge on their own death. Post Office Horizon, Windrush, Grenfell, the Troubles Permanent Disablement scheme and vaccine damage payments carry their own exemptions. The plan models this as an amount left out of the estate when the tax is worked out while still being received by the heirs &mdash; which also puts it outside the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band test. Enter what is still <em>held</em>: spend it and there is nothing to disregard.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">A gift of that money is exempt too, inside the window the scheme allows &mdash; two years from payment under the infected blood scheme. A gift ticked as exempt compensation is dropped from the seven-year machinery entirely: it costs no allowance and starts no clock. Whether your payment is inside its window is a fact about your own dates, and no figure here checks it for you.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">A gift of that money is exempt too, but only inside a window: <strong>two years from the day you were paid</strong>, or two years from 4 December 2025 for anyone already holding an award when the relief was announced, whichever is later. Enter the date and the tab works out your deadline. A gift ticked as exempt compensation and dated inside it is dropped from the seven-year machinery entirely; one dated after it is priced as the ordinary transfer it has become, and the tab says so rather than quietly downgrading it. With no date entered, the cautious reading applies and the gift is treated as ordinary.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Giving it away is not automatically better than keeping it, and the optimiser will tell you which. Holding it is already outside the estate, so the window only earns its keep where the money would otherwise be <em>spent</em> before it could be left to anyone &mdash; or where death falls inside seven years, when an ordinary gift would still be caught. What the search will never do is count it twice: money given away is no longer in the estate to be disregarded, and the exemption is reduced by what has gone.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Business Relief, and why it is absent</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Business Relief is the largest thing this tab does not model. Qualifying trading businesses, unquoted shares and AIM-listed shares can escape inheritance tax in whole or in part, which makes reallocating a portfolio into them the classic estate-planning move — and it is not offered here, deliberately, for three reasons. The relief needs the asset to have been <strong>owned for two years</strong> at death, so it is exactly the wrong tool for someone who has just been given a short prognosis. The regime changed from 6 April 2026: relief is no longer unlimited, an allowance applies above which relief falls to 50%, and AIM shares now attract 50% relief in every case rather than 100%. And the assets that qualify carry investment risk far above anything else in this plan, so a tool that modelled the tax saving without modelling that risk would be recommending a trade on half the picture. If it matters to your estate, it is a conversation with an adviser, and the figures on this tab will be too low.</p>

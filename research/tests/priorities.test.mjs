@@ -16,7 +16,13 @@ const mk = (id, successRate, p10, median, extra = {}) => ({ id, stats: {
 
 console.log('=========== A. THE DEFAULT REPRODUCES THE OLD RANKING ===========');
 ok('picks the clear survival winner', E.pickBest([mk('a', 80, 10, 10), mk('b', 92, 5, 5), mk('c', 85, 99, 99)]).id === 'b');
-ok('breaks a near-tie on the downside pot', E.pickBest([mk('a', 92.0, 10, 10), mk('b', 91.7, 900, 10)]).id === 'b');
+/*
+ * Figures are realistic on purpose. This fixture used to read (10 vs 900), and the £1,000 tolerance
+ * floor correctly began treating an £890 gap in a 10th-percentile pot as the noise it is. The test is
+ * about a near-tie on survival being broken by a MATERIALLY better downside pot, so the amounts have to
+ * be material.
+ */
+ok('breaks a near-tie on the downside pot', E.pickBest([mk('a', 92.0, 100000, 100000), mk('b', 91.7, 400000, 100000)]).id === 'b');
 ok('does not break a REAL survival gap on the pot', E.pickBest([mk('a', 92.0, 10, 10), mk('b', 88.0, 900, 900)]).id === 'a');
 
 console.log('\n=========== B. A RANKING, NOT A TIE-BREAK ===========');
@@ -143,6 +149,30 @@ console.log('\n=========== G. THE SURVIVAL GUARD: A PREFERENCE CANNOT COST UNLIM
     `bound=${boundExp.guardBound} ruledOut=${boundExp.guardRuledOut}`);
   const freeExp = E.explainPick(reasonable, { priorities: ['pot', 'survive'] });
   ok('and stays silent when it did not', freeExp.guardBound === false);
+}
+
+console.log('\n=========== H. TOLERANCES DO NOT COLLAPSE NEAR ZERO ===========');
+{
+  /*
+   * A purely relative tolerance vanishes as its reference approaches zero, and lifetime tax is
+   * MINIMISED - so its reference is the smallest achievable figure. On a household where some policy
+   * gets tax near zero, 3% of it is near zero, and every rival becomes "meaningfully worse" by an
+   * unbounded multiple. Measurement showed exactly that: losses reported at 2.1 trillion times the
+   * threshold, which is a divide-by-nothing wearing a statistic's clothing.
+   */
+  ok('the money tolerance has an absolute floor', E.MONEY_EPSILON_FLOOR > 0, `£${E.MONEY_EPSILON_FLOOR}`);
+  const m = E.PRIORITY_METRICS.tax;
+  ok('a near-zero reference still yields a usable tolerance', m.epsilon(0) === E.MONEY_EPSILON_FLOOR, String(m.epsilon(0)));
+  ok('and a large reference still scales relatively', m.epsilon(10000000) > E.MONEY_EPSILON_FLOOR * 10, String(m.epsilon(10000000)));
+
+  // two candidates whose tax differs by less than the floor must count as tied, letting the next
+  // priority decide, rather than the first one splitting hairs over pennies
+  const hairs = [mk('a', 88, 100, 100, { medianLifetimeTax: 0 }), mk('b', 95, 100, 100, { medianLifetimeTax: 400 })];
+  ok('a sub-floor tax difference does not override survival',
+    E.pickBest(hairs, { priorities: ['tax', 'survive'] }).id === 'b');
+  // but a real difference still does
+  const real = [mk('a', 88, 100, 100, { medianLifetimeTax: 0 }), mk('b', 89, 100, 100, { medianLifetimeTax: 90000 })];
+  ok('a material tax difference still decides', E.pickBest(real, { priorities: ['tax', 'survive'] }).id === 'a');
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

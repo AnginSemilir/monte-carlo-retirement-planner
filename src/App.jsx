@@ -432,6 +432,18 @@ const defaultAccounts = () => [
  */
 const RATE_EPSILON_PTS = 1.0;
 const MONEY_EPSILON_REL = 0.03;
+/*
+ * A purely relative tolerance collapses as its reference approaches zero, and one of these metrics
+ * routinely does. Lifetime tax is MINIMISED, so the reference is the smallest achievable figure - and
+ * on a household where some policy gets tax near zero, 3% of it is near zero too, making the tax
+ * priority infinitely strict: every rival becomes "meaningfully worse" by an unbounded multiple. The
+ * same collapse inflates the downside-pot tolerance on plans that end close to broke.
+ *
+ * So every money tolerance has a floor. £1,000 over a whole retirement is not a difference anyone
+ * should re-plan around, which makes it a safe floor rather than an arbitrary one.
+ */
+const MONEY_EPSILON_FLOOR = 1000;
+const moneyEpsilon = (v) => Math.max(MONEY_EPSILON_FLOOR, Math.abs(v) * MONEY_EPSILON_REL);
 
 /*
  * A HARD LIMIT ON WHAT A STATED PREFERENCE MAY COST IN SAFETY.
@@ -483,19 +495,19 @@ const PRIORITY_METRICS = {
     label: 'Leaving as much behind as possible',
     why: 'Ranks on what your heirs actually receive after inheritance tax and their own income tax. Needs the Inheritance tab filled in; without it, falls back to the pot left at your final age.',
     serves: 'Favours keeping wealth in wrappers that are taxed once rather than twice, which since 2027 means not leaving an oversized pension behind for heirs who would pay income tax on it as well.',
-    get: (st) => st.postTaxInheritance ?? st.medianTerminalNet ?? st.medianTerminal, higherIsBetter: true, epsilon: (v) => Math.abs(v) * MONEY_EPSILON_REL
+    get: (st) => st.postTaxInheritance ?? st.medianTerminalNet ?? st.medianTerminal, higherIsBetter: true, epsilon: moneyEpsilon
   },
   pot: {
     label: 'The biggest expected pot',
     why: 'Ranks on the typical pot at your final age, before any death tax.',
     serves: 'Favours deferring the pension, because money left inside it compounds untaxed - which is also why this can flatter a pot that still owes income tax on the way out.',
-    get: (st) => st.medianTerminal, higherIsBetter: true, epsilon: (v) => Math.abs(v) * MONEY_EPSILON_REL
+    get: (st) => st.medianTerminal, higherIsBetter: true, epsilon: moneyEpsilon
   },
   downside: {
     label: 'Protecting the bad case',
     why: 'Ranks on the pot in the worst one lifetime in ten, rather than the typical one.',
     serves: 'Favours steady tax smoothing over anything that concentrates a tax bill or a capital gain into a single year.',
-    get: (st) => st.p10TerminalNet ?? st.p10Terminal, higherIsBetter: true, epsilon: (v) => Math.abs(v) * MONEY_EPSILON_REL
+    get: (st) => st.p10TerminalNet ?? st.p10Terminal, higherIsBetter: true, epsilon: moneyEpsilon
   },
   bridge: {
     label: 'Getting safely to pension age',
@@ -507,7 +519,7 @@ const PRIORITY_METRICS = {
     label: 'Paying the least tax over your lifetime',
     why: 'Ranks on total income tax paid across the whole plan.',
     serves: 'Favours spreading pension income thinly across many years instead of a few large withdrawals. Worth knowing this is a poor proxy for wealth: paying 20% now often beats deferring to 40% later.',
-    get: (st) => st.medianLifetimeTax ?? 0, higherIsBetter: false, epsilon: (v) => Math.abs(v) * MONEY_EPSILON_REL
+    get: (st) => st.medianLifetimeTax ?? 0, higherIsBetter: false, epsilon: moneyEpsilon
   }
 };
 
@@ -2948,7 +2960,7 @@ function postTaxInheritanceFor(plan, ctx) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MAX_SURVIVAL_SACRIFICE_PTS, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 

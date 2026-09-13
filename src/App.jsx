@@ -377,6 +377,13 @@ const DEFAULT_CONFIG = {
   // Behavioural / modelling assumptions
   cashBufferMonths: 6,               // months of spending kept in cash before surplus income is swept to ISA
   harvestPersonalAllowance: true,    // in retirement draw pension to fill unused 0% allowance and move it to ISA
+  /*
+   * How far up the bands that harvest goes: 'pa' stops at the tax-free allowance, 'basic' keeps drawing
+   * to the basic-rate limit and pays 20% on the way. The second is a bequest strategy rather than a
+   * spending one - it moves a pension that will be taxed twice after 2027 (inheritance tax, then the
+   * heir's own rate) into wrappers that are taxed once, at a rate you choose now.
+   */
+  harvestCeiling: 'pa',
   pensionDeathTaxRate: 0,            // % haircut applied to any pension left at the terminal age when reporting "net" pots (IHT / beneficiary income tax)
   /*
    * Inheritance tax. Published figures for 2026/27; every one is overridable because three of the four
@@ -1461,6 +1468,7 @@ function buildContext(rawPlan) {
     spendBands,
     fullLumpSum: s.drawdownStrategy === 'Full 25% Lump Sum',
     policyKey: s.decumulationPolicy, policySteps: policy.steps, harvestPA: policy.harvest && !!c.harvestPersonalAllowance,
+    harvestCeiling: c.harvestCeiling === 'basic' ? 'basic' : 'pa',
     costSteps: policy.costSteps || DEFAULT_COST_STEPS, depositOrder: policy.depositOrder || null,
     pensionDeathTaxRate: clamp(num(c.pensionDeathTaxRate, 0), 0, 100) / 100,
     cashBufferYears: clamp(num(c.cashBufferMonths, 6), 0, 120) / 12,
@@ -1753,18 +1761,32 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
     }
   }
 
-  // 7b. harvest unused 0% allowance from pensions (retired, accessible) into ISA / cash
+  /*
+   * 7b. Harvest from the pension beyond what the year needs, and re-wrap it.
+   *
+   * The ceiling decides what this is FOR. Stopping at the personal allowance is free money: income drawn
+   * at 0% that would otherwise sit in a pension. Going on to the basic-rate limit costs 20% now, and is
+   * a bequest trade rather than a spending one - after 2027 a pension left behind is taxed twice, by the
+   * estate and then by the heir at their own rate, so paying 20% today can beat both.
+   *
+   * The surplus fills the ISA first and lands in the GIA after that. At the personal-allowance ceiling
+   * the ISA almost always absorbs the whole thing, so this matters mainly at the basic-rate ceiling,
+   * where leaving tens of thousands a year in cash would understate the strategy by its own drag.
+   */
   if (ctx.harvestPA && anyRetired) {
+    const harvestCeil = ctx.harvestCeiling === 'basic' ? P.higherRateStartsAt : P.pa;
     owners.forEach(o => {
       if (working[o.key] || !access[o.key]) return;
-      if ((pots[o.ids.pen] || 0) <= 0 || taxable[o.key] >= P.pa) return;
-      const net = drawPension(o.key, 1e12, P.pa);
+      if ((pots[o.ids.pen] || 0) <= 0 || taxable[o.key] >= harvestCeil) return;
+      const net = drawPension(o.key, 1e12, harvestCeil);
       if (net > 0) {
         const isaRoom = Math.max(0, P.isaAllowance - isaContribThisYear[o.key]);
         const toIsa = Math.min(net, isaRoom);
         pots[o.ids.isa] = (pots[o.ids.isa] || 0) + toIsa;
         isaContribThisYear[o.key] += toIsa;
-        pots[o.ids.cash] = (pots[o.ids.cash] || 0) + (net - toIsa);
+        const toGia = net - toIsa;
+        pots[o.ids.other] = (pots[o.ids.other] || 0) + toGia;
+        if (cgtOn && toGia > 0) giaAddBasis(state, o.key, toGia);   // deposited at cost: no gain created
         harvested += net;
       }
     });
@@ -3484,6 +3506,83 @@ function postTaxInheritanceFor(plan, ctx) {
 }
 
 /*
+ * THE BEST SPLIT OF THE PENSION ACROSS THE PEOPLE INHERITING IT.
+ *
+ * Worth doing properly, because the obvious answer is wrong. "Leave it to whoever earns least" fails as
+ * soon as the pot is large: £1.5m drawn over five years is £300,000 a year, which reaches the additional
+ * rate whoever receives it, while splitting the same pot between two people uses two sets of allowances
+ * and two basic-rate bands. On one household here, half to a four-year-old and half to a £150,000 earner
+ * beat all of it to the four-year-old by £18,842 - a result no rule of thumb produces.
+ *
+ * It is also nearly free to search. The nomination changes NOTHING about the projection - the money is
+ * spent the same way while the household is alive - so each candidate is one estate calculation rather
+ * than a full run. That affords an exhaustive sweep in 5% steps for two or three heirs, and a hill-climb
+ * for four or more, where the exhaustive grid would run to tens of thousands of combinations.
+ *
+ * Only heirs who actually pay income tax on an inherited pension are moved. A charity pays none and a
+ * spouse's own tax position is their own; shuffling shares between people the tax does not distinguish
+ * would produce a different-looking answer worth exactly the same, which is worse than saying nothing.
+ */
+const PENSION_SPLIT_STEP = 5;
+
+function bestPensionSplit(cfg, wrappers, opts = {}) {
+  const bens = normalizeBeneficiaries(opts.beneficiaries);
+  if (bens.length < 2) return null;
+  const price = (pcts) => estateAtDeath(cfg, wrappers, {
+    ...opts, beneficiaries: bens.map((b, i) => ({ ...b, pensionSharePct: pcts[i] }))
+  }).netToBeneficiaries;
+
+  const start = bens.map(b => b.penPct);
+  const total = start.reduce((t, x) => t + x, 0);
+  const asEntered = total > 0 ? start.map(x => Math.round(100 * x / total)) : bens.map(() => Math.round(100 / bens.length));
+  const n = bens.length;
+  let best = { pcts: asEntered, net: price(asEntered) };
+  const consider = (pcts) => { const net = price(pcts); if (net > best.net + 0.5) best = { pcts, net }; };
+
+  if (n <= 3) {
+    // exhaustive in 5% steps: 21 combinations for two heirs, 231 for three
+    const steps = 100 / PENSION_SPLIT_STEP;
+    const walk = (i, left, acc) => {
+      if (i === n - 1) { consider([...acc, left * PENSION_SPLIT_STEP]); return; }
+      for (let k = 0; k <= left; k++) walk(i + 1, left - k, [...acc, k * PENSION_SPLIT_STEP]);
+    };
+    walk(0, steps, []);
+  } else {
+    /*
+     * Hill-climb from three seeds - as entered, an even split, and everything to the lowest earner -
+     * moving 5% at a time between every pair and keeping any move that helps. Multiple seeds because a
+     * single one can settle in a local dip: the even split and the concentrated one fail in opposite
+     * directions, so between them they bracket the answer.
+     */
+    const lowest = bens.map((b, i) => ({ i, income: b.income })).sort((a, b) => a.income - b.income)[0].i;
+    const seeds = [asEntered, bens.map(() => Math.round(100 / n)), bens.map((_, i) => i === lowest ? 100 : 0)];
+    seeds.forEach(seed => {
+      let cur = { pcts: seed, net: price(seed) };
+      if (cur.net > best.net) best = cur;
+      for (let pass = 0; pass < 40; pass++) {
+        let moved = false;
+        for (let a = 0; a < n && !moved; a++) for (let b = 0; b < n && !moved; b++) {
+          if (a === b || cur.pcts[a] < PENSION_SPLIT_STEP) continue;
+          const trial = [...cur.pcts];
+          trial[a] -= PENSION_SPLIT_STEP; trial[b] += PENSION_SPLIT_STEP;
+          const net = price(trial);
+          if (net > cur.net + 0.5) { cur = { pcts: trial, net }; moved = true; }
+        }
+        if (!moved) break;
+      }
+      if (cur.net > best.net) best = cur;
+    });
+  }
+
+  const asEnteredNet = price(asEntered);
+  return {
+    pcts: best.pcts, net: best.net, asEnteredNet, gain: best.net - asEnteredNet,
+    shares: bens.map((b, i) => ({ id: b.id, name: b.name, pct: best.pcts[i] })),
+    changed: best.pcts.some((x, i) => Math.abs(x - asEntered[i]) > 0.5)
+  };
+}
+
+/*
  * THE MOST EFFICIENT ALLOCATION, SEARCHED RATHER THAN ASSERTED.
  *
  * Everything else on the Inheritance tab prices what the household typed. This searches the choices
@@ -3541,7 +3640,6 @@ function optimizeInheritance(rawPlan, opts = {}) {
     const p = {
       ...plan,
       spending: { ...plan.spending, decumulationPolicy: variant.policy, drawdownStrategy: variant.drawdown },
-      config: { ...plan.config, harvestPersonalAllowance: variant.harvest },
       oneOffContributions: variant.recycle && variant.recycle.length
         ? [...(plan.oneOffContributions || []), ...variant.recycle]
         : plan.oneOffContributions,
@@ -3550,21 +3648,46 @@ function optimizeInheritance(rawPlan, opts = {}) {
         gifts: variant.gift > 0
           ? [...(inh.gifts || []), { id: '__opt', amount: variant.gift, year: giftYear, desc: 'Gift' }]
           : inh.gifts,
-        beneficiaries: variant.nomination
-          ? bens.map(b => ({ ...b, pensionSharePct: variant.nomination === b.id ? 100 : 0 }))
+        beneficiaries: variant.split
+          ? bens.map((b, i) => ({ ...b, pensionSharePct: variant.split[i] }))
           : bens
-      }
+      },
+      config: { ...plan.config, harvestPersonalAllowance: variant.harvest,
+        harvestCeiling: variant.ceiling || plan.config.harvestCeiling || 'pa' }
     };
     const ctx = buildContext(resolveMpaa(p));
     runs++;
     const r = estateForPlanAt(p, ctx, simulateDeterministic(ctx, 'expected'));
-    return { ...variant, net: r.net, est: r.est, survived: r.survived, plan: p };
+    return { ...variant, net: r.net, est: r.est, row: r.row, survived: r.survived, plan: p, ctx };
+  };
+
+  /*
+   * The nomination is free to search on top of any candidate: it changes who receives the pension, not
+   * how the household spends its money, so the projection is identical and only the estate has to be
+   * priced again. bestPensionSplit sweeps the splits in 5% steps off the wrappers this candidate reaches.
+   */
+  const withBestSplit = (c) => {
+    if (bens.length < 2 || !c.row) return null;
+    const soldBy = !!inh.homeSold && num(inh.homeSaleAge, 999) <= clamp(num(inh.deathAge, baseCtx.terminalAge), 0, 120);
+    const split = bestPensionSplit(plan.config,
+      { pen: c.row.pensions, isa: c.row.isas, other: c.row.other, cash: c.row.cash },
+      { deathAge: clamp(num(inh.deathAge, baseCtx.terminalAge), 0, 120), deathYear: c.row.year,
+        homeValue: soldBy ? 0 : Math.max(0, num(inh.homeValue, 0)),
+        formerHomeValue: soldBy ? Math.max(0, num(inh.homeValue, 0)) : 0,
+        homeToDescendants: inh.homeToDescendants !== false,
+        transferredNrbPct: num(inh.transferredNrbPct, 0), transferredRnrbPct: num(inh.transferredRnrbPct, 0),
+        qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
+        qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
+        gifts: inh.gifts, beneficiaries: bens });
+    if (!split || !split.changed || !(split.gain > 0)) return null;
+    return evaluate({ ...c, split: split.pcts, splitShares: split.shares,
+      label: joined(c.label === baseline.label ? baseline.label : c.label, splitLabel(split)) });
   };
 
   const baseline = evaluate({
     policy: plan.spending.decumulationPolicy, drawdown: plan.spending.drawdownStrategy,
-    harvest: !!plan.config.harvestPersonalAllowance, gift: 0, nomination: null,
-    label: 'Your plan as it stands'
+    harvest: !!plan.config.harvestPersonalAllowance, ceiling: plan.config.harvestCeiling || 'pa',
+    gift: 0, split: null, label: 'Your plan as it stands'
   });
   const viable = (c) => c.net > 0 && (c.survived || !baseline.survived);
   const bestOf = (list) => list.filter(viable).sort((a, b) => b.net - a.net)[0] || baseline;
@@ -3639,19 +3762,37 @@ function optimizeInheritance(rawPlan, opts = {}) {
     { key: ['pen', 'isa'], label: 'top up the pension, then the ISA, to their allowances' }
   ].map(r => ({ ...r, entries: buildRecycle(r.key) })).filter(r => r.entries.length);
 
+  // ---- how every candidate is described, in one place so the search and the words cannot drift
+  const giftLabel = (amt) => amt > 0 ? `gift ${gbp0(amt)} in ${giftYear}` : '';
+  const recycleLabel = (r) => r ? r.label : '';
+  const splitLabel = (sp) => sp ? 'pension ' + sp.shares.filter(x => x.pct > 0).map(x => `${x.pct}% ${x.name || 'heir'}`).join(' / ') : '';
+  const ceilingLabel = (c) => c === 'basic' ? 'draw the pension to the basic-rate limit each year' : 'draw the pension only to the tax-free allowance';
+  const joined = (...parts) => parts.filter(Boolean).join(' + ') || baseline.label;
+
   // ---- lever 1: the withdrawal order
   if (onStep) onStep({ label: 'Testing withdrawal orders', value: 0 });
   const orderLabel = (c) => `${c.decumulationPolicy}${c.drawdownStrategy === 'Full 25% Lump Sum' ? ', lump sum' : ''}${c.harvestApplies && c.harvestPersonalAllowance ? ', harvest on' : ''}`;
-  const orders = buildPolicyCandidates(plan).map(c => evaluate({
+  const baseCeiling = plan.config.harvestCeiling === 'basic' ? 'basic' : 'pa';
+  const otherCeiling = baseCeiling === 'basic' ? 'pa' : 'basic';
+  const policyCands = buildPolicyCandidates(plan);
+  const orders = policyCands.map(c => evaluate({
     policy: c.decumulationPolicy, drawdown: c.drawdownStrategy, harvest: c.harvestPersonalAllowance,
-    gift: 0, nomination: null, label: orderLabel(c)
+    ceiling: baseCeiling, gift: 0, split: null, label: orderLabel(c)
   }));
-  const bestOrder = bestOf(orders);
+  /*
+   * How far up the bands to draw the pension is its own question, and the answer flips sign on the death
+   * age: below 75 an inherited pension carries no income tax, so paying 20% now to move it out is a
+   * straight loss; above 75 it is taxed twice, and paying 20% now can beat both charges.
+   */
+  if (onStep) onStep({ label: 'Testing how much pension to draw early', value: 0.25 });
+  const ceilings = policyCands.map(c => evaluate({
+    policy: c.decumulationPolicy, drawdown: c.drawdownStrategy, harvest: c.harvestPersonalAllowance,
+    ceiling: otherCeiling, gift: 0, split: null,
+    label: joined(orderLabel(c), ceilingLabel(otherCeiling))
+  }));
+  const soloCeilings = ceilings.filter(c => c.policy === baseline.policy && c.drawdown === baseline.drawdown && c.harvest === baseline.harvest);
+  const bestOrder = bestOf([...orders, ...ceilings]);
 
-  const giftLabel = (amt) => amt > 0 ? `gift ${gbp0(amt)} in ${giftYear}` : '';
-  const recycleLabel = (r) => r ? r.label : '';
-  const nomLabel = (id) => { const b = bens.find(x => x.id === id); return b ? `pension to ${b.name || 'one heir'}` : ''; };
-  const joined = (...parts) => parts.filter(Boolean).join(' + ') || baseline.label;
 
   /*
    * Each lever is measured TWICE. Once on its own against the plan as it stands, which is what the
@@ -3662,26 +3803,27 @@ function optimizeInheritance(rawPlan, opts = {}) {
    */
   const giftAmounts = liquidToday > 1000 ? GIFT_SEARCH_FRACTIONS.map(fr => Math.round(liquidToday * fr)).filter(a => a > 0) : [];
   if (onStep) onStep({ label: 'Testing gifts', value: 0.35 });
-  const soloGifts = giftAmounts.map(amt => evaluate({ ...baseline, gift: amt, nomination: null,
+  const soloGifts = giftAmounts.map(amt => evaluate({ ...baseline, gift: amt, split: null,
     label: joined(baseline.label, giftLabel(amt)) }));
   if (onStep) onStep({ label: 'Testing pension nominations', value: 0.5 });
-  const soloNoms = bens.length > 1 ? bens.map(b => evaluate({ ...baseline, gift: 0, nomination: b.id,
-    label: joined(baseline.label, nomLabel(b.id)) })) : [];
+  const soloSplit = withBestSplit(baseline);
+  const soloNoms = soloSplit ? [soloSplit] : [];
   if (onStep) onStep({ label: 'Testing wrapper transfers', value: 0.6 });
-  const soloRecycles = RECYCLES.map(r => evaluate({ ...baseline, gift: 0, nomination: null,
+  const soloRecycles = RECYCLES.map(r => evaluate({ ...baseline, gift: 0, split: null,
     recycle: r.entries, recycleKey: r.key.join('+'), label: joined(baseline.label, recycleLabel(r)) }));
 
   // ---- stacked: the best order, then the best gift on top of it, then the best nomination on top again
   if (onStep) onStep({ label: 'Combining the best of each', value: 0.75 });
-  const gifts = giftAmounts.map(amt => evaluate({ ...bestOrder, gift: amt, nomination: null,
+  const gifts = giftAmounts.map(amt => evaluate({ ...bestOrder, gift: amt, split: null,
     label: joined(bestOrder.label, giftLabel(amt)) }));
   const bestGift = bestOf([bestOrder, ...gifts]);
-  const noms = bens.length > 1 ? bens.map(b => evaluate({ ...bestGift, nomination: b.id,
-    label: joined(bestOrder.label, giftLabel(bestGift.gift), nomLabel(b.id)) })) : [];
-  const bestNom = bestOf([bestGift, ...noms]);
-  const recycles = RECYCLES.map(r => evaluate({ ...bestNom, recycle: r.entries, recycleKey: r.key.join('+'),
-    label: joined(bestOrder.label, giftLabel(bestNom.gift), nomLabel(bestNom.nomination), recycleLabel(r)) }));
-  const best = bestOf([bestNom, ...recycles]);
+  const recycles = RECYCLES.map(r => evaluate({ ...bestGift, recycle: r.entries, recycleKey: r.key.join('+'),
+    label: joined(bestGift.label, recycleLabel(r)) }));
+  const bestRecycle = bestOf([bestGift, ...recycles]);
+  // the split goes last because it is free: it re-prices the estate the winner already reaches
+  const stackedSplit = withBestSplit(bestRecycle);
+  const noms = stackedSplit ? [stackedSplit] : [];
+  const best = bestOf([bestRecycle, ...noms]);
 
   /*
    * What each lever is worth ON ITS OWN, from the plan as it stands.
@@ -3694,8 +3836,11 @@ function optimizeInheritance(rawPlan, opts = {}) {
   };
   const levers = [
     { key: 'order', label: 'Withdrawal order', gain: alone(orders), pick: pickOf(orders, 'No change: you already hold the best order') },
+    { key: 'ceiling', label: 'How much pension to draw early', gain: alone(soloCeilings),
+      pick: pickOf(soloCeilings, `No change: ${ceilingLabel(baseCeiling)}`) },
     { key: 'gift', label: 'A gift now', gain: alone(soloGifts), pick: pickOf(soloGifts, giftAmounts.length ? 'No gift helps here' : 'Nothing liquid to give') },
-    { key: 'nomination', label: 'Pension nomination', gain: alone(soloNoms), pick: pickOf(soloNoms, bens.length > 1 ? 'No nomination helps here' : 'Only one heir') },
+    { key: 'nomination', label: 'Who the pension goes to', gain: alone(soloNoms),
+      pick: soloSplit ? splitLabel({ shares: soloSplit.splitShares }) : (bens.length > 1 ? 'No split beats the one you have' : 'Only one heir') },
     { key: 'recycle', label: 'Moving money between wrappers', gain: alone(soloRecycles),
       pick: pickOf(soloRecycles, RECYCLES.length ? 'No transfer helps here' : 'Nothing spare to move, or no years left to move it') }
   ].sort((a, b) => b.gain - a.gain);
@@ -3714,6 +3859,17 @@ function optimizeInheritance(rawPlan, opts = {}) {
   if (deathAge < num(plan.config.pensionIncomeTaxFromAge, 75)) {
     reasons.push({ key: 'nomination', text: `Priced at death at ${deathAge}, an inherited pension carries no income tax at all, so it makes no difference who is nominated. Price a death at ${num(plan.config.pensionIncomeTaxFromAge, 75)} or over and this becomes the largest choice on the tab.` });
   }
+  /*
+   * The question everyone asks about the will, answered rather than left implicit. Inheritance tax is
+   * charged on the estate BEFORE it is divided, so among heirs who are all taxable it makes no difference
+   * to the total who receives the house and who receives the ISA - only the pension split moves the
+   * number, because that alone is taxed on the recipient. It is different the moment somebody exempt is
+   * named, and then it is a decision about who benefits rather than about tax.
+   */
+  const anyExempt = bens.some(b => IHT_RELATIONSHIPS[b.relationship].exempt);
+  reasons.push(anyExempt
+    ? { key: 'will', text: 'Who receives which asset does change the bill here, because one of your beneficiaries is exempt: anything left to a spouse or a charity passes free of inheritance tax, so moving shares towards them lowers the total and moves money away from everyone else. That is a decision about who you want to benefit, so it is not searched.' }
+    : { key: 'will', text: 'Who receives which asset does not change the total. Inheritance tax is charged on the estate before it is divided, and all your beneficiaries are taxable, so giving one the house and another the ISA moves who gets what without changing what survives. Only the pension split moves the number, because that alone is taxed on whoever receives it.' });
   if (e.rnrb <= 0 && toClear > liquidToday) {
     reasons.push({ key: 'gift', text: `The residence allowance is fully withdrawn and out of reach: bringing any of it back needs the estate to fall ${gbp0(toClear)}, against ${gbp0(liquidToday)} outside your pension. A gift still reduces the estate, but not enough to restore the band.` });
   }
@@ -3746,23 +3902,24 @@ function optimizeInheritance(rawPlan, opts = {}) {
     return { years: slow, net: at(slow), gain: at(slow) - best.net };
   })();
 
-  const ranked = [baseline, ...orders, ...soloGifts, ...soloNoms, ...soloRecycles, ...gifts, ...noms, ...recycles]
+  const ranked = [baseline, ...orders, ...ceilings, ...soloGifts, ...soloNoms, ...soloRecycles, ...gifts, ...noms, ...recycles]
     .filter(viable)
     .sort((a, b) => b.net - a.net)
     .filter((c, i, all) => i === 0 || Math.abs(c.net - all[i - 1].net) > 1)   // drop exact duplicates
     .slice(0, 8)
     .map(c => ({ label: c.label, net: c.net, iht: c.est.iht, incomeTax: c.est.incomeTaxOnPensions,
       qsrRelief: c.est.qsrRelief,
-      policy: c.policy, drawdown: c.drawdown, harvest: c.harvest, gift: c.gift,
-      nomination: c.nomination, recycleKey: c.recycleKey || null }));
+      policy: c.policy, drawdown: c.drawdown, harvest: c.harvest, ceiling: c.ceiling, gift: c.gift,
+      split: c.split || null, recycleKey: c.recycleKey || null }));
 
   return {
     deathAge, runs, liquidToday, giftYear,
     baseline: { label: baseline.label, net: baseline.net, iht: baseline.est.iht,
       incomeTax: baseline.est.incomeTaxOnPensions, qsrRelief: baseline.est.qsrRelief, qsrPct: baseline.est.qsrPct },
     best: { label: best.label, net: best.net, iht: best.est.iht, incomeTax: best.est.incomeTaxOnPensions,
-      policy: best.policy, drawdown: best.drawdown, harvest: best.harvest, gift: best.gift,
-      nomination: best.nomination, recycle: best.recycle || null, recycleKey: best.recycleKey || null,
+      policy: best.policy, drawdown: best.drawdown, harvest: best.harvest, ceiling: best.ceiling,
+      gift: best.gift, split: best.split || null, splitShares: best.splitShares || null,
+      recycle: best.recycle || null, recycleKey: best.recycleKey || null,
       recycleLabel: best.recycleKey ? (RECYCLES.find(r => r.key.join('+') === best.recycleKey) || {}).label : null },
     gain: best.net - baseline.net,
     levers, reasons, ranked, charity: withCharity, spread,
@@ -3833,7 +3990,7 @@ function policyPlaybook(policyKey, P) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -5663,15 +5820,15 @@ export default function App() {
       return {
         ...prev,
         spending: { ...(prev.spending || {}), decumulationPolicy: b.policy, drawdownStrategy: b.drawdown },
-        config: { ...(prev.config || {}), harvestPersonalAllowance: b.harvest },
+        config: { ...(prev.config || {}), harvestPersonalAllowance: b.harvest, harvestCeiling: b.ceiling || 'pa' },
         oneOffContributions: [...(prev.oneOffContributions || []), ...(b.recycle || []).map(x => ({ ...x, id: 'c_' + Math.random().toString(36).slice(2) }))],
         inheritance: {
           ...inh,
           gifts: b.gift > 0
             ? [...(inh.gifts || []), { id: 'gift_' + Date.now(), amount: Math.round(b.gift), year: estatePlan.giftYear, desc: 'Gift (estate plan)' }]
             : inh.gifts,
-          beneficiaries: b.nomination
-            ? E.normalizeBeneficiaries(inh.beneficiaries).map(x => ({ ...x, pensionSharePct: x.id === b.nomination ? 100 : 0 }))
+          beneficiaries: b.split
+            ? E.normalizeBeneficiaries(inh.beneficiaries).map((x, i) => ({ ...x, pensionSharePct: b.split[i] }))
             : inh.beneficiaries
         }
       };
@@ -6739,9 +6896,17 @@ export default function App() {
                   <label className="text-slate-600 font-semibold block mb-1">Harvest unused 0% allowance</label>
                   <label className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-300 rounded-lg cursor-pointer">
                     <input type="checkbox" checked={!!plan?.config?.harvestPersonalAllowance} onChange={(e) => updateConfig('harvestPersonalAllowance', e.target.checked)} className="accent-blue-600" />
-                    <span className="text-slate-700 font-semibold">Draw pension to fill the allowance even when income is covered; net proceeds go to ISA (then cash).</span>
+                    <span className="text-slate-700 font-semibold">Draw pension beyond what the year needs and re-wrap it; proceeds fill the ISA first, then the GIA.</span>
                   </label>
                   <span className="text-[10px] text-slate-400 mt-1 block">Applies to the two bracket-fill policies once retired and past the access age.</span>
+                  {/* How far up the bands that harvest runs. The second setting is a bequest trade, not a
+                      spending one, so it is offered here rather than assumed by a policy. */}
+                  <label className="text-slate-600 font-semibold block mb-1 mt-2">…and draw up to</label>
+                  <select value={plan?.config?.harvestCeiling === 'basic' ? 'basic' : 'pa'} onChange={(e) => updateConfig('harvestCeiling', e.target.value)} disabled={!plan?.config?.harvestPersonalAllowance} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold cursor-pointer disabled:opacity-50">
+                    <option value="pa">the tax-free personal allowance ({formatGBP(P.pa)}) — costs nothing</option>
+                    <option value="basic">the basic-rate limit ({formatGBP(P.higherRateStartsAt)}) — pays 20% now</option>
+                  </select>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Drawing to the basic-rate limit costs 20% today and is a <strong>bequest</strong> trade: from 2027 a pension left behind is taxed twice, by your estate and again by the heir at their own rate. It wins for a later death and loses for an early one, so let the estate optimiser on the Strategy tab decide it rather than guessing.</span>
                 </div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Capital gains tax on the GIA</label>
@@ -7334,7 +7499,7 @@ export default function App() {
                       className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
                       <Check className="w-3.5 h-3.5" /> Apply this allocation
                     </button>
-                    <span className="text-[10px] text-slate-400">Writes the withdrawal order{estatePlan.best.gift > 0 ? ', the gift' : ''}{estatePlan.best.nomination ? ', the nomination' : ''}{estatePlan.best.recycle ? ' and the transfers' : ''} into your plan. {estatePlan.runs} projections were run to find it.</span>
+                    <span className="text-[10px] text-slate-400">Writes the withdrawal order{estatePlan.best.gift > 0 ? ', the gift' : ''}{estatePlan.best.split ? ', the nomination' : ''}{estatePlan.best.recycle ? ' and the transfers' : ''} into your plan. {estatePlan.runs} projections were run to find it.</span>
                   </div>
                 </div>
               )}
@@ -8026,7 +8191,9 @@ export default function App() {
               <p className="text-xs text-slate-600 leading-relaxed">The exemption for <em>normal expenditure out of income</em> (s.21) is immediate, unlimited and needs no seven years: a habitual gift, paid from income rather than capital, that leaves your standard of living intact. This is the only gift that helps someone who does not expect to live seven years, and it is claimed by the executors on form IHT403 — which is far easier when the giver kept a record. The plan checks the arithmetic half of the test, comparing the gift against guaranteed income and earnings less living costs, in the <em>leanest</em> year rather than on average. It excludes pension drawdown from that income figure even though HMRC will often accept regular pension income, because a gift that fails the test becomes an ordinary transfer with a seven-year clock. Whether the gift is genuinely habitual is a question about a pattern of behaviour that no calculator can settle.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">The estate optimiser, and what it will not do</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">The Strategy tab carries a second search, for households the contributions tournament cannot help because nothing is being paid in. It ranks four choices on one number &mdash; what the heirs keep, after inheritance tax and after their own income tax on drawing an inherited pension down: the <strong>order you draw wrappers down</strong>, a <strong>gift now</strong>, <strong>who the pension is nominated to</strong>, and <strong>moving money between wrappers up to the allowances</strong> (including the £3,600 a year that basic-rate relief buys for £2,880 even with no earnings at all). Each lever is also measured on its own, against your plan untouched, because crediting whichever was searched first with everything the others deliver would send you after the wrong one.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">The Strategy tab carries a second search, for households the contributions tournament cannot help because nothing is being paid in. It ranks five choices on one number &mdash; what the heirs keep, after inheritance tax and after their own income tax on drawing an inherited pension down: the <strong>order you draw wrappers down</strong>, <strong>how far up the tax bands you draw the pension each year</strong>, a <strong>gift now</strong>, <strong>how the pension is split between the people inheriting it</strong>, and <strong>moving money between wrappers up to the allowances</strong> (including the £3,600 a year that basic-rate relief buys for £2,880 even with no earnings at all). Each lever is also measured on its own, against your plan untouched, because crediting whichever was searched first with everything the others deliver would send you after the wrong one.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Two of those deserve a note. <strong>Drawing the pension past the tax-free allowance</strong> costs 20% today and only pays off if you die at 75 or over, when the pension is taxed twice &mdash; by the estate, then by the heir. The sign flips on the death age, so it is searched rather than recommended. And the <strong>pension split</strong> is swept in 5% steps rather than handed to whoever earns least, because that rule of thumb breaks on a large pot: £1.5m drawn over five years reaches the additional rate whoever receives it, while splitting it uses two sets of allowances. On one household here, half to a four-year-old and half to a £150,000 earner beat all of it to the four-year-old by £18,842.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">One thing the search will tell you it cannot improve: <strong>who receives which asset under your will</strong>. Inheritance tax is charged on the estate before it is divided, so among beneficiaries who are all taxable, giving one the house and another the ISA changes who gets what and not what survives. It moves the total only when someone exempt is named &mdash; a spouse or a charity &mdash; and then it is a question about who you want to benefit rather than about tax.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Two things it deliberately refuses. It will not search <strong>how long your heirs take the pension</strong>, because that is their decision made after your death, and a candidate that won by assuming twenty years of patience from someone else would not be a plan &mdash; it is reported as a sensitivity instead. And it will not rank a <strong>charitable gift</strong>: leaving 10% cuts the rate from 40% to 36% but always leaves the family with less, so ranking it on what the heirs keep would score a donation as a failure. The cost and the benefit are both shown, and the choice stays yours. Nor will it recommend anything that leaves you short: a variant that breaks a plan which otherwise survives is rejected rather than ranked, however well it does for the estate.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Business Relief, and why it is absent</h3>

@@ -331,7 +331,10 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   const levers = await p.evaluate(()=>[...document.querySelector('[data-lever-table]').querySelectorAll('tbody tr')]
     .map(r=>[...r.querySelectorAll('td')].map(d=>d.textContent.trim())));
   console.log('    levers:'); levers.forEach(l=>console.log('      '+l.join(' | ')));
-  ok('every lever is reported', levers.length===4, `${levers.length} rows`);
+  ok('every lever is reported', levers.length===5, `${levers.length} rows`);
+  ok('drawing the pension early is one of them', levers.some(l=>/draw early/i.test(l[0])));
+  ok('and who the pension goes to', levers.some(l=>/pension goes to/i.test(l[0])));
+  ok('the will split is answered rather than ignored', await p.evaluate(()=>/does not change the total/.test(document.body.textContent)));
   ok('wrapper transfers are one of them', levers.some(l=>/wrappers/i.test(l[0])));
   const ranked = await p.evaluate(()=>[...document.querySelector('[data-estate-ranked]').querySelectorAll('tbody tr')]
     .map(r=>[...r.querySelectorAll('td')].map(d=>d.textContent.trim())));
@@ -360,6 +363,40 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   ok('entering the tax paid shows the credit', await p.evaluate(()=>/Quick succession credit/.test(document.body.textContent)));
   const credit = await p.evaluate(()=>{const m=document.body.textContent.match(/Quick succession credit at your chosen death age: £([\d,]+)/); return m?m[1]:null;});
   ok('and it is the tapered share of it', credit==='540', `£${credit} of £900 at 60%`);
+  /*
+   * The same household priced at a death AFTER 75, where the two levers that were dead ends at 71 come
+   * alive: an inherited pension is taxed on the heir, so the split matters, and drawing the pension down
+   * early at 20% can beat the estate paying 40% and the heir paying their own rate on what is left.
+   */
+  const later = JSON.parse(JSON.stringify(plan));
+  later.inheritance.deathAge = '80';
+  const p2 = await b.newPage({viewport:{width:1500,height:1800}});
+  const errs2=[]; p2.on('pageerror',e=>errs2.push(e.message));
+  await p2.route('https://cdn.tailwindcss.com/**',r=>r.fulfill({status:200,contentType:'application/javascript',body:'window.tailwind={config:{}};'}));
+  await p2.addInitScript(pl=>localStorage.setItem('rp_plan_full_v28',JSON.stringify(pl)),later);
+  await p2.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
+  await p2.waitForTimeout(1200);
+  await p2.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Strategy/.test(b.textContent)); if(x)x.click();});
+  await p2.waitForTimeout(700);
+  await p2.click('[data-optimise-estate]');
+  await p2.waitForTimeout(2500);
+  const lev2 = await p2.evaluate(()=>[...document.querySelector('[data-lever-table]').querySelectorAll('tbody tr')]
+    .map(r=>[...r.querySelectorAll('td')].map(d=>d.textContent.trim())));
+  console.log('    levers at 80:'); lev2.forEach(l=>console.log('      '+l.join(' | ')));
+  const gain = (name) => { const r = lev2.find(x=>new RegExp(name,'i').test(x[0])); return r ? Number(r[1].replace(/[^0-9.]/g,'')) : 0; };
+  ok('the pension split now earns its place', gain('pension goes to') > 10000, `+£${gain('pension goes to').toLocaleString()}`);
+  ok('and drawing the pension early does too', gain('draw early') > 0, `+£${gain('draw early').toLocaleString()}`);
+  ok('the split is quoted as percentages, not all-or-nothing',
+    await p2.evaluate(()=>/pension \d+% .+ \/ \d+%/.test(document.body.textContent)));
+  await p2.click('[data-apply-estate]');
+  await p2.waitForTimeout(900);
+  const applied = await p2.evaluate(()=>JSON.parse(localStorage.getItem('rp_plan_full_v28')));
+  const shares = (applied.inheritance.beneficiaries||[]).map(x=>Number(x.pensionSharePct));
+  ok('applying writes the pension shares', shares.some(x=>x>0) && Math.abs(shares.reduce((t,x)=>t+x,0)-100)<0.01,
+    shares.join('/'));
+  ok('and the draw-down ceiling', applied.config.harvestCeiling === 'basic', String(applied.config.harvestCeiling));
+  ok('no page errors at the later death age', errs2.length===0, errs2.slice(0,2).join(' | '));
+
   ok('no page errors', errs.length===0, errs.slice(0,2).join(' | '));
   await b.close();
   console.log(fails?`\n${fails} FAILED`:'\nall checks passed');

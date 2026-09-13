@@ -46,7 +46,7 @@ console.log('=========== A. IT FINDS WHAT IS THERE ===========');
   const nom = r.levers.find(l => l.key === 'nomination');
   ok('the nomination is found, and is worth something', nom.gain > 10000, gbp(nom.gain));
   ok('it names the heir it would nominate', /Robin/.test(nom.pick), nom.pick);
-  ok('every lever is reported, including the ones worth nothing', r.levers.length === 4,
+  ok('every lever is reported, including the ones worth nothing', r.levers.length === 5,
     r.levers.map(l => `${l.key}:${Math.round(l.gain)}`).join(' '));
 }
 
@@ -139,13 +139,21 @@ console.log('=========== F. IT NEVER RECOMMENDS BREAKING THE PLAN ===========');
   ok('the fixture survives to begin with', baseEv.survived, `fails at ${baseEv.failAge || 'never'}`);
 
   const r = E.optimizeInheritance(tight);
+  /*
+   * Rebuilt exactly the way the Apply button rebuilds it - every lever, not just the easy ones. If these
+   * two figures ever part company, the tab is quoting a number the plan will not reproduce, which is a
+   * worse failure than a poor recommendation.
+   */
   const rebuilt = E.normalizePlan({
     ...tight,
     spending: { ...tight.spending, decumulationPolicy: r.best.policy, drawdownStrategy: r.best.drawdown },
-    config: { ...tight.config, harvestPersonalAllowance: r.best.harvest },
+    config: { ...tight.config, harvestPersonalAllowance: r.best.harvest, harvestCeiling: r.best.ceiling || 'pa' },
     oneOffContributions: [...(tight.oneOffContributions || []), ...(r.best.recycle || [])],
     inheritance: { ...tight.inheritance,
-      gifts: r.best.gift > 0 ? [{ id: 'g', amount: r.best.gift, year: r.giftYear }] : [] }
+      gifts: r.best.gift > 0 ? [{ id: 'g', amount: r.best.gift, year: r.giftYear }] : [],
+      beneficiaries: r.best.split
+        ? E.normalizeBeneficiaries(tight.inheritance.beneficiaries).map((b, i) => ({ ...b, pensionSharePct: r.best.split[i] }))
+        : tight.inheritance.beneficiaries }
   });
   const ctx = E.buildContext(E.resolveMpaa(rebuilt));
   const ev = E.evaluateRows(ctx, E.simulateDeterministic(ctx, 'expected'));
@@ -155,6 +163,111 @@ console.log('=========== F. IT NEVER RECOMMENDS BREAKING THE PLAN ===========');
     `${gbp(E.postTaxInheritanceFor(rebuilt, ctx))} against ${gbp(r.best.net)}`);
   ok('the recommendation is an improvement, not just a change', r.best.net >= r.baseline.net,
     `${gbp(r.baseline.net)} -> ${gbp(r.best.net)}`);
+}
+
+console.log('=========== G. HOW THE PENSION IS SPLIT, NOT JUST WHO GETS IT ===========');
+{
+  /*
+   * "Leave it to whoever earns least" is wrong as soon as the pot is large: drawn over five years it
+   * reaches the additional rate whoever receives it, while a split uses two sets of allowances and two
+   * basic-rate bands. These check the search finds that, and that it is free to run - the nomination
+   * changes who is taxed, not how the household spends, so no projection is needed.
+   */
+  const cfg = { ...E.DEFAULT_CONFIG };
+  const w = { pen: 1500000, isa: 200000, other: 0, cash: 50000 };
+  const opts = {
+    deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true,
+    beneficiaries: [
+      { id: 'a', name: 'Earner', relationship: 'descendant', sharePct: 50, income: 150000, age: 50 },
+      { id: 'b', name: 'Child', relationship: 'descendant', sharePct: 50, income: 0, age: 8 }]
+  };
+  const split = E.bestPensionSplit(cfg, w, opts);
+  const price = (pcts) => E.estateAtDeath(cfg, w, { ...opts,
+    beneficiaries: opts.beneficiaries.map((b, i) => ({ ...b, pensionSharePct: pcts[i] })) }).netToBeneficiaries;
+  ok('a split is found', !!split, split ? split.shares.map(x => `${x.name} ${x.pct}%`).join(' / ') : 'none');
+  ok('it beats leaving it all to the lower earner', split.net >= price([0, 100]) - 1,
+    `${gbp(split.net)} against ${gbp(price([0, 100]))}`);
+  ok('and all to the higher earner', split.net >= price([100, 0]) - 1,
+    `${gbp(split.net)} against ${gbp(price([100, 0]))}`);
+  ok('and an even split', split.net >= price([50, 50]) - 1, `${gbp(split.net)} against ${gbp(price([50, 50]))}`);
+  ok('the shares add to 100', Math.abs(split.pcts.reduce((t, x) => t + x, 0) - 100) < 0.01, split.pcts.join('/'));
+  ok('the gain is measured against what was entered', Math.abs(split.gain - (split.net - split.asEnteredNet)) < 1);
+
+  // a pot small enough to sit inside one person's bands should simply go to the untaxed heir
+  const small = E.bestPensionSplit(cfg, { pen: 40000, isa: 100000 },
+    { ...opts, homeValue: 200000 });
+  ok('a small pot goes to the heir with the allowance', small.shares.find(x => x.name === 'Child').pct >= 95,
+    small.shares.map(x => `${x.name} ${x.pct}%`).join(' / '));
+
+  // below 75 there is no income tax on it at all, so no split can help
+  const young = E.bestPensionSplit(cfg, w, { ...opts, deathAge: 70 });
+  ok('nothing to gain below 75', young.gain === 0, gbp(young.gain));
+
+  ok('one heir means no split to search', E.bestPensionSplit(cfg, w, { ...opts, beneficiaries: [opts.beneficiaries[0]] }) === null);
+
+  // four heirs take the hill-climb rather than the exhaustive grid, and must still improve on the seeds
+  const four = [...opts.beneficiaries,
+    { id: 'c', name: 'Third', relationship: 'descendant', sharePct: 0, income: 30000, age: 40 },
+    { id: 'd', name: 'Fourth', relationship: 'descendant', sharePct: 0, income: 12570, age: 30 }];
+  const many = E.bestPensionSplit(cfg, w, { ...opts, beneficiaries: four });
+  const evenFour = E.estateAtDeath(cfg, w, { ...opts,
+    beneficiaries: four.map(b => ({ ...b, pensionSharePct: 25 })) }).netToBeneficiaries;
+  ok('four heirs are searched too, and beat an even split', many.net >= evenFour - 1,
+    `${gbp(many.net)} against ${gbp(evenFour)} even`);
+}
+
+console.log('=========== H. HOW MUCH PENSION TO DRAW EARLY ===========');
+{
+  /*
+   * Drawing past the tax-free allowance costs 20% now. Whether that is worth it turns entirely on the
+   * death age: below 75 an inherited pension carries no income tax, so paying anything today is a pure
+   * loss; at 75 and over it is taxed twice, and 20% now can beat both charges. A single answer would be
+   * wrong half the time, which is exactly why it is searched.
+   */
+  const at = (deathAge, ceiling) => {
+    const p = E.normalizePlan({ ...household({ deathAge }), config: { valuationDate: '2026-01-01', harvestCeiling: ceiling } });
+    const ctx = E.buildContext(E.resolveMpaa(p));
+    return E.postTaxInheritanceFor(p, ctx);
+  };
+  const early = { pa: at(72, 'pa'), basic: at(72, 'basic') };
+  const late = { pa: at(90, 'pa'), basic: at(90, 'basic') };
+  ok('below 75 drawing early costs money', early.basic < early.pa,
+    `${gbp(early.pa)} -> ${gbp(early.basic)}`);
+  ok('above 75 it earns money', late.basic > late.pa, `${gbp(late.pa)} -> ${gbp(late.basic)}`);
+
+  const r72 = E.optimizeInheritance(household({ deathAge: 72 }));
+  const r90 = E.optimizeInheritance(household({ deathAge: 90 }));
+  ok('the optimiser leaves it alone for an early death', r72.best.ceiling !== 'basic', r72.best.ceiling);
+  ok('and takes it for a late one', r90.best.ceiling === 'basic', r90.best.ceiling);
+  ok('it is reported as its own lever', r90.levers.some(l => l.key === 'ceiling' && l.gain > 0),
+    gbp((r90.levers.find(l => l.key === 'ceiling') || {}).gain || 0));
+}
+
+console.log('=========== I. THE WILL, ANSWERED RATHER THAN IGNORED ===========');
+{
+  /*
+   * Inheritance tax is charged on the estate before it is divided, so among taxable heirs it makes no
+   * difference to the total who receives which asset. That is a question every household asks, and the
+   * honest answer is a finding rather than a silence.
+   */
+  const cfg = { ...E.DEFAULT_CONFIG };
+  const w = { pen: 500000, isa: 300000, other: 100000, cash: 50000 };
+  const base = { deathAge: 84, deathYear: 2040, homeValue: 600000, homeToDescendants: true };
+  const heirs = (a, b) => [
+    { id: 'x', name: 'A', relationship: 'descendant', sharePct: a, income: 60000, age: 50, pensionSharePct: 50 },
+    { id: 'y', name: 'B', relationship: 'descendant', sharePct: b, income: 60000, age: 48, pensionSharePct: 50 }];
+  const even = E.estateAtDeath(cfg, w, { ...base, beneficiaries: heirs(50, 50) });
+  const skewed = E.estateAtDeath(cfg, w, { ...base, beneficiaries: heirs(90, 10) });
+  ok('the will split does not move the total among taxable heirs',
+    Math.abs(even.netToBeneficiaries - skewed.netToBeneficiaries) < 1,
+    `${gbp(even.netToBeneficiaries)} against ${gbp(skewed.netToBeneficiaries)}`);
+  ok('and the optimiser says so', E.optimizeInheritance(household()).reasons.some(x => x.key === 'will' && /does not change the total/.test(x.text)));
+
+  // with an exempt beneficiary it genuinely does move, and the wording has to flip
+  const withSpouse = E.optimizeInheritance(household({ bens: [
+    { id: 's', name: 'Spouse', relationship: 'spouse', sharePct: 50, income: 20000, age: 70 },
+    { id: 'k', name: 'Kid', relationship: 'descendant', sharePct: 50, income: 60000, age: 45 }] }));
+  ok('an exempt heir changes the answer, and the wording', withSpouse.reasons.some(x => x.key === 'will' && /does change the bill/.test(x.text)));
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

@@ -3131,7 +3131,15 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   const compGifted = (Array.isArray(opts.gifts) ? opts.gifts : []).reduce((t, g) =>
     (g.exemptCompensation && Number.isFinite(compWindowEndYr) && num(g.year, Infinity) <= compWindowEndYr)
       ? t + Math.max(0, num(g.amount, 0)) : t, 0);
-  const exemptComp = Math.min(Math.max(0, num(opts.exemptCompensation, 0) - compGifted), willEstate);
+  /*
+   * Capped by the LIQUID wrappers, not by the whole estate. Compensation is paid into a bank account, so
+   * it can only be sitting in cash, an ISA or an unwrapped holding - and capping it at the will estate
+   * instead would let someone who never entered the money claim the exemption against the value of their
+   * house. Declaring more than is held is a data-entry mistake rather than a tax position, so it is
+   * capped here and reported so the tab can say so.
+   */
+  const compClaimed = Math.max(0, num(opts.exemptCompensation, 0) - compGifted);
+  const exemptComp = Math.min(compClaimed, liquid);
   const willChargeable = Math.max(0, willEstate - exemptComp);
   const grossEstate = willChargeable + (pensionCounts ? pen : 0);
 
@@ -3367,6 +3375,8 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     exemptCompensation: exemptComp,
     compensationWindowEndYear: Number.isFinite(compWindowEndYr) ? compWindowEndYr : null,
     compensationGifted: compGifted,
+    // more claimed than is actually sitting in an account: the money has not been entered, or it has been spent
+    compensationUnbacked: Math.max(0, compClaimed - exemptComp),
     // a gift ticked as compensation but made too late is an ordinary gift, and has to be said out loud
     compensationGiftsMissed: (Array.isArray(opts.gifts) ? opts.gifts : []).some(g => g.exemptCompensation && !inWindow(g)),
     sharesDeclaredPct: declared, pensionSharesDeclaredPct: declaredPen, beneficiaries,
@@ -8123,7 +8133,7 @@ export default function App() {
                       the tax never sees, which is why it needs its own figure rather than a checkbox. */}
                   <div className="pt-2 border-t border-slate-200">
                     <div className="text-slate-700 font-semibold mb-1">Are you holding compensation that is exempt from inheritance tax?</div>
-                    <span className="text-[10px] text-slate-400 mb-2 block">Payments under the <strong>infected blood scheme</strong> (IBCA) are exempt from income tax, capital gains tax and inheritance tax, and where the eligible person had already died the first living recipient carries an <strong>inheritance tax credit</strong> so the value passes on without a charge on their own death. Post Office Horizon, Windrush, Grenfell, the Troubles and vaccine damage payments carry their own exemptions. Enter what you still <em>hold</em>: spend it and there is nothing left to disregard.</span>
+                    <span className="text-[10px] text-slate-400 mb-2 block">Payments under the <strong>infected blood scheme</strong> (IBCA) are exempt from income tax, capital gains tax and inheritance tax, and where the eligible person had already died the first living recipient carries an <strong>inheritance tax credit</strong> so the value passes on without a charge on their own death. Post Office Horizon, Windrush, Grenfell, the Troubles and vaccine damage payments carry their own exemptions. Enter what you still <em>hold</em>, and make sure that money is also entered as an account balance under Plan Inputs &mdash; the exemption is capped at what is actually in cash, an ISA or an unwrapped account, because that is where compensation sits. Spend it and there is nothing left to disregard.</span>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Amount still held</label>
@@ -8139,6 +8149,12 @@ export default function App() {
                         </div>
                       )}
                     </div>
+                    {inheritanceView.chosen && inheritanceView.chosen.compensationUnbacked > 0 && (
+                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <span>You have declared {formatGBP(E.num(plan?.inheritance?.exemptCompensation, 0))} but only {formatGBP(inheritanceView.chosen.exemptCompensation)} of it is sitting in cash, an ISA or an unwrapped account at that age &mdash; so {formatGBP(inheritanceView.chosen.compensationUnbacked)} is being ignored. Compensation is paid into a bank account, and an exemption cannot be claimed against your house. <strong>Add the money to an account under Plan Inputs</strong> if you are still holding it; if it has been spent, reduce the figure.</span>
+                      </div>
+                    )}
                     {/* The deadline, spelled out. It is the one fact here that expires. */}
                     {compWindow ? (
                       <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-900 leading-relaxed">

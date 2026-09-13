@@ -648,8 +648,17 @@ console.log('=========== M. COMPENSATION THE TAX NEVER SEES ===========');
   ok('and the heirs receive it all the same', near(exempt.netToBeneficiaries - plain.netToBeneficiaries, 300000 * 0.4),
     `£${Math.round(exempt.netToBeneficiaries).toLocaleString()} against £${Math.round(plain.netToBeneficiaries).toLocaleString()}`);
   ok('it is reported so the tab can show it', near(exempt.exemptCompensation, 300000));
-  ok('more compensation than estate is capped at the estate',
+  ok('more compensation than is held is capped at what is held',
     E.estateAtDeath(cfg, { cash: 50000 }, { ...base, homeValue: 0, exemptCompensation: 999999 }).grossEstate === 0);
+  /*
+   * And capped at the LIQUID wrappers, not the whole estate: compensation is paid into a bank account, so
+   * an exemption claimed for money that was never entered would otherwise come off the value of the house.
+   */
+  const unbacked = E.estateAtDeath(cfg, { isa: 100000 }, { ...base, homeValue: 1000000, exemptCompensation: 900000 });
+  ok('an exemption cannot be claimed against the house', near(unbacked.exemptCompensation, 100000),
+    `£${Math.round(unbacked.exemptCompensation).toLocaleString()} of £900,000 claimed`);
+  ok('and the shortfall is reported so it can be queried', near(unbacked.compensationUnbacked, 800000),
+    `£${Math.round(unbacked.compensationUnbacked).toLocaleString()}`);
 
   /*
    * Being disregarded, it is outside the £2m residence-band test too - which is the difference between

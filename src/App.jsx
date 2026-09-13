@@ -421,6 +421,21 @@ const DEFAULT_CONFIG = {
    */
   qsrScale: [100, 80, 60, 40, 20],
   /*
+   * BUSINESS AND AGRICULTURAL PROPERTY RELIEF, as reformed at the 2024 Budget with effect from 6 April
+   * 2026. Relief is no longer unlimited: one allowance per person covers business and agricultural
+   * property together at 100%, and everything above it drops to 50%. Shares not listed on a recognised
+   * exchange - AIM among them - get 50% flat and do not touch the allowance. The allowance is NOT
+   * transferable between spouses, unlike the nil-rate band, so there is no percentage box for it.
+   *
+   * Every one of these reliefs also needs the asset OWNED FOR TWO YEARS at death, which is why the tab
+   * asks when it was acquired rather than assuming.
+   */
+  brAprFrom: 2026,                   // tax year the reformed regime bites; before it, relief was 100% flat
+  brAprAllowance: 1000000,           // combined 100% allowance for business and agricultural property
+  brAprReducedRatePct: 50,           // relief above the allowance
+  aimReliefRatePct: 50,              // unquoted/AIM shares, which never touch the allowance
+  brAprMinYearsOwned: 2,             // ownership test; below it there is no relief at all
+  /*
    * Taper relief on gifts, as the EFFECTIVE rate by whole years between gift and death: no relief at all
    * for the first three years, then tapering to nothing at seven. It reduces the tax on the gift, and
    * only ever on the part of it that exceeds the nil-rate band - which is why a modest gift sees no
@@ -647,7 +662,7 @@ const BLANK_PLAN = Object.freeze({
    */
   inheritance: {
     deathAge: '', homeValue: '', homeToDescendants: true,
-    homeSold: false, homeSaleAge: '',
+    homeSold: false, homeSaleAge: '', otherAssets: [],
     transferredNrbPct: '', transferredRnrbPct: '',
     // quick succession relief: an inheritance received within five years of death, and the tax paid on it
     qsrInheritedValue: '', qsrTaxPaid: '', qsrYearsBefore: '',
@@ -814,6 +829,7 @@ function normalizePlan(raw) {
       ...BLANK_PLAN.inheritance, ...(isPlainObject(src.inheritance) ? src.inheritance : {}),
       beneficiaries: normalizeBeneficiaries(src.inheritance?.beneficiaries),
       gifts: normalizeGifts(src.inheritance?.gifts),
+      otherAssets: normalizeEstateAssets(src.inheritance?.otherAssets),
       surplusGift: { ...BLANK_PLAN.inheritance.surplusGift, ...(isPlainObject(src.inheritance?.surplusGift) ? src.inheritance.surplusGift : {}) },
       // renamed once the relief turned out to be a credit against the tax rather than a hole in the estate
       compensationPayment: src.inheritance?.compensationPayment ?? src.inheritance?.exemptCompensation ?? '',
@@ -2991,6 +3007,75 @@ function explainPick(cands, opts = {}) {
  * money drawn from an inherited pension, so a widow was being shown a pension as tax-free when it is
  * not. A charity genuinely pays neither.
  */
+/*
+ * WHAT ELSE IS IN THE ESTATE, and why the kind matters rather than just the number.
+ *
+ * The main home has its own box because only one property can carry the residence band. Everything else
+ * divides into things the tax treats differently: a second home or a buy-to-let is taxed in full and
+ * unlocks nothing, chattels the same, while business and agricultural property carry a relief - and
+ * unquoted shares a smaller one - that a plan ignoring them would overstate the bill by six figures on.
+ *
+ * `relievable` assets ask for the year they were acquired, because every one of these reliefs needs two
+ * years' ownership at death. That test is the reason this tab still does not SUGGEST moving money into
+ * relievable assets: it is the wrong tool for a short prognosis, and it carries investment risk the
+ * model does not price. Valuing what a household already owns is a different question, and this answers
+ * that one.
+ */
+const ESTATE_ASSET_KINDS = {
+  property: { label: 'Second home, buy-to-let or land', relievable: false, usesAllowance: false,
+    who: 'Any property other than the home you live in. Taxed in full - only one property can carry the residence allowance, and that is the box above.' },
+  chattels: { label: 'Art, cars, jewellery or other possessions', relievable: false, usesAllowance: false,
+    who: 'Personal possessions of real value. Taxed in full. Everyday household contents are rarely worth listing.' },
+  otherMoney: { label: 'Other savings or investments held elsewhere', relievable: false, usesAllowance: false,
+    who: 'Money outside the wrappers on Plan Inputs - a foreign account, a bond, a crowdfunding stake. Taxed in full, and not drawn on to fund your spending.' },
+  business: { label: 'A business, or shares in an unquoted trading company', relievable: true, usesAllowance: true,
+    who: 'Business Property Relief: 100% up to the allowance, 50% above it, and nothing at all unless you have owned it two years at death. Investment businesses - letting property, holding shares - do not qualify.' },
+  agricultural: { label: 'Farmland or farm buildings (agricultural value)', relievable: true, usesAllowance: true,
+    who: 'Agricultural Property Relief, sharing one allowance with business property. Only the agricultural value qualifies; development value above it does not.' },
+  aim: { label: 'AIM or other shares not on a recognised exchange', relievable: true, usesAllowance: false,
+    who: 'Half relief from 6 April 2026, where these used to get the lot. They do not use up the allowance, and they still need two years of ownership.' }
+};
+
+const normalizeEstateAssets = (list) => (Array.isArray(list) ? list : [])
+  .filter(isPlainObject)
+  .map((a, i) => ({
+    id: String(a.id || `asset_${i}`),
+    name: String(a.name ?? '').slice(0, 60),
+    kind: ESTATE_ASSET_KINDS[a.kind] ? a.kind : 'property',
+    value: Math.max(0, num(a.value, 0)),
+    // blank rather than 0: an unanswered ownership year must not read as "bought in year zero"
+    ownedFrom: isBlank(a.ownedFrom) ? '' : clamp(num(a.ownedFrom, 0), 1900, 2200)
+  }));
+
+/*
+ * The relief on those assets, priced at a given death. Returns the relief and the reason there is none,
+ * because "£0" on a farm worth two million is a finding the household has to be able to check.
+ */
+function businessReliefFor(cfg, assets, deathYear) {
+  const c = { ...DEFAULT_CONFIG, ...(cfg || {}) };
+  const reformed = deathYear >= num(c.brAprFrom, 2026);
+  const minYears = Math.max(0, num(c.brAprMinYearsOwned, 2));
+  let pool = reformed ? Math.max(0, num(c.brAprAllowance, 1000000)) : Infinity;
+  let relief = 0, tooNew = 0, aboveAllowance = 0;
+  // the allowance is spent in the order given, so the largest holding is offered it first
+  [...assets].sort((a, b) => b.value - a.value).forEach(a => {
+    const kind = ESTATE_ASSET_KINDS[a.kind];
+    if (!kind || !kind.relievable || a.value <= 0) return;
+    const owned = a.ownedFrom === '' ? Infinity : deathYear - num(a.ownedFrom, deathYear);
+    if (owned < minYears) { tooNew += a.value; return; }
+    if (!reformed) { relief += a.value; return; }
+    if (kind.usesAllowance) {
+      const at100 = Math.min(a.value, pool);
+      pool -= at100;
+      aboveAllowance += a.value - at100;
+      relief += at100 + (a.value - at100) * (clamp(num(c.brAprReducedRatePct, 50), 0, 100) / 100);
+    } else {
+      relief += a.value * (clamp(num(c.aimReliefRatePct, 50), 0, 100) / 100);
+    }
+  });
+  return { relief, tooNew, aboveAllowance, allowanceLeft: Number.isFinite(pool) ? Math.max(0, pool) : null, reformed };
+}
+
 const IHT_RELATIONSHIPS = {
   spouse: {
     label: 'Spouse or civil partner', exempt: true, incomeTaxpayer: true, descendant: false,
@@ -3115,7 +3200,15 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   const pen = Math.max(0, num(wrappers.pen, 0));
   const liquid = ['isa', 'other', 'cash'].reduce((t, k) => t + Math.max(0, num(wrappers[k], 0)), 0);
   const pensionCounts = deathYear >= num(c.pensionsInEstateFrom, 2027);
-  const willEstate = liquid + homeValue;                 // what the will divides
+  /*
+   * Everything owned that is not a wrapper and not the main home: a second property, a business, a farm,
+   * possessions. These pass under the will like the rest of it, and they count at FULL value towards the
+   * residence-band taper - s.8D(5) measures the net estate before reliefs and exemptions, so a farm with
+   * full agricultural relief still pushes the residence band away.
+   */
+  const estateAssets = normalizeEstateAssets(opts.otherAssets);
+  const estateAssetsValue = estateAssets.reduce((t, a) => t + a.value, 0);
+  const willEstate = liquid + homeValue + estateAssetsValue;   // what the will divides
   const grossEstate = willEstate + (pensionCounts ? pen : 0);
 
   /*
@@ -3286,10 +3379,23 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
    */
   const activeServiceExempt = !!opts.activeServiceExempt;
 
-  const afterExempt = Math.max(0, grossEstate - exemptValue);
+  /*
+   * BUSINESS AND AGRICULTURAL RELIEF reduces the taxable value, after exemptions and before the bands.
+   *
+   * Relief given on property that passes to an exempt beneficiary is wasted - a spouse pays no tax on it
+   * either way - so it is scaled by the share of the will going to people who are actually chargeable.
+   * That is an approximation: a will can leave the business to one child and the house to another, and
+   * this tab divides everything by one percentage. It errs neither way, which is the best a single set
+   * of shares can do, and it is disclosed.
+   */
+  const exemptWillShare = bens.filter(b => IHT_RELATIONSHIPS[b.relationship].exempt).reduce((t, b) => t + shareOf(b), 0);
+  const brRaw = businessReliefFor(c, estateAssets, deathYear);
+  const businessRelief = Math.min(brRaw.relief * clamp(1 - exemptWillShare, 0, 1), Math.max(0, grossEstate - exemptValue));
+
+  const afterExempt = Math.max(0, grossEstate - exemptValue - businessRelief);
   const chargeable = Math.max(0, afterExempt - nrb - rnrb);
   // the charity test is against the estate after exemptions and bands but BEFORE the charitable gift
-  const baseline = Math.max(0, grossEstate - (exemptValue - charityValue) - nrb - rnrb);
+  const baseline = Math.max(0, grossEstate - (exemptValue - charityValue) - businessRelief - nrb - rnrb);
   const charityQualifies = charityValue > 0 && baseline > 0 &&
     charityValue >= baseline * (clamp(num(c.ihtCharityThresholdPct, 10), 0, 100) / 100);
   const rate = (charityQualifies ? num(c.ihtCharityRate, 36) : num(c.ihtRate, 40)) / 100;
@@ -3439,6 +3545,10 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     rnrbTaperLoss: (homeToDescendants && anyDescendant && rnrbAsset > 0)
       ? Math.max(0, Math.min(rnrbFull, rnrbAsset) - rnrb) : 0,
     rnrbFromDownsizing,
+    estateAssets, estateAssetsValue,
+    businessRelief, businessReliefRaw: brRaw.relief,
+    businessReliefTooNew: brRaw.tooNew, businessReliefAboveAllowance: brRaw.aboveAllowance,
+    businessReliefAllowanceLeft: brRaw.allowanceLeft, businessReliefReformed: brRaw.reformed,
     exemptValue, charityValue, charityQualifies, ratePct: rate * 100,
     chargeable, iht, ihtBeforeRelief, qsrRelief, qsrPct, activeServiceExempt,
     incomeTaxOnPensions: totalIncomeTax,
@@ -3663,6 +3773,7 @@ function estateForPlanAt(plan, ctx, rows) {
       qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
       compensationPayment: num(inh.compensationPayment, 0),
       compensationWindowEndYear: (compensationWindow(plan.config, inh.compensationDate) || {}).endYear,
+      otherAssets: inh.otherAssets,
       giftsFromYear: ctx.baseYear + 1,
       gifts: inh.gifts, beneficiaries: bens });
   const est = ctx.isCouple ? res.second : res;
@@ -3893,7 +4004,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
         qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         compensationPayment: num(inh.compensationPayment, 0),
         compensationWindowEndYear: (compensationWindow(plan.config, inh.compensationDate) || {}).endYear,
-        gifts: inh.gifts, beneficiaries: bens });
+        otherAssets: inh.otherAssets, gifts: inh.gifts, beneficiaries: bens });
     if (!split || !split.changed || !(split.gain > 0)) return null;
     return evaluate({ ...c, split: split.pcts, splitShares: split.shares,
       label: joined(c.label === baseline.label ? baseline.label : c.label, splitLabel(split)) });
@@ -4382,7 +4493,7 @@ function estateActionPlan(plan, result) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, compensationWindow, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, compensationWindow, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -5374,7 +5485,7 @@ export default function App() {
         qsrYearsBefore: E.num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         compensationPayment: E.num(inh.compensationPayment, 0),
         compensationWindowEndYear: (E.compensationWindow(plan?.config, inh.compensationDate) || {}).endYear,
-        gifts: inh.gifts, beneficiaries: bens
+        otherAssets: inh.otherAssets, gifts: inh.gifts, beneficiaries: bens
       });
       const est = isCouple ? res.second : res;
       return { age, year: row.year, homeSold: soldBy, ...est };
@@ -5415,7 +5526,7 @@ export default function App() {
         homeValue: soldByChosen ? 0 : homeValue, formerHomeValue: soldByChosen ? homeValue : 0,
         homeToDescendants: inh.homeToDescendants !== false,
         transferredNrbPct: E.num(inh.transferredNrbPct, 0), transferredRnrbPct: E.num(inh.transferredRnrbPct, 0),
-        gifts: inh.gifts, beneficiaries: bens, giftYear, liquidToday, project }) : null;
+        otherAssets: inh.otherAssets, gifts: inh.gifts, beneficiaries: bens, giftYear, liquidToday, project }) : null;
     // the 75 boundary, priced for this household rather than described in the abstract
     const before = rows.filter(r => r.age < 75).slice(-1)[0];
     const after = rows.find(r => r.age >= 75);
@@ -5884,6 +5995,43 @@ export default function App() {
    * valuable lever on the tab. A plan that already carries a split shows the column whatever the toggle
    * says, so applying the optimiser's nomination never hides the numbers it just wrote.
    */
+  /*
+   * WHAT THE ESTATE IS MADE OF, wrapper by wrapper. The tab prices an estate at a death age years away,
+   * so its total is routinely larger than the portfolio the household thinks it has - and with no
+   * breakdown on screen the only available reading is that the number is wrong. Today's balances and the
+   * projected ones side by side answer it without anybody having to ask.
+   */
+  const estateBreakdown = useMemo(() => {
+    if (!inheritanceView.chosen) return null;
+    const chosenAge = inheritanceView.chosenAge;
+    const row = timelineData.find(r => r.ageSelf >= chosenAge) || timelineData[timelineData.length - 1];
+    if (!row) return null;
+    const now = { pen: 0, isa: 0, other: 0, cash: 0 };
+    ctx.accounts.forEach(a => { if (a.cat in now) now[a.cat] += Math.max(0, E.num(a.balance, 0)); });
+    const at = { pen: row.pensions, isa: row.isas, other: row.other, cash: row.cash };
+    const inh0 = plan?.inheritance || {};
+    const soldBy = inh0.homeSold && E.num(inh0.homeSaleAge, 999) <= chosenAge;
+    const wrappers = E.CATEGORIES.map(k => ({ key: k, label: E.CATEGORY_LABEL[k], now: now[k], at: at[k] }))
+      .filter(w => w.now > 0 || w.at > 0);
+    const assets = E.normalizeEstateAssets(inh0.otherAssets);
+    const counted = inheritanceView.chosen.pensionCounts;
+    return {
+      chosenAge, year: row.year, wrappers, assets, pensionCounted: counted,
+      homeNow: soldBy ? 0 : Math.max(0, E.num(inh0.homeValue, 0)),
+      wrappersNow: E.CATEGORIES.reduce((t, k) => t + now[k], 0),
+      wrappersAt: E.CATEGORIES.reduce((t, k) => t + at[k], 0),
+      assetsValue: assets.reduce((t, a) => t + a.value, 0),
+      excludedPension: counted ? 0 : at.pen
+    };
+  }, [inheritanceView, timelineData, ctx, plan?.inheritance]);
+
+  const addEstateAsset = () => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}),
+    otherAssets: [...(prev.inheritance?.otherAssets || []), { id: 'asset_' + Date.now(), name: '', kind: 'property', value: '', ownedFrom: '' }] } }));
+  const updateEstateAsset = (id, patch) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}),
+    otherAssets: (prev.inheritance?.otherAssets || []).map(a => a.id === id ? { ...a, ...patch } : a) } }));
+  const deleteEstateAsset = (id) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}),
+    otherAssets: (prev.inheritance?.otherAssets || []).filter(a => a.id !== id) } }));
+
   const [pensionSplitOpen, setPensionSplitOpen] = useState(false);
   const pensionSplitShown = pensionSplitOpen
     || (plan?.inheritance?.beneficiaries || []).some(b => !isBlank(b?.pensionSharePct));
@@ -8224,6 +8372,68 @@ export default function App() {
               </span>
             </div>
 
+            {/* ---------- what the estate is made of ---------- */}
+            {estateBreakdown && (
+              <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3" data-estate-breakdown>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Wallet className="w-3.5 h-3.5 text-purple-600" /> What the estate is made of</h3>
+                  <button type="button" onClick={() => setActiveTab('inputs')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold cursor-pointer">Balances and allocations live on Plan Inputs &rarr;</button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-[11px] border-collapse">
+                    <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
+                      <th className="pb-1.5 pr-3">Held in</th><th className="pb-1.5 pr-3">Today</th>
+                      <th className="pb-1.5 pr-3">At {estateBreakdown.chosenAge} ({estateBreakdown.year})</th><th className="pb-1.5">In the estate?</th>
+                    </tr></thead>
+                    <tbody className="divide-y divide-slate-100 font-mono">
+                      {estateBreakdown.wrappers.map(w => (
+                        <tr key={w.key}>
+                          <td className="py-1.5 pr-3 font-sans font-semibold text-slate-800">{w.label}</td>
+                          <td className="py-1.5 pr-3 text-slate-500">{formatGBP(w.now)}</td>
+                          <td className="py-1.5 pr-3 text-slate-800 font-bold">{formatGBP(w.at)}</td>
+                          <td className="py-1.5 font-sans text-[10px] text-slate-500">
+                            {w.key === 'pen'
+                              ? (estateBreakdown.pensionCounted ? 'Yes, from 2027' : `No — death before ${E.num(plan?.config?.pensionsInEstateFrom, 2027)}`)
+                              : 'Yes'}
+                          </td>
+                        </tr>
+                      ))}
+                      {estateBreakdown.homeNow > 0 && (
+                        <tr>
+                          <td className="py-1.5 pr-3 font-sans font-semibold text-slate-800">Your home</td>
+                          <td className="py-1.5 pr-3 text-slate-500">{formatGBP(estateBreakdown.homeNow)}</td>
+                          <td className="py-1.5 pr-3 text-slate-800 font-bold">{formatGBP(estateBreakdown.homeNow)}</td>
+                          <td className="py-1.5 font-sans text-[10px] text-slate-500">Yes, at today&rsquo;s value</td>
+                        </tr>
+                      )}
+                      {estateBreakdown.assets.map(a => (
+                        <tr key={a.id}>
+                          <td className="py-1.5 pr-3 font-sans font-semibold text-slate-800">{a.name || E.ESTATE_ASSET_KINDS[a.kind].label}</td>
+                          <td className="py-1.5 pr-3 text-slate-500">{formatGBP(a.value)}</td>
+                          <td className="py-1.5 pr-3 text-slate-800 font-bold">{formatGBP(a.value)}</td>
+                          <td className="py-1.5 font-sans text-[10px] text-slate-500">Yes, at today&rsquo;s value</td>
+                        </tr>
+                      ))}
+                      <tr className="border-t-2 border-slate-200">
+                        <td className="py-1.5 pr-3 font-sans font-bold text-slate-900">Estate at {estateBreakdown.chosenAge}</td>
+                        <td className="py-1.5 pr-3 text-slate-400">{formatGBP(estateBreakdown.wrappersNow + estateBreakdown.homeNow + estateBreakdown.assetsValue)}</td>
+                        <td className="py-1.5 pr-3 text-purple-700 font-bold">{formatGBP(inheritanceView.chosen.grossEstate)}</td>
+                        <td className="py-1.5"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                {/* the two reasons the two columns differ, said before anyone has to work them out */}
+                <span className="text-[10px] text-slate-400 block">
+                  The middle column is what you hold now. The right-hand one is the projection at your chosen death age &mdash; wrappers grow at the real return of their risk tier ({Object.entries(activeRiskMatrix).slice(0, 2).map(([k, v]) => `${k} ${E.num(v.real, 0).toFixed(2)}%`).join(', ')}, set in Config) net of anything you draw, all in today&rsquo;s money. The <strong>Contrib Growth</strong> column on Plan Inputs is how fast your contributions rise, not the return, so a figure typed there does not change these.
+                  {estateBreakdown.homeNow > 0 && ' Your home and any other assets are held flat in real terms, because a value typed in today\u2019s money already means "what it is worth now".'}
+                </span>
+                {estateBreakdown.excludedPension > 0 && (
+                  <span className="text-[10px] text-amber-700 block">The {formatGBP(estateBreakdown.excludedPension)} pension is outside the estate at this death age: unused pensions only count from {E.num(plan?.config?.pensionsInEstateFrom, 2027)}. That is why the estate here is smaller than everything you own.</span>
+                )}
+              </div>
+            )}
+
             {/* ---------- the estate ---------- */}
             <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Home className="w-3.5 h-3.5 text-purple-600" /> Your estate</h3>
@@ -8251,6 +8461,64 @@ export default function App() {
                   </label>
                   <span className="text-[10px] text-slate-400 mt-1 block">After a sale the house is no longer in the estate, so the residence allowance goes with it. The cash it released is counted in your wrappers instead.</span>
                 </div>
+              </div>
+
+              {/* ---- everything else you own ----
+                  One home, because only one property can carry the residence band. Everything else is a
+                  list, because a household can own a buy-to-let, a share of a business and a painting,
+                  and the tax treats those three differently. The kind drives the relief; the value does
+                  not move with the projection, because a figure typed in today's money already is. */}
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-slate-600 font-semibold text-xs">Anything else you own</span>
+                  <button onClick={addEstateAsset} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200" data-add-asset><Plus className="w-3.5 h-3.5" /> Add asset</button>
+                </div>
+                {!(plan?.inheritance?.otherAssets || []).length ? (
+                  <span className="text-[10px] text-slate-400 block">A second home, a buy-to-let, a business, farmland, art or savings held outside the wrappers on Plan Inputs. Leave it empty if the home above and your wrappers are the whole estate.</span>
+                ) : (
+                  <div className="space-y-2">
+                    {(plan?.inheritance?.otherAssets || []).map(a => {
+                      const kind = E.ESTATE_ASSET_KINDS[a.kind] || E.ESTATE_ASSET_KINDS.property;
+                      const chosenYear = inheritanceView.chosen ? inheritanceView.chosen.deathYear : null;
+                      const owned = a.ownedFrom === '' || a.ownedFrom === undefined || chosenYear === null
+                        ? null : chosenYear - E.num(a.ownedFrom, 0);
+                      const tooNew = kind.relievable && owned !== null && owned < E.num(plan?.config?.brAprMinYearsOwned, 2);
+                      return (
+                        <div key={a.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                          <input type="text" placeholder="What is it?" value={a.name ?? ''} onChange={(e) => updateEstateAsset(a.id, { name: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 w-36" />
+                          <select value={a.kind} onChange={(e) => updateEstateAsset(a.id, { kind: e.target.value })} title={kind.who} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer max-w-full">
+                            {Object.entries(E.ESTATE_ASSET_KINDS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                          </select>
+                          <label className="flex items-center gap-1 text-slate-500">worth
+                            <input type="number" min="0" step="5000" placeholder="0" onFocus={handleFocus} value={inputValue(a.value)} onChange={(e) => updateEstateAsset(a.id, { value: parseInputNumber(e.target.value) })} className="w-28 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 font-bold" />
+                          </label>
+                          {/* only the relievable kinds care when it was bought, so only they ask */}
+                          {kind.relievable && (
+                            <label className={`flex items-center gap-1 font-semibold ${tooNew ? 'text-amber-700' : 'text-purple-700'}`} title="Business, agricultural and unquoted-share relief all need the asset owned for two years at death. Leave blank if you have held it longer than that.">owned since
+                              <input type="number" min="1900" max="2200" step="1" placeholder="long ago" onFocus={handleFocus} value={inputValue(a.ownedFrom)} onChange={(e) => updateEstateAsset(a.id, { ownedFrom: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-purple-300 rounded font-mono text-purple-700 placeholder:text-purple-300 placeholder:font-sans placeholder:text-[10px]" />
+                            </label>
+                          )}
+                          {tooNew && <span className="text-[10px] text-amber-700 font-semibold">under two years at death &mdash; no relief</span>}
+                          <button onClick={() => deleteEstateAsset(a.id)} className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer transition-colors ml-auto"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {inheritanceView.chosen && inheritanceView.chosen.businessRelief > 0 && (
+                  <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900">
+                    <strong>{formatGBP(inheritanceView.chosen.businessRelief)}</strong> of business or agricultural relief at your chosen death age.
+                    {inheritanceView.chosen.businessReliefAboveAllowance > 0 && ` ${formatGBP(inheritanceView.chosen.businessReliefAboveAllowance)} sits above the ${formatGBP(E.num(plan?.config?.brAprAllowance, 1000000))} allowance and gets ${E.num(plan?.config?.brAprReducedRatePct, 50)}% rather than the full relief.`}
+                    {inheritanceView.chosen.businessRelief < inheritanceView.chosen.businessReliefRaw - 0.5 && ' Part of it is wasted on a share of the estate passing to someone exempt, who would pay no tax on it anyway.'}
+                  </div>
+                )}
+                {inheritanceView.chosen && inheritanceView.chosen.businessReliefTooNew > 0 && (
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>{formatGBP(inheritanceView.chosen.businessReliefTooNew)} of relievable assets would not have been owned for {E.num(plan?.config?.brAprMinYearsOwned, 2)} years at age {inheritanceView.chosenAge}, so they get no relief at all. This is the reason buying into these assets is the wrong move on a short prognosis, and the tab does not suggest it.</span>
+                  </div>
+                )}
+                <span className="text-[10px] text-slate-400 block">These are counted at full value for the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper even where relief applies, which is what the statute says: the taper looks at the estate before reliefs and exemptions. They are not drawn on to fund your spending &mdash; the projection lives on the wrappers.</span>
               </div>
               <details className="text-xs">
                 <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Widowed? Add your late partner&rsquo;s unused allowances</summary>
@@ -8740,11 +9008,12 @@ export default function App() {
               <p className="text-xs text-slate-600 leading-relaxed">Giving the money away is a separate relief with its own deadline: <strong>two years from the day you were paid</strong>, or two years from 4 December 2025 for anyone already holding an award when the relief was announced, whichever is later. Enter the date and the tab works out the deadline. <strong>You do not have to tell it which gifts came from the award.</strong> It knows the amount, the date and so the window, so a gift dated inside it is presumed to have come from the award while any of it remains &mdash; earliest first, split where a gift is larger than what is left, and left alone where the gift has already survived seven years and needs no relief. Untick <em>from the compensation</em> on a gift that came from other money. A gift dated after the window is priced as the ordinary transfer it has become, and the tab says so.</p>
               <p className="text-xs text-slate-600 leading-relaxed"><strong>One reading worth knowing about, because it is a reading and not a quotation.</strong> The credit and the window are treated as independent: giving the award away does not forfeit the credit. The cautious alternative &mdash; netting the gifts off the credit, so the same money cannot be relieved twice &mdash; was tried first and measured, and it makes the window worth about £1,200. A relief created at the 2025 Budget precisely because secondary transfers were being taxed cannot have been designed to be worth £1,200, and the statute relieves tax on a death where a payment &ldquo;is at any time received&rdquo; without netting anything. So both apply, to two different events: the credit on the death, the window on the gift. It is the more generous of the two readings, and the one to revisit if HMRC&rsquo;s guidance disagrees.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Business Relief, and why it is absent</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Business Relief is the largest thing this tab does not model. Qualifying trading businesses, unquoted shares and AIM-listed shares can escape inheritance tax in whole or in part, which makes reallocating a portfolio into them the classic estate-planning move — and it is not offered here, deliberately, for three reasons. The relief needs the asset to have been <strong>owned for two years</strong> at death, so it is exactly the wrong tool for someone who has just been given a short prognosis. The regime changed from 6 April 2026: relief is no longer unlimited, an allowance applies above which relief falls to 50%, and AIM shares now attract 50% relief in every case rather than 100%. And the assets that qualify carry investment risk far above anything else in this plan, so a tool that modelled the tax saving without modelling that risk would be recommending a trade on half the picture. If it matters to your estate, it is a conversation with an adviser, and the figures on this tab will be too low.</p>
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Business Relief: priced if you own it, never suggested</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">Two different questions live behind one relief, and this tab now answers one of them. <strong>Valuing what you already own</strong> is modelled: add a business, farmland or unquoted shares under <em>anything else you own</em> and the estate is priced with the relief. From 6 April 2026 that is 100% up to a {formatGBP(E.num(plan?.config?.brAprAllowance, 1000000))} allowance shared between business and agricultural property, {E.num(plan?.config?.brAprReducedRatePct, 50)}% above it, and {E.num(plan?.config?.aimReliefRatePct, 50)}% flat on shares not listed on a recognised exchange, which do not touch that allowance. That allowance is not transferable between spouses, unlike the nil-rate band, so there is no percentage box for it. A death before that date still gets the old unlimited 100%, and the tab switches on the death year you choose. Relief needs the asset <strong>owned for two years</strong> at death, so the tab asks when you acquired it and gives nothing where the test fails.</p>
+              <p className="text-xs text-slate-600 leading-relaxed"><strong>Whether to buy into them</strong> is not modelled, and is deliberately absent from the optimiser. That same two-year test makes it the wrong tool for anyone with a short prognosis — the household this tab is most used by — and the assets that qualify carry investment risk far above anything else in the plan, so a tool that priced the tax saving without pricing that risk would be recommending a trade on half the picture. Two simplifications inside what is modelled: relief is scaled by the share of your will going to people who actually pay tax, because relief on a legacy to a spouse is wasted, but a will leaving the business to one child and the house to another is beyond a single set of percentages; and only the agricultural value of farmland qualifies, where development value above it does not, so enter the agricultural figure. The {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper is measured before reliefs (s.8D(5)), so a fully relieved farm still pushes the residence allowance away — the tab does that too.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What this does not model</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Everyone receives the same proportion of every wrapper: a will leaving the pension to one person and the ISA to another is a legal document, not a plan input. An inherited pension is assumed drawn evenly over {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years at the income each beneficiary has given, which holds only while their circumstances do. Gifts, the seven-year rule, taper relief and regular gifts out of income are modelled; carrying an unused annual exemption forward is not, nor are the small-gift and wedding exemptions, Business Relief (above), a deed of variation after death, or life cover written in trust. Neither are trusts, business succession, or domicile.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Everyone receives the same proportion of every wrapper: a will leaving the pension to one person and the ISA to another is a legal document, not a plan input. An inherited pension is assumed drawn evenly over {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years at the income each beneficiary has given, which holds only while their circumstances do. Gifts, the seven-year rule, taper relief and regular gifts out of income are modelled; carrying an unused annual exemption forward is not, nor are the small-gift and wedding exemptions, a deed of variation after death, or life cover written in trust. Assets outside your wrappers are held flat in real terms and are never sold to fund your spending, so a business or second home you would in fact live off is understated as income and overstated as estate. Neither are trusts, business succession, or domicile.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Why only one gift is ever suggested</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Above {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} the residence allowance is withdrawn £1 for every £2, and the test for it looks at what you <strong>owned at death</strong>. Money given away is not owned at death — so that allowance comes back the day the gift is made, seven years or not. Nothing else about gifting is so clear-cut: inside seven years a gift consumes the {formatGBP(E.num(plan?.config?.ihtNrb, 325000))} allowance the estate would have used anyway, so it is close to tax-neutral, and presenting it as a saving would be misleading. The tab therefore suggests the one gift that clears the taper and says plainly which part of the saving is certain and which part still needs the seven years.</p>

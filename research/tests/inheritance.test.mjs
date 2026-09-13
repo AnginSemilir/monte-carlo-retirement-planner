@@ -808,5 +808,75 @@ console.log('=========== N. BLANK MEANS BLANK ===========');
   ok('but an explicit nil share is not the same as blank', split.penPct === 0 && split.pensionSharePct === 0);
 }
 
+console.log('=========== O. EVERYTHING ELSE IN THE ESTATE ===========');
+{
+  /*
+   * A second home, a business, a farm, a painting. One home carries the residence band; everything else
+   * is a list, and the KIND drives the relief. Business and agricultural property share one £1m allowance
+   * at 100% and drop to 50% above it from 6 April 2026; unquoted shares get 50% flat and never touch the
+   * allowance; all three need two years' ownership at death. Nothing else is relieved at all.
+   */
+  const w = { isa: 400000, cash: 100000 };
+  const at = (assets, deathYear = 2040, bens = [kid()]) => E.estateAtDeath(cfg, w,
+    { deathAge: 84, deathYear, homeValue: 500000, homeToDescendants: true, beneficiaries: bens, otherAssets: assets });
+  const none = at([]);
+
+  const btl = at([{ id: 'a', kind: 'property', value: 600000 }]);
+  ok('a buy-to-let joins the estate at full value', near(btl.grossEstate, none.grossEstate + 600000));
+  ok('and carries no relief', btl.businessRelief === 0);
+  ok('so it costs the estate 40% of itself', near(btl.iht - none.iht, 600000 * 0.4),
+    `£${Math.round(btl.iht - none.iht).toLocaleString()}`);
+
+  const biz = at([{ id: 'a', kind: 'business', value: 600000, ownedFrom: 2010 }]);
+  ok('a long-held business is fully relieved below the allowance', near(biz.businessRelief, 600000));
+  ok('so it costs the estate nothing', near(biz.iht, none.iht));
+
+  const big = at([{ id: 'a', kind: 'business', value: 2500000, ownedFrom: 2010 }]);
+  ok('above the allowance relief halves', near(big.businessRelief, 1000000 + 1500000 * 0.5),
+    `£${Math.round(big.businessRelief).toLocaleString()}`);
+  ok('and the tab can say how much sat above it', near(big.businessReliefAboveAllowance, 1500000));
+
+  const aim = at([{ id: 'a', kind: 'aim', value: 600000, ownedFrom: 2010 }]);
+  ok('unquoted shares get half relief', near(aim.businessRelief, 300000));
+  const both = at([{ id: 'a', kind: 'business', value: 1000000, ownedFrom: 2010 },
+                   { id: 'b', kind: 'aim', value: 600000, ownedFrom: 2010 }]);
+  ok('and do not eat the allowance the business needs', near(both.businessRelief, 1000000 + 300000),
+    `£${Math.round(both.businessRelief).toLocaleString()}`);
+
+  const farm = at([{ id: 'a', kind: 'business', value: 700000, ownedFrom: 2010 },
+                   { id: 'b', kind: 'agricultural', value: 700000, ownedFrom: 2010 }]);
+  ok('business and farmland share one allowance', near(farm.businessRelief, 1000000 + 400000 * 0.5),
+    `£${Math.round(farm.businessRelief).toLocaleString()}`);
+
+  const tooNew = at([{ id: 'a', kind: 'business', value: 600000, ownedFrom: 2039 }]);
+  ok('under two years there is no relief at all', tooNew.businessRelief === 0);
+  ok('and the reason is reported rather than left as a zero', near(tooNew.businessReliefTooNew, 600000));
+  ok('blank means held long enough, not bought in year zero',
+    near(at([{ id: 'a', kind: 'business', value: 600000 }]).businessRelief, 600000));
+
+  const before = at([{ id: 'a', kind: 'business', value: 2500000, ownedFrom: 2000 }], 2025);
+  ok('a death before the reform still gets the old unlimited relief', near(before.businessRelief, 2500000));
+
+  const spouseHalf = at([{ id: 'a', kind: 'business', value: 600000, ownedFrom: 2010 }], 2040,
+    [{ id: 's', relationship: 'spouse', sharePct: 50, income: 0 }, { ...kid(), sharePct: 50 }]);
+  ok('relief on a share passing to a spouse is not double-counted', near(spouseHalf.businessRelief, 300000),
+    `£${Math.round(spouseHalf.businessRelief).toLocaleString()} of £${Math.round(spouseHalf.businessReliefRaw).toLocaleString()}`);
+
+  /*
+   * s.8D(5): the residence-band taper is measured on the estate BEFORE reliefs and exemptions. A relieved
+   * farm still pushes the band away, which is the trap in reading relief as "the asset is not there".
+   */
+  const taper = at([{ id: 'a', kind: 'business', value: 1200000, ownedFrom: 2010 }]);
+  ok('a relieved asset still counts against the residence-band taper', near(taper.rnrbTaperLoss, 100000),
+    `band ${Math.round(taper.rnrb).toLocaleString()}, lost ${Math.round(taper.rnrbTaperLoss).toLocaleString()}`);
+
+  ok('an unknown kind falls back to plain property, never to free relief',
+    E.normalizeEstateAssets([{ kind: 'magic-beans', value: 100 }])[0].kind === 'property');
+  ok('and a negative value cannot create an estate', E.normalizeEstateAssets([{ value: -500 }])[0].value === 0);
+  ok('the list survives a save and reload',
+    E.normalizePlan({ inheritance: { otherAssets: [{ id: 'x', kind: 'aim', value: 1000, ownedFrom: 2020 }] } })
+      .inheritance.otherAssets[0].kind === 'aim');
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

@@ -258,7 +258,7 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   ok('documentation section exists', await p.evaluate(()=>!!document.getElementById('doc-inheritance')));
   ok('it records that draining the pension early does NOT follow', await p.evaluate(()=>/It does not/.test(document.getElementById('doc-inheritance')?.textContent||'')));
   ok('it names the reservation-of-benefit trap', await p.evaluate(()=>/reservation of benefit/.test(document.getElementById('doc-inheritance')?.textContent||'')));
-  ok('and states what is not modelled', await p.evaluate(()=>/Business Relief is the largest thing this tab does not model/.test(document.getElementById('doc-inheritance')?.textContent||'')));
+  ok('and states what is not modelled', await p.evaluate(()=>/deliberately absent from the optimiser/.test(document.getElementById('doc-inheritance')?.textContent||'')));
   ok('and why only one gift is ever suggested', await p.evaluate(()=>/owned at death/.test(document.getElementById('doc-inheritance')?.textContent||'')));
 
   ok('no page errors', errs.length===0, errs.slice(0,2).join(' | '));

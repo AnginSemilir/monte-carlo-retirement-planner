@@ -3980,9 +3980,10 @@ function optimizeInheritance(rawPlan, opts = {}) {
     };
     const ctx = buildContext(resolveMpaa(p));
     runs++;
-    const r = estateForPlanAt(p, ctx, simulateDeterministic(ctx, 'expected'));
+    const rows = simulateDeterministic(ctx, 'expected');
+    const r = estateForPlanAt(p, ctx, rows);
     return { ...variant, net: r.netWithGifts, estateNet: r.net, est: r.est, row: r.row,
-      survived: r.survived, plan: p, ctx };
+      survived: r.survived, plan: p, ctx, rows };
   };
 
   /*
@@ -4096,12 +4097,28 @@ function optimizeInheritance(rawPlan, opts = {}) {
   const compYears = compWin
     ? [...Array(Math.max(0, compWin.endYear - baseCtx.baseYear)).keys()].map(i => baseCtx.baseYear + 1 + i)
     : [];
-  const COMP_GIFTS = (compAmount > 1000 && compYears.length)
-    ? compYears.map(y => ({
-        year: y,
-        entry: { id: '__compgift', amount: compAmount, year: y, desc: 'Gift of exempt compensation', fromCompensation: 'yes' },
-        label: `give the ${gbp0(compAmount)} of compensation away in ${y}`
-      }))
+  /*
+   * Only what is LEFT of the award is on offer, and it is searched in slices rather than all-or-nothing.
+   *
+   * Both halves of that were wrong, and both cost real money. Offering the whole award ignored gifts
+   * already made from it, so a household that had given some away was told to give the same pounds
+   * twice. And testing only the full amount hid the shape of the trade: on a plan holding £575,000
+   * outside the pension, giving £900,000 means withdrawing the difference at the marginal rate, and the
+   * best answer was £629,000 - £6,185 better than the whole award and £45,000 better than the tab could
+   * previously see. The slices are the same fractions the ordinary gift search uses.
+   */
+  const compLeft = Math.max(0, num(baseline.est.compensationLeftToGive, compAmount));
+  const COMP_GIFTS = (compLeft > 1000 && compYears.length)
+    ? compYears.flatMap(y => GIFT_SEARCH_FRACTIONS
+        .map(fr => Math.round(compLeft * fr))
+        .filter(a => a > 1000)
+        .map(a => ({
+          year: y, amount: a,
+          entry: { id: `__compgift_${a}`, amount: a, year: y, desc: 'Gift of exempt compensation', fromCompensation: 'yes' },
+          label: a >= compLeft - 1
+            ? `give the ${gbp0(compLeft)} of compensation away in ${y}`
+            : `give ${gbp0(a)} of the compensation away in ${y}`
+        })))
     : [];
 
   const RECYCLES = [
@@ -4172,7 +4189,21 @@ function optimizeInheritance(rawPlan, opts = {}) {
   const bestRecycle = bestOf([bestGift, ...recycles]);
   const compGifts = COMP_GIFTS.map(g => evaluate({ ...bestRecycle, compGift: g.entry,
     label: joined(bestRecycle.label, g.label) }));
-  const bestComp = bestOf([bestRecycle, ...compGifts]);
+  /*
+   * The two gifts have to be searched in BOTH orders, because they compete for the same money and only
+   * one of them is free. Committing to the ordinary gift first leaves whatever is affordable for the
+   * compensation - and the compensation is the one that eats no nil-rate band, so it should get first
+   * refusal. Re-running the ordinary search on top of the best compensation gift lets the descent find
+   * that, and on a plan holding £575,000 outside the pension it is worth four figures.
+   */
+  const compFirst = COMP_GIFTS.map(g => evaluate({ ...bestOrder, gift: 0, compGift: g.entry,
+    label: joined(bestOrder.label, g.label) }));
+  const bestCompFirst = bestOf([bestOrder, ...compFirst]);
+  const giftsAfterComp = bestCompFirst.compGift
+    ? giftAmounts.map(amt => evaluate({ ...bestCompFirst, gift: amt,
+        label: joined(bestCompFirst.label, giftLabel(amt)) }))
+    : [];
+  const bestComp = bestOf([bestRecycle, ...compGifts, ...compFirst, ...giftsAfterComp]);
   // the split goes last because it is free: it re-prices the estate the winner already reaches
   const stackedSplit = withBestSplit(bestComp);
   const noms = stackedSplit ? [stackedSplit] : [];
@@ -4184,7 +4215,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
    * and makes it impossible for the search to report less than something it has already seen.
    */
   const best = bestOf([baseline, ...orders, ...ceilings, ...soloGifts, ...soloNoms, ...soloRecycles,
-    ...soloCompGifts, ...gifts, ...recycles, ...compGifts, ...noms]);
+    ...soloCompGifts, ...gifts, ...recycles, ...compGifts, ...compFirst, ...giftsAfterComp, ...noms]);
 
   /*
    * What each lever is worth ON ITS OWN, from the plan as it stands.
@@ -4270,7 +4301,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
   })();
 
   const ranked = [baseline, ...orders, ...ceilings, ...soloGifts, ...soloNoms, ...soloRecycles, ...soloCompGifts,
-    ...gifts, ...noms, ...recycles, ...compGifts]
+    ...gifts, ...noms, ...recycles, ...compGifts, ...compFirst, ...giftsAfterComp]
     .filter(viable)
     .sort((a, b) => b.net - a.net)
     .filter((c, i, all) => i === 0 || Math.abs(c.net - all[i - 1].net) > 1)   // drop exact duplicates
@@ -4282,6 +4313,19 @@ function optimizeInheritance(rawPlan, opts = {}) {
 
   return {
     deathAge, runs, liquidToday, giftYear, compensationWindow: compWin, exemptCompensation: compAmount,
+    compensationLeftToGive: compLeft,
+    /*
+     * What the plan holds in the gift year, before any gift, so the action plan can say which account a
+     * gift should come out of and what the shortfall costs to withdraw. Carried as four numbers rather
+     * than the whole projection: the caller needs the wrappers, not the rows.
+     */
+    giftYearWrappers: (() => {
+      const r = (baseline.rows || []).find(x => x.year === giftYear);
+      // taxable income, not the pot: totalSelf is a balance, and using it read every withdrawal as
+      // additional-rate. State pension plus whatever taxable pension income the year already draws.
+      return r ? { isa: r.isas, other: r.other, cash: r.cash, pen: r.pensions,
+        income: num(r.spSelf, 0) + num(r.taxablePensionSelf, 0) } : null;
+    })(),
     baseline: { label: baseline.label, net: baseline.net, iht: baseline.est.iht,
       incomeTax: baseline.est.incomeTaxOnPensions, qsrRelief: baseline.est.qsrRelief, qsrPct: baseline.est.qsrPct },
     best: { label: best.label, net: best.net, iht: best.est.iht, incomeTax: best.est.incomeTaxOnPensions,
@@ -4449,12 +4493,38 @@ function estateActionPlan(plan, result) {
     });
   }
 
+  /*
+   * WHERE THE MONEY COMES FROM. "Give away £900,000" is not an instruction anyone can follow while
+   * holding £575,000 outside a pension: the rest has to be withdrawn as income first, and at the
+   * marginal rate that is the most expensive pound in the plan. The optimiser already prices that - it
+   * is why the best answer is usually smaller than the whole award - but the action has to say it, or
+   * the household finds out at the bank.
+   */
+  const giftYearRow = result.giftYearWrappers;
+  const fundingNote = (amount) => {
+    if (!giftYearRow || !(amount > 0)) return '';
+    const parts = [['isa', giftYearRow.isa], ['other', giftYearRow.other], ['cash', giftYearRow.cash]]
+      .filter(([, v]) => v > 1000).sort((x, y) => y[1] - x[1]);
+    const outside = parts.reduce((t, [, v]) => t + v, 0);
+    const named = parts.map(([k, v]) => `${gbp(v)} in ${WRAPPER_PHRASE[k]}`)
+      .reduce((t, x, i, all) => t + (i === 0 ? '' : i === all.length - 1 ? ' and ' : ', ') + x, '');
+    if (amount <= outside + 1) {
+      return `Take it from ${parts.length > 1 ? 'those accounts' : WRAPPER_PHRASE[parts[0][0]]} rather than the pension: you have ${named} in ${result.giftYear}, which covers it. A pound of ISA or investment money leaves at face value; a pension pound has to be drawn as income first.`
+        + (parts.some(([k]) => k === 'other') ? ' Selling from the general investment account can realise a capital gain, which the projection has already charged.' : '');
+    }
+    const short = amount - outside;
+    const rate = marginalRateAt(num(giftYearRow.income, 0) + short, c);
+    const gross = rate < 1 ? short / (1 - rate) : short;
+    return `Outside the pension in ${result.giftYear} you hold ${outside > 0 ? named : 'nothing'} — ${gbp(outside)} against a gift of ${gbp(amount)}, so take that part from there first. The other ${gbp(short)} has to come out of the pension, which means withdrawing about ${gbp(gross)} to hand over ${gbp(short)} once income tax at ${Math.round(rate * 100)}% is paid. That cost is already inside the figure above, and it is why the amount suggested is usually less than everything you could give.`;
+  };
+
   // 5. the gift
   if (b.gift > 0) {
     out.push({
       key: 'gift',
       title: `Give away ${gbp(b.gift)} in ${result.giftYear}`,
-      body: `Make the gift and write down the date, the amount and who received it. Your executors will need all three.`,
+      body: `Make the gift and write down the date, the amount and who received it. Your executors will need all three. `
+        + fundingNote(b.gift + (b.compGift ? num(b.compGift.amount, 0) : 0)),
       detail: `It leaves your plan that year, so it is money you no longer have to live on - check the survival rate afterwards. The ${gbp(num(c.ihtRnrbTaperFrom, 2000000))} residence-allowance test looks at what you owned at death, so this part works from the day you give it; the gift itself still needs seven years to leave your estate entirely.`
     });
   }
@@ -4464,8 +4534,14 @@ function estateActionPlan(plan, result) {
     const w = result.compensationWindow;
     out.push({
       key: 'compGift',
-      title: `Give the ${gbp(b.compGift.amount)} of compensation away in ${b.compGift.year}`,
+      title: num(b.compGift.amount, 0) >= num(result.compensationLeftToGive, Infinity) - 1
+        ? `Give the ${gbp(b.compGift.amount)} of compensation away in ${b.compGift.year}`
+        : `Give ${gbp(b.compGift.amount)} of the compensation away in ${b.compGift.year}`,
       body: `Hand it to the people you want to have it, and keep the paperwork showing what the payment was and when you received it.`
+        + (num(result.compensationLeftToGive, 0) > num(b.compGift.amount, 0) + 1
+          ? ` That is part of the ${gbp(result.compensationLeftToGive)} still available under the window; giving more is possible but costs more than it saves, because the balance would have to come out of the pension.`
+          : '')
+        + (b.gift > 0 ? '' : ' ' + fundingNote(num(b.compGift.amount, 0)))
         + (w ? ` The window closes on ${w.endDate} — two years from the day you were paid, or from 4 December 2025 if you were already holding it when the relief was announced.` : ''),
       detail: 'Inside the window it costs no allowance and starts no seven-year clock. After it, the same gift is an ordinary transfer that eats your nil-rate band and needs you to survive seven years. Worth doing here because the money would otherwise be spent before it could be left to anyone.'
     });
@@ -5460,7 +5536,7 @@ export default function App() {
     const chosenAge = E.clamp(E.num(inh.deathAge, terminalAge), currentAge, 120);
     const ages = [...new Set([...INHERITANCE_AGES, chosenAge])].filter(a => a >= currentAge).sort((a, b) => a - b);
 
-    const at = (age) => {
+    const at = (age, giftsOverride) => {
       /*
        * Wrappers at the death age, read off the projection - NOT the terminal row. Dying at 74 on a
        * plan that runs to 95 leaves whatever the pot held at 74, and using the age-95 figure would
@@ -5485,14 +5561,30 @@ export default function App() {
         qsrYearsBefore: E.num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         compensationPayment: E.num(inh.compensationPayment, 0),
         compensationWindowEndYear: (E.compensationWindow(plan?.config, inh.compensationDate) || {}).endYear,
-        otherAssets: inh.otherAssets, gifts: inh.gifts, beneficiaries: bens
+        otherAssets: inh.otherAssets, gifts: giftsOverride || inh.gifts, beneficiaries: bens
       });
       const est = isCouple ? res.second : res;
       return { age, year: row.year, homeSold: soldBy, ...est };
     };
 
-    const rows = ages.map(at).filter(Boolean);
+    const rows = ages.map(a => at(a)).filter(Boolean);
     const chosen = rows.find(r => r.age === chosenAge) || rows[rows.length - 1];
+    /*
+     * A gift inside the two-year window, ticked "not from the compensation", while the award is still
+     * unspent. That is a real answer some households will give - the money genuinely came from
+     * somewhere else - but it is also exactly what an accidental untick looks like, and it is
+     * expensive: the gift starts a seven-year clock and eats the nil-rate band the award would have
+     * spared. So the tab prices the difference rather than leaving it to a checkbox nobody re-reads.
+     */
+    const declined = (inh.gifts || []).filter(g => g.fromCompensation === 'no' && E.num(g.amount, 0) > 0);
+    const compDeclined = (declined.length && chosen && E.num(inh.compensationPayment, 0) > 0
+      && E.num(chosen.compensationLeftToGive, 0) > 0)
+      ? (() => {
+        const alt = at(chosenAge, (inh.gifts || []).map(g => g.fromCompensation === 'no' ? { ...g, fromCompensation: '' } : g));
+        const gain = alt ? alt.netToBeneficiaries - chosen.netToBeneficiaries : 0;
+        return gain > 1 ? { gain, count: declined.length, amount: declined.reduce((t, g) => t + E.num(g.amount, 0), 0) } : null;
+      })()
+      : null;
     /*
      * A suggestion priced at the chosen death age. Sizing it means asking what this plan looks like at
      * that age if the gift were made next year, which is a question only the projection can answer - so
@@ -5534,7 +5626,7 @@ export default function App() {
       ? { before, after, loss: before.netToBeneficiaries - after.netToBeneficiaries }
       : null;
     return { rows, chosen, cliff, bens, declared, declaredPen, homeValue, chosenAge, suggestion,
-      surplus: E.surplusIncome(timelineData), hasBens: bens.length > 0 };
+      surplus: E.surplusIncome(timelineData), hasBens: bens.length > 0, compDeclined };
   }, [plan, ctx, timelineData, isCouple, terminalAge, currentAge, activeTab]);
 
   const historicalMetrics = useMemo(() => {
@@ -8589,6 +8681,12 @@ export default function App() {
                               : <div className="mt-1 text-amber-700">Enter the date you were paid and the tab will work out your deadline. Until then every gift is priced as an ordinary one &mdash; the cautious reading, since the window cannot be checked.</div>}
                           </div>
                         </div>
+                        {inheritanceView.compDeclined && (
+                          <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                            <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                            <span>{inheritanceView.compDeclined.count > 1 ? `${formatGBP(inheritanceView.compDeclined.amount)} of gifts is` : `A gift of ${formatGBP(inheritanceView.compDeclined.amount)} is`} dated inside the window but ticked as <em>not</em> from the compensation, while {formatGBP(compHeadroom.left)} of the award is still unspent. If that money did come from the award, ticking it back is worth <strong>{formatGBP(inheritanceView.compDeclined.gain)}</strong> &mdash; it would use no nil-rate band and start no seven-year clock. If it genuinely came from elsewhere, leave it as it is.</span>
+                          </div>
+                        )}
                         <div className="text-purple-800">Untick <em>from the compensation</em> on any gift that came from other money. A gift already more than seven years before your death is left alone: it is free anyway, so the award is better spent on one that is not.</div>
                       </div>
                     )}

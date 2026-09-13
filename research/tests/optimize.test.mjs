@@ -426,5 +426,97 @@ console.log('=========== K. THE COMPENSATION WINDOW, IN THE SEARCH ===========')
   ok('and warns what happens after it', !!step && /seven-year clock/.test(step.detail));
 }
 
+console.log('=========== L. HOW MUCH OF THE AWARD, AND WHERE FROM ===========');
+{
+  /*
+   * Two bugs found by reading a real plan's action list. The search offered the WHOLE award every time,
+   * so a household that had already given some of it away was told to give the same pounds twice; and it
+   * never tried a slice, so on a plan holding far less outside the pension than the award is worth, the
+   * recommendation was to withdraw the difference at the marginal rate. Both are now searched.
+   */
+  const withAward = (over = {}) => {
+    const h = household({
+      demo: { currentAgeSelf: 68, terminalAge: 95 }, deathAge: 71, home: 1400000,
+      pen: 1200000, isa: 175000, other: 400000, cash: 0,
+      bens: [{ id: 'k', name: 'Child', relationship: 'descendant', sharePct: 100, income: 60000, age: 36 }],
+      inh: { compensationPayment: 900000, compensationDate: '2025-06-01', ...over.inh }
+    });
+    h.spending.targetSpend = '';
+    return E.normalizePlan(h);
+  };
+
+  const r = E.optimizeInheritance(withAward());
+  const lever = r.levers.find(l => l.key === 'compGift');
+  ok('the compensation lever is worth something here', lever.gain > 0, gbp(lever.gain));
+  ok('slices of it are searched, not just all or nothing',
+    r.ranked.some(cnd => cnd.compGift && E.num(cnd.compGift.amount, 0) < 900000 - 1),
+    r.ranked.filter(cnd => cnd.compGift).map(cnd => gbp(E.num(cnd.compGift.amount, 0))).join(' '));
+
+  /*
+   * And where a slice really is better, it wins. An earlier gift that has already eaten the nil-rate
+   * band changes the trade: the marginal ordinary gift is nearly free, so handing over the whole award
+   * - which means withdrawing the difference from the pension at the marginal rate - stops being best.
+   */
+  const withPrior = E.optimizeInheritance(withAward({ inh: {
+    gifts: [{ id: 'g', amount: 308000, year: 2026, fromCompensation: 'no' }] } }));
+  const priorPick = withPrior.levers.find(l => l.key === 'compGift').pick;
+  const priorAmt = Number((/£([\d,]+)/.exec(priorPick) || [0, '0'])[1].replace(/,/g, ''));
+  const measured = withPrior.ranked.filter(cnd => cnd.compGift);
+  ok('the amount picked is the best of the slices measured, whichever that turns out to be',
+    priorAmt > 0 && measured.every(cnd => cnd.net <= withPrior.best.net + 1),
+    `picked ${gbp(priorAmt)} from ${measured.length} priced`);
+  ok('and it never exceeds what is left of the award', priorAmt <= withPrior.compensationLeftToGive + 1,
+    `${gbp(priorAmt)} of ${gbp(withPrior.compensationLeftToGive)}`);
+
+  // what is already gone cannot be offered again
+  const spent = E.optimizeInheritance(withAward({ inh: {
+    gifts: [{ id: 'g', amount: 600000, year: 2026 }] } }));
+  ok('a gift already drawn from the award reduces what is left',
+    spent.compensationLeftToGive < 900000, gbp(spent.compensationLeftToGive));
+  const spentLever = spent.levers.find(l => l.key === 'compGift');
+  const spentPick = /£([\d,]+)/.exec(spentLever.pick);
+  ok('and the search never offers more than remains',
+    !spentPick || Number(spentPick[1].replace(/,/g, '')) <= spent.compensationLeftToGive + 1, spentLever.pick);
+
+  /*
+   * WHERE THE MONEY COMES FROM. "Give away £900,000" is not an instruction anybody can follow holding
+   * £575,000 outside a pension, and the difference is the most expensive pound in the plan.
+   */
+  ok('the gift year wrappers travel with the result', !!r.giftYearWrappers && r.giftYearWrappers.isa > 0);
+  const small = E.estateActionPlan(withAward(), { ...r,
+    best: { ...r.best, gift: 100000, compGift: null } }).find(a => a.key === 'gift');
+  ok('a gift the liquid covers says to take it from there', !!small && /rather than the pension/.test(small.body),
+    small ? small.body.slice(0, 90) : 'no step');
+  ok('and names the accounts', !!small && /general investment account|ISAs/.test(small.body));
+  const huge = E.estateActionPlan(withAward(), { ...r,
+    best: { ...r.best, gift: 900000, compGift: null } }).find(a => a.key === 'gift');
+  ok('a gift beyond the liquid says what has to leave the pension',
+    !!huge && /has to come out of the pension/.test(huge.body), huge ? huge.body.slice(-150) : 'no step');
+  ok('and grosses the shortfall up for the income tax', !!huge && /withdrawing about £/.test(huge.body));
+  /*
+   * The rate has to come from TAXABLE INCOME. Reading it off totalSelf - a balance, not an income -
+   * priced every withdrawal at the additional rate, which made every large gift look worse than it is.
+   * A small shortfall on a household living on the state pension is a basic-rate withdrawal.
+   */
+  const outside = r.giftYearWrappers.isa + r.giftYearWrappers.other + r.giftYearWrappers.cash;
+  const modest = E.estateActionPlan(withAward(), { ...r,
+    best: { ...r.best, gift: Math.round(outside) + 15000, compGift: null } }).find(a => a.key === 'gift');
+  ok('a small shortfall is grossed up at the basic rate', !!modest && /at 20% is paid/.test(modest.body),
+    modest ? (/(at \d+% is paid)/.exec(modest.body) || [''])[0] : 'no step');
+  ok('while a large one reaches the top rate', !!huge && /at 45% is paid/.test(huge.body),
+    huge ? (/(at \d+% is paid)/.exec(huge.body) || [''])[0] : 'no step');
+
+  // and a partial award is not described as "the" award
+  const part = E.estateActionPlan(withAward(), { ...r, compensationLeftToGive: 900000,
+    best: { ...r.best, gift: 0, compGift: { amount: 90000, year: 2027 } } }).find(a => a.key === 'compGift');
+  ok('a partial gift of the award reads as a part of it', !!part && /Give £90,000 of the compensation/.test(part.title),
+    part ? part.title : 'no step');
+  ok('and says how much of the award is still there', !!part && /still available under the window/.test(part.body));
+  const whole = E.estateActionPlan(withAward(), { ...r, compensationLeftToGive: 90000,
+    best: { ...r.best, gift: 0, compGift: { amount: 90000, year: 2027 } } }).find(a => a.key === 'compGift');
+  ok('while giving all that is left reads as the whole of it',
+    !!whole && /Give the £90,000 of compensation/.test(whole.title), whole ? whole.title : 'no step');
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

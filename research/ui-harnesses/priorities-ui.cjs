@@ -25,7 +25,9 @@ const ok = (l, c, d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/^Config/.test(b.textContent.trim())||/Config/.test(b.textContent)); if(x) x.click(); });
   await p.waitForTimeout(600);
 
-  const order = () => p.evaluate(() => [...document.querySelectorAll('ol li')].map(li => li.querySelector('div.font-bold')?.textContent).filter(Boolean));
+  // scoped to the priority list: the Config tab also renders the policy playbook as an <ol>, and an
+  // unscoped query silently counted both
+  const order = () => p.evaluate(() => [...document.querySelectorAll('[data-priority-list] li')].map(li => li.querySelector('div.font-bold')?.textContent).filter(Boolean));
   const first = await order();
   console.log('default order:', first.slice(0,3).join(' > '));
   ok('priority list renders, survival first', /running out/i.test(first[0] || ''), first[0]);
@@ -35,7 +37,7 @@ const ok = (l, c, d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:
   const potIdx = first.findIndex(t => /biggest expected pot/i.test(t));
   ok('found the pot priority', potIdx > 0, String(potIdx));
   for (let i = potIdx; i > 0; i--) {
-    await p.evaluate((n) => { const li=[...document.querySelectorAll('ol li')][n]; li.querySelectorAll('button')[0].click(); }, i);
+    await p.evaluate((n) => { const li=[...document.querySelectorAll('[data-priority-list] li')][n]; li.querySelectorAll('button')[0].click(); }, i);
     await p.waitForTimeout(120);
   }
   const after = await order();
@@ -68,6 +70,25 @@ const ok = (l, c, d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:
   ok('it lists priorities in the CURRENT rank order', !!adv && /Not running out/.test(adv.rows[0]), adv?adv.rows[0].slice(0,40):'');
   ok('rate metrics use points and money metrics use percent', !!adv && adv.units.includes('pts') && adv.units.includes('%'), adv?adv.units.join(','):'');
   ok('the safety limit is disclosed', await p.evaluate(()=>/never more than/.test(document.body.textContent)));
+
+  // balanced mode: a separate mechanism beside the list, not a seventh row in it
+  await p.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>/Balance them all/.test(x.textContent)); if(b)b.click();});
+  await p.waitForTimeout(400);
+  ok('balanced mode can be switched on', await p.evaluate(()=>/weighed together rather than in order/.test(document.body.textContent)));
+  ok('the ranked list stays visible but greyed', await p.evaluate(()=>{
+    const ol=document.querySelector('[data-priority-list]');
+    return !!ol && ol.className.includes('opacity-40') && ol.querySelectorAll('li').length===6;
+  }));
+  ok('the choice is saved to the plan', await p.evaluate(()=>{try{return JSON.parse(localStorage.getItem('rp_plan_full_v28')).spending.priorityMode==='balanced';}catch(e){return false;}}));
+  await p.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>/Rank my priorities/.test(x.textContent)); if(b)b.click();});
+  await p.waitForTimeout(300);
+  ok('and switching back restores the ranked list', await p.evaluate(()=>{
+    const ol=document.querySelector('[data-priority-list]'); return !!ol && !ol.className.includes('opacity-40');
+  }));
+
+  // the policy playbook is generated on the same tab
+  ok('the policy how-to is shown', await p.evaluate(()=>/How to actually follow this policy/.test(document.body.textContent)));
+  ok('and reads as instructions, not tokens', await p.evaluate(()=>!/penPA|penBasic|penAny/.test(document.body.textContent)));
 
   // the docs link must land on a real section - which only renders once its tab is open
   await p.evaluate(() => { const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Documentation|Docs/i.test(b.textContent)); if(x) x.click(); });

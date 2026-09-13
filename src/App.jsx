@@ -5823,7 +5823,7 @@ export default function App() {
                     <button type="button" onClick={() => goToDoc('doc-priorities')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer"><HelpCircle className="w-3.5 h-3.5" /> How each priority picks a policy &rarr;</button>
                   </div>
                 </div>
-                <ol className={`space-y-1.5 ${priorityMode === 'balanced' ? 'opacity-40 pointer-events-none' : ''}`}>
+                <ol data-priority-list className={`space-y-1.5 ${priorityMode === 'balanced' ? 'opacity-40 pointer-events-none' : ''}`}>
                   {priorityList.map((key, i) => {
                     const m = E.PRIORITY_METRICS[key];
                     return (

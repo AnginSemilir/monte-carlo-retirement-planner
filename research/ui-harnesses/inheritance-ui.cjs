@@ -46,7 +46,7 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   }
   ok('the 75 cliff is called out in pounds', await p.evaluate(()=>/costs your heirs/.test(document.body.textContent)));
   ok('per-person table present', await p.evaluate(()=>/Person by person/.test(document.body.textContent)));
-  ok('simplifications are disclosed', await p.evaluate(()=>/everyone receives the same proportion of every wrapper/.test(document.body.textContent)));
+  ok('simplifications are disclosed', await p.evaluate(()=>/the pension column is your nomination form/.test(document.body.textContent)));
 
   // a share that does not total 100 must warn rather than silently rescale
   // fill() drives React's onChange properly; a raw dispatched event does not update controlled state
@@ -125,13 +125,68 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   await p3.waitForTimeout(800);
   ok('an estate under £2m is offered nothing', await p3.evaluate(()=>!document.querySelector('[data-gift-suggestion]')));
 
+  /*
+   * The will and the nomination as two columns, and the draw-down period per person. Two beneficiaries
+   * on very different incomes, because with one person every split normalises to 100% and nothing can
+   * move: the whole point is who gets the pension rather than how much of it there is.
+   */
+  const two = JSON.parse(JSON.stringify(plan));
+  two.inheritance.beneficiaries = [
+    { id: 'b1', name: 'Alex', relationship: 'descendant', sharePct: 50, income: 70000 },
+    { id: 'b2', name: 'Sam', relationship: 'descendant', sharePct: 50, income: 0, age: 19 }
+  ];
+  const p4 = await b.newPage({viewport:{width:1500,height:1600}});
+  const errs4=[]; p4.on('pageerror',e=>errs4.push(e.message));
+  await p4.route('https://cdn.tailwindcss.com/**',r=>r.fulfill({status:200,contentType:'application/javascript',body:'window.tailwind={config:{}};'}));
+  await p4.addInitScript(pl=>localStorage.setItem('rp_plan_full_v28',JSON.stringify(pl)),two);
+  await p4.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
+  await p4.waitForTimeout(900);
+  await p4.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  await p4.waitForTimeout(800);
+  const keeps = (name) => p4.evaluate((n)=>{
+    const r=[...document.querySelector('[data-person-table]').querySelectorAll('tbody tr')].find(r=>r.textContent.includes(n));
+    return Number([...r.querySelectorAll("td")][6].textContent.replace(/[^0-9.]/g,''));
+  }, name);
+  const total = () => p4.evaluate(()=>[...document.querySelector('[data-person-table]').querySelectorAll('tbody tr')]
+    .reduce((t,r)=>t+Number([...r.querySelectorAll("td")][6].textContent.replace(/[^0-9.]/g,'')),0));
+  ok('the beneficiary table asks for a pension share separately', await p4.evaluate(()=>[...document.querySelectorAll('label')].some(l=>/^pension/.test(l.textContent))));
+  const before = await total();
+  // nominate the whole pension to the one with no income, leaving the will alone
+  const penInputs = p4.locator('label', { hasText: /^pension/ }).locator('input');
+  await penInputs.nth(0).fill('0');
+  await penInputs.nth(1).fill('100');
+  await p4.waitForTimeout(600);
+  const after = await total();
+  const samBefore = await keeps('Sam'), alexBefore = await keeps('Alex');
+  ok('the nomination moves the pension without moving the house', samBefore > alexBefore,
+    `Sam £${samBefore.toLocaleString()} vs Alex £${alexBefore.toLocaleString()}`);
+  /*
+   * Concentrating a large pension on one person is NOT automatically better - each heir has their own
+   * allowances, so £900k on one 19-year-old over five years reaches the additional rate that splitting it
+   * would have avoided. On this plan it costs a little. It is the nomination TOGETHER with the longer
+   * draw-down that wins, and that is the pair the tab has to be able to express.
+   */
+  ok('concentrating it alone is roughly neutral here', Math.abs(after - before) < before * 0.01,
+    `£${before.toLocaleString()} -> £${after.toLocaleString()}`);
+  await p4.locator('label', { hasText: /draws over/ }).locator('input').nth(1).fill('20');
+  await p4.waitForTimeout(600);
+  const withSpread = await total();
+  ok('nomination plus a twenty-year draw-down is what wins', withSpread > before,
+    `£${before.toLocaleString()} -> £${withSpread.toLocaleString()} (+£${(withSpread-before).toLocaleString()})`);
+  ok('no page errors on the nomination flow', errs4.length===0, errs4.slice(0,2).join(' | '));
+
+  // gifts out of income
+  ok('the s.21 exemption is offered', await p4.evaluate(()=>/Regular gifts out of income/.test(document.body.textContent)));
+  ok('and it says what makes it exempt', await p4.evaluate(()=>/habitual/.test(document.body.textContent)));
+  ok('the surplus is quoted from the plan', await p4.evaluate(()=>/income after living costs is/.test(document.body.textContent)));
+
   // the docs section, which only renders on its own tab
   await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Documentation|Docs/i.test(b.textContent)); if(x)x.click();});
   await p.waitForTimeout(700);
   ok('documentation section exists', await p.evaluate(()=>!!document.getElementById('doc-inheritance')));
   ok('it records that draining the pension early does NOT follow', await p.evaluate(()=>/It does not/.test(document.getElementById('doc-inheritance')?.textContent||'')));
   ok('it names the reservation-of-benefit trap', await p.evaluate(()=>/reservation of benefit/.test(document.getElementById('doc-inheritance')?.textContent||'')));
-  ok('and states what is not modelled', await p.evaluate(()=>/out of surplus income/.test(document.getElementById('doc-inheritance')?.textContent||'')));
+  ok('and states what is not modelled', await p.evaluate(()=>/Business Relief is the largest thing this tab does not model/.test(document.getElementById('doc-inheritance')?.textContent||'')));
   ok('and why only one gift is ever suggested', await p.evaluate(()=>/owned at death/.test(document.getElementById('doc-inheritance')?.textContent||'')));
 
   ok('no page errors', errs.length===0, errs.slice(0,2).join(' | '));

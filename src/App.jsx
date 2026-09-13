@@ -641,6 +641,13 @@ const BLANK_PLAN = Object.freeze({
     activeServiceExempt: false,
     // gifts already made: { id, amount, year, desc }
     gifts: [],
+    /*
+     * s.21 IHTA 1984, normal expenditure out of income: a gift that is habitual, paid out of income
+     * rather than capital, and leaves the giver's standard of living intact is exempt IMMEDIATELY - no
+     * seven-year wait, no allowance consumed, and no upper limit. It is the only gift that works for
+     * someone who does not expect to live seven years, and the one most people never claim.
+     */
+    surplusGift: { annual: '', fromYear: '', toYear: '' },
     beneficiaries: []
   },
   accounts: defaultAccounts(),
@@ -784,7 +791,8 @@ function normalizePlan(raw) {
     inheritance: {
       ...BLANK_PLAN.inheritance, ...(isPlainObject(src.inheritance) ? src.inheritance : {}),
       beneficiaries: normalizeBeneficiaries(src.inheritance?.beneficiaries),
-      gifts: normalizeGifts(src.inheritance?.gifts)
+      gifts: normalizeGifts(src.inheritance?.gifts),
+      surplusGift: { ...BLANK_PLAN.inheritance.surplusGift, ...(isPlainObject(src.inheritance?.surplusGift) ? src.inheritance.surplusGift : {}) }
     },
     accounts: [],
     riskProfiles: {},
@@ -1407,6 +1415,21 @@ function buildContext(rawPlan) {
     if (!Number.isFinite(y) || amt <= 0 || y <= baseYear) return;
     oneOffCosts.set(y, (oneOffCosts.get(y) || 0) + amt);
   });
+  /*
+   * A regular gift out of surplus income is the same thing every year, so it is folded in year by year.
+   * It never appears in the estate and never touches an allowance - that is the whole point of s.21 -
+   * but it is unmistakably money the household no longer has, and leaving it out of the projection would
+   * let someone give away an income they were also spending.
+   */
+  const sg = plan.inheritance?.surplusGift || {};
+  const sgAnnual = Math.max(0, num(sg.annual, 0));
+  if (sgAnnual > 0) {
+    const from = Math.max(baseYear + 1, Number.isFinite(num(sg.fromYear, NaN)) ? num(sg.fromYear, 0) : baseYear + 1);
+    const to = Number.isFinite(num(sg.toYear, NaN)) && num(sg.toYear, 0) > 0 ? num(sg.toYear, 0) : baseYear + totalYears;
+    for (let y = from; y <= Math.min(to, baseYear + totalYears); y++) {
+      oneOffCosts.set(y, (oneOffCosts.get(y) || 0) + sgAnnual);
+    }
+  }
   /*
    * Spending bands, resolved once so the per-year lookup stays a cheap scan. Sorted by start age, with a
    * blank end age running to the terminal age. Overlaps are reported rather than silently resolved: the
@@ -3005,17 +3028,33 @@ const normalizeBeneficiaries = (list) => (Array.isArray(list) ? list : [])
     name: String(b.name ?? '').slice(0, 60),
     relationship: IHT_RELATIONSHIPS[b.relationship] ? b.relationship : 'descendant',
     sharePct: clamp(num(b.sharePct, 0), 0, 100),
+    /*
+     * The pension has its own percentages because it passes by nomination, not by the will. Blank means
+     * "the same as everything else", which is both the commonest intention and what the model assumed
+     * for everyone before the two were told apart - so an old saved plan reads identically.
+     */
+    pensionSharePct: isBlank(b.pensionSharePct) ? '' : clamp(num(b.pensionSharePct, 0), 0, 100),
+    penPct: isBlank(b.pensionSharePct) ? clamp(num(b.sharePct, 0), 0, 100) : clamp(num(b.pensionSharePct, 0), 0, 100),
     income: Math.max(0, num(b.income, 0)),
+    // years they would draw an inherited pension over; blank follows the config default
+    spreadYears: isBlank(b.spreadYears) ? '' : clamp(num(b.spreadYears, 0), 1, 40),
     age: b.age === '' || b.age === undefined || b.age === null ? '' : clamp(num(b.age, 0), 0, 120)
   }));
 
 /*
  * The estate at a single death.
  *
- * `wrappers` is { pen, isa, other, cash } at death, `homeValue` the residence still owned. Shares are
- * applied to every wrapper alike: we do not model a will that leaves the pension to one person and the
- * ISA to another, because that is a legal document rather than a plan input, and pretending otherwise
- * would produce a precise answer to a question nobody asked.
+ * `wrappers` is { pen, isa, other, cash } at death, `homeValue` the residence still owned.
+ *
+ * The estate splits two ways, because in life it does: everything except the pension passes under the
+ * WILL, and the pension passes by NOMINATION to the scheme - a separate form, with its own percentages,
+ * which most people never think of as part of their will at all. Keeping them apart is not a detail: an
+ * inherited pension is taxed at the RECIPIENT's marginal rate, so nominating it to the grandchild with
+ * an unused personal allowance and leaving the ISA to the higher-rate children is worth more than any
+ * other choice on this tab. A single set of shares across every wrapper cannot express that.
+ *
+ * A beneficiary who leaves the pension share blank simply follows their share of everything else, which
+ * is what most people mean and what the model used to assume for everyone.
  */
 function estateAtDeath(cfg, wrappers, opts = {}) {
   const c = { ...DEFAULT_CONFIG, ...(cfg || {}) };
@@ -3028,17 +3067,25 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   const pen = Math.max(0, num(wrappers.pen, 0));
   const liquid = ['isa', 'other', 'cash'].reduce((t, k) => t + Math.max(0, num(wrappers[k], 0)), 0);
   const pensionCounts = deathYear >= num(c.pensionsInEstateFrom, 2027);
-  const grossEstate = liquid + homeValue + (pensionCounts ? pen : 0);
+  const willEstate = liquid + homeValue;                 // what the will divides
+  const grossEstate = willEstate + (pensionCounts ? pen : 0);
 
-  // shares are normalised so a table that does not total 100 still produces a coherent answer, and the
-  // caller is told rather than silently corrected
+  /*
+   * Shares are normalised so a table that does not total 100 still produces a coherent answer, and the
+   * caller is told rather than silently corrected. The pension is normalised separately, over its own
+   * nominated percentages, so a plan that nominates only one person to the pension gives them all of it
+   * without also giving them the house.
+   */
   const declared = bens.reduce((t, b) => t + b.sharePct, 0);
+  const declaredPen = bens.reduce((t, b) => t + b.penPct, 0);
   const shareOf = (b) => (declared > 0 ? b.sharePct / declared : 0);
+  const penShareOf = (b) => (declaredPen > 0 ? b.penPct / declaredPen : 0);
+  // what each person receives, and the part of it the estate is taxed on
+  const grossOf = (b) => willEstate * shareOf(b) + pen * penShareOf(b);
+  const chargeableOf = (b) => willEstate * shareOf(b) + (pensionCounts ? pen * penShareOf(b) : 0);
 
-  const exemptShare = bens.filter(b => IHT_RELATIONSHIPS[b.relationship].exempt).reduce((t, b) => t + shareOf(b), 0);
-  const charityShare = bens.filter(b => b.relationship === 'charity').reduce((t, b) => t + shareOf(b), 0);
-  const exemptValue = grossEstate * exemptShare;
-  const charityValue = grossEstate * charityShare;
+  const exemptValue = bens.filter(b => IHT_RELATIONSHIPS[b.relationship].exempt).reduce((t, b) => t + chargeableOf(b), 0);
+  const charityValue = bens.filter(b => b.relationship === 'charity').reduce((t, b) => t + chargeableOf(b), 0);
 
   const nrbFull = Math.max(0, num(c.ihtNrb, 325000)) * (1 + clamp(num(opts.transferredNrbPct, 0), 0, 100) / 100);
 
@@ -3055,8 +3102,9 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
    * the part exceeding the band - so a modest gift sees no benefit from taper however long ago it was
    * made, because there was never any tax on it to taper.
    *
-   * The annual exemption is applied per year in which a gift was made. Carry-forward of an unused
-   * previous year is not modelled, so this is the cautious reading.
+   * The annual exemption is one allowance per tax year, taken by the earliest gifts in that year - not a
+   * discount on every gift. Three gifts in one year share one £3,000 between them. Carry-forward of an
+   * unused previous year is not modelled, so this is the cautious reading.
    */
   const taper = Array.isArray(c.giftTaperRates) ? c.giftTaperRates : [40, 40, 40, 32, 24, 16, 8];
   const annualExempt = Math.max(0, num(c.giftAnnualExemption, 3000));
@@ -3069,19 +3117,23 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
 
   let nrbLeft = nrbFull;
   let giftTax = 0;
+  const exemptLeft = new Map();                          // one annual exemption per year, first gift first
   const giftRows = gifts.map(g => {
-    const chargeableAmt = Math.max(0, g.amount - annualExempt);
     if (g.yearsBefore >= taper.length) {
-      // survived the full period: outside the estate entirely, and it costs no band
+      // survived the full period: outside the estate entirely, and it costs no band or exemption
       return { ...g, exemptAmount: g.amount, survived: true, againstNrb: 0, taxed: 0, tax: 0, ratePct: 0 };
     }
+    const left = exemptLeft.has(g.year) ? exemptLeft.get(g.year) : annualExempt;
+    const used = Math.min(left, g.amount);
+    exemptLeft.set(g.year, left - used);
+    const chargeableAmt = Math.max(0, g.amount - used);
     const against = Math.min(nrbLeft, chargeableAmt);
     nrbLeft -= against;
     const taxed = chargeableAmt - against;
     const ratePct = num(taper[Math.max(0, Math.floor(g.yearsBefore))], 40);
     const tax = taxed * (ratePct / 100);
     giftTax += tax;
-    return { ...g, exemptAmount: Math.min(g.amount, annualExempt), survived: false, againstNrb: against, taxed, tax, ratePct };
+    return { ...g, exemptAmount: used, survived: false, againstNrb: against, taxed, tax, ratePct };
   });
   const nrb = nrbLeft;
   /*
@@ -3092,9 +3144,27 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   const anyDescendant = bens.some(b => IHT_RELATIONSHIPS[b.relationship].descendant && b.sharePct > 0);
   const rnrbFull = Math.max(0, num(c.ihtRnrb, 175000)) * (1 + clamp(num(opts.transferredRnrbPct, 0), 0, 100) / 100);
   const taperLoss = Math.max(0, grossEstate - Math.max(0, num(c.ihtRnrbTaperFrom, 2000000))) * (clamp(num(c.ihtRnrbTaperRate, 50), 0, 100) / 100);
-  const rnrb = (homeToDescendants && anyDescendant && homeValue > 0)
-    ? Math.max(0, Math.min(rnrbFull - taperLoss, homeValue))
+  /*
+   * THE DOWNSIZING ADDITION. Selling the home does not forfeit the band: where a home was sold, given
+   * away or downsized from on or after 8 July 2015, the band it would have given is still available as
+   * an addition, provided assets of at least that value pass to direct descendants instead. Without this
+   * the model would charge up to £350,000 of tax to anyone who sold up to pay for care, which is exactly
+   * the household most likely to have done so.
+   *
+   * What is modelled is the simple and common case: the whole home sold, and the band restored up to its
+   * value when sold, capped by what the descendants actually receive. A partial downsizing - moving to a
+   * cheaper home - would need the value of both properties and is not asked for.
+   */
+  const formerHome = Math.max(0, num(opts.formerHomeValue, 0));
+  const descendantValue = bens
+    .filter(b => IHT_RELATIONSHIPS[b.relationship].descendant)
+    .reduce((t, b) => t + chargeableOf(b), 0);
+  const downsizingAsset = homeValue > 0 ? 0 : Math.min(formerHome, descendantValue);
+  const rnrbAsset = homeValue > 0 ? homeValue : downsizingAsset;
+  const rnrb = (homeToDescendants && anyDescendant && rnrbAsset > 0)
+    ? Math.max(0, Math.min(rnrbFull - taperLoss, rnrbAsset))
     : 0;
+  const rnrbFromDownsizing = homeValue > 0 ? 0 : rnrb;
 
   /*
    * Death on active service (s.154 IHTA 1984) is a full exemption rather than a relief: the estate of a
@@ -3134,14 +3204,20 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
    * residue: a spouse's share is untouched and the taxable beneficiaries carry the whole bill between
    * them, pro rata.
    */
-  const taxableShare = bens.filter(b => !IHT_RELATIONSHIPS[b.relationship].exempt).reduce((t, b) => t + shareOf(b), 0);
+  const taxableBase = bens.filter(b => !IHT_RELATIONSHIPS[b.relationship].exempt).reduce((t, b) => t + chargeableOf(b), 0);
+  /*
+   * Income tax on an inherited pension turns on the age at death alone. It is charged whether or not the
+   * pension is in the estate for inheritance tax: the 2027 change added a second charge, it did not
+   * create the first one, and gating this on that date would hand a pre-2027 death a tax-free pension it
+   * never had.
+   */
   const pensionTaxable = deathAge >= num(c.pensionIncomeTaxFromAge, 75);
 
   const beneficiaries = bens.map(b => {
-    const sh = shareOf(b);
     const rel = IHT_RELATIONSHIPS[b.relationship];
-    const gross = grossEstate * sh;
-    const ihtBorne = rel.exempt || taxableShare <= 0 ? 0 : iht * (sh / taxableShare);
+    const gross = grossOf(b);
+    const chargeable_b = chargeableOf(b);
+    const ihtBorne = rel.exempt || taxableBase <= 0 ? 0 : iht * (chargeable_b / taxableBase);
     const afterIht = Math.max(0, gross - ihtBorne);
     /*
      * Income tax on an inherited pension. Charged on the person who RECEIVES it, at their own rates, on
@@ -3151,16 +3227,27 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
      * A beneficiary already at state pension age is assumed to have that income too, because it uses up
      * the personal allowance that would otherwise shelter the first slice of what they draw.
      */
-    const pensionPart = pen > 0 && grossEstate > 0 ? (pen * sh) * (afterIht / Math.max(1e-9, gross)) : 0;
+    const penGross = pen * penShareOf(b);
+    // the inheritance tax this person's pension share carries, so the income tax is charged on what is
+    // actually left to draw rather than on a figure the estate has already paid tax out of
+    const ihtOnPension = (rel.exempt || taxableBase <= 0 || !pensionCounts) ? 0 : iht * (penGross / taxableBase);
+    const pensionPart = Math.max(0, penGross - ihtOnPension);
     const atSpa = b.age !== '' && num(b.age, 0) >= num(c.statePensionAgeForHeirs, 68);
     const assumedIncome = b.income + (atSpa ? num(c.assumedStatePensionForHeirs, 11976) : 0);
-    const incomeTaxOnPension = (rel.incomeTaxpayer && pensionTaxable && pensionCounts)
-      ? inheritedPensionTax(pensionPart, assumedIncome, c, c.inheritedPensionSpreadYears)
+    /*
+     * How long they take it over is theirs to choose, and it matters more than almost anything else on
+     * this tab: the same pot drawn over twenty years instead of five can more than halve the tax, because
+     * each year gets its own personal allowance and basic-rate band. A young grandchild has that runway
+     * and a sixty-year-old child largely does not, so it is asked per person rather than assumed once.
+     */
+    const spread = b.spreadYears === '' ? c.inheritedPensionSpreadYears : b.spreadYears;
+    const incomeTaxOnPension = (rel.incomeTaxpayer && pensionTaxable)
+      ? inheritedPensionTax(pensionPart, assumedIncome, c, spread)
       : 0;
     const net = Math.max(0, afterIht - incomeTaxOnPension);
     return {
-      ...b, sharePct: sh * 100, gross, ihtBorne, incomeTaxOnPension, net,
-      pensionPart, assumedIncome, atSpa,
+      ...b, sharePct: shareOf(b) * 100, penSharePct: penShareOf(b) * 100, gross, ihtBorne,
+      incomeTaxOnPension, net, pensionPart, assumedIncome, atSpa, spreadYears: spread,
       effectiveRatePct: gross > 0 ? 100 * (1 - net / gross) : 0
     };
   });
@@ -3173,15 +3260,47 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     rnrb,
     // what the taper actually cost: the band this estate would have had without it, less what it has.
     // Measuring the taper on its own would report a loss to an estate with no home to claim it against.
-    rnrbTaperLoss: (homeToDescendants && anyDescendant && homeValue > 0)
-      ? Math.max(0, Math.min(rnrbFull, homeValue) - rnrb) : 0,
+    rnrbTaperLoss: (homeToDescendants && anyDescendant && rnrbAsset > 0)
+      ? Math.max(0, Math.min(rnrbFull, rnrbAsset) - rnrb) : 0,
+    rnrbFromDownsizing,
     exemptValue, charityValue, charityQualifies, ratePct: rate * 100,
     chargeable, iht, ihtBeforeRelief, qsrRelief, qsrPct, activeServiceExempt,
     incomeTaxOnPensions: totalIncomeTax,
     totalTax: iht + totalIncomeTax, netToBeneficiaries: totalNet,
     effectiveRatePct: grossEstate > 0 ? 100 * (1 - totalNet / grossEstate) : 0,
-    sharesDeclaredPct: declared, beneficiaries,
+    sharesDeclaredPct: declared, pensionSharesDeclaredPct: declaredPen, beneficiaries,
+    // what the heirs actually receive between them, which includes a pension the estate is not taxed on
+    inheritedTotal: willEstate + pen,
     deathAge, deathYear
+  };
+}
+
+/*
+ * How much there is to give away out of income, which is the one gift that needs no seven years.
+ *
+ * s.21 exempts a gift that is habitual, made out of INCOME rather than capital, and leaves the giver's
+ * standard of living intact. The first and third conditions are facts about a person; the second is
+ * arithmetic, and this is it: guaranteed income and earnings, less what the plan says they live on.
+ *
+ * Drawdown taken from a pension is deliberately NOT counted as income here, even though HMRC will often
+ * accept regular pension income as exactly that. It is the cautious reading: a household that gives away
+ * its drawdown is giving away the pot, and if the executors lose the argument the gift becomes an
+ * ordinary transfer with a seven-year clock attached. The binding figure is the LEANEST year, not the
+ * average, because the exemption asks whether the gift could be made every year without eating capital.
+ */
+function surplusIncome(rows) {
+  const years = (Array.isArray(rows) ? rows : []).filter(r => num(r.t, 0) > 0).map(r => ({
+    year: r.year, age: r.ageSelf,
+    surplus: num(r.netGuaranteed, 0) + num(r.workingTakeHome, 0) - num(r.targetSpend, 0)
+  }));
+  if (!years.length) return null;
+  const sorted = years.map(y => y.surplus).sort((a, b) => a - b);
+  return {
+    years,
+    min: sorted[0],
+    median: sorted[Math.floor(sorted.length / 2)],
+    // what could be given away every single year without touching capital
+    sustainable: Math.max(0, sorted[0])
   };
 }
 
@@ -3348,6 +3467,8 @@ function postTaxInheritanceFor(plan, ctx) {
   const res = (ctx.isCouple ? estateForCouple : estateAtDeath)(
     plan.config, { pen: row.pensions, isa: row.isas, other: row.other, cash: row.cash },
     { deathAge: age, deathYear: row.year, homeValue: soldBy ? 0 : Math.max(0, num(inh.homeValue, 0)),
+      // a home sold still carries its residence band through the downsizing addition
+      formerHomeValue: soldBy ? Math.max(0, num(inh.homeValue, 0)) : 0,
       homeToDescendants: inh.homeToDescendants !== false,
       transferredNrbPct: num(inh.transferredNrbPct, 0), transferredRnrbPct: num(inh.transferredRnrbPct, 0),
       qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
@@ -3419,7 +3540,7 @@ function policyPlaybook(policyKey, P) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -4375,6 +4496,7 @@ export default function App() {
     const inh = plan?.inheritance || {};
     const bens = E.normalizeBeneficiaries(inh.beneficiaries);
     const declared = bens.reduce((t, b) => t + E.num(b.sharePct, 0), 0);
+    const declaredPen = bens.reduce((t, b) => t + E.num(b.penPct, 0), 0);
     const homeValue = Math.max(0, E.num(inh.homeValue, 0));
     const chosenAge = E.clamp(E.num(inh.deathAge, terminalAge), currentAge, 120);
     const ages = [...new Set([...INHERITANCE_AGES, chosenAge])].filter(a => a >= currentAge).sort((a, b) => a - b);
@@ -4394,6 +4516,9 @@ export default function App() {
       const res = fn(plan?.config, { pen: row.pensions, isa: row.isas, other: row.other, cash: row.cash }, {
         deathAge: age, deathYear: row.year,
         homeValue: soldBy ? 0 : homeValue,
+        // selling the home does not forfeit the residence band: the downsizing addition keeps it, so the
+        // value of what was sold has to travel with the plan
+        formerHomeValue: soldBy ? homeValue : 0,
         homeToDescendants: !!inh.homeToDescendants,
         transferredNrbPct: E.num(inh.transferredNrbPct, 0),
         transferredRnrbPct: E.num(inh.transferredRnrbPct, 0),
@@ -4433,9 +4558,12 @@ export default function App() {
         survived: E.evaluateRows(giftCtx, rows).survived };
     };
     // the search costs a dozen projections, so it is only run for the tab that shows it
+    const soldByChosen = inh.homeSold && E.num(inh.homeSaleAge, 999) <= chosenAge;
     const suggestion = (chosenRow && bens.length && activeTab === 'inheritance') ? E.suggestGift(plan?.config,
       { pen: chosenRow.pensions, isa: chosenRow.isas, other: chosenRow.other, cash: chosenRow.cash },
-      { deathAge: chosenAge, deathYear: chosenRow.year, homeValue, homeToDescendants: inh.homeToDescendants !== false,
+      { deathAge: chosenAge, deathYear: chosenRow.year,
+        homeValue: soldByChosen ? 0 : homeValue, formerHomeValue: soldByChosen ? homeValue : 0,
+        homeToDescendants: inh.homeToDescendants !== false,
         transferredNrbPct: E.num(inh.transferredNrbPct, 0), transferredRnrbPct: E.num(inh.transferredRnrbPct, 0),
         gifts: inh.gifts, beneficiaries: bens, giftYear, liquidToday, project }) : null;
     // the 75 boundary, priced for this household rather than described in the abstract
@@ -4444,7 +4572,8 @@ export default function App() {
     const cliff = (before && after && before.netToBeneficiaries > 0)
       ? { before, after, loss: before.netToBeneficiaries - after.netToBeneficiaries }
       : null;
-    return { rows, chosen, cliff, bens, declared, homeValue, chosenAge, suggestion, hasBens: bens.length > 0 };
+    return { rows, chosen, cliff, bens, declared, declaredPen, homeValue, chosenAge, suggestion,
+      surplus: E.surplusIncome(timelineData), hasBens: bens.length > 0 };
   }, [plan, ctx, timelineData, isCouple, terminalAge, currentAge, activeTab]);
 
   const historicalMetrics = useMemo(() => {
@@ -4902,6 +5031,14 @@ export default function App() {
   const addGift = () => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: [...(prev.inheritance?.gifts || []), { id: 'gift_' + Date.now(), amount: '', year: new Date().getFullYear(), desc: '' }] } }));
   const updateGift = (id, patch) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).map(g => g.id === id ? { ...g, ...patch } : g) } }));
   const deleteGift = (id) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).filter(g => g.id !== id) } }));
+  const surplusGiftAnnual = Math.max(0, E.num(plan?.inheritance?.surplusGift?.annual, 0));
+  const updateSurplusGift = (field, value) => setPlan(prev => ({
+    ...prev,
+    inheritance: {
+      ...(prev.inheritance || {}),
+      surplusGift: { ...(prev.inheritance?.surplusGift || {}), [field]: value }
+    }
+  }));
   /*
    * Accepting the suggestion writes an ordinary planned gift, nothing special: it lands in the same list,
    * with the same year and amount inputs, and can be edited or deleted like any other. Dated next year
@@ -6813,8 +6950,14 @@ export default function App() {
                       <select value={b.relationship} onChange={(e) => updateBeneficiary(b.id, { relationship: e.target.value })} title={E.IHT_RELATIONSHIPS[b.relationship].who} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer">
                         {Object.entries(E.IHT_RELATIONSHIPS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                       </select>
-                      <label className="flex items-center gap-1 text-slate-500">share
+                      <label className="flex items-center gap-1 text-slate-500" title="Their share of everything except the pension: the house, ISAs, investments and cash. This is the will.">will
                         <input type="number" min="0" max="100" step="5" onFocus={handleFocus} value={b.sharePct} onChange={(e) => updateBeneficiary(b.id, { sharePct: parseInputNumber(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 font-bold" />%
+                      </label>
+                      {/* The pension passes by nomination, not by the will. Blank follows the will share,
+                          which is what most people mean and what the model assumed for everyone before
+                          the two were separable. */}
+                      <label className="flex items-center gap-1 text-slate-500" title="Their share of the PENSION, which passes by the nomination form you gave your scheme — not by your will. Leave blank to match the will share.">pension
+                        <input type="number" min="0" max="100" step="5" placeholder={String(E.num(b.sharePct, 0))} onFocus={handleFocus} value={b.pensionSharePct} onChange={(e) => updateBeneficiary(b.id, { pensionSharePct: parseInputNumber(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-purple-700 font-bold" />%
                       </label>
                       {/* Income and age drive the income tax on an inherited pension, which a spouse pays
                           even though they pay no inheritance tax. Only a charity escapes both. */}
@@ -6825,6 +6968,11 @@ export default function App() {
                           </label>
                           <label className="flex items-center gap-1 text-slate-500">age
                             <input type="number" min="0" max="120" placeholder="—" onFocus={handleFocus} value={b.age} onChange={(e) => updateBeneficiary(b.id, { age: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                          </label>
+                          {/* The single biggest lever on this tab: a pot drawn over twenty years instead
+                              of five gets twenty personal allowances instead of five. */}
+                          <label className="flex items-center gap-1 text-slate-500" title="How many years they would draw an inherited pension over. Each year has its own personal allowance and basic-rate band, so a longer draw costs far less tax. Blank uses the default in Config.">draws over
+                            <input type="number" min="1" max="40" placeholder={String(E.num(plan?.config?.inheritedPensionSpreadYears, 5))} onFocus={handleFocus} value={b.spreadYears} onChange={(e) => updateBeneficiary(b.id, { spreadYears: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />y
                           </label>
                         </>
                       ) : (
@@ -6838,13 +6986,25 @@ export default function App() {
                   {Math.abs(inheritanceView.declared - 100) > 0.01 && (
                     <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                      <span>Shares total <strong>{inheritanceView.declared}%</strong>, not 100%. The figures below scale them proportionally so they add up — adjust them if that is not what you meant.</span>
+                      <span>Will shares total <strong>{inheritanceView.declared}%</strong>, not 100%. The figures below scale them proportionally so they add up — adjust them if that is not what you meant.</span>
                     </div>
                   )}
-                  <span className="text-[10px] text-slate-400 block">
-                    Income and age decide what an inherited pension costs them, if you die at {E.num(plan?.config?.pensionIncomeTaxFromAge, 75)} or over. We assume they draw it over <strong>{E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years</strong> rather than all at once, so a low earner gets their {formatGBP(P.pa)} personal allowance each year — which is why leaving a pension to someone without an income is far less punishing than leaving it to a higher-rate taxpayer. Age matters only in that someone at {E.num(plan?.config?.statePensionAgeForHeirs, 68)} or over is assumed to have a state pension already using part of that allowance.
+                  {Math.abs(inheritanceView.declaredPen - 100) > 0.01 && (
+                    <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                      <span>Pension shares total <strong>{Math.round(inheritanceView.declaredPen)}%</strong>, not 100%. They are scaled to add up, the same as the will shares.</span>
+                    </div>
+                  )}
+                  <span className="text-[10px] text-purple-700 block">
+                    <strong>Two columns, because there are two documents.</strong> Your will divides the house, ISAs, investments and cash. Your <strong>pension</strong> goes to whoever is on the nomination form held by your scheme, which most people filled in once and never looked at again. Splitting them is the most valuable choice on this tab: an inherited pension is taxed at the recipient&rsquo;s own rate, so the same pot is worth far more to someone with an unused personal allowance than to a higher-rate taxpayer. Leave the pension column blank and it simply follows the will.
                   </span>
-                  <span className="text-[10px] text-amber-700 block">This holds only if their circumstances stay roughly as they are over those {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years. Someone about to retire, start a business or come into other money would face a different bill.</span>
+                  <span className="text-[10px] text-slate-400 block">
+                    It does not follow that the whole pension should go to whoever earns least. Each person has their own allowances and bands, so putting a large pot on one heir can reach the additional rate that splitting it would have avoided &mdash; and a slow draw-down by the right person usually beats a clever split by the wrong one. The table below shows which way it falls for your figures.
+                  </span>
+                  <span className="text-[10px] text-slate-400 block">
+                    Income, age and the draw-down period decide what an inherited pension costs them, if you die at {E.num(plan?.config?.pensionIncomeTaxFromAge, 75)} or over. Each year of drawing gets its own {formatGBP(P.pa)} personal allowance and basic-rate band, so the number of years matters as much as who receives it — a young grandchild can spread it over decades, a sixty-year-old child cannot. Age matters only in that someone at {E.num(plan?.config?.statePensionAgeForHeirs, 68)} or over is assumed to have a state pension already using part of that allowance.
+                  </span>
+                  <span className="text-[10px] text-amber-700 block">This holds only while their circumstances stay roughly as they are over those years. Someone about to retire, start a business or come into other money would face a different bill.</span>
                   <span className="text-[10px] text-slate-400 block">A spouse or civil partner pays no inheritance tax but <strong>does</strong> pay income tax on an inherited pension, so their details still matter.</span>
                   {/* Naming who each row covers, and who it does not. Picking the wrong one is worth the
                       whole residence band in one direction and the whole spousal exemption in the other,
@@ -6956,6 +7116,40 @@ export default function App() {
                   <p className="text-[10px] text-emerald-700 leading-relaxed">Added as a planned gift it leaves the plan in {inheritanceView.suggestion.giftYear}, so it reduces what you have to live on as well as what you leave behind. Check the survival rate afterwards &mdash; an allowance is no use if the money was needed.</p>
                 </div>
               )}
+            </div>
+
+            {/* ---------- regular gifts out of income (s.21) ---------- */}
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-3.5 h-3.5 text-purple-600" /> Regular gifts out of income</h3>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                The one gift that needs no seven years. A gift that is <strong>habitual</strong>, paid out of <strong>income rather than capital</strong>, and leaves your standard of living intact is exempt <strong>immediately</strong> — no clock, no allowance used, and no upper limit. It is the most useful relief most people never claim, and the only one that works for someone who does not expect to live seven years.
+              </p>
+              <div className="flex flex-wrap items-end gap-3 text-xs">
+                <label className="flex flex-col gap-1 text-slate-600 font-semibold">Amount each year
+                  <input type="number" min="0" step="500" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.annual ?? ''} onChange={(e) => updateSurplusGift('annual', parseInputNumber(e.target.value))} className="w-32 p-1.5 bg-surface border border-slate-300 rounded font-mono text-purple-700 font-bold" />
+                </label>
+                <label className="flex flex-col gap-1 text-slate-600 font-semibold">From year
+                  <input type="number" min="1950" max="2100" placeholder={String(ctx.baseYear + 1)} onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.fromYear ?? ''} onChange={(e) => updateSurplusGift('fromYear', parseInputNumber(e.target.value))} className="w-24 p-1.5 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                </label>
+                <label className="flex flex-col gap-1 text-slate-600 font-semibold">Until year
+                  <input type="number" min="1950" max="2100" placeholder="end of plan" onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.toYear ?? ''} onChange={(e) => updateSurplusGift('toYear', parseInputNumber(e.target.value))} className="w-24 p-1.5 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                </label>
+              </div>
+              {inheritanceView.surplus && (
+                <div className={`p-3 rounded-xl border text-[11px] leading-relaxed ${surplusGiftAnnual > inheritanceView.surplus.sustainable ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-900'}`}>
+                  {/* The binding figure is the leanest year: the exemption asks whether the gift could be
+                      repeated every year without eating capital, not whether it averages out. */}
+                  Your income after living costs is <strong>{formatGBP(inheritanceView.surplus.median)}</strong> a year at the median, and <strong>{formatGBP(inheritanceView.surplus.min)}</strong> in the leanest year of the plan. A regular gift up to that leanest figure is the part you could defend as coming out of income every year.
+                  {surplusGiftAnnual > inheritanceView.surplus.sustainable
+                    ? <> You have entered <strong>{formatGBP(surplusGiftAnnual)}</strong>, which is more — the excess would be coming out of capital, so treat it as an ordinary gift with a seven-year clock rather than an exempt one.</>
+                    : surplusGiftAnnual > 0
+                      ? <> At <strong>{formatGBP(surplusGiftAnnual)}</strong> a year you are inside it.</>
+                      : <> Nothing is being gifted yet.</>}
+                </div>
+              )}
+              <span className="text-[10px] text-slate-400 block">
+                What this models: the money leaves your plan each year, so it reduces what you have to live on, and it never enters your estate or touches an allowance. What it cannot judge is whether the gift is really <em>habitual</em> — a pattern, not a one-off — which is the test HMRC actually applies. Drawdown taken from a pension is deliberately excluded from the income figure above even though HMRC will often accept regular pension income, because if the executors lose that argument the gift becomes an ordinary transfer with a seven-year clock. Your executors claim this on form IHT403, and it is far easier to claim when you have kept a record of the income and the gifts.
+              </span>
             </div>
 
             {/* ---------- the estate ---------- */}
@@ -7090,13 +7284,14 @@ export default function App() {
                 <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Person by person, if you die at {inheritanceView.chosen.age}</h3>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left text-[11px] border-collapse">
-                      <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Who</th><th className="pb-1.5 pr-3">Share</th><th className="pb-1.5 pr-3">Before tax</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5 pr-3">Their income tax</th><th className="pb-1.5 pr-3">They keep</th><th className="pb-1.5">Effective rate</th></tr></thead>
+                    <table data-person-table className="w-full text-left text-[11px] border-collapse">
+                      <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Who</th><th className="pb-1.5 pr-3">Will</th><th className="pb-1.5 pr-3">Pension</th><th className="pb-1.5 pr-3">Before tax</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5 pr-3">Their income tax</th><th className="pb-1.5 pr-3">They keep</th><th className="pb-1.5">Effective rate</th></tr></thead>
                       <tbody className="divide-y divide-slate-100 font-mono">
                         {inheritanceView.chosen.beneficiaries.map(b => (
                           <tr key={b.id}>
                             <td className="py-1.5 pr-3 font-sans font-semibold text-slate-800">{b.name || E.IHT_RELATIONSHIPS[b.relationship].label}<span className="block text-[10px] text-slate-400 font-normal">{E.IHT_RELATIONSHIPS[b.relationship].label}</span></td>
                             <td className="py-1.5 pr-3">{b.sharePct.toFixed(0)}%</td>
+                            <td className="py-1.5 pr-3 text-purple-700">{b.penSharePct.toFixed(0)}%<span className="block text-[10px] text-slate-400 font-sans">{b.pensionPart > 0 ? `${formatGBP(b.pensionPart)} over ${b.spreadYears}y` : '—'}</span></td>
                             <td className="py-1.5 pr-3">{formatGBP(b.gross)}</td>
                             <td className="py-1.5 pr-3 text-rose-700">{b.ihtBorne > 0 ? formatGBP(b.ihtBorne) : '—'}</td>
                             <td className="py-1.5 pr-3 text-rose-700">{b.incomeTaxOnPension > 0 ? formatGBP(b.incomeTaxOnPension) : '—'}</td>
@@ -7107,7 +7302,7 @@ export default function App() {
                       </tbody>
                     </table>
                   </div>
-                  <span className="text-[10px] text-slate-400 block">Inheritance tax is charged on the estate, so an exempt person&rsquo;s share is untouched and the taxable beneficiaries carry the whole bill between them. Two simplifications worth knowing: everyone receives the same proportion of every wrapper (a will that leaves the pension to one person and the ISA to another is not modelled), and an inherited pension is assumed drawn evenly over {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years at the income each person has given here — drawing it faster, or a change in their circumstances, would cost more.</span>
+                  <span className="text-[10px] text-slate-400 block">Inheritance tax is charged on the estate, so an exempt person&rsquo;s share is untouched and the taxable beneficiaries carry the whole bill between them. The will column divides everything except the pension; the pension column is your nomination form, which is a separate document. An inherited pension is assumed drawn evenly over the years shown, at the income each person has given here — drawing it faster, or a change in their circumstances, would cost more.</span>
                 </div>
               </>
             )}
@@ -7387,8 +7582,20 @@ export default function App() {
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Who inherits changes the tax, not just the shares</h3>
               <p className="text-xs text-slate-600 leading-relaxed">A spouse or civil partner is fully exempt and passes their unused allowances on. A charity is exempt and can pull the rate down for everyone else. A direct descendant unlocks the residence allowance. Anyone else gets no relief. And because an inherited pension is taxed at the <em>recipient&rsquo;s</em> marginal rate, the same pot is worth materially more to a grandchild with no income than to a child earning six figures — identical estate, identical will, different outcome.</p>
 
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Two documents, not one</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">Your will divides the house, ISAs, investments and cash. Your pension does not pass under it at all — it goes to whoever is named on the <strong>nomination form</strong> held by your scheme, which most people completed once on joining. The tab asks for both because an inherited pension is taxed at the <em>recipient&rsquo;s</em> marginal rate: nominating it to someone with an unused personal allowance, and leaving the taxed assets to higher-rate earners, is usually the single most valuable choice available. How long each person draws it over matters just as much — every year of drawing gets its own allowance and basic-rate band, so a young grandchild spreading it over twenty years pays a fraction of what the same pot costs drawn over five.</p>
+
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Selling your home does not lose the residence band</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">If you sell or give away the home on or after 8 July 2015 — to pay for care, typically — the <strong>downsizing addition</strong> preserves the band it would have given, as long as assets of at least that value pass to direct descendants instead. The plan applies it whenever the home is marked as sold. A partial downsizing, where you move somewhere cheaper, would need the value of both properties and is not asked for, so a household that trades down is modelled on the more cautious footing of having kept the newer home only.</p>
+
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Gifts out of income</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">The exemption for <em>normal expenditure out of income</em> (s.21) is immediate, unlimited and needs no seven years: a habitual gift, paid from income rather than capital, that leaves your standard of living intact. This is the only gift that helps someone who does not expect to live seven years, and it is claimed by the executors on form IHT403 — which is far easier when the giver kept a record. The plan checks the arithmetic half of the test, comparing the gift against guaranteed income and earnings less living costs, in the <em>leanest</em> year rather than on average. It excludes pension drawdown from that income figure even though HMRC will often accept regular pension income, because a gift that fails the test becomes an ordinary transfer with a seven-year clock. Whether the gift is genuinely habitual is a question about a pattern of behaviour that no calculator can settle.</p>
+
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Business Relief, and why it is absent</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">Business Relief is the largest thing this tab does not model. Qualifying trading businesses, unquoted shares and AIM-listed shares can escape inheritance tax in whole or in part, which makes reallocating a portfolio into them the classic estate-planning move — and it is not offered here, deliberately, for three reasons. The relief needs the asset to have been <strong>owned for two years</strong> at death, so it is exactly the wrong tool for someone who has just been given a short prognosis. The regime changed from 6 April 2026: relief is no longer unlimited, an allowance applies above which relief falls to 50%, and AIM shares now attract 50% relief in every case rather than 100%. And the assets that qualify carry investment risk far above anything else in this plan, so a tool that modelled the tax saving without modelling that risk would be recommending a trade on half the picture. If it matters to your estate, it is a conversation with an adviser, and the figures on this tab will be too low.</p>
+
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What this does not model</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Everyone receives the same proportion of every wrapper: a will leaving the pension to one person and the ISA to another is a legal document, not a plan input. An inherited pension is assumed drawn evenly over {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years at the income each beneficiary has given, which holds only while their circumstances do. Gifts, the seven-year rule and taper relief are modelled; regular gifts out of surplus income — immediately exempt and uncapped, and the most useful relief most people never claim — are not, nor is carrying an unused annual exemption forward. Neither are trusts, business succession, or domicile.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Everyone receives the same proportion of every wrapper: a will leaving the pension to one person and the ISA to another is a legal document, not a plan input. An inherited pension is assumed drawn evenly over {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years at the income each beneficiary has given, which holds only while their circumstances do. Gifts, the seven-year rule, taper relief and regular gifts out of income are modelled; carrying an unused annual exemption forward is not, nor are the small-gift and wedding exemptions, Business Relief (above), a deed of variation after death, or life cover written in trust. Neither are trusts, business succession, or domicile.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Why only one gift is ever suggested</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Above {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} the residence allowance is withdrawn £1 for every £2, and the test for it looks at what you <strong>owned at death</strong>. Money given away is not owned at death — so that allowance comes back the day the gift is made, seven years or not. Nothing else about gifting is so clear-cut: inside seven years a gift consumes the {formatGBP(E.num(plan?.config?.ihtNrb, 325000))} allowance the estate would have used anyway, so it is close to tax-neutral, and presenting it as a saving would be misleading. The tab therefore suggests the one gift that clears the taper and says plainly which part of the saving is certain and which part still needs the seven years.</p>

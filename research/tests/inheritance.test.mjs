@@ -468,5 +468,164 @@ console.log('=========== I. A PLANNED GIFT IS MONEY THAT LEAVES THE PLAN =======
   ok('a gift beyond the plan cannot be spent inside it', near(afterEnd, 1000000, 5), `£${Math.round(afterEnd).toLocaleString()}`);
 }
 
+console.log('=========== J. THE WILL AND THE NOMINATION ARE TWO DOCUMENTS ===========');
+{
+  /*
+   * A pension does not pass under a will: it goes to whoever is on the scheme's nomination form. Since an
+   * inherited pension is taxed at the RECIPIENT's rate, splitting the two is worth more than any other
+   * choice on the tab - and a model that applied one set of shares to every wrapper could not say it.
+   */
+  const w = { pen: 600000, isa: 265000, other: 212000, cash: 60000 };
+  const base = { deathAge: 84, deathYear: 2028, homeValue: 500000, homeToDescendants: true,
+    transferredNrbPct: 100, transferredRnrbPct: 100 };
+  const people = (over = {}) => ([
+    { id: 'k1', name: 'Child A', relationship: 'descendant', sharePct: 40, income: 60000, ...(over.k1 || {}) },
+    { id: 'k2', name: 'Child B', relationship: 'descendant', sharePct: 40, income: 45000, ...(over.k2 || {}) },
+    { id: 'g1', name: 'Grandchild', relationship: 'descendant', sharePct: 20, income: 0, ...(over.g1 || {}) }
+  ]);
+  const flat = E.estateAtDeath(cfg, w, { ...base, beneficiaries: people() });
+  ok('a blank pension share follows the will share', flat.beneficiaries.every(b => near(b.penSharePct, b.sharePct, 0.01)),
+    flat.beneficiaries.map(b => `${Math.round(b.penSharePct)}%`).join('/'));
+
+  const nominated = E.estateAtDeath(cfg, w, { ...base, beneficiaries: people({
+    k1: { pensionSharePct: 0 }, k2: { pensionSharePct: 0 }, g1: { pensionSharePct: 100, spreadYears: 20 } }) });
+  ok('the nomination moves the pension without moving the house', near(nominated.beneficiaries[2].penSharePct, 100) && near(nominated.beneficiaries[2].sharePct, 20),
+    `${Math.round(nominated.beneficiaries[2].sharePct)}% of the will, ${Math.round(nominated.beneficiaries[2].penSharePct)}% of the pension`);
+  ok('inheritance tax is unchanged by who gets what', near(nominated.iht, flat.iht, 1),
+    `£${Math.round(flat.iht).toLocaleString()} vs £${Math.round(nominated.iht).toLocaleString()}`);
+  ok('but the heirs keep more', nominated.netToBeneficiaries > flat.netToBeneficiaries,
+    `£${Math.round(flat.netToBeneficiaries).toLocaleString()} -> £${Math.round(nominated.netToBeneficiaries).toLocaleString()} (+£${Math.round(nominated.netToBeneficiaries - flat.netToBeneficiaries).toLocaleString()})`);
+  ok('because the income tax falls, not the estate tax', nominated.incomeTaxOnPensions < flat.incomeTaxOnPensions,
+    `£${Math.round(flat.incomeTaxOnPensions).toLocaleString()} -> £${Math.round(nominated.incomeTaxOnPensions).toLocaleString()}`);
+  ok('the children who gave up the pension still get their share of everything else',
+    nominated.beneficiaries[0].gross > 0 && near(nominated.beneficiaries[0].pensionPart, 0),
+    `£${Math.round(nominated.beneficiaries[0].gross).toLocaleString()} with £${Math.round(nominated.beneficiaries[0].pensionPart).toLocaleString()} of pension`);
+  // on an estate too small to pay any tax the pension shares must add back to exactly the pension
+  const small = E.estateAtDeath(cfg, { pen: 200000, cash: 50000 }, { ...base, homeValue: 0, beneficiaries: people({
+    k1: { pensionSharePct: 70 }, k2: { pensionSharePct: 30 }, g1: { pensionSharePct: 0 } }) });
+  ok('no tax due: the pension shares add back to the pension', near(small.iht, 0) &&
+    near(small.beneficiaries.reduce((t, b) => t + b.pensionPart, 0), 200000, 1),
+    `£${Math.round(small.beneficiaries.reduce((t, b) => t + b.pensionPart, 0)).toLocaleString()} shared out`);
+  ok('and nobody who was not nominated receives any of it', near(small.beneficiaries[2].pensionPart, 0));
+
+  // how long they draw it over is the other half of the same lever
+  const slow = E.estateAtDeath(cfg, w, { ...base, beneficiaries: people({ g1: { spreadYears: 20 } }) });
+  ok('a longer draw-down costs less tax', slow.beneficiaries[2].incomeTaxOnPension < flat.beneficiaries[2].incomeTaxOnPension,
+    `£${Math.round(flat.beneficiaries[2].incomeTaxOnPension).toLocaleString()} over 5y -> £${Math.round(slow.beneficiaries[2].incomeTaxOnPension).toLocaleString()} over 20y`);
+  ok('and the period is reported per person', slow.beneficiaries[2].spreadYears === 20 && slow.beneficiaries[0].spreadYears === cfg.inheritedPensionSpreadYears,
+    `${slow.beneficiaries[2].spreadYears}y and ${slow.beneficiaries[0].spreadYears}y`);
+
+  /*
+   * The pre-2027 branch. A pension outside the estate for inheritance tax is still INHERITED, and still
+   * taxed on the heir if death is at 75 or over - gating that on the 2027 date handed those heirs a
+   * tax-free pot they never had.
+   */
+  const early = E.estateAtDeath(cfg, w, { ...base, deathYear: 2026, beneficiaries: people() });
+  ok('a pre-2027 pension is outside the estate', early.pensionCounts === false && near(early.grossEstate, 1037000),
+    `£${Math.round(early.grossEstate).toLocaleString()}`);
+  ok('but the heirs still receive it', near(early.inheritedTotal, 1637000), `£${Math.round(early.inheritedTotal).toLocaleString()}`);
+  ok('and still pay income tax on it at 75 or over', early.incomeTaxOnPensions > 0,
+    `£${Math.round(early.incomeTaxOnPensions).toLocaleString()}`);
+  const young = E.estateAtDeath(cfg, w, { ...base, deathAge: 70, deathYear: 2026, beneficiaries: people() });
+  ok('death before 75 is free of it either way', young.incomeTaxOnPensions === 0);
+  ok('dying before 2027 leaves more than dying after', early.netToBeneficiaries > flat.netToBeneficiaries,
+    `£${Math.round(early.netToBeneficiaries).toLocaleString()} vs £${Math.round(flat.netToBeneficiaries).toLocaleString()}`);
+}
+
+console.log('=========== K. SELLING THE HOME, AND THE ANNUAL EXEMPTION ===========');
+{
+  const base = { deathAge: 84, deathYear: 2040, homeToDescendants: true, beneficiaries: [kid()] };
+  const kept = E.estateAtDeath(cfg, { isa: 537000 }, { ...base, homeValue: 500000 });
+  // the same wealth, with the house sold and the proceeds in the bank
+  const sold = E.estateAtDeath(cfg, { isa: 537000, cash: 500000 }, { ...base, homeValue: 0 });
+  ok('selling the home with no addition would lose the band', sold.rnrb === 0, String(sold.rnrb));
+  const downsized = E.estateAtDeath(cfg, { isa: 537000, cash: 500000 }, { ...base, homeValue: 0, formerHomeValue: 500000 });
+  ok('the downsizing addition keeps it', near(downsized.rnrb, 175000), `£${Math.round(downsized.rnrb).toLocaleString()}`);
+  ok('and it is reported as an addition, not a home', near(downsized.rnrbFromDownsizing, 175000) && kept.rnrbFromDownsizing === 0);
+  ok('so selling up to pay for care costs nothing in tax', near(downsized.iht, kept.iht),
+    `£${Math.round(kept.iht).toLocaleString()} kept vs £${Math.round(downsized.iht).toLocaleString()} sold`);
+  ok('the addition can never exceed the home that was sold',
+    near(E.estateAtDeath(cfg, { isa: 537000, cash: 90000 }, { ...base, homeValue: 0, formerHomeValue: 90000 }).rnrb, 90000));
+  /*
+   * And it needs descendants to receive that much. A charity taking the whole estate cannot unlock a
+   * band that exists only for direct descendants.
+   */
+  const toCharity = E.estateAtDeath(cfg, { isa: 537000, cash: 500000 },
+    { ...base, homeValue: 0, formerHomeValue: 500000, beneficiaries: [{ id: 'c', name: 'Charity', relationship: 'charity', sharePct: 100 }] });
+  ok('no descendants, no addition', toCharity.rnrb === 0, String(toCharity.rnrb));
+
+  /*
+   * The annual exemption is ONE allowance per tax year taken by the earliest gift, not a discount on
+   * every gift. Applying it per gift quietly hands a household £3,000 of extra allowance per child.
+   */
+  const oneBig = E.estateAtDeath(cfg, { isa: 800000 }, { ...base, homeValue: 0, gifts: [{ amount: 30000, year: 2038 }] });
+  const three = E.estateAtDeath(cfg, { isa: 800000 }, { ...base, homeValue: 0,
+    gifts: [{ amount: 10000, year: 2038 }, { amount: 10000, year: 2038 }, { amount: 10000, year: 2038 }] });
+  ok('three gifts in one year share one exemption', near(three.nrbUsedByGifts, oneBig.nrbUsedByGifts),
+    `£${Math.round(three.nrbUsedByGifts).toLocaleString()} vs £${Math.round(oneBig.nrbUsedByGifts).toLocaleString()} for one gift of the same size`);
+  ok('the earliest gift in the year takes it', near(three.gifts[0].exemptAmount, 3000) && three.gifts[1].exemptAmount === 0,
+    `£${Math.round(three.gifts[0].exemptAmount).toLocaleString()} then £${Math.round(three.gifts[1].exemptAmount).toLocaleString()}`);
+  const twoYears = E.estateAtDeath(cfg, { isa: 800000 }, { ...base, homeValue: 0,
+    gifts: [{ amount: 10000, year: 2037 }, { amount: 10000, year: 2038 }] });
+  ok('a new tax year brings a new exemption', near(twoYears.nrbUsedByGifts, 14000),
+    `£${Math.round(twoYears.nrbUsedByGifts).toLocaleString()}`);
+}
+
+console.log('=========== L. GIFTS OUT OF INCOME ===========');
+{
+  /*
+   * s.21: habitual, out of income, standard of living intact - exempt immediately, no seven years and no
+   * allowance used. The arithmetic half of the test is what can be checked, and the binding year is the
+   * leanest one, because the question is whether the gift could be repeated every year.
+   */
+  const ZERO = { real: 0, unlucky: 0, lucky: 0, nominal: 0, volatility: 0, label: 'flat' };
+  const mk = (surplusGift) => E.normalizePlan({
+    demographics: { planningMode: 'single', currentAgeSelf: 70, retireAgeSelf: 70, salarySelf: 0,
+      statePensionAge: 66, privatePensionAge: 55, statePensionSelf: 12000, terminalAge: 75 },
+    spending: { targetSpend: 20000, drawdownStrategy: 'Phased Drawdown', decumulationPolicy: 'Bracket Fill Basic' },
+    accounts: [
+      { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: 0, contrib: 0, growth: 0, risk: 'Cash Equivalents' },
+      { id: 'isa_self', owner: 'Myself', category: 'S&S ISAs', balance: 0, contrib: 0, growth: 0, risk: 'Cash Equivalents' },
+      { id: 'other_self', owner: 'Myself', category: E.CATEGORY_LABEL.other, balance: 0, contrib: 0, growth: 0, risk: 'Cash Equivalents' },
+      { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 500000, contrib: 0, growth: 0, risk: 'Cash Equivalents' }],
+    riskProfiles: { 'Cash Equivalents': ZERO },
+    // starts partway through, so the surplus genuinely varies and the leanest year is not the average
+    otherIncomes: [{ id: 'db', name: 'DB pension', owner: 'Myself', startAge: 72, endAge: '', amount: 30000, incomeType: 'otherTaxable' }],
+    oneOffContributions: [], oneOffCosts: [], config: { valuationDate: '2026-01-01' },
+    inheritance: { surplusGift }
+  });
+  const terminal = (sg) => {
+    const c = E.buildContext(E.resolveMpaa(mk(sg)));
+    return E.evaluateRows(c, E.simulateDeterministic(c, 'expected')).terminalPot;
+  };
+  const none = terminal({ annual: '', fromYear: '', toYear: '' });
+  const giving = terminal({ annual: 5000, fromYear: '', toYear: '' });
+  ok('a regular gift leaves the plan every year it runs', near(none - giving, 5 * 5000, 5),
+    `£${Math.round(none - giving).toLocaleString()} over five years`);
+  const windowed = terminal({ annual: 5000, fromYear: 2029, toYear: 2030 });
+  ok('and only in the years it runs', near(none - windowed, 2 * 5000, 5),
+    `£${Math.round(none - windowed).toLocaleString()}`);
+  ok('a gift dated in the past cannot be spent now', near(terminal({ annual: 5000, fromYear: 2000, toYear: 2020 }), none, 5));
+
+  // it never enters the estate and never touches an allowance: that is the whole point of s.21
+  const ctx = E.buildContext(E.resolveMpaa(mk({ annual: 5000, fromYear: '', toYear: '' })));
+  const rows = E.simulateDeterministic(ctx, 'expected');
+  const est = E.estateAtDeath(cfg, { cash: rows[rows.length - 1].cash },
+    { deathAge: 75, deathYear: 2031, beneficiaries: [kid()], gifts: ctx.plan?.inheritance?.gifts });
+  ok('and it uses no nil-rate band', est.nrbUsedByGifts === 0 && est.gifts.length === 0);
+
+  const s = E.surplusIncome(rows);
+  ok('the surplus is income less living costs', s && near(s.median, 16114, 200), `£${Math.round(s.median).toLocaleString()} at the median`);
+  /*
+   * The early years here are funded from capital, not income - the DB pension has not started - so there
+   * is no surplus to give away out of income at all, however much is in the bank. Reporting a positive
+   * figure from the good years would be the exact mistake the exemption is designed to catch.
+   */
+  ok('a year funded from capital has nothing to give', s.min < 0 && s.sustainable === 0,
+    `£${Math.round(s.min).toLocaleString()} in the leanest year, sustainable £${s.sustainable}`);
+  ok('measured on the leanest year, not the average', s.min < s.median, `£${Math.round(s.min).toLocaleString()} against a median of £${Math.round(s.median).toLocaleString()}`);
+  ok('drawdown is not counted as income', s.median < 30000, `£${Math.round(s.median).toLocaleString()} against a £30,000 DB pension`);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

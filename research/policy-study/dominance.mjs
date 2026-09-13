@@ -61,6 +61,14 @@ console.log(`Thresholds: a policy must beat the field by >${RATE_EPS}pt survival
 function profile(policy, field) {
   const rivals = field.filter(p => p !== policy);
   let bestRateEdge = -Infinity, bestRateAt = null, bestPotEdge = -Infinity, bestPotAt = null;
+  /*
+   * Three buckets, and the boundaries matter because they decide what gets deleted.
+   *   soleBest  - nothing else matches it: the policy is the answer for this household
+   *   noLoss    - it is within the noise of the best, so choosing it costs nothing measurable
+   *   behind    - it is materially worse, so choosing it costs the household real money
+   * A policy with no soleBest is redundant. Whether it is HARMLESS depends on how the rest splits:
+   * a default that is never uniquely right but almost never behind is doing its job.
+   */
   let uniqueWins = 0, jointBest = 0, everStrictlyWorse = 0;
   for (const r of rows) {
     const me = best(r, policy), them = bestOf(r, rivals);
@@ -71,14 +79,15 @@ function profile(policy, field) {
       const dp = me.p10 - them.p10;
       if (dp > bestPotEdge) { bestPotEdge = dp; bestPotAt = r; }
     }
-    if (dr > RATE_EPS || (Math.abs(dr) < 1e-9 && me.p10 - them.p10 > POT_EPS)) uniqueWins++;
-    else if (Math.abs(dr) < 1e-9 && Math.abs(me.p10 - them.p10) <= POT_EPS) jointBest++;
-    if (dr < -RATE_EPS) everStrictlyWorse++;
+    const dp = me.p10 - them.p10;
+    if (dr > RATE_EPS || (Math.abs(dr) < 1e-9 && dp > POT_EPS)) uniqueWins++;
+    else if (dr >= -RATE_EPS && dp >= -POT_EPS) jointBest++;
+    else everStrictlyWorse++;
   }
   return { policy, bestRateEdge, bestRateAt, bestPotEdge, bestPotAt, uniqueWins, jointBest, everStrictlyWorse };
 }
 
-function report(title, field, note) {
+function report(title, field, note, { verdicts = true } = {}) {
   console.log(`\n######## ${title} ########`);
   if (note) console.log(note + '\n');
   const profs = field.map(p => profile(p, field)).sort((a, b) => b.uniqueWins - a.uniqueWins || b.bestRateEdge - a.bestRateEdge);
@@ -89,14 +98,37 @@ function report(title, field, note) {
     console.log(`  ${pad(x.policy, 22)} ${pad(x.uniqueWins, 11)} ${pad(x.jointBest, 12)} ${pad(edge, 17)} ${pot}`);
   }
   console.log('');
+  /*
+   * Removal verdicts are only meaningful against a field of BEHAVIOURALLY DISTINCT policies.
+   *
+   * Several challengers share Bracket Fill Basic's draw order and differ only in how a one-off cost is
+   * funded or where a windfall lands. On a household with neither, they are not merely similar to it -
+   * they are the same policy, and they tie with it exactly. In that field "sole best" is unreachable for
+   * Bracket Fill Basic by construction, and reading that as evidence for deleting the app's default
+   * would be an artefact of the field, not a finding about the policy. So verdicts are emitted only for
+   * the shipped three, whose draw orders genuinely differ.
+   */
   const dominated = profs.filter(x => x.uniqueWins === 0);
-  if (!dominated.length) console.log('  Every policy is the sole best answer for at least one household. None is redundant.');
-  else for (const x of dominated) {
-    const harmless = x.jointBest > 0;
-    console.log(`  ${x.policy}: NEVER the sole best answer in ${rows.length} households.`);
-    console.log(`     its best moment: ${x.bestRateEdge > 0 ? `+${x.bestRateEdge.toFixed(2)}pt` : `${x.bestRateEdge.toFixed(2)}pt (i.e. still behind)`}${x.bestRateAt ? ` on ${x.bestRateAt.name}` : ''}`);
-    console.log(`     joint-best (nothing lost by using it) in ${x.jointBest} (${pct(x.jointBest, rows.length)}); strictly worse in ${x.everStrictlyWorse} (${pct(x.everStrictlyWorse, rows.length)})`);
-    console.log(`     verdict: ${harmless && x.everStrictlyWorse < rows.length * 0.5 ? 'redundant but harmless' : 'redundant AND usually worse - a removal candidate'}\n`);
+  if (!verdicts) {
+    const never = dominated.map(x => x.policy);
+    if (never.length) console.log(`  Never uniquely best here: ${never.join(', ')}.\n  In this field that is expected rather than damning - several challengers share a draw order with\n  a shipped policy and tie with it exactly wherever their own lever is not exercised. Question 3 is\n  the test that matters for adding a policy; Question 1 is the test that matters for removing one.`);
+    return profs;
+  }
+  if (!dominated.length) { console.log('  Every policy is the sole best answer for at least one household. None is redundant.'); return profs; }
+  for (const x of dominated) {
+    const noLossShare = x.jointBest / rows.length;
+    /*
+     * Redundant is not the same as harmful. A policy that is never uniquely right but is within noise
+     * of the best almost everywhere is a perfectly good DEFAULT - being rarely wrong is the job. The
+     * removal case is the policy that is neither: never the answer, and materially behind often.
+     */
+    const verdict = noLossShare >= 0.6 ? 'redundant as a CHOICE, but a sound default: within noise of the best almost everywhere'
+      : x.everStrictlyWorse > rows.length * 0.4 ? 'REMOVAL CANDIDATE: never the answer, and materially behind too often to be a safe default'
+        : 'redundant, and only sometimes safe - worth a closer look';
+    console.log(`  ${x.policy}: never the sole best answer in ${rows.length} households.`);
+    console.log(`     best moment: ${x.bestRateEdge > 0 ? `+${x.bestRateEdge.toFixed(2)}pt` : `${x.bestRateEdge.toFixed(2)}pt (still behind)`}${x.bestRateAt ? ` on ${x.bestRateAt.name}` : ''}`);
+    console.log(`     costs nothing to use in ${x.jointBest} (${pct(x.jointBest, rows.length)}); materially behind in ${x.everStrictlyWorse} (${pct(x.everStrictlyWorse, rows.length)})`);
+    console.log(`     verdict: ${verdict}\n`);
   }
   return profs;
 }
@@ -105,7 +137,8 @@ report('QUESTION 1: AMONG THE THREE SHIPPED POLICIES, IS ANY REDUNDANT?', SHIPPE
   'Field = the three policies the app offers today. "Sole best" means no other shipped policy matches it.');
 
 report('QUESTION 2: WITH ALL CHALLENGERS ADDED, WHO SURVIVES?', ALL,
-  'Field = all fifteen. A shipped policy that is sole-best here is genuinely irreplaceable;\n  a challenger that is sole-best here is answering a household nothing else answers.');
+  'Field = all fifteen. Read this as "who reaches the top of the field", not as a removal test:\n  several challengers are exact clones of a shipped policy on households where their own lever\n  never fires, so they deny each other sole-best status for reasons that say nothing about merit.',
+  { verdicts: false });
 
 // --- does any challenger beat the whole shipped field? -------------------------------------------
 console.log('\n######## QUESTION 3: DOES A CHALLENGER BEAT EVERY SHIPPED POLICY AT ONCE? ########\n');

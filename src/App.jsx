@@ -3421,7 +3421,13 @@ export default function App() {
       ? drawdownYears
       : Math.max(0, Math.min(drawdownYears, ev.failAge - drawdownStart));
     const failedBeforeDrawdown = !ev.survived && ev.failReason !== 'floor' && ev.failAge < drawdownStart;
-    return { ...ev, fundedYears, unfundedYears: Math.max(0, ctx.totalYears - fundedYears), drawdownStart, drawdownYears, fundedDrawdownYears, failedBeforeDrawdown, startVal: historicalTimeline[0]?.totalCombined || 0, terminalVal: ev.terminalPot, minVal: ev.minPot, startHistoricalYear: activeHistoricalStartYear, beyondData: historicalTimeline.some(r => r.histYear === null) };
+    /*
+     * Say what killed it. A one-off cost landing in the failure year is overwhelmingly the cause, and
+     * without naming it the verdict is a riddle: enter a £5m repair bill and the tab reports a plan that
+     * ran dry seven years into drawdown, leaving the reader to work out that their own entry did it.
+     */
+    const failCost = !ev.survived && ev.failYear ? (ctx.oneOffCosts.get(ev.failYear) || 0) : 0;
+    return { ...ev, fundedYears, unfundedYears: Math.max(0, ctx.totalYears - fundedYears), drawdownStart, drawdownYears, fundedDrawdownYears, failedBeforeDrawdown, failCost, startVal: historicalTimeline[0]?.totalCombined || 0, terminalVal: ev.terminalPot, minVal: ev.minPot, startHistoricalYear: activeHistoricalStartYear, beyondData: historicalTimeline.some(r => r.histYear === null) };
   }, [historicalTimeline, ctx, activeHistoricalStartYear]);
 
   const chartDisplayData = useMemo(() => timelineData.map(d => {
@@ -5565,7 +5571,7 @@ export default function App() {
                   <span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Backtest Verdict</span>
                   <div className="flex items-center gap-2">{historicalMetrics.survived ? <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0" />}<div><div className={`text-base font-black font-display italic ${historicalMetrics.survived ? 'text-emerald-800' : 'text-rose-800'}`}>{historicalMetrics.survived ? `Survived all ${spanYears} years` : historicalMetrics.failReason === 'floor' ? `All ${spanYears} years funded, below floor` : historicalMetrics.failedBeforeDrawdown ? `Ran dry before retirement, at Age ${historicalMetrics.failAge}` : historicalMetrics.fundedDrawdownYears <= 0 ? `Ran dry in year 1 of ${historicalMetrics.drawdownYears} drawdown years` : `Ran dry after ${historicalMetrics.fundedDrawdownYears} of ${historicalMetrics.drawdownYears} drawdown years`}</div><span className="text-[11px] text-slate-500">{historicalMetrics.survived ? `Age ${currentAge} to ${terminalAge}, no shortfall in any year`
                     : historicalMetrics.failReason === 'floor' ? `Ends below the ${formatGBP(ctx.solvencyFloor)} bequest floor at Age ${terminalAge}`
-                      : `${historicalMetrics.failReason === 'pre-access' ? `Pension still locked at Age ${historicalMetrics.failAge}` : `Age ${historicalMetrics.failAge}`} (${historicalMetrics.failYear}) · ${historicalMetrics.unfundedYears} of ${spanYears} plan years unfunded`}</span></div></div>
+                      : `${historicalMetrics.failReason === 'pre-access' ? `Pension still locked at Age ${historicalMetrics.failAge}` : `Age ${historicalMetrics.failAge}`} (${historicalMetrics.failYear}) · ${historicalMetrics.unfundedYears} of ${spanYears} plan years unfunded${historicalMetrics.failCost > 0 ? ` · a ${formatGBP(historicalMetrics.failCost)} one-off cost falls that year` : ''}`}</span></div></div>
                 </div>
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Starting Balance (Today)</span><div className="text-xl font-bold font-mono text-slate-900 mt-1">{formatGBP(historicalMetrics.startVal)}</div><span className="text-[11px] text-slate-400">After year-0 flows, at Age {currentAge}</span></div>
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Lowest Portfolio Trough</span><div className="text-xl font-bold font-mono text-amber-700 mt-1">{formatGBP(historicalMetrics.minVal)}</div><span className="text-[11px] text-slate-400">Lowest total experienced</span></div>

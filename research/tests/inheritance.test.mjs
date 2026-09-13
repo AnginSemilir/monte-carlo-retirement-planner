@@ -740,10 +740,22 @@ console.log('=========== M. THE COMPENSATION CREDIT ===========');
   ok('a gift larger than the award is split, not judged either way',
     near(overrun.compensationGiftsCovered, 300000) && near(overrun.nrbUsedByGifts, 97000),
     `£${Math.round(overrun.compensationGiftsCovered).toLocaleString()} exempt, £${Math.round(overrun.nrbUsedByGifts).toLocaleString()} of band eaten by the rest`);
-  const optedOut = E.estateAtDeath(cfg, w, { ...near7, gifts: [{ amount: 200000, year: 2027, fromCompensation: 'no' }] });
-  ok('and the household can say it came from elsewhere', optedOut.compensationGiftsCovered === 0 && optedOut.nrbUsedByGifts > 190000);
-  ok('being presumed from the award is worth having', auto.iht < optedOut.iht,
-    `£${Math.round(auto.iht).toLocaleString()} against £${Math.round(optedOut.iht).toLocaleString()}`);
+  /*
+   * There is no opting out any more, and a saved plan that carries the old override is not honoured.
+   * Money has no label: a household holding the award and giving some away inside the window can always
+   * say the gift was the award, so the flag could only ever be wrong in the direction that costs money -
+   * and on one real plan it sat unticked for £122,000 with nothing on screen to say so.
+   */
+  const legacyNo = E.estateAtDeath(cfg, w, { ...near7, gifts: [{ amount: 200000, year: 2027, fromCompensation: 'no' }] });
+  ok('an old saved "not from the award" flag is ignored rather than honoured',
+    near(legacyNo.compensationGiftsCovered, 200000) && legacyNo.nrbUsedByGifts < 1,
+    `£${Math.round(legacyNo.compensationGiftsCovered).toLocaleString()} covered`);
+  ok('and it is dropped on load, so it cannot come back',
+    E.normalizeGifts([{ amount: 1000, year: 2030, fromCompensation: 'no' }])[0].fromCompensation === '');
+  const noAward = E.estateAtDeath(cfg, w, { ...near7, compensationPayment: 0, compensationWindowEndYear: null,
+    gifts: [{ amount: 200000, year: 2027 }] });
+  ok('being covered by the award is worth having', auto.iht < noAward.iht,
+    `£${Math.round(auto.iht).toLocaleString()} against £${Math.round(noAward.iht).toLocaleString()}`);
   /*
    * A gift that has already survived seven years is left alone: it is out of the estate anyway, so
    * matching the award to it would use up something that a later gift may need.

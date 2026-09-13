@@ -407,8 +407,10 @@ console.log('=========== K. THE COMPENSATION WINDOW, IN THE SEARCH ===========')
    * be any size and this one is capped at the award.
    */
   const priceGift = (fromComp) => {
-    const p = E.normalizePlan({ ...soon, inheritance: { ...soon.inheritance,
-      gifts: [{ id: 'g', amount: 200000, year: 2027, ...(fromComp ? {} : { fromCompensation: 'no' }) }] } });
+    // no award at all is now the only way to price the same gift as an ordinary one: the override that
+    // used to do it is gone, because a household could leave it set at a cost of six figures
+    const inh = { ...soon.inheritance, gifts: [{ id: 'g', amount: 200000, year: 2027 }] };
+    const p = E.normalizePlan({ ...soon, inheritance: fromComp ? inh : { ...inh, compensationPayment: 0 } });
     const c = E.buildContext(E.resolveMpaa(p));
     return E.estateForPlanAt(p, c, E.simulateDeterministic(c, 'expected')).netWithGifts;
   };
@@ -458,7 +460,7 @@ console.log('=========== L. HOW MUCH OF THE AWARD, AND WHERE FROM ===========');
    * - which means withdrawing the difference from the pension at the marginal rate - stops being best.
    */
   const withPrior = E.optimizeInheritance(withAward({ inh: {
-    gifts: [{ id: 'g', amount: 308000, year: 2026, fromCompensation: 'no' }] } }));
+    gifts: [{ id: 'g', amount: 308000, year: 2026 }] } }));
   const priorPick = withPrior.levers.find(l => l.key === 'compGift').pick;
   const priorAmt = Number((/£([\d,]+)/.exec(priorPick) || [0, '0'])[1].replace(/,/g, ''));
   const measured = withPrior.ranked.filter(cnd => cnd.compGift);

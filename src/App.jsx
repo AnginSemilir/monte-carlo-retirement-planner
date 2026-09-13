@@ -3148,7 +3148,10 @@ const normalizeGifts = (list) => (Array.isArray(list) ? list : [])
      * window is presumed to have come from the award while any of it remains - and 'no' is the override
      * for money that came from somewhere else. 'yes' is what plans saved before this was derived carry.
      */
-    fromCompensation: g.fromCompensation === 'no' ? 'no' : (g.fromCompensation === 'yes' || g.exemptCompensation === true ? 'yes' : ''),
+    // 'no' was an override a household could leave in a costly state without knowing - one plan sat on it
+    // for £122,000 - so it is dropped on load rather than honoured. 'yes' still asserts, for plans saved
+    // before this was derived and for the candidate the optimiser builds.
+    fromCompensation: (g.fromCompensation === 'yes' || g.exemptCompensation === true) ? 'yes' : '',
     desc: String(g.desc ?? '').slice(0, 60)
   }));
 
@@ -3273,8 +3276,11 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
    * A gift larger than what remains is split rather than judged all one way: £400,000 given with £300,000
    * of award left is £300,000 of exempt gift and £100,000 of ordinary one.
    *
-   * `fromCompensation: 'no'` is the override for the household that gave money away from another source
-   * inside the window and would rather say so. 'yes' is kept for plans saved before this was derived.
+   * There is no opting out. A household holding an award alongside other money and giving some away
+   * inside the window can always say the gift was the award - money does not carry a label - so an
+   * override could only ever be wrong in the expensive direction, and one plan sat unticked at a cost of
+   * £122,000 with nothing on screen to say so. 'yes' remains, for plans saved before this was derived and
+   * for the candidate gift the optimiser builds.
    */
   const compWindowEndYr = num(opts.compensationWindowEndYear, NaN);
   const compAvailable = Math.max(0, num(opts.compensationPayment, 0));
@@ -3299,7 +3305,7 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   [...giftList].sort((a, b) => a.year - b.year).forEach(g => {
     const asserted = g.raw.fromCompensation === 'yes' || g.raw.exemptCompensation === true;
     const helps = !survivesAnyway(g);
-    const eligible = g.raw.fromCompensation !== 'no' && windowOpen(g) && (asserted || (compAvailable > 0 && helps));
+    const eligible = windowOpen(g) && (asserted || (compAvailable > 0 && helps));
     const take = eligible ? Math.min(compLeft, g.amount) : 0;
     compLeft -= take;
     alloc.set(g.i, take);
@@ -5570,22 +5576,6 @@ export default function App() {
     const rows = ages.map(a => at(a)).filter(Boolean);
     const chosen = rows.find(r => r.age === chosenAge) || rows[rows.length - 1];
     /*
-     * A gift inside the two-year window, ticked "not from the compensation", while the award is still
-     * unspent. That is a real answer some households will give - the money genuinely came from
-     * somewhere else - but it is also exactly what an accidental untick looks like, and it is
-     * expensive: the gift starts a seven-year clock and eats the nil-rate band the award would have
-     * spared. So the tab prices the difference rather than leaving it to a checkbox nobody re-reads.
-     */
-    const declined = (inh.gifts || []).filter(g => g.fromCompensation === 'no' && E.num(g.amount, 0) > 0);
-    const compDeclined = (declined.length && chosen && E.num(inh.compensationPayment, 0) > 0
-      && E.num(chosen.compensationLeftToGive, 0) > 0)
-      ? (() => {
-        const alt = at(chosenAge, (inh.gifts || []).map(g => g.fromCompensation === 'no' ? { ...g, fromCompensation: '' } : g));
-        const gain = alt ? alt.netToBeneficiaries - chosen.netToBeneficiaries : 0;
-        return gain > 1 ? { gain, count: declined.length, amount: declined.reduce((t, g) => t + E.num(g.amount, 0), 0) } : null;
-      })()
-      : null;
-    /*
      * A suggestion priced at the chosen death age. Sizing it means asking what this plan looks like at
      * that age if the gift were made next year, which is a question only the projection can answer - so
      * the search is handed a function that runs it. Ten or so extra deterministic runs, each about the
@@ -5626,7 +5616,7 @@ export default function App() {
       ? { before, after, loss: before.netToBeneficiaries - after.netToBeneficiaries }
       : null;
     return { rows, chosen, cliff, bens, declared, declaredPen, homeValue, chosenAge, suggestion,
-      surplus: E.surplusIncome(timelineData), hasBens: bens.length > 0, compDeclined };
+      surplus: E.surplusIncome(timelineData), hasBens: bens.length > 0 };
   }, [plan, ctx, timelineData, isCouple, terminalAge, currentAge, activeTab]);
 
   const historicalMetrics = useMemo(() => {
@@ -8349,15 +8339,10 @@ export default function App() {
                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${E.num(g.year, 0) > ctx.baseYear ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'}`}>
                         {E.num(g.year, 0) > ctx.baseYear ? 'planned' : 'already given'}
                       </span>
-                      {/* Derived, not asked for. The plan knows the award, the date it was paid and so the
-                          window; a gift dated inside it is presumed to have come from the award while any
-                          remains. The box is only an override, and only shown where it could apply. */}
-                      {compWindow && E.num(plan?.inheritance?.compensationPayment, 0) > 0 && E.num(g.year, 0) <= compWindow.endYear && (
-                        <label className="flex items-center gap-1 text-purple-700 cursor-pointer font-semibold" title="Presumed to have come from your compensation award, because it is dated inside the two-year window and there is award left to give. Untick if this money came from somewhere else.">
-                          <input type="checkbox" checked={g.fromCompensation !== 'no'} onChange={(e) => updateGift(g.id, { fromCompensation: e.target.checked ? '' : 'no' })} className="accent-purple-600" />
-                          from the compensation
-                        </label>
-                      )}
+      {/* Nothing to tick. The plan knows the award, the date it was paid and so the window; a gift
+                          dated inside it is treated as coming from the award while any remains, and what that
+                          came to is priced per gift in the table below. There was a box here to say otherwise
+                          and it was a trap - see normalizeGifts. */}
                       <button onClick={() => deleteGift(g.id)} className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer transition-colors"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   ))}
@@ -8681,13 +8666,7 @@ export default function App() {
                               : <div className="mt-1 text-amber-700">Enter the date you were paid and the tab will work out your deadline. Until then every gift is priced as an ordinary one &mdash; the cautious reading, since the window cannot be checked.</div>}
                           </div>
                         </div>
-                        {inheritanceView.compDeclined && (
-                          <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
-                            <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                            <span>{inheritanceView.compDeclined.count > 1 ? `${formatGBP(inheritanceView.compDeclined.amount)} of gifts is` : `A gift of ${formatGBP(inheritanceView.compDeclined.amount)} is`} dated inside the window but ticked as <em>not</em> from the compensation, while {formatGBP(compHeadroom.left)} of the award is still unspent. If that money did come from the award, ticking it back is worth <strong>{formatGBP(inheritanceView.compDeclined.gain)}</strong> &mdash; it would use no nil-rate band and start no seven-year clock. If it genuinely came from elsewhere, leave it as it is.</span>
-                          </div>
-                        )}
-                        <div className="text-purple-800">Untick <em>from the compensation</em> on any gift that came from other money. A gift already more than seven years before your death is left alone: it is free anyway, so the award is better spent on one that is not.</div>
+                        <div className="text-purple-800">Nothing to tick: gifts are matched to the award automatically, earliest first, and only where it helps. One already more than seven years before your death is left alone, because it is free anyway and the award is better spent on one that is not.</div>
                       </div>
                     )}
                     {inheritanceView.chosen && inheritanceView.chosen.compensationGiftsMissed && (
@@ -9103,7 +9082,7 @@ export default function App() {
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Compensation, and the credit it carries</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Payments under the <strong>infected blood scheme</strong> administered by IBCA are exempt from income tax and capital gains tax, and for inheritance tax they carry a <strong>credit</strong> rather than an exemption: under para 5 of Sch 15 Finance Act 2020, where a qualifying payment <em>is at any time received</em>, the tax on the death is reduced by {E.num(plan?.config?.ihtRate, 40)}% of the payment, capped at the tax that would otherwise be due. Post Office Horizon, Windrush, Grenfell, the Troubles Permanent Disablement scheme and vaccine damage payments run through the same machinery.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Three consequences the plan models, and each one moves the answer: <strong>what happened to the money is irrelevant</strong> &mdash; there is no tracing test, so an award spent, invested, paid into a pension or used to clear a mortgage earns the credit in full; <strong>the estate is unchanged</strong>, so the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are measured before the credit and not after it; and it <strong>cannot create a refund</strong>, being capped at the bill alongside quick succession relief. Enter the payment received, not what is left of it.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">Giving the money away is a separate relief with its own deadline: <strong>two years from the day you were paid</strong>, or two years from 4 December 2025 for anyone already holding an award when the relief was announced, whichever is later. Enter the date and the tab works out the deadline. <strong>You do not have to tell it which gifts came from the award.</strong> It knows the amount, the date and so the window, so a gift dated inside it is presumed to have come from the award while any of it remains &mdash; earliest first, split where a gift is larger than what is left, and left alone where the gift has already survived seven years and needs no relief. Untick <em>from the compensation</em> on a gift that came from other money. A gift dated after the window is priced as the ordinary transfer it has become, and the tab says so.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Giving the money away is a separate relief with its own deadline: <strong>two years from the day you were paid</strong>, or two years from 4 December 2025 for anyone already holding an award when the relief was announced, whichever is later. Enter the date and the tab works out the deadline. <strong>You do not have to tell it which gifts came from the award.</strong> It knows the amount, the date and so the window, so a gift dated inside it is presumed to have come from the award while any of it remains &mdash; earliest first, split where a gift is larger than what is left, and left alone where the gift has already survived seven years and needs no relief. There is deliberately no way to say a gift did <em>not</em> come from the award. Money carries no label: a household holding an award alongside other savings and giving some away inside the window can always say the gift was the award, so an opt-out could only ever be wrong in the direction that costs money &mdash; and on one real plan it sat set, unnoticed, at a cost of £122,000. A saved plan carrying the old flag has it dropped on load. A gift dated after the window is priced as the ordinary transfer it has become, and the tab says so.</p>
               <p className="text-xs text-slate-600 leading-relaxed"><strong>One reading worth knowing about, because it is a reading and not a quotation.</strong> The credit and the window are treated as independent: giving the award away does not forfeit the credit. The cautious alternative &mdash; netting the gifts off the credit, so the same money cannot be relieved twice &mdash; was tried first and measured, and it makes the window worth about £1,200. A relief created at the 2025 Budget precisely because secondary transfers were being taxed cannot have been designed to be worth £1,200, and the statute relieves tax on a death where a payment &ldquo;is at any time received&rdquo; without netting anything. So both apply, to two different events: the credit on the death, the window on the gift. It is the more generous of the two readings, and the one to revisit if HMRC&rsquo;s guidance disagrees.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Business Relief: priced if you own it, never suggested</h3>

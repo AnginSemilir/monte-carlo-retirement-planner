@@ -223,9 +223,8 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   const giftAmt = p4.locator('label', { hasText: /^amount/ }).locator('input').last();
   await giftAmt.fill('100000');
   await p4.waitForTimeout(700);
-  ok('a gift inside the window is presumed to come from the award, unticked by nobody',
-    await p4.evaluate(()=>{const l=[...document.querySelectorAll('label')].find(x=>/from the compensation/.test(x.textContent));
-      return !!l && l.querySelector('input').checked;}));
+  ok('there is nothing to tick: the match is derived, with no way to opt out',
+    await p4.evaluate(()=>![...document.querySelectorAll('label')].some(x=>/from the compensation/.test(x.textContent))));
   /*
    * At a death age far enough out, the 2027 gift has survived seven years on its own and the award is
    * deliberately NOT spent on it - so the badge only appears once the death age brings it inside.
@@ -241,12 +240,25 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   ok('bringing death inside seven years spends the award on the gift',
     await p4.evaluate(()=>/of your gifts is already drawn from the award/.test(document.body.textContent)));
   ok('and the headroom falls by the gift', await p4.evaluate(()=>/£200,000 of £300,000 left/.test(document.body.textContent)));
-  // the override
-  await p4.locator('label', { hasText: /from the compensation/ }).locator('input').first().uncheck();
-  await p4.waitForTimeout(700);
-  ok('unticking it hands the gift back to the seven-year rule',
-    await p4.evaluate(()=>!/of your gifts is already drawn from the award/.test(document.body.textContent)));
-  ok('and the headroom is restored', await p4.evaluate(()=>/£300,000 of £300,000 left/.test(document.body.textContent)));
+  /*
+   * An old saved plan carrying the removed override must not be honoured. On its own page, because a
+   * reload here would re-seed localStorage from addInitScript and drop the tab back to the default one.
+   */
+  const legacy = JSON.parse(JSON.stringify(two));
+  legacy.inheritance = { ...legacy.inheritance, compensationPayment: 300000, compensationDate: '2026-02-01',
+    deathAge: 66, gifts: [{ id: 'g', amount: 100000, year: 2027, fromCompensation: 'no' }] };
+  const p5 = await b.newPage({viewport:{width:1500,height:1500}});
+  p5.on('pageerror',e=>errs4.push(e.message));
+  await p5.route('https://cdn.tailwindcss.com/**',r=>r.fulfill({status:200,contentType:'application/javascript',body:'window.tailwind={config:{}};'}));
+  await p5.addInitScript(pl=>localStorage.setItem('rp_plan_full_v28',JSON.stringify(pl)),legacy);
+  await p5.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
+  await p5.waitForTimeout(1000);
+  await p5.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  await p5.waitForTimeout(900);
+  ok('a legacy "not from the award" flag is dropped on load, not honoured',
+    await p5.evaluate(()=>!JSON.parse(localStorage.getItem('rp_plan_full_v28')).inheritance.gifts.some(g=>g.fromCompensation==='no')));
+  ok('so the gift is covered by the award after all',
+    await p5.evaluate(()=>/of your gifts is already drawn from the award/.test(document.body.textContent)));
 
   ok('the s.21 exemption is offered', await p4.evaluate(()=>/Regular gifts out of income/.test(document.body.textContent)));
   ok('and it says what makes it exempt', await p4.evaluate(()=>/habitual/.test(document.body.textContent)));

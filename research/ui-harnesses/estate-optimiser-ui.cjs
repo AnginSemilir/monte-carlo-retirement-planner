@@ -349,6 +349,20 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
     .map(li=>li.textContent.trim()));
   console.log('    actions:'); actions.forEach((a,i)=>console.log(`      ${i+1}. ${a.slice(0,110)}`));
   ok('there is an action list', actions.length>0, `${actions.length} steps`);
+  /*
+   * Three cards, because they are three kinds of decision: money you keep, money you give away, and the
+   * arithmetic that follows. And the gift card has to answer "why not more" itself - the search has
+   * already priced every larger gift, so leaving the household to wonder is leaving them to guess wrong.
+   */
+  const groups = await p.evaluate(()=>[...document.querySelectorAll('[data-action-group]')].map(d=>d.dataset.actionGroup));
+  ok('the actions are split into cards', groups.length >= 2, groups.join(', '));
+  ok('reallocation is its own card', groups.includes('reallocate'));
+  ok('and the figures that follow are priced on the recommendation',
+    await p.evaluate(()=>!!document.querySelector('[data-recommended-workings]')));
+  ok('with a working that ends on the tax payable',
+    await p.evaluate(()=>/Inheritance tax payable/.test(document.querySelector('[data-recommended-workings]')?.textContent||'')));
+  ok('and a split of estate against lifetime gifts',
+    await p.evaluate(()=>/Given in your lifetime/.test(document.querySelector('[data-recommended-workings]')?.textContent||'')));
   ok('it names amounts and years, not policy jargon', actions.some(a=>/£[\d,]+/.test(a) && /20\d\d/.test(a)));
   ok('a dead-end lever explains itself', await p.evaluate(()=>/no income tax at all|out of reach/.test(document.body.textContent)));
   ok('charity is priced but not ranked', await p.evaluate(()=>/priced but not ranked/i.test(document.body.textContent)));
@@ -397,6 +411,11 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   ok('the split is quoted as percentages, not all-or-nothing',
     await p2.evaluate(()=>/pension \d+% .+ \/ \d+%/.test(document.body.textContent)));
   const acts2 = await p2.evaluate(()=>[...document.querySelector('[data-action-plan]').querySelectorAll('li')].map(li=>li.textContent));
+  // either "why £X and not more" or "no gift, and here is what the best one would have cost" - never silence
+  ok('the gift decision explains itself either way',
+    await p2.evaluate(()=>{const d=document.querySelector('[data-gift-rationale]');
+      return !!d && /worse off|does not leave enough|is worth/.test(d.textContent);}),
+    await p2.evaluate(()=>(document.querySelector('[data-gift-rationale]')?.textContent||'MISSING').slice(0,110)));
   ok('the nomination is spelled out as a form to ask for', acts2.some(a=>/expression of wish/.test(a)),
     acts2.length + ' steps');
   ok('and the percentages are named', acts2.some(a=>/%\s*to\s*\w/.test(a)));

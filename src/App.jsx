@@ -3542,6 +3542,18 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
       return t + amt - (row ? row.tax : 0);
     }, 0)
     : 0;
+  /*
+   * Who got the gifts. The plan records what was given and when, not to whom - one recipient field
+   * would be a fourth place for the shares to disagree with each other - so a lifetime gift is
+   * attributed by the same will percentages that divide everything else, and the tab says so. It is
+   * the only assumption available, and it is right whenever the gifts follow the will, which is the
+   * common case and the one the optimiser recommends.
+   */
+  const withGifts = beneficiaries.map(b => ({
+    ...b,
+    giftsReceived: giftsToHeirs * (declared > 0 ? b.sharePct / 100 : 0),
+    netWithGifts: b.net + giftsToHeirs * (declared > 0 ? b.sharePct / 100 : 0)
+  }));
   return {
     grossEstate, liquid, pension: pen, pensionCounts, homeValue,
     nrb, nrbFull, nrbUsedByGifts: nrbFull - nrb, giftTax, gifts: giftRows,
@@ -3580,7 +3592,7 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     // a gift ticked as compensation but made too late is an ordinary gift, and has to be said out loud
     compensationGiftsMissed: gifts.some(g => g.windowMissed),
     compensationGiftsCovered: compGifted, compensationLeftToGive: Math.max(0, compLeft),
-    sharesDeclaredPct: declared, pensionSharesDeclaredPct: declaredPen, beneficiaries,
+    sharesDeclaredPct: declared, pensionSharesDeclaredPct: declaredPen, beneficiaries: withGifts,
     // what the heirs actually receive between them, which includes a pension the estate is not taxed on
     inheritedTotal: willEstate + pen,
     deathAge, deathYear
@@ -4136,6 +4148,11 @@ function optimizeInheritance(rawPlan, opts = {}) {
       label: joined(c.label === baseline.label ? baseline.label : c.label, splitLabel(split)) });
   };
 
+  const giftYearWrappersOf = (c) => {
+    const r = (c.rows || []).find(x => x.year === giftYear);
+    return r ? { isa: r.isas, other: r.other, cash: r.cash } : null;
+  };
+
   const baseline = evaluate({
     policy: plan.spending.decumulationPolicy, drawdown: plan.spending.drawdownStrategy,
     harvest: !!plan.config.harvestPersonalAllowance, ceiling: plan.config.harvestCeiling || 'pa',
@@ -4425,6 +4442,63 @@ function optimizeInheritance(rawPlan, opts = {}) {
     return { years: slow, net: at(slow), gain: at(slow) - best.net };
   })();
 
+  /*
+   * WHY THIS MUCH AND NOT MORE.
+   *
+   * A recommendation to give away a specific number invites exactly one question, and "consider giving
+   * more" is not an answer to it. The search has already priced every larger gift it could make; this
+   * reports the next one up, what it would cost, and which of the three things stopped it - the
+   * nil-rate band a failed gift eats, the income tax on withdrawing the balance from a pension, or the
+   * plan simply not surviving. Where no gift is recommended at all, the same question needs answering
+   * in reverse.
+   */
+  const giftRationale = (() => {
+    const givenBy = (c) => num(c.gift, 0) + (c.compGift ? num(c.compGift.amount, 0) : 0);
+    const given = givenBy(best);
+    const priced = [...soloGifts, ...soloCompGifts, ...gifts, ...compGifts, ...compFirst, ...giftsAfterComp];
+    if (!priced.length) return null;
+    // what the gifts in the winning plan are worth: the same plan with them taken out
+    const without = given > 0 ? evaluate({ ...best, gift: 0, compGift: null, label: 'no gift' }) : null;
+    /*
+     * A meaningfully larger gift, not the next rung. The search prices fractions of liquid and of the
+     * award, so the next candidate up can be £1,700 more - true, and useless as an explanation. The
+     * step has to be big enough that a household would recognise it as the alternative they had in mind.
+     */
+    const step = Math.max(25000, given * 0.15);
+    const bigger = priced.map(c => ({ c, amt: givenBy(c) }))
+      .filter(x => x.amt >= given + step)
+      .sort((a, b) => a.amt - b.amt)[0]
+      || priced.map(c => ({ c, amt: givenBy(c) })).filter(x => x.amt > given + 1000).sort((a, b) => b.amt - a.amt)[0];
+    const largest = priced.map(c => ({ c, amt: givenBy(c) })).sort((a, b) => b.amt - a.amt)[0];
+    let why = '', cost = 0;
+    if (bigger) {
+      cost = best.net - bigger.c.net;
+      const bandUp = num(bigger.c.est.nrbUsedByGifts, 0) - num(best.est.nrbUsedByGifts, 0);
+      const outside = giftYearWrappersOf(baseline);
+      const short = bigger.amt - (outside ? outside.isa + outside.other + outside.cash : 0);
+      why = !bigger.c.survived
+        ? 'it stops the plan surviving to the end - that is money you would have needed to live on'
+        : short > 1000
+          ? `the extra would have to come out of the pension, and the income tax on withdrawing it costs more than the ${num(plan.config.ihtRate, 40)}% it saves`
+          : bandUp > 1000
+            ? `it eats another ${gbp0(bandUp)} of nil-rate band, and a gift this close to the death age has no taper to soften it`
+            : 'the estate is already below the point where giving more buys anything';
+    }
+    return {
+      given, giftedNow: num(best.gift, 0), fromCompensation: best.compGift ? num(best.compGift.amount, 0) : 0,
+      worth: without ? best.net - without.net : 0,
+      nextUp: bigger ? bigger.amt : null, nextUpCost: bigger ? cost : 0, why,
+      largest: largest && largest.amt > given + 1000 ? largest.amt : null,
+      largestCost: largest && largest.amt > given + 1000 ? best.net - largest.c.net : 0,
+      largestSurvives: largest ? !!largest.c.survived : true,
+      // and when nothing is given, the best gift that WAS tried and what it lost
+      bestRejected: given > 0 ? null : (() => {
+        const top = priced.filter(c => givenBy(c) > 0).sort((a, b) => b.net - a.net)[0];
+        return top ? { amount: givenBy(top), cost: best.net - top.net } : null;
+      })()
+    };
+  })();
+
   const ranked = [baseline, ...orders, ...ceilings, ...soloGifts, ...soloNoms, ...soloRecycles, ...soloCompGifts,
     ...gifts, ...noms, ...recycles, ...compGifts, ...compFirst, ...giftsAfterComp]
     .filter(viable)
@@ -4459,6 +4533,9 @@ function optimizeInheritance(rawPlan, opts = {}) {
       recycle: best.recycle || null, recycleKey: best.recycleKey || null, compGift: best.compGift || null,
       recycleLabel: best.recycleKey ? (RECYCLES.find(r => r.key.join('+') === best.recycleKey) || {}).label : null },
     gain: best.net - baseline.net,
+    // the winner's own priced estate, so the tab can show the working for what it is RECOMMENDING
+    // rather than only for the plan as it stands
+    bestEst: best.est, baselineEst: baseline.est, giftRationale,
     levers, reasons, ranked, charity: withCharity, spread,
     spreadYears: num(plan.config.inheritedPensionSpreadYears, 5)
   };
@@ -4563,7 +4640,7 @@ function estateActionPlan(plan, result) {
   if (orderChanged) {
     const play = policyPlaybook(b.policy, P);
     out.push({
-      key: 'order',
+      key: 'order', group: 'reallocate',
       title: 'Change the order you draw money in',
       body: (play[0] ? play[0].body : `Follow the ${b.policy} order.`)
         + (b.drawdown === 'Full 25% Lump Sum'
@@ -4576,7 +4653,7 @@ function estateActionPlan(plan, result) {
   // 2. the draw-down ceiling, which is a standing instruction rather than a one-off
   if ((b.ceiling || 'pa') !== (plan?.config?.harvestCeiling === 'basic' ? 'basic' : 'pa')) {
     out.push({
-      key: 'ceiling',
+      key: 'ceiling', group: 'reallocate',
       title: b.ceiling === 'basic'
         ? `Each year, draw pension income up to ${gbp(P.higherRateStartsAt)} even if you do not need it`
         : `Each year, draw pension income only up to ${gbp(P.pa)}`,
@@ -4604,7 +4681,7 @@ function estateActionPlan(plan, result) {
     const eachOwn = level ? `${gbp(own[0].amount)} a year` : `${gbp(sum(own))} in total, starting with ${gbp(own[0].amount)} in ${own[0].year}`;
     const nameOf = (label) => WRAPPER_PHRASE[Object.keys(CATEGORY_LABEL).find(k => CATEGORY_LABEL[k] === label)] || label;
     out.push({
-      key: 'recycle',
+      key: 'recycle', group: 'reallocate',
       title: `Move money between your own accounts, ${years.length > 1 ? `each year from ${years[0]} to ${years[years.length - 1]}` : `in ${years[0]}`}`,
       body: relief.length
         ? `Pay ${eachOwn} into your pension out of ${nameOf(own[0].transferredFrom)}. Your provider claims ${level ? gbp(relief[0].amount) + ' a year' : gbp(sum(relief))} back from HMRC on top, so ${gbp(sum(own) + sum(relief))} reaches the pension for ${gbp(sum(own))} of your own money.`
@@ -4620,7 +4697,7 @@ function estateActionPlan(plan, result) {
     const list = b.splitShares.filter(x => x.pct > 0).map(x => `${x.pct}% to ${x.name || 'that heir'}`).join(', ');
     const dropped = b.splitShares.filter(x => x.pct === 0).map(x => x.name || 'one heir');
     out.push({
-      key: 'nomination',
+      key: 'nomination', group: 'reallocate',
       title: 'Change who your pension is nominated to',
       body: `Ask each pension provider for their beneficiary nomination form - it is often called an expression of wish - and set it to ${list}.`
         + (dropped.length ? ` That leaves nothing from the pension to ${dropped.join(' or ')}, who still take their share of everything else under your will.` : ''),
@@ -4656,7 +4733,7 @@ function estateActionPlan(plan, result) {
   // 5. the gift
   if (b.gift > 0 && !heldGift(`estate_gift_${result.giftYear}`)) {
     out.push({
-      key: 'gift',
+      key: 'gift', group: 'gift',
       title: `Give away ${gbp(b.gift)} in ${result.giftYear}`,
       body: `Make the gift and write down the date, the amount and who received it. Your executors will need all three. `
         + fundingNote(b.gift + (b.compGift ? num(b.compGift.amount, 0) : 0)),
@@ -4668,7 +4745,7 @@ function estateActionPlan(plan, result) {
   if (b.compGift && !heldGift(`estate_comp_${b.compGift.year}`)) {
     const w = result.compensationWindow;
     out.push({
-      key: 'compGift',
+      key: 'compGift', group: 'gift',
       title: num(b.compGift.amount, 0) >= num(result.compensationLeftToGive, Infinity) - 1
         ? `Give the ${gbp(b.compGift.amount)} of compensation away in ${b.compGift.year}`
         : `Give ${gbp(b.compGift.amount)} of the compensation away in ${b.compGift.year}`,
@@ -4685,7 +4762,7 @@ function estateActionPlan(plan, result) {
   // 6. keeping the paperwork consistent, which is the step that gets skipped
   if (b.split || b.gift > 0 || b.compGift) {   // paperwork outlives the steps above: it is never "applied"
     out.push({
-      key: 'paperwork',
+      key: 'paperwork', group: 'paperwork',
       title: 'Tell whoever holds your will',
       body: 'The nomination form and the gift record sit outside your will, and none of them is any use if nobody can find them. Keep a note with the will saying where each one is.',
       detail: 'This tool models the tax. It cannot draft a will, witness a signature, or tell you whether a gift is wise for reasons that have nothing to do with tax.'
@@ -4694,7 +4771,7 @@ function estateActionPlan(plan, result) {
 
   if (!out.length) {
     out.push({
-      key: 'none',
+      key: 'none', group: 'reallocate',
       title: 'Nothing to change',
       body: `The search could not beat what you already have: ${gbp(base.net)} to your heirs.`,
       detail: 'That is a finding, not a failure. Some households are already holding the best allocation available to them.'
@@ -8341,21 +8418,103 @@ export default function App() {
 
                   {/* The answer as a list of things to do, not as a label. An allocation nobody can act
                       on is a worse deliverable than a smaller one they can. */}
-                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-3" data-action-plan>
-                    <h3 className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-2"><Check className="w-3.5 h-3.5" /> What to do</h3>
-                    <ol className="space-y-2.5 list-none">
-                      {estateActions.map((a, i) => (
-                        <li key={a.key} className="flex gap-2.5">
-                          <span className="shrink-0 w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
-                          <div className="space-y-0.5">
-                            <div className="text-[12px] font-bold text-emerald-950">{a.title}</div>
-                            <div className="text-[11px] text-emerald-900 leading-relaxed">{a.body}</div>
-                            {a.detail && <div className="text-[10px] text-emerald-700 leading-relaxed">{a.detail}</div>}
+                  {/* Three cards, because they are three different kinds of decision. Moving money
+                      between your own accounts costs nothing and can be undone; giving it away cannot,
+                      and needs the recipients decided; and the arithmetic that follows is neither, it
+                      is the consequence. Running them together as one numbered list read as a single
+                      instruction to be worked through in order. */}
+                  <div className="space-y-3" data-action-plan>
+                    {[
+                      { g: 'reallocate', n: '1', title: 'Move money, but keep it',
+                        blurb: 'Nothing here leaves your estate or your control. It is which account you draw from, how far up the tax bands, where the pension goes on death, and what you shift between wrappers.' },
+                      { g: 'gift', n: '2', title: 'Give money away',
+                        blurb: 'This part is irreversible and it reduces what you have to live on. The projection has already checked the plan still survives, but the decision is not only a tax one.' },
+                      { g: 'paperwork', n: '3', title: 'Then tell somebody',
+                        blurb: '' }
+                    ].filter(sec => estateActions.some(a => a.group === sec.g)).map(sec => (
+                      <div key={sec.g} className={`p-3.5 rounded-xl space-y-3 border ${sec.g === 'gift' ? 'bg-purple-50 border-purple-200' : sec.g === 'paperwork' ? 'bg-slate-50 border-slate-200' : 'bg-emerald-50 border-emerald-200'}`} data-action-group={sec.g}>
+                        <div>
+                          <h3 className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 ${sec.g === 'gift' ? 'text-purple-900' : sec.g === 'paperwork' ? 'text-slate-700' : 'text-emerald-900'}`}>
+                            <span className={`shrink-0 w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center ${sec.g === 'gift' ? 'bg-purple-600' : sec.g === 'paperwork' ? 'bg-slate-500' : 'bg-emerald-600'}`}>{sec.n}</span>
+                            {sec.title}
+                          </h3>
+                          {sec.blurb && <span className={`text-[10px] block mt-1 ${sec.g === 'gift' ? 'text-purple-700' : 'text-emerald-700'}`}>{sec.blurb}</span>}
+                        </div>
+                        <ol className="space-y-2.5 list-none">
+                          {estateActions.filter(a => a.group === sec.g).map((a, i) => (
+                            <li key={a.key} className="flex gap-2.5">
+                              <span className={`shrink-0 w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center mt-0.5 ${sec.g === 'gift' ? 'bg-purple-600' : sec.g === 'paperwork' ? 'bg-slate-500' : 'bg-emerald-600'}`}>{sec.n}.{i + 1}</span>
+                              <div className="space-y-0.5">
+                                <div className={`text-[12px] font-bold ${sec.g === 'gift' ? 'text-purple-950' : sec.g === 'paperwork' ? 'text-slate-900' : 'text-emerald-950'}`}>{a.title}</div>
+                                <div className={`text-[11px] leading-relaxed ${sec.g === 'gift' ? 'text-purple-900' : sec.g === 'paperwork' ? 'text-slate-700' : 'text-emerald-900'}`}>{a.body}</div>
+                                {a.detail && <div className={`text-[10px] leading-relaxed ${sec.g === 'gift' ? 'text-purple-700' : sec.g === 'paperwork' ? 'text-slate-500' : 'text-emerald-700'}`}>{a.detail}</div>}
+                              </div>
+                            </li>
+                          ))}
+                        </ol>
+                        {/* Why this much. A number with no reasoning invites the household to
+                            second-guess it upwards, which is the one direction the search has already
+                            proved wrong. */}
+                        {sec.g === 'gift' && estatePlan.giftRationale && estatePlan.giftRationale.given > 0 && (
+                          <div className="p-2 bg-white/70 border border-purple-200 rounded-lg text-[11px] text-purple-900 space-y-1" data-gift-rationale>
+                            <div><strong>Why {formatGBP(estatePlan.giftRationale.given)} and not more.</strong> Giving this much is worth <strong>{formatGBP(estatePlan.giftRationale.worth)}</strong> against making no gift at all.</div>
+                            {estatePlan.giftRationale.nextUp && (
+                              <div>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead would leave your heirs <strong>{formatGBP(estatePlan.giftRationale.nextUpCost)} worse off</strong>, because {estatePlan.giftRationale.why}.</div>
+                            )}
+                            {estatePlan.giftRationale.largest && estatePlan.giftRationale.largest > (estatePlan.giftRationale.nextUp || 0) && (
+                              <div>The largest gift the search priced was {formatGBP(estatePlan.giftRationale.largest)}, {estatePlan.giftRationale.largestSurvives ? `which costs ${formatGBP(estatePlan.giftRationale.largestCost)}` : 'which does not leave enough to live on'}.</div>
+                            )}
                           </div>
-                        </li>
-                      ))}
-                    </ol>
-                    <span className="text-[10px] text-emerald-700 block">Only what changes is listed. Everything else about your plan stays as it is.</span>
+                        )}
+                      </div>
+                    ))}
+                    {/* and the same question when the answer is no gift at all */}
+                    {estatePlan.giftRationale && estatePlan.giftRationale.given <= 0 && estatePlan.giftRationale.bestRejected && (
+                      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-700" data-gift-rationale>
+                        <strong>No gift, and that is the answer rather than an omission.</strong> The best gift the search could find was {formatGBP(estatePlan.giftRationale.bestRejected.amount)}, and it would leave your heirs {formatGBP(estatePlan.giftRationale.bestRejected.cost)} worse off. Every size between nothing and everything you hold outside the pension was priced.
+                      </div>
+                    )}
+                    {/* 3. what those two add up to: the same working the Inheritance tab shows, but for
+                        the plan being recommended rather than the one you are on */}
+                    {estatePlan.bestEst && (
+                      <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-recommended-workings>
+                        <div>
+                          <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <span className="shrink-0 w-4 h-4 rounded-full bg-purple-600 text-white text-[9px] font-bold flex items-center justify-center">=</span>
+                            What that comes to, if you die at {estatePlan.deathAge}
+                          </h3>
+                          <span className="text-[10px] text-slate-500 block mt-1">The same working as on the Inheritance tab, priced on the plan above rather than the one you are on now.</span>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-[11px] border-collapse">
+                            <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
+                              <th className="pb-1.5 pr-3">Line</th><th className="pb-1.5 pr-3 text-right">Amount</th><th className="pb-1.5 text-right">Running</th>
+                            </tr></thead>
+                            <tbody className="divide-y divide-slate-100 font-mono">
+                              {(E.ihtWorkings(estatePlan.bestEst, plan?.config) || []).map(r => (
+                                <tr key={r.key} className={r.kind === 'total' ? 'bg-slate-50 font-bold' : ''}>
+                                  <td className={`py-1.5 pr-3 font-sans ${r.kind === 'total' ? 'text-slate-900' : r.kind === 'note' ? 'text-slate-500 italic' : 'text-slate-700'}`}>
+                                    {r.label}{r.note && <span className="block text-[10px] text-slate-400 not-italic">{r.note}</span>}
+                                  </td>
+                                  <td className={`py-1.5 pr-3 text-right ${r.kind === 'note' ? 'text-slate-300' : r.amount < 0 ? 'text-emerald-700' : 'text-slate-700'}`}>
+                                    {r.kind === 'note' ? '' : (r.amount < 0 ? '−' : '') + formatGBP(Math.abs(r.amount))}
+                                  </td>
+                                  <td className={`py-1.5 text-right ${r.kind === 'total' ? 'text-purple-700 font-bold' : 'text-slate-400'}`}>
+                                    {r.kind === 'note' ? '' : formatGBP(Math.max(0, r.running))}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                          <div className="p-2 bg-slate-50 border border-slate-200 rounded-lg"><span className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wider">From the estate</span><span className="font-mono font-bold text-slate-800">{formatGBP(estatePlan.bestEst.netToBeneficiaries)}</span></div>
+                          <div className="p-2 bg-purple-50 border border-purple-200 rounded-lg"><span className="block text-[10px] text-purple-600 font-semibold uppercase tracking-wider">Given in your lifetime</span><span className="font-mono font-bold text-purple-800">{formatGBP(estatePlan.bestEst.giftsToHeirs)}</span></div>
+                          <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg"><span className="block text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">Your heirs keep</span><span className="font-mono font-bold text-emerald-800">{formatGBP(estatePlan.best.net)}</span></div>
+                        </div>
+                      </div>
+                    )}
+                    <span className="text-[10px] text-slate-400 block">Only what changes is listed. Everything else about your plan stays as it is.</span>
                   </div>
 
                   {/* what each lever is worth on its own, so the household acts on the right one */}
@@ -9062,7 +9221,7 @@ export default function App() {
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Person by person, if you die at {inheritanceView.chosen.age}</h3>
                   <div className="overflow-x-auto">
                     <table data-person-table className="w-full text-left text-[11px] border-collapse">
-                      <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Who</th><th className="pb-1.5 pr-3">{pensionSplitShown ? 'Will' : 'Share'}</th><th className="pb-1.5 pr-3">{pensionSplitShown ? 'Pension' : 'Of which pension'}</th><th className="pb-1.5 pr-3">Before tax</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5 pr-3">Their income tax</th><th className="pb-1.5 pr-3">They keep</th><th className="pb-1.5">Effective rate</th></tr></thead>
+                      <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Who</th><th className="pb-1.5 pr-3">{pensionSplitShown ? 'Will' : 'Share'}</th><th className="pb-1.5 pr-3">{pensionSplitShown ? 'Pension' : 'Of which pension'}</th><th className="pb-1.5 pr-3">Before tax</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5 pr-3">Their income tax</th>{inheritanceView.chosen.giftsToHeirs > 0 && <th className="pb-1.5 pr-3">Gifted to them</th>}<th className="pb-1.5 pr-3">They keep</th><th className="pb-1.5">Effective rate</th></tr></thead>
                       <tbody className="divide-y divide-slate-100 font-mono">
                         {inheritanceView.chosen.beneficiaries.map(b => (
                           <tr key={b.id}>
@@ -9072,14 +9231,17 @@ export default function App() {
                             <td className="py-1.5 pr-3">{formatGBP(b.gross)}</td>
                             <td className="py-1.5 pr-3 text-rose-700">{b.ihtBorne > 0 ? formatGBP(b.ihtBorne) : '—'}</td>
                             <td className="py-1.5 pr-3 text-rose-700">{b.incomeTaxOnPension > 0 ? formatGBP(b.incomeTaxOnPension) : '—'}</td>
-                            <td className="py-1.5 pr-3 text-emerald-700 font-bold">{formatGBP(b.net)}</td>
+                            {inheritanceView.chosen.giftsToHeirs > 0 && <td className="py-1.5 pr-3 text-purple-700 font-semibold">{b.giftsReceived > 0 ? formatGBP(b.giftsReceived) : '—'}</td>}
+                            <td className="py-1.5 pr-3 text-emerald-700 font-bold">{formatGBP(b.netWithGifts)}
+                              {b.giftsReceived > 0 && <span className="block text-[10px] text-slate-400 font-sans font-normal">{formatGBP(b.net)} from the estate</span>}
+                            </td>
                             <td className="py-1.5">{b.effectiveRatePct.toFixed(0)}%</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                  <span className="text-[10px] text-slate-400 block">Inheritance tax is charged on the estate, so an exempt person&rsquo;s share is untouched and the taxable beneficiaries carry the whole bill between them. The will column divides everything except the pension; the pension column is your nomination form, which is a separate document. An inherited pension is assumed drawn evenly over the years shown, at the income each person has given here — drawing it faster, or a change in their circumstances, would cost more.</span>
+                  <span className="text-[10px] text-slate-400 block">Inheritance tax is charged on the estate, so an exempt person&rsquo;s share is untouched and the taxable beneficiaries carry the whole bill between them. The will column divides everything except the pension; the pension column is your nomination form, which is a separate document. An inherited pension is assumed drawn evenly over the years shown, at the income each person has given here — drawing it faster, or a change in their circumstances, would cost more.{inheritanceView.chosen.giftsToHeirs > 0 ? ' Planned gifts are split by the will percentages, because the plan records what is given and when rather than to whom; if a gift is meant for one person rather than shared, read that column as an average.' : ''}</span>
                 </div>
               </>
             )}

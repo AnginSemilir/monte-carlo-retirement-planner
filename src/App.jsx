@@ -3081,7 +3081,9 @@ const normalizeBeneficiaries = (list) => (Array.isArray(list) ? list : [])
      */
     pensionSharePct: isBlank(b.pensionSharePct) ? '' : clamp(num(b.pensionSharePct, 0), 0, 100),
     penPct: isBlank(b.pensionSharePct) ? clamp(num(b.sharePct, 0), 0, 100) : clamp(num(b.pensionSharePct, 0), 0, 100),
-    income: Math.max(0, num(b.income, 0)),
+    // blank stays blank, like age and spreadYears: a row that opens on a 0 turns the next keystroke into
+    // 0200000. Everything that does arithmetic on this reads it through num().
+    income: isBlank(b.income) ? '' : Math.max(0, num(b.income, 0)),
     // years they would draw an inherited pension over; blank follows the config default
     spreadYears: isBlank(b.spreadYears) ? '' : clamp(num(b.spreadYears, 0), 1, 40),
     age: b.age === '' || b.age === undefined || b.age === null ? '' : clamp(num(b.age, 0), 0, 120)
@@ -3386,7 +3388,7 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     const ihtOnPension = (rel.exempt || taxableBase <= 0 || !pensionCounts) ? 0 : iht * (penGross / taxableBase);
     const pensionPart = Math.max(0, penGross - ihtOnPension);
     const atSpa = b.age !== '' && num(b.age, 0) >= num(c.statePensionAgeForHeirs, 68);
-    const assumedIncome = b.income + (atSpa ? num(c.assumedStatePensionForHeirs, 11976) : 0);
+    const assumedIncome = num(b.income, 0) + (atSpa ? num(c.assumedStatePensionForHeirs, 11976) : 0);
     /*
      * How long they take it over is theirs to choose, and it matters more than almost anything else on
      * this tab: the same pot drawn over twenty years instead of five can more than halve the tax, because
@@ -3762,7 +3764,7 @@ function bestPensionSplit(cfg, wrappers, opts = {}) {
      * single one can settle in a local dip: the even split and the concentrated one fail in opposite
      * directions, so between them they bracket the answer.
      */
-    const lowest = bens.map((b, i) => ({ i, income: b.income })).sort((a, b) => a.income - b.income)[0].i;
+    const lowest = bens.map((b, i) => ({ i, income: num(b.income, 0) })).sort((a, b) => a.income - b.income)[0].i;
     const seeds = [asEntered, bens.map(() => Math.round(100 / n)), bens.map((_, i) => i === lowest ? 100 : 0)];
     seeds.forEach(seed => {
       let cur = { pcts: seed, net: price(seed) };
@@ -4467,6 +4469,12 @@ const HISTORICAL_PRESETS = [
 ];
 
 const fmtK = (v) => `£${Math.round((Number.isFinite(v) ? v : 0) / 1000).toLocaleString()}k`;
+/*
+ * React updates a type="number" input only when its DOM value differs from the prop, and it compares the
+ * two loosely - so a box reading "0200000" against a prop of 200000 compares equal and the leading zero
+ * is never cleared. Handing the input a string makes that comparison a string comparison.
+ */
+const inputValue = (v) => (v === '' || v === null || v === undefined ? '' : String(v));
 const parseInputNumber = (val) => {
   if (val === '' || val === null || val === undefined) return '';
   return String(val).replace(/^0+(?=\d)/, '');
@@ -5870,6 +5878,21 @@ export default function App() {
     return { ...prev, inheritance: { ...(prev.inheritance || {}), beneficiaries: [...list, { id: 'ben_' + Date.now(), name: '', relationship: 'descendant', sharePct: left || '', income: '' }] } };
   });
   const updateBeneficiary = (id, patch) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), beneficiaries: (prev.inheritance?.beneficiaries || []).map(b => b.id === id ? { ...b, ...patch } : b) } }));
+  /*
+   * The pension column is opt-in. Two percentage boxes on every row read as the same field asked for
+   * twice - the toggle keeps one box for the common case without losing the split, which is the most
+   * valuable lever on the tab. A plan that already carries a split shows the column whatever the toggle
+   * says, so applying the optimiser's nomination never hides the numbers it just wrote.
+   */
+  const [pensionSplitOpen, setPensionSplitOpen] = useState(false);
+  const pensionSplitShown = pensionSplitOpen
+    || (plan?.inheritance?.beneficiaries || []).some(b => !isBlank(b?.pensionSharePct));
+  const setPensionSplit = (on) => {
+    setPensionSplitOpen(on);
+    // unticking has to clear the shares too, or a hidden split would keep steering the figures
+    if (!on) setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}),
+      beneficiaries: (prev.inheritance?.beneficiaries || []).map(b => ({ ...b, pensionSharePct: '' })) } }));
+  };
   const addGift = () => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: [...(prev.inheritance?.gifts || []), { id: 'gift_' + Date.now(), amount: '', year: new Date().getFullYear(), desc: '' }] } }));
   const updateGift = (id, patch) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).map(g => g.id === id ? { ...g, ...patch } : g) } }));
   const deleteGift = (id) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).filter(g => g.id !== id) } }));
@@ -7958,7 +7981,15 @@ export default function App() {
             <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Users className="w-3.5 h-3.5 text-purple-600" /> Who inherits</h3>
-                <button onClick={addBeneficiary} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200"><Plus className="w-3.5 h-3.5" /> Add person</button>
+                <div className="flex items-center gap-3">
+                  {inheritanceView.hasBens && (
+                    <label className="flex items-center gap-1.5 text-[11px] text-purple-700 font-semibold cursor-pointer" title="Your pension passes by the nomination form held by your scheme, not by your will, so it can go to different people in different proportions. Tick this to set those shares separately.">
+                      <input type="checkbox" checked={pensionSplitShown} onChange={(e) => setPensionSplit(e.target.checked)} className="accent-purple-600" />
+                      Split the pension differently
+                    </label>
+                  )}
+                  <button onClick={addBeneficiary} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200"><Plus className="w-3.5 h-3.5" /> Add person</button>
+                </div>
               </div>
               {!inheritanceView.hasBens ? (
                 <div className="text-xs text-slate-400 italic p-3 bg-slate-50 border border-slate-200 rounded-xl">Nobody added yet. Add at least one person to see what they would receive.</div>
@@ -7970,29 +8001,31 @@ export default function App() {
                       <select value={b.relationship} onChange={(e) => updateBeneficiary(b.id, { relationship: e.target.value })} title={E.IHT_RELATIONSHIPS[b.relationship].who} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer">
                         {Object.entries(E.IHT_RELATIONSHIPS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                       </select>
-                      <label className="flex items-center gap-1 text-slate-500" title="Their share of everything except the pension: the house, ISAs, investments and cash. This is the will.">under your will
-                        <input type="number" min="0" max="100" step="5" onFocus={handleFocus} value={b.sharePct} onChange={(e) => updateBeneficiary(b.id, { sharePct: parseInputNumber(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 font-bold" />%
+                      <label className="flex items-center gap-1 text-slate-500" title={pensionSplitShown ? 'Their share of everything except the pension: the house, ISAs, investments and cash. This is the will.' : 'Their share of everything you leave.'}>{pensionSplitShown ? 'under your will' : 'gets'}
+                        <input type="number" min="0" max="100" step="5" onFocus={handleFocus} value={inputValue(b.sharePct)} onChange={(e) => updateBeneficiary(b.id, { sharePct: parseInputNumber(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 font-bold" />%
                       </label>
-                      {/* The pension passes by nomination, not by the will. Blank follows the will share -
-                          but the placeholder must not be the same NUMBER as the will box, or the two read
-                          as one field entered twice, which is exactly how it was first reported. */}
-                      <label className="flex items-center gap-1 text-purple-700 font-semibold" title="Their share of the PENSION, which passes by the nomination form held by your scheme — not by your will. Leave blank and it matches the will share.">of the pension
-                        <input type="number" min="0" max="100" step="5" placeholder="same" onFocus={handleFocus} value={b.pensionSharePct} onChange={(e) => updateBeneficiary(b.id, { pensionSharePct: parseInputNumber(e.target.value) })} className="w-20 p-1 bg-surface border border-purple-300 rounded font-mono text-purple-700 font-bold placeholder:text-purple-300 placeholder:font-sans placeholder:text-[10px]" />%
-                      </label>
+                      {/* The pension passes by nomination, not by the will, so it can be split differently -
+                          but two percentage boxes on every row read as one field asked for twice, which is
+                          how it was reported. One box until the household says the two documents differ. */}
+                      {pensionSplitShown && (
+                        <label className="flex items-center gap-1 text-purple-700 font-semibold" title="Their share of the PENSION, which passes by the nomination form held by your scheme — not by your will. Leave blank and it matches the will share.">of the pension
+                          <input type="number" min="0" max="100" step="5" placeholder="same" onFocus={handleFocus} value={inputValue(b.pensionSharePct)} onChange={(e) => updateBeneficiary(b.id, { pensionSharePct: parseInputNumber(e.target.value) })} className="w-20 p-1 bg-surface border border-purple-300 rounded font-mono text-purple-700 font-bold placeholder:text-purple-300 placeholder:font-sans placeholder:text-[10px]" />%
+                        </label>
+                      )}
                       {/* Income and age drive the income tax on an inherited pension, which a spouse pays
                           even though they pay no inheritance tax. Only a charity escapes both. */}
                       {E.IHT_RELATIONSHIPS[b.relationship].incomeTaxpayer ? (
                         <>
                           <label className="flex items-center gap-1 text-slate-500">their income
-                            <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={b.income} onChange={(e) => updateBeneficiary(b.id, { income: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                            <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={inputValue(b.income)} onChange={(e) => updateBeneficiary(b.id, { income: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
                           </label>
                           <label className="flex items-center gap-1 text-slate-500">age
-                            <input type="number" min="0" max="120" placeholder="—" onFocus={handleFocus} value={b.age} onChange={(e) => updateBeneficiary(b.id, { age: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                            <input type="number" min="0" max="120" placeholder="—" onFocus={handleFocus} value={inputValue(b.age)} onChange={(e) => updateBeneficiary(b.id, { age: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
                           </label>
                           {/* The single biggest lever on this tab: a pot drawn over twenty years instead
                               of five gets twenty personal allowances instead of five. */}
                           <label className="flex items-center gap-1 text-slate-500" title="How many years they would draw an inherited pension over. Each year has its own personal allowance and basic-rate band, so a longer draw costs far less tax. Blank uses the default in Config.">draws over
-                            <input type="number" min="1" max="40" placeholder={String(E.num(plan?.config?.inheritedPensionSpreadYears, 5))} onFocus={handleFocus} value={b.spreadYears} onChange={(e) => updateBeneficiary(b.id, { spreadYears: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />y
+                            <input type="number" min="1" max="40" placeholder={String(E.num(plan?.config?.inheritedPensionSpreadYears, 5))} onFocus={handleFocus} value={inputValue(b.spreadYears)} onChange={(e) => updateBeneficiary(b.id, { spreadYears: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />y
                           </label>
                         </>
                       ) : (
@@ -8009,15 +8042,21 @@ export default function App() {
                       <span>Will shares total <strong>{inheritanceView.declared}%</strong>, not 100%. The figures below scale them proportionally so they add up — adjust them if that is not what you meant.</span>
                     </div>
                   )}
-                  {Math.abs(inheritanceView.declaredPen - 100) > 0.01 && (
+                  {pensionSplitShown && Math.abs(inheritanceView.declaredPen - 100) > 0.01 && (
                     <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                       <span>Pension shares total <strong>{Math.round(inheritanceView.declaredPen)}%</strong>, not 100%. They are scaled to add up, the same as the will shares.</span>
                     </div>
                   )}
-                  <span className="text-[10px] text-purple-700 block">
-                    <strong>Two columns, because there are two documents.</strong> Your will divides the house, ISAs, investments and cash. Your <strong>pension</strong> goes to whoever is on the nomination form held by your scheme, which most people filled in once and never looked at again. Splitting them is the most valuable choice on this tab: an inherited pension is taxed at the recipient&rsquo;s own rate, so the same pot is worth far more to someone with an unused personal allowance than to a higher-rate taxpayer. Leave the pension column blank and it simply follows the will.
-                  </span>
+                  {pensionSplitShown ? (
+                    <span className="text-[10px] text-purple-700 block">
+                      <strong>Two columns, because there are two documents.</strong> Your will divides the house, ISAs, investments and cash. Your <strong>pension</strong> goes to whoever is on the nomination form held by your scheme, which most people filled in once and never looked at again. Leave a pension box blank and that person&rsquo;s pension share simply follows their will share.
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-purple-700 block">
+                      <strong>One share each, covering everything.</strong> Your pension does not actually pass under your will &mdash; it goes to whoever is on the nomination form held by your scheme &mdash; so it can be left in different proportions to everything else. Splitting it is the most valuable choice on this tab, because an inherited pension is taxed at the recipient&rsquo;s own rate: the same pot is worth far more to someone with an unused personal allowance than to a higher-rate taxpayer. Tick <em>split the pension differently</em> above to set those shares.
+                    </span>
+                  )}
                   <span className="text-[10px] text-slate-400 block">
                     It does not follow that the whole pension should go to whoever earns least. Each person has their own allowances and bands, so putting a large pot on one heir can reach the additional rate that splitting it would have avoided &mdash; and a slow draw-down by the right person usually beats a clever split by the wrong one. The table below shows which way it falls for your figures.
                   </span>
@@ -8383,13 +8422,13 @@ export default function App() {
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Person by person, if you die at {inheritanceView.chosen.age}</h3>
                   <div className="overflow-x-auto">
                     <table data-person-table className="w-full text-left text-[11px] border-collapse">
-                      <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Who</th><th className="pb-1.5 pr-3">Will</th><th className="pb-1.5 pr-3">Pension</th><th className="pb-1.5 pr-3">Before tax</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5 pr-3">Their income tax</th><th className="pb-1.5 pr-3">They keep</th><th className="pb-1.5">Effective rate</th></tr></thead>
+                      <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Who</th><th className="pb-1.5 pr-3">{pensionSplitShown ? 'Will' : 'Share'}</th><th className="pb-1.5 pr-3">{pensionSplitShown ? 'Pension' : 'Of which pension'}</th><th className="pb-1.5 pr-3">Before tax</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5 pr-3">Their income tax</th><th className="pb-1.5 pr-3">They keep</th><th className="pb-1.5">Effective rate</th></tr></thead>
                       <tbody className="divide-y divide-slate-100 font-mono">
                         {inheritanceView.chosen.beneficiaries.map(b => (
                           <tr key={b.id}>
                             <td className="py-1.5 pr-3 font-sans font-semibold text-slate-800">{b.name || E.IHT_RELATIONSHIPS[b.relationship].label}<span className="block text-[10px] text-slate-400 font-normal">{E.IHT_RELATIONSHIPS[b.relationship].label}</span></td>
                             <td className="py-1.5 pr-3">{b.sharePct.toFixed(0)}%</td>
-                            <td className="py-1.5 pr-3 text-purple-700">{b.penSharePct.toFixed(0)}%<span className="block text-[10px] text-slate-400 font-sans">{b.pensionPart > 0 ? `${formatGBP(b.pensionPart)} over ${b.spreadYears}y` : '—'}</span></td>
+                            <td className="py-1.5 pr-3 text-purple-700">{pensionSplitShown ? `${b.penSharePct.toFixed(0)}%` : ''}<span className={`text-[10px] text-slate-400 font-sans ${pensionSplitShown ? 'block' : ''}`}>{b.pensionPart > 0 ? `${formatGBP(b.pensionPart)} over ${b.spreadYears}y` : '—'}</span></td>
                             <td className="py-1.5 pr-3">{formatGBP(b.gross)}</td>
                             <td className="py-1.5 pr-3 text-rose-700">{b.ihtBorne > 0 ? formatGBP(b.ihtBorne) : '—'}</td>
                             <td className="py-1.5 pr-3 text-rose-700">{b.incomeTaxOnPension > 0 ? formatGBP(b.incomeTaxOnPension) : '—'}</td>

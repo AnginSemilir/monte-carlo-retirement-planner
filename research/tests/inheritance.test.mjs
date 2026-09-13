@@ -772,5 +772,41 @@ console.log('=========== M. THE COMPENSATION CREDIT ===========');
       .inheritance.compensationPayment === 250000);
 }
 
+console.log('=========== N. BLANK MEANS BLANK ===========');
+{
+  /*
+   * A beneficiary's income used to normalise to the NUMBER 0 when it had never been filled in, so the box
+   * opened on a 0 and the next keystroke made it 0200000. It now stays blank, like age and spreadYears -
+   * which means everything downstream has to read it through num() rather than doing arithmetic on it.
+   */
+  const blank = E.normalizeBeneficiaries([{ id: 'b', relationship: 'descendant', sharePct: 100 }])[0];
+  ok('an income never entered stays blank', blank.income === '', JSON.stringify(blank.income));
+  ok('one that was entered stays a number', E.normalizeBeneficiaries([{ income: 40000 }])[0].income === 40000);
+  ok('and a junk value still lands on 0', E.normalizeBeneficiaries([{ income: 'abc' }])[0].income === 0);
+
+  // and the tax it drives is unchanged: blank has to price exactly like a declared nil income
+  const w = { pen: 700000, isa: 200000 };
+  const at = (income) => E.estateAtDeath(cfg, w, { deathAge: 84, deathYear: 2040, homeValue: 400000,
+    homeToDescendants: true, beneficiaries: [{ id: 'k', relationship: 'descendant', sharePct: 100, income, age: 40 }] });
+  ok('a blank income prices the same as a nil one', near(at('').netToBeneficiaries, at(0).netToBeneficiaries),
+    `£${Math.round(at('').netToBeneficiaries).toLocaleString()} against £${Math.round(at(0).netToBeneficiaries).toLocaleString()}`);
+  ok('and both cost the heir income tax on the pension', at('').beneficiaries[0].incomeTaxOnPension > 0);
+  ok('while a salary on top costs more', at(60000).netToBeneficiaries < at('').netToBeneficiaries,
+    `£${Math.round(at(60000).netToBeneficiaries).toLocaleString()} against £${Math.round(at('').netToBeneficiaries).toLocaleString()}`);
+
+  /*
+   * The other half of the same report: two percentage boxes per row read as one field asked for twice.
+   * The column is opt-in now, and unticking it clears the shares - so a blank pension share must still
+   * mean "follows the will", which is what makes hiding the column safe.
+   */
+  const follows = E.normalizeBeneficiaries([{ sharePct: 70, pensionSharePct: '' }, { sharePct: 30 }]);
+  ok('a blank pension share follows the will share', follows[0].penPct === 70 && follows[1].penPct === 30,
+    `${follows[0].penPct}/${follows[1].penPct}`);
+  ok('and the display field stays blank so the box shows "same"',
+    follows[0].pensionSharePct === '' && follows[1].pensionSharePct === '');
+  const split = E.normalizeBeneficiaries([{ sharePct: 70, pensionSharePct: 0 }])[0];
+  ok('but an explicit nil share is not the same as blank', split.penPct === 0 && split.pensionSharePct === 0);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

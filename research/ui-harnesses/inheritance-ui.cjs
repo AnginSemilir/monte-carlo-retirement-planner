@@ -160,10 +160,18 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   }, name);
   const total = () => p4.evaluate(()=>[...document.querySelector('[data-person-table]').querySelectorAll('tbody tr')]
     .reduce((t,r)=>t+Number([...r.querySelectorAll("td")][6].textContent.replace(/[^0-9.]/g,'')),0));
+  /*
+   * The pension column is opt-in. Two percentage boxes on every row read as one field asked for twice -
+   * reported from a phone - so the row carries one box until the household says the two documents differ.
+   */
+  ok('one share box per person before the split is asked for',
+    await p4.evaluate(()=>![...document.querySelectorAll('label')].some(l=>/of the pension/.test(l.textContent))));
+  await p4.locator('label', { hasText: /Split the pension differently/ }).locator('input').check();
+  await p4.waitForTimeout(500);
   ok('the beneficiary table asks for a pension share separately', await p4.evaluate(()=>[...document.querySelectorAll('label')].some(l=>/of the pension/.test(l.textContent))));
   /*
-   * The two boxes must not read as one field entered twice. Reported from a phone: the pension box
-   * showed the will share as its placeholder, so both said the same number under near-identical labels.
+   * Nor may the two read as one field entered twice once both are shown: the pension box used to carry
+   * the will share as its placeholder, so both said the same number under near-identical labels.
    */
   ok('the two share boxes are not mistakable for each other', await p4.evaluate(()=>{
     const pen=[...document.querySelectorAll('label')].find(l=>/of the pension/.test(l.textContent));

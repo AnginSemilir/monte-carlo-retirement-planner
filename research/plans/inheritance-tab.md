@@ -58,6 +58,24 @@ Sources at the foot of this document.
 
 ---
 
+## 2b. Two decisions taken before building
+
+**Couples are modelled as two deaths.** The first is spouse-exempt and passes on the unused percentage
+of both bands; the tax lands on the second. For the *estate arithmetic* that collapses neatly to "the
+survivor's estate with doubled bands", which is what `estateForCouple` does and what the tests check.
+What it does **not** collapse is the projection: after a first death the survivor loses a personal
+allowance, a set of bands and a state pension, and modelling that is a change to `stepYear`, not to the
+estate function. So the estate side is done; the projection side is phase 2 and is called out as a
+known gap rather than quietly ignored.
+
+**Property is modelled, including sale during retirement.** A home value plus a "passes to direct
+descendants" flag, because the residence band is worth up to £175,000 each and is unavailable without
+one — omitting it would have made the model pessimistic for exactly the homeowners most likely to use
+it. Downsizing releases cash into the plan, so the sale connects to the drawdown model rather than
+sitting beside it: a sale year, a sale value, and the proceeds landing in a wrapper the policy chooses.
+
+---
+
 ## 3. Answers to the open questions
 
 ### "Keep the min bequest pre-tax in simple inputs, post-tax in advanced — or is post-tax just as easy?"

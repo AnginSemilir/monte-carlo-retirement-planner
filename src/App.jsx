@@ -378,6 +378,26 @@ const DEFAULT_CONFIG = {
   cashBufferMonths: 6,               // months of spending kept in cash before surplus income is swept to ISA
   harvestPersonalAllowance: true,    // in retirement draw pension to fill unused 0% allowance and move it to ISA
   pensionDeathTaxRate: 0,            // % haircut applied to any pension left at the terminal age when reporting "net" pots (IHT / beneficiary income tax)
+  /*
+   * Inheritance tax. Published figures for 2026/27; every one is overridable because three of the four
+   * regimes here changed between 2025 and 2027 and the next Budget may change them again.
+   *
+   * `pensionsInEstateFrom` is the one to understand. Until 6 April 2027 an unused pension sat OUTSIDE
+   * the estate, which is why the conventional advice was to spend everything else first. From that date
+   * it is inside, so a pension left to a non-exempt beneficiary after a death at 75 or over can take
+   * 40% IHT and then the beneficiary's own income tax on the remainder - roughly 67% at the additional
+   * rate, against 40% for the same pound held in an ISA. The advice inverts, and the model has to know
+   * which side of the date the death falls on rather than assuming.
+   */
+  ihtNrb: 325000,                    // nil-rate band, frozen to 5 April 2031
+  ihtRnrb: 175000,                   // residence nil-rate band; only if a home passes to direct descendants
+  ihtRnrbTaperFrom: 2000000,         // RNRB tapers away above this estate value...
+  ihtRnrbTaperRate: 50,              // ...losing £1 of band for every £2 over it
+  ihtRate: 40,                       // headline rate above the available bands
+  ihtCharityRate: 36,                // reduced rate where the charitable legacy clears the test below
+  ihtCharityThresholdPct: 10,        // % of the baseline estate that must go to charity to earn 36%
+  pensionsInEstateFrom: 2027,        // tax year from which unused pensions count as estate (Finance Act 2026)
+  pensionIncomeTaxFromAge: 75,       // death at or above this age makes inherited pension taxable on the beneficiary
   bridgeSafetyMargin: 30,            // % uplift on the pre-access "bridge" reserve the tournament targets
   solvencyFloor: 0                   // minimum pot at terminal age (bequest floor)
 };
@@ -2667,8 +2687,163 @@ function explainPick(cands, opts = {}) {
   return { winner: pool[0], steps };
 }
 
+/*
+ * ================================ INHERITANCE TAX ================================
+ *
+ * What an estate is actually worth to the people who receive it, which is not the same as the terminal
+ * pot the projection reports. Two things separate them, and both are new:
+ *
+ *   1. From 6 April 2027 an unused pension is INSIDE the estate. Before that date it was outside, which
+ *      is the entire basis of the conventional "spend everything else first" advice.
+ *   2. If death is at 75 or over, the beneficiary then pays their OWN income tax on what they draw from
+ *      an inherited pension - on top of the IHT already charged on it. 40% then a 45% marginal rate
+ *      leaves 33p in the pound. The same pound in an ISA is taxed once and leaves 60p.
+ *
+ * So "which wrapper is it in" now changes the answer, and a gross terminal pot cannot express that.
+ *
+ * COUPLES are two events, not one. The first death is normally spouse-exempt and passes the unused
+ * percentage of both bands to the survivor; the tax lands on the second. For the ESTATE arithmetic that
+ * collapses neatly - the survivor's estate with doubled bands - which is what `transferredNrbPct` and
+ * `transferredRnrbPct` express. What it does NOT collapse is the projection: after a first death the
+ * survivor loses a personal allowance, a set of bands and a state pension, and modelling that is a
+ * change to stepYear rather than to this function.
+ */
+const IHT_RELATIONSHIPS = {
+  spouse: { label: 'Spouse or civil partner', exempt: true, descendant: false, note: 'Fully exempt, and passes their unused bands on.' },
+  descendant: { label: 'Child, grandchild or step-child', exempt: false, descendant: true, note: 'Taxable, but unlocks the residence band if the home passes to them.' },
+  other: { label: 'Someone else', exempt: false, descendant: false, note: 'Taxable, with no additional relief.' },
+  charity: { label: 'A charity', exempt: true, descendant: false, note: 'Exempt \u2014 and 10% of the estate to charity cuts the rate on the rest to 36%.' }
+};
+
+const normalizeBeneficiaries = (list) => (Array.isArray(list) ? list : [])
+  .filter(isPlainObject)
+  .map((b, i) => ({
+    id: String(b.id || `ben_${i}`),
+    name: String(b.name ?? '').slice(0, 60),
+    relationship: IHT_RELATIONSHIPS[b.relationship] ? b.relationship : 'descendant',
+    sharePct: clamp(num(b.sharePct, 0), 0, 100),
+    income: Math.max(0, num(b.income, 0))
+  }));
+
+/*
+ * The estate at a single death.
+ *
+ * `wrappers` is { pen, isa, other, cash } at death, `homeValue` the residence still owned. Shares are
+ * applied to every wrapper alike: we do not model a will that leaves the pension to one person and the
+ * ISA to another, because that is a legal document rather than a plan input, and pretending otherwise
+ * would produce a precise answer to a question nobody asked.
+ */
+function estateAtDeath(cfg, wrappers, opts = {}) {
+  const c = { ...DEFAULT_CONFIG, ...(cfg || {}) };
+  const deathAge = num(opts.deathAge, 90);
+  const deathYear = num(opts.deathYear, new Date().getFullYear());
+  const homeValue = Math.max(0, num(opts.homeValue, 0));
+  const homeToDescendants = !!opts.homeToDescendants;
+  const bens = normalizeBeneficiaries(opts.beneficiaries);
+
+  const pen = Math.max(0, num(wrappers.pen, 0));
+  const liquid = ['isa', 'other', 'cash'].reduce((t, k) => t + Math.max(0, num(wrappers[k], 0)), 0);
+  const pensionCounts = deathYear >= num(c.pensionsInEstateFrom, 2027);
+  const grossEstate = liquid + homeValue + (pensionCounts ? pen : 0);
+
+  // shares are normalised so a table that does not total 100 still produces a coherent answer, and the
+  // caller is told rather than silently corrected
+  const declared = bens.reduce((t, b) => t + b.sharePct, 0);
+  const shareOf = (b) => (declared > 0 ? b.sharePct / declared : 0);
+
+  const exemptShare = bens.filter(b => IHT_RELATIONSHIPS[b.relationship].exempt).reduce((t, b) => t + shareOf(b), 0);
+  const charityShare = bens.filter(b => b.relationship === 'charity').reduce((t, b) => t + shareOf(b), 0);
+  const exemptValue = grossEstate * exemptShare;
+  const charityValue = grossEstate * charityShare;
+
+  const nrb = Math.max(0, num(c.ihtNrb, 325000)) * (1 + clamp(num(opts.transferredNrbPct, 0), 0, 100) / 100);
+  /*
+   * The residence band is three constraints at once, and dropping any one of them overstates it: it
+   * needs a home passing to a direct descendant, it can never exceed the home's own value, and it
+   * tapers away by £1 for every £2 of estate above £2m.
+   */
+  const anyDescendant = bens.some(b => IHT_RELATIONSHIPS[b.relationship].descendant && b.sharePct > 0);
+  const rnrbFull = Math.max(0, num(c.ihtRnrb, 175000)) * (1 + clamp(num(opts.transferredRnrbPct, 0), 0, 100) / 100);
+  const taperLoss = Math.max(0, grossEstate - Math.max(0, num(c.ihtRnrbTaperFrom, 2000000))) * (clamp(num(c.ihtRnrbTaperRate, 50), 0, 100) / 100);
+  const rnrb = (homeToDescendants && anyDescendant && homeValue > 0)
+    ? Math.max(0, Math.min(rnrbFull - taperLoss, homeValue))
+    : 0;
+
+  const afterExempt = Math.max(0, grossEstate - exemptValue);
+  const chargeable = Math.max(0, afterExempt - nrb - rnrb);
+  // the charity test is against the estate after exemptions and bands but BEFORE the charitable gift
+  const baseline = Math.max(0, grossEstate - (exemptValue - charityValue) - nrb - rnrb);
+  const charityQualifies = charityValue > 0 && baseline > 0 &&
+    charityValue >= baseline * (clamp(num(c.ihtCharityThresholdPct, 10), 0, 100) / 100);
+  const rate = (charityQualifies ? num(c.ihtCharityRate, 36) : num(c.ihtRate, 40)) / 100;
+  const iht = chargeable * rate;
+
+  /*
+   * Who bears it. IHT is charged on the estate, not the recipient, so it falls on the non-exempt
+   * residue: a spouse's share is untouched and the taxable beneficiaries carry the whole bill between
+   * them, pro rata.
+   */
+  const taxableShare = bens.filter(b => !IHT_RELATIONSHIPS[b.relationship].exempt).reduce((t, b) => t + shareOf(b), 0);
+  const pensionTaxable = deathAge >= num(c.pensionIncomeTaxFromAge, 75);
+
+  const beneficiaries = bens.map(b => {
+    const sh = shareOf(b);
+    const rel = IHT_RELATIONSHIPS[b.relationship];
+    const gross = grossEstate * sh;
+    const ihtBorne = rel.exempt || taxableShare <= 0 ? 0 : iht * (sh / taxableShare);
+    const afterIht = Math.max(0, gross - ihtBorne);
+    /*
+     * Income tax on an inherited pension, charged on the beneficiary at their own marginal rate. Two
+     * simplifications, both stated on screen: the whole inherited pension is treated as drawn in one
+     * tax year (drawing it over several would usually cost less), and the rate is the one implied by
+     * their current income rather than income plus the inheritance.
+     */
+    const pensionPart = pen > 0 && grossEstate > 0 ? (pen * sh) * (afterIht / Math.max(1e-9, gross)) : 0;
+    const incomeTaxOnPension = (!rel.exempt && pensionTaxable && pensionCounts)
+      ? pensionPart * marginalRateAt(b.income, c)
+      : 0;
+    const net = Math.max(0, afterIht - incomeTaxOnPension);
+    return {
+      ...b, sharePct: sh * 100, gross, ihtBorne, incomeTaxOnPension, net,
+      effectiveRatePct: gross > 0 ? 100 * (1 - net / gross) : 0
+    };
+  });
+
+  const totalNet = beneficiaries.reduce((t, b) => t + b.net, 0);
+  const totalIncomeTax = beneficiaries.reduce((t, b) => t + b.incomeTaxOnPension, 0);
+  return {
+    grossEstate, liquid, pension: pen, pensionCounts, homeValue,
+    nrb, rnrb, rnrbTaperLoss: homeToDescendants && anyDescendant ? Math.min(taperLoss, rnrbFull) : 0,
+    exemptValue, charityValue, charityQualifies, ratePct: rate * 100,
+    chargeable, iht, incomeTaxOnPensions: totalIncomeTax,
+    totalTax: iht + totalIncomeTax, netToBeneficiaries: totalNet,
+    effectiveRatePct: grossEstate > 0 ? 100 * (1 - totalNet / grossEstate) : 0,
+    sharesDeclaredPct: declared, beneficiaries,
+    deathAge, deathYear
+  };
+}
+
+/*
+ * A couple: two deaths. The first passes everything to the survivor tax-free and hands over whatever
+ * percentage of each band went unused (100% when the whole estate passes to them, which is the normal
+ * case). The tax lands entirely on the second death, with the bands doubled.
+ */
+function estateForCouple(cfg, wrappers, opts = {}) {
+  const first = estateAtDeath(cfg, wrappers, {
+    ...opts, beneficiaries: [{ id: 'survivor', name: 'Surviving partner', relationship: 'spouse', sharePct: 100, income: 0 }]
+  });
+  // unused band percentages transfer; a wholly exempt first estate uses none of either
+  const usedNrbPct = first.nrb > 0 ? Math.min(100, 100 * first.chargeable / first.nrb) : 0;
+  const second = estateAtDeath(cfg, wrappers, {
+    ...opts,
+    transferredNrbPct: Math.max(0, 100 - usedNrbPct),
+    transferredRnrbPct: 100
+  });
+  return { first, second, iht: second.iht, netToBeneficiaries: second.netToBeneficiaries };
+}
+
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, RATE_EPSILON_PTS, MONEY_EPSILON_REL, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 

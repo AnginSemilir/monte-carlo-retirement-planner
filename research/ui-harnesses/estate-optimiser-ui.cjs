@@ -323,9 +323,9 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   await p.addInitScript(pl=>localStorage.setItem('rp_plan_full_v28',JSON.stringify(pl)),plan);
   await p.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(1200);
-  await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Strategy/.test(b.textContent)); if(x)x.click();});
+  await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
   await p.waitForTimeout(700);
-  ok('the optimiser is on the Strategy tab', await p.evaluate(()=>!!document.querySelector('[data-estate-optimiser]')));
+  ok('the optimiser is on the Inheritance tab', await p.evaluate(()=>!!document.querySelector('[data-estate-optimiser]')));
   await p.click('[data-optimise-estate]');
   await p.waitForTimeout(1500);
   const levers = await p.evaluate(()=>[...document.querySelector('[data-lever-table]').querySelectorAll('tbody tr')]
@@ -358,9 +358,7 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
     `${before} -> ${after.spending.decumulationPolicy}`);
   ok('and writes the wrapper transfers in', (after.oneOffContributions||[]).some(c=>/Recycle|relief/i.test(c.desc||'')),
     `${(after.oneOffContributions||[]).length} one-off deposits`);
-  // the IHT credit, on the Inheritance tab
-  await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
-  await p.waitForTimeout(800);
+  // the IHT credit, further down the same tab
   await p.evaluate(()=>{const d=[...document.querySelectorAll('summary')].find(x=>/Special circumstances/i.test(x.textContent)); if(d)d.click();});
   await p.waitForTimeout(400);
   ok('a credit with no tax paid says so', await p.evaluate(()=>/the relief is/.test(document.body.textContent)));
@@ -382,7 +380,7 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   await p2.addInitScript(pl=>localStorage.setItem('rp_plan_full_v28',JSON.stringify(pl)),later);
   await p2.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p2.waitForTimeout(1200);
-  await p2.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Strategy/.test(b.textContent)); if(x)x.click();});
+  await p2.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
   await p2.waitForTimeout(700);
   await p2.click('[data-optimise-estate]');
   await p2.waitForTimeout(2500);

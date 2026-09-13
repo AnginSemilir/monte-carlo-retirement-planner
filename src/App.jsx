@@ -430,6 +430,19 @@ const BLANK_PLAN = Object.freeze({
   config: { ...DEFAULT_CONFIG }
 });
 
+// Where a one-off capital cost is funded from, when a policy does not say otherwise. This is the order
+// the model used unconditionally before policies could name their own.
+const DEFAULT_COST_STEPS = ['cash', 'other', 'isa', 'penAny'];
+
+/*
+ * A deposit whose wrapper is left as AUTO_DEPOSIT is routed by the policy rather than by the user: the
+ * policy's `depositOrder` is walked and the first wrapper with headroom this year takes it. An
+ * inheritance is the case that matters - £120k arriving with nowhere obvious to go, where the difference
+ * between the pension (relief now, locked, and in the estate from 2027) and the ISA (no relief, free
+ * forever, but capped each year) is worth more than most contribution decisions a household ever makes.
+ */
+const AUTO_DEPOSIT = 'Auto (policy decides)';
+
 const DECUMULATION_POLICIES = {
   'Bracket Fill Basic': {
     label: 'Tax Smoothing (fill 0% allowance, then pension to the basic-rate limit, preserve ISAs)',
@@ -527,7 +540,9 @@ function normalizePlan(raw) {
     // upgrade can never silently raise someone's pension headroom.
     otherIncomes: Array.isArray(src.otherIncomes) ? src.otherIncomes.filter(isPlainObject).map(i => ({ id: String(i.id || 'inc_' + Math.random().toString(36).slice(2)), name: i.name ?? '', owner: i.owner === 'Partner' ? 'Partner' : 'Myself', startAge: i.startAge ?? '', endAge: i.endAge ?? '', amount: i.amount ?? '', incomeType: INCOME_TYPES[i.incomeType] ? i.incomeType : (i.taxTreatment === 'Tax-free' ? 'taxFree' : 'otherTaxable'), notes: i.notes ?? '' })) : [],
     oneOffContributions: Array.isArray(src.oneOffContributions) ? src.oneOffContributions.filter(isPlainObject).map(x => {
-      const category = Object.values(CATEGORY_LABEL).includes(x.category) ? x.category : 'Pensions';
+      // AUTO_DEPOSIT is a real, storable choice - "let the policy decide" - so it has to survive
+      // normalisation rather than being coerced into a wrapper the user never picked
+      const category = (x.category === AUTO_DEPOSIT || Object.values(CATEGORY_LABEL).includes(x.category)) ? x.category : 'Pensions';
       return {
         id: String(x.id || 'c_' + Math.random().toString(36).slice(2)),
         date: x.date || (x.year ? `${x.year}-01-01` : ''),
@@ -537,7 +552,7 @@ function normalizePlan(raw) {
         amount: x.amount ?? '',
         desc: x.desc ?? '',
         transferredFrom: ['External', ...Object.values(CATEGORY_LABEL)].includes(x.transferredFrom) ? x.transferredFrom : 'External',
-        stagedTargetWrapper: Object.values(CATEGORY_LABEL).includes(x.stagedTargetWrapper) ? x.stagedTargetWrapper : category
+        stagedTargetWrapper: Object.values(CATEGORY_LABEL).includes(x.stagedTargetWrapper) ? x.stagedTargetWrapper : (category === AUTO_DEPOSIT ? CATEGORY_LABEL.other : category)
       };
     }) : [],
     oneOffCosts: Array.isArray(src.oneOffCosts) ? src.oneOffCosts.filter(isPlainObject).map(x => ({ id: String(x.id || 'cost_' + Math.random().toString(36).slice(2)), date: x.date || (x.year ? `${x.year}-01-01` : ''), year: num(x.year, x.date ? parseInt(String(x.date).slice(0, 4)) : ''), owner: x.owner === 'Partner' ? 'Partner' : 'Myself', amount: x.amount ?? '', desc: x.desc ?? '' })) : [],
@@ -903,6 +918,9 @@ function buildContext(rawPlan) {
   const d = plan.demographics, s = plan.spending, c = plan.config;
   const isCouple = d.planningMode !== 'single';
   const P = taxParams(c);
+  // resolved up here because deposit routing (below) needs the policy's depositOrder, and that runs
+  // long before the context object itself is assembled
+  const policyForDeposits = DECUMULATION_POLICIES[s.decumulationPolicy] || DECUMULATION_POLICIES['Bracket Fill Basic'];
 
   const req = (label, v, fallback, lo, hi) => {
     if (isBlank(v)) { warnings.push(`${label} is blank; using ${fallback}.`); return fallback; }
@@ -1029,7 +1047,21 @@ function buildContext(rawPlan) {
     ordered.forEach(({ x, y }) => {
       const t = y - baseYear;
       const ownerKey = x.owner === 'Partner' ? 'part' : 'self';
-      const targetCat = Object.keys(CATEGORY_LABEL).find(k => CATEGORY_LABEL[k] === x.category) || 'pen';
+      /*
+       * A deposit marked AUTO_DEPOSIT has no wrapper of its own: the policy picks. Walk the policy's
+       * order and take the first wrapper with room this year, so a large windfall lands where the
+       * policy believes it belongs rather than defaulting into the pension and hitting the annual
+       * allowance. Falling back to the last entry (rather than 'pen') means the fallback is the
+       * policy's own choice of overflow, which for every policy here is the uncapped GIA.
+       */
+      const policyRoute = () => {
+        const order = policyForDeposits.depositOrder;
+        for (const cat of order) if (wrapperHeadroomAtYear(headroomCtx, ownerKey, cat, y - baseYear) > 0) return cat;
+        return order[order.length - 1];
+      };
+      const targetCat = (x.category === AUTO_DEPOSIT && policyForDeposits.depositOrder)
+        ? policyRoute()
+        : (Object.keys(CATEGORY_LABEL).find(k => CATEGORY_LABEL[k] === x.category) || 'pen');
       const targetId = accountId(targetCat, ownerKey);
       const otherId = accountId('other', ownerKey);
       const amt = Math.max(0, num(x.amount, 0));
@@ -1120,13 +1152,14 @@ function buildContext(rawPlan) {
     }
   });
 
-  const policy = DECUMULATION_POLICIES[s.decumulationPolicy] || DECUMULATION_POLICIES['Bracket Fill Basic'];
+  const policy = policyForDeposits;
   const ctx = {
     plan, warnings, isCouple, P, owners, accounts, acc,
     ageSelf0, agePart0, terminalAge, totalYears, nmpa, spa, targetSpend,
     spendBands,
     fullLumpSum: s.drawdownStrategy === 'Full 25% Lump Sum',
     policyKey: s.decumulationPolicy, policySteps: policy.steps, harvestPA: policy.harvest && !!c.harvestPersonalAllowance,
+    costSteps: policy.costSteps || DEFAULT_COST_STEPS, depositOrder: policy.depositOrder || null,
     pensionDeathTaxRate: clamp(num(c.pensionDeathTaxRate, 0), 0, 100) / 100,
     cashBufferYears: clamp(num(c.cashBufferMonths, 6), 0, 120) / 12,
     solvencyFloor: Math.max(0, num(c.solvencyFloor, 0)),
@@ -1342,13 +1375,28 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
     return pull;
   };
 
-  // 5. one-off capital costs: cash -> GIA -> ISA -> accessible pensions
+  /*
+   * 5. one-off capital costs.
+   *
+   * Which wrapper pays for a £40k roof is a real decision with a real cost, and it is not the same
+   * decision as which wrapper funds the weekly shop. A lump sum is large enough to push pension income
+   * through a tax band in a single year, or to realise a year's worth of gains at once, so the cheapest
+   * source for it can differ from the cheapest source for ordinary spending. The policy therefore names
+   * its own order here, in the same six-token vocabulary as the drawdown steps.
+   *
+   * The default reproduces the original fixed order exactly: cash -> GIA -> ISA -> accessible pension.
+   */
   let unmetCost = 0;
   const cost = ctx.oneOffCosts.get(year) || 0;
   if (cost > 0) {
     let rem = cost;
-    for (const cat of ['cash', 'other', 'isa']) for (const o of owners) { if (rem > 0) rem -= drawPot(o.ids[cat], rem); }
-    for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem); }
+    for (const step of ctx.costSteps) {
+      if (rem <= 0) break;
+      if (step === 'penPA') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.pa); } }
+      else if (step === 'penBasic') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem, P.higherRateStartsAt); } }
+      else if (step === 'penAny') { for (const o of owners) { if (rem > 0) rem -= drawPension(o.key, rem); } }
+      else { for (const o of owners) { if (rem > 0) rem -= drawPot(o.ids[step], rem); } }
+    }
     unmetCost = Math.max(0, rem);
   }
 
@@ -2469,7 +2517,7 @@ function pickBest(cands, tol = 0.5, preAccessCap = Infinity) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 

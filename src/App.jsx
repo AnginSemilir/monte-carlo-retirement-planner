@@ -4973,8 +4973,11 @@ export default function App() {
                                 <button type="button" onClick={() => { const cat = E.suggestOneOffDestination(ctx, c.owner === 'Partner' ? 'part' : 'self', Math.max(0, (depYear || ctx.baseYear) - ctx.baseYear), E.num(c.amount, 0)); const category = E.CATEGORY_LABEL[cat]; updateListItem('oneOffContributions', c.id, { category, ...(c.stagedTargetWrapper === c.category ? { stagedTargetWrapper: category } : {}) }); }}
                                   className="text-blue-600 hover:text-blue-800 hover:underline font-semibold cursor-pointer" title="Pick the wrapper this money is worth most in, given the allowance room left that year">Choose for me</button>
                               </span>
+                              {/* AUTO hands the choice to the decumulation policy, which is the only way a
+                                  windfall-routing policy can ever fire for a real plan rather than only in a study */}
                               <select value={c.category} onChange={(e) => { const category = e.target.value; const patch = { category }; if (c.stagedTargetWrapper === c.category) patch.stagedTargetWrapper = category; updateListItem('oneOffContributions', c.id, patch); }} className={`p-1 bg-surface border rounded text-blue-700 font-semibold ${missingDest ? 'border-rose-400 ring-1 ring-rose-300' : 'border-slate-300'}`}>
                                 {Object.values(E.CATEGORY_LABEL).map(l => <option key={l} value={l}>{l}</option>)}
+                                <option value={E.AUTO_DEPOSIT}>{E.AUTO_DEPOSIT}</option>
                               </select>
                             </div>
                             <input type="number" min="0" step="1000" placeholder="Amount (£)" onFocus={handleFocus} value={c.amount} onChange={(e) => updateListItem('oneOffContributions', c.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded font-mono text-emerald-700 font-bold" />

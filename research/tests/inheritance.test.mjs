@@ -239,5 +239,36 @@ console.log('\n=========== J. A SPOUSE PAYS INCOME TAX EVEN THOUGH THEY PAY NO I
     E.estateAtDeath(cfg, { pen: 400000 }, { deathAge: 70, deathYear: 2030, beneficiaries: [kid(60000)] }).incomeTaxOnPensions === 0);
 }
 
+console.log('\n=========== K. THE RELATIONSHIP CATEGORIES ===========');
+{
+  /*
+   * Four categories, not more, because the rules genuinely do not distinguish further: a child and a
+   * grandchild are both direct descendants and either unlocks the residence band. What DOES need saying
+   * is who falls outside each row, since picking wrongly is worth the whole residence band one way and
+   * the whole spousal exemption the other, and neither mistake surfaces as an error.
+   */
+  const R = E.IHT_RELATIONSHIPS;
+  ok('every category explains who it covers', Object.values(R).every(r => r.who && r.who.length > 30));
+  ok('the descendant row names the excluded relatives explicitly',
+    /nieces|nephews|siblings/i.test(R.descendant.who), R.descendant.who.slice(0, 60));
+  ok('it includes step, adopted and foster children', /step-|adopted|foster/i.test(R.descendant.who));
+  ok('the spouse row warns that an unmarried partner does not count',
+    /unmarried partner does not count/i.test(R.spouse.who), R.spouse.who.slice(0, 60));
+  ok('and "someone else" names the unmarried partner as belonging there', /unmarried partner/i.test(R.other.who));
+
+  // the substance behind the labels: a child and a grandchild must be treated identically
+  const base = { deathAge: 80, deathYear: 2030, homeValue: 300000, homeToDescendants: true };
+  const asChild = E.estateAtDeath(cfg, { isa: 400000 }, { ...base, beneficiaries: [{ id: 'c', relationship: 'descendant', sharePct: 100, income: 0, age: 50 }] });
+  const asGrandchild = E.estateAtDeath(cfg, { isa: 400000 }, { ...base, beneficiaries: [{ id: 'g', relationship: 'descendant', sharePct: 100, income: 0, age: 25 }] });
+  ok('a child and a grandchild get the same residence band', near(asChild.rnrb, asGrandchild.rnrb) && asChild.rnrb > 0,
+    `£${Math.round(asChild.rnrb).toLocaleString()}`);
+  // an unmarried partner is taxed, which is the trap the copy warns about
+  const partner = E.estateAtDeath(cfg, { isa: 400000 }, { ...base, beneficiaries: [{ id: 'p', relationship: 'other', sharePct: 100, income: 0 }] });
+  ok('an unmarried partner gets no exemption and no residence band', partner.rnrb === 0 && partner.iht > 0,
+    `IHT £${Math.round(partner.iht).toLocaleString()}`);
+  ok('while a spouse pays nothing on the same estate',
+    E.estateAtDeath(cfg, { isa: 400000 }, { ...base, beneficiaries: [{ id: 's', relationship: 'spouse', sharePct: 100, income: 0 }] }).iht === 0);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

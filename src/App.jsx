@@ -2906,10 +2906,38 @@ function explainPick(cands, opts = {}) {
  * not. A charity genuinely pays neither.
  */
 const IHT_RELATIONSHIPS = {
-  spouse: { label: 'Spouse or civil partner', exempt: true, incomeTaxpayer: true, descendant: false, note: 'No inheritance tax \u2014 but income tax still applies to an inherited pension.' },
-  descendant: { label: 'Child, grandchild or step-child', exempt: false, incomeTaxpayer: true, descendant: true, note: 'Taxable, but unlocks the residence band if the home passes to them.' },
-  other: { label: 'Someone else', exempt: false, incomeTaxpayer: true, descendant: false, note: 'Taxable, with no additional relief.' },
-  charity: { label: 'A charity', exempt: true, incomeTaxpayer: false, descendant: false, note: 'Exempt \u2014 and 10% of the estate to charity cuts the rate on the rest to 36%.' }
+  spouse: {
+    label: 'Spouse or civil partner', exempt: true, incomeTaxpayer: true, descendant: false,
+    note: 'No inheritance tax \u2014 but income tax still applies to an inherited pension.',
+    /*
+     * The most expensive misunderstanding in UK estate planning. An unmarried partner, however long you
+     * have lived together, is NOT a spouse for inheritance tax: nothing passes exempt and none of their
+     * allowances transfer. Picking this row for a cohabiting partner would silently wipe out a bill that
+     * is really there.
+     */
+    who: 'Married or in a civil partnership only. A long-term unmarried partner does not count, however many years you have been together.'
+  },
+  descendant: {
+    label: 'Child or grandchild (direct descendant)', exempt: false, incomeTaxpayer: true, descendant: true,
+    note: 'Taxable, but unlocks the residence band if your home passes to them.',
+    /*
+     * Children and grandchildren are treated identically here because the rules treat them identically:
+     * "direct descendant" covers the whole lineal line and several people who are not blood relations at
+     * all, while excluding some who feel like close family. Getting the category wrong is worth the whole
+     * residence band either way, so the exclusions are named rather than left to intuition.
+     */
+    who: 'Children, grandchildren and further down the line, including step-, adopted and foster children, and a child you were appointed guardian of. Also their husbands, wives and civil partners, if they have not remarried. NOT nieces, nephews, siblings, parents, aunts or uncles \u2014 those are "someone else".'
+  },
+  other: {
+    label: 'Someone else', exempt: false, incomeTaxpayer: true, descendant: false,
+    note: 'Taxable, with no additional relief.',
+    who: 'Anyone outside the two rows above: a sibling, niece, nephew, parent, friend, or an unmarried partner.'
+  },
+  charity: {
+    label: 'A charity', exempt: true, incomeTaxpayer: false, descendant: false,
+    note: 'Exempt \u2014 and 10% of the estate to charity cuts the rate on the rest to 36%.',
+    who: 'A registered charity. It pays neither inheritance tax nor income tax on anything it receives.'
+  }
 };
 
 /*
@@ -6530,7 +6558,7 @@ export default function App() {
                   {inheritanceView.bens.map(b => (
                     <div key={b.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
                       <input type="text" placeholder="Name" value={b.name} onChange={(e) => updateBeneficiary(b.id, { name: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 w-28" />
-                      <select value={b.relationship} onChange={(e) => updateBeneficiary(b.id, { relationship: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer">
+                      <select value={b.relationship} onChange={(e) => updateBeneficiary(b.id, { relationship: e.target.value })} title={E.IHT_RELATIONSHIPS[b.relationship].who} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer">
                         {Object.entries(E.IHT_RELATIONSHIPS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                       </select>
                       <label className="flex items-center gap-1 text-slate-500">share
@@ -6566,6 +6594,18 @@ export default function App() {
                   </span>
                   <span className="text-[10px] text-amber-700 block">This holds only if their circumstances stay roughly as they are over those {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years. Someone about to retire, start a business or come into other money would face a different bill.</span>
                   <span className="text-[10px] text-slate-400 block">A spouse or civil partner pays no inheritance tax but <strong>does</strong> pay income tax on an inherited pension, so their details still matter.</span>
+                  {/* Naming who each row covers, and who it does not. Picking the wrong one is worth the
+                      whole residence band in one direction and the whole spousal exemption in the other,
+                      and neither mistake shows up as an error - only as a wrong number. */}
+                  <details className="text-[10px]">
+                    <summary className="cursor-pointer text-slate-500 font-semibold hover:text-slate-800">Which of these is which?</summary>
+                    <ul className="mt-1.5 space-y-1 pl-1">
+                      {Object.entries(E.IHT_RELATIONSHIPS).map(([k, v]) => (
+                        <li key={k} className="text-slate-500"><strong className="text-slate-700">{v.label}:</strong> {v.who}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-1.5 text-amber-700">Children and grandchildren are one option because the rules treat them the same way: both are direct descendants, and either will unlock the residence allowance if your home passes to them.</p>
+                  </details>
                 </div>
               )}
             </div>

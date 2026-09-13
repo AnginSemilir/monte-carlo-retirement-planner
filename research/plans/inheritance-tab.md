@@ -58,6 +58,42 @@ Sources at the foot of this document.
 
 ---
 
+## 2a. RESULT: the hypothesis was wrong, and the tab is justified anyway
+
+Step 2 has been run: 360 households x 5 beneficiary profiles x 2 death ages = 3,600 rankings on
+post-tax inheritance. The prediction in §1 does **not** survive.
+
+**Pension First wins 6 of 3,600 (0.2%).** Draining the taxable wrapper early is not merely unhelpful,
+it is the worst thing on the board: on one wealthy household it leaves £6.2m where the best policy
+leaves £13.5m. The reason is one the commentary about 2027 tends to skip - emptying a pension early
+means paying income tax at YOUR OWN marginal rate, during retirement, on a large pot, and the proceeds
+cannot be sheltered fast enough because the ISA allowance is £20,000 a year. Leaving it invested costs
+40% IHT plus the beneficiary's rate, but only on what remains after decades of untaxed compounding.
+The double charge is real; it is still cheaper than volunteering for the single one early.
+
+So the 2027 change does not invert the advice. **What it does is make the answer depend on facts the
+app never asked for**, which is the actual case for the tab:
+
+| | winner on post-tax inheritance |
+|---|---|
+| Death at 74 (pension not yet taxable on the heir) | Sequential 59% |
+| Death at 80 (pension taxable on the heir) | Bracket Fill Basic 28%, Bracket Fill 24%, Sequential 21%, Windfall to ISA 21% |
+| Heir is a grandchild with no income | Sequential 59% |
+| Heir is an additional-rate taxpayer | Sequential 31%, Bracket Fill Basic 26%, Windfall to ISA 20% |
+
+Sequential's dominance collapses from 59% to 21% across the 75 boundary. Same household, same money,
+two years apart.
+
+And the app's current ranking is measurably wrong for this purpose: **ranking on the gross pot picks a
+different policy from ranking on post-tax inheritance in 24.8% of cases.** The stakes are not
+rounding - the median gap between best and worst surviving policy is £240,291, and the choice is worth
+more than £100,000 to the heirs in 66% of cases.
+
+The tab should therefore be built around **"when, and to whom"** rather than around a drawdown
+recommendation. That is a different emphasis from §4b and the input list should be read with it in mind.
+
+---
+
 ## 2b. Two decisions taken before building
 
 **Couples are modelled as two deaths.** The first is spouse-exempt and passes on the unused percentage

@@ -25,8 +25,12 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   await p.waitForTimeout(900);
 
   // ---- the breakdown card ----
+  // the Today column is an input now, so its value is not in textContent
   const rows = () => p.evaluate(()=>{const t=document.querySelector('[data-estate-breakdown] table');
-    return t? [...t.querySelectorAll('tbody tr')].map(r=>[...r.querySelectorAll('td')].map(d=>d.textContent.trim())) : null;});
+    return t? [...t.querySelectorAll('tbody tr')].map(r=>[...r.querySelectorAll('td')].map(d=>{
+      const i=d.querySelector('input'); return i? i.value : d.textContent.trim();})) : null;});
+  const estateAt = () => p.evaluate(()=>{const t=document.querySelector('[data-estate-breakdown] table');
+    const rs=[...t.querySelectorAll('tbody tr')]; return Number(rs[rs.length-1].querySelectorAll('td')[2].textContent.replace(/[^0-9]/g,''));});
   const r0 = await rows();
   ok('the breakdown card renders', !!r0 && r0.length>=4, r0?`${r0.length} rows`:'missing');
   if (r0) r0.forEach(r=>console.log('     '+r.join(' | ')));
@@ -43,7 +47,24 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   ok('it says the contrib column is not the return',
     await p.evaluate(()=>/how fast your contributions rise, not the return/.test(document.body.textContent)));
   ok('and links back to Plan Inputs',
-    await p.evaluate(()=>[...document.querySelectorAll('button')].some(x=>/Balances and allocations live on Plan Inputs/.test(x.textContent))));
+    await p.evaluate(()=>[...document.querySelectorAll('button')].some(x=>/live on Plan Inputs/.test(x.textContent))));
+
+  /*
+   * The tab keeps its own balances once one is typed over: estate planning asks what happens if the
+   * pension were smaller, and that question must not move the projection everyone else's numbers use.
+   */
+  const planPen = () => p.evaluate(()=>Number(JSON.parse(localStorage.getItem('rp_plan_full_v28')).accounts.find(a=>a.id==='pen_self').balance));
+  const before = await estateAt();
+  const penBox = p.locator('[data-estate-breakdown] input[type=number]').first();
+  await penBox.fill('600000'); await p.waitForTimeout(900);
+  ok('typing over a balance re-prices the estate', (await estateAt()) < before, `${before} -> ${await estateAt()}`);
+  ok('and says the tab is on its own figures now',
+    await p.evaluate(()=>/This tab is using its own balances/.test(document.body.textContent)));
+  ok('while Plan Inputs is left alone', (await planPen()) === 1200000, String(await planPen()));
+  await p.click('[data-reset-estate-balances]'); await p.waitForTimeout(900);
+  ok('and the reset puts it back', (await estateAt()) === before, `${await estateAt()} against ${before}`);
+  ok('with the warning gone',
+    await p.evaluate(()=>!/This tab is using its own balances/.test(document.body.textContent)));
 
   // a pre-2027 death has to explain the missing pension rather than just show a smaller number
   const deathAge = await p.evaluate(()=>{const l=[...document.querySelectorAll('label')].find(x=>/Expected age at death/.test(x.textContent));
@@ -56,13 +77,11 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
 
   // ---- other assets ----
   ok('assets can be added', await p.evaluate(()=>!!document.querySelector('[data-add-asset]')));
-  const estateAt = () => p.evaluate(()=>{const t=document.querySelector('[data-estate-breakdown] table');
-    const rs=[...t.querySelectorAll('tbody tr')]; return Number(rs[rs.length-1].querySelectorAll('td')[2].textContent.replace(/[^0-9]/g,''));});
-  const before = await estateAt();
+  const beforeAsset = await estateAt();
   await p.click('[data-add-asset]'); await p.waitForTimeout(500);
   const val = p.locator('label', { hasText: /^worth/ }).locator('input').last();
   await val.fill('600000'); await p.waitForTimeout(900);
-  ok('a buy-to-let raises the estate by its value', (await estateAt()) - before === 600000, `${before} -> ${await estateAt()}`);
+  ok('a buy-to-let raises the estate by its value', (await estateAt()) - beforeAsset === 600000, `${beforeAsset} -> ${await estateAt()}`);
   ok('and no ownership date is asked for', await p.evaluate(()=>![...document.querySelectorAll('label')].some(l=>/owned since/.test(l.textContent))));
 
   // switch it to a business: the date appears and the relief lands
@@ -82,7 +101,7 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   ok('bought inside two years of death, the relief is withdrawn', (await ihtNow()) === taxAsProperty,
     `£${(await ihtNow()).toLocaleString()} against £${taxAsProperty.toLocaleString()} untouched`);
   ok('and the tab says why', await p.evaluate(()=>/would not have been owned for 2 years/.test(document.body.textContent)));
-  ok('and it still counts in the estate', (await estateAt()) - before === 600000);
+  ok('and it still counts in the estate', (await estateAt()) - beforeAsset === 600000);
 
   ok('the docs record what is and is not modelled',
     await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Documentation|Docs/i.test(b.textContent)); if(x)x.click(); return true;}));

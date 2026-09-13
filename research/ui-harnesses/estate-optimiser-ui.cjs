@@ -327,7 +327,10 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   await p.waitForTimeout(700);
   ok('the optimiser is on the Inheritance tab', await p.evaluate(()=>!!document.querySelector('[data-estate-optimiser]')));
   await p.click('[data-optimise-estate]');
-  await p.waitForTimeout(1500);
+  // the search is ~40ms of work but the click-to-render round trip is not, and a tight wait here has
+  // failed on a loaded machine; waiting for the table itself rather than for a duration
+  await p.waitForSelector('[data-lever-table]', { timeout: 15000 });
+  await p.waitForTimeout(300);
   const levers = await p.evaluate(()=>[...document.querySelector('[data-lever-table]').querySelectorAll('tbody tr')]
     .map(r=>[...r.querySelectorAll('td')].map(d=>d.textContent.trim())));
   console.log('    levers:'); levers.forEach(l=>console.log('      '+l.join(' | ')));
@@ -383,7 +386,8 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   await p2.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
   await p2.waitForTimeout(700);
   await p2.click('[data-optimise-estate]');
-  await p2.waitForTimeout(2500);
+  await p2.waitForSelector('[data-lever-table]', { timeout: 15000 });
+  await p2.waitForTimeout(300);
   const lev2 = await p2.evaluate(()=>[...document.querySelector('[data-lever-table]').querySelectorAll('tbody tr')]
     .map(r=>[...r.querySelectorAll('td')].map(d=>d.textContent.trim())));
   console.log('    levers at 80:'); lev2.forEach(l=>console.log('      '+l.join(' | ')));
@@ -406,6 +410,28 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   const acts3 = await p2.evaluate(()=>[...document.querySelector('[data-action-plan]').querySelectorAll('li')].map(li=>li.textContent));
   ok('applying what the plan can hold shortens the list', acts3.length < acts2.length, `${acts2.length} -> ${acts3.length} steps`);
   ok('and what is left is the paperwork', acts3.some(a=>/expression of wish|holds your will/.test(a)));
+  /*
+   * Applying twice must change nothing the second time. It used to append a fresh gift with a random id
+   * on every click, so the natural response to a button that gives no sign of having worked - clicking
+   * it again - silently added the same six-figure gift a second time.
+   */
+  const countAfterOne = await p2.evaluate(()=>{const s=JSON.parse(localStorage.getItem('rp_plan_full_v28'));
+    return { gifts: (s.inheritance.gifts||[]).length, deposits: (s.oneOffContributions||[]).length,
+      total: (s.inheritance.gifts||[]).reduce((t,g)=>t+Number(g.amount||0),0) };});
+  await p2.click('[data-apply-estate]');
+  await p2.waitForTimeout(900);
+  const countAfterTwo = await p2.evaluate(()=>{const s=JSON.parse(localStorage.getItem('rp_plan_full_v28'));
+    return { gifts: (s.inheritance.gifts||[]).length, deposits: (s.oneOffContributions||[]).length,
+      total: (s.inheritance.gifts||[]).reduce((t,g)=>t+Number(g.amount||0),0) };});
+  ok('applying a second time adds no second gift', countAfterOne.gifts === countAfterTwo.gifts,
+    `${countAfterOne.gifts} -> ${countAfterTwo.gifts}`);
+  ok('nor doubles what was given', countAfterOne.total === countAfterTwo.total,
+    `£${countAfterOne.total.toLocaleString()} -> £${countAfterTwo.total.toLocaleString()}`);
+  ok('nor repeats the wrapper transfers', countAfterOne.deposits === countAfterTwo.deposits,
+    `${countAfterOne.deposits} -> ${countAfterTwo.deposits}`);
+  ok('and it says what it wrote and where', await p2.evaluate(()=>!!document.querySelector('[data-estate-applied]')));
+  ok('telling you to search again rather than click again',
+    await p2.evaluate(()=>/Run the search again/.test(document.querySelector('[data-estate-applied]')?.textContent||'')));
   const applied = await p2.evaluate(()=>JSON.parse(localStorage.getItem('rp_plan_full_v28')));
   const shares = (applied.inheritance.beneficiaries||[]).map(x=>Number(x.pensionSharePct));
   ok('applying writes the pension shares', shares.some(x=>x>0) && Math.abs(shares.reduce((t,x)=>t+x,0)-100)<0.01,
@@ -428,7 +454,8 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   ok('and the credit is priced', await p2.evaluate(()=>/Off the bill \u2014 £140,000/.test(document.body.textContent)));
   ok('and the whole award reads as still giftable', await p2.evaluate(()=>/£350,000 of £350,000 left/.test(document.body.textContent)));
   await p2.click('[data-optimise-estate]');
-  await p2.waitForTimeout(2500);
+  await p2.waitForSelector('[data-lever-table]', { timeout: 15000 });
+  await p2.waitForTimeout(300);
   const lev3 = await p2.evaluate(()=>[...document.querySelector('[data-lever-table]').querySelectorAll('tbody tr')]
     .map(r=>[...r.querySelectorAll('td')].map(d=>d.textContent.trim())));
   ok('the optimiser carries a compensation lever', lev3.some(l=>/compensation/i.test(l[0])),

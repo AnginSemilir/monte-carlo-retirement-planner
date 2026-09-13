@@ -4546,6 +4546,16 @@ function estateActionPlan(plan, result) {
   const b = result.best, base = result.baseline;
   const out = [];
 
+  /*
+   * A step the plan already holds is not a step. The order and the ceiling drop out on their own by
+   * comparing against the plan; the gifts and the transfers were written with random ids and so never
+   * did, which left the list telling a household to make a gift it had already made. Declared up here
+   * because the transfers are step 3 and the gifts are step 5.
+   */
+  const heldGift = (id) => (plan?.inheritance?.gifts || []).some(g => g.id === id);
+  const heldRecycle = (b.recycle || []).length > 0
+    && (b.recycle || []).every(x => (plan?.oneOffContributions || []).some(c => c.id === x.id));
+
   // 1. the withdrawal order, in the words of the policy itself rather than its name
   const orderChanged = b.policy !== plan?.spending?.decumulationPolicy
     || b.drawdown !== plan?.spending?.drawdownStrategy
@@ -4580,7 +4590,7 @@ function estateActionPlan(plan, result) {
   }
 
   // 3. the transfers, with the figures and the years spelled out
-  if (b.recycle && b.recycle.length) {
+  if (b.recycle && b.recycle.length && !heldRecycle) {
     const years = [...new Set(b.recycle.map(x => x.year))].sort();
     const own = b.recycle.filter(x => x.transferredFrom !== 'External');
     const relief = b.recycle.filter(x => x.transferredFrom === 'External');
@@ -4644,7 +4654,7 @@ function estateActionPlan(plan, result) {
   };
 
   // 5. the gift
-  if (b.gift > 0) {
+  if (b.gift > 0 && !heldGift(`estate_gift_${result.giftYear}`)) {
     out.push({
       key: 'gift',
       title: `Give away ${gbp(b.gift)} in ${result.giftYear}`,
@@ -4655,7 +4665,7 @@ function estateActionPlan(plan, result) {
   }
 
   // 5b. the compensation gift, which has a deadline nothing else here has
-  if (b.compGift) {
+  if (b.compGift && !heldGift(`estate_comp_${b.compGift.year}`)) {
     const w = result.compensationWindow;
     out.push({
       key: 'compGift',
@@ -4673,7 +4683,7 @@ function estateActionPlan(plan, result) {
   }
 
   // 6. keeping the paperwork consistent, which is the step that gets skipped
-  if (b.split || b.gift > 0 || b.compGift) {
+  if (b.split || b.gift > 0 || b.compGift) {   // paperwork outlives the steps above: it is never "applied"
     out.push({
       key: 'paperwork',
       title: 'Tell whoever holds your will',
@@ -5643,6 +5653,41 @@ export default function App() {
 
   const historicalTimeline = useMemo(() => E.simulateHistorical(ctx, activeHistoricalStartYear), [ctx, activeHistoricalStartYear]);
   /*
+   * THE INHERITANCE TAB HAS ITS OWN COPY OF THE PORTFOLIO.
+   *
+   * It starts as whatever Plan Inputs holds and follows it until somebody types over a balance, at which
+   * point the tab keeps its own and says so. Estate planning is a different conversation from "will the
+   * money last": it is normal to want to see what happens to the bill if the pension were smaller or the
+   * house had already been sold, without any of that leaking into the projection everyone else's numbers
+   * come from. One button puts it back.
+   *
+   * Only balances are overridable. Contributions, growth and retirement ages belong to the projection,
+   * and a tab that quietly re-ran the whole plan on different assumptions would be a second plan wearing
+   * the first one's name.
+   */
+  const estateBalancesFromPlan = (pl) => {
+    const out = {};
+    (pl?.accounts || []).forEach(a => { out[a.id] = E.num(a.balance, 0); });
+    return out;
+  };
+  const [estateBalances, setEstateBalances] = useState(() => estateBalancesFromPlan(plan));
+  const [estateBalancesOwn, setEstateBalancesOwn] = useState(false);
+  useEffect(() => { if (!estateBalancesOwn) setEstateBalances(estateBalancesFromPlan(plan)); },
+    [plan?.accounts, estateBalancesOwn]); // eslint-disable-line react-hooks/exhaustive-deps
+  const setEstateBalance = (id, value) => {
+    setEstateBalancesOwn(true);
+    setEstateBalances(prev => ({ ...prev, [id]: value }));
+  };
+  const resetEstateBalances = () => { setEstateBalancesOwn(false); setEstateBalances(estateBalancesFromPlan(plan)); };
+
+  const ePlan = useMemo(() => (estateBalancesOwn
+    ? { ...plan, accounts: (plan?.accounts || []).map(a => (estateBalances[a.id] === undefined ? a : { ...a, balance: estateBalances[a.id] })) }
+    : plan), [plan, estateBalances, estateBalancesOwn]);
+  const eCtx = useMemo(() => (estateBalancesOwn ? E.buildContext(E.resolveMpaa(ePlan)) : ctx), [ePlan, ctx, estateBalancesOwn]);
+  const eRows = useMemo(() => (estateBalancesOwn ? E.simulateDeterministic(eCtx, 'expected') : timelineData),
+    [eCtx, timelineData, estateBalancesOwn]);
+
+  /*
    * The estate, at several ages at once.
    *
    * One death age would be false precision, and worse than that it would hide the single largest
@@ -5653,7 +5698,7 @@ export default function App() {
    * confidently, so the ages are shown side by side and the chosen one is only highlighted.
    */
   const inheritanceView = useMemo(() => {
-    const inh = plan?.inheritance || {};
+    const inh = ePlan?.inheritance || {};
     const bens = E.normalizeBeneficiaries(inh.beneficiaries);
     const declared = bens.reduce((t, b) => t + E.num(b.sharePct, 0), 0);
     const declaredPen = bens.reduce((t, b) => t + E.num(b.penPct, 0), 0);
@@ -5667,13 +5712,13 @@ export default function App() {
        * plan that runs to 95 leaves whatever the pot held at 74, and using the age-95 figure would
        * value an estate after twenty more years of drawdown that never happened.
        */
-      const row = timelineData.find(r => r.ageSelf >= age) || timelineData[timelineData.length - 1];
+      const row = eRows.find(r => r.ageSelf >= age) || eRows[eRows.length - 1];
       if (!row) return null;
       // the home is gone from the estate if it was sold during retirement; its proceeds are already in
       // the wrappers by then, so counting it again would double it
       const soldBy = inh.homeSold && E.num(inh.homeSaleAge, 999) <= age;
       const fn = isCouple ? E.estateForCouple : E.estateAtDeath;
-      const res = fn(plan?.config, { pen: row.pensions, isa: row.isas, other: row.other, cash: row.cash }, {
+      const res = fn(ePlan?.config, { pen: row.pensions, isa: row.isas, other: row.other, cash: row.cash }, {
         deathAge: age, deathYear: row.year,
         homeValue: soldBy ? 0 : homeValue,
         // selling the home does not forfeit the residence band: the downsizing addition keeps it, so the
@@ -5685,7 +5730,7 @@ export default function App() {
         qsrInheritedValue: E.num(inh.qsrInheritedValue, 0), qsrTaxPaid: E.num(inh.qsrTaxPaid, 0),
         qsrYearsBefore: E.num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         compensationPayment: E.num(inh.compensationPayment, 0),
-        compensationWindowEndYear: (E.compensationWindow(plan?.config, inh.compensationDate) || {}).endYear,
+        compensationWindowEndYear: (E.compensationWindow(ePlan?.config, inh.compensationDate) || {}).endYear,
         otherAssets: inh.otherAssets, gifts: giftsOverride || inh.gifts, beneficiaries: bens,
         /*
          * Gifts still to be made count towards what the heirs get. A planned gift is money reaching them
@@ -5693,7 +5738,7 @@ export default function App() {
          * recommends look like a loss of its own size. Money handed over before the plan starts is
          * already theirs and is left out: it would flatter every death age by the same amount.
          */
-        giftsFromYear: ctx.baseYear + 1
+        giftsFromYear: eCtx.baseYear + 1
       });
       const est = isCouple ? res.second : res;
       return { age, year: row.year, homeSold: soldBy, ...est };
@@ -5707,13 +5752,13 @@ export default function App() {
      * the search is handed a function that runs it. Ten or so extra deterministic runs, each about the
      * cost of the Trajectory tab's own, which is cheaper than being wrong by a factor of two.
      */
-    const chosenRow = timelineData.find(r => r.ageSelf >= chosenAge) || timelineData[timelineData.length - 1];
+    const chosenRow = eRows.find(r => r.ageSelf >= chosenAge) || eRows[eRows.length - 1];
     const liquidToday = { cash: 0, other: 0, isa: 0 };
-    ctx.accounts.forEach(a => { if (a.cat in liquidToday) liquidToday[a.cat] += Math.max(0, E.num(a.balance, 0)); });
-    const giftYear = ctx.baseYear + 1;
+    eCtx.accounts.forEach(a => { if (a.cat in liquidToday) liquidToday[a.cat] += Math.max(0, E.num(a.balance, 0)); });
+    const giftYear = eCtx.baseYear + 1;
     const project = (amount) => {
       const giftCtx = E.buildContext({
-        ...E.resolveMpaa(plan),
+        ...E.resolveMpaa(ePlan),
         inheritance: { ...inh, gifts: [...(inh.gifts || []), { id: '__probe', amount, year: giftYear }] }
       });
       const rows = E.simulateDeterministic(giftCtx, 'expected');
@@ -5728,7 +5773,7 @@ export default function App() {
     };
     // the search costs a dozen projections, so it is only run for the tab that shows it
     const soldByChosen = inh.homeSold && E.num(inh.homeSaleAge, 999) <= chosenAge;
-    const suggestion = (chosenRow && bens.length && activeTab === 'inheritance') ? E.suggestGift(plan?.config,
+    const suggestion = (chosenRow && bens.length && activeTab === 'inheritance') ? E.suggestGift(ePlan?.config,
       { pen: chosenRow.pensions, isa: chosenRow.isas, other: chosenRow.other, cash: chosenRow.cash },
       { deathAge: chosenAge, deathYear: chosenRow.year,
         homeValue: soldByChosen ? 0 : homeValue, formerHomeValue: soldByChosen ? homeValue : 0,
@@ -5742,8 +5787,8 @@ export default function App() {
       ? { before, after, loss: before.netToBeneficiaries - after.netToBeneficiaries }
       : null;
     return { rows, chosen, cliff, bens, declared, declaredPen, homeValue, chosenAge, suggestion,
-      surplus: E.surplusIncome(timelineData), hasBens: bens.length > 0 };
-  }, [plan, ctx, timelineData, isCouple, terminalAge, currentAge, activeTab]);
+      surplus: E.surplusIncome(eRows), hasBens: bens.length > 0 };
+  }, [ePlan, eCtx, eRows, isCouple, terminalAge, currentAge, activeTab]);
 
   const historicalMetrics = useMemo(() => {
     if (!historicalTimeline.length) return null;
@@ -6212,26 +6257,45 @@ export default function App() {
   const estateBreakdown = useMemo(() => {
     if (!inheritanceView.chosen) return null;
     const chosenAge = inheritanceView.chosenAge;
-    const row = timelineData.find(r => r.ageSelf >= chosenAge) || timelineData[timelineData.length - 1];
+    const row = eRows.find(r => r.ageSelf >= chosenAge) || eRows[eRows.length - 1];
     if (!row) return null;
     const now = { pen: 0, isa: 0, other: 0, cash: 0 };
-    ctx.accounts.forEach(a => { if (a.cat in now) now[a.cat] += Math.max(0, E.num(a.balance, 0)); });
+    eCtx.accounts.forEach(a => { if (a.cat in now) now[a.cat] += Math.max(0, E.num(a.balance, 0)); });
     const at = { pen: row.pensions, isa: row.isas, other: row.other, cash: row.cash };
-    const inh0 = plan?.inheritance || {};
+    const inh0 = ePlan?.inheritance || {};
     const soldBy = inh0.homeSold && E.num(inh0.homeSaleAge, 999) <= chosenAge;
     const wrappers = E.CATEGORIES.map(k => ({ key: k, label: E.CATEGORY_LABEL[k], now: now[k], at: at[k] }))
       .filter(w => w.now > 0 || w.at > 0);
     const assets = E.normalizeEstateAssets(inh0.otherAssets);
     const counted = inheritanceView.chosen.pensionCounts;
+    /*
+     * One row per ACCOUNT, not per wrapper, because the balance is editable and an editable field has to
+     * belong to something the plan can name. The projection only knows wrapper totals, so where a couple
+     * holds two pensions the projected column is split between them in proportion to what they hold
+     * today - approximate, and said so on screen rather than presented as a per-account forecast.
+     *
+     * A row is shown if Plan Inputs has a balance there or this tab has typed one, never on the edited
+     * value alone: zeroing a box would otherwise delete the box you were typing in.
+     */
+    const catOf = (a) => E.CATEGORIES.find(k => E.CATEGORY_LABEL[k] === a.category) || 'other';
+    const accounts = (plan?.accounts || [])
+      .filter(a => E.num(a.balance, 0) > 0 || E.num(estateBalances[a.id], 0) > 0)
+      .map(a => {
+        const cat = catOf(a);
+        const bal = Math.max(0, E.num(estateBalances[a.id], 0));
+        const share = now[cat] > 0 ? bal / now[cat] : 0;
+        return { id: a.id, owner: a.owner, category: a.category, cat, balance: bal, at: at[cat] * share };
+      });
+    const splitAcross = E.CATEGORIES.some(k => accounts.filter(a => a.cat === k).length > 1);
     return {
-      chosenAge, year: row.year, wrappers, assets, pensionCounted: counted,
+      chosenAge, year: row.year, wrappers, assets, accounts, splitAcross, pensionCounted: counted,
       homeNow: soldBy ? 0 : Math.max(0, E.num(inh0.homeValue, 0)),
       wrappersNow: E.CATEGORIES.reduce((t, k) => t + now[k], 0),
       wrappersAt: E.CATEGORIES.reduce((t, k) => t + at[k], 0),
       assetsValue: assets.reduce((t, a) => t + a.value, 0),
       excludedPension: counted ? 0 : at.pen
     };
-  }, [inheritanceView, timelineData, ctx, plan?.inheritance]);
+  }, [inheritanceView, eRows, eCtx, ePlan, plan?.accounts, estateBalances]);
 
   const ihtWorkings = useMemo(() => (inheritanceView.chosen
     ? E.ihtWorkings(inheritanceView.chosen, plan?.config) : null), [inheritanceView, plan?.config]);
@@ -6594,6 +6658,7 @@ export default function App() {
    * synchronously on a click rather than chunked through the event loop like the Monte Carlo searches.
    */
   const [estatePlan, setEstatePlan] = useState(null);
+  const [estateApplied, setEstateApplied] = useState(null);
   const estateActions = useMemo(() => estatePlan ? E.estateActionPlan(plan, estatePlan) : [], [plan, estatePlan]);
   const [estateError, setEstateError] = useState('');
   const handleOptimizeEstate = () => {
@@ -6601,35 +6666,56 @@ export default function App() {
     try {
       const r = E.optimizeInheritance(plan);
       if (!r) { setEstateError('Add at least one person under Who inherits on the Inheritance tab first — there is nothing to rank without an heir.'); setEstatePlan(null); return; }
-      setEstatePlan(r);
+      setEstatePlan(r); setEstateApplied(null);
     } catch (err) {
       setEstateError(String(err && err.message ? err.message : err));
       setEstatePlan(null);
     }
   };
+  /*
+   * Applying is IDEMPOTENT, and it was not. Every click appended a fresh gift with a random id, so a
+   * second click - which is the natural thing to do when the button gives no sign of having worked -
+   * silently added the same £900,000 again. The written rows now carry ids derived from what they are,
+   * so re-applying replaces them, and the action list drops a step the plan already holds.
+   *
+   * It also has to show the household what it did. Writing a six-figure gift into a plan on another tab
+   * and staying put is how the second click happens in the first place.
+   */
+  const appliedGiftId = (year) => `estate_gift_${year}`;
+  const appliedCompId = (year) => `estate_comp_${year}`;
   const applyEstatePlan = () => {
     if (!estatePlan) return;
     const b = estatePlan.best;
+    const written = [
+      ...(b.gift > 0 ? [{ id: appliedGiftId(estatePlan.giftYear), amount: Math.round(b.gift), year: estatePlan.giftYear, desc: 'Gift (estate plan)' }] : []),
+      ...(b.compGift ? [{ ...b.compGift, id: appliedCompId(b.compGift.year), desc: 'Gift of compensation (estate plan)' }] : [])
+    ];
+    const writtenIds = new Set(written.map(g => g.id));
+    const recycle = (b.recycle || []).map(x => ({ ...x, id: x.id || `__rc_${x.year}_${x.category}` }));
+    const recycleIds = new Set(recycle.map(x => x.id));
     setPlan(prev => {
       const inh = prev.inheritance || {};
       return {
         ...prev,
         spending: { ...(prev.spending || {}), decumulationPolicy: b.policy, drawdownStrategy: b.drawdown },
         config: { ...(prev.config || {}), harvestPersonalAllowance: b.harvest, harvestCeiling: b.ceiling || 'pa' },
-        oneOffContributions: [...(prev.oneOffContributions || []), ...(b.recycle || []).map(x => ({ ...x, id: 'c_' + Math.random().toString(36).slice(2) }))],
+        // replace, never append: the same transfer applied twice is not two transfers
+        oneOffContributions: [...(prev.oneOffContributions || []).filter(x => !recycleIds.has(x.id)), ...recycle],
         inheritance: {
           ...inh,
-          gifts: [
-            ...(inh.gifts || []),
-            ...(b.gift > 0 ? [{ id: 'gift_' + Date.now(), amount: Math.round(b.gift), year: estatePlan.giftYear, desc: 'Gift (estate plan)' }] : []),
-            ...(b.compGift ? [{ ...b.compGift, id: 'gift_c' + Date.now() }] : [])
-          ],
+          gifts: [...(inh.gifts || []).filter(g => !writtenIds.has(g.id)), ...written],
           beneficiaries: b.split
             ? E.normalizeBeneficiaries(inh.beneficiaries).map((x, i) => ({ ...x, pensionSharePct: b.split[i] }))
             : inh.beneficiaries
         }
       };
     });
+    setEstateApplied({ at: Date.now(), gifts: written.length, split: !!b.split, recycle: recycle.length });
+    // and take them to the rows that just changed, so a second click is never the obvious next move
+    if (written.length) {
+      setActiveTab('inheritance');
+      setTimeout(() => document.querySelector('[data-gift-list]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
+    }
   };
 
   const handleFindBestPolicy = async () => {
@@ -8328,10 +8414,18 @@ export default function App() {
                   <div className="flex flex-wrap items-center gap-3 pt-1">
                     <button type="button" onClick={applyEstatePlan} disabled={estatePlan.gain <= 0} data-apply-estate
                       className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                      <Check className="w-3.5 h-3.5" /> Apply this allocation
+                      <Check className="w-3.5 h-3.5" /> {estateApplied ? 'Applied' : 'Apply this allocation'}
                     </button>
-                    <span className="text-[10px] text-slate-400">Writes the withdrawal order{estatePlan.best.gift > 0 ? ', the gift' : ''}{estatePlan.best.split ? ', the nomination' : ''}{estatePlan.best.recycle ? ', the transfers' : ''}{estatePlan.best.compGift ? ' and the compensation gift' : ''} into your plan. {estatePlan.runs} projections were run to find it.</span>
+                    <span className="text-[10px] text-slate-400">Writes the withdrawal order{estatePlan.best.gift > 0 ? ', the gift' : ''}{estatePlan.best.split ? ', the nomination' : ''}{estatePlan.best.recycle ? ', the transfers' : ''}{estatePlan.best.compGift ? ' and the compensation gift' : ''} into your plan. {estatePlan.runs} projections were run to find it. Applying twice changes nothing the second time.</span>
                   </div>
+                  {estateApplied && (
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 flex items-start gap-2" data-estate-applied>
+                      <Check className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                      <span>
+                        <strong>Written into your plan.</strong>{estateApplied.gifts > 0 ? ` The ${estateApplied.gifts > 1 ? 'gifts are' : 'gift is'} now on the Inheritance tab under "Gifts you have already made", where you can change or delete ${estateApplied.gifts > 1 ? 'them' : 'it'}.` : ''}{estateApplied.split ? ' The pension nomination has been set.' : ''}{estateApplied.recycle > 0 ? ` ${estateApplied.recycle} wrapper transfer${estateApplied.recycle > 1 ? 's are' : ' is'} in your one-off deposits.` : ''} Clicking again writes the same rows over the top rather than adding more, so nothing doubles &mdash; but the figures above are now the answer to a question about your <em>old</em> plan. Run the search again to price what is left.
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -8442,7 +8536,7 @@ export default function App() {
 
 
             {/* ---------- gifts already made ---------- */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3" data-gift-list>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Coins className="w-3.5 h-3.5 text-purple-600" /> Gifts you have already made</h3>
                 <button onClick={addGift} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200"><Plus className="w-3.5 h-3.5" /> Add gift</button>
@@ -8583,8 +8677,20 @@ export default function App() {
               <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3" data-estate-breakdown>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Wallet className="w-3.5 h-3.5 text-purple-600" /> What the estate is made of</h3>
-                  <button type="button" onClick={() => setActiveTab('inputs')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold cursor-pointer">Balances and allocations live on Plan Inputs &rarr;</button>
+                  <div className="flex items-center gap-3">
+                    {estateBalancesOwn && (
+                      <button type="button" onClick={resetEstateBalances} className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer border border-amber-200" data-reset-estate-balances>
+                        <RotateCcw className="w-3 h-3" /> Back to Plan Inputs
+                      </button>
+                    )}
+                    <button type="button" onClick={() => setActiveTab('inputs')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold cursor-pointer">Contributions and allocations live on Plan Inputs &rarr;</button>
+                  </div>
                 </div>
+                {estateBalancesOwn && (
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800">
+                    <strong>This tab is using its own balances.</strong> Everything on the Inheritance tab is priced from the figures below, and nothing here changes the projection, the simulation or the tournament. Put them back with the button above.
+                  </div>
+                )}
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-[11px] border-collapse">
                     <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
@@ -8592,18 +8698,28 @@ export default function App() {
                       <th className="pb-1.5 pr-3">At {estateBreakdown.chosenAge} ({estateBreakdown.year})</th><th className="pb-1.5">In the estate?</th>
                     </tr></thead>
                     <tbody className="divide-y divide-slate-100 font-mono">
-                      {estateBreakdown.wrappers.map(w => (
-                        <tr key={w.key}>
-                          <td className="py-1.5 pr-3 font-sans font-semibold text-slate-800">{w.label}</td>
-                          <td className="py-1.5 pr-3 text-slate-500">{formatGBP(w.now)}</td>
-                          <td className="py-1.5 pr-3 text-slate-800 font-bold">{formatGBP(w.at)}</td>
-                          <td className="py-1.5 font-sans text-[10px] text-slate-500">
-                            {w.key === 'pen'
-                              ? (estateBreakdown.pensionCounted ? 'Yes, from 2027' : `No — death before ${E.num(plan?.config?.pensionsInEstateFrom, 2027)}`)
-                              : 'Yes'}
-                          </td>
-                        </tr>
-                      ))}
+                      {/* editable, because estate planning asks "what if the pension were smaller" and the
+                          answer must not disturb the projection everybody else's numbers come from */}
+                      {estateBreakdown.accounts.map(a => {
+                        const cat = a.cat;
+                        return (
+                          <tr key={a.id}>
+                            <td className="py-1.5 pr-3 font-sans font-semibold text-slate-800">{a.category}{isCouple ? <span className="block text-[10px] text-slate-400 font-normal">{a.owner}</span> : null}</td>
+                            <td className="py-1.5 pr-3">
+                              <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus}
+                                value={inputValue(estateBalances[a.id])}
+                                onChange={(e) => setEstateBalance(a.id, parseInputNumber(e.target.value))}
+                                className={`w-28 p-1 bg-surface border rounded font-mono text-slate-800 ${estateBalancesOwn ? 'border-amber-300' : 'border-slate-300'}`} />
+                            </td>
+                            <td className="py-1.5 pr-3 text-slate-800 font-bold">{formatGBP(a.at)}</td>
+                            <td className="py-1.5 font-sans text-[10px] text-slate-500">
+                              {cat === 'pen'
+                                ? (estateBreakdown.pensionCounted ? `Yes, from ${E.num(plan?.config?.pensionsInEstateFrom, 2027)}` : `No — death before ${E.num(plan?.config?.pensionsInEstateFrom, 2027)}`)
+                                : 'Yes'}
+                            </td>
+                          </tr>
+                        );
+                      })}
                       {estateBreakdown.homeNow > 0 && (
                         <tr>
                           <td className="py-1.5 pr-3 font-sans font-semibold text-slate-800">Your home</td>
@@ -8622,7 +8738,7 @@ export default function App() {
                       ))}
                       <tr className="border-t-2 border-slate-200">
                         <td className="py-1.5 pr-3 font-sans font-bold text-slate-900">Estate at {estateBreakdown.chosenAge}</td>
-                        <td className="py-1.5 pr-3 text-slate-400">{formatGBP(estateBreakdown.wrappersNow + estateBreakdown.homeNow + estateBreakdown.assetsValue)}</td>
+                        <td className="py-1.5 pr-3 text-slate-400">{formatGBP(estateBreakdown.accounts.reduce((t, a) => t + a.balance, 0) + estateBreakdown.homeNow + estateBreakdown.assetsValue)}</td>
                         <td className="py-1.5 pr-3 text-purple-700 font-bold">{formatGBP(inheritanceView.chosen.grossEstate)}</td>
                         <td className="py-1.5"></td>
                       </tr>
@@ -8631,7 +8747,7 @@ export default function App() {
                 </div>
                 {/* the two reasons the two columns differ, said before anyone has to work them out */}
                 <span className="text-[10px] text-slate-400 block">
-                  The middle column is what you hold now. The right-hand one is the projection at your chosen death age &mdash; wrappers grow at the real return of their risk tier ({Object.entries(activeRiskMatrix).slice(0, 2).map(([k, v]) => `${k} ${E.num(v.real, 0).toFixed(2)}%`).join(', ')}, set in Config) net of anything you draw, all in today&rsquo;s money. The <strong>Contrib Growth</strong> column on Plan Inputs is how fast your contributions rise, not the return, so a figure typed there does not change these.
+                  The middle column is what you hold now. The right-hand one is the projection at your chosen death age &mdash; wrappers grow at the real return of their risk tier ({Object.entries(activeRiskMatrix).slice(0, 2).map(([k, v]) => `${k} ${E.num(v.real, 0).toFixed(2)}%`).join(', ')}, set in Config) net of anything you draw, all in today&rsquo;s money. The <strong>Contrib Growth</strong> column on Plan Inputs is how fast your contributions rise, not the return, so a figure typed there does not change these. The balances are yours to change here without touching the rest of the app.{estateBreakdown.splitAcross ? ' Where two accounts share a wrapper the projection only knows the wrapper total, so it is divided between them in proportion to what they hold today.' : ''}
                   {estateBreakdown.homeNow > 0 && ' Your home and any other assets are held flat in real terms, because a value typed in today\u2019s money already means "what it is worth now".'}
                 </span>
                 {estateBreakdown.excludedPension > 0 && (

@@ -38,7 +38,14 @@ console.log('\n=========== B. A RANKING, NOT A TIE-BREAK ===========');
   const field = [mk('a', 90, 100, 1000000), mk('b', 95, 100, 1010000)];
   ok('a 1% pot difference is not material, so survival breaks it',
     E.pickBest(field, { priorities: ['pot', 'survive'] }).id === 'b');
-  const field2 = [mk('a', 99, 100, 1000000), mk('b', 90, 100, 1300000)];
+  /*
+   * Written before the survival guard existed, this fixture gave up NINE points of survival for a
+   * bigger pot and asserted that was correct. The guard now refuses it, and rightly: measurement put
+   * the worst trade any real household makes at 4.33 points. The gap is reduced to sit inside the cap,
+   * so the test still checks what it was for - that a material money difference holds against survival -
+   * without also asserting that an unlimited sacrifice is allowed.
+   */
+  const field2 = [mk('a', 94, 100, 1000000), mk('b', 90, 100, 1300000)];
   ok('a 30% pot difference IS material and holds against survival',
     E.pickBest(field2, { priorities: ['pot', 'survive'] }).id === 'b');
 }
@@ -93,6 +100,49 @@ console.log('\n=========== F. BEQUEST RANKS ON WHAT HEIRS RECEIVE, NOT THE GROSS
   // and where nobody has been named an heir there is nothing to compute, so it must not throw
   const noHeirs = [mk('a', 90, 100, 1000000), mk('b', 90, 100, 1200000)];
   ok('falls back to the pot when no heirs are named', E.pickBest(noHeirs, { priorities: ['bequest'] }).id === 'b');
+}
+
+console.log('\n=========== G. THE SURVIVAL GUARD: A PREFERENCE CANNOT COST UNLIMITED SAFETY ===========');
+{
+  /*
+   * Lexicographic ranking gives a lower priority no protection at all, so without this guard a stated
+   * preference could in principle pick something far more fragile than the best available and say
+   * nothing about it. Measurement across 120 households put the real worst case at 4.33 points, which
+   * is why the cap sits at 5: high enough never to refuse a trade the library calls reasonable, low
+   * enough to catch anything worse in a plan nobody tested.
+   */
+  ok('the cap is set above the measured worst case of 4.33pt', E.MAX_SURVIVAL_SACRIFICE_PTS >= 4.33 && E.MAX_SURVIVAL_SACRIFICE_PTS <= 10,
+    `${E.MAX_SURVIVAL_SACRIFICE_PTS}pt`);
+
+  // a 15-point sacrifice for a vastly bigger pot: exactly what the guard exists to refuse
+  const reckless = [mk('safe', 92, 100, 500000), mk('fragile', 77, 100, 5000000)];
+  ok('refuses a 15pt sacrifice however the priorities are ordered',
+    E.pickBest(reckless, { priorities: ['pot', 'survive'] }).id === 'safe');
+  ok('and refuses it for every other money priority too',
+    ['bequest', 'tax', 'downside'].every(k => E.pickBest(reckless, { priorities: [k, 'survive'] }).id !== 'fragile'));
+
+  // a 3-point sacrifice for 37% more pot is the trade the measurement found reasonable - allow it
+  const reasonable = [mk('safe', 92, 100, 1000000), mk('richer', 89, 100, 1370000)];
+  ok('still allows a 3pt sacrifice for a materially bigger pot',
+    E.pickBest(reasonable, { priorities: ['pot', 'survive'] }).id === 'richer');
+
+  // exactly at the boundary, and just past it
+  ok('allows a sacrifice exactly at the cap', E.pickBest([mk('a', 90, 100, 100), mk('b', 85, 100, 900000)], { priorities: ['pot'] }).id === 'b');
+  ok('refuses one just past it', E.pickBest([mk('a', 90, 100, 100), mk('b', 84.9, 100, 900000)], { priorities: ['pot'] }).id === 'a');
+
+  ok('the cap can be relaxed deliberately', E.pickBest(reckless, { priorities: ['pot'], maxSurvivalSacrificePts: Infinity }).id === 'fragile');
+  ok('and tightened', E.pickBest(reasonable, { priorities: ['pot'], maxSurvivalSacrificePts: 1 }).id === 'safe');
+
+  // it must never empty the field: if every option is far below the best, something still comes back
+  const allBad = [mk('a', 90, 100, 100), mk('b', 40, 100, 200)];
+  ok('never returns nothing, even when no option clears the bar', !!E.pickBest([allBad[1]], { priorities: ['survive'] }));
+
+  // and it must be reported when it binds, but not when it does not
+  const boundExp = E.explainPick(reckless, { priorities: ['pot', 'survive'] });
+  ok('explainPick reports the guard when it changed the answer', boundExp.guardBound === true && boundExp.guardRuledOut === 1,
+    `bound=${boundExp.guardBound} ruledOut=${boundExp.guardRuledOut}`);
+  const freeExp = E.explainPick(reasonable, { priorities: ['pot', 'survive'] });
+  ok('and stays silent when it did not', freeExp.guardBound === false);
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

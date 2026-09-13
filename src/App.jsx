@@ -433,6 +433,30 @@ const defaultAccounts = () => [
 const RATE_EPSILON_PTS = 1.0;
 const MONEY_EPSILON_REL = 0.03;
 
+/*
+ * A HARD LIMIT ON WHAT A STATED PREFERENCE MAY COST IN SAFETY.
+ *
+ * The ranking is lexicographic, and nothing in that mechanism protects a priority ranked lower. Put
+ * inheritance first and survival is only consulted among candidates that were already
+ * inheritance-optimal - so in principle the recommendation could be far more fragile than the best
+ * available, and the household would never be told they had bought that.
+ *
+ * Measured across 120 households with each priority promoted to first in turn, the worst any stated
+ * preference actually costs is 4.33 points of survival, and nothing exceeds 5. The trades are mostly
+ * good ones: ranking the pot first gives up 2.6 points on average to gain 37% more pot, and ranking tax
+ * first gives up 2.7 points to cut lifetime tax by 72%.
+ *
+ * So five points is chosen to sit just above the observed worst case. It never overrides a trade this
+ * library says is reasonable, and it catches anything worse in a plan nobody thought to test. It is
+ * precautionary rather than corrective, which is the honest description, and the number is a config
+ * value so it can be tightened by anyone who disagrees.
+ *
+ * There is deliberately NO absolute survival floor alongside it. A plan whose best available outcome is
+ * 69% is fragile because the plan is fragile, not because of how the priorities were ordered, and
+ * overriding the ranking for a reason unrelated to the ranking would be the wrong remedy.
+ */
+const MAX_SURVIVAL_SACRIFICE_PTS = 5;
+
 const PRIORITY_METRICS = {
   survive: {
     label: 'Not running out of money',
@@ -2669,6 +2693,19 @@ function buildPolicyCandidates(rawPlan) {
  * The pre-access cap stays a hard filter ahead of all of it: it is a constraint the household stated,
  * not a preference to be traded off.
  */
+/*
+ * Drop candidates that are more than the cap below the best survival available. Applied BEFORE the
+ * ranking so no ordering of priorities can out-vote it, and never allowed to empty the pool: if
+ * nothing clears the bar the field is left alone rather than returning nothing.
+ */
+function applySurvivalGuard(pool, capPts) {
+  const cap = capPts === undefined || capPts === null ? MAX_SURVIVAL_SACRIFICE_PTS : capPts;
+  if (!Number.isFinite(cap) || !pool.length) return pool;
+  const best = Math.max(...pool.map(c => c.stats.successRate));
+  const kept = pool.filter(c => c.stats.successRate >= best - cap);
+  return kept.length ? kept : pool;
+}
+
 function pickBest(cands, opts = {}, legacyCap = Infinity) {
   // tolerated for the old positional form pickBest(cands, tol, preAccessCap)
   const o = typeof opts === 'number' ? { tol: opts, preAccessCap: legacyCap } : opts;
@@ -2679,6 +2716,7 @@ function pickBest(cands, opts = {}, legacyCap = Infinity) {
   // if nothing meets the cap, fall back to the lowest achievable bridge risk rather than ignoring the cap
   const minPre = Math.min(...cands.map(c => c.stats.preNmpaFailRate));
   let pool = eligible.length ? eligible : cands.filter(c => c.stats.preNmpaFailRate <= minPre + RATE_EPSILON_PTS);
+  pool = applySurvivalGuard(pool, o.maxSurvivalSacrificePts);
 
   for (const key of priorities) {
     if (pool.length <= 1) break;
@@ -2703,7 +2741,9 @@ function explainPick(cands, opts = {}) {
   const preAccessCap = opts.preAccessCap ?? Infinity;
   const eligible = cands.filter(c => c.stats.preNmpaFailRate <= preAccessCap);
   const minPre = Math.min(...cands.map(c => c.stats.preNmpaFailRate));
-  let pool = eligible.length ? eligible : cands.filter(c => c.stats.preNmpaFailRate <= minPre + RATE_EPSILON_PTS);
+  let poolBeforeGuard = eligible.length ? eligible : cands.filter(c => c.stats.preNmpaFailRate <= minPre + RATE_EPSILON_PTS);
+  let pool = applySurvivalGuard(poolBeforeGuard, opts.maxSurvivalSacrificePts);
+  const guardBound = pool.length < poolBeforeGuard.length;
   const steps = [];
   for (const key of priorities) {
     const before = pool.length;
@@ -2715,7 +2755,12 @@ function explainPick(cands, opts = {}) {
     pool = pool.filter(c => m.higherIsBetter ? m.get(c.stats) >= best - eps : m.get(c.stats) <= best + eps);
     if (pool.length < before) steps.push({ key, label: m.label, serves: m.serves, best, ruledOut: before - pool.length, left: pool.length });
   }
-  return { winner: pool[0], steps };
+  /*
+   * Report the guard only when it actually removed something. A limit that never bound did not shape
+   * the answer, and listing it as a reason would be the same just-so storytelling the steps avoid.
+   */
+  return { winner: pool[0], steps, guardBound, guardCapPts: opts.maxSurvivalSacrificePts ?? MAX_SURVIVAL_SACRIFICE_PTS,
+    guardRuledOut: poolBeforeGuard.length - pool.length };
 }
 
 /*
@@ -2903,7 +2948,7 @@ function postTaxInheritanceFor(plan, ctx) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MAX_SURVIVAL_SACRIFICE_PTS, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 

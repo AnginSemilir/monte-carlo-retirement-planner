@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import {
   TrendingUp, Layers, Check, RotateCcw, Dices, Zap, ShieldCheck, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
-  Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, Sun, Moon, Monitor, ChevronUp, ChevronDown, Home
+  Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, Sun, Moon, Monitor, ChevronUp, ChevronDown, Home, Gift
 } from 'lucide-react';
 import EditMode from './EditMode.jsx';
 // ============================================================================================
@@ -513,6 +513,18 @@ const BLANK_PLAN = Object.freeze({
     // ranked, most important first; see PRIORITY_METRICS
     priorities: [...DEFAULT_PRIORITIES]
   },
+  /*
+   * Inheritance facts. These live apart from `demographics` on purpose: `terminalAge` there is a
+   * PLANNING HORIZON, chosen pessimistically so the money does not run out, while `deathAge` here is a
+   * PREDICTION, and using the pessimistic one to value an estate would model twenty more years of
+   * drawdown than is likely and understate the bequest badly.
+   */
+  inheritance: {
+    deathAge: '', homeValue: '', homeToDescendants: true,
+    homeSold: false, homeSaleAge: '',
+    transferredNrbPct: '', transferredRnrbPct: '',
+    beneficiaries: []
+  },
   accounts: defaultAccounts(),
   riskProfiles: applyCmaPreset(DEFAULT_RISK_SOURCE, DEFAULT_CONFIG.inflation) || DEFAULT_RISK_PROFILES,
   riskSource: DEFAULT_RISK_SOURCE,
@@ -651,6 +663,10 @@ function normalizePlan(raw) {
     activeProfileView: ['Combined', 'Myself', 'Partner'].includes(src.activeProfileView) ? src.activeProfileView : 'Combined',
     demographics: { ...BLANK_PLAN.demographics, ...d },
     spending: { ...BLANK_PLAN.spending, ...s, spendBands: normaliseSpendBands(s, d) },
+    inheritance: {
+      ...BLANK_PLAN.inheritance, ...(isPlainObject(src.inheritance) ? src.inheritance : {}),
+      beneficiaries: normalizeBeneficiaries(src.inheritance?.beneficiaries)
+    },
     accounts: [],
     riskProfiles: {},
     /*
@@ -2853,6 +2869,9 @@ const THEME_STORAGE_KEY = 'rp_theme_v1';
 const APP_VERSION = 'v3.4';
 const MC_TRIALS = 5000;
 const TOURNAMENT_TRIALS = 1500;
+// Death ages the Inheritance tab always prices, chosen to straddle the age-75 boundary that decides
+// whether an inherited pension is taxable on the beneficiary. Module scope so the memo stays stable.
+const INHERITANCE_AGES = [70, 74, 80, 90];
 const SEARCH_TRIALS = 400;
 
 // Three themes: 'classic' (the original stock look, kept as an opt-in third option),
@@ -3770,6 +3789,59 @@ export default function App() {
   }, [timelineData, sandboxTimeline, ctx, sandboxCtx]);
 
   const historicalTimeline = useMemo(() => E.simulateHistorical(ctx, activeHistoricalStartYear), [ctx, activeHistoricalStartYear]);
+  /*
+   * The estate, at several ages at once.
+   *
+   * One death age would be false precision, and worse than that it would hide the single largest
+   * discontinuity in the whole calculation: an inherited pension is tax-free to the beneficiary if
+   * death is before 75 and taxed at their marginal rate from 75. Measured across 360 households, that
+   * one boundary changes which decumulation policy is best from Sequential winning 59% of them to
+   * winning 21%. A tab that asked for one number and answered it would be answering the wrong question
+   * confidently, so the ages are shown side by side and the chosen one is only highlighted.
+   */
+  const inheritanceView = useMemo(() => {
+    const inh = plan?.inheritance || {};
+    const bens = E.normalizeBeneficiaries(inh.beneficiaries);
+    const declared = bens.reduce((t, b) => t + E.num(b.sharePct, 0), 0);
+    const homeValue = Math.max(0, E.num(inh.homeValue, 0));
+    const chosenAge = E.clamp(E.num(inh.deathAge, terminalAge), currentAge, 120);
+    const ages = [...new Set([...INHERITANCE_AGES, chosenAge])].filter(a => a >= currentAge).sort((a, b) => a - b);
+
+    const at = (age) => {
+      /*
+       * Wrappers at the death age, read off the projection - NOT the terminal row. Dying at 74 on a
+       * plan that runs to 95 leaves whatever the pot held at 74, and using the age-95 figure would
+       * value an estate after twenty more years of drawdown that never happened.
+       */
+      const row = timelineData.find(r => r.ageSelf >= age) || timelineData[timelineData.length - 1];
+      if (!row) return null;
+      // the home is gone from the estate if it was sold during retirement; its proceeds are already in
+      // the wrappers by then, so counting it again would double it
+      const soldBy = inh.homeSold && E.num(inh.homeSaleAge, 999) <= age;
+      const fn = isCouple ? E.estateForCouple : E.estateAtDeath;
+      const res = fn(plan?.config, { pen: row.pensions, isa: row.isas, other: row.other, cash: row.cash }, {
+        deathAge: age, deathYear: row.year,
+        homeValue: soldBy ? 0 : homeValue,
+        homeToDescendants: !!inh.homeToDescendants,
+        transferredNrbPct: E.num(inh.transferredNrbPct, 0),
+        transferredRnrbPct: E.num(inh.transferredRnrbPct, 0),
+        beneficiaries: bens
+      });
+      const est = isCouple ? res.second : res;
+      return { age, year: row.year, homeSold: soldBy, ...est };
+    };
+
+    const rows = ages.map(at).filter(Boolean);
+    const chosen = rows.find(r => r.age === chosenAge) || rows[rows.length - 1];
+    // the 75 boundary, priced for this household rather than described in the abstract
+    const before = rows.filter(r => r.age < 75).slice(-1)[0];
+    const after = rows.find(r => r.age >= 75);
+    const cliff = (before && after && before.netToBeneficiaries > 0)
+      ? { before, after, loss: before.netToBeneficiaries - after.netToBeneficiaries }
+      : null;
+    return { rows, chosen, cliff, bens, declared, homeValue, chosenAge, hasBens: bens.length > 0 };
+  }, [plan, timelineData, isCouple, terminalAge, currentAge]);
+
   const historicalMetrics = useMemo(() => {
     if (!historicalTimeline.length) return null;
     const ev = E.evaluateRows(ctx, historicalTimeline);
@@ -4209,6 +4281,17 @@ export default function App() {
   const deleteOneOffContrib = (id) => setPlan(prev => ({ ...prev, oneOffContributions: (prev.oneOffContributions || []).filter(c => c.id !== id) }));
   const addOneOffCost = () => { const y = new Date().getFullYear() + 1; setPlan(prev => ({ ...prev, oneOffCosts: [...(prev.oneOffCosts || []), { id: 'cost_' + Date.now(), date: `${y}-06-01`, year: y, owner: 'Myself', amount: '', desc: '' }] })); };
   const deleteOneOffCost = (id) => setPlan(prev => ({ ...prev, oneOffCosts: (prev.oneOffCosts || []).filter(c => c.id !== id) }));
+
+  // --- inheritance ---------------------------------------------------------------------------
+  const updateInheritance = (field, value) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), [field]: value } }));
+  const addBeneficiary = () => setPlan(prev => {
+    const list = prev.inheritance?.beneficiaries || [];
+    // a new row takes whatever share is unallocated, so the table tends towards totalling 100 by itself
+    const left = Math.max(0, 100 - list.reduce((t, b) => t + E.num(b.sharePct, 0), 0));
+    return { ...prev, inheritance: { ...(prev.inheritance || {}), beneficiaries: [...list, { id: 'ben_' + Date.now(), name: '', relationship: 'descendant', sharePct: left || '', income: '' }] } };
+  });
+  const updateBeneficiary = (id, patch) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), beneficiaries: (prev.inheritance?.beneficiaries || []).map(b => b.id === id ? { ...b, ...patch } : b) } }));
+  const deleteBeneficiary = (id) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), beneficiaries: (prev.inheritance?.beneficiaries || []).filter(b => b.id !== id) } }));
 
   // ------------------------------------------------------------ scenarios
   const handleSaveScenario = () => {
@@ -4862,6 +4945,7 @@ export default function App() {
                 {tabBtn('config', Settings, 'Config & Assumptions')}
                 {tabBtn('projection', Layers, 'Projection')}
                 {tabBtn('strategy', Zap, 'Strategy', 'indigo')}
+                {tabBtn('inheritance', Gift, 'Inheritance', 'indigo')}
                 {tabBtn('historical', History, 'Historical Backtest', 'indigo')}
                 {tabBtn('audit', Table, 'Audit Data Table')}
                 {tabBtn('docs', BookOpen, 'Documentation')}
@@ -4956,6 +5040,9 @@ export default function App() {
                     body: `Your plan year by year on one chart: the expected path, a modelled range that updates as you type, and the ${MC_TRIALS.toLocaleString()}-path simulation with its survival rate and safe-spend solver. The sandbox for testing a different contribution or retirement age lives here too.` },
                   { tab: 'strategy', Icon: Zap, name: 'Strategy', accent: 'indigo',
                     body: 'The tournament: holds your spending and budget fixed and re-splits the money between wrappers, scoring each strategy on identical market paths.' },
+                  { tab: 'inheritance', Icon: Gift, name: 'Inheritance', accent: 'indigo',
+                    need: 'What your heirs actually receive, which is not the pot you leave.',
+                    body: 'From 2027 an unused pension counts towards inheritance tax, and if you die at 75 or over your heirs pay their own income tax on it too. Says what reaches them, and how much it depends on when you die and who they are.' },
                   { tab: 'historical', Icon: History, name: 'Historical Backtest', accent: 'indigo',
                     body: `Replays real returns from ${E.HISTORICAL_FIRST_YEAR} onwards through your plan. A reality check on the random draws: sequences like 1973 or 2000 actually happened.` },
                   { tab: 'audit', Icon: Table, name: 'Audit Data Table', accent: 'blue',
@@ -6001,6 +6088,177 @@ export default function App() {
         )}
 
         {/* TAB 5: HISTORICAL */}
+        {activeTab === 'inheritance' && (
+          <div className="space-y-6">
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3 text-xs text-slate-600 leading-relaxed">
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> What your heirs actually receive</h2>
+              <p>The projection reports the pot you leave. This reports what reaches the people you leave it to, which is a different number. Two things separate them: from 6 April 2027 an unused pension counts as part of your estate for inheritance tax, and if you die at 75 or over your beneficiaries then pay their own income tax on what they draw from it — on top of the tax the estate already paid.</p>
+              <p className="text-slate-500">So <strong>which wrapper the money sits in now changes what it is worth to them</strong>, and so does when you die and who inherits. Nothing here is advice; the figures are illustrations built from the rules in Config, which you can change.</p>
+              <button type="button" onClick={() => goToDoc('doc-inheritance')} className="text-[11px] text-purple-700 hover:text-purple-900 hover:underline font-semibold flex items-center gap-1 cursor-pointer"><HelpCircle className="w-3.5 h-3.5" /> The rules, and what is not modelled &rarr;</button>
+            </div>
+
+            {/* ---------- who inherits ---------- */}
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Users className="w-3.5 h-3.5 text-purple-600" /> Who inherits</h3>
+                <button onClick={addBeneficiary} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200"><Plus className="w-3.5 h-3.5" /> Add person</button>
+              </div>
+              {!inheritanceView.hasBens ? (
+                <div className="text-xs text-slate-400 italic p-3 bg-slate-50 border border-slate-200 rounded-xl">Nobody added yet. Add at least one person to see what they would receive.</div>
+              ) : (
+                <div className="space-y-2">
+                  {inheritanceView.bens.map(b => (
+                    <div key={b.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                      <input type="text" placeholder="Name" value={b.name} onChange={(e) => updateBeneficiary(b.id, { name: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 w-28" />
+                      <select value={b.relationship} onChange={(e) => updateBeneficiary(b.id, { relationship: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer">
+                        {Object.entries(E.IHT_RELATIONSHIPS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                      </select>
+                      <label className="flex items-center gap-1 text-slate-500">share
+                        <input type="number" min="0" max="100" step="5" onFocus={handleFocus} value={b.sharePct} onChange={(e) => updateBeneficiary(b.id, { sharePct: parseInputNumber(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 font-bold" />%
+                      </label>
+                      {/* income only matters where it changes the tax: an exempt beneficiary never pays any */}
+                      {!E.IHT_RELATIONSHIPS[b.relationship].exempt ? (
+                        <label className="flex items-center gap-1 text-slate-500">their income
+                          <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={b.income} onChange={(e) => updateBeneficiary(b.id, { income: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                        </label>
+                      ) : (
+                        <span className="text-[10px] text-emerald-700 font-semibold">{E.IHT_RELATIONSHIPS[b.relationship].note}</span>
+                      )}
+                      <button onClick={() => deleteBeneficiary(b.id)} className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer transition-colors ml-auto"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  ))}
+                  {/* shares are normalised rather than rejected, but silently rescaling someone's 60% to
+                      100% would be dishonest, so say so */}
+                  {Math.abs(inheritanceView.declared - 100) > 0.01 && (
+                    <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                      <span>Shares total <strong>{inheritanceView.declared}%</strong>, not 100%. The figures below scale them proportionally so they add up — adjust them if that is not what you meant.</span>
+                    </div>
+                  )}
+                  <span className="text-[10px] text-slate-400 block">Their income sets the rate they would pay on an inherited pension. It only applies if you die at {E.num(plan?.config?.pensionIncomeTaxFromAge, 75)} or over.</span>
+                </div>
+              )}
+            </div>
+
+            {/* ---------- the estate ---------- */}
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Home className="w-3.5 h-3.5 text-purple-600" /> Your estate</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div>
+                  <label className="text-slate-600 font-semibold block mb-1">Home value (today&rsquo;s money)</label>
+                  <input type="number" min="0" step="10000" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.homeValue ?? ''} onChange={(e) => updateInheritance('homeValue', parseInputNumber(e.target.value))} className={inputCls} />
+                  <label className="flex items-center gap-2 mt-1.5 cursor-pointer">
+                    <input type="checkbox" checked={plan?.inheritance?.homeToDescendants !== false} onChange={(e) => updateInheritance('homeToDescendants', e.target.checked)} className="accent-purple-600" />
+                    <span className="text-[10px] text-slate-500">It passes to a child, grandchild or step-child</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 mt-1 block">This is what unlocks the {formatGBP(E.num(plan?.config?.ihtRnrb, 175000))} residence allowance. Without a home, or if it goes to anyone else, there is no residence allowance at all.</span>
+                </div>
+                <div>
+                  <label className="text-slate-600 font-semibold block mb-1">Expected age at death</label>
+                  <input type="number" min={currentAge} max="120" placeholder={String(terminalAge)} onFocus={handleFocus} value={plan?.inheritance?.deathAge ?? ''} onChange={(e) => updateInheritance('deathAge', parseInputNumber(e.target.value))} className={inputCls} />
+                  <span className="text-[10px] text-slate-400 mt-1 block">Not the same as &ldquo;Plan to Age&rdquo; ({terminalAge}), which is deliberately pessimistic so the money lasts. This one is your best guess, because an estate is valued when you die, not at your planning horizon.</span>
+                </div>
+                <div>
+                  <label className="text-slate-600 font-semibold block mb-1">Sell the home during retirement?</label>
+                  <label className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-300 rounded-lg cursor-pointer">
+                    <input type="checkbox" checked={!!plan?.inheritance?.homeSold} onChange={(e) => updateInheritance('homeSold', e.target.checked)} className="accent-purple-600" />
+                    <span className="text-slate-700 font-semibold text-[11px]">Yes, at age</span>
+                    <input type="number" min={currentAge} max="120" disabled={!plan?.inheritance?.homeSold} onFocus={handleFocus} value={plan?.inheritance?.homeSaleAge ?? ''} onChange={(e) => updateInheritance('homeSaleAge', parseInputNumber(e.target.value))} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 disabled:opacity-40" />
+                  </label>
+                  <span className="text-[10px] text-slate-400 mt-1 block">After a sale the house is no longer in the estate, so the residence allowance goes with it. The cash it released is counted in your wrappers instead.</span>
+                </div>
+              </div>
+              <details className="text-xs">
+                <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Widowed? Add your late partner&rsquo;s unused allowances</summary>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <div>
+                    <label className="text-slate-600 font-semibold block mb-1">% of their nil-rate band unused</label>
+                    <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredNrbPct ?? ''} onChange={(e) => updateInheritance('transferredNrbPct', parseInputNumber(e.target.value))} className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="text-slate-600 font-semibold block mb-1">% of their residence band unused</label>
+                    <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredRnrbPct ?? ''} onChange={(e) => updateInheritance('transferredRnrbPct', parseInputNumber(e.target.value))} className={inputCls} />
+                  </div>
+                  <span className="text-[10px] text-slate-400 sm:col-span-2">Usually 100% of both, because everything passing to a spouse is exempt and so uses none of their allowances. Worth up to {formatGBP(E.num(plan?.config?.ihtNrb, 325000) + E.num(plan?.config?.ihtRnrb, 175000))} and commonly missed.</span>
+                </div>
+              </details>
+            </div>
+
+            {/* ---------- results ---------- */}
+            {inheritanceView.hasBens && inheritanceView.chosen && (
+              <>
+                {/* The headline the study says matters: not "here is your bill" but "it depends when". */}
+                {inheritanceView.cliff && inheritanceView.cliff.loss > 0 && (
+                  <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl shadow-xs space-y-1">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                      <div>
+                        <div className="text-sm font-black font-display italic text-amber-900">Dying at {inheritanceView.cliff.after.age} rather than {inheritanceView.cliff.before.age} costs your heirs {formatGBP(inheritanceView.cliff.loss)}</div>
+                        <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">An inherited pension is tax-free to them if you die before {E.num(plan?.config?.pensionIncomeTaxFromAge, 75)}, and taxed at their own rate from {E.num(plan?.config?.pensionIncomeTaxFromAge, 75)} onwards. That is a step, not a slope, and it is the largest single number on this page. It is also the reason the table below shows several ages instead of asking you to pick one.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">What they receive, by when you die</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-[11px] border-collapse">
+                      <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
+                        <th className="pb-1.5 pr-3">If you die at</th><th className="pb-1.5 pr-3">Estate</th><th className="pb-1.5 pr-3">Allowances</th>
+                        <th className="pb-1.5 pr-3">Inheritance tax</th><th className="pb-1.5 pr-3">Their income tax</th><th className="pb-1.5 pr-3">They receive</th><th className="pb-1.5">Total taken</th>
+                      </tr></thead>
+                      <tbody className="divide-y divide-slate-100 font-mono">
+                        {inheritanceView.rows.map(r => (
+                          <tr key={r.age} className={r.age === inheritanceView.chosenAge ? 'bg-purple-50/70 font-bold' : ''}>
+                            <td className="py-1.5 pr-3 font-sans">{r.age}{r.age === inheritanceView.chosenAge ? ' (your estimate)' : ''}{r.homeSold ? ' · home sold' : ''}</td>
+                            <td className="py-1.5 pr-3">{formatGBP(r.grossEstate)}</td>
+                            <td className="py-1.5 pr-3 text-slate-500">{formatGBP(r.nrb + r.rnrb)}</td>
+                            <td className="py-1.5 pr-3 text-rose-700">{formatGBP(r.iht)}</td>
+                            <td className="py-1.5 pr-3 text-rose-700">{r.incomeTaxOnPensions > 0 ? formatGBP(r.incomeTaxOnPensions) : '—'}</td>
+                            <td className="py-1.5 pr-3 text-emerald-700 font-bold">{formatGBP(r.netToBeneficiaries)}</td>
+                            <td className="py-1.5">{r.effectiveRatePct.toFixed(0)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <span className="text-[10px] text-slate-400 block">Each row values the estate at that age, using the pot your projection holds then — not the pot at {terminalAge}. Dying earlier leaves more because fewer years of drawdown have happened.{isCouple ? ' As a couple, the first death passes everything to the survivor tax-free and doubles both allowances; the tax shown falls on the second.' : ''}</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Estate at {inheritanceView.chosen.age}</span><div className="text-xl font-bold font-mono text-slate-900">{formatGBP(inheritanceView.chosen.grossEstate)}</div><span className="text-[11px] text-slate-400">{inheritanceView.chosen.pensionCounts ? `Includes ${formatGBP(inheritanceView.chosen.pension)} of pension, which counts from 2027` : `Excludes ${formatGBP(inheritanceView.chosen.pension)} of pension — death before the 2027 rule`}</span></div>
+                  <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Total tax</span><div className="text-xl font-bold font-mono text-rose-700">{formatGBP(inheritanceView.chosen.totalTax)}</div><span className="text-[11px] text-slate-400">{formatGBP(inheritanceView.chosen.iht)} estate tax at {inheritanceView.chosen.ratePct}%{inheritanceView.chosen.charityQualifies ? ' (reduced by your charitable gift)' : ''}{inheritanceView.chosen.incomeTaxOnPensions > 0 ? ` · ${formatGBP(inheritanceView.chosen.incomeTaxOnPensions)} their income tax` : ''}</span></div>
+                  <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">They receive</span><div className="text-xl font-bold font-mono text-emerald-700">{formatGBP(inheritanceView.chosen.netToBeneficiaries)}</div><span className="text-[11px] text-slate-400">{inheritanceView.chosen.effectiveRatePct.toFixed(0)}% of the estate is taken in total</span></div>
+                </div>
+
+                <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Person by person, if you die at {inheritanceView.chosen.age}</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-[11px] border-collapse">
+                      <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Who</th><th className="pb-1.5 pr-3">Share</th><th className="pb-1.5 pr-3">Before tax</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5 pr-3">Their income tax</th><th className="pb-1.5 pr-3">They keep</th><th className="pb-1.5">Effective rate</th></tr></thead>
+                      <tbody className="divide-y divide-slate-100 font-mono">
+                        {inheritanceView.chosen.beneficiaries.map(b => (
+                          <tr key={b.id}>
+                            <td className="py-1.5 pr-3 font-sans font-semibold text-slate-800">{b.name || E.IHT_RELATIONSHIPS[b.relationship].label}<span className="block text-[10px] text-slate-400 font-normal">{E.IHT_RELATIONSHIPS[b.relationship].label}</span></td>
+                            <td className="py-1.5 pr-3">{b.sharePct.toFixed(0)}%</td>
+                            <td className="py-1.5 pr-3">{formatGBP(b.gross)}</td>
+                            <td className="py-1.5 pr-3 text-rose-700">{b.ihtBorne > 0 ? formatGBP(b.ihtBorne) : '—'}</td>
+                            <td className="py-1.5 pr-3 text-rose-700">{b.incomeTaxOnPension > 0 ? formatGBP(b.incomeTaxOnPension) : '—'}</td>
+                            <td className="py-1.5 pr-3 text-emerald-700 font-bold">{formatGBP(b.net)}</td>
+                            <td className="py-1.5">{b.effectiveRatePct.toFixed(0)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <span className="text-[10px] text-slate-400 block">Inheritance tax is charged on the estate, so an exempt person&rsquo;s share is untouched and the taxable beneficiaries carry the whole bill between them. Two simplifications worth knowing: everyone receives the same proportion of every wrapper (a will that leaves the pension to one person and the ISA to another is not modelled), and an inherited pension is assumed drawn in a single tax year — spreading it over several would usually cost less.</span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {activeTab === 'historical' && (
           <div className="space-y-6">
             <div className="p-4 bg-indigo-50/70 border border-indigo-200/80 rounded-2xl text-xs text-slate-700 space-y-2">

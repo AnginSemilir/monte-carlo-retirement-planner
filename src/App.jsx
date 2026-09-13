@@ -597,7 +597,9 @@ const BLANK_PLAN = Object.freeze({
      * preferences count. Rank and tolerance are separate questions: rank is the order things are
      * considered in, tolerance is what counts as a meaningful difference in that particular quantity.
      */
-    priorityTolerances: {}
+    priorityTolerances: {},
+    // 'ranked' walks the priority list in order; 'balanced' blends every metric at once
+    priorityMode: 'ranked'
   },
   /*
    * Inheritance facts. These live apart from `demographics` on purpose: `terminalAge` there is a
@@ -805,6 +807,7 @@ function normalizePlan(raw) {
   // before priorities existed simply gets the default order
   plan.spending.priorities = normalizePriorities(plan.spending.priorities);
   plan.spending.priorityTolerances = normalizeTolerances(plan.spending.priorityTolerances);
+  plan.spending.priorityMode = plan.spending.priorityMode === 'balanced' ? 'balanced' : 'ranked';
   if (!TAX_REGION_LABELS[plan.config.taxRegion]) plan.config.taxRegion = DEFAULT_CONFIG.taxRegion;
   if (!['Phased Drawdown', 'Full 25% Lump Sum'].includes(plan.spending.drawdownStrategy)) plan.spending.drawdownStrategy = 'Phased Drawdown';
   // accounts: always the eight canonical wrappers, in canonical order, keeping any user values
@@ -2754,7 +2757,51 @@ function applySurvivalGuard(pool, capPts) {
   return kept.length ? kept : pool;
 }
 
+/*
+ * BALANCED: score everything at once instead of working down a list.
+ *
+ * Ranking is lexicographic - a later priority only breaks a near-tie on the earlier ones. That is the
+ * right shape for someone who genuinely has an order. It is the wrong shape for someone who does not,
+ * because it cannot express "a modest gain in three things outweighs a small loss in one": whatever
+ * sits first decides, and the rest only tidy up afterwards.
+ *
+ * Balanced blends every metric instead. The blend needs the metrics on a common scale first, because
+ * survival is in percentage points and pots are in pounds and adding them directly would let whichever
+ * has bigger numbers dominate by accident. Each is min-max scaled WITHIN the candidate field, so the
+ * best available scores 1 and the worst 0, and the blend is over positions rather than magnitudes.
+ *
+ * A field where every candidate ties on a metric contributes nothing rather than dividing by zero,
+ * which is the common case for bridge risk on a plan with no bridge at all.
+ */
+function balancedScore(cands, weights = null) {
+  const keys = PRIORITY_KEYS;
+  const scaled = cands.map(() => ({ total: 0, n: 0 }));
+  for (const key of keys) {
+    const m = PRIORITY_METRICS[key];
+    const w = weights && weights[key] > 0 ? weights[key] : 1;
+    const vals = cands.map(c => m.get(c.stats));
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    if (!(hi - lo > 1e-9)) continue;                       // everything ties: this metric says nothing
+    cands.forEach((c, i) => {
+      const unit = (m.get(c.stats) - lo) / (hi - lo);      // 0..1 within this field
+      scaled[i].total += w * (m.higherIsBetter ? unit : 1 - unit);
+      scaled[i].n += w;
+    });
+  }
+  return scaled.map(s => (s.n > 0 ? s.total / s.n : 0));
+}
+
+function pickBalanced(cands, opts = {}) {
+  const pool = applySurvivalGuard(cands, opts.maxSurvivalSacrificePts);
+  const scores = balancedScore(pool, opts.weights);
+  let best = 0;
+  scores.forEach((v, i) => { if (v > scores[best]) best = i; });
+  return pool[best];
+}
+
 function pickBest(cands, opts = {}, legacyCap = Infinity) {
+  // Balanced is a different mechanism, not another priority, so it short-circuits the ranked walk.
+  if (opts && opts.mode === 'balanced') return pickBalanced(cands, opts);
   // tolerated for the old positional form pickBest(cands, tol, preAccessCap)
   const o = typeof opts === 'number' ? { tol: opts, preAccessCap: legacyCap } : opts;
   const preAccessCap = o.preAccessCap ?? Infinity;
@@ -3058,7 +3105,7 @@ function policyPlaybook(policyKey, P) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -4462,6 +4509,7 @@ export default function App() {
   // the household's ranked objectives, and the promote/demote that reorders them
   const priorityList = E.normalizePriorities(plan?.spending?.priorities);
   const priorityTolerances = E.normalizeTolerances(plan?.spending?.priorityTolerances);
+  const priorityMode = plan?.spending?.priorityMode === 'balanced' ? 'balanced' : 'ranked';
   const setTolerance = (key, value) => updateSpending('priorityTolerances', { ...(plan?.spending?.priorityTolerances || {}), [key]: value });
   const movePriority = (i, dir) => {
     const next = [...priorityList], j = i + dir;
@@ -4817,7 +4865,9 @@ export default function App() {
         out.push({ ...c, label, stats });
       }
       // ranked against what the household said it cares about, not a fixed survival-first order
-      const { winner: best, steps } = E.explainPick(out, { priorities: priorityList, tolerances: priorityTolerances });
+      const { winner: best, steps } = priorityMode === 'balanced'
+        ? { winner: E.pickBalanced(out), steps: [] }
+        : E.explainPick(out, { priorities: priorityList, tolerances: priorityTolerances });
       setPlan(prev => ({
         ...prev,
         spending: { ...(prev.spending || {}), decumulationPolicy: best.decumulationPolicy, drawdownStrategy: best.drawdownStrategy },
@@ -5750,8 +5800,22 @@ export default function App() {
               {/* Ranked priorities. Measured across 360 households, the objective moves the recommended
                   policy more than the choice of policies does, so this sits above the policy picker. */}
               <div className="pt-1">
-                <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1.5">
-                  <label className="text-slate-600 font-semibold text-xs">What matters most to you, in order</label>
+                {/* Balanced sits BESIDE the list, not inside it: it is a different mechanism, not a
+                    seventh priority. The list stays visible but greyed when it is on, so the switch
+                    reads as "these are no longer being used in order" rather than as things vanishing. */}
+                <div className="flex flex-wrap items-center gap-1 mb-2 p-0.5 bg-slate-100 rounded-lg w-fit text-[11px] font-bold">
+                  {[['ranked', 'Rank my priorities'], ['balanced', 'Balance them all']].map(([m, lbl]) => (
+                    <button key={m} type="button" onClick={() => updateSpending('priorityMode', m)}
+                      className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${priorityMode === m ? 'bg-surface text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>{lbl}</button>
+                  ))}
+                </div>
+                {priorityMode === 'balanced' && (
+                  <p className="text-[11px] text-slate-600 leading-relaxed mb-2 p-2 bg-blue-50/70 border border-blue-200 rounded-xl">
+                    Every priority is weighed together rather than in order, so a modest gain in several can outweigh a small loss in one. Each is scored against the best and worst option available for your plan, which is what makes percentages and pounds comparable. The {E.MAX_SURVIVAL_SACRIFICE_PTS}-point survival limit still applies.
+                  </p>
+                )}
+                <div className={`flex flex-wrap items-baseline justify-between gap-2 mb-1.5 ${priorityMode === 'balanced' ? 'opacity-40' : ''}`}>
+                  <label className="text-slate-600 font-semibold text-xs">{priorityMode === 'balanced' ? 'Your order (not used while balancing)' : 'What matters most to you, in order'}</label>
                   <div className="flex items-center gap-3">
                     {priorityList.join() !== E.DEFAULT_PRIORITIES.join() && (
                       <button type="button" onClick={() => updateSpending('priorities', [...E.DEFAULT_PRIORITIES])} className="text-[11px] text-slate-500 hover:text-slate-800 hover:underline font-semibold cursor-pointer">Reset to default</button>
@@ -5759,7 +5823,7 @@ export default function App() {
                     <button type="button" onClick={() => goToDoc('doc-priorities')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer"><HelpCircle className="w-3.5 h-3.5" /> How each priority picks a policy &rarr;</button>
                   </div>
                 </div>
-                <ol className="space-y-1.5">
+                <ol className={`space-y-1.5 ${priorityMode === 'balanced' ? 'opacity-40 pointer-events-none' : ''}`}>
                   {priorityList.map((key, i) => {
                     const m = E.PRIORITY_METRICS[key];
                     return (

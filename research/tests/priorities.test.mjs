@@ -209,5 +209,44 @@ console.log('\n=========== I. PER-PRIORITY TOLERANCE OVERRIDES ===========');
     E.pickBest(field, { priorities: ['survive', 'pot'], tolerances: {} }).id === E.pickBest(field, { priorities: ['survive', 'pot'] }).id);
 }
 
+console.log('\n=========== J. BALANCED MODE ===========');
+{
+  /*
+   * Ranking cannot express "a modest gain in three things beats a small loss in one" - whatever sits
+   * first decides and the rest only tidy up. Balanced blends every metric, which needs them on a common
+   * scale first: survival is in points and pots are in pounds, and adding those directly would let
+   * whichever has bigger numbers win by accident rather than by merit.
+   */
+  /*
+   * The survival gap is 2.5 points, not 1: at exactly 1 point the two are declared tied by the default
+   * tolerance and the ranked walk falls through to the next priority, so the fixture would have been
+   * testing the tie-break rather than the ranking.
+   */
+  const allRound = mk('all-round', 88.5, 300000, 300000, { medianLifetimeTax: 40000 });
+  const oneTrick = mk('one-trick', 91, 100000, 100000, { medianLifetimeTax: 200000 });
+  ok('ranking by survival takes the narrow winner', E.pickBest([allRound, oneTrick], { priorities: ['survive'] }).id === 'one-trick');
+  ok('balancing takes the all-rounder', E.pickBest([allRound, oneTrick], { mode: 'balanced' }).id === 'all-round');
+
+  // scaling is within the field, so a metric measured in millions cannot outvote one measured in points
+  const scores = E.balancedScore([allRound, oneTrick]);
+  ok('scores are bounded between 0 and 1', scores.every(x => x >= 0 && x <= 1), scores.map(x => x.toFixed(2)).join(', '));
+  ok('the better all-round candidate scores higher', scores[0] > scores[1], `${scores[0].toFixed(2)} vs ${scores[1].toFixed(2)}`);
+
+  // a metric on which everything ties must contribute nothing rather than dividing by zero
+  const tied = [mk('a', 90, 100000, 100000), mk('b', 90, 100000, 200000)];
+  const ts = E.balancedScore(tied);
+  ok('a metric where every candidate ties does not divide by zero', ts.every(Number.isFinite), ts.join(', '));
+  ok('and the metric that does differ still decides', E.pickBest(tied, { mode: 'balanced' }).id === 'b');
+
+  // the survival guard is not bypassed by switching mode
+  const reckless = [mk('safe', 92, 100000, 500000), mk('fragile', 77, 100000, 9000000)];
+  ok('balanced still respects the survival limit', E.pickBest(reckless, { mode: 'balanced' }).id === 'safe');
+
+  ok('a single candidate is returned unchanged', E.pickBest([allRound], { mode: 'balanced' }).id === 'all-round');
+  ok('saved plans default to ranked', E.normalizePlan({}).spending.priorityMode === 'ranked');
+  ok('and a stored balanced choice survives', E.normalizePlan({ spending: { priorityMode: 'balanced' } }).spending.priorityMode === 'balanced');
+  ok('junk falls back to ranked', E.normalizePlan({ spending: { priorityMode: 'nonsense' } }).spending.priorityMode === 'ranked');
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

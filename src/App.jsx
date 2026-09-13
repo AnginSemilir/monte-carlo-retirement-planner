@@ -443,6 +443,11 @@ const DEFAULT_COST_STEPS = ['cash', 'other', 'isa', 'penAny'];
  */
 const AUTO_DEPOSIT = 'Auto (policy decides)';
 
+// Used when the chosen policy has no depositOrder of its own. Mirrors the "Choose for me" button:
+// the pension first for the relief, then the ISA, then wrappers with no annual limit at all. Walked
+// by headroom, so it never dumps a windfall into a wrapper that has no room left this year.
+const DEFAULT_DEPOSIT_ORDER = ['pen', 'isa', 'other', 'cash'];
+
 const DECUMULATION_POLICIES = {
   'Bracket Fill Basic': {
     label: 'Tax Smoothing (fill 0% allowance, then pension to the basic-rate limit, preserve ISAs)',
@@ -1055,11 +1060,11 @@ function buildContext(rawPlan) {
        * policy's own choice of overflow, which for every policy here is the uncapped GIA.
        */
       const policyRoute = () => {
-        const order = policyForDeposits.depositOrder;
+        const order = policyForDeposits.depositOrder || DEFAULT_DEPOSIT_ORDER;
         for (const cat of order) if (wrapperHeadroomAtYear(headroomCtx, ownerKey, cat, y - baseYear) > 0) return cat;
         return order[order.length - 1];
       };
-      const targetCat = (x.category === AUTO_DEPOSIT && policyForDeposits.depositOrder)
+      const targetCat = x.category === AUTO_DEPOSIT
         ? policyRoute()
         : (Object.keys(CATEGORY_LABEL).find(k => CATEGORY_LABEL[k] === x.category) || 'pen');
       const targetId = accountId(targetCat, ownerKey);
@@ -3863,7 +3868,13 @@ export default function App() {
   const updateSpendBand = (id, patch) => setPlan(prev => ({ ...prev, spending: { ...prev.spending, spendBands: (prev.spending?.spendBands || []).map(b => b.id === id ? { ...b, ...patch } : b) } }));
   const addOtherIncome = () => setPlan(prev => ({ ...prev, otherIncomes: [...(prev.otherIncomes || []), { id: 'inc_' + Date.now(), name: '', owner: 'Myself', startAge: '', endAge: '', amount: '', incomeType: 'otherTaxable', notes: '' }] }));
   const deleteOtherIncome = (id) => setPlan(prev => ({ ...prev, otherIncomes: (prev.otherIncomes || []).filter(i => i.id !== id) }));
-  const addOneOffContrib = () => { const y = new Date().getFullYear() + 1; setPlan(prev => ({ ...prev, oneOffContributions: [...(prev.oneOffContributions || []), { id: 'c_' + Date.now(), date: `${y}-01-01`, year: y, owner: 'Myself', category: 'Pensions', amount: '', desc: '', transferredFrom: 'External', stagedTargetWrapper: 'Pensions' }] })); };
+  /*
+   * New deposits default to AUTO_DEPOSIT. A household receiving a windfall rarely has a considered view
+   * on which wrapper it belongs in, and defaulting to Pensions quietly made that consequential choice
+   * for them - one that is capped by the annual allowance, locked until 58, and in the estate from 2027.
+   * Letting the policy decide at least makes the choice deliberately, against the plan's own numbers.
+   */
+  const addOneOffContrib = () => { const y = new Date().getFullYear() + 1; setPlan(prev => ({ ...prev, oneOffContributions: [...(prev.oneOffContributions || []), { id: 'c_' + Date.now(), date: `${y}-01-01`, year: y, owner: 'Myself', category: AUTO_DEPOSIT, amount: '', desc: '', transferredFrom: 'External', stagedTargetWrapper: CATEGORY_LABEL.other }] })); };
   const deleteOneOffContrib = (id) => setPlan(prev => ({ ...prev, oneOffContributions: (prev.oneOffContributions || []).filter(c => c.id !== id) }));
   const addOneOffCost = () => { const y = new Date().getFullYear() + 1; setPlan(prev => ({ ...prev, oneOffCosts: [...(prev.oneOffCosts || []), { id: 'cost_' + Date.now(), date: `${y}-06-01`, year: y, owner: 'Myself', amount: '', desc: '' }] })); };
   const deleteOneOffCost = (id) => setPlan(prev => ({ ...prev, oneOffCosts: (prev.oneOffCosts || []).filter(c => c.id !== id) }));
@@ -4953,6 +4964,15 @@ export default function App() {
                       const depYear = c.date ? parseInt(String(c.date).slice(0, 4)) : E.num(c.year, NaN);
                       const missingDate = !Number.isFinite(depYear);
                       const missingDest = !c.category;
+                      /*
+                       * On AUTO the destination is not known until the context is built, so read it back
+                       * off the resolved staging rather than printing "Auto (policy decides) headroom",
+                       * which would tell the reader nothing about where their money went.
+                       */
+                      const stForLabel = ctx.oneOffStaging.get(c.id);
+                      const destLabel = c.category === E.AUTO_DEPOSIT
+                        ? (stForLabel ? `${E.CATEGORY_LABEL[String(stForLabel.targetId).split('_')[0]] || 'the chosen wrapper'} (chosen by policy)` : 'the wrapper your policy picks')
+                        : c.category;
                       const incomplete = missingDate || missingDest;
                       return (
                         <div key={c.id} className={`p-2.5 rounded-xl text-xs space-y-2 border ${incomplete ? 'bg-rose-50/70 border-rose-300' : 'bg-slate-50 border-slate-200'}`}>
@@ -5000,12 +5020,12 @@ export default function App() {
                               {st.direct ? (
                                 <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-sans text-[10px] font-bold">Direct Deposit (£{Math.round(st.amount).toLocaleString()} within headroom)</span>
                               ) : (
-                                <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-sans text-[10px] font-bold">Staged (Option A): £{Math.round(st.H0).toLocaleString()} now &rarr; {c.category}, £{Math.round(st.surplus0).toLocaleString()} parked in Other Investments</span>
+                                <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-sans text-[10px] font-bold">Staged (Option A): £{Math.round(st.H0).toLocaleString()} now &rarr; {destLabel}, £{Math.round(st.surplus0).toLocaleString()} parked in Other Investments</span>
                               )}
                               <span className="text-slate-500 font-sans text-[10px]">
                                 {Number.isFinite(st.yearHeadroom)
-                                  ? `${c.category} headroom in ${c.year}: ${formatGBP(st.yearHeadroom)}`
-                                  : `${c.category} has no annual limit`}
+                                  ? `${destLabel} headroom in ${c.year}: ${formatGBP(st.yearHeadroom)}`
+                                  : `${destLabel} has no annual limit`}
                               </span>
                             </div>
                           )}

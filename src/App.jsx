@@ -407,6 +407,14 @@ const DEFAULT_CONFIG = {
    */
   qsrScale: [100, 80, 60, 40, 20],
   /*
+   * Taper relief on gifts, as the EFFECTIVE rate by whole years between gift and death: no relief at all
+   * for the first three years, then tapering to nothing at seven. It reduces the tax on the gift, and
+   * only ever on the part of it that exceeds the nil-rate band - which is why a modest gift sees no
+   * benefit from taper no matter how long ago it was made.
+   */
+  giftTaperRates: [40, 40, 40, 32, 24, 16, 8],
+  giftAnnualExemption: 3000,         // immediately exempt each year, before the seven-year clock matters
+  /*
    * Years a beneficiary is assumed to spread an inherited pension over. Nobody sensible draws a large
    * pot in one tax year, and assuming they do overstates the tax badly - but the figure only holds if
    * their income situation stays roughly as it is, which the tab says on screen.
@@ -631,6 +639,8 @@ const BLANK_PLAN = Object.freeze({
     qsrInheritedValue: '', qsrTaxPaid: '', qsrYearsBefore: '',
     // s.154 IHTA 1984: a full exemption, not a relief
     activeServiceExempt: false,
+    // gifts already made: { id, amount, year, desc }
+    gifts: [],
     beneficiaries: []
   },
   accounts: defaultAccounts(),
@@ -773,7 +783,8 @@ function normalizePlan(raw) {
     spending: { ...BLANK_PLAN.spending, ...s, spendBands: normaliseSpendBands(s, d) },
     inheritance: {
       ...BLANK_PLAN.inheritance, ...(isPlainObject(src.inheritance) ? src.inheritance : {}),
-      beneficiaries: normalizeBeneficiaries(src.inheritance?.beneficiaries)
+      beneficiaries: normalizeBeneficiaries(src.inheritance?.beneficiaries),
+      gifts: normalizeGifts(src.inheritance?.gifts)
     },
     accounts: [],
     riskProfiles: {},
@@ -2966,6 +2977,15 @@ function inheritedPensionTax(amount, beneficiaryIncome, cfg, years) {
   return Math.max(0, (incomeTax(income + perYear, cfg) - baseline) * n);
 }
 
+const normalizeGifts = (list) => (Array.isArray(list) ? list : [])
+  .filter(isPlainObject)
+  .map((g, i) => ({
+    id: String(g.id || `gift_${i}`),
+    amount: Math.max(0, num(g.amount, 0)),
+    year: g.year === '' || g.year === undefined || g.year === null ? '' : Math.round(num(g.year, 0)),
+    desc: String(g.desc ?? '').slice(0, 60)
+  }));
+
 const normalizeBeneficiaries = (list) => (Array.isArray(list) ? list : [])
   .filter(isPlainObject)
   .map((b, i) => ({
@@ -3008,7 +3028,50 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   const exemptValue = grossEstate * exemptShare;
   const charityValue = grossEstate * charityShare;
 
-  const nrb = Math.max(0, num(c.ihtNrb, 325000)) * (1 + clamp(num(opts.transferredNrbPct, 0), 0, 100) / 100);
+  const nrbFull = Math.max(0, num(c.ihtNrb, 325000)) * (1 + clamp(num(opts.transferredNrbPct, 0), 0, 100) / 100);
+
+  /*
+   * GIFTS MADE BEFORE DEATH.
+   *
+   * The seven-year rule is usually explained as "survive seven years and the gift is tax-free", which is
+   * true and misses the part that actually costs money. A gift made within seven years is set against
+   * the nil-rate band FIRST, in the order it was made - so a £300,000 gift two years before death does
+   * not generate a tax bill of its own, it quietly consumes £300,000 of the £325,000 band, leaving
+   * £25,000 to shelter the entire estate. The cost lands on the estate, not the gift.
+   *
+   * Taper relief is the other half of the misunderstanding. It reduces the tax ON THE GIFT, and only on
+   * the part exceeding the band - so a modest gift sees no benefit from taper however long ago it was
+   * made, because there was never any tax on it to taper.
+   *
+   * The annual exemption is applied per year in which a gift was made. Carry-forward of an unused
+   * previous year is not modelled, so this is the cautious reading.
+   */
+  const taper = Array.isArray(c.giftTaperRates) ? c.giftTaperRates : [40, 40, 40, 32, 24, 16, 8];
+  const annualExempt = Math.max(0, num(c.giftAnnualExemption, 3000));
+  const gifts = (Array.isArray(opts.gifts) ? opts.gifts : [])
+    .map(g => ({ amount: Math.max(0, num(g.amount, 0)), year: num(g.year, NaN), desc: g.desc }))
+    .filter(g => g.amount > 0 && Number.isFinite(g.year))
+    .map(g => ({ ...g, yearsBefore: deathYear - g.year }))
+    .filter(g => g.yearsBefore >= 0)
+    .sort((a, b) => a.year - b.year);
+
+  let nrbLeft = nrbFull;
+  let giftTax = 0;
+  const giftRows = gifts.map(g => {
+    const chargeableAmt = Math.max(0, g.amount - annualExempt);
+    if (g.yearsBefore >= taper.length) {
+      // survived the full period: outside the estate entirely, and it costs no band
+      return { ...g, exemptAmount: g.amount, survived: true, againstNrb: 0, taxed: 0, tax: 0, ratePct: 0 };
+    }
+    const against = Math.min(nrbLeft, chargeableAmt);
+    nrbLeft -= against;
+    const taxed = chargeableAmt - against;
+    const ratePct = num(taper[Math.max(0, Math.floor(g.yearsBefore))], 40);
+    const tax = taxed * (ratePct / 100);
+    giftTax += tax;
+    return { ...g, exemptAmount: Math.min(g.amount, annualExempt), survived: false, againstNrb: against, taxed, tax, ratePct };
+  });
+  const nrb = nrbLeft;
   /*
    * The residence band is three constraints at once, and dropping any one of them overstates it: it
    * needs a home passing to a direct descendant, it can never exceed the home's own value, and it
@@ -3036,7 +3099,7 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   const charityQualifies = charityValue > 0 && baseline > 0 &&
     charityValue >= baseline * (clamp(num(c.ihtCharityThresholdPct, 10), 0, 100) / 100);
   const rate = (charityQualifies ? num(c.ihtCharityRate, 36) : num(c.ihtRate, 40)) / 100;
-  const ihtBeforeRelief = activeServiceExempt ? 0 : chargeable * rate;
+  const ihtBeforeRelief = activeServiceExempt ? 0 : chargeable * rate + giftTax;
 
   /*
    * Quick succession relief reduces the TAX, not the estate, so it is applied after the rate. The credit
@@ -3094,7 +3157,8 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   const totalIncomeTax = beneficiaries.reduce((t, b) => t + b.incomeTaxOnPension, 0);
   return {
     grossEstate, liquid, pension: pen, pensionCounts, homeValue,
-    nrb, rnrb, rnrbTaperLoss: homeToDescendants && anyDescendant ? Math.min(taperLoss, rnrbFull) : 0,
+    nrb, nrbFull, nrbUsedByGifts: nrbFull - nrb, giftTax, gifts: giftRows,
+    rnrb, rnrbTaperLoss: homeToDescendants && anyDescendant ? Math.min(taperLoss, rnrbFull) : 0,
     exemptValue, charityValue, charityQualifies, ratePct: rate * 100,
     chargeable, iht, ihtBeforeRelief, qsrRelief, qsrPct, activeServiceExempt,
     incomeTaxOnPensions: totalIncomeTax,
@@ -3151,7 +3215,7 @@ function postTaxInheritanceFor(plan, ctx) {
       transferredNrbPct: num(inh.transferredNrbPct, 0), transferredRnrbPct: num(inh.transferredRnrbPct, 0),
       qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
       qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
-      beneficiaries: bens });
+      gifts: inh.gifts, beneficiaries: bens });
   return (ctx.isCouple ? res.second : res).netToBeneficiaries;
 }
 
@@ -3218,7 +3282,7 @@ function policyPlaybook(policyKey, P) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -4198,7 +4262,7 @@ export default function App() {
         transferredRnrbPct: E.num(inh.transferredRnrbPct, 0),
         qsrInheritedValue: E.num(inh.qsrInheritedValue, 0), qsrTaxPaid: E.num(inh.qsrTaxPaid, 0),
         qsrYearsBefore: E.num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
-        beneficiaries: bens
+        gifts: inh.gifts, beneficiaries: bens
       });
       const est = isCouple ? res.second : res;
       return { age, year: row.year, homeSold: soldBy, ...est };
@@ -4667,6 +4731,10 @@ export default function App() {
     return { ...prev, inheritance: { ...(prev.inheritance || {}), beneficiaries: [...list, { id: 'ben_' + Date.now(), name: '', relationship: 'descendant', sharePct: left || '', income: '' }] } };
   });
   const updateBeneficiary = (id, patch) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), beneficiaries: (prev.inheritance?.beneficiaries || []).map(b => b.id === id ? { ...b, ...patch } : b) } }));
+  const addGift = () => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: [...(prev.inheritance?.gifts || []), { id: 'gift_' + Date.now(), amount: '', year: new Date().getFullYear(), desc: '' }] } }));
+  const updateGift = (id, patch) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).map(g => g.id === id ? { ...g, ...patch } : g) } }));
+  const deleteGift = (id) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).filter(g => g.id !== id) } }));
+
   const deleteBeneficiary = (id) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), beneficiaries: (prev.inheritance?.beneficiaries || []).filter(b => b.id !== id) } }));
 
   // ------------------------------------------------------------ scenarios
@@ -6606,6 +6674,60 @@ export default function App() {
                     </ul>
                     <p className="mt-1.5 text-amber-700">Children and grandchildren are one option because the rules treat them the same way: both are direct descendants, and either will unlock the residence allowance if your home passes to them.</p>
                   </details>
+                </div>
+              )}
+            </div>
+
+
+            {/* ---------- gifts already made ---------- */}
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Coins className="w-3.5 h-3.5 text-purple-600" /> Gifts you have already made</h3>
+                <button onClick={addGift} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200"><Plus className="w-3.5 h-3.5" /> Add gift</button>
+              </div>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                A gift drops out of your estate once you have survived <strong>seven years</strong>. Before that it counts — but usually not in the way people expect. It rarely creates a tax bill of its own; instead it <strong>uses up your {formatGBP(E.num(plan?.config?.ihtNrb, 325000))} allowance first</strong>, leaving less to shelter everything else. The cost lands on your estate, not on the gift.
+              </p>
+              {(plan?.inheritance?.gifts || []).length === 0 ? (
+                <div className="text-xs text-slate-400 italic p-3 bg-slate-50 border border-slate-200 rounded-xl">No gifts recorded. If you have given money away in the last seven years, add it — it changes the allowance available to your estate.</div>
+              ) : (
+                <div className="space-y-2">
+                  {(plan?.inheritance?.gifts || []).map(g => (
+                    <div key={g.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                      <input type="text" placeholder="What it was for" value={g.desc ?? ''} onChange={(e) => updateGift(g.id, { desc: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 flex-1 min-w-[8rem]" />
+                      <label className="flex items-center gap-1 text-slate-500">amount
+                        <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={g.amount ?? ''} onChange={(e) => updateGift(g.id, { amount: parseInputNumber(e.target.value) })} className="w-28 p-1 bg-surface border border-slate-300 rounded font-mono text-purple-700 font-bold" />
+                      </label>
+                      <label className="flex items-center gap-1 text-slate-500">year given
+                        <input type="number" min="1950" max="2100" onFocus={handleFocus} value={g.year ?? ''} onChange={(e) => updateGift(g.id, { year: parseInputNumber(e.target.value) })} className="w-20 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                      </label>
+                      <button onClick={() => deleteGift(g.id)} className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  ))}
+                  <span className="text-[10px] text-slate-400 block">The year matters because the seven years run from the gift to your death — so the same gift costs nothing or a great deal depending on the death age you chose above. The first {formatGBP(E.num(plan?.config?.giftAnnualExemption, 3000))} of gifts in any year is exempt immediately; carrying an unused year forward is not modelled, so this is the cautious reading.</span>
+                </div>
+              )}
+              {inheritanceView.chosen && inheritanceView.chosen.gifts && inheritanceView.chosen.gifts.length > 0 && (
+                <div className="overflow-x-auto pt-1">
+                  <table className="w-full text-left text-[11px] border-collapse">
+                    <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Gift</th><th className="pb-1.5 pr-3">Years before death</th><th className="pb-1.5 pr-3">Allowance it uses</th><th className="pb-1.5 pr-3">Tax on the gift</th><th className="pb-1.5">Status</th></tr></thead>
+                    <tbody className="divide-y divide-slate-100 font-mono">
+                      {inheritanceView.chosen.gifts.map((g, i) => (
+                        <tr key={i}>
+                          <td className="py-1.5 pr-3 font-sans">{g.desc || formatGBP(g.amount)}<span className="block text-[10px] text-slate-400">{formatGBP(g.amount)} in {g.year}</span></td>
+                          <td className="py-1.5 pr-3">{g.yearsBefore}</td>
+                          <td className="py-1.5 pr-3 text-amber-700">{g.survived ? '—' : formatGBP(g.againstNrb)}</td>
+                          <td className="py-1.5 pr-3 text-rose-700">{g.tax > 0 ? `${formatGBP(g.tax)} at ${g.ratePct}%` : '—'}</td>
+                          <td className="py-1.5 font-sans text-slate-600">{g.survived ? 'Outside your estate' : g.tax > 0 ? `Taxed above the allowance, tapered to ${g.ratePct}%` : 'No tax of its own — but it consumes the allowance'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <span className="text-[10px] text-slate-400 block mt-1.5">
+                    Allowance left for your estate after gifts: <strong>{formatGBP(inheritanceView.chosen.nrb)}</strong> of {formatGBP(inheritanceView.chosen.nrbFull)}.
+                    {inheritanceView.chosen.nrbUsedByGifts > 0 && ` Those gifts have taken ${formatGBP(inheritanceView.chosen.nrbUsedByGifts)} of it.`}
+                    {' '}Taper relief only reduces tax on the part of a gift above the allowance — which is why a gift inside it shows no benefit from taper however long ago it was made.
+                  </span>
                 </div>
               )}
             </div>

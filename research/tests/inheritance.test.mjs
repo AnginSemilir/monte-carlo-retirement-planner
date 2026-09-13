@@ -270,5 +270,59 @@ console.log('\n=========== K. THE RELATIONSHIP CATEGORIES ===========');
     E.estateAtDeath(cfg, { isa: 400000 }, { ...base, beneficiaries: [{ id: 's', relationship: 'spouse', sharePct: 100, income: 0 }] }).iht === 0);
 }
 
+console.log('\n=========== L. GIFTS AND THE SEVEN-YEAR RULE ===========');
+{
+  const base = { deathAge: 85, deathYear: 2040, beneficiaries: [kid()] };
+  const run = (gifts) => E.estateAtDeath(cfg, { isa: 800000 }, { ...base, gifts });
+  const none = run([]);
+  ok('with no gifts the full allowance is available', near(none.nrb, 325000) && near(none.iht, 190000),
+    `NRB £${Math.round(none.nrb).toLocaleString()}, IHT £${Math.round(none.iht).toLocaleString()}`);
+
+  /*
+   * The part people miss. A gift inside the allowance creates NO tax of its own - and still costs a
+   * great deal, because it consumes the allowance the estate needed. The bill moves from the gift to
+   * the estate, which is why "it was under £325,000 so it was fine" is wrong.
+   */
+  const g2 = run([{ amount: 300000, year: 2038 }]);
+  ok('a £300k gift two years before death is itself untaxed', g2.gifts[0].tax === 0, `£${Math.round(g2.gifts[0].tax)}`);
+  ok('but it eats the allowance', g2.nrb < 30000, `£${Math.round(g2.nrb).toLocaleString()} left`);
+  ok('and the estate pays far more as a result', g2.iht > none.iht + 100000,
+    `£${Math.round(none.iht).toLocaleString()} -> £${Math.round(g2.iht).toLocaleString()}`);
+
+  // the seven-year cliff
+  const g6 = run([{ amount: 300000, year: 2034 }]), g7 = run([{ amount: 300000, year: 2033 }]);
+  ok('at six years it still counts', !g6.gifts[0].survived && g6.nrb < 30000);
+  ok('at seven it drops out entirely', g7.gifts[0].survived && near(g7.nrb, 325000), `£${Math.round(g7.nrb).toLocaleString()}`);
+  ok('and the bill returns to what it would have been', near(g7.iht, none.iht));
+
+  // taper relief applies only ABOVE the allowance, which is the second misunderstanding
+  const big4 = run([{ amount: 500000, year: 2036 }]);
+  ok('a gift above the allowance is taxed on the excess only', near(big4.gifts[0].taxed, 500000 - 3000 - 325000),
+    `£${Math.round(big4.gifts[0].taxed).toLocaleString()}`);
+  ok('and taper reduces the rate by years elapsed', big4.gifts[0].ratePct === 24, `${big4.gifts[0].ratePct}%`);
+  const big1 = run([{ amount: 500000, year: 2039 }]);
+  ok('under three years there is no taper at all', big1.gifts[0].ratePct === 40, `${big1.gifts[0].ratePct}%`);
+  ok('so a more recent gift of the same size costs more', big1.gifts[0].tax > big4.gifts[0].tax,
+    `£${Math.round(big1.gifts[0].tax).toLocaleString()} vs £${Math.round(big4.gifts[0].tax).toLocaleString()}`);
+
+  // allowance is consumed in the order the gifts were made
+  const two = run([{ amount: 200000, year: 2035 }, { amount: 200000, year: 2039 }]);
+  ok('the earlier gift takes the allowance first', two.gifts[0].year === 2035 && two.gifts[0].againstNrb > two.gifts[1].againstNrb,
+    `£${Math.round(two.gifts[0].againstNrb).toLocaleString()} then £${Math.round(two.gifts[1].againstNrb).toLocaleString()}`);
+  ok('and only the later one is taxed', two.gifts[0].tax === 0 && two.gifts[1].tax > 0);
+
+  ok('the annual exemption is applied per gift', near(run([{ amount: 10000, year: 2038 }]).gifts[0].againstNrb, 7000));
+  ok('a gift dated after death is ignored', run([{ amount: 100000, year: 2045 }]).gifts.length === 0);
+  ok('a gift with no year is ignored rather than guessed', run([{ amount: 100000, year: '' }]).gifts.length === 0);
+  ok('junk gift rows are repaired', E.normalizeGifts([{ amount: -5, year: 'x' }]).length === 1);
+
+  // the death age drives the clock, which is the reason the tab prices several ages
+  const early = E.estateAtDeath(cfg, { isa: 800000 }, { ...base, deathYear: 2036, gifts: [{ amount: 300000, year: 2034 }] });
+  const late = E.estateAtDeath(cfg, { isa: 800000 }, { ...base, deathYear: 2042, gifts: [{ amount: 300000, year: 2034 }] });
+  ok('the same gift costs nothing if you live long enough after it', late.gifts[0].survived && !early.gifts[0].survived);
+  ok('and the difference in tax is the whole point', early.iht > late.iht,
+    `£${Math.round(early.iht).toLocaleString()} vs £${Math.round(late.iht).toLocaleString()}`);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

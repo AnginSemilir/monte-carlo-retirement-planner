@@ -54,6 +54,22 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   await shareBox.fill('60');
   await p.waitForTimeout(500);
   ok('a share that is not 100% warns', await p.evaluate(()=>/not 100%/.test(document.body.textContent)));
+  // the special-circumstances inputs
+  await p.evaluate(()=>{const d=[...document.querySelectorAll('summary')].find(x=>/Special circumstances/i.test(x.textContent)); if(d)d.click();});
+  await p.waitForTimeout(300);
+  ok('quick succession relief inputs exist', await p.evaluate(()=>/quick succession relief/i.test(document.body.textContent)));
+  ok('it says the relief must be claimed', await p.evaluate(()=>/not given automatically/i.test(document.body.textContent)));
+  ok('active service exemption offered', await p.evaluate(()=>/Death on active service/.test(document.body.textContent)));
+  ok('and the war pension distinction is recorded', await p.evaluate(()=>/tax-free income, with no bearing on inheritance tax/.test(document.body.textContent)));
+
+  // the docs section, which only renders on its own tab
+  await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Documentation|Docs/i.test(b.textContent)); if(x)x.click();});
+  await p.waitForTimeout(700);
+  ok('documentation section exists', await p.evaluate(()=>!!document.getElementById('doc-inheritance')));
+  ok('it records that draining the pension early does NOT follow', await p.evaluate(()=>/It does not/.test(document.getElementById('doc-inheritance')?.textContent||'')));
+  ok('it names the reservation-of-benefit trap', await p.evaluate(()=>/reservation of benefit/.test(document.getElementById('doc-inheritance')?.textContent||'')));
+  ok('and states what is not modelled', await p.evaluate(()=>/single tax year/.test(document.getElementById('doc-inheritance')?.textContent||'')));
+
   ok('no page errors', errs.length===0, errs.slice(0,2).join(' | '));
   await b.close();
   console.log(fails?`\n${fails} FAILED`:'\nall checks passed');

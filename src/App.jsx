@@ -398,6 +398,14 @@ const DEFAULT_CONFIG = {
   ihtCharityThresholdPct: 10,        // % of the baseline estate that must go to charity to earn 36%
   pensionsInEstateFrom: 2027,        // tax year from which unused pensions count as estate (Finance Act 2026)
   pensionIncomeTaxFromAge: 75,       // death at or above this age makes inherited pension taxable on the beneficiary
+  /*
+   * Quick succession relief (s.141 IHTA 1984). Where someone inherits assets on which inheritance tax
+   * was paid and then dies within five years, the tax on the SECOND death is reduced by reference to the
+   * tax paid on the first, tapering by whole years elapsed. It is not applied automatically - an
+   * executor has to claim it - so a household unaware of it loses it outright, which is exactly why it
+   * is worth surfacing.
+   */
+  qsrScale: [100, 80, 60, 40, 20],
   bridgeSafetyMargin: 30,            // % uplift on the pre-access "bridge" reserve the tournament targets
   solvencyFloor: 0                   // minimum pot at terminal age (bequest floor)
 };
@@ -611,6 +619,10 @@ const BLANK_PLAN = Object.freeze({
     deathAge: '', homeValue: '', homeToDescendants: true,
     homeSold: false, homeSaleAge: '',
     transferredNrbPct: '', transferredRnrbPct: '',
+    // quick succession relief: an inheritance received within five years of death, and the tax paid on it
+    qsrInheritedValue: '', qsrTaxPaid: '', qsrYearsBefore: '',
+    // s.154 IHTA 1984: a full exemption, not a relief
+    activeServiceExempt: false,
     beneficiaries: []
   },
   accounts: defaultAccounts(),
@@ -2940,6 +2952,14 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     ? Math.max(0, Math.min(rnrbFull - taperLoss, homeValue))
     : 0;
 
+  /*
+   * Death on active service (s.154 IHTA 1984) is a full exemption rather than a relief: the estate of a
+   * member of the armed forces who dies from a wound, accident or disease contracted on service - and,
+   * since 2014, emergency services personnel and anyone deliberately targeted because of their job -
+   * pays no inheritance tax at all. So it short-circuits the arithmetic rather than adjusting it.
+   */
+  const activeServiceExempt = !!opts.activeServiceExempt;
+
   const afterExempt = Math.max(0, grossEstate - exemptValue);
   const chargeable = Math.max(0, afterExempt - nrb - rnrb);
   // the charity test is against the estate after exemptions and bands but BEFORE the charitable gift
@@ -2947,7 +2967,23 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   const charityQualifies = charityValue > 0 && baseline > 0 &&
     charityValue >= baseline * (clamp(num(c.ihtCharityThresholdPct, 10), 0, 100) / 100);
   const rate = (charityQualifies ? num(c.ihtCharityRate, 36) : num(c.ihtRate, 40)) / 100;
-  const iht = chargeable * rate;
+  const ihtBeforeRelief = activeServiceExempt ? 0 : chargeable * rate;
+
+  /*
+   * Quick succession relief reduces the TAX, not the estate, so it is applied after the rate. The credit
+   * is the tax paid on the earlier death, scaled by the share of that inheritance still represented in
+   * this estate, then tapered by the whole years between the two deaths. It can never exceed the tax
+   * actually due here - the relief reduces a bill, it does not create a refund.
+   */
+  const qsrValue = Math.max(0, num(opts.qsrInheritedValue, 0));
+  const qsrTax = Math.max(0, num(opts.qsrTaxPaid, 0));
+  const qsrYears = Math.max(0, Math.floor(num(opts.qsrYearsBefore, 99)));
+  const scale = Array.isArray(c.qsrScale) ? c.qsrScale : [100, 80, 60, 40, 20];
+  const qsrPct = qsrYears < scale.length ? num(scale[qsrYears], 0) : 0;
+  const qsrRelief = (qsrValue > 0 && qsrTax > 0 && qsrPct > 0 && !activeServiceExempt)
+    ? Math.min(ihtBeforeRelief, qsrTax * (qsrPct / 100))
+    : 0;
+  const iht = Math.max(0, ihtBeforeRelief - qsrRelief);
 
   /*
    * Who bears it. IHT is charged on the estate, not the recipient, so it falls on the non-exempt
@@ -2986,7 +3022,8 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     grossEstate, liquid, pension: pen, pensionCounts, homeValue,
     nrb, rnrb, rnrbTaperLoss: homeToDescendants && anyDescendant ? Math.min(taperLoss, rnrbFull) : 0,
     exemptValue, charityValue, charityQualifies, ratePct: rate * 100,
-    chargeable, iht, incomeTaxOnPensions: totalIncomeTax,
+    chargeable, iht, ihtBeforeRelief, qsrRelief, qsrPct, activeServiceExempt,
+    incomeTaxOnPensions: totalIncomeTax,
     totalTax: iht + totalIncomeTax, netToBeneficiaries: totalNet,
     effectiveRatePct: grossEstate > 0 ? 100 * (1 - totalNet / grossEstate) : 0,
     sharesDeclaredPct: declared, beneficiaries,
@@ -3038,6 +3075,8 @@ function postTaxInheritanceFor(plan, ctx) {
     { deathAge: age, deathYear: row.year, homeValue: soldBy ? 0 : Math.max(0, num(inh.homeValue, 0)),
       homeToDescendants: inh.homeToDescendants !== false,
       transferredNrbPct: num(inh.transferredNrbPct, 0), transferredRnrbPct: num(inh.transferredRnrbPct, 0),
+      qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
+      qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
       beneficiaries: bens });
   return (ctx.isCouple ? res.second : res).netToBeneficiaries;
 }
@@ -4083,6 +4122,8 @@ export default function App() {
         homeToDescendants: !!inh.homeToDescendants,
         transferredNrbPct: E.num(inh.transferredNrbPct, 0),
         transferredRnrbPct: E.num(inh.transferredRnrbPct, 0),
+        qsrInheritedValue: E.num(inh.qsrInheritedValue, 0), qsrTaxPaid: E.num(inh.qsrTaxPaid, 0),
+        qsrYearsBefore: E.num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         beneficiaries: bens
       });
       const est = isCouple ? res.second : res;
@@ -6513,6 +6554,43 @@ export default function App() {
                     <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredRnrbPct ?? ''} onChange={(e) => updateInheritance('transferredRnrbPct', parseInputNumber(e.target.value))} className={inputCls} />
                   </div>
                   <span className="text-[10px] text-slate-400 sm:col-span-2">Usually 100% of both, because everything passing to a spouse is exempt and so uses none of their allowances. Worth up to {formatGBP(E.num(plan?.config?.ihtNrb, 325000) + E.num(plan?.config?.ihtRnrb, 175000))} and commonly missed.</span>
+                </div>
+              </details>
+
+              {/* Two cases where an identical estate pays a completely different amount, and neither is
+                  visible from the balances. Quick succession relief in particular is not applied
+                  automatically - it has to be claimed - so a household unaware of it loses it entirely. */}
+              <details className="text-xs">
+                <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Special circumstances — recent inheritance, or death on active service</summary>
+                <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                  <div>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input type="checkbox" checked={!!plan?.inheritance?.activeServiceExempt} onChange={(e) => updateInheritance('activeServiceExempt', e.target.checked)} className="accent-purple-600 mt-0.5" />
+                      <span className="text-slate-700"><strong>Death on active service.</strong> A full exemption from inheritance tax where a member of the armed forces dies from a wound, accident or disease contracted on service — and, since 2014, for emergency services personnel and anyone deliberately targeted because of their job.</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400 mt-1 block ml-6">This is an exemption, not a relief: it takes the estate&rsquo;s bill to nothing regardless of its size. A war widow&rsquo;s or widower&rsquo;s pension is a different thing — tax-free income, with no bearing on inheritance tax.</span>
+                  </div>
+                  <div className="pt-2 border-t border-slate-200">
+                    <div className="text-slate-700 font-semibold mb-1">Did you inherit something in the last five years, on which inheritance tax was paid?</div>
+                    <span className="text-[10px] text-slate-400 mb-2 block">If so, quick succession relief cuts the tax on your own estate by up to the whole amount paid then, tapering by a fifth for each year that has passed. It has to be claimed by whoever handles your estate — it is not given automatically.</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-slate-600 font-semibold block mb-1">Value you inherited</label>
+                        <input type="number" min="0" step="5000" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.qsrInheritedValue ?? ''} onChange={(e) => updateInheritance('qsrInheritedValue', parseInputNumber(e.target.value))} className={inputCls} />
+                      </div>
+                      <div>
+                        <label className="text-slate-600 font-semibold block mb-1">Tax paid on it</label>
+                        <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.qsrTaxPaid ?? ''} onChange={(e) => updateInheritance('qsrTaxPaid', parseInputNumber(e.target.value))} className={inputCls} />
+                      </div>
+                      <div>
+                        <label className="text-slate-600 font-semibold block mb-1">Years ago</label>
+                        <input type="number" min="0" max="10" step="1" placeholder="—" onFocus={handleFocus} value={plan?.inheritance?.qsrYearsBefore ?? ''} onChange={(e) => updateInheritance('qsrYearsBefore', parseInputNumber(e.target.value))} className={inputCls} />
+                        <span className="text-[10px] text-slate-400 mt-1 block">
+                          {(E.DEFAULT_CONFIG.qsrScale || []).map((v, i) => `${i}–${i + 1}y: ${v}%`).join(' · ')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </details>
             </div>

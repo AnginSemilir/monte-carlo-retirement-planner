@@ -136,5 +136,50 @@ console.log('\n=========== F. DEGENERATE INPUTS ===========');
     Object.values(E.IHT_RELATIONSHIPS).every(r => r.label && r.note));
 }
 
+console.log('\n=========== G. QUICK SUCCESSION RELIEF ===========');
+{
+  const base = { deathAge: 80, deathYear: 2030, beneficiaries: [kid()] };
+  const plain = E.estateAtDeath(cfg, { isa: 1000000 }, base);
+  // £1m - £325k NRB = £675k at 40% = £270,000
+  ok('the unrelieved bill is £270,000', near(plain.iht, 270000), `£${Math.round(plain.iht).toLocaleString()}`);
+
+  // the statutory taper: 100/80/60/40/20 by whole years, nothing from five
+  const at = (y) => E.estateAtDeath(cfg, { isa: 1000000 }, { ...base, qsrInheritedValue: 300000, qsrTaxPaid: 120000, qsrYearsBefore: y });
+  ok('under a year: the whole £120,000 is credited', near(at(0).qsrRelief, 120000), `£${Math.round(at(0).qsrRelief).toLocaleString()}`);
+  ok('one to two years: 80%', near(at(1).qsrRelief, 96000));
+  ok('two to three: 60%', near(at(2).qsrRelief, 72000));
+  ok('three to four: 40%', near(at(3).qsrRelief, 48000));
+  ok('four to five: 20%', near(at(4).qsrRelief, 24000));
+  ok('five or more: nothing', at(5).qsrRelief === 0 && near(at(5).iht, 270000), `£${Math.round(at(5).iht).toLocaleString()}`);
+  ok('the relief reduces the tax, not the estate', near(at(0).grossEstate, plain.grossEstate) && at(0).iht < plain.iht);
+
+  // it must never exceed the bill: a relief reduces what is owed, it does not create a refund
+  const huge = E.estateAtDeath(cfg, { isa: 400000 }, { ...base, qsrInheritedValue: 900000, qsrTaxPaid: 900000, qsrYearsBefore: 0 });
+  ok('a credit larger than the bill cannot make the tax negative', huge.iht === 0, `£${Math.round(huge.iht)}`);
+  ok('and the relief is capped at the bill rather than the credit', near(huge.qsrRelief, huge.ihtBeforeRelief), `£${Math.round(huge.qsrRelief).toLocaleString()} of £${Math.round(huge.ihtBeforeRelief).toLocaleString()}`);
+
+  ok('no inheritance means no relief', E.estateAtDeath(cfg, { isa: 1000000 }, { ...base, qsrYearsBefore: 1 }).qsrRelief === 0);
+  ok('an inheritance on which no tax was paid gives no credit',
+    E.estateAtDeath(cfg, { isa: 1000000 }, { ...base, qsrInheritedValue: 300000, qsrTaxPaid: 0, qsrYearsBefore: 1 }).qsrRelief === 0);
+}
+
+console.log('\n=========== H. DEATH ON ACTIVE SERVICE ===========');
+{
+  const base = { deathAge: 80, deathYear: 2030, beneficiaries: [kid(60000)] };
+  const big = E.estateAtDeath(cfg, { pen: 2000000, isa: 800000 }, base);
+  const svc = E.estateAtDeath(cfg, { pen: 2000000, isa: 800000 }, { ...base, activeServiceExempt: true });
+  ok('a large estate normally pays a large bill', big.iht > 900000, `£${Math.round(big.iht).toLocaleString()}`);
+  ok('on active service it pays nothing, whatever its size', svc.iht === 0 && svc.activeServiceExempt);
+  ok('the estate itself is unchanged - it is an exemption, not a valuation trick', near(svc.grossEstate, big.grossEstate));
+  /*
+   * The beneficiary's own income tax on an inherited pension is a charge on THEM, not on the estate, so
+   * the estate's exemption does not remove it. Getting this wrong would overstate the exemption.
+   */
+  ok('the heir still pays their own income tax on an inherited pension', svc.incomeTaxOnPensions > 0,
+    `£${Math.round(svc.incomeTaxOnPensions).toLocaleString()}`);
+  ok('and quick succession relief is moot when nothing is owed',
+    E.estateAtDeath(cfg, { isa: 1000000 }, { ...base, activeServiceExempt: true, qsrInheritedValue: 300000, qsrTaxPaid: 120000, qsrYearsBefore: 0 }).qsrRelief === 0);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

@@ -3058,8 +3058,12 @@ const normalizeGifts = (list) => (Array.isArray(list) ? list : [])
     id: String(g.id || `gift_${i}`),
     amount: Math.max(0, num(g.amount, 0)),
     year: g.year === '' || g.year === undefined || g.year === null ? '' : Math.round(num(g.year, 0)),
-    // a gift of exempt compensation inside its two-year window: no seven-year clock, no band consumed
-    exemptCompensation: !!g.exemptCompensation,
+    /*
+     * Whether the gift came out of a compensation award. Blank means "work it out" - a gift inside the
+     * window is presumed to have come from the award while any of it remains - and 'no' is the override
+     * for money that came from somewhere else. 'yes' is what plans saved before this was derived carry.
+     */
+    fromCompensation: g.fromCompensation === 'no' ? 'no' : (g.fromCompensation === 'yes' || g.exemptCompensation === true ? 'yes' : ''),
     desc: String(g.desc ?? '').slice(0, 60)
   }));
 
@@ -3161,23 +3165,70 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
    * above: it stops the GIFT being a transfer of value, where the credit reduces the tax on the death.
    * Both can apply, and neither is netted off the other.
    */
+  /*
+   * WHICH GIFTS CAME OUT OF THE COMPENSATION - WORKED OUT, NOT TICKED.
+   *
+   * The plan already knows the award and the day it was paid, so it knows the window and how much money
+   * there is to give. Asking the household to tick a box as well is asking them to tell it something it
+   * can already work out, and the box gets forgotten - which prices the gift as an ordinary transfer and
+   * quietly costs them the nil-rate band.
+   *
+   * So a gift dated inside the window is presumed to come from the award, EARLIEST FIRST, until the award
+   * runs out. Beyond that there is nothing left for a gift to have come from, and the rest is ordinary.
+   * A gift larger than what remains is split rather than judged all one way: £400,000 given with £300,000
+   * of award left is £300,000 of exempt gift and £100,000 of ordinary one.
+   *
+   * `fromCompensation: 'no'` is the override for the household that gave money away from another source
+   * inside the window and would rather say so. 'yes' is kept for plans saved before this was derived.
+   */
   const compWindowEndYr = num(opts.compensationWindowEndYear, NaN);
-  const inWindow = (g) => !!g.exemptCompensation && Number.isFinite(compWindowEndYr) && num(g.year, Infinity) <= compWindowEndYr;
-  const compGifted = (Array.isArray(opts.gifts) ? opts.gifts : []).reduce((t, g) =>
-    inWindow(g) ? t + Math.max(0, num(g.amount, 0)) : t, 0);
-  const gifts = (Array.isArray(opts.gifts) ? opts.gifts : [])
-    .filter(g => !inWindow(g))
-    .map(g => (g.exemptCompensation ? { ...g, windowMissed: true } : g))
-    .map(g => ({ amount: Math.max(0, num(g.amount, 0)), year: num(g.year, NaN), desc: g.desc, windowMissed: !!g.windowMissed }))
-    .filter(g => g.amount > 0 && Number.isFinite(g.year))
+  const compAvailable = Math.max(0, num(opts.compensationPayment, 0));
+  const windowOpen = (g) => Number.isFinite(compWindowEndYr) && num(g.year, Infinity) <= compWindowEndYr;
+  const giftList = (Array.isArray(opts.gifts) ? opts.gifts : [])
+    .map((g, i) => ({ raw: g, i, amount: Math.max(0, num(g.amount, 0)), year: num(g.year, NaN) }))
+    .filter(g => g.amount > 0 && Number.isFinite(g.year) && deathYear - g.year >= 0);
+
+  let compLeft = compAvailable;
+  const alloc = new Map();
+  /*
+   * Allocated only where it HELPS, which is the difference between a presumption and a trap. Treating a
+   * gift as coming from the award spends part of the credit, so doing it to a gift that has already
+   * survived seven years - and is therefore out of the estate anyway - buys nothing and costs the credit.
+   * On one case that made the household £80,000 worse off for money they had given away years earlier.
+   *
+   * So the award is matched to the gifts that need it: those still inside the seven years at this death
+   * age, earliest first. Which gifts those are changes with the death age, which is exactly why the tab
+   * prices several. Marking a gift 'yes' asserts it regardless.
+   */
+  const survivesAnyway = (g) => deathYear - g.year >= taper.length;
+  [...giftList].sort((a, b) => a.year - b.year).forEach(g => {
+    const asserted = g.raw.fromCompensation === 'yes' || g.raw.exemptCompensation === true;
+    const helps = !survivesAnyway(g);
+    const eligible = g.raw.fromCompensation !== 'no' && windowOpen(g) && (asserted || (compAvailable > 0 && helps));
+    const take = eligible ? Math.min(compLeft, g.amount) : 0;
+    compLeft -= take;
+    alloc.set(g.i, take);
+  });
+  const compGifted = [...alloc.values()].reduce((t, x) => t + x, 0);
+
+  const gifts = giftList
+    // only the part that did NOT come from the award goes through the seven-year machinery
+    .map(g => ({ amount: g.amount - (alloc.get(g.i) || 0), year: g.year, desc: g.raw.desc,
+      compensationPart: alloc.get(g.i) || 0,
+      // ticked as compensation but dated after the window, so the tick bought nothing
+      windowMissed: (g.raw.fromCompensation === 'yes' || g.raw.exemptCompensation === true) && !windowOpen(g) }))
+    .filter(g => g.amount > 0 || g.compensationPart > 0)
     .map(g => ({ ...g, yearsBefore: deathYear - g.year }))
-    .filter(g => g.yearsBefore >= 0)
     .sort((a, b) => a.year - b.year);
 
   let nrbLeft = nrbFull;
   let giftTax = 0;
   const exemptLeft = new Map();                          // one annual exemption per year, first gift first
   const giftRows = gifts.map(g => {
+    if (g.amount <= 0) {
+      // wholly out of the award and inside its window: no clock, no band, no tax
+      return { ...g, exemptAmount: g.compensationPart, survived: true, againstNrb: 0, taxed: 0, tax: 0, ratePct: 0, fromCompensation: true };
+    }
     if (g.yearsBefore >= taper.length) {
       // survived the full period: outside the estate entirely, and it costs no band or exemption
       return { ...g, exemptAmount: g.amount, survived: true, againstNrb: 0, taxed: 0, tax: 0, ratePct: 0 };
@@ -3278,15 +3329,24 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
    */
   const compPayment = Math.max(0, num(opts.compensationPayment, 0));
   /*
-   * One relief per pound, which is a JUDGEMENT rather than a quotation. Read literally, "at any time
-   * received" would let a household give the award away inside the two-year window - so it is not in the
-   * estate at all - and still take a credit for the whole of it, relieving the same money twice. The
-   * policy the credit was announced for is the money passing on WITHOUT a charge on this death, and it is
-   * hard to read that as covering money that was never going to be charged. So the credit here covers the
-   * part not already given away under the window relief. It is the cautious reading, it is stated on the
-   * tab and in the documentation, and it is the one to revisit if HMRC's guidance says otherwise.
+   * THE CREDIT AND THE WINDOW ARE INDEPENDENT, and this went the other way first.
+   *
+   * The cautious instinct is one relief per pound: net the gifts off the credit, so a household cannot
+   * both give the award away and still be credited for it. Measured, that reading makes the window worth
+   * about £1,200 - the annual exemption at the death rate - because relieving the gift and losing the
+   * credit costs almost exactly what letting the gift fail the seven years costs. A relief Parliament
+   * created at the 2025 Budget, specifically because secondary transfers were being taxed, cannot be
+   * worth £1,200 by design.
+   *
+   * So the credit is taken on the whole payment. It sits on the statute - para 5 relieves tax on a death
+   * where a payment "is at any time received", with no netting of anything - and on the Budget note,
+   * which grants the credit and then says the recipient "will ALSO have two years" to pass the money on.
+   * Two reliefs for two different events: one on the death, one on the gift.
+   *
+   * This is still a reading rather than a quotation, and the tab says so. It is the more generous of the
+   * two, and it is the one to revisit if HMRC's guidance disagrees.
    */
-  const compCreditable = Math.max(0, compPayment - compGifted);
+  const compCreditable = compPayment;
   const compCredit = (compCreditable > 0 && !activeServiceExempt)
     ? Math.min(Math.max(0, ihtBeforeRelief - qsrRelief), compCreditable * (num(c.ihtRate, 40) / 100))
     : 0;
@@ -3394,7 +3454,8 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     compensationWindowEndYear: Number.isFinite(compWindowEndYr) ? compWindowEndYr : null,
     compensationGifted: compGifted,
     // a gift ticked as compensation but made too late is an ordinary gift, and has to be said out loud
-    compensationGiftsMissed: (Array.isArray(opts.gifts) ? opts.gifts : []).some(g => g.exemptCompensation && !inWindow(g)),
+    compensationGiftsMissed: gifts.some(g => g.windowMissed),
+    compensationGiftsCovered: compGifted, compensationLeftToGive: Math.max(0, compLeft),
     sharesDeclaredPct: declared, pensionSharesDeclaredPct: declaredPen, beneficiaries,
     // what the heirs actually receive between them, which includes a pension the estate is not taxed on
     inheritedTotal: willEstate + pen,
@@ -3925,7 +3986,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
   const COMP_GIFTS = (compAmount > 1000 && compYears.length)
     ? compYears.map(y => ({
         year: y,
-        entry: { id: '__compgift', amount: compAmount, year: y, desc: 'Gift of exempt compensation', exemptCompensation: true },
+        entry: { id: '__compgift', amount: compAmount, year: y, desc: 'Gift of exempt compensation', fromCompensation: 'yes' },
         label: `give the ${gbp0(compAmount)} of compensation away in ${y}`
       }))
     : [];
@@ -7991,10 +8052,15 @@ export default function App() {
                       <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${E.num(g.year, 0) > ctx.baseYear ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'}`}>
                         {E.num(g.year, 0) > ctx.baseYear ? 'planned' : 'already given'}
                       </span>
-                      <label className="flex items-center gap-1 text-slate-500 cursor-pointer" title="A gift of compensation that is exempt from inheritance tax, made inside the window the scheme allows — two years from payment for the infected blood scheme. It uses no allowance and starts no seven-year clock.">
-                        <input type="checkbox" checked={!!g.exemptCompensation} onChange={(e) => updateGift(g.id, { exemptCompensation: e.target.checked })} className="accent-purple-600" />
-                        exempt compensation
-                      </label>
+                      {/* Derived, not asked for. The plan knows the award, the date it was paid and so the
+                          window; a gift dated inside it is presumed to have come from the award while any
+                          remains. The box is only an override, and only shown where it could apply. */}
+                      {compWindow && E.num(plan?.inheritance?.compensationPayment, 0) > 0 && E.num(g.year, 0) <= compWindow.endYear && (
+                        <label className="flex items-center gap-1 text-purple-700 cursor-pointer font-semibold" title="Presumed to have come from your compensation award, because it is dated inside the two-year window and there is award left to give. Untick if this money came from somewhere else.">
+                          <input type="checkbox" checked={g.fromCompensation !== 'no'} onChange={(e) => updateGift(g.id, { fromCompensation: e.target.checked ? '' : 'no' })} className="accent-purple-600" />
+                          from the compensation
+                        </label>
+                      )}
                       <button onClick={() => deleteGift(g.id)} className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer transition-colors"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   ))}
@@ -8009,11 +8075,15 @@ export default function App() {
                     <tbody className="divide-y divide-slate-100 font-mono">
                       {inheritanceView.chosen.gifts.map((g, i) => (
                         <tr key={i}>
-                          <td className="py-1.5 pr-3 font-sans">{g.desc || formatGBP(g.amount)}<span className="block text-[10px] text-slate-400">{formatGBP(g.amount)} in {g.year}</span></td>
+                          <td className="py-1.5 pr-3 font-sans">{g.desc || formatGBP(g.amount + (g.compensationPart || 0))}<span className="block text-[10px] text-slate-400">{formatGBP(g.amount + (g.compensationPart || 0))} in {g.year}</span></td>
                           <td className="py-1.5 pr-3">{g.yearsBefore}</td>
                           <td className="py-1.5 pr-3 text-amber-700">{g.survived ? '—' : formatGBP(g.againstNrb)}</td>
                           <td className="py-1.5 pr-3 text-rose-700">{g.tax > 0 ? `${formatGBP(g.tax)} at ${g.ratePct}%` : '—'}</td>
-                          <td className="py-1.5 font-sans text-slate-600">{g.survived ? 'Outside your estate' : g.tax > 0 ? `Taxed above the allowance, tapered to ${g.ratePct}%` : 'No tax of its own — but it consumes the allowance'}</td>
+                          <td className="py-1.5 font-sans text-slate-600">
+                            {g.compensationPart > 0 && <span className="text-purple-700 font-semibold block">{formatGBP(g.compensationPart)} from your compensation — exempt, no clock</span>}
+                            {g.amount > 0 && (g.survived ? 'Outside your estate' : g.tax > 0 ? `Taxed above the allowance, tapered to ${g.ratePct}%` : 'No tax of its own — but it consumes the allowance')}
+                            {g.windowMissed && <span className="text-amber-700 block">Dated after your two-year window, so it is an ordinary gift</span>}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -8174,7 +8244,7 @@ export default function App() {
                         </div>
                       )}
                     </div>
-                    <span className="text-[10px] text-slate-400 mt-1.5 block">Because it is a credit against the tax rather than a hole in the estate, the estate&rsquo;s value is unchanged: the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are both measured before it. Compensation you give away under the two-year window below is left out of the credit &mdash; the cautious reading, since money that is no longer in your estate was never going to be taxed on this death.</span>
+                    <span className="text-[10px] text-slate-400 mt-1.5 block">Because it is a credit against the tax rather than a hole in the estate, the estate&rsquo;s value is unchanged: the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are both measured before it. Giving the award away under the two-year window below does not forfeit the credit: they relieve two different events, the death and the gift.</span>
                     {/* The deadline, spelled out. It is the one fact here that expires. */}
                     {compWindow ? (
                       <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-900 leading-relaxed">
@@ -8182,6 +8252,11 @@ export default function App() {
                       </div>
                     ) : (
                       <span className="text-[10px] text-amber-700 mt-1.5 block">Enter the date you were paid and the tab will work out your two-year gifting deadline. Without it, a gift ticked as exempt compensation is treated as an ordinary gift &mdash; the cautious reading, since the window cannot be checked.</span>
+                    )}
+                    {inheritanceView.chosen && inheritanceView.chosen.compensationGiftsCovered > 0 && (
+                      <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded-xl text-[11px] text-purple-900">
+                        <strong>{formatGBP(inheritanceView.chosen.compensationGiftsCovered)}</strong> of your gifts is treated as coming from the award, so it uses no allowance and starts no seven-year clock. {inheritanceView.chosen.compensationLeftToGive > 0 ? `${formatGBP(inheritanceView.chosen.compensationLeftToGive)} of the award is still available to give this way before the window closes.` : 'The whole award is now accounted for.'} Untick <em>from the compensation</em> on any gift that came from other money.
+                      </div>
                     )}
                     {inheritanceView.chosen && inheritanceView.chosen.compensationGiftsMissed && (
                       <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
@@ -8596,9 +8671,9 @@ export default function App() {
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Compensation, and the credit it carries</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Payments under the <strong>infected blood scheme</strong> administered by IBCA are exempt from income tax and capital gains tax, and for inheritance tax they carry a <strong>credit</strong> rather than an exemption: under para 5 of Sch 15 Finance Act 2020, where a qualifying payment <em>is at any time received</em>, the tax on the death is reduced by {E.num(plan?.config?.ihtRate, 40)}% of the payment, capped at the tax that would otherwise be due. Post Office Horizon, Windrush, Grenfell, the Troubles Permanent Disablement scheme and vaccine damage payments run through the same machinery.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Three consequences the plan models, and each one moves the answer: <strong>what happened to the money is irrelevant</strong> &mdash; there is no tracing test, so an award spent, invested, paid into a pension or used to clear a mortgage earns the credit in full; <strong>the estate is unchanged</strong>, so the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are measured before the credit and not after it; and it <strong>cannot create a refund</strong>, being capped at the bill alongside quick succession relief. Enter the payment received, not what is left of it.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">Giving the money away is a separate relief with its own deadline: <strong>two years from the day you were paid</strong>, or two years from 4 December 2025 for anyone already holding an award when the relief was announced, whichever is later. Enter the date and the tab works out the deadline. A gift ticked as exempt compensation and dated inside it is dropped from the seven-year machinery entirely; one dated after it is priced as the ordinary transfer it has become, and the tab says so rather than quietly downgrading it. With no date entered, the cautious reading applies. The two reliefs are independent: gifting the money does not forfeit the credit, and holding it does not forfeit the gift relief.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Giving the money away is a separate relief with its own deadline: <strong>two years from the day you were paid</strong>, or two years from 4 December 2025 for anyone already holding an award when the relief was announced, whichever is later. Enter the date and the tab works out the deadline. <strong>You do not have to tell it which gifts came from the award.</strong> It knows the amount, the date and so the window, so a gift dated inside it is presumed to have come from the award while any of it remains &mdash; earliest first, split where a gift is larger than what is left, and left alone where the gift has already survived seven years and needs no relief. Untick <em>from the compensation</em> on a gift that came from other money. A gift dated after the window is priced as the ordinary transfer it has become, and the tab says so.</p>
+              <p className="text-xs text-slate-600 leading-relaxed"><strong>One reading worth knowing about, because it is a reading and not a quotation.</strong> The credit and the window are treated as independent: giving the award away does not forfeit the credit. The cautious alternative &mdash; netting the gifts off the credit, so the same money cannot be relieved twice &mdash; was tried first and measured, and it makes the window worth about £1,200. A relief created at the 2025 Budget precisely because secondary transfers were being taxed cannot have been designed to be worth £1,200, and the statute relieves tax on a death where a payment &ldquo;is at any time received&rdquo; without netting anything. So both apply, to two different events: the credit on the death, the window on the gift. It is the more generous of the two readings, and the one to revisit if HMRC&rsquo;s guidance disagrees.</p>
 
-              <p className="text-xs text-slate-600 leading-relaxed"><strong>One assumption worth knowing about, because it is a judgement and not a quotation.</strong> Read literally, a household could give the whole award away inside the two-year window &mdash; so it is not in the estate at all &mdash; and still claim a credit for the whole of it, relieving the same money twice. The plan does not allow that: the credit covers the part not given away. That is the cautious reading, and the one to revisit if HMRC&rsquo;s guidance says otherwise.</p>
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Business Relief, and why it is absent</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Business Relief is the largest thing this tab does not model. Qualifying trading businesses, unquoted shares and AIM-listed shares can escape inheritance tax in whole or in part, which makes reallocating a portfolio into them the classic estate-planning move — and it is not offered here, deliberately, for three reasons. The relief needs the asset to have been <strong>owned for two years</strong> at death, so it is exactly the wrong tool for someone who has just been given a short prognosis. The regime changed from 6 April 2026: relief is no longer unlimited, an allowance applies above which relief falls to 50%, and AIM shares now attract 50% relief in every case rather than 100%. And the assets that qualify carry investment risk far above anything else in this plan, so a tool that modelled the tax saving without modelling that risk would be recommending a trade on half the picture. If it matters to your estate, it is a conversation with an adviser, and the figures on this tab will be too low.</p>
 

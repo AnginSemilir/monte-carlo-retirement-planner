@@ -686,32 +686,72 @@ console.log('=========== M. THE COMPENSATION CREDIT ===========');
   ok('no date, no window', win('') === null && win('not a date') === null);
   ok('the last wholly safe year is the one before it ends', win('2026-06-15').lastFullYear === 2027);
 
+  /*
+   * There has to be an award for a gift to have come out of: ticking the box with nothing entered gets
+   * nothing, which is the same rule the credit follows.
+   */
+  const withAward = { ...base, compensationPayment: 300000 };
   const ordinary = E.estateAtDeath(cfg, w, { ...base, gifts: [{ amount: 300000, year: 2039 }] });
-  const timely = E.estateAtDeath(cfg, w, { ...base, compensationWindowEndYear: 2040,
-    gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
-  const late = E.estateAtDeath(cfg, w, { ...base, compensationWindowEndYear: 2028,
-    gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
+  const timely = E.estateAtDeath(cfg, w, { ...withAward, compensationWindowEndYear: 2040,
+    gifts: [{ amount: 300000, year: 2039 }] });
+  const late = E.estateAtDeath(cfg, w, { ...withAward, compensationWindowEndYear: 2028,
+    gifts: [{ amount: 300000, year: 2039, fromCompensation: 'yes' }] });
+  ok('an award is needed before a gift can come from one',
+    E.estateAtDeath(cfg, w, { ...base, compensationWindowEndYear: 2040,
+      gifts: [{ amount: 300000, year: 2039, fromCompensation: 'yes' }] }).nrbUsedByGifts > 290000);
   ok('an ordinary gift inside seven years eats the allowance', ordinary.nrbUsedByGifts > 290000,
     `£${Math.round(ordinary.nrbUsedByGifts).toLocaleString()}`);
-  ok('a compensation gift inside the window eats none of it', timely.nrbUsedByGifts === 0 && timely.gifts.length === 0);
+  // the row is kept, showing what came from the award, rather than vanishing from the table
+  ok('a compensation gift inside the window eats none of it',
+    timely.nrbUsedByGifts === 0 && timely.gifts[0].compensationPart === 300000 && timely.gifts[0].survived === true);
   ok('one after it is priced as the ordinary gift it has become', near(late.nrbUsedByGifts, ordinary.nrbUsedByGifts),
     `£${Math.round(late.nrbUsedByGifts).toLocaleString()}`);
   ok('and the household is told rather than quietly downgraded', late.compensationGiftsMissed === true && timely.compensationGiftsMissed === false);
   ok('missing the deadline is expensive', late.iht - timely.iht > 70000,
     `£${Math.round(late.iht - timely.iht).toLocaleString()}`);
-  const noDate = E.estateAtDeath(cfg, w, { ...base, gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
+  const noDate = E.estateAtDeath(cfg, w, { ...withAward, gifts: [{ amount: 300000, year: 2039, fromCompensation: 'yes' }] });
   ok('with no date entered the cautious reading applies', noDate.nrbUsedByGifts > 290000 && noDate.compensationGiftsMissed === true);
-  ok('the flag survives a round trip through the plan', E.normalizeGifts([{ amount: 1000, year: 2030, exemptCompensation: true }])[0].exemptCompensation === true);
+  ok('an older plan\'s tick migrates to the new field',
+    E.normalizeGifts([{ amount: 1000, year: 2030, exemptCompensation: true }])[0].fromCompensation === 'yes');
+  ok('and an untouched gift is left for the model to work out',
+    E.normalizeGifts([{ amount: 1000, year: 2030 }])[0].fromCompensation === '');
   /*
-   * One relief per pound. Read literally the credit would survive giving the money away, so a household
-   * could take it out of the estate under the window AND take a credit for the whole of it. That is the
-   * same money relieved twice, and the cautious reading is taken instead: the credit covers what was not
-   * given away. Stated as an assumption on the tab rather than presented as settled law.
+   * The credit and the window are independent - two reliefs for two events, one on the death and one on
+   * the gift. Netting them was tried first and made the window worth about £1,200, which cannot be what
+   * a relief created at the 2025 Budget was for.
    */
   const halfGiven = E.estateAtDeath(cfg, { isa: 400000, cash: 0 }, { ...base, compensationPayment: 400000,
-    compensationWindowEndYear: 2028, gifts: [{ amount: 300000, year: 2027, exemptCompensation: true }] });
-  ok('giving it away moves the relief rather than doubling it', near(halfGiven.compensationCredit, 100000 * 0.4),
-    `£${Math.round(halfGiven.compensationCredit).toLocaleString()} of credit on the £100,000 not given`);
+    compensationWindowEndYear: 2028, gifts: [{ amount: 300000, year: 2027, fromCompensation: 'yes' }] });
+  ok('giving it away does not forfeit the credit', near(halfGiven.compensationCredit, 400000 * 0.4),
+    `£${Math.round(halfGiven.compensationCredit).toLocaleString()} on a £400,000 award`);
+
+  /*
+   * WHICH GIFTS CAME FROM THE AWARD IS WORKED OUT, NOT TICKED. The plan knows the award, the date and the
+   * window, so a gift inside it is presumed to come from the award while any remains - earliest first,
+   * split when the gift is larger than what is left, and skipped where it would buy nothing.
+   */
+  const near7 = { ...base, deathYear: 2030, compensationPayment: 300000, compensationWindowEndYear: 2028 };
+  const auto = E.estateAtDeath(cfg, w, { ...near7, gifts: [{ amount: 200000, year: 2027 }] });
+  ok('a gift inside the window needs no ticking', auto.nrbUsedByGifts === 0 && near(auto.compensationGiftsCovered, 200000),
+    `£${Math.round(auto.compensationGiftsCovered).toLocaleString()} treated as coming from the award`);
+  ok('and what is left of the award is reported', near(auto.compensationLeftToGive, 100000),
+    `£${Math.round(auto.compensationLeftToGive).toLocaleString()}`);
+  const overrun = E.estateAtDeath(cfg, w, { ...near7, gifts: [{ amount: 400000, year: 2027 }] });
+  ok('a gift larger than the award is split, not judged either way',
+    near(overrun.compensationGiftsCovered, 300000) && near(overrun.nrbUsedByGifts, 97000),
+    `£${Math.round(overrun.compensationGiftsCovered).toLocaleString()} exempt, £${Math.round(overrun.nrbUsedByGifts).toLocaleString()} of band eaten by the rest`);
+  const optedOut = E.estateAtDeath(cfg, w, { ...near7, gifts: [{ amount: 200000, year: 2027, fromCompensation: 'no' }] });
+  ok('and the household can say it came from elsewhere', optedOut.compensationGiftsCovered === 0 && optedOut.nrbUsedByGifts > 190000);
+  ok('being presumed from the award is worth having', auto.iht < optedOut.iht,
+    `£${Math.round(auto.iht).toLocaleString()} against £${Math.round(optedOut.iht).toLocaleString()}`);
+  /*
+   * A gift that has already survived seven years is left alone: it is out of the estate anyway, so
+   * matching the award to it would use up something that a later gift may need.
+   */
+  const longAgo = E.estateAtDeath(cfg, w, { ...base, compensationPayment: 300000,
+    compensationWindowEndYear: 2028, gifts: [{ amount: 200000, year: 2027 }] });
+  ok('an old gift is left alone so the award stays available', longAgo.compensationGiftsCovered === 0,
+    `${longAgo.compensationGiftsCovered}`);
 
   /*
    * A gift is money the heirs receive early, not money that disappears - the total the optimiser ranks on

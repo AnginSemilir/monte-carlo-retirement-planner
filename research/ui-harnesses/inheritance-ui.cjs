@@ -196,6 +196,46 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   ok('no page errors on the nomination flow', errs4.length===0, errs4.slice(0,2).join(' | '));
 
   // gifts out of income
+  /*
+   * Which gifts came from a compensation award is derived, not ticked: the box only appears where it
+   * could apply, and it is an override rather than a requirement.
+   */
+  await p4.evaluate(()=>{const d=[...document.querySelectorAll('summary')].find(x=>/Special circumstances/i.test(x.textContent)); if(d)d.click();});
+  await p4.waitForTimeout(300);
+  await p4.locator('[data-exempt-compensation]').fill('300000');
+  await p4.locator('[data-exempt-compensation-date]').fill('2026-02-01');
+  await p4.waitForTimeout(500);
+  const addGift = await p4.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>/Add gift/.test(x.textContent)); if(b){b.click();return true;} return false;});
+  ok('a gift can be added', addGift);
+  await p4.waitForTimeout(400);
+  const giftYear = p4.locator('label', { hasText: /^year/ }).locator('input').last();
+  await giftYear.fill('2027');
+  const giftAmt = p4.locator('label', { hasText: /^amount/ }).locator('input').last();
+  await giftAmt.fill('100000');
+  await p4.waitForTimeout(700);
+  ok('a gift inside the window is presumed to come from the award, unticked by nobody',
+    await p4.evaluate(()=>{const l=[...document.querySelectorAll('label')].find(x=>/from the compensation/.test(x.textContent));
+      return !!l && l.querySelector('input').checked;}));
+  /*
+   * At a death age far enough out, the 2027 gift has survived seven years on its own and the award is
+   * deliberately NOT spent on it - so the badge only appears once the death age brings it inside.
+   */
+  ok('an old gift does not consume the award', await p4.evaluate(()=>!/treated as coming from the award/.test(document.body.textContent)));
+  const deathAge = await p4.evaluate(()=>{
+    const l=[...document.querySelectorAll('label')].find(x=>/Expected age at death/.test(x.textContent));
+    const i=l && l.parentElement.querySelector('input'); if(i){i.setAttribute('data-death-age','');return true;} return false;});
+  ok('the death age can be found', deathAge);
+  await p4.locator('[data-death-age]').fill('66');
+  await p4.waitForTimeout(800);
+  ok('bringing death inside seven years spends the award on the gift',
+    await p4.evaluate(()=>/of your gifts is treated as coming from the award/.test(document.body.textContent)));
+  ok('and says what is left to give', await p4.evaluate(()=>/still available to give this way/.test(document.body.textContent)));
+  // the override
+  await p4.locator('label', { hasText: /from the compensation/ }).locator('input').first().uncheck();
+  await p4.waitForTimeout(700);
+  ok('unticking it hands the gift back to the seven-year rule',
+    await p4.evaluate(()=>!/of your gifts is treated as coming from the award/.test(document.body.textContent)));
+
   ok('the s.21 exemption is offered', await p4.evaluate(()=>/Regular gifts out of income/.test(document.body.textContent)));
   ok('and it says what makes it exempt', await p4.evaluate(()=>/habitual/.test(document.body.textContent)));
   ok('the surplus is quoted from the plan', await p4.evaluate(()=>/income after living costs is/.test(document.body.textContent)));

@@ -56,3 +56,42 @@ sampling), and spending more than it says always doing worse.
 
 **The backtest** — every start year in the record runs the whole plan without throwing, without a
 negative wrapper, and a failure always names the year it failed.
+
+# Timing
+
+`timing.mjs` times the model's hot paths on a real 32-year plan with three heirs, and
+`node research/audit/timing.mjs` reprints them. Measured in this container:
+
+| | |
+|---|---|
+| `buildContext` | 0.45 ms |
+| `simulateDeterministic` | 0.13 ms |
+| `estateAtDeath` | 0.03 ms |
+| `bestPensionSplit` (3 heirs, exhaustive in 5% steps) | 2.9 ms |
+| `suggestGift` (runs inside the Inheritance memo) | 0.7 ms |
+| `optimizeInheritance` (~60 projections) | 30 ms |
+| `monteCarlo`, 5,000 trials — the app default | 461 ms |
+| `optimizeSpend`, the safe-spend solver | 831 ms |
+
+The two long ones are the two the app already runs asynchronously behind a progress bar. Everything a
+keystroke can trigger is under 3 ms.
+
+## In the browser, on the production build
+
+| | |
+|---|---|
+| first paint of the tab bar | 273 ms |
+| switching tabs | 66–77 ms |
+| editing a field on the Inheritance tab (the heaviest memo) | 43–50 ms |
+| editing a field on Plan Inputs (control) | 52 ms |
+| the estate optimiser, click to result | 96 ms |
+
+An edit on the Inheritance tab is no slower than one anywhere else, so the searching that tab does per
+keystroke is not what a user waits for.
+
+**One finding, fixed.** First paint was **12,754 ms** when the Google Fonts stylesheet did not answer:
+a plain `<link rel="stylesheet">` is render-blocking, so the whole app stayed blank until the request
+timed out. Loading it with `media="print"` and flipping to `all` on load drops that to **273 ms** with
+the request stalled indefinitely, and the fonts still apply normally when the network is healthy
+(verified: the link's media attribute flips and its rules reach the document). Anyone on hotel wifi was
+watching a blank screen for twelve seconds.

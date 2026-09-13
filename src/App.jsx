@@ -7891,14 +7891,14 @@ export default function App() {
                       <select value={b.relationship} onChange={(e) => updateBeneficiary(b.id, { relationship: e.target.value })} title={E.IHT_RELATIONSHIPS[b.relationship].who} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer">
                         {Object.entries(E.IHT_RELATIONSHIPS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                       </select>
-                      <label className="flex items-center gap-1 text-slate-500" title="Their share of everything except the pension: the house, ISAs, investments and cash. This is the will.">will
+                      <label className="flex items-center gap-1 text-slate-500" title="Their share of everything except the pension: the house, ISAs, investments and cash. This is the will.">under your will
                         <input type="number" min="0" max="100" step="5" onFocus={handleFocus} value={b.sharePct} onChange={(e) => updateBeneficiary(b.id, { sharePct: parseInputNumber(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 font-bold" />%
                       </label>
-                      {/* The pension passes by nomination, not by the will. Blank follows the will share,
-                          which is what most people mean and what the model assumed for everyone before
-                          the two were separable. */}
-                      <label className="flex items-center gap-1 text-slate-500" title="Their share of the PENSION, which passes by the nomination form you gave your scheme — not by your will. Leave blank to match the will share.">pension
-                        <input type="number" min="0" max="100" step="5" placeholder={String(E.num(b.sharePct, 0))} onFocus={handleFocus} value={b.pensionSharePct} onChange={(e) => updateBeneficiary(b.id, { pensionSharePct: parseInputNumber(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-purple-700 font-bold" />%
+                      {/* The pension passes by nomination, not by the will. Blank follows the will share -
+                          but the placeholder must not be the same NUMBER as the will box, or the two read
+                          as one field entered twice, which is exactly how it was first reported. */}
+                      <label className="flex items-center gap-1 text-purple-700 font-semibold" title="Their share of the PENSION, which passes by the nomination form held by your scheme — not by your will. Leave blank and it matches the will share.">of the pension
+                        <input type="number" min="0" max="100" step="5" placeholder="same" onFocus={handleFocus} value={b.pensionSharePct} onChange={(e) => updateBeneficiary(b.id, { pensionSharePct: parseInputNumber(e.target.value) })} className="w-20 p-1 bg-surface border border-purple-300 rounded font-mono text-purple-700 font-bold placeholder:text-purple-300 placeholder:font-sans placeholder:text-[10px]" />%
                       </label>
                       {/* Income and age drive the income tax on an inherited pension, which a spouse pays
                           even though they pay no inheritance tax. Only a charity escapes both. */}

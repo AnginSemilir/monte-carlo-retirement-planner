@@ -46,7 +46,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Newsreader:ital,wght@1,600;1,700&display=swap" rel="stylesheet">
+    <!--
+      Loaded WITHOUT blocking the first paint. A plain stylesheet link here holds the whole page blank
+      until Google answers: on a measured run with the request stalled, first paint went from 287ms to
+      12.7 SECONDS of blank screen. media="print" makes the browser fetch it at low priority and render
+      regardless; the onload flips it to all, so the fonts arrive when they arrive. display=swap already
+      handles the font FILES - this is about the stylesheet that asks for them.
+    -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Newsreader:ital,wght@1,600;1,700&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.onload=null">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Newsreader:ital,wght@1,600;1,700&display=swap" rel="stylesheet"></noscript>
     <style>
       :root {
         /* classic — the original stock-Tailwind look, kept as an opt-in third theme */

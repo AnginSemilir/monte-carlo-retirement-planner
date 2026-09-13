@@ -158,10 +158,21 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   }, name);
   const total = () => p4.evaluate(()=>[...document.querySelector('[data-person-table]').querySelectorAll('tbody tr')]
     .reduce((t,r)=>t+Number([...r.querySelectorAll("td")][6].textContent.replace(/[^0-9.]/g,'')),0));
-  ok('the beneficiary table asks for a pension share separately', await p4.evaluate(()=>[...document.querySelectorAll('label')].some(l=>/^pension/.test(l.textContent))));
+  ok('the beneficiary table asks for a pension share separately', await p4.evaluate(()=>[...document.querySelectorAll('label')].some(l=>/of the pension/.test(l.textContent))));
+  /*
+   * The two boxes must not read as one field entered twice. Reported from a phone: the pension box
+   * showed the will share as its placeholder, so both said the same number under near-identical labels.
+   */
+  ok('the two share boxes are not mistakable for each other', await p4.evaluate(()=>{
+    const pen=[...document.querySelectorAll('label')].find(l=>/of the pension/.test(l.textContent));
+    const will=[...document.querySelectorAll('label')].find(l=>/under your will/.test(l.textContent));
+    if(!pen||!will) return false;
+    const pi=pen.querySelector('input'), wi=will.querySelector('input');
+    return pi.placeholder !== String(wi.value) && /same/i.test(pi.placeholder);
+  }));
   const before = await total();
   // nominate the whole pension to the one with no income, leaving the will alone
-  const penInputs = p4.locator('label', { hasText: /^pension/ }).locator('input');
+  const penInputs = p4.locator('label', { hasText: /of the pension/ }).locator('input');
   await penInputs.nth(0).fill('0');
   await penInputs.nth(1).fill('100');
   await p4.waitForTimeout(600);

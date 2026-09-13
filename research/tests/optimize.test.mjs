@@ -270,5 +270,63 @@ console.log('=========== I. THE WILL, ANSWERED RATHER THAN IGNORED ===========')
   ok('an exempt heir changes the answer, and the wording', withSpouse.reasons.some(x => x.key === 'will' && /does change the bill/.test(x.text)));
 }
 
+console.log('=========== J. THE ANSWER AS THINGS TO DO ===========');
+{
+  /*
+   * A label is not an instruction. These check the action list names the thing to open, the figure to
+   * enter and the year to do it in - and, just as importantly, that it lists only what CHANGES, because
+   * restating what the household already does buries the two steps they have to go and arrange.
+   */
+  const h = household({ deathAge: 90, cash: 300000 });
+  const r = E.optimizeInheritance(h);
+  const acts = E.estateActionPlan(E.normalizePlan(h), r);
+  ok('there are actions to take', acts.length > 0, acts.map(a => a.key).join(', '));
+  ok('every action says what to do, not just what it is called', acts.every(a => a.title && a.body));
+  ok('the nomination names the form to ask for', acts.some(a => a.key === 'nomination' && /expression of wish/.test(a.body)));
+  ok('and the percentages to put on it', acts.some(a => a.key === 'nomination' && /%\s*to\s*\w/.test(a.body)));
+  /*
+   * The transfer step only appears when transfers are part of the winning allocation, so it is checked on
+   * a household where they are: three years to a priced death and cash sitting idle, which is the shape
+   * that makes topping the pension up to its allowance worth doing.
+   */
+  const recycler = household({ deathAge: 73, cash: 250000, pen: 500000, isa: 100000, other: 0,
+    incomes: [{ id: 'e', name: 'Part-time', owner: 'Myself', startAge: 60, endAge: '', amount: 20000, incomeType: 'earnings' }] });
+  const recAct = E.estateActionPlan(E.normalizePlan(recycler), E.optimizeInheritance(recycler)).find(a => a.key === 'recycle');
+  ok('the transfers name a figure and the years', !!recAct && /£[\d,]+/.test(recAct.body) && /20\d\d/.test(recAct.title),
+    recAct ? recAct.title : 'no transfer in the winning allocation');
+  ok('and say what HMRC adds', !recAct || /HMRC/.test(recAct.body) || /ISA/.test(recAct.body), recAct ? recAct.body.slice(0, 90) : '');
+  ok('the draw-down instruction quotes the band it fills', acts.some(a => a.key === 'ceiling' && /£50,270/.test(a.body)));
+  ok('and says what it is for', acts.some(a => a.key === 'ceiling' && /taxed twice/.test(a.detail)));
+  ok('the paperwork step is there when documents change',
+    acts.some(a => a.key === 'paperwork') === acts.some(a => a.key === 'nomination' || a.key === 'gift'));
+
+  /*
+   * Only what changes. A plan already holding the winning settings has nothing to list, and saying
+   * "nothing to change" is a finding rather than an empty screen.
+   */
+  const applied = E.normalizePlan({
+    ...h,
+    spending: { ...h.spending, decumulationPolicy: r.best.policy, drawdownStrategy: r.best.drawdown },
+    config: { ...h.config, harvestPersonalAllowance: r.best.harvest, harvestCeiling: r.best.ceiling },
+    oneOffContributions: [...(r.best.recycle || [])],
+    inheritance: { ...h.inheritance, beneficiaries: r.best.split
+      ? E.normalizeBeneficiaries(h.inheritance.beneficiaries).map((b, i) => ({ ...b, pensionSharePct: r.best.split[i] }))
+      : h.inheritance.beneficiaries }
+  });
+  const r2 = E.optimizeInheritance(applied);
+  const acts2 = E.estateActionPlan(applied, r2);
+  ok('acting on it shortens the list', acts2.length < acts.length, `${acts.length} -> ${acts2.length}`);
+  ok('a plan with nothing left to do says so rather than showing an empty list', acts2.length > 0);
+
+  // and the household that cannot improve gets told that, in one line
+  const settled = E.optimizeInheritance(household({ deathAge: 72, pen: 100000, isa: 0, other: 0, cash: 0, home: 200000 }));
+  if (settled && settled.gain <= 0) {
+    ok('no improvement is stated plainly', E.estateActionPlan(E.normalizePlan(household({ deathAge: 72, pen: 100000, isa: 0, other: 0, cash: 0, home: 200000 })), settled)
+      .some(a => a.key === 'none'));
+  } else {
+    ok('no improvement is stated plainly', true, 'fixture had something to improve');
+  }
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

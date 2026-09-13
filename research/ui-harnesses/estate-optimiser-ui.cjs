@@ -341,6 +341,12 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   console.log('    ranked:'); ranked.slice(0,4).forEach(l=>console.log('      '+l.join(' | ')));
   const money=(s)=>Number(String(s).replace(/[^0-9.]/g,''));
   ok('ranked best first', ranked.every((r,i)=>i===0||money(ranked[i-1][1])>=money(r[1])));
+  // the answer has to be a list of things to do, not a label
+  const actions = await p.evaluate(()=>[...document.querySelector('[data-action-plan]').querySelectorAll('li')]
+    .map(li=>li.textContent.trim()));
+  console.log('    actions:'); actions.forEach((a,i)=>console.log(`      ${i+1}. ${a.slice(0,110)}`));
+  ok('there is an action list', actions.length>0, `${actions.length} steps`);
+  ok('it names amounts and years, not policy jargon', actions.some(a=>/£[\d,]+/.test(a) && /20\d\d/.test(a)));
   ok('a dead-end lever explains itself', await p.evaluate(()=>/no income tax at all|out of reach/.test(document.body.textContent)));
   ok('charity is priced but not ranked', await p.evaluate(()=>/priced but not ranked/i.test(document.body.textContent)));
   // apply, then confirm the plan actually changed
@@ -388,8 +394,20 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   ok('and drawing the pension early does too', gain('draw early') > 0, `+£${gain('draw early').toLocaleString()}`);
   ok('the split is quoted as percentages, not all-or-nothing',
     await p2.evaluate(()=>/pension \d+% .+ \/ \d+%/.test(document.body.textContent)));
+  const acts2 = await p2.evaluate(()=>[...document.querySelector('[data-action-plan]').querySelectorAll('li')].map(li=>li.textContent));
+  ok('the nomination is spelled out as a form to ask for', acts2.some(a=>/expression of wish/.test(a)),
+    acts2.length + ' steps');
+  ok('and the percentages are named', acts2.some(a=>/%\s*to\s*\w/.test(a)));
+  ok('the draw-down instruction quotes the band', acts2.some(a=>/£50,270/.test(a)));
   await p2.click('[data-apply-estate]');
   await p2.waitForTimeout(900);
+  /*
+   * The list is what is LEFT to do, so acting on it shortens it: once the plan holds the new order and
+   * ceiling those steps drop out, and what remains is the paperwork nobody else can do for you.
+   */
+  const acts3 = await p2.evaluate(()=>[...document.querySelector('[data-action-plan]').querySelectorAll('li')].map(li=>li.textContent));
+  ok('applying what the plan can hold shortens the list', acts3.length < acts2.length, `${acts2.length} -> ${acts3.length} steps`);
+  ok('and what is left is the paperwork', acts3.some(a=>/expression of wish|holds your will/.test(a)));
   const applied = await p2.evaluate(()=>JSON.parse(localStorage.getItem('rp_plan_full_v28')));
   const shares = (applied.inheritance.beneficiaries||[]).map(x=>Number(x.pensionSharePct));
   ok('applying writes the pension shares', shares.some(x=>x>0) && Math.abs(shares.reduce((t,x)=>t+x,0)-100)<0.01,

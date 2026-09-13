@@ -3989,8 +3989,131 @@ function policyPlaybook(policyKey, P) {
   return out.filter(x => x.body);
 }
 
+/*
+ * WHAT TO ACTUALLY DO, IN THE ORDER TO DO IT.
+ *
+ * The optimiser's answer is a label - "Bracket Fill, lump sum, harvest on + pension 5/65/30" - and a
+ * label is not an instruction. This turns the winning allocation into the actions a person takes, each
+ * one naming the thing they have to open, the figure they have to enter and the year they have to do it
+ * in. Written from the result rather than from a template, so it cannot describe a plan the search did
+ * not choose.
+ *
+ * Only what CHANGES appears. An action list that restates what the household already does buries the
+ * two things they have to go and arrange among six things they do not.
+ */
+function estateActionPlan(plan, result) {
+  if (!result || !result.best) return [];
+  const c = { ...DEFAULT_CONFIG, ...(plan?.config || {}) };
+  const P = taxParams(c);
+  const gbp = (x) => '£' + Math.round(x).toLocaleString();
+  const b = result.best, base = result.baseline;
+  const out = [];
+
+  // 1. the withdrawal order, in the words of the policy itself rather than its name
+  const orderChanged = b.policy !== plan?.spending?.decumulationPolicy
+    || b.drawdown !== plan?.spending?.drawdownStrategy
+    || !!b.harvest !== !!plan?.config?.harvestPersonalAllowance;
+  if (orderChanged) {
+    const play = policyPlaybook(b.policy, P);
+    out.push({
+      key: 'order',
+      title: 'Change the order you draw money in',
+      body: (play[0] ? play[0].body : `Follow the ${b.policy} order.`)
+        + (b.drawdown === 'Full 25% Lump Sum'
+          ? ' Take the tax-free lump sum in one go rather than a slice at a time with each withdrawal.'
+          : ' Take the tax-free cash a slice at a time with each withdrawal, not in one lump.'),
+      detail: 'Nothing to arrange with anyone: it is how you choose which account to sell from each year. Applying this writes it into the plan, and the Config tab explains the order in full.'
+    });
+  }
+
+  // 2. the draw-down ceiling, which is a standing instruction rather than a one-off
+  if ((b.ceiling || 'pa') !== (plan?.config?.harvestCeiling === 'basic' ? 'basic' : 'pa')) {
+    out.push({
+      key: 'ceiling',
+      title: b.ceiling === 'basic'
+        ? `Each year, draw pension income up to ${gbp(P.higherRateStartsAt)} even if you do not need it`
+        : `Each year, draw pension income only up to ${gbp(P.pa)}`,
+      body: b.ceiling === 'basic'
+        ? `Take enough taxable pension income to reach ${gbp(P.higherRateStartsAt)} in total, pay the 20%, and put the net straight back into your ISA up to ${gbp(P.isaAllowance)} a year, then into your general investment account. You are not spending it - you are moving it.`
+        : `Stop drawing once your taxable income reaches ${gbp(P.pa)}. Anything beyond that costs tax you do not need to pay.`,
+      detail: b.ceiling === 'basic'
+        ? `Worth doing because from ${num(c.pensionsInEstateFrom, 2027)} a pension left behind is taxed twice - by your estate at ${num(c.ihtRate, 40)}%, then by whoever inherits it at their own rate. Paying ${num(c.basicTaxRate, 20)}% now beats both. It stops being worth it if you die before ${num(c.pensionIncomeTaxFromAge, 75)}, when an inherited pension carries no income tax at all.`
+        : 'Drawing further costs tax today for a benefit that only arrives if you die at 75 or over.'
+    });
+  }
+
+  // 3. the transfers, with the figures and the years spelled out
+  if (b.recycle && b.recycle.length) {
+    const years = [...new Set(b.recycle.map(x => x.year))].sort();
+    const own = b.recycle.filter(x => x.transferredFrom !== 'External');
+    const relief = b.recycle.filter(x => x.transferredFrom === 'External');
+    const sum = (list) => list.reduce((t, x) => t + num(x.amount, 0), 0);
+    /*
+     * The per-year figure is only quotable as "a year" when it really is the same every year - the
+     * allowance and what is spare both move. Where it varies, the total and the first year are the two
+     * numbers that can be acted on without lying about the rest.
+     */
+    const level = own.length > 0 && own.every(x => Math.abs(num(x.amount, 0) - num(own[0].amount, 0)) < 1);
+    const eachOwn = level ? `${gbp(own[0].amount)} a year` : `${gbp(sum(own))} in total, starting with ${gbp(own[0].amount)} in ${own[0].year}`;
+    const nameOf = (label) => WRAPPER_PHRASE[Object.keys(CATEGORY_LABEL).find(k => CATEGORY_LABEL[k] === label)] || label;
+    out.push({
+      key: 'recycle',
+      title: `Move money between your own accounts, ${years.length > 1 ? `each year from ${years[0]} to ${years[years.length - 1]}` : `in ${years[0]}`}`,
+      body: relief.length
+        ? `Pay ${eachOwn} into your pension out of ${nameOf(own[0].transferredFrom)}. Your provider claims ${level ? gbp(relief[0].amount) + ' a year' : gbp(sum(relief))} back from HMRC on top, so ${gbp(sum(own) + sum(relief))} reaches the pension for ${gbp(sum(own))} of your own money.`
+        : `Move ${eachOwn} from ${nameOf(own.length ? own[0].transferredFrom : CATEGORY_LABEL.other)} into ${nameOf(own.length ? own[0].category : CATEGORY_LABEL.isa)}.`,
+      detail: relief.length
+        ? `Basic-rate relief is added whether or not you paid tax, which is why this is worth doing at all. The amount is capped by your annual allowance - if you have already taken taxable pension income the limit is the ${gbp(P.mpaaLimit)} money purchase annual allowance, and the figure above already respects it.`
+        : `Capped by the ${gbp(P.isaAllowance)} a year an ISA can take. Selling to do it can realise a capital gain, which the projection has already charged.`
+    });
+  }
+
+  // 4. the nomination, which is a different form from a will and the one people forget
+  if (b.split && b.splitShares) {
+    const list = b.splitShares.filter(x => x.pct > 0).map(x => `${x.pct}% to ${x.name || 'that heir'}`).join(', ');
+    const dropped = b.splitShares.filter(x => x.pct === 0).map(x => x.name || 'one heir');
+    out.push({
+      key: 'nomination',
+      title: 'Change who your pension is nominated to',
+      body: `Ask each pension provider for their beneficiary nomination form - it is often called an expression of wish - and set it to ${list}.`
+        + (dropped.length ? ` That leaves nothing from the pension to ${dropped.join(' or ')}, who still take their share of everything else under your will.` : ''),
+      detail: 'Your pension does not pass under your will and your will cannot override the form. This is the single most valuable change on the list, because an inherited pension is taxed at the rate of whoever receives it - and it is the one that costs nothing to make.'
+    });
+  }
+
+  // 5. the gift
+  if (b.gift > 0) {
+    out.push({
+      key: 'gift',
+      title: `Give away ${gbp(b.gift)} in ${result.giftYear}`,
+      body: `Make the gift and write down the date, the amount and who received it. Your executors will need all three.`,
+      detail: `It leaves your plan that year, so it is money you no longer have to live on - check the survival rate afterwards. The ${gbp(num(c.ihtRnrbTaperFrom, 2000000))} residence-allowance test looks at what you owned at death, so this part works from the day you give it; the gift itself still needs seven years to leave your estate entirely.`
+    });
+  }
+
+  // 6. keeping the paperwork consistent, which is the step that gets skipped
+  if (b.split || b.gift > 0) {
+    out.push({
+      key: 'paperwork',
+      title: 'Tell whoever holds your will',
+      body: 'The nomination form and the gift record sit outside your will, and none of them is any use if nobody can find them. Keep a note with the will saying where each one is.',
+      detail: 'This tool models the tax. It cannot draft a will, witness a signature, or tell you whether a gift is wise for reasons that have nothing to do with tax.'
+    });
+  }
+
+  if (!out.length) {
+    out.push({
+      key: 'none',
+      title: 'Nothing to change',
+      body: `The search could not beat what you already have: ${gbp(base.net)} to your heirs.`,
+      detail: 'That is a finding, not a failure. Some households are already holding the best allocation available to them.'
+    });
+  }
+  return out;
+}
+
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -5800,6 +5923,7 @@ export default function App() {
    * synchronously on a click rather than chunked through the event loop like the Monte Carlo searches.
    */
   const [estatePlan, setEstatePlan] = useState(null);
+  const estateActions = useMemo(() => estatePlan ? E.estateActionPlan(plan, estatePlan) : [], [plan, estatePlan]);
   const [estateError, setEstateError] = useState('');
   const handleOptimizeEstate = () => {
     setEstateError('');
@@ -7439,6 +7563,25 @@ export default function App() {
                     <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl"><span className="text-[10px] font-bold uppercase tracking-wider block text-slate-500 mb-1">As it stands</span><div className="text-lg font-bold font-mono text-slate-900">{formatGBP(estatePlan.baseline.net)}</div></div>
                     <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl"><span className="text-[10px] font-bold uppercase tracking-wider block text-emerald-700 mb-1">Best found</span><div className="text-lg font-bold font-mono text-emerald-800">{formatGBP(estatePlan.best.net)}</div></div>
                     <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl"><span className="text-[10px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Difference</span><div className={`text-lg font-bold font-mono ${estatePlan.gain > 0 ? 'text-emerald-700' : 'text-slate-500'}`}>{estatePlan.gain > 0 ? '+' : ''}{formatGBP(estatePlan.gain)}</div><span className="text-[10px] text-slate-400">priced at death at {estatePlan.deathAge}</span></div>
+                  </div>
+
+                  {/* The answer as a list of things to do, not as a label. An allocation nobody can act
+                      on is a worse deliverable than a smaller one they can. */}
+                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-3" data-action-plan>
+                    <h3 className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-2"><Check className="w-3.5 h-3.5" /> What to do</h3>
+                    <ol className="space-y-2.5 list-none">
+                      {estateActions.map((a, i) => (
+                        <li key={a.key} className="flex gap-2.5">
+                          <span className="shrink-0 w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
+                          <div className="space-y-0.5">
+                            <div className="text-[12px] font-bold text-emerald-950">{a.title}</div>
+                            <div className="text-[11px] text-emerald-900 leading-relaxed">{a.body}</div>
+                            {a.detail && <div className="text-[10px] text-emerald-700 leading-relaxed">{a.detail}</div>}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                    <span className="text-[10px] text-emerald-700 block">Only what changes is listed. Everything else about your plan stays as it is.</span>
                   </div>
 
                   {/* what each lever is worth on its own, so the household acts on the right one */}

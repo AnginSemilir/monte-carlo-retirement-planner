@@ -3341,7 +3341,7 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     return {
       ...b, sharePct: shareOf(b) * 100, penSharePct: penShareOf(b) * 100, gross, ihtBorne,
       incomeTaxOnPension, net, pensionPart, assumedIncome, atSpa, spreadYears: spread,
-      effectiveRatePct: gross > 0 ? 100 * (1 - net / gross) : 0
+      effectiveRatePct: gross > 0 ? 100 * (1 - net / gross) : 0   // gross here is already what they receive
     };
   });
 
@@ -3382,7 +3382,12 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     incomeTaxOnPensions: totalIncomeTax,
     totalTax: iht + totalIncomeTax, netToBeneficiaries: totalNet,
     giftsToHeirs, netIncludingLifetimeGifts: totalNet + giftsToHeirs,
-    effectiveRatePct: grossEstate > 0 ? 100 * (1 - totalNet / grossEstate) : 0,
+    /*
+     * Measured against what the heirs actually RECEIVE, not against the taxable estate. Those are
+     * different numbers whenever a pension sits outside the estate - a pre-2027 death - and dividing the
+     * larger by the smaller produced effective rates below zero, which is not a rate at all.
+     */
+    effectiveRatePct: (willEstate + pen) > 0 ? 100 * (1 - totalNet / (willEstate + pen)) : 0,
     compensationPayment: compPayment, compensationCredit: compCredit,
     // the credit is capped at the bill, so a large award against a small estate is worth less than the rate
     compensationCreditCapped: compCreditable > 0 && compCredit < compCreditable * (num(c.ihtRate, 40) / 100) - 0.5,
@@ -3997,7 +4002,15 @@ function optimizeInheritance(rawPlan, opts = {}) {
   // the split goes last because it is free: it re-prices the estate the winner already reaches
   const stackedSplit = withBestSplit(bestComp);
   const noms = stackedSplit ? [stackedSplit] : [];
-  const best = bestOf([bestComp, ...noms]);
+  /*
+   * The winner is the best of EVERYTHING evaluated, not the end of the stacking chain. Coordinate descent
+   * can walk away from a better answer: it commits to the best withdrawal order first, and if a lever
+   * that looked strong on its own does less once that order is in place, the chain ends below a candidate
+   * already measured. Taking the maximum over every candidate costs nothing - they have all been priced -
+   * and makes it impossible for the search to report less than something it has already seen.
+   */
+  const best = bestOf([baseline, ...orders, ...ceilings, ...soloGifts, ...soloNoms, ...soloRecycles,
+    ...soloCompGifts, ...gifts, ...recycles, ...compGifts, ...noms]);
 
   /*
    * What each lever is worth ON ITS OWN, from the plan as it stands.

@@ -60,6 +60,22 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   ok('quick succession relief inputs exist', await p.evaluate(()=>/quick succession relief/i.test(document.body.textContent)));
   ok('it says the relief must be claimed', await p.evaluate(()=>/not given automatically/i.test(document.body.textContent)));
   ok('active service exemption offered', await p.evaluate(()=>/Death on active service/.test(document.body.textContent)));
+  /*
+   * The transferred allowances. Three things read like disqualifications and are not - how long ago the
+   * first death was, that the residence band did not exist then, and that it was a different house -
+   * and one that really is: they had to be married. All four have to be on screen.
+   */
+  await p.evaluate(()=>{const d=[...document.querySelectorAll('summary')].find(x=>/Widowed/i.test(x.textContent)); if(d)d.click();});
+  await p.waitForTimeout(300);
+  ok('the widowed allowances say the default is 100% of both',
+    await p.evaluate(()=>/Usually 100% of both/.test(document.body.textContent)));
+  ok('and that a different property does not matter',
+    await p.evaluate(()=>/not attached to any particular property/.test(document.body.textContent)));
+  ok('and that a death before the residence band existed still counts',
+    await p.evaluate(()=>/did not exist before 6 April 2017/.test(document.body.textContent)));
+  ok('and that an unmarried partner transfers nothing',
+    await p.evaluate(()=>/nothing transfers and both boxes are 0/.test(document.body.textContent)));
+  ok('and that it has to be claimed', await p.evaluate(()=>/IHT402 and IHT436/.test(document.body.textContent)));
   // compensation that is disregarded for inheritance tax, and what it is worth
   ok('exempt compensation can be entered', await p.evaluate(()=>!!document.querySelector('[data-exempt-compensation]')));
   await p.locator('[data-exempt-compensation]').fill('300000');

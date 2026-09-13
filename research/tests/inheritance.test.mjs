@@ -627,5 +627,53 @@ console.log('=========== L. GIFTS OUT OF INCOME ===========');
   ok('drawdown is not counted as income', s.median < 30000, `£${Math.round(s.median).toLocaleString()} against a £30,000 DB pension`);
 }
 
+console.log('=========== M. COMPENSATION THE TAX NEVER SEES ===========');
+{
+  /*
+   * Infected blood scheme payments (IBCA) are exempt from inheritance tax, and where the eligible person
+   * had already died the first living recipient carries a credit so the value passes on untaxed on their
+   * own death too. Post Office Horizon, Windrush, Grenfell, the Troubles and vaccine damage payments
+   * carry their own exemptions. The money is still there and the heirs still receive it - it is simply
+   * not counted when the bill is worked out, which is the part a model can get wrong in both directions.
+   */
+  const w = { isa: 400000, cash: 300000 };
+  const base = { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true, beneficiaries: [kid()] };
+  const plain = E.estateAtDeath(cfg, w, base);
+  const exempt = E.estateAtDeath(cfg, w, { ...base, exemptCompensation: 300000 });
+
+  ok('the compensation is out of the estate for tax', near(exempt.grossEstate, plain.grossEstate - 300000),
+    `£${Math.round(exempt.grossEstate).toLocaleString()} against £${Math.round(plain.grossEstate).toLocaleString()}`);
+  ok('so the bill falls by the tax on it', near(plain.iht - exempt.iht, 300000 * 0.4),
+    `£${Math.round(plain.iht - exempt.iht).toLocaleString()}`);
+  ok('and the heirs receive it all the same', near(exempt.netToBeneficiaries - plain.netToBeneficiaries, 300000 * 0.4),
+    `£${Math.round(exempt.netToBeneficiaries).toLocaleString()} against £${Math.round(plain.netToBeneficiaries).toLocaleString()}`);
+  ok('it is reported so the tab can show it', near(exempt.exemptCompensation, 300000));
+  ok('more compensation than estate is capped at the estate',
+    E.estateAtDeath(cfg, { cash: 50000 }, { ...base, homeValue: 0, exemptCompensation: 999999 }).grossEstate === 0);
+
+  /*
+   * Being disregarded, it is outside the £2m residence-band test too - which is the difference between
+   * keeping the band and losing it for an estate sitting just over the line.
+   */
+  const overLine = { isa: 1700000, cash: 400000 };
+  const tapered = E.estateAtDeath(cfg, overLine, base);
+  const untapered = E.estateAtDeath(cfg, overLine, { ...base, exemptCompensation: 400000 });
+  ok('the taper is measured after the exemption, not before', untapered.rnrb > tapered.rnrb,
+    `£${Math.round(tapered.rnrb).toLocaleString()} -> £${Math.round(untapered.rnrb).toLocaleString()}`);
+
+  /*
+   * A gift of it inside the scheme's window is not a transfer of value at all: no seven-year clock, no
+   * allowance consumed. Priced beside an identical ordinary gift, which eats £297,000 of the band.
+   */
+  const ordinary = E.estateAtDeath(cfg, w, { ...base, gifts: [{ amount: 300000, year: 2039 }] });
+  const compGift = E.estateAtDeath(cfg, w, { ...base, gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
+  ok('an ordinary gift inside seven years eats the allowance', ordinary.nrbUsedByGifts > 290000,
+    `£${Math.round(ordinary.nrbUsedByGifts).toLocaleString()}`);
+  ok('a compensation gift eats none of it', compGift.nrbUsedByGifts === 0 && compGift.gifts.length === 0);
+  ok('and costs nothing in tax', compGift.iht < ordinary.iht,
+    `£${Math.round(compGift.iht).toLocaleString()} against £${Math.round(ordinary.iht).toLocaleString()}`);
+  ok('the flag survives a round trip through the plan', E.normalizeGifts([{ amount: 1000, year: 2030, exemptCompensation: true }])[0].exemptCompensation === true);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

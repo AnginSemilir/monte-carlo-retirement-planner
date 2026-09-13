@@ -60,6 +60,15 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   ok('quick succession relief inputs exist', await p.evaluate(()=>/quick succession relief/i.test(document.body.textContent)));
   ok('it says the relief must be claimed', await p.evaluate(()=>/not given automatically/i.test(document.body.textContent)));
   ok('active service exemption offered', await p.evaluate(()=>/Death on active service/.test(document.body.textContent)));
+  // compensation that is disregarded for inheritance tax, and what it is worth
+  ok('exempt compensation can be entered', await p.evaluate(()=>!!document.querySelector('[data-exempt-compensation]')));
+  await p.locator('[data-exempt-compensation]').fill('300000');
+  await p.waitForTimeout(600);
+  ok('and the tab prices it', await p.evaluate(()=>/is left out of the estate for tax/.test(document.body.textContent)));
+  const saved = await p.evaluate(()=>{const m=document.body.textContent.match(/saving £([\d,]+) — and your heirs still receive it/); return m?m[1]:null;});
+  ok('at the estate\'s own rate', saved==='120,000', `£${saved} on £300,000`);
+  await p.locator('[data-exempt-compensation]').fill('');
+  await p.waitForTimeout(400);
   ok('and the war pension distinction is recorded', await p.evaluate(()=>/tax-free income, with no bearing on inheritance tax/.test(document.body.textContent)));
 
   /*

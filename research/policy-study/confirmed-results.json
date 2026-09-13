@@ -1,0 +1,3954 @@
+{
+ "held": [
+  {
+   "id": "S016",
+   "name": "in-drawdown/isa-heavy/modest/moderate",
+   "policy": "ISA First",
+   "screenDr": 0.15000000000000568,
+   "screenDp": -4095.9542298741,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.1150000000000091,
+     "dp": -4703.092742050154
+    },
+    {
+     "dr": 0.07500000000000284,
+     "dp": -3587.226874894579
+    },
+    {
+     "dr": 0.060000000000002274,
+     "dp": -9408.998748776794
+    }
+   ],
+   "meanDr": 0.08333333333333807,
+   "meanDp": -5899.772788573842
+  },
+  {
+   "id": "S028",
+   "name": "in-drawdown/gia-heavy/modest/moderate",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 5844.081834128883,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.024999999999991473,
+     "dp": 5679.515076626587
+    },
+    {
+     "dr": 0.01999999999999602,
+     "dp": 7084.117118008842
+    },
+    {
+     "dr": 0.01999999999999602,
+     "dp": 5686.913007298601
+    }
+   ],
+   "meanDr": 0.021666666666661172,
+   "meanDp": 6150.18173397801
+  },
+  {
+   "id": "S076",
+   "name": "just-retired/isa-heavy/modest/moderate",
+   "policy": "ISA First",
+   "screenDr": 0.25,
+   "screenDp": -26827.546635275256,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.18500000000000227,
+     "dp": -29191.278500603104
+    },
+    {
+     "dr": 0.14999999999999147,
+     "dp": -27120.476325884985
+    },
+    {
+     "dr": 0.15500000000000114,
+     "dp": -28633.856689620603
+    }
+   ],
+   "meanDr": 0.16333333333333164,
+   "meanDp": -28315.2038387029
+  },
+  {
+   "id": "S088",
+   "name": "just-retired/gia-heavy/modest/moderate",
+   "policy": "ISA First",
+   "screenDr": 0.2500000000000142,
+   "screenDp": 7528.010807033803,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.39500000000001023,
+     "dp": 4704.937305292755
+    },
+    {
+     "dr": 0.45999999999999375,
+     "dp": 6342.1206458510715
+    },
+    {
+     "dr": 0.375,
+     "dp": 3849.166201519023
+    }
+   ],
+   "meanDr": 0.4100000000000013,
+   "meanDp": 4965.408050887617
+  },
+  {
+   "id": "S136",
+   "name": "early-bridge/isa-heavy/modest/moderate",
+   "policy": "GIA First",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 5100.75249666475,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.21999999999999886,
+     "dp": 0
+    },
+    {
+     "dr": 0.1700000000000017,
+     "dp": 0
+    },
+    {
+     "dr": 0.1599999999999966,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.18333333333333238,
+   "meanDp": 0
+  },
+  {
+   "id": "S148",
+   "name": "early-bridge/gia-heavy/modest/moderate",
+   "policy": "ISA First",
+   "screenDr": 1.2000000000000028,
+   "screenDp": 7313.938238596624,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 1.019999999999996,
+     "dp": 10615.255493972876
+    },
+    {
+     "dr": 1.1200000000000045,
+     "dp": 11127.863730132882
+    },
+    {
+     "dr": 0.8200000000000216,
+     "dp": 10687.588667341024
+    }
+   ],
+   "meanDr": 0.986666666666674,
+   "meanDp": 10810.235963815594
+  },
+  {
+   "id": "S017",
+   "name": "in-drawdown/isa-heavy/modest/heavy",
+   "policy": "Costs from ISA",
+   "screenDr": 0.15000000000000568,
+   "screenDp": 4437.419812819047,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0.15500000000000114,
+     "dp": 852.3176473301719
+    },
+    {
+     "dr": 0.1700000000000017,
+     "dp": -424.3758993304218
+    },
+    {
+     "dr": 0.1950000000000074,
+     "dp": -1529.174912500952
+    }
+   ],
+   "meanDr": 0.17333333333333675,
+   "meanDp": -367.0777215004006
+  },
+  {
+   "id": "S017",
+   "name": "in-drawdown/isa-heavy/modest/heavy",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.15000000000000568,
+   "screenDp": 4437.419812819047,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0.15500000000000114,
+     "dp": 852.3176473301719
+    },
+    {
+     "dr": 0.1700000000000017,
+     "dp": -424.3758993304218
+    },
+    {
+     "dr": 0.1950000000000074,
+     "dp": -1529.174912500952
+    }
+   ],
+   "meanDr": 0.17333333333333675,
+   "meanDp": -367.0777215004006
+  },
+  {
+   "id": "S033",
+   "name": "in-drawdown/gia-heavy/wealthy/light",
+   "policy": "Costs from ISA",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 23336.52273750177,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.20000000000000284,
+     "dp": 15136.008567495272
+    },
+    {
+     "dr": 0.2049999999999983,
+     "dp": -311.007704539923
+    },
+    {
+     "dr": 0.2150000000000034,
+     "dp": 7299.627559418557
+    }
+   ],
+   "meanDr": 0.2066666666666682,
+   "meanDp": 7374.876140791302
+  },
+  {
+   "id": "S033",
+   "name": "in-drawdown/gia-heavy/wealthy/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 23336.52273750177,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.20000000000000284,
+     "dp": 15136.008567495272
+    },
+    {
+     "dr": 0.2049999999999983,
+     "dp": -311.007704539923
+    },
+    {
+     "dr": 0.2150000000000034,
+     "dp": 7299.627559418557
+    }
+   ],
+   "meanDr": 0.2066666666666682,
+   "meanDp": 7374.876140791302
+  },
+  {
+   "id": "S045",
+   "name": "in-drawdown/balanced/wealthy/light",
+   "policy": "Costs from ISA",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 2131.0042958190897,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.24500000000000455,
+     "dp": -8337.254921617103
+    },
+    {
+     "dr": 0.3400000000000034,
+     "dp": -7366.868300584261
+    },
+    {
+     "dr": 0.21999999999999886,
+     "dp": 2326.100882674451
+    }
+   ],
+   "meanDr": 0.2683333333333356,
+   "meanDp": -4459.340779842304
+  },
+  {
+   "id": "S045",
+   "name": "in-drawdown/balanced/wealthy/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 2131.0042958190897,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.24500000000000455,
+     "dp": -8337.254921617103
+    },
+    {
+     "dr": 0.3400000000000034,
+     "dp": -7366.868300584261
+    },
+    {
+     "dr": 0.21999999999999886,
+     "dp": 2326.100882674451
+    }
+   ],
+   "meanDr": 0.2683333333333356,
+   "meanDp": -4459.340779842304
+  },
+  {
+   "id": "S057",
+   "name": "in-drawdown/cash-heavy/wealthy/light",
+   "policy": "ISA First",
+   "screenDr": 0.15000000000000568,
+   "screenDp": -25172.767905462766,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.15500000000000114,
+     "dp": -28805.11171883694
+    },
+    {
+     "dr": 0.10000000000000853,
+     "dp": -30589.591458180803
+    },
+    {
+     "dr": 0.21999999999999886,
+     "dp": -44987.654335080646
+    }
+   ],
+   "meanDr": 0.15833333333333618,
+   "meanDp": -34794.119170699465
+  },
+  {
+   "id": "S081",
+   "name": "just-retired/isa-heavy/wealthy/light",
+   "policy": "Costs from ISA",
+   "screenDr": 0.3500000000000085,
+   "screenDp": 25044.729877480655,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.22500000000000853,
+     "dp": 20244.462748417485
+    },
+    {
+     "dr": 0.18500000000000227,
+     "dp": 15158.470536509616
+    },
+    {
+     "dr": 0.26500000000000057,
+     "dp": 13329.9513749092
+    }
+   ],
+   "meanDr": 0.22500000000000378,
+   "meanDp": 16244.2948866121
+  },
+  {
+   "id": "S081",
+   "name": "just-retired/isa-heavy/wealthy/light",
+   "policy": "Costs Spare Cash Last",
+   "screenDr": 0.2500000000000142,
+   "screenDp": 14446.795135190594,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.05500000000000682,
+     "dp": 12360.6932551715
+    },
+    {
+     "dr": 0.07500000000000284,
+     "dp": 5427.665639125917
+    },
+    {
+     "dr": 0.1349999999999909,
+     "dp": 5825.2960979593045
+    }
+   ],
+   "meanDr": 0.08833333333333353,
+   "meanDp": 7871.21833075224
+  },
+  {
+   "id": "S081",
+   "name": "just-retired/isa-heavy/wealthy/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.3500000000000085,
+   "screenDp": 25044.729877480655,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.22500000000000853,
+     "dp": 20244.462748417485
+    },
+    {
+     "dr": 0.18500000000000227,
+     "dp": 15158.470536509616
+    },
+    {
+     "dr": 0.26500000000000057,
+     "dp": 13329.9513749092
+    }
+   ],
+   "meanDr": 0.22500000000000378,
+   "meanDp": 16244.2948866121
+  },
+  {
+   "id": "S089",
+   "name": "just-retired/gia-heavy/modest/heavy",
+   "policy": "ISA First",
+   "screenDr": 0.6499999999999915,
+   "screenDp": 9357.042316839827,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.539999999999992,
+     "dp": 10245.717333370587
+    },
+    {
+     "dr": 0.37999999999999545,
+     "dp": 11377.191273321223
+    },
+    {
+     "dr": 0.46999999999999886,
+     "dp": 8895.852805854054
+    }
+   ],
+   "meanDr": 0.46333333333332877,
+   "meanDp": 10172.920470848621
+  },
+  {
+   "id": "S089",
+   "name": "just-retired/gia-heavy/modest/heavy",
+   "policy": "Costs from ISA",
+   "screenDr": 0.19999999999998863,
+   "screenDp": 7265.810875472322,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.3050000000000068,
+     "dp": 6649.725220835418
+    },
+    {
+     "dr": 0.15000000000000568,
+     "dp": 5926.238344052923
+    },
+    {
+     "dr": 0.3050000000000068,
+     "dp": 6448.510298181645
+    }
+   ],
+   "meanDr": 0.2533333333333398,
+   "meanDp": 6341.491287689995
+  },
+  {
+   "id": "S089",
+   "name": "just-retired/gia-heavy/modest/heavy",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.19999999999998863,
+   "screenDp": 7265.810875472322,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.3050000000000068,
+     "dp": 6649.725220835418
+    },
+    {
+     "dr": 0.15000000000000568,
+     "dp": 5926.238344052923
+    },
+    {
+     "dr": 0.3050000000000068,
+     "dp": 6448.510298181645
+    }
+   ],
+   "meanDr": 0.2533333333333398,
+   "meanDp": 6341.491287689995
+  },
+  {
+   "id": "S141",
+   "name": "early-bridge/isa-heavy/wealthy/light",
+   "policy": "GIA First",
+   "screenDr": 0.25,
+   "screenDp": 0,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.10000000000000853,
+     "dp": 0
+    },
+    {
+     "dr": 0.14499999999999602,
+     "dp": 0
+    },
+    {
+     "dr": 0.08499999999999375,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.10999999999999943,
+   "meanDp": 0
+  },
+  {
+   "id": "S161",
+   "name": "early-bridge/balanced/modest/heavy",
+   "policy": "GIA First",
+   "screenDr": 0.25,
+   "screenDp": 0,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.4350000000000023,
+     "dp": 0
+    },
+    {
+     "dr": 0.4649999999999892,
+     "dp": 0
+    },
+    {
+     "dr": 0.5450000000000017,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.4816666666666644,
+   "meanDp": 0
+  },
+  {
+   "id": "S181",
+   "name": "near/pension-heavy/lean/moderate",
+   "policy": "Costs from Pension",
+   "screenDr": 0,
+   "screenDp": 2355.787088203011,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0.005000000000009663,
+     "dp": 651.1255603689933
+    },
+    {
+     "dr": 0,
+     "dp": 1348.7959109905642
+    },
+    {
+     "dr": 0,
+     "dp": 640.9368736686301
+    }
+   ],
+   "meanDr": 0.0016666666666698877,
+   "meanDp": 880.2861150093959
+  },
+  {
+   "id": "S201",
+   "name": "near/isa-heavy/wealthy/light",
+   "policy": "Costs from Pension",
+   "screenDr": 0.15000000000000568,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.15000000000000568,
+     "dp": 0
+    },
+    {
+     "dr": 0.13000000000000966,
+     "dp": 0
+    },
+    {
+     "dr": 0.12000000000000455,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.13333333333333997,
+   "meanDp": 0
+  },
+  {
+   "id": "S213",
+   "name": "near/gia-heavy/wealthy/light",
+   "policy": "Costs from Pension",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.14000000000001478,
+     "dp": 0
+    },
+    {
+     "dr": 0.11499999999999488,
+     "dp": 0
+    },
+    {
+     "dr": 0.0800000000000125,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.11166666666667406,
+   "meanDp": 0
+  },
+  {
+   "id": "S030",
+   "name": "in-drawdown/gia-heavy/comfortable/light",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 6339.950274689589,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": 14942.450176207814
+    },
+    {
+     "dr": 0,
+     "dp": 18337.42483286292
+    },
+    {
+     "dr": -0.0049999999999954525,
+     "dp": 18863.49733649206
+    }
+   ],
+   "meanDr": -0.0016666666666651508,
+   "meanDp": 17381.1241151876
+  },
+  {
+   "id": "S042",
+   "name": "in-drawdown/balanced/comfortable/light",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 35464.62159662042,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": -0.015000000000000568,
+     "dp": 36268.447050322546
+    },
+    {
+     "dr": -0.04999999999999716,
+     "dp": 36647.92803040589
+    },
+    {
+     "dr": -0.0049999999999954525,
+     "dp": 38287.321041696356
+    }
+   ],
+   "meanDr": -0.02333333333333106,
+   "meanDp": 37067.89870747493
+  },
+  {
+   "id": "S074",
+   "name": "just-retired/isa-heavy/lean/heavy",
+   "policy": "ISA First",
+   "screenDr": 0.20000000000000284,
+   "screenDp": -6580.396399097488,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.2650000000000148,
+     "dp": -7665.6721657383605
+    },
+    {
+     "dr": 0.1799999999999926,
+     "dp": -8353.082035671541
+    },
+    {
+     "dr": 0.18999999999998352,
+     "dp": -8428.756594541657
+    }
+   ],
+   "meanDr": 0.21166666666666364,
+   "meanDp": -8149.170265317186
+  },
+  {
+   "id": "S074",
+   "name": "just-retired/isa-heavy/lean/heavy",
+   "policy": "Cash Last",
+   "screenDr": 0.20000000000000284,
+   "screenDp": -6580.396399097488,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.2650000000000148,
+     "dp": -7665.6721657383605
+    },
+    {
+     "dr": 0.1799999999999926,
+     "dp": -8353.082035671541
+    },
+    {
+     "dr": 0.18999999999998352,
+     "dp": -8428.756594541657
+    }
+   ],
+   "meanDr": 0.21166666666666364,
+   "meanDp": -8149.170265317186
+  },
+  {
+   "id": "S134",
+   "name": "early-bridge/isa-heavy/lean/heavy",
+   "policy": "ISA First",
+   "screenDr": 0.3499999999999943,
+   "screenDp": -1308.1023017604603,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.3100000000000023,
+     "dp": -4230.03110711131
+    },
+    {
+     "dr": 0.35999999999999943,
+     "dp": -5404.298400779313
+    },
+    {
+     "dr": 0.48499999999999943,
+     "dp": -5636.190043777373
+    }
+   ],
+   "meanDr": 0.3850000000000004,
+   "meanDp": -5090.173183889332
+  },
+  {
+   "id": "S138",
+   "name": "early-bridge/isa-heavy/comfortable/light",
+   "policy": "ISA First",
+   "screenDr": 0.6499999999999915,
+   "screenDp": -17959.155681533157,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.6899999999999977,
+     "dp": -15868.046061206842
+    },
+    {
+     "dr": 0.8199999999999932,
+     "dp": -20608.491865805467
+    },
+    {
+     "dr": 0.7950000000000017,
+     "dp": -27927.28095989651
+    }
+   ],
+   "meanDr": 0.7683333333333309,
+   "meanDp": -21467.939628969605
+  },
+  {
+   "id": "S146",
+   "name": "early-bridge/gia-heavy/lean/heavy",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 2401.8443065709434,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.0049999999999954525,
+     "dp": 2416.8032417162904
+    },
+    {
+     "dr": 0,
+     "dp": 2545.2690450215887
+    },
+    {
+     "dr": 0,
+     "dp": 1970.3096669051738
+    }
+   ],
+   "meanDr": 0.0016666666666651508,
+   "meanDp": 2310.7939845476844
+  },
+  {
+   "id": "S150",
+   "name": "early-bridge/gia-heavy/comfortable/light",
+   "policy": "ISA First",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 11625.130675853696,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.27000000000001023,
+     "dp": 21353.68445026141
+    },
+    {
+     "dr": 0.2600000000000051,
+     "dp": 14975.12170316733
+    },
+    {
+     "dr": 0.2950000000000017,
+     "dp": 17198.680351484916
+    }
+   ],
+   "meanDr": 0.2750000000000057,
+   "meanDp": 17842.495501637884
+  },
+  {
+   "id": "S162",
+   "name": "early-bridge/balanced/comfortable/light",
+   "policy": "ISA First",
+   "screenDr": 0.3999999999999915,
+   "screenDp": 11321.849530335225,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.3050000000000068,
+     "dp": 18819.346190246346
+    },
+    {
+     "dr": 0.4200000000000017,
+     "dp": 13079.772152188118
+    },
+    {
+     "dr": 0.37000000000000455,
+     "dp": 14565.846207807423
+    }
+   ],
+   "meanDr": 0.3650000000000044,
+   "meanDp": 15488.321516747295
+  },
+  {
+   "id": "S206",
+   "name": "near/gia-heavy/lean/heavy",
+   "policy": "ISA First",
+   "screenDr": 0.5499999999999972,
+   "screenDp": 2477.4044941359025,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0.3499999999999943,
+     "dp": 668.329035297611
+    },
+    {
+     "dr": 0.2849999999999966,
+     "dp": -75.53193836689752
+    },
+    {
+     "dr": 0.24499999999999034,
+     "dp": 33.15988910198939
+    }
+   ],
+   "meanDr": 0.29333333333332706,
+   "meanDp": 208.65232867756762
+  },
+  {
+   "id": "S210",
+   "name": "near/gia-heavy/comfortable/light",
+   "policy": "ISA First",
+   "screenDr": 0.25,
+   "screenDp": 14049.578079399827,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.0799999999999983,
+     "dp": 17778.861341118463
+    },
+    {
+     "dr": 0.07000000000000739,
+     "dp": 21662.44423937099
+    },
+    {
+     "dr": 0.09499999999999886,
+     "dp": 17400.093468573818
+    }
+   ],
+   "meanDr": 0.08166666666666818,
+   "meanDp": 18947.133016354423
+  },
+  {
+   "id": "S246",
+   "name": "mid/pension-heavy/comfortable/light",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.45000000000000284,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.674999999999983,
+     "dp": 0
+    },
+    {
+     "dr": 0.6599999999999966,
+     "dp": 0
+    },
+    {
+     "dr": 0.6899999999999977,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.6749999999999924,
+   "meanDp": 0
+  },
+  {
+   "id": "S246",
+   "name": "mid/pension-heavy/comfortable/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.45000000000000284,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.674999999999983,
+     "dp": 0
+    },
+    {
+     "dr": 0.6599999999999966,
+     "dp": 0
+    },
+    {
+     "dr": 0.6899999999999977,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.6749999999999924,
+   "meanDp": 0
+  },
+  {
+   "id": "S250",
+   "name": "mid/pension-heavy/wealthy/moderate",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.6999999999999957,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.5300000000000011,
+     "dp": 0
+    },
+    {
+     "dr": 0.5949999999999989,
+     "dp": 0
+    },
+    {
+     "dr": 0.6249999999999929,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.5833333333333309,
+   "meanDp": 0
+  },
+  {
+   "id": "S250",
+   "name": "mid/pension-heavy/wealthy/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.6999999999999957,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.5300000000000011,
+     "dp": 0
+    },
+    {
+     "dr": 0.5949999999999989,
+     "dp": 0
+    },
+    {
+     "dr": 0.6249999999999929,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.5833333333333309,
+   "meanDp": 0
+  },
+  {
+   "id": "S258",
+   "name": "mid/isa-heavy/comfortable/light",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.25,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.33500000000000796,
+     "dp": 0
+    },
+    {
+     "dr": 0.28999999999999204,
+     "dp": 0
+    },
+    {
+     "dr": 0.28000000000000114,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.301666666666667,
+   "meanDp": 0
+  },
+  {
+   "id": "S258",
+   "name": "mid/isa-heavy/comfortable/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.25,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.33500000000000796,
+     "dp": 0
+    },
+    {
+     "dr": 0.28999999999999204,
+     "dp": 0
+    },
+    {
+     "dr": 0.28000000000000114,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.301666666666667,
+   "meanDp": 0
+  },
+  {
+   "id": "S262",
+   "name": "mid/isa-heavy/wealthy/moderate",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.30000000000000426,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.4749999999999943,
+     "dp": 0
+    },
+    {
+     "dr": 0.4650000000000034,
+     "dp": 0
+    },
+    {
+     "dr": 0.3950000000000031,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.4450000000000003,
+   "meanDp": 0
+  },
+  {
+   "id": "S262",
+   "name": "mid/isa-heavy/wealthy/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.30000000000000426,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.4749999999999943,
+     "dp": 0
+    },
+    {
+     "dr": 0.4650000000000034,
+     "dp": 0
+    },
+    {
+     "dr": 0.3950000000000031,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.4450000000000003,
+   "meanDp": 0
+  },
+  {
+   "id": "S270",
+   "name": "mid/gia-heavy/comfortable/light",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.2499999999999858,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.355000000000004,
+     "dp": 0
+    },
+    {
+     "dr": 0.2749999999999915,
+     "dp": 0
+    },
+    {
+     "dr": 0.24500000000000455,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.2916666666666667,
+   "meanDp": 0
+  },
+  {
+   "id": "S270",
+   "name": "mid/gia-heavy/comfortable/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.2499999999999858,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.355000000000004,
+     "dp": 0
+    },
+    {
+     "dr": 0.2749999999999915,
+     "dp": 0
+    },
+    {
+     "dr": 0.24500000000000455,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.2916666666666667,
+   "meanDp": 0
+  },
+  {
+   "id": "S274",
+   "name": "mid/gia-heavy/wealthy/moderate",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.45000000000000284,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.4750000000000014,
+     "dp": 0
+    },
+    {
+     "dr": 0.5250000000000057,
+     "dp": 0
+    },
+    {
+     "dr": 0.4650000000000105,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.4883333333333392,
+   "meanDp": 0
+  },
+  {
+   "id": "S274",
+   "name": "mid/gia-heavy/wealthy/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.45000000000000284,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.4750000000000014,
+     "dp": 0
+    },
+    {
+     "dr": 0.5250000000000057,
+     "dp": 0
+    },
+    {
+     "dr": 0.4650000000000105,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.4883333333333392,
+   "meanDp": 0
+  },
+  {
+   "id": "S286",
+   "name": "mid/balanced/wealthy/moderate",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.6000000000000014,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.4649999999999963,
+     "dp": 0
+    },
+    {
+     "dr": 0.509999999999998,
+     "dp": 0
+    },
+    {
+     "dr": 0.5050000000000026,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.4933333333333323,
+   "meanDp": 0
+  },
+  {
+   "id": "S286",
+   "name": "mid/balanced/wealthy/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.6000000000000014,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.4649999999999963,
+     "dp": 0
+    },
+    {
+     "dr": 0.509999999999998,
+     "dp": 0
+    },
+    {
+     "dr": 0.5050000000000026,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.4933333333333323,
+   "meanDp": 0
+  },
+  {
+   "id": "S298",
+   "name": "mid/cash-heavy/wealthy/moderate",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.5499999999999972,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.5749999999999957,
+     "dp": 0
+    },
+    {
+     "dr": 0.5450000000000088,
+     "dp": 0
+    },
+    {
+     "dr": 0.45999999999999375,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.5266666666666661,
+   "meanDp": 0
+  },
+  {
+   "id": "S298",
+   "name": "mid/cash-heavy/wealthy/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.5499999999999972,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.5749999999999957,
+     "dp": 0
+    },
+    {
+     "dr": 0.5450000000000088,
+     "dp": 0
+    },
+    {
+     "dr": 0.45999999999999375,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.5266666666666661,
+   "meanDp": 0
+  },
+  {
+   "id": "S302",
+   "name": "far/pension-heavy/lean/heavy",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.2500000000000071,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.375,
+     "dp": 0
+    },
+    {
+     "dr": 0.259999999999998,
+     "dp": 0
+    },
+    {
+     "dr": 0.3149999999999977,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.31666666666666526,
+   "meanDp": 0
+  },
+  {
+   "id": "S302",
+   "name": "far/pension-heavy/lean/heavy",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.2500000000000071,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.375,
+     "dp": 0
+    },
+    {
+     "dr": 0.259999999999998,
+     "dp": 0
+    },
+    {
+     "dr": 0.3149999999999977,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.31666666666666526,
+   "meanDp": 0
+  },
+  {
+   "id": "S306",
+   "name": "far/pension-heavy/comfortable/light",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.2500000000000071,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.36000000000000654,
+     "dp": 0
+    },
+    {
+     "dr": 0.2749999999999986,
+     "dp": 0
+    },
+    {
+     "dr": 0.3450000000000131,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.3266666666666727,
+   "meanDp": 0
+  },
+  {
+   "id": "S306",
+   "name": "far/pension-heavy/comfortable/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.2500000000000071,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.36000000000000654,
+     "dp": 0
+    },
+    {
+     "dr": 0.2749999999999986,
+     "dp": 0
+    },
+    {
+     "dr": 0.3450000000000131,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.3266666666666727,
+   "meanDp": 0
+  },
+  {
+   "id": "S330",
+   "name": "far/gia-heavy/comfortable/light",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.29999999999999716,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.20000000000000284,
+     "dp": 0
+    },
+    {
+     "dr": 0.18999999999999773,
+     "dp": 0
+    },
+    {
+     "dr": 0.26500000000000057,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.2183333333333337,
+   "meanDp": 0
+  },
+  {
+   "id": "S330",
+   "name": "far/gia-heavy/comfortable/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.29999999999999716,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.20000000000000284,
+     "dp": 0
+    },
+    {
+     "dr": 0.18999999999999773,
+     "dp": 0
+    },
+    {
+     "dr": 0.26500000000000057,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.2183333333333337,
+   "meanDp": 0
+  },
+  {
+   "id": "S342",
+   "name": "far/balanced/comfortable/light",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.3500000000000085,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.4200000000000017,
+     "dp": 0
+    },
+    {
+     "dr": 0.3100000000000023,
+     "dp": 0
+    },
+    {
+     "dr": 0.40500000000000114,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.378333333333335,
+   "meanDp": 0
+  },
+  {
+   "id": "S342",
+   "name": "far/balanced/comfortable/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.3500000000000085,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.4200000000000017,
+     "dp": 0
+    },
+    {
+     "dr": 0.3100000000000023,
+     "dp": 0
+    },
+    {
+     "dr": 0.40500000000000114,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.378333333333335,
+   "meanDp": 0
+  },
+  {
+   "id": "S354",
+   "name": "far/cash-heavy/comfortable/light",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.18500000000000227,
+     "dp": 0
+    },
+    {
+     "dr": 0.2150000000000034,
+     "dp": 0
+    },
+    {
+     "dr": 0.24499999999999034,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.21499999999999866,
+   "meanDp": 0
+  },
+  {
+   "id": "S354",
+   "name": "far/cash-heavy/comfortable/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.18500000000000227,
+     "dp": 0
+    },
+    {
+     "dr": 0.2150000000000034,
+     "dp": 0
+    },
+    {
+     "dr": 0.24499999999999034,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.21499999999999866,
+   "meanDp": 0
+  },
+  {
+   "id": "S358",
+   "name": "far/cash-heavy/wealthy/moderate",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.19999999999999574,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.18500000000000227,
+     "dp": 0
+    },
+    {
+     "dr": 0.14499999999999602,
+     "dp": 0
+    },
+    {
+     "dr": 0.15500000000000824,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.16166666666666885,
+   "meanDp": 0
+  },
+  {
+   "id": "S358",
+   "name": "far/cash-heavy/wealthy/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.19999999999999574,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.18500000000000227,
+     "dp": 0
+    },
+    {
+     "dr": 0.14499999999999602,
+     "dp": 0
+    },
+    {
+     "dr": 0.15500000000000824,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.16166666666666885,
+   "meanDp": 0
+  },
+  {
+   "id": "S007",
+   "name": "in-drawdown/pension-heavy/comfortable/moderate",
+   "policy": "Costs from ISA",
+   "screenDr": 0.2499999999999858,
+   "screenDp": -5308.184002727328,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.10500000000000398,
+     "dp": -12328.97322563798
+    },
+    {
+     "dr": 0.09000000000000341,
+     "dp": -10215.107305815094
+    },
+    {
+     "dr": 0.08499999999999375,
+     "dp": -11718.407527256466
+    }
+   ],
+   "meanDr": 0.09333333333333371,
+   "meanDp": -11420.82935290318
+  },
+  {
+   "id": "S007",
+   "name": "in-drawdown/pension-heavy/comfortable/moderate",
+   "policy": "Costs from Pension",
+   "screenDr": 0.5499999999999972,
+   "screenDp": 11739.902173289214,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.3100000000000023,
+     "dp": 2853.5318081233418
+    },
+    {
+     "dr": 0.26500000000000057,
+     "dp": 4422.511903734296
+    },
+    {
+     "dr": 0.3049999999999926,
+     "dp": 4686.930044890672
+    }
+   ],
+   "meanDr": 0.29333333333333184,
+   "meanDp": 3987.6579189161034
+  },
+  {
+   "id": "S007",
+   "name": "in-drawdown/pension-heavy/comfortable/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.20000000000000284,
+   "screenDp": -1842.7222998997895,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.06500000000001194,
+     "dp": -10441.87107783591
+    },
+    {
+     "dr": 0.060000000000002274,
+     "dp": -9424.345884621318
+    },
+    {
+     "dr": 0.08499999999999375,
+     "dp": -11110.071202060266
+    }
+   ],
+   "meanDr": 0.07000000000000266,
+   "meanDp": -10325.429388172497
+  },
+  {
+   "id": "S019",
+   "name": "in-drawdown/isa-heavy/comfortable/moderate",
+   "policy": "ISA First",
+   "screenDr": 0.5500000000000114,
+   "screenDp": 14702.652783632977,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.5300000000000153,
+     "dp": 11502.766749031027
+    },
+    {
+     "dr": 0.45999999999999375,
+     "dp": 12860.77695205703
+    },
+    {
+     "dr": 0.34499999999999886,
+     "dp": 7917.403565614135
+    }
+   ],
+   "meanDr": 0.44500000000000267,
+   "meanDp": 10760.315755567397
+  },
+  {
+   "id": "S019",
+   "name": "in-drawdown/isa-heavy/comfortable/moderate",
+   "policy": "Costs from ISA",
+   "screenDr": 0.29999999999999716,
+   "screenDp": -502.2834426249028,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.2500000000000142,
+     "dp": 6428.5659909120295
+    },
+    {
+     "dr": 0.21999999999999886,
+     "dp": 3976.3389318549307
+    },
+    {
+     "dr": 0.24500000000000455,
+     "dp": 6616.451651751646
+    }
+   ],
+   "meanDr": 0.2383333333333392,
+   "meanDp": 5673.785524839535
+  },
+  {
+   "id": "S019",
+   "name": "in-drawdown/isa-heavy/comfortable/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 6041.736914644134,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.3050000000000068,
+     "dp": 10328.77155282558
+    },
+    {
+     "dr": 0.3100000000000023,
+     "dp": 6726.108030966832
+    },
+    {
+     "dr": 0.34499999999999886,
+     "dp": 11588.47419999435
+    }
+   ],
+   "meanDr": 0.32000000000000267,
+   "meanDp": 9547.784594595587
+  },
+  {
+   "id": "S031",
+   "name": "in-drawdown/gia-heavy/comfortable/moderate",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 24718.890240937355,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.005000000000009663,
+     "dp": 18042.099892120692
+    },
+    {
+     "dr": 0.0049999999999954525,
+     "dp": 18856.216100623948
+    },
+    {
+     "dr": 0,
+     "dp": 19729.780186640564
+    }
+   ],
+   "meanDr": 0.0033333333333350388,
+   "meanDp": 18876.032059795067
+  },
+  {
+   "id": "S031",
+   "name": "in-drawdown/gia-heavy/comfortable/moderate",
+   "policy": "Costs from ISA",
+   "screenDr": 0,
+   "screenDp": 14895.915322881308,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.025000000000005684,
+     "dp": 4781.952452862868
+    },
+    {
+     "dr": 0.024999999999991473,
+     "dp": 1846.0447823976865
+    },
+    {
+     "dr": 0.030000000000001137,
+     "dp": 2707.137463959516
+    }
+   ],
+   "meanDr": 0.0266666666666661,
+   "meanDp": 3111.71156640669
+  },
+  {
+   "id": "S031",
+   "name": "in-drawdown/gia-heavy/comfortable/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0,
+   "screenDp": 14962.273498989991,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.020000000000010232,
+     "dp": 3989.1870651303325
+    },
+    {
+     "dr": 0.01999999999999602,
+     "dp": 879.7368002386065
+    },
+    {
+     "dr": 0.024999999999991473,
+     "dp": 2603.1469454125036
+    }
+   ],
+   "meanDr": 0.021666666666665908,
+   "meanDp": 2490.6902702604807
+  },
+  {
+   "id": "S043",
+   "name": "in-drawdown/balanced/comfortable/moderate",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 21787.35675545386,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.015000000000000568,
+     "dp": 29144.674803598085
+    },
+    {
+     "dr": 0.010000000000005116,
+     "dp": 28719.01550350059
+    },
+    {
+     "dr": -0.005000000000009663,
+     "dp": 27688.87690907286
+    }
+   ],
+   "meanDr": 0.00666666666666534,
+   "meanDp": 28517.52240539051
+  },
+  {
+   "id": "S067",
+   "name": "just-retired/pension-heavy/comfortable/moderate",
+   "policy": "ISA First",
+   "screenDr": 0.29999999999999716,
+   "screenDp": 15233.721231427742,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.2849999999999966,
+     "dp": 10865.390703816258
+    },
+    {
+     "dr": 0.355000000000004,
+     "dp": 15179.237114009098
+    },
+    {
+     "dr": 0.21000000000000796,
+     "dp": 10701.352397686162
+    }
+   ],
+   "meanDr": 0.28333333333333616,
+   "meanDp": 12248.660071837172
+  },
+  {
+   "id": "S075",
+   "name": "just-retired/isa-heavy/modest/light",
+   "policy": "Costs from ISA",
+   "screenDr": 0,
+   "screenDp": 2008.8341605033493,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": true,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": 2243.7117652439047
+    },
+    {
+     "dr": 0,
+     "dp": 2661.5838252959074
+    },
+    {
+     "dr": 0,
+     "dp": 2742.398248940124
+    }
+   ],
+   "meanDr": 0,
+   "meanDp": 2549.2312798266453
+  },
+  {
+   "id": "S083",
+   "name": "just-retired/isa-heavy/wealthy/heavy",
+   "policy": "GIA First",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.2600000000000051,
+     "dp": 0
+    },
+    {
+     "dr": 0.3749999999999929,
+     "dp": 0
+    },
+    {
+     "dr": 0.37000000000000455,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.33500000000000085,
+   "meanDp": 0
+  },
+  {
+   "id": "S091",
+   "name": "just-retired/gia-heavy/comfortable/moderate",
+   "policy": "Cash Last",
+   "screenDr": 0.15000000000000568,
+   "screenDp": -29883.063471271133,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.15500000000000114,
+     "dp": -39867.831234201905
+    },
+    {
+     "dr": 0.14000000000000057,
+     "dp": -36107.91227707447
+    },
+    {
+     "dr": 0.09000000000000341,
+     "dp": -36992.612442068465
+    }
+   ],
+   "meanDr": 0.12833333333333505,
+   "meanDp": -37656.11865111495
+  },
+  {
+   "id": "S091",
+   "name": "just-retired/gia-heavy/comfortable/moderate",
+   "policy": "Costs from ISA",
+   "screenDr": 0.2500000000000142,
+   "screenDp": 5149.341548590339,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.25,
+     "dp": 6179.756078841921
+    },
+    {
+     "dr": 0.27000000000001023,
+     "dp": 5021.692907111661
+    },
+    {
+     "dr": 0.2500000000000142,
+     "dp": 6712.136123587377
+    }
+   ],
+   "meanDr": 0.2566666666666748,
+   "meanDp": 5971.195036513654
+  },
+  {
+   "id": "S091",
+   "name": "just-retired/gia-heavy/comfortable/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.20000000000000284,
+   "screenDp": 1160.691578875354,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.18500000000000227,
+     "dp": 5229.028812484641
+    },
+    {
+     "dr": 0.21999999999999886,
+     "dp": 3423.137148604903
+    },
+    {
+     "dr": 0.19000000000001194,
+     "dp": 5819.112044512876
+    }
+   ],
+   "meanDr": 0.1983333333333377,
+   "meanDp": 4823.759335200807
+  },
+  {
+   "id": "S103",
+   "name": "just-retired/balanced/comfortable/moderate",
+   "policy": "Costs from ISA",
+   "screenDr": 0.4000000000000057,
+   "screenDp": 7439.184847713332,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.20999999999999375,
+     "dp": -1204.996847831586
+    },
+    {
+     "dr": 0.2850000000000108,
+     "dp": 2968.6905908900662
+    },
+    {
+     "dr": 0.32500000000000284,
+     "dp": -580.7731653683004
+    }
+   ],
+   "meanDr": 0.2733333333333358,
+   "meanDp": 394.30685923005996
+  },
+  {
+   "id": "S103",
+   "name": "just-retired/balanced/comfortable/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.3500000000000085,
+   "screenDp": 7440.305171045824,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.16500000000000625,
+     "dp": 37.7527456486132
+    },
+    {
+     "dr": 0.23000000000000398,
+     "dp": 2475.9770830099587
+    },
+    {
+     "dr": 0.2849999999999966,
+     "dp": -867.2593627378228
+    }
+   ],
+   "meanDr": 0.22666666666666893,
+   "meanDp": 548.8234886402497
+  },
+  {
+   "id": "S127",
+   "name": "early-bridge/pension-heavy/comfortable/moderate",
+   "policy": "ISA First",
+   "screenDr": 0.45000000000000284,
+   "screenDp": 0,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.3399999999999892,
+     "dp": 0
+    },
+    {
+     "dr": 0.2849999999999824,
+     "dp": 0
+    },
+    {
+     "dr": 0.2849999999999966,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.30333333333332274,
+   "meanDp": 0
+  },
+  {
+   "id": "S135",
+   "name": "early-bridge/isa-heavy/modest/light",
+   "policy": "Costs from ISA",
+   "screenDr": 0,
+   "screenDp": 2793.12860969943,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": 1266.3746740833158
+    },
+    {
+     "dr": 0,
+     "dp": 830.2178863751469
+    },
+    {
+     "dr": 0,
+     "dp": 1448.963265034603
+    }
+   ],
+   "meanDr": 0,
+   "meanDp": 1181.8519418310218
+  },
+  {
+   "id": "S139",
+   "name": "early-bridge/isa-heavy/comfortable/moderate",
+   "policy": "GIA First",
+   "screenDr": 0,
+   "screenDp": 10888.087221907903,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.0049999999999954525,
+     "dp": 3842.762345502837
+    },
+    {
+     "dr": 0.0049999999999954525,
+     "dp": 3741.1593845135576
+    },
+    {
+     "dr": -0.025000000000019895,
+     "dp": 4711.955170839981
+    }
+   ],
+   "meanDr": -0.005000000000009663,
+   "meanDp": 4098.625633618792
+  },
+  {
+   "id": "S159",
+   "name": "early-bridge/balanced/modest/light",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 9955.23796087096,
+   "shipped": "Bracket Fill",
+   "drawdown": "Phased Drawdown",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": -0.009999999999990905,
+     "dp": 5223.701701357844
+    },
+    {
+     "dr": 0.010000000000005116,
+     "dp": 8408.690749472124
+    },
+    {
+     "dr": 0.01999999999999602,
+     "dp": 9420.141338791698
+    }
+   ],
+   "meanDr": 0.0066666666666700776,
+   "meanDp": 7684.177929873888
+  },
+  {
+   "id": "S159",
+   "name": "early-bridge/balanced/modest/light",
+   "policy": "Cash Last",
+   "screenDr": 0,
+   "screenDp": 9955.23796087096,
+   "shipped": "Bracket Fill",
+   "drawdown": "Phased Drawdown",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": -0.009999999999990905,
+     "dp": 5223.701701357844
+    },
+    {
+     "dr": 0.010000000000005116,
+     "dp": 8408.690749472124
+    },
+    {
+     "dr": 0.01999999999999602,
+     "dp": 9420.141338791698
+    }
+   ],
+   "meanDr": 0.0066666666666700776,
+   "meanDp": 7684.177929873888
+  },
+  {
+   "id": "S159",
+   "name": "early-bridge/balanced/modest/light",
+   "policy": "Costs from ISA",
+   "screenDr": 0,
+   "screenDp": 7542.895560364937,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.010000000000005116,
+     "dp": 6195.131294634659
+    },
+    {
+     "dr": 0.015000000000000568,
+     "dp": 8513.696116582025
+    },
+    {
+     "dr": 0.015000000000000568,
+     "dp": 8779.890119404532
+    }
+   ],
+   "meanDr": 0.013333333333335418,
+   "meanDp": 7829.572510207072
+  },
+  {
+   "id": "S191",
+   "name": "near/pension-heavy/wealthy/heavy",
+   "policy": "Costs from Pension",
+   "screenDr": 0.29999999999999716,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.39000000000000057,
+     "dp": 0
+    },
+    {
+     "dr": 0.365000000000002,
+     "dp": 0
+    },
+    {
+     "dr": 0.3850000000000051,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.38000000000000256,
+   "meanDp": 0
+  },
+  {
+   "id": "S247",
+   "name": "mid/pension-heavy/comfortable/moderate",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.3499999999999943,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.22500000000000142,
+     "dp": 0
+    },
+    {
+     "dr": 0.20000000000000284,
+     "dp": 0
+    },
+    {
+     "dr": 0.11999999999999744,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.18166666666666723,
+   "meanDp": 0
+  },
+  {
+   "id": "S251",
+   "name": "mid/pension-heavy/wealthy/heavy",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.6000000000000014,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.42999999999999616,
+     "dp": 0
+    },
+    {
+     "dr": 0.5500000000000007,
+     "dp": 0
+    },
+    {
+     "dr": 0.5,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.4933333333333323,
+   "meanDp": 0
+  },
+  {
+   "id": "S263",
+   "name": "mid/isa-heavy/wealthy/heavy",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.3500000000000014,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.3549999999999969,
+     "dp": 0
+    },
+    {
+     "dr": 0.37000000000000455,
+     "dp": 0
+    },
+    {
+     "dr": 0.355000000000004,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.3600000000000018,
+   "meanDp": 0
+  },
+  {
+   "id": "S275",
+   "name": "mid/gia-heavy/wealthy/heavy",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.25,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.33500000000000085,
+     "dp": 0
+    },
+    {
+     "dr": 0.3649999999999949,
+     "dp": 0
+    },
+    {
+     "dr": 0.355000000000004,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.35166666666666657,
+   "meanDp": 0
+  },
+  {
+   "id": "S287",
+   "name": "mid/balanced/wealthy/heavy",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.3499999999999943,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.3549999999999969,
+     "dp": 0
+    },
+    {
+     "dr": 0.33499999999999375,
+     "dp": 0
+    },
+    {
+     "dr": 0.41499999999999915,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.3683333333333299,
+   "meanDp": 0
+  },
+  {
+   "id": "S299",
+   "name": "mid/cash-heavy/wealthy/heavy",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.3500000000000014,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.37000000000000455,
+     "dp": 0
+    },
+    {
+     "dr": 0.4100000000000037,
+     "dp": 0
+    },
+    {
+     "dr": 0.3549999999999969,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.378333333333335,
+   "meanDp": 0
+  },
+  {
+   "id": "S307",
+   "name": "far/pension-heavy/comfortable/moderate",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.30000000000000426,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.09499999999999886,
+     "dp": 0
+    },
+    {
+     "dr": 0.09499999999999886,
+     "dp": 0
+    },
+    {
+     "dr": 0.14499999999999602,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.11166666666666458,
+   "meanDp": 0
+  },
+  {
+   "id": "S311",
+   "name": "far/pension-heavy/wealthy/heavy",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.25,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.19500000000000028,
+     "dp": 0
+    },
+    {
+     "dr": 0.10999999999999943,
+     "dp": 0
+    },
+    {
+     "dr": 0.19000000000000483,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.1650000000000015,
+   "meanDp": 0
+  },
+  {
+   "id": "S315",
+   "name": "far/isa-heavy/modest/light",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.15000000000000568,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.09999999999999432,
+     "dp": 0
+    },
+    {
+     "dr": 0.19000000000001194,
+     "dp": 0
+    },
+    {
+     "dr": 0.1700000000000017,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.15333333333333599,
+   "meanDp": 0
+  },
+  {
+   "id": "S355",
+   "name": "far/cash-heavy/comfortable/moderate",
+   "policy": "Windfall to ISA",
+   "screenDr": 0.30000000000000426,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.20000000000000284,
+     "dp": 0
+    },
+    {
+     "dr": 0.19499999999998607,
+     "dp": 0
+    },
+    {
+     "dr": 0.2600000000000051,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.21833333333333135,
+   "meanDp": 0
+  }
+ ],
+ "reversed": [
+  {
+   "id": "S004",
+   "name": "in-drawdown/pension-heavy/modest/moderate",
+   "policy": "ISA First",
+   "screenDr": 0.3500000000000085,
+   "screenDp": 6877.021109037829,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": -0.010000000000005116,
+     "dp": 2443.824330302479
+    },
+    {
+     "dr": -0.12999999999999545,
+     "dp": 1093.1621147460537
+    },
+    {
+     "dr": 0.030000000000015348,
+     "dp": 1825.2274476612802
+    }
+   ],
+   "meanDr": -0.03666666666666174,
+   "meanDp": 1787.404630903271
+  },
+  {
+   "id": "S016",
+   "name": "in-drawdown/isa-heavy/modest/moderate",
+   "policy": "GIA First",
+   "screenDr": 0,
+   "screenDp": 2680.880883856007,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": -0.04999999999999716,
+     "dp": 2809.8808111823164
+    },
+    {
+     "dr": -0.05499999999999261,
+     "dp": 2684.501654593216
+    },
+    {
+     "dr": -0.0800000000000125,
+     "dp": 2368.6017083805928
+    }
+   ],
+   "meanDr": -0.061666666666667425,
+   "meanDp": 2620.9947247187083
+  },
+  {
+   "id": "S156",
+   "name": "early-bridge/balanced/lean/light",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 2317.600803500449,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": -3096.541768283583
+    },
+    {
+     "dr": 0,
+     "dp": -5521.251061038056
+    },
+    {
+     "dr": 0,
+     "dp": -5502.414794733748
+    }
+   ],
+   "meanDr": 0,
+   "meanDp": -4706.735874685129
+  },
+  {
+   "id": "S156",
+   "name": "early-bridge/balanced/lean/light",
+   "policy": "Cash Last",
+   "screenDr": 0,
+   "screenDp": 2317.600803500449,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": -3096.541768283583
+    },
+    {
+     "dr": 0,
+     "dp": -5521.251061038056
+    },
+    {
+     "dr": 0,
+     "dp": -5502.414794733748
+    }
+   ],
+   "meanDr": 0,
+   "meanDp": -4706.735874685129
+  },
+  {
+   "id": "S009",
+   "name": "in-drawdown/pension-heavy/wealthy/light",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 27249.2603345408,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": -0.015000000000000568,
+     "dp": 35409.71149683767
+    },
+    {
+     "dr": 0.08499999999999375,
+     "dp": 36446.126457492006
+    },
+    {
+     "dr": 0.12000000000001876,
+     "dp": 37107.683942361386
+    }
+   ],
+   "meanDr": 0.06333333333333731,
+   "meanDp": 36321.173965563685
+  },
+  {
+   "id": "S029",
+   "name": "in-drawdown/gia-heavy/modest/heavy",
+   "policy": "Costs from Pension",
+   "screenDr": 0,
+   "screenDp": 2276.9737031725817,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.01500000000001478,
+     "dp": -108.18355020094896
+    },
+    {
+     "dr": 0.06499999999999773,
+     "dp": -2498.8075333607267
+    },
+    {
+     "dr": 0.03999999999999204,
+     "dp": -1876.3359217052348
+    }
+   ],
+   "meanDr": 0.040000000000001514,
+   "meanDp": -1494.4423350889701
+  },
+  {
+   "id": "S045",
+   "name": "in-drawdown/balanced/wealthy/light",
+   "policy": "Costs from Pension",
+   "screenDr": 0,
+   "screenDp": 2628.1648725426057,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.010000000000005116,
+     "dp": -1326.3010541083058
+    },
+    {
+     "dr": 0.015000000000000568,
+     "dp": -82.88185310550034
+    },
+    {
+     "dr": 0.015000000000000568,
+     "dp": 2050.1166048543528
+    }
+   ],
+   "meanDr": 0.013333333333335418,
+   "meanDp": 213.6445658801822
+  },
+  {
+   "id": "S105",
+   "name": "just-retired/balanced/wealthy/light",
+   "policy": "Costs from ISA",
+   "screenDr": 0.29999999999999716,
+   "screenDp": 10913.03830221275,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.024999999999991473,
+     "dp": -932.8555461925134
+    },
+    {
+     "dr": 0.05500000000000682,
+     "dp": -5786.70707100966
+    },
+    {
+     "dr": 0.15500000000000114,
+     "dp": -4883.06772507148
+    }
+   ],
+   "meanDr": 0.07833333333333314,
+   "meanDp": -3867.543447424551
+  },
+  {
+   "id": "S105",
+   "name": "just-retired/balanced/wealthy/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.29999999999999716,
+   "screenDp": 10913.03830221275,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.024999999999991473,
+     "dp": -932.8555461925134
+    },
+    {
+     "dr": 0.05500000000000682,
+     "dp": -5786.70707100966
+    },
+    {
+     "dr": 0.15500000000000114,
+     "dp": -4883.06772507148
+    }
+   ],
+   "meanDr": 0.07833333333333314,
+   "meanDp": -3867.543447424551
+  },
+  {
+   "id": "S121",
+   "name": "early-bridge/pension-heavy/lean/moderate",
+   "policy": "Costs from ISA",
+   "screenDr": 0,
+   "screenDp": 10208.565916691266,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.06499999999999773,
+     "dp": 8603.809948392212
+    },
+    {
+     "dr": 0.03999999999999204,
+     "dp": 8482.663654040778
+    },
+    {
+     "dr": 0.07500000000000284,
+     "dp": 8957.881561796647
+    }
+   ],
+   "meanDr": 0.059999999999997534,
+   "meanDp": 8681.45172140988
+  },
+  {
+   "id": "S121",
+   "name": "early-bridge/pension-heavy/lean/moderate",
+   "policy": "Costs from Pension",
+   "screenDr": 0,
+   "screenDp": 7775.139804122795,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.030000000000001137,
+     "dp": 7129.9108714662725
+    },
+    {
+     "dr": 0.030000000000001137,
+     "dp": 6837.671638031839
+    },
+    {
+     "dr": 0.06499999999999773,
+     "dp": 7341.651923280442
+    }
+   ],
+   "meanDr": 0.041666666666666664,
+   "meanDp": 7103.078144259518
+  },
+  {
+   "id": "S121",
+   "name": "early-bridge/pension-heavy/lean/moderate",
+   "policy": "Costs Spare Cash Last",
+   "screenDr": 0,
+   "screenDp": 10208.565916691266,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.06499999999999773,
+     "dp": 8603.809948392212
+    },
+    {
+     "dr": 0.03999999999999204,
+     "dp": 8437.765706378617
+    },
+    {
+     "dr": 0.07500000000000284,
+     "dp": 8957.881561796647
+    }
+   ],
+   "meanDr": 0.059999999999997534,
+   "meanDp": 8666.485738855825
+  },
+  {
+   "id": "S121",
+   "name": "early-bridge/pension-heavy/lean/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0,
+   "screenDp": 10208.565916691266,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.06499999999999773,
+     "dp": 8603.809948392212
+    },
+    {
+     "dr": 0.03999999999999204,
+     "dp": 8482.663654040778
+    },
+    {
+     "dr": 0.07500000000000284,
+     "dp": 8957.881561796647
+    }
+   ],
+   "meanDr": 0.059999999999997534,
+   "meanDp": 8681.45172140988
+  },
+  {
+   "id": "S141",
+   "name": "early-bridge/isa-heavy/wealthy/light",
+   "policy": "Costs from ISA",
+   "screenDr": 0.29999999999999716,
+   "screenDp": 0,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.12999999999999545,
+     "dp": 0
+    },
+    {
+     "dr": 0.015000000000000568,
+     "dp": 0
+    },
+    {
+     "dr": 0.08499999999999375,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.07666666666666326,
+   "meanDp": 0
+  },
+  {
+   "id": "S141",
+   "name": "early-bridge/isa-heavy/wealthy/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.29999999999999716,
+   "screenDp": 0,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.12999999999999545,
+     "dp": 0
+    },
+    {
+     "dr": 0.015000000000000568,
+     "dp": 0
+    },
+    {
+     "dr": 0.08499999999999375,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.07666666666666326,
+   "meanDp": 0
+  },
+  {
+   "id": "S181",
+   "name": "near/pension-heavy/lean/moderate",
+   "policy": "Costs from ISA",
+   "screenDr": 0,
+   "screenDp": 2369.8711407480296,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0.005000000000009663,
+     "dp": -289.6718855787767
+    },
+    {
+     "dr": 0,
+     "dp": 434.12093537539477
+    },
+    {
+     "dr": 0,
+     "dp": -222.75511159771122
+    }
+   ],
+   "meanDr": 0.0016666666666698877,
+   "meanDp": -26.102020600364387
+  },
+  {
+   "id": "S181",
+   "name": "near/pension-heavy/lean/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0,
+   "screenDp": 2369.8711407480296,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0.005000000000009663,
+     "dp": -289.6718855787767
+    },
+    {
+     "dr": 0,
+     "dp": 434.12093537539477
+    },
+    {
+     "dr": 0,
+     "dp": -222.75511159771122
+    }
+   ],
+   "meanDr": 0.0016666666666698877,
+   "meanDp": -26.102020600364387
+  },
+  {
+   "id": "S201",
+   "name": "near/isa-heavy/wealthy/light",
+   "policy": "Costs from ISA",
+   "screenDr": 0.29999999999999716,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.16499999999999204,
+     "dp": 0
+    },
+    {
+     "dr": 0.18500000000000227,
+     "dp": 0
+    },
+    {
+     "dr": 0.03499999999999659,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.1283333333333303,
+   "meanDp": 0
+  },
+  {
+   "id": "S201",
+   "name": "near/isa-heavy/wealthy/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.29999999999999716,
+   "screenDp": 0,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.16499999999999204,
+     "dp": 0
+    },
+    {
+     "dr": 0.18500000000000227,
+     "dp": 0
+    },
+    {
+     "dr": 0.03499999999999659,
+     "dp": 0
+    }
+   ],
+   "meanDr": 0.1283333333333303,
+   "meanDp": 0
+  },
+  {
+   "id": "S205",
+   "name": "near/gia-heavy/lean/moderate",
+   "policy": "Costs from ISA",
+   "screenDr": 0,
+   "screenDp": 2907.9751489193295,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": 921.6342978053144
+    },
+    {
+     "dr": 0,
+     "dp": -659.254993071314
+    },
+    {
+     "dr": 0,
+     "dp": -305.35472835227847
+    }
+   ],
+   "meanDr": 0,
+   "meanDp": -14.325141206092667
+  },
+  {
+   "id": "S205",
+   "name": "near/gia-heavy/lean/moderate",
+   "policy": "Wrapper Aware",
+   "screenDr": 0,
+   "screenDp": 2907.9751489193295,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": 921.6342978053144
+    },
+    {
+     "dr": 0,
+     "dp": -659.254993071314
+    },
+    {
+     "dr": 0,
+     "dp": -305.35472835227847
+    }
+   ],
+   "meanDr": 0,
+   "meanDp": -14.325141206092667
+  },
+  {
+   "id": "S233",
+   "name": "near/cash-heavy/modest/heavy",
+   "policy": "Costs from Pension",
+   "screenDr": 0.15000000000000568,
+   "screenDp": 0,
+   "shipped": "Bracket Fill",
+   "drawdown": "Phased Drawdown",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": -0.10999999999999943,
+     "dp": 0
+    },
+    {
+     "dr": -0.28000000000000114,
+     "dp": 0
+    },
+    {
+     "dr": -0.15500000000001535,
+     "dp": 0
+    }
+   ],
+   "meanDr": -0.18166666666667197,
+   "meanDp": 0
+  },
+  {
+   "id": "S054",
+   "name": "in-drawdown/cash-heavy/comfortable/light",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 29841.528756578104,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.07500000000000284,
+     "dp": 35512.920191982994
+    },
+    {
+     "dr": 0.08499999999999375,
+     "dp": 34662.33154544805
+    },
+    {
+     "dr": 0.07000000000000739,
+     "dp": 33846.849672740675
+    }
+   ],
+   "meanDr": 0.07666666666666799,
+   "meanDp": 34674.03380339057
+  },
+  {
+   "id": "S062",
+   "name": "just-retired/pension-heavy/lean/heavy",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 8421.542540105118,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": -0.07499999999998863,
+     "dp": 6173.860898311337
+    },
+    {
+     "dr": -0.09499999999999886,
+     "dp": 4904.068209835852
+    },
+    {
+     "dr": -0.14499999999999602,
+     "dp": 7933.496415773465
+    }
+   ],
+   "meanDr": -0.1049999999999945,
+   "meanDp": 6337.141841306885
+  },
+  {
+   "id": "S062",
+   "name": "just-retired/pension-heavy/lean/heavy",
+   "policy": "Cash Last",
+   "screenDr": 0,
+   "screenDp": 8421.542540105118,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Phased Drawdown",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": -0.07499999999998863,
+     "dp": 6173.860898311337
+    },
+    {
+     "dr": -0.09499999999999886,
+     "dp": 4904.068209835852
+    },
+    {
+     "dr": -0.14499999999999602,
+     "dp": 7933.496415773465
+    }
+   ],
+   "meanDr": -0.1049999999999945,
+   "meanDp": 6337.141841306885
+  },
+  {
+   "id": "S134",
+   "name": "early-bridge/isa-heavy/lean/heavy",
+   "policy": "GIA First",
+   "screenDr": 0.25,
+   "screenDp": -1451.7631923697481,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": -700.9724232092267
+    },
+    {
+     "dr": 0.03499999999999659,
+     "dp": -1014.6097246400022
+    },
+    {
+     "dr": 0.03999999999999204,
+     "dp": -1383.4745746993285
+    }
+   ],
+   "meanDr": 0.02499999999999621,
+   "meanDp": -1033.018907516186
+  },
+  {
+   "id": "S198",
+   "name": "near/isa-heavy/comfortable/light",
+   "policy": "ISA First",
+   "screenDr": 0.5,
+   "screenDp": -3794.6040859878412,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.0799999999999983,
+     "dp": -3568.862012862577
+    },
+    {
+     "dr": 0.09000000000000341,
+     "dp": 835.9970748326159
+    },
+    {
+     "dr": -0.05499999999999261,
+     "dp": -10919.849506594066
+    }
+   ],
+   "meanDr": 0.03833333333333636,
+   "meanDp": -4550.904814874676
+  },
+  {
+   "id": "S222",
+   "name": "near/balanced/comfortable/light",
+   "policy": "ISA First",
+   "screenDr": 0,
+   "screenDp": 10142.454904092388,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.15000000000000568,
+     "dp": 17650.419280196365
+    },
+    {
+     "dr": 0.125,
+     "dp": 15305.508552000305
+    },
+    {
+     "dr": 0.15000000000000568,
+     "dp": 15017.24295748581
+    }
+   ],
+   "meanDr": 0.14166666666667047,
+   "meanDp": 15991.056929894161
+  },
+  {
+   "id": "S019",
+   "name": "in-drawdown/isa-heavy/comfortable/moderate",
+   "policy": "Cash Last",
+   "screenDr": 0.15000000000000568,
+   "screenDp": 2108.286217008601,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.2049999999999983,
+     "dp": -5115.772198608611
+    },
+    {
+     "dr": 0.19499999999999318,
+     "dp": -1569.6329768336145
+    },
+    {
+     "dr": 0.009999999999990905,
+     "dp": -7810.417519633251
+    }
+   ],
+   "meanDr": 0.1366666666666608,
+   "meanDp": -4831.940898358492
+  },
+  {
+   "id": "S031",
+   "name": "in-drawdown/gia-heavy/comfortable/moderate",
+   "policy": "Costs from Pension",
+   "screenDr": 0,
+   "screenDp": 2975.5761233409867,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": -102.48763787094504
+    },
+    {
+     "dr": 0.010000000000005116,
+     "dp": -978.347548812395
+    },
+    {
+     "dr": 0.0049999999999954525,
+     "dp": 1940.7750214145053
+    }
+   ],
+   "meanDr": 0.005000000000000189,
+   "meanDp": 286.6466115770551
+  },
+  {
+   "id": "S031",
+   "name": "in-drawdown/gia-heavy/comfortable/moderate",
+   "policy": "Costs Spare Cash Last",
+   "screenDr": 0,
+   "screenDp": 7012.067070827936,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.010000000000005116,
+     "dp": -1316.052662580274
+    },
+    {
+     "dr": 0.01999999999999602,
+     "dp": -4775.33290209726
+    },
+    {
+     "dr": 0.010000000000005116,
+     "dp": -2544.9696666981326
+    }
+   ],
+   "meanDr": 0.013333333333335418,
+   "meanDp": -2878.785077125222
+  },
+  {
+   "id": "S043",
+   "name": "in-drawdown/balanced/comfortable/moderate",
+   "policy": "Costs from Pension",
+   "screenDr": 0,
+   "screenDp": 3950.6150210240157,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.04999999999999716,
+     "dp": 3233.6887228315463
+    },
+    {
+     "dr": 0.01999999999999602,
+     "dp": 321.791198916384
+    },
+    {
+     "dr": 0.03499999999999659,
+     "dp": 1490.4010302745737
+    }
+   ],
+   "meanDr": 0.03499999999999659,
+   "meanDp": 1681.9603173408348
+  },
+  {
+   "id": "S091",
+   "name": "just-retired/gia-heavy/comfortable/moderate",
+   "policy": "ISA First",
+   "screenDr": 0.4000000000000057,
+   "screenDp": 20845.610763161152,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.025000000000005684,
+     "dp": 22988.491504051955
+    },
+    {
+     "dr": 0.12000000000000455,
+     "dp": 22058.828450487286
+    },
+    {
+     "dr": -0.0049999999999954525,
+     "dp": 21549.803447025246
+    }
+   ],
+   "meanDr": 0.046666666666671595,
+   "meanDp": 22199.04113385483
+  },
+  {
+   "id": "S103",
+   "name": "just-retired/balanced/comfortable/moderate",
+   "policy": "Costs from Pension",
+   "screenDr": 0.15000000000000568,
+   "screenDp": 3565.9838234309573,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0.010000000000005116,
+     "dp": -1269.9557786385994
+    },
+    {
+     "dr": -0.01999999999999602,
+     "dp": -3839.740321663383
+    },
+    {
+     "dr": 0.0350000000000108,
+     "dp": -4486.249912428495
+    }
+   ],
+   "meanDr": 0.008333333333339965,
+   "meanDp": -3198.648670910159
+  },
+  {
+   "id": "S159",
+   "name": "early-bridge/balanced/modest/light",
+   "policy": "Costs from Pension",
+   "screenDr": 0,
+   "screenDp": 3847.1929273898713,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": -649.7184656306636
+    },
+    {
+     "dr": 0.010000000000005116,
+     "dp": 1542.9842377580935
+    },
+    {
+     "dr": 0.005000000000009663,
+     "dp": 1879.230538411066
+    }
+   ],
+   "meanDr": 0.005000000000004927,
+   "meanDp": 924.1654368461653
+  },
+  {
+   "id": "S163",
+   "name": "early-bridge/balanced/comfortable/moderate",
+   "policy": "Costs from ISA",
+   "screenDr": 0,
+   "screenDp": 15334.391505113144,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": -0.045000000000015916,
+     "dp": 0
+    },
+    {
+     "dr": 0.19499999999999318,
+     "dp": 0
+    },
+    {
+     "dr": 0.14499999999999602,
+     "dp": 1491.7336842745244
+    }
+   ],
+   "meanDr": 0.09833333333332443,
+   "meanDp": 497.2445614248415
+  },
+  {
+   "id": "S183",
+   "name": "near/pension-heavy/modest/light",
+   "policy": "Costs from ISA",
+   "screenDr": 0,
+   "screenDp": 2961.6085442280164,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": -382.5864835414104
+    },
+    {
+     "dr": 0,
+     "dp": -1835.474338289583
+    },
+    {
+     "dr": 0,
+     "dp": 91.44098375935573
+    }
+   ],
+   "meanDr": 0,
+   "meanDp": -708.8732793572126
+  },
+  {
+   "id": "S183",
+   "name": "near/pension-heavy/modest/light",
+   "policy": "Costs from Pension",
+   "screenDr": 0,
+   "screenDp": 6058.971241850173,
+   "shipped": "Bracket Fill Basic",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0,
+     "dp": 1287.3920756934676
+    },
+    {
+     "dr": 0,
+     "dp": 498.49333213758655
+    },
+    {
+     "dr": 0,
+     "dp": 2274.2202494794037
+    }
+   ],
+   "meanDr": 0,
+   "meanDp": 1353.3685524368193
+  },
+  {
+   "id": "S211",
+   "name": "near/gia-heavy/comfortable/moderate",
+   "policy": "Costs from ISA",
+   "screenDr": 0,
+   "screenDp": 2271.949929106813,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0.1250000000000142,
+     "dp": -3029.536602786815
+    },
+    {
+     "dr": 0.0799999999999983,
+     "dp": -8797.77462864697
+    },
+    {
+     "dr": 0.04999999999999716,
+     "dp": -973.2491246895443
+    }
+   ],
+   "meanDr": 0.08500000000000323,
+   "meanDp": -4266.853452041109
+  },
+  {
+   "id": "S211",
+   "name": "near/gia-heavy/comfortable/moderate",
+   "policy": "Costs from Pension",
+   "screenDr": 0.15000000000000568,
+   "screenDp": 7642.2193952492125,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0.07500000000000284,
+     "dp": -4921.886463135692
+    },
+    {
+     "dr": 0,
+     "dp": -11350.985639783168
+    },
+    {
+     "dr": -0.025000000000005684,
+     "dp": -4936.952568388893
+    }
+   ],
+   "meanDr": 0.01666666666666572,
+   "meanDp": -7069.941557102585
+  },
+  {
+   "id": "S211",
+   "name": "near/gia-heavy/comfortable/moderate",
+   "policy": "Windfall to ISA",
+   "screenDr": 0,
+   "screenDp": 3999.5230942567796,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": -0.05999999999998806,
+     "dp": -10638.615490518507
+    },
+    {
+     "dr": -0.04000000000000625,
+     "dp": -11706.267868182455
+    },
+    {
+     "dr": -0.0799999999999983,
+     "dp": -9598.960061815957
+    }
+   ],
+   "meanDr": -0.059999999999997534,
+   "meanDp": -10647.947806838973
+  },
+  {
+   "id": "S255",
+   "name": "mid/isa-heavy/modest/light",
+   "policy": "Wrapper Aware",
+   "screenDr": 0.2499999999999858,
+   "screenDp": -6801.646174533209,
+   "shipped": "Bracket Fill",
+   "drawdown": "Phased Drawdown",
+   "harvest": true,
+   "shippedDrawdown": "Full 25% Lump Sum",
+   "shippedHarvest": true,
+   "deltas": [
+    {
+     "dr": 0.010000000000005116,
+     "dp": -7460.427608080317
+    },
+    {
+     "dr": -0.06499999999999773,
+     "dp": -5094.424066645217
+    },
+    {
+     "dr": -0.08500000000000796,
+     "dp": -5781.156143098167
+    }
+   ],
+   "meanDr": -0.046666666666666856,
+   "meanDp": -6112.002605941234
+  },
+  {
+   "id": "S327",
+   "name": "far/gia-heavy/modest/light",
+   "policy": "GIA First",
+   "screenDr": 0.25,
+   "screenDp": 0,
+   "shipped": "Bracket Fill",
+   "drawdown": "Full 25% Lump Sum",
+   "harvest": false,
+   "shippedDrawdown": "Phased Drawdown",
+   "shippedHarvest": false,
+   "deltas": [
+    {
+     "dr": -0.12000000000000455,
+     "dp": 0
+    },
+    {
+     "dr": -0.20000000000000284,
+     "dp": 0
+    },
+    {
+     "dr": -0.10499999999998977,
+     "dp": 0
+    }
+   ],
+   "meanDr": -0.14166666666666572,
+   "meanDp": 0
+  }
+ ]
+}

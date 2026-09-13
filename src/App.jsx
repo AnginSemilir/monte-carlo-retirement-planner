@@ -540,6 +540,28 @@ const DECUMULATION_POLICIES = {
     label: 'Sequential (Cash → GIA → ISA → Pension, no bracket management)',
     blurb: () => 'Liquidates each wrapper to zero in rigid sequential order.',
     steps: ['cash', 'other', 'isa', 'penAny'], harvest: false
+  },
+  /*
+   * The two below were found by running every policy against 360 test households, then re-testing every
+   * apparent win on three independent seeds at 20,000 paths. Nearly a third of the first-pass findings
+   * reversed on a different seed; these did not. Each is here because it is the best answer for
+   * households NO shipped policy serves - not because it wins most often, which it does not.
+   *
+   * Two others that also survived confirmation are deliberately absent: "Wrapper Aware" won 24
+   * households but none of them uniquely (Windfall to ISA already covers every one), and "Cash Last"
+   * likewise added nothing of its own. A policy that is never the only right answer is a longer menu
+   * and a slower search for nothing.
+   */
+  'ISA First': {
+    label: 'ISA First (spend the tax-free wrapper early, leave the GIA and pension to grow)',
+    blurb: (P) => `Fills the £${P.pa.toLocaleString()} allowance from the pension, then spends the ISA before cash or the GIA. Best where a large GIA would otherwise be sold at a gain to fund spending.`,
+    steps: ['penPA', 'isa', 'cash', 'other', 'penBasic', 'penAny'], harvest: true
+  },
+  'Windfall to ISA': {
+    label: 'Windfall to ISA (as Tax Smoothing, but unassigned deposits fill the ISA first)',
+    blurb: (P) => `Draws like Tax Smoothing, but routes a deposit marked "${AUTO_DEPOSIT}" into the ISA before the GIA rather than into the pension. Best where an inheritance would otherwise hit the pension annual allowance.`,
+    steps: ['penPA', 'penBasic', 'cash', 'other', 'isa', 'penAny'], harvest: true,
+    depositOrder: ['isa', 'other', 'cash', 'pen']
   }
 };
 

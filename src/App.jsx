@@ -3454,13 +3454,11 @@ function estateForCouple(cfg, wrappers, opts = {}) {
  * Returns null when the household has not said who inherits - there is genuinely nothing to rank on,
  * and inventing a default heir would silently answer a question they never asked.
  */
-function postTaxInheritanceFor(plan, ctx) {
+function estateForPlanAt(plan, ctx, rows) {
   const inh = plan?.inheritance || {};
   const bens = normalizeBeneficiaries(inh.beneficiaries);
   if (!bens.length) return null;
-  const rows = simulateDeterministic(ctx, 'expected');
   const ev = evaluateRows(ctx, rows);
-  if (!ev.survived) return 0;              // heirs of a plan that ran dry receive nothing
   const age = clamp(num(inh.deathAge, ctx.terminalAge), 0, 120);
   const row = rows.find(r => r.ageSelf >= age) || rows[rows.length - 1];
   const soldBy = !!inh.homeSold && num(inh.homeSaleAge, 999) <= age;
@@ -3474,7 +3472,302 @@ function postTaxInheritanceFor(plan, ctx) {
       qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
       qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
       gifts: inh.gifts, beneficiaries: bens });
-  return (ctx.isCouple ? res.second : res).netToBeneficiaries;
+  const est = ctx.isCouple ? res.second : res;
+  // a plan that ran dry leaves its heirs nothing, whatever the estate arithmetic says about the year it
+  // was priced in - the money was needed before then
+  return { est, row, survived: ev.survived, net: ev.survived ? est.netToBeneficiaries : 0 };
+}
+
+function postTaxInheritanceFor(plan, ctx) {
+  const r = estateForPlanAt(plan, ctx, simulateDeterministic(ctx, 'expected'));
+  return r ? r.net : null;
+}
+
+/*
+ * THE MOST EFFICIENT ALLOCATION, SEARCHED RATHER THAN ASSERTED.
+ *
+ * Everything else on the Inheritance tab prices what the household typed. This searches the choices
+ * they actually control and ranks them on one number: WHAT THE HEIRS KEEP, after inheritance tax and
+ * after their own income tax on drawing an inherited pension down over the assumed period.
+ *
+ * Three levers, and deliberately only three:
+ *
+ *   1 WITHDRAWAL ORDER - which wrapper funds the spending, whether the tax-free lump sum is taken in
+ *     one go, and whether the personal allowance is harvested. Eighteen combinations.
+ *   2 A GIFT now - how much, given next year, subject to the plan still surviving.
+ *   3 THE PENSION NOMINATION - which heir the pension goes to, which matters because they pay income
+ *     tax on it at their own rate.
+ *
+ * What is NOT searched, and why it would be dishonest to search it:
+ *
+ *   - How long the heirs take the pension over. A twenty-year draw-down beats a five-year one every
+ *     time, but that is the HEIR's choice made after the death, not an allocation the household can
+ *     make. Every candidate is therefore scored on the same draw-down assumption the plan already
+ *     holds, so nothing can win by assuming better behaviour from someone else. It is reported
+ *     separately as a sensitivity.
+ *   - Leaving money to charity. Giving 10% away cuts the rate from 40% to 36%, which never leaves the
+ *     FAMILY better off - it leaves them less and the charity a great deal. Ranking it against
+ *     net-to-heirs would score a donation as a loss and bury a decision that is about values rather
+ *     than arithmetic, so it is priced alongside instead.
+ *
+ * The search is coordinate descent - best order, then best gift given that order, then best nomination
+ * given both, then one confirming pass - rather than the full product of the three, which would be some
+ * hundreds of projections for a result that in testing never differed. Each lever reports what it is
+ * worth ON ITS OWN, so a household can see which ones are dead ends for them: a residence band already
+ * out of reach, or a nomination that cannot matter because death before 75 carries no income tax at all.
+ */
+const GIFT_SEARCH_FRACTIONS = [0, 0.1, 0.25, 0.4, 0.55, 0.7, 0.85, 1];
+
+function optimizeInheritance(rawPlan, opts = {}) {
+  const plan = normalizePlan(rawPlan);
+  const inh = plan.inheritance || {};
+  const bens = normalizeBeneficiaries(inh.beneficiaries);
+  if (!bens.length) return null;                         // nothing to rank without an heir
+
+  const onStep = typeof opts.onStep === 'function' ? opts.onStep : null;
+  const baseCtx = buildContext(resolveMpaa(plan));
+  const giftYear = baseCtx.baseYear + 1;
+  const liquidToday = ['isa', 'other', 'cash'].reduce((t, cat) =>
+    t + baseCtx.accounts.filter(a => a.cat === cat).reduce((u, a) => u + Math.max(0, num(a.balance, 0)), 0), 0);
+
+  /*
+   * One candidate: apply the variant to the plan, run the projection, price the estate at the chosen
+   * death age. A variant that breaks a plan which otherwise survives is rejected outright rather than
+   * ranked - the household has to live on this money first.
+   */
+  const gbp0 = (x) => '£' + Math.round(x).toLocaleString();
+  let runs = 0;
+  const evaluate = (variant) => {
+    const p = {
+      ...plan,
+      spending: { ...plan.spending, decumulationPolicy: variant.policy, drawdownStrategy: variant.drawdown },
+      config: { ...plan.config, harvestPersonalAllowance: variant.harvest },
+      oneOffContributions: variant.recycle && variant.recycle.length
+        ? [...(plan.oneOffContributions || []), ...variant.recycle]
+        : plan.oneOffContributions,
+      inheritance: {
+        ...inh,
+        gifts: variant.gift > 0
+          ? [...(inh.gifts || []), { id: '__opt', amount: variant.gift, year: giftYear, desc: 'Gift' }]
+          : inh.gifts,
+        beneficiaries: variant.nomination
+          ? bens.map(b => ({ ...b, pensionSharePct: variant.nomination === b.id ? 100 : 0 }))
+          : bens
+      }
+    };
+    const ctx = buildContext(resolveMpaa(p));
+    runs++;
+    const r = estateForPlanAt(p, ctx, simulateDeterministic(ctx, 'expected'));
+    return { ...variant, net: r.net, est: r.est, survived: r.survived, plan: p };
+  };
+
+  const baseline = evaluate({
+    policy: plan.spending.decumulationPolicy, drawdown: plan.spending.drawdownStrategy,
+    harvest: !!plan.config.harvestPersonalAllowance, gift: 0, nomination: null,
+    label: 'Your plan as it stands'
+  });
+  const viable = (c) => c.net > 0 && (c.survived || !baseline.survived);
+  const bestOf = (list) => list.filter(viable).sort((a, b) => b.net - a.net)[0] || baseline;
+
+  /*
+   * MOVING MONEY BETWEEN WRAPPERS, UP TO THE ALLOWANCES THAT CAP IT.
+   *
+   * Two transfers are worth testing for a household that is already retired and cannot contribute out of
+   * earnings:
+   *
+   *   - INTO THE PENSION. Even with no earnings at all, £2,880 a year buys £3,600 of pension: basic-rate
+   *     relief is added at source whether or not any tax was paid. Since 2027 that pension sits in the
+   *     estate like anything else, so the relief is not a loophole, it is simply 25% more money for the
+   *     same outlay. Where there ARE relevant earnings the allowance is larger, and wrapperHeadroomAtYear
+   *     already knows the whole rule - annual allowance, taper, MPAA, carry forward and the earnings cap.
+   *   - INTO THE ISA. Up to the annual allowance, moving an unwrapped holding takes future growth out of
+   *     capital gains tax. Selling to do it realises the gain now, which the projection charges, so the
+   *     trade genuinely has to earn its place.
+   *
+   * Relief is modelled as what it is: the household pays the net cost out of one wrapper, and HMRC adds
+   * the rest. Two entries rather than one, because a single transfer would take the gross amount out of
+   * the source and quietly lose the relief - which would make recycling look like a bad idea every time.
+   */
+  const CAT_LABEL_OF = { pen: CATEGORY_LABEL.pen, isa: CATEGORY_LABEL.isa, other: CATEGORY_LABEL.other, cash: CATEGORY_LABEL.cash };
+  const emergencyFloor = Math.max(0, num(opts.emergencyFloor, 25000));
+  const recycleYears = Math.max(0, Math.min(num(opts.recycleYears, 10),
+    Math.round(clamp(num(inh.deathAge, baseCtx.terminalAge), 0, 120) - Math.min(...baseCtx.owners.map(o => o.age0)))));
+  const basicRate = clamp(num(plan.config.basicTaxRate, 20), 0, 100) / 100;
+
+  const buildRecycle = (kinds) => {
+    const out = [];
+    let budget = Math.max(0, liquidToday - emergencyFloor);
+    if (!(budget > 0) || recycleYears <= 0) return out;
+    const perYear = budget / recycleYears;
+    for (let t = 1; t <= recycleYears; t++) {
+      const year = baseCtx.baseYear + t;
+      let left = perYear;
+      baseCtx.owners.forEach(o => {
+        // the source is whichever liquid wrapper holds the most today; the engine caps the deduction at
+        // the balance actually there in that year and warns if it falls short
+        const balOf = (cat) => { const a = baseCtx.acc[o.ids[cat]]; return a ? Math.max(0, num(a.balance, 0)) : 0; };
+        const src = ['cash', 'other', 'isa'].sort((a, b) => balOf(b) - balOf(a))[0];
+        if (kinds.includes('pen')) {
+          const room = wrapperHeadroomAtYear(baseCtx, o.key, 'pen', t);
+          const gross = Math.min(Number.isFinite(room) ? room : 0, left / Math.max(0.01, 1 - basicRate));
+          const net = gross * (1 - basicRate);
+          if (gross > 100 && src !== 'pen') {
+            out.push({ id: `__rc_p_${o.key}_${year}`, date: `${year}-01-01`, year, owner: OWNER_LABEL[o.key],
+              category: CAT_LABEL_OF.pen, amount: net, desc: 'Recycle to pension', transferredFrom: CAT_LABEL_OF[src] });
+            out.push({ id: `__rc_r_${o.key}_${year}`, date: `${year}-01-01`, year, owner: OWNER_LABEL[o.key],
+              category: CAT_LABEL_OF.pen, amount: gross - net, desc: 'Basic-rate relief', transferredFrom: 'External' });
+            left -= net;
+          }
+        }
+        if (kinds.includes('isa') && left > 100) {
+          const room = wrapperHeadroomAtYear(baseCtx, o.key, 'isa', t);
+          const from = ['cash', 'other'].sort((a, b) => balOf(b) - balOf(a))[0];
+          const amt = Math.min(Number.isFinite(room) ? room : 0, left, balOf(from));
+          if (amt > 100) {
+            out.push({ id: `__rc_i_${o.key}_${year}`, date: `${year}-01-01`, year, owner: OWNER_LABEL[o.key],
+              category: CAT_LABEL_OF.isa, amount: amt, desc: 'Bed and ISA', transferredFrom: CAT_LABEL_OF[from] });
+            left -= amt;
+          }
+        }
+      });
+    }
+    return out;
+  };
+  const RECYCLES = [
+    { key: ['pen'], label: 'top up the pension to its allowance each year' },
+    { key: ['isa'], label: 'move unwrapped money into the ISA each year' },
+    { key: ['pen', 'isa'], label: 'top up the pension, then the ISA, to their allowances' }
+  ].map(r => ({ ...r, entries: buildRecycle(r.key) })).filter(r => r.entries.length);
+
+  // ---- lever 1: the withdrawal order
+  if (onStep) onStep({ label: 'Testing withdrawal orders', value: 0 });
+  const orderLabel = (c) => `${c.decumulationPolicy}${c.drawdownStrategy === 'Full 25% Lump Sum' ? ', lump sum' : ''}${c.harvestApplies && c.harvestPersonalAllowance ? ', harvest on' : ''}`;
+  const orders = buildPolicyCandidates(plan).map(c => evaluate({
+    policy: c.decumulationPolicy, drawdown: c.drawdownStrategy, harvest: c.harvestPersonalAllowance,
+    gift: 0, nomination: null, label: orderLabel(c)
+  }));
+  const bestOrder = bestOf(orders);
+
+  const giftLabel = (amt) => amt > 0 ? `gift ${gbp0(amt)} in ${giftYear}` : '';
+  const recycleLabel = (r) => r ? r.label : '';
+  const nomLabel = (id) => { const b = bens.find(x => x.id === id); return b ? `pension to ${b.name || 'one heir'}` : ''; };
+  const joined = (...parts) => parts.filter(Boolean).join(' + ') || baseline.label;
+
+  /*
+   * Each lever is measured TWICE. Once on its own against the plan as it stands, which is what the
+   * household needs to know - crediting the first lever searched with everything the later ones also
+   * deliver would send them after the wrong one. And once stacked on the best found so far, which is
+   * what actually gets recommended. The two answers differ whenever levers overlap, and that difference
+   * is worth the extra dozen runs.
+   */
+  const giftAmounts = liquidToday > 1000 ? GIFT_SEARCH_FRACTIONS.map(fr => Math.round(liquidToday * fr)).filter(a => a > 0) : [];
+  if (onStep) onStep({ label: 'Testing gifts', value: 0.35 });
+  const soloGifts = giftAmounts.map(amt => evaluate({ ...baseline, gift: amt, nomination: null,
+    label: joined(baseline.label, giftLabel(amt)) }));
+  if (onStep) onStep({ label: 'Testing pension nominations', value: 0.5 });
+  const soloNoms = bens.length > 1 ? bens.map(b => evaluate({ ...baseline, gift: 0, nomination: b.id,
+    label: joined(baseline.label, nomLabel(b.id)) })) : [];
+  if (onStep) onStep({ label: 'Testing wrapper transfers', value: 0.6 });
+  const soloRecycles = RECYCLES.map(r => evaluate({ ...baseline, gift: 0, nomination: null,
+    recycle: r.entries, recycleKey: r.key.join('+'), label: joined(baseline.label, recycleLabel(r)) }));
+
+  // ---- stacked: the best order, then the best gift on top of it, then the best nomination on top again
+  if (onStep) onStep({ label: 'Combining the best of each', value: 0.75 });
+  const gifts = giftAmounts.map(amt => evaluate({ ...bestOrder, gift: amt, nomination: null,
+    label: joined(bestOrder.label, giftLabel(amt)) }));
+  const bestGift = bestOf([bestOrder, ...gifts]);
+  const noms = bens.length > 1 ? bens.map(b => evaluate({ ...bestGift, nomination: b.id,
+    label: joined(bestOrder.label, giftLabel(bestGift.gift), nomLabel(b.id)) })) : [];
+  const bestNom = bestOf([bestGift, ...noms]);
+  const recycles = RECYCLES.map(r => evaluate({ ...bestNom, recycle: r.entries, recycleKey: r.key.join('+'),
+    label: joined(bestOrder.label, giftLabel(bestNom.gift), nomLabel(bestNom.nomination), recycleLabel(r)) }));
+  const best = bestOf([bestNom, ...recycles]);
+
+  /*
+   * What each lever is worth ON ITS OWN, from the plan as it stands.
+   */
+  const alone = (list) => Math.max(0, (list.length ? bestOf(list).net : baseline.net) - baseline.net);
+  const pickOf = (list, none) => {
+    if (!list.length) return none;
+    const w = bestOf(list);
+    return w.net > baseline.net ? w.label.replace(`${baseline.label} + `, '') : none;
+  };
+  const levers = [
+    { key: 'order', label: 'Withdrawal order', gain: alone(orders), pick: pickOf(orders, 'No change: you already hold the best order') },
+    { key: 'gift', label: 'A gift now', gain: alone(soloGifts), pick: pickOf(soloGifts, giftAmounts.length ? 'No gift helps here' : 'Nothing liquid to give') },
+    { key: 'nomination', label: 'Pension nomination', gain: alone(soloNoms), pick: pickOf(soloNoms, bens.length > 1 ? 'No nomination helps here' : 'Only one heir') },
+    { key: 'recycle', label: 'Moving money between wrappers', gain: alone(soloRecycles),
+      pick: pickOf(soloRecycles, RECYCLES.length ? 'No transfer helps here' : 'Nothing spare to move, or no years left to move it') }
+  ].sort((a, b) => b.gain - a.gain);
+
+  /*
+   * Why a lever is a dead end, said plainly. A figure of zero invites the reading "the app did not try",
+   * and the reasons here are specific and checkable: an inherited pension carries no income tax at all
+   * below 75, and a residence band already tapered past what the household could ever gift back is gone
+   * whatever they do.
+   */
+  const deathAge = clamp(num(inh.deathAge, baseCtx.terminalAge), 0, 120);
+  const e = baseline.est;
+  const rnrbFull = Math.max(0, num(plan.config.ihtRnrb, 175000)) * (1 + clamp(num(inh.transferredRnrbPct, 0), 0, 100) / 100);
+  const toClear = Math.max(0, e.grossEstate - num(plan.config.ihtRnrbTaperFrom, 2000000) - 2 * rnrbFull);
+  const reasons = [];
+  if (deathAge < num(plan.config.pensionIncomeTaxFromAge, 75)) {
+    reasons.push({ key: 'nomination', text: `Priced at death at ${deathAge}, an inherited pension carries no income tax at all, so it makes no difference who is nominated. Price a death at ${num(plan.config.pensionIncomeTaxFromAge, 75)} or over and this becomes the largest choice on the tab.` });
+  }
+  if (e.rnrb <= 0 && toClear > liquidToday) {
+    reasons.push({ key: 'gift', text: `The residence allowance is fully withdrawn and out of reach: bringing any of it back needs the estate to fall ${gbp0(toClear)}, against ${gbp0(liquidToday)} outside your pension. A gift still reduces the estate, but not enough to restore the band.` });
+  }
+
+  // ---- priced alongside, not ranked: the charity rate, and how long the heirs take the pension
+  const withCharity = (() => {
+    const pct = clamp(num(plan.config.ihtCharityThresholdPct, 10), 0, 100);
+    const scaled = bens.map(b => ({ ...b, sharePct: b.sharePct * (100 - pct) / 100 }));
+    const p = { ...best.plan, inheritance: { ...best.plan.inheritance,
+      beneficiaries: [...scaled, { id: '__charity', name: 'Charity', relationship: 'charity', sharePct: pct }] } };
+    const ctx = buildContext(resolveMpaa(p));
+    runs++;
+    const r = estateForPlanAt(p, ctx, simulateDeterministic(ctx, 'expected'));
+    if (!r) return null;
+    const charity = r.est.beneficiaries.find(b => b.id === '__charity');
+    return { pct, ratePct: r.est.ratePct, toCharity: charity ? charity.net : 0,
+      toFamily: r.net - (charity ? charity.net : 0), costToFamily: best.net - (r.net - (charity ? charity.net : 0)) };
+  })();
+
+  const spread = (() => {
+    if (!(best.est.pension > 0) || deathAge < num(plan.config.pensionIncomeTaxFromAge, 75)) return null;
+    const at = (yrs) => {
+      const p = { ...best.plan, inheritance: { ...best.plan.inheritance,
+        beneficiaries: normalizeBeneficiaries(best.plan.inheritance.beneficiaries).map(b => ({ ...b, spreadYears: yrs })) } };
+      const ctx = buildContext(resolveMpaa(p));
+      runs++;
+      return estateForPlanAt(p, ctx, simulateDeterministic(ctx, 'expected')).net;
+    };
+    const slow = num(opts.slowSpreadYears, 20);
+    return { years: slow, net: at(slow), gain: at(slow) - best.net };
+  })();
+
+  const ranked = [baseline, ...orders, ...soloGifts, ...soloNoms, ...soloRecycles, ...gifts, ...noms, ...recycles]
+    .filter(viable)
+    .sort((a, b) => b.net - a.net)
+    .filter((c, i, all) => i === 0 || Math.abs(c.net - all[i - 1].net) > 1)   // drop exact duplicates
+    .slice(0, 8)
+    .map(c => ({ label: c.label, net: c.net, iht: c.est.iht, incomeTax: c.est.incomeTaxOnPensions,
+      qsrRelief: c.est.qsrRelief,
+      policy: c.policy, drawdown: c.drawdown, harvest: c.harvest, gift: c.gift,
+      nomination: c.nomination, recycleKey: c.recycleKey || null }));
+
+  return {
+    deathAge, runs, liquidToday, giftYear,
+    baseline: { label: baseline.label, net: baseline.net, iht: baseline.est.iht,
+      incomeTax: baseline.est.incomeTaxOnPensions, qsrRelief: baseline.est.qsrRelief, qsrPct: baseline.est.qsrPct },
+    best: { label: best.label, net: best.net, iht: best.est.iht, incomeTax: best.est.incomeTaxOnPensions,
+      policy: best.policy, drawdown: best.drawdown, harvest: best.harvest, gift: best.gift,
+      nomination: best.nomination, recycle: best.recycle || null, recycleKey: best.recycleKey || null,
+      recycleLabel: best.recycleKey ? (RECYCLES.find(r => r.key.join('+') === best.recycleKey) || {}).label : null },
+    gain: best.net - baseline.net,
+    levers, reasons, ranked, charity: withCharity, spread,
+    spreadYears: num(plan.config.inheritedPensionSpreadYears, 5)
+  };
 }
 
 /*
@@ -3540,7 +3833,7 @@ function policyPlaybook(policyKey, P) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -5345,6 +5638,46 @@ export default function App() {
     return funded > 0 && ctx.targetSpend > 0;
   }, [ctx]);
 
+  /*
+   * The estate optimiser. Cheap enough (about fifty deterministic runs, a tenth of a second) to run
+   * synchronously on a click rather than chunked through the event loop like the Monte Carlo searches.
+   */
+  const [estatePlan, setEstatePlan] = useState(null);
+  const [estateError, setEstateError] = useState('');
+  const handleOptimizeEstate = () => {
+    setEstateError('');
+    try {
+      const r = E.optimizeInheritance(plan);
+      if (!r) { setEstateError('Add at least one person under Who inherits on the Inheritance tab first — there is nothing to rank without an heir.'); setEstatePlan(null); return; }
+      setEstatePlan(r);
+    } catch (err) {
+      setEstateError(String(err && err.message ? err.message : err));
+      setEstatePlan(null);
+    }
+  };
+  const applyEstatePlan = () => {
+    if (!estatePlan) return;
+    const b = estatePlan.best;
+    setPlan(prev => {
+      const inh = prev.inheritance || {};
+      return {
+        ...prev,
+        spending: { ...(prev.spending || {}), decumulationPolicy: b.policy, drawdownStrategy: b.drawdown },
+        config: { ...(prev.config || {}), harvestPersonalAllowance: b.harvest },
+        oneOffContributions: [...(prev.oneOffContributions || []), ...(b.recycle || []).map(x => ({ ...x, id: 'c_' + Math.random().toString(36).slice(2) }))],
+        inheritance: {
+          ...inh,
+          gifts: b.gift > 0
+            ? [...(inh.gifts || []), { id: 'gift_' + Date.now(), amount: Math.round(b.gift), year: estatePlan.giftYear, desc: 'Gift (estate plan)' }]
+            : inh.gifts,
+          beneficiaries: b.nomination
+            ? E.normalizeBeneficiaries(inh.beneficiaries).map(x => ({ ...x, pensionSharePct: x.id === b.nomination ? 100 : 0 }))
+            : inh.beneficiaries
+        }
+      };
+    });
+  };
+
   const handleFindBestPolicy = async () => {
     setIsPolicySearching(true); setPolicyResults(null);
     setPolicyProgress({ label: 'Preparing policy combinations…', value: 0 });
@@ -6920,6 +7253,93 @@ export default function App() {
                 </button>
               </div>
             </div>
+            {/* ---------- the estate optimiser ---------- */}
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4" data-estate-optimiser>
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> Most efficient estate allocation</h2>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">The tournament above re-divides money you are still paying in. This searches the choices left to someone who has stopped: the order you draw wrappers down, a gift now, who the pension is nominated to, and moving money between wrappers up to the allowances that cap it. Everything is ranked on one number &mdash; <strong>what your heirs keep</strong>, after inheritance tax and after their own income tax on drawing an inherited pension down over {estatePlan ? estatePlan.spreadYears : E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years.</p>
+                </div>
+                <div className="shrink-0">
+                  <button type="button" onClick={handleOptimizeEstate} data-optimise-estate
+                    className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95">
+                    <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" /> Find the best allocation
+                  </button>
+                </div>
+              </div>
+              {estateError && <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800">{estateError}</div>}
+              {estatePlan && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl"><span className="text-[10px] font-bold uppercase tracking-wider block text-slate-500 mb-1">As it stands</span><div className="text-lg font-bold font-mono text-slate-900">{formatGBP(estatePlan.baseline.net)}</div></div>
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl"><span className="text-[10px] font-bold uppercase tracking-wider block text-emerald-700 mb-1">Best found</span><div className="text-lg font-bold font-mono text-emerald-800">{formatGBP(estatePlan.best.net)}</div></div>
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl"><span className="text-[10px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Difference</span><div className={`text-lg font-bold font-mono ${estatePlan.gain > 0 ? 'text-emerald-700' : 'text-slate-500'}`}>{estatePlan.gain > 0 ? '+' : ''}{formatGBP(estatePlan.gain)}</div><span className="text-[10px] text-slate-400">priced at death at {estatePlan.deathAge}</span></div>
+                  </div>
+
+                  {/* what each lever is worth on its own, so the household acts on the right one */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-[11px] border-collapse" data-lever-table>
+                      <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Lever</th><th className="pb-1.5 pr-3">Worth on its own</th><th className="pb-1.5">Best setting</th></tr></thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {estatePlan.levers.map(l => (
+                          <tr key={l.key}>
+                            <td className="py-1.5 pr-3 font-semibold text-slate-800">{l.label}</td>
+                            <td className={`py-1.5 pr-3 font-mono ${l.gain > 0 ? 'text-emerald-700 font-bold' : 'text-slate-400'}`}>{l.gain > 0 ? '+' + formatGBP(l.gain) : '—'}</td>
+                            <td className="py-1.5 text-slate-600">{l.pick}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <span className="text-[10px] text-slate-400 block">Each lever is measured against your plan as it stands, not against the running best &mdash; otherwise whichever was searched first would be credited with everything the others also deliver. They do not add up to the difference above, because they overlap.</span>
+
+                  {/* a zero is a finding, not a gap in the search */}
+                  {estatePlan.reasons.map(r => (
+                    <div key={r.key} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 leading-relaxed">{r.text}</div>
+                  ))}
+
+                  <div>
+                    <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">Ranked, best first</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-[11px] border-collapse" data-estate-ranked>
+                        <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">What you would do</th><th className="pb-1.5 pr-3">Heirs keep</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5">Their income tax</th></tr></thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {estatePlan.ranked.map((c, i) => (
+                            <tr key={i} className={c.label === estatePlan.best.label ? 'bg-emerald-50/60' : ''}>
+                              <td className="py-1.5 pr-3 text-slate-700">{c.label}</td>
+                              <td className="py-1.5 pr-3 font-mono font-bold text-emerald-700">{formatGBP(c.net)}</td>
+                              <td className="py-1.5 pr-3 font-mono text-rose-700">{formatGBP(c.iht)}</td>
+                              <td className="py-1.5 font-mono text-rose-700">{c.incomeTax > 0 ? formatGBP(c.incomeTax) : '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* priced alongside rather than ranked: see the engine comment on optimizeInheritance */}
+                  {estatePlan.charity && (
+                    <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 leading-relaxed">
+                      <strong>Charity, priced but not ranked.</strong> Leaving {estatePlan.charity.pct}% of the estate to charity takes the rate to {estatePlan.charity.ratePct}%: the charity receives {formatGBP(estatePlan.charity.toCharity)} and your family {formatGBP(estatePlan.charity.toFamily)}, which is {formatGBP(Math.abs(estatePlan.charity.costToFamily))} {estatePlan.charity.costToFamily > 0 ? 'less' : 'more'} than the best plan above. It is not in the ranking because a donation would always score as a loss against what the heirs keep, and that is a decision about what you want rather than about tax.
+                    </div>
+                  )}
+                  {estatePlan.spread && (
+                    <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 leading-relaxed">
+                      <strong>Their choice, not yours.</strong> If your heirs drew the inherited pension over {estatePlan.spread.years} years instead of {estatePlan.spreadYears}, they would keep {formatGBP(estatePlan.spread.net)} &mdash; {estatePlan.spread.gain > 0 ? `${formatGBP(estatePlan.spread.gain)} more` : 'no more'}. That is not searched above, because every candidate has to be scored on the same assumption about someone else&rsquo;s behaviour.
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    <button type="button" onClick={applyEstatePlan} disabled={estatePlan.gain <= 0} data-apply-estate
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                      <Check className="w-3.5 h-3.5" /> Apply this allocation
+                    </button>
+                    <span className="text-[10px] text-slate-400">Writes the withdrawal order{estatePlan.best.gift > 0 ? ', the gift' : ''}{estatePlan.best.nomination ? ', the nomination' : ''}{estatePlan.best.recycle ? ' and the transfers' : ''} into your plan. {estatePlan.runs} projections were run to find it.</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <WrapperStrategyTournament plan={plan} ctx={ctx} seed={mcSeed} scenarios={scenarios} activeScenarioId={activeScenarioId} state={tournament} setState={setTournament} cancelRef={tournamentCancelRef} onApplyStrategyToSandbox={handleApplyStrategyToSandbox} onApplyStrategyToPlan={handleApplyStrategyToPlan} onNavigateDocs={() => goToDoc('doc-tournament')} />
           </div>
         )}
@@ -7218,7 +7638,7 @@ export default function App() {
                       </div>
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Tax paid on it</label>
-                        <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.qsrTaxPaid ?? ''} onChange={(e) => updateInheritance('qsrTaxPaid', parseInputNumber(e.target.value))} className={inputCls} />
+                        <input type="number" min="0" step="500" placeholder="0" data-qsr-tax onFocus={handleFocus} value={plan?.inheritance?.qsrTaxPaid ?? ''} onChange={(e) => updateInheritance('qsrTaxPaid', parseInputNumber(e.target.value))} className={inputCls} />
                       </div>
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Years ago</label>
@@ -7228,6 +7648,20 @@ export default function App() {
                         </span>
                       </div>
                     </div>
+                    {/* The credit is driven by the TAX PAID, not by what was inherited: an estate that paid
+                        nothing generates no credit however large the legacy was. That is easy to get wrong
+                        on the way in, and silently produces a relief of zero, so it is said out loud. */}
+                    {E.num(plan?.inheritance?.qsrInheritedValue, 0) > 0 && !(E.num(plan?.inheritance?.qsrTaxPaid, 0) > 0) && (
+                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <span>You have entered what you inherited but not the <strong>tax paid on it</strong>, and the credit is a share of that tax rather than of the legacy &mdash; so as it stands the relief is <strong>£0</strong>. The figure is on the IHT421 or the estate accounts from that death.</span>
+                      </div>
+                    )}
+                    {inheritanceView.chosen && inheritanceView.chosen.qsrRelief > 0 && (
+                      <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900">
+                        Quick succession credit at your chosen death age: <strong>{formatGBP(inheritanceView.chosen.qsrRelief)}</strong> off the bill &mdash; {inheritanceView.chosen.qsrPct}% of the {formatGBP(E.num(plan?.inheritance?.qsrTaxPaid, 0))} paid then, because {E.num(plan?.inheritance?.qsrYearsBefore, 0)} whole years separate the two deaths.
+                      </div>
+                    )}
                   </div>
                 </div>
               </details>
@@ -7277,7 +7711,7 @@ export default function App() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Estate at {inheritanceView.chosen.age}</span><div className="text-xl font-bold font-mono text-slate-900">{formatGBP(inheritanceView.chosen.grossEstate)}</div><span className="text-[11px] text-slate-400">{inheritanceView.chosen.pensionCounts ? `Includes ${formatGBP(inheritanceView.chosen.pension)} of pension, which counts from 2027` : `Excludes ${formatGBP(inheritanceView.chosen.pension)} of pension — death before the 2027 rule`}</span></div>
-                  <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Total tax</span><div className="text-xl font-bold font-mono text-rose-700">{formatGBP(inheritanceView.chosen.totalTax)}</div><span className="text-[11px] text-slate-400">{formatGBP(inheritanceView.chosen.iht)} estate tax at {inheritanceView.chosen.ratePct}%{inheritanceView.chosen.charityQualifies ? ' (reduced by your charitable gift)' : ''}{inheritanceView.chosen.incomeTaxOnPensions > 0 ? ` · ${formatGBP(inheritanceView.chosen.incomeTaxOnPensions)} their income tax` : ''}</span></div>
+                  <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Total tax</span><div className="text-xl font-bold font-mono text-rose-700">{formatGBP(inheritanceView.chosen.totalTax)}</div><span className="text-[11px] text-slate-400">{formatGBP(inheritanceView.chosen.iht)} estate tax at {inheritanceView.chosen.ratePct}%{inheritanceView.chosen.charityQualifies ? ' (reduced by your charitable gift)' : ''}{inheritanceView.chosen.incomeTaxOnPensions > 0 ? ` · ${formatGBP(inheritanceView.chosen.incomeTaxOnPensions)} their income tax` : ''}{inheritanceView.chosen.qsrRelief > 0 ? ` · after a ${formatGBP(inheritanceView.chosen.qsrRelief)} quick succession credit` : ''}</span></div>
                   <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">They receive</span><div className="text-xl font-bold font-mono text-emerald-700">{formatGBP(inheritanceView.chosen.netToBeneficiaries)}</div><span className="text-[11px] text-slate-400">{inheritanceView.chosen.effectiveRatePct.toFixed(0)}% of the estate is taken in total</span></div>
                 </div>
 
@@ -7590,6 +8024,10 @@ export default function App() {
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Gifts out of income</h3>
               <p className="text-xs text-slate-600 leading-relaxed">The exemption for <em>normal expenditure out of income</em> (s.21) is immediate, unlimited and needs no seven years: a habitual gift, paid from income rather than capital, that leaves your standard of living intact. This is the only gift that helps someone who does not expect to live seven years, and it is claimed by the executors on form IHT403 — which is far easier when the giver kept a record. The plan checks the arithmetic half of the test, comparing the gift against guaranteed income and earnings less living costs, in the <em>leanest</em> year rather than on average. It excludes pension drawdown from that income figure even though HMRC will often accept regular pension income, because a gift that fails the test becomes an ordinary transfer with a seven-year clock. Whether the gift is genuinely habitual is a question about a pattern of behaviour that no calculator can settle.</p>
+
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">The estate optimiser, and what it will not do</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">The Strategy tab carries a second search, for households the contributions tournament cannot help because nothing is being paid in. It ranks four choices on one number &mdash; what the heirs keep, after inheritance tax and after their own income tax on drawing an inherited pension down: the <strong>order you draw wrappers down</strong>, a <strong>gift now</strong>, <strong>who the pension is nominated to</strong>, and <strong>moving money between wrappers up to the allowances</strong> (including the £3,600 a year that basic-rate relief buys for £2,880 even with no earnings at all). Each lever is also measured on its own, against your plan untouched, because crediting whichever was searched first with everything the others deliver would send you after the wrong one.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Two things it deliberately refuses. It will not search <strong>how long your heirs take the pension</strong>, because that is their decision made after your death, and a candidate that won by assuming twenty years of patience from someone else would not be a plan &mdash; it is reported as a sensitivity instead. And it will not rank a <strong>charitable gift</strong>: leaving 10% cuts the rate from 40% to 36% but always leaves the family with less, so ranking it on what the heirs keep would score a donation as a failure. The cost and the benefit are both shown, and the choice stays yours. Nor will it recommend anything that leaves you short: a variant that breaks a plan which otherwise survives is rejected rather than ranked, however well it does for the estate.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Business Relief, and why it is absent</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Business Relief is the largest thing this tab does not model. Qualifying trading businesses, unquoted shares and AIM-listed shares can escape inheritance tax in whole or in part, which makes reallocating a portfolio into them the classic estate-planning move — and it is not offered here, deliberately, for three reasons. The relief needs the asset to have been <strong>owned for two years</strong> at death, so it is exactly the wrong tool for someone who has just been given a short prognosis. The regime changed from 6 April 2026: relief is no longer unlimited, an allowance applies above which relief falls to 50%, and AIM shares now attract 50% relief in every case rather than 100%. And the assets that qualify carry investment risk far above anything else in this plan, so a tool that modelled the tax saving without modelling that risk would be recommending a trade on half the picture. If it matters to your estate, it is a conversation with an adviser, and the figures on this tab will be too low.</p>

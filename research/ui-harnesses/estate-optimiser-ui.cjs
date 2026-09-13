@@ -1,0 +1,367 @@
+// The estate optimiser on the Strategy tab, and the quick succession credit it reports.
+const { chromium } = require('/tmp/node_modules/playwright');
+const PORT = process.argv[2] || '5187';
+/*
+ * A real exported plan, from a household that cannot use the contributions tournament at all: 68, already
+ * retired, nothing being paid in, a £1.4m house and a £1.2m pension. That is the case the estate optimiser
+ * exists for, and the one where every figure below was checked by hand.
+ */
+const plan = {
+  "activeProfileView": "Combined",
+  "demographics": {
+    "planningMode": "single",
+    "currentAgeSelf": "68",
+    "currentAgePart": "",
+    "retireAgeSelf": "65",
+    "retireAgePart": "",
+    "salarySelf": "",
+    "salaryPart": "",
+    "salaryGrowthSelf": "",
+    "salaryGrowthPart": "",
+    "employmentSelf": "employed",
+    "employmentPart": "employed",
+    "cgtGainsUsedSelf": "15000",
+    "cgtGainsUsedPart": "",
+    "cfBroughtForwardSelf": "",
+    "cfBroughtForwardPart": "",
+    "mpaaAgeSelf": "",
+    "mpaaAgePart": "",
+    "statePensionAge": 68,
+    "privatePensionAge": 58,
+    "statePensionSelf": "11500",
+    "statePensionPart": "",
+    "terminalAge": 100
+  },
+  "spending": {
+    "targetSpend": "50000",
+    "spendBands": [],
+    "drawdownStrategy": "Phased Drawdown",
+    "decumulationPolicy": "Bracket Fill Basic",
+    "priorities": [
+      "survive",
+      "downside",
+      "bequest",
+      "bridge",
+      "pot",
+      "tax"
+    ],
+    "priorityTolerances": {},
+    "priorityMode": "ranked"
+  },
+  "inheritance": {
+    "deathAge": "71",
+    "homeValue": "1400000",
+    "homeToDescendants": true,
+    "homeSold": false,
+    "homeSaleAge": "",
+    "transferredNrbPct": "",
+    "transferredRnrbPct": "",
+    "qsrInheritedValue": "50000",
+    "qsrTaxPaid": "",
+    "qsrYearsBefore": "2",
+    "activeServiceExempt": false,
+    "gifts": [
+      {
+        "id": "gift_1789313394238",
+        "amount": "308",
+        "year": 2026,
+        "desc": "House "
+      }
+    ],
+    "surplusGift": {
+      "annual": "2880",
+      "fromYear": "",
+      "toYear": ""
+    },
+    "beneficiaries": [
+      {
+        "id": "ben_1789313225873",
+        "name": "Sam",
+        "relationship": "descendant",
+        "sharePct": "40",
+        "income": "93000",
+        "age": "35"
+      },
+      {
+        "id": "ben_1789313270534",
+        "name": "Kiki ",
+        "relationship": "descendant",
+        "sharePct": "10",
+        "income": "",
+        "pensionSharePct": "10",
+        "age": "4"
+      },
+      {
+        "id": "ben_1789313343507",
+        "name": "Alex",
+        "relationship": "descendant",
+        "sharePct": "40",
+        "income": "150000",
+        "age": "36"
+      }
+    ]
+  },
+  "accounts": [
+    {
+      "id": "pen_self",
+      "owner": "Myself",
+      "category": "Pensions",
+      "balance": "1200000",
+      "contrib": "0",
+      "growth": "",
+      "risk": "High Risk"
+    },
+    {
+      "id": "isa_self",
+      "owner": "Myself",
+      "category": "S&S ISAs",
+      "balance": "175000",
+      "contrib": "0",
+      "growth": "",
+      "risk": "High Risk"
+    },
+    {
+      "id": "other_self",
+      "owner": "Myself",
+      "category": "Other Investments (e.g. GIA)",
+      "balance": "400",
+      "contrib": "0",
+      "growth": "",
+      "risk": "Low Risk",
+      "unrealisedGain": ""
+    },
+    {
+      "id": "cash_self",
+      "owner": "Myself",
+      "category": "Cash Savings",
+      "balance": "",
+      "contrib": "0",
+      "growth": "",
+      "risk": "Low Risk"
+    },
+    {
+      "id": "pen_part",
+      "owner": "Partner",
+      "category": "Pensions",
+      "balance": "",
+      "contrib": "",
+      "growth": "",
+      "risk": "High Risk"
+    },
+    {
+      "id": "isa_part",
+      "owner": "Partner",
+      "category": "S&S ISAs",
+      "balance": "",
+      "contrib": "",
+      "growth": "",
+      "risk": "High Risk"
+    },
+    {
+      "id": "other_part",
+      "owner": "Partner",
+      "category": "Other Investments (e.g. GIA)",
+      "balance": "",
+      "contrib": "",
+      "growth": "",
+      "risk": "Low Risk",
+      "unrealisedGain": ""
+    },
+    {
+      "id": "cash_part",
+      "owner": "Partner",
+      "category": "Cash Savings",
+      "balance": "",
+      "contrib": "",
+      "growth": "",
+      "risk": "Low Risk"
+    }
+  ],
+  "riskProfiles": {
+    "High Risk": {
+      "label": "Highest: 80\u2013100% Equities",
+      "real": 4.79,
+      "nominal": 7.41,
+      "volatility": 17.1,
+      "sigmaParam": 2.14
+    },
+    "Medium/High Risk": {
+      "label": "High: 60\u201380% Equities",
+      "real": 4.24,
+      "nominal": 6.85,
+      "volatility": 13.42,
+      "sigmaParam": 1.69
+    },
+    "Medium Risk": {
+      "label": "Medium: 40\u201360% Equities",
+      "real": 3.69,
+      "nominal": 6.28,
+      "volatility": 9.93,
+      "sigmaParam": 1.31
+    },
+    "Medium/Low Risk": {
+      "label": "Medium/Low: 20\u201340% Equities",
+      "real": 3.14,
+      "nominal": 5.72,
+      "volatility": 6.89,
+      "sigmaParam": 1.03
+    },
+    "Low Risk": {
+      "label": "Low: High interest Cash Savings, Fixed Income, Bonds",
+      "real": 2.6,
+      "nominal": 5.16,
+      "volatility": 5.19,
+      "sigmaParam": 0.97
+    },
+    "Cash Equivalents": {
+      "label": "Instant cash savings/money market",
+      "real": 1.01,
+      "nominal": 3.54,
+      "volatility": 0,
+      "sigmaParam": 1.57
+    }
+  },
+  "riskSource": "blackrock2026",
+  "otherIncomes": [
+    {
+      "id": "inc_1789312947027",
+      "name": "",
+      "owner": "Myself",
+      "startAge": "67",
+      "endAge": "",
+      "amount": "11000",
+      "incomeType": "earnings",
+      "notes": ""
+    }
+  ],
+  "oneOffContributions": [
+    {
+      "id": "c_1789313110430",
+      "date": "2027-01-01",
+      "year": 2027,
+      "owner": "Myself",
+      "category": "Auto (policy decides)",
+      "amount": "120000",
+      "desc": "",
+      "transferredFrom": "External",
+      "stagedTargetWrapper": "Other Investments (e.g. GIA)"
+    }
+  ],
+  "oneOffCosts": [],
+  "config": {
+    "valuationDate": "2026-09-13",
+    "inflation": 2.5,
+    "personalAllowance": 12570,
+    "paTaperThreshold": 100000,
+    "paTaperRate": 50,
+    "basicBandLimit": 50270,
+    "basicTaxRate": 20,
+    "higherBandLimit": 125140,
+    "higherTaxRate": 40,
+    "additionalTaxRate": 45,
+    "taxRegion": "ruk",
+    "scotStarterRate": 19,
+    "scotStarterLimit": 15397,
+    "scotBasicRate": 20,
+    "scotBasicLimit": 27491,
+    "scotIntermediateRate": 21,
+    "scotIntermediateLimit": 43662,
+    "scotHigherRate": 42,
+    "scotHigherLimit": 75000,
+    "scotAdvancedRate": 45,
+    "scotAdvancedLimit": 125140,
+    "scotTopRate": 48,
+    "nicPrimaryThreshold": 12570,
+    "nicUpperEarningsLimit": 50270,
+    "nicMainRate": 8,
+    "nicUpperRate": 2,
+    "class4MainRate": 6,
+    "class4UpperRate": 2,
+    "employerNicRate": 15,
+    "employerNicPassThrough": 0,
+    "pclsProportion": 25,
+    "pclsMaxCap": 268275,
+    "isaAnnualAllowance": 20000,
+    "pensionAnnualAllowance": 60000,
+    "pensionNoEarningsLimit": 3600,
+    "mpaaLimit": 10000,
+    "pensionTaperThreshold": 260000,
+    "pensionTaperRate": 50,
+    "pensionTaperFloor": 10000,
+    "cgtEnabled": true,
+    "cgtAnnualExempt": 3000,
+    "cgtBasicRate": 18,
+    "cgtHigherRate": 24,
+    "cashBufferMonths": 6,
+    "harvestPersonalAllowance": true,
+    "pensionDeathTaxRate": 0,
+    "ihtNrb": 325000,
+    "ihtRnrb": 175000,
+    "ihtRnrbTaperFrom": 2000000,
+    "ihtRnrbTaperRate": 50,
+    "ihtRate": 40,
+    "ihtCharityRate": 36,
+    "ihtCharityThresholdPct": 10,
+    "pensionsInEstateFrom": 2027,
+    "pensionIncomeTaxFromAge": 75,
+    "qsrScale": "",
+    "giftTaperRates": "",
+    "giftAnnualExemption": 3000,
+    "inheritedPensionSpreadYears": 5,
+    "statePensionAgeForHeirs": 68,
+    "assumedStatePensionForHeirs": 11976,
+    "bridgeSafetyMargin": 30,
+    "solvencyFloor": 0
+  }
+};
+let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:''}`); if(!c)fails++;};
+(async()=>{
+  const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
+  const p=await b.newPage({viewport:{width:1500,height:1800}});
+  const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+  await p.route('https://cdn.tailwindcss.com/**',r=>r.fulfill({status:200,contentType:'application/javascript',body:'window.tailwind={config:{}};'}));
+  await p.addInitScript(pl=>localStorage.setItem('rp_plan_full_v28',JSON.stringify(pl)),plan);
+  await p.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
+  await p.waitForTimeout(1200);
+  await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Strategy/.test(b.textContent)); if(x)x.click();});
+  await p.waitForTimeout(700);
+  ok('the optimiser is on the Strategy tab', await p.evaluate(()=>!!document.querySelector('[data-estate-optimiser]')));
+  await p.click('[data-optimise-estate]');
+  await p.waitForTimeout(1500);
+  const levers = await p.evaluate(()=>[...document.querySelector('[data-lever-table]').querySelectorAll('tbody tr')]
+    .map(r=>[...r.querySelectorAll('td')].map(d=>d.textContent.trim())));
+  console.log('    levers:'); levers.forEach(l=>console.log('      '+l.join(' | ')));
+  ok('every lever is reported', levers.length===4, `${levers.length} rows`);
+  ok('wrapper transfers are one of them', levers.some(l=>/wrappers/i.test(l[0])));
+  const ranked = await p.evaluate(()=>[...document.querySelector('[data-estate-ranked]').querySelectorAll('tbody tr')]
+    .map(r=>[...r.querySelectorAll('td')].map(d=>d.textContent.trim())));
+  console.log('    ranked:'); ranked.slice(0,4).forEach(l=>console.log('      '+l.join(' | ')));
+  const money=(s)=>Number(String(s).replace(/[^0-9.]/g,''));
+  ok('ranked best first', ranked.every((r,i)=>i===0||money(ranked[i-1][1])>=money(r[1])));
+  ok('a dead-end lever explains itself', await p.evaluate(()=>/no income tax at all|out of reach/.test(document.body.textContent)));
+  ok('charity is priced but not ranked', await p.evaluate(()=>/priced but not ranked/i.test(document.body.textContent)));
+  // apply, then confirm the plan actually changed
+  const before = await p.evaluate(()=>JSON.parse(localStorage.getItem('rp_plan_full_v28')).spending.decumulationPolicy);
+  await p.click('[data-apply-estate]');
+  await p.waitForTimeout(900);
+  const after = await p.evaluate(()=>JSON.parse(localStorage.getItem('rp_plan_full_v28')));
+  ok('applying changes the withdrawal order', after.spending.decumulationPolicy !== before,
+    `${before} -> ${after.spending.decumulationPolicy}`);
+  ok('and writes the wrapper transfers in', (after.oneOffContributions||[]).some(c=>/Recycle|relief/i.test(c.desc||'')),
+    `${(after.oneOffContributions||[]).length} one-off deposits`);
+  // the IHT credit, on the Inheritance tab
+  await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  await p.waitForTimeout(800);
+  await p.evaluate(()=>{const d=[...document.querySelectorAll('summary')].find(x=>/Special circumstances/i.test(x.textContent)); if(d)d.click();});
+  await p.waitForTimeout(400);
+  ok('a credit with no tax paid says so', await p.evaluate(()=>/the relief is/.test(document.body.textContent)));
+  await p.locator('[data-qsr-tax]').fill('900');
+  await p.waitForTimeout(700);
+  ok('entering the tax paid shows the credit', await p.evaluate(()=>/Quick succession credit/.test(document.body.textContent)));
+  const credit = await p.evaluate(()=>{const m=document.body.textContent.match(/Quick succession credit at your chosen death age: £([\d,]+)/); return m?m[1]:null;});
+  ok('and it is the tapered share of it', credit==='540', `£${credit} of £900 at 60%`);
+  ok('no page errors', errs.length===0, errs.slice(0,2).join(' | '));
+  await b.close();
+  console.log(fails?`\n${fails} FAILED`:'\nall checks passed');
+  process.exit(fails?1:0);
+})();

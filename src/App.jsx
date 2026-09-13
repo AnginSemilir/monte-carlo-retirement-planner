@@ -1855,6 +1855,36 @@ function carryForwardAtYear(ctx, o, t) {
 
 // Remaining annual ISA/pension headroom for `ownerKey` in year index t, net of that owner's own regular
 // (escalating) contribution to the same wrapper. Other Investments / Cash Savings have no HMRC cap.
+/*
+ * Where a one-off deposit should go, decided the way the plan's own decumulation policy would.
+ *
+ * Order of preference is the order the money is worth the most, not the order the wrappers are listed:
+ * a pension first, because tax relief on the way in is the largest single uplift available and nothing
+ * else competes with it; then an ISA, tax-free thereafter with no exit charge; then a GIA, taxable but
+ * uncapped; and cash last, because holding a lump there is a decision to earn the least.
+ *
+ * Each step is taken only up to the headroom actually available in that year, so the answer respects the
+ * annual allowance, the MPAA, tapering, relevant earnings and whatever regular contributions are already
+ * committed. If nothing has room the answer is the GIA, which always does.
+ *
+ * Returns the wrapper that takes the LARGEST share, which is the one worth naming as the destination; the
+ * staging machinery already handles a deposit too big for the wrapper it names.
+ */
+function suggestOneOffDestination(ctx, ownerKey, t, amount) {
+  const want = Math.max(0, num(amount, 0));
+  if (!want) return 'pen';
+  let best = { cat: 'other', take: 0 };
+  let left = want;
+  for (const cat of ['pen', 'isa', 'other', 'cash']) {
+    const room = wrapperHeadroomAtYear(ctx, ownerKey, cat, t);
+    const take = Math.min(left, Number.isFinite(room) ? room : left);
+    if (take > best.take) best = { cat, take };
+    left -= take;
+    if (left <= 0) break;
+  }
+  return best.cat;
+}
+
 function wrapperHeadroomAtYear(ctx, ownerKey, category, t) {
   const { P, acc, owners } = ctx;
   if (category === 'other' || category === 'cash') return Infinity;
@@ -2439,7 +2469,7 @@ function pickBest(cands, tol = 0.5, preAccessCap = Infinity) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -4871,14 +4901,20 @@ export default function App() {
                               </select>
                             </div>
                             <div className="flex flex-col gap-0.5">
-                              <span className="text-[9px] text-slate-400 leading-none">Funding destination</span>
+                              <span className="text-[9px] text-slate-400 leading-none flex items-center gap-1.5">Funding destination
+                                <button type="button" onClick={() => { const cat = E.suggestOneOffDestination(ctx, c.owner === 'Partner' ? 'part' : 'self', Math.max(0, (depYear || ctx.baseYear) - ctx.baseYear), E.num(c.amount, 0)); const category = E.CATEGORY_LABEL[cat]; updateListItem('oneOffContributions', c.id, { category, ...(c.stagedTargetWrapper === c.category ? { stagedTargetWrapper: category } : {}) }); }}
+                                  className="text-blue-600 hover:text-blue-800 hover:underline font-semibold cursor-pointer" title="Pick the wrapper this money is worth most in, given the allowance room left that year">Choose for me</button>
+                              </span>
                               <select value={c.category} onChange={(e) => { const category = e.target.value; const patch = { category }; if (c.stagedTargetWrapper === c.category) patch.stagedTargetWrapper = category; updateListItem('oneOffContributions', c.id, patch); }} className={`p-1 bg-surface border rounded text-blue-700 font-semibold ${missingDest ? 'border-rose-400 ring-1 ring-rose-300' : 'border-slate-300'}`}>
                                 {Object.values(E.CATEGORY_LABEL).map(l => <option key={l} value={l}>{l}</option>)}
                               </select>
                             </div>
                             <input type="number" min="0" step="1000" placeholder="Amount (£)" onFocus={handleFocus} value={c.amount} onChange={(e) => updateListItem('oneOffContributions', c.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded font-mono text-emerald-700 font-bold" />
                             {st && !st.direct && (
-                              <button onClick={() => toggleOneOffExpand(c.id)} className="p-1 text-amber-600 hover:text-amber-800 cursor-pointer transition-colors" title="Staging schedule"><Settings className="w-4 h-4" /></button>
+                              <button onClick={() => toggleOneOffExpand(c.id)} className="px-2 py-1 rounded-lg text-[11px] font-semibold text-amber-700 hover:text-amber-900 hover:bg-amber-100 border border-amber-200 bg-amber-50 cursor-pointer transition-colors flex items-center gap-1" title="This deposit is larger than the year's allowance, so it is staged over several years">
+                                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                {isExpanded ? 'Hide details' : 'See more details'}
+                              </button>
                             )}
                             <button onClick={() => deleteOneOffContrib(c.id)} className="p-1 ml-auto text-slate-400 hover:text-rose-600 cursor-pointer transition-colors"><Trash2 className="w-4 h-4" /></button>
                           </div>

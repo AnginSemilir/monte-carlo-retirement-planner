@@ -33,6 +33,16 @@ function applyCopy(source, edits, report) {
     const before = normalise(decodeEntities(String(edit.before ?? '')));
     const after = normalise(String(edit.after ?? ''));
     if (!before || before === after) { report.skipped.push({ ...edit, reason: 'unchanged' }); continue; }
+    /*
+     * Code-driven copy is never applied by this script, by design. The source text holds ${…} values that
+     * are filled in at render time, and deciding where they belong in a reworded sentence is a judgement,
+     * not a substitution. Applying it blind would either drop a figure or put it in the wrong clause.
+     * The editor flags these on export so they arrive here already labelled; they are listed for a person.
+     */
+    if (edit.codeDriven || /\$\{/.test(before)) {
+      report.skipped.push({ before, after, reason: 'code-driven: contains ${…} interpolation, so apply it by hand and keep the values in the right places' });
+      continue;
+    }
     const hits = findProse(out, before);
     if (!hits.length) {
       report.failed.push({ before, after, reason: 'not shown anywhere in the source — the text was probably a calculated value, not fixed copy' });
@@ -175,5 +185,16 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     report.failed.forEach(f => console.error(`  ${f.reason}\n    ${JSON.stringify(f.before ?? f.theme ?? f.role)}`));
     process.exit(1);
   }
-  if (report.skipped.length) console.log(`(${report.skipped.length} unchanged, skipped)`);
+  /*
+   * A skip that says only "skipped" is how an edit goes missing quietly. The code-driven ones in
+   * particular are a request the author still has to act on, so they are named rather than counted.
+   */
+  const handwork = report.skipped.filter(x => String(x.reason || '').startsWith('code-driven'));
+  const trivial = report.skipped.length - handwork.length;
+  if (trivial) console.log(`(${trivial} unchanged, skipped)`);
+  if (handwork.length) {
+    console.log(`\n${handwork.length} edit${handwork.length === 1 ? '' : 's'} NOT applied - code-driven, needs a person:`);
+    for (const x of handwork) console.log(`  "${x.before}"\n    -> "${x.after}"`);
+    console.log('  Keep every ${...} you want to survive, and put it where the new sentence needs it.');
+  }
 }

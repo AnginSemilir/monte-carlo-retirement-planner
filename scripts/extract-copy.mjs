@@ -148,11 +148,14 @@ export function extractProse(source) {
   const comments = scanSpans(source).filter(s => s.kind === 'line-comment' || s.kind === 'block-comment');
   const touchesComment = (index, length) => comments.some(c => index < c.end && index + length > c.start);
   const out = [];
-  const push = (index, length, kind) => {
+  const push = (index, length, kind, codeDriven = false) => {
     if (touchesComment(index, length)) return;
     const raw = source.slice(index, index + length);
     const shown = normalise(decodeEntities(raw));
-    if (isProse(shown)) out.push({ text: raw, shown, index, length, kind });
+    // Code-driven copy is prose with holes in it, and a hole reads as code to isProse. It is checked with
+    // the holes removed, then kept in its written form, because the written form is what has to be edited.
+    const probe = codeDriven ? normalise(shown.replace(/\$\{[^}]*\}/g, ' ')) : shown;
+    if (isProse(probe)) out.push({ text: raw, shown, index, length, kind, ...(codeDriven ? { codeDriven: true } : {}) });
   };
 
   /*
@@ -196,16 +199,53 @@ export function extractProse(source) {
   while ((m = simple.exec(blanked)) !== null) {
     if (underCopyKey(m.index)) push(m.index + 1, m[2].length, m[1] === '"' ? 'literal-dq' : 'literal-sq');
   }
-  // template literals too, but only those with no interpolation — a `${…}` makes the text dynamic
+  /*
+   * Template literals. Those without interpolation are ordinary copy and rewrite like any other literal.
+   *
+   * Those WITH interpolation are the awkward case, and pretending they are not copy does not make them
+   * less visible on screen: `Spending ${formatGBP(spend)} a year to age ${terminalAge}.` is a sentence a
+   * reader sees and might want reworded. What cannot happen is a blind rewrite - the holes have to survive
+   * in the right order, and the DOM shows the filled-in result, which never matches the written form.
+   *
+   * So they are extracted and marked codeDriven. The editor lists them, the export records the new
+   * wording against the old, and the applier refuses to touch them: a person makes the change, with the
+   * interpolations in front of them.
+   */
   const template = /`([^`\\]{12,}?)`/g;
   while ((m = template.exec(blanked)) !== null) {
-    if (m[1].includes('${') || !underCopyKey(m.index)) continue;
-    push(m.index + 1, m[1].length, 'template');
+    const interpolated = m[1].includes('${');
+    if (!underCopyKey(m.index) && !interpolated) continue;
+    if (interpolated && !/[A-Za-z]{3}\s+[A-Za-z]{3}/.test(m[1].replace(/\$\{[^}]*\}/g, ' '))) continue;
+    push(m.index + 1, m[1].length, 'template', interpolated);
   }
 
   // Tooltips and placeholders are user-visible copy too.
   const attr = /\b(?:placeholder|title|aria-label)="([^"\n{}]+)"/g;
   while ((m = attr.exec(blanked)) !== null) push(m.index + m[0].indexOf('"') + 1, m[1].length, 'attr');
+
+  /*
+   * Copy handed to a helper as an argument. `slideHead(2, 'The most you could spend', '…')` puts two
+   * pieces of on-screen wording in a position no other rule here looks at: it is not between tags, not
+   * under a property name, not an attribute. It is nonetheless a plain literal at a known offset, so it
+   * rewrites exactly as safely as any other. The helpers are named explicitly rather than matched by
+   * shape, because "a string passed to a function" also describes every key, id and class in the file.
+   */
+  const COPY_FNS = /\b(slideHead|flash|ageMarker)\s*\(/g;
+  while ((m = COPY_FNS.exec(blanked)) !== null) {
+    let i = m.index + m[0].length, depth = 0;
+    while (i < blanked.length && depth >= 0) {
+      const ch = blanked[i];
+      if (ch === '(') depth++;
+      else if (ch === ')') { if (depth === 0) break; depth--; }
+      else if ((ch === "'" || ch === '"') && depth === 0) {
+        const q = ch; let j = i + 1;
+        while (j < blanked.length && blanked[j] !== q) { if (blanked[j] === '\\') j++; j++; }
+        push(i + 1, j - i - 1, q === '"' ? 'literal-dq' : 'literal-sq');
+        i = j;
+      } else if (ch === '\n' && depth === 0) break;
+      i++;
+    }
+  }
 
   /*
    * A text run is split on its `{…}` interpolations, but that split matches braces flatly, so a ternary
@@ -218,6 +258,8 @@ export function extractProse(source) {
 
   // a class list or a path is not a sentence, however many spaces it has
   return out.filter(r => {
+    // a codeDriven entry contains ${…} by definition, so the shard guard would throw all of them away
+    if (r.codeDriven) return true;
     if (isShard(r.shown)) return false;
     if (r.kind === 'jsx' || r.kind === 'attr') return true;
     if (!/\s/.test(r.shown)) return false;

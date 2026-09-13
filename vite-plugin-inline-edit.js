@@ -28,8 +28,21 @@ function buildManifest(root) {
   let source = '';
   try { source = fs.readFileSync(file, 'utf8'); } catch { return { strings: {}, generatedAt: null }; }
   const strings = {};
-  for (const r of extractProse(source)) strings[r.shown] = (strings[r.shown] || 0) + 1;
-  return { strings, generatedAt: new Date().toISOString() };
+  /*
+   * Two lists, because there are two kinds of copy and only one of them can be clicked.
+   *
+   * `strings` is text the DOM shows verbatim, so a text node can be matched to it and edited in place.
+   * `codeDriven` is text written with ${…} holes in the source: on screen it appears with the holes
+   * filled, so it never matches its own source form and click-to-edit is impossible for it. It is listed
+   * separately in the panel instead, and exported flagged, so a person can make the change with the
+   * interpolations visible rather than a script guessing where they went.
+   */
+  const codeDriven = {};
+  for (const r of extractProse(source)) {
+    const bucket = r.codeDriven ? codeDriven : strings;
+    bucket[r.shown] = (bucket[r.shown] || 0) + 1;
+  }
+  return { strings, codeDriven, generatedAt: new Date().toISOString() };
 }
 
 export default function inlineEdit() {
@@ -44,6 +57,7 @@ export default function inlineEdit() {
       const manifest = buildManifest(root);
       // `canSaveToSource` tells the editor which save path to offer without it having to probe the server
       return `export const EDITABLE = ${JSON.stringify(manifest.strings)};
+export const CODE_DRIVEN = ${JSON.stringify(manifest.codeDriven)};
 export const GENERATED_AT = ${JSON.stringify(manifest.generatedAt)};
 export const CAN_SAVE_TO_SOURCE = ${JSON.stringify(isDev)};
 `;

@@ -14,7 +14,7 @@
  * calculated figure is never presented as editable text that could not be written back.
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { EDITABLE, CAN_SAVE_TO_SOURCE } from 'virtual:editable-copy';
+import { EDITABLE, CODE_DRIVEN, CAN_SAVE_TO_SOURCE } from 'virtual:editable-copy';
 import { Pencil, X, Check, Download, Undo2, Type, Save, Info, Copy } from 'lucide-react';
 
 const STORAGE_KEY = 'rp_inline_edits_v1';
@@ -84,7 +84,7 @@ function textNodeAt(x, y) {
 
 export default function EditMode() {
   const [on, setOn] = useState(false);
-  const [panel, setPanel] = useState('text');          // 'text' | 'style'
+  const [panel, setPanel] = useState('text');          // 'text' | 'code' | 'style'
   const [edits, setEdits] = useState(load);            // { originalText: newText }
   const [tokens, setTokens] = useState({});            // { theme: { token: 'r g b' } }
   const [fonts, setFonts] = useState({});              // { role: 'Family Name' }
@@ -263,7 +263,14 @@ export default function EditMode() {
   const patch = () => ({
     version: 1,
     generatedAt: new Date().toISOString(),
-    copy: Object.entries(edits).map(([before, after]) => ({ before, after })),
+    /*
+     * Every edit, with the ones that cannot be applied automatically saying so. A codeDriven entry is
+     * source text containing ${…} holes: the wording is yours to change, but where the holes end up in
+     * the new sentence is a judgement no script should make, so it is flagged for a person to apply.
+     */
+    copy: Object.entries(edits).map(([before, after]) => ({
+      before, after, ...(CODE_DRIVEN[before] ? { codeDriven: true, note: 'Contains ${…} interpolation: apply by hand, keeping the holes in the right places.' } : {})
+    })),
     tokens, fonts
   });
 
@@ -372,7 +379,7 @@ export default function EditMode() {
             <Pencil className="w-3.5 h-3.5 text-amber-600" />
             <strong className="text-xs font-bold text-slate-900">Editing this page</strong>
             <div className="flex items-center gap-0.5 ml-2 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-              {[['text', 'Wording'], ['style', 'Fonts & colours']].map(([id, label]) => (
+              {[['text', 'Wording'], ['code', 'Code-driven'], ['style', 'Fonts & colours']].map(([id, label]) => (
                 <button key={id} type="button" onClick={() => setPanel(id)}
                   className={`px-2.5 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-colors ${panel === id ? 'bg-surface text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}>{label}</button>
               ))}
@@ -405,6 +412,38 @@ export default function EditMode() {
                     ))}
                   </ul>
                 )}
+              </div>
+            ) : panel === 'code' ? (
+              /*
+                * Wording that is built in code rather than written out: `Spending ${x} a year to age ${y}.`
+                * On screen the holes are already filled, so there is no text node matching this to click.
+                * It is listed here instead. Editing it will NOT change the page - it is recorded in the
+                * export, flagged, for the change to be made in source with the holes accounted for.
+                */
+              <div className="space-y-2">
+                <div className="text-[11px] text-slate-500 space-y-1">
+                  <p>Wording assembled in code. The <code className="px-1 rounded bg-slate-100 text-slate-700">{'${…}'}</code> parts are values filled in at the moment it is shown, which is why this text cannot be clicked on the page.</p>
+                  <p className="text-slate-400">Edits here <strong className="font-semibold text-slate-500">will not change the page</strong>. They go into the export marked as code-driven, so the wording can be applied in source with the values kept in the right places. Keep every <code className="px-1 rounded bg-slate-100 text-slate-600">{'${…}'}</code> you want to survive.</p>
+                </div>
+                <ul className="space-y-2">
+                  {Object.keys(CODE_DRIVEN).sort().map(src => (
+                    <li key={src} className="rounded-lg border border-slate-200 bg-slate-50 p-2 space-y-1">
+                      <code className="block text-[10px] leading-snug text-slate-500 break-words">{src}</code>
+                      <textarea
+                        value={edits[src] ?? src}
+                        onChange={(e) => { const v = e.target.value; setEdits(prev => { const next = { ...prev }; if (norm(v) === norm(src) || !v.trim()) delete next[src]; else next[src] = v; save(next); return next; }); }}
+                        rows={2}
+                        className="w-full p-1.5 rounded border border-slate-300 bg-surface text-[11px] font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      {edits[src] !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-amber-700">edited &mdash; applied by hand from the export</span>
+                          <button type="button" onClick={() => setEdits(prev => { const next = { ...prev }; delete next[src]; save(next); return next; })}
+                            className="text-[10px] text-slate-500 hover:text-rose-600 cursor-pointer font-semibold">undo</button>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ) : (
               <div className="space-y-4">

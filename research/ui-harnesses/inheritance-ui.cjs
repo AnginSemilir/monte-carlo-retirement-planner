@@ -157,6 +157,12 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
     const r=[...document.querySelectorAll('input')].find(i=>i.value==='Gift to restore the residence allowance');
     return !!r && /planned/.test(r.closest('div').textContent);
   }));
+  // and the same double-click guard as the optimiser's Apply: one id per year, replaced not appended
+  const giftsNow = () => p2.evaluate(()=>(JSON.parse(localStorage.getItem('rp_plan_full_v28')).inheritance.gifts||[]).length);
+  const n1 = await giftsNow();
+  const again = await p2.$('[data-add-suggested-gift]');
+  if (again) { await again.click(); await p2.waitForTimeout(700); }
+  ok('adding the suggested gift twice adds one gift', (await giftsNow()) <= n1, `${n1} -> ${await giftsNow()}`);
   ok('taking the advice removes the advice', await p2.evaluate(()=>!document.querySelector('[data-gift-suggestion]')));
   ok('no page errors on the gift flow', errs2.length===0, errs2.slice(0,2).join(' | '));
 

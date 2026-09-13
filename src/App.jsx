@@ -6446,12 +6446,16 @@ export default function App() {
    * rather than this one so it is money the projection still has to find, which is the honest framing -
    * the allowance it buys back is worth having only if the household can spare the cash.
    */
+  /*
+   * Same idempotency as the optimiser's Apply, and for the same reason: a random id meant a second click
+   * appended a second gift of the same size. One id per year, replaced rather than added to.
+   */
   const addSuggestedGift = (amount, year) => setPlan(prev => ({
     ...prev,
     inheritance: {
       ...(prev.inheritance || {}),
-      gifts: [...(prev.inheritance?.gifts || []), {
-        id: 'gift_' + Date.now(), amount: Math.round(amount), year: E.num(year, ctx.baseYear + 1),
+      gifts: [...(prev.inheritance?.gifts || []).filter(g => g.id !== `estate_band_${E.num(year, ctx.baseYear + 1)}`), {
+        id: `estate_band_${E.num(year, ctx.baseYear + 1)}`, amount: Math.round(amount), year: E.num(year, ctx.baseYear + 1),
         desc: 'Gift to restore the residence allowance'
       }]
     }
@@ -8821,8 +8825,8 @@ export default function App() {
               {inheritanceView.suggestion?.worthwhile && (
                 <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2" data-gift-suggestion>
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h4 className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-2"><Sparkles className="w-3.5 h-3.5" /> A gift worth considering</h4>
-                    <button onClick={() => addSuggestedGift(inheritanceView.suggestion.amount, inheritanceView.suggestion.giftYear)} data-add-suggested-gift className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add as a planned gift</button>
+                    <h4 className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-2"><Sparkles className="w-3.5 h-3.5" /> Why a gift helps here</h4>
+                    <button onClick={() => addSuggestedGift(inheritanceView.suggestion.amount, inheritanceView.suggestion.giftYear)} data-add-suggested-gift className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add this gift</button>
                   </div>
                   <p className="text-[11px] text-emerald-900 leading-relaxed">
                     At age {inheritanceView.chosenAge} your estate is <strong>{formatGBP(inheritanceView.chosen.grossEstate)}</strong>, which is above the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} line where the residence allowance starts to be withdrawn &mdash; &pound;1 of allowance for every &pound;2 over. That is costing you <strong>{formatGBP(inheritanceView.chosen.rnrbTaperLoss)}</strong> of allowance.

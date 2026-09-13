@@ -3336,13 +3336,20 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
   const isCouple = ctx.isCouple;
   // Settings, results and run progress are owned by App so they outlive this component's unmount on a tab
   // switch; these accessors keep the rest of the component reading like ordinary local state.
-  const { scope, emergencyFloor, budgetOverride, balance, preAccessCap, entrantIds, results, progress, isEvaluating } = state;
+  const { scope, emergencyFloor, budgetOverride, balance, entrantIds, results, progress, isEvaluating } = state;
+  /*
+   * Bridge risk follows the priority list rather than a control of its own. The hard cap now exists only
+   * where the household has said bridge safety comes first - anywhere else it would be a constraint
+   * contradicting a preference they stated, applied before the ranking and therefore winning silently.
+   */
+  const priorityList = E.normalizePriorities(plan?.spending?.priorities);
+  const tolerances = E.normalizeTolerances(plan?.spending?.priorityTolerances);
+  const preAccessCap = priorityList[0] === 'bridge' ? 0 : Infinity;
   const setField = (key) => (value) => setState(prev => ({ ...prev, [key]: value }));
   const setScope = setField('scope');
   const setEmergencyFloor = setField('emergencyFloor');
   const setBudgetOverride = setField('budgetOverride');
   const setBalance = setField('balance');
-  const setPreAccessCap = setField('preAccessCap');
   const setResults = setField('results');
   const setProgress = setField('progress');
   const setIsEvaluating = setField('isEvaluating');
@@ -3397,8 +3404,8 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
             setProgress({ label: `Player ${i + 1}/${total}: ${c.label} → ${stats.successRate.toFixed(1)}% safe`, value: (i + (k + 1) / s.candidates.length * 0.6) / total });
             await tick();
           }
-          const best = E.pickBest(evaluated, { preAccessCap: preAccessCap === 'any' ? Infinity : Number(preAccessCap), priorities, tolerances });
-          const capNote = ` Bridge-risk cap ${preAccessCap === 'any' ? 'none' : 'at ' + preAccessCap + '%'}.`;
+          const best = E.pickBest(evaluated, { preAccessCap, priorities: priorityList, tolerances });
+          const capNote = priorityList[0] === 'bridge' ? ' Bridge safety ranked first, so candidates risking a pre-access shortfall were ruled out.' : '';
           s = {
             ...s, chosenShare: best.share, chosenLabel: best.label,
             searchResults: evaluated.map(e => ({ label: e.label, successRate: e.stats.successRate, preAccess: e.stats.preNmpaFailRate, p10: e.stats.p10Terminal, median: e.stats.medianTerminal })),
@@ -3509,16 +3516,21 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
           <input type="range" min="0" max="100000" step="2500" value={E.num(emergencyFloor, 0)} onChange={(e) => setEmergencyFloor(Number(e.target.value))} className="w-full accent-indigo-600 cursor-pointer mt-2" />
           <span className="text-[10px] text-slate-500 block mt-1">Savings ring-fenced from the bridge and from any Bed &amp; SIPP transfer; it shrinks what counts as available, rather than raising the target (that is the bridge safety margin in Config).</span>
         </div>
+        {/*
+          * The bridge-risk cap used to be a selector here, which made it a second control for a concern
+          * the priority list already covers - and a contradictory one, because the cap is a hard filter
+          * applied BEFORE the ranking. Someone could rank "getting safely to pension age" last and still
+          * have a 5% cap silently overruling them. It now follows the prioritisation, and the hard
+          * constraint lives once, in the advanced thresholds, where it is visible alongside the others.
+          */}
         <div>
-          <label className="text-slate-700 font-semibold block mb-1">Bridge-risk cap (searching players)</label>
-          <select value={preAccessCap} onChange={(e) => setPreAccessCap(e.target.value === 'any' ? 'any' : Number(e.target.value))} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold focus:ring-1 focus:ring-indigo-500 focus:outline-none cursor-pointer">
-            <option value={0}>0% pre-SIPP access failures</option>
-            <option value={2}>≤ 2%</option>
-            <option value={5}>≤ 5%</option>
-            <option value={10}>≤ 10%</option>
-            <option value="any">No cap (total survival only)</option>
-          </select>
-          <span className="text-[10px] text-slate-500 mt-1 block">Applies to the two players that search: Survival Maximizer and Bridge-Sized Relief. It rules out any candidate that buys total survival by accepting more risk of running dry before age {ctx.nmpa}.</span>
+          <label className="text-slate-700 font-semibold block mb-1">Bridge risk</label>
+          <div className="p-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600 leading-relaxed">
+            Follows your priority list: <strong>&ldquo;{E.PRIORITY_METRICS.bridge.label}&rdquo;</strong> is currently ranked <strong>{priorityList.indexOf('bridge') + 1} of {priorityList.length}</strong>.
+            {priorityList[0] === 'bridge'
+              ? ' Ranked first, so a candidate that risks running dry before pension age is ruled out ahead of everything else.'
+              : ` Move it up the list in Config to weigh the risk of running dry before age ${ctx.nmpa} more heavily.`}
+          </div>
         </div>
         <div>
           <label className="text-slate-700 font-semibold block mb-1">Owner split of new money</label>
@@ -3706,7 +3718,7 @@ export default function App() {
   // `basePlan` holds a frozen copy of the sandbox when the user scores the tournament against it rather than
   // the saved plan inputs; `autoRun` is a token the component watches to start that run on arrival.
   const [tournament, setTournament] = useState({
-    scope: 'contributions', emergencyFloor: 25000, budgetOverride: '', balance: 'proportional', preAccessCap: 5,
+    scope: 'contributions', emergencyFloor: 25000, budgetOverride: '', balance: 'proportional',
     entrantIds: [], results: null, progress: null, isEvaluating: false, basePlan: null, autoRun: 0
   });
   const tournamentCancelRef = useRef(false);

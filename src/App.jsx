@@ -3407,7 +3407,21 @@ export default function App() {
     const fundedYears = ev.survived || ev.failReason === 'floor'
       ? ctx.totalYears
       : Math.max(0, ev.failAge - historicalTimeline[0].ageSelf);
-    return { ...ev, fundedYears, unfundedYears: Math.max(0, ctx.totalYears - fundedYears), startVal: historicalTimeline[0]?.totalCombined || 0, terminalVal: ev.terminalPot, minVal: ev.minPot, startHistoricalYear: activeHistoricalStartYear, beyondData: historicalTimeline.some(r => r.histYear === null) };
+    /*
+     * Working years cannot run a pot dry: the living target only starts at the first retirement
+     * (stepYear gates it on `anyRetired`), so before then nothing is being withdrawn and every year
+     * is trivially "funded". Counting the whole span therefore flatters an unaffordable plan - a
+     * £5m/yr spend on a normal pot reported "ran dry after 22 of 65 years" when what actually
+     * happened is that it failed in the very first year of drawdown, 22 years from now. So the
+     * headline counts drawdown years, and says so when the failure lands before drawdown starts.
+     */
+    const drawdownStart = Math.max(historicalTimeline[0].ageSelf, Math.min(...ctx.owners.map(o => o.retireAge)));
+    const drawdownYears = Math.max(0, ctx.terminalAge - drawdownStart);
+    const fundedDrawdownYears = ev.survived || ev.failReason === 'floor'
+      ? drawdownYears
+      : Math.max(0, Math.min(drawdownYears, ev.failAge - drawdownStart));
+    const failedBeforeDrawdown = !ev.survived && ev.failReason !== 'floor' && ev.failAge < drawdownStart;
+    return { ...ev, fundedYears, unfundedYears: Math.max(0, ctx.totalYears - fundedYears), drawdownStart, drawdownYears, fundedDrawdownYears, failedBeforeDrawdown, startVal: historicalTimeline[0]?.totalCombined || 0, terminalVal: ev.terminalPot, minVal: ev.minPot, startHistoricalYear: activeHistoricalStartYear, beyondData: historicalTimeline.some(r => r.histYear === null) };
   }, [historicalTimeline, ctx, activeHistoricalStartYear]);
 
   const chartDisplayData = useMemo(() => timelineData.map(d => {
@@ -5525,6 +5539,7 @@ export default function App() {
               <div className="flex items-center gap-2 font-bold text-indigo-900 text-sm"><History className="w-4 h-4 text-indigo-600" /> Empirical Historical Backtest ({E.HISTORICAL_FIRST_YEAR}–{E.HISTORICAL_LAST_YEAR})</div>
               <p>Feeds actual historical real returns (US large-cap equities and a 50/50 government/corporate bond blend, weighted by each wrapper's risk tier) into your plan, <strong>starting from today (Age {currentAge})</strong> through to Age {terminalAge}.</p>
               <p className="text-slate-500">Selectable start years are capped at <strong>{maxHistoricalStartYear}</strong> so your {spanYears}-year plan runs within recorded history through {E.HISTORICAL_LAST_YEAR}.{historicalMetrics?.beyondData && ' Years beyond the dataset use the expected return.'}</p>
+              <p className="text-slate-500">Your working years cannot run the pot dry, because your living spend is only drawn from the first retirement onwards. The verdict below therefore counts <strong>drawdown years</strong>, not calendar years — a plan that fails the moment you stop working has funded nothing, however far away that moment is.</p>
             </div>
             <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -5548,9 +5563,9 @@ export default function App() {
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div className={`p-4 rounded-2xl border shadow-xs ${historicalMetrics.survived ? 'bg-emerald-50/90 border-emerald-200' : 'bg-rose-50/90 border-rose-200'}`}>
                   <span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Backtest Verdict</span>
-                  <div className="flex items-center gap-2">{historicalMetrics.survived ? <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0" />}<div><div className={`text-base font-black font-display italic ${historicalMetrics.survived ? 'text-emerald-800' : 'text-rose-800'}`}>{historicalMetrics.survived ? `Survived all ${spanYears} years` : historicalMetrics.failReason === 'floor' ? `All ${spanYears} years funded, below floor` : `Ran dry after ${historicalMetrics.fundedYears} of ${spanYears} years`}</div><span className="text-[11px] text-slate-500">{historicalMetrics.survived ? `Age ${currentAge} to ${terminalAge}, no shortfall in any year`
+                  <div className="flex items-center gap-2">{historicalMetrics.survived ? <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0" />}<div><div className={`text-base font-black font-display italic ${historicalMetrics.survived ? 'text-emerald-800' : 'text-rose-800'}`}>{historicalMetrics.survived ? `Survived all ${spanYears} years` : historicalMetrics.failReason === 'floor' ? `All ${spanYears} years funded, below floor` : historicalMetrics.failedBeforeDrawdown ? `Ran dry before retirement, at Age ${historicalMetrics.failAge}` : historicalMetrics.fundedDrawdownYears <= 0 ? `Ran dry in year 1 of ${historicalMetrics.drawdownYears} drawdown years` : `Ran dry after ${historicalMetrics.fundedDrawdownYears} of ${historicalMetrics.drawdownYears} drawdown years`}</div><span className="text-[11px] text-slate-500">{historicalMetrics.survived ? `Age ${currentAge} to ${terminalAge}, no shortfall in any year`
                     : historicalMetrics.failReason === 'floor' ? `Ends below the ${formatGBP(ctx.solvencyFloor)} bequest floor at Age ${terminalAge}`
-                      : `${historicalMetrics.failReason === 'pre-access' ? `Pension still locked at Age ${historicalMetrics.failAge}` : `Age ${historicalMetrics.failAge}`} (${historicalMetrics.failYear}) · ${historicalMetrics.unfundedYears} years unfunded`}</span></div></div>
+                      : `${historicalMetrics.failReason === 'pre-access' ? `Pension still locked at Age ${historicalMetrics.failAge}` : `Age ${historicalMetrics.failAge}`} (${historicalMetrics.failYear}) · ${historicalMetrics.unfundedYears} of ${spanYears} plan years unfunded`}</span></div></div>
                 </div>
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Starting Balance (Today)</span><div className="text-xl font-bold font-mono text-slate-900 mt-1">{formatGBP(historicalMetrics.startVal)}</div><span className="text-[11px] text-slate-400">After year-0 flows, at Age {currentAge}</span></div>
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Lowest Portfolio Trough</span><div className="text-xl font-bold font-mono text-amber-700 mt-1">{formatGBP(historicalMetrics.minVal)}</div><span className="text-[11px] text-slate-400">Lowest total experienced</span></div>

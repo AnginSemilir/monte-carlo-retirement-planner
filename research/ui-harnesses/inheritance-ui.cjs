@@ -46,6 +46,24 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   }
   ok('the 75 cliff is called out in pounds', await p.evaluate(()=>/costs your heirs/.test(document.body.textContent)));
   ok('per-person table present', await p.evaluate(()=>/Person by person/.test(document.body.textContent)));
+  /*
+   * The working. It is only worth having if it cannot disagree with the bill printed above it, so the
+   * check is arithmetic: the last row must equal the inheritance tax on the chosen row of the by-age
+   * table, and the running column must walk.
+   */
+  const work = await p.evaluate(()=>{const t=document.querySelector('[data-iht-workings]');
+    return t? [...t.querySelectorAll('tbody tr')].map(r=>{const c=[...r.querySelectorAll('td')];
+      return { label: c[0].innerText.split('\n')[0], amount: c[1].innerText.trim(), running: c[2].innerText.trim() };}) : null;});
+  ok('the working is shown', !!work && work.length >= 6, work?`${work.length} lines`:'missing');
+  if (work) work.forEach(r=>console.log(`     ${r.label.padEnd(56)} ${r.amount.padStart(12)} ${r.running.padStart(12)}`));
+  const chosenIht = rows ? money(rows.find(r=>/your estimate/.test(r[0]))[3]) : 0;
+  ok('the last line is the tax the table above charges', !!work && money(work[work.length-1].amount) === chosenIht,
+    work ? `${work[work.length-1].amount} against ${rows.find(r=>/your estimate/.test(r[0]))[3]}` : '');
+  ok('it names the estate and the chargeable subtotals',
+    !!work && work.some(r=>/Estate for inheritance tax/.test(r.label)) && work.some(r=>/Chargeable/.test(r.label)));
+  ok('it shows the nil-rate band as an allowance, not a mystery',
+    !!work && work.some(r=>r.label.startsWith('Nil-rate band') && /−/.test(r.amount)));
+  ok('and says what the taper took', !!work && work.some(r=>/withdrawn by the/.test(r.label)));
   ok('simplifications are disclosed', await p.evaluate(()=>/the pension column is your nomination form/.test(document.body.textContent)));
 
   // a share that does not total 100 must warn rather than silently rescale

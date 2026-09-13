@@ -3551,6 +3551,12 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     rnrbTaperLoss: (homeToDescendants && anyDescendant && rnrbAsset > 0)
       ? Math.max(0, Math.min(rnrbFull, rnrbAsset) - rnrb) : 0,
     rnrbFromDownsizing,
+    // the pieces a line-by-line working needs: the band before the taper, what the taper withdrew, and
+    // what the home itself could carry - any of the three can be the one that binds
+    rnrbFull, rnrbAsset, rnrbTaperWithdrawn: Math.min(taperLoss, rnrbFull),
+    nrbBase: Math.max(0, num(c.ihtNrb, 325000)),
+    rnrbBase: Math.max(0, num(c.ihtRnrb, 175000)),
+    homeToDescendants, anyDescendant,
     estateAssets, estateAssetsValue,
     businessRelief, businessReliefRaw: brRaw.relief,
     businessReliefTooNew: brRaw.tooNew, businessReliefAboveAllowance: brRaw.aboveAllowance,
@@ -3594,6 +3600,119 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
  * ordinary transfer with a seven-year clock attached. The binding figure is the LEANEST year, not the
  * average, because the exemption asks whether the gift could be made every year without eating capital.
  */
+/*
+ * THE TAX, LINE BY LINE.
+ *
+ * The tab could say what the bill was and not how it got there, which leaves a household unable to
+ * check the one number that matters or to see which allowance it lost and to what. This turns a priced
+ * estate into the working: what is being taxed, what comes off before the bands, what each band is and
+ * what ate it, and how the bill is arrived at from the chargeable amount.
+ *
+ * Every row carries a signed `amount` and the running total after it, so the table cannot disagree with
+ * the figure above it - a test walks the rows and checks the last one is the tax the engine charged.
+ */
+function ihtWorkings(est, cfg) {
+  if (!est) return null;
+  const c = { ...DEFAULT_CONFIG, ...(cfg || {}) };
+  const rows = [];
+  let run = 0;
+  const add = (key, label, amount, opts = {}) => {
+    if (opts.skipIfZero !== false && Math.abs(num(amount, 0)) < 0.5 && !opts.always) return;
+    if (opts.kind !== 'note') run += num(amount, 0);
+    rows.push({ key, label, note: opts.note || '', amount: num(amount, 0), kind: opts.kind || 'item', running: run });
+  };
+  const total = (key, label, note) => rows.push({ key, label, note: note || '', amount: run, kind: 'total', running: run });
+
+  // ---- 1. what is in the estate
+  add('liquid', 'Savings, ISAs and investments', est.liquid, { always: true });
+  add('pension', est.pensionCounts ? 'Pension' : 'Pension (outside the estate at this age)',
+    est.pensionCounts ? est.pension : 0,
+    { always: est.pension > 0, note: est.pensionCounts
+      ? `unused pensions count towards the estate from ${num(c.pensionsInEstateFrom, 2027)}`
+      : `${'—'} death before ${num(c.pensionsInEstateFrom, 2027)}, so the ${'£'}${Math.round(est.pension).toLocaleString()} is not taxed here` });
+  add('home', 'Your home', est.homeValue);
+  add('assets', 'Everything else you own', est.estateAssetsValue,
+    { note: (est.estateAssets || []).map(a => a.name || ESTATE_ASSET_KINDS[a.kind].label).join(', ') });
+  total('gross', 'Estate for inheritance tax');
+
+  // ---- 2. what comes off before the bands
+  const spouseExempt = Math.max(0, num(est.exemptValue, 0) - num(est.charityValue, 0));
+  add('spouse', 'Less: passing to a spouse or civil partner', -spouseExempt, { note: 'exempt without limit' });
+  add('charity', 'Less: passing to charity', -num(est.charityValue, 0),
+    { note: est.charityQualifies ? `enough to earn the ${est.ratePct}% rate` : 'exempt, but below the 10% test for the reduced rate' });
+  add('relief', 'Less: business and agricultural relief', -num(est.businessRelief, 0));
+  if (rows.some(r => ['spouse', 'charity', 'relief'].includes(r.key))) total('taxable', 'Taxable estate');
+
+  // ---- 3. the allowances, and what consumed them
+  add('nrb', 'Nil-rate band', -num(est.nrbBase, 0), { always: true });
+  add('nrbT', 'Nil-rate band from a late spouse', -Math.max(0, num(est.nrbFull, 0) - num(est.nrbBase, 0)));
+  add('nrbGifts', 'Less: nil-rate band eaten by gifts in the last seven years', num(est.nrbUsedByGifts, 0));
+  /*
+   * A gift that ate nothing still has to appear, or the reader is left looking for money they know they
+   * gave away. Saying which relief absorbed it is the difference between a table that reconciles and
+   * one that looks like it has lost a line.
+   */
+  const gl = Array.isArray(est.gifts) ? est.gifts : [];
+  if (gl.length) {
+    const given = gl.reduce((t, g) => t + num(g.amount, 0) + num(g.compensationPart, 0), 0);
+    const fromComp = gl.reduce((t, g) => t + num(g.compensationPart, 0), 0);
+    const outlived = gl.filter(g => g.survived && !num(g.compensationPart, 0)).reduce((t, g) => t + num(g.amount, 0), 0);
+    const why = [
+      fromComp > 0 ? `${'£'}${Math.round(fromComp).toLocaleString()} came from the compensation, which costs no band` : '',
+      outlived > 0 ? `${'£'}${Math.round(outlived).toLocaleString()} was made more than seven years ago` : '',
+      num(est.nrbUsedByGifts, 0) > 0 ? `${'£'}${Math.round(num(est.nrbUsedByGifts, 0)).toLocaleString()} ate the band` : ''
+    ].filter(Boolean).join('; ');
+    rows.push({ key: 'giftsNote', kind: 'note', amount: 0, running: run,
+      label: `Gifts you have made: ${'£'}${Math.round(given).toLocaleString()}`, note: why || 'none of it reduced your allowances' });
+  }
+  const rnrbT = Math.max(0, num(est.rnrbFull, 0) - num(est.rnrbBase, 0));
+  const bandBlocked = !(est.homeToDescendants && est.anyDescendant && num(est.rnrbAsset, 0) > 0);
+  if (bandBlocked) {
+    rows.push({ key: 'rnrbNone', kind: 'note', amount: 0, running: run, label: 'No residence band',
+      note: num(est.homeValue, 0) <= 0 ? 'there is no home in the estate'
+        : !est.homeToDescendants ? 'the home is not passing to a child, grandchild or step-child'
+        : 'nobody inheriting is a direct descendant' });
+  } else {
+    add('rnrb', 'Residence band', -num(est.rnrbBase, 0), { always: true });
+    add('rnrbT', 'Residence band from a late spouse', -rnrbT);
+    add('rnrbTaper', `Less: residence band withdrawn by the ${'£'}${Math.round(num(c.ihtRnrbTaperFrom, 2000000)).toLocaleString()} taper`,
+      num(est.rnrbTaperWithdrawn, 0),
+      { note: `${'£'}1 of band for every ${'£'}2 the estate is over the line` });
+    // after the taper the band can still be more than the home is worth, and then the home is the cap
+    const afterTaper = Math.max(0, num(est.rnrbFull, 0) - num(est.rnrbTaperWithdrawn, 0));
+    const capped = Math.max(0, afterTaper - num(est.rnrb, 0));
+    add('rnrbCap', 'Less: residence band capped at the value of the home', capped,
+      { note: `the band cannot exceed the ${'£'}${Math.round(num(est.rnrbAsset, 0)).toLocaleString()} the home is worth` });
+  }
+  total('chargeable', 'Chargeable to inheritance tax');
+
+  // ---- 4. from the chargeable amount to the bill
+  const out = [...rows];
+  const chargeable = Math.max(0, run);
+  out.push({ key: 'rate', kind: 'rate', label: `Tax at ${est.ratePct}%`,
+    note: est.charityQualifies ? 'reduced from 40% because a tenth of the estate goes to charity' : '',
+    amount: chargeable * num(est.ratePct, 40) / 100, running: chargeable * num(est.ratePct, 40) / 100 });
+  let bill = chargeable * num(est.ratePct, 40) / 100;
+  const push = (key, label, amount, note) => {
+    if (Math.abs(num(amount, 0)) < 0.5) return;
+    bill += num(amount, 0);
+    out.push({ key, label, note: note || '', amount: num(amount, 0), kind: 'item', running: bill });
+  };
+  push('giftTax', 'Plus: tax on gifts made within seven years', num(est.giftTax, 0),
+    'charged on the gift itself, after taper, where it runs past the band');
+  if (est.activeServiceExempt) {
+    out.push({ key: 'service', kind: 'item', label: 'Less: death on active service', note: 'a full exemption, whatever the estate is worth',
+      amount: -bill, running: 0 });
+    bill = 0;
+  }
+  push('qsr', 'Less: quick succession relief', -num(est.qsrRelief, 0),
+    `${est.qsrPct}% of the tax paid on what you inherited`);
+  push('comp', 'Less: compensation credit', -num(est.compensationCredit, 0),
+    `${num(c.ihtRate, 40)}% of the ${'£'}${Math.round(num(est.compensationPayment, 0)).toLocaleString()} payment`);
+  out.push({ key: 'iht', kind: 'total', label: 'Inheritance tax payable', note: '', amount: Math.max(0, bill), running: Math.max(0, bill) });
+  return out;
+}
+
 function surplusIncome(rows) {
   const years = (Array.isArray(rows) ? rows : []).filter(r => num(r.t, 0) > 0).map(r => ({
     year: r.year, age: r.ageSelf,
@@ -4575,7 +4694,7 @@ function estateActionPlan(plan, result) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, compensationWindow, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -5567,7 +5686,14 @@ export default function App() {
         qsrYearsBefore: E.num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         compensationPayment: E.num(inh.compensationPayment, 0),
         compensationWindowEndYear: (E.compensationWindow(plan?.config, inh.compensationDate) || {}).endYear,
-        otherAssets: inh.otherAssets, gifts: giftsOverride || inh.gifts, beneficiaries: bens
+        otherAssets: inh.otherAssets, gifts: giftsOverride || inh.gifts, beneficiaries: bens,
+        /*
+         * Gifts still to be made count towards what the heirs get. A planned gift is money reaching them
+         * early, not money leaving the family - showing only the estate makes every gift the tab
+         * recommends look like a loss of its own size. Money handed over before the plan starts is
+         * already theirs and is left out: it would flatter every death age by the same amount.
+         */
+        giftsFromYear: ctx.baseYear + 1
       });
       const est = isCouple ? res.second : res;
       return { age, year: row.year, homeSold: soldBy, ...est };
@@ -6106,6 +6232,9 @@ export default function App() {
       excludedPension: counted ? 0 : at.pen
     };
   }, [inheritanceView, timelineData, ctx, plan?.inheritance]);
+
+  const ihtWorkings = useMemo(() => (inheritanceView.chosen
+    ? E.ihtWorkings(inheritanceView.chosen, plan?.config) : null), [inheritanceView, plan?.config]);
 
   const addEstateAsset = () => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}),
     otherAssets: [...(prev.inheritance?.otherAssets || []), { id: 'asset_' + Date.now(), name: '', kind: 'property', value: '', ownedFrom: '' }] } }));
@@ -8751,7 +8880,9 @@ export default function App() {
                             <td className="py-1.5 pr-3 text-slate-500">{formatGBP(r.nrb + r.rnrb)}</td>
                             <td className="py-1.5 pr-3 text-rose-700">{formatGBP(r.iht)}</td>
                             <td className="py-1.5 pr-3 text-rose-700">{r.incomeTaxOnPensions > 0 ? formatGBP(r.incomeTaxOnPensions) : '—'}</td>
-                            <td className="py-1.5 pr-3 text-emerald-700 font-bold">{formatGBP(r.netToBeneficiaries)}</td>
+                            <td className="py-1.5 pr-3 text-emerald-700 font-bold">{formatGBP(r.netIncludingLifetimeGifts)}
+                              {r.giftsToHeirs > 0 && <span className="block text-[10px] text-slate-400 font-sans font-normal">{formatGBP(r.netToBeneficiaries)} estate + {formatGBP(r.giftsToHeirs)} gifted</span>}
+                            </td>
                             <td className="py-1.5">{r.effectiveRatePct.toFixed(0)}%</td>
                           </tr>
                         ))}
@@ -8764,8 +8895,52 @@ export default function App() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Estate at {inheritanceView.chosen.age}</span><div className="text-xl font-bold font-mono text-slate-900">{formatGBP(inheritanceView.chosen.grossEstate)}</div><span className="text-[11px] text-slate-400">{inheritanceView.chosen.pensionCounts ? `Includes ${formatGBP(inheritanceView.chosen.pension)} of pension, which counts from 2027` : `Excludes ${formatGBP(inheritanceView.chosen.pension)} of pension — death before the 2027 rule`}</span></div>
                   <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Total tax</span><div className="text-xl font-bold font-mono text-rose-700">{formatGBP(inheritanceView.chosen.totalTax)}</div><span className="text-[11px] text-slate-400">{formatGBP(inheritanceView.chosen.iht)} estate tax at {inheritanceView.chosen.ratePct}%{inheritanceView.chosen.charityQualifies ? ' (reduced by your charitable gift)' : ''}{inheritanceView.chosen.incomeTaxOnPensions > 0 ? ` · ${formatGBP(inheritanceView.chosen.incomeTaxOnPensions)} their income tax` : ''}{inheritanceView.chosen.qsrRelief > 0 ? ` · after a ${formatGBP(inheritanceView.chosen.qsrRelief)} quick succession credit` : ''}</span></div>
-                  <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">They receive</span><div className="text-xl font-bold font-mono text-emerald-700">{formatGBP(inheritanceView.chosen.netToBeneficiaries)}</div><span className="text-[11px] text-slate-400">{inheritanceView.chosen.effectiveRatePct.toFixed(0)}% of the estate is taken in total</span></div>
+                  <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs">
+                    <span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">{inheritanceView.chosen.giftsToHeirs > 0 ? 'They receive in total' : 'They receive'}</span>
+                    <div className="text-xl font-bold font-mono text-emerald-700">{formatGBP(inheritanceView.chosen.netIncludingLifetimeGifts)}</div>
+                    {inheritanceView.chosen.giftsToHeirs > 0 ? (
+                      <span className="text-[11px] text-slate-400">
+                        <span className="block">{formatGBP(inheritanceView.chosen.netToBeneficiaries)} from the estate</span>
+                        <span className="block text-purple-700 font-semibold">+ {formatGBP(inheritanceView.chosen.giftsToHeirs)} handed over in your lifetime</span>
+                        <span className="block">{inheritanceView.chosen.effectiveRatePct.toFixed(0)}% of the estate is taken in tax</span>
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-slate-400">{inheritanceView.chosen.effectiveRatePct.toFixed(0)}% of the estate is taken in total</span>
+                    )}
+                  </div>
                 </div>
+
+                {/* The working, so the bill above can be checked rather than believed. Every row carries a
+                    running total and the last one is the tax the engine charged - a test walks them. */}
+                {ihtWorkings && (
+                  <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">How the tax is worked out, if you die at {inheritanceView.chosen.age}</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-[11px] border-collapse" data-iht-workings>
+                        <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
+                          <th className="pb-1.5 pr-3">Line</th><th className="pb-1.5 pr-3 text-right">Amount</th><th className="pb-1.5 text-right">Running</th>
+                        </tr></thead>
+                        <tbody className="divide-y divide-slate-100 font-mono">
+                          {ihtWorkings.map(r => (
+                            <tr key={r.key} className={r.kind === 'total' ? 'bg-slate-50 font-bold' : ''}>
+                              <td className={`py-1.5 pr-3 font-sans ${r.kind === 'total' ? 'text-slate-900' : r.kind === 'note' ? 'text-slate-500 italic' : 'text-slate-700'}`}>
+                                {r.label}
+                                {r.note && <span className="block text-[10px] text-slate-400 not-italic">{r.note}</span>}
+                              </td>
+                              <td className={`py-1.5 pr-3 text-right ${r.kind === 'note' ? 'text-slate-300' : r.amount < 0 ? 'text-emerald-700' : r.kind === 'total' || r.kind === 'rate' ? 'text-slate-900' : 'text-slate-700'}`}>
+                                {r.kind === 'note' ? '' : (r.amount < 0 ? '−' : '') + formatGBP(Math.abs(r.amount))}
+                              </td>
+                              <td className={`py-1.5 text-right ${r.kind === 'total' ? 'text-purple-700 font-bold' : 'text-slate-400'}`}>
+                                {r.kind === 'note' ? '' : formatGBP(Math.max(0, r.running))}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <span className="text-[10px] text-slate-400 block">A band shown as a negative is one you keep; a positive line below it is that band being taken away again. Allowances come off the estate; the credits at the bottom come off the tax itself, which is why they are worth their full value rather than {E.num(plan?.config?.ihtRate, 40)}% of it.</span>
+                  </div>
+                )}
 
                 <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Person by person, if you die at {inheritanceView.chosen.age}</h3>

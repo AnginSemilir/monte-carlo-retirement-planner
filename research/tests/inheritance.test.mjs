@@ -890,5 +890,82 @@ console.log('=========== O. EVERYTHING ELSE IN THE ESTATE ===========');
       .inheritance.otherAssets[0].kind === 'aim');
 }
 
+console.log('=========== P. THE WORKING RECONCILES ===========');
+{
+  /*
+   * A table that says how the bill was reached is only worth having if it cannot disagree with the bill.
+   * Every row carries a running total; the last one has to be the tax the engine charged, on estates
+   * shaped very differently - bands transferred, bands tapered away, a spouse, a charity, relief, gifts,
+   * quick succession and the compensation credit all in play.
+   */
+  const w = { pen: 700000, isa: 300000, other: 200000, cash: 100000 };
+  const cases = {
+    'plain, one child': { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true, beneficiaries: [kid()] },
+    'over the taper line': { deathAge: 84, deathYear: 2040, homeValue: 1800000, homeToDescendants: true, beneficiaries: [kid()] },
+    'both bands transferred': { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true,
+      transferredNrbPct: 100, transferredRnrbPct: 100, beneficiaries: [kid()] },
+    'no home at all': { deathAge: 84, deathYear: 2040, homeValue: 0, beneficiaries: [kid()] },
+    'home not to a descendant': { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: false, beneficiaries: [kid()] },
+    'half to a spouse': { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true,
+      beneficiaries: [{ id: 's', relationship: 'spouse', sharePct: 50, income: 0 }, { ...kid(), sharePct: 50 }] },
+    'a tenth to charity': { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true,
+      beneficiaries: [{ id: 'c', relationship: 'charity', sharePct: 30, income: 0 }, { ...kid(), sharePct: 70 }] },
+    'business relief': { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true, beneficiaries: [kid()],
+      otherAssets: [{ id: 'a', kind: 'business', value: 1500000, ownedFrom: 2010 }] },
+    'gifts inside seven years': { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true,
+      beneficiaries: [kid()], gifts: [{ amount: 400000, year: 2036 }] },
+    'quick succession': { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true, beneficiaries: [kid()],
+      qsrInheritedValue: 200000, qsrTaxPaid: 60000, qsrYearsBefore: 1 },
+    'the compensation credit': { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true,
+      beneficiaries: [kid()], compensationPayment: 400000 },
+    'compensation and a gift from it': { deathAge: 84, deathYear: 2028, homeValue: 500000, homeToDescendants: true,
+      beneficiaries: [kid()], compensationPayment: 400000, compensationWindowEndYear: 2028,
+      gifts: [{ amount: 300000, year: 2027 }] },
+    'death on active service': { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true,
+      beneficiaries: [kid()], activeServiceExempt: true },
+    'nothing left to tax': { deathAge: 84, deathYear: 2040, homeValue: 0, beneficiaries: [{ id: 's', relationship: 'spouse', sharePct: 100, income: 0 }] }
+  };
+  let worst = 0, worstCase = '';
+  Object.entries(cases).forEach(([name, opts]) => {
+    const est = E.estateAtDeath(cfg, w, opts);
+    const rows = E.ihtWorkings(est, cfg);
+    const last = rows[rows.length - 1];
+    const gap = Math.abs(last.amount - est.iht);
+    if (gap > worst) { worst = gap; worstCase = name; }
+    ok(`${name}: the last line is the tax charged`, gap < 1,
+      `£${Math.round(last.amount).toLocaleString()} against £${Math.round(est.iht).toLocaleString()}`);
+  });
+  ok('every case reconciles to the pound', worst < 1, worstCase ? `worst was ${worstCase}, off by ${worst}` : '');
+
+  // and the rows themselves have to walk: each running total is the one before it plus this amount
+  const est = E.estateAtDeath(cfg, w, cases['over the taper line']);
+  const rows = E.ihtWorkings(est, cfg);
+  let walked = 0, broke = '';
+  rows.filter(r => r.kind !== 'note').forEach(r => {
+    if (r.kind === 'total') { if (Math.abs(r.amount - walked) > 1) broke = broke || r.key; return; }
+    if (r.kind === 'rate') { walked = Math.max(0, walked) * est.ratePct / 100; if (Math.abs(r.running - walked) > 1) broke = broke || r.key; return; }
+    walked += r.amount;
+    if (Math.abs(r.running - walked) > 1) broke = broke || r.key;
+  });
+  ok('and each running total is the one before it plus that line', !broke, broke ? `breaks at ${broke}` : `${rows.length} rows`);
+  ok('a note row moves nothing', rows.filter(r => r.kind === 'note').every(r => r.amount === 0));
+  ok('the estate subtotal is the gross estate',
+    near(rows.find(r => r.key === 'gross').amount, est.grossEstate));
+  ok('the chargeable subtotal is what the engine charges on',
+    near(rows.find(r => r.key === 'chargeable').amount, est.chargeable));
+  ok('a household with no home is told why there is no residence band',
+    E.ihtWorkings(E.estateAtDeath(cfg, w, cases['no home at all']), cfg).some(r => r.key === 'rnrbNone' && /no home/.test(r.note)));
+  ok('and one whose home goes elsewhere is told that instead',
+    E.ihtWorkings(E.estateAtDeath(cfg, w, cases['home not to a descendant']), cfg)
+      .some(r => r.key === 'rnrbNone' && /not passing to a child/.test(r.note)));
+  ok('gifts that cost nothing still appear, with the reason',
+    E.ihtWorkings(E.estateAtDeath(cfg, w, cases['compensation and a gift from it']), cfg)
+      .some(r => r.key === 'giftsNote' && /came from the compensation/.test(r.note)));
+  ok('active service zeroes the bill on its own line',
+    E.ihtWorkings(E.estateAtDeath(cfg, w, cases['death on active service']), cfg)
+      .some(r => r.key === 'service'));
+  ok('nothing to price returns no phantom rows', E.ihtWorkings(null, cfg) === null);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

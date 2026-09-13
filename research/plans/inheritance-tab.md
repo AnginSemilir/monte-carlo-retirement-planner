@@ -199,6 +199,73 @@ Ranked by value-per-unit-of-complexity, sticking to standard products:
 
 ---
 
+## 3b. Credit and exemption mechanisms beyond the bands
+
+Researched September 2026. These are the cases where an estate of identical size pays a completely
+different amount, for reasons the band arithmetic cannot see.
+
+### Quick Succession Relief — build this
+
+The mechanism described as "IHT credit". Under s.141 IHTA 1984, where someone inherits assets on which
+inheritance tax was paid and then dies within five years, the tax on the **second** death is reduced by
+reference to the tax paid on the first, on a sliding scale:
+
+| Years between the two deaths | Relief |
+|---|---|
+| under 1 | 100% |
+| 1–2 | 80% |
+| 2–3 | 60% |
+| 3–4 | 40% |
+| 4–5 | 20% |
+| 5+ | none |
+
+Two things make this worth building rather than noting. It is **not applied automatically** — it must be
+claimed, so a household that does not know it exists loses it outright. And it is squarely relevant to
+this app's users: someone who inherited from a parent shortly before their own death is the exact case,
+and the relief can be worth six figures.
+
+Inputs: whether anything was inherited in the last five years, its value, the IHT paid on it, and the
+date. Four fields, self-contained, and the calculation slots into `estateAtDeath` as a reduction to the
+tax rather than a change to the estate.
+
+### Death on active service — build this
+
+A **full exemption** from inheritance tax, not a relief: s.154 IHTA 1984 covers armed forces personnel
+dying from a wound, accident or disease contracted on active service, including where an earlier
+condition was aggravated by service. Extended since 19 March 2014 to emergency services personnel and
+to anyone deliberately targeted because of their job or status.
+
+One checkbox, and it takes the bill to zero. Cheap to build and enormous when it applies.
+
+**A correction worth recording**, since the brief paired these: a war widow's or widower's pension is
+**tax-free income**, not an inheritance tax mechanism. It does not affect the estate calculation at all.
+The IHT-relevant armed-forces provision is the active-service exemption above. Two different things that
+sit near each other in conversation.
+
+### Double taxation relief — build if cheap
+
+Foreign assets taxed abroad attract a credit against UK inheritance tax, either under a treaty (France,
+Netherlands, Ireland, Italy, India, Pakistan, South Africa, Sweden, Switzerland, the United States) or
+by unilateral relief where no treaty exists. Two inputs — foreign asset value and foreign tax paid —
+and a credit capped at the UK tax on the same asset.
+
+Note the scope rule it depends on: since 6 April 2025 worldwide assets are in scope for anyone UK
+resident in 10 of the previous 20 tax years. Without that test the foreign asset should not be in the
+estate at all, so the two belong together.
+
+### Warn about, do not model
+
+- **Gifts with reservation of benefit.** Giving away the house and continuing to live in it does not
+  remove it from the estate. This is the single most common planning mistake and deserves a warning
+  next to any gifting feature, not a calculation.
+- **Woodlands relief**, **heritage conditional exemption**, **fall-in-value relief** on assets sold at a
+  loss after death. All real, all narrow, and all requiring facts a planning tool has no way to hold.
+
+The general rule for this section: model what a household can state as a fact about themselves, and warn
+about what needs an adviser. QSR and active service are facts. A reservation of benefit is a judgement.
+
+---
+
 ## 4. What gets built
 
 ### 4a. Config additions (rules, not personal facts)

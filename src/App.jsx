@@ -2995,8 +2995,70 @@ function postTaxInheritanceFor(plan, ctx) {
   return (ctx.isCouple ? res.second : res).netToBeneficiaries;
 }
 
+/*
+ * WHAT FOLLOWING THIS POLICY ACTUALLY MEANS, IN ORDER.
+ *
+ * Generated from the policy's own `steps`, `costSteps`, `depositOrder` and `harvest` rather than
+ * written out per policy. Hand-written copy drifts: the Config tab explained the selected policy with a
+ * ternary covering three cases, and adding a fourth would have described one strategy while running
+ * another. Deriving it means the instructions cannot say something the engine does not do.
+ */
+const WRAPPER_PHRASE = {
+  pen: 'your pension', isa: 'your ISAs', other: 'your general investment account', cash: 'your cash savings',
+  penPA: 'pension income up to the tax-free personal allowance',
+  penBasic: 'pension income up to the basic-rate limit',
+  penAny: 'the pension, at whatever tax rate applies'
+};
+const phraseFor = (tok) => WRAPPER_PHRASE[tok] || tok;
+
+function policyPlaybook(policyKey, P) {
+  const pol = DECUMULATION_POLICIES[policyKey];
+  if (!pol) return [];
+  const list = (steps) => steps.map(phraseFor);
+  const out = [];
+
+  out.push({
+    title: 'Each year, to cover your spending',
+    body: `Take from ${list(pol.steps).join(', then ')}. Stop as soon as the year's spending is covered — everything further down the list is left untouched.`,
+    detail: pol.steps.includes('penPA')
+      ? `"Up to the personal allowance" means the first ${formatGBP(P.pa)} of pension income, which is taxed at 0%. "Up to the basic-rate limit" means up to ${formatGBP(P.higherRateStartsAt)} of total taxable income.`
+      : 'This policy does not manage tax bands: each wrapper is emptied before the next is touched.'
+  });
+
+  out.push({
+    title: 'When a one-off cost lands',
+    body: `Fund it from ${list(pol.costSteps || DEFAULT_COST_STEPS).join(', then ')}.`,
+    detail: (pol.costSteps || DEFAULT_COST_STEPS)[0] === 'isa'
+      ? 'Reaching for the ISA first avoids selling investments at a gain to pay for it, which is what makes a lump-sum cost expensive in a year you had not planned to realise one.'
+      : 'A lump-sum cost lands in a single tax year, so it can push pension income through a band or realise a year of gains at once. That is why it has its own order.'
+  });
+
+  out.push({
+    title: 'When money arrives — an inheritance, a windfall, a sale',
+    body: pol.depositOrder
+      ? `Put it into ${list(pol.depositOrder).join(', then ')}, taking the first that still has room this year.`
+      : `Choose the wrapper yourself, or mark the deposit "${AUTO_DEPOSIT}" and it goes to ${list(DEFAULT_DEPOSIT_ORDER).join(', then ')} — the first with room.`,
+    detail: 'Room means the annual allowance left: £20,000 a year for ISAs, and for pensions whatever your annual allowance and earnings permit. The GIA has no limit, so it takes whatever does not fit.'
+  });
+
+  if (pol.harvest) {
+    out.push({
+      title: 'Each year once the pension is accessible',
+      body: `If you have not used your ${formatGBP(P.pa)} personal allowance, draw that much pension income anyway and move it straight into an ISA (or cash once the ISA is full).`,
+      detail: 'It costs no tax to take, and it moves money out of a wrapper that will be taxed on the way out into one that will not. Switched on and off in Config as "harvest the personal allowance".'
+    });
+  }
+
+  out.push({
+    title: 'What this policy is trying to do',
+    body: pol.blurb ? pol.blurb(P) : '',
+    detail: null
+  });
+  return out.filter(x => x.body);
+}
+
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -5790,6 +5852,25 @@ export default function App() {
                   <button type="button" onClick={() => goToDoc('doc-cgt')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-1"><HelpCircle className="w-3.5 h-3.5" /> How capital gains are tracked &amp; taxed &rarr;</button>
                 </div>
               </div>
+
+              {/* Generated from the policy definition, never written per policy: hand-written copy drifts,
+                  and instructions that describe a strategy the engine is not running are worse than none. */}
+              <details className="pt-3 border-t border-slate-100" open>
+                <summary className="cursor-pointer text-xs font-bold text-slate-900 uppercase tracking-wider hover:text-blue-700">How to actually follow this policy</summary>
+                <ol className="mt-2 space-y-2">
+                  {E.policyPlaybook(plan?.spending?.decumulationPolicy, P).map((step, i) => (
+                    <li key={i} className="flex gap-2.5 text-xs">
+                      <span className="shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 grid place-items-center font-bold text-[10px] mt-0.5">{i + 1}</span>
+                      <div className="min-w-0">
+                        <div className="font-bold text-slate-800">{step.title}</div>
+                        <div className="text-slate-600 leading-relaxed">{step.body}</div>
+                        {step.detail && <div className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">{step.detail}</div>}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+                <span className="text-[10px] text-slate-400 mt-2 block">Written from the policy the model is actually running, so these steps and the projection can never disagree. Changing the policy above rewrites them.</span>
+              </details>
 
               {policyResults && (
                 <div className="pt-3 border-t border-slate-100 space-y-2">

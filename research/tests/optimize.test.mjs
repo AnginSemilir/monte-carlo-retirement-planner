@@ -340,7 +340,7 @@ console.log('=========== K. THE COMPENSATION WINDOW, IN THE SEARCH ===========')
     demo: { currentAgeSelf: 74, terminalAge: 92 }, deathAge: 90, home: 0,
     pen: 800000, isa: 0, other: 0, cash: 400000,
     bens: [{ id: 'k', name: 'Child', relationship: 'descendant', sharePct: 100, income: 60000, age: 50 }],
-    inh: { exemptCompensation: 350000, exemptCompensationDate: '2026-02-01' }
+    inh: { compensationPayment: 350000, compensationDate: '2026-02-01' }
   });
   living.spending.targetSpend = 42000;
   // Sequential spends the cash first, which is where the award is sitting - so by 90 there is none of it
@@ -353,20 +353,20 @@ console.log('=========== K. THE COMPENSATION WINDOW, IN THE SEARCH ===========')
   ok('giving it away is a lever of its own', !!lever);
   ok('and it earns its place for a household that would spend it', lever.gain > 10000, gbp(lever.gain));
   ok('the year it names is inside the window', /20(2[678])/.test(lever.pick), lever.pick);
-  ok('and it never claims the exemption twice', (() => {
-    const held = E.estateAtDeath({ ...E.DEFAULT_CONFIG }, { isa: 400000, cash: 300000 },
-      { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true, exemptCompensation: 300000,
-        compensationWindowEndYear: 2028, giftsFromYear: 2026, beneficiaries: [{ id: 'k', name: 'C', relationship: 'descendant', sharePct: 100, income: 0 }] });
+  ok('and it never relieves the same money twice', (() => {
+    const o = (gifts) => ({ deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true,
+      compensationPayment: 300000, compensationWindowEndYear: 2028, giftsFromYear: 2026, gifts,
+      beneficiaries: [{ id: 'k', name: 'C', relationship: 'descendant', sharePct: 100, income: 0 }] });
+    const held = E.estateAtDeath({ ...E.DEFAULT_CONFIG }, { isa: 400000, cash: 300000 }, o([]));
     const gifted = E.estateAtDeath({ ...E.DEFAULT_CONFIG }, { isa: 400000, cash: 0 },
-      { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true, exemptCompensation: 300000,
-        compensationWindowEndYear: 2028, giftsFromYear: 2026, gifts: [{ amount: 300000, year: 2027, exemptCompensation: true }],
-        beneficiaries: [{ id: 'k', name: 'C', relationship: 'descendant', sharePct: 100, income: 0 }] });
-    return gifted.exemptCompensation === 0 && Math.abs(gifted.netIncludingLifetimeGifts - held.netIncludingLifetimeGifts) < 1;
-  })(), 'money given away is no longer in the estate to disregard');
-
+      o([{ amount: 300000, year: 2027, exemptCompensation: true }]));
+    // the credit moves with the money: given away, it is relieved by the window instead
+    return gifted.compensationCredit === 0 && held.compensationCredit > 0 &&
+      Math.abs(gifted.netIncludingLifetimeGifts - held.netIncludingLifetimeGifts) < 1;
+  })(), 'the credit covers what was not given away');
   // and it is dropped once the window has shut
   const shut = E.optimizeInheritance({ ...living,
-    inheritance: { ...living.inheritance, exemptCompensationDate: '2019-01-01' } });
+    inheritance: { ...living.inheritance, compensationDate: '2019-01-01' } });
   const shutLever = shut.levers.find(l => l.key === 'compGift');
   ok('a closed window offers nothing', shut.compensationWindow.endDate === '2027-12-04' &&
     (shutLever.gain === 0 || /2027/.test(shutLever.pick)), `${shut.compensationWindow.endDate}: ${shutLever.pick}`);
@@ -376,10 +376,11 @@ console.log('=========== K. THE COMPENSATION WINDOW, IN THE SEARCH ===========')
    * spare, and the honest answer is that giving it away gains nothing.
    */
   const comfortable = E.optimizeInheritance(household({
-    inh: { exemptCompensation: 300000, exemptCompensationDate: '2026-02-01' } }));
+    inh: { compensationPayment: 300000, compensationDate: '2026-02-01' } }));
   const noNeed = comfortable.levers.find(l => l.key === 'compGift');
-  ok('and nothing when the money will still be there', noNeed.gain === 0 && /already outside the estate/.test(noNeed.pick),
-    noNeed.pick);
+  ok('and nothing when the money will still be there', noNeed.gain === 0,
+    `${gbp(noNeed.gain)}: ${noNeed.pick}`);
+  ok('with the reason given rather than a bare zero', /the credit for it applies whatever you do/.test(noNeed.pick), noNeed.pick);
 
   /*
    * A gift is money the heirs receive early. Ranking on the estate alone made every gift look like a loss
@@ -402,7 +403,7 @@ console.log('=========== K. THE COMPENSATION WINDOW, IN THE SEARCH ===========')
     demo: { currentAgeSelf: 78, terminalAge: 90 }, deathAge: 82, home: 0,
     pen: 700000, isa: 0, other: 0, cash: 400000,
     bens: [{ id: 'k', name: 'Child', relationship: 'descendant', sharePct: 100, income: 60000, age: 50 }],
-    inh: { exemptCompensation: 350000, exemptCompensationDate: '2026-02-01' }
+    inh: { compensationPayment: 350000, compensationDate: '2026-02-01' }
   });
   soon.spending.targetSpend = 40000;
   soon.spending.decumulationPolicy = 'Sequential';

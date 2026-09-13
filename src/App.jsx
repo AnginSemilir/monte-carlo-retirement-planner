@@ -660,7 +660,7 @@ const BLANK_PLAN = Object.freeze({
      * rather than a flag because only what is still HELD is exempt: spend it and there is nothing to
      * disregard.
      */
-    exemptCompensation: '', exemptCompensationDate: '',
+    compensationPayment: '', compensationDate: '',
     // gifts already made: { id, amount, year, desc }
     gifts: [],
     /*
@@ -814,7 +814,10 @@ function normalizePlan(raw) {
       ...BLANK_PLAN.inheritance, ...(isPlainObject(src.inheritance) ? src.inheritance : {}),
       beneficiaries: normalizeBeneficiaries(src.inheritance?.beneficiaries),
       gifts: normalizeGifts(src.inheritance?.gifts),
-      surplusGift: { ...BLANK_PLAN.inheritance.surplusGift, ...(isPlainObject(src.inheritance?.surplusGift) ? src.inheritance.surplusGift : {}) }
+      surplusGift: { ...BLANK_PLAN.inheritance.surplusGift, ...(isPlainObject(src.inheritance?.surplusGift) ? src.inheritance.surplusGift : {}) },
+      // renamed once the relief turned out to be a credit against the tax rather than a hole in the estate
+      compensationPayment: src.inheritance?.compensationPayment ?? src.inheritance?.exemptCompensation ?? '',
+      compensationDate: src.inheritance?.compensationDate ?? src.inheritance?.exemptCompensationDate ?? ''
     },
     accounts: [],
     riskProfiles: {},
@@ -3107,41 +3110,7 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   const liquid = ['isa', 'other', 'cash'].reduce((t, k) => t + Math.max(0, num(wrappers[k], 0)), 0);
   const pensionCounts = deathYear >= num(c.pensionsInEstateFrom, 2027);
   const willEstate = liquid + homeValue;                 // what the will divides
-  /*
-   * COMPENSATION THAT IS DISREGARDED FOR INHERITANCE TAX.
-   *
-   * Payments under the infected blood scheme are exempt from income tax, capital gains tax and
-   * inheritance tax, and where the eligible person had already died the first living recipient carries
-   * an inheritance tax credit so the value passes on without a charge on their own death. Several other
-   * government schemes carry the same treatment. The money is still THERE - the heirs receive it - it is
-   * simply not counted when the tax is worked out, which is why it cannot be modelled by leaving it out
-   * of the accounts.
-   *
-   * It comes off the estate the will divides rather than the pension, because compensation is paid into
-   * a bank account. Being disregarded, it is also outside the £2m residence-band test, which falls out
-   * of taking it off grossEstate before the taper is measured rather than after.
-   */
-  const compWindowEndYr = num(opts.compensationWindowEndYear, NaN);
-  /*
-   * What has already been given away cannot also be sitting in the estate. Netting the qualifying gifts
-   * off the exemption is what stops the arithmetic paying twice - once for handing the money to an heir
-   * and again for disregarding it at death - which would have the search recommending a gift for a
-   * benefit that does not exist.
-   */
-  const compGifted = (Array.isArray(opts.gifts) ? opts.gifts : []).reduce((t, g) =>
-    (g.exemptCompensation && Number.isFinite(compWindowEndYr) && num(g.year, Infinity) <= compWindowEndYr)
-      ? t + Math.max(0, num(g.amount, 0)) : t, 0);
-  /*
-   * Capped by the LIQUID wrappers, not by the whole estate. Compensation is paid into a bank account, so
-   * it can only be sitting in cash, an ISA or an unwrapped holding - and capping it at the will estate
-   * instead would let someone who never entered the money claim the exemption against the value of their
-   * house. Declaring more than is held is a data-entry mistake rather than a tax position, so it is
-   * capped here and reported so the tab can say so.
-   */
-  const compClaimed = Math.max(0, num(opts.exemptCompensation, 0) - compGifted);
-  const exemptComp = Math.min(compClaimed, liquid);
-  const willChargeable = Math.max(0, willEstate - exemptComp);
-  const grossEstate = willChargeable + (pensionCounts ? pen : 0);
+  const grossEstate = willEstate + (pensionCounts ? pen : 0);
 
   /*
    * Shares are normalised so a table that does not total 100 still produces a coherent answer, and the
@@ -3155,7 +3124,7 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   const penShareOf = (b) => (declaredPen > 0 ? b.penPct / declaredPen : 0);
   // what each person receives, and the part of it the estate is taxed on
   const grossOf = (b) => willEstate * shareOf(b) + pen * penShareOf(b);
-  const chargeableOf = (b) => willChargeable * shareOf(b) + (pensionCounts ? pen * penShareOf(b) : 0);
+  const chargeableOf = (b) => willEstate * shareOf(b) + (pensionCounts ? pen * penShareOf(b) : 0);
 
   const exemptValue = bens.filter(b => IHT_RELATIONSHIPS[b.relationship].exempt).reduce((t, b) => t + chargeableOf(b), 0);
   const charityValue = bens.filter(b => b.relationship === 'charity').reduce((t, b) => t + chargeableOf(b), 0);
@@ -3187,7 +3156,15 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
    * clock and no nil-rate band consumed. Such a gift is therefore dropped from this machinery entirely
    * rather than given a special rate inside it - it has already left the plan on the projection side.
    */
+  /*
+   * The two-year window for giving the compensation itself away is a separate relief from the credit
+   * above: it stops the GIFT being a transfer of value, where the credit reduces the tax on the death.
+   * Both can apply, and neither is netted off the other.
+   */
+  const compWindowEndYr = num(opts.compensationWindowEndYear, NaN);
   const inWindow = (g) => !!g.exemptCompensation && Number.isFinite(compWindowEndYr) && num(g.year, Infinity) <= compWindowEndYr;
+  const compGifted = (Array.isArray(opts.gifts) ? opts.gifts : []).reduce((t, g) =>
+    inWindow(g) ? t + Math.max(0, num(g.amount, 0)) : t, 0);
   const gifts = (Array.isArray(opts.gifts) ? opts.gifts : [])
     .filter(g => !inWindow(g))
     .map(g => (g.exemptCompensation ? { ...g, windowMissed: true } : g))
@@ -3279,7 +3256,41 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   const qsrRelief = (qsrValue > 0 && qsrTax > 0 && qsrPct > 0 && !activeServiceExempt)
     ? Math.min(ihtBeforeRelief, qsrTax * (qsrPct / 100))
     : 0;
-  const iht = Math.max(0, ihtBeforeRelief - qsrRelief);
+
+  /*
+   * COMPENSATION FROM A GOVERNMENT SCHEME - A CREDIT AGAINST THE TAX, NOT A HOLE IN THE ESTATE.
+   *
+   * Para 5 of Sch 15 FA 2020: the machinery the infected blood scheme runs through, and the same one used
+   * for Post Office Horizon, Windrush and the rest. Where a qualifying payment "is at any time received",
+   * the tax chargeable on the death is reduced by the death rate applied to the amount of the payment,
+   * capped at the tax that would otherwise be due.
+   *
+   * Three things follow, and getting any of them wrong moves the answer by six figures on a large award:
+   *
+   *   - WHAT HAPPENED TO THE MONEY DOES NOT MATTER. "At any time received" carries no tracing test, so an
+   *     award that was spent, invested, paid into a pension or used to clear a mortgage still earns the
+   *     credit in full. Modelling it as a slice of the estate to disregard - which this did at first -
+   *     denies it to exactly the people who did something sensible with it.
+   *   - THE ESTATE IS UNCHANGED. The £2m residence-band taper and the 10% charity test are both measured
+   *     on the estate as it stands, credit or no credit.
+   *   - IT CANNOT CREATE A REFUND. Capped at the bill, alongside quick succession relief, which works the
+   *     same way.
+   */
+  const compPayment = Math.max(0, num(opts.compensationPayment, 0));
+  /*
+   * One relief per pound, which is a JUDGEMENT rather than a quotation. Read literally, "at any time
+   * received" would let a household give the award away inside the two-year window - so it is not in the
+   * estate at all - and still take a credit for the whole of it, relieving the same money twice. The
+   * policy the credit was announced for is the money passing on WITHOUT a charge on this death, and it is
+   * hard to read that as covering money that was never going to be charged. So the credit here covers the
+   * part not already given away under the window relief. It is the cautious reading, it is stated on the
+   * tab and in the documentation, and it is the one to revisit if HMRC's guidance says otherwise.
+   */
+  const compCreditable = Math.max(0, compPayment - compGifted);
+  const compCredit = (compCreditable > 0 && !activeServiceExempt)
+    ? Math.min(Math.max(0, ihtBeforeRelief - qsrRelief), compCreditable * (num(c.ihtRate, 40) / 100))
+    : 0;
+  const iht = Math.max(0, ihtBeforeRelief - qsrRelief - compCredit);
 
   /*
    * Who bears it. IHT is charged on the estate, not the recipient, so it falls on the non-exempt
@@ -3372,11 +3383,11 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     totalTax: iht + totalIncomeTax, netToBeneficiaries: totalNet,
     giftsToHeirs, netIncludingLifetimeGifts: totalNet + giftsToHeirs,
     effectiveRatePct: grossEstate > 0 ? 100 * (1 - totalNet / grossEstate) : 0,
-    exemptCompensation: exemptComp,
+    compensationPayment: compPayment, compensationCredit: compCredit,
+    // the credit is capped at the bill, so a large award against a small estate is worth less than the rate
+    compensationCreditCapped: compCreditable > 0 && compCredit < compCreditable * (num(c.ihtRate, 40) / 100) - 0.5,
     compensationWindowEndYear: Number.isFinite(compWindowEndYr) ? compWindowEndYr : null,
     compensationGifted: compGifted,
-    // more claimed than is actually sitting in an account: the money has not been entered, or it has been spent
-    compensationUnbacked: Math.max(0, compClaimed - exemptComp),
     // a gift ticked as compensation but made too late is an ordinary gift, and has to be said out loud
     compensationGiftsMissed: (Array.isArray(opts.gifts) ? opts.gifts : []).some(g => g.exemptCompensation && !inWindow(g)),
     sharesDeclaredPct: declared, pensionSharesDeclaredPct: declaredPen, beneficiaries,
@@ -3582,8 +3593,8 @@ function estateForPlanAt(plan, ctx, rows) {
       transferredNrbPct: num(inh.transferredNrbPct, 0), transferredRnrbPct: num(inh.transferredRnrbPct, 0),
       qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
       qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
-      exemptCompensation: num(inh.exemptCompensation, 0),
-      compensationWindowEndYear: (compensationWindow(plan.config, inh.exemptCompensationDate) || {}).endYear,
+      compensationPayment: num(inh.compensationPayment, 0),
+      compensationWindowEndYear: (compensationWindow(plan.config, inh.compensationDate) || {}).endYear,
       giftsFromYear: ctx.baseYear + 1,
       gifts: inh.gifts, beneficiaries: bens });
   const est = ctx.isCouple ? res.second : res;
@@ -3812,8 +3823,8 @@ function optimizeInheritance(rawPlan, opts = {}) {
         transferredNrbPct: num(inh.transferredNrbPct, 0), transferredRnrbPct: num(inh.transferredRnrbPct, 0),
         qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
         qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
-        exemptCompensation: num(inh.exemptCompensation, 0),
-        compensationWindowEndYear: (compensationWindow(plan.config, inh.exemptCompensationDate) || {}).endYear,
+        compensationPayment: num(inh.compensationPayment, 0),
+        compensationWindowEndYear: (compensationWindow(plan.config, inh.compensationDate) || {}).endYear,
         gifts: inh.gifts, beneficiaries: bens });
     if (!split || !split.changed || !(split.gain > 0)) return null;
     return evaluate({ ...c, split: split.pcts, splitShares: split.shares,
@@ -3901,8 +3912,8 @@ function optimizeInheritance(rawPlan, opts = {}) {
    * window locks the whole amount away from both the tax and the spending, at the cost of not having it.
    * Whether that trade is worth taking is exactly what the search is for.
    */
-  const compAmount = Math.max(0, num(inh.exemptCompensation, 0));
-  const compWin = compensationWindow(plan.config, inh.exemptCompensationDate);
+  const compAmount = Math.max(0, num(inh.compensationPayment, 0));
+  const compWin = compensationWindow(plan.config, inh.compensationDate);
   const compYears = compWin
     ? [...Array(Math.max(0, compWin.endYear - baseCtx.baseYear)).keys()].map(i => baseCtx.baseYear + 1 + i)
     : [];
@@ -4006,7 +4017,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
       pick: soloSplit ? splitLabel({ shares: soloSplit.splitShares }) : (bens.length > 1 ? 'No split beats the one you have' : 'Only one heir') },
     { key: 'compGift', label: 'Giving the exempt compensation away', gain: alone(soloCompGifts),
       pick: COMP_GIFTS.length
-        ? pickOf(soloCompGifts, `No: holding it is already outside the estate, and the window closes ${compWin ? compWin.endDate : ''}`)
+        ? pickOf(soloCompGifts, `No: the credit for it applies whatever you do with the money${compWin ? `, and the gifting window closes ${compWin.endDate}` : ''}`)
         : (compAmount > 1000 ? 'The two-year window has closed' : 'No exempt compensation entered') },
     { key: 'recycle', label: 'Moving money between wrappers', gain: alone(soloRecycles),
       pick: pickOf(soloRecycles, RECYCLES.length ? 'No transfer helps here' : 'Nothing spare to move, or no years left to move it') }
@@ -5279,8 +5290,8 @@ export default function App() {
         transferredRnrbPct: E.num(inh.transferredRnrbPct, 0),
         qsrInheritedValue: E.num(inh.qsrInheritedValue, 0), qsrTaxPaid: E.num(inh.qsrTaxPaid, 0),
         qsrYearsBefore: E.num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
-        exemptCompensation: E.num(inh.exemptCompensation, 0),
-        compensationWindowEndYear: (E.compensationWindow(plan?.config, inh.exemptCompensationDate) || {}).endYear,
+        compensationPayment: E.num(inh.compensationPayment, 0),
+        compensationWindowEndYear: (E.compensationWindow(plan?.config, inh.compensationDate) || {}).endYear,
         gifts: inh.gifts, beneficiaries: bens
       });
       const est = isCouple ? res.second : res;
@@ -5789,8 +5800,8 @@ export default function App() {
   const updateGift = (id, patch) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).map(g => g.id === id ? { ...g, ...patch } : g) } }));
   const deleteGift = (id) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).filter(g => g.id !== id) } }));
   const surplusGiftAnnual = Math.max(0, E.num(plan?.inheritance?.surplusGift?.annual, 0));
-  const compWindow = useMemo(() => E.compensationWindow(plan?.config, plan?.inheritance?.exemptCompensationDate),
-    [plan?.config, plan?.inheritance?.exemptCompensationDate]);
+  const compWindow = useMemo(() => E.compensationWindow(plan?.config, plan?.inheritance?.compensationDate),
+    [plan?.config, plan?.inheritance?.compensationDate]);
   const updateSurplusGift = (field, value) => setPlan(prev => ({
     ...prev,
     inheritance: {
@@ -8129,32 +8140,28 @@ export default function App() {
                     </label>
                     <span className="text-[10px] text-slate-400 mt-1 block ml-6">This is an exemption, not a relief: it takes the estate&rsquo;s bill to nothing regardless of its size. A war widow&rsquo;s or widower&rsquo;s pension is a different thing — tax-free income, with no bearing on inheritance tax.</span>
                   </div>
-                  {/* Disregarded compensation. Not a relief applied to the bill but a slice of the estate
-                      the tax never sees, which is why it needs its own figure rather than a checkbox. */}
+                  {/* A credit against the tax, not a hole in the estate: para 5 Sch 15 FA 2020 reduces the
+                      bill by the death rate applied to the payment, with no test of what became of it. */}
                   <div className="pt-2 border-t border-slate-200">
-                    <div className="text-slate-700 font-semibold mb-1">Are you holding compensation that is exempt from inheritance tax?</div>
-                    <span className="text-[10px] text-slate-400 mb-2 block">Payments under the <strong>infected blood scheme</strong> (IBCA) are exempt from income tax, capital gains tax and inheritance tax, and where the eligible person had already died the first living recipient carries an <strong>inheritance tax credit</strong> so the value passes on without a charge on their own death. Post Office Horizon, Windrush, Grenfell, the Troubles and vaccine damage payments carry their own exemptions. Enter what you still <em>hold</em>, and make sure that money is also entered as an account balance under Plan Inputs &mdash; the exemption is capped at what is actually in cash, an ISA or an unwrapped account, because that is where compensation sits. Spend it and there is nothing left to disregard.</span>
+                    <div className="text-slate-700 font-semibold mb-1">Have you received compensation from a government scheme?</div>
+                    <span className="text-[10px] text-slate-400 mb-2 block">The <strong>infected blood scheme</strong> (IBCA), Post Office Horizon, Windrush, Grenfell, the Troubles Permanent Disablement scheme and vaccine damage payments all run through the same relief: the inheritance tax on your death is <strong>reduced by {E.num(plan?.config?.ihtRate, 40)}% of the payment</strong>, capped at the bill itself. It applies to a payment <em>received</em> &mdash; there is no test of what you did with it, so money spent, invested, paid into a pension or used to clear a mortgage earns the credit just the same. Enter the payment, not what is left of it.</span>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="text-slate-600 font-semibold block mb-1">Amount still held</label>
-                        <input type="number" min="0" step="1000" placeholder="0" data-exempt-compensation onFocus={handleFocus} value={plan?.inheritance?.exemptCompensation ?? ''} onChange={(e) => updateInheritance('exemptCompensation', parseInputNumber(e.target.value))} className={inputCls} />
+                        <label className="text-slate-600 font-semibold block mb-1">Payment received</label>
+                        <input type="number" min="0" step="1000" placeholder="0" data-exempt-compensation onFocus={handleFocus} value={plan?.inheritance?.compensationPayment ?? ''} onChange={(e) => updateInheritance('compensationPayment', parseInputNumber(e.target.value))} className={inputCls} />
                       </div>
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Date you received it</label>
-                        <input type="date" data-exempt-compensation-date value={plan?.inheritance?.exemptCompensationDate ?? ''} onChange={(e) => updateInheritance('exemptCompensationDate', e.target.value)} className={inputCls} />
+                        <input type="date" data-exempt-compensation-date value={plan?.inheritance?.compensationDate ?? ''} onChange={(e) => updateInheritance('compensationDate', e.target.value)} className={inputCls} />
                       </div>
-                      {inheritanceView.chosen && inheritanceView.chosen.exemptCompensation > 0 && (
-                        <div className="sm:col-span-3 p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900">
-                          {formatGBP(inheritanceView.chosen.exemptCompensation)} is left out of the estate for tax at your chosen death age, saving <strong>{formatGBP(inheritanceView.chosen.exemptCompensation * inheritanceView.chosen.ratePct / 100)}</strong> &mdash; and your heirs still receive it. It is also outside the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band test.
+                      {inheritanceView.chosen && inheritanceView.chosen.compensationCredit > 0 && (
+                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 self-end">
+                          Credit at your chosen death age: <strong>{formatGBP(inheritanceView.chosen.compensationCredit)}</strong> off the bill.
+                          {inheritanceView.chosen.compensationCreditCapped && ' Capped at the tax otherwise due — a credit can take a bill to nothing but never creates a refund.'}
                         </div>
                       )}
                     </div>
-                    {inheritanceView.chosen && inheritanceView.chosen.compensationUnbacked > 0 && (
-                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
-                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                        <span>You have declared {formatGBP(E.num(plan?.inheritance?.exemptCompensation, 0))} but only {formatGBP(inheritanceView.chosen.exemptCompensation)} of it is sitting in cash, an ISA or an unwrapped account at that age &mdash; so {formatGBP(inheritanceView.chosen.compensationUnbacked)} is being ignored. Compensation is paid into a bank account, and an exemption cannot be claimed against your house. <strong>Add the money to an account under Plan Inputs</strong> if you are still holding it; if it has been spent, reduce the figure.</span>
-                      </div>
-                    )}
+                    <span className="text-[10px] text-slate-400 mt-1.5 block">Because it is a credit against the tax rather than a hole in the estate, the estate&rsquo;s value is unchanged: the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are both measured before it. Compensation you give away under the two-year window below is left out of the credit &mdash; the cautious reading, since money that is no longer in your estate was never going to be taxed on this death.</span>
                     {/* The deadline, spelled out. It is the one fact here that expires. */}
                     {compWindow ? (
                       <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-900 leading-relaxed">
@@ -8573,11 +8580,12 @@ export default function App() {
               <p className="text-xs text-slate-600 leading-relaxed">One thing the search will tell you it cannot improve: <strong>who receives which asset under your will</strong>. Inheritance tax is charged on the estate before it is divided, so among beneficiaries who are all taxable, giving one the house and another the ISA changes who gets what and not what survives. It moves the total only when someone exempt is named &mdash; a spouse or a charity &mdash; and then it is a question about who you want to benefit rather than about tax.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Two things it deliberately refuses. It will not search <strong>how long your heirs take the pension</strong>, because that is their decision made after your death, and a candidate that won by assuming twenty years of patience from someone else would not be a plan &mdash; it is reported as a sensitivity instead. And it will not rank a <strong>charitable gift</strong>: leaving 10% cuts the rate from 40% to 36% but always leaves the family with less, so ranking it on what the heirs keep would score a donation as a failure. The cost and the benefit are both shown, and the choice stays yours. Nor will it recommend anything that leaves you short: a variant that breaks a plan which otherwise survives is rejected rather than ranked, however well it does for the estate.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Compensation the tax never sees</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Payments under the <strong>infected blood scheme</strong> administered by IBCA are exempt from income tax, capital gains tax and inheritance tax, and where the eligible infected or affected person had already died when payment was made, the first living recipient carries an <strong>inheritance tax credit</strong> so the value passes on without a charge on their own death. Post Office Horizon, Windrush, Grenfell, the Troubles Permanent Disablement scheme and vaccine damage payments carry their own exemptions. The plan models this as an amount left out of the estate when the tax is worked out while still being received by the heirs &mdash; which also puts it outside the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band test. Enter what is still <em>held</em>: spend it and there is nothing to disregard.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">A gift of that money is exempt too, but only inside a window: <strong>two years from the day you were paid</strong>, or two years from 4 December 2025 for anyone already holding an award when the relief was announced, whichever is later. Enter the date and the tab works out your deadline. A gift ticked as exempt compensation and dated inside it is dropped from the seven-year machinery entirely; one dated after it is priced as the ordinary transfer it has become, and the tab says so rather than quietly downgrading it. With no date entered, the cautious reading applies and the gift is treated as ordinary.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">Giving it away is not automatically better than keeping it, and the optimiser will tell you which. Holding it is already outside the estate, so the window only earns its keep where the money would otherwise be <em>spent</em> before it could be left to anyone &mdash; or where death falls inside seven years, when an ordinary gift would still be caught. What the search will never do is count it twice: money given away is no longer in the estate to be disregarded, and the exemption is reduced by what has gone.</p>
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Compensation, and the credit it carries</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">Payments under the <strong>infected blood scheme</strong> administered by IBCA are exempt from income tax and capital gains tax, and for inheritance tax they carry a <strong>credit</strong> rather than an exemption: under para 5 of Sch 15 Finance Act 2020, where a qualifying payment <em>is at any time received</em>, the tax on the death is reduced by {E.num(plan?.config?.ihtRate, 40)}% of the payment, capped at the tax that would otherwise be due. Post Office Horizon, Windrush, Grenfell, the Troubles Permanent Disablement scheme and vaccine damage payments run through the same machinery.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Three consequences the plan models, and each one moves the answer: <strong>what happened to the money is irrelevant</strong> &mdash; there is no tracing test, so an award spent, invested, paid into a pension or used to clear a mortgage earns the credit in full; <strong>the estate is unchanged</strong>, so the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are measured before the credit and not after it; and it <strong>cannot create a refund</strong>, being capped at the bill alongside quick succession relief. Enter the payment received, not what is left of it.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Giving the money away is a separate relief with its own deadline: <strong>two years from the day you were paid</strong>, or two years from 4 December 2025 for anyone already holding an award when the relief was announced, whichever is later. Enter the date and the tab works out the deadline. A gift ticked as exempt compensation and dated inside it is dropped from the seven-year machinery entirely; one dated after it is priced as the ordinary transfer it has become, and the tab says so rather than quietly downgrading it. With no date entered, the cautious reading applies. The two reliefs are independent: gifting the money does not forfeit the credit, and holding it does not forfeit the gift relief.</p>
 
+              <p className="text-xs text-slate-600 leading-relaxed"><strong>One assumption worth knowing about, because it is a judgement and not a quotation.</strong> Read literally, a household could give the whole award away inside the two-year window &mdash; so it is not in the estate at all &mdash; and still claim a credit for the whole of it, relieving the same money twice. The plan does not allow that: the credit covers the part not given away. That is the cautious reading, and the one to revisit if HMRC&rsquo;s guidance says otherwise.</p>
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Business Relief, and why it is absent</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Business Relief is the largest thing this tab does not model. Qualifying trading businesses, unquoted shares and AIM-listed shares can escape inheritance tax in whole or in part, which makes reallocating a portfolio into them the classic estate-planning move — and it is not offered here, deliberately, for three reasons. The relief needs the asset to have been <strong>owned for two years</strong> at death, so it is exactly the wrong tool for someone who has just been given a short prognosis. The regime changed from 6 April 2026: relief is no longer unlimited, an allowance applies above which relief falls to 50%, and AIM shares now attract 50% relief in every case rather than 100%. And the assets that qualify carry investment risk far above anything else in this plan, so a tool that modelled the tax saving without modelling that risk would be recommending a trade on half the picture. If it matters to your estate, it is a conversation with an adviser, and the figures on this tab will be too low.</p>
 

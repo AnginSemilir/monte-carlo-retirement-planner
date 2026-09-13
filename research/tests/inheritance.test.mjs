@@ -627,68 +627,57 @@ console.log('=========== L. GIFTS OUT OF INCOME ===========');
   ok('drawdown is not counted as income', s.median < 30000, `£${Math.round(s.median).toLocaleString()} against a £30,000 DB pension`);
 }
 
-console.log('=========== M. COMPENSATION THE TAX NEVER SEES ===========');
+console.log('=========== M. THE COMPENSATION CREDIT ===========');
 {
   /*
-   * Infected blood scheme payments (IBCA) are exempt from inheritance tax, and where the eligible person
-   * had already died the first living recipient carries a credit so the value passes on untaxed on their
-   * own death too. Post Office Horizon, Windrush, Grenfell, the Troubles and vaccine damage payments
-   * carry their own exemptions. The money is still there and the heirs still receive it - it is simply
-   * not counted when the bill is worked out, which is the part a model can get wrong in both directions.
+   * Para 5 of Sch 15 FA 2020, the machinery the infected blood scheme (IBCA) runs through along with Post
+   * Office Horizon, Windrush and the rest. It is a CREDIT AGAINST THE TAX - the death rate applied to the
+   * payment, capped at the bill - and it applies to a payment "at any time received". There is no tracing
+   * test, which is the part a model gets wrong by treating it as a slice of the estate to disregard: that
+   * denies the relief to everyone who spent, invested or reinvested the money, who are most of them.
    */
   const w = { isa: 400000, cash: 300000 };
   const base = { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true, beneficiaries: [kid()] };
   const plain = E.estateAtDeath(cfg, w, base);
-  const exempt = E.estateAtDeath(cfg, w, { ...base, exemptCompensation: 300000 });
+  const credited = E.estateAtDeath(cfg, w, { ...base, compensationPayment: 400000 });
 
-  ok('the compensation is out of the estate for tax', near(exempt.grossEstate, plain.grossEstate - 300000),
-    `£${Math.round(exempt.grossEstate).toLocaleString()} against £${Math.round(plain.grossEstate).toLocaleString()}`);
-  ok('so the bill falls by the tax on it', near(plain.iht - exempt.iht, 300000 * 0.4),
-    `£${Math.round(plain.iht - exempt.iht).toLocaleString()}`);
-  ok('and the heirs receive it all the same', near(exempt.netToBeneficiaries - plain.netToBeneficiaries, 300000 * 0.4),
-    `£${Math.round(exempt.netToBeneficiaries).toLocaleString()} against £${Math.round(plain.netToBeneficiaries).toLocaleString()}`);
-  ok('it is reported so the tab can show it', near(exempt.exemptCompensation, 300000));
-  ok('more compensation than is held is capped at what is held',
-    E.estateAtDeath(cfg, { cash: 50000 }, { ...base, homeValue: 0, exemptCompensation: 999999 }).grossEstate === 0);
+  ok('the credit is the death rate applied to the payment', near(credited.compensationCredit, 400000 * 0.4),
+    `£${Math.round(credited.compensationCredit).toLocaleString()}`);
+  ok('and it comes off the bill', near(plain.iht - credited.iht, 160000),
+    `£${Math.round(plain.iht).toLocaleString()} -> £${Math.round(credited.iht).toLocaleString()}`);
+  ok('the estate itself is untouched', near(credited.grossEstate, plain.grossEstate),
+    `£${Math.round(credited.grossEstate).toLocaleString()}`);
+
   /*
-   * And capped at the LIQUID wrappers, not the whole estate: compensation is paid into a bank account, so
-   * an exemption claimed for money that was never entered would otherwise come off the value of the house.
+   * The whole point of the "at any time received" wording: the same award, with the money long gone into
+   * a pension, a mortgage or a holiday, earns the same credit. Only the cap can reduce it.
    */
-  const unbacked = E.estateAtDeath(cfg, { isa: 100000 }, { ...base, homeValue: 1000000, exemptCompensation: 900000 });
-  ok('an exemption cannot be claimed against the house', near(unbacked.exemptCompensation, 100000),
-    `£${Math.round(unbacked.exemptCompensation).toLocaleString()} of £900,000 claimed`);
-  ok('and the shortfall is reported so it can be queried', near(unbacked.compensationUnbacked, 800000),
-    `£${Math.round(unbacked.compensationUnbacked).toLocaleString()}`);
+  const spentIt = E.estateAtDeath(cfg, { isa: 400000, cash: 0 }, { ...base, compensationPayment: 400000 });
+  ok('spending the money does not lose the credit', near(spentIt.compensationCredit, 160000),
+    `£${Math.round(spentIt.compensationCredit).toLocaleString()}`);
+
+  // capped at the tax otherwise due: it can wipe out a bill but never creates a refund
+  const small = E.estateAtDeath(cfg, { cash: 100000 }, { ...base, homeValue: 300000, compensationPayment: 900000 });
+  ok('a credit cannot exceed the bill', small.iht === 0 && small.compensationCredit <= small.ihtBeforeRelief + 0.5,
+    `credit £${Math.round(small.compensationCredit).toLocaleString()} against a bill of £${Math.round(small.ihtBeforeRelief).toLocaleString()}`);
+  ok('and says when it has been capped', small.compensationCreditCapped === true);
 
   /*
-   * Being disregarded, it is outside the £2m residence-band test too - which is the difference between
-   * keeping the band and losing it for an estate sitting just over the line.
+   * Because it is a credit and not a hole in the estate, the £2m residence-band taper is measured before
+   * it. Modelling it the other way round quietly handed back a band the household had actually lost.
    */
   const overLine = { isa: 1700000, cash: 400000 };
-  const tapered = E.estateAtDeath(cfg, overLine, base);
-  const untapered = E.estateAtDeath(cfg, overLine, { ...base, exemptCompensation: 400000 });
-  ok('the taper is measured after the exemption, not before', untapered.rnrb > tapered.rnrb,
-    `£${Math.round(tapered.rnrb).toLocaleString()} -> £${Math.round(untapered.rnrb).toLocaleString()}`);
+  const taperedPlain = E.estateAtDeath(cfg, overLine, base);
+  const taperedCredit = E.estateAtDeath(cfg, overLine, { ...base, compensationPayment: 400000 });
+  ok('the residence band is unaffected by the credit', near(taperedCredit.rnrb, taperedPlain.rnrb),
+    `£${Math.round(taperedCredit.rnrb).toLocaleString()}`);
+  ok('and quick succession relief stacks with it, both capped at the bill',
+    E.estateAtDeath(cfg, w, { ...base, compensationPayment: 400000, qsrInheritedValue: 50000, qsrTaxPaid: 20000, qsrYearsBefore: 1 }).iht
+      < credited.iht);
 
   /*
-   * A gift of it inside the scheme's window is not a transfer of value at all: no seven-year clock, no
-   * allowance consumed. Priced beside an identical ordinary gift, which eats £297,000 of the band.
-   */
-  const ordinary = E.estateAtDeath(cfg, w, { ...base, gifts: [{ amount: 300000, year: 2039 }] });
-  const compGift = E.estateAtDeath(cfg, w, { ...base, compensationWindowEndYear: 2040,
-    gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
-  ok('an ordinary gift inside seven years eats the allowance', ordinary.nrbUsedByGifts > 290000,
-    `£${Math.round(ordinary.nrbUsedByGifts).toLocaleString()}`);
-  ok('a compensation gift eats none of it', compGift.nrbUsedByGifts === 0 && compGift.gifts.length === 0);
-  ok('and costs nothing in tax', compGift.iht < ordinary.iht,
-    `£${Math.round(compGift.iht).toLocaleString()} against £${Math.round(ordinary.iht).toLocaleString()}`);
-  ok('the flag survives a round trip through the plan', E.normalizeGifts([{ amount: 1000, year: 2030, exemptCompensation: true }])[0].exemptCompensation === true);
-
-  /*
-   * THE DEADLINE. Two years from the day the money was paid, or from 4 December 2025 for anyone already
-   * holding an award when the relief was announced - whichever is later. It is the one figure on this tab
-   * that expires, so a gift ticked as exempt but dated after it has to be priced as the ordinary transfer
-   * it has become, and said out loud rather than quietly downgraded.
+   * A GIFT of the compensation is a separate relief with its own deadline: two years from the day it was
+   * paid, or from 4 December 2025 for anyone already holding an award when it was announced.
    */
   const win = (d) => E.compensationWindow(cfg, d);
   ok('two years run from the day of payment', win('2026-06-15').endDate === '2028-06-15', win('2026-06-15').endDate);
@@ -697,33 +686,50 @@ console.log('=========== M. COMPENSATION THE TAX NEVER SEES ===========');
   ok('no date, no window', win('') === null && win('not a date') === null);
   ok('the last wholly safe year is the one before it ends', win('2026-06-15').lastFullYear === 2027);
 
+  const ordinary = E.estateAtDeath(cfg, w, { ...base, gifts: [{ amount: 300000, year: 2039 }] });
+  const timely = E.estateAtDeath(cfg, w, { ...base, compensationWindowEndYear: 2040,
+    gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
   const late = E.estateAtDeath(cfg, w, { ...base, compensationWindowEndYear: 2028,
-    gifts: [{ amount: 300000, year: 2035, exemptCompensation: true }] });
-  ok('a gift after the window is priced as an ordinary one', late.nrbUsedByGifts > 290000,
-    `£${Math.round(late.nrbUsedByGifts).toLocaleString()} of band eaten`);
-  ok('and the household is told', late.compensationGiftsMissed === true);
-  const timely = E.estateAtDeath(cfg, w, { ...base, compensationWindowEndYear: 2028,
-    gifts: [{ amount: 300000, year: 2028, exemptCompensation: true }] });
-  ok('one inside it costs nothing', timely.nrbUsedByGifts === 0 && timely.compensationGiftsMissed === false);
+    gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
+  ok('an ordinary gift inside seven years eats the allowance', ordinary.nrbUsedByGifts > 290000,
+    `£${Math.round(ordinary.nrbUsedByGifts).toLocaleString()}`);
+  ok('a compensation gift inside the window eats none of it', timely.nrbUsedByGifts === 0 && timely.gifts.length === 0);
+  ok('one after it is priced as the ordinary gift it has become', near(late.nrbUsedByGifts, ordinary.nrbUsedByGifts),
+    `£${Math.round(late.nrbUsedByGifts).toLocaleString()}`);
+  ok('and the household is told rather than quietly downgraded', late.compensationGiftsMissed === true && timely.compensationGiftsMissed === false);
   ok('missing the deadline is expensive', late.iht - timely.iht > 70000,
     `£${Math.round(late.iht - timely.iht).toLocaleString()}`);
-  const noWindow = E.estateAtDeath(cfg, w, { ...base,
-    gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
-  ok('with no date entered the cautious reading applies', noWindow.nrbUsedByGifts > 290000 && noWindow.compensationGiftsMissed === true);
+  const noDate = E.estateAtDeath(cfg, w, { ...base, gifts: [{ amount: 300000, year: 2039, exemptCompensation: true }] });
+  ok('with no date entered the cautious reading applies', noDate.nrbUsedByGifts > 290000 && noDate.compensationGiftsMissed === true);
+  ok('the flag survives a round trip through the plan', E.normalizeGifts([{ amount: 1000, year: 2030, exemptCompensation: true }])[0].exemptCompensation === true);
+  /*
+   * One relief per pound. Read literally the credit would survive giving the money away, so a household
+   * could take it out of the estate under the window AND take a credit for the whole of it. That is the
+   * same money relieved twice, and the cautious reading is taken instead: the credit covers what was not
+   * given away. Stated as an assumption on the tab rather than presented as settled law.
+   */
+  const halfGiven = E.estateAtDeath(cfg, { isa: 400000, cash: 0 }, { ...base, compensationPayment: 400000,
+    compensationWindowEndYear: 2028, gifts: [{ amount: 300000, year: 2027, exemptCompensation: true }] });
+  ok('giving it away moves the relief rather than doubling it', near(halfGiven.compensationCredit, 100000 * 0.4),
+    `£${Math.round(halfGiven.compensationCredit).toLocaleString()} of credit on the £100,000 not given`);
 
   /*
-   * A gift is money the heirs receive early, not money that disappears. Counting only the estate made
-   * every gift look like a loss of its own size, so nothing involving a gift could ever win a comparison.
+   * A gift is money the heirs receive early, not money that disappears - the total the optimiser ranks on
+   * has to include it or nothing involving a gift can ever win.
    */
-  const given = E.estateAtDeath(cfg, w, { ...base, giftsFromYear: 2026,
+  const given = E.estateAtDeath(cfg, w, { ...base, giftsFromYear: 2026, compensationWindowEndYear: 2040,
     gifts: [{ amount: 300000, year: 2028, exemptCompensation: true }] });
   ok('a lifetime gift counts towards what the heirs get', near(given.giftsToHeirs, 300000),
     `£${Math.round(given.giftsToHeirs).toLocaleString()}`);
   ok('and the inclusive total is the two added together',
     near(given.netIncludingLifetimeGifts, given.netToBeneficiaries + given.giftsToHeirs));
-  const older = E.estateAtDeath(cfg, w, { ...base, giftsFromYear: 2026,
-    gifts: [{ amount: 300000, year: 2020 }] });
-  ok('money handed over before the plan started is not counted again', older.giftsToHeirs === 0);
+  ok('money handed over before the plan started is not counted again',
+    E.estateAtDeath(cfg, w, { ...base, giftsFromYear: 2026, gifts: [{ amount: 300000, year: 2020 }] }).giftsToHeirs === 0);
+
+  // and a legacy plan that used the old field name still reads
+  ok('an older saved plan migrates to the new field',
+    E.normalizePlan({ inheritance: { exemptCompensation: 250000, exemptCompensationDate: '2026-01-01' } })
+      .inheritance.compensationPayment === 250000);
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

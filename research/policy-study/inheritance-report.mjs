@@ -7,7 +7,7 @@ const pct = (n, d) => d ? `${(100 * n / d).toFixed(1)}%` : '—';
 const tally = (rs, k) => rs.reduce((m, r) => { m[r[k]] = (m[r[k]] || 0) + 1; return m; }, {});
 const show = (t, n) => Object.entries(t).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${pct(v, n)}`).join(', ');
 
-console.log(`=== ${rows.length} rows: ${new Set(rows.map(r => r.id)).size} households x 5 beneficiary profiles x 2 death ages ===\n`);
+console.log(`=== ${rows.length} rows: ${new Set(rows.map(r => r.id)).size} households x ${new Set(rows.map(r=>r.profile)).size} beneficiary profiles x ${new Set(rows.map(r=>r.deathAge)).size} death ages ===\n`);
 
 console.log('WHICH POLICY LEAVES THE MOST AFTER TAX?');
 Object.entries(tally(rows, 'winnerNet')).sort((a, b) => b[1] - a[1]).forEach(([k, v]) =>

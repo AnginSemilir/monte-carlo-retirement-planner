@@ -26,10 +26,11 @@ installChallengers(E);
 installChallengers2(E);
 
 const PROFILES = [
-  { key: 'child-basic',   label: 'One child, basic-rate taxpayer',      bens: [{ id: 'k', relationship: 'descendant', sharePct: 100, income: 30000 }] },
+  { key: 'child-basic',   label: 'One child, basic-rate taxpayer',      bens: [{ id: 'k', relationship: 'descendant', sharePct: 100, income: 30000, age: 50 }] },
   { key: 'child-higher',  label: 'One child, higher-rate taxpayer',     bens: [{ id: 'k', relationship: 'descendant', sharePct: 100, income: 70000 }] },
   { key: 'child-addl',    label: 'One child, additional-rate taxpayer', bens: [{ id: 'k', relationship: 'descendant', sharePct: 100, income: 160000 }] },
-  { key: 'grandchild',    label: 'A grandchild with no income',         bens: [{ id: 'g', relationship: 'descendant', sharePct: 100, income: 0 }] },
+  { key: 'grandchild',    label: 'A grandchild with no income',         bens: [{ id: 'g', relationship: 'descendant', sharePct: 100, income: 0, age: 25 }] },
+  { key: 'widow',         label: 'A spouse with no income',             bens: [{ id: 'w', relationship: 'spouse', sharePct: 100, income: 0, age: 72 }] },
   { key: 'charity-10',    label: 'Children, with 10% to charity',       bens: [{ id: 'c', relationship: 'charity', sharePct: 10, income: 0 }, { id: 'k', relationship: 'descendant', sharePct: 90, income: 45000 }] }
 ];
 const DEATH_AGES = [74, 80];          // either side of the cliff that makes inherited pension taxable

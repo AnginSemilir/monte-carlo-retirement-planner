@@ -80,7 +80,14 @@ console.log('\n=========== C. WHO INHERITS CHANGES THE TAX ===========');
 {
   const toSpouse = E.estateAtDeath(cfg, { pen: 800000, isa: 400000 }, { deathAge: 80, deathYear: 2030,
     beneficiaries: [{ id: 's', name: 'Spouse', relationship: 'spouse', sharePct: 100, income: 0 }] });
-  ok('everything to a spouse is exempt', near(toSpouse.iht, 0) && near(toSpouse.totalTax, 0), `£${Math.round(toSpouse.totalTax).toLocaleString()}`);
+  /*
+   * This asserted that a spouse's TOTAL tax was zero, which encoded the very bug section J now covers:
+   * the inheritance tax exemption does not reach the beneficiary's own income tax on an inherited
+   * pension. The estate pays nothing; the widow still pays income tax as she draws it.
+   */
+  ok('everything to a spouse is free of INHERITANCE tax', near(toSpouse.iht, 0), `£${Math.round(toSpouse.iht).toLocaleString()}`);
+  ok('though income tax on the inherited pension still applies to them', toSpouse.incomeTaxOnPensions > 0,
+    `£${Math.round(toSpouse.incomeTaxOnPensions).toLocaleString()}`);
   const basic = E.estateAtDeath(cfg, { pen: 800000, isa: 400000 }, { deathAge: 80, deathYear: 2030, beneficiaries: [kid(20000)] });
   const addl = E.estateAtDeath(cfg, { pen: 800000, isa: 400000 }, { deathAge: 80, deathYear: 2030, beneficiaries: [kid(180000)] });
   ok('a basic-rate heir keeps more than an additional-rate heir', basic.netToBeneficiaries > addl.netToBeneficiaries,
@@ -179,6 +186,57 @@ console.log('\n=========== H. DEATH ON ACTIVE SERVICE ===========');
     `£${Math.round(svc.incomeTaxOnPensions).toLocaleString()}`);
   ok('and quick succession relief is moot when nothing is owed',
     E.estateAtDeath(cfg, { isa: 1000000 }, { ...base, activeServiceExempt: true, qsrInheritedValue: 300000, qsrTaxPaid: 120000, qsrYearsBefore: 0 }).qsrRelief === 0);
+}
+
+console.log('\n=========== I. WHAT AN INHERITED PENSION COSTS THE PERSON WHO GETS IT ===========');
+{
+  /*
+   * The old model charged the pot times the beneficiary's CURRENT marginal rate, which is wrong in both
+   * directions. Someone with no income was charged nothing on any size of pot - their marginal rate at
+   * zero income is zero - when the withdrawal itself is what creates the income. Someone on £70,000 was
+   * charged a flat 40% on the whole lot, when spreading it keeps much of it in the basic band.
+   */
+  const yrs = cfg.inheritedPensionSpreadYears;
+  ok('a non-earner is NOT charged nothing on a large pot', E.inheritedPensionTax(400000, 0, cfg, yrs) > 50000,
+    `£${Math.round(E.inheritedPensionTax(400000, 0, cfg, yrs)).toLocaleString()}`);
+  ok('but pays far less than a higher-rate taxpayer on the same pot',
+    E.inheritedPensionTax(400000, 0, cfg, yrs) < E.inheritedPensionTax(400000, 70000, cfg, yrs),
+    `£${Math.round(E.inheritedPensionTax(400000, 0, cfg, yrs)).toLocaleString()} vs £${Math.round(E.inheritedPensionTax(400000, 70000, cfg, yrs)).toLocaleString()}`);
+  ok('spreading it costs less than taking it in one year',
+    E.inheritedPensionTax(400000, 0, cfg, 5) < E.inheritedPensionTax(400000, 0, cfg, 1),
+    `5yr £${Math.round(E.inheritedPensionTax(400000, 0, cfg, 5)).toLocaleString()} vs 1yr £${Math.round(E.inheritedPensionTax(400000, 0, cfg, 1)).toLocaleString()}`);
+  // the personal allowance is granted each year, which is the whole point
+  const small = E.inheritedPensionTax(cfg.personalAllowance * 5 * 0.9, 0, cfg, 5);
+  ok('a pot inside five personal allowances is tax-free to a non-earner', small === 0, `£${Math.round(small)}`);
+  ok('the same pot costs a higher earner real money', E.inheritedPensionTax(cfg.personalAllowance * 5 * 0.9, 70000, cfg, 5) > 20000);
+  ok('no pension means no tax', E.inheritedPensionTax(0, 50000, cfg, 5) === 0);
+
+  // a beneficiary already drawing a state pension has less allowance left to shelter the drawdown
+  const young = E.estateAtDeath(cfg, { pen: 400000 }, { deathAge: 80, deathYear: 2030, beneficiaries: [{ id: 'a', relationship: 'descendant', sharePct: 100, income: 0, age: 40 }] });
+  const old = E.estateAtDeath(cfg, { pen: 400000 }, { deathAge: 80, deathYear: 2030, beneficiaries: [{ id: 'b', relationship: 'descendant', sharePct: 100, income: 0, age: 70 }] });
+  ok('an heir at state pension age pays more than one without that income', old.incomeTaxOnPensions > young.incomeTaxOnPensions,
+    `£${Math.round(old.incomeTaxOnPensions).toLocaleString()} vs £${Math.round(young.incomeTaxOnPensions).toLocaleString()}`);
+}
+
+console.log('\n=========== J. A SPOUSE PAYS INCOME TAX EVEN THOUGH THEY PAY NO IHT ===========');
+{
+  /*
+   * The regression that prompted all of this. Income tax was skipped for every IHT-exempt relationship,
+   * so a widow inheriting a pension was shown it as entirely tax-free. The inheritance tax exemption
+   * does not reach the beneficiary's own income tax on what they draw.
+   */
+  const sp = E.estateAtDeath(cfg, { pen: 400000 }, { deathAge: 80, deathYear: 2030,
+    beneficiaries: [{ id: 's', relationship: 'spouse', sharePct: 100, income: 0 }] });
+  ok('the spouse pays no inheritance tax', sp.iht === 0);
+  ok('but DOES pay income tax on the inherited pension', sp.incomeTaxOnPensions > 0, `£${Math.round(sp.incomeTaxOnPensions).toLocaleString()}`);
+  ok('and it is less than a working heir would pay', sp.incomeTaxOnPensions <
+    E.estateAtDeath(cfg, { pen: 400000 }, { deathAge: 80, deathYear: 2030, beneficiaries: [{ id: 'w', relationship: 'spouse', sharePct: 100, income: 80000 }] }).incomeTaxOnPensions);
+  // a charity pays neither, and that distinction has to survive
+  const ch = E.estateAtDeath(cfg, { pen: 400000 }, { deathAge: 80, deathYear: 2030,
+    beneficiaries: [{ id: 'c', relationship: 'charity', sharePct: 100, income: 0 }] });
+  ok('a charity pays neither tax', ch.iht === 0 && ch.incomeTaxOnPensions === 0);
+  ok('death before 75 still leaves the pension untaxed for the heir',
+    E.estateAtDeath(cfg, { pen: 400000 }, { deathAge: 70, deathYear: 2030, beneficiaries: [kid(60000)] }).incomeTaxOnPensions === 0);
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

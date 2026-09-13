@@ -406,6 +406,14 @@ const DEFAULT_CONFIG = {
    * is worth surfacing.
    */
   qsrScale: [100, 80, 60, 40, 20],
+  /*
+   * Years a beneficiary is assumed to spread an inherited pension over. Nobody sensible draws a large
+   * pot in one tax year, and assuming they do overstates the tax badly - but the figure only holds if
+   * their income situation stays roughly as it is, which the tab says on screen.
+   */
+  inheritedPensionSpreadYears: 5,
+  statePensionAgeForHeirs: 68,       // age at which a beneficiary is assumed to be drawing a state pension
+  assumedStatePensionForHeirs: 11976,// ...and roughly what it is worth, since it consumes their allowance
   bridgeSafetyMargin: 30,            // % uplift on the pre-access "bridge" reserve the tournament targets
   solvencyFloor: 0                   // minimum pot at terminal age (bequest floor)
 };
@@ -2891,12 +2899,44 @@ function explainPick(cands, opts = {}) {
  * survivor loses a personal allowance, a set of bands and a state pension, and modelling that is a
  * change to stepYear rather than to this function.
  */
+/*
+ * `exempt` is about INHERITANCE tax. `incomeTaxpayer` is a separate question, and conflating the two was
+ * a real error here: a spouse is exempt from inheritance tax but still pays their own income tax on
+ * money drawn from an inherited pension, so a widow was being shown a pension as tax-free when it is
+ * not. A charity genuinely pays neither.
+ */
 const IHT_RELATIONSHIPS = {
-  spouse: { label: 'Spouse or civil partner', exempt: true, descendant: false, note: 'Fully exempt, and passes their unused bands on.' },
-  descendant: { label: 'Child, grandchild or step-child', exempt: false, descendant: true, note: 'Taxable, but unlocks the residence band if the home passes to them.' },
-  other: { label: 'Someone else', exempt: false, descendant: false, note: 'Taxable, with no additional relief.' },
-  charity: { label: 'A charity', exempt: true, descendant: false, note: 'Exempt \u2014 and 10% of the estate to charity cuts the rate on the rest to 36%.' }
+  spouse: { label: 'Spouse or civil partner', exempt: true, incomeTaxpayer: true, descendant: false, note: 'No inheritance tax \u2014 but income tax still applies to an inherited pension.' },
+  descendant: { label: 'Child, grandchild or step-child', exempt: false, incomeTaxpayer: true, descendant: true, note: 'Taxable, but unlocks the residence band if the home passes to them.' },
+  other: { label: 'Someone else', exempt: false, incomeTaxpayer: true, descendant: false, note: 'Taxable, with no additional relief.' },
+  charity: { label: 'A charity', exempt: true, incomeTaxpayer: false, descendant: false, note: 'Exempt \u2014 and 10% of the estate to charity cuts the rate on the rest to 36%.' }
 };
+
+/*
+ * What an inherited pension actually costs the person who receives it.
+ *
+ * The old model multiplied the pot by the beneficiary's CURRENT marginal rate, which is wrong in both
+ * directions and badly so. Someone with no income was charged nothing at all on any size of pot -
+ * because their marginal rate at zero income is zero - when drawing £400,000 in a year would really
+ * cost them £166,203. Someone on £70,000 was charged a flat 40% on the whole pot, when spreading it
+ * would have kept much of it in the basic band.
+ *
+ * This charges the real thing: the EXTRA tax they pay on their own income plus a share of the pension,
+ * each year, for as many years as they spread it over. That gives a non-earner their personal allowance
+ * every year - which is exactly why leaving a pension to someone without an income is so much less
+ * punishing than leaving it to a higher-rate taxpayer.
+ *
+ * Everything is in today's money, so a salary assumed to rise with inflation is a salary held flat here.
+ */
+function inheritedPensionTax(amount, beneficiaryIncome, cfg, years) {
+  const n = Math.max(1, Math.round(num(years, 5)));
+  const pot = Math.max(0, num(amount, 0));
+  if (pot <= 0) return 0;
+  const income = Math.max(0, num(beneficiaryIncome, 0));
+  const perYear = pot / n;
+  const baseline = incomeTax(income, cfg);
+  return Math.max(0, (incomeTax(income + perYear, cfg) - baseline) * n);
+}
 
 const normalizeBeneficiaries = (list) => (Array.isArray(list) ? list : [])
   .filter(isPlainObject)
@@ -2905,7 +2945,8 @@ const normalizeBeneficiaries = (list) => (Array.isArray(list) ? list : [])
     name: String(b.name ?? '').slice(0, 60),
     relationship: IHT_RELATIONSHIPS[b.relationship] ? b.relationship : 'descendant',
     sharePct: clamp(num(b.sharePct, 0), 0, 100),
-    income: Math.max(0, num(b.income, 0))
+    income: Math.max(0, num(b.income, 0)),
+    age: b.age === '' || b.age === undefined || b.age === null ? '' : clamp(num(b.age, 0), 0, 120)
   }));
 
 /*
@@ -3000,18 +3041,23 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     const ihtBorne = rel.exempt || taxableShare <= 0 ? 0 : iht * (sh / taxableShare);
     const afterIht = Math.max(0, gross - ihtBorne);
     /*
-     * Income tax on an inherited pension, charged on the beneficiary at their own marginal rate. Two
-     * simplifications, both stated on screen: the whole inherited pension is treated as drawn in one
-     * tax year (drawing it over several would usually cost less), and the rate is the one implied by
-     * their current income rather than income plus the inheritance.
+     * Income tax on an inherited pension. Charged on the person who RECEIVES it, at their own rates, on
+     * the money as they draw it - which is why the exemption tested here is `incomeTaxpayer` and not
+     * `exempt`. A spouse pays no inheritance tax and still pays this; only a charity escapes both.
+     *
+     * A beneficiary already at state pension age is assumed to have that income too, because it uses up
+     * the personal allowance that would otherwise shelter the first slice of what they draw.
      */
     const pensionPart = pen > 0 && grossEstate > 0 ? (pen * sh) * (afterIht / Math.max(1e-9, gross)) : 0;
-    const incomeTaxOnPension = (!rel.exempt && pensionTaxable && pensionCounts)
-      ? pensionPart * marginalRateAt(b.income, c)
+    const atSpa = b.age !== '' && num(b.age, 0) >= num(c.statePensionAgeForHeirs, 68);
+    const assumedIncome = b.income + (atSpa ? num(c.assumedStatePensionForHeirs, 11976) : 0);
+    const incomeTaxOnPension = (rel.incomeTaxpayer && pensionTaxable && pensionCounts)
+      ? inheritedPensionTax(pensionPart, assumedIncome, c, c.inheritedPensionSpreadYears)
       : 0;
     const net = Math.max(0, afterIht - incomeTaxOnPension);
     return {
       ...b, sharePct: sh * 100, gross, ihtBorne, incomeTaxOnPension, net,
+      pensionPart, assumedIncome, atSpa,
       effectiveRatePct: gross > 0 ? 100 * (1 - net / gross) : 0
     };
   });
@@ -3144,7 +3190,7 @@ function policyPlaybook(policyKey, P) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -6490,11 +6536,17 @@ export default function App() {
                       <label className="flex items-center gap-1 text-slate-500">share
                         <input type="number" min="0" max="100" step="5" onFocus={handleFocus} value={b.sharePct} onChange={(e) => updateBeneficiary(b.id, { sharePct: parseInputNumber(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 font-bold" />%
                       </label>
-                      {/* income only matters where it changes the tax: an exempt beneficiary never pays any */}
-                      {!E.IHT_RELATIONSHIPS[b.relationship].exempt ? (
-                        <label className="flex items-center gap-1 text-slate-500">their income
-                          <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={b.income} onChange={(e) => updateBeneficiary(b.id, { income: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
-                        </label>
+                      {/* Income and age drive the income tax on an inherited pension, which a spouse pays
+                          even though they pay no inheritance tax. Only a charity escapes both. */}
+                      {E.IHT_RELATIONSHIPS[b.relationship].incomeTaxpayer ? (
+                        <>
+                          <label className="flex items-center gap-1 text-slate-500">their income
+                            <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={b.income} onChange={(e) => updateBeneficiary(b.id, { income: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                          </label>
+                          <label className="flex items-center gap-1 text-slate-500">age
+                            <input type="number" min="0" max="120" placeholder="—" onFocus={handleFocus} value={b.age} onChange={(e) => updateBeneficiary(b.id, { age: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                          </label>
+                        </>
                       ) : (
                         <span className="text-[10px] text-emerald-700 font-semibold">{E.IHT_RELATIONSHIPS[b.relationship].note}</span>
                       )}
@@ -6509,7 +6561,11 @@ export default function App() {
                       <span>Shares total <strong>{inheritanceView.declared}%</strong>, not 100%. The figures below scale them proportionally so they add up — adjust them if that is not what you meant.</span>
                     </div>
                   )}
-                  <span className="text-[10px] text-slate-400 block">Their income sets the rate they would pay on an inherited pension. It only applies if you die at {E.num(plan?.config?.pensionIncomeTaxFromAge, 75)} or over.</span>
+                  <span className="text-[10px] text-slate-400 block">
+                    Income and age decide what an inherited pension costs them, if you die at {E.num(plan?.config?.pensionIncomeTaxFromAge, 75)} or over. We assume they draw it over <strong>{E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years</strong> rather than all at once, so a low earner gets their {formatGBP(P.pa)} personal allowance each year — which is why leaving a pension to someone without an income is far less punishing than leaving it to a higher-rate taxpayer. Age matters only in that someone at {E.num(plan?.config?.statePensionAgeForHeirs, 68)} or over is assumed to have a state pension already using part of that allowance.
+                  </span>
+                  <span className="text-[10px] text-amber-700 block">This holds only if their circumstances stay roughly as they are over those {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years. Someone about to retire, start a business or come into other money would face a different bill.</span>
+                  <span className="text-[10px] text-slate-400 block">A spouse or civil partner pays no inheritance tax but <strong>does</strong> pay income tax on an inherited pension, so their details still matter.</span>
                 </div>
               )}
             </div>

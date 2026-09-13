@@ -94,6 +94,42 @@ recommendation. That is a different emphasis from §4b and the input list should
 
 ---
 
+## 2a-bis. The beneficiary's own tax, modelled properly
+
+The first version charged the inherited pension at the beneficiary's CURRENT marginal rate. That was
+wrong in both directions, and badly:
+
+- Someone with **no income was charged nothing at all** on any size of pot, because their marginal rate
+  at zero income is zero. Drawing £400,000 in a single year would really cost them £166,203. The model
+  forgot that the withdrawal *is* the income.
+- Someone on £70,000 was charged a flat 40% on the whole pot, when spreading it over several years keeps
+  much of it in the basic band.
+- A **spouse was charged nothing**, because income tax was skipped for every IHT-exempt relationship.
+  The inheritance tax exemption does not reach the beneficiary's own income tax on what they draw: a
+  widow inheriting a pension after a death at 75 or over pays it like anyone else.
+
+It now charges the extra tax they actually pay on their income plus a share of the pot, each year, for
+the years they spread it over (default five). That grants a non-earner their personal allowance every
+year, which is exactly why leaving a pension to someone without an income is so much less punishing:
+
+| heir | tax on a £400,000 pension | they keep | taken |
+|---|---|---|---|
+| no income at all | £85,160 | £284,840 | 29% |
+| modest job, £25k | £122,730 | £247,270 | 38% |
+| higher earner, £70k | £177,855 | £192,145 | 52% |
+| retired at 70 (state pension uses the allowance) | £109,112 | £260,888 | 35% |
+
+**It changes the recommendation.** Gross pot and post-tax inheritance now pick a different policy in
+**37.8%** of cases, up from 24.8% under the cruder model — a better tax model makes the gross figure a
+*worse* proxy, not a better one. Sequential's share of wins falls from 40.1% to 31.7%, and Windfall to
+ISA rises from 12.6% to 18.5%.
+
+The assumption is stated on screen: it holds only if the beneficiary's circumstances stay roughly as
+they are across those five years. Someone about to retire, start a business or come into other money
+would face a different bill.
+
+---
+
 ## 2b. Two decisions taken before building
 
 **Couples are modelled as two deaths.** The first is spouse-exempt and passes on the unused percentage

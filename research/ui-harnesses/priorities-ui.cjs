@@ -56,6 +56,19 @@ const ok = (l, c, d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:
   const reset = await order();
   ok('reset restores survival first', /running out/i.test(reset[0] || ''), reset[0]);
 
+  // the advanced panel: per-priority thresholds, auto-listed in the current rank order
+  await p.evaluate(()=>{const d=[...document.querySelectorAll('summary')].find(x=>/set your own thresholds/i.test(x.textContent)); if(d)d.click();});
+  await p.waitForTimeout(400);
+  const adv = await p.evaluate(()=>{
+    const d=[...document.querySelectorAll('details')].find(x=>/set your own thresholds/i.test(x.textContent));
+    if(!d) return null;
+    return {rows:[...d.querySelectorAll('label')].map(l=>l.textContent.replace(/\s+/g,' ').trim()), units:[...d.querySelectorAll('label span:last-child')].map(x=>x.textContent.trim())};
+  });
+  ok('advanced thresholds panel exists', !!adv && adv.rows.length===6, adv?`${adv.rows.length} rows`:'missing');
+  ok('it lists priorities in the CURRENT rank order', !!adv && /Not running out/.test(adv.rows[0]), adv?adv.rows[0].slice(0,40):'');
+  ok('rate metrics use points and money metrics use percent', !!adv && adv.units.includes('pts') && adv.units.includes('%'), adv?adv.units.join(','):'');
+  ok('the safety limit is disclosed', await p.evaluate(()=>/never more than/.test(document.body.textContent)));
+
   // the docs link must land on a real section - which only renders once its tab is open
   await p.evaluate(() => { const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Documentation|Docs/i.test(b.textContent)); if(x) x.click(); });
   await p.waitForTimeout(700);

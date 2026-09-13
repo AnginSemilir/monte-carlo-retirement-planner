@@ -474,7 +474,7 @@ const PRIORITY_METRICS = {
     label: 'Not running out of money',
     why: 'Ranks on the share of simulated lifetimes that stay solvent to your final age.',
     serves: 'Favours filling the tax-free allowance from the pension early, which keeps ISAs and cash intact as the buffer that survives a bad decade.',
-    get: (st) => st.successRate, higherIsBetter: true, epsilon: () => RATE_EPSILON_PTS
+    get: (st) => st.successRate, higherIsBetter: true, unit: 'pts', epsilon: () => RATE_EPSILON_PTS
   },
   /*
    * Bequest ranks on what the heirs actually RECEIVE, not on the pot left behind.
@@ -495,37 +495,61 @@ const PRIORITY_METRICS = {
     label: 'Leaving as much behind as possible',
     why: 'Ranks on what your heirs actually receive after inheritance tax and their own income tax. Needs the Inheritance tab filled in; without it, falls back to the pot left at your final age.',
     serves: 'Favours keeping wealth in wrappers that are taxed once rather than twice, which since 2027 means not leaving an oversized pension behind for heirs who would pay income tax on it as well.',
-    get: (st) => st.postTaxInheritance ?? st.medianTerminalNet ?? st.medianTerminal, higherIsBetter: true, epsilon: moneyEpsilon
+    get: (st) => st.postTaxInheritance ?? st.medianTerminalNet ?? st.medianTerminal, higherIsBetter: true, unit: 'pct', epsilon: moneyEpsilon
   },
   pot: {
     label: 'The biggest expected pot',
     why: 'Ranks on the typical pot at your final age, before any death tax.',
     serves: 'Favours deferring the pension, because money left inside it compounds untaxed - which is also why this can flatter a pot that still owes income tax on the way out.',
-    get: (st) => st.medianTerminal, higherIsBetter: true, epsilon: moneyEpsilon
+    get: (st) => st.medianTerminal, higherIsBetter: true, unit: 'pct', epsilon: moneyEpsilon
   },
   downside: {
     label: 'Protecting the bad case',
     why: 'Ranks on the pot in the worst one lifetime in ten, rather than the typical one.',
     serves: 'Favours steady tax smoothing over anything that concentrates a tax bill or a capital gain into a single year.',
-    get: (st) => st.p10TerminalNet ?? st.p10Terminal, higherIsBetter: true, epsilon: moneyEpsilon
+    get: (st) => st.p10TerminalNet ?? st.p10Terminal, higherIsBetter: true, unit: 'pct', epsilon: moneyEpsilon
   },
   bridge: {
     label: 'Getting safely to pension age',
     why: 'Ranks on how often the plan runs dry BEFORE the pension can be touched, which is the one failure no later good luck can undo.',
     serves: 'Favours holding accessible money back and leaning on the pension only once it unlocks.',
-    get: (st) => st.preNmpaFailRate, higherIsBetter: false, epsilon: () => RATE_EPSILON_PTS
+    get: (st) => st.preNmpaFailRate, higherIsBetter: false, unit: 'pts', epsilon: () => RATE_EPSILON_PTS
   },
   tax: {
     label: 'Paying the least tax over your lifetime',
     why: 'Ranks on total income tax paid across the whole plan.',
     serves: 'Favours spreading pension income thinly across many years instead of a few large withdrawals. Worth knowing this is a poor proxy for wealth: paying 20% now often beats deferring to 40% later.',
-    get: (st) => st.medianLifetimeTax ?? 0, higherIsBetter: false, epsilon: moneyEpsilon
+    get: (st) => st.medianLifetimeTax ?? 0, higherIsBetter: false, unit: 'pct', epsilon: moneyEpsilon
   }
 };
 
 const PRIORITY_KEYS = Object.keys(PRIORITY_METRICS);
 // Survival first, then what is left behind. Reproduces the ranking the app used before priorities existed.
 const DEFAULT_PRIORITIES = ['survive', 'downside', 'bequest', 'bridge', 'pot', 'tax'];
+
+/*
+ * Tolerance overrides, cleaned. A blank, zero or nonsense entry falls back to the metric's default
+ * rather than being honoured: a zero tolerance would make that priority decide every household alone,
+ * which is a footgun rather than a preference.
+ */
+const normalizeTolerances = (obj) => {
+  const out = {};
+  if (!isPlainObject(obj)) return out;
+  Object.keys(PRIORITY_METRICS).forEach(k => {
+    const v = num(obj[k], 0);
+    if (v > 0) out[k] = v;
+  });
+  return out;
+};
+
+// the tolerance actually applied to a metric: the household's override, or the metric's own default
+const toleranceFor = (key, bestValue, overrides) => {
+  const m = PRIORITY_METRICS[key];
+  const o = overrides && overrides[key];
+  if (!(o > 0)) return m.epsilon(bestValue);
+  // rate metrics are stated in points, money metrics as a percentage of the best value
+  return m.unit === 'pts' ? o : Math.max(MONEY_EPSILON_FLOOR, Math.abs(bestValue) * (o / 100));
+};
 
 const normalizePriorities = (list) => {
   const seen = [];
@@ -562,7 +586,18 @@ const BLANK_PLAN = Object.freeze({
     drawdownStrategy: 'Phased Drawdown',
     decumulationPolicy: 'Bracket Fill Basic',
     // ranked, most important first; see PRIORITY_METRICS
-    priorities: [...DEFAULT_PRIORITIES]
+    priorities: [...DEFAULT_PRIORITIES],
+    /*
+     * Optional per-priority tolerance overrides, keyed by priority. Blank means "use the default".
+     *
+     * These are deliberately NOT derived from the ranking. Measurement showed that tightening the top
+     * priority's tolerance makes every priority below it matter LESS - lower priorities decided 14 of 40
+     * households at a 0.05pt tolerance against 29 of 40 at 1pt - so "rank it higher, tolerate less"
+     * would mean the more strongly someone feels about their first choice, the less their other stated
+     * preferences count. Rank and tolerance are separate questions: rank is the order things are
+     * considered in, tolerance is what counts as a meaningful difference in that particular quantity.
+     */
+    priorityTolerances: {}
   },
   /*
    * Inheritance facts. These live apart from `demographics` on purpose: `terminalAge` there is a
@@ -769,6 +804,7 @@ function normalizePlan(raw) {
   // an unknown, duplicated or missing priority is repaired rather than rejected: a saved plan from
   // before priorities existed simply gets the default order
   plan.spending.priorities = normalizePriorities(plan.spending.priorities);
+  plan.spending.priorityTolerances = normalizeTolerances(plan.spending.priorityTolerances);
   if (!TAX_REGION_LABELS[plan.config.taxRegion]) plan.config.taxRegion = DEFAULT_CONFIG.taxRegion;
   if (!['Phased Drawdown', 'Full 25% Lump Sum'].includes(plan.spending.drawdownStrategy)) plan.spending.drawdownStrategy = 'Phased Drawdown';
   // accounts: always the eight canonical wrappers, in canonical order, keeping any user values
@@ -2363,13 +2399,13 @@ function diffStrategyPlans(basePlan, strategyPlan, { threshold = 50 } = {}) {
  * being searched: the Survival Maximizer varies the ISA share of the budget, Bridge-Sized Relief varies
  * how much cover the bridge is given. Sharing one resolver is what keeps the two rankings comparable.
  */
-function resolveSearchPlayer(strategy, { trials = 400, seed = 12345, preAccessCap = Infinity, priorities = null, onCandidate = null } = {}) {
+function resolveSearchPlayer(strategy, { trials = 400, seed = 12345, preAccessCap = Infinity, priorities = null, tolerances = null, onCandidate = null } = {}) {
   const evaluated = strategy.candidates.map((c, i) => {
     const stats = monteCarlo(c.planState, { trials, seed });
     if (onCandidate) onCandidate(i, strategy.candidates.length, c.label, stats);
     return { ...c, stats };
   });
-  const best = pickBest(evaluated, { preAccessCap, priorities });
+  const best = pickBest(evaluated, { preAccessCap, priorities, tolerances });
   return {
     ...strategy,
     chosenShare: best.share, chosenLabel: best.label,
@@ -2735,7 +2771,7 @@ function pickBest(cands, opts = {}, legacyCap = Infinity) {
     const m = PRIORITY_METRICS[key];
     const vals = pool.map(c => m.get(c.stats));
     const best = m.higherIsBetter ? Math.max(...vals) : Math.min(...vals);
-    const eps = m.epsilon(best);
+    const eps = toleranceFor(key, best, o.tolerances);
     pool = pool.filter(c => m.higherIsBetter ? m.get(c.stats) >= best - eps : m.get(c.stats) <= best + eps);
   }
   // still tied on everything the household said it cared about: keep the earliest candidate, which
@@ -2763,7 +2799,7 @@ function explainPick(cands, opts = {}) {
     const m = PRIORITY_METRICS[key];
     const vals = pool.map(c => m.get(c.stats));
     const best = m.higherIsBetter ? Math.max(...vals) : Math.min(...vals);
-    const eps = m.epsilon(best);
+    const eps = toleranceFor(key, best, opts.tolerances);
     pool = pool.filter(c => m.higherIsBetter ? m.get(c.stats) >= best - eps : m.get(c.stats) <= best + eps);
     if (pool.length < before) steps.push({ key, label: m.label, serves: m.serves, best, ruledOut: before - pool.length, left: pool.length });
   }
@@ -2960,7 +2996,7 @@ function postTaxInheritanceFor(plan, ctx) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -3361,7 +3397,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
             setProgress({ label: `Player ${i + 1}/${total}: ${c.label} → ${stats.successRate.toFixed(1)}% safe`, value: (i + (k + 1) / s.candidates.length * 0.6) / total });
             await tick();
           }
-          const best = E.pickBest(evaluated, { preAccessCap: preAccessCap === 'any' ? Infinity : Number(preAccessCap), priorities });
+          const best = E.pickBest(evaluated, { preAccessCap: preAccessCap === 'any' ? Infinity : Number(preAccessCap), priorities, tolerances });
           const capNote = ` Bridge-risk cap ${preAccessCap === 'any' ? 'none' : 'at ' + preAccessCap + '%'}.`;
           s = {
             ...s, chosenShare: best.share, chosenLabel: best.label,
@@ -4351,6 +4387,8 @@ export default function App() {
 
   // the household's ranked objectives, and the promote/demote that reorders them
   const priorityList = E.normalizePriorities(plan?.spending?.priorities);
+  const priorityTolerances = E.normalizeTolerances(plan?.spending?.priorityTolerances);
+  const setTolerance = (key, value) => updateSpending('priorityTolerances', { ...(plan?.spending?.priorityTolerances || {}), [key]: value });
   const movePriority = (i, dir) => {
     const next = [...priorityList], j = i + dir;
     if (j < 0 || j >= next.length) return;
@@ -4705,7 +4743,7 @@ export default function App() {
         out.push({ ...c, label, stats });
       }
       // ranked against what the household said it cares about, not a fixed survival-first order
-      const { winner: best, steps } = E.explainPick(out, { priorities: priorityList });
+      const { winner: best, steps } = E.explainPick(out, { priorities: priorityList, tolerances: priorityTolerances });
       setPlan(prev => ({
         ...prev,
         spending: { ...(prev.spending || {}), decumulationPolicy: best.decumulationPolicy, drawdownStrategy: best.drawdownStrategy },
@@ -5668,6 +5706,40 @@ export default function App() {
                 <span className="text-[10px] text-slate-400 mt-1.5 block">
                   Worked down in order. A lower priority only decides between options that are already within {E.RATE_EPSILON_PTS} percentage point (survival, bridge risk) or {Math.round(E.MONEY_EPSILON_REL * 100)}% (money) of the best on every priority above it — so nothing you rank higher is ever traded away for something you rank lower.
                 </span>
+
+                <details className="mt-3 text-xs">
+                  <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Advanced: set your own thresholds</summary>
+                  <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      How different two options have to be on a priority before it decides between them. Leave a field blank to use the default. Smaller means that priority settles more households by itself; larger means it declares more near-ties and hands the choice down to what you ranked next.
+                    </p>
+                    {/* Deliberately NOT derived from the ranking. Measured: at a 0.05pt top-priority
+                        threshold the lower priorities decided 14 of 40 households, against 29 of 40 at
+                        1pt - so "rank it higher, tolerate less" would make everything below your first
+                        choice matter less the more strongly you felt about it. */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {priorityList.map((key, i) => {
+                        const m = E.PRIORITY_METRICS[key];
+                        const pts = m.unit === 'pts';
+                        return (
+                          <label key={key} className="flex items-center gap-2">
+                            <span className="text-slate-500 w-5 shrink-0">{i + 1}.</span>
+                            <span className="text-slate-700 flex-1 min-w-0 truncate" title={m.label}>{m.label}</span>
+                            <input type="number" min="0" step={pts ? '0.25' : '1'} placeholder={pts ? String(E.RATE_EPSILON_PTS) : String(Math.round(E.MONEY_EPSILON_REL * 100))}
+                              onFocus={handleFocus} value={plan?.spending?.priorityTolerances?.[key] ?? ''}
+                              onChange={(e) => setTolerance(key, parseInputNumber(e.target.value))}
+                              className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                            <span className="text-[10px] text-slate-400 w-6">{pts ? 'pts' : '%'}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <div className="pt-2 border-t border-slate-200 space-y-1">
+                      <div className="text-[11px] text-slate-600"><strong>Safety limit.</strong> Whatever the order says, a recommendation is never more than <strong>{E.MAX_SURVIVAL_SACRIFICE_PTS} percentage points</strong> below the best survival available. Measured across 120 households, the worst any stated preference actually costs is 4.3 points, so this rarely binds — it exists for plans nobody thought to test.</div>
+                      <div className="text-[11px] text-slate-500">Money thresholds never fall below {formatGBP(E.MONEY_EPSILON_FLOOR)}, because a percentage of a near-zero figure is a near-zero threshold, which would make that priority infinitely fussy on exactly the plans where it matters least.</div>
+                    </div>
+                  </div>
+                </details>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1">

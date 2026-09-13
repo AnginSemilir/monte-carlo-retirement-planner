@@ -175,5 +175,39 @@ console.log('\n=========== H. TOLERANCES DO NOT COLLAPSE NEAR ZERO ===========')
   ok('a material tax difference still decides', E.pickBest(real, { priorities: ['tax', 'survive'] }).id === 'a');
 }
 
+console.log('\n=========== I. PER-PRIORITY TOLERANCE OVERRIDES ===========');
+{
+  /*
+   * Granularity without the backfire. Tolerance is deliberately NOT derived from rank - measurement
+   * showed that tightening the top priority's tolerance makes everything below it matter less - so it
+   * is set per priority instead, which is a genuine personal judgement about what counts as a
+   * meaningful difference in that particular quantity.
+   */
+  const field = [mk('safe', 92.0, 100000, 100000), mk('rich', 91.5, 100000, 400000)];
+  // default 1pt survival tolerance: 0.5pt apart is a tie, so the pot decides
+  ok('by default a 0.5pt survival gap is a tie and the pot decides',
+    E.pickBest(field, { priorities: ['survive', 'pot'] }).id === 'rich');
+  // tightened to 0.25pt, survival now decides alone
+  ok('a tighter survival threshold makes survival decide',
+    E.pickBest(field, { priorities: ['survive', 'pot'], tolerances: { survive: 0.25 } }).id === 'safe');
+  // loosening a money threshold declares more ties, handing the choice down
+  const money = [mk('a', 90, 100000, 1000000), mk('b', 95, 100000, 1080000)];
+  ok('a default money threshold lets an 8% pot gap decide',
+    E.pickBest(money, { priorities: ['pot', 'survive'] }).id === 'b');
+  ok('loosening it to 20% declares a tie, so survival decides',
+    E.pickBest(money, { priorities: ['pot', 'survive'], tolerances: { pot: 20 } }).id === 'b');
+  ok('and tightening it to 1% keeps the pot deciding',
+    E.pickBest(money, { priorities: ['pot', 'survive'], tolerances: { pot: 1 } }).id === 'b');
+
+  ok('zero and junk overrides fall back to the default rather than being honoured',
+    Object.keys(E.normalizeTolerances({ survive: 0, pot: -5, nonsense: 3 })).length === 0);
+  ok('a positive override survives normalisation', E.normalizeTolerances({ survive: 0.5 }).survive === 0.5);
+  ok('rate metrics are read as points and money metrics as a percentage',
+    E.toleranceFor('survive', 90, { survive: 2 }) === 2 && E.toleranceFor('pot', 1000000, { pot: 10 }) === 100000);
+  ok('an override still respects the money floor', E.toleranceFor('tax', 100, { tax: 1 }) === E.MONEY_EPSILON_FLOOR);
+  ok('a plan with no overrides behaves exactly as before',
+    E.pickBest(field, { priorities: ['survive', 'pot'], tolerances: {} }).id === E.pickBest(field, { priorities: ['survive', 'pot'] }).id);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

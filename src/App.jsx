@@ -448,17 +448,25 @@ const AUTO_DEPOSIT = 'Auto (policy decides)';
 // by headroom, so it never dumps a windfall into a wrapper that has no room left this year.
 const DEFAULT_DEPOSIT_ORDER = ['pen', 'isa', 'other', 'cash'];
 
+/*
+ * Each policy carries its own one-line explanation. It used to live in a ternary chain in the Config
+ * tab that handled exactly three cases and fell through to the Sequential wording, so adding a fourth
+ * policy would have silently mislabelled it - describing one strategy while running another.
+ */
 const DECUMULATION_POLICIES = {
   'Bracket Fill Basic': {
     label: 'Tax Smoothing (fill 0% allowance, then pension to the basic-rate limit, preserve ISAs)',
+    blurb: (P) => `Fills the £${P.pa.toLocaleString()} allowance, then draws pension income up to £${P.higherRateStartsAt.toLocaleString()} before touching cash, GIA and ISAs.`,
     steps: ['penPA', 'penBasic', 'cash', 'other', 'isa', 'penAny'], harvest: true
   },
   'Bracket Fill': {
     label: 'UK FIRE Bracket Fill (fill 0% allowance only, then cash/GIA/ISA, pension last)',
+    blurb: (P) => `Draws pension only up to £${P.pa.toLocaleString()} (0% tax), then cash, GIA and ISAs; pension income above the allowance is the last resort.`,
     steps: ['penPA', 'cash', 'other', 'isa', 'penBasic', 'penAny'], harvest: true
   },
   'Sequential': {
     label: 'Sequential (Cash → GIA → ISA → Pension, no bracket management)',
+    blurb: () => 'Liquidates each wrapper to zero in rigid sequential order.',
     steps: ['cash', 'other', 'isa', 'penAny'], harvest: false
   }
 };
@@ -5107,9 +5115,7 @@ export default function App() {
                     {Object.entries(E.DECUMULATION_POLICIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                   </select>
                   <span className="text-[10px] text-slate-400 mt-1 block">
-                    {plan?.spending?.decumulationPolicy === 'Bracket Fill Basic' ? `Fills the £${P.pa.toLocaleString()} allowance, then draws pension income up to £${P.higherRateStartsAt.toLocaleString()} before touching cash, GIA and ISAs.`
-                      : plan?.spending?.decumulationPolicy === 'Bracket Fill' ? `Draws pension only up to £${P.pa.toLocaleString()} (0% tax), then cash, GIA and ISAs; pension income above the allowance is the last resort.`
-                      : 'Liquidates each wrapper to zero in rigid sequential order.'}
+                    {(E.DECUMULATION_POLICIES[plan?.spending?.decumulationPolicy]?.blurb || (() => ''))(P)}
                   </span>
                 </div>
                 <div>

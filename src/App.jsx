@@ -559,7 +559,7 @@ const DECUMULATION_POLICIES = {
   },
   'Windfall to ISA': {
     label: 'Windfall to ISA (as Tax Smoothing, but unassigned deposits fill the ISA first)',
-    blurb: (P) => `Draws like Tax Smoothing, but routes a deposit marked "${AUTO_DEPOSIT}" into the ISA before the GIA rather than into the pension. Best where an inheritance would otherwise hit the pension annual allowance.`,
+    blurb: (P) => `Draws like Tax Smoothing — pension income to £${P.higherRateStartsAt.toLocaleString()} first — but routes a deposit marked "${AUTO_DEPOSIT}" into the ISA before the GIA rather than into the pension. Best where an inheritance would otherwise hit the pension annual allowance.`,
     steps: ['penPA', 'penBasic', 'cash', 'other', 'isa', 'penAny'], harvest: true,
     depositOrder: ['isa', 'other', 'cash', 'pen']
   }

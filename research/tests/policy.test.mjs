@@ -51,7 +51,8 @@ console.log('\nD. pickBest ranking over policy candidates');
   const mk = (id, successRate, p10Terminal, medianTerminal, preNmpaFailRate = 0) =>
     ({ id, stats: { successRate, p10Terminal, medianTerminal, preNmpaFailRate } });
   ok('picks the clear survival winner', pickBest([mk('a', 80, 10, 10), mk('b', 92, 5, 5), mk('c', 85, 99, 99)]).id === 'b');
-  ok('breaks near-ties on the 10th-percentile pot', pickBest([mk('a', 92.0, 10, 10), mk('b', 91.7, 900, 10)]).id === 'b');
+  // pounds, not toy units: the money tie-break has a £1,000 floor, so a £890 gap is a tie by design
+  ok('breaks near-ties on the 10th-percentile pot', pickBest([mk('a', 92.0, 500000, 500000), mk('b', 91.7, 900000, 500000)]).id === 'b');
   ok('does not break a real gap on p10', pickBest([mk('a', 92.0, 10, 10), mk('b', 88.0, 900, 900)]).id === 'a');
 }
 

@@ -1396,6 +1396,18 @@ function buildContext(rawPlan) {
     oneOffCosts.set(y, (oneOffCosts.get(y) || 0) + amt);
   });
   /*
+   * A gift you have not made yet is money that leaves the plan on the day you make it, so it belongs in
+   * the projection as well as in the estate. Folding planned gifts in here rather than duplicating them
+   * as one-off costs keeps a single source of truth: change the year on the Inheritance tab and both the
+   * drawdown and the tax move together. A gift dated this year or earlier has already gone: the balances
+   * the plan starts from are what is left after it, so charging it again would spend the same money twice.
+   */
+  (plan.inheritance?.gifts || []).forEach(g => {
+    const y = num(g.year, NaN); const amt = Math.max(0, num(g.amount, 0));
+    if (!Number.isFinite(y) || amt <= 0 || y <= baseYear) return;
+    oneOffCosts.set(y, (oneOffCosts.get(y) || 0) + amt);
+  });
+  /*
    * Spending bands, resolved once so the per-year lookup stays a cheap scan. Sorted by start age, with a
    * blank end age running to the terminal age. Overlaps are reported rather than silently resolved: the
    * lookup takes the first match, so an unnoticed overlap would quietly apply the wrong figure for years.
@@ -3158,7 +3170,11 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
   return {
     grossEstate, liquid, pension: pen, pensionCounts, homeValue,
     nrb, nrbFull, nrbUsedByGifts: nrbFull - nrb, giftTax, gifts: giftRows,
-    rnrb, rnrbTaperLoss: homeToDescendants && anyDescendant ? Math.min(taperLoss, rnrbFull) : 0,
+    rnrb,
+    // what the taper actually cost: the band this estate would have had without it, less what it has.
+    // Measuring the taper on its own would report a loss to an estate with no home to claim it against.
+    rnrbTaperLoss: (homeToDescendants && anyDescendant && homeValue > 0)
+      ? Math.max(0, Math.min(rnrbFull, homeValue) - rnrb) : 0,
     exemptValue, charityValue, charityQualifies, ratePct: rate * 100,
     chargeable, iht, ihtBeforeRelief, qsrRelief, qsrPct, activeServiceExempt,
     incomeTaxOnPensions: totalIncomeTax,
@@ -3166,6 +3182,127 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     effectiveRatePct: grossEstate > 0 ? 100 * (1 - totalNet / grossEstate) : 0,
     sharesDeclaredPct: declared, beneficiaries,
     deathAge, deathYear
+  };
+}
+
+/*
+ * A gift worth suggesting, and why this particular one.
+ *
+ * The residence allowance is withdrawn £1 for every £2 of estate above £2m, so an estate a little over
+ * the threshold is losing allowance pound for pound. The useful part is a rule most people never meet:
+ * the £2m test looks at what you OWNED AT DEATH, and a gift is not owned at death - so lifetime gifts
+ * are excluded from it even when they fail the seven-year test. Gifting the excess therefore restores
+ * the allowance immediately, and keeps it if you are run over the next morning.
+ *
+ * That is the only gift this suggests, because it is the only one where the arithmetic is unambiguous.
+ * Gifting to reduce the estate generally is roughly tax-neutral inside seven years - the gift consumes
+ * the nil-rate band the estate would have used anyway - so presenting it as a saving would be wrong.
+ *
+ * Sizing it is the part that is easy to get wrong. The excess is measured at the DEATH age; the gift is
+ * made NOW, and money given away also stops growing - so the estate falls by more than the gift, and
+ * suggesting the excess itself would suggest roughly twice what is needed. Nor is the relationship a
+ * fixed multiple: giving cash away early means later spending comes out of the pension instead, taxed
+ * on the way, so each pound given can cost the estate anything from £1 to £2. The only honest way to
+ * size it is to run the plan, which is what `opts.project` does - hand it a gift and it returns the
+ * wrappers that plan reaches the death age with, and whether it still survives. This then searches for
+ * the smallest gift that brings the estate back to the line, and refuses to go past the point where the
+ * plan stops working: an allowance is no use to someone who ran out at 84.
+ *
+ * Inheritance tax charges a failed gift at its value WHEN GIVEN, never at what it would have grown
+ * into, which is a second reason the early gift wins - and the reason estateAtDeath is handed the
+ * gift's own figure rather than the hole it leaves.
+ */
+const SUGGEST_GIFT_STEPS = 12;                           // 1/4096 of liquid wealth: pounds on a £500k gift
+
+function suggestGift(cfg, wrappers, opts = {}) {
+  const c = { ...DEFAULT_CONFIG, ...(cfg || {}) };
+  const before = estateAtDeath(c, wrappers, opts);
+  const threshold = Math.max(0, num(c.ihtRnrbTaperFrom, 2000000));
+  if (!(before.grossEstate > threshold) || before.rnrbTaperLoss <= 0) return null;
+
+  const giftYear = Number.isFinite(num(opts.giftYear, NaN)) ? num(opts.giftYear, 0) : num(opts.deathYear, 0);
+  /*
+   * The cap is what sits in the liquid wrappers TODAY, in the order a gift would realistically come
+   * from. A gift cannot come out of a pension without being drawn and taxed first, which is a different
+   * decision entirely, so what the pension holds is deliberately not counted.
+   */
+  const pool = opts.liquidToday || wrappers;
+  const cap = ['cash', 'other', 'isa'].reduce((t, k) => t + Math.max(0, num(pool[k], 0)), 0);
+  if (!(cap > 1000)) return null;
+
+  // default projection: the gift simply leaves the death-age wrappers, with no growth forgone. Callers
+  // that can run the plan pass the real thing; this keeps the function usable (and testable) without it.
+  const project = typeof opts.project === 'function' ? opts.project : (g) => {
+    let left = g; const w = { ...wrappers };
+    for (const k of ['cash', 'other', 'isa']) {
+      const take = Math.min(left, Math.max(0, num(w[k], 0)));
+      w[k] = Math.max(0, num(w[k], 0)) - take; left -= take;
+      if (left <= 0) break;
+    }
+    return w;
+  };
+  const priceAt = (g) => {
+    const w = project(g) || {};
+    const est = estateAtDeath(c, w, { ...opts, gifts: [...(opts.gifts || []), { amount: g, year: giftYear }] });
+    return { g, est, safe: w.survived !== false, clears: est.grossEstate <= threshold + 1 };
+  };
+
+  /*
+   * Both properties move one way with the size of the gift - a bigger gift always brings the estate
+   * nearer the line, and always leaves less to live on - so each is found by bisection rather than by
+   * stepping through gift sizes. Twelve halvings of the liquid wealth is precision to a few hundred
+   * pounds on any realistic estate, at about a dozen runs of the projection.
+   */
+  const bisect = (want) => {                             // smallest g in (0, cap] satisfying want()
+    let lo = 0, hi = cap;
+    for (let i = 0; i < SUGGEST_GIFT_STEPS; i++) {
+      const mid = (lo + hi) / 2;
+      if (want(priceAt(mid))) hi = mid; else lo = mid;
+    }
+    return hi;
+  };
+  // bisecting on "breaks the plan" returns the smallest gift that DOES break it, so step just inside it
+  const largestAffordable = () => priceAt(bisect(p => !p.safe) * 0.999);
+  const atCap = priceAt(cap);
+  let chosen;
+  if (!atCap.clears) {
+    // even giving away everything liquid cannot clear the line; give what is affordable instead
+    chosen = atCap.safe ? atCap : largestAffordable();
+  } else {
+    const needed = priceAt(bisect(p => p.clears));
+    chosen = needed.safe ? needed : largestAffordable();
+  }
+  if (!(chosen.g > 1000) || !chosen.safe) return null;   // nothing worth suggesting, or nothing affordable
+  /*
+   * The claim this makes is about the residence band, so if the gift does not bring any of it back there
+   * is nothing here worth saying. The estate is of course smaller for having given money away, and on
+   * these figures that looks like a saving - but it is the ordinary gift effect, it needs the seven
+   * years, and dressing it up as advice would be exactly the overreach this function exists to avoid.
+   */
+  const bandRestored = chosen.est.rnrb - before.rnrb;
+  if (!(bandRestored > 0)) return null;
+
+  const saving = before.totalTax - chosen.est.totalTax;
+  const giftRow = chosen.est.gifts.find(g => g.year === giftYear && Math.abs(g.amount - chosen.g) < 1);
+  return {
+    amount: chosen.g, giftYear,
+    clearsLine: chosen.clears,
+    limitedBy: chosen.clears ? null : (atCap.safe ? 'liquid' : 'solvency'),
+    estateBefore: before.grossEstate, estateAfter: chosen.est.grossEstate,
+    // how much the estate falls per pound given: the gift itself plus the growth it no longer earns
+    costPerPound: chosen.g > 0 ? (before.grossEstate - chosen.est.grossEstate) / chosen.g : 1,
+    // whether it has cleared the seven years by the death age, which frees it from the nil-rate band
+    // as well as from the £2m test
+    outsideEstate: giftRow ? giftRow.survived === true : false,
+    bandRestored,
+    /*
+     * The part of the saving that is certain. Restored allowance is yours from the day the gift is made;
+     * the remainder of the drop in tax is the money itself being outside the estate, which needs the
+     * seven years. The two are worth showing apart, because only one of them is a sure thing.
+     */
+    bandSaving: bandRestored * (chosen.est.ratePct / 100),
+    taxBefore: before.totalTax, taxAfter: chosen.est.totalTax, saving,
+    worthwhile: saving > 0
   };
 }
 
@@ -3282,7 +3419,7 @@ function policyPlaybook(policyKey, P) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -4270,14 +4407,45 @@ export default function App() {
 
     const rows = ages.map(at).filter(Boolean);
     const chosen = rows.find(r => r.age === chosenAge) || rows[rows.length - 1];
+    /*
+     * A suggestion priced at the chosen death age. Sizing it means asking what this plan looks like at
+     * that age if the gift were made next year, which is a question only the projection can answer - so
+     * the search is handed a function that runs it. Ten or so extra deterministic runs, each about the
+     * cost of the Trajectory tab's own, which is cheaper than being wrong by a factor of two.
+     */
+    const chosenRow = timelineData.find(r => r.ageSelf >= chosenAge) || timelineData[timelineData.length - 1];
+    const liquidToday = { cash: 0, other: 0, isa: 0 };
+    ctx.accounts.forEach(a => { if (a.cat in liquidToday) liquidToday[a.cat] += Math.max(0, E.num(a.balance, 0)); });
+    const giftYear = ctx.baseYear + 1;
+    const project = (amount) => {
+      const giftCtx = E.buildContext({
+        ...E.resolveMpaa(plan),
+        inheritance: { ...inh, gifts: [...(inh.gifts || []), { id: '__probe', amount, year: giftYear }] }
+      });
+      const rows = E.simulateDeterministic(giftCtx, 'expected');
+      const row = rows.find(r => r.ageSelf >= chosenAge) || rows[rows.length - 1];
+      if (!row) return null;
+      /*
+       * Solvency is judged over the WHOLE plan, not up to the death age: a gift that leaves the
+       * household destitute at 91 is not made acceptable by their having chosen to price death at 80.
+       */
+      return { pen: row.pensions, isa: row.isas, other: row.other, cash: row.cash,
+        survived: E.evaluateRows(giftCtx, rows).survived };
+    };
+    // the search costs a dozen projections, so it is only run for the tab that shows it
+    const suggestion = (chosenRow && bens.length && activeTab === 'inheritance') ? E.suggestGift(plan?.config,
+      { pen: chosenRow.pensions, isa: chosenRow.isas, other: chosenRow.other, cash: chosenRow.cash },
+      { deathAge: chosenAge, deathYear: chosenRow.year, homeValue, homeToDescendants: inh.homeToDescendants !== false,
+        transferredNrbPct: E.num(inh.transferredNrbPct, 0), transferredRnrbPct: E.num(inh.transferredRnrbPct, 0),
+        gifts: inh.gifts, beneficiaries: bens, giftYear, liquidToday, project }) : null;
     // the 75 boundary, priced for this household rather than described in the abstract
     const before = rows.filter(r => r.age < 75).slice(-1)[0];
     const after = rows.find(r => r.age >= 75);
     const cliff = (before && after && before.netToBeneficiaries > 0)
       ? { before, after, loss: before.netToBeneficiaries - after.netToBeneficiaries }
       : null;
-    return { rows, chosen, cliff, bens, declared, homeValue, chosenAge, hasBens: bens.length > 0 };
-  }, [plan, timelineData, isCouple, terminalAge, currentAge]);
+    return { rows, chosen, cliff, bens, declared, homeValue, chosenAge, suggestion, hasBens: bens.length > 0 };
+  }, [plan, ctx, timelineData, isCouple, terminalAge, currentAge, activeTab]);
 
   const historicalMetrics = useMemo(() => {
     if (!historicalTimeline.length) return null;
@@ -4734,6 +4902,22 @@ export default function App() {
   const addGift = () => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: [...(prev.inheritance?.gifts || []), { id: 'gift_' + Date.now(), amount: '', year: new Date().getFullYear(), desc: '' }] } }));
   const updateGift = (id, patch) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).map(g => g.id === id ? { ...g, ...patch } : g) } }));
   const deleteGift = (id) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), gifts: (prev.inheritance?.gifts || []).filter(g => g.id !== id) } }));
+  /*
+   * Accepting the suggestion writes an ordinary planned gift, nothing special: it lands in the same list,
+   * with the same year and amount inputs, and can be edited or deleted like any other. Dated next year
+   * rather than this one so it is money the projection still has to find, which is the honest framing -
+   * the allowance it buys back is worth having only if the household can spare the cash.
+   */
+  const addSuggestedGift = (amount, year) => setPlan(prev => ({
+    ...prev,
+    inheritance: {
+      ...(prev.inheritance || {}),
+      gifts: [...(prev.inheritance?.gifts || []), {
+        id: 'gift_' + Date.now(), amount: Math.round(amount), year: E.num(year, ctx.baseYear + 1),
+        desc: 'Gift to restore the residence allowance'
+      }]
+    }
+  }));
 
   const deleteBeneficiary = (id) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), beneficiaries: (prev.inheritance?.beneficiaries || []).filter(b => b.id !== id) } }));
 
@@ -6698,12 +6882,18 @@ export default function App() {
                       <label className="flex items-center gap-1 text-slate-500">amount
                         <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={g.amount ?? ''} onChange={(e) => updateGift(g.id, { amount: parseInputNumber(e.target.value) })} className="w-28 p-1 bg-surface border border-slate-300 rounded font-mono text-purple-700 font-bold" />
                       </label>
-                      <label className="flex items-center gap-1 text-slate-500">year given
+                      <label className="flex items-center gap-1 text-slate-500">year
                         <input type="number" min="1950" max="2100" onFocus={handleFocus} value={g.year ?? ''} onChange={(e) => updateGift(g.id, { year: parseInputNumber(e.target.value) })} className="w-20 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
                       </label>
+                      {/* Past and planned gifts are told apart by the year alone, not a separate flag:
+                          one fact, one input, and no way for the two to disagree. */}
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${E.num(g.year, 0) > ctx.baseYear ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'}`}>
+                        {E.num(g.year, 0) > ctx.baseYear ? 'planned' : 'already given'}
+                      </span>
                       <button onClick={() => deleteGift(g.id)} className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer transition-colors"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   ))}
+                  <span className="text-[10px] text-blue-700 block">A gift dated in the future is <strong>planned</strong>: it leaves your plan in that year, so it reduces what you have to live on in the projection as well as what you leave behind. One dated in the past has already gone and only affects the tax.</span>
                   <span className="text-[10px] text-slate-400 block">The year matters because the seven years run from the gift to your death — so the same gift costs nothing or a great deal depending on the death age you chose above. The first {formatGBP(E.num(plan?.config?.giftAnnualExemption, 3000))} of gifts in any year is exempt immediately; carrying an unused year forward is not modelled, so this is the cautious reading.</span>
                 </div>
               )}
@@ -6728,6 +6918,42 @@ export default function App() {
                     {inheritanceView.chosen.nrbUsedByGifts > 0 && ` Those gifts have taken ${formatGBP(inheritanceView.chosen.nrbUsedByGifts)} of it.`}
                     {' '}Taper relief only reduces tax on the part of a gift above the allowance — which is why a gift inside it shows no benefit from taper however long ago it was made.
                   </span>
+                </div>
+              )}
+
+              {/* ---------- a gift the arithmetic actually supports ---------- */}
+              {inheritanceView.suggestion?.worthwhile && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2" data-gift-suggestion>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h4 className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-2"><Sparkles className="w-3.5 h-3.5" /> A gift worth considering</h4>
+                    <button onClick={() => addSuggestedGift(inheritanceView.suggestion.amount, inheritanceView.suggestion.giftYear)} data-add-suggested-gift className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add as a planned gift</button>
+                  </div>
+                  <p className="text-[11px] text-emerald-900 leading-relaxed">
+                    At age {inheritanceView.chosenAge} your estate is <strong>{formatGBP(inheritanceView.chosen.grossEstate)}</strong>, which is above the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} line where the residence allowance starts to be withdrawn &mdash; &pound;1 of allowance for every &pound;2 over. That is costing you <strong>{formatGBP(inheritanceView.chosen.rnrbTaperLoss)}</strong> of allowance.
+                  </p>
+                  <p className="text-[11px] text-emerald-900 leading-relaxed">
+                    Giving away <strong>{formatGBP(inheritanceView.suggestion.amount)}</strong> in {inheritanceView.suggestion.giftYear} {inheritanceView.suggestion.clearsLine ? <>brings it back to the line</> : <>brings it down to {formatGBP(inheritanceView.suggestion.estateAfter)}</>} and restores <strong>{formatGBP(inheritanceView.suggestion.bandRestored)}</strong> of allowance, taking the bill from {formatGBP(inheritanceView.suggestion.taxBefore)} to <strong>{formatGBP(inheritanceView.suggestion.taxAfter)}</strong> &mdash; a saving of <strong>{formatGBP(inheritanceView.suggestion.saving)}</strong>.
+                  </p>
+                  {inheritanceView.suggestion.costPerPound > 1.05 && (
+                    <p className="text-[10px] text-emerald-800 leading-relaxed">
+                      Less than the {formatGBP(inheritanceView.chosen.grossEstate - E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} you are over, because money given away also stops earning: by {inheritanceView.chosenAge} each &pound;1 given now has taken <strong>&pound;{inheritanceView.suggestion.costPerPound.toFixed(2)}</strong> off the estate. That figure is measured on your own plan rather than assumed &mdash; it is above &pound;1 partly through growth forgone and partly because spending that would have come from this money now comes out of the pension, taxed on the way.
+                    </p>
+                  )}
+                  <p className="text-[10px] text-emerald-800 leading-relaxed">
+                    <strong>{formatGBP(inheritanceView.suggestion.bandSaving)} of that saving is certain.</strong> The {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} test looks at what you <strong>owned at death</strong>, and money you have given away is not owned at death &mdash; so the allowance comes back the day you make the gift, seven years or not. The rest of the saving is the ordinary effect of the money being outside your estate, and that part does depend on surviving seven years. That asymmetry is why this is the only gift suggested here: gifting <em>in general</em> is close to tax-neutral inside seven years, because the gift eats the {formatGBP(E.num(plan?.config?.ihtNrb, 325000))} allowance your estate would have used anyway.
+                  </p>
+                  {!inheritanceView.suggestion.outsideEstate && (
+                    <p className="text-[10px] text-emerald-800 leading-relaxed">
+                      At the death age you have chosen the gift has <strong>not</strong> cleared seven years, so it also uses up {formatGBP(E.num(plan?.config?.ihtNrb, 325000))}-band allowance &mdash; the saving above is already net of that. Living longer after it only improves the figure.
+                    </p>
+                  )}
+                  {inheritanceView.suggestion.limitedBy === 'liquid' && (
+                    <p className="text-[10px] text-amber-800 leading-relaxed">That is as far as your cash, unwrapped investments and ISAs stretch, so it reduces the withdrawal rather than ending it. The rest of your wealth is in a pension, which would have to be drawn and taxed before it could be given away &mdash; a different decision, so it is not suggested here.</p>
+                  )}
+                  {inheritanceView.suggestion.limitedBy === 'solvency' && (
+                    <p className="text-[10px] text-amber-800 leading-relaxed">This is as much as the plan can spare: giving more would leave you short before the end of it, so the suggestion stops here rather than clearing the line. An allowance is no use to someone who has run out.</p>
+                  )}
+                  <p className="text-[10px] text-emerald-700 leading-relaxed">Added as a planned gift it leaves the plan in {inheritanceView.suggestion.giftYear}, so it reduces what you have to live on as well as what you leave behind. Check the survival rate afterwards &mdash; an allowance is no use if the money was needed.</p>
                 </div>
               )}
             </div>
@@ -6881,7 +7107,7 @@ export default function App() {
                       </tbody>
                     </table>
                   </div>
-                  <span className="text-[10px] text-slate-400 block">Inheritance tax is charged on the estate, so an exempt person&rsquo;s share is untouched and the taxable beneficiaries carry the whole bill between them. Two simplifications worth knowing: everyone receives the same proportion of every wrapper (a will that leaves the pension to one person and the ISA to another is not modelled), and an inherited pension is assumed drawn in a single tax year — spreading it over several would usually cost less.</span>
+                  <span className="text-[10px] text-slate-400 block">Inheritance tax is charged on the estate, so an exempt person&rsquo;s share is untouched and the taxable beneficiaries carry the whole bill between them. Two simplifications worth knowing: everyone receives the same proportion of every wrapper (a will that leaves the pension to one person and the ISA to another is not modelled), and an inherited pension is assumed drawn evenly over {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years at the income each person has given here — drawing it faster, or a change in their circumstances, would cost more.</span>
                 </div>
               </>
             )}
@@ -7162,7 +7388,11 @@ export default function App() {
               <p className="text-xs text-slate-600 leading-relaxed">A spouse or civil partner is fully exempt and passes their unused allowances on. A charity is exempt and can pull the rate down for everyone else. A direct descendant unlocks the residence allowance. Anyone else gets no relief. And because an inherited pension is taxed at the <em>recipient&rsquo;s</em> marginal rate, the same pot is worth materially more to a grandchild with no income than to a child earning six figures — identical estate, identical will, different outcome.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What this does not model</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Everyone receives the same proportion of every wrapper: a will leaving the pension to one person and the ISA to another is a legal document, not a plan input. An inherited pension is assumed drawn in a single tax year, which is the pessimistic case — spreading it over several would usually cost less. Gifts and the seven-year rule are not yet modelled. Neither are trusts, business succession, or domicile.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Everyone receives the same proportion of every wrapper: a will leaving the pension to one person and the ISA to another is a legal document, not a plan input. An inherited pension is assumed drawn evenly over {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years at the income each beneficiary has given, which holds only while their circumstances do. Gifts, the seven-year rule and taper relief are modelled; regular gifts out of surplus income — immediately exempt and uncapped, and the most useful relief most people never claim — are not, nor is carrying an unused annual exemption forward. Neither are trusts, business succession, or domicile.</p>
+
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Why only one gift is ever suggested</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">Above {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} the residence allowance is withdrawn £1 for every £2, and the test for it looks at what you <strong>owned at death</strong>. Money given away is not owned at death — so that allowance comes back the day the gift is made, seven years or not. Nothing else about gifting is so clear-cut: inside seven years a gift consumes the {formatGBP(E.num(plan?.config?.ihtNrb, 325000))} allowance the estate would have used anyway, so it is close to tax-neutral, and presenting it as a saving would be misleading. The tab therefore suggests the one gift that clears the taper and says plainly which part of the saving is certain and which part still needs the seven years.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Sizing that gift is done by running your own plan, not by subtracting the excess: money given away also stops growing, and spending that would have come from it comes out of a pension instead, taxed on the way — so each £1 given can take £1 to £2 off the estate, and suggesting the excess itself would suggest roughly twice what is needed. The search stops at the largest gift the plan can still afford, since an allowance is no use to someone who has run out of money.</p>
               <p className="text-xs text-slate-600 leading-relaxed"><strong>One trap worth naming because a calculator cannot catch it:</strong> giving away your home and continuing to live in it does not remove it from your estate. That is a gift with reservation of benefit, it is the most common estate-planning mistake there is, and no figure on this page will warn you about it.</p>
               <p className="text-xs text-slate-500 leading-relaxed">All of this is illustration, not advice. Inheritance tax turns on facts about your family and your assets that a planning tool has no way to hold, and the amounts involved are usually large enough to be worth an hour of a professional&rsquo;s time.</p>
             </div>

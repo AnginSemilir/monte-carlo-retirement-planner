@@ -324,5 +324,149 @@ console.log('\n=========== L. GIFTS AND THE SEVEN-YEAR RULE ===========');
     `£${Math.round(early.iht).toLocaleString()} vs £${Math.round(late.iht).toLocaleString()}`);
 }
 
+console.log('=========== H. THE GIFT THE APP SUGGESTS ===========');
+{
+  /*
+   * The suggestion exists for one specific trap: above £2m the residence band is withdrawn £1 for every
+   * £2, and the £2m test looks at what was OWNED AT DEATH - so a gift escapes that test immediately,
+   * years before it escapes the estate itself. These check that the app only ever suggests the gift when
+   * that mechanism is actually in play, and that it sizes it by what the gift does to THIS plan.
+   */
+  const base = { deathAge: 80, deathYear: 2040, homeValue: 400000, homeToDescendants: true, beneficiaries: [kid()] };
+
+  const under = E.suggestGift(cfg, { isa: 1000000, cash: 200000 }, base);
+  ok('no suggestion for an estate under £2m', under === null, String(under));
+
+  const noHome = E.suggestGift(cfg, { isa: 2500000, cash: 200000 }, { ...base, homeValue: 0 });
+  ok('no suggestion without a residence band to save', noHome === null, String(noHome));
+
+  // £2.1m estate: £100k over, so £50k of band is being withdrawn. With no projection supplied the gift
+  // simply leaves the estate, so the sum to give is the excess itself.
+  const over = E.suggestGift(cfg, { isa: 1500000, cash: 200000 }, base);
+  ok('gifts the excess when the gift is all that leaves', near(over.amount, 100000, 600), `£${Math.round(over.amount).toLocaleString()}`);
+  ok('which restores half of it as allowance', near(over.bandRestored, 50000, 300), `£${Math.round(over.bandRestored).toLocaleString()}`);
+  ok('and brings the estate back to the line', over.clearsLine === true && near(over.estateAfter, 2000000, 600),
+    `£${Math.round(over.estateAfter).toLocaleString()}`);
+  ok('the bill falls', over.taxAfter < over.taxBefore,
+    `£${Math.round(over.taxBefore).toLocaleString()} -> £${Math.round(over.taxAfter).toLocaleString()}`);
+  ok('the saving reported is the difference in tax', near(over.saving, over.taxBefore - over.taxAfter));
+  ok('and it is flagged worthwhile', over.worthwhile === true);
+  /*
+   * The saving must survive the gift's OWN cost. Priced at the death year the gift has survived nothing,
+   * so it eats £97k of the nil-rate band (£100k less the annual exemption) at 40% = £38,800 - against
+   * £50k of restored band at 40% = £20,000. The net must therefore be the difference, not the gross.
+   */
+  ok('the gift is priced after it has eaten the nil-rate band', near(over.saving, 21200, 600),
+    `£${Math.round(over.saving).toLocaleString()}`);
+
+  /*
+   * With a projection supplied the sizing changes completely: money given away also stops growing, and
+   * spending that would have come from it comes out of the pension instead. Here each £1 given takes £2
+   * off the estate by the death age, so half the excess does the job - and the app must find that by
+   * searching the projection, not by subtracting the excess.
+   */
+  const wrappers = { isa: 1700000, cash: 400000 };            // £2.1m liquid + £400k home = £2.5m
+  const doubles = (g) => {                                     // £1 given = £2 gone by death
+    let drop = 2 * g; const w = { ...wrappers };
+    for (const k of ['cash', 'other', 'isa']) {
+      const take = Math.min(drop, w[k] || 0); w[k] = (w[k] || 0) - take; drop -= take;
+    }
+    return { ...w, survived: true };
+  };
+  const early = E.suggestGift(cfg, wrappers, { ...base, giftYear: 2030, liquidToday: { cash: 300000 }, project: doubles });
+  ok('a gift that costs the estate £2 per £1 given is halved', near(early.amount, 250000, 100), `£${Math.round(early.amount).toLocaleString()}`);
+  ok('and the rate it costs the estate is reported', near(early.costPerPound, 2, 0.01), early.costPerPound.toFixed(3));
+  ok('that is enough to bring the whole band back', near(early.bandRestored, 175000, 200), `£${Math.round(early.bandRestored).toLocaleString()}`);
+  ok('estate tax before: £2.5m less the £325k band at 40%', near(early.taxBefore, 870000), `£${Math.round(early.taxBefore).toLocaleString()}`);
+  ok('estate tax after: £2m less £325k and £175k at 40%', near(early.taxAfter, 600000, 500), `£${Math.round(early.taxAfter).toLocaleString()}`);
+  ok('ten years before death the gift is outside the estate', early.outsideEstate === true);
+
+  /*
+   * The same gift made two years before death is worth much less: it has not escaped the estate, so it
+   * eats the nil-rate band. It still restores the residence band in full, because the £2m test looks at
+   * what was owned at death and gifted money is not - which is the entire reason this is suggested.
+   * And it is charged on the £250k given, never on the £500k the estate lost.
+   */
+  const late = E.suggestGift(cfg, wrappers, { ...base, giftYear: 2038, liquidToday: { cash: 300000 }, project: doubles });
+  ok('a gift inside seven years still restores the band', near(late.bandRestored, 175000, 200), `£${Math.round(late.bandRestored).toLocaleString()}`);
+  ok('but it consumes the allowance, so it saves less', late.saving < early.saving,
+    `£${Math.round(late.saving).toLocaleString()} vs £${Math.round(early.saving).toLocaleString()}`);
+  ok('and it is charged on what was given, not what it grew into', near(late.taxAfter, 698800, 800),
+    `£${Math.round(late.taxAfter).toLocaleString()}`);
+  ok('it is not treated as outside the estate', late.outsideEstate === false);
+
+  // the cap is what is liquid TODAY, since that is when the money has to be handed over
+  // £150k is all there is: £300k off the estate, which is not enough to clear the line but does bring
+  // back £75k of the band (£2.2m is £200k over, so £100k of the £175k is still withdrawn)
+  const capped = E.suggestGift(cfg, wrappers, { ...base, giftYear: 2030, liquidToday: { cash: 150000 }, project: doubles });
+  ok('a gift is capped by today\'s liquid wealth', near(capped.amount, 150000), `£${Math.round(capped.amount).toLocaleString()}`);
+  ok('and it says the line was not cleared', capped.clearsLine === false && capped.limitedBy === 'liquid', String(capped.limitedBy));
+  ok('a partial gift restores part of the band, not all of it', near(capped.bandRestored, 75000, 200),
+    `£${Math.round(capped.bandRestored).toLocaleString()}`);
+  ok('and the certain part of the saving is separated out', near(capped.bandSaving, capped.bandRestored * 0.4, 1),
+    `£${Math.round(capped.bandSaving).toLocaleString()} of £${Math.round(capped.saving).toLocaleString()}`);
+
+  /*
+   * A gift too small to bring any band back is not suggested at all. The estate is smaller for it, and
+   * on these figures that scores as a saving - but that is the ordinary gift effect, it needs the seven
+   * years, and presenting it as advice is the overreach this whole function is written to avoid.
+   */
+  const tiny = E.suggestGift(cfg, wrappers, { ...base, giftYear: 2030, liquidToday: { cash: 20000 }, project: doubles });
+  ok('a gift that brings no band back is not suggested', tiny === null, String(tiny));
+
+  /*
+   * The constraint that matters more than the tax: a gift that leaves the household short is not worth
+   * an allowance. Anything above £120k breaks this plan, so the suggestion must stop there and say why,
+   * rather than recommending the £250k the tax arithmetic would like.
+   */
+  const fragile = (g) => ({ ...doubles(g), survived: g <= 120000 });
+  const safe = E.suggestGift(cfg, wrappers, { ...base, giftYear: 2030, liquidToday: { cash: 300000 }, project: fragile });
+  ok('a gift is never suggested past the point the plan breaks', safe.amount <= 120000 && safe.amount > 100000,
+    `£${Math.round(safe.amount).toLocaleString()}`);
+  ok('and solvency is named as the limit', safe.limitedBy === 'solvency' && safe.clearsLine === false, String(safe.limitedBy));
+
+  // and if no affordable gift helps at all, there is no suggestion rather than a token one
+  const broke = E.suggestGift(cfg, wrappers, { ...base, giftYear: 2030, liquidToday: { cash: 300000 }, project: (g) => ({ ...doubles(g), survived: g < 500 }) });
+  ok('nothing is suggested when nothing is affordable', broke === null, String(broke));
+}
+
+console.log('=========== I. A PLANNED GIFT IS MONEY THAT LEAVES THE PLAN ===========');
+{
+  /*
+   * A gift you have not made yet is spent twice over in the arithmetic if it only ever appears in the
+   * estate: the projection would keep growing money that has gone. These check the year drives it, and
+   * that a gift already made does NOT reduce a projection whose opening balances already exclude it.
+   */
+  const ZERO = { real: 0, unlucky: 0, lucky: 0, nominal: 0, volatility: 0, label: 'flat' };
+  const mk = (gifts) => ({
+    demographics: { planningMode: 'single', currentAgeSelf: 60, retireAgeSelf: 60, salarySelf: 0,
+      statePensionAge: 99, privatePensionAge: 55, statePensionSelf: 0, terminalAge: 70 },
+    spending: { targetSpend: 0, drawdownStrategy: 'Phased Drawdown', decumulationPolicy: 'Bracket Fill Basic' },
+    accounts: [
+      { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: 0, contrib: 0, growth: 0, risk: 'Cash Equivalents' },
+      { id: 'isa_self', owner: 'Myself', category: 'S&S ISAs', balance: 0, contrib: 0, growth: 0, risk: 'Cash Equivalents' },
+      { id: 'other_self', owner: 'Myself', category: E.CATEGORY_LABEL.other, balance: 0, contrib: 0, growth: 0, risk: 'Cash Equivalents' },
+      { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 1000000, contrib: 0, growth: 0, risk: 'Cash Equivalents' }],
+    riskProfiles: { 'Cash Equivalents': ZERO },
+    otherIncomes: [], oneOffContributions: [], oneOffCosts: [],
+    config: { valuationDate: '2026-01-01' },
+    inheritance: { gifts }
+  });
+  const terminal = (gifts) => {
+    const c = E.buildContext(E.resolveMpaa(mk(gifts)));
+    return E.evaluateRows(c, E.simulateDeterministic(c, 'expected')).terminalPot;
+  };
+  const none = terminal([]);
+  ok('a flat plan with no gift keeps its £1m', near(none, 1000000, 5), `£${Math.round(none).toLocaleString()}`);
+  const planned = terminal([{ id: 'g', amount: 200000, year: 2030 }]);
+  ok('a planned gift leaves the plan in its year', near(planned, 800000, 5), `£${Math.round(planned).toLocaleString()}`);
+  const past = terminal([{ id: 'g', amount: 200000, year: 2020 }]);
+  ok('a gift already made does not reduce the projection again', near(past, 1000000, 5), `£${Math.round(past).toLocaleString()}`);
+  const thisYear = terminal([{ id: 'g', amount: 200000, year: 2026 }]);
+  ok('nor does one dated this year, whose money has already gone', near(thisYear, 1000000, 5), `£${Math.round(thisYear).toLocaleString()}`);
+  const afterEnd = terminal([{ id: 'g', amount: 200000, year: 2099 }]);
+  ok('a gift beyond the plan cannot be spent inside it', near(afterEnd, 1000000, 5), `£${Math.round(afterEnd).toLocaleString()}`);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

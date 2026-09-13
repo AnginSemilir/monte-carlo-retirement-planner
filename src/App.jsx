@@ -440,11 +440,26 @@ const PRIORITY_METRICS = {
     serves: 'Favours filling the tax-free allowance from the pension early, which keeps ISAs and cash intact as the buffer that survives a bad decade.',
     get: (st) => st.successRate, higherIsBetter: true, epsilon: () => RATE_EPSILON_PTS
   },
+  /*
+   * Bequest ranks on what the heirs actually RECEIVE, not on the pot left behind.
+   *
+   * It used to rank on `medianTerminalNet` - the gross pot less a flat death-tax percentage that
+   * defaults to zero - and measurement showed that was not a rough proxy but an actively wrong one.
+   * Across 60 households, ranking "leave as much behind" that way delivered LESS real inheritance than
+   * not asking for it at all (£1,537,606 against £1,557,039), produced answers identical to "biggest
+   * pot", and picked the genuinely best policy in 4 cases out of 60. The gross figure cannot know about
+   * the nil-rate bands, the residence allowance, the 2027 pension rule or the beneficiary's own income
+   * tax, and those are exactly what decide the answer.
+   *
+   * `postTaxInheritance` is computed per candidate by whoever evaluates it. Where the household has not
+   * said who inherits there is nothing to compute, so it falls back to the old proxy - and `why` says
+   * so, because a priority that quietly measures something else is how this went wrong the first time.
+   */
   bequest: {
     label: 'Leaving as much behind as possible',
-    why: 'Ranks on the typical pot at your final age, after any pension death tax you have set.',
-    serves: 'Favours drawing the wrappers that are already taxed and leaving sheltered money to compound, so the pension is spent last rather than first.',
-    get: (st) => st.medianTerminalNet ?? st.medianTerminal, higherIsBetter: true, epsilon: (v) => Math.abs(v) * MONEY_EPSILON_REL
+    why: 'Ranks on what your heirs actually receive after inheritance tax and their own income tax. Needs the Inheritance tab filled in; without it, falls back to the pot left at your final age.',
+    serves: 'Favours keeping wealth in wrappers that are taxed once rather than twice, which since 2027 means not leaving an oversized pension behind for heirs who would pay income tax on it as well.',
+    get: (st) => st.postTaxInheritance ?? st.medianTerminalNet ?? st.medianTerminal, higherIsBetter: true, epsilon: (v) => Math.abs(v) * MONEY_EPSILON_REL
   },
   pot: {
     label: 'The biggest expected pot',
@@ -2858,8 +2873,37 @@ function estateForCouple(cfg, wrappers, opts = {}) {
   return { first, second, iht: second.iht, netToBeneficiaries: second.netToBeneficiaries };
 }
 
+/*
+ * Post-tax inheritance for one candidate plan, for the bequest priority to rank on.
+ *
+ * Deterministic rather than Monte Carlo on purpose: which WRAPPER the money ends in is a tax question,
+ * and draw order controls that while barely touching sequence risk. It also keeps the tournament to one
+ * extra cheap run per candidate instead of a second simulation.
+ *
+ * Returns null when the household has not said who inherits - there is genuinely nothing to rank on,
+ * and inventing a default heir would silently answer a question they never asked.
+ */
+function postTaxInheritanceFor(plan, ctx) {
+  const inh = plan?.inheritance || {};
+  const bens = normalizeBeneficiaries(inh.beneficiaries);
+  if (!bens.length) return null;
+  const rows = simulateDeterministic(ctx, 'expected');
+  const ev = evaluateRows(ctx, rows);
+  if (!ev.survived) return 0;              // heirs of a plan that ran dry receive nothing
+  const age = clamp(num(inh.deathAge, ctx.terminalAge), 0, 120);
+  const row = rows.find(r => r.ageSelf >= age) || rows[rows.length - 1];
+  const soldBy = !!inh.homeSold && num(inh.homeSaleAge, 999) <= age;
+  const res = (ctx.isCouple ? estateForCouple : estateAtDeath)(
+    plan.config, { pen: row.pensions, isa: row.isas, other: row.other, cash: row.cash },
+    { deathAge: age, deathYear: row.year, homeValue: soldBy ? 0 : Math.max(0, num(inh.homeValue, 0)),
+      homeToDescendants: inh.homeToDescendants !== false,
+      transferredNrbPct: num(inh.transferredNrbPct, 0), transferredRnrbPct: num(inh.transferredRnrbPct, 0),
+      beneficiaries: bens });
+  return (ctx.isCouple ? res.second : res).netToBeneficiaries;
+}
+
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, round250, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -4598,6 +4642,9 @@ export default function App() {
           trials: TOURNAMENT_TRIALS, seed: mcSeed,
           onProgress: (f) => setPolicyProgress({ label: `Testing ${i + 1}/${candidates.length}: ${label}`, value: (i + f) / candidates.length })
         });
+        // the bequest priority ranks on this; null when nobody has been named as an heir, in which
+        // case the metric falls back to the pot and says so
+        stats.postTaxInheritance = E.postTaxInheritanceFor(c.planState, cctx);
         out.push({ ...c, label, stats });
       }
       // ranked against what the household said it cares about, not a fixed survival-first order

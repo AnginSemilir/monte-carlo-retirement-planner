@@ -72,5 +72,28 @@ ok('a partial list is completed rather than rejected',
 ok('every priority carries the copy the docs need',
   E.PRIORITY_KEYS.every(k => E.PRIORITY_METRICS[k].label && E.PRIORITY_METRICS[k].why && E.PRIORITY_METRICS[k].serves));
 
+console.log('\n=========== F. BEQUEST RANKS ON WHAT HEIRS RECEIVE, NOT THE GROSS POT ===========');
+{
+  /*
+   * This is the regression that matters. The metric used to read `medianTerminalNet`, which with no
+   * death tax set IS the gross pot - so "leave as much behind" and "biggest pot" gave identical answers,
+   * and measurement showed the former delivered LESS real inheritance than not asking at all. If these
+   * two orders ever agree on a field where the post-tax figure disagrees with the gross one, it has
+   * regressed.
+   */
+  const field = [
+    mk('big-pot-taxed-hard', 90, 100, 2000000, { postTaxInheritance: 900000 }),
+    mk('smaller-pot-kept',   90, 100, 1500000, { postTaxInheritance: 1300000 })
+  ];
+  ok('bequest follows the post-tax figure, not the pot',
+    E.pickBest(field, { priorities: ['bequest', 'survive'] }).id === 'smaller-pot-kept');
+  ok('pot still follows the pot', E.pickBest(field, { priorities: ['pot', 'survive'] }).id === 'big-pot-taxed-hard');
+  ok('the two priorities genuinely disagree here',
+    E.pickBest(field, { priorities: ['bequest'] }).id !== E.pickBest(field, { priorities: ['pot'] }).id);
+  // and where nobody has been named an heir there is nothing to compute, so it must not throw
+  const noHeirs = [mk('a', 90, 100, 1000000), mk('b', 90, 100, 1200000)];
+  ok('falls back to the pot when no heirs are named', E.pickBest(noHeirs, { priorities: ['bequest'] }).id === 'b');
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

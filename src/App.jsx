@@ -5568,6 +5568,22 @@ export default function App() {
     { n: 4, key: 'mcchart', name: 'Monte Carlo' },
     { n: 5, key: 'compare', name: 'Side by side' }
   ];
+  /*
+   * The Inheritance tab is a deck too, for the same reason the Projection tab is: it asks for a dozen
+   * facts and then answers one question, and shown all at once the answer is buried under the asking.
+   * Steps 1-3 collect, step 4 is the route. Nothing is hidden that is not also reachable - "See all"
+   * puts the whole tab back, and the numbered buttons jump straight to a step.
+   */
+  const ESTATE_STEPS = [
+    { n: 1, key: 'heirs', name: 'Who inherits' },
+    { n: 2, key: 'estate', name: 'What you own' },
+    { n: 3, key: 'given', name: 'What you have given' },
+    { n: 4, key: 'route', name: 'The best route' }
+  ];
+  const [estateStep, setEstateStep] = useState(1);
+  const [estateSeeAll, setEstateSeeAll] = useState(false);
+  const showEstateStep = (n) => estateSeeAll || estateStep === n;
+
   const [slide, setSlide] = useState(1);
   const [seeAll, setSeeAll] = useState(false);
   const [sandboxRevealed, setSandboxRevealed] = useState(false);
@@ -6919,6 +6935,35 @@ export default function App() {
         <button key={k} type="button" onClick={() => setBandMode(k)} title={`Draw both charts at the ${BAND_QUANTILES[k].lowPct} and ${BAND_QUANTILES[k].highPct} percentile`}
           className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'}`}>{BAND_QUANTILES[k].button}</button>
       ))}
+    </div>
+  );
+
+  const estateStepNav = (n) => (
+    <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+      <div className="flex items-center gap-1.5">
+        {ESTATE_STEPS.map(st => (
+          <button key={st.n} type="button" onClick={() => { setEstateSeeAll(false); setEstateStep(st.n); }} title={st.name}
+            className={`px-2.5 h-7 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${!estateSeeAll && estateStep === st.n ? 'bg-purple-600 text-white border-purple-600 shadow-xs' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>
+            <span className="sm:hidden">{st.n}</span><span className="hidden sm:inline">{st.n}. {st.name}</span>
+          </button>
+        ))}
+        <button type="button" onClick={() => setEstateSeeAll(!estateSeeAll)}
+          className={`ml-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${estateSeeAll ? 'bg-slate-800 text-white border-slate-800' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900'}`}>
+          {estateSeeAll ? 'One at a time' : 'See all'}
+        </button>
+      </div>
+      {!estateSeeAll && (
+        <div className="flex items-center gap-2">
+          <button type="button" disabled={n === 1} onClick={() => { setEstateStep(n - 1); scrollTo(document.querySelector('[data-estate-deck]')); }}
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">&larr; Back</button>
+          {n < 4 && (
+            <button type="button" onClick={() => { setEstateStep(n + 1); scrollTo(document.querySelector('[data-estate-deck]')); }}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 cursor-pointer">
+              Next: {ESTATE_STEPS[n].name} &rarr;
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 
@@ -8385,14 +8430,20 @@ export default function App() {
 
         {/* TAB 5: HISTORICAL */}
         {activeTab === 'inheritance' && (
-          <div className="space-y-6">
+          <div className="space-y-6" data-estate-deck>
             <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3 text-xs text-slate-600 leading-relaxed">
               <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> What your heirs actually receive</h2>
               <p>The projection reports the pot you leave. This reports what reaches the people you leave it to, which is a different number. Two things separate them: from 6 April 2027 an unused pension counts as part of your estate for inheritance tax, and if you die at 75 or over your beneficiaries then pay their own income tax on what they draw from it — on top of the tax the estate already paid.</p>
               <p className="text-slate-500">So <strong>which wrapper the money sits in now changes what it is worth to them</strong>, and so does when you die and who inherits. Nothing here is advice; the figures are illustrations built from the rules in Config, which you can change.</p>
               <button type="button" onClick={() => goToDoc('doc-inheritance')} className="text-[11px] text-purple-700 hover:text-purple-900 hover:underline font-semibold flex items-center gap-1 cursor-pointer"><HelpCircle className="w-3.5 h-3.5" /> The rules, and what is not modelled &rarr;</button>
+              {/* the deck, at the top as well as the foot of each step: three questions and an answer */}
+              <div className="pt-2 border-t border-slate-100">
+                <span className="text-[10px] text-slate-400 block mb-1.5">Three things to tell it, and then it works out the best route for you.</span>
+                {estateStepNav(estateSeeAll ? 0 : estateStep)}
+              </div>
             </div>
 
+            {showEstateStep(4) && (<>
             {/* ---------- the estate optimiser ---------- */}
             <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4" data-estate-optimiser>
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
@@ -8589,6 +8640,9 @@ export default function App() {
               )}
             </div>
 
+            {estateStepNav(4)}
+            </>)}
+            {showEstateStep(1) && (<>
             {/* ---------- who inherits ---------- */}
             <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -8694,6 +8748,9 @@ export default function App() {
             </div>
 
 
+            {estateStepNav(1)}
+            </>)}
+            {showEstateStep(3) && (<>
             {/* ---------- gifts already made ---------- */}
             <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3" data-gift-list>
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -8831,6 +8888,9 @@ export default function App() {
               </span>
             </div>
 
+            {estateStepNav(3)}
+            </>)}
+            {showEstateStep(2) && (<>
             {/* ---------- what the estate is made of ---------- */}
             {estateBreakdown && (
               <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3" data-estate-breakdown>
@@ -9123,6 +9183,9 @@ export default function App() {
               </details>
             </div>
 
+            {estateStepNav(2)}
+            </>)}
+            {showEstateStep(4) && (<>
             {/* ---------- results ---------- */}
             {inheritanceView.hasBens && inheritanceView.chosen && (
               <>
@@ -9245,6 +9308,8 @@ export default function App() {
                 </div>
               </>
             )}
+            {estateStepNav(4)}
+            </>)}
           </div>
         )}
 

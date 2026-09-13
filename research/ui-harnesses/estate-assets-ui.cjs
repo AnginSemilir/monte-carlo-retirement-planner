@@ -22,6 +22,9 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   await p.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(1000);
   await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  // the tab is a four-step deck now; every assertion below wants the whole of it
+  await p.waitForTimeout(400);
+  await p.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='See all'); if(b)b.click();});
   await p.waitForTimeout(900);
 
   // ---- the breakdown card ----

@@ -22,6 +22,9 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   await p.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(1000);
   await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  // the tab is a four-step deck now; every assertion below wants the whole of it
+  await p.waitForTimeout(400);
+  await p.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='See all'); if(b)b.click();});
   await p.waitForTimeout(900);
 
   const incomes = () => p.evaluate(()=>[...document.querySelectorAll('label')].filter(l=>/their income/.test(l.textContent)).map(l=>l.querySelector('input').value));
@@ -77,6 +80,9 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   await p2.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p2.waitForTimeout(1100);
   await p2.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  // the tab is a four-step deck now; every assertion below wants the whole of it
+  await p2.waitForTimeout(400);
+  await p2.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='See all'); if(b)b.click();});
   await p2.waitForTimeout(900);
   ok('a plan with a split already set opens with the column shown',
     await p2.evaluate(()=>[...document.querySelectorAll('label')].filter(l=>/of the pension/.test(l.textContent)).length===2));

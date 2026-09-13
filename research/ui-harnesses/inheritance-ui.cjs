@@ -25,6 +25,9 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   await p.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(900);
   await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  // the tab is a four-step deck now; every assertion below wants the whole of it
+  await p.waitForTimeout(400);
+  await p.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='See all'); if(b)b.click();});
   await p.waitForTimeout(800);
 
   ok('tab renders', await p.evaluate(()=>/What your heirs actually receive/.test(document.body.textContent)));
@@ -119,6 +122,9 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   await p2.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p2.waitForTimeout(900);
   await p2.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  // the tab is a four-step deck now; every assertion below wants the whole of it
+  await p2.waitForTimeout(400);
+  await p2.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='See all'); if(b)b.click();});
   await p2.waitForTimeout(800);
   ok('an estate over £2m is offered a gift', await p2.evaluate(()=>!!document.querySelector('[data-gift-suggestion]')));
   const sug = await p2.evaluate(()=>document.querySelector('[data-gift-suggestion]')?.textContent||'');
@@ -167,6 +173,9 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   await p3.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p3.waitForTimeout(900);
   await p3.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  // the tab is a four-step deck now; every assertion below wants the whole of it
+  await p3.waitForTimeout(400);
+  await p3.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='See all'); if(b)b.click();});
   await p3.waitForTimeout(800);
   ok('an estate under £2m is offered nothing', await p3.evaluate(()=>!document.querySelector('[data-gift-suggestion]')));
 
@@ -187,6 +196,9 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   await p4.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p4.waitForTimeout(900);
   await p4.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  // the tab is a four-step deck now; every assertion below wants the whole of it
+  await p4.waitForTimeout(400);
+  await p4.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='See all'); if(b)b.click();});
   await p4.waitForTimeout(800);
   const keeps = (name) => p4.evaluate((n)=>{
     const r=[...document.querySelector('[data-person-table]').querySelectorAll('tbody tr')].find(r=>r.textContent.includes(n));
@@ -288,6 +300,9 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   await p5.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p5.waitForTimeout(1000);
   await p5.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  // the tab is a four-step deck now; every assertion below wants the whole of it
+  await p5.waitForTimeout(400);
+  await p5.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='See all'); if(b)b.click();});
   await p5.waitForTimeout(900);
   ok('a legacy "not from the award" flag is dropped on load, not honoured',
     await p5.evaluate(()=>!JSON.parse(localStorage.getItem('rp_plan_full_v28')).inheritance.gifts.some(g=>g.fromCompensation==='no')));

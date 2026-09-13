@@ -324,6 +324,9 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   await p.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p.waitForTimeout(1200);
   await p.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  // the tab is a four-step deck now; every assertion below wants the whole of it
+  await p.waitForTimeout(400);
+  await p.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='See all'); if(b)b.click();});
   await p.waitForTimeout(700);
   ok('the optimiser is on the Inheritance tab', await p.evaluate(()=>!!document.querySelector('[data-estate-optimiser]')));
   await p.click('[data-optimise-estate]');
@@ -398,6 +401,9 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   await p2.goto(`http://localhost:${PORT}/`,{waitUntil:'domcontentloaded'});
   await p2.waitForTimeout(1200);
   await p2.evaluate(()=>{const x=[...document.querySelectorAll('[data-tabbar] button')].find(b=>/Inheritance/.test(b.textContent)); if(x)x.click();});
+  // the tab is a four-step deck now; every assertion below wants the whole of it
+  await p2.waitForTimeout(400);
+  await p2.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='See all'); if(b)b.click();});
   await p2.waitForTimeout(700);
   await p2.click('[data-optimise-estate]');
   await p2.waitForSelector('[data-lever-table]', { timeout: 15000 });

@@ -948,5 +948,81 @@ console.log('=========== T. EACH THING SAID ONCE, AND THE GIFT FUNDED FROM SOMEW
   }
 }
 
+console.log('=========== U. TIES GO TO THE SMALLER GIFT, AND THE PLATEAU IS SHOWN ===========');
+{
+  /*
+   * Three years from the death age, a gift past the exempt window cannot clear seven years, so it eats
+   * nil-rate band pound for pound: the estate falls, the band falls with it, and the tax does not move.
+   * Every size between the window and the liquid ceiling therefore scores identically, and sorting on
+   * net alone made the winner whichever the grid happened to reach first - £634,200 where £595,000
+   * produced the same figure to the pound, £39,200 given away to buy nothing.
+   *
+   * The plateau only exists where there is enough liquid to go PAST the exempt boundary, which is why
+   * this fixture carries the one-off contribution: without it the household cannot afford to overshoot
+   * and there is no tie to break.
+   */
+  const widow = (over = {}) => E.normalizePlan({
+    demographics: { planningMode: 'single', currentAgeSelf: 68, retireAgeSelf: 65, salarySelf: '',
+      employmentSelf: 'employed', statePensionAge: 68, privatePensionAge: 58, statePensionSelf: 11500, terminalAge: 100 },
+    spending: { targetSpend: 0, spendBands: [], drawdownStrategy: 'Phased Drawdown', decumulationPolicy: 'Bracket Fill Basic' },
+    accounts: [
+      { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: 1200000, contrib: 0, growth: '', risk: 'Medium Risk' },
+      { id: 'isa_self', owner: 'Myself', category: 'S&S ISAs', balance: 175000, contrib: 0, growth: '', risk: 'Medium Risk' },
+      { id: 'other_self', owner: 'Myself', category: GIA, balance: 400000, contrib: 0, growth: '', risk: 'Low Risk', unrealisedGain: 58000 },
+      { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 0, contrib: 0, growth: '', risk: 'Low Risk' }],
+    otherIncomes: [{ id: 'i', owner: 'Myself', startAge: '67', endAge: '', amount: '11000', incomeType: 'earnings' }],
+    // lands before the gift, and is what makes overshooting the exempt boundary affordable at all
+    oneOffContributions: [{ id: 'c', date: '2027-01-01', year: 2027, owner: 'Myself',
+      category: 'Other Investments (e.g. GIA)', amount: 120000, transferredFrom: 'External' }],
+    oneOffCosts: [], config: { valuationDate: '2026-09-13' },
+    inheritance: { deathAge: 71, homeValue: 1400000, homeToDescendants: true,
+      compensationPayment: 900000, compensationDate: '2025-12-04',
+      gifts: [{ id: 'g1', amount: 308000, year: 2026, desc: 'House' }],
+      beneficiaries: [{ id: 'a', name: 'Sam', relationship: 'descendant', sharePct: 50, income: 93000, age: 35 },
+                      { id: 'b', name: 'Alex', relationship: 'descendant', sharePct: 50, income: 150000, age: 36 }],
+      ...(over.inh || {}) }
+  });
+  /*
+   * Priced the way the household is reading it: the tab's "use today's figures" toggle, which flattens
+   * every risk profile to zero growth. It matters here - with growth on, the gift year holds enough
+   * more that the search clears the exempt boundary by a different route and no tie arises.
+   */
+  const flat = (over) => {
+    const p = widow(over);
+    for (const k of Object.keys(p.riskProfiles || {})) p.riskProfiles[k] = { ...p.riskProfiles[k], real: 0, volatility: 0, sigmaParam: 0 };
+    return p;
+  };
+  const r = E.optimizeInheritance(flat());
+  const given = E.num(r.best.gift, 0) + (r.best.compGift ? E.num(r.best.compGift.amount, 0) : 0);
+  const pl = r.giftRationale.plateau;
+  ok('a tie exists on this household', !!pl && pl.surplus > 0,
+    pl ? `sizes up to ${gbp(pl.upTo)} tie` : 'no plateau reported');
+  ok('and the winner is the smallest of them', given < pl.upTo,
+    `${gbp(given)} recommended, ties run to ${gbp(pl.upTo)}`);
+  /*
+   * The boundary that matters is the largest FULLY EXEMPT gift - the award still giftable plus the
+   * annual exemption. The grid is fractions of liquid and never landed on it, and it was measured
+   * against TODAY's liquid rather than the gift year's, so it was being discarded as unaffordable.
+   */
+  ok('which is the largest gift that eats no nil-rate band', E.num(r.bestEst.nrbUsedByGifts, 0) === 0,
+    `${gbp(E.num(r.bestEst.nrbUsedByGifts, 0))} of band eaten by a ${gbp(given)} gift`);
+  ok('the surplus is priced rather than dismissed', pl.worthIfSurvived > 0,
+    `worth ${gbp(pl.worthIfSurvived)} if he reaches ${pl.survivalAge}`);
+  ok('against an age seven years past the gift', pl.survivalYear === r.giftYear + 7,
+    `gift ${r.giftYear}, seven years lands ${pl.survivalYear} at age ${pl.survivalAge}`);
+
+  /*
+   * And the tie-break must cost nothing: giving the largest tying amount instead has to leave the heirs
+   * where they already are, or it was never a tie and the smaller gift is simply worse.
+   */
+  const at = (amt) => {
+    const p = flat({ inh: { gifts: [{ id: 'g1', amount: 308000, year: 2026 }, { id: 't', amount: amt, year: r.giftYear }] } });
+    const c = E.buildContext(E.resolveMpaa(p));
+    return E.estateForPlanAt(p, c, E.simulateDeterministic(c, 'expected')).netWithGifts;
+  };
+  ok('giving the larger amount really does leave the heirs no better off',
+    Math.abs(at(pl.upTo) - at(given)) < 2000, `${gbp(at(pl.upTo))} against ${gbp(at(given))}`);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

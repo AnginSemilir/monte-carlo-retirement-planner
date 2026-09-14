@@ -4252,7 +4252,23 @@ function optimizeInheritance(rawPlan, opts = {}) {
     gift: 0, split: null, label: 'Your plan as it stands'
   });
   const viable = (c) => c.net > 0 && (c.survived || !baseline.survived);
-  const bestOf = (list) => list.filter(viable).sort((a, b) => b.net - a.net)[0] || baseline;
+  /*
+   * Ties are broken by GIVING AWAY LESS.
+   *
+   * Sorting on net alone made the winner whichever equal-scoring candidate the grid happened to
+   * evaluate first. On a household three years from the death age that is a wide field: past the
+   * exempt window an ordinary gift cannot clear seven years, so it eats nil-rate band pound for pound
+   * and the estate and the band fall together - every size between the window and the liquid ceiling
+   * scores identically. The search was recommending £634,200 where £595,000 produced the same figure
+   * to the pound, and £39,200 of somebody's money was being given away to buy nothing.
+   *
+   * A pound not given is a pound still theirs, reversible, and still able to become a gift later. So
+   * among candidates within a pound of the best, the smallest gift wins.
+   */
+  const givenBy = (c) => num(c.gift, 0) + (c.compGift ? num(c.compGift.amount, 0) : 0);
+  const bestOf = (list) => list.filter(viable)
+    // within a pound is a tie: the candidates differ by pennies of rounding, not by anything real
+    .sort((a, b) => (Math.abs(a.net - b.net) < 1 ? givenBy(a) - givenBy(b) : b.net - a.net))[0] || baseline;
 
   /*
    * MOVING MONEY BETWEEN WRAPPERS, UP TO THE ALLOWANCES THAT CAP IT.
@@ -4401,7 +4417,27 @@ function optimizeInheritance(rawPlan, opts = {}) {
    * what actually gets recommended. The two answers differ whenever levers overlap, and that difference
    * is worth the extra dozen runs.
    */
-  const giftAmounts = liquidToday > 1000 ? GIFT_SEARCH_FRACTIONS.map(fr => Math.round(liquidToday * fr)).filter(a => a > 0) : [];
+  /*
+   * The grid is fractions of what is liquid, which never lands on the one size that matters most: the
+   * LARGEST FULLY EXEMPT GIFT. Past the compensation window plus the annual exemption, a gift made
+   * inside seven years eats nil-rate band pound for pound and buys nothing, so that boundary is the
+   * efficient point - and on the reference household it sat £39,200 below anything the search had
+   * priced. Every size above it tied, so the winner was whichever fraction happened to be evaluated.
+   */
+  const exemptBoundary = Math.round(compLeft + Math.max(0, num(plan.config.giftAnnualExemption, 3000)));
+  /*
+   * Measured against what is liquid IN THE GIFT YEAR, not today. The fractions are struck on today's
+   * balances, which on this household is £575,000 - but a one-off contribution lands before the gift is
+   * made, so £689,839 is actually available, and the boundary at £595,000 was being thrown away as
+   * unaffordable when it was nothing of the sort.
+   */
+  const liquidAtGift = (() => { const w = giftYearWrappersOf(baseline); return w ? w.isa + w.other + w.cash : liquidToday; })();
+  const giftAmounts = liquidToday > 1000
+    ? [...new Set([
+        ...GIFT_SEARCH_FRACTIONS.map(fr => Math.round(liquidToday * fr)),
+        ...(exemptBoundary > 1000 && exemptBoundary <= liquidAtGift ? [exemptBoundary] : [])
+      ])].filter(a => a > 0).sort((a, b) => a - b)
+    : [];
   if (onStep) onStep({ label: 'Testing gifts', value: 0.35 });
   const soloGifts = giftAmounts.map(amt => evaluate({ ...baseline, gift: amt, split: null,
     label: joined(baseline.label, giftLabel(amt)) }));
@@ -4573,7 +4609,6 @@ function optimizeInheritance(rawPlan, opts = {}) {
    */
   const deathAgeForGift = clamp(num(inh.deathAge, baseCtx.terminalAge), 0, 120);
   const giftRationale = (() => {
-    const givenBy = (c) => num(c.gift, 0) + (c.compGift ? num(c.compGift.amount, 0) : 0);
     const given = givenBy(best);
     const priced = [...soloGifts, ...soloCompGifts, ...gifts, ...compGifts, ...compFirst, ...giftsAfterComp];
     if (!priced.length) return null;
@@ -4689,6 +4724,45 @@ function optimizeInheritance(rawPlan, opts = {}) {
        * and nothing about its ceiling. The ceiling is the household's own liquidity, and saying so is
        * the whole answer.
        */
+      /*
+       * THE PLATEAU, and what the surplus is really buying.
+       *
+       * Past the exempt window an ordinary gift made inside seven years eats nil-rate band pound for
+       * pound: the estate falls, the taxable band falls with it, and the tax does not move. So a whole
+       * range of gift sizes scores identically, and the search reporting one of them as "the answer"
+       * hides that the top of the range gives away tens of thousands more to reach the same figure.
+       *
+       * It is not nothing, though, and saying so would be the opposite error: every pound above the
+       * window is a bet on outliving the seven years. Priced here at the survival date rather than
+       * asserted, so the household can see both halves of the trade.
+       */
+      plateau: (() => {
+        const ties = priced.map(c => ({ c, amt: givenBy(c) }))
+          .filter(x => x.c.survived && Math.abs(x.c.net - best.net) < 1 && x.amt > given + 1000)
+          .sort((a, b) => b.amt - a.amt)[0];
+        if (!ties) return null;
+        /*
+         * What the extra would be worth if the seven years were survived: the same plan priced at a
+         * death age past the gift's seventh anniversary, both sizes, and the difference between them.
+         */
+        const sevenAt = giftYear + 7;
+        const ageAtSeven = clamp(baseCtx.ageSelf0 + (sevenAt - baseCtx.baseYear), 0, 120);
+        const atAge = (amt, age) => {
+          const p2 = { ...plan, inheritance: { ...inh, deathAge: age,
+            gifts: [...(inh.gifts || []), { id: '__plateau', amount: amt, year: giftYear }] } };
+          try {
+            const c2 = buildContext(resolveMpaa(p2));
+            const r2 = estateForPlanAt(p2, c2, simulateDeterministic(c2, 'expected'));
+            return r2 ? r2.netWithGifts : null;
+          } catch { return null; }
+        };
+        const hiLate = atAge(ties.amt, ageAtSeven), loLate = atAge(given, ageAtSeven);
+        return {
+          upTo: ties.amt, surplus: ties.amt - given,
+          survivalAge: ageAtSeven, survivalYear: sevenAt,
+          worthIfSurvived: (hiLate !== null && loLate !== null) ? Math.max(0, hiLate - loLate) : null
+        };
+      })(),
       liquidCeiling: (() => {
         if (bigger || given <= 0) return null;
         /*
@@ -4736,7 +4810,6 @@ function optimizeInheritance(rawPlan, opts = {}) {
     const threshold = Math.max(0, num(plan.config.ihtRnrbTaperFrom, 2000000));
     if (!(num(baseline.est.grossEstate, 0) > threshold)) return null;
     if (!(num(baseline.est.rnrbTaperLoss, 0) > 0)) return null;      // nothing to win back
-    const givenBy = (c) => num(c.gift, 0) + (c.compGift ? num(c.compGift.amount, 0) : 0);
     const priced = [baseline, ...soloGifts, ...soloCompGifts, ...gifts, ...compGifts, ...compFirst, ...giftsAfterComp]
       .filter(c => c && c.est && c.survived);
     // one row per gift size, keeping the best-scoring candidate at that size
@@ -4799,7 +4872,6 @@ function optimizeInheritance(rawPlan, opts = {}) {
    * nothing else, give everything you could - each priced on the same measure as the winner.
    */
   const alternatives = (() => {
-    const givenBy = (c) => num(c.gift, 0) + (c.compGift ? num(c.compGift.amount, 0) : 0);
     const noGift = givenBy(best) > 0 ? evaluate({ ...best, gift: 0, compGift: null, label: 'x' }) : null;
     const giftOnly = givenBy(best) > 0
       ? evaluate({ policy: plan.spending.decumulationPolicy, drawdown: plan.spending.drawdownStrategy,
@@ -7502,7 +7574,7 @@ ${groups.map((sec, si) => `<h2>${si + 1}. ${esc(sec.title)}</h2><section>${
   }${
     (a.facts || []).length ? `<dl>${a.facts.map(f => `<dt>${esc(f.k)}</dt><dd>${esc(f.v)}</dd>`).join('')}</dl>` : ''
   }${fundingTableHtml(a.fundingTable)}${a.why ? `<p>${esc(a.why)}</p>` : ''}${a.detail ? `<details><summary>The detail</summary><p class="fine">${esc(a.detail)}</p></details>` : ''}</div>`).join('')
-}${sec.g === 'gift' && g && g.given > 0 ? `<div class="step" style="padding-left:0"><p class="fine"><strong>Why ${money(g.given)} and not more.</strong> It is worth ${money(g.worth)} against making no gift at all.${g.nextUp ? (g.nextUpFails ? ` Giving ${money(g.nextUp)} instead runs the plan short at age ${g.nextUpFailAge || '?'}, before the age of ${estatePlan.deathAge} you said you die.` : ` Giving ${money(g.nextUp)} instead leaves the heirs ${money(g.nextUpCost)} worse off.`) : ''}${g.liquidCeiling ? ` It stops there because that is everything held outside the pension.` : ''}</p>${sumTable(g.whySum, g.whyNote) || sumTable(g.liquidCeiling && g.liquidCeiling.sum, g.liquidCeiling && g.liquidCeiling.note)}</div>` : ''}</section>`).join('')}
+}${sec.g === 'gift' && g && g.given > 0 ? `<div class="step" style="padding-left:0"><p class="fine"><strong>Why ${money(g.given)} and not more.</strong> It is worth ${money(g.worth)} against making no gift at all.${g.nextUp ? (g.nextUpFails ? ` Giving ${money(g.nextUp)} instead runs the plan short at age ${g.nextUpFailAge || '?'}, before the age of ${estatePlan.deathAge} you said you die.` : ` Giving ${money(g.nextUp)} instead leaves the heirs ${money(g.nextUpCost)} worse off.`) : ''}${g.liquidCeiling ? ` It stops there because that is everything held outside the pension.` : ''}${g.plateau ? ` Anything up to ${money(g.plateau.upTo)} leaves your heirs the same &mdash; past the exempt window a gift made this close to death eats nil-rate band pound for pound. The extra ${money(g.plateau.surplus)} only pays if you live to ${esc(g.plateau.survivalAge)}, when it would be worth ${money(g.plateau.worthIfSurvived || 0)}.` : ''}</p>${sumTable(g.whySum, g.whyNote) || sumTable(g.liquidCeiling && g.liquidCeiling.sum, g.liquidCeiling && g.liquidCeiling.note)}</div>` : ''}</section>`).join('')}
 <h2>The figures</h2>
 <section><table><thead><tr><th>Line</th><th class="num">Amount</th><th class="num">Running</th></tr></thead><tbody>
 ${work.map(r => `<tr class="${r.kind === 'total' ? 'total' : r.kind === 'note' ? 'note' : ''}"><td>${esc(r.label)}${r.note ? `<br><span class="fine">${esc(r.note)}</span>` : ''}</td><td class="num">${r.kind === 'note' ? '' : (r.amount < 0 ? '−' : '') + money(r.amount)}</td><td class="num">${r.kind === 'note' ? '' : money(Math.max(0, r.running))}</td></tr>`).join('')}
@@ -9401,6 +9473,28 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                                     : <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead leaves your heirs <strong>{formatGBP(estatePlan.giftRationale.nextUpCost)} worse off</strong>. <span className="text-purple-600 font-semibold underline">Show the figures</span></>}
                                 </summary>
                                 <SumRows rows={estatePlan.giftRationale.whySum} note={estatePlan.giftRationale.whyNote} tone="purple" />
+                              </details>
+                            )}
+                            {/*
+                              * THE PLATEAU. Without it the household sees one number presented as the
+                              * answer and no sign that a range of sizes reaches it — which is exactly
+                              * the question that gets asked of a six-figure recommendation.
+                              */}
+                            {estatePlan.giftRationale.plateau && (
+                              <details data-plateau>
+                                <summary className="cursor-pointer list-none">
+                                  Anything up to <strong>{formatGBP(estatePlan.giftRationale.plateau.upTo)}</strong> leaves your heirs the same. <span className="text-purple-600 font-semibold underline">Why stop here</span>
+                                </summary>
+                                <SumRows tone="purple"
+                                  rows={[
+                                    { k: 'This gift', v: formatGBP(estatePlan.giftRationale.given) },
+                                    { k: 'Giving the most that ties', v: formatGBP(estatePlan.giftRationale.plateau.upTo) },
+                                    { k: 'Extra given away', v: '−' + formatGBP(estatePlan.giftRationale.plateau.surplus) },
+                                    { k: 'What it buys your heirs', v: formatGBP(0), total: true }
+                                  ]}
+                                  note={estatePlan.giftRationale.plateau.worthIfSurvived > 0
+                                    ? `Past the exempt window a gift made this close to death eats nil-rate band pound for pound, so the estate and the band fall together and the tax does not move. The surplus only starts paying if you live to ${estatePlan.giftRationale.plateau.survivalAge} — seven years from the gift — when it would be worth ${formatGBP(estatePlan.giftRationale.plateau.worthIfSurvived)}. Give the larger amount if you think the age on step 1 is cautious.`
+                                    : 'Past the exempt window a gift made this close to death eats nil-rate band pound for pound, so the estate and the band fall together and the tax does not move.'} />
                               </details>
                             )}
                             {/* and when nothing bigger was priced at all, the ceiling is your own liquidity */}

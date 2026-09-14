@@ -4595,6 +4595,65 @@ function optimizeInheritance(rawPlan, opts = {}) {
   })();
 
   /*
+   * THE £2M QUESTION, priced rather than asserted.
+   *
+   * "Why not keep gifting until the estate is under the taper threshold" is the first thing anyone asks
+   * of an estate over it, and prose cannot settle it: the answer turns on how much band comes back
+   * against how much is given away to get there, and those are pounds. So this is a ladder of gift
+   * sizes the search ALREADY priced - no extra runs - showing for each one the estate it leaves, the
+   * residence band that survives the taper, the tax, and what the heirs end up with.
+   *
+   * Only built for an estate the taper actually bites on. Below the threshold there is no question to
+   * answer, and a table of identical rows would imply there was.
+   */
+  const taperLadder = (() => {
+    const threshold = Math.max(0, num(plan.config.ihtRnrbTaperFrom, 2000000));
+    if (!(num(baseline.est.grossEstate, 0) > threshold)) return null;
+    if (!(num(baseline.est.rnrbTaperLoss, 0) > 0)) return null;      // nothing to win back
+    const givenBy = (c) => num(c.gift, 0) + (c.compGift ? num(c.compGift.amount, 0) : 0);
+    const priced = [baseline, ...soloGifts, ...soloCompGifts, ...gifts, ...compGifts, ...compFirst, ...giftsAfterComp]
+      .filter(c => c && c.est && c.survived);
+    // one row per gift size, keeping the best-scoring candidate at that size
+    const bySize = new Map();
+    priced.forEach(c => {
+      const amt = Math.round(givenBy(c) / 1000) * 1000;
+      const cur = bySize.get(amt);
+      if (!cur || c.net > cur.net) bySize.set(amt, c);
+    });
+    const all = [...bySize.entries()].sort((a, b) => a[0] - b[0])
+      .map(([amt, c]) => ({
+        amt, net: c.net, estate: num(c.est.grossEstate, 0), iht: num(c.est.iht, 0),
+        rnrb: num(c.est.rnrb, 0), rnrbLost: num(c.est.rnrbTaperLoss, 0),
+        under: num(c.est.grossEstate, 0) <= threshold
+      }));
+    if (all.length < 2) return null;
+    const givenNow = Math.round(givenBy(best) / 1000) * 1000;
+    /*
+     * Six rows at most, chosen so the shape of the curve is visible rather than a slice of it: nothing,
+     * the recommendation, the first size that actually clears the threshold if any does, the largest
+     * priced, and two spread between to show which way it is heading.
+     */
+    const wanted = new Set([all[0].amt, givenNow, all[all.length - 1].amt]);
+    const clears = all.find(r => r.under);
+    if (clears) wanted.add(clears.amt);
+    const mid = all.filter(r => !wanted.has(r.amt));
+    if (mid.length) {
+      wanted.add(mid[Math.floor(mid.length / 3)].amt);
+      wanted.add(mid[Math.floor(2 * mid.length / 3)].amt);
+    }
+    const rows = all.filter(r => wanted.has(r.amt))
+      .map(r => ({ ...r, recommended: r.amt === givenNow, cost: best.net - r.net }));
+    return {
+      threshold, rows,
+      reachable: !!clears,
+      // what it would take to get there at all, when nothing priced does
+      shortBy: clears ? 0 : Math.max(0, num(all[all.length - 1].estate, 0) - threshold),
+      maxGift: all[all.length - 1].amt,
+      bandAtStake: num(baseline.est.rnrbTaperLoss, 0)
+    };
+  })();
+
+  /*
    * WHY NOT ONE OF THE OTHERS. The ranking says which strategies lost; it does not say what they were
    * or by how much, and a household asked to give away six figures is owed both. These are the routes a
    * person would actually have considered - do nothing, move money but give none away, give but change
@@ -4693,7 +4752,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
     gain: best.net - baseline.net,
     // the winner's own priced estate, so the tab can show the working for what it is RECOMMENDING
     // rather than only for the plan as it stands
-    bestEst: best.est, baselineEst: baseline.est, giftRationale, alternatives,
+    bestEst: best.est, baselineEst: baseline.est, giftRationale, alternatives, taperLadder,
     /*
      * Disclosed, not enforced. The route is affordable for as long as the household said it would live,
      * which is the test it is now held to - but if it leaves the wider plan short afterwards the tab says
@@ -5852,14 +5911,14 @@ export default function App() {
    *
    * Held as the collapsed set rather than the open one so a card added later is open unless it opts out.
    */
-  const [estateFolded, setEstateFolded] = useState(() => new Set(['workings', 'alternatives']));
+  const [estateFolded, setEstateFolded] = useState(() => new Set(['workings', 'alternatives', 'taper', 'search', 'notranked']));
   const estateOpen = (k) => !estateFolded.has(k);
   const toggleEstateCard = (k) => setEstateFolded(prev => {
     const n = new Set(prev);
     if (n.has(k)) n.delete(k); else n.add(k);
     return n;
   });
-  const ESTATE_CARD_KEYS = ['reallocate', 'gift', 'paperwork', 'workings', 'alternatives'];
+  const ESTATE_CARD_KEYS = ['workings', 'alternatives', 'taper', 'search', 'notranked'];
   const showEstateStep = (n) => estateSeeAll || estateStep === n;
 
   const [slide, setSlide] = useState(1);
@@ -7037,7 +7096,6 @@ export default function App() {
    * synchronously on a click rather than chunked through the event loop like the Monte Carlo searches.
    */
   const [estatePlan, setEstatePlan] = useState(null);
-  const [estateApplied, setEstateApplied] = useState(null);
   const estateActions = useMemo(() => estatePlan ? E.estateActionPlan(eFlatPlan, estatePlan) : [], [eFlatPlan, estatePlan]);
   const [estateError, setEstateError] = useState('');
   /*
@@ -7051,23 +7109,12 @@ export default function App() {
     try {
       const r = E.optimizeInheritance(eFlatPlan);
       if (!r) { setEstateError('Add at least one person under Who inherits on the Inheritance tab first — there is nothing to rank without an heir.'); setEstatePlan(null); return; }
-      setEstatePlan(r); setEstateApplied(null); appliedAtKey.current = null;
+      setEstatePlan(r);
     } catch (err) {
       setEstateError(String(err && err.message ? err.message : err));
       setEstatePlan(null);
     }
   };
-  /*
-   * Applying is IDEMPOTENT, and it was not. Every click appended a fresh gift with a random id, so a
-   * second click - which is the natural thing to do when the button gives no sign of having worked -
-   * silently added the same £900,000 again. The written rows now carry ids derived from what they are,
-   * so re-applying replaces them, and the action list drops a step the plan already holds.
-   *
-   * It also has to show the household what it did. Writing a six-figure gift into a plan on another tab
-   * and staying put is how the second click happens in the first place.
-   */
-  const appliedGiftId = (year) => `estate_gift_${year}`;
-  const appliedCompId = (year) => `estate_comp_${year}`;
   const estateRunKey = useMemo(() => JSON.stringify({
     a: (eFlatPlan?.accounts || []).map(a => [a.id, E.num(a.balance, 0), a.risk]),
     i: eFlatPlan?.inheritance, s: eFlatPlan?.spending?.decumulationPolicy, d: eFlatPlan?.spending?.drawdownStrategy,
@@ -7076,32 +7123,21 @@ export default function App() {
     g: estateFlatGrowth
   }), [eFlatPlan, estateFlatGrowth]);
   const lastEstateRun = useRef('');
-  const appliedAtKey = useRef(null);
+  /*
+   * Re-search whenever the inputs change, with no hold-off state.
+   *
+   * There used to be one: applying the route wrote it into the plan, which changed the key, which
+   * re-ran the search, which returned a smaller recommendation measured on top of what had just been
+   * written - so the card replaced a £488,750 gift with a £96,778 one while the household was still
+   * reading it. Removing Apply removed the only thing that made the plan change from under the answer,
+   * and the guard with it.
+   */
   useEffect(() => {
     if (activeTab !== 'inheritance' || !showEstateStep(4)) return;
-    /*
-     * But NOT straight after applying. Applying changes the plan, and re-searching on the spot would
-     * replace the recommendation the household is still reading with a smaller one measured on top of
-     * it - so the card would show a £96,778 gift seconds after writing a £488,750 one, and pressing
-     * Apply again would take that too. The figures hold still until "Search again" is pressed.
-     */
-    if (estateApplied) {
-      /*
-       * Hold once, not forever. The first key after applying is the plan the apply itself created, and
-       * re-searching on that would replace what the household is still reading. Any change AFTER that is
-       * theirs - a different death age, another heir - and has to be priced, or the card quietly goes
-       * stale behind an edit they just made.
-       */
-      if (appliedAtKey.current === null) { appliedAtKey.current = estateRunKey; return; }
-      if (appliedAtKey.current === estateRunKey) return;
-      appliedAtKey.current = null;
-      setEstateApplied(null);
-      return;
-    }
     if (lastEstateRun.current === estateRunKey) return;
     lastEstateRun.current = estateRunKey;
     handleOptimizeEstate();
-  }, [activeTab, estateStep, estateSeeAll, estateRunKey, estateApplied]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeTab, estateStep, estateSeeAll, estateRunKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /*
    * THE REPORT. Everything the route step shows, as one self-contained page in a new tab: the actions in
@@ -7200,6 +7236,19 @@ ${estatePlan.alternatives ? `<h2>Why not one of the others</h2><section><table><
 <tr class="total"><td>The plan above<br><span class="fine">${esc(estatePlan.best.label)}</span></td><td class="num">${money(estatePlan.best.net)}</td><td class="num">—</td></tr>
 ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine">${esc(a.why)}</span></td><td class="num">${money(a.net)}</td><td class="num cost">−${money(a.cost)}</td></tr>`).join('')}
 </tbody></table></section>` : ''}
+${estatePlan.taperLadder ? (() => {
+  const t = estatePlan.taperLadder;
+  const clear = t.rows.find(r => r.under && !r.recommended);
+  const rec = t.rows.find(r => r.recommended) || { amt: 0 };
+  return `<h2>Why not keep gifting down to ${money(t.threshold)}?</h2><section>
+<p>${clear
+  ? `Getting under the line brings back ${money(t.bandAtStake)} of residence allowance &mdash; worth about ${money(t.bandAtStake * 0.4)} of tax &mdash; but needs ${money(clear.amt - rec.amt)} more given away than the plan above, and leaves your heirs <strong>${money(clear.cost)} worse off</strong>.`
+  : `Your estate cannot be brought under the line by any gift the plan can afford, so the ${money(t.bandAtStake)} of residence allowance stays withdrawn whatever you do.`}</p>
+<table><thead><tr><th>Gift</th><th class="num">Estate at death</th><th class="num">Residence band</th><th class="num">Inheritance tax</th><th class="num">Heirs keep</th></tr></thead><tbody>
+${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ? money(r.amt) : 'nothing'}${r.recommended ? '<br><span class="fine">the plan above</span>' : ''}</td><td class="num">${money(r.estate)}</td><td class="num">${r.rnrb > 0 ? money(r.rnrb) : 'withdrawn'}</td><td class="num">${money(r.iht)}</td><td class="num">${money(r.net)}</td></tr>`).join('')}
+</tbody></table>
+<p class="fine">Read the last column, not the tax column. Tax falls the whole way down &mdash; it always does, because you are giving the estate away &mdash; but what your heirs hold peaks and then falls with it, since past a point every pound of tax saved costs more than a pound of gift. The residence band is withdrawn by &pound;1 for every &pound;2 the estate is over ${money(t.threshold)}, measured before reliefs.</p></section>`;
+})() : ''}
 <footer>Every route was run through the same projection and priced at the same death age; ${esc(estatePlan.runs)} of them in all. Figures are in today\u2019s money and follow the tax rules set on the Config tab. This models tax only: it cannot draft a will, witness a signature, or tell you whether a gift is wise for reasons that have nothing to do with tax.</footer>
 </main></body></html>`;
   };
@@ -7211,57 +7260,6 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
     // revoked late: Safari needs the URL to outlive the open() call
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     if (!w) setEstateError('Your browser blocked the new tab. Allow pop-ups for this page and press the button again.');
-  };
-
-  const appliedPlanRef = useRef(null);
-  const applyEstatePlan = () => {
-    if (!estatePlan) return;
-    /*
-     * The same recommendation is only applied once. Applying changes the plan, which re-runs the search,
-     * which produces a NEW recommendation measured on top of what was just written - so a second click
-     * is a legitimate second step, not a repeat. Guarding on the recommendation itself keeps both true:
-     * clicking twice on one answer does nothing, while acting on a fresh answer still works.
-     */
-    if (appliedPlanRef.current === estatePlan) return;
-    appliedPlanRef.current = estatePlan;
-    const b = estatePlan.best;
-    /*
-     * And the gift ACCUMULATES. The search prices its gift on top of whatever the plan already holds, so
-     * writing it over an earlier applied gift of the same year would quietly delete the first one -
-     * turning a £488,750 gift into a £96,778 one on the second press.
-     */
-    const heldAmount = (id) => E.num(((plan?.inheritance?.gifts || []).find(g => g.id === id) || {}).amount, 0);   // written to the real plan, always
-    const written = [
-      ...(b.gift > 0 ? [{ id: appliedGiftId(estatePlan.giftYear), amount: Math.round(heldAmount(appliedGiftId(estatePlan.giftYear)) + b.gift), year: estatePlan.giftYear, desc: 'Gift (estate plan)' }] : []),
-      ...(b.compGift ? [{ ...b.compGift, id: appliedCompId(b.compGift.year), amount: Math.round(heldAmount(appliedCompId(b.compGift.year)) + E.num(b.compGift.amount, 0)), desc: 'Gift of compensation (estate plan)' }] : [])
-    ];
-    const writtenIds = new Set(written.map(g => g.id));
-    const recycle = (b.recycle || []).map(x => ({ ...x, id: x.id || `__rc_${x.year}_${x.category}` }));
-    const recycleIds = new Set(recycle.map(x => x.id));
-    setPlan(prev => {
-      const inh = prev.inheritance || {};
-      return {
-        ...prev,
-        spending: { ...(prev.spending || {}), decumulationPolicy: b.policy, drawdownStrategy: b.drawdown },
-        config: { ...(prev.config || {}), harvestPersonalAllowance: b.harvest, harvestCeiling: b.ceiling || 'pa' },
-        // replace, never append: the same transfer applied twice is not two transfers
-        oneOffContributions: [...(prev.oneOffContributions || []).filter(x => !recycleIds.has(x.id)), ...recycle],
-        inheritance: {
-          ...inh,
-          gifts: [...(inh.gifts || []).filter(g => !writtenIds.has(g.id)), ...written],
-          beneficiaries: b.split
-            ? E.normalizeBeneficiaries(inh.beneficiaries).map((x, i) => ({ ...x, pensionSharePct: b.split[i] }))
-            : inh.beneficiaries
-        }
-      };
-    });
-    appliedAtKey.current = null;
-    setEstateApplied({ at: Date.now(), gifts: written.length, split: !!b.split, recycle: recycle.length });
-    // and take them to the rows that just changed, so a second click is never the obvious next move
-    if (written.length) {
-      setActiveTab('inheritance');
-      setTimeout(() => document.querySelector('[data-gift-list]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
-    }
   };
 
   const handleFindBestPolicy = async () => {
@@ -8902,7 +8900,7 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div>
                   <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> Most efficient estate allocation</h2>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">Everything else on this tab prices what you have typed. This searches the choices you can still make: the order you draw wrappers down, how far up the tax bands you draw the pension each year, a gift now, how the pension is split between the people inheriting it, and moving money between wrappers up to the allowances that cap it. All of it ranked on one number &mdash; <strong>what your heirs keep</strong>, after inheritance tax and after their own income tax on drawing an inherited pension down over {estatePlan ? estatePlan.spreadYears : E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years. The Strategy tab answers a different question: how to divide money you are still paying in.</p>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">The choices you can still make &mdash; draw order, how far up the bands, a gift, the pension nomination, moving money between wrappers &mdash; ranked on one number: <strong>what your heirs keep</strong>, after inheritance tax and after their own income tax on an inherited pension drawn over {estatePlan ? estatePlan.spreadYears : E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years.</p>
                 </div>
                 <div className="shrink-0 flex items-center gap-2">
                   {/* one control for all of them, because the useful gesture is "show me everything" or
@@ -8959,41 +8957,32 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                         </div>
                       </div>
                     )}
-                    {[
-                      { g: 'reallocate', n: '1', title: 'Move money, but keep it',
-                        blurb: 'Nothing here leaves your estate or your control. It is which account you draw from, how far up the tax bands, where the pension goes on death, and what you shift between wrappers.' },
-                      { g: 'gift', n: '2', title: 'Give money away',
-                        blurb: 'This part is irreversible and it reduces what you have to live on. The projection has already checked you can afford it for as long as you said you would live, but the decision is not only a tax one.' },
-                      { g: 'paperwork', n: '3', title: 'Then tell somebody',
-                        blurb: '' }
-                      // numbered by what is actually shown: a household whose plan needs no reallocation
-                      // should see cards 1 and 2, not 2 and 3 with a gap where nothing was wrong
-                    ].filter(sec => estateActions.some(a => a.group === sec.g)).map((sec, si) => ({ ...sec, n: String(si + 1) })).map(sec => (
-                      <div key={sec.g} className={`p-3.5 rounded-xl space-y-3 border ${sec.g === 'gift' ? 'bg-purple-50 border-purple-200' : sec.g === 'paperwork' ? 'bg-slate-50 border-slate-200' : 'bg-emerald-50 border-emerald-200'}`} data-action-group={sec.g}>
-                        {/* the whole header is the hit target, not a chevron the width of a thumbnail:
-                            the row already reads as the thing the card is about, so it is the thing to press */}
-                        <button type="button" onClick={() => toggleEstateCard(sec.g)} aria-expanded={estateOpen(sec.g)}
-                          data-fold-toggle={sec.g}
-                          className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
-                          <h3 className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 ${sec.g === 'gift' ? 'text-purple-900' : sec.g === 'paperwork' ? 'text-slate-700' : 'text-emerald-900'}`}>
-                            <span className={`shrink-0 w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center ${sec.g === 'gift' ? 'bg-purple-600' : sec.g === 'paperwork' ? 'bg-slate-500' : 'bg-emerald-600'}`}>{sec.n}</span>
-                            <span className="flex-1">{sec.title}</span>
-                            {/* what is inside, so a folded card still says how much it is hiding */}
-                            <span className={`shrink-0 font-semibold normal-case tracking-normal text-[10px] ${sec.g === 'gift' ? 'text-purple-600' : sec.g === 'paperwork' ? 'text-slate-500' : 'text-emerald-600'}`}>
-                              {estateActions.filter(a => a.group === sec.g).length} {estateActions.filter(a => a.group === sec.g).length === 1 ? 'step' : 'steps'}
-                            </span>
-                            <ChevronDown className={`shrink-0 w-3.5 h-3.5 transition-transform ${estateOpen(sec.g) ? '' : '-rotate-90'} ${sec.g === 'gift' ? 'text-purple-600' : sec.g === 'paperwork' ? 'text-slate-500' : 'text-emerald-600'}`} />
-                          </h3>
-                          {sec.blurb && estateOpen(sec.g) && <span className={`text-[10px] block mt-1 ${sec.g === 'gift' ? 'text-purple-700' : 'text-emerald-700'}`}>{sec.blurb}</span>}
-                        </button>
-                        {estateOpen(sec.g) && (
-                        <ol className="space-y-2.5 list-none">
-                          {/* The instruction first, at a glance: what to do, then the two or three facts
-                              somebody acts on, then one line of why. The paragraphs that used to be here
-                              are still here, folded away, because they answer the second question. */}
-                          {estateActions.filter(a => a.group === sec.g).map((a, i) => (
-                            <li key={a.key} className="flex gap-2.5">
-                              <span className={`shrink-0 w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center mt-0.5 ${sec.g === 'gift' ? 'bg-purple-600' : sec.g === 'paperwork' ? 'bg-slate-500' : 'bg-emerald-600'}`}>{sec.n}.{i + 1}</span>
+                    {/*
+                      * One list, numbered straight through.
+                      *
+                      * It used to be three cards - move money / give it away / tell somebody - each with a
+                      * heading, a step count and a paragraph of preamble. With one step in each, the
+                      * scaffolding was three times the size of the content and said nothing the step did
+                      * not: "Give money away, 1 step, this part is irreversible" above "Gift £592,000 of
+                      * the compensation before 2027-12-04". The grouping is still there in the colour of
+                      * each step, which costs no height.
+                      */}
+                    {(() => {
+                      const ORDER = ['reallocate', 'gift', 'paperwork'];
+                      const ordered = ORDER.flatMap(g => estateActions.filter(a => a.group === g));
+                      const tone = (g) => g === 'gift'
+                        ? { bg: 'bg-purple-50 border-purple-200', pip: 'bg-purple-600', head: 'text-purple-950', why: 'text-purple-800' }
+                        : g === 'paperwork'
+                          ? { bg: 'bg-slate-50 border-slate-200', pip: 'bg-slate-500', head: 'text-slate-900', why: 'text-slate-600' }
+                          : { bg: 'bg-emerald-50 border-emerald-200', pip: 'bg-emerald-600', head: 'text-emerald-950', why: 'text-emerald-800' };
+                      return (
+                        <ol className="space-y-2 list-none" data-steps>
+                          {ordered.map((a, i) => {
+                            const sec = { g: a.group, n: String(i + 1) };
+                            const t = tone(a.group);
+                            return (
+                            <li key={a.key} className={`p-3 rounded-xl border flex gap-2.5 ${t.bg}`} data-action-group={a.group}>
+                              <span className={`shrink-0 w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center mt-0.5 ${t.pip}`}>{sec.n}</span>
                               <div className="min-w-0 flex-1 space-y-1.5">
                                 <div className={`text-[13px] font-bold leading-snug ${sec.g === 'gift' ? 'text-purple-950' : sec.g === 'paperwork' ? 'text-slate-900' : 'text-emerald-950'}`}>{a.title}</div>
                                 {a.sequence && (
@@ -9028,14 +9017,17 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                                 )}
                               </div>
                             </li>
-                          ))}
+                            );
+                          })}
                         </ol>
-                        )}
-                        {/* Why this much. A number with no reasoning invites the household to
-                            second-guess it upwards, which is the one direction the search has already
-                            proved wrong. */}
-                        {sec.g === 'gift' && estateOpen('gift') && estatePlan.giftRationale && estatePlan.giftRationale.given > 0 && (
-                          <div className="p-2 bg-white/70 border border-purple-200 rounded-lg text-[11px] text-purple-900 space-y-1" data-gift-rationale>
+                      );
+                    })()}
+                    <span className="text-[10px] text-slate-400 block">Only what changes is listed. Everything else about your plan stays as it is.</span>
+                    {/* Why this much. A number with no reasoning invites the household to
+                        second-guess it upwards, which is the one direction the search has already
+                        proved wrong. */}
+                        {estatePlan.giftRationale && estatePlan.giftRationale.given > 0 && (
+                          <div className="p-3 bg-purple-50/60 border border-purple-200 rounded-xl text-[11px] text-purple-900 space-y-1" data-gift-rationale>
                             <div><strong>Why {formatGBP(estatePlan.giftRationale.given)} and not more.</strong> Giving this much is worth <strong>{formatGBP(estatePlan.giftRationale.worth)}</strong> against making no gift at all.</div>
                             {estatePlan.giftRationale.bandBack > 0 && (
                               <div><strong>{formatGBP(estatePlan.giftRationale.certain)} of that is certain</strong> whatever happens next: it restores {formatGBP(estatePlan.giftRationale.bandBack)} of residence allowance, and that test looks at what you <em>owned at death</em>, so the allowance returns the day the gift is made. The other {formatGBP(estatePlan.giftRationale.needsSeven)} needs you to survive seven years.</div>
@@ -9053,8 +9045,6 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                             )}
                           </div>
                         )}
-                      </div>
-                    ))}
                     {/* and the same question when the answer is no gift at all */}
                     {estatePlan.giftRationale && estatePlan.giftRationale.given <= 0 && estatePlan.giftRationale.bestRejected && (
                       <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-700" data-gift-rationale>
@@ -9107,6 +9097,41 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                           <div className="p-2 bg-purple-50 border border-purple-200 rounded-lg"><span className="block text-[10px] text-purple-600 font-semibold uppercase tracking-wider">Given in your lifetime</span><span className="font-mono font-bold text-purple-800">{formatGBP(estatePlan.bestEst.giftsToHeirs)}</span></div>
                           <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg"><span className="block text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">Your heirs keep</span><span className="font-mono font-bold text-emerald-800">{formatGBP(estatePlan.best.net)}</span></div>
                         </div>
+                        {/*
+                          * Who ends up with it, under THIS route.
+                          *
+                          * The person table further up the tab prices the plan as it stands, and with
+                          * Apply gone the recommended gift never reaches that plan - so it could never
+                          * appear there. The gift is split by the will percentages, the same assumption
+                          * the estate uses, because the plan records what is given and when rather than
+                          * to whom.
+                          */}
+                        {(estatePlan.bestEst.beneficiaries || []).length > 0 && (
+                          <div className="overflow-x-auto" data-recommended-people>
+                            <table className="w-full text-left text-[11px] border-collapse">
+                              <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
+                                <th className="pb-1.5 pr-3">Who</th><th className="pb-1.5 pr-3">Share</th>
+                                <th className="pb-1.5 pr-3 text-right">From the estate</th>
+                                {estatePlan.bestEst.giftsToHeirs > 0 && <th className="pb-1.5 pr-3 text-right">Gifted to them</th>}
+                                <th className="pb-1.5 text-right">They keep</th>
+                              </tr></thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {estatePlan.bestEst.beneficiaries.map(b => (
+                                  <tr key={b.id || b.name}>
+                                    <td className="py-1.5 pr-3 font-semibold text-slate-800">{b.name || 'Unnamed'}<span className="block text-[10px] text-slate-400 font-normal">{(E.IHT_RELATIONSHIPS[b.relationship] || {}).label || b.relationship}</span></td>
+                                    <td className="py-1.5 pr-3 text-slate-600">{E.num(b.sharePct, 0)}%</td>
+                                    <td className="py-1.5 pr-3 text-right font-mono text-slate-800">{formatGBP(b.net)}</td>
+                                    {estatePlan.bestEst.giftsToHeirs > 0 && <td className="py-1.5 pr-3 text-right font-mono text-purple-700 font-semibold">{b.giftsReceived > 0 ? '+' + formatGBP(b.giftsReceived) : '—'}</td>}
+                                    <td className="py-1.5 text-right font-mono font-bold text-emerald-800">{formatGBP(b.netWithGifts)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                            {estatePlan.bestEst.giftsToHeirs > 0 && (
+                              <span className="text-[10px] text-slate-400 block mt-1.5">A lifetime gift never passes through the estate, so what someone keeps is more than their share of it. Split by the will percentages, because the plan records what is given and when rather than to whom &mdash; if a gift is meant for one person, read that column as an average.</span>
+                            )}
+                          </div>
+                        )}
                         </>)}
                       </div>
                     )}
@@ -9148,9 +9173,28 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                         </>)}
                       </div>
                     )}
-                    <span className="text-[10px] text-slate-400 block">Only what changes is listed. Everything else about your plan stays as it is.</span>
                   </div>
 
+                  {/*
+                    * THE WORKING OUT, in one folded card.
+                    *
+                    * Three separate always-open blocks used to sit here - what each lever is worth, the
+                    * findings where a lever was worth nothing, and the raw ranked candidates - and
+                    * between them they were longer than the recommendation they supported. They are the
+                    * audit trail, not the answer: worth keeping, not worth reading first. The header
+                    * says what is inside so a reader can tell whether to open it.
+                    */}
+                  <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-search-detail>
+                    <button type="button" onClick={() => toggleEstateCard('search')} aria-expanded={estateOpen('search')}
+                      data-fold-toggle="search" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
+                      <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <span className="flex-1">How this was worked out</span>
+                        <span className="shrink-0 font-semibold normal-case tracking-normal text-slate-500 text-[10px]">{estatePlan.levers.length} levers &middot; {estatePlan.runs} projections</span>
+                        <ChevronDown className={`shrink-0 w-3.5 h-3.5 text-slate-400 transition-transform ${estateOpen('search') ? '' : '-rotate-90'}`} />
+                      </h3>
+                      <span className="text-[10px] text-slate-500 block mt-1">What each choice is worth on its own, the ones worth nothing and why, and every candidate the search ranked.</span>
+                    </button>
+                    {estateOpen('search') && (<>
                   {/* what each lever is worth on its own, so the household acts on the right one */}
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-[11px] border-collapse" data-lever-table>
@@ -9174,7 +9218,7 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                   ))}
 
                   <div>
-                    <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">Ranked, best first</h3>
+                    <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">Every candidate, best first</h3>
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-[11px] border-collapse" data-estate-ranked>
                         <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">What you would do</th><th className="pb-1.5 pr-3">Heirs keep</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5">Their income tax</th></tr></thead>
@@ -9191,38 +9235,119 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                       </table>
                     </div>
                   </div>
+                    </>)}
+                  </div>
 
                   {/* priced alongside rather than ranked: see the engine comment on optimizeInheritance */}
-                  {estatePlan.charity && (
-                    <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 leading-relaxed">
-                      <strong>Charity, priced but not ranked.</strong> Leaving {estatePlan.charity.pct}% of the estate to charity takes the rate to {estatePlan.charity.ratePct}%: the charity receives {formatGBP(estatePlan.charity.toCharity)} and your family {formatGBP(estatePlan.charity.toFamily)}, which is {formatGBP(Math.abs(estatePlan.charity.costToFamily))} {estatePlan.charity.costToFamily > 0 ? 'less' : 'more'} than the best plan above. It is not in the ranking because a donation would always score as a loss against what the heirs keep, and that is a decision about what you want rather than about tax.
-                    </div>
-                  )}
-                  {estatePlan.spread && (
-                    <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 leading-relaxed">
-                      <strong>Their choice, not yours.</strong> If your heirs drew the inherited pension over {estatePlan.spread.years} years instead of {estatePlan.spreadYears}, they would keep {formatGBP(estatePlan.spread.net)} &mdash; {estatePlan.spread.gain > 0 ? `${formatGBP(estatePlan.spread.gain)} more` : 'no more'}. That is not searched above, because every candidate has to be scored on the same assumption about someone else&rsquo;s behaviour.
+                  {/*
+                    * THE £2M QUESTION. The one thing every household over the threshold asks, answered
+                    * where they ask it and in the units the answer actually turns on. The header carries
+                    * the conclusion so it can stay folded; the table is there for anyone who does not
+                    * believe it, which on a number this size is a reasonable thing not to.
+                    */}
+                  {estatePlan.taperLadder && (() => {
+                    const t = estatePlan.taperLadder;
+                    const clear = t.rows.find(r => r.under && !r.recommended);
+                    return (
+                      <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-taper-ladder>
+                        <button type="button" onClick={() => toggleEstateCard('taper')} aria-expanded={estateOpen('taper')}
+                          data-fold-toggle="taper" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
+                          <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <span className="flex-1">Why not keep gifting down to {formatGBP(t.threshold)}?</span>
+                            <span className={`shrink-0 font-semibold normal-case tracking-normal text-[11px] ${clear ? 'text-rose-700' : 'text-slate-500'}`}>
+                              {clear ? `costs ${formatGBP(clear.cost)}` : 'out of reach'}
+                            </span>
+                            <ChevronDown className={`shrink-0 w-3.5 h-3.5 text-slate-400 transition-transform ${estateOpen('taper') ? '' : '-rotate-90'}`} />
+                          </h3>
+                          <span className="text-[10px] text-slate-500 block mt-1">
+                            {clear
+                              ? <>Getting under the line brings back {formatGBP(t.bandAtStake)} of residence allowance &mdash; worth about {formatGBP(t.bandAtStake * 0.4)} of tax &mdash; but needs {formatGBP(clear.amt - (t.rows.find(r => r.recommended) || { amt: 0 }).amt)} more given away than the route above.</>
+                              : <>Your estate cannot be brought under the line by any gift the plan can afford, so the {formatGBP(t.bandAtStake)} of residence allowance stays withdrawn whatever you do.</>}
+                          </span>
+                        </button>
+                        {estateOpen('taper') && (<>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-[11px] border-collapse">
+                              <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
+                                <th className="pb-1.5 pr-3">Gift</th>
+                                <th className="pb-1.5 pr-3 text-right">Estate at death</th>
+                                <th className="pb-1.5 pr-3 text-right">Residence band</th>
+                                <th className="pb-1.5 pr-3 text-right">Inheritance tax</th>
+                                <th className="pb-1.5 text-right">Heirs keep</th>
+                              </tr></thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {t.rows.map(r => (
+                                  <tr key={r.amt} className={r.recommended ? 'bg-emerald-50' : ''}>
+                                    <td className={`py-1.5 pr-3 font-mono ${r.recommended ? 'font-bold text-emerald-900' : 'text-slate-700'}`}>
+                                      {r.amt > 0 ? formatGBP(r.amt) : 'nothing'}
+                                      {r.recommended && <span className="block text-[10px] font-sans font-normal text-emerald-700">the route above</span>}
+                                    </td>
+                                    <td className={`py-1.5 pr-3 text-right font-mono ${r.under ? 'text-emerald-700 font-semibold' : 'text-slate-600'}`}>{formatGBP(r.estate)}</td>
+                                    <td className="py-1.5 pr-3 text-right font-mono text-slate-600">{r.rnrb > 0 ? formatGBP(r.rnrb) : <span className="text-slate-400">withdrawn</span>}</td>
+                                    <td className="py-1.5 pr-3 text-right font-mono text-rose-700">{formatGBP(r.iht)}</td>
+                                    <td className={`py-1.5 text-right font-mono font-bold ${r.recommended ? 'text-emerald-800' : 'text-slate-700'}`}>{formatGBP(r.net)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          <span className="text-[10px] text-slate-400 block leading-relaxed">
+                            Read the last column, not the tax column. Tax falls the whole way down &mdash; it always does, because you are giving the estate away &mdash; but what your heirs hold peaks and then falls with it, since past a point every pound of tax saved costs more than a pound of gift. The residence band is withdrawn by £1 for every £2 the estate is over {formatGBP(t.threshold)}, and that test looks at the estate <em>before</em> reliefs.
+                          </span>
+                        </>)}
+                      </div>
+                    );
+                  })()}
+                  {/*
+                    * Two things deliberately kept OUT of the ranking, folded together because that is
+                    * what they have in common: a charitable gift would always score as a loss against
+                    * what the heirs keep, and how fast the heirs draw the pension is their decision
+                    * rather than this household's. Neither is a recommendation, so neither competes with
+                    * the one above for the reader's attention.
+                    */}
+                  {(estatePlan.charity || estatePlan.spread) && (
+                    <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-not-ranked>
+                      <button type="button" onClick={() => toggleEstateCard('notranked')} aria-expanded={estateOpen('notranked')}
+                        data-fold-toggle="notranked" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
+                        <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                          <span className="flex-1">Priced, but deliberately not ranked</span>
+                          <ChevronDown className={`shrink-0 w-3.5 h-3.5 text-slate-400 transition-transform ${estateOpen('notranked') ? '' : '-rotate-90'}`} />
+                        </h3>
+                        <span className="text-[10px] text-slate-500 block mt-1">
+                          {[estatePlan.charity && 'leaving something to charity', estatePlan.spread && 'how fast your heirs draw the pension'].filter(Boolean).join(', and ')} &mdash; decisions this search should not be making for you.
+                        </span>
+                      </button>
+                      {estateOpen('notranked') && (<>
+                        {estatePlan.charity && (
+                          <div className="text-[11px] text-slate-600 leading-relaxed">
+                            <strong>Charity.</strong> Leaving {estatePlan.charity.pct}% of the estate to charity takes the rate to {estatePlan.charity.ratePct}%: the charity receives {formatGBP(estatePlan.charity.toCharity)} and your family {formatGBP(estatePlan.charity.toFamily)}, which is {formatGBP(Math.abs(estatePlan.charity.costToFamily))} {estatePlan.charity.costToFamily > 0 ? 'less' : 'more'} than the route above. Not in the ranking because a donation would always score as a loss against what the heirs keep, and that is a decision about what you want rather than about tax.
+                          </div>
+                        )}
+                        {estatePlan.spread && (
+                          <div className="text-[11px] text-slate-600 leading-relaxed">
+                            <strong>How fast they draw it.</strong> If your heirs drew the inherited pension over {estatePlan.spread.years} years instead of {estatePlan.spreadYears}, they would keep {formatGBP(estatePlan.spread.net)} &mdash; {estatePlan.spread.gain > 0 ? `${formatGBP(estatePlan.spread.gain)} more` : 'no more'}. Not searched above, because every candidate has to be scored on the same assumption about someone else&rsquo;s behaviour.
+                          </div>
+                        )}
+                      </>)}
                     </div>
                   )}
 
+                  {/*
+                    * No "apply this allocation".
+                    *
+                    * It wrote the route back into the plan so a later projection would use it - but the
+                    * route IS the output here, priced at a death age the rest of the app does not share,
+                    * and writing it back made the figures above the answer to a question about the plan
+                    * as it was a moment ago. Two states of the same screen, one of them stale, for a
+                    * benefit nobody was collecting. The report is the thing to take away.
+                    */}
                   <div className="flex flex-wrap items-center gap-3 pt-1">
-                    <button type="button" onClick={applyEstatePlan} disabled={estatePlan.gain <= 0} data-apply-estate
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                      <Check className="w-3.5 h-3.5" /> {estateApplied ? 'Applied' : 'Apply this allocation'}
-                    </button>
                     <button type="button" onClick={openEstateReport} data-estate-report
-                      className="px-3 py-1.5 bg-surface border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
                       <Download className="w-3.5 h-3.5" /> Open as a report
                     </button>
-                    <span className="text-[10px] text-slate-400">Writes the withdrawal order{estatePlan.best.gift > 0 ? ', the gift' : ''}{estatePlan.best.split ? ', the nomination' : ''}{estatePlan.best.recycle ? ', the transfers' : ''}{estatePlan.best.compGift ? ' and the compensation gift' : ''} into your plan. {estatePlan.runs} projections were run to find it. Applying twice changes nothing the second time. The report opens in a new tab as a single page you can print, save or send on.</span>
+                    <span className="text-[10px] text-slate-400">{estatePlan.runs} projections were run to find this. The report opens in a new tab as a single page you can print, save or send on.</span>
                   </div>
-                  {estateApplied && (
-                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 flex items-start gap-2" data-estate-applied>
-                      <Check className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                      <span>
-                        <strong>Written into your plan.</strong>{estateApplied.gifts > 0 ? ` The ${estateApplied.gifts > 1 ? 'gifts are' : 'gift is'} now on the Inheritance tab under "Gifts you have already made", where you can change or delete ${estateApplied.gifts > 1 ? 'them' : 'it'}.` : ''}{estateApplied.split ? ' The pension nomination has been set.' : ''}{estateApplied.recycle > 0 ? ` ${estateApplied.recycle} wrapper transfer${estateApplied.recycle > 1 ? 's are' : ' is'} in your one-off deposits.` : ''} Clicking again writes the same rows over the top rather than adding more, so nothing doubles &mdash; but the figures above are now the answer to a question about your <em>old</em> plan. Run the search again to price what is left.
-                      </span>
-                    </div>
-                  )}
                 </div>
               )}
             </div>

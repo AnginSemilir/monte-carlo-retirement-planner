@@ -642,5 +642,65 @@ console.log('=========== N. THE BANDS ARE MEASURED, NOT ASSUMED ===========');
     `£${Math.round(r2.bandHeadroom.pa).toLocaleString()} of £${P.pa.toLocaleString()}`);
 }
 
+console.log('=========== O. THE £2M TAPER, PRICED RATHER THAN ASSERTED ===========');
+{
+  /*
+   * "Why not keep gifting until the estate is under the threshold" is the first question any estate
+   * over it asks, and the answer is arithmetic rather than prose: how much band comes back against how
+   * much has to be given away to get there. The ladder must therefore exist for such an estate, cover
+   * the recommendation, and be honest about which direction the heirs' number moves.
+   */
+  const big = household({ pen: 2400000, isa: 400000, other: 300000, cash: 200000, home: 700000, deathAge: 80 });
+  const r = E.optimizeInheritance(big);
+  ok('an estate over the threshold gets a ladder', !!r.taperLadder,
+    r.taperLadder ? `${r.taperLadder.rows.length} rows` : 'none');
+  const t = r.taperLadder;
+  ok('it is measured against the configured threshold', t.threshold === 2000000, `£${t.threshold.toLocaleString()}`);
+  ok('every row is a size the search actually priced and could afford', t.rows.every(x => x.amt >= 0 && x.net > 0));
+  ok('the rows climb by gift size', t.rows.every((x, i) => i === 0 || t.rows[i - 1].amt < x.amt));
+  ok('the recommendation is one of them', t.rows.some(x => x.recommended),
+    t.rows.filter(x => x.recommended).map(x => `£${x.amt.toLocaleString()}`).join(','));
+  ok('and it is the best row for the heirs', t.rows.every(x => x.recommended || x.net <= t.rows.find(y => y.recommended).net + 1),
+    `best £${Math.max(...t.rows.map(x => x.net)).toLocaleString()} vs recommended £${(t.rows.find(x => x.recommended) || {}).net?.toLocaleString()}`);
+  /*
+   * Tax must fall the whole way down - you are giving the estate away, so it cannot do otherwise, and a
+   * rise would mean the arithmetic is wrong. What the heirs hold is the column that need NOT: it peaks
+   * at the recommendation and may fall after it, which is the trade the table exists to show. That turn
+   * only happens when the extra gift has to be drawn out of a taxed pension to fund it, so it is a
+   * property of the household rather than of the ladder, and is asserted where it occurs rather than
+   * everywhere.
+   */
+  ok('tax falls the whole way down', t.rows.every((x, i) => i === 0 || x.iht <= t.rows[i - 1].iht + 1),
+    t.rows.map(x => Math.round(x.iht / 1000) + 'k').join(' > '));
+  // a row marked as clearing the line really is under it, and one not marked really is not
+  ok('the under-the-line flag matches the estate it reports',
+    t.rows.every(x => x.under === (x.estate <= t.threshold)),
+    t.rows.map(x => `${Math.round(x.estate / 1000)}k:${x.under ? 'under' : 'over'}`).join(' '));
+  /*
+   * This household is £5m against a £2m line with most of it locked in a pension, so no gift it can
+   * afford gets under. The header promises "out of reach" on that basis, and it has to be true.
+   */
+  ok('an estate that cannot reach the line says so', t.reachable === t.rows.some(x => x.under),
+    `reachable ${t.reachable}, rows under the line ${t.rows.filter(x => x.under).length}`);
+  ok('and this one genuinely cannot', t.reachable === false && t.shortBy > 0,
+    `still £${Math.round(t.shortBy).toLocaleString()} over at the largest gift priced`);
+
+  /*
+   * The opposite household: smaller pension, most of the wealth liquid, so gifting really can bring the
+   * estate under the line - and then the table has to contain the row that does it, or the reader is
+   * being told the answer without being shown it.
+   */
+  const reachable = household({ pen: 900000, isa: 500000, other: 400000, cash: 300000, home: 400000, deathAge: 78,
+    bens: [{ id: 'k1', name: 'Jo', relationship: 'descendant', sharePct: 100, income: 0, age: 50 }] });
+  const t2 = E.optimizeInheritance(reachable).taperLadder;
+  ok('a household that can reach the line is told so', !!t2 && t2.reachable === true);
+  ok('and the row that does it is in the table', !!t2 && t2.rows.some(x => x.under && x.estate <= t2.threshold),
+    t2 ? t2.rows.filter(x => x.under).map(x => `£${x.amt.toLocaleString()}`).join(',') : 'no ladder');
+
+  // and an estate below the threshold has no question to answer, so gets no table
+  const small = household({ pen: 300000, isa: 100000, other: 0, cash: 50000, home: 200000, deathAge: 80 });
+  ok('an estate under the threshold gets no ladder', E.optimizeInheritance(small).taperLadder === null);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

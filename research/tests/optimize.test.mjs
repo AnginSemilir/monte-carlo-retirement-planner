@@ -589,5 +589,58 @@ console.log('=========== M. WHY NOT ONE OF THE OTHERS ===========');
     r.best.gift <= 0 || w.some(x => x.key === 'lifetime' && x.amount > 0));
 }
 
+console.log('=========== N. THE BANDS ARE MEASURED, NOT ASSUMED ===========');
+{
+  /*
+   * "Draw pension income up to whatever is left of the personal allowance" is the first step of most
+   * withdrawal orders. For a household with a state pension and post-retirement earnings there is
+   * nothing left of it - the engine has always measured the ceiling against the year's taxable income
+   * and drawn nothing, but the instruction read as something to go and do.
+   *
+   * £11,500 of state pension and £11,000 of earnings is £22,500, comfortably over the allowance.
+   */
+  const earner = household({ deathAge: 80, incomes: [
+    { id: 'e1', name: '', owner: 'Myself', startAge: '67', endAge: '', amount: '11000', incomeType: 'earnings' }] });
+  const r = E.optimizeInheritance(earner);
+  const P = E.taxParams(E.normalizePlan(earner).config);
+  ok('the household\'s pre-pension taxable income is measured', r.bandHeadroom.otherIncome === 22500,
+    `£${r.bandHeadroom.otherIncome.toLocaleString()} = £11,500 state pension + £11,000 earnings`);
+  ok('and so the personal allowance has nothing free', r.bandHeadroom.pa === 0,
+    `£${Math.round(r.bandHeadroom.pa).toLocaleString()} of £${P.pa.toLocaleString()}`);
+  ok('while the basic-rate band still does', Math.round(r.bandHeadroom.basic) === P.higherRateStartsAt - 22500,
+    `£${Math.round(r.bandHeadroom.basic).toLocaleString()} = £${P.higherRateStartsAt.toLocaleString()} - £22,500`);
+
+  /*
+   * The stub year between the valuation date and the next tax-year start pro-rates that income, so its
+   * apparent headroom is the part of the year that has not happened yet. Counting it told the reference
+   * household it had £5,789 of allowance going spare EVERY year, which is the error being guarded - and
+   * it only shows up on a mid-year valuation date, which is why this fixture moves off 1 January.
+   */
+  const midYear = { ...earner, config: { ...earner.config, valuationDate: '2026-09-14' } };
+  const ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(midYear)));
+  const rows = E.simulateDeterministic(ctx, 'expected');
+  ok('the stub year really does look like free allowance', rows[0].otherTaxableSelf < rows[1].otherTaxableSelf,
+    `stub £${Math.round(rows[0].otherTaxableSelf).toLocaleString()} vs full year £${Math.round(rows[1].otherTaxableSelf).toLocaleString()}`);
+  ok('but it is excluded, so the reported headroom stays zero',
+    E.optimizeInheritance(midYear).bandHeadroom.pa === 0,
+    `£${Math.round(E.optimizeInheritance(midYear).bandHeadroom.pa).toLocaleString()}, not £${Math.round(Math.max(0, P.pa - rows[0].otherTaxableSelf)).toLocaleString()}`);
+
+  // and the instruction says so in words, rather than leaving the household to work it out
+  const forced = { ...r, best: { ...r.best, policy: 'Bracket Fill Basic' } };
+  const act = (E.estateActionPlan({ ...E.normalizePlan(earner), spending: { ...earner.spending, decumulationPolicy: 'Sequential' } }, forced) || [])
+    .find(x => x.key === 'order');
+  ok('the dead step says it is dead', !!act && /nothing free/.test(act.sequence[0]), act ? act.sequence[0] : 'no order step');
+  ok('the live one carries its figure', !!act && /£27,770 of it free/.test(act.sequence[1]), act ? act.sequence[1] : '');
+
+  /*
+   * The opposite case must still read as an opportunity: no earnings and no state pension yet leaves
+   * the whole allowance free, and the step is then a real instruction.
+   */
+  const noIncome = household({ demo: { statePensionSelf: 0, statePensionAge: 90 }, deathAge: 80 });
+  const r2 = E.optimizeInheritance(noIncome);
+  ok('a household with no other income keeps the whole allowance', Math.round(r2.bandHeadroom.pa) === P.pa,
+    `£${Math.round(r2.bandHeadroom.pa).toLocaleString()} of £${P.pa.toLocaleString()}`);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

@@ -1661,6 +1661,14 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
   const statePension = { self: 0, part: 0 };
   owners.forEach(o => { if (ageOf(o.key) >= ctx.spa) { statePension[o.key] = o.statePension * frac; taxable[o.key] += statePension[o.key]; } });
   const netGuaranteed = {};
+  /*
+   * Taxable income BEFORE any pension is drawn - state pension, post-retirement earnings, rent, a DB
+   * pension, anything at line 1658 above. Captured here because this is the last point at which it is
+   * knowable: everything added after this is a pension withdrawal, and the two band ceilings are
+   * measured against the running total, so this is what decides how much of each band is actually free.
+   * Without it the tab can only say "up to whatever is left" and leave the household to guess.
+   */
+  const otherTaxable = { self: taxable.self, part: taxable.part };
   owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + calculateUKNetIncome(taxable[o.key], P); });
   let totalNetGuaranteed = owners.reduce((sum, o) => sum + netGuaranteed[o.key], 0);
   // take-home of a partner who is still working after the household has started drawing (offsets living costs)
@@ -1894,6 +1902,7 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
     pensions: byCat.pen, isas: byCat.isa, other: byCat.other, cash: byCat.cash,
     preNmpaLiquid: byCat.isa + byCat.other + byCat.cash,
     drawdownPensions, taxablePensionSelf: taxablePensionDrawn.self, taxablePensionPart: taxablePensionDrawn.part, harvested, taxPaid, cgtPaid,
+    otherTaxableSelf: otherTaxable.self, otherTaxablePart: otherTaxable.part,
     realisedGains: realisedGains.self + realisedGains.part,
     preNmpaInsolvent, unmetDemand
   };
@@ -4143,6 +4152,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
 
   const onStep = typeof opts.onStep === 'function' ? opts.onStep : null;
   const baseCtx = buildContext(resolveMpaa(plan));
+  const P = taxParams({ ...DEFAULT_CONFIG, ...(plan.config || {}) });
   const giftYear = baseCtx.baseYear + 1;
   const liquidToday = ['isa', 'other', 'cash'].reduce((t, cat) =>
     t + baseCtx.accounts.filter(a => a.cat === cat).reduce((u, a) => u + Math.max(0, num(a.balance, 0)), 0), 0);
@@ -4645,6 +4655,34 @@ function optimizeInheritance(rawPlan, opts = {}) {
       return r ? { isa: r.isas, other: r.other, cash: r.cash, pen: r.pensions,
         income: num(r.spSelf, 0) + num(r.taxablePensionSelf, 0) } : null;
     })(),
+    /*
+     * How much of each band is actually free, across the years the household is alive to use it.
+     *
+     * The withdrawal order's first step is "pension income up to whatever is left of the personal
+     * allowance". For anyone with a state pension and post-retirement earnings there is nothing left,
+     * and the step is a no-op the engine skips - correctly, it has always measured the ceiling against
+     * the year's taxable income. But the instruction still read as something to go and do. Measuring it
+     * here lets the action plan say so instead of leaving the household to work it out.
+     *
+     * The maximum over the drawdown years, not one year's: a band that opens up later (earnings stop,
+     * a fixed-term annuity ends) makes the step live, and reporting a single year would hide that.
+     */
+    bandHeadroom: (() => {
+      /*
+       * t === 0 is excluded: it is the stub between the valuation date and the next tax-year start, so
+       * its income is pro-rated and its apparent headroom is the part of the year that has not happened
+       * yet, not an allowance going spare. Left in, a household with £22,500 of income every full year
+       * was told it had £5,789 of personal allowance free - the one case this measurement exists to
+       * rule out.
+       */
+      const rows = (baseline.rows || []).filter(r => r.t > 0 && r.ageSelf >= baseCtx.owners[0].retireAge && r.ageSelf <= deathAge);
+      if (!rows.length) return null;
+      const other = (r) => num(r.otherTaxableSelf, 0) + num(r.otherTaxablePart, 0);
+      const pa = Math.max(0, ...rows.map(r => P.pa - other(r)));
+      const basic = Math.max(0, ...rows.map(r => P.higherRateStartsAt - other(r)));
+      const typical = other(rows[Math.min(1, rows.length - 1)]);
+      return { pa: Math.max(0, pa), basic: Math.max(0, basic), otherIncome: typical };
+    })(),
     baseline: { label: baseline.label, net: baseline.net, iht: baseline.est.iht,
       incomeTax: baseline.est.incomeTaxOnPensions, qsrRelief: baseline.est.qsrRelief, qsrPct: baseline.est.qsrPct },
     best: { label: best.label, net: best.net, iht: best.est.iht, incomeTax: best.est.incomeTaxOnPensions,
@@ -4774,12 +4812,41 @@ function estateActionPlan(plan, result) {
     || !!b.harvest !== !!plan?.config?.harvestPersonalAllowance;
   if (orderChanged) {
     const play = policyPlaybook(b.policy, P);
+    /*
+     * A step that draws nothing is not a step to follow. "Pension income up to whatever is left of the
+     * personal allowance" is the first instruction in most orders, and for a household with a state
+     * pension and post-retirement earnings there is nothing left of it: the engine has always skipped
+     * the step, but the chip still read as something to go and do, and it was being read that way.
+     *
+     * So the measured headroom is put into the words. A live band keeps its figure; a band already
+     * spent says so and says by what, which is the fact the household needs in order to agree with it.
+     */
+    const hr = result.bandHeadroom;
+    const stepPhrase = (tok) => {
+      if (!hr) return phraseFor(tok);
+      if (tok === 'penPA') {
+        return hr.pa > 0
+          ? `pension income up to the ${gbp(P.pa)} personal allowance (${gbp(hr.pa)} of it free)`
+          : `pension income up to the personal allowance — nothing free, your other income already uses it`;
+      }
+      if (tok === 'penBasic') {
+        return hr.basic > 0
+          ? `pension income up to the ${gbp(P.higherRateStartsAt)} basic-rate limit (${gbp(hr.basic)} of it free)`
+          : `pension income up to the basic-rate limit — nothing free, your other income already uses it`;
+      }
+      return phraseFor(tok);
+    };
+    const steps = (DECUMULATION_POLICIES[b.policy] || { steps: [] }).steps;
     out.push({
       key: 'order', group: 'reallocate',
       title: 'Draw money in this order',
       // the order IS the instruction, so it is a sequence to be read at a glance, not a sentence to parse
-      sequence: (DECUMULATION_POLICIES[b.policy] || { steps: [] }).steps.map(phraseFor),
-      facts: [{ k: 'Tax-free cash', v: b.drawdown === 'Full 25% Lump Sum' ? 'take it all in one lump' : 'take it a slice at a time' }],
+      sequence: steps.map(stepPhrase),
+      facts: [
+        ...(hr && steps.includes('penPA')
+          ? [{ k: 'Other income', v: `${gbp(hr.otherIncome)} a year before any pension — state pension, earnings and anything else taxable. Both ceilings below are measured after it.` }]
+          : []),
+        { k: 'Tax-free cash', v: b.drawdown === 'Full 25% Lump Sum' ? 'take it all in one lump' : 'take it a slice at a time' }],
       why: 'Stop as soon as the year is covered; everything below is left alone.',
       body: (play[0] ? play[0].body : `Follow the ${b.policy} order.`)
         + (b.drawdown === 'Full 25% Lump Sum'

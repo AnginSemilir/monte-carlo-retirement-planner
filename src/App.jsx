@@ -5844,6 +5844,22 @@ export default function App() {
   ];
   const [estateStep, setEstateStep] = useState(1);
   const [estateSeeAll, setEstateSeeAll] = useState(false);
+  /*
+   * Which of the answer's cards are folded away. Collapsed by default are the two reference tables -
+   * the full line-by-line working and the field of routes it was ranked against. Both are there to be
+   * checked rather than read, and together they are most of the height of the answer; leaving them open
+   * buries the three cards that actually say what to do.
+   *
+   * Held as the collapsed set rather than the open one so a card added later is open unless it opts out.
+   */
+  const [estateFolded, setEstateFolded] = useState(() => new Set(['workings', 'alternatives']));
+  const estateOpen = (k) => !estateFolded.has(k);
+  const toggleEstateCard = (k) => setEstateFolded(prev => {
+    const n = new Set(prev);
+    if (n.has(k)) n.delete(k); else n.add(k);
+    return n;
+  });
+  const ESTATE_CARD_KEYS = ['reallocate', 'gift', 'paperwork', 'workings', 'alternatives'];
   const showEstateStep = (n) => estateSeeAll || estateStep === n;
 
   const [slide, setSlide] = useState(1);
@@ -8888,7 +8904,18 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                   <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> Most efficient estate allocation</h2>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">Everything else on this tab prices what you have typed. This searches the choices you can still make: the order you draw wrappers down, how far up the tax bands you draw the pension each year, a gift now, how the pension is split between the people inheriting it, and moving money between wrappers up to the allowances that cap it. All of it ranked on one number &mdash; <strong>what your heirs keep</strong>, after inheritance tax and after their own income tax on drawing an inherited pension down over {estatePlan ? estatePlan.spreadYears : E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years. The Strategy tab answers a different question: how to divide money you are still paying in.</p>
                 </div>
-                <div className="shrink-0">
+                <div className="shrink-0 flex items-center gap-2">
+                  {/* one control for all of them, because the useful gesture is "show me everything" or
+                      "just the instructions" rather than five individual decisions */}
+                  {estatePlan && (
+                    <button type="button" data-fold-all
+                      onClick={() => setEstateFolded(prev => prev.size ? new Set() : new Set(ESTATE_CARD_KEYS))}
+                      className="px-3 py-1.5 bg-surface border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer">
+                      {estateFolded.size
+                        ? <><ChevronDown className="w-3.5 h-3.5" /> Expand all</>
+                        : <><ChevronUp className="w-3.5 h-3.5" /> Collapse all</>}
+                    </button>
+                  )}
                   {/* kept as a re-run rather than a gate: the search has already happened by the time
                       this is on screen, and after applying you want to price what is left */}
                   <button type="button" onClick={() => { lastEstateRun.current = ''; handleOptimizeEstate(); }} data-optimise-estate
@@ -8943,13 +8970,23 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                       // should see cards 1 and 2, not 2 and 3 with a gap where nothing was wrong
                     ].filter(sec => estateActions.some(a => a.group === sec.g)).map((sec, si) => ({ ...sec, n: String(si + 1) })).map(sec => (
                       <div key={sec.g} className={`p-3.5 rounded-xl space-y-3 border ${sec.g === 'gift' ? 'bg-purple-50 border-purple-200' : sec.g === 'paperwork' ? 'bg-slate-50 border-slate-200' : 'bg-emerald-50 border-emerald-200'}`} data-action-group={sec.g}>
-                        <div>
+                        {/* the whole header is the hit target, not a chevron the width of a thumbnail:
+                            the row already reads as the thing the card is about, so it is the thing to press */}
+                        <button type="button" onClick={() => toggleEstateCard(sec.g)} aria-expanded={estateOpen(sec.g)}
+                          data-fold-toggle={sec.g}
+                          className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
                           <h3 className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 ${sec.g === 'gift' ? 'text-purple-900' : sec.g === 'paperwork' ? 'text-slate-700' : 'text-emerald-900'}`}>
                             <span className={`shrink-0 w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center ${sec.g === 'gift' ? 'bg-purple-600' : sec.g === 'paperwork' ? 'bg-slate-500' : 'bg-emerald-600'}`}>{sec.n}</span>
-                            {sec.title}
+                            <span className="flex-1">{sec.title}</span>
+                            {/* what is inside, so a folded card still says how much it is hiding */}
+                            <span className={`shrink-0 font-semibold normal-case tracking-normal text-[10px] ${sec.g === 'gift' ? 'text-purple-600' : sec.g === 'paperwork' ? 'text-slate-500' : 'text-emerald-600'}`}>
+                              {estateActions.filter(a => a.group === sec.g).length} {estateActions.filter(a => a.group === sec.g).length === 1 ? 'step' : 'steps'}
+                            </span>
+                            <ChevronDown className={`shrink-0 w-3.5 h-3.5 transition-transform ${estateOpen(sec.g) ? '' : '-rotate-90'} ${sec.g === 'gift' ? 'text-purple-600' : sec.g === 'paperwork' ? 'text-slate-500' : 'text-emerald-600'}`} />
                           </h3>
-                          {sec.blurb && <span className={`text-[10px] block mt-1 ${sec.g === 'gift' ? 'text-purple-700' : 'text-emerald-700'}`}>{sec.blurb}</span>}
-                        </div>
+                          {sec.blurb && estateOpen(sec.g) && <span className={`text-[10px] block mt-1 ${sec.g === 'gift' ? 'text-purple-700' : 'text-emerald-700'}`}>{sec.blurb}</span>}
+                        </button>
+                        {estateOpen(sec.g) && (
                         <ol className="space-y-2.5 list-none">
                           {/* The instruction first, at a glance: what to do, then the two or three facts
                               somebody acts on, then one line of why. The paragraphs that used to be here
@@ -8993,10 +9030,11 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                             </li>
                           ))}
                         </ol>
+                        )}
                         {/* Why this much. A number with no reasoning invites the household to
                             second-guess it upwards, which is the one direction the search has already
                             proved wrong. */}
-                        {sec.g === 'gift' && estatePlan.giftRationale && estatePlan.giftRationale.given > 0 && (
+                        {sec.g === 'gift' && estateOpen('gift') && estatePlan.giftRationale && estatePlan.giftRationale.given > 0 && (
                           <div className="p-2 bg-white/70 border border-purple-200 rounded-lg text-[11px] text-purple-900 space-y-1" data-gift-rationale>
                             <div><strong>Why {formatGBP(estatePlan.giftRationale.given)} and not more.</strong> Giving this much is worth <strong>{formatGBP(estatePlan.giftRationale.worth)}</strong> against making no gift at all.</div>
                             {estatePlan.giftRationale.bandBack > 0 && (
@@ -9027,13 +9065,21 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                         the plan being recommended rather than the one you are on */}
                     {estatePlan.bestEst && (
                       <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-recommended-workings>
-                        <div>
+                        <button type="button" onClick={() => toggleEstateCard('workings')} aria-expanded={estateOpen('workings')}
+                          data-fold-toggle="workings" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
                           <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
                             <span className="shrink-0 w-4 h-4 rounded-full bg-purple-600 text-white text-[9px] font-bold flex items-center justify-center">=</span>
-                            What that comes to, if you die at {estatePlan.deathAge}
+                            <span className="flex-1">What that comes to, if you die at {estatePlan.deathAge}</span>
+                            {/* the answer itself stays on the folded header: it is the one figure worth
+                                keeping in view, and hiding it would make folding cost something */}
+                            <span className="shrink-0 font-mono font-bold normal-case tracking-normal text-emerald-700 text-[11px]">{formatGBP(estatePlan.best.net)}</span>
+                            <ChevronDown className={`shrink-0 w-3.5 h-3.5 text-slate-400 transition-transform ${estateOpen('workings') ? '' : '-rotate-90'}`} />
                           </h3>
-                          <span className="text-[10px] text-slate-500 block mt-1">The same working as on the Inheritance tab, priced on the plan above rather than the one you are on now.</span>
-                        </div>
+                          <span className="text-[10px] text-slate-500 block mt-1">{estateOpen('workings')
+                            ? 'The same working as on the Inheritance tab, priced on the plan above rather than the one you are on now.'
+                            : 'Every line of the arithmetic, from the pot to what your heirs hold.'}</span>
+                        </button>
+                        {estateOpen('workings') && (<>
                         <div className="overflow-x-auto">
                           <table className="w-full text-left text-[11px] border-collapse">
                             <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
@@ -9061,15 +9107,22 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                           <div className="p-2 bg-purple-50 border border-purple-200 rounded-lg"><span className="block text-[10px] text-purple-600 font-semibold uppercase tracking-wider">Given in your lifetime</span><span className="font-mono font-bold text-purple-800">{formatGBP(estatePlan.bestEst.giftsToHeirs)}</span></div>
                           <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg"><span className="block text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">Your heirs keep</span><span className="font-mono font-bold text-emerald-800">{formatGBP(estatePlan.best.net)}</span></div>
                         </div>
+                        </>)}
                       </div>
                     )}
                     {/* the routes a person would actually have weighed, each priced the same way */}
                     {estatePlan.alternatives && (
                       <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-alternatives>
-                        <div>
-                          <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider">Why not one of the others</h3>
+                        <button type="button" onClick={() => toggleEstateCard('alternatives')} aria-expanded={estateOpen('alternatives')}
+                          data-fold-toggle="alternatives" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
+                          <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <span className="flex-1">Why not one of the others</span>
+                            <span className="shrink-0 font-semibold normal-case tracking-normal text-slate-500 text-[10px]">{estatePlan.alternatives.length} priced</span>
+                            <ChevronDown className={`shrink-0 w-3.5 h-3.5 text-slate-400 transition-transform ${estateOpen('alternatives') ? '' : '-rotate-90'}`} />
+                          </h3>
                           <span className="text-[10px] text-slate-500 block mt-1">The routes you would have considered, priced on the same number: what your heirs end up holding.</span>
-                        </div>
+                        </button>
+                        {estateOpen('alternatives') && (<>
                         <div className="overflow-x-auto">
                           <table className="w-full text-left text-[11px] border-collapse">
                             <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
@@ -9092,6 +9145,7 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                           </table>
                         </div>
                         <span className="text-[10px] text-slate-400 block">Every one of these was run through the same projection and priced at the same death age. {estatePlan.runs} of them in all, of which these are the ones worth naming.</span>
+                        </>)}
                       </div>
                     )}
                     <span className="text-[10px] text-slate-400 block">Only what changes is listed. Everything else about your plan stays as it is.</span>

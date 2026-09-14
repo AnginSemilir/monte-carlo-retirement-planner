@@ -69,6 +69,26 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   ok('with the warning gone',
     await p.evaluate(()=>!/This tab is using its own balances/.test(document.body.textContent)));
 
+  /*
+   * And the ungrown view. Nothing here is inflated - the model is in today's money - but the projected
+   * column compounds at the risk tier, which on a short prognosis is most of the difference between two
+   * answers. Holding it flat has to move the estate down to roughly what is held now.
+   */
+  const todayTotal = await p.evaluate(()=>{const t=document.querySelector('[data-estate-breakdown] table');
+    const rs=[...t.querySelectorAll('tbody tr')]; return Number(rs[rs.length-1].querySelectorAll('td')[1].textContent.replace(/[^0-9]/g,''));});
+  const grown = await estateAt();
+  await p.locator('[data-flat-growth]').check(); await p.waitForTimeout(1000);
+  const flat = await estateAt();
+  ok('holding the portfolio flat lowers the estate', flat < grown, `£${grown.toLocaleString()} -> £${flat.toLocaleString()}`);
+  ok('and lands on roughly what is held today', Math.abs(flat - todayTotal) <= todayTotal * 0.02,
+    `£${flat.toLocaleString()} against £${todayTotal.toLocaleString()} held now`);
+  ok('the tab says what it is doing and that nothing was inflated',
+    await p.evaluate(()=>/no growth/.test(document.body.textContent) && /was ever inflated/.test(document.body.textContent)));
+  ok('and the column header says so too',
+    await p.evaluate(()=>/ungrown/.test(document.querySelector('[data-estate-breakdown] thead').textContent)));
+  await p.locator('[data-flat-growth]').uncheck(); await p.waitForTimeout(1000);
+  ok('unticking puts the growth back', (await estateAt()) === grown, `${await estateAt()} against ${grown}`);
+
   // a pre-2027 death has to explain the missing pension rather than just show a smaller number
   const deathAge = await p.evaluate(()=>{const l=[...document.querySelectorAll('label')].find(x=>/Expected age at death/.test(x.textContent));
     const i=l && l.parentElement.querySelector('input'); if(i){i.setAttribute('data-death-age','');return true;} return false;});

@@ -426,6 +426,25 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
     acts2.length + ' steps');
   ok('and the percentages are named', acts2.some(a=>/%\s*to\s*\w/.test(a)));
   ok('the draw-down instruction quotes the band', acts2.some(a=>/£50,270/.test(a)));
+  /*
+   * The report: everything the route step shows, as one self-contained page in a new tab. Self-contained
+   * matters - it will be opened somewhere other than here - so it must carry no stylesheet, no script
+   * and no network reference, and still render the actions, the figures and the comparison.
+   */
+  const [rep] = await Promise.all([p2.context().waitForEvent('page'), p2.click('[data-estate-report]')]);
+  await rep.waitForLoadState('domcontentloaded');
+  await rep.waitForTimeout(400);
+  const rtext = await rep.evaluate(()=>document.body.innerText);
+  ok('the report opens in its own tab', /What to do with the estate/.test(rtext));
+  // the headings are uppercased by CSS, so innerText comes back shouting
+  ok('it carries the actions', /give money away|move money, but keep it|then tell somebody/i.test(rtext));
+  ok('the figures, through to what the heirs hold', /Inheritance tax payable/.test(rtext) && /In their hands/.test(rtext));
+  ok('and the comparison with the other routes', /why not one of the others/i.test(rtext));
+  ok('it is self-contained: nothing to fetch',
+    await rep.evaluate(()=>!document.querySelector('link[rel=stylesheet], script, img, iframe')));
+  ok('and it says plainly what it is not', /not financial advice/.test(rtext));
+  await rep.close();
+
   await p2.click('[data-apply-estate]');
   await p2.waitForTimeout(900);
   /*
@@ -455,6 +474,7 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
   ok('nor repeats the wrapper transfers', countAfterOne.deposits === countAfterTwo.deposits,
     `${countAfterOne.deposits} -> ${countAfterTwo.deposits}`);
   ok('and it says what it wrote and where', await p2.evaluate(()=>!!document.querySelector('[data-estate-applied]')));
+
   ok('telling you to search again rather than click again',
     await p2.evaluate(()=>/Run the search again/.test(document.querySelector('[data-estate-applied]')?.textContent||'')));
   const applied = await p2.evaluate(()=>JSON.parse(localStorage.getItem('rp_plan_full_v28')));

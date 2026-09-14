@@ -424,14 +424,15 @@ const DEFAULT_CONFIG = {
    * BUSINESS AND AGRICULTURAL PROPERTY RELIEF, as reformed at the 2024 Budget with effect from 6 April
    * 2026. Relief is no longer unlimited: one allowance per person covers business and agricultural
    * property together at 100%, and everything above it drops to 50%. Shares not listed on a recognised
-   * exchange - AIM among them - get 50% flat and do not touch the allowance. The allowance is NOT
-   * transferable between spouses, unlike the nil-rate band, so there is no percentage box for it.
+   * exchange - AIM among them - get 50% flat and do not touch the allowance. The allowance IS
+   * transferable between spouses, like the nil-rate band: whatever the first death left unused passes
+   * to the survivor as a percentage, so there is a percentage box for it under "widowed".
    *
    * Every one of these reliefs also needs the asset OWNED FOR TWO YEARS at death, which is why the tab
    * asks when it was acquired rather than assuming.
    */
   brAprFrom: 2026,                   // tax year the reformed regime bites; before it, relief was 100% flat
-  brAprAllowance: 1000000,           // combined 100% allowance for business and agricultural property
+  brAprAllowance: 2500000,           // combined 100% allowance for business and agricultural property
   brAprReducedRatePct: 50,           // relief above the allowance
   aimReliefRatePct: 50,              // unquoted/AIM shares, which never touch the allowance
   brAprMinYearsOwned: 2,             // ownership test; below it there is no relief at all
@@ -663,7 +664,7 @@ const BLANK_PLAN = Object.freeze({
   inheritance: {
     deathAge: '', homeValue: '', homeToDescendants: true,
     homeSold: false, homeSaleAge: '', otherAssets: [],
-    widowed: false, transferredNrbPct: '', transferredRnrbPct: '',
+    widowed: false, transferredNrbPct: '', transferredRnrbPct: '', transferredBrAprPct: '',
     // quick succession relief: an inheritance received within five years of death, and the tax paid on it
     qsrInheritedValue: '', qsrTaxPaid: '', qsrYearsBefore: '',
     // s.154 IHTA 1984: a full exemption, not a relief
@@ -842,7 +843,8 @@ function normalizePlan(raw) {
        */
       widowed: typeof src.inheritance?.widowed === 'boolean'
         ? src.inheritance.widowed
-        : (num(src.inheritance?.transferredNrbPct, 0) > 0 || num(src.inheritance?.transferredRnrbPct, 0) > 0)
+        : (num(src.inheritance?.transferredNrbPct, 0) > 0 || num(src.inheritance?.transferredRnrbPct, 0) > 0 ||
+           num(src.inheritance?.transferredBrAprPct, 0) > 0)
     },
     accounts: [],
     riskProfiles: {},
@@ -3069,11 +3071,14 @@ const normalizeEstateAssets = (list) => (Array.isArray(list) ? list : [])
  * The relief on those assets, priced at a given death. Returns the relief and the reason there is none,
  * because "£0" on a farm worth two million is a finding the household has to be able to check.
  */
-function businessReliefFor(cfg, assets, deathYear) {
+function businessReliefFor(cfg, assets, deathYear, transferredAllowancePct = 0) {
   const c = { ...DEFAULT_CONFIG, ...(cfg || {}) };
   const reformed = deathYear >= num(c.brAprFrom, 2026);
   const minYears = Math.max(0, num(c.brAprMinYearsOwned, 2));
-  let pool = reformed ? Math.max(0, num(c.brAprAllowance, 1000000)) : Infinity;
+  // transferable between spouses since the reform, on the same percentage basis as the nil-rate band
+  const allowance = Math.max(0, num(c.brAprAllowance, 2500000)) *
+    (1 + clamp(num(transferredAllowancePct, 0), 0, 100) / 100);
+  let pool = reformed ? allowance : Infinity;
   let relief = 0, tooNew = 0, aboveAllowance = 0;
   // the allowance is spent in the order given, so the largest holding is offered it first
   [...assets].sort((a, b) => b.value - a.value).forEach(a => {
@@ -3413,7 +3418,7 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
    * of shares can do, and it is disclosed.
    */
   const exemptWillShare = bens.filter(b => IHT_RELATIONSHIPS[b.relationship].exempt).reduce((t, b) => t + shareOf(b), 0);
-  const brRaw = businessReliefFor(c, estateAssets, deathYear);
+  const brRaw = businessReliefFor(c, estateAssets, deathYear, opts.transferredBrAprPct);
   const businessRelief = Math.min(brRaw.relief * clamp(1 - exemptWillShare, 0, 1), Math.max(0, grossEstate - exemptValue));
 
   const afterExempt = Math.max(0, grossEstate - exemptValue - businessRelief);
@@ -3995,6 +4000,7 @@ function estateForPlanAt(plan, ctx, rows) {
       formerHomeValue: soldBy ? Math.max(0, num(inh.homeValue, 0)) : 0,
       homeToDescendants: inh.homeToDescendants !== false,
       transferredNrbPct: transferredPct(inh, 'transferredNrbPct'), transferredRnrbPct: transferredPct(inh, 'transferredRnrbPct'),
+      transferredBrAprPct: transferredPct(inh, 'transferredBrAprPct'),
       qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
       qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
       compensationPayment: num(inh.compensationPayment, 0),
@@ -4231,6 +4237,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
         formerHomeValue: soldBy ? Math.max(0, num(inh.homeValue, 0)) : 0,
         homeToDescendants: inh.homeToDescendants !== false,
         transferredNrbPct: transferredPct(inh, 'transferredNrbPct'), transferredRnrbPct: transferredPct(inh, 'transferredRnrbPct'),
+      transferredBrAprPct: transferredPct(inh, 'transferredBrAprPct'),
         qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
         qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         compensationPayment: num(inh.compensationPayment, 0),
@@ -6503,6 +6510,7 @@ export default function App() {
         homeToDescendants: !!inh.homeToDescendants,
         transferredNrbPct: E.transferredPct(inh, 'transferredNrbPct'),
         transferredRnrbPct: E.transferredPct(inh, 'transferredRnrbPct'),
+        transferredBrAprPct: E.transferredPct(inh, 'transferredBrAprPct'),
         qsrInheritedValue: E.num(inh.qsrInheritedValue, 0), qsrTaxPaid: E.num(inh.qsrTaxPaid, 0),
         qsrYearsBefore: E.num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         compensationPayment: E.num(inh.compensationPayment, 0),
@@ -6555,6 +6563,7 @@ export default function App() {
         homeValue: soldByChosen ? 0 : homeValue, formerHomeValue: soldByChosen ? homeValue : 0,
         homeToDescendants: inh.homeToDescendants !== false,
         transferredNrbPct: E.transferredPct(inh, 'transferredNrbPct'), transferredRnrbPct: E.transferredPct(inh, 'transferredRnrbPct'),
+        transferredBrAprPct: E.transferredPct(inh, 'transferredBrAprPct'),
         otherAssets: inh.otherAssets, gifts: inh.gifts, beneficiaries: bens, giftYear, liquidToday, project }) : null;
     // the 75 boundary, priced for this household rather than described in the abstract
     const before = rows.filter(r => r.age < 75).slice(-1)[0];
@@ -10223,7 +10232,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {inheritanceView.chosen && inheritanceView.chosen.businessRelief > 0 && (
                   <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900">
                     <strong>{formatGBP(inheritanceView.chosen.businessRelief)}</strong> of business or agricultural relief at your chosen death age.
-                    {inheritanceView.chosen.businessReliefAboveAllowance > 0 && ` ${formatGBP(inheritanceView.chosen.businessReliefAboveAllowance)} sits above the ${formatGBP(E.num(plan?.config?.brAprAllowance, 1000000))} allowance and gets ${E.num(plan?.config?.brAprReducedRatePct, 50)}% rather than the full relief.`}
+                    {inheritanceView.chosen.businessReliefAboveAllowance > 0 && ` ${formatGBP(inheritanceView.chosen.businessReliefAboveAllowance)} sits above the ${formatGBP(E.num(plan?.config?.brAprAllowance, 2500000))} allowance and gets ${E.num(plan?.config?.brAprReducedRatePct, 50)}% rather than the full relief.`}
                     {inheritanceView.chosen.businessRelief < inheritanceView.chosen.businessReliefRaw - 0.5 && ' Part of it is wasted on a share of the estate passing to someone exempt, who would pay no tax on it anyway.'}
                   </div>
                 )}
@@ -10281,6 +10290,21 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       </div>
                     </div>
                   </div>
+                  {/*
+                    * The business and agricultural allowance became transferable on the same percentage
+                    * basis at the 2025 Budget. It is asked for only where there is relievable property to
+                    * apply it to, because for most households it is a third box that can never matter.
+                    */}
+                  {(plan?.inheritance?.otherAssets || []).some(a => E.ESTATE_ASSET_KINDS[a?.kind]?.usesAllowance && E.num(a?.value, 0) > 0) && (
+                    <div>
+                      <label className="text-slate-600 font-semibold block mb-1">Their business and agricultural allowance unused</label>
+                      <div className="flex items-center gap-1.5">
+                        <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredBrAprPct ?? ''} onChange={(e) => updateInheritance('transferredBrAprPct', parsePercent(e.target.value))} className={`${inputCls} flex-1`} />
+                        <span className="shrink-0 text-slate-500 font-semibold">%</span>
+                      </div>
+                      <span className="text-[10px] text-slate-500 block mt-1">Worth up to a second {formatGBP(E.num(plan?.config?.brAprAllowance, 2500000))} of relief. It is spent only by business or agricultural property leaving the first estate to someone other than you.</span>
+                    </div>
+                  )}
                   {/* blank is not the same as nothing here: an unfilled box claims no band at all */}
                   {(E.isBlank(plan?.inheritance?.transferredNrbPct) || E.isBlank(plan?.inheritance?.transferredRnrbPct)) && (
                     <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-[10px] text-amber-800">
@@ -10846,7 +10870,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-xs text-slate-600 leading-relaxed"><strong>One reading worth knowing about, because it is a reading and not a quotation.</strong> The credit and the window are treated as independent: giving the award away does not forfeit the credit. The cautious alternative &mdash; netting the gifts off the credit, so the same money cannot be relieved twice &mdash; was tried first and measured, and it makes the window worth about £1,200. A relief created at the 2025 Budget precisely because secondary transfers were being taxed cannot have been designed to be worth £1,200, and the statute relieves tax on a death where a payment &ldquo;is at any time received&rdquo; without netting anything. So both apply, to two different events: the credit on the death, the window on the gift. It is the more generous of the two readings, and the one to revisit if HMRC&rsquo;s guidance disagrees.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Business Relief: priced if you own it, never suggested</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Two different questions live behind one relief, and this tab now answers one of them. <strong>Valuing what you already own</strong> is modelled: add a business, farmland or unquoted shares under <em>anything else you own</em> and the estate is priced with the relief. From 6 April 2026 that is 100% up to a {formatGBP(E.num(plan?.config?.brAprAllowance, 1000000))} allowance shared between business and agricultural property, {E.num(plan?.config?.brAprReducedRatePct, 50)}% above it, and {E.num(plan?.config?.aimReliefRatePct, 50)}% flat on shares not listed on a recognised exchange, which do not touch that allowance. That allowance is not transferable between spouses, unlike the nil-rate band, so there is no percentage box for it. A death before that date still gets the old unlimited 100%, and the tab switches on the death year you choose. Relief needs the asset <strong>owned for two years</strong> at death, so the tab asks when you acquired it and gives nothing where the test fails.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Two different questions live behind one relief, and this tab now answers one of them. <strong>Valuing what you already own</strong> is modelled: add a business, farmland or unquoted shares under <em>anything else you own</em> and the estate is priced with the relief. From 6 April 2026 that is 100% up to a {formatGBP(E.num(plan?.config?.brAprAllowance, 2500000))} allowance shared between business and agricultural property, {E.num(plan?.config?.brAprReducedRatePct, 50)}% above it, and {E.num(plan?.config?.aimReliefRatePct, 50)}% flat on shares not listed on a recognised exchange, which do not touch that allowance. That allowance is <strong>transferable between spouses</strong>, on the same percentage basis as the nil-rate band, so there is a box for it under <em>widowed</em> once you have entered relievable property. A death before that date still gets the old unlimited 100%, and the tab switches on the death year you choose. Relief needs the asset <strong>owned for two years</strong> at death, so the tab asks when you acquired it and gives nothing where the test fails.</p>
               <p className="text-xs text-slate-600 leading-relaxed"><strong>Whether to buy into them</strong> is not modelled, and is deliberately absent from the optimiser. That same two-year test makes it the wrong tool for anyone with a short prognosis — the household this tab is most used by — and the assets that qualify carry investment risk far above anything else in the plan, so a tool that priced the tax saving without pricing that risk would be recommending a trade on half the picture. Two simplifications inside what is modelled: relief is scaled by the share of your will going to people who actually pay tax, because relief on a legacy to a spouse is wasted, but a will leaving the business to one child and the house to another is beyond a single set of percentages; and only the agricultural value of farmland qualifies, where development value above it does not, so enter the agricultural figure. The {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper is measured before reliefs (s.8D(5)), so a fully relieved farm still pushes the residence allowance away — the tab does that too.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What this does not model</h3>

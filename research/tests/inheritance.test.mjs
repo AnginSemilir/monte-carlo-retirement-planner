@@ -843,10 +843,26 @@ console.log('=========== O. EVERYTHING ELSE IN THE ESTATE ===========');
   ok('a long-held business is fully relieved below the allowance', near(biz.businessRelief, 600000));
   ok('so it costs the estate nothing', near(biz.iht, none.iht));
 
-  const big = at([{ id: 'a', kind: 'business', value: 2500000, ownedFrom: 2010 }]);
-  ok('above the allowance relief halves', near(big.businessRelief, 1000000 + 1500000 * 0.5),
+  const big = at([{ id: 'a', kind: 'business', value: 4000000, ownedFrom: 2010 }]);
+  ok('above the allowance relief halves', near(big.businessRelief, 2500000 + 1500000 * 0.5),
     `£${Math.round(big.businessRelief).toLocaleString()}`);
   ok('and the tab can say how much sat above it', near(big.businessReliefAboveAllowance, 1500000));
+
+  /*
+   * The allowance became transferable between spouses at the 2025 Budget, on the same percentage basis
+   * as the nil-rate band. A widow with 100% transferred gets a second allowance before the halving bites.
+   */
+  const widowed = E.estateAtDeath(cfg, w,
+    { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true, beneficiaries: [kid()],
+      transferredBrAprPct: 100, otherAssets: [{ id: 'a', kind: 'business', value: 4000000, ownedFrom: 2010 }] });
+  ok('a transferred allowance doubles what gets full relief', near(widowed.businessRelief, 4000000),
+    `£${Math.round(widowed.businessRelief).toLocaleString()}`);
+  ok('and leaves nothing above it', near(widowed.businessReliefAboveAllowance, 0));
+  const halfTransfer = E.estateAtDeath(cfg, w,
+    { deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true, beneficiaries: [kid()],
+      transferredBrAprPct: 50, otherAssets: [{ id: 'a', kind: 'business', value: 4000000, ownedFrom: 2010 }] });
+  ok('a part transfer gives a part allowance', near(halfTransfer.businessRelief, 3750000 + 250000 * 0.5),
+    `£${Math.round(halfTransfer.businessRelief).toLocaleString()}`);
 
   const aim = at([{ id: 'a', kind: 'aim', value: 600000, ownedFrom: 2010 }]);
   ok('unquoted shares get half relief', near(aim.businessRelief, 300000));
@@ -855,9 +871,9 @@ console.log('=========== O. EVERYTHING ELSE IN THE ESTATE ===========');
   ok('and do not eat the allowance the business needs', near(both.businessRelief, 1000000 + 300000),
     `£${Math.round(both.businessRelief).toLocaleString()}`);
 
-  const farm = at([{ id: 'a', kind: 'business', value: 700000, ownedFrom: 2010 },
-                   { id: 'b', kind: 'agricultural', value: 700000, ownedFrom: 2010 }]);
-  ok('business and farmland share one allowance', near(farm.businessRelief, 1000000 + 400000 * 0.5),
+  const farm = at([{ id: 'a', kind: 'business', value: 1500000, ownedFrom: 2010 },
+                   { id: 'b', kind: 'agricultural', value: 1500000, ownedFrom: 2010 }]);
+  ok('business and farmland share one allowance', near(farm.businessRelief, 2500000 + 500000 * 0.5),
     `£${Math.round(farm.businessRelief).toLocaleString()}`);
 
   const tooNew = at([{ id: 'a', kind: 'business', value: 600000, ownedFrom: 2039 }]);

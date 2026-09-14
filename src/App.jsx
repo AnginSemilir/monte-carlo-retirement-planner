@@ -9247,15 +9247,24 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                               <span className={`shrink-0 w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center mt-0.5 ${t.pip}`}>{sec.n}</span>
                               <div className="min-w-0 flex-1 space-y-1.5">
                                 <div className={`text-[13px] font-bold leading-snug ${sec.g === 'gift' ? 'text-purple-950' : sec.g === 'paperwork' ? 'text-slate-900' : 'text-emerald-950'}`}>{a.title}</div>
+                                {/*
+                                  * One step per line, not a wrapping row of chips.
+                                  *
+                                  * Arrow-separated chips reflowed to wherever the column happened to
+                                  * break, so where a step's own text ran long the order read as a
+                                  * paragraph and the numbers stopped doing their job. A list of six
+                                  * withdrawal steps is a list; the number belongs in a fixed gutter
+                                  * with the text starting at the same place on every row.
+                                  */}
                                 {a.sequence && (
-                                  <div className="flex flex-wrap items-center gap-1" data-order-sequence>
+                                  <ol className="space-y-1 list-none" data-order-sequence>
                                     {a.sequence.map((step, j) => (
-                                      <React.Fragment key={j}>
-                                        {j > 0 && <span className="text-[10px] text-slate-400">&rarr;</span>}
-                                        <span className="px-1.5 py-0.5 rounded bg-white/70 border border-emerald-200 text-[10px] font-semibold text-emerald-900">{j + 1}. {step}</span>
-                                      </React.Fragment>
+                                      <li key={j} className="flex gap-2 items-start">
+                                        <span className="shrink-0 w-4 text-right text-[10px] font-bold text-emerald-700 tabular-nums leading-5">{j + 1}.</span>
+                                        <span className="flex-1 px-1.5 py-0.5 rounded bg-white/70 border border-emerald-200 text-[10px] font-semibold text-emerald-900 leading-4">{step}</span>
+                                      </li>
                                     ))}
-                                  </div>
+                                  </ol>
                                 )}
                                 {/* a flex row per fact rather than a grid: core classes only, so it cannot
                                     depend on the CDN resolving an arbitrary column template */}

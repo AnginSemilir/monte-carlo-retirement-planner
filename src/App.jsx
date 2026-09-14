@@ -4143,12 +4143,22 @@ function bestPensionSplit(cfg, wrappers, opts = {}) {
  * they actually control and ranks them on one number: WHAT THE HEIRS KEEP, after inheritance tax and
  * after their own income tax on drawing an inherited pension down over the assumed period.
  *
- * Three levers, and deliberately only three:
+ * Six levers. It began as three and grew as the tab learned to price more; the list is the whole of
+ * what is searched, and anything not on it is either priced alongside or excluded below.
  *
  *   1 WITHDRAWAL ORDER - which wrapper funds the spending, whether the tax-free lump sum is taken in
  *     one go, and whether the personal allowance is harvested. Eighteen combinations.
- *   2 A GIFT now - how much, given next year, subject to the plan still surviving.
- *   3 THE PENSION NOMINATION - which heir the pension goes to, which matters because they pay income
+ *   2 HOW FAR UP THE BANDS TO DRAW - to the personal allowance, or on to the basic-rate limit. Its own
+ *     question because the answer flips sign at 75: below it an inherited pension carries no income
+ *     tax, so paying 20% now to move money out is a straight loss; above it the pension is taxed
+ *     twice and paying 20% now can beat both charges.
+ *   3 A GIFT now - how much, given next year, subject to the plan still surviving.
+ *   4 A GIFT OF THE EXEMPT COMPENSATION - how much of what is LEFT of the award, and in which year of
+ *     the window. Searched separately from lever 3 because it eats no nil-rate band, and searched in
+ *     both orders against it because the two compete for the same money.
+ *   5 MOVING MONEY BETWEEN WRAPPERS - pension top-ups to the annual allowance, unwrapped money into
+ *     the ISA, or both, spread over the years remaining and held back from an emergency floor.
+ *   6 THE PENSION NOMINATION - which heir the pension goes to, which matters because they pay income
  *     tax on it at their own rate.
  *
  * What is NOT searched, and why it would be dishonest to search it:
@@ -4163,11 +4173,16 @@ function bestPensionSplit(cfg, wrappers, opts = {}) {
  *     net-to-heirs would score a donation as a loss and bury a decision that is about values rather
  *     than arithmetic, so it is priced alongside instead.
  *
- * The search is coordinate descent - best order, then best gift given that order, then best nomination
- * given both, then one confirming pass - rather than the full product of the three, which would be some
- * hundreds of projections for a result that in testing never differed. Each lever reports what it is
- * worth ON ITS OWN, so a household can see which ones are dead ends for them: a residence band already
- * out of reach, or a nomination that cannot matter because death before 75 carries no income tax at all.
+ * The search is coordinate descent - best order, then the best gift given that order, then transfers,
+ * then the compensation gift, then the nomination - rather than the full product of six levers, which
+ * would be thousands of projections for a result that in testing never differed. Two departures from a
+ * plain descent, both earning their keep: the two gifts are searched in BOTH orders, since only one of
+ * them is free and the free one should get first refusal on the money; and the winner is the maximum
+ * over every candidate evaluated rather than the end of the chain, because a lever that looks strong on
+ * its own can do less once the best order is in place and leave the chain below something already
+ * priced. Each lever also reports what it is worth ON ITS OWN, so a household can see which ones are
+ * dead ends for them: a residence band already out of reach, or a nomination that cannot matter because
+ * death before 75 carries no income tax at all.
  */
 const GIFT_SEARCH_FRACTIONS = [0, 0.1, 0.25, 0.4, 0.55, 0.7, 0.85, 1];
 

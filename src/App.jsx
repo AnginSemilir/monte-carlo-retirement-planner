@@ -3956,7 +3956,7 @@ function estateForPlanAt(plan, ctx, rows) {
    *
    * A plan that ran dry leaves nothing either way: the money was needed before the estate was ever valued.
    */
-  return { est, row, survived: ev.survived,
+  return { est, row, survived: ev.survived, failAge: ev.failAge, failReason: ev.failReason,
     net: ev.survived ? est.netToBeneficiaries : 0,
     netWithGifts: ev.survived ? est.netIncludingLifetimeGifts : 0 };
 }
@@ -4153,7 +4153,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
     const rows = simulateDeterministic(ctx, 'expected');
     const r = estateForPlanAt(p, ctx, rows);
     return { ...variant, net: r.netWithGifts, estateNet: r.net, est: r.est, row: r.row,
-      survived: r.survived, plan: p, ctx, rows };
+      survived: r.survived, failAge: r.failAge, plan: p, ctx, rows };
   };
 
   /*
@@ -4533,10 +4533,17 @@ function optimizeInheritance(rawPlan, opts = {}) {
       // a candidate that breaks the plan is a rejection, not a valuation: "£2.9m worse off" is only
       // true in the sense that running out of money loses you everything, which is not a comparison
       nextUp: bigger ? bigger.amt : null, nextUpCost: bigger ? cost : 0, why,
+      /*
+       * WHEN it runs short, not just that it does. "Would not leave you enough to live on" reads as
+       * destitution; the truth is often a shortfall in the last year or two of a plan that runs to 100,
+       * and a household told the former will discount the whole recommendation.
+       */
       nextUpFails: bigger ? !bigger.c.survived : false,
+      nextUpFailAge: bigger && !bigger.c.survived ? bigger.c.failAge : null,
       largest: largest && largest.amt > given + 1000 ? largest.amt : null,
       largestCost: largest && largest.amt > given + 1000 ? best.net - largest.c.net : 0,
       largestSurvives: largest ? !!largest.c.survived : true,
+      terminalAge: baseCtx.terminalAge,
       liquidAtGiftYear: (() => { const w = giftYearWrappersOf(baseline); return w ? w.isa + w.other + w.cash : 0; })(),
       // and when nothing is given, the best gift that WAS tried and what it lost
       bestRejected: given > 0 ? null : (() => {
@@ -7057,7 +7064,7 @@ ${groups.map((sec, si) => `<h2>${si + 1}. ${esc(sec.title)}</h2><section>${
   }${
     (a.facts || []).length ? `<dl>${a.facts.map(f => `<dt>${esc(f.k)}</dt><dd>${esc(f.v)}</dd>`).join('')}</dl>` : ''
   }${a.why ? `<p>${esc(a.why)}</p>` : ''}<details><summary>The detail</summary>${a.body ? `<p class="fine">${esc(a.body)}</p>` : ''}${a.detail ? `<p class="fine">${esc(a.detail)}</p>` : ''}</details></div>`).join('')
-}${sec.g === 'gift' && g && g.given > 0 ? `<div class="step" style="padding-left:0"><p class="fine"><strong>Why ${money(g.given)} and not more.</strong> It is worth ${money(g.worth)} against making no gift at all.${g.nextUp ? (g.nextUpFails ? ` Giving ${money(g.nextUp)} instead would not leave enough to live on — the projection runs out before the end of the plan.` : ` Giving ${money(g.nextUp)} instead would leave the heirs ${money(g.nextUpCost)} worse off.`) : ''}</p></div>` : ''}</section>`).join('')}
+}${sec.g === 'gift' && g && g.given > 0 ? `<div class="step" style="padding-left:0"><p class="fine"><strong>Why ${money(g.given)} and not more.</strong> It is worth ${money(g.worth)} against making no gift at all.${g.nextUp ? (g.nextUpFails ? ` Giving ${money(g.nextUp)} instead runs the projection short${g.nextUpFailAge ? ` from age ${g.nextUpFailAge}, before the plan ends at ${g.terminalAge}` : ' before the plan ends'}.` : ` Giving ${money(g.nextUp)} instead would leave the heirs ${money(g.nextUpCost)} worse off.`) : ''}</p></div>` : ''}</section>`).join('')}
 <h2>The figures</h2>
 <section><table><thead><tr><th>Line</th><th class="num">Amount</th><th class="num">Running</th></tr></thead><tbody>
 ${work.map(r => `<tr class="${r.kind === 'total' ? 'total' : r.kind === 'note' ? 'note' : ''}"><td>${esc(r.label)}${r.note ? `<br><span class="fine">${esc(r.note)}</span>` : ''}</td><td class="num">${r.kind === 'note' ? '' : (r.amount < 0 ? '−' : '') + money(r.amount)}</td><td class="num">${r.kind === 'note' ? '' : money(Math.max(0, r.running))}</td></tr>`).join('')}
@@ -8871,14 +8878,14 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                             )}
                             {estatePlan.giftRationale.nextUp && (
                               <div>{estatePlan.giftRationale.nextUpFails
-                                ? <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead <strong>would not leave you enough to live on</strong> &mdash; the projection runs out before the end of the plan. An allowance is no use to someone who has run out.</>
+                                ? <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead <strong>runs the projection short{estatePlan.giftRationale.nextUpFailAge ? <> from age {estatePlan.giftRationale.nextUpFailAge}</> : null}</strong>{estatePlan.giftRationale.nextUpFailAge && estatePlan.giftRationale.terminalAge ? <>, {estatePlan.giftRationale.terminalAge - estatePlan.giftRationale.nextUpFailAge} {estatePlan.giftRationale.terminalAge - estatePlan.giftRationale.nextUpFailAge === 1 ? 'year' : 'years'} before your plan ends at {estatePlan.giftRationale.terminalAge}</> : ' before the end of the plan'}. An allowance is no use to someone who has run out &mdash; though if you would not in fact live that long, raise or lower <em>Plan to Age</em> on Plan Inputs and the search will find a different answer.</>
                                 : <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead would leave your heirs <strong>{formatGBP(estatePlan.giftRationale.nextUpCost)} worse off</strong>, because {estatePlan.giftRationale.why}.</>}</div>
                             )}
                             {estatePlan.giftRationale.liquidAtGiftYear > 0 && estatePlan.giftRationale.given > estatePlan.giftRationale.liquidAtGiftYear + 1000 && (
                               <div>{formatGBP(estatePlan.giftRationale.liquidAtGiftYear)} of it comes from outside the pension; the rest has to be withdrawn and taxed on the way, which the figure above already counts.</div>
                             )}
                             {estatePlan.giftRationale.largest && !estatePlan.giftRationale.nextUpFails && estatePlan.giftRationale.largest > (estatePlan.giftRationale.nextUp || 0) && (
-                              <div>The largest gift the search priced was {formatGBP(estatePlan.giftRationale.largest)}, {estatePlan.giftRationale.largestSurvives ? `which costs ${formatGBP(estatePlan.giftRationale.largestCost)}` : 'which does not leave enough to live on'}.</div>
+                              <div>The largest gift the search priced was {formatGBP(estatePlan.giftRationale.largest)}, {estatePlan.giftRationale.largestSurvives ? `which costs ${formatGBP(estatePlan.giftRationale.largestCost)}` : 'which runs the projection short of the end of the plan'}.</div>
                             )}
                           </div>
                         )}

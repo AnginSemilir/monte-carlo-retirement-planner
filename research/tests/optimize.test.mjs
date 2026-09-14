@@ -511,13 +511,19 @@ console.log('=========== L. HOW MUCH OF THE AWARD, AND WHERE FROM ===========');
   // and a partial award is not described as "the" award
   const part = E.estateActionPlan(withAward(), { ...r, compensationLeftToGive: 900000,
     best: { ...r.best, gift: 0, compGift: { amount: 90000, year: 2027 } } }).find(a => a.key === 'compGift');
-  ok('a partial gift of the award reads as a part of it', !!part && /Give £90,000 of the compensation/.test(part.title),
+  const amountFact = (a) => ((a.facts || []).find(f => f.k === 'Amount') || {}).v || '';
+  ok('the instruction is short enough to read at a glance', !!part && part.title.length < 70 && part.title.startsWith('Gift £90,000'),
     part ? part.title : 'no step');
-  ok('and says how much of the award is still there', !!part && /still available under the window/.test(part.body));
+  ok('and a partial gift says how much of the award is still there',
+    !!part && /of the £900,000 still giftable/.test(amountFact(part)), part ? amountFact(part) : '');
   const whole = E.estateActionPlan(withAward(), { ...r, compensationLeftToGive: 90000,
     best: { ...r.best, gift: 0, compGift: { amount: 90000, year: 2027 } } }).find(a => a.key === 'compGift');
-  ok('while giving all that is left reads as the whole of it',
-    !!whole && /Give the £90,000 of compensation/.test(whole.title), whole ? whole.title : 'no step');
+  ok('while giving all that is left says so instead',
+    !!whole && /all that is left of the award/.test(amountFact(whole)), whole ? amountFact(whole) : '');
+  ok('every step carries the facts somebody acts on',
+    E.estateActionPlan(withAward(), r).every(a => (a.facts && a.facts.length) || a.sequence));
+  ok('and a one-line reason rather than a paragraph',
+    E.estateActionPlan(withAward(), r).every(a => !a.why || a.why.length < 170));
 }
 
 console.log('=========== M. WHY NOT ONE OF THE OTHERS ===========');

@@ -359,6 +359,23 @@ let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?' 
    */
   const groups = await p.evaluate(()=>[...document.querySelectorAll('[data-action-group]')].map(d=>d.dataset.actionGroup));
   ok('the actions are split into cards', groups.length >= 2, groups.join(', '));
+  /*
+   * And each one reads as an instruction. The steps used to be paragraphs: the thing to DO was buried
+   * three sentences in, and the reasoning ran on for another four. Title, facts, one line of why - and
+   * the paragraphs folded behind a disclosure for whoever wants them.
+   */
+  const steps = await p.evaluate(()=>[...document.querySelectorAll('[data-action-group] li')].map(li=>({
+    title: (li.querySelector('div > div') || {}).innerText || '',
+    facts: li.querySelectorAll('dt').length,
+    seq: li.querySelectorAll('[data-order-sequence] span').length,
+    folded: !!li.querySelector('details')
+  })));
+  ok('every step has an instruction short enough to scan',
+    steps.length > 0 && steps.every(x => x.title.length > 0 && x.title.length < 80),
+    steps.map(x=>`"${x.title}" (${x.title.length})`).join(' / '));
+  ok('and the facts to act on beside it', steps.every(x => x.facts > 0 || x.seq > 0),
+    steps.map(x=>`${x.facts} facts`).join(', '));
+  ok('with the long form folded away', steps.every(x => x.folded));
   ok('reallocation is its own card', groups.includes('reallocate'));
   ok('and the figures that follow are priced on the recommendation',
     await p.evaluate(()=>!!document.querySelector('[data-recommended-workings]')));

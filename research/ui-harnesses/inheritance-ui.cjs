@@ -149,7 +149,7 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   const estBefore = await estateAt(p2,80);
   const proposed = await p2.evaluate(()=>{
     const d=[...document.querySelectorAll('[data-action-group="gift"]')][0];
-    const m=(d?d.textContent:'').match(/Give away £([\d,]+)/);
+    const m=(d?d.textContent:'').match(/Gift £([\d,]+)/);
     return m? Number(m[1].replace(/,/g,'')) : 0;
   });
   ok('a gift is proposed on the route step', proposed > 0, `£${proposed.toLocaleString()}`);

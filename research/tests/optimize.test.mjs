@@ -14,7 +14,7 @@ const household = (over = {}) => ({
   demographics: { planningMode: 'single', currentAgeSelf: 70, retireAgeSelf: 65, salarySelf: '',
     employmentSelf: 'employed', statePensionAge: 68, privatePensionAge: 58, statePensionSelf: 11500,
     terminalAge: 95, ...(over.demo || {}) },
-  spending: { targetSpend: 45000, spendBands: [], drawdownStrategy: 'Phased Drawdown',
+  spending: { targetSpend: over.spend ?? 45000, spendBands: [], drawdownStrategy: 'Phased Drawdown',
     decumulationPolicy: 'Bracket Fill Basic' },
   accounts: [
     { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: over.pen ?? 800000, contrib: 0, growth: '', risk: 'Medium Risk' },
@@ -700,6 +700,153 @@ console.log('=========== O. THE £2M TAPER, PRICED RATHER THAN ASSERTED ========
   // and an estate below the threshold has no question to answer, so gets no table
   const small = household({ pen: 300000, isa: 100000, other: 0, cash: 50000, home: 200000, deathAge: 80 });
   ok('an estate under the threshold gets no ladder', E.optimizeInheritance(small).taperLadder === null);
+}
+
+console.log('=========== P. NO ROUTE IS RULED OUT WITHOUT ARITHMETIC ===========');
+{
+  /*
+   * The contract this whole section exists to hold: across every shape of household, a route that is
+   * ruled out is ruled out with figures. Eight scenarios were run by hand and three of them ruled out a
+   * six-figure decision with an adjective - "the estate is already below the point where giving more
+   * buys anything" - while three more said nothing at all, because the recommended gift was everything
+   * liquid and there was no larger candidate to compare against.
+   */
+  const SHAPES = [
+    ['ran dry', { pen: 250000, isa: 80000, other: 0, cash: 40000, home: 180000, deathAge: 84 }],
+    ['over the line', { pen: 900000, isa: 500000, other: 400000, cash: 300000, home: 400000, deathAge: 78 }],
+    ['far over', { pen: 2400000, isa: 400000, other: 300000, cash: 200000, home: 700000, deathAge: 80 }],
+    ['no home', { pen: 1200000, isa: 500000, other: 300000, cash: 150000, home: 0, deathAge: 84 }],
+    ['death before 75', { deathAge: 72 }],
+    ['heir on £80k', { deathAge: 84, bens: [{ id: 'k1', name: 'Jo', relationship: 'descendant', sharePct: 100, income: 80000, age: 50 }] }],
+    ['all pension', { pen: 2000000, isa: 0, other: 0, cash: 20000, home: 500000, deathAge: 84 }]
+  ];
+  const money = (v) => Number(String(v).replace(/[^0-9.]/g, ''));
+  let silent = 0, unreconciled = [];
+  SHAPES.forEach(([name, over]) => {
+    const r = E.optimizeInheritance(household(over));
+    if (!r) return;
+    const g = r.giftRationale;
+    // a household with nothing to leave is answered by nothingToLeave instead, and must be
+    if (r.nothingToLeave) {
+      ok(`${name}: nothing to leave is stated, with its sum`, r.nothingToLeave.sum.length >= 3,
+        `ranOut=${r.nothingToLeave.ranOut} noTax=${r.nothingToLeave.noTax}`);
+      return;
+    }
+    if (!g || g.given <= 0) return;
+    // otherwise "why not more" must be answered one way or the other
+    const answered = !!(g.whySum || g.liquidCeiling);
+    if (!answered) silent++;
+    ok(`${name}: why the gift stops there is answered`, answered,
+      answered ? (g.whySum ? `compared against ${'£' + g.nextUp.toLocaleString()}` : 'liquidity ceiling') : 'SILENT');
+    /*
+     * And where a sum carries a total, the rows above it must produce that total. A sum that does not
+     * add up is worse than the prose it replaced: prose cannot be checked and found wrong, and a reader
+     * who checks this one and finds it wrong has no reason to trust any other figure on the page.
+     */
+    const rows = g.whySum || [];
+    const total = rows.find(x => x.total);
+    if (total) {
+      const a = money(rows[0].v), b = money(rows[1].v), c = money(total.v);
+      if (Math.abs(Math.abs(a - b) - c) > 2) unreconciled.push(`${name}: ${a} - ${b} != ${c}`);
+    }
+  });
+  ok('no household is left without an explanation', silent === 0, `${silent} silent`);
+  ok('and every sum that shows a total reconciles to it', unreconciled.length === 0,
+    unreconciled.length ? unreconciled.join(' | ') : 'all reconcile');
+
+  /*
+   * The specific arm that used to be pure assertion. A bigger gift is rejected; the rows must name what
+   * the heirs hold either way, and the note must quantify the trade rather than assert it.
+   */
+  const d = E.optimizeInheritance(household({ pen: 1200000, isa: 500000, other: 300000, cash: 150000, home: 0, deathAge: 84 }));
+  const dg = d.giftRationale;
+  ok('the rejection names both outcomes', dg.whySum.length === 3 && /Heirs keep/.test(dg.whySum[0].k), dg.whySum[0].k);
+  ok('and the note quantifies the trade', /saves only £/.test(dg.whyNote) || /drawn from the pension/.test(dg.whyNote) || /nil-rate band/.test(dg.whyNote), dg.whyNote);
+}
+
+console.log('=========== Q. NOTHING TO LEAVE, AND WHICH KIND ===========');
+{
+  /*
+   * A household that spends its pot before the death age scored £0 on every candidate, so the tab read
+   * "As it stands £0 / Best found £0 / Difference +£0" and then listed steps for an estate that does
+   * not exist. Two different reasons the search can have nothing to offer, both now stated.
+   */
+  const dry = E.optimizeInheritance(household({ pen: 250000, isa: 80000, other: 0, cash: 40000, home: 180000, deathAge: 84 }));
+  ok('a plan that runs dry says so', !!dry.nothingToLeave && dry.nothingToLeave.ranOut === true,
+    dry.nothingToLeave ? `fails at ${dry.nothingToLeave.failAge}` : 'not reported');
+  ok('and names the age against the death age', dry.nothingToLeave.failAge < dry.nothingToLeave.deathAge,
+    `${dry.nothingToLeave.failAge} < ${dry.nothingToLeave.deathAge}`);
+
+  // an estate inside its allowances: a real estate, but no inheritance tax for the search to play for
+  const small = household({ pen: 150000, isa: 40000, other: 0, cash: 20000, home: 120000, spend: 16000, deathAge: 74 });
+  const sm = E.optimizeInheritance(small);
+  ok('an estate inside its allowances says so instead', !!sm.nothingToLeave && sm.nothingToLeave.ranOut === false && sm.nothingToLeave.noTax === true);
+  /*
+   * And it must not claim there is nothing to gain when there is: with no inheritance tax to play for
+   * the search can still be worth thousands through income tax while alive, and saying "nothing to
+   * save" next to a non-zero gain is the contradiction that costs a reader the rest of the page.
+   */
+  const last = sm.nothingToLeave.sum[sm.nothingToLeave.sum.length - 1];
+  ok('without claiming nothing can be gained when something can',
+    sm.gain > 500 ? /Still worth/.test(last.k) : /Nothing to gain/.test(last.k),
+    `gain £${Math.round(sm.gain).toLocaleString()} -> "${last.k}"`);
+
+  // and a normal household has something to do, so gets no banner at all
+  ok('a household with something to do gets no banner',
+    E.optimizeInheritance(household({ deathAge: 84 })).nothingToLeave === null);
+}
+
+console.log('=========== R. THE TAPER CARD KNOWS WHICH QUESTION IT IS ANSWERING ===========');
+{
+  /*
+   * Three states. Running them together printed a NEGATIVE pound figure: where the recommended route
+   * already clears the line, the first row marked `under` sits below the recommendation, so "how much
+   * more must you give" came out as -£540,000 and the card asked why you would not do a thing you were
+   * already doing.
+   */
+  const under = E.optimizeInheritance(household({ pen: 900000, isa: 500000, other: 400000, cash: 300000, home: 400000, deathAge: 78 }));
+  ok('a route already under the line reports it', under.taperLadder.recommendedUnder === true);
+  ok('and offers nothing to weigh against it', under.taperLadder.clearing === null,
+    JSON.stringify(under.taperLadder.clearing));
+
+  const far = E.optimizeInheritance(household({ pen: 2400000, isa: 400000, other: 300000, cash: 200000, home: 700000, deathAge: 80 }));
+  ok('an unreachable line reports neither', far.taperLadder.recommendedUnder === false && far.taperLadder.clearing === null);
+  ok('and says it is out of reach', far.taperLadder.reachable === false);
+
+  /*
+   * Whenever a clearing row IS offered, the extra it asks for must be positive - that is the invariant
+   * the negative figure broke.
+   */
+  const all = [under, far,
+    E.optimizeInheritance(household({ deathAge: 72 })),
+    E.optimizeInheritance(household({ deathAge: 84 })),
+    E.optimizeInheritance(household({ pen: 2000000, isa: 0, other: 0, cash: 20000, home: 500000, deathAge: 84 }))]
+    .filter(x => x && x.taperLadder && x.taperLadder.clearing);
+  ok('a clearing row never asks for a negative amount',
+    all.every(x => x.taperLadder.clearing.extra > 0),
+    all.length ? all.map(x => '+£' + Math.round(x.taperLadder.clearing.extra).toLocaleString()).join(', ') : 'none offered');
+}
+
+console.log('=========== S. FINDINGS FIRE WHEN THEY ARE FINDINGS ===========');
+{
+  // one heir: there is no allocation to discuss, so the will paragraph is not a finding
+  const one = E.optimizeInheritance(household({ deathAge: 84,
+    bens: [{ id: 'k1', name: 'Jo', relationship: 'descendant', sharePct: 100, income: 0, age: 50 }] }));
+  ok('one heir gets no will paragraph', !one.reasons.some(r => r.key === 'will'),
+    one.reasons.map(r => r.key).join(',') || 'none');
+  ok('but is told why the nomination is not a choice', one.reasons.some(r => r.key === 'nomination' && /one person inherits/i.test(r.text)),
+    (one.reasons.find(r => r.key === 'nomination') || {}).text || 'no nomination finding');
+
+  // two heirs: it is a real question again
+  const two = E.optimizeInheritance(household({ deathAge: 84 }));
+  ok('two heirs get the will paragraph back', two.reasons.some(r => r.key === 'will'));
+
+  // two heirs on identical incomes: every split is taxed the same, and that is worth saying
+  const same = E.optimizeInheritance(household({ deathAge: 84,
+    bens: [{ id: 'a', name: 'A', relationship: 'descendant', sharePct: 50, income: 30000, age: 50 },
+           { id: 'b', name: 'B', relationship: 'descendant', sharePct: 50, income: 30000, age: 48 }] }));
+  ok('identical incomes explain the zero nomination', same.reasons.some(r => r.key === 'nomination' && /same income/i.test(r.text)),
+    (same.reasons.find(r => r.key === 'nomination') || {}).text || 'no finding');
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

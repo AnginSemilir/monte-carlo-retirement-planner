@@ -4477,9 +4477,28 @@ function optimizeInheritance(rawPlan, opts = {}) {
    * named, and then it is a decision about who benefits rather than about tax.
    */
   const anyExempt = bens.some(b => IHT_RELATIONSHIPS[b.relationship].exempt);
-  reasons.push(anyExempt
-    ? { key: 'will', text: 'Who receives which asset does change the bill here, because one of your beneficiaries is exempt: anything left to a spouse or a charity passes free of inheritance tax, so moving shares towards them lowers the total and moves money away from everyone else. That is a decision about who you want to benefit, so it is not searched.' }
-    : { key: 'will', text: 'Who receives which asset does not change the total. Inheritance tax is charged on the estate before it is divided, and all your beneficiaries are taxable, so giving one the house and another the ISA moves who gets what without changing what survives. Only the pension split moves the number, because that alone is taxed on whoever receives it.' });
+  /*
+   * Only a question when there is somebody to divide between. With one heir the paragraph was answering
+   * "who gets the house rather than the ISA" for a household that has nobody to choose between - 62
+   * words of it, on every scenario, including one where the whole tab reads zero.
+   */
+  if (bens.length > 1) {
+    reasons.push(anyExempt
+      ? { key: 'will', text: 'Who receives which asset does change the bill here, because one of your beneficiaries is exempt: anything left to a spouse or a charity passes free of inheritance tax, so moving shares towards them lowers the total and moves money away from everyone else. That is a decision about who you want to benefit, so it is not searched.' }
+      : { key: 'will', text: 'Who receives which asset does not change the total. Inheritance tax is charged on the estate before it is divided, and all your beneficiaries are taxable, so giving one the house and another the ISA moves who gets what without changing what survives. Only the pension split moves the number, because that alone is taxed on whoever receives it.' });
+  }
+  /*
+   * A nomination that scores zero for a reason other than age. One heir means there is no split to
+   * make; several heirs on the same income means every split is the same bill. Both read as "not
+   * tried" without a line saying otherwise.
+   */
+  if (deathAge >= num(plan.config.pensionIncomeTaxFromAge, 75)) {
+    if (bens.length === 1) {
+      reasons.push({ key: 'nomination', text: `Only one person inherits, so there is no pension nomination to choose: all of it goes to ${bens[0].name || 'them'} whatever you do. Naming a second beneficiary would make this a real decision, because an inherited pension is taxed at each recipient's own rate.` });
+    } else if (bens.length > 1 && new Set(bens.map(b => Math.round(num(b.income, 0) / 100))).size === 1) {
+      reasons.push({ key: 'nomination', text: `Everyone inheriting the pension is on the same income (${gbp0(num(bens[0].income, 0))}), so every way of splitting it is taxed identically. It becomes a real decision as soon as their incomes differ.` });
+    }
+  }
   if (e.rnrb <= 0 && toClear > liquidToday) {
     reasons.push({ key: 'gift', text: `The residence allowance is fully withdrawn and out of reach: bringing any of it back needs the estate to fall ${gbp0(toClear)}, against ${gbp0(liquidToday)} outside your pension. A gift still reduces the estate, but not enough to restore the band.` });
   }
@@ -4524,6 +4543,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
    * plan simply not surviving. Where no gift is recommended at all, the same question needs answering
    * in reverse.
    */
+  const deathAgeForGift = clamp(num(inh.deathAge, baseCtx.terminalAge), 0, 120);
   const giftRationale = (() => {
     const givenBy = (c) => num(c.gift, 0) + (c.compGift ? num(c.compGift.amount, 0) : 0);
     const given = givenBy(best);
@@ -4542,19 +4562,66 @@ function optimizeInheritance(rawPlan, opts = {}) {
       .sort((a, b) => a.amt - b.amt)[0]
       || priced.map(c => ({ c, amt: givenBy(c) })).filter(x => x.amt > given + 1000).sort((a, b) => b.amt - a.amt)[0];
     const largest = priced.map(c => ({ c, amt: givenBy(c) })).sort((a, b) => b.amt - a.amt)[0];
-    let why = '', cost = 0;
+    /*
+     * WHY NOT MORE, as arithmetic rather than as an adjective.
+     *
+     * The four cases below already knew the quantity that decided them and threw it away, leaving a
+     * sentence. The weakest - "the estate is already below the point where giving more buys anything" -
+     * is a correct conclusion asked to be taken on faith, attached to a decision worth six figures of
+     * somebody's money. Each now returns the rows that prove it, and the UI renders rows rather than
+     * parsing a sentence.
+     *
+     * `sum` is not prose about a calculation. It IS the calculation.
+     */
+    let why = '', cost = 0, whySum = null, whyNote = '';
     if (bigger) {
       cost = best.net - bigger.c.net;
       const bandUp = num(bigger.c.est.nrbUsedByGifts, 0) - num(best.est.nrbUsedByGifts, 0);
       const outside = giftYearWrappersOf(baseline);
-      const short = bigger.amt - (outside ? outside.isa + outside.other + outside.cash : 0);
-      why = !bigger.c.survived
-        ? 'it stops the plan surviving to the end - that is money you would have needed to live on'
-        : short > 1000
+      const liquid = outside ? outside.isa + outside.other + outside.cash : 0;
+      const short = bigger.amt - liquid;
+      const taxSaved = num(best.est.iht, 0) - num(bigger.c.est.iht, 0);
+      const extra = bigger.amt - given;
+      if (!bigger.c.survived) {
+        /*
+         * Not a valuation, so not a sum. A candidate that runs the plan dry is rejected rather than
+         * priced - "£2.9m worse off" would only be true in the sense that running out loses you
+         * everything, which is not a comparison anyone should be shown.
+         */
+        why = 'it runs the plan short before the age you said you die';
+        whySum = [
+          { k: 'Gift', v: gbp0(bigger.amt) },
+          { k: 'Runs short at age', v: String(bigger.c.failAge || '?') },
+          { k: 'You said you die at', v: String(deathAgeForGift) }
+        ];
+        whyNote = 'money you would have needed to live on, so it never reaches the estate';
+      } else {
+        /*
+         * THE SUM RECONCILES, which is the whole point of showing one.
+         *
+         * The obvious decomposition - extra given away, less tax saved - does NOT add up to the change
+         * in what the heirs hold: the money given away also stops earning, and a gift inside seven
+         * years is only partly out of the estate. Printing those two lines above a total they do not
+         * produce is worse than printing prose, because a reader who checks it finds the page wrong.
+         *
+         * So the sum is the comparison itself, which reconciles exactly, and the driver goes in a note.
+         */
+        why = short > 1000
           ? `the extra would have to come out of the pension, and the income tax on withdrawing it costs more than the ${num(plan.config.ihtRate, 40)}% it saves`
           : bandUp > 1000
-            ? `it eats another ${gbp0(bandUp)} of nil-rate band, and a gift this close to the death age has no taper to soften it`
-            : 'the estate is already below the point where giving more buys anything';
+            ? `it uses another ${gbp0(bandUp)} of nil-rate band, with no taper to soften it`
+            : 'the extra given away is more than the tax it saves';
+        whySum = [
+          { k: 'Heirs keep, this plan', v: gbp0(best.net) },
+          { k: `Heirs keep, giving ${gbp0(bigger.amt)}`, v: gbp0(bigger.c.net) },
+          { k: 'Difference', v: (cost < 0 ? '+' : '−') + gbp0(Math.abs(cost)), total: true }
+        ];
+        whyNote = short > 1000
+          ? `${gbp0(short)} of it would have to be drawn from the pension and taxed on the way out`
+          : bandUp > 1000
+            ? `it uses another ${gbp0(bandUp)} of nil-rate band, and a gift this late has no taper`
+            : `the extra ${gbp0(extra)} given away saves only ${gbp0(Math.max(0, taxSaved))} of tax`;
+      }
     }
     /*
      * How much of the saving does NOT depend on surviving seven years. The residence-band taper is
@@ -4571,7 +4638,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
       bandBack, certain, needsSeven: Math.max(0, (without ? best.net - without.net : 0) - certain),
       // a candidate that breaks the plan is a rejection, not a valuation: "£2.9m worse off" is only
       // true in the sense that running out of money loses you everything, which is not a comparison
-      nextUp: bigger ? bigger.amt : null, nextUpCost: bigger ? cost : 0, why,
+      nextUp: bigger ? bigger.amt : null, nextUpCost: bigger ? cost : 0, why, whySum, whyNote,
       /*
        * WHEN it runs short, not just that it does. "Would not leave you enough to live on" reads as
        * destitution; the truth is often a shortfall in the last year or two of a plan that runs to 100,
@@ -4586,6 +4653,37 @@ function optimizeInheritance(rawPlan, opts = {}) {
       // household said it dies, so quoting Plan to Age here would name a boundary nothing was checked at
       terminalAge: clamp(num(rawPlan?.inheritance?.deathAge, baseCtx.terminalAge), 0, 120),
       liquidAtGiftYear: (() => { const w = giftYearWrappersOf(baseline); return w ? w.isa + w.other + w.cash : 0; })(),
+      /*
+       * WHY IT STOPS THERE when nothing bigger was priced at all.
+       *
+       * When the recommended gift is every penny outside the pension, there is no larger candidate to
+       * compare against, so `bigger` is null and the card fell silent - it said what the gift was worth
+       * and nothing about its ceiling. The ceiling is the household's own liquidity, and saying so is
+       * the whole answer.
+       */
+      liquidCeiling: (() => {
+        if (bigger || given <= 0) return null;
+        /*
+         * Measured against what is liquid TODAY, because that is what the search builds its gift sizes
+         * from. Measuring against the gift-year wrappers instead left this silent on exactly the
+         * households it exists for: a year of growth makes them larger than the grid's own ceiling, so
+         * "is this gift everything you have" answered no when the true answer was yes.
+         */
+        if (!(liquidToday > 0) || given < liquidToday - 1000) return null;
+        const w = giftYearWrappersOf(baseline);
+        const atGift = w ? w.isa + w.other + w.cash : liquidToday;
+        return {
+          liquid: liquidToday, given, left: Math.max(0, atGift - given),
+          sum: [
+            { k: 'Outside your pension today', v: gbp0(liquidToday) },
+            { k: 'This gift takes', v: gbp0(given) },
+            // measured in the gift year, not today: a year of growth is why giving "everything" still
+            // leaves something, and the label has to say so or the two rows look like a contradiction
+            { k: 'Left by then, after growth', v: gbp0(Math.max(0, atGift - given)) }
+          ],
+          note: 'anything more would have to be drawn from the pension and taxed on the way out'
+        };
+      })(),
       // and when nothing is given, the best gift that WAS tried and what it lost
       bestRejected: given > 0 ? null : (() => {
         const top = priced.filter(c => givenBy(c) > 0).sort((a, b) => b.net - a.net)[0];
@@ -4643,8 +4741,21 @@ function optimizeInheritance(rawPlan, opts = {}) {
     }
     const rows = all.filter(r => wanted.has(r.amt))
       .map(r => ({ ...r, recommended: r.amt === givenNow, cost: best.net - r.net }));
+    /*
+     * WHICH QUESTION IS ACTUALLY BEING ASKED. Three different states, and conflating them produced a
+     * negative pound figure: when the recommended route ALREADY clears the line, the first row marked
+     * `under` sits BELOW the recommendation, so "how much more must you give" came out as −£540,000 and
+     * the card asked why you would not do something you were already doing.
+     *
+     * `clearing` is therefore searched above the recommendation only, and is null when the route is
+     * already under - in which case there is nothing to weigh and the card says so instead.
+     */
+    const recRow = rows.find(r => r.recommended);
+    const recommendedUnder = !!(recRow && recRow.under);
+    const clearing = recommendedUnder ? null : (rows.find(r => r.under && r.amt > givenNow) || null);
     return {
-      threshold, rows,
+      threshold, rows, recommendedUnder,
+      clearing: clearing ? { amt: clearing.amt, extra: clearing.amt - givenNow, cost: clearing.cost } : null,
       reachable: !!clears,
       // what it would take to get there at all, when nothing priced does
       shortBy: clears ? 0 : Math.max(0, num(all[all.length - 1].estate, 0) - threshold),
@@ -4669,6 +4780,12 @@ function optimizeInheritance(rawPlan, opts = {}) {
       : null;
     const everything = [...soloGifts, ...soloCompGifts, ...gifts, ...compGifts, ...compFirst, ...giftsAfterComp]
       .filter(c => c.survived).map(c => ({ c, amt: givenBy(c) })).sort((a, b) => b.amt - a.amt)[0];
+    // the winning route with only the draw-down ceiling flipped, so the comparison isolates that choice
+    const otherCeiling = (() => {
+      const flip = best.ceiling === 'basic' ? 'pa' : 'basic';
+      const c = evaluate({ ...best, ceiling: flip, harvest: true, label: 'z' });
+      return c && c.survived ? c : null;
+    })();
     const out = [
       { key: 'nothing', label: 'Change nothing at all', net: baseline.net,
         why: 'the plan exactly as you have it now' },
@@ -4677,7 +4794,18 @@ function optimizeInheritance(rawPlan, opts = {}) {
       giftOnly && { key: 'giftonly', label: 'Give the money away and change nothing else', net: giftOnly.net,
         why: 'the gift on its own, drawn from the plan as it stands' },
       everything && everything.amt > givenBy(best) + 1000 && { key: 'max', label: `Give away as much as the plan can stand (${gbp0(everything.amt)})`, net: everything.c.net,
-        why: 'the largest gift that still leaves you solvent to the end' }
+        why: 'the largest gift that still leaves you solvent to the end' },
+      /*
+       * The ceiling, which was missing and is the LARGEST lever on some households - worth £50,755 on
+       * one of the scenarios this list is written for, and never named in it. Without a row the reader
+       * is shown a gift they must decide about and no sign that the bigger choice was even considered.
+       */
+      otherCeiling && { key: 'ceiling',
+        label: (best.ceiling === 'basic' ? 'Stop drawing the pension at the personal allowance' : `Draw the pension to the ${gbp0(P.higherRateStartsAt)} basic-rate limit`),
+        net: otherCeiling.net,
+        why: best.ceiling === 'basic'
+          ? 'draw less each year and pay no income tax on it, leaving more in the pension to be taxed on death'
+          : 'draw more each year, pay 20% now, and move it out of the pension before it is taxed twice' }
     ].filter(Boolean)
       .map(x => ({ ...x, cost: best.net - x.net }))
       .filter(x => Math.abs(x.cost) > 500)
@@ -4753,6 +4881,45 @@ function optimizeInheritance(rawPlan, opts = {}) {
     // the winner's own priced estate, so the tab can show the working for what it is RECOMMENDING
     // rather than only for the plan as it stands
     bestEst: best.est, baselineEst: baseline.est, giftRationale, alternatives, taperLadder,
+    /*
+     * NOTHING TO OPTIMISE, and which of the two reasons it is.
+     *
+     * A household that spends its pot before the death age leaves nothing, so every candidate scores
+     * zero and every tile on the tab reads £0 - which looks like a broken screen rather than a finding.
+     * A household whose estate sits inside its own allowances has a real estate but no tax to save, so
+     * every candidate scores the SAME and the search has nothing to offer either. Different facts,
+     * both worth saying, and neither was said.
+     *
+     * Both are reported with their arithmetic, and either can be true on its own.
+     */
+    nothingToLeave: (() => {
+      const ranOut = baseline.survived === false;
+      const allow = num(baseline.est.nrb, 0) + num(baseline.est.rnrb, 0);
+      const noTax = num(baseline.est.iht, 0) <= 0 && num(baseline.est.incomeTaxOnPensions, 0) <= 0;
+      if (!ranOut && !noTax) return null;
+      return {
+        ranOut, noTax, failAge: baseline.failAge || null, deathAge,
+        potAtDeath: Math.max(0, num(baseline.row ? baseline.row.totalCombined : 0, 0)),
+        sum: ranOut
+          ? [{ k: 'Your plan runs short at age', v: String(baseline.failAge || '?') },
+             { k: 'You said you die at', v: String(deathAge) },
+             { k: 'Left in the pot at that age', v: gbp0(0) },
+             { k: 'So there is nothing to pass on', v: 'and nothing a tax choice can change' }]
+          : [{ k: 'Your estate at death', v: gbp0(num(baseline.est.grossEstate, 0)) },
+             { k: 'Allowances cover', v: gbp0(allow) },
+             { k: 'Inheritance tax due', v: gbp0(num(baseline.est.iht, 0)) },
+             /*
+              * Precise rather than sweeping. "Nothing to save" was wrong: with no inheritance tax to
+              * play for the search can still be worth thousands, because the withdrawal order changes
+              * the INCOME tax paid while alive and so the size of the pot that is left. Saying
+              * otherwise next to a non-zero gain is the kind of contradiction that costs a reader
+              * their trust in every other figure on the page.
+              */
+             { k: best.net - baseline.net > 500 ? 'Still worth' : 'Nothing to gain', v: best.net - baseline.net > 500
+               ? gbp0(best.net - baseline.net) + ' — from income tax while you are alive, not from the estate'
+               : 'every route leaves the same amount' }]
+      };
+    })(),
     /*
      * Disclosed, not enforced. The route is affordable for as long as the household said it would live,
      * which is the test it is now held to - but if it leaves the wider plan short afterwards the tab says
@@ -5919,6 +6086,35 @@ export default function App() {
     return n;
   });
   const ESTATE_CARD_KEYS = ['workings', 'alternatives', 'taper', 'search', 'notranked'];
+  /*
+   * One renderer for every rejection's arithmetic, so a household learns the shape once and can read
+   * the next one at a glance. Rows marked `total` get a rule above them and the emphasis, because that
+   * is the row the others produce - and where the rows genuinely do not add up (a candidate that runs
+   * the plan dry is rejected, not valued) there is simply no total row to mislead anyone.
+   */
+  // Tone as whole literal class strings, never `text-${tone}-600`: the Tailwind CDN generates only the
+  // classes it can see spelled out, so an interpolated one resolves to nothing and the row loses its colour.
+  const SUM_TONES = {
+    slate: { key: 'text-slate-500', rule: 'border-slate-300', note: 'text-slate-500' },
+    amber: { key: 'text-amber-700', rule: 'border-amber-400', note: 'text-amber-700' },
+    purple: { key: 'text-purple-600', rule: 'border-purple-300', note: 'text-purple-700' }
+  };
+  const SumRows = ({ rows, note, tone = 'slate' }) => {
+    const t = SUM_TONES[tone] || SUM_TONES.slate;
+    return (
+      <div className="mt-1.5">
+        <dl className="text-[11px] space-y-0.5">
+          {(rows || []).map(r => (
+            <div key={r.k} className={`flex gap-2 items-baseline ${r.total ? `border-t ${t.rule} mt-1 pt-1` : ''}`}>
+              <dt className={`flex-1 ${r.total ? 'font-bold' : t.key}`}>{r.k}</dt>
+              <dd className={`m-0 shrink-0 font-mono ${r.total ? 'font-bold' : 'font-semibold'}`}>{r.v}</dd>
+            </div>
+          ))}
+        </dl>
+        {note && <div className={`text-[10px] ${t.note} mt-1 leading-relaxed`}>{note}</div>}
+      </div>
+    );
+  };
   const showEstateStep = (n) => estateSeeAll || estateStep === n;
 
   const [slide, setSlide] = useState(1);
@@ -7154,6 +7350,10 @@ export default function App() {
     const g = estatePlan.giftRationale;
     const work = E.ihtWorkings(estatePlan.bestEst, eFlatPlan?.config) || [];
     const money = (v) => formatGBP(Math.abs(E.num(v, 0)));
+    // the same rejection arithmetic the tab shows, as a plain table the printed page can carry
+    const sumTable = (rows, note) => (rows && rows.length)
+      ? `<table class="sum">${rows.map(r => `<tr class="${r.total ? 'total' : ''}"><td>${esc(r.k)}</td><td class="num">${esc(r.v)}</td></tr>`).join('')}</table>${note ? `<p class="fine">${esc(note)}</p>` : ''}`
+      : '';
     const groups = [
       { g: 'reallocate', title: 'Move money, but keep it' },
       { g: 'gift', title: 'Give money away' },
@@ -7208,10 +7408,19 @@ export default function App() {
   .cost { color: #b42318; font-weight: 700; }
   footer { color: #6b6b76; font-size: 11.5px; margin-top: 28px; line-height: 1.6; }
   @media (max-width: 560px) { .tiles { grid-template-columns: 1fr; } body { padding: 20px 14px 48px; } }
+  table.sum { width: auto; min-width: min(340px, 100%); margin: 6px 0 2px; font-size: 12px; }
+  table.sum td { padding: 2px 0; border: 0; }
+  table.sum td.num { padding-left: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.sum tr.total td { border-top: 1px solid #cfcfd6; font-weight: 700; padding-top: 4px; }
   @media print { body { background: #fff; padding: 0; } section { break-inside: avoid; border-color: #ccc; } }
 </style></head><body><main>
 <h1>What to do with the estate</h1>
 <p class="sub">Priced at death at ${esc(estatePlan.deathAge)}${estateFlatGrowth ? ', on today\u2019s balances with no growth' : ''}. Prepared ${esc(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))}. Illustrative only &mdash; not financial advice.</p>
+${estatePlan.nothingToLeave ? `<section style="border-color:#e0a34a;background:#fdf6e8"><p><strong>${estatePlan.nothingToLeave.ranOut
+  ? 'Your plan runs out before you die, so there is nothing to leave.'
+  : 'Your estate is inside its allowances, so there is no inheritance tax to save.'}</strong></p>${sumTable(estatePlan.nothingToLeave.sum)}<p class="fine">${estatePlan.nothingToLeave.ranOut
+  ? 'Nothing below can change that — a tax choice cannot create money that was already spent.'
+  : 'The steps below are still worth following for what they save in income tax while you are alive.'}</p></section>` : ''}
 <div class="tiles">
   <div class="tile"><span>As it stands</span><strong>${money(estatePlan.baseline.net)}</strong></div>
   <div class="tile win"><span>Following this plan</span><strong>${money(estatePlan.best.net)}</strong></div>
@@ -7224,7 +7433,7 @@ ${groups.map((sec, si) => `<h2>${si + 1}. ${esc(sec.title)}</h2><section>${
   }${
     (a.facts || []).length ? `<dl>${a.facts.map(f => `<dt>${esc(f.k)}</dt><dd>${esc(f.v)}</dd>`).join('')}</dl>` : ''
   }${a.why ? `<p>${esc(a.why)}</p>` : ''}<details><summary>The detail</summary>${a.body ? `<p class="fine">${esc(a.body)}</p>` : ''}${a.detail ? `<p class="fine">${esc(a.detail)}</p>` : ''}</details></div>`).join('')
-}${sec.g === 'gift' && g && g.given > 0 ? `<div class="step" style="padding-left:0"><p class="fine"><strong>Why ${money(g.given)} and not more.</strong> It is worth ${money(g.worth)} against making no gift at all.${g.nextUp ? (g.nextUpFails ? ` Giving ${money(g.nextUp)} instead runs the projection short${g.nextUpFailAge ? ` from age ${g.nextUpFailAge}, before the age of ${estatePlan.deathAge} you said you die` : ' before the age you said you die'}.` : ` Giving ${money(g.nextUp)} instead would leave the heirs ${money(g.nextUpCost)} worse off.`) : ''}</p></div>` : ''}</section>`).join('')}
+}${sec.g === 'gift' && g && g.given > 0 ? `<div class="step" style="padding-left:0"><p class="fine"><strong>Why ${money(g.given)} and not more.</strong> It is worth ${money(g.worth)} against making no gift at all.${g.nextUp ? (g.nextUpFails ? ` Giving ${money(g.nextUp)} instead runs the plan short at age ${g.nextUpFailAge || '?'}, before the age of ${estatePlan.deathAge} you said you die.` : ` Giving ${money(g.nextUp)} instead leaves the heirs ${money(g.nextUpCost)} worse off.`) : ''}${g.liquidCeiling ? ` It stops there because that is everything held outside the pension.` : ''}</p>${sumTable(g.whySum, g.whyNote) || sumTable(g.liquidCeiling && g.liquidCeiling.sum, g.liquidCeiling && g.liquidCeiling.note)}</div>` : ''}</section>`).join('')}
 <h2>The figures</h2>
 <section><table><thead><tr><th>Line</th><th class="num">Amount</th><th class="num">Running</th></tr></thead><tbody>
 ${work.map(r => `<tr class="${r.kind === 'total' ? 'total' : r.kind === 'note' ? 'note' : ''}"><td>${esc(r.label)}${r.note ? `<br><span class="fine">${esc(r.note)}</span>` : ''}</td><td class="num">${r.kind === 'note' ? '' : (r.amount < 0 ? '−' : '') + money(r.amount)}</td><td class="num">${r.kind === 'note' ? '' : money(Math.max(0, r.running))}</td></tr>`).join('')}
@@ -7238,12 +7447,13 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
 </tbody></table></section>` : ''}
 ${estatePlan.taperLadder ? (() => {
   const t = estatePlan.taperLadder;
-  const clear = t.rows.find(r => r.under && !r.recommended);
-  const rec = t.rows.find(r => r.recommended) || { amt: 0 };
+  const clear = t.clearing;
   return `<h2>Why not keep gifting down to ${money(t.threshold)}?</h2><section>
-<p>${clear
-  ? `Getting under the line brings back ${money(t.bandAtStake)} of residence allowance &mdash; worth about ${money(t.bandAtStake * 0.4)} of tax &mdash; but needs ${money(clear.amt - rec.amt)} more given away than the plan above, and leaves your heirs <strong>${money(clear.cost)} worse off</strong>.`
-  : `Your estate cannot be brought under the line by any gift the plan can afford, so the ${money(t.bandAtStake)} of residence allowance stays withdrawn whatever you do.`}</p>
+<p>${t.recommendedUnder
+  ? `You already are: the plan above leaves an estate under ${money(t.threshold)}, so the full ${money(t.bandAtStake)} of residence allowance comes back. That is part of why it wins.`
+  : clear
+    ? `Getting under the line brings back ${money(t.bandAtStake)} of residence allowance &mdash; worth about ${money(t.bandAtStake * 0.4)} of tax &mdash; but needs ${money(clear.extra)} more given away than the plan above, and leaves your heirs <strong>${money(clear.cost)} worse off</strong>.`
+    : `Your estate cannot be brought under the line by any gift the plan can afford, so the ${money(t.bandAtStake)} of residence allowance stays withdrawn whatever you do.`}</p>
 <table><thead><tr><th>Gift</th><th class="num">Estate at death</th><th class="num">Residence band</th><th class="num">Inheritance tax</th><th class="num">Heirs keep</th></tr></thead><tbody>
 ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ? money(r.amt) : 'nothing'}${r.recommended ? '<br><span class="fine">the plan above</span>' : ''}</td><td class="num">${money(r.estate)}</td><td class="num">${r.rnrb > 0 ? money(r.rnrb) : 'withdrawn'}</td><td class="num">${money(r.iht)}</td><td class="num">${money(r.net)}</td></tr>`).join('')}
 </tbody></table>
@@ -8938,6 +9148,29 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       and needs the recipients decided; and the arithmetic that follows is neither, it
                       is the consequence. Running them together as one numbered list read as a single
                       instruction to be worked through in order. */}
+                  {/*
+                    * NOTHING TO OPTIMISE, said rather than left as three zeroes.
+                    *
+                    * A household that spends its pot before the death age scored £0 on every candidate,
+                    * so the tab read "As it stands £0 / Best found £0 / Difference +£0" and then listed
+                    * steps for an estate that does not exist. It looked like a broken screen. Both
+                    * reasons this can happen now say so, with the arithmetic.
+                    */}
+                  {estatePlan.nothingToLeave && (
+                    <div className="p-3.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 space-y-2" data-nothing-to-leave>
+                      <div className="text-[12px] font-bold">
+                        {estatePlan.nothingToLeave.ranOut
+                          ? `Your plan runs out before you die, so there is nothing to leave.`
+                          : `Your estate is inside its allowances, so there is no inheritance tax to save.`}
+                      </div>
+                      <SumRows rows={estatePlan.nothingToLeave.sum} tone="amber" />
+                      <div className="text-[10px] text-amber-700 leading-relaxed">
+                        {estatePlan.nothingToLeave.ranOut
+                          ? <>Nothing below can change that &mdash; a tax choice cannot create money that was already spent. Lower your spending, raise <em>Plan to Age</em>, or change the age you expect to die on step 1, and this page will have something to work with.</>
+                          : <>The steps below are still worth following for what they save you in <em>income</em> tax while you are alive, but no route can beat another on inheritance tax when there is none to pay.</>}
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-3" data-action-plan>
                     {/* Named, not buried. Affordability is now judged to the death age rather than to
                         Plan to Age, which is what makes the route recommendable at all - so when the two
@@ -9032,16 +9265,35 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             {estatePlan.giftRationale.bandBack > 0 && (
                               <div><strong>{formatGBP(estatePlan.giftRationale.certain)} of that is certain</strong> whatever happens next: it restores {formatGBP(estatePlan.giftRationale.bandBack)} of residence allowance, and that test looks at what you <em>owned at death</em>, so the allowance returns the day the gift is made. The other {formatGBP(estatePlan.giftRationale.needsSeven)} needs you to survive seven years.</div>
                             )}
+                            {/*
+                              * The verdict stays on the surface; the sums go one click down.
+                              *
+                              * A one-line verdict with no figures is the thing that invites "but why
+                              * not more" - and a household that has just been asked to give away six
+                              * figures will not accept "because it buys nothing". So the line is always
+                              * there and the arithmetic is always one click away, never absent.
+                              */}
                             {estatePlan.giftRationale.nextUp && (
-                              <div>{estatePlan.giftRationale.nextUpFails
-                                ? <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead <strong>runs the projection short{estatePlan.giftRationale.nextUpFailAge ? <> from age {estatePlan.giftRationale.nextUpFailAge}</> : null}</strong>{estatePlan.giftRationale.nextUpFailAge && estatePlan.giftRationale.terminalAge ? <>, {estatePlan.giftRationale.terminalAge - estatePlan.giftRationale.nextUpFailAge} {estatePlan.giftRationale.terminalAge - estatePlan.giftRationale.nextUpFailAge === 1 ? 'year' : 'years'} before the age of {estatePlan.giftRationale.terminalAge} you said you die</> : ' before the age you said you die'}. An allowance is no use to someone who has run out &mdash; and that is measured against the age you said you die, on step 1, so change it there if it is wrong.</>
-                                : <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead would leave your heirs <strong>{formatGBP(estatePlan.giftRationale.nextUpCost)} worse off</strong>, because {estatePlan.giftRationale.why}.</>}</div>
+                              <details data-why-not-more>
+                                <summary className="cursor-pointer list-none">
+                                  {estatePlan.giftRationale.nextUpFails
+                                    ? <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead <strong>runs the plan short at age {estatePlan.giftRationale.nextUpFailAge || '?'}</strong>, before the age of {estatePlan.giftRationale.terminalAge} you said you die. <span className="text-purple-600 font-semibold underline">Show the figures</span></>
+                                    : <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead leaves your heirs <strong>{formatGBP(estatePlan.giftRationale.nextUpCost)} worse off</strong>. <span className="text-purple-600 font-semibold underline">Show the figures</span></>}
+                                </summary>
+                                <SumRows rows={estatePlan.giftRationale.whySum} note={estatePlan.giftRationale.whyNote} tone="purple" />
+                              </details>
+                            )}
+                            {/* and when nothing bigger was priced at all, the ceiling is your own liquidity */}
+                            {estatePlan.giftRationale.liquidCeiling && (
+                              <details data-liquid-ceiling>
+                                <summary className="cursor-pointer list-none">
+                                  It stops there because that is <strong>everything you hold outside your pension</strong>. <span className="text-purple-600 font-semibold underline">Show the figures</span>
+                                </summary>
+                                <SumRows rows={estatePlan.giftRationale.liquidCeiling.sum} note={estatePlan.giftRationale.liquidCeiling.note} tone="purple" />
+                              </details>
                             )}
                             {estatePlan.giftRationale.liquidAtGiftYear > 0 && estatePlan.giftRationale.given > estatePlan.giftRationale.liquidAtGiftYear + 1000 && (
                               <div>{formatGBP(estatePlan.giftRationale.liquidAtGiftYear)} of it comes from outside the pension; the rest has to be withdrawn and taxed on the way, which the figure above already counts.</div>
-                            )}
-                            {estatePlan.giftRationale.largest && !estatePlan.giftRationale.nextUpFails && estatePlan.giftRationale.largest > (estatePlan.giftRationale.nextUp || 0) && (
-                              <div>The largest gift the search priced was {formatGBP(estatePlan.giftRationale.largest)}, {estatePlan.giftRationale.largestSurvives ? `which costs ${formatGBP(estatePlan.giftRationale.largestCost)}` : 'which runs the projection short of the end of the plan'}.</div>
                             )}
                           </div>
                         )}
@@ -9247,22 +9499,30 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     */}
                   {estatePlan.taperLadder && (() => {
                     const t = estatePlan.taperLadder;
-                    const clear = t.rows.find(r => r.under && !r.recommended);
+                    const clear = t.clearing;
                     return (
                       <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-taper-ladder>
                         <button type="button" onClick={() => toggleEstateCard('taper')} aria-expanded={estateOpen('taper')}
                           data-fold-toggle="taper" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
                           <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
                             <span className="flex-1">Why not keep gifting down to {formatGBP(t.threshold)}?</span>
-                            <span className={`shrink-0 font-semibold normal-case tracking-normal text-[11px] ${clear ? 'text-rose-700' : 'text-slate-500'}`}>
-                              {clear ? `costs ${formatGBP(clear.cost)}` : 'out of reach'}
+                            {/*
+                              * Three states, because there are three different answers and running them
+                              * together printed a negative pound figure: when the recommended route is
+                              * ALREADY under the line, "how much more must you give" is −£540,000 and the
+                              * card asks why you would not do a thing you are already doing.
+                              */}
+                            <span className={`shrink-0 font-semibold normal-case tracking-normal text-[11px] ${t.recommendedUnder ? 'text-emerald-700' : clear ? 'text-rose-700' : 'text-slate-500'}`}>
+                              {t.recommendedUnder ? 'already under it' : clear ? `costs ${formatGBP(clear.cost)}` : 'out of reach'}
                             </span>
                             <ChevronDown className={`shrink-0 w-3.5 h-3.5 text-slate-400 transition-transform ${estateOpen('taper') ? '' : '-rotate-90'}`} />
                           </h3>
                           <span className="text-[10px] text-slate-500 block mt-1">
-                            {clear
-                              ? <>Getting under the line brings back {formatGBP(t.bandAtStake)} of residence allowance &mdash; worth about {formatGBP(t.bandAtStake * 0.4)} of tax &mdash; but needs {formatGBP(clear.amt - (t.rows.find(r => r.recommended) || { amt: 0 }).amt)} more given away than the route above.</>
-                              : <>Your estate cannot be brought under the line by any gift the plan can afford, so the {formatGBP(t.bandAtStake)} of residence allowance stays withdrawn whatever you do.</>}
+                            {t.recommendedUnder
+                              ? <>You already are: the route above leaves an estate under {formatGBP(t.threshold)}, so the full {formatGBP(t.bandAtStake)} of residence allowance comes back. That is part of why it wins.</>
+                              : clear
+                                ? <>Getting under the line brings back {formatGBP(t.bandAtStake)} of residence allowance &mdash; worth about {formatGBP(t.bandAtStake * 0.4)} of tax &mdash; but needs {formatGBP(clear.extra)} more given away than the route above.</>
+                                : <>Your estate cannot be brought under the line by any gift the plan can afford, so the {formatGBP(t.bandAtStake)} of residence allowance stays withdrawn whatever you do.</>}
                           </span>
                         </button>
                         {estateOpen('taper') && (<>

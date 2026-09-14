@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import * as d3 from 'd3';
 import {
   TrendingUp, Layers, Check, RotateCcw, Dices, Zap, ShieldCheck, Sliders, Download, Upload, Users, Wallet, Coins,
@@ -5607,48 +5607,245 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-function SketchRoulette({ className = '', spin = false }) {
+/*
+ * A EUROPEAN SINGLE-ZERO WHEEL, AND THE ONE THING THAT MAKES IT LOOK REAL.
+ *
+ * The wheel is still until it is clicked. A click picks the winning pocket FIRST and then solves the
+ * motion backwards so the ball arrives exactly there - rather than running free physics and reading off
+ * wherever it happens to stop, which drifts a fraction of a pocket and lands the ball on a fret.
+ *
+ * Two bodies turning opposite ways, as on a real table: the head carries the pockets and the numbers,
+ * the ball runs the other way round the stationary bowl until it loses speed, drops off the track,
+ * knocks across the frets and settles. The knocks are a decaying wobble on both the radius and the
+ * angle, and both reach zero at the final frame, so the landing stays exact however the bounce looks.
+ *
+ * Nothing here re-renders during the spin: the frame loop writes transforms straight onto two refs,
+ * so React sees two state changes for the whole animation rather than four hundred.
+ */
+const WHEEL_ORDER = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23,
+                     10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+const RED_NUMBERS = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
+const POCKET_STEP = 360 / WHEEL_ORDER.length;
+
+// the 240-unit viewBox, and the radii the whole drawing is built from
+const RW = { c: 120, rim: 117, track: 99, apron: 90, pocketOut: 86, pocketIn: 58, ball: 78, numbers: 68 };
+const rwPolar = (r, deg) => {
+  const a = (deg * Math.PI) / 180;
+  return { x: RW.c + r * Math.cos(a), y: RW.c + r * Math.sin(a) };
+};
+// pocket i sits this many degrees round, measured from twelve o'clock
+const pocketDeg = (i) => -90 + i * POCKET_STEP;
+const pocketWedge = (i) => {
+  const a0 = pocketDeg(i) - POCKET_STEP / 2;
+  const a1 = a0 + POCKET_STEP;
+  const p0 = rwPolar(RW.pocketOut, a0), p1 = rwPolar(RW.pocketOut, a1);
+  const q1 = rwPolar(RW.pocketIn, a1), q0 = rwPolar(RW.pocketIn, a0);
+  return `M${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A${RW.pocketOut} ${RW.pocketOut} 0 0 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`
+    + ` L${q1.x.toFixed(2)} ${q1.y.toFixed(2)} A${RW.pocketIn} ${RW.pocketIn} 0 0 0 ${q0.x.toFixed(2)} ${q0.y.toFixed(2)} Z`;
+};
+const colourOf = (n) => (n === 0 ? 'zero' : RED_NUMBERS.has(n) ? 'red' : 'black');
+const mod360 = (x) => ((x % 360) + 360) % 360;
+
+function RouletteWheel({ className = '', onResult }) {
   const still = usePrefersReducedMotion();
-  const live = spin && !still;
-  // The wheel is drawn in perspective, so the spokes are squashed about the centre (85, 56) and the
-  // rotation happens inside that squash: turning first and flattening second is what a real wheel does.
-  // The ball runs the other way round an ellipse of its own, the way it does before it drops.
+  const wheelRef = useRef(null);
+  const ballRef = useRef(null);
+  const rafRef = useRef(0);
+  // where the two bodies were left, so a second spin carries on from the first rather than snapping back
+  const restRef = useRef({ wheel: 0, ball: pocketDeg(0), idx: 0 });
+  const [spinning, setSpinning] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const place = useCallback((wheelDeg, ballDeg, ballR) => {
+    if (wheelRef.current) wheelRef.current.setAttribute('transform', `rotate(${wheelDeg.toFixed(3)} ${RW.c} ${RW.c})`);
+    if (ballRef.current) {
+      const pt = rwPolar(ballR, ballDeg);
+      ballRef.current.setAttribute('transform', `translate(${pt.x.toFixed(2)} ${pt.y.toFixed(2)})`);
+    }
+  }, []);
+
+  // park the ball in its pocket on mount, and put it back there after any re-render
+  useEffect(() => {
+    const r = restRef.current;
+    place(r.wheel, r.ball, RW.ball);
+  }, [place, result, spinning]);
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
+
+  const land = useCallback((idx) => {
+    const n = WHEEL_ORDER[idx];
+    setResult(n);
+    if (typeof onResult === 'function') onResult(n);
+  }, [onResult]);
+
+  const spin = useCallback(() => {
+    if (spinning) return;
+    const idx = Math.floor(Math.random() * WHEEL_ORDER.length);
+
+    // a browser asking for less motion still gets an answer, it just does not get the journey
+    if (still) {
+      const wheel = mod360(restRef.current.wheel + 360 * Math.random());
+      restRef.current = { wheel, ball: wheel + pocketDeg(idx), idx };
+      place(restRef.current.wheel, restRef.current.ball, RW.ball);
+      land(idx);
+      return;
+    }
+
+    setSpinning(true);
+    setResult(null);
+    const startWheel = restRef.current.wheel;
+    const startBall = restRef.current.ball;
+    const endWheel = startWheel + 360 * (5 + Math.random() * 2);
+    // the screen angle the winning pocket will have come to rest at, and a ball angle congruent to it
+    const target = endWheel + pocketDeg(idx);
+    const rough = startBall - 360 * (8 + Math.random() * 2);
+    const endBall = rough - mod360(rough - target);
+
+    const DURATION = 6800;
+    const DROP = 0.56;                                   // where the ball leaves the track
+    const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
+    const easeOutQuint = (t) => 1 - Math.pow(1 - t, 5);
+    const t0 = performance.now();
+
+    const frame = (now) => {
+      const t = Math.min(1, (now - t0) / DURATION);
+      const wheelDeg = startWheel + (endWheel - startWheel) * easeOutQuart(t);
+      let ballDeg = startBall + (endBall - startBall) * easeOutQuint(t);
+      let r = RW.track;
+      if (t > DROP) {
+        const u = (t - DROP) / (1 - DROP);
+        const decay = Math.pow(1 - u, 1.7);
+        // the fall, plus three knocks off the frets that die out exactly as the ball beds in
+        r = RW.track + (RW.ball - RW.track) * (1 - Math.pow(1 - u, 3)) + Math.abs(Math.sin(u * Math.PI * 3.2)) * 11 * decay;
+        ballDeg += Math.sin(u * Math.PI * 6.5) * 4.5 * decay;
+      }
+      place(wheelDeg, ballDeg, r);
+      if (t < 1) { rafRef.current = requestAnimationFrame(frame); return; }
+      restRef.current = { wheel: mod360(endWheel), ball: mod360(endWheel) + pocketDeg(idx), idx };
+      place(restRef.current.wheel, restRef.current.ball, RW.ball);
+      setSpinning(false);
+      land(idx);
+    };
+    rafRef.current = requestAnimationFrame(frame);
+  }, [spinning, still, place, land]);
+
+  const tone = result === null ? null : colourOf(result);
+
   return (
-    <svg viewBox="0 0 170 130" className={className} fill="none" stroke="currentColor" strokeWidth="1.5"
-      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      {/* outer rim: an open path that overshoots where it closes, so the line looks drawn round once */}
-      <path d="M87 27 Q133 28 136 56 Q137 82 85 85 Q33 85 32 57 Q32 30 84 27 Q99 27 108 29" />
-      {/* the depth of the bowl, and a lighter repeat of the near edge */}
-      <path d="M32 58 Q34 74 85 76 Q136 75 136 57" opacity="0.55" />
-      <path d="M35 61 Q40 74 85 77" opacity="0.3" />
-      {/* inner track and hub */}
-      <path d="M85 37 Q122 38 123 56 Q123 73 84 74 Q46 74 46 57 Q46 39 84 37" opacity="0.7" />
-      <path d="M85 50 q13 0 13 6 q0 6 -13 6 q-13 0 -13 -6 q0 -6 13 -6" />
-      {/* spokes, drawn unevenly, turning as one */}
-      <g transform="translate(85 56) scale(1 0.487) translate(-85 -56)" strokeWidth="2.2">
-        {live && <animateTransform attributeName="transform" type="rotate" additive="sum"
-          from="0 85 56" to="360 85 56" dur="5.2s" repeatCount="indefinite" />}
-        <path d="M98 56 L121 56 M85 69 L85 92 M72 56 L49 56 M85 43 L85 20" opacity="0.6" />
-        <path d="M94.9 65.9 L109 80 M75.1 65.9 L61 80 M75.1 46.1 L61 32 M94.9 46.1 L109 32" opacity="0.35" />
-      </g>
-      {/* the ball, with a scuff of motion behind it */}
-      <g transform={live ? undefined : 'translate(110 47)'}>
-        {live && <animateMotion dur="2.3s" repeatCount="indefinite" rotate="auto"
-          path="M130 56 A45 22 0 1 0 40 56 A45 22 0 1 0 130 56" />}
-        <g>
-          {live && <animateTransform attributeName="transform" type="translate" additive="sum"
-            values="0 0; 0.8 -0.6; -0.5 0.9; 0.9 0.4; -0.4 -0.7; 0 0" dur="0.55s" repeatCount="indefinite" />}
-          <path d="M0 -3.5 q4.6 -0.5 4.6 3.5 q0 4 -4.6 4 q-4.6 0 -4.6 -4 q0 -4 4.6 -3.5" />
-          <path d="M-11 -2 q6 -2.5 11 -1.5" opacity="0.45" />
-        </g>
-      </g>
-      {/* a corner of the betting layout, ruled by hand */}
-      <g opacity="0.45" transform="translate(8 95)">
-        <path d="M2 2 Q78 3 152 5" />
-        <path d="M2 2 Q1 15 0 28 M40 3 L37 29 M78 4 L76 30 M115 4 L114 30 M152 5 L151 31" />
-        <path d="M0 28 Q76 30 151 31" />
-      </g>
-    </svg>
+    <div className={`flex flex-col items-center gap-3 ${className}`}>
+      <button type="button" onClick={spin} aria-busy={spinning}
+        aria-label={spinning ? 'The wheel is spinning' : 'Spin the roulette wheel'}
+        className="group relative block w-full rounded-full cursor-pointer transition-transform duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-500 disabled:cursor-default"
+        disabled={spinning}>
+        <svg viewBox="0 0 240 240" className="block w-full h-auto drop-shadow-lg" role="img"
+          aria-label="A European roulette wheel">
+          <defs>
+            <radialGradient id="rw-wood" cx="38%" cy="30%" r="78%">
+              <stop offset="0%" stopColor="#7c4526" /><stop offset="55%" stopColor="#4d2716" /><stop offset="100%" stopColor="#2a1309" />
+            </radialGradient>
+            <radialGradient id="rw-cone" cx="38%" cy="28%" r="80%">
+              <stop offset="0%" stopColor="#5a3b26" /><stop offset="60%" stopColor="#33200f" /><stop offset="100%" stopColor="#1b1008" />
+            </radialGradient>
+            {/*
+              * userSpaceOnUse, not the default: a bounding-box gradient collapses to nothing on a
+              * perfectly horizontal or vertical line, and the turret arms are both. Striking it across
+              * the whole wheel also puts the highlight in one place, as a single light source would.
+              */}
+            <linearGradient id="rw-brass" gradientUnits="userSpaceOnUse" x1="40" y1="10" x2="185" y2="225">
+              <stop offset="0%" stopColor="#f6d894" /><stop offset="40%" stopColor="#c99b3c" /><stop offset="100%" stopColor="#6d4d16" />
+            </linearGradient>
+            <radialGradient id="rw-gloss" cx="34%" cy="24%" r="62%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.30" />
+              <stop offset="55%" stopColor="#ffffff" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="#000000" stopOpacity="0.22" />
+            </radialGradient>
+            <radialGradient id="rw-ball" cx="34%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#ffffff" /><stop offset="60%" stopColor="#efe9dc" /><stop offset="100%" stopColor="#b9ae99" />
+            </radialGradient>
+          </defs>
+
+          {/* the bowl, which does not turn */}
+          <circle cx={RW.c} cy={RW.c} r={RW.rim} fill="url(#rw-wood)" />
+          <circle cx={RW.c} cy={RW.c} r={RW.rim} fill="none" stroke="url(#rw-brass)" strokeWidth="2.5" />
+          <circle cx={RW.c} cy={RW.c} r={RW.rim - 5} fill="none" stroke="#1b0d05" strokeWidth="1" opacity="0.5" />
+          {/* the ball track, cut as a recessed groove */}
+          <circle cx={RW.c} cy={RW.c} r={(RW.rim - 6 + RW.apron) / 2} fill="none" stroke="#24120a"
+            strokeWidth={RW.rim - 6 - RW.apron} opacity="0.85" />
+          <circle cx={RW.c} cy={RW.c} r={RW.apron + 1} fill="none" stroke="url(#rw-brass)" strokeWidth="1.6" opacity="0.8" />
+          {/* eight deflectors, fixed to the bowl the way they are on a real wheel */}
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
+            const pt = rwPolar(RW.apron + 4.5, a - 90);
+            return <path key={a} d="M0 -5 L4 0 L0 5 L-4 0 Z" fill="url(#rw-brass)" stroke="#6b4a13" strokeWidth="0.5"
+              transform={`translate(${pt.x.toFixed(2)} ${pt.y.toFixed(2)}) rotate(${a})`} />;
+          })}
+
+          {/* the head: pockets, frets and numbers, all turning together */}
+          <g ref={wheelRef} data-rw-head>
+            <circle cx={RW.c} cy={RW.c} r={RW.pocketOut + 2} fill="#1d0f07" />
+            {WHEEL_ORDER.map((n, i) => (
+              <path key={`p${n}`} d={pocketWedge(i)}
+                fill={n === 0 ? '#0f7245' : RED_NUMBERS.has(n) ? '#b3242c' : '#16120f'} />
+            ))}
+            {WHEEL_ORDER.map((n, i) => {
+              const a = pocketDeg(i) - POCKET_STEP / 2;
+              const o = rwPolar(RW.pocketOut, a), inn = rwPolar(RW.pocketIn, a);
+              return <line key={`f${n}`} x1={o.x} y1={o.y} x2={inn.x} y2={inn.y}
+                stroke="url(#rw-brass)" strokeWidth="1.1" opacity="0.9" />;
+            })}
+            <circle cx={RW.c} cy={RW.c} r={RW.pocketOut} fill="none" stroke="url(#rw-brass)" strokeWidth="1.6" />
+            {WHEEL_ORDER.map((n, i) => {
+              const pt = rwPolar(RW.numbers, pocketDeg(i));
+              return (
+                <text key={`n${n}`} x={pt.x} y={pt.y} fill="#fdf8ef" fontSize="8.2" fontWeight="700"
+                  textAnchor="middle" dominantBaseline="central" letterSpacing="-0.2"
+                  transform={`rotate(${(pocketDeg(i) + 90).toFixed(2)} ${pt.x.toFixed(2)} ${pt.y.toFixed(2)})`}>{n}</text>
+              );
+            })}
+            {/* the cone, and the turret standing on it */}
+            <circle cx={RW.c} cy={RW.c} r={RW.pocketIn} fill="url(#rw-cone)" stroke="url(#rw-brass)" strokeWidth="1.6" />
+            <circle cx={RW.c} cy={RW.c} r={RW.pocketIn - 13} fill="none" stroke="#000" strokeWidth="0.9" opacity="0.3" />
+            <circle cx={RW.c} cy={RW.c} r={RW.pocketIn - 13} fill="none" stroke="url(#rw-brass)" strokeWidth="0.7" opacity="0.45" />
+            {/* the four handles of the turret, the part a croupier actually spins */}
+            <g strokeLinecap="round">
+              {[0, 90, 180, 270].map((a) => (
+                <g key={a} transform={`rotate(${a} ${RW.c} ${RW.c})`}>
+                  <line x1={RW.c} y1={RW.c} x2={RW.c + 34} y2={RW.c} stroke="#1a0f07" strokeWidth="5.4" opacity="0.55" />
+                  <line x1={RW.c} y1={RW.c} x2={RW.c + 34} y2={RW.c} stroke="url(#rw-brass)" strokeWidth="3.4" />
+                  <circle cx={RW.c + 34} cy={RW.c} r="3.4" fill="url(#rw-brass)" stroke="#5c3f11" strokeWidth="0.5" />
+                </g>
+              ))}
+            </g>
+            <circle cx={RW.c} cy={RW.c} r="16" fill="url(#rw-cone)" stroke="url(#rw-brass)" strokeWidth="1.6" />
+            <circle cx={RW.c} cy={RW.c} r="9" fill="url(#rw-brass)" stroke="#5c3f11" strokeWidth="0.6" />
+            <circle cx={RW.c} cy={RW.c} r="3.4" fill="#5c3f11" opacity="0.7" />
+            <circle cx={RW.c - 2.6} cy={RW.c - 3.2} r="2.4" fill="#fff6dd" opacity="0.75" />
+          </g>
+
+          {/* the ball */}
+          <g ref={ballRef} data-rw-ball>
+            <circle r="5.2" fill="url(#rw-ball)" />
+            <circle cx="-1.6" cy="-1.8" r="1.5" fill="#ffffff" opacity="0.9" />
+            <circle r="5.2" fill="none" stroke="#6b6355" strokeWidth="0.5" opacity="0.5" />
+          </g>
+
+          {/* one pass of light over the whole bowl, so it reads as a dish rather than a disc */}
+          <circle cx={RW.c} cy={RW.c} r={RW.rim} fill="url(#rw-gloss)" pointerEvents="none" />
+        </svg>
+      </button>
+
+      <div aria-live="polite" className="h-6 flex items-center justify-center">
+        {spinning ? (
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">No more bets</span>
+        ) : result === null ? (
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 group-hover:text-slate-700">Click to spin</span>
+        ) : (
+          <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <span className={`inline-flex items-center justify-center min-w-[26px] h-[26px] px-1.5 rounded-full text-white text-xs font-bold tabular-nums ${
+              tone === 'zero' ? 'bg-emerald-700' : tone === 'red' ? 'bg-rose-700' : 'bg-slate-800'}`}>{result}</span>
+            {tone === 'zero' ? 'Zero — the house edge' : tone === 'red' ? 'Red' : 'Black'}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -8085,10 +8282,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {activeTab === 'home' && (
           <div className="space-y-6">
             <div className="relative overflow-hidden bg-surface border border-slate-200/90 rounded-2xl shadow-xs">
-              {/* light-touch sketches: decorative, behind the text, and out of the way on narrow screens */}
-              <SketchRoulette spin className="hidden md:block absolute -right-6 -top-4 w-64 lg:w-80 text-indigo-600/[0.2] pointer-events-none" />
-              <SketchCards className="hidden lg:block absolute right-64 top-16 w-40 text-amber-600/[0.16] pointer-events-none rotate-6" />
-              <div className="relative p-6 sm:p-8 max-w-2xl space-y-3">
+              {/* the cards stay decorative; the wheel is a real control now, so it is out of the text's way */}
+              <SketchCards className="hidden xl:block absolute right-[20rem] top-10 w-36 text-amber-600/[0.16] pointer-events-none rotate-6" />
+              <div className="relative p-6 sm:p-8 flex flex-col md:flex-row md:items-center gap-7 lg:gap-10">
+              <div className="max-w-2xl space-y-3 flex-1 min-w-0">
                 <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-600">His Majesty's Royal Casino presents</span>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-display italic leading-tight">
                   Test your portfolio against the casino of life!
@@ -8112,6 +8309,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <strong className="text-slate-700 font-semibold">Educational and illustrative only. This is not financial advice.</strong> Everything
                   is stated in today&rsquo;s money, and your plan is saved in this browser only.
                 </p>
+              </div>
+              <RouletteWheel className="w-44 sm:w-52 lg:w-60 shrink-0 self-center" />
               </div>
             </div>
 

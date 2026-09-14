@@ -5065,15 +5065,22 @@ function estateActionPlan(plan, result) {
     const steps = (DECUMULATION_POLICIES[b.policy] || { steps: [] }).steps;
     out.push({
       key: 'order', group: 'reallocate',
-      title: 'Draw money in this order',
+      /*
+       * "Draw money in this order" never said where to. A household reading it next to the step below -
+       * which draws pension income and moves it into an ISA - cannot tell whether this is money to live
+       * on or money being shuffled between wrappers, and those are opposite actions. The title names
+       * the purpose and the first fact names the destination.
+       */
+      title: 'Each year, take the money you live on in this order',
       // the order IS the instruction, so it is a sequence to be read at a glance, not a sentence to parse
       sequence: steps.map(stepPhrase),
       facts: [
+        { k: 'Where it goes', v: 'your bank account, to spend — this step is not moving money between wrappers' },
         ...(hr && steps.includes('penPA')
-          ? [{ k: 'Other income', v: `${gbp(hr.otherIncome)} a year before any pension — state pension, earnings and anything else taxable. Both ceilings below are measured after it.` }]
+          ? [{ k: 'Other income', v: `${gbp(hr.otherIncome)} a year before any pension — state pension, earnings and anything else taxable. Both ceilings above are measured after it.` }]
           : []),
         { k: 'Tax-free cash', v: b.drawdown === 'Full 25% Lump Sum' ? 'take it all in one lump' : 'take it a slice at a time' }],
-      why: 'Stop as soon as the year is covered; everything below is left alone.',
+      why: 'Work down the list until the year\u2019s spending is covered, then stop. Everything below is left where it is.',
       body: (play[0] ? play[0].body : `Follow the ${b.policy} order.`)
         + (b.drawdown === 'Full 25% Lump Sum'
           ? ' Take the tax-free lump sum in one go rather than a slice at a time with each withdrawal.'
@@ -5086,8 +5093,13 @@ function estateActionPlan(plan, result) {
   if ((b.ceiling || 'pa') !== (plan?.config?.harvestCeiling === 'basic' ? 'basic' : 'pa')) {
     out.push({
       key: 'ceiling', group: 'reallocate',
+      /*
+       * Named by where the money ENDS UP, so it cannot be confused with the step above it. Both used
+       * the word "draw" and only one of them meant spending; this one is a transfer between your own
+       * wrappers and the title should say so before the facts do.
+       */
       title: b.ceiling === 'basic'
-        ? `Draw pension income up to ${gbp(P.higherRateStartsAt)} every year`
+        ? `Each year, move pension into your ISA — up to the ${gbp(P.higherRateStartsAt)} band`
         : `Stop drawing pension income at ${gbp(P.pa)} a year`,
       facts: b.ceiling === 'basic'
         ? [{ k: 'Each year', v: `up to ${gbp(P.higherRateStartsAt)} of taxable income` },

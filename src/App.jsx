@@ -4500,7 +4500,14 @@ function optimizeInheritance(rawPlan, opts = {}) {
     }
   }
   if (e.rnrb <= 0 && toClear > liquidToday) {
-    reasons.push({ key: 'gift', text: `The residence allowance is fully withdrawn and out of reach: bringing any of it back needs the estate to fall ${gbp0(toClear)}, against ${gbp0(liquidToday)} outside your pension. A gift still reduces the estate, but not enough to restore the band.` });
+    /*
+     * Said once. The taper card below carries the same finding with a table of gift sizes against the
+     * estate each leaves, so repeating it here as a paragraph was the reader's second encounter with
+     * an answer they had not asked twice. The short form stays for the case the card cannot cover -
+     * an estate over the line with no ladder to draw, which happens when fewer than two gift sizes
+     * survive the affordability test.
+     */
+    reasons.push({ key: 'gift', text: `The residence allowance is fully withdrawn and out of reach: bringing any of it back needs the estate to fall ${gbp0(toClear)}, against ${gbp0(liquidToday)} outside your pension.` });
   }
 
   // ---- priced alongside, not ranked: the charity rate, and how long the heirs take the pension
@@ -5081,11 +5088,12 @@ function estateActionPlan(plan, result) {
           : []),
         { k: 'Tax-free cash', v: b.drawdown === 'Full 25% Lump Sum' ? 'take it all in one lump' : 'take it a slice at a time' }],
       why: 'Work down the list until the year\u2019s spending is covered, then stop. Everything below is left where it is.',
-      body: (play[0] ? play[0].body : `Follow the ${b.policy} order.`)
-        + (b.drawdown === 'Full 25% Lump Sum'
-          ? ' Take the tax-free lump sum in one go rather than a slice at a time with each withdrawal.'
-          : ' Take the tax-free cash a slice at a time with each withdrawal, not in one lump.'),
-      detail: 'Nothing to arrange with anyone: it is how you choose which account to sell from each year. Applying this writes it into the plan, and the Config tab explains the order in full.'
+      /*
+       * No prose restatement of the list. `body` used to spell the same six steps out again as a
+       * sentence - and did it in the wording the steps carried BEFORE they were given their measured
+       * headroom, so the fold contradicted the list it sat under.
+       */
+      detail: 'Nothing to arrange with anyone: it is how you choose which account to sell from each year. The Config tab explains the order in full.'
     });
   }
 
@@ -5101,20 +5109,17 @@ function estateActionPlan(plan, result) {
       title: b.ceiling === 'basic'
         ? `Each year, move pension into your ISA — up to the ${gbp(P.higherRateStartsAt)} band`
         : `Stop drawing pension income at ${gbp(P.pa)} a year`,
+      // the title carries the band, so the facts carry what it does not: the cost, and the destination
       facts: b.ceiling === 'basic'
-        ? [{ k: 'Each year', v: `up to ${gbp(P.higherRateStartsAt)} of taxable income` },
-           { k: 'Tax on it', v: `${num(c.basicTaxRate, 20)}%` },
+        ? [{ k: 'Tax on it', v: `${num(c.basicTaxRate, 20)}% — this is the cost of moving it` },
            { k: 'Put the net into', v: `your ISA, up to ${gbp(P.isaAllowance)} a year, then your GIA` }]
-        : [{ k: 'Each year', v: `stop at ${gbp(P.pa)}` }],
+        : [{ k: 'Each year', v: `stop once your taxable income reaches ${gbp(P.pa)}` }],
       why: b.ceiling === 'basic'
-        ? `From ${num(c.pensionsInEstateFrom, 2027)} a pension left behind is taxed twice; paying ${num(c.basicTaxRate, 20)}% now beats that.`
+        ? `From ${num(c.pensionsInEstateFrom, 2027)} a pension left behind is taxed twice — by your estate at ${num(c.ihtRate, 40)}%, then by whoever inherits it at their own rate. Paying ${num(c.basicTaxRate, 20)}% now beats both.`
         : 'Drawing past the personal allowance costs tax today for a benefit that may never arrive.',
-      body: b.ceiling === 'basic'
-        ? `Take enough taxable pension income to reach ${gbp(P.higherRateStartsAt)} in total, pay the 20%, and put the net straight back into your ISA up to ${gbp(P.isaAllowance)} a year, then into your general investment account. You are not spending it - you are moving it.`
-        : `Stop drawing once your taxable income reaches ${gbp(P.pa)}. Anything beyond that costs tax you do not need to pay.`,
       detail: b.ceiling === 'basic'
-        ? `Worth doing because from ${num(c.pensionsInEstateFrom, 2027)} a pension left behind is taxed twice - by your estate at ${num(c.ihtRate, 40)}%, then by whoever inherits it at their own rate. Paying ${num(c.basicTaxRate, 20)}% now beats both. It stops being worth it if you die before ${num(c.pensionIncomeTaxFromAge, 75)}, when an inherited pension carries no income tax at all.`
-        : 'Drawing further costs tax today for a benefit that only arrives if you die at 75 or over.'
+        ? `It stops being worth it if you die before ${num(c.pensionIncomeTaxFromAge, 75)}, when an inherited pension carries no income tax at all.`
+        : `It only arrives if you die at ${num(c.pensionIncomeTaxFromAge, 75)} or over, and you would have paid the tax either way.`
     });
   }
 
@@ -5137,21 +5142,17 @@ function estateActionPlan(plan, result) {
       title: relief.length
         ? `Pay ${eachOwn} into your pension`
         : `Move ${eachOwn} into ${nameOf(own.length ? own[0].category : CATEGORY_LABEL.isa)}`,
+      // the title already carries the amount and the destination, so the facts carry the rest
       facts: [
-        { k: 'Amount', v: eachOwn },
         { k: 'From', v: nameOf(own.length ? own[0].transferredFrom : CATEGORY_LABEL.other) },
-        { k: 'To', v: nameOf(own.length ? own[0].category : CATEGORY_LABEL.isa) },
         { k: 'When', v: years.length > 1 ? `each year, ${years[0]} to ${years[years.length - 1]}` : String(years[0]) },
-        ...(relief.length ? [{ k: 'HMRC adds', v: `${level ? gbp(relief[0].amount) + ' a year' : gbp(sum(relief))}, so ${gbp(sum(own) + sum(relief))} lands` }] : [])
+        ...(relief.length ? [{ k: 'HMRC adds', v: `${level ? gbp(relief[0].amount) + ' a year' : gbp(sum(relief))}, so ${gbp(sum(own) + sum(relief))} lands for ${gbp(sum(own))} of your own money` }] : [])
       ],
       why: relief.length
-        ? 'Basic-rate relief is added whether or not you paid tax.'
+        ? 'Basic-rate relief is added whether or not you paid tax, which is why this is worth doing at all.'
         : `Sheltered from tax from then on, up to the ${gbp(P.isaAllowance)} an ISA can take.`,
-      body: relief.length
-        ? `Pay ${eachOwn} into your pension out of ${nameOf(own[0].transferredFrom)}. Your provider claims ${level ? gbp(relief[0].amount) + ' a year' : gbp(sum(relief))} back from HMRC on top, so ${gbp(sum(own) + sum(relief))} reaches the pension for ${gbp(sum(own))} of your own money.`
-        : `Move ${eachOwn} from ${nameOf(own.length ? own[0].transferredFrom : CATEGORY_LABEL.other)} into ${nameOf(own.length ? own[0].category : CATEGORY_LABEL.isa)}.`,
       detail: relief.length
-        ? `Basic-rate relief is added whether or not you paid tax, which is why this is worth doing at all. The amount is capped by your annual allowance - if you have already taken taxable pension income the limit is the ${gbp(P.mpaaLimit)} money purchase annual allowance, and the figure above already respects it.`
+        ? `The amount is capped by your annual allowance - if you have already taken taxable pension income the limit is the ${gbp(P.mpaaLimit)} money purchase annual allowance, and the figure above already respects it.`
         : `Capped by the ${gbp(P.isaAllowance)} a year an ISA can take. Selling to do it can realise a capital gain, which the projection has already charged.`
     });
   }
@@ -5163,16 +5164,14 @@ function estateActionPlan(plan, result) {
     out.push({
       key: 'nomination', group: 'reallocate',
       title: `Nominate the pension ${list}`,
+      // the title states the split; "Set it to" said it again, and `detail` opened on `why` verbatim
       facts: [
-        { k: 'Set it to', v: list },
-        { k: 'The form', v: 'beneficiary nomination, often called an expression of wish' },
-        { k: 'Ask', v: 'each pension provider' },
-        ...(dropped.length ? [{ k: 'Nothing to', v: `${dropped.join(' or ')} from the pension - they keep their share of everything else` }] : [])
+        { k: 'The form', v: 'beneficiary nomination — often called an expression of wish' },
+        { k: 'Ask', v: 'each pension provider separately' },
+        ...(dropped.length ? [{ k: 'Nothing to', v: `${dropped.join(' or ')} from the pension — they keep their share of everything else` }] : [])
       ],
       why: 'Your pension does not pass under your will, and your will cannot override this form.',
-      body: `Ask each pension provider for their beneficiary nomination form - it is often called an expression of wish - and set it to ${list}.`
-        + (dropped.length ? ` That leaves nothing from the pension to ${dropped.join(' or ')}, who still take their share of everything else under your will.` : ''),
-      detail: 'Your pension does not pass under your will and your will cannot override the form. This is the single most valuable change on the list, because an inherited pension is taxed at the rate of whoever receives it - and it is the one that costs nothing to make.'
+      detail: 'The single most valuable change on the list, because an inherited pension is taxed at the rate of whoever receives it — and the one that costs nothing to make.'
     });
   }
 
@@ -5185,89 +5184,99 @@ function estateActionPlan(plan, result) {
    */
   const giftYearRow = result.giftYearWrappers;
   /*
-   * The same funding answer as the paragraph below, in four words. "From: your ISAs and GIA" is the
-   * part somebody acts on; the sentence explaining why a pension pound costs more is the part they
-   * read once.
+   * WHERE THE MONEY COMES FROM, as a table rather than a sentence.
+   *
+   * "Give away £900,000" is not an instruction anyone can follow while holding £575,000 outside a
+   * pension: the rest has to be withdrawn as income first, and at the marginal rate that is the most
+   * expensive pound in the plan. The optimiser already prices that - it is why the best answer is
+   * usually smaller than the whole award - but the action has to say it, or the household finds out
+   * at the bank.
+   *
+   * It walks the policy's OWN cost order. The sentence this replaces sorted the wrappers by size,
+   * largest first, and so named an order the projection never used: a gift is funded as a one-off
+   * cost through ctx.costSteps, which is cash then the general investment account then ISAs then the
+   * pension, for every policy in the table. Telling a household to sell their ISA first when the
+   * model sold their cash first is a small lie that a table makes impossible to keep.
    */
-  const fundingSource = (amount) => {
-    if (!giftYearRow || !(amount > 0)) return 'your accounts';
-    const parts = [['isa', giftYearRow.isa], ['other', giftYearRow.other], ['cash', giftYearRow.cash]]
-      .filter(([, v]) => v > 1000).sort((x, y) => y[1] - x[1]);
-    const outside = parts.reduce((t, [, v]) => t + v, 0);
-    const named = parts.map(([k]) => WRAPPER_PHRASE[k].replace(/^your /, '')).join(', then ');
-    return amount <= outside + 1
-      ? (parts.length ? `your ${named} \u2014 not the pension` : 'your accounts')
-      : `your ${named}, then ${gbp(amount - outside)} out of the pension`;
-  };
-  const fundingNote = (amount) => {
-    if (!giftYearRow || !(amount > 0)) return '';
-    const parts = [['isa', giftYearRow.isa], ['other', giftYearRow.other], ['cash', giftYearRow.cash]]
-      .filter(([, v]) => v > 1000).sort((x, y) => y[1] - x[1]);
-    const outside = parts.reduce((t, [, v]) => t + v, 0);
-    const named = parts.map(([k, v]) => `${gbp(v)} in ${WRAPPER_PHRASE[k]}`)
-      .reduce((t, x, i, all) => t + (i === 0 ? '' : i === all.length - 1 ? ' and ' : ', ') + x, '');
-    if (amount <= outside + 1) {
-      return `Take it from ${parts.length > 1 ? 'those accounts' : WRAPPER_PHRASE[parts[0][0]]} rather than the pension: you have ${named} in ${result.giftYear}, which covers it. A pound of ISA or investment money leaves at face value; a pension pound has to be drawn as income first.`
-        + (parts.some(([k]) => k === 'other') ? ' Selling from the general investment account can realise a capital gain, which the projection has already charged.' : '');
+  const GIFT_COST_ORDER = (DECUMULATION_POLICIES[b.policy] || {}).costSteps || DEFAULT_COST_STEPS;
+  const SOURCE_LABEL = { cash: 'Cash savings', other: 'General investment account', isa: 'ISAs' };
+  const fundingTable = (amount) => {
+    if (!giftYearRow || !(amount > 0)) return null;
+    let left = amount;
+    const rows = [];
+    for (const step of GIFT_COST_ORDER) {
+      if (!SOURCE_LABEL[step]) continue;                      // the pension steps are handled below
+      const bal = Math.max(0, num(giftYearRow[step], 0));
+      if (bal <= 1) continue;
+      const taken = Math.min(left, bal);
+      rows.push({ source: SOURCE_LABEL[step], balance: bal, taken, left: bal - taken });
+      left -= taken;
     }
-    const short = amount - outside;
-    const rate = marginalRateAt(num(giftYearRow.income, 0) + short, c);
-    const gross = rate < 1 ? short / (1 - rate) : short;
-    return `Outside the pension in ${result.giftYear} you hold ${outside > 0 ? named : 'nothing'} — ${gbp(outside)} against a gift of ${gbp(amount)}, so take that part from there first. The other ${gbp(short)} has to come out of the pension, which means withdrawing about ${gbp(gross)} to hand over ${gbp(short)} once income tax at ${Math.round(rate * 100)}% is paid. That cost is already inside the figure above, and it is why the amount suggested is usually less than everything you could give.`;
+    /*
+     * The pension row exists only when the liquid wrappers fall short, and it is the one row where
+     * "taken" and "delivered" differ: the gift is the NET, so the withdrawal has to be grossed up at
+     * the marginal rate on top of whatever income the year already carries.
+     */
+    let pension = null;
+    if (left > 1) {
+      const rate = marginalRateAt(num(giftYearRow.income, 0) + left, c);
+      pension = { net: left, gross: rate < 1 ? left / (1 - rate) : left, ratePct: Math.round(rate * 100) };
+    }
+    const covered = rows.reduce((t, r) => t + r.taken, 0);
+    return { total: amount, rows, pension, coveredFromLiquid: covered };
+  };
+  /*
+   * One table where there are two gifts, because they come out of the same accounts and cannot both
+   * spend the same ISA pound. It is attached to the first gift card and its total is the pair, which
+   * is why the total row is labelled rather than assumed to match the title above it.
+   */
+  const fundingFor = (own, combined) => {
+    const t = fundingTable(combined);
+    return t ? { ...t, covers: combined > own + 1 ? 'both gifts together' : null } : null;
   };
 
   // 5. the gift
   if (b.gift > 0 && !heldGift(`estate_gift_${result.giftYear}`)) {
     out.push({
       key: 'gift', group: 'gift',
+      // the title carries the amount and the year, so no fact repeats either
       title: `Gift ${gbp(b.gift)} in ${result.giftYear}`,
-      facts: [
-        { k: 'Amount', v: gbp(b.gift) },
-        { k: 'From', v: fundingSource(b.gift + (b.compGift ? num(b.compGift.amount, 0) : 0)) },
-        { k: 'When', v: String(result.giftYear) },
-        { k: 'Record', v: 'the date, the amount and who received it' }
-      ],
+      facts: [{ k: 'Record', v: 'the date, the amount and who received it — your executors need all three' }],
+      fundingTable: fundingFor(b.gift, b.gift + (b.compGift ? num(b.compGift.amount, 0) : 0)),
       why: `Out of your estate from the day you give it for the ${gbp(num(c.ihtRnrbTaperFrom, 2000000))} residence-allowance test; seven years to leave it entirely.`,
-      body: `Make the gift and write down the date, the amount and who received it. Your executors will need all three. `
-        + fundingNote(b.gift + (b.compGift ? num(b.compGift.amount, 0) : 0)),
-      detail: `It leaves your plan that year, so it is money you no longer have to live on - check the survival rate afterwards. The ${gbp(num(c.ihtRnrbTaperFrom, 2000000))} residence-allowance test looks at what you owned at death, so this part works from the day you give it; the gift itself still needs seven years to leave your estate entirely.`
+      detail: 'It leaves your plan that year, so it is money you no longer have to live on. A pound of ISA or investment money leaves at face value; a pension pound has to be drawn as income first, which is why the amount suggested is usually less than everything you could give.'
     });
   }
 
   // 5b. the compensation gift, which has a deadline nothing else here has
   if (b.compGift && !heldGift(`estate_comp_${b.compGift.year}`)) {
     const w = result.compensationWindow;
+    const more = num(result.compensationLeftToGive, 0) > num(b.compGift.amount, 0) + 1;
     out.push({
       key: 'compGift', group: 'gift',
+      // amount and deadline both live in the title; the facts below add only what it does not say
       title: `Gift ${gbp(b.compGift.amount)} of the compensation${w ? ` before ${w.endDate}` : ` in ${b.compGift.year}`}`,
       facts: [
-        { k: 'Amount', v: gbp(b.compGift.amount) + (num(result.compensationLeftToGive, 0) > num(b.compGift.amount, 0) + 1 ? ` of the ${gbp(result.compensationLeftToGive)} still giftable` : ', all that is left of the award') },
-        { k: 'From', v: fundingSource(num(b.compGift.amount, 0) + num(b.gift, 0)) },
-        ...(w ? [{ k: 'Deadline', v: `${w.endDate} \u2014 and it is a hard one` }] : [{ k: 'When', v: String(b.compGift.year) }]),
+        ...(more ? [{ k: 'Of the award', v: `${gbp(result.compensationLeftToGive)} is still giftable under the window` }]
+                 : [{ k: 'Of the award', v: 'all that is left of it' }]),
         { k: 'Record', v: 'what the payment was and when you received it' }
       ],
-      why: 'Inside the window it uses no allowance and starts no seven-year clock. After it, an ordinary gift.',
-      body: `Hand it to the people you want to have it, and keep the paperwork showing what the payment was and when you received it.`
-        + (num(result.compensationLeftToGive, 0) > num(b.compGift.amount, 0) + 1
-          ? ` That is part of the ${gbp(result.compensationLeftToGive)} still available under the window; giving more is possible but costs more than it saves, because the balance would have to come out of the pension.`
-          : '')
-        + (b.gift > 0 ? '' : ' ' + fundingNote(num(b.compGift.amount, 0)))
-        + (w ? ` The window closes on ${w.endDate} — two years from the day you were paid, or from 4 December 2025 if you were already holding it when the relief was announced.` : ''),
-      detail: 'Inside the window it costs no allowance and starts no seven-year clock. After it, the same gift is an ordinary transfer that eats your nil-rate band and needs you to survive seven years. Worth doing here because the money would otherwise be spent before it could be left to anyone.'
+      fundingTable: b.gift > 0 ? null : fundingFor(num(b.compGift.amount, 0), num(b.compGift.amount, 0)),
+      why: 'Inside the window it uses no allowance and starts no seven-year clock. After it, an ordinary gift that eats your nil-rate band and needs you to survive seven years.',
+      detail: (more
+        ? `Giving more than this is possible but costs more than it saves, because the balance would have to come out of the pension. `
+        : '')
+        + (w ? `The window is two years from the day you were paid, or from 4 December 2025 if you were already holding it when the relief was announced. ` : '')
+        + 'Worth doing because the money would otherwise be spent before it could be left to anyone.'
     });
   }
 
-  // 6. keeping the paperwork consistent, which is the step that gets skipped
-  if (b.split || b.gift > 0 || b.compGift) {   // paperwork outlives the steps above: it is never "applied"
-    out.push({
-      key: 'paperwork', group: 'paperwork',
-      title: 'Tell whoever holds your will',
-      facts: [{ k: 'Leave a note with the will', v: `saying where ${[b.split ? 'the nomination form' : '', (b.gift > 0 || b.compGift) ? 'the gift record' : ''].filter(Boolean).join(' and ') || 'the paperwork'} is kept` }],
-      why: 'None of it passes under the will, and none of it is any use if nobody can find it.',
-      body: 'The nomination form and the gift record sit outside your will, and none of them is any use if nobody can find them. Keep a note with the will saying where each one is.',
-      detail: 'This tool models the tax. It cannot draft a will, witness a signature, or tell you whether a gift is wise for reasons that have nothing to do with tax.'
-    });
-  }
+  /*
+   * No paperwork step. It told every household to leave a note with the will saying where the
+   * nomination form and the gift record are kept - true, untailored, and the same words whatever the
+   * search found. A step that never varies is not a finding, and it was taking a numbered slot from
+   * the ones that are.
+   */
 
   if (!out.length) {
     out.push({
@@ -7383,10 +7392,16 @@ export default function App() {
     const sumTable = (rows, note) => (rows && rows.length)
       ? `<table class="sum">${rows.map(r => `<tr class="${r.total ? 'total' : ''}"><td>${esc(r.k)}</td><td class="num">${esc(r.v)}</td></tr>`).join('')}</table>${note ? `<p class="fine">${esc(note)}</p>` : ''}`
       : '';
+    // the same four columns the tab shows, so a printed page is checkable against the screen
+    const fundingTableHtml = (ft) => (ft && ft.rows && ft.rows.length)
+      ? `<table class="fund"><thead><tr><th>Where it comes from</th><th class="num">Balance</th><th class="num">Taken</th><th class="num">Left</th></tr></thead><tbody>${
+          ft.rows.map(r => `<tr><td>${esc(r.source)}</td><td class="num">${money(r.balance)}</td><td class="num">${r.taken > 0 ? money(r.taken) : '—'}</td><td class="num">${money(r.left)}</td></tr>`).join('')
+        }${ft.pension ? `<tr><td>Pension, drawn as income<br><span class="fine">taxed at ${esc(ft.pension.ratePct)}% on the way out</span></td><td class="num">${money(ft.pension.gross)} drawn</td><td class="num">${money(ft.pension.net)}</td><td class="num">—</td></tr>` : ''
+        }<tr class="total"><td>Total${ft.covers ? ` — ${esc(ft.covers)}` : ''}</td><td class="num"></td><td class="num">${money(ft.total)}</td><td class="num"></td></tr></tbody></table>`
+      : '';
     const groups = [
       { g: 'reallocate', title: 'Move money, but keep it' },
-      { g: 'gift', title: 'Give money away' },
-      { g: 'paperwork', title: 'Then tell somebody' }
+      { g: 'gift', title: 'Give money away' }
     ].filter(sec => estateActions.some(a => a.group === sec.g));
     const bens = (estatePlan.bestEst.beneficiaries || []);
     const anyGift = bens.some(x => E.num(x.giftsReceived, 0) > 0);
@@ -7437,6 +7452,10 @@ export default function App() {
   .cost { color: #b42318; font-weight: 700; }
   footer { color: #6b6b76; font-size: 11.5px; margin-top: 28px; line-height: 1.6; }
   @media (max-width: 560px) { .tiles { grid-template-columns: 1fr; } body { padding: 20px 14px 48px; } }
+  table.fund { width: 100%; margin: 8px 0 4px; font-size: 12px; }
+  table.fund th { text-align: left; font-size: 11px; color: #6b6b76; }
+  table.fund th.num, table.fund td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.fund tr.total td { border-top: 1px solid #cfcfd6; font-weight: 700; }
   table.sum { width: auto; min-width: min(340px, 100%); margin: 6px 0 2px; font-size: 12px; }
   table.sum td { padding: 2px 0; border: 0; }
   table.sum td.num { padding-left: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -7461,7 +7480,7 @@ ${groups.map((sec, si) => `<h2>${si + 1}. ${esc(sec.title)}</h2><section>${
     a.sequence ? `<p class="seq">${a.sequence.map((x, j) => `<span>${j + 1}. ${esc(x)}</span>`).join('<i>→</i>')}</p>` : ''
   }${
     (a.facts || []).length ? `<dl>${a.facts.map(f => `<dt>${esc(f.k)}</dt><dd>${esc(f.v)}</dd>`).join('')}</dl>` : ''
-  }${a.why ? `<p>${esc(a.why)}</p>` : ''}<details><summary>The detail</summary>${a.body ? `<p class="fine">${esc(a.body)}</p>` : ''}${a.detail ? `<p class="fine">${esc(a.detail)}</p>` : ''}</details></div>`).join('')
+  }${fundingTableHtml(a.fundingTable)}${a.why ? `<p>${esc(a.why)}</p>` : ''}${a.detail ? `<details><summary>The detail</summary><p class="fine">${esc(a.detail)}</p></details>` : ''}</div>`).join('')
 }${sec.g === 'gift' && g && g.given > 0 ? `<div class="step" style="padding-left:0"><p class="fine"><strong>Why ${money(g.given)} and not more.</strong> It is worth ${money(g.worth)} against making no gift at all.${g.nextUp ? (g.nextUpFails ? ` Giving ${money(g.nextUp)} instead runs the plan short at age ${g.nextUpFailAge || '?'}, before the age of ${estatePlan.deathAge} you said you die.` : ` Giving ${money(g.nextUp)} instead leaves the heirs ${money(g.nextUpCost)} worse off.`) : ''}${g.liquidCeiling ? ` It stops there because that is everything held outside the pension.` : ''}</p>${sumTable(g.whySum, g.whyNote) || sumTable(g.liquidCeiling && g.liquidCeiling.sum, g.liquidCeiling && g.liquidCeiling.note)}</div>` : ''}</section>`).join('')}
 <h2>The figures</h2>
 <section><table><thead><tr><th>Line</th><th class="num">Amount</th><th class="num">Running</th></tr></thead><tbody>
@@ -9230,13 +9249,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       * each step, which costs no height.
                       */}
                     {(() => {
-                      const ORDER = ['reallocate', 'gift', 'paperwork'];
+                      const ORDER = ['reallocate', 'gift'];
                       const ordered = ORDER.flatMap(g => estateActions.filter(a => a.group === g));
                       const tone = (g) => g === 'gift'
                         ? { bg: 'bg-purple-50 border-purple-200', pip: 'bg-purple-600', head: 'text-purple-950', why: 'text-purple-800' }
-                        : g === 'paperwork'
-                          ? { bg: 'bg-slate-50 border-slate-200', pip: 'bg-slate-500', head: 'text-slate-900', why: 'text-slate-600' }
-                          : { bg: 'bg-emerald-50 border-emerald-200', pip: 'bg-emerald-600', head: 'text-emerald-950', why: 'text-emerald-800' };
+                        : { bg: 'bg-emerald-50 border-emerald-200', pip: 'bg-emerald-600', head: 'text-emerald-950', why: 'text-emerald-800' };
                       return (
                         <ol className="space-y-2 list-none" data-steps>
                           {ordered.map((a, i) => {
@@ -9246,7 +9263,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             <li key={a.key} className={`p-3 rounded-xl border flex gap-2.5 ${t.bg}`} data-action-group={a.group}>
                               <span className={`shrink-0 w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center mt-0.5 ${t.pip}`}>{sec.n}</span>
                               <div className="min-w-0 flex-1 space-y-1.5">
-                                <div className={`text-[13px] font-bold leading-snug ${sec.g === 'gift' ? 'text-purple-950' : sec.g === 'paperwork' ? 'text-slate-900' : 'text-emerald-950'}`}>{a.title}</div>
+                                <div className={`text-[13px] font-bold leading-snug ${sec.g === 'gift' ? 'text-purple-950' : 'text-emerald-950'}`}>{a.title}</div>
                                 {/*
                                   * One step per line, not a wrapping row of chips.
                                   *
@@ -9272,13 +9289,57 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                                   <dl className="space-y-0.5 text-[11px]">
                                     {a.facts.map(f => (
                                       <div key={f.k} className="flex gap-2">
-                                        <dt className={`w-24 shrink-0 font-semibold ${sec.g === 'gift' ? 'text-purple-600' : sec.g === 'paperwork' ? 'text-slate-500' : 'text-emerald-600'}`}>{f.k}</dt>
+                                        <dt className={`w-24 shrink-0 font-semibold ${sec.g === 'gift' ? 'text-purple-600' : 'text-emerald-600'}`}>{f.k}</dt>
                                         <dd className={`m-0 flex-1 font-medium ${sec.g === 'gift' ? 'text-purple-950' : 'text-slate-800'}`}>{f.v}</dd>
                                       </div>
                                     ))}
                                   </dl>
                                 )}
-                                {a.why && <div className={`text-[11px] leading-relaxed ${sec.g === 'gift' ? 'text-purple-800' : sec.g === 'paperwork' ? 'text-slate-600' : 'text-emerald-800'}`}>{a.why}</div>}
+                                {/*
+                                  * WHERE IT COMES FROM, as a table.
+                                  *
+                                  * This was a sentence naming three accounts and a second paragraph
+                                  * reciting their balances. Four numbers and a total is what somebody
+                                  * actually needs to go and do it, and a table is the only shape that
+                                  * shows the account being emptied next to the one that is not.
+                                  */}
+                                {a.fundingTable && a.fundingTable.rows.length > 0 && (
+                                  <div className="overflow-x-auto" data-funding-table>
+                                    <table className="w-full text-left text-[10px] border-collapse">
+                                      <thead><tr className="border-b border-purple-200 text-purple-600 font-semibold">
+                                        <th className="pb-1 pr-2">Where it comes from</th>
+                                        <th className="pb-1 pr-2 text-right">Balance</th>
+                                        <th className="pb-1 pr-2 text-right">Taken</th>
+                                        <th className="pb-1 text-right">Left</th>
+                                      </tr></thead>
+                                      <tbody className="divide-y divide-purple-100">
+                                        {a.fundingTable.rows.map(r => (
+                                          <tr key={r.source}>
+                                            <td className="py-1 pr-2 text-slate-700">{r.source}</td>
+                                            <td className="py-1 pr-2 text-right font-mono text-slate-500">{formatGBP(r.balance)}</td>
+                                            <td className={`py-1 pr-2 text-right font-mono font-bold ${r.taken > 0 ? 'text-purple-800' : 'text-slate-300'}`}>{r.taken > 0 ? formatGBP(r.taken) : '—'}</td>
+                                            <td className="py-1 text-right font-mono text-slate-600">{formatGBP(r.left)}</td>
+                                          </tr>
+                                        ))}
+                                        {a.fundingTable.pension && (
+                                          <tr className="bg-amber-50/60">
+                                            <td className="py-1 pr-2 text-amber-900">Pension, drawn as income<span className="block text-[9px] text-amber-700">taxed at {a.fundingTable.pension.ratePct}% on the way out</span></td>
+                                            <td className="py-1 pr-2 text-right font-mono text-amber-700">{formatGBP(a.fundingTable.pension.gross)}<span className="block text-[9px]">drawn</span></td>
+                                            <td className="py-1 pr-2 text-right font-mono font-bold text-purple-800">{formatGBP(a.fundingTable.pension.net)}</td>
+                                            <td className="py-1 text-right font-mono text-slate-400">—</td>
+                                          </tr>
+                                        )}
+                                        <tr className="border-t border-purple-300">
+                                          <td className="py-1 pr-2 font-bold text-slate-900">Total{a.fundingTable.covers ? <span className="font-normal text-slate-500"> — {a.fundingTable.covers}</span> : ''}</td>
+                                          <td className="py-1 pr-2" />
+                                          <td className="py-1 pr-2 text-right font-mono font-bold text-purple-900">{formatGBP(a.fundingTable.total)}</td>
+                                          <td className="py-1" />
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                )}
+                                {a.why && <div className={`text-[11px] leading-relaxed ${sec.g === 'gift' ? 'text-purple-800' : 'text-emerald-800'}`}>{a.why}</div>}
                                 {(a.body || a.detail) && (
                                   <details className="text-[10px]">
                                     <summary className={`cursor-pointer font-semibold ${sec.g === 'gift' ? 'text-purple-600 hover:text-purple-800' : 'text-slate-500 hover:text-slate-800'}`}>The detail</summary>

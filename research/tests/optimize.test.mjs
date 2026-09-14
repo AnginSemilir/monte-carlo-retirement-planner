@@ -304,9 +304,10 @@ console.log('=========== J. THE ANSWER AS THINGS TO DO ===========');
   const r = E.optimizeInheritance(h);
   const acts = E.estateActionPlan(E.normalizePlan(h), r);
   ok('there are actions to take', acts.length > 0, acts.map(a => a.key).join(', '));
-  ok('every action says what to do, not just what it is called', acts.every(a => a.title && a.body));
-  ok('the nomination names the form to ask for', acts.some(a => a.key === 'nomination' && /expression of wish/.test(a.body)));
-  ok('and the percentages to put on it', acts.some(a => a.key === 'nomination' && /%\s*to\s*\w/.test(a.body)));
+  // `body` is gone: it had become a longer restatement of the title, facts and why above it
+  ok('every action says what to do, not just what it is called', acts.every(a => a.title && (a.facts || a.sequence || a.fundingTable)));
+  ok('the nomination names the form to ask for', acts.some(a => a.key === 'nomination' && (a.facts || []).some(f => /expression of wish/.test(f.v))));
+  ok('and the percentages to put on it', acts.some(a => a.key === 'nomination' && /%\s*to\s*\w/.test(a.title)));
   /*
    * The transfer step only appears when transfers are part of the winning allocation, so it is checked on
    * a household where they are: three years to a priced death and cash sitting idle, which is the shape
@@ -315,13 +316,14 @@ console.log('=========== J. THE ANSWER AS THINGS TO DO ===========');
   const recycler = household({ deathAge: 73, cash: 250000, pen: 500000, isa: 100000, other: 0,
     incomes: [{ id: 'e', name: 'Part-time', owner: 'Myself', startAge: 60, endAge: '', amount: 20000, incomeType: 'earnings' }] });
   const recAct = E.estateActionPlan(E.normalizePlan(recycler), E.optimizeInheritance(recycler)).find(a => a.key === 'recycle');
-  ok('the transfers name a figure and the years', !!recAct && /£[\d,]+/.test(recAct.body) && /20\d\d/.test(recAct.title),
+  ok('the transfers name a figure and the years', !!recAct && /£[\d,]+/.test(recAct.body || recAct.title) && /20\d\d/.test(recAct.title),
     recAct ? recAct.title : 'no transfer in the winning allocation');
-  ok('and say what HMRC adds', !recAct || /HMRC/.test(recAct.body) || /ISA/.test(recAct.body), recAct ? recAct.body.slice(0, 90) : '');
-  ok('the draw-down instruction quotes the band it fills', acts.some(a => a.key === 'ceiling' && /£50,270/.test(a.body)));
-  ok('and says what it is for', acts.some(a => a.key === 'ceiling' && /taxed twice/.test(a.detail)));
-  ok('the paperwork step is there when documents change',
-    acts.some(a => a.key === 'paperwork') === acts.some(a => a.key === 'nomination' || a.key === 'gift'));
+  // the relief is a fact now, not a sentence: "HMRC adds £720 a year, so £3,600 lands for £2,880 of your own money"
+  ok('and say what HMRC adds',
+    !recAct || (recAct.facts || []).some(f => /HMRC/.test(f.k) || /ISA|relief/.test(f.v)) || /ISA/.test(recAct.why || ''),
+    recAct ? (recAct.facts || []).map(f => f.k).join(', ') : '');
+  ok('the draw-down instruction quotes the band it fills', acts.some(a => a.key === 'ceiling' && /£50,270/.test(a.title)));
+  ok('and says what it is for', acts.some(a => a.key === 'ceiling' && /taxed twice/.test(a.why)));
 
   /*
    * Only what changes. A plan already holding the winning settings has nothing to list, and saying
@@ -446,9 +448,9 @@ console.log('=========== K. THE COMPENSATION WINDOW, IN THE SEARCH ===========')
     ...r, best: { ...r.best, compGift: { amount: 350000, year: 2028, exemptCompensation: true } }
   }).find(a => a.key === 'compGift');
   ok('the action names the amount, the year and the deadline',
-    !!step && /£350,000/.test(step.title) && /2028/.test(step.title) && /2028-02-01/.test(step.body),
+    !!step && /£350,000/.test(step.title) && /2028-02-01/.test(step.title),
     step ? step.title : 'no step');
-  ok('and warns what happens after it', !!step && /seven-year clock/.test(step.detail));
+  ok('and warns what happens after it', !!step && /seven-year clock/.test(step.why));
 }
 
 console.log('=========== L. HOW MUCH OF THE AWARD, AND WHERE FROM ===========');
@@ -510,14 +512,19 @@ console.log('=========== L. HOW MUCH OF THE AWARD, AND WHERE FROM ===========');
   ok('the gift year wrappers travel with the result', !!r.giftYearWrappers && r.giftYearWrappers.isa > 0);
   const small = E.estateActionPlan(withAward(), { ...r,
     best: { ...r.best, gift: 100000, compGift: null } }).find(a => a.key === 'gift');
-  ok('a gift the liquid covers says to take it from there', !!small && /rather than the pension/.test(small.body),
-    small ? small.body.slice(0, 90) : 'no step');
-  ok('and names the accounts', !!small && /general investment account|ISAs/.test(small.body));
+  ok('a gift the liquid covers is funded without touching the pension',
+    !!small && small.fundingTable && small.fundingTable.pension === null,
+    small && small.fundingTable ? small.fundingTable.rows.map(x => x.source).join(', ') : 'no table');
+  ok('and names the accounts it comes out of',
+    !!small && small.fundingTable.rows.some(x => /investment account|ISAs|Cash/.test(x.source)));
   const huge = E.estateActionPlan(withAward(), { ...r,
     best: { ...r.best, gift: 900000, compGift: null } }).find(a => a.key === 'gift');
-  ok('a gift beyond the liquid says what has to leave the pension',
-    !!huge && /has to come out of the pension/.test(huge.body), huge ? huge.body.slice(-150) : 'no step');
-  ok('and grosses the shortfall up for the income tax', !!huge && /withdrawing about £/.test(huge.body));
+  ok('a gift beyond the liquid shows what has to leave the pension',
+    !!huge && !!huge.fundingTable.pension,
+    huge && huge.fundingTable.pension ? gbp(huge.fundingTable.pension.net) + ' net' : 'no pension row');
+  ok('and grosses the shortfall up for the income tax',
+    !!huge && huge.fundingTable.pension.gross > huge.fundingTable.pension.net,
+    huge && huge.fundingTable.pension ? `${gbp(huge.fundingTable.pension.gross)} drawn at ${huge.fundingTable.pension.ratePct}%` : '');
   /*
    * The rate has to come from TAXABLE INCOME. Reading it off totalSelf - a balance, not an income -
    * priced every withdrawal at the additional rate, which made every large gift look worse than it is.
@@ -526,10 +533,12 @@ console.log('=========== L. HOW MUCH OF THE AWARD, AND WHERE FROM ===========');
   const outside = r.giftYearWrappers.isa + r.giftYearWrappers.other + r.giftYearWrappers.cash;
   const modest = E.estateActionPlan(withAward(), { ...r,
     best: { ...r.best, gift: Math.round(outside) + 15000, compGift: null } }).find(a => a.key === 'gift');
-  ok('a small shortfall is grossed up at the basic rate', !!modest && /at 20% is paid/.test(modest.body),
-    modest ? (/(at \d+% is paid)/.exec(modest.body) || [''])[0] : 'no step');
-  ok('while a large one reaches the top rate', !!huge && /at 45% is paid/.test(huge.body),
-    huge ? (/(at \d+% is paid)/.exec(huge.body) || [''])[0] : 'no step');
+  ok('a small shortfall is grossed up at the basic rate',
+    !!modest && modest.fundingTable.pension && modest.fundingTable.pension.ratePct === 20,
+    modest && modest.fundingTable.pension ? modest.fundingTable.pension.ratePct + '%' : 'no pension row');
+  ok('while a large one reaches the top rate',
+    !!huge && huge.fundingTable.pension && huge.fundingTable.pension.ratePct === 45,
+    huge && huge.fundingTable.pension ? huge.fundingTable.pension.ratePct + '%' : 'no pension row');
 
   // and a partial award is not described as "the" award
   const part = E.estateActionPlan(withAward(), { ...r, compensationLeftToGive: 900000,
@@ -537,12 +546,13 @@ console.log('=========== L. HOW MUCH OF THE AWARD, AND WHERE FROM ===========');
   const amountFact = (a) => ((a.facts || []).find(f => f.k === 'Amount') || {}).v || '';
   ok('the instruction is short enough to read at a glance', !!part && part.title.length < 70 && part.title.startsWith('Gift £90,000'),
     part ? part.title : 'no step');
+  const awardFact = (a) => ((a.facts || []).find(f => f.k === 'Of the award') || {}).v || '';
   ok('and a partial gift says how much of the award is still there',
-    !!part && /of the £900,000 still giftable/.test(amountFact(part)), part ? amountFact(part) : '');
+    !!part && /£900,000 is still giftable/.test(awardFact(part)), part ? awardFact(part) : '');
   const whole = E.estateActionPlan(withAward(), { ...r, compensationLeftToGive: 90000,
     best: { ...r.best, gift: 0, compGift: { amount: 90000, year: 2027 } } }).find(a => a.key === 'compGift');
   ok('while giving all that is left says so instead',
-    !!whole && /all that is left of the award/.test(amountFact(whole)), whole ? amountFact(whole) : '');
+    !!whole && /all that is left of it/.test(awardFact(whole)), whole ? awardFact(whole) : '');
   ok('every step carries the facts somebody acts on',
     E.estateActionPlan(withAward(), r).every(a => (a.facts && a.facts.length) || a.sequence));
   ok('and a one-line reason rather than a paragraph',
@@ -847,6 +857,95 @@ console.log('=========== S. FINDINGS FIRE WHEN THEY ARE FINDINGS ===========');
            { id: 'b', name: 'B', relationship: 'descendant', sharePct: 50, income: 30000, age: 48 }] }));
   ok('identical incomes explain the zero nomination', same.reasons.some(r => r.key === 'nomination' && /same income/i.test(r.text)),
     (same.reasons.find(r => r.key === 'nomination') || {}).text || 'no finding');
+}
+
+console.log('=========== T. EACH THING SAID ONCE, AND THE GIFT FUNDED FROM SOMEWHERE REAL ===========');
+{
+  /*
+   * Every action carries a title, facts, a why and a detail, and they had drifted into being four
+   * restatements of one thing: "Gift £770,000 in 2027" above "Amount = £770,000" above "When = 2027";
+   * a nomination whose `why` and `detail` opened on the SAME SENTENCE verbatim; a withdrawal order
+   * whose folded prose recited the same six steps in wording the list above it no longer used.
+   *
+   * The rule tested here is the one that stops it growing back: a figure or a year stated in a title
+   * is not stated again in that action's own facts.
+   */
+  const SHAPES = [
+    ['two heirs, gift and nomination', { deathAge: 84, cash: 400000 }],
+    ['single heir', { deathAge: 84, bens: [{ id: 'k1', name: 'Jo', relationship: 'descendant', sharePct: 100, income: 0, age: 50 }] }],
+    ['gift exceeds liquid', { pen: 2400000, isa: 60000, other: 40000, cash: 30000, home: 700000, deathAge: 80 }],
+    ['death before 75', { deathAge: 72 }],
+    ['no home', { pen: 1200000, isa: 500000, other: 300000, cash: 150000, home: 0, deathAge: 84 }]
+  ];
+  const figures = (t) => (String(t).match(/£[\d,]+|\b(?:19|20)\d\d\b/g) || []);
+  let repeats = [], paperwork = 0;
+  SHAPES.forEach(([name, over]) => {
+    // start from a policy the search will move away from, so the order and ceiling steps are emitted
+    const p = E.normalizePlan(household({ ...over, }));
+    p.spending = { ...p.spending, decumulationPolicy: 'Sequential' };
+    p.config = { ...p.config, harvestCeiling: 'pa' };
+    const r = E.optimizeInheritance(p);
+    if (!r) return;
+    (E.estateActionPlan(p, r) || []).forEach(a => {
+      if (a.group === 'paperwork' || a.key === 'paperwork') paperwork++;
+      const inTitle = new Set(figures(a.title));
+      (a.facts || []).forEach(f => {
+        figures(f.k + ' ' + f.v).forEach(x => {
+          if (inTitle.has(x)) repeats.push(`${name}/${a.key}: "${x}" in title and in "${f.k}"`);
+        });
+      });
+    });
+  });
+  ok('no action repeats a figure from its own title in its facts', repeats.length === 0,
+    repeats.length ? repeats.slice(0, 4).join(' | ') : 'none across ' + SHAPES.length + ' households');
+  ok('the paperwork step is gone', paperwork === 0, `${paperwork} still emitted`);
+
+  /*
+   * THE FUNDING TABLE. A gift is funded as a one-off cost, which the engine draws through
+   * ctx.costSteps - cash, then the general investment account, then ISAs, then the pension. The
+   * sentence this replaced sorted the wrappers by SIZE and so named an order the projection never
+   * used. Asserted against the engine's own constant rather than a copy of it.
+   */
+  const p2 = E.normalizePlan(household({ deathAge: 84, cash: 400000 }));
+  p2.spending = { ...p2.spending, decumulationPolicy: 'Sequential' };
+  const r2 = E.optimizeInheritance(p2);
+  const giftAct = (E.estateActionPlan(p2, r2) || []).find(a => a.fundingTable);
+  ok('the gift carries a funding table', !!giftAct && giftAct.fundingTable.rows.length > 0,
+    giftAct ? `${giftAct.fundingTable.rows.length} rows` : 'no table');
+  const ft = giftAct.fundingTable;
+  const LABEL = { cash: 'Cash savings', other: 'General investment account', isa: 'ISAs' };
+  const expected = E.DEFAULT_COST_STEPS.filter(k => LABEL[k]).map(k => LABEL[k]);
+  ok('its rows follow the order the projection actually funds from',
+    ft.rows.every((r, i, all) => expected.indexOf(r.source) > (i === 0 ? -1 : expected.indexOf(all[i - 1].source))),
+    ft.rows.map(r => r.source).join(' > ') + '  (engine order: ' + expected.join(' > ') + ')');
+  ok('every row balances', ft.rows.every(r => Math.abs((r.balance - r.taken) - r.left) < 2),
+    ft.rows.map(r => `${Math.round(r.balance)}-${Math.round(r.taken)}=${Math.round(r.left)}`).join(' '));
+  const summed = ft.rows.reduce((t, r) => t + r.taken, 0) + (ft.pension ? ft.pension.net : 0);
+  ok('and the rows sum to the gift', Math.abs(summed - ft.total) < 2,
+    `£${Math.round(summed).toLocaleString()} against £${Math.round(ft.total).toLocaleString()}`);
+  ok('no pension row while the liquid wrappers cover it', ft.pension === null || ft.coveredFromLiquid < ft.total - 1);
+
+  /*
+   * And the case the prose was worst at: a gift bigger than everything liquid. The pension row is the
+   * only one where what leaves the account and what reaches the recipient differ, and the gross has
+   * to be the net grossed up at the marginal rate or the household is told to withdraw too little.
+   */
+  const p3 = E.normalizePlan(household({ pen: 2400000, isa: 60000, other: 40000, cash: 30000, home: 700000, deathAge: 80 }));
+  const r3 = E.optimizeInheritance(p3);
+  // forced past what the liquid wrappers hold, so the pension row is exercised whatever the search picked
+  const short = (E.estateActionPlan(p3, { ...r3, best: { ...r3.best, gift: 400000, compGift: null } }) || [])
+    .find(a => a.fundingTable && a.fundingTable.pension);
+  ok('a gift beyond the liquid wrappers shows a pension row', !!short,
+    short ? `${'£' + Math.round(short.fundingTable.pension.net).toLocaleString()} net` : 'none');
+  if (short) {
+    const pen = short.fundingTable.pension;
+    ok('whose gross is the net grossed up at the marginal rate',
+      Math.abs(pen.gross * (1 - pen.ratePct / 100) - pen.net) < Math.max(50, pen.net * 0.01),
+      `£${Math.round(pen.gross).toLocaleString()} drawn at ${pen.ratePct}% leaves £${Math.round(pen.net).toLocaleString()}`);
+    ok('and it is the last row, after every liquid account is empty',
+      short.fundingTable.rows.every(r => r.left < 2),
+      short.fundingTable.rows.map(r => `${r.source}:${Math.round(r.left)}`).join(' '));
+  }
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

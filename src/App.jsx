@@ -4633,8 +4633,14 @@ function optimizeInheritance(rawPlan, opts = {}) {
  */
 const WRAPPER_PHRASE = {
   pen: 'your pension', isa: 'your ISAs', other: 'your general investment account', cash: 'your cash savings',
-  penPA: 'pension income up to the tax-free personal allowance',
-  penBasic: 'pension income up to the basic-rate limit',
+  /*
+   * "up to the personal allowance" reads as though a whole allowance is waiting, and for anyone with a
+   * state pension or post-retirement earnings most of it is already spent. The engine has always
+   * measured the ceiling against the year's taxable income, so the step draws nothing when there is no
+   * room - the phrasing is what implied otherwise.
+   */
+  penPA: 'pension income up to whatever is left of the personal allowance',
+  penBasic: 'pension income up to whatever is left of the basic-rate band',
   penAny: 'the pension, at whatever tax rate applies'
 };
 const phraseFor = (tok) => WRAPPER_PHRASE[tok] || tok;
@@ -4649,7 +4655,7 @@ function policyPlaybook(policyKey, P) {
     title: 'Each year, to cover your spending',
     body: `Take from ${list(pol.steps).join(', then ')}. Stop as soon as the year's spending is covered — everything further down the list is left untouched.`,
     detail: pol.steps.includes('penPA')
-      ? `"Up to the personal allowance" means the first ${formatGBP(P.pa)} of pension income, which is taxed at 0%. "Up to the basic-rate limit" means up to ${formatGBP(P.higherRateStartsAt)} of total taxable income.`
+      ? `The two pension steps are ceilings on TOTAL taxable income for the year, not on the pension alone: ${formatGBP(P.pa)} for the first and ${formatGBP(P.higherRateStartsAt)} for the second. A state pension, post-retirement earnings or any other taxable income counts towards them first, so where those already exceed ${formatGBP(P.pa)} the first step draws nothing at all and the order moves straight on.`
       : 'This policy does not manage tax bands: each wrapper is emptied before the next is touched.'
   });
 
@@ -9204,8 +9210,14 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                     </tbody>
                   </table>
                   <span className="text-[10px] text-slate-400 block mt-1.5">
-                    Allowance left for your estate after gifts: <strong>{formatGBP(inheritanceView.chosen.nrb)}</strong> of {formatGBP(inheritanceView.chosen.nrbFull)}.
+                    {/* Where the number came from, not just what it is. "of £650,000" invites the
+                        question, and the two halves of it are set in two different places. */}
+                    Allowance left for your estate after gifts: <strong>{formatGBP(inheritanceView.chosen.nrb)}</strong> of {formatGBP(inheritanceView.chosen.nrbFull)}
+                    {inheritanceView.chosen.nrbFull > inheritanceView.chosen.nrbBase + 1
+                      ? ` — your ${formatGBP(inheritanceView.chosen.nrbBase)} nil-rate band plus ${formatGBP(inheritanceView.chosen.nrbFull - inheritanceView.chosen.nrbBase)} from your late spouse.`
+                      : ` — the nil-rate band, set in Config.`}
                     {inheritanceView.chosen.nrbUsedByGifts > 0 && ` Those gifts have taken ${formatGBP(inheritanceView.chosen.nrbUsedByGifts)} of it.`}
+                    {' '}This is the nil-rate band only: the {formatGBP(inheritanceView.chosen.rnrbFull)} residence allowance is separate and gifts cannot touch it, because it applies to a home passing to direct descendants on your death.
                     {' '}Taper relief only reduces tax on the part of a gift above the allowance — which is why a gift inside it shows no benefit from taper however long ago it was made.
                   </span>
                 </div>

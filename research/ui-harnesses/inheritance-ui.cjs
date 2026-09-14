@@ -320,6 +320,28 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   ok('so the gift is covered by the award after all',
     await p5.evaluate(()=>/of your gifts is already drawn from the award/.test(document.body.textContent)));
 
+  /*
+   * "of £650,000" invites the question the label never answered, and the two halves of that number are
+   * set in two different places - the band in Config, the transfer in the Widowed box.
+   */
+  const allowLine = () => p4.evaluate(()=>{const m=document.body.innerText.match(/Allowance left for your estate after gifts:[^]{0,260}/); return m?m[0].replace(/\s+/g,' '):'';});
+  ok('the allowance line says where the number comes from',
+    /nil-rate band/.test(await allowLine()), (await allowLine()).slice(0, 120));
+  ok('and that the residence allowance is a separate thing gifts cannot reach',
+    /residence allowance is separate and gifts cannot touch it/.test(await allowLine()));
+  await p4.evaluate(()=>{const l=[...document.querySelectorAll('label')].find(x=>/of their nil-rate band unused/.test(x.textContent));
+    const i=l && l.parentElement.querySelector('input'); if(i) i.setAttribute('data-nrb-pct','');});
+  const hasBox = await p4.evaluate(()=>!!document.querySelector('[data-nrb-pct]'));
+  if (hasBox) {
+    await p4.locator('[data-nrb-pct]').fill('100');
+    await p4.waitForTimeout(800);
+    ok('a transferred band is attributed to the late spouse',
+      /plus £325,000 from your late spouse/.test(await allowLine()), (await allowLine()).slice(0, 150));
+    await p4.locator('[data-nrb-pct]').fill('');
+    await p4.waitForTimeout(700);
+    ok('and without one it simply names the band', /the nil-rate band, set in Config/.test(await allowLine()));
+  }
+
   ok('the s.21 exemption is offered', await p4.evaluate(()=>/Regular gifts out of income/.test(document.body.textContent)));
   ok('and it says what makes it exempt', await p4.evaluate(()=>/habitual/.test(document.body.textContent)));
   ok('the surplus is quoted from the plan', await p4.evaluate(()=>/income after living costs is/.test(document.body.textContent)));

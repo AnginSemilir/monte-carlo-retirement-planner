@@ -60,8 +60,14 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   ok('the working is shown', !!work && work.length >= 6, work?`${work.length} lines`:'missing');
   if (work) work.forEach(r=>console.log(`     ${r.label.padEnd(56)} ${r.amount.padStart(12)} ${r.running.padStart(12)}`));
   const chosenIht = rows ? money(rows.find(r=>/your estimate/.test(r[0]))[3]) : 0;
-  ok('the last line is the tax the table above charges', !!work && money(work[work.length-1].amount) === chosenIht,
-    work ? `${work[work.length-1].amount} against ${rows.find(r=>/your estimate/.test(r[0]))[3]}` : '');
+  // the working runs past the tax now, on to what the heirs hold, so the TAX line is the one to check
+  const taxLine = work && work.find(r=>r.label.startsWith('Inheritance tax payable'));
+  ok('the tax line is the tax the table above charges', !!taxLine && money(taxLine.amount) === chosenIht,
+    taxLine ? `${taxLine.amount} against ${rows.find(r=>/your estimate/.test(r[0]))[3]}` : 'no tax line');
+  ok('and it carries on to what the heirs hold',
+    !!work && work.some(r=>r.label.startsWith('In their hands')));
+  ok('saying what their own income tax on the pension comes to',
+    !!work && work.some(r=>/income tax on the inherited pension/.test(r.label)));
   ok('it names the estate and the chargeable subtotals',
     !!work && work.some(r=>/Estate for inheritance tax/.test(r.label)) && work.some(r=>/Chargeable/.test(r.label)));
   ok('it shows the nil-rate band as an allowance, not a mystery',
@@ -126,44 +132,43 @@ const money=(s)=>Number(String(s).replace(/[^0-9.-]/g,''));
   await p2.waitForTimeout(400);
   await p2.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='See all'); if(b)b.click();});
   await p2.waitForTimeout(800);
-  ok('an estate over £2m is offered a gift', await p2.evaluate(()=>!!document.querySelector('[data-gift-suggestion]')));
-  const sug = await p2.evaluate(()=>document.querySelector('[data-gift-suggestion]')?.textContent||'');
-  console.log('     '+sug.replace(/\s+/g,' ').slice(0,260));
-  ok('it quotes a gift and a saving', /Giving away £[\d,]+/.test(sug) && /a saving of £[\d,]+/.test(sug));
-  ok('it explains why this gift does not need seven years', /owned at death/.test(sug));
-
   /*
-   * The claim the card makes has to survive being taken up: accept the gift and the estate at the chosen
-   * age must actually land on the £2m line. Sizing it as the raw excess - the obvious wrong answer -
-   * overshoots by about half, so the amount must also be well below that excess.
+   * Gifts are proposed in ONE place now - the route step - and applying writes exactly what was
+   * proposed. The standalone suggestion card with its own Add button is gone: it ran a different search
+   * from the optimiser, so the tab could show three gift proposals while Apply wrote two.
    */
+  ok('there is no second place proposing gifts',
+    await p2.evaluate(()=>!document.querySelector('[data-gift-suggestion]') && !document.querySelector('[data-add-suggested-gift]')));
+  ok('the route is searched without being asked for',
+    await p2.evaluate(()=>!!document.querySelector('[data-lever-table]')));
   const estateAt = (pg,age) => pg.evaluate((a)=>{
     const t=[...document.querySelectorAll('table')].find(t=>/If you die at/.test(t.textContent));
     const r=[...t.querySelectorAll('tbody tr')].find(r=>new RegExp('^'+a).test(r.querySelector('td').textContent.trim()));
     return r ? Number(r.querySelectorAll('td')[1].textContent.replace(/[^0-9.]/g,'')) : null;
   }, String(age));
   const estBefore = await estateAt(p2,80);
-  const amount = Number((sug.match(/Giving away £([\d,]+)/)||[])[1].replace(/,/g,''));
-  ok('the gift is smaller than the excess it removes', amount > 0 && amount < (estBefore-2000000)*0.9,
-    `£${amount.toLocaleString()} against £${Math.round(estBefore-2000000).toLocaleString()} over`);
-
-  await p2.click('[data-add-suggested-gift]');
-  await p2.waitForTimeout(700);
+  const proposed = await p2.evaluate(()=>{
+    const d=[...document.querySelectorAll('[data-action-group="gift"]')][0];
+    const m=(d?d.textContent:'').match(/Give away £([\d,]+)/);
+    return m? Number(m[1].replace(/,/g,'')) : 0;
+  });
+  ok('a gift is proposed on the route step', proposed > 0, `£${proposed.toLocaleString()}`);
+  ok('and it says why it is not larger',
+    await p2.evaluate(()=>!!document.querySelector('[data-gift-rationale]')));
+  ok('and what the alternatives would have cost',
+    await p2.evaluate(()=>!!document.querySelector('[data-alternatives]')));
+  await p2.click('[data-apply-estate]');
+  await p2.waitForTimeout(900);
   const estAfter = await estateAt(p2,80);
-  ok('accepting it lands the estate on the £2m line', Math.abs(estAfter-2000000) < 5000,
+  ok('applying writes exactly the gift that was proposed',
+    await p2.evaluate((amt)=>((JSON.parse(localStorage.getItem('rp_plan_full_v28')).inheritance.gifts||[])
+      .some(g=>Math.abs(Number(g.amount)-amt) < 1)), proposed));
+  ok('and the estate falls by it', estBefore - estAfter >= proposed * 0.9,
     `£${estBefore.toLocaleString()} -> £${estAfter.toLocaleString()}`);
-  ok('accepting it writes a gift row', await p2.evaluate(()=>/Gift to restore the residence allowance/.test(document.body.textContent)));
-  ok('and the row is marked planned, not already given', await p2.evaluate(()=>{
-    const r=[...document.querySelectorAll('input')].find(i=>i.value==='Gift to restore the residence allowance');
+  ok('the row is marked planned, not already given', await p2.evaluate(()=>{
+    const r=[...document.querySelectorAll('input')].find(i=>/estate plan/.test(i.value||''));
     return !!r && /planned/.test(r.closest('div').textContent);
   }));
-  // and the same double-click guard as the optimiser's Apply: one id per year, replaced not appended
-  const giftsNow = () => p2.evaluate(()=>(JSON.parse(localStorage.getItem('rp_plan_full_v28')).inheritance.gifts||[]).length);
-  const n1 = await giftsNow();
-  const again = await p2.$('[data-add-suggested-gift]');
-  if (again) { await again.click(); await p2.waitForTimeout(700); }
-  ok('adding the suggested gift twice adds one gift', (await giftsNow()) <= n1, `${n1} -> ${await giftsNow()}`);
-  ok('taking the advice removes the advice', await p2.evaluate(()=>!document.querySelector('[data-gift-suggestion]')));
   ok('no page errors on the gift flow', errs2.length===0, errs2.slice(0,2).join(' | '));
 
   // and the negative: a household that never reaches the threshold must not be advised to give money away

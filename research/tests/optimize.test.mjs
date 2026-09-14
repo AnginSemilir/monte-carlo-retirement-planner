@@ -520,5 +520,45 @@ console.log('=========== L. HOW MUCH OF THE AWARD, AND WHERE FROM ===========');
     !!whole && /Give the £90,000 of compensation/.test(whole.title), whole ? whole.title : 'no step');
 }
 
+console.log('=========== M. WHY NOT ONE OF THE OTHERS ===========');
+{
+  /*
+   * A household asked to give away six figures is owed the comparison. These are the routes a person
+   * would actually have weighed - do nothing, reallocate without gifting, gift without reallocating,
+   * gift everything the plan can stand - each priced on the same measure as the winner.
+   */
+  const h = household({ demo: { currentAgeSelf: 68, terminalAge: 95 }, deathAge: 71, home: 1400000,
+    pen: 1200000, isa: 175000, other: 400000, cash: 0,
+    bens: [{ id: 'k', name: 'Child', relationship: 'descendant', sharePct: 100, income: 60000, age: 36 }],
+    inh: { transferredNrbPct: 100, transferredRnrbPct: 100 } });
+  h.spending.targetSpend = '';
+  const r = E.optimizeInheritance(E.normalizePlan(h));
+
+  ok('alternatives are priced', Array.isArray(r.alternatives) && r.alternatives.length > 0,
+    (r.alternatives || []).map(a => `${a.key} ${gbp(a.cost)}`).join(', '));
+  ok('every one of them is worse than the plan recommended',
+    (r.alternatives || []).every(a => a.cost > 0));
+  ok('doing nothing is one of them', (r.alternatives || []).some(a => a.key === 'nothing'));
+  ok('and it costs exactly the gain the search reports',
+    Math.abs(((r.alternatives || []).find(a => a.key === 'nothing') || {}).cost - r.gain) < 1,
+    gbp(((r.alternatives || []).find(a => a.key === 'nothing') || {}).cost));
+  ok('none of them is a duplicate of another under a different name',
+    (r.alternatives || []).every((a, i, all) => all.findIndex(b => Math.abs(b.net - a.net) < 500) === i));
+  ok('each carries a plain-English reason', (r.alternatives || []).every(a => a.why && a.why.length > 10));
+
+  /*
+   * And the working now runs past the tax to what the heirs hold, so the number the optimiser ranks on
+   * and the number at the foot of the table have to be the same number.
+   */
+  const w = E.ihtWorkings(r.bestEst, h.config);
+  const hands = w[w.length - 1];
+  ok('the working ends on what the optimiser ranked', Math.abs(hands.amount - r.best.net) < 1,
+    `${gbp(hands.amount)} against ${gbp(r.best.net)}`);
+  ok('and it names the heirs\' own income tax either way',
+    w.some(x => /income tax on the inherited pension/.test(x.label)));
+  ok('the lifetime gifts appear on their own line',
+    r.best.gift <= 0 || w.some(x => x.key === 'lifetime' && x.amount > 0));
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

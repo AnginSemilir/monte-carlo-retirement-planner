@@ -929,11 +929,16 @@ console.log('=========== P. THE WORKING RECONCILES ===========');
   Object.entries(cases).forEach(([name, opts]) => {
     const est = E.estateAtDeath(cfg, w, opts);
     const rows = E.ihtWorkings(est, cfg);
-    const last = rows[rows.length - 1];
-    const gap = Math.abs(last.amount - est.iht);
+    // the working runs past the tax now, on to what the heirs actually hold, so BOTH totals are checked
+    const taxRow = rows.find(r => r.key === 'iht');
+    const handsRow = rows[rows.length - 1];
+    const gap = Math.abs(taxRow.amount - est.iht);
+    const handsGap = Math.abs(handsRow.amount - est.netIncludingLifetimeGifts);
     if (gap > worst) { worst = gap; worstCase = name; }
-    ok(`${name}: the last line is the tax charged`, gap < 1,
-      `£${Math.round(last.amount).toLocaleString()} against £${Math.round(est.iht).toLocaleString()}`);
+    ok(`${name}: the tax line is the tax charged`, gap < 1,
+      `£${Math.round(taxRow.amount).toLocaleString()} against £${Math.round(est.iht).toLocaleString()}`);
+    ok(`${name}: and the last line is what the heirs hold`, handsGap < 1,
+      `£${Math.round(handsRow.amount).toLocaleString()} against £${Math.round(est.netIncludingLifetimeGifts).toLocaleString()}`);
   });
   ok('every case reconciles to the pound', worst < 1, worstCase ? `worst was ${worstCase}, off by ${worst}` : '');
 
@@ -941,7 +946,8 @@ console.log('=========== P. THE WORKING RECONCILES ===========');
   const est = E.estateAtDeath(cfg, w, cases['over the taper line']);
   const rows = E.ihtWorkings(est, cfg);
   let walked = 0, broke = '';
-  rows.filter(r => r.kind !== 'note').forEach(r => {
+  // only the estate-to-tax half walks as one running total; the heirs' half restarts from what they get
+  rows.slice(0, rows.findIndex(r => r.key === 'iht') + 1).filter(r => r.kind !== 'note').forEach(r => {
     if (r.kind === 'total') { if (Math.abs(r.amount - walked) > 1) broke = broke || r.key; return; }
     if (r.kind === 'rate') { walked = Math.max(0, walked) * est.ratePct / 100; if (Math.abs(r.running - walked) > 1) broke = broke || r.key; return; }
     walked += r.amount;

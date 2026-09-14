@@ -3722,6 +3722,39 @@ function ihtWorkings(est, cfg) {
   push('comp', 'Less: compensation credit', -num(est.compensationCredit, 0),
     `${num(c.ihtRate, 40)}% of the ${'£'}${Math.round(num(est.compensationPayment, 0)).toLocaleString()} payment`);
   out.push({ key: 'iht', kind: 'total', label: 'Inheritance tax payable', note: '', amount: Math.max(0, bill), running: Math.max(0, bill) });
+
+  /*
+   * AND ON TO WHAT THEY ACTUALLY GET. Stopping at the inheritance tax answers half the question: an
+   * inherited pension is taxed AGAIN, at the recipient's own rate, and a household comparing routes
+   * needs the number at the end of that. So the working carries on from the estate, through both
+   * taxes, to the money in their hands - and adds what was handed over in life, which never went
+   * through either.
+   */
+  let hand = num(est.inheritedTotal, 0);
+  const hpush = (key, label, amount, note, kind) => {
+    if (kind !== 'total' && Math.abs(num(amount, 0)) < 0.5) return;
+    if (kind !== 'total') hand += num(amount, 0);
+    out.push({ key, label, note: note || '', amount: kind === 'total' ? hand : num(amount, 0), kind: kind || 'item', running: hand });
+  };
+  out.push({ key: 'handsTop', kind: 'note', amount: 0, running: hand,
+    label: 'What reaches your heirs', note: 'from here down, the same money seen from their side' });
+  out.push({ key: 'inherited', kind: 'item', label: 'Everything passing to them',
+    note: est.pensionCounts ? '' : 'including the pension, which the estate was not taxed on',
+    amount: num(est.inheritedTotal, 0), running: hand });
+  hpush('ihtOut', 'Less: the inheritance tax above', -Math.max(0, bill), '');
+  if (num(est.incomeTaxOnPensions, 0) > 0) {
+    hpush('heirTax', 'Less: their income tax on the inherited pension', -num(est.incomeTaxOnPensions, 0),
+      `charged at each person's own rate, spread over the years they draw it`);
+  } else {
+    // a zero here is the single largest thing the death age decides, so it is stated rather than omitted
+    out.push({ key: 'heirTax', kind: 'note', amount: 0, running: hand,
+      label: 'Their income tax on the inherited pension: none',
+      note: `death before ${num(c.pensionIncomeTaxFromAge, 75)} leaves an inherited pension tax-free to them; at ${num(c.pensionIncomeTaxFromAge, 75)} or over it is taxed at their own rate` });
+  }
+  hpush('netEstate', 'They keep, from the estate', 0, '', 'total');
+  hpush('lifetime', 'Plus: handed over in your lifetime', num(est.giftsToHeirs, 0),
+    'gifts still to be made under this plan, which no tax touches once they are outside seven years or covered by a relief');
+  hpush('handsTotal', 'In their hands', 0, '', 'total');
   return out;
 }
 
@@ -4484,19 +4517,68 @@ function optimizeInheritance(rawPlan, opts = {}) {
             ? `it eats another ${gbp0(bandUp)} of nil-rate band, and a gift this close to the death age has no taper to soften it`
             : 'the estate is already below the point where giving more buys anything';
     }
+    /*
+     * How much of the saving does NOT depend on surviving seven years. The residence-band taper is
+     * measured on what you OWNED AT DEATH, so money given away restores that band the day it leaves,
+     * whatever happens next. The rest of the saving is the ordinary effect of the gift being outside
+     * the estate, and that part does need the seven years. Households ask about the seven years first,
+     * so the answer has to be on the card rather than in a footnote.
+     */
+    const bandBack = Math.max(0, num(best.est.rnrb, 0) - num(without ? without.est.rnrb : best.est.rnrb, 0));
+    const certain = bandBack * (num(plan.config.ihtRate, 40) / 100);
     return {
       given, giftedNow: num(best.gift, 0), fromCompensation: best.compGift ? num(best.compGift.amount, 0) : 0,
       worth: without ? best.net - without.net : 0,
+      bandBack, certain, needsSeven: Math.max(0, (without ? best.net - without.net : 0) - certain),
+      // a candidate that breaks the plan is a rejection, not a valuation: "£2.9m worse off" is only
+      // true in the sense that running out of money loses you everything, which is not a comparison
       nextUp: bigger ? bigger.amt : null, nextUpCost: bigger ? cost : 0, why,
+      nextUpFails: bigger ? !bigger.c.survived : false,
       largest: largest && largest.amt > given + 1000 ? largest.amt : null,
       largestCost: largest && largest.amt > given + 1000 ? best.net - largest.c.net : 0,
       largestSurvives: largest ? !!largest.c.survived : true,
+      liquidAtGiftYear: (() => { const w = giftYearWrappersOf(baseline); return w ? w.isa + w.other + w.cash : 0; })(),
       // and when nothing is given, the best gift that WAS tried and what it lost
       bestRejected: given > 0 ? null : (() => {
         const top = priced.filter(c => givenBy(c) > 0).sort((a, b) => b.net - a.net)[0];
         return top ? { amount: givenBy(top), cost: best.net - top.net } : null;
       })()
     };
+  })();
+
+  /*
+   * WHY NOT ONE OF THE OTHERS. The ranking says which strategies lost; it does not say what they were
+   * or by how much, and a household asked to give away six figures is owed both. These are the routes a
+   * person would actually have considered - do nothing, move money but give none away, give but change
+   * nothing else, give everything you could - each priced on the same measure as the winner.
+   */
+  const alternatives = (() => {
+    const givenBy = (c) => num(c.gift, 0) + (c.compGift ? num(c.compGift.amount, 0) : 0);
+    const noGift = givenBy(best) > 0 ? evaluate({ ...best, gift: 0, compGift: null, label: 'x' }) : null;
+    const giftOnly = givenBy(best) > 0
+      ? evaluate({ policy: plan.spending.decumulationPolicy, drawdown: plan.spending.drawdownStrategy,
+          harvest: !!plan.config.harvestPersonalAllowance, ceiling: plan.config.harvestCeiling || 'pa',
+          gift: num(best.gift, 0), compGift: best.compGift || null, split: null, recycle: null, label: 'y' })
+      : null;
+    const everything = [...soloGifts, ...soloCompGifts, ...gifts, ...compGifts, ...compFirst, ...giftsAfterComp]
+      .filter(c => c.survived).map(c => ({ c, amt: givenBy(c) })).sort((a, b) => b.amt - a.amt)[0];
+    const out = [
+      { key: 'nothing', label: 'Change nothing at all', net: baseline.net,
+        why: 'the plan exactly as you have it now' },
+      noGift && { key: 'nogift', label: 'Reallocate, but give nothing away', net: noGift.net,
+        why: 'every change above except the gift - the withdrawal order, the nomination, the transfers' },
+      giftOnly && { key: 'giftonly', label: 'Give the money away and change nothing else', net: giftOnly.net,
+        why: 'the gift on its own, drawn from the plan as it stands' },
+      everything && everything.amt > givenBy(best) + 1000 && { key: 'max', label: `Give away as much as the plan can stand (${gbp0(everything.amt)})`, net: everything.c.net,
+        why: 'the largest gift that still leaves you solvent to the end' }
+    ].filter(Boolean)
+      .map(x => ({ ...x, cost: best.net - x.net }))
+      .filter(x => Math.abs(x.cost) > 500)
+      .sort((a, b) => a.cost - b.cost)
+      // where no reallocation was recommended, "change nothing" and "reallocate but do not gift" are the
+      // same plan under two names; listing both invents a choice that was never there
+      .filter((x, i, all) => all.findIndex(y => Math.abs(y.net - x.net) < 500) === i);
+    return out.length ? out : null;
   })();
 
   const ranked = [baseline, ...orders, ...ceilings, ...soloGifts, ...soloNoms, ...soloRecycles, ...soloCompGifts,
@@ -4535,7 +4617,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
     gain: best.net - baseline.net,
     // the winner's own priced estate, so the tab can show the working for what it is RECOMMENDING
     // rather than only for the plan as it stands
-    bestEst: best.est, baselineEst: baseline.est, giftRationale,
+    bestEst: best.est, baselineEst: baseline.est, giftRationale, alternatives,
     levers, reasons, ranked, charity: withCharity, spread,
     spreadYears: num(plan.config.inheritedPensionSpreadYears, 5)
   };
@@ -6446,21 +6528,6 @@ export default function App() {
    * rather than this one so it is money the projection still has to find, which is the honest framing -
    * the allowance it buys back is worth having only if the household can spare the cash.
    */
-  /*
-   * Same idempotency as the optimiser's Apply, and for the same reason: a random id meant a second click
-   * appended a second gift of the same size. One id per year, replaced rather than added to.
-   */
-  const addSuggestedGift = (amount, year) => setPlan(prev => ({
-    ...prev,
-    inheritance: {
-      ...(prev.inheritance || {}),
-      gifts: [...(prev.inheritance?.gifts || []).filter(g => g.id !== `estate_band_${E.num(year, ctx.baseYear + 1)}`), {
-        id: `estate_band_${E.num(year, ctx.baseYear + 1)}`, amount: Math.round(amount), year: E.num(year, ctx.baseYear + 1),
-        desc: 'Gift to restore the residence allowance'
-      }]
-    }
-  }));
-
   const deleteBeneficiary = (id) => setPlan(prev => ({ ...prev, inheritance: { ...(prev.inheritance || {}), beneficiaries: (prev.inheritance?.beneficiaries || []).filter(b => b.id !== id) } }));
 
   // ------------------------------------------------------------ scenarios
@@ -6758,12 +6825,18 @@ export default function App() {
   const [estateApplied, setEstateApplied] = useState(null);
   const estateActions = useMemo(() => estatePlan ? E.estateActionPlan(plan, estatePlan) : [], [plan, estatePlan]);
   const [estateError, setEstateError] = useState('');
+  /*
+   * The route is computed, not requested. A button marked "find the best allocation" asks a household to
+   * opt in to the only thing the step exists for, and leaves the step showing nothing until they do. It
+   * is ~40ms of work on a memo the tab already pays several times over, so it simply runs whenever step
+   * 4 is on screen and the inputs behind it change.
+   */
   const handleOptimizeEstate = () => {
     setEstateError('');
     try {
       const r = E.optimizeInheritance(plan);
       if (!r) { setEstateError('Add at least one person under Who inherits on the Inheritance tab first — there is nothing to rank without an heir.'); setEstatePlan(null); return; }
-      setEstatePlan(r); setEstateApplied(null);
+      setEstatePlan(r); setEstateApplied(null); appliedAtKey.current = null;
     } catch (err) {
       setEstateError(String(err && err.message ? err.message : err));
       setEstatePlan(null);
@@ -6780,12 +6853,61 @@ export default function App() {
    */
   const appliedGiftId = (year) => `estate_gift_${year}`;
   const appliedCompId = (year) => `estate_comp_${year}`;
+  const estateRunKey = useMemo(() => JSON.stringify({
+    a: (ePlan?.accounts || []).map(a => [a.id, E.num(a.balance, 0), a.risk]),
+    i: ePlan?.inheritance, s: ePlan?.spending?.decumulationPolicy, d: ePlan?.spending?.drawdownStrategy,
+    h: ePlan?.config?.harvestPersonalAllowance, c: ePlan?.config?.harvestCeiling,
+    o: (ePlan?.oneOffContributions || []).map(x => [x.id, E.num(x.amount, 0)])
+  }), [ePlan]);
+  const lastEstateRun = useRef('');
+  const appliedAtKey = useRef(null);
+  useEffect(() => {
+    if (activeTab !== 'inheritance' || !showEstateStep(4)) return;
+    /*
+     * But NOT straight after applying. Applying changes the plan, and re-searching on the spot would
+     * replace the recommendation the household is still reading with a smaller one measured on top of
+     * it - so the card would show a £96,778 gift seconds after writing a £488,750 one, and pressing
+     * Apply again would take that too. The figures hold still until "Search again" is pressed.
+     */
+    if (estateApplied) {
+      /*
+       * Hold once, not forever. The first key after applying is the plan the apply itself created, and
+       * re-searching on that would replace what the household is still reading. Any change AFTER that is
+       * theirs - a different death age, another heir - and has to be priced, or the card quietly goes
+       * stale behind an edit they just made.
+       */
+      if (appliedAtKey.current === null) { appliedAtKey.current = estateRunKey; return; }
+      if (appliedAtKey.current === estateRunKey) return;
+      appliedAtKey.current = null;
+      setEstateApplied(null);
+      return;
+    }
+    if (lastEstateRun.current === estateRunKey) return;
+    lastEstateRun.current = estateRunKey;
+    handleOptimizeEstate();
+  }, [activeTab, estateStep, estateSeeAll, estateRunKey, estateApplied]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const appliedPlanRef = useRef(null);
   const applyEstatePlan = () => {
     if (!estatePlan) return;
+    /*
+     * The same recommendation is only applied once. Applying changes the plan, which re-runs the search,
+     * which produces a NEW recommendation measured on top of what was just written - so a second click
+     * is a legitimate second step, not a repeat. Guarding on the recommendation itself keeps both true:
+     * clicking twice on one answer does nothing, while acting on a fresh answer still works.
+     */
+    if (appliedPlanRef.current === estatePlan) return;
+    appliedPlanRef.current = estatePlan;
     const b = estatePlan.best;
+    /*
+     * And the gift ACCUMULATES. The search prices its gift on top of whatever the plan already holds, so
+     * writing it over an earlier applied gift of the same year would quietly delete the first one -
+     * turning a £488,750 gift into a £96,778 one on the second press.
+     */
+    const heldAmount = (id) => E.num(((plan?.inheritance?.gifts || []).find(g => g.id === id) || {}).amount, 0);
     const written = [
-      ...(b.gift > 0 ? [{ id: appliedGiftId(estatePlan.giftYear), amount: Math.round(b.gift), year: estatePlan.giftYear, desc: 'Gift (estate plan)' }] : []),
-      ...(b.compGift ? [{ ...b.compGift, id: appliedCompId(b.compGift.year), desc: 'Gift of compensation (estate plan)' }] : [])
+      ...(b.gift > 0 ? [{ id: appliedGiftId(estatePlan.giftYear), amount: Math.round(heldAmount(appliedGiftId(estatePlan.giftYear)) + b.gift), year: estatePlan.giftYear, desc: 'Gift (estate plan)' }] : []),
+      ...(b.compGift ? [{ ...b.compGift, id: appliedCompId(b.compGift.year), amount: Math.round(heldAmount(appliedCompId(b.compGift.year)) + E.num(b.compGift.amount, 0)), desc: 'Gift of compensation (estate plan)' }] : [])
     ];
     const writtenIds = new Set(written.map(g => g.id));
     const recycle = (b.recycle || []).map(x => ({ ...x, id: x.id || `__rc_${x.year}_${x.category}` }));
@@ -6807,6 +6929,7 @@ export default function App() {
         }
       };
     });
+    appliedAtKey.current = null;
     setEstateApplied({ at: Date.now(), gifts: written.length, split: !!b.split, recycle: recycle.length });
     // and take them to the rows that just changed, so a second click is never the obvious next move
     if (written.length) {
@@ -8456,9 +8579,11 @@ export default function App() {
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">Everything else on this tab prices what you have typed. This searches the choices you can still make: the order you draw wrappers down, how far up the tax bands you draw the pension each year, a gift now, how the pension is split between the people inheriting it, and moving money between wrappers up to the allowances that cap it. All of it ranked on one number &mdash; <strong>what your heirs keep</strong>, after inheritance tax and after their own income tax on drawing an inherited pension down over {estatePlan ? estatePlan.spreadYears : E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years. The Strategy tab answers a different question: how to divide money you are still paying in.</p>
                 </div>
                 <div className="shrink-0">
-                  <button type="button" onClick={handleOptimizeEstate} data-optimise-estate
-                    className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95">
-                    <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" /> Find the best allocation
+                  {/* kept as a re-run rather than a gate: the search has already happened by the time
+                      this is on screen, and after applying you want to price what is left */}
+                  <button type="button" onClick={() => { lastEstateRun.current = ''; handleOptimizeEstate(); }} data-optimise-estate
+                    className="px-3 py-1.5 bg-surface border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer">
+                    <RotateCcw className="w-3.5 h-3.5" /> Search again
                   </button>
                 </div>
               </div>
@@ -8486,7 +8611,9 @@ export default function App() {
                         blurb: 'This part is irreversible and it reduces what you have to live on. The projection has already checked the plan still survives, but the decision is not only a tax one.' },
                       { g: 'paperwork', n: '3', title: 'Then tell somebody',
                         blurb: '' }
-                    ].filter(sec => estateActions.some(a => a.group === sec.g)).map(sec => (
+                      // numbered by what is actually shown: a household whose plan needs no reallocation
+                      // should see cards 1 and 2, not 2 and 3 with a gap where nothing was wrong
+                    ].filter(sec => estateActions.some(a => a.group === sec.g)).map((sec, si) => ({ ...sec, n: String(si + 1) })).map(sec => (
                       <div key={sec.g} className={`p-3.5 rounded-xl space-y-3 border ${sec.g === 'gift' ? 'bg-purple-50 border-purple-200' : sec.g === 'paperwork' ? 'bg-slate-50 border-slate-200' : 'bg-emerald-50 border-emerald-200'}`} data-action-group={sec.g}>
                         <div>
                           <h3 className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 ${sec.g === 'gift' ? 'text-purple-900' : sec.g === 'paperwork' ? 'text-slate-700' : 'text-emerald-900'}`}>
@@ -8513,10 +8640,18 @@ export default function App() {
                         {sec.g === 'gift' && estatePlan.giftRationale && estatePlan.giftRationale.given > 0 && (
                           <div className="p-2 bg-white/70 border border-purple-200 rounded-lg text-[11px] text-purple-900 space-y-1" data-gift-rationale>
                             <div><strong>Why {formatGBP(estatePlan.giftRationale.given)} and not more.</strong> Giving this much is worth <strong>{formatGBP(estatePlan.giftRationale.worth)}</strong> against making no gift at all.</div>
-                            {estatePlan.giftRationale.nextUp && (
-                              <div>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead would leave your heirs <strong>{formatGBP(estatePlan.giftRationale.nextUpCost)} worse off</strong>, because {estatePlan.giftRationale.why}.</div>
+                            {estatePlan.giftRationale.bandBack > 0 && (
+                              <div><strong>{formatGBP(estatePlan.giftRationale.certain)} of that is certain</strong> whatever happens next: it restores {formatGBP(estatePlan.giftRationale.bandBack)} of residence allowance, and that test looks at what you <em>owned at death</em>, so the allowance returns the day the gift is made. The other {formatGBP(estatePlan.giftRationale.needsSeven)} needs you to survive seven years.</div>
                             )}
-                            {estatePlan.giftRationale.largest && estatePlan.giftRationale.largest > (estatePlan.giftRationale.nextUp || 0) && (
+                            {estatePlan.giftRationale.nextUp && (
+                              <div>{estatePlan.giftRationale.nextUpFails
+                                ? <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead <strong>would not leave you enough to live on</strong> &mdash; the projection runs out before the end of the plan. An allowance is no use to someone who has run out.</>
+                                : <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead would leave your heirs <strong>{formatGBP(estatePlan.giftRationale.nextUpCost)} worse off</strong>, because {estatePlan.giftRationale.why}.</>}</div>
+                            )}
+                            {estatePlan.giftRationale.liquidAtGiftYear > 0 && estatePlan.giftRationale.given > estatePlan.giftRationale.liquidAtGiftYear + 1000 && (
+                              <div>{formatGBP(estatePlan.giftRationale.liquidAtGiftYear)} of it comes from outside the pension; the rest has to be withdrawn and taxed on the way, which the figure above already counts.</div>
+                            )}
+                            {estatePlan.giftRationale.largest && !estatePlan.giftRationale.nextUpFails && estatePlan.giftRationale.largest > (estatePlan.giftRationale.nextUp || 0) && (
                               <div>The largest gift the search priced was {formatGBP(estatePlan.giftRationale.largest)}, {estatePlan.giftRationale.largestSurvives ? `which costs ${formatGBP(estatePlan.giftRationale.largestCost)}` : 'which does not leave enough to live on'}.</div>
                             )}
                           </div>
@@ -8567,6 +8702,37 @@ export default function App() {
                           <div className="p-2 bg-purple-50 border border-purple-200 rounded-lg"><span className="block text-[10px] text-purple-600 font-semibold uppercase tracking-wider">Given in your lifetime</span><span className="font-mono font-bold text-purple-800">{formatGBP(estatePlan.bestEst.giftsToHeirs)}</span></div>
                           <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg"><span className="block text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">Your heirs keep</span><span className="font-mono font-bold text-emerald-800">{formatGBP(estatePlan.best.net)}</span></div>
                         </div>
+                      </div>
+                    )}
+                    {/* the routes a person would actually have weighed, each priced the same way */}
+                    {estatePlan.alternatives && (
+                      <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-alternatives>
+                        <div>
+                          <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider">Why not one of the others</h3>
+                          <span className="text-[10px] text-slate-500 block mt-1">The routes you would have considered, priced on the same number: what your heirs end up holding.</span>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-[11px] border-collapse">
+                            <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
+                              <th className="pb-1.5 pr-3">Route</th><th className="pb-1.5 pr-3 text-right">Heirs hold</th><th className="pb-1.5 text-right">Against the plan above</th>
+                            </tr></thead>
+                            <tbody className="divide-y divide-slate-100">
+                              <tr className="bg-emerald-50/60">
+                                <td className="py-1.5 pr-3 font-sans font-bold text-emerald-900">The plan above<span className="block text-[10px] text-emerald-700 font-normal">{estatePlan.best.label}</span></td>
+                                <td className="py-1.5 pr-3 text-right font-mono font-bold text-emerald-800">{formatGBP(estatePlan.best.net)}</td>
+                                <td className="py-1.5 text-right font-mono text-emerald-700">&mdash;</td>
+                              </tr>
+                              {estatePlan.alternatives.map(a => (
+                                <tr key={a.key}>
+                                  <td className="py-1.5 pr-3 font-sans font-semibold text-slate-800">{a.label}<span className="block text-[10px] text-slate-400 font-normal">{a.why}</span></td>
+                                  <td className="py-1.5 pr-3 text-right font-mono text-slate-700">{formatGBP(a.net)}</td>
+                                  <td className="py-1.5 text-right font-mono font-bold text-rose-700">&minus;{formatGBP(a.cost)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <span className="text-[10px] text-slate-400 block">Every one of these was run through the same projection and priced at the same death age. {estatePlan.runs} of them in all, of which these are the ones worth naming.</span>
                       </div>
                     )}
                     <span className="text-[10px] text-slate-400 block">Only what changes is listed. Everything else about your plan stays as it is.</span>
@@ -8821,41 +8987,11 @@ export default function App() {
                 </div>
               )}
 
-              {/* ---------- a gift the arithmetic actually supports ---------- */}
-              {inheritanceView.suggestion?.worthwhile && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2" data-gift-suggestion>
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h4 className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-2"><Sparkles className="w-3.5 h-3.5" /> Why a gift helps here</h4>
-                    <button onClick={() => addSuggestedGift(inheritanceView.suggestion.amount, inheritanceView.suggestion.giftYear)} data-add-suggested-gift className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add this gift</button>
-                  </div>
-                  <p className="text-[11px] text-emerald-900 leading-relaxed">
-                    At age {inheritanceView.chosenAge} your estate is <strong>{formatGBP(inheritanceView.chosen.grossEstate)}</strong>, which is above the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} line where the residence allowance starts to be withdrawn &mdash; &pound;1 of allowance for every &pound;2 over. That is costing you <strong>{formatGBP(inheritanceView.chosen.rnrbTaperLoss)}</strong> of allowance.
-                  </p>
-                  <p className="text-[11px] text-emerald-900 leading-relaxed">
-                    Giving away <strong>{formatGBP(inheritanceView.suggestion.amount)}</strong> in {inheritanceView.suggestion.giftYear} {inheritanceView.suggestion.clearsLine ? <>brings it back to the line</> : <>brings it down to {formatGBP(inheritanceView.suggestion.estateAfter)}</>} and restores <strong>{formatGBP(inheritanceView.suggestion.bandRestored)}</strong> of allowance, taking the bill from {formatGBP(inheritanceView.suggestion.taxBefore)} to <strong>{formatGBP(inheritanceView.suggestion.taxAfter)}</strong> &mdash; a saving of <strong>{formatGBP(inheritanceView.suggestion.saving)}</strong>.
-                  </p>
-                  {inheritanceView.suggestion.costPerPound > 1.05 && (
-                    <p className="text-[10px] text-emerald-800 leading-relaxed">
-                      Less than the {formatGBP(inheritanceView.chosen.grossEstate - E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} you are over, because money given away also stops earning: by {inheritanceView.chosenAge} each &pound;1 given now has taken <strong>&pound;{inheritanceView.suggestion.costPerPound.toFixed(2)}</strong> off the estate. That figure is measured on your own plan rather than assumed &mdash; it is above &pound;1 partly through growth forgone and partly because spending that would have come from this money now comes out of the pension, taxed on the way.
-                    </p>
-                  )}
-                  <p className="text-[10px] text-emerald-800 leading-relaxed">
-                    <strong>{formatGBP(inheritanceView.suggestion.bandSaving)} of that saving is certain.</strong> The {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} test looks at what you <strong>owned at death</strong>, and money you have given away is not owned at death &mdash; so the allowance comes back the day you make the gift, seven years or not. The rest of the saving is the ordinary effect of the money being outside your estate, and that part does depend on surviving seven years. That asymmetry is why this is the only gift suggested here: gifting <em>in general</em> is close to tax-neutral inside seven years, because the gift eats the {formatGBP(E.num(plan?.config?.ihtNrb, 325000))} allowance your estate would have used anyway.
-                  </p>
-                  {!inheritanceView.suggestion.outsideEstate && (
-                    <p className="text-[10px] text-emerald-800 leading-relaxed">
-                      At the death age you have chosen the gift has <strong>not</strong> cleared seven years, so it also uses up {formatGBP(E.num(plan?.config?.ihtNrb, 325000))}-band allowance &mdash; the saving above is already net of that. Living longer after it only improves the figure.
-                    </p>
-                  )}
-                  {inheritanceView.suggestion.limitedBy === 'liquid' && (
-                    <p className="text-[10px] text-amber-800 leading-relaxed">That is as far as your cash, unwrapped investments and ISAs stretch, so it reduces the withdrawal rather than ending it. The rest of your wealth is in a pension, which would have to be drawn and taxed before it could be given away &mdash; a different decision, so it is not suggested here.</p>
-                  )}
-                  {inheritanceView.suggestion.limitedBy === 'solvency' && (
-                    <p className="text-[10px] text-amber-800 leading-relaxed">This is as much as the plan can spare: giving more would leave you short before the end of it, so the suggestion stops here rather than clearing the line. An allowance is no use to someone who has run out.</p>
-                  )}
-                  <p className="text-[10px] text-emerald-700 leading-relaxed">Added as a planned gift it leaves the plan in {inheritanceView.suggestion.giftYear}, so it reduces what you have to live on as well as what you leave behind. Check the survival rate afterwards &mdash; an allowance is no use if the money was needed.</p>
-                </div>
-              )}
+              {/* The standalone gift suggestion used to live here, with its own Add button. It proposed
+                  a gift the optimiser had already priced, from a different search, so the tab could
+                  show three gift proposals while Apply wrote two - which is exactly how it was
+                  reported. Gifts are proposed in one place now, on the last step, and the reasoning
+                  this card carried moved there with them. */}
             </div>
 
             {/* ---------- regular gifts out of income (s.21) ---------- */}

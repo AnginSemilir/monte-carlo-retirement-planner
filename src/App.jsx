@@ -3928,9 +3928,35 @@ function estateForPlanAt(plan, ctx, rows) {
   const inh = plan?.inheritance || {};
   const bens = normalizeBeneficiaries(inh.beneficiaries);
   if (!bens.length) return null;
-  const ev = evaluateRows(ctx, rows);
   const age = clamp(num(inh.deathAge, ctx.terminalAge), 0, 120);
-  const row = rows.find(r => r.ageSelf >= age) || rows[rows.length - 1];
+  const deathIdx = rows.findIndex(r => r.ageSelf >= age);
+  const row = deathIdx >= 0 ? rows[deathIdx] : rows[rows.length - 1];
+  /*
+   * Solvency is tested to the DEATH AGE, not to the plan's terminal age.
+   *
+   * These are two different inputs and they routinely disagree: a household that tells the Inheritance
+   * tab it dies at 71 still has Plan to Age at the default 100. Evaluating the full rows then rejects a
+   * gift because the projection falls short at 98 - twenty-seven years after the estate it is valuing
+   * has already been distributed. That is not a affordability finding, it is a question nobody asked.
+   *
+   * Slicing at the death row makes evaluateRows answer the question this function exists to answer:
+   * did the household reach the death age with its spending met. It also moves the bequest-floor test
+   * onto the death row, which is where a floor is meant to bite - "leave at least £X behind" is a
+   * statement about the estate, not about a pot thirty years after the funeral.
+   *
+   * When death age is blank it defaults to the terminal age, so the full-horizon test is unchanged for
+   * anyone who has not answered the question. And the wider plan's own survival is untouched: the
+   * Projection tab and the tournament's successRate still run to the terminal age, so a plan that fails
+   * after death still reports it where that finding belongs.
+   */
+  const ev = evaluateRows(ctx, deathIdx >= 0 ? rows.slice(0, deathIdx + 1) : rows);
+  /*
+   * The wider plan's verdict, kept alongside rather than instead of. Narrowing the test must not make
+   * the consequence invisible: a route that is affordable to 71 and leaves the plan short at 98 is a
+   * real trade-off, and the household chose the death age without necessarily meaning "and I am certain".
+   * The tab discloses this where it recommends the route, so the decision stays theirs.
+   */
+  const full = deathIdx >= 0 && deathIdx < rows.length - 1 ? evaluateRows(ctx, rows) : ev;
   const soldBy = !!inh.homeSold && num(inh.homeSaleAge, 999) <= age;
   const res = (ctx.isCouple ? estateForCouple : estateAtDeath)(
     plan.config, { pen: row.pensions, isa: row.isas, other: row.other, cash: row.cash },
@@ -3957,6 +3983,7 @@ function estateForPlanAt(plan, ctx, rows) {
    * A plan that ran dry leaves nothing either way: the money was needed before the estate was ever valued.
    */
   return { est, row, survived: ev.survived, failAge: ev.failAge, failReason: ev.failReason,
+    deathAge: age, fullSurvived: full.survived, fullFailAge: full.failAge, terminalAge: ctx.terminalAge,
     net: ev.survived ? est.netToBeneficiaries : 0,
     netWithGifts: ev.survived ? est.netIncludingLifetimeGifts : 0 };
 }
@@ -4153,7 +4180,9 @@ function optimizeInheritance(rawPlan, opts = {}) {
     const rows = simulateDeterministic(ctx, 'expected');
     const r = estateForPlanAt(p, ctx, rows);
     return { ...variant, net: r.netWithGifts, estateNet: r.net, est: r.est, row: r.row,
-      survived: r.survived, failAge: r.failAge, plan: p, ctx, rows };
+      survived: r.survived, failAge: r.failAge,
+      fullSurvived: r.fullSurvived, fullFailAge: r.fullFailAge, deathAge: r.deathAge,
+      plan: p, ctx, rows };
   };
 
   /*
@@ -4543,7 +4572,9 @@ function optimizeInheritance(rawPlan, opts = {}) {
       largest: largest && largest.amt > given + 1000 ? largest.amt : null,
       largestCost: largest && largest.amt > given + 1000 ? best.net - largest.c.net : 0,
       largestSurvives: largest ? !!largest.c.survived : true,
-      terminalAge: baseCtx.terminalAge,
+      // the horizon a rejected gift is measured against: affordability is tested to the age the
+      // household said it dies, so quoting Plan to Age here would name a boundary nothing was checked at
+      terminalAge: clamp(num(rawPlan?.inheritance?.deathAge, baseCtx.terminalAge), 0, 120),
       liquidAtGiftYear: (() => { const w = giftYearWrappersOf(baseline); return w ? w.isa + w.other + w.cash : 0; })(),
       // and when nothing is given, the best gift that WAS tried and what it lost
       bestRejected: given > 0 ? null : (() => {
@@ -4625,6 +4656,15 @@ function optimizeInheritance(rawPlan, opts = {}) {
     // the winner's own priced estate, so the tab can show the working for what it is RECOMMENDING
     // rather than only for the plan as it stands
     bestEst: best.est, baselineEst: baseline.est, giftRationale, alternatives,
+    /*
+     * Disclosed, not enforced. The route is affordable for as long as the household said it would live,
+     * which is the test it is now held to - but if it leaves the wider plan short afterwards the tab says
+     * so and names both ages, because the death age is an assumption and this is what rests on it.
+     * Reported only when the baseline would have lasted: a plan already short at that age is the plan's
+     * problem, not something this recommendation did.
+     */
+    afterDeath: (best.deathAge && best.fullSurvived === false && baseline.fullSurvived !== false)
+      ? { failAge: best.fullFailAge, deathAge: best.deathAge, terminalAge: baseCtx.terminalAge } : null,
     levers, reasons, ranked, charity: withCharity, spread,
     spreadYears: num(plan.config.inheritedPensionSpreadYears, 5)
   };
@@ -7058,13 +7098,14 @@ export default function App() {
   <div class="tile win"><span>Following this plan</span><strong>${money(estatePlan.best.net)}</strong></div>
   <div class="tile"><span>Difference</span><strong>+${money(estatePlan.gain)}</strong></div>
 </div>
+${estatePlan.afterDeath ? `<section style="border-color:#e0a34a;background:#fdf6e8"><p><strong>This route is costed to age ${esc(estatePlan.afterDeath.deathAge)}, not to age ${esc(estatePlan.afterDeath.terminalAge)}.</strong> You told the Inheritance tab you die at ${esc(estatePlan.afterDeath.deathAge)}, so that is how long it checked you could afford this. Your plan runs to ${esc(estatePlan.afterDeath.terminalAge)}, and on these figures it would run short from age ${esc(estatePlan.afterDeath.failAge)} &mdash; ${esc(estatePlan.afterDeath.failAge - estatePlan.afterDeath.deathAge)} years after the estate above is valued.</p><p class="fine">A trade-off rather than an error: money given away is gone whether or not you outlive the assumption. If living to ${esc(estatePlan.afterDeath.terminalAge)} is a possibility you want covered, raise the death age and the search will find a route that funds it.</p></section>` : ''}
 ${groups.map((sec, si) => `<h2>${si + 1}. ${esc(sec.title)}</h2><section>${
   estateActions.filter(a => a.group === sec.g).map((a, i) => `<div class="step"><span class="sn">${si + 1}.${i + 1}</span><b>${esc(a.title)}</b>${
     a.sequence ? `<p class="seq">${a.sequence.map((x, j) => `<span>${j + 1}. ${esc(x)}</span>`).join('<i>→</i>')}</p>` : ''
   }${
     (a.facts || []).length ? `<dl>${a.facts.map(f => `<dt>${esc(f.k)}</dt><dd>${esc(f.v)}</dd>`).join('')}</dl>` : ''
   }${a.why ? `<p>${esc(a.why)}</p>` : ''}<details><summary>The detail</summary>${a.body ? `<p class="fine">${esc(a.body)}</p>` : ''}${a.detail ? `<p class="fine">${esc(a.detail)}</p>` : ''}</details></div>`).join('')
-}${sec.g === 'gift' && g && g.given > 0 ? `<div class="step" style="padding-left:0"><p class="fine"><strong>Why ${money(g.given)} and not more.</strong> It is worth ${money(g.worth)} against making no gift at all.${g.nextUp ? (g.nextUpFails ? ` Giving ${money(g.nextUp)} instead runs the projection short${g.nextUpFailAge ? ` from age ${g.nextUpFailAge}, before the plan ends at ${g.terminalAge}` : ' before the plan ends'}.` : ` Giving ${money(g.nextUp)} instead would leave the heirs ${money(g.nextUpCost)} worse off.`) : ''}</p></div>` : ''}</section>`).join('')}
+}${sec.g === 'gift' && g && g.given > 0 ? `<div class="step" style="padding-left:0"><p class="fine"><strong>Why ${money(g.given)} and not more.</strong> It is worth ${money(g.worth)} against making no gift at all.${g.nextUp ? (g.nextUpFails ? ` Giving ${money(g.nextUp)} instead runs the projection short${g.nextUpFailAge ? ` from age ${g.nextUpFailAge}, before the age of ${estatePlan.deathAge} you said you die` : ' before the age you said you die'}.` : ` Giving ${money(g.nextUp)} instead would leave the heirs ${money(g.nextUpCost)} worse off.`) : ''}</p></div>` : ''}</section>`).join('')}
 <h2>The figures</h2>
 <section><table><thead><tr><th>Line</th><th class="num">Amount</th><th class="num">Running</th></tr></thead><tbody>
 ${work.map(r => `<tr class="${r.kind === 'total' ? 'total' : r.kind === 'note' ? 'note' : ''}"><td>${esc(r.label)}${r.note ? `<br><span class="fine">${esc(r.note)}</span>` : ''}</td><td class="num">${r.kind === 'note' ? '' : (r.amount < 0 ? '−' : '') + money(r.amount)}</td><td class="num">${r.kind === 'note' ? '' : money(Math.max(0, r.running))}</td></tr>`).join('')}
@@ -8806,11 +8847,29 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                       is the consequence. Running them together as one numbered list read as a single
                       instruction to be worked through in order. */}
                   <div className="space-y-3" data-action-plan>
+                    {/* Named, not buried. Affordability is now judged to the death age rather than to
+                        Plan to Age, which is what makes the route recommendable at all - so when the two
+                        ages disagree AND the route is what causes the later shortfall, say it here, at the
+                        top of the thing being recommended, with both ages and the way to change either. */}
+                    {estatePlan.afterDeath && (
+                      <div className="p-3 rounded-xl border border-amber-300 bg-amber-50 text-[11px] text-amber-900 space-y-1" data-after-death>
+                        <div className="font-bold text-[12px]">This route is costed to age {estatePlan.afterDeath.deathAge}, not to age {estatePlan.afterDeath.terminalAge}.</div>
+                        <div>
+                          You told the Inheritance tab you die at <strong>{estatePlan.afterDeath.deathAge}</strong>, so that is how long it checked you could afford this.
+                          Your plan runs to <strong>{estatePlan.afterDeath.terminalAge}</strong>, and on these figures it would run short from
+                          age <strong>{estatePlan.afterDeath.failAge}</strong> &mdash; {estatePlan.afterDeath.failAge - estatePlan.afterDeath.deathAge} years after the estate above is valued.
+                        </div>
+                        <div className="text-amber-700">
+                          That is a real trade-off rather than an error: money given away is gone whether or not you outlive the assumption.
+                          If living to {estatePlan.afterDeath.terminalAge} is a possibility you want covered, raise the death age on step 1 and the search will find a route that funds it.
+                        </div>
+                      </div>
+                    )}
                     {[
                       { g: 'reallocate', n: '1', title: 'Move money, but keep it',
                         blurb: 'Nothing here leaves your estate or your control. It is which account you draw from, how far up the tax bands, where the pension goes on death, and what you shift between wrappers.' },
                       { g: 'gift', n: '2', title: 'Give money away',
-                        blurb: 'This part is irreversible and it reduces what you have to live on. The projection has already checked the plan still survives, but the decision is not only a tax one.' },
+                        blurb: 'This part is irreversible and it reduces what you have to live on. The projection has already checked you can afford it for as long as you said you would live, but the decision is not only a tax one.' },
                       { g: 'paperwork', n: '3', title: 'Then tell somebody',
                         blurb: '' }
                       // numbered by what is actually shown: a household whose plan needs no reallocation
@@ -8878,7 +8937,7 @@ ${estatePlan.alternatives.map(a => `<tr><td>${esc(a.label)}<br><span class="fine
                             )}
                             {estatePlan.giftRationale.nextUp && (
                               <div>{estatePlan.giftRationale.nextUpFails
-                                ? <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead <strong>runs the projection short{estatePlan.giftRationale.nextUpFailAge ? <> from age {estatePlan.giftRationale.nextUpFailAge}</> : null}</strong>{estatePlan.giftRationale.nextUpFailAge && estatePlan.giftRationale.terminalAge ? <>, {estatePlan.giftRationale.terminalAge - estatePlan.giftRationale.nextUpFailAge} {estatePlan.giftRationale.terminalAge - estatePlan.giftRationale.nextUpFailAge === 1 ? 'year' : 'years'} before your plan ends at {estatePlan.giftRationale.terminalAge}</> : ' before the end of the plan'}. An allowance is no use to someone who has run out &mdash; though if you would not in fact live that long, raise or lower <em>Plan to Age</em> on Plan Inputs and the search will find a different answer.</>
+                                ? <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead <strong>runs the projection short{estatePlan.giftRationale.nextUpFailAge ? <> from age {estatePlan.giftRationale.nextUpFailAge}</> : null}</strong>{estatePlan.giftRationale.nextUpFailAge && estatePlan.giftRationale.terminalAge ? <>, {estatePlan.giftRationale.terminalAge - estatePlan.giftRationale.nextUpFailAge} {estatePlan.giftRationale.terminalAge - estatePlan.giftRationale.nextUpFailAge === 1 ? 'year' : 'years'} before the age of {estatePlan.giftRationale.terminalAge} you said you die</> : ' before the age you said you die'}. An allowance is no use to someone who has run out &mdash; and that is measured against the age you said you die, on step 1, so change it there if it is wrong.</>
                                 : <>Giving {formatGBP(estatePlan.giftRationale.nextUp)} instead would leave your heirs <strong>{formatGBP(estatePlan.giftRationale.nextUpCost)} worse off</strong>, because {estatePlan.giftRationale.why}.</>}</div>
                             )}
                             {estatePlan.giftRationale.liquidAtGiftYear > 0 && estatePlan.giftRationale.given > estatePlan.giftRationale.liquidAtGiftYear + 1000 && (

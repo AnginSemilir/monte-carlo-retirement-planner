@@ -131,6 +131,12 @@ console.log('=========== F. IT NEVER RECOMMENDS BREAKING THE PLAN ===========');
    * A household with enough to last but not much over. Every candidate that leaves them short must be
    * rejected outright rather than ranked, however good it looks for the heirs: they have to live on this
    * money first, and a gift or a transfer is spent years before the estate is ever valued.
+   *
+   * "Short" means short BEFORE THE DEATH AGE. The fixture dies at 84 and has Plan to Age at 95, which is
+   * the ordinary case rather than a contrived one - nobody moves Plan to Age when they answer the
+   * inheritance question. Holding the optimiser to 95 rejected gifts for a shortfall in years the estate
+   * it is valuing has already been distributed through. So the guarantee tested here is affordability to
+   * the death age, and the shortfall after it is required to be DISCLOSED rather than absent.
    */
   const tight = household({ pen: 600000, isa: 150000, other: 0, cash: 80000, home: 400000,
     bens: [{ id: 'k1', name: 'Jo', relationship: 'descendant', sharePct: 100, income: 80000, age: 50 }] });
@@ -156,9 +162,26 @@ console.log('=========== F. IT NEVER RECOMMENDS BREAKING THE PLAN ===========');
         : tight.inheritance.beneficiaries }
   });
   const ctx = E.buildContext(E.resolveMpaa(rebuilt));
-  const ev = E.evaluateRows(ctx, E.simulateDeterministic(ctx, 'expected'));
-  ok('the winning plan still survives', ev.survived, `fails at ${ev.failAge || 'never'}`);
-  const rebuiltNet = E.estateForPlanAt(rebuilt, ctx, E.simulateDeterministic(ctx, 'expected')).netWithGifts;
+  const rebuiltRows = E.simulateDeterministic(ctx, 'expected');
+  const deathAge = rebuilt.inheritance.deathAge;
+  const upToDeath = rebuiltRows.filter(r => r.ageSelf <= deathAge);
+  const ev = E.evaluateRows(ctx, upToDeath);
+  ok('the winning plan is affordable to the death age', ev.survived,
+    `to ${deathAge}: fails at ${ev.failAge || 'never'}`);
+  /*
+   * And the consequence of the narrower test is not swallowed. If the route does leave the wider plan
+   * short, `afterDeath` must name where - a silent recommendation here would be the actual regression,
+   * because the household set the death age as an assumption, not as a certainty.
+   */
+  const full = E.evaluateRows(ctx, rebuiltRows);
+  ok('a shortfall after the death age is disclosed, not hidden',
+    full.survived ? r.afterDeath === null : !!(r.afterDeath && r.afterDeath.failAge === full.failAge),
+    full.survived ? 'lasts to the terminal age, nothing to disclose'
+      : `plan fails at ${full.failAge}, disclosed as ${r.afterDeath ? r.afterDeath.failAge : 'NOTHING'}`);
+  ok('and the disclosure carries both ages the reader needs',
+    !r.afterDeath || (r.afterDeath.deathAge === deathAge && r.afterDeath.terminalAge === ctx.terminalAge),
+    r.afterDeath ? `dies ${r.afterDeath.deathAge}, plan to ${r.afterDeath.terminalAge}` : 'n/a');
+  const rebuiltNet = E.estateForPlanAt(rebuilt, ctx, rebuiltRows).netWithGifts;
   ok('and rebuilding it reproduces the figure the optimiser quoted', Math.abs(rebuiltNet - r.best.net) < 2,
     `${gbp(rebuiltNet)} against ${gbp(r.best.net)}`);
   ok('the recommendation is an improvement, not just a change', r.best.net >= r.baseline.net,

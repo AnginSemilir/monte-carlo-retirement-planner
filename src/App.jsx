@@ -663,7 +663,7 @@ const BLANK_PLAN = Object.freeze({
   inheritance: {
     deathAge: '', homeValue: '', homeToDescendants: true,
     homeSold: false, homeSaleAge: '', otherAssets: [],
-    transferredNrbPct: '', transferredRnrbPct: '',
+    widowed: false, transferredNrbPct: '', transferredRnrbPct: '',
     // quick succession relief: an inheritance received within five years of death, and the tax paid on it
     qsrInheritedValue: '', qsrTaxPaid: '', qsrYearsBefore: '',
     // s.154 IHTA 1984: a full exemption, not a relief
@@ -833,7 +833,16 @@ function normalizePlan(raw) {
       surplusGift: { ...BLANK_PLAN.inheritance.surplusGift, ...(isPlainObject(src.inheritance?.surplusGift) ? src.inheritance.surplusGift : {}) },
       // renamed once the relief turned out to be a credit against the tax rather than a hole in the estate
       compensationPayment: src.inheritance?.compensationPayment ?? src.inheritance?.exemptCompensation ?? '',
-      compensationDate: src.inheritance?.compensationDate ?? src.inheritance?.exemptCompensationDate ?? ''
+      compensationDate: src.inheritance?.compensationDate ?? src.inheritance?.exemptCompensationDate ?? '',
+      /*
+       * The flag postdates the two percentages it governs, so a plan saved before it existed has to be
+       * read for what it plainly means: a household that entered a transferred band was telling us it
+       * was widowed. Defaulting the flag to false without this would silently delete up to £500,000 of
+       * allowance from every plan already saved - a change nobody made, showing up as a larger tax bill.
+       */
+      widowed: typeof src.inheritance?.widowed === 'boolean'
+        ? src.inheritance.widowed
+        : (num(src.inheritance?.transferredNrbPct, 0) > 0 || num(src.inheritance?.transferredRnrbPct, 0) > 0)
     },
     accounts: [],
     riskProfiles: {},
@@ -3933,6 +3942,18 @@ function estateForCouple(cfg, wrappers, opts = {}) {
  * Returns null when the household has not said who inherits - there is genuinely nothing to rank on,
  * and inventing a default heir would silently answer a question they never asked.
  */
+/*
+ * The transferred bands, read through the flag that governs them.
+ *
+ * Unticking "widowed" has to remove the allowance, not merely hide the boxes: leaving the stored
+ * percentages live behind a collapsed section would price an estate on an allowance the household had
+ * just told us it does not have, and nothing on screen would say why the bill had not moved.
+ * Clearing the numbers on untick instead would lose what they typed if they ticked it back.
+ */
+function transferredPct(inh, key) {
+  return inh && inh.widowed ? clamp(num(inh[key], 0), 0, 100) : 0;
+}
+
 function estateForPlanAt(plan, ctx, rows) {
   const inh = plan?.inheritance || {};
   const bens = normalizeBeneficiaries(inh.beneficiaries);
@@ -3973,7 +3994,7 @@ function estateForPlanAt(plan, ctx, rows) {
       // a home sold still carries its residence band through the downsizing addition
       formerHomeValue: soldBy ? Math.max(0, num(inh.homeValue, 0)) : 0,
       homeToDescendants: inh.homeToDescendants !== false,
-      transferredNrbPct: num(inh.transferredNrbPct, 0), transferredRnrbPct: num(inh.transferredRnrbPct, 0),
+      transferredNrbPct: transferredPct(inh, 'transferredNrbPct'), transferredRnrbPct: transferredPct(inh, 'transferredRnrbPct'),
       qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
       qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
       compensationPayment: num(inh.compensationPayment, 0),
@@ -4209,7 +4230,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
         homeValue: soldBy ? 0 : Math.max(0, num(inh.homeValue, 0)),
         formerHomeValue: soldBy ? Math.max(0, num(inh.homeValue, 0)) : 0,
         homeToDescendants: inh.homeToDescendants !== false,
-        transferredNrbPct: num(inh.transferredNrbPct, 0), transferredRnrbPct: num(inh.transferredRnrbPct, 0),
+        transferredNrbPct: transferredPct(inh, 'transferredNrbPct'), transferredRnrbPct: transferredPct(inh, 'transferredRnrbPct'),
         qsrInheritedValue: num(inh.qsrInheritedValue, 0), qsrTaxPaid: num(inh.qsrTaxPaid, 0),
         qsrYearsBefore: num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         compensationPayment: num(inh.compensationPayment, 0),
@@ -4463,7 +4484,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
    */
   const deathAge = clamp(num(inh.deathAge, baseCtx.terminalAge), 0, 120);
   const e = baseline.est;
-  const rnrbFull = Math.max(0, num(plan.config.ihtRnrb, 175000)) * (1 + clamp(num(inh.transferredRnrbPct, 0), 0, 100) / 100);
+  const rnrbFull = Math.max(0, num(plan.config.ihtRnrb, 175000)) * (1 + transferredPct(inh, 'transferredRnrbPct') / 100);
   const toClear = Math.max(0, e.grossEstate - num(plan.config.ihtRnrbTaperFrom, 2000000) - 2 * rnrbFull);
   const reasons = [];
   if (deathAge < num(plan.config.pensionIncomeTaxFromAge, 75)) {
@@ -5290,7 +5311,7 @@ function estateActionPlan(plan, result) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
@@ -6408,8 +6429,8 @@ export default function App() {
         // value of what was sold has to travel with the plan
         formerHomeValue: soldBy ? homeValue : 0,
         homeToDescendants: !!inh.homeToDescendants,
-        transferredNrbPct: E.num(inh.transferredNrbPct, 0),
-        transferredRnrbPct: E.num(inh.transferredRnrbPct, 0),
+        transferredNrbPct: E.transferredPct(inh, 'transferredNrbPct'),
+        transferredRnrbPct: E.transferredPct(inh, 'transferredRnrbPct'),
         qsrInheritedValue: E.num(inh.qsrInheritedValue, 0), qsrTaxPaid: E.num(inh.qsrTaxPaid, 0),
         qsrYearsBefore: E.num(inh.qsrYearsBefore, 99), activeServiceExempt: !!inh.activeServiceExempt,
         compensationPayment: E.num(inh.compensationPayment, 0),
@@ -6461,7 +6482,7 @@ export default function App() {
       { deathAge: chosenAge, deathYear: chosenRow.year,
         homeValue: soldByChosen ? 0 : homeValue, formerHomeValue: soldByChosen ? homeValue : 0,
         homeToDescendants: inh.homeToDescendants !== false,
-        transferredNrbPct: E.num(inh.transferredNrbPct, 0), transferredRnrbPct: E.num(inh.transferredRnrbPct, 0),
+        transferredNrbPct: E.transferredPct(inh, 'transferredNrbPct'), transferredRnrbPct: E.transferredPct(inh, 'transferredRnrbPct'),
         otherAssets: inh.otherAssets, gifts: inh.gifts, beneficiaries: bens, giftYear, liquidToday, project }) : null;
     // the 75 boundary, priced for this household rather than described in the abstract
     const before = rows.filter(r => r.age < 75).slice(-1)[0];
@@ -10127,34 +10148,64 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 * £500,000 that a household never opens is an allowance they never claim - the commonest
                 * way to overpay on this tab. The reasoning is what folds now, not the thing to fill in.
                 */}
+              {/*
+                * A tick first, then the boxes.
+                *
+                * The two percentages sat open with a placeholder of 100, which reads as a value already
+                * entered: a household that is not widowed saw what looked like a filled-in allowance,
+                * and one that is could not tell whether the 100 was theirs or the app's. A boolean makes
+                * the claim explicit, and the boxes only exist once it is made.
+                *
+                * Unticking removes the allowance rather than just the fields - transferredPct reads
+                * through the flag - but keeps what was typed, so ticking it back does not ask again.
+                */}
               <div className="text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2" data-widowed>
-                <div className="text-slate-700 font-semibold">Widowed? Add your late partner&rsquo;s unused allowances</div>
-                <span className="text-[10px] text-slate-500 block">Usually <strong>100 in both boxes</strong> &mdash; worth up to {formatGBP(E.num(plan?.config?.ihtNrb, 325000) + E.num(plan?.config?.ihtRnrb, 175000))}, and commonly missed. Leave both at 0 if you were not married or civil partners.</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-slate-600 font-semibold block mb-1">% of their nil-rate band unused</label>
-                    <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredNrbPct ?? ''} onChange={(e) => updateInheritance('transferredNrbPct', parsePercent(e.target.value))} className={inputCls} />
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" data-widowed-toggle checked={!!plan?.inheritance?.widowed}
+                    onChange={(e) => updateInheritance('widowed', e.target.checked)} className="accent-purple-600 mt-0.5" />
+                  <span className="text-slate-700"><strong>I have been widowed</strong> &mdash; my late spouse or civil partner left allowances unused.</span>
+                </label>
+                {!plan?.inheritance?.widowed && (
+                  <span className="text-[10px] text-slate-500 block ml-6">Worth up to {formatGBP(E.num(plan?.config?.ihtNrb, 325000) + E.num(plan?.config?.ihtRnrb, 175000))}, and commonly missed. Only for a marriage or civil partnership &mdash; an unmarried partner transfers nothing, however long you were together.</span>
+                )}
+                {plan?.inheritance?.widowed && (<>
+                  <span className="text-[10px] text-slate-500 block">Usually <strong>100% of both</strong>, because everything passing to a spouse is exempt and so uses none of their allowances.</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-slate-600 font-semibold block mb-1">Their nil-rate band unused</label>
+                      {/* the % sits outside the box, so the number in it is never read as anything else */}
+                      <div className="flex items-center gap-1.5">
+                        <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredNrbPct ?? ''} onChange={(e) => updateInheritance('transferredNrbPct', parsePercent(e.target.value))} className={`${inputCls} flex-1`} />
+                        <span className="shrink-0 text-slate-500 font-semibold">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-slate-600 font-semibold block mb-1">Their residence band unused</label>
+                      <div className="flex items-center gap-1.5">
+                        <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredRnrbPct ?? ''} onChange={(e) => updateInheritance('transferredRnrbPct', parsePercent(e.target.value))} className={`${inputCls} flex-1`} />
+                        <span className="shrink-0 text-slate-500 font-semibold">%</span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-slate-600 font-semibold block mb-1">% of their residence band unused</label>
-                    <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredRnrbPct ?? ''} onChange={(e) => updateInheritance('transferredRnrbPct', parsePercent(e.target.value))} className={inputCls} />
-                  </div>
-                </div>
-                <details className="text-[10px]">
-                  <summary className="cursor-pointer text-slate-500 hover:text-slate-800 font-semibold">When it is not 100, and what would stop you claiming</summary>
-                  <div className="mt-1.5 space-y-1.5 text-slate-400">
-                    <p>Everything passing to a spouse is exempt and so uses none of their allowances, which is why 100 is the usual answer. Enter less than 100 only where part of their estate went to somebody other than you and used some of the band &mdash; a {formatGBP(100000)} legacy to a child against a {formatGBP(285000)} band that year is 35% used, so 65 goes in the box.</p>
-                    {/* Three things that look like disqualifications and are not, and one that really is.
-                        All four get asked, and getting the last one wrong invents an allowance. */}
-                    <p>How long ago they died does not matter, nor how the housing worked out: the transfer applies however far back the first death was, the residence half is available even though it did not exist before 6 April 2017, and it is <strong>not attached to any particular property</strong> &mdash; a different house, a house since sold, or no house at all still gives the full 100%. Both are percentages of <em>today&rsquo;s</em> allowances, not the ones in force then. What does matter is that you were <strong>married or civil partners</strong> when they died: for an unmarried partner, however long you were together, nothing transfers and both boxes are 0.</p>
-                    <p className="text-amber-700">Neither is given automatically. Your executors have to claim them &mdash; forms IHT402 and IHT436 &mdash; within two years of the end of the month you die in.</p>
-                  </div>
-                </details>
+                  {/* blank is not the same as nothing here: an unfilled box claims no band at all */}
+                  {(E.isBlank(plan?.inheritance?.transferredNrbPct) || E.isBlank(plan?.inheritance?.transferredRnrbPct)) && (
+                    <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-[10px] text-amber-800">
+                      A box left empty counts as <strong>0%</strong>, not 100%. Put 100 in both unless part of their estate went to somebody other than you.
+                    </div>
+                  )}
+                  <details className="text-[10px]">
+                    <summary className="cursor-pointer text-slate-500 hover:text-slate-800 font-semibold">When it is not 100, and what would stop you claiming</summary>
+                    <div className="mt-1.5 space-y-1.5 text-slate-400">
+                      <p>Enter less than 100 only where part of their estate went to somebody other than you and used some of the band &mdash; a {formatGBP(100000)} legacy to a child against a {formatGBP(285000)} band that year is 35% used, so 65 goes in the box.</p>
+                      {/* Three things that look like disqualifications and are not, and one that really is.
+                          All four get asked, and getting the last one wrong invents an allowance. */}
+                      <p>How long ago they died does not matter, nor how the housing worked out: the transfer applies however far back the first death was, the residence half is available even though it did not exist before 6 April 2017, and it is <strong>not attached to any particular property</strong> &mdash; a different house, a house since sold, or no house at all still gives the full 100%. Both are percentages of <em>today&rsquo;s</em> allowances, not the ones in force then.</p>
+                      <p className="text-amber-700">Neither is given automatically. Your executors have to claim them &mdash; forms IHT402 and IHT436 &mdash; within two years of the end of the month you die in.</p>
+                    </div>
+                  </details>
+                </>)}
               </div>
 
-              {/* Two cases where an identical estate pays a completely different amount, and neither is
-                  visible from the balances. Quick succession relief in particular is not applied
-                  automatically - it has to be claimed - so a household unaware of it loses it entirely. */}
               {/* Same reasoning as the widowed boxes: these three reliefs are each worth five or six
                   figures and none of them is given automatically, so what you fill in stays on the
                   surface and the law behind it folds away. */}

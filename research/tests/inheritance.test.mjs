@@ -973,5 +973,44 @@ console.log('=========== P. THE WORKING RECONCILES ===========');
   ok('nothing to price returns no phantom rows', E.ihtWorkings(null, cfg) === null);
 }
 
+console.log('=========== Q. THE WIDOWED TICK GOVERNS THE TRANSFERRED BANDS ===========');
+{
+  /*
+   * The two percentages used to sit open with a placeholder of 100, which reads as a value already
+   * entered. A boolean makes the claim explicit - but only if it actually governs the allowance.
+   * Hiding the boxes while leaving the stored numbers live would price an estate on an allowance the
+   * household had just said it does not have, with nothing on screen to explain the bill.
+   */
+  const pct = (inh) => E.transferredPct({ ...inh }, 'transferredNrbPct');
+  ok('ticked, the percentage counts', pct({ widowed: true, transferredNrbPct: 100 }) === 100);
+  ok('unticked, it does not — whatever is stored', pct({ widowed: false, transferredNrbPct: 100 }) === 0,
+    'stored 100 with the tick off reads as ' + pct({ widowed: false, transferredNrbPct: 100 }));
+  ok('and a blank box is zero rather than a default hundred', pct({ widowed: true, transferredNrbPct: '' }) === 0);
+  ok('it is still clamped to its range', pct({ widowed: true, transferredNrbPct: 150 }) === 100);
+
+  /*
+   * The flag postdates the percentages, so a plan saved before it existed has to be read for what it
+   * plainly means. Defaulting it to false would silently delete up to £500,000 of allowance from every
+   * plan already on disk - a change nobody made, surfacing only as a larger bill.
+   */
+  ok('a plan saved before the flag keeps its allowance',
+    E.normalizePlan({ inheritance: { transferredNrbPct: 100, transferredRnrbPct: 100 } }).inheritance.widowed === true);
+  ok('a plan with nothing entered does not gain one',
+    E.normalizePlan({ inheritance: {} }).inheritance.widowed === false);
+  ok('and an explicit false is honoured over the percentages',
+    E.normalizePlan({ inheritance: { widowed: false, transferredNrbPct: 100 } }).inheritance.widowed === false);
+
+  // end to end: the same estate, the same stored percentages, the tick the only difference
+  const estate = (widowed) => E.estateAtDeath({}, { pen: 0, isa: 600000, other: 0, cash: 0 },
+    { deathAge: 84, deathYear: 2040, homeValue: 400000, homeToDescendants: true,
+      transferredNrbPct: E.transferredPct({ widowed, transferredNrbPct: 100 }, 'transferredNrbPct'),
+      transferredRnrbPct: E.transferredPct({ widowed, transferredRnrbPct: 100 }, 'transferredRnrbPct'),
+      beneficiaries: [{ id: 'k', name: 'Jo', relationship: 'descendant', sharePct: 100, income: 0 }] });
+  const on = estate(true), off = estate(false);
+  ok('ticking it doubles the nil-rate band', on.nrb === off.nrb * 2, `${on.nrb} against ${off.nrb}`);
+  ok('and the bill falls by the tax on the bands it adds', off.iht > on.iht,
+    `£${Math.round(off.iht).toLocaleString()} unticked -> £${Math.round(on.iht).toLocaleString()} ticked`);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

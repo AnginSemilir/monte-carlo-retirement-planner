@@ -5366,6 +5366,23 @@ const parseInputNumber = (val) => {
   if (val === '' || val === null || val === undefined) return '';
   return String(val).replace(/^0+(?=\d)/, '');
 };
+/*
+ * A percentage that cannot leave its own range.
+ *
+ * `max="100"` on a number input constrains the spinner and nothing else: typing straight into the box
+ * sails past it, and 150% of a late partner's nil-rate band invents an allowance that does not exist.
+ * The other four percentage boxes on the tab had the same hole - a beneficiary taking 150% of an estate,
+ * a pension haircut over 100%.
+ *
+ * Clamped here rather than at read time on purpose: a figure that is silently corrected downstream
+ * leaves the household looking at 150 in a box while the sums use 100, which is worse than either.
+ */
+const parsePercent = (val) => {
+  const v = parseInputNumber(val);
+  if (v === '') return '';
+  const n = Number(v);
+  return Number.isFinite(n) ? String(clamp(n, 0, 100)) : '';
+};
 const tick = () => new Promise(r => setTimeout(r, 0));
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const safeStorageGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -8656,7 +8673,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div><label className="text-slate-600 font-semibold block mb-1">Personal Pension Access Age (NMPA)</label><input type="number" min="0" max="120" placeholder="58" onFocus={handleFocus} value={plan?.demographics?.privatePensionAge ?? ''} onChange={(e) => updateDemographics('privatePensionAge', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Statutory NMPA is 55 today and 57 from April 2028.</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">State Pension Start Age</label><input type="number" min="0" max="120" placeholder="68" onFocus={handleFocus} value={plan?.demographics?.statePensionAge ?? ''} onChange={(e) => updateDemographics('statePensionAge', e.target.value)} className={inputCls} /></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Tournament bridge safety margin (%)</label><input type="number" min="0" step="5" placeholder="30" onFocus={handleFocus} value={plan?.config?.bridgeSafetyMargin ?? ''} onChange={(e) => updateConfig('bridgeSafetyMargin', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Uplift on the pre-SIPP access reserve, assuming 0% real growth. This scales the bridge <em>target</em> upwards; the tournament's emergency buffer instead holds savings back from counting towards it.</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Pension death-tax haircut (%)</label><input type="number" min="0" max="100" step="5" placeholder="0" onFocus={handleFocus} value={plan?.config?.pensionDeathTaxRate ?? ''} onChange={(e) => updateConfig('pensionDeathTaxRate', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Applied to pension left at age {terminalAge} for the "net" pot figures only (IHT from April 2027 / beneficiary income tax).</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Pension death-tax haircut (%)</label><input type="number" min="0" max="100" step="5" placeholder="0" onFocus={handleFocus} value={plan?.config?.pensionDeathTaxRate ?? ''} onChange={(e) => updateConfig('pensionDeathTaxRate', parsePercent(e.target.value))} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Applied to pension left at age {terminalAge} for the "net" pot figures only (IHT from April 2027 / beneficiary income tax).</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Monte Carlo seed</label><div className="flex gap-1"><input type="number" value={mcSeed} onChange={(e) => setMcSeed(Math.max(1, parseInt(e.target.value) || 1))} className={inputCls} /><button type="button" onClick={() => setMcSeed(Math.floor(Math.random() * 1e9) + 1)} className="px-2 bg-slate-100 border border-slate-300 rounded-lg text-[11px] font-semibold cursor-pointer hover:bg-slate-200">Reseed</button></div><span className="text-[10px] text-slate-400 mt-1 block">Same seed = same market paths (reproducible, fair comparisons).</span></div>
               </div>
             </div>
@@ -9640,14 +9657,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         {Object.entries(E.IHT_RELATIONSHIPS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                       </select>
                       <label className="flex items-center gap-1 text-slate-500" title={pensionSplitShown ? 'Their share of everything except the pension: the house, ISAs, investments and cash. This is the will.' : 'Their share of everything you leave.'}>{pensionSplitShown ? 'under your will' : 'gets'}
-                        <input type="number" min="0" max="100" step="5" onFocus={handleFocus} value={inputValue(b.sharePct)} onChange={(e) => updateBeneficiary(b.id, { sharePct: parseInputNumber(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 font-bold" />%
+                        <input type="number" min="0" max="100" step="5" onFocus={handleFocus} value={inputValue(b.sharePct)} onChange={(e) => updateBeneficiary(b.id, { sharePct: parsePercent(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 font-bold" />%
                       </label>
                       {/* The pension passes by nomination, not by the will, so it can be split differently -
                           but two percentage boxes on every row read as one field asked for twice, which is
                           how it was reported. One box until the household says the two documents differ. */}
                       {pensionSplitShown && (
                         <label className="flex items-center gap-1 text-purple-700 font-semibold" title="Their share of the PENSION, which passes by the nomination form held by your scheme — not by your will. Leave blank and it matches the will share.">of the pension
-                          <input type="number" min="0" max="100" step="5" placeholder="same" onFocus={handleFocus} value={inputValue(b.pensionSharePct)} onChange={(e) => updateBeneficiary(b.id, { pensionSharePct: parseInputNumber(e.target.value) })} className="w-20 p-1 bg-surface border border-purple-300 rounded font-mono text-purple-700 font-bold placeholder:text-purple-300 placeholder:font-sans placeholder:text-[10px]" />%
+                          <input type="number" min="0" max="100" step="5" placeholder="same" onFocus={handleFocus} value={inputValue(b.pensionSharePct)} onChange={(e) => updateBeneficiary(b.id, { pensionSharePct: parsePercent(e.target.value) })} className="w-20 p-1 bg-surface border border-purple-300 rounded font-mono text-purple-700 font-bold placeholder:text-purple-300 placeholder:font-sans placeholder:text-[10px]" />%
                         </label>
                       )}
                       {/* Income and age drive the income tax on an inherited pension, which a spouse pays
@@ -10021,43 +10038,64 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 )}
                 <span className="text-[10px] text-slate-400 block">These are counted at full value for the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper even where relief applies, which is what the statute says: the taper looks at the estate before reliefs and exemptions. They are not drawn on to fund your spending &mdash; the projection lives on the wrappers.</span>
               </div>
-              <details className="text-xs">
-                <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Widowed? Add your late partner&rsquo;s unused allowances</summary>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              {/*
+                * The BOXES are the point, so the boxes are what you see.
+                *
+                * Folding the whole section hid the inputs behind a summary, and an allowance worth up to
+                * £500,000 that a household never opens is an allowance they never claim - the commonest
+                * way to overpay on this tab. The reasoning is what folds now, not the thing to fill in.
+                */}
+              <div className="text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2" data-widowed>
+                <div className="text-slate-700 font-semibold">Widowed? Add your late partner&rsquo;s unused allowances</div>
+                <span className="text-[10px] text-slate-500 block">Usually <strong>100 in both boxes</strong> &mdash; worth up to {formatGBP(E.num(plan?.config?.ihtNrb, 325000) + E.num(plan?.config?.ihtRnrb, 175000))}, and commonly missed. Leave both at 0 if you were not married or civil partners.</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-slate-600 font-semibold block mb-1">% of their nil-rate band unused</label>
-                    <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredNrbPct ?? ''} onChange={(e) => updateInheritance('transferredNrbPct', parseInputNumber(e.target.value))} className={inputCls} />
+                    <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredNrbPct ?? ''} onChange={(e) => updateInheritance('transferredNrbPct', parsePercent(e.target.value))} className={inputCls} />
                   </div>
                   <div>
                     <label className="text-slate-600 font-semibold block mb-1">% of their residence band unused</label>
-                    <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredRnrbPct ?? ''} onChange={(e) => updateInheritance('transferredRnrbPct', parseInputNumber(e.target.value))} className={inputCls} />
+                    <input type="number" min="0" max="100" step="5" placeholder="100" onFocus={handleFocus} value={plan?.inheritance?.transferredRnrbPct ?? ''} onChange={(e) => updateInheritance('transferredRnrbPct', parsePercent(e.target.value))} className={inputCls} />
                   </div>
-                  <span className="text-[10px] text-slate-400 sm:col-span-2">Usually <strong>100% of both</strong>, because everything passing to a spouse is exempt and so uses none of their allowances. Worth up to {formatGBP(E.num(plan?.config?.ihtNrb, 325000) + E.num(plan?.config?.ihtRnrb, 175000))} and commonly missed. Enter less than 100 only where part of their estate went to somebody other than you and used some of the band &mdash; a {formatGBP(100000)} legacy to a child against a {formatGBP(285000)} band that year is 35% used, so 65 goes in the box.</span>
-                  {/* Three things that look like disqualifications and are not, and one that really is.
-                      All four get asked, and getting the last one wrong invents an allowance. */}
-                  <span className="text-[10px] text-slate-400 sm:col-span-2">How long ago they died does not matter, nor how the housing worked out: the transfer applies however far back the first death was, the residence half is available even though it did not exist before 6 April 2017, and it is <strong>not attached to any particular property</strong> &mdash; a different house, a house since sold, or no house at all still gives the full 100%. Both are percentages of <em>today&rsquo;s</em> allowances, not the ones in force then. What does matter is that you were <strong>married or civil partners</strong> when they died: for an unmarried partner, however long you were together, nothing transfers and both boxes are 0.</span>
-                  <span className="text-[10px] text-amber-700 sm:col-span-2">Neither is given automatically. Your executors have to claim them &mdash; forms IHT402 and IHT436 &mdash; within two years of the end of the month you die in.</span>
                 </div>
-              </details>
+                <details className="text-[10px]">
+                  <summary className="cursor-pointer text-slate-500 hover:text-slate-800 font-semibold">When it is not 100, and what would stop you claiming</summary>
+                  <div className="mt-1.5 space-y-1.5 text-slate-400">
+                    <p>Everything passing to a spouse is exempt and so uses none of their allowances, which is why 100 is the usual answer. Enter less than 100 only where part of their estate went to somebody other than you and used some of the band &mdash; a {formatGBP(100000)} legacy to a child against a {formatGBP(285000)} band that year is 35% used, so 65 goes in the box.</p>
+                    {/* Three things that look like disqualifications and are not, and one that really is.
+                        All four get asked, and getting the last one wrong invents an allowance. */}
+                    <p>How long ago they died does not matter, nor how the housing worked out: the transfer applies however far back the first death was, the residence half is available even though it did not exist before 6 April 2017, and it is <strong>not attached to any particular property</strong> &mdash; a different house, a house since sold, or no house at all still gives the full 100%. Both are percentages of <em>today&rsquo;s</em> allowances, not the ones in force then. What does matter is that you were <strong>married or civil partners</strong> when they died: for an unmarried partner, however long you were together, nothing transfers and both boxes are 0.</p>
+                    <p className="text-amber-700">Neither is given automatically. Your executors have to claim them &mdash; forms IHT402 and IHT436 &mdash; within two years of the end of the month you die in.</p>
+                  </div>
+                </details>
+              </div>
 
               {/* Two cases where an identical estate pays a completely different amount, and neither is
                   visible from the balances. Quick succession relief in particular is not applied
                   automatically - it has to be claimed - so a household unaware of it loses it entirely. */}
-              <details className="text-xs">
-                <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Special circumstances — compensation payments, a recent inheritance, or death on active service</summary>
-                <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+              {/* Same reasoning as the widowed boxes: these three reliefs are each worth five or six
+                  figures and none of them is given automatically, so what you fill in stays on the
+                  surface and the law behind it folds away. */}
+              <div className="text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3" data-special-circumstances>
+                  <div className="text-slate-700 font-semibold">Special circumstances</div>
                   <div>
                     <label className="flex items-start gap-2 cursor-pointer">
                       <input type="checkbox" checked={!!plan?.inheritance?.activeServiceExempt} onChange={(e) => updateInheritance('activeServiceExempt', e.target.checked)} className="accent-purple-600 mt-0.5" />
-                      <span className="text-slate-700"><strong>Death on active service.</strong> A full exemption from inheritance tax where a member of the armed forces dies from a wound, accident or disease contracted on service — and, since 2014, for emergency services personnel and anyone deliberately targeted because of their job.</span>
+                      <span className="text-slate-700"><strong>Death on active service</strong> &mdash; a full exemption, whatever the estate is worth.</span>
                     </label>
-                    <span className="text-[10px] text-slate-400 mt-1 block ml-6">This is an exemption, not a relief: it takes the estate&rsquo;s bill to nothing regardless of its size. A war widow&rsquo;s or widower&rsquo;s pension is a different thing — tax-free income, with no bearing on inheritance tax.</span>
+                    <details className="text-[10px] ml-6 mt-1">
+                      <summary className="cursor-pointer text-slate-500 hover:text-slate-800 font-semibold">Who this covers</summary>
+                      <div className="mt-1 space-y-1 text-slate-400">
+                        <p>A member of the armed forces who dies from a wound, accident or disease contracted on service &mdash; and, since 2014, emergency services personnel and anyone deliberately targeted because of their job.</p>
+                        <p>This is an exemption, not a relief: it takes the estate&rsquo;s bill to nothing regardless of its size. A war widow&rsquo;s or widower&rsquo;s pension is a different thing &mdash; tax-free income, with no bearing on inheritance tax.</p>
+                      </div>
+                    </details>
                   </div>
                   {/* A credit against the tax, not a hole in the estate: para 5 Sch 15 FA 2020 reduces the
                       bill by the death rate applied to the payment, with no test of what became of it. */}
                   <div className="pt-2 border-t border-slate-200">
                     <div className="text-slate-700 font-semibold mb-1">Have you received compensation from a government scheme?</div>
-                    <span className="text-[10px] text-slate-400 mb-2 block">The <strong>infected blood scheme</strong> (IBCA), Post Office Horizon, Windrush, Grenfell, the Troubles Permanent Disablement scheme and vaccine damage payments all run through the same relief: the inheritance tax on your death is <strong>reduced by {E.num(plan?.config?.ihtRate, 40)}% of the payment</strong>, capped at the bill itself. It applies to a payment <em>received</em> &mdash; there is no test of what you did with it, so money spent, invested, paid into a pension or used to clear a mortgage earns the credit just the same. Enter the payment, not what is left of it.</span>
+                    <span className="text-[10px] text-slate-500 mb-2 block">Takes <strong>{E.num(plan?.config?.ihtRate, 40)}% of the payment</strong> off your inheritance tax bill. Enter the payment, not what is left of it.</span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Payment received</label>
@@ -10068,7 +10106,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <input type="date" data-exempt-compensation-date value={plan?.inheritance?.compensationDate ?? ''} onChange={(e) => updateInheritance('compensationDate', e.target.value)} className={inputCls} />
                       </div>
                     </div>
-                    <span className="text-[10px] text-slate-400 mt-1.5 block">Because it is a credit against the tax rather than a hole in the estate, the estate&rsquo;s value is unchanged: the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are both measured before it.</span>
+                    <details className="text-[10px] mt-1.5">
+                      <summary className="cursor-pointer text-slate-500 hover:text-slate-800 font-semibold">Which schemes, and why spending it changes nothing</summary>
+                      <div className="mt-1 space-y-1 text-slate-400">
+                        <p>The <strong>infected blood scheme</strong> (IBCA), Post Office Horizon, Windrush, Grenfell, the Troubles Permanent Disablement scheme and vaccine damage payments all run through the same relief, capped at the bill itself.</p>
+                        <p>It applies to a payment <em>received</em> &mdash; there is no test of what you did with it, so money spent, invested, paid into a pension or used to clear a mortgage earns the credit just the same.</p>
+                        <p>Because it is a credit against the tax rather than a hole in the estate, the estate&rsquo;s value is unchanged: the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are both measured before it.</p>
+                      </div>
+                    </details>
                     {/* The award as one pot of headroom: what it takes off the bill, and what is left to
                         give before the deadline. Two reliefs on two different events, so a gift never
                         eats the credit — the readout has to say that outright or it will be assumed. */}
@@ -10106,7 +10151,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                   <div className="pt-2 border-t border-slate-200">
                     <div className="text-slate-700 font-semibold mb-1">Did you inherit something in the last five years, on which inheritance tax was paid?</div>
-                    <span className="text-[10px] text-slate-400 mb-2 block">If so, quick succession relief cuts the tax on your own estate by up to the whole amount paid then, tapering by a fifth for each year that has passed. It has to be claimed by whoever handles your estate — it is not given automatically.</span>
+                    <span className="text-[10px] text-slate-500 mb-2 block">Cuts your own bill by a share of the tax paid then &mdash; the share shrinks by a fifth each year.</span>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Value you inherited</label>
@@ -10138,9 +10183,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         Quick succession credit at your chosen death age: <strong>{formatGBP(inheritanceView.chosen.qsrRelief)}</strong> off the bill &mdash; {inheritanceView.chosen.qsrPct}% of the {formatGBP(E.num(plan?.inheritance?.qsrTaxPaid, 0))} paid then, because {E.num(plan?.inheritance?.qsrYearsBefore, 0)} whole years separate the two deaths.
                       </div>
                     )}
+                    <details className="text-[10px] mt-1.5">
+                      <summary className="cursor-pointer text-slate-500 hover:text-slate-800 font-semibold">How the relief works, and where to find the figures</summary>
+                      <div className="mt-1 space-y-1 text-slate-400">
+                        <p>Quick succession relief cuts the tax on your own estate by up to the whole amount paid on that earlier death, tapering by a fifth for each year that has passed since. It has to be claimed by whoever handles your estate &mdash; it is not given automatically.</p>
+                        <p>The credit is a share of the <strong>tax paid</strong>, not of what you inherited, so an estate that paid nothing generates no credit however large the legacy was. Both figures are on the IHT421 or the estate accounts from that death.</p>
+                      </div>
+                    </details>
                   </div>
-                </div>
-              </details>
+              </div>
             </div>
 
             {estateStepNav(2)}

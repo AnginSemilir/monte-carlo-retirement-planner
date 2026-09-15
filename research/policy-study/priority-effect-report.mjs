@@ -37,7 +37,7 @@ console.log('(balance them all)'.padEnd(34), String(balN).padStart(4) + '/' + St
 // ---------------------------------------------------------------- 2. is the change what they meant
 hr('2. WHEN A HOUSEHOLD RANKS SOMETHING FIRST, DOES IT GET MORE OF IT?');
 console.log('Measured against the default order, in multiples of that priority\'s own tolerance.');
-console.log('"worse" means ranking it first produced LESS of the thing than not ranking it at all.\n');
+console.log('"worse" means promoting it to the top produced LESS of the thing than leaving it at the bottom.\n');
 console.log('priority'.padEnd(34), 'better'.padStart(7), 'same'.padStart(7), 'worse'.padStart(7), 'median gain'.padStart(12), 'worst'.padStart(8));
 for (const k of KEYS) {
   const v = recs.map(r => r.byFirst[k]);

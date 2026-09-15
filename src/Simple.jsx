@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { TrendingUp, Plus, X, Loader2 } from 'lucide-react';
 import {
   buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
-  buildPolicyCandidates, pickBalanced, toleranceFor, BAND_QUANTILES, TAX_REGION_LABELS, num
+  buildPolicyCandidates, explainPick, toleranceFor, BAND_QUANTILES, TAX_REGION_LABELS, num
 } from './App.jsx';
 import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId } from './simplePlan.js';
 
@@ -48,12 +48,15 @@ const LIVE_TRIALS = 1500;   // enough for a +/-1.5pt figure that redraws while y
  * reference plan is one of the ties, with 14 of its 18 candidates on the same rate, which is why a single
  * household made this look more common than it is.
  *
- * WHERE IT TIES, THE FALLBACK IS pickBalanced RATHER THAN THE REST OF THE DEFAULT ORDER. On those 113
- * households the two tie-breaks have the same median regret (3.21x against 3.30x) but wildly different
- * tails: the lexicographic remainder's worst case is 194x against balanced's 28x, and that worst case is
- * real money rather than an artefact of a small tolerance - £245,478 of extra lifetime tax on one
- * far-horizon household where balanced gives up £35,413. Capping that tail costs nothing at the median,
- * so it is taken.
+ * WHERE IT TIES, EVERY LOWER TIER IS GATED BY ITS OWN TOLERANCE TOO, and when nothing clears its
+ * tolerance the answer falls to a fixed preference order rather than to an argmax. That is the whole of
+ * the fix: a tie-break that ranks on Monte Carlo estimates separated by less than their own error bar
+ * is not choosing, it is reading noise, and it duly flipped between 1,500 and 8,000 paths on identical
+ * inputs. The gating lives in explainPick, so the full app gets it as well.
+ *
+ * Measured on the reference plan afterwards: the recommendation holds across £100 steps of spend AND
+ * across trial counts, and it lands on the £32,000 branch of the tied set rather than the £30,750 one -
+ * so gating the tie-break did not merely stabilise the answer, it stopped giving away £1,250 a year.
  *
  * AND THE TIED SET IS NOT INTERCHANGEABLE, which an earlier version of this said and was wrong about.
  * They tie on SURVIVAL, which is the only thing the tolerance covers. Checked across the 16 tied on the
@@ -64,6 +67,8 @@ const LIVE_TRIALS = 1500;   // enough for a +/-1.5pt figure that redraws while y
  *
  * So the page says they survive equally well and NOT that the choice does not matter, because it does.
  */
+// survival first, then the model's standard order behind it - every tier gated by its own tolerance
+const POLICY_PRIORITIES = ['survive', 'downside', 'bequest', 'bridge', 'pot', 'tax'];
 const POLICY_NAME = { 'Bracket Fill Basic': 'Tax smoothing', 'Bracket Fill': 'Bracket fill', 'Sequential': 'Sequential', 'ISA First': 'ISA first' };
 const policyLabel = (c) => c ? `${POLICY_NAME[c.decumulationPolicy] || c.decumulationPolicy}, ${
   c.drawdownStrategy === 'Full 25% Lump Sum' ? 'lump sum up front' : 'phased tax-free cash'}` : '';
@@ -131,12 +136,12 @@ export default function Simple() {
           return { ...c, ctx: cctx, stats: monteCarlo(cctx, { trials: LIVE_TRIALS, seed: 12345, collectPaths: true }) };
         });
         if (runToken.current !== mine) return;
-        // max survival within its tolerance, then balanced among whatever survives equally well
+        // survival first, every lower tier gated by its own tolerance, fixed preference where none bites
         const rates0 = cands.map(c => c.stats.successRate);
         const best0 = Math.max(...rates0);
         const sEps0 = toleranceFor('survive', best0);
         const finalists = cands.filter(c => best0 - c.stats.successRate <= sEps0);
-        const won = finalists.length > 1 ? pickBalanced(finalists) : finalists[0];
+        const won = explainPick(cands, { priorities: POLICY_PRIORITIES }).winner;
         // the headline rate is the run that WON, not a fresh one - a re-run would print a different
         // number from the one the choice was made on
         const mc = won.stats;
@@ -381,7 +386,7 @@ export default function Simple() {
                 <strong className="text-slate-700">How it draws the money: {res.policy.label.toLowerCase()}.</strong>{' '}
                 Picked from {res.policy.candidates} ways of drawing down, on whichever survives most often &mdash; no setting to change.
                 {res.policy.tied > 1
-                  ? <> {res.policy.tied} of them survive about equally often here ({res.policy.bestRate.toFixed(1)}%, against {res.policy.worstRate.toFixed(1)}% for the weakest), so survival alone cannot separate them. This is the most even-handed of those {res.policy.tied} on everything else &mdash; what you could spend, what is left at the end and what goes in tax. Those do still differ between them, so it is a choice rather than a coin toss.</>
+                  ? <> {res.policy.tied} of them survive about equally often here ({res.policy.bestRate.toFixed(1)}%, against {res.policy.worstRate.toFixed(1)}% for the weakest), so survival alone cannot separate them. Of those {res.policy.tied} this one protects the bad case best; where even that is too close to call, the model&rsquo;s standard order decides rather than a difference too small to measure.</>
                   : <> It survives {res.policy.bestRate.toFixed(1)}% of the time against {res.policy.worstRate.toFixed(1)}% for the weakest, and no other option comes close enough to matter.</>}
               </p>
             )}

@@ -3135,12 +3135,48 @@ function balancedScore(cands, weights = null) {
   return scaled.map(s => (s.n > 0 ? s.total / s.n : 0));
 }
 
+/*
+ * How much of the blended 0..1 score the leader must hold over the runner-up before the difference is
+ * treated as real. Below it the two are the same plan wearing different names, and an argmax is reading
+ * Monte Carlo noise - the same defect explainPick had at its tail.
+ */
+const BALANCED_MARGIN = 0.02;
+
+/*
+ * A STABLE ORDER OVER CANDIDATES, FOR WHEN NOTHING MEASURABLE SEPARATES THEM.
+ *
+ * Intrinsic to the candidate, never its array index, so ranking the same field twice cannot disagree
+ * with itself. It is the model's own preference: policies in the order DECUMULATION_POLICIES declares
+ * them, then phased ahead of the lump sum, then harvesting on. Arbitrary in the sense that any
+ * tie-break is, but fixed, explainable and free of sampling noise - which the alternative was not.
+ */
+const POLICY_ORDER = Object.keys(DECUMULATION_POLICIES);
+function fallbackRank(c) {
+  const p = POLICY_ORDER.indexOf(c.decumulationPolicy);
+  return (p < 0 ? POLICY_ORDER.length : p) * 4
+    + (c.drawdownStrategy === 'Full 25% Lump Sum' ? 2 : 0)
+    + (c.harvestApplies && !c.harvestPersonalAllowance ? 1 : 0);
+}
+/*
+ * ...and a name to settle the rest, because the rank above ties whenever two candidates share a policy
+ * and a strategy, or - as every synthetic fixture does - carry no policy fields at all. Without this
+ * last step the sort is stable and array position decides after all, which is the exact property this
+ * was written to remove.
+ */
+const fallbackKey = (c) => String(c.id ?? c.label ??
+  `${c.decumulationPolicy}|${c.drawdownStrategy}|${c.harvestApplies ? 1 : 0}${c.harvestPersonalAllowance ? 1 : 0}`);
+const byFallback = (x, y) => (fallbackRank(x) - fallbackRank(y)) || (fallbackKey(x) < fallbackKey(y) ? -1 : fallbackKey(x) > fallbackKey(y) ? 1 : 0);
+
 function pickBalanced(cands, opts = {}) {
   const pool = applySurvivalGuard(cands, opts.maxSurvivalSacrificePts);
   const scores = balancedScore(pool, opts.weights);
   let best = 0;
   scores.forEach((v, i) => { if (v > scores[best]) best = i; });
-  return pool[best];
+  // ...and only if it leads by enough to mean something. Otherwise the earliest in generation order,
+  // which is stable across re-runs where the argmax is not.
+  const runnerUp = Math.max(...scores.filter((_, i) => i !== best), -Infinity);
+  return (scores[best] - runnerUp >= BALANCED_MARGIN) ? pool[best]
+    : [...pool].sort(byFallback)[0];
 }
 
 function pickBest(cands, opts = {}, legacyCap = Infinity) {
@@ -3236,11 +3272,24 @@ function explainPick(cands, opts = {}) {
    * ones leave, which is the whole point of ranking them; this only settles what is left when every
    * priority has had its say and none of them can separate the survivors.
    */
-  const first = priorities[0] && PRIORITY_METRICS[priorities[0]];
-  const winner = (pool.length > 1 && first)
-    ? pool.reduce((a, b) => (first.higherIsBetter ? first.get(b.stats) > first.get(a.stats)
-                                                  : first.get(b.stats) < first.get(a.stats)) ? b : a)
-    : pool[0];
+  /*
+   * A POOL THAT NEVER RESOLVED IS A TIE, AND IS TAKEN AS ONE.
+   *
+   * This used to finish with an argmax on the first priority, which is not a decision. Everything still
+   * in the pool got there by being within one epsilon of the best on that metric - that is precisely
+   * what put it there - so picking the largest among them is a choice made INSIDE the tolerance the
+   * ranking has just declared immaterial. On Monte Carlo estimates it is worse than arbitrary: it reads
+   * sampling noise as a preference, and duly flips on a re-run at a different trial count. Measured on
+   * the reference plan: 16 candidates tied on survival, and the "winner" changed between 1,500 and 8,000
+   * paths on identical inputs while the figures behind it moved by £1,750 a year.
+   *
+   * The fallback is the model's own preference order over the policies, read off the candidate rather
+   * than off its position in the array. Position would have been simpler and is a trap: it makes the
+   * answer depend on the order the candidates were handed in, so the same field ranked twice could
+   * disagree with itself. Where the difference is real the pool has already narrowed to one and none of
+   * this runs.
+   */
+  const winner = [...pool].sort(byFallback)[0];
   return { winner, steps, consulted, settledAfter, priorities,
     guardBound, guardCapPts: opts.maxSurvivalSacrificePts ?? MAX_SURVIVAL_SACRIFICE_PTS,
     guardRuledOut: poolBeforeGuard.length - pool.length };

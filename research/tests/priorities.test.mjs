@@ -300,19 +300,38 @@ console.log('\n=========== K. THE LAST TIE, AND A BAD CASE THAT SURVIVES FAILURE
   const ORDER = ['survive', 'downside', 'bequest', 'bridge', 'pot', 'tax'];
 
   /*
-   * When every priority has declared the survivors equivalent, the winner used to be whichever the
-   * candidate grid built first. Two candidates identical on everything EXCEPT a sub-tolerance gap on
-   * one metric: whichever metric is ranked first should now take it, and the answer should flip when
-   * the ranking flips - which is the whole proof that grid order is no longer deciding.
+   * WHEN EVERY PRIORITY HAS DECLARED THEM EQUIVALENT, NOTHING SUB-TOLERANCE MAY DECIDE.
+   *
+   * These two differ by 0.4 of a point on survival and £400 on tax - inside the 1.0-point and £1,000
+   * tolerances respectively, so both gaps are ones the ranking has already called immaterial. An
+   * earlier version of this section asserted the opposite: that the largest sub-tolerance value should
+   * win, and that the answer should flip when a different priority was ranked first. That is reading
+   * sampling noise as a preference. Measured on a real plan, it made the recommended policy flip
+   * between 1,500 and 8,000 paths on identical inputs, moving safe spend by £1,750 a year.
+   *
+   * So the winner is now the model's own preference order, and the properties worth having are that it
+   * is STABLE - not moved by a sub-tolerance gap, not moved by which priority sits first - and still
+   * independent of the order the candidates arrived in.
    */
   const a = mk('a', 90.4, 100000, 200000, { medianLifetimeTax: 5000 });
   const b = mk('b', 90.0, 100000, 200000, { medianLifetimeTax: 4600 });
-  ok('the last tie goes to whoever is best on the FIRST priority',
-    E.explainPick([b, a], { priorities: ORDER }).winner.id === 'a');
-  ok('and flips when a different priority is ranked first',
-    E.explainPick([a, b], { priorities: ['tax', ...ORDER.filter(k => k !== 'tax')] }).winner.id === 'b');
+  const byOrder = E.explainPick([b, a], { priorities: ORDER }).winner.id;
+  ok('a sub-tolerance gap does not decide the last tie',
+    E.explainPick([a, b], { priorities: ORDER }).winner.id === byOrder);
+  ok('and ranking a different priority first does not move it either',
+    E.explainPick([a, b], { priorities: ['tax', ...ORDER.filter(k => k !== 'tax')] }).winner.id === byOrder,
+    'both within tolerance, so neither ordering has anything to act on');
   ok('neither answer depends on the order the candidates arrived in',
     E.explainPick([a, b], { priorities: ORDER }).winner.id === E.explainPick([b, a], { priorities: ORDER }).winner.id);
+
+  /*
+   * ...and a gap that IS material still decides, or the guard above would have turned the ranking off.
+   * Six points of survival is six times the tolerance.
+   */
+  const weak = mk('weak', 84.0, 100000, 200000, { medianLifetimeTax: 4600 });
+  const strong = mk('strong', 90.0, 100000, 200000, { medianLifetimeTax: 5000 });
+  ok('a gap wider than the tolerance still decides', E.explainPick([weak, strong], { priorities: ORDER }).winner.id === 'strong');
+  ok('...whichever order they arrive in', E.explainPick([strong, weak], { priorities: ORDER }).winner.id === 'strong');
 
   /*
    * The bad-case metric. A pot floors at zero, so once the tenth-percentile lifetime runs dry every

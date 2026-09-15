@@ -5608,19 +5608,29 @@ function usePrefersReducedMotion() {
 }
 
 /*
- * A EUROPEAN SINGLE-ZERO WHEEL, AND THE ONE THING THAT MAKES IT LOOK REAL.
+ * A EUROPEAN SINGLE-ZERO WHEEL, DRAWN AS A LINE ENGRAVING.
  *
- * The wheel is still until it is clicked. A click picks the winning pocket FIRST and then solves the
- * motion backwards so the ball arrives exactly there - rather than running free physics and reading off
- * wherever it happens to stop, which drifts a fraction of a pocket and lands the ball on a fret.
+ * Not a photograph of a wheel: a plate of one. There is no flat colour anywhere in it - a pocket's
+ * colour is the RULING laid over it, red on the diagonal, black cross-ruled, the zero stippled, the
+ * way the plate in a gaming manual would carry it when the press had one ink and no halftone. The
+ * cone is guilloche, the numerals sit in clearance the engraver leaves bare, and the paper stays the
+ * same warm cream under every app theme, because it is artwork pinned to the page rather than chrome.
  *
- * Two bodies turning opposite ways, as on a real table: the head carries the pockets and the numbers,
- * the ball runs the other way round the stationary bowl until it loses speed, drops off the track,
- * knocks across the frets and settles. The knocks are a decaying wobble on both the radius and the
- * angle, and both reach zero at the final frame, so the landing stays exact however the bounce looks.
+ * THE SPIN. Still until it is clicked. A click picks the winning pocket FIRST and solves the motion
+ * backwards to reach it - free physics read off wherever the ball stopped drifts a fraction of a
+ * pocket and parks it on a fret, which is exactly the tell.
  *
- * Nothing here re-renders during the spin: the frame loop writes transforms straight onto two refs,
- * so React sees two state changes for the whole animation rather than four hundred.
+ * Two bodies turning opposite ways, as on a real table. The head carries the pockets and numerals;
+ * the ball runs the other way round the stationary bowl, loses speed, drops off the track and knocks
+ * across the frets. The knocks are a run of discrete hops whose gaps SHORTEN as they lose height -
+ * u^1.35 inside the sine, which is what a bouncing thing actually does - each throwing the ball back
+ * out toward the track, while a separate scatter rocks it forward and back across several pockets.
+ * Over the last stretch the ball's angle is blended onto the head's, so it is visibly carried round
+ * in its pocket before everything stops. Every perturbation reaches zero on the final frame, so
+ * however chaotic the bounce looks the ball still beds into the middle of the pocket named.
+ *
+ * Nothing re-renders during the spin: the frame loop writes transforms straight onto two refs, so
+ * React sees two state changes for the whole animation rather than four hundred.
  */
 const WHEEL_ORDER = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23,
                      10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
@@ -5628,23 +5638,40 @@ const RED_NUMBERS = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 
 const POCKET_STEP = 360 / WHEEL_ORDER.length;
 
 // the 240-unit viewBox, and the radii the whole drawing is built from
-const RW = { c: 120, rim: 117, track: 99, apron: 90, pocketOut: 86, pocketIn: 58, ball: 78, numbers: 68 };
+const RW = { c: 120, rim: 116, track: 98, apron: 89, pocketOut: 85, pocketIn: 51, ball: 77, numbers: 67 };
+const RW_INK = '#2a221b';
+const RW_RED = '#8c2b2a';
+const RW_PAPER = '#efe7d6';
+
 const rwPolar = (r, deg) => {
   const a = (deg * Math.PI) / 180;
   return { x: RW.c + r * Math.cos(a), y: RW.c + r * Math.sin(a) };
 };
 // pocket i sits this many degrees round, measured from twelve o'clock
 const pocketDeg = (i) => -90 + i * POCKET_STEP;
+const rwF = (v) => Math.round(v * 100) / 100;
 const pocketWedge = (i) => {
   const a0 = pocketDeg(i) - POCKET_STEP / 2;
   const a1 = a0 + POCKET_STEP;
   const p0 = rwPolar(RW.pocketOut, a0), p1 = rwPolar(RW.pocketOut, a1);
   const q1 = rwPolar(RW.pocketIn, a1), q0 = rwPolar(RW.pocketIn, a0);
-  return `M${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A${RW.pocketOut} ${RW.pocketOut} 0 0 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`
-    + ` L${q1.x.toFixed(2)} ${q1.y.toFixed(2)} A${RW.pocketIn} ${RW.pocketIn} 0 0 0 ${q0.x.toFixed(2)} ${q0.y.toFixed(2)} Z`;
+  return `M${rwF(p0.x)} ${rwF(p0.y)} A${RW.pocketOut} ${RW.pocketOut} 0 0 1 ${rwF(p1.x)} ${rwF(p1.y)}`
+    + ` L${rwF(q1.x)} ${rwF(q1.y)} A${RW.pocketIn} ${RW.pocketIn} 0 0 0 ${rwF(q0.x)} ${rwF(q0.y)} Z`;
 };
 const colourOf = (n) => (n === 0 ? 'zero' : RED_NUMBERS.has(n) ? 'red' : 'black');
 const mod360 = (x) => ((x % 360) + 360) % 360;
+const rwSmooth = (u) => u * u * (3 - 2 * u);
+
+// hairlines struck from the centre, which is most of what an engraving is made of
+const RwRadials = ({ r0, r1, count, width, opacity }) => (
+  <g stroke={RW_INK} strokeWidth={width} opacity={opacity}>
+    {Array.from({ length: count }, (_, i) => {
+      const a = (i / count) * 360;
+      const p0 = rwPolar(r0, a), p1 = rwPolar(r1, a);
+      return <line key={i} x1={rwF(p0.x)} y1={rwF(p0.y)} x2={rwF(p1.x)} y2={rwF(p1.y)} />;
+    })}
+  </g>
+);
 
 function RouletteWheel({ className = '', onResult }) {
   const still = usePrefersReducedMotion();
@@ -5660,7 +5687,7 @@ function RouletteWheel({ className = '', onResult }) {
     if (wheelRef.current) wheelRef.current.setAttribute('transform', `rotate(${wheelDeg.toFixed(3)} ${RW.c} ${RW.c})`);
     if (ballRef.current) {
       const pt = rwPolar(ballR, ballDeg);
-      ballRef.current.setAttribute('transform', `translate(${pt.x.toFixed(2)} ${pt.y.toFixed(2)})`);
+      ballRef.current.setAttribute('transform', `translate(${rwF(pt.x)} ${rwF(pt.y)})`);
     }
   }, []);
 
@@ -5694,29 +5721,35 @@ function RouletteWheel({ className = '', onResult }) {
     setResult(null);
     const startWheel = restRef.current.wheel;
     const startBall = restRef.current.ball;
-    const endWheel = startWheel + 360 * (5 + Math.random() * 2);
+    const endWheel = startWheel + 360 * (4.5 + Math.random() * 2);
     // the screen angle the winning pocket will have come to rest at, and a ball angle congruent to it
     const target = endWheel + pocketDeg(idx);
-    const rough = startBall - 360 * (8 + Math.random() * 2);
+    const rough = startBall - 360 * (8 + Math.random() * 2.5);
     const endBall = rough - mod360(rough - target);
 
-    const DURATION = 6800;
-    const DROP = 0.56;                                   // where the ball leaves the track
-    const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
-    const easeOutQuint = (t) => 1 - Math.pow(1 - t, 5);
+    const DURATION = 7200;
+    const DROP = 0.46;                                   // where the ball leaves the track
+    const LOCK = 0.86;                                   // where the pocket takes charge of it
+    const hops = 5 + Math.floor(Math.random() * 3);
+    const scatter = 7 + Math.random() * 5;
     const t0 = performance.now();
 
     const frame = (now) => {
       const t = Math.min(1, (now - t0) / DURATION);
-      const wheelDeg = startWheel + (endWheel - startWheel) * easeOutQuart(t);
-      let ballDeg = startBall + (endBall - startBall) * easeOutQuint(t);
+      const wheelDeg = startWheel + (endWheel - startWheel) * (1 - Math.pow(1 - t, 4));
+      let ballDeg = startBall + (endBall - startBall) * (1 - Math.pow(1 - t, 5));
       let r = RW.track;
       if (t > DROP) {
         const u = (t - DROP) / (1 - DROP);
-        const decay = Math.pow(1 - u, 1.7);
-        // the fall, plus three knocks off the frets that die out exactly as the ball beds in
-        r = RW.track + (RW.ball - RW.track) * (1 - Math.pow(1 - u, 3)) + Math.abs(Math.sin(u * Math.PI * 3.2)) * 11 * decay;
-        ballDeg += Math.sin(u * Math.PI * 6.5) * 4.5 * decay;
+        const decay = Math.pow(1 - u, 1.8);
+        const hop = Math.abs(Math.sin(Math.PI * hops * Math.pow(u, 1.35))) * 15 * decay;
+        r = RW.track + (RW.ball - RW.track) * (1 - Math.pow(1 - u, 2.4)) + hop;
+        ballDeg += Math.sin(Math.PI * 2 * 1.9 * Math.pow(u, 1.2)) * scatter * decay;
+      }
+      if (t > LOCK) {
+        const k = rwSmooth((t - LOCK) / (1 - LOCK));
+        ballDeg += ((wheelDeg + pocketDeg(idx)) - ballDeg) * k;
+        r += (RW.ball - r) * k;
       }
       place(wheelDeg, ballDeg, r);
       if (t < 1) { rafRef.current = requestAnimationFrame(frame); return; }
@@ -5731,104 +5764,99 @@ function RouletteWheel({ className = '', onResult }) {
   const tone = result === null ? null : colourOf(result);
 
   return (
-    <div className={`flex flex-col items-center gap-3 ${className}`}>
+    <div className={`flex flex-col items-center gap-2.5 ${className}`}>
       <button type="button" onClick={spin} aria-busy={spinning}
         aria-label={spinning ? 'The wheel is spinning' : 'Spin the roulette wheel'}
-        className="group relative block w-full rounded-full cursor-pointer transition-transform duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-500 disabled:cursor-default"
+        className="group relative block w-full rounded-full cursor-pointer transition-transform duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-600 disabled:cursor-default"
         disabled={spinning}>
-        <svg viewBox="0 0 240 240" className="block w-full h-auto drop-shadow-lg" role="img"
-          aria-label="A European roulette wheel">
+        <svg viewBox="0 0 240 240" className="block w-full h-auto" role="img"
+          aria-label="A European roulette wheel, drawn as a line engraving">
           <defs>
-            <radialGradient id="rw-wood" cx="38%" cy="30%" r="78%">
-              <stop offset="0%" stopColor="#7c4526" /><stop offset="55%" stopColor="#4d2716" /><stop offset="100%" stopColor="#2a1309" />
-            </radialGradient>
-            <radialGradient id="rw-cone" cx="38%" cy="28%" r="80%">
-              <stop offset="0%" stopColor="#5a3b26" /><stop offset="60%" stopColor="#33200f" /><stop offset="100%" stopColor="#1b1008" />
-            </radialGradient>
             {/*
-              * userSpaceOnUse, not the default: a bounding-box gradient collapses to nothing on a
-              * perfectly horizontal or vertical line, and the turret arms are both. Striking it across
-              * the whole wheel also puts the highlight in one place, as a single light source would.
+              * The three rulings that stand in for the three colours. Spacing and direction are what
+              * separate them at plate size - a red diagonal, a black cross, a stippled zero - so they
+              * have to be set far enough apart to read when the wheel is two inches across.
               */}
-            <linearGradient id="rw-brass" gradientUnits="userSpaceOnUse" x1="40" y1="10" x2="185" y2="225">
-              <stop offset="0%" stopColor="#f6d894" /><stop offset="40%" stopColor="#c99b3c" /><stop offset="100%" stopColor="#6d4d16" />
-            </linearGradient>
-            <radialGradient id="rw-gloss" cx="34%" cy="24%" r="62%">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.30" />
-              <stop offset="55%" stopColor="#ffffff" stopOpacity="0.05" />
-              <stop offset="100%" stopColor="#000000" stopOpacity="0.22" />
-            </radialGradient>
-            <radialGradient id="rw-ball" cx="34%" cy="30%" r="70%">
-              <stop offset="0%" stopColor="#ffffff" /><stop offset="60%" stopColor="#efe9dc" /><stop offset="100%" stopColor="#b9ae99" />
-            </radialGradient>
+            <pattern id="rw-hatch-red" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <rect width="5" height="5" fill={RW_PAPER} />
+              <line x1="0" y1="0" x2="0" y2="5" stroke={RW_RED} strokeWidth="2.1" />
+            </pattern>
+            <pattern id="rw-hatch-black" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <rect width="3" height="3" fill={RW_PAPER} />
+              <line x1="0" y1="0" x2="0" y2="3" stroke={RW_INK} strokeWidth="1.7" />
+              <line x1="0" y1="0" x2="3" y2="0" stroke={RW_INK} strokeWidth="1.7" />
+            </pattern>
+            <pattern id="rw-stipple" width="4" height="4" patternUnits="userSpaceOnUse">
+              <rect width="4" height="4" fill={RW_PAPER} />
+              <circle cx="2" cy="2" r="0.85" fill={RW_INK} />
+            </pattern>
           </defs>
 
           {/* the bowl, which does not turn */}
-          <circle cx={RW.c} cy={RW.c} r={RW.rim} fill="url(#rw-wood)" />
-          <circle cx={RW.c} cy={RW.c} r={RW.rim} fill="none" stroke="url(#rw-brass)" strokeWidth="2.5" />
-          <circle cx={RW.c} cy={RW.c} r={RW.rim - 5} fill="none" stroke="#1b0d05" strokeWidth="1" opacity="0.5" />
-          {/* the ball track, cut as a recessed groove */}
-          <circle cx={RW.c} cy={RW.c} r={(RW.rim - 6 + RW.apron) / 2} fill="none" stroke="#24120a"
-            strokeWidth={RW.rim - 6 - RW.apron} opacity="0.85" />
-          <circle cx={RW.c} cy={RW.c} r={RW.apron + 1} fill="none" stroke="url(#rw-brass)" strokeWidth="1.6" opacity="0.8" />
+          <circle cx={RW.c} cy={RW.c} r={RW.rim} fill={RW_PAPER} />
+          <circle cx={RW.c} cy={RW.c} r={RW.rim} fill="none" stroke={RW_INK} strokeWidth="2" />
+          <circle cx={RW.c} cy={RW.c} r={RW.rim - 4} fill="none" stroke={RW_INK} strokeWidth="0.7" />
+          <RwRadials r0={RW.rim - 4} r1={RW.apron + 7} count={84} width={0.6} opacity={0.4} />
+          <circle cx={RW.c} cy={RW.c} r={RW.apron} fill="none" stroke={RW_INK} strokeWidth="1.1" />
           {/* eight deflectors, fixed to the bowl the way they are on a real wheel */}
           {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
-            const pt = rwPolar(RW.apron + 4.5, a - 90);
-            return <path key={a} d="M0 -5 L4 0 L0 5 L-4 0 Z" fill="url(#rw-brass)" stroke="#6b4a13" strokeWidth="0.5"
-              transform={`translate(${pt.x.toFixed(2)} ${pt.y.toFixed(2)}) rotate(${a})`} />;
+            const pt = rwPolar(RW.apron + 4, a - 90);
+            return <path key={a} d="M0 -4.6 L3.4 0 L0 4.6 L-3.4 0 Z" fill={RW_PAPER} stroke={RW_INK} strokeWidth="1"
+              transform={`translate(${rwF(pt.x)} ${rwF(pt.y)}) rotate(${a})`} />;
           })}
 
-          {/* the head: pockets, frets and numbers, all turning together */}
+          {/* the head: pockets, frets and numerals, all turning together */}
           <g ref={wheelRef} data-rw-head>
-            <circle cx={RW.c} cy={RW.c} r={RW.pocketOut + 2} fill="#1d0f07" />
             {WHEEL_ORDER.map((n, i) => (
               <path key={`p${n}`} d={pocketWedge(i)}
-                fill={n === 0 ? '#0f7245' : RED_NUMBERS.has(n) ? '#b3242c' : '#16120f'} />
+                fill={n === 0 ? 'url(#rw-stipple)' : RED_NUMBERS.has(n) ? 'url(#rw-hatch-red)' : 'url(#rw-hatch-black)'} />
             ))}
-            {WHEEL_ORDER.map((n, i) => {
-              const a = pocketDeg(i) - POCKET_STEP / 2;
-              const o = rwPolar(RW.pocketOut, a), inn = rwPolar(RW.pocketIn, a);
-              return <line key={`f${n}`} x1={o.x} y1={o.y} x2={inn.x} y2={inn.y}
-                stroke="url(#rw-brass)" strokeWidth="1.1" opacity="0.9" />;
-            })}
-            <circle cx={RW.c} cy={RW.c} r={RW.pocketOut} fill="none" stroke="url(#rw-brass)" strokeWidth="1.6" />
+            <g stroke={RW_INK} strokeWidth="1">
+              {WHEEL_ORDER.map((n, i) => {
+                const a = pocketDeg(i) - POCKET_STEP / 2;
+                const o = rwPolar(RW.pocketOut, a), inn = rwPolar(RW.pocketIn, a);
+                return <line key={`f${n}`} x1={rwF(o.x)} y1={rwF(o.y)} x2={rwF(inn.x)} y2={rwF(inn.y)} />;
+              })}
+            </g>
+            <circle cx={RW.c} cy={RW.c} r={RW.pocketOut} fill="none" stroke={RW_INK} strokeWidth="1.4" />
+            {/* clearance behind each numeral, the way an engraver leaves the field bare */}
             {WHEEL_ORDER.map((n, i) => {
               const pt = rwPolar(RW.numbers, pocketDeg(i));
-              return (
-                <text key={`n${n}`} x={pt.x} y={pt.y} fill="#fdf8ef" fontSize="8.2" fontWeight="700"
-                  textAnchor="middle" dominantBaseline="central" letterSpacing="-0.2"
-                  transform={`rotate(${(pocketDeg(i) + 90).toFixed(2)} ${pt.x.toFixed(2)} ${pt.y.toFixed(2)})`}>{n}</text>
-              );
+              return <ellipse key={`c${n}`} cx={rwF(pt.x)} cy={rwF(pt.y)} rx="5" ry="4" fill={RW_PAPER}
+                transform={`rotate(${rwF(pocketDeg(i) + 90)} ${rwF(pt.x)} ${rwF(pt.y)})`} />;
             })}
-            {/* the cone, and the turret standing on it */}
-            <circle cx={RW.c} cy={RW.c} r={RW.pocketIn} fill="url(#rw-cone)" stroke="url(#rw-brass)" strokeWidth="1.6" />
-            <circle cx={RW.c} cy={RW.c} r={RW.pocketIn - 13} fill="none" stroke="#000" strokeWidth="0.9" opacity="0.3" />
-            <circle cx={RW.c} cy={RW.c} r={RW.pocketIn - 13} fill="none" stroke="url(#rw-brass)" strokeWidth="0.7" opacity="0.45" />
-            {/* the four handles of the turret, the part a croupier actually spins */}
-            <g strokeLinecap="round">
-              {[0, 90, 180, 270].map((a) => (
-                <g key={a} transform={`rotate(${a} ${RW.c} ${RW.c})`}>
-                  <line x1={RW.c} y1={RW.c} x2={RW.c + 34} y2={RW.c} stroke="#1a0f07" strokeWidth="5.4" opacity="0.55" />
-                  <line x1={RW.c} y1={RW.c} x2={RW.c + 34} y2={RW.c} stroke="url(#rw-brass)" strokeWidth="3.4" />
-                  <circle cx={RW.c + 34} cy={RW.c} r="3.4" fill="url(#rw-brass)" stroke="#5c3f11" strokeWidth="0.5" />
-                </g>
+            <g fill={RW_INK} fontFamily="Newsreader, EB Garamond, Georgia, serif" fontWeight="600">
+              {WHEEL_ORDER.map((n, i) => {
+                const pt = rwPolar(RW.numbers, pocketDeg(i));
+                return (
+                  <text key={`n${n}`} x={rwF(pt.x)} y={rwF(pt.y)} fontSize="7.6" textAnchor="middle"
+                    dominantBaseline="central"
+                    transform={`rotate(${rwF(pocketDeg(i) + 90)} ${rwF(pt.x)} ${rwF(pt.y)})`}>{n}</text>
+                );
+              })}
+            </g>
+            {/* the cone, ruled as guilloche, and the turret standing on it */}
+            <circle cx={RW.c} cy={RW.c} r={RW.pocketIn} fill={RW_PAPER} stroke={RW_INK} strokeWidth="1.4" />
+            <g fill="none" stroke={RW_INK} opacity="0.6">
+              {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+                <circle key={i} cx={RW.c} cy={RW.c} r={RW.pocketIn - 4 - i * 5.5} strokeWidth={i % 2 ? 0.5 : 0.8} />
               ))}
             </g>
-            <circle cx={RW.c} cy={RW.c} r="16" fill="url(#rw-cone)" stroke="url(#rw-brass)" strokeWidth="1.6" />
-            <circle cx={RW.c} cy={RW.c} r="9" fill="url(#rw-brass)" stroke="#5c3f11" strokeWidth="0.6" />
-            <circle cx={RW.c} cy={RW.c} r="3.4" fill="#5c3f11" opacity="0.7" />
-            <circle cx={RW.c - 2.6} cy={RW.c - 3.2} r="2.4" fill="#fff6dd" opacity="0.75" />
+            <RwRadials r0={RW.pocketIn - 4} r1={16} count={72} width={0.45} opacity={0.45} />
+            <g stroke={RW_INK} strokeWidth="2.2" strokeLinecap="round">
+              <line x1={RW.c - 32} y1={RW.c} x2={RW.c + 32} y2={RW.c} />
+              <line x1={RW.c} y1={RW.c - 32} x2={RW.c} y2={RW.c + 32} />
+            </g>
+            <circle cx={RW.c} cy={RW.c} r="12" fill={RW_PAPER} stroke={RW_INK} strokeWidth="1.4" />
+            <circle cx={RW.c} cy={RW.c} r="5" fill={RW_INK} />
           </g>
 
-          {/* the ball */}
+          {/* the ball, with the one curved stroke that turns a disc into a sphere */}
           <g ref={ballRef} data-rw-ball>
-            <circle r="5.2" fill="url(#rw-ball)" />
-            <circle cx="-1.6" cy="-1.8" r="1.5" fill="#ffffff" opacity="0.9" />
-            <circle r="5.2" fill="none" stroke="#6b6355" strokeWidth="0.5" opacity="0.5" />
+            <circle r="5.4" fill={RW_PAPER} stroke={RW_INK} strokeWidth="1.3" />
+            <path d="M-3.4 2.6 A5.4 5.4 0 0 0 3.4 2.6" fill="none" stroke={RW_INK} strokeWidth="1" />
+            <circle cx="-1.6" cy="-1.8" r="1.1" fill="none" stroke={RW_INK} strokeWidth="0.6" />
           </g>
-
-          {/* one pass of light over the whole bowl, so it reads as a dish rather than a disc */}
-          <circle cx={RW.c} cy={RW.c} r={RW.rim} fill="url(#rw-gloss)" pointerEvents="none" />
         </svg>
       </button>
 
@@ -5839,9 +5867,9 @@ function RouletteWheel({ className = '', onResult }) {
           <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 group-hover:text-slate-700">Click to spin</span>
         ) : (
           <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-            <span className={`inline-flex items-center justify-center min-w-[26px] h-[26px] px-1.5 rounded-full text-white text-xs font-bold tabular-nums ${
+            <span className={`inline-flex items-center justify-center min-w-[26px] h-[26px] px-1.5 rounded-sm text-white text-xs font-bold tabular-nums ${
               tone === 'zero' ? 'bg-emerald-700' : tone === 'red' ? 'bg-rose-700' : 'bg-slate-800'}`}>{result}</span>
-            {tone === 'zero' ? 'Zero — the house edge' : tone === 'red' ? 'Red' : 'Black'}
+            {tone === 'zero' ? 'Zero' : tone === 'red' ? 'Red' : 'Black'}
           </span>
         )}
       </div>
@@ -8310,7 +8338,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   is stated in today&rsquo;s money, and your plan is saved in this browser only.
                 </p>
               </div>
-              <RouletteWheel className="w-44 sm:w-52 lg:w-60 shrink-0 self-center" />
+              <RouletteWheel className="w-52 sm:w-60 lg:w-72 shrink-0 self-center" />
               </div>
             </div>
 

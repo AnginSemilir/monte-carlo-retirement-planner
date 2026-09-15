@@ -3,7 +3,8 @@ import * as d3 from 'd3';
 import {
   TrendingUp, Layers, Check, RotateCcw, Dices, Zap, ShieldCheck, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
-  Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, Sun, Moon, Monitor, ChevronUp, ChevronDown, Home, Gift
+  Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, Sun, Moon, Monitor, ChevronUp, ChevronDown, Home, Gift,
+  GripVertical
 } from 'lucide-react';
 import EditMode from './EditMode.jsx';
 // ============================================================================================
@@ -7249,6 +7250,35 @@ export default function App() {
     [next[i], next[j]] = [next[j], next[i]];
     updateSpending('priorities', next);
   };
+  /*
+   * Dragging LIFTS AND REINSERTS, which is not the same as the chevrons' swap.
+   *
+   * Dragging the fourth priority to the top should leave the other five in the order they were in;
+   * swapping the two ends would shuffle the one it landed on down to fourth, which is not what the
+   * gesture promises. The chevrons stay a swap because a single step is the same either way.
+   *
+   * They also stay, rather than being replaced: HTML5 drag events never fire on a touch screen, and
+   * a list that can only be reordered by dragging cannot be reordered by keyboard at all.
+   */
+  /*
+   * The index being carried lives in a REF, and the state beside it exists only to paint.
+   *
+   * Holding it in state alone works right up until dragstart and drop land in the same tick - a
+   * synthetic drag, a very fast pointer, a re-render in between - and then drop reads the value the
+   * closure captured before setState committed, which is null, and the reorder silently does nothing.
+   */
+  const dragFromRef = useRef(null);
+  const [dragPriority, setDragPriority] = useState(null);   // index being carried
+  const [overPriority, setOverPriority] = useState(null);   // index it would land on
+  const dropPriority = (to) => {
+    const from = dragFromRef.current;
+    dragFromRef.current = null;
+    setDragPriority(null); setOverPriority(null);
+    if (from === null || to === null || from === to) return;
+    const next = [...priorityList];
+    next.splice(to, 0, next.splice(from, 1)[0]);
+    updateSpending('priorities', next);
+  };
   const updateConfig = (field, value) => setPlan(prev => ({ ...prev, config: { ...(prev.config || {}), [field]: (field === 'valuationDate' || field === 'taxRegion' || typeof value === 'boolean') ? value : parseInputNumber(value) } }));
   const updateListItem = (listKey, id, patch) => setPlan(p => ({ ...p, [listKey]: (p[listKey] || []).map(i => i.id === id ? { ...i, ...patch } : i) }));
   // spending bands live under plan.spending rather than at the top level, so they get their own helpers
@@ -7678,11 +7708,20 @@ export default function App() {
   // between them are far more reliable than each one's absolute sampling error.
   const POLICY_SHORT = { 'Bracket Fill Basic': 'Tax Smoothing', 'Bracket Fill': 'UK FIRE Bracket Fill', 'Sequential': 'Sequential' };
   const policyRowLabel = (c) => `${POLICY_SHORT[c.decumulationPolicy] || c.decumulationPolicy} · ${c.drawdownStrategy === 'Full 25% Lump Sum' ? 'Lump Sum' : 'Phased'}${c.harvestApplies ? (c.harvestPersonalAllowance ? ' · harvest on' : ' · harvest off') : ''}`;
-  // nothing to decumulate means every policy scores identically, so the sweep would be meaningless
-  const policySweepReady = useMemo(() => {
+  /*
+   * Nothing to decumulate means every policy scores identically, so the sweep would be meaningless -
+   * but "unavailable" has to say WHICH of the two things is missing. A greyed button beside a line of
+   * 10px grey listing both conditions reads as broken rather than as not-yet-applicable, and the
+   * commonest case by far is a plan built to price an estate, where the balances are all there and the
+   * spend is deliberately zero.
+   */
+  const policySweep = useMemo(() => {
     const funded = (ctx.accounts || []).reduce((s, a) => s + a.balance + a.contrib, 0);
-    return funded > 0 && ctx.targetSpend > 0;
+    if (!(funded > 0)) return { ready: false, why: 'Nothing is invested yet. Add a balance or a contribution on Plan Inputs and every policy will have something to draw down.' };
+    if (!(ctx.targetSpend > 0)) return { ready: false, why: 'Your target spend is £0, so nothing is ever withdrawn and all six policies score identically. Enter what you expect to live on and this can rank them.' };
+    return { ready: true, why: '' };
   }, [ctx]);
+  const policySweepReady = policySweep.ready;
 
   /*
    * The estate optimiser. Cheap enough (about fifty deterministic runs, a tenth of a second) to run
@@ -8857,11 +8896,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
                 <div className="shrink-0">
                   <button type="button" onClick={handleFindBestPolicy} disabled={isPolicySearching || !policySweepReady}
-                    className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 dark:from-[#2C5C8F] dark:to-[#A9781F] dark:hover:from-[#204568] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300 dark:fill-[#FCD34D] dark:text-[#FCD34D]" />
-                    {isPolicySearching ? 'Searching…' : '⚡ Auto-Pick Best Policy'}
+                    className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 dark:from-[#2C5C8F] dark:to-[#A9781F] dark:hover:from-[#204568] text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <Zap className="w-3.5 h-3.5 shrink-0 text-amber-300 fill-amber-300 dark:fill-[#FCD34D] dark:text-[#FCD34D]" />
+                    {isPolicySearching ? 'Searching…' : (
+                      <span className="text-left leading-tight">Auto-pick best policy
+                        <span className="block text-[10px] font-semibold text-blue-100/90 dark:text-amber-100/80">based on my priorities</span>
+                      </span>
+                    )}
                   </button>
-                  {!policySweepReady && <span className="text-[10px] text-slate-400 mt-1 block text-right max-w-[15rem]">Add balances or contributions and a living spend first: with nothing to draw down, every policy scores the same.</span>}
+                  {/* Named, not generic: this is the line that tells somebody why the button is grey. */}
+                  {!policySweepReady && (
+                    <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 mt-1.5 max-w-[17rem] leading-snug">{policySweep.why}</p>
+                  )}
                 </div>
               </div>
               {policyProgress && <ProgressBar value={policyProgress.value} label={policyProgress.label} />}
@@ -8895,8 +8941,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <ol data-priority-list className={`space-y-1.5 ${priorityMode === 'balanced' ? 'opacity-40 pointer-events-none' : ''}`}>
                   {priorityList.map((key, i) => {
                     const m = E.PRIORITY_METRICS[key];
+                    const carried = dragPriority === i;
+                    const landing = overPriority === i && dragFromRef.current !== null && dragFromRef.current !== i;
                     return (
-                      <li key={key} className={`flex items-start gap-2 p-2 rounded-xl border text-xs ${i === 0 ? 'bg-blue-50/70 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
+                      <li key={key} draggable={priorityMode !== 'balanced'} data-priority-item={key}
+                        onDragStart={(e) => { dragFromRef.current = i; setDragPriority(i); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', key); }}
+                        onDragEnter={() => setOverPriority(i)}
+                        onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+                        onDrop={(e) => { e.preventDefault(); dropPriority(i); }}
+                        onDragEnd={() => { dragFromRef.current = null; setDragPriority(null); setOverPriority(null); }}
+                        className={`flex items-start gap-2 p-2 rounded-xl border text-xs transition-shadow ${
+                          carried ? 'opacity-40' : landing ? 'border-blue-500 ring-2 ring-blue-300 bg-blue-50' :
+                          i === 0 ? 'bg-blue-50/70 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
+                        <GripVertical aria-hidden="true" className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-300 cursor-grab active:cursor-grabbing" />
                         <span className={`shrink-0 w-5 h-5 rounded-full grid place-items-center font-bold text-[10px] ${i === 0 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'}`}>{i + 1}</span>
                         <div className="min-w-0 flex-1">
                           <div className={`font-bold ${i === 0 ? 'text-blue-900' : 'text-slate-700'}`}>{m.label}</div>
@@ -8911,7 +8968,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   })}
                 </ol>
                 <span className="text-[10px] text-slate-400 mt-1.5 block">
-                  Worked down in order. A lower priority only decides between options that are already within {E.RATE_EPSILON_PTS} percentage point (survival, bridge risk) or {Math.round(E.MONEY_EPSILON_REL * 100)}% (money) of the best on every priority above it — so nothing you rank higher is ever traded away for something you rank lower.
+                  Drag a row to move it, or use the arrows. Worked down in order. A lower priority only decides between options that are already within {E.RATE_EPSILON_PTS} percentage point (survival, bridge risk) or {Math.round(E.MONEY_EPSILON_REL * 100)}% (money) of the best on every priority above it — so nothing you rank higher is ever traded away for something you rank lower.
                 </span>
 
                 <details className="mt-3 text-xs">

@@ -14,7 +14,15 @@
  *
  * WHAT IS MEASURED, per household:
  *
- *   1 CHANGE RATE      does ranking metric M first return a different policy from the default order?
+ *   1 CHANGE RATE      does ranking metric M FIRST return a different policy from ranking it LAST?
+ *
+ *                      First against the DEFAULT order looks like the natural test and is not one, and
+ *                      the first run of this study fell for it. The default order already begins with
+ *                      survival, so "rank survival first" IS the default: it returned a different
+ *                      policy in 0 of 360 households, which reads as a damning finding about the
+ *                      control and is in fact a tautology. Downside sits second and was nearly as
+ *                      compromised. Moving a priority from the bottom of the list to the top is the
+ *                      contrast that actually asks the question, and it asks it identically of all six.
  *   2 INTENT DELIVERED when it changes, is the chosen candidate BETTER on M than the default winner
  *                      was - measured in multiples of M's own tolerance, so points and pounds compare?
  *                      Worse is possible and is the interesting case: M only narrows to within an
@@ -107,23 +115,29 @@ for (let n = 0; n < scenarios.length; n++) {
 
   for (const key of KEYS) {
     const m = E.PRIORITY_METRICS[key];
-    const order = [key, ...DEFAULT.filter(k => k !== key)];
-    const r = rankBy(order);
-    const mine = m.get(r.winner.stats);
-    const theirs = m.get(base.winner.stats);
     const eps = rec.metrics[key].eps;
-    // positive = ranking it first got MORE of the thing than the default order did
-    const gainEps = eps > 0 ? ((m.higherIsBetter ? mine - theirs : theirs - mine) / eps) : 0;
+    const score = (w) => m.get(w.stats);
+    // in multiples of this priority's own tolerance, signed so positive always means "more of it"
+    const gap = (a, b) => (eps > 0 ? ((m.higherIsBetter ? score(a) - score(b) : score(b) - score(a)) / eps) : 0);
+
+    const first = rankBy([key, ...DEFAULT.filter(k => k !== key)]);
+    const last = rankBy([...DEFAULT.filter(k => k !== key), key]);
+    const gainEps = gap(first.winner, last.winner);
+
     rec.byFirst[key] = {
-      winner: r.winner.label,
-      changed: r.winner.label !== base.winner.label,
+      winner: first.winner.label,
+      // the honest contrast: bottom of the list against top of it
+      lastWinner: last.winner.label,
+      changed: first.winner.label !== last.winner.label,
       gainEps,
-      // outcome, in the user's terms rather than the mechanism's
       intent: Math.abs(gainEps) < 1e-9 ? 'same' : gainEps > 0 ? 'better' : 'worse',
-      decidedIt: (r.consulted[0] && r.consulted[0].decided) || false,
-      tiedOnIt: !!(r.consulted[0] && !r.consulted[0].decided),
-      consulted: r.consulted.map(c => ({ key: c.key, decided: c.decided, ruledOut: c.ruledOut, spread: c.spread })),
-      settledAfter: r.settledAfter
+      // kept alongside, clearly labelled, because "what the app would have done" is still worth knowing
+      changedVsDefault: first.winner.label !== base.winner.label,
+      gainVsDefaultEps: gap(first.winner, base.winner),
+      decidedIt: (first.consulted[0] && first.consulted[0].decided) || false,
+      tiedOnIt: !!(first.consulted[0] && !first.consulted[0].decided),
+      consulted: first.consulted.map(c => ({ key: c.key, decided: c.decided, ruledOut: c.ruledOut, spread: c.spread })),
+      settledAfter: first.settledAfter
     };
   }
 

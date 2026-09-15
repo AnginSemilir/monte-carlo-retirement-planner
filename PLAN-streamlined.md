@@ -60,11 +60,49 @@ from. The toggle is the only chart control.
 They already share a scale in the current app's side-by-side slide, which is what makes flipping between
 them legible rather than confusing. Reuse that.
 
-**The policy is chosen, not asked.** Run `buildPolicyCandidates` once on a short sweep and apply the
-winner silently. The priority study measured what the ranking is worth: on 420 households the order
-changes the recommendation for the large majority, but the *default* order is a perfectly respectable
-answer everywhere. A streamlined page should take that answer and say which one it picked in a line of
-text, with no control attached.
+**The policy is chosen, not asked** - but not with the default order. Run `buildPolicyCandidates` once
+on a short sweep and apply the winner silently, naming it in a line of text with no control attached.
+
+An earlier draft of this plan justified that with "the *default* order is a perfectly respectable answer
+everywhere". That sentence was an inference from the priority-effect study's headline, not something the
+study measured, and `default-order-cost.mjs` was written to check it. It does not hold.
+
+Re-cutting the same 420 households for *what the default order costs a household that cared most about
+something else*, in multiples of each priority's own tolerance:
+
+| Priority | over 1x | median shortfall | p90 |
+|---|---|---|---|
+| Not running out of money | 0.0% | — | — |
+| Protecting the bad case | 7.4% | £0 | £8,061 |
+| Getting safely to pension age | 0.5% | — | — |
+| Leaving as much behind | 31.7% | £0 | £175,005 |
+| **The biggest expected pot** | **68.8%** | **£134,854** | **£927,962** |
+| **Paying the least lifetime tax** | **40.7%** | £0 | **£131,270** |
+
+The default order is within tolerance on every priority for **75 of 420 households (17.9%)**, and is more
+than 3x short on at least one for **284 (67.6%)**.
+
+Two rows cannot speak, and are excluded rather than quoted: `survive` is *first* in the default order, so
+"rank survival first" IS the default - 0 of 420 differ, and its zero is arithmetic, not evidence (the same
+trap that flawed v1 of priority-effect). `downside` is second, so its contrast is a swap of the top two and
+understates. On the four rows that can speak, the verdict is unchanged: within tolerance for 19.3%, over
+3x for 67.1%.
+
+**What it actually means.** The shortfall is not spread about - it is concentrated in *expected pot* and
+*lifetime tax*, which are the bottom two of `DEFAULT_PRIORITIES`. The order gives those up by design, and
+the measurement is that design's price rather than a defect. So the default order is an excellent choice
+for a page answering "will I be all right" and a poor one for a page answering "what should I do with it",
+and this page is the first.
+
+**The open call this leaves.** `pickBalanced` exists precisely to avoid ranking anything last, and is the
+obvious candidate for a page with no control. Whether it carries a lower worst-case regret than the
+default order is **not yet measured** - `priority-effect.json` stores the balanced winner's label but not
+its per-metric scores, so answering it means re-running the sweep (~20 minutes). Worth doing before the
+policy line is written, and the page should not ship on the default order until it is.
+
+*(Money columns are the figure to quote. `toleranceFor` falls back to a flat £1,000 floor when the best
+achievable value is zero, which happens on tax whenever some policy pays none at all - the resulting
+multiples run into the hundreds and mean less than the pounds beside them.)*
 
 **Three figures, always on screen.** All three are quoted at the fixed 90% target, stated in words rather
 than offered as a control.

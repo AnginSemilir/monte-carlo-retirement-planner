@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { TrendingUp, Plus, X, Loader2 } from 'lucide-react';
 import {
   buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
-  buildPolicyCandidates, explainPick, toleranceFor, BAND_QUANTILES, TAX_REGION_LABELS, num
+  buildPolicyCandidates, pickBalanced, toleranceFor, BAND_QUANTILES, TAX_REGION_LABELS, num
 } from './App.jsx';
 import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId } from './simplePlan.js';
 
@@ -42,18 +42,28 @@ const LIVE_TRIALS = 1500;   // enough for a +/-1.5pt figure that redraws while y
  * policy. Taking the strict maximum would chase that noise and hand back a different answer on every
  * keystroke.
  *
- * AND ON MANY HOUSEHOLDS SURVIVAL DOES NOT DISCRIMINATE AT ALL. Measured on the reference plan: the
- * leading candidates come back on exactly the same rate - 82.53% three ways - so survival rules the weak
- * ones out and then ties among the leaders, handing the decision to what is left. That tie-break is a
- * money metric separated by fractions, and it duly flips between trial counts: at 1,500 paths one policy
- * wins, at 8,000 another, on the same inputs.
+ * ON ABOUT A QUARTER OF HOUSEHOLDS SURVIVAL CANNOT DISCRIMINATE AT ALL, and something has to break the
+ * tie. balanced-regret.mjs measured it across the 420-household library: survival separates the field on
+ * 73.1% of them - so the rule does real work most of the time - and ties on the remaining 26.9%. The
+ * reference plan is one of the ties, with 14 of its 18 candidates on the same rate, which is why a single
+ * household made this look more common than it is.
  *
- * So the page does NOT present the tie-break as a finding. When more than one candidate is within
- * tolerance of the best survival rate it says so, and says the choice between them barely moves the
- * answer - which is true, and is the only honest thing to show when the alternative is false precision
- * about a difference smaller than the noise.
+ * WHERE IT TIES, THE FALLBACK IS pickBalanced RATHER THAN THE REST OF THE DEFAULT ORDER. On those 113
+ * households the two tie-breaks have the same median regret (3.21x against 3.30x) but wildly different
+ * tails: the lexicographic remainder's worst case is 194x against balanced's 28x, and that worst case is
+ * real money rather than an artefact of a small tolerance - £245,478 of extra lifetime tax on one
+ * far-horizon household where balanced gives up £35,413. Capping that tail costs nothing at the median,
+ * so it is taken.
+ *
+ * AND THE TIED SET IS NOT INTERCHANGEABLE, which an earlier version of this said and was wrong about.
+ * They tie on SURVIVAL, which is the only thing the tolerance covers. Checked across the 16 tied on the
+ * reference plan, the other two headline figures move materially: safe spend runs £30,250 to £32,000 and
+ * the earliest retirement age is 67 for some and 68 for others. The split is almost entirely the
+ * drawdown strategy - every lump-sum variant lands near £32,000 and 67, every phased one near £30,750
+ * and 68 - while the decumulation policy inside each barely matters.
+ *
+ * So the page says they survive equally well and NOT that the choice does not matter, because it does.
  */
-const POLICY_PRIORITIES = ['survive', 'downside', 'bequest', 'bridge', 'pot', 'tax'];
 const POLICY_NAME = { 'Bracket Fill Basic': 'Tax smoothing', 'Bracket Fill': 'Bracket fill', 'Sequential': 'Sequential', 'ISA First': 'ISA first' };
 const policyLabel = (c) => c ? `${POLICY_NAME[c.decumulationPolicy] || c.decumulationPolicy}, ${
   c.drawdownStrategy === 'Full 25% Lump Sum' ? 'lump sum up front' : 'phased tax-free cash'}` : '';
@@ -121,25 +131,19 @@ export default function Simple() {
           return { ...c, ctx: cctx, stats: monteCarlo(cctx, { trials: LIVE_TRIALS, seed: 12345, collectPaths: true }) };
         });
         if (runToken.current !== mine) return;
-        const pick = explainPick(cands, { priorities: POLICY_PRIORITIES });
-        const won = pick.winner;
+        // max survival within its tolerance, then balanced among whatever survives equally well
+        const rates0 = cands.map(c => c.stats.successRate);
+        const best0 = Math.max(...rates0);
+        const sEps0 = toleranceFor('survive', best0);
+        const finalists = cands.filter(c => best0 - c.stats.successRate <= sEps0);
+        const won = finalists.length > 1 ? pickBalanced(finalists) : finalists[0];
         // the headline rate is the run that WON, not a fresh one - a re-run would print a different
         // number from the one the choice was made on
         const mc = won.stats;
         const wonPlan = resolveMpaa(won.planState);
         const wonCtx = won.ctx;
-        /*
-         * How many candidates survive as well as the best one. NOT pick.consulted[0].decided, which is
-         * true whenever survival ruled ANYTHING out - it says the field narrowed, not that survival
-         * chose the winner, and reporting it as the latter was wrong on every household where the
-         * leaders tie.
-         */
-        const rates = cands.map(c => c.stats.successRate);
-        const bestRate = Math.max(...rates);
-        const sEps = toleranceFor('survive', bestRate);
-        const tied = rates.filter(r => bestRate - r <= sEps).length;
-        setRes({ mc, policy: { label: policyLabel(won), candidates: cands.length, tied,
-          bestRate, worstRate: Math.min(...rates) }, plan: wonPlan });
+        setRes({ mc, policy: { label: policyLabel(won), candidates: cands.length, tied: finalists.length,
+          bestRate: best0, worstRate: Math.min(...rates0) }, plan: wonPlan });
         await tick();
 
         const safeSpend = optimizeSpend(wonCtx, { targetRate: TARGET, searchTrials: 300, finalTrials: 1200 });
@@ -377,7 +381,7 @@ export default function Simple() {
                 <strong className="text-slate-700">How it draws the money: {res.policy.label.toLowerCase()}.</strong>{' '}
                 Picked from {res.policy.candidates} ways of drawing down, on whichever survives most often &mdash; no setting to change.
                 {res.policy.tied > 1
-                  ? <> {res.policy.tied} of them survive equally often here, all at about {res.policy.bestRate.toFixed(1)}%, and this is one of them &mdash; the choice between those {res.policy.tied} moves the answer by less than the simulation can measure. The weakest was {res.policy.worstRate.toFixed(1)}%.</>
+                  ? <> {res.policy.tied} of them survive about equally often here ({res.policy.bestRate.toFixed(1)}%, against {res.policy.worstRate.toFixed(1)}% for the weakest), so survival alone cannot separate them. This is the most even-handed of those {res.policy.tied} on everything else &mdash; what you could spend, what is left at the end and what goes in tax. Those do still differ between them, so it is a choice rather than a coin toss.</>
                   : <> It survives {res.policy.bestRate.toFixed(1)}% of the time against {res.policy.worstRate.toFixed(1)}% for the weakest, and no other option comes close enough to matter.</>}
               </p>
             )}

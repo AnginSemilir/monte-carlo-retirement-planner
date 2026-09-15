@@ -32,7 +32,27 @@ const STAGES = [
   { key: 'early-bridge',  age: 56, retire: 55, terminal: 95, salary: 0,      note: 'retired before pension access: a live bridge' },
   { key: 'near',          age: 55, retire: 60, terminal: 95, salary: 62000,  note: 'five years out, still contributing' },
   { key: 'mid',           age: 45, retire: 60, terminal: 96, salary: 68000,  note: 'mid-career' },
-  { key: 'far',           age: 37, retire: 65, terminal: 97, salary: 54000,  note: 'decades out' }
+  { key: 'far',           age: 37, retire: 65, terminal: 97, salary: 54000,  note: 'decades out' },
+  /*
+   * ADDED AFTER priority-effect FOUND THE LIBRARY COULD NOT TEST ONE OF THE APP'S OWN CONTROLS.
+   *
+   * "Getting safely to pension age" ranks on how often a plan runs dry BEFORE the private pension
+   * unlocks at 58. Across the original 360 households it separated the policies in 3 of them, which
+   * reads as a dead control and is really a gap in this file: `early-bridge` retires at 55 against
+   * access at 58, so its bridge is three years long and comfortably covered at almost every wealth
+   * level. A metric about surviving the gap cannot discriminate when the gap is trivial.
+   *
+   * Hand-built households with an EIGHT-year gap made it bite at 1.67x and 2.27x its own tolerance,
+   * so the shape exists and was simply absent. This stage is that shape, crossed with the usual
+   * mixes, wealth levels and spend rates - which is what supplies the range from "covered easily"
+   * through "marginal, and the draw order decides it" to "hopeless whatever you do". The marginal
+   * band is the only place the priority can do any work, and it is the band that was missing.
+   *
+   * Appended rather than inserted ON PURPOSE. STAGES is the outer loop, so the scenario index - and
+   * with it every id, and the cycling of the secondary axes - is preserved for the 360 that already
+   * exist. Results stored by earlier studies stay comparable; these are simply S360 upward.
+   */
+  { key: 'long-bridge',   age: 50, retire: 50, terminal: 95, salary: 0,      note: 'retired eight years before the pension unlocks: a bridge long enough to fail' }
 ];
 
 const MIXES = [

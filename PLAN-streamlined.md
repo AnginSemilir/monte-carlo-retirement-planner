@@ -17,17 +17,18 @@ Everything visible at once, no tabs and no deck. Roughly:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  What you have          │   Can you afford it?              │
-│  pension    [        ]  │   ┌─────────────────────────────┐ │
-│  ISA        [        ]  │   │                             │ │
-│  GIA        [        ]  │   │      the one chart          │ │
-│  cash       [        ]  │   │                             │ │
-│                         │   └─────────────────────────────┘ │
-│  Age        [  ] to [ ] │   [ expected ] [ full range ]     │
-│  Spend/yr   [        ]  │                                   │
-│                         │   Survives 94% of the time        │
-│  + one-off money        │   Safe spend  £41,250             │
-│    in or out            │   Retire from  59                 │
+│  (just me) (+ partner)  │   Can you afford it?              │
+│  What you have          │   ┌─────────────────────────────┐ │
+│  pension    [        ]  │   │                             │ │
+│  ISA        [        ]  │   │      the one chart          │ │
+│  GIA        [        ]  │   │                             │ │
+│  cash       [        ]  │   └─────────────────────────────┘ │
+│                         │   [ expected ] [ full range ]     │
+│  Age        [  ] to [ ] │                                   │
+│  Spend/yr   [        ]  │   Survives 94% of the time        │
+│  Tax     [rUK      ▾]   │   Safe spend  £41,250             │
+│  + one-off money        │   Retire from  59                 │
+│    in or out            │   all at the 90% target           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -42,6 +43,7 @@ Left is entry, right is answer, and the answer updates as you type. No Run butto
 | Salary, contributions, employment, self-employment | "Doesn't check current income" - the pot is what it is today |
 | The strategy tournament | Contribution-splitting is meaningless with no contributions |
 | Ranked priorities and the balanced mode | Replaced by one automatic choice - see below |
+| The survival-rate selector | Fixed at 90% and stated in words - see Decisions |
 | Scenario save/load, comparison overlays | A single page compares by being re-typed |
 | The Inheritance tab | Its own job; out of scope unless asked |
 
@@ -64,7 +66,8 @@ changes the recommendation for the large majority, but the *default* order is a 
 answer everywhere. A streamlined page should take that answer and say which one it picked in a line of
 text, with no control attached.
 
-**Three figures, always on screen.**
+**Three figures, always on screen.** All three are quoted at the fixed 90% target, stated in words rather
+than offered as a control.
 
 - **Survival rate** at the spend entered
 - **Safe spend** - the most that clears the target, from `optimizeSpend`
@@ -102,29 +105,59 @@ assertions rather than needing its own, and any engine fix reaches both.
 
 ## Build shape
 
-`src/Simple.jsx`, a sibling of `App.jsx`, sharing the engine by import rather than by copy. A route or a
-build flag decides which mounts. Explicitly NOT a fork of `App.jsx` - the moment the two diverge by
-copy-paste, every future fix has to be made twice and will not be.
+`src/Simple.jsx`, a sibling of `App.jsx`, sharing the engine by import rather than by copy. One entry
+point mounts both, with `<AppSwitch />` at the top of each crossing to the other. Explicitly NOT a fork
+of `App.jsx` - the moment the two diverge by copy-paste, every future fix has to be made twice and will
+not be.
+
+The separability constraint is a rule about imports: `Simple.jsx` may import from the engine and the
+plan adapter, and from nothing else in `App.jsx`. Worth enforcing with a lint rule rather than a comment,
+because it is the kind of boundary that erodes one convenient import at a time.
 
 Plan state is its own small shape - about a dozen fields - normalised up into the engine's full plan
 via one adapter function. That keeps the simple page from inheriting sixty fields it does not use, while
 still handing the engine exactly what it expects.
 
+## Decisions
+
+These were the open questions. All four are settled.
+
+**Couples are supported, behind a toggle.** One switch at the top of the input panel: *just me* /
+*me and a partner*. On *just me* the partner fields are not rendered at all, so the default page is the
+simple one; flipping the toggle adds a second age, a second retirement age and a second column of
+wrappers, and every headline figure becomes the joint one. The engine already handles both - `isCouple`
+is a plan field, not a code path - so this costs input layout rather than model work.
+
+**The target survival rate is fixed, not exposed.** Both solved figures need *some* target, and offering
+the slider invites tuning the number until the answer is the one you wanted, which is the failure mode
+this page exists to avoid. It is fixed and stated in words beside the figures - "the most you could spend
+and still come through 90% of futures" - so the reader knows what they are being shown without being
+handed a dial. The full app keeps its four-way selector for anyone who wants to move it.
+
+**One entrance, with a link between the two.** Both apps ship behind a single entry point, with a
+prominent link at the top of each to cross over: *"Need the full model?"* one way, *"Just the answer"*
+the other. That keeps testing to one URL while both are being worked on.
+
+It is built so the two can be split later, which is a constraint on the code rather than a decision to
+defer. Concretely: no shared component reaches across from one to the other, the crossing link is a
+single `<AppSwitch />` with the destination as a prop, and the only shared imports are the engine and
+the plan adapter. Separating them then means deleting that one component and pointing two builds at the
+same engine, rather than untangling a page.
+
+**Tax region: one select, defaulting to rUK.** Scotland's bands change the safe spend by thousands on a
+typical plan, which is more than several of the inputs the page already asks for. Ignoring it would make
+the page quietly wrong for a tenth of its users; a three-option select costs one row.
+
 ## Open questions
 
-1. **Couples.** The simplest thing is single-person only. Supporting a couple roughly doubles the input
-   panel and every figure becomes a joint one. My instinct is single-only for v1, with a line saying so.
-2. **Target survival rate.** It has to be *some* number to compute safe spend and safe retirement age.
-   Fix it at 90% and state it, or expose the one slider? Fixing it is more streamlined; exposing it is
-   the single most consequential number on the page.
-3. **Does it replace the full app or sit beside it?** Changes whether this is a route, a separate build,
-   or the new front door with the current app behind an "advanced" link.
-4. **Tax region.** rUK by default; Scotland changes the answer materially. One select, or ignore?
+None outstanding. The shape above is the thing to build.
 
 ## What I would check before calling it done
 
 - The three headline figures agree with the full app on the same inputs, to the pound and the tenth of a
   point. If the streamlined page disagrees with the app it was derived from, one of them is wrong.
 - The chart flip keeps one scale, so the two views are comparable rather than merely adjacent.
-- It holds at 400px wide, since a page this simple will be opened on a phone.
+- It holds at 400px wide, since a page this simple will be opened on a phone - with the partner toggle
+  on, where the input panel is at its widest.
+- Switching to Scotland moves the safe spend, rather than silently doing nothing.
 - Typing in any field updates the expected view without a visible stall.

@@ -316,6 +316,15 @@ const TAX_REGION_LABELS = {
   scotland: 'Scotland'
 };
 
+/*
+ * The FULL new State Pension, 2026/27: £241.30 a week after the 4.8% earnings uprating on 6 April 2026.
+ * It takes 35 qualifying NI years to earn, which is why the retirement-age solver quotes it back at
+ * anyone whose answer is to stop work a long way early.
+ */
+const STATE_PENSION_FULL = 12548;
+const STATE_PENSION_QUALIFYING_YEARS = 35;
+const NI_RECORD_START_AGE = 18;    // the earliest an unbroken NI record is normally assumed to begin
+
 const DEFAULT_CONFIG = {
   valuationDate: '',                 // '' => today (resolved at run time)
   inflation: 2.5,
@@ -452,9 +461,8 @@ const DEFAULT_CONFIG = {
    */
   inheritedPensionSpreadYears: 5,
   statePensionAgeForHeirs: 68,       // age at which a beneficiary is assumed to be drawing a state pension
-  // ...and roughly what it is worth, since it consumes their allowance. 2026/27: £241.30 a week,
-  // the full NEW state pension, after the 4.8% earnings uprating on 6 April 2026.
-  assumedStatePensionForHeirs: 12548,
+  // ...and roughly what it is worth, since it consumes their allowance.
+  assumedStatePensionForHeirs: STATE_PENSION_FULL,
   bridgeSafetyMargin: 30,            // % uplift on the pre-access "bridge" reserve the tournament targets
   solvencyFloor: 0                   // minimum pot at terminal age (bequest floor)
 };
@@ -2195,11 +2203,25 @@ function shiftRetirement(plan, delta) {
 
 function safeRetirementAge(rawPlan, { targetRate = 90, seed = 12345, searchTrials = 400, finalTrials = 5000,
                                       maxYearsLater = 20, onProgress = null } = {}) {
-  const base = normalizePlan(rawPlan);
-  const d = base.demographics;
-  const currentAge = num(d.currentAgeSelf, 0);
-  const planned = num(d.retireAgeSelf, currentAge);
-  const terminal = num(d.terminalAge, 95);
+  const base0 = normalizePlan(rawPlan);
+  /*
+   * THE AGES COME FROM THE CONTEXT, NOT THE RAW DEMOGRAPHICS.
+   *
+   * A blank age is filled in by buildContext - 40 for current, 60 for retirement - and is left blank by
+   * normalizePlan. Reading the demographics directly made this solver the one component on the tab that
+   * disagreed with every other: on a plan with the ages not yet entered it read 0 and 0 and answered
+   * "you are already retired", while the slide above it was projecting from 40 to 60.
+   *
+   * The resolved ages are then written back onto the plan the shift works from, because shiftRetirement
+   * deliberately leaves a blank field blank - which would have made every shift a no-op.
+   */
+  const ctx0 = buildContext(resolveMpaa(base0));
+  const currentAge = ctx0.ageSelf0;
+  const planned = ctx0.owners[0].retireAge;
+  const terminal = ctx0.terminalAge;
+  const base = { ...base0, demographics: { ...base0.demographics,
+    currentAgeSelf: currentAge, retireAgeSelf: planned, terminalAge: terminal,
+    ...(ctx0.isCouple ? { currentAgePart: ctx0.agePart0, retireAgePart: ctx0.owners[1].retireAge } : {}) } };
   // you cannot retire in the past, and retiring in the final year of the plan is not a retirement
   const lo = Math.max(Math.ceil(currentAge), 0);
   const hi = Math.min(terminal - 1, Math.max(planned, lo) + maxYearsLater);
@@ -6658,11 +6680,13 @@ export default function App() {
   // what stops the metric tiles quietly changing meaning depending on which button was pressed last.
   const [simResult, setSimResult] = useState(null);
   const [safeMaxResult, setSafeMaxResult] = useState(null);
+  const [safeRetireResult, setSafeRetireResult] = useState(null);
+  const [isSolvingRetire, setIsSolvingRetire] = useState(false);
 
   /*
-   * The results are a five-step walk rather than one long page: topline, safe spend, the rate-based
-   * chart, the Monte Carlo, then the two side by side. Five screens of one idea each beats one screen of
-   * five, and the two charts in particular only mean anything read against each other, which is far
+   * The results are a six-step walk rather than one long page: topline, safe spend, safe retirement age,
+   * the rate-based chart, the Monte Carlo, then the two side by side. Six screens of one idea each beats
+   * one screen of six, and the two charts in particular only mean anything read against each other, which is far
    * easier when they occupy the same space one after the other than when they are stacked a scroll apart.
    *
    * `seeAll` cascades the lot for anyone who would rather scroll, and is what a re-run lands on: having
@@ -6671,9 +6695,10 @@ export default function App() {
   const PROJECTION_SLIDES = [
     { n: 1, key: 'topline', name: 'Topline' },
     { n: 2, key: 'safespend', name: 'Safe spend' },
-    { n: 3, key: 'ratechart', name: 'Rate based' },
-    { n: 4, key: 'mcchart', name: 'Monte Carlo' },
-    { n: 5, key: 'compare', name: 'Side by side' }
+    { n: 3, key: 'saferetire', name: 'Safe retirement' },
+    { n: 4, key: 'ratechart', name: 'Rate based' },
+    { n: 5, key: 'mcchart', name: 'Monte Carlo' },
+    { n: 6, key: 'compare', name: 'Side by side' }
   ];
   /*
    * The Inheritance tab is a deck too, for the same reason the Projection tab is: it asks for a dozen
@@ -7968,6 +7993,69 @@ export default function App() {
     finally { setIsOptimizing(false); setSimProgress(null); }
   };
 
+  /*
+   * The retirement-age solve is its own button rather than part of the main run. It is a scan - twenty
+   * or so Monte Carlo runs, one per candidate age - so it costs several times what the safe-spend solve
+   * does, and most people arriving at the deck want the spend answer rather than this one.
+   */
+  const handleSolveRetirement = async (rate = targetSurvivalRate) => {
+    if (mcBusy || isSolvingRetire) return;
+    setIsSolvingRetire(true);
+    setSafeRetireResult(null);
+    await tick();
+    try {
+      const r = E.safeRetirementAge(plan, { targetRate: rate, searchTrials: 500, finalTrials: 2500,
+        onProgress: (pr) => setSimProgress({ label: pr.label, value: pr.value }) });
+      setSafeRetireResult(r);
+    } catch (err) {
+      setSafeRetireResult({ error: String(err && err.message ? err.message : err) });
+    } finally { setIsSolvingRetire(false); setSimProgress(null); }
+  };
+
+  /*
+   * THE TWO THINGS THE SOLVED AGE DOES NOT KNOW ABOUT ITSELF.
+   *
+   * The model shifts the retirement age and re-runs. It does not re-derive the State Pension, because it
+   * cannot: the figure is typed in, and how many qualifying NI years stand behind it is not something the
+   * plan holds. Stopping work several years early is precisely the case where the typed figure is most
+   * likely to be wrong, so the answer carries the caution rather than quietly assuming.
+   *
+   * And an answer bounded by the bridge is a different instruction from one bounded by the pot. The pot
+   * running out means "you need more money". The bridge means "you need it in a different wrapper", which
+   * the sandbox can be used to test in a couple of minutes.
+   */
+  const retireNotes = useMemo(() => {
+    const r = safeRetireResult;
+    if (!r || r.error || r.alreadyRetired || r.age == null) return null;
+    const d = plan?.demographics || {};
+    const spa = E.num(d.statePensionAge, 68);
+    const typed = E.num(d.statePensionSelf, 0) + (isCouple ? E.num(d.statePensionPart, 0) : 0);
+    const heads = isCouple ? 2 : 1;
+    const earlier = r.yearsEarlier;
+    /*
+     * Not every early answer is worth a caution, and the two that are differ in kind.
+     *
+     * HARD: stopping at the solved age leaves fewer than 35 years on the clock even on an unbroken record
+     * from 18, so the typed figure is arithmetically unreachable and the plan is over-counting income.
+     * SOFT: the record could be full, but the entry is still taken on trust, and career breaks, part-time
+     * years and contracting are exactly what a shortened working life stops having time to make up.
+     */
+    const workingYears = Math.max(0, r.age - NI_RECORD_START_AGE);
+    const shortBy = Math.max(0, STATE_PENSION_QUALIFYING_YEARS - workingYears);
+    const nearFull = typed >= 0.9 * STATE_PENSION_FULL * heads;
+    const statePension = earlier < 2 ? null
+      : typed <= 0 ? { level: 'none', typed, spa }
+      : shortBy > 0 && nearFull ? { level: 'hard', typed, spa, workingYears, shortBy }
+      : nearFull ? { level: 'soft', typed, spa, workingYears }
+      : null;
+    /*
+     * No "and the answer is below the NMPA" guard here. The commonest bridge-bound answer is the NMPA
+     * itself - the year below it is the one that strands, which is exactly what boundBy already says -
+     * and an `age < nmpa` test hides the panel on precisely the plans it was written for.
+     */
+    return { statePension, bridge: r.boundBy === 'bridge to pension access' };
+  }, [safeRetireResult, plan?.demographics, isCouple]);
+
   const handleCancelMC = () => { mcCancelRef.current = true; tournamentCancelRef.current = true; };
 
   const mcBusy = isSimulating || isOptimizing || tournament.isEvaluating;
@@ -8285,7 +8373,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * in. Each keeps its own outer 10th/90th toggle, since that is a property of the range, not the plan.
    */
   /*
-   * Slide chrome. The numbered row is the map - five steps, where you are, and one click to any of them -
+   * Slide chrome. The numbered row is the map - six steps, where you are, and one click to any of them -
    * and "See all" is the escape hatch for anyone who would rather scroll than walk.
    */
   const slideHead = (n, title, sub) => (
@@ -8313,6 +8401,84 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       ))}
     </div>
   );
+
+  /*
+   * THE RETIREMENT-AGE CURVE.
+   *
+   * The single figure on step 3 is one point on a line, and the line is the more useful object: it says
+   * whether the answer sits on a cliff or a gentle slope. A plan where 61 gives 88% and 62 gives 91% is
+   * a very different proposition from one where 61 gives 46% - the first is a near miss worth a year of
+   * saving, the second is not - and no headline number can carry that distinction.
+   *
+   * Drawn small and plainly: one series, one target line, one marked point. It is a sanity check on the
+   * answer above it, not a chart anyone needs to interrogate.
+   */
+  const retireCurve = useMemo(() => {
+    const r = safeRetireResult;
+    const pts = r && !r.error && Array.isArray(r.curve) ? r.curve : [];
+    if (pts.length < 2) return null;
+    const W = 640, H = 176, L = 34, R = 10, T = 20, B = 26;
+    const iw = W - L - R, ih = H - T - B;
+    const ages = pts.map(p => p.age);
+    const a0 = Math.min(...ages), a1 = Math.max(...ages);
+    // the vertical scale always shows the target, so "how far below" is readable rather than clipped off
+    const lows = [...pts.map(p => p.rate), r.targetRate];
+    const yLo = Math.max(0, Math.floor((Math.min(...lows) - 4) / 10) * 10), yHi = 100;
+    const x = (a) => L + (a1 === a0 ? iw / 2 : ((a - a0) / (a1 - a0)) * iw);
+    const y = (v) => T + ih - ((clamp(v, yLo, yHi) - yLo) / (yHi - yLo)) * ih;
+    const path = pts.map((p, i) => `${i ? 'L' : 'M'}${x(p.age).toFixed(1)},${y(p.rate).toFixed(1)}`).join(' ');
+    const ticks = [];
+    for (let v = yLo; v <= yHi; v += (yHi - yLo) <= 30 ? 10 : 20) ticks.push(v);
+    const answer = r.age != null ? pts.find(p => p.age === r.age) : null;
+    const every = Math.ceil(pts.length / 8);
+    /*
+     * The answer's own age always gets a label, since it is what the ring marks - and where a thinned
+     * tick lands too close to it, the TICK is the one dropped. Spacing the other way round would let the
+     * answer lose its label to an arbitrary every-Nth neighbour, which is the one outcome worth avoiding.
+     */
+    const isAnswer = (q) => !!answer && q.age === answer.age;
+    const labelled = pts.filter((q, i) => isAnswer(q) || ((i % every === 0 || q.age === a1) &&
+      !(answer && Math.abs(x(q.age) - x(answer.age)) < 15)));
+    return (
+      <div className="relative overflow-x-auto">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto select-none" role="img"
+          aria-label={`Survival rate against retirement age, from ${a0} to ${a1}`}>
+          {ticks.map(v => (
+            <g key={v}>
+              <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke={cp.gridMinor} strokeWidth="1" />
+              <text x={L - 6} y={y(v) + 3} textAnchor="end" fontSize="9" fill={cp.axisText} fontFamily="ui-monospace, monospace">{v}%</text>
+            </g>
+          ))}
+          {/* the target the solver was asked to clear */}
+          <line x1={L} x2={W - R} y1={y(r.targetRate)} y2={y(r.targetRate)} stroke={cp.sandboxDash} strokeWidth="1.5" strokeDasharray="5,4" />
+          <text x={W - R} y={y(r.targetRate) - 4} textAnchor="end" fontSize="9" fontWeight="bold" fill={cp.sandboxDash}>target {r.targetRate}%</text>
+          {/* and the age actually entered, for the comparison the tiles make in words */}
+          {r.planned >= a0 && r.planned <= a1 && (
+            <>
+              <line x1={x(r.planned)} x2={x(r.planned)} y1={T} y2={T + ih} stroke={cp.hoverCrosshair} strokeWidth="1" strokeDasharray="3,3" />
+              <text x={x(r.planned)} y={T - 8} textAnchor="middle" fontSize="9" fill={cp.axisText}>entered</text>
+            </>
+          )}
+          <path d={path} fill="none" stroke={cp.historicalLine} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+          {pts.map(p => <circle key={p.age} cx={x(p.age)} cy={y(p.rate)} r="2" fill={cp.historicalLine} />)}
+          {answer && (
+            <g>
+              <circle cx={x(answer.age)} cy={y(answer.rate)} r="5.5" fill="none" stroke="#059669" strokeWidth="2" />
+              <circle cx={x(answer.age)} cy={y(answer.rate)} r="2.5" fill="#059669" />
+            </g>
+          )}
+          <line x1={L} x2={W - R} y1={T + ih} y2={T + ih} stroke={cp.gridMajor} strokeWidth="1" />
+          {labelled.map(p => (
+            <text key={p.age} x={x(p.age)} y={H - 8} textAnchor="middle" fontSize="9"
+              fill={answer && p.age === answer.age ? '#059669' : cp.axisText}
+              fontWeight={answer && p.age === answer.age ? 'bold' : 'normal'}
+              fontFamily="ui-monospace, monospace">{p.age}</text>
+          ))}
+        </svg>
+        <p className="text-[10px] text-slate-400 mt-1">Survival rate against the age you stop, spending {formatGBP(simResult?.spend)} a year throughout. The scan samples every other year and fills in around the answer, so the gaps are deliberate.</p>
+      </div>
+    );
+  }, [safeRetireResult, cp, simResult]);
 
   const estateStepNav = (n) => (
     <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -8359,9 +8525,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         <div className="flex items-center gap-2">
           <button type="button" disabled={n === 1} onClick={() => setSlide(n - 1)}
             className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">&larr; Back</button>
-          <button type="button" onClick={() => { if (n < 5) setSlide(n + 1); else setSandboxRevealed(true); }}
+          <button type="button" onClick={() => { if (n < 6) setSlide(n + 1); else setSandboxRevealed(true); }}
             className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-white hover:bg-slate-900 cursor-pointer">
-            {n < 5 ? <>Next: {PROJECTION_SLIDES[n].name} &rarr;</> : <>Change something &rarr;</>}
+            {n < 6 ? <>Next: {PROJECTION_SLIDES[n].name} &rarr;</> : <>Change something &rarr;</>}
           </button>
         </div>
       )}
@@ -8770,8 +8936,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Retirement Age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgePart ?? ''} onChange={(e) => updateDemographics('retireAgePart', e.target.value)} className={inputCls} /></div>}
                 <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentSelf === 'self-employed' ? 'Annual Profit: self-employment (Myself £/yr)' : 'Gross Salary (Myself £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salarySelf ?? ''} onChange={(e) => updateDemographics('salarySelf', e.target.value)} className={inputCls} /></div>
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentPart === 'self-employed' ? 'Annual Profit: self-employment (Partner £/yr)' : 'Gross Salary (Partner £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salaryPart ?? ''} onChange={(e) => updateDemographics('salaryPart', e.target.value)} className={inputCls} /></div>}
-                <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label><input type="number" min="0" step="250" placeholder="e.g. 12548" onFocus={handleFocus} value={plan?.demographics?.statePensionSelf ?? ''} onChange={(e) => updateDemographics('statePensionSelf', e.target.value)} className={inputCls} /></div>
-                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label><input type="number" min="0" step="250" placeholder="e.g. 12548" onFocus={handleFocus} value={plan?.demographics?.statePensionPart ?? ''} onChange={(e) => updateDemographics('statePensionPart', e.target.value)} className={inputCls} /></div>}
+                <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL}`} onFocus={handleFocus} value={plan?.demographics?.statePensionSelf ?? ''} onChange={(e) => updateDemographics('statePensionSelf', e.target.value)} className={inputCls} /></div>
+                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL}`} onFocus={handleFocus} value={plan?.demographics?.statePensionPart ?? ''} onChange={(e) => updateDemographics('statePensionPart', e.target.value)} className={inputCls} /></div>}
                 <div className="sm:col-span-2">
                   <label className="text-slate-600 font-semibold block mb-1">{isCouple ? 'Joint Net Living Spend (£/yr)' : 'Net Living Spend (£/yr)'}</label>
                   <input type="number" min="0" step="1000" placeholder="e.g. 30000" onFocus={handleFocus} value={plan?.spending?.targetSpend ?? ''} onChange={(e) => updateSpending('targetSpend', e.target.value)} className={inputCls} />
@@ -9557,7 +9723,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Run the numbers</h3>
-                  <span className="text-[11px] text-slate-500">{simResult ? 'Five steps: what your plan does, the most you could spend, the two ways of drawing the range, then both side by side.' : 'Answers arrive as they land, so the first is on screen while the rest is still working. Every figure is in today\u2019s money.'}</span>
+                  <span className="text-[11px] text-slate-500">{simResult ? 'Six steps: what your plan does, the most you could spend, the earliest you could stop, the two ways of drawing the range, then both side by side.' : 'Answers arrive as they land, so the first is on screen while the rest is still working. Every figure is in today\u2019s money.'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {mcBusy && (
@@ -9581,7 +9747,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             {!simResult ? (
               <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-2xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
                 <div className="flex items-center gap-2 font-bold text-blue-950 text-sm"><Layers className="w-4 h-4 text-blue-600" /> What you will get</div>
-                <p className="leading-relaxed">Five steps. What your plan does as entered, the most you could safely spend instead, then the same range drawn two ways &mdash; compounded from the return assumptions, and read off {MC_TRIALS.toLocaleString()} randomised paths &mdash; and finally the two side by side. Every figure is in today&rsquo;s money.</p>
+                <p className="leading-relaxed">Six steps. What your plan does as entered, the most you could safely spend instead, the earliest you could stop working, then the same range drawn two ways &mdash; compounded from the return assumptions, and read off {MC_TRIALS.toLocaleString()} randomised paths &mdash; and finally the two side by side. Every figure is in today&rsquo;s money.</p>
               </div>
             ) : (
             <>
@@ -9650,10 +9816,86 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
               )}
 
-              {/* ---------------- 3. RATE-BASED CHART ---------------- */}
+              {/* ---------------- 3. SAFE RETIREMENT AGE ---------------- */}
               {showSlide(3) && (
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
-                  {slideHead(3, 'Rate based', 'One steady rate per wrapper, compounded. Redraws as you type.')}
+                  {slideHead(3, 'The earliest you could stop', 'Holds the spending fixed and solves for the retirement age instead.')}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="text-slate-500 font-semibold">Survive at least:</span>
+                    <div className="flex items-center bg-slate-100 border border-slate-200 rounded-xl p-1">
+                      {[85, 90, 95, 99].map(rate => (
+                        <button key={rate} type="button" disabled={mcBusy || isSolvingRetire} onClick={() => { setTargetSurvivalRate(rate); handleSolveRetirement(rate); }}
+                          className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${targetSurvivalRate === rate ? 'bg-surface text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>{rate}%</button>
+                      ))}
+                    </div>
+                    <button type="button" disabled={mcBusy || isSolvingRetire} onClick={() => handleSolveRetirement(targetSurvivalRate)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-white hover:bg-slate-900 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                      {isSolvingRetire ? 'Scanning…' : safeRetireResult ? 'Solve again' : 'Solve for the age'}
+                    </button>
+                    {isSolvingRetire && <span className="text-slate-400">a run per candidate age, so this one takes a moment</span>}
+                  </div>
+
+                  {!safeRetireResult ? (
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      This one is asked for rather than run with the rest, because it is a scan: one full simulation per candidate age, from today up to {Math.min(terminalAge - 1, ctx.owners[0].retireAge + 20)}. Your spending stays exactly as entered &mdash; what moves is when the salary stops. <strong className="text-slate-700">Employed income moves with you</strong> in either direction; <strong className="text-slate-700">defined-benefit pensions and the State Pension do not</strong>, because their dates are set by the scheme rather than by you.
+                    </p>
+                  ) : safeRetireResult.error ? (
+                    <p className="text-xs text-rose-700">Could not solve: {safeRetireResult.error}</p>
+                  ) : safeRetireResult.alreadyRetired ? (
+                    <p className="text-[11px] text-slate-500 leading-relaxed"><strong className="text-slate-700">You are already retired on this plan</strong> &mdash; the retirement age you entered ({safeRetireResult.planned}) is at or below your current age ({safeRetireResult.currentAge}), so there is no earlier date to solve for. Step 2 is the question that applies: how much the money will carry.</p>
+                  ) : safeRetireResult.age == null ? (
+                    <>
+                      <p className="text-[11px] text-slate-500 leading-relaxed"><strong className="text-rose-700">{safeRetireResult.note}</strong> Retiring later is not what this plan is short of &mdash; so the lever is the spending, the contributions, or where the money sits, rather than the date.</p>
+                      {retireCurve}
+                    </>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Earliest safe retirement</span><span className="text-xl font-black font-mono text-emerald-700">Age {safeRetireResult.age}</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">you entered {safeRetireResult.planned}</span></div>
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Against your plan</span><span className={`text-xl font-black font-mono ${safeRetireResult.yearsEarlier > 0 ? 'text-emerald-700' : safeRetireResult.yearsEarlier < 0 ? 'text-rose-700' : 'text-slate-700'}`}>{safeRetireResult.yearsEarlier > 0 ? '−' : safeRetireResult.yearsEarlier < 0 ? '+' : ''}{Math.abs(safeRetireResult.yearsEarlier)} {Math.abs(safeRetireResult.yearsEarlier) === 1 ? 'year' : 'years'}</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">{safeRetireResult.yearsEarlier > 0 ? 'sooner than entered' : safeRetireResult.yearsEarlier < 0 ? 'later than entered' : 'the age you entered'}</span></div>
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className={`text-xl font-black font-mono ${safeRetireResult.verified ? 'text-emerald-700' : 'text-rose-700'}`}>{safeRetireResult.rate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">{safeRetireResult.verified ? `at or above the ${safeRetireResult.targetRate}% asked for` : `short of the ${safeRetireResult.targetRate}% asked for`}</span></div>
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">What stops you going earlier</span><span className="text-sm font-black text-slate-800 leading-tight block mt-1">{safeRetireResult.boundBy === 'bridge to pension access' ? 'Reaching the pension' : safeRetireResult.boundBy === 'current age' ? 'Nothing — today is the answer' : 'The money running out'}</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">{safeRetireResult.below ? `at ${safeRetireResult.below.age} it is ${safeRetireResult.below.rate.toFixed(1)}%` : 'you cannot retire in the past'}</span></div>
+                      </div>
+
+                      {retireCurve}
+
+                      <p className="text-[11px] text-slate-500 leading-relaxed">
+                        {safeRetireResult.note
+                          ? <><strong className="text-rose-700">{safeRetireResult.note}</strong>{' '}</>
+                          : <><strong className="text-slate-700">Stopping at {safeRetireResult.age} holds {safeRetireResult.rate.toFixed(1)}%</strong> on {safeRetireResult.stats.trials.toLocaleString()} paths, spending the {formatGBP(simResult.spend)} a year you entered throughout.{' '}</>}
+                        Moving the date does not move everything with it. <strong className="text-slate-700">Employed and self-employed income shifts with the retirement age</strong> in both directions, and with it the contributions that come out of it. <strong className="text-slate-700">Defined-benefit pensions, annuities and the State Pension keep their own dates</strong>, because the scheme sets those and retiring sooner does not bring them forward &mdash; which is most of why going earlier costs more than the missing salary alone.
+                        {safeRetireResult.verifySteps > 0 && <> The first answer the scan found was {safeRetireResult.verifySteps} {safeRetireResult.verifySteps === 1 ? 'year' : 'years'} earlier and did not hold when re-run at full precision, so it was moved later until it did.</>}
+                      </p>
+
+                      {retireNotes?.bridge && (
+                        <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-[11px] text-slate-700 leading-relaxed space-y-1.5">
+                          <div className="flex items-center gap-2 font-bold text-amber-900 text-xs"><AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> This is a bridge problem, not a saving problem</div>
+                          <p>Going earlier than {safeRetireResult.age} does not fail because the money runs out &mdash; it fails because it is locked. At {safeRetireResult.below.age}, {safeRetireResult.below.preNmpaFailRate.toFixed(1)}% of paths are stranded before the pension unlocks at {nmpa}. <strong>Your ISA bridge is not big enough to carry the gap.</strong> More total saving will not fix that on its own; the same money held where you can reach it before {nmpa} would.</p>
+                          <p>Worth testing: move some contribution from the pension to the ISA, or bring the ISA balance up, and re-run. <button type="button" onClick={() => { setSeeAll(false); setSlide(6); setSandboxRevealed(true); }} className="font-bold text-amber-900 underline hover:text-amber-950 cursor-pointer">The sandbox after step 6</button> lets you change both without touching your saved plan.</p>
+                        </div>
+                      )}
+
+                      {retireNotes?.statePension && (
+                        <div className={`p-3 rounded-xl text-[11px] leading-relaxed ${retireNotes.statePension.level === 'hard' ? 'bg-rose-50/80 border border-rose-200 text-slate-700' : 'bg-slate-50 border border-slate-200 text-slate-600'}`}>
+                          {retireNotes.statePension.level === 'none' ? (
+                            <><strong className="text-slate-800">No State Pension is entered</strong>, so this answer does not lean on one. If you expect one from {retireNotes.statePension.spa}, entering it will bring the age down.</>
+                          ) : retireNotes.statePension.level === 'hard' ? (
+                            <><strong className="text-rose-800">Check the State Pension figure against this age.</strong> You have entered {formatGBP(retireNotes.statePension.typed)} a year, close to the full rate, which takes {STATE_PENSION_QUALIFYING_YEARS} qualifying National Insurance years. Stopping at {safeRetireResult.age} leaves about {retireNotes.statePension.workingYears} years of working life even counting from {NI_RECORD_START_AGE} &mdash; roughly {retireNotes.statePension.shortBy} short. The model pays out what you typed, so if the record is not there, this age is optimistic. Voluntary Class 3 contributions can fill gaps; check your record before relying on this.</>
+                          ) : (
+                            <><strong className="text-slate-800">The State Pension figure is taken as you typed it.</strong> Retiring {safeRetireResult.yearsEarlier} years early stops your National Insurance record {safeRetireResult.yearsEarlier} years sooner, and the model does not re-derive the {formatGBP(retireNotes.statePension.typed)} from {retireNotes.statePension.spa} to account for that. If there are gaps in your record already, the shortened working life is what stops you filling them.</>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {slideNav(3)}
+                </div>
+              )}
+
+              {/* ---------------- 4. RATE-BASED CHART ---------------- */}
+              {showSlide(4) && (
+                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+                  {slideHead(4, 'Rate based', 'One steady rate per wrapper, compounded. Redraws as you type.')}
                   <div className="flex flex-wrap items-center gap-3">
                     {bandToggle}
                     <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
@@ -9667,14 +9909,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     {' '}<strong className="text-rose-700">The weakness: none of these lines can go bust.</strong> A casino lets a winner keep playing but stops a loser at zero. This chart only models the winner. No line here ever sells cheap to pay a bill, so the bottom edge flatters you &mdash; and the weaker the plan, the more it flatters.
                     {bandCurves && bandCurves.lo.failAge !== null && <> <strong className="text-rose-700">Below age {bandCurves.lo.failAge} the bottom edge is broken, not low.</strong></>}
                   </p>
-                  {slideNav(3)}
+                  {slideNav(4)}
                 </div>
               )}
 
-              {/* ---------------- 4. MONTE CARLO CHART ---------------- */}
-              {showSlide(4) && (
+              {/* ---------------- 5. MONTE CARLO CHART ---------------- */}
+              {showSlide(5) && (
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
-                  {slideHead(4, 'Monte Carlo', `${simResult.trials.toLocaleString()} randomised futures, same axes as the last screen.`)}
+                  {slideHead(5, 'Monte Carlo', `${simResult.trials.toLocaleString()} randomised futures, same axes as the last screen.`)}
                   <div className="flex flex-wrap items-center gap-3">
                     {bandToggle}
                     <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
@@ -9690,14 +9932,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       ? <> <strong className="text-rose-700">A tenth are broke by {fanRuinAge}.</strong></>
                       : <> Fewer than one in ten are broke by {terminalAge}.</>}
                   </p>
-                  {slideNav(4)}
+                  {slideNav(5)}
                 </div>
               )}
 
-              {/* ---------------- 5. SIDE BY SIDE ---------------- */}
-              {showSlide(5) && (
+              {/* ---------------- 6. SIDE BY SIDE ---------------- */}
+              {showSlide(6) && (
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
-                  {slideHead(5, 'Side by side', 'The same plan, both ways, at the same five points.')}
+                  {slideHead(6, 'Side by side', 'The same plan, both ways, at the same five points.')}
                   {compareRows2 && (
                     <div className="overflow-x-auto border border-slate-200 rounded-xl">
                       <table className="w-full text-left text-xs border-collapse">
@@ -9738,7 +9980,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <strong className="text-rose-700">{formatGBP(sequenceLoss.gapLow)} of that gap is order alone.</strong> An unlucky <em>rate</em> arriving evenly leaves {formatGBP(sequenceLoss.smoothLow)}; one plan in ten actually ends below {formatGBP(sequenceLoss.actualLow)}. Same average return, different order of arrival.
                     </div>
                   )}
-                  {slideNav(5)}
+                  {slideNav(6)}
                 </div>
               )}
             </>

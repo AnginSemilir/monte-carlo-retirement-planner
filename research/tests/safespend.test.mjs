@@ -162,6 +162,23 @@ console.log('\n=========== SAFE RETIREMENT AGE ===========');
   const impossible = E.safeRetirementAge({ ...basePlan, spending: { ...basePlan.spending, targetSpend: '250000' } },
     { targetRate: 99, searchTrials: 200, finalTrials: 400, maxYearsLater: 6 });
   ok('an unreachable target returns no age and says why', impossible.age === null && typeof impossible.note === 'string');
+
+  /*
+   * BLANK AGES COME FROM THE CONTEXT, NOT FROM ZERO.
+   *
+   * A plan with the ages not yet entered is projected by the rest of the app from 40 to 60, because
+   * buildContext fills those in. This solver used to read the demographics straight and see 0 and 0,
+   * which made a fresh plan answer "you are already retired" while the slide above it was drawing a
+   * twenty-year working life. The fix is to take the ages the context resolved.
+   */
+  const blank = E.safeRetirementAge({ ...basePlan,
+    demographics: { ...basePlan.demographics, currentAgeSelf: '', retireAgeSelf: '' } },
+    { targetRate: 90, searchTrials: 150, finalTrials: 300, maxYearsLater: 4 });
+  ok('blank ages are resolved the way the rest of the app resolves them', !blank.alreadyRetired,
+    `planned ${blank.planned}, current ${blank.currentAge}`);
+  ok('...to the context fallbacks', blank.planned === 60 && blank.currentAge === 40);
+  ok('...and the scan actually moves the age', blank.curve.length > 1 &&
+    blank.curve.some(c => c.rate !== blank.curve[0].rate), `${blank.curve.length} points`);
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

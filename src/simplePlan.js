@@ -61,27 +61,24 @@ const splitOneOffs = (rows) => {
 };
 
 /*
- * THE SPENDING TAPER, AS ONE BAND PER YEAR.
+ * THE SPENDING TAPER: ONE STEP DOWN, THEN FLAT.
  *
- * Most people do not spend a flat figure for thirty years. Spending typically eases through the
- * seventies as travel and the second car go, before care costs can push it back up - the "retirement
- * smile". The page asks for the falling half of that in two numbers, a percent a year and an age to
- * start, because that is the part almost everyone recognises and the part that moves the answer.
+ * Most people do not spend a flat figure for thirty years - spending typically eases as travel and the
+ * second car go. The page models that as a single cut at an age you choose, held for the rest of the
+ * plan: spend £38,000 until 75, then £34,200 from 75 on.
  *
- * The engine takes spendBands: flat amounts over age ranges, first match wins. A smooth decline is
- * therefore expanded here into one band per year, each a compounding step below the last. It is more
- * rows than a taper field would be, but it needs no engine change and it reuses a path the full app
- * already exercises - so the two agree on the same inputs, which is the property this page is built on.
+ * It was a compounding decline, a percent off every year, and one step is the better model of the two
+ * for this page. A compounding taper is very sensitive to an input nobody can calibrate - 1% a year
+ * versus 2% is a 20% difference in spending by 95, and no household knows which of those they are. One
+ * cut at one age is a claim somebody can actually check against their own intentions.
+ *
+ * The engine takes spendBands: flat amounts over age ranges, first match wins. So this is now one band.
  */
 function taperBands(s) {
   const pct = n(s.taperPct), from = n(s.taperFromAge), spend = n(s.spend);
   const terminal = n(s.terminalAge) || 95;
   if (!(pct > 0) || !(from > 0) || !(spend > 0) || from > terminal) return [];
-  const bands = [];
-  for (let age = Math.ceil(from), k = 1; age <= terminal; age++, k++) {
-    bands.push({ fromAge: age, toAge: age, amount: Math.round(spend * Math.pow(1 - pct / 100, k)) });
-  }
-  return bands;
+  return [{ fromAge: Math.ceil(from), toAge: terminal, amount: Math.round(spend * (1 - pct / 100)) }];
 }
 
 /*

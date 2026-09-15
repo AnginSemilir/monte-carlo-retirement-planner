@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { TrendingUp, Plus, X, Loader2, Download } from 'lucide-react';
+import { TrendingUp, Plus, X, Loader2, Download, Minus, Bookmark } from 'lucide-react';
 import {
   buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
   buildPolicyCandidates, explainPick, toleranceFor, simulateDeterministic, DEFAULT_RISK_PROFILES,
@@ -28,6 +28,8 @@ const GBP_SHORT = (v) => {
   return `£${Math.round(n)}`;
 };
 const KEY = 'rp_simple_v1';
+const SCEN_KEY = 'rp_simple_scenarios_v1';
+const MAX_SCENARIOS = 6;
 const TARGET = 90;          // fixed, and stated in words rather than offered as a dial. See PLAN-streamlined.md.
 const LIVE_TRIALS = 1500;   // enough for a +/-1.5pt figure that redraws while you type
 
@@ -85,16 +87,46 @@ const load = () => {
   return SIMPLE_BLANK;
 };
 
+const loadScenarios = () => {
+  try { const raw = localStorage.getItem(SCEN_KEY); if (raw) return JSON.parse(raw).slice(0, MAX_SCENARIOS); } catch { /* private mode */ }
+  return [];
+};
+
 export default function Simple() {
   const [s, setS] = useState(load);
-  const [view, setView] = useState('expected');
+  const [view, setView] = useState('rate');      // 'rate' (CAGR) | 'mc' - the advanced deck's two charts
+  const [bandMode, setBandMode] = useState('quartile');
+  const [scenarios, setScenarios] = useState(loadScenarios);
+  const [activeScenario, setActiveScenario] = useState(null);
   const [res, setRes] = useState(null);          // { mc, safeSpend, safeAge }
   const [busy, setBusy] = useState(false);
   const runToken = useRef(0);
 
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* quota */ } }, [s]);
+  useEffect(() => { try { localStorage.setItem(SCEN_KEY, JSON.stringify(scenarios)); } catch { /* quota */ } }, [scenarios]);
 
-  const set = (k, v) => setS(prev => ({ ...prev, [k]: v }));
+  /*
+   * SAVED SCENARIOS, AS BOOKMARKS.
+   *
+   * The page answers one set of figures at a time, and the question people actually have is comparative:
+   * is retiring two years later worth more than saving another £300 a month? Holding both answers in your
+   * head while you retype the inputs is what makes that hard, so a scenario is stored whole and restored
+   * whole, and flipping between two of them is one click with no recompute of anything but the answer.
+   *
+   * Stored as a full copy of the input shape rather than a diff: the inputs are a dozen small fields, and
+   * a diff would have to be migrated every time one is added - which has already happened three times.
+   */
+  const saveScenario = () => setScenarios(prev => {
+    if (prev.length >= MAX_SCENARIOS) return prev;
+    const n = (prev.reduce((m, x) => Math.max(m, x.n || 0), 0)) + 1;
+    const rec = { id: `sc_${Date.now().toString(36)}`, n, plan: { ...s } };
+    setActiveScenario(rec.id);
+    return [...prev, rec];
+  });
+  const loadScenario = (rec) => { setS({ ...SIMPLE_BLANK, ...rec.plan }); setActiveScenario(rec.id); };
+  const dropScenario = (id) => setScenarios(prev => prev.filter(x => x.id !== id));
+
+  const set = (k, v) => { setActiveScenario(null); setS(prev => ({ ...prev, [k]: v })); };
   const ready = useMemo(() => readiness(s), [s]);
   const full = useMemo(() => (ready.ready ? toFullPlan(s) : null), [s, ready.ready]);
   const resolved = useMemo(() => { try { return full ? resolveMpaa(full) : null; } catch { return null; } }, [full]);
@@ -106,7 +138,7 @@ export default function Simple() {
    * typing. Both are drawn on ONE scale, which is what makes flipping between them a comparison rather
    * than two unrelated pictures.
    */
-  const band = BAND_QUANTILES.quartile;   // the full app's default too, so the two draw the same picture
+  const band = BAND_QUANTILES[bandMode] || BAND_QUANTILES.quartile;
   /*
    * The expected year-by-year path of the CHOSEN plan. It backs the two pot-at-a-date cards and the CSV,
    * so both quote the same rows the chart is drawn from rather than a second opinion.
@@ -185,10 +217,11 @@ export default function Simple() {
   const chart = useMemo(() => {
     if (!expected) return null;
     const fan = res?.mc?.bands;
-    const useFan = view === 'range' && fan && fan.length;
+    const useFan = view === 'mc' && fan && fan.length;
     const age0 = expected.mid[0]?.ageSelf ?? 0;
+    const loKey = bandMode === 'decile' ? 'p10' : 'p25', hiKey = bandMode === 'decile' ? 'p90' : 'p75';
     const series = useFan
-      ? fan.map(b => ({ age: age0 + b.t, lo: b.p25, mid: b.p50, hi: b.p75 }))
+      ? fan.map(b => ({ age: age0 + b.t, lo: b[loKey], mid: b.p50, hi: b[hiKey] }))
       : expected.mid.map((p, i) => ({ age: p.ageSelf, lo: expected.lo[i]?.totalCombined ?? 0, mid: p.totalCombined, hi: expected.hi[i]?.totalCombined ?? 0 }));
     if (series.length < 2) return null;
     /*
@@ -201,7 +234,7 @@ export default function Simple() {
       ...(fan && fan.length ? fan.map(b => b.p50) : [0]));
     const edgeTop = Math.max(
       ...expected.hi.map(p => p.totalCombined),
-      ...(fan && fan.length ? fan.map(b => b.p75) : [0]));
+      ...(fan && fan.length ? fan.map(b => b[hiKey]) : [0]));
     /*
      * The scale is taken from the MEDIAN, not the band's top edge, and the band clips against it.
      *
@@ -237,13 +270,40 @@ export default function Simple() {
       return pts.map((v, i) => `${i ? 'L' : 'M'}${x(age0 + i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
     });
     return { W, H, L, R, T, B, ih, x, y, area, line, ticks, ageTicks, useFan, a0, a1, clippedTo, paths };
-  }, [expected, res, view]);
+  }, [expected, res, view, bandMode]);
 
   // ------------------------------------------------------------------ input helpers
   const inCls = 'w-full p-2 bg-surface border border-slate-300 rounded-lg text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500';
-  const money = (k, label, ph = '0') => (
+  /*
+   * STEPPERS, AND WHY THEY EXIST.
+   *
+   * Every answer on this page costs eighteen simulations plus two solvers, so a freely typed field means
+   * a recompute per keystroke - "38000" is five of them, four of which are about a plan nobody has. The
+   * steppers move a figure in one deliberate jump, which is both how people actually explore a what-if
+   * ("what if I had ten grand more") and a natural brake on how often the work is triggered.
+   *
+   * Typing straight into the field still works and still redraws; the steppers are the quicker way to
+   * ask a what-if, not a mode you have to enter first.
+   */
+  const step = (k, by, min = 0) => {
+    setActiveScenario(null);
+    setS(prev => {
+      const next = Math.max(min, Math.round((num(prev[k], 0) + by) * 100) / 100);
+      return { ...prev, [k]: String(next) };
+    });
+  };
+  const stepper = (k, by, min = 0) => (
+    <span className="flex items-center gap-0.5 ml-1">
+      <button type="button" onClick={() => step(k, -by, min)} aria-label={`decrease ${k}`}
+        className="p-0.5 rounded border border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 hover:border-slate-300 cursor-pointer"><Minus className="w-2.5 h-2.5" /></button>
+      <button type="button" onClick={() => step(k, by, min)} aria-label={`increase ${k}`}
+        className="p-0.5 rounded border border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 hover:border-slate-300 cursor-pointer"><Plus className="w-2.5 h-2.5" /></button>
+    </span>
+  );
+
+  const money = (k, label, ph = '0', by = 0) => (
     <label className="block">
-      <span className="text-[11px] text-slate-500 font-semibold block mb-1">{label}</span>
+      <span className="text-[11px] text-slate-500 font-semibold mb-1 flex items-center">{label}{by > 0 && stepper(k, by)}</span>
       <input type="number" min="0" step="1000" inputMode="numeric" value={s[k]} placeholder={ph}
         onFocus={(e) => e.target.select()} onChange={(e) => set(k, e.target.value)} className={inCls} />
     </label>
@@ -251,21 +311,37 @@ export default function Simple() {
   // a wrapper and how it is invested. Same five levels the full app offers, in a smaller control.
   const RISK_SHORT = { 'High Risk': 'High', 'Medium/High Risk': 'Med/high', 'Medium Risk': 'Medium',
     'Medium/Low Risk': 'Med/low', 'Low Risk': 'Low', 'Cash Equivalents': 'Cash' };
-  const wrapper = (k, label) => (
+  const wrapper = (k, label, cKey, pctKey = null) => {
+    const isPct = pctKey && s[pctKey];
+    return (
+      <label className="block">
+        <span className="text-[11px] text-slate-500 font-semibold mb-1 flex items-center">{label}{stepper(k, 10000)}</span>
+        <input type="number" min="0" step="1000" inputMode="numeric" value={s[k]} placeholder="0"
+          onFocus={(e) => e.target.select()} onChange={(e) => set(k, e.target.value)} className={inCls} />
+        <select value={s[k + 'Risk'] || 'Medium Risk'} onChange={(e) => set(k + 'Risk', e.target.value)}
+          aria-label={`${label} risk level`}
+          className="w-full mt-1 px-1.5 py-1 bg-surface border border-slate-200 rounded-md text-[10px] text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+          {Object.keys(DEFAULT_RISK_PROFILES).map(r => <option key={r} value={r}>{RISK_SHORT[r] || r}</option>)}
+        </select>
+        <span className="flex items-center gap-1 mt-1">
+          <input type="number" min="0" step={isPct ? '1' : '500'} inputMode="numeric" value={s[cKey]} placeholder={isPct ? '%' : '+ / yr'}
+            onFocus={(e) => e.target.select()} onChange={(e) => set(cKey, e.target.value)}
+            aria-label={`${label} contribution`}
+            className="w-full px-1.5 py-1 bg-surface border border-slate-200 rounded-md text-[10px] font-mono text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+          {pctKey && (
+            <button type="button" onClick={() => set(pctKey, !s[pctKey])} title={isPct ? 'entered as a % of salary' : 'entered in pounds a year'}
+              className={`shrink-0 px-1.5 py-1 rounded-md border text-[10px] font-bold cursor-pointer ${isPct ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-900'}`}>
+              {isPct ? '%' : '£'}
+            </button>
+          )}
+          {stepper(cKey, isPct ? 1 : 500)}
+        </span>
+      </label>
+    );
+  };
+  const age = (k, label, ph, by = 0) => (
     <label className="block">
-      <span className="text-[11px] text-slate-500 font-semibold block mb-1">{label}</span>
-      <input type="number" min="0" step="1000" inputMode="numeric" value={s[k]} placeholder="0"
-        onFocus={(e) => e.target.select()} onChange={(e) => set(k, e.target.value)} className={inCls} />
-      <select value={s[k + 'Risk'] || 'Medium Risk'} onChange={(e) => set(k + 'Risk', e.target.value)}
-        aria-label={`${label} risk level`}
-        className="w-full mt-1 px-1.5 py-1 bg-surface border border-slate-200 rounded-md text-[10px] text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
-        {Object.keys(DEFAULT_RISK_PROFILES).map(r => <option key={r} value={r}>{RISK_SHORT[r] || r}</option>)}
-      </select>
-    </label>
-  );
-  const age = (k, label, ph) => (
-    <label className="block">
-      <span className="text-[11px] text-slate-500 font-semibold block mb-1">{label}</span>
+      <span className="text-[11px] text-slate-500 font-semibold mb-1 flex items-center">{label}{by > 0 && stepper(k, by, 0)}</span>
       <input type="number" min="0" max="120" inputMode="numeric" value={s[k]} placeholder={ph}
         onFocus={(e) => e.target.select()} onChange={(e) => set(k, e.target.value)} className={inCls} />
     </label>
@@ -338,6 +414,24 @@ export default function Simple() {
 
       {/* ------------------------------------------------ LEFT: what you have */}
       <div className="bg-surface border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {scenarios.map(rec => (
+            <span key={rec.id}
+              className={`group inline-flex items-center rounded-lg border text-xs font-bold transition-colors ${activeScenario === rec.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-800'}`}>
+              <button type="button" onClick={() => loadScenario(rec)} title={`Scenario ${rec.n}: ${GBP(num(rec.plan.spend, 0))} a year, stopping at ${num(rec.plan.retireSelf, 0)}`}
+                className="px-2.5 py-1 cursor-pointer">{rec.n}</button>
+              <button type="button" onClick={() => dropScenario(rec.id)} aria-label={`Remove scenario ${rec.n}`}
+                className={`pr-1.5 pl-0.5 cursor-pointer opacity-50 hover:opacity-100 ${activeScenario === rec.id ? 'text-white' : 'text-slate-400 hover:text-rose-600'}`}><X className="w-3 h-3" /></button>
+            </span>
+          ))}
+          <button type="button" onClick={saveScenario} disabled={scenarios.length >= MAX_SCENARIOS}
+            title={scenarios.length >= MAX_SCENARIOS ? `Six saved is the limit — remove one first` : 'Save these figures so you can come back and compare'}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-dashed border-slate-300 text-[11px] font-bold text-slate-500 hover:text-blue-800 hover:border-blue-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+            <Bookmark className="w-3 h-3" /> Save scenario
+          </button>
+          {scenarios.length > 0 && <span className="text-[11px] text-slate-400">click a number to compare</span>}
+        </div>
+
         <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 p-1 rounded-xl">
           {[[false, 'Just me'], [true, 'Me and a partner']].map(([v, label]) => (
             <button key={label} type="button" onClick={() => set('couple', v)}
@@ -345,12 +439,20 @@ export default function Simple() {
           ))}
         </div>
 
+        <p className="text-[11px] text-slate-500 leading-relaxed">
+          Adjust your balances, contributions, retirement age and spend to see the difference &mdash; the
+          <Plus className="w-2.5 h-2.5 inline mx-0.5" />and<Minus className="w-2.5 h-2.5 inline mx-0.5" />
+          buttons step a figure and redraw once, rather than on every digit typed.
+        </p>
+
         <div>
           <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5">You</h2>
           <div className="grid grid-cols-2 gap-2.5">
-            {age('ageSelf', 'Age now', '55')}{age('retireSelf', 'Stop working at', '62')}
-            {s.couple && <>{age('agePart', 'Partner age now', '55')}{age('retirePart', 'Partner stops at', '62')}</>}
-            {money('spend', 'Expected retirement spending')}
+            {age('ageSelf', 'Age now', '55')}{age('retireSelf', 'Stop working at', '62', 1)}
+            {s.couple && <>{age('agePart', 'Partner age now', '55')}{age('retirePart', 'Partner stops at', '62', 1)}</>}
+            {money('spend', 'Expected retirement spending', '0', 1000)}
+            {money('salary', 'Salary now', '0')}
+            {s.couple && money('salaryPart', 'Partner salary now', '0')}
             {money('statePensionSelf', 'State Pension /yr', String(STATE_PENSION_FULL))}
             {s.couple && money('statePensionPart', 'Partner State Pension /yr', String(STATE_PENSION_FULL))}
           </div>
@@ -379,13 +481,13 @@ export default function Simple() {
         <div className="pt-1">
           <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5">Portfolio</h2>
           <div className="grid grid-cols-2 gap-2.5">
-            {wrapper('pen', 'Pension')}{wrapper('isa', 'ISA')}
-            {wrapper('gia', 'GIA')}{wrapper('cash', 'Cash')}
+            {wrapper('pen', 'Pension', 'penC', 'penCIsPct')}{wrapper('isa', 'ISA', 'isaC')}
+            {wrapper('gia', 'GIA', 'giaC')}{wrapper('cash', 'Cash', 'cashC')}
           </div>
           {s.couple && (
             <div className="grid grid-cols-2 gap-2.5 mt-2.5 pt-2.5 border-t border-slate-100">
-              {wrapper('penPart', 'Partner pension')}{wrapper('isaPart', 'Partner ISA')}
-              {wrapper('giaPart', 'Partner GIA')}{wrapper('cashPart', 'Partner cash')}
+              {wrapper('penPart', 'Partner pension', 'penCPart', 'penCIsPctPart')}{wrapper('isaPart', 'Partner ISA', 'isaCPart')}
+              {wrapper('giaPart', 'Partner GIA', 'giaCPart')}{wrapper('cashPart', 'Partner cash', 'cashCPart')}
             </div>
           )}
         </div>
@@ -442,7 +544,7 @@ export default function Simple() {
       <div className="bg-surface border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-4 min-w-0">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Can you afford it?</h2>
-          {busy && <span className="text-[11px] text-slate-400 flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> working</span>}
+          {busy && <span className="text-[11px] text-slate-400 flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> {view === 'mc' ? `simulating ${LIVE_TRIALS.toLocaleString()} futures` : 'working'}</span>}
         </div>
 
         {!ready.ready ? (
@@ -455,11 +557,20 @@ export default function Simple() {
           <>
             {chart && (
               <>
-                <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 p-1 rounded-xl w-fit text-xs">
-                  {[['expected', 'Expected'], ['range', 'Full range']].map(([k, label]) => (
-                    <button key={k} type="button" onClick={() => setView(k)} disabled={k === 'range' && !res?.mc}
-                      className={`px-3 py-0.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${view === k ? 'bg-surface text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
-                  ))}
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 p-1 rounded-xl w-fit text-xs">
+                    {[['rate', 'Rate based'], ['mc', 'Monte Carlo']].map(([k, label]) => (
+                      <button key={k} type="button" onClick={() => setView(k)} disabled={k === 'mc' && !res?.mc}
+                        className={`px-3 py-0.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${view === k ? 'bg-surface text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
+                    ))}
+                  </div>
+                  {/* one band control driving both charts, so the two stay comparable rather than drifting apart */}
+                  <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-xl w-fit text-xs">
+                    {Object.entries(BAND_QUANTILES).map(([k, v]) => (
+                      <button key={k} type="button" onClick={() => setBandMode(k)} title={`Draw both charts at the ${v.lowPct} and ${v.highPct}`}
+                        className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'}`}>{v.button}</button>
+                    ))}
+                  </div>
                 </div>
                 <div className="overflow-x-auto">
                   <svg viewBox={`0 0 ${chart.W} ${chart.H}`} className="w-full h-auto select-none" role="img"
@@ -472,7 +583,10 @@ export default function Simple() {
                     ))}
                     <polygon points={chart.area} fill={chart.useFan ? '#6366f1' : '#2563eb'} opacity="0.16" />
                     {chart.paths.map((d, i) => (
-                      <path key={i} d={d} fill="none" stroke="#4f46e5" strokeWidth="0.7" opacity="0.28" />
+                      <path key={i} d={d} fill="none" stroke="#4f46e5" strokeWidth="0.7" pathLength="1"
+                        opacity={busy ? 0.5 : 0.28}
+                        className={busy ? 'sim-sweep' : undefined}
+                        style={busy ? { animationDelay: `${(i % 10) * 0.12}s` } : undefined} />
                     ))}
                     <path d={chart.line} fill="none" stroke={chart.useFan ? '#4f46e5' : '#2563eb'} strokeWidth="2.5" strokeLinejoin="round" />
                     <line x1={chart.L} x2={chart.W - chart.R} y1={chart.T + chart.ih} y2={chart.T + chart.ih} stroke="#cbd5e1" strokeWidth="1" />
@@ -484,7 +598,7 @@ export default function Simple() {
                 <p className="text-[11px] text-slate-500 leading-relaxed">
                   {chart.useFan
                     ? <>The shaded band is the {band.lowPct} to {band.highPct} of {LIVE_TRIALS.toLocaleString()} simulated futures, and a path that runs out stays at zero &mdash; so the bottom edge is honest about failure.</>
-                    : <>The shaded band is the {band.lowPct} to {band.highPct}, compounded from the return assumptions. <strong className="text-slate-700">No line here can go bust</strong>, so the bottom edge flatters a weak plan. Flip to the full range to see what that hides.</>}
+                    : <>The shaded band is the {band.lowPct} to {band.highPct}, each edge compounded at that age&rsquo;s own rate. <strong className="text-slate-700">No line here can go bust</strong>, so the bottom edge flatters a weak plan. Flip to Monte Carlo to see what that hides.</>}
                   {' '}Both views share one scale, so switching compares rather than rescales.
                   {chart.clippedTo && <> The top of the band runs off the chart, reaching {GBP(chart.clippedTo)} at its highest &mdash; the axis follows the middle line so it stays readable.</>}
                 </p>

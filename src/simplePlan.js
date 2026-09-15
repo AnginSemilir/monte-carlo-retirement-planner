@@ -17,6 +17,11 @@ export const SIMPLE_BLANK = {
   agePart: '', retirePart: '',
   terminalAge: 95,
   spend: '',
+  salary: '', salaryPart: '',
+  // contributions a year until the retirement date. The pension one may be a % of salary instead.
+  penC: '', isaC: '', giaC: '', cashC: '',
+  penCPart: '', isaCPart: '', giaCPart: '', cashCPart: '',
+  penCIsPct: false, penCIsPctPart: false,
   taperPct: '',        // % a year that spending eases once the taper starts; blank means flat
   taperFromAge: '',
   region: 'ruk',
@@ -79,6 +84,23 @@ function taperBands(s) {
   return bands;
 }
 
+/*
+ * The pension contribution, in pounds, however it was entered.
+ *
+ * A percentage is how almost everyone knows their own pension contribution - it is what the payslip and
+ * the scheme booklet both use - so the page takes it that way and converts here. It is a percent OF
+ * SALARY, which is the only base that makes the figure mean what people expect, and it therefore needs a
+ * salary to resolve against: with none entered the percentage has nothing to bite on and comes out zero.
+ * The UI says so rather than letting a typed 8% quietly contribute nothing.
+ */
+function pensionContrib(s, isPartner) {
+  const pct = isPartner ? s.penCIsPctPart : s.penCIsPct;
+  const raw = isPartner ? s.penCPart : s.penC;
+  if (!pct) return raw === '' || raw == null ? '' : n(raw);
+  const salary = n(isPartner ? s.salaryPart : s.salary);
+  return salary > 0 ? Math.round(salary * n(raw) / 100) : '';
+}
+
 export function toFullPlan(s) {
   const { ins, outs } = splitOneOffs(s.oneOffs);
   const couple = !!s.couple;
@@ -91,20 +113,19 @@ export function toFullPlan(s) {
       terminalAge: s.terminalAge,
       statePensionSelf: s.statePensionSelf,
       statePensionPart: couple ? s.statePensionPart : '',
-      // no salary and no employment: the page does not ask, so nothing is earned and nothing is paid in
-      salarySelf: '', salaryPart: ''
+      salarySelf: s.salary, salaryPart: couple ? s.salaryPart : ''
     },
     spending: { targetSpend: s.spend, spendBands: taperBands(s) },
     accounts: [
-      { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: bal(s.pen), contrib: '', risk: s.penRisk },
-      { id: 'isa_self', owner: 'Myself', category: 'ISAs', balance: bal(s.isa), contrib: '', risk: s.isaRisk },
-      { id: 'other_self', owner: 'Myself', category: 'General Investments', balance: bal(s.gia), contrib: '', risk: s.giaRisk },
-      { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: bal(s.cash), contrib: '', risk: s.cashRisk },
+      { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: bal(s.pen), contrib: pensionContrib(s, false), risk: s.penRisk },
+      { id: 'isa_self', owner: 'Myself', category: 'ISAs', balance: bal(s.isa), contrib: bal(s.isaC), risk: s.isaRisk },
+      { id: 'other_self', owner: 'Myself', category: 'General Investments', balance: bal(s.gia), contrib: bal(s.giaC), risk: s.giaRisk },
+      { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: bal(s.cash), contrib: bal(s.cashC), risk: s.cashRisk },
       ...(couple ? [
-        { id: 'pen_part', owner: 'Partner', category: 'Pensions', balance: bal(s.penPart), contrib: '', risk: s.penPartRisk },
-        { id: 'isa_part', owner: 'Partner', category: 'ISAs', balance: bal(s.isaPart), contrib: '', risk: s.isaPartRisk },
-        { id: 'other_part', owner: 'Partner', category: 'General Investments', balance: bal(s.giaPart), contrib: '', risk: s.giaPartRisk },
-        { id: 'cash_part', owner: 'Partner', category: 'Cash Savings', balance: bal(s.cashPart), contrib: '', risk: s.cashPartRisk }
+        { id: 'pen_part', owner: 'Partner', category: 'Pensions', balance: bal(s.penPart), contrib: pensionContrib(s, true), risk: s.penPartRisk },
+        { id: 'isa_part', owner: 'Partner', category: 'ISAs', balance: bal(s.isaPart), contrib: bal(s.isaCPart), risk: s.isaPartRisk },
+        { id: 'other_part', owner: 'Partner', category: 'General Investments', balance: bal(s.giaPart), contrib: bal(s.giaCPart), risk: s.giaPartRisk },
+        { id: 'cash_part', owner: 'Partner', category: 'Cash Savings', balance: bal(s.cashPart), contrib: bal(s.cashCPart), risk: s.cashPartRisk }
       ] : [])
     ],
     oneOffContributions: ins,

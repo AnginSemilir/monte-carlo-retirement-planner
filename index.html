@@ -265,6 +265,26 @@
       @media (prefers-reduced-motion: reduce) {
         .rw-wheel:hover:not(:disabled) { animation: none; }
       }
+    
+      /*
+       * THE SIMULATION SWEEP. While the Monte Carlo is running, the paths already on screen are re-drawn
+       * left to right on a loop, staggered so they arrive as a shoal rather than in lockstep. It uses the
+       * REAL last-known paths rather than invented ones, so the loading state is the chart waking up
+       * rather than a spinner parked over it - and when the new answer lands the lines simply settle.
+       *
+       * Each path carries pathLength="1" as an SVG attribute, which normalises its length regardless of
+       * how far it actually travels, so one dash setting sweeps them all at the same rate.
+       */
+      @keyframes sim-sweep {
+        0%   { stroke-dashoffset: 1; }
+        55%  { stroke-dashoffset: 0; }
+        100% { stroke-dashoffset: 0; opacity: 0.18; }
+      }
+      .sim-sweep {
+        stroke-dasharray: 1;
+        animation: sim-sweep 1.6s ease-out infinite;
+      }
+      @media (prefers-reduced-motion: reduce) { .sim-sweep { animation: none; } }
     </style>
     <title>Monte-Carlo Retirement Planner</title>  </head>
   <body>

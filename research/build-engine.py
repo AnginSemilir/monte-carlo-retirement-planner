@@ -9,7 +9,19 @@ src = open(os.path.join(REPO, 'src', 'App.jsx')).read().split('\n')
 
 start = next(i for i, l in enumerate(src) if l.startswith("} from 'lucide-react'")) + 1
 e_line = next(i for i, l in enumerate(src) if l.startswith('const E = {'))
-end = next(i for i, l in enumerate(src) if l.startswith('export {'))
+exports_at = [i for i, l in enumerate(src) if l.startswith('export {')]
+# One export statement, on one line. The slice ends at it and the names are regexed off it, so a second
+# statement silently truncates the engine and a multi-line one makes the regex return None - which used
+# to surface as a bare AttributeError twenty lines later, with the tests still passing against the last
+# good engine.mjs. Fail here instead, and say what to do about it.
+if len(exports_at) != 1:
+    raise SystemExit(f'build-engine: expected exactly one line starting with "export {{" in App.jsx, '
+                     f'found {len(exports_at)} (lines {[i + 1 for i in exports_at]}). '
+                     'Merge them into the single existing export statement.')
+end = exports_at[0]
+if '}' not in src[end]:
+    raise SystemExit(f'build-engine: the export statement at line {end + 1} spans multiple lines. '
+                     'Keep it on one line so its names can be read off it.')
 
 body = src[start:end + 1]
 # the UI half may import React components (EditMode); the engine slice must not carry those through

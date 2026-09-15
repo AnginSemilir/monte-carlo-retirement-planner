@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { TrendingUp, Plus, X, Loader2 } from 'lucide-react';
 import {
-  normalizePlan, buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend,
-  safeRetirementAge, BAND_QUANTILES, TAX_REGION_LABELS, num
+  buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
+  buildPolicyCandidates, explainPick, toleranceFor, BAND_QUANTILES, TAX_REGION_LABELS, num
 } from './App.jsx';
 import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId } from './simplePlan.js';
 
@@ -29,6 +29,34 @@ const GBP_SHORT = (v) => {
 const KEY = 'rp_simple_v1';
 const TARGET = 90;          // fixed, and stated in words rather than offered as a dial. See PLAN-streamlined.md.
 const LIVE_TRIALS = 1500;   // enough for a +/-1.5pt figure that redraws while you type
+
+/*
+ * HOW THE DRAWDOWN POLICY IS CHOSEN: THE ONE THAT SURVIVES MOST, AND WHAT BREAKS THE TIE.
+ *
+ * Survival is what somebody opening this page came to ask about, so it decides. The full app lets you
+ * rank six priorities; here the ranking is fixed, survival first.
+ *
+ * It is "max survival WITHIN A TOLERANCE" rather than the strict maximum, and the difference matters.
+ * Survival is estimated from 1,500 random paths, so it carries about +/-1.5 points of sampling error -
+ * and across eighteen candidates the highest figure is very often the luckiest draw rather than the best
+ * policy. Taking the strict maximum would chase that noise and hand back a different answer on every
+ * keystroke.
+ *
+ * AND ON MANY HOUSEHOLDS SURVIVAL DOES NOT DISCRIMINATE AT ALL. Measured on the reference plan: the
+ * leading candidates come back on exactly the same rate - 82.53% three ways - so survival rules the weak
+ * ones out and then ties among the leaders, handing the decision to what is left. That tie-break is a
+ * money metric separated by fractions, and it duly flips between trial counts: at 1,500 paths one policy
+ * wins, at 8,000 another, on the same inputs.
+ *
+ * So the page does NOT present the tie-break as a finding. When more than one candidate is within
+ * tolerance of the best survival rate it says so, and says the choice between them barely moves the
+ * answer - which is true, and is the only honest thing to show when the alternative is false precision
+ * about a difference smaller than the noise.
+ */
+const POLICY_PRIORITIES = ['survive', 'downside', 'bequest', 'bridge', 'pot', 'tax'];
+const POLICY_NAME = { 'Bracket Fill Basic': 'Tax smoothing', 'Bracket Fill': 'Bracket fill', 'Sequential': 'Sequential', 'ISA First': 'ISA first' };
+const policyLabel = (c) => c ? `${POLICY_NAME[c.decumulationPolicy] || c.decumulationPolicy}, ${
+  c.drawdownStrategy === 'Full 25% Lump Sum' ? 'lump sum up front' : 'phased tax-free cash'}` : '';
 
 const tick = () => new Promise(r => setTimeout(r, 0));
 
@@ -62,12 +90,15 @@ export default function Simple() {
   const expected = useMemo(() => {
     // quantileCurve takes a PLAN and builds its own context per quantile - handing it a ctx silently
     // falls back to blank ages and a nonsense rate, which draws a plausible-looking wrong chart.
-    if (!resolved) return null;
+    // the chosen policy's plan once it has landed, the typed-in one until then, so the chart and the
+    // figures below it describe the same recommendation rather than two different ones
+    const src = res?.plan || resolved;
+    if (!src) return null;
     try {
-      const lo = quantileCurve(resolved, -band.z), mid = quantileCurve(resolved, 0), hi = quantileCurve(resolved, band.z);
+      const lo = quantileCurve(src, -band.z), mid = quantileCurve(src, 0), hi = quantileCurve(src, band.z);
       return { lo: lo.pot, mid: mid.pot, hi: hi.pot, failAge: lo.failAge };
     } catch { return null; }
-  }, [resolved, band.z]);
+  }, [resolved, res?.plan, band.z]);
 
   /*
    * Everything expensive, debounced behind one token so a stale answer can never overwrite a fresh one.
@@ -80,17 +111,43 @@ export default function Simple() {
     const timer = setTimeout(async () => {
       setBusy(true);
       try {
-        const mc = monteCarlo(ctx, { trials: LIVE_TRIALS, seed: 12345, collectPaths: true });
+        /*
+         * The policy is chosen FIRST, and every figure after it is quoted on the winner. Picking the
+         * policy and then reporting survival, safe spend and safe retirement age from the default one
+         * would describe a plan nobody is being recommended.
+         */
+        const cands = buildPolicyCandidates(full).map((c) => {
+          const cctx = buildContext(resolveMpaa(c.planState));
+          return { ...c, ctx: cctx, stats: monteCarlo(cctx, { trials: LIVE_TRIALS, seed: 12345, collectPaths: true }) };
+        });
         if (runToken.current !== mine) return;
-        setRes({ mc });
+        const pick = explainPick(cands, { priorities: POLICY_PRIORITIES });
+        const won = pick.winner;
+        // the headline rate is the run that WON, not a fresh one - a re-run would print a different
+        // number from the one the choice was made on
+        const mc = won.stats;
+        const wonPlan = resolveMpaa(won.planState);
+        const wonCtx = won.ctx;
+        /*
+         * How many candidates survive as well as the best one. NOT pick.consulted[0].decided, which is
+         * true whenever survival ruled ANYTHING out - it says the field narrowed, not that survival
+         * chose the winner, and reporting it as the latter was wrong on every household where the
+         * leaders tie.
+         */
+        const rates = cands.map(c => c.stats.successRate);
+        const bestRate = Math.max(...rates);
+        const sEps = toleranceFor('survive', bestRate);
+        const tied = rates.filter(r => bestRate - r <= sEps).length;
+        setRes({ mc, policy: { label: policyLabel(won), candidates: cands.length, tied,
+          bestRate, worstRate: Math.min(...rates) }, plan: wonPlan });
         await tick();
 
-        const safeSpend = optimizeSpend(ctx, { targetRate: TARGET, searchTrials: 300, finalTrials: 1200 });
+        const safeSpend = optimizeSpend(wonCtx, { targetRate: TARGET, searchTrials: 300, finalTrials: 1200 });
         if (runToken.current !== mine) return;
         setRes(r => ({ ...r, safeSpend }));
         await tick();
 
-        const safeAge = safeRetirementAge(full, { targetRate: TARGET, searchTrials: 300, finalTrials: 1200 });
+        const safeAge = safeRetirementAge(wonPlan, { targetRate: TARGET, searchTrials: 300, finalTrials: 1200 });
         if (runToken.current !== mine) return;
         setRes(r => ({ ...r, safeAge }));
       } catch (err) {
@@ -315,15 +372,15 @@ export default function Simple() {
               {ss && ss.spend < num(s.spend, 0) && <> <strong className="text-rose-700">You are planning to spend more than the safe figure.</strong> That is the size of the bet, not a prohibition.</>}
             </p>
 
-            {/*
-              * The automatic policy pick is deliberately NOT here yet. default-order-cost.mjs measured
-              * that the default priority order is within tolerance on every priority for only 17.9% of
-              * households, so picking silently with it would be quietly wrong for most people. The rule
-              * this page should use is being measured; until it lands, the page says what it is doing.
-              */}
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Drawdown runs on the model&rsquo;s standard order &mdash; cash, then investments, then ISA, then pension. Choosing that automatically per household is measured but not yet wired in.
-            </p>
+            {res?.policy && (
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                <strong className="text-slate-700">How it draws the money: {res.policy.label.toLowerCase()}.</strong>{' '}
+                Picked from {res.policy.candidates} ways of drawing down, on whichever survives most often &mdash; no setting to change.
+                {res.policy.tied > 1
+                  ? <> {res.policy.tied} of them survive equally often here, all at about {res.policy.bestRate.toFixed(1)}%, and this is one of them &mdash; the choice between those {res.policy.tied} moves the answer by less than the simulation can measure. The weakest was {res.policy.worstRate.toFixed(1)}%.</>
+                  : <> It survives {res.policy.bestRate.toFixed(1)}% of the time against {res.policy.worstRate.toFixed(1)}% for the weakest, and no other option comes close enough to matter.</>}
+              </p>
+            )}
           </>
         )}
       </div>

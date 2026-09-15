@@ -2143,6 +2143,159 @@ function monteCarlo(planOrCtx, { trials = 5000, seed = 12345, spendOverride = nu
  * prefix of the final set, not a different draw), and the returned stats are the ones that were checked.
  * The contract is that successRate >= targetRate, or spend is 0 and `note` says why.
  */
+/*
+ * THE EARLIEST RETIREMENT AGE THE PLAN STILL SURVIVES, holding the spending as planned.
+ *
+ * The safe-spend solver asks "given when I stop, how much can I draw". This asks the other one: "given
+ * what I intend to draw, when can I stop". Same target survival rate, so the two answers are readable
+ * against each other.
+ *
+ * WHAT MOVES WITH RETIREMENT, AND WHAT DOES NOT. Three of these fall out of the engine already and
+ * need no rule; the fourth is the one that needs deciding.
+ *
+ *   SALARY            stops at retireAge, so it follows on its own.
+ *   CONTRIBUTIONS     stop at retirement, so they follow too - which is why retiring five years early
+ *                     is a triple hit and not a single one: five more years of full spending, five
+ *                     fewer of earning, and five fewer of paying in.
+ *   STATE PENSION     starts at the state pension age and is not tied to stopping work, so it stays.
+ *   PENSION ACCESS    the NMPA is a statutory age; retiring earlier cannot unlock a pension sooner, it
+ *                     just lengthens the bridge that has to be funded without one.
+ *
+ *   OTHER INCOMES     the decision. An EARNINGS stream is work, so it travels with the retirement age
+ *                     in both directions. Everything else - a DB pension, an annuity, anything tax-free
+ *                     - has a date of its own that stopping work does not move, so it stays exactly
+ *                     where it is. A stream already running is not dragged back before the owner's
+ *                     current age, because work already done cannot be un-done.
+ *
+ * COUPLES move together, by the same number of years. Any gap the household planned between the two
+ * retirements is theirs and survives the shift; collapsing both to one age would silently discard it.
+ *
+ * THE CURVE IS SCANNED, NOT BISECTED. Later is usually safer and is not guaranteed to be: an earnings
+ * stream ending can move the household across a tax band, and the money-purchase annual allowance
+ * turns on flexible access rather than on retiring. A bisection assumes one crossing; a scan finds the
+ * real one. Coarse in two-year steps for the shape, then a one-year refinement across the boundary.
+ */
+function shiftRetirement(plan, delta) {
+  if (!delta) return plan;
+  const d = plan.demographics || {};
+  const shiftOwner = (v) => isBlank(v) ? v : num(v, 0) + delta;
+  return {
+    ...plan,
+    demographics: { ...d, retireAgeSelf: shiftOwner(d.retireAgeSelf), retireAgePart: shiftOwner(d.retireAgePart) },
+    otherIncomes: (plan.otherIncomes || []).map((i) => {
+      // only work travels with the retirement age; a DB pension has a date of its own
+      if (!incomeTypeOf(i.incomeType).relevantEarnings) return i;
+      const floorAge = num(i.owner === 'Partner' ? d.currentAgePart : d.currentAgeSelf, 0);
+      return { ...i,
+        startAge: isBlank(i.startAge) ? i.startAge : Math.max(floorAge, num(i.startAge, 0) + delta),
+        endAge: isBlank(i.endAge) ? i.endAge : num(i.endAge, 0) + delta };
+    })
+  };
+}
+
+function safeRetirementAge(rawPlan, { targetRate = 90, seed = 12345, searchTrials = 400, finalTrials = 5000,
+                                      maxYearsLater = 20, onProgress = null } = {}) {
+  const base = normalizePlan(rawPlan);
+  const d = base.demographics;
+  const currentAge = num(d.currentAgeSelf, 0);
+  const planned = num(d.retireAgeSelf, currentAge);
+  const terminal = num(d.terminalAge, 95);
+  // you cannot retire in the past, and retiring in the final year of the plan is not a retirement
+  const lo = Math.max(Math.ceil(currentAge), 0);
+  const hi = Math.min(terminal - 1, Math.max(planned, lo) + maxYearsLater);
+  if (hi < lo) return null;
+  if (planned <= currentAge) {
+    return { alreadyRetired: true, planned, currentAge, targetRate, curve: [], age: null };
+  }
+
+  const rateFor = (age, trials) => {
+    const variant = shiftRetirement(base, age - planned);
+    const st = monteCarlo(buildContext(resolveMpaa(variant)), { trials, seed });
+    return { age, rate: st.successRate, preNmpaFailRate: st.preNmpaFailRate, stats: st };
+  };
+
+  const seen = new Map();
+  const at = (age, trials) => {
+    const key = `${age}:${trials}`;
+    if (!seen.has(key)) seen.set(key, rateFor(age, trials));
+    return seen.get(key);
+  };
+
+  // coarse pass for the shape of the curve
+  const coarse = [];
+  const steps = Math.floor((hi - lo) / 2) + 1;
+  for (let i = 0, age = lo; age <= hi; i++, age += 2) {
+    if (onProgress) onProgress({ label: `Testing retirement at ${age}`, value: i / Math.max(1, steps) });
+    coarse.push(at(age, searchTrials));
+  }
+  // and the last age, if the step skipped it
+  if (coarse[coarse.length - 1].age !== hi) coarse.push(at(hi, searchTrials));
+
+  /*
+   * The first age that clears the target, then walk BACK a year at a time to make sure nothing between
+   * it and the previous coarse point clears it sooner. Scanning down rather than bisecting is what
+   * copes with a curve that is not monotone.
+   */
+  const firstHit = coarse.find(p => p.rate >= targetRate) || null;
+  let answer = firstHit;
+  if (firstHit) {
+    for (let age = firstHit.age - 1; age >= lo; age--) {
+      const p = at(age, searchTrials);
+      if (p.rate < targetRate) break;
+      answer = p;
+    }
+  }
+
+  const curve = [...seen.values()].sort((a, b) => a.age - b.age).map(p => ({ age: p.age, rate: p.rate, preNmpaFailRate: p.preNmpaFailRate }));
+  if (!answer) {
+    const best = curve.reduce((a, b) => (b.rate > a.rate ? b : a), curve[0]);
+    return { age: null, planned, currentAge, targetRate, curve, best,
+      note: `No retirement age up to ${hi} reaches ${targetRate}%. The best available is ${best.rate.toFixed(1)}% at ${best.age}.` };
+  }
+
+  /*
+   * VERIFIED AT FULL PRECISION, AND MOVED LATER UNTIL IT HOLDS.
+   *
+   * A few hundred paths decide the bracket; they do not settle it. The safe-spend solver had exactly
+   * this defect once - a "90% safe spend" that came back at 88.4% when it was re-run properly - and
+   * this one reproduced it on the first fixture tried: 91.0% on 400 paths at 58, 88.75% on 2,000.
+   *
+   * Quoting an age that fails its own target is worse than quoting a later one, so the answer steps
+   * LATER until the full run agrees, which is the conservative direction here in the same way that
+   * spending LESS is for the other solver. If it runs out of room, the shortfall is reported rather
+   * than buried.
+   */
+  let chosen = answer.age;
+  let variant = shiftRetirement(base, chosen - planned);
+  let full = monteCarlo(buildContext(resolveMpaa(variant)), { trials: finalTrials, seed });
+  let verifySteps = 0;
+  while (full.successRate < targetRate && chosen < hi && verifySteps < 12) {
+    chosen++; verifySteps++;
+    if (onProgress) onProgress({ label: `Verifying retirement at ${chosen}`, value: 0.9 });
+    variant = shiftRetirement(base, chosen - planned);
+    full = monteCarlo(buildContext(resolveMpaa(variant)), { trials: finalTrials, seed });
+  }
+  answer = { ...answer, age: chosen };
+  /*
+   * WHAT ACTUALLY STOPPED THEM GOING EARLIER. A plan that fails a year sooner because the pot runs out
+   * at 90 is a different problem from one that fails because there is no way to reach the pension at
+   * all, and the second is far more common on an early retirement. The year below the answer says which.
+   */
+  const below = answer.age > lo ? at(answer.age - 1, searchTrials) : null;
+  const verified = full.successRate >= targetRate;
+  const boundBy = !below ? 'current age'
+    : below.preNmpaFailRate > (below.rate < targetRate ? 0.5 : Infinity) ? 'bridge to pension access'
+    : 'the money running out';
+
+  return {
+    age: answer.age, planned, currentAge, targetRate, curve, boundBy, verified, verifySteps,
+    yearsEarlier: planned - answer.age,
+    rate: full.successRate, stats: full, plan: variant,
+    below: below ? { age: below.age, rate: below.rate, preNmpaFailRate: below.preNmpaFailRate } : null,
+    ...(verified ? {} : { note: `No retirement age up to ${hi} holds ${targetRate}% when re-run at full precision; ${answer.age} reaches ${full.successRate.toFixed(1)}%.` })
+  };
+}
+
 function optimizeSpend(planOrCtx, { targetRate = 90, seed = 12345, searchTrials = 400, finalTrials = 5000, verifySteps = 6, onProgress = null } = {}) {
   const ctx = planOrCtx && planOrCtx.P ? planOrCtx : buildContext(planOrCtx);
   const paths = pathsForSeed(seed, searchTrials, ctx.totalYears);
@@ -5476,8 +5629,8 @@ function estateActionPlan(plan, result) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
-export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+export { HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan

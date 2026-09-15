@@ -92,5 +92,77 @@ console.log('\n=========== D. THE UNWINNABLE CASES ===========');
   ok('targetRate is echoed back for the UI to label with', solved['Normal|95'].targetRate === 95);
 }
 
+console.log('\n=========== SAFE RETIREMENT AGE ===========');
+{
+  const acct = (id, cat, bal, contrib, risk) => ({ id, owner: 'Myself', category: cat, balance: String(bal), contrib: String(contrib), growth: '', risk });
+  const basePlan = {
+    demographics: { planningMode: 'single', currentAgeSelf: '52', retireAgeSelf: '62', salarySelf: '70000',
+      statePensionAge: 67, privatePensionAge: 58, statePensionSelf: '12548', terminalAge: 92, employmentSelf: 'employed' },
+    spending: { targetSpend: '38000', decumulationPolicy: 'Bracket Fill Basic', drawdownStrategy: 'Phased Drawdown' },
+    accounts: [acct('pen_self', 'Pensions', 480000, 9000, 'High Risk'), acct('isa_self', 'S&S ISAs', 160000, 4000, 'Medium/High Risk'),
+      acct('other_self', 'Other Investments (e.g. GIA)', 70000, 0, 'Medium Risk'), acct('cash_self', 'Cash Savings', 30000, 0, 'Cash Equivalents')],
+    otherIncomes: [
+      { id: 'w', owner: 'Myself', startAge: '62', endAge: '65', amount: '15000', incomeType: 'earnings' },
+      { id: 'db', owner: 'Myself', startAge: '65', endAge: '', amount: '9000', incomeType: 'otherTaxable' },
+      { id: 'tf', owner: 'Myself', startAge: '70', endAge: '', amount: '3000', incomeType: 'taxFree' }
+    ]
+  };
+  const norm = E.normalizePlan(basePlan);
+  const inc = (p, id) => p.otherIncomes.find(x => x.id === id);
+
+  // work travels with the retirement age; anything with a date of its own does not
+  const later = E.shiftRetirement(norm, 3);
+  ok('retiring later moves the retirement age', E.num(later.demographics.retireAgeSelf, 0) === 65);
+  ok('and carries the earnings stream with it', E.num(inc(later, 'w').startAge, 0) === 65 && E.num(inc(later, 'w').endAge, 0) === 68);
+  ok('but leaves a DB pension exactly where it was', E.num(inc(later, 'db').startAge, 0) === 65);
+  ok('and leaves tax-free income alone too', E.num(inc(later, 'tf').startAge, 0) === 70);
+
+  const earlier = E.shiftRetirement(norm, -4);
+  ok('retiring earlier moves the earnings stream earlier', E.num(inc(earlier, 'w').startAge, 0) === 58 && E.num(inc(earlier, 'w').endAge, 0) === 61);
+  ok('and still does not drag the DB pension earlier', E.num(inc(earlier, 'db').startAge, 0) === 65);
+
+  // work already under way cannot be pushed back before today
+  const running = E.normalizePlan({ ...basePlan,
+    otherIncomes: [{ id: 'w', owner: 'Myself', startAge: '50', endAge: '62', amount: '15000', incomeType: 'earnings' }] });
+  ok('a stream already running is not dragged before the owner\'s current age',
+    E.num(inc(E.shiftRetirement(running, -6), 'w').startAge, 0) === 52);
+
+  // a couple moves together, and the gap they planned between them survives
+  const couple = E.normalizePlan({ ...basePlan,
+    demographics: { ...basePlan.demographics, planningMode: 'couple', currentAgePart: '49', retireAgePart: '60', salaryPart: '40000' } });
+  const shifted = E.shiftRetirement(couple, 4);
+  ok('both retirement ages move by the same number of years',
+    E.num(shifted.demographics.retireAgeSelf, 0) === 66 && E.num(shifted.demographics.retireAgePart, 0) === 64);
+  ok('so the gap the household planned between them is preserved',
+    E.num(shifted.demographics.retireAgeSelf, 0) - E.num(shifted.demographics.retireAgePart, 0) === 2);
+
+  ok('a shift of zero returns the plan untouched', E.shiftRetirement(norm, 0) === norm);
+
+  /*
+   * The answer has to survive its own target. A few hundred paths pick the bracket and a full run has
+   * to agree, or this repeats the defect the safe-spend solver once had - a "90%" answer that came
+   * back at 88.4% when re-run. On this fixture the search says 91.0% at 58 and 2,000 paths say 88.75%,
+   * so the answer must not be 58.
+   */
+  const r = E.safeRetirementAge(basePlan, { targetRate: 90, searchTrials: 400, finalTrials: 2000 });
+  ok('an answer is found', r && r.age !== null, r && String(r.age));
+  ok('and it holds the target when re-run at full precision', r.rate >= 90, r.rate.toFixed(2) + '%');
+  ok('it is reported as verified', r.verified === true);
+  ok('it is no later than the planned age', r.age <= 62, `${r.age} vs planned 62`);
+  ok('and the curve rises with age', r.curve[r.curve.length - 1].rate >= r.curve[0].rate,
+    `${r.curve[0].rate.toFixed(1)} -> ${r.curve[r.curve.length - 1].rate.toFixed(1)}`);
+  ok('the binding constraint is named', typeof r.boundBy === 'string' && r.boundBy.length > 0, r.boundBy);
+
+  // somebody already past their retirement age is told so rather than given a solve
+  const done = E.safeRetirementAge({ ...basePlan,
+    demographics: { ...basePlan.demographics, currentAgeSelf: '68', retireAgeSelf: '65' } }, { targetRate: 90, searchTrials: 200, finalTrials: 400 });
+  ok('an already-retired plan says so instead of solving', done.alreadyRetired === true && done.age === null);
+
+  // a target nothing can reach reports the best available rather than a false answer
+  const impossible = E.safeRetirementAge({ ...basePlan, spending: { ...basePlan.spending, targetSpend: '250000' } },
+    { targetRate: 99, searchTrials: 200, finalTrials: 400, maxYearsLater: 6 });
+  ok('an unreachable target returns no age and says why', impossible.age === null && typeof impossible.note === 'string');
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

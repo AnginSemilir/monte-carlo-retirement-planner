@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { TrendingUp, Plus, X, Loader2 } from 'lucide-react';
+import { TrendingUp, Plus, X, Loader2, Download } from 'lucide-react';
 import {
   buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
-  buildPolicyCandidates, explainPick, toleranceFor, BAND_QUANTILES, TAX_REGION_LABELS, num
+  buildPolicyCandidates, explainPick, toleranceFor, simulateDeterministic, DEFAULT_RISK_PROFILES,
+  STATE_PENSION_FULL, BAND_QUANTILES, TAX_REGION_LABELS, num
 } from './App.jsx';
 import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId, earningId } from './simplePlan.js';
 
@@ -106,6 +107,16 @@ export default function Simple() {
    * than two unrelated pictures.
    */
   const band = BAND_QUANTILES.quartile;   // the full app's default too, so the two draw the same picture
+  /*
+   * The expected year-by-year path of the CHOSEN plan. It backs the two pot-at-a-date cards and the CSV,
+   * so both quote the same rows the chart is drawn from rather than a second opinion.
+   */
+  const timeline = useMemo(() => {
+    const src = res?.plan || resolved;
+    if (!src) return null;
+    try { return simulateDeterministic(buildContext(src), 'expected'); } catch { return null; }
+  }, [resolved, res?.plan]);
+
   const expected = useMemo(() => {
     // quantileCurve takes a PLAN and builds its own context per quantile - handing it a ctx silently
     // falls back to blank ages and a nonsense rate, which draws a plausible-looking wrong chart.
@@ -215,16 +226,41 @@ export default function Simple() {
     // the final age always gets a label - it is the end of the plan - and a tick too close to it goes
     const ageTicks = series.filter((q, i) => i === series.length - 1 ||
       (i % every === 0 && (series.length - 1 - i) >= every / 2));
-    return { W, H, L, R, T, B, ih, x, y, area, line, ticks, ageTicks, useFan, a0, a1, clippedTo };
+    /*
+     * The individual runs, drawn behind the band. The band says where the middle of the distribution
+     * sits; the lines say what one life actually looks like - lumpy, and some of them hitting zero and
+     * staying there. That second thing is the whole argument for simulating at all, and a smooth shaded
+     * region quietly hides it.
+     */
+    const paths = (useFan && res?.mc?.samplePaths ? res.mc.samplePaths : []).slice(0, 40).map(pth => {
+      const pts = Array.isArray(pth) ? pth : Object.values(pth);
+      return pts.map((v, i) => `${i ? 'L' : 'M'}${x(age0 + i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    });
+    return { W, H, L, R, T, B, ih, x, y, area, line, ticks, ageTicks, useFan, a0, a1, clippedTo, paths };
   }, [expected, res, view]);
 
   // ------------------------------------------------------------------ input helpers
   const inCls = 'w-full p-2 bg-surface border border-slate-300 rounded-lg text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500';
-  const money = (k, label) => (
+  const money = (k, label, ph = '0') => (
+    <label className="block">
+      <span className="text-[11px] text-slate-500 font-semibold block mb-1">{label}</span>
+      <input type="number" min="0" step="1000" inputMode="numeric" value={s[k]} placeholder={ph}
+        onFocus={(e) => e.target.select()} onChange={(e) => set(k, e.target.value)} className={inCls} />
+    </label>
+  );
+  // a wrapper and how it is invested. Same five levels the full app offers, in a smaller control.
+  const RISK_SHORT = { 'High Risk': 'High', 'Medium/High Risk': 'Med/high', 'Medium Risk': 'Medium',
+    'Medium/Low Risk': 'Med/low', 'Low Risk': 'Low', 'Cash Equivalents': 'Cash' };
+  const wrapper = (k, label) => (
     <label className="block">
       <span className="text-[11px] text-slate-500 font-semibold block mb-1">{label}</span>
       <input type="number" min="0" step="1000" inputMode="numeric" value={s[k]} placeholder="0"
         onFocus={(e) => e.target.select()} onChange={(e) => set(k, e.target.value)} className={inCls} />
+      <select value={s[k + 'Risk'] || 'Medium Risk'} onChange={(e) => set(k + 'Risk', e.target.value)}
+        aria-label={`${label} risk level`}
+        className="w-full mt-1 px-1.5 py-1 bg-surface border border-slate-200 rounded-md text-[10px] text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+        {Object.keys(DEFAULT_RISK_PROFILES).map(r => <option key={r} value={r}>{RISK_SHORT[r] || r}</option>)}
+      </select>
     </label>
   );
   const age = (k, label, ph) => (
@@ -234,6 +270,42 @@ export default function Simple() {
         onFocus={(e) => e.target.select()} onChange={(e) => set(k, e.target.value)} className={inCls} />
     </label>
   );
+
+  /*
+   * What the taper actually does to the money, said in pounds. A percent a year compounded over twenty
+   * years is not a figure anyone can hold in their head, and this is the input most likely to be set
+   * optimistically - so the page shows where it lands rather than leaving it to be imagined.
+   */
+  const taperNote = useMemo(() => {
+    const pct = num(s.taperPct, 0), from = num(s.taperFromAge, 0), spend = num(s.spend, 0);
+    if (!(pct > 0) || !(from > 0) || !(spend > 0)) return 'Leave blank to spend the same every year. Most people spend less through their seventies.';
+    const at = (age) => Math.round(spend * Math.pow(1 - pct / 100, Math.max(0, age - from)));
+    const end = num(s.terminalAge, 95);
+    return `${GBP(spend)} now, ${GBP(at(from + 10))} at ${from + 10}, ${GBP(at(end))} at ${end}. Care costs late on can push it back up; this only models the fall.`;
+  }, [s.taperPct, s.taperFromAge, s.spend, s.terminalAge]);
+
+  /*
+   * The rows behind the answer, as a file. Somebody who wants to check the arithmetic should not have to
+   * open the full app to do it, and a spreadsheet is where that checking actually happens.
+   */
+  const exportCsv = () => {
+    if (!timeline) return;
+    const cols = [['year', r => r.year], ['age', r => r.ageSelf], ['pensions', r => r.pensions],
+      ['isas', r => r.isas], ['gia', r => r.other], ['cash', r => r.cash], ['total', r => r.totalCombined],
+      ['target spend', r => r.targetSpend], ['state pension', r => r.spSelf + (r.spPart || 0)],
+      ['guaranteed income', r => r.netGuaranteed], ['earnings take-home', r => r.workingTakeHome],
+      ['drawn from pots', r => r.netDrawdown], ['income tax', r => r.taxPaid], ['cgt', r => r.cgtPaid],
+      ['unmet', r => r.unmetDemand || 0]];
+    const num2 = (v) => (typeof v === 'number' ? Math.round(v) : v);
+    const rows = [cols.map(c => c[0]).join(','),
+      ...timeline.map(r => cols.map(c => num2(c[1](r))).join(','))];
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `retirement-projection-age-${num(s.ageSelf, 0)}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
 
   const addOneOff = () => setS(p => ({ ...p, oneOffs: [...p.oneOffs, { id: oneOffId(), date: '', amount: '', direction: 'in' }] }));
   const setOneOff = (id, k, v) => setS(p => ({ ...p, oneOffs: p.oneOffs.map(o => o.id === id ? { ...o, [k]: v } : o) }));
@@ -253,6 +325,12 @@ export default function Simple() {
   );
 
   const mc = res?.mc, ss = res?.safeSpend, sa = res?.safeAge;
+  const potAtRetirement = useMemo(() => {
+    if (!timeline) return null;
+    const at = num(s.retireSelf, 0);
+    const row = timeline.find(r => r.ageSelf >= at);
+    return row ? row.totalCombined : null;
+  }, [timeline, s.retireSelf]);
   const rateTone = !mc ? '' : mc.successRate >= TARGET ? 'text-emerald-700' : mc.successRate >= 75 ? 'text-amber-700' : 'text-rose-700';
 
   return (
@@ -272,10 +350,24 @@ export default function Simple() {
           <div className="grid grid-cols-2 gap-2.5">
             {age('ageSelf', 'Age now', '55')}{age('retireSelf', 'Stop working at', '62')}
             {s.couple && <>{age('agePart', 'Partner age now', '55')}{age('retirePart', 'Partner stops at', '62')}</>}
-            {money('spend', 'Spend a year')}
-            {money('statePensionSelf', 'State Pension /yr')}
-            {s.couple && money('statePensionPart', 'Partner State Pension /yr')}
+            {money('spend', 'Expected retirement spending')}
+            {money('statePensionSelf', 'State Pension /yr', String(STATE_PENSION_FULL))}
+            {s.couple && money('statePensionPart', 'Partner State Pension /yr', String(STATE_PENSION_FULL))}
           </div>
+          <div className="flex flex-wrap items-center gap-1.5 mt-2.5 text-[11px] text-slate-500">
+            <span>Spending eases by</span>
+            <input type="number" min="0" max="10" step="0.5" value={s.taperPct} placeholder="0"
+              onFocus={(e) => e.target.select()} onChange={(e) => set('taperPct', e.target.value)}
+              className="w-14 p-1.5 bg-surface border border-slate-300 rounded-lg font-mono text-slate-900" />
+            <span>% a year from age</span>
+            <input type="number" min="0" max="120" value={s.taperFromAge} placeholder="75"
+              onFocus={(e) => e.target.select()} onChange={(e) => set('taperFromAge', e.target.value)}
+              className="w-14 p-1.5 bg-surface border border-slate-300 rounded-lg font-mono text-slate-900" />
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1.5">
+            {taperNote}
+          </p>
+
           <label className="block mt-2.5">
             <span className="text-[11px] text-slate-500 font-semibold block mb-1">Where you pay tax</span>
             <select value={s.region} onChange={(e) => set('region', e.target.value)} className={inCls}>
@@ -287,13 +379,13 @@ export default function Simple() {
         <div className="pt-1">
           <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5">Portfolio</h2>
           <div className="grid grid-cols-2 gap-2.5">
-            {money('pen', 'Pension')}{money('isa', 'ISA')}
-            {money('gia', 'Investments')}{money('cash', 'Cash')}
+            {wrapper('pen', 'Pension')}{wrapper('isa', 'ISA')}
+            {wrapper('gia', 'GIA')}{wrapper('cash', 'Cash')}
           </div>
           {s.couple && (
             <div className="grid grid-cols-2 gap-2.5 mt-2.5 pt-2.5 border-t border-slate-100">
-              {money('penPart', 'Partner pension')}{money('isaPart', 'Partner ISA')}
-              {money('giaPart', 'Partner investments')}{money('cashPart', 'Partner cash')}
+              {wrapper('penPart', 'Partner pension')}{wrapper('isaPart', 'Partner ISA')}
+              {wrapper('giaPart', 'Partner GIA')}{wrapper('cashPart', 'Partner cash')}
             </div>
           )}
         </div>
@@ -379,6 +471,9 @@ export default function Simple() {
                       </g>
                     ))}
                     <polygon points={chart.area} fill={chart.useFan ? '#6366f1' : '#2563eb'} opacity="0.16" />
+                    {chart.paths.map((d, i) => (
+                      <path key={i} d={d} fill="none" stroke="#4f46e5" strokeWidth="0.7" opacity="0.28" />
+                    ))}
                     <path d={chart.line} fill="none" stroke={chart.useFan ? '#4f46e5' : '#2563eb'} strokeWidth="2.5" strokeLinejoin="round" />
                     <line x1={chart.L} x2={chart.W - chart.R} y1={chart.T + chart.ih} y2={chart.T + chart.ih} stroke="#cbd5e1" strokeWidth="1" />
                     {chart.ageTicks.map(p => (
@@ -396,7 +491,7 @@ export default function Simple() {
               </>
             )}
 
-            <div className="grid sm:grid-cols-3 gap-3 pt-1">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
               {figure('Survives', mc ? `${mc.successRate.toFixed(1)}%` : '', mc ? `of ${mc.trials.toLocaleString()} futures, spending ${GBP(num(s.spend, 0))}` : 'simulating', rateTone, !mc)}
               {figure('Safe spend', ss ? GBP(ss.spend) : '', `the most that still clears ${TARGET}%`, 'text-emerald-700', !ss)}
               {figure('Retire from',
@@ -406,7 +501,26 @@ export default function Simple() {
                     : `the earliest stop that clears ${TARGET}%`)
                   : 'scanning each age',
                 'text-blue-700', !sa)}
+              {figure('Pot when you stop', potAtRetirement == null ? '' : GBP(potAtRetirement),
+                `age ${num(s.retireSelf, 0)}, on the expected path`, 'text-indigo-700', potAtRetirement == null)}
+              {figure('Typical pot at the end', mc ? GBP(mc.medianTerminal) : '',
+                `age ${num(s.terminalAge, 95)} — half of futures end above this`, 'text-blue-700', !mc)}
+              {/* a pot floors at zero, so "below this" is meaningless once the tenth percentile has run dry */}
+              {figure('Unlucky pot at the end', mc ? GBP(mc.p10Terminal) : '',
+                mc && mc.p10Terminal <= 0 ? 'at least one future in ten runs out before the end' : 'one future in ten ends below this',
+                mc && mc.p10Terminal <= 0 ? 'text-rose-700' : 'text-slate-700', !mc)}
             </div>
+            {mc && (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+                <span>Tax over your lifetime, typical run: <strong className="text-slate-700 font-mono">{GBP(mc.medianLifetimeTax)}</strong></span>
+                {mc.preNmpaFailRate > 0 && <span>Stranded before the pension unlocks: <strong className={mc.preNmpaFailRate > 5 ? 'text-rose-700 font-mono' : 'text-slate-700 font-mono'}>{mc.preNmpaFailRate.toFixed(1)}%</strong></span>}
+                {mc.medianFailAge && <span>Of the runs that fail, the money typically goes at <strong className="text-slate-700 font-mono">{mc.medianFailAge}</strong></span>}
+                <button type="button" onClick={exportCsv} disabled={!timeline}
+                  className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 hover:border-slate-300 font-semibold cursor-pointer disabled:opacity-40">
+                  <Download className="w-3 h-3" /> Export the year-by-year figures
+                </button>
+              </div>
+            )}
 
             <p className="text-[11px] text-slate-500 leading-relaxed border-t border-slate-100 pt-3">
               All three are quoted at a <strong className="text-slate-700">{TARGET}% target</strong>: the most you could spend, and the earliest you could stop, while still coming through {TARGET} futures in 100. Every figure is in today&rsquo;s money.

@@ -17,11 +17,16 @@ export const SIMPLE_BLANK = {
   agePart: '', retirePart: '',
   terminalAge: 95,
   spend: '',
+  taperPct: '',        // % a year that spending eases once the taper starts; blank means flat
+  taperFromAge: '',
   region: 'ruk',
   statePensionSelf: '', statePensionPart: '',
   // balances only. There are no contributions on this page, by design.
   pen: '', isa: '', gia: '', cash: '',
   penPart: '', isaPart: '', giaPart: '', cashPart: '',
+  // risk per wrapper, same levels the full app offers
+  penRisk: 'High Risk', isaRisk: 'High Risk', giaRisk: 'Medium Risk', cashRisk: 'Cash Equivalents',
+  penPartRisk: 'High Risk', isaPartRisk: 'High Risk', giaPartRisk: 'Medium Risk', cashPartRisk: 'Cash Equivalents',
   oneOffs: [],         // { id, date, amount, direction: 'in' | 'out' }
   earnings: []         // { id, amount, startAge, endAge, owner } - work after the retirement date
 };
@@ -50,6 +55,30 @@ const splitOneOffs = (rows) => {
   return { ins, outs };
 };
 
+/*
+ * THE SPENDING TAPER, AS ONE BAND PER YEAR.
+ *
+ * Most people do not spend a flat figure for thirty years. Spending typically eases through the
+ * seventies as travel and the second car go, before care costs can push it back up - the "retirement
+ * smile". The page asks for the falling half of that in two numbers, a percent a year and an age to
+ * start, because that is the part almost everyone recognises and the part that moves the answer.
+ *
+ * The engine takes spendBands: flat amounts over age ranges, first match wins. A smooth decline is
+ * therefore expanded here into one band per year, each a compounding step below the last. It is more
+ * rows than a taper field would be, but it needs no engine change and it reuses a path the full app
+ * already exercises - so the two agree on the same inputs, which is the property this page is built on.
+ */
+function taperBands(s) {
+  const pct = n(s.taperPct), from = n(s.taperFromAge), spend = n(s.spend);
+  const terminal = n(s.terminalAge) || 95;
+  if (!(pct > 0) || !(from > 0) || !(spend > 0) || from > terminal) return [];
+  const bands = [];
+  for (let age = Math.ceil(from), k = 1; age <= terminal; age++, k++) {
+    bands.push({ fromAge: age, toAge: age, amount: Math.round(spend * Math.pow(1 - pct / 100, k)) });
+  }
+  return bands;
+}
+
 export function toFullPlan(s) {
   const { ins, outs } = splitOneOffs(s.oneOffs);
   const couple = !!s.couple;
@@ -65,17 +94,17 @@ export function toFullPlan(s) {
       // no salary and no employment: the page does not ask, so nothing is earned and nothing is paid in
       salarySelf: '', salaryPart: ''
     },
-    spending: { targetSpend: s.spend },
+    spending: { targetSpend: s.spend, spendBands: taperBands(s) },
     accounts: [
-      { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: bal(s.pen), contrib: '' },
-      { id: 'isa_self', owner: 'Myself', category: 'ISAs', balance: bal(s.isa), contrib: '' },
-      { id: 'other_self', owner: 'Myself', category: 'General Investments', balance: bal(s.gia), contrib: '' },
-      { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: bal(s.cash), contrib: '' },
+      { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: bal(s.pen), contrib: '', risk: s.penRisk },
+      { id: 'isa_self', owner: 'Myself', category: 'ISAs', balance: bal(s.isa), contrib: '', risk: s.isaRisk },
+      { id: 'other_self', owner: 'Myself', category: 'General Investments', balance: bal(s.gia), contrib: '', risk: s.giaRisk },
+      { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: bal(s.cash), contrib: '', risk: s.cashRisk },
       ...(couple ? [
-        { id: 'pen_part', owner: 'Partner', category: 'Pensions', balance: bal(s.penPart), contrib: '' },
-        { id: 'isa_part', owner: 'Partner', category: 'ISAs', balance: bal(s.isaPart), contrib: '' },
-        { id: 'other_part', owner: 'Partner', category: 'General Investments', balance: bal(s.giaPart), contrib: '' },
-        { id: 'cash_part', owner: 'Partner', category: 'Cash Savings', balance: bal(s.cashPart), contrib: '' }
+        { id: 'pen_part', owner: 'Partner', category: 'Pensions', balance: bal(s.penPart), contrib: '', risk: s.penPartRisk },
+        { id: 'isa_part', owner: 'Partner', category: 'ISAs', balance: bal(s.isaPart), contrib: '', risk: s.isaPartRisk },
+        { id: 'other_part', owner: 'Partner', category: 'General Investments', balance: bal(s.giaPart), contrib: '', risk: s.giaPartRisk },
+        { id: 'cash_part', owner: 'Partner', category: 'Cash Savings', balance: bal(s.cashPart), contrib: '', risk: s.cashPartRisk }
       ] : [])
     ],
     oneOffContributions: ins,

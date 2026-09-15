@@ -127,6 +127,14 @@ export default function Simple() {
   const dropScenario = (id) => setScenarios(prev => prev.filter(x => x.id !== id));
 
   const set = (k, v) => { setActiveScenario(null); setS(prev => ({ ...prev, [k]: v })); };
+  const step = (k, by, min = 0) => {
+    setActiveScenario(null);
+    setS(prev => {
+      const next = Math.max(min, Math.round((num(prev[k], 0) + by) * 100) / 100);
+      return { ...prev, [k]: String(next) };
+    });
+  };
+
   const ready = useMemo(() => readiness(s), [s]);
   const full = useMemo(() => (ready.ready ? toFullPlan(s) : null), [s, ready.ready]);
   const resolved = useMemo(() => { try { return full ? resolveMpaa(full) : null; } catch { return null; } }, [full]);
@@ -273,79 +281,99 @@ export default function Simple() {
   }, [expected, res, view, bandMode]);
 
   // ------------------------------------------------------------------ input helpers
-  const inCls = 'w-full p-2 bg-surface border border-slate-300 rounded-lg text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500';
   /*
-   * STEPPERS, AND WHY THEY EXIST.
-   *
-   * Every answer on this page costs eighteen simulations plus two solvers, so a freely typed field means
-   * a recompute per keystroke - "38000" is five of them, four of which are about a plan nobody has. The
-   * steppers move a figure in one deliberate jump, which is both how people actually explore a what-if
-   * ("what if I had ten grand more") and a natural brake on how often the work is triggered.
-   *
-   * Typing straight into the field still works and still redraws; the steppers are the quicker way to
-   * ask a what-if, not a mode you have to enter first.
+   * One height for every control on this panel. Four wrappers each carrying a balance, a risk level and a
+   * contribution is twelve inputs before the personal details start, and at the default input height that
+   * ran well past a laptop screen - so the whole form was being scrolled to be read. Shorter boxes and
+   * tighter gaps put it back in one view, which is worth more here than the extra few pixels of padding.
    */
-  const step = (k, by, min = 0) => {
-    setActiveScenario(null);
-    setS(prev => {
-      const next = Math.max(min, Math.round((num(prev[k], 0) + by) * 100) / 100);
-      return { ...prev, [k]: String(next) };
-    });
-  };
+  /*
+   * LAYOUT: LABEL LEFT, CONTROL RIGHT - AND THE PORTFOLIO AS A TABLE.
+   *
+   * The first pass stacked a label over every control in a two-column grid, which looked reasonable in
+   * the markup and read badly on screen: "Expected retirement spending" wrapped to three lines and
+   * knocked its own column out of alignment, and the four wrappers each became a three-deck card, so the
+   * panel ran to 923px before the personal details were finished.
+   *
+   * Labels now sit to the left of their control, where they can be long without pushing anything down,
+   * and the four wrappers are one table with a header row - balance, risk, paid in each year - which is
+   * how the figures actually relate to each other and lets the eye compare down a column.
+   */
+  const inCls = 'w-full px-2 py-1 bg-surface border border-slate-300 rounded-md text-[13px] font-mono text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const subCls = 'px-1.5 py-1 bg-surface border border-slate-200 rounded-md text-[11px] text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500';
+
+  /*
+   * Six digits without separators is a number you have to count rather than read, and a plain number
+   * input cannot carry them. So these are text inputs that format on the way out and strip on the way
+   * in, keeping inputMode numeric so a phone still shows the number pad.
+   */
+  const fmt = (v) => (v === '' || v == null ? '' : Number(v).toLocaleString('en-GB'));
+  const parse = (v) => v.replace(/[^0-9.]/g, '');
+  const cash = (k, extra = '') => (
+    <input type="text" inputMode="numeric" value={fmt(s[k])} placeholder="0"
+      onFocus={(e) => e.target.select()} onChange={(e) => set(k, parse(e.target.value))}
+      className={`${inCls} text-right ${extra}`} />
+  );
+
+  // + above -, so a stepper costs 18px of width instead of 40
   const stepper = (k, by, min = 0) => (
-    <span className="flex items-center gap-0.5 ml-1">
-      <button type="button" onClick={() => step(k, -by, min)} aria-label={`decrease ${k}`}
-        className="p-0.5 rounded border border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 hover:border-slate-300 cursor-pointer"><Minus className="w-2.5 h-2.5" /></button>
+    <span className="flex flex-col shrink-0 leading-none">
       <button type="button" onClick={() => step(k, by, min)} aria-label={`increase ${k}`}
-        className="p-0.5 rounded border border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 hover:border-slate-300 cursor-pointer"><Plus className="w-2.5 h-2.5" /></button>
+        className="px-1 rounded-t border border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 cursor-pointer"><Plus className="w-2.5 h-2.5" /></button>
+      <button type="button" onClick={() => step(k, -by, min)} aria-label={`decrease ${k}`}
+        className="px-1 rounded-b border border-t-0 border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 cursor-pointer"><Minus className="w-2.5 h-2.5" /></button>
     </span>
   );
 
-  const money = (k, label, ph = '0', by = 0) => (
-    <label className="block">
-      <span className="text-[11px] text-slate-500 font-semibold mb-1 flex items-center">{label}{by > 0 && stepper(k, by)}</span>
-      <input type="number" min="0" step="1000" inputMode="numeric" value={s[k]} placeholder={ph}
-        onFocus={(e) => e.target.select()} onChange={(e) => set(k, e.target.value)} className={inCls} />
+  // one row of the details list: a label that may be long, and a control that never moves
+  const row = (label, control) => (
+    <label className="flex items-center gap-2 min-h-[26px]">
+      <span className="text-[11px] text-slate-500 font-semibold flex-1 min-w-0 leading-tight">{label}</span>
+      <span className="flex items-center gap-1 w-[148px] shrink-0">{control}</span>
     </label>
   );
-  // a wrapper and how it is invested. Same five levels the full app offers, in a smaller control.
-  const RISK_SHORT = { 'High Risk': 'High', 'Medium/High Risk': 'Med/high', 'Medium Risk': 'Medium',
-    'Medium/Low Risk': 'Med/low', 'Low Risk': 'Low', 'Cash Equivalents': 'Cash' };
-  const wrapper = (k, label, cKey, pctKey = null) => {
+
+  const RISK_SHORT = { 'High Risk': 'High', 'Medium/High Risk': 'Med-high', 'Medium Risk': 'Medium',
+    'Medium/Low Risk': 'Med-low', 'Low Risk': 'Low', 'Cash Equivalents': 'Cash' };
+
+  // one line of the portfolio table
+  const wrapperRow = (k, label, cKey, pctKey = null, salKey = null) => {
     const isPct = pctKey && s[pctKey];
     return (
-      <label className="block">
-        <span className="text-[11px] text-slate-500 font-semibold mb-1 flex items-center">{label}{stepper(k, 10000)}</span>
-        <input type="number" min="0" step="1000" inputMode="numeric" value={s[k]} placeholder="0"
-          onFocus={(e) => e.target.select()} onChange={(e) => set(k, e.target.value)} className={inCls} />
+      <div key={k} className="contents">
+        <span className="text-[11px] text-slate-600 font-semibold self-center">{label}</span>
+        <span className="flex items-stretch gap-0.5">{cash(k)}{stepper(k, 10000)}</span>
         <select value={s[k + 'Risk'] || 'Medium Risk'} onChange={(e) => set(k + 'Risk', e.target.value)}
-          aria-label={`${label} risk level`}
-          className="w-full mt-1 px-1.5 py-1 bg-surface border border-slate-200 rounded-md text-[10px] text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+          aria-label={`${label} risk level`} className={`${subCls} w-full cursor-pointer`}>
           {Object.keys(DEFAULT_RISK_PROFILES).map(r => <option key={r} value={r}>{RISK_SHORT[r] || r}</option>)}
         </select>
-        <span className="flex items-center gap-1 mt-1">
-          <input type="number" min="0" step={isPct ? '1' : '500'} inputMode="numeric" value={s[cKey]} placeholder={isPct ? '%' : '+ / yr'}
-            onFocus={(e) => e.target.select()} onChange={(e) => set(cKey, e.target.value)}
+        <span className="flex items-stretch gap-0.5">
+          <input type="text" inputMode="numeric" value={isPct ? s[cKey] : fmt(s[cKey])} placeholder={isPct ? '%' : '0'}
+            onFocus={(e) => e.target.select()} onChange={(e) => set(cKey, parse(e.target.value))}
             aria-label={`${label} contribution`}
-            className="w-full px-1.5 py-1 bg-surface border border-slate-200 rounded-md text-[10px] font-mono text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+            className={`${subCls} w-full min-w-0 text-right font-mono tabular-nums ${pctKey ? 'rounded-r-none border-r-0' : ''}`} />
           {pctKey && (
-            <button type="button" onClick={() => set(pctKey, !s[pctKey])} title={isPct ? 'entered as a % of salary' : 'entered in pounds a year'}
-              className={`shrink-0 px-1.5 py-1 rounded-md border text-[10px] font-bold cursor-pointer ${isPct ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-900'}`}>
-              {isPct ? '%' : '£'}
+            <button type="button" onClick={() => set(pctKey, !s[pctKey])} title={isPct ? 'a % of salary' : 'pounds a year'}
+              className={`shrink-0 px-1 rounded-md rounded-l-none border text-[10px] font-bold cursor-pointer ${isPct ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-900'}`}>
+              {isPct ? '%' : '\u00a3'}
             </button>
           )}
           {stepper(cKey, isPct ? 1 : 500)}
         </span>
-      </label>
+        {isPct && salKey && (
+          <>
+            <span />
+            <span className="col-span-3 flex items-center gap-1.5 -mt-0.5 mb-0.5">
+              <span className="text-[10px] text-slate-400 shrink-0">of a salary of</span>
+              <input type="text" inputMode="numeric" value={fmt(s[salKey])} placeholder="0"
+                onFocus={(e) => e.target.select()} onChange={(e) => set(salKey, parse(e.target.value))}
+                aria-label={`${label} salary`} className={`${subCls} w-28 text-right font-mono tabular-nums`} />
+            </span>
+          </>
+        )}
+      </div>
     );
   };
-  const age = (k, label, ph, by = 0) => (
-    <label className="block">
-      <span className="text-[11px] text-slate-500 font-semibold mb-1 flex items-center">{label}{by > 0 && stepper(k, by, 0)}</span>
-      <input type="number" min="0" max="120" inputMode="numeric" value={s[k]} placeholder={ph}
-        onFocus={(e) => e.target.select()} onChange={(e) => set(k, e.target.value)} className={inCls} />
-    </label>
-  );
 
   /*
    * What the taper actually does to the money, said in pounds. A percent a year compounded over twenty
@@ -354,7 +382,7 @@ export default function Simple() {
    */
   const taperNote = useMemo(() => {
     const pct = num(s.taperPct, 0), from = num(s.taperFromAge, 0), spend = num(s.spend, 0);
-    if (!(pct > 0) || !(from > 0) || !(spend > 0)) return 'Leave blank to spend the same every year. Most people spend less through their seventies.';
+    if (!(pct > 0) || !(from > 0) || !(spend > 0)) return 'Leave the percentage blank to spend the same every year. Most people spend less through their seventies.';
     const at = (age) => Math.round(spend * Math.pow(1 - pct / 100, Math.max(0, age - from)));
     const end = num(s.terminalAge, 95);
     return `${GBP(spend)} now, ${GBP(at(from + 10))} at ${from + 10}, ${GBP(at(end))} at ${end}. Care costs late on can push it back up; this only models the fall.`;
@@ -373,8 +401,7 @@ export default function Simple() {
       ['drawn from pots', r => r.netDrawdown], ['income tax', r => r.taxPaid], ['cgt', r => r.cgtPaid],
       ['unmet', r => r.unmetDemand || 0]];
     const num2 = (v) => (typeof v === 'number' ? Math.round(v) : v);
-    const rows = [cols.map(c => c[0]).join(','),
-      ...timeline.map(r => cols.map(c => num2(c[1](r))).join(','))];
+    const rows = [cols.map(c => c[0]).join(','), ...timeline.map(r => cols.map(c => num2(c[1](r))).join(','))];
     const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -410,10 +437,10 @@ export default function Simple() {
   const rateTone = !mc ? '' : mc.successRate >= TARGET ? 'text-emerald-700' : mc.successRate >= 75 ? 'text-amber-700' : 'text-rose-700';
 
   return (
-    <div className="grid lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] gap-5 items-start">
+    <div className="grid lg:grid-cols-[minmax(0,388px)_minmax(0,1fr)] gap-5 items-start">
 
       {/* ------------------------------------------------ LEFT: what you have */}
-      <div className="bg-surface border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+      <div className="bg-surface border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3">
         <div className="flex flex-wrap items-center gap-1.5">
           {scenarios.map(rec => (
             <span key={rec.id}
@@ -439,57 +466,53 @@ export default function Simple() {
           ))}
         </div>
 
-        <p className="text-[11px] text-slate-500 leading-relaxed">
-          Adjust your balances, contributions, retirement age and spend to see the difference &mdash; the
-          <Plus className="w-2.5 h-2.5 inline mx-0.5" />and<Minus className="w-2.5 h-2.5 inline mx-0.5" />
-          buttons step a figure and redraw once, rather than on every digit typed.
-        </p>
+        <p className="text-[11px] text-slate-500">Change anything to see the difference. Save a scenario to compare two.</p>
 
-        <div>
-          <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5">You</h2>
-          <div className="grid grid-cols-2 gap-2.5">
-            {age('ageSelf', 'Age now', '55')}{age('retireSelf', 'Stop working at', '62', 1)}
-            {s.couple && <>{age('agePart', 'Partner age now', '55')}{age('retirePart', 'Partner stops at', '62', 1)}</>}
-            {money('spend', 'Expected retirement spending', '0', 1000)}
-            {money('salary', 'Salary now', '0')}
-            {s.couple && money('salaryPart', 'Partner salary now', '0')}
-            {money('statePensionSelf', 'State Pension /yr', String(STATE_PENSION_FULL))}
-            {s.couple && money('statePensionPart', 'Partner State Pension /yr', String(STATE_PENSION_FULL))}
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 mt-2.5 text-[11px] text-slate-500">
-            <span>Spending eases by</span>
-            <input type="number" min="0" max="10" step="0.5" value={s.taperPct} placeholder="0"
-              onFocus={(e) => e.target.select()} onChange={(e) => set('taperPct', e.target.value)}
-              className="w-14 p-1.5 bg-surface border border-slate-300 rounded-lg font-mono text-slate-900" />
-            <span>% a year from age</span>
-            <input type="number" min="0" max="120" value={s.taperFromAge} placeholder="75"
-              onFocus={(e) => e.target.select()} onChange={(e) => set('taperFromAge', e.target.value)}
-              className="w-14 p-1.5 bg-surface border border-slate-300 rounded-lg font-mono text-slate-900" />
-          </div>
-          <p className="text-[11px] text-slate-400 mt-1.5">
-            {taperNote}
-          </p>
-
-          <label className="block mt-2.5">
-            <span className="text-[11px] text-slate-500 font-semibold block mb-1">Where you pay tax</span>
-            <select value={s.region} onChange={(e) => set('region', e.target.value)} className={inCls}>
+        <div className="space-y-1">
+          <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">You</h2>
+          {row('Age now', cash('ageSelf'))}
+          {row('Stop working at', <>{cash('retireSelf')}{stepper('retireSelf', 1)}</>)}
+          {s.couple && row('Partner age now', cash('agePart'))}
+          {s.couple && row('Partner stops at', <>{cash('retirePart')}{stepper('retirePart', 1)}</>)}
+          {row('Expected retirement spending', <>{cash('spend')}{stepper('spend', 1000)}</>)}
+          {row('State Pension a year', cash('statePensionSelf'))}
+          {s.couple && row('Partner State Pension', cash('statePensionPart'))}
+          {row('Where you pay tax',
+            <select value={s.region} onChange={(e) => set('region', e.target.value)} className={`${subCls} w-full cursor-pointer`}>
               {Object.entries(TAX_REGION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </label>
+            </select>)}
+          {/* two inputs in one sentence, so it gets its own line rather than the label/control split */}
+          <div className="flex items-center gap-1.5 min-h-[26px] text-[11px] text-slate-500 font-semibold">
+            <span className="shrink-0">Spending eases by</span>
+            <input type="text" inputMode="numeric" value={s.taperPct} placeholder="0"
+              onFocus={(e) => e.target.select()} onChange={(e) => set('taperPct', parse(e.target.value))}
+              aria-label="taper percent" className={`${subCls} w-11 text-center font-mono`} />
+            <span className="shrink-0">% a year from age</span>
+            <input type="text" inputMode="numeric" value={s.taperFromAge} placeholder="75"
+              onFocus={(e) => e.target.select()} onChange={(e) => set('taperFromAge', parse(e.target.value))}
+              aria-label="taper start age" className={`${subCls} w-11 text-center font-mono`} />
+          </div>
+          <p className="text-[10px] text-slate-400 leading-snug pt-0.5">{taperNote}</p>
         </div>
 
-        <div className="pt-1">
-          <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5">Portfolio</h2>
-          <div className="grid grid-cols-2 gap-2.5">
-            {wrapper('pen', 'Pension', 'penC', 'penCIsPct')}{wrapper('isa', 'ISA', 'isaC')}
-            {wrapper('gia', 'GIA', 'giaC')}{wrapper('cash', 'Cash', 'cashC')}
+        <div>
+          <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">Portfolio</h2>
+          <div className="grid grid-cols-[auto_1fr_82px_88px] gap-x-1.5 gap-y-1 items-center">
+            <span />
+            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide text-right pr-5">Balance</span>
+            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Risk</span>
+            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">In each yr</span>
+            {wrapperRow('pen', 'Pension', 'penC', 'penCIsPct', 'salary')}
+            {wrapperRow('isa', 'ISA', 'isaC')}
+            {wrapperRow('gia', 'GIA', 'giaC')}
+            {wrapperRow('cash', 'Cash', 'cashC')}
+            {s.couple && <>
+              {wrapperRow('penPart', 'Partner pension', 'penCPart', 'penCIsPctPart', 'salaryPart')}
+              {wrapperRow('isaPart', 'Partner ISA', 'isaCPart')}
+              {wrapperRow('giaPart', 'Partner GIA', 'giaCPart')}
+              {wrapperRow('cashPart', 'Partner cash', 'cashCPart')}
+            </>}
           </div>
-          {s.couple && (
-            <div className="grid grid-cols-2 gap-2.5 mt-2.5 pt-2.5 border-t border-slate-100">
-              {wrapper('penPart', 'Partner pension', 'penCPart', 'penCIsPctPart')}{wrapper('isaPart', 'Partner ISA', 'isaCPart')}
-              {wrapper('giaPart', 'Partner GIA', 'giaCPart')}{wrapper('cashPart', 'Partner cash', 'cashCPart')}
-            </div>
-          )}
         </div>
 
         <div className="pt-1">
@@ -502,9 +525,9 @@ export default function Simple() {
             : <div className="space-y-2">
               {s.oneOffs.map(o => (
                 <div key={o.id} className="flex items-center gap-1.5">
-                  <input type="date" value={o.date} onChange={(e) => setOneOff(o.id, 'date', e.target.value)} className="flex-1 min-w-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-mono" />
-                  <input type="number" min="0" step="1000" value={o.amount} placeholder="0" onFocus={(e) => e.target.select()} onChange={(e) => setOneOff(o.id, 'amount', e.target.value)} className="w-20 shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-mono" />
-                  <select value={o.direction} onChange={(e) => setOneOff(o.id, 'direction', e.target.value)} className="shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-semibold">
+                  <input type="date" value={o.date} onChange={(e) => setOneOff(o.id, 'date', e.target.value)} className={`${subCls} flex-1 min-w-0 font-mono`} />
+                  <input type="text" inputMode="numeric" value={fmt(o.amount)} placeholder="0" onFocus={(e) => e.target.select()} onChange={(e) => setOneOff(o.id, 'amount', parse(e.target.value))} className={`${subCls} w-20 shrink-0 text-right font-mono tabular-nums`} />
+                  <select value={o.direction} onChange={(e) => setOneOff(o.id, 'direction', e.target.value)} className={`${subCls} shrink-0 font-semibold cursor-pointer`}>
                     <option value="in">in</option><option value="out">out</option>
                   </select>
                   <button type="button" onClick={() => dropOneOff(o.id)} title="Remove" className="shrink-0 p-1 text-slate-400 hover:text-rose-600 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
@@ -515,7 +538,7 @@ export default function Simple() {
 
         <div className="pt-1">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Work after you stop</h2>
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Post-retirement income</h2>
             <button type="button" onClick={addEarning} className="flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-900 cursor-pointer"><Plus className="w-3 h-3" /> Add</button>
           </div>
           {s.earnings.length === 0
@@ -523,11 +546,11 @@ export default function Simple() {
             : <div className="space-y-2">
               {s.earnings.map(e => (
                 <div key={e.id} className="flex items-center gap-1.5">
-                  <input type="number" min="0" step="1000" value={e.amount} placeholder="£/yr" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'amount', ev.target.value)} className="w-20 shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-mono" />
+                  <input type="text" inputMode="numeric" value={fmt(e.amount)} placeholder="£/yr" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'amount', parse(ev.target.value))} className={`${subCls} w-20 shrink-0 text-right font-mono tabular-nums`} />
                   <span className="text-[10px] text-slate-400 shrink-0">age</span>
-                  <input type="number" min="0" max="120" value={e.startAge} placeholder="from" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'startAge', ev.target.value)} className="w-14 shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-mono" />
+                  <input type="number" min="0" max="120" value={e.startAge} placeholder="from" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'startAge', ev.target.value)} className={`${subCls} w-12 shrink-0 text-center font-mono`} />
                   <span className="text-[10px] text-slate-400 shrink-0">to</span>
-                  <input type="number" min="0" max="120" value={e.endAge} placeholder="to" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'endAge', ev.target.value)} className="w-14 shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-mono" />
+                  <input type="number" min="0" max="120" value={e.endAge} placeholder="to" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'endAge', ev.target.value)} className={`${subCls} w-12 shrink-0 text-center font-mono`} />
                   {s.couple && (
                     <select value={e.owner || 'Myself'} onChange={(ev) => setEarning(e.id, 'owner', ev.target.value)} className="shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-semibold">
                       <option value="Myself">me</option><option value="Partner">them</option>

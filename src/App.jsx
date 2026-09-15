@@ -2983,21 +2983,48 @@ function explainPick(cands, opts = {}) {
   let pool = applySurvivalGuard(poolBeforeGuard, opts.maxSurvivalSacrificePts);
   const guardBound = pool.length < poolBeforeGuard.length;
   const steps = [];
+  /*
+   * `steps` records only the priorities that NARROWED the field, because that is what explains the
+   * winner. But a priority can fail to narrow in two quite different ways, and a household reading its
+   * own result needs them apart:
+   *
+   *   CONSULTED AND TIED  every remaining candidate was within its tolerance, so it declared a tie and
+   *                       passed the decision down. This says "your plan does not differ on this" - and
+   *                       `spread`, the gap between best and worst measured in multiples of that
+   *                       priority's own tolerance, says how close the tie actually was. A spread of
+   *                       0.1 means the options were barely distinguishable; 0.9 means it was near
+   *                       enough to matter and the tolerance still swallowed it.
+   *   NOT REACHED         the pool was already down to one before its turn came. This says nothing
+   *                       about the plan, only that what was ranked above it had already settled it.
+   *
+   * `consulted` carries every priority the loop actually looked at, in order, so the two can be told
+   * apart: anything in `priorities` and absent from `consulted` was never reached. `steps` keeps its
+   * old contents and meaning, so nothing reading it has to change.
+   */
+  const consulted = [];
+  let settledAfter = null;
   for (const key of priorities) {
     const before = pool.length;
-    if (before <= 1) break;
+    if (before <= 1) { settledAfter = consulted.length; break; }
     const m = PRIORITY_METRICS[key];
     const vals = pool.map(c => m.get(c.stats));
     const best = m.higherIsBetter ? Math.max(...vals) : Math.min(...vals);
+    const worst = m.higherIsBetter ? Math.min(...vals) : Math.max(...vals);
     const eps = toleranceFor(key, best, opts.tolerances);
     pool = pool.filter(c => m.higherIsBetter ? m.get(c.stats) >= best - eps : m.get(c.stats) <= best + eps);
-    if (pool.length < before) steps.push({ key, label: m.label, serves: m.serves, best, ruledOut: before - pool.length, left: pool.length });
+    const ruledOut = before - pool.length;
+    consulted.push({ key, label: m.label, serves: m.serves, best, worst, eps,
+      // in multiples of this priority's own tolerance, so points and pounds are comparable
+      spread: eps > 0 ? Math.abs(best - worst) / eps : 0,
+      ruledOut, left: pool.length, decided: ruledOut > 0 });
+    if (ruledOut > 0) steps.push({ key, label: m.label, serves: m.serves, best, ruledOut, left: pool.length });
   }
   /*
    * Report the guard only when it actually removed something. A limit that never bound did not shape
    * the answer, and listing it as a reason would be the same just-so storytelling the steps avoid.
    */
-  return { winner: pool[0], steps, guardBound, guardCapPts: opts.maxSurvivalSacrificePts ?? MAX_SURVIVAL_SACRIFICE_PTS,
+  return { winner: pool[0], steps, consulted, settledAfter, priorities,
+    guardBound, guardCapPts: opts.maxSurvivalSacrificePts ?? MAX_SURVIVAL_SACRIFICE_PTS,
     guardRuledOut: poolBeforeGuard.length - pool.length };
 }
 
@@ -7942,8 +7969,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         out.push({ ...c, label, stats });
       }
       // ranked against what the household said it cares about, not a fixed survival-first order
-      const { winner: best, steps } = priorityMode === 'balanced'
-        ? { winner: E.pickBalanced(out), steps: [] }
+      const { winner: best, steps, consulted, settledAfter } = priorityMode === 'balanced'
+        ? { winner: E.pickBalanced(out), steps: [], consulted: null, settledAfter: null }
         : E.explainPick(out, { priorities: priorityList, tolerances: priorityTolerances });
       setPlan(prev => ({
         ...prev,
@@ -7965,7 +7992,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] - rb[i];
         return 0;
       });
-      setPolicyResults({ rows, bestId: best.id, seed: mcSeed, trials: TOURNAMENT_TRIALS, steps, priorities: priorityList });
+      setPolicyResults({ rows, bestId: best.id, seed: mcSeed, trials: TOURNAMENT_TRIALS, steps, consulted, settledAfter, priorities: priorityList });
       const decided = steps.length ? E.PRIORITY_METRICS[steps[0].key].label.toLowerCase() : 'your priorities';
       flash(`Applied "${best.label}": best of ${candidates.length} combinations for ${decided}`, 4000);
     } finally { setIsPolicySearching(false); setPolicyProgress(null); }
@@ -9090,6 +9117,38 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       ))}
                     </div>
                   )}
+                  {/*
+                    * And which of them did NOT. A priority can fail to matter two ways, and they mean
+                    * different things to the household: TIED says their plan does not differ on it, so
+                    * the setting is inert for them however strongly they feel; NOT REACHED says only
+                    * that what they ranked above it had already settled the answer. Without this the
+                    * tab shows six equal-looking levers and never says which ones bite.
+                    */}
+                  {policyResults.consulted && (() => {
+                    const tied = policyResults.consulted.filter(c => !c.decided);
+                    const reached = new Set(policyResults.consulted.map(c => c.key));
+                    const notReached = (policyResults.priorities || []).filter(k => !reached.has(k));
+                    if (!tied.length && !notReached.length) return null;
+                    const nameOf = (k) => (E.PRIORITY_METRICS[k]?.label || k).toLowerCase();
+                    const idle = tied.length + notReached.length;
+                    return (
+                      <div data-priority-effect className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 space-y-1">
+                        {tied.map(t => (
+                          <div key={t.key} className="flex gap-2">
+                            <span className="font-bold text-slate-700 shrink-0">Tied on {nameOf(t.key)}:</span>
+                            <span>best and worst differed by {t.spread < 0.05 ? 'nothing' : `${t.spread.toFixed(1)}×`} against a threshold of 1&times;, so every combination still in counted as equal and the decision passed down.</span>
+                          </div>
+                        ))}
+                        {notReached.length > 0 && (
+                          <div className="flex gap-2">
+                            <span className="font-bold text-slate-700 shrink-0">Never reached:</span>
+                            <span>{notReached.map(nameOf).join(', ')} &mdash; one combination was already left by the time {notReached.length === 1 ? 'it' : 'they'} came up.</span>
+                          </div>
+                        )}
+                        <div className="text-slate-500 pt-0.5">{idle} of your {(policyResults.priorities || []).length} priorities made no difference to this answer. Reordering them will only change the recommendation where the combinations actually differ.</div>
+                      </div>
+                    );
+                  })()}
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-[11px] border-collapse">
                       <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Policy combination</th><th className="pb-1.5 pr-3">Survival</th><th className="pb-1.5 pr-3">Pre-SIPP access failures</th><th className="pb-1.5 pr-3">10th %ile pot</th><th className="pb-1.5">Median pot</th></tr></thead>

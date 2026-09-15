@@ -248,5 +248,52 @@ console.log('\n=========== J. BALANCED MODE ===========');
   ok('junk falls back to ranked', E.normalizePlan({ spending: { priorityMode: 'nonsense' } }).spending.priorityMode === 'ranked');
 }
 
+console.log('\n=========== J. WHICH PRIORITIES ACTUALLY DECIDED IT ===========');
+{
+  /*
+   * `steps` says what chose the winner. It cannot say why the rest did not, and the two ways a
+   * priority fails to matter mean opposite things to somebody reading their own result: TIED says
+   * their plan does not differ on it, NOT REACHED says only that what they ranked above had already
+   * settled the answer. `consulted` and `settledAfter` are what tell them apart.
+   */
+  const ORDER = ['survive', 'downside', 'bequest', 'bridge', 'pot', 'tax'];
+
+  // survival identical, downside materially apart: the first ties, the second decides
+  const a = mk('a', 90, 100000, 400000);
+  const b = mk('b', 90, 300000, 200000);
+  const r = E.explainPick([a, b], { priorities: ORDER });
+  const byKey = Object.fromEntries(r.consulted.map(c => [c.key, c]));
+
+  ok('consulted records a priority that tied', !!byKey.survive && byKey.survive.decided === false);
+  ok('and its spread is zero when every candidate scores the same', byKey.survive.spread === 0, String(byKey.survive.spread));
+  ok('the one that narrowed is marked as deciding', !!byKey.downside && byKey.downside.decided === true);
+  ok('steps keeps only the deciding ones', r.steps.length === 1 && r.steps[0].key === 'downside',
+    r.steps.map(x => x.key).join(','));
+  ok('and steps is still a subset of consulted', r.steps.every(st => byKey[st.key] && byKey[st.key].decided));
+
+  // once one candidate is left the loop stops, and the rest were never reached
+  ok('settledAfter marks where the field closed', r.settledAfter === 2, String(r.settledAfter));
+  const reached = new Set(r.consulted.map(c => c.key));
+  ok('so the priorities below it are absent from consulted',
+    ORDER.slice(2).every(k => !reached.has(k)), [...reached].join(','));
+  ok('and the order it consulted them in is the order given',
+    r.consulted.map(c => c.key).join(',') === 'survive,downside');
+
+  // a spread just under the tolerance still counts as a tie, and says how close it came
+  const near = E.explainPick([mk('x', 90, 100000, 500000), mk('y', 90.5, 100000, 200000)], { priorities: ORDER });
+  const nearSurvive = near.consulted.find(c => c.key === 'survive');
+  ok('a near-tie is reported as tied', nearSurvive.decided === false);
+  ok('with a spread below one tolerance', nearSurvive.spread > 0 && nearSurvive.spread < 1, nearSurvive.spread.toFixed(2));
+
+  // every priority consulted, none deciding, means the whole order was inert
+  const flat = E.explainPick([mk('p', 90, 100000, 200000), mk('q', 90, 100000, 200000)], { priorities: ORDER });
+  ok('an entirely tied field consults every priority', flat.consulted.length === ORDER.length, String(flat.consulted.length));
+  ok('and none of them decided anything', flat.consulted.every(c => !c.decided) && flat.steps.length === 0);
+  ok('and a winner is still returned', !!flat.winner);
+
+  // the winner is untouched by any of this
+  ok('recording changes nothing about who wins', E.explainPick([a, b], { priorities: ORDER }).winner.id === 'b');
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

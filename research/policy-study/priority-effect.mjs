@@ -66,11 +66,29 @@ const scenarios = buildScenarios().filter((_, i) => i % EVERY === 0);
 console.error(`priority-effect: ${scenarios.length} households, ${TRIALS} paths, seed ${SEED}`);
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
+/*
+ * Resume from the partial rather than starting over. A twenty-minute run that dies at 105 households
+ * has done real work, and the records are complete per household - there is no half-written one to
+ * distrust. Delete the partial to force a clean run.
+ */
 const records = [];
+if (fs.existsSync(PARTIAL)) {
+  try {
+    const prev = JSON.parse(fs.readFileSync(PARTIAL, 'utf8'));
+    if (prev.trials === TRIALS && prev.seed === SEED && Array.isArray(prev.records)) {
+      records.push(...prev.records);
+      console.error(`  resuming: ${records.length} households already done`);
+    } else {
+      console.error('  partial found but run settings differ - starting over');
+    }
+  } catch { console.error('  partial unreadable - starting over'); }
+}
+const done = new Set(records.map(r => r.id));
 const t0 = Date.now();
 
 for (let n = 0; n < scenarios.length; n++) {
   const sc = scenarios[n];
+  if (done.has(sc.id)) continue;
   // an heir is added so the bequest priority ranks on what heirs receive rather than on the gross pot
   const plan = E.normalizePlan({
     ...sc.plan,

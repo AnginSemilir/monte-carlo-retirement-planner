@@ -5639,9 +5639,16 @@ const POCKET_STEP = 360 / WHEEL_ORDER.length;
 
 // the 240-unit viewBox, and the radii the whole drawing is built from
 const RW = { c: 120, rim: 116, track: 98, apron: 89, pocketOut: 85, pocketIn: 51, ball: 77, numbers: 67 };
-const RW_INK = '#2a221b';
-const RW_RED = '#8c2b2a';
-const RW_PAPER = '#efe7d6';
+/*
+ * The drawing carries no paper of its own: it is line art laid straight on whatever is behind it, so
+ * the hero shows through the ruling. The two inks come from the app's own theme variables rather than
+ * literals, which is what lets the same plate sit on a white card and on a dark one without a second
+ * palette - and RW_GROUND is the surface colour, used only where something has to be genuinely opaque
+ * (the clearance behind a numeral, the cone, the ball) so the hatching does not read through it.
+ */
+const RW_INK = 'rgb(var(--slate-700))';
+const RW_RED = 'rgb(var(--rose-700))';
+const RW_GROUND = 'rgb(var(--surface))';
 
 const rwPolar = (r, deg) => {
   const a = (deg * Math.PI) / 180;
@@ -5661,6 +5668,18 @@ const pocketWedge = (i) => {
 const colourOf = (n) => (n === 0 ? 'zero' : RED_NUMBERS.has(n) ? 'red' : 'black');
 const mod360 = (x) => ((x % 360) + 360) % 360;
 const rwSmooth = (u) => u * u * (3 - 2 * u);
+/*
+ * The shortest way round, in [-180, 180).
+ *
+ * The pocket takes charge of the ball for the last stretch of the spin, and the obvious way to write
+ * that - blend the ball's angle onto `wheelDeg + pocketDeg(idx)` - is wrong, because both angles are
+ * UNWRAPPED. The head has turned five turns forwards and the ball nine backwards, so those two
+ * numbers are congruent but thousands of degrees apart, and blending between them sent the ball
+ * whipping round a dozen times in the final fraction of a second. It landed correctly, which is why
+ * the arithmetic tests never caught it; it just looked absurd on the way. Blending to the nearest
+ * congruent angle instead moves it by at most half a turn, and in practice by a degree or two.
+ */
+const rwShortest = (deg) => mod360(deg + 180) - 180;
 
 // hairlines struck from the centre, which is most of what an engraving is made of
 const RwRadials = ({ r0, r1, count, width, opacity }) => (
@@ -5748,7 +5767,7 @@ function RouletteWheel({ className = '', onResult }) {
       }
       if (t > LOCK) {
         const k = rwSmooth((t - LOCK) / (1 - LOCK));
-        ballDeg += ((wheelDeg + pocketDeg(idx)) - ballDeg) * k;
+        ballDeg += rwShortest((wheelDeg + pocketDeg(idx)) - ballDeg) * k;
         r += (RW.ball - r) * k;
       }
       place(wheelDeg, ballDeg, r);
@@ -5764,10 +5783,15 @@ function RouletteWheel({ className = '', onResult }) {
   const tone = result === null ? null : colourOf(result);
 
   return (
-    <div className={`flex flex-col items-center gap-2.5 ${className}`}>
+    <div className={className}>
+      {/*
+        * rw-wheel carries the hover rock (a CSS transform on the button, which composes over the
+        * transforms the frame loop writes inside the SVG rather than fighting them) and the opacity
+        * that lets the drawing sit back into the page.
+        */}
       <button type="button" onClick={spin} aria-busy={spinning}
         aria-label={spinning ? 'The wheel is spinning' : 'Spin the roulette wheel'}
-        className="group relative block w-full rounded-full cursor-pointer transition-transform duration-200 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-600 disabled:cursor-default"
+        className="rw-wheel group relative block w-full rounded-full cursor-pointer opacity-[0.78] hover:opacity-95 transition-opacity duration-300 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-600 disabled:cursor-default"
         disabled={spinning}>
         <svg viewBox="0 0 240 240" className="block w-full h-auto" role="img"
           aria-label="A European roulette wheel, drawn as a line engraving">
@@ -5778,30 +5802,29 @@ function RouletteWheel({ className = '', onResult }) {
               * have to be set far enough apart to read when the wheel is two inches across.
               */}
             <pattern id="rw-hatch-red" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <rect width="5" height="5" fill={RW_PAPER} />
-              <line x1="0" y1="0" x2="0" y2="5" stroke={RW_RED} strokeWidth="2.1" />
+              <rect width="5" height="5" fill="none" />
+              <line x1="0" y1="0" x2="0" y2="5" stroke={RW_RED} strokeWidth="1.4" />
             </pattern>
             <pattern id="rw-hatch-black" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <rect width="3" height="3" fill={RW_PAPER} />
-              <line x1="0" y1="0" x2="0" y2="3" stroke={RW_INK} strokeWidth="1.7" />
-              <line x1="0" y1="0" x2="3" y2="0" stroke={RW_INK} strokeWidth="1.7" />
+              <rect width="3" height="3" fill="none" />
+              <line x1="0" y1="0" x2="0" y2="3" stroke={RW_INK} strokeWidth="1.1" />
+              <line x1="0" y1="0" x2="3" y2="0" stroke={RW_INK} strokeWidth="1.1" />
             </pattern>
             <pattern id="rw-stipple" width="4" height="4" patternUnits="userSpaceOnUse">
-              <rect width="4" height="4" fill={RW_PAPER} />
-              <circle cx="2" cy="2" r="0.85" fill={RW_INK} />
+              <rect width="4" height="4" fill="none" />
+              <circle cx="2" cy="2" r="0.65" fill={RW_INK} />
             </pattern>
           </defs>
 
           {/* the bowl, which does not turn */}
-          <circle cx={RW.c} cy={RW.c} r={RW.rim} fill={RW_PAPER} />
-          <circle cx={RW.c} cy={RW.c} r={RW.rim} fill="none" stroke={RW_INK} strokeWidth="2" />
-          <circle cx={RW.c} cy={RW.c} r={RW.rim - 4} fill="none" stroke={RW_INK} strokeWidth="0.7" />
+                    <circle cx={RW.c} cy={RW.c} r={RW.rim} fill="none" stroke={RW_INK} strokeWidth="1.3" />
+          <circle cx={RW.c} cy={RW.c} r={RW.rim - 4} fill="none" stroke={RW_INK} strokeWidth="0.5" />
           <RwRadials r0={RW.rim - 4} r1={RW.apron + 7} count={84} width={0.6} opacity={0.4} />
-          <circle cx={RW.c} cy={RW.c} r={RW.apron} fill="none" stroke={RW_INK} strokeWidth="1.1" />
+          <circle cx={RW.c} cy={RW.c} r={RW.apron} fill="none" stroke={RW_INK} strokeWidth="0.8" />
           {/* eight deflectors, fixed to the bowl the way they are on a real wheel */}
           {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
             const pt = rwPolar(RW.apron + 4, a - 90);
-            return <path key={a} d="M0 -4.6 L3.4 0 L0 4.6 L-3.4 0 Z" fill={RW_PAPER} stroke={RW_INK} strokeWidth="1"
+            return <path key={a} d="M0 -4.6 L3.4 0 L0 4.6 L-3.4 0 Z" fill={RW_GROUND} stroke={RW_INK} strokeWidth="0.8"
               transform={`translate(${rwF(pt.x)} ${rwF(pt.y)}) rotate(${a})`} />;
           })}
 
@@ -5811,18 +5834,18 @@ function RouletteWheel({ className = '', onResult }) {
               <path key={`p${n}`} d={pocketWedge(i)}
                 fill={n === 0 ? 'url(#rw-stipple)' : RED_NUMBERS.has(n) ? 'url(#rw-hatch-red)' : 'url(#rw-hatch-black)'} />
             ))}
-            <g stroke={RW_INK} strokeWidth="1">
+            <g stroke={RW_INK} strokeWidth="0.7">
               {WHEEL_ORDER.map((n, i) => {
                 const a = pocketDeg(i) - POCKET_STEP / 2;
                 const o = rwPolar(RW.pocketOut, a), inn = rwPolar(RW.pocketIn, a);
                 return <line key={`f${n}`} x1={rwF(o.x)} y1={rwF(o.y)} x2={rwF(inn.x)} y2={rwF(inn.y)} />;
               })}
             </g>
-            <circle cx={RW.c} cy={RW.c} r={RW.pocketOut} fill="none" stroke={RW_INK} strokeWidth="1.4" />
+            <circle cx={RW.c} cy={RW.c} r={RW.pocketOut} fill="none" stroke={RW_INK} strokeWidth="1" />
             {/* clearance behind each numeral, the way an engraver leaves the field bare */}
             {WHEEL_ORDER.map((n, i) => {
               const pt = rwPolar(RW.numbers, pocketDeg(i));
-              return <ellipse key={`c${n}`} cx={rwF(pt.x)} cy={rwF(pt.y)} rx="5" ry="4" fill={RW_PAPER}
+              return <ellipse key={`c${n}`} cx={rwF(pt.x)} cy={rwF(pt.y)} rx="5" ry="4" fill={RW_GROUND}
                 transform={`rotate(${rwF(pocketDeg(i) + 90)} ${rwF(pt.x)} ${rwF(pt.y)})`} />;
             })}
             <g fill={RW_INK} fontFamily="Newsreader, EB Garamond, Georgia, serif" fontWeight="600">
@@ -5836,43 +5859,37 @@ function RouletteWheel({ className = '', onResult }) {
               })}
             </g>
             {/* the cone, ruled as guilloche, and the turret standing on it */}
-            <circle cx={RW.c} cy={RW.c} r={RW.pocketIn} fill={RW_PAPER} stroke={RW_INK} strokeWidth="1.4" />
+            <circle cx={RW.c} cy={RW.c} r={RW.pocketIn} fill={RW_GROUND} stroke={RW_INK} strokeWidth="1" />
             <g fill="none" stroke={RW_INK} opacity="0.6">
               {[0, 1, 2, 3, 4, 5, 6].map((i) => (
                 <circle key={i} cx={RW.c} cy={RW.c} r={RW.pocketIn - 4 - i * 5.5} strokeWidth={i % 2 ? 0.5 : 0.8} />
               ))}
             </g>
             <RwRadials r0={RW.pocketIn - 4} r1={16} count={72} width={0.45} opacity={0.45} />
-            <g stroke={RW_INK} strokeWidth="2.2" strokeLinecap="round">
+            <g stroke={RW_INK} strokeWidth="1.5" strokeLinecap="round">
               <line x1={RW.c - 32} y1={RW.c} x2={RW.c + 32} y2={RW.c} />
               <line x1={RW.c} y1={RW.c - 32} x2={RW.c} y2={RW.c + 32} />
             </g>
-            <circle cx={RW.c} cy={RW.c} r="12" fill={RW_PAPER} stroke={RW_INK} strokeWidth="1.4" />
+            <circle cx={RW.c} cy={RW.c} r="12" fill={RW_GROUND} stroke={RW_INK} strokeWidth="1" />
             <circle cx={RW.c} cy={RW.c} r="5" fill={RW_INK} />
           </g>
 
           {/* the ball, with the one curved stroke that turns a disc into a sphere */}
           <g ref={ballRef} data-rw-ball>
-            <circle r="5.4" fill={RW_PAPER} stroke={RW_INK} strokeWidth="1.3" />
-            <path d="M-3.4 2.6 A5.4 5.4 0 0 0 3.4 2.6" fill="none" stroke={RW_INK} strokeWidth="1" />
+            <circle r="5.4" fill={RW_GROUND} stroke={RW_INK} strokeWidth="1" />
+            <path d="M-3.4 2.6 A5.4 5.4 0 0 0 3.4 2.6" fill="none" stroke={RW_INK} strokeWidth="0.8" />
             <circle cx="-1.6" cy="-1.8" r="1.1" fill="none" stroke={RW_INK} strokeWidth="0.6" />
           </g>
         </svg>
       </button>
 
-      <div aria-live="polite" className="h-6 flex items-center justify-center">
-        {spinning ? (
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">No more bets</span>
-        ) : result === null ? (
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 group-hover:text-slate-700">Click to spin</span>
-        ) : (
-          <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-            <span className={`inline-flex items-center justify-center min-w-[26px] h-[26px] px-1.5 rounded-sm text-white text-xs font-bold tabular-nums ${
-              tone === 'zero' ? 'bg-emerald-700' : tone === 'red' ? 'bg-rose-700' : 'bg-slate-800'}`}>{result}</span>
-            {tone === 'zero' ? 'Zero' : tone === 'red' ? 'Red' : 'Black'}
-          </span>
-        )}
-      </div>
+      {/*
+        * Nothing is printed under the wheel - the ball sitting in its pocket is the result. The live
+        * region is still there for a screen reader, which cannot see where the ball came to rest.
+        */}
+      <span aria-live="polite" className="sr-only">
+        {spinning ? 'Spinning' : result === null ? '' : `${result} ${tone === 'zero' ? 'zero' : tone}`}
+      </span>
     </div>
   );
 }
@@ -8338,7 +8355,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   is stated in today&rsquo;s money, and your plan is saved in this browser only.
                 </p>
               </div>
-              <RouletteWheel className="w-52 sm:w-60 lg:w-72 shrink-0 self-center" />
+              <RouletteWheel className="w-52 sm:w-60 lg:w-72 shrink-0 self-center mx-auto md:mx-0 md:ml-auto md:-mr-2 lg:-mr-4" />
               </div>
             </div>
 

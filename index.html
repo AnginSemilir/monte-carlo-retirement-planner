@@ -251,6 +251,20 @@
         --shadow-a2: .35;
         --shadow-a-lg: .6;
       }
+
+      /*
+       * The wheel rocks a little under the pointer - a sign that it is a control and not a picture.
+       * It sits on the BUTTON rather than on anything inside the SVG, because the frame loop owns
+       * every transform in there and a CSS animation on the same element would fight it.
+       */
+      @keyframes rw-rock {
+        0%, 100% { transform: rotate(-1.6deg); }
+        50%      { transform: rotate(1.6deg); }
+      }
+      .rw-wheel:hover:not(:disabled) { animation: rw-rock 1.9s ease-in-out infinite; }
+      @media (prefers-reduced-motion: reduce) {
+        .rw-wheel:hover:not(:disabled) { animation: none; }
+      }
     </style>
     <title>Monte-Carlo Retirement Planner</title>  </head>
   <body>

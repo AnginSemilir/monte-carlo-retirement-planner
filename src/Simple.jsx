@@ -197,6 +197,7 @@ export default function Simple() {
     x.pen, x.isa, x.gia, x.cash, x.penPart, x.isaPart, x.giaPart, x.cashPart,
     x.penRisk, x.isaRisk, x.giaRisk, x.cashRisk, x.penPartRisk, x.isaPartRisk, x.giaPartRisk, x.cashPartRisk,
     x.penC, x.isaC, x.giaC, x.cashC, x.penCPart, x.isaCPart, x.giaCPart, x.cashCPart,
+    x.penG, x.isaG, x.giaG, x.cashG, x.penGPart, x.isaGPart, x.giaGPart, x.cashGPart,
     x.penCIsPct, x.penCIsPctPart, x.salary, x.salaryPart, x.oneOffs, x.earnings]);
   const sig = useMemo(() => sigOf(s), [s]);
 
@@ -410,10 +411,15 @@ export default function Simple() {
     </label>
   );
 
-  const RISK_SHORT = { 'High Risk': 'High', 'Medium/High Risk': 'Med-high', 'Medium Risk': 'Medium',
-    'Medium/Low Risk': 'Med-low', 'Low Risk': 'Low', 'Cash Equivalents': 'Cash' };
+  const RISK_SHORT = { 'High Risk': 'High', 'Medium/High Risk': 'Med-hi', 'Medium Risk': 'Med',
+    'Medium/Low Risk': 'Med-lo', 'Low Risk': 'Low', 'Cash Equivalents': 'Cash' };
 
-  // one line of the portfolio table
+  /*
+   * One line of the portfolio table. The contribution is TWO figures, not one choice between two: what
+   * goes in this year, and how much more goes in each year after it. The £/% toggle beside the amount is
+   * a separate question again - whether that amount was typed in pounds or as a share of salary - and
+   * only the pension has it, because a percentage of salary is a pension idea.
+   */
   const wrapperRow = (k, label, cKey, pctKey = null, salKey = null) => {
     const isPct = pctKey && s[pctKey];
     return (
@@ -421,14 +427,14 @@ export default function Simple() {
         <span className="text-[11px] text-slate-600 font-semibold self-center">{label}</span>
         <span className="flex items-stretch gap-0.5">{cash(k)}{stepper(k, 10000)}</span>
         <select value={s[k + 'Risk'] || 'Medium Risk'} onChange={(e) => set(k + 'Risk', e.target.value)}
-          aria-label={`${label} risk level`} className={`${subCls} w-full cursor-pointer`}>
+          aria-label={`${label} risk level`} className={`${subCls} w-full cursor-pointer px-1`}>
           {Object.keys(DEFAULT_RISK_PROFILES).map(r => <option key={r} value={r}>{RISK_SHORT[r] || r}</option>)}
         </select>
         <span className="flex items-stretch gap-0.5">
           <input type="text" inputMode="numeric" value={isPct ? s[cKey] : fmt(s[cKey])} placeholder={isPct ? '%' : '0'}
             onFocus={(e) => e.target.select()} onChange={(e) => set(cKey, parse(e.target.value))}
             aria-label={`${label} contribution`}
-            className={`${subCls} w-full min-w-0 text-right font-mono tabular-nums ${pctKey ? 'rounded-r-none border-r-0' : ''}`} />
+            className={`${subCls} w-full min-w-0 text-right font-mono tabular-nums px-1 ${pctKey ? 'rounded-r-none border-r-0' : ''}`} />
           {pctKey && (
             <button type="button" onClick={() => set(pctKey, !s[pctKey])} title={isPct ? 'a % of salary' : 'pounds a year'}
               className={`shrink-0 px-1 rounded-md rounded-l-none border text-[10px] font-bold cursor-pointer ${isPct ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-900'}`}>
@@ -437,10 +443,17 @@ export default function Simple() {
           )}
           {stepper(cKey, isPct ? 1 : 500)}
         </span>
+        <span className="flex items-stretch gap-0.5">
+          <input type="text" inputMode="numeric" value={s[k + 'G']} placeholder="0"
+            onFocus={(e) => e.target.select()} onChange={(e) => set(k + 'G', parse(e.target.value))}
+            aria-label={`${label} contribution increase`}
+            className={`${subCls} w-full min-w-0 text-right font-mono tabular-nums px-1`} />
+          <span className="text-[10px] text-slate-400 self-center">%</span>
+        </span>
         {isPct && salKey && (
           <>
             <span />
-            <span className="col-span-3 flex items-center gap-1.5 -mt-0.5 mb-0.5">
+            <span className="col-span-4 flex items-center gap-1.5 -mt-0.5 mb-0.5">
               <span className="text-[10px] text-slate-400 shrink-0">of a salary of</span>
               <input type="text" inputMode="numeric" value={fmt(s[salKey])} placeholder="0"
                 onFocus={(e) => e.target.select()} onChange={(e) => set(salKey, parse(e.target.value))}
@@ -512,7 +525,7 @@ export default function Simple() {
   const rateTone = !mc ? '' : mc.successRate >= TARGET ? 'text-emerald-700' : mc.successRate >= 75 ? 'text-amber-700' : 'text-rose-700';
 
   return (
-    <div className="grid lg:grid-cols-[minmax(0,388px)_minmax(0,1fr)] gap-5 items-start">
+    <div className="grid lg:grid-cols-[minmax(0,424px)_minmax(0,1fr)] gap-5 items-start">
 
       {/* ------------------------------------------------ LEFT: what you have */}
       <div className="bg-surface border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3">
@@ -572,11 +585,12 @@ export default function Simple() {
 
         <div>
           <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">Portfolio</h2>
-          <div className="grid grid-cols-[auto_1fr_82px_88px] gap-x-1.5 gap-y-1 items-center">
+          <div className="grid grid-cols-[auto_minmax(88px,1fr)_66px_74px_46px] gap-x-1 gap-y-1 items-center">
             <span />
             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide text-right pr-5">Balance</span>
             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Risk</span>
             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">In each yr</span>
+            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide" title="how much the yearly amount rises each year">Rising</span>
             {wrapperRow('pen', 'Pension', 'penC', 'penCIsPct', 'salary')}
             {wrapperRow('isa', 'ISA', 'isaC')}
             {wrapperRow('gia', 'GIA', 'giaC')}

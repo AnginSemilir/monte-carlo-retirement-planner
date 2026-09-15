@@ -21,6 +21,9 @@ export const SIMPLE_BLANK = {
   // contributions a year until the retirement date. The pension one may be a % of salary instead.
   penC: '', isaC: '', giaC: '', cashC: '',
   penCPart: '', isaCPart: '', giaCPart: '', cashCPart: '',
+  // and a yearly increase on each contribution, as a percent - the engine's own account `growth`
+  penG: '', isaG: '', giaG: '', cashG: '',
+  penGPart: '', isaGPart: '', giaGPart: '', cashGPart: '',
   penCIsPct: false, penCIsPctPart: false,
   taperPct: '',        // % a year that spending eases once the taper starts; blank means flat
   taperFromAge: '',
@@ -84,6 +87,10 @@ function taperBands(s) {
 /*
  * The pension contribution, in pounds, however it was entered.
  *
+ * Separate from the yearly increase beside it: the amount is what goes in THIS year, the increase is how
+ * much more goes in each year after. The engine applies the second to the first through the account's
+ * own `growth` field, so neither needs expanding into a per-year table here.
+ *
  * A percentage is how almost everyone knows their own pension contribution - it is what the payslip and
  * the scheme booklet both use - so the page takes it that way and converts here. It is a percent OF
  * SALARY, which is the only base that makes the figure mean what people expect, and it therefore needs a
@@ -114,15 +121,15 @@ export function toFullPlan(s) {
     },
     spending: { targetSpend: s.spend, spendBands: taperBands(s) },
     accounts: [
-      { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: bal(s.pen), contrib: pensionContrib(s, false), risk: s.penRisk },
-      { id: 'isa_self', owner: 'Myself', category: 'ISAs', balance: bal(s.isa), contrib: bal(s.isaC), risk: s.isaRisk },
-      { id: 'other_self', owner: 'Myself', category: 'General Investments', balance: bal(s.gia), contrib: bal(s.giaC), risk: s.giaRisk },
-      { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: bal(s.cash), contrib: bal(s.cashC), risk: s.cashRisk },
+      { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: bal(s.pen), contrib: pensionContrib(s, false), growth: bal(s.penG), risk: s.penRisk },
+      { id: 'isa_self', owner: 'Myself', category: 'ISAs', balance: bal(s.isa), contrib: bal(s.isaC), growth: bal(s.isaG), risk: s.isaRisk },
+      { id: 'other_self', owner: 'Myself', category: 'General Investments', balance: bal(s.gia), contrib: bal(s.giaC), growth: bal(s.giaG), risk: s.giaRisk },
+      { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: bal(s.cash), contrib: bal(s.cashC), growth: bal(s.cashG), risk: s.cashRisk },
       ...(couple ? [
-        { id: 'pen_part', owner: 'Partner', category: 'Pensions', balance: bal(s.penPart), contrib: pensionContrib(s, true), risk: s.penPartRisk },
-        { id: 'isa_part', owner: 'Partner', category: 'ISAs', balance: bal(s.isaPart), contrib: bal(s.isaCPart), risk: s.isaPartRisk },
-        { id: 'other_part', owner: 'Partner', category: 'General Investments', balance: bal(s.giaPart), contrib: bal(s.giaCPart), risk: s.giaPartRisk },
-        { id: 'cash_part', owner: 'Partner', category: 'Cash Savings', balance: bal(s.cashPart), contrib: bal(s.cashCPart), risk: s.cashPartRisk }
+        { id: 'pen_part', owner: 'Partner', category: 'Pensions', balance: bal(s.penPart), contrib: pensionContrib(s, true), growth: bal(s.penGPart), risk: s.penPartRisk },
+        { id: 'isa_part', owner: 'Partner', category: 'ISAs', balance: bal(s.isaPart), contrib: bal(s.isaCPart), growth: bal(s.isaGPart), risk: s.isaPartRisk },
+        { id: 'other_part', owner: 'Partner', category: 'General Investments', balance: bal(s.giaPart), contrib: bal(s.giaCPart), growth: bal(s.giaGPart), risk: s.giaPartRisk },
+        { id: 'cash_part', owner: 'Partner', category: 'Cash Savings', balance: bal(s.cashPart), contrib: bal(s.cashCPart), growth: bal(s.cashGPart), risk: s.cashPartRisk }
       ] : [])
     ],
     oneOffContributions: ins,

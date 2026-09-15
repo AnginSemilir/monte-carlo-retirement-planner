@@ -22,10 +22,12 @@ export const SIMPLE_BLANK = {
   // balances only. There are no contributions on this page, by design.
   pen: '', isa: '', gia: '', cash: '',
   penPart: '', isaPart: '', giaPart: '', cashPart: '',
-  oneOffs: []          // { id, date, amount, direction: 'in' | 'out' }
+  oneOffs: [],         // { id, date, amount, direction: 'in' | 'out' }
+  earnings: []         // { id, amount, startAge, endAge, owner } - work after the retirement date
 };
 
 export const oneOffId = () => `o_${Math.random().toString(36).slice(2, 10)}`;
+export const earningId = () => `e_${Math.random().toString(36).slice(2, 10)}`;
 
 const n = (v) => { const x = Number(v); return Number.isFinite(x) ? x : 0; };
 
@@ -78,6 +80,17 @@ export function toFullPlan(s) {
     ],
     oneOffContributions: ins,
     oneOffCosts: outs,
+    /*
+     * Work after the retirement date, as relevant earnings. It goes through otherIncomes rather than the
+     * salary fields because salary stops AT the retirement age by definition - this is the consultancy
+     * day rate or the two days a week that carries on past it, which is a different thing and taxed as
+     * earnings in its own right.
+     */
+    otherIncomes: (s.earnings || []).filter(e => n(e.amount) > 0 && e.startAge !== '').map(e => ({
+      id: e.id, incomeType: 'earnings', amount: n(e.amount),
+      owner: couple && e.owner === 'Partner' ? 'Partner' : 'Myself',
+      startAge: e.startAge, endAge: e.endAge === '' ? '' : e.endAge
+    })),
     config: { taxRegion: s.region }
   });
 }

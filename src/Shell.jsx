@@ -48,7 +48,6 @@ export default function Shell() {
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center gap-2.5">
               <h1 className="text-xl font-bold tracking-tight text-slate-900 font-display italic">Can I retire?</h1>
-              <span className="text-[11px] text-slate-500">One page. No settings.</span>
             </div>
             <Simple />
             <p className="text-[11px] text-slate-400 leading-relaxed max-w-3xl">

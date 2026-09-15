@@ -4,7 +4,7 @@ import {
   buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
   buildPolicyCandidates, explainPick, toleranceFor, BAND_QUANTILES, TAX_REGION_LABELS, num
 } from './App.jsx';
-import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId } from './simplePlan.js';
+import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId, earningId } from './simplePlan.js';
 
 /*
  * THE STREAMLINED PAGE.
@@ -76,7 +76,11 @@ const policyLabel = (c) => c ? `${POLICY_NAME[c.decumulationPolicy] || c.decumul
 const tick = () => new Promise(r => setTimeout(r, 0));
 
 const load = () => {
-  try { const raw = localStorage.getItem(KEY); if (raw) return { ...SIMPLE_BLANK, ...JSON.parse(raw) }; } catch { /* private mode */ }
+  try {
+    const raw = localStorage.getItem(KEY);
+    // spread over the blank so a plan saved before a field existed still loads with it
+    if (raw) return { ...SIMPLE_BLANK, ...JSON.parse(raw), earnings: JSON.parse(raw).earnings || [] };
+  } catch { /* private mode */ }
   return SIMPLE_BLANK;
 };
 
@@ -234,6 +238,9 @@ export default function Simple() {
   const addOneOff = () => setS(p => ({ ...p, oneOffs: [...p.oneOffs, { id: oneOffId(), date: '', amount: '', direction: 'in' }] }));
   const setOneOff = (id, k, v) => setS(p => ({ ...p, oneOffs: p.oneOffs.map(o => o.id === id ? { ...o, [k]: v } : o) }));
   const dropOneOff = (id) => setS(p => ({ ...p, oneOffs: p.oneOffs.filter(o => o.id !== id) }));
+  const addEarning = () => setS(p => ({ ...p, earnings: [...(p.earnings || []), { id: earningId(), amount: '', startAge: p.retireSelf || '', endAge: '', owner: 'Myself' }] }));
+  const setEarning = (id, k, v) => setS(p => ({ ...p, earnings: (p.earnings || []).map(e => e.id === id ? { ...e, [k]: v } : e) }));
+  const dropEarning = (id) => setS(p => ({ ...p, earnings: (p.earnings || []).filter(e => e.id !== id) }));
 
   const figure = (label, value, sub, tone = 'text-slate-900', pending = false) => (
     <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5">
@@ -261,21 +268,6 @@ export default function Simple() {
         </div>
 
         <div>
-          <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5">What you have</h2>
-          <div className="grid grid-cols-2 gap-2.5">
-            {money('pen', 'Pension')}{money('isa', 'ISA')}
-            {money('gia', 'Investments')}{money('cash', 'Cash')}
-          </div>
-          {s.couple && (
-            <div className="grid grid-cols-2 gap-2.5 mt-2.5 pt-2.5 border-t border-slate-100">
-              {money('penPart', 'Partner pension')}{money('isaPart', 'Partner ISA')}
-              {money('giaPart', 'Partner investments')}{money('cashPart', 'Partner cash')}
-            </div>
-          )}
-          <p className="text-[11px] text-slate-400 mt-2">Balances only &mdash; this page assumes nothing more is paid in.</p>
-        </div>
-
-        <div className="pt-1">
           <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5">You</h2>
           <div className="grid grid-cols-2 gap-2.5">
             {age('ageSelf', 'Age now', '55')}{age('retireSelf', 'Stop working at', '62')}
@@ -293,12 +285,26 @@ export default function Simple() {
         </div>
 
         <div className="pt-1">
+          <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5">Portfolio</h2>
+          <div className="grid grid-cols-2 gap-2.5">
+            {money('pen', 'Pension')}{money('isa', 'ISA')}
+            {money('gia', 'Investments')}{money('cash', 'Cash')}
+          </div>
+          {s.couple && (
+            <div className="grid grid-cols-2 gap-2.5 mt-2.5 pt-2.5 border-t border-slate-100">
+              {money('penPart', 'Partner pension')}{money('isaPart', 'Partner ISA')}
+              {money('giaPart', 'Partner investments')}{money('cashPart', 'Partner cash')}
+            </div>
+          )}
+        </div>
+
+        <div className="pt-1">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Money in or out</h2>
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">One-off payments and withdrawals</h2>
             <button type="button" onClick={addOneOff} className="flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-900 cursor-pointer"><Plus className="w-3 h-3" /> Add</button>
           </div>
           {s.oneOffs.length === 0
-            ? <p className="text-[11px] text-slate-400">A house sale, an inheritance, a new roof. Nothing else in the model can express one.</p>
+            ? <p className="text-[11px] text-slate-400">A house sale, an inheritance, a new roof.</p>
             : <div className="space-y-2">
               {s.oneOffs.map(o => (
                 <div key={o.id} className="flex items-center gap-1.5">
@@ -308,6 +314,32 @@ export default function Simple() {
                     <option value="in">in</option><option value="out">out</option>
                   </select>
                   <button type="button" onClick={() => dropOneOff(o.id)} title="Remove" className="shrink-0 p-1 text-slate-400 hover:text-rose-600 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+                </div>
+              ))}
+            </div>}
+        </div>
+
+        <div className="pt-1">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Work after you stop</h2>
+            <button type="button" onClick={addEarning} className="flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-900 cursor-pointer"><Plus className="w-3 h-3" /> Add</button>
+          </div>
+          {s.earnings.length === 0
+            ? <p className="text-[11px] text-slate-400">Consultancy, a day a week, a phased wind-down. Taxed as earnings, and it does not move your retirement age.</p>
+            : <div className="space-y-2">
+              {s.earnings.map(e => (
+                <div key={e.id} className="flex items-center gap-1.5">
+                  <input type="number" min="0" step="1000" value={e.amount} placeholder="£/yr" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'amount', ev.target.value)} className="w-20 shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-mono" />
+                  <span className="text-[10px] text-slate-400 shrink-0">age</span>
+                  <input type="number" min="0" max="120" value={e.startAge} placeholder="from" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'startAge', ev.target.value)} className="w-14 shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-mono" />
+                  <span className="text-[10px] text-slate-400 shrink-0">to</span>
+                  <input type="number" min="0" max="120" value={e.endAge} placeholder="to" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'endAge', ev.target.value)} className="w-14 shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-mono" />
+                  {s.couple && (
+                    <select value={e.owner || 'Myself'} onChange={(ev) => setEarning(e.id, 'owner', ev.target.value)} className="shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-semibold">
+                      <option value="Myself">me</option><option value="Partner">them</option>
+                    </select>
+                  )}
+                  <button type="button" onClick={() => dropEarning(e.id)} title="Remove" className="shrink-0 p-1 text-slate-400 hover:text-rose-600 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
                 </div>
               ))}
             </div>}

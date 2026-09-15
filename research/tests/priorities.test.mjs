@@ -295,5 +295,45 @@ console.log('\n=========== J. WHICH PRIORITIES ACTUALLY DECIDED IT ===========')
   ok('recording changes nothing about who wins', E.explainPick([a, b], { priorities: ORDER }).winner.id === 'b');
 }
 
+console.log('\n=========== K. THE LAST TIE, AND A BAD CASE THAT SURVIVES FAILURE ===========');
+{
+  const ORDER = ['survive', 'downside', 'bequest', 'bridge', 'pot', 'tax'];
+
+  /*
+   * When every priority has declared the survivors equivalent, the winner used to be whichever the
+   * candidate grid built first. Two candidates identical on everything EXCEPT a sub-tolerance gap on
+   * one metric: whichever metric is ranked first should now take it, and the answer should flip when
+   * the ranking flips - which is the whole proof that grid order is no longer deciding.
+   */
+  const a = mk('a', 90.4, 100000, 200000, { medianLifetimeTax: 5000 });
+  const b = mk('b', 90.0, 100000, 200000, { medianLifetimeTax: 4600 });
+  ok('the last tie goes to whoever is best on the FIRST priority',
+    E.explainPick([b, a], { priorities: ORDER }).winner.id === 'a');
+  ok('and flips when a different priority is ranked first',
+    E.explainPick([a, b], { priorities: ['tax', ...ORDER.filter(k => k !== 'tax')] }).winner.id === 'b');
+  ok('neither answer depends on the order the candidates arrived in',
+    E.explainPick([a, b], { priorities: ORDER }).winner.id === E.explainPick([b, a], { priorities: ORDER }).winner.id);
+
+  /*
+   * The bad-case metric. A pot floors at zero, so once the tenth-percentile lifetime runs dry every
+   * policy scores an identical zero and the priority goes blind exactly when the bad case is real.
+   * Netting off the spending that was never afforded puts the failures back in order.
+   */
+  const dead = [mk('early', 70, 0, 900000, { p10TerminalAdj: -500000 }),
+                mk('late',  70, 0, 500000, { p10TerminalAdj: -200000 })];
+  ok('two plans that both run dry are no longer indistinguishable',
+    E.explainPick(dead, { priorities: ['downside', ...ORDER.filter(k => k !== 'downside')] }).winner.id === 'late');
+  const consulted = E.explainPick(dead, { priorities: ['downside'] }).consulted[0];
+  ok('and the bad-case priority now reports a real spread', consulted.spread > 1, consulted.spread.toFixed(2));
+  ok('where on the old measure it saw nothing',
+    Math.abs(E.PRIORITY_METRICS.downside.get({ p10TerminalNet: 0 })) === 0);
+
+  // a plan that never falls short must be scored exactly as before, or every robust household moves
+  const solvent = { p10TerminalAdj: 250000, p10TerminalNet: 250000, p10Terminal: 250000 };
+  ok('a plan that always met its spending is unchanged by the adjustment',
+    E.PRIORITY_METRICS.downside.get(solvent) === 250000);
+  ok('and stats from before the field existed still rank', E.PRIORITY_METRICS.downside.get({ p10TerminalNet: 180000 }) === 180000);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

@@ -562,7 +562,15 @@ const PRIORITY_METRICS = {
     label: 'Protecting the bad case',
     why: 'Ranks on the pot in the worst one lifetime in ten, rather than the typical one.',
     serves: 'Favours steady tax smoothing over anything that concentrates a tax bill or a capital gain into a single year.',
-    get: (st) => st.p10TerminalNet ?? st.p10Terminal, higherIsBetter: true, unit: 'pct', epsilon: moneyEpsilon
+    /*
+     * Ranks on the pot LESS the spending that was never afforded, not on the pot alone. A pot floors
+     * at zero, so once the tenth-percentile lifetime runs dry every policy scores an identical zero
+     * and this priority goes blind - measured across the scenario library, inert for 92.8% of the
+     * households whose best available survival is under 90%, against 10.1% of the rest. That is
+     * backwards: it failed precisely where the bad case was worst. Netting off the shortfall restores
+     * the ordering among failures and leaves plans that hold completely untouched.
+     */
+    get: (st) => st.p10TerminalAdj ?? st.p10TerminalNet ?? st.p10Terminal, higherIsBetter: true, unit: 'pct', epsilon: moneyEpsilon
   },
   bridge: {
     label: 'Getting safely to pension age',
@@ -1980,7 +1988,7 @@ function evaluateRows(ctx, rows) {
 // One Monte Carlo path. `zs` is the pre-drawn standard-normal shock per year (common random numbers).
 function runTrial(ctx, zs, spendOverride = null, collectPath = false) {
   const state = freshState(ctx);
-  let failed = false, failAge = null, preNmpaFailed = false, minPot = Infinity, lifetimeTax = 0;
+  let failed = false, failAge = null, preNmpaFailed = false, minPot = Infinity, lifetimeTax = 0, unmetTotal = 0;
   let terminalRow = null;
   /*
    * Opt-in, and the default matters: optimizeSpend calls this a few hundred times while bisecting and
@@ -2000,6 +2008,8 @@ function runTrial(ctx, zs, spendOverride = null, collectPath = false) {
     if (row.totalCombined < minPot) minPot = row.totalCombined;
     // floored the same way terminalPot is, so the last entry of a path is exactly the terminal pot
     if (path) path[t] = Math.max(0, row.totalCombined);
+    // every pound of spending the plan could not meet, kept whether or not it has already failed
+    unmetTotal += Math.max(0, row.unmetDemand || 0);
     if (!failed && (row.unmetDemand > FAIL_TOLERANCE || row.preNmpaInsolvent)) {
       failed = true; failAge = row.ageSelf; preNmpaFailed = row.preNmpaInsolvent || !ctx.owners.some(o => (o.key === 'self' ? row.ageSelf : row.agePart) >= ctx.nmpa);
     }
@@ -2008,7 +2018,18 @@ function runTrial(ctx, zs, spendOverride = null, collectPath = false) {
   const terminalPot = Math.max(0, terminalRow.totalCombined);
   if (!failed && ctx.solvencyFloor > 0 && terminalPot < ctx.solvencyFloor) { failed = true; failAge = terminalRow.ageSelf; }
   const terminalPotNet = Math.max(0, terminalPot - Math.max(0, terminalRow.pensions) * ctx.pensionDeathTaxRate);
-  const out = { survived: !failed, failAge, preNmpaFailed, terminalPot, terminalPotNet, minPot, lifetimeTax };
+  /*
+   * The net position of this lifetime: what was left, less what was never afforded.
+   *
+   * Zero is the floor of a pot, so once a path runs dry every failing path looks identical - and the
+   * 10th percentile of a set of zeros is zero, which is why "protecting the bad case" went blind
+   * exactly when the bad case was real. Subtracting the unmet spending puts the failures back in
+   * order: running dry at 80 carries more unmet years than running dry at 90, so it scores worse.
+   * For a path that never falls short this is exactly terminalPotNet, so nothing changes for a plan
+   * that holds.
+   */
+  const out = { survived: !failed, failAge, preNmpaFailed, terminalPot, terminalPotNet, minPot, lifetimeTax,
+    unmetTotal, terminalPotShortfallAdj: terminalPotNet - unmetTotal };
   if (path) out.path = path;
   return out;
 }
@@ -2036,6 +2057,8 @@ function summarizeTrials(results) {
   if (!n) return null;
   const pots = results.map(r => r.terminalPot).sort((a, b) => a - b);
   const potsNet = results.map(r => r.terminalPotNet).sort((a, b) => a - b);
+  // the same pots with unmet spending netted off, so failing paths keep an order among themselves
+  const potsAdj = results.map(r => r.terminalPotShortfallAdj).sort((a, b) => a - b);
   const fails = results.filter(r => !r.survived).map(r => r.failAge).filter(a => a !== null).sort((a, b) => a - b);
   const q = (arr, p) => arr.length ? arr[Math.min(arr.length - 1, Math.floor(arr.length * p))] : 0;
   const successCount = results.filter(r => r.survived).length;
@@ -2083,6 +2106,7 @@ function summarizeTrials(results) {
     p10Terminal: q(pots, 0.10), p25Terminal: q(pots, 0.25), medianTerminal: q(pots, 0.50),
     p75Terminal: q(pots, 0.75), p90Terminal: q(pots, 0.90),
     p10TerminalNet: q(potsNet, 0.10), medianTerminalNet: q(potsNet, 0.50), p90TerminalNet: q(potsNet, 0.90),
+    p10TerminalAdj: q(potsAdj, 0.10),
     medianFailAge: fails.length ? q(fails, 0.5) : null,
     earliestFailAge: fails.length ? fails[0] : null,
     preNmpaFailRate: (results.filter(r => !r.survived && r.preNmpaFailed).length / n) * 100,
@@ -3023,7 +3047,24 @@ function explainPick(cands, opts = {}) {
    * Report the guard only when it actually removed something. A limit that never bound did not shape
    * the answer, and listing it as a reason would be the same just-so storytelling the steps avoid.
    */
-  return { winner: pool[0], steps, consulted, settledAfter, priorities,
+  /*
+   * THE LAST TIE GOES TO WHAT THEY RANKED FIRST.
+   *
+   * If several candidates survive every priority, each one has been declared equivalent by all six -
+   * so the choice between them was `pool[0]`, meaning whichever the candidate grid happened to build
+   * first. That is not a preference, it is an accident, and it is how a household could rank tax top
+   * and be handed a candidate a shade worse on tax than one sitting beside it in the same pool.
+   *
+   * This does not undo the design. Lower priorities still choose freely inside the band the higher
+   * ones leave, which is the whole point of ranking them; this only settles what is left when every
+   * priority has had its say and none of them can separate the survivors.
+   */
+  const first = priorities[0] && PRIORITY_METRICS[priorities[0]];
+  const winner = (pool.length > 1 && first)
+    ? pool.reduce((a, b) => (first.higherIsBetter ? first.get(b.stats) > first.get(a.stats)
+                                                  : first.get(b.stats) < first.get(a.stats)) ? b : a)
+    : pool[0];
+  return { winner, steps, consulted, settledAfter, priorities,
     guardBound, guardCapPts: opts.maxSurvivalSacrificePts ?? MAX_SURVIVAL_SACRIFICE_PTS,
     guardRuledOut: poolBeforeGuard.length - pool.length };
 }

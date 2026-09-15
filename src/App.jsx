@@ -7491,16 +7491,62 @@ export default function App() {
    * closure captured before setState committed, which is null, and the reorder silently does nothing.
    */
   const dragFromRef = useRef(null);
+  const overRef = useRef(null);            // the same value as overPriority, readable inside a handler
+  const rowRectsRef = useRef([]);          // row geometry, measured once at the start of a drag
   const [dragPriority, setDragPriority] = useState(null);   // index being carried
   const [overPriority, setOverPriority] = useState(null);   // index it would land on
+  /*
+   * POINTER EVENTS, NOT HTML5 DRAG AND DROP.
+   *
+   * The first attempt used draggable/onDragStart/onDrop. The handlers were right - a synthetic-event
+   * test drove them and the list reordered - but the GESTURE never worked: press and hold and the row
+   * just stuck to the cursor. That is the trap in testing HTML5 drag through dispatched events, which
+   * exercises the handlers and never asks the browser to start a drag at all.
+   *
+   * Pointer events avoid the whole business. They fire for mouse, pen and touch alike (HTML5 drag
+   * fires for none of the last two), pointer capture keeps the stream coming even when the cursor
+   * leaves the row, and a real mouse in a real browser drives them - so this one can actually be
+   * tested end to end rather than in effigy.
+   *
+   * Geometry is measured ONCE at the start. Reading it on every move would be both slower and wrong,
+   * since the rows restyle as the drag passes over them.
+   */
   const dropPriority = (to) => {
     const from = dragFromRef.current;
-    dragFromRef.current = null;
+    dragFromRef.current = null; overRef.current = null;
     setDragPriority(null); setOverPriority(null);
     if (from === null || to === null || from === to) return;
     const next = [...priorityList];
     next.splice(to, 0, next.splice(from, 1)[0]);
     updateSpending('priorities', next);
+  };
+  const startPriorityDrag = (e, i) => {
+    if (priorityMode === 'balanced' || e.button > 0) return;
+    e.preventDefault();
+    rowRectsRef.current = [...document.querySelectorAll('[data-priority-item]')].map(el => el.getBoundingClientRect());
+    dragFromRef.current = i; overRef.current = i;
+    setDragPriority(i); setOverPriority(i);
+    // capture on the handle, so the pointer stream keeps arriving once the cursor leaves the row
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* capture is a nicety, not a requirement */ }
+  };
+  const movePriorityDrag = (e) => {
+    if (dragFromRef.current === null) return;
+    const rects = rowRectsRef.current;
+    if (!rects.length) return;
+    const y = e.clientY;
+    let idx = rects.findIndex(r => y >= r.top && y <= r.bottom);
+    // past either end of the list, land on the end the pointer is nearest
+    if (idx < 0) idx = y < rects[0].top ? 0 : rects.length - 1;
+    if (idx !== overRef.current) { overRef.current = idx; setOverPriority(idx); }
+  };
+  const endPriorityDrag = (e) => {
+    if (dragFromRef.current === null) return;
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* already released */ }
+    dropPriority(overRef.current);
+  };
+  const cancelPriorityDrag = () => {
+    dragFromRef.current = null; overRef.current = null;
+    setDragPriority(null); setOverPriority(null);
   };
   const updateConfig = (field, value) => setPlan(prev => ({ ...prev, config: { ...(prev.config || {}), [field]: (field === 'valuationDate' || field === 'taxRegion' || typeof value === 'boolean') ? value : parseInputNumber(value) } }));
   const updateListItem = (listKey, id, patch) => setPlan(p => ({ ...p, [listKey]: (p[listKey] || []).map(i => i.id === id ? { ...i, ...patch } : i) }));
@@ -9167,16 +9213,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     const carried = dragPriority === i;
                     const landing = overPriority === i && dragFromRef.current !== null && dragFromRef.current !== i;
                     return (
-                      <li key={key} draggable={priorityMode !== 'balanced'} data-priority-item={key}
-                        onDragStart={(e) => { dragFromRef.current = i; setDragPriority(i); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', key); }}
-                        onDragEnter={() => setOverPriority(i)}
-                        onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
-                        onDrop={(e) => { e.preventDefault(); dropPriority(i); }}
-                        onDragEnd={() => { dragFromRef.current = null; setDragPriority(null); setOverPriority(null); }}
+                      <li key={key} data-priority-item={key}
                         className={`flex items-start gap-2 p-2 rounded-xl border text-xs transition-shadow ${
                           carried ? 'opacity-40' : landing ? 'border-blue-500 ring-2 ring-blue-300 bg-blue-50' :
                           i === 0 ? 'bg-blue-50/70 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
-                        <GripVertical aria-hidden="true" className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-300 cursor-grab active:cursor-grabbing" />
+                        {/* touch-none: without it a touch drag scrolls the page instead of moving the row */}
+                        <span data-priority-handle={key} aria-hidden="true"
+                          onPointerDown={(e) => startPriorityDrag(e, i)}
+                          onPointerMove={movePriorityDrag}
+                          onPointerUp={endPriorityDrag}
+                          onPointerCancel={cancelPriorityDrag}
+                          className="shrink-0 mt-0.5 -m-1 p-1 touch-none cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500">
+                          <GripVertical className="w-3.5 h-3.5" />
+                        </span>
                         <span className={`shrink-0 w-5 h-5 rounded-full grid place-items-center font-bold text-[10px] ${i === 0 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'}`}>{i + 1}</span>
                         <div className="min-w-0 flex-1">
                           <div className={`font-bold ${i === 0 ? 'text-blue-900' : 'text-slate-700'}`}>{m.label}</div>

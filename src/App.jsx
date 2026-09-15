@@ -452,7 +452,9 @@ const DEFAULT_CONFIG = {
    */
   inheritedPensionSpreadYears: 5,
   statePensionAgeForHeirs: 68,       // age at which a beneficiary is assumed to be drawing a state pension
-  assumedStatePensionForHeirs: 11976,// ...and roughly what it is worth, since it consumes their allowance
+  // ...and roughly what it is worth, since it consumes their allowance. 2026/27: £241.30 a week,
+  // the full NEW state pension, after the 4.8% earnings uprating on 6 April 2026.
+  assumedStatePensionForHeirs: 12548,
   bridgeSafetyMargin: 30,            // % uplift on the pre-access "bridge" reserve the tournament targets
   solvencyFloor: 0                   // minimum pot at terminal age (bequest floor)
 };
@@ -3592,7 +3594,7 @@ function estateAtDeath(cfg, wrappers, opts = {}) {
     const ihtOnPension = (rel.exempt || taxableBase <= 0 || !pensionCounts) ? 0 : iht * (penGross / taxableBase);
     const pensionPart = Math.max(0, penGross - ihtOnPension);
     const atSpa = b.age !== '' && num(b.age, 0) >= num(c.statePensionAgeForHeirs, 68);
-    const assumedIncome = num(b.income, 0) + (atSpa ? num(c.assumedStatePensionForHeirs, 11976) : 0);
+    const assumedIncome = num(b.income, 0) + (atSpa ? num(c.assumedStatePensionForHeirs, 12548) : 0);
     /*
      * How long they take it over is theirs to choose, and it matters more than almost anything else on
      * this tab: the same pot drawn over twenty years instead of five can more than halve the tax, because
@@ -8569,8 +8571,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Retirement Age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgePart ?? ''} onChange={(e) => updateDemographics('retireAgePart', e.target.value)} className={inputCls} /></div>}
                 <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentSelf === 'self-employed' ? 'Annual Profit: self-employment (Myself £/yr)' : 'Gross Salary (Myself £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salarySelf ?? ''} onChange={(e) => updateDemographics('salarySelf', e.target.value)} className={inputCls} /></div>
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentPart === 'self-employed' ? 'Annual Profit: self-employment (Partner £/yr)' : 'Gross Salary (Partner £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salaryPart ?? ''} onChange={(e) => updateDemographics('salaryPart', e.target.value)} className={inputCls} /></div>}
-                <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label><input type="number" min="0" step="250" placeholder="e.g. 11500" onFocus={handleFocus} value={plan?.demographics?.statePensionSelf ?? ''} onChange={(e) => updateDemographics('statePensionSelf', e.target.value)} className={inputCls} /></div>
-                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label><input type="number" min="0" step="250" placeholder="e.g. 11500" onFocus={handleFocus} value={plan?.demographics?.statePensionPart ?? ''} onChange={(e) => updateDemographics('statePensionPart', e.target.value)} className={inputCls} /></div>}
+                <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label><input type="number" min="0" step="250" placeholder="e.g. 12548" onFocus={handleFocus} value={plan?.demographics?.statePensionSelf ?? ''} onChange={(e) => updateDemographics('statePensionSelf', e.target.value)} className={inputCls} /></div>
+                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label><input type="number" min="0" step="250" placeholder="e.g. 12548" onFocus={handleFocus} value={plan?.demographics?.statePensionPart ?? ''} onChange={(e) => updateDemographics('statePensionPart', e.target.value)} className={inputCls} /></div>}
                 <div className="sm:col-span-2">
                   <label className="text-slate-600 font-semibold block mb-1">{isCouple ? 'Joint Net Living Spend (£/yr)' : 'Net Living Spend (£/yr)'}</label>
                   <input type="number" min="0" step="1000" placeholder="e.g. 30000" onFocus={handleFocus} value={plan?.spending?.targetSpend ?? ''} onChange={(e) => updateSpending('targetSpend', e.target.value)} className={inputCls} />

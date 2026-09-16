@@ -7,6 +7,7 @@ import {
   GripVertical
 } from 'lucide-react';
 import { ThemeToggle } from './theme.jsx';
+import { BottomNav, MoreSheet } from './nav.jsx';
 import EditMode from './EditMode.jsx';
 // ============================================================================================
 // Monte-Carlo Retirement Planner v3.4 — single-file build (engine + UI).
@@ -5851,6 +5852,35 @@ const APP_VERSION = 'v0.8 beta';
  * cannot rot - a change that breaks it still breaks the build.
  */
 const SHOW_INHERITANCE = false;
+/*
+ * THE TABS, ONCE.
+ *
+ * These used to be nine inline calls inside the header. There are two bars now - the strip on desktop
+ * and the bar across the bottom of a phone - and a tab that existed in one but not the other would be a
+ * section of the app somebody simply could not reach. So both render from this list.
+ *
+ * `short` is for the bottom bar, where five labels share the width of the screen: "Backtest" fits under
+ * an icon at 78px, "Historical Backtest" does not. `enabled` is a function rather than a boolean so it
+ * is read at render time, which is what lets a feature flag flip without reordering this array.
+ */
+const TABS = [
+  { id: 'home',        Icon: Home,     label: 'Start Here',            short: 'Start' },
+  { id: 'inputs',      Icon: Sliders,  label: 'Plan Inputs',           short: 'Inputs' },
+  { id: 'config',      Icon: Settings, label: 'Config & Assumptions',  short: 'Config' },
+  { id: 'projection',  Icon: Layers,   label: 'Projection',            short: 'Projection' },
+  { id: 'strategy',    Icon: Zap,      label: 'Strategy',              short: 'Strategy', accent: 'indigo' },
+  { id: 'inheritance', Icon: Gift,     label: 'Inheritance',           short: 'Inherit',  accent: 'indigo', enabled: () => SHOW_INHERITANCE },
+  { id: 'historical',  Icon: History,  label: 'Historical Backtest',   short: 'Backtest', accent: 'indigo' },
+  { id: 'audit',       Icon: Table,    label: 'Audit Data Table',      short: 'Audit' },
+  { id: 'docs',        Icon: BookOpen, label: 'Documentation',         short: 'Docs' },
+];
+const visibleTabs = () => TABS.filter(t => !t.enabled || t.enabled());
+/*
+ * The four that live on the bottom bar. Chosen as the path through the app: where you start, where you
+ * type, where you read the answer, and where you compare. Everything else is reference material and sits
+ * one tap further away behind More - reachable, just not competing for the four best positions.
+ */
+const PHONE_PRIMARY = ['home', 'inputs', 'projection', 'strategy'];
 const MC_TRIALS = 5000;
 /*
  * HOW MANY PATHS EVERY PLAYER IN A SEARCH RUNS ON.
@@ -6926,7 +6956,8 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
  * The theme arrives as props because the shell owns it: the streamlined page needs the same control, and
  * the switch between the two apps unmounts whichever one is not showing. See src/theme.jsx.
  */
-export default function App({ theme = 'system', setTheme = () => {}, resolvedTheme = 'light' }) {
+export default function App({ theme = 'system', setTheme = () => {}, resolvedTheme = 'light',
+  isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 } }) {
   // a returning visitor already knows the layout, so only a first visit (no saved plan) opens on the guide
   const [activeTab, setActiveTab] = useState(() => (safeStorageGet(STORAGE_KEY) ? 'inputs' : 'home'));
   const [isEditingRisk, setIsEditingRisk] = useState(false);
@@ -7574,15 +7605,36 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * Everything downstream reads innerWidth/innerHeight, so the scales, the paths and the markers all
    * follow without knowing about any of this.
    */
-  const [viewportW, setViewportW] = useState(() => (typeof window === 'undefined' ? 1280 : window.innerWidth));
-  useEffect(() => {
-    const onResize = () => setViewportW(window.innerWidth);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-  const isNarrow = viewportW < 640;
-  const chartWidth = isNarrow ? 560 : 960, chartHeight = isNarrow ? 620 : 420;
-  const margin = isNarrow ? { top: 18, right: 14, bottom: 40, left: 58 } : { top: 25, right: 35, bottom: 45, left: 80 };
+  /*
+   * When a chart is open fullscreen, the overlay measures its own area and reports it here; the box
+   * below then uses it verbatim, so one chart definition serves both the inline and the fullscreen copy.
+   */
+  /*
+   * `touch` is a different question from `isPhone`: it asks whether a finger is doing the pointing, and
+   * it governs control SIZES. A tablet is not a phone but still needs 44px targets.
+   */
+  const touch = isPhone || isCoarse;
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [overlayBox, setOverlayBox] = useState(null);
+
+  /*
+   * THE CHART BOX.
+   *
+   * There used to be a private width listener here with its own 640px breakpoint. It is gone: the shell
+   * owns one viewport subscription now (src/viewport.js) and hands the answer down, so a `md:` class and
+   * this code can never disagree about where a phone starts.
+   *
+   * On a phone the viewBox width EQUALS the CSS width the SVG is painted at, which is the whole point:
+   * SVG text then renders 1:1, so the fontSize numbers below mean what they say. The old box was 560
+   * wide inside a ~318px column, which shrank every 12px label to 6.8px - legible on a desktop monitor
+   * at a glance, not on a phone.
+   */
+  const isNarrow = isPhone;
+  const chartBox = overlayBox || (isPhone
+    ? { w: viewport.width, h: Math.min(Math.round(viewport.width * 0.8), 340) }
+    : { w: 960, h: 420 });
+  const chartWidth = chartBox.w, chartHeight = chartBox.h;
+  const margin = isNarrow ? { top: 14, right: 10, bottom: 34, left: 48 } : { top: 25, right: 35, bottom: 45, left: 80 };
   const innerWidth = chartWidth - margin.left - margin.right;
   const innerHeight = chartHeight - margin.top - margin.bottom;
   const xScale = useMemo(() => d3.scaleLinear().domain([currentAge, Math.max(currentAge + 1, effectiveMaxVisibleAge)]).range([0, innerWidth]), [currentAge, effectiveMaxVisibleAge, innerWidth]);
@@ -9117,8 +9169,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className={`min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans ${touch ? 'touch-ui' : ''} ${isPhone ? 'pb-[calc(3.5rem+env(safe-area-inset-bottom))]' : ''}`}>
+      <div data-app-content className="max-w-7xl mx-auto space-y-6">
 
         {/* Header Bar */}
         <div className="bg-surface border border-slate-200/90 rounded-xl p-5">
@@ -9141,18 +9193,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div className="flex items-center gap-2 flex-wrap">
               {/* data-tabbar keeps these clickable while the in-app editor is on, so you can still move
                   between tabs while editing; Alt-click edits a tab's own label. */}
-              <div data-tabbar className="flex items-end gap-1 border-b border-slate-200 flex-wrap">
-                {tabBtn('home', Home, 'Start Here')}
-                {tabBtn('inputs', Sliders, 'Plan Inputs')}
-                {tabBtn('config', Settings, 'Config & Assumptions')}
-                {tabBtn('projection', Layers, 'Projection')}
-                {tabBtn('strategy', Zap, 'Strategy', 'indigo')}
-                {SHOW_INHERITANCE && tabBtn('inheritance', Gift, 'Inheritance', 'indigo')}
-                {tabBtn('historical', History, 'Historical Backtest', 'indigo')}
-                {tabBtn('audit', Table, 'Audit Data Table')}
-                {tabBtn('docs', BookOpen, 'Documentation')}
+              {/* Hidden rather than unmounted on phones: the in-app editor and the regression harness
+                  both reach tabs through this node, and click() fires on a display:none element. */}
+              <div data-tabbar className="hidden md:flex items-end gap-1 border-b border-slate-200 flex-wrap">
+                {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
               </div>
-              <ThemeToggle theme={theme} setTheme={setTheme} />
+              <ThemeToggle theme={theme} setTheme={setTheme} touch={touch} />
             </div>
           </div>
 
@@ -9819,8 +9865,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           <div className="text-[10px] text-slate-500 leading-snug">{m.why}</div>
                         </div>
                         <div className="flex flex-col shrink-0">
-                          <button type="button" aria-label={`Move ${m.label} up`} disabled={i === 0} onClick={() => movePriority(i, -1)} className="p-0.5 text-slate-400 enabled:hover:text-blue-700 disabled:opacity-25 enabled:cursor-pointer"><ChevronUp className="w-3.5 h-3.5" /></button>
-                          <button type="button" aria-label={`Move ${m.label} down`} disabled={i === priorityList.length - 1} onClick={() => movePriority(i, 1)} className="p-0.5 text-slate-400 enabled:hover:text-blue-700 disabled:opacity-25 enabled:cursor-pointer"><ChevronDown className="w-3.5 h-3.5" /></button>
+                          <button type="button" aria-label={`Move ${m.label} up`} disabled={i === 0} onClick={() => movePriority(i, -1)} className={`p-0.5 text-slate-400 enabled:hover:text-blue-700 disabled:opacity-25 enabled:cursor-pointer ${touch ? 'min-w-11 flex items-center justify-center' : ''}`}><ChevronUp className="w-3.5 h-3.5" /></button>
+                          <button type="button" aria-label={`Move ${m.label} down`} disabled={i === priorityList.length - 1} onClick={() => movePriority(i, 1)} className={`p-0.5 text-slate-400 enabled:hover:text-blue-700 disabled:opacity-25 enabled:cursor-pointer ${touch ? 'min-w-11 flex items-center justify-center' : ''}`}><ChevronDown className="w-3.5 h-3.5" /></button>
                         </div>
                       </li>
                     );
@@ -12372,6 +12418,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         * component tree-shakes out of the production bundle rather than merely being hidden.
         */}
       {import.meta.env.DEV && <EditMode />}
+
+      {/* The bar is only rendered on a phone, and is ALSO md:hidden. Belt and braces on purpose: the
+          JS boundary and the CSS boundary are the same 767px, and if they ever drift the CSS wins, which
+          is the safer failure - a bar that hides itself rather than two navigations at once. */}
+      {isPhone && (
+        <>
+          <BottomNav tabs={visibleTabs()} primaryIds={PHONE_PRIMARY} activeTab={activeTab}
+            onSelect={(id) => { setActiveTab(id); setMoreOpen(false); window.scrollTo(0, 0); }}
+            onMore={() => setMoreOpen(v => !v)} moreOpen={moreOpen} />
+          <MoreSheet open={moreOpen} tabs={visibleTabs()} primaryIds={PHONE_PRIMARY} activeTab={activeTab}
+            onSelect={(id) => { setActiveTab(id); window.scrollTo(0, 0); }} onClose={() => setMoreOpen(false)} />
+        </>
+      )}
     </div>
   );
 }

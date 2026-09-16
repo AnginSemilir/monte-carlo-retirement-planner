@@ -121,7 +121,7 @@ const loadScenarios = () => {
   return [];
 };
 
-export default function Simple() {
+export default function Simple({ isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 } }) {
   const [s, setS] = useState(load);
   const [view, setView] = useState('rate');      // 'rate' (CAGR) | 'mc' - the advanced deck's two charts
   const [bandMode, setBandMode] = useState('quartile');

@@ -6,12 +6,16 @@
  * measuring how long the `d` attributes are - they are full length from the first frame and the sweep is
  * a stroke-dashoffset animation over them. Checking path length alone would therefore pass no matter
  * what, so this checks the MECHANISM: the paths carry pathLength and the draw class, the band carries
- * its own, and the geometry underneath is full-size. Run: node mc-reveal-ui.cjs [shotDir]
+ * its own, and the geometry underneath is full-size. Run: node mc-reveal-ui.cjs [port] [shotDir]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
 const fs = require('fs');
-const SHOT = process.argv[2];
-const css = fs.readFileSync('/tmp/claude-0/twbuild/out.css', 'utf8');
+const PORT = process.argv[2] || '5173';
+const SHOT = process.argv[3];
+// the dev server used to lean on a Tailwind CDN; this injection is the leftover. Tolerate its
+// absence so a clean machine can still run the harness against the built site, which ships its own CSS.
+const CSS_PATH = '/tmp/claude-0/twbuild/out.css';
+const css = fs.existsSync(CSS_PATH) ? fs.readFileSync(CSS_PATH, 'utf8') : '';
 const GIA = 'Other Investments (e.g. GIA)';
 const plan = {
   demographics:{planningMode:'single',currentAgeSelf:62,retireAgeSelf:61,salarySelf:0,employmentSelf:'employed',statePensionAge:68,privatePensionAge:58,statePensionSelf:11976,terminalAge:95},
@@ -27,7 +31,7 @@ const plan = {
   const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push('console: ' + m.text().slice(0, 200)); });
   await p.route('https://cdn.tailwindcss.com/**', r => r.fulfill({ status:200, contentType:'application/javascript', body:'window.tailwind={config:{}};' }));
   await p.addInitScript(pl => { localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); }, plan);
-  await p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' });
+  await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(800);
   await p.addStyleTag({ content: css });
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Projection/.test(b.textContent)); if(x) x.click(); });

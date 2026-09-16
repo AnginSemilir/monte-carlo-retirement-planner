@@ -60,13 +60,18 @@ const OPTIONS = [
   { id: 'system', Icon: Monitor, title: 'Match my device' },
 ];
 
-export function ThemeToggle({ theme, setTheme, className = '' }) {
+/*
+ * `touch` grows the three buttons from 28px to 44px. A 28px target is fine under a mouse and too small
+ * under a thumb, and this control sits in the header of every screen, so it would otherwise be the one
+ * thing on the page a finger could not reliably hit.
+ */
+export function ThemeToggle({ theme, setTheme, touch = false, className = '' }) {
   return (
     <div className={`flex items-center gap-0.5 bg-slate-100 p-1 rounded-lg border border-slate-200/80 ${className}`}>
       {OPTIONS.map(({ id, Icon, title }) => (
         <button key={id} type="button" onClick={() => setTheme(id)} title={title} aria-label={title}
           aria-pressed={theme === id}
-          className={`p-1.5 rounded-md transition-colors cursor-pointer ${theme === id ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-800'}`}>
+          className={`rounded-md transition-colors cursor-pointer ${touch ? 'min-h-11 min-w-11 flex items-center justify-center' : 'p-1.5'} ${theme === id ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-800'}`}>
           <Icon className="w-4 h-4" />
         </button>
       ))}

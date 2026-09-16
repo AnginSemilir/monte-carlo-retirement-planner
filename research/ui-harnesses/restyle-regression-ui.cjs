@@ -20,6 +20,8 @@
  * Run: node restyle-regression-ui.cjs [port] [shotDir]
  */
 const { chromium } = require('/tmp/node_modules/playwright');
+// the contrast maths is shared with the phone harness so the two can never drift apart
+const { CONTRAST_PROBE } = require('./lib/probes.cjs');
 const PORT = process.argv[2] || '5173';
 const SHOT = process.argv[3] || '';
 const GIA = 'Other Investments (e.g. GIA)';
@@ -48,42 +50,6 @@ const TABS = [
 
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
-
-// WCAG contrast, measured against the background that is really behind the text
-const CONTRAST_PROBE = () => {
-  const lum = (c) => {
-    const [r, g, b] = c;
-    const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
-    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
-  };
-  const parse = (s) => { const m = (s || '').match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]] : null; };
-  const over = (fg, bg) => fg.slice(0, 3).map((v, i) => v * fg[3] + bg[i] * (1 - fg[3]));
-  const bgOf = (el) => {
-    let n = el, acc = [255, 255, 255];
-    const stack = [];
-    while (n && n.nodeType === 1) { const c = parse(getComputedStyle(n).backgroundColor); if (c && c[3] > 0) stack.push(c); if (c && c[3] === 1) break; n = n.parentElement; }
-    for (let i = stack.length - 1; i >= 0; i--) acc = over(stack[i], acc);
-    return acc;
-  };
-  const bad = [];
-  for (const el of document.querySelectorAll('body *')) {
-    // the in-page editor is dev-only chrome and never ships, so it is not part of what a visitor sees
-    if (el.closest('[data-dev-chrome]')) continue;
-    // only elements with their own visible text run
-    const own = [...el.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim().length > 1).map(n => n.textContent.trim()).join(' ');
-    if (!own) continue;
-    const cs = getComputedStyle(el);
-    if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0) continue;
-    const r = el.getBoundingClientRect();
-    if (r.width < 2 || r.height < 2) continue;
-    const fg = parse(cs.color); if (!fg) continue;
-    const bg = bgOf(el);
-    const f = lum(over(fg, bg)), b = lum(bg);
-    const ratio = (Math.max(f, b) + 0.05) / (Math.min(f, b) + 0.05);
-    if (ratio < 3) bad.push({ text: own.slice(0, 45), ratio: +ratio.toFixed(2), color: cs.color, size: cs.fontSize });
-  }
-  return bad;
-};
 
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
@@ -120,7 +86,23 @@ const CONTRAST_PROBE = () => {
         worstAll = worstAll.concat(bad);
         if (SHOT && width === 1400) await p.screenshot({ path: `${SHOT}/reg-${theme}-${tab.replace(/[^a-z]/gi, '')}.png` });
       }
-      ok(`${theme} @ ${width}: no page errors`, errs.length === 0, errs.slice(0, 2).join(' | '));
+      /*
+     * The phone layout must not leak on to the desktop, and must actually appear on a phone. Both halves
+     * matter: a media query typo that showed the bottom bar at 1400 would otherwise only be caught by
+     * somebody looking at the page.
+     */
+    const chrome = await p.evaluate(() => ({
+      nav: !!document.querySelector('[data-bottomnav]'),
+      strip: (() => { const el = document.querySelector('[data-tabbar]'); return el ? Math.round(el.getBoundingClientRect().height) : 0; })()
+    }));
+    if (width >= 1024) {
+      ok(`${theme} @ ${width}: no bottom nav on desktop`, !chrome.nav);
+      ok(`${theme} @ ${width}: the top tab strip is showing`, chrome.strip > 0, `${chrome.strip}px`);
+    } else {
+      ok(`${theme} @ ${width}: bottom nav present`, chrome.nav);
+      ok(`${theme} @ ${width}: the top tab strip is hidden`, chrome.strip === 0, `${chrome.strip}px`);
+    }
+    ok(`${theme} @ ${width}: no page errors`, errs.length === 0, errs.slice(0, 2).join(' | '));
       await p.close();
     }
   }

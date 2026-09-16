@@ -19,7 +19,10 @@ const { chromium } = require('/tmp/node_modules/playwright');
 const fs = require('fs');
 const PORT = process.argv[2] || '5173';
 const SHOT = process.argv[3];
-const css = fs.readFileSync('/tmp/claude-0/twbuild/out.css', 'utf8');
+// the dev server used to lean on a Tailwind CDN; this injection is the leftover. Tolerate its
+// absence so a clean machine can still run the harness against the built site, which ships its own CSS.
+const CSS_PATH = '/tmp/claude-0/twbuild/out.css';
+const css = fs.existsSync(CSS_PATH) ? fs.readFileSync(CSS_PATH, 'utf8') : '';
 const GIA = 'Other Investments (e.g. GIA)';
 const plan = {
   demographics:{planningMode:'single',currentAgeSelf:45,retireAgeSelf:62,salarySelf:70000,employmentSelf:'employed',statePensionAge:68,privatePensionAge:58,statePensionSelf:11976,terminalAge:95},

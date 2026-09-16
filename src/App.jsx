@@ -9962,7 +9962,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {renderProjectionChart('rate')}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
                     <strong className="text-slate-700">The band is the {bandSpec.lowPct} to {bandSpec.highPct} percentile, each edge compounded at that age&rsquo;s own rate.</strong>
-                    {' '}<strong className="text-rose-700">The weakness: none of these lines can go bust.</strong> A casino lets a winner keep playing but stops a loser at zero. This chart only models the winner. No line here ever sells cheap to pay a bill, so the bottom edge flatters you &mdash; and the weaker the plan, the more it flatters.
+                    {' '}<strong className="text-rose-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with drawdown could take a higher-risk portfolio to £0. See the Monte Carlo simulation for a better predictor of how robust your plan is.
                     {bandCurves && bandCurves.lo.failAge !== null && <> <strong className="text-rose-700">Below age {bandCurves.lo.failAge} the bottom edge is broken, not low.</strong></>}
                   </p>
                   {slideNav(4)}

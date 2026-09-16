@@ -377,7 +377,7 @@ export default function Simple() {
    * and the four wrappers are one table with a header row - balance, risk, paid in each year - which is
    * how the figures actually relate to each other and lets the eye compare down a column.
    */
-  const inCls = 'w-full px-2 py-1 bg-surface border border-slate-300 rounded-md text-[13px] font-mono text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const inCls = 'w-full px-1.5 sm:px-2 py-1 bg-surface border border-slate-300 rounded-md text-[12px] sm:text-[13px] font-mono text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500';
   const subCls = 'px-1.5 py-1 bg-surface border border-slate-200 rounded-md text-[11px] text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500';
 
   /*
@@ -505,17 +505,39 @@ export default function Simple() {
   const setEarning = (id, k, v) => setS(p => ({ ...p, earnings: (p.earnings || []).map(e => e.id === id ? { ...e, [k]: v } : e) }));
   const dropEarning = (id) => setS(p => ({ ...p, earnings: (p.earnings || []).filter(e => e.id !== id) }));
 
-  const figure = (label, value, sub, tone = 'text-slate-900', pending = false) => (
-    <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5">
-      <span className="text-[11px] text-slate-500 block mb-0.5">{label}</span>
-      {pending
-        ? <span className="text-2xl font-black font-mono text-slate-300 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />&mdash;</span>
-        : <span className={`text-2xl font-black font-mono ${tone}`}>{value}</span>}
-      <span className="text-[11px] text-slate-500 block mt-1 leading-snug">{sub}</span>
-    </div>
-  );
+  /*
+   * A card sizes its own figure. "£1,246,411" is nine characters and overflowed the card on a phone,
+   * where the same class held "84.9%" comfortably - so the type scale steps down as the string grows
+   * rather than being set once for the shortest value it will ever hold.
+   */
+  const figure = (label, value, sub, tone = 'text-slate-900', pending = false) => {
+    const n = String(value).length;
+    const size = n > 10 ? 'text-base' : n > 8 ? 'text-lg' : n > 6 ? 'text-xl' : 'text-2xl';
+    return (
+      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 min-w-0">
+        <span className="text-[11px] text-slate-500 block mb-0.5 leading-snug">{label}</span>
+        {pending
+          ? <span className="text-2xl font-black font-mono text-slate-300 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />&mdash;</span>
+          : <span className={`${size} font-black font-mono tabular-nums block truncate ${tone}`} title={String(value)}>{value}</span>}
+        <span className="text-[11px] text-slate-500 block mt-1 leading-snug">{sub}</span>
+      </div>
+    );
+  };
 
   const mc = res?.mc, ss = res?.safeSpend, sa = res?.safeAge;
+  /*
+   * The rate-based chart has its own end-of-plan figures and CANNOT produce the Monte Carlo ones: a
+   * survival rate, a safe spend and an earliest retirement age are all counts over simulated paths, and
+   * a compounded line has no paths to count. So the cards follow the chart rather than sitting there
+   * quoting figures the picture above them did not produce.
+   */
+  const rateCards = useMemo(() => {
+    if (!expected) return null;
+    const end = (arr) => (arr && arr.length ? arr[arr.length - 1].totalCombined : null);
+    const at = (arr, age) => { const r = (arr || []).find(x => x.ageSelf >= age); return r ? r.totalCombined : null; };
+    return { retire: at(expected.mid, num(s.retireSelf, 0)), mid: end(expected.mid),
+      lo: end(expected.lo), hi: end(expected.hi), failAge: expected.failAge };
+  }, [expected, s.retireSelf]);
   const potAtRetirement = useMemo(() => {
     if (!timeline) return null;
     const at = num(s.retireSelf, 0);
@@ -585,7 +607,7 @@ export default function Simple() {
 
         <div>
           <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">Portfolio</h2>
-          <div className="grid grid-cols-[auto_minmax(88px,1fr)_66px_74px_46px] gap-x-1 gap-y-1 items-center">
+          <div className="grid grid-cols-[auto_minmax(92px,1fr)_60px_66px_44px] sm:grid-cols-[auto_minmax(92px,1fr)_66px_74px_46px] gap-x-1 gap-y-1 items-center">
             <span />
             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide text-right pr-5">Balance</span>
             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Risk</span>
@@ -655,7 +677,7 @@ export default function Simple() {
       {/* ------------------------------------------------ RIGHT: can you afford it */}
       <div className="bg-surface border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-4 min-w-0">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Can you afford it?</h2>
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Projections</h2>
           {busy && <span className="text-[11px] text-slate-400 flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> {view === 'mc' ? `simulating ${LIVE_TRIALS.toLocaleString()} futures` : 'working'}</span>}
         </div>
 
@@ -710,7 +732,7 @@ export default function Simple() {
                 <p className="text-[11px] text-slate-500 leading-relaxed">
                   {chart.useFan
                     ? <>The shaded band is the {band.lowPct} to {band.highPct} of {LIVE_TRIALS.toLocaleString()} simulated futures, and a path that runs out stays at zero &mdash; so the bottom edge is honest about failure.</>
-                    : <>The shaded band is the {band.lowPct} to {band.highPct}, each edge compounded at that age&rsquo;s own rate. <strong className="text-slate-700">No line here can go bust</strong>, so the bottom edge flatters a weak plan. Flip to Monte Carlo to see what that hides.</>}
+                    : <>The shaded band is the {band.lowPct} to {band.highPct}, each edge compounded at that age&rsquo;s own rate. <strong className="text-slate-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with drawdown could take a higher-risk portfolio to £0. See the Monte Carlo simulation for a better predictor of how robust your plan is.</>}
                   {' '}Both views share one scale, so switching compares rather than rescales.
                   {chart.clippedTo && <> The top of the band runs off the chart, reaching {GBP(chart.clippedTo)} at its highest &mdash; the axis follows the middle line so it stays readable.</>}
                 </p>
@@ -718,35 +740,51 @@ export default function Simple() {
             )}
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-              {figure('Survives', mc ? `${mc.successRate.toFixed(1)}%` : '', mc ? `of ${mc.trials.toLocaleString()} futures, spending ${GBP(num(s.spend, 0))}` : 'simulating', rateTone, !mc)}
-              {figure('Safe spend', ss ? GBP(ss.spend) : '', `the most that still clears ${TARGET}%`, 'text-emerald-700', !ss)}
-              {figure('Retire from',
-                sa ? (sa.alreadyRetired ? 'now' : sa.age == null ? 'later' : String(sa.age)) : '',
-                sa ? (sa.alreadyRetired ? 'you are already past the age you entered'
-                  : sa.age == null ? `no age up to your horizon clears ${TARGET}%`
-                    : `the earliest stop that clears ${TARGET}%`)
-                  : 'scanning each age',
-                'text-blue-700', !sa)}
-              {figure('Pot when you stop', potAtRetirement == null ? '' : GBP(potAtRetirement),
-                `age ${num(s.retireSelf, 0)}, on the expected path`, 'text-indigo-700', potAtRetirement == null)}
-              {figure('Typical pot at the end', mc ? GBP(mc.medianTerminal) : '',
-                `age ${num(s.terminalAge, 95)} — half of futures end above this`, 'text-blue-700', !mc)}
-              {/* a pot floors at zero, so "below this" is meaningless once the tenth percentile has run dry */}
-              {figure('Unlucky pot at the end', mc ? GBP(mc.p10Terminal) : '',
-                mc && mc.p10Terminal <= 0 ? 'at least one future in ten runs out before the end' : 'one future in ten ends below this',
-                mc && mc.p10Terminal <= 0 ? 'text-rose-700' : 'text-slate-700', !mc)}
+              {chart && !chart.useFan ? <>
+                {figure('Pot at retirement', rateCards?.retire == null ? '' : GBP(rateCards.retire),
+                  `age ${num(s.retireSelf, 0)}, expected path`, 'text-indigo-700', !rateCards)}
+                {figure(`Expected pot @ ${num(s.terminalAge, 95)}`, rateCards ? GBP(rateCards.mid) : '',
+                  'the middle line, compounded', 'text-blue-700', !rateCards)}
+                {figure(`${band.highPct} @ ${num(s.terminalAge, 95)}`, rateCards ? GBP(rateCards.hi) : '',
+                  'the top edge of the band', 'text-emerald-700', !rateCards)}
+                {figure(`${band.lowPct} @ ${num(s.terminalAge, 95)}`, rateCards ? GBP(rateCards.lo) : '',
+                  rateCards && rateCards.failAge !== null && rateCards.failAge !== undefined
+                    ? `broken from age ${rateCards.failAge}, not low` : 'the bottom edge of the band',
+                  rateCards && rateCards.failAge != null ? 'text-rose-700' : 'text-slate-700', !rateCards)}
+              </> : <>
+                {figure('Survival rate', mc ? `${mc.successRate.toFixed(1)}%` : '',
+                  mc ? `±${(1.96 * mc.standardError).toFixed(1)} pts, spending ${GBP(num(s.spend, 0))}` : 'simulating', rateTone, !mc)}
+                {figure('Safe maximum', ss ? GBP(ss.spend) : '', `a year, the most that clears ${TARGET}%`, 'text-emerald-700', !ss)}
+                {figure('Earliest safe retirement',
+                  sa ? (sa.alreadyRetired ? 'now' : sa.age == null ? 'later' : `Age ${sa.age}`) : '',
+                  sa ? (sa.alreadyRetired ? 'you are already past the age you entered'
+                    : sa.age == null ? `no age up to your horizon clears ${TARGET}%`
+                      : `the earliest stop that clears ${TARGET}%`)
+                    : 'scanning each age',
+                  'text-blue-700', !sa)}
+                {figure('Pot at retirement', potAtRetirement == null ? '' : GBP(potAtRetirement),
+                  `age ${num(s.retireSelf, 0)}, expected path`, 'text-indigo-700', potAtRetirement == null)}
+                {figure(`Median pot @ ${num(s.terminalAge, 95)}`, mc ? GBP(mc.medianTerminal) : '',
+                  'half of futures end above this', 'text-blue-700', !mc)}
+                {/* a pot floors at zero, so "below this" is meaningless once the tenth percentile has run dry */}
+                {figure(`Unlucky pot @ ${num(s.terminalAge, 95)}`, mc ? GBP(mc.p10Terminal) : '',
+                  mc && mc.p10Terminal <= 0 ? 'one plan in ten runs out before the end' : 'one plan in ten ends below',
+                  mc && mc.p10Terminal <= 0 ? 'text-rose-700' : 'text-slate-700', !mc)}
+              </>}
             </div>
-            {mc && (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+              {/* these three are counts over simulated paths, so they belong to the Monte Carlo view only */}
+              {mc && chart && chart.useFan && <>
                 <span>Tax over your lifetime, typical run: <strong className="text-slate-700 font-mono">{GBP(mc.medianLifetimeTax)}</strong></span>
                 {mc.preNmpaFailRate > 0 && <span>Stranded before the pension unlocks: <strong className={mc.preNmpaFailRate > 5 ? 'text-rose-700 font-mono' : 'text-slate-700 font-mono'}>{mc.preNmpaFailRate.toFixed(1)}%</strong></span>}
                 {mc.medianFailAge && <span>Of the runs that fail, the money typically goes at <strong className="text-slate-700 font-mono">{mc.medianFailAge}</strong></span>}
-                <button type="button" onClick={exportCsv} disabled={!timeline}
-                  className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 hover:border-slate-300 font-semibold cursor-pointer disabled:opacity-40">
-                  <Download className="w-3 h-3" /> Export the year-by-year figures
-                </button>
-              </div>
-            )}
+              </>}
+              {/* the export is the year-by-year projection, which both views are drawn from */}
+              <button type="button" onClick={exportCsv} disabled={!timeline}
+                className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 hover:border-slate-300 font-semibold cursor-pointer disabled:opacity-40">
+                <Download className="w-3 h-3" /> Export the year-by-year figures
+              </button>
+            </div>
 
             <p className="text-[11px] text-slate-500 leading-relaxed border-t border-slate-100 pt-3">
               All three are quoted at a <strong className="text-slate-700">{TARGET}% target</strong>: the most you could spend, and the earliest you could stop, while still coming through {TARGET} futures in 100. Every figure is in today&rsquo;s money.

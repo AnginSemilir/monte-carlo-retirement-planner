@@ -481,9 +481,9 @@ const defaultAccounts = () => [
 /*
  * WHAT THE HOUSEHOLD IS ACTUALLY OPTIMISING FOR.
  *
- * Measured across 360 households, the ranking objective moves the recommended policy far more than the
- * choice of policies does: ranking on expected pot instead of survival changes the answer for 64% of
- * them, and takes Sequential from winning 1% to winning 55%. Nothing about the policies changes - only
+ * Measured across 420 households, the ranking objective moves the recommended policy far more than the
+ * choice of policies does: ranking on expected pot instead of survival changes the answer for 75% of
+ * them, and takes Sequential from winning 1% to winning 46%. Nothing about the policies changes - only
  * the question being asked of them. So the priority order is a first-class input, not a preference.
  *
  * `epsilon` is what makes a RANKING different from a tie-break: a lower priority may only choose among

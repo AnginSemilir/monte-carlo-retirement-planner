@@ -37,10 +37,14 @@ const css = fs.existsSync('/tmp/claude-0/twbuild/out.css') ? fs.readFileSync('/t
     ok(`${width}: no drag list visible`, await p.evaluate(() => { const l=document.querySelector('[data-priority-list]'); return !l || !l.checkVisibility(); }));
 
     // run the sweep
+    const t0 = Date.now();
     await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Auto-pick best policy/.test(b.textContent)); x.click(); });
     await p.waitForFunction(() => /Recommended:/.test(document.body.innerText), null, { timeout: 240000 });
+    console.log(`  auto-pick wall clock: ${((Date.now() - t0) / 1000).toFixed(1)}s`);
     await p.waitForTimeout(400);
     t = await text();
+    ok(`${width}: caption says two runs on two seeds`, /2 runs × [\d,]+ paths · seeds \d+ and \d+/.test(t));
+    console.log('  close call shown:', /Close call\./.test(t));
     const m = t.match(/Recommended: (.+)\n/);
     console.log('  recommended:', m && m[1]);
     ok(`${width}: recommendation stated with survival`, /Recommended:[\s\S]*?\d+\.\d% survival/.test(t));

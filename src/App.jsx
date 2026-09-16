@@ -3339,7 +3339,6 @@ function buildTradeoffs(cands, opts = {}) {
   if (!recommended) return empty;
   const pool = applySurvivalGuard(cands, opts.maxSurvivalSacrificePts);
   const score = (key, c) => PRIORITY_METRICS[key].get(c.stats);
-  // signed so that positive always means "more of the thing this priority wants"
   const gainOn = (key, from, to) => (PRIORITY_METRICS[key].higherIsBetter ? 1 : -1) * (score(key, to) - score(key, from));
   const bestOn = (key) => {
     const m = PRIORITY_METRICS[key];
@@ -3353,28 +3352,60 @@ function buildTradeoffs(cands, opts = {}) {
     if (key === 'bequest' && recommended.stats.postTaxInheritance == null) continue;
     const alt = bestOn(key);
     if (!alt || alt === recommended || alt.id === recommended.id) continue;
-    const gain = gainOn(key, recommended, alt);
-    if (gain <= toleranceFor(key, score(key, alt), tolerances)) continue;
+    if (gainOn(key, recommended, alt) <= toleranceFor(key, score(key, alt), tolerances)) continue;
     const id = alt.id ?? fallbackKey(alt);
-    if (!byId.has(id)) byId.set(id, { candidate: alt, gains: [], costs: [], survivePts: 0 });
-    byId.get(id).gains.push({ key, from: score(key, recommended), to: score(key, alt), delta: gain });
+    if (!byId.has(id)) byId.set(id, alt);
   }
-
-  const cards = [...byId.values()].map(card => {
-    const alt = card.candidate;
-    const gained = new Set(card.gains.map(g => g.key));
-    // everything the switch gives up by more than its own threshold, survival included
-    for (const key of PRIORITY_KEYS) {
-      if (gained.has(key)) continue;
-      const loss = -gainOn(key, recommended, alt);
-      if (loss > toleranceFor(key, score(key, recommended), tolerances)) card.costs.push({ key, from: score(key, recommended), to: score(key, alt), delta: loss });
-    }
-    card.survivePts = score('survive', recommended) - score('survive', alt);
-    return card;
-  });
+  const cards = [...byId.values()].map(alt => tradeoffCard(cands, recommended, alt, opts));
   // free lunches first, then the cheapest in survival; the fallback order settles the rest
   cards.sort((a, b) => (a.survivePts - b.survivePts) || byFallback(a.candidate, b.candidate));
   return { recommended, cards };
+}
+
+/*
+ * ONE CANDIDATE PRICED AGAINST ANOTHER: what switching gains and costs, each only where it clears that
+ * priority's own tie threshold. Used for the trade-off cards and for the "other run's pick" a close
+ * call offers, so the two are priced identically.
+ */
+function tradeoffCard(cands, recommended, alt, opts = {}) {
+  const tolerances = opts.tolerances;
+  const score = (key, c) => PRIORITY_METRICS[key].get(c.stats);
+  const gainOn = (key, from, to) => (PRIORITY_METRICS[key].higherIsBetter ? 1 : -1) * (score(key, to) - score(key, from));
+  const card = { candidate: alt, gains: [], costs: [], survivePts: score('survive', recommended) - score('survive', alt) };
+  for (const key of PRIORITY_KEYS) {
+    if (key === 'survive') continue;
+    if (key === 'bequest' && recommended.stats.postTaxInheritance == null) continue;
+    const gain = gainOn(key, recommended, alt);
+    if (gain > toleranceFor(key, score(key, alt), tolerances)) card.gains.push({ key, from: score(key, recommended), to: score(key, alt), delta: gain });
+    else if (-gain > toleranceFor(key, score(key, recommended), tolerances)) card.costs.push({ key, from: score(key, recommended), to: score(key, alt), delta: -gain });
+  }
+  if (card.survivePts > toleranceFor('survive', score('survive', recommended), tolerances)) {
+    card.costs.unshift({ key: 'survive', from: score('survive', recommended), to: score('survive', alt), delta: card.survivePts });
+  }
+  return card;
+}
+
+/*
+ * THE MEAN OF SEVERAL RUNS OF THE SAME PLAN.
+ *
+ * The policy search scores every candidate on two seeds at half the paths each, so it can tell a
+ * stable answer from a close call (the seeds disagree) at no extra cost. The estimate it ranks on is
+ * the mean of the two: every scalar is averaged, a curve is kept from the first run because the
+ * ranking never reads curves, `trials` is pooled and the standard error recomputed from the pooled
+ * count. A field that is null in any run (a fail age on a plan that never failed) keeps its first value.
+ */
+function averageStats(runs) {
+  const list = (runs || []).filter(Boolean);
+  if (!list.length) return null;
+  if (list.length === 1) return list[0];
+  const out = { ...list[0] };
+  for (const k of Object.keys(list[0])) {
+    const vals = list.map(r => r[k]);
+    if (vals.every(v => typeof v === 'number' && Number.isFinite(v))) out[k] = vals.reduce((a, b) => a + b, 0) / vals.length;
+  }
+  out.trials = list.reduce((a, r) => a + (r.trials || 0), 0);
+  out.standardError = Math.sqrt(Math.max(0, out.successRate * (100 - out.successRate) / Math.max(1, out.trials)));
+  return out;
 }
 
 /*
@@ -5782,7 +5813,7 @@ function estateActionPlan(plan, result) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 /*
  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle
@@ -5790,7 +5821,7 @@ const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, i
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan
@@ -5833,6 +5864,9 @@ const MC_TRIALS = 5000;
  * estimates did not even agree with EACH OTHER, meaning the candidates are genuinely statistically
  * indistinguishable rather than merely under-sampled. What every disagreement in the sample shared was a
  * small consequence: the worst case cost 1.1 points of survival, not a materially worse plan.
+ *
+ * The policy search spends this as TWO seeds at half the paths each, averaged: the same precision, plus
+ * a close-call signal when the two runs disagree. See handleFindBestPolicy.
  *
  * 4,000 is chosen as the point past which more trials buy nothing measurable: 6,000 came back at 80%
  * agreement and a 17% flip rate, inside the sampling error of the 4,000 figures, so the curve is flat
@@ -5978,6 +6012,67 @@ async function runMonteCarloAsync(ctx, { trials, seed, spendOverride = null, onP
     if (shouldStop && shouldStop()) break;
   }
   return { ...E.summarizeTrials(results), spend: spendOverride !== null ? spendOverride : ctx.targetSpend };
+}
+
+/*
+ * SEVERAL PLANS SCORED AT ONCE, OFF THE MAIN THREAD.
+ *
+ * One mcWorker.js per core (capped), each fed one job at a time from a shared queue, so 36 jobs on a
+ * four-core machine run four abreast and the page keeps painting. Jobs carry a plan rather than a
+ * context because a context holds functions and cannot cross a worker boundary; the worker rebuilds it.
+ * The seed travels with each job, so every plan scored on one seed still sees the same market paths
+ * whichever worker ran it - the paired comparison the search depends on is untouched by the split.
+ *
+ * Progress is reported as a fraction of jobs finished, which is coarser than the old per-chunk bar but
+ * arrives from four directions at once. If workers are unavailable or one fails mid-run, whatever is
+ * still unscored falls back to the main-thread path, so a broken worker costs time rather than the
+ * answer.
+ */
+const WORKER_POOL_MAX = 8;
+async function scoreInWorkers(jobs, { onProgress } = {}) {
+  const results = new Map();
+  if (!jobs.length) return results;
+  const report = (job) => { if (onProgress) onProgress(results.size / jobs.length, job); };
+  const onMainThread = async (list) => {
+    for (const j of list) {
+      const p = j.resolve === false ? j.plan : E.resolveMpaa(j.plan);
+      const ctx = E.buildContext(p);
+      const stats = await runMonteCarloAsync(ctx, { trials: j.trials, seed: j.seed });
+      if (j.inheritance) stats.postTaxInheritance = E.postTaxInheritanceFor(p, ctx);
+      results.set(j.key, stats);
+      report(j);
+    }
+  };
+  if (typeof Worker === 'undefined') { await onMainThread(jobs); return results; }
+
+  const n = Math.max(1, Math.min(WORKER_POOL_MAX, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 2, jobs.length));
+  const workers = [];
+  let next = 0;
+  try {
+    for (let i = 0; i < n; i++) workers.push(new Worker(new URL('./mcWorker.js', import.meta.url), { type: 'module' }));
+    await Promise.all(workers.map(w => new Promise((resolve, reject) => {
+      const feed = () => {
+        if (next >= jobs.length) { resolve(); return; }
+        const j = jobs[next++];
+        w.onmessage = (e) => {
+          if (!e.data || e.data.error) { reject(new Error((e.data && e.data.error) || 'worker returned nothing')); return; }
+          results.set(e.data.key, e.data.stats);
+          report(j);
+          feed();
+        };
+        w.onerror = (e) => reject((e && e.error) || new Error((e && e.message) || 'worker failed'));
+        w.postMessage({ key: j.key, plan: j.plan, trials: j.trials, seed: j.seed, resolve: j.resolve !== false, inheritance: !!j.inheritance });
+      };
+      feed();
+    })));
+  } catch (err) {
+    console.warn('scoring in workers failed, finishing on the main thread:', err);
+    workers.forEach(w => w.terminate()); workers.length = 0;
+    await onMainThread(jobs.filter(j => !results.has(j.key)));
+  } finally {
+    workers.forEach(w => w.terminate());
+  }
+  return results;
 }
 
 const inputCls = 'w-full p-2 bg-slate-50 border border-slate-300 rounded-lg font-mono text-slate-900 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none';
@@ -6501,19 +6596,20 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
     setIsEvaluating(true); setResults(null); cancelRef.current = false;
     const total = preview.strategies.length;
     const out = [];
+    const prepared = [];
     try {
       for (let i = 0; i < total; i++) {
         let s = preview.strategies[i];
         // Any player that carries candidates is searched the same way, on the same paths, so the two
         // searching players are ranked against each other on equal terms.
         if (s.candidates) {
-          setProgress({ label: `Player ${i + 1}/${total}: ${s.name}: searching…`, value: i / total });
+          setProgress({ label: `Player ${i + 1}/${total}: ${s.name}: searching…`, value: 0.6 * i / total });
           const evaluated = [];
           for (let k = 0; k < s.candidates.length; k++) {
             const c = s.candidates[k];
             const stats = E.monteCarlo(c.planState, { trials: SEARCH_TRIALS, seed });
             evaluated.push({ ...c, stats });
-            setProgress({ label: `Player ${i + 1}/${total}: ${c.label} → ${stats.successRate.toFixed(1)}% safe`, value: (i + (k + 1) / s.candidates.length * 0.6) / total });
+            setProgress({ label: `Player ${i + 1}/${total}: ${c.label} → ${stats.successRate.toFixed(1)}% safe`, value: 0.6 * (i + (k + 1) / s.candidates.length) / total });
             await tick();
           }
           const best = E.pickBest(evaluated, { preAccessCap, priorities: priorityList, tolerances });
@@ -6528,13 +6624,16 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
             description: (best.describe || s.description) + capNote
           };
         }
-        setProgress({ label: `Player ${i + 1}/${total}: ${s.name}: ${TOURNAMENT_TRIALS.toLocaleString()} paths`, value: (i + 0.6) / total });
-        await tick();
-        const sctx = E.buildContext(s.planState);
-        const stats = await runMonteCarloAsync(sctx, { trials: TOURNAMENT_TRIALS, seed, onProgress: (f) => setProgress({ label: `Player ${i + 1}/${total}: ${s.name}`, value: (i + 0.6 + 0.4 * f) / total }) });
-        out.push({ ...s, stats });
+        prepared.push(s);
         if (cancelRef.current) break;
       }
+      // every player's final score in one batch across the worker pool, all on the same seed
+      setProgress({ label: `Scoring ${prepared.length} players: ${TOURNAMENT_TRIALS.toLocaleString()} paths each`, value: 0.6 });
+      await tick();
+      const scored = await scoreInWorkers(prepared.map((s, i) => ({ key: String(i), plan: s.planState, trials: TOURNAMENT_TRIALS, seed, resolve: false })), {
+        onProgress: (f) => setProgress({ label: `Scored ${Math.round(f * prepared.length)} of ${prepared.length} players`, value: 0.6 + 0.4 * f })
+      });
+      prepared.forEach((s, i) => out.push({ ...s, stats: scored.get(String(i)) }));
       // rank: success (within 0.5%), then p10, then median
       const best = out.length ? E.pickBest(out.map(o => ({ ...o, stats: o.stats }))) : null;
       setResults({ players: out, bestId: best ? best.id : null, meta, seed });
@@ -8503,30 +8602,42 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     await tick();
     try {
       const candidates = E.buildPolicyCandidates(plan);
-      const out = [];
-      for (let i = 0; i < candidates.length; i++) {
-        const c = candidates[i];
-        const label = policyRowLabel(c);
-        setPolicyProgress({ label: `Testing ${i + 1}/${candidates.length}: ${label}`, value: i / candidates.length });
-        await tick();
-        // resolve MPAA per candidate: the policies differ in when taxable pension income starts
-        const cctx = E.buildContext(E.resolveMpaa(c.planState));
-        const stats = await runMonteCarloAsync(cctx, {
-          trials: TOURNAMENT_TRIALS, seed: mcSeed,
-          onProgress: (f) => setPolicyProgress({ label: `Testing ${i + 1}/${candidates.length}: ${label}`, value: (i + f) / candidates.length })
-        });
-        // the bequest priority ranks on this; null when nobody has been named as an heir, in which
-        // case the metric falls back to the pot and says so
-        stats.postTaxInheritance = E.postTaxInheritanceFor(c.planState, cctx);
-        out.push({ ...c, label, stats });
-      }
+      /*
+       * TWO SEEDS AT HALF THE PATHS EACH, NOT ONE AT ALL OF THEM.
+       *
+       * The estimate ranked on is the mean of the two runs, which carries the same total path count and
+       * so the same precision as one run at TOURNAMENT_TRIALS. What the split buys is a second opinion
+       * for free: ranked on either run alone, do the two seeds pick the same combination? Where they do
+       * not, the household is looking at a close call - candidates the simulation cannot separate at
+       * this budget, and (optimality.mjs) often at any budget - and is told so, with the other run's
+       * pick offered as a choice rather than silently discarded.
+       */
+      const seeds = [mcSeed, mcSeed + 1];
+      const perSeed = Math.round(TOURNAMENT_TRIALS / seeds.length);
+      const jobs = [];
+      candidates.forEach(c => seeds.forEach((seed, si) => jobs.push({ key: `${c.id}#${si}`, plan: c.planState, trials: perSeed, seed, inheritance: true })));
+      const scored = await scoreInWorkers(jobs, {
+        onProgress: (f) => setPolicyProgress({ label: `Scored ${Math.round(f * jobs.length)} of ${jobs.length} runs: ${candidates.length} combinations × ${seeds.length} seeds × ${perSeed.toLocaleString()} paths`, value: f })
+      });
+      const out = candidates.map(c => {
+        const bySeed = seeds.map((_, si) => scored.get(`${c.id}#${si}`));
+        return { ...c, label: policyRowLabel(c), stats: E.averageStats(bySeed), bySeed };
+      });
       // ranked against what the household said it cares about, not a fixed survival-first order
-      const { winner: best, steps, consulted, settledAfter } = priorityMode === 'balanced'
-        ? { winner: E.pickBalanced(out), steps: [], consulted: null, settledAfter: null }
-        : E.explainPick(out, { priorities: priorityList, tolerances: priorityTolerances });
+      const pick = (rows) => priorityMode === 'balanced'
+        ? { winner: E.pickBalanced(rows), steps: [], consulted: null, settledAfter: null }
+        : E.explainPick(rows, { priorities: priorityList, tolerances: priorityTolerances });
+      const { winner: best, steps, consulted, settledAfter } = pick(out);
       applyCandidate(best);
       // priced against the survival-first base whatever order was used, so a card always means the same thing
       const tradeoffs = E.buildTradeoffs(out, { tolerances: priorityTolerances });
+      // the same ranking on each run alone: disagreement is the close-call signal
+      const perSeedWinners = seeds.map((_, si) => pick(out.map(r => ({ ...r, stats: r.bySeed[si] }))).winner);
+      const closeCall = new Set(perSeedWinners.map(w => w.id)).size > 1 ? {
+        winners: perSeedWinners.map(w => w.id),
+        cards: [...new Set(perSeedWinners.map(w => w.id))].filter(id => id !== best.id)
+          .map(id => E.tradeoffCard(out, out.find(r => r.id === best.id), out.find(r => r.id === id), { tolerances: priorityTolerances }))
+      } : null;
       /*
        * Order the table by the SAME priorities that chose the winner. Sorting by survival while the
        * ranking used something else would put the chosen row below rows it supposedly beat.
@@ -8543,9 +8654,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         return 0;
       });
       const rankedBy = priorityMode === 'balanced' ? 'balanced' : priorityList.join() === E.DEFAULT_PRIORITIES.join() ? 'default' : 'custom';
-      setPolicyResults({ rows, bestId: best.id, chosenId: best.id, seed: mcSeed, trials: TOURNAMENT_TRIALS, steps, consulted, settledAfter, priorities: priorityList, rankedBy, tradeoffs });
+      setPolicyResults({ rows, bestId: best.id, chosenId: best.id, seed: mcSeed, seeds, trials: TOURNAMENT_TRIALS, trialsPerSeed: perSeed, steps, consulted, settledAfter, priorities: priorityList, rankedBy, tradeoffs, closeCall });
       const decided = steps.length ? E.PRIORITY_METRICS[steps[0].key].label.toLowerCase() : 'your priorities';
-      flash(`Applied "${best.label}": best of ${candidates.length} combinations for ${decided}`, 4000);
+      flash(closeCall ? `Applied "${best.label}" - a close call, see the other run's pick below` : `Applied "${best.label}": best of ${candidates.length} combinations for ${decided}`, 4000);
     } finally { setIsPolicySearching(false); setPolicyProgress(null); }
   };
 
@@ -9757,7 +9868,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div className="pt-3 border-t border-slate-100 space-y-2">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-emerald-600" /> Policy search results: {policyResults.chosenId === policyResults.bestId ? 'recommendation applied above' : 'your choice applied above'}</h3>
-                    <span className="text-[10px] text-slate-400">{policyResults.rows.length} combinations · {policyResults.trials.toLocaleString()} paths each · seed {policyResults.seed} · {policyResults.rankedBy === 'balanced' ? 'every priority balanced' : policyResults.rankedBy === 'custom' ? 'ranked by your order' : 'ranked survival first'}</span>
+                    <span className="text-[10px] text-slate-400">{policyResults.rows.length} combinations · {policyResults.seeds ? `${policyResults.seeds.length} runs × ${policyResults.trialsPerSeed.toLocaleString()} paths · seeds ${policyResults.seeds.join(' and ')}` : `${policyResults.trials.toLocaleString()} paths each · seed ${policyResults.seed}`} · {policyResults.rankedBy === 'balanced' ? 'every priority balanced' : policyResults.rankedBy === 'custom' ? 'ranked by your order' : 'ranked survival first'}</span>
                   </div>
                   {/*
                     * THE CHOICES, PRICED. Each card is a candidate that beats the survival-first
@@ -9787,6 +9898,36 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       bridge: (c) => `${c.delta.toFixed(1)} points more risk of running dry before pension access`
                     };
                     const survFrom = rec.stats.successRate;
+                    const closeCall = policyResults.closeCall;
+                    const closeIds = new Set(closeCall ? closeCall.cards.map(c => c.candidate.id) : []);
+                    const applied = policyResults.rows.find(r => r.id === policyResults.bestId) || rec;
+                    // one renderer for a trade-off card and for the other run's pick, so they read alike
+                    const cardBox = (card, tag) => {
+                      const c = card.candidate;
+                      const row = policyResults.rows.find(r => r.id === c.id) || c;
+                      const active = chosen === c.id;
+                      const free = card.survivePts < 0.05;
+                      const others = card.costs.filter(x => x.key !== 'survive');
+                      const base = tag ? applied : rec;
+                      return (
+                        <div key={c.id} data-tradeoff={c.id} data-close-call={tag ? '1' : undefined} className={`p-2.5 rounded-xl border text-[11px] flex flex-wrap items-start justify-between gap-2 ${active ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-300' : 'bg-surface border-slate-200'}`}>
+                          <div className="min-w-0 flex-1 space-y-0.5">
+                            <div className="font-bold text-slate-800">{tag && <span className="text-amber-800 font-semibold mr-1.5">{tag}</span>}{row.label}</div>
+                            {card.gains.length ? <div className="text-slate-700">{card.gains.map(g => GAIN[g.key](g)).join('; ')}.</div>
+                              : <div className="text-slate-600">No measurable difference from the recommendation on any priority. Either is a sound choice.</div>}
+                            {(card.gains.length || others.length || !free) && (
+                              <div className={free ? 'text-emerald-700' : 'text-amber-800'}>
+                                {free ? 'At no measurable cost in survival' : `For ${card.survivePts.toFixed(1)} points of survival (${base.stats.successRate.toFixed(1)}% → ${row.stats.successRate.toFixed(1)}%)`}{others.length ? `; also ${others.map(x => COST[x.key](x)).join(', ')}` : ''}.
+                              </div>
+                            )}
+                          </div>
+                          <button type="button" onClick={() => chooseTradeoff(card)} disabled={active}
+                            className={`shrink-0 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${active ? 'bg-blue-600 text-white cursor-default' : 'bg-slate-100 text-blue-700 hover:bg-blue-100 cursor-pointer active:scale-95'}`}>
+                            {active ? 'Applied' : 'Use this instead'}
+                          </button>
+                        </div>
+                      );
+                    };
                     return (
                       <div className="space-y-2">
                         <div className="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded-xl text-[11px] text-slate-700">
@@ -9794,35 +9935,25 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             <span><span className="font-bold text-emerald-900">Recommended:</span> {rec.label}</span>
                             <span className="font-mono font-bold text-emerald-800">{survFrom.toFixed(1)}% survival</span>
                           </div>
-                          <div className="text-slate-600 mt-0.5">The best survival available, with the other priorities settling any near-tie.{policyResults.rankedBy !== 'default' && rec.id !== policyResults.bestId ? ` Your own ranking chose ${policyResults.rows.find(r => r.id === policyResults.bestId)?.label} instead; the alternatives below are priced against this survival-first choice.` : ''}</div>
+                          <div className="text-slate-600 mt-0.5">The best survival available, with the other priorities settling any near-tie.{policyResults.rankedBy !== 'default' && rec.id !== policyResults.bestId ? ` Your own ranking chose ${applied.label} instead; the alternatives below are priced against this survival-first choice.` : ''}</div>
+                          {/* The seeds disagreed: say so, and offer the other answer rather than burying it. */}
+                          {closeCall && (
+                            <div data-close-call-note className="text-amber-800 mt-1">
+                              <span className="font-bold">Close call.</span> The two independent runs of your plan chose differently &mdash; {closeCall.winners.map(id => policyResults.rows.find(r => r.id === id)?.label || id).join(' and ')}. The recommendation combines both runs; the other pick is below, and the simulation cannot tell them apart at this budget.
+                            </div>
+                          )}
                         </div>
-                        {cards.length === 0 ? (
-                          <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600">Nothing else beats it by more than the tie threshold on any measure, within the {E.MAX_SURVIVAL_SACRIFICE_PTS}-point survival limit. There is no trade-off to make.</div>
+                        {closeCall && closeCall.cards.length > 0 && (
+                          <div className="space-y-1.5">
+                            {closeCall.cards.map(card => cardBox(card, 'Other run\'s pick:'))}
+                          </div>
+                        )}
+                        {cards.filter(card => !closeIds.has(card.candidate.id)).length === 0 ? (
+                          <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600">Nothing else beats it by more than the tie threshold on any measure, within the {E.MAX_SURVIVAL_SACRIFICE_PTS}-point survival limit. {closeCall ? 'Beyond the close call above, there is no trade-off to make.' : 'There is no trade-off to make.'}</div>
                         ) : (
                           <div className="space-y-1.5">
                             <div className="text-[11px] font-semibold text-slate-700">Alternatives with a real difference</div>
-                            {cards.map(card => {
-                              const c = card.candidate;
-                              const row = policyResults.rows.find(r => r.id === c.id) || c;
-                              const active = chosen === c.id;
-                              const free = card.survivePts < 0.05;
-                              const others = card.costs.filter(x => x.key !== 'survive');
-                              return (
-                                <div key={c.id} data-tradeoff={c.id} className={`p-2.5 rounded-xl border text-[11px] flex flex-wrap items-start justify-between gap-2 ${active ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-300' : 'bg-surface border-slate-200'}`}>
-                                  <div className="min-w-0 flex-1 space-y-0.5">
-                                    <div className="font-bold text-slate-800">{row.label}</div>
-                                    <div className="text-slate-700">{card.gains.map(g => GAIN[g.key](g)).join('; ')}.</div>
-                                    <div className={free ? 'text-emerald-700' : 'text-amber-800'}>
-                                      {free ? 'At no measurable cost in survival' : `For ${card.survivePts.toFixed(1)} points of survival (${survFrom.toFixed(1)}% → ${row.stats.successRate.toFixed(1)}%)`}{others.length ? `; also ${others.map(x => COST[x.key](x)).join(', ')}` : ''}.
-                                    </div>
-                                  </div>
-                                  <button type="button" onClick={() => chooseTradeoff(card)} disabled={active}
-                                    className={`shrink-0 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${active ? 'bg-blue-600 text-white cursor-default' : 'bg-slate-100 text-blue-700 hover:bg-blue-100 cursor-pointer active:scale-95'}`}>
-                                    {active ? 'Applied' : 'Use this instead'}
-                                  </button>
-                                </div>
-                              );
-                            })}
+                            {cards.filter(card => !closeIds.has(card.candidate.id)).map(card => cardBox(card, null))}
                             {chosen !== rec.id && chosen !== policyResults.bestId && (
                               <button type="button" onClick={() => chooseTradeoff({ candidate: rec })} className="text-[11px] text-blue-600 hover:underline font-semibold cursor-pointer">Go back to the recommendation</button>
                             )}
@@ -12075,6 +12206,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">First, it recommends</h3>
               <p className="text-xs text-slate-600 leading-relaxed">The recommendation is the combination with the best chance of staying solvent to your final age. Where several are within <strong>{E.RATE_EPSILON_PTS} percentage point</strong> of each other on survival &mdash; close enough that the simulation cannot honestly separate them &mdash; the near-tie is settled by resilience in poor markets, then by what is left behind, and so on down the default order. Running out of money is the one outcome no later good luck can undo, and it is not symmetric with the others: a smaller bequest is a disappointment, an empty pot at 84 is a crisis. That is why survival goes first and is never traded away by the recommendation itself.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">The search runs twice, on two independent sets of market paths, and ranks on the two runs combined. Where the two runs would each have recommended a different combination, the page says so: that is a close call the simulation cannot settle at this budget, and the other run&apos;s pick is offered alongside the recommendation rather than discarded. Either is a sound choice; the numbers are simply too close to separate them.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Then, it prices the alternatives</h3>
               <p className="text-xs text-slate-600 leading-relaxed">For each of the other five priorities it finds the combination that is best on that measure and states, in your own numbers, what switching to it would gain and what it would cost: <em>&pound;85,000 more in the typical pot, for 1.8 points of survival</em>. Three rules keep those cards honest:</p>

@@ -408,5 +408,30 @@ console.log('\n=========== L. TRADE-OFF CARDS: A CHOICE ONLY WHERE THERE IS ONE 
   void ORDER;
 }
 
+
+console.log('\n=========== M. TWO RUNS AVERAGED, AND A CARD FOR ANY PAIR ===========');
+{
+  const a = { trials: 2000, successRate: 96, medianTerminal: 400000, p10TerminalAdj: 200000, preNmpaFailRate: 0, medianLifetimeTax: 90000, medianFailAge: null, bands: [1, 2, 3], postTaxInheritance: 300000, standardError: 0.44 };
+  const b = { trials: 2000, successRate: 94, medianTerminal: 420000, p10TerminalAdj: 180000, preNmpaFailRate: 1, medianLifetimeTax: 92000, medianFailAge: 88, bands: [9, 9, 9], postTaxInheritance: 300000, standardError: 0.53 };
+  const m = E.averageStats([a, b]);
+  ok('scalars are averaged', m.successRate === 95 && m.medianTerminal === 410000 && m.preNmpaFailRate === 0.5);
+  ok('the path count is pooled and the standard error recomputed from it', m.trials === 4000 && Math.abs(m.standardError - Math.sqrt(95 * 5 / 4000)) < 1e-9);
+  ok('a curve keeps the first run\'s values', JSON.stringify(m.bands) === JSON.stringify([1, 2, 3]));
+  ok('a field null in one run keeps the first run\'s value', m.medianFailAge === null);
+  ok('a deterministic field averages to itself', m.postTaxInheritance === 300000);
+  ok('one run averages to itself, none to null', E.averageStats([a]) === a && E.averageStats([]) === null);
+
+  const rec = mk('rec', 96, 200000, 400000, { medianLifetimeTax: 90000 });
+  const alt = mk('alt', 94.5, 196000, 520000, { medianLifetimeTax: 80000 });
+  const card = E.tradeoffCard([rec, alt], rec, alt);
+  ok('a card lists every gain beyond tolerance', card.gains.map(g => g.key).sort().join() === 'pot,tax');
+  ok('survival beyond tolerance is listed as a cost and as points', card.costs[0].key === 'survive' && Math.abs(card.survivePts - 1.5) < 1e-9);
+  ok('a downside loss inside tolerance is neither', !card.costs.some(c => c.key === 'downside') && !card.gains.some(g => g.key === 'downside'));
+  const twinRow = mk('twin', 95.8, 201000, 402000, { medianLifetimeTax: 89500 });
+  const twin = E.tradeoffCard([rec, twinRow], rec, twinRow);
+  ok('two candidates inside every tolerance produce an empty card, not a missing one', twin.gains.length === 0 && twin.costs.length === 0);
+  ok('buildTradeoffs prices its cards with the same builder', JSON.stringify(E.buildTradeoffs([rec, alt]).cards[0].gains) === JSON.stringify(card.gains));
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

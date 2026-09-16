@@ -1,0 +1,10 @@
+/*
+ * The stylesheet, compiled at build time from tailwind.config.js. main.jsx imports this, so Vite emits
+ * a hashed .css file and links it from the built HTML - no runtime compiler, no third-party request.
+ *
+ * Deliberately NOT imported from App.jsx: the two workers import the engine from there, and a CSS
+ * import inside a worker's module graph is a build error rather than a no-op.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

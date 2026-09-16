@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:engine": "python3 research/build-engine.py && for f in research/tests/*.test.mjs; do node \"$f\" || exit 1; done",
+    "policy:run": "python3 research/build-engine.py && for i in 0 1 2 3; do node research/policy-study/policy-run.mjs $i 4 2000 & done; wait",
+    "policy:dominance": "node research/policy-study/dominance.mjs"
   },
   "dependencies": {
     "d3": "^7.9.0",
@@ -19,7 +22,10 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "autoprefixer": "^10.6.1",
     "oxlint": "^1.81.0",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^3.4.19",
     "vite": "^8.2.2"
   }
 }

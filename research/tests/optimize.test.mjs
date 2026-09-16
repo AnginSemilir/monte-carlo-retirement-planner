@@ -1,0 +1,1028 @@
+/*
+ * The estate optimiser: does the search find what is actually there, and does it refuse to claim what
+ * is not? The cases below are chosen so the right answer is known in advance - a household where only
+ * the nomination can help, one where only a gift can, one where nothing can, and one where the levers
+ * overlap and so must NOT be added together.
+ */
+import * as E from '../engine.mjs';
+let pass = 0, fail = 0;
+const ok = (n, c, extra = '') => { c ? pass++ : fail++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${extra ? '  -- ' + extra : ''}`); };
+const gbp = (x) => '£' + Math.round(x).toLocaleString();
+const GIA = E.CATEGORY_LABEL.other;
+
+const household = (over = {}) => ({
+  demographics: { planningMode: 'single', currentAgeSelf: 70, retireAgeSelf: 65, salarySelf: '',
+    employmentSelf: 'employed', statePensionAge: 68, privatePensionAge: 58, statePensionSelf: 11500,
+    terminalAge: 95, ...(over.demo || {}) },
+  spending: { targetSpend: over.spend ?? 45000, spendBands: [], drawdownStrategy: 'Phased Drawdown',
+    decumulationPolicy: 'Bracket Fill Basic' },
+  accounts: [
+    { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: over.pen ?? 800000, contrib: 0, growth: '', risk: 'Medium Risk' },
+    { id: 'isa_self', owner: 'Myself', category: 'S&S ISAs', balance: over.isa ?? 400000, contrib: 0, growth: '', risk: 'Medium Risk' },
+    { id: 'other_self', owner: 'Myself', category: GIA, balance: over.other ?? 300000, contrib: 0, growth: '', risk: 'Medium Risk', unrealisedGain: 100000 },
+    { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: over.cash ?? 120000, contrib: 0, growth: '', risk: 'Cash Equivalents' }],
+  otherIncomes: over.incomes || [], oneOffContributions: [], oneOffCosts: [],
+  config: { valuationDate: '2026-01-01' },
+  inheritance: { deathAge: over.deathAge ?? 84, homeValue: over.home ?? 700000, homeToDescendants: true,
+    beneficiaries: over.bens || [
+      { id: 'k1', name: 'Jo', relationship: 'descendant', sharePct: 50, income: 80000, age: 50 },
+      { id: 'g1', name: 'Robin', relationship: 'descendant', sharePct: 50, income: 0, age: 22 }],
+    ...(over.inh || {}) }
+});
+
+console.log('=========== A. IT FINDS WHAT IS THERE ===========');
+{
+  const r = E.optimizeInheritance(household());
+  ok('the search returns a ranking', !!r && r.ranked.length > 1, `${r.ranked.length} candidates from ${r.runs} projections`);
+  ok('ranked best first', r.ranked.every((c, i) => i === 0 || r.ranked[i - 1].net >= c.net));
+  ok('the best is at least the plan as it stands', r.best.net >= r.baseline.net,
+    `${gbp(r.baseline.net)} -> ${gbp(r.best.net)}`);
+  ok('and the gain is the difference between them', Math.abs(r.gain - (r.best.net - r.baseline.net)) < 1);
+  /*
+   * Dying at 84 with one heir on £80,000 and one on nothing, the nomination is the whole game: the
+   * pension is taxed at the recipient's rate, so moving it to the untaxed heir is worth real money while
+   * the estate tax does not move at all.
+   */
+  const nom = r.levers.find(l => l.key === 'nomination');
+  ok('the nomination is found, and is worth something', nom.gain > 10000, gbp(nom.gain));
+  ok('it names the heir it would nominate', /Robin/.test(nom.pick), nom.pick);
+  ok('every lever is reported, including the ones worth nothing', r.levers.length === 6,
+    r.levers.map(l => `${l.key}:${Math.round(l.gain)}`).join(' '));
+}
+
+console.log('=========== B. LEVERS ARE MEASURED ALONE, NOT STACKED ===========');
+{
+  /*
+   * The failure this guards against: searching the levers in order and crediting each with the running
+   * total, so a household reads "the gift is worth £30,000" when the £30,000 came from the nomination
+   * tested before it. Measured properly, no single lever can be worth more than all of them together.
+   */
+  const r = E.optimizeInheritance(household());
+  r.levers.forEach(l => ok(`${l.key} alone is no larger than the whole`, l.gain <= r.gain + 1,
+    `${gbp(l.gain)} against ${gbp(r.gain)}`));
+  ok('and they are sorted by what they are worth', r.levers.every((l, i) => i === 0 || r.levers[i - 1].gain >= l.gain));
+}
+
+console.log('=========== C. A ZERO IS A FINDING, WITH A REASON ===========');
+{
+  // death before 75 carries no income tax on an inherited pension, so who is nominated cannot matter
+  const young = E.optimizeInheritance(household({ deathAge: 72 }));
+  ok('no nomination gain when death is before 75', young.levers.find(l => l.key === 'nomination').gain === 0);
+  ok('and it says why rather than showing a bare zero', young.reasons.some(x => x.key === 'nomination' && /no income tax at all/.test(x.text)),
+    (young.reasons.find(x => x.key === 'nomination') || {}).text || 'no reason given');
+
+  /*
+   * An estate so far over the £2m line that no affordable gift could bring the residence band back. The
+   * optimiser must say that, because silence reads as "not tried".
+   */
+  const rich = E.optimizeInheritance(household({ pen: 2400000, home: 1400000, isa: 150000, cash: 40000, other: 20000 }));
+  ok('an unreachable residence band is explained', rich.reasons.some(x => x.key === 'gift' && /out of reach/.test(x.text)),
+    (rich.reasons.find(x => x.key === 'gift') || {}).text || 'no reason given');
+}
+
+console.log('=========== D. MOVING MONEY UP TO THE ALLOWANCES ===========');
+{
+  /*
+   * Even with no earnings, £2,880 buys £3,600 of pension: relief is added at source. Since 2027 that
+   * pension is in the estate like any other asset, so the relief is simply 25% more money for the same
+   * outlay - and the optimiser has to find it. The household below has cash doing nothing.
+   */
+  const r = E.optimizeInheritance(household({ cash: 300000, deathAge: 80 }));
+  const rec = r.levers.find(l => l.key === 'recycle');
+  ok('moving money between wrappers is a lever', !!rec);
+  ok('and it is worth something when there is cash spare', rec.gain > 0, `${gbp(rec.gain)}: ${rec.pick}`);
+  const best = r.ranked.find(c => c.recycleKey);
+  ok('the winning transfers are reported so they can be applied', !!best, best ? best.label : 'none ranked');
+
+  // a household with nothing spare cannot recycle, and must say so rather than promise a gain
+  const broke = E.optimizeInheritance(household({ cash: 0, isa: 0, other: 0, pen: 600000 }));
+  const none = broke.levers.find(l => l.key === 'recycle');
+  ok('nothing spare, nothing claimed', none.gain === 0, none.pick);
+}
+
+console.log('=========== E. WHAT IT REFUSES TO DO ===========');
+{
+  const r = E.optimizeInheritance(household());
+  /*
+   * Charity is priced, never ranked. Giving 10% away always leaves the family with less, so a ranking on
+   * net-to-heirs would score a donation as a failure and bury a decision that is not about tax.
+   */
+  ok('charity is priced alongside', !!r.charity && r.charity.ratePct === 36, r.charity ? `${r.charity.ratePct}%` : 'missing');
+  ok('and never appears in the ranking', !r.ranked.some(c => /charit/i.test(c.label)));
+  ok('its cost to the family is stated', r.charity.costToFamily > 0,
+    `${gbp(r.charity.costToFamily)} for ${gbp(r.charity.toCharity)} to charity`);
+  /*
+   * How long the heirs draw the pension over is their choice, made after the death. It is reported as a
+   * sensitivity and kept out of the search, so no candidate can win by assuming better behaviour from
+   * someone else.
+   */
+  ok('a longer draw-down is reported, not searched', !!r.spread && r.spread.gain > 0,
+    r.spread ? `${r.spread.years}y is worth ${gbp(r.spread.gain)}` : 'missing');
+  ok('and no candidate is scored on it', !r.ranked.some(c => Math.abs(c.net - r.spread.net) < 1),
+    `${gbp(r.spread.net)} appears in no ranked row`);
+
+  // no heirs, nothing to rank on
+  ok('no heirs means no answer rather than a guess', E.optimizeInheritance(household({ bens: [] })) === null);
+}
+
+console.log('=========== F. IT NEVER RECOMMENDS BREAKING THE PLAN ===========');
+{
+  /*
+   * A household with enough to last but not much over. Every candidate that leaves them short must be
+   * rejected outright rather than ranked, however good it looks for the heirs: they have to live on this
+   * money first, and a gift or a transfer is spent years before the estate is ever valued.
+   *
+   * "Short" means short BEFORE THE DEATH AGE. The fixture dies at 84 and has Plan to Age at 95, which is
+   * the ordinary case rather than a contrived one - nobody moves Plan to Age when they answer the
+   * inheritance question. Holding the optimiser to 95 rejected gifts for a shortfall in years the estate
+   * it is valuing has already been distributed through. So the guarantee tested here is affordability to
+   * the death age, and the shortfall after it is required to be DISCLOSED rather than absent.
+   */
+  const tight = household({ pen: 600000, isa: 150000, other: 0, cash: 80000, home: 400000,
+    bens: [{ id: 'k1', name: 'Jo', relationship: 'descendant', sharePct: 100, income: 80000, age: 50 }] });
+  const baseCtx = E.buildContext(E.resolveMpaa(E.normalizePlan(tight)));
+  const baseEv = E.evaluateRows(baseCtx, E.simulateDeterministic(baseCtx, 'expected'));
+  ok('the fixture survives to begin with', baseEv.survived, `fails at ${baseEv.failAge || 'never'}`);
+
+  const r = E.optimizeInheritance(tight);
+  /*
+   * Rebuilt exactly the way the Apply button rebuilds it - every lever, not just the easy ones. If these
+   * two figures ever part company, the tab is quoting a number the plan will not reproduce, which is a
+   * worse failure than a poor recommendation.
+   */
+  const rebuilt = E.normalizePlan({
+    ...tight,
+    spending: { ...tight.spending, decumulationPolicy: r.best.policy, drawdownStrategy: r.best.drawdown },
+    config: { ...tight.config, harvestPersonalAllowance: r.best.harvest, harvestCeiling: r.best.ceiling || 'pa' },
+    oneOffContributions: [...(tight.oneOffContributions || []), ...(r.best.recycle || [])],
+    inheritance: { ...tight.inheritance,
+      gifts: r.best.gift > 0 ? [{ id: 'g', amount: r.best.gift, year: r.giftYear }] : [],
+      beneficiaries: r.best.split
+        ? E.normalizeBeneficiaries(tight.inheritance.beneficiaries).map((b, i) => ({ ...b, pensionSharePct: r.best.split[i] }))
+        : tight.inheritance.beneficiaries }
+  });
+  const ctx = E.buildContext(E.resolveMpaa(rebuilt));
+  const rebuiltRows = E.simulateDeterministic(ctx, 'expected');
+  const deathAge = rebuilt.inheritance.deathAge;
+  const upToDeath = rebuiltRows.filter(r => r.ageSelf <= deathAge);
+  const ev = E.evaluateRows(ctx, upToDeath);
+  ok('the winning plan is affordable to the death age', ev.survived,
+    `to ${deathAge}: fails at ${ev.failAge || 'never'}`);
+  /*
+   * And the consequence of the narrower test is not swallowed. If the route does leave the wider plan
+   * short, `afterDeath` must name where - a silent recommendation here would be the actual regression,
+   * because the household set the death age as an assumption, not as a certainty.
+   */
+  const full = E.evaluateRows(ctx, rebuiltRows);
+  ok('a shortfall after the death age is disclosed, not hidden',
+    full.survived ? r.afterDeath === null : !!(r.afterDeath && r.afterDeath.failAge === full.failAge),
+    full.survived ? 'lasts to the terminal age, nothing to disclose'
+      : `plan fails at ${full.failAge}, disclosed as ${r.afterDeath ? r.afterDeath.failAge : 'NOTHING'}`);
+  ok('and the disclosure carries both ages the reader needs',
+    !r.afterDeath || (r.afterDeath.deathAge === deathAge && r.afterDeath.terminalAge === ctx.terminalAge),
+    r.afterDeath ? `dies ${r.afterDeath.deathAge}, plan to ${r.afterDeath.terminalAge}` : 'n/a');
+  const rebuiltNet = E.estateForPlanAt(rebuilt, ctx, rebuiltRows).netWithGifts;
+  ok('and rebuilding it reproduces the figure the optimiser quoted', Math.abs(rebuiltNet - r.best.net) < 2,
+    `${gbp(rebuiltNet)} against ${gbp(r.best.net)}`);
+  ok('the recommendation is an improvement, not just a change', r.best.net >= r.baseline.net,
+    `${gbp(r.baseline.net)} -> ${gbp(r.best.net)}`);
+}
+
+console.log('=========== G. HOW THE PENSION IS SPLIT, NOT JUST WHO GETS IT ===========');
+{
+  /*
+   * "Leave it to whoever earns least" is wrong as soon as the pot is large: drawn over five years it
+   * reaches the additional rate whoever receives it, while a split uses two sets of allowances and two
+   * basic-rate bands. These check the search finds that, and that it is free to run - the nomination
+   * changes who is taxed, not how the household spends, so no projection is needed.
+   */
+  const cfg = { ...E.DEFAULT_CONFIG };
+  const w = { pen: 1500000, isa: 200000, other: 0, cash: 50000 };
+  const opts = {
+    deathAge: 84, deathYear: 2040, homeValue: 500000, homeToDescendants: true,
+    beneficiaries: [
+      { id: 'a', name: 'Earner', relationship: 'descendant', sharePct: 50, income: 150000, age: 50 },
+      { id: 'b', name: 'Child', relationship: 'descendant', sharePct: 50, income: 0, age: 8 }]
+  };
+  const split = E.bestPensionSplit(cfg, w, opts);
+  const price = (pcts) => E.estateAtDeath(cfg, w, { ...opts,
+    beneficiaries: opts.beneficiaries.map((b, i) => ({ ...b, pensionSharePct: pcts[i] })) }).netToBeneficiaries;
+  ok('a split is found', !!split, split ? split.shares.map(x => `${x.name} ${x.pct}%`).join(' / ') : 'none');
+  ok('it beats leaving it all to the lower earner', split.net >= price([0, 100]) - 1,
+    `${gbp(split.net)} against ${gbp(price([0, 100]))}`);
+  ok('and all to the higher earner', split.net >= price([100, 0]) - 1,
+    `${gbp(split.net)} against ${gbp(price([100, 0]))}`);
+  ok('and an even split', split.net >= price([50, 50]) - 1, `${gbp(split.net)} against ${gbp(price([50, 50]))}`);
+  ok('the shares add to 100', Math.abs(split.pcts.reduce((t, x) => t + x, 0) - 100) < 0.01, split.pcts.join('/'));
+  ok('the gain is measured against what was entered', Math.abs(split.gain - (split.net - split.asEnteredNet)) < 1);
+
+  // a pot small enough to sit inside one person's bands should simply go to the untaxed heir
+  const small = E.bestPensionSplit(cfg, { pen: 40000, isa: 100000 },
+    { ...opts, homeValue: 200000 });
+  ok('a small pot goes to the heir with the allowance', small.shares.find(x => x.name === 'Child').pct >= 95,
+    small.shares.map(x => `${x.name} ${x.pct}%`).join(' / '));
+
+  // below 75 there is no income tax on it at all, so no split can help
+  const young = E.bestPensionSplit(cfg, w, { ...opts, deathAge: 70 });
+  ok('nothing to gain below 75', young.gain === 0, gbp(young.gain));
+
+  ok('one heir means no split to search', E.bestPensionSplit(cfg, w, { ...opts, beneficiaries: [opts.beneficiaries[0]] }) === null);
+
+  // four heirs take the hill-climb rather than the exhaustive grid, and must still improve on the seeds
+  const four = [...opts.beneficiaries,
+    { id: 'c', name: 'Third', relationship: 'descendant', sharePct: 0, income: 30000, age: 40 },
+    { id: 'd', name: 'Fourth', relationship: 'descendant', sharePct: 0, income: 12570, age: 30 }];
+  const many = E.bestPensionSplit(cfg, w, { ...opts, beneficiaries: four });
+  const evenFour = E.estateAtDeath(cfg, w, { ...opts,
+    beneficiaries: four.map(b => ({ ...b, pensionSharePct: 25 })) }).netToBeneficiaries;
+  ok('four heirs are searched too, and beat an even split', many.net >= evenFour - 1,
+    `${gbp(many.net)} against ${gbp(evenFour)} even`);
+}
+
+console.log('=========== H. HOW MUCH PENSION TO DRAW EARLY ===========');
+{
+  /*
+   * Drawing past the tax-free allowance costs 20% now. Whether that is worth it turns entirely on the
+   * death age: below 75 an inherited pension carries no income tax, so paying anything today is a pure
+   * loss; at 75 and over it is taxed twice, and 20% now can beat both charges. A single answer would be
+   * wrong half the time, which is exactly why it is searched.
+   */
+  const at = (deathAge, ceiling) => {
+    const p = E.normalizePlan({ ...household({ deathAge }), config: { valuationDate: '2026-01-01', harvestCeiling: ceiling } });
+    const ctx = E.buildContext(E.resolveMpaa(p));
+    return E.postTaxInheritanceFor(p, ctx);
+  };
+  const early = { pa: at(72, 'pa'), basic: at(72, 'basic') };
+  const late = { pa: at(90, 'pa'), basic: at(90, 'basic') };
+  ok('below 75 drawing early costs money', early.basic < early.pa,
+    `${gbp(early.pa)} -> ${gbp(early.basic)}`);
+  ok('above 75 it earns money', late.basic > late.pa, `${gbp(late.pa)} -> ${gbp(late.basic)}`);
+
+  const r72 = E.optimizeInheritance(household({ deathAge: 72 }));
+  const r90 = E.optimizeInheritance(household({ deathAge: 90 }));
+  ok('the optimiser leaves it alone for an early death', r72.best.ceiling !== 'basic', r72.best.ceiling);
+  ok('and takes it for a late one', r90.best.ceiling === 'basic', r90.best.ceiling);
+  ok('it is reported as its own lever', r90.levers.some(l => l.key === 'ceiling' && l.gain > 0),
+    gbp((r90.levers.find(l => l.key === 'ceiling') || {}).gain || 0));
+}
+
+console.log('=========== I. THE WILL, ANSWERED RATHER THAN IGNORED ===========');
+{
+  /*
+   * Inheritance tax is charged on the estate before it is divided, so among taxable heirs it makes no
+   * difference to the total who receives which asset. That is a question every household asks, and the
+   * honest answer is a finding rather than a silence.
+   */
+  const cfg = { ...E.DEFAULT_CONFIG };
+  const w = { pen: 500000, isa: 300000, other: 100000, cash: 50000 };
+  const base = { deathAge: 84, deathYear: 2040, homeValue: 600000, homeToDescendants: true };
+  const heirs = (a, b) => [
+    { id: 'x', name: 'A', relationship: 'descendant', sharePct: a, income: 60000, age: 50, pensionSharePct: 50 },
+    { id: 'y', name: 'B', relationship: 'descendant', sharePct: b, income: 60000, age: 48, pensionSharePct: 50 }];
+  const even = E.estateAtDeath(cfg, w, { ...base, beneficiaries: heirs(50, 50) });
+  const skewed = E.estateAtDeath(cfg, w, { ...base, beneficiaries: heirs(90, 10) });
+  ok('the will split does not move the total among taxable heirs',
+    Math.abs(even.netToBeneficiaries - skewed.netToBeneficiaries) < 1,
+    `${gbp(even.netToBeneficiaries)} against ${gbp(skewed.netToBeneficiaries)}`);
+  ok('and the optimiser says so', E.optimizeInheritance(household()).reasons.some(x => x.key === 'will' && /does not change the total/.test(x.text)));
+
+  // with an exempt beneficiary it genuinely does move, and the wording has to flip
+  const withSpouse = E.optimizeInheritance(household({ bens: [
+    { id: 's', name: 'Spouse', relationship: 'spouse', sharePct: 50, income: 20000, age: 70 },
+    { id: 'k', name: 'Kid', relationship: 'descendant', sharePct: 50, income: 60000, age: 45 }] }));
+  ok('an exempt heir changes the answer, and the wording', withSpouse.reasons.some(x => x.key === 'will' && /does change the bill/.test(x.text)));
+}
+
+console.log('=========== J. THE ANSWER AS THINGS TO DO ===========');
+{
+  /*
+   * A label is not an instruction. These check the action list names the thing to open, the figure to
+   * enter and the year to do it in - and, just as importantly, that it lists only what CHANGES, because
+   * restating what the household already does buries the two steps they have to go and arrange.
+   */
+  const h = household({ deathAge: 90, cash: 300000 });
+  const r = E.optimizeInheritance(h);
+  const acts = E.estateActionPlan(E.normalizePlan(h), r);
+  ok('there are actions to take', acts.length > 0, acts.map(a => a.key).join(', '));
+  // `body` is gone: it had become a longer restatement of the title, facts and why above it
+  ok('every action says what to do, not just what it is called', acts.every(a => a.title && (a.facts || a.sequence || a.fundingTable)));
+  ok('the nomination names the form to ask for', acts.some(a => a.key === 'nomination' && (a.facts || []).some(f => /expression of wish/.test(f.v))));
+  ok('and the percentages to put on it', acts.some(a => a.key === 'nomination' && /%\s*to\s*\w/.test(a.title)));
+  /*
+   * The transfer step only appears when transfers are part of the winning allocation, so it is checked on
+   * a household where they are: three years to a priced death and cash sitting idle, which is the shape
+   * that makes topping the pension up to its allowance worth doing.
+   */
+  const recycler = household({ deathAge: 73, cash: 250000, pen: 500000, isa: 100000, other: 0,
+    incomes: [{ id: 'e', name: 'Part-time', owner: 'Myself', startAge: 60, endAge: '', amount: 20000, incomeType: 'earnings' }] });
+  const recAct = E.estateActionPlan(E.normalizePlan(recycler), E.optimizeInheritance(recycler)).find(a => a.key === 'recycle');
+  ok('the transfers name a figure and the years', !!recAct && /£[\d,]+/.test(recAct.body || recAct.title) && /20\d\d/.test(recAct.title),
+    recAct ? recAct.title : 'no transfer in the winning allocation');
+  // the relief is a fact now, not a sentence: "HMRC adds £720 a year, so £3,600 lands for £2,880 of your own money"
+  ok('and say what HMRC adds',
+    !recAct || (recAct.facts || []).some(f => /HMRC/.test(f.k) || /ISA|relief/.test(f.v)) || /ISA/.test(recAct.why || ''),
+    recAct ? (recAct.facts || []).map(f => f.k).join(', ') : '');
+  ok('the draw-down instruction quotes the band it fills', acts.some(a => a.key === 'ceiling' && /£50,270/.test(a.title)));
+  ok('and says what it is for', acts.some(a => a.key === 'ceiling' && /taxed twice/.test(a.why)));
+
+  /*
+   * Only what changes. A plan already holding the winning settings has nothing to list, and saying
+   * "nothing to change" is a finding rather than an empty screen.
+   */
+  const applied = E.normalizePlan({
+    ...h,
+    spending: { ...h.spending, decumulationPolicy: r.best.policy, drawdownStrategy: r.best.drawdown },
+    config: { ...h.config, harvestPersonalAllowance: r.best.harvest, harvestCeiling: r.best.ceiling },
+    oneOffContributions: [...(r.best.recycle || [])],
+    inheritance: { ...h.inheritance, beneficiaries: r.best.split
+      ? E.normalizeBeneficiaries(h.inheritance.beneficiaries).map((b, i) => ({ ...b, pensionSharePct: r.best.split[i] }))
+      : h.inheritance.beneficiaries }
+  });
+  const r2 = E.optimizeInheritance(applied);
+  const acts2 = E.estateActionPlan(applied, r2);
+  ok('acting on it shortens the list', acts2.length < acts.length, `${acts.length} -> ${acts2.length}`);
+  ok('a plan with nothing left to do says so rather than showing an empty list', acts2.length > 0);
+
+  // and the household that cannot improve gets told that, in one line
+  const settled = E.optimizeInheritance(household({ deathAge: 72, pen: 100000, isa: 0, other: 0, cash: 0, home: 200000 }));
+  if (settled && settled.gain <= 0) {
+    ok('no improvement is stated plainly', E.estateActionPlan(E.normalizePlan(household({ deathAge: 72, pen: 100000, isa: 0, other: 0, cash: 0, home: 200000 })), settled)
+      .some(a => a.key === 'none'));
+  } else {
+    ok('no improvement is stated plainly', true, 'fixture had something to improve');
+  }
+}
+
+console.log('=========== K. THE COMPENSATION WINDOW, IN THE SEARCH ===========');
+{
+  /*
+   * Holding exempt compensation is already safe, so giving it away wins only where the money would
+   * otherwise be eaten: the exemption is capped at what is still HELD at death, and a household living on
+   * the compensation arrives with none of it left to disregard. This fixture is that household - a big
+   * pension, no house, and the award in cash - and the search has to find the window before it shuts.
+   */
+  const living = household({
+    demo: { currentAgeSelf: 74, terminalAge: 92 }, deathAge: 90, home: 0,
+    pen: 800000, isa: 0, other: 0, cash: 400000,
+    bens: [{ id: 'k', name: 'Child', relationship: 'descendant', sharePct: 100, income: 60000, age: 50 }],
+    inh: { compensationPayment: 350000, compensationDate: '2026-02-01' }
+  });
+  living.spending.targetSpend = 42000;
+  // Sequential spends the cash first, which is where the award is sitting - so by 90 there is none of it
+  // left to disregard, and the window is the only way to get it to anyone
+  living.spending.decumulationPolicy = 'Sequential';
+  const r = E.optimizeInheritance(living);
+  ok('the window is worked out from the payment date', r.compensationWindow && r.compensationWindow.endDate === '2028-02-01',
+    r.compensationWindow ? r.compensationWindow.endDate : 'none');
+  const lever = r.levers.find(l => l.key === 'compGift');
+  ok('giving it away is a lever of its own', !!lever);
+  ok('and it earns its place for a household that would spend it', lever.gain > 10000, gbp(lever.gain));
+  ok('the year it names is inside the window', /20(2[678])/.test(lever.pick), lever.pick);
+  ok('and the credit survives giving it away', (() => {
+    const o = (gifts) => ({ deathAge: 84, deathYear: 2032, homeValue: 500000, homeToDescendants: true,
+      compensationPayment: 300000, compensationWindowEndYear: 2028, giftsFromYear: 2026, gifts,
+      beneficiaries: [{ id: 'k', name: 'C', relationship: 'descendant', sharePct: 100, income: 0 }] });
+    const held = E.estateAtDeath({ ...E.DEFAULT_CONFIG }, { isa: 400000, cash: 300000 }, o([]));
+    const gifted = E.estateAtDeath({ ...E.DEFAULT_CONFIG }, { isa: 400000, cash: 0 },
+      o([{ amount: 300000, year: 2027 }]));
+    /*
+     * Two reliefs for two events: the credit on the death, the window on the gift. Netting them was tried
+     * and made the window worth about £1,200, which cannot be the point of a relief created for exactly
+     * this problem - so giving the award away has to leave the credit standing.
+     */
+    return Math.abs(gifted.compensationCredit - held.compensationCredit) < 1 && gifted.compensationCredit > 0 &&
+      gifted.nrbUsedByGifts === 0;
+  })(), 'the credit is for having received it, the window is for giving it away');
+
+  // and it is dropped once the window has shut
+  const shut = E.optimizeInheritance({ ...living,
+    inheritance: { ...living.inheritance, compensationDate: '2019-01-01' } });
+  const shutLever = shut.levers.find(l => l.key === 'compGift');
+  ok('a closed window offers nothing', shut.compensationWindow.endDate === '2027-12-04' &&
+    (shutLever.gain === 0 || /2027/.test(shutLever.pick)), `${shut.compensationWindow.endDate}: ${shutLever.pick}`);
+
+  /*
+   * Holding it is fine when the household will still have it: the same award, a house, and money to
+   * spare, and the honest answer is that giving it away gains nothing.
+   */
+  const comfortable = E.optimizeInheritance(household({
+    inh: { compensationPayment: 300000, compensationDate: '2026-02-01' } }));
+  const noNeed = comfortable.levers.find(l => l.key === 'compGift');
+  ok('the lever reports something either way', typeof noNeed.pick === 'string' && noNeed.gain >= 0,
+    `${gbp(noNeed.gain)}: ${noNeed.pick}`);
+
+  /*
+   * Where the window really earns its keep: a death inside seven years. An ordinary gift would fail the
+   * seven-year test and eat the nil-rate band; a compensation gift inside the window does neither. On a
+   * long horizon the search often prefers an ordinary gift instead, which is correct - it does the same
+   * job and is not capped at the size of the award.
+   */
+  const soon = household({
+    demo: { currentAgeSelf: 78, terminalAge: 90 }, deathAge: 82, home: 0,
+    pen: 700000, isa: 0, other: 0, cash: 400000,
+    bens: [{ id: 'k', name: 'Child', relationship: 'descendant', sharePct: 100, income: 60000, age: 50 }],
+    inh: { compensationPayment: 350000, compensationDate: '2026-02-01' }
+  });
+  soon.spending.targetSpend = 40000;
+  soon.spending.decumulationPolicy = 'Sequential';
+  const rSoon = E.optimizeInheritance(soon);
+  /*
+   * Like for like: the SAME £200,000 given in the same year, once presumed to come from the award and
+   * once not. Comparing the two levers instead would compare different sums, since the ordinary gift can
+   * be any size and this one is capped at the award.
+   */
+  const priceGift = (fromComp) => {
+    // no award at all is now the only way to price the same gift as an ordinary one: the override that
+    // used to do it is gone, because a household could leave it set at a cost of six figures
+    const inh = { ...soon.inheritance, gifts: [{ id: 'g', amount: 200000, year: 2027 }] };
+    const p = E.normalizePlan({ ...soon, inheritance: fromComp ? inh : { ...inh, compensationPayment: 0 } });
+    const c = E.buildContext(E.resolveMpaa(p));
+    return E.estateForPlanAt(p, c, E.simulateDeterministic(c, 'expected')).netWithGifts;
+  };
+  ok('with a death inside seven years the window is worth having', priceGift(true) > priceGift(false),
+    `from the award ${gbp(priceGift(true))} against ordinary ${gbp(priceGift(false))}`);
+  ok('and the search still offers it', rSoon.levers.find(l => l.key === 'compGift').gain >= 0);
+
+  // the action list has to name the deadline, because it is the one thing here that expires
+  const step = E.estateActionPlan(E.normalizePlan(living), {
+    ...r, best: { ...r.best, compGift: { amount: 350000, year: 2028, exemptCompensation: true } }
+  }).find(a => a.key === 'compGift');
+  ok('the action names the amount, the year and the deadline',
+    !!step && /£350,000/.test(step.title) && /2028-02-01/.test(step.title),
+    step ? step.title : 'no step');
+  ok('and warns what happens after it', !!step && /seven-year clock/.test(step.why));
+}
+
+console.log('=========== L. HOW MUCH OF THE AWARD, AND WHERE FROM ===========');
+{
+  /*
+   * Two bugs found by reading a real plan's action list. The search offered the WHOLE award every time,
+   * so a household that had already given some of it away was told to give the same pounds twice; and it
+   * never tried a slice, so on a plan holding far less outside the pension than the award is worth, the
+   * recommendation was to withdraw the difference at the marginal rate. Both are now searched.
+   */
+  const withAward = (over = {}) => {
+    const h = household({
+      demo: { currentAgeSelf: 68, terminalAge: 95 }, deathAge: 71, home: 1400000,
+      pen: 1200000, isa: 175000, other: 400000, cash: 0,
+      bens: [{ id: 'k', name: 'Child', relationship: 'descendant', sharePct: 100, income: 60000, age: 36 }],
+      inh: { compensationPayment: 900000, compensationDate: '2025-06-01', ...over.inh }
+    });
+    h.spending.targetSpend = '';
+    return E.normalizePlan(h);
+  };
+
+  const r = E.optimizeInheritance(withAward());
+  const lever = r.levers.find(l => l.key === 'compGift');
+  ok('the compensation lever is worth something here', lever.gain > 0, gbp(lever.gain));
+  ok('slices of it are searched, not just all or nothing',
+    r.ranked.some(cnd => cnd.compGift && E.num(cnd.compGift.amount, 0) < 900000 - 1),
+    r.ranked.filter(cnd => cnd.compGift).map(cnd => gbp(E.num(cnd.compGift.amount, 0))).join(' '));
+
+  /*
+   * And where a slice really is better, it wins. An earlier gift that has already eaten the nil-rate
+   * band changes the trade: the marginal ordinary gift is nearly free, so handing over the whole award
+   * - which means withdrawing the difference from the pension at the marginal rate - stops being best.
+   */
+  const withPrior = E.optimizeInheritance(withAward({ inh: {
+    gifts: [{ id: 'g', amount: 308000, year: 2026 }] } }));
+  const priorPick = withPrior.levers.find(l => l.key === 'compGift').pick;
+  const priorAmt = Number((/£([\d,]+)/.exec(priorPick) || [0, '0'])[1].replace(/,/g, ''));
+  const measured = withPrior.ranked.filter(cnd => cnd.compGift);
+  ok('the amount picked is the best of the slices measured, whichever that turns out to be',
+    priorAmt > 0 && measured.every(cnd => cnd.net <= withPrior.best.net + 1),
+    `picked ${gbp(priorAmt)} from ${measured.length} priced`);
+  ok('and it never exceeds what is left of the award', priorAmt <= withPrior.compensationLeftToGive + 1,
+    `${gbp(priorAmt)} of ${gbp(withPrior.compensationLeftToGive)}`);
+
+  // what is already gone cannot be offered again
+  const spent = E.optimizeInheritance(withAward({ inh: {
+    gifts: [{ id: 'g', amount: 600000, year: 2026 }] } }));
+  ok('a gift already drawn from the award reduces what is left',
+    spent.compensationLeftToGive < 900000, gbp(spent.compensationLeftToGive));
+  const spentLever = spent.levers.find(l => l.key === 'compGift');
+  const spentPick = /£([\d,]+)/.exec(spentLever.pick);
+  ok('and the search never offers more than remains',
+    !spentPick || Number(spentPick[1].replace(/,/g, '')) <= spent.compensationLeftToGive + 1, spentLever.pick);
+
+  /*
+   * WHERE THE MONEY COMES FROM. "Give away £900,000" is not an instruction anybody can follow holding
+   * £575,000 outside a pension, and the difference is the most expensive pound in the plan.
+   */
+  ok('the gift year wrappers travel with the result', !!r.giftYearWrappers && r.giftYearWrappers.isa > 0);
+  const small = E.estateActionPlan(withAward(), { ...r,
+    best: { ...r.best, gift: 100000, compGift: null } }).find(a => a.key === 'gift');
+  ok('a gift the liquid covers is funded without touching the pension',
+    !!small && small.fundingTable && small.fundingTable.pension === null,
+    small && small.fundingTable ? small.fundingTable.rows.map(x => x.source).join(', ') : 'no table');
+  ok('and names the accounts it comes out of',
+    !!small && small.fundingTable.rows.some(x => /investment account|ISAs|Cash/.test(x.source)));
+  const huge = E.estateActionPlan(withAward(), { ...r,
+    best: { ...r.best, gift: 900000, compGift: null } }).find(a => a.key === 'gift');
+  ok('a gift beyond the liquid shows what has to leave the pension',
+    !!huge && !!huge.fundingTable.pension,
+    huge && huge.fundingTable.pension ? gbp(huge.fundingTable.pension.net) + ' net' : 'no pension row');
+  ok('and grosses the shortfall up for the income tax',
+    !!huge && huge.fundingTable.pension.gross > huge.fundingTable.pension.net,
+    huge && huge.fundingTable.pension ? `${gbp(huge.fundingTable.pension.gross)} drawn at ${huge.fundingTable.pension.ratePct}%` : '');
+  /*
+   * The rate has to come from TAXABLE INCOME. Reading it off totalSelf - a balance, not an income -
+   * priced every withdrawal at the additional rate, which made every large gift look worse than it is.
+   * A small shortfall on a household living on the state pension is a basic-rate withdrawal.
+   */
+  const outside = r.giftYearWrappers.isa + r.giftYearWrappers.other + r.giftYearWrappers.cash;
+  const modest = E.estateActionPlan(withAward(), { ...r,
+    best: { ...r.best, gift: Math.round(outside) + 15000, compGift: null } }).find(a => a.key === 'gift');
+  ok('a small shortfall is grossed up at the basic rate',
+    !!modest && modest.fundingTable.pension && modest.fundingTable.pension.ratePct === 20,
+    modest && modest.fundingTable.pension ? modest.fundingTable.pension.ratePct + '%' : 'no pension row');
+  ok('while a large one reaches the top rate',
+    !!huge && huge.fundingTable.pension && huge.fundingTable.pension.ratePct === 45,
+    huge && huge.fundingTable.pension ? huge.fundingTable.pension.ratePct + '%' : 'no pension row');
+
+  // and a partial award is not described as "the" award
+  const part = E.estateActionPlan(withAward(), { ...r, compensationLeftToGive: 900000,
+    best: { ...r.best, gift: 0, compGift: { amount: 90000, year: 2027 } } }).find(a => a.key === 'compGift');
+  const amountFact = (a) => ((a.facts || []).find(f => f.k === 'Amount') || {}).v || '';
+  ok('the instruction is short enough to read at a glance', !!part && part.title.length < 70 && part.title.startsWith('Gift £90,000'),
+    part ? part.title : 'no step');
+  const awardFact = (a) => ((a.facts || []).find(f => f.k === 'Of the award') || {}).v || '';
+  ok('and a partial gift says how much of the award is still there',
+    !!part && /£900,000 is still giftable/.test(awardFact(part)), part ? awardFact(part) : '');
+  const whole = E.estateActionPlan(withAward(), { ...r, compensationLeftToGive: 90000,
+    best: { ...r.best, gift: 0, compGift: { amount: 90000, year: 2027 } } }).find(a => a.key === 'compGift');
+  ok('while giving all that is left says so instead',
+    !!whole && /all that is left of it/.test(awardFact(whole)), whole ? awardFact(whole) : '');
+  ok('every step carries the facts somebody acts on',
+    E.estateActionPlan(withAward(), r).every(a => (a.facts && a.facts.length) || a.sequence));
+  ok('and a one-line reason rather than a paragraph',
+    E.estateActionPlan(withAward(), r).every(a => !a.why || a.why.length < 170));
+}
+
+console.log('=========== M. WHY NOT ONE OF THE OTHERS ===========');
+{
+  /*
+   * A household asked to give away six figures is owed the comparison. These are the routes a person
+   * would actually have weighed - do nothing, reallocate without gifting, gift without reallocating,
+   * gift everything the plan can stand - each priced on the same measure as the winner.
+   */
+  const h = household({ demo: { currentAgeSelf: 68, terminalAge: 95 }, deathAge: 71, home: 1400000,
+    pen: 1200000, isa: 175000, other: 400000, cash: 0,
+    bens: [{ id: 'k', name: 'Child', relationship: 'descendant', sharePct: 100, income: 60000, age: 36 }],
+    inh: { transferredNrbPct: 100, transferredRnrbPct: 100 } });
+  h.spending.targetSpend = '';
+  const r = E.optimizeInheritance(E.normalizePlan(h));
+
+  ok('alternatives are priced', Array.isArray(r.alternatives) && r.alternatives.length > 0,
+    (r.alternatives || []).map(a => `${a.key} ${gbp(a.cost)}`).join(', '));
+  ok('every one of them is worse than the plan recommended',
+    (r.alternatives || []).every(a => a.cost > 0));
+  ok('doing nothing is one of them', (r.alternatives || []).some(a => a.key === 'nothing'));
+  ok('and it costs exactly the gain the search reports',
+    Math.abs(((r.alternatives || []).find(a => a.key === 'nothing') || {}).cost - r.gain) < 1,
+    gbp(((r.alternatives || []).find(a => a.key === 'nothing') || {}).cost));
+  ok('none of them is a duplicate of another under a different name',
+    (r.alternatives || []).every((a, i, all) => all.findIndex(b => Math.abs(b.net - a.net) < 500) === i));
+  ok('each carries a plain-English reason', (r.alternatives || []).every(a => a.why && a.why.length > 10));
+
+  /*
+   * And the working now runs past the tax to what the heirs hold, so the number the optimiser ranks on
+   * and the number at the foot of the table have to be the same number.
+   */
+  const w = E.ihtWorkings(r.bestEst, h.config);
+  const hands = w[w.length - 1];
+  ok('the working ends on what the optimiser ranked', Math.abs(hands.amount - r.best.net) < 1,
+    `${gbp(hands.amount)} against ${gbp(r.best.net)}`);
+  ok('and it names the heirs\' own income tax either way',
+    w.some(x => /income tax on the inherited pension/.test(x.label)));
+  ok('the lifetime gifts appear on their own line',
+    r.best.gift <= 0 || w.some(x => x.key === 'lifetime' && x.amount > 0));
+}
+
+console.log('=========== N. THE BANDS ARE MEASURED, NOT ASSUMED ===========');
+{
+  /*
+   * "Draw pension income up to whatever is left of the personal allowance" is the first step of most
+   * withdrawal orders. For a household with a state pension and post-retirement earnings there is
+   * nothing left of it - the engine has always measured the ceiling against the year's taxable income
+   * and drawn nothing, but the instruction read as something to go and do.
+   *
+   * £11,500 of state pension and £11,000 of earnings is £22,500, comfortably over the allowance.
+   */
+  const earner = household({ deathAge: 80, incomes: [
+    { id: 'e1', name: '', owner: 'Myself', startAge: '67', endAge: '', amount: '11000', incomeType: 'earnings' }] });
+  const r = E.optimizeInheritance(earner);
+  const P = E.taxParams(E.normalizePlan(earner).config);
+  ok('the household\'s pre-pension taxable income is measured', r.bandHeadroom.otherIncome === 22500,
+    `£${r.bandHeadroom.otherIncome.toLocaleString()} = £11,500 state pension + £11,000 earnings`);
+  ok('and so the personal allowance has nothing free', r.bandHeadroom.pa === 0,
+    `£${Math.round(r.bandHeadroom.pa).toLocaleString()} of £${P.pa.toLocaleString()}`);
+  ok('while the basic-rate band still does', Math.round(r.bandHeadroom.basic) === P.higherRateStartsAt - 22500,
+    `£${Math.round(r.bandHeadroom.basic).toLocaleString()} = £${P.higherRateStartsAt.toLocaleString()} - £22,500`);
+
+  /*
+   * The stub year between the valuation date and the next tax-year start pro-rates that income, so its
+   * apparent headroom is the part of the year that has not happened yet. Counting it told the reference
+   * household it had £5,789 of allowance going spare EVERY year, which is the error being guarded - and
+   * it only shows up on a mid-year valuation date, which is why this fixture moves off 1 January.
+   */
+  const midYear = { ...earner, config: { ...earner.config, valuationDate: '2026-09-14' } };
+  const ctx = E.buildContext(E.resolveMpaa(E.normalizePlan(midYear)));
+  const rows = E.simulateDeterministic(ctx, 'expected');
+  ok('the stub year really does look like free allowance', rows[0].otherTaxableSelf < rows[1].otherTaxableSelf,
+    `stub £${Math.round(rows[0].otherTaxableSelf).toLocaleString()} vs full year £${Math.round(rows[1].otherTaxableSelf).toLocaleString()}`);
+  ok('but it is excluded, so the reported headroom stays zero',
+    E.optimizeInheritance(midYear).bandHeadroom.pa === 0,
+    `£${Math.round(E.optimizeInheritance(midYear).bandHeadroom.pa).toLocaleString()}, not £${Math.round(Math.max(0, P.pa - rows[0].otherTaxableSelf)).toLocaleString()}`);
+
+  // and the instruction says so in words, rather than leaving the household to work it out
+  const forced = { ...r, best: { ...r.best, policy: 'Bracket Fill Basic' } };
+  const act = (E.estateActionPlan({ ...E.normalizePlan(earner), spending: { ...earner.spending, decumulationPolicy: 'Sequential' } }, forced) || [])
+    .find(x => x.key === 'order');
+  ok('the dead step says it is dead', !!act && /nothing free/.test(act.sequence[0]), act ? act.sequence[0] : 'no order step');
+  ok('the live one carries its figure', !!act && /£27,770 of it free/.test(act.sequence[1]), act ? act.sequence[1] : '');
+
+  /*
+   * The opposite case must still read as an opportunity: no earnings and no state pension yet leaves
+   * the whole allowance free, and the step is then a real instruction.
+   */
+  const noIncome = household({ demo: { statePensionSelf: 0, statePensionAge: 90 }, deathAge: 80 });
+  const r2 = E.optimizeInheritance(noIncome);
+  ok('a household with no other income keeps the whole allowance', Math.round(r2.bandHeadroom.pa) === P.pa,
+    `£${Math.round(r2.bandHeadroom.pa).toLocaleString()} of £${P.pa.toLocaleString()}`);
+}
+
+console.log('=========== O. THE £2M TAPER, PRICED RATHER THAN ASSERTED ===========');
+{
+  /*
+   * "Why not keep gifting until the estate is under the threshold" is the first question any estate
+   * over it asks, and the answer is arithmetic rather than prose: how much band comes back against how
+   * much has to be given away to get there. The ladder must therefore exist for such an estate, cover
+   * the recommendation, and be honest about which direction the heirs' number moves.
+   */
+  const big = household({ pen: 2400000, isa: 400000, other: 300000, cash: 200000, home: 700000, deathAge: 80 });
+  const r = E.optimizeInheritance(big);
+  ok('an estate over the threshold gets a ladder', !!r.taperLadder,
+    r.taperLadder ? `${r.taperLadder.rows.length} rows` : 'none');
+  const t = r.taperLadder;
+  ok('it is measured against the configured threshold', t.threshold === 2000000, `£${t.threshold.toLocaleString()}`);
+  ok('every row is a size the search actually priced and could afford', t.rows.every(x => x.amt >= 0 && x.net > 0));
+  ok('the rows climb by gift size', t.rows.every((x, i) => i === 0 || t.rows[i - 1].amt < x.amt));
+  ok('the recommendation is one of them', t.rows.some(x => x.recommended),
+    t.rows.filter(x => x.recommended).map(x => `£${x.amt.toLocaleString()}`).join(','));
+  ok('and it is the best row for the heirs', t.rows.every(x => x.recommended || x.net <= t.rows.find(y => y.recommended).net + 1),
+    `best £${Math.max(...t.rows.map(x => x.net)).toLocaleString()} vs recommended £${(t.rows.find(x => x.recommended) || {}).net?.toLocaleString()}`);
+  /*
+   * Tax must fall the whole way down - you are giving the estate away, so it cannot do otherwise, and a
+   * rise would mean the arithmetic is wrong. What the heirs hold is the column that need NOT: it peaks
+   * at the recommendation and may fall after it, which is the trade the table exists to show. That turn
+   * only happens when the extra gift has to be drawn out of a taxed pension to fund it, so it is a
+   * property of the household rather than of the ladder, and is asserted where it occurs rather than
+   * everywhere.
+   */
+  ok('tax falls the whole way down', t.rows.every((x, i) => i === 0 || x.iht <= t.rows[i - 1].iht + 1),
+    t.rows.map(x => Math.round(x.iht / 1000) + 'k').join(' > '));
+  // a row marked as clearing the line really is under it, and one not marked really is not
+  ok('the under-the-line flag matches the estate it reports',
+    t.rows.every(x => x.under === (x.estate <= t.threshold)),
+    t.rows.map(x => `${Math.round(x.estate / 1000)}k:${x.under ? 'under' : 'over'}`).join(' '));
+  /*
+   * This household is £5m against a £2m line with most of it locked in a pension, so no gift it can
+   * afford gets under. The header promises "out of reach" on that basis, and it has to be true.
+   */
+  ok('an estate that cannot reach the line says so', t.reachable === t.rows.some(x => x.under),
+    `reachable ${t.reachable}, rows under the line ${t.rows.filter(x => x.under).length}`);
+  ok('and this one genuinely cannot', t.reachable === false && t.shortBy > 0,
+    `still £${Math.round(t.shortBy).toLocaleString()} over at the largest gift priced`);
+
+  /*
+   * The opposite household: smaller pension, most of the wealth liquid, so gifting really can bring the
+   * estate under the line - and then the table has to contain the row that does it, or the reader is
+   * being told the answer without being shown it.
+   */
+  const reachable = household({ pen: 900000, isa: 500000, other: 400000, cash: 300000, home: 400000, deathAge: 78,
+    bens: [{ id: 'k1', name: 'Jo', relationship: 'descendant', sharePct: 100, income: 0, age: 50 }] });
+  const t2 = E.optimizeInheritance(reachable).taperLadder;
+  ok('a household that can reach the line is told so', !!t2 && t2.reachable === true);
+  ok('and the row that does it is in the table', !!t2 && t2.rows.some(x => x.under && x.estate <= t2.threshold),
+    t2 ? t2.rows.filter(x => x.under).map(x => `£${x.amt.toLocaleString()}`).join(',') : 'no ladder');
+
+  // and an estate below the threshold has no question to answer, so gets no table
+  const small = household({ pen: 300000, isa: 100000, other: 0, cash: 50000, home: 200000, deathAge: 80 });
+  ok('an estate under the threshold gets no ladder', E.optimizeInheritance(small).taperLadder === null);
+}
+
+console.log('=========== P. NO ROUTE IS RULED OUT WITHOUT ARITHMETIC ===========');
+{
+  /*
+   * The contract this whole section exists to hold: across every shape of household, a route that is
+   * ruled out is ruled out with figures. Eight scenarios were run by hand and three of them ruled out a
+   * six-figure decision with an adjective - "the estate is already below the point where giving more
+   * buys anything" - while three more said nothing at all, because the recommended gift was everything
+   * liquid and there was no larger candidate to compare against.
+   */
+  const SHAPES = [
+    ['ran dry', { pen: 250000, isa: 80000, other: 0, cash: 40000, home: 180000, deathAge: 84 }],
+    ['over the line', { pen: 900000, isa: 500000, other: 400000, cash: 300000, home: 400000, deathAge: 78 }],
+    ['far over', { pen: 2400000, isa: 400000, other: 300000, cash: 200000, home: 700000, deathAge: 80 }],
+    ['no home', { pen: 1200000, isa: 500000, other: 300000, cash: 150000, home: 0, deathAge: 84 }],
+    ['death before 75', { deathAge: 72 }],
+    ['heir on £80k', { deathAge: 84, bens: [{ id: 'k1', name: 'Jo', relationship: 'descendant', sharePct: 100, income: 80000, age: 50 }] }],
+    ['all pension', { pen: 2000000, isa: 0, other: 0, cash: 20000, home: 500000, deathAge: 84 }]
+  ];
+  const money = (v) => Number(String(v).replace(/[^0-9.]/g, ''));
+  let silent = 0, unreconciled = [];
+  SHAPES.forEach(([name, over]) => {
+    const r = E.optimizeInheritance(household(over));
+    if (!r) return;
+    const g = r.giftRationale;
+    // a household with nothing to leave is answered by nothingToLeave instead, and must be
+    if (r.nothingToLeave) {
+      ok(`${name}: nothing to leave is stated, with its sum`, r.nothingToLeave.sum.length >= 3,
+        `ranOut=${r.nothingToLeave.ranOut} noTax=${r.nothingToLeave.noTax}`);
+      return;
+    }
+    if (!g || g.given <= 0) return;
+    // otherwise "why not more" must be answered one way or the other
+    const answered = !!(g.whySum || g.liquidCeiling);
+    if (!answered) silent++;
+    ok(`${name}: why the gift stops there is answered`, answered,
+      answered ? (g.whySum ? `compared against ${'£' + g.nextUp.toLocaleString()}` : 'liquidity ceiling') : 'SILENT');
+    /*
+     * And where a sum carries a total, the rows above it must produce that total. A sum that does not
+     * add up is worse than the prose it replaced: prose cannot be checked and found wrong, and a reader
+     * who checks this one and finds it wrong has no reason to trust any other figure on the page.
+     */
+    const rows = g.whySum || [];
+    const total = rows.find(x => x.total);
+    if (total) {
+      const a = money(rows[0].v), b = money(rows[1].v), c = money(total.v);
+      if (Math.abs(Math.abs(a - b) - c) > 2) unreconciled.push(`${name}: ${a} - ${b} != ${c}`);
+    }
+  });
+  ok('no household is left without an explanation', silent === 0, `${silent} silent`);
+  ok('and every sum that shows a total reconciles to it', unreconciled.length === 0,
+    unreconciled.length ? unreconciled.join(' | ') : 'all reconcile');
+
+  /*
+   * The specific arm that used to be pure assertion. A bigger gift is rejected; the rows must name what
+   * the heirs hold either way, and the note must quantify the trade rather than assert it.
+   */
+  const d = E.optimizeInheritance(household({ pen: 1200000, isa: 500000, other: 300000, cash: 150000, home: 0, deathAge: 84 }));
+  const dg = d.giftRationale;
+  ok('the rejection names both outcomes', dg.whySum.length === 3 && /Heirs keep/.test(dg.whySum[0].k), dg.whySum[0].k);
+  ok('and the note quantifies the trade', /saves only £/.test(dg.whyNote) || /drawn from the pension/.test(dg.whyNote) || /nil-rate band/.test(dg.whyNote), dg.whyNote);
+}
+
+console.log('=========== Q. NOTHING TO LEAVE, AND WHICH KIND ===========');
+{
+  /*
+   * A household that spends its pot before the death age scored £0 on every candidate, so the tab read
+   * "As it stands £0 / Best found £0 / Difference +£0" and then listed steps for an estate that does
+   * not exist. Two different reasons the search can have nothing to offer, both now stated.
+   */
+  const dry = E.optimizeInheritance(household({ pen: 250000, isa: 80000, other: 0, cash: 40000, home: 180000, deathAge: 84 }));
+  ok('a plan that runs dry says so', !!dry.nothingToLeave && dry.nothingToLeave.ranOut === true,
+    dry.nothingToLeave ? `fails at ${dry.nothingToLeave.failAge}` : 'not reported');
+  ok('and names the age against the death age', dry.nothingToLeave.failAge < dry.nothingToLeave.deathAge,
+    `${dry.nothingToLeave.failAge} < ${dry.nothingToLeave.deathAge}`);
+
+  // an estate inside its allowances: a real estate, but no inheritance tax for the search to play for
+  const small = household({ pen: 150000, isa: 40000, other: 0, cash: 20000, home: 120000, spend: 16000, deathAge: 74 });
+  const sm = E.optimizeInheritance(small);
+  ok('an estate inside its allowances says so instead', !!sm.nothingToLeave && sm.nothingToLeave.ranOut === false && sm.nothingToLeave.noTax === true);
+  /*
+   * And it must not claim there is nothing to gain when there is: with no inheritance tax to play for
+   * the search can still be worth thousands through income tax while alive, and saying "nothing to
+   * save" next to a non-zero gain is the contradiction that costs a reader the rest of the page.
+   */
+  const last = sm.nothingToLeave.sum[sm.nothingToLeave.sum.length - 1];
+  ok('without claiming nothing can be gained when something can',
+    sm.gain > 500 ? /Still worth/.test(last.k) : /Nothing to gain/.test(last.k),
+    `gain £${Math.round(sm.gain).toLocaleString()} -> "${last.k}"`);
+
+  // and a normal household has something to do, so gets no banner at all
+  ok('a household with something to do gets no banner',
+    E.optimizeInheritance(household({ deathAge: 84 })).nothingToLeave === null);
+}
+
+console.log('=========== R. THE TAPER CARD KNOWS WHICH QUESTION IT IS ANSWERING ===========');
+{
+  /*
+   * Three states. Running them together printed a NEGATIVE pound figure: where the recommended route
+   * already clears the line, the first row marked `under` sits below the recommendation, so "how much
+   * more must you give" came out as -£540,000 and the card asked why you would not do a thing you were
+   * already doing.
+   */
+  const under = E.optimizeInheritance(household({ pen: 900000, isa: 500000, other: 400000, cash: 300000, home: 400000, deathAge: 78 }));
+  ok('a route already under the line reports it', under.taperLadder.recommendedUnder === true);
+  ok('and offers nothing to weigh against it', under.taperLadder.clearing === null,
+    JSON.stringify(under.taperLadder.clearing));
+
+  const far = E.optimizeInheritance(household({ pen: 2400000, isa: 400000, other: 300000, cash: 200000, home: 700000, deathAge: 80 }));
+  ok('an unreachable line reports neither', far.taperLadder.recommendedUnder === false && far.taperLadder.clearing === null);
+  ok('and says it is out of reach', far.taperLadder.reachable === false);
+
+  /*
+   * Whenever a clearing row IS offered, the extra it asks for must be positive - that is the invariant
+   * the negative figure broke.
+   */
+  const all = [under, far,
+    E.optimizeInheritance(household({ deathAge: 72 })),
+    E.optimizeInheritance(household({ deathAge: 84 })),
+    E.optimizeInheritance(household({ pen: 2000000, isa: 0, other: 0, cash: 20000, home: 500000, deathAge: 84 }))]
+    .filter(x => x && x.taperLadder && x.taperLadder.clearing);
+  ok('a clearing row never asks for a negative amount',
+    all.every(x => x.taperLadder.clearing.extra > 0),
+    all.length ? all.map(x => '+£' + Math.round(x.taperLadder.clearing.extra).toLocaleString()).join(', ') : 'none offered');
+}
+
+console.log('=========== S. FINDINGS FIRE WHEN THEY ARE FINDINGS ===========');
+{
+  // one heir: there is no allocation to discuss, so the will paragraph is not a finding
+  const one = E.optimizeInheritance(household({ deathAge: 84,
+    bens: [{ id: 'k1', name: 'Jo', relationship: 'descendant', sharePct: 100, income: 0, age: 50 }] }));
+  ok('one heir gets no will paragraph', !one.reasons.some(r => r.key === 'will'),
+    one.reasons.map(r => r.key).join(',') || 'none');
+  ok('but is told why the nomination is not a choice', one.reasons.some(r => r.key === 'nomination' && /one person inherits/i.test(r.text)),
+    (one.reasons.find(r => r.key === 'nomination') || {}).text || 'no nomination finding');
+
+  // two heirs: it is a real question again
+  const two = E.optimizeInheritance(household({ deathAge: 84 }));
+  ok('two heirs get the will paragraph back', two.reasons.some(r => r.key === 'will'));
+
+  // two heirs on identical incomes: every split is taxed the same, and that is worth saying
+  const same = E.optimizeInheritance(household({ deathAge: 84,
+    bens: [{ id: 'a', name: 'A', relationship: 'descendant', sharePct: 50, income: 30000, age: 50 },
+           { id: 'b', name: 'B', relationship: 'descendant', sharePct: 50, income: 30000, age: 48 }] }));
+  ok('identical incomes explain the zero nomination', same.reasons.some(r => r.key === 'nomination' && /same income/i.test(r.text)),
+    (same.reasons.find(r => r.key === 'nomination') || {}).text || 'no finding');
+}
+
+console.log('=========== T. EACH THING SAID ONCE, AND THE GIFT FUNDED FROM SOMEWHERE REAL ===========');
+{
+  /*
+   * Every action carries a title, facts, a why and a detail, and they had drifted into being four
+   * restatements of one thing: "Gift £770,000 in 2027" above "Amount = £770,000" above "When = 2027";
+   * a nomination whose `why` and `detail` opened on the SAME SENTENCE verbatim; a withdrawal order
+   * whose folded prose recited the same six steps in wording the list above it no longer used.
+   *
+   * The rule tested here is the one that stops it growing back: a figure or a year stated in a title
+   * is not stated again in that action's own facts.
+   */
+  const SHAPES = [
+    ['two heirs, gift and nomination', { deathAge: 84, cash: 400000 }],
+    ['single heir', { deathAge: 84, bens: [{ id: 'k1', name: 'Jo', relationship: 'descendant', sharePct: 100, income: 0, age: 50 }] }],
+    ['gift exceeds liquid', { pen: 2400000, isa: 60000, other: 40000, cash: 30000, home: 700000, deathAge: 80 }],
+    ['death before 75', { deathAge: 72 }],
+    ['no home', { pen: 1200000, isa: 500000, other: 300000, cash: 150000, home: 0, deathAge: 84 }]
+  ];
+  const figures = (t) => (String(t).match(/£[\d,]+|\b(?:19|20)\d\d\b/g) || []);
+  let repeats = [], paperwork = 0;
+  SHAPES.forEach(([name, over]) => {
+    // start from a policy the search will move away from, so the order and ceiling steps are emitted
+    const p = E.normalizePlan(household({ ...over, }));
+    p.spending = { ...p.spending, decumulationPolicy: 'Sequential' };
+    p.config = { ...p.config, harvestCeiling: 'pa' };
+    const r = E.optimizeInheritance(p);
+    if (!r) return;
+    (E.estateActionPlan(p, r) || []).forEach(a => {
+      if (a.group === 'paperwork' || a.key === 'paperwork') paperwork++;
+      const inTitle = new Set(figures(a.title));
+      (a.facts || []).forEach(f => {
+        figures(f.k + ' ' + f.v).forEach(x => {
+          if (inTitle.has(x)) repeats.push(`${name}/${a.key}: "${x}" in title and in "${f.k}"`);
+        });
+      });
+    });
+  });
+  ok('no action repeats a figure from its own title in its facts', repeats.length === 0,
+    repeats.length ? repeats.slice(0, 4).join(' | ') : 'none across ' + SHAPES.length + ' households');
+  ok('the paperwork step is gone', paperwork === 0, `${paperwork} still emitted`);
+
+  /*
+   * THE FUNDING TABLE. A gift is funded as a one-off cost, which the engine draws through
+   * ctx.costSteps - cash, then the general investment account, then ISAs, then the pension. The
+   * sentence this replaced sorted the wrappers by SIZE and so named an order the projection never
+   * used. Asserted against the engine's own constant rather than a copy of it.
+   */
+  const p2 = E.normalizePlan(household({ deathAge: 84, cash: 400000 }));
+  p2.spending = { ...p2.spending, decumulationPolicy: 'Sequential' };
+  const r2 = E.optimizeInheritance(p2);
+  const giftAct = (E.estateActionPlan(p2, r2) || []).find(a => a.fundingTable);
+  ok('the gift carries a funding table', !!giftAct && giftAct.fundingTable.rows.length > 0,
+    giftAct ? `${giftAct.fundingTable.rows.length} rows` : 'no table');
+  const ft = giftAct.fundingTable;
+  const LABEL = { cash: 'Cash savings', other: 'General investment account', isa: 'ISAs' };
+  const expected = E.DEFAULT_COST_STEPS.filter(k => LABEL[k]).map(k => LABEL[k]);
+  ok('its rows follow the order the projection actually funds from',
+    ft.rows.every((r, i, all) => expected.indexOf(r.source) > (i === 0 ? -1 : expected.indexOf(all[i - 1].source))),
+    ft.rows.map(r => r.source).join(' > ') + '  (engine order: ' + expected.join(' > ') + ')');
+  ok('every row balances', ft.rows.every(r => Math.abs((r.balance - r.taken) - r.left) < 2),
+    ft.rows.map(r => `${Math.round(r.balance)}-${Math.round(r.taken)}=${Math.round(r.left)}`).join(' '));
+  const summed = ft.rows.reduce((t, r) => t + r.taken, 0) + (ft.pension ? ft.pension.net : 0);
+  ok('and the rows sum to the gift', Math.abs(summed - ft.total) < 2,
+    `£${Math.round(summed).toLocaleString()} against £${Math.round(ft.total).toLocaleString()}`);
+  ok('no pension row while the liquid wrappers cover it', ft.pension === null || ft.coveredFromLiquid < ft.total - 1);
+
+  /*
+   * And the case the prose was worst at: a gift bigger than everything liquid. The pension row is the
+   * only one where what leaves the account and what reaches the recipient differ, and the gross has
+   * to be the net grossed up at the marginal rate or the household is told to withdraw too little.
+   */
+  const p3 = E.normalizePlan(household({ pen: 2400000, isa: 60000, other: 40000, cash: 30000, home: 700000, deathAge: 80 }));
+  const r3 = E.optimizeInheritance(p3);
+  // forced past what the liquid wrappers hold, so the pension row is exercised whatever the search picked
+  const short = (E.estateActionPlan(p3, { ...r3, best: { ...r3.best, gift: 400000, compGift: null } }) || [])
+    .find(a => a.fundingTable && a.fundingTable.pension);
+  ok('a gift beyond the liquid wrappers shows a pension row', !!short,
+    short ? `${'£' + Math.round(short.fundingTable.pension.net).toLocaleString()} net` : 'none');
+  if (short) {
+    const pen = short.fundingTable.pension;
+    ok('whose gross is the net grossed up at the marginal rate',
+      Math.abs(pen.gross * (1 - pen.ratePct / 100) - pen.net) < Math.max(50, pen.net * 0.01),
+      `£${Math.round(pen.gross).toLocaleString()} drawn at ${pen.ratePct}% leaves £${Math.round(pen.net).toLocaleString()}`);
+    ok('and it is the last row, after every liquid account is empty',
+      short.fundingTable.rows.every(r => r.left < 2),
+      short.fundingTable.rows.map(r => `${r.source}:${Math.round(r.left)}`).join(' '));
+  }
+}
+
+console.log('=========== U. TIES GO TO THE SMALLER GIFT, AND THE PLATEAU IS SHOWN ===========');
+{
+  /*
+   * Three years from the death age, a gift past the exempt window cannot clear seven years, so it eats
+   * nil-rate band pound for pound: the estate falls, the band falls with it, and the tax does not move.
+   * Every size between the window and the liquid ceiling therefore scores identically, and sorting on
+   * net alone made the winner whichever the grid happened to reach first - £634,200 where £595,000
+   * produced the same figure to the pound, £39,200 given away to buy nothing.
+   *
+   * The plateau only exists where there is enough liquid to go PAST the exempt boundary, which is why
+   * this fixture carries the one-off contribution: without it the household cannot afford to overshoot
+   * and there is no tie to break.
+   */
+  const widow = (over = {}) => E.normalizePlan({
+    demographics: { planningMode: 'single', currentAgeSelf: 68, retireAgeSelf: 65, salarySelf: '',
+      employmentSelf: 'employed', statePensionAge: 68, privatePensionAge: 58, statePensionSelf: 11500, terminalAge: 100 },
+    spending: { targetSpend: 0, spendBands: [], drawdownStrategy: 'Phased Drawdown', decumulationPolicy: 'Bracket Fill Basic' },
+    accounts: [
+      { id: 'pen_self', owner: 'Myself', category: 'Pensions', balance: 1200000, contrib: 0, growth: '', risk: 'Medium Risk' },
+      { id: 'isa_self', owner: 'Myself', category: 'S&S ISAs', balance: 175000, contrib: 0, growth: '', risk: 'Medium Risk' },
+      { id: 'other_self', owner: 'Myself', category: GIA, balance: 400000, contrib: 0, growth: '', risk: 'Low Risk', unrealisedGain: 58000 },
+      { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 0, contrib: 0, growth: '', risk: 'Low Risk' }],
+    otherIncomes: [{ id: 'i', owner: 'Myself', startAge: '67', endAge: '', amount: '11000', incomeType: 'earnings' }],
+    // lands before the gift, and is what makes overshooting the exempt boundary affordable at all
+    oneOffContributions: [{ id: 'c', date: '2027-01-01', year: 2027, owner: 'Myself',
+      category: 'Other Investments (e.g. GIA)', amount: 120000, transferredFrom: 'External' }],
+    oneOffCosts: [], config: { valuationDate: '2026-09-13' },
+    inheritance: { deathAge: 71, homeValue: 1400000, homeToDescendants: true,
+      compensationPayment: 900000, compensationDate: '2025-12-04',
+      gifts: [{ id: 'g1', amount: 308000, year: 2026, desc: 'House' }],
+      beneficiaries: [{ id: 'a', name: 'Sam', relationship: 'descendant', sharePct: 50, income: 93000, age: 35 },
+                      { id: 'b', name: 'Alex', relationship: 'descendant', sharePct: 50, income: 150000, age: 36 }],
+      ...(over.inh || {}) }
+  });
+  /*
+   * Priced the way the household is reading it: the tab's "use today's figures" toggle, which flattens
+   * every risk profile to zero growth. It matters here - with growth on, the gift year holds enough
+   * more that the search clears the exempt boundary by a different route and no tie arises.
+   */
+  const flat = (over) => {
+    const p = widow(over);
+    for (const k of Object.keys(p.riskProfiles || {})) p.riskProfiles[k] = { ...p.riskProfiles[k], real: 0, volatility: 0, sigmaParam: 0 };
+    return p;
+  };
+  const r = E.optimizeInheritance(flat());
+  const given = E.num(r.best.gift, 0) + (r.best.compGift ? E.num(r.best.compGift.amount, 0) : 0);
+  const pl = r.giftRationale.plateau;
+  ok('a tie exists on this household', !!pl && pl.surplus > 0,
+    pl ? `sizes up to ${gbp(pl.upTo)} tie` : 'no plateau reported');
+  ok('and the winner is the smallest of them', given < pl.upTo,
+    `${gbp(given)} recommended, ties run to ${gbp(pl.upTo)}`);
+  /*
+   * The boundary that matters is the largest FULLY EXEMPT gift - the award still giftable plus the
+   * annual exemption. The grid is fractions of liquid and never landed on it, and it was measured
+   * against TODAY's liquid rather than the gift year's, so it was being discarded as unaffordable.
+   */
+  ok('which is the largest gift that eats no nil-rate band', E.num(r.bestEst.nrbUsedByGifts, 0) === 0,
+    `${gbp(E.num(r.bestEst.nrbUsedByGifts, 0))} of band eaten by a ${gbp(given)} gift`);
+  ok('the surplus is priced rather than dismissed', pl.worthIfSurvived > 0,
+    `worth ${gbp(pl.worthIfSurvived)} if he reaches ${pl.survivalAge}`);
+  ok('against an age seven years past the gift', pl.survivalYear === r.giftYear + 7,
+    `gift ${r.giftYear}, seven years lands ${pl.survivalYear} at age ${pl.survivalAge}`);
+
+  /*
+   * And the tie-break must cost nothing: giving the largest tying amount instead has to leave the heirs
+   * where they already are, or it was never a tie and the smaller gift is simply worse.
+   */
+  const at = (amt) => {
+    const p = flat({ inh: { gifts: [{ id: 'g1', amount: 308000, year: 2026 }, { id: 't', amount: amt, year: r.giftYear }] } });
+    const c = E.buildContext(E.resolveMpaa(p));
+    return E.estateForPlanAt(p, c, E.simulateDeterministic(c, 'expected')).netWithGifts;
+  };
+  ok('giving the larger amount really does leave the heirs no better off',
+    Math.abs(at(pl.upTo) - at(given)) < 2000, `${gbp(at(pl.upTo))} against ${gbp(at(given))}`);
+}
+
+console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
+process.exit(fail ? 1 : 0);

@@ -20,15 +20,14 @@ const KEY = 'rp_which_app';
 /*
  * WHERE FEEDBACK GOES.
  *
- * Blank ships no link at all rather than a dead one; anything else - a form, a thread, a mailbox -
- * appears as a footer line in both apps.
+ * Paste a form's URL here and the footer line appears in both apps. Blank ships no link at all, which
+ * is better than a dead one, and is where this sits until the form exists.
  *
- * This is a mailbox, by choice, and the trade that comes with it is real: an address on a public page
- * is an address that gets scraped, and no amount of obfuscation reliably prevents that. Swapping this
- * one line for a form URL is the whole of changing your mind later. The subject line is prefilled so
- * beta replies sort themselves out of an inbox.
+ * A form rather than a mailbox, deliberately: an address on a public page gets scraped, and no amount
+ * of obfuscation reliably prevents it. A form also arrives structured - which browser, which app, what
+ * they expected - where a mailbox arrives as whatever somebody felt like typing.
  */
-const FEEDBACK_URL = 'mailto:forwardsamuel@gmail.com?subject=Retirement%20planner%20feedback';
+const FEEDBACK_URL = '';
 const FEEDBACK_LABEL = 'Tell me what broke';
 
 /*

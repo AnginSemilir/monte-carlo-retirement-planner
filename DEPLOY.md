@@ -53,10 +53,9 @@ Three things would orphan them, all within your control:
 
 ## Before the link goes out
 
-- `FEEDBACK_URL` in `src/Shell.jsx` is a `mailto:`, so the footer of both apps carries a link that
-  opens a mail client with the subject prefilled. An address on a public page does get scraped; if that
-  becomes a nuisance, swapping this one line for a form URL is the whole of the fix. Blank ships no
-  link at all.
+- `FEEDBACK_URL` in `src/Shell.jsx` is blank, so no feedback link renders yet. Paste a form's URL there
+  and it appears in the footer of both apps. A form rather than a `mailto:`, because an address on a
+  public page gets scraped and a form arrives structured.
 - `SHOW_INHERITANCE` in `src/App.jsx` is `false`, so the Inheritance tab stays hidden. Its code and its
   268 assertions are untouched; flipping it to `true` is the whole of turning it on.
 - `APP_VERSION` in `src/App.jsx` reads `v0.8 beta`.

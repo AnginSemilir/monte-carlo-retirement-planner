@@ -558,7 +558,7 @@ const PRIORITY_METRICS = {
    */
   bequest: {
     label: 'Maximising the inheritance',
-    why: 'Ranks on what your heirs actually receive after inheritance tax and their own income tax. Needs the Inheritance tab filled in; without it, falls back to the pot left at your final age.',
+    why: 'Ranks on what your heirs actually receive after inheritance tax and their own income tax, where beneficiaries have been entered. With none entered it falls back to the pot left at your final age, which makes it behave much like the pot priority above.',
     serves: 'Favours keeping wealth in wrappers that are taxed once rather than twice, which since 2027 means not leaving an oversized pension behind for heirs who would pay income tax on it as well.',
     get: (st) => st.postTaxInheritance ?? st.medianTerminalNet ?? st.medianTerminal, higherIsBetter: true, unit: 'pct', epsilon: moneyEpsilon
   },
@@ -11812,6 +11812,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-xs text-slate-500 leading-relaxed"><strong>Assumption:</strong> allowances are held fixed in real terms at the figures in Config ({formatGBP(P.isaAllowance)} ISA, {formatGBP(P.pensionAllowance)} pension, {formatGBP(P.pensionNoEarningsLimit)} with no earnings). Any future increase in these limits is <strong>not</strong> modelled, so a long staging schedule is a cautious estimate. If allowances do rise, the money would move across in fewer years than shown. You can edit the figures in Config to test a different assumption.</p>
             </div>
 
+            {/* Held back with the tab itself - this section documents a tab the beta does not show,
+                and half of it names controls the reader cannot reach. Restored by the same flag. */}
+            {SHOW_INHERITANCE && (
             <div id="doc-inheritance" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
               <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> Inheritance Tax: the rules, and what is not modelled</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Rules as published for 2026/27 and checked in September 2026. Three of the four regimes below changed between 2025 and 2027, so they are all editable in Config rather than baked in — if a Budget moves them, change the figure rather than waiting for the app.</p>
@@ -11872,10 +11875,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-xs text-slate-600 leading-relaxed"><strong>Giving away your home and continuing to live in it does not remove it from your estate.</strong> That is a gift with reservation of benefit, it is the most common estate-planning mistake there is, and no figure on this page will warn you about it.</p>
               <p className="text-xs text-slate-500 leading-relaxed">All of this is illustration, not advice. Inheritance tax turns on facts about your family and your assets that a planning tool has no way to hold, and the amounts involved are usually large enough to be worth an hour of a professional&rsquo;s time.</p>
             </div>
+            )}
 
             <div id="doc-priorities" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
               <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-blue-600" /> Your Priorities, and the Policy Each One Chooses</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">A decumulation policy is only &quot;best&quot; relative to what you are trying to achieve. Across 360 test households, ranking on the size of the eventual pot rather than on not running out changed the recommended policy for <strong>64% of them</strong> &mdash; and took the simplest policy, Sequential, from winning 1% of households to winning 55%. Nothing about the policies changed; only the question being asked of them. That is why the priority order sits above the policy picker rather than inside it.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">A decumulation policy is only &quot;best&quot; relative to what you are trying to achieve. Across 360 test households, ranking on the size of the eventual pot rather than on avoiding depletion changed the recommended policy for <strong>64% of them</strong> &mdash; and took the simplest policy, Sequential, from winning 1% of households to winning 55%. Nothing about the policies changed; only the question being asked of them. That is why the priority order sits above the policy picker rather than inside it.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">How the order is applied</h3>
               <p className="text-xs text-slate-600 leading-relaxed">The list is worked down in order. Your first priority narrows the field to the settings that are best on it; the second then chooses among <em>those</em>, and so on. A lower priority can only ever break a near-tie on the ones above it, so ranking something first genuinely protects it: it is never traded away for a gain in something you ranked lower.</p>
@@ -11898,7 +11902,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Why the default is survival first</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Running out of money is the one outcome no later good luck can undo, and it is not symmetric with the others: a smaller bequest is a disappointment, an empty pot at 84 is a crisis. So the default order is <strong>not running out</strong>, then <strong>protecting the bad case</strong>, then what is left behind. Reorder it freely &mdash; but if you promote the pot or the bequest above survival, you are telling the model you would accept a materially higher chance of running dry in exchange, and it will do exactly that.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Running out of money is the one outcome no later good luck can undo, and it is not symmetric with the others: a smaller bequest is a disappointment, an empty pot at 84 is a crisis. So the default order is <strong>avoiding depletion</strong>, then <strong>resilience in poor markets</strong>, then what is left behind. Reorder it freely &mdash; but if you promote the pot or the bequest above survival, you are telling the model you would accept a materially higher chance of running dry in exchange, and it will do exactly that.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What this does not yet cover</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Two priorities people legitimately hold are not on the list, because the model cannot yet measure them honestly. <strong>Access before pension age</strong> &mdash; a policy that drains ISAs early leaves you richer on paper but with wealth locked until pension age and taxable to reach &mdash; needs a measure of accessible wealth the engine does not currently report. <strong>Simplicity</strong> is real too: Sequential needs no annual bracket management, and that is worth something in effort and in avoided mistakes, but it is not a number this model can produce.</p>

@@ -20,8 +20,10 @@ set -uo pipefail
 PORT="${1:-4173}"
 cd "$(dirname "$0")/../.."
 
-REQUIRED=(restyle-regression phone-ui sandbox-step simple-extras mc-reveal crossover production-build tradeoffs priorities simple-closecall)
-OPTIONAL=(tournament beneficiary-inputs estate-assets estate-deck estate-optimiser inheritance closecall)
+REQUIRED=(restyle-regression phone sandbox-step simple-extras mc-reveal crossover production-build tradeoffs priorities simple-closecall tournament)
+# closecall-ui.cjs is not in either list: it takes a plans.json written by hand, not a port, and
+# exists to investigate one household rather than to guard a behaviour.
+OPTIONAL=(beneficiary-inputs estate-assets estate-deck estate-optimiser inheritance)
 
 echo "== build =="
 npm run build >/tmp/run-all-build.log 2>&1 || { echo "BUILD FAILED"; tail -20 /tmp/run-all-build.log; exit 1; }
@@ -54,7 +56,7 @@ printf '%-22s %-9s %s\n' HARNESS KIND RESULT
 FAILED=0
 for i in "${!NAMES[@]}"; do
   c="${CODES[$i]}"
-  if   [ "$c" = "skip" ]; then r="not present"
+  if   [ "$c" = "skip" ]; then r="NOT PRESENT"; [ "${KINDS[$i]}" = required ] && FAILED=1
   elif [ "$c" -eq 0 ];   then r="pass"
   else r="FAIL ($c)"; [ "${KINDS[$i]}" = required ] && FAILED=1
   fi

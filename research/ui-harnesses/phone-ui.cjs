@@ -147,6 +147,23 @@ const navigate = async (page, label, short) => {
         ok(`${label}: no text below 3:1`, bad.length === 0, bad.slice(0, 2).map(x => `"${x.text}" ${x.ratio}:1`).join(' | '));
         const small = await p.evaluate(TOUCH_PROBE, 44);
         ok(`${label}: no control under 44px`, small.length === 0, small.slice(0, 3).map(x => `${x.tag} "${x.text}" ${x.w}x${x.h}`).join(' | '));
+        /*
+         * TEXT REDUCTION. The eleven Documentation cards fold on a phone: heading visible, body in a
+         * closed <details>. Both halves matter - folded by default AND still in the DOM, because the
+         * point was to shorten the scroll, not to delete the reference. The tab's own content marker
+         * above already proves a closed card has not taken its heading down with it.
+         */
+        if (label === 'Documentation') {
+          const d = await p.evaluate(() => {
+            const ds = [...document.querySelectorAll('[id^="doc-"] details')];
+            return { n: ds.length, open: ds.filter(x => x.open).length,
+              body: ds.filter(x => (x.textContent || '').length > 400).length,
+              pageH: document.documentElement.scrollHeight };
+          });
+          ok('the reference folds on a phone', d.n >= 8 && d.open === 0, `${d.n} cards, ${d.open} open`);
+          ok('...with the text still in the DOM', d.body >= 6, `${d.body} cards over 400 chars`);
+          ok('...and a scroll you can get to the end of', d.pageH < 4000, `${d.pageH}px`);
+        }
         await p.evaluate(() => window.scrollTo(0, 0));
       }
 

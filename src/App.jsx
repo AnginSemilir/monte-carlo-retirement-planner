@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
-import { ChartFullscreen, Fine, SheetPanel } from './phone.jsx';
+import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel } from './phone.jsx';
 import EditMode from './EditMode.jsx';
 // ============================================================================================
 // Monte-Carlo Retirement Planner v3.4 — single-file build (engine + UI).
@@ -10460,7 +10460,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             {!simResult ? (
               <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
                 <div className="flex items-center gap-2 font-bold text-blue-950 text-sm"><Layers className="w-4 h-4 text-blue-600" /> What you will get</div>
+                <Fine isPhone={isPhone} label="The six steps">
                 <p className="leading-relaxed">Six steps. What your plan does as entered, the most you could safely spend instead, the earliest you could stop working, then the same range drawn two ways &mdash; compounded from the return assumptions, and read off {MC_TRIALS.toLocaleString()} randomised paths &mdash; and finally the two side by side. Every figure is in today&rsquo;s money.</p>
+                </Fine>
               </div>
             ) : (
             <>
@@ -10768,7 +10770,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     </tbody>
                   </table>
                 </div>
+                <Fine isPhone={isPhone} label="Why?">
                 <p className="text-[11px] text-slate-500 leading-relaxed">One steady real rate per wrapper, so this ranks the plans against each other rather than against a market. It carries no sequence-of-returns risk: for the chance each scenario survives, enter them in the tournament on the Strategy tab, which runs every scenario on the same market paths.</p>
+                </Fine>
               </div>
             )}
             {/* ---------------- 7. CHANGE SOMETHING ---------------- */}
@@ -10814,9 +10818,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <div className="space-y-6">
             <div className="p-4 bg-indigo-50/80 border border-indigo-200 rounded-xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
               <div className="flex items-center gap-2 font-bold text-indigo-950 text-sm"><Zap className="w-4 h-4 text-indigo-600" /> Strategy Tournament</div>
+              <Fine isPhone={isPhone} label="What this is">
               <p className="leading-relaxed">A different question from the one the Projection tab answers. That one asks what happens to your plan; this asks whether a <strong>different split of the same money</strong> would do better. Your spending and your total budget are held fixed, the budget is re-divided between wrappers, and every strategy is scored on identical market paths so the comparison is like for like.</p>
               <p className="text-slate-500 text-[11px] leading-relaxed">Nothing here changes your plan on its own. Applying a winning strategy is a separate, deliberate click, and it lands in the Sandbox on the Projection tab so you can see it drawn before committing it.</p>
               <p className="text-slate-500 text-[11px] leading-relaxed">Nothing being paid in? Then this tournament has nothing to divide. {SHOW_INHERITANCE && <>The search for someone already retired is on the <button type="button" onClick={() => setActiveTab('inheritance')} className="text-purple-700 hover:text-purple-900 hover:underline font-semibold cursor-pointer">Inheritance tab</button>, which ranks the choices that are left on what your heirs keep.</>}</p>
+              </Fine>
               <div className="flex flex-wrap gap-x-5 gap-y-1 pt-0.5">
                 <button type="button" onClick={() => goToDoc('doc-tournament')} className="text-[11px] text-blue-700 hover:text-blue-900 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
                   <HelpCircle className="w-3.5 h-3.5" /> Tournament methodology and players &rarr;
@@ -10832,8 +10838,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <div className="space-y-6" data-estate-deck>
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3 text-xs text-slate-600 leading-relaxed">
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> What your heirs actually receive</h2>
+              <Fine isPhone={isPhone} label="What this is">
               <p>The projection reports the pot you leave. This reports what reaches the people you leave it to, which is a different number. Two things separate them: from 6 April 2027 an unused pension counts as part of your estate for inheritance tax, and if you die at 75 or over your beneficiaries then pay their own income tax on what they draw from it — on top of the tax the estate already paid.</p>
               <p className="text-slate-500">So <strong>which wrapper the money sits in now changes what it is worth to them</strong>, and so does when you die and who inherits. Nothing here is advice; the figures are illustrations built from the rules in Config, which you can change.</p>
+              </Fine>
               <button type="button" onClick={() => goToDoc('doc-inheritance')} className="text-[11px] text-purple-700 hover:text-purple-900 hover:underline font-semibold flex items-center gap-1 cursor-pointer"><HelpCircle className="w-3.5 h-3.5" /> The rules, and what is not modelled &rarr;</button>
               {/* the deck, at the top as well as the foot of each step: three questions and an answer */}
               <div className="pt-2 border-t border-slate-100">
@@ -12167,9 +12175,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <div className="space-y-6">
             <div className="p-4 bg-indigo-50/70 border border-indigo-200/80 rounded-xl text-xs text-slate-700 space-y-2">
               <div className="flex items-center gap-2 font-bold text-indigo-900 text-sm"><History className="w-4 h-4 text-indigo-600" /> Empirical Historical Backtest ({E.HISTORICAL_FIRST_YEAR}–{E.HISTORICAL_LAST_YEAR})</div>
+              <Fine isPhone={isPhone} label="How the backtest works">
               <p>Feeds actual historical real returns (US large-cap equities and a 50/50 government/corporate bond blend, weighted by each wrapper's risk tier) into your plan, <strong>starting from today (Age {currentAge})</strong> through to Age {terminalAge}.</p>
               <p className="text-slate-500">Selectable start years are capped at <strong>{maxHistoricalStartYear}</strong> so your {spanYears}-year plan runs within recorded history through {E.HISTORICAL_LAST_YEAR}.{historicalMetrics?.beyondData && ' Years beyond the dataset use the expected return.'}</p>
               <p className="text-slate-500">Your working years cannot run the pot dry, because your living spend is only drawn from the first retirement onwards. The verdict below therefore counts <strong>drawdown years</strong>, not calendar years — a plan that fails the moment you stop working has funded nothing, however far away that moment is.</p>
+              </Fine>
             </div>
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -12244,6 +12254,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {activeTab === 'docs' && (
           <div className="space-y-6">
             <div id="doc-mc-buttons" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Dices className="w-4 h-4 text-blue-600" /> The Three Stages of a Monte Carlo Run</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Two of these run from one button on the Projection tab, each result appearing as its stage finishes. They use the same engine on the same {MC_TRIALS.toLocaleString()} randomised market paths and differ only in which side of the equation is held fixed: one fixes your spending and reports the risk, the other fixes the risk and reports the spending. The second can be switched off if you only want the fast answer. The third leaves both alone and changes where the money sits instead; it answers a different question, so it has its own tab and its own button.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
@@ -12275,9 +12286,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
               <p className="text-xs text-slate-600 leading-relaxed"><strong className="text-slate-800">Every figure is in today&rsquo;s money, and the headline carries a &plusmn; sampling error.</strong> At {MC_TRIALS.toLocaleString()} trials a difference smaller than that is noise, so treat 94.2% and 95.1% as the same answer. Check the <strong>pre-SIPP access failure</strong> line separately: a plan can survive overall while still stranding you before age {nmpa}, which is a bridging problem, not a saving-enough problem. A path counts as failed in any year that living costs or a one-off cost cannot be met from an accessible wrapper, or if the terminal pot ends below your bequest floor. Paths are seeded, so the same seed reproduces the result exactly; change the seed in Config to test a different draw of markets.</p>
               <p className="text-[11px] text-slate-500 leading-relaxed">No stage changes your plan on its own. Applying a strategy from stage 3 is a separate, deliberate click.</p>
+              </PhoneCollapse>
             </div>
 
             <div id="doc-tournament" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Zap className="w-4 h-4 text-indigo-600" /> Automated Strategy Tournament &amp; Optimisation Methodology</h2>
               <p className="text-xs text-slate-600 leading-relaxed">The tournament compares six ways of splitting the same annual take-home budget between S&amp;S ISAs and pensions. Every player is run on the same {TOURNAMENT_TRIALS.toLocaleString()} market paths (common random numbers), so the players are compared on identical markets rather than on separate draws. That is what makes the comparison fair; it does not make it exact. A single strategy's survival rate still moves by around half a point from one seed to the next at this path count, so read a lead smaller than about a point as sampling error. Any saved scenario can be entered as an extra player; those run exactly as saved and are not held to the same budget, which their cards state.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
@@ -12286,9 +12299,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">3. The players</strong><p className="text-slate-500"><strong>Current plan</strong> · <strong>Survival maximiser</strong> (searches the ISA share from 0% to 100% and keeps the best survival, subject to the bridge-risk cap) · <strong>Bridge-Sized Relief</strong> (pension-first, with only the pre-access bridge carved out: the requirement is sized with growth counted on both existing balances and new contributions, then cover levels either side of it are searched, some paid in level and some over the final years only, and spare ISA capital above the reserve is moved into the pension) · <strong>Relief-First</strong> (pension first, bridge minimum kept; with a Bed &amp; SIPP transfer of spare ISA capital in full scope) · <strong>Bracket-Smoothed Sizing</strong> (pension funded only to the pot whose sustainable withdrawal plus state pension fills the basic-rate band, the rest to ISA) · <strong>Relief-First, Bridge-Last</strong> (pension-max early, ISA-max in the final years before retirement).</p></div>
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">4. Reading the results</strong><p className="text-slate-500">Rank by survival first; ties within 0.5 points are broken by the 10th-percentile pot. Watch the pre-SIPP access failure rate: a strategy can win on total survival by accepting more bridge risk. The "Partner balancing" option steers new money to the partner with the smaller projected pension so both personal allowances can be used in retirement; it costs relief if that partner pays a lower marginal rate, so it does not always win.</p></div>
               </div>
+              </PhoneCollapse>
             </div>
 
             <div id="doc-decumulation" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> Decumulation Policies &amp; Pension Drawdown Strategies</h2>
               <p className="text-xs text-slate-600 leading-relaxed">How money is withdrawn across wrappers changes lifetime tax and the size of the pot left at the end; it changes the probability of maintaining your living costs far less than the spend level, asset allocation and the pre-SIPP access bridge do.</p>
               <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1.5">
@@ -12298,9 +12313,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <li><strong>Harvest unused allowance:</strong> once retired and past age {nmpa}, any unused 0% allowance is filled from the pension and the net proceeds moved to ISA (within the £{P.isaAllowance.toLocaleString()} limit) or cash. It only matters when spending is largely covered by guaranteed income.</li>
                 <li><strong>Phased Drawdown</strong> crystallises {Math.round(P.pclsProp * 100)}% tax-free with each withdrawal (UFPLS-style), keeping the rest invested. <strong>Full lump sum</strong> moves the maximum tax-free cash (capped at £{P.lsa.toLocaleString()}) into cash savings at retirement; later withdrawals are then fully taxable.</li>
               </ul>
+              </PhoneCollapse>
             </div>
 
             <div id="doc-coverage" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-indigo-600" /> Modelling Decisions, Coverage &amp; Known Gaps</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Where the rules leave room for judgement, this is the decision the model makes and why. Read this before trusting a number.</p>
 
@@ -12337,16 +12354,20 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <li><strong>Allowance and threshold changes</strong> announced for future years, and any change to the state pension triple lock.</li>
               </ul>
               <p className="text-xs text-slate-500 leading-relaxed">This is an educational model, not advice. Where a figure matters to a real decision, check it against current HMRC guidance or a regulated adviser.</p>
+              </PhoneCollapse>
             </div>
 
             <div id="doc-taper" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><HelpCircle className="w-4 h-4 text-blue-600" /> Spending by Age</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Retirement spending often isn't flat. Set what a stretch of years actually costs in Plan Inputs as bands: a start age, an end age and what those years cost in today's money. A band that names ages 58 to 67 at {formatGBP(45000)}, then 68 to 79 at {formatGBP(34000)}, then 80 onwards at {formatGBP(40000)}, says exactly that, including the rise at the end for care. Ages are "Myself" ages.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Bands only override the years they cover. Any year outside every band falls back to the headline living spend, so naming a single expensive stretch is enough; you do not have to describe the whole retirement. Leave the end age blank to run a band to the terminal age. If two bands overlap the earlier one wins for the shared years, and the model says so in the warnings rather than picking silently.</p>
               <p className="text-xs text-slate-500 leading-relaxed">Bands replaced an older pair of percentage "tapers" that could only step spending down at two fixed ages. Any saved plan still carrying tapers is converted to the equivalent bands when it loads, so its projection is unchanged. The safe-spend solver scales the whole shape at once: it finds the multiple of your headline spend that survives, and every band moves with it in proportion.</p>
+              </PhoneCollapse>
             </div>
 
             <div id="doc-risk-profiles" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-blue-600" /> Asset Allocations, Return Bounds &amp; Volatility (σ)</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Each wrapper is assigned a risk tier carrying an expected real return (treated as the median annual rate), a volatility, and a forecast uncertainty. The first two describe the <em>path</em>; the third describes how sure we are of the average that path is scattered around, and the distinction matters more the longer you plan for. Volatility averages out as σ/√T. Being wrong about the long-run average does not average out at all, so it is drawn once per simulated path and then lived with, giving an annualised spread of √(u² + σ²/T). The built-in tiers set that uncertainty to zero, which is itself a claim — that we know the long-run average and are only unsure of the route — and a published set of capital market assumptions will generally say otherwise.</p>
               <p className="text-xs text-slate-600 leading-relaxed"><strong className="text-slate-800">&ldquo;Expected&rdquo; here means the middle, not the average.</strong> The figure in the first column is the <em>median</em> rate: half the simulated years land above it and half below. Compound the middle rate and you get the middle outcome, which is why the Expected line on the Projection chart sits almost exactly on the simulation&rsquo;s median &mdash; within half a percent on a plain lump sum, and within about 3&frac12;% on a real plan, where contributions and tax blur it slightly.</p>
@@ -12357,9 +12378,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <div key={k} className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><span className="font-bold text-slate-800">{k} ({v.label})</span><p className="text-slate-500">Expected real {E.num(v.real, 0).toFixed(2)}% pa, σ = {E.num(v.volatility, 0).toFixed(1)}%.</p></div>
                 ))}
               </div>
+              </PhoneCollapse>
             </div>
 
             <div id="doc-one-off-deposits" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> One-Off Deposits &amp; Multi-Year Staging</h2>
               <p className="text-xs text-slate-600 leading-relaxed">A one-off deposit is a lump sum paid into a chosen wrapper in a chosen year. Because ISAs and pensions are capped each tax year, the engine checks the deposit against that year's remaining allowance before it lands.</p>
 
@@ -12386,12 +12409,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-xs text-slate-600 leading-relaxed">Where several deposits compete for the same person's allowance in the same year, they are resolved in date order, so one allowance is never counted twice. If a market fall shrinks the parked money, that year's transfer is capped at whatever the GIA actually holds. Anything still parked at the end of the plan stays in Other Investments and is flagged as a warning.</p>
 
               <p className="text-xs text-slate-500 leading-relaxed"><strong>Assumption:</strong> allowances are held fixed in real terms at the figures in Config ({formatGBP(P.isaAllowance)} ISA, {formatGBP(P.pensionAllowance)} pension, {formatGBP(P.pensionNoEarningsLimit)} with no earnings). Any future increase in these limits is <strong>not</strong> modelled, so a long staging schedule is a cautious estimate. If allowances do rise, the money would move across in fewer years than shown. You can edit the figures in Config to test a different assumption.</p>
+              </PhoneCollapse>
             </div>
 
             {/* Held back with the tab itself - this section documents a tab the beta does not show,
                 and half of it names controls the reader cannot reach. Restored by the same flag. */}
             {SHOW_INHERITANCE && (
             <div id="doc-inheritance" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> Inheritance Tax: the rules, and what is not modelled</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Rules as published for 2026/27 and checked in September 2026. Three of the four regimes below changed between 2025 and 2027, so they are all editable in Config rather than baked in — if a Budget moves them, change the figure rather than waiting for the app.</p>
 
@@ -12450,10 +12475,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-xs text-slate-600 leading-relaxed">Sizing that gift is done by running your own plan, not by subtracting the excess: money given away also stops growing, and spending that would have come from it comes out of a pension instead, taxed on the way — so each £1 given can take £1 to £2 off the estate, and suggesting the excess itself would suggest roughly twice what is needed. The search stops at the largest gift the plan can still afford, since an allowance is no use to someone who has run out of money.</p>
               <p className="text-xs text-slate-600 leading-relaxed"><strong>Giving away your home and continuing to live in it does not remove it from your estate.</strong> That is a gift with reservation of benefit, it is the most common estate-planning mistake there is, and no figure on this page will warn you about it.</p>
               <p className="text-xs text-slate-500 leading-relaxed">All of this is illustration, not advice. Inheritance tax turns on facts about your family and your assets that a planning tool has no way to hold, and the amounts involved are usually large enough to be worth an hour of a professional&rsquo;s time.</p>
+              </PhoneCollapse>
             </div>
             )}
 
             <div id="doc-priorities" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Trophy className="w-4 h-4 text-blue-600" /> The Recommended Policy, and the Trade-offs Around It</h2>
               <p className="text-xs text-slate-600 leading-relaxed">A decumulation policy is only &quot;best&quot; relative to what you are trying to achieve. Across 420 test households, ranking on the size of the eventual pot rather than on avoiding depletion changed the recommended policy for <strong>75% of them</strong> &mdash; and took the simplest policy, Sequential, from winning 1% of households to winning 46%. Nothing about the policies changed; only the question being asked of them.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Asking you to rank six abstract priorities before you have seen a single figure is the wrong way round. So the policy search runs every combination first &mdash; five policies, two ways of taking the tax-free cash, and whether the personal allowance is harvested, eighteen in all &mdash; on the same market paths, and then does two things with the results.</p>
@@ -12493,9 +12520,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               <h3 className="text-sm font-semibold text-slate-800 pt-1">What this does not yet cover</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Two priorities people legitimately hold are not on the list, because the model cannot yet measure them honestly. <strong>Access before pension age</strong> &mdash; a policy that drains ISAs early leaves you richer on paper but with wealth locked until pension age and taxable to reach &mdash; needs a measure of accessible wealth the engine does not currently report. <strong>Simplicity</strong> is real too: Sequential needs no annual bracket management, and that is worth something in effort and in avoided mistakes, but it is not a number this model can produce.</p>
+              </PhoneCollapse>
             </div>
 
             <div id="doc-cgt" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> Capital Gains Tax on Other Investments (GIA)</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Pensions and ISAs shelter growth, but a general investment account does not. When CGT is switched on in Config, the engine tracks the <strong>cost basis</strong> of each person's GIA and charges tax on gains as they are realised.</p>
 
@@ -12514,9 +12543,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-xs text-slate-600 leading-relaxed">The "of which unrealised gain" figure on the GIA row tells the engine how much of today's balance is profit. Left blank, the balance is treated as entirely cost, so only future growth is ever taxed, which may provide too much weight to GIA. If you hold long-standing investments with a large embedded gain, enter it, or the model will understate your tax.</p>
 
               <p className="text-xs text-slate-500 leading-relaxed"><strong>Deliberate omissions:</strong> gains are wiped by the uplift on death, so nothing is charged on whatever remains at the terminal age. This is a real reason to spend other wrappers first. Dividends and interest inside the GIA are not modelled separately, share pooling and the 30-day rule are ignored, and the exempt amount and rates are held flat in real terms at the Config figures.</p>
+              </PhoneCollapse>
             </div>
 
             <div id="doc-one-offs" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Coins className="w-4 h-4 text-blue-600" /> One-Off Cost Liquidation Hierarchy</h2>
               <p className="text-xs text-slate-600 leading-relaxed">When a one-off capital cost is scheduled, the engine liquidates assets in this order:</p>
               <ol className="list-decimal pl-5 text-xs text-slate-600 space-y-1">
@@ -12525,6 +12556,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </ol>
               <p className="text-xs text-slate-500">Known simplifications: state pension is held flat in real terms (no triple-lock uplift), tax thresholds and allowances are held flat in real terms, and the death of a partner is not modelled.</p>
               <p className="text-xs text-slate-500 leading-relaxed"><strong>Pension allowance limitations.</strong> The model assumes you have <strong>not</strong> yet flexibly accessed a pension, because it is built for planning towards retirement rather than for someone already drawing an income. If you have already taken taxable pension income, your annual allowance is already {formatGBP(P.mpaaLimit)} and the projection will overstate how much you can contribute until the year it starts drawing. Carry forward is also worked out independently for each year rather than being consumed as it is used, so several large staged deposits in overlapping years could each count the same unused allowance. Neither the tapered annual allowance for high earners nor annual allowance charges themselves are modelled.</p>
+              </PhoneCollapse>
             </div>
           </div>
         )}

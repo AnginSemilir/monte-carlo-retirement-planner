@@ -9757,7 +9757,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <strong className="text-slate-700">Your own figures.</strong> These started as the {E.CMA_PRESETS[E.DEFAULT_RISK_SOURCE].name} set
                     and have been edited, so they are no longer that source and no longer track your inflation setting.
                     <button type="button" onClick={() => applyRiskPreset(E.DEFAULT_RISK_SOURCE)}
-                      className="ml-1.5 font-semibold text-blue-700 hover:text-blue-900 hover:underline cursor-pointer">Put the published figures back</button>
+                      className="ml-1.5 font-semibold text-blue-700 hover:text-blue-900 hover:underline cursor-pointer">Restore the published figures</button>
                   </span>
                 )}
               </div>
@@ -9850,7 +9850,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div className="bg-surface border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Run the numbers</h3>
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Run the projection</h3>
                   <span className="text-[11px] text-slate-500">{simResult ? 'Six steps: what your plan does, the most you could spend, the earliest you could stop, the two ways of drawing the range, then both side by side.' : 'Answers arrive as they land, so the first is on screen while the rest is still working. Every figure is in today\u2019s money.'}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -9860,7 +9860,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <button onClick={handleRunAll} disabled={mcBusy}
                     className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 dark:from-[#2C5C8F] dark:to-[#A9781F] dark:hover:from-[#204568] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-60">
                     <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300 dark:fill-[#FCD34D] dark:text-[#FCD34D]" />
-                    {isSimulating && !isOptimizing ? 'Testing…' : isOptimizing ? 'Solving…' : tournament.isEvaluating ? 'Comparing…' : '⚡ Run the numbers'}
+                    {isSimulating && !isOptimizing ? 'Testing…' : isOptimizing ? 'Solving…' : tournament.isEvaluating ? 'Comparing…' : '⚡ Run the projection'}
                   </button>
                 </div>
               </div>
@@ -10653,7 +10653,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <button type="button" onClick={() => toggleEstateCard('search')} aria-expanded={estateOpen('search')}
                       data-fold-toggle="search" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
                       <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                        <span className="flex-1">How this was worked out</span>
+                        <span className="flex-1">How this is calculated</span>
                         <span className="shrink-0 font-semibold normal-case tracking-normal text-slate-500 text-[10px]">{estatePlan.levers.length} levers &middot; {estatePlan.runs} projections</span>
                         <ChevronDown className={`shrink-0 w-3.5 h-3.5 text-slate-400 transition-transform ${estateOpen('search') ? '' : '-rotate-90'}`} />
                       </h3>
@@ -11672,7 +11672,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-xs text-slate-600 leading-relaxed">Two of these run from one button on the Projection tab, each result appearing as its stage finishes. They use the same engine on the same {MC_TRIALS.toLocaleString()} randomised market paths and differ only in which side of the equation is held fixed: one fixes your spending and reports the risk, the other fixes the risk and reports the spending. The second can be switched off if you only want the fast answer. The third leaves both alone and changes where the money sits instead; it answers a different question, so it has its own tab and its own button.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-                  <strong className="text-slate-800 block">Stage 1, always runs: "will this plan hold?"</strong>
+                  <strong className="text-slate-800 block">Stage 1, always runs: is the plan solvent?</strong>
                   <p className="text-slate-500">Takes the target living expenditure from Plan Inputs exactly as entered and runs it through {MC_TRIALS.toLocaleString()} paths. The answer is a <strong>survival rate</strong>: the share of paths that funded every year to age {terminalAge} without running dry and finished above your bequest floor. Use it once you know roughly what you want to spend. This stage reports a probability rather than targeting one, so the target survival rate does not affect it.</p>
                 </div>
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
@@ -11901,7 +11901,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-xs text-slate-600 leading-relaxed">Running out of money is the one outcome no later good luck can undo, and it is not symmetric with the others: a smaller bequest is a disappointment, an empty pot at 84 is a crisis. So the default order is <strong>not running out</strong>, then <strong>protecting the bad case</strong>, then what is left behind. Reorder it freely &mdash; but if you promote the pot or the bequest above survival, you are telling the model you would accept a materially higher chance of running dry in exchange, and it will do exactly that.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What this does not yet cover</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Two priorities people legitimately hold are not on the list, because the model cannot yet measure them honestly. <strong>Keeping money reachable</strong> &mdash; a policy that drains ISAs early leaves you richer on paper but with wealth locked until pension age and taxable to reach &mdash; needs a measure of accessible wealth the engine does not currently report. <strong>Simplicity</strong> is real too: Sequential needs no annual bracket management, and that is worth something in effort and in avoided mistakes, but it is not a number this model can produce.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Two priorities people legitimately hold are not on the list, because the model cannot yet measure them honestly. <strong>Access before pension age</strong> &mdash; a policy that drains ISAs early leaves you richer on paper but with wealth locked until pension age and taxable to reach &mdash; needs a measure of accessible wealth the engine does not currently report. <strong>Simplicity</strong> is real too: Sequential needs no annual bracket management, and that is worth something in effort and in avoided mistakes, but it is not a number this model can produce.</p>
             </div>
 
             <div id="doc-cgt" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">

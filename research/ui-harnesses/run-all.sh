@@ -20,7 +20,7 @@ set -uo pipefail
 PORT="${1:-4173}"
 cd "$(dirname "$0")/../.."
 
-REQUIRED=(restyle-regression phone sandbox-step simple-extras mc-reveal crossover production-build tradeoffs priorities simple-closecall tournament)
+REQUIRED=(restyle-regression phone phone-perf sandbox-step simple-extras mc-reveal crossover production-build tradeoffs priorities simple-closecall tournament)
 # closecall-ui.cjs is not in either list: it takes a plans.json written by hand, not a port, and
 # exists to investigate one household rather than to guard a behaviour.
 OPTIONAL=(beneficiary-inputs estate-assets estate-deck estate-optimiser inheritance)

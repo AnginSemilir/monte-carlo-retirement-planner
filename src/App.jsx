@@ -7053,8 +7053,22 @@ export default function App() {
     { n: 3, key: 'saferetire', name: 'Safe retirement' },
     { n: 4, key: 'ratechart', name: 'Rate based' },
     { n: 5, key: 'mcchart', name: 'Monte Carlo' },
-    { n: 6, key: 'compare', name: 'Side by side' }
+    { n: 6, key: 'compare', name: 'Side by side' },
+    /*
+     * The sandbox is a STEP, not an appendix.
+     *
+     * It used to sit below the deck behind its own `sandboxRevealed` flag, reachable only by walking all
+     * six steps and pressing "Change something" - six clicks from the Topline figure it exists to move,
+     * and far enough off the path that the results copy needed a signpost link pointing down at it. Worse,
+     * the deck shows one step at a time, so the amber line it draws was never on screen beside it: its own
+     * alert said "now visible in the chart above" while the chart sat two steps back.
+     *
+     * As step 7 it is one click from anywhere, it is included in "See all" like everything else, and it
+     * renders the Monte Carlo chart directly above the controls, so an edit and its effect share a screen.
+     */
+    { n: 7, key: 'sandbox', name: 'Change something' }
   ];
+  const SANDBOX_SLIDE = PROJECTION_SLIDES.find(x => x.key === 'sandbox').n;
   /*
    * The Inheritance tab is a deck too, for the same reason the Projection tab is: it asks for a dozen
    * facts and then answers one question, and shown all at once the answer is buried under the asking.
@@ -7118,22 +7132,20 @@ export default function App() {
 
   const [slide, setSlide] = useState(1);
   const [seeAll, setSeeAll] = useState(false);
-  const [sandboxRevealed, setSandboxRevealed] = useState(false);
   const showSlide = (n) => seeAll || slide === n;
 
   /*
    * Bring what you just asked for into view.
    *
-   * Both controls sit at the FOOT of a card, so without this the click appears to do nothing: pressing
-   * Next leaves you looking at the bottom of the next step, and "Change something" reveals a sandbox that
-   * lands below the fold with the page still at the same scroll position. Measured before this existed:
-   * the button at y=853 in a 900px viewport, the sandbox arriving at y=893, scrollY unchanged at 0.
+   * The control sits at the FOOT of a card, so without this the click appears to do nothing: pressing
+   * Next leaves you looking at the bottom of the next step rather than its heading. Measured before this
+   * existed: the button at y=853 in a 900px viewport, the next card arriving at y=893, scrollY unchanged
+   * at 0. The sandbox needed its own copy of this when it lived outside the deck; as step 7 it is carried
+   * by the same ref as every other step.
    */
   const slideRef = useRef(null);
-  const sandboxRef = useRef(null);
   const scrollTo = (el) => el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   useEffect(() => { if (!seeAll) scrollTo(slideRef.current); }, [slide, seeAll]);
-  useEffect(() => { if (sandboxRevealed) scrollTo(sandboxRef.current); }, [sandboxRevealed]);
   const [simProgress, setSimProgress] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -7570,6 +7582,10 @@ export default function App() {
     // key, not number: this was a literal 4, and inserting the safe-retirement step ahead of it silently
     // left the clock rewinding on the very slide it drives - two-point paths and a stub of a band.
     const mcSlide = PROJECTION_SLIDES.find(x => x.key === 'mcchart').n;
+    // Step 7 draws the same chart above the sandbox controls. It must arrive FINISHED: rewinding the
+    // clock there is the two-point-paths-and-a-stub-band bug again, and replaying a 2.2s animation every
+    // time somebody nudges a contribution would be worse than either.
+    if (slide === SANDBOX_SLIDE && !seeAll) { setMcReveal(1); return; }
     if (slide !== mcSlide && !seeAll) { setMcReveal(0); return; }
     setMcReveal(0);
     const start = performance.now(), ms = 2200;
@@ -8167,6 +8183,9 @@ export default function App() {
       if (Array.isArray(a.contribByYear)) fresh[a.id].contribByYear = a.contribByYear;
     });
     setSandboxAccounts(fresh);
+    // Land on the sandbox step itself. Switching tabs alone used to drop you on whichever step you left,
+    // with nothing on screen looking any different from before the click.
+    setSeeAll(false); setSlide(SANDBOX_SLIDE);
     setActiveTab('projection');
     flash(`"${strategy.name}" applied to the Sandbox on the Projection chart`, 3500);
   };
@@ -8208,7 +8227,7 @@ export default function App() {
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('not an object');
         if (!parsed.demographics && !parsed.accounts && !parsed.spending) throw new Error('not a plan');
         setSandboxCustomized(false); setPlan(E.normalizePlan(parsed)); setSimResult(null); setSafeMaxResult(null);
-        setSlide(1); setSeeAll(false); setSandboxRevealed(false);
+        setSlide(1); setSeeAll(false);
         flash(`Imported ${file.name}`);
       } catch (err) {
         // The picker no longer filters by type, so a wrong file is a realistic outcome and the message
@@ -8329,7 +8348,7 @@ export default function App() {
     if (isSimulating || isOptimizing) return;
     mcCancelRef.current = false;
     const wantSafeMax = true;          // both stages always run; there is nothing useful to switch off
-    setSlide(1); setSeeAll(cascade); setSandboxRevealed(cascade);
+    setSlide(1); setSeeAll(cascade);
     setIsSimulating(true);
     // Every stage is cleared, including one that is about to be skipped: a verdict line left over from an
     // earlier run would otherwise sit alongside fresh figures and read as part of the same measurement.
@@ -8927,10 +8946,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         <div className="flex items-center gap-2">
           <button type="button" disabled={n === 1} onClick={() => setSlide(n - 1)}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">&larr; Back</button>
-          <button type="button" onClick={() => { if (n < 6) setSlide(n + 1); else setSandboxRevealed(true); }}
-            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-white hover:bg-slate-900 cursor-pointer">
-            {n < 6 ? <>Next: {PROJECTION_SLIDES[n].name} &rarr;</> : <>Change something &rarr;</>}
-          </button>
+          {/* Derived from the list, not a literal: the last step is whatever the list ends with. */}
+          {n < PROJECTION_SLIDES.length && (
+            <button type="button" onClick={() => setSlide(n + 1)}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-white hover:bg-slate-900 cursor-pointer">
+              Next: {PROJECTION_SLIDES[n].name} &rarr;
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -10422,7 +10444,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-lg text-[11px] text-slate-700 leading-relaxed space-y-1.5">
                           <div className="flex items-center gap-2 font-bold text-amber-900 text-xs"><AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> This is a bridge problem, not a saving problem</div>
                           <p>Going earlier than {safeRetireResult.age} does not fail because the money runs out &mdash; it fails because it is locked. At {safeRetireResult.below.age}, {safeRetireResult.below.preNmpaFailRate.toFixed(1)}% of paths are stranded before the pension unlocks at {nmpa}. <strong>Your ISA bridge is not big enough to carry the gap.</strong> More total saving will not fix that on its own; the same money held where you can reach it before {nmpa} would.</p>
-                          <p>Worth testing: move some contribution from the pension to the ISA, or bring the ISA balance up, and re-run. <button type="button" onClick={() => { setSeeAll(false); setSlide(6); setSandboxRevealed(true); }} className="font-bold text-amber-900 underline hover:text-amber-950 cursor-pointer">The sandbox after step 6</button> lets you change both without touching your saved plan.</p>
+                          <p>Worth testing: move some contribution from the pension to the ISA, or bring the ISA balance up, and re-run. <button type="button" onClick={() => { setSeeAll(false); setSlide(SANDBOX_SLIDE); }} className="font-bold text-amber-900 underline hover:text-amber-950 cursor-pointer">Step {SANDBOX_SLIDE}</button> lets you change both without touching your saved plan.</p>
                         </div>
                       )}
 
@@ -10615,20 +10637,29 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <p className="text-[11px] text-slate-500 leading-relaxed">One steady real rate per wrapper, so this ranks the plans against each other rather than against a market. It carries no sequence-of-returns risk: for the chance each scenario survives, enter them in the tournament on the Strategy tab, which runs every scenario on the same market paths.</p>
               </div>
             )}
-            {/* The sandbox is the end of the walk, not a permanent fixture: it appears once the five steps
-                have been seen (or straight away on a re-run, when they have been seen already). */}
-            {simResult && (sandboxRevealed || seeAll) && (
-              <div ref={sandboxRef} style={{ scrollMarginTop: 12 }} className="space-y-6">
+            {/* ---------------- 7. CHANGE SOMETHING ---------------- */}
+            {/* The chart sits ABOVE the controls, not on a step two back, so the amber line the sandbox
+                draws is on screen while you are dragging the thing that moves it. Monte Carlo rather than
+                the rate-based band, because that is the chart the survival figure everything else quotes
+                is actually read from. */}
+            {showSlide(SANDBOX_SLIDE) && (
+              <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="space-y-6">
+                <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+                  {slideHead(SANDBOX_SLIDE, 'Change something', 'Edit below and the amber line moves with you. Your saved plan is not touched.')}
+                  {renderProjectionChart('mc')}
+                  {!isSandboxModified && (
+                    <p className="text-[11px] text-slate-500 leading-relaxed">Nothing is changed yet, so there is no amber line to see. Edit a contribution, a balance or a retirement age below and one appears over this chart, beside the plan you already have.</p>
+                  )}
+                  {slideNav(SANDBOX_SLIDE)}
+                </div>
                 {renderSandboxPanel()}
-                {simResult && (
-                  <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
-                    <span className="text-[11px] text-slate-500">Changed something? Run it again and the five steps come back with every figure refreshed.</span>
-                    <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
-                      className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
-                      <RotateCcw className="w-3.5 h-3.5" /> {mcBusy ? 'Running…' : 'Rerun projections'}
-                    </button>
-                  </div>
-                )}
+                <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {simResult.trials.toLocaleString()} randomised futures and refresh every step, run it again.</span>
+                  <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
+                    className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
+                    <RotateCcw className="w-3.5 h-3.5" /> {mcBusy ? 'Running…' : 'Rerun projections'}
+                  </button>
+                </div>
               </div>
             )}
           </div>

@@ -4,7 +4,11 @@ const { chromium } = require('/tmp/node_modules/playwright');
 const fs = require('fs');
 const PORT = process.argv[2] || '5173';
 const SHOT = process.argv[3] || '';
-const css = fs.existsSync('/tmp/claude-0/twbuild/out.css') ? fs.readFileSync('/tmp/claude-0/twbuild/out.css', 'utf8') : '';
+// NO STYLESHEET IS INJECTED. These harnesses used to read a Tailwind build from /tmp and addStyleTag it,
+// a leftover from when the dev server leaned on a Tailwind CDN. The built site links its own compiled
+// CSS, and layering an older copy over the top silently overrides it: a stale `.flex` rule landing after
+// the real `@media (min-width:1024px){.lg\:grid{...}}` collapsed a two-column layout to one, and stale
+// colour tokens produced contrast failures that did not exist in the shipped page.
 // S378-shaped: long bridge, ISA-heavy, the household the full app flagged as a close call
 const plans = {
   isaHeavy: { ageSelf: '52', retireSelf: '55', spend: '40000', pen: '350000', isa: '450000', gia: '60000', cash: '40000', statePensionSelf: '11976' },
@@ -21,7 +25,6 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
     await p.addInitScript(pl => { localStorage.setItem('rp_simple_v1', JSON.stringify(pl)); localStorage.setItem('rp_which_app', 'simple'); }, plan);
     await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
     await p.waitForTimeout(600);
-    if (css) await p.addStyleTag({ content: css });
     const t0 = Date.now();
     await p.waitForFunction(() => /How it draws the money/.test(document.body.innerText), null, { timeout: 120000 });
     const t = await p.evaluate(() => document.body.innerText);

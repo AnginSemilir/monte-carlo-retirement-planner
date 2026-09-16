@@ -16,7 +16,11 @@ const plan = {
 
 let fails = 0;
 const ok = (l, c, d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:''}`); if(!c) fails++; };
-const css = fs.existsSync('/tmp/claude-0/twbuild/out.css') ? fs.readFileSync('/tmp/claude-0/twbuild/out.css', 'utf8') : '';
+// NO STYLESHEET IS INJECTED. These harnesses used to read a Tailwind build from /tmp and addStyleTag it,
+// a leftover from when the dev server leaned on a Tailwind CDN. The built site links its own compiled
+// CSS, and layering an older copy over the top silently overrides it: a stale `.flex` rule landing after
+// the real `@media (min-width:1024px){.lg\:grid{...}}` collapsed a two-column layout to one, and stale
+// colour tokens produced contrast failures that did not exist in the shipped page.
 
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
@@ -27,7 +31,6 @@ const css = fs.existsSync('/tmp/claude-0/twbuild/out.css') ? fs.readFileSync('/t
     await p.addInitScript(pl => { localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); }, plan);
     await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
     await p.waitForTimeout(800);
-    if (css) await p.addStyleTag({ content: css });
     await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Config/.test(b.textContent)); if(x) x.click(); });
     await p.waitForTimeout(600);
     const text = () => p.evaluate(() => document.body.innerText);

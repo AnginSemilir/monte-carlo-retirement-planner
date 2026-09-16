@@ -22,7 +22,7 @@
  * Run: node phone-ui.cjs [port] [shotDir]
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
-const { CONTRAST_PROBE, OVERFLOW_PROBE, TOUCH_PROBE, NAV_PROBE, CHART_WIDTH_PROBE, AMBER_PROBE } = require('./lib/probes.cjs');
+const { CONTRAST_PROBE, OVERFLOW_PROBE, TOUCH_PROBE, NAV_PROBE, CHART_WIDTH_PROBE, AMBER_PROBE, INPUT_SIZE_PROBE } = require('./lib/probes.cjs');
 const PORT = process.argv[2] || '5173';
 const SHOT = process.argv[3];
 const GIA = 'Other Investments (e.g. GIA)';
@@ -37,6 +37,13 @@ const plan = {
     { id: 'other_self', owner: 'Myself', category: GIA, balance: 40000, contrib: 0, growth: 0, risk: 'Medium Risk' },
     { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 25000, contrib: 0, growth: 0, risk: 'Cash Equivalents' }],
   otherIncomes: [], oneOffContributions: [], oneOffCosts: [], config: { valuationDate: '2026-01-01' }
+};
+
+const simplePlan = {
+  ageSelf: 45, retireSelf: 62, terminalAge: 95, spend: 40000, salary: 70000, couple: false,
+  pen: 320000, isa: 90000, gia: 40000, cash: 25000, penC: 12000, isaC: 6000, giaC: 0, cashC: 0,
+  penG: '', isaG: '', giaG: '', cashG: '', statePensionSelf: 12548, region: 'ruk', oneOffs: [], earnings: [],
+  penRisk: 'High Risk', isaRisk: 'High Risk', giaRisk: 'Medium Risk', cashRisk: 'Cash Equivalents'
 };
 
 // label, the regex that proves the tab rendered its own content, and the short label the bottom bar uses
@@ -113,11 +120,13 @@ const navigate = async (page, label, short) => {
       const errs = [];
       p.on('pageerror', e => errs.push(e.message));
       await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
-      await p.addInitScript(([pl, t]) => {
+      await p.addInitScript(([pl, sp, t]) => {
         localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl));
-        localStorage.setItem('rp_which_app', 'full');
+        // the simple page is seeded too: its phone card only renders once there is enough to answer with
+        if (!localStorage.getItem('rp_simple_v1')) localStorage.setItem('rp_simple_v1', JSON.stringify(sp));
+        if (!localStorage.getItem('rp_which_app')) localStorage.setItem('rp_which_app', 'full');
         localStorage.setItem('rp_theme_v1', t);
-      }, [plan, theme]);
+      }, [plan, simplePlan, theme]);
       await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
       await p.waitForTimeout(1500);
 
@@ -261,6 +270,52 @@ const navigate = async (page, label, short) => {
       }
       const strip = await p.evaluate(() => { const el = document.querySelector('[data-tabbar]'); return el ? Math.round(el.getBoundingClientRect().height) : 0; });
       ok('the top tab strip is hidden', strip === 0, `${strip}px`);
+
+      /*
+       * THE SIMPLE PAGE. Its fault on a phone was the same as the sandbox's: the form stacked above the
+       * chart, so you edited blind. The chart is ordered first and sticks, with the dials that move it
+       * directly underneath.
+       */
+      await p.evaluate(() => { localStorage.setItem('rp_which_app', 'simple'); });
+      await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
+      await p.waitForTimeout(1800);
+      const simple = await p.evaluate(() => {
+        const card = document.querySelector('[data-phone-chart]');
+        if (!card) return null;
+        const col = card.parentElement;
+        return { first: col.firstElementChild === card, sticky: getComputedStyle(card).position };
+      });
+      ok('the simple page leads with the chart', !!simple && simple.first, simple ? `first=${simple.first}` : 'no phone chart card');
+      ok('...and it sticks to the top', !!simple && simple.sticky === 'sticky', simple ? simple.sticky : '');
+      if (simple) {
+        const stuck = await p.evaluate(async () => {
+          window.scrollTo(0, 600);
+          await new Promise(r => setTimeout(r, 300));
+          const card = document.querySelector('[data-phone-chart]');
+          const inputs = [...document.querySelectorAll('input')].filter(i => i.getBoundingClientRect().height > 0);
+          const visible = inputs.filter(i => { const r = i.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; });
+          return { top: Math.round(card.getBoundingClientRect().top), inputs: visible.length };
+        });
+        ok('...staying put while the form scrolls under it', stuck.top <= 1, `card top ${stuck.top}`);
+        ok('...with the form still reachable beneath', stuck.inputs > 0, `${stuck.inputs} inputs in view`);
+        // a dial must actually move the line
+        const moved = await p.evaluate(async () => {
+          const medianD = () => { const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+            const pth = svg && [...svg.querySelectorAll('path')].find(x => x.getAttribute('stroke-width') === '2.5'); return pth ? pth.getAttribute('d') : null; };
+          const before = medianD();
+          const card = document.querySelector('[data-phone-chart]');
+          const plus = [...card.querySelectorAll('button')].find(b => /increase Pension/i.test(b.getAttribute('aria-label') || ''));
+          if (!plus) return { ok: false };
+          plus.click();
+          await new Promise(r => setTimeout(r, 900));
+          return { ok: true, changed: medianD() !== before };
+        });
+        ok('...and a dial moves the line', moved.ok && moved.changed, JSON.stringify(moved));
+        const sizes = await p.evaluate(INPUT_SIZE_PROBE);
+        const small = sizes.filter(x => x.font < 16);
+        ok('...inputs are at least 16px, so focusing does not zoom', small.length === 0, `${small.length} of ${sizes.length} under 16px`);
+      }
+      await p.evaluate(() => { localStorage.setItem('rp_which_app', 'full'); });
 
       if (SHOT && theme === 'light') await p.screenshot({ path: `${SHOT}/phone-${devName.replace(/\W/g, '')}.png`, fullPage: false });
       const real = errs.filter(e => !/ERR_CERT_AUTHORITY_INVALID|ERR_FAILED|fonts\./i.test(e));

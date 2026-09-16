@@ -15,10 +15,11 @@
 const { chromium } = require('/tmp/node_modules/playwright');
 const fs = require('fs');
 const PORT = process.argv[2] || '5181';
-// the dev server used to lean on a Tailwind CDN; this injection is the leftover. Tolerate its
-// absence so a clean machine can still run the harness against the built site, which ships its own CSS.
-const CSS_PATH = '/tmp/claude-0/twbuild/out.css';
-const css = fs.existsSync(CSS_PATH) ? fs.readFileSync(CSS_PATH, 'utf8') : '';
+// NO STYLESHEET IS INJECTED. These harnesses used to read a Tailwind build from /tmp and addStyleTag it,
+// a leftover from when the dev server leaned on a Tailwind CDN. The built site links its own compiled
+// CSS, and layering an older copy over the top silently overrides it: a stale `.flex` rule landing after
+// the real `@media (min-width:1024px){.lg\:grid{...}}` collapsed a two-column layout to one, and stale
+// colour tokens produced contrast failures that did not exist in the shipped page.
 const GIA = 'Other Investments (e.g. GIA)';
 const plan = {demographics:{planningMode:'single',currentAgeSelf:51,retireAgeSelf:61,salarySelf:68000,employmentSelf:'employed',statePensionAge:68,privatePensionAge:58,statePensionSelf:11500,terminalAge:93},
   spending:{targetSpend:42000,spendBands:[],drawdownStrategy:'Phased Drawdown',decumulationPolicy:'Bracket Fill Basic'},
@@ -34,8 +35,7 @@ const ok = (l,c,d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:''
   await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
   await p.addInitScript(pl => { if (!localStorage.getItem('rp_plan_full_v28')) { localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); localStorage.setItem('rp_which_app', 'full'); } }, plan);
   await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(800); await p.addStyleTag({ content: css });
-
+  await p.waitForTimeout(800);
   // full -> simple
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Open the simple version/.test(b.textContent)); x.click(); });
   await p.waitForTimeout(1200);
@@ -50,8 +50,7 @@ const ok = (l,c,d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:''
 
   // edit on the simple page, then cross back
   await p.evaluate(() => { const s = JSON.parse(localStorage.getItem('rp_simple_v1')); s.spend = 37000; s.isa = 150000; localStorage.setItem('rp_simple_v1', JSON.stringify(s)); });
-  await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForTimeout(900); await p.addStyleTag({ content: css });
-  await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Open the full planner/.test(b.textContent)); x.click(); });
+  await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForTimeout(900);  await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Open the full planner/.test(b.textContent)); x.click(); });
   await p.waitForTimeout(1200);
   const back = await p.evaluate(() => JSON.parse(localStorage.getItem('rp_plan_full_v28') || 'null'));
   ok('the simple edits crossed back into the full planner',
@@ -60,8 +59,7 @@ const ok = (l,c,d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:''
 
   // a blank simple page must never wipe a saved full plan
   await p.evaluate(() => { localStorage.removeItem('rp_simple_v1'); localStorage.setItem('rp_which_app', 'simple'); });
-  await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForTimeout(900); await p.addStyleTag({ content: css });
-  await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Open the full planner/.test(b.textContent)); x.click(); });
+  await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForTimeout(900);  await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Open the full planner/.test(b.textContent)); x.click(); });
   await p.waitForTimeout(1000);
   const after = await p.evaluate(() => JSON.parse(localStorage.getItem('rp_plan_full_v28') || 'null'));
   ok('a blank simple page does NOT overwrite the saved full plan',

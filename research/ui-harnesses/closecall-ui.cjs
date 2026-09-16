@@ -4,10 +4,11 @@ const { chromium } = require('/tmp/node_modules/playwright');
 const fs = require('fs');
 const plans = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const SHOT = process.argv[3];
-// the dev server used to lean on a Tailwind CDN; this injection is the leftover. Tolerate its
-// absence so a clean machine can still run the harness against the built site, which ships its own CSS.
-const CSS_PATH = '/tmp/claude-0/twbuild/out.css';
-const css = fs.existsSync(CSS_PATH) ? fs.readFileSync(CSS_PATH, 'utf8') : '';
+// NO STYLESHEET IS INJECTED. These harnesses used to read a Tailwind build from /tmp and addStyleTag it,
+// a leftover from when the dev server leaned on a Tailwind CDN. The built site links its own compiled
+// CSS, and layering an older copy over the top silently overrides it: a stale `.flex` rule landing after
+// the real `@media (min-width:1024px){.lg\:grid{...}}` collapsed a two-column layout to one, and stale
+// colour tokens produced contrast failures that did not exist in the shipped page.
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
   let found = null;
@@ -21,7 +22,6 @@ const css = fs.existsSync(CSS_PATH) ? fs.readFileSync(CSS_PATH, 'utf8') : '';
       await p.addInitScript(pl => { localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); }, plan);
       await p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' });
       await p.waitForTimeout(800);
-      await p.addStyleTag({ content: css });
       await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Config/.test(b.textContent)); if(x) x.click(); });
       await p.waitForTimeout(500);
       const t0 = Date.now();

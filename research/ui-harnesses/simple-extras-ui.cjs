@@ -18,10 +18,11 @@ const { chromium } = require('/tmp/node_modules/playwright');
 const fs = require('fs');
 const PORT = process.argv[2] || '5182';
 const SHOT = process.argv[3];
-// the dev server used to lean on a Tailwind CDN; this injection is the leftover. Tolerate its
-// absence so a clean machine can still run the harness against the built site, which ships its own CSS.
-const CSS_PATH = '/tmp/claude-0/twbuild/out.css';
-const css = fs.existsSync(CSS_PATH) ? fs.readFileSync(CSS_PATH, 'utf8') : '';
+// NO STYLESHEET IS INJECTED. These harnesses used to read a Tailwind build from /tmp and addStyleTag it,
+// a leftover from when the dev server leaned on a Tailwind CDN. The built site links its own compiled
+// CSS, and layering an older copy over the top silently overrides it: a stale `.flex` rule landing after
+// the real `@media (min-width:1024px){.lg\:grid{...}}` collapsed a two-column layout to one, and stale
+// colour tokens produced contrast failures that did not exist in the shipped page.
 const simple = { ageSelf:45, retireSelf:62, terminalAge:95, spend:40000, salary:70000,
   pen:320000, isa:90000, gia:40000, cash:25000, penC:12000, isaC:6000, giaC:0, cashC:0,
   penG:'', isaG:'', giaG:'', cashG:'', statePensionSelf:12548, region:'ruk', couple:false, oneOffs:[], earnings:[],
@@ -33,8 +34,7 @@ const ok = (l,c,d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:''
   await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
   await p.addInitScript(s => { localStorage.setItem('rp_which_app','simple'); localStorage.setItem('rp_simple_v1', JSON.stringify(s)); }, simple);
   await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1500); await p.addStyleTag({ content: css });
-
+  await p.waitForTimeout(1500);
   // 1. the theme control exists on the simple page and actually paints
   const ground = () => p.evaluate(() => { const el = document.querySelector('.min-h-screen'); return [getComputedStyle(document.documentElement).backgroundColor, el ? getComputedStyle(el).backgroundColor : null].join(' / '); });
   const light = await ground();
@@ -45,8 +45,7 @@ const ok = (l,c,d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:''
   const dark = await ground();
   ok('...and dark paints a different ground', light !== dark, `${light} -> ${dark}`);
   ok('...stamping the document', await p.evaluate(() => document.documentElement.getAttribute('data-theme') === 'dark'));
-  await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForTimeout(1200); await p.addStyleTag({ content: css });
-  ok('...and it survives a reload', await p.evaluate(() => document.documentElement.getAttribute('data-theme') === 'dark'));
+  await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForTimeout(1200);  ok('...and it survives a reload', await p.evaluate(() => document.documentElement.getAttribute('data-theme') === 'dark'));
   await p.evaluate(() => document.querySelector('button[aria-label="Light"]').click());
   await p.waitForTimeout(400);
 

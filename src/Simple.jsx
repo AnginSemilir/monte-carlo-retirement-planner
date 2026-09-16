@@ -413,6 +413,35 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    * The chart markup as a function, because it is rendered in two places: inline, and again inside the
    * fullscreen overlay. Two copies of this JSX would be two things to keep in step.
    */
+  /*
+   * THE PHONE'S FIRST SCREEN: the chart, and the dials that move it.
+   *
+   * On a phone the grid stacks, and it stacked the FORM first - so the chart was below the fold and you
+   * were editing blind, which is the same fault the sandbox had on the full planner. This card is
+   * ordered first and sticks to the top of the viewport, so the line stays in view while you scroll
+   * down to the inputs.
+   *
+   * The dials underneath are the four questions people actually arrive with: when can I stop, what will
+   * I spend, and how much is in the two big pots. They call the SAME `step()` the form's own steppers
+   * call, so there is no second path to the state.
+   */
+  const phoneDial = (label, value, by, k) => (
+    <div className="flex items-center gap-1.5">
+      <button type="button" onClick={() => step(k, -by, 0)} aria-label={`decrease ${label}`}
+        className="min-h-11 min-w-11 flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 cursor-pointer active:bg-slate-200">
+        <Minus className="w-4 h-4" />
+      </button>
+      <span className="flex-1 min-w-0 text-center leading-tight">
+        <span className="block text-[10px] text-slate-500 truncate">{label}</span>
+        <span className="block text-xs font-bold text-slate-900 tabular-nums">{value}</span>
+      </span>
+      <button type="button" onClick={() => step(k, by, 0)} aria-label={`increase ${label}`}
+        className="min-h-11 min-w-11 flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 cursor-pointer active:bg-slate-200">
+        <Plus className="w-4 h-4" />
+      </button>
+    </div>
+  );
+
   const chartPanel = (inOverlay = false) => (
           <div className={`relative overflow-x-auto ${isPhone && !inOverlay ? 'bleed' : ''} ${inOverlay ? 'h-full' : ''}`}>
             {isPhone && !inOverlay && (
@@ -468,8 +497,19 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    * and the four wrappers are one table with a header row - balance, risk, paid in each year - which is
    * how the figures actually relate to each other and lets the eye compare down a column.
    */
-  const inCls = 'w-full px-1.5 sm:px-2 py-1 bg-surface border border-slate-300 rounded-md text-[12px] sm:text-[13px] tabular-nums text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500';
-  const subCls = 'px-1.5 py-1 bg-surface border border-slate-200 rounded-md text-[11px] text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500';
+  /*
+   * 16px text on a phone, and it is not a taste decision: Safari zooms the whole page when a field with
+   * text under 16px receives focus, and it does not zoom back out afterwards. The page ends up wider
+   * than the screen with a chart running off the side, from one tap into a box.
+   *
+   * The desktop sizes are untouched - 12/13px is right where a mouse is doing the pointing.
+   */
+  const inCls = isPhone
+    ? 'w-full px-2 py-2 min-h-[44px] bg-surface border border-slate-300 rounded-md text-[16px] tabular-nums text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500'
+    : 'w-full px-1.5 sm:px-2 py-1 bg-surface border border-slate-300 rounded-md text-[12px] sm:text-[13px] tabular-nums text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const subCls = isPhone
+    ? 'px-2 py-2 min-h-[44px] bg-surface border border-slate-200 rounded-md text-[16px] text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500'
+    : 'px-1.5 py-1 bg-surface border border-slate-200 rounded-md text-[11px] text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500';
 
   /*
    * Six digits without separators is a number you have to count rather than read, and a plain number
@@ -639,8 +679,45 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
   }, [timeline, s.retireSelf]);
   const rateTone = !mc ? '' : mc.successRate >= TARGET ? 'text-emerald-700' : mc.successRate >= 75 ? 'text-amber-700' : 'text-rose-700';
 
+  /*
+   * Flex column below lg, grid at lg and up, and the difference matters. As a GRID each card is its own
+   * row, and a grid row is a sticky element's containing block - so a sticky card has zero travel and
+   * never sticks. In a flex column the containing block is the whole column, which is what lets the
+   * chart stay put while the form scrolls underneath it.
+   */
   return (
-    <div className="grid lg:grid-cols-[minmax(0,424px)_minmax(0,1fr)] gap-5 items-start">
+    <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,424px)_minmax(0,1fr)] gap-5 lg:items-start">
+      {isPhone && ready.ready && (
+        <div data-phone-chart className="order-first lg:hidden sticky top-0 z-20 bg-surface border border-slate-200/90 rounded-xl p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-xs font-semibold text-slate-900">Projections</h2>
+            <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 p-0.5 rounded-lg text-[11px]">
+              {[['rate', 'Rate'], ['mc', 'Monte Carlo']].map(([k, label]) => (
+                <button key={k} type="button" onClick={() => setView(k)} disabled={k === 'mc' && !res?.mc}
+                  className={`px-2.5 min-h-11 rounded-lg font-semibold cursor-pointer disabled:opacity-40 ${view === k ? 'bg-surface text-blue-700 shadow-2xs' : 'text-slate-500'}`}>{label}</button>
+              ))}
+            </div>
+          </div>
+          {chartPanel()}
+          {/* the verdict, in one line: the three figures somebody came to this page for */}
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {[['Survival', res?.mc ? `${res.mc.successRate.toFixed(0)}%` : '—'],
+              ['Safe max', res?.safeSpend?.spend != null ? GBP_SHORT(res.safeSpend.spend) : '—'],
+              ['Earliest', res?.safeAge?.age != null ? String(res.safeAge.age) : '—']].map(([k, v]) => (
+              <div key={k} className="min-w-0">
+                <span className="block text-[10px] text-slate-500 truncate">{k}</span>
+                <span className="block text-sm font-bold text-slate-900 tabular-nums">{v}</span>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1 pt-1 border-t border-slate-100">
+            {phoneDial('Retire at', s.retireSelf || '—', 1, 'retireSelf')}
+            {phoneDial('Spending', fmt(s.spend) || '—', 1000, 'spend')}
+            {phoneDial('Pension', fmt(s.pen) || '—', 10000, 'pen')}
+            {phoneDial('ISA', fmt(s.isa) || '—', 10000, 'isa')}
+          </div>
+        </div>
+      )}
 
       {/* ------------------------------------------------ LEFT: what you have */}
       <div className="bg-surface border border-slate-200/90 rounded-xl p-4 space-y-3">
@@ -799,7 +876,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                     ))}
                   </div>
                 </div>
-                {chartPanel()}
+                {!isPhone && chartPanel()}
                 {/* The overlay renders the same markup at the size it measures for itself. This page has
                     no reveal animation to protect, so the one chart memo simply follows the overlay box. */}
                 {isPhone && chartFull && (

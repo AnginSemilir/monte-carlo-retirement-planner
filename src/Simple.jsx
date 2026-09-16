@@ -788,7 +788,7 @@ export default function Simple() {
 
             <p className="text-[11px] text-slate-500 leading-relaxed border-t border-slate-100 pt-3">
               All three are quoted at a <strong className="text-slate-700">{TARGET}% target</strong>: the most you could spend, and the earliest you could stop, while still coming through {TARGET} futures in 100. Every figure is in today&rsquo;s money.
-              {ss && ss.spend < num(s.spend, 0) && <> <strong className="text-rose-700">You are planning to spend more than the safe figure.</strong> That is the size of the bet, not a prohibition.</>}
+              {ss && ss.spend < num(s.spend, 0) && <> <strong className="text-rose-700">You are planning to spend more than the safe figure.</strong> The difference is the additional risk you are accepting, not a reason you cannot do it.</>}
             </p>
 
             {res?.policy && (

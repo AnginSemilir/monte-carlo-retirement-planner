@@ -1,0 +1,75 @@
+/*
+ * THE THEME, OWNED IN ONE PLACE AND USED BY BOTH APPS.
+ *
+ * This lived inside App.jsx, which meant the streamlined page had no way to change it: the switch at the
+ * top of the shell unmounted the only component that held the preference, so a visitor who preferred dark
+ * kept it only as long as they stayed in the full planner. Both pages are styled from the same CSS
+ * variables, so both were always capable of it - the control was simply somewhere the other page could
+ * not reach.
+ *
+ * The shell now calls useTheme once and hands the result to whichever app is mounted, so there is exactly
+ * one source of truth, one listener on the OS setting, and one thing writing the document attribute.
+ */
+import { useState, useEffect } from 'react';
+import { Sun, Moon, Monitor } from 'lucide-react';
+
+export const THEME_STORAGE_KEY = 'rp_theme_v1';
+
+const get = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const set = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
+
+/*
+ * `theme` is what the household chose - light, dark, or follow the machine. `resolvedTheme` is which of
+ * the two designed palettes that currently means, and it is the only thing the document is ever stamped
+ * with, so the CSS needs two blocks rather than three. On 'system' it keeps listening: a laptop that
+ * turns dark at sunset should take the page with it.
+ *
+ * 'classic' was a third theme and maps to light, which is what it collapsed into. The anti-FOUC script in
+ * index.html carries the same mapping and has to agree with this, or the page flashes on load.
+ */
+export function useTheme() {
+  const [theme, setTheme] = useState(() => {
+    const saved = get(THEME_STORAGE_KEY);
+    if (saved === 'classic') return 'light';
+    if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
+    return 'system';
+  });
+  const [systemDark, setSystemDark] = useState(
+    () => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  useEffect(() => {
+    if (!window.matchMedia) return undefined;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (e) => setSystemDark(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  const resolvedTheme = theme === 'system' ? (systemDark ? 'dark' : 'light') : theme;
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', resolvedTheme);
+    document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
+    // the PREFERENCE is stored, not what it resolved to: storing 'dark' for somebody on 'system' would
+    // freeze them there the next time their machine changed its mind
+    set(THEME_STORAGE_KEY, theme);
+  }, [theme, resolvedTheme]);
+  return { theme, setTheme, resolvedTheme };
+}
+
+const OPTIONS = [
+  { id: 'light', Icon: Sun, title: 'Light' },
+  { id: 'dark', Icon: Moon, title: 'Dark' },
+  { id: 'system', Icon: Monitor, title: 'Match my device' },
+];
+
+export function ThemeToggle({ theme, setTheme, className = '' }) {
+  return (
+    <div className={`flex items-center gap-0.5 bg-slate-100 p-1 rounded-lg border border-slate-200/80 ${className}`}>
+      {OPTIONS.map(({ id, Icon, title }) => (
+        <button key={id} type="button" onClick={() => setTheme(id)} title={title} aria-label={title}
+          aria-pressed={theme === id}
+          className={`p-1.5 rounded-md transition-colors cursor-pointer ${theme === id ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-800'}`}>
+          <Icon className="w-4 h-4" />
+        </button>
+      ))}
+    </div>
+  );
+}

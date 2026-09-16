@@ -3,6 +3,7 @@ import { ArrowRight, Info } from 'lucide-react';
 import App from './App.jsx';
 import Simple from './Simple.jsx';
 import { toFullPlan, fromFullPlan, simpleHasInput, SIMPLE_BLANK } from './simplePlan.js';
+import { useTheme, ThemeToggle } from './theme.jsx';
 
 /*
  * ONE ENTRANCE, TWO APPS.
@@ -127,6 +128,13 @@ export default function Shell() {
   });
   useEffect(() => { try { localStorage.setItem(KEY, which); } catch { /* private mode */ } }, [which]);
 
+  /*
+   * The shell owns the theme, because the switch below unmounts whichever app is not showing and the
+   * preference has to outlive that. Both pages are painted from the same CSS variables, so both get the
+   * same control: the full planner renders it in its header from these props, the simple page beside
+   * its own heading.
+   */
+  const { theme, setTheme } = useTheme();
   const other = OTHER[which];
   // what the last crossing could not bring with it, shown once on arrival
   const [carried, setCarried] = useState(null);
@@ -158,11 +166,12 @@ export default function Shell() {
         </div>
       </div>
 
-      {which === 'full' ? <App /> : (
+      {which === 'full' ? <App theme={theme} setTheme={setTheme} /> : (
         <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
           <div className="max-w-7xl mx-auto space-y-5">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-between gap-3">
               <h1 className="text-xl font-bold tracking-tight text-slate-900">Can I retire?</h1>
+              <ThemeToggle theme={theme} setTheme={setTheme} />
             </div>
             <Simple />
             <p className="text-[11px] text-slate-400 leading-relaxed max-w-3xl">

@@ -3,9 +3,10 @@ import * as d3 from 'd3';
 import {
   TrendingUp, Layers, Check, RotateCcw, Dices, Zap, ShieldCheck, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
-  Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, Sun, Moon, Monitor, ChevronUp, ChevronDown, Home, Gift,
+  Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, ChevronUp, ChevronDown, Home, Gift,
   GripVertical
 } from 'lucide-react';
+import { ThemeToggle } from './theme.jsx';
 import EditMode from './EditMode.jsx';
 // ============================================================================================
 // Monte-Carlo Retirement Planner v3.4 — single-file build (engine + UI).
@@ -671,6 +672,15 @@ const BLANK_PLAN = Object.freeze({
     // derived by resolveMpaa from the projection, not user-editable
     mpaaAgeSelf: '', mpaaAgePart: '',
     statePensionAge: 68, privatePensionAge: 58,
+    /*
+     * LEFT BLANK, AND SUGGESTED IN THE FIELD RATHER THAN FILLED IN.
+     *
+     * The full new State Pension is the right prompt - most people qualify for it or close to it, and a
+     * plan silently missing £12,548 a year of guaranteed lifelong income understates every answer. But a
+     * real value typed in on the household's behalf is a figure they never claimed, sitting in a field
+     * they may never scroll to, and entitlement genuinely varies with the NI record. So the amount goes
+     * in the input's PLACEHOLDER, where it prompts without asserting.
+     */
     statePensionSelf: '', statePensionPart: '',
     terminalAge: 100
   },
@@ -5829,7 +5839,6 @@ export { num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TA
 
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan
 const SCENARIOS_STORAGE_KEY = 'rp_saved_scenarios_v3';
-const THEME_STORAGE_KEY = 'rp_theme_v1';
 const APP_VERSION = 'v0.8 beta';
 
 /*
@@ -6913,45 +6922,16 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
 }
 
 
-export default function App() {
+/*
+ * The theme arrives as props because the shell owns it: the streamlined page needs the same control, and
+ * the switch between the two apps unmounts whichever one is not showing. See src/theme.jsx.
+ */
+export default function App({ theme = 'system', setTheme = () => {}, resolvedTheme = 'light' }) {
   // a returning visitor already knows the layout, so only a first visit (no saved plan) opens on the guide
   const [activeTab, setActiveTab] = useState(() => (safeStorageGet(STORAGE_KEY) ? 'inputs' : 'home'));
   const [isEditingRisk, setIsEditingRisk] = useState(false);
   const [selectedHistoricalYear, setSelectedHistoricalYear] = useState(1965);
   const [mcSeed, setMcSeed] = useState(12345);
-
-  /*
-   * THEME: A PREFERENCE, AND THE THEME IT RESOLVES TO.
-   *
-   * `theme` is what the household chose - light, dark, or follow the machine. `resolvedTheme` is which
-   * of the two designed palettes that currently means, and it is the only thing the document is ever
-   * stamped with, so the CSS needs two blocks rather than three. On 'system' it also has to keep
-   * listening: somebody whose laptop turns dark at sunset should see this page turn with it.
-   *
-   * 'classic' was the third theme and maps to light, which is what it collapsed into. The same mapping
-   * is in the anti-FOUC script in index.html, which has to agree with this or the page flashes.
-   */
-  const [theme, setTheme] = useState(() => {
-    const saved = safeStorageGet(THEME_STORAGE_KEY);
-    if (saved === 'classic') return 'light';
-    if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
-    return 'system';
-  });
-  const [systemDark, setSystemDark] = useState(
-    () => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  useEffect(() => {
-    if (!window.matchMedia) return undefined;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = (e) => setSystemDark(e.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-  const resolvedTheme = theme === 'system' ? (systemDark ? 'dark' : 'light') : theme;
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', resolvedTheme);
-    document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
-    safeStorageSet(THEME_STORAGE_KEY, theme);
-  }, [theme, resolvedTheme]);
 
   const [plan, setPlan] = useState(() => E.normalizePlan(safeStorageGet(STORAGE_KEY) ? (() => { try { return JSON.parse(safeStorageGet(STORAGE_KEY)); } catch (e) { return null; } })() : null));
 
@@ -8762,12 +8742,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   );
 
 
-  const themeOptions = [
-    { id: 'light', Icon: Sun, title: 'Light' },
-    { id: 'dark', Icon: Moon, title: 'Dark' },
-    { id: 'system', Icon: Monitor, title: 'Match my device' },
-  ];
-
   // The sandbox, rendered once at the foot of the Projection tab, directly under the chart it edits.
   /*
    * One chart body, drawn twice: once with the rate-based band and once with the Monte Carlo range.
@@ -9178,15 +9152,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {tabBtn('audit', Table, 'Audit Data Table')}
                 {tabBtn('docs', BookOpen, 'Documentation')}
               </div>
-              <div className="flex items-center gap-0.5 bg-slate-100 p-1 rounded-lg border border-slate-200/80">
-                {themeOptions.map(({ id, Icon, title }) => (
-                  <button key={id} type="button" onClick={() => setTheme(id)} title={title}
-                    aria-pressed={theme === id}
-                    className={`p-1.5 rounded-md transition-colors cursor-pointer ${theme === id ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-800'}`}>
-                    <Icon className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
+              <ThemeToggle theme={theme} setTheme={setTheme} />
             </div>
           </div>
 
@@ -9373,8 +9339,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Retirement age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgePart ?? ''} onChange={(e) => updateDemographics('retireAgePart', e.target.value)} className={inputCls} /></div>}
                 <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentSelf === 'self-employed' ? 'Annual Profit: self-employment (Myself £/yr)' : 'Gross salary (Myself £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salarySelf ?? ''} onChange={(e) => updateDemographics('salarySelf', e.target.value)} className={inputCls} /></div>
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentPart === 'self-employed' ? 'Annual Profit: self-employment (Partner £/yr)' : 'Gross salary (Partner £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salaryPart ?? ''} onChange={(e) => updateDemographics('salaryPart', e.target.value)} className={inputCls} /></div>}
-                <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL}`} onFocus={handleFocus} value={plan?.demographics?.statePensionSelf ?? ''} onChange={(e) => updateDemographics('statePensionSelf', e.target.value)} className={inputCls} /></div>
-                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL}`} onFocus={handleFocus} value={plan?.demographics?.statePensionPart ?? ''} onChange={(e) => updateDemographics('statePensionPart', e.target.value)} className={inputCls} /></div>}
+                <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL.toLocaleString()}`} onFocus={handleFocus} value={plan?.demographics?.statePensionSelf ?? ''} onChange={(e) => updateDemographics('statePensionSelf', e.target.value)} className={inputCls} /></div>
+                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL.toLocaleString()}`} onFocus={handleFocus} value={plan?.demographics?.statePensionPart ?? ''} onChange={(e) => updateDemographics('statePensionPart', e.target.value)} className={inputCls} /></div>}
                 <div className="sm:col-span-2">
                   <label className="text-slate-600 font-semibold block mb-1">{isCouple ? 'Joint net living spend (£/yr)' : 'Net living spend (£/yr)'}</label>
                   <input type="number" min="0" step="1000" placeholder="e.g. 30000" onFocus={handleFocus} value={plan?.spending?.targetSpend ?? ''} onChange={(e) => updateSpending('targetSpend', e.target.value)} className={inputCls} />

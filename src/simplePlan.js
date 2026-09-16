@@ -9,7 +9,7 @@
  * contributions, employment, risk profiles, return assumptions, the decumulation policy. That is the
  * whole point of the page - the pot is what it is today, and nothing is being paid in.
  */
-import { normalizePlan, AUTO_DEPOSIT } from './App.jsx';
+import { normalizePlan, AUTO_DEPOSIT, STATE_PENSION_FULL } from './App.jsx';
 
 export const SIMPLE_BLANK = {
   couple: false,
@@ -28,6 +28,9 @@ export const SIMPLE_BLANK = {
   taperPct: '',        // % a year that spending eases once the taper starts; blank means flat
   taperFromAge: '',
   region: 'ruk',
+  // Left blank and SUGGESTED in the field instead - see BLANK_PLAN in App.jsx. The full new State Pension
+  // is the right prompt, but entitlement varies with the NI record, so it belongs in a placeholder rather
+  // than typed into somebody's plan on their behalf.
   statePensionSelf: '', statePensionPart: '',
   // balances only. There are no contributions on this page, by design.
   pen: '', isa: '', gia: '', cash: '',

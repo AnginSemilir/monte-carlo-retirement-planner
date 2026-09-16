@@ -7284,9 +7284,9 @@ export default function App() {
    *
    * One death age would be false precision, and worse than that it would hide the single largest
    * discontinuity in the whole calculation: an inherited pension is tax-free to the beneficiary if
-   * death is before 75 and taxed at their marginal rate from 75. Measured across 360 households, that
-   * one boundary changes which decumulation policy is best from Sequential winning 59% of them to
-   * winning 21%. A tab that asked for one number and answered it would be answering the wrong question
+   * death is before 75 and taxed at their marginal rate from 75. Measured across 420 households, that
+   * one boundary changes which decumulation policy is best from Sequential winning 60% of them to
+   * winning 3%. A tab that asked for one number and answered it would be answering the wrong question
    * confidently, so the ages are shown side by side and the chosen one is only highlighted.
    */
   const inheritanceView = useMemo(() => {
@@ -7514,7 +7514,11 @@ export default function App() {
   const [mcReveal, setMcReveal] = useState(0);
   useEffect(() => {
     if (!fanData.length) { setMcReveal(0); return; }
-    if (slide !== 4 && !seeAll) { setMcReveal(0); return; }   // rewound, so arriving always plays it
+    // rewound whenever the Monte Carlo step is not on screen, so arriving always plays it. Looked up by
+    // key, not number: this was a literal 4, and inserting the safe-retirement step ahead of it silently
+    // left the clock rewinding on the very slide it drives - two-point paths and a stub of a band.
+    const mcSlide = PROJECTION_SLIDES.find(x => x.key === 'mcchart').n;
+    if (slide !== mcSlide && !seeAll) { setMcReveal(0); return; }
     setMcReveal(0);
     const start = performance.now(), ms = 2200;
     let raf = 0;
@@ -12143,7 +12147,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">The one change that inverts the usual advice</h3>
               <p className="text-xs text-slate-600 leading-relaxed">From <strong>6 April 2027</strong> an unused pension counts as part of your estate. Before that date it sat outside, which is the entire basis of the conventional &ldquo;spend everything else first&rdquo; advice. And if you die at <strong>{E.num(plan?.config?.pensionIncomeTaxFromAge, 75)} or over</strong>, your beneficiaries then pay their own income tax on what they draw from it — on top of the inheritance tax the estate already paid. At the additional rate that is roughly <strong>67%</strong> of that pound gone, against 40% for the same pound in an ISA.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">We tested whether that means you should drain the pension early. <strong>It does not.</strong> Across 360 households ranked on what heirs actually receive, a &ldquo;pension first&rdquo; policy won 6 times out of 3,600 — and on one wealthy household it left £6.2m where the best policy left £13.5m. Emptying a pension early means paying income tax at <em>your</em> marginal rate, on a large pot, during retirement, and the proceeds cannot be sheltered fast enough because the ISA allowance is £20,000 a year. The double charge is real and still cheaper than volunteering for the single one early.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">We tested whether that means you should drain the pension early. <strong>It does not.</strong> Across 420 households ranked on what heirs actually receive, a &ldquo;pension first&rdquo; policy won 21 times out of 5,040 — and on one wealthy household it left £9.8m where the best policy left £22.0m. Emptying a pension early means paying income tax at <em>your</em> marginal rate, on a large pot, during retirement, and the proceeds cannot be sheltered fast enough because the ISA allowance is £20,000 a year. The double charge is real and still cheaper than volunteering for the single one early.</p>
               <p className="text-xs text-slate-600 leading-relaxed">What the change really does is make the answer depend on facts a projection never asked for. The best policy for a household dying at 74 wins 59% of the time; for the same household dying at 80 it wins 21%. That is why this tab prices several ages rather than asking you to pick one.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">The allowances</h3>

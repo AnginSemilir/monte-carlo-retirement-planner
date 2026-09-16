@@ -492,9 +492,12 @@ const defaultAccounts = () => [
  *
  * The money metrics use 3% relative. The two rate metrics use 1 percentage point rather than 3, and the
  * difference is deliberate: those are already probabilities, so three points of survival (90% to 87%) is
- * a far larger concession than 3% of a pot. One point is NOT comfortably above the sampling noise for
- * every plan - see TOURNAMENT_TRIALS for the measurement - but raising it further would let a real
- * sacrifice through instead, which is the worse of the two errors.
+ * a far larger concession than 3% of a pot. Whether one point clears the sampling noise is exactly what
+ * sets the path count: at TOURNAMENT_TRIALS the survival estimate's seed-to-seed standard deviation is
+ * about 0.56 points on the noisiest plan in the library, so the tolerance does clear it - by a factor of
+ * two, not an order of magnitude, and the old 1,500-path search did not clear it at all. Raising the
+ * tolerance instead of the path count would let a real sacrifice through, which is the worse of the two
+ * errors.
  */
 const RATE_EPSILON_PTS = 1.0;
 const MONEY_EPSILON_REL = 0.03;
@@ -5848,30 +5851,48 @@ const MC_TRIALS = 5000;
  * plus any saved scenarios entered) - because both go through the same tolerance-gated ranking
  * (`explainPick`/`pickBest`) and are exposed to the same failure mode.
  *
- * That failure mode, measured directly rather than assumed: at 1,500 trials the survival-rate estimate
- * for one candidate has a sampling standard deviation of 0.1 to 1.5 percentage points depending on the
- * plan (research/policy-study/optimality.mjs) - for some plans, comparable to or larger than the
- * 1-point tie tolerance (RATE_EPSILON_PTS) that decides whether two candidates count as "the same" on
- * survival. Since the metric that actually settles most near-ties (inherited-pension tax) is computed
- * from the deterministic expected path rather than the simulation, it is exact once it is consulted -
- * the risk is entirely in WHICH candidates the noisy survival tie let through to it. Searching the same
- * plan twice at 1,500 trials picked the answer a much higher-precision estimate would have picked only
- * 70% of the time across a 30-household sample; at 4,000 it rose to 90%, for 2.6x the compute (measured
- * at ~2.8s to ~6.9s for an 18-candidate sweep outside the browser; about 30s in the browser at 4,000,
- * where the progress bar and the main-thread yields between candidates add most of the rest). Some of
- * the remaining disagreement
- * is not fixable by more trials at all: on 4 of those 30 households, three independent 4,000-trial
- * estimates did not even agree with EACH OTHER, meaning the candidates are genuinely statistically
- * indistinguishable rather than merely under-sampled. What every disagreement in the sample shared was a
- * small consequence: the worst case cost 1.1 points of survival, not a materially worse plan.
+ * THE ARGUMENT THAT ACTUALLY CARRIES THIS NUMBER is the tie tolerance, not an agreement percentage.
+ * `RATE_EPSILON_PTS` is 1.0, so the ranking treats two candidates as level on survival when their
+ * estimates sit within a point of each other. That rule is only meaningful if a point is bigger than
+ * the wobble in the estimate itself; otherwise the tolerance is gating on noise and the lower
+ * priorities inherit whichever candidates the noise happened to let through. Measured on the
+ * worst-case plan in the library (~40% survival, where a Bernoulli proportion is noisiest), the
+ * seed-to-seed standard deviation of the survival estimate is 1.44 points at 1,500 paths and 0.56 at
+ * 4,000. So 1,500 put the noise ABOVE the tolerance and 4,000 puts it below - the tolerance means
+ * something at this path count and did not at the old one. That is the whole case, it is mechanistic
+ * rather than statistical, and section E of research/tests/optimality.test.mjs re-measures it on every
+ * run so it cannot quietly stop being true.
+ *
+ * It costs 2.6x the compute: ~2.8s to ~6.9s for an 18-candidate sweep outside the browser, about 30s
+ * in the browser, where the progress bar and the main-thread yields between candidates add most of the
+ * rest.
+ *
+ * Why the noise matters at all, and why only here: the metric that settles most near-ties
+ * (inherited-pension tax) comes from the deterministic expected path rather than the simulation, so it
+ * is exact once it is consulted. The risk is entirely in WHICH candidates the noisy survival tie lets
+ * through to it.
+ *
+ * THE AGREEMENT FIGURES ARE WEAKER EVIDENCE THAN THEY LOOK, and are recorded here so nobody re-derives
+ * a false precision from them. Searching the same plan at 1,500 paths picked what a much
+ * higher-precision estimate picked 70% of the time across 30 households; 2,500 gave 80%, 4,000 gave
+ * 90%, 6,000 gave 80% (research/policy-study/trials-vs-truth.mjs). Six thousand paths cannot really be
+ * worse than four thousand, so that last row is the honest error bar on the statistic: about ten points
+ * either way on a 30-household sample. Read the set as "clearly better than 1,500, flat from roughly
+ * 2,500 on", and do NOT read it as "4,000 is the best of the four". A smaller sweep over 6 households
+ * found seed-to-seed agreement of the PICK no better at 4,000 than at 1,500, which is the same message.
+ *
+ * Two things bound what the residue can cost. Some of it is irreducible: on 4 of those 30 households
+ * three independent high-precision estimates disagreed with EACH OTHER, so those candidates are
+ * genuinely indistinguishable rather than under-sampled, and no path count fixes that. And every
+ * disagreement observed was cheap - the applied pick stayed within about 1 point of survival of the
+ * best candidate on the same seed, measured at 1,500 and at 4,000 alike (section F of the same suite).
+ * A wrong pick here is a near-tie resolved the other way, not a materially worse plan.
  *
  * The policy search spends this as TWO seeds at half the paths each, averaged: the same precision, plus
  * a close-call signal when the two runs disagree. See handleFindBestPolicy.
  *
- * 4,000 is chosen as the point past which more trials buy nothing measurable: 6,000 came back at 80%
- * agreement and a 17% flip rate, inside the sampling error of the 4,000 figures, so the curve is flat
- * from about 2,500 on and the residue is the indistinguishable candidates, not the path count. It is
- * not a number that eliminates the noise - it does not, and cannot, for candidates this close.
+ * None of this eliminates the noise. It cannot, for candidates this close; it puts the noise under the
+ * threshold that decides what counts as a tie, and bounds the cost of the ties it still gets wrong.
  */
 const TOURNAMENT_TRIALS = 4000;
 // Death ages the Inheritance tab always prices, chosen to straddle the age-75 boundary that decides
@@ -6659,7 +6680,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
             <Zap className="w-4 h-4 text-indigo-600 fill-indigo-600" /> Automated Strategy Tournament &amp; Optimizer
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Six wrapper strategies with the same take-home budget, each tested on the same {TOURNAMENT_TRIALS.toLocaleString()} market paths (common random numbers) so differences are real, not noise.{selectedEntrants.length > 0 ? ` Plus ${selectedEntrants.length} saved scenario${selectedEntrants.length === 1 ? '' : 's'} entered as saved.` : ''}
+            Six wrapper strategies with the same take-home budget, each tested on the same {TOURNAMENT_TRIALS.toLocaleString()} market paths, so every strategy meets the same good and bad years rather than its own draw. That takes the luck of the draw out of the comparison, but not the sampling error: a gap of under a point of survival is a tie, not a better strategy.{selectedEntrants.length > 0 ? ` Plus ${selectedEntrants.length} saved scenario${selectedEntrants.length === 1 ? '' : 's'} entered as saved.` : ''}
           </p>
         </div>
         <button type="button" onClick={onNavigateDocs} className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto">
@@ -12043,7 +12064,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
             <div id="doc-tournament" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Zap className="w-4 h-4 text-indigo-600" /> Automated Strategy Tournament &amp; Optimisation Methodology</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">The tournament compares six ways of splitting the same annual take-home budget between S&amp;S ISAs and pensions. Every player is run on the same {TOURNAMENT_TRIALS.toLocaleString()} market paths (common random numbers), so the ranking reflects the strategies rather than sampling luck. Any saved scenario can be entered as an extra player; those run exactly as saved and are not held to the same budget, which their cards state.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">The tournament compares six ways of splitting the same annual take-home budget between S&amp;S ISAs and pensions. Every player is run on the same {TOURNAMENT_TRIALS.toLocaleString()} market paths (common random numbers), so the players are compared on identical markets rather than on separate draws. That is what makes the comparison fair; it does not make it exact. A single strategy's survival rate still moves by around half a point from one seed to the next at this path count, so read a lead smaller than about a point as sampling error. Any saved scenario can be entered as an extra player; those run exactly as saved and are not held to the same budget, which their cards state.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">1. Equal net budget</strong><p className="text-slate-500">Each strategy costs the same take-home pay. Pension money is grossed up using each owner's own salary (income tax + NIC relief, plus any employer NIC pass-through set in Config), capped by the annual allowance (£{P.pensionAllowance.toLocaleString()}) and salary; ISA money is capped at £{P.isaAllowance.toLocaleString()} per person; anything left over flows to a GIA.</p></div>
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">2. Conservative bridge sizing</strong><p className="text-slate-500">If spending starts before anyone can access a pension (age {nmpa}), the bridge reserve is the sum of net drawdown in those years (after guaranteed income and a working partner's take-home), uplifted by the safety margin ({E.num(plan?.config?.bridgeSafetyMargin, 30)}%) and assuming 0% real growth.</p></div>

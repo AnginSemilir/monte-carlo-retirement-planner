@@ -18,13 +18,17 @@ import Simple from './Simple.jsx';
 const KEY = 'rp_which_app';
 
 /*
- * WHERE FEEDBACK GOES, IF ANYWHERE.
+ * WHERE FEEDBACK GOES.
  *
- * Blank ships no link at all rather than a dead one. Set it to whatever you want beta readers to reach -
- * a form, a thread, a mailbox - and the footer line appears in both apps. Deliberately not defaulted to
- * a personal address: this is a public page, and an address put here is an address that gets scraped.
+ * Blank ships no link at all rather than a dead one; anything else - a form, a thread, a mailbox -
+ * appears as a footer line in both apps.
+ *
+ * This is a mailbox, by choice, and the trade that comes with it is real: an address on a public page
+ * is an address that gets scraped, and no amount of obfuscation reliably prevents that. Swapping this
+ * one line for a form URL is the whole of changing your mind later. The subject line is prefilled so
+ * beta replies sort themselves out of an inbox.
  */
-const FEEDBACK_URL = '';
+const FEEDBACK_URL = 'mailto:forwardsamuel@gmail.com?subject=Retirement%20planner%20feedback';
 const FEEDBACK_LABEL = 'Tell me what broke';
 
 /*

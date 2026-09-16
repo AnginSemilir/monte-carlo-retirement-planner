@@ -1,0 +1,58 @@
+# Publish the built site to GitHub Pages.
+#
+# The app is static - every figure is computed in the visitor's browser and their plan is stored there -
+# so there is nothing to run server-side and Pages is enough. The build is the whole deployment.
+#
+# BEFORE THE FIRST RUN CAN SUCCEED, Pages has to be switched on once by hand:
+#   Settings -> Pages -> Build and deployment -> Source: GitHub Actions
+# That switch is what actually puts the site on the internet, so it is deliberately left to a person.
+# Until it is flipped, this workflow fails at the "Configure Pages" step and nothing is published.
+#
+# The site then lives at https://hapsariandforward.github.io/vitejs-vite-kdvuf9qw/ and updates on every
+# push to the branch below. Visitors' saved plans live in their own browser keyed to that origin, so
+# they survive updates - but they would NOT survive a move to a different domain. See DEPLOY.md.
+#
+# Deliberately not gated on the test suite: the 23 suites take minutes, and a beta wants fast
+# iteration. Run `npm run test:engine` locally, or add it as a step here when that trade changes.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [claude/project-access-i58m0x]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish rather than cancelling it, so a half-published site is never left behind.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

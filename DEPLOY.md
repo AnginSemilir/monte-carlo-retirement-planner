@@ -19,6 +19,20 @@ there is nothing for a deep link to miss.
 above, and every push to the branch you nominate is published. Cloudflare Access (free for small
 numbers of people) can sit in front of it if the beta should not be public.
 
+**GitHub Pages** needs no third-party account at all, and `.github/workflows/deploy.yml` is already
+written for it. One switch turns it on:
+
+> Settings → Pages → Build and deployment → **Source: GitHub Actions**
+
+That switch is what actually puts the site on the internet, which is why it is a person's decision
+rather than something the workflow does for itself. Until it is flipped the workflow fails at
+"Configure Pages" and nothing is published. Afterwards the site is at
+
+> `https://hapsariandforward.github.io/vitejs-vite-kdvuf9qw/`
+
+and every push to `claude/project-access-i58m0x` republishes it. `base: './'` in `vite.config.js` is
+what lets one build work both there, under a subpath, and on a root domain later.
+
 ## One link, and what happens when you update
 
 You get **one stable production URL** — that is the link to share. Deploying replaces what it serves;

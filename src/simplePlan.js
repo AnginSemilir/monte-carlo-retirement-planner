@@ -9,7 +9,7 @@
  * contributions, employment, risk profiles, return assumptions, the decumulation policy. That is the
  * whole point of the page - the pot is what it is today, and nothing is being paid in.
  */
-import { normalizePlan, AUTO_DEPOSIT } from './App.jsx';
+import { normalizePlan, AUTO_DEPOSIT, STATE_PENSION_FULL } from './App.jsx';
 
 export const SIMPLE_BLANK = {
   couple: false,
@@ -28,6 +28,9 @@ export const SIMPLE_BLANK = {
   taperPct: '',        // % a year that spending eases once the taper starts; blank means flat
   taperFromAge: '',
   region: 'ruk',
+  // Left blank and SUGGESTED in the field instead - see BLANK_PLAN in App.jsx. The full new State Pension
+  // is the right prompt, but entitlement varies with the NI record, so it belongs in a placeholder rather
+  // than typed into somebody's plan on their behalf.
   statePensionSelf: '', statePensionPart: '',
   // balances only. There are no contributions on this page, by design.
   pen: '', isa: '', gia: '', cash: '',
@@ -162,4 +165,119 @@ export function readiness(s) {
     (s.couple ? n(s.penPart) + n(s.isaPart) + n(s.giaPart) + n(s.cashPart) : 0);
   if (!(pot > 0)) missing.push('what you have saved');
   return { ready: missing.length === 0, missing, pot };
+}
+
+/*
+ * THE ADAPTER BACK DOWN: A FULL PLAN INTO THE SMALL SHAPE.
+ *
+ * `toFullPlan` widens; this narrows, so that switching between the two pages carries what you typed
+ * instead of handing you an empty form. The two are NOT inverses and cannot be: the full planner holds
+ * things the small page has nowhere to put, and the honest response is to carry what maps and SAY what
+ * did not, rather than to drop it silently or to refuse the whole switch.
+ *
+ * What maps exactly: ages, retirement ages, terminal age, spend, salaries, state pensions, tax region,
+ * and all eight wrapper accounts - balance, contribution, escalation and risk. The account set is the
+ * same four categories by two owners on both sides, so no balance is ever lost in this direction.
+ *
+ * What is approximated: the spending taper. The engine takes any number of bands over age ranges; the
+ * small page models one step down at one age. A single band that starts below the terminal age and cuts
+ * spending becomes that step. Anything more elaborate is reported as dropped rather than flattened into
+ * a shape that would quietly mean something different.
+ *
+ * Returns { simple, dropped } - `dropped` being plain-English lines for the UI to show. A caller that
+ * ignores it is lying to the user by omission, which is why it is returned rather than logged.
+ */
+export function fromFullPlan(plan, base = SIMPLE_BLANK) {
+  const p = normalizePlan(plan);
+  const d = p.demographics || {}, sp = p.spending || {}, cfg = p.config || {};
+  const couple = d.planningMode === 'couple';
+  const acc = (id) => (p.accounts || []).find(a => a.id === id) || {};
+  const val = (v) => (v === '' || v == null ? '' : Number(v));
+  const dropped = [];
+
+  const ins = (p.oneOffContributions || []).map(o => ({ id: o.id || oneOffId(), date: o.date, amount: Math.abs(n(o.amount)), direction: 'in', desc: o.desc || '' }));
+  const outs = (p.oneOffCosts || []).map(o => ({ id: o.id || oneOffId(), date: o.date, amount: Math.abs(n(o.amount)), direction: 'out', desc: o.desc || '' }));
+  // the taper: one band that cuts spending from an age is the shape this page has
+  let taperPct = '', taperFromAge = '';
+  const bands = (sp.spendBands || []).filter(b => Number(b.amount) > 0);
+  const spend = Number(sp.targetSpend) || 0;
+  if (bands.length === 1 && spend > 0 && Number(bands[0].amount) < spend) {
+    taperPct = Math.round((1 - Number(bands[0].amount) / spend) * 1000) / 10;
+    taperFromAge = bands[0].fromAge;
+  } else if (bands.length) {
+    dropped.push(`${bands.length} spending band${bands.length === 1 ? '' : 's'} — the simple page has one step down at one age, so these stay in the full planner`);
+  }
+
+  // earnings after the retirement date carry; every other income type has nowhere to go
+  const incomes = p.otherIncomes || [];
+  const earnings = incomes.filter(i => i.incomeType === 'earnings');
+  const otherKinds = incomes.length - earnings.length;
+  if (otherKinds > 0) dropped.push(`${otherKinds} income stream${otherKinds === 1 ? '' : 's'} that are not earnings (a DB pension, an annuity, rent and so on)`);
+
+  /*
+   * A deposit's DESTINATION cannot survive, and cannot be detected either. normalizePlan resolves the
+   * auto setting into whatever wrapper the policy picked, so by the time any saved plan is read back, a
+   * deposit the user left on auto is indistinguishable from one they routed by hand. Rather than guess -
+   * a check against AUTO_DEPOSIT fires on every plan, including ones that came from the simple page in
+   * the first place - this says what is true whenever there are deposits at all: over there, the policy
+   * chooses. AUTO_DEPOSIT stays imported because toFullPlan sets it on the way up.
+   */
+  if (ins.length) dropped.push(`where ${ins.length === 1 ? 'a one-off deposit lands' : `${ins.length} one-off deposits land`} — the simple page always lets the policy choose the wrapper`);
+
+  if ((p.accounts || []).some(a => Array.isArray(a.contribByYear) && a.contribByYear.length))
+    dropped.push('per-year contribution schedules — the simple page takes one figure and a yearly increase');
+  if (d.salaryGrowthSelf || d.salaryGrowthPart) dropped.push('real salary growth');
+  if (d.employmentSelf === 'self-employed' || d.employmentPart === 'self-employed') dropped.push('self-employed status, which changes National Insurance');
+  // An edited return matrix is what CLEARS riskSource; `riskProfiles` is always present, so testing it
+  // reported an edit on every plan ever made.
+  if (!p.riskSource) dropped.push('your edits to the return matrix');
+  dropped.push('the decumulation policy, the seed and the rest of Config — the simple page picks the policy for you');
+
+  const wrap = (cat, owner) => {
+    const a = acc(`${cat}_${owner}`);
+    return { balance: val(a.balance), contrib: val(a.contrib), growth: val(a.growth), risk: a.risk };
+  };
+  const me = { pen: wrap('pen', 'self'), isa: wrap('isa', 'self'), gia: wrap('other', 'self'), cash: wrap('cash', 'self') };
+  const pt = { pen: wrap('pen', 'part'), isa: wrap('isa', 'part'), gia: wrap('other', 'part'), cash: wrap('cash', 'part') };
+
+  return {
+    dropped,
+    simple: {
+      ...base,
+      couple,
+      ageSelf: val(d.currentAgeSelf), retireSelf: val(d.retireAgeSelf),
+      agePart: couple ? val(d.currentAgePart) : '', retirePart: couple ? val(d.retireAgePart) : '',
+      terminalAge: val(d.terminalAge) || 95,
+      spend: val(sp.targetSpend),
+      salary: val(d.salarySelf), salaryPart: couple ? val(d.salaryPart) : '',
+      statePensionSelf: val(d.statePensionSelf), statePensionPart: couple ? val(d.statePensionPart) : '',
+      region: cfg.taxRegion || 'ruk',
+      taperPct, taperFromAge,
+      // a pension contribution arrives in pounds, so the percent-of-salary switch goes off
+      penCIsPct: false, penCIsPctPart: false,
+      pen: me.pen.balance, isa: me.isa.balance, gia: me.gia.balance, cash: me.cash.balance,
+      penC: me.pen.contrib, isaC: me.isa.contrib, giaC: me.gia.contrib, cashC: me.cash.contrib,
+      penG: me.pen.growth, isaG: me.isa.growth, giaG: me.gia.growth, cashG: me.cash.growth,
+      penRisk: me.pen.risk || base.penRisk, isaRisk: me.isa.risk || base.isaRisk,
+      giaRisk: me.gia.risk || base.giaRisk, cashRisk: me.cash.risk || base.cashRisk,
+      penPart: pt.pen.balance, isaPart: pt.isa.balance, giaPart: pt.gia.balance, cashPart: pt.cash.balance,
+      penCPart: pt.pen.contrib, isaCPart: pt.isa.contrib, giaCPart: pt.gia.contrib, cashCPart: pt.cash.contrib,
+      penGPart: pt.pen.growth, isaGPart: pt.isa.growth, giaGPart: pt.gia.growth, cashGPart: pt.cash.growth,
+      penPartRisk: pt.pen.risk || base.penPartRisk, isaPartRisk: pt.isa.risk || base.isaPartRisk,
+      giaPartRisk: pt.gia.risk || base.giaPartRisk, cashPartRisk: pt.cash.risk || base.cashPartRisk,
+      oneOffs: [...ins, ...outs].filter(o => o.date && o.amount > 0),
+      earnings: earnings.map(e => ({ id: e.id || earningId(), amount: n(e.amount), startAge: e.startAge, endAge: e.endAge === '' || e.endAge == null ? '' : e.endAge, owner: e.owner === 'Partner' ? 'Partner' : 'Myself' }))
+    }
+  };
+}
+
+/*
+ * Has anything actually been typed? The switch only carries a plan across when there is one to carry:
+ * writing a blank over the other page's saved work would be the worst possible outcome of a button that
+ * promises not to make you re-enter anything.
+ */
+export function simpleHasInput(s) {
+  if (!s) return false;
+  const keys = ['ageSelf', 'retireSelf', 'spend', 'pen', 'isa', 'gia', 'cash', 'penPart', 'isaPart', 'giaPart', 'cashPart', 'salary'];
+  return keys.some(k => n(s[k]) > 0) || (s.oneOffs || []).length > 0 || (s.earnings || []).length > 0;
 }

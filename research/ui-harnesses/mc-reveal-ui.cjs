@@ -1,6 +1,13 @@
-// The Monte Carlo slide's reveal: the sample paths must draw across the horizon and the band must settle
-// to its full width. Regressed once when a step was inserted ahead of it and the reveal clock kept
-// rewinding on a stale slide number. Run: node mc-reveal-ui.cjs [shotDir]
+/*
+ * The Monte Carlo slide's reveal. Regressed once when a step was inserted ahead of it and the reveal
+ * clock kept rewinding on a stale slide number, leaving two-point paths and a stub of a band.
+ *
+ * The reveal is CSS now, not a per-frame React clock, so "is it drawing?" can no longer be answered by
+ * measuring how long the `d` attributes are - they are full length from the first frame and the sweep is
+ * a stroke-dashoffset animation over them. Checking path length alone would therefore pass no matter
+ * what, so this checks the MECHANISM: the paths carry pathLength and the draw class, the band carries
+ * its own, and the geometry underneath is full-size. Run: node mc-reveal-ui.cjs [shotDir]
+ */
 const { chromium } = require('/tmp/node_modules/playwright');
 const fs = require('fs');
 const SHOT = process.argv[2];
@@ -42,12 +49,32 @@ const plan = {
   });
   await p.waitForTimeout(600);
   const early = await probe();
-  ok('during the reveal, sample paths are drawing (many long paths)', early.long >= 10, `${early.long} long of ${early.n}`);
+  ok('sample paths are present at full geometry', early.long >= 10, `${early.long} long of ${early.n}`);
+  // the reveal itself: a static `d` swept by the compositor, which is what keeps this off the main thread
+  const mech = await p.evaluate(() => {
+    const svg = [...document.querySelectorAll('svg')].sort((a,b)=>b.getBoundingClientRect().width-a.getBoundingClientRect().width)[0];
+    const sp = [...svg.querySelectorAll('path.mc-draw')];
+    const cs = sp.length ? getComputedStyle(sp[0]) : null;
+    return { drawn: sp.length, pathLength: sp.length ? sp[0].getAttribute('pathLength') : null,
+             dash: cs ? cs.strokeDasharray : null, anim: cs ? cs.animationName : null,
+             band: !!svg.closest('*') && !!document.querySelector('g.mc-band'),
+             spaghetti: !!document.querySelector('g.mc-spaghetti') };
+  });
+  ok('the sweep is a CSS animation on a static path, not a redrawn one', mech.drawn >= 10 && mech.anim === 'mc-draw', `${mech.drawn} paths, animation ${mech.anim}`);
+  ok('...normalised with pathLength so every path sweeps at one rate', mech.pathLength === '1', String(mech.pathLength));
+  ok('...and the spaghetti and band groups carry their own', mech.spaghetti && mech.band, `spaghetti ${mech.spaghetti}, band ${mech.band}`);
   await p.waitForTimeout(3500);
   const late = await probe();
   ok('after the reveal, the band spans most of the chart', late.bandSpan > 0.6 * late.width, `band ${Math.round(late.bandSpan)}px of ${Math.round(late.width)}px`);
   ok('and the expected/wrapper lines are full length', late.long >= 3, `${late.long} long paths`);
-  await p.screenshot({ path: `${SHOT}/mc-slide-late.png` });
+  // the end state: the band settled and visible, the individual runs dissolved out of the way
+  const settled = await p.evaluate(() => {
+    const band = document.querySelector('g.mc-band'), sp = document.querySelector('g.mc-spaghetti');
+    return { band: band ? Number(getComputedStyle(band).opacity) : null, sp: sp ? Number(getComputedStyle(sp).opacity) : null };
+  });
+  ok('the band has settled to full opacity', settled.band !== null && settled.band > 0.9, String(settled.band));
+  ok('and the individual runs have dissolved', settled.sp !== null && settled.sp < 0.1, String(settled.sp));
+  if (SHOT) await p.screenshot({ path: `${SHOT}/mc-slide-late.png` });   // no dir given: don't write ./undefined/
   const real = errs.filter(e => !/ERR_CERT_AUTHORITY_INVALID|tailwind/.test(e));
   ok('no page errors', real.length === 0, real.join(' | '));
   await b.close();

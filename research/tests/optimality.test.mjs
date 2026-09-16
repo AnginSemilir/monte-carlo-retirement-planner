@@ -15,6 +15,7 @@
  *   E  the live path count puts the survival wobble UNDER the tie tolerance, which is the whole
  *      argument for TOURNAMENT_TRIALS being what it is
  *   F  and when the noise does still flip a near-tie, the pick it lands on is barely worse
+ *   G  the combination count the Config tab quotes to the user is the count the search really runs
  */
 import * as E from '../engine.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
@@ -195,6 +196,27 @@ console.log('\n=========== F. A NEAR-TIE RESOLVED THE WRONG WAY IS STILL CHEAP =
   }
   ok(`the applied pick is never more than ${BOUND_PTS}pt of survival below the best candidate on the same seed`, worst <= BOUND_PTS, `worst ${worst.toFixed(2)}pt  [${detail.join(' ')}]`);
   ok('...and the sample actually contains a household that gives something up, so the bound is exercised', nonZero > 0, `${nonZero} of ${detail.length} non-zero`);
+}
+
+console.log('\n=========== G. THE NUMBER ON SCREEN IS THE WORK ACTUALLY DONE ===========');
+{
+  /*
+   * Config tells the user how big the auto-pick search is - "scores all 18 combinations" - and that
+   * sentence is only safe if it is derived from the same table the search enumerates. POLICY_COMBOS in
+   * src/App.jsx reduces over DECUMULATION_POLICIES; buildPolicyCandidates walks the same table and
+   * emits the candidates. The formula is mirrored here because it lives outside the engine slice, so
+   * the thing this really pins is that the two stay equal: add a policy, or give an existing one
+   * harvesting, and either both move or this fails.
+   */
+  const combos = Object.values(E.DECUMULATION_POLICIES).reduce((n, pol) => n + 2 * (pol.harvest ? 2 : 1), 0);
+  const built = E.buildPolicyCandidates(E.normalizePlan(scs[7].plan));
+  ok('the quoted combination count equals the candidates the search builds', combos === built.length, `quoted ${combos}, built ${built.length}`);
+  ok('...and it does not depend on the household', built.length === E.buildPolicyCandidates(E.normalizePlan(scs[312].plan)).length);
+  ok('...and every candidate is a distinct settings combination', new Set(built.map(c => c.id)).size === built.length);
+  // the other half of the quoted sentence: both crystallisation strategies, every policy
+  const strategies = new Set(built.map(c => c.drawdownStrategy));
+  ok('both crystallisation strategies appear', strategies.size === 2, [...strategies].join(', '));
+  ok('and every policy in the table appears', new Set(built.map(c => c.decumulationPolicy)).size === Object.keys(E.DECUMULATION_POLICIES).length);
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

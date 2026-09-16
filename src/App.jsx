@@ -3,9 +3,10 @@ import * as d3 from 'd3';
 import {
   TrendingUp, Layers, Check, RotateCcw, Dices, Zap, ShieldCheck, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
-  Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, Sun, Moon, Monitor, ChevronUp, ChevronDown, Home, Gift,
+  Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, ChevronUp, ChevronDown, Home, Gift,
   GripVertical
 } from 'lucide-react';
+import { ThemeToggle } from './theme.jsx';
 import EditMode from './EditMode.jsx';
 // ============================================================================================
 // Monte-Carlo Retirement Planner v3.4 — single-file build (engine + UI).
@@ -671,6 +672,15 @@ const BLANK_PLAN = Object.freeze({
     // derived by resolveMpaa from the projection, not user-editable
     mpaaAgeSelf: '', mpaaAgePart: '',
     statePensionAge: 68, privatePensionAge: 58,
+    /*
+     * LEFT BLANK, AND SUGGESTED IN THE FIELD RATHER THAN FILLED IN.
+     *
+     * The full new State Pension is the right prompt - most people qualify for it or close to it, and a
+     * plan silently missing £12,548 a year of guaranteed lifelong income understates every answer. But a
+     * real value typed in on the household's behalf is a figure they never claimed, sitting in a field
+     * they may never scroll to, and entitlement genuinely varies with the NI record. So the amount goes
+     * in the input's PLACEHOLDER, where it prompts without asserting.
+     */
     statePensionSelf: '', statePensionPart: '',
     terminalAge: 100
   },
@@ -5829,7 +5839,6 @@ export { num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TA
 
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan
 const SCENARIOS_STORAGE_KEY = 'rp_saved_scenarios_v3';
-const THEME_STORAGE_KEY = 'rp_theme_v1';
 const APP_VERSION = 'v0.8 beta';
 
 /*
@@ -5895,6 +5904,16 @@ const MC_TRIALS = 5000;
  * threshold that decides what counts as a tie, and bounds the cost of the ties it still gets wrong.
  */
 const TOURNAMENT_TRIALS = 4000;
+/*
+ * HOW MANY SETTINGS COMBINATIONS THE POLICY SEARCH ACTUALLY SCORES.
+ *
+ * Derived from the policy table rather than typed, so adding a policy updates the number the Config tab
+ * quotes instead of quietly making it a lie. Each policy runs under both crystallisation strategies,
+ * and the four that support allowance harvesting run again with it on: 5 x 2 + 4 x 2 = 18 today.
+ * buildPolicyCandidates is the code this mirrors; optimality.test.mjs section G pins them equal.
+ */
+const POLICY_COMBOS = Object.values(DECUMULATION_POLICIES).reduce((n, pol) => n + 2 * (pol.harvest ? 2 : 1), 0);
+const POLICY_SEEDS = 2;
 // Death ages the Inheritance tab always prices, chosen to straddle the age-75 boundary that decides
 // whether an inherited pension is taxable on the beneficiary. Module scope so the memo stays stable.
 const INHERITANCE_AGES = [70, 74, 80, 90];
@@ -6116,6 +6135,34 @@ function ProgressBar({ value, label }) {
         <div className="h-full bg-indigo-600 transition-all" style={{ width: `${Math.round(value * 100)}%` }} />
       </div>
     </div>
+  );
+}
+
+/*
+ * A CONFIG SECTION THAT STARTS SHUT.
+ *
+ * Config carries four panels, and three of them are reference data a plan almost never needs to touch -
+ * tax thresholds, the return matrix, the economic constants. Left open they bury the one panel that is
+ * a decision: which decumulation policy to run. So those three fold, and the policy panel does not.
+ *
+ * `<details>` rather than state, deliberately: the browser keeps the open/closed flag, ctrl-F finds text
+ * inside a closed panel in Chrome, and nothing has to be persisted for the page to behave sensibly on
+ * reload. `subtitle` sits in the summary so a shut panel still says what is inside it.
+ */
+function CollapsibleCard({ title, subtitle, icon: Icon, children }) {
+  return (
+    <details className="group bg-surface border border-slate-200/90 rounded-xl">
+      <summary className="p-5 cursor-pointer list-none flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+            {Icon && <Icon className="w-4 h-4 text-blue-600 shrink-0" />}{title}
+          </h2>
+          {subtitle && <p className="text-xs text-slate-500 mt-1 leading-relaxed">{subtitle}</p>}
+        </div>
+        <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 mt-1 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="px-5 pb-5 space-y-4">{children}</div>
+    </details>
   );
 }
 
@@ -6875,45 +6922,16 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
 }
 
 
-export default function App() {
+/*
+ * The theme arrives as props because the shell owns it: the streamlined page needs the same control, and
+ * the switch between the two apps unmounts whichever one is not showing. See src/theme.jsx.
+ */
+export default function App({ theme = 'system', setTheme = () => {}, resolvedTheme = 'light' }) {
   // a returning visitor already knows the layout, so only a first visit (no saved plan) opens on the guide
   const [activeTab, setActiveTab] = useState(() => (safeStorageGet(STORAGE_KEY) ? 'inputs' : 'home'));
   const [isEditingRisk, setIsEditingRisk] = useState(false);
   const [selectedHistoricalYear, setSelectedHistoricalYear] = useState(1965);
   const [mcSeed, setMcSeed] = useState(12345);
-
-  /*
-   * THEME: A PREFERENCE, AND THE THEME IT RESOLVES TO.
-   *
-   * `theme` is what the household chose - light, dark, or follow the machine. `resolvedTheme` is which
-   * of the two designed palettes that currently means, and it is the only thing the document is ever
-   * stamped with, so the CSS needs two blocks rather than three. On 'system' it also has to keep
-   * listening: somebody whose laptop turns dark at sunset should see this page turn with it.
-   *
-   * 'classic' was the third theme and maps to light, which is what it collapsed into. The same mapping
-   * is in the anti-FOUC script in index.html, which has to agree with this or the page flashes.
-   */
-  const [theme, setTheme] = useState(() => {
-    const saved = safeStorageGet(THEME_STORAGE_KEY);
-    if (saved === 'classic') return 'light';
-    if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
-    return 'system';
-  });
-  const [systemDark, setSystemDark] = useState(
-    () => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  useEffect(() => {
-    if (!window.matchMedia) return undefined;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = (e) => setSystemDark(e.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-  const resolvedTheme = theme === 'system' ? (systemDark ? 'dark' : 'light') : theme;
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', resolvedTheme);
-    document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
-    safeStorageSet(THEME_STORAGE_KEY, theme);
-  }, [theme, resolvedTheme]);
 
   const [plan, setPlan] = useState(() => E.normalizePlan(safeStorageGet(STORAGE_KEY) ? (() => { try { return JSON.parse(safeStorageGet(STORAGE_KEY)); } catch (e) { return null; } })() : null));
 
@@ -7015,8 +7033,22 @@ export default function App() {
     { n: 3, key: 'saferetire', name: 'Safe retirement' },
     { n: 4, key: 'ratechart', name: 'Rate based' },
     { n: 5, key: 'mcchart', name: 'Monte Carlo' },
-    { n: 6, key: 'compare', name: 'Side by side' }
+    { n: 6, key: 'compare', name: 'Side by side' },
+    /*
+     * The sandbox is a STEP, not an appendix.
+     *
+     * It used to sit below the deck behind its own `sandboxRevealed` flag, reachable only by walking all
+     * six steps and pressing "Change something" - six clicks from the Topline figure it exists to move,
+     * and far enough off the path that the results copy needed a signpost link pointing down at it. Worse,
+     * the deck shows one step at a time, so the amber line it draws was never on screen beside it: its own
+     * alert said "now visible in the chart above" while the chart sat two steps back.
+     *
+     * As step 7 it is one click from anywhere, it is included in "See all" like everything else, and it
+     * renders the Monte Carlo chart directly above the controls, so an edit and its effect share a screen.
+     */
+    { n: 7, key: 'sandbox', name: 'Change something' }
   ];
+  const SANDBOX_SLIDE = PROJECTION_SLIDES.find(x => x.key === 'sandbox').n;
   /*
    * The Inheritance tab is a deck too, for the same reason the Projection tab is: it asks for a dozen
    * facts and then answers one question, and shown all at once the answer is buried under the asking.
@@ -7080,22 +7112,20 @@ export default function App() {
 
   const [slide, setSlide] = useState(1);
   const [seeAll, setSeeAll] = useState(false);
-  const [sandboxRevealed, setSandboxRevealed] = useState(false);
   const showSlide = (n) => seeAll || slide === n;
 
   /*
    * Bring what you just asked for into view.
    *
-   * Both controls sit at the FOOT of a card, so without this the click appears to do nothing: pressing
-   * Next leaves you looking at the bottom of the next step, and "Change something" reveals a sandbox that
-   * lands below the fold with the page still at the same scroll position. Measured before this existed:
-   * the button at y=853 in a 900px viewport, the sandbox arriving at y=893, scrollY unchanged at 0.
+   * The control sits at the FOOT of a card, so without this the click appears to do nothing: pressing
+   * Next leaves you looking at the bottom of the next step rather than its heading. Measured before this
+   * existed: the button at y=853 in a 900px viewport, the next card arriving at y=893, scrollY unchanged
+   * at 0. The sandbox needed its own copy of this when it lived outside the deck; as step 7 it is carried
+   * by the same ref as every other step.
    */
   const slideRef = useRef(null);
-  const sandboxRef = useRef(null);
   const scrollTo = (el) => el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   useEffect(() => { if (!seeAll) scrollTo(slideRef.current); }, [slide, seeAll]);
-  useEffect(() => { if (sandboxRevealed) scrollTo(sandboxRef.current); }, [sandboxRevealed]);
   const [simProgress, setSimProgress] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -7522,28 +7552,14 @@ export default function App() {
    * The Monte Carlo chart plays itself in, spreading from the left edge as the horizon fills. It is not
    * decoration: the shape of the thing - a point at the start widening into a cloud - is the fact the
    * chart exists to convey, and watching it happen lands that better than arriving at the finished
-   * picture. It runs ONCE per set of results. Coming back to the slide shows the completed chart, because
-   * a replay on every visit would be an animation you have to sit through rather than one you watched.
+   * picture.
+   *
+   * The reveal is a CSS animation, so React holds a KEY rather than a clock. Changing the key
+   * remounts the animated groups, which is what restarts a CSS animation; nothing re-renders in between.
+   * Arriving at the Monte Carlo step replays it, exactly as the old loop did, and a fresh set of results
+   * replays it too. Step 7 draws the same chart un-animated, so it is not in this key at all.
    */
-  const [mcReveal, setMcReveal] = useState(0);
-  useEffect(() => {
-    if (!fanData.length) { setMcReveal(0); return; }
-    // rewound whenever the Monte Carlo step is not on screen, so arriving always plays it. Looked up by
-    // key, not number: this was a literal 4, and inserting the safe-retirement step ahead of it silently
-    // left the clock rewinding on the very slide it drives - two-point paths and a stub of a band.
-    const mcSlide = PROJECTION_SLIDES.find(x => x.key === 'mcchart').n;
-    if (slide !== mcSlide && !seeAll) { setMcReveal(0); return; }
-    setMcReveal(0);
-    const start = performance.now(), ms = 2200;
-    let raf = 0;
-    const step = () => {
-      const t = Math.min(1, (performance.now() - start) / ms);
-      setMcReveal(t);
-      if (t < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [fanData, simResult, slide, seeAll]);
+  const mcPlayKey = `${simResult?.seed ?? 'x'}-${fanData.length}-${seeAll ? 'all' : slide}`;
 
   // ------------------------------------------------------------ chart scales
   /*
@@ -7634,27 +7650,29 @@ export default function App() {
    * It replays on every arrival at the step. The clock is reset whenever the step is not on screen, so
    * coming back rewinds it rather than resuming a finished animation.
    */
-  const mcDraw = Math.min(1, mcReveal / 0.72);
-  const mcSettle = Math.max(0, (mcReveal - 0.72) / 0.28);
+  /*
+   * Every sample path at FULL length, built once. The sweep that used to come from regenerating these
+   * with a growing cutoff each frame is now a stroke-dashoffset animation on a static `d` - see
+   * .mc-draw in index.html for what that cost before.
+   */
   const mcSpaghetti = useMemo(() => {
     const sample = simResult?.samplePaths;
-    if (!showFan || !sample || !sample.length || mcSettle >= 1) return null;
+    if (!showFan || !sample || !sample.length) return null;
     const age0 = currentAge;
-    const lastAge = Math.min(effectiveMaxVisibleAge, age0 + sample[0].length - 1);
-    const upto = age0 + Math.max(1, Math.round((lastAge - age0) * mcDraw));
     const anchor = fanData[0] ? fanData[0].p50 : null;
     const gen = d3.line().x(d => xScale(d.a)).y((d, i) => yScale(Math.max(0, i === 0 && anchor !== null ? anchor : d.v))).curve(d3.curveMonotoneX);
     return sample.map((pth, i) => {
       const rows = [];
-      for (let t = 0; t < pth.length; t++) { const a = age0 + t; if (a > upto) break; rows.push({ a, v: pth[t] }); }
+      for (let t = 0; t < pth.length; t++) { const a = age0 + t; if (a > effectiveMaxVisibleAge) break; rows.push({ a, v: pth[t] }); }
       return rows.length > 1 ? { id: i, d: gen(rows) } : null;
     }).filter(Boolean);
-  }, [simResult, showFan, mcDraw, mcSettle, currentAge, effectiveMaxVisibleAge, xScale, yScale, fanData]);
+  }, [simResult, showFan, currentAge, effectiveMaxVisibleAge, xScale, yScale, fanData]);
 
   const fanPaths = useMemo(() => {
     if (!fanVisible || fanVisible.length < 2) return null;
-    const cut = Math.max(2, Math.ceil(fanVisible.length * Math.max(mcSettle, mcReveal >= 1 ? 1 : 0)));
-    const rows = fanVisible.slice(0, cut);
+    // Full extent, always. It used to be sliced to a growing cut so the band appeared to sweep out; it
+    // fades in instead, which is the same picture without rebuilding four areas on every frame.
+    const rows = fanVisible;
     const x = (d) => xScale(d.ageSelf);
     const line = (key) => d3.line().x(x).y(pinchY(rows, key, 'p50')).curve(d3.curveMonotoneX)(rows);
     // the same percentiles the rate-based chart is showing, so the two can be laid over each other
@@ -7663,7 +7681,7 @@ export default function App() {
       band: d3.area().x(x).y0(pinchY(rows, lo, 'p50')).y1(pinchY(rows, hi, 'p50')).curve(d3.curveMonotoneX)(rows),
       median: line('p50'), edgeLo: line(lo), edgeHi: line(hi)
     };
-  }, [fanVisible, xScale, yScale, mcReveal, mcSettle, bandMode]);
+  }, [fanVisible, xScale, yScale, bandMode]);
   // The first age at which a tenth of the paths are broke. Worth naming: it is the most actionable thing
   // on the chart, and a smooth deterministic line could never have produced it. Read off the whole fan,
   // not the visible slice, so dragging the horizon slider cannot change the answer.
@@ -8129,6 +8147,9 @@ export default function App() {
       if (Array.isArray(a.contribByYear)) fresh[a.id].contribByYear = a.contribByYear;
     });
     setSandboxAccounts(fresh);
+    // Land on the sandbox step itself. Switching tabs alone used to drop you on whichever step you left,
+    // with nothing on screen looking any different from before the click.
+    setSeeAll(false); setSlide(SANDBOX_SLIDE);
     setActiveTab('projection');
     flash(`"${strategy.name}" applied to the Sandbox on the Projection chart`, 3500);
   };
@@ -8170,7 +8191,7 @@ export default function App() {
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('not an object');
         if (!parsed.demographics && !parsed.accounts && !parsed.spending) throw new Error('not a plan');
         setSandboxCustomized(false); setPlan(E.normalizePlan(parsed)); setSimResult(null); setSafeMaxResult(null);
-        setSlide(1); setSeeAll(false); setSandboxRevealed(false);
+        setSlide(1); setSeeAll(false);
         flash(`Imported ${file.name}`);
       } catch (err) {
         // The picker no longer filters by type, so a wrong file is a realistic outcome and the message
@@ -8291,7 +8312,7 @@ export default function App() {
     if (isSimulating || isOptimizing) return;
     mcCancelRef.current = false;
     const wantSafeMax = true;          // both stages always run; there is nothing useful to switch off
-    setSlide(1); setSeeAll(cascade); setSandboxRevealed(cascade);
+    setSlide(1); setSeeAll(cascade);
     setIsSimulating(true);
     // Every stage is cleared, including one that is about to be skipped: a verdict line left over from an
     // earlier run would otherwise sit alongside fresh figures and read as part of the same measurement.
@@ -8630,7 +8651,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
        * this budget, and (optimality.mjs) often at any budget - and is told so, with the other run's
        * pick offered as a choice rather than silently discarded.
        */
-      const seeds = [mcSeed, mcSeed + 1];
+      const seeds = Array.from({ length: POLICY_SEEDS }, (_, i) => mcSeed + i);
       const perSeed = Math.round(TOURNAMENT_TRIALS / seeds.length);
       const jobs = [];
       candidates.forEach(c => seeds.forEach((seed, si) => jobs.push({ key: `${c.id}#${si}`, plan: c.planState, trials: perSeed, seed, inheritance: true })));
@@ -8720,12 +8741,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     </>
   );
 
-
-  const themeOptions = [
-    { id: 'light', Icon: Sun, title: 'Light' },
-    { id: 'dark', Icon: Moon, title: 'Dark' },
-    { id: 'system', Icon: Monitor, title: 'Match my device' },
-  ];
 
   // The sandbox, rendered once at the foot of the Projection tab, directly under the chart it edits.
   /*
@@ -8889,16 +8904,24 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         <div className="flex items-center gap-2">
           <button type="button" disabled={n === 1} onClick={() => setSlide(n - 1)}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">&larr; Back</button>
-          <button type="button" onClick={() => { if (n < 6) setSlide(n + 1); else setSandboxRevealed(true); }}
-            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-white hover:bg-slate-900 cursor-pointer">
-            {n < 6 ? <>Next: {PROJECTION_SLIDES[n].name} &rarr;</> : <>Change something &rarr;</>}
-          </button>
+          {/* Derived from the list, not a literal: the last step is whatever the list ends with. */}
+          {n < PROJECTION_SLIDES.length && (
+            <button type="button" onClick={() => setSlide(n + 1)}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-white hover:bg-slate-900 cursor-pointer">
+              Next: {PROJECTION_SLIDES[n].name} &rarr;
+            </button>
+          )}
         </div>
       )}
     </div>
   );
 
-  const renderProjectionChart = (kind) => {
+  /*
+   * `animate` is the reveal, and only the Monte Carlo STEP asks for it. Step 7 draws the same chart
+   * beneath the sandbox controls, where replaying a 1.5s sweep on every nudge of a contribution would be
+   * an animation you have to sit through rather than one you watched.
+   */
+  const renderProjectionChart = (kind, { animate = false } = {}) => {
     const isRate = kind === 'rate';
     const band = isRate ? cp.rateBand : cp.fanBand;
     const edge = isRate ? cp.rateEdge : cp.fanEdge;
@@ -8917,12 +8940,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </>}
               {/* the real trials, drawing themselves out, then dissolving into the band they make up */}
               {!isRate && mcSpaghetti && (
-                <g opacity={1 - mcSettle}>
-                  {mcSpaghetti.map(sp => <path key={sp.id} d={sp.d} fill="none" stroke={cp.fanMedian} strokeWidth="1" strokeOpacity="0.4" strokeLinecap="round" />)}
+                <g key={`sp-${mcPlayKey}`} className={animate ? 'mc-spaghetti' : undefined} opacity={animate ? undefined : 0}>
+                  {mcSpaghetti.map(sp => (
+                    <path key={sp.id} d={sp.d} fill="none" stroke={cp.fanMedian} strokeWidth="1" strokeOpacity="0.4" strokeLinecap="round"
+                      pathLength={animate ? 1 : undefined} className={animate ? 'mc-draw' : undefined} />
+                  ))}
                 </g>
               )}
               {!isRate && fanPaths && (
-                <g opacity={mcReveal >= 1 ? 1 : mcSettle}>
+                <g key={`band-${mcPlayKey}`} className={animate ? 'mc-band' : undefined}>
                   <path d={fanPaths.band} fill={band} stroke="none" />
                   <path d={fanPaths.edgeLo} fill="none" stroke={edge} strokeWidth="1.5" />
                   <path d={fanPaths.edgeHi} fill="none" stroke={edge} strokeWidth="1.5" />
@@ -9126,18 +9152,25 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {tabBtn('audit', Table, 'Audit Data Table')}
                 {tabBtn('docs', BookOpen, 'Documentation')}
               </div>
-              <div className="flex items-center gap-0.5 bg-slate-100 p-1 rounded-lg border border-slate-200/80">
-                {themeOptions.map(({ id, Icon, title }) => (
-                  <button key={id} type="button" onClick={() => setTheme(id)} title={title}
-                    aria-pressed={theme === id}
-                    className={`p-1.5 rounded-md transition-colors cursor-pointer ${theme === id ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-800'}`}>
-                    <Icon className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
+              <ThemeToggle theme={theme} setTheme={setTheme} />
             </div>
           </div>
 
+          {/*
+            * THE ONE ASSUMPTION SOMEBODY CAN GET WRONG BEFORE THEY TYPE ANYTHING.
+            *
+            * It used to be a grey aside on Plan Inputs and a clause in the landing page's disclaimer,
+            * which is both too late and too quiet: a visitor who inflates their own figures first has
+            * already double-counted by the time they reach it, and every number they read afterwards is
+            * wrong in a way nothing on screen looks like. So it sits across the header, above every tab,
+            * and says the actionable half out loud - don't do the adjustment yourself.
+            *
+            * Full width under the header row rather than inside its left column, which the tab bar
+            * squeezes to about a third of the card.
+            */}
+          <p className="text-xs mt-4 leading-relaxed rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-blue-900">
+            <strong className="font-semibold">Every amount here is in today&rsquo;s money.</strong> Enter what things cost and what you earn <em>now</em>. You do not need to take inflation into account: the projection runs in real terms, and only adds inflation back where a figure is labelled nominal.
+          </p>
         </div>
 
         {/* Scenario Toolbar. Plan Inputs only: saving a scenario means saving THE PLAN, so it belongs
@@ -9194,13 +9227,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </button>
                 </div>
                 <p className="text-[11px] text-slate-500 pt-1">
-                  <strong className="text-slate-700 font-semibold">Educational and illustrative only. This is not financial advice.</strong> Everything
-                  is stated in today&rsquo;s money, and your plan is saved in this browser only.
+                  <strong className="text-slate-700 font-semibold">Educational and illustrative only. This is not financial advice.</strong> Your
+                  plan is saved in this browser only.
                 </p>
               </div>
               <div className="shrink-0 self-center mx-auto md:mx-0 md:ml-auto">
                 <RouletteWheel className="w-44 sm:w-52 lg:w-60" />
-                <p className="text-[11px] text-slate-500 text-center mt-2 max-w-[15rem] mx-auto leading-snug">One spin is one future. The model runs {MC_TRIALS.toLocaleString()}.</p>
               </div>
               </div>
             </div>
@@ -9272,7 +9304,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-slate-200/90 p-4 rounded-xl">
               <div>
                 <h2 className="text-base font-semibold text-slate-900">User inputs &amp; wrapper portfolios</h2>
-                <p className="text-xs text-slate-500">Press <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px]  tabular-nums">Tab</kbd> to move between fields. All amounts are in today's money (real terms).</p>
+                <p className="text-xs text-slate-500">Press <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px]  tabular-nums">Tab</kbd> to move between fields.</p>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={handleExportJSON} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200"><Download className="w-3.5 h-3.5" /> Export JSON</button>
@@ -9307,8 +9339,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Retirement age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgePart ?? ''} onChange={(e) => updateDemographics('retireAgePart', e.target.value)} className={inputCls} /></div>}
                 <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentSelf === 'self-employed' ? 'Annual Profit: self-employment (Myself £/yr)' : 'Gross salary (Myself £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salarySelf ?? ''} onChange={(e) => updateDemographics('salarySelf', e.target.value)} className={inputCls} /></div>
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentPart === 'self-employed' ? 'Annual Profit: self-employment (Partner £/yr)' : 'Gross salary (Partner £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salaryPart ?? ''} onChange={(e) => updateDemographics('salaryPart', e.target.value)} className={inputCls} /></div>}
-                <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL}`} onFocus={handleFocus} value={plan?.demographics?.statePensionSelf ?? ''} onChange={(e) => updateDemographics('statePensionSelf', e.target.value)} className={inputCls} /></div>
-                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL}`} onFocus={handleFocus} value={plan?.demographics?.statePensionPart ?? ''} onChange={(e) => updateDemographics('statePensionPart', e.target.value)} className={inputCls} /></div>}
+                <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL.toLocaleString()}`} onFocus={handleFocus} value={plan?.demographics?.statePensionSelf ?? ''} onChange={(e) => updateDemographics('statePensionSelf', e.target.value)} className={inputCls} /></div>
+                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL.toLocaleString()}`} onFocus={handleFocus} value={plan?.demographics?.statePensionPart ?? ''} onChange={(e) => updateDemographics('statePensionPart', e.target.value)} className={inputCls} /></div>}
                 <div className="sm:col-span-2">
                   <label className="text-slate-600 font-semibold block mb-1">{isCouple ? 'Joint net living spend (£/yr)' : 'Net living spend (£/yr)'}</label>
                   <input type="number" min="0" step="1000" placeholder="e.g. 30000" onFocus={handleFocus} value={plan?.spending?.targetSpend ?? ''} onChange={(e) => updateSpending('targetSpend', e.target.value)} className={inputCls} />
@@ -9699,6 +9731,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div>
                   <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> Decumulation &amp; Pension Withdrawal Methodology</h2>
                   <p className="text-xs text-slate-500 mt-1">Select how withdrawals are ordered across tax wrappers and how pensions are crystallised. <button type="button" onClick={() => goToDoc('doc-decumulation')} className="text-blue-600 hover:underline font-semibold cursor-pointer">What the evidence says &rarr;</button></p>
+                  {/* The size of the search, said plainly: a button that thinks for thirty seconds should
+                      account for the time, and the numbers are derived so they cannot go stale. */}
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                    Auto-pick scores <strong className="text-slate-700">all {POLICY_COMBOS} combinations</strong> of
+                    the {Object.keys(E.DECUMULATION_POLICIES).length} withdrawal policies, both crystallisation
+                    methods and the allowance-harvesting switch where it applies. Each one is run
+                    on {POLICY_SEEDS} seeds of {Math.round(TOURNAMENT_TRIALS / POLICY_SEEDS).toLocaleString()} market
+                    paths, so a single click simulates {(POLICY_COMBOS * TOURNAMENT_TRIALS).toLocaleString()} retirements
+                    and takes about half a minute.
+                  </p>
                 </div>
                 <div className="shrink-0">
                   <button type="button" onClick={handleFindBestPolicy} disabled={isPolicySearching || !policySweepReady}
@@ -10072,9 +10114,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               )}
             </div>
 
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Settings className="w-4 h-4 text-blue-600" /> Global Economic &amp; Calculation Configuration</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-3">
+            <CollapsibleCard icon={Settings} title="Global Economic & Calculation Configuration"
+              subtitle="Valuation date, inflation, access ages, the pension death-tax haircut and the Monte Carlo seed.">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-1">
                 <div><label className="text-slate-600 font-semibold block mb-1">Valuation date (today)</label><input type="date" value={plan?.config?.valuationDate ?? ''} onChange={(e) => updateConfig('valuationDate', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Year 0 flows are pro-rated to the {(ctx.yf * 100).toFixed(0)}% of the year remaining.</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Headline inflation CPI (% pa)</label><input type="number" step="0.1" placeholder="2.5" onFocus={handleFocus} value={plan?.config?.inflation ?? ''} onChange={(e) => updateConfig('inflation', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Only used for the nominal display series.</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Personal pension access age (NMPA)</label><input type="number" min="0" max="120" placeholder="58" onFocus={handleFocus} value={plan?.demographics?.privatePensionAge ?? ''} onChange={(e) => updateDemographics('privatePensionAge', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Statutory NMPA is 55 today and 57 from April 2028.</span></div>
@@ -10083,15 +10125,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div><label className="text-slate-600 font-semibold block mb-1">Pension death-tax haircut (%)</label><input type="number" min="0" max="100" step="5" placeholder="0" onFocus={handleFocus} value={plan?.config?.pensionDeathTaxRate ?? ''} onChange={(e) => updateConfig('pensionDeathTaxRate', parsePercent(e.target.value))} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Applied to pension left at age {terminalAge} for the "net" pot figures only (IHT from April 2027 / beneficiary income tax).</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Monte Carlo seed</label><div className="flex gap-1"><input type="number" value={mcSeed} onChange={(e) => setMcSeed(Math.max(1, parseInt(e.target.value) || 1))} className={inputCls} /><button type="button" onClick={() => setMcSeed(Math.floor(Math.random() * 1e9) + 1)} className="px-2 bg-slate-100 border border-slate-300 rounded-lg text-[11px] font-semibold cursor-pointer hover:bg-slate-200">Reseed</button></div><span className="text-[10px] text-slate-400 mt-1 block">Same seed = same market paths (reproducible, fair comparisons).</span></div>
               </div>
-            </div>
+            </CollapsibleCard>
 
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 overflow-x-auto">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900">Asset allocations, return matrix &amp; volatilities (σ)</h3>
-                  <span className="text-[11px] text-slate-500">Expected real return is treated as the median (geometric) annual rate; Monte Carlo paths are log-normal around it with the stated σ, one market factor for all wrappers. The lucky and unlucky columns are calculated from the expected rate, σ, forecast uncertainty and your {ctx.totalYears}-year horizon, so they are not editable.</span>
-                </div>
-                <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-accent text-onaccent border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
+            <CollapsibleCard title="Asset allocations, return matrix & volatilities (σ)"
+              subtitle="The expected real return, volatility and forecast uncertainty behind every projection.">
+              <div className="overflow-x-auto space-y-4">
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-[11px] text-slate-500">Expected real return is treated as the median (geometric) annual rate; Monte Carlo paths are log-normal around it with the stated σ, one market factor for all wrappers. The lucky and unlucky columns are calculated from the expected rate, σ, forecast uncertainty and your {ctx.totalYears}-year horizon, so they are not editable.</span>
+                <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-accent text-onaccent border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
               </div>
 
               {/*
@@ -10147,11 +10188,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   })}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </CollapsibleCard>
 
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-              <h3 className="text-sm font-semibold text-slate-900">UK Income Tax, National Insurance &amp; Pension Allowances</h3>
-              <p className="text-[11px] text-slate-500">Defaults are 2025/26 (frozen to April 2028), and all thresholds are held constant in real terms.</p>
+            <CollapsibleCard title="UK Income Tax, National Insurance & Pension Allowances"
+              subtitle="Defaults are 2025/26 (frozen to April 2028), and all thresholds are held constant in real terms.">
               <div className="pb-1">
                 <label className="text-slate-600 font-semibold block mb-1 text-xs">Where you pay income tax</label>
                 <select value={plan?.config?.taxRegion ?? 'ruk'} onChange={(e) => updateConfig('taxRegion', e.target.value)} className="w-full sm:w-80 p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
@@ -10198,7 +10239,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                 )}
               </div>
-            </div>
+            </CollapsibleCard>
           </div>
         )}
 
@@ -10221,7 +10262,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <button onClick={handleRunAll} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                     <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-                    {isSimulating && !isOptimizing ? 'Testing…' : isOptimizing ? 'Solving…' : tournament.isEvaluating ? 'Comparing…' : '⚡ Run the projection'}
+                    {isSimulating && !isOptimizing ? 'Testing…' : isOptimizing ? 'Solving…' : tournament.isEvaluating ? 'Comparing…' : 'Run the projection'}
                   </button>
                 </div>
               </div>
@@ -10360,7 +10401,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-lg text-[11px] text-slate-700 leading-relaxed space-y-1.5">
                           <div className="flex items-center gap-2 font-bold text-amber-900 text-xs"><AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> This is a bridge problem, not a saving problem</div>
                           <p>Going earlier than {safeRetireResult.age} does not fail because the money runs out &mdash; it fails because it is locked. At {safeRetireResult.below.age}, {safeRetireResult.below.preNmpaFailRate.toFixed(1)}% of paths are stranded before the pension unlocks at {nmpa}. <strong>Your ISA bridge is not big enough to carry the gap.</strong> More total saving will not fix that on its own; the same money held where you can reach it before {nmpa} would.</p>
-                          <p>Worth testing: move some contribution from the pension to the ISA, or bring the ISA balance up, and re-run. <button type="button" onClick={() => { setSeeAll(false); setSlide(6); setSandboxRevealed(true); }} className="font-bold text-amber-900 underline hover:text-amber-950 cursor-pointer">The sandbox after step 6</button> lets you change both without touching your saved plan.</p>
+                          <p>Worth testing: move some contribution from the pension to the ISA, or bring the ISA balance up, and re-run. <button type="button" onClick={() => { setSeeAll(false); setSlide(SANDBOX_SLIDE); }} className="font-bold text-amber-900 underline hover:text-amber-950 cursor-pointer">Step {SANDBOX_SLIDE}</button> lets you change both without touching your saved plan.</p>
                         </div>
                       )}
 
@@ -10413,7 +10454,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <input type="range" min={currentAge + 1} max={terminalAge} value={effectiveMaxVisibleAge} onChange={(e) => setMaxVisibleAge(Number(e.target.value))} className="w-32 sm:w-40 accent-blue-600 cursor-pointer" />
                     </div>
                   </div>
-                  {renderProjectionChart('mc')}
+                  {renderProjectionChart('mc', { animate: true })}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
                     <strong className="text-emerald-700">Each path applies your withdrawals to one particular order of returns, and stops at £0 if the money is exhausted.</strong> A run of poor years early in drawdown forces selling at depressed prices and permanently reduces the capital left to recover, which is why the lower quartile here sits below the rate-based equivalent.
                     {' '}The band is the same {bandSpec.lowPct} to {bandSpec.highPct} percentile, so the two charts can be read against each other directly.
@@ -10553,20 +10594,29 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <p className="text-[11px] text-slate-500 leading-relaxed">One steady real rate per wrapper, so this ranks the plans against each other rather than against a market. It carries no sequence-of-returns risk: for the chance each scenario survives, enter them in the tournament on the Strategy tab, which runs every scenario on the same market paths.</p>
               </div>
             )}
-            {/* The sandbox is the end of the walk, not a permanent fixture: it appears once the five steps
-                have been seen (or straight away on a re-run, when they have been seen already). */}
-            {simResult && (sandboxRevealed || seeAll) && (
-              <div ref={sandboxRef} style={{ scrollMarginTop: 12 }} className="space-y-6">
+            {/* ---------------- 7. CHANGE SOMETHING ---------------- */}
+            {/* The chart sits ABOVE the controls, not on a step two back, so the amber line the sandbox
+                draws is on screen while you are dragging the thing that moves it. Monte Carlo rather than
+                the rate-based band, because that is the chart the survival figure everything else quotes
+                is actually read from. */}
+            {showSlide(SANDBOX_SLIDE) && (
+              <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="space-y-6">
+                <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+                  {slideHead(SANDBOX_SLIDE, 'Change something', 'Edit below and the amber line moves with you. Your saved plan is not touched.')}
+                  {renderProjectionChart('mc')}
+                  {!isSandboxModified && (
+                    <p className="text-[11px] text-slate-500 leading-relaxed">Nothing is changed yet, so there is no amber line to see. Edit a contribution, a balance or a retirement age below and one appears over this chart, beside the plan you already have.</p>
+                  )}
+                  {slideNav(SANDBOX_SLIDE)}
+                </div>
                 {renderSandboxPanel()}
-                {simResult && (
-                  <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
-                    <span className="text-[11px] text-slate-500">Changed something? Run it again and the five steps come back with every figure refreshed.</span>
-                    <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
-                      className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
-                      <RotateCcw className="w-3.5 h-3.5" /> {mcBusy ? 'Running…' : 'Rerun projections'}
-                    </button>
-                  </div>
-                )}
+                <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {simResult.trials.toLocaleString()} randomised futures and refresh every step, run it again.</span>
+                  <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
+                    className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
+                    <RotateCcw className="w-3.5 h-3.5" /> {mcBusy ? 'Running…' : 'Rerun projections'}
+                  </button>
+                </div>
               </div>
             )}
           </div>

@@ -266,6 +266,36 @@
         animation: sim-sweep 1.6s ease-out infinite;
       }
       @media (prefers-reduced-motion: reduce) { .sim-sweep { animation: none; } }
+
+      /*
+       * THE FULL PLANNER'S MONTE CARLO REVEAL, DONE BY THE BROWSER RATHER THAN BY REACT.
+       *
+       * It used to be driven by a requestAnimationFrame loop writing a number into React state ~60 times
+       * a second. Every one of those frames rebuilt sixty sample paths through d3's curveMonotoneX and
+       * wrote sixty new `d` attributes - about three thousand points re-interpolated per frame. Measured
+       * on a 1400px desktop viewport before this existed: a median frame of 37ms (~27fps), p95 51ms,
+       * worst 66ms, and 59 of 95 frames over the 32ms mark. On a phone it would be far worse.
+       *
+       * The streamlined page never had the problem, because it does what this now does: build the path
+       * geometry ONCE and hand the animation to the compositor. `pathLength="1"` normalises every path to
+       * unit length however far it actually travels, so a single dash setting sweeps them all at the same
+       * rate regardless of their real geometry.
+       *
+       * The band fades in as the paths dissolve, rather than growing row by row, because a growing band
+       * is per-frame geometry again and this is the same picture at a fraction of the cost.
+       */
+      @keyframes mc-draw    { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+      @keyframes mc-dissolve{ 0%, 55% { opacity: 0.45; } 100% { opacity: 0; } }
+      @keyframes mc-settle  { from { opacity: 0; } to { opacity: 1; } }
+      .mc-draw      { stroke-dasharray: 1; animation: mc-draw 1.5s ease-out forwards; }
+      .mc-spaghetti { animation: mc-dissolve 2.3s ease-out forwards; }
+      .mc-band      { opacity: 0; animation: mc-settle 0.7s ease-out 1.45s forwards; }
+      /* Reduced motion gets the END of the animation, not the start of it: the settled band, no sweep. */
+      @media (prefers-reduced-motion: reduce) {
+        .mc-draw      { stroke-dasharray: none; animation: none; }
+        .mc-spaghetti { animation: none; opacity: 0; }
+        .mc-band      { opacity: 1; animation: none; }
+      }
     
       /*
        * Emphasis without slant. <em> is the right tag for the 31 places that use it - "it does NOT cover",

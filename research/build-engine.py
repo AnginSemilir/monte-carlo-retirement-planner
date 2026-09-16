@@ -36,3 +36,15 @@ extra = [k for k in e_keys if k and k not in already]
 body.append('export { ' + ', '.join(extra) + ' };')
 open(os.path.join(HERE, 'engine.mjs'), 'w').write('\n'.join(body))
 print(f'engine.mjs rebuilt: lines {start + 1}-{end + 1}, {len(extra)} extra exports')
+
+# simplePlan.js is the adapter between the two apps' plan shapes, and it imports from App.jsx - which
+# node cannot load, because of the .jsx extension. It is otherwise plain ES module code, so the only
+# thing standing between it and a test suite is that one import line. Emit a copy with the import
+# repointed at the engine slice beside it, the same trick this whole file exists to perform.
+sp = open(os.path.join(REPO, 'src', 'simplePlan.js')).read()
+sp_out = sp.replace("from './App.jsx'", "from './engine.mjs'")
+if sp_out == sp:
+    raise SystemExit("build-engine: simplePlan.js no longer imports from './App.jsx'; "
+                     'update the rewrite in this script to match.')
+open(os.path.join(HERE, 'simplePlan.mjs'), 'w').write(sp_out)
+print('simplePlan.mjs rebuilt: import repointed at engine.mjs')

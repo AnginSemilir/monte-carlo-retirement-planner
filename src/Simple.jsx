@@ -30,7 +30,28 @@ const GBP_SHORT = (v) => {
 const KEY = 'rp_simple_v1';
 const SCEN_KEY = 'rp_simple_scenarios_v1';
 const MAX_SCENARIOS = 6;
+const SP_HINT = `e.g. ${STATE_PENSION_FULL.toLocaleString()}`;   // the full new State Pension, suggested not assumed
 const TARGET = 90;          // fixed, and stated in words rather than offered as a dial. See PLAN-streamlined.md.
+/*
+ * THE FOUR WRAPPERS, IN THE SAME COLOURS THE FULL PLANNER USES.
+ *
+ * The chart drew one total, which answers "will it last" but not "what is it made of" - and the mix is
+ * what the whole decumulation question turns on: a pot that is nearly all pension behaves very
+ * differently from the same figure mostly in an ISA. The rows already carry the split, so the only thing
+ * missing was somewhere to turn it on.
+ *
+ * Off by default, all four. This page earns its name by answering one question on arrival, and four more
+ * lines on first sight is the full planner's job. The legend makes them one click away instead.
+ *
+ * `key` is the field on a simulateDeterministic row. Colours are CSS variables rather than hexes, so they
+ * follow the theme like everything else on the page.
+ */
+const WRAPPERS = [
+  { key: 'pensions', label: 'Pensions', color: 'rgb(var(--blue-600))' },
+  { key: 'isas', label: 'ISAs', color: 'rgb(var(--emerald-600))' },
+  { key: 'other', label: 'Other investments', color: 'rgb(var(--amber-600))' },
+  { key: 'cash', label: 'Cash', color: 'rgb(var(--slate-500))' }
+];
 const LIVE_TRIALS = 1500;   // enough for a +/-1.5pt figure that redraws while you type
 
 /*
@@ -102,6 +123,7 @@ export default function Simple() {
   const [s, setS] = useState(load);
   const [view, setView] = useState('rate');      // 'rate' (CAGR) | 'mc' - the advanced deck's two charts
   const [bandMode, setBandMode] = useState('quartile');
+  const [showWrappers, setShowWrappers] = useState({});   // key -> true; all off until asked for
   const [scenarios, setScenarios] = useState(loadScenarios);
   const [activeScenario, setActiveScenario] = useState(null);
   const [res, setRes] = useState(null);          // { mc, safeSpend, safeAge }
@@ -361,8 +383,19 @@ export default function Simple() {
       const pts = Array.isArray(pth) ? pth : Object.values(pth);
       return pts.map((v, i) => `${i ? 'L' : 'M'}${x(age0 + i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
     });
-    return { W, H, L, R, T, B, ih, x, y, area, line, ticks, ageTicks, useFan, a0, a1, clippedTo, paths };
-  }, [expected, res, view, bandMode]);
+    /*
+     * The wrappers come from the deterministic run, in BOTH views, which is what the full planner does
+     * too: the split is a property of the plan rather than of the range drawn around it, and a Monte
+     * Carlo has no single split to report. They are drawn on the same scales, so they read against the
+     * total line rather than against an axis of their own.
+     */
+    const wrappers = {};
+    for (const w of WRAPPERS) {
+      const rows = (timeline || []).filter(r => r.ageSelf >= a0 && r.ageSelf <= a1);
+      if (rows.length > 1) wrappers[w.key] = rows.map((r, i) => `${i ? 'L' : 'M'}${x(r.ageSelf).toFixed(1)},${y(r[w.key] || 0).toFixed(1)}`).join(' ');
+    }
+    return { W, H, L, R, T, B, ih, x, y, area, line, ticks, ageTicks, useFan, a0, a1, clippedTo, paths, wrappers };
+  }, [expected, res, view, bandMode, timeline]);
 
   // ------------------------------------------------------------------ input helpers
   /*
@@ -393,8 +426,10 @@ export default function Simple() {
    */
   const fmt = (v) => (v === '' || v == null ? '' : Number(v).toLocaleString('en-GB'));
   const parse = (v) => v.replace(/[^0-9.]/g, '');
-  const cash = (k, extra = '') => (
-    <input type="text" inputMode="numeric" value={fmt(s[k])} placeholder="0"
+  // `hint` overrides the placeholder, for the one field where 0 is a poor prompt: the State Pension,
+  // where the full new award is what most people get and blank quietly means "none at all".
+  const cash = (k, extra = '', hint = '0') => (
+    <input type="text" inputMode="numeric" value={fmt(s[k])} placeholder={hint}
       onFocus={(e) => e.target.select()} onChange={(e) => set(k, parse(e.target.value))}
       className={`${inCls} text-right ${extra}`} />
   );
@@ -591,8 +626,8 @@ export default function Simple() {
           {s.couple && row('Partner age now', cash('agePart'))}
           {s.couple && row('Partner retires at', <>{cash('retirePart')}{stepper('retirePart', 1)}</>)}
           {row('Expected retirement spending', <>{cash('spend')}{stepper('spend', 1000)}</>)}
-          {row('State Pension a year', cash('statePensionSelf'))}
-          {s.couple && row('Partner State Pension', cash('statePensionPart'))}
+          {row('State Pension a year', cash('statePensionSelf', '', SP_HINT))}
+          {s.couple && row('Partner State Pension', cash('statePensionPart', '', SP_HINT))}
           {row('Where you pay tax',
             <select value={s.region} onChange={(e) => set('region', e.target.value)} className={`${subCls} w-full cursor-pointer`}>
               {Object.entries(TAX_REGION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -728,6 +763,9 @@ export default function Simple() {
                         className={busy ? 'sim-sweep' : undefined}
                         style={busy ? { animationDelay: `${(i % 10) * 0.12}s` } : undefined} />
                     ))}
+                    {WRAPPERS.map(w => (showWrappers[w.key] && chart.wrappers[w.key]
+                      ? <path key={w.key} d={chart.wrappers[w.key]} fill="none" stroke={w.color} strokeWidth="1.75" strokeLinejoin="round" strokeLinecap="round" opacity="0.9" />
+                      : null))}
                     <path d={chart.line} fill="none" stroke={chart.useFan ? 'rgb(var(--indigo-600))' : 'rgb(var(--blue-600))'} strokeWidth="2.5" strokeLinejoin="round" />
                     <line x1={chart.L} x2={chart.W - chart.R} y1={chart.T + chart.ih} y2={chart.T + chart.ih} stroke="rgb(var(--slate-300))" strokeWidth="1" />
                     {chart.ageTicks.map(p => (
@@ -735,6 +773,21 @@ export default function Simple() {
                     ))}
                   </svg>
                 </div>
+                {/* A legend that is also the control: clicking an entry draws that wrapper. Each carries
+                    its own colour swatch, so a line on the chart can be named without a key elsewhere. */}
+                {Object.keys(chart.wrappers).length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] text-slate-500 mr-0.5">What the pot is made of:</span>
+                    {WRAPPERS.map(w => chart.wrappers[w.key] ? (
+                      <button key={w.key} type="button" aria-pressed={!!showWrappers[w.key]}
+                        onClick={() => setShowWrappers(v => ({ ...v, [w.key]: !v[w.key] }))}
+                        className={`px-2 py-1 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer flex items-center gap-1.5 ${showWrappers[w.key] ? 'bg-surface border-slate-300 text-slate-900' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800'}`}>
+                        <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: w.color, opacity: showWrappers[w.key] ? 1 : 0.45 }} />
+                        {w.label}
+                      </button>
+                    ) : null)}
+                  </div>
+                )}
                 <p className="text-[11px] text-slate-500 leading-relaxed">
                   {chart.useFan
                     ? <>The shaded band is the {band.lowPct} to {band.highPct} of {LIVE_TRIALS.toLocaleString()} simulated futures, and a path that runs out stays at zero &mdash; so the bottom edge is honest about failure.</>

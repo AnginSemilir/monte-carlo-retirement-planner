@@ -14,8 +14,11 @@
  *     1,500 paths  agrees with truth 70%   second seed flips 27%
  *     2,500 paths  agrees with truth 80%   second seed flips 20%
  *     4,000 paths  agrees with truth 90%   second seed flips 20%
- * The flip rate flattening at 20% is not a defect in the search: on 4 of the 30 households the three
- * truth seeds disagreed with each other, so those candidates are indistinguishable at any budget.
+ *     6,000 paths  agrees with truth 80%   second seed flips 17%
+ * The curve is flat from about 2,500 on - 6,000 landing below 4,000 is the sampling error of a
+ * 30-household agreement rate, not a real fall - and the residue is not a defect in the search: on
+ * 4 of the 30 households the three truth seeds disagreed with each other, so those candidates are
+ * indistinguishable at any budget.
  *
  * Usage: node trials-vs-truth.mjs [results/optimality.json] [trialCounts=1500,2500,4000]
  */

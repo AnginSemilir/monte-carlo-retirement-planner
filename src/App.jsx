@@ -5834,9 +5834,10 @@ const MC_TRIALS = 5000;
  * indistinguishable rather than merely under-sampled. What every disagreement in the sample shared was a
  * small consequence: the worst case cost 1.1 points of survival, not a materially worse plan.
  *
- * 4,000 is chosen as the point past which more trials buy comparatively little (the 70%->90% jump
- * going from 1,500 to 4,000 is far larger than anything 4,000->6,000 adds), not as a number that
- * eliminates the noise - it does not, and cannot, for candidates this close.
+ * 4,000 is chosen as the point past which more trials buy nothing measurable: 6,000 came back at 80%
+ * agreement and a 17% flip rate, inside the sampling error of the 4,000 figures, so the curve is flat
+ * from about 2,500 on and the residue is the indistinguishable candidates, not the path count. It is
+ * not a number that eliminates the noise - it does not, and cannot, for candidates this close.
  */
 const TOURNAMENT_TRIALS = 4000;
 // Death ages the Inheritance tab always prices, chosen to straddle the age-75 boundary that decides

@@ -63,7 +63,7 @@ function Footer() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 pb-8">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
-        <span>A beta. Everything is modelled, nothing is advice, and your figures stay in this browser.</span>
+        <span>A beta, for education and illustration only &mdash; this is not financial advice. Everything is modelled, every figure is in today&rsquo;s money, and your plan stays in this browser.</span>
         {FEEDBACK_URL && (
           <a href={FEEDBACK_URL} target="_blank" rel="noreferrer noopener"
             className="font-semibold text-blue-600 hover:text-blue-800 hover:underline">{FEEDBACK_LABEL} &rarr;</a>
@@ -90,7 +90,7 @@ export default function Shell() {
       <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8">
         <div className="max-w-7xl mx-auto">
           <button type="button" onClick={() => setWhich(other.to)}
-            className="w-full group flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 px-5 py-3 rounded-2xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 hover:border-blue-300 transition-colors cursor-pointer">
+            className="w-full group flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 px-5 py-3 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 hover:border-blue-300 transition-colors cursor-pointer">
             <span className="text-sm text-blue-900/80">{other.lead}</span>
             <span className="text-sm font-bold text-blue-800 group-hover:text-blue-900 flex items-center gap-1.5">
               {other.cta} <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />

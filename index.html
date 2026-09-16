@@ -4,10 +4,18 @@
     <script>
       (function () {
         try {
+          /*
+           * The stored value is a PREFERENCE - 'light', 'dark' or 'system' - and what gets stamped on
+           * the element is the RESOLVED theme, so the CSS only ever needs two blocks. 'classic' is the
+           * old third theme and maps to light, which is what it collapsed into.
+           */
           var t = localStorage.getItem('rp_theme_v1');
-          var theme = (t === 'classic' || t === 'light' || t === 'dark') ? t : 'classic';
-          document.documentElement.setAttribute('data-theme', theme);
-          if (theme === 'dark') document.documentElement.classList.add('dark');
+          if (t === 'classic') t = 'light';
+          var pref = (t === 'light' || t === 'dark' || t === 'system') ? t : 'system';
+          var dark = pref === 'dark' || (pref === 'system'
+            && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+          if (dark) document.documentElement.classList.add('dark');
         } catch (e) {}
       })();
     </script>
@@ -26,200 +34,197 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Newsreader:ital,wght@1,600;1,700&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.onload=null">
     <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Newsreader:ital,wght@1,600;1,700&display=swap" rel="stylesheet"></noscript>
     <style>
+      /*
+       * ONE LIGHT PALETTE, AND ONE DARK ONE DESIGNED BESIDE IT.
+       *
+       * There used to be three themes: stock Tailwind, a cream "Riviera Ledger", and a dark "Control
+       * Room". Three is a choice nobody asked for and a third of the styling surface to keep honest, so
+       * classic and cream collapse into this single light theme and dark is the only alternative.
+       *
+       * The names are Tailwind's because the components already spell them - `bg-blue-600`,
+       * `text-slate-500` - and re-tuning what those names MEAN retints the entire app without touching a
+       * component. That is the whole reason this file is the first thing the restyle changes.
+       *
+       * What each family now carries, so a future edit does not have to reverse-engineer it:
+       *   slate    the neutral ramp: 50 is the page, 200 every hairline, 500 captions, 900 headings.
+       *            Cool with a faint blue bias, because a pure grey reads as unconsidered.
+       *   blue     the single accent. Buttons, the active tab, links. One colour, no gradient.
+       *   emerald  a good verdict - survives, recommended.
+       *   amber    a cost or a caution - what a trade-off gives up, a close call, a substituted input.
+       *   rose     a bad verdict - runs dry, destructive.
+       *   indigo   the Monte Carlo band, kept purple because it is the one colour people have learned.
+       *   sky/teal/amber/slate  the four wrappers, in that order: pension, ISA, GIA, cash.
+       */
       :root {
-        /* classic — the original stock-Tailwind look, kept as an opt-in third theme */
-        --slate-50: 248 250 252;
-        --slate-100: 241 245 249;
-        --slate-200: 226 232 240;
-        --slate-300: 203 213 225;
-        --slate-400: 148 163 184;
-        --slate-500: 100 116 139;
-        --slate-600: 71 85 105;
-        --slate-700: 51 65 85;
-        --slate-800: 30 41 59;
-        --slate-900: 15 23 42;
+        --slate-50: 245 246 248;
+        --slate-100: 236 238 242;
+        --slate-200: 227 230 235;
+        --slate-300: 211 216 224;
+        --slate-400: 168 176 189;
+        --slate-500: 138 147 163;
+        --slate-600: 78 87 102;
+        --slate-700: 58 66 79;
+        --slate-800: 38 44 54;
+        --slate-900: 20 24 31;
         --surface: 255 255 255;
-        --blue-50: 239 246 255;
-        --blue-100: 219 234 254;
-        --blue-200: 191 219 254;
-        --blue-500: 59 130 246;
-        --blue-600: 37 99 235;
-        --blue-700: 29 78 216;
-        --blue-800: 30 64 175;
-        --blue-950: 23 37 84;
-        --indigo-50: 238 242 255;
-        --indigo-100: 224 231 255;
-        --indigo-200: 199 210 254;
-        --indigo-500: 99 102 241;
-        --indigo-600: 79 70 229;
-        --indigo-700: 67 56 202;
-        --indigo-800: 55 48 163;
-        --indigo-900: 49 46 129;
-        --indigo-950: 30 27 75;
-        --emerald-50: 236 253 245;
-        --emerald-100: 209 250 229;
-        --emerald-200: 167 243 208;
-        --emerald-300: 110 231 183;
-        --emerald-600: 5 150 105;
-        --emerald-700: 4 120 87;
-        --emerald-800: 6 95 70;
-        --rose-50: 255 241 242;
-        --rose-100: 255 228 230;
-        --rose-200: 254 205 211;
-        --rose-300: 253 164 175;
-        --rose-400: 251 113 133;
-        --rose-600: 225 29 72;
-        --rose-700: 190 18 60;
-        --rose-800: 159 18 57;
-        --rose-950: 76 5 25;
-        --amber-50: 255 251 235;
-        --amber-100: 254 243 199;
-        --amber-200: 253 230 138;
-        --amber-300: 252 211 77;
-        --amber-500: 245 158 11;
-        --amber-600: 217 119 6;
-        --amber-700: 180 83 9;
-        --amber-800: 146 64 14;
-        --amber-900: 120 53 15;
-        --sky-600: 2 132 199;
-        --sky-700: 3 105 161;
-        --teal-600: 13 148 136;
-        --teal-700: 15 118 110;
-        --purple-700: 126 34 206;
-        --shadow-c: 0 0 0;
+        --blue-50: 232 238 252;
+        --blue-100: 211 224 248;
+        --blue-200: 180 201 242;
+        --blue-500: 58 99 206;
+        --blue-600: 33 72 184;
+        --blue-700: 22 58 143;
+        --blue-800: 18 48 111;
+        --blue-950: 11 29 69;
+        --indigo-50: 238 235 250;
+        --indigo-100: 221 215 245;
+        --indigo-200: 196 186 238;
+        --indigo-500: 126 109 216;
+        --indigo-600: 109 91 208;
+        --indigo-700: 90 72 184;
+        --indigo-800: 74 58 151;
+        --indigo-900: 59 46 120;
+        --indigo-950: 36 28 74;
+        --emerald-50: 230 244 236;
+        --emerald-100: 201 232 214;
+        --emerald-200: 156 214 181;
+        --emerald-300: 107 193 148;
+        --emerald-600: 27 138 90;
+        --emerald-700: 21 115 74;
+        --emerald-800: 17 92 59;
+        --rose-50: 251 233 231;
+        --rose-100: 247 210 206;
+        --rose-200: 239 174 166;
+        --rose-300: 228 131 120;
+        --rose-400: 212 92 78;
+        --rose-600: 192 57 43;
+        --rose-700: 160 45 34;
+        --rose-800: 130 37 28;
+        --rose-950: 60 17 13;
+        --amber-50: 251 241 220;
+        --amber-100: 246 227 188;
+        --amber-200: 237 206 142;
+        --amber-300: 224 180 94;
+        --amber-500: 200 144 48;
+        --amber-600: 180 126 34;
+        --amber-700: 168 112 26;
+        --amber-800: 138 91 22;
+        --amber-900: 110 72 17;
+        --sky-600: 28 126 214;
+        --sky-700: 24 102 173;
+        --teal-600: 14 159 110;
+        --teal-700: 11 125 87;
+        --purple-700: 109 91 208;
+        /*
+         * Shadows are now for things that genuinely float - a menu, a toast - and not for cards, which
+         * carry a hairline instead. The tint is the ink colour rather than pure black, so the few that
+         * remain sit in the palette instead of greying it.
+         */
+        --shadow-c: 20 24 31;
         --shadow-a: .05;
         --shadow-a2: .04;
-        --shadow-a-lg: .1;
-      }
-      html[data-theme="light"] {
-        /* Riviera Ledger */
-        --slate-50: 230 232 222;
-        --slate-100: 220 223 210;
-        --slate-200: 201 205 189;
-        --slate-300: 163 169 156;
-        --slate-400: 138 144 152;
-        --slate-500: 113 121 127;
-        --slate-600: 92 107 114;
-        --slate-700: 69 82 90;
-        --slate-800: 46 57 68;
-        --slate-900: 31 42 60;
-        --surface: 251 250 244;
-        --blue-50: 231 238 245;
-        --blue-100: 207 224 238;
-        --blue-200: 169 198 221;
-        --blue-500: 62 118 173;
-        --blue-600: 44 92 143;
-        --blue-700: 32 69 104;
-        --blue-800: 23 50 77;
-        --blue-950: 14 29 46;
-        --indigo-50: 251 243 225;
-        --indigo-100: 243 228 190;
-        --indigo-200: 230 204 138;
-        --indigo-500: 196 151 46;
-        --indigo-600: 169 120 31;
-        --indigo-700: 133 93 24;
-        --indigo-800: 100 69 18;
-        --indigo-900: 74 51 16;
-        --indigo-950: 46 31 9;
-        --emerald-50: 231 243 236;
-        --emerald-100: 203 231 215;
-        --emerald-200: 160 210 183;
-        --emerald-300: 111 182 144;
-        --emerald-600: 47 122 79;
-        --emerald-700: 34 96 60;
-        --emerald-800: 23 71 44;
-        --rose-50: 247 233 231;
-        --rose-100: 239 208 205;
-        --rose-200: 223 169 163;
-        --rose-300: 203 126 118;
-        --rose-400: 190 92 82;
-        --rose-600: 179 59 59;
-        --rose-700: 142 46 46;
-        --rose-800: 107 35 35;
-        --rose-950: 51 16 16;
-        --amber-50: 251 237 224;
-        --amber-100: 245 216 184;
-        --amber-200: 235 183 125;
-        --amber-300: 222 151 80;
-        --amber-500: 199 122 46;
-        --amber-600: 176 99 30;
-        --amber-700: 138 76 23;
-        --amber-800: 102 56 16;
-        --amber-900: 74 41 12;
-        --sky-600: 2 132 199;
-        --sky-700: 2 101 145;
-        --teal-600: 13 148 136;
-        --teal-700: 10 114 104;
-        --purple-700: 109 40 217;
-        --shadow-c: 31 42 60;
-        --shadow-a: .06;
-        --shadow-a2: .04;
-        --shadow-a-lg: .16;
+        --shadow-a-lg: .12;
+        --blue-300: 141 171 235;
+        --blue-400: 92 128 214;
+        --blue-900: 15 38 88;
+        --indigo-300: 168 155 230;
+        --emerald-900: 13 71 46;
+        --emerald-950: 7 43 28;
+        --amber-400: 212 160 70;
+        --amber-950: 58 36 8;
+        --purple-50: 238 235 250;
+        --purple-100: 221 215 245;
+        --purple-200: 196 186 238;
+        --purple-300: 168 155 230;
+        --purple-600: 109 91 208;
+        --purple-800: 74 58 151;
+        --purple-900: 59 46 120;
+        --purple-950: 36 28 74;
       }
       html[data-theme="dark"] {
-        /* Control Room */
-        --slate-50: 11 13 16;
-        --slate-100: 17 20 24;
-        --slate-200: 27 31 37;
-        --slate-300: 38 43 51;
-        --slate-400: 58 64 72;
-        --slate-500: 86 96 105;
-        --slate-600: 138 147 155;
-        --slate-700: 174 182 188;
-        --slate-800: 205 211 215;
-        --slate-900: 231 236 239;
-        --surface: 20 23 27;
-        --blue-50: 14 20 31;
-        --blue-100: 22 35 58;
-        --blue-200: 34 55 86;
-        --blue-500: 111 160 255;
-        --blue-600: 61 116 232;
-        --blue-700: 138 180 255;
-        --blue-800: 185 211 255;
-        --blue-950: 228 238 255;
-        --indigo-50: 31 23 8;
-        --indigo-100: 46 34 9;
-        --indigo-200: 71 53 13;
-        --indigo-500: 199 154 62;
-        --indigo-600: 212 165 55;
-        --indigo-700: 226 188 94;
-        --indigo-800: 237 206 133;
-        --indigo-900: 245 223 169;
-        --indigo-950: 250 235 201;
-        --emerald-50: 10 31 22;
-        --emerald-100: 15 46 32;
-        --emerald-200: 23 71 47;
-        --emerald-300: 34 104 70;
-        --emerald-600: 63 214 140;
-        --emerald-700: 114 224 170;
-        --emerald-800: 163 235 199;
-        --rose-50: 32 13 13;
-        --rose-100: 51 19 19;
-        --rose-200: 77 28 28;
-        --rose-300: 110 40 40;
-        --rose-400: 155 59 59;
-        --rose-600: 255 107 107;
-        --rose-700: 255 148 148;
-        --rose-800: 255 187 187;
-        --rose-950: 255 228 228;
-        --amber-50: 36 20 7;
-        --amber-100: 58 32 10;
-        --amber-200: 88 51 15;
-        --amber-300: 125 74 23;
-        --amber-500: 214 138 62;
-        --amber-600: 232 154 74;
-        --amber-700: 240 180 117;
-        --amber-800: 246 206 159;
-        --amber-900: 250 224 192;
+        /*
+         * Designed, not inverted. The neutral ramp runs the other way - 50 is the page, 900 the text -
+         * which is what lets `text-slate-900` mean "the strongest text" in both themes and keeps every
+         * component free of `dark:` variants. The accents lift rather than merely lighten: a mid-blue on
+         * a near-black ground goes muddy, so the accent moves up to where it still reads as blue.
+         */
+        --slate-50: 15 18 22;
+        --slate-100: 23 27 33;
+        --slate-200: 38 44 53;
+        --slate-300: 51 58 69;
+        --slate-400: 74 83 97;
+        --slate-500: 107 116 128;
+        --slate-600: 169 178 191;
+        --slate-700: 197 205 216;
+        --slate-800: 214 221 230;
+        --slate-900: 231 235 240;
+        --surface: 23 27 33;
+        --blue-50: 27 42 78;
+        --blue-100: 34 53 95;
+        --blue-200: 44 68 119;
+        --blue-500: 92 132 236;
+        --blue-600: 123 156 242;
+        --blue-700: 169 191 247;
+        --blue-800: 194 210 250;
+        --blue-950: 14 24 50;
+        --indigo-50: 30 27 58;
+        --indigo-100: 39 34 82;
+        --indigo-200: 51 44 107;
+        --indigo-500: 136 120 232;
+        --indigo-600: 156 140 240;
+        --indigo-700: 179 166 245;
+        --indigo-800: 198 188 248;
+        --indigo-900: 214 207 251;
+        --indigo-950: 20 16 42;
+        --emerald-50: 20 48 42;
+        --emerald-100: 23 69 58;
+        --emerald-200: 30 107 84;
+        --emerald-300: 47 148 112;
+        --emerald-600: 76 192 138;
+        --emerald-700: 111 211 164;
+        --emerald-800: 143 224 187;
+        --rose-50: 60 31 29;
+        --rose-100: 85 40 36;
+        --rose-200: 122 58 51;
+        --rose-300: 168 82 72;
+        --rose-400: 201 106 92;
+        --rose-600: 240 122 108;
+        --rose-700: 245 154 142;
+        --rose-800: 248 181 172;
+        --rose-950: 42 21 19;
+        --amber-50: 58 44 19;
+        --amber-100: 78 59 24;
+        --amber-200: 107 82 32;
+        --amber-300: 148 114 44;
+        --amber-500: 201 154 63;
+        --amber-600: 224 166 74;
+        --amber-700: 235 187 108;
+        --amber-800: 241 204 142;
+        --amber-900: 246 220 178;
         --sky-600: 79 195 240;
-        --sky-700: 126 212 245;
+        --sky-700: 125 211 245;
         --teal-600: 63 219 199;
-        --teal-700: 116 230 216;
-        --purple-700: 139 124 246;
+        --teal-700: 110 230 214;
+        --purple-700: 156 140 240;
         --shadow-c: 0 0 0;
-        --shadow-a: .5;
-        --shadow-a2: .35;
+        --shadow-a: .4;
+        --shadow-a2: .3;
         --shadow-a-lg: .6;
+        --blue-300: 74 104 176;
+        --blue-400: 96 130 220;
+        --blue-900: 212 224 252;
+        --indigo-300: 110 96 190;
+        --emerald-900: 170 233 205;
+        --emerald-950: 200 242 222;
+        --amber-400: 186 142 56;
+        --amber-950: 250 233 202;
+        --purple-50: 30 27 58;
+        --purple-100: 39 34 82;
+        --purple-200: 51 44 107;
+        --purple-300: 110 96 190;
+        --purple-600: 156 140 240;
+        --purple-800: 198 188 248;
+        --purple-900: 214 207 251;
+        --purple-950: 20 16 42;
       }
 
       /*

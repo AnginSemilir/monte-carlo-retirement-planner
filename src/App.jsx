@@ -5879,15 +5879,23 @@ const TOURNAMENT_TRIALS = 4000;
 const INHERITANCE_AGES = [70, 74, 80, 90];
 const SEARCH_TRIALS = 400;
 
-// Three themes: 'classic' (the original stock look, kept as an opt-in third option),
-// 'light' (Riviera Ledger) and 'dark' (Control Room).
+/*
+ * THE FOUR WRAPPERS, IN ONE SET OF COLOURS, EVERYWHERE.
+ *
+ * Pension blue, ISA green, GIA amber, cash grey - the same four on every chart, table and card in both
+ * apps, so "the green one" always means the ISA. The expected path takes the accent and the nominal
+ * line the Monte Carlo violet, which keeps the two headline lines apart from the four wrapper ones.
+ *
+ * Hexes rather than tokens because these are handed to d3 as stroke values, and they are keyed by the
+ * RESOLVED theme, never by the preference: 'system' is not a palette.
+ */
 const SERIES_CONFIG = [
-  { id: 'expected', label: 'Expected (Real)', colors: { classic: '#2563eb', light: '#2C5C8F', dark: '#3D74E8' }, strokeWidth: 3, dash: 'none', defaultActive: true },
-  { id: 'nominal', label: 'Combined (Nominal)', colors: { classic: '#7c3aed', light: '#6D28D9', dark: '#8B7CF6' }, strokeWidth: 2, dash: '4,3', defaultActive: false },
-  { id: 'pensions', label: 'Combined Pensions', colors: { classic: '#0284c7', light: '#0284C7', dark: '#4FC3F0' }, strokeWidth: 2, dash: 'none', defaultActive: true },
-  { id: 'isas', label: 'Combined ISAs', colors: { classic: '#0d9488', light: '#0D9488', dark: '#3FDBC7' }, strokeWidth: 2, dash: 'none', defaultActive: true },
-  { id: 'other', label: 'Combined Other', colors: { classic: '#d97706', light: '#B0631E', dark: '#E89A4A' }, strokeWidth: 1.5, dash: 'none', defaultActive: false },
-  { id: 'cash', label: 'Combined Cash', colors: { classic: '#475569', light: '#5C6B72', dark: '#8A939B' }, strokeWidth: 1.5, dash: '3,3', defaultActive: false }
+  { id: 'expected', label: 'Expected (Real)', colors: { light: '#2148B8', dark: '#7B9CF2' }, strokeWidth: 3, dash: 'none', defaultActive: true },
+  { id: 'nominal', label: 'Combined (Nominal)', colors: { light: '#6D5BD0', dark: '#9C8CF0' }, strokeWidth: 2, dash: '4,3', defaultActive: false },
+  { id: 'pensions', label: 'Combined Pensions', colors: { light: '#1C7ED6', dark: '#4FC3F0' }, strokeWidth: 2, dash: 'none', defaultActive: true },
+  { id: 'isas', label: 'Combined ISAs', colors: { light: '#0E9F6E', dark: '#3FDBC7' }, strokeWidth: 2, dash: 'none', defaultActive: true },
+  { id: 'other', label: 'Combined Other', colors: { light: '#A8701A', dark: '#E0A64A' }, strokeWidth: 1.5, dash: 'none', defaultActive: false },
+  { id: 'cash', label: 'Combined Cash', colors: { light: '#6B7480', dark: '#9AA3B2' }, strokeWidth: 1.5, dash: '3,3', defaultActive: false }
 ];
 
 /*
@@ -5896,15 +5904,12 @@ const SERIES_CONFIG = [
  * the rate-based chart is a cool blue and the Monte Carlo a warmer violet in every theme.
  */
 const CHART_PALETTE = {
-  classic: { gridMajor: '#f1f5f9', gridMinor: '#f8fafc', axisText: '#64748b', hoverCrosshair: '#94a3b8', sandboxDash: '#f59e0b', historicalLine: '#6366f1', trajectoryHoverFill: '#2563eb', historicalHoverFill: '#6366f1', hoverDotStroke: '#ffffff',
-             fanBand: 'rgba(124, 58, 237, 0.16)', fanEdge: 'rgba(124, 58, 237, 0.5)', fanMedian: '#6d28d9', fanOuter: 'rgba(124, 58, 237, 0.75)',
-             rateBand: 'rgba(13, 148, 136, 0.16)', rateEdge: 'rgba(13, 148, 136, 0.55)', rateOuter: 'rgba(13, 148, 136, 0.8)' },
-  light:   { gridMajor: '#DCDFD2', gridMinor: '#E6E8DE', axisText: '#5C6B72', hoverCrosshair: '#8A9098', sandboxDash: '#B0631E', historicalLine: '#A9781F', trajectoryHoverFill: '#2C5C8F', historicalHoverFill: '#A9781F', hoverDotStroke: '#FBFAF4',
-             fanBand: 'rgba(107, 74, 138, 0.18)', fanEdge: 'rgba(107, 74, 138, 0.55)', fanMedian: '#6B4A8A', fanOuter: 'rgba(107, 74, 138, 0.8)',
-             rateBand: 'rgba(13, 116, 110, 0.16)', rateEdge: 'rgba(13, 116, 110, 0.6)', rateOuter: 'rgba(13, 116, 110, 0.85)' },
-  dark:    { gridMajor: '#1e232b', gridMinor: '#171b21', axisText: '#8a939b', hoverCrosshair: '#5b636c', sandboxDash: '#e89a4a', historicalLine: '#8b7cf6', trajectoryHoverFill: '#3D74E8', historicalHoverFill: '#8b7cf6', hoverDotStroke: '#14171B',
-             fanBand: 'rgba(192, 132, 252, 0.22)', fanEdge: 'rgba(192, 132, 252, 0.55)', fanMedian: '#C084FC', fanOuter: 'rgba(192, 132, 252, 0.8)',
-             rateBand: 'rgba(63, 219, 199, 0.18)', rateEdge: 'rgba(63, 219, 199, 0.5)', rateOuter: 'rgba(63, 219, 199, 0.78)' },
+  light:  { gridMajor: '#E3E6EB', gridMinor: '#F0F2F5', axisText: '#8A93A3', hoverCrosshair: '#A8B0BD', sandboxDash: '#A8701A', historicalLine: '#6D5BD0', trajectoryHoverFill: '#2148B8', historicalHoverFill: '#6D5BD0', hoverDotStroke: '#FFFFFF',
+            fanBand: 'rgba(109, 91, 208, 0.14)', fanEdge: 'rgba(109, 91, 208, 0.5)', fanMedian: '#6D5BD0', fanOuter: 'rgba(109, 91, 208, 0.75)',
+            rateBand: 'rgba(14, 159, 110, 0.14)', rateEdge: 'rgba(14, 159, 110, 0.55)', rateOuter: 'rgba(14, 159, 110, 0.8)' },
+  dark:   { gridMajor: '#262C35', gridMinor: '#1D222A', axisText: '#6B7480', hoverCrosshair: '#4A5361', sandboxDash: '#E0A64A', historicalLine: '#9C8CF0', trajectoryHoverFill: '#7B9CF2', historicalHoverFill: '#9C8CF0', hoverDotStroke: '#171B21',
+            fanBand: 'rgba(156, 140, 240, 0.20)', fanEdge: 'rgba(156, 140, 240, 0.55)', fanMedian: '#9C8CF0', fanOuter: 'rgba(156, 140, 240, 0.8)',
+            rateBand: 'rgba(63, 219, 199, 0.18)', rateEdge: 'rgba(63, 219, 199, 0.5)', rateOuter: 'rgba(63, 219, 199, 0.78)' },
 };
 
 /*
@@ -5913,30 +5918,23 @@ const CHART_PALETTE = {
  * default to on are blue, sky and teal, so these are pink, olive, red and purple.
  */
 const COMPARE_PALETTE = {
-  classic: ['#db2777', '#65a30d', '#b91c1c', '#6b21a8'],
-  light: ['#A63D5E', '#5F7A28', '#99342B', '#6B4A8A'],
-  dark: ['#F472B6', '#A3D65C', '#F87171', '#C084FC'],
+  light: ['#B4356B', '#6E7F1F', '#A63A2C', '#5A48B8'],
+  dark: ['#F27BAE', '#B9CF5C', '#F08C7C', '#B3A6F5'],
 };
 const MAX_COMPARE = 4;
 
 const MARKER_PALETTE = {
-  classic: {
-    retireSelf: { line: '#f59e0b', fill: '#fef3c7', stroke: '#fde68a', text: '#b45309' },
-    retirePart: { line: '#d97706', fill: '#fef3c7', stroke: '#fde68a', text: '#b45309' },
-    nmpa: { line: '#0284c7', fill: '#e0f2fe', stroke: '#bae6fd', text: '#0369a1' },
-    statePension: { line: '#059669', fill: '#d1fae5', stroke: '#a7f3d0', text: '#065f46' },
-  },
   light: {
-    retireSelf: { line: '#A9781F', fill: '#F3E9CE', stroke: '#D9C48A', text: '#6B4E12' },
-    retirePart: { line: '#855D18', fill: '#F3E9CE', stroke: '#D9C48A', text: '#6B4E12' },
-    nmpa: { line: '#2C5C8F', fill: '#DCE6EF', stroke: '#AFC2D6', text: '#1B3A57' },
-    statePension: { line: '#2F7A4F', fill: '#DCEEE1', stroke: '#A9D3B8', text: '#1F5636' },
+    retireSelf: { line: '#A8701A', fill: '#FBF1DC', stroke: '#EDCE8E', text: '#8A5B16' },
+    retirePart: { line: '#8A5B16', fill: '#FBF1DC', stroke: '#EDCE8E', text: '#6E4811' },
+    nmpa: { line: '#1C7ED6', fill: '#E4F0FB', stroke: '#B7D7F2', text: '#1866AD' },
+    statePension: { line: '#1B8A5A', fill: '#E6F4EC', stroke: '#9CD6B5', text: '#15734A' },
   },
   dark: {
-    retireSelf: { line: '#D4A537', fill: '#2E2209', stroke: '#47350D', text: '#F5DFA9' },
-    retirePart: { line: '#E2BC5E', fill: '#2E2209', stroke: '#47350D', text: '#F5DFA9' },
-    nmpa: { line: '#3D74E8', fill: '#16233A', stroke: '#223756', text: '#B9D3FF' },
-    statePension: { line: '#3FD68C', fill: '#0F2E20', stroke: '#17472F', text: '#A3EBC7' },
+    retireSelf: { line: '#E0A64A', fill: '#3A2C13', stroke: '#6B5220', text: '#F1CC8E' },
+    retirePart: { line: '#C99A3F', fill: '#3A2C13', stroke: '#6B5220', text: '#F1CC8E' },
+    nmpa: { line: '#4FC3F0', fill: '#10293A', stroke: '#1B4055', text: '#A9DCF5' },
+    statePension: { line: '#4CC08A', fill: '#14302A', stroke: '#1E6B54', text: '#8FE0BB' },
   },
 };
 
@@ -6075,8 +6073,19 @@ async function scoreInWorkers(jobs, { onProgress } = {}) {
   return results;
 }
 
-const inputCls = 'w-full p-2 bg-slate-50 border border-slate-300 rounded-lg font-mono text-slate-900 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none';
-const smallInputCls = 'w-full p-2 bg-slate-50 border border-slate-300 rounded font-bold text-slate-900 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none';
+/*
+ * One input recipe, and a smaller one for the tables that hold dozens of them.
+ *
+ * `tabular-nums` rather than `font-mono`: the only thing mono was buying was digits of equal width, and
+ * a whole form set in a typewriter face reads like a terminal. Plex Sans has proper tabular figures, so
+ * the columns still line up. Mono stays where the content really is code - the audit table, the seed,
+ * an exported JSON blob.
+ *
+ * The focus ring is drawn INSIDE the control (`ring-inset`) so a focused field in a tight grid does not
+ * overlap its neighbour, and the fill lifts to the surface colour so the focused row reads as live.
+ */
+const inputCls = 'w-full p-2 bg-slate-50 border border-slate-300 rounded-lg tabular-nums text-slate-900 font-semibold focus:bg-surface focus:ring-2 focus:ring-inset focus:ring-blue-600 focus:border-blue-600 focus:outline-none';
+const smallInputCls = 'w-full p-2 bg-slate-50 border border-slate-300 rounded tabular-nums font-semibold text-slate-900 focus:bg-surface focus:ring-2 focus:ring-inset focus:ring-blue-600 focus:border-blue-600 focus:outline-none';
 
 function ProgressBar({ value, label }) {
   return (
@@ -6089,43 +6098,6 @@ function ProgressBar({ value, label }) {
   );
 }
 
-/*
- * Pencil-sketch motifs for the landing page. Drawn as open paths rather than primitives so the strokes
- * wobble, overshoot their corners and double back the way a pencil line does — an <ellipse> would read as
- * a diagram. They inherit `currentColor` so each theme tints them, and are decorative only (aria-hidden).
- */
-function SketchCards({ className = '' }) {
-  // Card faces are filled with the page surface so a fanned card hides the one behind it. The fade comes
-  // from the caller's text colour (currentColor carries its own alpha), not from group opacity, which
-  // would make the fills translucent and lose the occlusion.
-  const face = 'rgb(var(--surface))';
-  return (
-    <svg viewBox="0 0 150 125" className={className} fill="none" stroke="currentColor" strokeWidth="1.5"
-      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      {/* back card, fanned left */}
-      <g transform="rotate(-19 55 72)">
-        <path fill={face} d="M27 32 Q48 29 70 28 Q73 29 73 33 L76 97 Q76 101 72 101 Q50 104 30 104 Q26 104 26 100 L24 36 Q24 32 27 32" />
-        {/* diamond */}
-        <path d="M43 51 L50 40 L57 52 L49 62 Z" strokeOpacity="0.8" />
-      </g>
-      {/* middle card */}
-      <g transform="rotate(-5 76 68)">
-        <path fill={face} d="M55 24 Q77 22 99 23 Q102 23 102 27 Q103 60 103 94 Q103 98 99 98 Q77 100 56 99 Q52 99 52 95 Q51 61 51 28 Q51 24 55 24" />
-        {/* club: three lobes and a flared stem */}
-        <path d="M77 40 q7 0 7 6 q0 5 -6 6 q7 -2 9 4 q2 6 -3 8 q-5 2 -7 -4 q-2 6 -7 4 q-5 -2 -3 -8 q2 -6 9 -4 q-6 -1 -6 -6 q0 -6 7 -6" />
-        <path d="M77 64 q-1 5 -5 8 q5 -2 10 0 q-4 -3 -5 -8" />
-      </g>
-      {/* front card, fanned right, with a second searching stroke down its long edge */}
-      <g transform="rotate(15 101 66)">
-        <path fill={face} d="M84 19 Q106 20 127 23 Q131 24 130 28 Q128 60 125 93 Q124 97 120 96 Q99 94 79 93 Q75 92 76 88 Q79 55 81 23 Q81 19 84 19" />
-        <path d="M86 21 Q105 22 125 25" strokeOpacity="0.35" />
-        {/* spade */}
-        <path d="M104 41 Q96 50 93 55 q-4 6 1 9 q5 3 9 -3 q4 6 9 3 q5 -3 1 -9 Q110 50 104 41" />
-        <path d="M104 62 q-1 6 -5 9 q5 -2 10 0 q-4 -3 -5 -9" />
-      </g>
-    </svg>
-  );
-}
 // True when the browser is set to reduce motion, so the decorative animations can sit still.
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -6324,7 +6296,7 @@ function RouletteWheel({ className = '', onResult }) {
         */}
       <button type="button" onClick={spin} aria-busy={spinning}
         aria-label={spinning ? 'The wheel is spinning' : 'Spin the roulette wheel'}
-        className="rw-wheel group relative block w-full rounded-full cursor-pointer opacity-[0.78] hover:opacity-95 transition-opacity duration-300 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-600 disabled:cursor-default"
+        className="rw-wheel group relative block w-full rounded-full cursor-pointer opacity-95 hover:opacity-100 transition-opacity duration-300 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-600 disabled:cursor-default"
         disabled={spinning}>
         <svg viewBox="0 0 240 240" className="block w-full h-auto" role="img"
           aria-label="A European roulette wheel, drawn as a line engraving">
@@ -6430,7 +6402,7 @@ function RouletteWheel({ className = '', onResult }) {
 function WarningsBanner({ warnings }) {
   if (!warnings || !warnings.length) return null;
   return (
-    <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 space-y-1">
+    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1">
       <div className="flex items-center gap-2 font-bold"><AlertTriangle className="w-4 h-4 text-amber-600" /> Inputs the engine is substituting or flagging</div>
       <ul className="list-disc pl-5 space-y-0.5">
         {warnings.map((w, i) => <li key={i}>{w}</li>)}
@@ -6680,10 +6652,10 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
   ].filter(Boolean).join(' · ');
 
   return (
-    <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+    <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+          <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
             <Zap className="w-4 h-4 text-indigo-600 fill-indigo-600" /> Automated Strategy Tournament &amp; Optimizer
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -6696,7 +6668,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
       </div>
 
       {usingSandbox && (
-        <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs">
           <span className="text-amber-900 flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-amber-600" /><strong className="font-bold">Scoring your sandbox figures</strong>, not your saved plan inputs. The sandbox is frozen as it was when you started this run.</span>
           <button type="button" onClick={() => setState(prev => ({ ...prev, basePlan: null, results: null }))}
             className="px-2.5 py-1 rounded-lg font-semibold bg-surface hover:bg-slate-100 text-slate-700 border border-slate-300 cursor-pointer">Back to plan inputs</button>
@@ -6708,20 +6680,20 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
         * anything set away from its default, which is what stops a collapsed panel hiding a live setting.
         */}
       <details open={!!state.settingsOpen} onToggle={handleSettingsToggle}
-        className="bg-slate-50 border border-slate-200 rounded-xl">
+        className="bg-slate-50 border border-slate-200 rounded-lg">
         {/* the native marker is easy to miss at this size, so it is replaced by the same chevron the
             other collapsibles on this page use - and `marker:hidden` stops the two appearing together */}
         <summary className="px-3 py-2.5 cursor-pointer text-xs font-semibold text-slate-700 select-none flex flex-wrap items-center gap-x-2 marker:content-[''] [&::-webkit-details-marker]:hidden hover:text-slate-900">
           {state.settingsOpen ? <ChevronUp className="w-3.5 h-3.5 shrink-0 text-slate-500" /> : <ChevronDown className="w-3.5 h-3.5 shrink-0 text-slate-500" />}
           <span>Tournament settings</span>
-          <span className="text-[10px] font-normal text-slate-500 font-mono">{settingsSummary}</span>
+          <span className="text-[10px] font-normal text-slate-500  tabular-nums">{settingsSummary}</span>
           <span className="ml-auto text-[10px] font-normal text-slate-400">{state.settingsOpen ? 'hide' : 'show'}</span>
         </summary>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 text-xs font-sans p-3">
         <div>
           <label className="text-slate-700 font-semibold block mb-1">Annual take-home budget (£ net)</label>
           <input type="number" min="0" step="250" value={budgetOverride} placeholder={meta ? `${Math.round(meta.derivedBudget).toLocaleString()} (from plan)` : ''} onChange={(e) => setBudgetOverride(e.target.value)}
-            className="w-full p-2 bg-surface border border-slate-300 rounded-lg font-mono text-slate-900 font-bold focus:ring-1 focus:ring-indigo-500 focus:outline-none" />
+            className="w-full p-2 bg-surface border border-slate-300 rounded-lg tabular-nums text-slate-900 font-bold focus:ring-1 focus:ring-indigo-500 focus:outline-none" />
           <span className="text-[10px] text-slate-500 block mt-1">Derived from current ISA + net cost of pension contributions{salaryMissing.length ? ` (salary missing for ${salaryMissing.join(', ')}: ${Math.round((selfEmployedOnly ? P.higherRate : P.higherRate + P.nicUpper) * 100)}% relief assumed)` : ''}.</span>
         </div>
         <div>
@@ -6791,10 +6763,10 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
 
       {meta && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px] font-mono px-3 pb-3">
-          <div className="p-2.5 bg-surface border border-slate-200 rounded-xl"><span className="text-slate-500 font-sans block">Net budget tested</span><strong>£{Math.round(meta.netBudget).toLocaleString()}/yr</strong></div>
-          <div className="p-2.5 bg-surface border border-slate-200 rounded-xl"><span className="text-slate-500 font-sans block">Pre-SIPP access gap</span><strong>{meta.bridge.gapYears} yr{meta.bridge.gapYears === 1 ? '' : 's'}</strong></div>
-          <div className="p-2.5 bg-surface border border-slate-200 rounded-xl"><span className="text-slate-500 font-sans block">Bridge reserve target (+{Math.round(E.num(plan?.config?.bridgeSafetyMargin, 30))}%)</span><strong>{fmtK(meta.bridgeCapital)}</strong></div>
-          <div className="p-2.5 bg-surface border border-slate-200 rounded-xl"><span className="text-slate-500 font-sans block">Liquid today above buffer</span><strong>{fmtK(Math.max(0, meta.liquidToday - E.num(emergencyFloor, 0)))}</strong></div>
+          <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Net budget tested</span><strong>£{Math.round(meta.netBudget).toLocaleString()}/yr</strong></div>
+          <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Pre-SIPP access gap</span><strong>{meta.bridge.gapYears} yr{meta.bridge.gapYears === 1 ? '' : 's'}</strong></div>
+          <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Bridge reserve target (+{Math.round(E.num(plan?.config?.bridgeSafetyMargin, 30))}%)</span><strong>{fmtK(meta.bridgeCapital)}</strong></div>
+          <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Liquid today above buffer</span><strong>{fmtK(Math.max(0, meta.liquidToday - E.num(emergencyFloor, 0)))}</strong></div>
         </div>
       )}
       </details>
@@ -6802,7 +6774,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
         {progress ? <div className="flex-1"><ProgressBar value={progress.value} label={progress.label} /></div> : <span className="text-[11px] text-slate-400">Seed {seed}. Change it in Config to test a different set of market paths.</span>}
         <button type="button" onClick={handleRun} disabled={isEvaluating || !preview || (meta && meta.netBudget <= 0)}
-          className="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+          className="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
           <Zap className="w-3.5 h-3.5" />
           {isEvaluating ? 'Evaluating…' : results ? 'Compare again' : 'Compare strategies now'}
         </button>
@@ -6820,10 +6792,10 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
               const st = res.stats;
               const summaryLines = summarizeStrategyChange(res, baselinePlayer, { isCouple, meta: results.meta, selfEmployedOnly });
               return (
-                <div key={res.id} className={`p-4 rounded-2xl border flex flex-col justify-between space-y-3 ${isBest ? 'bg-emerald-50/60 border-emerald-300 shadow-sm' : res.id === 'baseline' ? 'bg-slate-50 border-slate-200' : res.isEntrant ? 'bg-surface border-amber-200 shadow-xs' : 'bg-surface border-indigo-100 shadow-xs'}`}>
+                <div key={res.id} className={`p-4 rounded-xl border flex flex-col justify-between space-y-3 ${isBest ? 'bg-emerald-50/60 border-emerald-300' : res.id === 'baseline' ? 'bg-slate-50 border-slate-200' : res.isEntrant ? 'bg-surface border-amber-200' : 'bg-surface border-indigo-100'}`}>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-slate-900 leading-tight flex items-center gap-1">{isBest && <Trophy className="w-3.5 h-3.5 text-emerald-600" />}{res.name}{res.isEntrant && <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-bold uppercase tracking-wider">Saved scenario</span>}</span>
+                      <span className="text-xs font-bold text-slate-900 leading-tight flex items-center gap-1">{isBest && <Trophy className="w-3.5 h-3.5 text-emerald-600" />}{res.name}{res.isEntrant && <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-semibold">Saved scenario</span>}</span>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${st.successRate >= 90 ? 'bg-emerald-100 text-emerald-800' : st.successRate >= 75 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'}`}>{st.successRate.toFixed(1)}% survive</span>
                     </div>
                     <p className="text-[11px] text-slate-500 leading-normal">{res.description}</p>
@@ -6832,7 +6804,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
                         {summaryLines.map((line, i) => <p key={i} className="text-[11px] leading-snug text-slate-700">{line}</p>)}
                       </div>
                     )}
-                    <div className="pt-2 border-t border-slate-100 space-y-1 text-[11px] font-mono">
+                    <div className="pt-2 border-t border-slate-100 space-y-1 text-[11px]  tabular-nums">
                       <div className="flex justify-between"><span className="text-slate-500">S&amp;S ISA:</span><strong className="text-teal-700">£{Math.round(res.isaContrib || 0).toLocaleString()}/yr{res.phase && res.phase.switchYears > 0 ? ' avg' : ''}</strong></div>
                       <div className="flex justify-between"><span className="text-slate-500">Pension:</span><strong className="text-blue-700">£{Math.round(res.penContrib || 0).toLocaleString()}/yr{res.phase && res.phase.switchYears > 0 ? ' avg' : ''}</strong></div>
                       {res.giaContrib > 0 && <div className="flex justify-between"><span className="text-slate-500">GIA overflow:</span><strong className="text-amber-700">£{Math.round(res.giaContrib).toLocaleString()}/yr</strong></div>}
@@ -6861,12 +6833,12 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
                     <p className="text-[10px] text-slate-500 leading-snug">A scenario differs in more than its contributions, so there is nothing here to copy across. Load it from the scenario selector at the top of the page to work on it.</p>
                   ) : res.id !== 'baseline' && (
                     <div className="space-y-1.5">
-                      <button type="button" onClick={() => onApplyStrategyToSandbox(res)} className="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition-colors cursor-pointer">Apply to Sandbox</button>
+                      <button type="button" onClick={() => onApplyStrategyToSandbox(res)} className="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition-colors cursor-pointer">Apply to sandbox</button>
                       {/* overwriting entered inputs is destructive, so it takes a second deliberate click */}
                       <button type="button"
                         onClick={() => { if (confirmApplyId === res.id) { onApplyStrategyToPlan(res); setConfirmApplyId(null); } else setConfirmApplyId(res.id); }}
                         onBlur={() => setConfirmApplyId(null)}
-                        className={`w-full py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer border ${confirmApplyId === res.id ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}>
+                        className={`w-full py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer border ${confirmApplyId === res.id ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}>
                         {confirmApplyId === res.id ? 'Confirm: overwrite Plan Inputs?' : 'Apply to Plan Inputs'}
                       </button>
                     </div>
@@ -6889,17 +6861,38 @@ export default function App() {
   const [selectedHistoricalYear, setSelectedHistoricalYear] = useState(1965);
   const [mcSeed, setMcSeed] = useState(12345);
 
-  // Theme: 'classic' (original stock look, the default), 'light' (Riviera Ledger), 'dark' (Control Room).
+  /*
+   * THEME: A PREFERENCE, AND THE THEME IT RESOLVES TO.
+   *
+   * `theme` is what the household chose - light, dark, or follow the machine. `resolvedTheme` is which
+   * of the two designed palettes that currently means, and it is the only thing the document is ever
+   * stamped with, so the CSS needs two blocks rather than three. On 'system' it also has to keep
+   * listening: somebody whose laptop turns dark at sunset should see this page turn with it.
+   *
+   * 'classic' was the third theme and maps to light, which is what it collapsed into. The same mapping
+   * is in the anti-FOUC script in index.html, which has to agree with this or the page flashes.
+   */
   const [theme, setTheme] = useState(() => {
     const saved = safeStorageGet(THEME_STORAGE_KEY);
-    if (saved === 'classic' || saved === 'light' || saved === 'dark') return saved;
-    return 'classic';
+    if (saved === 'classic') return 'light';
+    if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
+    return 'system';
   });
+  const [systemDark, setSystemDark] = useState(
+    () => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    document.documentElement.classList.toggle('dark', theme === 'dark');
+    if (!window.matchMedia) return undefined;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (e) => setSystemDark(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  const resolvedTheme = theme === 'system' ? (systemDark ? 'dark' : 'light') : theme;
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', resolvedTheme);
+    document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
     safeStorageSet(THEME_STORAGE_KEY, theme);
-  }, [theme]);
+  }, [theme, resolvedTheme]);
 
   const [plan, setPlan] = useState(() => E.normalizePlan(safeStorageGet(STORAGE_KEY) ? (() => { try { return JSON.parse(safeStorageGet(STORAGE_KEY)); } catch (e) { return null; } })() : null));
 
@@ -7144,7 +7137,7 @@ export default function App() {
     [scenarios, activeScenarioId, compareIds]
   );
   const compareRuns = useMemo(() => selectedCompare.map((s, i) => {
-    const tone = COMPARE_PALETTE[theme][i % COMPARE_PALETTE[theme].length];
+    const tone = COMPARE_PALETTE[resolvedTheme][i % COMPARE_PALETTE[resolvedTheme].length];
     try {
       const sctx = E.buildContext(s.data);
       const rows = E.simulateDeterministic(sctx, 'expected');
@@ -7161,7 +7154,7 @@ export default function App() {
     } catch (err) {
       return { id: s.id, name: s.name, tone, error: err?.message || 'cannot be projected' };
     }
-  }), [selectedCompare, theme]);
+  }), [selectedCompare, resolvedTheme]);
 
   /*
    * The comparison table's rows, current plan first. Both sides are measured identically — terminalPot
@@ -7174,7 +7167,7 @@ export default function App() {
     const baseRetAge = ctx.owners[0].retireAge;
     const baseTerminal = deterministicVerdict.terminalPot;
     const rows = [{
-      id: '__current__', name: 'Current plan', isBase: true, tone: SERIES_CONFIG[0].colors[theme],
+      id: '__current__', name: 'Current plan', isBase: true, tone: SERIES_CONFIG[0].colors[resolvedTheme],
       retireAge: baseRetAge, retirePot: (timelineData.find(r => r.ageSelf === baseRetAge) || timelineData[0])?.totalCombined || 0,
       terminal: baseTerminal, delta: null, lifetimeTax: deterministicVerdict.lifetimeTax,
       survived: deterministicVerdict.survived, failAge: deterministicVerdict.failAge, failReason: deterministicVerdict.failReason,
@@ -8668,9 +8661,23 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   // enough has been entered for the rest of the app to say something meaningful
   const planStarted = E.num(plan?.spending?.targetSpend, 0) > 0
     || (plan?.accounts || []).some(a => E.num(a.balance, 0) > 0 || E.num(a.contrib, 0) > 0);
+  /*
+   * A tab is text with a rule under the current one, not a pill in a tray.
+   *
+   * The pills read as eight buttons of equal weight, which is what a toolbar looks like; an underline
+   * reads as "you are here", which is what navigation looks like. It is also shorter, which matters on
+   * a bar that has to hold eight labels and still wrap onto a phone.
+   *
+   * `-mb-px` pulls each tab down over the container's hairline so the active rule replaces that line
+   * rather than sitting under it.
+   */
   const tabBtn = (id, Icon, label, accent = 'blue') => (
-    <button key={id} onClick={() => setActiveTab(id)} className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${activeTab === id ? (accent === 'indigo' ? 'bg-surface text-indigo-600 shadow-xs' : 'bg-surface text-blue-600 shadow-xs') : 'text-slate-600 hover:text-slate-900'}`}>
-      <Icon className="w-3.5 h-3.5" /> {label}
+    <button key={id} onClick={() => setActiveTab(id)} aria-current={activeTab === id ? 'page' : undefined}
+      className={`px-3 py-2 -mb-px text-xs flex items-center gap-1.5 border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
+        activeTab === id
+          ? (accent === 'indigo' ? 'border-indigo-600 text-indigo-600 font-semibold' : 'border-blue-600 text-blue-600 font-semibold')
+          : 'border-transparent text-slate-600 hover:text-slate-900 font-medium'}`}>
+      <Icon className="w-3.5 h-3.5 shrink-0" /> {label}
     </button>
   );
   const ageMarker = (age, label, color, fill, stroke, textColor, y, scale, shownAge = age) => (age <= effectiveMaxVisibleAge && age >= currentAge) ? (
@@ -8680,9 +8687,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       <text y={y + 14} textAnchor="middle" fill={textColor} fontSize="10" fontWeight="bold">{label} ({shownAge})</text>
     </g>
   ) : null;
-  const mp = MARKER_PALETTE[theme];
-  const cp = CHART_PALETTE[theme];
-  const themedSeries = useMemo(() => SERIES_CONFIG.map(s => ({ ...s, color: s.colors[theme] })), [theme]);
+  const mp = MARKER_PALETTE[resolvedTheme];
+  const cp = CHART_PALETTE[resolvedTheme];
+  const themedSeries = useMemo(() => SERIES_CONFIG.map(s => ({ ...s, color: s.colors[resolvedTheme] })), [resolvedTheme]);
   const markers = (scale) => (
     <>
       {ageMarker(ctx.owners[0].retireAge, 'Retire M', mp.retireSelf.line, mp.retireSelf.fill, mp.retireSelf.stroke, mp.retireSelf.text, 10, scale)}
@@ -8694,9 +8701,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
 
   const themeOptions = [
-    { id: 'classic', Icon: Monitor, title: 'Classic theme (original look)' },
-    { id: 'light', Icon: Sun, title: 'Riviera Ledger (light)' },
-    { id: 'dark', Icon: Moon, title: 'Control Room (dark)' },
+    { id: 'light', Icon: Sun, title: 'Light' },
+    { id: 'dark', Icon: Moon, title: 'Dark' },
+    { id: 'system', Icon: Monitor, title: 'Match my device' },
   ];
 
   // The sandbox, rendered once at the foot of the Projection tab, directly under the chart it edits.
@@ -8715,7 +8722,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   const slideHead = (n, title, sub) => (
     <div className="flex items-start justify-between gap-3">
       <div>
-        <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+        <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-black shrink-0">{n}</span>
           {title}
         </h2>
@@ -8730,10 +8737,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * different percentiles, quietly destroying the only comparison they exist to support.
    */
   const bandToggle = (
-    <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 px-1 py-1 rounded-xl text-xs">
+    <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 px-1 py-1 rounded-lg text-xs">
       {['quartile', 'decile'].map(k => (
         <button key={k} type="button" onClick={() => setBandMode(k)} title={`Draw both charts at the ${BAND_QUANTILES[k].lowPct} and ${BAND_QUANTILES[k].highPct} percentile`}
-          className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'}`}>{BAND_QUANTILES[k].button}</button>
+          className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-900'}`}>{BAND_QUANTILES[k].button}</button>
       ))}
     </div>
   );
@@ -8821,7 +8828,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       <div className="flex items-center gap-1.5">
         {ESTATE_STEPS.map(st => (
           <button key={st.n} type="button" onClick={() => { setEstateSeeAll(false); setEstateStep(st.n); }} title={st.name}
-            className={`px-2.5 h-7 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${!estateSeeAll && estateStep === st.n ? 'bg-purple-600 text-white border-purple-600 shadow-xs' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>
+            className={`px-2.5 h-7 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${!estateSeeAll && estateStep === st.n ? 'bg-purple-600 text-white border-purple-600' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>
             <span className="sm:hidden">{st.n}</span><span className="hidden sm:inline">{st.n}. {st.name}</span>
           </button>
         ))}
@@ -8833,10 +8840,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       {!estateSeeAll && (
         <div className="flex items-center gap-2">
           <button type="button" disabled={n === 1} onClick={() => { setEstateStep(n - 1); scrollTo(document.querySelector('[data-estate-deck]')); }}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">&larr; Back</button>
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">&larr; Back</button>
           {n < 4 && (
             <button type="button" onClick={() => { setEstateStep(n + 1); scrollTo(document.querySelector('[data-estate-deck]')); }}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 cursor-pointer">
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 cursor-pointer">
               Next: {ESTATE_STEPS[n].name} &rarr;
             </button>
           )}
@@ -8850,7 +8857,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       <div className="flex items-center gap-1.5">
         {PROJECTION_SLIDES.map(s => (
           <button key={s.n} type="button" onClick={() => { setSeeAll(false); setSlide(s.n); }} title={s.name}
-            className={`w-7 h-7 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${!seeAll && slide === s.n ? 'bg-blue-600 text-white border-blue-600 shadow-xs' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>{s.n}</button>
+            className={`w-7 h-7 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${!seeAll && slide === s.n ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>{s.n}</button>
         ))}
         <button type="button" onClick={() => setSeeAll(!seeAll)}
           className={`ml-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${seeAll ? 'bg-slate-800 text-white border-slate-800' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900'}`}>
@@ -8860,9 +8867,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       {!seeAll && (
         <div className="flex items-center gap-2">
           <button type="button" disabled={n === 1} onClick={() => setSlide(n - 1)}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">&larr; Back</button>
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">&larr; Back</button>
           <button type="button" onClick={() => { if (n < 6) setSlide(n + 1); else setSandboxRevealed(true); }}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-white hover:bg-slate-900 cursor-pointer">
+            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-white hover:bg-slate-900 cursor-pointer">
             {n < 6 ? <>Next: {PROJECTION_SLIDES[n].name} &rarr;</> : <>Change something &rarr;</>}
           </button>
         </div>
@@ -8909,7 +8916,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </g>
           </svg>
           {hoveredPoint && (
-            <div className="absolute top-4 left-24 bg-surface/95 border border-slate-200 p-3 rounded-xl shadow-lg text-xs space-y-1 backdrop-blur-md pointer-events-none">
+            <div className="absolute top-4 left-24 bg-surface/95 border border-slate-200 p-3 rounded-lg shadow-lg text-xs space-y-1 backdrop-blur-md pointer-events-none">
               <div className="font-bold text-slate-800 border-b border-slate-100 pb-1 flex justify-between gap-4"><span>Age {hoveredPoint.ageSelf} ({hoveredPoint.year})</span><span className="text-slate-500">Spend: {formatGBP(hoveredPoint.targetSpend)}/yr</span></div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1 font-mono">
                 {activeSeries.expected && <div className="text-blue-600 font-bold">Expected: {formatGBP(hoveredPoint.expected)}</div>}
@@ -8928,14 +8935,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         </div>
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
           {themedSeries.map(s => (
-            <button key={s.id} onClick={() => setActiveSeries(prev => ({ ...prev, [s.id]: !prev[s.id] }))} className={`px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition-all cursor-pointer border ${activeSeries[s.id] ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold' : 'bg-surface border-slate-200 text-slate-400 opacity-60'}`}>
+            <button key={s.id} onClick={() => setActiveSeries(prev => ({ ...prev, [s.id]: !prev[s.id] }))} className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer border ${activeSeries[s.id] ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold' : 'bg-surface border-slate-200 text-slate-400 opacity-60'}`}>
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />{s.label}{activeSeries[s.id] && <Check className="w-3 h-3 text-slate-600" />}
             </button>
           ))}
           {(isSandboxModified || scenarios.filter(sc => sc.id !== activeScenarioId).length > 0) && <span className="w-px h-5 bg-slate-200 mx-1" />}
           {isSandboxModified && (
             <button type="button" onClick={() => setShowSandboxLine(v => !v)}
-              className={`px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition-all cursor-pointer border ${showSandboxLine ? 'bg-amber-50 border-amber-300 text-amber-800 font-semibold' : 'bg-surface border-slate-200 text-slate-400 opacity-60'}`}>
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer border ${showSandboxLine ? 'bg-amber-50 border-amber-300 text-amber-800 font-semibold' : 'bg-surface border-slate-200 text-slate-400 opacity-60'}`}>
               <span className="w-3.5 h-0 border-t-2 border-dashed" style={{ borderColor: cp.sandboxDash }} />Sandbox{showSandboxLine && <Check className="w-3 h-3 text-amber-700" />}
             </button>
           )}
@@ -8944,7 +8951,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             const atCap = !run && selectedCompare.length >= MAX_COMPARE;
             return (
               <button key={sc.id} type="button" disabled={atCap} onClick={() => toggleCompare(sc.id)} title={atCap ? `Up to ${MAX_COMPARE} scenarios at once` : sc.name}
-                className={`px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition-all border max-w-[14rem] ${run ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold cursor-pointer' : atCap ? 'bg-surface border-slate-200 text-slate-300 cursor-not-allowed' : 'bg-surface border-slate-200 text-slate-400 opacity-70 cursor-pointer hover:opacity-100'}`}>
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all border max-w-[14rem] ${run ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold cursor-pointer' : atCap ? 'bg-surface border-slate-200 text-slate-300 cursor-not-allowed' : 'bg-surface border-slate-200 text-slate-400 opacity-70 cursor-pointer hover:opacity-100'}`}>
                 <span className="w-3.5 h-0 border-t-2 border-dashed shrink-0" style={{ borderColor: run ? run.tone : 'currentColor' }} />
                 <span className="truncate">{sc.name}</span>{run && <Check className="w-3 h-3 text-slate-600 shrink-0" />}
               </button>
@@ -8958,14 +8965,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   const renderSandboxPanel = () => {
     const open = sandboxOpen;
     return (
-    <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-5">
+    <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-5">
       <div className={open ? 'pb-3 border-b border-slate-100' : ''}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Sparkles className="w-4 h-4 text-amber-500" /> Sandbox</h3>
+            <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sparkles className="w-4 h-4 text-amber-500" /> Sandbox</h3>
             <p className="text-xs text-slate-500 mt-0.5">Change balances, contributions, escalation or retirement age here and the projection follows, without touching your saved plan inputs.</p>
           </div>
-          <button type="button" onClick={() => setSandboxOpen(o => !o)} className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer">
+          <button type="button" onClick={() => setSandboxOpen(o => !o)} className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer">
             {open ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             {open ? 'Hide' : isSandboxModified ? 'Show (edited)' : 'Show'}
           </button>
@@ -8973,22 +8980,22 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       </div>
       {!open ? null : <>
       {isSandboxModified && (
-        <div className="flex items-start gap-2 p-3 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 text-xs font-semibold">
+        <div className="flex items-start gap-2 p-3 rounded-lg border border-rose-200 bg-rose-50 text-rose-800 text-xs font-semibold">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-px" />
           <span>Adjusted sandbox line now visible in chart projections above. Apply it to Plan Inputs to keep it, or save it there as a scenario.</span>
         </div>
       )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 pb-3 border-y border-slate-100">
-        <div><h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Wrapper Sandbox Controls</h4><span className="text-[11px] text-slate-500">Adjust retirement ages and individual wrappers below, or reset back to your baseline plan inputs.</span></div>
+        <div><h4 className="text-sm font-semibold text-slate-800">Wrapper sandbox controls</h4><span className="text-[11px] text-slate-500">Adjust retirement ages and individual wrappers below, or reset back to your baseline plan inputs.</span></div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={handleResetSandbox} disabled={!isSandboxModified} className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all border ${isSandboxModified ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 cursor-pointer' : 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'}`}><RotateCcw className="w-3.5 h-3.5" /> Reset Sandbox</button>
-          <button onClick={handleApplySandboxToPlan} disabled={!isSandboxModified} className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs ${isSandboxModified ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 dark:from-[#C77A2E] dark:to-[#B0631E] dark:hover:from-[#B0631E] dark:hover:to-[#8A4C17] text-white cursor-pointer active:scale-95' : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'}`}><Check className="w-3.5 h-3.5" /> Apply to Plan Inputs</button>
+          <button onClick={handleResetSandbox} disabled={!isSandboxModified} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border ${isSandboxModified ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 cursor-pointer' : 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'}`}><RotateCcw className="w-3.5 h-3.5" /> Reset Sandbox</button>
+          <button onClick={handleApplySandboxToPlan} disabled={!isSandboxModified} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${isSandboxModified ? 'bg-amber-700 hover:bg-amber-800 hover:to-amber-700 text-white cursor-pointer active:scale-95' : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'}`}><Check className="w-3.5 h-3.5" /> Apply to Plan Inputs</button>
         </div>
       </div>
-      <div className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-3">
+      <div className="p-4 bg-slate-50/80 border border-slate-200 rounded-xl space-y-3">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <Users className="w-4 h-4 text-slate-500" />
-          <h5 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Retirement Age</h5>
+          <h5 className="text-sm font-semibold text-slate-800">Retirement age</h5>
           <span className="text-[11px] text-slate-500">Contributions stop and drawdown begins at this age. Test retiring earlier or later.</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -8998,7 +9005,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             const changed = val !== base;
             const yearsToGo = Math.max(0, Math.round(val - o.age0));
             return (
-              <div key={o.key} className={`p-3 rounded-xl border transition-colors ${changed ? 'bg-amber-50/60 border-amber-200' : 'bg-surface border-slate-200'}`}>
+              <div key={o.key} className={`p-3 rounded-lg border transition-colors ${changed ? 'bg-amber-50/60 border-amber-200' : 'bg-surface border-slate-200'}`}>
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-xs font-bold text-slate-800 font-sans">{o.label}</span>
                   {changed
@@ -9006,7 +9013,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     : <span className="text-slate-400 font-sans text-[10px]">Base: {base}</span>}
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <input type="number" min="0" max="120" step="1" value={val} onFocus={handleFocus} onChange={(e) => updateSandboxRetire(o.key, e.target.value)} className="w-20 p-1.5 bg-surface border border-slate-300 rounded font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  <input type="number" min="0" max="120" step="1" value={val} onFocus={handleFocus} onChange={(e) => updateSandboxRetire(o.key, e.target.value)} className="w-20 p-1.5 bg-surface border border-slate-300 rounded tabular-nums font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   {[-5, -1, 1, 5].map(d => (
                     <button key={d} onClick={() => adjustSandboxRetire(o.key, d)} className="px-1.5 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-[10px] font-sans font-semibold text-slate-700 cursor-pointer">{d > 0 ? '+' : ''}{d}</button>
                   ))}
@@ -9020,23 +9027,23 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       </div>
       {sandboxMetrics && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className={`p-4 rounded-2xl border shadow-2xs ${sandboxMetrics.terminalDelta >= 0 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-rose-50/70 border-rose-200'}`}>
-            <div className="flex items-center justify-between"><span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Terminal Pot Impact (@ {terminalAge})</span>{sandboxMetrics.terminalDelta >= 0 ? <ArrowUpRight className="w-4 h-4 text-emerald-600" /> : <ArrowDownRight className="w-4 h-4 text-rose-600" />}</div>
-            <div className={`text-xl font-black font-mono mt-1 ${sandboxMetrics.terminalDelta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{sandboxMetrics.terminalDelta >= 0 ? '+' : ''}{formatGBP(sandboxMetrics.terminalDelta)}</div>
-            <span className="text-[11px] text-slate-500 block mt-0.5 font-mono">{formatGBP(sandboxMetrics.baseTerminal)} &rarr; {formatGBP(sandboxMetrics.sbTerminal)}</span>
+          <div className={`p-4 rounded-xl border shadow-2xs ${sandboxMetrics.terminalDelta >= 0 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-rose-50/70 border-rose-200'}`}>
+            <div className="flex items-center justify-between"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Terminal Pot Impact (@ {terminalAge})</span>{sandboxMetrics.terminalDelta >= 0 ? <ArrowUpRight className="w-4 h-4 text-emerald-600" /> : <ArrowDownRight className="w-4 h-4 text-rose-600" />}</div>
+            <div className={`text-xl font-semibold font-mono mt-1 ${sandboxMetrics.terminalDelta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{sandboxMetrics.terminalDelta >= 0 ? '+' : ''}{formatGBP(sandboxMetrics.terminalDelta)}</div>
+            <span className="text-[11px] text-slate-500 block mt-0.5  tabular-nums">{formatGBP(sandboxMetrics.baseTerminal)} &rarr; {formatGBP(sandboxMetrics.sbTerminal)}</span>
           </div>
-          <div className={`p-4 rounded-2xl border shadow-2xs ${sandboxMetrics.retirementDelta >= 0 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-rose-50/70 border-rose-200'}`}>
-            <div className="flex items-center justify-between"><span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Retirement Pot Impact</span>{sandboxMetrics.retirementDelta >= 0 ? <ArrowUpRight className="w-4 h-4 text-emerald-600" /> : <ArrowDownRight className="w-4 h-4 text-rose-600" />}</div>
-            <div className={`text-xl font-black font-mono mt-1 ${sandboxMetrics.retirementDelta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{sandboxMetrics.retirementDelta >= 0 ? '+' : ''}{formatGBP(sandboxMetrics.retirementDelta)}</div>
-            <span className="text-[11px] text-slate-500 block mt-0.5 font-mono">{sandboxMetrics.baseRetAge === sandboxMetrics.sbRetAge ? `At Age ${sandboxMetrics.baseRetAge}` : `Age ${sandboxMetrics.baseRetAge} → ${sandboxMetrics.sbRetAge} (each at own retirement)`}</span>
+          <div className={`p-4 rounded-xl border shadow-2xs ${sandboxMetrics.retirementDelta >= 0 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-rose-50/70 border-rose-200'}`}>
+            <div className="flex items-center justify-between"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">Retirement pot impact</span>{sandboxMetrics.retirementDelta >= 0 ? <ArrowUpRight className="w-4 h-4 text-emerald-600" /> : <ArrowDownRight className="w-4 h-4 text-rose-600" />}</div>
+            <div className={`text-xl font-semibold font-mono mt-1 ${sandboxMetrics.retirementDelta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{sandboxMetrics.retirementDelta >= 0 ? '+' : ''}{formatGBP(sandboxMetrics.retirementDelta)}</div>
+            <span className="text-[11px] text-slate-500 block mt-0.5  tabular-nums">{sandboxMetrics.baseRetAge === sandboxMetrics.sbRetAge ? `At Age ${sandboxMetrics.baseRetAge}` : `Age ${sandboxMetrics.baseRetAge} → ${sandboxMetrics.sbRetAge} (each at own retirement)`}</span>
           </div>
-          <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50/70 shadow-2xs"><span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Cumulative Extra Invested</span><div className="text-xl font-bold font-mono text-slate-800 mt-1">{sandboxMetrics.cumulativeExtraCapital >= 0 ? '+' : ''}{formatGBP(sandboxMetrics.cumulativeExtraCapital)}</div><span className="text-[11px] text-slate-500 block mt-0.5">Total difference in deposits to retirement</span></div>
-          <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50/70 shadow-2xs"><span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Wealth Compounding Multiple</span><div className="text-xl font-bold font-mono text-indigo-700 mt-1">{sandboxMetrics.cumulativeExtraCapital !== 0 ? `${sandboxMetrics.multiplier.toFixed(2)}x` : '-'}</div><span className="text-[11px] text-slate-500 block mt-0.5">Terminal change per £1 of extra deposits</span></div>
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 shadow-2xs"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 block mb-1">Cumulative extra invested</span><div className="text-xl font-bold font-mono text-slate-800 mt-1">{sandboxMetrics.cumulativeExtraCapital >= 0 ? '+' : ''}{formatGBP(sandboxMetrics.cumulativeExtraCapital)}</div><span className="text-[11px] text-slate-500 block mt-0.5">Total difference in deposits to retirement</span></div>
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 shadow-2xs"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 block mb-1">Wealth compounding multiple</span><div className="text-xl font-bold font-mono text-indigo-700 mt-1">{sandboxMetrics.cumulativeExtraCapital !== 0 ? `${sandboxMetrics.multiplier.toFixed(2)}x` : '-'}</div><span className="text-[11px] text-slate-500 block mt-0.5">Terminal change per £1 of extra deposits</span></div>
         </div>
       )}
-      <div className="overflow-x-auto border border-slate-200 rounded-xl">
+      <div className="overflow-x-auto border border-slate-200 rounded-lg">
         <table className="w-full text-left text-xs border-collapse">
-          <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans"><tr><th className="p-3">Portfolio Wrapper</th>{isCouple && <th className="p-3">Owner</th>}<th className="p-3">Balance Today (£)</th><th className="p-3">Annual Contribution (£)</th><th className="p-3">Quick Adjust</th><th className="p-3">Escalation (% / yr)</th><th className="p-3 text-right">Status</th></tr></thead>
+          <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans"><tr><th className="p-3">Portfolio wrapper</th>{isCouple && <th className="p-3">Owner</th>}<th className="p-3">Balance today (£)</th><th className="p-3">Annual contribution (£)</th><th className="p-3">Quick adjust</th><th className="p-3">Escalation (% / yr)</th><th className="p-3 text-right">Status</th></tr></thead>
           <tbody className="divide-y divide-slate-100 font-mono">
             {displayedAccounts.map(acc => {
               const sb = sandboxAccounts[acc.id] || { contrib: acc.contrib, growth: acc.growth, balance: acc.balance };
@@ -9067,22 +9074,27 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* Header Bar */}
-        <div className="bg-surface border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+        <div className="bg-surface border border-slate-200/90 rounded-xl p-5">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100"><TrendingUp className="w-5 h-5" /></div>
-                <h1 className="text-xl font-bold tracking-tight text-slate-900">Monte-Carlo Retirement Planner</h1>
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-100"><TrendingUp className="w-5 h-5" /></div>
+                <h1 className="text-xl font-bold tracking-tight text-slate-900">Monte Carlo Retirement Planner</h1>
                 <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-semibold border border-blue-100">{APP_VERSION}</span>
               </div>
+              {/*
+                * One line, and it is the one a first-time visitor needs: where to start. The
+                * "educational only" sentence used to live here too and now sits in the footer, where it
+                * belongs - a disclaimer repeated above every screen stops being read by the second one.
+                */}
               <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
-                UK multi-wrapper drawdown model, Monte Carlo &amp; historical backtesting. <strong className="text-slate-700 font-semibold">For educational &amp; illustrative purposes only. This is not financial advice.</strong> Please complete <span className="font-semibold text-blue-700">Plan Inputs</span> first; Config changes are optional.
+                A UK drawdown model across pensions, ISAs, GIA and cash. Start with <span className="font-semibold text-blue-700">Plan Inputs</span>; everything else reads from it.
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {/* data-tabbar keeps these clickable while the in-app editor is on, so you can still move
                   between tabs while editing; Alt-click edits a tab's own label. */}
-              <div data-tabbar className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-xl border border-slate-200/80 flex-wrap">
+              <div data-tabbar className="flex items-end gap-1 border-b border-slate-200 flex-wrap">
                 {tabBtn('home', Home, 'Start Here')}
                 {tabBtn('inputs', Sliders, 'Plan Inputs')}
                 {tabBtn('config', Settings, 'Config & Assumptions')}
@@ -9093,28 +9105,28 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {tabBtn('audit', Table, 'Audit Data Table')}
                 {tabBtn('docs', BookOpen, 'Documentation')}
               </div>
-              <div className="flex items-center gap-0.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+              <div className="flex items-center gap-0.5 bg-slate-100 p-1 rounded-lg border border-slate-200/80">
                 {themeOptions.map(({ id, Icon, title }) => (
                   <button key={id} type="button" onClick={() => setTheme(id)} title={title}
-                    className={`p-1.5 rounded-lg transition-all cursor-pointer ${theme === id ? 'bg-surface text-indigo-600 shadow-xs' : 'text-slate-500 hover:text-slate-800'}`}>
+                    aria-pressed={theme === id}
+                    className={`p-1.5 rounded-md transition-colors cursor-pointer ${theme === id ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-800'}`}>
                     <Icon className="w-4 h-4" />
                   </button>
                 ))}
               </div>
             </div>
           </div>
-          <div className="h-px bg-indigo-600/60 mt-4" />
-          <div className="h-px bg-indigo-600/25 mt-[3px]" />
+
         </div>
 
         {/* Scenario Toolbar. Plan Inputs only: saving a scenario means saving THE PLAN, so it belongs
             beside the plan, not floating over a chart where it reads as saving what is on screen. */}
         {activeTab === 'inputs' && (
-        <div className="bg-surface border border-slate-200/90 rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-surface border border-slate-200/90 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700"><Bookmark className="w-4 h-4 text-blue-600" /><span>Active Scenario:</span></div>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700"><Bookmark className="w-4 h-4 text-blue-600" /><span>Active scenario:</span></div>
             <div className="flex items-center gap-1.5">
-              <select value={activeScenarioId} onChange={(e) => handleSelectScenario(e.target.value)} className="p-1.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+              <select value={activeScenarioId} onChange={(e) => handleSelectScenario(e.target.value)} className="p-1.5 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                 {scenarios.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
               {scenarios.length > 1 && (
@@ -9123,9 +9135,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap ml-auto">
-            <input type="text" placeholder="Scenario name (optional)" value={scenarioNameInput} onChange={(e) => setScenarioNameInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSaveScenario(); }} className="p-1.5 px-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 sm:w-56" />
-            <button onClick={handleSaveScenario} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"><Save className="w-3.5 h-3.5" /> Save</button>
-            <button onClick={handleSaveAsNewScenario} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 cursor-pointer"><Plus className="w-3.5 h-3.5 text-slate-600" /> Save as New Scenario</button>
+            <input type="text" placeholder="Scenario name (optional)" value={scenarioNameInput} onChange={(e) => setScenarioNameInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSaveScenario(); }} className="p-1.5 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 sm:w-56" />
+            <button onClick={handleSaveScenario} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"><Save className="w-3.5 h-3.5" /> Save</button>
+            <button onClick={handleSaveAsNewScenario} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 cursor-pointer"><Plus className="w-3.5 h-3.5 text-slate-600" /> Save as new scenario</button>
             {saveSuccessMsg && <span className="text-xs font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200"><Check className="w-3 h-3 text-emerald-600" /> {saveSuccessMsg}</span>}
           </div>
         </div>
@@ -9136,9 +9148,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 0: LANDING */}
         {activeTab === 'home' && (
           <div className="space-y-6">
-            <div className="relative overflow-hidden bg-surface border border-slate-200/90 rounded-2xl shadow-xs">
+            <div className="relative overflow-hidden bg-surface border border-slate-200/90 rounded-xl">
               {/* the cards stay decorative; the wheel is a real control now, so it is out of the text's way */}
-              <SketchCards className="hidden xl:block absolute right-[20rem] top-10 w-36 text-amber-600/[0.16] pointer-events-none rotate-6" />
               <div className="relative p-6 sm:p-8 flex flex-col md:flex-row md:items-center gap-7 lg:gap-10">
               <div className="max-w-2xl space-y-3 flex-1 min-w-0">
                 {/*
@@ -9153,11 +9164,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </p>
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <button type="button" onClick={() => setActiveTab('inputs')}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer active:scale-95">
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95">
                     <Sliders className="w-3.5 h-3.5" /> {planStarted ? 'Back to Plan Inputs' : 'Start with Plan Inputs'}
                   </button>
                   <button type="button" onClick={() => setActiveTab('docs')}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer">
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer">
                     <BookOpen className="w-3.5 h-3.5" /> Read the methodology
                   </button>
                 </div>
@@ -9166,14 +9177,17 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   is stated in today&rsquo;s money, and your plan is saved in this browser only.
                 </p>
               </div>
-              <RouletteWheel className="w-52 sm:w-60 lg:w-72 shrink-0 self-center mx-auto md:mx-0 md:ml-auto md:-mr-2 lg:-mr-4" />
+              <div className="shrink-0 self-center mx-auto md:mx-0 md:ml-auto">
+                <RouletteWheel className="w-44 sm:w-52 lg:w-60" />
+                <p className="text-[11px] text-slate-500 text-center mt-2 max-w-[15rem] mx-auto leading-snug">One spin is one future. The model runs {MC_TRIALS.toLocaleString()}.</p>
+              </div>
               </div>
             </div>
 
             {/* what each tab does */}
-            <div className="bg-surface border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+            <div className="bg-surface border border-slate-200/90 rounded-xl p-5 space-y-4">
               <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">What each tab is for</h3>
+                <h3 className="text-sm font-semibold text-slate-900">What each tab is for</h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">Click any card to go there. Plan Inputs is the only tab you have to fill in. Everything else reads from what you entered there.</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -9197,7 +9211,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     body: 'How each calculation works, which modelling decisions were made and why, and what is not modelled yet, plainly stated.' }
                 ].map(t => (
                   <button key={t.tab} type="button" onClick={() => setActiveTab(t.tab)}
-                    className="text-left p-3.5 rounded-xl border border-slate-200 bg-surface hover:border-indigo-200 hover:bg-slate-50 transition-colors cursor-pointer group flex flex-col gap-1.5">
+                    className="text-left p-3.5 rounded-lg border border-slate-200 bg-surface hover:border-indigo-200 hover:bg-slate-50 transition-colors cursor-pointer group flex flex-col gap-1.5">
                     <span className="flex flex-wrap items-center gap-2">
                       <t.Icon className={`w-4 h-4 shrink-0 ${t.accent === 'indigo' ? 'text-indigo-600' : 'text-blue-600'}`} />
                       <strong className="text-xs font-bold text-slate-900 group-hover:text-indigo-700">{t.name}</strong>
@@ -9210,10 +9224,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
 
             {/* honesty note */}
-            <div className="relative overflow-hidden bg-slate-50 border border-slate-200 rounded-2xl p-5">
-              <SketchCards className="hidden sm:block absolute -right-3 -bottom-8 w-44 text-slate-500/[0.12] pointer-events-none -rotate-6" />
+            <div className="relative overflow-hidden bg-slate-50 border border-slate-200 rounded-xl p-5">
               <div className="relative max-w-2xl space-y-2">
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Info className="w-4 h-4 text-slate-500" /> What this model will not tell you</h3>
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Info className="w-4 h-4 text-slate-500" /> What this model will not tell you</h3>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   It covers UK income tax and its personal-allowance taper, including the Scottish and Welsh bands, National Insurance for
                   employees and the self-employed, the annual allowance with taper and carry-forward, the MPAA, ISA limits, realisation-based
@@ -9235,14 +9248,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 1: PLAN INPUTS */}
         {activeTab === 'inputs' && (
           <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-slate-200/90 p-4 rounded-xl">
               <div>
-                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">User Inputs &amp; Wrapper Portfolios</h2>
-                <p className="text-xs text-slate-500">Press <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px] font-mono">Tab</kbd> to move between fields. All amounts are in today's money (real terms).</p>
+                <h2 className="text-base font-semibold text-slate-900">User inputs &amp; wrapper portfolios</h2>
+                <p className="text-xs text-slate-500">Press <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px]  tabular-nums">Tab</kbd> to move between fields. All amounts are in today's money (real terms).</p>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={handleExportJSON} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200"><Download className="w-3.5 h-3.5" /> Export JSON</button>
-                <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200"><Upload className="w-3.5 h-3.5" /> Import JSON</button>
+                <button onClick={handleExportJSON} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200"><Download className="w-3.5 h-3.5" /> Export JSON</button>
+                <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200"><Upload className="w-3.5 h-3.5" /> Import JSON</button>
                 {/* No `accept` filter, deliberately. Android's document picker matches on MIME type rather
                     than extension, and the providers behind it report .json as anything from
                     application/json to text/plain to application/octet-stream - so an extension filter
@@ -9250,37 +9263,37 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     validates the contents and says so plainly if they are wrong, which is the check that
                     actually protects anything; the picker filter was only ever a hint. */}
                 <input type="file" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />
-                <button onClick={handleResetDefaults} className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"><RotateCcw className="w-3.5 h-3.5" /> Clear All Inputs</button>
+                <button onClick={handleResetDefaults} className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"><RotateCcw className="w-3.5 h-3.5" /> Clear all inputs</button>
               </div>
             </div>
 
             {/* Demographics & Targets */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
                 <div>
-                  <h3 className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-2"><Users className="w-4 h-4 text-blue-600" /> 1. Demographics, Salaries &amp; Retirement Targets</h3>
+                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Users className="w-4 h-4 text-blue-600" /> 1. Demographics, salaries &amp; retirement targets</h3>
                   <span className="text-xs text-slate-500">Choose whether this plan is for an individual or a couple.</span>
                 </div>
-                <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
-                  <button type="button" onClick={() => updateDemographics('planningMode', 'single')} className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${!isCouple ? 'bg-surface text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>Single</button>
-                  <button type="button" onClick={() => updateDemographics('planningMode', 'couple')} className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${isCouple ? 'bg-surface text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>With Partner</button>
+                <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
+                  <button type="button" onClick={() => updateDemographics('planningMode', 'single')} className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${!isCouple ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>Single</button>
+                  <button type="button" onClick={() => updateDemographics('planningMode', 'couple')} className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${isCouple ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>With partner</button>
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                <div><label className="text-slate-600 font-semibold block mb-1">Current Age (Myself)</label><input type="number" min="0" max="120" placeholder="e.g. 40" onFocus={handleFocus} value={plan?.demographics?.currentAgeSelf ?? ''} onChange={(e) => updateDemographics('currentAgeSelf', e.target.value)} className={inputCls} /></div>
-                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Current Age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 40" onFocus={handleFocus} value={plan?.demographics?.currentAgePart ?? ''} onChange={(e) => updateDemographics('currentAgePart', e.target.value)} className={inputCls} /></div>}
-                <div><label className="text-slate-600 font-semibold block mb-1">Retirement Age (Myself)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgeSelf ?? ''} onChange={(e) => updateDemographics('retireAgeSelf', e.target.value)} className={inputCls} /></div>
-                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Retirement Age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgePart ?? ''} onChange={(e) => updateDemographics('retireAgePart', e.target.value)} className={inputCls} /></div>}
-                <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentSelf === 'self-employed' ? 'Annual Profit: self-employment (Myself £/yr)' : 'Gross Salary (Myself £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salarySelf ?? ''} onChange={(e) => updateDemographics('salarySelf', e.target.value)} className={inputCls} /></div>
-                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentPart === 'self-employed' ? 'Annual Profit: self-employment (Partner £/yr)' : 'Gross Salary (Partner £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salaryPart ?? ''} onChange={(e) => updateDemographics('salaryPart', e.target.value)} className={inputCls} /></div>}
+                <div><label className="text-slate-600 font-semibold block mb-1">Current age (Myself)</label><input type="number" min="0" max="120" placeholder="e.g. 40" onFocus={handleFocus} value={plan?.demographics?.currentAgeSelf ?? ''} onChange={(e) => updateDemographics('currentAgeSelf', e.target.value)} className={inputCls} /></div>
+                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Current age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 40" onFocus={handleFocus} value={plan?.demographics?.currentAgePart ?? ''} onChange={(e) => updateDemographics('currentAgePart', e.target.value)} className={inputCls} /></div>}
+                <div><label className="text-slate-600 font-semibold block mb-1">Retirement age (Myself)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgeSelf ?? ''} onChange={(e) => updateDemographics('retireAgeSelf', e.target.value)} className={inputCls} /></div>
+                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Retirement age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgePart ?? ''} onChange={(e) => updateDemographics('retireAgePart', e.target.value)} className={inputCls} /></div>}
+                <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentSelf === 'self-employed' ? 'Annual Profit: self-employment (Myself £/yr)' : 'Gross salary (Myself £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salarySelf ?? ''} onChange={(e) => updateDemographics('salarySelf', e.target.value)} className={inputCls} /></div>
+                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentPart === 'self-employed' ? 'Annual Profit: self-employment (Partner £/yr)' : 'Gross salary (Partner £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salaryPart ?? ''} onChange={(e) => updateDemographics('salaryPart', e.target.value)} className={inputCls} /></div>}
                 <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL}`} onFocus={handleFocus} value={plan?.demographics?.statePensionSelf ?? ''} onChange={(e) => updateDemographics('statePensionSelf', e.target.value)} className={inputCls} /></div>
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL}`} onFocus={handleFocus} value={plan?.demographics?.statePensionPart ?? ''} onChange={(e) => updateDemographics('statePensionPart', e.target.value)} className={inputCls} /></div>}
                 <div className="sm:col-span-2">
-                  <label className="text-slate-600 font-semibold block mb-1">{isCouple ? 'Joint Net Living Spend (£/yr)' : 'Net Living Spend (£/yr)'}</label>
+                  <label className="text-slate-600 font-semibold block mb-1">{isCouple ? 'Joint net living spend (£/yr)' : 'Net living spend (£/yr)'}</label>
                   <input type="number" min="0" step="1000" placeholder="e.g. 30000" onFocus={handleFocus} value={plan?.spending?.targetSpend ?? ''} onChange={(e) => updateSpending('targetSpend', e.target.value)} className={inputCls} />
                   <span className="text-[10px] text-slate-400 mt-1 block">Drawn from the first retirement. A partner still working offsets it with their take-home pay when a salary is entered.</span>
                 </div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Plan to Age</label><input type="number" min="1" max="120" placeholder="100" onFocus={handleFocus} value={plan?.demographics?.terminalAge ?? ''} onChange={(e) => updateDemographics('terminalAge', e.target.value)} className={inputCls} /></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Plan to age</label><input type="number" min="1" max="120" placeholder="100" onFocus={handleFocus} value={plan?.demographics?.terminalAge ?? ''} onChange={(e) => updateDemographics('terminalAge', e.target.value)} className={inputCls} /></div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Minimum pot at age {terminalAge} (£)</label>
                   <input type="number" min="0" step="5000" placeholder="0" onFocus={handleFocus} value={plan?.config?.solvencyFloor ?? ''} onChange={(e) => updateConfig('solvencyFloor', e.target.value)} className={`${inputCls} text-amber-700`} />
@@ -9290,8 +9303,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               <div className="pt-3 border-t border-slate-100">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                  <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">{isCouple ? 'Joint Net Living Spend' : 'Net Living Spend'} by age (optional)</span>
-                  <button onClick={addSpendBand} className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer shadow-xs"><Plus className="w-3.5 h-3.5" /> Add Band</button>
+                  <span className="text-sm font-semibold text-slate-700">{isCouple ? 'Joint net living spend' : 'Net living spend'} by age (optional)</span>
+                  <button onClick={addSpendBand} className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add band</button>
                 </div>
                 <p className="text-[11px] text-slate-500 mb-2 max-w-3xl">
                   Set what a stretch of years actually costs, in today's money, instead of one figure for the whole
@@ -9299,7 +9312,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   spend above, so you can name only the years that differ. Spending can rise as well as fall.
                 </p>
                 {(plan?.spending?.spendBands || []).length === 0 ? (
-                  <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-lg">
                     No bands set, so {formatGBP(E.num(plan?.spending?.targetSpend, 0))}/yr applies for the whole retirement.
                   </div>
                 ) : (
@@ -9310,22 +9323,22 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       const badRange = Number.isFinite(from) && Number.isFinite(to) && to < from;
                       const yrs = (Number.isFinite(from) && Number.isFinite(to) && !badRange) ? (to - from + 1) : null;
                       return (
-                        <div key={band.id} className={`grid grid-cols-1 sm:grid-cols-4 gap-2 p-2.5 border rounded-xl text-xs items-center ${badRange ? 'bg-rose-50/60 border-rose-200' : 'bg-slate-50 border-slate-200'}`}>
+                        <div key={band.id} className={`grid grid-cols-1 sm:grid-cols-4 gap-2 p-2.5 border rounded-lg text-xs items-center ${badRange ? 'bg-rose-50/60 border-rose-200' : 'bg-slate-50 border-slate-200'}`}>
                           <div className="flex items-center gap-1">
                             <span className="text-slate-500">Age</span>
                             <input type="number" min="0" max="120" placeholder="From" onFocus={handleFocus} value={band.fromAge}
                               onChange={(e) => updateSpendBand(band.id, { fromAge: parseInputNumber(e.target.value) })}
-                              className="w-14 p-1 bg-surface border border-slate-300 rounded font-mono text-center font-bold" />
+                              className="w-14 p-1 bg-surface border border-slate-300 rounded tabular-nums text-center font-bold" />
                             <span className="text-slate-400">to</span>
                             <input type="number" min="0" max="120" placeholder={String(terminalAge)} onFocus={handleFocus} value={band.toAge}
                               onChange={(e) => updateSpendBand(band.id, { toAge: parseInputNumber(e.target.value) })}
-                              className="w-14 p-1 bg-surface border border-slate-300 rounded font-mono text-center font-bold" />
+                              className="w-14 p-1 bg-surface border border-slate-300 rounded tabular-nums text-center font-bold" />
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-slate-500">Spend</span>
                             <input type="number" min="0" step="1000" placeholder="£/yr" onFocus={handleFocus} value={band.amount}
                               onChange={(e) => updateSpendBand(band.id, { amount: parseInputNumber(e.target.value) })}
-                              className="w-28 p-1.5 bg-surface border border-slate-300 rounded font-mono text-blue-700 font-bold" />
+                              className="w-28 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-blue-700 font-bold" />
                           </div>
                           <div className="text-[11px] text-slate-500 sm:col-span-1">
                             {badRange
@@ -9344,7 +9357,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               {/* Advanced: optional figures most plans can leave blank */}
               <div className="pt-3 border-t border-slate-100">
-                <button type="button" onClick={() => setShowAdvanced(v => !v)} className="text-[11px] font-bold text-slate-600 hover:text-slate-900 uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
+                <button type="button" onClick={() => setShowAdvanced(v => !v)} className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 uppercase tracking-[0.08em] flex items-center gap-1.5 cursor-pointer">
                   <Settings className="w-3.5 h-3.5" /> Advanced inputs {showAdvanced ? '▾' : '▸'}
                   <span className="font-normal normal-case tracking-normal text-slate-400">(optional; sensible defaults are assumed if left blank)</span>
                 </button>
@@ -9427,16 +9440,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
 
             {/* Balances & Contributions */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4 overflow-x-auto">
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 overflow-x-auto">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h3 className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> 2. Current Balances, Annual Contributions &amp; Risk Profiles</h3>
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> 2. Current balances, annual contributions &amp; risk profiles</h3>
                 <button type="button" onClick={() => goToDoc('doc-risk-profiles')} className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"><HelpCircle className="w-3.5 h-3.5" /> Guide to investment allocations &amp; fund types &rarr;</button>
               </div>
               <p className="text-[11px] text-slate-500">Pension contributions are gross (including tax relief and employer amounts); ISA, GIA and cash contributions are net. Contributions stop at each owner's retirement age. Allowances: ISA £{P.isaAllowance.toLocaleString()}, pension £{P.pensionAllowance.toLocaleString()} per person (Config).</p>
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500 font-semibold">
-                    <th className="pb-2">Account Wrapper</th>{isCouple && <th className="pb-2">Owner</th>}<th className="pb-2">Balance Today (£)</th><th className="pb-2">Annual Contribution (£)</th><th className="pb-2">Contrib Growth (%/yr)</th><th className="pb-2">Asset Allocation (Risk Tier)</th>
+                    <th className="pb-2">Account wrapper</th>{isCouple && <th className="pb-2">Owner</th>}<th className="pb-2">Balance today (£)</th><th className="pb-2">Annual contribution (£)</th><th className="pb-2">Contrib growth (%/yr)</th><th className="pb-2">Asset allocation (risk tier)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono">
@@ -9462,10 +9475,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
 
             {/* Other income */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-2"><Coins className="w-4 h-4 text-blue-600" /> 3. Expected Other Income Streams (e.g. Defined Benefit Pensions, Part-time work, Rental income)</h3>
+                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Coins className="w-4 h-4 text-blue-600" /> 3. Expected other income streams (e.g. defined benefit pensions, part-time work, rental income)</h3>
                   <span className="text-[11px] text-slate-500">Taxable streams count towards the personal allowance and tax bands; tax-free streams directly reduce net drawdown demand. Blank end age = plan end.</span>
                   <ul className="list-disc pl-4 text-[11px] text-slate-500 mt-1 leading-relaxed max-w-3xl space-y-0.5">
                     <li><strong>Earnings</strong> (employment / self-employment) are taxed <em>and</em> count as relevant UK earnings, so they raise how much you can pay into a pension that year.</li>
@@ -9474,26 +9487,26 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </ul>
                   <span className="text-[11px] text-slate-500 mt-1 block">With no relevant earnings the pension limit is {formatGBP(P.pensionNoEarningsLimit)}/yr.</span>
                 </div>
-                <button onClick={addOtherIncome} className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer shadow-xs"><Plus className="w-3.5 h-3.5" /> Add Stream</button>
+                <button onClick={addOtherIncome} className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add stream</button>
               </div>
               {(plan?.otherIncomes || []).length === 0 ? (
-                <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">No additional income streams registered.</div>
+                <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-lg">No additional income streams registered.</div>
               ) : (
                 <div className="space-y-2">
                   {plan.otherIncomes.map(inc => (
-                    <div key={inc.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs items-center">
+                    <div key={inc.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs items-center">
                       <input type="text" onFocus={handleFocus} value={inc.name} onChange={(e) => updateListItem('otherIncomes', inc.id, { name: e.target.value })} className="p-1.5 bg-surface border border-slate-300 rounded font-bold text-slate-800 sm:col-span-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Description" />
                       {isCouple ? (
                         <select value={inc.owner} onChange={(e) => updateListItem('otherIncomes', inc.id, { owner: e.target.value })} className="p-1.5 bg-surface border border-slate-300 rounded text-slate-700"><option value="Myself">Myself</option><option value="Partner">Partner</option></select>
                       ) : <div className="p-1.5 text-slate-500 font-semibold">Myself</div>}
                       <div className="flex items-center gap-1">
                         <span className="text-slate-500">Age</span>
-                        <input type="number" min="0" max="120" placeholder="Start" onFocus={handleFocus} value={inc.startAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { startAge: parseInputNumber(e.target.value) })} className="w-12 p-1 bg-surface border border-slate-300 rounded font-mono text-center font-bold" />
+                        <input type="number" min="0" max="120" placeholder="Start" onFocus={handleFocus} value={inc.startAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { startAge: parseInputNumber(e.target.value) })} className="w-12 p-1 bg-surface border border-slate-300 rounded tabular-nums text-center font-bold" />
                         <span className="text-slate-400">to</span>
-                        <input type="number" min="0" max="120" placeholder="End" onFocus={handleFocus} value={inc.endAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { endAge: parseInputNumber(e.target.value) })} className="w-12 p-1 bg-surface border border-slate-300 rounded font-mono text-center font-bold" />
+                        <input type="number" min="0" max="120" placeholder="End" onFocus={handleFocus} value={inc.endAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { endAge: parseInputNumber(e.target.value) })} className="w-12 p-1 bg-surface border border-slate-300 rounded tabular-nums text-center font-bold" />
                       </div>
                       <div className="flex items-center gap-2">
-                        <input type="number" min="0" step="500" placeholder="£/yr" onFocus={handleFocus} value={inc.amount} onChange={(e) => updateListItem('otherIncomes', inc.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1.5 bg-surface border border-slate-300 rounded font-mono text-emerald-700 font-bold" />
+                        <input type="number" min="0" step="500" placeholder="£/yr" onFocus={handleFocus} value={inc.amount} onChange={(e) => updateListItem('otherIncomes', inc.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-emerald-700 font-bold" />
                         <select value={inc.incomeType} onChange={(e) => updateListItem('otherIncomes', inc.id, { incomeType: e.target.value })} className="p-1.5 bg-surface border border-slate-300 rounded text-xs font-semibold text-amber-700" title="Drives both income tax and whether this counts as relevant earnings for pension contributions">
                           {Object.keys(E.INCOME_TYPES).map(k => <option key={k} value={k}>{E.INCOME_TYPES[k].label}</option>)}
                         </select>
@@ -9507,16 +9520,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
             {/* One-offs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+              <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                   <div>
-                    <h3 className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> 4. One-Off Deposits (by Wrapper)</h3>
+                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> 4. One-off deposits (by wrapper)</h3>
                     <span className="text-[11px] text-slate-500 block mt-0.5">Lump sums into a chosen wrapper. Anything above that year's allowance is parked in Other Investments and fed in over later years.</span>
                     <button type="button" onClick={() => goToDoc('doc-one-off-deposits')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-0.5"><HelpCircle className="w-3.5 h-3.5" /> How one-off deposits &amp; multi-year staging work &rarr;</button>
                   </div>
-                  <button onClick={addOneOffContrib} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto"><Plus className="w-3.5 h-3.5" /> Add Lump Sum</button>
+                  <button onClick={addOneOffContrib} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto"><Plus className="w-3.5 h-3.5" /> Add lump sum</button>
                 </div>
-                <div className="p-4 bg-indigo-50/80 border border-indigo-200 rounded-2xl text-xs text-slate-700 space-y-1.5">
+                <div className="p-4 bg-indigo-50/80 border border-indigo-200 rounded-xl text-xs text-slate-700 space-y-1.5">
                   <div className="flex items-center gap-2 font-bold text-indigo-950 text-sm"><Info className="w-4 h-4 text-indigo-600" /> Annual Allowance Headroom: {ctx.baseYear} tax year</div>
                   {ctx.owners.map(o => (
                     <div key={o.key} className="flex flex-wrap gap-x-4">
@@ -9529,7 +9542,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <p className="text-slate-500 text-[11px] leading-relaxed">These are <strong>this year's</strong> figures. Headroom changes in later years as regular contributions escalate, and again once contributions stop at retirement. Each deposit below shows the headroom for its own year.</p>
                 </div>
                 {(plan?.oneOffContributions || []).length === 0 ? (
-                  <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">No one-off contributions scheduled.</div>
+                  <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-lg">No one-off contributions scheduled.</div>
                 ) : (
                   <div className="space-y-2">
                     {plan.oneOffContributions.map(c => {
@@ -9551,7 +9564,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         : c.category;
                       const incomplete = missingDate || missingDest;
                       return (
-                        <div key={c.id} className={`p-2.5 rounded-xl text-xs space-y-2 border ${incomplete ? 'bg-rose-50/70 border-rose-300' : 'bg-slate-50 border-slate-200'}`}>
+                        <div key={c.id} className={`p-2.5 rounded-lg text-xs space-y-2 border ${incomplete ? 'bg-rose-50/70 border-rose-300' : 'bg-slate-50 border-slate-200'}`}>
                           <div className="flex flex-wrap items-center gap-2">
                             <input type="date" value={c.date || (c.year ? `${c.year}-01-01` : '')} onChange={(e) => { const d = e.target.value; updateListItem('oneOffContributions', c.id, { date: d, year: parseInt(d.slice(0, 4)) || '' }); }} className={`p-1 bg-surface border rounded font-mono text-slate-800 text-xs ${missingDate ? 'border-rose-400 ring-1 ring-rose-300' : 'border-slate-300'}`} />
                             {isCouple ? (
@@ -9560,7 +9573,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             <div className="flex flex-col gap-0.5">
                               <span className="text-[9px] text-slate-400 leading-none">Funding source: new capital or internal transfer?</span>
                               <select value={c.transferredFrom} onChange={(e) => updateListItem('oneOffContributions', c.id, { transferredFrom: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700" title="Transferred from">
-                                <option value="External">External (New Capital)</option>
+                                <option value="External">External (new capital)</option>
                                 {Object.values(E.CATEGORY_LABEL).map(l => <option key={l} value={l}>{l}</option>)}
                               </select>
                             </div>
@@ -9576,7 +9589,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                                 <option value={E.AUTO_DEPOSIT}>{E.AUTO_DEPOSIT}</option>
                               </select>
                             </div>
-                            <input type="number" min="0" step="1000" placeholder="Amount (£)" onFocus={handleFocus} value={c.amount} onChange={(e) => updateListItem('oneOffContributions', c.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded font-mono text-emerald-700 font-bold" />
+                            <input type="number" min="0" step="1000" placeholder="Amount (£)" onFocus={handleFocus} value={c.amount} onChange={(e) => updateListItem('oneOffContributions', c.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded tabular-nums text-emerald-700 font-bold" />
                             {st && !st.direct && (
                               <button onClick={() => toggleOneOffExpand(c.id)} className="px-2 py-1 rounded-lg text-[11px] font-semibold text-amber-700 hover:text-amber-900 hover:bg-amber-100 border border-amber-200 bg-amber-50 cursor-pointer transition-colors flex items-center gap-1" title="This deposit is larger than the year's allowance, so it is staged over several years">
                                 {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -9630,23 +9643,23 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                 )}
               </div>
-              <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+              <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                   <div>
-                    <h3 className="text-xs font-bold text-rose-700 uppercase tracking-wider flex items-center gap-2"><Trash2 className="w-4 h-4 text-rose-600" /> 5. One-Off Capital Costs</h3>
+                    <h3 className="text-sm font-semibold text-rose-700 flex items-center gap-2"><Trash2 className="w-4 h-4 text-rose-600" /> 5. One-off capital costs</h3>
                     <button type="button" onClick={() => goToDoc('doc-one-offs')} className="text-[11px] text-rose-600 hover:text-rose-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-0.5"><HelpCircle className="w-3.5 h-3.5" /> How costs are liquidated from your wrappers &rarr;</button>
                   </div>
-                  <button onClick={addOneOffCost} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto"><Plus className="w-3.5 h-3.5" /> Add Cost</button>
+                  <button onClick={addOneOffCost} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto"><Plus className="w-3.5 h-3.5" /> Add cost</button>
                 </div>
                 {(plan?.oneOffCosts || []).length === 0 ? (
-                  <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">No one-off capital expenses scheduled.</div>
+                  <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-lg">No one-off capital expenses scheduled.</div>
                 ) : (
                   <div className="space-y-2">
                     {plan.oneOffCosts.map(cost => (
-                      <div key={cost.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                        <input type="date" value={cost.date || (cost.year ? `${cost.year}-01-01` : '')} onChange={(e) => { const d = e.target.value; updateListItem('oneOffCosts', cost.id, { date: d, year: parseInt(d.slice(0, 4)) || '' }); }} className="p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 text-xs" />
+                      <div key={cost.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                        <input type="date" value={cost.date || (cost.year ? `${cost.year}-01-01` : '')} onChange={(e) => { const d = e.target.value; updateListItem('oneOffCosts', cost.id, { date: d, year: parseInt(d.slice(0, 4)) || '' }); }} className="p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800 text-xs" />
                         <input type="text" onFocus={handleFocus} value={cost.desc} onChange={(e) => updateListItem('oneOffCosts', cost.id, { desc: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 flex-1" placeholder="Purpose" />
-                        <input type="number" min="0" step="1000" placeholder="Amount (£)" onFocus={handleFocus} value={cost.amount} onChange={(e) => updateListItem('oneOffCosts', cost.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded font-mono text-rose-700 font-bold" />
+                        <input type="number" min="0" step="1000" placeholder="Amount (£)" onFocus={handleFocus} value={cost.amount} onChange={(e) => updateListItem('oneOffCosts', cost.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded tabular-nums text-rose-700 font-bold" />
                         <button onClick={() => deleteOneOffCost(cost.id)} className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
@@ -9660,19 +9673,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 2: CONFIG */}
         {activeTab === 'config' && (
           <div className="space-y-6">
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> Decumulation &amp; Pension Withdrawal Methodology</h2>
+                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> Decumulation &amp; Pension Withdrawal Methodology</h2>
                   <p className="text-xs text-slate-500 mt-1">Select how withdrawals are ordered across tax wrappers and how pensions are crystallised. <button type="button" onClick={() => goToDoc('doc-decumulation')} className="text-blue-600 hover:underline font-semibold cursor-pointer">What the evidence says &rarr;</button></p>
                 </div>
                 <div className="shrink-0">
                   <button type="button" onClick={handleFindBestPolicy} disabled={isPolicySearching || !policySweepReady}
-                    className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 dark:from-[#2C5C8F] dark:to-[#A9781F] dark:hover:from-[#204568] text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <Zap className="w-3.5 h-3.5 shrink-0 text-amber-300 fill-amber-300 dark:fill-[#FCD34D] dark:text-[#FCD34D]" />
+                    className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <Zap className="w-3.5 h-3.5 shrink-0 text-amber-300 fill-amber-300" />
                     {isPolicySearching ? 'Searching…' : (
                       <span className="text-left leading-tight">Auto-pick best policy
-                        <span className="block text-[10px] font-semibold text-blue-100/90 dark:text-amber-100/80">based on my priorities</span>
+                        <span className="block text-[10px] font-semibold text-blue-100/90">based on my priorities</span>
                       </span>
                     )}
                   </button>
@@ -9701,11 +9714,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div className="flex flex-wrap items-center gap-1 mb-2 p-0.5 bg-slate-100 rounded-lg w-fit text-[11px] font-bold">
                   {[['ranked', 'Rank my priorities'], ['balanced', 'Balance them all']].map(([m, lbl]) => (
                     <button key={m} type="button" onClick={() => updateSpending('priorityMode', m)}
-                      className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${priorityMode === m ? 'bg-surface text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>{lbl}</button>
+                      className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${priorityMode === m ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>{lbl}</button>
                   ))}
                 </div>
                 {priorityMode === 'balanced' && (
-                  <p className="text-[11px] text-slate-600 leading-relaxed mb-2 p-2 bg-blue-50/70 border border-blue-200 rounded-xl">
+                  <p className="text-[11px] text-slate-600 leading-relaxed mb-2 p-2 bg-blue-50/70 border border-blue-200 rounded-lg">
                     Every priority is weighed together rather than in order, so a modest gain in several can outweigh a small loss in one. Each is scored against the best and worst option available for your plan, which is what makes percentages and pounds comparable. The {E.MAX_SURVIVAL_SACRIFICE_PTS}-point survival limit still applies.
                   </p>
                 )}
@@ -9725,7 +9738,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     const landing = overPriority === i && dragFromRef.current !== null && dragFromRef.current !== i;
                     return (
                       <li key={key} data-priority-item={key}
-                        className={`flex items-start gap-2 p-2 rounded-xl border text-xs transition-shadow ${
+                        className={`flex items-start gap-2 p-2 rounded-lg border text-xs transition-shadow ${
                           carried ? 'opacity-40' : landing ? 'border-blue-500 ring-2 ring-blue-300 bg-blue-50' :
                           i === 0 ? 'bg-blue-50/70 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
                         {/* touch-none: without it a touch drag scrolls the page instead of moving the row */}
@@ -9756,7 +9769,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
                 <details className="mt-3 text-xs">
                   <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Advanced: set your own thresholds</summary>
-                  <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                  <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
                     <p className="text-[11px] text-slate-600 leading-relaxed">
                       <strong>How far apart two options have to be on a priority before it is allowed to pick between them.</strong> Anything closer than this counts as a tie and the decision passes to whatever you ranked next. Leave a field blank for the default. Smaller means that priority decides more often on its own; larger means it steps aside more often.
                     </p>
@@ -9807,7 +9820,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1">
                 <div>
-                  <label className="text-slate-600 font-semibold block mb-1">Decumulation Policy</label>
+                  <label className="text-slate-600 font-semibold block mb-1">Decumulation policy</label>
                   <select value={plan?.spending?.decumulationPolicy} onChange={(e) => updateSpending('decumulationPolicy', e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                     {Object.entries(E.DECUMULATION_POLICIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                   </select>
@@ -9816,7 +9829,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </span>
                 </div>
                 <div>
-                  <label className="text-slate-600 font-semibold block mb-1">Pension Drawdown Strategy</label>
+                  <label className="text-slate-600 font-semibold block mb-1">Pension drawdown strategy</label>
                   <select value={plan?.spending?.drawdownStrategy} onChange={(e) => updateSpending('drawdownStrategy', e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                     <option value="Phased Drawdown">Phased Drawdown (Ongoing {Math.round(P.pclsProp * 100)}% tax-free proportion)</option>
                     <option value="Full 25% Lump Sum">Full Lump Sum (Upfront statutory PCLS into Cash)</option>
@@ -9853,7 +9866,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* Generated from the policy definition, never written per policy: hand-written copy drifts,
                   and instructions that describe a strategy the engine is not running are worse than none. */}
               <details className="pt-3 border-t border-slate-100" open>
-                <summary className="cursor-pointer text-xs font-bold text-slate-900 uppercase tracking-wider hover:text-blue-700">How to actually follow this policy</summary>
+                <summary className="cursor-pointer text-sm font-semibold text-slate-900 hover:text-slate-900">How to actually follow this policy</summary>
                 <ol className="mt-2 space-y-2">
                   {E.policyPlaybook(plan?.spending?.decumulationPolicy, P).map((step, i) => (
                     <li key={i} className="flex gap-2.5 text-xs">
@@ -9872,7 +9885,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {policyResults && (
                 <div className="pt-3 border-t border-slate-100 space-y-2">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-emerald-600" /> Policy search results: {policyResults.chosenId === policyResults.bestId ? 'recommendation applied above' : 'your choice applied above'}</h3>
+                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-emerald-600" /> Policy search results: {policyResults.chosenId === policyResults.bestId ? 'recommendation applied above' : 'your choice applied above'}</h3>
                     <span className="text-[10px] text-slate-400">{policyResults.rows.length} combinations · {policyResults.seeds ? `${policyResults.seeds.length} runs × ${policyResults.trialsPerSeed.toLocaleString()} paths · seeds ${policyResults.seeds.join(' and ')}` : `${policyResults.trials.toLocaleString()} paths each · seed ${policyResults.seed}`} · {policyResults.rankedBy === 'balanced' ? 'every priority balanced' : policyResults.rankedBy === 'custom' ? 'ranked by your order' : 'ranked survival first'}</span>
                   </div>
                   {/*
@@ -9915,7 +9928,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       const others = card.costs.filter(x => x.key !== 'survive');
                       const base = tag ? applied : rec;
                       return (
-                        <div key={c.id} data-tradeoff={c.id} data-close-call={tag ? '1' : undefined} className={`p-2.5 rounded-xl border text-[11px] flex flex-wrap items-start justify-between gap-2 ${active ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-300' : 'bg-surface border-slate-200'}`}>
+                        <div key={c.id} data-tradeoff={c.id} data-close-call={tag ? '1' : undefined} className={`p-2.5 rounded-lg border text-[11px] flex flex-wrap items-start justify-between gap-2 ${active ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-300' : 'bg-surface border-slate-200'}`}>
                           <div className="min-w-0 flex-1 space-y-0.5">
                             <div className="font-bold text-slate-800">{tag && <span className="text-amber-800 font-semibold mr-1.5">{tag}</span>}{row.label}</div>
                             {card.gains.length ? <div className="text-slate-700">{card.gains.map(g => GAIN[g.key](g)).join('; ')}.</div>
@@ -9935,7 +9948,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     };
                     return (
                       <div className="space-y-2">
-                        <div className="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded-xl text-[11px] text-slate-700">
+                        <div className="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] text-slate-700">
                           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
                             <span><span className="font-bold text-emerald-900">Recommended:</span> {rec.label}</span>
                             <span className="font-mono font-bold text-emerald-800">{survFrom.toFixed(1)}% survival</span>
@@ -9954,7 +9967,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           </div>
                         )}
                         {cards.filter(card => !closeIds.has(card.candidate.id)).length === 0 ? (
-                          <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600">Nothing else beats it by more than the tie threshold on any measure, within the {E.MAX_SURVIVAL_SACRIFICE_PTS}-point survival limit. {closeCall ? 'Beyond the close call above, there is no trade-off to make.' : 'There is no trade-off to make.'}</div>
+                          <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600">Nothing else beats it by more than the tie threshold on any measure, within the {E.MAX_SURVIVAL_SACRIFICE_PTS}-point survival limit. {closeCall ? 'Beyond the close call above, there is no trade-off to make.' : 'There is no trade-off to make.'}</div>
                         ) : (
                           <div className="space-y-1.5">
                             <div className="text-[11px] font-semibold text-slate-700">Alternatives with a real difference</div>
@@ -9970,7 +9983,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {/* Why THIS one won: only the priorities that actually narrowed the field. A priority
                       that never bit did not influence the answer, and claiming it did would be a story. */}
                   {policyResults.steps && (
-                    <div className="p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl text-[11px] text-slate-700 space-y-1">
+                    <div className="p-2.5 bg-blue-50/70 border border-blue-200 rounded-lg text-[11px] text-slate-700 space-y-1">
                       {policyResults.steps.length === 0 ? (
                         <span>Every combination scored the same on all of your priorities, so the simplest setting was kept.</span>
                       ) : policyResults.steps.map((st, i) => (
@@ -9996,7 +10009,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     const nameOf = (k) => (E.PRIORITY_METRICS[k]?.label || k).toLowerCase();
                     const idle = tied.length + notReached.length;
                     return (
-                      <div data-priority-effect className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 space-y-1">
+                      <div data-priority-effect className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600 space-y-1">
                         {tied.map(t => (
                           <div key={t.key} className="flex gap-2">
                             <span className="font-bold text-slate-700 shrink-0">Tied on {nameOf(t.key)}:</span>
@@ -10038,26 +10051,26 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               )}
             </div>
 
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Settings className="w-4 h-4 text-blue-600" /> Global Economic &amp; Calculation Configuration</h2>
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Settings className="w-4 h-4 text-blue-600" /> Global Economic &amp; Calculation Configuration</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-3">
-                <div><label className="text-slate-600 font-semibold block mb-1">Valuation Date (Today)</label><input type="date" value={plan?.config?.valuationDate ?? ''} onChange={(e) => updateConfig('valuationDate', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Year 0 flows are pro-rated to the {(ctx.yf * 100).toFixed(0)}% of the year remaining.</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Headline Inflation CPI (% pa)</label><input type="number" step="0.1" placeholder="2.5" onFocus={handleFocus} value={plan?.config?.inflation ?? ''} onChange={(e) => updateConfig('inflation', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Only used for the nominal display series.</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Personal Pension Access Age (NMPA)</label><input type="number" min="0" max="120" placeholder="58" onFocus={handleFocus} value={plan?.demographics?.privatePensionAge ?? ''} onChange={(e) => updateDemographics('privatePensionAge', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Statutory NMPA is 55 today and 57 from April 2028.</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">State Pension Start Age</label><input type="number" min="0" max="120" placeholder="68" onFocus={handleFocus} value={plan?.demographics?.statePensionAge ?? ''} onChange={(e) => updateDemographics('statePensionAge', e.target.value)} className={inputCls} /></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Valuation date (today)</label><input type="date" value={plan?.config?.valuationDate ?? ''} onChange={(e) => updateConfig('valuationDate', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Year 0 flows are pro-rated to the {(ctx.yf * 100).toFixed(0)}% of the year remaining.</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Headline inflation CPI (% pa)</label><input type="number" step="0.1" placeholder="2.5" onFocus={handleFocus} value={plan?.config?.inflation ?? ''} onChange={(e) => updateConfig('inflation', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Only used for the nominal display series.</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Personal pension access age (NMPA)</label><input type="number" min="0" max="120" placeholder="58" onFocus={handleFocus} value={plan?.demographics?.privatePensionAge ?? ''} onChange={(e) => updateDemographics('privatePensionAge', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Statutory NMPA is 55 today and 57 from April 2028.</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">State Pension start age</label><input type="number" min="0" max="120" placeholder="68" onFocus={handleFocus} value={plan?.demographics?.statePensionAge ?? ''} onChange={(e) => updateDemographics('statePensionAge', e.target.value)} className={inputCls} /></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Tournament bridge safety margin (%)</label><input type="number" min="0" step="5" placeholder="30" onFocus={handleFocus} value={plan?.config?.bridgeSafetyMargin ?? ''} onChange={(e) => updateConfig('bridgeSafetyMargin', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Uplift on the pre-SIPP access reserve, assuming 0% real growth. This scales the bridge <em>target</em> upwards; the tournament's emergency buffer instead holds savings back from counting towards it.</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Pension death-tax haircut (%)</label><input type="number" min="0" max="100" step="5" placeholder="0" onFocus={handleFocus} value={plan?.config?.pensionDeathTaxRate ?? ''} onChange={(e) => updateConfig('pensionDeathTaxRate', parsePercent(e.target.value))} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Applied to pension left at age {terminalAge} for the "net" pot figures only (IHT from April 2027 / beneficiary income tax).</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Monte Carlo seed</label><div className="flex gap-1"><input type="number" value={mcSeed} onChange={(e) => setMcSeed(Math.max(1, parseInt(e.target.value) || 1))} className={inputCls} /><button type="button" onClick={() => setMcSeed(Math.floor(Math.random() * 1e9) + 1)} className="px-2 bg-slate-100 border border-slate-300 rounded-lg text-[11px] font-semibold cursor-pointer hover:bg-slate-200">Reseed</button></div><span className="text-[10px] text-slate-400 mt-1 block">Same seed = same market paths (reproducible, fair comparisons).</span></div>
               </div>
             </div>
 
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4 overflow-x-auto">
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 overflow-x-auto">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-xs font-bold text-blue-700 uppercase tracking-wider">Asset Allocations, Return Matrix &amp; Volatilities (σ)</h3>
+                  <h3 className="text-sm font-semibold text-slate-900">Asset allocations, return matrix &amp; volatilities (σ)</h3>
                   <span className="text-[11px] text-slate-500">Expected real return is treated as the median (geometric) annual rate; Monte Carlo paths are log-normal around it with the stated σ, one market factor for all wrappers. The lucky and unlucky columns are calculated from the expected rate, σ, forecast uncertainty and your {ctx.totalYears}-year horizon, so they are not editable.</span>
                 </div>
-                <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
+                <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
               </div>
 
               {/*
@@ -10089,7 +10102,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 )}
               </div>
               <table className="w-full text-left text-xs border-collapse">
-                <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-2">Allocation Category</th><th className="pb-2">Expected Real Return (% pa)</th><th className="pb-2">Unlucky, 10th %ile (% pa)</th><th className="pb-2">Lucky, 90th %ile (% pa)</th><th className="pb-2">Nominal Return (% pa)</th><th className="pb-2">Annual Volatility (σ % pa)</th><th className="pb-2">Forecast Uncertainty (% pa)</th></tr></thead>
+                <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-2">Allocation category</th><th className="pb-2">Expected real return (% pa)</th><th className="pb-2">Unlucky, 10th %ile (% pa)</th><th className="pb-2">Lucky, 90th %ile (% pa)</th><th className="pb-2">Nominal return (% pa)</th><th className="pb-2">Annual Volatility (σ % pa)</th><th className="pb-2">Forecast uncertainty (% pa)</th></tr></thead>
                 <tbody className="divide-y divide-slate-100 font-mono">
                   {Object.entries(activeRiskMatrix).map(([key, val]) => {
                     // totalYears + 1, not totalYears: stepYear runs t = 0..totalYears inclusive, so the plan
@@ -10115,8 +10128,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </table>
             </div>
 
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
-              <h3 className="text-xs font-bold text-blue-700 uppercase tracking-wider">UK Income Tax, National Insurance &amp; Pension Allowances</h3>
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+              <h3 className="text-sm font-semibold text-slate-900">UK Income Tax, National Insurance &amp; Pension Allowances</h3>
               <p className="text-[11px] text-slate-500">Defaults are 2025/26 (frozen to April 2028), and all thresholds are held constant in real terms.</p>
               <div className="pb-1">
                 <label className="text-slate-600 font-semibold block mb-1 text-xs">Where you pay income tax</label>
@@ -10154,13 +10167,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 ))}
               </div>
               <div className="pt-3 border-t border-slate-100">
-                <button type="button" onClick={() => setShowAdvancedConfig(v => !v)} className="text-[11px] font-bold text-slate-600 hover:text-slate-900 uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
+                <button type="button" onClick={() => setShowAdvancedConfig(v => !v)} className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 uppercase tracking-[0.08em] flex items-center gap-1.5 cursor-pointer">
                   <Settings className="w-3.5 h-3.5" /> Advanced inputs {showAdvancedConfig ? '▾' : '▸'}
                   <span className="font-normal normal-case tracking-normal text-slate-400">(niche settings most plans leave at the default)</span>
                 </button>
                 {showAdvancedConfig && (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono mt-3">
-                    <div><span className="text-slate-600 font-sans font-semibold block mb-1">Employer NIC Passed to Pension (%)</span><input type="number" min="0" placeholder={String(E.DEFAULT_CONFIG.employerNicPassThrough)} onFocus={handleFocus} value={plan?.config?.employerNicPassThrough ?? ''} onChange={(e) => updateConfig('employerNicPassThrough', e.target.value)} className={smallInputCls} /><span className="text-[10px] text-slate-400 font-sans mt-1 block">Share of the employer's NIC saving added to a salary-sacrifice contribution.</span></div>
+                    <div><span className="text-slate-600 font-sans font-semibold block mb-1">Employer NIC passed to pension (%)</span><input type="number" min="0" placeholder={String(E.DEFAULT_CONFIG.employerNicPassThrough)} onFocus={handleFocus} value={plan?.config?.employerNicPassThrough ?? ''} onChange={(e) => updateConfig('employerNicPassThrough', e.target.value)} className={smallInputCls} /><span className="text-[10px] text-slate-400 font-sans mt-1 block">Share of the employer's NIC saving added to a salary-sacrifice contribution.</span></div>
                   </div>
                 )}
               </div>
@@ -10174,19 +10187,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {activeTab === 'projection' && (
           <div className="space-y-6">
 
-            <div className="bg-surface border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-3">
+            <div className="bg-surface border border-slate-200/90 rounded-xl p-5 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Run the projection</h3>
+                  <h3 className="text-sm font-semibold text-slate-900">Run the projection</h3>
                   <span className="text-[11px] text-slate-500">{simResult ? 'Six steps: what your plan does, the most you could spend, the earliest you could stop, the two ways of drawing the range, then both side by side.' : 'Answers arrive as they land, so the first is on screen while the rest is still working. Every figure is in today\u2019s money.'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {mcBusy && (
-                    <button type="button" onClick={handleCancelMC} className="px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">Stop</button>
+                    <button type="button" onClick={handleCancelMC} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">Stop</button>
                   )}
                   <button onClick={handleRunAll} disabled={mcBusy}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 dark:from-[#2C5C8F] dark:to-[#A9781F] dark:hover:from-[#204568] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-60">
-                    <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300 dark:fill-[#FCD34D] dark:text-[#FCD34D]" />
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
+                    <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
                     {isSimulating && !isOptimizing ? 'Testing…' : isOptimizing ? 'Solving…' : tournament.isEvaluating ? 'Comparing…' : '⚡ Run the projection'}
                   </button>
                 </div>
@@ -10200,31 +10213,31 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
             {/* Nothing but the button until there is something to show. */}
             {!simResult ? (
-              <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-2xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
+              <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
                 <div className="flex items-center gap-2 font-bold text-blue-950 text-sm"><Layers className="w-4 h-4 text-blue-600" /> What you will get</div>
                 <p className="leading-relaxed">Six steps. What your plan does as entered, the most you could safely spend instead, the earliest you could stop working, then the same range drawn two ways &mdash; compounded from the return assumptions, and read off {MC_TRIALS.toLocaleString()} randomised paths &mdash; and finally the two side by side. Every figure is in today&rsquo;s money.</p>
               </div>
             ) : (
             <>
               {isCouple && (
-                <div className="bg-surface border border-slate-200/90 rounded-2xl p-4 shadow-xs flex flex-wrap items-center gap-2">
+                <div className="bg-surface border border-slate-200/90 rounded-xl p-4 flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-500 font-semibold">Whose money:</span>
                   {['Combined', 'Myself', 'Partner'].map(pv => (
-                    <button key={pv} onClick={() => setPlan(prev => ({ ...prev, activeProfileView: pv }))} className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${plan?.activeProfileView === pv ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:text-slate-900'}`}>{pv}</button>
+                    <button key={pv} onClick={() => setPlan(prev => ({ ...prev, activeProfileView: pv }))} className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${plan?.activeProfileView === pv ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'}`}>{pv}</button>
                   ))}
                 </div>
               )}
 
               {/* ---------------- 1. TOPLINE ---------------- */}
               {showSlide(1) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                   {slideHead(1, 'Your plan as entered', `Spending ${formatGBP(simResult.spend)} a year to age ${terminalAge}.`)}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Survival rate</span><span className={`text-xl font-black font-mono ${simResult.successRate >= 90 ? 'text-emerald-700' : simResult.successRate >= 75 ? 'text-amber-700' : 'text-rose-700'}`}>{simResult.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">&plusmn;{(1.96 * simResult.standardError).toFixed(1)} pts</span></div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Pot at retirement</span><span className="text-xl font-black font-mono text-indigo-700">{formatGBP(timelineData.find(r => r.ageSelf === ctx.owners[0].retireAge)?.totalCombined)}</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">age {ctx.owners[0].retireAge}, expected path</span></div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-black font-mono text-blue-700">{formatGBP(simResult.medianTerminal)}</span>{ctx.pensionDeathTaxRate > 0 && <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">net of death tax {formatGBP(simResult.medianTerminalNet)}</span>}</div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Unlucky pot @ {terminalAge}</span><span className="text-xl font-black font-mono text-rose-700">{formatGBP(simResult.p10Terminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">one plan in ten ends below</span></div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Pre-access failures</span><span className={`text-xl font-black font-mono ${simResult.preNmpaFailRate > 5 ? 'text-rose-700' : 'text-slate-700'}`}>{simResult.preNmpaFailRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">stranded before {nmpa}</span></div>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Survival rate</span><span className={`text-xl font-semibold font-mono ${simResult.successRate >= 90 ? 'text-emerald-700' : simResult.successRate >= 75 ? 'text-amber-700' : 'text-rose-700'}`}>{simResult.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">&plusmn;{(1.96 * simResult.standardError).toFixed(1)} pts</span></div>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Pot at retirement</span><span className="text-xl font-semibold text-indigo-700">{formatGBP(timelineData.find(r => r.ageSelf === ctx.owners[0].retireAge)?.totalCombined)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">age {ctx.owners[0].retireAge}, expected path</span></div>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-semibold text-blue-700">{formatGBP(simResult.medianTerminal)}</span>{ctx.pensionDeathTaxRate > 0 && <span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">net of death tax {formatGBP(simResult.medianTerminalNet)}</span>}</div>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Unlucky pot @ {terminalAge}</span><span className="text-xl font-semibold text-rose-700">{formatGBP(simResult.p10Terminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">one plan in ten ends below</span></div>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Pre-access failures</span><span className={`text-xl font-semibold font-mono ${simResult.preNmpaFailRate > 5 ? 'text-rose-700' : 'text-slate-700'}`}>{simResult.preNmpaFailRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">stranded before {nmpa}</span></div>
                   </div>
                   <p className="text-[11px] text-slate-500 leading-relaxed">
                     <strong className={simResult.successRate >= 90 ? 'text-emerald-700' : simResult.successRate >= 75 ? 'text-amber-700' : 'text-rose-700'}>{formatGBP(simResult.spend)} a year held in {simResult.successRate.toFixed(1)}% of {simResult.trials.toLocaleString()} futures.</strong>{' '}
@@ -10238,14 +10251,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               {/* ---------------- 2. SAFE SPEND ---------------- */}
               {showSlide(2) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                   {slideHead(2, 'The most you could spend', 'Holds the risk fixed and solves for the income instead.')}
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="text-slate-500 font-semibold">Survive at least:</span>
-                    <div className="flex items-center bg-slate-100 border border-slate-200 rounded-xl p-1">
+                    <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
                       {[85, 90, 95, 99].map(rate => (
                         <button key={rate} type="button" disabled={mcBusy} onClick={() => { setTargetSurvivalRate(rate); handleResolveSafeMax(rate); }}
-                          className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${targetSurvivalRate === rate ? 'bg-surface text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>{rate}%</button>
+                          className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${targetSurvivalRate === rate ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>{rate}%</button>
                       ))}
                     </div>
                     {isOptimizing && <span className="text-slate-400">solving&hellip;</span>}
@@ -10253,10 +10266,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {safeMaxResult ? (
                     <>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Safe maximum</span><span className="text-xl font-black font-mono text-emerald-700">{formatGBP(safeMaxResult.spend)}</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">a year, today&rsquo;s money</span></div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Against your {formatGBP(simResult.spend)}</span><span className={`text-xl font-black font-mono ${safeMaxResult.spend >= simResult.spend ? 'text-emerald-700' : 'text-rose-700'}`}>{safeMaxResult.spend >= simResult.spend ? '+' : '−'}{formatGBP(Math.abs(safeMaxResult.spend - simResult.spend))}</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">a year {safeMaxResult.spend >= simResult.spend ? 'more' : 'less'}</span></div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className="text-xl font-black font-mono text-emerald-700">{safeMaxResult.stats.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">at or above the {targetSurvivalRate}% asked for</span></div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-black font-mono text-blue-700">{formatGBP(safeMaxResult.stats.medianTerminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">spending the maximum</span></div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Safe maximum</span><span className="text-xl font-semibold text-emerald-700">{formatGBP(safeMaxResult.spend)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year, today&rsquo;s money</span></div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Against your {formatGBP(simResult.spend)}</span><span className={`text-xl font-semibold font-mono ${safeMaxResult.spend >= simResult.spend ? 'text-emerald-700' : 'text-rose-700'}`}>{safeMaxResult.spend >= simResult.spend ? '+' : '−'}{formatGBP(Math.abs(safeMaxResult.spend - simResult.spend))}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year {safeMaxResult.spend >= simResult.spend ? 'more' : 'less'}</span></div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className="text-xl font-semibold text-emerald-700">{safeMaxResult.stats.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">at or above the {targetSurvivalRate}% asked for</span></div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-semibold text-blue-700">{formatGBP(safeMaxResult.stats.medianTerminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">spending the maximum</span></div>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-relaxed">
                         {safeMaxResult.stats.note
@@ -10273,18 +10286,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               {/* ---------------- 3. SAFE RETIREMENT AGE ---------------- */}
               {showSlide(3) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                   {slideHead(3, 'The earliest you could stop', 'Holds the spending fixed and solves for the retirement age instead.')}
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="text-slate-500 font-semibold">Survive at least:</span>
-                    <div className="flex items-center bg-slate-100 border border-slate-200 rounded-xl p-1">
+                    <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
                       {[85, 90, 95, 99].map(rate => (
                         <button key={rate} type="button" disabled={mcBusy || isSolvingRetire} onClick={() => { setTargetSurvivalRate(rate); handleSolveRetirement(rate); }}
-                          className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${targetSurvivalRate === rate ? 'bg-surface text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>{rate}%</button>
+                          className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${targetSurvivalRate === rate ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>{rate}%</button>
                       ))}
                     </div>
                     <button type="button" disabled={mcBusy || isSolvingRetire} onClick={() => handleSolveRetirement(targetSurvivalRate)}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-white hover:bg-slate-900 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-white hover:bg-slate-900 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                       {isSolvingRetire ? 'Scanning…' : safeRetireResult ? 'Solve again' : 'Solve for the age'}
                     </button>
                     {isSolvingRetire && <span className="text-slate-400">a run per candidate age, so this one takes a moment</span>}
@@ -10306,10 +10319,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   ) : (
                     <>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Earliest safe retirement</span><span className="text-xl font-black font-mono text-emerald-700">Age {safeRetireResult.age}</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">you entered {safeRetireResult.planned}</span></div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Against your plan</span><span className={`text-xl font-black font-mono ${safeRetireResult.yearsEarlier > 0 ? 'text-emerald-700' : safeRetireResult.yearsEarlier < 0 ? 'text-rose-700' : 'text-slate-700'}`}>{safeRetireResult.yearsEarlier > 0 ? '−' : safeRetireResult.yearsEarlier < 0 ? '+' : ''}{Math.abs(safeRetireResult.yearsEarlier)} {Math.abs(safeRetireResult.yearsEarlier) === 1 ? 'year' : 'years'}</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">{safeRetireResult.yearsEarlier > 0 ? 'sooner than entered' : safeRetireResult.yearsEarlier < 0 ? 'later than entered' : 'the age you entered'}</span></div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className={`text-xl font-black font-mono ${safeRetireResult.verified ? 'text-emerald-700' : 'text-rose-700'}`}>{safeRetireResult.rate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">{safeRetireResult.verified ? `at or above the ${safeRetireResult.targetRate}% asked for` : `short of the ${safeRetireResult.targetRate}% asked for`}</span></div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80"><span className="text-slate-500 block mb-0.5">What stops you going earlier</span><span className="text-sm font-black text-slate-800 leading-tight block mt-1">{safeRetireResult.boundBy === 'bridge to pension access' ? 'Reaching the pension' : safeRetireResult.boundBy === 'current age' ? 'Nothing — today is the answer' : 'The money running out'}</span><span className="text-[10px] text-slate-400 block mt-0.5 font-mono">{safeRetireResult.below ? `at ${safeRetireResult.below.age} it is ${safeRetireResult.below.rate.toFixed(1)}%` : 'you cannot retire in the past'}</span></div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Earliest safe retirement</span><span className="text-xl font-semibold text-emerald-700">Age {safeRetireResult.age}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">you entered {safeRetireResult.planned}</span></div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Against your plan</span><span className={`text-xl font-semibold font-mono ${safeRetireResult.yearsEarlier > 0 ? 'text-emerald-700' : safeRetireResult.yearsEarlier < 0 ? 'text-rose-700' : 'text-slate-700'}`}>{safeRetireResult.yearsEarlier > 0 ? '−' : safeRetireResult.yearsEarlier < 0 ? '+' : ''}{Math.abs(safeRetireResult.yearsEarlier)} {Math.abs(safeRetireResult.yearsEarlier) === 1 ? 'year' : 'years'}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">{safeRetireResult.yearsEarlier > 0 ? 'sooner than entered' : safeRetireResult.yearsEarlier < 0 ? 'later than entered' : 'the age you entered'}</span></div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className={`text-xl font-semibold font-mono ${safeRetireResult.verified ? 'text-emerald-700' : 'text-rose-700'}`}>{safeRetireResult.rate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">{safeRetireResult.verified ? `at or above the ${safeRetireResult.targetRate}% asked for` : `short of the ${safeRetireResult.targetRate}% asked for`}</span></div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">What stops you going earlier</span><span className="text-sm font-black text-slate-800 leading-tight block mt-1">{safeRetireResult.boundBy === 'bridge to pension access' ? 'Reaching the pension' : safeRetireResult.boundBy === 'current age' ? 'Nothing — today is the answer' : 'The money running out'}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">{safeRetireResult.below ? `at ${safeRetireResult.below.age} it is ${safeRetireResult.below.rate.toFixed(1)}%` : 'you cannot retire in the past'}</span></div>
                       </div>
 
                       {retireCurve}
@@ -10323,7 +10336,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       </p>
 
                       {retireNotes?.bridge && (
-                        <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-[11px] text-slate-700 leading-relaxed space-y-1.5">
+                        <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-lg text-[11px] text-slate-700 leading-relaxed space-y-1.5">
                           <div className="flex items-center gap-2 font-bold text-amber-900 text-xs"><AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> This is a bridge problem, not a saving problem</div>
                           <p>Going earlier than {safeRetireResult.age} does not fail because the money runs out &mdash; it fails because it is locked. At {safeRetireResult.below.age}, {safeRetireResult.below.preNmpaFailRate.toFixed(1)}% of paths are stranded before the pension unlocks at {nmpa}. <strong>Your ISA bridge is not big enough to carry the gap.</strong> More total saving will not fix that on its own; the same money held where you can reach it before {nmpa} would.</p>
                           <p>Worth testing: move some contribution from the pension to the ISA, or bring the ISA balance up, and re-run. <button type="button" onClick={() => { setSeeAll(false); setSlide(6); setSandboxRevealed(true); }} className="font-bold text-amber-900 underline hover:text-amber-950 cursor-pointer">The sandbox after step 6</button> lets you change both without touching your saved plan.</p>
@@ -10331,7 +10344,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       )}
 
                       {retireNotes?.statePension && (
-                        <div className={`p-3 rounded-xl text-[11px] leading-relaxed ${retireNotes.statePension.level === 'hard' ? 'bg-rose-50/80 border border-rose-200 text-slate-700' : 'bg-slate-50 border border-slate-200 text-slate-600'}`}>
+                        <div className={`p-3 rounded-lg text-[11px] leading-relaxed ${retireNotes.statePension.level === 'hard' ? 'bg-rose-50/80 border border-rose-200 text-slate-700' : 'bg-slate-50 border border-slate-200 text-slate-600'}`}>
                           {retireNotes.statePension.level === 'none' ? (
                             <><strong className="text-slate-800">No State Pension is entered</strong>, so this answer does not lean on one. If you expect one from {retireNotes.statePension.spa}, entering it will bring the age down.</>
                           ) : retireNotes.statePension.level === 'hard' ? (
@@ -10349,11 +10362,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               {/* ---------------- 4. RATE-BASED CHART ---------------- */}
               {showSlide(4) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                   {slideHead(4, 'Rate based', 'One steady rate per wrapper, compounded. Redraws as you type.')}
                   <div className="flex flex-wrap items-center gap-3">
                     {bandToggle}
-                    <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
+                    <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
                       <span className="text-slate-600 whitespace-nowrap">Horizon: <strong>Age {effectiveMaxVisibleAge}</strong></span>
                       <input type="range" min={currentAge + 1} max={terminalAge} value={effectiveMaxVisibleAge} onChange={(e) => setMaxVisibleAge(Number(e.target.value))} className="w-32 sm:w-40 accent-blue-600 cursor-pointer" />
                     </div>
@@ -10370,11 +10383,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               {/* ---------------- 5. MONTE CARLO CHART ---------------- */}
               {showSlide(5) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                   {slideHead(5, 'Monte Carlo', `${simResult.trials.toLocaleString()} randomised futures, same axes as the last screen.`)}
                   <div className="flex flex-wrap items-center gap-3">
                     {bandToggle}
-                    <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
+                    <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
                       <span className="text-slate-600 whitespace-nowrap">Horizon: <strong>Age {effectiveMaxVisibleAge}</strong></span>
                       <input type="range" min={currentAge + 1} max={terminalAge} value={effectiveMaxVisibleAge} onChange={(e) => setMaxVisibleAge(Number(e.target.value))} className="w-32 sm:w-40 accent-blue-600 cursor-pointer" />
                     </div>
@@ -10393,10 +10406,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               {/* ---------------- 6. SIDE BY SIDE ---------------- */}
               {showSlide(6) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                   {slideHead(6, 'Side by side', 'The same plan, both ways, at the same five points.')}
                   {compareRows2 && (
-                    <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                    <div className="overflow-x-auto border border-slate-200 rounded-lg">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans">
                           <tr>
@@ -10431,7 +10444,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     Read the <strong>Difference</strong> column downward. The two methods agree near the middle and part company at the bottom: the rate-based figures sit above the Monte Carlo ones precisely where the plan is under most strain, because that is where being unable to go bust flatters you most. Everything here is in today&rsquo;s money.
                   </p>
                   {sequenceLoss && sequenceLoss.state === 'loss' && (
-                    <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-[11px] text-slate-600 leading-relaxed">
+                    <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3 text-[11px] text-slate-600 leading-relaxed">
                       <strong className="text-rose-700">{formatGBP(sequenceLoss.gapLow)} of that gap is order alone.</strong> An unlucky <em>rate</em> arriving evenly leaves {formatGBP(sequenceLoss.smoothLow)}; one plan in ten actually ends below {formatGBP(sequenceLoss.actualLow)}. Same average return, different order of arrival.
                     </div>
                   )}
@@ -10444,7 +10457,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
             {/* Saved scenarios overlay on whichever chart is showing, and the table ranks them against each
                 other. Kept outside the five steps: it compares PLANS, where the steps compare methods. */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
             {scenarios.filter(s => s.id !== activeScenarioId).length > 0 && (
               <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
                 <span className="text-xs text-slate-500 font-semibold whitespace-nowrap">Compare saved scenarios:</span>
@@ -10453,7 +10466,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   const atCap = !run && selectedCompare.length >= MAX_COMPARE;
                   return (
                     <button key={s.id} type="button" disabled={atCap} onClick={() => toggleCompare(s.id)} title={atCap ? `Up to ${MAX_COMPARE} at once` : s.name}
-                      className={`px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition-all border max-w-[16rem] ${run ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold cursor-pointer' : atCap ? 'bg-surface border-slate-200 text-slate-300 cursor-not-allowed' : 'bg-surface border-slate-200 text-slate-500 opacity-70 cursor-pointer hover:opacity-100'}`}>
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all border max-w-[16rem] ${run ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold cursor-pointer' : atCap ? 'bg-surface border-slate-200 text-slate-300 cursor-not-allowed' : 'bg-surface border-slate-200 text-slate-500 opacity-70 cursor-pointer hover:opacity-100'}`}>
                       <span className="w-2.5 h-2.5 rounded-full shrink-0 border" style={{ backgroundColor: run ? run.tone : 'transparent', borderColor: run ? run.tone : 'currentColor' }} />
                       <span className="truncate">{s.name}</span>{run && <Check className="w-3 h-3 text-slate-600 shrink-0" />}
                     </button>
@@ -10464,12 +10477,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             )}
             </div>
             {selectedCompare.length > 0 && (
-              <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
+              <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Scenario Comparison</h2>
+                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Scenario Comparison</h2>
                   <span className="text-xs text-slate-500">Every figure on the expected-return path, in today&rsquo;s money. Each scenario&rsquo;s retirement pot is read at its own retirement age. Click a column to sort.</span>
                 </div>
-                <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                <div className="overflow-x-auto border border-slate-200 rounded-lg">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans">
                       <tr>
@@ -10525,10 +10538,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div ref={sandboxRef} style={{ scrollMarginTop: 12 }} className="space-y-6">
                 {renderSandboxPanel()}
                 {simResult && (
-                  <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs flex flex-wrap items-center justify-between gap-3">
+                  <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
                     <span className="text-[11px] text-slate-500">Changed something? Run it again and the five steps come back with every figure refreshed.</span>
                     <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
-                      className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 dark:from-[#2C5C8F] dark:to-[#A9781F] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-60">
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                       <RotateCcw className="w-3.5 h-3.5" /> {mcBusy ? 'Running…' : 'Rerun projections'}
                     </button>
                   </div>
@@ -10541,7 +10554,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 5: STRATEGY - which split of the money wins, rather than what the outcome is */}
         {activeTab === 'strategy' && (
           <div className="space-y-6">
-            <div className="p-4 bg-indigo-50/80 border border-indigo-200 rounded-2xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
+            <div className="p-4 bg-indigo-50/80 border border-indigo-200 rounded-xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
               <div className="flex items-center gap-2 font-bold text-indigo-950 text-sm"><Zap className="w-4 h-4 text-indigo-600" /> Strategy Tournament</div>
               <p className="leading-relaxed">A different question from the one the Projection tab answers. That one asks what happens to your plan; this asks whether a <strong>different split of the same money</strong> would do better. Your spending and your total budget are held fixed, the budget is re-divided between wrappers, and every strategy is scored on identical market paths so the comparison is like for like.</p>
               <p className="text-slate-500 text-[11px] leading-relaxed">Nothing here changes your plan on its own. Applying a winning strategy is a separate, deliberate click, and it lands in the Sandbox on the Projection tab so you can see it drawn before committing it.</p>
@@ -10559,8 +10572,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 5: HISTORICAL */}
         {SHOW_INHERITANCE && activeTab === 'inheritance' && (
           <div className="space-y-6" data-estate-deck>
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3 text-xs text-slate-600 leading-relaxed">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> What your heirs actually receive</h2>
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3 text-xs text-slate-600 leading-relaxed">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> What your heirs actually receive</h2>
               <p>The projection reports the pot you leave. This reports what reaches the people you leave it to, which is a different number. Two things separate them: from 6 April 2027 an unused pension counts as part of your estate for inheritance tax, and if you die at 75 or over your beneficiaries then pay their own income tax on what they draw from it — on top of the tax the estate already paid.</p>
               <p className="text-slate-500">So <strong>which wrapper the money sits in now changes what it is worth to them</strong>, and so does when you die and who inherits. Nothing here is advice; the figures are illustrations built from the rules in Config, which you can change.</p>
               <button type="button" onClick={() => goToDoc('doc-inheritance')} className="text-[11px] text-purple-700 hover:text-purple-900 hover:underline font-semibold flex items-center gap-1 cursor-pointer"><HelpCircle className="w-3.5 h-3.5" /> The rules, and what is not modelled &rarr;</button>
@@ -10573,10 +10586,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
             {showEstateStep(4) && (<>
             {/* ---------- the estate optimiser ---------- */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4" data-estate-optimiser>
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4" data-estate-optimiser>
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> Most efficient estate allocation</h2>
+                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> Most efficient estate allocation</h2>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">The choices you can still make &mdash; draw order, how far up the bands, a gift, the pension nomination, moving money between wrappers &mdash; ranked on one number: <strong>what your heirs keep</strong>, after inheritance tax and after their own income tax on an inherited pension drawn over {estatePlan ? estatePlan.spreadYears : E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years.</p>
                 </div>
                 <div className="shrink-0 flex items-center gap-2">
@@ -10585,7 +10598,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {estatePlan && (
                     <button type="button" data-fold-all
                       onClick={() => setEstateFolded(prev => prev.size ? new Set() : new Set(ESTATE_CARD_KEYS))}
-                      className="px-3 py-1.5 bg-surface border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer">
+                      className="px-3 py-1.5 bg-surface border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer">
                       {estateFolded.size
                         ? <><ChevronDown className="w-3.5 h-3.5" /> Expand all</>
                         : <><ChevronUp className="w-3.5 h-3.5" /> Collapse all</>}
@@ -10594,18 +10607,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {/* kept as a re-run rather than a gate: the search has already happened by the time
                       this is on screen, and after applying you want to price what is left */}
                   <button type="button" onClick={() => { lastEstateRun.current = ''; handleOptimizeEstate(); }} data-optimise-estate
-                    className="px-3 py-1.5 bg-surface border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer">
+                    className="px-3 py-1.5 bg-surface border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer">
                     <RotateCcw className="w-3.5 h-3.5" /> Search again
                   </button>
                 </div>
               </div>
-              {estateError && <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800">{estateError}</div>}
+              {estateError && <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-800">{estateError}</div>}
               {estatePlan && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl"><span className="text-[10px] font-bold uppercase tracking-wider block text-slate-500 mb-1">As it stands</span><div className="text-lg font-bold font-mono text-slate-900">{formatGBP(estatePlan.baseline.net)}</div></div>
-                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl"><span className="text-[10px] font-bold uppercase tracking-wider block text-emerald-700 mb-1">Best found</span><div className="text-lg font-bold font-mono text-emerald-800">{formatGBP(estatePlan.best.net)}</div></div>
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl"><span className="text-[10px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Difference</span><div className={`text-lg font-bold font-mono ${estatePlan.gain > 0 ? 'text-emerald-700' : 'text-slate-500'}`}>{estatePlan.gain > 0 ? '+' : ''}{formatGBP(estatePlan.gain)}</div><span className="text-[10px] text-slate-400">priced at death at {estatePlan.deathAge}</span></div>
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg"><span className="text-[10px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">As it stands</span><div className="text-lg font-bold font-mono text-slate-900">{formatGBP(estatePlan.baseline.net)}</div></div>
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg"><span className="text-xs font-semibold block text-emerald-700 mb-1">Best found</span><div className="text-lg font-bold font-mono text-emerald-800">{formatGBP(estatePlan.best.net)}</div></div>
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg"><span className="text-[10px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Difference</span><div className={`text-lg font-bold font-mono ${estatePlan.gain > 0 ? 'text-emerald-700' : 'text-slate-500'}`}>{estatePlan.gain > 0 ? '+' : ''}{formatGBP(estatePlan.gain)}</div><span className="text-[10px] text-slate-400">priced at death at {estatePlan.deathAge}</span></div>
                   </div>
 
                   {/* The answer as a list of things to do, not as a label. An allocation nobody can act
@@ -10624,7 +10637,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     * reasons this can happen now say so, with the arithmetic.
                     */}
                   {estatePlan.nothingToLeave && (
-                    <div className="p-3.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 space-y-2" data-nothing-to-leave>
+                    <div className="p-3.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 space-y-2" data-nothing-to-leave>
                       <div className="text-[12px] font-bold">
                         {estatePlan.nothingToLeave.ranOut
                           ? `Your plan runs out before you die, so there is nothing to leave.`
@@ -10633,7 +10646,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <SumRows rows={estatePlan.nothingToLeave.sum} tone="amber" />
                       <div className="text-[10px] text-amber-700 leading-relaxed">
                         {estatePlan.nothingToLeave.ranOut
-                          ? <>Nothing below can change that &mdash; a tax choice cannot create money that was already spent. Lower your spending, raise <em>Plan to Age</em>, or change the age you expect to die on step 1, and this page will have something to work with.</>
+                          ? <>Nothing below can change that &mdash; a tax choice cannot create money that was already spent. Lower your spending, raise <em>Plan to age</em>, or change the age you expect to die on step 1, and this page will have something to work with.</>
                           : <>The steps below are still worth following for what they save you in <em>income</em> tax while you are alive, but no route can beat another on inheritance tax when there is none to pay.</>}
                       </div>
                     </div>
@@ -10644,7 +10657,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         ages disagree AND the route is what causes the later shortfall, say it here, at the
                         top of the thing being recommended, with both ages and the way to change either. */}
                     {estatePlan.afterDeath && (
-                      <div className="p-3 rounded-xl border border-amber-300 bg-amber-50 text-[11px] text-amber-900 space-y-1" data-after-death>
+                      <div className="p-3 rounded-lg border border-amber-300 bg-amber-50 text-[11px] text-amber-900 space-y-1" data-after-death>
                         <div className="font-bold text-[12px]">This route is costed to age {estatePlan.afterDeath.deathAge}, not to age {estatePlan.afterDeath.terminalAge}.</div>
                         <div>
                           You told the Inheritance tab you die at <strong>{estatePlan.afterDeath.deathAge}</strong>, so that is how long it checked you could afford this.
@@ -10679,7 +10692,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             const sec = { g: a.group, n: String(i + 1) };
                             const t = tone(a.group);
                             return (
-                            <li key={a.key} className={`p-3 rounded-xl border flex gap-2.5 ${t.bg}`} data-action-group={a.group}>
+                            <li key={a.key} className={`p-3 rounded-lg border flex gap-2.5 ${t.bg}`} data-action-group={a.group}>
                               <span className={`shrink-0 w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center mt-0.5 ${t.pip}`}>{sec.n}</span>
                               <div className="min-w-0 flex-1 space-y-1.5">
                                 <div className={`text-[13px] font-bold leading-snug ${sec.g === 'gift' ? 'text-purple-950' : 'text-emerald-950'}`}>{a.title}</div>
@@ -10778,7 +10791,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         second-guess it upwards, which is the one direction the search has already
                         proved wrong. */}
                         {estatePlan.giftRationale && estatePlan.giftRationale.given > 0 && (
-                          <div className="p-3 bg-purple-50/60 border border-purple-200 rounded-xl text-[11px] text-purple-900 space-y-1" data-gift-rationale>
+                          <div className="p-3 bg-purple-50/60 border border-purple-200 rounded-lg text-[11px] text-purple-900 space-y-1" data-gift-rationale>
                             <div><strong>Why {formatGBP(estatePlan.giftRationale.given)} and not more.</strong> Giving this much is worth <strong>{formatGBP(estatePlan.giftRationale.worth)}</strong> against making no gift at all.</div>
                             {estatePlan.giftRationale.bandBack > 0 && (
                               <div><strong>{formatGBP(estatePlan.giftRationale.certain)} of that is certain</strong> whatever happens next: it restores {formatGBP(estatePlan.giftRationale.bandBack)} of residence allowance, and that test looks at what you <em>owned at death</em>, so the allowance returns the day the gift is made. The other {formatGBP(estatePlan.giftRationale.needsSeven)} needs you to survive seven years.</div>
@@ -10839,17 +10852,17 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         )}
                     {/* and the same question when the answer is no gift at all */}
                     {estatePlan.giftRationale && estatePlan.giftRationale.given <= 0 && estatePlan.giftRationale.bestRejected && (
-                      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-700" data-gift-rationale>
+                      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-700" data-gift-rationale>
                         <strong>No gift, and that is the answer rather than an omission.</strong> The best gift the search could find was {formatGBP(estatePlan.giftRationale.bestRejected.amount)}, and it would leave your heirs {formatGBP(estatePlan.giftRationale.bestRejected.cost)} worse off. Every size between nothing and everything you hold outside the pension was priced.
                       </div>
                     )}
                     {/* 3. what those two add up to: the same working the Inheritance tab shows, but for
                         the plan being recommended rather than the one you are on */}
                     {estatePlan.bestEst && (
-                      <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-recommended-workings>
+                      <div className="p-3.5 bg-surface border border-slate-200 rounded-lg space-y-3" data-recommended-workings>
                         <button type="button" onClick={() => toggleEstateCard('workings')} aria-expanded={estateOpen('workings')}
                           data-fold-toggle="workings" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
-                          <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                          <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                             <span className="shrink-0 w-4 h-4 rounded-full bg-purple-600 text-white text-[9px] font-bold flex items-center justify-center">=</span>
                             <span className="flex-1">What that comes to, if you die at {estatePlan.deathAge}</span>
                             {/* the answer itself stays on the folded header: it is the one figure worth
@@ -10885,9 +10898,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           </table>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
-                          <div className="p-2 bg-slate-50 border border-slate-200 rounded-lg"><span className="block text-[10px] text-slate-500 font-semibold uppercase tracking-wider">From the estate</span><span className="font-mono font-bold text-slate-800">{formatGBP(estatePlan.bestEst.netToBeneficiaries)}</span></div>
-                          <div className="p-2 bg-purple-50 border border-purple-200 rounded-lg"><span className="block text-[10px] text-purple-600 font-semibold uppercase tracking-wider">Given in your lifetime</span><span className="font-mono font-bold text-purple-800">{formatGBP(estatePlan.bestEst.giftsToHeirs)}</span></div>
-                          <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg"><span className="block text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">Your heirs keep</span><span className="font-mono font-bold text-emerald-800">{formatGBP(estatePlan.best.net)}</span></div>
+                          <div className="p-2 bg-slate-50 border border-slate-200 rounded-lg"><span className="block text-[10px] text-slate-500 font-semibold uppercase tracking-[0.08em]">From the estate</span><span className="font-mono font-bold text-slate-800">{formatGBP(estatePlan.bestEst.netToBeneficiaries)}</span></div>
+                          <div className="p-2 bg-purple-50 border border-purple-200 rounded-lg"><span className="block text-xs text-purple-600 font-semibold">Given in your lifetime</span><span className="font-mono font-bold text-purple-800">{formatGBP(estatePlan.bestEst.giftsToHeirs)}</span></div>
+                          <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg"><span className="block text-xs text-emerald-600 font-semibold">Your heirs keep</span><span className="font-mono font-bold text-emerald-800">{formatGBP(estatePlan.best.net)}</span></div>
                         </div>
                         {/*
                           * Who ends up with it, under THIS route.
@@ -10929,10 +10942,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     )}
                     {/* the routes a person would actually have weighed, each priced the same way */}
                     {estatePlan.alternatives && (
-                      <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-alternatives>
+                      <div className="p-3.5 bg-surface border border-slate-200 rounded-lg space-y-3" data-alternatives>
                         <button type="button" onClick={() => toggleEstateCard('alternatives')} aria-expanded={estateOpen('alternatives')}
                           data-fold-toggle="alternatives" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
-                          <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                          <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                             <span className="flex-1">Why not one of the others</span>
                             <span className="shrink-0 font-semibold normal-case tracking-normal text-slate-500 text-[10px]">{estatePlan.alternatives.length} priced</span>
                             <ChevronDown className={`shrink-0 w-3.5 h-3.5 text-slate-400 transition-transform ${estateOpen('alternatives') ? '' : '-rotate-90'}`} />
@@ -10976,10 +10989,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     * audit trail, not the answer: worth keeping, not worth reading first. The header
                     * says what is inside so a reader can tell whether to open it.
                     */}
-                  <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-search-detail>
+                  <div className="p-3.5 bg-surface border border-slate-200 rounded-lg space-y-3" data-search-detail>
                     <button type="button" onClick={() => toggleEstateCard('search')} aria-expanded={estateOpen('search')}
                       data-fold-toggle="search" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
-                      <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                         <span className="flex-1">How this is calculated</span>
                         <span className="shrink-0 font-semibold normal-case tracking-normal text-slate-500 text-[10px]">{estatePlan.levers.length} levers &middot; {estatePlan.runs} projections</span>
                         <ChevronDown className={`shrink-0 w-3.5 h-3.5 text-slate-400 transition-transform ${estateOpen('search') ? '' : '-rotate-90'}`} />
@@ -11006,11 +11019,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
                   {/* a zero is a finding, not a gap in the search */}
                   {estatePlan.reasons.map(r => (
-                    <div key={r.key} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 leading-relaxed">{r.text}</div>
+                    <div key={r.key} className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600 leading-relaxed">{r.text}</div>
                   ))}
 
                   <div>
-                    <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">Every candidate, best first</h3>
+                    <h3 className="text-sm font-semibold text-slate-700 mb-1.5">Every candidate, best first</h3>
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-[11px] border-collapse" data-estate-ranked>
                         <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">What you would do</th><th className="pb-1.5 pr-3">Heirs keep</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5">Their income tax</th></tr></thead>
@@ -11041,10 +11054,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     const t = estatePlan.taperLadder;
                     const clear = t.clearing;
                     return (
-                      <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-taper-ladder>
+                      <div className="p-3.5 bg-surface border border-slate-200 rounded-lg space-y-3" data-taper-ladder>
                         <button type="button" onClick={() => toggleEstateCard('taper')} aria-expanded={estateOpen('taper')}
                           data-fold-toggle="taper" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
-                          <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                          <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                             <span className="flex-1">Why not keep gifting down to {formatGBP(t.threshold)}?</span>
                             {/*
                               * Three states, because there are three different answers and running them
@@ -11106,10 +11119,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     * the one above for the reader's attention.
                     */}
                   {(estatePlan.charity || estatePlan.spread) && (
-                    <div className="p-3.5 bg-surface border border-slate-200 rounded-xl space-y-3" data-not-ranked>
+                    <div className="p-3.5 bg-surface border border-slate-200 rounded-lg space-y-3" data-not-ranked>
                       <button type="button" onClick={() => toggleEstateCard('notranked')} aria-expanded={estateOpen('notranked')}
                         data-fold-toggle="notranked" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
-                        <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                           <span className="flex-1">Priced, but deliberately not ranked</span>
                           <ChevronDown className={`shrink-0 w-3.5 h-3.5 text-slate-400 transition-transform ${estateOpen('notranked') ? '' : '-rotate-90'}`} />
                         </h3>
@@ -11143,7 +11156,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     */}
                   <div className="flex flex-wrap items-center gap-3 pt-1">
                     <button type="button" onClick={openEstateReport} data-estate-report
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer">
                       <Download className="w-3.5 h-3.5" /> Open as a report
                     </button>
                     <span className="text-[10px] text-slate-400">{estatePlan.runs} projections were run to find this. The report opens in a new tab as a single page you can print, save or send on.</span>
@@ -11156,9 +11169,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </>)}
             {showEstateStep(1) && (<>
             {/* ---------- who inherits ---------- */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Users className="w-3.5 h-3.5 text-purple-600" /> Who inherits</h3>
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Users className="w-3.5 h-3.5 text-purple-600" /> Who inherits</h3>
                 <div className="flex items-center gap-3">
                   {inheritanceView.hasBens && (
                     <label className="flex items-center gap-1.5 text-[11px] text-purple-700 font-semibold cursor-pointer" title="Your pension passes by the nomination form held by your scheme, not by your will, so it can go to different people in different proportions. Tick this to set those shares separately.">
@@ -11170,24 +11183,24 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
               </div>
               {!inheritanceView.hasBens ? (
-                <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">Nobody added yet. Add at least one person to see what they would receive.</div>
+                <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-lg">Nobody added yet. Add at least one person to see what they would receive.</div>
               ) : (
                 <div className="space-y-2">
                   {inheritanceView.bens.map(b => (
-                    <div key={b.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                    <div key={b.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                       <input type="text" placeholder="Name" value={b.name} onChange={(e) => updateBeneficiary(b.id, { name: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 w-28" />
                       <select value={b.relationship} onChange={(e) => updateBeneficiary(b.id, { relationship: e.target.value })} title={E.IHT_RELATIONSHIPS[b.relationship].who} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer">
                         {Object.entries(E.IHT_RELATIONSHIPS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                       </select>
                       <label className="flex items-center gap-1 text-slate-500" title={pensionSplitShown ? 'Their share of everything except the pension: the house, ISAs, investments and cash. This is the will.' : 'Their share of everything you leave.'}>{pensionSplitShown ? 'under your will' : 'gets'}
-                        <input type="number" min="0" max="100" step="5" onFocus={handleFocus} value={inputValue(b.sharePct)} onChange={(e) => updateBeneficiary(b.id, { sharePct: parsePercent(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 font-bold" />%
+                        <input type="number" min="0" max="100" step="5" onFocus={handleFocus} value={inputValue(b.sharePct)} onChange={(e) => updateBeneficiary(b.id, { sharePct: parsePercent(e.target.value) })} className="w-16 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800 font-bold" />%
                       </label>
                       {/* The pension passes by nomination, not by the will, so it can be split differently -
                           but two percentage boxes on every row read as one field asked for twice, which is
                           how it was reported. One box until the household says the two documents differ. */}
                       {pensionSplitShown && (
                         <label className="flex items-center gap-1 text-purple-700 font-semibold" title="Their share of the PENSION, which passes by the nomination form held by your scheme — not by your will. Leave blank and it matches the will share.">of the pension
-                          <input type="number" min="0" max="100" step="5" placeholder="same" onFocus={handleFocus} value={inputValue(b.pensionSharePct)} onChange={(e) => updateBeneficiary(b.id, { pensionSharePct: parsePercent(e.target.value) })} className="w-20 p-1 bg-surface border border-purple-300 rounded font-mono text-purple-700 font-bold placeholder:text-purple-300 placeholder:font-sans placeholder:text-[10px]" />%
+                          <input type="number" min="0" max="100" step="5" placeholder="same" onFocus={handleFocus} value={inputValue(b.pensionSharePct)} onChange={(e) => updateBeneficiary(b.id, { pensionSharePct: parsePercent(e.target.value) })} className="w-20 p-1 bg-surface border border-purple-300 rounded tabular-nums text-purple-700 font-bold placeholder:text-purple-300 placeholder:font-sans placeholder:text-[10px]" />%
                         </label>
                       )}
                       {/* Income and age drive the income tax on an inherited pension, which a spouse pays
@@ -11195,15 +11208,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       {E.IHT_RELATIONSHIPS[b.relationship].incomeTaxpayer ? (
                         <>
                           <label className="flex items-center gap-1 text-slate-500">their income
-                            <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={inputValue(b.income)} onChange={(e) => updateBeneficiary(b.id, { income: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                            <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={inputValue(b.income)} onChange={(e) => updateBeneficiary(b.id, { income: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800" />
                           </label>
                           <label className="flex items-center gap-1 text-slate-500">age
-                            <input type="number" min="0" max="120" placeholder="—" onFocus={handleFocus} value={inputValue(b.age)} onChange={(e) => updateBeneficiary(b.id, { age: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                            <input type="number" min="0" max="120" placeholder="—" onFocus={handleFocus} value={inputValue(b.age)} onChange={(e) => updateBeneficiary(b.id, { age: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800" />
                           </label>
                           {/* The single biggest lever on this tab: a pot drawn over twenty years instead
                               of five gets twenty personal allowances instead of five. */}
                           <label className="flex items-center gap-1 text-slate-500" title="How many years they would draw an inherited pension over. Each year has its own personal allowance and basic-rate band, so a longer draw costs far less tax. Blank uses the default in Config.">draws over
-                            <input type="number" min="1" max="40" placeholder={String(E.num(plan?.config?.inheritedPensionSpreadYears, 5))} onFocus={handleFocus} value={inputValue(b.spreadYears)} onChange={(e) => updateBeneficiary(b.id, { spreadYears: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />y
+                            <input type="number" min="1" max="40" placeholder={String(E.num(plan?.config?.inheritedPensionSpreadYears, 5))} onFocus={handleFocus} value={inputValue(b.spreadYears)} onChange={(e) => updateBeneficiary(b.id, { spreadYears: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800" />y
                           </label>
                         </>
                       ) : (
@@ -11215,13 +11228,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {/* shares are normalised rather than rejected, but silently rescaling someone's 60% to
                       100% would be dishonest, so say so */}
                   {Math.abs(inheritanceView.declared - 100) > 0.01 && (
-                    <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                    <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-800 flex items-start gap-2">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                       <span>Will shares total <strong>{inheritanceView.declared}%</strong>, not 100%. The figures below scale them proportionally so they add up — adjust them if that is not what you meant.</span>
                     </div>
                   )}
                   {pensionSplitShown && Math.abs(inheritanceView.declaredPen - 100) > 0.01 && (
-                    <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                    <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-800 flex items-start gap-2">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                       <span>Pension shares total <strong>{Math.round(inheritanceView.declaredPen)}%</strong>, not 100%. They are scaled to add up, the same as the will shares.</span>
                     </div>
@@ -11264,26 +11277,26 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </>)}
             {showEstateStep(3) && (<>
             {/* ---------- gifts already made ---------- */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3" data-gift-list>
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3" data-gift-list>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Coins className="w-3.5 h-3.5 text-purple-600" /> Gifts you have already made</h3>
+                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Coins className="w-3.5 h-3.5 text-purple-600" /> Gifts you have already made</h3>
                 <button onClick={addGift} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200"><Plus className="w-3.5 h-3.5" /> Add gift</button>
               </div>
               <p className="text-[11px] text-slate-600 leading-relaxed">
                 A gift drops out of your estate once you have survived <strong>seven years</strong>. Before that it counts — but usually not in the way people expect. It rarely creates a tax bill of its own; instead it <strong>uses up your {formatGBP(E.num(plan?.config?.ihtNrb, 325000))} allowance first</strong>, leaving less to shelter everything else. The cost lands on your estate, not on the gift.
               </p>
               {(plan?.inheritance?.gifts || []).length === 0 ? (
-                <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">No gifts recorded. If you have given money away in the last seven years, add it — it changes the allowance available to your estate.</div>
+                <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-lg">No gifts recorded. If you have given money away in the last seven years, add it — it changes the allowance available to your estate.</div>
               ) : (
                 <div className="space-y-2">
                   {(plan?.inheritance?.gifts || []).map(g => (
-                    <div key={g.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                    <div key={g.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                       <input type="text" placeholder="What it was for" value={g.desc ?? ''} onChange={(e) => updateGift(g.id, { desc: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 flex-1 min-w-[8rem]" />
                       <label className="flex items-center gap-1 text-slate-500">amount
-                        <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={g.amount ?? ''} onChange={(e) => updateGift(g.id, { amount: parseInputNumber(e.target.value) })} className="w-28 p-1 bg-surface border border-slate-300 rounded font-mono text-purple-700 font-bold" />
+                        <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={g.amount ?? ''} onChange={(e) => updateGift(g.id, { amount: parseInputNumber(e.target.value) })} className="w-28 p-1 bg-surface border border-slate-300 rounded tabular-nums text-purple-700 font-bold" />
                       </label>
                       <label className="flex items-center gap-1 text-slate-500">year
-                        <input type="number" min="1950" max="2100" onFocus={handleFocus} value={g.year ?? ''} onChange={(e) => updateGift(g.id, { year: parseInputNumber(e.target.value) })} className="w-20 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                        <input type="number" min="1950" max="2100" onFocus={handleFocus} value={g.year ?? ''} onChange={(e) => updateGift(g.id, { year: parseInputNumber(e.target.value) })} className="w-20 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800" />
                       </label>
                       {/* Past and planned gifts are told apart by the year alone, not a separate flag:
                           one fact, one input, and no way for the two to disagree. */}
@@ -11343,24 +11356,24 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
 
             {/* ---------- regular gifts out of income (s.21) ---------- */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-3.5 h-3.5 text-purple-600" /> Regular gifts out of income</h3>
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Gift className="w-3.5 h-3.5 text-purple-600" /> Regular gifts out of income</h3>
               <p className="text-[11px] text-slate-600 leading-relaxed">
                 The one gift that needs no seven years. A gift that is <strong>habitual</strong>, paid out of <strong>income rather than capital</strong>, and leaves your standard of living intact is exempt <strong>immediately</strong> — no clock, no allowance used, and no upper limit. It is the most useful relief most people never claim, and the only one that works for someone who does not expect to live seven years.
               </p>
               <div className="flex flex-wrap items-end gap-3 text-xs">
                 <label className="flex flex-col gap-1 text-slate-600 font-semibold">Amount each year
-                  <input type="number" min="0" step="500" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.annual ?? ''} onChange={(e) => updateSurplusGift('annual', parseInputNumber(e.target.value))} className="w-32 p-1.5 bg-surface border border-slate-300 rounded font-mono text-purple-700 font-bold" />
+                  <input type="number" min="0" step="500" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.annual ?? ''} onChange={(e) => updateSurplusGift('annual', parseInputNumber(e.target.value))} className="w-32 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-purple-700 font-bold" />
                 </label>
                 <label className="flex flex-col gap-1 text-slate-600 font-semibold">From year
-                  <input type="number" min="1950" max="2100" placeholder={String(ctx.baseYear + 1)} onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.fromYear ?? ''} onChange={(e) => updateSurplusGift('fromYear', parseInputNumber(e.target.value))} className="w-24 p-1.5 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                  <input type="number" min="1950" max="2100" placeholder={String(ctx.baseYear + 1)} onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.fromYear ?? ''} onChange={(e) => updateSurplusGift('fromYear', parseInputNumber(e.target.value))} className="w-24 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-slate-800" />
                 </label>
                 <label className="flex flex-col gap-1 text-slate-600 font-semibold">Until year
-                  <input type="number" min="1950" max="2100" placeholder="end of plan" onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.toYear ?? ''} onChange={(e) => updateSurplusGift('toYear', parseInputNumber(e.target.value))} className="w-24 p-1.5 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
+                  <input type="number" min="1950" max="2100" placeholder="end of plan" onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.toYear ?? ''} onChange={(e) => updateSurplusGift('toYear', parseInputNumber(e.target.value))} className="w-24 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-slate-800" />
                 </label>
               </div>
               {inheritanceView.surplus && (
-                <div className={`p-3 rounded-xl border text-[11px] leading-relaxed ${surplusGiftAnnual > inheritanceView.surplus.sustainable ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-900'}`}>
+                <div className={`p-3 rounded-lg border text-[11px] leading-relaxed ${surplusGiftAnnual > inheritanceView.surplus.sustainable ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-900'}`}>
                   {/* The binding figure is the leanest year: the exemption asks whether the gift could be
                       repeated every year without eating capital, not whether it averages out. */}
                   Your income after living costs is <strong>{formatGBP(inheritanceView.surplus.median)}</strong> a year at the median, and <strong>{formatGBP(inheritanceView.surplus.min)}</strong> in the leanest year of the plan. A regular gift up to that leanest figure is the part you could defend as coming out of income every year.
@@ -11381,9 +11394,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             {showEstateStep(2) && (<>
             {/* ---------- what the estate is made of ---------- */}
             {estateBreakdown && (
-              <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3" data-estate-breakdown>
+              <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3" data-estate-breakdown>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Wallet className="w-3.5 h-3.5 text-purple-600" /> What the estate is made of</h3>
+                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Wallet className="w-3.5 h-3.5 text-purple-600" /> What the estate is made of</h3>
                   <div className="flex items-center gap-3 flex-wrap">
                     {/* Nothing here is inflated - the model is in today's money throughout - but the
                         right-hand column does grow the pot at the real return of its risk tier, and
@@ -11401,12 +11414,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                 </div>
                 {estateFlatGrowth && (
-                  <div className="p-2 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-900">
+                  <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg text-[11px] text-blue-900">
                     <strong>Priced on today&rsquo;s figures, with no growth.</strong> Every wrapper is held flat in real terms instead of growing at its risk tier, so the estate is what you actually hold now less anything you draw. The route, the tax and the comparison below are all recalculated on that. Nothing on this tab was ever inflated &mdash; the whole model is in today&rsquo;s money &mdash; but the projected column does compound, and for a short prognosis that compounding is most of the difference between two answers.
                   </div>
                 )}
                 {estateBalancesOwn && (
-                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800">
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-800">
                     <strong>This tab is using its own balances.</strong> Everything on the Inheritance tab is priced from the figures below, and nothing here changes the projection, the simulation or the tournament. Put them back with the button above.
                   </div>
                 )}
@@ -11466,7 +11479,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
                 {/* the two reasons the two columns differ, said before anyone has to work them out */}
                 <span className="text-[10px] text-slate-400 block">
-                  The middle column is what you hold now. The right-hand one is the projection at your chosen death age &mdash; wrappers grow at the real return of their risk tier ({Object.entries(activeRiskMatrix).slice(0, 2).map(([k, v]) => `${k} ${E.num(v.real, 0).toFixed(2)}%`).join(', ')}, set in Config) net of anything you draw, all in today&rsquo;s money. The <strong>Contrib Growth</strong> column on Plan Inputs is how fast your contributions rise, not the return, so a figure typed there does not change these. The balances are yours to change here without touching the rest of the app.{estateBreakdown.splitAcross ? ' Where two accounts share a wrapper the projection only knows the wrapper total, so it is divided between them in proportion to what they hold today.' : ''}
+                  The middle column is what you hold now. The right-hand one is the projection at your chosen death age &mdash; wrappers grow at the real return of their risk tier ({Object.entries(activeRiskMatrix).slice(0, 2).map(([k, v]) => `${k} ${E.num(v.real, 0).toFixed(2)}%`).join(', ')}, set in Config) net of anything you draw, all in today&rsquo;s money. The <strong>Contrib growth</strong> column on Plan Inputs is how fast your contributions rise, not the return, so a figure typed there does not change these. The balances are yours to change here without touching the rest of the app.{estateBreakdown.splitAcross ? ' Where two accounts share a wrapper the projection only knows the wrapper total, so it is divided between them in proportion to what they hold today.' : ''}
                   {estateBreakdown.homeNow > 0 && ' Your home and any other assets are held flat in real terms, because a value typed in today\u2019s money already means "what it is worth now".'}
                 </span>
                 {estateBreakdown.excludedPension > 0 && (
@@ -11476,8 +11489,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             )}
 
             {/* ---------- the estate ---------- */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Home className="w-3.5 h-3.5 text-purple-600" /> Your estate</h3>
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Home className="w-3.5 h-3.5 text-purple-600" /> Your estate</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Home value (today&rsquo;s money)</label>
@@ -11498,7 +11511,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <label className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-300 rounded-lg cursor-pointer">
                     <input type="checkbox" checked={!!plan?.inheritance?.homeSold} onChange={(e) => updateInheritance('homeSold', e.target.checked)} className="accent-purple-600" />
                     <span className="text-slate-700 font-semibold text-[11px]">Yes, at age</span>
-                    <input type="number" min={currentAge} max="120" disabled={!plan?.inheritance?.homeSold} onFocus={handleFocus} value={plan?.inheritance?.homeSaleAge ?? ''} onChange={(e) => updateInheritance('homeSaleAge', parseInputNumber(e.target.value))} className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 disabled:opacity-40" />
+                    <input type="number" min={currentAge} max="120" disabled={!plan?.inheritance?.homeSold} onFocus={handleFocus} value={plan?.inheritance?.homeSaleAge ?? ''} onChange={(e) => updateInheritance('homeSaleAge', parseInputNumber(e.target.value))} className="w-16 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800 disabled:opacity-40" />
                   </label>
                   <span className="text-[10px] text-slate-400 mt-1 block">After a sale the house is no longer in the estate, so the residence allowance goes with it. The cash it released is counted in your wrappers instead.</span>
                 </div>
@@ -11525,18 +11538,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         ? null : chosenYear - E.num(a.ownedFrom, 0);
                       const tooNew = kind.relievable && owned !== null && owned < E.num(plan?.config?.brAprMinYearsOwned, 2);
                       return (
-                        <div key={a.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                        <div key={a.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                           <input type="text" placeholder="What is it?" value={a.name ?? ''} onChange={(e) => updateEstateAsset(a.id, { name: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 w-36" />
                           <select value={a.kind} onChange={(e) => updateEstateAsset(a.id, { kind: e.target.value })} title={kind.who} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer max-w-full">
                             {Object.entries(E.ESTATE_ASSET_KINDS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                           </select>
                           <label className="flex items-center gap-1 text-slate-500">worth
-                            <input type="number" min="0" step="5000" placeholder="0" onFocus={handleFocus} value={inputValue(a.value)} onChange={(e) => updateEstateAsset(a.id, { value: parseInputNumber(e.target.value) })} className="w-28 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800 font-bold" />
+                            <input type="number" min="0" step="5000" placeholder="0" onFocus={handleFocus} value={inputValue(a.value)} onChange={(e) => updateEstateAsset(a.id, { value: parseInputNumber(e.target.value) })} className="w-28 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800 font-bold" />
                           </label>
                           {/* only the relievable kinds care when it was bought, so only they ask */}
                           {kind.relievable && (
                             <label className={`flex items-center gap-1 font-semibold ${tooNew ? 'text-amber-700' : 'text-purple-700'}`} title="Business, agricultural and unquoted-share relief all need the asset owned for two years at death. Leave blank if you have held it longer than that.">owned since
-                              <input type="number" min="1900" max="2200" step="1" placeholder="long ago" onFocus={handleFocus} value={inputValue(a.ownedFrom)} onChange={(e) => updateEstateAsset(a.id, { ownedFrom: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-purple-300 rounded font-mono text-purple-700 placeholder:text-purple-300 placeholder:font-sans placeholder:text-[10px]" />
+                              <input type="number" min="1900" max="2200" step="1" placeholder="long ago" onFocus={handleFocus} value={inputValue(a.ownedFrom)} onChange={(e) => updateEstateAsset(a.id, { ownedFrom: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-purple-300 rounded tabular-nums text-purple-700 placeholder:text-purple-300 placeholder:font-sans placeholder:text-[10px]" />
                             </label>
                           )}
                           {tooNew && <span className="text-[10px] text-amber-700 font-semibold">under two years at death &mdash; no relief</span>}
@@ -11547,14 +11560,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                 )}
                 {inheritanceView.chosen && inheritanceView.chosen.businessRelief > 0 && (
-                  <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900">
+                  <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] text-emerald-900">
                     <strong>{formatGBP(inheritanceView.chosen.businessRelief)}</strong> of business or agricultural relief at your chosen death age.
                     {inheritanceView.chosen.businessReliefAboveAllowance > 0 && ` ${formatGBP(inheritanceView.chosen.businessReliefAboveAllowance)} sits above the ${formatGBP(E.num(plan?.config?.brAprAllowance, 2500000))} allowance and gets ${E.num(plan?.config?.brAprReducedRatePct, 50)}% rather than the full relief.`}
                     {inheritanceView.chosen.businessRelief < inheritanceView.chosen.businessReliefRaw - 0.5 && ' Part of it is wasted on a share of the estate passing to someone exempt, who would pay no tax on it anyway.'}
                   </div>
                 )}
                 {inheritanceView.chosen && inheritanceView.chosen.businessReliefTooNew > 0 && (
-                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-800 flex items-start gap-2">
                     <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                     <span>{formatGBP(inheritanceView.chosen.businessReliefTooNew)} of relievable assets would not have been owned for {E.num(plan?.config?.brAprMinYearsOwned, 2)} years at age {inheritanceView.chosenAge}, so they get no relief at all. This is the reason buying into these assets is the wrong move on a short prognosis, and the tab does not suggest it.</span>
                   </div>
@@ -11579,7 +11592,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 * Unticking removes the allowance rather than just the fields - transferredPct reads
                 * through the flag - but keeps what was typed, so ticking it back does not ask again.
                 */}
-              <div className="text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2" data-widowed>
+              <div className="text-xs p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2" data-widowed>
                 <label className="flex items-start gap-2 cursor-pointer">
                   <input type="checkbox" data-widowed-toggle checked={!!plan?.inheritance?.widowed}
                     onChange={(e) => updateInheritance('widowed', e.target.checked)} className="accent-purple-600 mt-0.5" />
@@ -11644,7 +11657,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* Same reasoning as the widowed boxes: these three reliefs are each worth five or six
                   figures and none of them is given automatically, so what you fill in stays on the
                   surface and the law behind it folds away. */}
-              <div className="text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3" data-special-circumstances>
+              <div className="text-xs p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3" data-special-circumstances>
                   <div className="text-slate-700 font-semibold">Special circumstances</div>
                   <div>
                     <label className="flex items-start gap-2 cursor-pointer">
@@ -11686,7 +11699,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         give before the deadline. Two reliefs on two different events, so a gift never
                         eats the credit — the readout has to say that outright or it will be assumed. */}
                     {compHeadroom && (
-                      <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-xl text-[11px] text-purple-900 space-y-2">
+                      <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg text-[11px] text-purple-900 space-y-2">
                         <div className="font-bold">Your {formatGBP(compHeadroom.award)} award does two separate jobs, and using one does not spend the other.</div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <div className="p-2 bg-white/70 border border-purple-200 rounded-lg">
@@ -11711,7 +11724,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       </div>
                     )}
                     {inheritanceView.chosen && inheritanceView.chosen.compensationGiftsMissed && (
-                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-800 flex items-start gap-2">
                         <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                         <span>One of your gifts is marked as coming from the compensation but is dated after {compWindow ? compWindow.endYear : 'the window'}. It is being priced as an ordinary gift: seven-year clock, and it eats your nil-rate band.</span>
                       </div>
@@ -11741,13 +11754,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         nothing generates no credit however large the legacy was. That is easy to get wrong
                         on the way in, and silently produces a relief of zero, so it is said out loud. */}
                     {E.num(plan?.inheritance?.qsrInheritedValue, 0) > 0 && !(E.num(plan?.inheritance?.qsrTaxPaid, 0) > 0) && (
-                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-start gap-2">
+                      <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-800 flex items-start gap-2">
                         <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                         <span>You have entered what you inherited but not the <strong>tax paid on it</strong>, and the credit is a share of that tax rather than of the legacy &mdash; so as it stands the relief is <strong>£0</strong>. The figure is on the IHT421 or the estate accounts from that death.</span>
                       </div>
                     )}
                     {inheritanceView.chosen && inheritanceView.chosen.qsrRelief > 0 && (
-                      <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900">
+                      <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] text-emerald-900">
                         Quick succession credit at your chosen death age: <strong>{formatGBP(inheritanceView.chosen.qsrRelief)}</strong> off the bill &mdash; {inheritanceView.chosen.qsrPct}% of the {formatGBP(E.num(plan?.inheritance?.qsrTaxPaid, 0))} paid then, because {E.num(plan?.inheritance?.qsrYearsBefore, 0)} whole years separate the two deaths.
                       </div>
                     )}
@@ -11770,7 +11783,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <>
                 {/* The headline the study says matters: not "here is your bill" but "it depends when". */}
                 {inheritanceView.cliff && inheritanceView.cliff.loss > 0 && (
-                  <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl shadow-xs space-y-1">
+                  <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-xl space-y-1">
                     <div className="flex items-start gap-2">
                       <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                       <div>
@@ -11781,8 +11794,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                 )}
 
-                <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">What they receive, by when you die</h3>
+                <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+                  <h3 className="text-sm font-semibold text-slate-900">What they receive, by when you die</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-[11px] border-collapse">
                       <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
@@ -11810,10 +11823,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Estate at {inheritanceView.chosen.age}</span><div className="text-xl font-bold font-mono text-slate-900">{formatGBP(inheritanceView.chosen.grossEstate)}</div><span className="text-[11px] text-slate-400">{inheritanceView.chosen.pensionCounts ? `Includes ${formatGBP(inheritanceView.chosen.pension)} of pension, which counts from 2027` : `Excludes ${formatGBP(inheritanceView.chosen.pension)} of pension — death before the 2027 rule`}</span></div>
-                  <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Total tax</span><div className="text-xl font-bold font-mono text-rose-700">{formatGBP(inheritanceView.chosen.totalTax)}</div><span className="text-[11px] text-slate-400">{formatGBP(inheritanceView.chosen.iht)} estate tax at {inheritanceView.chosen.ratePct}%{inheritanceView.chosen.charityQualifies ? ' (reduced by your charitable gift)' : ''}{inheritanceView.chosen.incomeTaxOnPensions > 0 ? ` · ${formatGBP(inheritanceView.chosen.incomeTaxOnPensions)} their income tax` : ''}{inheritanceView.chosen.qsrRelief > 0 ? ` · after a ${formatGBP(inheritanceView.chosen.qsrRelief)} quick succession credit` : ''}</span></div>
-                  <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs">
-                    <span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">{inheritanceView.chosen.giftsToHeirs > 0 ? 'They receive in total' : 'They receive'}</span>
+                  <div className="bg-surface border border-slate-200/90 p-4 rounded-xl"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Estate at {inheritanceView.chosen.age}</span><div className="text-xl font-bold font-mono text-slate-900">{formatGBP(inheritanceView.chosen.grossEstate)}</div><span className="text-[11px] text-slate-400">{inheritanceView.chosen.pensionCounts ? `Includes ${formatGBP(inheritanceView.chosen.pension)} of pension, which counts from 2027` : `Excludes ${formatGBP(inheritanceView.chosen.pension)} of pension — death before the 2027 rule`}</span></div>
+                  <div className="bg-surface border border-slate-200/90 p-4 rounded-xl"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Total tax</span><div className="text-xl font-bold font-mono text-rose-700">{formatGBP(inheritanceView.chosen.totalTax)}</div><span className="text-[11px] text-slate-400">{formatGBP(inheritanceView.chosen.iht)} estate tax at {inheritanceView.chosen.ratePct}%{inheritanceView.chosen.charityQualifies ? ' (reduced by your charitable gift)' : ''}{inheritanceView.chosen.incomeTaxOnPensions > 0 ? ` · ${formatGBP(inheritanceView.chosen.incomeTaxOnPensions)} their income tax` : ''}{inheritanceView.chosen.qsrRelief > 0 ? ` · after a ${formatGBP(inheritanceView.chosen.qsrRelief)} quick succession credit` : ''}</span></div>
+                  <div className="bg-surface border border-slate-200/90 p-4 rounded-xl">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">{inheritanceView.chosen.giftsToHeirs > 0 ? 'They receive in total' : 'They receive'}</span>
                     <div className="text-xl font-bold font-mono text-emerald-700">{formatGBP(inheritanceView.chosen.netIncludingLifetimeGifts)}</div>
                     {inheritanceView.chosen.giftsToHeirs > 0 ? (
                       <span className="text-[11px] text-slate-400">
@@ -11830,8 +11843,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {/* The working, so the bill above can be checked rather than believed. Every row carries a
                     running total and the last one is the tax the engine charged - a test walks them. */}
                 {ihtWorkings && (
-                  <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">How the tax is worked out, if you die at {inheritanceView.chosen.age}</h3>
+                  <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+                    <h3 className="text-sm font-semibold text-slate-900">How the tax is worked out, if you die at {inheritanceView.chosen.age}</h3>
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-[11px] border-collapse" data-iht-workings>
                         <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
@@ -11859,8 +11872,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                 )}
 
-                <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Person by person, if you die at {inheritanceView.chosen.age}</h3>
+                <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+                  <h3 className="text-sm font-semibold text-slate-900">Person by person, if you die at {inheritanceView.chosen.age}</h3>
                   <div className="overflow-x-auto">
                     <table data-person-table className="w-full text-left text-[11px] border-collapse">
                       <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Who</th><th className="pb-1.5 pr-3">{pensionSplitShown ? 'Will' : 'Share'}</th><th className="pb-1.5 pr-3">{pensionSplitShown ? 'Pension' : 'Of which pension'}</th><th className="pb-1.5 pr-3">{inheritanceView.chosen.giftsToHeirs > 0 ? 'From the estate' : 'Before tax'}</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5 pr-3">Their income tax</th>{inheritanceView.chosen.giftsToHeirs > 0 && <th className="pb-1.5 pr-3">Gifted to them</th>}<th className="pb-1.5 pr-3">They keep{inheritanceView.chosen.giftsToHeirs > 0 ? ', in total' : ''}</th><th className="pb-1.5">Effective rate</th></tr></thead>
@@ -11894,22 +11907,22 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
         {activeTab === 'historical' && (
           <div className="space-y-6">
-            <div className="p-4 bg-indigo-50/70 border border-indigo-200/80 rounded-2xl text-xs text-slate-700 space-y-2">
+            <div className="p-4 bg-indigo-50/70 border border-indigo-200/80 rounded-xl text-xs text-slate-700 space-y-2">
               <div className="flex items-center gap-2 font-bold text-indigo-900 text-sm"><History className="w-4 h-4 text-indigo-600" /> Empirical Historical Backtest ({E.HISTORICAL_FIRST_YEAR}–{E.HISTORICAL_LAST_YEAR})</div>
               <p>Feeds actual historical real returns (US large-cap equities and a 50/50 government/corporate bond blend, weighted by each wrapper's risk tier) into your plan, <strong>starting from today (Age {currentAge})</strong> through to Age {terminalAge}.</p>
               <p className="text-slate-500">Selectable start years are capped at <strong>{maxHistoricalStartYear}</strong> so your {spanYears}-year plan runs within recorded history through {E.HISTORICAL_LAST_YEAR}.{historicalMetrics?.beyondData && ' Years beyond the dataset use the expected return.'}</p>
               <p className="text-slate-500">Your working years cannot run the pot dry, because your living spend is only drawn from the first retirement onwards. The verdict below therefore counts <strong>drawdown years</strong>, not calendar years — a plan that fails the moment you stop working has funded nothing, however far away that moment is.</p>
             </div>
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div><h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Select Historical Scenario or Start Year</h3><span className="text-[11px] text-slate-500">Select an iconic crisis preset or slide to any year between {E.HISTORICAL_FIRST_YEAR} and {maxHistoricalStartYear}.</span></div>
-                <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-indigo-700"><span>Start Year:</span><input type="number" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Math.max(E.HISTORICAL_FIRST_YEAR, Math.min(maxHistoricalStartYear, Number(e.target.value) || E.HISTORICAL_FIRST_YEAR)))} className="w-16 p-1 bg-surface border border-slate-300 rounded text-center text-indigo-900 focus:outline-none focus:ring-1 focus:ring-indigo-500" /></div>
+                <div><h3 className="text-sm font-semibold text-slate-900">Select a historical scenario or start year</h3><span className="text-[11px] text-slate-500">Select an iconic crisis preset or slide to any year between {E.HISTORICAL_FIRST_YEAR} and {maxHistoricalStartYear}.</span></div>
+                <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono font-bold text-indigo-700"><span>Start Year:</span><input type="number" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Math.max(E.HISTORICAL_FIRST_YEAR, Math.min(maxHistoricalStartYear, Number(e.target.value) || E.HISTORICAL_FIRST_YEAR)))} className="w-16 p-1 bg-surface border border-slate-300 rounded text-center text-indigo-900 focus:outline-none focus:ring-1 focus:ring-indigo-500" /></div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                 {HISTORICAL_PRESETS.map(p => {
                   const isValid = p.year <= maxHistoricalStartYear;
                   return (
-                    <button key={p.year} onClick={() => isValid && setSelectedHistoricalYear(p.year)} disabled={!isValid} className={`p-2.5 rounded-xl border text-left transition-all ${!isValid ? 'bg-slate-50 text-slate-300 border-slate-200/50 cursor-not-allowed opacity-50' : activeHistoricalStartYear === p.year ? 'bg-indigo-600 dark:bg-[#A9781F] text-white border-indigo-600 shadow-xs cursor-pointer' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 cursor-pointer'}`}>
+                    <button key={p.year} onClick={() => isValid && setSelectedHistoricalYear(p.year)} disabled={!isValid} className={`p-2.5 rounded-lg border text-left transition-all ${!isValid ? 'bg-slate-50 text-slate-300 border-slate-200/50 cursor-not-allowed opacity-50' : activeHistoricalStartYear === p.year ? 'bg-indigo-600 text-white border-indigo-600 cursor-pointer' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 cursor-pointer'}`}>
                       <div className="flex items-center justify-between"><span className="font-bold text-xs">{p.year}</span>{!isValid && <span className="text-[9px] text-slate-400 font-sans">Over {E.HISTORICAL_LAST_YEAR}</span>}</div>
                       <div className={`text-[10px] leading-tight truncate mt-0.5 ${!isValid ? 'text-slate-300' : activeHistoricalStartYear === p.year ? 'text-indigo-100' : 'text-slate-500'}`}>{p.label.split('(')[0]}</div>
                     </button>
@@ -11920,19 +11933,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
             {historicalMetrics && (
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div className={`p-4 rounded-2xl border shadow-xs ${historicalMetrics.survived ? 'bg-emerald-50/90 border-emerald-200' : 'bg-rose-50/90 border-rose-200'}`}>
-                  <span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Backtest Verdict</span>
+                <div className={`p-4 rounded-xl border ${historicalMetrics.survived ? 'bg-emerald-50/90 border-emerald-200' : 'bg-rose-50/90 border-rose-200'}`}>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Backtest verdict</span>
                   <div className="flex items-center gap-2">{historicalMetrics.survived ? <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0" />}<div><div className={`text-base font-black ${historicalMetrics.survived ? 'text-emerald-800' : 'text-rose-800'}`}>{historicalMetrics.survived ? `Survived all ${spanYears} years` : historicalMetrics.failReason === 'floor' ? `All ${spanYears} years funded, below floor` : historicalMetrics.failedBeforeDrawdown ? `Ran dry before retirement, at Age ${historicalMetrics.failAge}` : historicalMetrics.fundedDrawdownYears <= 0 ? `Ran dry in year 1 of ${historicalMetrics.drawdownYears} drawdown years` : `Ran dry after ${historicalMetrics.fundedDrawdownYears} of ${historicalMetrics.drawdownYears} drawdown years`}</div><span className="text-[11px] text-slate-500">{historicalMetrics.survived ? `Age ${currentAge} to ${terminalAge}, no shortfall in any year`
                     : historicalMetrics.failReason === 'floor' ? `Ends below the ${formatGBP(ctx.solvencyFloor)} bequest floor at Age ${terminalAge}`
                       : `${historicalMetrics.failReason === 'pre-access' ? `Pension still locked at Age ${historicalMetrics.failAge}` : `Age ${historicalMetrics.failAge}`} (${historicalMetrics.failYear}) · ${historicalMetrics.unfundedYears} of ${spanYears} plan years unfunded${historicalMetrics.failCost > 0 ? ` · a ${formatGBP(historicalMetrics.failCost)} one-off cost falls that year` : ''}`}</span></div></div>
                 </div>
-                <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Starting Balance (Today)</span><div className="text-xl font-bold font-mono text-slate-900 mt-1">{formatGBP(historicalMetrics.startVal)}</div><span className="text-[11px] text-slate-400">After year-0 flows, at Age {currentAge}</span></div>
-                <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Lowest Portfolio Trough</span><div className="text-xl font-bold font-mono text-amber-700 mt-1">{formatGBP(historicalMetrics.minVal)}</div><span className="text-[11px] text-slate-400">Lowest total experienced</span></div>
-                <div className="bg-surface border border-slate-200/90 p-4 rounded-2xl shadow-xs"><span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Terminal Pot @ {terminalAge}</span><div className={`text-xl font-bold font-mono mt-1 ${historicalMetrics.terminalVal > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{formatGBP(historicalMetrics.terminalVal)}</div><span className="text-[11px] text-slate-400">Real purchasing power remaining · lifetime tax {formatGBP(historicalMetrics.lifetimeTax)}</span></div>
+                <div className="bg-surface border border-slate-200/90 p-4 rounded-xl"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Starting balance (today)</span><div className="text-xl font-bold font-mono text-slate-900 mt-1">{formatGBP(historicalMetrics.startVal)}</div><span className="text-[11px] text-slate-400">After year-0 flows, at Age {currentAge}</span></div>
+                <div className="bg-surface border border-slate-200/90 p-4 rounded-xl"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Lowest portfolio trough</span><div className="text-xl font-bold font-mono text-amber-700 mt-1">{formatGBP(historicalMetrics.minVal)}</div><span className="text-[11px] text-slate-400">Lowest total experienced</span></div>
+                <div className="bg-surface border border-slate-200/90 p-4 rounded-xl"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Terminal Pot @ {terminalAge}</span><div className={`text-xl font-bold font-mono mt-1 ${historicalMetrics.terminalVal > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{formatGBP(historicalMetrics.terminalVal)}</div><span className="text-[11px] text-slate-400">Real purchasing power remaining · lifetime tax {formatGBP(historicalMetrics.lifetimeTax)}</span></div>
               </div>
             )}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
-              <div><h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Historical Wealth Path (Simulating {activeHistoricalStartYear}–{activeHistoricalStartYear + spanYears})</h3><span className="text-xs text-slate-500">Real purchasing power across accumulation and decumulation</span></div>
+            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+              <div><h3 className="text-base font-semibold text-slate-900">Historical Wealth Path (Simulating {activeHistoricalStartYear}–{activeHistoricalStartYear + spanYears})</h3><span className="text-xs text-slate-500">Real purchasing power across accumulation and decumulation</span></div>
               <div className="relative overflow-x-auto">
                 <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto select-none" onMouseLeave={() => setHoveredHistPoint(null)}>
                   <g transform={`translate(${margin.left}, ${margin.top})`}>
@@ -11945,7 +11958,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </g>
                 </svg>
                 {hoveredHistPoint && (
-                  <div className="absolute top-4 left-24 bg-surface/95 border border-slate-200 p-3 rounded-xl shadow-lg text-xs space-y-1 backdrop-blur-md pointer-events-none">
+                  <div className="absolute top-4 left-24 bg-surface/95 border border-slate-200 p-3 rounded-lg shadow-lg text-xs space-y-1 backdrop-blur-md pointer-events-none">
                     <div className="font-bold text-slate-800 border-b border-slate-100 pb-1 flex justify-between gap-4"><span>Age {hoveredHistPoint.ageSelf} (Simulated {hoveredHistPoint.histYear ?? 'beyond data'})</span><span className="text-slate-500">Plan Year: {hoveredHistPoint.year}</span></div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1 font-mono">
                       <div className="text-indigo-600 font-bold">Total Pot: {formatGBP(hoveredHistPoint.totalCombined)}</div>
@@ -11962,14 +11975,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
         {/* TAB 6: AUDIT */}
         {activeTab === 'audit' && (
-          <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-4">
+          <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-              <div><h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Year-by-Year Cash Flow &amp; Wrapper Ledger</h2><span className="text-xs text-slate-500">Expected-return path: contributions, guaranteed income, decumulation waterfall, tax and wrapper balances (end of year).</span></div>
-              <button onClick={handleExportCSV} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 cursor-pointer self-start sm:self-auto"><FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> Export CSV Spreadsheet</button>
+              <div><h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Year-by-Year Cash Flow &amp; Wrapper Ledger</h2><span className="text-xs text-slate-500">Expected-return path: contributions, guaranteed income, decumulation waterfall, tax and wrapper balances (end of year).</span></div>
+              <button onClick={handleExportCSV} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 cursor-pointer self-start sm:self-auto"><FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> Export CSV spreadsheet</button>
             </div>
-            <div className="overflow-x-auto border border-slate-200 rounded-xl">
+            <div className="overflow-x-auto border border-slate-200 rounded-lg">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans"><tr><th className="p-2.5">Year</th><th className="p-2.5">Age (M)</th>{isCouple && <th className="p-2.5">Age (P)</th>}<th className="p-2.5">Spend Target</th><th className="p-2.5">Guaranteed + Take-home (net)</th><th className="p-2.5">Net Drawdown</th><th className="p-2.5">Pension Draw (gross)</th><th className="p-2.5">Tax</th>{P.cgtEnabled && <th className="p-2.5">CGT</th>}<th className="p-2.5">Pensions</th><th className="p-2.5">ISAs</th><th className="p-2.5">Other Inv</th><th className="p-2.5">Cash</th><th className="p-2.5">Total Combined</th><th className="p-2.5">Pre-SIPP access Liquid</th><th className="p-2.5 text-right">Status</th></tr></thead>
+                <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans"><tr><th className="p-2.5">Year</th><th className="p-2.5">Age (M)</th>{isCouple && <th className="p-2.5">Age (P)</th>}<th className="p-2.5">Spend target</th><th className="p-2.5">Guaranteed + Take-home (net)</th><th className="p-2.5">Net drawdown</th><th className="p-2.5">Pension draw (gross)</th><th className="p-2.5">Tax</th>{P.cgtEnabled && <th className="p-2.5">CGT</th>}<th className="p-2.5">Pensions</th><th className="p-2.5">ISAs</th><th className="p-2.5">Other inv</th><th className="p-2.5">Cash</th><th className="p-2.5">Total combined</th><th className="p-2.5">Pre-SIPP access Liquid</th><th className="p-2.5 text-right">Status</th></tr></thead>
                 <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
                   {timelineData.map(r => (
                     <tr key={r.year} className="hover:bg-slate-50/80 transition-colors">
@@ -11994,28 +12007,28 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 7: DOCS */}
         {activeTab === 'docs' && (
           <div className="space-y-6">
-            <div id="doc-mc-buttons" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Dices className="w-4 h-4 text-blue-600" /> The Three Stages of a Monte Carlo Run</h2>
+            <div id="doc-mc-buttons" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Dices className="w-4 h-4 text-blue-600" /> The Three Stages of a Monte Carlo Run</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Two of these run from one button on the Projection tab, each result appearing as its stage finishes. They use the same engine on the same {MC_TRIALS.toLocaleString()} randomised market paths and differ only in which side of the equation is held fixed: one fixes your spending and reports the risk, the other fixes the risk and reports the spending. The second can be switched off if you only want the fast answer. The third leaves both alone and changes where the money sits instead; it answers a different question, so it has its own tab and its own button.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
                   <strong className="text-slate-800 block">Stage 1, always runs: is the plan solvent?</strong>
                   <p className="text-slate-500">Takes the target living expenditure from Plan Inputs exactly as entered and runs it through {MC_TRIALS.toLocaleString()} paths. The answer is a <strong>survival rate</strong>: the share of paths that funded every year to age {terminalAge} without running dry and finished above your bequest floor. Use it once you know roughly what you want to spend. This stage reports a probability rather than targeting one, so the target survival rate does not affect it.</p>
                 </div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
                   <strong className="text-slate-800 block">Stage 2, optional: "how much could I spend?"</strong>
                   <p className="text-slate-500">Ignores your target figure and solves for the <strong>largest annual spend</strong> that still survives at the target survival rate you pick. It bisects on the spending amount, re-running the full simulation at each step, which is why it takes longer than the first stage. At 95% it finds the spend that fails in no more than 1 path in 20. Because it describes a different spend from the one you entered, it gets its own line in the verdict and its own row of figures, rather than overwriting stage 1.</p>
                 </div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
                   <strong className="text-slate-800 block">The target survival rate (85 / 90 / 95%)</strong>
                   <p className="text-slate-500">Only affects stage 2. It is the share of paths you are asking the spending figure to survive, so a <em>lower</em> target returns a <em>higher</em> figure: 85% buys you more income now in exchange for a 1-in-7 chance of running short. 95% is the conventional planning benchmark. Changing it after a run offers to solve stage 2 again on its own, since nothing else depends on it.</p>
                 </div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
                   <strong className="text-slate-800 block">On the Strategy tab: "would a different split do better?"</strong>
                   <p className="text-slate-500">Holds your spending and your budget fixed and re-splits the budget between wrappers, scoring each strategy on identical market paths. It is the slowest stage because it runs several full simulations, and two of its players search a range of candidates first. The methodology and the players are documented below.</p>
                 </div>
               </div>
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-xs">
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1 text-xs">
                 <strong className="text-slate-800 block">One expected path, two ranges</strong>
                 <p className="text-slate-500">Stage 1 keeps every simulated path, not just its ending, so the chart can show where all {MC_TRIALS.toLocaleString()} of them stood at each age: the shaded band is the 10th to 90th percentile, the solid line the median. Read the right-hand edge and you get the same three pot figures reported underneath it, because both use the same quantile. No path follows any of the three lines, and the band widens with age because nothing cancels out the early years.</p>
                 <p className="text-slate-500">The rate-based and Monte Carlo charts share a y-scale so they can be read against each other directly. What that shows is how little of the distribution a single line accounts for. The line itself is well placed &mdash; it tracks the simulated median to within a few percent (measured &minus;3.5%, &minus;1.5% and +0.4% across three households), because the engine compounds the same rate it draws around as the median of each year&rsquo;s return. The point is the distance above and below it. Read on its own, a single curve looks like an answer; against the spread of {MC_TRIALS.toLocaleString()} paths it is visibly one thread of a very wide cloth.</p>
@@ -12028,34 +12041,34 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-[11px] text-slate-500 leading-relaxed">No stage changes your plan on its own. Applying a strategy from stage 3 is a separate, deliberate click.</p>
             </div>
 
-            <div id="doc-tournament" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Zap className="w-4 h-4 text-indigo-600" /> Automated Strategy Tournament &amp; Optimisation Methodology</h2>
+            <div id="doc-tournament" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Zap className="w-4 h-4 text-indigo-600" /> Automated Strategy Tournament &amp; Optimisation Methodology</h2>
               <p className="text-xs text-slate-600 leading-relaxed">The tournament compares six ways of splitting the same annual take-home budget between S&amp;S ISAs and pensions. Every player is run on the same {TOURNAMENT_TRIALS.toLocaleString()} market paths (common random numbers), so the ranking reflects the strategies rather than sampling luck. Any saved scenario can be entered as an extra player; those run exactly as saved and are not held to the same budget, which their cards state.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1"><strong className="text-slate-800 block">1. Equal net budget</strong><p className="text-slate-500">Each strategy costs the same take-home pay. Pension money is grossed up using each owner's own salary (income tax + NIC relief, plus any employer NIC pass-through set in Config), capped by the annual allowance (£{P.pensionAllowance.toLocaleString()}) and salary; ISA money is capped at £{P.isaAllowance.toLocaleString()} per person; anything left over flows to a GIA.</p></div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1"><strong className="text-slate-800 block">2. Conservative bridge sizing</strong><p className="text-slate-500">If spending starts before anyone can access a pension (age {nmpa}), the bridge reserve is the sum of net drawdown in those years (after guaranteed income and a working partner's take-home), uplifted by the safety margin ({E.num(plan?.config?.bridgeSafetyMargin, 30)}%) and assuming 0% real growth.</p></div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1"><strong className="text-slate-800 block">3. The players</strong><p className="text-slate-500"><strong>Current Plan</strong> · <strong>Survival Maximizer</strong> (searches the ISA share from 0% to 100% and keeps the best survival, subject to the bridge-risk cap) · <strong>Bridge-Sized Relief</strong> (pension-first, with only the pre-access bridge carved out: the requirement is sized with growth counted on both existing balances and new contributions, then cover levels either side of it are searched, some paid in level and some over the final years only, and spare ISA capital above the reserve is moved into the pension) · <strong>Relief-First</strong> (pension first, bridge minimum kept; with a Bed &amp; SIPP transfer of spare ISA capital in full scope) · <strong>Bracket-Smoothed Sizing</strong> (pension funded only to the pot whose sustainable withdrawal plus state pension fills the basic-rate band, the rest to ISA) · <strong>Relief-First, Bridge-Last</strong> (pension-max early, ISA-max in the final years before retirement).</p></div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1"><strong className="text-slate-800 block">4. Reading the results</strong><p className="text-slate-500">Rank by survival first; ties within 0.5 points are broken by the 10th-percentile pot. Watch the pre-SIPP access failure rate: a strategy can win on total survival by accepting more bridge risk. The "Partner balancing" option steers new money to the partner with the smaller projected pension so both personal allowances can be used in retirement; it costs relief if that partner pays a lower marginal rate, so it does not always win.</p></div>
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">1. Equal net budget</strong><p className="text-slate-500">Each strategy costs the same take-home pay. Pension money is grossed up using each owner's own salary (income tax + NIC relief, plus any employer NIC pass-through set in Config), capped by the annual allowance (£{P.pensionAllowance.toLocaleString()}) and salary; ISA money is capped at £{P.isaAllowance.toLocaleString()} per person; anything left over flows to a GIA.</p></div>
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">2. Conservative bridge sizing</strong><p className="text-slate-500">If spending starts before anyone can access a pension (age {nmpa}), the bridge reserve is the sum of net drawdown in those years (after guaranteed income and a working partner's take-home), uplifted by the safety margin ({E.num(plan?.config?.bridgeSafetyMargin, 30)}%) and assuming 0% real growth.</p></div>
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">3. The players</strong><p className="text-slate-500"><strong>Current plan</strong> · <strong>Survival maximiser</strong> (searches the ISA share from 0% to 100% and keeps the best survival, subject to the bridge-risk cap) · <strong>Bridge-Sized Relief</strong> (pension-first, with only the pre-access bridge carved out: the requirement is sized with growth counted on both existing balances and new contributions, then cover levels either side of it are searched, some paid in level and some over the final years only, and spare ISA capital above the reserve is moved into the pension) · <strong>Relief-First</strong> (pension first, bridge minimum kept; with a Bed &amp; SIPP transfer of spare ISA capital in full scope) · <strong>Bracket-Smoothed Sizing</strong> (pension funded only to the pot whose sustainable withdrawal plus state pension fills the basic-rate band, the rest to ISA) · <strong>Relief-First, Bridge-Last</strong> (pension-max early, ISA-max in the final years before retirement).</p></div>
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">4. Reading the results</strong><p className="text-slate-500">Rank by survival first; ties within 0.5 points are broken by the 10th-percentile pot. Watch the pre-SIPP access failure rate: a strategy can win on total survival by accepting more bridge risk. The "Partner balancing" option steers new money to the partner with the smaller projected pension so both personal allowances can be used in retirement; it costs relief if that partner pays a lower marginal rate, so it does not always win.</p></div>
               </div>
             </div>
 
-            <div id="doc-decumulation" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> Decumulation Policies &amp; Pension Drawdown Strategies</h2>
+            <div id="doc-decumulation" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> Decumulation Policies &amp; Pension Drawdown Strategies</h2>
               <p className="text-xs text-slate-600 leading-relaxed">How money is withdrawn across wrappers changes lifetime tax and the size of the pot left at the end; it changes the probability of maintaining your living costs far less than the spend level, asset allocation and the pre-SIPP access bridge do.</p>
               <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1.5">
                 <li><strong>Tax Smoothing (default):</strong> fills the £{P.pa.toLocaleString()} allowance from pension income (0%), then draws pension income up to the £{P.basicLimit.toLocaleString()} higher-rate threshold (about {Math.round((1 - P.pclsProp) * P.basicRate * 100)}% effective with the {Math.round(P.pclsProp * 100)}% tax-free element), then cash, GIA and ISA, with pension income above the threshold as the last resort. Cash and ISAs are preserved as the low-volatility reserve and the tax-free shield for later life.</li>
                 <li><strong>UK FIRE Bracket Fill:</strong> draws pension only up to the £{P.pa.toLocaleString()} allowance, then cash, GIA and ISAs; pension income above the allowance is the last resort. Pays the least tax during your lifetime and leaves the largest pot, but that pot is mostly taxable pension. Set the pension death-tax haircut in Config to see the difference net of what beneficiaries would pay.</li>
                 <li><strong>Sequential:</strong> cash → GIA → ISA → pension, no bracket management. Shown as the naive baseline; it wastes the personal allowance in early retirement.</li>
                 <li><strong>Harvest unused allowance:</strong> once retired and past age {nmpa}, any unused 0% allowance is filled from the pension and the net proceeds moved to ISA (within the £{P.isaAllowance.toLocaleString()} limit) or cash. It only matters when spending is largely covered by guaranteed income.</li>
-                <li><strong>Phased Drawdown</strong> crystallises {Math.round(P.pclsProp * 100)}% tax-free with each withdrawal (UFPLS-style), keeping the rest invested. <strong>Full Lump Sum</strong> moves the maximum tax-free cash (capped at £{P.lsa.toLocaleString()}) into cash savings at retirement; later withdrawals are then fully taxable.</li>
+                <li><strong>Phased Drawdown</strong> crystallises {Math.round(P.pclsProp * 100)}% tax-free with each withdrawal (UFPLS-style), keeping the rest invested. <strong>Full lump sum</strong> moves the maximum tax-free cash (capped at £{P.lsa.toLocaleString()}) into cash savings at retirement; later withdrawals are then fully taxable.</li>
               </ul>
             </div>
 
-            <div id="doc-coverage" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-indigo-600" /> Modelling Decisions, Coverage &amp; Known Gaps</h2>
+            <div id="doc-coverage" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-indigo-600" /> Modelling Decisions, Coverage &amp; Known Gaps</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Where the rules leave room for judgement, this is the decision the model makes and why. Read this before trusting a number.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Decisions taken</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Decisions taken</h3>
               <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
                 <li><strong>Everything is in today's money.</strong> Growth uses each tier's <em>real</em> rate, so every pot, spend and bequest figure is in today's purchasing power. The "Combined (Nominal)" chart series is the only place inflation is added back, for display. A £100,000 bequest floor therefore means £100,000 of today's money. Do not gross it up.</li>
                 <li><strong>Pay is flat in real terms unless you say otherwise.</strong> Salary, or trading profit for the self-employed, is held at the figure you enter for every working year. Because the projection is in today's money that is not a frozen wage, it is pay rising exactly with inflation. Set a real growth rate per person under Advanced inputs to model promotions or a career winding down; it compounds on top of inflation and feeds the relevant-earnings cap, the annual allowance taper and the relief rate on every pension contribution.</li>
@@ -12070,10 +12083,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <li><strong>Allowances are frozen in real terms</strong> at the Config figures. Any future rise in the ISA or pension allowance is not modelled, so long staging schedules are deliberately cautious.</li>
               </ul>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Modelled</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Modelled</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Income tax including the personal-allowance taper, employee Class 1 NIC and self-employed Class 4 NIC, the {Math.round(P.pclsProp * 100)}% tax-free element capped at the £{P.lsa.toLocaleString()} Lump Sum Allowance, the £{P.pensionAllowance.toLocaleString()} annual allowance with taper and three-year carry-forward, the relevant-earnings limit, the MPAA, ISA allowances, realisation-based CGT with its annual exempt amount and band split, state pension timing, the pre-SIPP access bridge, one-off deposits with multi-year staging, one-off costs, spending bands by age, salary-sacrifice relief including any employer NIC pass-through, and relief at source for the self-employed.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Not modelled yet</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Not modelled yet</h3>
               <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
                 <li><strong>Lumpy self-employed profits.</strong> Trading profit is carried as a single figure that grows at a steady rate, exactly like a salary. Real self-employment swings year to year, and a bad year can waste an annual allowance that carry-forward only partly recovers. <strong>Class 2 NIC</strong> is also not charged: it stopped being mandatory above the Small Profits Threshold in 2024, and the voluntary route for those below it does not change a projection. Payments on account, the trading allowance, capital allowances and incorporation are all out of scope.</li>
                 <li><strong>Devolved income tax:</strong> covered. Set where you pay tax in Config. Scotland uses its own six bands, Wales
@@ -12090,34 +12103,34 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-xs text-slate-500 leading-relaxed">This is an educational model, not advice. Where a figure matters to a real decision, check it against current HMRC guidance or a regulated adviser.</p>
             </div>
 
-            <div id="doc-taper" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><HelpCircle className="w-4 h-4 text-blue-600" /> Spending by Age</h2>
+            <div id="doc-taper" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><HelpCircle className="w-4 h-4 text-blue-600" /> Spending by Age</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Retirement spending often isn't flat. Set what a stretch of years actually costs in Plan Inputs as bands: a start age, an end age and what those years cost in today's money. A band that names ages 58 to 67 at {formatGBP(45000)}, then 68 to 79 at {formatGBP(34000)}, then 80 onwards at {formatGBP(40000)}, says exactly that, including the rise at the end for care. Ages are "Myself" ages.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Bands only override the years they cover. Any year outside every band falls back to the headline living spend, so naming a single expensive stretch is enough; you do not have to describe the whole retirement. Leave the end age blank to run a band to the terminal age. If two bands overlap the earlier one wins for the shared years, and the model says so in the warnings rather than picking silently.</p>
               <p className="text-xs text-slate-500 leading-relaxed">Bands replaced an older pair of percentage "tapers" that could only step spending down at two fixed ages. Any saved plan still carrying tapers is converted to the equivalent bands when it loads, so its projection is unchanged. The safe-spend solver scales the whole shape at once: it finds the multiple of your headline spend that survives, and every band moves with it in proportion.</p>
             </div>
 
-            <div id="doc-risk-profiles" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-blue-600" /> Asset Allocations, Return Bounds &amp; Volatility (σ)</h2>
+            <div id="doc-risk-profiles" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-blue-600" /> Asset Allocations, Return Bounds &amp; Volatility (σ)</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Each wrapper is assigned a risk tier carrying an expected real return (treated as the median annual rate), a volatility, and a forecast uncertainty. The first two describe the <em>path</em>; the third describes how sure we are of the average that path is scattered around, and the distinction matters more the longer you plan for. Volatility averages out as σ/√T. Being wrong about the long-run average does not average out at all, so it is drawn once per simulated path and then lived with, giving an annualised spread of √(u² + σ²/T). The built-in tiers set that uncertainty to zero, which is itself a claim — that we know the long-run average and are only unsure of the route — and a published set of capital market assumptions will generally say otherwise.</p>
               <p className="text-xs text-slate-600 leading-relaxed"><strong className="text-slate-800">&ldquo;Expected&rdquo; here means the middle, not the average.</strong> The figure in the first column is the <em>median</em> rate: half the simulated years land above it and half below. Compound the middle rate and you get the middle outcome, which is why the Expected line on the Projection chart sits almost exactly on the simulation&rsquo;s median &mdash; within half a percent on a plain lump sum, and within about 3&frac12;% on a real plan, where contributions and tax blur it slightly.</p>
               <p className="text-xs text-slate-600 leading-relaxed">The <em>average</em> would be a much bigger number and a far less useful one. Picture a casino floor: nobody is made to stop while they are winning, but everybody stops at zero. Money behaves the same way. A pot that compounds well keeps compounding with nothing above it, while a pot that runs dry is finished and stays finished &mdash; so a handful of runaway futures drag the average up and away from anything the rest experience. On one ordinary plan modelled here the middle outcome is {formatGBP(7193811)} while the average is {formatGBP(22457043)}: more than three times higher, and a figure almost nobody in the simulation actually ends up with. You plan around the outcome in the middle, so the middle rate is what this model compounds. It is the standard convention too &mdash; published capital market assumptions quote annualised returns, not arithmetic ones.</p>
               <p className="text-xs text-slate-600 leading-relaxed">The 10th and 90th percentile columns beside them are that spread at the two tails: over your horizon the annualised return lands between them eight times in ten. They also draw the rate-based band on the Projection chart, re-derived at every age rather than held at one rate, because that spread narrows as the horizon lengthens and a single rate is wrong everywhere except the horizon it came from. What they cannot do is stand in for the simulation: a smooth curve contains no bad decade and cannot run dry, so its lower edge stays optimistic on a plan under strain. All wrappers move together (one market factor scaled by each tier's σ), so the correlations a published set also carries cannot be used without a second factor; the historical backtest blends real US equity and bond returns by the tier's equity weight ({Object.entries(E.RISK_EQUITY_WEIGHTS).map(([k, v]) => `${k.replace(' Risk', '')} ${Math.round(v * 100)}%`).join(', ')}).</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 {Object.entries(activeRiskMatrix).map(([k, v]) => (
-                  <div key={k} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1"><span className="font-bold text-slate-800">{k} ({v.label})</span><p className="text-slate-500">Expected real {E.num(v.real, 0).toFixed(2)}% pa, σ = {E.num(v.volatility, 0).toFixed(1)}%.</p></div>
+                  <div key={k} className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><span className="font-bold text-slate-800">{k} ({v.label})</span><p className="text-slate-500">Expected real {E.num(v.real, 0).toFixed(2)}% pa, σ = {E.num(v.volatility, 0).toFixed(1)}%.</p></div>
                 ))}
               </div>
             </div>
 
-            <div id="doc-one-off-deposits" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> One-Off Deposits &amp; Multi-Year Staging</h2>
+            <div id="doc-one-off-deposits" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> One-Off Deposits &amp; Multi-Year Staging</h2>
               <p className="text-xs text-slate-600 leading-relaxed">A one-off deposit is a lump sum paid into a chosen wrapper in a chosen year. Because ISAs and pensions are capped each tax year, the engine checks the deposit against that year's remaining allowance before it lands.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Where the money comes from</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Where the money comes from</h3>
               <p className="text-xs text-slate-600 leading-relaxed"><strong>External (new capital)</strong> is money arriving from outside the plan (an inheritance, a bonus, a property sale), and nothing is deducted from your existing pots. Choosing any wrapper instead treats it as an internal transfer: the full amount is taken out of that pot in the deposit year. If that pot does not hold enough at the time, the engine moves what is there and the rest is recorded as a shortfall.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">How much fits this year (headroom)</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">How much fits this year (headroom)</h3>
               <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
                 <li><strong>S&amp;S ISA:</strong> {formatGBP(P.isaAllowance)} less whatever your regular ISA contribution is that year.</li>
                 <li><strong>Carry forward:</strong> unused annual allowance from the previous three tax years is added to the current year's. Years inside the projection are worked out from your contribution schedule; for the three years before it starts the model has no data, so it assumes nothing unless you enter a figure under Advanced inputs. Carry forward never lifts the earnings limit, so it does nothing for someone with no relevant earnings.</li>
@@ -12127,7 +12140,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </ul>
               <p className="text-xs text-slate-600 leading-relaxed">Headroom is therefore not a fixed number. It shrinks in later years if your regular contributions escalate, and it changes again at retirement, when regular contributions stop and the pension earnings test begins to constrain it. The card above the deposits table shows this tax year only. Each deposit row shows the headroom for its own year.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">If the deposit exceeds the headroom</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">If the deposit exceeds the headroom</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Rather than silently breaching the allowance, the deposit is staged across several tax years:</p>
               <ol className="list-decimal pl-5 text-xs text-slate-600 space-y-1">
                 <li>As much as fits the current year's allowance goes straight into the target wrapper.</li>
@@ -12142,16 +12155,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             {/* Held back with the tab itself - this section documents a tab the beta does not show,
                 and half of it names controls the reader cannot reach. Restored by the same flag. */}
             {SHOW_INHERITANCE && (
-            <div id="doc-inheritance" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> Inheritance Tax: the rules, and what is not modelled</h2>
+            <div id="doc-inheritance" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> Inheritance Tax: the rules, and what is not modelled</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Rules as published for 2026/27 and checked in September 2026. Three of the four regimes below changed between 2025 and 2027, so they are all editable in Config rather than baked in — if a Budget moves them, change the figure rather than waiting for the app.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">The one change that inverts the usual advice</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">The one change that inverts the usual advice</h3>
               <p className="text-xs text-slate-600 leading-relaxed">From <strong>6 April 2027</strong> an unused pension counts as part of your estate. Before that date it sat outside, which is the entire basis of the conventional &ldquo;spend everything else first&rdquo; advice. And if you die at <strong>{E.num(plan?.config?.pensionIncomeTaxFromAge, 75)} or over</strong>, your beneficiaries then pay their own income tax on what they draw from it — on top of the inheritance tax the estate already paid. At the additional rate that is roughly <strong>67%</strong> of that pound gone, against 40% for the same pound in an ISA.</p>
               <p className="text-xs text-slate-600 leading-relaxed">We tested whether that means you should drain the pension early. <strong>It does not.</strong> Across 420 households ranked on what heirs actually receive, a &ldquo;pension first&rdquo; policy won 21 times out of 5,040 — and on one wealthy household it left £9.8m where the best policy left £22.0m. Emptying a pension early means paying income tax at <em>your</em> marginal rate, on a large pot, during retirement, and the proceeds cannot be sheltered fast enough because the ISA allowance is £20,000 a year. The double charge is real and still cheaper than volunteering for the single one early.</p>
               <p className="text-xs text-slate-600 leading-relaxed">What the change really does is make the answer depend on facts a projection never asked for. The best policy for a household dying at 74 wins 59% of the time; for the same household dying at 80 it wins 21%. That is why this tab prices several ages rather than asking you to pick one.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">The allowances</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">The allowances</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-[11px] border-collapse">
                   <tbody className="divide-y divide-slate-100">
@@ -12165,38 +12178,38 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </table>
               </div>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Who inherits changes the tax, not just the shares</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Who inherits changes the tax, not just the shares</h3>
               <p className="text-xs text-slate-600 leading-relaxed">A spouse or civil partner is fully exempt and passes their unused allowances on. A charity is exempt and can pull the rate down for everyone else. A direct descendant unlocks the residence allowance. Anyone else gets no relief. And because an inherited pension is taxed at the <em>recipient&rsquo;s</em> marginal rate, the same pot is worth materially more to a grandchild with no income than to a child earning six figures — identical estate, identical will, different outcome.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Two documents, not one</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Two documents, not one</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Your will divides the house, ISAs, investments and cash. Your pension does not pass under it at all — it goes to whoever is named on the <strong>nomination form</strong> held by your scheme, which most people completed once on joining. The tab asks for both because an inherited pension is taxed at the <em>recipient&rsquo;s</em> marginal rate: nominating it to someone with an unused personal allowance, and leaving the taxed assets to higher-rate earners, is usually the single most valuable choice available. How long each person draws it over matters just as much — every year of drawing gets its own allowance and basic-rate band, so a young grandchild spreading it over twenty years pays a fraction of what the same pot costs drawn over five.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Selling your home does not lose the residence band</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Selling your home does not lose the residence band</h3>
               <p className="text-xs text-slate-600 leading-relaxed">If you sell or give away the home on or after 8 July 2015 — to pay for care, typically — the <strong>downsizing addition</strong> preserves the band it would have given, as long as assets of at least that value pass to direct descendants instead. The plan applies it whenever the home is marked as sold. A partial downsizing, where you move somewhere cheaper, would need the value of both properties and is not asked for, so a household that trades down is modelled on the more cautious footing of having kept the newer home only.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Gifts out of income</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Gifts out of income</h3>
               <p className="text-xs text-slate-600 leading-relaxed">The exemption for <em>normal expenditure out of income</em> (s.21) is immediate, unlimited and needs no seven years: a habitual gift, paid from income rather than capital, that leaves your standard of living intact. This is the only gift that helps someone who does not expect to live seven years, and it is claimed by the executors on form IHT403 — which is far easier when the giver kept a record. The plan checks the arithmetic half of the test, comparing the gift against guaranteed income and earnings less living costs, in the <em>leanest</em> year rather than on average. It excludes pension drawdown from that income figure even though HMRC will often accept regular pension income, because a gift that fails the test becomes an ordinary transfer with a seven-year clock. Whether the gift is genuinely habitual is a question about a pattern of behaviour that no calculator can settle.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">The estate optimiser, and what it will not do</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">The estate optimiser, and what it will not do</h3>
               <p className="text-xs text-slate-600 leading-relaxed">The Inheritance tab carries a second search, for households the contributions tournament cannot help because nothing is being paid in. It ranks six choices on one number &mdash; what the heirs keep, counting both the estate and anything handed over in the meantime, after inheritance tax and after their own income tax on drawing an inherited pension down: the <strong>order you draw wrappers down</strong>, <strong>how far up the tax bands you draw the pension each year</strong>, a <strong>gift now</strong>, <strong>how the pension is split between the people inheriting it</strong>, <strong>moving money between wrappers up to the allowances</strong> (including the £3,600 a year that basic-rate relief buys for £2,880 even with no earnings at all), and <strong>giving exempt compensation away before its window closes</strong>. Each lever is also measured on its own, against your plan untouched, because crediting whichever was searched first with everything the others deliver would send you after the wrong one.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Two of those deserve a note. <strong>Drawing the pension past the tax-free allowance</strong> costs 20% today and only pays off if you die at 75 or over, when the pension is taxed twice &mdash; by the estate, then by the heir. The sign flips on the death age, so it is searched rather than recommended. And the <strong>pension split</strong> is swept in 5% steps rather than handed to whoever earns least, because that rule of thumb breaks on a large pot: £1.5m drawn over five years reaches the additional rate whoever receives it, while splitting it uses two sets of allowances. On one household here, half to a four-year-old and half to a £150,000 earner beat all of it to the four-year-old by £18,842.</p>
               <p className="text-xs text-slate-600 leading-relaxed">One thing the search will tell you it cannot improve: <strong>who receives which asset under your will</strong>. Inheritance tax is charged on the estate before it is divided, so among beneficiaries who are all taxable, giving one the house and another the ISA changes who gets what and not what survives. It moves the total only when someone exempt is named &mdash; a spouse or a charity &mdash; and then it is a question about who you want to benefit rather than about tax.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Two things it deliberately refuses. It will not search <strong>how long your heirs take the pension</strong>, because that is their decision made after your death, and a candidate that won by assuming twenty years of patience from someone else would not be a plan &mdash; it is reported as a sensitivity instead. And it will not rank a <strong>charitable gift</strong>: leaving 10% cuts the rate from 40% to 36% but always leaves the family with less, so ranking it on what the heirs keep would score a donation as a failure. The cost and the benefit are both shown, and the choice stays yours. Nor will it recommend anything that leaves you short: a variant that breaks a plan which otherwise survives is rejected rather than ranked, however well it does for the estate.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Compensation, and the credit it carries</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Compensation, and the credit it carries</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Payments under the <strong>infected blood scheme</strong> administered by IBCA are exempt from income tax and capital gains tax, and for inheritance tax they carry a <strong>credit</strong> rather than an exemption: under para 5 of Sch 15 Finance Act 2020, where a qualifying payment <em>is at any time received</em>, the tax on the death is reduced by {E.num(plan?.config?.ihtRate, 40)}% of the payment, capped at the tax that would otherwise be due. Post Office Horizon, Windrush, Grenfell, the Troubles Permanent Disablement scheme and vaccine damage payments run through the same machinery.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Three consequences the plan models, and each one moves the answer: <strong>what happened to the money is irrelevant</strong> &mdash; there is no tracing test, so an award spent, invested, paid into a pension or used to clear a mortgage earns the credit in full; <strong>the estate is unchanged</strong>, so the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are measured before the credit and not after it; and it <strong>cannot create a refund</strong>, being capped at the bill alongside quick succession relief. Enter the payment received, not what is left of it.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Giving the money away is a separate relief with its own deadline: <strong>two years from the day you were paid</strong>, or two years from 4 December 2025 for anyone already holding an award when the relief was announced, whichever is later. Enter the date and the tab works out the deadline. <strong>You do not have to tell it which gifts came from the award.</strong> It knows the amount, the date and so the window, so a gift dated inside it is presumed to have come from the award while any of it remains &mdash; earliest first, split where a gift is larger than what is left, and left alone where the gift has already survived seven years and needs no relief. There is deliberately no way to say a gift did <em>not</em> come from the award. Money carries no label: a household holding an award alongside other savings and giving some away inside the window can always say the gift was the award, so an opt-out could only ever be wrong in the direction that costs money &mdash; and on one real plan it sat set, unnoticed, at a cost of £122,000. A saved plan carrying the old flag has it dropped on load. A gift dated after the window is priced as the ordinary transfer it has become, and the tab says so.</p>
               <p className="text-xs text-slate-600 leading-relaxed"><strong>One reading worth knowing about, because it is a reading and not a quotation.</strong> The credit and the window are treated as independent: giving the award away does not forfeit the credit. The cautious alternative &mdash; netting the gifts off the credit, so the same money cannot be relieved twice &mdash; was tried first and measured, and it makes the window worth about £1,200. A relief created at the 2025 Budget precisely because secondary transfers were being taxed cannot have been designed to be worth £1,200, and the statute relieves tax on a death where a payment &ldquo;is at any time received&rdquo; without netting anything. So both apply, to two different events: the credit on the death, the window on the gift. It is the more generous of the two readings, and the one to revisit if HMRC&rsquo;s guidance disagrees.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Business Relief: priced if you own it, never suggested</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Business Relief: priced if you own it, never suggested</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Two different questions live behind one relief, and this tab now answers one of them. <strong>Valuing what you already own</strong> is modelled: add a business, farmland or unquoted shares under <em>anything else you own</em> and the estate is priced with the relief. From 6 April 2026 that is 100% up to a {formatGBP(E.num(plan?.config?.brAprAllowance, 2500000))} allowance shared between business and agricultural property, {E.num(plan?.config?.brAprReducedRatePct, 50)}% above it, and {E.num(plan?.config?.aimReliefRatePct, 50)}% flat on shares not listed on a recognised exchange, which do not touch that allowance. That allowance is <strong>transferable between spouses</strong>, on the same percentage basis as the nil-rate band, so there is a box for it under <em>widowed</em> once you have entered relievable property. A death before that date still gets the old unlimited 100%, and the tab switches on the death year you choose. Relief needs the asset <strong>owned for two years</strong> at death, so the tab asks when you acquired it and gives nothing where the test fails.</p>
               <p className="text-xs text-slate-600 leading-relaxed"><strong>Whether to buy into them</strong> is not modelled, and is deliberately absent from the optimiser. That same two-year test makes it the wrong tool for anyone with a short prognosis — the household this tab is most used by — and the assets that qualify carry investment risk far above anything else in the plan, so a tool that priced the tax saving without pricing that risk would be recommending a trade on half the picture. Two simplifications inside what is modelled: relief is scaled by the share of your will going to people who actually pay tax, because relief on a legacy to a spouse is wasted, but a will leaving the business to one child and the house to another is beyond a single set of percentages; and only the agricultural value of farmland qualifies, where development value above it does not, so enter the agricultural figure. The {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper is measured before reliefs (s.8D(5)), so a fully relieved farm still pushes the residence allowance away — the tab does that too.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What this does not model</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">What this does not model</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Everyone receives the same proportion of every wrapper: a will leaving the pension to one person and the ISA to another is a legal document, not a plan input. An inherited pension is assumed drawn evenly over {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years at the income each beneficiary has given, which holds only while their circumstances do. Gifts, the seven-year rule, taper relief and regular gifts out of income are modelled; carrying an unused annual exemption forward is not, nor are the small-gift and wedding exemptions, a deed of variation after death, or life cover written in trust. Assets outside your wrappers are held flat in real terms and are never sold to fund your spending, so a business or second home you would in fact live off is understated as income and overstated as estate. Neither are trusts, business succession, or domicile.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Why only one gift is ever suggested</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Why only one gift is ever suggested</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Above {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} the residence allowance is withdrawn £1 for every £2, and the test for it looks at what you <strong>owned at death</strong>. Money given away is not owned at death — so that allowance comes back the day the gift is made, seven years or not. Nothing else about gifting is so clear-cut: inside seven years a gift consumes the {formatGBP(E.num(plan?.config?.ihtNrb, 325000))} allowance the estate would have used anyway, so it is close to tax-neutral, and presenting it as a saving would be misleading. The tab therefore suggests the one gift that clears the taper and says plainly which part of the saving is certain and which part still needs the seven years.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Sizing that gift is done by running your own plan, not by subtracting the excess: money given away also stops growing, and spending that would have come from it comes out of a pension instead, taxed on the way — so each £1 given can take £1 to £2 off the estate, and suggesting the excess itself would suggest roughly twice what is needed. The search stops at the largest gift the plan can still afford, since an allowance is no use to someone who has run out of money.</p>
               <p className="text-xs text-slate-600 leading-relaxed"><strong>Giving away your home and continuing to live in it does not remove it from your estate.</strong> That is a gift with reservation of benefit, it is the most common estate-planning mistake there is, and no figure on this page will warn you about it.</p>
@@ -12204,16 +12217,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
             )}
 
-            <div id="doc-priorities" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-blue-600" /> The Recommended Policy, and the Trade-offs Around It</h2>
+            <div id="doc-priorities" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Trophy className="w-4 h-4 text-blue-600" /> The Recommended Policy, and the Trade-offs Around It</h2>
               <p className="text-xs text-slate-600 leading-relaxed">A decumulation policy is only &quot;best&quot; relative to what you are trying to achieve. Across 420 test households, ranking on the size of the eventual pot rather than on avoiding depletion changed the recommended policy for <strong>75% of them</strong> &mdash; and took the simplest policy, Sequential, from winning 1% of households to winning 46%. Nothing about the policies changed; only the question being asked of them.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Asking you to rank six abstract priorities before you have seen a single figure is the wrong way round. So the policy search runs every combination first &mdash; five policies, two ways of taking the tax-free cash, and whether the personal allowance is harvested, eighteen in all &mdash; on the same market paths, and then does two things with the results.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">First, it recommends</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">First, it recommends</h3>
               <p className="text-xs text-slate-600 leading-relaxed">The recommendation is the combination with the best chance of staying solvent to your final age. Where several are within <strong>{E.RATE_EPSILON_PTS} percentage point</strong> of each other on survival &mdash; close enough that the simulation cannot honestly separate them &mdash; the near-tie is settled by resilience in poor markets, then by what is left behind, and so on down the default order. Running out of money is the one outcome no later good luck can undo, and it is not symmetric with the others: a smaller bequest is a disappointment, an empty pot at 84 is a crisis. That is why survival goes first and is never traded away by the recommendation itself.</p>
               <p className="text-xs text-slate-600 leading-relaxed">The search runs twice, on two independent sets of market paths, and ranks on the two runs combined. Where the two runs would each have recommended a different combination, the page says so: that is a close call the simulation cannot settle at this budget, and the other run&apos;s pick is offered alongside the recommendation rather than discarded. Either is a sound choice; the numbers are simply too close to separate them.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Then, it prices the alternatives</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Then, it prices the alternatives</h3>
               <p className="text-xs text-slate-600 leading-relaxed">For each of the other five priorities it finds the combination that is best on that measure and states, in your own numbers, what switching to it would gain and what it would cost: <em>&pound;85,000 more in the typical pot, for 1.8 points of survival</em>. Three rules keep those cards honest:</p>
               <ul className="text-xs text-slate-600 leading-relaxed list-disc pl-5 space-y-1">
                 <li><strong>A card appears only where there is a real difference.</strong> The gain has to exceed that measure&apos;s own tie threshold &mdash; {E.RATE_EPSILON_PTS} point on a rate, {Math.round(E.MONEY_EPSILON_REL * 100)}% on an amount of money, or the thresholds you set under Advanced. A difference the ranking itself would call a tie is not a choice, it is simulation noise with a button on it. If nothing clears the bar, the page says so rather than inventing a decision for you.</li>
@@ -12222,11 +12235,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </ul>
               <p className="text-xs text-slate-600 leading-relaxed">Measured across the same 420 households, some alternative with a real difference exists for 83% of them, most often a larger pot (70%) or a smaller tax bill (41%), and rarely one on bridge risk (under 1%). The other 17% are told there is no trade-off to make, which is the correct answer for their plan.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">If you rank the priorities yourself</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">If you rank the priorities yourself</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Under <strong>Advanced</strong> the full ranking is still there for anyone who genuinely has an order. The list is worked down in order: your first priority narrows the field to the settings that are best on it; the second then chooses among <em>those</em>, and so on. A lower priority can only ever break a near-tie on the ones above it, so ranking something first genuinely protects it &mdash; and if you promote the pot or the bequest above survival, you are telling the model you would accept a materially higher chance of running dry in exchange, and it will do exactly that, up to the {E.MAX_SURVIVAL_SACRIFICE_PTS}-point limit. <strong>Balance them all</strong> weighs every priority together instead, so a modest gain in several can outweigh a small loss in one. Whichever you use, the trade-off cards are always priced against the survival-first recommendation, so a card means the same thing every time it appears.</p>
               <p className="text-xs text-slate-600 leading-relaxed">&quot;Near-tie&quot; needs a number, or the top priority would decide everything, since exact ties are rare. The rate threshold is deliberately tighter than the money one: survival is already a probability, so three points of it (90% down to 87%) is a much larger concession than 3% of a pot. It is a tight tolerance rather than a generous one, and simulation sampling can occasionally put two runs of the same plan on opposite sides of it &mdash; the search then settles on a similarly good combination rather than the identical one, never a materially worse one.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What each priority is, and which policy it pushes towards</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">What each priority is, and which policy it pushes towards</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-[11px] border-collapse">
                   <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Priority</th><th className="pb-1.5 pr-3">What it measures</th><th className="pb-1.5">Why it favours the policy it does</th></tr></thead>
@@ -12242,33 +12255,33 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </table>
               </div>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What this does not yet cover</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">What this does not yet cover</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Two priorities people legitimately hold are not on the list, because the model cannot yet measure them honestly. <strong>Access before pension age</strong> &mdash; a policy that drains ISAs early leaves you richer on paper but with wealth locked until pension age and taxable to reach &mdash; needs a measure of accessible wealth the engine does not currently report. <strong>Simplicity</strong> is real too: Sequential needs no annual bracket management, and that is worth something in effort and in avoided mistakes, but it is not a number this model can produce.</p>
             </div>
 
-            <div id="doc-cgt" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> Capital Gains Tax on Other Investments (GIA)</h2>
+            <div id="doc-cgt" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> Capital Gains Tax on Other Investments (GIA)</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Pensions and ISAs shelter growth, but a general investment account does not. When CGT is switched on in Config, the engine tracks the <strong>cost basis</strong> of each person's GIA and charges tax on gains as they are realised.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Growth is not taxed until you sell</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Growth is not taxed until you sell</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Holding costs nothing. Money paid in is added at cost; growth raises the value without raising the cost, so the unrealised gain builds up untaxed. Tax is only triggered by a disposal: funding your spending, paying a one-off cost, or moving money out under a staged deposit. Each disposal is treated as selling a slice of the whole holding, so the gain is the same proportion of the sale as the unrealised gain is of the pot.</p>
               <p className="text-xs text-slate-600 leading-relaxed">Example: a {formatGBP(100000)} GIA holding {formatGBP(40000)} of gain is 40% gain. Selling {formatGBP(10000)} realises {formatGBP(4000)}; the remaining {formatGBP(3000)} exemption leaves {formatGBP(1000)} taxable, so the bill is {formatGBP(180)} at the basic rate.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Rates and allowances</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Rates and allowances</h3>
               <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
                 <li>Each person has a {formatGBP(P.cgtAnnualExempt)} annual exempt amount. If you have already realised gains this tax year, enter them in Plan Inputs so the current year's exemption is reduced; leaving it blank assumes the full allowance is available.</li>
                 <li>Gains stack on top of that year's income: the part falling in your remaining basic-rate band is taxed at {Math.round(P.cgtBasicRate * 100)}%, anything above at {Math.round(P.cgtHigherRate * 100)}%.</li>
                 <li>The bill is settled from cash, then the GIA, then ISAs, then an accessible pension. This is the same order used for one-off costs. Selling to pay the bill realises a little more gain, which is carried into the next year, mirroring the fact that CGT is due the January after the tax year.</li>
               </ul>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Setting your opening position</h3>
+              <h3 className="text-sm font-semibold text-slate-800 pt-1">Setting your opening position</h3>
               <p className="text-xs text-slate-600 leading-relaxed">The "of which unrealised gain" figure on the GIA row tells the engine how much of today's balance is profit. Left blank, the balance is treated as entirely cost, so only future growth is ever taxed, which may provide too much weight to GIA. If you hold long-standing investments with a large embedded gain, enter it, or the model will understate your tax.</p>
 
               <p className="text-xs text-slate-500 leading-relaxed"><strong>Deliberate omissions:</strong> gains are wiped by the uplift on death, so nothing is charged on whatever remains at the terminal age. This is a real reason to spend other wrappers first. Dividends and interest inside the GIA are not modelled separately, share pooling and the 30-day rule are ignored, and the exempt amount and rates are held flat in real terms at the Config figures.</p>
             </div>
 
-            <div id="doc-one-offs" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Coins className="w-4 h-4 text-blue-600" /> One-Off Cost Liquidation Hierarchy</h2>
+            <div id="doc-one-offs" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Coins className="w-4 h-4 text-blue-600" /> One-Off Cost Liquidation Hierarchy</h2>
               <p className="text-xs text-slate-600 leading-relaxed">When a one-off capital cost is scheduled, the engine liquidates assets in this order:</p>
               <ol className="list-decimal pl-5 text-xs text-slate-600 space-y-1">
                 <li><strong>Cash Savings</strong> (both owners), then <strong>Other Investments (GIA)</strong>, then <strong>Stocks &amp; Shares ISAs</strong>.</li>

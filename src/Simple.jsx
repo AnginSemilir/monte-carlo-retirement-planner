@@ -383,7 +383,7 @@ export default function Simple() {
    * and the four wrappers are one table with a header row - balance, risk, paid in each year - which is
    * how the figures actually relate to each other and lets the eye compare down a column.
    */
-  const inCls = 'w-full px-1.5 sm:px-2 py-1 bg-surface border border-slate-300 rounded-md text-[12px] sm:text-[13px] font-mono text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const inCls = 'w-full px-1.5 sm:px-2 py-1 bg-surface border border-slate-300 rounded-md text-[12px] sm:text-[13px] tabular-nums text-slate-900 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500';
   const subCls = 'px-1.5 py-1 bg-surface border border-slate-200 rounded-md text-[11px] text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500';
 
   /*
@@ -440,7 +440,7 @@ export default function Simple() {
           <input type="text" inputMode="numeric" value={isPct ? s[cKey] : fmt(s[cKey])} placeholder={isPct ? '%' : '0'}
             onFocus={(e) => e.target.select()} onChange={(e) => set(cKey, parse(e.target.value))}
             aria-label={`${label} contribution`}
-            className={`${subCls} w-full min-w-0 text-right font-mono tabular-nums px-1 ${pctKey ? 'rounded-r-none border-r-0' : ''}`} />
+            className={`${subCls} w-full min-w-0 text-right tabular-nums tabular-nums px-1 ${pctKey ? 'rounded-r-none border-r-0' : ''}`} />
           {pctKey && (
             <button type="button" onClick={() => set(pctKey, !s[pctKey])} title={isPct ? 'a % of salary' : 'pounds a year'}
               className={`shrink-0 px-1 rounded-md rounded-l-none border text-[10px] font-bold cursor-pointer ${isPct ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-900'}`}>
@@ -453,7 +453,7 @@ export default function Simple() {
           <input type="text" inputMode="numeric" value={s[k + 'G']} placeholder="0"
             onFocus={(e) => e.target.select()} onChange={(e) => set(k + 'G', parse(e.target.value))}
             aria-label={`${label} contribution increase`}
-            className={`${subCls} w-full min-w-0 text-right font-mono tabular-nums px-1`} />
+            className={`${subCls} w-full min-w-0 text-right tabular-nums tabular-nums px-1`} />
           <span className="text-[10px] text-slate-400 self-center">%</span>
         </span>
         {isPct && salKey && (
@@ -463,7 +463,7 @@ export default function Simple() {
               <span className="text-[10px] text-slate-400 shrink-0">of a salary of</span>
               <input type="text" inputMode="numeric" value={fmt(s[salKey])} placeholder="0"
                 onFocus={(e) => e.target.select()} onChange={(e) => set(salKey, parse(e.target.value))}
-                aria-label={`${label} salary`} className={`${subCls} w-28 text-right font-mono tabular-nums`} />
+                aria-label={`${label} salary`} className={`${subCls} w-28 text-right tabular-nums tabular-nums`} />
             </span>
           </>
         )}
@@ -520,11 +520,11 @@ export default function Simple() {
     const n = String(value).length;
     const size = n > 10 ? 'text-base' : n > 8 ? 'text-lg' : n > 6 ? 'text-xl' : 'text-2xl';
     return (
-      <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 min-w-0">
+      <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3 min-w-0">
         <span className="text-[11px] text-slate-500 block mb-0.5 leading-snug">{label}</span>
         {pending
-          ? <span className="text-2xl font-black font-mono text-slate-300 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />&mdash;</span>
-          : <span className={`${size} font-black font-mono tabular-nums block truncate ${tone}`} title={String(value)}>{value}</span>}
+          ? <span className="text-2xl font-black tabular-nums text-slate-300 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />&mdash;</span>
+          : <span className={`${size} font-black tabular-nums tabular-nums block truncate ${tone}`} title={String(value)}>{value}</span>}
         <span className="text-[11px] text-slate-500 block mt-1 leading-snug">{sub}</span>
       </div>
     );
@@ -556,7 +556,7 @@ export default function Simple() {
     <div className="grid lg:grid-cols-[minmax(0,424px)_minmax(0,1fr)] gap-5 items-start">
 
       {/* ------------------------------------------------ LEFT: what you have */}
-      <div className="bg-surface border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3">
+      <div className="bg-surface border border-slate-200/90 rounded-xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-1.5">
           {scenarios.map(rec => (
             <span key={rec.id}
@@ -575,17 +575,17 @@ export default function Simple() {
           {scenarios.length > 0 && <span className="text-[11px] text-slate-400">click a number to compare</span>}
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 p-1 rounded-xl">
+        <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 p-1 rounded-lg">
           {[[false, 'Just me'], [true, 'Me and a partner']].map(([v, label]) => (
             <button key={label} type="button" onClick={() => set('couple', v)}
-              className={`flex-1 px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${!!s.couple === v ? 'bg-surface text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
+              className={`flex-1 px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${!!s.couple === v ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
           ))}
         </div>
 
         <p className="text-[11px] text-slate-500">Change anything to see the difference. Save a scenario to compare two.</p>
 
         <div className="space-y-1">
-          <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">You</h2>
+          <h2 className="text-xs font-semibold text-slate-900 mb-1.5">You</h2>
           {row('Age now', cash('ageSelf'))}
           {row('Retire at', <>{cash('retireSelf')}{stepper('retireSelf', 1)}</>)}
           {s.couple && row('Partner age now', cash('agePart'))}
@@ -602,17 +602,17 @@ export default function Simple() {
             <span className="shrink-0">Spending eases by</span>
             <input type="text" inputMode="numeric" value={s.taperPct} placeholder="0"
               onFocus={(e) => e.target.select()} onChange={(e) => set('taperPct', parse(e.target.value))}
-              aria-label="taper percent" className={`${subCls} w-11 text-center font-mono`} />
+              aria-label="taper percent" className={`${subCls} w-11 text-center tabular-nums`} />
             <span className="shrink-0">% from age</span>
             <input type="text" inputMode="numeric" value={s.taperFromAge} placeholder="75"
               onFocus={(e) => e.target.select()} onChange={(e) => set('taperFromAge', parse(e.target.value))}
-              aria-label="taper start age" className={`${subCls} w-11 text-center font-mono`} />
+              aria-label="taper start age" className={`${subCls} w-11 text-center tabular-nums`} />
           </div>
           <p className="text-[10px] text-slate-400 leading-snug pt-0.5">{taperNote}</p>
         </div>
 
         <div>
-          <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">Portfolio</h2>
+          <h2 className="text-xs font-semibold text-slate-900 mb-1.5">Portfolio</h2>
           <div className="grid grid-cols-[auto_minmax(92px,1fr)_60px_66px_44px] sm:grid-cols-[auto_minmax(92px,1fr)_66px_74px_46px] gap-x-1 gap-y-1 items-center">
             <span />
             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide text-right pr-5">Balance</span>
@@ -634,7 +634,7 @@ export default function Simple() {
 
         <div className="pt-1">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">One-off payments and withdrawals</h2>
+            <h2 className="text-xs font-semibold text-slate-900">One-off payments and withdrawals</h2>
             <button type="button" onClick={addOneOff} className="flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-900 cursor-pointer"><Plus className="w-3 h-3" /> Add</button>
           </div>
           {s.oneOffs.length === 0
@@ -642,8 +642,8 @@ export default function Simple() {
             : <div className="space-y-2">
               {s.oneOffs.map(o => (
                 <div key={o.id} className="flex items-center gap-1.5">
-                  <input type="date" value={o.date} onChange={(e) => setOneOff(o.id, 'date', e.target.value)} className={`${subCls} flex-1 min-w-0 font-mono`} />
-                  <input type="text" inputMode="numeric" value={fmt(o.amount)} placeholder="0" onFocus={(e) => e.target.select()} onChange={(e) => setOneOff(o.id, 'amount', parse(e.target.value))} className={`${subCls} w-20 shrink-0 text-right font-mono tabular-nums`} />
+                  <input type="date" value={o.date} onChange={(e) => setOneOff(o.id, 'date', e.target.value)} className={`${subCls} flex-1 min-w-0 tabular-nums`} />
+                  <input type="text" inputMode="numeric" value={fmt(o.amount)} placeholder="0" onFocus={(e) => e.target.select()} onChange={(e) => setOneOff(o.id, 'amount', parse(e.target.value))} className={`${subCls} w-20 shrink-0 text-right tabular-nums tabular-nums`} />
                   <select value={o.direction} onChange={(e) => setOneOff(o.id, 'direction', e.target.value)} className={`${subCls} shrink-0 font-semibold cursor-pointer`}>
                     <option value="in">in</option><option value="out">out</option>
                   </select>
@@ -655,7 +655,7 @@ export default function Simple() {
 
         <div className="pt-1">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Post-retirement income</h2>
+            <h2 className="text-xs font-semibold text-slate-900">Post-retirement income</h2>
             <button type="button" onClick={addEarning} className="flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-900 cursor-pointer"><Plus className="w-3 h-3" /> Add</button>
           </div>
           {s.earnings.length === 0
@@ -663,11 +663,11 @@ export default function Simple() {
             : <div className="space-y-2">
               {s.earnings.map(e => (
                 <div key={e.id} className="flex items-center gap-1.5">
-                  <input type="text" inputMode="numeric" value={fmt(e.amount)} placeholder="£/yr" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'amount', parse(ev.target.value))} className={`${subCls} w-20 shrink-0 text-right font-mono tabular-nums`} />
+                  <input type="text" inputMode="numeric" value={fmt(e.amount)} placeholder="£/yr" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'amount', parse(ev.target.value))} className={`${subCls} w-20 shrink-0 text-right tabular-nums tabular-nums`} />
                   <span className="text-[10px] text-slate-400 shrink-0">age</span>
-                  <input type="number" min="0" max="120" value={e.startAge} placeholder="from" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'startAge', ev.target.value)} className={`${subCls} w-12 shrink-0 text-center font-mono`} />
+                  <input type="number" min="0" max="120" value={e.startAge} placeholder="from" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'startAge', ev.target.value)} className={`${subCls} w-12 shrink-0 text-center tabular-nums`} />
                   <span className="text-[10px] text-slate-400 shrink-0">to</span>
-                  <input type="number" min="0" max="120" value={e.endAge} placeholder="to" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'endAge', ev.target.value)} className={`${subCls} w-12 shrink-0 text-center font-mono`} />
+                  <input type="number" min="0" max="120" value={e.endAge} placeholder="to" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'endAge', ev.target.value)} className={`${subCls} w-12 shrink-0 text-center tabular-nums`} />
                   {s.couple && (
                     <select value={e.owner || 'Myself'} onChange={(ev) => setEarning(e.id, 'owner', ev.target.value)} className="shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-semibold">
                       <option value="Myself">me</option><option value="Partner">them</option>
@@ -681,9 +681,9 @@ export default function Simple() {
       </div>
 
       {/* ------------------------------------------------ RIGHT: can you afford it */}
-      <div className="bg-surface border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-4 min-w-0">
+      <div className="bg-surface border border-slate-200/90 rounded-xl p-5 space-y-4 min-w-0">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Projections</h2>
+          <h2 className="text-sm font-semibold text-slate-900">Projections</h2>
           {busy && <span className="text-[11px] text-slate-400 flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> {view === 'mc' ? `simulating ${LIVE_TRIALS.toLocaleString()} futures` : 'working'}</span>}
         </div>
 
@@ -698,17 +698,17 @@ export default function Simple() {
             {chart && (
               <>
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 p-1 rounded-xl w-fit text-xs">
+                  <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 p-1 rounded-lg w-fit text-xs">
                     {[['rate', 'Rate based'], ['mc', 'Monte Carlo']].map(([k, label]) => (
                       <button key={k} type="button" onClick={() => setView(k)} disabled={k === 'mc' && !res?.mc}
-                        className={`px-3 py-0.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${view === k ? 'bg-surface text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
+                        className={`px-3 py-0.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${view === k ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
                     ))}
                   </div>
                   {/* one band control driving both charts, so the two stay comparable rather than drifting apart */}
-                  <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-xl w-fit text-xs">
+                  <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-lg w-fit text-xs">
                     {Object.entries(BAND_QUANTILES).map(([k, v]) => (
                       <button key={k} type="button" onClick={() => setBandMode(k)} title={`Draw both charts at the ${v.lowPct} and ${v.highPct}`}
-                        className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-900'}`}>{v.button}</button>
+                        className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-900'}`}>{v.button}</button>
                     ))}
                   </div>
                 </div>
@@ -717,21 +717,21 @@ export default function Simple() {
                     aria-label={`Pot from age ${chart.a0} to ${chart.a1}, ${chart.useFan ? 'from simulated paths' : 'compounded from the return assumptions'}`}>
                     {chart.ticks.map((v, i) => (
                       <g key={i}>
-                        <line x1={chart.L} x2={chart.W - chart.R} y1={chart.y(v)} y2={chart.y(v)} stroke="#e2e8f0" strokeWidth="1" />
-                        <text x={chart.L - 7} y={chart.y(v) + 3} textAnchor="end" fontSize="9" fill="#64748b" fontFamily="ui-monospace, monospace">{GBP_SHORT(v)}</text>
+                        <line x1={chart.L} x2={chart.W - chart.R} y1={chart.y(v)} y2={chart.y(v)} stroke="rgb(var(--slate-200))" strokeWidth="1" />
+                        <text x={chart.L - 7} y={chart.y(v) + 3} textAnchor="end" fontSize="9" fill="rgb(var(--slate-500))" style={{ fontVariantNumeric: 'tabular-nums' }}>{GBP_SHORT(v)}</text>
                       </g>
                     ))}
-                    <polygon points={chart.area} fill={chart.useFan ? '#6366f1' : '#2563eb'} opacity="0.16" />
+                    <polygon points={chart.area} fill={chart.useFan ? 'rgb(var(--indigo-600))' : 'rgb(var(--blue-600))'} opacity="0.16" />
                     {chart.paths.map((d, i) => (
-                      <path key={i} d={d} fill="none" stroke="#4f46e5" strokeWidth="0.7" pathLength="1"
+                      <path key={i} d={d} fill="none" stroke="rgb(var(--indigo-600))" strokeWidth="0.7" pathLength="1"
                         opacity={busy ? 0.5 : 0.28}
                         className={busy ? 'sim-sweep' : undefined}
                         style={busy ? { animationDelay: `${(i % 10) * 0.12}s` } : undefined} />
                     ))}
-                    <path d={chart.line} fill="none" stroke={chart.useFan ? '#4f46e5' : '#2563eb'} strokeWidth="2.5" strokeLinejoin="round" />
-                    <line x1={chart.L} x2={chart.W - chart.R} y1={chart.T + chart.ih} y2={chart.T + chart.ih} stroke="#cbd5e1" strokeWidth="1" />
+                    <path d={chart.line} fill="none" stroke={chart.useFan ? 'rgb(var(--indigo-600))' : 'rgb(var(--blue-600))'} strokeWidth="2.5" strokeLinejoin="round" />
+                    <line x1={chart.L} x2={chart.W - chart.R} y1={chart.T + chart.ih} y2={chart.T + chart.ih} stroke="rgb(var(--slate-300))" strokeWidth="1" />
                     {chart.ageTicks.map(p => (
-                      <text key={p.age} x={chart.x(p.age)} y={chart.H - 10} textAnchor="middle" fontSize="9" fill="#64748b" fontFamily="ui-monospace, monospace">{p.age}</text>
+                      <text key={p.age} x={chart.x(p.age)} y={chart.H - 10} textAnchor="middle" fontSize="9" fill="rgb(var(--slate-500))" style={{ fontVariantNumeric: 'tabular-nums' }}>{p.age}</text>
                     ))}
                   </svg>
                 </div>
@@ -781,9 +781,9 @@ export default function Simple() {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
               {/* these three are counts over simulated paths, so they belong to the Monte Carlo view only */}
               {mc && chart && chart.useFan && <>
-                <span>Tax over your lifetime, typical run: <strong className="text-slate-700 font-mono">{GBP(mc.medianLifetimeTax)}</strong></span>
-                {mc.preNmpaFailRate > 0 && <span>Stranded before the pension unlocks: <strong className={mc.preNmpaFailRate > 5 ? 'text-rose-700 font-mono' : 'text-slate-700 font-mono'}>{mc.preNmpaFailRate.toFixed(1)}%</strong></span>}
-                {mc.medianFailAge && <span>Of the runs that fail, the money typically goes at <strong className="text-slate-700 font-mono">{mc.medianFailAge}</strong></span>}
+                <span>Tax over your lifetime, typical run: <strong className="text-slate-700 tabular-nums">{GBP(mc.medianLifetimeTax)}</strong></span>
+                {mc.preNmpaFailRate > 0 && <span>Stranded before the pension unlocks: <strong className={mc.preNmpaFailRate > 5 ? 'text-rose-700 tabular-nums' : 'text-slate-700 tabular-nums'}>{mc.preNmpaFailRate.toFixed(1)}%</strong></span>}
+                {mc.medianFailAge && <span>Of the runs that fail, the money typically goes at <strong className="text-slate-700 tabular-nums">{mc.medianFailAge}</strong></span>}
               </>}
               {/* the export is the year-by-year projection, which both views are drawn from */}
               <button type="button" onClick={exportCsv} disabled={!timeline}

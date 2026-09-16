@@ -159,7 +159,13 @@ export function SheetPanel({ mode, onMode, summary, quick, full, onHeight }) {
         <span className="h-1 w-10 rounded-full bg-slate-300" />
         {mode === 'collapsed' && <span className="text-[11px] text-slate-600 px-3 truncate max-w-full">{summary}</span>}
       </button>
-      {mode === 'quick' && <div className="max-h-[45dvh] overflow-y-auto overscroll-contain px-3 pb-3">{quick}</div>}
+      {/*
+        * 28dvh, not 45. The sheet exists so the chart stays visible while you adjust, and on a 664px
+        * phone a 45% sheet plus its handle plus the nav bar reached far enough up to cover the bottom of
+        * the chart - which defeats the whole arrangement. The dials scroll inside this, so a shorter cap
+        * costs nothing; `full` is there for anyone who wants the screen.
+        */}
+      {mode === 'quick' && <div className="max-h-[28dvh] overflow-y-auto overscroll-contain px-3 pb-3">{quick}</div>}
       {full_ && <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 pb-3">{full}</div>}
     </div>,
     document.body

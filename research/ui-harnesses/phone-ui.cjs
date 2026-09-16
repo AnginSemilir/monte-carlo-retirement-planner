@@ -22,7 +22,7 @@
  * Run: node phone-ui.cjs [port] [shotDir]
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
-const { CONTRAST_PROBE, OVERFLOW_PROBE, TOUCH_PROBE, NAV_PROBE, CHART_WIDTH_PROBE } = require('./lib/probes.cjs');
+const { CONTRAST_PROBE, OVERFLOW_PROBE, TOUCH_PROBE, NAV_PROBE, CHART_WIDTH_PROBE, AMBER_PROBE } = require('./lib/probes.cjs');
 const PORT = process.argv[2] || '5173';
 const SHOT = process.argv[3];
 const GIA = 'Other Investments (e.g. GIA)';
@@ -184,6 +184,71 @@ const navigate = async (page, label, short) => {
           await p.waitForTimeout(500);
           const closed = await p.evaluate(() => !document.querySelector('[role="dialog"][aria-modal="true"]'));
           ok('...and Escape closes it', closed);
+        }
+      }
+
+      /*
+       * THE SANDBOX SHEET. The point of the sandbox is watching a line move while you adjust, so the
+       * assertions are exactly that: the dial is reachable, and using it draws the amber line on the
+       * chart that is still on screen above.
+       */
+      if (ran) {
+        await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === '7'); if (b) b.click(); });
+        await p.waitForTimeout(900);
+        const sheet = await p.evaluate(() => {
+          const el = document.querySelector('[data-sandbox-sheet]');
+          if (!el) return null;
+          const r = el.getBoundingClientRect();
+          // measure the CHART, not a percentage of the screen: "is the chart visible" is the actual
+          // requirement, and a fraction is a guess that happens to correlate with it on one device
+          const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+          const c = svg ? svg.getBoundingClientRect() : null;
+          return { mode: el.getAttribute('data-mode'), top: Math.round(r.top), vh: window.innerHeight,
+                   chartBottom: c ? Math.round(c.bottom) : null };
+        });
+        ok('the sandbox is a sheet on a phone', !!sheet, sheet ? sheet.mode : 'not found');
+        if (sheet) {
+          ok('...leaving the whole chart visible above it', sheet.chartBottom !== null && sheet.chartBottom <= sheet.top,
+            `chart ends ${sheet.chartBottom}, sheet starts ${sheet.top}`);
+          const before = await p.evaluate(AMBER_PROBE);
+          ok('...no amber line before touching a dial', before === 0, String(before));
+          const bumped = await p.evaluate(() => {
+            const el = document.querySelector('[data-sandbox-sheet]');
+            const b = [...el.querySelectorAll('button')].find(x => x.textContent.trim() === '+500');
+            if (!b) return false; b.click(); return true;
+          });
+          ok('...a contribution dial is there', bumped);
+          await p.waitForTimeout(800);
+          const after = await p.evaluate(AMBER_PROBE);
+          ok('...and using it draws the amber line', after > 0, `${after} dashed path(s)`);
+          // everything the desktop panel has is still reachable
+          const opened = await p.evaluate(() => {
+            const el = document.querySelector('[data-sandbox-sheet]');
+            const b = [...el.querySelectorAll('button')].find(x => /All controls/i.test(x.textContent));
+            if (!b) return false; b.click(); return true;
+          });
+          await p.waitForTimeout(700);
+          const fullMode = await p.evaluate(() => {
+            const el = document.querySelector('[data-sandbox-sheet]');
+            return { mode: el && el.getAttribute('data-mode'), inputs: el ? el.querySelectorAll('input').length : 0 };
+          });
+          ok('...All controls opens the full panel', opened && fullMode.mode === 'full' && fullMode.inputs >= 6,
+            `${fullMode.mode}, ${fullMode.inputs} inputs`);
+          // and the bar is still usable while the sheet is in quick mode
+          await p.evaluate(() => {
+            const el = document.querySelector('[data-sandbox-sheet]');
+            const b = [...el.querySelectorAll('button')].find(x => /Done|Close/i.test(x.textContent));
+            if (b) b.click(); else el.querySelector('button').click();
+          });
+          await p.waitForTimeout(400);
+          const navUsable = await p.evaluate(() => {
+            const nav = document.querySelector('[data-bottomnav]');
+            if (!nav) return false;
+            const r = nav.getBoundingClientRect();
+            const mid = document.elementFromPoint(r.left + r.width / 10, r.top + r.height / 2);
+            return !!(mid && mid.closest('[data-bottomnav]'));
+          });
+          ok('...and the nav is still tappable underneath', navUsable);
         }
       }
 

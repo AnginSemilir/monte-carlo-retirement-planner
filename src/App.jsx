@@ -7158,6 +7158,9 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const slideRef = useRef(null);
   const scrollTo = (el) => el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   useEffect(() => { if (!seeAll) scrollTo(slideRef.current); }, [slide, seeAll]);
+  // In "see all" every step is on the page at once, so a sheet pinned over it is in the way rather than
+  // beside the chart it belongs to. Collapse it there and open it when a single step is showing.
+  useEffect(() => { if (isPhone) setSheetMode(seeAll ? 'collapsed' : 'quick'); }, [seeAll, isPhone]);
   const [simProgress, setSimProgress] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -7616,6 +7619,8 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    */
   const touch = isPhone || isCoarse;
   const [moreOpen, setMoreOpen] = useState(false);
+  const [sheetMode, setSheetMode] = useState('quick');   // 'collapsed' | 'quick' | 'full'
+  const [sheetH, setSheetH] = useState(0);
   const [fullscreenChart, setFullscreenChart] = useState(null);   // 'rate' | 'mc' | 'hist' | null
   const [overlayBox, setOverlayBox] = useState(null);
 
@@ -7632,8 +7637,14 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * at a glance, not on a phone.
    */
   const isNarrow = isPhone;
+  /*
+   * Height is bounded by the SCREEN as well as the width. On step 7 the chart shares the viewport with
+   * the sandbox sheet, and a 664px phone has ~608px once the nav bar is out - so a chart sized purely
+   * from the width reached under the sheet on the shorter handsets and hid the very line the sheet
+   * exists to let you watch. 0.34 of the height leaves room for the step heading and the sheet on both.
+   */
   const chartBox = overlayBox || (isPhone
-    ? { w: viewport.width, h: Math.min(Math.round(viewport.width * 0.8), 340) }
+    ? { w: viewport.width, h: Math.min(Math.round(viewport.width * 0.8), 340, Math.round(viewport.height * 0.34)) }
     : { w: 960, h: 420 });
   const chartWidth = chartBox.w, chartHeight = chartBox.h;
   const margin = isNarrow ? { top: 14, right: 10, bottom: 34, left: 48 } : { top: 25, right: 35, bottom: 45, left: 80 };
@@ -9125,6 +9136,66 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         </div>
       </>
     );
+  };
+
+  /*
+   * THE SANDBOX, CONDENSED TO WHAT YOU ACTUALLY TWIDDLE.
+   *
+   * The full panel is a table of balances, contributions, escalation rates and status per account. On a
+   * phone that is a lot of screen for a task that is usually "what if I retire a year later" or "what if
+   * I put another £500 a month in". These are those two questions, at a size a thumb can hit; the whole
+   * panel is one tap away under All controls, and nothing has been removed from it.
+   *
+   * Both dials call the SAME handlers the full panel calls, so there is no second code path that could
+   * drift: adjustSandboxRetire and adjustSandboxContrib already clamp and mark the sandbox customised.
+   */
+  const sandboxQuickDials = () => {
+    const dial = (label, value, steps, onStep) => (
+      <div key={label} className="py-2 border-b border-slate-100 last:border-0">
+        <div className="flex items-baseline justify-between gap-2 mb-1">
+          <span className="text-xs font-semibold text-slate-700 truncate">{label}</span>
+          <span className="text-xs font-mono text-slate-900 tabular-nums shrink-0">{value}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {steps.map(d => (
+            <button key={d} type="button" onClick={() => onStep(d)}
+              aria-label={`${d < 0 ? 'decrease' : 'increase'} ${label} by ${Math.abs(d).toLocaleString()}`}
+              className="flex-1 min-h-11 rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 cursor-pointer active:bg-slate-200">
+              {d > 0 ? '+' : ''}{d.toLocaleString()}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+    return (
+      <div className="space-y-1">
+        {ctx.owners.map(o => dial(`${o.label}: retire at`, sandboxRetire[o.key], [-5, -1, 1, 5], (d) => adjustSandboxRetire(o.key, d)))}
+        {displayedAccounts.map(acc => {
+          const sb = sandboxAccounts[acc.id] || {};
+          const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
+          return dial(`${label}: a year`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
+        })}
+        <div className="flex items-center gap-2 pt-2">
+          <button type="button" onClick={handleResetSandbox} disabled={!isSandboxModified}
+            className="flex-1 min-h-11 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer">Reset</button>
+          <button type="button" onClick={handleApplySandboxToPlan} disabled={!isSandboxModified}
+            className="flex-1 min-h-11 rounded-lg bg-accent text-onaccent text-xs font-bold disabled:opacity-40 cursor-pointer">Apply to plan</button>
+        </div>
+        <button type="button" onClick={() => setSheetMode('full')}
+          className="w-full min-h-11 text-xs font-semibold text-blue-700 cursor-pointer">All controls &rarr;</button>
+      </div>
+    );
+  };
+
+  // one line for the collapsed sheet: enough to know whether anything is changed without opening it
+  const sandboxSummary = () => {
+    if (!isSandboxModified) return 'Sandbox — nothing changed yet';
+    const bits = [];
+    ctx.owners.forEach(o => { const b = sandboxRetireFromPlan(plan)[o.key]; if (sandboxRetire[o.key] !== b) bits.push(`retire ${sandboxRetire[o.key]}`); });
+    const extra = (plan?.accounts || []).reduce((t, a) => t + (E.num((sandboxAccounts[a.id] || {}).contrib, 0) - E.num(a.contrib, 0)), 0);
+    if (extra) bits.push(`${extra > 0 ? '+' : ''}${formatGBP(extra)}/yr`);
+    if (sandboxMetrics) bits.push(`${sandboxMetrics.terminalDelta >= 0 ? '+' : ''}${formatGBP(sandboxMetrics.terminalDelta)} @ ${terminalAge}`);
+    return `Sandbox · ${bits.join(' · ')}`;
   };
 
   const renderSandboxPanel = () => {
@@ -10706,7 +10777,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 the rate-based band, because that is the chart the survival figure everything else quotes
                 is actually read from. */}
             {showSlide(SANDBOX_SLIDE) && (
-              <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="space-y-6">
+              <div ref={slideRef} className="space-y-6"
+                /* room at the foot for the sheet, so the Rerun card below is not stranded under it */
+                style={{ scrollMarginTop: 12, paddingBottom: isPhone ? sheetH : 0 }}>
                 <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                   {slideHead(SANDBOX_SLIDE, 'Change something', 'Edit below and the amber line moves with you. Your saved plan is not touched.')}
                   {renderProjectionChart('mc')}
@@ -10715,7 +10788,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   )}
                   {slideNav(SANDBOX_SLIDE)}
                 </div>
-                {renderSandboxPanel()}
+                {/*
+                  * On a phone the controls become a sheet at the foot of the screen so the chart above
+                  * stays visible while you adjust - which is the entire point of a sandbox. Its `full`
+                  * mode renders this same panel, unchanged, so nothing is lost.
+                  */}
+                {isPhone ? (
+                  <SheetPanel mode={sheetMode} onMode={setSheetMode} onHeight={setSheetH}
+                    summary={sandboxSummary()} quick={sandboxQuickDials()} full={renderSandboxPanel()} />
+                ) : renderSandboxPanel()}
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
                   <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {simResult.trials.toLocaleString()} randomised futures and refresh every step, run it again.</span>
                   <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}

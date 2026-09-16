@@ -518,15 +518,20 @@ const moneyEpsilon = (v) => Math.max(MONEY_EPSILON_FLOOR, Math.abs(v) * MONEY_EP
  * inheritance-optimal - so in principle the recommendation could be far more fragile than the best
  * available, and the household would never be told they had bought that.
  *
- * Measured across 120 households with each priority promoted to first in turn, the worst any stated
- * preference actually costs is 4.33 points of survival, and nothing exceeds 5. The trades are mostly
- * good ones: ranking the pot first gives up 2.6 points on average to gain 37% more pot, and ranking tax
- * first gives up 2.7 points to cut lifetime tax by 72%.
+ * Measured across 420 households with each priority promoted to first in turn. The ordinary trade is a
+ * reasonable one: where ranking the pot first changed the pick at all (357 of 420), it gave up 1.1
+ * points of survival on average for 20% more pot; ranking tax first gave up a similar 1.2 points for
+ * roughly a third less lifetime tax. UNGUARDED, a few households pay far more - promoting resilience in
+ * poor markets or lifetime tax can cost up to 14.4 points of survival in about 3% of households (12 and
+ * 13 of 420 respectively), an unusual case where several priorities happen to disagree at once. That is
+ * exactly what the guard exists to catch, and at 420 households it now visibly does: the guarded worst
+ * case sits right at the 5-point cap rather than below it, which earlier, smaller runs of this same
+ * study did not have enough households to show.
  *
- * So five points is chosen to sit just above the observed worst case. It never overrides a trade this
- * library says is reasonable, and it catches anything worse in a plan nobody thought to test. It is
- * precautionary rather than corrective, which is the honest description, and the number is a config
- * value so it can be tightened by anyone who disagrees.
+ * So five points is chosen above the typical cost of a genuine preference and below the unguarded worst
+ * case. It never overrides a trade this library calls reasonable, and it catches the households where
+ * the ranking would otherwise do real damage. It is precautionary rather than corrective, which is the
+ * honest description, and the number is a config value so it can be tightened by anyone who disagrees.
  *
  * There is deliberately NO absolute survival floor alongside it. A plan whose best available outcome is
  * 69% is fragile because the plan is fragile, not because of how the priorities were ordered, and
@@ -9645,7 +9650,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       })}
                     </div>
                     <div className="pt-2 border-t border-slate-200 space-y-1">
-                      <div className="text-[11px] text-slate-600"><strong>Safety limit.</strong> Whatever the order says, a recommendation is never more than <strong>{E.MAX_SURVIVAL_SACRIFICE_PTS} percentage points</strong> below the best survival available. Measured across 120 households, the worst any stated preference actually costs is 4.3 points, so this rarely binds — it exists for plans nobody thought to test.</div>
+                      <div className="text-[11px] text-slate-600"><strong>Safety limit.</strong> Whatever the order says, a recommendation is never more than <strong>{E.MAX_SURVIVAL_SACRIFICE_PTS} percentage points</strong> below the best survival available. Measured across 420 households, an unguarded preference can occasionally cost far more — up to 14.4 points of survival in about 3% of households, where several priorities happen to disagree at once — which is exactly what this catches.</div>
                       <div className="text-[11px] text-slate-500">Money thresholds never fall below {formatGBP(E.MONEY_EPSILON_FLOOR)}, because a percentage of a near-zero figure is a near-zero threshold, which would make that priority infinitely fussy on exactly the plans where it matters least.</div>
                     </div>
                   </div>
@@ -12047,7 +12052,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <li><strong>Nothing more than {E.MAX_SURVIVAL_SACRIFICE_PTS} points below the best survival is ever offered.</strong> The same safety limit that bounds the ranking bounds the cards.</li>
                 <li><strong>Every cost is stated, not just the survival one.</strong> A combination that buys a larger pot with a worse bad case or a higher lifetime tax bill says so on the card.</li>
               </ul>
-              <p className="text-xs text-slate-600 leading-relaxed">Measured across the same 420 households, some alternative with a real difference exists for 88% of them, most often a larger pot (72%) or a smaller tax bill (46%), and rarely one on bridge risk (1%). The other 12% are told there is no trade-off to make, which is the correct answer for their plan.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Measured across the same 420 households, some alternative with a real difference exists for 83% of them, most often a larger pot (70%) or a smaller tax bill (41%), and rarely one on bridge risk (under 1%). The other 17% are told there is no trade-off to make, which is the correct answer for their plan.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">If you rank the priorities yourself</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Under <strong>Advanced</strong> the full ranking is still there for anyone who genuinely has an order. The list is worked down in order: your first priority narrows the field to the settings that are best on it; the second then chooses among <em>those</em>, and so on. A lower priority can only ever break a near-tie on the ones above it, so ranking something first genuinely protects it &mdash; and if you promote the pot or the bequest above survival, you are telling the model you would accept a materially higher chance of running dry in exchange, and it will do exactly that, up to the {E.MAX_SURVIVAL_SACRIFICE_PTS}-point limit. <strong>Balance them all</strong> weighs every priority together instead, so a modest gain in several can outweigh a small loss in one. Whichever you use, the trade-off cards are always priced against the survival-first recommendation, so a card means the same thing every time it appears.</p>

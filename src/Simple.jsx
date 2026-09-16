@@ -1,11 +1,12 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { TrendingUp, Plus, X, Loader2, Download, Minus, Bookmark } from 'lucide-react';
+import { TrendingUp, Plus, X, Loader2, Download, Minus, Bookmark, Maximize2 } from 'lucide-react';
 import {
   buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
   buildPolicyCandidates, explainPick, toleranceFor, simulateDeterministic, DEFAULT_RISK_PROFILES,
   STATE_PENSION_FULL, BAND_QUANTILES, TAX_REGION_LABELS, num
 } from './App.jsx';
 import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId, earningId } from './simplePlan.js';
+import { ChartFullscreen } from './phone.jsx';
 
 /*
  * THE STREAMLINED PAGE.
@@ -126,6 +127,8 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
   const [view, setView] = useState('rate');      // 'rate' (CAGR) | 'mc' - the advanced deck's two charts
   const [bandMode, setBandMode] = useState('quartile');
   const [showWrappers, setShowWrappers] = useState(() => Object.fromEntries(WRAPPERS.map(w => [w.key, true])));
+  const [chartFull, setChartFull] = useState(false);
+  const [overlayBox, setOverlayBox] = useState(null);
   const [scenarios, setScenarios] = useState(loadScenarios);
   const [activeScenario, setActiveScenario] = useState(null);
   const [res, setRes] = useState(null);          // { mc, safeSpend, safeAge }
@@ -362,7 +365,14 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
      */
     const yMax = Math.max(1, Math.min(edgeTop, medTop * 2.5)) * 1.06;
     const clippedTo = edgeTop > yMax ? edgeTop : null;
-    const W = 720, H = 300, L = 44, R = 16, T = 14, B = 30;
+    /*
+     * On a phone the viewBox width is the screen width, so SVG text renders 1:1 rather than being
+     * shrunk by the ratio between a 720-wide box and a ~330px column. 0.62 of the width keeps the chart
+     * and the dials beneath it on one screen; the fullscreen overlay hands its own measured box in.
+     */
+    const W = overlayBox ? overlayBox.w : isPhone ? viewport.width : 720;
+    const H = overlayBox ? overlayBox.h : isPhone ? Math.min(Math.round(W * 0.62), 260) : 300;
+    const L = isPhone && !overlayBox ? 38 : 44, R = 16, T = 14, B = 30;
     const iw = W - L - R, ih = H - T - B;
     const a0 = series[0].age, a1 = series[series.length - 1].age;
     const x = (a) => L + (a1 === a0 ? 0 : ((a - a0) / (a1 - a0)) * iw);
@@ -397,7 +407,47 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
       if (rows.length > 1) wrappers[w.key] = rows.map((r, i) => `${i ? 'L' : 'M'}${x(r.ageSelf).toFixed(1)},${y(r[w.key] || 0).toFixed(1)}`).join(' ');
     }
     return { W, H, L, R, T, B, ih, x, y, area, line, ticks, ageTicks, useFan, a0, a1, clippedTo, paths, wrappers };
-  }, [expected, res, view, bandMode, timeline]);
+  }, [expected, res, view, bandMode, timeline, isPhone, viewport.width, overlayBox]);
+
+  /*
+   * The chart markup as a function, because it is rendered in two places: inline, and again inside the
+   * fullscreen overlay. Two copies of this JSX would be two things to keep in step.
+   */
+  const chartPanel = (inOverlay = false) => (
+          <div className={`relative overflow-x-auto ${isPhone && !inOverlay ? 'bleed' : ''} ${inOverlay ? 'h-full' : ''}`}>
+            {isPhone && !inOverlay && (
+              <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setChartFull(true)}
+                className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
+                <Maximize2 className="w-4 h-4" />
+              </button>
+            )}
+            <svg viewBox={`0 0 ${chart.W} ${chart.H}`} className={inOverlay ? 'w-full h-full select-none' : 'w-full h-auto select-none'}
+              preserveAspectRatio={inOverlay ? 'xMidYMid meet' : undefined} role="img"
+              aria-label={`Pot from age ${chart.a0} to ${chart.a1}, ${chart.useFan ? 'from simulated paths' : 'compounded from the return assumptions'}`}>
+              {chart.ticks.map((v, i) => (
+                <g key={i}>
+                  <line x1={chart.L} x2={chart.W - chart.R} y1={chart.y(v)} y2={chart.y(v)} stroke="rgb(var(--slate-200))" strokeWidth="1" />
+                  <text x={chart.L - 7} y={chart.y(v) + 3} textAnchor="end" fontSize="9" fill="rgb(var(--slate-500))" style={{ fontVariantNumeric: 'tabular-nums' }}>{GBP_SHORT(v)}</text>
+                </g>
+              ))}
+              <polygon points={chart.area} fill={chart.useFan ? 'rgb(var(--indigo-600))' : 'rgb(var(--blue-600))'} opacity="0.16" />
+              {chart.paths.map((d, i) => (
+                <path key={i} d={d} fill="none" stroke="rgb(var(--indigo-600))" strokeWidth="0.7" pathLength="1"
+                  opacity={busy ? 0.5 : 0.28}
+                  className={busy ? 'sim-sweep' : undefined}
+                  style={busy ? { animationDelay: `${(i % 10) * 0.12}s` } : undefined} />
+              ))}
+              {WRAPPERS.map(w => (showWrappers[w.key] && chart.wrappers[w.key]
+                ? <path key={w.key} d={chart.wrappers[w.key]} fill="none" stroke={w.color} strokeWidth="1.75" strokeLinejoin="round" strokeLinecap="round" opacity="0.9" />
+                : null))}
+              <path d={chart.line} fill="none" stroke={chart.useFan ? 'rgb(var(--indigo-600))' : 'rgb(var(--blue-600))'} strokeWidth="2.5" strokeLinejoin="round" />
+              <line x1={chart.L} x2={chart.W - chart.R} y1={chart.T + chart.ih} y2={chart.T + chart.ih} stroke="rgb(var(--slate-300))" strokeWidth="1" />
+              {chart.ageTicks.map(p => (
+                <text key={p.age} x={chart.x(p.age)} y={chart.H - 10} textAnchor="middle" fontSize="9" fill="rgb(var(--slate-500))" style={{ fontVariantNumeric: 'tabular-nums' }}>{p.age}</text>
+              ))}
+            </svg>
+          </div>
+  );
 
   // ------------------------------------------------------------------ input helpers
   /*
@@ -749,32 +799,30 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                     ))}
                   </div>
                 </div>
-                <div className="overflow-x-auto">
-                  <svg viewBox={`0 0 ${chart.W} ${chart.H}`} className="w-full h-auto select-none" role="img"
-                    aria-label={`Pot from age ${chart.a0} to ${chart.a1}, ${chart.useFan ? 'from simulated paths' : 'compounded from the return assumptions'}`}>
-                    {chart.ticks.map((v, i) => (
-                      <g key={i}>
-                        <line x1={chart.L} x2={chart.W - chart.R} y1={chart.y(v)} y2={chart.y(v)} stroke="rgb(var(--slate-200))" strokeWidth="1" />
-                        <text x={chart.L - 7} y={chart.y(v) + 3} textAnchor="end" fontSize="9" fill="rgb(var(--slate-500))" style={{ fontVariantNumeric: 'tabular-nums' }}>{GBP_SHORT(v)}</text>
-                      </g>
-                    ))}
-                    <polygon points={chart.area} fill={chart.useFan ? 'rgb(var(--indigo-600))' : 'rgb(var(--blue-600))'} opacity="0.16" />
-                    {chart.paths.map((d, i) => (
-                      <path key={i} d={d} fill="none" stroke="rgb(var(--indigo-600))" strokeWidth="0.7" pathLength="1"
-                        opacity={busy ? 0.5 : 0.28}
-                        className={busy ? 'sim-sweep' : undefined}
-                        style={busy ? { animationDelay: `${(i % 10) * 0.12}s` } : undefined} />
-                    ))}
-                    {WRAPPERS.map(w => (showWrappers[w.key] && chart.wrappers[w.key]
-                      ? <path key={w.key} d={chart.wrappers[w.key]} fill="none" stroke={w.color} strokeWidth="1.75" strokeLinejoin="round" strokeLinecap="round" opacity="0.9" />
-                      : null))}
-                    <path d={chart.line} fill="none" stroke={chart.useFan ? 'rgb(var(--indigo-600))' : 'rgb(var(--blue-600))'} strokeWidth="2.5" strokeLinejoin="round" />
-                    <line x1={chart.L} x2={chart.W - chart.R} y1={chart.T + chart.ih} y2={chart.T + chart.ih} stroke="rgb(var(--slate-300))" strokeWidth="1" />
-                    {chart.ageTicks.map(p => (
-                      <text key={p.age} x={chart.x(p.age)} y={chart.H - 10} textAnchor="middle" fontSize="9" fill="rgb(var(--slate-500))" style={{ fontVariantNumeric: 'tabular-nums' }}>{p.age}</text>
-                    ))}
-                  </svg>
-                </div>
+                {chartPanel()}
+                {/* The overlay renders the same markup at the size it measures for itself. This page has
+                    no reveal animation to protect, so the one chart memo simply follows the overlay box. */}
+                {isPhone && chartFull && (
+                  <ChartFullscreen open title="Projections"
+                    toolbar={<>
+                      <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-lg text-xs">
+                        {[['rate', 'Rate based'], ['mc', 'Monte Carlo']].map(([k, label]) => (
+                          <button key={k} type="button" onClick={() => setView(k)} disabled={k === 'mc' && !res?.mc}
+                            className={`px-3 min-h-11 rounded-lg font-semibold cursor-pointer disabled:opacity-40 ${view === k ? 'bg-surface text-blue-700 shadow-2xs' : 'text-slate-500'}`}>{label}</button>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-lg text-xs">
+                        {Object.entries(BAND_QUANTILES).map(([k, v]) => (
+                          <button key={k} type="button" onClick={() => setBandMode(k)} title={`${v.lowPct} to ${v.highPct}`}
+                            className={`px-2.5 min-h-11 rounded-lg font-semibold cursor-pointer ${bandMode === k ? 'bg-accent text-onaccent' : 'text-slate-500'}`}>{v.label || k}</button>
+                        ))}
+                      </div>
+                    </>}
+                    onBox={setOverlayBox}
+                    onClose={() => { setChartFull(false); setOverlayBox(null); }}>
+                    {chartPanel(true)}
+                  </ChartFullscreen>
+                )}
                 {/* A legend that is also the control: clicking an entry draws that wrapper. Each carries
                     its own colour swatch, so a line on the chart can be named without a key elsewhere. */}
                 {Object.keys(chart.wrappers).length > 0 && (

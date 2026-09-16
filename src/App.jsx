@@ -4,10 +4,11 @@ import {
   TrendingUp, Layers, Check, RotateCcw, Dices, Zap, ShieldCheck, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
   Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, ChevronUp, ChevronDown, Home, Gift,
-  GripVertical
+  GripVertical, Maximize2
 } from 'lucide-react';
 import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
+import { ChartFullscreen, Fine, SheetPanel } from './phone.jsx';
 import EditMode from './EditMode.jsx';
 // ============================================================================================
 // Monte-Carlo Retirement Planner v3.4 — single-file build (engine + UI).
@@ -7615,6 +7616,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    */
   const touch = isPhone || isCoarse;
   const [moreOpen, setMoreOpen] = useState(false);
+  const [fullscreenChart, setFullscreenChart] = useState(null);   // 'rate' | 'mc' | 'hist' | null
   const [overlayBox, setOverlayBox] = useState(null);
 
   /*
@@ -8834,6 +8836,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   );
 
   /*
+   * The horizon slider, defined once. It was duplicated in the two chart steps, and the fullscreen
+   * toolbar needs a third copy - at which point one definition is the only way they stay in step.
+   */
+  const horizonSlider = (
+    <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
+      <span className="text-slate-600 whitespace-nowrap">Horizon: <strong>Age {effectiveMaxVisibleAge}</strong></span>
+      <input type="range" min={currentAge + 1} max={terminalAge} value={effectiveMaxVisibleAge}
+        onChange={(e) => setMaxVisibleAge(Number(e.target.value))} className="w-28 sm:w-40 accent-blue-600 cursor-pointer" />
+    </div>
+  );
+
+  /*
    * THE RETIREMENT-AGE CURVE.
    *
    * The single figure on step 3 is one point on a line, and the line is the more useful object: it says
@@ -8973,14 +8987,66 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * beneath the sandbox controls, where replaying a 1.5s sweep on every nudge of a contribution would be
    * an animation you have to sit through rather than one you watched.
    */
-  const renderProjectionChart = (kind, { animate = false } = {}) => {
+  /*
+   * The historical chart, as a function so the fullscreen overlay can render the same thing. It shares
+   * the projection's chart box, so it follows the phone sizing without a second set of rules.
+   */
+  const renderHistoricalChart = ({ inOverlay = false } = {}) => (
+                <div className={`relative overflow-x-auto ${isPhone && !inOverlay ? 'bleed' : ''} ${inOverlay ? 'h-full' : ''}`}>
+                  {isPhone && !inOverlay && (
+              <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setFullscreenChart('hist')}
+                className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
+                <Maximize2 className="w-4 h-4" />
+              </button>
+            )}
+            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+              className={inOverlay ? 'w-full h-full select-none' : 'w-full h-auto select-none'}
+              preserveAspectRatio={inOverlay ? 'xMidYMid meet' : undefined} onMouseLeave={() => setHoveredHistPoint(null)}>
+                    <g transform={`translate(${margin.left}, ${margin.top})`}>
+                      {histYScale.ticks(isNarrow ? 5 : 6).map((t, i) => <g key={i} transform={`translate(0, ${histYScale(t)})`}><line x2={innerWidth} stroke={cp.gridMajor} strokeDasharray="3,3" /><text x={-10} dy="0.32em" fill={cp.axisText} fontSize="10" textAnchor="end" fontFamily="monospace">£{(t / 1000).toFixed(0)}k</text></g>)}
+                      {histXScale.ticks(isNarrow ? 5 : 10).map((t, i) => <g key={i} transform={`translate(${histXScale(t)}, 0)`}><line y2={innerHeight} stroke={cp.gridMinor} /><text y={innerHeight + 20} fill={cp.axisText} fontSize="11" textAnchor="middle" fontFamily="monospace">{t}</text></g>)}
+                      {markers(histXScale)}
+                      {histLinePath && <path d={histLinePath} fill="none" stroke={cp.historicalLine} strokeWidth="3" strokeLinecap="round" />}
+                      <rect width={innerWidth} height={innerHeight} fill="transparent" onMouseMove={(e) => { const rect = e.currentTarget.getBoundingClientRect(); const age = Math.round(histXScale.invert((e.clientX - rect.left) * (innerWidth / Math.max(1, rect.width)))); setHoveredHistPoint(historicalTimeline.find(d => d.ageSelf === age) || null); }} />
+                      {hoveredHistPoint && <g transform={`translate(${histXScale(hoveredHistPoint.ageSelf)}, 0)`}><line y2={innerHeight} stroke={cp.hoverCrosshair} strokeWidth="1" strokeDasharray="2,2" /><circle cy={histYScale(hoveredHistPoint.totalCombined)} r="4" fill={cp.historicalHoverFill} stroke={cp.hoverDotStroke} strokeWidth="2" /></g>}
+                    </g>
+                  </svg>
+                  {hoveredHistPoint && (
+                    <div className="absolute top-4 left-24 bg-surface/95 border border-slate-200 p-3 rounded-lg shadow-lg text-xs space-y-1 backdrop-blur-md pointer-events-none">
+                      <div className="font-bold text-slate-800 border-b border-slate-100 pb-1 flex justify-between gap-4"><span>Age {hoveredHistPoint.ageSelf} (Simulated {hoveredHistPoint.histYear ?? 'beyond data'})</span><span className="text-slate-500">Plan Year: {hoveredHistPoint.year}</span></div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1 font-mono">
+                        <div className="text-indigo-600 font-bold">Total Pot: {formatGBP(hoveredHistPoint.totalCombined)}</div>
+                        <div className="text-slate-600">Living Target: {formatGBP(hoveredHistPoint.targetSpend)}</div>
+                        {hoveredHistPoint.histStockReturn !== null && <div className={hoveredHistPoint.histStockReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}>Equity Return: {hoveredHistPoint.histStockReturn.toFixed(1)}%</div>}
+                        {hoveredHistPoint.histBondReturn !== null && <div className={hoveredHistPoint.histBondReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}>Bond Return: {hoveredHistPoint.histBondReturn.toFixed(1)}%</div>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+  );
+
+  /*
+   * `inOverlay` is the same chart drawn inside the fullscreen dialog. It must not offer its own Expand
+   * button (there is nowhere further to go) and it must not animate: the inline copy stays mounted
+   * underneath, so re-running the reveal here would play a second, unsynchronised copy of it.
+   */
+  const renderProjectionChart = (kind, { animate = false, inOverlay = false } = {}) => {
     const isRate = kind === 'rate';
     const band = isRate ? cp.rateBand : cp.fanBand;
     const edge = isRate ? cp.rateEdge : cp.fanEdge;
     return (
       <>
-        <div className="relative overflow-x-auto">
-          <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto select-none" onMouseLeave={() => setHoveredPoint(null)}>
+        <div className={`relative overflow-x-auto ${isPhone && !inOverlay ? 'bleed' : ''} ${inOverlay ? 'h-full' : ''}`}>
+          {isPhone && !inOverlay && (
+            <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setFullscreenChart(kind)}
+              className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          )}
+          <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+            className={inOverlay ? 'w-full h-full select-none' : 'w-full h-auto select-none'}
+            preserveAspectRatio={inOverlay ? 'xMidYMid meet' : undefined}
+            onMouseLeave={() => setHoveredPoint(null)}>
             <g transform={`translate(${margin.left}, ${margin.top})`}>
               {yScale.ticks(isNarrow ? 5 : 6).map((t, i) => <g key={i} transform={`translate(0, ${yScale(t)})`}><line x2={innerWidth} stroke={cp.gridMajor} strokeDasharray="3,3" /><text x={-8} dy="0.32em" fill={cp.axisText} fontSize={isNarrow ? 12 : 10} textAnchor="end" fontFamily="monospace">{t >= 1000000 ? `£${(t / 1000000).toFixed(t >= 10000000 ? 0 : 1)}m` : `£${(t / 1000).toFixed(0)}k`}</text></g>)}
               {xScale.ticks(isNarrow ? 5 : 10).map((t, i) => <g key={i} transform={`translate(${xScale(t)}, 0)`}><line y2={innerHeight} stroke={cp.gridMinor} /><text y={innerHeight + 20} fill={cp.axisText} fontSize={isNarrow ? 13 : 11} textAnchor="middle" fontFamily="monospace">{t}</text></g>)}
@@ -10474,10 +10540,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {slideHead(4, 'Rate based', 'One steady rate per wrapper, compounded. Redraws as you type.')}
                   <div className="flex flex-wrap items-center gap-3">
                     {bandToggle}
-                    <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
-                      <span className="text-slate-600 whitespace-nowrap">Horizon: <strong>Age {effectiveMaxVisibleAge}</strong></span>
-                      <input type="range" min={currentAge + 1} max={terminalAge} value={effectiveMaxVisibleAge} onChange={(e) => setMaxVisibleAge(Number(e.target.value))} className="w-32 sm:w-40 accent-blue-600 cursor-pointer" />
-                    </div>
+                    {horizonSlider}
                   </div>
                   {renderProjectionChart('rate')}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
@@ -10495,10 +10558,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {slideHead(5, 'Monte Carlo', `${simResult.trials.toLocaleString()} randomised futures, same axes as the last screen.`)}
                   <div className="flex flex-wrap items-center gap-3">
                     {bandToggle}
-                    <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs">
-                      <span className="text-slate-600 whitespace-nowrap">Horizon: <strong>Age {effectiveMaxVisibleAge}</strong></span>
-                      <input type="range" min={currentAge + 1} max={terminalAge} value={effectiveMaxVisibleAge} onChange={(e) => setMaxVisibleAge(Number(e.target.value))} className="w-32 sm:w-40 accent-blue-600 cursor-pointer" />
-                    </div>
+                    {horizonSlider}
                   </div>
                   {renderProjectionChart('mc', { animate: true })}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
@@ -12063,29 +12123,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             )}
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div><h3 className="text-base font-semibold text-slate-900">Historical Wealth Path (Simulating {activeHistoricalStartYear}–{activeHistoricalStartYear + spanYears})</h3><span className="text-xs text-slate-500">Real purchasing power across accumulation and decumulation</span></div>
-              <div className="relative overflow-x-auto">
-                <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto select-none" onMouseLeave={() => setHoveredHistPoint(null)}>
-                  <g transform={`translate(${margin.left}, ${margin.top})`}>
-                    {histYScale.ticks(6).map((t, i) => <g key={i} transform={`translate(0, ${histYScale(t)})`}><line x2={innerWidth} stroke={cp.gridMajor} strokeDasharray="3,3" /><text x={-10} dy="0.32em" fill={cp.axisText} fontSize="10" textAnchor="end" fontFamily="monospace">£{(t / 1000).toFixed(0)}k</text></g>)}
-                    {histXScale.ticks(10).map((t, i) => <g key={i} transform={`translate(${histXScale(t)}, 0)`}><line y2={innerHeight} stroke={cp.gridMinor} /><text y={innerHeight + 20} fill={cp.axisText} fontSize="11" textAnchor="middle" fontFamily="monospace">{t}</text></g>)}
-                    {markers(histXScale)}
-                    {histLinePath && <path d={histLinePath} fill="none" stroke={cp.historicalLine} strokeWidth="3" strokeLinecap="round" />}
-                    <rect width={innerWidth} height={innerHeight} fill="transparent" onMouseMove={(e) => { const rect = e.currentTarget.getBoundingClientRect(); const age = Math.round(histXScale.invert((e.clientX - rect.left) * (innerWidth / Math.max(1, rect.width)))); setHoveredHistPoint(historicalTimeline.find(d => d.ageSelf === age) || null); }} />
-                    {hoveredHistPoint && <g transform={`translate(${histXScale(hoveredHistPoint.ageSelf)}, 0)`}><line y2={innerHeight} stroke={cp.hoverCrosshair} strokeWidth="1" strokeDasharray="2,2" /><circle cy={histYScale(hoveredHistPoint.totalCombined)} r="4" fill={cp.historicalHoverFill} stroke={cp.hoverDotStroke} strokeWidth="2" /></g>}
-                  </g>
-                </svg>
-                {hoveredHistPoint && (
-                  <div className="absolute top-4 left-24 bg-surface/95 border border-slate-200 p-3 rounded-lg shadow-lg text-xs space-y-1 backdrop-blur-md pointer-events-none">
-                    <div className="font-bold text-slate-800 border-b border-slate-100 pb-1 flex justify-between gap-4"><span>Age {hoveredHistPoint.ageSelf} (Simulated {hoveredHistPoint.histYear ?? 'beyond data'})</span><span className="text-slate-500">Plan Year: {hoveredHistPoint.year}</span></div>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1 font-mono">
-                      <div className="text-indigo-600 font-bold">Total Pot: {formatGBP(hoveredHistPoint.totalCombined)}</div>
-                      <div className="text-slate-600">Living Target: {formatGBP(hoveredHistPoint.targetSpend)}</div>
-                      {hoveredHistPoint.histStockReturn !== null && <div className={hoveredHistPoint.histStockReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}>Equity Return: {hoveredHistPoint.histStockReturn.toFixed(1)}%</div>}
-                      {hoveredHistPoint.histBondReturn !== null && <div className={hoveredHistPoint.histBondReturn >= 0 ? 'text-emerald-600' : 'text-rose-600'}>Bond Return: {hoveredHistPoint.histBondReturn.toFixed(1)}%</div>}
-                    </div>
-                  </div>
-                )}
-              </div>
+            {renderHistoricalChart()}
             </div>
           </div>
         )}
@@ -12418,6 +12456,24 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         * component tree-shakes out of the production bundle rather than merely being hidden.
         */}
       {import.meta.env.DEV && <EditMode />}
+
+      {/*
+        * A chart at full screen. The inline copy stays mounted underneath: that is what keeps the Monte
+        * Carlo reveal from replaying when the overlay opens, since its animation groups are keyed to the
+        * slide rather than to the chart's size, and unmounting them would restart the animation.
+        */}
+      {isPhone && fullscreenChart && (
+        <ChartFullscreen
+          open
+          title={fullscreenChart === 'rate' ? 'Rate based' : fullscreenChart === 'hist' ? 'Historical backtest' : 'Monte Carlo'}
+          toolbar={fullscreenChart === 'hist' ? null : <>{bandToggle}{horizonSlider}</>}
+          onBox={setOverlayBox}
+          onClose={() => { setFullscreenChart(null); setOverlayBox(null); }}>
+          {fullscreenChart === 'hist'
+            ? renderHistoricalChart({ inOverlay: true })
+            : renderProjectionChart(fullscreenChart, { animate: false, inOverlay: true })}
+        </ChartFullscreen>
+      )}
 
       {/* The bar is only rendered on a phone, and is ALSO md:hidden. Belt and braces on purpose: the
           JS boundary and the CSS boundary are the same 767px, and if they ever drift the CSS wins, which

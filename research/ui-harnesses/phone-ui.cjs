@@ -22,7 +22,7 @@
  * Run: node phone-ui.cjs [port] [shotDir]
  */
 const { chromium, devices } = require('/tmp/node_modules/playwright');
-const { CONTRAST_PROBE, OVERFLOW_PROBE, TOUCH_PROBE, NAV_PROBE } = require('./lib/probes.cjs');
+const { CONTRAST_PROBE, OVERFLOW_PROBE, TOUCH_PROBE, NAV_PROBE, CHART_WIDTH_PROBE } = require('./lib/probes.cjs');
 const PORT = process.argv[2] || '5173';
 const SHOT = process.argv[3];
 const GIA = 'Other Investments (e.g. GIA)';
@@ -139,6 +139,52 @@ const navigate = async (page, label, short) => {
         const small = await p.evaluate(TOUCH_PROBE, 44);
         ok(`${label}: no control under 44px`, small.length === 0, small.slice(0, 3).map(x => `${x.tag} "${x.text}" ${x.w}x${x.h}`).join(' | '));
         await p.evaluate(() => window.scrollTo(0, 0));
+      }
+
+      /*
+       * THE CHARTS. A chart on a phone is the thing people came for, so it should be using the screen.
+       * 92% rather than 100% because the card keeps a hairline border and the scrollbar gutter varies.
+       */
+      await navigate(p, 'Projection', 'Projection');
+      await p.waitForTimeout(500);
+      const ran = await p.evaluate(() => {
+        const b = [...document.querySelectorAll('button')].find(x => /Run the projection/i.test(x.textContent));
+        if (!b) return false; b.click(); return true;
+      });
+      ok('the projection runs', ran);
+      if (ran) {
+        await p.waitForFunction(() => [...document.querySelectorAll('button')].some(b => b.textContent.trim() === '6'), null, { timeout: 240000 });
+        await p.waitForTimeout(1200);
+        const vw = desc.viewport.width;
+        for (const step of ['4', '5', '7']) {
+          await p.evaluate((n) => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === n); if (b) b.click(); }, step);
+          await p.waitForTimeout(900);
+          const w = await p.evaluate(CHART_WIDTH_PROBE);
+          ok(`step ${step}: the chart uses the screen`, w >= vw * 0.92, `${w}px of ${vw}px`);
+          const over = await p.evaluate(OVERFLOW_PROBE);
+          ok(`step ${step}: no sideways scroll`, over <= 1, `${over}px`);
+        }
+        // fullscreen, on the Monte Carlo step
+        await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === '5'); if (b) b.click(); });
+        await p.waitForTimeout(900);
+        const opened = await p.evaluate(() => { const b = document.querySelector('[data-chart-expand]'); if (!b) return false; b.click(); return true; });
+        ok('the chart has an expand button', opened);
+        if (opened) {
+          await p.waitForTimeout(700);
+          const fs = await p.evaluate(() => {
+            const d = document.querySelector('[role="dialog"][aria-modal="true"]');
+            if (!d) return null;
+            const svg = [...d.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+            return { w: svg ? Math.round(svg.getBoundingClientRect().width) : 0, vw: window.innerWidth,
+                     h: Math.round(d.getBoundingClientRect().height), vh: window.innerHeight };
+          });
+          ok('expand opens a fullscreen chart', !!fs && fs.w >= fs.vw - 4, fs ? `${fs.w}px of ${fs.vw}px` : 'no dialog');
+          ok('...filling the viewport height', !!fs && Math.abs(fs.h - fs.vh) <= 2, fs ? `${fs.h} vs ${fs.vh}` : '');
+          await p.keyboard.press('Escape');
+          await p.waitForTimeout(500);
+          const closed = await p.evaluate(() => !document.querySelector('[role="dialog"][aria-modal="true"]'));
+          ok('...and Escape closes it', closed);
+        }
       }
 
       const nav = await p.evaluate(NAV_PROBE);

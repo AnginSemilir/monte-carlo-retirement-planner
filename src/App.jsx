@@ -10283,7 +10283,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <button onClick={handleRunAll} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                     <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-                    {isSimulating && !isOptimizing ? 'Testing…' : isOptimizing ? 'Solving…' : tournament.isEvaluating ? 'Comparing…' : '⚡ Run the projection'}
+                    {isSimulating && !isOptimizing ? 'Testing…' : isOptimizing ? 'Solving…' : tournament.isEvaluating ? 'Comparing…' : 'Run the projection'}
                   </button>
                 </div>
               </div>

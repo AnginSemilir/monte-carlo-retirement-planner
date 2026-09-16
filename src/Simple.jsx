@@ -748,34 +748,34 @@ export default function Simple() {
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
               {chart && !chart.useFan ? <>
                 {figure('Pot at retirement', rateCards?.retire == null ? '' : GBP(rateCards.retire),
-                  `age ${num(s.retireSelf, 0)}, expected path`, 'text-indigo-700', !rateCards)}
+                  `age ${num(s.retireSelf, 0)}, expected path`, 'text-slate-900', !rateCards)}
                 {figure(`Expected pot @ ${num(s.terminalAge, 95)}`, rateCards ? GBP(rateCards.mid) : '',
-                  'the middle line, compounded', 'text-blue-700', !rateCards)}
+                  'the middle line, compounded', 'text-slate-900', !rateCards)}
                 {figure(`${band.highPct} @ ${num(s.terminalAge, 95)}`, rateCards ? GBP(rateCards.hi) : '',
-                  'the top edge of the band', 'text-emerald-700', !rateCards)}
+                  'the top edge of the band', 'text-slate-900', !rateCards)}
                 {figure(`${band.lowPct} @ ${num(s.terminalAge, 95)}`, rateCards ? GBP(rateCards.lo) : '',
                   rateCards && rateCards.failAge !== null && rateCards.failAge !== undefined
                     ? `broken from age ${rateCards.failAge}, not low` : 'the bottom edge of the band',
-                  rateCards && rateCards.failAge != null ? 'text-rose-700' : 'text-slate-700', !rateCards)}
+                  rateCards && rateCards.failAge != null ? 'text-rose-700' : 'text-slate-900', !rateCards)}
               </> : <>
                 {figure('Survival rate', mc ? `${mc.successRate.toFixed(1)}%` : '',
                   mc ? `±${(1.96 * mc.standardError).toFixed(1)} pts, spending ${GBP(num(s.spend, 0))}` : 'simulating', rateTone, !mc)}
-                {figure('Safe maximum', ss ? GBP(ss.spend) : '', `a year, the most that clears ${TARGET}%`, 'text-emerald-700', !ss)}
+                {figure('Safe maximum', ss ? GBP(ss.spend) : '', `a year, the most that clears ${TARGET}%`, 'text-slate-900', !ss)}
                 {figure('Earliest safe retirement',
                   sa ? (sa.alreadyRetired ? 'now' : sa.age == null ? 'later' : `Age ${sa.age}`) : '',
                   sa ? (sa.alreadyRetired ? 'you are already past the age you entered'
                     : sa.age == null ? `no age up to your horizon clears ${TARGET}%`
                       : `the earliest stop that clears ${TARGET}%`)
                     : 'scanning each age',
-                  'text-blue-700', !sa)}
+                  'text-slate-900', !sa)}
                 {figure('Pot at retirement', potAtRetirement == null ? '' : GBP(potAtRetirement),
-                  `age ${num(s.retireSelf, 0)}, expected path`, 'text-indigo-700', potAtRetirement == null)}
+                  `age ${num(s.retireSelf, 0)}, expected path`, 'text-slate-900', potAtRetirement == null)}
                 {figure(`Median pot @ ${num(s.terminalAge, 95)}`, mc ? GBP(mc.medianTerminal) : '',
-                  'half of futures end above this', 'text-blue-700', !mc)}
+                  'half of futures end above this', 'text-slate-900', !mc)}
                 {/* a pot floors at zero, so "below this" is meaningless once the tenth percentile has run dry */}
                 {figure(`Unlucky pot @ ${num(s.terminalAge, 95)}`, mc ? GBP(mc.p10Terminal) : '',
                   mc && mc.p10Terminal <= 0 ? 'one plan in ten runs out before the end' : 'one plan in ten ends below',
-                  mc && mc.p10Terminal <= 0 ? 'text-rose-700' : 'text-slate-700', !mc)}
+                  mc && mc.p10Terminal <= 0 ? 'text-rose-700' : 'text-slate-900', !mc)}
               </>}
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
@@ -799,7 +799,7 @@ export default function Simple() {
 
             {res?.policy && (
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                <strong className="text-slate-700">How it draws the money: {policyLabel(res.policy).toLowerCase()}.</strong>{' '}
+                <strong className="text-slate-700">How it draws the money: {policyLabel(res.policy)}.</strong>{' '}
                 Picked from {res.policy.candidates} ways of drawing down, on whichever survives most often &mdash; no setting to change.
                 {res.policy.tied > 1
                   ? <> {res.policy.tied} of them survive about equally often here ({res.policy.bestRate.toFixed(1)}%, against {res.policy.worstRate.toFixed(1)}% for the weakest), so survival alone cannot separate them. Of those {res.policy.tied} this one protects the bad case best; where even that is too close to call, the model&rsquo;s standard order decides rather than a difference too small to measure.</>

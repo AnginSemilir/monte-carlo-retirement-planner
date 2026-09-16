@@ -46,7 +46,7 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
     og: document.querySelector('meta[property="og:title"]')?.content || ''
   }));
   ok('the tab and link preview are named', /Can I Retire/i.test(meta.title) && meta.desc.length > 60 && !!meta.og, `${meta.title} | ${meta.desc.slice(0, 40)}…`);
-  ok('the footer states what this is', await p.evaluate(() => /nothing is advice/i.test(document.body.innerText)));
+  ok('the footer states what this is', await p.evaluate(() => /not financial advice/i.test(document.body.innerText) && /stays in this browser/i.test(document.body.innerText)));
 
   // both apps run: the full one lands on Start Here, the simple one computes an answer
   ok('the full planner renders its tabs', await p.evaluate(() => /Plan Inputs/.test(document.body.innerText)));

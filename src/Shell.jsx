@@ -4,6 +4,7 @@ import App from './App.jsx';
 import Simple from './Simple.jsx';
 import { toFullPlan, fromFullPlan, simpleHasInput, SIMPLE_BLANK } from './simplePlan.js';
 import { useTheme, ThemeToggle } from './theme.jsx';
+import { useViewport } from './viewport.js';
 
 /*
  * ONE ENTRANCE, TWO APPS.
@@ -68,7 +69,7 @@ function Footer() {
         <span>A beta, for education and illustration only &mdash; this is not financial advice. Everything is modelled, every figure is in today&rsquo;s money, and your plan stays in this browser.</span>
         {FEEDBACK_URL && (
           <a href={FEEDBACK_URL} target="_blank" rel="noreferrer noopener"
-            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline">{FEEDBACK_LABEL} &rarr;</a>
+            className="inline-flex items-center min-h-11 font-semibold text-blue-600 hover:text-blue-800 hover:underline">{FEEDBACK_LABEL} &rarr;</a>
         )}
       </div>
     </div>
@@ -135,6 +136,13 @@ export default function Shell() {
    * its own heading.
    */
   const { theme, setTheme } = useTheme();
+  /*
+   * One viewport subscription for the whole app, for the same reason the theme is owned here: the switch
+   * below unmounts whichever app is not showing, and two components each listening to the same media
+   * query is two chances to disagree about what a phone is.
+   */
+  const { isPhone, isCoarse, width, height } = useViewport();
+  const viewport = { width, height };
   const other = OTHER[which];
   // what the last crossing could not bring with it, shown once on arrival
   const [carried, setCarried] = useState(null);
@@ -166,14 +174,14 @@ export default function Shell() {
         </div>
       </div>
 
-      {which === 'full' ? <App theme={theme} setTheme={setTheme} /> : (
+      {which === 'full' ? <App theme={theme} setTheme={setTheme} isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} /> : (
         <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center justify-between gap-3">
               <h1 className="text-xl font-bold tracking-tight text-slate-900">Can I retire?</h1>
-              <ThemeToggle theme={theme} setTheme={setTheme} />
+              <ThemeToggle theme={theme} setTheme={setTheme} touch={isPhone || isCoarse} />
             </div>
-            <Simple />
+            <Simple isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} />
             <p className="text-[11px] text-slate-400 leading-relaxed max-w-3xl">
               For educational and illustrative purposes only. This is not financial advice. Figures come from the same
               engine as the full planner, so the two agree on the same inputs.

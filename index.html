@@ -21,7 +21,10 @@
     </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover lets the page paint under a notch and behind the home indicator; the bottom
+         nav then pads itself back out with env(safe-area-inset-bottom). No maximum-scale: pinch-zoom
+         is how somebody reads a chart on a small screen, and taking it away is an accessibility bug. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!--
@@ -266,6 +269,46 @@
         animation: sim-sweep 1.6s ease-out infinite;
       }
       @media (prefers-reduced-motion: reduce) { .sim-sweep { animation: none; } }
+
+      /*
+       * PHONE LAYOUT UTILITIES.
+       *
+       * Three things Tailwind cannot express as a utility, kept here beside the other global CSS.
+       *
+       * .fill-viewport - 100dvh with a 100vh fallback, in that order so an old browser takes the first
+       *   and a current one takes the second. dvh is the only unit that tracks a mobile URL bar sliding
+       *   in and out; 100vh alone leaves a fullscreen chart overflowing by the height of that bar.
+       *
+       * .bleed - cancels the page gutter so a chart can run to both edges of the screen. 2.25rem is the
+       *   sum of the two paddings above it: the page's p-4 (1rem) plus the card's p-5 (1.25rem). It is a
+       *   media query rather than a `md:` variant because it must never apply on desktop, where the
+       *   gutters are wider and a bleeding chart would escape the card entirely.
+       *
+       * .touch-ui - touch-action: manipulation removes the ~300ms click delay browsers keep in case a tap
+       *   turns out to be a double-tap-to-zoom. Applied only when the pointer is coarse.
+       */
+      .fill-viewport { height: 100vh; height: 100dvh; }
+      @media (max-width: 767px) { .bleed { margin-left: -2.25rem; margin-right: -2.25rem; } }
+      .touch-ui button, .touch-ui a, .touch-ui input, .touch-ui select, .touch-ui summary { touch-action: manipulation; }
+      /*
+       * One rule instead of sixty className edits: under a finger, every control that occupies its own
+       * line gets a 44px minimum height. The widths were already fine - these controls stretch or carry
+       * real labels - so height was the whole problem.
+       *
+       * The exclusions are deliberate. A checkbox and a radio are sized by their own box and are operated
+       * through the label beside them; a range input is dragged rather than tapped, and forcing it taller
+       * would put a 44px band of dead space around a 4px track. Controls that sit INSIDE a sentence are
+       * exempt too - see the probe in research/ui-harnesses/lib/probes.cjs, which follows the same
+       * WCAG exception rather than shoving 44px boxes into the middle of a paragraph.
+       */
+      @media (pointer: coarse) {
+        .touch-ui button, .touch-ui select, .touch-ui summary,
+        .touch-ui input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) { min-height: 44px; }
+        /* flex: none as well as a size - these sit in tight flex rows next to their label, where the
+           default flex-shrink:1 lets the browser squeeze the box back below whatever width is set. */
+        .touch-ui input[type="checkbox"], .touch-ui input[type="radio"] { width: 24px; height: 24px; flex: none; }
+        .touch-ui input[type="range"] { height: 44px; }
+      }
 
       /*
        * THE FULL PLANNER'S MONTE CARLO REVEAL, DONE BY THE BROWSER RATHER THAN BY REACT.

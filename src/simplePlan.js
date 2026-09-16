@@ -9,7 +9,7 @@
  * contributions, employment, risk profiles, return assumptions, the decumulation policy. That is the
  * whole point of the page - the pot is what it is today, and nothing is being paid in.
  */
-import { normalizePlan, AUTO_DEPOSIT, STATE_PENSION_FULL } from './App.jsx';
+import { normalizePlan, AUTO_DEPOSIT } from './App.jsx';
 
 export const SIMPLE_BLANK = {
   couple: false,

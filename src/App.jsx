@@ -569,8 +569,8 @@ const PRIORITY_METRICS = {
     get: (st) => st.medianTerminal, higherIsBetter: true, unit: 'pct', epsilon: moneyEpsilon
   },
   downside: {
-    label: 'Protecting the bad case',
-    why: 'Ranks on the pot in the worst one lifetime in ten, rather than the typical one.',
+    label: 'Holding up if markets go badly',
+    why: 'Ranks on what is left in the worst one lifetime in ten, rather than the typical one.',
     serves: 'Favours steady tax smoothing over anything that concentrates a tax bill or a capital gain into a single year.',
     /*
      * Ranks on the pot LESS the spending that was never afforded, not on the pot alone. A pot floors
@@ -594,6 +594,20 @@ const PRIORITY_METRICS = {
     serves: 'Favours spreading pension income thinly across many years instead of a few large withdrawals. Worth knowing this is a poor proxy for wealth: paying 20% now often beats deferring to 40% later.',
     get: (st) => st.medianLifetimeTax ?? 0, higherIsBetter: false, unit: 'pct', epsilon: moneyEpsilon
   }
+};
+
+/*
+ * What a threshold on each priority is actually counting. The panel used to show only the priority's
+ * name beside a box reading "pts" or "%", which leaves "0.25 points of what?" unanswered - and the unit
+ * differs by row, so there was no way to reason about it from the label alone.
+ */
+const TOLERANCE_MEANS = {
+  survive: 'points of survival rate — 1 pt means 90% and 91% count as the same',
+  bequest: '% of what your heirs receive',
+  pot: '% of the pot left at your final age',
+  downside: '% of what is left in the worst one lifetime in ten',
+  bridge: 'points of pre-pension failure rate',
+  tax: '% of total lifetime tax'
 };
 
 const PRIORITY_KEYS = Object.keys(PRIORITY_METRICS);
@@ -5832,6 +5846,19 @@ const parsePercent = (val) => {
   const n = Number(v);
   return Number.isFinite(n) ? String(clamp(n, 0, 100)) : '';
 };
+/*
+ * The same idea as parsePercent for a range that is not 0-100, and applied ON BLUR rather than on each
+ * keystroke. Clamping as you type makes a lower bound unreachable: typing "0.5" passes through "0",
+ * which would snap to the minimum and leave you fighting the box. So the field holds whatever you type,
+ * says in red when it is outside the range, and is corrected when you leave it.
+ */
+const clampInput = (val, lo, hi) => {
+  const v = parseInputNumber(val);
+  if (v === '') return '';
+  const n = Number(v);
+  return Number.isFinite(n) ? String(clamp(n, lo, hi)) : '';
+};
+
 const tick = () => new Promise(r => setTimeout(r, 0));
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const safeStorageGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -7563,7 +7590,13 @@ export default function App() {
 
   const updateRiskField = (riskKey, field, value) => setPlan(prev => ({ ...prev, riskSource: '', riskProfiles: { ...(prev.riskProfiles || E.DEFAULT_RISK_PROFILES), [riskKey]: { ...(prev.riskProfiles || E.DEFAULT_RISK_PROFILES)[riskKey], [field]: parseInputNumber(value) } } }));
   const updateDemographics = (field, value) => setPlan(prev => ({ ...prev, demographics: { ...(prev.demographics || {}), [field]: field === 'planningMode' ? value : parseInputNumber(value) } }));
-  const NON_NUMERIC_SPENDING = ['drawdownStrategy', 'decumulationPolicy', 'priorities'];
+  /*
+   * Fields on `spending` that are NOT numbers. Anything missing from this list is passed through
+   * parseInputNumber, which does String(v).replace(...) - so priorityTolerances, an object, was being
+   * stored as the literal "[object Object]". Every tolerance field then read back undefined and the
+   * boxes could not be typed into at all.
+   */
+  const NON_NUMERIC_SPENDING = ['drawdownStrategy', 'decumulationPolicy', 'priorities', 'priorityTolerances', 'spendBands'];
   const updateSpending = (field, value) => setPlan(prev => ({ ...prev, spending: { ...(prev.spending || {}), [field]: NON_NUMERIC_SPENDING.includes(field) ? value : parseInputNumber(value) } }));
 
   // the household's ranked objectives, and the promote/demote that reorders them
@@ -9492,7 +9525,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Advanced: set your own thresholds</summary>
                   <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
                     <p className="text-[11px] text-slate-600 leading-relaxed">
-                      How different two options have to be on a priority before it decides between them. Leave a field blank to use the default. Smaller means that priority settles more households by itself; larger means it declares more near-ties and hands the choice down to what you ranked next.
+                      <strong>How far apart two options have to be on a priority before it is allowed to pick between them.</strong> Anything closer than this counts as a tie and the decision passes to whatever you ranked next. Leave a field blank for the default. Smaller means that priority decides more often on its own; larger means it steps aside more often.
+                    </p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      Survival and bridge risk are in <strong>percentage points</strong> (0.1 to 10, default {E.RATE_EPSILON_PTS}). The money ones are a <strong>percentage of the best figure available</strong> (0.1 to 50, default {Math.round(E.MONEY_EPSILON_REL * 100)}%). Setting one to zero is not allowed &mdash; a priority that treats a penny as a difference would decide every household by itself.
                     </p>
                     {/* Deliberately NOT derived from the ranking. Measured: at a 0.05pt top-priority
                         threshold the lower priorities decided 14 of 40 households, against 29 of 40 at
@@ -9502,15 +9538,27 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       {priorityList.map((key, i) => {
                         const m = E.PRIORITY_METRICS[key];
                         const pts = m.unit === 'pts';
+                        const lo = 0.1, hi = pts ? 10 : 50;
+                        const raw = plan?.spending?.priorityTolerances?.[key];
+                        const bad = raw !== '' && raw !== undefined && raw !== null && (E.num(raw, 0) < lo || E.num(raw, 0) > hi);
                         return (
-                          <label key={key} className="flex items-center gap-2">
-                            <span className="text-slate-500 w-5 shrink-0">{i + 1}.</span>
-                            <span className="text-slate-700 flex-1 min-w-0 truncate" title={m.label}>{m.label}</span>
-                            <input type="number" min="0" step={pts ? '0.25' : '1'} placeholder={pts ? String(E.RATE_EPSILON_PTS) : String(Math.round(E.MONEY_EPSILON_REL * 100))}
-                              onFocus={handleFocus} value={plan?.spending?.priorityTolerances?.[key] ?? ''}
+                          <label key={key} className="flex items-start gap-2">
+                            <span className="text-slate-500 w-5 shrink-0 pt-0.5">{i + 1}.</span>
+                            <span className="flex-1 min-w-0">
+                              <span className="text-slate-700 block leading-tight">{m.label}</span>
+                              {/* what this row is actually measuring, in one line, because "0.25 pts of what?"
+                                  is the question the old label left every reader holding */}
+                              <span className="text-[10px] text-slate-400 block leading-tight">{TOLERANCE_MEANS[key]}</span>
+                              {bad && <span className="text-[10px] text-rose-700 block leading-tight">Must be between {lo} and {hi}{pts ? ' pts' : '%'} &mdash; blank for the default.</span>}
+                            </span>
+                            <input type="number" min={lo} max={hi} step={pts ? '0.25' : '1'}
+                              placeholder={pts ? String(E.RATE_EPSILON_PTS) : String(Math.round(E.MONEY_EPSILON_REL * 100))}
+                              onFocus={handleFocus} value={raw ?? ''}
                               onChange={(e) => setTolerance(key, parseInputNumber(e.target.value))}
-                              className="w-16 p-1 bg-surface border border-slate-300 rounded font-mono text-slate-800" />
-                            <span className="text-[10px] text-slate-400 w-6">{pts ? 'pts' : '%'}</span>
+                              onBlur={(e) => setTolerance(key, clampInput(e.target.value, lo, hi))}
+                              aria-label={`${m.label} threshold`}
+                              className={`w-16 p-1 bg-surface border rounded font-mono text-slate-800 shrink-0 ${bad ? 'border-rose-400' : 'border-slate-300'}`} />
+                            <span className="text-[10px] text-slate-400 w-6 shrink-0 pt-1">{pts ? 'pts' : '%'}</span>
                           </label>
                         );
                       })}

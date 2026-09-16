@@ -5715,6 +5715,17 @@ const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans a
 const SCENARIOS_STORAGE_KEY = 'rp_saved_scenarios_v3';
 const THEME_STORAGE_KEY = 'rp_theme_v1';
 const APP_VERSION = 'v0.8 beta';
+
+/*
+ * The Inheritance tab is finished and tested - 268 assertions - but is held back from the beta while the
+ * rest is being looked at. Nothing is deleted: the tab's code, its tests and its report all stay exactly
+ * where they are, and flipping this back to true is the whole of turning it on again.
+ *
+ * What the flag covers: the tab button, its card on Start Here, and the one cross-link from the Strategy
+ * tab. The panel itself is left mounted behind its own activeTab check, so it cannot be reached but also
+ * cannot rot - a change that breaks it still breaks the build.
+ */
+const SHOW_INHERITANCE = false;
 const MC_TRIALS = 5000;
 const TOURNAMENT_TRIALS = 1500;
 // Death ages the Inheritance tab always prices, chosen to straddle the age-75 boundary that decides
@@ -8808,7 +8819,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {tabBtn('config', Settings, 'Config & Assumptions')}
                 {tabBtn('projection', Layers, 'Projection')}
                 {tabBtn('strategy', Zap, 'Strategy', 'indigo')}
-                {tabBtn('inheritance', Gift, 'Inheritance', 'indigo')}
+                {SHOW_INHERITANCE && tabBtn('inheritance', Gift, 'Inheritance', 'indigo')}
                 {tabBtn('historical', History, 'Historical Backtest', 'indigo')}
                 {tabBtn('audit', Table, 'Audit Data Table')}
                 {tabBtn('docs', BookOpen, 'Documentation')}
@@ -8905,9 +8916,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     body: `Your plan year by year on one chart: the expected path, a modelled range that updates as you type, and the ${MC_TRIALS.toLocaleString()}-path simulation with its survival rate and safe-spend solver. The sandbox for testing a different contribution or retirement age lives here too.` },
                   { tab: 'strategy', Icon: Zap, name: 'Strategy', accent: 'indigo',
                     body: 'The tournament: holds your spending and budget fixed and re-splits the money between wrappers, scoring each strategy on identical market paths.' },
-                  { tab: 'inheritance', Icon: Gift, name: 'Inheritance', accent: 'indigo',
+                  ...(SHOW_INHERITANCE ? [{ tab: 'inheritance', Icon: Gift, name: 'Inheritance', accent: 'indigo',
                     need: 'What your heirs actually receive, which is not the pot you leave.',
-                    body: 'From 2027 an unused pension counts towards inheritance tax, and if you die at 75 or over your heirs pay their own income tax on it too. Says what reaches them, and how much it depends on when you die and who they are.' },
+                    body: 'From 2027 an unused pension counts towards inheritance tax, and if you die at 75 or over your heirs pay their own income tax on it too. Says what reaches them, and how much it depends on when you die and who they are.' }] : []),
                   { tab: 'historical', Icon: History, name: 'Historical Backtest', accent: 'indigo',
                     body: `Replays real returns from ${E.HISTORICAL_FIRST_YEAR} onwards through your plan. A reality check on the random draws: sequences like 1973 or 2000 actually happened.` },
                   { tab: 'audit', Icon: Table, name: 'Audit Data Table', accent: 'blue',
@@ -10147,7 +10158,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="flex items-center gap-2 font-bold text-indigo-950 text-sm"><Zap className="w-4 h-4 text-indigo-600" /> Strategy Tournament</div>
               <p className="leading-relaxed">A different question from the one the Projection tab answers. That one asks what happens to your plan; this asks whether a <strong>different split of the same money</strong> would do better. Your spending and your total budget are held fixed, the budget is re-divided between wrappers, and every strategy is scored on identical market paths so the comparison is like for like.</p>
               <p className="text-slate-500 text-[11px] leading-relaxed">Nothing here changes your plan on its own. Applying a winning strategy is a separate, deliberate click, and it lands in the Sandbox on the Projection tab so you can see it drawn before committing it.</p>
-              <p className="text-slate-500 text-[11px] leading-relaxed">Nothing being paid in? Then this tournament has nothing to divide. The search for someone already retired is on the <button type="button" onClick={() => setActiveTab('inheritance')} className="text-purple-700 hover:text-purple-900 hover:underline font-semibold cursor-pointer">Inheritance tab</button>, which ranks the choices that are left on what your heirs keep.</p>
+              <p className="text-slate-500 text-[11px] leading-relaxed">Nothing being paid in? Then this tournament has nothing to divide. {SHOW_INHERITANCE && <>The search for someone already retired is on the <button type="button" onClick={() => setActiveTab('inheritance')} className="text-purple-700 hover:text-purple-900 hover:underline font-semibold cursor-pointer">Inheritance tab</button>, which ranks the choices that are left on what your heirs keep.</>}</p>
               <div className="flex flex-wrap gap-x-5 gap-y-1 pt-0.5">
                 <button type="button" onClick={() => goToDoc('doc-tournament')} className="text-[11px] text-blue-700 hover:text-blue-900 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
                   <HelpCircle className="w-3.5 h-3.5" /> Tournament methodology and players &rarr;
@@ -10159,7 +10170,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         )}
 
         {/* TAB 5: HISTORICAL */}
-        {activeTab === 'inheritance' && (
+        {SHOW_INHERITANCE && activeTab === 'inheritance' && (
           <div className="space-y-6" data-estate-deck>
             <div className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3 text-xs text-slate-600 leading-relaxed">
               <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> What your heirs actually receive</h2>

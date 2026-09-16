@@ -5714,7 +5714,7 @@ export { num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TA
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan
 const SCENARIOS_STORAGE_KEY = 'rp_saved_scenarios_v3';
 const THEME_STORAGE_KEY = 'rp_theme_v1';
-const APP_VERSION = 'v3.4';
+const APP_VERSION = 'v0.8 beta';
 const MC_TRIALS = 5000;
 const TOURNAMENT_TRIALS = 1500;
 // Death ages the Inheritance tab always prices, chosen to straddle the age-75 boundary that decides
@@ -8252,7 +8252,7 @@ export default function App() {
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   tr.total td { font-weight: 700; background: #fafafc; }
-  .note td { color: #6b6b76; font-style: italic; }
+  .note td { color: #6b6b76; }
   .fine { color: #6b6b76; font-size: 12px; }
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
   .tile { border: 1px solid #e4e4e9; border-radius: 10px; padding: 10px 12px; }
@@ -8792,7 +8792,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div>
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100"><TrendingUp className="w-5 h-5" /></div>
-                <h1 className="text-xl font-bold tracking-tight text-slate-900 font-display italic">Monte-Carlo Retirement Planner</h1>
+                <h1 className="text-xl font-bold tracking-tight text-slate-900">Monte-Carlo Retirement Planner</h1>
                 <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-semibold border border-blue-100">{APP_VERSION}</span>
               </div>
               <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
@@ -8862,8 +8862,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="relative p-6 sm:p-8 flex flex-col md:flex-row md:items-center gap-7 lg:gap-10">
               <div className="max-w-2xl space-y-3 flex-1 min-w-0">
                 <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-600">His Majesty's Royal Casino presents</span>
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 font-display italic leading-tight">
-                  Test your portfolio against the casino of life!
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 leading-tight">
+                  Test your portfolio against the casino of life
                 </h2>
                 <p className="text-sm text-slate-600 leading-relaxed">
                   This model runs your pensions, ISAs, GIA and cash through {MC_TRIALS.toLocaleString()} different
@@ -9018,7 +9018,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   spend above, so you can name only the years that differ. Spending can rise as well as fall.
                 </p>
                 {(plan?.spending?.spendBands || []).length === 0 ? (
-                  <div className="text-xs text-slate-400 italic p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">
                     No bands set, so {formatGBP(E.num(plan?.spending?.targetSpend, 0))}/yr applies for the whole retirement.
                   </div>
                 ) : (
@@ -9196,7 +9196,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <button onClick={addOtherIncome} className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer shadow-xs"><Plus className="w-3.5 h-3.5" /> Add Stream</button>
               </div>
               {(plan?.otherIncomes || []).length === 0 ? (
-                <div className="text-xs text-slate-400 italic p-3 bg-slate-50 border border-slate-200 rounded-xl">No additional income streams registered.</div>
+                <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">No additional income streams registered.</div>
               ) : (
                 <div className="space-y-2">
                   {plan.otherIncomes.map(inc => (
@@ -9248,7 +9248,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <p className="text-slate-500 text-[11px] leading-relaxed">These are <strong>this year's</strong> figures. Headroom changes in later years as regular contributions escalate, and again once contributions stop at retirement. Each deposit below shows the headroom for its own year.</p>
                 </div>
                 {(plan?.oneOffContributions || []).length === 0 ? (
-                  <div className="text-xs text-slate-400 italic p-3 bg-slate-50 border border-slate-200 rounded-xl">No one-off contributions scheduled.</div>
+                  <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">No one-off contributions scheduled.</div>
                 ) : (
                   <div className="space-y-2">
                     {plan.oneOffContributions.map(c => {
@@ -9358,7 +9358,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <button onClick={addOneOffCost} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto"><Plus className="w-3.5 h-3.5" /> Add Cost</button>
                 </div>
                 {(plan?.oneOffCosts || []).length === 0 ? (
-                  <div className="text-xs text-slate-400 italic p-3 bg-slate-50 border border-slate-200 rounded-xl">No one-off capital expenses scheduled.</div>
+                  <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">No one-off capital expenses scheduled.</div>
                 ) : (
                   <div className="space-y-2">
                     {plan.oneOffCosts.map(cost => (
@@ -9662,31 +9662,32 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <span className="text-xs text-slate-500 font-semibold whitespace-nowrap">Assumptions:</span>
-                {/* The published set is what a new plan starts on now, so the house figures are labelled as
-                    the fallback they became: dateless, and the thing to reach for when the CMA expires. */}
-                {[['builtin', 'House figures (no expiry)', 'The planner’s own dateless figures. No forecast-uncertainty term, so the band is drawn from volatility alone.'],
-                  ...Object.entries(E.CMA_PRESETS).map(([k, v]) => [k, `${v.name}${k === E.DEFAULT_RISK_SOURCE ? ' (default)' : ''}`, `${v.detail} · published ${v.published} · expires ${v.expires}`])
-                ].map(([key, name, detail]) => {
-                  const on = (plan?.riskSource || 'builtin') === key;
-                  return (
-                    <button key={key} type="button" onClick={() => applyRiskPreset(key)} title={detail}
-                      className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer ${on ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-800'}`}>
-                      {name}{on && <Check className="w-3 h-3 inline ml-1.5 -mt-0.5 text-slate-600" />}
-                    </button>
-                  );
-                })}
-                {plan?.riskSource && E.CMA_PRESETS[plan.riskSource] && (
-                  <span className="text-[11px] text-slate-500">
-                    {E.CMA_PRESETS[plan.riskSource].detail}. {E.CMA_PRESETS[plan.riskSource].note} Published figures are
-                    nominal and are shown here deflated at your {E.num(plan?.config?.inflation, 2.5)}% inflation setting;
-                    change that and these update. Expires {E.CMA_PRESETS[plan.riskSource].expires} — refresh from the
-                    source after that. Editing any cell makes the table your own.
+              {/*
+                  ONE SET OF ASSUMPTIONS, NAMED.
+                  There was a picker here offering the house figures alongside the published set. It was a
+                  choice nobody could make well - the two differ in whether a forecast-uncertainty term
+                  exists at all, which is not a preference - and it let a plan sit on undated figures
+                  without saying so. The published set is simply what the model runs on now, and this says
+                  where it came from and when it needs refreshing. Editing any cell still makes the table
+                  your own, and the note below says so once that happens.
+              */}
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 pt-1 text-[11px] text-slate-500">
+                <span className="text-xs text-slate-600 font-semibold whitespace-nowrap">Source:</span>
+                {plan?.riskSource && E.CMA_PRESETS[plan.riskSource] ? (
+                  <span>
+                    <strong className="text-slate-700">{E.CMA_PRESETS[plan.riskSource].name}</strong> &mdash; {E.CMA_PRESETS[plan.riskSource].detail},
+                    published {E.CMA_PRESETS[plan.riskSource].published}. {E.CMA_PRESETS[plan.riskSource].note} Published
+                    figures are nominal and are shown here deflated at your {E.num(plan?.config?.inflation, 2.5)}% inflation
+                    setting, so changing that changes these. <strong className="text-slate-700">Expires {E.CMA_PRESETS[plan.riskSource].expires}</strong> &mdash;
+                    refresh from the source after that. Editing any cell below makes the table your own.
                   </span>
-                )}
-                {!plan?.riskSource && (
-                  <span className="text-[11px] text-slate-500">Or load a published set of capital market assumptions. Every figure stays editable either way.</span>
+                ) : (
+                  <span>
+                    <strong className="text-slate-700">Your own figures.</strong> These started as the {E.CMA_PRESETS[E.DEFAULT_RISK_SOURCE].name} set
+                    and have been edited, so they are no longer that source and no longer track your inflation setting.
+                    <button type="button" onClick={() => applyRiskPreset(E.DEFAULT_RISK_SOURCE)}
+                      className="ml-1.5 font-semibold text-blue-700 hover:text-blue-900 hover:underline cursor-pointer">Put the published figures back</button>
+                  </span>
                 )}
               </div>
               <table className="w-full text-left text-xs border-collapse">
@@ -10096,7 +10097,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             </span>
                           </td>
                           {r.error ? (
-                            <td colSpan={5} className="p-2 font-sans text-slate-400 italic">This scenario cannot be projected: {r.error}</td>
+                            <td colSpan={5} className="p-2 font-sans text-slate-400">This scenario cannot be projected: {r.error}</td>
                           ) : (
                             <>
                               <td className="p-2 text-slate-700">{r.retireAge}</td>
@@ -10471,8 +10472,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             <tbody className="divide-y divide-slate-100 font-mono">
                               {(E.ihtWorkings(estatePlan.bestEst, plan?.config) || []).map(r => (
                                 <tr key={r.key} className={r.kind === 'total' ? 'bg-slate-50 font-bold' : ''}>
-                                  <td className={`py-1.5 pr-3 font-sans ${r.kind === 'total' ? 'text-slate-900' : r.kind === 'note' ? 'text-slate-500 italic' : 'text-slate-700'}`}>
-                                    {r.label}{r.note && <span className="block text-[10px] text-slate-400 not-italic">{r.note}</span>}
+                                  <td className={`py-1.5 pr-3 font-sans ${r.kind === 'total' ? 'text-slate-900' : r.kind === 'note' ? 'text-slate-500' : 'text-slate-700'}`}>
+                                    {r.label}{r.note && <span className="block text-[10px] text-slate-400">{r.note}</span>}
                                   </td>
                                   <td className={`py-1.5 pr-3 text-right ${r.kind === 'note' ? 'text-slate-300' : r.amount < 0 ? 'text-emerald-700' : 'text-slate-700'}`}>
                                     {r.kind === 'note' ? '' : (r.amount < 0 ? '−' : '') + formatGBP(Math.abs(r.amount))}
@@ -10771,7 +10772,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
               </div>
               {!inheritanceView.hasBens ? (
-                <div className="text-xs text-slate-400 italic p-3 bg-slate-50 border border-slate-200 rounded-xl">Nobody added yet. Add at least one person to see what they would receive.</div>
+                <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">Nobody added yet. Add at least one person to see what they would receive.</div>
               ) : (
                 <div className="space-y-2">
                   {inheritanceView.bens.map(b => (
@@ -10874,7 +10875,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 A gift drops out of your estate once you have survived <strong>seven years</strong>. Before that it counts — but usually not in the way people expect. It rarely creates a tax bill of its own; instead it <strong>uses up your {formatGBP(E.num(plan?.config?.ihtNrb, 325000))} allowance first</strong>, leaving less to shelter everything else. The cost lands on your estate, not on the gift.
               </p>
               {(plan?.inheritance?.gifts || []).length === 0 ? (
-                <div className="text-xs text-slate-400 italic p-3 bg-slate-50 border border-slate-200 rounded-xl">No gifts recorded. If you have given money away in the last seven years, add it — it changes the allowance available to your estate.</div>
+                <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-xl">No gifts recorded. If you have given money away in the last seven years, add it — it changes the allowance available to your estate.</div>
               ) : (
                 <div className="space-y-2">
                   {(plan?.inheritance?.gifts || []).map(g => (
@@ -11375,7 +11376,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <div className="flex items-start gap-2">
                       <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                       <div>
-                        <div className="text-sm font-black font-display italic text-amber-900">Dying at {inheritanceView.cliff.after.age} rather than {inheritanceView.cliff.before.age} costs your heirs {formatGBP(inheritanceView.cliff.loss)}</div>
+                        <div className="text-sm font-black text-amber-900">Dying at {inheritanceView.cliff.after.age} rather than {inheritanceView.cliff.before.age} costs your heirs {formatGBP(inheritanceView.cliff.loss)}</div>
                         <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">An inherited pension is tax-free to them if you die before {E.num(plan?.config?.pensionIncomeTaxFromAge, 75)}, and taxed at their own rate from {E.num(plan?.config?.pensionIncomeTaxFromAge, 75)} onwards. That is a step, not a slope, and it is the largest single number on this page. It is also the reason the table below shows several ages instead of asking you to pick one.</p>
                       </div>
                     </div>
@@ -11441,9 +11442,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <tbody className="divide-y divide-slate-100 font-mono">
                           {ihtWorkings.map(r => (
                             <tr key={r.key} className={r.kind === 'total' ? 'bg-slate-50 font-bold' : ''}>
-                              <td className={`py-1.5 pr-3 font-sans ${r.kind === 'total' ? 'text-slate-900' : r.kind === 'note' ? 'text-slate-500 italic' : 'text-slate-700'}`}>
+                              <td className={`py-1.5 pr-3 font-sans ${r.kind === 'total' ? 'text-slate-900' : r.kind === 'note' ? 'text-slate-500' : 'text-slate-700'}`}>
                                 {r.label}
-                                {r.note && <span className="block text-[10px] text-slate-400 not-italic">{r.note}</span>}
+                                {r.note && <span className="block text-[10px] text-slate-400">{r.note}</span>}
                               </td>
                               <td className={`py-1.5 pr-3 text-right ${r.kind === 'note' ? 'text-slate-300' : r.amount < 0 ? 'text-emerald-700' : r.kind === 'total' || r.kind === 'rate' ? 'text-slate-900' : 'text-slate-700'}`}>
                                 {r.kind === 'note' ? '' : (r.amount < 0 ? '−' : '') + formatGBP(Math.abs(r.amount))}
@@ -11523,7 +11524,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div className={`p-4 rounded-2xl border shadow-xs ${historicalMetrics.survived ? 'bg-emerald-50/90 border-emerald-200' : 'bg-rose-50/90 border-rose-200'}`}>
                   <span className="text-[11px] font-bold uppercase tracking-wider block text-slate-500 mb-1">Backtest Verdict</span>
-                  <div className="flex items-center gap-2">{historicalMetrics.survived ? <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0" />}<div><div className={`text-base font-black font-display italic ${historicalMetrics.survived ? 'text-emerald-800' : 'text-rose-800'}`}>{historicalMetrics.survived ? `Survived all ${spanYears} years` : historicalMetrics.failReason === 'floor' ? `All ${spanYears} years funded, below floor` : historicalMetrics.failedBeforeDrawdown ? `Ran dry before retirement, at Age ${historicalMetrics.failAge}` : historicalMetrics.fundedDrawdownYears <= 0 ? `Ran dry in year 1 of ${historicalMetrics.drawdownYears} drawdown years` : `Ran dry after ${historicalMetrics.fundedDrawdownYears} of ${historicalMetrics.drawdownYears} drawdown years`}</div><span className="text-[11px] text-slate-500">{historicalMetrics.survived ? `Age ${currentAge} to ${terminalAge}, no shortfall in any year`
+                  <div className="flex items-center gap-2">{historicalMetrics.survived ? <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0" />}<div><div className={`text-base font-black ${historicalMetrics.survived ? 'text-emerald-800' : 'text-rose-800'}`}>{historicalMetrics.survived ? `Survived all ${spanYears} years` : historicalMetrics.failReason === 'floor' ? `All ${spanYears} years funded, below floor` : historicalMetrics.failedBeforeDrawdown ? `Ran dry before retirement, at Age ${historicalMetrics.failAge}` : historicalMetrics.fundedDrawdownYears <= 0 ? `Ran dry in year 1 of ${historicalMetrics.drawdownYears} drawdown years` : `Ran dry after ${historicalMetrics.fundedDrawdownYears} of ${historicalMetrics.drawdownYears} drawdown years`}</div><span className="text-[11px] text-slate-500">{historicalMetrics.survived ? `Age ${currentAge} to ${terminalAge}, no shortfall in any year`
                     : historicalMetrics.failReason === 'floor' ? `Ends below the ${formatGBP(ctx.solvencyFloor)} bequest floor at Age ${terminalAge}`
                       : `${historicalMetrics.failReason === 'pre-access' ? `Pension still locked at Age ${historicalMetrics.failAge}` : `Age ${historicalMetrics.failAge}`} (${historicalMetrics.failYear}) · ${historicalMetrics.unfundedYears} of ${spanYears} plan years unfunded${historicalMetrics.failCost > 0 ? ` · a ${formatGBP(historicalMetrics.failCost)} one-off cost falls that year` : ''}`}</span></div></div>
                 </div>

@@ -47,7 +47,7 @@ export default function Shell() {
         <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 font-display italic">Can I retire?</h1>
+              <h1 className="text-xl font-bold tracking-tight text-slate-900">Can I retire?</h1>
             </div>
             <Simple />
             <p className="text-[11px] text-slate-400 leading-relaxed max-w-3xl">

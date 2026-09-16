@@ -285,6 +285,13 @@
         animation: sim-sweep 1.6s ease-out infinite;
       }
       @media (prefers-reduced-motion: reduce) { .sim-sweep { animation: none; } }
+    
+      /*
+       * Emphasis without slant. <em> is the right tag for the 31 places that use it - "it does NOT cover",
+       * "differences between players" - and the browser's default rendering for it is the one thing this
+       * interface does not use anywhere. Weight carries the same emphasis and stays in the body face.
+       */
+      em { font-style: normal; font-weight: 600; color: rgb(var(--slate-800)); }
     </style>
     <title>Monte-Carlo Retirement Planner</title>  </head>
   <body>

@@ -23,6 +23,15 @@ export default {
     colors: {
       slate:   { 50:'rgb(var(--slate-50)/<alpha-value>)', 100:'rgb(var(--slate-100)/<alpha-value>)', 200:'rgb(var(--slate-200)/<alpha-value>)', 300:'rgb(var(--slate-300)/<alpha-value>)', 400:'rgb(var(--slate-400)/<alpha-value>)', 500:'rgb(var(--slate-500)/<alpha-value>)', 600:'rgb(var(--slate-600)/<alpha-value>)', 700:'rgb(var(--slate-700)/<alpha-value>)', 800:'rgb(var(--slate-800)/<alpha-value>)', 900:'rgb(var(--slate-900)/<alpha-value>)' },
       surface: { DEFAULT: 'rgb(var(--surface)/<alpha-value>)' },
+      /*
+       * The accent as a FILL, and the text that belongs on it.
+       *
+       * `blue-600` cannot do both jobs: in dark it has to be LIGHT so a link reads against a dark
+       * ground, and a button filled with that same light blue then carries white text at 2.7:1. So the
+       * fill is its own token, dark enough for white in either theme, and `blue-*` stays the text accent.
+       */
+      accent: { DEFAULT: 'rgb(var(--accent)/<alpha-value>)', hover: 'rgb(var(--accent-hover)/<alpha-value>)' },
+      onaccent: { DEFAULT: 'rgb(var(--on-accent)/<alpha-value>)' },
       blue:    { 50:'rgb(var(--blue-50)/<alpha-value>)', 100:'rgb(var(--blue-100)/<alpha-value>)', 200:'rgb(var(--blue-200)/<alpha-value>)', 500:'rgb(var(--blue-500)/<alpha-value>)', 600:'rgb(var(--blue-600)/<alpha-value>)', 700:'rgb(var(--blue-700)/<alpha-value>)', 800:'rgb(var(--blue-800)/<alpha-value>)', 950:'rgb(var(--blue-950)/<alpha-value>)', 300:'rgb(var(--blue-300)/<alpha-value>)', 400:'rgb(var(--blue-400)/<alpha-value>)', 900:'rgb(var(--blue-900)/<alpha-value>)'},
       indigo:  { 50:'rgb(var(--indigo-50)/<alpha-value>)', 100:'rgb(var(--indigo-100)/<alpha-value>)', 200:'rgb(var(--indigo-200)/<alpha-value>)', 500:'rgb(var(--indigo-500)/<alpha-value>)', 600:'rgb(var(--indigo-600)/<alpha-value>)', 700:'rgb(var(--indigo-700)/<alpha-value>)', 800:'rgb(var(--indigo-800)/<alpha-value>)', 900:'rgb(var(--indigo-900)/<alpha-value>)', 950:'rgb(var(--indigo-950)/<alpha-value>)', 300:'rgb(var(--indigo-300)/<alpha-value>)'},
       emerald: { 50:'rgb(var(--emerald-50)/<alpha-value>)', 100:'rgb(var(--emerald-100)/<alpha-value>)', 200:'rgb(var(--emerald-200)/<alpha-value>)', 300:'rgb(var(--emerald-300)/<alpha-value>)', 600:'rgb(var(--emerald-600)/<alpha-value>)', 700:'rgb(var(--emerald-700)/<alpha-value>)', 800:'rgb(var(--emerald-800)/<alpha-value>)', 900:'rgb(var(--emerald-900)/<alpha-value>)', 950:'rgb(var(--emerald-950)/<alpha-value>)'},

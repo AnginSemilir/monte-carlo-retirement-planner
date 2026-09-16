@@ -443,7 +443,7 @@ export default function Simple() {
             className={`${subCls} w-full min-w-0 text-right tabular-nums tabular-nums px-1 ${pctKey ? 'rounded-r-none border-r-0' : ''}`} />
           {pctKey && (
             <button type="button" onClick={() => set(pctKey, !s[pctKey])} title={isPct ? 'a % of salary' : 'pounds a year'}
-              className={`shrink-0 px-1 rounded-md rounded-l-none border text-[10px] font-bold cursor-pointer ${isPct ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-900'}`}>
+              className={`shrink-0 px-1 rounded-md rounded-l-none border text-[10px] font-bold cursor-pointer ${isPct ? 'bg-accent text-onaccent border-blue-600' : 'bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-900'}`}>
               {isPct ? '%' : '\u00a3'}
             </button>
           )}
@@ -523,7 +523,7 @@ export default function Simple() {
       <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3 min-w-0">
         <span className="text-[11px] text-slate-500 block mb-0.5 leading-snug">{label}</span>
         {pending
-          ? <span className="text-2xl font-black tabular-nums text-slate-300 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />&mdash;</span>
+          ? <span className="text-2xl font-black tabular-nums text-slate-400 flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />&mdash;</span>
           : <span className={`${size} font-black tabular-nums tabular-nums block truncate ${tone}`} title={String(value)}>{value}</span>}
         <span className="text-[11px] text-slate-500 block mt-1 leading-snug">{sub}</span>
       </div>
@@ -560,7 +560,7 @@ export default function Simple() {
         <div className="flex flex-wrap items-center gap-1.5">
           {scenarios.map(rec => (
             <span key={rec.id}
-              className={`group inline-flex items-center rounded-lg border text-xs font-bold transition-colors ${activeScenario === rec.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-800'}`}>
+              className={`group inline-flex items-center rounded-lg border text-xs font-bold transition-colors ${activeScenario === rec.id ? 'bg-accent text-onaccent border-blue-600' : 'bg-surface border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-800'}`}>
               <button type="button" onClick={() => loadScenario(rec)} title={`Scenario ${rec.n}: ${GBP(num(rec.plan.spend, 0))} a year, stopping at ${num(rec.plan.retireSelf, 0)}`}
                 className="px-2.5 py-1 cursor-pointer">{rec.n}</button>
               <button type="button" onClick={() => dropScenario(rec.id)} aria-label={`Remove scenario ${rec.n}`}
@@ -689,7 +689,7 @@ export default function Simple() {
 
         {!ready.ready ? (
           <div className="p-8 text-center">
-            <TrendingUp className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+            <TrendingUp className="w-8 h-8 text-slate-400 mx-auto mb-3" />
             <p className="text-sm text-slate-500">Still need {ready.missing.join(', ')}.</p>
             <p className="text-[11px] text-slate-400 mt-1.5">The answer appears as soon as those are in. There is no button to press.</p>
           </div>
@@ -708,7 +708,7 @@ export default function Simple() {
                   <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-lg w-fit text-xs">
                     {Object.entries(BAND_QUANTILES).map(([k, v]) => (
                       <button key={k} type="button" onClick={() => setBandMode(k)} title={`Draw both charts at the ${v.lowPct} and ${v.highPct}`}
-                        className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-900'}`}>{v.button}</button>
+                        className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>{v.button}</button>
                     ))}
                   </div>
                 </div>

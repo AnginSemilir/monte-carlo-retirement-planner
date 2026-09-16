@@ -6752,7 +6752,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
               const on = (entrantIds || []).includes(s.id);
               return (
                 <button key={s.id} type="button" onClick={() => toggleEntrant(s.id)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer ${on ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-surface text-slate-700 border-slate-300 hover:bg-slate-100'}`}>
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer ${on ? 'bg-accent text-onaccent border-indigo-600' : 'bg-surface text-slate-700 border-slate-300 hover:bg-slate-100'}`}>
                   {on ? '✓ ' : '+ '}{s.name}
                 </button>
               );
@@ -8723,7 +8723,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     <div className="flex items-start justify-between gap-3">
       <div>
         <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-black shrink-0">{n}</span>
+          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent text-onaccent text-[10px] font-black shrink-0">{n}</span>
           {title}
         </h2>
         <span className="text-xs text-slate-500">{sub}</span>
@@ -8740,7 +8740,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 px-1 py-1 rounded-lg text-xs">
       {['quartile', 'decile'].map(k => (
         <button key={k} type="button" onClick={() => setBandMode(k)} title={`Draw both charts at the ${BAND_QUANTILES[k].lowPct} and ${BAND_QUANTILES[k].highPct} percentile`}
-          className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-900'}`}>{BAND_QUANTILES[k].button}</button>
+          className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>{BAND_QUANTILES[k].button}</button>
       ))}
     </div>
   );
@@ -8828,7 +8828,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       <div className="flex items-center gap-1.5">
         {ESTATE_STEPS.map(st => (
           <button key={st.n} type="button" onClick={() => { setEstateSeeAll(false); setEstateStep(st.n); }} title={st.name}
-            className={`px-2.5 h-7 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${!estateSeeAll && estateStep === st.n ? 'bg-purple-600 text-white border-purple-600' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>
+            className={`px-2.5 h-7 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${!estateSeeAll && estateStep === st.n ? 'bg-accent text-onaccent border-purple-600' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>
             <span className="sm:hidden">{st.n}</span><span className="hidden sm:inline">{st.n}. {st.name}</span>
           </button>
         ))}
@@ -8843,7 +8843,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">&larr; Back</button>
           {n < 4 && (
             <button type="button" onClick={() => { setEstateStep(n + 1); scrollTo(document.querySelector('[data-estate-deck]')); }}
-              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 cursor-pointer">
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-accent text-onaccent hover:bg-purple-700 cursor-pointer">
               Next: {ESTATE_STEPS[n].name} &rarr;
             </button>
           )}
@@ -8857,7 +8857,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       <div className="flex items-center gap-1.5">
         {PROJECTION_SLIDES.map(s => (
           <button key={s.n} type="button" onClick={() => { setSeeAll(false); setSlide(s.n); }} title={s.name}
-            className={`w-7 h-7 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${!seeAll && slide === s.n ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>{s.n}</button>
+            className={`w-7 h-7 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${!seeAll && slide === s.n ? 'bg-accent text-onaccent border-blue-600' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>{s.n}</button>
         ))}
         <button type="button" onClick={() => setSeeAll(!seeAll)}
           className={`ml-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${seeAll ? 'bg-slate-800 text-white border-slate-800' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900'}`}>
@@ -8951,7 +8951,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             const atCap = !run && selectedCompare.length >= MAX_COMPARE;
             return (
               <button key={sc.id} type="button" disabled={atCap} onClick={() => toggleCompare(sc.id)} title={atCap ? `Up to ${MAX_COMPARE} scenarios at once` : sc.name}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all border max-w-[14rem] ${run ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold cursor-pointer' : atCap ? 'bg-surface border-slate-200 text-slate-300 cursor-not-allowed' : 'bg-surface border-slate-200 text-slate-400 opacity-70 cursor-pointer hover:opacity-100'}`}>
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all border max-w-[14rem] ${run ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold cursor-pointer' : atCap ? 'bg-surface border-slate-200 text-slate-400 cursor-not-allowed' : 'bg-surface border-slate-200 text-slate-400 opacity-70 cursor-pointer hover:opacity-100'}`}>
                 <span className="w-3.5 h-0 border-t-2 border-dashed shrink-0" style={{ borderColor: run ? run.tone : 'currentColor' }} />
                 <span className="truncate">{sc.name}</span>{run && <Check className="w-3 h-3 text-slate-600 shrink-0" />}
               </button>
@@ -8988,7 +8988,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 pb-3 border-y border-slate-100">
         <div><h4 className="text-sm font-semibold text-slate-800">Wrapper sandbox controls</h4><span className="text-[11px] text-slate-500">Adjust retirement ages and individual wrappers below, or reset back to your baseline plan inputs.</span></div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={handleResetSandbox} disabled={!isSandboxModified} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border ${isSandboxModified ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 cursor-pointer' : 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'}`}><RotateCcw className="w-3.5 h-3.5" /> Reset Sandbox</button>
+          <button onClick={handleResetSandbox} disabled={!isSandboxModified} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border ${isSandboxModified ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 cursor-pointer' : 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed'}`}><RotateCcw className="w-3.5 h-3.5" /> Reset Sandbox</button>
           <button onClick={handleApplySandboxToPlan} disabled={!isSandboxModified} className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${isSandboxModified ? 'bg-amber-700 hover:bg-amber-800 hover:to-amber-700 text-white cursor-pointer active:scale-95' : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'}`}><Check className="w-3.5 h-3.5" /> Apply to Plan Inputs</button>
         </div>
       </div>
@@ -9136,7 +9136,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           </div>
           <div className="flex items-center gap-2 flex-wrap ml-auto">
             <input type="text" placeholder="Scenario name (optional)" value={scenarioNameInput} onChange={(e) => setScenarioNameInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSaveScenario(); }} className="p-1.5 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 sm:w-56" />
-            <button onClick={handleSaveScenario} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"><Save className="w-3.5 h-3.5" /> Save</button>
+            <button onClick={handleSaveScenario} className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"><Save className="w-3.5 h-3.5" /> Save</button>
             <button onClick={handleSaveAsNewScenario} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 cursor-pointer"><Plus className="w-3.5 h-3.5 text-slate-600" /> Save as new scenario</button>
             {saveSuccessMsg && <span className="text-xs font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200"><Check className="w-3 h-3 text-emerald-600" /> {saveSuccessMsg}</span>}
           </div>
@@ -9164,7 +9164,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </p>
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <button type="button" onClick={() => setActiveTab('inputs')}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95">
+                    className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95">
                     <Sliders className="w-3.5 h-3.5" /> {planStarted ? 'Back to Plan Inputs' : 'Start with Plan Inputs'}
                   </button>
                   <button type="button" onClick={() => setActiveTab('docs')}
@@ -9304,7 +9304,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="pt-3 border-t border-slate-100">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <span className="text-sm font-semibold text-slate-700">{isCouple ? 'Joint net living spend' : 'Net living spend'} by age (optional)</span>
-                  <button onClick={addSpendBand} className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add band</button>
+                  <button onClick={addSpendBand} className="px-2.5 py-1 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add band</button>
                 </div>
                 <p className="text-[11px] text-slate-500 mb-2 max-w-3xl">
                   Set what a stretch of years actually costs, in today's money, instead of one figure for the whole
@@ -9487,7 +9487,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </ul>
                   <span className="text-[11px] text-slate-500 mt-1 block">With no relevant earnings the pension limit is {formatGBP(P.pensionNoEarningsLimit)}/yr.</span>
                 </div>
-                <button onClick={addOtherIncome} className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add stream</button>
+                <button onClick={addOtherIncome} className="px-2.5 py-1 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add stream</button>
               </div>
               {(plan?.otherIncomes || []).length === 0 ? (
                 <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-lg">No additional income streams registered.</div>
@@ -9681,11 +9681,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
                 <div className="shrink-0">
                   <button type="button" onClick={handleFindBestPolicy} disabled={isPolicySearching || !policySweepReady}
-                    className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    className="px-3.5 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-2 transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
                     <Zap className="w-3.5 h-3.5 shrink-0 text-amber-300 fill-amber-300" />
                     {isPolicySearching ? 'Searching…' : (
                       <span className="text-left leading-tight">Auto-pick best policy
-                        <span className="block text-[10px] font-semibold text-blue-100/90">based on my priorities</span>
+                        <span className="block text-[10px] font-semibold text-onaccent/80">based on my priorities</span>
                       </span>
                     )}
                   </button>
@@ -9747,10 +9747,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           onPointerMove={movePriorityDrag}
                           onPointerUp={endPriorityDrag}
                           onPointerCancel={cancelPriorityDrag}
-                          className="shrink-0 mt-0.5 -m-1 p-1 touch-none cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500">
+                          className="shrink-0 mt-0.5 -m-1 p-1 touch-none cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-500">
                           <GripVertical className="w-3.5 h-3.5" />
                         </span>
-                        <span className={`shrink-0 w-5 h-5 rounded-full grid place-items-center font-bold text-[10px] ${i === 0 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'}`}>{i + 1}</span>
+                        <span className={`shrink-0 w-5 h-5 rounded-full grid place-items-center font-bold text-[10px] ${i === 0 ? 'bg-accent text-onaccent' : 'bg-slate-200 text-slate-600'}`}>{i + 1}</span>
                         <div className="min-w-0 flex-1">
                           <div className={`font-bold ${i === 0 ? 'text-blue-900' : 'text-slate-700'}`}>{m.label}</div>
                           <div className="text-[10px] text-slate-500 leading-snug">{m.why}</div>
@@ -9940,7 +9940,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             )}
                           </div>
                           <button type="button" onClick={() => chooseTradeoff(card)} disabled={active}
-                            className={`shrink-0 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${active ? 'bg-blue-600 text-white cursor-default' : 'bg-slate-100 text-blue-700 hover:bg-blue-100 cursor-pointer active:scale-95'}`}>
+                            className={`shrink-0 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${active ? 'bg-accent text-onaccent cursor-default' : 'bg-slate-100 text-blue-700 hover:bg-blue-100 cursor-pointer active:scale-95'}`}>
                             {active ? 'Applied' : 'Use this instead'}
                           </button>
                         </div>
@@ -10070,7 +10070,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <h3 className="text-sm font-semibold text-slate-900">Asset allocations, return matrix &amp; volatilities (σ)</h3>
                   <span className="text-[11px] text-slate-500">Expected real return is treated as the median (geometric) annual rate; Monte Carlo paths are log-normal around it with the stated σ, one market factor for all wrappers. The lucky and unlucky columns are calculated from the expected rate, σ, forecast uncertainty and your {ctx.totalYears}-year horizon, so they are not editable.</span>
                 </div>
-                <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
+                <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-accent text-onaccent border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
               </div>
 
               {/*
@@ -10198,7 +10198,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <button type="button" onClick={handleCancelMC} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">Stop</button>
                   )}
                   <button onClick={handleRunAll} disabled={mcBusy}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
+                    className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                     <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
                     {isSimulating && !isOptimizing ? 'Testing…' : isOptimizing ? 'Solving…' : tournament.isEvaluating ? 'Comparing…' : '⚡ Run the projection'}
                   </button>
@@ -10223,7 +10223,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div className="bg-surface border border-slate-200/90 rounded-xl p-4 flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-500 font-semibold">Whose money:</span>
                   {['Combined', 'Myself', 'Partner'].map(pv => (
-                    <button key={pv} onClick={() => setPlan(prev => ({ ...prev, activeProfileView: pv }))} className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${plan?.activeProfileView === pv ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:text-slate-900'}`}>{pv}</button>
+                    <button key={pv} onClick={() => setPlan(prev => ({ ...prev, activeProfileView: pv }))} className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${plan?.activeProfileView === pv ? 'bg-accent text-onaccent' : 'bg-slate-100 text-slate-600 hover:text-slate-900'}`}>{pv}</button>
                   ))}
                 </div>
               )}
@@ -10466,7 +10466,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   const atCap = !run && selectedCompare.length >= MAX_COMPARE;
                   return (
                     <button key={s.id} type="button" disabled={atCap} onClick={() => toggleCompare(s.id)} title={atCap ? `Up to ${MAX_COMPARE} at once` : s.name}
-                      className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all border max-w-[16rem] ${run ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold cursor-pointer' : atCap ? 'bg-surface border-slate-200 text-slate-300 cursor-not-allowed' : 'bg-surface border-slate-200 text-slate-500 opacity-70 cursor-pointer hover:opacity-100'}`}>
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all border max-w-[16rem] ${run ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold cursor-pointer' : atCap ? 'bg-surface border-slate-200 text-slate-400 cursor-not-allowed' : 'bg-surface border-slate-200 text-slate-500 opacity-70 cursor-pointer hover:opacity-100'}`}>
                       <span className="w-2.5 h-2.5 rounded-full shrink-0 border" style={{ backgroundColor: run ? run.tone : 'transparent', borderColor: run ? run.tone : 'currentColor' }} />
                       <span className="truncate">{s.name}</span>{run && <Check className="w-3 h-3 text-slate-600 shrink-0" />}
                     </button>
@@ -10514,7 +10514,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                               <td className="p-2 text-slate-700">{r.retireAge}</td>
                               <td className="p-2 text-slate-700">{formatGBP(r.retirePot)}</td>
                               <td className="p-2 font-bold text-blue-700">{formatGBP(r.terminal)}</td>
-                              <td className={`p-2 font-semibold ${r.delta === null ? 'text-slate-300' : r.delta > 0 ? 'text-emerald-700' : r.delta < 0 ? 'text-rose-700' : 'text-slate-500'}`}>
+                              <td className={`p-2 font-semibold ${r.delta === null ? 'text-slate-400' : r.delta > 0 ? 'text-emerald-700' : r.delta < 0 ? 'text-rose-700' : 'text-slate-500'}`}>
                                 {r.delta === null ? '—' : `${r.delta > 0 ? '+' : r.delta < 0 ? '−' : ''}${formatGBP(Math.abs(r.delta))}`}
                               </td>
                               <td className="p-2 text-slate-600">{formatGBP(r.lifetimeTax)}</td>
@@ -10541,7 +10541,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
                     <span className="text-[11px] text-slate-500">Changed something? Run it again and the five steps come back with every figure refreshed.</span>
                     <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
+                      className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                       <RotateCcw className="w-3.5 h-3.5" /> {mcBusy ? 'Running…' : 'Rerun projections'}
                     </button>
                   </div>
@@ -10749,7 +10749,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                                           <tr key={r.source}>
                                             <td className="py-1 pr-2 text-slate-700">{r.source}</td>
                                             <td className="py-1 pr-2 text-right font-mono text-slate-500">{formatGBP(r.balance)}</td>
-                                            <td className={`py-1 pr-2 text-right font-mono font-bold ${r.taken > 0 ? 'text-purple-800' : 'text-slate-300'}`}>{r.taken > 0 ? formatGBP(r.taken) : '—'}</td>
+                                            <td className={`py-1 pr-2 text-right font-mono font-bold ${r.taken > 0 ? 'text-purple-800' : 'text-slate-400'}`}>{r.taken > 0 ? formatGBP(r.taken) : '—'}</td>
                                             <td className="py-1 text-right font-mono text-slate-600">{formatGBP(r.left)}</td>
                                           </tr>
                                         ))}
@@ -10863,7 +10863,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <button type="button" onClick={() => toggleEstateCard('workings')} aria-expanded={estateOpen('workings')}
                           data-fold-toggle="workings" className="w-full text-left cursor-pointer bg-transparent border-0 p-0 m-0 block">
                           <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                            <span className="shrink-0 w-4 h-4 rounded-full bg-purple-600 text-white text-[9px] font-bold flex items-center justify-center">=</span>
+                            <span className="shrink-0 w-4 h-4 rounded-full bg-accent text-onaccent text-[9px] font-bold flex items-center justify-center">=</span>
                             <span className="flex-1">What that comes to, if you die at {estatePlan.deathAge}</span>
                             {/* the answer itself stays on the folded header: it is the one figure worth
                                 keeping in view, and hiding it would make folding cost something */}
@@ -10886,7 +10886,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                                   <td className={`py-1.5 pr-3 font-sans ${r.kind === 'total' ? 'text-slate-900' : r.kind === 'note' ? 'text-slate-500' : 'text-slate-700'}`}>
                                     {r.label}{r.note && <span className="block text-[10px] text-slate-400">{r.note}</span>}
                                   </td>
-                                  <td className={`py-1.5 pr-3 text-right ${r.kind === 'note' ? 'text-slate-300' : r.amount < 0 ? 'text-emerald-700' : 'text-slate-700'}`}>
+                                  <td className={`py-1.5 pr-3 text-right ${r.kind === 'note' ? 'text-slate-400' : r.amount < 0 ? 'text-emerald-700' : 'text-slate-700'}`}>
                                     {r.kind === 'note' ? '' : (r.amount < 0 ? '−' : '') + formatGBP(Math.abs(r.amount))}
                                   </td>
                                   <td className={`py-1.5 text-right ${r.kind === 'total' ? 'text-purple-700 font-bold' : 'text-slate-400'}`}>
@@ -11156,7 +11156,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     */}
                   <div className="flex flex-wrap items-center gap-3 pt-1">
                     <button type="button" onClick={openEstateReport} data-estate-report
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white dark:text-emerald-50 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer">
                       <Download className="w-3.5 h-3.5" /> Open as a report
                     </button>
                     <span className="text-[10px] text-slate-400">{estatePlan.runs} projections were run to find this. The report opens in a new tab as a single page you can print, save or send on.</span>
@@ -11857,7 +11857,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                                 {r.label}
                                 {r.note && <span className="block text-[10px] text-slate-400">{r.note}</span>}
                               </td>
-                              <td className={`py-1.5 pr-3 text-right ${r.kind === 'note' ? 'text-slate-300' : r.amount < 0 ? 'text-emerald-700' : r.kind === 'total' || r.kind === 'rate' ? 'text-slate-900' : 'text-slate-700'}`}>
+                              <td className={`py-1.5 pr-3 text-right ${r.kind === 'note' ? 'text-slate-400' : r.amount < 0 ? 'text-emerald-700' : r.kind === 'total' || r.kind === 'rate' ? 'text-slate-900' : 'text-slate-700'}`}>
                                 {r.kind === 'note' ? '' : (r.amount < 0 ? '−' : '') + formatGBP(Math.abs(r.amount))}
                               </td>
                               <td className={`py-1.5 text-right ${r.kind === 'total' ? 'text-purple-700 font-bold' : 'text-slate-400'}`}>
@@ -11922,9 +11922,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {HISTORICAL_PRESETS.map(p => {
                   const isValid = p.year <= maxHistoricalStartYear;
                   return (
-                    <button key={p.year} onClick={() => isValid && setSelectedHistoricalYear(p.year)} disabled={!isValid} className={`p-2.5 rounded-lg border text-left transition-all ${!isValid ? 'bg-slate-50 text-slate-300 border-slate-200/50 cursor-not-allowed opacity-50' : activeHistoricalStartYear === p.year ? 'bg-indigo-600 text-white border-indigo-600 cursor-pointer' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 cursor-pointer'}`}>
+                    <button key={p.year} onClick={() => isValid && setSelectedHistoricalYear(p.year)} disabled={!isValid} className={`p-2.5 rounded-lg border text-left transition-all ${!isValid ? 'bg-slate-50 text-slate-400 border-slate-200/50 cursor-not-allowed opacity-50' : activeHistoricalStartYear === p.year ? 'bg-accent text-onaccent border-accent cursor-pointer' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 cursor-pointer'}`}>
                       <div className="flex items-center justify-between"><span className="font-bold text-xs">{p.year}</span>{!isValid && <span className="text-[9px] text-slate-400 font-sans">Over {E.HISTORICAL_LAST_YEAR}</span>}</div>
-                      <div className={`text-[10px] leading-tight truncate mt-0.5 ${!isValid ? 'text-slate-300' : activeHistoricalStartYear === p.year ? 'text-indigo-100' : 'text-slate-500'}`}>{p.label.split('(')[0]}</div>
+                      <div className={`text-[10px] leading-tight truncate mt-0.5 ${!isValid ? 'text-slate-400' : activeHistoricalStartYear === p.year ? 'text-onaccent/80' : 'text-slate-500'}`}>{p.label.split('(')[0]}</div>
                     </button>
                   );
                 })}

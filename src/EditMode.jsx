@@ -322,7 +322,7 @@ export default function EditMode() {
       <>
         <EditStyles />
         <button type="button" onClick={() => setOn(true)} title="Edit the wording and look of this page"
-          className="fixed bottom-4 right-4 z-[60] px-3.5 py-2 rounded-full bg-slate-900 text-white text-xs font-bold shadow-lg flex items-center gap-1.5 cursor-pointer hover:bg-slate-800 transition-colors">
+          data-dev-chrome className="fixed bottom-4 right-4 z-[60] px-3.5 py-2 rounded-full bg-slate-900 text-white text-xs font-bold shadow-lg flex items-center gap-1.5 cursor-pointer hover:bg-slate-800 transition-colors">
           <Pencil className="w-3.5 h-3.5" /> Edit page{total > 0 && <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-900 text-[10px]">{total}</span>}
         </button>
       </>

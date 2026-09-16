@@ -6442,7 +6442,15 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
     budgetOverride === '' ? null : `budget £${Math.round(E.num(budgetOverride, 0)).toLocaleString()}/yr`,
     scope === 'full' ? 'full reallocation' : 'contributions only',
     `£${Math.round(E.num(emergencyFloor, 0)).toLocaleString()} buffer`,
-    preAccessCap === 'any' ? 'no bridge-risk cap' : `bridge risk ≤ ${preAccessCap}%`,
+    /*
+     * preAccessCap is a NUMBER - 0 when the bridge is the top priority, Infinity otherwise (line ~6334).
+     * This read `=== 'any'`, a string it can never hold, left behind when the setting stopped being a
+     * control and became something the priority order derives. The false branch therefore always won and
+     * the collapsed header advertised "bridge risk ≤ Infinity%".
+     */
+    !Number.isFinite(preAccessCap) ? 'no bridge-risk cap'
+      : preAccessCap === 0 ? 'no pre-access failures allowed'
+        : `bridge risk ≤ ${preAccessCap}%`,
     isCouple && balance === 'balanced' ? 'pensions balanced' : null,
     selectedEntrants.length ? `${selectedEntrants.length} scenario${selectedEntrants.length === 1 ? '' : 's'} entered` : null
   ].filter(Boolean).join(' · ');
@@ -6477,9 +6485,13 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
         */}
       <details open={!!state.settingsOpen} onToggle={handleSettingsToggle}
         className="bg-slate-50 border border-slate-200 rounded-xl">
-        <summary className="px-3 py-2.5 cursor-pointer text-xs font-semibold text-slate-700 select-none flex flex-wrap items-baseline gap-x-2">
+        {/* the native marker is easy to miss at this size, so it is replaced by the same chevron the
+            other collapsibles on this page use - and `marker:hidden` stops the two appearing together */}
+        <summary className="px-3 py-2.5 cursor-pointer text-xs font-semibold text-slate-700 select-none flex flex-wrap items-center gap-x-2 marker:content-[''] [&::-webkit-details-marker]:hidden hover:text-slate-900">
+          {state.settingsOpen ? <ChevronUp className="w-3.5 h-3.5 shrink-0 text-slate-500" /> : <ChevronDown className="w-3.5 h-3.5 shrink-0 text-slate-500" />}
           <span>Tournament settings</span>
           <span className="text-[10px] font-normal text-slate-500 font-mono">{settingsSummary}</span>
+          <span className="ml-auto text-[10px] font-normal text-slate-400">{state.settingsOpen ? 'hide' : 'show'}</span>
         </summary>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 text-xs font-sans p-3">
         <div>

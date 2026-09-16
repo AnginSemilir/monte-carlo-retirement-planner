@@ -10054,7 +10054,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                   {renderProjectionChart('mc')}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
-                    <strong className="text-emerald-700">The strength: these futures can go bust, and some do.</strong> Each line lived one particular order of good and bad years, sold at whatever price those years offered, and stopped dead at zero. That is the half the previous chart leaves out.
+                    <strong className="text-emerald-700">Each path applies your withdrawals to one particular order of returns, and stops at £0 if the money is exhausted.</strong> A run of poor years early in drawdown forces selling at depressed prices and permanently reduces the capital left to recover, which is why the lower quartile here sits below the rate-based equivalent.
                     {' '}The band is the same {bandSpec.lowPct} to {bandSpec.highPct} percentile, so the two charts can be read against each other directly.
                     {fanRuinAge !== null
                       ? <> <strong className="text-rose-700">A tenth are broke by {fanRuinAge}.</strong></>

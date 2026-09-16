@@ -53,9 +53,12 @@ Three things would orphan them, all within your control:
 
 ## Before the link goes out
 
-- `FEEDBACK_URL` in `src/Shell.jsx` is blank, so no feedback link renders yet. Paste a form's URL there
-  and it appears in the footer of both apps. A form rather than a `mailto:`, because an address on a
-  public page gets scraped and a form arrives structured.
+- `FEEDBACK_URL` in `src/Shell.jsx` opens a prefilled issue on this repository, and the footer of both
+  apps links to it. It needs a GitHub account, which the label says up front. `FEEDBACK_REPO` beside it
+  is the one line to change if the repository is renamed — GitHub redirects the old URL, so the link
+  keeps working either way, but the redirect is not a good thing to leave in a shared page.
+- The prefilled body asks for **rounded figures**, because an issue is public and permanent and the
+  natural way to report a bug here is to paste in what you typed. Keep that line if you edit the body.
 - `SHOW_INHERITANCE` in `src/App.jsx` is `false`, so the Inheritance tab stays hidden. Its code and its
   268 assertions are untouched; flipping it to `true` is the whole of turning it on.
 - `APP_VERSION` in `src/App.jsx` reads `v0.8 beta`.

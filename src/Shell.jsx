@@ -18,17 +18,41 @@ import Simple from './Simple.jsx';
 const KEY = 'rp_which_app';
 
 /*
- * WHERE FEEDBACK GOES.
+ * WHERE FEEDBACK GOES: A PREFILLED GITHUB ISSUE.
  *
- * Paste a form's URL here and the footer line appears in both apps. Blank ships no link at all, which
- * is better than a dead one, and is where this sits until the form exists.
+ * A form rather than a mailbox, because an address on a public page gets scraped and no obfuscation
+ * reliably prevents it. This particular form because the repository is public and already has issues:
+ * no third-party service, nothing to keep signed up for, and a report can be replied to in the place
+ * the fix will happen. The cost is honest and worth stating - it needs a GitHub account, which plenty
+ * of people reading about pensions will not have - so the link says GitHub rather than springing it.
  *
- * A form rather than a mailbox, deliberately: an address on a public page gets scraped, and no amount
- * of obfuscation reliably prevents it. A form also arrives structured - which browser, which app, what
- * they expected - where a mailbox arrives as whatever somebody felt like typing.
+ * Prefilled through the query string rather than an issue TEMPLATE, because GitHub only reads
+ * .github/ISSUE_TEMPLATE from a repository's default branch. The query string works from any branch,
+ * today. If this ever lands on the default branch, a template is the better home for these prompts.
+ *
+ * The warning in the body is the important line. This is a retirement planner: the inputs ARE somebody's
+ * finances, an issue is public and permanent, and the natural way to report a bug is to paste what you
+ * typed in. Asking for rounded figures up front costs nothing and is far easier than deleting a comment
+ * that has already been indexed.
  */
-const FEEDBACK_URL = '';
-const FEEDBACK_LABEL = 'Tell me what broke';
+const FEEDBACK_REPO = 'hapsariandforward/vitejs-vite-kdvuf9qw';
+const FEEDBACK_BODY = [
+  '**Which version were you using?** The simple page, or the full planner?',
+  '',
+  '**What happened?**',
+  '',
+  '**What did you expect instead?**',
+  '',
+  '**Browser and device** (if it looked wrong rather than read wrong):',
+  '',
+  '---',
+  '',
+  'Please keep the figures rounded — this issue is public and permanent. "A pot around £500k, retiring',
+  'at 60" is enough to reproduce almost anything; real balances and dates of birth are not needed.'
+].join('\n');
+const FEEDBACK_URL = `https://github.com/${FEEDBACK_REPO}/issues/new`
+  + `?title=${encodeURIComponent('Beta feedback: ')}&body=${encodeURIComponent(FEEDBACK_BODY)}`;
+const FEEDBACK_LABEL = 'Report a problem on GitHub';
 
 /*
  * The one line every visitor should see, in both apps. The beta wording is the point: it asks people to

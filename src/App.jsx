@@ -7572,32 +7572,14 @@ export default function App() {
    * The Monte Carlo chart plays itself in, spreading from the left edge as the horizon fills. It is not
    * decoration: the shape of the thing - a point at the start widening into a cloud - is the fact the
    * chart exists to convey, and watching it happen lands that better than arriving at the finished
-   * picture. It runs ONCE per set of results. Coming back to the slide shows the completed chart, because
-   * a replay on every visit would be an animation you have to sit through rather than one you watched.
+   * picture.
+   *
+   * The reveal is a CSS animation, so React holds a KEY rather than a clock. Changing the key
+   * remounts the animated groups, which is what restarts a CSS animation; nothing re-renders in between.
+   * Arriving at the Monte Carlo step replays it, exactly as the old loop did, and a fresh set of results
+   * replays it too. Step 7 draws the same chart un-animated, so it is not in this key at all.
    */
-  const [mcReveal, setMcReveal] = useState(0);
-  useEffect(() => {
-    if (!fanData.length) { setMcReveal(0); return; }
-    // rewound whenever the Monte Carlo step is not on screen, so arriving always plays it. Looked up by
-    // key, not number: this was a literal 4, and inserting the safe-retirement step ahead of it silently
-    // left the clock rewinding on the very slide it drives - two-point paths and a stub of a band.
-    const mcSlide = PROJECTION_SLIDES.find(x => x.key === 'mcchart').n;
-    // Step 7 draws the same chart above the sandbox controls. It must arrive FINISHED: rewinding the
-    // clock there is the two-point-paths-and-a-stub-band bug again, and replaying a 2.2s animation every
-    // time somebody nudges a contribution would be worse than either.
-    if (slide === SANDBOX_SLIDE && !seeAll) { setMcReveal(1); return; }
-    if (slide !== mcSlide && !seeAll) { setMcReveal(0); return; }
-    setMcReveal(0);
-    const start = performance.now(), ms = 2200;
-    let raf = 0;
-    const step = () => {
-      const t = Math.min(1, (performance.now() - start) / ms);
-      setMcReveal(t);
-      if (t < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [fanData, simResult, slide, seeAll]);
+  const mcPlayKey = `${simResult?.seed ?? 'x'}-${fanData.length}-${seeAll ? 'all' : slide}`;
 
   // ------------------------------------------------------------ chart scales
   /*
@@ -7688,27 +7670,29 @@ export default function App() {
    * It replays on every arrival at the step. The clock is reset whenever the step is not on screen, so
    * coming back rewinds it rather than resuming a finished animation.
    */
-  const mcDraw = Math.min(1, mcReveal / 0.72);
-  const mcSettle = Math.max(0, (mcReveal - 0.72) / 0.28);
+  /*
+   * Every sample path at FULL length, built once. The sweep that used to come from regenerating these
+   * with a growing cutoff each frame is now a stroke-dashoffset animation on a static `d` - see
+   * .mc-draw in index.html for what that cost before.
+   */
   const mcSpaghetti = useMemo(() => {
     const sample = simResult?.samplePaths;
-    if (!showFan || !sample || !sample.length || mcSettle >= 1) return null;
+    if (!showFan || !sample || !sample.length) return null;
     const age0 = currentAge;
-    const lastAge = Math.min(effectiveMaxVisibleAge, age0 + sample[0].length - 1);
-    const upto = age0 + Math.max(1, Math.round((lastAge - age0) * mcDraw));
     const anchor = fanData[0] ? fanData[0].p50 : null;
     const gen = d3.line().x(d => xScale(d.a)).y((d, i) => yScale(Math.max(0, i === 0 && anchor !== null ? anchor : d.v))).curve(d3.curveMonotoneX);
     return sample.map((pth, i) => {
       const rows = [];
-      for (let t = 0; t < pth.length; t++) { const a = age0 + t; if (a > upto) break; rows.push({ a, v: pth[t] }); }
+      for (let t = 0; t < pth.length; t++) { const a = age0 + t; if (a > effectiveMaxVisibleAge) break; rows.push({ a, v: pth[t] }); }
       return rows.length > 1 ? { id: i, d: gen(rows) } : null;
     }).filter(Boolean);
-  }, [simResult, showFan, mcDraw, mcSettle, currentAge, effectiveMaxVisibleAge, xScale, yScale, fanData]);
+  }, [simResult, showFan, currentAge, effectiveMaxVisibleAge, xScale, yScale, fanData]);
 
   const fanPaths = useMemo(() => {
     if (!fanVisible || fanVisible.length < 2) return null;
-    const cut = Math.max(2, Math.ceil(fanVisible.length * Math.max(mcSettle, mcReveal >= 1 ? 1 : 0)));
-    const rows = fanVisible.slice(0, cut);
+    // Full extent, always. It used to be sliced to a growing cut so the band appeared to sweep out; it
+    // fades in instead, which is the same picture without rebuilding four areas on every frame.
+    const rows = fanVisible;
     const x = (d) => xScale(d.ageSelf);
     const line = (key) => d3.line().x(x).y(pinchY(rows, key, 'p50')).curve(d3.curveMonotoneX)(rows);
     // the same percentiles the rate-based chart is showing, so the two can be laid over each other
@@ -7717,7 +7701,7 @@ export default function App() {
       band: d3.area().x(x).y0(pinchY(rows, lo, 'p50')).y1(pinchY(rows, hi, 'p50')).curve(d3.curveMonotoneX)(rows),
       median: line('p50'), edgeLo: line(lo), edgeHi: line(hi)
     };
-  }, [fanVisible, xScale, yScale, mcReveal, mcSettle, bandMode]);
+  }, [fanVisible, xScale, yScale, bandMode]);
   // The first age at which a tenth of the paths are broke. Worth naming: it is the most actionable thing
   // on the chart, and a smooth deterministic line could never have produced it. Read off the whole fan,
   // not the visible slice, so dragging the horizon slider cannot change the answer.
@@ -8958,7 +8942,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     </div>
   );
 
-  const renderProjectionChart = (kind) => {
+  /*
+   * `animate` is the reveal, and only the Monte Carlo STEP asks for it. Step 7 draws the same chart
+   * beneath the sandbox controls, where replaying a 1.5s sweep on every nudge of a contribution would be
+   * an animation you have to sit through rather than one you watched.
+   */
+  const renderProjectionChart = (kind, { animate = false } = {}) => {
     const isRate = kind === 'rate';
     const band = isRate ? cp.rateBand : cp.fanBand;
     const edge = isRate ? cp.rateEdge : cp.fanEdge;
@@ -8977,12 +8966,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </>}
               {/* the real trials, drawing themselves out, then dissolving into the band they make up */}
               {!isRate && mcSpaghetti && (
-                <g opacity={1 - mcSettle}>
-                  {mcSpaghetti.map(sp => <path key={sp.id} d={sp.d} fill="none" stroke={cp.fanMedian} strokeWidth="1" strokeOpacity="0.4" strokeLinecap="round" />)}
+                <g key={`sp-${mcPlayKey}`} className={animate ? 'mc-spaghetti' : undefined} opacity={animate ? undefined : 0}>
+                  {mcSpaghetti.map(sp => (
+                    <path key={sp.id} d={sp.d} fill="none" stroke={cp.fanMedian} strokeWidth="1" strokeOpacity="0.4" strokeLinecap="round"
+                      pathLength={animate ? 1 : undefined} className={animate ? 'mc-draw' : undefined} />
+                  ))}
                 </g>
               )}
               {!isRate && fanPaths && (
-                <g opacity={mcReveal >= 1 ? 1 : mcSettle}>
+                <g key={`band-${mcPlayKey}`} className={animate ? 'mc-band' : undefined}>
                   <path d={fanPaths.band} fill={band} stroke="none" />
                   <path d={fanPaths.edgeLo} fill="none" stroke={edge} strokeWidth="1.5" />
                   <path d={fanPaths.edgeHi} fill="none" stroke={edge} strokeWidth="1.5" />
@@ -9275,7 +9267,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
               <div className="shrink-0 self-center mx-auto md:mx-0 md:ml-auto">
                 <RouletteWheel className="w-44 sm:w-52 lg:w-60" />
-                <p className="text-[11px] text-slate-500 text-center mt-2 max-w-[15rem] mx-auto leading-snug">One spin is one future. The model runs {MC_TRIALS.toLocaleString()}.</p>
               </div>
               </div>
             </div>
@@ -10497,7 +10488,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <input type="range" min={currentAge + 1} max={terminalAge} value={effectiveMaxVisibleAge} onChange={(e) => setMaxVisibleAge(Number(e.target.value))} className="w-32 sm:w-40 accent-blue-600 cursor-pointer" />
                     </div>
                   </div>
-                  {renderProjectionChart('mc')}
+                  {renderProjectionChart('mc', { animate: true })}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
                     <strong className="text-emerald-700">Each path applies your withdrawals to one particular order of returns, and stops at £0 if the money is exhausted.</strong> A run of poor years early in drawdown forces selling at depressed prices and permanently reduces the capital left to recover, which is why the lower quartile here sits below the rate-based equivalent.
                     {' '}The band is the same {bandSpec.lowPct} to {bandSpec.highPct} percentile, so the two charts can be read against each other directly.

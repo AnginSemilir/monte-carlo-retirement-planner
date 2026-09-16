@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Info } from 'lucide-react';
 import App from './App.jsx';
 import Simple from './Simple.jsx';
+import { toFullPlan, fromFullPlan, simpleHasInput, SIMPLE_BLANK } from './simplePlan.js';
 
 /*
  * ONE ENTRANCE, TWO APPS.
@@ -77,6 +78,49 @@ const OTHER = {
   simple: { to: 'full', lead: 'Need the full model?', cta: 'Open the full planner' }
 };
 
+/*
+ * CROSSING OVER WITHOUT RETYPING ANYTHING.
+ *
+ * The two pages keep separate saved plans, which is right - they are different applications and one is
+ * not a view of the other. But a visitor who fills in the simple page and then wants the full model was
+ * being handed a blank form, and the same in reverse, which makes the switch a punishment for having
+ * explored.
+ *
+ * So the switch carries the plan across, through the adapters in simplePlan.js. Three rules keep that
+ * honest:
+ *
+ *   1 NEVER OVERWRITE WORK WITH A BLANK. If the page being left has nothing typed in it, nothing is
+ *     written. Otherwise pressing the button twice on a fresh visit would wipe a saved plan.
+ *   2 SAY WHAT DID NOT FIT. Going down from the full planner is lossy - it holds spending bands, income
+ *     streams and a whole Config tab the small page has nowhere to put. The adapter returns that list
+ *     and the banner shows it, rather than letting figures vanish quietly.
+ *   3 THE PLAN LEFT BEHIND IS NOT TOUCHED. Each page keeps its own key, so switching back and forth
+ *     never destroys the version you came from.
+ */
+const FULL_KEY = 'rp_plan_full_v28';
+const SIMPLE_KEY = 'rp_simple_v1';
+const readKey = (k) => { try { const raw = localStorage.getItem(k); return raw ? JSON.parse(raw) : null; } catch { return null; } };
+const writeKey = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } };
+
+function carryAcross(from) {
+  try {
+    if (from === 'simple') {
+      const s = readKey(SIMPLE_KEY);
+      if (!simpleHasInput(s)) return null;
+      writeKey(FULL_KEY, toFullPlan(s));
+      return { to: 'full', dropped: [] };
+    }
+    const plan = readKey(FULL_KEY);
+    if (!plan || !plan.accounts) return null;
+    const { simple, dropped } = fromFullPlan(plan, { ...SIMPLE_BLANK, ...(readKey(SIMPLE_KEY) || {}) });
+    if (!simpleHasInput(simple)) return null;
+    writeKey(SIMPLE_KEY, simple);
+    return { to: 'simple', dropped };
+  } catch {
+    return null;   // a corrupt saved plan must not stop somebody changing pages
+  }
+}
+
 export default function Shell() {
   const [which, setWhich] = useState(() => {
     try { return localStorage.getItem(KEY) === 'simple' ? 'simple' : 'full'; } catch { return 'full'; }
@@ -84,18 +128,33 @@ export default function Shell() {
   useEffect(() => { try { localStorage.setItem(KEY, which); } catch { /* private mode */ } }, [which]);
 
   const other = OTHER[which];
+  // what the last crossing could not bring with it, shown once on arrival
+  const [carried, setCarried] = useState(null);
+  const cross = () => { setCarried(carryAcross(which)); setWhich(other.to); };
 
   return (
     <>
       <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8">
-        <div className="max-w-7xl mx-auto">
-          <button type="button" onClick={() => setWhich(other.to)}
+        <div className="max-w-7xl mx-auto space-y-2">
+          <button type="button" onClick={cross}
             className="w-full group flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 px-5 py-3 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 hover:border-blue-300 transition-colors cursor-pointer">
             <span className="text-sm text-blue-900/80">{other.lead}</span>
             <span className="text-sm font-bold text-blue-800 group-hover:text-blue-900 flex items-center gap-1.5">
               {other.cta} <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </span>
           </button>
+          {carried && carried.to === which && (
+            <div className="flex items-start gap-2 px-4 py-2.5 rounded-xl border border-amber-200 bg-amber-50 text-xs text-amber-900">
+              <Info className="w-4 h-4 shrink-0 mt-px text-amber-700" />
+              <div className="min-w-0">
+                <strong className="font-semibold">Your figures came with you.</strong>{' '}
+                {carried.dropped.length === 0
+                  ? 'Everything the simple page holds is now in the full planner, and the simple version is still saved as you left it.'
+                  : <>The full planner holds more than this page can, so these stayed behind and are still saved there: {carried.dropped.join('; ')}.</>}
+                <button type="button" onClick={() => setCarried(null)} className="ml-2 font-semibold underline hover:text-amber-950 cursor-pointer">Got it</button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

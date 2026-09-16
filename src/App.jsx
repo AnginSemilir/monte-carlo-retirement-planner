@@ -12280,7 +12280,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         )}
 
       </div>
-      <EditMode />
+      {/*
+        * Edit mode is an authoring tool, not a feature: it rewrites copy in the source through a dev-only
+        * endpoint, which does not exist in a built site. Shipping its button to visitors would offer them
+        * a control that cannot work. import.meta.env.DEV is replaced with a literal at build time, so the
+        * component tree-shakes out of the production bundle rather than merely being hidden.
+        */}
+      {import.meta.env.DEV && <EditMode />}
     </div>
   );
 }

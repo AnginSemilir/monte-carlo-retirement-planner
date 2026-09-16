@@ -16,6 +16,35 @@ import Simple from './Simple.jsx';
  */
 
 const KEY = 'rp_which_app';
+
+/*
+ * WHERE FEEDBACK GOES, IF ANYWHERE.
+ *
+ * Blank ships no link at all rather than a dead one. Set it to whatever you want beta readers to reach -
+ * a form, a thread, a mailbox - and the footer line appears in both apps. Deliberately not defaulted to
+ * a personal address: this is a public page, and an address put here is an address that gets scraped.
+ */
+const FEEDBACK_URL = '';
+const FEEDBACK_LABEL = 'Tell me what broke';
+
+/*
+ * The one line every visitor should see, in both apps. The beta wording is the point: it asks people to
+ * treat the figures as a draft, which is the honest framing while the model is still being checked, and
+ * it is the same sentence in both apps so neither looks more finished than the other.
+ */
+function Footer() {
+  return (
+    <div className="px-4 sm:px-6 lg:px-8 pb-8">
+      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+        <span>A beta. Everything is modelled, nothing is advice, and your figures stay in this browser.</span>
+        {FEEDBACK_URL && (
+          <a href={FEEDBACK_URL} target="_blank" rel="noreferrer noopener"
+            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline">{FEEDBACK_LABEL} &rarr;</a>
+        )}
+      </div>
+    </div>
+  );
+}
 const OTHER = {
   full: { to: 'simple', lead: 'Just want the answer?', cta: 'Open the simple version' },
   simple: { to: 'full', lead: 'Need the full model?', cta: 'Open the full planner' }
@@ -57,6 +86,7 @@ export default function Shell() {
           </div>
         </div>
       )}
+      <Footer />
     </>
   );
 }

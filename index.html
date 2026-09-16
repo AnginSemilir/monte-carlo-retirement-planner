@@ -11,36 +11,6 @@
         } catch (e) {}
       })();
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: { extend: {
-          colors: {
-            slate:   { 50:'rgb(var(--slate-50)/<alpha-value>)', 100:'rgb(var(--slate-100)/<alpha-value>)', 200:'rgb(var(--slate-200)/<alpha-value>)', 300:'rgb(var(--slate-300)/<alpha-value>)', 400:'rgb(var(--slate-400)/<alpha-value>)', 500:'rgb(var(--slate-500)/<alpha-value>)', 600:'rgb(var(--slate-600)/<alpha-value>)', 700:'rgb(var(--slate-700)/<alpha-value>)', 800:'rgb(var(--slate-800)/<alpha-value>)', 900:'rgb(var(--slate-900)/<alpha-value>)' },
-            surface: { DEFAULT: 'rgb(var(--surface)/<alpha-value>)' },
-            blue:    { 50:'rgb(var(--blue-50)/<alpha-value>)', 100:'rgb(var(--blue-100)/<alpha-value>)', 200:'rgb(var(--blue-200)/<alpha-value>)', 500:'rgb(var(--blue-500)/<alpha-value>)', 600:'rgb(var(--blue-600)/<alpha-value>)', 700:'rgb(var(--blue-700)/<alpha-value>)', 800:'rgb(var(--blue-800)/<alpha-value>)', 950:'rgb(var(--blue-950)/<alpha-value>)' },
-            indigo:  { 50:'rgb(var(--indigo-50)/<alpha-value>)', 100:'rgb(var(--indigo-100)/<alpha-value>)', 200:'rgb(var(--indigo-200)/<alpha-value>)', 500:'rgb(var(--indigo-500)/<alpha-value>)', 600:'rgb(var(--indigo-600)/<alpha-value>)', 700:'rgb(var(--indigo-700)/<alpha-value>)', 800:'rgb(var(--indigo-800)/<alpha-value>)', 900:'rgb(var(--indigo-900)/<alpha-value>)', 950:'rgb(var(--indigo-950)/<alpha-value>)' },
-            emerald: { 50:'rgb(var(--emerald-50)/<alpha-value>)', 100:'rgb(var(--emerald-100)/<alpha-value>)', 200:'rgb(var(--emerald-200)/<alpha-value>)', 300:'rgb(var(--emerald-300)/<alpha-value>)', 600:'rgb(var(--emerald-600)/<alpha-value>)', 700:'rgb(var(--emerald-700)/<alpha-value>)', 800:'rgb(var(--emerald-800)/<alpha-value>)' },
-            rose:    { 50:'rgb(var(--rose-50)/<alpha-value>)', 100:'rgb(var(--rose-100)/<alpha-value>)', 200:'rgb(var(--rose-200)/<alpha-value>)', 300:'rgb(var(--rose-300)/<alpha-value>)', 400:'rgb(var(--rose-400)/<alpha-value>)', 600:'rgb(var(--rose-600)/<alpha-value>)', 700:'rgb(var(--rose-700)/<alpha-value>)', 800:'rgb(var(--rose-800)/<alpha-value>)', 950:'rgb(var(--rose-950)/<alpha-value>)' },
-            amber:   { 50:'rgb(var(--amber-50)/<alpha-value>)', 100:'rgb(var(--amber-100)/<alpha-value>)', 200:'rgb(var(--amber-200)/<alpha-value>)', 300:'rgb(var(--amber-300)/<alpha-value>)', 500:'rgb(var(--amber-500)/<alpha-value>)', 600:'rgb(var(--amber-600)/<alpha-value>)', 700:'rgb(var(--amber-700)/<alpha-value>)', 800:'rgb(var(--amber-800)/<alpha-value>)', 900:'rgb(var(--amber-900)/<alpha-value>)' },
-            sky:     { 600:'rgb(var(--sky-600)/<alpha-value>)', 700:'rgb(var(--sky-700)/<alpha-value>)' },
-            teal:    { 600:'rgb(var(--teal-600)/<alpha-value>)', 700:'rgb(var(--teal-700)/<alpha-value>)' },
-            purple:  { 700:'rgb(var(--purple-700)/<alpha-value>)' },
-          },
-          fontFamily: {
-            sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-            mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-            display: ['"Newsreader"', 'ui-serif', 'Georgia', 'serif'],
-          },
-          boxShadow: {
-            '2xs': '0 1px 1px 0 rgb(var(--shadow-c) / var(--shadow-a2))',
-            xs:    '0 1px 2px 0 rgb(var(--shadow-c) / var(--shadow-a))',
-            lg:    '0 10px 25px -5px rgb(var(--shadow-c) / var(--shadow-a-lg)), 0 8px 10px -6px rgb(var(--shadow-c) / var(--shadow-a-lg))',
-          },
-        } },
-      };
-    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -292,8 +262,36 @@
        * interface does not use anywhere. Weight carries the same emphasis and stays in the body face.
        */
       em { font-style: normal; font-weight: 600; color: rgb(var(--slate-800)); }
+
+      /*
+       * The page background belongs on the root element, not only on the app's outer div.
+       *
+       * Both apps paint themselves with `bg-slate-50`, which covers exactly as much as their content.
+       * Anywhere the document shows through - the rubber-band area at the top of an overscroll, the
+       * strip below a short page - the browser's own white shows instead, which on the dark theme reads
+       * as the page having broken. Taking the same token the apps use keeps all three themes in step,
+       * and it is set on <html> so it applies before React has mounted anything.
+       */
+      html { background: rgb(var(--slate-50)); }
     </style>
-    <title>Monte-Carlo Retirement Planner</title>  </head>
+    <title>Can I Retire? — Monte Carlo Retirement Planner</title>
+    <!--
+      Sharing metadata. The description is the one sentence somebody sees in a link preview before they
+      decide whether to click, so it says what the model does and who it is for rather than naming the
+      technique. og:image is the favicon: a purpose-drawn card would be better, and this at least keeps
+      the preview from falling back to a blank rectangle.
+    -->
+    <meta name="description" content="A UK retirement model: run your pensions, ISAs, GIA and cash through thousands of market histories, taxed under UK rules, and see how often the plan actually holds. Free, private, and nothing leaves your browser." />
+    <meta name="theme-color" content="#2563eb" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Can I Retire?" />
+    <meta property="og:title" content="Can I Retire? — Monte Carlo Retirement Planner" />
+    <meta property="og:description" content="Run your pensions, ISAs, GIA and cash through thousands of market histories, taxed under UK rules, and see how often the plan actually holds." />
+    <meta property="og:image" content="/favicon.svg" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Can I Retire? — Monte Carlo Retirement Planner" />
+    <meta name="twitter:description" content="Run your pensions, ISAs, GIA and cash through thousands of market histories, taxed under UK rules, and see how often the plan actually holds." />
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>

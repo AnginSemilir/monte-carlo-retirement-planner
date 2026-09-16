@@ -9,8 +9,12 @@
 # Until it is flipped, this workflow fails at the "Configure Pages" step and nothing is published.
 #
 # The site then lives at https://hapsariandforward.github.io/monte-carlo-retirement-planner/ and updates on every
-# push to the branch below. Visitors' saved plans live in their own browser keyed to that origin, so
-# they survive updates - but they would NOT survive a move to a different domain. See DEPLOY.md.
+# push to the branch below. That branch has to be the DEFAULT branch: the `github-pages` environment only
+# accepts deployments from the default branch, and a run from anywhere else is rejected before the deploy
+# job starts a single step - it fails with no logs at all, which is a confusing way to learn this.
+#
+# Visitors' saved plans live in their own browser keyed to that origin, so they survive updates - but they
+# would NOT survive a move to a different domain. See DEPLOY.md.
 #
 # Deliberately not gated on the test suite: the 23 suites take minutes, and a beta wants fast
 # iteration. Run `npm run test:engine` locally, or add it as a step here when that trade changes.
@@ -18,7 +22,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [claude/project-access-i58m0x]
+    branches: [main]
   workflow_dispatch:
 
 permissions:

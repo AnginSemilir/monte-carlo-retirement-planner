@@ -30,8 +30,10 @@ rather than something the workflow does for itself. Until it is flipped the work
 
 > `https://hapsariandforward.github.io/monte-carlo-retirement-planner/`
 
-and every push to `claude/project-access-i58m0x` republishes it. `base: './'` in `vite.config.js` is
-what lets one build work both there, under a subpath, and on a root domain later.
+and every push to `main` republishes it. It has to be `main`, or whatever the default branch is: the
+`github-pages` environment only accepts deployments from the default branch, and a run from any other
+branch is rejected before the deploy job runs a step, with no logs to say why. `base: './'` in
+`vite.config.js` is what lets one build work both there, under a subpath, and on a root domain later.
 
 ## One link, and what happens when you update
 

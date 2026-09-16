@@ -28,7 +28,7 @@ That switch is what actually puts the site on the internet, which is why it is a
 rather than something the workflow does for itself. Until it is flipped the workflow fails at
 "Configure Pages" and nothing is published. Afterwards the site is at
 
-> `https://hapsariandforward.github.io/vitejs-vite-kdvuf9qw/`
+> `https://hapsariandforward.github.io/monte-carlo-retirement-planner/`
 
 and every push to `claude/project-access-i58m0x` republishes it. `base: './'` in `vite.config.js` is
 what lets one build work both there, under a subpath, and on a root domain later.

@@ -35,7 +35,7 @@ const KEY = 'rp_which_app';
  * typed in. Asking for rounded figures up front costs nothing and is far easier than deleting a comment
  * that has already been indexed.
  */
-const FEEDBACK_REPO = 'hapsariandforward/vitejs-vite-kdvuf9qw';
+const FEEDBACK_REPO = 'hapsariandforward/monte-carlo-retirement-planner';
 const FEEDBACK_BODY = [
   '**Which version were you using?** The simple page, or the full planner?',
   '',

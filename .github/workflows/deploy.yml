@@ -8,7 +8,7 @@
 # That switch is what actually puts the site on the internet, so it is deliberately left to a person.
 # Until it is flipped, this workflow fails at the "Configure Pages" step and nothing is published.
 #
-# The site then lives at https://hapsariandforward.github.io/vitejs-vite-kdvuf9qw/ and updates on every
+# The site then lives at https://hapsariandforward.github.io/monte-carlo-retirement-planner/ and updates on every
 # push to the branch below. Visitors' saved plans live in their own browser keyed to that origin, so
 # they survive updates - but they would NOT survive a move to a different domain. See DEPLOY.md.
 #

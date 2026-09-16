@@ -6,7 +6,7 @@ export default defineConfig({
   /*
    * Asset URLs relative to the page, not absolute from the domain root.
    *
-   * GitHub Pages serves a project site from a subpath - /vitejs-vite-kdvuf9qw/ - so a build that asks
+   * GitHub Pages serves a project site from a subpath - /monte-carlo-retirement-planner/ - so a build that asks
    * for /assets/index.js gets a 404 there while working perfectly on a root domain. './' resolves
    * against wherever the page happens to sit, so one build works at a root, at a subpath, and from
    * `npx serve dist` locally. Safe here because there is no client-side routing: the tabs are state,

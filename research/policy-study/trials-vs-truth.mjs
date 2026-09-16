@@ -20,6 +20,15 @@
  * 4 of the 30 households the three truth seeds disagreed with each other, so those candidates are
  * indistinguishable at any budget.
  *
+ * TREAT THESE FOUR NUMBERS AS ONE PLATEAU, NOT A RANKING. More paths cannot really make the search
+ * worse, so the 6,000 row is this statistic's own error bar: roughly ten points either way at n=30.
+ * The set supports "1,500 is too few" and nothing finer; it does NOT single out 4,000 as best, and a
+ * separate sweep over 6 households found seed-to-seed agreement of the pick no better at 4,000 than at
+ * 1,500. What actually sets TOURNAMENT_TRIALS is the measurement in section E of
+ * research/tests/optimality.test.mjs - the survival estimate's seed-to-seed standard deviation falls
+ * from 1.44 points to 0.56 against a 1-point tie tolerance - because that one is mechanistic and
+ * reproduces exactly on every run. Read this study as corroboration of that, not as the argument.
+ *
  * Usage: node trials-vs-truth.mjs [results/optimality.json] [trialCounts=1500,2500,4000]
  */
 import fs from 'fs';

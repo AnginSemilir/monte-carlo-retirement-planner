@@ -12,6 +12,9 @@
  *   C  a principle the model is built on holds where it should: a retiree with a pension and an ISA
  *      and nothing filling the personal allowance is not told to leave it unused
  *   D  a trade-off card's gain is real, not an artefact of the one seed the sweep used
+ *   E  the live path count puts the survival wobble UNDER the tie tolerance, which is the whole
+ *      argument for TOURNAMENT_TRIALS being what it is
+ *   F  and when the noise does still flip a near-tie, the pick it lands on is barely worse
  */
 import * as E from '../engine.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
@@ -143,12 +146,55 @@ console.log('\n=========== E. WHY THE LIVE SEARCH RUNS 4,000 PATHS, PINNED =====
   const at = (trials) => seeds.map(seed => E.monteCarlo(ctx, { trials, seed }).successRate);
   const s1500 = sd(at(1500)), sLive = sd(at(LIVE_SEARCH_TRIALS));
   ok(`at 1,500 paths the seed-to-seed wobble in survival exceeds the ${E.RATE_EPSILON_PTS}pt tie tolerance on a mid-survival plan`, s1500 > E.RATE_EPSILON_PTS, `sd ${s1500.toFixed(2)}pt`);
+  /*
+   * ...and this is the assertion the path count exists for. A tie tolerance that sits inside the noise
+   * is not gating on anything: it hands the lower priorities whichever candidates the draw happened to
+   * let through. Raising the paths is what puts the tolerance back above the wobble, so if this ever
+   * fails, TOURNAMENT_TRIALS is too low for RATE_EPSILON_PTS and one of the two has to move.
+   */
+  ok(`at ${LIVE_SEARCH_TRIALS.toLocaleString()} paths it is back INSIDE that tolerance, which is what the path count is for`, sLive < E.RATE_EPSILON_PTS, `sd ${sLive.toFixed(2)}pt vs ${E.RATE_EPSILON_PTS}pt`);
   const ratio = s1500 / sLive, expected = Math.sqrt(LIVE_SEARCH_TRIALS / 1500);
   ok(`the wobble falls roughly with the square root of the path count (expected ${expected.toFixed(2)}x)`, ratio > expected * 0.5 && ratio < expected * 2.0, `${ratio.toFixed(2)}x (${s1500.toFixed(2)} -> ${sLive.toFixed(2)}pt)`);
   // the binomial standard error the comment reasons from is the right order of magnitude
   const p = at(LIVE_SEARCH_TRIALS).reduce((a, b) => a + b, 0) / seeds.length / 100;
   const binomial = 100 * Math.sqrt(p * (1 - p) / LIVE_SEARCH_TRIALS);
   ok('and matches the binomial standard error to within a factor of two', sLive > binomial / 2 && sLive < binomial * 2, `measured ${sLive.toFixed(2)}, binomial ${binomial.toFixed(2)}`);
+}
+
+console.log('\n=========== F. A NEAR-TIE RESOLVED THE WRONG WAY IS STILL CHEAP ===========');
+{
+  /*
+   * Section E bounds the NOISE. This bounds its CONSEQUENCE, which is the claim a user actually cares
+   * about: not "the search always finds the best candidate" - it does not, and for statistically
+   * indistinguishable candidates nothing could - but "when it doesn't, you barely lose anything".
+   *
+   * For each household and seed, sweep all 18 candidates, take the ranked winner, and compare its
+   * survival with the best survival available on that same seed. The gap is what the household gave up
+   * by the ranking landing where it did. Measured across households 66 and 224 at seeds 11 and 33 the
+   * worst gap is 1.00 points, and the same measurement at 1,500 paths gives 0.93 - the bound is a
+   * property of the tolerance and the survival guard, not of the path count, so it should hold at any
+   * sane trial count. 1.5 is the measured worst case plus room for the guard to be re-tuned slightly.
+   *
+   * Household 66 is deliberately in the sample because it is one that DOES give something up; a
+   * version of this test where every gap is zero would pass without testing anything, so that is
+   * asserted too.
+   */
+  const LIVE_SEARCH_TRIALS = 4000, BOUND_PTS = 1.5;
+  let worst = 0, nonZero = 0;
+  const detail = [];
+  for (const i of [66, 224]) {
+    const plan = E.normalizePlan(scs[i].plan);
+    for (const seed of [11, 33]) {
+      const rows = sweep(plan, LIVE_SEARCH_TRIALS, seed);
+      const win = E.explainPick(rows, { priorities: E.DEFAULT_PRIORITIES }).winner;
+      const gap = Math.max(...rows.map(r => r.stats.successRate)) - win.stats.successRate;
+      if (gap > 0) nonZero++;
+      worst = Math.max(worst, gap);
+      detail.push(`${scs[i].id}/${seed}:${gap.toFixed(2)}`);
+    }
+  }
+  ok(`the applied pick is never more than ${BOUND_PTS}pt of survival below the best candidate on the same seed`, worst <= BOUND_PTS, `worst ${worst.toFixed(2)}pt  [${detail.join(' ')}]`);
+  ok('...and the sample actually contains a household that gives something up, so the bound is exercised', nonZero > 0, `${nonZero} of ${detail.length} non-zero`);
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

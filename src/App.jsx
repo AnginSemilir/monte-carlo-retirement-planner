@@ -5836,7 +5836,7 @@ const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, i
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { pathsForSeed, runTrial, summarizeTrials, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan
@@ -6066,10 +6066,96 @@ const safeStorageGet = (k) => { try { return localStorage.getItem(k); } catch (e
 const safeStorageSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* quota / private mode */ } };
 const safeStorageRemove = (k) => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } };
 
+/*
+ * THE PROJECTION'S OWN WORKER.
+ *
+ * Every other heavy thing on this page had already been moved off the main thread; the Projection tab,
+ * which is the thing most people press first, had not. Measured by phone-perf-ui.cjs on a Pixel 7 at 4x
+ * CPU throttle - a mid-tier phone - one run took 30.6 seconds and spent 28,398ms of that inside long
+ * tasks, which is the browser's own name for "this page is not responding to you". No amount of chunking
+ * fixes that. The 250-path chunks below yield to the event loop, so the progress bar does paint, but the
+ * arithmetic owns the thread between yields and on a throttled phone the yields cost more than they buy:
+ * through the worker the same run takes 6.0 seconds with about 0.7s of long tasks, so the wall clock
+ * improved as well as the responsiveness.
+ *
+ * PERSISTENT, not a pool spun up per call. A module worker loads the whole bundle before it can answer
+ * anything - a few hundred milliseconds on a phone - and one projection asks this thing twenty or more
+ * questions in a row. `scoreInWorkers` is right to use a fresh pool: it has one big batch and then
+ * nothing. This has a long conversation, so the worker stays.
+ *
+ * Every question carries a key, because progress frames and answers share one channel and a late frame
+ * from an abandoned job must not be mistaken for this one's.
+ */
+let projWorker = null;
+let projSeq = 0;
+const projPending = new Map();
+function projectionWorker() {
+  if (projWorker) return projWorker;
+  projWorker = new Worker(new URL('./mcWorker.js', import.meta.url), { type: 'module' });
+  projWorker.onmessage = (e) => {
+    const d = e.data || {};
+    const p = projPending.get(d.key);
+    if (!p) return;
+    if (d.progress !== undefined) { if (p.onProgress) p.onProgress(d.progress, d.label); return; }
+    projPending.delete(d.key);
+    if (d.error) p.reject(new Error(d.error)); else p.resolve(d);
+  };
+  projWorker.onerror = (e) => killProjectionWorker((e && e.error) || new Error((e && e.message) || 'projection worker failed'));
+  return projWorker;
+}
+/*
+ * Stop means stop. A worker cannot be interrupted politely, so cancelling terminates it and the next
+ * question builds a new one. Pending questions RESOLVE NULL rather than rejecting, because a cancel is
+ * not a failure: every caller already checks the cancel flag or a null result and returns. A genuine
+ * worker failure passes a reason, which rejects instead, and that is what puts the caller on the
+ * main-thread path.
+ */
+function killProjectionWorker(reason = null) {
+  if (projWorker) { try { projWorker.terminate(); } catch (err) { /* already gone */ } projWorker = null; }
+  const waiting = [...projPending.values()];
+  projPending.clear();
+  for (const p of waiting) { if (reason) p.reject(reason); else p.resolve(null); }
+}
+function runInProjectionWorker(job, { onProgress } = {}) {
+  const w = projectionWorker();
+  const key = `p${++projSeq}`;
+  return new Promise((resolve, reject) => {
+    projPending.set(key, { resolve, reject, onProgress });
+    w.postMessage({ ...job, key });
+  });
+}
+/*
+ * A development escape hatch, and the only way to prove the worker did not change the answer: the same
+ * run with ?forceMain=1 takes the main-thread path, and the two survival figures have to match to the
+ * digit. Read defensively because this module is also imported INSIDE a worker, where the shimmed
+ * window has no meaningful location.
+ */
+const MAIN_THREAD_ONLY = (() => {
+  try { return new URLSearchParams(window.location.search).has('forceMain'); } catch (err) { return false; }
+})();
+const workersUsable = () => typeof Worker !== 'undefined' && !MAIN_THREAD_ONLY;
+
 // Chunked Monte Carlo so the UI can repaint a progress bar between batches.
 // `shouldStop` is checked between chunks, so a cancel lands within a chunk rather than at the end of the
 // run. The partial result is still summarised and returned, because the caller discards it either way.
-async function runMonteCarloAsync(ctx, { trials, seed, spendOverride = null, onProgress, shouldStop = null, collectPaths = false }) {
+//
+// Pass a `plan` and it goes to the projection worker instead, which is the same arithmetic on the same
+// seed and so the same numbers; `ctx` is still required because it is what the fallback runs on, and a
+// context holds functions and cannot cross a worker boundary. `forceMain` is for `scoreInWorkers`, whose
+// own fallback lands here and must not bounce back into a worker.
+async function runMonteCarloAsync(ctx, { trials, seed, spendOverride = null, onProgress, shouldStop = null, collectPaths = false, plan = null, resolve = true, inheritance = false, forceMain = false }) {
+  if (plan && !forceMain && workersUsable()) {
+    try {
+      const d = await runInProjectionWorker(
+        { kind: 'stats', plan, trials, seed, resolve, spendOverride, collectPaths, inheritance },
+        { onProgress });
+      if (d === null) return null;             // cancelled: the worker was terminated mid-question
+      if (d.stats) { if (onProgress) onProgress(1); return d.stats; }
+    } catch (err) {
+      console.warn('the projection worker failed, finishing on the main thread:', err);
+      killProjectionWorker();
+    }
+  }
   const paths = E.pathsForSeed(seed, trials, ctx.totalYears);
   const results = [];
   const CHUNK = 250;
@@ -6106,7 +6192,7 @@ async function scoreInWorkers(jobs, { onProgress } = {}) {
     for (const j of list) {
       const p = j.resolve === false ? j.plan : E.resolveMpaa(j.plan);
       const ctx = E.buildContext(p);
-      const stats = await runMonteCarloAsync(ctx, { trials: j.trials, seed: j.seed });
+      const stats = await runMonteCarloAsync(ctx, { trials: j.trials, seed: j.seed, forceMain: true });
       if (j.inheritance) stats.postTaxInheritance = E.postTaxInheritanceFor(p, ctx);
       results.set(j.key, stats);
       report(j);
@@ -7165,6 +7251,9 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const [isSimulating, setIsSimulating] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const mcCancelRef = useRef(false);
+  // The projection worker is deliberately long-lived - it answers twenty questions per run - but long-lived
+  // is not the same as immortal: it goes when the app does.
+  useEffect(() => () => killProjectionWorker(), []);
   const [policyResults, setPolicyResults] = useState(null);
   const [policyProgress, setPolicyProgress] = useState(null);
   const [isPolicySearching, setIsPolicySearching] = useState(false);
@@ -8289,9 +8378,11 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     await tick();
     const stats = await runMonteCarloAsync(ctx, {
       trials: MC_TRIALS, seed: mcSeed, shouldStop: () => mcCancelRef.current, collectPaths: true,
+      // already resolved: `ctx` was built from this very plan, so resolving again would be wasted work
+      plan: resolvedPlan, resolve: false,
       onProgress: (f) => setSimProgress({ label, value: scale.from + (scale.to - scale.from) * f })
     });
-    if (mcCancelRef.current) return null;
+    if (mcCancelRef.current || !stats) return null;
     const res = { ...stats, spend: ctx.targetSpend };
     setSimResult(res);
     return res;
@@ -8306,18 +8397,54 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     const span = scale.to - scale.from;
     setSimProgress({ label: `Solving for the most you could spend at ${targetRate}%…`, value: scale.from });
     await tick();
-    const paths = E.pathsForSeed(mcSeed, SEARCH_TRIALS, ctx.totalYears);
-    const rateAt = (spend) => { let s = 0; for (const zs of paths) if (E.runTrial(ctx, zs, spend).survived) s++; return (s / SEARCH_TRIALS) * 100; };
+    /*
+     * One step of the bisection, and the single worst thing this tab did to a phone. It is a tight loop
+     * over every search path with no yield in it, run about twenty times in a row, so the page simply
+     * stopped. It now asks the projection worker, which holds the context and the path draw between
+     * questions rather than rebuilding them per step.
+     *
+     * `null` means cancelled, and is not the same as zero: `null < targetRate` is true in JavaScript, so
+     * a cancelled step read as "even zero spending fails" and reported that as the answer. Every caller
+     * below tests for it explicitly.
+     */
+    let mainPaths = null;
+    let rateOnMain = !workersUsable();
+    const rateAt = async (spend) => {
+      if (!rateOnMain) {
+        try {
+          const d = await runInProjectionWorker({ kind: 'rate', plan: resolvedPlan, resolve: false, trials: SEARCH_TRIALS, seed: mcSeed, spend });
+          if (d === null) return null;
+          if (typeof d.rate === 'number') return d.rate;
+        } catch (err) {
+          console.warn('the projection worker failed, finishing the search on the main thread:', err);
+          killProjectionWorker();
+        }
+        rateOnMain = true;
+      }
+      if (!mainPaths) mainPaths = E.pathsForSeed(mcSeed, SEARCH_TRIALS, ctx.totalYears);
+      let s = 0;
+      for (const zs of mainPaths) if (E.runTrial(ctx, zs, spend).survived) s++;
+      return (s / SEARCH_TRIALS) * 100;
+    };
     let low = 0, result;
-    if (rateAt(0) < targetRate) {
+    const atZero = await rateAt(0);
+    if (atZero === null || mcCancelRef.current) return null;
+    if (atZero < targetRate) {
       result = { spend: 0, note: 'Even zero spending fails the target. Check the pre-SIPP access gap, one-off costs or the bequest floor.' };
     } else {
       let high = Math.max(20000, ctx.targetSpend * 2, 150000), guard = 0;
-      while (rateAt(high) >= targetRate && guard++ < 8) { low = high; high *= 2; }
+      for (;;) {
+        const r = await rateAt(high);
+        if (r === null) return null;
+        if (!(r >= targetRate) || guard++ >= 8) break;
+        low = high; high *= 2;
+      }
       for (let iter = 0; iter < 14; iter++) {
         const mid = E.round250((low + high) / 2);
         if (mid <= low || mid >= high) break;
-        if (rateAt(mid) >= targetRate) low = mid; else high = mid;
+        const r = await rateAt(mid);
+        if (r === null) return null;
+        if (r >= targetRate) low = mid; else high = mid;
         setSimProgress({ label: `Narrowing… £${low.toLocaleString()}–£${high.toLocaleString()}`, value: scale.from + span * (0.1 + 0.5 * (iter + 1) / 14) });
         await tick();
         if (mcCancelRef.current) break;
@@ -8339,6 +8466,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
      */
     const confirm = async (spend, label) => runMonteCarloAsync(ctx, {
       trials: MC_TRIALS, seed: mcSeed, spendOverride: spend, shouldStop: () => mcCancelRef.current,
+      plan: resolvedPlan, resolve: false,
       onProgress: (f) => setSimProgress({ label, value: scale.from + span * (0.6 + 0.4 * f) })
     });
     let spend = result.spend;
@@ -8417,8 +8545,26 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     setSafeRetireResult(null);
     await tick();
     try {
-      const r = E.safeRetirementAge(plan, { targetRate: rate, searchTrials: 500, finalTrials: 2500,
-        onProgress: (pr) => setSimProgress({ label: pr.label, value: pr.value }) });
+      // `solved` rather than a truthiness test on the answer: the solver returns null for a plan with no
+      // room to search at all, and that is an answer, not a failure to get one.
+      let r = null, solved = false;
+      if (workersUsable()) {
+        try {
+          const d = await runInProjectionWorker(
+            { kind: 'safeAge', plan, targetRate: rate, searchTrials: 500, finalTrials: 2500 },
+            { onProgress: (value, label) => setSimProgress({ label, value }) });
+          if (d === null) return;                       // cancelled
+          r = d.result; solved = true;
+        } catch (err) {
+          console.warn('the projection worker failed, solving the retirement age on the main thread:', err);
+          killProjectionWorker();
+        }
+      }
+      // The main-thread path is unchanged, and is what runs when there are no workers or one broke.
+      if (!solved) {
+        r = E.safeRetirementAge(plan, { targetRate: rate, searchTrials: 500, finalTrials: 2500,
+          onProgress: (pr) => setSimProgress({ label: pr.label, value: pr.value }) });
+      }
       setSafeRetireResult(r);
     } catch (err) {
       setSafeRetireResult({ error: String(err && err.message ? err.message : err) });
@@ -8469,7 +8615,9 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     return { statePension, bridge: r.boundBy === 'bridge to pension access' };
   }, [safeRetireResult, plan?.demographics, isCouple]);
 
-  const handleCancelMC = () => { mcCancelRef.current = true; tournamentCancelRef.current = true; };
+  // Stop has to reach the worker too: setting a flag only stops the loops that read it, and the worker
+  // reads nothing. Terminating it is what actually ends the arithmetic; the next run builds a new one.
+  const handleCancelMC = () => { mcCancelRef.current = true; tournamentCancelRef.current = true; killProjectionWorker(); };
 
   const mcBusy = isSimulating || isOptimizing || tournament.isEvaluating;
 

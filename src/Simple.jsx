@@ -40,8 +40,10 @@ const TARGET = 90;          // fixed, and stated in words rather than offered as
  * differently from the same figure mostly in an ISA. The rows already carry the split, so the only thing
  * missing was somewhere to turn it on.
  *
- * Off by default, all four. This page earns its name by answering one question on arrival, and four more
- * lines on first sight is the full planner's job. The legend makes them one click away instead.
+ * All four are ON by default. The mix is not an advanced detail to go looking for - it is most of the
+ * answer to "is this plan safe", since a pot that is nearly all pension has tax and access problems an
+ * ISA-heavy one of the same size does not. Hidden behind a click, most people would never see it. The
+ * legend is still a legend: any line that is in the way turns off.
  *
  * `key` is the field on a simulateDeterministic row. Colours are CSS variables rather than hexes, so they
  * follow the theme like everything else on the page.
@@ -123,7 +125,7 @@ export default function Simple() {
   const [s, setS] = useState(load);
   const [view, setView] = useState('rate');      // 'rate' (CAGR) | 'mc' - the advanced deck's two charts
   const [bandMode, setBandMode] = useState('quartile');
-  const [showWrappers, setShowWrappers] = useState({});   // key -> true; all off until asked for
+  const [showWrappers, setShowWrappers] = useState(() => Object.fromEntries(WRAPPERS.map(w => [w.key, true])));
   const [scenarios, setScenarios] = useState(loadScenarios);
   const [activeScenario, setActiveScenario] = useState(null);
   const [res, setRes] = useState(null);          // { mc, safeSpend, safeAge }
@@ -777,7 +779,10 @@ export default function Simple() {
                     its own colour swatch, so a line on the chart can be named without a key elsewhere. */}
                 {Object.keys(chart.wrappers).length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] text-slate-500 mr-0.5">What the pot is made of:</span>
+                    {/* Short on purpose: the longer version wrapped the legend onto two rows at this
+                        width, and onto three on a phone. The buttons carry aria-pressed, so they read as
+                        toggles without being told to. */}
+                    <span className="text-[11px] text-slate-500 mr-0.5">Made up of:</span>
                     {WRAPPERS.map(w => chart.wrappers[w.key] ? (
                       <button key={w.key} type="button" aria-pressed={!!showWrappers[w.key]}
                         onClick={() => setShowWrappers(v => ({ ...v, [w.key]: !v[w.key] }))}

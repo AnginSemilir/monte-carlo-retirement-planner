@@ -5,8 +5,9 @@
  *   unmounted the only component that held it and this page had no way to change it. It is in the shell
  *   now, and this checks the whole loop: the control exists, dark paints a different ground, the document
  *   is stamped, and the choice survives a reload.
- * 2 THE WRAPPER LEGEND. Four lines the page can draw, all off until asked for, each toggling
- *   independently. The count is taken from the stroke width the wrapper lines use, which is theirs alone.
+ * 2 THE WRAPPER LEGEND. Four lines, all drawn by default because the mix is most of the answer, each
+ *   toggling off and on independently. The count is taken from the stroke width the wrapper lines use,
+ *   which is theirs alone.
  *
  * Note the ground is read off documentElement and the page's own wrapper, NOT body: body is transparent
  * here, so measuring it reports the same "rgba(0, 0, 0, 0)" in both themes and the check passes forever.
@@ -47,21 +48,19 @@ const ok = (l,c,d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:''
   await p.waitForTimeout(400);
 
   // 2. the wrapper legend
-  await p.waitForFunction(() => /What the pot is made of/.test(document.body.innerText), null, { timeout: 90000 });
+  await p.waitForFunction(() => /Made up of/.test(document.body.innerText), null, { timeout: 90000 });
   const names = await p.evaluate(() => [...document.querySelectorAll('button')].map(b=>b.textContent.trim()).filter(t=>/^(Pensions|ISAs|Other investments|Cash)$/.test(t)));
   ok('all four wrappers are offered on a legend', names.length === 4, names.join(', '));
   const count = () => p.evaluate(() => { const svg=[...document.querySelectorAll('svg')].sort((a,b)=>b.getBoundingClientRect().width-a.getBoundingClientRect().width)[0];
     return [...svg.querySelectorAll('path')].filter(x=>x.getAttribute('stroke-width')==='1.75').length; });
-  ok('none are drawn until asked for', await count() === 0, String(await count()));
-  await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Pensions'); x.click(); });
-  await p.waitForTimeout(400);
-  ok('clicking Pensions draws one line', await count() === 1, String(await count()));
-  await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='ISAs'); x.click(); });
-  await p.waitForTimeout(400);
-  ok('...and ISAs a second', await count() === 2, String(await count()));
-  await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Pensions'); x.click(); });
-  await p.waitForTimeout(400);
-  ok('clicking again turns it off', await count() === 1, String(await count()));
+  ok('all four are drawn on arrival', await count() === 4, String(await count()));
+  const click = async (name) => { await p.evaluate(n => { const x=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===n); x.click(); }, name); await p.waitForTimeout(400); };
+  await click('Pensions');
+  ok('clicking Pensions hides one', await count() === 3, String(await count()));
+  await click('Cash');
+  ok('...and Cash a second', await count() === 2, String(await count()));
+  await click('Pensions');
+  ok('clicking again brings it back', await count() === 3, String(await count()));
   if (SHOT) await p.screenshot({ path: `${SHOT}/simple-wrappers.png` });
   await b.close();
   console.log(process.exitCode ? '\nFAILED' : '\nall ok');

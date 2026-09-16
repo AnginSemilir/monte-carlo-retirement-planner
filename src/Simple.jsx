@@ -45,6 +45,12 @@ const LIVE_TRIALS = 1500;   // enough for a +/-1.5pt figure that redraws while y
  * policy. Taking the strict maximum would chase that noise and hand back a different answer on every
  * keystroke.
  *
+ * The 1,500 paths are spent as two seeds of 750, ranked on the mean, so the worker can also rank each
+ * run alone and report when the two disagree. That is a CLOSE CALL, and the page says so. It happens on
+ * about 40% of the scenario library at this budget (33% at 3,000) - this page is the noisier of the two
+ * by design, because it redraws while you type - and the regret when it does is under a point of
+ * survival, which is why the note says either would serve rather than pretending one is right.
+ *
  * ON ABOUT A QUARTER OF HOUSEHOLDS SURVIVAL CANNOT DISCRIMINATE AT ALL, and something has to break the
  * tie. balanced-regret.mjs measured it across the 420-household library: survival separates the field on
  * 73.1% of them - so the rule does real work most of the time - and ties on the remaining 26.9%. The
@@ -798,6 +804,9 @@ export default function Simple() {
                 {res.policy.tied > 1
                   ? <> {res.policy.tied} of them survive about equally often here ({res.policy.bestRate.toFixed(1)}%, against {res.policy.worstRate.toFixed(1)}% for the weakest), so survival alone cannot separate them. Of those {res.policy.tied} this one protects the bad case best; where even that is too close to call, the model&rsquo;s standard order decides rather than a difference too small to measure.</>
                   : <> It survives {res.policy.bestRate.toFixed(1)}% of the time against {res.policy.worstRate.toFixed(1)}% for the weakest, and no other option comes close enough to matter.</>}
+                {res.policy.closeCall && (
+                  <> <span data-close-call className="text-amber-800"><strong>Close call.</strong> The plan was simulated twice on independent market paths, and the two runs would each have chosen differently &mdash; {res.policy.closeCall.map(c => policyLabel(c).toLowerCase()).join(' and ')}. The figures on this page combine both runs; the two ways of drawing are too close for the simulation to separate, and either would serve.</span></>
+                )}
               </p>
             )}
           </>

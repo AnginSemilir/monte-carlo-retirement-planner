@@ -1,4 +1,4 @@
-// The ranked-priority control: does promoting a priority actually change the policy the app picks?
+// The ranked-priority control (under Advanced): reorder, persist, reset, thresholds, balanced mode, docs.
 const { chromium } = require('/tmp/node_modules/playwright');
 const PORT = process.argv[2] || '5185';
 const GIA = 'Other Investments (e.g. GIA)';
@@ -25,16 +25,19 @@ const ok = (l, c, d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/^Config/.test(b.textContent.trim())||/Config/.test(b.textContent)); if(x) x.click(); });
   await p.waitForTimeout(600);
 
+  // the ranking lives behind the Advanced fold now; open it before reading the list
+  await p.evaluate(() => { const d=[...document.querySelectorAll('details')].find(x=>/rank the priorities yourself/i.test(x.querySelector('summary')?.textContent||'')); if (d) d.open = true; });
+  await p.waitForTimeout(300);
   // scoped to the priority list: the Config tab also renders the policy playbook as an <ol>, and an
   // unscoped query silently counted both
   const order = () => p.evaluate(() => [...document.querySelectorAll('[data-priority-list] li')].map(li => li.querySelector('div.font-bold')?.textContent).filter(Boolean));
   const first = await order();
   console.log('default order:', first.slice(0,3).join(' > '));
-  ok('priority list renders, survival first', /running out/i.test(first[0] || ''), first[0]);
+  ok('priority list renders, survival first', /avoiding depletion/i.test(first[0] || ''), first[0]);
   ok('all six priorities present', first.length === 6, String(first.length));
 
   // promote "biggest expected pot" to the top by clicking its up-arrow repeatedly
-  const potIdx = first.findIndex(t => /biggest expected pot/i.test(t));
+  const potIdx = first.findIndex(t => /largest expected portfolio/i.test(t));
   ok('found the pot priority', potIdx > 0, String(potIdx));
   for (let i = potIdx; i > 0; i--) {
     await p.evaluate((n) => { const li=[...document.querySelectorAll('[data-priority-list] li')][n]; li.querySelectorAll('button')[0].click(); }, i);
@@ -42,7 +45,7 @@ const ok = (l, c, d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:
   }
   const after = await order();
   console.log('after promoting:', after.slice(0,3).join(' > '));
-  ok('promotion moved it to the top', /biggest expected pot/i.test(after[0] || ''), after[0]);
+  ok('promotion moved it to the top', /largest expected portfolio/i.test(after[0] || ''), after[0]);
 
   /*
    * Persistence is checked by reading the stored plan rather than by reloading: addInitScript re-seeds
@@ -56,18 +59,19 @@ const ok = (l, c, d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Reset to default/.test(b.textContent)); if(x) x.click(); });
   await p.waitForTimeout(300);
   const reset = await order();
-  ok('reset restores survival first', /running out/i.test(reset[0] || ''), reset[0]);
+  ok('reset restores survival first', /avoiding depletion/i.test(reset[0] || ''), reset[0]);
 
   // the advanced panel: per-priority thresholds, auto-listed in the current rank order
   await p.evaluate(()=>{const d=[...document.querySelectorAll('summary')].find(x=>/set your own thresholds/i.test(x.textContent)); if(d)d.click();});
   await p.waitForTimeout(400);
   const adv = await p.evaluate(()=>{
-    const d=[...document.querySelectorAll('details')].find(x=>/set your own thresholds/i.test(x.textContent));
+    // by its own summary: the thresholds fold sits inside the Advanced fold, whose textContent contains it too
+    const d=[...document.querySelectorAll('details')].find(x=>/set your own thresholds/i.test(x.querySelector('summary')?.textContent||''));
     if(!d) return null;
     return {rows:[...d.querySelectorAll('label')].map(l=>l.textContent.replace(/\s+/g,' ').trim()), units:[...d.querySelectorAll('label span:last-child')].map(x=>x.textContent.trim())};
   });
   ok('advanced thresholds panel exists', !!adv && adv.rows.length===6, adv?`${adv.rows.length} rows`:'missing');
-  ok('it lists priorities in the CURRENT rank order', !!adv && /Not running out/.test(adv.rows[0]), adv?adv.rows[0].slice(0,40):'');
+  ok('it lists priorities in the CURRENT rank order', !!adv && /Avoiding depletion/.test(adv.rows[0]), adv?adv.rows[0].slice(0,40):'');
   ok('rate metrics use points and money metrics use percent', !!adv && adv.units.includes('pts') && adv.units.includes('%'), adv?adv.units.join(','):'');
   ok('the safety limit is disclosed', await p.evaluate(()=>/never more than/.test(document.body.textContent)));
 

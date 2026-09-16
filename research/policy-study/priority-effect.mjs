@@ -119,7 +119,13 @@ for (let n = 0; n < scenarios.length; n++) {
     // what the whole field looks like on each metric, which is what decides whether a priority CAN bite
     metrics: {},
     byFirst: {},
-    balanced: null
+    balanced: null,
+    /*
+     * Every candidate's score on every metric, kept so questions asked after the fact - the survival
+     * each K-first winner gave up, how often a trade-off card would appear - are a re-cut of this file
+     * and not another twenty-minute run.
+     */
+    cands: cands.map(c => ({ label: c.label, ...Object.fromEntries(KEYS.map(k => [k, E.PRIORITY_METRICS[k].get(c.stats)])) }))
   };
 
   for (const key of KEYS) {
@@ -152,6 +158,8 @@ for (let n = 0; n < scenarios.length; n++) {
       // kept alongside, clearly labelled, because "what the app would have done" is still worth knowing
       changedVsDefault: first.winner.label !== base.winner.label,
       gainVsDefaultEps: gap(first.winner, base.winner),
+      // what ranking this first cost in survival against the best available: the number the guard is sized to
+      survivalCostPts: rec.metrics.survive.best - first.winner.stats.successRate,
       decidedIt: (first.consulted[0] && first.consulted[0].decided) || false,
       tiedOnIt: !!(first.consulted[0] && !first.consulted[0].decided),
       consulted: first.consulted.map(c => ({ key: c.key, decided: c.decided, ruledOut: c.ruledOut, spread: c.spread })),

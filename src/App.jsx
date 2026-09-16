@@ -3310,6 +3310,68 @@ function explainPick(cands, opts = {}) {
 }
 
 /*
+ * THE TRADE-OFFS A HOUSEHOLD COULD MAKE, PRICED IN THEIR OWN NUMBERS.
+ *
+ * Ranking six priorities cold asks people to weigh things they have never seen a figure for. The sweep
+ * has the figures. So: recommend the survival-first winner, then for every other priority find the
+ * candidate that is best on it and say what switching would gain and what it would cost - "£85,000
+ * more typical pot, for 1.8 points less survival". A card only exists where the gain clears that
+ * priority's own tie threshold, because a difference the ranking itself would call a tie is not a
+ * choice, it is noise with a button on it. Nothing outside the survival guard is ever offered.
+ *
+ * Cards are keyed by candidate, not by priority: one candidate that is best on both pot and bequest is
+ * one decision, and listing it twice would make one option look like two.
+ *
+ * The base is ALWAYS the survival-first ranking, whatever order the household has set, so a card means
+ * the same thing every time it appears.
+ */
+function buildTradeoffs(cands, opts = {}) {
+  const empty = { recommended: null, cards: [] };
+  if (!Array.isArray(cands) || !cands.length) return empty;
+  const tolerances = opts.tolerances;
+  const recommended = explainPick(cands, { priorities: DEFAULT_PRIORITIES, tolerances, preAccessCap: opts.preAccessCap, maxSurvivalSacrificePts: opts.maxSurvivalSacrificePts }).winner;
+  if (!recommended) return empty;
+  const pool = applySurvivalGuard(cands, opts.maxSurvivalSacrificePts);
+  const score = (key, c) => PRIORITY_METRICS[key].get(c.stats);
+  // signed so that positive always means "more of the thing this priority wants"
+  const gainOn = (key, from, to) => (PRIORITY_METRICS[key].higherIsBetter ? 1 : -1) * (score(key, to) - score(key, from));
+  const bestOn = (key) => {
+    const m = PRIORITY_METRICS[key];
+    return [...pool].sort((a, b) => ((m.higherIsBetter ? -1 : 1) * (score(key, a) - score(key, b))) || byFallback(a, b))[0];
+  };
+
+  const byId = new Map();
+  for (const key of PRIORITY_KEYS) {
+    if (key === 'survive') continue;
+    // with nobody named as an heir the bequest metric IS the pot metric, and one difference is one card
+    if (key === 'bequest' && recommended.stats.postTaxInheritance == null) continue;
+    const alt = bestOn(key);
+    if (!alt || alt === recommended || alt.id === recommended.id) continue;
+    const gain = gainOn(key, recommended, alt);
+    if (gain <= toleranceFor(key, score(key, alt), tolerances)) continue;
+    const id = alt.id ?? fallbackKey(alt);
+    if (!byId.has(id)) byId.set(id, { candidate: alt, gains: [], costs: [], survivePts: 0 });
+    byId.get(id).gains.push({ key, from: score(key, recommended), to: score(key, alt), delta: gain });
+  }
+
+  const cards = [...byId.values()].map(card => {
+    const alt = card.candidate;
+    const gained = new Set(card.gains.map(g => g.key));
+    // everything the switch gives up by more than its own threshold, survival included
+    for (const key of PRIORITY_KEYS) {
+      if (gained.has(key)) continue;
+      const loss = -gainOn(key, recommended, alt);
+      if (loss > toleranceFor(key, score(key, recommended), tolerances)) card.costs.push({ key, from: score(key, recommended), to: score(key, alt), delta: loss });
+    }
+    card.survivePts = score('survive', recommended) - score('survive', alt);
+    return card;
+  });
+  // free lunches first, then the cheapest in survival; the fallback order settles the rest
+  cards.sort((a, b) => (a.survivePts - b.survivePts) || byFallback(a.candidate, b.candidate));
+  return { recommended, cards };
+}
+
+/*
  * ================================ INHERITANCE TAX ================================
  *
  * What an estate is actually worth to the people who receive it, which is not the same as the terminal
@@ -5714,7 +5776,7 @@ function estateActionPlan(plan, result) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 /*
  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle
@@ -5722,7 +5784,7 @@ const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, i
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan
@@ -8387,6 +8449,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     if (!w) setEstateError('Your browser blocked the new tab. Allow pop-ups for this page and press the button again.');
   };
 
+  // the one place a policy candidate becomes the plan's settings: the sweep's winner and a trade-off
+  // card both go through here, so neither can change a field the other does not
+  const applyCandidate = (c) => setPlan(prev => ({
+    ...prev,
+    spending: { ...(prev.spending || {}), decumulationPolicy: c.decumulationPolicy, drawdownStrategy: c.drawdownStrategy },
+    config: { ...(prev.config || {}), harvestPersonalAllowance: c.harvestPersonalAllowance }
+  }));
+  const chooseTradeoff = (card) => {
+    applyCandidate(card.candidate);
+    setPolicyResults(r => (r ? { ...r, chosenId: card.candidate.id } : r));
+    flash(`Applied "${card.candidate.label}"`, 3000);
+  };
   const handleFindBestPolicy = async () => {
     setIsPolicySearching(true); setPolicyResults(null);
     setPolicyProgress({ label: 'Preparing policy combinations…', value: 0 });
@@ -8414,11 +8488,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       const { winner: best, steps, consulted, settledAfter } = priorityMode === 'balanced'
         ? { winner: E.pickBalanced(out), steps: [], consulted: null, settledAfter: null }
         : E.explainPick(out, { priorities: priorityList, tolerances: priorityTolerances });
-      setPlan(prev => ({
-        ...prev,
-        spending: { ...(prev.spending || {}), decumulationPolicy: best.decumulationPolicy, drawdownStrategy: best.drawdownStrategy },
-        config: { ...(prev.config || {}), harvestPersonalAllowance: best.harvestPersonalAllowance }
-      }));
+      applyCandidate(best);
+      // priced against the survival-first base whatever order was used, so a card always means the same thing
+      const tradeoffs = E.buildTradeoffs(out, { tolerances: priorityTolerances });
       /*
        * Order the table by the SAME priorities that chose the winner. Sorting by survival while the
        * ranking used something else would put the chosen row below rows it supposedly beat.
@@ -8434,7 +8506,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] - rb[i];
         return 0;
       });
-      setPolicyResults({ rows, bestId: best.id, seed: mcSeed, trials: TOURNAMENT_TRIALS, steps, consulted, settledAfter, priorities: priorityList });
+      const rankedBy = priorityMode === 'balanced' ? 'balanced' : priorityList.join() === E.DEFAULT_PRIORITIES.join() ? 'default' : 'custom';
+      setPolicyResults({ rows, bestId: best.id, chosenId: best.id, seed: mcSeed, trials: TOURNAMENT_TRIALS, steps, consulted, settledAfter, priorities: priorityList, rankedBy, tradeoffs });
       const decided = steps.length ? E.PRIORITY_METRICS[steps[0].key].label.toLowerCase() : 'your priorities';
       flash(`Applied "${best.label}": best of ${candidates.length} combinations for ${decided}`, 4000);
     } finally { setIsPolicySearching(false); setPolicyProgress(null); }
@@ -9459,9 +9532,17 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
               {policyProgress && <ProgressBar value={policyProgress.value} label={policyProgress.label} />}
 
-              {/* Ranked priorities. Measured across 360 households, the objective moves the recommended
-                  policy more than the choice of policies does, so this sits above the policy picker. */}
-              <div className="pt-1">
+              {/* What used to be six draggable priorities is now a recommendation plus priced trade-offs
+                  (rendered with the results below). The ranking still exists, folded, for anyone who
+                  genuinely has an order: measured across 420 households, promoting the pot to first
+                  changes the recommendation for 75% of them, so it is a real control, just not the
+                  one most people should be asked to operate cold. */}
+              {!policyResults && !isPolicySearching && (
+                <p className="text-[11px] text-slate-600 leading-relaxed">Run the policy search to see the recommended settings, and any alternatives that would trade some safety for a materially better result on something else.</p>
+              )}
+              <details className="pt-1 text-xs">
+                <summary className="cursor-pointer text-slate-600 font-semibold hover:text-slate-900">Advanced: rank the priorities yourself</summary>
+              <div className="mt-2">
                 {/* Balanced sits BESIDE the list, not inside it: it is a different mechanism, not a
                     seventh priority. The list stays visible but greyed when it is on, so the switch
                     reads as "these are no longer being used in order" rather than as things vanishing. */}
@@ -9518,7 +9599,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   })}
                 </ol>
                 <span className="text-[10px] text-slate-400 mt-1.5 block">
-                  Drag a row to move it, or use the arrows. Worked down in order. A lower priority only decides between options that are already within {E.RATE_EPSILON_PTS} percentage point (survival, bridge risk) or {Math.round(E.MONEY_EPSILON_REL * 100)}% (money) of the best on every priority above it — so nothing you rank higher is ever traded away for something you rank lower.
+                  Drag a row to move it, or use the arrows. Worked down in order. A lower priority only decides between options that are already within {E.RATE_EPSILON_PTS} percentage point (survival, bridge risk) or {Math.round(E.MONEY_EPSILON_REL * 100)}% (money) of the best on every priority above it (or your own thresholds, set below) — so nothing you rank higher is ever traded away for something you rank lower.
                 </span>
 
                 <details className="mt-3 text-xs">
@@ -9570,6 +9651,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                 </details>
               </div>
+              </details>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1">
                 <div>
@@ -9638,9 +9720,81 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {policyResults && (
                 <div className="pt-3 border-t border-slate-100 space-y-2">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-emerald-600" /> Policy search results: winner applied above</h3>
-                    <span className="text-[10px] text-slate-400">{policyResults.rows.length} combinations · {policyResults.trials.toLocaleString()} paths each · seed {policyResults.seed} · ranked by your priorities, in order</span>
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-emerald-600" /> Policy search results: {policyResults.chosenId === policyResults.bestId ? 'recommendation applied above' : 'your choice applied above'}</h3>
+                    <span className="text-[10px] text-slate-400">{policyResults.rows.length} combinations · {policyResults.trials.toLocaleString()} paths each · seed {policyResults.seed} · {policyResults.rankedBy === 'balanced' ? 'every priority balanced' : policyResults.rankedBy === 'custom' ? 'ranked by your order' : 'ranked survival first'}</span>
                   </div>
+                  {/*
+                    * THE CHOICES, PRICED. Each card is a candidate that beats the survival-first
+                    * recommendation on something by more than that something's own tie threshold,
+                    * with what it costs in survival and anything else. No card means no candidate
+                    * offers a real difference, which is worth saying in so many words: the absence
+                    * is the finding.
+                    */}
+                  {policyResults.tradeoffs && (() => {
+                    const { recommended, cards } = policyResults.tradeoffs;
+                    if (!recommended) return null;
+                    const rec = policyResults.rows.find(r => r.id === recommended.id) || recommended;
+                    const chosen = policyResults.chosenId;
+                    const money = (d, from) => `${formatGBP(Math.abs(d))}${Math.abs(from) > 0 ? ` (${Math.round(100 * Math.abs(d) / Math.abs(from))}%)` : ''}`;
+                    const GAIN = {
+                      pot: (g) => `${money(g.delta, g.from)} more in the typical pot at your final age`,
+                      bequest: (g) => `${money(g.delta, g.from)} more for your heirs after tax`,
+                      downside: (g) => `${money(g.delta, g.from)} more left in the worst one lifetime in ten`,
+                      tax: (g) => `${money(g.delta, g.from)} less lifetime tax`,
+                      bridge: (g) => `${g.delta.toFixed(1)} points less risk of running dry before pension access`
+                    };
+                    const COST = {
+                      pot: (c) => `${money(c.delta, c.from)} less in the typical pot`,
+                      bequest: (c) => `${money(c.delta, c.from)} less for your heirs`,
+                      downside: (c) => `${money(c.delta, c.from)} less in the worst one lifetime in ten`,
+                      tax: (c) => `${money(c.delta, c.from)} more lifetime tax`,
+                      bridge: (c) => `${c.delta.toFixed(1)} points more risk of running dry before pension access`
+                    };
+                    const survFrom = rec.stats.successRate;
+                    return (
+                      <div className="space-y-2">
+                        <div className="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded-xl text-[11px] text-slate-700">
+                          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                            <span><span className="font-bold text-emerald-900">Recommended:</span> {rec.label}</span>
+                            <span className="font-mono font-bold text-emerald-800">{survFrom.toFixed(1)}% survival</span>
+                          </div>
+                          <div className="text-slate-600 mt-0.5">The best survival available, with the other priorities settling any near-tie.{policyResults.rankedBy !== 'default' && rec.id !== policyResults.bestId ? ` Your own ranking chose ${policyResults.rows.find(r => r.id === policyResults.bestId)?.label} instead; the alternatives below are priced against this survival-first choice.` : ''}</div>
+                        </div>
+                        {cards.length === 0 ? (
+                          <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600">Nothing else beats it by more than the tie threshold on any measure, within the {E.MAX_SURVIVAL_SACRIFICE_PTS}-point survival limit. There is no trade-off to make.</div>
+                        ) : (
+                          <div className="space-y-1.5">
+                            <div className="text-[11px] font-semibold text-slate-700">Alternatives with a real difference</div>
+                            {cards.map(card => {
+                              const c = card.candidate;
+                              const row = policyResults.rows.find(r => r.id === c.id) || c;
+                              const active = chosen === c.id;
+                              const free = card.survivePts < 0.05;
+                              const others = card.costs.filter(x => x.key !== 'survive');
+                              return (
+                                <div key={c.id} data-tradeoff={c.id} className={`p-2.5 rounded-xl border text-[11px] flex flex-wrap items-start justify-between gap-2 ${active ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-300' : 'bg-surface border-slate-200'}`}>
+                                  <div className="min-w-0 flex-1 space-y-0.5">
+                                    <div className="font-bold text-slate-800">{row.label}</div>
+                                    <div className="text-slate-700">{card.gains.map(g => GAIN[g.key](g)).join('; ')}.</div>
+                                    <div className={free ? 'text-emerald-700' : 'text-amber-800'}>
+                                      {free ? 'At no measurable cost in survival' : `For ${card.survivePts.toFixed(1)} points of survival (${survFrom.toFixed(1)}% → ${row.stats.successRate.toFixed(1)}%)`}{others.length ? `; also ${others.map(x => COST[x.key](x)).join(', ')}` : ''}.
+                                    </div>
+                                  </div>
+                                  <button type="button" onClick={() => chooseTradeoff(card)} disabled={active}
+                                    className={`shrink-0 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${active ? 'bg-blue-600 text-white cursor-default' : 'bg-slate-100 text-blue-700 hover:bg-blue-100 cursor-pointer active:scale-95'}`}>
+                                    {active ? 'Applied' : 'Use this instead'}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            {chosen !== rec.id && chosen !== policyResults.bestId && (
+                              <button type="button" onClick={() => chooseTradeoff({ candidate: rec })} className="text-[11px] text-blue-600 hover:underline font-semibold cursor-pointer">Go back to the recommendation</button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {/* Why THIS one won: only the priorities that actually narrowed the field. A priority
                       that never bit did not influence the answer, and claiming it did would be a story. */}
                   {policyResults.steps && (
@@ -9693,9 +9847,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <tbody className="divide-y divide-slate-100 font-mono">
                         {policyResults.rows.map(r => {
                           const won = r.id === policyResults.bestId;
+                          const chosen = r.id === policyResults.chosenId && !won;
                           return (
-                            <tr key={r.id} className={won ? 'bg-emerald-50/70' : 'hover:bg-slate-50/80'}>
-                              <td className={`py-1.5 pr-3 font-sans ${won ? 'font-bold text-emerald-900' : 'text-slate-700'}`}>{won && <Trophy className="w-3 h-3 text-emerald-600 inline mr-1 -mt-0.5" />}{r.label}</td>
+                            <tr key={r.id} className={won ? 'bg-emerald-50/70' : chosen ? 'bg-blue-50/70' : 'hover:bg-slate-50/80'}>
+                              <td className={`py-1.5 pr-3 font-sans ${won ? 'font-bold text-emerald-900' : chosen ? 'font-bold text-blue-900' : 'text-slate-700'}`}>{won && <Trophy className="w-3 h-3 text-emerald-600 inline mr-1 -mt-0.5" />}{chosen && <Check className="w-3 h-3 text-blue-600 inline mr-1 -mt-0.5" />}{r.label}</td>
                               <td className={`py-1.5 pr-3 font-bold ${r.stats.successRate >= 90 ? 'text-emerald-700' : r.stats.successRate >= 75 ? 'text-amber-700' : 'text-rose-700'}`}>{r.stats.successRate.toFixed(1)}%</td>
                               <td className={`py-1.5 pr-3 ${r.stats.preNmpaFailRate > 5 ? 'text-rose-600 font-bold' : 'text-slate-600'}`}>{r.stats.preNmpaFailRate.toFixed(1)}%</td>
                               <td className="py-1.5 pr-3 text-slate-700">{fmtK(r.stats.p10Terminal)}</td>
@@ -11878,12 +12033,25 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             )}
 
             <div id="doc-priorities" className="bg-surface border border-slate-200/90 p-5 rounded-2xl shadow-xs space-y-3">
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-blue-600" /> Your Priorities, and the Policy Each One Chooses</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">A decumulation policy is only &quot;best&quot; relative to what you are trying to achieve. Across 360 test households, ranking on the size of the eventual pot rather than on avoiding depletion changed the recommended policy for <strong>64% of them</strong> &mdash; and took the simplest policy, Sequential, from winning 1% of households to winning 55%. Nothing about the policies changed; only the question being asked of them. That is why the priority order sits above the policy picker rather than inside it.</p>
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2"><Trophy className="w-4 h-4 text-blue-600" /> The Recommended Policy, and the Trade-offs Around It</h2>
+              <p className="text-xs text-slate-600 leading-relaxed">A decumulation policy is only &quot;best&quot; relative to what you are trying to achieve. Across 420 test households, ranking on the size of the eventual pot rather than on avoiding depletion changed the recommended policy for <strong>75% of them</strong> &mdash; and took the simplest policy, Sequential, from winning 1% of households to winning 46%. Nothing about the policies changed; only the question being asked of them.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Asking you to rank six abstract priorities before you have seen a single figure is the wrong way round. So the policy search runs every combination first &mdash; five policies, two ways of taking the tax-free cash, and whether the personal allowance is harvested, eighteen in all &mdash; on the same market paths, and then does two things with the results.</p>
 
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">How the order is applied</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">The list is worked down in order. Your first priority narrows the field to the settings that are best on it; the second then chooses among <em>those</em>, and so on. A lower priority can only ever break a near-tie on the ones above it, so ranking something first genuinely protects it: it is never traded away for a gain in something you ranked lower.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">&quot;Near-tie&quot; needs a number, or the top priority would decide everything, since exact ties are rare. Two settings count as equal when they are within <strong>{E.RATE_EPSILON_PTS} percentage point</strong> on a rate (survival, bridge risk) or <strong>{Math.round(E.MONEY_EPSILON_REL * 100)}%</strong> on an amount of money. The rate threshold is deliberately tighter than the money one: survival is already a probability, so three points of it (90% down to 87%) is a much larger concession than 3% of a pot, and one point sits comfortably above the noise in the simulation itself.</p>
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">First, it recommends</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">The recommendation is the combination with the best chance of staying solvent to your final age. Where several are within <strong>{E.RATE_EPSILON_PTS} percentage point</strong> of each other on survival &mdash; close enough that the simulation cannot honestly separate them &mdash; the near-tie is settled by resilience in poor markets, then by what is left behind, and so on down the default order. Running out of money is the one outcome no later good luck can undo, and it is not symmetric with the others: a smaller bequest is a disappointment, an empty pot at 84 is a crisis. That is why survival goes first and is never traded away by the recommendation itself.</p>
+
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Then, it prices the alternatives</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">For each of the other five priorities it finds the combination that is best on that measure and states, in your own numbers, what switching to it would gain and what it would cost: <em>&pound;85,000 more in the typical pot, for 1.8 points of survival</em>. Three rules keep those cards honest:</p>
+              <ul className="text-xs text-slate-600 leading-relaxed list-disc pl-5 space-y-1">
+                <li><strong>A card appears only where there is a real difference.</strong> The gain has to exceed that measure&apos;s own tie threshold &mdash; {E.RATE_EPSILON_PTS} point on a rate, {Math.round(E.MONEY_EPSILON_REL * 100)}% on an amount of money, or the thresholds you set under Advanced. A difference the ranking itself would call a tie is not a choice, it is simulation noise with a button on it. If nothing clears the bar, the page says so rather than inventing a decision for you.</li>
+                <li><strong>Nothing more than {E.MAX_SURVIVAL_SACRIFICE_PTS} points below the best survival is ever offered.</strong> The same safety limit that bounds the ranking bounds the cards.</li>
+                <li><strong>Every cost is stated, not just the survival one.</strong> A combination that buys a larger pot with a worse bad case or a higher lifetime tax bill says so on the card.</li>
+              </ul>
+              <p className="text-xs text-slate-600 leading-relaxed">Measured across the same 420 households, some alternative with a real difference exists for 88% of them, most often a larger pot (72%) or a smaller tax bill (46%), and rarely one on bridge risk (1%). The other 12% are told there is no trade-off to make, which is the correct answer for their plan.</p>
+
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">If you rank the priorities yourself</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">Under <strong>Advanced</strong> the full ranking is still there for anyone who genuinely has an order. The list is worked down in order: your first priority narrows the field to the settings that are best on it; the second then chooses among <em>those</em>, and so on. A lower priority can only ever break a near-tie on the ones above it, so ranking something first genuinely protects it &mdash; and if you promote the pot or the bequest above survival, you are telling the model you would accept a materially higher chance of running dry in exchange, and it will do exactly that, up to the {E.MAX_SURVIVAL_SACRIFICE_PTS}-point limit. <strong>Balance them all</strong> weighs every priority together instead, so a modest gain in several can outweigh a small loss in one. Whichever you use, the trade-off cards are always priced against the survival-first recommendation, so a card means the same thing every time it appears.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">&quot;Near-tie&quot; needs a number, or the top priority would decide everything, since exact ties are rare. The rate threshold is deliberately tighter than the money one: survival is already a probability, so three points of it (90% down to 87%) is a much larger concession than 3% of a pot, and one point sits comfortably above the noise in the simulation itself.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What each priority is, and which policy it pushes towards</h3>
               <div className="overflow-x-auto">
@@ -11900,9 +12068,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </tbody>
                 </table>
               </div>
-
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">Why the default is survival first</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Running out of money is the one outcome no later good luck can undo, and it is not symmetric with the others: a smaller bequest is a disappointment, an empty pot at 84 is a crisis. So the default order is <strong>avoiding depletion</strong>, then <strong>resilience in poor markets</strong>, then what is left behind. Reorder it freely &mdash; but if you promote the pot or the bequest above survival, you are telling the model you would accept a materially higher chance of running dry in exchange, and it will do exactly that.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What this does not yet cover</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Two priorities people legitimately hold are not on the list, because the model cannot yet measure them honestly. <strong>Access before pension age</strong> &mdash; a policy that drains ISAs early leaves you richer on paper but with wealth locked until pension age and taxable to reach &mdash; needs a measure of accessible wealth the engine does not currently report. <strong>Simplicity</strong> is real too: Sequential needs no annual bracket management, and that is worth something in effort and in avoided mistakes, but it is not a number this model can produce.</p>

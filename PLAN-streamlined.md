@@ -186,6 +186,14 @@ same engine, rather than untangling a page.
 typical plan, which is more than several of the inputs the page already asks for. Ignoring it would make
 the page quietly wrong for a tenth of its users; a three-option select costs one row.
 
+**The full app no longer asks for a ranking up front.** The simple page always chooses the survival-first
+policy, and measurement showed that is the right default for the full app too: the policy search now
+recommends that same winner and then prices every alternative in the household's own numbers - "£85,000
+more in the typical pot, for 1.8 points of survival" - offering a card only where the gain clears that
+measure's tie threshold and sits inside the survival guard. The six-way ranking, balanced mode and the
+thresholds survive under an Advanced fold. Both pages therefore start from one answer, and the full one
+shows what it would cost to move off it.
+
 ## Open questions
 
 None outstanding. The shape above is the thing to build.

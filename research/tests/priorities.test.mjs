@@ -354,5 +354,59 @@ console.log('\n=========== K. THE LAST TIE, AND A BAD CASE THAT SURVIVES FAILURE
   ok('and stats from before the field existed still rank', E.PRIORITY_METRICS.downside.get({ p10TerminalNet: 180000 }) === 180000);
 }
 
+
+console.log('\n=========== L. TRADE-OFF CARDS: A CHOICE ONLY WHERE THERE IS ONE ===========');
+{
+  const ORDER = E.DEFAULT_PRIORITIES;
+  // a survival-first winner, a richer rival within the guard, a rival outside it, and a near-clone
+  const field = [
+    mk('safe',  96.0, 200000, 400000, { medianLifetimeTax: 90000 }),
+    mk('rich',  94.5, 196000, 520000, { medianLifetimeTax: 95000 }),   // +30% pot for 1.5 pts
+    mk('wild',  88.0, 100000, 900000, { medianLifetimeTax: 20000 }),   // beyond the 5pt guard
+    mk('zclone', 95.8, 201000, 402000, { medianLifetimeTax: 89500 })   // inside every tolerance
+  ];
+  const t = E.buildTradeoffs(field);
+  ok('the recommendation is the survival-first winner', t.recommended.id === 'safe');
+  ok('the clone earns no card: every difference is inside a tolerance', !t.cards.some(c => c.candidate.id === 'zclone'));
+  ok('the guarded-out candidate is never offered, however rich', !t.cards.some(c => c.candidate.id === 'wild'));
+  ok('the richer rival is offered', t.cards.length === 1 && t.cards[0].candidate.id === 'rich');
+  const card = t.cards[0];
+  ok('its gain is the pot, priced against the recommendation', card.gains.length === 1 && card.gains[0].key === 'pot' && card.gains[0].delta === 120000);
+  ok('its survival cost is stated in points', Math.abs(card.survivePts - 1.5) < 1e-9);
+  ok('a tax loss above tolerance is listed as a cost', card.costs.some(c => c.key === 'tax' && c.delta === 5000));
+  ok('a downside loss below tolerance is not', !card.costs.some(c => c.key === 'downside'));
+  ok('the recommendation never appears as a card', !t.cards.some(c => c.candidate.id === t.recommended.id));
+
+  const shuffled = E.buildTradeoffs([...field].reverse());
+  ok('cards do not depend on the order the candidates arrived in',
+    JSON.stringify(shuffled.cards.map(c => c.candidate.id)) === JSON.stringify(t.cards.map(c => c.candidate.id)) && shuffled.recommended.id === t.recommended.id);
+
+  // one candidate best on two priorities is ONE card with two gains, not two cards
+  const both = [mk('a', 96, 200000, 400000, { medianLifetimeTax: 90000 }), mk('b', 94.8, 300000, 520000, { medianLifetimeTax: 90000 })];
+  const tb = E.buildTradeoffs(both);
+  ok('a candidate best on several priorities is one card', tb.cards.length === 1);
+  ok('...carrying every gain it offers', tb.cards[0].gains.map(g => g.key).sort().join() === 'downside,pot');
+  ok('bequest is not listed separately when nobody inherits (it is the pot)', !tb.cards[0].gains.some(g => g.key === 'bequest'));
+
+  // when the heirs are named, bequest is its own measurement and can earn its own gain
+  const heirs = [mk('a', 96, 200000, 400000, { postTaxInheritance: 300000 }), mk('b', 94.8, 200500, 401000, { postTaxInheritance: 360000 })];
+  const th = E.buildTradeoffs(heirs);
+  ok('with heirs named, a bequest-only difference earns a card', th.cards.length === 1 && th.cards[0].gains.map(g => g.key).join() === 'bequest');
+
+  ok('an all-tied field yields no cards', E.buildTradeoffs([mk('x', 96, 100, 100), mk('y', 95.9, 100, 100)]).cards.length === 0);
+  ok('an empty field yields nothing and does not throw', E.buildTradeoffs([]).cards.length === 0 && E.buildTradeoffs([]).recommended === null);
+
+  // a household's own thresholds widen or narrow what counts as a real difference
+  const strict = E.buildTradeoffs(field, { tolerances: { pot: 40 } });
+  ok('a wider pot threshold can swallow the card', strict.cards.length === 0);
+  // ordering: the free lunch first. b costs no survival - the default order simply ranked downside
+  // above pot and so did not choose it - while c buys a better bad case with two points of survival
+  const free = [mk('a', 96, 200000, 400000), mk('b', 96, 180000, 470000), mk('c', 94, 320000, 400000)];
+  const tf = E.buildTradeoffs(free);
+  ok('a card that costs no survival sorts ahead of one that does', tf.cards.map(c => c.candidate.id).join() === 'b,c');
+  ok('and its survival cost reads as zero', tf.cards[0].survivePts === 0);
+  void ORDER;
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

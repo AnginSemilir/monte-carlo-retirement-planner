@@ -13,7 +13,7 @@
  * than against the viewport, and this app has transforms in the charts - so a sheet left in place would
  * work until somebody nested it one level deeper, then silently stop filling the screen.
  */
-import { useEffect, useRef, useState } from 'react';
+import { Children, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
@@ -103,6 +103,34 @@ export function Fine({ isPhone, label = 'Why?', children }) {
     <details className="text-xs">
       <summary className="cursor-pointer min-h-11 flex items-center text-blue-700 font-semibold">{label}</summary>
       <div className="pt-1">{children}</div>
+    </details>
+  );
+}
+
+/*
+ * A REFERENCE SECTION, FOLDED ON A PHONE.
+ *
+ * The Documentation tab is eleven cards of prose - the right thing on a desktop, where it sits beside
+ * the app it documents. On a phone it is one seven-thousand-pixel scroll, and finding the section you
+ * wanted means flicking past ten you did not.
+ *
+ * Each card keeps its heading visible and folds its body. The heading is simply the FIRST child, which
+ * every one of these cards already leads with, so nothing had to be restructured to adopt this - and a
+ * card that ever stops leading with its heading will show that immediately rather than silently.
+ *
+ * Native <details> again: the body stays in the DOM, so find-in-page and screen readers still reach it.
+ */
+export function PhoneCollapse({ isPhone, children }) {
+  if (!isPhone) return children;
+  const kids = Children.toArray(children);
+  if (kids.length < 2) return children;
+  return (
+    <details>
+      <summary className="cursor-pointer list-none min-h-11 flex items-center justify-between gap-2">
+        {kids[0]}
+        <span aria-hidden="true" className="text-slate-400 text-xs shrink-0">&#9662;</span>
+      </summary>
+      <div className="space-y-3 pt-3">{kids.slice(1)}</div>
     </details>
   );
 }

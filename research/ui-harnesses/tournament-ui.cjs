@@ -1,5 +1,6 @@
 // The tournament's final scoring now runs as one batch across the worker pool: does it still finish, rank, and time reasonably?
 const { chromium } = require('/tmp/node_modules/playwright');
+const PORT = process.argv[2] || '5173';
 const GIA = 'Other Investments (e.g. GIA)';
 const plan = {
   demographics:{planningMode:'single',currentAgeSelf:45,retireAgeSelf:60,salarySelf:70000,employmentSelf:'employed',statePensionAge:68,privatePensionAge:58,statePensionSelf:11976,terminalAge:95},
@@ -15,7 +16,7 @@ const plan = {
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.route('https://cdn.tailwindcss.com/**', r => r.fulfill({ status:200, contentType:'application/javascript', body:'window.tailwind={config:{}};' }));
   await p.addInitScript(pl => { localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); }, plan);
-  await p.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' });
+  await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(800);
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/^Strategy|Strategy$/.test(b.textContent.trim())||/Strategy/.test(b.textContent)); if(x) x.click(); });
   await p.waitForTimeout(600);

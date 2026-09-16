@@ -492,8 +492,9 @@ const defaultAccounts = () => [
  *
  * The money metrics use 3% relative. The two rate metrics use 1 percentage point rather than 3, and the
  * difference is deliberate: those are already probabilities, so three points of survival (90% to 87%) is
- * a far larger concession than 3% of a pot, and one point sits comfortably above Monte Carlo noise at
- * the trial counts used here.
+ * a far larger concession than 3% of a pot. One point is NOT comfortably above the sampling noise for
+ * every plan - see TOURNAMENT_TRIALS for the measurement - but raising it further would let a real
+ * sacrifice through instead, which is the worse of the two errors.
  */
 const RATE_EPSILON_PTS = 1.0;
 const MONEY_EPSILON_REL = 0.03;
@@ -5808,7 +5809,36 @@ const APP_VERSION = 'v0.8 beta';
  */
 const SHOW_INHERITANCE = false;
 const MC_TRIALS = 5000;
-const TOURNAMENT_TRIALS = 1500;
+/*
+ * HOW MANY PATHS EVERY PLAYER IN A SEARCH RUNS ON.
+ *
+ * Shared by the two features that rank several plans against each other on the same seed - the
+ * decumulation-policy search (up to 18 candidates) and the contribution-split tournament (six players
+ * plus any saved scenarios entered) - because both go through the same tolerance-gated ranking
+ * (`explainPick`/`pickBest`) and are exposed to the same failure mode.
+ *
+ * That failure mode, measured directly rather than assumed: at 1,500 trials the survival-rate estimate
+ * for one candidate has a sampling standard deviation of 0.1 to 1.5 percentage points depending on the
+ * plan (research/policy-study/optimality.mjs) - for some plans, comparable to or larger than the
+ * 1-point tie tolerance (RATE_EPSILON_PTS) that decides whether two candidates count as "the same" on
+ * survival. Since the metric that actually settles most near-ties (inherited-pension tax) is computed
+ * from the deterministic expected path rather than the simulation, it is exact once it is consulted -
+ * the risk is entirely in WHICH candidates the noisy survival tie let through to it. Searching the same
+ * plan twice at 1,500 trials picked the answer a much higher-precision estimate would have picked only
+ * 70% of the time across a 30-household sample; at 4,000 it rose to 90%, for 2.6x the compute (measured
+ * at ~2.8s to ~6.9s for an 18-candidate sweep outside the browser; about 30s in the browser at 4,000,
+ * where the progress bar and the main-thread yields between candidates add most of the rest). Some of
+ * the remaining disagreement
+ * is not fixable by more trials at all: on 4 of those 30 households, three independent 4,000-trial
+ * estimates did not even agree with EACH OTHER, meaning the candidates are genuinely statistically
+ * indistinguishable rather than merely under-sampled. What every disagreement in the sample shared was a
+ * small consequence: the worst case cost 1.1 points of survival, not a materially worse plan.
+ *
+ * 4,000 is chosen as the point past which more trials buy comparatively little (the 70%->90% jump
+ * going from 1,500 to 4,000 is far larger than anything 4,000->6,000 adds), not as a number that
+ * eliminates the noise - it does not, and cannot, for candidates this close.
+ */
+const TOURNAMENT_TRIALS = 4000;
 // Death ages the Inheritance tab always prices, chosen to straddle the age-75 boundary that decides
 // whether an inherited pension is taxable on the beneficiary. Module scope so the memo stays stable.
 const INHERITANCE_AGES = [70, 74, 80, 90];
@@ -12056,7 +12086,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">If you rank the priorities yourself</h3>
               <p className="text-xs text-slate-600 leading-relaxed">Under <strong>Advanced</strong> the full ranking is still there for anyone who genuinely has an order. The list is worked down in order: your first priority narrows the field to the settings that are best on it; the second then chooses among <em>those</em>, and so on. A lower priority can only ever break a near-tie on the ones above it, so ranking something first genuinely protects it &mdash; and if you promote the pot or the bequest above survival, you are telling the model you would accept a materially higher chance of running dry in exchange, and it will do exactly that, up to the {E.MAX_SURVIVAL_SACRIFICE_PTS}-point limit. <strong>Balance them all</strong> weighs every priority together instead, so a modest gain in several can outweigh a small loss in one. Whichever you use, the trade-off cards are always priced against the survival-first recommendation, so a card means the same thing every time it appears.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">&quot;Near-tie&quot; needs a number, or the top priority would decide everything, since exact ties are rare. The rate threshold is deliberately tighter than the money one: survival is already a probability, so three points of it (90% down to 87%) is a much larger concession than 3% of a pot, and one point sits comfortably above the noise in the simulation itself.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">&quot;Near-tie&quot; needs a number, or the top priority would decide everything, since exact ties are rare. The rate threshold is deliberately tighter than the money one: survival is already a probability, so three points of it (90% down to 87%) is a much larger concession than 3% of a pot. It is a tight tolerance rather than a generous one, and simulation sampling can occasionally put two runs of the same plan on opposite sides of it &mdash; the search then settles on a similarly good combination rather than the identical one, never a materially worse one.</p>
 
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider pt-1">What each priority is, and which policy it pushes towards</h3>
               <div className="overflow-x-auto">

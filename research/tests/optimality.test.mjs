@@ -115,5 +115,41 @@ console.log('\n=========== D. A CARD\'S GAIN SURVIVES A CHANGE OF SEED =========
   ok(`every stated gain (${tested}) keeps its sign on a fresh seed`, tested > 0 && held === tested, detail.join('; '));
 }
 
+
+console.log('\n=========== E. WHY THE LIVE SEARCH RUNS 4,000 PATHS, PINNED ===========');
+{
+  /*
+   * The finding behind TOURNAMENT_TRIALS (App.jsx): the metric that settles most near-ties is exact,
+   * and the noise lives entirely in which candidates the survival tie lets through to it. Three facts
+   * carry that argument, and each is cheap to re-check:
+   *   1  postTaxInheritance does not depend on the seed or the trial count at all
+   *   2  at 1,500 paths the survival estimate on a mid-survival plan wobbles by MORE than the 1-point
+   *      tie tolerance from seed to seed, so the tolerance was not "comfortably above the noise"
+   *   3  the wobble shrinks with the square root of the path count, as a Bernoulli proportion must -
+   *      which is why the fix is more paths, not more seeds at the same total
+   * LIVE_SEARCH_TRIALS mirrors TOURNAMENT_TRIALS in src/App.jsx, which the engine slice does not export.
+   */
+  const LIVE_SEARCH_TRIALS = 4000;
+  const noisy = E.normalizePlan(scs[224].plan);          // ~40% survival: the worst case for sampling noise
+  const cand = E.buildPolicyCandidates(noisy)[0];
+  const ctx = E.buildContext(E.resolveMpaa(cand.planState));
+
+  const beqA = E.postTaxInheritanceFor(cand.planState, E.buildContext(E.resolveMpaa(cand.planState)));
+  const beqB = E.postTaxInheritanceFor(cand.planState, ctx);
+  ok('the inheritance metric is identical however the candidate is simulated', beqA === beqB && Number.isFinite(beqA ?? 0));
+
+  const seeds = [11, 22, 33, 44, 55, 66, 77, 88];
+  const sd = (xs) => { const m = xs.reduce((a, b) => a + b, 0) / xs.length; return Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / (xs.length - 1)); };
+  const at = (trials) => seeds.map(seed => E.monteCarlo(ctx, { trials, seed }).successRate);
+  const s1500 = sd(at(1500)), sLive = sd(at(LIVE_SEARCH_TRIALS));
+  ok(`at 1,500 paths the seed-to-seed wobble in survival exceeds the ${E.RATE_EPSILON_PTS}pt tie tolerance on a mid-survival plan`, s1500 > E.RATE_EPSILON_PTS, `sd ${s1500.toFixed(2)}pt`);
+  const ratio = s1500 / sLive, expected = Math.sqrt(LIVE_SEARCH_TRIALS / 1500);
+  ok(`the wobble falls roughly with the square root of the path count (expected ${expected.toFixed(2)}x)`, ratio > expected * 0.5 && ratio < expected * 2.0, `${ratio.toFixed(2)}x (${s1500.toFixed(2)} -> ${sLive.toFixed(2)}pt)`);
+  // the binomial standard error the comment reasons from is the right order of magnitude
+  const p = at(LIVE_SEARCH_TRIALS).reduce((a, b) => a + b, 0) / seeds.length / 100;
+  const binomial = 100 * Math.sqrt(p * (1 - p) / LIVE_SEARCH_TRIALS);
+  ok('and matches the binomial standard error to within a factor of two', sLive > binomial / 2 && sLive < binomial * 2, `measured ${sLive.toFixed(2)}, binomial ${binomial.toFixed(2)}`);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

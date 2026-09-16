@@ -9141,11 +9141,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <SketchCards className="hidden xl:block absolute right-[20rem] top-10 w-36 text-amber-600/[0.16] pointer-events-none rotate-6" />
               <div className="relative p-6 sm:p-8 flex flex-col md:flex-row md:items-center gap-7 lg:gap-10">
               <div className="max-w-2xl space-y-3 flex-1 min-w-0">
-                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-600">His Majesty's Royal Casino presents</span>
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 leading-tight">
-                  Test your portfolio against the casino of life
-                </h2>
-                <p className="text-sm text-slate-600 leading-relaxed">
+                {/*
+                  * No masthead here. The header above carries the name on every tab, and repeating it
+                  * as a hero headline said the same thing twice in the same screen. What this card is
+                  * for is the sentence below it - what the model does - so that leads.
+                  */}
+                <p className="text-base text-slate-600 leading-relaxed">
                   This model runs your pensions, ISAs, GIA and cash through {MC_TRIALS.toLocaleString()} different
                   market histories, taxes every withdrawal under UK rules, and tells you how often the plan actually holds, not just how it looks
                   on a good day.

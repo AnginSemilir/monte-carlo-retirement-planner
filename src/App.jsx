@@ -5895,6 +5895,16 @@ const MC_TRIALS = 5000;
  * threshold that decides what counts as a tie, and bounds the cost of the ties it still gets wrong.
  */
 const TOURNAMENT_TRIALS = 4000;
+/*
+ * HOW MANY SETTINGS COMBINATIONS THE POLICY SEARCH ACTUALLY SCORES.
+ *
+ * Derived from the policy table rather than typed, so adding a policy updates the number the Config tab
+ * quotes instead of quietly making it a lie. Each policy runs under both crystallisation strategies,
+ * and the four that support allowance harvesting run again with it on: 5 x 2 + 4 x 2 = 18 today.
+ * buildPolicyCandidates is the code this mirrors; optimality.test.mjs section G pins them equal.
+ */
+const POLICY_COMBOS = Object.values(DECUMULATION_POLICIES).reduce((n, pol) => n + 2 * (pol.harvest ? 2 : 1), 0);
+const POLICY_SEEDS = 2;
 // Death ages the Inheritance tab always prices, chosen to straddle the age-75 boundary that decides
 // whether an inherited pension is taxable on the beneficiary. Module scope so the memo stays stable.
 const INHERITANCE_AGES = [70, 74, 80, 90];
@@ -6116,6 +6126,34 @@ function ProgressBar({ value, label }) {
         <div className="h-full bg-indigo-600 transition-all" style={{ width: `${Math.round(value * 100)}%` }} />
       </div>
     </div>
+  );
+}
+
+/*
+ * A CONFIG SECTION THAT STARTS SHUT.
+ *
+ * Config carries four panels, and three of them are reference data a plan almost never needs to touch -
+ * tax thresholds, the return matrix, the economic constants. Left open they bury the one panel that is
+ * a decision: which decumulation policy to run. So those three fold, and the policy panel does not.
+ *
+ * `<details>` rather than state, deliberately: the browser keeps the open/closed flag, ctrl-F finds text
+ * inside a closed panel in Chrome, and nothing has to be persisted for the page to behave sensibly on
+ * reload. `subtitle` sits in the summary so a shut panel still says what is inside it.
+ */
+function CollapsibleCard({ title, subtitle, icon: Icon, children }) {
+  return (
+    <details className="group bg-surface border border-slate-200/90 rounded-xl">
+      <summary className="p-5 cursor-pointer list-none flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+            {Icon && <Icon className="w-4 h-4 text-blue-600 shrink-0" />}{title}
+          </h2>
+          {subtitle && <p className="text-xs text-slate-500 mt-1 leading-relaxed">{subtitle}</p>}
+        </div>
+        <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 mt-1 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="px-5 pb-5 space-y-4">{children}</div>
+    </details>
   );
 }
 
@@ -8630,7 +8668,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
        * this budget, and (optimality.mjs) often at any budget - and is told so, with the other run's
        * pick offered as a choice rather than silently discarded.
        */
-      const seeds = [mcSeed, mcSeed + 1];
+      const seeds = Array.from({ length: POLICY_SEEDS }, (_, i) => mcSeed + i);
       const perSeed = Math.round(TOURNAMENT_TRIALS / seeds.length);
       const jobs = [];
       candidates.forEach(c => seeds.forEach((seed, si) => jobs.push({ key: `${c.id}#${si}`, plan: c.planState, trials: perSeed, seed, inheritance: true })));
@@ -9138,6 +9176,21 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
           </div>
 
+          {/*
+            * THE ONE ASSUMPTION SOMEBODY CAN GET WRONG BEFORE THEY TYPE ANYTHING.
+            *
+            * It used to be a grey aside on Plan Inputs and a clause in the landing page's disclaimer,
+            * which is both too late and too quiet: a visitor who inflates their own figures first has
+            * already double-counted by the time they reach it, and every number they read afterwards is
+            * wrong in a way nothing on screen looks like. So it sits across the header, above every tab,
+            * and says the actionable half out loud - don't do the adjustment yourself.
+            *
+            * Full width under the header row rather than inside its left column, which the tab bar
+            * squeezes to about a third of the card.
+            */}
+          <p className="text-xs mt-4 leading-relaxed rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-blue-900">
+            <strong className="font-semibold">Every amount here is in today&rsquo;s money.</strong> Enter what things cost and what you earn <em>now</em>. You do not need to take inflation into account: the projection runs in real terms, and only adds inflation back where a figure is labelled nominal.
+          </p>
         </div>
 
         {/* Scenario Toolbar. Plan Inputs only: saving a scenario means saving THE PLAN, so it belongs
@@ -9194,8 +9247,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </button>
                 </div>
                 <p className="text-[11px] text-slate-500 pt-1">
-                  <strong className="text-slate-700 font-semibold">Educational and illustrative only. This is not financial advice.</strong> Everything
-                  is stated in today&rsquo;s money, and your plan is saved in this browser only.
+                  <strong className="text-slate-700 font-semibold">Educational and illustrative only. This is not financial advice.</strong> Your
+                  plan is saved in this browser only.
                 </p>
               </div>
               <div className="shrink-0 self-center mx-auto md:mx-0 md:ml-auto">
@@ -9272,7 +9325,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-slate-200/90 p-4 rounded-xl">
               <div>
                 <h2 className="text-base font-semibold text-slate-900">User inputs &amp; wrapper portfolios</h2>
-                <p className="text-xs text-slate-500">Press <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px]  tabular-nums">Tab</kbd> to move between fields. All amounts are in today's money (real terms).</p>
+                <p className="text-xs text-slate-500">Press <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px]  tabular-nums">Tab</kbd> to move between fields.</p>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={handleExportJSON} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200"><Download className="w-3.5 h-3.5" /> Export JSON</button>
@@ -9699,6 +9752,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div>
                   <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> Decumulation &amp; Pension Withdrawal Methodology</h2>
                   <p className="text-xs text-slate-500 mt-1">Select how withdrawals are ordered across tax wrappers and how pensions are crystallised. <button type="button" onClick={() => goToDoc('doc-decumulation')} className="text-blue-600 hover:underline font-semibold cursor-pointer">What the evidence says &rarr;</button></p>
+                  {/* The size of the search, said plainly: a button that thinks for thirty seconds should
+                      account for the time, and the numbers are derived so they cannot go stale. */}
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                    Auto-pick scores <strong className="text-slate-700">all {POLICY_COMBOS} combinations</strong> of
+                    the {Object.keys(E.DECUMULATION_POLICIES).length} withdrawal policies, both crystallisation
+                    methods and the allowance-harvesting switch where it applies. Each one is run
+                    on {POLICY_SEEDS} seeds of {Math.round(TOURNAMENT_TRIALS / POLICY_SEEDS).toLocaleString()} market
+                    paths, so a single click simulates {(POLICY_COMBOS * TOURNAMENT_TRIALS).toLocaleString()} retirements
+                    and takes about half a minute.
+                  </p>
                 </div>
                 <div className="shrink-0">
                   <button type="button" onClick={handleFindBestPolicy} disabled={isPolicySearching || !policySweepReady}
@@ -10072,9 +10135,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               )}
             </div>
 
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Settings className="w-4 h-4 text-blue-600" /> Global Economic &amp; Calculation Configuration</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-3">
+            <CollapsibleCard icon={Settings} title="Global Economic & Calculation Configuration"
+              subtitle="Valuation date, inflation, access ages, the pension death-tax haircut and the Monte Carlo seed.">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-1">
                 <div><label className="text-slate-600 font-semibold block mb-1">Valuation date (today)</label><input type="date" value={plan?.config?.valuationDate ?? ''} onChange={(e) => updateConfig('valuationDate', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Year 0 flows are pro-rated to the {(ctx.yf * 100).toFixed(0)}% of the year remaining.</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Headline inflation CPI (% pa)</label><input type="number" step="0.1" placeholder="2.5" onFocus={handleFocus} value={plan?.config?.inflation ?? ''} onChange={(e) => updateConfig('inflation', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Only used for the nominal display series.</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Personal pension access age (NMPA)</label><input type="number" min="0" max="120" placeholder="58" onFocus={handleFocus} value={plan?.demographics?.privatePensionAge ?? ''} onChange={(e) => updateDemographics('privatePensionAge', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Statutory NMPA is 55 today and 57 from April 2028.</span></div>
@@ -10083,15 +10146,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div><label className="text-slate-600 font-semibold block mb-1">Pension death-tax haircut (%)</label><input type="number" min="0" max="100" step="5" placeholder="0" onFocus={handleFocus} value={plan?.config?.pensionDeathTaxRate ?? ''} onChange={(e) => updateConfig('pensionDeathTaxRate', parsePercent(e.target.value))} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Applied to pension left at age {terminalAge} for the "net" pot figures only (IHT from April 2027 / beneficiary income tax).</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Monte Carlo seed</label><div className="flex gap-1"><input type="number" value={mcSeed} onChange={(e) => setMcSeed(Math.max(1, parseInt(e.target.value) || 1))} className={inputCls} /><button type="button" onClick={() => setMcSeed(Math.floor(Math.random() * 1e9) + 1)} className="px-2 bg-slate-100 border border-slate-300 rounded-lg text-[11px] font-semibold cursor-pointer hover:bg-slate-200">Reseed</button></div><span className="text-[10px] text-slate-400 mt-1 block">Same seed = same market paths (reproducible, fair comparisons).</span></div>
               </div>
-            </div>
+            </CollapsibleCard>
 
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 overflow-x-auto">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900">Asset allocations, return matrix &amp; volatilities (σ)</h3>
-                  <span className="text-[11px] text-slate-500">Expected real return is treated as the median (geometric) annual rate; Monte Carlo paths are log-normal around it with the stated σ, one market factor for all wrappers. The lucky and unlucky columns are calculated from the expected rate, σ, forecast uncertainty and your {ctx.totalYears}-year horizon, so they are not editable.</span>
-                </div>
-                <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-accent text-onaccent border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
+            <CollapsibleCard title="Asset allocations, return matrix & volatilities (σ)"
+              subtitle="The expected real return, volatility and forecast uncertainty behind every projection.">
+              <div className="overflow-x-auto space-y-4">
+              <div className="flex justify-between items-start gap-3">
+                <span className="text-[11px] text-slate-500">Expected real return is treated as the median (geometric) annual rate; Monte Carlo paths are log-normal around it with the stated σ, one market factor for all wrappers. The lucky and unlucky columns are calculated from the expected rate, σ, forecast uncertainty and your {ctx.totalYears}-year horizon, so they are not editable.</span>
+                <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-accent text-onaccent border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
               </div>
 
               {/*
@@ -10147,11 +10209,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   })}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </CollapsibleCard>
 
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-              <h3 className="text-sm font-semibold text-slate-900">UK Income Tax, National Insurance &amp; Pension Allowances</h3>
-              <p className="text-[11px] text-slate-500">Defaults are 2025/26 (frozen to April 2028), and all thresholds are held constant in real terms.</p>
+            <CollapsibleCard title="UK Income Tax, National Insurance & Pension Allowances"
+              subtitle="Defaults are 2025/26 (frozen to April 2028), and all thresholds are held constant in real terms.">
               <div className="pb-1">
                 <label className="text-slate-600 font-semibold block mb-1 text-xs">Where you pay income tax</label>
                 <select value={plan?.config?.taxRegion ?? 'ruk'} onChange={(e) => updateConfig('taxRegion', e.target.value)} className="w-full sm:w-80 p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
@@ -10198,7 +10260,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                 )}
               </div>
-            </div>
+            </CollapsibleCard>
           </div>
         )}
 

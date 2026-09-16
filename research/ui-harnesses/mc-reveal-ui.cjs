@@ -47,7 +47,7 @@ const plan = {
   const late = await probe();
   ok('after the reveal, the band spans most of the chart', late.bandSpan > 0.6 * late.width, `band ${Math.round(late.bandSpan)}px of ${Math.round(late.width)}px`);
   ok('and the expected/wrapper lines are full length', late.long >= 3, `${late.long} long paths`);
-  await p.screenshot({ path: `${SHOT}/mc-slide-late.png` });
+  if (SHOT) await p.screenshot({ path: `${SHOT}/mc-slide-late.png` });   // no dir given: don't write ./undefined/
   const real = errs.filter(e => !/ERR_CERT_AUTHORITY_INVALID|tailwind/.test(e));
   ok('no page errors', real.length === 0, real.join(' | '));
   await b.close();

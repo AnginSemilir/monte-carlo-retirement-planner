@@ -536,7 +536,7 @@ const MAX_SURVIVAL_SACRIFICE_PTS = 5;
 
 const PRIORITY_METRICS = {
   survive: {
-    label: 'Not running out of money',
+    label: 'Avoiding depletion',
     why: 'Ranks on the share of simulated lifetimes that stay solvent to your final age.',
     serves: 'Favours filling the tax-free allowance from the pension early, which keeps ISAs and cash intact as the buffer that survives a bad decade.',
     get: (st) => st.successRate, higherIsBetter: true, unit: 'pts', epsilon: () => RATE_EPSILON_PTS
@@ -557,19 +557,19 @@ const PRIORITY_METRICS = {
    * so, because a priority that quietly measures something else is how this went wrong the first time.
    */
   bequest: {
-    label: 'Leaving as much behind as possible',
+    label: 'Maximising the inheritance',
     why: 'Ranks on what your heirs actually receive after inheritance tax and their own income tax. Needs the Inheritance tab filled in; without it, falls back to the pot left at your final age.',
     serves: 'Favours keeping wealth in wrappers that are taxed once rather than twice, which since 2027 means not leaving an oversized pension behind for heirs who would pay income tax on it as well.',
     get: (st) => st.postTaxInheritance ?? st.medianTerminalNet ?? st.medianTerminal, higherIsBetter: true, unit: 'pct', epsilon: moneyEpsilon
   },
   pot: {
-    label: 'The biggest expected pot',
+    label: 'The largest expected portfolio',
     why: 'Ranks on the typical pot at your final age, before any death tax.',
     serves: 'Favours deferring the pension, because money left inside it compounds untaxed - which is also why this can flatter a pot that still owes income tax on the way out.',
     get: (st) => st.medianTerminal, higherIsBetter: true, unit: 'pct', epsilon: moneyEpsilon
   },
   downside: {
-    label: 'Holding up if markets go badly',
+    label: 'Resilience in poor markets',
     why: 'Ranks on what is left in the worst one lifetime in ten, rather than the typical one.',
     serves: 'Favours steady tax smoothing over anything that concentrates a tax bill or a capital gain into a single year.',
     /*
@@ -583,13 +583,13 @@ const PRIORITY_METRICS = {
     get: (st) => st.p10TerminalAdj ?? st.p10TerminalNet ?? st.p10Terminal, higherIsBetter: true, unit: 'pct', epsilon: moneyEpsilon
   },
   bridge: {
-    label: 'Getting safely to pension age',
+    label: 'Solvency until pension access',
     why: 'Ranks on how often the plan runs dry BEFORE the pension can be touched, which is the one failure no later good luck can undo.',
     serves: 'Favours holding accessible money back and leaning on the pension only once it unlocks.',
     get: (st) => st.preNmpaFailRate, higherIsBetter: false, unit: 'pts', epsilon: () => RATE_EPSILON_PTS
   },
   tax: {
-    label: 'Paying the least tax over your lifetime',
+    label: 'Minimising lifetime tax',
     why: 'Ranks on total income tax paid across the whole plan.',
     serves: 'Favours spreading pension income thinly across many years instead of a few large withdrawals. Worth knowing this is a poor proxy for wealth: paying 20% now often beats deferring to 40% later.',
     get: (st) => st.medianLifetimeTax ?? 0, higherIsBetter: false, unit: 'pct', epsilon: moneyEpsilon

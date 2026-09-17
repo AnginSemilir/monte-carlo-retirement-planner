@@ -15,7 +15,7 @@
  */
 import { Children, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 
 /*
  * A CHART, AS BIG AS THE SCREEN GETS.
@@ -178,7 +178,7 @@ export function SheetPanel({ mode, onMode, summary, quick, full, onHeight }) {
 
   const full_ = mode === 'full';
   return createPortal(
-    <div ref={ref} data-sandbox-sheet data-mode={mode}
+    <div data-no-swipe ref={ref} data-sandbox-sheet data-mode={mode}
       className={`fixed inset-x-0 bg-surface border-t border-slate-200 rounded-t-2xl shadow-lg md:hidden ${full_ ? 'z-50 top-[8dvh] bottom-0 flex flex-col' : 'z-[45]'}`}
       style={full_ ? { paddingBottom: 'env(safe-area-inset-bottom)' } : { bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}>
       <button type="button" onClick={cycle} onPointerDown={onDown} onPointerUp={onUp}
@@ -197,5 +197,131 @@ export function SheetPanel({ mode, onMode, summary, quick, full, onHeight }) {
       {full_ && <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 pb-3">{full}</div>}
     </div>,
     document.body
+  );
+}
+
+/*
+ * ONE FIELD, ONE ROW: LABEL LEADING, CONTROL TRAILING.
+ *
+ * The densest form shape a phone still reads is the one its own settings screens use - a label on the
+ * left, the control on the right, one row per field, a hairline between rows. The alternative this
+ * replaces was a desktop grid collapsing to one column: label above, a half-width input, and a seven-line
+ * helper paragraph beside it. NN/g's finding is that labels should be visible and short; the helper is
+ * the part that does not need to be visible until asked.
+ *
+ * So `hint` is a "?" that opens the explanation under the row. The button is 44px tall for a finger and
+ * draws a 24px ring inside, so the hit area and the picture are sized for different jobs. Everything
+ * stays in the DOM, as with every other fold on the phone.
+ */
+export function FieldRow({ label, hint, wide = false, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-slate-100 last:border-0">
+      <div className="flex items-center gap-2 min-h-11 py-0.5">
+        <label className="flex-1 min-w-0 text-[13px] font-semibold text-slate-700 leading-tight">{label}</label>
+        {hint && (
+          <button type="button" aria-label={`About ${typeof label === 'string' ? label : 'this field'}`} aria-expanded={open}
+            onClick={() => setOpen(v => !v)} className="min-w-11 h-11 flex items-center justify-center shrink-0 cursor-pointer">
+            <span className={`w-6 h-6 rounded-full border text-[11px] font-bold flex items-center justify-center ${open ? 'bg-blue-50 border-blue-600 text-blue-700' : 'border-slate-300 text-slate-500'}`}>?</span>
+          </button>
+        )}
+        <div className={`shrink-0 ${wide ? 'w-[184px]' : 'w-[152px]'} flex items-center justify-end gap-1`}>{children}</div>
+      </div>
+      {hint && open && <p className="text-[11px] text-slate-500 leading-relaxed pb-2.5 pr-1">{hint}</p>}
+    </div>
+  );
+}
+
+/*
+ * SIX CHOICES, ALL VISIBLE, IN A GRID.
+ *
+ * Baymard's rule for a small set of mutually exclusive options is to show them all rather than hide
+ * them in a drop-down, and Apple's is that a segmented control stops working at about five. The risk
+ * tier has six, so it is a grid of chips three across, each a 44px target, in a radiogroup so a screen
+ * reader hears one question with six answers rather than six buttons. The native select it replaces was
+ * 410px wide inside a sideways-scrolling table, off the right edge of the screen.
+ */
+export function RiskChips({ name, value, options, onChange, collapsible = false }) {
+  /*
+   * Folded behind the current choice when asked. Six chips are the right control but they are two
+   * rows per wrapper, and four wrappers of that put the Money section back over 2,200px. A balance is
+   * edited often and a tier rarely, so the tier shows as one row naming what is set and opens the grid
+   * on a tap; the grid closes again once a chip is chosen.
+   */
+  const [open, setOpen] = useState(false);
+  const current = options.find(o => o.key === value);
+  if (collapsible && !open) {
+    return (
+      <button type="button" aria-haspopup="true" aria-expanded={false} onClick={() => setOpen(true)} data-risk-summary
+        className="w-full min-h-11 flex items-center justify-between gap-2 cursor-pointer text-left">
+        <span className="text-[13px] font-semibold text-slate-700">{name}</span>
+        <span className="text-xs font-bold text-blue-700 flex items-center gap-1.5">
+          {current ? current.title : value}{current && current.sub ? <span className="font-medium opacity-80">{current.sub}</span> : null}
+          <span aria-hidden="true" className="text-slate-400">&#9662;</span>
+        </span>
+      </button>
+    );
+  }
+  const choose = (k) => { onChange(k); if (collapsible) setOpen(false); };
+  return (
+    <div role="radiogroup" aria-label={name} className="grid grid-cols-3 gap-1.5">
+      {options.map(o => {
+        const on = o.key === value;
+        return (
+          <button key={o.key} type="button" role="radio" aria-checked={on} title={o.long || o.title}
+            onClick={() => choose(o.key)}
+            className={`min-h-11 px-1.5 py-1 rounded-lg border text-center leading-tight cursor-pointer transition-colors ${
+              on ? 'bg-blue-50 border-blue-600 text-blue-800' : 'bg-surface border-slate-200 text-slate-600'}`}>
+            <span className="block text-xs font-bold">{o.title}</span>
+            {o.sub && <span className="block text-[10px] font-medium opacity-80">{o.sub}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/*
+ * A STEPPER FOR THE FEW NUMBERS THAT MOVE BY ONE.
+ *
+ * NN/g's rule: steppers suit a small range, roughly 0 to 10 steps. An age or a plan horizon moves by
+ * one and is exactly that; a balance is not, and gets a keypad. Side by side, 44px tall for a finger,
+ * beside the field rather than instead of it, so a big change is still typed.
+ */
+export function Stepper({ label, onDown, onUp }) {
+  return (
+    <span className="flex shrink-0">
+      <button type="button" aria-label={`decrease ${label}`} onClick={onDown}
+        className="w-9 h-11 flex items-center justify-center rounded-l-lg border border-slate-300 bg-slate-50 text-base text-slate-600 cursor-pointer active:bg-slate-200">&minus;</button>
+      <button type="button" aria-label={`increase ${label}`} onClick={onUp}
+        className="w-9 h-11 flex items-center justify-center rounded-r-lg border border-l-0 border-slate-300 bg-slate-50 text-base text-slate-600 cursor-pointer active:bg-slate-200">+</button>
+    </span>
+  );
+}
+
+/*
+ * ONE ITEM OF A LIST, AS ONE LINE UNTIL YOU TAP IT.
+ *
+ * A spending band is three numbers, an income stream is six fields. Laid out open, every item is a
+ * card of controls and a list of four is a screen and a half of them, most of which nobody is editing.
+ * Closed, an item is one line that says what it is - "Age 80 to 100, £40,000, 21 years" - with the
+ * remove button on the right; tapping the line opens its fields underneath. An item with nothing in it
+ * yet is opened by its caller, because there is nothing to summarise.
+ */
+export function CollapsedRow({ summary, sub, open, onToggle, onDelete, deleteLabel = 'Remove', warn = false, children }) {
+  return (
+    <div data-collapsed-row data-open={open ? 'true' : 'false'} className={`rounded-lg border ${warn ? 'border-rose-200 bg-rose-50/60' : 'border-slate-200 bg-slate-50/60'}`}>
+      <div className="flex items-center">
+        <button type="button" onClick={onToggle} aria-expanded={open} className="flex-1 min-w-0 min-h-11 px-3 text-left cursor-pointer">
+          <span className={`block text-[13px] font-semibold truncate ${warn ? 'text-rose-800' : 'text-slate-800'}`}>{summary}</span>
+          {sub && <span className={`block text-[11px] truncate ${warn ? 'text-rose-700' : 'text-slate-500'}`}>{sub}</span>}
+        </button>
+        {onDelete && (
+          <button type="button" aria-label={deleteLabel} onClick={onDelete}
+            className="min-w-11 h-11 flex items-center justify-center text-slate-400 hover:text-rose-600 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+        )}
+      </div>
+      {open && <div className="px-3 pb-1.5 border-t border-slate-200/70">{children}</div>}
+    </div>
   );
 }

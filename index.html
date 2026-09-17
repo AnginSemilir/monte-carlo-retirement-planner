@@ -405,6 +405,14 @@
        *   Never `none`, which would take vertical scrolling with it.
        */
       .swipe-x { touch-action: pan-y; }
+      /*
+       * And the other half of the same problem: Chrome on Android turns a rightward drag near the left
+       * edge into "go back", and touch-action does not stop that because it is not a pan, it is a
+       * navigation. Measured: the first right-swipe on the projection deck left the site entirely.
+       * overscroll-behavior-x on the document is what disables it; vertical overscroll (pull to refresh)
+       * is left alone.
+       */
+      html, body { overscroll-behavior-x: none; }
       .touch-ui button, .touch-ui a, .touch-ui input, .touch-ui select, .touch-ui summary { touch-action: manipulation; }
       /*
        * One rule instead of sixty className edits: under a finger, every control that occupies its own

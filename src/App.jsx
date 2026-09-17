@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
-import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel } from './phone.jsx';
+import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, Stepper, CollapsedRow } from './phone.jsx';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
@@ -9157,6 +9157,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           {title}
         </h2>
         <span className="text-xs text-slate-500">{sub}</span>
+        {isPhone && !seeAll && (
+          <div data-slide-dots className="flex items-center gap-1.5 mt-1.5" aria-hidden="true">
+            {PROJECTION_SLIDES.map(x => <span key={x.n} className={`h-1.5 rounded-full transition-all ${x.n === n ? 'w-4 bg-blue-600' : 'w-1.5 bg-slate-300'}`} />)}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -9341,8 +9346,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * The historical chart, as a function so the fullscreen overlay can render the same thing. It shares
    * the projection's chart box, so it follows the phone sizing without a second set of rules.
    */
+  /*
+   * NO SIDEWAYS SCROLLER ON A PHONE, in this chart wrapper and the projection's. The chart bleeds to the
+   * full width and has nothing to scroll, and a scroll container is where a browser stops computing
+   * touch-action: the deck's pan-y would never reach the chart, and a swipe across it would be cancelled
+   * as a scroll. Measured: it was, until overflow-x-auto became desktop-only.
+   */
   const renderHistoricalChart = ({ inOverlay = false } = {}) => (
-                <div className={`relative overflow-x-auto ${isPhone && !inOverlay ? 'bleed' : ''} ${!isPhone && !inOverlay ? 'wide-chart' : ''} ${inOverlay ? 'h-full' : ''}`}>
+                <div className={`relative ${isPhone && !inOverlay ? 'bleed swipe-x' : 'overflow-x-auto'} ${!isPhone && !inOverlay ? 'wide-chart' : ''} ${inOverlay ? 'h-full' : ''}`}>
                   {isPhone && !inOverlay && (
               <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setFullscreenChart('hist')}
                 className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
@@ -9386,7 +9397,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     const edge = isRate ? cp.rateEdge : cp.fanEdge;
     return (
       <>
-        <div className={`relative overflow-x-auto ${isPhone && !inOverlay ? 'bleed' : ''} ${!isPhone && !inOverlay ? 'wide-chart' : ''} ${inOverlay ? 'h-full' : ''}`}>
+        <div className={`relative ${isPhone && !inOverlay ? 'bleed swipe-x' : 'overflow-x-auto'} ${!isPhone && !inOverlay ? 'wide-chart' : ''} ${inOverlay ? 'h-full' : ''}`}>
           {isPhone && !inOverlay && (
             <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setFullscreenChart(kind)}
               className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
@@ -9663,6 +9674,120 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * section, as they always were. On a phone they are their own section tab - the fold's button is not
    * shown, and the contents are simply there.
    */
+  // Which list item is open on a phone (a band, an income stream); one at a time is plenty.
+  const [openRow, setOpenRow] = useState(null);
+  const toggleRow = (id) => setOpenRow(v => (v === id ? null : id));
+  /*
+   * THE FIRST SECTION AS ROWS, FOR A PHONE.
+   *
+   * The desktop grid is label-above-field in four columns. Collapsed to one column it was a label, a
+   * half-width input and a seven-line helper in a half-width column, which is what your screenshot of
+   * "Minimum pot at age 100" showed. These are the same fields as rows: label left, control right,
+   * explanation behind a "?", ages with a stepper because an age moves by one.
+   */
+  const renderYouRows = () => {
+    const d = plan?.demographics || {};
+    const stepAge = (field, by, lo = 0, hi = 120) => {
+      const cur = E.num(d[field], NaN);
+      if (!Number.isFinite(cur)) return;
+      updateDemographics(field, String(Math.max(lo, Math.min(hi, cur + by))));
+    };
+    const ageRow = (label, field, lo = 0) => (
+      <FieldRow key={field} label={label}>
+        <input type="number" min={lo} max="120" onFocus={handleFocus} value={d[field] ?? ''} onChange={(e) => updateDemographics(field, e.target.value)} className={`${inputCls} text-right`} />
+        <Stepper label={label} onDown={() => stepAge(field, -1, lo)} onUp={() => stepAge(field, 1, lo)} />
+      </FieldRow>
+    );
+    const money = (label, value, onChange, opts = {}) => (
+      <FieldRow key={label} label={label} hint={opts.hint} wide={opts.wide}>
+        <MoneyInput min="0" step={opts.step || 1000} placeholder={opts.placeholder || '0'} onFocus={handleFocus} value={value ?? ''} onChange={onChange} className={`${inputCls} text-right ${opts.cls || ''}`} />
+      </FieldRow>
+    );
+    const seSelf = d.employmentSelf === 'self-employed', sePart = d.employmentPart === 'self-employed';
+    return (
+      <div data-you-rows>
+        {ageRow('Age now', 'currentAgeSelf')}
+        {isCouple && ageRow('Partner: age now', 'currentAgePart')}
+        {ageRow('Retire at', 'retireAgeSelf')}
+        {isCouple && ageRow('Partner: retire at', 'retireAgePart')}
+        {money(seSelf ? 'Profit a year' : 'Gross salary', d.salarySelf, (e) => updateDemographics('salarySelf', e.target.value),
+          { placeholder: 'a year', hint: 'Before tax. It sets the tax relief on pension contributions and the take-home pay that bridges the years before retirement.' })}
+        {isCouple && money(sePart ? 'Partner: profit a year' : 'Partner: gross salary', d.salaryPart, (e) => updateDemographics('salaryPart', e.target.value), { placeholder: 'a year' })}
+        <FieldRow label="State Pension a year" wide>{statePensionField('statePensionSelf')}</FieldRow>
+        {isCouple && <FieldRow label="Partner: State Pension" wide>{statePensionField('statePensionPart')}</FieldRow>}
+        {money(isCouple ? 'Joint living spend' : 'Living spend', plan?.spending?.targetSpend, (e) => updateSpending('targetSpend', e.target.value),
+          { placeholder: 'e.g. 30,000', hint: 'A year, after tax, drawn from the first retirement. A partner still working offsets it with their take-home pay when a salary is entered.' })}
+        {ageRow('Plan to age', 'terminalAge', 1)}
+        {money(`Minimum pot at ${terminalAge}`, plan?.config?.solvencyFloor, (e) => updateConfig('solvencyFloor', e.target.value),
+          { step: 5000, cls: 'text-amber-700', hint: "A bequest floor in today's money, tested at the final age only. The whole projection is in real terms, so there is no need to gross it up for inflation." })}
+      </div>
+    );
+  };
+  const phoneBandRow = (band, { badRange, yrs }) => {
+    const blank = E.isBlank(band.fromAge);
+    const toLabel = E.isBlank(band.toAge) ? terminalAge : band.toAge;
+    return (
+      <CollapsedRow key={band.id} warn={badRange} open={openRow === band.id || blank} onToggle={() => toggleRow(band.id)}
+        summary={blank ? 'New band' : `Age ${band.fromAge} to ${toLabel} · ${E.isBlank(band.amount) ? 'no amount' : formatGBP(E.num(band.amount, 0))}`}
+        sub={badRange ? 'Ends before it starts' : yrs !== null ? `${yrs} year${yrs === 1 ? '' : 's'}` : 'Set a start age'}
+        onDelete={() => deleteSpendBand(band.id)} deleteLabel="Remove this band">
+        <FieldRow label="From age"><input type="number" min="0" max="120" placeholder="From" onFocus={handleFocus} value={band.fromAge} onChange={(e) => updateSpendBand(band.id, { fromAge: parseInputNumber(e.target.value) })} className={`${inputCls} text-right`} /></FieldRow>
+        <FieldRow label="To age"><input type="number" min="0" max="120" placeholder={String(terminalAge)} onFocus={handleFocus} value={band.toAge} onChange={(e) => updateSpendBand(band.id, { toAge: parseInputNumber(e.target.value) })} className={`${inputCls} text-right`} /></FieldRow>
+        <FieldRow label="Spend a year"><MoneyInput min="0" step="1000" placeholder="0" onFocus={handleFocus} value={band.amount} onChange={(e) => updateSpendBand(band.id, { amount: parseInputNumber(e.target.value) })} className={`${inputCls} text-right text-blue-700`} /></FieldRow>
+      </CollapsedRow>
+    );
+  };
+  const phoneIncomeRow = (inc) => {
+    const blank = !inc.name && E.isBlank(inc.amount);
+    const typeOptions = Object.keys(E.INCOME_TYPES).map(k => ({ key: k, title: E.INCOME_TYPES[k].label.split(' (')[0], sub: '', long: E.INCOME_TYPES[k].label }));
+    return (
+      <CollapsedRow key={inc.id} open={openRow === inc.id || blank} onToggle={() => toggleRow(inc.id)}
+        summary={blank ? 'New income stream' : `${inc.name || 'Unnamed'} · ${formatGBP(E.num(inc.amount, 0))} a year`}
+        sub={`Age ${E.isBlank(inc.startAge) ? '?' : inc.startAge} to ${E.isBlank(inc.endAge) ? 'plan end' : inc.endAge} · ${E.incomeTypeOf(inc.incomeType).label.split(' (')[0]}${isCouple ? ` · ${inc.owner}` : ''}`}
+        onDelete={() => deleteOtherIncome(inc.id)} deleteLabel="Remove this income stream">
+        <FieldRow label="Name" wide><input type="text" placeholder="e.g. DB pension" onFocus={handleFocus} value={inc.name} onChange={(e) => updateListItem('otherIncomes', inc.id, { name: e.target.value })} className={inputCls} /></FieldRow>
+        {isCouple && (
+          <div className="py-1.5 border-b border-slate-100"><RiskChips name="Whose income" value={inc.owner} onChange={(v) => updateListItem('otherIncomes', inc.id, { owner: v })}
+            options={[{ key: 'Myself', title: 'Myself' }, { key: 'Partner', title: 'Partner' }]} /></div>
+        )}
+        <FieldRow label="From age"><input type="number" min="0" max="120" placeholder="Start" onFocus={handleFocus} value={inc.startAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { startAge: parseInputNumber(e.target.value) })} className={`${inputCls} text-right`} /></FieldRow>
+        <FieldRow label="To age" hint="Leave blank to run to the end of the plan."><input type="number" min="0" max="120" placeholder="plan end" onFocus={handleFocus} value={inc.endAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { endAge: parseInputNumber(e.target.value) })} className={`${inputCls} text-right`} /></FieldRow>
+        <FieldRow label="Amount a year"><MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={inc.amount} onChange={(e) => updateListItem('otherIncomes', inc.id, { amount: parseInputNumber(e.target.value) })} className={`${inputCls} text-right`} /></FieldRow>
+        <div className="py-1.5">
+          <div className="text-[11px] font-semibold text-slate-500 mb-1.5">How it is taxed</div>
+          <RiskChips name="Income type" value={inc.incomeType} options={typeOptions} onChange={(v) => updateListItem('otherIncomes', inc.id, { incomeType: v })} />
+        </div>
+      </CollapsedRow>
+    );
+  };
+  const phoneCostRow = (cost) => {
+    const blank = !cost.desc && E.isBlank(cost.amount);
+    const year = cost.date ? String(cost.date).slice(0, 4) : (cost.year || '');
+    return (
+      <CollapsedRow key={cost.id} open={openRow === cost.id || blank} onToggle={() => toggleRow(cost.id)}
+        summary={blank ? 'New cost' : `${cost.desc || 'Unnamed'} · ${formatGBP(E.num(cost.amount, 0))}`} sub={year ? `In ${year}` : 'No date yet'}
+        onDelete={() => deleteOneOffCost(cost.id)} deleteLabel="Remove this cost">
+        <FieldRow label="When" wide><input type="date" value={cost.date || (cost.year ? `${cost.year}-01-01` : '')} onChange={(e) => { const d = e.target.value; updateListItem('oneOffCosts', cost.id, { date: d, year: parseInt(d.slice(0, 4)) || '' }); }} className={`${inputCls} text-right`} /></FieldRow>
+        <FieldRow label="Purpose" wide><input type="text" placeholder="e.g. new roof" onFocus={handleFocus} value={cost.desc} onChange={(e) => updateListItem('oneOffCosts', cost.id, { desc: e.target.value })} className={inputCls} /></FieldRow>
+        <FieldRow label="Amount"><MoneyInput min="0" step="1000" placeholder="0" onFocus={handleFocus} value={cost.amount} onChange={(e) => updateListItem('oneOffCosts', cost.id, { amount: parseInputNumber(e.target.value) })} className={`${inputCls} text-right text-rose-700`} /></FieldRow>
+      </CollapsedRow>
+    );
+  };
+  /*
+   * THE DECK SWIPES ON A PHONE. Steps are a sequence, so a swipe left is "next" and right is "back",
+   * the same as the buttons. Only once there is a run to page through, and not in See-all, where
+   * every step is already on screen. The same gesture rules as the sections: the horizon slider is a
+   * range input and the sandbox sheet is marked, so neither turns the page; the chart itself does not
+   * scroll sideways on a phone, so a swipe across it turns the page, which is the gesture people try
+   * first.
+   */
+  const deckSwipeRef = useRef(null);
+  const lastSlide = PROJECTION_SLIDES.length;
+  useSwipe(deckSwipeRef, {
+    enabled: isPhone && activeTab === 'projection' && !seeAll && !!simResult,
+    onLeft: () => setSlide(n => Math.min(lastSlide, n + 1)),
+    onRight: () => setSlide(n => Math.max(1, n - 1)),
+  });
   const renderAdvancedInputs = (standalone = false) => (
               <div className={standalone ? '' : 'pt-3 border-t border-slate-100'}>
                 {!standalone && <button type="button" onClick={() => setShowAdvanced(v => !v)} className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 uppercase tracking-[0.08em] flex items-center gap-1.5 cursor-pointer">
@@ -9749,7 +9874,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
   return (
     <div className={`min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans ${touch ? 'touch-ui' : ''} ${isPhone ? 'pb-[calc(3.5rem+env(safe-area-inset-bottom))]' : ''}`}>
-      <div data-app-content className="max-w-7xl mx-auto space-y-6">
+      <div data-app-content className={`max-w-7xl mx-auto ${isPhone ? 'space-y-3' : 'space-y-6'}`}>
 
         {/* Header Bar.
             ON A PHONE IT IS ONE ROW. Measured at 366px before: a two-line title, a subtitle, a 44px theme
@@ -9973,7 +10098,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
         {/* TAB 1: PLAN INPUTS */}
         {activeTab === 'inputs' && (
-          <div ref={inputsSwipeRef} className={`space-y-6 ${isPhone ? 'swipe-x' : ''}`}>
+          <div ref={inputsSwipeRef} className={`${isPhone ? 'space-y-3 swipe-x' : 'space-y-6'}`}>
             <input type="file" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />
             {!isPhone && (
             <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-slate-200/90 p-4 rounded-xl">
@@ -10000,17 +10125,20 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             )}
             {/* Demographics & Targets */}
             {showSection('you') && (
-            <div data-section="you" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+            <div data-section="you" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5'}`}>
               <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
                 <div>
                   {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Users className="w-4 h-4 text-blue-600" /> 1. Demographics, salaries &amp; retirement targets</h3>}
-                  <span className="text-xs text-slate-500">Choose whether this plan is for an individual or a couple.</span>
+                  {!isPhone && <span className="text-xs text-slate-500">Choose whether this plan is for an individual or a couple.</span>}
                 </div>
-                <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
-                  <button type="button" onClick={() => updateDemographics('planningMode', 'single')} className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${!isCouple ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>Single</button>
-                  <button type="button" onClick={() => updateDemographics('planningMode', 'couple')} className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${isCouple ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>With partner</button>
+                {/* Two options, which is exactly what a segmented control is for; full width on a phone,
+                    where it is the first thing in the section and has no heading beside it. */}
+                <div className={`flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs ${isPhone ? 'w-full' : ''}`} role="radiogroup" aria-label="Who this plan is for">
+                  <button type="button" role="radio" aria-checked={!isCouple} onClick={() => updateDemographics('planningMode', 'single')} className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${isPhone ? 'flex-1' : ''} ${!isCouple ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>Single</button>
+                  <button type="button" role="radio" aria-checked={isCouple} onClick={() => updateDemographics('planningMode', 'couple')} className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${isPhone ? 'flex-1' : ''} ${isCouple ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>With partner</button>
                 </div>
               </div>
+              {isPhone ? renderYouRows() : (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                 <div><label className="text-slate-600 font-semibold block mb-1">Current age (Myself)</label><input type="number" min="0" max="120" placeholder="e.g. 40" onFocus={handleFocus} value={plan?.demographics?.currentAgeSelf ?? ''} onChange={(e) => updateDemographics('currentAgeSelf', e.target.value)} className={inputCls} /></div>
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Current age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 40" onFocus={handleFocus} value={plan?.demographics?.currentAgePart ?? ''} onChange={(e) => updateDemographics('currentAgePart', e.target.value)} className={inputCls} /></div>}
@@ -10032,17 +10160,20 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <span className="text-[10px] text-slate-400 mt-1 block">Bequest floor in today's money, tested at the terminal age only. The whole projection is in real terms, so £100,000 here means £100,000 of today's purchasing power. There is no need to gross it up for inflation.</span>
                 </div>
               </div>
+              )}
 
               <div className="pt-3 border-t border-slate-100">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <span className="text-sm font-semibold text-slate-700">{isCouple ? 'Joint net living spend' : 'Net living spend'} by age (optional)</span>
-                  <button onClick={addSpendBand} className="px-2.5 py-1 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add band</button>
+                  <button onClick={addSpendBand} className={`bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer ${isPhone ? 'w-full min-h-11 justify-center' : 'px-2.5 py-1'}`}><Plus className="w-3.5 h-3.5" /> Add band</button>
                 </div>
+                <Fine isPhone={isPhone} label="What is a band?">
                 <p className="text-[11px] text-slate-500 mb-2 max-w-3xl">
                   Set what a stretch of years actually costs, in today's money, instead of one figure for the whole
                   retirement. Ages are &quot;Myself&quot; ages. Any year you do not cover falls back to the {isCouple ? 'joint ' : ''}living
                   spend above, so you can name only the years that differ. Spending can rise as well as fall.
                 </p>
+                </Fine>
                 {(plan?.spending?.spendBands || []).length === 0 ? (
                   <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-lg">
                     No bands set, so {formatGBP(E.num(plan?.spending?.targetSpend, 0))}/yr applies for the whole retirement.
@@ -10054,7 +10185,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       const to = E.isBlank(band.toAge) ? terminalAge : E.num(band.toAge, NaN);
                       const badRange = Number.isFinite(from) && Number.isFinite(to) && to < from;
                       const yrs = (Number.isFinite(from) && Number.isFinite(to) && !badRange) ? (to - from + 1) : null;
-                      return (
+                      return isPhone ? phoneBandRow(band, { badRange, yrs }) : (
                         <div key={band.id} className={`grid grid-cols-1 sm:grid-cols-4 gap-2 p-2.5 border rounded-lg text-xs items-center ${badRange ? 'bg-rose-50/60 border-rose-200' : 'bg-slate-50 border-slate-200'}`}>
                           <div className="flex items-center gap-1">
                             <span className="text-slate-500">Age</span>
@@ -10091,19 +10222,64 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
             )}
             {isPhone && showSection('advanced') && (
-            <div data-section="advanced" className="bg-surface border border-slate-200/90 p-4 rounded-xl">
+            <div data-section="advanced" className="bg-surface border border-slate-200/90 p-3 rounded-xl">
               {renderAdvancedInputs(true)}
             </div>
             )}
 
             {/* Balances & Contributions */}
             {showSection('money') && (
-            <div data-section="money" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 overflow-x-auto">
+            <div data-section="money" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5 overflow-x-auto'}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> 2. Current balances, annual contributions &amp; risk profiles</h3>}
                 <button type="button" onClick={() => goToDoc('doc-risk-profiles')} className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"><HelpCircle className="w-3.5 h-3.5" /> Guide to investment allocations &amp; fund types &rarr;</button>
               </div>
+              <Fine isPhone={isPhone} label="What counts as a contribution?">
               <p className="text-[11px] text-slate-500">Pension contributions are gross (including tax relief and employer amounts); ISA, GIA and cash contributions are net. Contributions stop at each owner's retirement age. Allowances: ISA £{fmtNum(P.isaAllowance)}, pension £{fmtNum(P.pensionAllowance)} per person (Config).</p>
+              </Fine>
+              {/*
+                * ON A PHONE, A CARD PER WRAPPER; ON A DESKTOP, THE TABLE.
+                *
+                * The table scrolls sideways on a phone - four of its five columns were off the right edge,
+                * the risk select among them at 410px wide - and a thing that scrolls sideways cannot also be
+                * swiped between sections. One card per wrapper puts every field of one account on one
+                * screen, in rows, with the risk tier as six visible chips instead of a drop-down.
+                */}
+              {isPhone ? (
+                <div className="space-y-2.5">
+                  {displayedAccounts.map(acc => {
+                    const over = (acc.id.startsWith('isa') && E.num(acc.contrib, 0) > P.isaAllowance) || (acc.id.startsWith('pen') && E.num(acc.contrib, 0) > P.pensionAllowance);
+                    const riskOptions = Object.keys(activeRiskMatrix).map(rk => {
+                      const lab = activeRiskMatrix[rk].label || rk;
+                      const [title, rest] = lab.split(/:\s*/);
+                      return { key: rk, title, sub: rest ? rest.replace(/\s*Equities/i, ' eq.') : '', long: lab };
+                    });
+                    return (
+                      <div key={acc.id} data-wrapper-card className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 pt-2 pb-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-bold text-slate-800">{acc.category}{isCouple && <span className="text-slate-500 font-normal"> &middot; {acc.owner}</span>}</span>
+                          {Array.isArray(acc.contribByYear) && <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px]">phased schedule</span>}
+                        </div>
+                        <FieldRow label="Balance today">
+                          <MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={acc.balance} onChange={(e) => updateAccountField(acc.id, 'balance', e.target.value)} className={`${inputCls} text-right`} />
+                        </FieldRow>
+                        <FieldRow label="Paid in a year" hint={over ? 'This is above the annual allowance set in Config.' : 'Pension contributions are gross, including tax relief and employer amounts. ISA, GIA and cash are net. Contributions stop at retirement.'}>
+                          <MoneyInput min="0" step="250" placeholder="0" onFocus={handleFocus} value={acc.contrib}
+                            onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }}
+                            className={`${inputCls} text-right ${over ? 'border-rose-400 text-rose-700' : ''}`} />
+                        </FieldRow>
+                        <FieldRow label="Contribution growth" hint="How much the yearly contribution rises each year, in real terms.">
+                          <input type="number" step="0.5" placeholder="0" onFocus={handleFocus} value={acc.growth} onChange={(e) => updateAccountField(acc.id, 'growth', e.target.value)} className={`${inputCls} text-right`} />
+                          <span className="text-xs text-slate-500 shrink-0">%</span>
+                        </FieldRow>
+                        <div className="pb-1">
+                          <RiskChips collapsible name="Asset allocation" value={acc.risk} options={riskOptions} onChange={(rk) => updateAccountField(acc.id, 'risk', rk)} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500 font-semibold">
@@ -10130,15 +10306,17 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   })}
                 </tbody>
               </table>
+              )}
             </div>
             )}
 
             {/* Other income */}
             {showSection('income') && (
-            <div data-section="income" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+            <div data-section="income" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5'}`}>
               <div className="flex justify-between items-center">
                 <div>
                   {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Coins className="w-4 h-4 text-blue-600" /> 3. Expected other income streams (e.g. defined benefit pensions, part-time work, rental income)</h3>}
+                  <Fine isPhone={isPhone} label="How income streams are taxed">
                   <span className="text-[11px] text-slate-500">Taxable streams count towards the personal allowance and tax bands; tax-free streams directly reduce net drawdown demand. Blank end age = plan end.</span>
                   <ul className="list-disc pl-4 text-[11px] text-slate-500 mt-1 leading-relaxed max-w-3xl space-y-0.5">
                     <li><strong>Earnings</strong> (employment / self-employment) are taxed <em>and</em> count as relevant UK earnings, so they raise how much you can pay into a pension that year.</li>
@@ -10146,14 +10324,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <li><strong>Tax-free income</strong> is neither taxed nor counted.</li>
                   </ul>
                   <span className="text-[11px] text-slate-500 mt-1 block">With no relevant earnings the pension limit is {formatGBP(P.pensionNoEarningsLimit)}/yr.</span>
+                  </Fine>
                 </div>
-                <button onClick={addOtherIncome} className="px-2.5 py-1 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add stream</button>
+                {!isPhone && <button onClick={addOtherIncome} className="px-2.5 py-1 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add stream</button>}
               </div>
+              {isPhone && <button onClick={addOtherIncome} className="w-full min-h-11 justify-center bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Plus className="w-3.5 h-3.5" /> Add stream</button>}
               {(plan?.otherIncomes || []).length === 0 ? (
                 <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-lg">No additional income streams registered.</div>
               ) : (
                 <div className="space-y-2">
-                  {plan.otherIncomes.map(inc => (
+                  {plan.otherIncomes.map(inc => isPhone ? phoneIncomeRow(inc) : (
                     <div key={inc.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs items-center">
                       <input type="text" onFocus={handleFocus} value={inc.name} onChange={(e) => updateListItem('otherIncomes', inc.id, { name: e.target.value })} className="p-1.5 bg-surface border border-slate-300 rounded font-bold text-slate-800 sm:col-span-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Description" />
                       {isCouple ? (
@@ -10182,14 +10362,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             {/* One-offs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {showSection('deposits') && (
-              <div data-section="deposits" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+              <div data-section="deposits" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5'}`}>
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                   <div>
                     {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> 4. One-off deposits (by wrapper)</h3>}
                     <span className="text-[11px] text-slate-500 block mt-0.5">Lump sums into a chosen wrapper. Anything above that year's allowance is parked in Other Investments and fed in over later years.</span>
                     <button type="button" onClick={() => goToDoc('doc-one-off-deposits')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-0.5"><HelpCircle className="w-3.5 h-3.5" /> How one-off deposits &amp; multi-year staging work &rarr;</button>
                   </div>
-                  <button onClick={addOneOffContrib} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto"><Plus className="w-3.5 h-3.5" /> Add lump sum</button>
+                  <button onClick={addOneOffContrib} className={`${isPhone ? 'w-full min-h-11 justify-center' : 'px-2.5 py-1'} bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto`}><Plus className="w-3.5 h-3.5" /> Add lump sum</button>
                 </div>
                 <div className="p-4 bg-indigo-50/80 border border-indigo-200 rounded-xl text-xs text-slate-700 space-y-1.5">
                   <div className="flex items-center gap-2 font-bold text-indigo-950 text-sm"><Info className="w-4 h-4 text-indigo-600" /> Annual Allowance Headroom: {ctx.baseYear} tax year</div>
@@ -10225,7 +10405,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         ? (stForLabel ? `${E.CATEGORY_LABEL[String(stForLabel.targetId).split('_')[0]] || 'the chosen wrapper'} (chosen by policy)` : 'the wrapper your policy picks')
                         : c.category;
                       const incomplete = missingDate || missingDest;
-                      return (
+                      const body = (
                         <div key={c.id} className={`p-2.5 rounded-lg text-xs space-y-2 border ${incomplete ? 'bg-rose-50/70 border-rose-300' : 'bg-slate-50 border-slate-200'}`}>
                           <div className="flex flex-wrap items-center gap-2">
                             <input type="date" value={c.date || (c.year ? `${c.year}-01-01` : '')} onChange={(e) => { const d = e.target.value; updateListItem('oneOffContributions', c.id, { date: d, year: parseInt(d.slice(0, 4)) || '' }); }} className={`p-1 bg-surface border rounded font-mono text-slate-800 text-xs ${missingDate ? 'border-rose-400 ring-1 ring-rose-300' : 'border-slate-300'}`} />
@@ -10301,25 +10481,33 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           )}
                         </div>
                       );
+                      if (!isPhone) return body;
+                      return (
+                        <CollapsedRow key={c.id} warn={incomplete} open={openRow === c.id || incomplete || isExpanded} onToggle={() => toggleRow(c.id)}
+                          summary={incomplete ? (missingDate ? 'New deposit: needs a date' : 'New deposit: needs a destination') : `${formatGBP(E.num(c.amount, 0))} into ${destLabel}`}
+                          sub={`${Number.isFinite(depYear) ? depYear : 'no date'}${isCouple ? ` · ${c.owner}` : ''}`}>
+                          {body}
+                        </CollapsedRow>
+                      );
                     })}
                   </div>
                 )}
               </div>
               )}
               {showSection('costs') && (
-              <div data-section="costs" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+              <div data-section="costs" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5'}`}>
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                   <div>
                     {!isPhone && <h3 className="text-sm font-semibold text-rose-700 flex items-center gap-2"><Trash2 className="w-4 h-4 text-rose-600" /> 5. One-off capital costs</h3>}
                     <button type="button" onClick={() => goToDoc('doc-one-offs')} className="text-[11px] text-rose-600 hover:text-rose-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-0.5"><HelpCircle className="w-3.5 h-3.5" /> How costs are liquidated from your wrappers &rarr;</button>
                   </div>
-                  <button onClick={addOneOffCost} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto"><Plus className="w-3.5 h-3.5" /> Add cost</button>
+                  <button onClick={addOneOffCost} className={`${isPhone ? 'w-full min-h-11 justify-center' : 'px-2.5 py-1'} bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto`}><Plus className="w-3.5 h-3.5" /> Add cost</button>
                 </div>
                 {(plan?.oneOffCosts || []).length === 0 ? (
                   <div className="text-xs text-slate-400 p-3 bg-slate-50 border border-slate-200 rounded-lg">No one-off capital expenses scheduled.</div>
                 ) : (
                   <div className="space-y-2">
-                    {plan.oneOffCosts.map(cost => (
+                    {plan.oneOffCosts.map(cost => isPhone ? phoneCostRow(cost) : (
                       <div key={cost.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                         <input type="date" value={cost.date || (cost.year ? `${cost.year}-01-01` : '')} onChange={(e) => { const d = e.target.value; updateListItem('oneOffCosts', cost.id, { date: d, year: parseInt(d.slice(0, 4)) || '' }); }} className="p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800 text-xs" />
                         <input type="text" onFocus={handleFocus} value={cost.desc} onChange={(e) => updateListItem('oneOffCosts', cost.id, { desc: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 flex-1" placeholder="Purpose" />
@@ -10883,7 +11071,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 3: TRAJECTORY & SANDBOX */}
         {/* TAB 4: PROJECTION - the deterministic path, the modelled band and the simulated fan on one chart */}
         {activeTab === 'projection' && (
-          <div className="space-y-6">
+          <div ref={deckSwipeRef} className={`${isPhone ? 'space-y-3 swipe-x' : 'space-y-6'}`}>
 
             <div className="bg-surface border border-slate-200/90 rounded-xl p-5 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">

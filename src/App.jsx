@@ -9915,11 +9915,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div className={`items-center gap-2 flex-wrap ${isPhone ? 'hidden' : 'flex'}`}>
               {/* data-tabbar keeps these clickable while the in-app editor is on, so you can still move
                   between tabs while editing; Alt-click edits a tab's own label. */}
-              {/* Hidden rather than unmounted on phones: the in-app editor and the regression harness
-                  both reach tabs through this node, and click() fires on a display:none element. */}
-              <div data-tabbar className="hidden md:flex items-end gap-1 border-b border-slate-200 flex-wrap">
-                {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
-              </div>
+              {!isPhone && (
+                <div data-tabbar className="hidden md:flex items-end gap-1 border-b border-slate-200 flex-wrap">
+                  {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
+                </div>
+              )}
               {!isPhone && <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />}
             </div>
           </div>
@@ -9944,6 +9944,20 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </p>
           )}
         </div>
+        )}
+        {/*
+          * THE TAB STRIP IS ALWAYS IN THE DOM, EVEN WHERE IT IS NEVER SEEN.
+          *
+          * It is invisible on a phone - the bottom bar is the navigation there - but it is also how the
+          * in-app editor and six harnesses reach a tab, because click() fires on a display:none element.
+          * It used to live inside the title card, so confining that card to Start Here took the strip
+          * with it and left every one of them unable to navigate past the first tab. Rendered here
+          * instead, once, outside the card that no longer always exists.
+          */}
+        {isPhone && (
+          <div data-tabbar className="hidden">
+            {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
+          </div>
         )}
         {/*
           * The one line that goes with the card follows the fields rather than the title. It is the

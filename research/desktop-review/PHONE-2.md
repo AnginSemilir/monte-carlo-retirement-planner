@@ -56,3 +56,34 @@ screenshots beside this file (`phone2-*.png`) are what the numbers describe.
   is not asserted anywhere yet; worth a look on its own.
 - The desktop is untouched apart from the two copy cuts you asked for, on purpose. Whether the row form
   belongs there too is a separate, measured decision.
+
+## The simple page, split into three tabs
+
+Measured on the Pixel 7 profile (412×839) on 2026-09-17, on the fixture this page is checked against:
+52, retiring at 60, spending £40,000, with £350k/£200k/£60k/£40k and the full State Pension.
+
+| | Before | After |
+|---|---|---|
+| Shape | one column: chart, then form, then figures | three tabs across the foot: Inputs · Chart · Figures |
+| Page height | 2,828px, 3.4 screens | 1,347 / 1,161 / 1,344px — one and a half screens each |
+| Chart | 486px, pinned to the top of every scroll | 768px on its own tab, nothing pinned |
+| First form field | 824px down, under the chart | 349px down, on the first screen |
+| The six results | at the bottom of the third screen | a tab away, wherever you are |
+| Quick dials | under the chart | above it, in the space the tab opens on |
+| Portfolio | a five-column table: a 60px tier drop-down reading "Hig" | four rows, balance at full size, the rest behind a chevron |
+| Tier control | `<select>` of six | the same six chips the full planner uses |
+| Steppers on the form | on three fields, 24px | none; the chart tab's dials are where a figure is nudged |
+| Figures | six cards, two across | six rows, label and meaning left, value right |
+| Sideways scroll | 0px | 0px on all three |
+
+Why tabs rather than the sticky card: pinning the chart bought back the feedback an edit needs, and spent
+a third of every screen on it permanently to do so. A tab spends nothing between edits, and the four dials
+moved into the space above the plot keep the loop — a tap on *Retire at* moves the band and the three
+headline figures without scrolling or changing tab.
+
+The default is not fixed: a plan complete enough to answer opens on the Chart, one that is not opens on
+Inputs. The choice then lives in `sessionStorage`, so it survives a reload of this visit and not the week.
+
+**Desktop is untouched.** Every branch is behind `isPhone`; at 1400px the page is still the two-column
+layout with the chart, its legend and its footnote in the right-hand card, and `desktop-reach` and
+`restyle-regression` prove it.

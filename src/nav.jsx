@@ -103,3 +103,38 @@ export function MoreSheet({ open, tabs, primaryIds, activeTab, onSelect, onClose
     document.body
   );
 }
+
+/*
+ * THE SIMPLE PAGE'S THREE.
+ *
+ * Same bar, same rung on the z-index ladder, three cells instead of five and no overflow: the simple
+ * page has exactly three places to be and every one of them earns a permanent slot. 390 / 3 = 130px a
+ * cell, so the label can be a word rather than an abbreviation.
+ *
+ * It is a separate component rather than BottomNav with a shorter list because BottomNav owns the More
+ * button and the overflow dot, neither of which exists here, and threading "no overflow" through that
+ * one would leave both components harder to read than the two of them are apart.
+ */
+export function SimpleTabs({ tabs, active, onSelect }) {
+  return (
+    <nav data-simple-tabs aria-label="Simple planner sections"
+      className="fixed inset-x-0 bottom-0 z-40 md:hidden bg-surface border-t border-slate-200"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      {/* h-14, for the same reason BottomNav uses it: .touch-ui's min-height rule out-specifies a
+          Tailwind min-h class and would quietly shrink the bar to 44px. */}
+      <div className="grid grid-cols-3 h-14">
+        {tabs.map(t => {
+          const on = active === t.id;
+          return (
+            <button key={t.id} type="button" onClick={() => onSelect(t.id)}
+              aria-current={on ? 'page' : undefined}
+              className={`flex flex-col items-center justify-center gap-0.5 h-full px-1 text-[10px] font-semibold cursor-pointer transition-colors ${on ? 'text-blue-600' : 'text-slate-500'}`}>
+              <t.Icon className="w-5 h-5 shrink-0" />
+              <span className="truncate max-w-full">{t.short}</span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}

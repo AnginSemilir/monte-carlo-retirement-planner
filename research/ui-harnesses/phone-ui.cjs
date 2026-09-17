@@ -289,64 +289,128 @@ const navigate = async (page, label, short) => {
       ok('the top tab strip is hidden', strip === 0, `${strip}px`);
 
       /*
-       * THE SIMPLE PAGE. Its fault on a phone was the same as the sandbox's: the form stacked above the
-       * chart, so you edited blind. The chart is ordered first and sticks, with the dials that move it
-       * directly underneath.
+       * THE SIMPLE PAGE, NOW THREE TABS ACROSS THE BOTTOM.
+       *
+       * It used to be one column with the chart pinned to the top. Pinning bought back the feedback an
+       * edit needs, but it spent a third of every screen on it permanently and still left the six figures
+       * four screens below the picture they describe. Three tabs - what you have, what it looks like,
+       * what it comes to - give each one job and roughly one screen. The dials that moved the chart sit
+       * in the space above the plot, so the loop the sticky card existed for survives the split.
        */
-      await p.evaluate(() => { localStorage.setItem('rp_which_app', 'simple'); });
+      await p.evaluate(() => { localStorage.setItem('rp_which_app', 'simple'); sessionStorage.removeItem('rp_simple_tab'); });
       await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
-      await p.waitForTimeout(1800);
-      const simple = await p.evaluate(() => {
-        const card = document.querySelector('[data-phone-chart]');
-        if (!card) return null;
-        const col = card.parentElement;
-        return { first: col.firstElementChild === card, sticky: getComputedStyle(card).position };
+      await p.waitForTimeout(2000);
+      const simpleTab = async (name) => {
+        await p.evaluate(t => { const x = [...document.querySelectorAll('[data-simple-tabs] button')].find(b => b.textContent.trim() === t); if (x) x.click(); }, name);
+        await p.waitForTimeout(500);
+      };
+      const tabState = () => p.evaluate(() => {
+        const nav = document.querySelector('[data-simple-tabs]');
+        if (!nav) return null;
+        const btns = [...nav.querySelectorAll('button')];
+        const r = nav.getBoundingClientRect();
+        const H = (sel) => { const el = document.querySelector(sel); return el ? Math.round(el.getBoundingClientRect().height) : 0; };
+        return {
+          n: btns.length,
+          labels: btns.map(b => b.textContent.trim()),
+          active: btns.filter(b => b.getAttribute('aria-current') === 'page').map(b => b.textContent.trim()).join(),
+          small: btns.filter(b => b.getBoundingClientRect().height < 44).length,
+          gap: Math.round(window.innerHeight - r.bottom),
+          page: Math.round(document.documentElement.scrollHeight),
+          over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          chart: H('[data-phone-chart]'),
+          fields: [...document.querySelectorAll('input')].filter(i => i.getBoundingClientRect().height > 0).length,
+          rows: document.querySelectorAll('[data-figure-row]').length,
+          legend: /Made up of/.test(document.body.innerText),
+          dialsFirst: (() => {
+            const card = document.querySelector('[data-phone-chart]');
+            if (!card) return null;
+            // the widest svg, not the first: every dial button holds a 16px icon svg of its own
+            const dials = card.querySelector('[data-phone-dials]');
+            const svg = [...card.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+            if (!dials || !svg) return null;
+            return dials.getBoundingClientRect().top < svg.getBoundingClientRect().top;
+          })()
+        };
       });
-      ok('the simple page leads with the chart', !!simple && simple.first, simple ? `first=${simple.first}` : 'no phone chart card');
-      ok('...and it sticks to the top', !!simple && simple.sticky === 'sticky', simple ? simple.sticky : '');
-      if (simple) {
-        const stuck = await p.evaluate(async () => {
-          window.scrollTo(0, 600);
-          await new Promise(r => setTimeout(r, 300));
-          const card = document.querySelector('[data-phone-chart]');
-          const inputs = [...document.querySelectorAll('input')].filter(i => i.getBoundingClientRect().height > 0);
-          const visible = inputs.filter(i => { const r = i.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; });
-          return { top: Math.round(card.getBoundingClientRect().top), inputs: visible.length };
-        });
-        ok('...staying put while the form scrolls under it', stuck.top <= 1, `card top ${stuck.top}`);
-        ok('...with the form still reachable beneath', stuck.inputs > 0, `${stuck.inputs} inputs in view`);
-        // a dial must actually move the line
-        const moved = await p.evaluate(async () => {
-          const medianD = () => { const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
-            const pth = svg && [...svg.querySelectorAll('path')].find(x => x.getAttribute('stroke-width') === '2.5'); return pth ? pth.getAttribute('d') : null; };
-          const before = medianD();
-          const card = document.querySelector('[data-phone-chart]');
-          const plus = [...card.querySelectorAll('button')].find(b => /increase Pension/i.test(b.getAttribute('aria-label') || ''));
-          if (!plus) return { ok: false };
-          plus.click();
-          await new Promise(r => setTimeout(r, 900));
-          return { ok: true, changed: medianD() !== before };
-        });
-        ok('...and a dial moves the line', moved.ok && moved.changed, JSON.stringify(moved));
-        /*
-         * The portfolio row is five columns inside 412px. A stepper is 48px of that beside a field with
-         * about 60px left for six digits, so on a phone they go and the field gets the room; the sticky
-         * card's dials above the chart are the better place to nudge a balance anyway. And the card is
-         * p-3, so its chart bleeds by 1.75rem - .bleed's 2.25 was half a rem too far each side, which was
-         * this page's 7px of horizontal scroll.
-         */
-        const portfolio = await p.evaluate(() => {
-          const risk = document.querySelector('select[aria-label$="risk level"]');
-          const grid = risk ? risk.parentElement : null;
-          return { steppers: grid ? grid.querySelectorAll('button[aria-label^="increase"], button[aria-label^="decrease"]').length : -1,
-            over: document.documentElement.scrollWidth - document.documentElement.clientWidth };
-        });
-        ok('...no steppers crowding the portfolio row', portfolio.steppers === 0, `${portfolio.steppers}`);
-        ok('...and the page does not scroll sideways', portfolio.over <= 0, `${portfolio.over}px`);
-        const sizes = await p.evaluate(INPUT_SIZE_PROBE);
-        const small = sizes.filter(x => x.font < 16);
-        ok('...inputs are at least 16px, so focusing does not zoom', small.length === 0, `${small.length} of ${sizes.length} under 16px`);
-      }
+      const onChart = await tabState();
+      ok('the simple page has three tabs at the foot', !!onChart && onChart.n === 3, onChart ? onChart.labels.join(' / ') : 'no tab bar');
+      ok('...on the bottom edge, every one a 44px target', !!onChart && onChart.gap === 0 && onChart.small === 0,
+         onChart ? `${onChart.gap}px up, ${onChart.small} under 44` : '');
+      ok('...opening on the chart when the plan can be answered', !!onChart && onChart.active === 'Chart', onChart ? onChart.active : '');
+      ok('...with the dials above the plot, not below it', !!onChart && onChart.dialsFirst === true, String(onChart && onChart.dialsFirst));
+      ok('...and the chart tab no taller than two screens', !!onChart && onChart.page <= 2 * 839, onChart ? `${onChart.page}px` : '');
+      ok('...nothing scrolling sideways', !!onChart && onChart.over <= 0, onChart ? `${onChart.over}px` : '');
+      // the chart is a tab now, so it no longer needs to stick to anything
+      const pos = await p.evaluate(() => { const el = document.querySelector('[data-phone-chart]'); return el ? getComputedStyle(el).position : null; });
+      ok('...the card no longer has to stick', pos === 'static', String(pos));
+      // a dial must still actually move the line
+      const moved = await p.evaluate(async () => {
+        const medianD = () => { const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+          const pth = svg && [...svg.querySelectorAll('path')].find(x => x.getAttribute('stroke-width') === '2.5'); return pth ? pth.getAttribute('d') : null; };
+        const before = medianD();
+        const card = document.querySelector('[data-phone-chart]');
+        const plus = [...card.querySelectorAll('button')].find(b => /increase Pension/i.test(b.getAttribute('aria-label') || ''));
+        if (!plus) return { ok: false };
+        plus.click();
+        await new Promise(r => setTimeout(r, 900));
+        return { ok: true, changed: medianD() !== before };
+      });
+      ok('...and a dial still moves the line', moved.ok && moved.changed, JSON.stringify(moved));
+
+      // ---- tab 1: the form, with the chart out of the way
+      await simpleTab('Inputs');
+      const onInputs = await tabState();
+      ok('the Inputs tab shows the form', !!onInputs && onInputs.fields > 5 && onInputs.chart === 0,
+         onInputs ? `${onInputs.fields} fields, chart ${onInputs.chart}px` : '');
+      ok('...in under three screens', !!onInputs && onInputs.page <= 3 * 839, onInputs ? `${onInputs.page}px` : '');
+      ok('...without scrolling sideways', !!onInputs && onInputs.over <= 0, onInputs ? `${onInputs.over}px` : '');
+      /*
+       * The portfolio was five columns inside 412px: a 60px drop-down reading "Hig", a contribution box
+       * with room for three digits, a per-cent field the width of its own label. On a phone it is four
+       * rows instead - the balance at full size, the tier and the contributions named underneath it, and
+       * the chevron opening those behind the same six chips the full planner uses. Nothing on this tab
+       * steps a number any more either: that is what the chart tab's dials are for.
+       */
+      const portfolio = await p.evaluate(() => ({
+        rows: document.querySelectorAll('[data-wrapper-row]').length,
+        selects: document.querySelectorAll('select[aria-label$="risk level"]').length,
+        steppers: [...document.querySelectorAll('button[aria-label^="increase"], button[aria-label^="decrease"]')].filter(b => b.getBoundingClientRect().height > 0).length,
+        wide: [...document.querySelectorAll('[data-wrapper-row]')].filter(r => r.getBoundingClientRect().width > window.innerWidth).length
+      }));
+      ok('...the portfolio is one row per wrapper', portfolio.rows === 4 && portfolio.wide === 0, `${portfolio.rows} rows, ${portfolio.wide} too wide`);
+      ok('...no drop-down and no stepper on the form', portfolio.selects === 0 && portfolio.steppers === 0,
+         `${portfolio.selects} selects, ${portfolio.steppers} steppers`);
+      const opened = await p.evaluate(async () => {
+        const btn = [...document.querySelectorAll('[data-wrapper-row] button[aria-expanded]')][0];
+        if (!btn) return null;
+        btn.click();
+        await new Promise(r => setTimeout(r, 300));
+        const row = btn.closest('[data-wrapper-row]');
+        const summary = row.querySelector('[data-risk-summary]');
+        if (summary) summary.click();
+        await new Promise(r => setTimeout(r, 300));
+        return { chips: row.querySelectorAll('[role=radio]').length, fields: row.querySelectorAll('input').length };
+      });
+      ok('...and the chevron opens six chips and the contributions', !!opened && opened.chips === 6 && opened.fields >= 3,
+         opened ? `${opened.chips} chips, ${opened.fields} fields` : 'no row');
+      const sizes = await p.evaluate(INPUT_SIZE_PROBE);
+      const small = sizes.filter(x => x.font < 16);
+      ok('...inputs are at least 16px, so focusing does not zoom', small.length === 0, `${small.length} of ${sizes.length} under 16px`);
+
+      // ---- tab 3: the figures, as rows rather than a grid of cards
+      await simpleTab('Figures');
+      const onFigures = await tabState();
+      ok('the Figures tab lists the results as rows', !!onFigures && onFigures.rows >= 4, onFigures ? `${onFigures.rows} rows` : '');
+      ok('...without the chart or its legend', !!onFigures && onFigures.chart === 0 && !onFigures.legend,
+         onFigures ? `chart ${onFigures.chart}px, legend ${onFigures.legend}` : '');
+      ok('...and nothing scrolling sideways', !!onFigures && onFigures.over <= 0, onFigures ? `${onFigures.over}px` : '');
+      // the choice is about this visit, so it survives a reload of the same session
+      await p.reload({ waitUntil: 'domcontentloaded' });
+      await p.waitForTimeout(1500);
+      const kept = await tabState();
+      ok('...and the tab you were on survives a reload', !!kept && kept.active === 'Figures', kept ? kept.active : '');
+
       await p.evaluate(() => { localStorage.setItem('rp_which_app', 'full'); });
 
 

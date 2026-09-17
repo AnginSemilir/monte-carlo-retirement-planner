@@ -352,7 +352,12 @@ const navigate = async (page, label, short) => {
       };
       const sectionTab = async (name) => { await p.evaluate(t => { const x = [...document.querySelectorAll('[data-section-tabs] [role=tab]')].find(b => b.textContent.trim() === t); if (x) x.click(); }, name); await p.waitForTimeout(400); };
       const activeSection = () => p.evaluate(() => document.querySelector('[data-section-tabs] [aria-selected="true"]')?.textContent.trim());
-      await p.evaluate(() => sessionStorage.removeItem('rp_input_section'));
+      // The simple-page block above switched storage back to the full app without reloading, so the
+      // simple page is still what is mounted here. Reload onto the full app, and run the projection
+      // again on this page because the reload dropped the earlier run's state.
+      await p.evaluate(() => { localStorage.setItem('rp_which_app', 'full'); sessionStorage.removeItem('rp_input_section'); });
+      await p.reload({ waitUntil: 'domcontentloaded' });
+      await p.waitForTimeout(1200);
       await navigate(p, 'Plan Inputs', 'Inputs');
       await p.waitForTimeout(600);
       const first = await p.evaluate(() => {
@@ -414,6 +419,9 @@ const navigate = async (page, label, short) => {
       // the deck: a swipe across the chart turns the step; one on the horizon slider does not
       await navigate(p, 'Projection', 'Projection');
       await p.waitForTimeout(500);
+      await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); if (x) x.click(); });
+      await p.waitForFunction(() => ![...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Stop') && [...document.querySelectorAll('button')].some(b => b.textContent.trim() === '6'), null, { timeout: 300000 });
+      await p.waitForTimeout(1200);
       const curStep = () => p.evaluate(() => { const on = [...document.querySelectorAll('button')].find(b => /^[1-7]$/.test(b.textContent.trim()) && /bg-accent/.test(b.className)); return on ? Number(on.textContent) : null; });
       await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === '4'); if (x) x.click(); });
       await p.waitForTimeout(1500);

@@ -327,3 +327,58 @@ export function CollapsedRow({ summary, sub, open, onToggle, onDelete, deleteLab
     </div>
   );
 }
+
+/*
+ * A PARAGRAPH CUT TO ITS FIRST FEW LINES, ON A PHONE.
+ *
+ * The explanatory paragraphs on this app are written to be read once and then never again: what the
+ * tournament does, what each projection step is showing. At desktop width they are three or four lines
+ * under a heading. At 390px the same words are eight, and they sit between you and the control you came
+ * for every single time you open the tab.
+ *
+ * So on a phone they show their first two lines and end in an ellipsis - the browser's own, from
+ * line-clamp - with one button to open the rest. Nothing is removed: the whole paragraph is in the DOM,
+ * find-in-page reaches it, and a screen reader reads it in full.
+ *
+ * The clamp classes are written out rather than built, because Tailwind generates what it can see.
+ */
+const CLAMP = { 2: 'line-clamp-2', 3: 'line-clamp-3', 4: 'line-clamp-4' };
+
+/*
+ * TWO SHAPES, BECAUSE THE SPACE DIFFERS.
+ *
+ * Where there is room - the tournament's own card - the toggle is its own 44px button under the text,
+ * which is the discoverable version: it says what opening it gets you.
+ *
+ * On the projection deck there is no room. Step 7 puts a chart above the sandbox sheet, and the two
+ * already meet within nine pixels; a 44px button under the step's sentence spends more height than the
+ * clamp saves, which would make the chart disappear behind the sheet to save two lines of prose. So in
+ * `tap` mode the paragraph IS the button: the ellipsis says there is more, tapping the words opens it,
+ * and it costs nothing. It stays inside a span deliberately - a control that is running text is what
+ * WCAG's inline exception is for, and stretching this one to 44px would put back the height the clamp
+ * was there to remove.
+ */
+export function Clamp({ isPhone, lines = 2, label = 'Read more', tap = false, children }) {
+  const [open, setOpen] = useState(false);
+  if (!isPhone) return children;
+  const clamp = open ? '' : (CLAMP[lines] || CLAMP[2]);
+  if (tap) {
+    return (
+      <span className="block">
+        <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open}
+          className={`block w-full text-left cursor-pointer ${clamp}`}>
+          {children}
+        </button>
+      </span>
+    );
+  }
+  return (
+    <>
+      <div className={clamp}>{children}</div>
+      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open}
+        className="min-h-11 flex items-center text-xs font-bold text-blue-700 cursor-pointer">
+        {open ? 'Show less' : label}
+      </button>
+    </>
+  );
+}

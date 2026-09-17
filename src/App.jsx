@@ -26,7 +26,7 @@ import { BottomNav, MoreSheet } from './nav.jsx';
 // `T` at module scope, not a wrapper defined inside the render: a component redeclared every render
 // remounts, which would shut a tooltip the moment a worker result came back underneath it.
 import { Term as T } from './glossary.jsx';
-import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, Stepper, CollapsedRow } from './phone.jsx';
+import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, Stepper, CollapsedRow, Clamp } from './phone.jsx';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
@@ -6808,7 +6808,7 @@ function summarizeStrategyChange(res, baselinePlayer, { isCouple = false, meta =
   return lines;
 }
 
-function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScenarioId, state, setState, cancelRef, onApplyStrategyToSandbox, onApplyStrategyToPlan, onNavigateDocs }) {
+function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScenarioId, state, setState, cancelRef, onApplyStrategyToSandbox, onApplyStrategyToPlan, onNavigateDocs, isPhone = false, onGoToContributions }) {
   const P = ctx.P;
   const isCouple = ctx.isCouple;
   // Settings, results and run progress are owned by App so they outlive this component's unmount on a tab
@@ -6855,6 +6855,9 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
     catch (e) { return null; }
   }, [basePlan, emergencyFloor, scope, budgetOverride, balance, selectedEntrants]);
   const meta = preview?.meta;
+  // Everything the plan pays in, wherever it goes: the difference between "nothing entered" and
+  // "entered somewhere this tournament cannot use" is the whole of what the blocked message has to say.
+  const contribElsewhere = (plan?.accounts || []).reduce((s, a) => s + E.num(a.contrib, 0), 0);
   const salaryMissing = ctx.owners.filter(o => o.salary <= 0).map(o => o.label);
   // balancing steers new money to the smaller pension, which throws away relief when that owner sits in
   // a lower band — measured at ~£45k of relief lost against ~£26k of retirement tax saved
@@ -6956,9 +6959,11 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
           <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
             <Zap className="w-4 h-4 text-indigo-600 fill-indigo-600" /> Automated Strategy Tournament &amp; Optimizer
           </h3>
+          <Clamp isPhone={isPhone} lines={2} label="What this is…">
           <p className="text-xs text-slate-500 mt-0.5">
             Six wrapper strategies with the same take-home budget, each tested on the same {fmtNum(TOURNAMENT_TRIALS)} market paths, so every strategy meets the same good and bad years rather than its own draw. That takes the luck of the draw out of the comparison, but not the sampling error: a gap of under a point of survival is a tie, not a better strategy.{selectedEntrants.length > 0 ? ` Plus ${selectedEntrants.length} saved scenario${selectedEntrants.length === 1 ? '' : 's'} entered as saved.` : ''}
           </p>
+          </Clamp>
         </div>
         <button type="button" onClick={onNavigateDocs} className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto">
           <HelpCircle className="w-3.5 h-3.5" /> Tournament methodology &amp; players &rarr;
@@ -7077,7 +7082,30 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
           {isEvaluating ? 'Evaluating…' : results ? 'Compare again' : 'Compare strategies now'}
         </button>
       </div>
-      {meta && meta.netBudget <= 0 && <p className="text-xs text-rose-600">Enter ISA or pension contributions (or a take-home budget above) to run the tournament.</p>}
+      {/*
+        * WHY THE BUTTON IS OFF, AND WHERE TO GO.
+        *
+        * The tournament divides what goes into a pension and an ISA each year, so a plan paying into
+        * neither has nothing to divide. The old line said "enter ISA or pension contributions" and left
+        * it there, which reads as a fault when you HAVE entered contributions - into cash, say, which
+        * this does not redistribute, or on a phone where the field sits behind the chevron on a
+        * portfolio row. So it names what it found and takes you to the field.
+        */}
+      {meta && meta.netBudget <= 0 && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <p className="text-xs text-rose-700 flex-1 min-w-0">
+            {contribElsewhere > 0
+              ? <>Your plan pays in <strong>{formatGBP(contribElsewhere)} a year</strong>, but none of it into a pension or an ISA. Those two are what this tournament moves money between, so it needs an annual contribution to at least one &mdash; or a take-home budget above, to test a figure you have not committed to.</>
+              : <>This divides what you pay in each year between the wrappers, and your plan pays in nothing yet. Add an <strong>annual contribution</strong> to a pension or an ISA &mdash; or set a take-home budget above to test a figure.</>}
+          </p>
+          {onGoToContributions && (
+            <button type="button" onClick={onGoToContributions}
+              className={`rounded-lg text-xs font-bold border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 cursor-pointer shrink-0 ${isPhone ? 'min-h-11 px-3' : 'px-3 py-1.5'}`}>
+              Open Plan Inputs &rarr;
+            </button>
+          )}
+        </div>
+      )}
 
       {results && (
         <div className="space-y-3 pt-2">
@@ -9185,7 +9213,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent text-onaccent text-[10px] font-black shrink-0">{n}</span>
           {title}
         </h2>
-        <span className="text-xs text-slate-500">{sub}</span>
+        {/* The step's own sentence, which at 390px is four or five lines between the heading and the
+            chart. Two and an ellipsis on a phone, the whole thing on a desktop - and the words
+            themselves open it, because a button under them would cost the chart on step 7. */}
+        <Clamp isPhone={isPhone} lines={2} tap>
+          <span className="text-xs text-slate-500 block">{sub}</span>
+        </Clamp>
         {isPhone && !seeAll && (
           <div data-slide-dots className="flex items-center gap-1.5 mt-1.5" aria-hidden="true">
             {PROJECTION_SLIDES.map(x => <span key={x.n} className={`h-1.5 rounded-full transition-all ${x.n === n ? 'w-4 bg-blue-600' : 'w-1.5 bg-slate-300'}`} />)}
@@ -11569,7 +11602,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </button>
               </div>
             </div>
-            <WrapperStrategyTournament plan={plan} ctx={ctx} seed={mcSeed} scenarios={scenarios} activeScenarioId={activeScenarioId} state={tournament} setState={setTournament} cancelRef={tournamentCancelRef} onApplyStrategyToSandbox={handleApplyStrategyToSandbox} onApplyStrategyToPlan={handleApplyStrategyToPlan} onNavigateDocs={() => goToDoc('doc-tournament')} />
+            <WrapperStrategyTournament plan={plan} ctx={ctx} seed={mcSeed} scenarios={scenarios} activeScenarioId={activeScenarioId} state={tournament} setState={setTournament} cancelRef={tournamentCancelRef} onApplyStrategyToSandbox={handleApplyStrategyToSandbox} onApplyStrategyToPlan={handleApplyStrategyToPlan} onNavigateDocs={() => goToDoc('doc-tournament')}
+              isPhone={isPhone} onGoToContributions={() => { setActiveTab('inputs'); selectSection('money'); window.scrollTo(0, 0); }} />
           </div>
         )}
 

@@ -234,3 +234,35 @@ never triggers.
 `numbers-ui` now measures the field less the chip rather than the input's own width, which after this
 change would have counted the pixels underneath the chip, and asserts the chip's right edge sits on the
 field's.
+
+## The deck as a numbered list, and a form of one column
+
+**The steps say what they are.** Each step's name has existed since the deck was built, in a `title`
+attribute: a tooltip nobody hovers on a desktop and nobody can see at all on a phone. Seven squares
+reading 1 to 7 tell you where you are standing and nothing about where you could go.
+
+| | Before | After |
+|---|---|---|
+| Desktop, 1366 wide | `1 2 3 4 5 6 7` | one row of named pills: `1 Topline · 2 Safe spend · 3 Safe retirement · …`, the sentence on hover |
+| Phone, 390 wide | seven 28px squares | a **numbered list**: badge, name, and the first line of what the step does, with a chevron that opens the rest |
+| Phone: the list | — | 51px a row, 446px for all seven plus "See all seven at once" |
+| Phone: Projection tab, step 5 | 1,821px | 1,903px |
+| Phone: step 7, chart bottom vs sheet top | 358 vs 377 | unchanged — the list is below the chart |
+
+Two shapes rather than one because the space is not the same: a desktop already fits the whole deck
+across the foot of the card in a single sticky row, where a stack of seven rows would push that row off
+the screen. The row body goes to the step; the chevron opens the sentence in place, one at a time.
+
+An intermediate version — the same seven steps as wrapping chips with two-word labels — was built and
+rejected: it named the steps but had no room to say what any of them did, which was the point.
+
+**The full planner's fields are the surface colour now, not a grey fill,** matching the simple page. An
+outlined field on the page's own ground reads as a space to write in; a filled one reads as a value to
+look at. It mattered most under the sepia theme, where `bg-slate-50` resolved to a beige panel a shade
+off its own background and a column of them made the form look like a table of read-only figures.
+
+**And the ages lost their steppers.** They were there on the argument that an age moves by one, which is
+true, but they cost those rows their alignment: every other control on the tab is one 152px box, and the
+two with steppers were a narrower box plus a pair of buttons, so the right edge of the form zig-zagged.
+Measured on a Pixel 7, the You tab's controls now share **one right edge** — which is what `phone-ui`
+asserts, rather than counting steppers, because a stray one would show up as a second edge.

@@ -67,7 +67,7 @@ async function open(b, w, h, app = 'full') {
   return { p, errs };
 }
 const tab = async (p, name) => { await p.evaluate(n => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.includes(n)); if (x) x.click(); }, name); await p.waitForTimeout(650); };
-const step = async (p, n) => { await p.evaluate(s => { const x = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === s); if (x) x.click(); }, String(n)); await p.waitForTimeout(1700); };
+const step = async (p, n) => { await p.evaluate(s => { const x = document.querySelector(`[data-slide-pill="${s}"]`); if (x) x.click(); }, String(n)); await p.waitForTimeout(1700); };
 async function runProjection(p) {
   await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); x.click(); });
   await p.waitForFunction(() => ![...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Stop'), null, { timeout: 300000 });
@@ -85,7 +85,7 @@ async function runProjection(p) {
 
   await step(p, 5);
   const five = await p.evaluate(() => {
-    const pills = [...document.querySelectorAll('button')].filter(x => /^[1-7]$/.test(x.textContent.trim()));
+    const pills = [...document.querySelectorAll('[data-slide-pill]')];
     return { pillsTop: pills.length ? Math.round(pills[pills.length - 1].getBoundingClientRect().top) : null, vh: window.innerHeight };
   });
   ok('step 5: the deck’s own pills are on screen', five.pillsTop !== null && five.pillsTop < five.vh, `pills at ${five.pillsTop} of ${five.vh}`);
@@ -95,7 +95,7 @@ async function runProjection(p) {
     const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
     const dials = [...document.querySelectorAll('[data-quick-dials] button')];
     const inView = dials.filter(d => { const r = d.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; });
-    const pills = [...document.querySelectorAll('button')].filter(x => /^[1-7]$/.test(x.textContent.trim()));
+    const pills = [...document.querySelectorAll('[data-slide-pill]')];
     return { chartBottom: svg ? Math.round(svg.getBoundingClientRect().bottom) : null, dials: dials.length, inView: inView.length,
       pillsTop: pills.length ? Math.round(pills[pills.length - 1].getBoundingClientRect().top) : null, vh: window.innerHeight };
   });

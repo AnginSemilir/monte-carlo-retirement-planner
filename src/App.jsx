@@ -26,7 +26,7 @@ import { BottomNav, MoreSheet } from './nav.jsx';
 // `T` at module scope, not a wrapper defined inside the render: a component redeclared every render
 // remounts, which would shut a tooltip the moment a worker result came back underneath it.
 import { Term as T } from './glossary.jsx';
-import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, Stepper, CollapsedRow, Clamp } from './phone.jsx';
+import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, CollapsedRow, Clamp } from './phone.jsx';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
@@ -6352,10 +6352,16 @@ async function scoreInWorkers(jobs, { onProgress } = {}) {
  * an exported JSON blob.
  *
  * The focus ring is drawn INSIDE the control (`ring-inset`) so a focused field in a tight grid does not
- * overlap its neighbour, and the fill lifts to the surface colour so the focused row reads as live.
+ * overlap its neighbour.
+ *
+ * THE FIELD IS THE SURFACE COLOUR, NOT A GREY FILL. A filled box reads as a thing you look at; an
+ * outlined one on the page's own ground reads as a space you write in. It matters most under the sepia
+ * theme, where `bg-slate-50` came out as a beige panel a shade off its own background and a column of
+ * them made the form look like a table of read-only values. The simple page has always been outline-only
+ * and is the version that reads better, so the full planner matches it.
  */
-const inputCls = 'w-full p-2 bg-slate-50 border border-slate-300 rounded-lg tabular-nums text-slate-900 font-semibold focus:bg-surface focus:ring-2 focus:ring-inset focus:ring-blue-600 focus:border-blue-600 focus:outline-none';
-const smallInputCls = 'w-full p-2 bg-slate-50 border border-slate-300 rounded tabular-nums font-semibold text-slate-900 focus:bg-surface focus:ring-2 focus:ring-inset focus:ring-blue-600 focus:border-blue-600 focus:outline-none';
+const inputCls = 'w-full p-2 bg-surface border border-slate-300 rounded-lg tabular-nums text-slate-900 font-semibold focus:ring-2 focus:ring-inset focus:ring-blue-600 focus:border-blue-600 focus:outline-none';
+const smallInputCls = 'w-full p-2 bg-surface border border-slate-300 rounded tabular-nums font-semibold text-slate-900 focus:ring-2 focus:ring-inset focus:ring-blue-600 focus:border-blue-600 focus:outline-none';
 
 function ProgressBar({ value, label }) {
   return (
@@ -7287,13 +7293,19 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * `seeAll` cascades the lot for anyone who would rather scroll, and is what a re-run lands on: having
    * already walked it once, the second pass is a comparison, not a tour.
    */
+  /*
+   * `desc` is what the step is for, in a sentence, and it is the deck's contents list rather than a
+   * caption: on a phone the index at the foot of each step shows its first line and opens the rest, so
+   * the seven steps can be read as a plan before any of them is opened. Static text, unlike the `sub`
+   * under each heading, which carries this plan's own figures.
+   */
   const PROJECTION_SLIDES = [
-    { n: 1, key: 'topline', name: 'Topline' },
-    { n: 2, key: 'safespend', name: 'Safe spend' },
-    { n: 3, key: 'saferetire', name: 'Safe retirement' },
-    { n: 4, key: 'ratechart', name: 'Rate based' },
-    { n: 5, key: 'mcchart', name: 'Monte Carlo' },
-    { n: 6, key: 'compare', name: 'Side by side' },
+    { n: 1, key: 'topline', name: 'Topline', desc: 'Your plan exactly as entered: how often it lasts, what it leaves behind, and when it fails if it does.' },
+    { n: 2, key: 'safespend', name: 'Safe spend', desc: 'Holds the risk fixed and solves for the income instead - the most you could spend a year and still clear your target survival rate.' },
+    { n: 3, key: 'saferetire', name: 'Safe retirement', desc: 'Holds the spending fixed and solves for the date - the earliest age you could stop and still clear the same target.' },
+    { n: 4, key: 'ratechart', name: 'Rate based', desc: 'One steady real rate per wrapper, compounded year by year. It redraws as you type, so it is the quickest way to see a change.' },
+    { n: 5, key: 'mcchart', name: 'Monte Carlo', desc: 'Thousands of randomised futures on the same axes, which show the spread that a single smooth rate hides.' },
+    { n: 6, key: 'compare', name: 'Side by side', desc: 'The same plan both ways at the same five ages, so the gap between the smooth line and the simulated one is explicit.' },
     /*
      * The sandbox is a STEP, not an appendix.
      *
@@ -7306,7 +7318,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
      * As step 7 it is one click from anywhere, it is included in "See all" like everything else, and it
      * renders the Monte Carlo chart directly above the controls, so an edit and its effect share a screen.
      */
-    { n: 7, key: 'sandbox', name: 'Change something' }
+    { n: 7, key: 'sandbox', name: 'Change something', desc: 'Edit a contribution, a balance or an age and the amber line moves with you. Your saved plan is not touched.' }
   ];
   const SANDBOX_SLIDE = PROJECTION_SLIDES.find(x => x.key === 'sandbox').n;
   /*
@@ -7372,6 +7384,9 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
 
   const [slide, setSlide] = useState(1);
   const [seeAll, setSeeAll] = useState(false);
+  // which row of the phone's step index has its sentence open; one at a time, because the index is a
+  // list you scan rather than a document you read
+  const [indexOpen, setIndexOpen] = useState(null);
   const showSlide = (n) => seeAll || slide === n;
 
   /*
@@ -8212,7 +8227,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
         <button type="button" aria-pressed={isFull} data-full-state-pension
           onClick={() => updateDemographics(key, isFull ? '' : String(STATE_PENSION_FULL))}
           title={`The full new State Pension, \u00a3${fmtNum(STATE_PENSION_FULL)} a year`}
-          className={`absolute inset-y-0 right-0 flex items-center justify-center rounded-r-lg border text-[11px] font-bold whitespace-nowrap cursor-pointer transition-colors ${isPhone ? 'w-11' : 'w-10'} ${isFull ? 'bg-blue-50 border-blue-600 text-blue-700' : 'bg-slate-100 border-slate-300 text-slate-600 hover:text-slate-900'}`}>
+          className={`absolute inset-y-0 right-0 flex items-center justify-center rounded-r-lg border text-[11px] font-bold whitespace-nowrap cursor-pointer transition-colors ${isPhone ? 'w-11' : 'w-10'} ${isFull ? 'bg-blue-50 border-blue-600 text-blue-700' : 'bg-slate-50 border-slate-300 text-slate-600 hover:text-slate-900'}`}>
           Full
         </button>
       </div>
@@ -9376,18 +9391,74 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * be worse than the scroll. `bg-surface` because a sticky row over scrolling content needs a ground of
    * its own, and a negative bottom margin so the row does not reserve space twice when it is not stuck.
    */
+  /*
+   * THE DECK AS A NUMBERED LIST, ON A PHONE.
+   *
+   * Seven squares reading 1 to 7 are a position indicator, not a contents list, and the deck's whole
+   * problem on a phone is that you can only ever see the step you are standing on. As a list each step
+   * is a numbered row: what it is called, and the first line of what it does in grey under it. The
+   * chevron opens the rest of that sentence in place; the row itself goes to the step. Nothing about
+   * the deck has to be discovered by walking it any more.
+   *
+   * A desktop keeps the one-line row of named pills below, because there the whole deck already fits
+   * across the foot of the card and a stack of seven rows would push the sticky bar off the screen.
+   */
+  const slideIndex = () => (
+    <ol data-slide-index className="flex flex-col gap-1.5 w-full">
+      {PROJECTION_SLIDES.map(s => {
+        const here = !seeAll && slide === s.n;
+        const open = indexOpen === s.n;
+        return (
+          <li key={s.n}>
+            <div className={`flex items-start gap-1 rounded-xl border transition-colors ${here ? 'border-blue-600 bg-blue-50/70' : 'border-slate-200 bg-surface'}`}>
+              <button type="button" data-slide-pill={s.n} data-slide-here={here ? 'true' : undefined} aria-current={here ? 'step' : undefined}
+                onClick={() => { setSeeAll(false); setSlide(s.n); }}
+                className="flex-1 min-w-0 flex items-start gap-2.5 text-left cursor-pointer py-2 pl-2">
+                <span className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] font-black tabular-nums ${here ? 'bg-accent text-onaccent' : 'bg-slate-100 text-slate-500'}`}>{s.n}</span>
+                <span className="min-w-0 flex-1">
+                  <span className={`block text-[13px] font-bold leading-tight ${here ? 'text-blue-900' : 'text-slate-900'}`}>{s.name}</span>
+                  {/* no `block` beside the clamp: `line-clamp-*` is a `display`, and a display utility
+                      next to it wins and turns the clamp off */}
+                  <span className={`text-[11px] text-slate-500 leading-snug mt-0.5 ${open ? 'block' : 'line-clamp-1'}`}>{s.desc}</span>
+                </span>
+              </button>
+              <button type="button" onClick={() => setIndexOpen(open ? null : s.n)} aria-expanded={open}
+                aria-label={`${open ? 'Hide' : 'Show'} what ${s.name} does`}
+                className="w-11 h-11 shrink-0 flex items-center justify-center text-slate-400 cursor-pointer">
+                <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+          </li>
+        );
+      })}
+      <li>
+        <button type="button" onClick={() => setSeeAll(!seeAll)}
+          className={`w-full min-h-11 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${seeAll ? 'bg-slate-800 text-white border-slate-800' : 'bg-surface border-slate-200 text-slate-500'}`}>
+          {seeAll ? 'One at a time' : 'See all seven at once'}
+        </button>
+      </li>
+    </ol>
+  );
+
   const slideNav = (n) => (
     <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 md:sticky md:bottom-0 md:bg-surface md:pb-1 md:z-10">
-      <div className="flex items-center gap-1.5">
+      {isPhone ? slideIndex() : (
+      <div className="flex flex-wrap items-center gap-1.5">
         {PROJECTION_SLIDES.map(s => (
-          <button key={s.n} type="button" onClick={() => { setSeeAll(false); setSlide(s.n); }} title={s.name}
-            className={`w-7 h-7 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${!seeAll && slide === s.n ? 'bg-accent text-onaccent border-blue-600' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>{s.n}</button>
+          <button key={s.n} type="button" data-slide-pill={s.n} title={s.desc}
+            data-slide-here={!seeAll && slide === s.n ? 'true' : undefined} aria-current={!seeAll && slide === s.n ? 'step' : undefined}
+            onClick={() => { setSeeAll(false); setSlide(s.n); }}
+            className={`flex items-center gap-1.5 px-2 h-7 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${!seeAll && slide === s.n ? 'bg-accent text-onaccent border-blue-600' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'}`}>
+            <span className={`tabular-nums ${!seeAll && slide === s.n ? '' : 'text-slate-400'}`}>{s.n}</span>
+            <span>{s.name}</span>
+          </button>
         ))}
         <button type="button" onClick={() => setSeeAll(!seeAll)}
           className={`ml-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${seeAll ? 'bg-slate-800 text-white border-slate-800' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900'}`}>
           {seeAll ? 'One at a time' : 'See all'}
         </button>
       </div>
+      )}
       {!seeAll && (
         <div className="flex items-center gap-2">
           <button type="button" disabled={n === 1} onClick={() => setSlide(n - 1)}
@@ -9757,19 +9828,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * The desktop grid is label-above-field in four columns. Collapsed to one column it was a label, a
    * half-width input and a seven-line helper in a half-width column, which is what your screenshot of
    * "Minimum pot at age 100" showed. These are the same fields as rows: label left, control right,
-   * explanation behind a "?", ages with a stepper because an age moves by one.
+   * explanation behind a "?".
+   *
+   * The ages had a -/+ stepper beside the field, on the argument that an age moves by one. It cost those
+   * rows their alignment: every other control on the tab is one 152px box, and the two with steppers
+   * were a narrower box plus a pair of buttons, so the column zig-zagged down the form. The number pad
+   * is one tap away on a phone and the field is a number input on a desktop, so the stepper was buying
+   * a little convenience for two rows at the cost of the shape of all of them.
    */
   const renderYouRows = () => {
     const d = plan?.demographics || {};
-    const stepAge = (field, by, lo = 0, hi = 120) => {
-      const cur = E.num(d[field], NaN);
-      if (!Number.isFinite(cur)) return;
-      updateDemographics(field, String(Math.max(lo, Math.min(hi, cur + by))));
-    };
     const ageRow = (label, field, lo = 0) => (
       <FieldRow key={field} label={label}>
         <input type="number" min={lo} max="120" onFocus={handleFocus} value={d[field] ?? ''} onChange={(e) => updateDemographics(field, e.target.value)} className={`${inputCls} text-right`} />
-        <Stepper label={label} onDown={() => stepAge(field, -1, lo)} onUp={() => stepAge(field, 1, lo)} />
       </FieldRow>
     );
     const money = (label, value, onChange, opts = {}) => (

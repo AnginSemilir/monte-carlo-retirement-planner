@@ -284,24 +284,6 @@ export function RiskChips({ name, value, options, onChange, collapsible = false 
 }
 
 /*
- * A STEPPER FOR THE FEW NUMBERS THAT MOVE BY ONE.
- *
- * NN/g's rule: steppers suit a small range, roughly 0 to 10 steps. An age or a plan horizon moves by
- * one and is exactly that; a balance is not, and gets a keypad. Side by side, 44px tall for a finger,
- * beside the field rather than instead of it, so a big change is still typed.
- */
-export function Stepper({ label, onDown, onUp }) {
-  return (
-    <span className="flex shrink-0">
-      <button type="button" aria-label={`decrease ${label}`} onClick={onDown}
-        className="w-9 h-11 flex items-center justify-center rounded-l-lg border border-slate-300 bg-slate-50 text-base text-slate-600 cursor-pointer active:bg-slate-200">&minus;</button>
-      <button type="button" aria-label={`increase ${label}`} onClick={onUp}
-        className="w-9 h-11 flex items-center justify-center rounded-r-lg border border-l-0 border-slate-300 bg-slate-50 text-base text-slate-600 cursor-pointer active:bg-slate-200">+</button>
-    </span>
-  );
-}
-
-/*
  * ONE ITEM OF A LIST, AS ONE LINE UNTIL YOU TAP IT.
  *
  * A spending band is three numbers, an income stream is six fields. Laid out open, every item is a

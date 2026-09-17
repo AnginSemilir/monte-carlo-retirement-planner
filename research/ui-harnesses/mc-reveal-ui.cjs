@@ -37,9 +37,9 @@ const plan = {
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Projection/.test(b.textContent)); if(x) x.click(); });
   await p.waitForTimeout(500);
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Run the projection/i.test(b.textContent)); x.click(); });
-  await p.waitForFunction(() => [...document.querySelectorAll('button')].some(b => /^5$/.test(b.textContent.trim())), null, { timeout: 120000 });
+  await p.waitForFunction(() => !!document.querySelector('[data-slide-pill="5"]'), null, { timeout: 120000 });
   await p.waitForTimeout(2000);
-  await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/^5$/.test(b.textContent.trim())); x.click(); });
+  await p.evaluate(() => { const x=document.querySelector('[data-slide-pill="5"]'); x.click(); });
   /*
    * The band toggle now opens on "Expected only" - one line, on an axis that follows it, because that is
    * what makes a change to the plan visible. This harness is about the reveal, which is the band and the
@@ -50,9 +50,9 @@ const plan = {
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Upper/lower quartiles'); if (x) x.click(); });
   await p.waitForTimeout(300);
   // the reveal replays from the top when the mode changes, so re-enter the slide to watch it from 0
-  await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/^4$/.test(b.textContent.trim())); if (x) x.click(); });
+  await p.evaluate(() => { const x=document.querySelector('[data-slide-pill="4"]'); if (x) x.click(); });
   await p.waitForTimeout(400);
-  await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/^5$/.test(b.textContent.trim())); x.click(); });
+  await p.evaluate(() => { const x=document.querySelector('[data-slide-pill="5"]'); x.click(); });
   let fails = 0;
   const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
   const probe = () => p.evaluate(() => {

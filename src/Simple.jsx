@@ -3,7 +3,7 @@ import { TrendingUp, Plus, X, Loader2, Download, Minus, Bookmark, Maximize2 } fr
 import {
   buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
   buildPolicyCandidates, explainPick, toleranceFor, simulateDeterministic, DEFAULT_RISK_PROFILES,
-  STATE_PENSION_FULL, BAND_QUANTILES, TAX_REGION_LABELS, num
+  STATE_PENSION_FULL, BAND_QUANTILES, TAX_REGION_LABELS, num, fmtNum, parseFormatted
 } from './App.jsx';
 import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId, earningId } from './simplePlan.js';
 import { ChartFullscreen } from './phone.jsx';
@@ -516,8 +516,13 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    * input cannot carry them. So these are text inputs that format on the way out and strip on the way
    * in, keeping inputMode numeric so a phone still shows the number pad.
    */
-  const fmt = (v) => (v === '' || v == null ? '' : Number(v).toLocaleString('en-GB'));
-  const parse = (v) => v.replace(/[^0-9.]/g, '');
+  // Shared with the full planner rather than a second copy, so the Config toggle reaches this page too
+  // and a figure cannot read one way here and another way there. `parseFormatted` is the exact inverse of
+  // `fmtNum` under whichever convention is active, which is the whole point: under the European one
+  // "1.234" is one thousand two hundred and thirty-four, and a parser that assumed otherwise would store
+  // a different number from the one on screen.
+  const fmt = (v) => (v === '' || v == null ? '' : fmtNum(v));
+  const parse = (v) => parseFormatted(v);
   // `hint` overrides the placeholder, for the one field where 0 is a poor prompt: the State Pension,
   // where the full new award is what most people get and blank quietly means "none at all".
   const cash = (k, extra = '', hint = '0') => (
@@ -526,7 +531,6 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
       className={`${inCls} text-right ${extra}`} />
   );
 
-  // + above -, so a stepper costs 18px of width instead of 40
   /*
    * SIDE BY SIDE, NOT STACKED.
    *
@@ -544,6 +548,35 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
         className="w-6 h-6 flex items-center justify-center rounded-r border border-l-0 border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 cursor-pointer"><Plus className="w-3 h-3" /></button>
     </span>
   );
+
+  /*
+   * THE FULL AWARD IN ONE TAP, AND STILL NOT AN ASSUMPTION.
+   *
+   * The same control as the full planner's, for the same reason: the full new State Pension is what most
+   * people on a full National Insurance record get, but how many qualifying years stand behind any one
+   * award is not something this page knows, so it stays a suggestion in the placeholder and a button you
+   * press. Pressing it when it is already on CLEARS the field, because the next thing somebody does after
+   * deciding they are not on the full award is type their own number over a blank.
+   *
+   * It lives inside the same 148px control column as every other row, so the column still lines up: the
+   * field flexes and the button takes what it needs, which still leaves room for five digits.
+   */
+  const statePensionField = (k) => {
+    const isFull = String(s[k] ?? '') !== '' && Number(s[k]) === STATE_PENSION_FULL;
+    return (
+      <span className="flex items-stretch gap-1 w-full">
+        <input type="text" inputMode="numeric" value={fmt(s[k])} placeholder={SP_HINT}
+          onFocus={(e) => e.target.select()} onChange={(e) => set(k, parse(e.target.value))}
+          className={`${inCls} text-right flex-1 min-w-0`} />
+        <button type="button" aria-pressed={isFull} data-full-state-pension
+          onClick={() => set(k, isFull ? '' : String(STATE_PENSION_FULL))}
+          title={`The full new State Pension, \u00a3${STATE_PENSION_FULL.toLocaleString()} a year`}
+          className={`shrink-0 px-1.5 rounded border text-[10px] font-bold cursor-pointer ${isFull ? 'bg-blue-50 border-blue-600 text-blue-700' : 'bg-slate-50 border-slate-300 text-slate-600 hover:text-slate-900'}`}>
+          Full
+        </button>
+      </span>
+    );
+  };
 
   // one row of the details list: a label that may be long, and a control that never moves
   const row = (label, control) => (
@@ -764,8 +797,8 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
           {s.couple && row('Partner age now', cash('agePart'))}
           {s.couple && row('Partner retires at', <>{cash('retirePart')}{stepper('retirePart', 1)}</>)}
           {row('Expected retirement spending', <>{cash('spend')}{stepper('spend', 1000)}</>)}
-          {row('State Pension a year', cash('statePensionSelf', '', SP_HINT))}
-          {s.couple && row('Partner State Pension', cash('statePensionPart', '', SP_HINT))}
+          {row('State Pension a year', statePensionField('statePensionSelf'))}
+          {s.couple && row('Partner State Pension', statePensionField('statePensionPart'))}
           {row('Where you pay tax',
             <select value={s.region} onChange={(e) => set('region', e.target.value)} className={`${subCls} w-full cursor-pointer`}>
               {Object.entries(TAX_REGION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}

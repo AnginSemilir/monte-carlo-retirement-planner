@@ -11,7 +11,7 @@
  * one source of truth, one listener on the OS setting, and one thing writing the document attribute.
  */
 import { useState, useEffect } from 'react';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon, Coffee } from 'lucide-react';
 
 export const THEME_STORAGE_KEY = 'rp_theme_v1';
 
@@ -19,10 +19,21 @@ const get = (k) => { try { return localStorage.getItem(k); } catch { return null
 const set = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
 
 /*
- * `theme` is what the household chose - light, dark, or follow the machine. `resolvedTheme` is which of
- * the two designed palettes that currently means, and it is the only thing the document is ever stamped
- * with, so the CSS needs two blocks rather than three. On 'system' it keeps listening: a laptop that
- * turns dark at sunset should take the page with it.
+ * `theme` is what the household chose - light, dark, sepia, or 'system', which follows the machine.
+ * `resolvedTheme` is which designed palette that currently means, and it is the only thing the document
+ * is ever stamped with. On 'system' it keeps listening: a laptop that turns dark at sunset takes the page
+ * with it.
+ *
+ * SEPIA REPLACED THE FOLLOW-THE-DEVICE BUTTON, AND THAT IS A REAL TRADE.
+ *
+ * The button showed a screen icon and, on a machine set to light, produced a page indistinguishable from
+ * the light theme - a third of the control doing nothing visible. It is gone from the toggle, so once
+ * somebody picks a theme the page stops following their machine. What is kept is the part that matters
+ * most: 'system' is still the state of anyone who has never chosen, which is almost everyone, so a laptop
+ * that goes dark at sunset still takes the page with it until its owner expresses a preference.
+ *
+ * The toggle therefore presses the RESOLVED theme rather than the stored one, because on 'system' the
+ * stored value matches none of the three buttons and an unpressed row would read as broken.
  *
  * 'classic' was a third theme and maps to light, which is what it collapsed into. The anti-FOUC script in
  * index.html carries the same mapping and has to agree with this, or the page flashes on load.
@@ -31,7 +42,7 @@ export function useTheme() {
   const [theme, setTheme] = useState(() => {
     const saved = get(THEME_STORAGE_KEY);
     if (saved === 'classic') return 'light';
-    if (saved === 'light' || saved === 'dark' || saved === 'system') return saved;
+    if (saved === 'light' || saved === 'dark' || saved === 'sepia' || saved === 'system') return saved;
     return 'system';
   });
   const [systemDark, setSystemDark] = useState(
@@ -57,7 +68,7 @@ export function useTheme() {
 const OPTIONS = [
   { id: 'light', Icon: Sun, title: 'Light' },
   { id: 'dark', Icon: Moon, title: 'Dark' },
-  { id: 'system', Icon: Monitor, title: 'Match my device' },
+  { id: 'sepia', Icon: Coffee, title: 'Sepia' },
 ];
 
 /*
@@ -65,13 +76,15 @@ const OPTIONS = [
  * under a thumb, and this control sits in the header of every screen, so it would otherwise be the one
  * thing on the page a finger could not reliably hit.
  */
-export function ThemeToggle({ theme, setTheme, touch = false, className = '' }) {
+export function ThemeToggle({ theme, setTheme, resolvedTheme = 'light', touch = false, className = '' }) {
+  // On 'system' the stored preference matches none of the three, so press what is actually on screen.
+  const shown = theme === 'system' ? resolvedTheme : theme;
   return (
     <div className={`flex items-center gap-0.5 bg-slate-100 p-1 rounded-lg border border-slate-200/80 ${className}`}>
       {OPTIONS.map(({ id, Icon, title }) => (
         <button key={id} type="button" onClick={() => setTheme(id)} title={title} aria-label={title}
-          aria-pressed={theme === id}
-          className={`rounded-md transition-colors cursor-pointer ${touch ? 'min-h-11 min-w-11 flex items-center justify-center' : 'p-1.5'} ${theme === id ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-800'}`}>
+          aria-pressed={shown === id}
+          className={`rounded-md transition-colors cursor-pointer ${touch ? 'min-h-11 min-w-11 flex items-center justify-center' : 'p-1.5'} ${shown === id ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-800'}`}>
           <Icon className="w-4 h-4" />
         </button>
       ))}

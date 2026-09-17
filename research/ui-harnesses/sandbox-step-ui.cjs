@@ -98,11 +98,15 @@ const plan = {
   // the sandbox line's own signature: 3.5px, 6,4 dash. The nominal and cash series are dashed as well,
   // so this must match on both attributes or it counts them and can never read zero.
   ok('no amber sandbox line before editing', probe.amber === 0, `${probe.amber}`);
+  // Money fields are text inputs carrying thousands separators, not number inputs: a plain number input
+  // cannot show a separator at all. `data-money` marks them, and the displayed value has to be stripped
+  // before it is a number again - Number("12,000") is NaN, which would have quietly found no target.
   const edited = await p.evaluate(() => {
-    const ins = [...document.querySelectorAll('input[type="number"]')];
+    const ins = [...document.querySelectorAll('input[data-money], input[type="number"]')];
+    const val = (el) => Number(String(el.value).replace(/[^0-9.-]/g, ''));
     const set = (el, v) => { const s = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set; s.call(el, String(v)); el.dispatchEvent(new Event('input',{bubbles:true})); };
-    const target = ins.find(i => Number(i.value) === 12000) || ins.find(i => Number(i.value) > 1000);
-    if (!target) return false; set(target, Number(target.value) + 9000); return true;
+    const target = ins.find(i => val(i) === 12000) || ins.find(i => val(i) > 1000);
+    if (!target) return false; set(target, val(target) + 9000); return true;
   });
   await p.waitForTimeout(1200);
   const after = await p.evaluate(() => {

@@ -1,5 +1,20 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import * as d3 from 'd3';
+/*
+ * FOUR FUNCTIONS, NOT THIRTY PACKAGES.
+ *
+ * `import * as d3 from 'd3'` pulls the meta-package, which re-exports about thirty modules - geo
+ * projections, force simulation, chord diagrams, hierarchies, brush, zoom, drag, delimiter parsing,
+ * fetch. This app calls exactly four of them, listed below, and a namespace import is the shape a
+ * bundler can do least with.
+ *
+ * Rebuilt as a local object rather than four bare names so the hundred-odd `d3.scaleLinear(...)` call
+ * sites did not have to change, and - more to the point - so `line` and `area` do not become bare
+ * identifiers in a file that has its own `line` and `area` variables. That would have been a rename with
+ * a silent shadowing bug in it.
+ */
+import { scaleLinear } from 'd3-scale';
+import { area, line, curveMonotoneX } from 'd3-shape';
+const d3 = { scaleLinear, area, line, curveMonotoneX };
 import {
   TrendingUp, Layers, Check, RotateCcw, Dices, Zap, ShieldCheck, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
@@ -9,6 +24,7 @@ import {
 import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
 import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel } from './phone.jsx';
+import { MoneyInput } from './numberFormat.jsx';
 import EditMode from './EditMode.jsx';
 // ============================================================================================
 // Monte-Carlo Retirement Planner v3.4 — single-file build (engine + UI).
@@ -30,7 +46,60 @@ const num = (v, d = 0) => {
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const isBlank = (v) => v === '' || v === null || v === undefined || (typeof v === 'number' && !Number.isFinite(v));
 const round250 = (v) => Math.round(v / 250) * 250;
-const formatGBP = (v) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(Number.isFinite(v) ? v : 0);
+/*
+ * WHICH WAY ROUND THE SEPARATORS GO, DECIDED IN ONE PLACE.
+ *
+ * Two conventions, because a plan shared with somebody in Amsterdam or Madrid should not read as a
+ * different number to them:
+ *
+ *   uk   1,234.56   group with a comma, decimal point
+ *   eu   1.234,56   group with a point, decimal comma
+ *
+ * PARSING IS THE EXACT INVERSE OF DISPLAY, and it has to be: under the European convention "1.234" means
+ * one thousand two hundred and thirty-four, and under the British one it means one and a bit. A parser
+ * that assumed either would read a typed figure as a different number from the one on screen, which is
+ * the kind of bug that never announces itself.
+ *
+ * This lives HERE, in the engine half of the file, rather than beside the input component that uses it,
+ * because engine code writes money into its own warnings and policy blurbs - and research/build-engine.py
+ * strips every import line when it slices this file for the test suites, so anything the engine calls has
+ * to be defined in the slice rather than imported into it.
+ *
+ * Module state rather than React context: it is a display setting read by a hundred call sites that are
+ * not components, and the thing that changes it is the plan's own config, so a change re-renders
+ * everything regardless and a context would buy nothing.
+ */
+const NUMBER_FORMATS = {
+  uk: { id: 'uk', locale: 'en-GB', group: ',', decimal: '.', sample: '1,234.56', label: 'Comma for thousands' },
+  eu: { id: 'eu', locale: 'de-DE', group: '.', decimal: ',', sample: '1.234,56', label: 'Point for thousands' },
+};
+const DEFAULT_NUMBER_FORMAT = 'uk';
+let activeNumberFormat = NUMBER_FORMATS[DEFAULT_NUMBER_FORMAT];
+const setNumberFormat = (id) => { activeNumberFormat = NUMBER_FORMATS[id] || NUMBER_FORMATS[DEFAULT_NUMBER_FORMAT]; };
+const numberFormat = () => activeNumberFormat;
+/* Every formatted number on the site comes through here, so one setting reaches all of them. */
+const fmtNum = (v, opts) => {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n.toLocaleString(activeNumberFormat.locale, opts) : String(v ?? '');
+};
+/*
+ * Strip the grouping, normalise the decimal, keep at most one of it. A second decimal separator makes
+ * Number() return NaN and would wipe a field somebody is halfway through typing, so it is dropped here
+ * rather than passed on.
+ */
+const parseFormatted = (raw) => {
+  const s = String(raw ?? '');
+  let out = '';
+  let seenDecimal = false;
+  for (const ch of s) {
+    if (ch >= '0' && ch <= '9') { out += ch; continue; }
+    if (ch === '-' && out === '') { out += ch; continue; }
+    if (ch === activeNumberFormat.decimal && !seenDecimal) { out += '.'; seenDecimal = true; }
+    // anything else, the group separator included, is display and not value
+  }
+  return out;
+};
+const formatGBP = (v) => fmtNum(Number.isFinite(v) ? v : 0, { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 });
 const isPlainObject = (o) => o !== null && typeof o === 'object' && !Array.isArray(o);
 
 // ---------------------------------------------------------------- empirical dataset
@@ -777,12 +846,12 @@ const DEFAULT_DEPOSIT_ORDER = ['pen', 'isa', 'other', 'cash'];
 const DECUMULATION_POLICIES = {
   'Bracket Fill Basic': {
     label: 'Tax Smoothing (fill 0% allowance, then pension to the basic-rate limit, preserve ISAs)',
-    blurb: (P) => `Fills the £${P.pa.toLocaleString()} allowance, then draws pension income up to £${P.higherRateStartsAt.toLocaleString()} before touching cash, GIA and ISAs.`,
+    blurb: (P) => `Fills the £${fmtNum(P.pa)} allowance, then draws pension income up to £${fmtNum(P.higherRateStartsAt)} before touching cash, GIA and ISAs.`,
     steps: ['penPA', 'penBasic', 'cash', 'other', 'isa', 'penAny'], harvest: true
   },
   'Bracket Fill': {
     label: 'UK FIRE Bracket Fill (fill 0% allowance only, then cash/GIA/ISA, pension last)',
-    blurb: (P) => `Draws pension only up to £${P.pa.toLocaleString()} (0% tax), then cash, GIA and ISAs; pension income above the allowance is the last resort.`,
+    blurb: (P) => `Draws pension only up to £${fmtNum(P.pa)} (0% tax), then cash, GIA and ISAs; pension income above the allowance is the last resort.`,
     steps: ['penPA', 'cash', 'other', 'isa', 'penBasic', 'penAny'], harvest: true
   },
   'Sequential': {
@@ -803,12 +872,12 @@ const DECUMULATION_POLICIES = {
    */
   'ISA First': {
     label: 'ISA First (spend the tax-free wrapper early, leave the GIA and pension to grow)',
-    blurb: (P) => `Fills the £${P.pa.toLocaleString()} allowance from the pension, then spends the ISA before cash or the GIA. Best where a large GIA would otherwise be sold at a gain to fund spending.`,
+    blurb: (P) => `Fills the £${fmtNum(P.pa)} allowance from the pension, then spends the ISA before cash or the GIA. Best where a large GIA would otherwise be sold at a gain to fund spending.`,
     steps: ['penPA', 'isa', 'cash', 'other', 'penBasic', 'penAny'], harvest: true
   },
   'Windfall to ISA': {
     label: 'Windfall to ISA (as Tax Smoothing, but unassigned deposits fill the ISA first)',
-    blurb: (P) => `Draws like Tax Smoothing — pension income to £${P.higherRateStartsAt.toLocaleString()} first — but routes a deposit marked "${AUTO_DEPOSIT}" into the ISA before the GIA rather than into the pension. Best where an inheritance would otherwise hit the pension annual allowance.`,
+    blurb: (P) => `Draws like Tax Smoothing — pension income to £${fmtNum(P.higherRateStartsAt)} first — but routes a deposit marked "${AUTO_DEPOSIT}" into the ISA before the GIA rather than into the pension. Best where an inheritance would otherwise hit the pension annual allowance.`,
     steps: ['penPA', 'penBasic', 'cash', 'other', 'isa', 'penAny'], harvest: true,
     depositOrder: ['isa', 'other', 'cash', 'pen']
   }
@@ -1370,19 +1439,19 @@ function buildContext(rawPlan) {
   owners.forEach(o => {
     const pen = acc[o.ids.pen]; const isa = acc[o.ids.isa];
     const ownerAA = P.aaAt(o.salary);
-    if (pen && pen.contrib > ownerAA) warnings.push(`${o.label}: pension contribution £${Math.round(pen.contrib).toLocaleString()} exceeds the annual allowance £${Math.round(ownerAA).toLocaleString()}${ownerAA < P.pensionAllowance ? ` (tapered from £${P.pensionAllowance.toLocaleString()} because earnings exceed £${P.aaTaperThr.toLocaleString()})` : ''}.`);
-    if (isa && isa.contrib > P.isaAllowance) warnings.push(`${o.label}: ISA contribution £${Math.round(isa.contrib).toLocaleString()} exceeds the ISA allowance £${P.isaAllowance.toLocaleString()}.`);
+    if (pen && pen.contrib > ownerAA) warnings.push(`${o.label}: pension contribution £${fmtNum(Math.round(pen.contrib))} exceeds the annual allowance £${fmtNum(Math.round(ownerAA))}${ownerAA < P.pensionAllowance ? ` (tapered from £${fmtNum(P.pensionAllowance)} because earnings exceed £${fmtNum(P.aaTaperThr)})` : ''}.`);
+    if (isa && isa.contrib > P.isaAllowance) warnings.push(`${o.label}: ISA contribution £${fmtNum(Math.round(isa.contrib))} exceeds the ISA allowance £${fmtNum(P.isaAllowance)}.`);
     if (o.salary > 0 && pen && pen.contrib > o.salary) warnings.push(`${o.label}: pension contribution exceeds ${o.selfEmployed ? 'trading profit' : 'salary'}.`);
     // the pass-through only exists because an employer saves NIC on sacrificed salary; a sole trader has neither
     if (o.selfEmployed && P.erPass > 0) warnings.push(`${o.label}: employer NIC pass-through is set to ${Math.round(P.erPass * 100)}% in Config, but the self-employed have no employer, so it is ignored for this person.`);
     const gia = acc[o.ids.other];
     if (P.cgtEnabled && gia && gia.balance > 0 && isBlank(plan.accounts.find(a => a.id === o.ids.other)?.unrealisedGain)) {
-      warnings.push(`${o.label}: no unrealised gain entered for Other Investments, so the £${Math.round(gia.balance).toLocaleString()} balance is treated as all cost and only future growth is taxed. Set it under Advanced inputs if the holding has an embedded gain.`);
+      warnings.push(`${o.label}: no unrealised gain entered for Other Investments, so the £${fmtNum(Math.round(gia.balance))} balance is treated as all cost and only future growth is taxed. Set it under Advanced inputs if the holding has an embedded gain.`);
     }
     // the plan draws taxable pension income while still paying in, so the MPAA is triggered and the excess
     // would face an annual allowance charge (which the model does not itself levy)
     if (Number.isFinite(o.mpaaAge) && pen && pen.contrib > P.mpaaLimit && o.mpaaAge < o.retireAge) {
-      warnings.push(`${o.label}: the plan draws taxable pension income from age ${o.mpaaAge} while still contributing £${Math.round(pen.contrib).toLocaleString()}/yr, which permanently cuts the annual allowance to £${P.mpaaLimit.toLocaleString()} (the money purchase annual allowance). Contributions above that would face an annual allowance charge.`);
+      warnings.push(`${o.label}: the plan draws taxable pension income from age ${o.mpaaAge} while still contributing £${fmtNum(Math.round(pen.contrib))}/yr, which permanently cuts the annual allowance to £${fmtNum(P.mpaaLimit)} (the money purchase annual allowance). Contributions above that would face an annual allowance charge.`);
     }
     if (o.retireAge < o.age0 && o.age0 < 120) { /* already retired: fine */ }
   });
@@ -1458,7 +1527,7 @@ function buildContext(rawPlan) {
           if (t === 0) {
             const startBal = acc[sourceId] ? acc[sourceId].balance : 0;
             if (amt > startBal) warnings.push(
-              `${OWNER_LABEL[ownerKey]}: one-off deposit of £${Math.round(amt).toLocaleString()} exceeds available ${CATEGORY_LABEL[srcCat]} balance (£${Math.round(startBal).toLocaleString()}); the deduction will be capped to the available balance.`
+              `${OWNER_LABEL[ownerKey]}: one-off deposit of £${fmtNum(Math.round(amt))} exceeds available ${CATEGORY_LABEL[srcCat]} balance (£${fmtNum(Math.round(startBal))}); the deduction will be capped to the available balance.`
             );
           }
         }
@@ -1497,7 +1566,7 @@ function buildContext(rawPlan) {
         remaining = 0;
       }
       if (remaining > 0.005) warnings.push(
-        `${OWNER_LABEL[ownerKey]}: £${Math.round(remaining).toLocaleString()} of the ${y} one-off deposit could not be fully staged into ${CATEGORY_LABEL[stagedCat]} within the plan horizon and will remain in Other Investments.`
+        `${OWNER_LABEL[ownerKey]}: £${fmtNum(Math.round(remaining))} of the ${y} one-off deposit could not be fully staged into ${CATEGORY_LABEL[stagedCat]} within the plan horizon and will remain in Other Investments.`
       );
       oneOffStaging.set(x.id, { direct: false, targetId, otherId, stagedId, amount: amt, H0, yearHeadroom, surplus0, tranches, unresolvedRemainder: Math.max(0, remaining) });
     });
@@ -1556,7 +1625,7 @@ function buildContext(rawPlan) {
     }
     const prev = spendBands[i - 1];
     if (prev && prev.toAge >= b.fromAge && prev.toAge >= prev.fromAge) {
-      warnings.push(`Spending bands overlap between ages ${b.fromAge} and ${Math.min(prev.toAge, b.toAge)}; the earlier band (£${Math.round(prev.amount).toLocaleString()}) wins for those years.`);
+      warnings.push(`Spending bands overlap between ages ${b.fromAge} and ${Math.min(prev.toAge, b.toAge)}; the earlier band (£${fmtNum(Math.round(prev.amount))}) wins for those years.`);
     }
   });
 
@@ -4087,7 +4156,7 @@ function ihtWorkings(est, cfg) {
     est.pensionCounts ? est.pension : 0,
     { always: est.pension > 0, note: est.pensionCounts
       ? `unused pensions count towards the estate from ${num(c.pensionsInEstateFrom, 2027)}`
-      : `${'—'} death before ${num(c.pensionsInEstateFrom, 2027)}, so the ${'£'}${Math.round(est.pension).toLocaleString()} is not taxed here` });
+      : `${'—'} death before ${num(c.pensionsInEstateFrom, 2027)}, so the ${'£'}${fmtNum(Math.round(est.pension))} is not taxed here` });
   add('home', 'Your home', est.homeValue);
   add('assets', 'Everything else you own', est.estateAssetsValue,
     { note: (est.estateAssets || []).map(a => a.name || ESTATE_ASSET_KINDS[a.kind].label).join(', ') });
@@ -4116,12 +4185,12 @@ function ihtWorkings(est, cfg) {
     const fromComp = gl.reduce((t, g) => t + num(g.compensationPart, 0), 0);
     const outlived = gl.filter(g => g.survived && !num(g.compensationPart, 0)).reduce((t, g) => t + num(g.amount, 0), 0);
     const why = [
-      fromComp > 0 ? `${'£'}${Math.round(fromComp).toLocaleString()} came from the compensation, which costs no band` : '',
-      outlived > 0 ? `${'£'}${Math.round(outlived).toLocaleString()} was made more than seven years ago` : '',
-      num(est.nrbUsedByGifts, 0) > 0 ? `${'£'}${Math.round(num(est.nrbUsedByGifts, 0)).toLocaleString()} ate the band` : ''
+      fromComp > 0 ? `${'£'}${fmtNum(Math.round(fromComp))} came from the compensation, which costs no band` : '',
+      outlived > 0 ? `${'£'}${fmtNum(Math.round(outlived))} was made more than seven years ago` : '',
+      num(est.nrbUsedByGifts, 0) > 0 ? `${'£'}${fmtNum(Math.round(num(est.nrbUsedByGifts, 0)))} ate the band` : ''
     ].filter(Boolean).join('; ');
     rows.push({ key: 'giftsNote', kind: 'note', amount: 0, running: run,
-      label: `Gifts you have made: ${'£'}${Math.round(given).toLocaleString()}`, note: why || 'none of it reduced your allowances' });
+      label: `Gifts you have made: ${'£'}${fmtNum(Math.round(given))}`, note: why || 'none of it reduced your allowances' });
   }
   const rnrbT = Math.max(0, num(est.rnrbFull, 0) - num(est.rnrbBase, 0));
   const bandBlocked = !(est.homeToDescendants && est.anyDescendant && num(est.rnrbAsset, 0) > 0);
@@ -4133,14 +4202,14 @@ function ihtWorkings(est, cfg) {
   } else {
     add('rnrb', 'Residence band', -num(est.rnrbBase, 0), { always: true });
     add('rnrbT', 'Residence band from a late spouse', -rnrbT);
-    add('rnrbTaper', `Less: residence band withdrawn by the ${'£'}${Math.round(num(c.ihtRnrbTaperFrom, 2000000)).toLocaleString()} taper`,
+    add('rnrbTaper', `Less: residence band withdrawn by the ${'£'}${fmtNum(Math.round(num(c.ihtRnrbTaperFrom, 2000000)))} taper`,
       num(est.rnrbTaperWithdrawn, 0),
       { note: `${'£'}1 of band for every ${'£'}2 the estate is over the line` });
     // after the taper the band can still be more than the home is worth, and then the home is the cap
     const afterTaper = Math.max(0, num(est.rnrbFull, 0) - num(est.rnrbTaperWithdrawn, 0));
     const capped = Math.max(0, afterTaper - num(est.rnrb, 0));
     add('rnrbCap', 'Less: residence band capped at the value of the home', capped,
-      { note: `the band cannot exceed the ${'£'}${Math.round(num(est.rnrbAsset, 0)).toLocaleString()} the home is worth` });
+      { note: `the band cannot exceed the ${'£'}${fmtNum(Math.round(num(est.rnrbAsset, 0)))} the home is worth` });
   }
   total('chargeable', 'Chargeable to inheritance tax');
 
@@ -4166,7 +4235,7 @@ function ihtWorkings(est, cfg) {
   push('qsr', 'Less: quick succession relief', -num(est.qsrRelief, 0),
     `${est.qsrPct}% of the tax paid on what you inherited`);
   push('comp', 'Less: compensation credit', -num(est.compensationCredit, 0),
-    `${num(c.ihtRate, 40)}% of the ${'£'}${Math.round(num(est.compensationPayment, 0)).toLocaleString()} payment`);
+    `${num(c.ihtRate, 40)}% of the ${'£'}${fmtNum(Math.round(num(est.compensationPayment, 0)))} payment`);
   out.push({ key: 'iht', kind: 'total', label: 'Inheritance tax payable', note: '', amount: Math.max(0, bill), running: Math.max(0, bill) });
 
   /*
@@ -4627,7 +4696,7 @@ function optimizeInheritance(rawPlan, opts = {}) {
    * death age. A variant that breaks a plan which otherwise survives is rejected outright rather than
    * ranked - the household has to live on this money first.
    */
-  const gbp0 = (x) => '£' + Math.round(x).toLocaleString();
+  const gbp0 = (x) => '£' + fmtNum(Math.round(x));
   let runs = 0;
   const evaluate = (variant) => {
     const p = {
@@ -5563,7 +5632,7 @@ function estateActionPlan(plan, result) {
   if (!result || !result.best) return [];
   const c = { ...DEFAULT_CONFIG, ...(plan?.config || {}) };
   const P = taxParams(c);
-  const gbp = (x) => '£' + Math.round(x).toLocaleString();
+  const gbp = (x) => '£' + fmtNum(Math.round(x));
   const b = result.best, base = result.baseline;
   const out = [];
 
@@ -5836,7 +5905,7 @@ const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, i
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { pathsForSeed, runTrial, summarizeTrials, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, parseFormatted, pathsForSeed, runTrial, summarizeTrials, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan
@@ -5974,6 +6043,13 @@ const SERIES_CONFIG = [
  * means and a reader flicking between them needs to see at a glance which one they are looking at, so
  * the rate-based chart is a cool blue and the Monte Carlo a warmer violet in every theme.
  */
+/*
+ * The chart palettes are keyed by theme, and there are two of them for three themes. Sepia is a paper
+ * theme - a warm light ground - so it reads the light chart palette rather than needing a third set. This
+ * one function is what stops `PALETTE[resolvedTheme]` coming back undefined the moment a third theme
+ * exists, which is a blank chart rather than a wrong colour.
+ */
+const chartKey = (t) => (t === 'dark' ? 'dark' : 'light');
 const CHART_PALETTE = {
   light:  { gridMajor: '#E3E6EB', gridMinor: '#F0F2F5', axisText: '#8A93A3', hoverCrosshair: '#A8B0BD', sandboxDash: '#A8701A', historicalLine: '#6D5BD0', trajectoryHoverFill: '#2148B8', historicalHoverFill: '#6D5BD0', hoverDotStroke: '#FFFFFF',
             fanBand: 'rgba(109, 91, 208, 0.14)', fanEdge: 'rgba(109, 91, 208, 0.5)', fanMedian: '#6D5BD0', fanOuter: 'rgba(109, 91, 208, 0.75)',
@@ -6019,7 +6095,7 @@ const HISTORICAL_PRESETS = [
   { label: '2008 Global Financial Crisis', year: 2008 }
 ];
 
-const fmtK = (v) => `£${Math.round((Number.isFinite(v) ? v : 0) / 1000).toLocaleString()}k`;
+const fmtK = (v) => `£${fmtNum(Math.round((Number.isFinite(v) ? v : 0) / 1000))}k`;
 /*
  * React updates a type="number" input only when its DOM value differs from the prop, and it compares the
  * two loosely - so a box reading "0200000" against a prop of 200000 compares equal and the leading zero
@@ -6785,7 +6861,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
         if (cancelRef.current) break;
       }
       // every player's final score in one batch across the worker pool, all on the same seed
-      setProgress({ label: `Scoring ${prepared.length} players: ${TOURNAMENT_TRIALS.toLocaleString()} paths each`, value: 0.6 });
+      setProgress({ label: `Scoring ${prepared.length} players: ${fmtNum(TOURNAMENT_TRIALS)} paths each`, value: 0.6 });
       await tick();
       const scored = await scoreInWorkers(prepared.map((s, i) => ({ key: String(i), plan: s.planState, trials: TOURNAMENT_TRIALS, seed, resolve: false })), {
         onProgress: (f) => setProgress({ label: `Scored ${Math.round(f * prepared.length)} of ${prepared.length} players`, value: 0.6 + 0.4 * f })
@@ -6820,9 +6896,9 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
   // What the collapsed settings header says. Defaults are named too, so the line always reads as a
   // statement of what will be run rather than a list of things you happen to have changed.
   const settingsSummary = [
-    budgetOverride === '' ? null : `budget £${Math.round(E.num(budgetOverride, 0)).toLocaleString()}/yr`,
+    budgetOverride === '' ? null : `budget £${fmtNum(Math.round(E.num(budgetOverride, 0)))}/yr`,
     scope === 'full' ? 'full reallocation' : 'contributions only',
-    `£${Math.round(E.num(emergencyFloor, 0)).toLocaleString()} buffer`,
+    `£${fmtNum(Math.round(E.num(emergencyFloor, 0)))} buffer`,
     /*
      * preAccessCap is a NUMBER - 0 when the bridge is the top priority, Infinity otherwise (line ~6334).
      * This read `=== 'any'`, a string it can never hold, left behind when the setting stopped being a
@@ -6844,7 +6920,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
             <Zap className="w-4 h-4 text-indigo-600 fill-indigo-600" /> Automated Strategy Tournament &amp; Optimizer
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Six wrapper strategies with the same take-home budget, each tested on the same {TOURNAMENT_TRIALS.toLocaleString()} market paths, so every strategy meets the same good and bad years rather than its own draw. That takes the luck of the draw out of the comparison, but not the sampling error: a gap of under a point of survival is a tie, not a better strategy.{selectedEntrants.length > 0 ? ` Plus ${selectedEntrants.length} saved scenario${selectedEntrants.length === 1 ? '' : 's'} entered as saved.` : ''}
+            Six wrapper strategies with the same take-home budget, each tested on the same {fmtNum(TOURNAMENT_TRIALS)} market paths, so every strategy meets the same good and bad years rather than its own draw. That takes the luck of the draw out of the comparison, but not the sampling error: a gap of under a point of survival is a tie, not a better strategy.{selectedEntrants.length > 0 ? ` Plus ${selectedEntrants.length} saved scenario${selectedEntrants.length === 1 ? '' : 's'} entered as saved.` : ''}
           </p>
         </div>
         <button type="button" onClick={onNavigateDocs} className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto">
@@ -6877,7 +6953,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 text-xs font-sans p-3">
         <div>
           <label className="text-slate-700 font-semibold block mb-1">Annual take-home budget (£ net)</label>
-          <input type="number" min="0" step="250" value={budgetOverride} placeholder={meta ? `${Math.round(meta.derivedBudget).toLocaleString()} (from plan)` : ''} onChange={(e) => setBudgetOverride(e.target.value)}
+          <MoneyInput min="0" step="250" value={budgetOverride} placeholder={meta ? `${fmtNum(Math.round(meta.derivedBudget))} (from plan)` : ''} onChange={(e) => setBudgetOverride(e.target.value)}
             className="w-full p-2 bg-surface border border-slate-300 rounded-lg tabular-nums text-slate-900 font-bold focus:ring-1 focus:ring-indigo-500 focus:outline-none" />
           <span className="text-[10px] text-slate-500 block mt-1">Derived from current ISA + net cost of pension contributions{salaryMissing.length ? ` (salary missing for ${salaryMissing.join(', ')}: ${Math.round((selfEmployedOnly ? P.higherRate : P.higherRate + P.nicUpper) * 100)}% relief assumed)` : ''}.</span>
         </div>
@@ -6891,7 +6967,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
         <div>
           <div className="flex justify-between items-center mb-1">
             <label className="text-slate-700 font-semibold">Protected emergency buffer</label>
-            <span className="font-mono font-bold text-indigo-700">£{Math.round(E.num(emergencyFloor, 0)).toLocaleString()}</span>
+            <span className="font-mono font-bold text-indigo-700">£{fmtNum(Math.round(E.num(emergencyFloor, 0)))}</span>
           </div>
           <input type="range" min="0" max="100000" step="2500" value={E.num(emergencyFloor, 0)} onChange={(e) => setEmergencyFloor(Number(e.target.value))} className="w-full accent-indigo-600 cursor-pointer mt-2" />
           <span className="text-[10px] text-slate-500 block mt-1">Savings ring-fenced from the bridge and from any Bed &amp; SIPP transfer; it shrinks what counts as available, rather than raising the target (that is the bridge safety margin in Config).</span>
@@ -6948,7 +7024,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
 
       {meta && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px] font-mono px-3 pb-3">
-          <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Net budget tested</span><strong>£{Math.round(meta.netBudget).toLocaleString()}/yr</strong></div>
+          <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Net budget tested</span><strong>£{fmtNum(Math.round(meta.netBudget))}/yr</strong></div>
           <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Pre-SIPP access gap</span><strong>{meta.bridge.gapYears} yr{meta.bridge.gapYears === 1 ? '' : 's'}</strong></div>
           <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Bridge reserve target (+{Math.round(E.num(plan?.config?.bridgeSafetyMargin, 30))}%)</span><strong>{fmtK(meta.bridgeCapital)}</strong></div>
           <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Liquid today above buffer</span><strong>{fmtK(Math.max(0, meta.liquidToday - E.num(emergencyFloor, 0)))}</strong></div>
@@ -6990,14 +7066,14 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
                       </div>
                     )}
                     <div className="pt-2 border-t border-slate-100 space-y-1 text-[11px]  tabular-nums">
-                      <div className="flex justify-between"><span className="text-slate-500">S&amp;S ISA:</span><strong className="text-teal-700">£{Math.round(res.isaContrib || 0).toLocaleString()}/yr{res.phase && res.phase.switchYears > 0 ? ' avg' : ''}</strong></div>
-                      <div className="flex justify-between"><span className="text-slate-500">Pension:</span><strong className="text-blue-700">£{Math.round(res.penContrib || 0).toLocaleString()}/yr{res.phase && res.phase.switchYears > 0 ? ' avg' : ''}</strong></div>
-                      {res.giaContrib > 0 && <div className="flex justify-between"><span className="text-slate-500">GIA overflow:</span><strong className="text-amber-700">£{Math.round(res.giaContrib).toLocaleString()}/yr</strong></div>}
-                      {res.taxReliefSaved > 0 && <div className="flex justify-between text-emerald-700 font-bold"><span className="font-sans">{selfEmployedOnly ? 'Tax relief:' : 'Tax & NIC relief:'}</span><span>+£{Math.round(res.taxReliefSaved).toLocaleString()}/yr</span></div>}
-                      {res.transferNet > 0 && <div className="flex justify-between text-indigo-700 font-bold"><span>Bed &amp; SIPP:</span><span>£{Math.round(res.transferNet).toLocaleString()} &rarr; £{Math.round(res.transferGross).toLocaleString()}</span></div>}
+                      <div className="flex justify-between"><span className="text-slate-500">S&amp;S ISA:</span><strong className="text-teal-700">£{fmtNum(Math.round(res.isaContrib || 0))}/yr{res.phase && res.phase.switchYears > 0 ? ' avg' : ''}</strong></div>
+                      <div className="flex justify-between"><span className="text-slate-500">Pension:</span><strong className="text-blue-700">£{fmtNum(Math.round(res.penContrib || 0))}/yr{res.phase && res.phase.switchYears > 0 ? ' avg' : ''}</strong></div>
+                      {res.giaContrib > 0 && <div className="flex justify-between"><span className="text-slate-500">GIA overflow:</span><strong className="text-amber-700">£{fmtNum(Math.round(res.giaContrib))}/yr</strong></div>}
+                      {res.taxReliefSaved > 0 && <div className="flex justify-between text-emerald-700 font-bold"><span className="font-sans">{selfEmployedOnly ? 'Tax relief:' : 'Tax & NIC relief:'}</span><span>+£{fmtNum(Math.round(res.taxReliefSaved))}/yr</span></div>}
+                      {res.transferNet > 0 && <div className="flex justify-between text-indigo-700 font-bold"><span>Bed &amp; SIPP:</span><span>£{fmtNum(Math.round(res.transferNet))} &rarr; £{fmtNum(Math.round(res.transferGross))}</span></div>}
                       {res.phase && res.phase.switchYears > 0 && <div className="flex justify-between text-slate-600"><span className="font-sans">Phasing:</span><span>pension-max {res.phase.yearsToFirstRetire - res.phase.switchYears}y → ISA-max {res.phase.switchYears}y</span></div>}
                       {res.isEntrant && res.entrantOutlay !== null && res.entrantOutlay !== undefined && (
-                        <div className="flex justify-between"><span className="text-slate-500 font-sans">Yearly outlay:</span><strong className={Math.abs(res.entrantOutlay - res.baselineOutlay) < 50 ? 'text-slate-700' : 'text-amber-700'}>£{Math.round(res.entrantOutlay).toLocaleString()}/yr vs £{Math.round(res.baselineOutlay).toLocaleString()}</strong></div>
+                        <div className="flex justify-between"><span className="text-slate-500 font-sans">Yearly outlay:</span><strong className={Math.abs(res.entrantOutlay - res.baselineOutlay) < 50 ? 'text-slate-700' : 'text-amber-700'}>£{fmtNum(Math.round(res.entrantOutlay))}/yr vs £{fmtNum(Math.round(res.baselineOutlay))}</strong></div>
                       )}
                       <div className="flex justify-between pt-1 border-t border-slate-100"><span className="text-slate-500 font-sans">Median pot @ {ctx.terminalAge}:</span><span className="font-bold text-slate-800">{fmtK(st.medianTerminal)}</span></div>
                       <div className="flex justify-between"><span className="text-slate-500 font-sans">10th %ile pot:</span><span className="font-bold text-slate-800">{fmtK(st.p10Terminal)}</span></div>
@@ -7044,6 +7120,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
  * the switch between the two apps unmounts whichever one is not showing. See src/theme.jsx.
  */
 export default function App({ theme = 'system', setTheme = () => {}, resolvedTheme = 'light',
+  numFormat = DEFAULT_NUMBER_FORMAT, setNumFormat = () => {},
   isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 } }) {
   // a returning visitor already knows the layout, so only a first visit (no saved plan) opens on the guide
   const [activeTab, setActiveTab] = useState(() => (safeStorageGet(STORAGE_KEY) ? 'inputs' : 'home'));
@@ -7332,7 +7409,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     [scenarios, activeScenarioId, compareIds]
   );
   const compareRuns = useMemo(() => selectedCompare.map((s, i) => {
-    const tone = COMPARE_PALETTE[resolvedTheme][i % COMPARE_PALETTE[resolvedTheme].length];
+    const tone = COMPARE_PALETTE[chartKey(resolvedTheme)][i % COMPARE_PALETTE[chartKey(resolvedTheme)].length];
     try {
       const sctx = E.buildContext(s.data);
       const rows = E.simulateDeterministic(sctx, 'expected');
@@ -7362,7 +7439,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     const baseRetAge = ctx.owners[0].retireAge;
     const baseTerminal = deterministicVerdict.terminalPot;
     const rows = [{
-      id: '__current__', name: 'Current plan', isBase: true, tone: SERIES_CONFIG[0].colors[resolvedTheme],
+      id: '__current__', name: 'Current plan', isBase: true, tone: SERIES_CONFIG[0].colors[chartKey(resolvedTheme)],
       retireAge: baseRetAge, retirePot: (timelineData.find(r => r.ageSelf === baseRetAge) || timelineData[0])?.totalCombined || 0,
       terminal: baseTerminal, delta: null, lifetimeTax: deterministicVerdict.lifetimeTax,
       survived: deterministicVerdict.survived, failAge: deterministicVerdict.failAge, failReason: deterministicVerdict.failReason,
@@ -8005,6 +8082,36 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const updateRiskField = (riskKey, field, value) => setPlan(prev => ({ ...prev, riskSource: '', riskProfiles: { ...(prev.riskProfiles || E.DEFAULT_RISK_PROFILES), [riskKey]: { ...(prev.riskProfiles || E.DEFAULT_RISK_PROFILES)[riskKey], [field]: parseInputNumber(value) } } }));
   const updateDemographics = (field, value) => setPlan(prev => ({ ...prev, demographics: { ...(prev.demographics || {}), [field]: field === 'planningMode' ? value : parseInputNumber(value) } }));
   /*
+   * THE FULL AWARD IN ONE TAP, AND STILL NOT AN ASSUMPTION.
+   *
+   * Most people reaching State Pension age on a full National Insurance record get the full new State
+   * Pension, and typing it means looking up a five-digit figure. But prefilling it is wrong, and was
+   * tried and reverted: how many qualifying years stand behind somebody's award is not something this
+   * plan holds, and a number that appears on its own reads as a fact about them rather than a suggestion.
+   *
+   * So the placeholder still only suggests, and this button is the shortcut. It is pressed when the field
+   * already holds the full figure, and pressing it again CLEARS the field rather than leaving it filled,
+   * because the next thing somebody does after deciding they are not on the full award is type their own
+   * number - over a blank, not backspacing through someone else's.
+   */
+  const statePensionField = (key) => {
+    const v = plan?.demographics?.[key] ?? '';
+    const isFull = String(v) !== '' && E.num(v, -1) === STATE_PENSION_FULL;
+    return (
+      <div className="flex items-stretch gap-1.5">
+        <MoneyInput min="0" step="250" placeholder={`e.g. ${fmtNum(STATE_PENSION_FULL)}`}
+          onFocus={handleFocus} value={v} onChange={(e) => updateDemographics(key, e.target.value)}
+          className={`${inputCls} flex-1 min-w-0`} />
+        <button type="button" aria-pressed={isFull} data-full-state-pension
+          onClick={() => updateDemographics(key, isFull ? '' : String(STATE_PENSION_FULL))}
+          title={`The full new State Pension, \u00a3${fmtNum(STATE_PENSION_FULL)} a year`}
+          className={`shrink-0 px-2.5 rounded-lg border text-[11px] font-bold whitespace-nowrap cursor-pointer transition-colors ${isFull ? 'bg-blue-50 border-blue-600 text-blue-700' : 'bg-slate-50 border-slate-300 text-slate-600 hover:text-slate-900'}`}>
+          Full
+        </button>
+      </div>
+    );
+  };
+  /*
    * Fields on `spending` that are NOT numbers. Anything missing from this list is passed through
    * parseInputNumber, which does String(v).replace(...) - so priorityTolerances, an object, was being
    * stored as the literal "[object Object]". Every tolerance field then read back undefined and the
@@ -8400,7 +8507,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // ------------------------------------------------------------ Monte Carlo
   // Stage 1: the plan exactly as entered. Fast, and the only stage that always runs.
   const runStageTest = async (scale = { from: 0, to: 1 }) => {
-    const label = `Testing ${MC_TRIALS.toLocaleString()} paths against your current spend…`;
+    const label = `Testing ${fmtNum(MC_TRIALS)} paths against your current spend…`;
     setSimProgress({ label, value: scale.from });
     await tick();
     const stats = await runMonteCarloAsync(ctx, {
@@ -8472,7 +8579,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
         const r = await rateAt(mid);
         if (r === null) return null;
         if (r >= targetRate) low = mid; else high = mid;
-        setSimProgress({ label: `Narrowing… £${low.toLocaleString()}–£${high.toLocaleString()}`, value: scale.from + span * (0.1 + 0.5 * (iter + 1) / 14) });
+        setSimProgress({ label: `Narrowing… £${fmtNum(low)}–£${fmtNum(high)}`, value: scale.from + span * (0.1 + 0.5 * (iter + 1) / 14) });
         await tick();
         if (mcCancelRef.current) break;
       }
@@ -8497,14 +8604,14 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
       onProgress: (f) => setSimProgress({ label, value: scale.from + span * (0.6 + 0.4 * f) })
     });
     let spend = result.spend;
-    let stats = await confirm(spend, `Confirming £${spend.toLocaleString()} over ${MC_TRIALS.toLocaleString()} paths…`);
+    let stats = await confirm(spend, `Confirming £${fmtNum(spend)} over ${fmtNum(MC_TRIALS)} paths…`);
     if (mcCancelRef.current || !stats) return null;
     if (!result.note && stats.successRate < targetRate) {
       let lo = 0, hi = spend, bestSpend = 0, bestStats = stats;
       for (let i = 0; i < 5; i++) {
         const mid = E.round250((lo + hi) / 2);
         if (mid <= lo || mid >= hi) break;
-        const s = await confirm(mid, `Checking £${mid.toLocaleString()} against ${targetRate}%…`);
+        const s = await confirm(mid, `Checking £${fmtNum(mid)} against ${targetRate}%…`);
         if (mcCancelRef.current || !s) return null;
         if (s.successRate >= targetRate) { lo = mid; bestSpend = mid; bestStats = s; } else hi = mid;
       }
@@ -8896,7 +9003,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       const jobs = [];
       candidates.forEach(c => seeds.forEach((seed, si) => jobs.push({ key: `${c.id}#${si}`, plan: c.planState, trials: perSeed, seed, inheritance: true })));
       const scored = await scoreInWorkers(jobs, {
-        onProgress: (f) => setPolicyProgress({ label: `Scored ${Math.round(f * jobs.length)} of ${jobs.length} runs: ${candidates.length} combinations × ${seeds.length} seeds × ${perSeed.toLocaleString()} paths`, value: f })
+        onProgress: (f) => setPolicyProgress({ label: `Scored ${Math.round(f * jobs.length)} of ${jobs.length} runs: ${candidates.length} combinations × ${seeds.length} seeds × ${fmtNum(perSeed)} paths`, value: f })
       });
       const out = candidates.map(c => {
         const bySeed = seeds.map((_, si) => scored.get(`${c.id}#${si}`));
@@ -8969,9 +9076,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       <text y={y + 14} textAnchor="middle" fill={textColor} fontSize="10" fontWeight="bold">{label} ({shownAge})</text>
     </g>
   ) : null;
-  const mp = MARKER_PALETTE[resolvedTheme];
-  const cp = CHART_PALETTE[resolvedTheme];
-  const themedSeries = useMemo(() => SERIES_CONFIG.map(s => ({ ...s, color: s.colors[resolvedTheme] })), [resolvedTheme]);
+  const mp = MARKER_PALETTE[chartKey(resolvedTheme)];
+  const cp = CHART_PALETTE[chartKey(resolvedTheme)];
+  const themedSeries = useMemo(() => SERIES_CONFIG.map(s => ({ ...s, color: s.colors[chartKey(resolvedTheme)] })), [resolvedTheme]);
   const markers = (scale) => (
     <>
       {ageMarker(ctx.owners[0].retireAge, 'Retire M', mp.retireSelf.line, mp.retireSelf.fill, mp.retireSelf.stroke, mp.retireSelf.text, 10, scale)}
@@ -9353,9 +9460,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         <div className="flex items-center gap-1.5">
           {steps.map(d => (
             <button key={d} type="button" onClick={() => onStep(d)}
-              aria-label={`${d < 0 ? 'decrease' : 'increase'} ${label} by ${Math.abs(d).toLocaleString()}`}
+              aria-label={`${d < 0 ? 'decrease' : 'increase'} ${label} by ${fmtNum(Math.abs(d))}`}
               className="flex-1 min-h-11 rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 cursor-pointer active:bg-slate-200">
-              {d > 0 ? '+' : ''}{d.toLocaleString()}
+              {d > 0 ? '+' : ''}{fmtNum(d)}
             </button>
           ))}
         </div>
@@ -9487,8 +9594,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <tr key={acc.id} className={`transition-colors ${isModified ? 'bg-amber-50/40' : 'hover:bg-slate-50/60'}`}>
                   <td className="p-3 font-sans font-bold text-slate-800">{acc.category}<span className="block text-[10px] text-slate-400 font-normal">Base: {formatGBP(E.num(acc.contrib, 0))} / yr @ {acc.growth || 0}%{sb.balance !== undefined && E.num(sb.balance, 0) !== E.num(acc.balance, 0) ? ` · balance ${formatGBP(E.num(acc.balance, 0))} → ${formatGBP(sb.balance)}` : ''}</span></td>
                   {isCouple && <td className="p-3 font-sans text-slate-600">{acc.owner}</td>}
-                  <td className="p-3"><input type="number" min="0" step="1000" value={sb.balance ?? E.num(acc.balance, 0)} onFocus={handleFocus} onChange={(e) => updateSandboxField(acc.id, 'balance', e.target.value)} className="w-32 p-1.5 bg-surface border border-slate-300 rounded font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500" /></td>
-                  <td className="p-3"><div className="flex items-center gap-1.5"><input type="number" min="0" step="250" value={sb.contrib} onFocus={handleFocus} onChange={(e) => updateSandboxField(acc.id, 'contrib', e.target.value)} className="w-28 p-1.5 bg-surface border border-slate-300 rounded font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500" />{sb.contribByYear && <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px] font-sans" title="Year-by-year schedule from a phased strategy; editing replaces it">phased</span>}</div></td>
+                  <td className="p-3"><MoneyInput min="0" step="1000" value={sb.balance ?? E.num(acc.balance, 0)} onFocus={handleFocus} onChange={(e) => updateSandboxField(acc.id, 'balance', e.target.value)} className="w-32 p-1.5 bg-surface border border-slate-300 rounded font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500" /></td>
+                  <td className="p-3"><div className="flex items-center gap-1.5"><MoneyInput min="0" step="250" value={sb.contrib} onFocus={handleFocus} onChange={(e) => updateSandboxField(acc.id, 'contrib', e.target.value)} className="w-28 p-1.5 bg-surface border border-slate-300 rounded font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500" />{sb.contribByYear && <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px] font-sans" title="Year-by-year schedule from a phased strategy; editing replaces it">phased</span>}</div></td>
                   <td className="p-3"><div className="flex items-center gap-1">{[-1000, -500, 500, 1000].map(d => <button key={d} onClick={() => adjustSandboxContrib(acc.id, d)} className="px-1.5 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded text-[10px] font-sans font-semibold text-slate-700 cursor-pointer">{d > 0 ? '+' : ''}{Math.abs(d) >= 1000 ? `${d / 1000}k` : d}</button>)}</div></td>
                   <td className="p-3"><div className="flex items-center gap-1.5"><input type="number" step="0.5" value={sb.growth} onFocus={handleFocus} onChange={(e) => updateSandboxField(acc.id, 'growth', e.target.value)} className="w-20 p-1.5 bg-surface border border-slate-300 rounded text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-amber-500" /><span className="text-slate-400 font-sans">%</span></div></td>
                   <td className="p-3 text-right">{isModified ? <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-sans text-[10px] font-bold">Adjusted</span> : <span className="text-slate-400 font-sans text-[10px]">Unchanged</span>}</td>
@@ -9534,7 +9641,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div data-tabbar className="hidden md:flex items-end gap-1 border-b border-slate-200 flex-wrap">
                 {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
               </div>
-              <ThemeToggle theme={theme} setTheme={setTheme} touch={touch} />
+              <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
             </div>
           </div>
 
@@ -9594,7 +9701,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   * for is the sentence below it - what the model does - so that leads.
                   */}
                 <p className="text-base text-slate-600 leading-relaxed">
-                  This model runs your pensions, ISAs, GIA and cash through {MC_TRIALS.toLocaleString()} different
+                  This model runs your pensions, ISAs, GIA and cash through {fmtNum(MC_TRIALS)} different
                   market histories, taxes every withdrawal under UK rules, and tells you how often the plan actually holds, not just how it looks
                   on a good day.
                 </p>
@@ -9632,7 +9739,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   { tab: 'config', Icon: Settings, name: 'Config & Assumptions', accent: 'blue', need: 'Optional',
                     body: 'Tax rates, allowances, return and volatility assumptions, drawdown policy and the random seed. Defaults are current-year figures, so change them to test a different assumption, not because the tab exists.' },
                   { tab: 'projection', Icon: Layers, name: 'Projection', accent: 'blue',
-                    body: `Your plan year by year on one chart: the expected path, a modelled range that updates as you type, and the ${MC_TRIALS.toLocaleString()}-path simulation with its survival rate and safe-spend solver. The sandbox for testing a different contribution or retirement age lives here too.` },
+                    body: `Your plan year by year on one chart: the expected path, a modelled range that updates as you type, and the ${fmtNum(MC_TRIALS)}-path simulation with its survival rate and safe-spend solver. The sandbox for testing a different contribution or retirement age lives here too.` },
                   { tab: 'strategy', Icon: Zap, name: 'Strategy', accent: 'indigo',
                     body: 'The tournament: holds your spending and budget fixed and re-splits the money between wrappers, scoring each strategy on identical market paths.' },
                   ...(SHOW_INHERITANCE ? [{ tab: 'inheritance', Icon: Gift, name: 'Inheritance', accent: 'indigo',
@@ -9719,19 +9826,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Current age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 40" onFocus={handleFocus} value={plan?.demographics?.currentAgePart ?? ''} onChange={(e) => updateDemographics('currentAgePart', e.target.value)} className={inputCls} /></div>}
                 <div><label className="text-slate-600 font-semibold block mb-1">Retirement age (Myself)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgeSelf ?? ''} onChange={(e) => updateDemographics('retireAgeSelf', e.target.value)} className={inputCls} /></div>
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Retirement age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgePart ?? ''} onChange={(e) => updateDemographics('retireAgePart', e.target.value)} className={inputCls} /></div>}
-                <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentSelf === 'self-employed' ? 'Annual Profit: self-employment (Myself £/yr)' : 'Gross salary (Myself £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salarySelf ?? ''} onChange={(e) => updateDemographics('salarySelf', e.target.value)} className={inputCls} /></div>
-                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentPart === 'self-employed' ? 'Annual Profit: self-employment (Partner £/yr)' : 'Gross salary (Partner £/yr)'}</label><input type="number" min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salaryPart ?? ''} onChange={(e) => updateDemographics('salaryPart', e.target.value)} className={inputCls} /></div>}
-                <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL.toLocaleString()}`} onFocus={handleFocus} value={plan?.demographics?.statePensionSelf ?? ''} onChange={(e) => updateDemographics('statePensionSelf', e.target.value)} className={inputCls} /></div>
-                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label><input type="number" min="0" step="250" placeholder={`e.g. ${STATE_PENSION_FULL.toLocaleString()}`} onFocus={handleFocus} value={plan?.demographics?.statePensionPart ?? ''} onChange={(e) => updateDemographics('statePensionPart', e.target.value)} className={inputCls} /></div>}
+                <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentSelf === 'self-employed' ? 'Annual Profit: self-employment (Myself £/yr)' : 'Gross salary (Myself £/yr)'}</label><MoneyInput min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salarySelf ?? ''} onChange={(e) => updateDemographics('salarySelf', e.target.value)} className={inputCls} /></div>
+                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentPart === 'self-employed' ? 'Annual Profit: self-employment (Partner £/yr)' : 'Gross salary (Partner £/yr)'}</label><MoneyInput min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salaryPart ?? ''} onChange={(e) => updateDemographics('salaryPart', e.target.value)} className={inputCls} /></div>}
+                <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label>{statePensionField('statePensionSelf')}</div>
+                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label>{statePensionField('statePensionPart')}</div>}
                 <div className="sm:col-span-2">
                   <label className="text-slate-600 font-semibold block mb-1">{isCouple ? 'Joint net living spend (£/yr)' : 'Net living spend (£/yr)'}</label>
-                  <input type="number" min="0" step="1000" placeholder="e.g. 30000" onFocus={handleFocus} value={plan?.spending?.targetSpend ?? ''} onChange={(e) => updateSpending('targetSpend', e.target.value)} className={inputCls} />
+                  <MoneyInput min="0" step="1000" placeholder="e.g. 30000" onFocus={handleFocus} value={plan?.spending?.targetSpend ?? ''} onChange={(e) => updateSpending('targetSpend', e.target.value)} className={inputCls} />
                   <span className="text-[10px] text-slate-400 mt-1 block">Drawn from the first retirement. A partner still working offsets it with their take-home pay when a salary is entered.</span>
                 </div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Plan to age</label><input type="number" min="1" max="120" placeholder="100" onFocus={handleFocus} value={plan?.demographics?.terminalAge ?? ''} onChange={(e) => updateDemographics('terminalAge', e.target.value)} className={inputCls} /></div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Minimum pot at age {terminalAge} (£)</label>
-                  <input type="number" min="0" step="5000" placeholder="0" onFocus={handleFocus} value={plan?.config?.solvencyFloor ?? ''} onChange={(e) => updateConfig('solvencyFloor', e.target.value)} className={`${inputCls} text-amber-700`} />
+                  <MoneyInput min="0" step="5000" placeholder="0" onFocus={handleFocus} value={plan?.config?.solvencyFloor ?? ''} onChange={(e) => updateConfig('solvencyFloor', e.target.value)} className={`${inputCls} text-amber-700`} />
                   <span className="text-[10px] text-slate-400 mt-1 block">Bequest floor in today's money, tested at the terminal age only. The whole projection is in real terms, so £100,000 here means £100,000 of today's purchasing power. There is no need to gross it up for inflation.</span>
                 </div>
               </div>
@@ -9771,7 +9878,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-slate-500">Spend</span>
-                            <input type="number" min="0" step="1000" placeholder="£/yr" onFocus={handleFocus} value={band.amount}
+                            <MoneyInput min="0" step="1000" placeholder="£/yr" onFocus={handleFocus} value={band.amount}
                               onChange={(e) => updateSpendBand(band.id, { amount: parseInputNumber(e.target.value) })}
                               className="w-28 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-blue-700 font-bold" />
                           </div>
@@ -9843,7 +9950,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     {ctx.owners.map(o => (
                       <div key={`cf_${o.key}`}>
                         <label className="text-slate-600 font-semibold block mb-1">Pension allowance carried forward ({o.label} £)</label>
-                        <input type="number" min="0" step="1000" placeholder="blank = £0" onFocus={handleFocus}
+                        <MoneyInput min="0" step="1000" placeholder="blank = £0" onFocus={handleFocus}
                           value={plan?.demographics?.[o.key === 'self' ? 'cfBroughtForwardSelf' : 'cfBroughtForwardPart'] ?? ''}
                           onChange={(e) => updateDemographics(o.key === 'self' ? 'cfBroughtForwardSelf' : 'cfBroughtForwardPart', e.target.value)} className={inputCls} />
                         <span className="text-[10px] text-slate-400 mt-1 block">Unused annual allowance from the last three tax years. Cannot be used once a pension is flexibly accessed, and never lifts the earnings limit.</span>
@@ -9852,7 +9959,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     {P.cgtEnabled && ctx.owners.map(o => (
                       <div key={`cg_${o.key}`}>
                         <label className="text-slate-600 font-semibold block mb-1">Capital gains already used ({o.label} £)</label>
-                        <input type="number" min="0" step="500" placeholder="blank = full allowance" onFocus={handleFocus}
+                        <MoneyInput min="0" step="500" placeholder="blank = full allowance" onFocus={handleFocus}
                           value={plan?.demographics?.[o.key === 'self' ? 'cgtGainsUsedSelf' : 'cgtGainsUsedPart'] ?? ''}
                           onChange={(e) => updateDemographics(o.key === 'self' ? 'cgtGainsUsedSelf' : 'cgtGainsUsedPart', e.target.value)} className={inputCls} />
                         <span className="text-[10px] text-slate-400 mt-1 block">Gains already realised this tax year: reduces the {formatGBP(P.cgtAnnualExempt)} exemption in the current year only.</span>
@@ -9863,7 +9970,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       return (
                         <div key={`ug_${o.key}`}>
                           <label className="text-slate-600 font-semibold block mb-1">Other Investments: unrealised gain ({o.label} £)</label>
-                          <input type="number" min="0" step="500" placeholder="blank = balance is all cost" onFocus={handleFocus}
+                          <MoneyInput min="0" step="500" placeholder="blank = balance is all cost" onFocus={handleFocus}
                             value={acc?.unrealisedGain ?? ''} onChange={(e) => updateAccountField(o.ids.other, 'unrealisedGain', e.target.value)} className={inputCls} />
                           <span className="text-[10px] text-slate-400 mt-1 block">How much of today's GIA balance is profit. Left blank, only future growth is taxed, which understates CGT on long-held holdings.</span>
                         </div>
@@ -9880,7 +9987,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> 2. Current balances, annual contributions &amp; risk profiles</h3>
                 <button type="button" onClick={() => goToDoc('doc-risk-profiles')} className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"><HelpCircle className="w-3.5 h-3.5" /> Guide to investment allocations &amp; fund types &rarr;</button>
               </div>
-              <p className="text-[11px] text-slate-500">Pension contributions are gross (including tax relief and employer amounts); ISA, GIA and cash contributions are net. Contributions stop at each owner's retirement age. Allowances: ISA £{P.isaAllowance.toLocaleString()}, pension £{P.pensionAllowance.toLocaleString()} per person (Config).</p>
+              <p className="text-[11px] text-slate-500">Pension contributions are gross (including tax relief and employer amounts); ISA, GIA and cash contributions are net. Contributions stop at each owner's retirement age. Allowances: ISA £{fmtNum(P.isaAllowance)}, pension £{fmtNum(P.pensionAllowance)} per person (Config).</p>
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500 font-semibold">
@@ -9894,8 +10001,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <tr key={acc.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-2.5 font-sans font-bold text-slate-800">{acc.category}{Array.isArray(acc.contribByYear) && <span className="ml-2 px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px] font-normal">phased schedule</span>}</td>
                         {isCouple && <td className="py-2.5 font-sans text-slate-500">{acc.owner}</td>}
-                        <td className="py-2.5"><input type="number" min="0" step="500" placeholder="0" onFocus={handleFocus} value={acc.balance} onChange={(e) => updateAccountField(acc.id, 'balance', e.target.value)} className="w-32 p-1.5 bg-slate-50 border border-slate-300 rounded font-bold text-slate-900 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
-                        <td className="py-2.5"><input type="number" min="0" step="250" placeholder="0" onFocus={handleFocus} value={acc.contrib} onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }} className={`w-28 p-1.5 bg-slate-50 border rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none ${over ? 'border-rose-400 text-rose-700' : 'border-slate-300'}`} title={over ? 'Exceeds the annual allowance set in Config' : ''} /></td>
+                        <td className="py-2.5"><MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={acc.balance} onChange={(e) => updateAccountField(acc.id, 'balance', e.target.value)} className="w-32 p-1.5 bg-slate-50 border border-slate-300 rounded font-bold text-slate-900 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
+                        <td className="py-2.5"><MoneyInput min="0" step="250" placeholder="0" onFocus={handleFocus} value={acc.contrib} onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }} className={`w-28 p-1.5 bg-slate-50 border rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none ${over ? 'border-rose-400 text-rose-700' : 'border-slate-300'}`} title={over ? 'Exceeds the annual allowance set in Config' : ''} /></td>
                         <td className="py-2.5"><input type="number" step="0.5" placeholder="0" onFocus={handleFocus} value={acc.growth} onChange={(e) => updateAccountField(acc.id, 'growth', e.target.value)} className="w-20 p-1.5 bg-slate-50 border border-slate-300 rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
                         <td className="py-2.5">
                           <select value={acc.risk} onChange={(e) => updateAccountField(acc.id, 'risk', e.target.value)} className="p-1.5 bg-slate-50 border border-slate-300 rounded text-xs text-blue-700 font-semibold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
@@ -9941,7 +10048,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <input type="number" min="0" max="120" placeholder="End" onFocus={handleFocus} value={inc.endAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { endAge: parseInputNumber(e.target.value) })} className="w-12 p-1 bg-surface border border-slate-300 rounded tabular-nums text-center font-bold" />
                       </div>
                       <div className="flex items-center gap-2">
-                        <input type="number" min="0" step="500" placeholder="£/yr" onFocus={handleFocus} value={inc.amount} onChange={(e) => updateListItem('otherIncomes', inc.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-emerald-700 font-bold" />
+                        <MoneyInput min="0" step="500" placeholder="£/yr" onFocus={handleFocus} value={inc.amount} onChange={(e) => updateListItem('otherIncomes', inc.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-emerald-700 font-bold" />
                         <select value={inc.incomeType} onChange={(e) => updateListItem('otherIncomes', inc.id, { incomeType: e.target.value })} className="p-1.5 bg-surface border border-slate-300 rounded text-xs font-semibold text-amber-700" title="Drives both income tax and whether this counts as relevant earnings for pension contributions">
                           {Object.keys(E.INCOME_TYPES).map(k => <option key={k} value={k}>{E.INCOME_TYPES[k].label}</option>)}
                         </select>
@@ -10024,7 +10131,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                                 <option value={E.AUTO_DEPOSIT}>{E.AUTO_DEPOSIT}</option>
                               </select>
                             </div>
-                            <input type="number" min="0" step="1000" placeholder="Amount (£)" onFocus={handleFocus} value={c.amount} onChange={(e) => updateListItem('oneOffContributions', c.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded tabular-nums text-emerald-700 font-bold" />
+                            <MoneyInput min="0" step="1000" placeholder="Amount (£)" onFocus={handleFocus} value={c.amount} onChange={(e) => updateListItem('oneOffContributions', c.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded tabular-nums text-emerald-700 font-bold" />
                             {st && !st.direct && (
                               <button onClick={() => toggleOneOffExpand(c.id)} className="px-2 py-1 rounded-lg text-[11px] font-semibold text-amber-700 hover:text-amber-900 hover:bg-amber-100 border border-amber-200 bg-amber-50 cursor-pointer transition-colors flex items-center gap-1" title="This deposit is larger than the year's allowance, so it is staged over several years">
                                 {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -10042,9 +10149,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           {st && (
                             <div className="flex flex-wrap items-center gap-2">
                               {st.direct ? (
-                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-sans text-[10px] font-bold">Direct Deposit (£{Math.round(st.amount).toLocaleString()} within headroom)</span>
+                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-sans text-[10px] font-bold">Direct Deposit (£{fmtNum(Math.round(st.amount))} within headroom)</span>
                               ) : (
-                                <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-sans text-[10px] font-bold">Staged (Option A): £{Math.round(st.H0).toLocaleString()} now &rarr; {destLabel}, £{Math.round(st.surplus0).toLocaleString()} parked in Other Investments</span>
+                                <span className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-sans text-[10px] font-bold">Staged (Option A): £{fmtNum(Math.round(st.H0))} now &rarr; {destLabel}, £{fmtNum(Math.round(st.surplus0))} parked in Other Investments</span>
                               )}
                               <span className="text-slate-500 font-sans text-[10px]">
                                 {Number.isFinite(st.yearHeadroom)
@@ -10062,12 +10169,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                                 </select>
                               </div>
                               <div className="space-y-0.5 text-slate-600">
-                                <div>Year {c.year}: £{Math.round(st.H0).toLocaleString()} direct to {c.category} + £{Math.round(st.surplus0).toLocaleString()} parked in Other Investments</div>
+                                <div>Year {c.year}: £{fmtNum(Math.round(st.H0))} direct to {c.category} + £{fmtNum(Math.round(st.surplus0))} parked in Other Investments</div>
                                 {st.tranches.map((tr, i) => (
-                                  <div key={i}>Year {tr.year}: £{Math.round(tr.amount).toLocaleString()} transferred to {c.stagedTargetWrapper}</div>
+                                  <div key={i}>Year {tr.year}: £{fmtNum(Math.round(tr.amount))} transferred to {c.stagedTargetWrapper}</div>
                                 ))}
                                 {st.unresolvedRemainder > 0 && (
-                                  <div className="text-amber-700">£{Math.round(st.unresolvedRemainder).toLocaleString()} remains parked in Other Investments beyond the plan horizon.</div>
+                                  <div className="text-amber-700">£{fmtNum(Math.round(st.unresolvedRemainder))} remains parked in Other Investments beyond the plan horizon.</div>
                                 )}
                               </div>
                             </div>
@@ -10094,7 +10201,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <div key={cost.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                         <input type="date" value={cost.date || (cost.year ? `${cost.year}-01-01` : '')} onChange={(e) => { const d = e.target.value; updateListItem('oneOffCosts', cost.id, { date: d, year: parseInt(d.slice(0, 4)) || '' }); }} className="p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800 text-xs" />
                         <input type="text" onFocus={handleFocus} value={cost.desc} onChange={(e) => updateListItem('oneOffCosts', cost.id, { desc: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 flex-1" placeholder="Purpose" />
-                        <input type="number" min="0" step="1000" placeholder="Amount (£)" onFocus={handleFocus} value={cost.amount} onChange={(e) => updateListItem('oneOffCosts', cost.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded tabular-nums text-rose-700 font-bold" />
+                        <MoneyInput min="0" step="1000" placeholder="Amount (£)" onFocus={handleFocus} value={cost.amount} onChange={(e) => updateListItem('oneOffCosts', cost.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded tabular-nums text-rose-700 font-bold" />
                         <button onClick={() => deleteOneOffCost(cost.id)} className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
@@ -10108,6 +10215,30 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 2: CONFIG */}
         {activeTab === 'config' && (
           <div className="space-y-6">
+            {/*
+              * HOW NUMBERS ARE WRITTEN, WHICH IS NOT THE SAME QUESTION AS WHAT THEY ARE.
+              *
+              * Kept out of the folding cards below and above the methodology, because it changes every
+              * figure on every tab at once and somebody looking for it should not have to guess which
+              * card it is filed under. It is a display preference rather than plan data, so it is stored
+              * beside the theme and does not travel in an exported plan: a plan is the same plan however
+              * its owner likes their separators written.
+              */}
+            <div data-number-format className="bg-surface border border-slate-200/90 p-5 rounded-xl flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> How numbers are written</h2>
+                <p className="text-xs text-slate-500 mt-1">Applies everywhere, to what is shown and to what you type. Amounts group in thousands either way; this is only which mark does the grouping and which the decimal.</p>
+              </div>
+              <div className="flex items-center gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200 shrink-0">
+                {Object.values(NUMBER_FORMATS).map(f => (
+                  <button key={f.id} type="button" onClick={() => setNumFormat(f.id)} aria-pressed={numFormat === f.id}
+                    title={f.label}
+                    className={`px-3 py-1.5 rounded-md text-xs font-bold tabular-nums cursor-pointer transition-colors ${numFormat === f.id ? 'bg-surface text-blue-700 border border-blue-300' : 'text-slate-600 hover:text-slate-900'}`}>
+                    {f.sample}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div>
@@ -10119,8 +10250,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     Auto-pick scores <strong className="text-slate-700">all {POLICY_COMBOS} combinations</strong> of
                     the {Object.keys(E.DECUMULATION_POLICIES).length} withdrawal policies, both crystallisation
                     methods and the allowance-harvesting switch where it applies. Each one is run
-                    on {POLICY_SEEDS} seeds of {Math.round(TOURNAMENT_TRIALS / POLICY_SEEDS).toLocaleString()} market
-                    paths, so a single click simulates {(POLICY_COMBOS * TOURNAMENT_TRIALS).toLocaleString()} retirements
+                    on {POLICY_SEEDS} seeds of {fmtNum(Math.round(TOURNAMENT_TRIALS / POLICY_SEEDS))} market
+                    paths, so a single click simulates {fmtNum((POLICY_COMBOS * TOURNAMENT_TRIALS))} retirements
                     and takes about half a minute.
                   </p>
                 </div>
@@ -10279,7 +10410,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <option value="Phased Drawdown">Phased Drawdown (Ongoing {Math.round(P.pclsProp * 100)}% tax-free proportion)</option>
                     <option value="Full 25% Lump Sum">Full Lump Sum (Upfront statutory PCLS into Cash)</option>
                   </select>
-                  <span className="text-[10px] text-slate-400 mt-1 block">Phased crystallises {Math.round(P.pclsProp * 100)}% tax-free with each draw; Lump Sum moves the tax-free cash (capped at £{P.lsa.toLocaleString()}) into cash savings at retirement.</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Phased crystallises {Math.round(P.pclsProp * 100)}% tax-free with each draw; Lump Sum moves the tax-free cash (capped at £{fmtNum(P.lsa)}) into cash savings at retirement.</span>
                 </div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Harvest unused 0% allowance</label>
@@ -10331,7 +10462,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div className="pt-3 border-t border-slate-100 space-y-2">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-emerald-600" /> Policy search results: {policyResults.chosenId === policyResults.bestId ? 'recommendation applied above' : 'your choice applied above'}</h3>
-                    <span className="text-[10px] text-slate-400">{policyResults.rows.length} combinations · {policyResults.seeds ? `${policyResults.seeds.length} runs × ${policyResults.trialsPerSeed.toLocaleString()} paths · seeds ${policyResults.seeds.join(' and ')}` : `${policyResults.trials.toLocaleString()} paths each · seed ${policyResults.seed}`} · {policyResults.rankedBy === 'balanced' ? 'every priority balanced' : policyResults.rankedBy === 'custom' ? 'ranked by your order' : 'ranked survival first'}</span>
+                    <span className="text-[10px] text-slate-400">{policyResults.rows.length} combinations · {policyResults.seeds ? `${policyResults.seeds.length} runs × ${fmtNum(policyResults.trialsPerSeed)} paths · seeds ${policyResults.seeds.join(' and ')}` : `${fmtNum(policyResults.trials)} paths each · seed ${policyResults.seed}`} · {policyResults.rankedBy === 'balanced' ? 'every priority balanced' : policyResults.rankedBy === 'custom' ? 'ranked by your order' : 'ranked survival first'}</span>
                   </div>
                   {/*
                     * THE CHOICES, PRICED. Each card is a candidate that beats the survival-first
@@ -10662,7 +10793,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
                 <div className="flex items-center gap-2 font-bold text-blue-950 text-sm"><Layers className="w-4 h-4 text-blue-600" /> What you will get</div>
                 <Fine isPhone={isPhone} label="The six steps">
-                <p className="leading-relaxed">Six steps. What your plan does as entered, the most you could safely spend instead, the earliest you could stop working, then the same range drawn two ways &mdash; compounded from the return assumptions, and read off {MC_TRIALS.toLocaleString()} randomised paths &mdash; and finally the two side by side. Every figure is in today&rsquo;s money.</p>
+                <p className="leading-relaxed">Six steps. What your plan does as entered, the most you could safely spend instead, the earliest you could stop working, then the same range drawn two ways &mdash; compounded from the return assumptions, and read off {fmtNum(MC_TRIALS)} randomised paths &mdash; and finally the two side by side. Every figure is in today&rsquo;s money.</p>
                 </Fine>
               </div>
             ) : (
@@ -10688,7 +10819,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Pre-access failures</span><span className={`text-xl font-semibold font-mono ${simResult.preNmpaFailRate > 5 ? 'text-rose-700' : 'text-slate-700'}`}>{simResult.preNmpaFailRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">stranded before {nmpa}</span></div>
                   </div>
                   <p className="text-[11px] text-slate-500 leading-relaxed">
-                    <strong className={simResult.successRate >= 90 ? 'text-emerald-700' : simResult.successRate >= 75 ? 'text-amber-700' : 'text-rose-700'}>{formatGBP(simResult.spend)} a year held in {simResult.successRate.toFixed(1)}% of {simResult.trials.toLocaleString()} futures.</strong>{' '}
+                    <strong className={simResult.successRate >= 90 ? 'text-emerald-700' : simResult.successRate >= 75 ? 'text-amber-700' : 'text-rose-700'}>{formatGBP(simResult.spend)} a year held in {simResult.successRate.toFixed(1)}% of {fmtNum(simResult.trials)} futures.</strong>{' '}
                     A path counts as failed in any year that living costs cannot be met from a wrapper you can actually reach, or if the pot ends below your bequest floor. The &plusmn; is sampling error: at this many trials, a difference smaller than that is noise.
                     {simResult.preNmpaFailRate > 5 && <> <strong className="text-rose-700">Check the pre-access figure separately</strong> &mdash; {simResult.preNmpaFailRate.toFixed(1)}% of paths had pension money that was still locked, which is a bridging problem rather than a saving-enough one.</>}
                     {simResult.medianFailAge && <> Of the paths that did fail, the median ran dry at {simResult.medianFailAge}; the earliest at {simResult.earliestFailAge}.</>}
@@ -10722,7 +10853,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <p className="text-[11px] text-slate-500 leading-relaxed">
                         {safeMaxResult.stats.note
                           ? <><strong className="text-rose-700">{safeMaxResult.stats.note}</strong>{' '}</>
-                          : <><strong className="text-slate-700">{formatGBP(safeMaxResult.spend)} a year clears {targetSurvivalRate}%</strong>, and the {safeMaxResult.stats.successRate.toFixed(1)}% beside it is measured on the same {safeMaxResult.stats.trials.toLocaleString()} paths that figure is quoted from &mdash; not a separate sample, so the number is the one you are actually buying.{' '}</>}
+                          : <><strong className="text-slate-700">{formatGBP(safeMaxResult.spend)} a year clears {targetSurvivalRate}%</strong>, and the {safeMaxResult.stats.successRate.toFixed(1)}% beside it is measured on the same {fmtNum(safeMaxResult.stats.trials)} paths that figure is quoted from &mdash; not a separate sample, so the number is the one you are actually buying.{' '}</>}
                         A lower target returns a higher figure: you are choosing how much risk of running short to accept in exchange for income now. 95% is the conventional planning benchmark; 99% is close to belt-and-braces and costs a lot of income to reach.
                         {safeMaxResult.spend < simResult.spend && <> <strong className="text-rose-700">Your entered spend is above this.</strong> That is not a prohibition &mdash; it is the size of the bet you are making.</>}
                       </p>
@@ -10778,7 +10909,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <p className="text-[11px] text-slate-500 leading-relaxed">
                         {safeRetireResult.note
                           ? <><strong className="text-rose-700">{safeRetireResult.note}</strong>{' '}</>
-                          : <><strong className="text-slate-700">Stopping at {safeRetireResult.age} holds {safeRetireResult.rate.toFixed(1)}%</strong> on {safeRetireResult.stats.trials.toLocaleString()} paths, spending the {formatGBP(simResult.spend)} a year you entered throughout.{' '}</>}
+                          : <><strong className="text-slate-700">Stopping at {safeRetireResult.age} holds {safeRetireResult.rate.toFixed(1)}%</strong> on {fmtNum(safeRetireResult.stats.trials)} paths, spending the {formatGBP(simResult.spend)} a year you entered throughout.{' '}</>}
                         Moving the date does not move everything with it. <strong className="text-slate-700">Employed and self-employed income shifts with the retirement age</strong> in both directions, and with it the contributions that come out of it. <strong className="text-slate-700">Defined-benefit pensions, annuities and the State Pension keep their own dates</strong>, because the scheme sets those and retiring sooner does not bring them forward &mdash; which is most of why going earlier costs more than the missing salary alone.
                         {safeRetireResult.verifySteps > 0 && <> The first answer the scan found was {safeRetireResult.verifySteps} {safeRetireResult.verifySteps === 1 ? 'year' : 'years'} earlier and did not hold when re-run at full precision, so it was moved later until it did.</>}
                       </p>
@@ -10829,7 +10960,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* ---------------- 5. MONTE CARLO CHART ---------------- */}
               {showSlide(5) && (
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(5, 'Monte Carlo', `${simResult.trials.toLocaleString()} randomised futures, same axes as the last screen.`)}
+                  {slideHead(5, 'Monte Carlo', `${fmtNum(simResult.trials)} randomised futures, same axes as the last screen.`)}
                   <div className="flex flex-wrap items-center gap-3">
                     {bandToggle}
                     {horizonSlider}
@@ -11005,7 +11136,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     summary={sandboxSummary()} quick={sandboxQuickDials()} full={renderSandboxPanel()} />
                 ) : renderSandboxPanel()}
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {simResult.trials.toLocaleString()} randomised futures and refresh every step, run it again.</span>
+                  <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {fmtNum(simResult.trials)} randomised futures and refresh every step, run it again.</span>
                   <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                     <RotateCcw className="w-3.5 h-3.5" /> {mcBusy ? 'Running…' : 'Rerun projections'}
@@ -11677,7 +11808,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       {E.IHT_RELATIONSHIPS[b.relationship].incomeTaxpayer ? (
                         <>
                           <label className="flex items-center gap-1 text-slate-500">their income
-                            <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={inputValue(b.income)} onChange={(e) => updateBeneficiary(b.id, { income: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800" />
+                            <MoneyInput min="0" step="1000" placeholder="0" onFocus={handleFocus} value={inputValue(b.income)} onChange={(e) => updateBeneficiary(b.id, { income: parseInputNumber(e.target.value) })} className="w-24 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800" />
                           </label>
                           <label className="flex items-center gap-1 text-slate-500">age
                             <input type="number" min="0" max="120" placeholder="—" onFocus={handleFocus} value={inputValue(b.age)} onChange={(e) => updateBeneficiary(b.id, { age: parseInputNumber(e.target.value) })} className="w-14 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800" />
@@ -11762,7 +11893,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <div key={g.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                       <input type="text" placeholder="What it was for" value={g.desc ?? ''} onChange={(e) => updateGift(g.id, { desc: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 flex-1 min-w-[8rem]" />
                       <label className="flex items-center gap-1 text-slate-500">amount
-                        <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus} value={g.amount ?? ''} onChange={(e) => updateGift(g.id, { amount: parseInputNumber(e.target.value) })} className="w-28 p-1 bg-surface border border-slate-300 rounded tabular-nums text-purple-700 font-bold" />
+                        <MoneyInput min="0" step="1000" placeholder="0" onFocus={handleFocus} value={g.amount ?? ''} onChange={(e) => updateGift(g.id, { amount: parseInputNumber(e.target.value) })} className="w-28 p-1 bg-surface border border-slate-300 rounded tabular-nums text-purple-700 font-bold" />
                       </label>
                       <label className="flex items-center gap-1 text-slate-500">year
                         <input type="number" min="1950" max="2100" onFocus={handleFocus} value={g.year ?? ''} onChange={(e) => updateGift(g.id, { year: parseInputNumber(e.target.value) })} className="w-20 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800" />
@@ -11832,7 +11963,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </p>
               <div className="flex flex-wrap items-end gap-3 text-xs">
                 <label className="flex flex-col gap-1 text-slate-600 font-semibold">Amount each year
-                  <input type="number" min="0" step="500" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.annual ?? ''} onChange={(e) => updateSurplusGift('annual', parseInputNumber(e.target.value))} className="w-32 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-purple-700 font-bold" />
+                  <MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.annual ?? ''} onChange={(e) => updateSurplusGift('annual', parseInputNumber(e.target.value))} className="w-32 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-purple-700 font-bold" />
                 </label>
                 <label className="flex flex-col gap-1 text-slate-600 font-semibold">From year
                   <input type="number" min="1950" max="2100" placeholder={String(ctx.baseYear + 1)} onFocus={handleFocus} value={plan?.inheritance?.surplusGift?.fromYear ?? ''} onChange={(e) => updateSurplusGift('fromYear', parseInputNumber(e.target.value))} className="w-24 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-slate-800" />
@@ -11907,7 +12038,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           <tr key={a.id}>
                             <td className="py-1.5 pr-3 font-sans font-semibold text-slate-800">{a.category}{isCouple ? <span className="block text-[10px] text-slate-400 font-normal">{a.owner}</span> : null}</td>
                             <td className="py-1.5 pr-3">
-                              <input type="number" min="0" step="1000" placeholder="0" onFocus={handleFocus}
+                              <MoneyInput min="0" step="1000" placeholder="0" onFocus={handleFocus}
                                 value={inputValue(estateBalances[a.id])}
                                 onChange={(e) => setEstateBalance(a.id, parseInputNumber(e.target.value))}
                                 className={`w-28 p-1 bg-surface border rounded font-mono text-slate-800 ${estateBalancesOwn ? 'border-amber-300' : 'border-slate-300'}`} />
@@ -11963,7 +12094,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Home value (today&rsquo;s money)</label>
-                  <input type="number" min="0" step="10000" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.homeValue ?? ''} onChange={(e) => updateInheritance('homeValue', parseInputNumber(e.target.value))} className={inputCls} />
+                  <MoneyInput min="0" step="10000" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.homeValue ?? ''} onChange={(e) => updateInheritance('homeValue', parseInputNumber(e.target.value))} className={inputCls} />
                   <label className="flex items-center gap-2 mt-1.5 cursor-pointer">
                     <input type="checkbox" checked={plan?.inheritance?.homeToDescendants !== false} onChange={(e) => updateInheritance('homeToDescendants', e.target.checked)} className="accent-purple-600" />
                     <span className="text-[10px] text-slate-500">It passes to a child, grandchild or step-child</span>
@@ -12013,7 +12144,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             {Object.entries(E.ESTATE_ASSET_KINDS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                           </select>
                           <label className="flex items-center gap-1 text-slate-500">worth
-                            <input type="number" min="0" step="5000" placeholder="0" onFocus={handleFocus} value={inputValue(a.value)} onChange={(e) => updateEstateAsset(a.id, { value: parseInputNumber(e.target.value) })} className="w-28 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800 font-bold" />
+                            <MoneyInput min="0" step="5000" placeholder="0" onFocus={handleFocus} value={inputValue(a.value)} onChange={(e) => updateEstateAsset(a.id, { value: parseInputNumber(e.target.value) })} className="w-28 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800 font-bold" />
                           </label>
                           {/* only the relievable kinds care when it was bought, so only they ask */}
                           {kind.relievable && (
@@ -12149,7 +12280,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Payment received</label>
-                        <input type="number" min="0" step="1000" placeholder="0" data-exempt-compensation onFocus={handleFocus} value={plan?.inheritance?.compensationPayment ?? ''} onChange={(e) => updateInheritance('compensationPayment', parseInputNumber(e.target.value))} className={inputCls} />
+                        <MoneyInput min="0" step="1000" placeholder="0" data-exempt-compensation onFocus={handleFocus} value={plan?.inheritance?.compensationPayment ?? ''} onChange={(e) => updateInheritance('compensationPayment', parseInputNumber(e.target.value))} className={inputCls} />
                       </div>
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Date you received it</label>
@@ -12205,11 +12336,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Value you inherited</label>
-                        <input type="number" min="0" step="5000" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.qsrInheritedValue ?? ''} onChange={(e) => updateInheritance('qsrInheritedValue', parseInputNumber(e.target.value))} className={inputCls} />
+                        <MoneyInput min="0" step="5000" placeholder="0" onFocus={handleFocus} value={plan?.inheritance?.qsrInheritedValue ?? ''} onChange={(e) => updateInheritance('qsrInheritedValue', parseInputNumber(e.target.value))} className={inputCls} />
                       </div>
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Tax paid on it</label>
-                        <input type="number" min="0" step="500" placeholder="0" data-qsr-tax onFocus={handleFocus} value={plan?.inheritance?.qsrTaxPaid ?? ''} onChange={(e) => updateInheritance('qsrTaxPaid', parseInputNumber(e.target.value))} className={inputCls} />
+                        <MoneyInput min="0" step="500" placeholder="0" data-qsr-tax onFocus={handleFocus} value={plan?.inheritance?.qsrTaxPaid ?? ''} onChange={(e) => updateInheritance('qsrTaxPaid', parseInputNumber(e.target.value))} className={inputCls} />
                       </div>
                       <div>
                         <label className="text-slate-600 font-semibold block mb-1">Years ago</label>
@@ -12473,11 +12604,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div id="doc-mc-buttons" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
               <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Dices className="w-4 h-4 text-blue-600" /> The Three Stages of a Monte Carlo Run</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">Two of these run from one button on the Projection tab, each result appearing as its stage finishes. They use the same engine on the same {MC_TRIALS.toLocaleString()} randomised market paths and differ only in which side of the equation is held fixed: one fixes your spending and reports the risk, the other fixes the risk and reports the spending. The second can be switched off if you only want the fast answer. The third leaves both alone and changes where the money sits instead; it answers a different question, so it has its own tab and its own button.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Two of these run from one button on the Projection tab, each result appearing as its stage finishes. They use the same engine on the same {fmtNum(MC_TRIALS)} randomised market paths and differ only in which side of the equation is held fixed: one fixes your spending and reports the risk, the other fixes the risk and reports the spending. The second can be switched off if you only want the fast answer. The third leaves both alone and changes where the money sits instead; it answers a different question, so it has its own tab and its own button.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
                   <strong className="text-slate-800 block">Stage 1, always runs: is the plan solvent?</strong>
-                  <p className="text-slate-500">Takes the target living expenditure from Plan Inputs exactly as entered and runs it through {MC_TRIALS.toLocaleString()} paths. The answer is a <strong>survival rate</strong>: the share of paths that funded every year to age {terminalAge} without running dry and finished above your bequest floor. Use it once you know roughly what you want to spend. This stage reports a probability rather than targeting one, so the target survival rate does not affect it.</p>
+                  <p className="text-slate-500">Takes the target living expenditure from Plan Inputs exactly as entered and runs it through {fmtNum(MC_TRIALS)} paths. The answer is a <strong>survival rate</strong>: the share of paths that funded every year to age {terminalAge} without running dry and finished above your bequest floor. Use it once you know roughly what you want to spend. This stage reports a probability rather than targeting one, so the target survival rate does not affect it.</p>
                 </div>
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
                   <strong className="text-slate-800 block">Stage 2, optional: "how much could I spend?"</strong>
@@ -12494,14 +12625,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
               <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1 text-xs">
                 <strong className="text-slate-800 block">One expected path, two ranges</strong>
-                <p className="text-slate-500">Stage 1 keeps every simulated path, not just its ending, so the chart can show where all {MC_TRIALS.toLocaleString()} of them stood at each age: the shaded band is the 10th to 90th percentile, the solid line the median. Read the right-hand edge and you get the same three pot figures reported underneath it, because both use the same quantile. No path follows any of the three lines, and the band widens with age because nothing cancels out the early years.</p>
-                <p className="text-slate-500">The rate-based and Monte Carlo charts share a y-scale so they can be read against each other directly. What that shows is how little of the distribution a single line accounts for. The line itself is well placed &mdash; it tracks the simulated median to within a few percent (measured &minus;3.5%, &minus;1.5% and +0.4% across three households), because the engine compounds the same rate it draws around as the median of each year&rsquo;s return. The point is the distance above and below it. Read on its own, a single curve looks like an answer; against the spread of {MC_TRIALS.toLocaleString()} paths it is visibly one thread of a very wide cloth.</p>
+                <p className="text-slate-500">Stage 1 keeps every simulated path, not just its ending, so the chart can show where all {fmtNum(MC_TRIALS)} of them stood at each age: the shaded band is the 10th to 90th percentile, the solid line the median. Read the right-hand edge and you get the same three pot figures reported underneath it, because both use the same quantile. No path follows any of the three lines, and the band widens with age because nothing cancels out the early years.</p>
+                <p className="text-slate-500">The rate-based and Monte Carlo charts share a y-scale so they can be read against each other directly. What that shows is how little of the distribution a single line accounts for. The line itself is well placed &mdash; it tracks the simulated median to within a few percent (measured &minus;3.5%, &minus;1.5% and +0.4% across three households), because the engine compounds the same rate it draws around as the median of each year&rsquo;s return. The point is the distance above and below it. Read on its own, a single curve looks like an answer; against the spread of {fmtNum(MC_TRIALS)} paths it is visibly one thread of a very wide cloth.</p>
                 <p className="text-slate-500">The rate-based band answers the same question far more cheaply, as a shaded band either side of the expected line that redraws as you type. Each edge takes that age&rsquo;s own quantile rate: the spread of an annualised return is &radic;(sp&sup2; + &sigma;&sup2;/T) and narrows with the horizon, so one rate cannot describe every age on a chart &mdash; held fixed it is out by 24&ndash;29% at age 50 on a 45-year plan. Re-derived per age it lands within 2&ndash;3% of the Monte Carlo.</p>
                 <p className="text-slate-500">What survives is the real difference between the two. The band cannot run dry, because a smooth line has no bad decade in it; the fan can, because it is made of paths that did. So the band&rsquo;s lower edge stays optimistic, and increasingly so as a plan weakens &mdash; 5.5% out at 99.5% survival, 16.2% at 97.3%, 98% at 91.3%. Use the band to see the shape of the range as you type, and the fan when the downside is the decision.</p>
                 <p className="text-slate-500">Where the lower edge touches zero, a tenth of the paths have run dry by that age. That is a statement no smooth line could have made.</p>
                 <p className="text-slate-500"><strong className="text-slate-800">Sequence risk, priced.</strong> The card under the chart puts a number on the same effect rather than describing it. It takes each tier&rsquo;s 10th-percentile annualised return &mdash; the unlucky column of the Config risk matrix, over your own horizon &mdash; compounds it evenly to age {terminalAge}, and sets that against the 10th-percentile pot the simulation actually produced. The two runs share an expected return, a plan and a horizon; all that separates them is the order the returns arrive in, so the difference is sequence risk in pounds. It is one-sided by nature: the same comparison at the 90th percentile comes out far smaller, and sometimes favourable, because selling units cheaply to live on is irreversible in a way that buying them cheaply is not. While you are still contributing it disappears, and can turn mildly favourable &mdash; a bumpy path buys more units when prices are low. This is also the one thing a published return forecast cannot supply, however detailed: withdrawal order is not a property of a return distribution.</p>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed"><strong className="text-slate-800">Every figure is in today&rsquo;s money, and the headline carries a &plusmn; sampling error.</strong> At {MC_TRIALS.toLocaleString()} trials a difference smaller than that is noise, so treat 94.2% and 95.1% as the same answer. Check the <strong>pre-SIPP access failure</strong> line separately: a plan can survive overall while still stranding you before age {nmpa}, which is a bridging problem, not a saving-enough problem. A path counts as failed in any year that living costs or a one-off cost cannot be met from an accessible wrapper, or if the terminal pot ends below your bequest floor. Paths are seeded, so the same seed reproduces the result exactly; change the seed in Config to test a different draw of markets.</p>
+              <p className="text-xs text-slate-600 leading-relaxed"><strong className="text-slate-800">Every figure is in today&rsquo;s money, and the headline carries a &plusmn; sampling error.</strong> At {fmtNum(MC_TRIALS)} trials a difference smaller than that is noise, so treat 94.2% and 95.1% as the same answer. Check the <strong>pre-SIPP access failure</strong> line separately: a plan can survive overall while still stranding you before age {nmpa}, which is a bridging problem, not a saving-enough problem. A path counts as failed in any year that living costs or a one-off cost cannot be met from an accessible wrapper, or if the terminal pot ends below your bequest floor. Paths are seeded, so the same seed reproduces the result exactly; change the seed in Config to test a different draw of markets.</p>
               <p className="text-[11px] text-slate-500 leading-relaxed">No stage changes your plan on its own. Applying a strategy from stage 3 is a separate, deliberate click.</p>
               </PhoneCollapse>
             </div>
@@ -12509,9 +12640,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div id="doc-tournament" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
               <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Zap className="w-4 h-4 text-indigo-600" /> Automated Strategy Tournament &amp; Optimisation Methodology</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">The tournament compares six ways of splitting the same annual take-home budget between S&amp;S ISAs and pensions. Every player is run on the same {TOURNAMENT_TRIALS.toLocaleString()} market paths (common random numbers), so the players are compared on identical markets rather than on separate draws. That is what makes the comparison fair; it does not make it exact. A single strategy's survival rate still moves by around half a point from one seed to the next at this path count, so read a lead smaller than about a point as sampling error. Any saved scenario can be entered as an extra player; those run exactly as saved and are not held to the same budget, which their cards state.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">The tournament compares six ways of splitting the same annual take-home budget between S&amp;S ISAs and pensions. Every player is run on the same {fmtNum(TOURNAMENT_TRIALS)} market paths (common random numbers), so the players are compared on identical markets rather than on separate draws. That is what makes the comparison fair; it does not make it exact. A single strategy's survival rate still moves by around half a point from one seed to the next at this path count, so read a lead smaller than about a point as sampling error. Any saved scenario can be entered as an extra player; those run exactly as saved and are not held to the same budget, which their cards state.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">1. Equal net budget</strong><p className="text-slate-500">Each strategy costs the same take-home pay. Pension money is grossed up using each owner's own salary (income tax + NIC relief, plus any employer NIC pass-through set in Config), capped by the annual allowance (£{P.pensionAllowance.toLocaleString()}) and salary; ISA money is capped at £{P.isaAllowance.toLocaleString()} per person; anything left over flows to a GIA.</p></div>
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">1. Equal net budget</strong><p className="text-slate-500">Each strategy costs the same take-home pay. Pension money is grossed up using each owner's own salary (income tax + NIC relief, plus any employer NIC pass-through set in Config), capped by the annual allowance (£{fmtNum(P.pensionAllowance)}) and salary; ISA money is capped at £{fmtNum(P.isaAllowance)} per person; anything left over flows to a GIA.</p></div>
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">2. Conservative bridge sizing</strong><p className="text-slate-500">If spending starts before anyone can access a pension (age {nmpa}), the bridge reserve is the sum of net drawdown in those years (after guaranteed income and a working partner's take-home), uplifted by the safety margin ({E.num(plan?.config?.bridgeSafetyMargin, 30)}%) and assuming 0% real growth.</p></div>
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">3. The players</strong><p className="text-slate-500"><strong>Current plan</strong> · <strong>Survival maximiser</strong> (searches the ISA share from 0% to 100% and keeps the best survival, subject to the bridge-risk cap) · <strong>Bridge-Sized Relief</strong> (pension-first, with only the pre-access bridge carved out: the requirement is sized with growth counted on both existing balances and new contributions, then cover levels either side of it are searched, some paid in level and some over the final years only, and spare ISA capital above the reserve is moved into the pension) · <strong>Relief-First</strong> (pension first, bridge minimum kept; with a Bed &amp; SIPP transfer of spare ISA capital in full scope) · <strong>Bracket-Smoothed Sizing</strong> (pension funded only to the pot whose sustainable withdrawal plus state pension fills the basic-rate band, the rest to ISA) · <strong>Relief-First, Bridge-Last</strong> (pension-max early, ISA-max in the final years before retirement).</p></div>
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">4. Reading the results</strong><p className="text-slate-500">Rank by survival first; ties within 0.5 points are broken by the 10th-percentile pot. Watch the pre-SIPP access failure rate: a strategy can win on total survival by accepting more bridge risk. The "Partner balancing" option steers new money to the partner with the smaller projected pension so both personal allowances can be used in retirement; it costs relief if that partner pays a lower marginal rate, so it does not always win.</p></div>
@@ -12524,11 +12655,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> Decumulation Policies &amp; Pension Drawdown Strategies</h2>
               <p className="text-xs text-slate-600 leading-relaxed">How money is withdrawn across wrappers changes lifetime tax and the size of the pot left at the end; it changes the probability of maintaining your living costs far less than the spend level, asset allocation and the pre-SIPP access bridge do.</p>
               <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1.5">
-                <li><strong>Tax Smoothing (default):</strong> fills the £{P.pa.toLocaleString()} allowance from pension income (0%), then draws pension income up to the £{P.basicLimit.toLocaleString()} higher-rate threshold (about {Math.round((1 - P.pclsProp) * P.basicRate * 100)}% effective with the {Math.round(P.pclsProp * 100)}% tax-free element), then cash, GIA and ISA, with pension income above the threshold as the last resort. Cash and ISAs are preserved as the low-volatility reserve and the tax-free shield for later life.</li>
-                <li><strong>UK FIRE Bracket Fill:</strong> draws pension only up to the £{P.pa.toLocaleString()} allowance, then cash, GIA and ISAs; pension income above the allowance is the last resort. Pays the least tax during your lifetime and leaves the largest pot, but that pot is mostly taxable pension. Set the pension death-tax haircut in Config to see the difference net of what beneficiaries would pay.</li>
+                <li><strong>Tax Smoothing (default):</strong> fills the £{fmtNum(P.pa)} allowance from pension income (0%), then draws pension income up to the £{fmtNum(P.basicLimit)} higher-rate threshold (about {Math.round((1 - P.pclsProp) * P.basicRate * 100)}% effective with the {Math.round(P.pclsProp * 100)}% tax-free element), then cash, GIA and ISA, with pension income above the threshold as the last resort. Cash and ISAs are preserved as the low-volatility reserve and the tax-free shield for later life.</li>
+                <li><strong>UK FIRE Bracket Fill:</strong> draws pension only up to the £{fmtNum(P.pa)} allowance, then cash, GIA and ISAs; pension income above the allowance is the last resort. Pays the least tax during your lifetime and leaves the largest pot, but that pot is mostly taxable pension. Set the pension death-tax haircut in Config to see the difference net of what beneficiaries would pay.</li>
                 <li><strong>Sequential:</strong> cash → GIA → ISA → pension, no bracket management. Shown as the naive baseline; it wastes the personal allowance in early retirement.</li>
-                <li><strong>Harvest unused allowance:</strong> once retired and past age {nmpa}, any unused 0% allowance is filled from the pension and the net proceeds moved to ISA (within the £{P.isaAllowance.toLocaleString()} limit) or cash. It only matters when spending is largely covered by guaranteed income.</li>
-                <li><strong>Phased Drawdown</strong> crystallises {Math.round(P.pclsProp * 100)}% tax-free with each withdrawal (UFPLS-style), keeping the rest invested. <strong>Full lump sum</strong> moves the maximum tax-free cash (capped at £{P.lsa.toLocaleString()}) into cash savings at retirement; later withdrawals are then fully taxable.</li>
+                <li><strong>Harvest unused allowance:</strong> once retired and past age {nmpa}, any unused 0% allowance is filled from the pension and the net proceeds moved to ISA (within the £{fmtNum(P.isaAllowance)} limit) or cash. It only matters when spending is largely covered by guaranteed income.</li>
+                <li><strong>Phased Drawdown</strong> crystallises {Math.round(P.pclsProp * 100)}% tax-free with each withdrawal (UFPLS-style), keeping the rest invested. <strong>Full lump sum</strong> moves the maximum tax-free cash (capped at £{fmtNum(P.lsa)}) into cash savings at retirement; later withdrawals are then fully taxable.</li>
               </ul>
               </PhoneCollapse>
             </div>
@@ -12542,10 +12673,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
                 <li><strong>Everything is in today's money.</strong> Growth uses each tier's <em>real</em> rate, so every pot, spend and bequest figure is in today's purchasing power. The "Combined (Nominal)" chart series is the only place inflation is added back, for display. A £100,000 bequest floor therefore means £100,000 of today's money. Do not gross it up.</li>
                 <li><strong>Pay is flat in real terms unless you say otherwise.</strong> Salary, or trading profit for the self-employed, is held at the figure you enter for every working year. Because the projection is in today's money that is not a frozen wage, it is pay rising exactly with inflation. Set a real growth rate per person under Advanced inputs to model promotions or a career winding down; it compounds on top of inflation and feeds the relevant-earnings cap, the annual allowance taper and the relief rate on every pension contribution.</li>
-                <li><strong>The MPAA is derived, not declared.</strong> The model runs the expected path once, finds the first year each person draws taxable pension income, and applies the £{P.mpaaLimit.toLocaleString()} allowance from that age. It assumes you have <em>not</em> already flexibly accessed a pension: reasonable for planning, wrong if you have, which would need the trigger set earlier.</li>
+                <li><strong>The MPAA is derived, not declared.</strong> The model runs the expected path once, finds the first year each person draws taxable pension income, and applies the £{fmtNum(P.mpaaLimit)} allowance from that age. It assumes you have <em>not</em> already flexibly accessed a pension: reasonable for planning, wrong if you have, which would need the trigger set earlier.</li>
                 <li><strong>Carry-forward is not consumed.</strong> Unused allowance from the prior three years is offered as headroom but is not tracked as being used up, so a plan that leans on it repeatedly is optimistic. It never lifts the earnings limit, and it accrues at each prior year's <em>tapered</em> allowance.</li>
-                <li><strong>The annual allowance taper keys off earnings.</strong> HMRC tapers on adjusted income, which adds employer contributions; the model only knows earnings, so the taper is approximate for anyone near the £{P.aaTaperThr.toLocaleString()} threshold.</li>
-                <li><strong>A blank salary means "unknown", not "zero".</strong> While you are still working, leaving salary empty leaves the pension allowance unconstrained rather than dropping it to £{P.pensionNoEarningsLimit.toLocaleString()}. Enter a salary for an accurate limit.</li>
+                <li><strong>The annual allowance taper keys off earnings.</strong> HMRC tapers on adjusted income, which adds employer contributions; the model only knows earnings, so the taper is approximate for anyone near the £{fmtNum(P.aaTaperThr)} threshold.</li>
+                <li><strong>A blank salary means "unknown", not "zero".</strong> While you are still working, leaving salary empty leaves the pension allowance unconstrained rather than dropping it to £{fmtNum(P.pensionNoEarningsLimit)}. Enter a salary for an accurate limit.</li>
                 <li><strong>CGT is realisation-based.</strong> Gains are booked only when the GIA is actually sold, using a running cost basis. Gains are wiped by the uplift on death, so nothing is charged on whatever remains at the terminal age.</li>
                 <li><strong>The tournament holds contributions equal.</strong> Every strategy is re-priced to cost the same total over the accumulation years as your current plan, by solving its contribution escalation. Without this a strategy could win simply by asking you to pay in more.</li>
                 <li><strong>Allowance harvesting is a bequest tool.</strong> It never improves survival. It moves money from a pot taxed on death into one that is not. It is worth nothing unless you set a pension death tax rate, and close calls are broken on the pot left <em>after</em> that tax.</li>
@@ -12554,7 +12685,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </ul>
 
               <h3 className="text-sm font-semibold text-slate-800 pt-1">Modelled</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Income tax including the personal-allowance taper, employee Class 1 NIC and self-employed Class 4 NIC, the {Math.round(P.pclsProp * 100)}% tax-free element capped at the £{P.lsa.toLocaleString()} Lump Sum Allowance, the £{P.pensionAllowance.toLocaleString()} annual allowance with taper and three-year carry-forward, the relevant-earnings limit, the MPAA, ISA allowances, realisation-based CGT with its annual exempt amount and band split, state pension timing, the pre-SIPP access bridge, one-off deposits with multi-year staging, one-off costs, spending bands by age, salary-sacrifice relief including any employer NIC pass-through, and relief at source for the self-employed.</p>
+              <p className="text-xs text-slate-600 leading-relaxed">Income tax including the personal-allowance taper, employee Class 1 NIC and self-employed Class 4 NIC, the {Math.round(P.pclsProp * 100)}% tax-free element capped at the £{fmtNum(P.lsa)} Lump Sum Allowance, the £{fmtNum(P.pensionAllowance)} annual allowance with taper and three-year carry-forward, the relevant-earnings limit, the MPAA, ISA allowances, realisation-based CGT with its annual exempt amount and band split, state pension timing, the pre-SIPP access bridge, one-off deposits with multi-year staging, one-off costs, spending bands by age, salary-sacrifice relief including any employer NIC pass-through, and relief at source for the self-employed.</p>
 
               <h3 className="text-sm font-semibold text-slate-800 pt-1">Not modelled yet</h3>
               <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">

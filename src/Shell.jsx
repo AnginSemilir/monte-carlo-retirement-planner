@@ -1,9 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { ArrowRight, Info } from 'lucide-react';
 import App from './App.jsx';
-import Simple from './Simple.jsx';
+/*
+ * ONLY ONE OF THESE PAGES IS EVER ON SCREEN, SO ONLY ONE NEEDS DOWNLOADING.
+ *
+ * The full planner is what most arrivals get, and it was carrying the streamlined page's entire interface
+ * with it for nothing. Loading it on demand takes that out of the first download; it arrives while
+ * somebody is reading the banner they just clicked.
+ *
+ * The full planner is NOT lazy, deliberately. It is the default page, so deferring it would only add a
+ * round trip before the thing most people came for, and this file imports the number formatter from it
+ * anyway, which would pin it into the first chunk regardless. The streamlined page imports the same
+ * engine, so what moves out is its own interface rather than the shared arithmetic.
+ */
+const Simple = lazy(() => import('./Simple.jsx'));
 import { toFullPlan, fromFullPlan, simpleHasInput, SIMPLE_BLANK } from './simplePlan.js';
 import { useTheme, ThemeToggle } from './theme.jsx';
+import { setNumberFormat, DEFAULT_NUMBER_FORMAT, NUMBER_FORMATS } from './App.jsx';
 import { useViewport } from './viewport.js';
 
 /*
@@ -19,6 +32,9 @@ import { useViewport } from './viewport.js';
  */
 
 const KEY = 'rp_which_app';
+// Beside the theme's key, and for the same reason: a display preference, not plan data, so it is not
+// carried in an exported plan and does not differ between the two pages.
+const NUM_FORMAT_KEY = 'rp_number_format_v1';
 
 /*
  * WHERE FEEDBACK GOES: A PREFILLED GITHUB ISSUE.
@@ -135,12 +151,28 @@ export default function Shell() {
    * same control: the full planner renders it in its header from these props, the simple page beside
    * its own heading.
    */
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   /*
    * One viewport subscription for the whole app, for the same reason the theme is owned here: the switch
    * below unmounts whichever app is not showing, and two components each listening to the same media
    * query is two chances to disagree about what a phone is.
    */
+  /*
+   * The number convention is owned here for the same reason as the theme: it is a display preference that
+   * has to outlive the switch below unmounting whichever app is not showing, and both pages have to agree
+   * about it or a figure would read one way on one page and another way on the other.
+   *
+   * Applied during render rather than in an effect, because the formatter is module state read by a
+   * hundred call sites that are not components: children render after this line, so they see it, whereas
+   * an effect would run after the first paint and show one frame of the wrong convention.
+   */
+  const [numFormat, setNumFormat] = useState(() => {
+    try { const v = localStorage.getItem(NUM_FORMAT_KEY); return NUMBER_FORMATS[v] ? v : DEFAULT_NUMBER_FORMAT; }
+    catch { return DEFAULT_NUMBER_FORMAT; }
+  });
+  setNumberFormat(numFormat);
+  useEffect(() => { try { localStorage.setItem(NUM_FORMAT_KEY, numFormat); } catch { /* private mode */ } }, [numFormat]);
+
   const { isPhone, isCoarse, width, height } = useViewport();
   const viewport = { width, height };
   const other = OTHER[which];
@@ -174,14 +206,18 @@ export default function Shell() {
         </div>
       </div>
 
-      {which === 'full' ? <App theme={theme} setTheme={setTheme} isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} /> : (
+      {which === 'full' ? <App theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} numFormat={numFormat} setNumFormat={setNumFormat}
+        isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} /> : (
         <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center justify-between gap-3">
               <h1 className="text-xl font-bold tracking-tight text-slate-900">Can I retire?</h1>
-              <ThemeToggle theme={theme} setTheme={setTheme} touch={isPhone || isCoarse} />
+              <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={isPhone || isCoarse} />
             </div>
-            <Simple isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} />
+            {/* The fallback matches the card it replaces, so the page does not jump when it arrives. */}
+            <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center text-sm text-slate-400">Loading…</div>}>
+              <Simple isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} />
+            </Suspense>
             <p className="text-[11px] text-slate-400 leading-relaxed max-w-3xl">
               For educational and illustrative purposes only. This is not financial advice. Figures come from the same
               engine as the full planner, so the two agree on the same inputs.

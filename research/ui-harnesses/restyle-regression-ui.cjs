@@ -53,7 +53,7 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
 
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
-  for (const theme of ['light', 'dark']) {
+  for (const theme of ['light', 'dark', 'sepia']) {
     for (const width of [1400, 390]) {
       const p = await b.newPage({ viewport: { width, height: 1000 } });
       const errs = [];
@@ -122,9 +122,22 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
   ok('dark stamps the document', await p.evaluate(() => document.documentElement.getAttribute('data-theme') === 'dark'));
   await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForTimeout(1200);
   ok('the choice survives a reload', (await groundOf()) === dark, await groundOf());
-  await pick('Match my device'); await p.waitForTimeout(350);
-  ok('following the device resolves to a real theme', ['light', 'dark'].includes(await p.evaluate(() => document.documentElement.getAttribute('data-theme'))));
-  ok('and stores the preference, not the result', await p.evaluate(() => localStorage.getItem('rp_theme_v1') === 'system'));
+  await pick('Sepia'); await p.waitForTimeout(350); const sepia = await groundOf();
+  ok('sepia is its own ground, not a repaint of either', sepia !== light && sepia !== dark, `${sepia}`);
+  ok('...and stamps the document as sepia', await p.evaluate(() => document.documentElement.getAttribute('data-theme') === 'sepia'));
+  // Sepia is a paper theme, so it must never carry the class that drives the dark-only rules.
+  ok('...without claiming to be dark', await p.evaluate(() => !document.documentElement.classList.contains('dark')));
+  await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForTimeout(1200);
+  ok('...and survives a reload without a flash of light', (await groundOf()) === sepia, await groundOf());
+  /*
+   * Following the device is no longer a button - sepia took its place - but it is still the state of
+   * anyone who has never chosen, which is almost everyone. Clearing the stored preference is how a first
+   * visit is reproduced, and the page must still resolve to a real palette and follow the machine.
+   */
+  await p.evaluate(() => localStorage.removeItem('rp_theme_v1'));
+  await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForTimeout(1200);
+  ok('a first visit still follows the device', ['light', 'dark'].includes(await p.evaluate(() => document.documentElement.getAttribute('data-theme'))));
+  ok('...and stores that it is following, not what it resolved to', await p.evaluate(() => localStorage.getItem('rp_theme_v1') === 'system'));
   await p.close();
 
   await b.close();

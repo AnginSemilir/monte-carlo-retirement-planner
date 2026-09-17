@@ -11,11 +11,13 @@
            */
           var t = localStorage.getItem('rp_theme_v1');
           if (t === 'classic') t = 'light';
-          var pref = (t === 'light' || t === 'dark' || t === 'system') ? t : 'system';
+          var pref = (t === 'light' || t === 'dark' || t === 'sepia' || t === 'system') ? t : 'system';
           var dark = pref === 'dark' || (pref === 'system'
             && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-          if (dark) document.documentElement.classList.add('dark');
+          // sepia is its own stamp and is never "dark": the class drives the few dark-only rules
+          var stamp = pref === 'sepia' ? 'sepia' : (dark ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-theme', stamp);
+          if (stamp === 'dark') document.documentElement.classList.add('dark');
         } catch (e) {}
       })();
     </script>
@@ -233,6 +235,105 @@
         --purple-950: 224 218 253;
         --accent: 47 95 208;
         --accent-hover: 62 116 230;
+        --on-accent: 255 255 255;
+      }
+
+      html[data-theme="sepia"] {
+        /*
+         * A THIRD THEME, AND A PAPER ONE RATHER THAN A SECOND DARK ONE.
+         *
+         * This replaces the follow-the-device button, which showed a screen icon and, on a machine set
+         * to light, produced a page identical to the light theme - a third of the control doing nothing
+         * visible. Following the device is still what a visitor who has never chosen gets; it is now the
+         * default rather than a button.
+         *
+         * Derived from the light theme rather than invented beside it, which is why the semantic colours
+         * still mean what they meant: only the neutral ramp is replaced outright, with warm paper tones.
+         * The pale family tints are pulled 45% onto the paper so a blue note reads as a wash on cream
+         * instead of a patch of white, and the inks are deepened 8% because cream is darker than white
+         * and they were tuned against white. Every one of those is checked by the contrast probe in
+         * restyle-regression-ui.cjs, which runs this theme exactly as it runs the other two.
+         */
+        --slate-50: 240 231 211;
+        --slate-100: 233 222 199;
+        --slate-200: 222 209 184;
+        --slate-300: 203 187 158;
+        --slate-400: 140 121 93;
+        --slate-500: 116 98 73;
+        --slate-600: 94 78 57;
+        --slate-700: 71 58 42;
+        --slate-800: 51 41 29;
+        --slate-900: 31 24 16;
+        --surface: 250 244 231;
+        --blue-50: 236 235 234;
+        --blue-100: 216 225 241;
+        --blue-200: 191 206 236;
+        --blue-500: 53 91 190;
+        --blue-600: 30 66 169;
+        --blue-700: 20 53 132;
+        --blue-800: 17 44 102;
+        --blue-950: 10 27 63;
+        --indigo-50: 239 233 232;
+        --indigo-100: 224 218 239;
+        --indigo-200: 204 194 233;
+        --indigo-500: 116 100 199;
+        --indigo-600: 100 84 191;
+        --indigo-700: 83 66 169;
+        --indigo-800: 68 53 139;
+        --indigo-900: 54 42 110;
+        --indigo-950: 33 26 68;
+        --emerald-50: 234 238 225;
+        --emerald-100: 208 232 213;
+        --emerald-200: 171 217 186;
+        --emerald-300: 98 178 136;
+        --emerald-600: 25 127 83;
+        --emerald-700: 19 106 68;
+        --emerald-800: 16 85 54;
+        --rose-50: 246 232 222;
+        --rose-100: 246 214 207;
+        --rose-200: 239 184 174;
+        --rose-300: 210 121 110;
+        --rose-400: 195 85 72;
+        --rose-600: 177 52 40;
+        --rose-700: 147 41 31;
+        --rose-800: 120 34 26;
+        --rose-950: 55 16 12;
+        --amber-50: 246 236 216;
+        --amber-100: 243 229 198;
+        --amber-200: 238 210 154;
+        --amber-300: 227 189 115;
+        --amber-500: 184 132 44;
+        --amber-600: 166 116 31;
+        --amber-700: 155 103 24;
+        --amber-800: 127 84 20;
+        --amber-900: 101 66 16;
+        --sky-600: 26 116 197;
+        --sky-700: 22 94 159;
+        --teal-600: 13 146 101;
+        --teal-700: 10 115 80;
+        --purple-700: 100 84 191;
+        --shadow-c: 58 44 28;
+        --shadow-a: .05;
+        --shadow-a2: .04;
+        --shadow-a-lg: .12;
+        --blue-300: 130 157 216;
+        --blue-400: 85 118 197;
+        --blue-900: 14 35 81;
+        --indigo-300: 155 143 212;
+        --emerald-900: 12 65 42;
+        --emerald-950: 6 40 26;
+        --amber-400: 195 147 64;
+        --amber-950: 53 33 7;
+        --purple-50: 239 233 232;
+        --purple-100: 224 218 239;
+        --purple-200: 204 194 233;
+        --purple-300: 155 143 212;
+        --purple-600: 100 84 191;
+        --purple-800: 68 53 139;
+        --purple-900: 54 42 110;
+        --purple-950: 33 26 68;
+        --accent: 30 66 169;
+        --accent-hover: 20 53 132;
         --on-accent: 255 255 255;
       }
 

@@ -442,8 +442,16 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
     </div>
   );
 
+  /*
+   * bleed-tight, not bleed: the phone chart card is p-3, so the pull that cancels the gutters has to be
+   * 1.75rem (the page's 1rem plus its 0.75rem) and not the 2.25rem sized for the full planner's p-5 card.
+   * Half a rem too far each side is exactly the 7px of horizontal scroll this page had.
+   *
+   * And no sideways scroller on a phone: the chart is already the full width with nothing to scroll, and
+   * a scroll container is where a browser stops computing touch-action, as the projection deck found.
+   */
   const chartPanel = (inOverlay = false) => (
-          <div className={`relative overflow-x-auto ${isPhone && !inOverlay ? 'bleed' : ''} ${inOverlay ? 'h-full' : ''}`}>
+          <div className={`relative ${isPhone && !inOverlay ? 'bleed-tight' : 'overflow-x-auto'} ${inOverlay ? 'h-full' : ''}`}>
             {isPhone && !inOverlay && (
               <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setChartFull(true)}
                 className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
@@ -590,6 +598,16 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
     'Medium/Low Risk': 'Med-lo', 'Low Risk': 'Low', 'Cash Equivalents': 'Cash' };
 
   /*
+   * NO STEPPERS IN THE PORTFOLIO ON A PHONE.
+   *
+   * This row is five columns - label, balance, risk, contribution, escalation - inside 412px, and a
+   * stepper is 48px of it beside a field that then has about 60px left to show six digits in. They earn
+   * their place on a desktop, where the row has room; here they were taking it from the number.
+   *
+   * Nothing is lost: the sticky card above the chart carries ± dials for the pension and ISA balances,
+   * which is the better place to nudge one anyway, because the line you are moving is on the same screen.
+   * The field itself still takes a typed figure, which is what a five-digit balance wants.
+   *
    * One line of the portfolio table. The contribution is TWO figures, not one choice between two: what
    * goes in this year, and how much more goes in each year after it. The £/% toggle beside the amount is
    * a separate question again - whether that amount was typed in pounds or as a share of salary - and
@@ -600,7 +618,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
     return (
       <div key={k} className="contents">
         <span className="text-[11px] text-slate-600 font-semibold self-center">{label}</span>
-        <span className="flex items-stretch gap-0.5">{cash(k)}{stepper(k, 10000)}</span>
+        <span className="flex items-stretch gap-0.5">{cash(k)}{!isPhone && stepper(k, 10000)}</span>
         <select value={s[k + 'Risk'] || 'Medium Risk'} onChange={(e) => set(k + 'Risk', e.target.value)}
           aria-label={`${label} risk level`} className={`${subCls} w-full cursor-pointer px-1`}>
           {Object.keys(DEFAULT_RISK_PROFILES).map(r => <option key={r} value={r}>{RISK_SHORT[r] || r}</option>)}
@@ -616,7 +634,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
               {isPct ? '%' : '\u00a3'}
             </button>
           )}
-          {stepper(cKey, isPct ? 1 : 500)}
+          {!isPhone && stepper(cKey, isPct ? 1 : 500)}
         </span>
         <span className="flex items-stretch gap-0.5">
           <input type="text" inputMode="numeric" value={s[k + 'G']} placeholder="0"

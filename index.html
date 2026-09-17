@@ -397,6 +397,13 @@
        */
       .fill-viewport { height: 100vh; height: 100dvh; }
       @media (max-width: 767px) { .bleed { margin-left: -2.25rem; margin-right: -2.25rem; } }
+      /*
+       * .bleed-tight - the same idea for a card with p-3 rather than p-5. 1.75rem is the page's p-4 (1rem)
+       *   plus that card's p-3 (0.75rem). The streamlined page's phone chart card is one of those, and it
+       *   was using .bleed: 0.5rem too far each side, which is exactly the 7px of horizontal scroll that
+       *   page had. A bleed has to be the sum of the paddings it is cancelling, not a constant.
+       */
+      @media (max-width: 767px) { .bleed-tight { margin-left: -1.75rem; margin-right: -1.75rem; } }
       @media (min-width: 1536px) { .wide-chart { margin-left: -6rem; margin-right: -6rem; } }
       /*
        * .swipe-x - the container whose content can be swiped between sections or steps. pan-y keeps

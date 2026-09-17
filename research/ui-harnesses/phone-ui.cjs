@@ -328,6 +328,21 @@ const navigate = async (page, label, short) => {
           return { ok: true, changed: medianD() !== before };
         });
         ok('...and a dial moves the line', moved.ok && moved.changed, JSON.stringify(moved));
+        /*
+         * The portfolio row is five columns inside 412px. A stepper is 48px of that beside a field with
+         * about 60px left for six digits, so on a phone they go and the field gets the room; the sticky
+         * card's dials above the chart are the better place to nudge a balance anyway. And the card is
+         * p-3, so its chart bleeds by 1.75rem - .bleed's 2.25 was half a rem too far each side, which was
+         * this page's 7px of horizontal scroll.
+         */
+        const portfolio = await p.evaluate(() => {
+          const risk = document.querySelector('select[aria-label$="risk level"]');
+          const grid = risk ? risk.parentElement : null;
+          return { steppers: grid ? grid.querySelectorAll('button[aria-label^="increase"], button[aria-label^="decrease"]').length : -1,
+            over: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+        });
+        ok('...no steppers crowding the portfolio row', portfolio.steppers === 0, `${portfolio.steppers}`);
+        ok('...and the page does not scroll sideways', portfolio.over <= 0, `${portfolio.over}px`);
         const sizes = await p.evaluate(INPUT_SIZE_PROBE);
         const small = sizes.filter(x => x.font < 16);
         ok('...inputs are at least 16px, so focusing does not zoom', small.length === 0, `${small.length} of ${sizes.length} under 16px`);

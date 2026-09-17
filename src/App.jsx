@@ -9896,39 +9896,35 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             It stays in full on every desktop tab, where there is width for it beside the tab strip.
 
             WHEN IT IS ONE ROW. Measured at 366px before: a two-line title, a subtitle, a 44px theme
-            toggle and a four-line banner, on a screen where the first field was 1,015px down. The subtitle's
-            job is done by the Start tab, the version moves to the More sheet's foot, the theme toggle to its
-            head, and the banner keeps its first sentence. */}
-        {(!isPhone || activeTab === 'home') && (
-        <div data-title-card className={`bg-surface border border-slate-200/90 rounded-xl ${isPhone ? 'p-3' : 'p-5'}`}>
+            toggle and a four-line banner, on a screen where the first field was 1,015px down. It is gone
+            from the phone build entirely now: the bar across the top names the planner, the version sits
+            at the foot of the More sheet, the theme in it, and the today's-money line is rendered with
+            the fields it qualifies on Plan Inputs. */}
+        {!isPhone && (
+        <div data-title-card className="bg-surface border border-slate-200/90 rounded-xl p-5">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="min-w-0">
               <div className="flex items-center gap-2.5">
-                <div className={`${isPhone ? 'p-1.5' : 'p-2'} bg-blue-50 text-blue-600 rounded-lg border border-blue-100`}><TrendingUp className={isPhone ? 'w-4 h-4' : 'w-5 h-5'} /></div>
-                <h1 className={`${isPhone ? 'text-base' : 'text-xl'} font-bold tracking-tight text-slate-900 truncate`}>Monte Carlo Retirement Planner</h1>
-                {!isPhone && <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-semibold border border-blue-100">{APP_VERSION}</span>}
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-100"><TrendingUp className="w-5 h-5" /></div>
+                <h1 className="text-xl font-bold tracking-tight text-slate-900 truncate">Monte Carlo Retirement Planner</h1>
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-semibold border border-blue-100">{APP_VERSION}</span>
               </div>
               {/*
                 * One line, and it is the one a first-time visitor needs: where to start. The
                 * "educational only" sentence used to live here too and now sits in the footer, where it
                 * belongs - a disclaimer repeated above every screen stops being read by the second one.
                 */}
-              {!isPhone && (
-                <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
-                  A UK drawdown model across pensions, ISAs, GIA and cash. Start with <span className="font-semibold text-blue-700">Plan Inputs</span>; everything else reads from it.
-                </p>
-              )}
+              <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
+                A UK drawdown model across pensions, ISAs, GIA and cash. Start with <span className="font-semibold text-blue-700">Plan Inputs</span>; everything else reads from it.
+              </p>
             </div>
-            {/* Hidden as a whole on a phone, not emptied: an empty flex child still costs the column gap. */}
-            <div className={`items-center gap-2 flex-wrap ${isPhone ? 'hidden' : 'flex'}`}>
+            <div className="flex items-center gap-2 flex-wrap">
               {/* data-tabbar keeps these clickable while the in-app editor is on, so you can still move
                   between tabs while editing; Alt-click edits a tab's own label. */}
-              {!isPhone && (
-                <div data-tabbar className="hidden md:flex items-end gap-1 border-b border-slate-200 flex-wrap">
-                  {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
-                </div>
-              )}
-              {!isPhone && <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />}
+              <div data-tabbar className="hidden md:flex items-end gap-1 border-b border-slate-200 flex-wrap">
+                {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
+              </div>
+              <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
             </div>
           </div>
 

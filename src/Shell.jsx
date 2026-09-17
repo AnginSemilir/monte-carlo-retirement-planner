@@ -91,6 +91,31 @@ function Footer() {
     </div>
   );
 }
+/*
+ * THE CHAIN ACROSS THE TOP, ON A PHONE.
+ *
+ * One 44px row: which planner you are in, and the way to the other one. It replaces a 60px blue banner
+ * that said the same thing in a sentence ("Just want the answer? Open the simple version") plus, on the
+ * full planner's Start Here, a 79px card that said the app's name a second time.
+ *
+ * `extra` is for what a page has nowhere else to put: the simple page has no More sheet, so its theme
+ * control rides here. The full planner's theme stays in More, because this bar scrolls away with the
+ * page there and a setting you cannot reach from tab six is worse than a setting one tap in.
+ */
+function PhoneBar({ title, cta, onCross, extra = null }) {
+  return (
+    <header data-phone-bar className="shrink-0 flex items-center gap-1 pl-3 pr-1 h-11 bg-surface border-b border-slate-200">
+      <span className="text-[13px] font-bold tracking-tight text-slate-900">{title}</span>
+      <span className="flex-1" />
+      {extra}
+      <button type="button" onClick={onCross} data-crossover
+        className="min-h-11 px-2 flex items-center gap-1 text-xs font-bold text-blue-700 cursor-pointer whitespace-nowrap">
+        {cta} <ArrowRight className="w-3.5 h-3.5" />
+      </button>
+    </header>
+  );
+}
+
 const OTHER = {
   full: { to: 'simple', lead: 'Just want the answer?', cta: 'Open the simple version' },
   simple: { to: 'full', lead: 'Need the full model?', cta: 'Open the full planner' }
@@ -197,15 +222,8 @@ export default function Shell() {
    */
   if (isPhone && which === 'simple') return (
     <div className="h-dvh flex flex-col overflow-hidden bg-slate-50 text-slate-900 font-sans">
-      <header className="shrink-0 flex items-center gap-1 pl-3 pr-1 h-11 bg-surface border-b border-slate-200">
-        <span className="text-[13px] font-bold tracking-tight text-slate-900">Simple planner</span>
-        <span className="flex-1" />
-        <ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
-        <button type="button" onClick={cross} data-crossover
-          className="min-h-11 px-2 flex items-center gap-1 text-xs font-bold text-blue-700 cursor-pointer whitespace-nowrap">
-          Full planner <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </header>
+      <PhoneBar title="Simple planner" cta="Full planner" onCross={cross}
+        extra={<ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />} />
       <Suspense fallback={<div className="flex-1 flex items-center justify-center text-sm text-slate-400">Loading&hellip;</div>}>
         <Simple isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} />
       </Suspense>
@@ -214,18 +232,24 @@ export default function Shell() {
 
   return (
     <>
+      {/* The same chain the simple page carries, for the same reason: on a phone the banner was 60px of
+          sentence above every tab, and the app's name was said again in a card under it. A desktop has
+          the width for the sentence and keeps it. */}
+      {isPhone ? (
+        <PhoneBar title="Full planner" cta="Simple planner" onCross={cross} />
+      ) : (
       <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8">
         <div className="max-w-7xl mx-auto space-y-2">
           <button type="button" onClick={cross} data-crossover
-            className={`w-full group flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 hover:border-blue-300 transition-colors cursor-pointer ${
-              isPhone ? 'flex-nowrap gap-x-2 px-3 min-h-11 whitespace-nowrap' : 'flex-wrap gap-x-2.5 gap-y-1 px-5 py-3'}`}>
-            <span className={`${isPhone ? 'text-xs' : 'text-sm'} text-blue-900/80`}>{other.lead}</span>
-            <span className={`${isPhone ? 'text-xs' : 'text-sm'} font-bold text-blue-800 group-hover:text-blue-900 flex items-center gap-1.5`}>
+            className="w-full group flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 hover:border-blue-300 transition-colors cursor-pointer flex-wrap gap-x-2.5 gap-y-1 px-5 py-3">
+            <span className="text-sm text-blue-900/80">{other.lead}</span>
+            <span className="text-sm font-bold text-blue-800 group-hover:text-blue-900 flex items-center gap-1.5">
               {other.cta} <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </span>
           </button>
         </div>
       </div>
+      )}
 
       {which === 'full' ? <App theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} numFormat={numFormat} setNumFormat={setNumFormat}
         isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} /> : (

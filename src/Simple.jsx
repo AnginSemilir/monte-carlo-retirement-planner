@@ -6,8 +6,9 @@ import {
   STATE_PENSION_FULL, BAND_QUANTILES, TAX_REGION_LABELS, num, fmtNum, parseFormatted
 } from './App.jsx';
 import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId, earningId } from './simplePlan.js';
-import { ChartFullscreen, FieldRow, RiskChips } from './phone.jsx';
+import { ChartFullscreen, Fine, FieldRow, RiskChips } from './phone.jsx';
 import { SimpleTabs } from './nav.jsx';
+import { SectionTabs } from './tabs.jsx';
 
 /*
  * THE STREAMLINED PAGE.
@@ -48,6 +49,17 @@ const SCEN_KEY = 'rp_simple_scenarios_v1';
  * coming back tomorrow should open on the chart the way it always did.
  */
 const TAB_KEY = 'rp_simple_tab';
+const SECTION_KEY = 'rp_simple_section';
+/*
+ * The form's three parallel groups. Nothing in Portfolio depends on having finished You, which is the
+ * case secondary tabs exist for - and one of these is a screen where all three together are two and a
+ * half. The full planner divides its own Inputs tab the same way, with the same component.
+ */
+const INPUT_SECTIONS = [
+  { id: 'you', short: 'You' },
+  { id: 'portfolio', short: 'Portfolio' },
+  { id: 'extras', short: 'One-offs & income' }
+];
 const PHONE_TABS = [
   { id: 'inputs', short: 'Inputs', Icon: SlidersHorizontal },
   { id: 'chart', short: 'Chart', Icon: LineChart },
@@ -73,10 +85,10 @@ const TARGET = 90;          // fixed, and stated in words rather than offered as
  * follow the theme like everything else on the page.
  */
 const WRAPPERS = [
-  { key: 'pensions', label: 'Pensions', color: 'rgb(var(--blue-600))' },
-  { key: 'isas', label: 'ISAs', color: 'rgb(var(--emerald-600))' },
-  { key: 'other', label: 'Other investments', color: 'rgb(var(--amber-600))' },
-  { key: 'cash', label: 'Cash', color: 'rgb(var(--slate-500))' }
+  { key: 'pensions', label: 'Pensions', short: 'Pensions', color: 'rgb(var(--blue-600))' },
+  { key: 'isas', label: 'ISAs', short: 'ISAs', color: 'rgb(var(--emerald-600))' },
+  { key: 'other', label: 'Other investments', short: 'Other', color: 'rgb(var(--amber-600))' },
+  { key: 'cash', label: 'Cash', short: 'Cash', color: 'rgb(var(--slate-500))' }
 ];
 const LIVE_TRIALS = 1500;   // enough for a +/-1.5pt figure that redraws while you type
 
@@ -161,6 +173,10 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
   // chart for anybody whose plan is already complete, and to the form for anybody whose is not.
   const [tab, setTab] = useState(() => { try { return sessionStorage.getItem(TAB_KEY) || ''; } catch { return ''; } });
   const selectTab = (id) => { setTab(id); try { sessionStorage.setItem(TAB_KEY, id); } catch { /* private mode */ } };
+  const [section, setSection] = useState(() => { try { return sessionStorage.getItem(SECTION_KEY) || 'you'; } catch { return 'you'; } });
+  const selectSection = (id) => { setSection(id); try { sessionStorage.setItem(SECTION_KEY, id); } catch { /* private mode */ } };
+  // a desktop shows all three at once, so the gate is open there
+  const showSection = (id) => !isPhone || section === id;
   const runToken = useRef(0);
 
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* quota */ } }, [s]);
@@ -399,7 +415,9 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
      * and the dials beneath it on one screen; the fullscreen overlay hands its own measured box in.
      */
     const W = overlayBox ? overlayBox.w : isPhone ? viewport.width : 720;
-    const H = overlayBox ? overlayBox.h : isPhone ? Math.min(Math.round(W * 0.62), 260) : 300;
+    // 0.48, not 0.62: the chart tab also holds four dials, three figures and two toggles, and all of it
+    // has to land inside one 664px screen. Expand is still a tap away when the shape needs studying.
+    const H = overlayBox ? overlayBox.h : isPhone ? Math.min(Math.round(W * 0.55), 230) : 300;
     const L = isPhone && !overlayBox ? 38 : 44, R = 16, T = 14, B = 30;
     const iw = W - L - R, ih = H - T - B;
     const a0 = series[0].age, a1 = series[series.length - 1].age;
@@ -471,15 +489,16 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
   );
 
   /*
-   * bleed-tight, not bleed: the phone chart card is p-3, so the pull that cancels the gutters has to be
-   * 1.75rem (the page's 1rem plus its 0.75rem) and not the 2.25rem sized for the full planner's p-5 card.
-   * Half a rem too far each side is exactly the 7px of horizontal scroll this page had.
+   * -mx-3, because the phone pane's only gutter is its own px-3: the page around it has none now that
+   * the tab fills the screen edge to edge. A bleed has to be the sum of the paddings it cancels and
+   * nothing more - .bleed's 2.25rem here was half a rem too far each side, which was exactly the 7px of
+   * horizontal scroll this page used to report.
    *
    * And no sideways scroller on a phone: the chart is already the full width with nothing to scroll, and
    * a scroll container is where a browser stops computing touch-action, as the projection deck found.
    */
   const chartPanel = (inOverlay = false) => (
-          <div className={`relative ${isPhone && !inOverlay ? 'bleed-tight' : 'overflow-x-auto'} ${inOverlay ? 'h-full' : ''}`}>
+          <div className={`relative ${isPhone && !inOverlay ? '-mx-3' : 'overflow-x-auto'} ${inOverlay ? 'h-full' : ''}`}>
             {isPhone && !inOverlay && (
               <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setChartFull(true)}
                 className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
@@ -551,17 +570,20 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
         {/* Short on purpose: the longer version wrapped the legend onto two rows at this
             width, and onto three on a phone. The buttons carry aria-pressed, so they read as
             toggles without being told to. */}
-        <span className="text-[11px] text-slate-500 mr-0.5">Made up of:</span>
+        {!isPhone && <span className="text-[11px] text-slate-500 mr-0.5">Made up of:</span>}
         {WRAPPERS.map(w => chart.wrappers[w.key] ? (
           <button key={w.key} type="button" aria-pressed={!!showWrappers[w.key]}
             onClick={() => setShowWrappers(v => ({ ...v, [w.key]: !v[w.key] }))}
             className={`px-2 py-1 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer flex items-center gap-1.5 ${showWrappers[w.key] ? 'bg-surface border-slate-300 text-slate-900' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800'}`}>
             <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: w.color, opacity: showWrappers[w.key] ? 1 : 0.45 }} />
-            {w.label}
+            {/* "Other investments" is what it is called everywhere else; on a phone it is the word that
+                pushes this legend onto a second row, and the colour beside it says which line it names. */}
+            {isPhone ? w.short : w.label}
           </button>
         ) : null)}
       </div>
     )}
+    <Fine isPhone={isPhone} label="What the band shows">
     <p className="text-[11px] text-slate-500 leading-relaxed">
       {chart.useFan
         ? <>The shaded band is the {band.lowPct} to {band.highPct} of {LIVE_TRIALS.toLocaleString()} simulated futures, and a path that runs out stays at zero &mdash; so the bottom edge is honest about failure.</>
@@ -569,7 +591,19 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
       {' '}Both views share one scale, so switching compares rather than rescales.
       {chart.clippedTo && <> The top of the band runs off the chart, reaching {GBP(chart.clippedTo)} at its highest &mdash; the axis follows the middle line so it stays readable.</>}
     </p>
+    </Fine>
   </>);
+
+  /*
+   * The three counts that only a simulation can produce, so they follow the Monte Carlo view. On a
+   * desktop they sit on the row with the export; on a phone they are the first thing inside the fold,
+   * because a screen that fits has no room for a line of prose above the button.
+   */
+  const runNotes = () => (mc && chart && chart.useFan ? <>
+    <span>Tax over your lifetime, typical run: <strong className="text-slate-700 tabular-nums">{GBP(mc.medianLifetimeTax)}</strong></span>
+    {mc.preNmpaFailRate > 0 && <span>Stranded before the pension unlocks: <strong className={mc.preNmpaFailRate > 5 ? 'text-rose-700 tabular-nums' : 'text-slate-700 tabular-nums'}>{mc.preNmpaFailRate.toFixed(1)}%</strong></span>}
+    {mc.medianFailAge && <span>Of the runs that fail, the money typically goes at <strong className="text-slate-700 tabular-nums">{mc.medianFailAge}</strong></span>}
+  </> : null);
 
   // What every tab that needs an answer shows while the plan is still missing something.
   const notReady = () => (
@@ -879,7 +913,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
     const n = String(value).length;
     const size = n > 10 ? 'text-base' : n > 8 ? 'text-lg' : n > 6 ? 'text-xl' : 'text-2xl';
     if (isPhone) return (
-      <div data-figure-row className="flex items-center gap-3 min-h-[60px] py-2 border-b border-slate-100 last:border-b-0 min-w-0">
+      <div data-figure-row className="flex items-center gap-3 min-h-[52px] py-1.5 border-b border-slate-100 last:border-b-0 min-w-0">
         <span className="flex-1 min-w-0">
           <span className="block text-[13px] font-bold text-slate-900 leading-tight">{label}</span>
           <span className="block text-[11px] text-slate-500 leading-snug">{sub}</span>
@@ -932,15 +966,29 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    * never sticks. In a flex column the containing block is the whole column, which is what lets the
    * chart stay put while the form scrolls underneath it.
    */
+  /*
+   * ONE SCREEN A TAB, AND NO DOCUMENT SCROLL.
+   *
+   * On a phone this fills the shell's fixed-height column: the active pane takes the space between the
+   * bar and the tabs, and each pane is built to fit it. `overflow-y-auto` on the pane is the safety net,
+   * not the plan - phone-ui asserts every pane's scrollHeight is inside its own box on both device
+   * profiles, so a pane that outgrows the screen fails the suite rather than quietly starting to scroll.
+   */
+  const paneCls = 'flex-1 min-h-0 overflow-y-auto bg-surface px-3 py-2 space-y-2';
   return (
-    <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,424px)_minmax(0,1fr)] gap-5 lg:items-start">
+    <div className={isPhone
+      ? 'flex-1 min-h-0 flex flex-col'
+      : 'flex flex-col lg:grid lg:grid-cols-[minmax(0,424px)_minmax(0,1fr)] gap-5 lg:items-start'}>
       {/* ------------------------------------------------ PHONE TAB 2: the picture, with the dials on top */}
       {isPhone && phoneTab === 'chart' && (
-        <div data-phone-chart className="order-first lg:hidden bg-surface border border-slate-200/90 rounded-xl p-3 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-xs font-semibold text-slate-900">Projections</h2>
-            {busy && <span className="text-[11px] text-slate-400 flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> {view === 'mc' ? `simulating ${LIVE_TRIALS.toLocaleString()} futures` : 'working'}</span>}
-          </div>
+        <div data-phone-chart className={`order-first lg:hidden ${paneCls}`}>
+          {/* No heading: the tab you pressed to get here is called Chart. The row only exists while a
+              run is going, and takes no height at all once it has finished. */}
+          {busy && (
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+              <Loader2 className="w-3 h-3 animate-spin" /> {view === 'mc' ? `simulating ${LIVE_TRIALS.toLocaleString()} futures` : 'working'}
+            </div>
+          )}
           {!ready.ready ? notReady() : <>
             {/* THE DIALS COME FIRST. They are the reason this tab exists: the four questions people
                 arrive with, in the space above the plot, so a tap lands on the chart and the three
@@ -971,7 +1019,9 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
       )}
 
       {/* ------------------------------------------------ LEFT / PHONE TAB 1: what you have */}
-      <div className={`bg-surface border border-slate-200/90 rounded-xl p-4 space-y-3 ${isPhone && phoneTab !== 'inputs' ? 'hidden' : ''}`}>
+      <div className={isPhone
+        ? `${paneCls} ${phoneTab !== 'inputs' ? 'hidden' : ''}`
+        : 'bg-surface border border-slate-200/90 rounded-xl p-4 space-y-3'}>
         <div className="flex flex-wrap items-center gap-1.5">
           {scenarios.map(rec => (
             <span key={rec.id}
@@ -990,17 +1040,24 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
           {scenarios.length > 0 && <span className="text-[11px] text-slate-400">click a number to compare</span>}
         </div>
 
+        {/* The form is three parallel groups, and on a phone one screen holds one of them. The full
+            planner's Inputs tab is divided exactly this way, by the same component. */}
+        {isPhone && <SectionTabs sections={INPUT_SECTIONS} active={section} onSelect={selectSection} gutter={3} />}
+
+        {showSection('you') && (
         <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 p-1 rounded-lg">
           {[[false, 'Just me'], [true, 'Me and a partner']].map(([v, label]) => (
             <button key={label} type="button" onClick={() => set('couple', v)}
               className={`flex-1 px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${!!s.couple === v ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
           ))}
         </div>
+        )}
 
-        <p className="text-[11px] text-slate-500">Change anything to see the difference. Save a scenario to compare two.</p>
+        {!isPhone && <p className="text-[11px] text-slate-500">Change anything to see the difference. Save a scenario to compare two.</p>}
 
+        {showSection('you') && (
         <div className="space-y-1">
-          <h2 className="text-xs font-semibold text-slate-900 mb-1.5">You</h2>
+          {!isPhone && <h2 className="text-xs font-semibold text-slate-900 mb-1.5">You</h2>}
           {row('Age now', cash('ageSelf'))}
           {row('Retire at', <>{cash('retireSelf')}{!isPhone && stepper('retireSelf', 1)}</>)}
           {s.couple && row('Partner age now', cash('agePart'))}
@@ -1008,7 +1065,17 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
           {row('Expected retirement spending', <>{cash('spend')}{!isPhone && stepper('spend', 1000)}</>)}
           {row('State Pension a year', statePensionField('statePensionSelf'))}
           {s.couple && row('Partner State Pension', statePensionField('statePensionPart'))}
-          {row('Where you pay tax',
+          {/* "England & Northern Ireland" does not fit a 148px control at the 16px a phone has to use,
+              and a cut-off region is the one field on this form you cannot guess from its first word. So
+              on a phone it gets the width instead of the row. */}
+          {isPhone ? (
+            <label className="block pt-1">
+              <span className="block text-[11px] text-slate-500 font-semibold pb-1">Where you pay tax</span>
+              <select value={s.region} onChange={(e) => set('region', e.target.value)} className={`${subCls} w-full cursor-pointer`}>
+                {Object.entries(TAX_REGION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </label>
+          ) : row('Where you pay tax',
             <select value={s.region} onChange={(e) => set('region', e.target.value)} className={`${subCls} w-full cursor-pointer`}>
               {Object.entries(TAX_REGION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>)}
@@ -1023,11 +1090,15 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
               onFocus={(e) => e.target.select()} onChange={(e) => set('taperFromAge', parse(e.target.value))}
               aria-label="taper start age" className={`${subCls} w-11 text-center tabular-nums`} />
           </div>
-          <p className="text-[10px] text-slate-400 leading-snug pt-0.5">{taperNote}</p>
+          <Fine isPhone={isPhone} label="What the taper does">
+            <p className="text-[10px] text-slate-400 leading-snug pt-0.5">{taperNote}</p>
+          </Fine>
         </div>
+        )}
 
+        {showSection('portfolio') && (
         <div>
-          <h2 className="text-xs font-semibold text-slate-900 mb-1.5">Portfolio</h2>
+          {!isPhone && <h2 className="text-xs font-semibold text-slate-900 mb-1.5">Portfolio</h2>}
           {isPhone ? (
             <div className="-mt-0.5">
               {phoneWrapperRow('pen', 'Pension', 'penC', 'penCIsPct', 'salary')}
@@ -1061,7 +1132,9 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
           </div>
           )}
         </div>
+        )}
 
+        {showSection('extras') && (<>
         <div className="pt-1">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xs font-semibold text-slate-900">One-off payments and withdrawals</h2>
@@ -1108,12 +1181,17 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
               ))}
             </div>}
         </div>
+        </>)}
       </div>
 
       {/* ------------------------------------------------ RIGHT / PHONE TAB 3: can you afford it */}
-      <div className={`bg-surface border border-slate-200/90 rounded-xl p-5 space-y-4 min-w-0 ${isPhone ? 'max-md:p-4' : ''} ${isPhone && phoneTab !== 'figures' ? 'hidden' : ''}`}>
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-sm font-semibold text-slate-900">{isPhone ? 'The figures' : 'Projections'}</h2>
+      <div className={isPhone
+        ? `${paneCls} ${phoneTab !== 'figures' ? 'hidden' : ''}`
+        : 'bg-surface border border-slate-200/90 rounded-xl p-5 space-y-4 min-w-0'}>
+        {/* The tab you pressed to get here is called Figures, so the pane does not need to say so again;
+            the one thing this row carries on a phone is whether a run is still going. */}
+        <div className={`flex flex-wrap items-baseline justify-between gap-2 ${isPhone && !busy ? 'hidden' : ''}`}>
+          {!isPhone && <h2 className="text-sm font-semibold text-slate-900">Projections</h2>}
           {busy && <span className="text-[11px] text-slate-400 flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> {view === 'mc' ? `simulating ${LIVE_TRIALS.toLocaleString()} futures` : 'working'}</span>}
         </div>
 
@@ -1186,19 +1264,18 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                   mc && mc.p10Terminal <= 0 ? 'text-rose-700' : 'text-slate-900', !mc)}
               </>}
             </div>
+            {/* the export is the year-by-year projection, which both views are drawn from */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
-              {/* these three are counts over simulated paths, so they belong to the Monte Carlo view only */}
-              {mc && chart && chart.useFan && <>
-                <span>Tax over your lifetime, typical run: <strong className="text-slate-700 tabular-nums">{GBP(mc.medianLifetimeTax)}</strong></span>
-                {mc.preNmpaFailRate > 0 && <span>Stranded before the pension unlocks: <strong className={mc.preNmpaFailRate > 5 ? 'text-rose-700 tabular-nums' : 'text-slate-700 tabular-nums'}>{mc.preNmpaFailRate.toFixed(1)}%</strong></span>}
-                {mc.medianFailAge && <span>Of the runs that fail, the money typically goes at <strong className="text-slate-700 tabular-nums">{mc.medianFailAge}</strong></span>}
-              </>}
-              {/* the export is the year-by-year projection, which both views are drawn from */}
+              {!isPhone && runNotes()}
               <button type="button" onClick={exportCsv} disabled={!timeline}
-                className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 hover:border-slate-300 font-semibold cursor-pointer disabled:opacity-40">
+                className={`flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 hover:border-slate-300 font-semibold cursor-pointer disabled:opacity-40 ${
+                  isPhone ? 'w-full justify-center min-h-11 text-xs' : 'ml-auto px-2.5 py-1'}`}>
                 <Download className="w-3 h-3" /> Export the year-by-year figures
               </button>
             </div>
+
+            <Fine isPhone={isPhone} label="Tax, how the money is drawn, and the small print">
+            {isPhone && <div className="flex flex-col gap-0.5 text-[11px] text-slate-500 pb-1">{runNotes()}</div>}
 
             <p className="text-[11px] text-slate-500 leading-relaxed border-t border-slate-100 pt-3">
               All three are quoted at a <strong className="text-slate-700">{TARGET}% target</strong>: the most you could spend, and the earliest you could stop, while still coming through {TARGET} futures in 100. Every figure is in today&rsquo;s money.
@@ -1217,6 +1294,15 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                 )}
               </p>
             )}
+            {/* The page's beta notice lives in the footer, and the phone page has no footer: it is one
+                fixed screen. It belongs with the numbers it qualifies anyway. */}
+            {isPhone && (
+              <p className="text-[10px] text-slate-400 leading-snug">
+                A beta, for education and illustration only &mdash; this is not financial advice. Everything is
+                modelled, every figure is in today&rsquo;s money, and your plan stays in this browser.
+              </p>
+            )}
+            </Fine>
           </>
         )}
       </div>

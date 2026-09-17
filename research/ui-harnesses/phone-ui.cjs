@@ -289,20 +289,28 @@ const navigate = async (page, label, short) => {
       ok('the top tab strip is hidden', strip === 0, `${strip}px`);
 
       /*
-       * THE SIMPLE PAGE, NOW THREE TABS ACROSS THE BOTTOM.
+       * THE SIMPLE PAGE: THREE TABS, AND NOTHING BELOW THE FOLD.
        *
-       * It used to be one column with the chart pinned to the top. Pinning bought back the feedback an
-       * edit needs, but it spent a third of every screen on it permanently and still left the six figures
-       * four screens below the picture they describe. Three tabs - what you have, what it looks like,
-       * what it comes to - give each one job and roughly one screen. The dials that moved the chart sit
-       * in the space above the plot, so the loop the sticky card existed for survives the split.
+       * It was one column 2,828px tall with the chart pinned to the top. Pinning bought back the feedback
+       * an edit needs and spent a third of every screen on it to do so, and the six figures still sat at
+       * the bottom of the third screen. Now it is an app screen rather than a document: a 44px bar, one
+       * tab, a tab bar, and no scroll anywhere - the assertion this whole block exists for is that every
+       * pane's content fits inside its own box on BOTH device profiles, the 664px one included.
        */
-      await p.evaluate(() => { localStorage.setItem('rp_which_app', 'simple'); sessionStorage.removeItem('rp_simple_tab'); });
+      await p.evaluate(() => {
+        localStorage.setItem('rp_which_app', 'simple');
+        sessionStorage.removeItem('rp_simple_tab');
+        sessionStorage.removeItem('rp_simple_section');
+      });
       await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
-      await p.waitForTimeout(2000);
+      await p.waitForTimeout(2200);
       const simpleTab = async (name) => {
         await p.evaluate(t => { const x = [...document.querySelectorAll('[data-simple-tabs] button')].find(b => b.textContent.trim() === t); if (x) x.click(); }, name);
         await p.waitForTimeout(500);
+      };
+      const formSection = async (name) => {
+        await p.evaluate(t => { const x = [...document.querySelectorAll('[data-section-tabs] [role=tab]')].find(b => b.textContent.trim() === t); if (x) x.click(); }, name);
+        await p.waitForTimeout(400);
       };
       const tabState = () => p.evaluate(() => {
         const nav = document.querySelector('[data-simple-tabs]');
@@ -310,17 +318,22 @@ const navigate = async (page, label, short) => {
         const btns = [...nav.querySelectorAll('button')];
         const r = nav.getBoundingClientRect();
         const H = (sel) => { const el = document.querySelector(sel); return el ? Math.round(el.getBoundingClientRect().height) : 0; };
+        // the pane is the one tall scroller that is not the tab bar; it should never need to scroll
+        const pane = [...document.querySelectorAll('div')].find(d => String(d.className || '').includes('overflow-y-auto')
+          && d.getBoundingClientRect().height > 100 && !d.closest('[data-simple-tabs]'));
         return {
           n: btns.length,
           labels: btns.map(b => b.textContent.trim()),
           active: btns.filter(b => b.getAttribute('aria-current') === 'page').map(b => b.textContent.trim()).join(),
           small: btns.filter(b => b.getBoundingClientRect().height < 44).length,
           gap: Math.round(window.innerHeight - r.bottom),
-          page: Math.round(document.documentElement.scrollHeight),
+          doc: Math.round(document.documentElement.scrollHeight - document.documentElement.clientHeight),
+          spill: pane ? Math.round(pane.scrollHeight - pane.clientHeight) : null,
           over: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           chart: H('[data-phone-chart]'),
           fields: [...document.querySelectorAll('input')].filter(i => i.getBoundingClientRect().height > 0).length,
           rows: document.querySelectorAll('[data-figure-row]').length,
+          sections: document.querySelectorAll('[data-section-tabs] [role=tab]').length,
           legend: /Made up of/.test(document.body.innerText),
           dialsFirst: (() => {
             const card = document.querySelector('[data-phone-chart]');
@@ -333,13 +346,34 @@ const navigate = async (page, label, short) => {
           })()
         };
       });
+
+      // ---- the shell: one bar along the top, and the page title is gone from it
+      const shell = await p.evaluate(() => {
+        const head = document.querySelector('header');
+        const hr = head ? head.getBoundingClientRect() : null;
+        return {
+          top: hr ? Math.round(hr.top) : null, h: hr ? Math.round(hr.height) : null,
+          title: /Can I retire\?/.test(document.body.innerText),
+          crossover: !!document.querySelector('[data-crossover]'),
+          crossoverInBar: !!(head && head.querySelector('[data-crossover]')),
+          themeButtons: document.querySelectorAll('[data-theme-cycle]').length,
+          themeGroup: [...document.querySelectorAll('button')].filter(b => /^(Light|Dark|Sepia)$/.test(b.getAttribute('aria-label') || '')).length
+        };
+      });
+      ok('the simple page leads with the planner bar', !!shell && shell.top === 0 && shell.h <= 48, shell ? `${shell.h}px at ${shell.top}` : 'no bar');
+      ok('...carrying the way to the full planner', !!shell && shell.crossoverInBar, String(shell && shell.crossover));
+      ok('...and the page title is gone', !!shell && shell.title === false, shell && shell.title ? 'still says Can I retire?' : 'gone');
+      ok('the theme is one cycling button, not three', !!shell && shell.themeButtons === 1 && shell.themeGroup === 0,
+         shell ? `${shell.themeButtons} cycle, ${shell.themeGroup} of three` : '');
+
       const onChart = await tabState();
       ok('the simple page has three tabs at the foot', !!onChart && onChart.n === 3, onChart ? onChart.labels.join(' / ') : 'no tab bar');
       ok('...on the bottom edge, every one a 44px target', !!onChart && onChart.gap === 0 && onChart.small === 0,
          onChart ? `${onChart.gap}px up, ${onChart.small} under 44` : '');
       ok('...opening on the chart when the plan can be answered', !!onChart && onChart.active === 'Chart', onChart ? onChart.active : '');
       ok('...with the dials above the plot, not below it', !!onChart && onChart.dialsFirst === true, String(onChart && onChart.dialsFirst));
-      ok('...and the chart tab no taller than two screens', !!onChart && onChart.page <= 2 * 839, onChart ? `${onChart.page}px` : '');
+      ok('the Chart tab fits its screen', !!onChart && onChart.spill === 0 && onChart.doc === 0,
+         onChart ? `${onChart.spill}px past the pane, ${onChart.doc}px of document scroll` : '');
       ok('...nothing scrolling sideways', !!onChart && onChart.over <= 0, onChart ? `${onChart.over}px` : '');
       // the chart is a tab now, so it no longer needs to stick to anything
       const pos = await p.evaluate(() => { const el = document.querySelector('[data-phone-chart]'); return el ? getComputedStyle(el).position : null; });
@@ -358,13 +392,18 @@ const navigate = async (page, label, short) => {
       });
       ok('...and a dial still moves the line', moved.ok && moved.changed, JSON.stringify(moved));
 
-      // ---- tab 1: the form, with the chart out of the way
+      // ---- tab 1: the form, three sections, one screen each
       await simpleTab('Inputs');
-      const onInputs = await tabState();
-      ok('the Inputs tab shows the form', !!onInputs && onInputs.fields > 5 && onInputs.chart === 0,
-         onInputs ? `${onInputs.fields} fields, chart ${onInputs.chart}px` : '');
-      ok('...in under three screens', !!onInputs && onInputs.page <= 3 * 839, onInputs ? `${onInputs.page}px` : '');
-      ok('...without scrolling sideways', !!onInputs && onInputs.over <= 0, onInputs ? `${onInputs.over}px` : '');
+      const onYou = await tabState();
+      ok('the Inputs tab divides the form into three', !!onYou && onYou.sections === 3, onYou ? `${onYou.sections} sections` : '');
+      ok('...showing the form and not the chart', !!onYou && onYou.fields > 4 && onYou.chart === 0,
+         onYou ? `${onYou.fields} fields, chart ${onYou.chart}px` : '');
+      ok('...and You fits its screen', !!onYou && onYou.spill === 0 && onYou.doc === 0,
+         onYou ? `${onYou.spill}px past the pane` : '');
+      const sizes = await p.evaluate(INPUT_SIZE_PROBE);
+      const small = sizes.filter(x => x.font < 16);
+      ok('...inputs are at least 16px, so focusing does not zoom', small.length === 0, `${small.length} of ${sizes.length} under 16px`);
+
       /*
        * The portfolio was five columns inside 412px: a 60px drop-down reading "Hig", a contribution box
        * with room for three digits, a per-cent field the width of its own label. On a phone it is four
@@ -372,6 +411,8 @@ const navigate = async (page, label, short) => {
        * the chevron opening those behind the same six chips the full planner uses. Nothing on this tab
        * steps a number any more either: that is what the chart tab's dials are for.
        */
+      await formSection('Portfolio');
+      const onPortfolio = await tabState();
       const portfolio = await p.evaluate(() => ({
         rows: document.querySelectorAll('[data-wrapper-row]').length,
         selects: document.querySelectorAll('select[aria-label$="risk level"]').length,
@@ -381,6 +422,7 @@ const navigate = async (page, label, short) => {
       ok('...the portfolio is one row per wrapper', portfolio.rows === 4 && portfolio.wide === 0, `${portfolio.rows} rows, ${portfolio.wide} too wide`);
       ok('...no drop-down and no stepper on the form', portfolio.selects === 0 && portfolio.steppers === 0,
          `${portfolio.selects} selects, ${portfolio.steppers} steppers`);
+      ok('...and Portfolio fits its screen', !!onPortfolio && onPortfolio.spill === 0, onPortfolio ? `${onPortfolio.spill}px past the pane` : '');
       const opened = await p.evaluate(async () => {
         const btn = [...document.querySelectorAll('[data-wrapper-row] button[aria-expanded]')][0];
         if (!btn) return null;
@@ -390,13 +432,16 @@ const navigate = async (page, label, short) => {
         const summary = row.querySelector('[data-risk-summary]');
         if (summary) summary.click();
         await new Promise(r => setTimeout(r, 300));
-        return { chips: row.querySelectorAll('[role=radio]').length, fields: row.querySelectorAll('input').length };
+        const out = { chips: row.querySelectorAll('[role=radio]').length, fields: row.querySelectorAll('input').length };
+        btn.click();
+        return out;
       });
       ok('...and the chevron opens six chips and the contributions', !!opened && opened.chips === 6 && opened.fields >= 3,
          opened ? `${opened.chips} chips, ${opened.fields} fields` : 'no row');
-      const sizes = await p.evaluate(INPUT_SIZE_PROBE);
-      const small = sizes.filter(x => x.font < 16);
-      ok('...inputs are at least 16px, so focusing does not zoom', small.length === 0, `${small.length} of ${sizes.length} under 16px`);
+      await formSection('One-offs & income');
+      const onExtras = await tabState();
+      ok('...and One-offs & income fits its screen', !!onExtras && onExtras.spill === 0, onExtras ? `${onExtras.spill}px past the pane` : '');
+      await formSection('You');
 
       // ---- tab 3: the figures, as rows rather than a grid of cards
       await simpleTab('Figures');
@@ -404,7 +449,15 @@ const navigate = async (page, label, short) => {
       ok('the Figures tab lists the results as rows', !!onFigures && onFigures.rows >= 4, onFigures ? `${onFigures.rows} rows` : '');
       ok('...without the chart or its legend', !!onFigures && onFigures.chart === 0 && !onFigures.legend,
          onFigures ? `chart ${onFigures.chart}px, legend ${onFigures.legend}` : '');
-      ok('...and nothing scrolling sideways', !!onFigures && onFigures.over <= 0, onFigures ? `${onFigures.over}px` : '');
+      ok('...and it fits its screen too', !!onFigures && onFigures.spill === 0 && onFigures.doc === 0,
+         onFigures ? `${onFigures.spill}px past the pane` : '');
+      ok('...with the export still on the page, not inside the fold', await p.evaluate(() => {
+        const b = [...document.querySelectorAll('button')].find(x => /Export the year-by-year/.test(x.textContent));
+        return !!b && !b.closest('details') && b.getBoundingClientRect().height >= 44;
+      }), '');
+      // textContent, not innerText: it sits inside the fold, and innerText leaves closed details out
+      ok('...and the beta notice with the numbers it qualifies',
+         /not financial advice/.test(await p.evaluate(() => document.body.textContent)), '');
       // the choice is about this visit, so it survives a reload of the same session
       await p.reload({ waitUntil: 'domcontentloaded' });
       await p.waitForTimeout(1500);

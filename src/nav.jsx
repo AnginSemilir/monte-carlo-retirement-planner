@@ -107,9 +107,13 @@ export function MoreSheet({ open, tabs, primaryIds, activeTab, onSelect, onClose
 /*
  * THE SIMPLE PAGE'S THREE.
  *
- * Same bar, same rung on the z-index ladder, three cells instead of five and no overflow: the simple
- * page has exactly three places to be and every one of them earns a permanent slot. 390 / 3 = 130px a
- * cell, so the label can be a word rather than an abbreviation.
+ * Same bar, three cells instead of five and no overflow: the simple page has exactly three places to be
+ * and every one of them earns a permanent slot. 390 / 3 = 130px a cell, so the label can be a word
+ * rather than an abbreviation.
+ *
+ * In flow rather than fixed, unlike BottomNav: the simple page on a phone is a fixed-height column that
+ * does not scroll, so the bar is simply its last row. Nothing has to be padded out from underneath it,
+ * and it cannot drift over content the way a fixed bar does when the keyboard opens.
  *
  * It is a separate component rather than BottomNav with a shorter list because BottomNav owns the More
  * button and the overflow dot, neither of which exists here, and threading "no overflow" through that
@@ -118,7 +122,7 @@ export function MoreSheet({ open, tabs, primaryIds, activeTab, onSelect, onClose
 export function SimpleTabs({ tabs, active, onSelect }) {
   return (
     <nav data-simple-tabs aria-label="Simple planner sections"
-      className="fixed inset-x-0 bottom-0 z-40 md:hidden bg-surface border-t border-slate-200"
+      className="shrink-0 md:hidden bg-surface border-t border-slate-200"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {/* h-14, for the same reason BottomNav uses it: .touch-ui's min-height rule out-specifies a
           Tailwind min-h class and would quietly shrink the bar to 44px. */}

@@ -76,9 +76,28 @@ const OPTIONS = [
  * under a thumb, and this control sits in the header of every screen, so it would otherwise be the one
  * thing on the page a finger could not reliably hit.
  */
-export function ThemeToggle({ theme, setTheme, resolvedTheme = 'light', touch = false, className = '' }) {
+export function ThemeToggle({ theme, setTheme, resolvedTheme = 'light', touch = false, compact = false, className = '' }) {
   // On 'system' the stored preference matches none of the three, so press what is actually on screen.
   const shown = theme === 'system' ? resolvedTheme : theme;
+  /*
+   * ONE BUTTON THAT CYCLES, WHERE THREE WILL NOT FIT.
+   *
+   * The simple page on a phone is one screen with nothing below it, and three 44px buttons is a tenth of
+   * that spent on a setting most people change once. Compact shows the theme you are in and moves to the
+   * next one on a press - the same three, in the same order, through one target instead of three.
+   */
+  if (compact) {
+    const i = Math.max(0, OPTIONS.findIndex(o => o.id === shown));
+    const { Icon } = OPTIONS[i];
+    const next = OPTIONS[(i + 1) % OPTIONS.length];
+    return (
+      <button type="button" onClick={() => setTheme(next.id)} data-theme-cycle
+        title={`Theme: ${OPTIONS[i].title}. Switch to ${next.title}.`} aria-label={`Theme: ${OPTIONS[i].title}. Switch to ${next.title}.`}
+        className={`min-h-11 min-w-11 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-800 cursor-pointer ${className}`}>
+        <Icon className="w-4 h-4" />
+      </button>
+    );
+  }
   return (
     <div className={`flex items-center gap-0.5 bg-slate-100 p-1 rounded-lg border border-slate-200/80 ${className}`}>
       {OPTIONS.map(({ id, Icon, title }) => (

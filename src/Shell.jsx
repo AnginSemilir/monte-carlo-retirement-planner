@@ -78,11 +78,9 @@ const FEEDBACK_LABEL = 'Report a problem on GitHub';
  * treat the figures as a draft, which is the honest framing while the model is still being checked, and
  * it is the same sentence in both apps so neither looks more finished than the other.
  */
-function Footer({ pad = false }) {
+function Footer() {
   return (
-    // `pad` clears the simple page's fixed tab bar, which is the height of the bar plus the safe area on
-    // top of the footer's own spacing. Without it the last line of the page sits underneath the bar.
-    <div className={`px-4 sm:px-6 lg:px-8 ${pad ? 'pb-[calc(2rem+3.5rem+env(safe-area-inset-bottom))]' : 'pb-8'}`}>
+    <div className="px-4 sm:px-6 lg:px-8 pb-8">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
         <span>A beta, for education and illustration only &mdash; this is not financial advice. Everything is modelled, every figure is in today&rsquo;s money, and your plan stays in this browser.</span>
         {FEEDBACK_URL && (
@@ -182,6 +180,38 @@ export default function Shell() {
   // along) used to be shown as a banner and is not any more. The copy still happens.
   const cross = () => { carryAcross(which); setWhich(other.to); };
 
+  /*
+   * THE SIMPLE PAGE ON A PHONE IS AN APP SCREEN, NOT A DOCUMENT.
+   *
+   * Everything else here scrolls: a page of chrome, then the content, then a footer. That is right for
+   * the full planner, which has more to say than a screen holds however it is arranged. The simple page
+   * does not - it is three tabs of one screen each - and a page that scrolls when it has no need to
+   * makes every one of them feel half-finished, because you cannot tell by looking whether there is
+   * something below the fold.
+   *
+   * So on a phone it is a fixed-height column: a 44px bar, the tab, the tab bar, and no document scroll
+   * at all. The bar carries what the header used to - the name of the page, a way to the full planner,
+   * and the theme as one cycling button - in the height the crossover banner alone used to take. The
+   * page title goes: "Simple planner" beside "Full planner" says the same thing in the space of a line,
+   * and the footer's beta notice moves to the foot of the Figures tab, beside the numbers it qualifies.
+   */
+  if (isPhone && which === 'simple') return (
+    <div className="h-dvh flex flex-col overflow-hidden bg-slate-50 text-slate-900 font-sans">
+      <header className="shrink-0 flex items-center gap-1 pl-3 pr-1 h-11 bg-surface border-b border-slate-200">
+        <span className="text-[13px] font-bold tracking-tight text-slate-900">Simple planner</span>
+        <span className="flex-1" />
+        <ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />
+        <button type="button" onClick={cross} data-crossover
+          className="min-h-11 px-2 flex items-center gap-1 text-xs font-bold text-blue-700 cursor-pointer whitespace-nowrap">
+          Full planner <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </header>
+      <Suspense fallback={<div className="flex-1 flex items-center justify-center text-sm text-slate-400">Loading&hellip;</div>}>
+        <Simple isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} />
+      </Suspense>
+    </div>
+  );
+
   return (
     <>
       <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8">
@@ -199,7 +229,7 @@ export default function Shell() {
 
       {which === 'full' ? <App theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} numFormat={numFormat} setNumFormat={setNumFormat}
         isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} /> : (
-        <div className={`min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans ${isPhone ? 'pb-[calc(3.5rem+env(safe-area-inset-bottom))]' : ''}`}>
+        <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center justify-between gap-3">
               <h1 className="text-xl font-bold tracking-tight text-slate-900">Can I retire?</h1>
@@ -216,7 +246,7 @@ export default function Shell() {
           </div>
         </div>
       )}
-      <Footer pad={isPhone && which === 'simple'} />
+      <Footer />
     </>
   );
 }

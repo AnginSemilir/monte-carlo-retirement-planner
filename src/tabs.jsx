@@ -12,7 +12,10 @@
  */
 import { useEffect, useRef } from 'react';
 
-export function SectionTabs({ sections, active, onSelect, className = '' }) {
+// The row cancels its parent's side padding so the strip runs edge to edge; `gutter` is which padding.
+const GUTTER = { 3: '-mx-3 px-3', 4: '-mx-4 px-4' };
+
+export function SectionTabs({ sections, active, onSelect, gutter = 4, className = '' }) {
   const rowRef = useRef(null);
   useEffect(() => {
     const row = rowRef.current;
@@ -22,7 +25,7 @@ export function SectionTabs({ sections, active, onSelect, className = '' }) {
   }, [active]);
   return (
     <div data-section-tabs role="tablist" aria-label="Sections" ref={rowRef}
-      className={`sticky top-0 z-30 -mx-4 px-4 bg-slate-50/95 backdrop-blur border-b border-slate-200 flex gap-1 overflow-x-auto [scrollbar-width:none] ${className}`}
+      className={`sticky top-0 z-30 ${GUTTER[gutter] || GUTTER[4]} bg-slate-50/95 backdrop-blur border-b border-slate-200 flex gap-1 overflow-x-auto [scrollbar-width:none] ${className}`}
       data-no-swipe>
       {sections.map(s => {
         const on = s.id === active;

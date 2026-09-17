@@ -57,33 +57,53 @@ screenshots beside this file (`phone2-*.png`) are what the numbers describe.
 - The desktop is untouched apart from the two copy cuts you asked for, on purpose. Whether the row form
   belongs there too is a separate, measured decision.
 
-## The simple page, split into three tabs
 
-Measured on the Pixel 7 profile (412×839) on 2026-09-17, on the fixture this page is checked against:
-52, retiring at 60, spending £40,000, with £350k/£200k/£60k/£40k and the full State Pension.
+## The simple page: three tabs, and nothing below the fold
+
+Measured on 2026-09-17 on both profiles, on the fixture this page is checked against: 52, retiring at 60,
+spending £40,000, with £350k/£200k/£60k/£40k and the full State Pension.
 
 | | Before | After |
 |---|---|---|
-| Shape | one column: chart, then form, then figures | three tabs across the foot: Inputs · Chart · Figures |
-| Page height | 2,828px, 3.4 screens | 1,347 / 1,161 / 1,344px — one and a half screens each |
-| Chart | 486px, pinned to the top of every scroll | 768px on its own tab, nothing pinned |
-| First form field | 824px down, under the chart | 349px down, on the first screen |
+| Shape | one scrolling column: chart, form, figures | an app screen: bar, one tab, tab bar |
+| Document scroll | 2,828px of page, 3.4 screens | **0px** — nothing scrolls, on either profile |
+| Pane overflow | — | 0px on all three tabs at 390×664 and 412×839 |
+| Chart | 486px, pinned to the top of every scroll | 215px on its own tab, nothing pinned |
+| First form field | 824px down, under the chart | on the first screen |
 | The six results | at the bottom of the third screen | a tab away, wherever you are |
-| Quick dials | under the chart | above it, in the space the tab opens on |
-| Portfolio | a five-column table: a 60px tier drop-down reading "Hig" | four rows, balance at full size, the rest behind a chevron |
-| Tier control | `<select>` of six | the same six chips the full planner uses |
-| Steppers on the form | on three fields, 24px | none; the chart tab's dials are where a figure is nudged |
-| Figures | six cards, two across | six rows, label and meaning left, value right |
-| Sideways scroll | 0px | 0px on all three |
+| Page header | "Can I retire?" plus a three-button theme group, 100px | one 44px bar: the page's name, the theme, the way across |
+| Form | one column of everything | three sections — You · Portfolio · One-offs & income |
+| Portfolio | a five-column table, the tier a 60px drop-down reading "Hig" | four rows, balance at full size, the rest behind a chevron |
+| Figures | six cards, two across | six rows; the prose behind one fold, the export still on the page |
+| Sideways scroll | 0px | 0px |
 
-Why tabs rather than the sticky card: pinning the chart bought back the feedback an edit needs, and spent
-a third of every screen on it permanently to do so. A tab spends nothing between edits, and the four dials
-moved into the space above the plot keep the loop — a tap on *Retire at* moves the band and the three
-headline figures without scrolling or changing tab.
+### How it fits
 
-The default is not fixed: a plan complete enough to answer opens on the Chart, one that is not opens on
-Inputs. The choice then lives in `sessionStorage`, so it survives a reload of this visit and not the week.
+664px is the number everything is built against — the iPhone 13 profile, the smaller of the two. Minus the
+44px bar and the 56px tab bar, a pane has **563px**, and each one is composed to land inside it:
+
+- **Chart**: four dials (96), the verdict (44), the two toggles on one row (44), the plot (215), a legend
+  on one row, and the footnote folded behind "What the band shows".
+- **Inputs**: the scenario row and the section strip, then one section — You is six fields and the taper,
+  Portfolio is four rows, One-offs & income is the two lists.
+- **Figures**: the two toggles, six rows at 52px, the export button, and one fold holding the lifetime
+  tax, how the money is drawn, the target paragraph and the beta notice.
+
+The pane is still `overflow-y-auto`, as a safety net for a plan with eight portfolio rows or a dozen
+one-offs. It is not the plan: `phone-ui` asserts `scrollHeight === clientHeight` for every pane on both
+profiles, so a pane that outgrows its screen fails the suite rather than quietly starting to scroll.
+
+### What moved, and where it went
+
+- The **page title** is gone. "Simple planner" beside "Full planner" in the bar says the same thing in
+  the space of a line.
+- The **theme** is one button that cycles light → dark → sepia, in the bar. Three 44px buttons was a
+  tenth of the screen spent on a setting most people change once.
+- The **footer's beta notice** moved into the Figures fold, beside the numbers it qualifies: a page that
+  is one fixed screen has no foot to put it at.
+- The **quick dials** sit above the plot, so the feedback loop the sticky card existed for survives
+  without the sticky card: a tap on *Retire at* moves the band and the three headline figures.
 
 **Desktop is untouched.** Every branch is behind `isPhone`; at 1400px the page is still the two-column
-layout with the chart, its legend and its footnote in the right-hand card, and `desktop-reach` and
-`restyle-regression` prove it.
+layout with the chart, its legend and its footnote in the right-hand card, the full theme group in the
+header and the footer where it was. `desktop-reach` and `restyle-regression` prove it.

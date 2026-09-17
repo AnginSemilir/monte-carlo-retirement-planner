@@ -78,9 +78,11 @@ const FEEDBACK_LABEL = 'Report a problem on GitHub';
  * treat the figures as a draft, which is the honest framing while the model is still being checked, and
  * it is the same sentence in both apps so neither looks more finished than the other.
  */
-function Footer() {
+function Footer({ pad = false }) {
   return (
-    <div className="px-4 sm:px-6 lg:px-8 pb-8">
+    // `pad` clears the simple page's fixed tab bar, which is the height of the bar plus the safe area on
+    // top of the footer's own spacing. Without it the last line of the page sits underneath the bar.
+    <div className={`px-4 sm:px-6 lg:px-8 ${pad ? 'pb-[calc(2rem+3.5rem+env(safe-area-inset-bottom))]' : 'pb-8'}`}>
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
         <span>A beta, for education and illustration only &mdash; this is not financial advice. Everything is modelled, every figure is in today&rsquo;s money, and your plan stays in this browser.</span>
         {FEEDBACK_URL && (
@@ -197,7 +199,7 @@ export default function Shell() {
 
       {which === 'full' ? <App theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} numFormat={numFormat} setNumFormat={setNumFormat}
         isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} /> : (
-        <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
+        <div className={`min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans ${isPhone ? 'pb-[calc(3.5rem+env(safe-area-inset-bottom))]' : ''}`}>
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center justify-between gap-3">
               <h1 className="text-xl font-bold tracking-tight text-slate-900">Can I retire?</h1>
@@ -214,7 +216,7 @@ export default function Shell() {
           </div>
         </div>
       )}
-      <Footer />
+      <Footer pad={isPhone && which === 'simple'} />
     </>
   );
 }

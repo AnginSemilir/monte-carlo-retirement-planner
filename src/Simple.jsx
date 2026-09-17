@@ -1,12 +1,13 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { TrendingUp, Plus, X, Loader2, Download, Minus, Bookmark, Maximize2 } from 'lucide-react';
+import { TrendingUp, Plus, X, Loader2, Download, Minus, Bookmark, Maximize2, ChevronRight, SlidersHorizontal, LineChart, Table2 } from 'lucide-react';
 import {
   buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
   buildPolicyCandidates, explainPick, toleranceFor, simulateDeterministic, DEFAULT_RISK_PROFILES,
   STATE_PENSION_FULL, BAND_QUANTILES, TAX_REGION_LABELS, num, fmtNum, parseFormatted
 } from './App.jsx';
 import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId, earningId } from './simplePlan.js';
-import { ChartFullscreen } from './phone.jsx';
+import { ChartFullscreen, FieldRow, RiskChips } from './phone.jsx';
+import { SimpleTabs } from './nav.jsx';
 
 /*
  * THE STREAMLINED PAGE.
@@ -30,6 +31,28 @@ const GBP_SHORT = (v) => {
 };
 const KEY = 'rp_simple_v1';
 const SCEN_KEY = 'rp_simple_scenarios_v1';
+/*
+ * THREE TABS ON A PHONE.
+ *
+ * One column of everything is 3,000-odd pixels on a 390px screen: the form, then the chart, then the
+ * figures, with the chart pinned to the top so an edit was at least visible. Pinning bought the feedback
+ * back but spent a third of the screen on it permanently, and the figures stayed four screens below the
+ * thing they describe.
+ *
+ * So the page becomes three tabs across the bottom, where the thumb is: what you have, what it looks
+ * like, what it comes to. Each is one job and roughly one screen. The chart tab carries the four dials
+ * in the space above the plot, so the feedback loop the sticky card existed for survives the split -
+ * tap Retire at, and the band and the three headline figures move underneath your finger.
+ *
+ * sessionStorage, not localStorage: which tab you were on is about this visit, not a preference, and
+ * coming back tomorrow should open on the chart the way it always did.
+ */
+const TAB_KEY = 'rp_simple_tab';
+const PHONE_TABS = [
+  { id: 'inputs', short: 'Inputs', Icon: SlidersHorizontal },
+  { id: 'chart', short: 'Chart', Icon: LineChart },
+  { id: 'figures', short: 'Figures', Icon: Table2 }
+];
 const MAX_SCENARIOS = 6;
 const SP_HINT = `e.g. ${STATE_PENSION_FULL.toLocaleString()}`;   // the full new State Pension, suggested not assumed
 const TARGET = 90;          // fixed, and stated in words rather than offered as a dial. See PLAN-streamlined.md.
@@ -133,6 +156,11 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
   const [activeScenario, setActiveScenario] = useState(null);
   const [res, setRes] = useState(null);          // { mc, safeSpend, safeAge }
   const [busy, setBusy] = useState(false);
+  const [openWrapper, setOpenWrapper] = useState(null);   // which portfolio row is open, on a phone
+  // '' means "not chosen yet", which is not the same as 'inputs': an empty choice falls through to the
+  // chart for anybody whose plan is already complete, and to the form for anybody whose is not.
+  const [tab, setTab] = useState(() => { try { return sessionStorage.getItem(TAB_KEY) || ''; } catch { return ''; } });
+  const selectTab = (id) => { setTab(id); try { sessionStorage.setItem(TAB_KEY, id); } catch { /* private mode */ } };
   const runToken = useRef(0);
 
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* quota */ } }, [s]);
@@ -486,6 +514,72 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
           </div>
   );
 
+  /*
+   * THE CHART'S OWN CONTROLS AND ITS FOOTNOTE, WRITTEN ONCE.
+   *
+   * Which view and how wide the band are questions about the picture, so they belong beside the picture.
+   * On a desktop that is the right-hand card; on a phone it is the Chart tab. Two copies of this markup
+   * would drift, and drift here means a phone quietly drawing a different band from the one its caption
+   * describes - so it is one function rendered in both places. The Figures tab keeps its own copy of the
+   * pair because the six numbers change with them too.
+   */
+  const viewToggles = () => (
+    <div className={`flex flex-wrap items-center gap-2 ${isPhone ? 'text-[11px]' : 'text-xs'}`}>
+      <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 p-1 rounded-lg w-fit">
+        {[['rate', 'Rate based'], ['mc', 'Monte Carlo']].map(([k, label]) => (
+          <button key={k} type="button" onClick={() => setView(k)} disabled={k === 'mc' && !res?.mc}
+            className={`${isPhone ? 'px-2.5 min-h-11' : 'px-3 py-0.5'} rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${view === k ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
+        ))}
+      </div>
+      {/* one band control driving both charts, so the two stay comparable rather than drifting apart.
+          The long names are what a desktop has room for; on a phone the two groups only sit on one row
+          under the short ones, and a row each for two toggles is 90px of the screen the chart wants. */}
+      <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-lg w-fit">
+        {Object.entries(BAND_QUANTILES).map(([k, v]) => (
+          <button key={k} type="button" onClick={() => setBandMode(k)} title={`Draw both charts at the ${v.lowPct} and ${v.highPct}`}
+            className={`${isPhone ? 'px-2.5 min-h-11' : 'px-2.5 py-0.5'} rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>{isPhone ? (v.label || k) : v.button}</button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const chartExtras = () => (<>
+    {/* A legend that is also the control: clicking an entry draws that wrapper. Each carries
+        its own colour swatch, so a line on the chart can be named without a key elsewhere. */}
+    {Object.keys(chart.wrappers).length > 0 && (
+      <div className="flex flex-wrap items-center gap-1.5">
+        {/* Short on purpose: the longer version wrapped the legend onto two rows at this
+            width, and onto three on a phone. The buttons carry aria-pressed, so they read as
+            toggles without being told to. */}
+        <span className="text-[11px] text-slate-500 mr-0.5">Made up of:</span>
+        {WRAPPERS.map(w => chart.wrappers[w.key] ? (
+          <button key={w.key} type="button" aria-pressed={!!showWrappers[w.key]}
+            onClick={() => setShowWrappers(v => ({ ...v, [w.key]: !v[w.key] }))}
+            className={`px-2 py-1 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer flex items-center gap-1.5 ${showWrappers[w.key] ? 'bg-surface border-slate-300 text-slate-900' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800'}`}>
+            <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: w.color, opacity: showWrappers[w.key] ? 1 : 0.45 }} />
+            {w.label}
+          </button>
+        ) : null)}
+      </div>
+    )}
+    <p className="text-[11px] text-slate-500 leading-relaxed">
+      {chart.useFan
+        ? <>The shaded band is the {band.lowPct} to {band.highPct} of {LIVE_TRIALS.toLocaleString()} simulated futures, and a path that runs out stays at zero &mdash; so the bottom edge is honest about failure.</>
+        : <>The shaded band is the {band.lowPct} to {band.highPct}, each edge compounded at that age&rsquo;s own rate. <strong className="text-slate-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with drawdown could take a higher-risk portfolio to £0. See the Monte Carlo simulation for a better predictor of how robust your plan is.</>}
+      {' '}Both views share one scale, so switching compares rather than rescales.
+      {chart.clippedTo && <> The top of the band runs off the chart, reaching {GBP(chart.clippedTo)} at its highest &mdash; the axis follows the middle line so it stays readable.</>}
+    </p>
+  </>);
+
+  // What every tab that needs an answer shows while the plan is still missing something.
+  const notReady = () => (
+    <div className="p-8 text-center">
+      <TrendingUp className="w-8 h-8 text-slate-400 mx-auto mb-3" />
+      <p className="text-sm text-slate-500">Still need {ready.missing.join(', ')}.</p>
+      <p className="text-[11px] text-slate-400 mt-1.5">The answer appears as soon as those are in. There is no button to press.</p>
+    </div>
+  );
+
   // ------------------------------------------------------------------ input helpers
   /*
    * One height for every control on this panel. Four wrappers each carrying a balance, a risk level and a
@@ -598,6 +692,79 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
     'Medium/Low Risk': 'Med-lo', 'Low Risk': 'Low', 'Cash Equivalents': 'Cash' };
 
   /*
+   * THE PORTFOLIO AS FOUR ROWS, ON A PHONE.
+   *
+   * The table is five columns - name, balance, risk, paid in, rising - and inside 412px that is a 60px
+   * drop-down showing "Hig", a contribution box with room for three digits, and a per-cent field the
+   * width of its own label. It reads as a spreadsheet that did not fit, because it is one.
+   *
+   * A wrapper is really one important number and three that are set once: the balance is typed and
+   * retyped, the tier and the contributions are chosen when the plan is built and rarely touched again.
+   * So the row shows the balance at full size with the rest named underneath it in words, and the
+   * chevron opens those three - the risk as the same six chips the full planner uses, rather than a
+   * drop-down nobody can read.
+   */
+  const riskOptions = Object.keys(DEFAULT_RISK_PROFILES).map(r => ({ key: r, title: RISK_SHORT[r] || r, long: r }));
+  const phoneWrapperRow = (k, label, cKey, pctKey = null, salKey = null) => {
+    const isPct = !!(pctKey && s[pctKey]);
+    const open = openWrapper === k;
+    const paid = num(s[cKey], 0);
+    const grow = num(s[k + 'G'], 0);
+    const tier = RISK_SHORT[s[k + 'Risk']] || s[k + 'Risk'] || 'Medium';
+    const sub = `${tier} risk \u00b7 ${paid ? `${isPct ? `${paid}% of salary` : fmt(s[cKey])} a year in` : 'nothing going in'}${paid && grow ? `, rising ${grow}%` : ''}`;
+    return (
+      <div key={k} data-wrapper-row className="border-b border-slate-100 last:border-b-0">
+        <div className="flex items-center gap-2 py-1">
+          <label className="flex-1 min-w-0 cursor-text">
+            <span className="block text-[13px] font-bold text-slate-900 leading-tight">{label}</span>
+            <span className="block text-[11px] text-slate-500 leading-snug truncate">{sub}</span>
+          </label>
+          <span className="w-[118px] shrink-0">{cash(k)}</span>
+          <button type="button" aria-expanded={open} aria-label={`${label}: risk and contributions`}
+            onClick={() => setOpenWrapper(open ? null : k)}
+            className="w-11 h-11 shrink-0 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer">
+            <ChevronRight className={`w-4 h-4 transition-transform ${open ? 'rotate-90' : ''}`} />
+          </button>
+        </div>
+        {open && (
+          <div className="pb-2 space-y-1.5">
+            <RiskChips collapsible name="Risk level" value={s[k + 'Risk'] || 'Medium Risk'} options={riskOptions}
+              onChange={(v) => set(k + 'Risk', v)} />
+            <FieldRow label={isPct ? 'Paid in each year, as a % of salary' : 'Paid in each year'}>
+              <span className="flex items-stretch gap-1 w-full">
+                <input type="text" inputMode="numeric" value={isPct ? s[cKey] : fmt(s[cKey])} placeholder={isPct ? '%' : '0'}
+                  onFocus={(e) => e.target.select()} onChange={(e) => set(cKey, parse(e.target.value))}
+                  aria-label={`${label} contribution`} className={`${inCls} text-right flex-1 min-w-0`} />
+                {pctKey && (
+                  <button type="button" onClick={() => set(pctKey, !s[pctKey])} title={isPct ? 'a % of salary' : 'pounds a year'}
+                    className={`shrink-0 w-11 rounded-md border text-xs font-bold cursor-pointer ${isPct ? 'bg-accent text-onaccent border-blue-600' : 'bg-slate-50 text-slate-500 border-slate-300'}`}>
+                    {isPct ? '%' : '\u00a3'}
+                  </button>
+                )}
+              </span>
+            </FieldRow>
+            {isPct && salKey && (
+              <FieldRow label="Of a salary of">
+                <input type="text" inputMode="numeric" value={fmt(s[salKey])} placeholder="0"
+                  onFocus={(e) => e.target.select()} onChange={(e) => set(salKey, parse(e.target.value))}
+                  aria-label={`${label} salary`} className={`${inCls} text-right w-full`} />
+              </FieldRow>
+            )}
+            <FieldRow label="Rising each year by">
+              <span className="flex items-center gap-1.5 w-full">
+                <input type="text" inputMode="numeric" value={s[k + 'G']} placeholder="0"
+                  onFocus={(e) => e.target.select()} onChange={(e) => set(k + 'G', parse(e.target.value))}
+                  aria-label={`${label} contribution increase`} className={`${inCls} text-right flex-1 min-w-0`} />
+                <span className="text-xs text-slate-400 shrink-0">%</span>
+              </span>
+            </FieldRow>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  /*
    * NO STEPPERS IN THE PORTFOLIO ON A PHONE.
    *
    * This row is five columns - label, balance, risk, contribution, escalation - inside 412px, and a
@@ -702,10 +869,26 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    * A card sizes its own figure. "£1,246,411" is nine characters and overflowed the card on a phone,
    * where the same class held "84.9%" comfortably - so the type scale steps down as the string grows
    * rather than being set once for the shortest value it will ever hold.
+   *
+   * ON A PHONE IT IS A ROW, NOT A CARD. Six cards two-across is twelve boxes of chrome around twelve
+   * numbers, and the label that says what each one means gets two words before it wraps. A row gives
+   * the name and its explanation the full width on the left and right-aligns the figure, so the column
+   * of numbers reads down the page and nothing truncates.
    */
   const figure = (label, value, sub, tone = 'text-slate-900', pending = false) => {
     const n = String(value).length;
     const size = n > 10 ? 'text-base' : n > 8 ? 'text-lg' : n > 6 ? 'text-xl' : 'text-2xl';
+    if (isPhone) return (
+      <div data-figure-row className="flex items-center gap-3 min-h-[60px] py-2 border-b border-slate-100 last:border-b-0 min-w-0">
+        <span className="flex-1 min-w-0">
+          <span className="block text-[13px] font-bold text-slate-900 leading-tight">{label}</span>
+          <span className="block text-[11px] text-slate-500 leading-snug">{sub}</span>
+        </span>
+        {pending
+          ? <span className="text-xl font-black tabular-nums text-slate-400 flex items-center gap-2 shrink-0"><Loader2 className="w-4 h-4 animate-spin" />&mdash;</span>
+          : <span className={`${size} font-black tabular-nums shrink-0 ${tone}`} title={String(value)}>{value}</span>}
+      </div>
+    );
     return (
       <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3 min-w-0">
         <span className="text-[11px] text-slate-500 block mb-0.5 leading-snug">{label}</span>
@@ -739,6 +922,10 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
   }, [timeline, s.retireSelf]);
   const rateTone = !mc ? '' : mc.successRate >= TARGET ? 'text-emerald-700' : mc.successRate >= 75 ? 'text-amber-700' : 'text-rose-700';
 
+  // Which of the three a phone is showing. A saved choice wins; with none, a plan that can be answered
+  // opens on its answer and a plan that cannot opens on the form that would complete it.
+  const phoneTab = tab || (ready.ready ? 'chart' : 'inputs');
+
   /*
    * Flex column below lg, grid at lg and up, and the difference matters. As a GRID each card is its own
    * row, and a grid row is a sticky element's containing block - so a sticky card has zero travel and
@@ -747,40 +934,44 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    */
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,424px)_minmax(0,1fr)] gap-5 lg:items-start">
-      {isPhone && ready.ready && (
-        <div data-phone-chart className="order-first lg:hidden sticky top-0 z-20 bg-surface border border-slate-200/90 rounded-xl p-3 space-y-2">
+      {/* ------------------------------------------------ PHONE TAB 2: the picture, with the dials on top */}
+      {isPhone && phoneTab === 'chart' && (
+        <div data-phone-chart className="order-first lg:hidden bg-surface border border-slate-200/90 rounded-xl p-3 space-y-2">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-xs font-semibold text-slate-900">Projections</h2>
-            <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 p-0.5 rounded-lg text-[11px]">
-              {[['rate', 'Rate'], ['mc', 'Monte Carlo']].map(([k, label]) => (
-                <button key={k} type="button" onClick={() => setView(k)} disabled={k === 'mc' && !res?.mc}
-                  className={`px-2.5 min-h-11 rounded-lg font-semibold cursor-pointer disabled:opacity-40 ${view === k ? 'bg-surface text-blue-700 shadow-2xs' : 'text-slate-500'}`}>{label}</button>
+            {busy && <span className="text-[11px] text-slate-400 flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> {view === 'mc' ? `simulating ${LIVE_TRIALS.toLocaleString()} futures` : 'working'}</span>}
+          </div>
+          {!ready.ready ? notReady() : <>
+            {/* THE DIALS COME FIRST. They are the reason this tab exists: the four questions people
+                arrive with, in the space above the plot, so a tap lands on the chart and the three
+                figures below it without scrolling or leaving the tab. They call the same step() the
+                form's own fields call, so there is no second path into the state. */}
+            <div data-phone-dials className="grid grid-cols-2 gap-x-3 gap-y-1">
+              {phoneDial('Retire at', s.retireSelf || '—', 1, 'retireSelf')}
+              {phoneDial('Spending', fmt(s.spend) || '—', 1000, 'spend')}
+              {phoneDial('Pension', fmt(s.pen) || '—', 10000, 'pen')}
+              {phoneDial('ISA', fmt(s.isa) || '—', 10000, 'isa')}
+            </div>
+            {/* the verdict, in one line: the three figures somebody came to this page for */}
+            <div className="grid grid-cols-3 gap-2 text-center pt-1 border-t border-slate-100">
+              {[['Survival', res?.mc ? `${res.mc.successRate.toFixed(0)}%` : '—'],
+                ['Safe max', res?.safeSpend?.spend != null ? GBP_SHORT(res.safeSpend.spend) : '—'],
+                ['Earliest', res?.safeAge?.age != null ? String(res.safeAge.age) : '—']].map(([k, v]) => (
+                <div key={k} className="min-w-0">
+                  <span className="block text-[10px] text-slate-500 truncate">{k}</span>
+                  <span className="block text-sm font-bold text-slate-900 tabular-nums">{v}</span>
+                </div>
               ))}
             </div>
-          </div>
-          {chartPanel()}
-          {/* the verdict, in one line: the three figures somebody came to this page for */}
-          <div className="grid grid-cols-3 gap-2 text-center">
-            {[['Survival', res?.mc ? `${res.mc.successRate.toFixed(0)}%` : '—'],
-              ['Safe max', res?.safeSpend?.spend != null ? GBP_SHORT(res.safeSpend.spend) : '—'],
-              ['Earliest', res?.safeAge?.age != null ? String(res.safeAge.age) : '—']].map(([k, v]) => (
-              <div key={k} className="min-w-0">
-                <span className="block text-[10px] text-slate-500 truncate">{k}</span>
-                <span className="block text-sm font-bold text-slate-900 tabular-nums">{v}</span>
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1 pt-1 border-t border-slate-100">
-            {phoneDial('Retire at', s.retireSelf || '—', 1, 'retireSelf')}
-            {phoneDial('Spending', fmt(s.spend) || '—', 1000, 'spend')}
-            {phoneDial('Pension', fmt(s.pen) || '—', 10000, 'pen')}
-            {phoneDial('ISA', fmt(s.isa) || '—', 10000, 'isa')}
-          </div>
+            {viewToggles()}
+            {chart && chartPanel()}
+            {chart && chartExtras()}
+          </>}
         </div>
       )}
 
-      {/* ------------------------------------------------ LEFT: what you have */}
-      <div className="bg-surface border border-slate-200/90 rounded-xl p-4 space-y-3">
+      {/* ------------------------------------------------ LEFT / PHONE TAB 1: what you have */}
+      <div className={`bg-surface border border-slate-200/90 rounded-xl p-4 space-y-3 ${isPhone && phoneTab !== 'inputs' ? 'hidden' : ''}`}>
         <div className="flex flex-wrap items-center gap-1.5">
           {scenarios.map(rec => (
             <span key={rec.id}
@@ -811,10 +1002,10 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
         <div className="space-y-1">
           <h2 className="text-xs font-semibold text-slate-900 mb-1.5">You</h2>
           {row('Age now', cash('ageSelf'))}
-          {row('Retire at', <>{cash('retireSelf')}{stepper('retireSelf', 1)}</>)}
+          {row('Retire at', <>{cash('retireSelf')}{!isPhone && stepper('retireSelf', 1)}</>)}
           {s.couple && row('Partner age now', cash('agePart'))}
-          {s.couple && row('Partner retires at', <>{cash('retirePart')}{stepper('retirePart', 1)}</>)}
-          {row('Expected retirement spending', <>{cash('spend')}{stepper('spend', 1000)}</>)}
+          {s.couple && row('Partner retires at', <>{cash('retirePart')}{!isPhone && stepper('retirePart', 1)}</>)}
+          {row('Expected retirement spending', <>{cash('spend')}{!isPhone && stepper('spend', 1000)}</>)}
           {row('State Pension a year', statePensionField('statePensionSelf'))}
           {s.couple && row('Partner State Pension', statePensionField('statePensionPart'))}
           {row('Where you pay tax',
@@ -837,6 +1028,20 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
 
         <div>
           <h2 className="text-xs font-semibold text-slate-900 mb-1.5">Portfolio</h2>
+          {isPhone ? (
+            <div className="-mt-0.5">
+              {phoneWrapperRow('pen', 'Pension', 'penC', 'penCIsPct', 'salary')}
+              {phoneWrapperRow('isa', 'ISA', 'isaC')}
+              {phoneWrapperRow('gia', 'Other investments', 'giaC')}
+              {phoneWrapperRow('cash', 'Cash', 'cashC')}
+              {s.couple && <>
+                {phoneWrapperRow('penPart', 'Partner pension', 'penCPart', 'penCIsPctPart', 'salaryPart')}
+                {phoneWrapperRow('isaPart', 'Partner ISA', 'isaCPart')}
+                {phoneWrapperRow('giaPart', 'Partner other investments', 'giaCPart')}
+                {phoneWrapperRow('cashPart', 'Partner cash', 'cashCPart')}
+              </>}
+            </div>
+          ) : (
           <div className="grid grid-cols-[auto_minmax(92px,1fr)_60px_66px_44px] sm:grid-cols-[auto_minmax(92px,1fr)_66px_74px_46px] gap-x-1 gap-y-1 items-center">
             <span />
             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide text-right pr-5">Balance</span>
@@ -854,6 +1059,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
               {wrapperRow('cashPart', 'Partner cash', 'cashCPart')}
             </>}
           </div>
+          )}
         </div>
 
         <div className="pt-1">
@@ -904,38 +1110,18 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
         </div>
       </div>
 
-      {/* ------------------------------------------------ RIGHT: can you afford it */}
-      <div className="bg-surface border border-slate-200/90 rounded-xl p-5 space-y-4 min-w-0">
+      {/* ------------------------------------------------ RIGHT / PHONE TAB 3: can you afford it */}
+      <div className={`bg-surface border border-slate-200/90 rounded-xl p-5 space-y-4 min-w-0 ${isPhone ? 'max-md:p-4' : ''} ${isPhone && phoneTab !== 'figures' ? 'hidden' : ''}`}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-sm font-semibold text-slate-900">Projections</h2>
+          <h2 className="text-sm font-semibold text-slate-900">{isPhone ? 'The figures' : 'Projections'}</h2>
           {busy && <span className="text-[11px] text-slate-400 flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> {view === 'mc' ? `simulating ${LIVE_TRIALS.toLocaleString()} futures` : 'working'}</span>}
         </div>
 
-        {!ready.ready ? (
-          <div className="p-8 text-center">
-            <TrendingUp className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-            <p className="text-sm text-slate-500">Still need {ready.missing.join(', ')}.</p>
-            <p className="text-[11px] text-slate-400 mt-1.5">The answer appears as soon as those are in. There is no button to press.</p>
-          </div>
-        ) : (
+        {!ready.ready ? notReady() : (
           <>
             {chart && (
               <>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 p-1 rounded-lg w-fit text-xs">
-                    {[['rate', 'Rate based'], ['mc', 'Monte Carlo']].map(([k, label]) => (
-                      <button key={k} type="button" onClick={() => setView(k)} disabled={k === 'mc' && !res?.mc}
-                        className={`px-3 py-0.5 rounded-lg font-semibold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${view === k ? 'bg-surface text-blue-700' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
-                    ))}
-                  </div>
-                  {/* one band control driving both charts, so the two stay comparable rather than drifting apart */}
-                  <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-lg w-fit text-xs">
-                    {Object.entries(BAND_QUANTILES).map(([k, v]) => (
-                      <button key={k} type="button" onClick={() => setBandMode(k)} title={`Draw both charts at the ${v.lowPct} and ${v.highPct}`}
-                        className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>{v.button}</button>
-                    ))}
-                  </div>
-                </div>
+                {viewToggles()}
                 {!isPhone && chartPanel()}
                 {/* The overlay renders the same markup at the size it measures for itself. This page has
                     no reveal animation to protect, so the one chart memo simply follows the overlay box. */}
@@ -960,35 +1146,14 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                     {chartPanel(true)}
                   </ChartFullscreen>
                 )}
-                {/* A legend that is also the control: clicking an entry draws that wrapper. Each carries
-                    its own colour swatch, so a line on the chart can be named without a key elsewhere. */}
-                {Object.keys(chart.wrappers).length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {/* Short on purpose: the longer version wrapped the legend onto two rows at this
-                        width, and onto three on a phone. The buttons carry aria-pressed, so they read as
-                        toggles without being told to. */}
-                    <span className="text-[11px] text-slate-500 mr-0.5">Made up of:</span>
-                    {WRAPPERS.map(w => chart.wrappers[w.key] ? (
-                      <button key={w.key} type="button" aria-pressed={!!showWrappers[w.key]}
-                        onClick={() => setShowWrappers(v => ({ ...v, [w.key]: !v[w.key] }))}
-                        className={`px-2 py-1 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer flex items-center gap-1.5 ${showWrappers[w.key] ? 'bg-surface border-slate-300 text-slate-900' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800'}`}>
-                        <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: w.color, opacity: showWrappers[w.key] ? 1 : 0.45 }} />
-                        {w.label}
-                      </button>
-                    ) : null)}
-                  </div>
-                )}
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  {chart.useFan
-                    ? <>The shaded band is the {band.lowPct} to {band.highPct} of {LIVE_TRIALS.toLocaleString()} simulated futures, and a path that runs out stays at zero &mdash; so the bottom edge is honest about failure.</>
-                    : <>The shaded band is the {band.lowPct} to {band.highPct}, each edge compounded at that age&rsquo;s own rate. <strong className="text-slate-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with drawdown could take a higher-risk portfolio to £0. See the Monte Carlo simulation for a better predictor of how robust your plan is.</>}
-                  {' '}Both views share one scale, so switching compares rather than rescales.
-                  {chart.clippedTo && <> The top of the band runs off the chart, reaching {GBP(chart.clippedTo)} at its highest &mdash; the axis follows the middle line so it stays readable.</>}
-                </p>
+                {/* The legend and the footnote belong to the chart, which on a phone is the tab next
+                    door - so this card stops at the figures there rather than describing a picture that
+                    is not on the screen. */}
+                {!isPhone && chartExtras()}
               </>
             )}
 
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+            <div className={isPhone ? 'flex flex-col' : 'grid grid-cols-2 lg:grid-cols-3 gap-3 pt-1'}>
               {chart && !chart.useFan ? <>
                 {figure('Pot at retirement', rateCards?.retire == null ? '' : GBP(rateCards.retire),
                   `age ${num(s.retireSelf, 0)}, expected path`, 'text-slate-900', !rateCards)}
@@ -1055,6 +1220,8 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
           </>
         )}
       </div>
+
+      {isPhone && <SimpleTabs tabs={PHONE_TABS} active={phoneTab} onSelect={selectTab} />}
     </div>
   );
 }

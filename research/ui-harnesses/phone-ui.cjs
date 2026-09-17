@@ -504,7 +504,34 @@ const navigate = async (page, label, short) => {
       console.log('  inputs, second pass');
       // The card is Start Here's alone on a phone: the bottom bar already names the screen you are on.
       ok('no title card away from Start Here', first.titleCard === null, 'present');
-      ok('the scenario bar is one row', first.scenarioBar !== null && first.scenarioBar <= 56, `${first.scenarioBar}px`);
+      /*
+       * The scenario row is not on the tab at all any more - it is behind More on the bottom bar, where
+       * the tab's other whole-plan actions (export, import, clear) already live. A scenario is switched
+       * or saved a handful of times in a session; the row sat above every field for all of it.
+       */
+      ok('the scenario row is off the tab', first.scenarioBar === null, first.scenarioBar === null ? 'gone' : `${first.scenarioBar}px still there`);
+      const inSheet = await p.evaluate(async () => {
+        const more = [...document.querySelectorAll('[data-bottomnav] button')].find(b => /More/.test(b.textContent));
+        if (!more) return null;
+        more.click();
+        await new Promise(r => setTimeout(r, 400));
+        const bar = document.querySelector('[data-scenario-bar]');
+        const out = bar ? {
+          select: !!bar.querySelector('select[aria-label="Active scenario"]'),
+          saves: [...bar.querySelectorAll('button')].filter(b => /Save/.test(b.textContent)).length,
+          small: [...bar.querySelectorAll('button, select')].filter(b => b.getBoundingClientRect().height < 44).length
+        } : null;
+        const close = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Close');
+        if (close) close.click();
+        await new Promise(r => setTimeout(r, 300));
+        return out;
+      });
+      ok('...and in the More sheet instead', !!inSheet && inSheet.select && inSheet.saves >= 2,
+         inSheet ? `select ${inSheet.select}, ${inSheet.saves} save buttons` : 'not in the sheet');
+      ok('...at 44px, like everything else in there', !!inSheet && inSheet.small === 0, inSheet ? `${inSheet.small} under 44` : '');
+      // desktop only, by design: there is no hover on a phone and the folds already carry the explanations
+      const terms = await p.evaluate(() => document.querySelectorAll('[data-term]').length);
+      ok('...no glossary buttons on a phone', terms === 0, `${terms}`);
       ok('the crossover button is one line', first.crossover !== null && first.crossover <= 48, `${first.crossover}px`);
       ok('the money banner is one sentence', first.bannerSentences === 1, `${first.bannerSentences}`);
       ok('the first field is on the first screen', first.firstFieldTop !== null && first.firstFieldTop < first.vh, `${first.firstFieldTop} of ${first.vh}`);

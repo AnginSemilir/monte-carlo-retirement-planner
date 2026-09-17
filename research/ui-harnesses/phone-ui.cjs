@@ -55,9 +55,15 @@ const simplePlan = {
  * measures today. Three are allowed more, and each for a reason that is not "it was easier": Backtest
  * holds a chart, an era picker and a verdict; Documentation is a directory of eleven folded sections;
  * Start explains the other seven tabs.
+ *
+ * Projection went from 1.5 to 1.9 deliberately. Before a run the tab is a button and a card that used to
+ * say "The six steps" over a fold holding a paragraph about them; it now shows the seven steps as a
+ * list, named, each with a line of what it does. That is 396px of contents where there were 44px of a
+ * closed fold, and it is the thing the tab is for - measured at 1,149px of 664, so the ceiling keeps its
+ * usual headroom over what it is.
  */
 const SCREEN_CAP = {
-  'Start Here': 2.1, 'Plan Inputs': 2.0, 'Config & Assumptions': 2.0, 'Projection': 1.5,
+  'Start Here': 2.1, 'Plan Inputs': 2.0, 'Config & Assumptions': 2.0, 'Projection': 1.9,
   'Strategy': 1.8, 'Historical Backtest': 2.6, 'Audit Data Table': 1.8, 'Documentation': 2.2
 };
 

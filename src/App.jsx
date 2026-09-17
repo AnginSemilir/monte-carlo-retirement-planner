@@ -9403,40 +9403,55 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * A desktop keeps the one-line row of named pills below, because there the whole deck already fits
    * across the foot of the card and a stack of seven rows would push the sticky bar off the screen.
    */
-  const slideIndex = () => (
+  const slideIndex = ({ preview = false } = {}) => (
     <ol data-slide-index className="flex flex-col gap-1.5 w-full">
       {PROJECTION_SLIDES.map(s => {
-        const here = !seeAll && slide === s.n;
-        const open = indexOpen === s.n;
+        const here = !preview && !seeAll && slide === s.n;
+        // before a run there is no step to go to, so the row is text; after one it is the way there
+        const open = indexOpen === s.n || (preview && !isPhone);
+        const body = (
+          <>
+            <span className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] font-black tabular-nums ${here ? 'bg-accent text-onaccent' : 'bg-slate-100 text-slate-500'}`}>{s.n}</span>
+            <span className="min-w-0 flex-1">
+              <span className={`block text-[13px] font-bold leading-tight ${here ? 'text-blue-900' : 'text-slate-900'}`}>{s.name}</span>
+              {/* no `block` beside the clamp: `line-clamp-*` is a `display`, and a display utility
+                  next to it wins and turns the clamp off */}
+              <span className={`text-[11px] text-slate-500 leading-snug mt-0.5 ${open ? 'block' : 'line-clamp-1'}`}>{s.desc}</span>
+            </span>
+          </>
+        );
         return (
           <li key={s.n}>
             <div className={`flex items-start gap-1 rounded-xl border transition-colors ${here ? 'border-blue-600 bg-blue-50/70' : 'border-slate-200 bg-surface'}`}>
-              <button type="button" data-slide-pill={s.n} data-slide-here={here ? 'true' : undefined} aria-current={here ? 'step' : undefined}
-                onClick={() => { setSeeAll(false); setSlide(s.n); }}
-                className="flex-1 min-w-0 flex items-start gap-2.5 text-left cursor-pointer py-2 pl-2">
-                <span className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] font-black tabular-nums ${here ? 'bg-accent text-onaccent' : 'bg-slate-100 text-slate-500'}`}>{s.n}</span>
-                <span className="min-w-0 flex-1">
-                  <span className={`block text-[13px] font-bold leading-tight ${here ? 'text-blue-900' : 'text-slate-900'}`}>{s.name}</span>
-                  {/* no `block` beside the clamp: `line-clamp-*` is a `display`, and a display utility
-                      next to it wins and turns the clamp off */}
-                  <span className={`text-[11px] text-slate-500 leading-snug mt-0.5 ${open ? 'block' : 'line-clamp-1'}`}>{s.desc}</span>
-                </span>
-              </button>
-              <button type="button" onClick={() => setIndexOpen(open ? null : s.n)} aria-expanded={open}
-                aria-label={`${open ? 'Hide' : 'Show'} what ${s.name} does`}
-                className="w-11 h-11 shrink-0 flex items-center justify-center text-slate-400 cursor-pointer">
-                <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
-              </button>
+              {preview ? (
+                <div className="flex-1 min-w-0 flex items-start gap-2.5 py-2 pl-2">{body}</div>
+              ) : (
+                <button type="button" data-slide-pill={s.n} data-slide-here={here ? 'true' : undefined} aria-current={here ? 'step' : undefined}
+                  onClick={() => { setSeeAll(false); setSlide(s.n); }}
+                  className="flex-1 min-w-0 flex items-start gap-2.5 text-left cursor-pointer py-2 pl-2">
+                  {body}
+                </button>
+              )}
+              {/* the desktop preview shows the whole sentence, so there is nothing left to open */}
+              {(!preview || isPhone) && (
+                <button type="button" onClick={() => setIndexOpen(open ? null : s.n)} aria-expanded={open}
+                  aria-label={`${open ? 'Hide' : 'Show'} what ${s.name} does`}
+                  className="w-11 h-11 shrink-0 flex items-center justify-center text-slate-400 cursor-pointer">
+                  <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+                </button>
+              )}
             </div>
           </li>
         );
       })}
-      <li>
-        <button type="button" onClick={() => setSeeAll(!seeAll)}
-          className={`w-full min-h-11 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${seeAll ? 'bg-slate-800 text-white border-slate-800' : 'bg-surface border-slate-200 text-slate-500'}`}>
-          {seeAll ? 'One at a time' : 'See all seven at once'}
-        </button>
-      </li>
+      {!preview && (
+        <li>
+          <button type="button" onClick={() => setSeeAll(!seeAll)}
+            className={`w-full min-h-11 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${seeAll ? 'bg-slate-800 text-white border-slate-800' : 'bg-surface border-slate-200 text-slate-500'}`}>
+            {seeAll ? 'One at a time' : 'See all seven at once'}
+          </button>
+        </li>
+      )}
     </ol>
   );
 
@@ -11304,9 +11319,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             {!simResult ? (
               <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
                 <div className="flex items-center gap-2 font-bold text-blue-950 text-sm"><Layers className="w-4 h-4 text-blue-600" /> What you will get</div>
-                <Fine isPhone={isPhone} label="The six steps">
-                <p className="leading-relaxed">Six steps. What your plan does as entered, the most you could safely spend instead, the earliest you could stop working, then the same range drawn two ways &mdash; compounded from the return assumptions, and read off {fmtNum(MC_TRIALS)} randomised paths &mdash; and finally the two side by side. Every figure is in today&rsquo;s money.</p>
-                </Fine>
+                {/*
+                  * The deck itself, before it exists. This said "The six steps" over a fold holding a
+                  * paragraph ABOUT the six steps, which is the one thing a contents list should never
+                  * be: you had to open it to find out what was in it, and what you found was prose.
+                  * Same list as the one the deck carries once it has run, with the rows inert because
+                  * there is nothing yet to go to.
+                  */}
+                {slideIndex({ preview: true })}
+                <p className="leading-relaxed text-slate-500 pt-0.5">Each is drawn off the same {fmtNum(MC_TRIALS)} randomised paths, and every figure is in today&rsquo;s money.</p>
               </div>
             ) : (
             <>

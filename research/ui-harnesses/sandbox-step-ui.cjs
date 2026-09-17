@@ -60,6 +60,15 @@ const plan = {
   const pills = await p.evaluate(() => [...document.querySelectorAll('button')].map(b=>b.textContent.trim()).filter(t=>/^[1-9]$/.test(t)));
   ok('the deck has a 7th numbered step', pills.includes('7'), `pills ${[...new Set(pills)].sort().join(',')}`);
 
+  /*
+   * The phone cuts each step's explanation to two lines behind a "What this means…" button. A desktop
+   * column holds the same paragraph in three or four lines and has the room, so the fold must not
+   * follow it here - this is the assertion that keeps the clamp phone-only.
+   */
+  await pill(1); await p.waitForTimeout(500);
+  const folded = await p.evaluate(() => [...document.querySelectorAll('button')].filter(b => /What this means|Show less/.test(b.textContent)).length);
+  ok('the step explanations are not folded on a desktop', folded === 0, `${folded} fold buttons`);
+
   // step 6's Next names it
   await pill(6); await p.waitForTimeout(500);
   const next6 = await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/^Next:/.test(b.textContent.trim())); return x ? x.textContent.trim() : null; });

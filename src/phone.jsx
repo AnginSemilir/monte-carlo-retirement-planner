@@ -345,36 +345,18 @@ export function CollapsedRow({ summary, sub, open, onToggle, onDelete, deleteLab
 const CLAMP = { 2: 'line-clamp-2', 3: 'line-clamp-3', 4: 'line-clamp-4' };
 
 /*
- * TWO SHAPES, BECAUSE THE SPACE DIFFERS.
- *
- * Where there is room - the tournament's own card - the toggle is its own 44px button under the text,
- * which is the discoverable version: it says what opening it gets you.
- *
- * On the projection deck there is no room. Step 7 puts a chart above the sandbox sheet, and the two
- * already meet within nine pixels; a 44px button under the step's sentence spends more height than the
- * clamp saves, which would make the chart disappear behind the sheet to save two lines of prose. So in
- * `tap` mode the paragraph IS the button: the ellipsis says there is more, tapping the words opens it,
- * and it costs nothing. It stays inside a span deliberately - a control that is running text is what
- * WCAG's inline exception is for, and stretching this one to 44px would put back the height the clamp
- * was there to remove.
+ * The markup is spans, not divs, because every one of these paragraphs is a <p>: the clamp has to go on
+ * an element whose children are text, or -webkit-line-clamp has nothing to count, and a <div> inside a
+ * <p> is invalid HTML that the browser silently closes the paragraph around.
  */
-export function Clamp({ isPhone, lines = 2, label = 'Read more', tap = false, children }) {
+export function Clamp({ isPhone, lines = 2, label = 'Read more', children }) {
   const [open, setOpen] = useState(false);
   if (!isPhone) return children;
-  const clamp = open ? '' : (CLAMP[lines] || CLAMP[2]);
-  if (tap) {
-    return (
-      <span className="block">
-        <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open}
-          className={`block w-full text-left cursor-pointer ${clamp}`}>
-          {children}
-        </button>
-      </span>
-    );
-  }
   return (
     <>
-      <div className={clamp}>{children}</div>
+      {/* no `block` alongside the clamp: `line-clamp-*` sets `display:-webkit-box`, and a display
+          utility next to it wins the cascade and quietly turns the clamp off */}
+      <span className={open ? 'block' : (CLAMP[lines] || CLAMP[2])}>{children}</span>
       <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open}
         className="min-h-11 flex items-center text-xs font-bold text-blue-700 cursor-pointer">
         {open ? 'Show less' : label}

@@ -144,12 +144,22 @@ const typeInto = (p, handle, text) => handle.evaluate((el, t) => {
   await p.waitForTimeout(400);
   const cleared = await spField();
   ok('...pressing again clears it, ready for a custom amount', cleared.value === '', `"${cleared.value}"`);
-  // The room for a custom amount is the point of the layout, not just of the clearing.
+  /*
+   * The room for a custom amount is the point of the layout, not just of the clearing. The shortcut now
+   * sits INSIDE the field against its right edge, so the room to type is the field's width less the
+   * chip - measuring the input alone would count the pixels underneath it and pass on nothing.
+   */
   const room = await p.evaluate(() => {
     const btn = document.querySelector('[data-full-state-pension]');
-    return Math.round(btn.parentElement.querySelector('input').getBoundingClientRect().width);
+    const input = btn.parentElement.querySelector('input');
+    const ir = input.getBoundingClientRect(), br = btn.getBoundingClientRect();
+    return { typing: Math.round(ir.width - br.width), overlap: Math.round(ir.right - br.right),
+             pad: Math.round(parseFloat(getComputedStyle(input).paddingRight)), btn: Math.round(br.width) };
   });
-  ok('...with room left to type one', room >= 110, `${room}px of field beside the button`);
+  ok('...with room left to type one', room.typing >= 110, `${room.typing}px of field beside the chip`);
+  // the digits must stop before the chip starts: right padding at least as wide as the chip
+  ok('...and the digits clear the chip', room.pad >= room.btn, `${room.pad}px of padding for a ${room.btn}px chip`);
+  ok('...which sits inside the field, not beside it', Math.abs(room.overlap) <= 1, `chip right edge ${room.overlap}px from the field's`);
 
   ok('no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
   await b.close();

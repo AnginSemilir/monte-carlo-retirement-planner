@@ -377,7 +377,7 @@ const navigate = async (page, label, short) => {
       ok('the first field is on the first screen', first.firstFieldTop !== null && first.firstFieldTop < first.vh, `${first.firstFieldTop} of ${first.vh}`);
       ok('nothing says your figures came with you', !first.carried);
       ok('the sections are six tabs, one showing', first.tabs === 6 && first.sections === 1, `${first.tabs} tabs, ${first.sections} sections`);
-      for (const t of ['You', 'Portfolio', 'Income', 'Deposits', 'Costs', 'Advanced']) {
+      for (const t of ['You', 'Portfolio', 'Income', 'One-off deposits', 'One-off costs', 'Advanced']) {
         await sectionTab(t);
         const m = await p.evaluate(() => ({ h: document.documentElement.scrollHeight, one: document.querySelectorAll('[data-section]').length,
           bigSelects: [...document.querySelectorAll('[data-section] select')].filter(x => x.options.length >= 6).length }));

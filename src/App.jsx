@@ -5963,9 +5963,15 @@ const visibleTabs = () => TABS.filter(t => !t.enabled || t.enabled());
 const INPUT_SECTIONS = [
   { id: 'you',      short: 'You',      title: 'Demographics, salaries & retirement targets' },
   { id: 'money',    short: 'Portfolio', title: 'Current balances, annual contributions & risk profiles' },
+  /*
+   * The two one-off sections say so in their labels. On a desktop the numbered heading carries that -
+   * "4. One-off deposits (by wrapper)" - and on a phone that heading is the tab, so a bare "Deposits"
+   * sat next to "Income" with nothing to tell you which was the recurring one. Income keeps its name
+   * because it is NOT one-off: those are streams with a start and an end age.
+   */
   { id: 'income',   short: 'Income',   title: 'Expected other income streams' },
-  { id: 'deposits', short: 'Deposits', title: 'One-off deposits' },
-  { id: 'costs',    short: 'Costs',    title: 'One-off capital costs' },
+  { id: 'deposits', short: 'One-off deposits', title: 'One-off deposits' },
+  { id: 'costs',    short: 'One-off costs',    title: 'One-off capital costs' },
   { id: 'advanced', short: 'Advanced', title: 'Advanced inputs' },
 ];
 const INPUT_SECTION_KEY = 'rp_input_section';

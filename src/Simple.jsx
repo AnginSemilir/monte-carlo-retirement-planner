@@ -160,7 +160,13 @@ const loadScenarios = () => {
 export default function Simple({ isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 } }) {
   const [s, setS] = useState(load);
   const [view, setView] = useState('rate');      // 'rate' (CAGR) | 'mc' - the advanced deck's two charts
-  const [bandMode, setBandMode] = useState('quartile');
+  /*
+   * 'expected' by default: no band, and an axis that follows the line. A good upper quartile compounded
+   * over forty years ends several times the median, so with the band on the axis is set by an edge the
+   * plan may never see and the £1,000 change somebody just dialled moves the line by a pixel. The range
+   * is one tap away for the question it answers, which is how wide, not which way.
+   */
+  const [bandMode, setBandMode] = useState('expected');
   const [showWrappers, setShowWrappers] = useState(() => Object.fromEntries(WRAPPERS.map(w => [w.key, true])));
   const [chartFull, setChartFull] = useState(false);
   const [overlayBox, setOverlayBox] = useState(null);
@@ -224,7 +230,8 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    * typing. Both are drawn on ONE scale, which is what makes flipping between them a comparison rather
    * than two unrelated pictures.
    */
-  const band = BAND_QUANTILES[bandMode] || BAND_QUANTILES.quartile;
+  const band = BAND_QUANTILES[bandMode] || BAND_QUANTILES.expected;
+  const hasBand = !!band.z;
   /*
    * The expected year-by-year path of the CHOSEN plan. It backs the two pot-at-a-date cards and the CSV,
    * so both quote the same rows the chart is drawn from rather than a second opinion.
@@ -382,6 +389,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
     const fan = res?.mc?.bands;
     const useFan = view === 'mc' && fan && fan.length;
     const age0 = expected.mid[0]?.ageSelf ?? 0;
+    const banded = !!(BAND_QUANTILES[bandMode] || {}).z;
     const loKey = bandMode === 'decile' ? 'p10' : 'p25', hiKey = bandMode === 'decile' ? 'p90' : 'p75';
     const series = useFan
       ? fan.map(b => ({ age: age0 + b.t, lo: b[loKey], mid: b.p50, hi: b[hiKey] }))
@@ -407,24 +415,29 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
      * headroom, the band runs off the top where it must, and the caption says by how much rather than
      * letting the clip pass unremarked.
      */
-    const yMax = Math.max(1, Math.min(edgeTop, medTop * 2.5)) * 1.06;
-    const clippedTo = edgeTop > yMax ? edgeTop : null;
+    // With no band on screen there is no edge to clip against: the axis is the median's, which is the
+    // whole point of the mode - a change of a thousand pounds moves the line visibly instead of a pixel.
+    const yMax = (banded ? Math.max(1, Math.min(edgeTop, medTop * 2.5)) : Math.max(1, medTop)) * 1.06;
+    const clippedTo = banded && edgeTop > yMax ? edgeTop : null;
     /*
      * On a phone the viewBox width is the screen width, so SVG text renders 1:1 rather than being
      * shrunk by the ratio between a 720-wide box and a ~330px column. 0.62 of the width keeps the chart
      * and the dials beneath it on one screen; the fullscreen overlay hands its own measured box in.
      */
     const W = overlayBox ? overlayBox.w : isPhone ? viewport.width : 720;
-    // 0.48, not 0.62: the chart tab also holds four dials, three figures and two toggles, and all of it
-    // has to land inside one 664px screen. Expand is still a tap away when the shape needs studying.
-    const H = overlayBox ? overlayBox.h : isPhone ? Math.min(Math.round(W * 0.55), 230) : 300;
+    // 0.5, not 0.62: the chart tab also holds four dials, three figures and a row of toggles that wraps
+    // to two now there are three band modes, and all of it has to land inside one 664px screen. Expand
+    // is still a tap away when the shape needs studying.
+    const H = overlayBox ? overlayBox.h : isPhone ? Math.min(Math.round(W * 0.5), 210) : 300;
     const L = isPhone && !overlayBox ? 38 : 44, R = 16, T = 14, B = 30;
     const iw = W - L - R, ih = H - T - B;
     const a0 = series[0].age, a1 = series[series.length - 1].age;
     const x = (a) => L + (a1 === a0 ? 0 : ((a - a0) / (a1 - a0)) * iw);
     const y = (v) => T + ih - (Math.max(0, Math.min(yMax, v)) / yMax) * ih;
-    const area = series.map(p => `${x(p.age).toFixed(1)},${y(p.hi).toFixed(1)}`).join(' ') + ' ' +
-      [...series].reverse().map(p => `${x(p.age).toFixed(1)},${y(p.lo).toFixed(1)}`).join(' ');
+    const area = banded
+      ? series.map(p => `${x(p.age).toFixed(1)},${y(p.hi).toFixed(1)}`).join(' ') + ' ' +
+        [...series].reverse().map(p => `${x(p.age).toFixed(1)},${y(p.lo).toFixed(1)}`).join(' ')
+      : null;
     const line = series.map((p, i) => `${i ? 'L' : 'M'}${x(p.age).toFixed(1)},${y(p.mid).toFixed(1)}`).join(' ');
     const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => f * yMax);
     const every = Math.max(1, Math.ceil(series.length / 8));
@@ -437,7 +450,9 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
      * staying there. That second thing is the whole argument for simulating at all, and a smooth shaded
      * region quietly hides it.
      */
-    const paths = (useFan && res?.mc?.samplePaths ? res.mc.samplePaths : []).slice(0, 40).map(pth => {
+    // The forty runs are the spread drawn another way, so they come off with the band - and on an axis
+    // sized for the median most of them would be off the top of it anyway.
+    const paths = (banded && useFan && res?.mc?.samplePaths ? res.mc.samplePaths : []).slice(0, 40).map(pth => {
       const pts = Array.isArray(pth) ? pth : Object.values(pth);
       return pts.map((v, i) => `${i ? 'L' : 'M'}${x(age0 + i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
     });
@@ -452,7 +467,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
       const rows = (timeline || []).filter(r => r.ageSelf >= a0 && r.ageSelf <= a1);
       if (rows.length > 1) wrappers[w.key] = rows.map((r, i) => `${i ? 'L' : 'M'}${x(r.ageSelf).toFixed(1)},${y(r[w.key] || 0).toFixed(1)}`).join(' ');
     }
-    return { W, H, L, R, T, B, ih, x, y, area, line, ticks, ageTicks, useFan, a0, a1, clippedTo, paths, wrappers };
+    return { W, H, L, R, T, B, ih, x, y, area, line, ticks, ageTicks, useFan, a0, a1, clippedTo, paths, wrappers, banded };
   }, [expected, res, view, bandMode, timeline, isPhone, viewport.width, overlayBox]);
 
   /*
@@ -514,7 +529,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                   <text x={chart.L - 7} y={chart.y(v) + 3} textAnchor="end" fontSize="9" fill="rgb(var(--slate-500))" style={{ fontVariantNumeric: 'tabular-nums' }}>{GBP_SHORT(v)}</text>
                 </g>
               ))}
-              <polygon points={chart.area} fill={chart.useFan ? 'rgb(var(--indigo-600))' : 'rgb(var(--blue-600))'} opacity="0.16" />
+              {chart.area && <polygon points={chart.area} fill={chart.useFan ? 'rgb(var(--indigo-600))' : 'rgb(var(--blue-600))'} opacity="0.16" />}
               {chart.paths.map((d, i) => (
                 <path key={i} d={d} fill="none" stroke="rgb(var(--indigo-600))" strokeWidth="0.7" pathLength="1"
                   opacity={busy ? 0.5 : 0.28}
@@ -555,7 +570,8 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
           under the short ones, and a row each for two toggles is 90px of the screen the chart wants. */}
       <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-lg w-fit">
         {Object.entries(BAND_QUANTILES).map(([k, v]) => (
-          <button key={k} type="button" onClick={() => setBandMode(k)} title={`Draw both charts at the ${v.lowPct} and ${v.highPct}`}
+          <button key={k} type="button" onClick={() => setBandMode(k)}
+            title={v.z ? `Draw both charts at the ${v.lowPct} and ${v.highPct}` : 'Draw the middle line only, on an axis that follows it'}
             className={`${isPhone ? 'px-2.5 min-h-11' : 'px-2.5 py-0.5'} rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>{isPhone ? (v.label || k) : v.button}</button>
         ))}
       </div>
@@ -585,9 +601,13 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
     )}
     <Fine isPhone={isPhone} label="What the band shows">
     <p className="text-[11px] text-slate-500 leading-relaxed">
-      {chart.useFan
-        ? <>The shaded band is the {band.lowPct} to {band.highPct} of {LIVE_TRIALS.toLocaleString()} simulated futures, and a path that runs out stays at zero &mdash; so the bottom edge is honest about failure.</>
-        : <>The shaded band is the {band.lowPct} to {band.highPct}, each edge compounded at that age&rsquo;s own rate. <strong className="text-slate-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with drawdown could take a higher-risk portfolio to £0. See the Monte Carlo simulation for a better predictor of how robust your plan is.</>}
+      {!hasBand
+        ? (chart.useFan
+          ? <>One line: the middle of {LIVE_TRIALS.toLocaleString()} simulated futures, on an axis that follows it &mdash; so a change you make moves it visibly. Switch a band on above to see the spread it came from.</>
+          : <>One line: the expected path, compounded at each age&rsquo;s own rate, on an axis that follows it &mdash; so a change you make moves it visibly. Switch a band on above to see the range around it.</>)
+        : chart.useFan
+          ? <>The shaded band is the {band.lowPct} to {band.highPct} of {LIVE_TRIALS.toLocaleString()} simulated futures, and a path that runs out stays at zero &mdash; so the bottom edge is honest about failure.</>
+          : <>The shaded band is the {band.lowPct} to {band.highPct}, each edge compounded at that age&rsquo;s own rate. <strong className="text-slate-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with drawdown could take a higher-risk portfolio to £0. See the Monte Carlo simulation for a better predictor of how robust your plan is.</>}
       {' '}Both views share one scale, so switching compares rather than rescales.
       {chart.clippedTo && <> The top of the band runs off the chart, reaching {GBP(chart.clippedTo)} at its highest &mdash; the axis follows the middle line so it stays readable.</>}
     </p>

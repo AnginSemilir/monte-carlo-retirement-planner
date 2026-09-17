@@ -185,7 +185,9 @@ export function SheetPanel({ mode, onMode, summary, quick, full, onHeight }) {
         aria-expanded={mode !== 'collapsed'} aria-label={mode === 'collapsed' ? 'Open the sandbox controls' : 'Close the sandbox controls'}
         className="w-full min-h-11 flex flex-col items-center justify-center gap-1 cursor-pointer shrink-0 touch-none">
         <span className="h-1 w-10 rounded-full bg-slate-300" />
-        {mode === 'collapsed' && <span className="text-[11px] text-slate-600 px-3 truncate max-w-full">{summary}</span>}
+        {/* `summary` may be a node, not a string: the sandbox puts a spinner in it, and truncate on the
+            wrapper would clip that off rather than the text. The node does its own truncating. */}
+        {mode === 'collapsed' && <span className="text-[11px] text-slate-600 px-3 min-w-0 max-w-full">{summary}</span>}
       </button>
       {/*
         * 28dvh, not 45. The sheet exists so the chart stays visible while you adjust, and on a 664px

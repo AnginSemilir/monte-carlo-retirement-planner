@@ -19,7 +19,7 @@ import {
   TrendingUp, Layers, Check, RotateCcw, Dices, Zap, ShieldCheck, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
   Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, ChevronUp, ChevronDown, Home, Gift,
-  GripVertical, Maximize2
+  GripVertical, Maximize2, Loader2
 } from 'lucide-react';
 import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
@@ -243,7 +243,16 @@ const Z90 = 1.2815515655446004;
 // to be drawn here rather than at Z90.
 const Z75 = 0.6744897501960817;
 // the bands the UI will draw, each with the share of outcomes it claims to sit outside
+/*
+ * `expected` carries no z, and that is the whole of it: no band is drawn, and the axis is then free to
+ * follow the line. It is the default because of what the other two do to a small change. A good upper
+ * quartile compounded over forty years ends several times the median, so the axis is set by an edge the
+ * plan may never see - and a £2,000 change in spending, which is the thing somebody came to test, moves
+ * the line by a pixel or two inside it. With the band off the same change is plainly visible, and the
+ * range is one tap away for when the question is how wide it is rather than which way it moved.
+ */
 const BAND_QUANTILES = {
+  expected: { z: null, button: 'Expected only', short: 'Expected only', label: 'Expected', lowPct: null, highPct: null },
   quartile: { z: Z75, button: 'Upper/lower quartiles', short: 'Upper/lower quartiles', label: '1 in 4', lowPct: '25th', highPct: '75th' },
   decile: { z: Z90, button: '10th/90th percentiles', short: '10th/90th percentiles', label: '1 in 10', lowPct: '10th', highPct: '90th' }
 };
@@ -7760,10 +7769,11 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    */
   // One control for both charts. They exist to be read against each other, so letting them sit on
   // different percentiles would make the only comparison that matters impossible to trust.
-  const [bandMode, setBandMode] = useState('quartile');   // 'quartile' | 'decile'
+  const [bandMode, setBandMode] = useState('expected');   // 'expected' | 'quartile' | 'decile'
   // The Monte Carlo step exists to show its range, so there is nothing to switch off there.
   const showFan = true;
-  const bandSpec = BAND_QUANTILES[bandMode] || null;
+  // null in `expected`: no band to draw, and nothing lifting the axis away from the line.
+  const bandSpec = BAND_QUANTILES[bandMode]?.z ? BAND_QUANTILES[bandMode] : null;
   // Both quantile pairs, so the outer toggle costs nothing at the moment it is pressed. Four
   // deterministic sweeps, about 38ms on a 45-year plan, recomputed only when the plan itself changes.
   const rateCurves = useMemo(() => {
@@ -7902,11 +7912,16 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     compareRuns.forEach(r => { if (r.rows) r.rows.forEach(d => { if (d.ageSelf <= effectiveMaxVisibleAge && d.totalCombined > max) max = d.totalCombined; }); });
     // and so must the lucky edge, which by construction sits above everything else on the chart
     if (bandData) bandData.forEach(d => { if (d.hi > max) max = d.hi; });
-    // The simulated fan reaches highest of all - its 90th percentile is a genuine tail, not a smooth
-    // curve - so it sets the ceiling for everything else on the chart.
-    if (fanVisible) fanVisible.forEach(d => { if (d.p90 > max) max = d.p90; });
+    /*
+     * The simulated fan reaches highest of all, so it sets the ceiling - but only up to the percentile
+     * being drawn. It used to be the 90th whatever the toggle said, which scaled the quartile view by a
+     * band it was not showing and left the whole picture a third shorter than it needed to be. In
+     * `expected` nothing but the median line is on screen, so the median sets it.
+     */
+    const fanKey = !bandSpec ? 'p50' : bandMode === 'decile' ? 'p90' : 'p75';
+    if (fanVisible) fanVisible.forEach(d => { if (d[fanKey] > max) max = d[fanKey]; });
     return Math.max(max * 1.08, 100000);
-  }, [visibleData, activeSeries, isSandboxModified, sandboxTimeline, compareRuns, effectiveMaxVisibleAge, bandData, fanVisible]);
+  }, [visibleData, activeSeries, isSandboxModified, sandboxTimeline, compareRuns, effectiveMaxVisibleAge, bandData, fanVisible, bandSpec, bandMode]);
   const yScale = useMemo(() => d3.scaleLinear().domain([0, maxY]).range([innerHeight, 0]).nice(), [maxY, innerHeight]);
   const pathGenerators = useMemo(() => {
     const paths = {};
@@ -7965,7 +7980,9 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    */
   const mcSpaghetti = useMemo(() => {
     const sample = simResult?.samplePaths;
-    if (!showFan || !sample || !sample.length) return null;
+    // No band, no spaghetti: sixty paths are the spread drawn another way, and they would run off an
+    // axis sized for the median anyway.
+    if (!showFan || !bandSpec || !sample || !sample.length) return null;
     const age0 = currentAge;
     const anchor = fanData[0] ? fanData[0].p50 : null;
     const gen = d3.line().x(d => xScale(d.a)).y((d, i) => yScale(Math.max(0, i === 0 && anchor !== null ? anchor : d.v))).curve(d3.curveMonotoneX);
@@ -7974,7 +7991,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
       for (let t = 0; t < pth.length; t++) { const a = age0 + t; if (a > effectiveMaxVisibleAge) break; rows.push({ a, v: pth[t] }); }
       return rows.length > 1 ? { id: i, d: gen(rows) } : null;
     }).filter(Boolean);
-  }, [simResult, showFan, currentAge, effectiveMaxVisibleAge, xScale, yScale, fanData]);
+  }, [simResult, showFan, bandSpec, currentAge, effectiveMaxVisibleAge, xScale, yScale, fanData]);
 
   const fanPaths = useMemo(() => {
     if (!fanVisible || fanVisible.length < 2) return null;
@@ -7983,13 +8000,16 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     const rows = fanVisible;
     const x = (d) => xScale(d.ageSelf);
     const line = (key) => d3.line().x(x).y(pinchY(rows, key, 'p50')).curve(d3.curveMonotoneX)(rows);
+    // In `expected` the simulation still runs and still reports its survival rate; what changes is that
+    // the chart shows the middle of it rather than the spread, on an axis sized for the middle.
+    if (!bandSpec) return { band: null, median: line('p50'), edgeLo: null, edgeHi: null };
     // the same percentiles the rate-based chart is showing, so the two can be laid over each other
     const lo = bandMode === 'decile' ? 'p10' : 'p25', hi = bandMode === 'decile' ? 'p90' : 'p75';
     return {
       band: d3.area().x(x).y0(pinchY(rows, lo, 'p50')).y1(pinchY(rows, hi, 'p50')).curve(d3.curveMonotoneX)(rows),
       median: line('p50'), edgeLo: line(lo), edgeHi: line(hi)
     };
-  }, [fanVisible, xScale, yScale, bandMode]);
+  }, [fanVisible, xScale, yScale, bandMode, bandSpec]);
   // The first age at which a tenth of the paths are broke. Worth naming: it is the most actionable thing
   // on the chart, and a smooth deterministic line could never have produced it. Read off the whole fan,
   // not the visible slice, so dragging the horizon slider cannot change the answer.
@@ -9182,8 +9202,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    */
   const bandToggle = (
     <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 px-1 py-1 rounded-lg text-xs">
-      {['quartile', 'decile'].map(k => (
-        <button key={k} type="button" onClick={() => setBandMode(k)} title={`Draw both charts at the ${BAND_QUANTILES[k].lowPct} and ${BAND_QUANTILES[k].highPct} percentile`}
+      {Object.keys(BAND_QUANTILES).map(k => (
+        <button key={k} type="button" onClick={() => setBandMode(k)}
+          title={BAND_QUANTILES[k].z ? `Draw both charts at the ${BAND_QUANTILES[k].lowPct} and ${BAND_QUANTILES[k].highPct} percentile` : 'Draw the middle line only, on an axis that follows it'}
           className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>{BAND_QUANTILES[k].button}</button>
       ))}
     </div>
@@ -9437,9 +9458,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               )}
               {!isRate && fanPaths && (
                 <g key={`band-${mcPlayKey}`} className={animate ? 'mc-band' : undefined}>
-                  <path d={fanPaths.band} fill={band} stroke="none" />
-                  <path d={fanPaths.edgeLo} fill="none" stroke={edge} strokeWidth="1.5" />
-                  <path d={fanPaths.edgeHi} fill="none" stroke={edge} strokeWidth="1.5" />
+                  {fanPaths.band && <path d={fanPaths.band} fill={band} stroke="none" />}
+                  {fanPaths.edgeLo && <path d={fanPaths.edgeLo} fill="none" stroke={edge} strokeWidth="1.5" />}
+                  {fanPaths.edgeHi && <path d={fanPaths.edgeHi} fill="none" stroke={edge} strokeWidth="1.5" />}
                   <path d={fanPaths.median} fill="none" stroke={cp.fanMedian} strokeWidth="2.5" strokeLinecap="round" />
                 </g>
               )}
@@ -9561,14 +9582,21 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   };
 
   // one line for the collapsed sheet: enough to know whether anything is changed without opening it
+  /*
+   * Returned as a node rather than a string so the wheel can ride in it: on a phone this single line is
+   * the whole of the sandbox while the sheet is collapsed over the chart, so it is the only place a run
+   * in flight can be seen from.
+   */
   const sandboxSummary = () => {
-    if (!isSandboxModified) return 'Sandbox — nothing changed yet';
+    const spinner = mcBusy ? <Loader2 className="w-3 h-3 animate-spin shrink-0 text-blue-600" /> : null;
+    const wrap = (text) => <span className="inline-flex items-center gap-1.5 min-w-0"><span className="truncate">{text}</span>{spinner}</span>;
+    if (!isSandboxModified) return wrap('Sandbox — nothing changed yet');
     const bits = [];
     ctx.owners.forEach(o => { const b = sandboxRetireFromPlan(plan)[o.key]; if (sandboxRetire[o.key] !== b) bits.push(`retire ${sandboxRetire[o.key]}`); });
     const extra = (plan?.accounts || []).reduce((t, a) => t + (E.num((sandboxAccounts[a.id] || {}).contrib, 0) - E.num(a.contrib, 0)), 0);
     if (extra) bits.push(`${extra > 0 ? '+' : ''}${formatGBP(extra)}/yr`);
     if (sandboxMetrics) bits.push(`${sandboxMetrics.terminalDelta >= 0 ? '+' : ''}${formatGBP(sandboxMetrics.terminalDelta)} @ ${terminalAge}`);
-    return `Sandbox · ${bits.join(' · ')}`;
+    return wrap(`Sandbox · ${bits.join(' · ')}`);
   };
 
   const renderSandboxPanel = () => {
@@ -11143,9 +11171,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {mcBusy && (
                     <button type="button" onClick={handleCancelMC} className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">Stop</button>
                   )}
+                  {/* A word changing from "Run" to "Testing…" is a state change you have to read. A
+                      turning wheel is one you see, which is what somebody who has just pressed a button
+                      and is waiting for a chart actually needs. */}
                   <button onClick={handleRunAll} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
-                    <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                    {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />}
                     {isSimulating && !isOptimizing ? 'Testing…' : isOptimizing ? 'Solving…' : tournament.isEvaluating ? 'Comparing…' : 'Run the projection'}
                   </button>
                 </div>
@@ -11320,7 +11351,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                   {renderProjectionChart('rate')}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
-                    <strong className="text-slate-700">The band is the {bandSpec.lowPct} to {bandSpec.highPct} percentile, each edge compounded at that age&rsquo;s own rate.</strong>
+                    <strong className="text-slate-700">{bandSpec
+                      ? `The band is the ${bandSpec.lowPct} to ${bandSpec.highPct} percentile, each edge compounded at that age\u2019s own rate.`
+                      : 'One line: the expected path, compounded at each age\u2019s own rate, on an axis that follows it. Switch the band on above to see the range around it.'}</strong>
                     {' '}<strong className="text-rose-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with <T k="drawdown">drawdown</T> could take a higher-risk portfolio to £0. See the <T k="Monte Carlo">Monte Carlo</T> simulation for a better predictor of how robust your plan is.
                     {bandCurves && bandCurves.lo.failAge !== null && <> <strong className="text-rose-700">Below age {bandCurves.lo.failAge} the bottom edge is broken, not low.</strong></>}
                   </p>
@@ -11339,7 +11372,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {renderProjectionChart('mc', { animate: true })}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
                     <strong className="text-emerald-700">Each path applies your withdrawals to one particular order of returns, and stops at £0 if the money is exhausted.</strong> A run of poor years early in drawdown forces selling at depressed prices and permanently reduces the capital left to recover, which is why the lower quartile here sits below the rate-based equivalent.
-                    {' '}The band is the same {bandSpec.lowPct} to {bandSpec.highPct} percentile, so the two charts can be read against each other directly.
+                    {bandSpec
+                      ? <> The band is the same {bandSpec.lowPct} to {bandSpec.highPct} percentile, so the two charts can be read against each other directly.</>
+                      : <> The line is the median of those runs, on the same axis as the last screen; switch the band on above to see the spread it came from.</>}
                     {fanRuinAge !== null
                       ? <> <strong className="text-rose-700">A tenth are broke by {fanRuinAge}.</strong></>
                       : <> Fewer than one in ten are broke by {terminalAge}.</>}
@@ -11510,7 +11545,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {fmtNum(simResult.trials)} randomised futures and refresh every step, run it again.</span>
                   <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
-                    <RotateCcw className="w-3.5 h-3.5" /> {mcBusy ? 'Running…' : 'Rerun projections'}
+                    {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Running…' : 'Rerun projections'}
                   </button>
                 </div>
               </div>

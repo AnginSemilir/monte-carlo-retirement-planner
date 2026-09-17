@@ -65,6 +65,17 @@ const plan = {
   const next6 = await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/^Next:/.test(b.textContent.trim())); return x ? x.textContent.trim() : null; });
   ok('step 6 offers Next: Change something', /Change something/.test(next6 || ''), String(next6));
 
+  /*
+   * The band toggle opens on "Expected only" now - one line, on an axis that follows it, because that is
+   * what makes a change to the plan visible. This harness measures the band's span to prove step 7
+   * arrives finished rather than mid-reveal, so it asks for a band first. The toggle lives on the two
+   * chart steps, so the ask happens there and step 7 inherits it: one control for the whole deck.
+   */
+  await pill(5); await p.waitForTimeout(600);
+  const asked = await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Upper/lower quartiles'); if (x) { x.click(); return true; } return false; });
+  ok('a band can be asked for from the chart step', asked);
+  await p.waitForTimeout(600);
+
   // 2. one click from the pills, and the chart is there and FINISHED
   const reached = await pill(7);
   await p.waitForTimeout(1800);

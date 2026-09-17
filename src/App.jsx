@@ -9563,7 +9563,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           {displayedAccounts.map(acc => {
             const sb = sandboxAccounts[acc.id] || {};
             const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
-            return dial(`${label}: a year`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
+            return dial(`${label}: annual contribution`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
           })}
         </div>
         <div className={`flex items-center gap-2 pt-2 ${inSheet ? '' : 'justify-end'}`}>
@@ -9680,7 +9680,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       )}
       <div className="overflow-x-auto border border-slate-200 rounded-lg">
         <table className="w-full text-left text-xs border-collapse">
-          <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans"><tr><th className="p-3">Portfolio wrapper</th>{isCouple && <th className="p-3">Owner</th>}<th className="p-3">Balance today (£)</th><th className="p-3">Annual contribution (£)</th><th className="p-3">Quick adjust</th><th className="p-3">Escalation (% / yr)</th><th className="p-3 text-right">Status</th></tr></thead>
+          <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans"><tr><th className="p-3">Portfolio wrapper</th>{isCouple && <th className="p-3">Owner</th>}<th className="p-3">Balance today (£)</th><th className="p-3">Annual contribution (£)</th><th className="p-3">Quick adjust</th><th className="p-3">Percentage increase (% / yr)</th><th className="p-3 text-right">Status</th></tr></thead>
           <tbody className="divide-y divide-slate-100 font-mono">
             {displayedAccounts.map(acc => {
               const sb = sandboxAccounts[acc.id] || { contrib: acc.contrib, growth: acc.growth, balance: acc.balance };
@@ -10322,12 +10322,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <FieldRow label="Balance today">
                           <MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={acc.balance} onChange={(e) => updateAccountField(acc.id, 'balance', e.target.value)} className={`${inputCls} text-right`} />
                         </FieldRow>
-                        <FieldRow label="Paid in a year" hint={over ? 'This is above the annual allowance set in Config.' : 'Pension contributions are gross, including tax relief and employer amounts. ISA, GIA and cash are net. Contributions stop at retirement.'}>
+                        <FieldRow label="Annual contribution" hint={over ? 'This is above the annual allowance set in Config.' : 'Pension contributions are gross, including tax relief and employer amounts. ISA, GIA and cash are net. Contributions stop at retirement.'}>
                           <MoneyInput min="0" step="250" placeholder="0" onFocus={handleFocus} value={acc.contrib}
                             onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }}
                             className={`${inputCls} text-right ${over ? 'border-rose-400 text-rose-700' : ''}`} />
                         </FieldRow>
-                        <FieldRow label="Contribution growth" hint="How much the yearly contribution rises each year, in real terms.">
+                        <FieldRow label="Percentage increase" hint="How much the annual contribution rises each year, in real terms.">
                           <input type="number" step="0.5" placeholder="0" onFocus={handleFocus} value={acc.growth} onChange={(e) => updateAccountField(acc.id, 'growth', e.target.value)} className={`${inputCls} text-right`} />
                           <span className="text-xs text-slate-500 shrink-0">%</span>
                         </FieldRow>
@@ -10342,7 +10342,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500 font-semibold">
-                    <th className="pb-2">Account wrapper</th>{isCouple && <th className="pb-2">Owner</th>}<th className="pb-2">Balance today (£)</th><th className="pb-2">Annual contribution (£)</th><th className="pb-2">Contrib growth (%/yr)</th><th className="pb-2">Asset allocation (<T k="volatility">risk tier</T>)</th>
+                    <th className="pb-2">Account wrapper</th>{isCouple && <th className="pb-2">Owner</th>}<th className="pb-2">Balance today (£)</th><th className="pb-2">Annual contribution (£)</th><th className="pb-2">Percentage increase (%/yr)</th><th className="pb-2">Asset allocation (<T k="volatility">risk tier</T>)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono">
@@ -12485,7 +12485,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
                 {/* the two reasons the two columns differ, said before anyone has to work them out */}
                 <span className="text-[10px] text-slate-400 block">
-                  The middle column is what you hold now. The right-hand one is the projection at your chosen death age &mdash; wrappers grow at the real return of their risk tier ({Object.entries(activeRiskMatrix).slice(0, 2).map(([k, v]) => `${k} ${E.num(v.real, 0).toFixed(2)}%`).join(', ')}, set in Config) net of anything you draw, all in today&rsquo;s money. The <strong>Contrib growth</strong> column on Plan Inputs is how fast your contributions rise, not the return, so a figure typed there does not change these. The balances are yours to change here without touching the rest of the app.{estateBreakdown.splitAcross ? ' Where two accounts share a wrapper the projection only knows the wrapper total, so it is divided between them in proportion to what they hold today.' : ''}
+                  The middle column is what you hold now. The right-hand one is the projection at your chosen death age &mdash; wrappers grow at the real return of their risk tier ({Object.entries(activeRiskMatrix).slice(0, 2).map(([k, v]) => `${k} ${E.num(v.real, 0).toFixed(2)}%`).join(', ')}, set in Config) net of anything you draw, all in today&rsquo;s money. The <strong>Percentage increase</strong> column on Plan Inputs is how fast your contributions rise, not the return, so a figure typed there does not change these. The balances are yours to change here without touching the rest of the app.{estateBreakdown.splitAcross ? ' Where two accounts share a wrapper the projection only knows the wrapper total, so it is divided between them in proportion to what they hold today.' : ''}
                   {estateBreakdown.homeNow > 0 && ' Your home and any other assets are held flat in real terms, because a value typed in today\u2019s money already means "what it is worth now".'}
                 </span>
                 {estateBreakdown.excludedPension > 0 && (

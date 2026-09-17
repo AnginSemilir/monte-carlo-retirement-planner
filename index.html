@@ -398,6 +398,13 @@
       .fill-viewport { height: 100vh; height: 100dvh; }
       @media (max-width: 767px) { .bleed { margin-left: -2.25rem; margin-right: -2.25rem; } }
       @media (min-width: 1536px) { .wide-chart { margin-left: -6rem; margin-right: -6rem; } }
+      /*
+       * .swipe-x - the container whose content can be swiped between sections or steps. pan-y keeps
+       *   vertical scrolling native and hands horizontal movement to the pointer listeners in swipe.js;
+       *   without it, Chrome on Android claims the horizontal gesture first and the swipe never fires.
+       *   Never `none`, which would take vertical scrolling with it.
+       */
+      .swipe-x { touch-action: pan-y; }
       .touch-ui button, .touch-ui a, .touch-ui input, .touch-ui select, .touch-ui summary { touch-action: manipulation; }
       /*
        * One rule instead of sixty className edits: under a finger, every control that occupies its own

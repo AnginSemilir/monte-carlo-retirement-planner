@@ -25,6 +25,8 @@ import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
 import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel } from './phone.jsx';
 import { MoneyInput } from './numberFormat.jsx';
+import { SectionTabs } from './tabs.jsx';
+import { useSwipe } from './swipe.js';
 import EditMode from './EditMode.jsx';
 // ============================================================================================
 // Monte-Carlo Retirement Planner v3.4 — single-file build (engine + UI).
@@ -5950,6 +5952,23 @@ const visibleTabs = () => TABS.filter(t => !t.enabled || t.enabled());
  * type, where you read the answer, and where you compare. Everything else is reference material and sits
  * one tap further away behind More - reachable, just not competing for the four best positions.
  */
+/*
+ * THE PLAN INPUTS TAB, AS SECTIONS A PHONE SHOWS ONE AT A TIME.
+ *
+ * Parallel, not sequential - nothing in Income depends on having finished You - which is what makes
+ * them tabs rather than steps. On a desktop all five (and the advanced fold) render stacked as before;
+ * `showSection` is what gates them on a phone. The short names are the tab labels and are all a 390px
+ * screen has room for; the long titles stay on the desktop headings.
+ */
+const INPUT_SECTIONS = [
+  { id: 'you',      short: 'You',      title: 'Demographics, salaries & retirement targets' },
+  { id: 'money',    short: 'Money',    title: 'Current balances, annual contributions & risk profiles' },
+  { id: 'income',   short: 'Income',   title: 'Expected other income streams' },
+  { id: 'deposits', short: 'Deposits', title: 'One-off deposits' },
+  { id: 'costs',    short: 'Costs',    title: 'One-off capital costs' },
+  { id: 'advanced', short: 'Advanced', title: 'Advanced inputs' },
+];
+const INPUT_SECTION_KEY = 'rp_input_section';
 const PHONE_PRIMARY = ['home', 'inputs', 'projection', 'strategy'];
 const MC_TRIALS = 5000;
 /*
@@ -7335,6 +7354,28 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const [policyProgress, setPolicyProgress] = useState(null);
   const [isPolicySearching, setIsPolicySearching] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  /*
+   * Which section the phone is showing. sessionStorage rather than state alone, so leaving for the
+   * Projection tab and coming back lands on the section you were editing, and rather than localStorage
+   * so a fresh visit starts at You. `showSection` is true for everything on a desktop.
+   */
+  const [inputSection, setInputSection] = useState(() => {
+    try { const v = sessionStorage.getItem(INPUT_SECTION_KEY); return INPUT_SECTIONS.some(x => x.id === v) ? v : 'you'; }
+    catch { return 'you'; }
+  });
+  const selectSection = (id) => {
+    setInputSection(id);
+    try { sessionStorage.setItem(INPUT_SECTION_KEY, id); } catch { /* private mode */ }
+    window.scrollTo({ top: 0 });
+  };
+  const showSection = (id) => !isPhone || inputSection === id;
+  const stepSection = (by) => {
+    const i = INPUT_SECTIONS.findIndex(x => x.id === inputSection);
+    const j = Math.min(INPUT_SECTIONS.length - 1, Math.max(0, i + by));
+    if (j !== i) selectSection(INPUT_SECTIONS[j].id);
+  };
+  const inputsSwipeRef = useRef(null);
+  useSwipe(inputsSwipeRef, { enabled: isPhone && activeTab === 'inputs', onLeft: () => stepSection(1), onRight: () => stepSection(-1) });
   const [showAdvancedConfig, setShowAdvancedConfig] = useState(false);
   const [expandedOneOff, setExpandedOneOff] = useState(() => new Set());
   const toggleOneOffExpand = (id) => setExpandedOneOff(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
@@ -8358,6 +8399,12 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const handleSaveScenario = () => {
     setScenarios(prev => prev.map(s => s.id === activeScenarioId ? { ...s, name: scenarioNameInput.trim() !== '' ? scenarioNameInput.trim() : s.name, data: clone(plan) } : s));
     setScenarioNameInput(''); flash('Scenario saved');
+  };
+  // Phone only: which save the name field under the scenario row is for, or null when it is closed.
+  const [scenarioNaming, setScenarioNaming] = useState(null);
+  const commitScenario = () => {
+    if (scenarioNaming === 'new') handleSaveAsNewScenario(); else handleSaveScenario();
+    setScenarioNaming(null);
   };
   const handleSaveAsNewScenario = () => {
     const trimmed = scenarioNameInput.trim();
@@ -9611,29 +9658,125 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   };
 
 
+  /*
+   * The advanced inputs, rendered in two homes. On a desktop they are the fold at the foot of the first
+   * section, as they always were. On a phone they are their own section tab - the fold's button is not
+   * shown, and the contents are simply there.
+   */
+  const renderAdvancedInputs = (standalone = false) => (
+              <div className={standalone ? '' : 'pt-3 border-t border-slate-100'}>
+                {!standalone && <button type="button" onClick={() => setShowAdvanced(v => !v)} className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 uppercase tracking-[0.08em] flex items-center gap-1.5 cursor-pointer">
+                  <Settings className="w-3.5 h-3.5" /> Advanced inputs {showAdvanced ? '▾' : '▸'}
+                  <span className="font-normal normal-case tracking-normal text-slate-400">(optional; sensible defaults are assumed if left blank)</span>
+                </button>}
+                {(standalone || showAdvanced) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs mt-3">
+                    <div>
+                      <label className="text-slate-600 font-semibold block mb-1">Cash buffer kept from surplus income (months)</label>
+                      <input type="number" min="0" step="1" placeholder="6" onFocus={handleFocus} value={plan?.config?.cashBufferMonths ?? ''} onChange={(e) => updateConfig('cashBufferMonths', e.target.value)} className={inputCls} />
+                      <span className="text-[10px] text-slate-400 mt-1 block">Months of spending held back in cash before surplus income is swept into the ISA.</span>
+                    </div>
+                    {ctx.owners.map(o => {
+                      const field = o.key === 'self' ? 'employmentSelf' : 'employmentPart';
+                      const isSE = plan?.demographics?.[field] === 'self-employed';
+                      return (
+                        <div key={`emp_${o.key}`}>
+                          <label className="text-slate-600 font-semibold block mb-1">Employment type ({o.label})</label>
+                          <select value={isSE ? 'self-employed' : 'employed'} onChange={(e) => updateDemographics(field, e.target.value)} className={`${inputCls} cursor-pointer`}>
+                            <option value="employed">Employed (Class 1 NIC, salary sacrifice)</option>
+                            <option value="self-employed">Self-employed (Class 4 NIC, relief at source)</option>
+                          </select>
+                          <span className="text-[10px] text-slate-400 mt-1 block">
+                            {isSE
+                              ? `The salary box above is read as annual trading profit. Pension contributions get income tax relief only, with no NIC saving${P.erPass > 0 ? ', and the employer NIC pass-through in Config does not apply' : ''}.`
+                              : 'Pension contributions are priced as salary sacrifice: income tax and employee NIC relief.'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                    {ctx.owners.map(o => {
+                      const field = o.key === 'self' ? 'salaryGrowthSelf' : 'salaryGrowthPart';
+                      const isSE = plan?.demographics?.[o.key === 'self' ? 'employmentSelf' : 'employmentPart'] === 'self-employed';
+                      const rate = E.num(plan?.demographics?.[field], 0);
+                      return (
+                        <div key={`sg_${o.key}`}>
+                          <label className="text-slate-600 font-semibold block mb-1">{isSE ? 'Profit' : 'Salary'} growth above inflation ({o.label} %/yr)</label>
+                          <input type="number" step="0.25" placeholder="0" onFocus={handleFocus}
+                            value={plan?.demographics?.[field] ?? ''}
+                            onChange={(e) => updateDemographics(field, e.target.value)} className={inputCls} />
+                          <span className="text-[10px] text-slate-400 mt-1 block">
+                            Default is 0, meaning pay rises with inflation. The projection is in today's money, so 0 holds
+                            {isSE ? ' profit' : ' pay'} flat in real terms rather than freezing it in cash terms. Enter 1 for a
+                            1% real rise a year; a negative figure winds earnings down.
+                            {rate !== 0 && ` At ${rate}%, ${formatGBP(o.salary)} today is worth ${formatGBP(o.salary * Math.pow(1 + rate / 100, Math.max(0, o.retireAge - o.age0)))} in today's money at retirement.`}
+                          </span>
+                        </div>
+                      );
+                    })}
+                    {ctx.owners.map(o => (
+                      <div key={`cf_${o.key}`}>
+                        <label className="text-slate-600 font-semibold block mb-1">Pension allowance carried forward ({o.label} £)</label>
+                        <MoneyInput min="0" step="1000" placeholder="blank = £0" onFocus={handleFocus}
+                          value={plan?.demographics?.[o.key === 'self' ? 'cfBroughtForwardSelf' : 'cfBroughtForwardPart'] ?? ''}
+                          onChange={(e) => updateDemographics(o.key === 'self' ? 'cfBroughtForwardSelf' : 'cfBroughtForwardPart', e.target.value)} className={inputCls} />
+                        <span className="text-[10px] text-slate-400 mt-1 block">Unused annual allowance from the last three tax years. Cannot be used once a pension is flexibly accessed, and never lifts the earnings limit.</span>
+                      </div>
+                    ))}
+                    {P.cgtEnabled && ctx.owners.map(o => (
+                      <div key={`cg_${o.key}`}>
+                        <label className="text-slate-600 font-semibold block mb-1">Capital gains already used ({o.label} £)</label>
+                        <MoneyInput min="0" step="500" placeholder="blank = full allowance" onFocus={handleFocus}
+                          value={plan?.demographics?.[o.key === 'self' ? 'cgtGainsUsedSelf' : 'cgtGainsUsedPart'] ?? ''}
+                          onChange={(e) => updateDemographics(o.key === 'self' ? 'cgtGainsUsedSelf' : 'cgtGainsUsedPart', e.target.value)} className={inputCls} />
+                        <span className="text-[10px] text-slate-400 mt-1 block">Gains already realised this tax year: reduces the {formatGBP(P.cgtAnnualExempt)} exemption in the current year only.</span>
+                      </div>
+                    ))}
+                    {P.cgtEnabled && ctx.owners.map(o => {
+                      const acc = (plan?.accounts || []).find(a => a.id === o.ids.other);
+                      return (
+                        <div key={`ug_${o.key}`}>
+                          <label className="text-slate-600 font-semibold block mb-1">Other Investments: unrealised gain ({o.label} £)</label>
+                          <MoneyInput min="0" step="500" placeholder="blank = balance is all cost" onFocus={handleFocus}
+                            value={acc?.unrealisedGain ?? ''} onChange={(e) => updateAccountField(o.ids.other, 'unrealisedGain', e.target.value)} className={inputCls} />
+                          <span className="text-[10px] text-slate-400 mt-1 block">How much of today's GIA balance is profit. Left blank, only future growth is taxed, which understates CGT on long-held holdings.</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+  );
+
   return (
     <div className={`min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans ${touch ? 'touch-ui' : ''} ${isPhone ? 'pb-[calc(3.5rem+env(safe-area-inset-bottom))]' : ''}`}>
       <div data-app-content className="max-w-7xl mx-auto space-y-6">
 
-        {/* Header Bar */}
-        <div className="bg-surface border border-slate-200/90 rounded-xl p-5">
+        {/* Header Bar.
+            ON A PHONE IT IS ONE ROW. Measured at 366px before: a two-line title, a subtitle, a 44px theme
+            toggle and a four-line banner, on a screen where the first field was 1,015px down. The subtitle's
+            job is done by the Start tab, the version moves to the More sheet's foot, the theme toggle to its
+            head, and the banner keeps its first sentence. */}
+        <div className={`bg-surface border border-slate-200/90 rounded-xl ${isPhone ? 'p-3' : 'p-5'}`}>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-100"><TrendingUp className="w-5 h-5" /></div>
-                <h1 className="text-xl font-bold tracking-tight text-slate-900">Monte Carlo Retirement Planner</h1>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-semibold border border-blue-100">{APP_VERSION}</span>
+                <div className={`${isPhone ? 'p-1.5' : 'p-2'} bg-blue-50 text-blue-600 rounded-lg border border-blue-100`}><TrendingUp className={isPhone ? 'w-4 h-4' : 'w-5 h-5'} /></div>
+                <h1 className={`${isPhone ? 'text-base' : 'text-xl'} font-bold tracking-tight text-slate-900 truncate`}>Monte Carlo Retirement Planner</h1>
+                {!isPhone && <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-semibold border border-blue-100">{APP_VERSION}</span>}
               </div>
               {/*
                 * One line, and it is the one a first-time visitor needs: where to start. The
                 * "educational only" sentence used to live here too and now sits in the footer, where it
                 * belongs - a disclaimer repeated above every screen stops being read by the second one.
                 */}
-              <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
-                A UK drawdown model across pensions, ISAs, GIA and cash. Start with <span className="font-semibold text-blue-700">Plan Inputs</span>; everything else reads from it.
-              </p>
+              {!isPhone && (
+                <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
+                  A UK drawdown model across pensions, ISAs, GIA and cash. Start with <span className="font-semibold text-blue-700">Plan Inputs</span>; everything else reads from it.
+                </p>
+              )}
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
+            {/* Hidden as a whole on a phone, not emptied: an empty flex child still costs the column gap. */}
+            <div className={`items-center gap-2 flex-wrap ${isPhone ? 'hidden' : 'flex'}`}>
               {/* data-tabbar keeps these clickable while the in-app editor is on, so you can still move
                   between tabs while editing; Alt-click edits a tab's own label. */}
               {/* Hidden rather than unmounted on phones: the in-app editor and the regression harness
@@ -9641,7 +9784,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div data-tabbar className="hidden md:flex items-end gap-1 border-b border-slate-200 flex-wrap">
                 {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
               </div>
-              <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
+              {!isPhone && <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />}
             </div>
           </div>
 
@@ -9657,14 +9800,55 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             * Full width under the header row rather than inside its left column, which the tab bar
             * squeezes to about a third of the card.
             */}
-          <p className="text-xs mt-4 leading-relaxed rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-blue-900">
-            <strong className="font-semibold">Every amount here is in today&rsquo;s money.</strong> Enter what things cost and what you earn <em>now</em>. You do not need to take inflation into account: the projection runs in real terms, and only adds inflation back where a figure is labelled nominal.
-          </p>
+          {isPhone ? (
+            <p data-money-banner className="text-[11px] text-blue-800 mt-1.5 pl-0.5"><strong className="font-semibold">Every amount here is in today&rsquo;s money.</strong></p>
+          ) : (
+            <p data-money-banner className="text-xs mt-4 leading-relaxed rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-blue-900">
+              <strong className="font-semibold">Every amount here is in today&rsquo;s money.</strong>
+            </p>
+          )}
         </div>
 
         {/* Scenario Toolbar. Plan Inputs only: saving a scenario means saving THE PLAN, so it belongs
             beside the plan, not floating over a chart where it reads as saving what is on screen. */}
-        {activeTab === 'inputs' && (
+        {activeTab === 'inputs' && isPhone && (
+        /*
+         * ONE ROW. It was three - a labelled select, a name field with a Save button, and "Save as new
+         * scenario" - 186px on a screen where the first field was already a full scroll away. You name a
+         * scenario when you save one, not before, so the name field appears under the row only after the
+         * save or the save-as-new button is tapped, with the button that commits it.
+         */
+        <div data-scenario-bar className="bg-surface border border-slate-200/90 rounded-xl p-1 space-y-1">
+          <div className="flex items-center gap-1.5">
+            <Bookmark className="w-4 h-4 text-blue-600 shrink-0 ml-1.5" aria-hidden="true" />
+            <select aria-label="Active scenario" value={activeScenarioId} onChange={(e) => handleSelectScenario(e.target.value)}
+              className="flex-1 min-w-0 min-h-11 px-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+              {scenarios.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
+            </select>
+            <button type="button" aria-label="Save this scenario" aria-pressed={scenarioNaming === 'save'} onClick={() => setScenarioNaming(v => (v === 'save' ? null : 'save'))}
+              className="min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-accent text-onaccent cursor-pointer active:scale-95"><Save className="w-4 h-4" /></button>
+            <button type="button" aria-label="Save as a new scenario" aria-pressed={scenarioNaming === 'new'} onClick={() => setScenarioNaming(v => (v === 'new' ? null : 'new'))}
+              className="min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-slate-100 border border-slate-200 text-slate-700 cursor-pointer"><Plus className="w-4 h-4" /></button>
+            {scenarios.length > 1 && (
+              <button type="button" aria-label="Delete this scenario" onClick={() => handleDeleteScenario(activeScenarioId)}
+                className="min-h-11 min-w-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+            )}
+          </div>
+          {scenarioNaming && (
+            <div className="flex items-center gap-1.5">
+              <input type="text" autoFocus aria-label="Scenario name"
+                placeholder={scenarioNaming === 'new' ? `Scenario ${scenarios.length + 1}` : 'Keep the current name'}
+                value={scenarioNameInput} onChange={(e) => setScenarioNameInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') commitScenario(); if (e.key === 'Escape') setScenarioNaming(null); }}
+                className="flex-1 min-w-0 min-h-11 px-3 bg-slate-50 border border-slate-300 rounded-lg text-[16px] text-slate-900 placeholder:text-slate-400 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <button type="button" onClick={commitScenario}
+                className="min-h-11 px-4 rounded-lg bg-accent text-onaccent text-xs font-bold cursor-pointer active:scale-95">{scenarioNaming === 'new' ? 'Save new' : 'Save'}</button>
+            </div>
+          )}
+          {saveSuccessMsg && <div className="text-xs font-bold text-emerald-700 flex items-center gap-1 px-2 pb-1"><Check className="w-3 h-3 text-emerald-600" /> {saveSuccessMsg}</div>}
+        </div>
+        )}
+        {activeTab === 'inputs' && !isPhone && (
         <div className="bg-surface border border-slate-200/90 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700"><Bookmark className="w-4 h-4 text-blue-600" /><span>Active scenario:</span></div>
@@ -9789,7 +9973,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
         {/* TAB 1: PLAN INPUTS */}
         {activeTab === 'inputs' && (
-          <div className="space-y-6">
+          <div ref={inputsSwipeRef} className={`space-y-6 ${isPhone ? 'swipe-x' : ''}`}>
+            <input type="file" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />
+            {!isPhone && (
             <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-slate-200/90 p-4 rounded-xl">
               <div>
                 <h2 className="text-base font-semibold text-slate-900">User inputs &amp; wrapper portfolios</h2>
@@ -9804,16 +9990,20 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     greys the file out and the user cannot select their own export at all. The handler
                     validates the contents and says so plainly if they are wrong, which is the check that
                     actually protects anything; the picker filter was only ever a hint. */}
-                <input type="file" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />
                 <button onClick={handleResetDefaults} className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"><RotateCcw className="w-3.5 h-3.5" /> Clear all inputs</button>
               </div>
             </div>
+            )}
 
+            {isPhone && (
+              <SectionTabs sections={INPUT_SECTIONS} active={inputSection} onSelect={selectSection} />
+            )}
             {/* Demographics & Targets */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+            {showSection('you') && (
+            <div data-section="you" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Users className="w-4 h-4 text-blue-600" /> 1. Demographics, salaries &amp; retirement targets</h3>
+                  {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Users className="w-4 h-4 text-blue-600" /> 1. Demographics, salaries &amp; retirement targets</h3>}
                   <span className="text-xs text-slate-500">Choose whether this plan is for an individual or a couple.</span>
                 </div>
                 <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
@@ -9897,94 +10087,20 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 )}
               </div>
 
-              {/* Advanced: optional figures most plans can leave blank */}
-              <div className="pt-3 border-t border-slate-100">
-                <button type="button" onClick={() => setShowAdvanced(v => !v)} className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 uppercase tracking-[0.08em] flex items-center gap-1.5 cursor-pointer">
-                  <Settings className="w-3.5 h-3.5" /> Advanced inputs {showAdvanced ? '▾' : '▸'}
-                  <span className="font-normal normal-case tracking-normal text-slate-400">(optional; sensible defaults are assumed if left blank)</span>
-                </button>
-                {showAdvanced && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs mt-3">
-                    <div>
-                      <label className="text-slate-600 font-semibold block mb-1">Cash buffer kept from surplus income (months)</label>
-                      <input type="number" min="0" step="1" placeholder="6" onFocus={handleFocus} value={plan?.config?.cashBufferMonths ?? ''} onChange={(e) => updateConfig('cashBufferMonths', e.target.value)} className={inputCls} />
-                      <span className="text-[10px] text-slate-400 mt-1 block">Months of spending held back in cash before surplus income is swept into the ISA.</span>
-                    </div>
-                    {ctx.owners.map(o => {
-                      const field = o.key === 'self' ? 'employmentSelf' : 'employmentPart';
-                      const isSE = plan?.demographics?.[field] === 'self-employed';
-                      return (
-                        <div key={`emp_${o.key}`}>
-                          <label className="text-slate-600 font-semibold block mb-1">Employment type ({o.label})</label>
-                          <select value={isSE ? 'self-employed' : 'employed'} onChange={(e) => updateDemographics(field, e.target.value)} className={`${inputCls} cursor-pointer`}>
-                            <option value="employed">Employed (Class 1 NIC, salary sacrifice)</option>
-                            <option value="self-employed">Self-employed (Class 4 NIC, relief at source)</option>
-                          </select>
-                          <span className="text-[10px] text-slate-400 mt-1 block">
-                            {isSE
-                              ? `The salary box above is read as annual trading profit. Pension contributions get income tax relief only, with no NIC saving${P.erPass > 0 ? ', and the employer NIC pass-through in Config does not apply' : ''}.`
-                              : 'Pension contributions are priced as salary sacrifice: income tax and employee NIC relief.'}
-                          </span>
-                        </div>
-                      );
-                    })}
-                    {ctx.owners.map(o => {
-                      const field = o.key === 'self' ? 'salaryGrowthSelf' : 'salaryGrowthPart';
-                      const isSE = plan?.demographics?.[o.key === 'self' ? 'employmentSelf' : 'employmentPart'] === 'self-employed';
-                      const rate = E.num(plan?.demographics?.[field], 0);
-                      return (
-                        <div key={`sg_${o.key}`}>
-                          <label className="text-slate-600 font-semibold block mb-1">{isSE ? 'Profit' : 'Salary'} growth above inflation ({o.label} %/yr)</label>
-                          <input type="number" step="0.25" placeholder="0" onFocus={handleFocus}
-                            value={plan?.demographics?.[field] ?? ''}
-                            onChange={(e) => updateDemographics(field, e.target.value)} className={inputCls} />
-                          <span className="text-[10px] text-slate-400 mt-1 block">
-                            Default is 0, meaning pay rises with inflation. The projection is in today's money, so 0 holds
-                            {isSE ? ' profit' : ' pay'} flat in real terms rather than freezing it in cash terms. Enter 1 for a
-                            1% real rise a year; a negative figure winds earnings down.
-                            {rate !== 0 && ` At ${rate}%, ${formatGBP(o.salary)} today is worth ${formatGBP(o.salary * Math.pow(1 + rate / 100, Math.max(0, o.retireAge - o.age0)))} in today's money at retirement.`}
-                          </span>
-                        </div>
-                      );
-                    })}
-                    {ctx.owners.map(o => (
-                      <div key={`cf_${o.key}`}>
-                        <label className="text-slate-600 font-semibold block mb-1">Pension allowance carried forward ({o.label} £)</label>
-                        <MoneyInput min="0" step="1000" placeholder="blank = £0" onFocus={handleFocus}
-                          value={plan?.demographics?.[o.key === 'self' ? 'cfBroughtForwardSelf' : 'cfBroughtForwardPart'] ?? ''}
-                          onChange={(e) => updateDemographics(o.key === 'self' ? 'cfBroughtForwardSelf' : 'cfBroughtForwardPart', e.target.value)} className={inputCls} />
-                        <span className="text-[10px] text-slate-400 mt-1 block">Unused annual allowance from the last three tax years. Cannot be used once a pension is flexibly accessed, and never lifts the earnings limit.</span>
-                      </div>
-                    ))}
-                    {P.cgtEnabled && ctx.owners.map(o => (
-                      <div key={`cg_${o.key}`}>
-                        <label className="text-slate-600 font-semibold block mb-1">Capital gains already used ({o.label} £)</label>
-                        <MoneyInput min="0" step="500" placeholder="blank = full allowance" onFocus={handleFocus}
-                          value={plan?.demographics?.[o.key === 'self' ? 'cgtGainsUsedSelf' : 'cgtGainsUsedPart'] ?? ''}
-                          onChange={(e) => updateDemographics(o.key === 'self' ? 'cgtGainsUsedSelf' : 'cgtGainsUsedPart', e.target.value)} className={inputCls} />
-                        <span className="text-[10px] text-slate-400 mt-1 block">Gains already realised this tax year: reduces the {formatGBP(P.cgtAnnualExempt)} exemption in the current year only.</span>
-                      </div>
-                    ))}
-                    {P.cgtEnabled && ctx.owners.map(o => {
-                      const acc = (plan?.accounts || []).find(a => a.id === o.ids.other);
-                      return (
-                        <div key={`ug_${o.key}`}>
-                          <label className="text-slate-600 font-semibold block mb-1">Other Investments: unrealised gain ({o.label} £)</label>
-                          <MoneyInput min="0" step="500" placeholder="blank = balance is all cost" onFocus={handleFocus}
-                            value={acc?.unrealisedGain ?? ''} onChange={(e) => updateAccountField(o.ids.other, 'unrealisedGain', e.target.value)} className={inputCls} />
-                          <span className="text-[10px] text-slate-400 mt-1 block">How much of today's GIA balance is profit. Left blank, only future growth is taxed, which understates CGT on long-held holdings.</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              {!isPhone && renderAdvancedInputs()}
             </div>
+            )}
+            {isPhone && showSection('advanced') && (
+            <div data-section="advanced" className="bg-surface border border-slate-200/90 p-4 rounded-xl">
+              {renderAdvancedInputs(true)}
+            </div>
+            )}
 
             {/* Balances & Contributions */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 overflow-x-auto">
+            {showSection('money') && (
+            <div data-section="money" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 overflow-x-auto">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> 2. Current balances, annual contributions &amp; risk profiles</h3>
+                {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> 2. Current balances, annual contributions &amp; risk profiles</h3>}
                 <button type="button" onClick={() => goToDoc('doc-risk-profiles')} className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"><HelpCircle className="w-3.5 h-3.5" /> Guide to investment allocations &amp; fund types &rarr;</button>
               </div>
               <p className="text-[11px] text-slate-500">Pension contributions are gross (including tax relief and employer amounts); ISA, GIA and cash contributions are net. Contributions stop at each owner's retirement age. Allowances: ISA £{fmtNum(P.isaAllowance)}, pension £{fmtNum(P.pensionAllowance)} per person (Config).</p>
@@ -10015,12 +10131,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </tbody>
               </table>
             </div>
+            )}
 
             {/* Other income */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+            {showSection('income') && (
+            <div data-section="income" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Coins className="w-4 h-4 text-blue-600" /> 3. Expected other income streams (e.g. defined benefit pensions, part-time work, rental income)</h3>
+                  {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Coins className="w-4 h-4 text-blue-600" /> 3. Expected other income streams (e.g. defined benefit pensions, part-time work, rental income)</h3>}
                   <span className="text-[11px] text-slate-500">Taxable streams count towards the personal allowance and tax bands; tax-free streams directly reduce net drawdown demand. Blank end age = plan end.</span>
                   <ul className="list-disc pl-4 text-[11px] text-slate-500 mt-1 leading-relaxed max-w-3xl space-y-0.5">
                     <li><strong>Earnings</strong> (employment / self-employment) are taxed <em>and</em> count as relevant UK earnings, so they raise how much you can pay into a pension that year.</li>
@@ -10059,13 +10177,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
               )}
             </div>
+            )}
 
             {/* One-offs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+              {showSection('deposits') && (
+              <div data-section="deposits" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> 4. One-off deposits (by wrapper)</h3>
+                    {!isPhone && <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> 4. One-off deposits (by wrapper)</h3>}
                     <span className="text-[11px] text-slate-500 block mt-0.5">Lump sums into a chosen wrapper. Anything above that year's allowance is parked in Other Investments and fed in over later years.</span>
                     <button type="button" onClick={() => goToDoc('doc-one-off-deposits')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-0.5"><HelpCircle className="w-3.5 h-3.5" /> How one-off deposits &amp; multi-year staging work &rarr;</button>
                   </div>
@@ -10185,10 +10305,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                 )}
               </div>
-              <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+              )}
+              {showSection('costs') && (
+              <div data-section="costs" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                   <div>
-                    <h3 className="text-sm font-semibold text-rose-700 flex items-center gap-2"><Trash2 className="w-4 h-4 text-rose-600" /> 5. One-off capital costs</h3>
+                    {!isPhone && <h3 className="text-sm font-semibold text-rose-700 flex items-center gap-2"><Trash2 className="w-4 h-4 text-rose-600" /> 5. One-off capital costs</h3>}
                     <button type="button" onClick={() => goToDoc('doc-one-offs')} className="text-[11px] text-rose-600 hover:text-rose-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-0.5"><HelpCircle className="w-3.5 h-3.5" /> How costs are liquidated from your wrappers &rarr;</button>
                   </div>
                   <button onClick={addOneOffCost} className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-slate-200 self-start sm:self-auto"><Plus className="w-3.5 h-3.5" /> Add cost</button>
@@ -10208,6 +10330,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                 )}
               </div>
+              )}
             </div>
           </div>
         )}
@@ -12945,7 +13068,26 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             onSelect={(id) => { setActiveTab(id); setMoreOpen(false); window.scrollTo(0, 0); }}
             onMore={() => setMoreOpen(v => !v)} moreOpen={moreOpen} />
           <MoreSheet open={moreOpen} tabs={visibleTabs()} primaryIds={PHONE_PRIMARY} activeTab={activeTab}
-            onSelect={(id) => { setActiveTab(id); window.scrollTo(0, 0); }} onClose={() => setMoreOpen(false)} />
+            onSelect={(id) => { setActiveTab(id); window.scrollTo(0, 0); }} onClose={() => setMoreOpen(false)}
+            foot={APP_VERSION}
+            extras={
+              <>
+                <div className="flex items-center justify-between px-3 min-h-12">
+                  <span className="text-sm font-semibold text-slate-700">Theme</span>
+                  <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch />
+                </div>
+                {activeTab === 'inputs' && (
+                  <>
+                    <button type="button" onClick={() => { setMoreOpen(false); handleExportJSON(); }}
+                      className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"><Download className="w-4 h-4 shrink-0" /> Export plan (JSON)</button>
+                    <button type="button" onClick={() => { setMoreOpen(false); fileInputRef.current?.click(); }}
+                      className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"><Upload className="w-4 h-4 shrink-0" /> Import plan (JSON)</button>
+                    <button type="button" onClick={() => { setMoreOpen(false); handleResetDefaults(); }}
+                      className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-rose-700 hover:bg-rose-50 cursor-pointer"><RotateCcw className="w-4 h-4 shrink-0" /> Clear all inputs</button>
+                  </>
+                )}
+              </>
+            } />
         </>
       )}
     </div>

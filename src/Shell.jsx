@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { ArrowRight, Info } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import App from './App.jsx';
 /*
  * ONLY ONE OF THESE PAGES IS EVER ON SCREEN, SO ONLY ONE NEEDS DOWNLOADING.
@@ -176,33 +176,22 @@ export default function Shell() {
   const { isPhone, isCoarse, width, height } = useViewport();
   const viewport = { width, height };
   const other = OTHER[which];
-  // what the last crossing could not bring with it, shown once on arrival
-  const [carried, setCarried] = useState(null);
-  const cross = () => { setCarried(carryAcross(which)); setWhich(other.to); };
+  // carryAcross is what copies the plan between the two pages; its return value (what could not come
+  // along) used to be shown as a banner and is not any more. The copy still happens.
+  const cross = () => { carryAcross(which); setWhich(other.to); };
 
   return (
     <>
       <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8">
         <div className="max-w-7xl mx-auto space-y-2">
-          <button type="button" onClick={cross}
-            className="w-full group flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 px-5 py-3 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 hover:border-blue-300 transition-colors cursor-pointer">
-            <span className="text-sm text-blue-900/80">{other.lead}</span>
-            <span className="text-sm font-bold text-blue-800 group-hover:text-blue-900 flex items-center gap-1.5">
+          <button type="button" onClick={cross} data-crossover
+            className={`w-full group flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 hover:border-blue-300 transition-colors cursor-pointer ${
+              isPhone ? 'flex-nowrap gap-x-2 px-3 min-h-11 whitespace-nowrap' : 'flex-wrap gap-x-2.5 gap-y-1 px-5 py-3'}`}>
+            <span className={`${isPhone ? 'text-xs' : 'text-sm'} text-blue-900/80`}>{other.lead}</span>
+            <span className={`${isPhone ? 'text-xs' : 'text-sm'} font-bold text-blue-800 group-hover:text-blue-900 flex items-center gap-1.5`}>
               {other.cta} <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </span>
           </button>
-          {carried && carried.to === which && (
-            <div className="flex items-start gap-2 px-4 py-2.5 rounded-xl border border-amber-200 bg-amber-50 text-xs text-amber-900">
-              <Info className="w-4 h-4 shrink-0 mt-px text-amber-700" />
-              <div className="min-w-0">
-                <strong className="font-semibold">Your figures came with you.</strong>{' '}
-                {carried.dropped.length === 0
-                  ? 'Everything the simple page holds is now in the full planner, and the simple version is still saved as you left it.'
-                  : <>The full planner holds more than this page can, so these stayed behind and are still saved there: {carried.dropped.join('; ')}.</>}
-                <button type="button" onClick={() => setCarried(null)} className="ml-2 font-semibold underline hover:text-amber-950 cursor-pointer">Got it</button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

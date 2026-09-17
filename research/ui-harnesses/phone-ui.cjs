@@ -49,7 +49,7 @@ const simplePlan = {
 // label, the regex that proves the tab rendered its own content, and the short label the bottom bar uses
 const TABS = [
   ['Start Here', /What each tab is for/i, 'Start'],
-  ['Plan Inputs', /Demographics, salaries/i, 'Inputs'],
+  ['Plan Inputs', /With partner/i, 'Inputs'],
   ['Config & Assumptions', /Decumulation/i, 'Config'],
   ['Projection', /Run the projection/i, 'Projection'],
   ['Strategy', /tournament/i, 'Strategy'],

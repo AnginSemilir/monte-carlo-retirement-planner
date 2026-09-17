@@ -748,9 +748,10 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
   /*
    * THE PORTFOLIO AS FOUR ROWS, ON A PHONE.
    *
-   * The table is five columns - name, balance, risk, paid in, rising - and inside 412px that is a 60px
-   * drop-down showing "Hig", a contribution box with room for three digits, and a per-cent field the
-   * width of its own label. It reads as a spreadsheet that did not fit, because it is one.
+   * The table is five columns - name, balance, risk, annual contribution, percentage increase - and
+   * inside 412px that is a 60px drop-down showing "Hig", a contribution box with room for three digits,
+   * and a per-cent field the width of its own label. It reads as a spreadsheet that did not fit, because
+   * it is one.
    *
    * A wrapper is really one important number and three that are set once: the balance is typed and
    * retyped, the tier and the contributions are chosen when the plan is built and rarely touched again.
@@ -765,7 +766,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
     const paid = num(s[cKey], 0);
     const grow = num(s[k + 'G'], 0);
     const tier = RISK_SHORT[s[k + 'Risk']] || s[k + 'Risk'] || 'Medium';
-    const sub = `${tier} risk \u00b7 ${paid ? `${isPct ? `${paid}% of salary` : fmt(s[cKey])} a year in` : 'nothing going in'}${paid && grow ? `, rising ${grow}%` : ''}`;
+    const sub = `${tier} risk \u00b7 ${paid ? `${isPct ? `${paid}% of salary` : `\u00a3${fmt(s[cKey])}`} a year` : 'nothing going in'}${paid && grow ? `, rising ${grow}%` : ''}`;
     return (
       <div key={k} data-wrapper-row className="border-b border-slate-100 last:border-b-0">
         <div className="flex items-center gap-2 py-1">
@@ -784,7 +785,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
           <div className="pb-2 space-y-1.5">
             <RiskChips collapsible name="Risk level" value={s[k + 'Risk'] || 'Medium Risk'} options={riskOptions}
               onChange={(v) => set(k + 'Risk', v)} />
-            <FieldRow label={isPct ? 'Paid in each year, as a % of salary' : 'Paid in each year'}>
+            <FieldRow label={isPct ? 'Annual contribution, as a % of salary' : 'Annual contribution'}>
               <span className="flex items-stretch gap-1 w-full">
                 <input type="text" inputMode="numeric" value={isPct ? s[cKey] : fmt(s[cKey])} placeholder={isPct ? '%' : '0'}
                   onFocus={(e) => e.target.select()} onChange={(e) => set(cKey, parse(e.target.value))}
@@ -804,7 +805,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                   aria-label={`${label} salary`} className={`${inCls} text-right w-full`} />
               </FieldRow>
             )}
-            <FieldRow label="Rising each year by">
+            <FieldRow label="Percentage increase">
               <span className="flex items-center gap-1.5 w-full">
                 <input type="text" inputMode="numeric" value={s[k + 'G']} placeholder="0"
                   onFocus={(e) => e.target.select()} onChange={(e) => set(k + 'G', parse(e.target.value))}
@@ -1137,8 +1138,8 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
             <span />
             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide text-right pr-5">Balance</span>
             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Risk</span>
-            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">In each yr</span>
-            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide" title="how much the yearly amount rises each year">Rising</span>
+            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide" title="the annual contribution">Annual</span>
+            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide" title="the percentage the annual contribution rises by each year">Increase</span>
             {wrapperRow('pen', 'Pension', 'penC', 'penCIsPct', 'salary')}
             {wrapperRow('isa', 'ISA', 'isaC')}
             {wrapperRow('gia', 'GIA', 'giaC')}

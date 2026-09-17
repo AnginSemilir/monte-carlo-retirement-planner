@@ -7265,6 +7265,26 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const handleFocus = (e) => e.target.select();
   const activeRiskMatrix = plan?.riskProfiles || E.DEFAULT_RISK_PROFILES;
   const scrollToDocSection = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); };
+  /*
+   * WHAT IS IN THE REFERENCE, BEFORE YOU SCROLL THROUGH IT.
+   *
+   * Measured: the Documentation tab is 7,143px on a desktop with nothing folded, so you cannot see the
+   * shape of it without scrolling past all of it. On a phone the cards fold and their eleven headings fit
+   * in about two screens, which is the same job done a different way - so this list is desktop-only
+   * rather than a second copy of something the phone already has.
+   *
+   * Read off the rendered cards instead of kept as a second hand-written list: a new card joins the
+   * contents by itself, and one that stops leading with a heading goes visibly missing rather than
+   * quietly dropping out of a list nobody re-checks. The equality test is what stops the effect looping.
+   */
+  const [docSections, setDocSections] = useState([]);
+  useEffect(() => {
+    if (activeTab !== 'docs') return;
+    const found = [...document.querySelectorAll('[id^="doc-"]')]
+      .map(el => { const h = el.querySelector('h2'); return h ? { id: el.id, label: h.textContent.trim() } : null; })
+      .filter(Boolean);
+    setDocSections(prev => (prev.length === found.length && prev.every((x, i) => x.id === found[i].id) ? prev : found));
+  }, [activeTab]);
   const goToDoc = (id) => { setActiveTab('docs'); setTimeout(() => scrollToDocSection(id), 80); };
 
   const timelineData = useMemo(() => {
@@ -7732,9 +7752,16 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * from the width reached under the sheet on the shorter handsets and hid the very line the sheet
    * exists to let you watch. 0.34 of the height leaves room for the step heading and the sheet on both.
    */
+  /*
+   * The SVG is a viewBox scaled to its container, so this box sets the PROPORTIONS, not the pixels: a
+   * 960x420 box rendered into a 1,238px card came out 542px tall, which on a 1366x768 laptop is most of
+   * the screen and pushed step 7's controls 463px below the fold. 1200x420 is the same card, 434px tall,
+   * which leaves room for the chart and the thing you are dragging to share a screen. The plot was mostly
+   * empty vertically anyway.
+   */
   const chartBox = overlayBox || (isPhone
     ? { w: viewport.width, h: Math.min(Math.round(viewport.width * 0.8), 340, Math.round(viewport.height * 0.34)) }
-    : { w: 960, h: 420 });
+    : { w: 1200, h: 420 });
   const chartWidth = chartBox.w, chartHeight = chartBox.h;
   const margin = isNarrow ? { top: 14, right: 10, bottom: 34, left: 48 } : { top: 25, right: 35, bottom: 45, left: 80 };
   const innerWidth = chartWidth - margin.left - margin.right;
@@ -9113,8 +9140,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     </div>
   );
 
+  /*
+   * Sticky at the foot of the viewport on a desktop, because it was not reachable. Measured at 1366x768 -
+   * the commonest laptop screen - step 5's pill row sat at y=839, which is 71px below the fold, so after
+   * reading a step you had to scroll to find the way to the next one. The phone solved the same problem
+   * with a bottom bar that is always there.
+   *
+   * `md:` only: on a phone the bottom nav already owns that strip of screen, and two bars stacked would
+   * be worse than the scroll. `bg-surface` because a sticky row over scrolling content needs a ground of
+   * its own, and a negative bottom margin so the row does not reserve space twice when it is not stuck.
+   */
   const slideNav = (n) => (
-    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 md:sticky md:bottom-0 md:bg-surface md:pb-1 md:z-10">
       <div className="flex items-center gap-1.5">
         {PROJECTION_SLIDES.map(s => (
           <button key={s.n} type="button" onClick={() => { setSeeAll(false); setSlide(s.n); }} title={s.name}
@@ -9151,7 +9188,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * the projection's chart box, so it follows the phone sizing without a second set of rules.
    */
   const renderHistoricalChart = ({ inOverlay = false } = {}) => (
-                <div className={`relative overflow-x-auto ${isPhone && !inOverlay ? 'bleed' : ''} ${inOverlay ? 'h-full' : ''}`}>
+                <div className={`relative overflow-x-auto ${isPhone && !inOverlay ? 'bleed' : ''} ${!isPhone && !inOverlay ? 'wide-chart' : ''} ${inOverlay ? 'h-full' : ''}`}>
                   {isPhone && !inOverlay && (
               <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setFullscreenChart('hist')}
                 className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
@@ -9195,7 +9232,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     const edge = isRate ? cp.rateEdge : cp.fanEdge;
     return (
       <>
-        <div className={`relative overflow-x-auto ${isPhone && !inOverlay ? 'bleed' : ''} ${inOverlay ? 'h-full' : ''}`}>
+        <div className={`relative overflow-x-auto ${isPhone && !inOverlay ? 'bleed' : ''} ${!isPhone && !inOverlay ? 'wide-chart' : ''} ${inOverlay ? 'h-full' : ''}`}>
           {isPhone && !inOverlay && (
             <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setFullscreenChart(kind)}
               className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
@@ -9297,7 +9334,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * Both dials call the SAME handlers the full panel calls, so there is no second code path that could
    * drift: adjustSandboxRetire and adjustSandboxContrib already clamp and mark the sandbox customised.
    */
-  const sandboxQuickDials = () => {
+  /*
+   * THE SAME DIALS, IN A SHEET ON A PHONE AND A STRIP ON A DESKTOP.
+   *
+   * Built for the phone sheet, but the fault they answer is not a phone fault: on a 1366x768 laptop the
+   * step 7 chart ended at y=638 and the first sandbox control began at y=1101, so the chart and the thing
+   * that moves it were never on screen together. That is the commonest laptop screen there is. Laid out
+   * across the card instead of down it, the same four dials sit under the chart and the full panel keeps
+   * everything else below.
+   */
+  const sandboxQuickDials = ({ inSheet = true } = {}) => {
     const dial = (label, value, steps, onStep) => (
       <div key={label} className="py-2 border-b border-slate-100 last:border-0">
         <div className="flex items-baseline justify-between gap-2 mb-1">
@@ -9316,21 +9362,26 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       </div>
     );
     return (
-      <div className="space-y-1">
-        {ctx.owners.map(o => dial(`${o.label}: retire at`, sandboxRetire[o.key], [-5, -1, 1, 5], (d) => adjustSandboxRetire(o.key, d)))}
-        {displayedAccounts.map(acc => {
-          const sb = sandboxAccounts[acc.id] || {};
-          const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
-          return dial(`${label}: a year`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
-        })}
-        <div className="flex items-center gap-2 pt-2">
-          <button type="button" onClick={handleResetSandbox} disabled={!isSandboxModified}
-            className="flex-1 min-h-11 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer">Reset</button>
-          <button type="button" onClick={handleApplySandboxToPlan} disabled={!isSandboxModified}
-            className="flex-1 min-h-11 rounded-lg bg-accent text-onaccent text-xs font-bold disabled:opacity-40 cursor-pointer">Apply to plan</button>
+      <div className={inSheet ? 'space-y-1' : ''} data-quick-dials>
+        <div className={inSheet ? 'space-y-1' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-5'}>
+          {ctx.owners.map(o => dial(`${o.label}: retire at`, sandboxRetire[o.key], [-5, -1, 1, 5], (d) => adjustSandboxRetire(o.key, d)))}
+          {displayedAccounts.map(acc => {
+            const sb = sandboxAccounts[acc.id] || {};
+            const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
+            return dial(`${label}: a year`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
+          })}
         </div>
-        <button type="button" onClick={() => setSheetMode('full')}
-          className="w-full min-h-11 text-xs font-semibold text-blue-700 cursor-pointer">All controls &rarr;</button>
+        <div className={`flex items-center gap-2 pt-2 ${inSheet ? '' : 'justify-end'}`}>
+          <button type="button" onClick={handleResetSandbox} disabled={!isSandboxModified}
+            className={`${inSheet ? 'flex-1' : 'px-4'} min-h-11 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer`}>Reset</button>
+          <button type="button" onClick={handleApplySandboxToPlan} disabled={!isSandboxModified}
+            className={`${inSheet ? 'flex-1' : 'px-4'} min-h-11 rounded-lg bg-accent text-onaccent text-xs font-bold disabled:opacity-40 cursor-pointer`}>Apply to plan</button>
+        </div>
+        {/* Only the sheet needs this: on a desktop the full panel is already the next thing down the page. */}
+        {inSheet && (
+          <button type="button" onClick={() => setSheetMode('full')}
+            className="w-full min-h-11 text-xs font-semibold text-blue-700 cursor-pointer">All controls &rarr;</button>
+        )}
       </div>
     );
   };
@@ -10150,8 +10201,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           <div className="text-[10px] text-slate-500 leading-snug">{m.why}</div>
                         </div>
                         <div className="flex flex-col shrink-0">
-                          <button type="button" aria-label={`Move ${m.label} up`} disabled={i === 0} onClick={() => movePriority(i, -1)} className={`p-0.5 text-slate-400 enabled:hover:text-blue-700 disabled:opacity-25 enabled:cursor-pointer ${touch ? 'min-w-11 flex items-center justify-center' : ''}`}><ChevronUp className="w-3.5 h-3.5" /></button>
-                          <button type="button" aria-label={`Move ${m.label} down`} disabled={i === priorityList.length - 1} onClick={() => movePriority(i, 1)} className={`p-0.5 text-slate-400 enabled:hover:text-blue-700 disabled:opacity-25 enabled:cursor-pointer ${touch ? 'min-w-11 flex items-center justify-center' : ''}`}><ChevronDown className="w-3.5 h-3.5" /></button>
+                          <button type="button" aria-label={`Move ${m.label} up`} disabled={i === 0} onClick={() => movePriority(i, -1)} className={`p-0.5 text-slate-400 enabled:hover:text-blue-700 disabled:opacity-25 enabled:cursor-pointer flex items-center justify-center ${touch ? 'min-w-11' : 'min-w-6'}`}><ChevronUp className="w-3.5 h-3.5" /></button>
+                          <button type="button" aria-label={`Move ${m.label} down`} disabled={i === priorityList.length - 1} onClick={() => movePriority(i, 1)} className={`p-0.5 text-slate-400 enabled:hover:text-blue-700 disabled:opacity-25 enabled:cursor-pointer flex items-center justify-center ${touch ? 'min-w-11' : 'min-w-6'}`}><ChevronDown className="w-3.5 h-3.5" /></button>
                         </div>
                       </li>
                     );
@@ -10599,7 +10650,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-slate-600 pt-2.5 border-t border-slate-100">
                 <span className="text-slate-400">Tests how your current spend holds up, then solves for the most you could take instead.</span>
-                <button type="button" onClick={() => setActiveTab('strategy')} className="text-slate-500 hover:text-slate-800 hover:underline font-semibold cursor-pointer">Comparing wrapper strategies lives on the Strategy tab &rarr;</button>
+                {/* min-h-6 is WCAG 2.5.8: this is a block-level button, not a link inside a sentence, so
+                    the inline exception does not apply and 17px was a real failure on a mouse. */}
+                <button type="button" onClick={() => setActiveTab('strategy')} className="inline-flex items-center min-h-6 text-slate-500 hover:text-slate-800 hover:underline font-semibold cursor-pointer">Comparing wrapper strategies lives on the Strategy tab &rarr;</button>
               </div>
               {simProgress && <div className="w-full"><ProgressBar value={simProgress.value} label={simProgress.label} /></div>}
             </div>
@@ -10936,8 +10989,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {slideHead(SANDBOX_SLIDE, 'Change something', 'Edit below and the amber line moves with you. Your saved plan is not touched.')}
                   {renderProjectionChart('mc')}
                   {!isSandboxModified && (
-                    <p className="text-[11px] text-slate-500 leading-relaxed">Nothing is changed yet, so there is no amber line to see. Edit a contribution, a balance or a retirement age below and one appears over this chart, beside the plan you already have.</p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">Nothing is changed yet, so there is no amber line to see. Edit a contribution, a balance or a retirement age here and one appears over this chart, beside the plan you already have.</p>
                   )}
+                  {/* The phone's dials, on the desktop, inside the same card as the chart they move. */}
+                  {!isPhone && <div className="pt-1 border-t border-slate-100">{sandboxQuickDials({ inSheet: false })}</div>}
                   {slideNav(SANDBOX_SLIDE)}
                 </div>
                 {/*
@@ -12401,6 +12456,20 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 7: DOCS */}
         {activeTab === 'docs' && (
           <div className="space-y-6">
+            {!isPhone && docSections.length > 1 && (
+              <nav data-doc-contents aria-label="Documentation contents" className="bg-surface border border-slate-200/90 p-5 rounded-xl">
+                <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><BookOpen className="w-4 h-4 text-blue-600" /> What is in here</h2>
+                <ol className="mt-2.5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-0.5 text-xs">
+                  {docSections.map((sec, i) => (
+                    <li key={sec.id} className="flex gap-2 items-baseline">
+                      <span className="text-slate-400 tabular-nums shrink-0">{i + 1}</span>
+                      <button type="button" onClick={() => scrollToDocSection(sec.id)}
+                        className="text-left min-h-6 text-blue-700 hover:text-blue-900 hover:underline font-semibold cursor-pointer">{sec.label}</button>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            )}
             <div id="doc-mc-buttons" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
               <PhoneCollapse isPhone={isPhone}>
               <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Dices className="w-4 h-4 text-blue-600" /> The Three Stages of a Monte Carlo Run</h2>

@@ -527,12 +527,21 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
   );
 
   // + above -, so a stepper costs 18px of width instead of 40
+  /*
+   * SIDE BY SIDE, NOT STACKED.
+   *
+   * Two buttons 13px tall sitting on top of each other: too small for a mouse - 24px is the WCAG 2.5.8
+   * minimum and neither half met it - and under a finger the 44px touch rule turns the pair into an 88px
+   * stack inside a 26px row. The phone's own quick dials are side by side for exactly that reason, and
+   * borrowing the shape fixes both ends at once. Minus first, because that is the order the phone uses
+   * and the order a number line runs in.
+   */
   const stepper = (k, by, min = 0) => (
-    <span className="flex flex-col shrink-0 leading-none">
-      <button type="button" onClick={() => step(k, by, min)} aria-label={`increase ${k}`}
-        className="px-1 rounded-t border border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 cursor-pointer"><Plus className="w-2.5 h-2.5" /></button>
+    <span className="flex shrink-0 leading-none">
       <button type="button" onClick={() => step(k, -by, min)} aria-label={`decrease ${k}`}
-        className="px-1 rounded-b border border-t-0 border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 cursor-pointer"><Minus className="w-2.5 h-2.5" /></button>
+        className="w-6 h-6 flex items-center justify-center rounded-l border border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 cursor-pointer"><Minus className="w-3 h-3" /></button>
+      <button type="button" onClick={() => step(k, by, min)} aria-label={`increase ${k}`}
+        className="w-6 h-6 flex items-center justify-center rounded-r border border-l-0 border-slate-200 bg-slate-50 text-slate-500 hover:text-slate-900 cursor-pointer"><Plus className="w-3 h-3" /></button>
     </span>
   );
 

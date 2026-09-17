@@ -559,10 +559,26 @@ const navigate = async (page, label, short) => {
       ok('the first field is on the first screen', first.firstFieldTop !== null && first.firstFieldTop < first.vh, `${first.firstFieldTop} of ${first.vh}`);
       ok('nothing says your figures came with you', !first.carried);
       ok('...but the today\u2019s-money line stays where amounts are typed', first.bannerSentences === 1, `${first.bannerSentences} sentence(s)`);
-      const home = await (async () => { await navigate(p, 'Start Here', 'Start'); await p.waitForTimeout(500);
-        const r = await p.evaluate(() => { const c = document.querySelector('[data-title-card]'); return c ? Math.round(c.getBoundingClientRect().height) : null; });
+      /*
+       * The title card is gone from the phone build altogether, Start Here included: the bar across the
+       * top names the planner, so the card was saying it twice. That bar is the same one the simple page
+       * carries - the planner you are in on the left, the way to the other one on the right, 44px - in
+       * place of a 60px banner that said it in a sentence.
+       */
+      const bar = await (async () => { await navigate(p, 'Start Here', 'Start'); await p.waitForTimeout(500);
+        const r = await p.evaluate(() => {
+          const h = document.querySelector('[data-phone-bar]');
+          const c = document.querySelector('[data-title-card]');
+          const hr = h ? h.getBoundingClientRect() : null;
+          return { card: c ? Math.round(c.getBoundingClientRect().height) : null,
+            top: hr ? Math.round(hr.top) : null, h: hr ? Math.round(hr.height) : null,
+            name: h ? h.textContent.replace(/\s+/g, ' ').trim() : null };
+        });
         await navigate(p, 'Plan Inputs', 'Inputs'); await p.waitForTimeout(500); return r; })();
-      ok('Start Here still carries it, in one row', home !== null && home <= 96, `${home}px`);
+      ok('no title card on Start Here either', bar.card === null, bar.card === null ? 'gone' : `${bar.card}px`);
+      ok('...the bar across the top names the planner', bar.top === 0 && bar.h <= 48 && /Full planner/.test(bar.name || ''),
+         `${bar.h}px at ${bar.top}: ${bar.name}`);
+      ok('...and links to the other one', /Simple planner/.test(bar.name || ''), bar.name || '');
       ok('the sections are six tabs, one showing', first.tabs === 6 && first.sections === 1, `${first.tabs} tabs, ${first.sections} sections`);
       for (const t of ['You', 'Portfolio', 'Income', 'One-off deposits', 'One-off costs', 'Advanced']) {
         await sectionTab(t);

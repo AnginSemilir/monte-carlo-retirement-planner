@@ -151,3 +151,22 @@ tab that grows past its screen budget fails the suite rather than quietly gettin
 Backtest at 2.3 screens holds a chart, an era picker and a verdict; Documentation at 1.9 is a directory of
 eleven folded sections; Start Here at 1.9 explains the other seven tabs. Each is a page whose content is
 the length, not chrome around it. The rest are between 1.2 and 1.7.
+
+## One chain across the top, on both planners
+
+The simple page's phone header — the planner you are in on the left, the way to the other one on the
+right, 44px — is now the full planner's too.
+
+| | Before | After |
+|---|---|---|
+| Crossover | a 60px blue banner: "Just want the answer? Open the simple version →" | the bar's right-hand link: "Simple planner →" |
+| The app's name | a 79px card on Start Here, under the banner | the bar's left-hand label: "Full planner" |
+| Start Here | 1,273px | 1,195px |
+
+The banner said in a sentence what two words say, and the card under it said the app's name a second
+time on the one tab that already opens with a paragraph describing the model. A desktop has the width
+for the sentence and keeps the banner and the card exactly as they were.
+
+The theme control rides in the bar on the simple page and stays in the More sheet on the full planner,
+which is not an inconsistency: the simple page has no More sheet, and the full planner's bar scrolls away
+with the page, so a setting parked in it would be unreachable from tab six.

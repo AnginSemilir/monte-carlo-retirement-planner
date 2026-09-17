@@ -46,6 +46,21 @@ const simplePlan = {
   penRisk: 'High Risk', isaRisk: 'High Risk', giaRisk: 'Medium Risk', cashRisk: 'Cash Equivalents'
 };
 
+/*
+ * HOW MANY SCREENS A TAB IS ALLOWED TO BE.
+ *
+ * Measured before the cuts, on the iPhone 13 profile: Config was 5.3 screens, Audit 4.3, Start 3.6,
+ * Backtest 3.0. A phone tab that runs past two screens is one where the thing you came for is below the
+ * fold and you cannot tell, so each tab now carries a ceiling with about 15% of headroom over what it
+ * measures today. Three are allowed more, and each for a reason that is not "it was easier": Backtest
+ * holds a chart, an era picker and a verdict; Documentation is a directory of eleven folded sections;
+ * Start explains the other seven tabs.
+ */
+const SCREEN_CAP = {
+  'Start Here': 2.1, 'Plan Inputs': 2.0, 'Config & Assumptions': 2.0, 'Projection': 1.5,
+  'Strategy': 1.8, 'Historical Backtest': 2.6, 'Audit Data Table': 1.8, 'Documentation': 2.2
+};
+
 // label, the regex that proves the tab rendered its own content, and the short label the bottom bar uses
 const TABS = [
   ['Start Here', /What each tab is for/i, 'Start'],
@@ -147,6 +162,13 @@ const navigate = async (page, label, short) => {
         ok(`${label}: no text below 3:1`, bad.length === 0, bad.slice(0, 2).map(x => `"${x.text}" ${x.ratio}:1`).join(' | '));
         const small = await p.evaluate(TOUCH_PROBE, 44);
         ok(`${label}: no control under 44px`, small.length === 0, small.slice(0, 3).map(x => `${x.tag} "${x.text}" ${x.w}x${x.h}`).join(' | '));
+        const tall = await p.evaluate(() => ({ h: document.documentElement.scrollHeight, vh: window.innerHeight,
+          beta: /not financial advice/i.test(document.body.innerText) }));
+        const screens = tall.h / tall.vh;
+        ok(`${label}: ${SCREEN_CAP[label]} screens or less`, screens <= SCREEN_CAP[label], `${screens.toFixed(1)} screens, ${tall.h}px`);
+        // The footer said it under all eight. Start Here says it once; nothing else says it at all.
+        ok(`${label}: the beta notice is ${label === 'Start Here' ? 'here' : 'not repeated'}`,
+           tall.beta === (label === 'Start Here'), tall.beta ? 'present' : 'absent');
         /*
          * TEXT REDUCTION. The eleven Documentation cards fold on a phone: heading visible, body in a
          * closed <details>. Both halves matter - folded by default AND still in the DOM, because the

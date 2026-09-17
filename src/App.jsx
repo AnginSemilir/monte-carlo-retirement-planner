@@ -26,7 +26,7 @@ import { BottomNav, MoreSheet } from './nav.jsx';
 // `T` at module scope, not a wrapper defined inside the render: a component redeclared every render
 // remounts, which would shut a tooltip the moment a worker result came back underneath it.
 import { Term as T } from './glossary.jsx';
-import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, Stepper, CollapsedRow } from './phone.jsx';
+import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, Stepper, CollapsedRow, Clamp } from './phone.jsx';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
@@ -6808,7 +6808,7 @@ function summarizeStrategyChange(res, baselinePlayer, { isCouple = false, meta =
   return lines;
 }
 
-function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScenarioId, state, setState, cancelRef, onApplyStrategyToSandbox, onApplyStrategyToPlan, onNavigateDocs }) {
+function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScenarioId, state, setState, cancelRef, onApplyStrategyToSandbox, onApplyStrategyToPlan, onNavigateDocs, isPhone = false, onGoToContributions }) {
   const P = ctx.P;
   const isCouple = ctx.isCouple;
   // Settings, results and run progress are owned by App so they outlive this component's unmount on a tab
@@ -6855,6 +6855,9 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
     catch (e) { return null; }
   }, [basePlan, emergencyFloor, scope, budgetOverride, balance, selectedEntrants]);
   const meta = preview?.meta;
+  // Everything the plan pays in, wherever it goes: the difference between "nothing entered" and
+  // "entered somewhere this tournament cannot use" is the whole of what the blocked message has to say.
+  const contribElsewhere = (plan?.accounts || []).reduce((s, a) => s + E.num(a.contrib, 0), 0);
   const salaryMissing = ctx.owners.filter(o => o.salary <= 0).map(o => o.label);
   // balancing steers new money to the smaller pension, which throws away relief when that owner sits in
   // a lower band — measured at ~£45k of relief lost against ~£26k of retirement tax saved
@@ -6957,7 +6960,9 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
             <Zap className="w-4 h-4 text-indigo-600 fill-indigo-600" /> Automated Strategy Tournament &amp; Optimizer
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
+            <Clamp isPhone={isPhone} lines={2} label="What this is…">
             Six wrapper strategies with the same take-home budget, each tested on the same {fmtNum(TOURNAMENT_TRIALS)} market paths, so every strategy meets the same good and bad years rather than its own draw. That takes the luck of the draw out of the comparison, but not the sampling error: a gap of under a point of survival is a tie, not a better strategy.{selectedEntrants.length > 0 ? ` Plus ${selectedEntrants.length} saved scenario${selectedEntrants.length === 1 ? '' : 's'} entered as saved.` : ''}
+            </Clamp>
           </p>
         </div>
         <button type="button" onClick={onNavigateDocs} className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto">
@@ -7077,7 +7082,30 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
           {isEvaluating ? 'Evaluating…' : results ? 'Compare again' : 'Compare strategies now'}
         </button>
       </div>
-      {meta && meta.netBudget <= 0 && <p className="text-xs text-rose-600">Enter ISA or pension contributions (or a take-home budget above) to run the tournament.</p>}
+      {/*
+        * WHY THE BUTTON IS OFF, AND WHERE TO GO.
+        *
+        * The tournament divides what goes into a pension and an ISA each year, so a plan paying into
+        * neither has nothing to divide. The old line said "enter ISA or pension contributions" and left
+        * it there, which reads as a fault when you HAVE entered contributions - into cash, say, which
+        * this does not redistribute, or on a phone where the field sits behind the chevron on a
+        * portfolio row. So it names what it found and takes you to the field.
+        */}
+      {meta && meta.netBudget <= 0 && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <p className="text-xs text-rose-700 flex-1 min-w-0">
+            {contribElsewhere > 0
+              ? <>Your plan pays in <strong>{formatGBP(contribElsewhere)} a year</strong>, but none of it into a pension or an ISA. Those two are what this tournament moves money between, so it needs an annual contribution to at least one &mdash; or a take-home budget above, to test a figure you have not committed to.</>
+              : <>This divides what you pay in each year between the wrappers, and your plan pays in nothing yet. Add an <strong>annual contribution</strong> to a pension or an ISA &mdash; or set a take-home budget above to test a figure.</>}
+          </p>
+          {onGoToContributions && (
+            <button type="button" onClick={onGoToContributions}
+              className={`rounded-lg text-xs font-bold border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 cursor-pointer shrink-0 ${isPhone ? 'min-h-11 px-3' : 'px-3 py-1.5'}`}>
+              Open Plan Inputs &rarr;
+            </button>
+          )}
+        </div>
+      )}
 
       {results && (
         <div className="space-y-3 pt-2">
@@ -8163,19 +8191,28 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * already holds the full figure, and pressing it again CLEARS the field rather than leaving it filled,
    * because the next thing somebody does after deciding they are not on the full award is type their own
    * number - over a blank, not backspacing through someone else's.
+   *
+   * And it sits INSIDE the field, flush against its right edge, rather than in a box beside it. Beside
+   * it, the shortcut was the same size and weight as the field itself, which made one number look like
+   * two things to fill in - and in the phone's 152px control column it took a quarter of the width from
+   * the digits. Inside, it is plainly part of this one field. It spans the field's full height so it
+   * keeps a 44px touch target, and the field's right padding keeps six digits clear of it.
    */
   const statePensionField = (key) => {
     const v = plan?.demographics?.[key] ?? '';
     const isFull = String(v) !== '' && E.num(v, -1) === STATE_PENSION_FULL;
     return (
-      <div className="flex items-stretch gap-1.5">
+      <div className="relative flex">
         <MoneyInput min="0" step="250" placeholder={`e.g. ${fmtNum(STATE_PENSION_FULL)}`}
           onFocus={handleFocus} value={v} onChange={(e) => updateDemographics(key, e.target.value)}
-          className={`${inputCls} flex-1 min-w-0`} />
+          /* the placeholder is set smaller than the field's own 16px: the typed figure needs six digits
+             and the suggestion needs eleven characters, and only the typed one has to stay at 16px (a
+             phone browser zooms the page on focus below that, the placeholder is never focused) */
+          className={`${inputCls} ${isPhone ? 'pr-[54px] placeholder:text-[13px]' : 'pr-[50px]'}`} />
         <button type="button" aria-pressed={isFull} data-full-state-pension
           onClick={() => updateDemographics(key, isFull ? '' : String(STATE_PENSION_FULL))}
           title={`The full new State Pension, \u00a3${fmtNum(STATE_PENSION_FULL)} a year`}
-          className={`shrink-0 px-2.5 rounded-lg border text-[11px] font-bold whitespace-nowrap cursor-pointer transition-colors ${isFull ? 'bg-blue-50 border-blue-600 text-blue-700' : 'bg-slate-50 border-slate-300 text-slate-600 hover:text-slate-900'}`}>
+          className={`absolute inset-y-0 right-0 flex items-center justify-center rounded-r-lg border text-[11px] font-bold whitespace-nowrap cursor-pointer transition-colors ${isPhone ? 'w-11' : 'w-10'} ${isFull ? 'bg-blue-50 border-blue-600 text-blue-700' : 'bg-slate-100 border-slate-300 text-slate-600 hover:text-slate-900'}`}>
           Full
         </button>
       </div>
@@ -9750,8 +9787,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {money(seSelf ? 'Profit a year' : 'Gross salary', d.salarySelf, (e) => updateDemographics('salarySelf', e.target.value),
           { placeholder: 'a year', hint: 'Before tax. It sets the tax relief on pension contributions and the take-home pay that bridges the years before retirement. Self-employed? Set the employment type under Advanced and this becomes your trading profit, which is relieved differently.' })}
         {isCouple && money(sePart ? 'Partner: profit a year' : 'Partner: gross salary', d.salaryPart, (e) => updateDemographics('salaryPart', e.target.value), { placeholder: 'a year' })}
-        <FieldRow label="State Pension a year" wide>{statePensionField('statePensionSelf')}</FieldRow>
-        {isCouple && <FieldRow label="Partner: State Pension" wide>{statePensionField('statePensionPart')}</FieldRow>}
+        {/* not `wide`: the Full shortcut used to sit beside the field and needed the extra 32px. Inside
+            it, the row goes back to the same 152px control column as every other row on this tab. */}
+        <FieldRow label="State Pension a year">{statePensionField('statePensionSelf')}</FieldRow>
+        {isCouple && <FieldRow label="Partner: State Pension">{statePensionField('statePensionPart')}</FieldRow>}
         {money(isCouple ? 'Joint living spend' : 'Living spend', plan?.spending?.targetSpend, (e) => updateSpending('targetSpend', e.target.value),
           { placeholder: 'e.g. 30,000', hint: 'A year, after tax, drawn from the first retirement. A partner still working offsets it with their take-home pay when a salary is entered.' })}
         {ageRow('Plan to age', 'terminalAge', 1)}
@@ -11221,10 +11260,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Pre-access failures</span><span className={`text-xl font-semibold font-mono ${simResult.preNmpaFailRate > 5 ? 'text-rose-700' : 'text-slate-700'}`}>{simResult.preNmpaFailRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">stranded before {nmpa}</span></div>
                   </div>
                   <p className="text-[11px] text-slate-500 leading-relaxed">
+                    <Clamp isPhone={isPhone} lines={2} label="What this means…">
                     <strong className={simResult.successRate >= 90 ? 'text-emerald-700' : simResult.successRate >= 75 ? 'text-amber-700' : 'text-rose-700'}>{formatGBP(simResult.spend)} a year held in {simResult.successRate.toFixed(1)}% of {fmtNum(simResult.trials)} futures.</strong>{' '}
                     A path counts as failed in any year that living costs cannot be met from a wrapper you can actually reach, or if the pot ends below your bequest floor. The &plusmn; is sampling error: at this many trials, a difference smaller than that is noise.
                     {simResult.preNmpaFailRate > 5 && <> <strong className="text-rose-700">Check the pre-access figure separately</strong> &mdash; {simResult.preNmpaFailRate.toFixed(1)}% of paths had pension money that was still locked, which is a bridging problem rather than a saving-enough one.</>}
                     {simResult.medianFailAge && <> Of the paths that did fail, the median ran dry at {simResult.medianFailAge}; the earliest at {simResult.earliestFailAge}.</>}
+                    </Clamp>
                   </p>
                   {slideNav(1)}
                 </div>
@@ -11253,11 +11294,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-semibold text-blue-700">{formatGBP(safeMaxResult.stats.medianTerminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">spending the maximum</span></div>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-relaxed">
+                        <Clamp isPhone={isPhone} lines={2} label="What this means…">
                         {safeMaxResult.stats.note
                           ? <><strong className="text-rose-700">{safeMaxResult.stats.note}</strong>{' '}</>
                           : <><strong className="text-slate-700">{formatGBP(safeMaxResult.spend)} a year clears {targetSurvivalRate}%</strong>, and the {safeMaxResult.stats.successRate.toFixed(1)}% beside it is measured on the same {fmtNum(safeMaxResult.stats.trials)} paths that figure is quoted from &mdash; not a separate sample, so the number is the one you are actually buying.{' '}</>}
                         A lower target returns a higher figure: you are choosing how much risk of running short to accept in exchange for income now. 95% is the conventional planning benchmark; 99% is close to belt-and-braces and costs a lot of income to reach.
                         {safeMaxResult.spend < simResult.spend && <> <strong className="text-rose-700">Your entered spend is above this.</strong> That is not a prohibition &mdash; it is the size of the bet you are making.</>}
+                        </Clamp>
                       </p>
                     </>
                   ) : <p className="text-xs text-slate-500">Solving&hellip;</p>}
@@ -11286,7 +11329,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
                   {!safeRetireResult ? (
                     <p className="text-[11px] text-slate-500 leading-relaxed">
+                      <Clamp isPhone={isPhone} lines={2} label="What this means…">
                       This one is asked for rather than run with the rest, because it is a scan: one full simulation per candidate age, from today up to {Math.min(terminalAge - 1, ctx.owners[0].retireAge + 20)}. Your spending stays exactly as entered &mdash; what moves is when the salary stops. <strong className="text-slate-700">Employed income moves with you</strong> in either direction; <strong className="text-slate-700">defined-benefit pensions and the State Pension do not</strong>, because their dates are set by the scheme rather than by you.
+                      </Clamp>
                     </p>
                   ) : safeRetireResult.error ? (
                     <p className="text-xs text-rose-700">Could not solve: {safeRetireResult.error}</p>
@@ -11309,11 +11354,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       {retireCurve}
 
                       <p className="text-[11px] text-slate-500 leading-relaxed">
+                        <Clamp isPhone={isPhone} lines={2} label="What this means…">
                         {safeRetireResult.note
                           ? <><strong className="text-rose-700">{safeRetireResult.note}</strong>{' '}</>
                           : <><strong className="text-slate-700">Stopping at {safeRetireResult.age} holds {safeRetireResult.rate.toFixed(1)}%</strong> on {fmtNum(safeRetireResult.stats.trials)} paths, spending the {formatGBP(simResult.spend)} a year you entered throughout.{' '}</>}
                         Moving the date does not move everything with it. <strong className="text-slate-700">Employed and self-employed income shifts with the retirement age</strong> in both directions, and with it the contributions that come out of it. <strong className="text-slate-700">Defined-benefit pensions, annuities and the State Pension keep their own dates</strong>, because the scheme sets those and retiring sooner does not bring them forward &mdash; which is most of why going earlier costs more than the missing salary alone.
                         {safeRetireResult.verifySteps > 0 && <> The first answer the scan found was {safeRetireResult.verifySteps} {safeRetireResult.verifySteps === 1 ? 'year' : 'years'} earlier and did not hold when re-run at full precision, so it was moved later until it did.</>}
+                        </Clamp>
                       </p>
 
                       {retireNotes?.bridge && (
@@ -11351,11 +11398,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                   {renderProjectionChart('rate')}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
+                    <Clamp isPhone={isPhone} lines={2} label="What this means…">
                     <strong className="text-slate-700">{bandSpec
                       ? `The band is the ${bandSpec.lowPct} to ${bandSpec.highPct} percentile, each edge compounded at that age\u2019s own rate.`
                       : 'One line: the expected path, compounded at each age\u2019s own rate, on an axis that follows it. Switch the band on above to see the range around it.'}</strong>
                     {' '}<strong className="text-rose-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with <T k="drawdown">drawdown</T> could take a higher-risk portfolio to £0. See the <T k="Monte Carlo">Monte Carlo</T> simulation for a better predictor of how robust your plan is.
                     {bandCurves && bandCurves.lo.failAge !== null && <> <strong className="text-rose-700">Below age {bandCurves.lo.failAge} the bottom edge is broken, not low.</strong></>}
+                    </Clamp>
                   </p>
                   {slideNav(4)}
                 </div>
@@ -11371,6 +11420,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                   {renderProjectionChart('mc', { animate: true })}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
+                    <Clamp isPhone={isPhone} lines={2} label="What this means…">
                     <strong className="text-emerald-700">Each path applies your withdrawals to one particular order of returns, and stops at £0 if the money is exhausted.</strong> A run of poor years early in drawdown forces selling at depressed prices and permanently reduces the capital left to recover, which is why the lower quartile here sits below the rate-based equivalent.
                     {bandSpec
                       ? <> The band is the same {bandSpec.lowPct} to {bandSpec.highPct} percentile, so the two charts can be read against each other directly.</>
@@ -11378,6 +11428,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     {fanRuinAge !== null
                       ? <> <strong className="text-rose-700">A tenth are broke by {fanRuinAge}.</strong></>
                       : <> Fewer than one in ten are broke by {terminalAge}.</>}
+                    </Clamp>
                   </p>
                   {slideNav(5)}
                 </div>
@@ -11420,7 +11471,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     </div>
                   )}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
+                    <Clamp isPhone={isPhone} lines={2} label="What this means…">
                     Read the <strong>Difference</strong> column downward. The two methods agree near the middle and part company at the bottom: the rate-based figures sit above the Monte Carlo ones precisely where the plan is under most strain, because that is where being unable to go bust flatters you most. Everything here is in today&rsquo;s money.
+                    </Clamp>
                   </p>
                   {sequenceLoss && sequenceLoss.state === 'loss' && (
                     <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3 text-[11px] text-slate-600 leading-relaxed">
@@ -11569,7 +11622,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </button>
               </div>
             </div>
-            <WrapperStrategyTournament plan={plan} ctx={ctx} seed={mcSeed} scenarios={scenarios} activeScenarioId={activeScenarioId} state={tournament} setState={setTournament} cancelRef={tournamentCancelRef} onApplyStrategyToSandbox={handleApplyStrategyToSandbox} onApplyStrategyToPlan={handleApplyStrategyToPlan} onNavigateDocs={() => goToDoc('doc-tournament')} />
+            <WrapperStrategyTournament plan={plan} ctx={ctx} seed={mcSeed} scenarios={scenarios} activeScenarioId={activeScenarioId} state={tournament} setState={setTournament} cancelRef={tournamentCancelRef} onApplyStrategyToSandbox={handleApplyStrategyToSandbox} onApplyStrategyToPlan={handleApplyStrategyToPlan} onNavigateDocs={() => goToDoc('doc-tournament')}
+              isPhone={isPhone} onGoToContributions={() => { setActiveTab('inputs'); selectSection('money'); window.scrollTo(0, 0); }} />
           </div>
         )}
 

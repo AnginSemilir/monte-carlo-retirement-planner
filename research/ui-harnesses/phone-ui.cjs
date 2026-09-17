@@ -212,6 +212,34 @@ const navigate = async (page, label, short) => {
           const over = await p.evaluate(OVERFLOW_PROBE);
           ok(`step ${step}: no sideways scroll`, over <= 1, `${over}px`);
         }
+        /*
+         * THE STEP'S EXPLANATION, CUT TO TWO LINES. Both halves matter and the first one has already
+         * been got wrong once: `line-clamp-2` sets `display:-webkit-box`, so a `block` utility sitting
+         * beside it turns the clamp off silently - the text looks the same, the button still opens
+         * something that was never shut. So measure the clamp, not just the button.
+         */
+        await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === '1'); if (b) b.click(); });
+        await p.waitForTimeout(600);
+        const clamp = await p.evaluate(() => {
+          const btn = [...document.querySelectorAll('button')].find(x => /What this means/.test(x.textContent));
+          const sp = btn && btn.previousElementSibling;
+          return sp ? { shown: Math.round(sp.getBoundingClientRect().height), full: sp.scrollHeight } : null;
+        });
+        ok('the step explanation is cut to its first lines', !!clamp && clamp.shown < clamp.full,
+           clamp ? `${clamp.shown}px shown of ${clamp.full}px` : 'no clamp found');
+        await p.evaluate(() => {
+          const btn = [...document.querySelectorAll('button')].find(x => /What this means/.test(x.textContent));
+          if (btn) btn.click();
+        });
+        await p.waitForTimeout(400);
+        const reopened = await p.evaluate(() => {
+          const btn = [...document.querySelectorAll('button')].find(x => /Show less/.test(x.textContent));
+          const sp = btn && btn.previousElementSibling;
+          return sp ? { h: Math.round(sp.getBoundingClientRect().height), full: sp.scrollHeight } : null;
+        });
+        ok('...and one tap opens the whole of it', !!reopened && reopened.h >= reopened.full - 1,
+           reopened ? `${reopened.h}px of ${reopened.full}px` : 'never opened');
+
         // fullscreen, on the Monte Carlo step
         await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === '5'); if (b) b.click(); });
         await p.waitForTimeout(900);

@@ -170,3 +170,67 @@ for the sentence and keeps the banner and the card exactly as they were.
 The theme control rides in the bar on the simple page and stays in the More sheet on the full planner,
 which is not an inconsistency: the simple page has no More sheet, and the full planner's bar scrolls away
 with the page, so a setting parked in it would be unreachable from tab six.
+
+## Long explanations cut to two lines, and a shortcut that moved inside its field
+
+Three changes from one sitting, all phone-only.
+
+**The tournament's "what this is" and each projection step's explanation now show two lines and an
+ellipsis, with one button to open the rest.** Both are written for a desktop column and read once; at
+390px they stand between the heading and the control on every visit. Nothing is removed — the whole
+paragraph stays in the DOM, so find-in-page reaches it and a screen reader reads it in full — and the
+desktop keeps the paragraph open, which `sandbox-step` now asserts.
+
+| Paragraph (iPhone 13) | Open | Clamped |
+|---|---|---|
+| Tournament: "Six wrapper strategies…" | 112px | **32px** |
+| Step 1: what the survival rate counts | 107px | **36px** |
+| Step 5: what the Monte Carlo chart shows | 179px | **36px** |
+| Projection tab, step 1 | page 1,536px | **1,465px** |
+| Projection tab, step 5 | page 1,964px | **1,821px** |
+
+Two things this got wrong first time round, both worth keeping written down:
+
+- **The step's one-line subtitle is not the explanation.** The first attempt clamped `slideHead`'s `sub`
+  — 30 to 77 characters, one or two lines — which saved nothing and made a whole sentence a button. The
+  paragraph people actually re-read is the `text-[11px]` note above each step's Next button, 107 to
+  179px of it. The clamp is there now and the subtitle is a plain span again.
+- **`line-clamp-2` sets `display:-webkit-box`, so a `block` utility beside it silently turns the clamp
+  off.** The markup looked right, the button appeared, and the text was never shortened; only measuring
+  the span against its own `scrollHeight` caught it. `phone-ui` now measures exactly that, rather than
+  asserting the button exists.
+
+The clamp is spans rather than divs, because each of these is a `<p>`: the clamp has to sit on an
+element whose children are text, and a `<div>` inside a `<p>` is invalid markup the browser closes the
+paragraph around.
+
+**The tournament's blocked line now says what it found.** "Enter ISA or pension contributions" was shown
+to people who had entered contributions — into cash, or a GIA, neither of which the tournament
+redistributes — and, since the phone rebuild, to people whose contribution field sits behind the chevron
+on a portfolio card. Four cases were reproduced: contributions to a pension or ISA (not blocked, on both
+phone and desktop), arriving by crossover from the simple page (not blocked), balances with no
+contributions at all (blocked, correctly), and contributions to cash or a GIA only (blocked, and the old
+wording was misleading). It now names the figure it found — "your plan pays in £10,000 a year, but none
+of it into a pension or an ISA" — and carries a button that lands on Plan Inputs → Portfolio.
+
+**The State Pension "Full" shortcut sits inside the field, against its right edge**, on both planners and
+at every width. Beside the field it was a second box of the same size and weight, which made one number
+look like two things to fill in, and it cost the phone's control column a quarter of its width.
+
+| | Before | After |
+|---|---|---|
+| Full planner, phone: control column | 184px — the row's `wide` variant existed for this button | **152px, the same as every other row** |
+| Full planner, phone: room to type | the field, less a 44px button and its gap | 98px inside the field; six digits need 55px |
+| Simple planner, desktop: field | 148px column, chip beside the input | 148px column, 104px of typing room inside it |
+| Chip | 44×44 on a phone, 36–40px wide on a desktop | unchanged, and now the full height of the field |
+
+Two details the measurement forced. The field's right padding is set inline on the simple page, because
+`inCls` carries a `sm:px-2` that a plain `pr-*` utility loses to inside the media query — the digits ran
+under the chip at every width above 640px until that was found. And the placeholder is set to 13px while
+the field itself stays at 16px: "e.g. 12,548" is eleven characters and did not fit the narrowed field,
+while the 16px minimum exists to stop a phone browser zooming the page on focus, which a placeholder
+never triggers.
+
+`numbers-ui` now measures the field less the chip rather than the input's own width, which after this
+change would have counted the pixels underneath the chip, and asserts the chip's right edge sits on the
+field's.

@@ -714,20 +714,26 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    * press. Pressing it when it is already on CLEARS the field, because the next thing somebody does after
    * deciding they are not on the full award is type their own number over a blank.
    *
-   * It lives inside the same 148px control column as every other row, so the column still lines up: the
-   * field flexes and the button takes what it needs, which still leaves room for five digits.
+   * It lives inside the same 148px control column as every other row, so the column still lines up - and
+   * it lives inside the FIELD, not beside it. A separate box with a gap spent a sixth of a 148px column
+   * on chrome and read as a second thing to fill in; sitting flush inside the frame, against the right
+   * edge, it reads as what it is: a shortcut belonging to this one number. The field's padding keeps six
+   * digits clear of it, and it is the full height of the field, so a finger cannot miss it.
    */
   const statePensionField = (k) => {
     const isFull = String(s[k] ?? '') !== '' && Number(s[k]) === STATE_PENSION_FULL;
     return (
-      <span className="flex items-stretch gap-1 w-full">
+      <span className="relative flex w-full">
         <input type="text" inputMode="numeric" value={fmt(s[k])} placeholder={SP_HINT}
           onFocus={(e) => e.target.select()} onChange={(e) => set(k, parse(e.target.value))}
-          className={`${inCls} text-right flex-1 min-w-0`} />
+          /* the padding is inline, not a class: `inCls` carries a `sm:px-2` that a plain `pr-*` utility
+             loses to inside the media query, and the digits would then run under the chip */
+          style={{ paddingRight: isPhone ? 52 : 44 }}
+          className={`${inCls} text-right ${isPhone ? 'placeholder:text-[13px]' : ''}`} />
         <button type="button" aria-pressed={isFull} data-full-state-pension
           onClick={() => set(k, isFull ? '' : String(STATE_PENSION_FULL))}
           title={`The full new State Pension, \u00a3${STATE_PENSION_FULL.toLocaleString()} a year`}
-          className={`shrink-0 px-1.5 rounded border text-[10px] font-bold cursor-pointer ${isFull ? 'bg-blue-50 border-blue-600 text-blue-700' : 'bg-slate-50 border-slate-300 text-slate-600 hover:text-slate-900'}`}>
+          className={`absolute inset-y-0 right-0 flex items-center justify-center rounded-r-md border text-[10px] font-bold cursor-pointer ${isPhone ? 'w-11' : 'w-9'} ${isFull ? 'bg-blue-50 border-blue-600 text-blue-700' : 'bg-slate-100 border-slate-300 text-slate-600 hover:text-slate-900'}`}>
           Full
         </button>
       </span>

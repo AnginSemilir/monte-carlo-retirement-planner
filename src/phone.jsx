@@ -327,3 +327,40 @@ export function CollapsedRow({ summary, sub, open, onToggle, onDelete, deleteLab
     </div>
   );
 }
+
+/*
+ * A PARAGRAPH CUT TO ITS FIRST FEW LINES, ON A PHONE.
+ *
+ * The explanatory paragraphs on this app are written to be read once and then never again: what the
+ * tournament does, what each projection step is showing. At desktop width they are three or four lines
+ * under a heading. At 390px the same words are eight, and they sit between you and the control you came
+ * for every single time you open the tab.
+ *
+ * So on a phone they show their first two lines and end in an ellipsis - the browser's own, from
+ * line-clamp - with one button to open the rest. Nothing is removed: the whole paragraph is in the DOM,
+ * find-in-page reaches it, and a screen reader reads it in full.
+ *
+ * The clamp classes are written out rather than built, because Tailwind generates what it can see.
+ */
+const CLAMP = { 2: 'line-clamp-2', 3: 'line-clamp-3', 4: 'line-clamp-4' };
+
+/*
+ * The markup is spans, not divs, because every one of these paragraphs is a <p>: the clamp has to go on
+ * an element whose children are text, or -webkit-line-clamp has nothing to count, and a <div> inside a
+ * <p> is invalid HTML that the browser silently closes the paragraph around.
+ */
+export function Clamp({ isPhone, lines = 2, label = 'Read more', children }) {
+  const [open, setOpen] = useState(false);
+  if (!isPhone) return children;
+  return (
+    <>
+      {/* no `block` alongside the clamp: `line-clamp-*` sets `display:-webkit-box`, and a display
+          utility next to it wins the cascade and quietly turns the clamp off */}
+      <span className={open ? 'block' : (CLAMP[lines] || CLAMP[2])}>{children}</span>
+      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open}
+        className="min-h-11 flex items-center text-xs font-bold text-blue-700 cursor-pointer">
+        {open ? 'Show less' : label}
+      </button>
+    </>
+  );
+}

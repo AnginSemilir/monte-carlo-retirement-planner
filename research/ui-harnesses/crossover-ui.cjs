@@ -43,8 +43,15 @@ const ok = (l,c,d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:''
   ok('the full plan crossed into the simple page', !!simple && Number(simple.pen) === 410000 && Number(simple.spend) === 42000,
      simple ? `pen ${simple.pen}, spend ${simple.spend}, age ${simple.ageSelf}` : 'nothing written');
   ok('...with contributions and risk levels', Number(simple.penC) === 14000 && simple.penRisk === 'High Risk', `${simple.penC}, ${simple.penRisk}`);
-  const banner = await p.evaluate(() => { const el=[...document.querySelectorAll('div')].find(d=>/Your figures came with you/.test(d.textContent) && d.children.length < 6); return el ? el.innerText.replace(/\s+/g,' ').slice(0,220) : null; });
-  ok('a banner says what stayed behind', !!banner && /stayed behind/.test(banner), banner || 'no banner');
+  /*
+   * There used to be a banner here saying what could not come across. It was removed: it appeared on
+   * every crossing, said the same thing every time, and cost a card at the top of the page somebody had
+   * just navigated to. What matters is that the figures DID cross, which the two assertions above check
+   * directly, and that the plan left behind is untouched, which the one below does. This asserts the
+   * banner's absence so its return is a deliberate act rather than an accident.
+   */
+  const banner = await p.evaluate(() => /Your figures came with you/.test(document.body.innerText));
+  ok('no banner interrupts the arrival', !banner);
   const fullStill = await p.evaluate(() => JSON.parse(localStorage.getItem('rp_plan_full_v28')||'null'));
   ok('the full plan it came from is untouched', fullStill && fullStill.accounts.find(a=>a.id==='pen_self').balance === 410000);
 

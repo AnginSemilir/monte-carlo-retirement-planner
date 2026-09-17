@@ -377,7 +377,7 @@ const navigate = async (page, label, short) => {
       ok('the first field is on the first screen', first.firstFieldTop !== null && first.firstFieldTop < first.vh, `${first.firstFieldTop} of ${first.vh}`);
       ok('nothing says your figures came with you', !first.carried);
       ok('the sections are six tabs, one showing', first.tabs === 6 && first.sections === 1, `${first.tabs} tabs, ${first.sections} sections`);
-      for (const t of ['You', 'Money', 'Income', 'Deposits', 'Costs', 'Advanced']) {
+      for (const t of ['You', 'Portfolio', 'Income', 'Deposits', 'Costs', 'Advanced']) {
         await sectionTab(t);
         const m = await p.evaluate(() => ({ h: document.documentElement.scrollHeight, one: document.querySelectorAll('[data-section]').length,
           bigSelects: [...document.querySelectorAll('[data-section] select')].filter(x => x.options.length >= 6).length }));
@@ -402,10 +402,10 @@ const navigate = async (page, label, short) => {
       await sectionTab('You');
       const yRow = await p.evaluate(() => { const r = document.querySelector('[data-you-rows]').getBoundingClientRect(); return Math.min(r.top + 30, innerHeight - 100); });
       await swipe(320, 80, yRow);
-      ok('a swipe left moves to the next section', (await activeSection()) === 'Money', await activeSection());
+      ok('a swipe left moves to the next section', (await activeSection()) === 'Portfolio', await activeSection());
       await swipe(80, 320, yRow);
       ok('...and a swipe right comes back', (await activeSection()) === 'You', await activeSection());
-      await sectionTab('Money');
+      await sectionTab('Portfolio');
       const risk = await p.evaluate(() => ({ summaries: document.querySelectorAll('[data-risk-summary]').length, cards: document.querySelectorAll('[data-wrapper-card]').length }));
       ok('each wrapper is a card showing its tier', risk.cards === 4 && risk.summaries === 4, `${risk.cards} cards, ${risk.summaries} tiers`);
       await p.evaluate(() => document.querySelector('[data-risk-summary]').click());

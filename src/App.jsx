@@ -5962,7 +5962,7 @@ const visibleTabs = () => TABS.filter(t => !t.enabled || t.enabled());
  */
 const INPUT_SECTIONS = [
   { id: 'you',      short: 'You',      title: 'Demographics, salaries & retirement targets' },
-  { id: 'money',    short: 'Money',    title: 'Current balances, annual contributions & risk profiles' },
+  { id: 'money',    short: 'Portfolio', title: 'Current balances, annual contributions & risk profiles' },
   { id: 'income',   short: 'Income',   title: 'Expected other income streams' },
   { id: 'deposits', short: 'Deposits', title: 'One-off deposits' },
   { id: 'costs',    short: 'Costs',    title: 'One-off capital costs' },
@@ -9711,7 +9711,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {ageRow('Retire at', 'retireAgeSelf')}
         {isCouple && ageRow('Partner: retire at', 'retireAgePart')}
         {money(seSelf ? 'Profit a year' : 'Gross salary', d.salarySelf, (e) => updateDemographics('salarySelf', e.target.value),
-          { placeholder: 'a year', hint: 'Before tax. It sets the tax relief on pension contributions and the take-home pay that bridges the years before retirement.' })}
+          { placeholder: 'a year', hint: 'Before tax. It sets the tax relief on pension contributions and the take-home pay that bridges the years before retirement. Self-employed? Set the employment type under Advanced and this becomes your trading profit, which is relieved differently.' })}
         {isCouple && money(sePart ? 'Partner: profit a year' : 'Partner: gross salary', d.salaryPart, (e) => updateDemographics('salaryPart', e.target.value), { placeholder: 'a year' })}
         <FieldRow label="State Pension a year" wide>{statePensionField('statePensionSelf')}</FieldRow>
         {isCouple && <FieldRow label="Partner: State Pension" wide>{statePensionField('statePensionPart')}</FieldRow>}
@@ -9995,7 +9995,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         </div>
         )}
 
-        {activeTab !== 'docs' && activeTab !== 'home' && <WarningsBanner warnings={ctx.warnings} />}
+        {/*
+          * NOT ON PLAN INPUTS. These warnings are about inputs that are half-entered - a balance with no
+          * gain against it, a contribution over the allowance - so on the tab where you are entering them
+          * they fire while you type and shout about a field you have not reached yet. They are worth
+          * reading before you trust a number, which is every other tab: the projection, the config the
+          * projection reads, the strategy, the backtest, the audit. So they wait there instead.
+          */}
+        {activeTab !== 'docs' && activeTab !== 'home' && activeTab !== 'inputs' && <WarningsBanner warnings={ctx.warnings} />}
 
         {/* TAB 0: LANDING */}
         {activeTab === 'home' && (

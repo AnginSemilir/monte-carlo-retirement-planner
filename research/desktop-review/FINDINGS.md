@@ -94,3 +94,47 @@ Separately, and nothing to do with the phone work: on every chart above, the "Co
 drives the y-axis to £40m while every other line sits in the bottom tenth of the plot. It makes the
 chart hard to read at any width. Raising it here because it was impossible not to notice while taking
 these screenshots, not because the phone work implies anything about it.
+
+---
+
+# What was done, 2026-09-17
+
+All six were implemented. `research/ui-harnesses/desktop-reach-ui.cjs` now guards every one of them at
+1366x768, 1920x1080 and on the simple page, so a regression names itself rather than being re-discovered.
+
+| # | Then | Now |
+|---|---|---|
+| 1 | chart ends y=638, first control y=1101, viewport 768 | chart ends y=530, first dial y=668, 12 dials on screen |
+| 2 | 7,143px, no contents | a contents list read off the cards, one entry per card |
+| 3 | 1,238px chart on a 1,920px monitor | 1,430px |
+| 4 | step 5 pills at y=839, 71px below the fold | y=735, on screen |
+| 5 | one control at 361x17 | nothing under 24px on any tab |
+| 6 | steppers 13px, stacked | 24x24, side by side |
+
+## One finding was wrong, and it was this write-up's fault
+
+Finding 5 said "one control to fix, not a sweep". That was measured on the Projection tab alone, because
+that is the tab the measuring script happened to be sitting on. Running the same probe across all eight
+tabs found about a dozen: block-level "read the methodology" buttons at 16 to 18px, a `<details>` summary
+at 16px, two range sliders at 16px, and the priority reorder arrows at 18px wide.
+
+The correction changes the fix as well as the count. One control is a className edit; a dozen of the same
+kind is a missing floor, so it is now one CSS rule - the same shape as the existing 44px touch rule, at
+the 24px that AA asks of every pointer, written as an element selector so any Tailwind class still wins.
+The arrows needed a width, which no height rule would have given them.
+
+## How the fixes were built
+
+- **1** The quick dials were already written for the phone sheet. They are the same component, laid out
+  across the card rather than down it, with the "All controls" link dropped because on a desktop the full
+  panel is the next thing down the page. The chart box also went from 960x420 to 1200x420: the SVG is a
+  viewBox scaled to its container, so that is a proportion rather than a pixel count, and it took 108px
+  off the rendered height of a plot that was mostly empty vertically.
+- **2** The contents is read off the rendered cards rather than kept as a second hand-written list, so a
+  new card joins it by itself. It is desktop-only: on a phone the folded headings already do this job.
+- **3** One media query above 1536px, letting the chart card alone escape the 1280px cap by 6rem a side.
+  6rem rather than the 8rem that would reach the edge, so a 1536px window keeps a 32px gutter.
+- **4** `md:sticky md:bottom-0` on the deck's nav row. Desktop only: on a phone the bottom bar already
+  owns that strip of screen.
+- **6** Minus then plus, side by side, which also fixes the phone, where the 44px touch rule had been
+  turning a stacked pair into an 88px block inside a 26px row.

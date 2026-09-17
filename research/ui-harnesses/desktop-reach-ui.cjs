@@ -1,0 +1,174 @@
+/*
+ * WHAT A DESKTOP CAN ACTUALLY REACH.
+ *
+ * The phone work exposed faults that were never phone faults. Measured on the build before these fixes:
+ *
+ *   - 1366x768, step 7: the chart ended at y=638 and the first sandbox control began at y=1101, so the
+ *     chart and the dial that moves it were never on screen together. 1366x768 is the commonest laptop
+ *     screen there is, and this is the same fault the phone bottom sheet was built for.
+ *   - 1366x768, step 5: the deck's own numbered pills sat at y=839, which is 71px below the fold, so
+ *     after reading a step you had to go looking for the way to the next one.
+ *   - The Documentation tab was 7,143px with nothing folded and no contents, so you could not see the
+ *     shape of the reference without scrolling past all of it.
+ *   - The chart measured 1,238px wide on a 1366, a 1440 and a 1920 screen alike, because the page is
+ *     capped at 1280. On a large monitor that left 682px of empty page beside the chart.
+ *   - One control was 361x17, under the 24px WCAG 2.5.8 AA minimum. The phone passed it only because the
+ *     touch rule lifts everything to 44px, which is a different success criterion (2.5.5, AAA, touch).
+ *
+ * Every assertion here is one of those, so a regression names itself. Run: node desktop-reach-ui.cjs [port]
+ */
+const { chromium } = require('/tmp/node_modules/playwright');
+const { OVERFLOW_PROBE } = require('./lib/probes.cjs');
+const PORT = process.argv[2] || '5173';
+const GIA = 'Other Investments (e.g. GIA)';
+const plan = {
+  demographics:{planningMode:'single',currentAgeSelf:45,retireAgeSelf:62,salarySelf:70000,employmentSelf:'employed',statePensionAge:68,privatePensionAge:58,statePensionSelf:11976,terminalAge:95},
+  spending:{targetSpend:40000,spendBands:[],drawdownStrategy:'Phased Drawdown',decumulationPolicy:'Bracket Fill Basic'},
+  accounts:[{id:'pen_self',owner:'Myself',category:'Pensions',balance:320000,contrib:12000,growth:3,risk:'High Risk'},
+    {id:'isa_self',owner:'Myself',category:'S&S ISAs',balance:90000,contrib:6000,growth:3,risk:'Medium/High Risk'},
+    {id:'other_self',owner:'Myself',category:GIA,balance:40000,contrib:0,growth:0,risk:'Medium Risk'},
+    {id:'cash_self',owner:'Myself',category:'Cash Savings',balance:25000,contrib:0,growth:0,risk:'Cash Equivalents'}],
+  otherIncomes:[],oneOffContributions:[],oneOffCosts:[],config:{valuationDate:'2026-01-01'}};
+const simple = { ageSelf:'52', retireSelf:'60', spend:'40000', pen:'350000', isa:'200000', gia:'60000', cash:'40000', statePensionSelf:'11976' };
+
+/*
+ * WCAG 2.5.8 (AA) is 24px and applies whatever the pointer; 2.5.5 (AAA) is 44px and is about touch. The
+ * phone harness checks 44 because it emulates a finger. This checks 24, which a mouse is also owed. The
+ * inline exception is real - a control inside a sentence is exempt - so a target whose parent is a text
+ * element is skipped, exactly as the phone probe does.
+ */
+const SMALL_24 = () => {
+  const inline = new Set(['P','SPAN','LI','LABEL','TD','TH']);
+  return [...document.querySelectorAll('button, a[href], input, select, summary, [role=button]')]
+    .filter(el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden'; })
+    .filter(el => !el.closest('[data-dev-chrome]') && !(el.parentElement && inline.has(el.parentElement.tagName)))
+    .map(el => ({ tag: el.tagName, text: (el.textContent||'').trim().slice(0,30), w: Math.round(el.getBoundingClientRect().width), h: Math.round(el.getBoundingClientRect().height) }))
+    .filter(x => x.h < 24 || x.w < 24);
+};
+const AMBER = () => [...document.querySelectorAll('svg path')]
+  .filter(x => x.getAttribute('stroke-dasharray') === '6,4' && x.getAttribute('stroke-width') === '3.5').length;
+
+let fails = 0;
+const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
+
+async function open(b, w, h, app = 'full') {
+  const ctx = await b.newContext({ viewport: { width: w, height: h } });
+  const p = await ctx.newPage();
+  const errs = [];
+  p.on('pageerror', e => errs.push(e.message));
+  await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+  await p.addInitScript(([pl, sp, which]) => {
+    localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl));
+    localStorage.setItem('rp_simple_v1', JSON.stringify(sp));
+    localStorage.setItem('rp_which_app', which === 'simple' ? 'simple' : JSON.stringify('full'));
+  }, [plan, simple, app]);
+  await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(900);
+  return { p, errs };
+}
+const tab = async (p, name) => { await p.evaluate(n => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => b.textContent.includes(n)); if (x) x.click(); }, name); await p.waitForTimeout(650); };
+const step = async (p, n) => { await p.evaluate(s => { const x = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === s); if (x) x.click(); }, String(n)); await p.waitForTimeout(1700); };
+async function runProjection(p) {
+  await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); x.click(); });
+  await p.waitForFunction(() => ![...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Stop'), null, { timeout: 300000 });
+  await p.waitForTimeout(1000);
+}
+
+(async () => {
+  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+
+  // ---------- a 1366x768 laptop ----------
+  console.log('1366x768, the commonest laptop screen');
+  const { p, errs } = await open(b, 1366, 768);
+  await tab(p, 'Projection');
+  await runProjection(p);
+
+  await step(p, 5);
+  const five = await p.evaluate(() => {
+    const pills = [...document.querySelectorAll('button')].filter(x => /^[1-7]$/.test(x.textContent.trim()));
+    return { pillsTop: pills.length ? Math.round(pills[pills.length - 1].getBoundingClientRect().top) : null, vh: window.innerHeight };
+  });
+  ok('step 5: the deck’s own pills are on screen', five.pillsTop !== null && five.pillsTop < five.vh, `pills at ${five.pillsTop} of ${five.vh}`);
+
+  await step(p, 7);
+  const seven = await p.evaluate(() => {
+    const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+    const dials = [...document.querySelectorAll('[data-quick-dials] button')];
+    const inView = dials.filter(d => { const r = d.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; });
+    const pills = [...document.querySelectorAll('button')].filter(x => /^[1-7]$/.test(x.textContent.trim()));
+    return { chartBottom: svg ? Math.round(svg.getBoundingClientRect().bottom) : null, dials: dials.length, inView: inView.length,
+      pillsTop: pills.length ? Math.round(pills[pills.length - 1].getBoundingClientRect().top) : null, vh: window.innerHeight };
+  });
+  ok('step 7: the chart fits the screen', seven.chartBottom !== null && seven.chartBottom < seven.vh, `chart ends ${seven.chartBottom} of ${seven.vh}`);
+  ok('...with the dials that move it beneath, not below the fold', seven.inView >= 4, `${seven.inView} of ${seven.dials} dials in view`);
+  ok('...and the pills still reachable', seven.pillsTop !== null && seven.pillsTop < seven.vh, `pills at ${seven.pillsTop}`);
+
+  const before = await p.evaluate(AMBER);
+  await p.evaluate(() => { const d = [...document.querySelectorAll('[data-quick-dials] button')].find(x => x.textContent.trim() === '+1,000'); if (d) d.click(); });
+  await p.waitForTimeout(1600);
+  const after = await p.evaluate(AMBER);
+  ok('...and a desktop dial draws the amber line', before === 0 && after > 0, `${before} then ${after} dashed path(s)`);
+
+  await tab(p, 'Documentation');
+  const docs = await p.evaluate(() => ({
+    contents: !!document.querySelector('[data-doc-contents]'),
+    entries: document.querySelectorAll('[data-doc-contents] li').length,
+    cards: document.querySelectorAll('[id^="doc-"]').length
+  }));
+  ok('the reference says what is in it', docs.contents && docs.entries >= 8, `${docs.entries} entries`);
+  // Read off the cards rather than a hand-kept list, so a card that stops leading with a heading shows here.
+  ok('...one entry per card, none missing', docs.entries === docs.cards, `${docs.entries} entries for ${docs.cards} cards`);
+  const jumped = await p.evaluate(async () => {
+    const li = document.querySelectorAll('[data-doc-contents] li')[4];
+    const label = li.querySelector('button').textContent.trim();
+    li.querySelector('button').click();
+    await new Promise(r => setTimeout(r, 1200));
+    const card = [...document.querySelectorAll('[id^="doc-"]')].find(el => (el.querySelector('h2') || {}).textContent?.trim() === label);
+    return card ? Math.round(card.getBoundingClientRect().top) : null;
+  });
+  ok('...and an entry jumps to its card', jumped !== null && Math.abs(jumped) < 120, `card top ${jumped}`);
+
+  for (const t of ['Start Here', 'Plan Inputs', 'Config & Assumptions', 'Projection', 'Strategy', 'Historical Backtest', 'Audit Data Table', 'Documentation']) {
+    await tab(p, t);
+    const small = await p.evaluate(SMALL_24);
+    ok(`${t}: no control under 24px`, small.length === 0, small.slice(0, 3).map(x => `${x.tag} "${x.text}" ${x.w}x${x.h}`).join(' | '));
+  }
+  const over = await p.evaluate(OVERFLOW_PROBE);
+  ok('no sideways scroll at 1366', over <= 1, `${over}px`);
+  ok('no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await p.close();
+
+  // ---------- a 1920x1080 monitor ----------
+  console.log('1920x1080');
+  const wide = await open(b, 1920, 1080);
+  await tab(wide.p, 'Projection');
+  await runProjection(wide.p);
+  await step(wide.p, 5);
+  const w = await wide.p.evaluate(() => {
+    const s = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+    return { chartW: s ? Math.round(s.getBoundingClientRect().width) : 0, vw: window.innerWidth };
+  });
+  ok('the chart uses a large monitor', w.chartW >= 1400, `${w.chartW}px of ${w.vw}px`);
+  const overW = await wide.p.evaluate(OVERFLOW_PROBE);
+  ok('...without the card escaping the page', overW <= 1, `${overW}px`);
+  await wide.p.close();
+
+  // ---------- the simple page ----------
+  console.log('the simple page at 1440x900');
+  const sp = await open(b, 1440, 900, 'simple');
+  await sp.p.waitForFunction(() => /How it draws the money/.test(document.body.innerText), null, { timeout: 180000 });
+  await sp.p.waitForTimeout(1200);
+  const st = await sp.p.evaluate(() => {
+    const els = [...document.querySelectorAll('button[aria-label^="increase"], button[aria-label^="decrease"]')];
+    const under = els.filter(x => { const r = x.getBoundingClientRect(); return r.width < 24 || r.height < 24; });
+    return { n: els.length, under: under.length };
+  });
+  ok('the steppers clear 24px', st.n > 0 && st.under === 0, `${st.under} of ${st.n} under`);
+  const overS = await sp.p.evaluate(OVERFLOW_PROBE);
+  ok('...without crowding the form off the page', overS <= 1, `${overS}px`);
+  ok('no page errors on the simple page', sp.errs.length === 0, sp.errs.slice(0, 2).join(' | '));
+
+  await b.close();
+  console.log(fails ? `\n${fails} FAILED` : '\nall ok');
+  process.exit(fails ? 1 : 0);
+})();

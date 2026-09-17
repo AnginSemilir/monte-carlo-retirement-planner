@@ -266,3 +266,9 @@ true, but they cost those rows their alignment: every other control on the tab i
 two with steppers were a narrower box plus a pair of buttons, so the right edge of the form zig-zagged.
 Measured on a Pixel 7, the You tab's controls now share **one right edge** — which is what `phone-ui`
 asserts, rather than counting steppers, because a stray one would show up as a second edge.
+
+**And the list shows before the deck exists.** The Projection tab's "What you will get" card said
+"The six steps" over a fold holding a paragraph *about* the six steps - a contents list you had to open
+to find out what was in it, and what you found was prose. It is the same list now, rows inert because
+there is nothing yet to go to: on a phone each shows its first line with a chevron, on a desktop the
+whole sentence, since the column has the width for it.

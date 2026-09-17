@@ -39,7 +39,7 @@ const plan = {
 // each tab, and a phrase only that tab renders, so "it loaded" cannot be satisfied by an empty panel
 const TABS = [
   ['Start Here', /What each tab is for/i],
-  ['Plan Inputs', /Demographics, salaries/i],
+  ['Plan Inputs', /With partner/i],
   ['Config & Assumptions', /Decumulation/i],
   ['Projection', /Run the projection/i],
   ['Strategy', /tournament/i],

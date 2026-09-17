@@ -61,7 +61,13 @@ export function BottomNav({ tabs, primaryIds, activeTab, onSelect, onMore, moreO
   );
 }
 
-export function MoreSheet({ open, tabs, primaryIds, activeTab, onSelect, onClose }) {
+/*
+ * `extras` is what the header could not afford on a phone: the theme toggle, and on Plan Inputs the
+ * export / import / clear actions. They are settings and file operations, which is what an overflow
+ * sheet is for, and moving them here is what let the title card drop from 366px to one row. `foot` is
+ * the version string, for the same reason.
+ */
+export function MoreSheet({ open, tabs, primaryIds, activeTab, onSelect, onClose, extras = null, foot = null }) {
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -77,6 +83,7 @@ export function MoreSheet({ open, tabs, primaryIds, activeTab, onSelect, onClose
         className="fixed inset-x-0 bottom-0 z-50 md:hidden bg-surface border-t border-slate-200 rounded-t-2xl p-2 shadow-lg"
         style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
         <div className="mx-auto mb-1 h-1 w-10 rounded-full bg-slate-300" />
+        {extras && <div className="pb-1 mb-1 border-b border-slate-100">{extras}</div>}
         {overflow.map(t => {
           const active = activeTab === t.id;
           return (
@@ -90,6 +97,7 @@ export function MoreSheet({ open, tabs, primaryIds, activeTab, onSelect, onClose
         })}
         <button type="button" onClick={onClose}
           className="w-full min-h-[44px] mt-1 text-xs font-semibold text-slate-500 cursor-pointer">Close</button>
+        {foot && <div className="text-center text-[10px] font-mono text-slate-400 pb-0.5">{foot}</div>}
       </div>
     </>,
     document.body

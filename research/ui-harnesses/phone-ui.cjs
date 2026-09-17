@@ -49,7 +49,7 @@ const simplePlan = {
 // label, the regex that proves the tab rendered its own content, and the short label the bottom bar uses
 const TABS = [
   ['Start Here', /What each tab is for/i, 'Start'],
-  ['Plan Inputs', /Demographics, salaries/i, 'Inputs'],
+  ['Plan Inputs', /With partner/i, 'Inputs'],
   ['Config & Assumptions', /Decumulation/i, 'Config'],
   ['Projection', /Run the projection/i, 'Projection'],
   ['Strategy', /tournament/i, 'Strategy'],
@@ -333,6 +333,117 @@ const navigate = async (page, label, short) => {
         ok('...inputs are at least 16px, so focusing does not zoom', small.length === 0, `${small.length} of ${sizes.length} under 16px`);
       }
       await p.evaluate(() => { localStorage.setItem('rp_which_app', 'full'); });
+
+
+      /*
+       * THE SECOND PHONE PASS: A FIRST SCREEN YOU CAN TYPE ON, ONE SECTION AT A TIME, A FORM IN ROWS.
+       *
+       * Measured before it, on this device: the Inputs tab was 4,379px tall and the first field sat
+       * 1,015px down, under a 366px title card and a 186px scenario bar; the risk tier was a 410px native
+       * select off the right edge of a sideways-scrolling table. Every number below is one of those.
+       */
+      const swipe = async (fromX, toX, y) => {
+        const cdp = await ctx.newCDPSession(p);
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: fromX, y }] });
+        for (let i = 1; i <= 6; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: fromX + (toX - fromX) * i / 6, y }] });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        await cdp.detach();
+        await p.waitForTimeout(450);
+      };
+      const sectionTab = async (name) => { await p.evaluate(t => { const x = [...document.querySelectorAll('[data-section-tabs] [role=tab]')].find(b => b.textContent.trim() === t); if (x) x.click(); }, name); await p.waitForTimeout(400); };
+      const activeSection = () => p.evaluate(() => document.querySelector('[data-section-tabs] [aria-selected="true"]')?.textContent.trim());
+      // The simple-page block above switched storage back to the full app without reloading, so the
+      // simple page is still what is mounted here. Reload onto the full app, and run the projection
+      // again on this page because the reload dropped the earlier run's state.
+      await p.evaluate(() => { localStorage.setItem('rp_which_app', 'full'); sessionStorage.removeItem('rp_input_section'); });
+      await p.reload({ waitUntil: 'domcontentloaded' });
+      await p.waitForTimeout(1200);
+      await navigate(p, 'Plan Inputs', 'Inputs');
+      await p.waitForTimeout(600);
+      const first = await p.evaluate(() => {
+        const H = (el) => el ? Math.round(el.getBoundingClientRect().height) : null;
+        const fields = [...document.querySelectorAll('[data-section] input, [data-section] select')].filter(i => i.getBoundingClientRect().height > 0);
+        return { titleCard: document.querySelector('[data-title-card]'), scenarioBar: H(document.querySelector('[data-scenario-bar]')), crossover: H(document.querySelector('[data-crossover]')),
+          bannerSentences: ((document.querySelector('[data-money-banner]') || {}).innerText || '').split('.').filter(x => x.trim()).length,
+          firstFieldTop: fields.length ? Math.round(fields[0].getBoundingClientRect().top + scrollY) : null, vh: innerHeight,
+          carried: /figures came with you/i.test(document.body.innerText), tabs: document.querySelectorAll('[data-section-tabs] [role=tab]').length,
+          sections: document.querySelectorAll('[data-section]').length };
+      });
+      console.log('  inputs, second pass');
+      // The card is Start Here's alone on a phone: the bottom bar already names the screen you are on.
+      ok('no title card away from Start Here', first.titleCard === null, 'present');
+      ok('the scenario bar is one row', first.scenarioBar !== null && first.scenarioBar <= 56, `${first.scenarioBar}px`);
+      ok('the crossover button is one line', first.crossover !== null && first.crossover <= 48, `${first.crossover}px`);
+      ok('the money banner is one sentence', first.bannerSentences === 1, `${first.bannerSentences}`);
+      ok('the first field is on the first screen', first.firstFieldTop !== null && first.firstFieldTop < first.vh, `${first.firstFieldTop} of ${first.vh}`);
+      ok('nothing says your figures came with you', !first.carried);
+      ok('...but the today\u2019s-money line stays where amounts are typed', first.bannerSentences === 1, `${first.bannerSentences} sentence(s)`);
+      const home = await (async () => { await navigate(p, 'Start Here', 'Start'); await p.waitForTimeout(500);
+        const r = await p.evaluate(() => { const c = document.querySelector('[data-title-card]'); return c ? Math.round(c.getBoundingClientRect().height) : null; });
+        await navigate(p, 'Plan Inputs', 'Inputs'); await p.waitForTimeout(500); return r; })();
+      ok('Start Here still carries it, in one row', home !== null && home <= 96, `${home}px`);
+      ok('the sections are six tabs, one showing', first.tabs === 6 && first.sections === 1, `${first.tabs} tabs, ${first.sections} sections`);
+      for (const t of ['You', 'Portfolio', 'Income', 'One-off deposits', 'One-off costs', 'Advanced']) {
+        await sectionTab(t);
+        const m = await p.evaluate(() => ({ h: document.documentElement.scrollHeight, one: document.querySelectorAll('[data-section]').length,
+          bigSelects: [...document.querySelectorAll('[data-section] select')].filter(x => x.options.length >= 6).length }));
+        const over = await p.evaluate(OVERFLOW_PROBE);
+        ok(`${t}: one section, under two screens and a half, nothing sideways`, m.one === 1 && m.h <= 1800 && over <= 1 && m.bigSelects === 0, `${m.h}px, ${m.bigSelects} long selects, ${over}px overflow`);
+      }
+      await sectionTab('You');
+      const you = await p.evaluate(() => {
+        const labels = [...document.querySelectorAll('[data-you-rows] label')];
+        const left = labels.filter(l => { const c = l.parentElement.querySelector('input, button'); return c && l.getBoundingClientRect().left < c.getBoundingClientRect().left; }).length;
+        return { labels: labels.length, left, steppers: document.querySelectorAll('[data-you-rows] button[aria-label^="increase"]').length, hints: document.querySelectorAll('[data-you-rows] button[aria-label^="About"]').length };
+      });
+      ok('You is rows: label left, control right', you.labels >= 7 && you.left === you.labels, `${you.left} of ${you.labels}`);
+      ok('...with steppers on the ages and a ? on the explanations', you.steppers >= 3 && you.hints >= 3, `${you.steppers} steppers, ${you.hints} hints`);
+      await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /Add band/.test(x.textContent)); b.click(); });
+      await p.waitForTimeout(400);
+      const band = await p.evaluate(() => { const r = document.querySelector('[data-collapsed-row]'); return r ? { open: r.getAttribute('data-open'), inputs: r.querySelectorAll('input').length, w: Math.round(r.getBoundingClientRect().width) } : null; });
+      ok('a new band opens as a row of three fields', band && band.open === 'true' && band.inputs === 3, JSON.stringify(band));
+      await p.evaluate(() => { const b = document.querySelector('[data-collapsed-row] button[aria-label="Remove this band"]'); if (b) b.click(); });
+      await p.waitForTimeout(300);
+      // a swipe on the content moves to the next section; one that starts on the tab row does not
+      await sectionTab('You');
+      const yRow = await p.evaluate(() => { const r = document.querySelector('[data-you-rows]').getBoundingClientRect(); return Math.min(r.top + 30, innerHeight - 100); });
+      await swipe(320, 80, yRow);
+      ok('a swipe left moves to the next section', (await activeSection()) === 'Portfolio', await activeSection());
+      await swipe(80, 320, yRow);
+      ok('...and a swipe right comes back', (await activeSection()) === 'You', await activeSection());
+      await sectionTab('Portfolio');
+      const risk = await p.evaluate(() => ({ summaries: document.querySelectorAll('[data-risk-summary]').length, cards: document.querySelectorAll('[data-wrapper-card]').length }));
+      ok('each wrapper is a card showing its tier', risk.cards === 4 && risk.summaries === 4, `${risk.cards} cards, ${risk.summaries} tiers`);
+      await p.evaluate(() => document.querySelector('[data-risk-summary]').click());
+      await p.waitForTimeout(300);
+      const chips = await p.evaluate(() => document.querySelectorAll('[data-wrapper-card] [role=radio]').length);
+      ok('...which opens into six chips, not a drop-down', chips === 6, `${chips} chips`);
+      await p.evaluate(() => document.querySelectorAll('[data-wrapper-card] [role=radio]')[2].click());
+      await p.waitForTimeout(400);
+      const picked = await p.evaluate(() => ({ saved: JSON.parse(localStorage.getItem('rp_plan_full_v28')).accounts[0].risk, closed: document.querySelectorAll('[data-wrapper-card] [role=radio]').length === 0 }));
+      ok('...and a chip sets the tier and folds away', picked.saved === 'Medium Risk' && picked.closed, JSON.stringify(picked));
+      // the deck: a swipe across the chart turns the step; one on the horizon slider does not
+      await navigate(p, 'Projection', 'Projection');
+      await p.waitForTimeout(500);
+      await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); if (x) x.click(); });
+      await p.waitForFunction(() => ![...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Stop') && [...document.querySelectorAll('button')].some(b => b.textContent.trim() === '6'), null, { timeout: 300000 });
+      await p.waitForTimeout(1200);
+      const curStep = () => p.evaluate(() => { const on = [...document.querySelectorAll('button')].find(b => /^[1-7]$/.test(b.textContent.trim()) && /bg-accent/.test(b.className)); return on ? Number(on.textContent) : null; });
+      await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === '4'); if (x) x.click(); });
+      await p.waitForTimeout(1500);
+      // scrolled into view first: a touch outside the viewport is cancelled by the browser, not delivered
+      const chartMid = () => p.evaluate(() => { const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0]; svg.scrollIntoView({ block: 'center' }); const r = svg.getBoundingClientRect(); return r.top + r.height / 2; });
+      const dots = await p.evaluate(() => document.querySelectorAll('[data-slide-dots] span').length);
+      ok('the step head shows where you are', dots === 7, `${dots} dots`);
+      await swipe(320, 80, await chartMid());
+      await p.waitForTimeout(1000);
+      ok('a swipe across the chart turns the step', (await curStep()) === 5, `step ${await curStep()}`);
+      const sl = await p.evaluate(() => { const r = document.querySelector('input[type=range]'); if (!r) return null; r.scrollIntoView({ block: 'center' }); const b = r.getBoundingClientRect(); return { x: b.left + b.width * 0.7, y: b.top + b.height / 2 }; });
+      if (sl) { await swipe(sl.x, sl.x - 220, sl.y); ok('...but not one that starts on the horizon slider', (await curStep()) === 5, `step ${await curStep()}`); }
+      await p.evaluate(() => window.scrollTo(0, 0));
+      await swipe(80, 320, await chartMid());
+      await p.waitForTimeout(1000);
+      ok('...and a swipe right goes back, without leaving the site', (await curStep()) === 4 && (await p.evaluate(() => document.body.innerText.length > 100)), `step ${await curStep()}`);
 
       if (SHOT && theme === 'light') await p.screenshot({ path: `${SHOT}/phone-${devName.replace(/\W/g, '')}.png`, fullPage: false });
       const real = errs.filter(e => !/ERR_CERT_AUTHORITY_INVALID|ERR_FAILED|fonts\./i.test(e));

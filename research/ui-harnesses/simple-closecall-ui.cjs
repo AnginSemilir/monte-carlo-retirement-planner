@@ -31,9 +31,15 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
     console.log(`${name}: answered in ${((Date.now() - t0) / 1000).toFixed(1)}s; close call: ${/Close call\./.test(t)}`);
     ok(`${name}: policy line names a policy`, /How it draws the money: \w/.test(t));
     if (/Close call\./.test(t)) console.log('  ', (t.match(/Close call\.[^\n]*/) || [''])[0].slice(0, 220));
-    // Monte Carlo view: band and sample paths present
+    /*
+     * Monte Carlo view: band and sample paths present. The band toggle opens on "Expected only" now -
+     * one line on an axis that follows it, so a change to the plan is visible - so this asks for a band
+     * before measuring one. The runs and the band are unchanged; they are one tap in.
+     */
     await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Monte Carlo/.test(b.textContent)); if (x) x.click(); });
     await p.waitForTimeout(800);
+    await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Upper/lower quartiles'); if (x) x.click(); });
+    await p.waitForTimeout(700);
     const svg = await p.evaluate(() => {
       const s = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
       if (!s) return null;

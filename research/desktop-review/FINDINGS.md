@@ -169,3 +169,37 @@ gains a dotted underline, and hovering or focusing it opens a bubble beside it.
 
 `desktop-reach` checks that Config carries terms, that hovering one opens a bubble with real text, that
 the bubble lands inside the window, that it is named to a screen reader, and that it goes away again.
+
+## Expected-only, and a scale per mode, 2026-09-17
+
+The band control had two settings, both of them a range. It has three now, and opens on the new one.
+
+| Mode | What is drawn | Axis on the fixture (45, retiring at 62, £320k/£90k/£40k/£25k) |
+|---|---|---|
+| **Expected only** (default) | the middle line alone | £4.0m |
+| Upper/lower quartiles | the 25th–75th band, and the sixty sample runs on the Monte Carlo chart | £16m |
+| 10th/90th percentiles | the 10th–90th band, and the runs | £40m |
+
+Two things were wrong before, and the second was not obvious:
+
+1. **The axis was set by an edge, not by the line.** A good upper quartile compounded over forty years
+   ends several times the median, so the £2,000 change in spending somebody came to test moved the line
+   by a pixel or two inside a band ten times its height. With the band off the axis is the line's, and
+   the same change is plainly visible. That is the whole reason it is the default.
+2. **The quartile view was scaled by the decile band.** The Monte Carlo chart took its ceiling from the
+   90th percentile whatever the toggle said, so choosing the narrower band left the picture a third
+   shorter than it needed to be. Each mode now takes the ceiling from the percentile it draws.
+
+The sixty sample paths come off with the band: they are the spread drawn another way, and on an axis
+sized for the median most of them would be off the top of it. Everything else is untouched — the
+simulation still runs, the survival rate, safe spend and earliest age are unchanged, and the reveal
+animation is exactly what it was, one tap in. `mc-reveal`, `sandbox-step` and `simple-closecall` each ask
+for a band before measuring one.
+
+## A wheel where there was only a word
+
+"Run the projection" became "Testing…", "Solving…", "Comparing…"; "Rerun projections" became "Running…".
+All correct, all easy to miss: a word changing is a state change you have to read. The three buttons now
+swap their icon for a turning wheel while the work is in flight, and the sandbox's collapsed sheet — the
+one line a phone shows while the controls sit over the chart — carries the same wheel, because that is
+the only place a run can be seen from while you are dialling.

@@ -128,6 +128,40 @@ async function runProjection(p) {
   });
   ok('...and an entry jumps to its card', jumped !== null && Math.abs(jumped) < 120, `card top ${jumped}`);
 
+  /*
+   * THE GLOSSARY, WHICH ONLY EXISTS HERE.
+   *
+   * GIA, NMPA, MPAA, PCLS: the right words, and a wall to anybody who has only ever paid into a workplace
+   * pension. Each keeps its name and gains a definition on hover. It is a desktop feature on purpose - a
+   * tooltip needs a pointer that can rest without pressing - so this is where it is checked.
+   *
+   * The two failures worth guarding are the ones a tooltip has: clipped by a scroll container it sits in,
+   * or hanging off the edge of the window. Both are measured, not eyeballed.
+   */
+  await tab(p, 'Config & Assumptions');
+  const terms = await p.evaluate(() => document.querySelectorAll('[data-term]').length);
+  ok('Config carries glossary terms', terms > 0, `${terms} terms`);
+  // A real pointer, not a synthetic MouseEvent: React derives onMouseEnter from a bubbling mouseover at
+  // the root, so a hand-dispatched non-bubbling 'mouseenter' reaches nothing and the tooltip never opens.
+  await p.hover('[data-term]');
+  await p.waitForTimeout(200);
+  const tip = await p.evaluate(() => {
+    const el = document.querySelector('[data-term]');
+    const bub = document.querySelector('[role=tooltip]');
+    if (!bub) return { shown: false };
+    const r = bub.getBoundingClientRect();
+    return { shown: true, term: el.getAttribute('data-term'), text: bub.textContent.trim().length,
+      inside: r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight,
+      described: el.getAttribute('aria-describedby') === bub.id };
+  });
+  await p.mouse.move(2, 2);
+  await p.waitForTimeout(200);
+  tip.gone = await p.evaluate(() => !document.querySelector('[role=tooltip]'));
+  ok('...and hovering one explains it', !!tip && tip.shown && tip.text > 40, tip ? `${tip.term}: ${tip.text} chars` : 'nothing shown');
+  ok('...inside the window, not clipped or off the edge', !!tip && tip.inside, tip ? String(tip.inside) : '');
+  ok('...named to a screen reader, and gone on the way out', !!tip && tip.described && tip.gone,
+     tip ? `described ${tip.described}, gone ${tip.gone}` : '');
+
   for (const t of ['Start Here', 'Plan Inputs', 'Config & Assumptions', 'Projection', 'Strategy', 'Historical Backtest', 'Audit Data Table', 'Documentation']) {
     await tab(p, t);
     const small = await p.evaluate(SMALL_24);

@@ -138,3 +138,34 @@ The arrows needed a width, which no height rule would have given them.
   owns that strip of screen.
 - **6** Minus then plus, side by side, which also fixes the phone, where the 44px touch rule had been
   turning a stacked pair into an 88px block inside a 26px row.
+
+## The glossary, added 2026-09-17
+
+Desktop only, on request. The planner is written in the vocabulary of UK retirement — GIA, NMPA, MPAA,
+PCLS, CGT, RNRB, CAGR — which is the right vocabulary (a page that said "the other account" could not be
+checked against anything official) and is also a wall to somebody who has spent twenty years paying into
+a workplace pension without needing a word for any of it.
+
+`src/glossary.jsx` holds 30 entries, each a title and one or two sentences: what it stands for, and what
+it means for this plan. `<Term k="GIA">GIA</Term>` marks a word as defined; the term keeps its name and
+gains a dotted underline, and hovering or focusing it opens a bubble beside it.
+
+- **Why desktop only.** A tooltip needs a pointer that can rest somewhere without pressing. There is no
+  hover on a phone, a tap would fight the control underneath, and the phone build already folds its
+  explanations behind "?" buttons. On a phone `Term` renders its text and nothing else — no button, no
+  underline, no target to miss. `phone-ui` asserts zero `[data-term]` buttons exist there.
+- **Why a portal.** Half these words sit inside table cells and cards with their own `overflow`, and an
+  absolutely positioned bubble inside one of those is clipped by it. The bubble is fixed-position in a
+  portal to the body, which is immune — at the cost of going stale on scroll, so it closes on scroll
+  rather than drifting.
+- **Accessibility.** The trigger is a real `<button>`, so it is reachable by Tab and opens on focus; the
+  bubble carries `role="tooltip"` and is named by `aria-describedby`; Escape closes it. It is `display:
+  inline` so the 24px minimum-target rule does not stretch the line it sits in — the WCAG 2.5.8 inline
+  exception, which is what a definition inside a sentence is.
+- **Where they are.** 21 sites so far, densest where the jargon is: Config & Assumptions (CPI, NMPA, CGT,
+  GIA, IHT, volatility, percentile, Monte Carlo seed), Plan Inputs (GIA, CGT, S&S ISA, DB, annuities,
+  risk tier), Strategy (SIPP, the bridge, Bed & SIPP, percentile), and the decumulation headings. The
+  glossary holds more entries than there are sites; adding one is a two-word change at the point of use.
+
+`desktop-reach` checks that Config carries terms, that hovering one opens a bubble with real text, that
+the bubble lands inside the window, that it is named to a screen reader, and that it goes away again.

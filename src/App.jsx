@@ -23,6 +23,9 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
+// `T` at module scope, not a wrapper defined inside the render: a component redeclared every render
+// remounts, which would shut a tooltip the moment a worker result came back underneath it.
+import { Term as T } from './glossary.jsx';
 import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, Stepper, CollapsedRow } from './phone.jsx';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs } from './tabs.jsx';
@@ -7050,7 +7053,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
       {meta && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px] font-mono px-3 pb-3">
           <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Net budget tested</span><strong>£{fmtNum(Math.round(meta.netBudget))}/yr</strong></div>
-          <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Pre-SIPP access gap</span><strong>{meta.bridge.gapYears} yr{meta.bridge.gapYears === 1 ? '' : 's'}</strong></div>
+          <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Pre-<T k="SIPP">SIPP</T> access <T k="bridge">gap</T></span><strong>{meta.bridge.gapYears} yr{meta.bridge.gapYears === 1 ? '' : 's'}</strong></div>
           <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Bridge reserve target (+{Math.round(E.num(plan?.config?.bridgeSafetyMargin, 30))}%)</span><strong>{fmtK(meta.bridgeCapital)}</strong></div>
           <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Liquid today above buffer</span><strong>{fmtK(Math.max(0, meta.liquidToday - E.num(emergencyFloor, 0)))}</strong></div>
         </div>
@@ -7095,13 +7098,13 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
                       <div className="flex justify-between"><span className="text-slate-500">Pension:</span><strong className="text-blue-700">£{fmtNum(Math.round(res.penContrib || 0))}/yr{res.phase && res.phase.switchYears > 0 ? ' avg' : ''}</strong></div>
                       {res.giaContrib > 0 && <div className="flex justify-between"><span className="text-slate-500">GIA overflow:</span><strong className="text-amber-700">£{fmtNum(Math.round(res.giaContrib))}/yr</strong></div>}
                       {res.taxReliefSaved > 0 && <div className="flex justify-between text-emerald-700 font-bold"><span className="font-sans">{selfEmployedOnly ? 'Tax relief:' : 'Tax & NIC relief:'}</span><span>+£{fmtNum(Math.round(res.taxReliefSaved))}/yr</span></div>}
-                      {res.transferNet > 0 && <div className="flex justify-between text-indigo-700 font-bold"><span>Bed &amp; SIPP:</span><span>£{fmtNum(Math.round(res.transferNet))} &rarr; £{fmtNum(Math.round(res.transferGross))}</span></div>}
+                      {res.transferNet > 0 && <div className="flex justify-between text-indigo-700 font-bold"><span><T k="Bed &amp; SIPP">Bed &amp; SIPP</T>:</span><span>£{fmtNum(Math.round(res.transferNet))} &rarr; £{fmtNum(Math.round(res.transferGross))}</span></div>}
                       {res.phase && res.phase.switchYears > 0 && <div className="flex justify-between text-slate-600"><span className="font-sans">Phasing:</span><span>pension-max {res.phase.yearsToFirstRetire - res.phase.switchYears}y → ISA-max {res.phase.switchYears}y</span></div>}
                       {res.isEntrant && res.entrantOutlay !== null && res.entrantOutlay !== undefined && (
                         <div className="flex justify-between"><span className="text-slate-500 font-sans">Yearly outlay:</span><strong className={Math.abs(res.entrantOutlay - res.baselineOutlay) < 50 ? 'text-slate-700' : 'text-amber-700'}>£{fmtNum(Math.round(res.entrantOutlay))}/yr vs £{fmtNum(Math.round(res.baselineOutlay))}</strong></div>
                       )}
                       <div className="flex justify-between pt-1 border-t border-slate-100"><span className="text-slate-500 font-sans">Median pot @ {ctx.terminalAge}:</span><span className="font-bold text-slate-800">{fmtK(st.medianTerminal)}</span></div>
-                      <div className="flex justify-between"><span className="text-slate-500 font-sans">10th %ile pot:</span><span className="font-bold text-slate-800">{fmtK(st.p10Terminal)}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500 font-sans">10th <T k="percentile">%ile</T> pot:</span><span className="font-bold text-slate-800">{fmtK(st.p10Terminal)}</span></div>
                       {ctx.pensionDeathTaxRate > 0 && <div className="flex justify-between"><span className="text-slate-500 font-sans">Median pot net of pension death tax:</span><span className="font-bold text-slate-800">{fmtK(st.medianTerminalNet)}</span></div>}
                       <div className="flex justify-between"><span className="text-slate-500 font-sans">Median failure age:</span><span className={`font-bold ${st.preNmpaFailRate > 5 ? 'text-rose-600' : 'text-slate-700'}`}>{st.medianFailAge ? `Age ${st.medianFailAge}` : 'None'}</span></div>
                       <div className="flex justify-between"><span className="text-slate-500 font-sans">Pre-SIPP access (bridge) failures:</span><span className={`font-bold ${st.preNmpaFailRate > 5 ? 'text-rose-600' : 'text-slate-700'}`}>{st.preNmpaFailRate.toFixed(1)}%</span></div>
@@ -9869,7 +9872,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           <label className="text-slate-600 font-semibold block mb-1">Other Investments: unrealised gain ({o.label} £)</label>
                           <MoneyInput min="0" step="500" placeholder="blank = balance is all cost" onFocus={handleFocus}
                             value={acc?.unrealisedGain ?? ''} onChange={(e) => updateAccountField(o.ids.other, 'unrealisedGain', e.target.value)} className={inputCls} />
-                          <span className="text-[10px] text-slate-400 mt-1 block">How much of today's GIA balance is profit. Left blank, only future growth is taxed, which understates CGT on long-held holdings.</span>
+                          <span className="text-[10px] text-slate-400 mt-1 block">How much of today's <T k="GIA">GIA</T> balance is profit. Left blank, only future growth is taxed, which understates <T k="CGT">CGT</T> on long-held holdings.</span>
                         </div>
                       );
                     })}
@@ -9969,44 +9972,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         )}
 
         {/* Scenario Toolbar. Plan Inputs only: saving a scenario means saving THE PLAN, so it belongs
-            beside the plan, not floating over a chart where it reads as saving what is on screen. */}
-        {activeTab === 'inputs' && isPhone && (
-        /*
-         * ONE ROW. It was three - a labelled select, a name field with a Save button, and "Save as new
-         * scenario" - 186px on a screen where the first field was already a full scroll away. You name a
-         * scenario when you save one, not before, so the name field appears under the row only after the
-         * save or the save-as-new button is tapped, with the button that commits it.
-         */
-        <div data-scenario-bar className="bg-surface border border-slate-200/90 rounded-xl p-1 space-y-1">
-          <div className="flex items-center gap-1.5">
-            <Bookmark className="w-4 h-4 text-blue-600 shrink-0 ml-1.5" aria-hidden="true" />
-            <select aria-label="Active scenario" value={activeScenarioId} onChange={(e) => handleSelectScenario(e.target.value)}
-              className="flex-1 min-w-0 min-h-11 px-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-              {scenarios.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
-            </select>
-            <button type="button" aria-label="Save this scenario" aria-pressed={scenarioNaming === 'save'} onClick={() => setScenarioNaming(v => (v === 'save' ? null : 'save'))}
-              className="min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-accent text-onaccent cursor-pointer active:scale-95"><Save className="w-4 h-4" /></button>
-            <button type="button" aria-label="Save as a new scenario" aria-pressed={scenarioNaming === 'new'} onClick={() => setScenarioNaming(v => (v === 'new' ? null : 'new'))}
-              className="min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-slate-100 border border-slate-200 text-slate-700 cursor-pointer"><Plus className="w-4 h-4" /></button>
-            {scenarios.length > 1 && (
-              <button type="button" aria-label="Delete this scenario" onClick={() => handleDeleteScenario(activeScenarioId)}
-                className="min-h-11 min-w-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
-            )}
-          </div>
-          {scenarioNaming && (
-            <div className="flex items-center gap-1.5">
-              <input type="text" autoFocus aria-label="Scenario name"
-                placeholder={scenarioNaming === 'new' ? `Scenario ${scenarios.length + 1}` : 'Keep the current name'}
-                value={scenarioNameInput} onChange={(e) => setScenarioNameInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') commitScenario(); if (e.key === 'Escape') setScenarioNaming(null); }}
-                className="flex-1 min-w-0 min-h-11 px-3 bg-slate-50 border border-slate-300 rounded-lg text-[16px] text-slate-900 placeholder:text-slate-400 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <button type="button" onClick={commitScenario}
-                className="min-h-11 px-4 rounded-lg bg-accent text-onaccent text-xs font-bold cursor-pointer active:scale-95">{scenarioNaming === 'new' ? 'Save new' : 'Save'}</button>
-            </div>
-          )}
-          {saveSuccessMsg && <div className="text-xs font-bold text-emerald-700 flex items-center gap-1 px-2 pb-1"><Check className="w-3 h-3 text-emerald-600" /> {saveSuccessMsg}</div>}
-        </div>
-        )}
+            beside the plan, not floating over a chart where it reads as saving what is on screen.
+
+            On a phone it is not on the plan either - it is behind More on the bottom bar. A scenario is
+            switched or saved a handful of times in a session and the row sat above every field for all
+            of it, which is the wrong trade on a screen this size. The sheet is one tap away, it is where
+            the tab's other whole-plan actions already live (export, import, clear), and it can hold the
+            select at a readable width instead of squeezing it between two icon buttons. */}
         {activeTab === 'inputs' && !isPhone && (
         <div className="bg-surface border border-slate-200/90 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-wrap">
@@ -10324,7 +10296,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500 font-semibold">
-                    <th className="pb-2">Account wrapper</th>{isCouple && <th className="pb-2">Owner</th>}<th className="pb-2">Balance today (£)</th><th className="pb-2">Annual contribution (£)</th><th className="pb-2">Contrib growth (%/yr)</th><th className="pb-2">Asset allocation (risk tier)</th>
+                    <th className="pb-2">Account wrapper</th>{isCouple && <th className="pb-2">Owner</th>}<th className="pb-2">Balance today (£)</th><th className="pb-2">Annual contribution (£)</th><th className="pb-2">Contrib growth (%/yr)</th><th className="pb-2">Asset allocation (<T k="volatility">risk tier</T>)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono">
@@ -10361,7 +10333,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <span className="text-[11px] text-slate-500">Taxable streams count towards the personal allowance and tax bands; tax-free streams directly reduce net drawdown demand. Blank end age = plan end.</span>
                   <ul className="list-disc pl-4 text-[11px] text-slate-500 mt-1 leading-relaxed max-w-3xl space-y-0.5">
                     <li><strong>Earnings</strong> (employment / self-employment) are taxed <em>and</em> count as relevant UK earnings, so they raise how much you can pay into a pension that year.</li>
-                    <li><strong>Other taxable income</strong> (DB pensions, annuities, rent, dividends, interest) is taxed at income-tax rates but does <strong>not</strong> support pension contributions.</li>
+                    <li><strong>Other taxable income</strong> (<T k="DB">DB</T> pensions, <T k="annuity">annuities</T>, rent, dividends, interest) is taxed at income-tax rates but does <strong>not</strong> support pension contributions.</li>
                     <li><strong>Tax-free income</strong> is neither taxed nor counted.</li>
                   </ul>
                   <span className="text-[11px] text-slate-500 mt-1 block">With no relevant earnings the pension limit is {formatGBP(P.pensionNoEarningsLimit)}/yr.</span>
@@ -10417,7 +10389,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {ctx.owners.map(o => (
                     <div key={o.key} className="flex flex-wrap gap-x-4">
                       <span className="font-semibold">{o.label}:</span>
-                      <span>S&amp;S ISA remaining <strong>{formatGBP(E.wrapperHeadroomAtYear(ctx, o.key, 'isa', 0))}</strong>/yr</span>
+                      <span><T k="S&amp;S ISA">S&amp;S ISA</T> remaining <strong>{formatGBP(E.wrapperHeadroomAtYear(ctx, o.key, 'isa', 0))}</strong>/yr</span>
                       <span>Pension remaining <strong>{formatGBP(E.wrapperHeadroomAtYear(ctx, o.key, 'pen', 0))}</strong>/yr</span>
                     </div>
                   ))}
@@ -10596,7 +10568,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> Decumulation &amp; Pension Withdrawal Methodology</h2>
+                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> <T k="decumulation">Decumulation</T> &amp; Pension Withdrawal Methodology</h2>
                   <p className="text-xs text-slate-500 mt-1">Select how withdrawals are ordered across tax wrappers and how pensions are crystallised. <button type="button" onClick={() => goToDoc('doc-decumulation')} className="text-blue-600 hover:underline font-semibold cursor-pointer">What the evidence says &rarr;</button></p>
                   {/* The size of the search, said plainly: a button that thinks for thirty seconds should
                       account for the time, and the numbers are derived so they cannot go stale. */}
@@ -10750,7 +10722,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1">
                 <div>
-                  <label className="text-slate-600 font-semibold block mb-1">Decumulation policy</label>
+                  <label className="text-slate-600 font-semibold block mb-1"><T k="decumulation">Decumulation</T> policy</label>
                   <select value={plan?.spending?.decumulationPolicy} onChange={(e) => updateSpending('decumulationPolicy', e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                     {Object.entries(E.DECUMULATION_POLICIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                   </select>
@@ -10783,7 +10755,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <span className="text-[10px] text-slate-400 mt-1 block">Drawing to the basic-rate limit costs 20% today and is a <strong>bequest</strong> trade: from 2027 a pension left behind is taxed twice, by your estate and again by the heir at their own rate. It wins for a later death and loses for an early one, so let the estate optimiser on the Strategy tab decide it rather than guessing.</span>
                 </div>
                 <div>
-                  <label className="text-slate-600 font-semibold block mb-1">Capital gains tax on the GIA</label>
+                  <label className="text-slate-600 font-semibold block mb-1"><T k="CGT">Capital gains tax</T> on the <T k="GIA">GIA</T></label>
                   <label className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-300 rounded-lg cursor-pointer">
                     <input type="checkbox" checked={!!plan?.config?.cgtEnabled} onChange={(e) => updateConfig('cgtEnabled', e.target.checked)} className="accent-blue-600" />
                     <span className="text-slate-700 font-semibold">Tax gains realised when Other Investments are sold, using the cost basis of each holding.</span>
@@ -10958,7 +10930,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   })()}
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-[11px] border-collapse">
-                      <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Policy combination</th><th className="pb-1.5 pr-3">Survival</th><th className="pb-1.5 pr-3">Pre-SIPP access failures</th><th className="pb-1.5 pr-3">10th %ile pot</th><th className="pb-1.5">Median pot</th></tr></thead>
+                      <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Policy combination</th><th className="pb-1.5 pr-3">Survival</th><th className="pb-1.5 pr-3">Pre-<T k="SIPP">SIPP</T> access failures</th><th className="pb-1.5 pr-3">10th <T k="percentile">%ile</T> pot</th><th className="pb-1.5">Median pot</th></tr></thead>
                       <tbody className="divide-y divide-slate-100 font-mono">
                         {policyResults.rows.map(r => {
                           const won = r.id === policyResults.bestId;
@@ -10985,12 +10957,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               subtitle="Valuation date, inflation, access ages, the pension death-tax haircut and the Monte Carlo seed.">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-1">
                 <div><label className="text-slate-600 font-semibold block mb-1">Valuation date (today)</label><input type="date" value={plan?.config?.valuationDate ?? ''} onChange={(e) => updateConfig('valuationDate', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Year 0 flows are pro-rated to the {(ctx.yf * 100).toFixed(0)}% of the year remaining.</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Headline inflation CPI (% pa)</label><input type="number" step="0.1" placeholder="2.5" onFocus={handleFocus} value={plan?.config?.inflation ?? ''} onChange={(e) => updateConfig('inflation', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Only used for the nominal display series.</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Personal pension access age (NMPA)</label><input type="number" min="0" max="120" placeholder="58" onFocus={handleFocus} value={plan?.demographics?.privatePensionAge ?? ''} onChange={(e) => updateDemographics('privatePensionAge', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Statutory NMPA is 55 today and 57 from April 2028.</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Headline inflation <T k="CPI">CPI</T> (% pa)</label><input type="number" step="0.1" placeholder="2.5" onFocus={handleFocus} value={plan?.config?.inflation ?? ''} onChange={(e) => updateConfig('inflation', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Only used for the nominal display series.</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Personal pension access age (<T k="NMPA">NMPA</T>)</label><input type="number" min="0" max="120" placeholder="58" onFocus={handleFocus} value={plan?.demographics?.privatePensionAge ?? ''} onChange={(e) => updateDemographics('privatePensionAge', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Statutory NMPA is 55 today and 57 from April 2028.</span></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">State Pension start age</label><input type="number" min="0" max="120" placeholder="68" onFocus={handleFocus} value={plan?.demographics?.statePensionAge ?? ''} onChange={(e) => updateDemographics('statePensionAge', e.target.value)} className={inputCls} /></div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Tournament bridge safety margin (%)</label><input type="number" min="0" step="5" placeholder="30" onFocus={handleFocus} value={plan?.config?.bridgeSafetyMargin ?? ''} onChange={(e) => updateConfig('bridgeSafetyMargin', e.target.value)} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Uplift on the pre-SIPP access reserve, assuming 0% real growth. This scales the bridge <em>target</em> upwards; the tournament's emergency buffer instead holds savings back from counting towards it.</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Pension death-tax haircut (%)</label><input type="number" min="0" max="100" step="5" placeholder="0" onFocus={handleFocus} value={plan?.config?.pensionDeathTaxRate ?? ''} onChange={(e) => updateConfig('pensionDeathTaxRate', parsePercent(e.target.value))} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Applied to pension left at age {terminalAge} for the "net" pot figures only (IHT from April 2027 / beneficiary income tax).</span></div>
-                <div><label className="text-slate-600 font-semibold block mb-1">Monte Carlo seed</label><div className="flex gap-1"><input type="number" value={mcSeed} onChange={(e) => setMcSeed(Math.max(1, parseInt(e.target.value) || 1))} className={inputCls} /><button type="button" onClick={() => setMcSeed(Math.floor(Math.random() * 1e9) + 1)} className="px-2 bg-slate-100 border border-slate-300 rounded-lg text-[11px] font-semibold cursor-pointer hover:bg-slate-200">Reseed</button></div><span className="text-[10px] text-slate-400 mt-1 block">Same seed = same market paths (reproducible, fair comparisons).</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1">Pension death-tax haircut (%)</label><input type="number" min="0" max="100" step="5" placeholder="0" onFocus={handleFocus} value={plan?.config?.pensionDeathTaxRate ?? ''} onChange={(e) => updateConfig('pensionDeathTaxRate', parsePercent(e.target.value))} className={inputCls} /><span className="text-[10px] text-slate-400 mt-1 block">Applied to pension left at age {terminalAge} for the "net" pot figures only (<T k="IHT">IHT</T> from April 2027 / beneficiary income tax).</span></div>
+                <div><label className="text-slate-600 font-semibold block mb-1"><T k="Monte Carlo">Monte Carlo</T> seed</label><div className="flex gap-1"><input type="number" value={mcSeed} onChange={(e) => setMcSeed(Math.max(1, parseInt(e.target.value) || 1))} className={inputCls} /><button type="button" onClick={() => setMcSeed(Math.floor(Math.random() * 1e9) + 1)} className="px-2 bg-slate-100 border border-slate-300 rounded-lg text-[11px] font-semibold cursor-pointer hover:bg-slate-200">Reseed</button></div><span className="text-[10px] text-slate-400 mt-1 block">Same seed = same market paths (reproducible, fair comparisons).</span></div>
               </div>
             </CollapsibleCard>
 
@@ -10998,7 +10970,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               subtitle="The expected real return, volatility and forecast uncertainty behind every projection.">
               <div className="overflow-x-auto space-y-4">
               <div className="flex justify-between items-start gap-3">
-                <span className="text-[11px] text-slate-500">Expected real return is treated as the median (geometric) annual rate; Monte Carlo paths are log-normal around it with the stated σ, one market factor for all wrappers. The lucky and unlucky columns are calculated from the expected rate, σ, forecast uncertainty and your {ctx.totalYears}-year horizon, so they are not editable.</span>
+                <span className="text-[11px] text-slate-500">Expected real return is treated as the median (geometric) annual rate; <T k="Monte Carlo">Monte Carlo</T> paths are log-normal around it with the stated σ, one market factor for all wrappers. The lucky and unlucky columns are calculated from the expected rate, σ, forecast uncertainty and your {ctx.totalYears}-year horizon, so they are not editable.</span>
                 <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-accent text-onaccent border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
               </div>
 
@@ -11031,7 +11003,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 )}
               </div>
               <table className="w-full text-left text-xs border-collapse">
-                <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-2">Allocation category</th><th className="pb-2">Expected real return (% pa)</th><th className="pb-2">Unlucky, 10th %ile (% pa)</th><th className="pb-2">Lucky, 90th %ile (% pa)</th><th className="pb-2">Nominal return (% pa)</th><th className="pb-2">Annual Volatility (σ % pa)</th><th className="pb-2">Forecast uncertainty (% pa)</th></tr></thead>
+                <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-2">Allocation category</th><th className="pb-2">Expected real return (% pa)</th><th className="pb-2">Unlucky, 10th <T k="percentile">%ile</T> (% pa)</th><th className="pb-2">Lucky, 90th %ile (% pa)</th><th className="pb-2">Nominal return (% pa)</th><th className="pb-2">Annual <T k="volatility">Volatility</T> (σ % pa)</th><th className="pb-2">Forecast uncertainty (% pa)</th></tr></thead>
                 <tbody className="divide-y divide-slate-100 font-mono">
                   {Object.entries(activeRiskMatrix).map(([key, val]) => {
                     // totalYears + 1, not totalYears: stepYear runs t = 0..totalYears inclusive, so the plan
@@ -11304,7 +11276,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {renderProjectionChart('rate')}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
                     <strong className="text-slate-700">The band is the {bandSpec.lowPct} to {bandSpec.highPct} percentile, each edge compounded at that age&rsquo;s own rate.</strong>
-                    {' '}<strong className="text-rose-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with drawdown could take a higher-risk portfolio to £0. See the Monte Carlo simulation for a better predictor of how robust your plan is.
+                    {' '}<strong className="text-rose-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with <T k="drawdown">drawdown</T> could take a higher-risk portfolio to £0. See the <T k="Monte Carlo">Monte Carlo</T> simulation for a better predictor of how robust your plan is.
                     {bandCurves && bandCurves.lo.failAge !== null && <> <strong className="text-rose-700">Below age {bandCurves.lo.failAge} the bottom edge is broken, not low.</strong></>}
                   </p>
                   {slideNav(4)}
@@ -12901,7 +12873,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
             )}
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-              <div><h3 className="text-base font-semibold text-slate-900">Historical Wealth Path (Simulating {activeHistoricalStartYear}–{activeHistoricalStartYear + spanYears})</h3><span className="text-xs text-slate-500">Real purchasing power across accumulation and decumulation</span></div>
+              <div><h3 className="text-base font-semibold text-slate-900">Historical Wealth Path (Simulating {activeHistoricalStartYear}–{activeHistoricalStartYear + spanYears})</h3><span className="text-xs text-slate-500">Real purchasing power across accumulation and <T k="decumulation">decumulation</T></span></div>
             {renderHistoricalChart()}
             </div>
           </div>
@@ -12911,7 +12883,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {activeTab === 'audit' && (
           <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-              <div><h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Year-by-Year Cash Flow &amp; Wrapper Ledger</h2><span className="text-xs text-slate-500">Expected-return path: contributions, guaranteed income, decumulation waterfall, tax and wrapper balances (end of year).</span></div>
+              <div><h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Year-by-Year Cash Flow &amp; Wrapper Ledger</h2><span className="text-xs text-slate-500">Expected-return path: contributions, guaranteed income, <T k="decumulation">decumulation</T> waterfall, tax and wrapper balances (end of year).</span></div>
               <button onClick={handleExportCSV} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 cursor-pointer self-start sm:self-auto"><FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> Export CSV spreadsheet</button>
             </div>
             <div className="overflow-x-auto border border-slate-200 rounded-lg">
@@ -12957,7 +12929,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             )}
             <div id="doc-mc-buttons" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
               <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Dices className="w-4 h-4 text-blue-600" /> The Three Stages of a Monte Carlo Run</h2>
+              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Dices className="w-4 h-4 text-blue-600" /> The Three Stages of a <T k="Monte Carlo">Monte Carlo</T> Run</h2>
               <p className="text-xs text-slate-600 leading-relaxed">Two of these run from one button on the Projection tab, each result appearing as its stage finishes. They use the same engine on the same {fmtNum(MC_TRIALS)} randomised market paths and differ only in which side of the equation is held fixed: one fixes your spending and reports the risk, the other fixes the risk and reports the spending. The second can be switched off if you only want the fast answer. The third leaves both alone and changes where the money sits instead; it answers a different question, so it has its own tab and its own button.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
@@ -13303,6 +13275,41 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             foot={APP_VERSION}
             extras={
               <>
+                {activeTab === 'inputs' && (
+                  <div data-scenario-bar className="px-3 pb-2 mb-1 border-b border-slate-100 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Bookmark className="w-4 h-4 text-blue-600 shrink-0" aria-hidden="true" />
+                      <select aria-label="Active scenario" value={activeScenarioId} onChange={(e) => handleSelectScenario(e.target.value)}
+                        className="flex-1 min-w-0 min-h-11 px-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                        {scenarios.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
+                      </select>
+                      {scenarios.length > 1 && (
+                        <button type="button" aria-label="Delete this scenario" onClick={() => handleDeleteScenario(activeScenarioId)}
+                          className="min-h-11 min-w-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+                      )}
+                    </div>
+                    {/* You name a scenario when you save one, not before: the field appears under the row
+                        once a save has been asked for, with the button that commits it. */}
+                    <div className="flex items-center gap-1.5">
+                      <button type="button" aria-pressed={scenarioNaming === 'save'} onClick={() => setScenarioNaming(v => (v === 'save' ? null : 'save'))}
+                        className="flex-1 min-h-11 flex items-center justify-center gap-1.5 rounded-lg bg-accent text-onaccent text-xs font-bold cursor-pointer active:scale-95"><Save className="w-4 h-4" /> Save</button>
+                      <button type="button" aria-pressed={scenarioNaming === 'new'} onClick={() => setScenarioNaming(v => (v === 'new' ? null : 'new'))}
+                        className="flex-1 min-h-11 flex items-center justify-center gap-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold cursor-pointer"><Plus className="w-4 h-4" /> Save as new</button>
+                    </div>
+                    {scenarioNaming && (
+                      <div className="flex items-center gap-1.5">
+                        <input type="text" autoFocus aria-label="Scenario name"
+                          placeholder={scenarioNaming === 'new' ? `Scenario ${scenarios.length + 1}` : 'Keep the current name'}
+                          value={scenarioNameInput} onChange={(e) => setScenarioNameInput(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') commitScenario(); if (e.key === 'Escape') setScenarioNaming(null); }}
+                          className="flex-1 min-w-0 min-h-11 px-3 bg-slate-50 border border-slate-300 rounded-lg text-[16px] text-slate-900 placeholder:text-slate-400 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        <button type="button" onClick={commitScenario}
+                          className="min-h-11 px-4 rounded-lg bg-accent text-onaccent text-xs font-bold cursor-pointer active:scale-95">{scenarioNaming === 'new' ? 'Save new' : 'Save'}</button>
+                      </div>
+                    )}
+                    {saveSuccessMsg && <div className="text-xs font-bold text-emerald-700 flex items-center gap-1"><Check className="w-3 h-3 text-emerald-600" /> {saveSuccessMsg}</div>}
+                  </div>
+                )}
                 <div className="flex items-center justify-between px-3 min-h-12">
                   <span className="text-sm font-semibold text-slate-700">Theme</span>
                   <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch />

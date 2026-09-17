@@ -33,6 +33,16 @@ const ok = (l, c, d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:
     await p.waitForTimeout(800);
     await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Config/.test(b.textContent)); if(x) x.click(); });
     await p.waitForTimeout(600);
+    /*
+     * At phone width the whole methodology panel folds, like the three cards under it: open, it was
+     * 1,290px on top of them and Config opened three and a half screens deep. Everything this harness
+     * checks lives inside it, so open it first. On a desktop there is no fold and this finds nothing.
+     */
+    await p.evaluate(() => {
+      const d = [...document.querySelectorAll('details')].find(x => /Decumulation &(amp;)? withdrawal/.test(x.querySelector('summary')?.textContent || ''));
+      if (d) d.open = true;
+    });
+    await p.waitForTimeout(250);
     const text = () => p.evaluate(() => document.body.innerText);
     let t = await text();
     ok(`${width}: gate line shows before a sweep`, /Run the policy search to see the recommended settings/.test(t));

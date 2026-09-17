@@ -107,3 +107,47 @@ profiles, so a pane that outgrows its screen fails the suite rather than quietly
 **Desktop is untouched.** Every branch is behind `isPhone`; at 1400px the page is still the two-column
 layout with the chart, its legend and its footnote in the right-hand card, the full theme group in the
 header and the footer where it was. `desktop-reach` and `restyle-regression` prove it.
+
+## The full planner: less scroll, and the small print said once
+
+Measured on the iPhone 13 profile (390×664), which is the smaller of the two and what everything here is
+sized against. Screens = the tab's `scrollHeight` over the viewport.
+
+| Tab | Before | After |
+|---|---|---|
+| Start Here | 2,386px · 3.6 screens | 1,273px · **1.9** |
+| Plan Inputs | 1,240px · 1.9 | 1,111px · **1.7** |
+| Config & Assumptions | 3,506px · 5.3 | 1,114px · **1.7** |
+| Projection | 904px · 1.4 | 774px · **1.2** |
+| Strategy | 1,128px · 1.7 | 998px · **1.5** |
+| Historical Backtest | 2,000px · 3.0 | 1,533px · **2.3** |
+| Audit Data Table | 2,843px · 4.3 | 951px · **1.4** |
+| Documentation | 1,410px · 2.1 | 1,280px · **1.9** |
+| **All eight** | **15,417px** | **8,034px** |
+
+`phone-ui` now carries a ceiling per tab, with about 15% of headroom over what each measures today, so a
+tab that grows past its screen budget fails the suite rather than quietly getting longer.
+
+### What did it
+
+- **The footer is gone from the phone build.** One line of small print repeating under all eight tabs on
+  the screen with the least room. The full planner says it once, on Start Here, where the sentence now
+  carries what the footer carried; the simple page says it beside its figures. The desktop keeps it.
+- **Config folds.** Three of its four cards already folded on the grounds that they are reference data; the
+  fourth stayed open because it is the tab's one real decision. On a phone that reasoning inverts — open,
+  it was 1,290px sitting on top of the three folded ones, so the decision was no easier to find for being
+  first. Now Config is four headings and the decision is one tap in, like the rest of them. The playbook
+  inside it (ten numbered steps, 1,015px) starts shut on a phone and open on a desktop.
+- **The audit table scrolls in its own box.** Fifty years of ledger was 2,160px of *page*: the tab's head
+  scrolled away and the column names with it. Capped at 60% of the screen with its own scroll and a stuck
+  header, the tab is one screen and the table is still all there.
+- **Start Here is a contents page, not a prospectus.** Each of the eight tab cards had a paragraph — 925px
+  of reading before the first tab was reached. One line each on a phone, the paragraph kept for the
+  desktop; the wheel shrinks from 176px to 96px; the coverage note folds behind its heading.
+- **Backtest**: the three figure tiles go three across rather than stacked.
+
+### Where scrolling stayed
+
+Backtest at 2.3 screens holds a chart, an era picker and a verdict; Documentation at 1.9 is a directory of
+eleven folded sections; Start Here at 1.9 explains the other seven tabs. Each is a page whose content is
+the length, not chrome around it. The rest are between 1.2 and 1.7.

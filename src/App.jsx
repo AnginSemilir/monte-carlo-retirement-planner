@@ -9881,8 +9881,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
   );
 
+  /*
+   * pb-4.5rem on a phone, not 3.5: the bottom bar is 3.5rem and the extra rem is clearance. With the
+   * footer gone from the phone build the page's last line ended exactly where the bar begins, which
+   * reads as content cut off rather than content finished.
+   */
   return (
-    <div className={`min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans ${touch ? 'touch-ui' : ''} ${isPhone ? 'pb-[calc(3.5rem+env(safe-area-inset-bottom))]' : ''}`}>
+    <div className={`min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans ${touch ? 'touch-ui' : ''} ${isPhone ? 'pb-[calc(4.5rem+env(safe-area-inset-bottom))]' : ''}`}>
       <div data-app-content className={`max-w-7xl mx-auto ${isPhone ? 'space-y-3' : 'space-y-6'}`}>
 
         {/* Header Bar.
@@ -9939,9 +9944,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             * Full width under the header row rather than inside its left column, which the tab bar
             * squeezes to about a third of the card.
             */}
-          {isPhone ? (
-            <p data-money-banner className="text-[11px] text-blue-800 mt-1.5 pl-0.5"><strong className="font-semibold">Every amount here is in today&rsquo;s money.</strong></p>
-          ) : (
+          {/* Not on a phone: the card this sits in is Start Here's alone there, and Start Here has no
+              amounts on it to be in today's money. The line Plan Inputs carries is the one that matters,
+              and it is rendered with the fields it qualifies. */}
+          {isPhone ? null : (
             <p data-money-banner className="text-xs mt-4 leading-relaxed rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-blue-900">
               <strong className="font-semibold">Every amount here is in today&rsquo;s money.</strong>
             </p>
@@ -10015,7 +10021,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <div className="space-y-6">
             <div className="relative overflow-hidden bg-surface border border-slate-200/90 rounded-xl">
               {/* the cards stay decorative; the wheel is a real control now, so it is out of the text's way */}
-              <div className="relative p-6 sm:p-8 flex flex-col md:flex-row md:items-center gap-7 lg:gap-10">
+              <div className={`relative flex flex-col md:flex-row md:items-center ${isPhone ? 'p-4 gap-3' : 'p-6 sm:p-8 gap-7 lg:gap-10'}`}>
               <div className="max-w-2xl space-y-3 flex-1 min-w-0">
                 {/*
                   * No masthead here. The header above carries the name on every tab, and repeating it
@@ -10037,60 +10043,75 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <BookOpen className="w-3.5 h-3.5" /> Read the methodology
                   </button>
                 </div>
+                {/* The one place this is said on a phone: the footer that used to repeat it under every
+                    tab is gone there, so this line carries what it carried. */}
                 <p className="text-[11px] text-slate-500 pt-1">
-                  <strong className="text-slate-700 font-semibold">Educational and illustrative only. This is not financial advice.</strong> Your
-                  plan is saved in this browser only.
+                  <strong className="text-slate-700 font-semibold">Educational and illustrative only. This is not financial advice.</strong> Everything
+                  is modelled, every figure is in today&rsquo;s money, and your plan stays in this browser.
                 </p>
               </div>
               <div className="shrink-0 self-center mx-auto md:mx-0 md:ml-auto">
-                <RouletteWheel className="w-44 sm:w-52 lg:w-60" />
+                <RouletteWheel className={isPhone ? 'w-24' : 'w-44 sm:w-52 lg:w-60'} />
               </div>
               </div>
             </div>
 
             {/* what each tab does */}
-            <div className="bg-surface border border-slate-200/90 rounded-xl p-5 space-y-4">
+            <div className={`bg-surface border border-slate-200/90 rounded-xl ${isPhone ? 'p-3 space-y-2' : 'p-5 space-y-4'}`}>
               <div>
                 <h3 className="text-sm font-semibold text-slate-900">What each tab is for</h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">Click any card to go there. Plan Inputs is the only tab you have to fill in. Everything else reads from what you entered there.</p>
+                {!isPhone && <p className="text-[11px] text-slate-500 mt-0.5">Click any card to go there. Plan Inputs is the only tab you have to fill in. Everything else reads from what you entered there.</p>}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${isPhone ? 'gap-1.5' : 'gap-3'}`}>
                 {[
                   { tab: 'inputs', Icon: Sliders, name: 'Plan Inputs', accent: 'blue', need: 'Required',
+                    short: 'You, your spending, and what each wrapper holds.',
                     body: 'Who you are, when you stop working, what you spend, and what each wrapper holds. One-off costs and deposits live here too. Choose Advanced inputs if either of you is self-employed.' },
                   { tab: 'config', Icon: Settings, name: 'Config & Assumptions', accent: 'blue', need: 'Optional',
+                    short: 'Tax rates, returns, drawdown policy, the seed.',
                     body: 'Tax rates, allowances, return and volatility assumptions, drawdown policy and the random seed. Defaults are current-year figures, so change them to test a different assumption, not because the tab exists.' },
                   { tab: 'projection', Icon: Layers, name: 'Projection', accent: 'blue',
+                    short: 'The answer: the chart, the survival rate, the sandbox.',
                     body: `Your plan year by year on one chart: the expected path, a modelled range that updates as you type, and the ${fmtNum(MC_TRIALS)}-path simulation with its survival rate and safe-spend solver. The sandbox for testing a different contribution or retirement age lives here too.` },
                   { tab: 'strategy', Icon: Zap, name: 'Strategy', accent: 'indigo',
+                    short: 'Same budget, split between wrappers six ways.',
                     body: 'The tournament: holds your spending and budget fixed and re-splits the money between wrappers, scoring each strategy on identical market paths.' },
                   ...(SHOW_INHERITANCE ? [{ tab: 'inheritance', Icon: Gift, name: 'Inheritance', accent: 'indigo',
                     need: 'What your heirs actually receive, which is not the pot you leave.',
                     body: 'From 2027 an unused pension counts towards inheritance tax, and if you die at 75 or over your heirs pay their own income tax on it too. Says what reaches them, and how much it depends on when you die and who they are.' }] : []),
                   { tab: 'historical', Icon: History, name: 'Historical Backtest', accent: 'indigo',
+                    short: `Your plan through real returns since ${E.HISTORICAL_FIRST_YEAR}.`,
                     body: `Replays real returns from ${E.HISTORICAL_FIRST_YEAR} onwards through your plan. A reality check on the random draws: sequences like 1973 or 2000 actually happened.` },
                   { tab: 'audit', Icon: Table, name: 'Audit Data Table', accent: 'blue',
+                    short: 'Every projected year as raw numbers.',
                     body: 'Every projected year as raw numbers (balances, drawdown, tax paid), so you can check the arithmetic rather than trust the charts.' },
                   { tab: 'docs', Icon: BookOpen, name: 'Documentation', accent: 'blue',
+                    short: 'How it works, and what it does not model.',
                     body: 'How each calculation works, which modelling decisions were made and why, and what is not modelled yet, plainly stated.' }
                 ].map(t => (
                   <button key={t.tab} type="button" onClick={() => setActiveTab(t.tab)}
-                    className="text-left p-3.5 rounded-lg border border-slate-200 bg-surface hover:border-indigo-200 hover:bg-slate-50 transition-colors cursor-pointer group flex flex-col gap-1.5">
+                    className={`text-left rounded-lg border border-slate-200 bg-surface hover:border-indigo-200 hover:bg-slate-50 transition-colors cursor-pointer group flex flex-col ${isPhone ? 'px-3 py-2 gap-0.5' : 'p-3.5 gap-1.5'}`}>
                     <span className="flex flex-wrap items-center gap-2">
                       <t.Icon className={`w-4 h-4 shrink-0 ${t.accent === 'indigo' ? 'text-indigo-600' : 'text-blue-600'}`} />
                       <strong className="text-xs font-bold text-slate-900 group-hover:text-indigo-700">{t.name}</strong>
                       {t.need && <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${t.need === 'Required' ? 'bg-rose-100 text-rose-800' : 'bg-slate-200 text-slate-600'}`}>{t.need}</span>}
                     </span>
-                    <span className="text-[11px] text-slate-600 leading-relaxed">{t.body}</span>
+                    {/* A paragraph each is 925px of the eight on a phone, which is a screen and a half
+                        of reading before the first tab is reached. One line each says which tab, which
+                        is what a contents page is for; the paragraph is a desktop's to spare. */}
+                    <span className="text-[11px] text-slate-600 leading-relaxed">{isPhone ? (t.short || t.body) : t.body}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* honesty note */}
-            <div className="relative overflow-hidden bg-slate-50 border border-slate-200 rounded-xl p-5">
-              <div className="relative max-w-2xl space-y-2">
+            <div className={`relative overflow-hidden bg-slate-50 border border-slate-200 rounded-xl ${isPhone ? 'px-4 py-1' : 'p-5'}`}>
+              {/* The heading is PhoneCollapse's first child by contract: it stays visible and everything
+                  after it folds behind it. */}
+              <PhoneCollapse isPhone={isPhone}>
                 <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2"><Info className="w-4 h-4 text-slate-500" /> What this model will not tell you</h3>
+              <div className="relative max-w-2xl space-y-2">
                 <p className="text-xs text-slate-600 leading-relaxed">
                   It covers UK income tax and its personal-allowance taper, including the Scottish and Welsh bands, National Insurance for
                   employees and the self-employed, the annual allowance with taper and carry-forward, the MPAA, ISA limits, realisation-based
@@ -10105,6 +10126,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <HelpCircle className="w-3.5 h-3.5" /> Modelling decisions, coverage and known gaps &rarr;
                 </button>
               </div>
+              </PhoneCollapse>
             </div>
           </div>
         )}
@@ -10565,13 +10587,30 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 ))}
               </div>
             </div>
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+            {/*
+              * THE WHOLE PANEL FOLDS ON A PHONE.
+              *
+              * Three of Config's four cards already fold, on the grounds that they are reference data a
+              * plan rarely touches; this one stayed open because it is the tab's one real decision. On a
+              * phone that reasoning inverts: open, it is 1,290px of four settings and their explanations
+              * sitting on top of the three folded cards, so Config opened three and a half screens deep
+              * and the decision was no easier to find for being first. Folded, Config is a list of four
+              * headings and the decision is one tap in, like the rest of them.
+              *
+              * The h2 is rendered only on a phone, which is what makes PhoneCollapse fold it: with one
+              * child it returns the child untouched, so the desktop card is byte-for-byte what it was.
+              */}
+            <div className={isPhone ? 'bg-surface border border-slate-200/90 rounded-xl px-4 py-1' : ''}>
+            <PhoneCollapse isPhone={isPhone}>
+            {isPhone && <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> <T k="decumulation">Decumulation</T> &amp; withdrawal</h2>}
+            <div className={isPhone ? 'space-y-3 pb-2' : 'bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4'}>
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div>
                   <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> <T k="decumulation">Decumulation</T> &amp; Pension Withdrawal Methodology</h2>
                   <p className="text-xs text-slate-500 mt-1">Select how withdrawals are ordered across tax wrappers and how pensions are crystallised. <button type="button" onClick={() => goToDoc('doc-decumulation')} className="text-blue-600 hover:underline font-semibold cursor-pointer">What the evidence says &rarr;</button></p>
                   {/* The size of the search, said plainly: a button that thinks for thirty seconds should
                       account for the time, and the numbers are derived so they cannot go stale. */}
+                  <Fine isPhone={isPhone} label="How big the search is">
                   <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
                     Auto-pick scores <strong className="text-slate-700">all {POLICY_COMBOS} combinations</strong> of
                     the {Object.keys(E.DECUMULATION_POLICIES).length} withdrawal policies, both crystallisation
@@ -10580,6 +10619,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     paths, so a single click simulates {fmtNum((POLICY_COMBOS * TOURNAMENT_TRIALS))} retirements
                     and takes about half a minute.
                   </p>
+                  </Fine>
                 </div>
                 <div className="shrink-0">
                   <button type="button" onClick={handleFindBestPolicy} disabled={isPolicySearching || !policySweepReady}
@@ -10726,9 +10766,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <select value={plan?.spending?.decumulationPolicy} onChange={(e) => updateSpending('decumulationPolicy', e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                     {Object.entries(E.DECUMULATION_POLICIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                   </select>
-                  <span className="text-[10px] text-slate-400 mt-1 block">
-                    {(E.DECUMULATION_POLICIES[plan?.spending?.decumulationPolicy]?.blurb || (() => ''))(P)}
-                  </span>
+                  <Fine isPhone={isPhone} label="What this policy does">
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      {(E.DECUMULATION_POLICIES[plan?.spending?.decumulationPolicy]?.blurb || (() => ''))(P)}
+                    </span>
+                  </Fine>
                 </div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Pension drawdown strategy</label>
@@ -10736,7 +10778,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <option value="Phased Drawdown">Phased Drawdown (Ongoing {Math.round(P.pclsProp * 100)}% tax-free proportion)</option>
                     <option value="Full 25% Lump Sum">Full Lump Sum (Upfront statutory PCLS into Cash)</option>
                   </select>
-                  <span className="text-[10px] text-slate-400 mt-1 block">Phased crystallises {Math.round(P.pclsProp * 100)}% tax-free with each draw; Lump Sum moves the tax-free cash (capped at £{fmtNum(P.lsa)}) into cash savings at retirement.</span>
+                  <Fine isPhone={isPhone} label="What each one does">
+                    <span className="text-[10px] text-slate-400 mt-1 block">Phased crystallises {Math.round(P.pclsProp * 100)}% tax-free with each draw; Lump Sum moves the tax-free cash (capped at £{fmtNum(P.lsa)}) into cash savings at retirement.</span>
+                  </Fine>
                 </div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Harvest unused 0% allowance</label>
@@ -10767,8 +10811,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               {/* Generated from the policy definition, never written per policy: hand-written copy drifts,
                   and instructions that describe a strategy the engine is not running are worse than none. */}
-              <details className="pt-3 border-t border-slate-100" open>
-                <summary className="cursor-pointer text-sm font-semibold text-slate-900 hover:text-slate-900">How to actually follow this policy</summary>
+              {/* Open on a desktop, where it is the payoff of the card. Shut on a phone, where its ten
+                  numbered steps are 1,015px - a screen and a half of instructions above the settings the
+                  reader came to change. */}
+              <details className="pt-3 border-t border-slate-100" open={!isPhone}>
+                <summary className="cursor-pointer min-h-11 flex items-center text-sm font-semibold text-slate-900 hover:text-slate-900">How to actually follow this policy</summary>
                 <ol className="mt-2 space-y-2">
                   {E.policyPlaybook(plan?.spending?.decumulationPolicy, P).map((step, i) => (
                     <li key={i} className="flex gap-2.5 text-xs">
@@ -10951,6 +10998,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <p className="text-[10px] text-slate-400">Every combination is scored on the same market paths, so differences between rows are more reliable than each row's own sampling error. Changing any plan input invalidates these results. Re-run to refresh.</p>
                 </div>
               )}
+            </div>
+            </PhoneCollapse>
             </div>
 
             <CollapsibleCard icon={Settings} title="Global Economic & Calculation Configuration"
@@ -12843,7 +12892,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div><h3 className="text-sm font-semibold text-slate-900">Select a historical scenario or start year</h3><span className="text-[11px] text-slate-500">Select an iconic crisis preset or slide to any year between {E.HISTORICAL_FIRST_YEAR} and {maxHistoricalStartYear}.</span></div>
+                <div><h3 className="text-sm font-semibold text-slate-900">Select a historical scenario or start year</h3>{!isPhone && <span className="text-[11px] text-slate-500">Select an iconic crisis preset or slide to any year between {E.HISTORICAL_FIRST_YEAR} and {maxHistoricalStartYear}.</span>}</div>
                 <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono font-bold text-indigo-700"><span>Start Year:</span><input type="number" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Math.max(E.HISTORICAL_FIRST_YEAR, Math.min(maxHistoricalStartYear, Number(e.target.value) || E.HISTORICAL_FIRST_YEAR)))} className="w-16 p-1 bg-surface border border-slate-300 rounded text-center text-indigo-900 focus:outline-none focus:ring-1 focus:ring-indigo-500" /></div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
@@ -12859,17 +12908,22 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
               <div className="pt-2 flex items-center gap-3"><span className="text-xs font-mono text-slate-400">{E.HISTORICAL_FIRST_YEAR}</span><input type="range" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Number(e.target.value))} className="w-full accent-indigo-600 cursor-pointer" /><span className="text-xs font-mono text-slate-600 font-bold">{maxHistoricalStartYear}</span></div>
             </div>
+            {/* One column of four cards is 470px on a phone for three numbers and a verdict. The verdict
+                keeps the full width - it is a sentence - and the three figures go three across, which is
+                what they are: a row of readings. */}
             {historicalMetrics && (
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div className={`grid grid-cols-1 sm:grid-cols-4 ${isPhone ? 'gap-2' : 'gap-4'}`}>
                 <div className={`p-4 rounded-xl border ${historicalMetrics.survived ? 'bg-emerald-50/90 border-emerald-200' : 'bg-rose-50/90 border-rose-200'}`}>
                   <span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Backtest verdict</span>
                   <div className="flex items-center gap-2">{historicalMetrics.survived ? <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0" />}<div><div className={`text-base font-black ${historicalMetrics.survived ? 'text-emerald-800' : 'text-rose-800'}`}>{historicalMetrics.survived ? `Survived all ${spanYears} years` : historicalMetrics.failReason === 'floor' ? `All ${spanYears} years funded, below floor` : historicalMetrics.failedBeforeDrawdown ? `Ran dry before retirement, at Age ${historicalMetrics.failAge}` : historicalMetrics.fundedDrawdownYears <= 0 ? `Ran dry in year 1 of ${historicalMetrics.drawdownYears} drawdown years` : `Ran dry after ${historicalMetrics.fundedDrawdownYears} of ${historicalMetrics.drawdownYears} drawdown years`}</div><span className="text-[11px] text-slate-500">{historicalMetrics.survived ? `Age ${currentAge} to ${terminalAge}, no shortfall in any year`
                     : historicalMetrics.failReason === 'floor' ? `Ends below the ${formatGBP(ctx.solvencyFloor)} bequest floor at Age ${terminalAge}`
                       : `${historicalMetrics.failReason === 'pre-access' ? `Pension still locked at Age ${historicalMetrics.failAge}` : `Age ${historicalMetrics.failAge}`} (${historicalMetrics.failYear}) · ${historicalMetrics.unfundedYears} of ${spanYears} plan years unfunded${historicalMetrics.failCost > 0 ? ` · a ${formatGBP(historicalMetrics.failCost)} one-off cost falls that year` : ''}`}</span></div></div>
                 </div>
-                <div className="bg-surface border border-slate-200/90 p-4 rounded-xl"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Starting balance (today)</span><div className="text-xl font-bold font-mono text-slate-900 mt-1">{formatGBP(historicalMetrics.startVal)}</div><span className="text-[11px] text-slate-400">After year-0 flows, at Age {currentAge}</span></div>
-                <div className="bg-surface border border-slate-200/90 p-4 rounded-xl"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Lowest portfolio trough</span><div className="text-xl font-bold font-mono text-amber-700 mt-1">{formatGBP(historicalMetrics.minVal)}</div><span className="text-[11px] text-slate-400">Lowest total experienced</span></div>
-                <div className="bg-surface border border-slate-200/90 p-4 rounded-xl"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1">Terminal Pot @ {terminalAge}</span><div className={`text-xl font-bold font-mono mt-1 ${historicalMetrics.terminalVal > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{formatGBP(historicalMetrics.terminalVal)}</div><span className="text-[11px] text-slate-400">Real purchasing power remaining · lifetime tax {formatGBP(historicalMetrics.lifetimeTax)}</span></div>
+                <div className={isPhone ? 'col-span-1 grid grid-cols-3 gap-2' : 'contents'}>
+                  <div className={`bg-surface border border-slate-200/90 rounded-xl min-w-0 ${isPhone ? 'p-2' : 'p-4'}`}><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1 leading-tight">Starting balance</span><div className={`font-bold font-mono text-slate-900 mt-1 truncate ${isPhone ? 'text-sm' : 'text-xl'}`}>{formatGBP(historicalMetrics.startVal)}</div>{!isPhone && <span className="text-[11px] text-slate-400">After year-0 flows, at Age {currentAge}</span>}</div>
+                  <div className={`bg-surface border border-slate-200/90 rounded-xl min-w-0 ${isPhone ? 'p-2' : 'p-4'}`}><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1 leading-tight">Lowest trough</span><div className={`font-bold font-mono text-amber-700 mt-1 truncate ${isPhone ? 'text-sm' : 'text-xl'}`}>{formatGBP(historicalMetrics.minVal)}</div>{!isPhone && <span className="text-[11px] text-slate-400">Lowest total experienced</span>}</div>
+                  <div className={`bg-surface border border-slate-200/90 rounded-xl min-w-0 ${isPhone ? 'p-2' : 'p-4'}`}><span className="text-[11px] font-semibold uppercase tracking-[0.08em] block text-slate-500 mb-1 leading-tight">Pot @ {terminalAge}</span><div className={`font-bold font-mono mt-1 truncate ${isPhone ? 'text-sm' : 'text-xl'} ${historicalMetrics.terminalVal > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{formatGBP(historicalMetrics.terminalVal)}</div>{!isPhone && <span className="text-[11px] text-slate-400">Real purchasing power remaining · lifetime tax {formatGBP(historicalMetrics.lifetimeTax)}</span>}</div>
+                </div>
               </div>
             )}
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
@@ -12886,9 +12940,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div><h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Year-by-Year Cash Flow &amp; Wrapper Ledger</h2><span className="text-xs text-slate-500">Expected-return path: contributions, guaranteed income, <T k="decumulation">decumulation</T> waterfall, tax and wrapper balances (end of year).</span></div>
               <button onClick={handleExportCSV} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 cursor-pointer self-start sm:self-auto"><FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> Export CSV spreadsheet</button>
             </div>
-            <div className="overflow-x-auto border border-slate-200 rounded-lg">
+            {/* A fifty-year ledger is 2,160px of table, and on a phone that was 2,160px of PAGE: the head
+                of the tab scrolled away and the column names with it. Capped at 60% of the screen with
+                its own scroll and a stuck header, the tab is one screen and the table is still all there
+                - which is the shape a table wants on a phone anyway. The desktop box is unchanged. */}
+            <div className={`overflow-x-auto border border-slate-200 rounded-lg ${isPhone ? 'max-h-[60vh] overflow-y-auto' : ''}`}>
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans"><tr><th className="p-2.5">Year</th><th className="p-2.5">Age (M)</th>{isCouple && <th className="p-2.5">Age (P)</th>}<th className="p-2.5">Spend target</th><th className="p-2.5">Guaranteed + Take-home (net)</th><th className="p-2.5">Net drawdown</th><th className="p-2.5">Pension draw (gross)</th><th className="p-2.5">Tax</th>{P.cgtEnabled && <th className="p-2.5">CGT</th>}<th className="p-2.5">Pensions</th><th className="p-2.5">ISAs</th><th className="p-2.5">Other inv</th><th className="p-2.5">Cash</th><th className="p-2.5">Total combined</th><th className="p-2.5">Pre-SIPP access Liquid</th><th className="p-2.5 text-right">Status</th></tr></thead>
+                <thead className={`bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans ${isPhone ? 'sticky top-0 z-10' : ''}`}><tr><th className="p-2.5">Year</th><th className="p-2.5">Age (M)</th>{isCouple && <th className="p-2.5">Age (P)</th>}<th className="p-2.5">Spend target</th><th className="p-2.5">Guaranteed + Take-home (net)</th><th className="p-2.5">Net drawdown</th><th className="p-2.5">Pension draw (gross)</th><th className="p-2.5">Tax</th>{P.cgtEnabled && <th className="p-2.5">CGT</th>}<th className="p-2.5">Pensions</th><th className="p-2.5">ISAs</th><th className="p-2.5">Other inv</th><th className="p-2.5">Cash</th><th className="p-2.5">Total combined</th><th className="p-2.5">Pre-SIPP access Liquid</th><th className="p-2.5 text-right">Status</th></tr></thead>
                 <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
                   {timelineData.map(r => (
                     <tr key={r.year} className="hover:bg-slate-50/80 transition-colors">

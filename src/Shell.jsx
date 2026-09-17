@@ -246,7 +246,10 @@ export default function Shell() {
           </div>
         </div>
       )}
-      <Footer />
+      {/* Not on a phone. It is one line of small print that was repeating under every one of eight tabs,
+          on the screen with the least room to spare; the full planner says it once on Start Here and the
+          simple page says it beside its figures. A desktop has the room and keeps it. */}
+      {!isPhone && <Footer />}
     </>
   );
 }

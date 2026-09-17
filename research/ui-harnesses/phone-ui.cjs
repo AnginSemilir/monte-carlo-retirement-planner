@@ -201,11 +201,11 @@ const navigate = async (page, label, short) => {
       });
       ok('the projection runs', ran);
       if (ran) {
-        await p.waitForFunction(() => [...document.querySelectorAll('button')].some(b => b.textContent.trim() === '6'), null, { timeout: 240000 });
+        await p.waitForFunction(() => !!document.querySelector('[data-slide-pill="6"]'), null, { timeout: 240000 });
         await p.waitForTimeout(1200);
         const vw = desc.viewport.width;
         for (const step of ['4', '5', '7']) {
-          await p.evaluate((n) => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === n); if (b) b.click(); }, step);
+          await p.evaluate((n) => { const b = document.querySelector(`[data-slide-pill="${n}"]`); if (b) b.click(); }, step);
           await p.waitForTimeout(900);
           const w = await p.evaluate(CHART_WIDTH_PROBE);
           ok(`step ${step}: the chart uses the screen`, w >= vw * 0.92, `${w}px of ${vw}px`);
@@ -218,13 +218,17 @@ const navigate = async (page, label, short) => {
          * beside it turns the clamp off silently - the text looks the same, the button still opens
          * something that was never shut. So measure the clamp, not just the button.
          */
-        await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === '1'); if (b) b.click(); });
+        await p.evaluate(() => { const b = document.querySelector('[data-slide-pill="1"]'); if (b) b.click(); });
         await p.waitForTimeout(600);
         const clamp = await p.evaluate(() => {
           const btn = [...document.querySelectorAll('button')].find(x => /What this means/.test(x.textContent));
           const sp = btn && btn.previousElementSibling;
           return sp ? { shown: Math.round(sp.getBoundingClientRect().height), full: sp.scrollHeight } : null;
         });
+        /* the deck's own contents list: a number on its own says where you are but not what is there */
+        const named = await p.evaluate(() => [...document.querySelectorAll('[data-slide-pill]')]
+          .map(b => b.textContent.trim()).filter(t => /[a-z]/i.test(t)));
+        ok('every step says what it is, not just its number', named.length === 7, `${named.length} of 7 named: ${named.slice(0, 3).join(' | ')}`);
         ok('the step explanation is cut to its first lines', !!clamp && clamp.shown < clamp.full,
            clamp ? `${clamp.shown}px shown of ${clamp.full}px` : 'no clamp found');
         await p.evaluate(() => {
@@ -241,7 +245,7 @@ const navigate = async (page, label, short) => {
            reopened ? `${reopened.h}px of ${reopened.full}px` : 'never opened');
 
         // fullscreen, on the Monte Carlo step
-        await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === '5'); if (b) b.click(); });
+        await p.evaluate(() => { const b = document.querySelector('[data-slide-pill="5"]'); if (b) b.click(); });
         await p.waitForTimeout(900);
         const opened = await p.evaluate(() => { const b = document.querySelector('[data-chart-expand]'); if (!b) return false; b.click(); return true; });
         ok('the chart has an expand button', opened);
@@ -269,7 +273,7 @@ const navigate = async (page, label, short) => {
        * chart that is still on screen above.
        */
       if (ran) {
-        await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === '7'); if (b) b.click(); });
+        await p.evaluate(() => { const b = document.querySelector('[data-slide-pill="7"]'); if (b) b.click(); });
         await p.waitForTimeout(900);
         const sheet = await p.evaluate(() => {
           const el = document.querySelector('[data-sandbox-sheet]');
@@ -619,10 +623,17 @@ const navigate = async (page, label, short) => {
       const you = await p.evaluate(() => {
         const labels = [...document.querySelectorAll('[data-you-rows] label')];
         const left = labels.filter(l => { const c = l.parentElement.querySelector('input, button'); return c && l.getBoundingClientRect().left < c.getBoundingClientRect().left; }).length;
-        return { labels: labels.length, left, steppers: document.querySelectorAll('[data-you-rows] button[aria-label^="increase"]').length, hints: document.querySelectorAll('[data-you-rows] button[aria-label^="About"]').length };
+        // every control in one column, same left edge and same width: that is what dropping the
+        // steppers bought, and a stray -/+ would show up here as a second left edge
+        const ctrls = [...document.querySelectorAll('[data-you-rows] input, [data-you-rows] select')]
+          .map(c => Math.round(c.getBoundingClientRect().right));
+        return { labels: labels.length, left, hints: document.querySelectorAll('[data-you-rows] button[aria-label^="About"]').length,
+                 steppers: document.querySelectorAll('[data-you-rows] button[aria-label^="increase"]').length,
+                 edges: [...new Set(ctrls)].length, ctrls: ctrls.length };
       });
       ok('You is rows: label left, control right', you.labels >= 7 && you.left === you.labels, `${you.left} of ${you.labels}`);
-      ok('...with steppers on the ages and a ? on the explanations', you.steppers >= 3 && you.hints >= 3, `${you.steppers} steppers, ${you.hints} hints`);
+      ok('...every control ending on one line, and a ? on the explanations', you.edges === 1 && you.steppers === 0 && you.hints >= 3,
+         `${you.ctrls} controls on ${you.edges} right edge(s), ${you.steppers} steppers, ${you.hints} hints`);
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /Add band/.test(x.textContent)); b.click(); });
       await p.waitForTimeout(400);
       const band = await p.evaluate(() => { const r = document.querySelector('[data-collapsed-row]'); return r ? { open: r.getAttribute('data-open'), inputs: r.querySelectorAll('input').length, w: Math.round(r.getBoundingClientRect().width) } : null; });
@@ -651,10 +662,11 @@ const navigate = async (page, label, short) => {
       await navigate(p, 'Projection', 'Projection');
       await p.waitForTimeout(500);
       await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); if (x) x.click(); });
-      await p.waitForFunction(() => ![...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Stop') && [...document.querySelectorAll('button')].some(b => b.textContent.trim() === '6'), null, { timeout: 300000 });
+      await p.waitForFunction(() => ![...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Stop') && !!document.querySelector('[data-slide-pill="6"]'), null, { timeout: 300000 });
       await p.waitForTimeout(1200);
-      const curStep = () => p.evaluate(() => { const on = [...document.querySelectorAll('button')].find(b => /^[1-7]$/.test(b.textContent.trim()) && /bg-accent/.test(b.className)); return on ? Number(on.textContent) : null; });
-      await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === '4'); if (x) x.click(); });
+      // the pills carry their names now, so the step is the marked pill's own attribute, not its text
+      const curStep = () => p.evaluate(() => { const on = document.querySelector('[data-slide-here="true"]'); return on ? Number(on.getAttribute('data-slide-pill')) : null; });
+      await p.evaluate(() => { const x = document.querySelector('[data-slide-pill="4"]'); if (x) x.click(); });
       await p.waitForTimeout(1500);
       // scrolled into view first: a touch outside the viewport is cancelled by the browser, not delivered
       const chartMid = () => p.evaluate(() => { const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0]; svg.scrollIntoView({ block: 'center' }); const r = svg.getBoundingClientRect(); return r.top + r.height / 2; });

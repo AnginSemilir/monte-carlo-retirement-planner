@@ -48,17 +48,21 @@ const plan = {
 
   let fails = 0;
   const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
-  const pill = (n) => p.evaluate(k => { const x=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===String(k)); if(x) x.click(); return !!x; }, n);
+  const pill = (n) => p.evaluate(k => { const x=document.querySelector(`[data-slide-pill="${k}"]`); if(x) x.click(); return !!x; }, n);
 
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Projection/.test(b.textContent)); if(x) x.click(); });
   await p.waitForTimeout(400);
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Run the projection/i.test(b.textContent)); x.click(); });
-  await p.waitForFunction(() => [...document.querySelectorAll('button')].some(b => b.textContent.trim() === '6'), null, { timeout: 180000 });
+  await p.waitForFunction(() => !!document.querySelector('[data-slide-pill="6"]'), null, { timeout: 180000 });
   await p.waitForTimeout(1500);
 
   // 1. the deck offers a seventh step
-  const pills = await p.evaluate(() => [...document.querySelectorAll('button')].map(b=>b.textContent.trim()).filter(t=>/^[1-9]$/.test(t)));
+  const pills = await p.evaluate(() => [...document.querySelectorAll('[data-slide-pill]')].map(b=>b.getAttribute('data-slide-pill')));
   ok('the deck has a 7th numbered step', pills.includes('7'), `pills ${[...new Set(pills)].sort().join(',')}`);
+  // and on a desktop each pill carries the step's full name, not the phone's shortened one
+  const pillText = await p.evaluate(() => [...document.querySelectorAll('[data-slide-pill]')].map(b => b.textContent.trim()));
+  ok('...and each step is named in full', pillText.some(t => /Side by side/.test(t)) && pillText.every(t => /[a-z]/i.test(t)),
+     pillText.join(' | '));
 
   /*
    * The phone cuts each step's explanation to two lines behind a "What this means…" button. A desktop

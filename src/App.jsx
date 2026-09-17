@@ -9883,11 +9883,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       <div data-app-content className={`max-w-7xl mx-auto ${isPhone ? 'space-y-3' : 'space-y-6'}`}>
 
         {/* Header Bar.
-            ON A PHONE IT IS ONE ROW. Measured at 366px before: a two-line title, a subtitle, a 44px theme
+            ON A PHONE, ONLY ON START HERE. The bottom bar names the screen you are on, so the app's own
+            name above every screen is a row of a small display spent saying something you already know.
+            It stays in full on every desktop tab, where there is width for it beside the tab strip.
+
+            WHEN IT IS ONE ROW. Measured at 366px before: a two-line title, a subtitle, a 44px theme
             toggle and a four-line banner, on a screen where the first field was 1,015px down. The subtitle's
             job is done by the Start tab, the version moves to the More sheet's foot, the theme toggle to its
             head, and the banner keeps its first sentence. */}
-        <div className={`bg-surface border border-slate-200/90 rounded-xl ${isPhone ? 'p-3' : 'p-5'}`}>
+        {(!isPhone || activeTab === 'home') && (
+        <div data-title-card className={`bg-surface border border-slate-200/90 rounded-xl ${isPhone ? 'p-3' : 'p-5'}`}>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="min-w-0">
               <div className="flex items-center gap-2.5">
@@ -9939,6 +9944,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </p>
           )}
         </div>
+        )}
+        {/*
+          * The one line that goes with the card follows the fields rather than the title. It is the
+          * thing somebody has to know BEFORE they type an amount, so on a phone it stays on Plan Inputs
+          * even though the card it used to sit in does not.
+          */}
+        {isPhone && activeTab === 'inputs' && (
+          <p data-money-banner className="text-[11px] text-blue-800 px-0.5 -mb-1"><strong className="font-semibold">Every amount here is in today&rsquo;s money.</strong></p>
+        )}
 
         {/* Scenario Toolbar. Plan Inputs only: saving a scenario means saving THE PLAN, so it belongs
             beside the plan, not floating over a chart where it reads as saving what is on screen. */}

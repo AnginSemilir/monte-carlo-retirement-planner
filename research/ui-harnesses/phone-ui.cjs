@@ -363,19 +363,25 @@ const navigate = async (page, label, short) => {
       const first = await p.evaluate(() => {
         const H = (el) => el ? Math.round(el.getBoundingClientRect().height) : null;
         const fields = [...document.querySelectorAll('[data-section] input, [data-section] select')].filter(i => i.getBoundingClientRect().height > 0);
-        return { headerCard: H(document.querySelector('[data-app-content] > div')), scenarioBar: H(document.querySelector('[data-scenario-bar]')), crossover: H(document.querySelector('[data-crossover]')),
+        return { titleCard: document.querySelector('[data-title-card]'), scenarioBar: H(document.querySelector('[data-scenario-bar]')), crossover: H(document.querySelector('[data-crossover]')),
           bannerSentences: ((document.querySelector('[data-money-banner]') || {}).innerText || '').split('.').filter(x => x.trim()).length,
           firstFieldTop: fields.length ? Math.round(fields[0].getBoundingClientRect().top + scrollY) : null, vh: innerHeight,
           carried: /figures came with you/i.test(document.body.innerText), tabs: document.querySelectorAll('[data-section-tabs] [role=tab]').length,
           sections: document.querySelectorAll('[data-section]').length };
       });
       console.log('  inputs, second pass');
-      ok('the title card is one row', first.headerCard !== null && first.headerCard <= 96, `${first.headerCard}px`);
+      // The card is Start Here's alone on a phone: the bottom bar already names the screen you are on.
+      ok('no title card away from Start Here', first.titleCard === null, 'present');
       ok('the scenario bar is one row', first.scenarioBar !== null && first.scenarioBar <= 56, `${first.scenarioBar}px`);
       ok('the crossover button is one line', first.crossover !== null && first.crossover <= 48, `${first.crossover}px`);
       ok('the money banner is one sentence', first.bannerSentences === 1, `${first.bannerSentences}`);
       ok('the first field is on the first screen', first.firstFieldTop !== null && first.firstFieldTop < first.vh, `${first.firstFieldTop} of ${first.vh}`);
       ok('nothing says your figures came with you', !first.carried);
+      ok('...but the today\u2019s-money line stays where amounts are typed', first.bannerSentences === 1, `${first.bannerSentences} sentence(s)`);
+      const home = await (async () => { await navigate(p, 'Start Here', 'Start'); await p.waitForTimeout(500);
+        const r = await p.evaluate(() => { const c = document.querySelector('[data-title-card]'); return c ? Math.round(c.getBoundingClientRect().height) : null; });
+        await navigate(p, 'Plan Inputs', 'Inputs'); await p.waitForTimeout(500); return r; })();
+      ok('Start Here still carries it, in one row', home !== null && home <= 96, `${home}px`);
       ok('the sections are six tabs, one showing', first.tabs === 6 && first.sections === 1, `${first.tabs} tabs, ${first.sections} sections`);
       for (const t of ['You', 'Portfolio', 'Income', 'One-off deposits', 'One-off costs', 'Advanced']) {
         await sectionTab(t);

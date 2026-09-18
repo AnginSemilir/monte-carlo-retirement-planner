@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback, useDeferredValue, lazy, Suspense } from 'react';
 /*
  * FOUR FUNCTIONS, NOT THIRTY PACKAGES.
  *
@@ -6279,10 +6279,10 @@ const SERIES_CONFIG = [
  */
 const chartKey = (t) => (t === 'dark' ? 'dark' : 'light');
 const CHART_PALETTE = {
-  light:  { gridMajor: '#E3E6EB', gridMinor: '#F0F2F5', axisText: '#8A93A3', hoverCrosshair: '#A8B0BD', sandboxDash: '#A8701A', sandboxSim: '#D98A00', historicalLine: '#6D5BD0', trajectoryHoverFill: '#2148B8', historicalHoverFill: '#6D5BD0', hoverDotStroke: '#FFFFFF',
+  light:  { gridMajor: '#E3E6EB', gridMinor: '#F0F2F5', axisText: '#8A93A3', hoverCrosshair: '#A8B0BD', sandboxDash: '#A8701A', sandboxSim: '#F0B429', historicalLine: '#6D5BD0', trajectoryHoverFill: '#2148B8', historicalHoverFill: '#6D5BD0', hoverDotStroke: '#FFFFFF',
             fanBand: 'rgba(109, 91, 208, 0.14)', fanEdge: 'rgba(109, 91, 208, 0.5)', fanMedian: '#6D5BD0', fanOuter: 'rgba(109, 91, 208, 0.75)',
             rateBand: 'rgba(14, 159, 110, 0.14)', rateEdge: 'rgba(14, 159, 110, 0.55)', rateOuter: 'rgba(14, 159, 110, 0.8)' },
-  dark:   { gridMajor: '#262C35', gridMinor: '#1D222A', axisText: '#6B7480', hoverCrosshair: '#4A5361', sandboxDash: '#E0A64A', sandboxSim: '#FFC24D', historicalLine: '#9C8CF0', trajectoryHoverFill: '#7B9CF2', historicalHoverFill: '#9C8CF0', hoverDotStroke: '#171B21',
+  dark:   { gridMajor: '#262C35', gridMinor: '#1D222A', axisText: '#6B7480', hoverCrosshair: '#4A5361', sandboxDash: '#E0A64A', sandboxSim: '#FFD24D', historicalLine: '#9C8CF0', trajectoryHoverFill: '#7B9CF2', historicalHoverFill: '#9C8CF0', hoverDotStroke: '#171B21',
             fanBand: 'rgba(156, 140, 240, 0.20)', fanEdge: 'rgba(156, 140, 240, 0.55)', fanMedian: '#9C8CF0', fanOuter: 'rgba(156, 140, 240, 0.8)',
             rateBand: 'rgba(63, 219, 199, 0.18)', rateEdge: 'rgba(63, 219, 199, 0.5)', rateOuter: 'rgba(63, 219, 199, 0.78)' },
 };
@@ -7542,8 +7542,23 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const isCouple = plan?.demographics?.planningMode !== 'single';
 
   // ------------------------------------------------------------ engine context & projections
+  /*
+   * THE FIELDS ARE URGENT; THE PROJECTION IS NOT.
+   *
+   * Every keystroke in an input rewrote `plan`, and everything the engine derives hung off it directly:
+   * resolveMpaa, buildContext and a full deterministic run for the plan, then the same again for the
+   * sandbox. Profiled on a couple's plan with eight wrappers, one keypress cost 130ms of stepYear and
+   * simulateDeterministic before the character appeared - which is what "laggy typing" is.
+   *
+   * useDeferredValue splits the two. The character is painted from `plan` at once; the engine chain
+   * re-renders behind it from `deferredPlan`, at low priority, and React throws that work away when the
+   * next keystroke lands - so a burst of typing costs one projection at the end rather than one per key.
+   * The figures are never wrong, only a frame late, and nothing that RUNS anything reads this: the
+   * simulation stages take `plan` itself, so pressing Run straight after typing uses what was typed.
+   */
+  const deferredPlan = useDeferredValue(plan);
   // MPAA is derived from the projection, so resolve it once and let everything downstream read the result
-  const resolvedPlan = useMemo(() => E.resolveMpaa(plan), [plan]);
+  const resolvedPlan = useMemo(() => E.resolveMpaa(deferredPlan), [deferredPlan]);
   const ctx = useMemo(() => E.buildContext(resolvedPlan), [resolvedPlan]);
   const P = ctx.P;
   const terminalAge = ctx.terminalAge;
@@ -7829,10 +7844,10 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
 
   // resolved separately: changing retirement ages here moves when pension income starts, and so the trigger
   const sandboxPlan = useMemo(() => E.resolveMpaa({
-    ...plan,
-    demographics: { ...plan?.demographics, retireAgeSelf: sandboxRetire.self, retireAgePart: sandboxRetire.part },
-    spending: { ...plan?.spending, ...(sandboxSpend === null ? {} : { targetSpend: sandboxSpend }) },
-    accounts: (plan?.accounts || []).map(acc => {
+    ...deferredPlan,
+    demographics: { ...deferredPlan?.demographics, retireAgeSelf: sandboxRetire.self, retireAgePart: sandboxRetire.part },
+    spending: { ...deferredPlan?.spending, ...(sandboxSpend === null ? {} : { targetSpend: sandboxSpend }) },
+    accounts: (deferredPlan?.accounts || []).map(acc => {
       const sb = sandboxAccounts[acc.id];
       if (!sb) return acc;
       const out = { ...acc, contrib: sb.contrib, growth: sb.growth };
@@ -7840,7 +7855,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
       if (sb.contribByYear) out.contribByYear = sb.contribByYear; else delete out.contribByYear;
       return out;
     })
-  }), [plan, sandboxAccounts, sandboxRetire, sandboxSpend]);
+  }), [deferredPlan, sandboxAccounts, sandboxRetire, sandboxSpend]);
   const sandboxCtx = useMemo(() => E.buildContext(sandboxPlan), [sandboxPlan]);
   const isRetireModified = useMemo(() => {
     const base = sandboxRetireFromPlan(plan);
@@ -8509,6 +8524,12 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   useEffect(() => {
     if (!sandboxMcOn || !isSandboxModified) { setSandboxMc(null); setSandboxMcBusy(false); return undefined; }
     let dead = false;
+    /*
+     * Back to amber the instant a dial moves. The simulated rows belong to the edit that produced them,
+     * and holding them on screen while the next simulation runs drew a gold line - the colour that says
+     * "this came from the simulation" - through figures that had already changed.
+     */
+    setSandboxMc(null);
     setSandboxMcBusy(true);
     const id = setTimeout(() => {
       runMonteCarloAsync(sandboxCtx, { plan: sandboxPlan, trials: MC_TRIALS, seed: mcSeed })
@@ -10479,7 +10500,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 * on the page is quoted from. One dashed line in one colour could not tell you which of
                 * the two you were looking at, and they disagree by design.
                 */}
-              {sandboxLinePath && <path d={sandboxLinePath} fill="none" stroke={sandboxLineIsSim ? cp.sandboxSim : cp.sandboxDash} strokeWidth="3.5" strokeDasharray="6,4" strokeLinecap="round" />}
+              {sandboxLinePath && <path d={sandboxLinePath} fill="none" stroke={sandboxLineIsSim ? cp.sandboxSim : cp.sandboxDash} strokeWidth="3.5" strokeDasharray="6,4" strokeLinecap="round"
+                className={sandboxLineIsSim ? 'sim-line' : undefined} />}
               {comparePaths.map(c => <path key={c.id} d={c.d} fill="none" stroke={c.tone} strokeWidth="2.5" strokeDasharray="5,3" strokeLinecap="round" />)}
               <rect width={innerWidth} height={innerHeight} fill="transparent" onMouseMove={(e) => { const rect = e.currentTarget.getBoundingClientRect(); const age = Math.round(xScale.invert((e.clientX - rect.left) * (innerWidth / Math.max(1, rect.width)))); setHoveredPoint(visibleData.find(d => d.ageSelf === age) || null); }} />
               {hoveredPoint && <g transform={`translate(${xScale(hoveredPoint.ageSelf)}, 0)`}><line y2={innerHeight} stroke={cp.hoverCrosshair} strokeWidth="1" strokeDasharray="2,2" /><circle cy={yScale(hoveredPoint.expected || 0)} r="4" fill={cp.trajectoryHoverFill} stroke={cp.hoverDotStroke} strokeWidth="2" /></g>}
@@ -10525,7 +10547,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           {isSandboxModified && (
             <button type="button" aria-pressed={showSandboxLine} onClick={() => setShowSandboxLine(v => !v)}
               className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer border ${showSandboxLine ? 'bg-amber-50 border-amber-300 text-amber-800 font-semibold' : 'bg-surface border-slate-200 text-slate-400 opacity-60'}`}>
-              <span className="w-3.5 h-0 border-t-2 border-dashed" style={{ borderColor: sandboxLineIsSim ? cp.sandboxSim : cp.sandboxDash }} />{sandboxLineIsSim ? 'Your edit, simulated' : 'Your edit'}{showSandboxLine && <Check className="w-3 h-3 text-amber-700" />}
+              {/* the swatch moves when the line does, so the chip and the picture say the same thing */}
+              {sandboxLineIsSim
+                ? <svg width="14" height="4" aria-hidden="true" className="shrink-0"><line x1="0" y1="2" x2="14" y2="2" stroke={cp.sandboxSim} strokeWidth="2" strokeDasharray="4,3" className="sim-line" /></svg>
+                : <span className="w-3.5 h-0 border-t-2 border-dashed" style={{ borderColor: cp.sandboxDash }} />}
+              {sandboxLineIsSim ? 'Your edit, simulated' : 'Your edit'}{showSandboxLine && <Check className="w-3 h-3 text-amber-700" />}
             </button>
           )}
           {scenarios.filter(sc => sc.id !== activeScenarioId).map(sc => {

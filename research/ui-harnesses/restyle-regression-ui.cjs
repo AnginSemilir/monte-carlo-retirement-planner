@@ -81,7 +81,7 @@ const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? 
         const over = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         ok(`${tab}: no sideways scroll`, over <= 1, `${over}px`);
         const bad = await p.evaluate(CONTRAST_PROBE);
-        ok(`${tab}: no text below 3:1 contrast`, bad.length === 0,
+        ok(`${tab}: no text below the WCAG bar`, bad.length === 0,
           bad.slice(0, 3).map(x => `"${x.text}" ${x.ratio}:1 ${x.color}`).join(' | '));
         worstAll = worstAll.concat(bad);
         if (SHOT && width === 1400) await p.screenshot({ path: `${SHOT}/reg-${theme}-${tab.replace(/[^a-z]/gi, '')}.png` });

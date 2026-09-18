@@ -84,7 +84,18 @@ const CHART_WIDTH_PROBE = () => {
  * exists for a good reason: growing a link in running prose to 44px tall tears a hole in the paragraph
  * around it, so the rule would make the page worse to read in the name of making it easier to tap.
  *
- * Skips: dev-only chrome, anything explicitly marked data-hit-ok, and anything not laid out.
+ * A third case, which the standard states and this used to miss: a target "whose size is otherwise
+ * constrained by the line-height of non-target text" is exempt outright, not held to 24px. A glossary
+ * word inside a heading is that case - it is a word, its height is the line it sits in, and the only way
+ * to give it a 44px or even a 24px box is to break the line around it. Which is not hypothetical: the
+ * phone's glossary marks were 24x44 buttons for exactly this reason, their boxes overflowed the lines
+ * they sat in, the blocks below painted over them, and the definitions could not be opened at all. The
+ * app marks these with `inline-control`, the same class that opts them out of the CSS touch floor, so
+ * the exemption here is the app's own declaration rather than a guess about the DOM. What replaces this
+ * check for them is stronger: phone-ui and desktop-reach both ask what a finger actually hits at the
+ * middle of the mark, which is the question this probe never asked.
+ *
+ * Skips: dev-only chrome, anything explicitly marked data-hit-ok, inline-control, and anything not laid out.
  * An element also passes if it carries an invisible absolutely-positioned ::before that clears the bar,
  * which is the standard way to keep a control visually small and still tappable.
  */
@@ -94,6 +105,7 @@ const TOUCH_PROBE = (min) => {
   const sel = 'button, a[href], input, select, summary, [role="button"]';
   for (const el of document.querySelectorAll(sel)) {
     if (el.closest('[data-dev-chrome]') || el.closest('[data-hit-ok]') || el.hasAttribute('data-hit-ok')) continue;
+    if (el.classList.contains('inline-control')) continue;          // a word in a line of text; see above
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0) continue;
     const r = el.getBoundingClientRect();

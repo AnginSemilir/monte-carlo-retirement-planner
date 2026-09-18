@@ -9660,6 +9660,33 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     </ol>
   );
 
+  /*
+   * Step 7's controls, as one row: which projection is drawn, the band picker and the horizon slider
+   * that steps 4 and 5 also carry, and the state of the simulation. Two rows cost about eighty pixels,
+   * which is the difference between the dials being on a 1366x768 laptop screen and being below it.
+   */
+  const sandboxControls = (
+    <div data-sandbox-chart-mode className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px]">
+      <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1 shrink-0">
+        {[['rate', 'Rate based'], ['mc', 'Monte Carlo']].map(([kind, label]) => (
+          <button key={kind} type="button" onClick={() => setSandboxChartKind(kind)} aria-pressed={sandboxChartKind === kind}
+            className={`rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap ${isPhone ? 'min-h-11 px-3' : 'px-2.5 py-1'} ${sandboxChartKind === kind ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {bandToggle}
+      {horizonSlider}
+      {sandboxMcBusy
+        ? <span className="flex items-center gap-1.5 text-slate-600 font-semibold"><Loader2 className="w-3.5 h-3.5 animate-spin" /> simulating {fmtNum(MC_TRIALS)} paths&hellip;</span>
+        : sandboxMcOn && sandboxMc
+          ? <span className="text-slate-500">sandbox survival <strong className="text-slate-800">{sandboxMc.successRate.toFixed(1)}%</strong>, median path drawn</span>
+          : sandboxMcOn
+            ? <span className="text-slate-400">change something to simulate it</span>
+            : <span className="text-slate-400">Monte Carlo takes longer to load</span>}
+    </div>
+  );
+
   const slideNav = (n) => (
     <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 md:sticky md:bottom-0 md:bg-surface md:pb-1 md:z-10">
       {isPhone ? slideIndex() : (
@@ -11895,35 +11922,25 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                   {slideHead(SANDBOX_SLIDE, 'Change something',
                     'Edit below and the amber line moves with you. Your saved plan is not touched.')}
+                  {!isPhone && sandboxControls}
                   {/*
-                    * The controls sit above the chart, where steps 4 and 5 put theirs: the same band
-                    * picker, the same horizon slider, and one switch for which projection is drawn.
-                    * The spinner is beside that switch because that switch is what causes the wait -
-                    * pressing a dial under Monte Carlo re-simulates, and a chart that sat still for two
-                    * seconds with nothing turning was the reason this needed saying in the head.
+                    * ONE ROW, AND WHICH SIDE OF THE CHART IT SITS ON.
+                    *
+                    * The controls are the ones steps 4 and 5 carry - the band picker, the horizon
+                    * slider - plus one switch for which projection is drawn, and the spinner sits beside
+                    * that switch because that switch is what causes the wait.
+                    *
+                    * All on one row, because two rows of controls cost about eighty pixels and on a
+                    * 1366x768 laptop that is exactly what pushes the dials that move the chart below the
+                    * fold - which the desktop review had already fixed once.
+                    *
+                    * Above the chart on a desktop, where every other step keeps its controls. BELOW it
+                    * on a phone, because there the sandbox sheet is pinned to the foot of the screen and
+                    * this card's chart clears it by nineteen pixels: a control row above would spend all
+                    * of them and hide the bottom of the chart behind the sheet.
                     */}
-                  <div data-sandbox-chart-mode className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px]">
-                    <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
-                      {[['rate', 'Rate based'], ['mc', 'Monte Carlo']].map(([kind, label]) => (
-                        <button key={kind} type="button" onClick={() => setSandboxChartKind(kind)} aria-pressed={sandboxChartKind === kind}
-                          className={`rounded-lg font-bold transition-all cursor-pointer ${isPhone ? 'min-h-11 px-3' : 'px-2.5 py-1'} ${sandboxChartKind === kind ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                    {sandboxMcBusy
-                      ? <span className="flex items-center gap-1.5 text-slate-600 font-semibold"><Loader2 className="w-3.5 h-3.5 animate-spin" /> simulating {fmtNum(MC_TRIALS)} paths&hellip;</span>
-                      : sandboxMcOn && sandboxMc
-                        ? <span className="text-slate-500">sandbox survival <strong className="text-slate-800">{sandboxMc.successRate.toFixed(1)}%</strong>, median path drawn</span>
-                        : sandboxMcOn
-                          ? <span className="text-slate-400">change something to simulate it</span>
-                          : <span className="text-slate-400">Monte Carlo takes longer to load</span>}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    {bandToggle}
-                    {horizonSlider}
-                  </div>
                   {renderProjectionChart(sandboxChartKind)}
+                  {isPhone && sandboxControls}
                   {!isSandboxModified && (
                     <p className="text-[11px] text-slate-500 leading-relaxed">Nothing is changed yet, so there is no amber line to see. Edit a contribution, a balance or a retirement age here and one appears over this chart, beside the plan you already have.</p>
                   )}

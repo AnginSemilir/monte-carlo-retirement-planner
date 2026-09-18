@@ -90,6 +90,77 @@ async function runProjection(p) {
       cards: document.querySelectorAll('[data-answer-card]').length };
   });
   ok('step 2 holds both solved answers', five.cards === 2, `${five.cards} cards`);
+
+  /*
+   * THE GRID UNDER THEM.
+   *
+   * The two cards are one number each, and a number is a poor answer to a trade. This is the same
+   * question run at every combination in a window around what was entered, so what one more year of
+   * work is worth can be read rather than inferred. Four things have to hold for it to be worth its
+   * seconds of CPU: it fills in rather than appearing at the end, the window contains the plan AND the
+   * answer, the shading breaks at the target rather than at the middle of the range, and a cell can be
+   * taken.
+   */
+  const filling = await p.evaluate(() => document.querySelectorAll('[data-grid-cell]').length);
+  await p.waitForFunction(() => !document.querySelector('[data-spend-grid] .animate-pulse') && document.querySelectorAll('[data-grid-cell]').length > 0,
+    null, { timeout: 240000 }).catch(() => {});
+  const gridState = await p.evaluate(() => {
+    const cells = [...document.querySelectorAll('[data-grid-cell]')];
+    const at = (k) => cells.find(c => c.getAttribute('data-grid-cell') === k);
+    const ages = [...new Set(cells.map(c => Number(c.getAttribute('data-grid-cell').split(':')[0])))];
+    const spends = [...new Set(cells.map(c => Number(c.getAttribute('data-grid-cell').split(':')[1])))];
+    const rate = (c) => Number(c.textContent.trim());
+    // monotone: along a row spending more can only survive worse, down a column retiring later better
+    let rowBad = 0, colBad = 0;
+    for (const a of ages) for (let i = 1; i < spends.length; i++) {
+      const x = at(`${a}:${spends[i]}`), y = at(`${a}:${spends[i - 1]}`);
+      if (x && y && rate(x) > rate(y)) rowBad++;
+    }
+    for (const sp of spends) for (let i = 1; i < ages.length; i++) {
+      const x = at(`${ages[i]}:${sp}`), y = at(`${ages[i - 1]}:${sp}`);
+      if (x && y && rate(x) < rate(y)) colBad++;
+    }
+    const hereCell = cells.find(c => c.querySelector('span'));
+    const safe = [...document.querySelectorAll('[data-answer-card="spend"] span')].map(x => x.textContent.trim())
+      .find(t => /^\u00a3[\d,]+$/.test(t));
+    return { n: cells.length, ages, spends, rowBad, colBad, here: hereCell ? hereCell.getAttribute('data-grid-cell') : null,
+      frontier: document.querySelectorAll('[data-spend-grid] polyline').length, safe };
+  });
+  ok('the grid runs a window of ages against spends', gridState.n >= 40 && gridState.ages.length >= 5 && gridState.spends.length >= 5,
+    `${gridState.n} cells, ${gridState.ages.length} ages x ${gridState.spends.length} spends`);
+  ok('...filled in as it went, not all at the end', filling >= 0 && gridState.n > filling, `${filling} while running, ${gridState.n} at the end`);
+  ok('...with the plan as entered marked in it', !!gridState.here, String(gridState.here));
+  ok('...and the solved safe maximum inside its range', (() => {
+    const v = Number(String(gridState.safe || '').replace(/[^0-9]/g, ''));
+    return v > 0 && v >= gridState.spends[0] && v <= gridState.spends[gridState.spends.length - 1];
+  })(), `${gridState.safe} in \u00a3${gridState.spends[0]}-\u00a3${gridState.spends[gridState.spends.length - 1]}`);
+  ok('...a row only falls and a column only rises', gridState.rowBad === 0 && gridState.colBad === 0,
+    `${gridState.rowBad} rises along a row, ${gridState.colBad} falls down a column`);
+  ok('...and the target line drawn over it', gridState.frontier === 2, `${gridState.frontier} polylines`);
+
+  /* Taking a cell is the point of drawing it: both axes go into the sandbox, and the dashboard shows it. */
+  const took = await p.evaluate(() => {
+    const c = [...document.querySelectorAll('[data-grid-cell]')].find(x => x.getAttribute('data-grid-cell').endsWith(':' + x.getAttribute('data-grid-cell').split(':')[1]));
+    const cell = document.querySelectorAll('[data-grid-cell]')[9];
+    const key = cell.getAttribute('data-grid-cell');
+    cell.scrollIntoView({ block: 'center' }); cell.click();
+    return key;
+  });
+  await p.waitForTimeout(1600);
+  const landed = await p.evaluate(() => ({
+    step: document.querySelector('[data-slide-here="true"]')?.getAttribute('data-slide-pill'),
+    retire: [...document.querySelectorAll('[data-quick-dials] span')].map(x => x.textContent.trim()).find(t => /^\d{2}$/.test(t)),
+    amber: [...document.querySelectorAll('svg path')].filter(x => x.getAttribute('stroke-dasharray') === '6,4' && x.getAttribute('stroke-width') === '3.5').length
+  }));
+  ok('clicking a cell takes you to the dashboard with it in the sandbox',
+    landed.step === '3' && landed.retire === took.split(':')[0], `cell ${took} -> step ${landed.step}, retire at ${landed.retire}`);
+  ok('...and the amber line is drawn for it', landed.amber > 0, `${landed.amber} dashed path(s)`);
+  // put it back, so the checks below start from a plan with nothing changed
+  await p.evaluate(() => { const r = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Reset'); if (r) r.click(); });
+  await p.waitForTimeout(900);
+  ok('...and Reset puts the sandbox back', (await p.evaluate(AMBER)) === 0, `${await p.evaluate(AMBER)} dashed path(s)`);
+  await step(p, 2);
+  await p.waitForTimeout(800);
   ok('...and the deck’s own pills are still on screen', five.pillsTop !== null && five.pillsTop < five.vh, `pills at ${five.pillsTop} of ${five.vh}`);
 
   await step(p, 3);

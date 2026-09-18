@@ -6494,7 +6494,12 @@ async function scoreInWorkers(jobs, { onProgress, message = null, take = null, m
       report(j);
     }
   };
-  if (typeof Worker === 'undefined') { await onMainThread(jobs); return results; }
+  /*
+   * `workersUsable`, not just "does Worker exist": ?forceMain=1 is how the perf harness proves the
+   * worker path and the main-thread path produce the SAME figures, and a pool that spawned its four
+   * regardless made that comparison a lie about half the arithmetic.
+   */
+  if (!workersUsable()) { await onMainThread(jobs); return results; }
 
   const n = Math.max(1, Math.min(WORKER_POOL_MAX, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 2, jobs.length));
   const workers = [];
@@ -7482,6 +7487,19 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const [sandboxCustomized, setSandboxCustomized] = useState(false);
   const [sandboxAccounts, setSandboxAccounts] = useState(() => sandboxFromPlan(plan));
   const [sandboxRetire, setSandboxRetire] = useState(() => sandboxRetireFromPlan(plan));
+  /*
+   * WHAT YOU SPEND, AS A SANDBOX DIMENSION.
+   *
+   * The sandbox could change balances, contributions and retirement ages but not the one figure the
+   * whole plan turns on. That was tolerable while the only way to edit was a dial; it stopped being so
+   * with a grid of every age against every spending level on the screen before it, where the obvious
+   * thing to do with a cell is take it. `null` means "as the plan says", so nothing is overridden until
+   * something is chosen.
+   *
+   * Spending bands, where they exist, still win for the ages they cover - they are per-age figures and
+   * this is the fallback for every year they do not name. The grid says so beneath itself.
+   */
+  const [sandboxSpend, setSandboxSpend] = useState(null);
   useEffect(() => { if (!sandboxCustomized) setSandboxAccounts(sandboxFromPlan(plan)); }, [plan?.accounts, sandboxCustomized]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!sandboxCustomized) setSandboxRetire(sandboxRetireFromPlan(plan)); }, [plan?.demographics?.retireAgeSelf, plan?.demographics?.retireAgePart, sandboxCustomized]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -7776,6 +7794,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const sandboxPlan = useMemo(() => E.resolveMpaa({
     ...plan,
     demographics: { ...plan?.demographics, retireAgeSelf: sandboxRetire.self, retireAgePart: sandboxRetire.part },
+    spending: { ...plan?.spending, ...(sandboxSpend === null ? {} : { targetSpend: sandboxSpend }) },
     accounts: (plan?.accounts || []).map(acc => {
       const sb = sandboxAccounts[acc.id];
       if (!sb) return acc;
@@ -7784,17 +7803,18 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
       if (sb.contribByYear) out.contribByYear = sb.contribByYear; else delete out.contribByYear;
       return out;
     })
-  }), [plan, sandboxAccounts, sandboxRetire]);
+  }), [plan, sandboxAccounts, sandboxRetire, sandboxSpend]);
   const sandboxCtx = useMemo(() => E.buildContext(sandboxPlan), [sandboxPlan]);
   const isRetireModified = useMemo(() => {
     const base = sandboxRetireFromPlan(plan);
     return base.self !== sandboxRetire.self || (isCouple && base.part !== sandboxRetire.part);
   }, [plan?.demographics?.retireAgeSelf, plan?.demographics?.retireAgePart, sandboxRetire, isCouple]); // eslint-disable-line react-hooks/exhaustive-deps
-  const isSandboxModified = useMemo(() => isRetireModified || (plan?.accounts || []).some(acc => {
+  const isSpendModified = sandboxSpend !== null && E.num(sandboxSpend, 0) !== E.num(plan?.spending?.targetSpend, 0);
+  const isSandboxModified = useMemo(() => isRetireModified || isSpendModified || (plan?.accounts || []).some(acc => {
     const sb = sandboxAccounts[acc.id];
     if (!sb) return false;
     return E.num(acc.contrib, 0) !== E.num(sb.contrib, 0) || E.num(acc.growth, 0) !== E.num(sb.growth, 0) || (sb.balance !== undefined && E.num(acc.balance, 0) !== E.num(sb.balance, 0)) || !!sb.contribByYear;
-  }), [plan?.accounts, sandboxAccounts, isRetireModified]);
+  }), [plan?.accounts, sandboxAccounts, isRetireModified, isSpendModified]);
   const sandboxTimeline = useMemo(() => E.simulateDeterministic(sandboxCtx, 'expected'), [sandboxCtx]);
 
   /*
@@ -8997,7 +9017,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     setPlan(prev => planFromSandbox(prev));
     flash('Sandbox applied to plan inputs');
   };
-  const handleResetSandbox = () => { setSandboxCustomized(false); setSandboxAccounts(sandboxFromPlan(plan)); setSandboxRetire(sandboxRetireFromPlan(plan)); };
+  const handleResetSandbox = () => { setSandboxCustomized(false); setSandboxAccounts(sandboxFromPlan(plan)); setSandboxRetire(sandboxRetireFromPlan(plan)); setSandboxSpend(null); };
   const updateSandboxRetire = (key, value) => {
     setSandboxCustomized(true);
     setSandboxRetire(prev => ({ ...prev, [key]: E.clamp(E.num(value, prev[key]), 0, 120) }));
@@ -10529,12 +10549,244 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * the whole of the sandbox while the sheet is collapsed over the chart, so it is the only place a run
    * in flight can be seen from.
    */
+  /*
+   * ==========================================================================================
+   * EVERY AGE AGAINST EVERY SPEND.
+   * ==========================================================================================
+   *
+   * The two cards above this are one number each, and a number is a poor answer to a trade: it says
+   * what you could do at the age you happened to type in, and nothing about what a year either way is
+   * worth. This runs the plan at every combination in a window around what you entered and shades each
+   * by the share of futures that lasted, so the trade can be read rather than inferred.
+   *
+   * IT COSTS REAL TIME, so three things keep it usable. The window is eight by eight rather than the
+   * whole board; the rows run one per worker, so a four-core machine does four at a time; and the
+   * result is cached on a signature of the plan, so coming back to this step is free while nothing has
+   * changed. Rows land as they finish rather than all at the end, because a grid filling in under the
+   * reader is the difference between four seconds of progress and four seconds of nothing.
+   */
+  const [grid, setGrid] = useState(null);                 // { key, window, rows: { [age]: cells } }
+  const [gridBusy, setGridBusy] = useState(false);
+  const [gridWide, setGridWide] = useState(false);
+  const gridRunRef = useRef(0);
+  const GRID_TRIALS = 1000;
+  /*
+   * The window is anchored on the SOLVED safe maximum as well as the spending entered, so the frontier
+   * is inside the picture. Centred on the entered figure alone, a plan comfortably inside its means came
+   * back all green - a table that says nothing, because the interesting edge was two columns off the
+   * right of it.
+   */
+  const gridWin = useMemo(() => (simResult
+    ? E.gridWindow(ctx, { anchor: safeMaxResult?.spend ?? null, ...(gridWide ? { rowsBefore: 7, rowsAfter: 7, cols: 12 } : (isPhone ? { rowsBefore: 2, rowsAfter: 2, cols: 5 } : {})) })
+    : null), [ctx, simResult, safeMaxResult, gridWide, isPhone]);
+  const gridKey = gridWin ? JSON.stringify([planSig, gridWin.ages, gridWin.spends, mcSeed, GRID_TRIALS]) : null;
+
+  useEffect(() => {
+    // only while the step that shows it is on screen: the grid costs seconds of CPU and nobody on the
+    // topline has asked for it
+    if (!gridKey || !gridWin || !(seeAll || slide === 2)) return undefined;
+    /*
+     * Not while the safe maximum is still being solved. Its answer is what anchors the columns, so a
+     * grid started without it is drawn around the wrong range and then thrown away and run again the
+     * moment it lands - fourteen seconds of CPU for seven seconds of answer.
+     */
+    if (isOptimizing) return undefined;
+    if (grid && grid.key === gridKey) return undefined;
+    const run = ++gridRunRef.current;
+    setGrid({ key: gridKey, window: gridWin, rows: {} });
+    setGridBusy(true);
+    runSpendGrid(plan, {
+      ages: gridWin.ages, planned: gridWin.planned, spends: gridWin.spends,
+      trials: GRID_TRIALS, seed: mcSeed,
+      shouldStop: () => gridRunRef.current !== run,
+      onRow: (age, row) => {
+        if (gridRunRef.current !== run) return;
+        setGrid(g => (g && g.key === gridKey ? { ...g, rows: { ...g.rows, [age]: row } } : g));
+      }
+    }).catch(() => { /* a failed grid leaves the cards above it, which are the same answer in numbers */ })
+      .finally(() => { if (gridRunRef.current === run) setGridBusy(false); });
+    return undefined;
+  }, [gridKey, slide, seeAll, isOptimizing]);     // eslint-disable-line react-hooks/exhaustive-deps
+
+  /*
+   * Red below the target, green at or above it, and the break between them is the target itself rather
+   * than the middle of the range - which is what makes the picture answer "would this do?" instead of
+   * "how does this compare with the rest of the table".
+   */
+  const gridCell = (rate) => {
+    const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+    const c = rate >= targetSurvivalRate
+      ? mix([230, 244, 234], [21, 105, 65], Math.min(1, (rate - targetSurvivalRate) / 10) ** 0.8)
+      : mix([252, 232, 229], [160, 42, 32], Math.min(1, (targetSurvivalRate - rate) / 28) ** 0.65);
+    const lum = (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255;
+    return { bg: `rgb(${c[0]},${c[1]},${c[2]})`, fg: lum < 0.6 ? '#ffffff' : '#141820' };
+  };
+
+  /*
+   * Taking a cell means taking BOTH of its axes: the age and the spending. A partner moves with you by
+   * the same number of years, which is what the retirement-age scan does and what the dials do.
+   */
+  const takeGridCell = (age, spend) => {
+    const base = sandboxRetireFromPlan(plan);
+    const delta = age - Math.round(E.num(ctx.owners[0].retireAge, age));
+    setSandboxCustomized(true);
+    setSandboxRetire({ self: E.clamp(age, 0, 120), part: E.clamp(E.num(base.part, age) + delta, 0, 120) });
+    setSandboxSpend(spend);
+    setSlide(DASH_SLIDE);
+    setSeeAll(false);
+    flash(`Sandbox set to retiring at ${age} on ${formatGBP(spend)} a year`, 3500);
+  };
+
+  const spendAgeGrid = () => {
+    if (!gridWin) return null;
+    /*
+     * The shell arrives before the numbers do. The grid waits for the safe maximum - that answer is what
+     * anchors its columns - and on a slow machine that is several seconds during which a card appearing
+     * from nowhere is a worse experience than a card saying what it is waiting for.
+     */
+    if (!grid) return (
+      <div data-spend-grid className="bg-surface border border-slate-200/90 rounded-xl p-4">
+        <div className="flex items-baseline gap-2.5">
+          <h3 className="text-sm font-semibold text-slate-900">Every age against every spend</h3>
+          <span className="text-[11px] text-slate-500">every combination of the two answers above, run in full</span>
+        </div>
+        <p className="text-[11px] text-slate-500 pt-1.5 flex items-center gap-1.5">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" /> waiting for the safe maximum, which is what sets the range&hellip;
+        </p>
+      </div>
+    );
+    const { ages, spends } = grid.window;
+    const done = ages.filter(a => grid.rows[a]).length;
+    const CW = isPhone ? 54 : 66, CH = isPhone ? 30 : 32, LW = isPhone ? 34 : 42;
+    const xOf = (v) => ((v - spends[0]) / (spends[1] - spends[0])) * CW + CW / 2;
+    const yOf = (a) => ages.indexOf(a) * CH + CH / 2;
+    // the frontier, read between the two cells that straddle the target on each finished row
+    const pts = ages.map(a => { const r = grid.rows[a]; if (!r) return null; const v = E.frontierSpend(r, targetSurvivalRate); return v === null ? null : `${xOf(v).toFixed(1)},${yOf(a).toFixed(1)}`; }).filter(Boolean);
+    /*
+     * What a year is worth, from the line itself. Averaged over the window rather than quoted at one
+     * end: the step grows with the pot, so a single pair of rows is the wrong answer everywhere else.
+     */
+    const solved = ages.map(a => { const r = grid.rows[a]; return r ? E.frontierSpend(r, targetSurvivalRate) : null; });
+    const steps = [];
+    for (let i = 1; i < solved.length; i++) if (solved[i] !== null && solved[i - 1] !== null) steps.push(solved[i] - solved[i - 1]);
+    const yearBuys = steps.length >= 2 ? Math.round(steps.reduce((t, v) => t + v, 0) / steps.length / 100) * 100 : null;
+    const planAge = Math.round(E.num(ctx.owners[0].retireAge, 0));
+    const planSpend = Math.round(E.num(simResult?.spend, 0));
+    return (
+      <div data-spend-grid className="bg-surface border border-slate-200/90 rounded-xl p-4 space-y-2.5">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <div className="flex items-baseline gap-2.5 min-w-0">
+            <h3 className="text-sm font-semibold text-slate-900">Every age against every spend</h3>
+            <span className="text-[11px] text-slate-500">the share of {fmtNum(GRID_TRIALS)} futures that lasted to {terminalAge}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {gridBusy && <span className="flex items-center gap-1.5 text-[11px] text-slate-600 font-semibold"><Loader2 className="w-3.5 h-3.5 animate-spin" /> {done} of {ages.length} rows</span>}
+            {!isPhone && (
+              <button type="button" onClick={() => setGridWide(v => !v)} disabled={gridBusy}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 bg-surface text-[11px] font-semibold text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-50">
+                {gridWide ? 'Narrower' : 'Wider'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className={isPhone ? '' : 'flex gap-5 items-start'}>
+        <div className="overflow-x-auto shrink-0" data-no-swipe>
+          <div style={{ width: LW + CW * spends.length }}>
+            {/* £47.5k, not "£48k": the step can be £2,500, and a column label that rounds to the nearest
+                thousand names a figure that is not the one the column was run at. */}
+            <div className="flex" style={{ marginLeft: LW }}>
+              {spends.map(v => <div key={v} style={{ width: CW }} className="text-center text-[10.5px] font-semibold text-slate-500 tabular-nums pb-1">{`\u00a3${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k`}</div>)}
+            </div>
+            <div className="flex">
+              <div style={{ width: LW }}>
+                {ages.map(a => (
+                  <div key={a} style={{ height: CH }} className={`flex items-center justify-end pr-1.5 text-[11px] tabular-nums ${a === planAge ? 'font-bold text-slate-900' : 'text-slate-500'}`}>{a}</div>
+                ))}
+              </div>
+              <div className="relative" style={{ width: CW * spends.length, height: CH * ages.length }}>
+                {ages.map(a => (
+                  <div key={a} className="flex" style={{ height: CH }}>
+                    {spends.map(v => {
+                      const cell = grid.rows[a] ? grid.rows[a].find(x => x.spend === v) : null;
+                      if (!cell) return <div key={v} style={{ width: CW, height: CH }} className="border-r border-b border-white bg-slate-100 animate-pulse" />;
+                      const col = gridCell(cell.rate);
+                      const here = a === planAge && Math.abs(v - planSpend) < (spends[1] - spends[0]) / 2;
+                      return (
+                        <button key={v} type="button" data-grid-cell={`${a}:${v}`} onClick={() => takeGridCell(a, v)}
+                          aria-label={`Retire at ${a} on ${formatGBP(v)} a year: ${cell.rate.toFixed(0)}% of futures last to ${terminalAge}. Sets the sandbox.`}
+                          style={{ width: CW, height: CH, background: col.bg, color: col.fg }}
+                          className="relative border-r border-b border-white text-[11px] font-semibold tabular-nums cursor-pointer hover:outline hover:outline-2 hover:outline-slate-900 hover:z-10">
+                          {cell.rate.toFixed(0)}
+                          {here && <span className="absolute inset-[1px] border-2 border-slate-900 rounded-[3px] pointer-events-none" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+                {pts.length > 1 && (
+                  <svg width={CW * spends.length} height={CH * ages.length} className="absolute inset-0 pointer-events-none overflow-visible">
+                    <polyline points={pts.join(' ')} fill="none" stroke="#ffffff" strokeWidth="5" strokeLinejoin="round" strokeLinecap="round" opacity="0.85" />
+                    <polyline points={pts.join(' ')} fill="none" stroke="#141820" strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" />
+                  </svg>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/*
+          * The space to the right of the table, used. At 1440 the grid is 570px wide inside a 1000px
+          * column, and what was beside it was nothing at all - while the two things a reader most needs
+          * told (that the cards above are one line each through this, and what a year is worth) were
+          * nowhere on the screen.
+          */}
+        {!isPhone && (
+          <div className="flex-1 min-w-0 space-y-3 pt-4">
+            <div className="border-l-[3px] border-slate-900 pl-2.5">
+              <div className="text-[11.5px] font-semibold text-slate-900">The two cards above are one line each through this</div>
+              <div className="text-[11px] text-slate-600 leading-relaxed">Read <strong>along</strong> the ringed row for the most you could spend at the age you entered; read <strong>down</strong> your own column for the earliest age that still clears {targetSurvivalRate}%. Everything between the two is a trade you can make yourself.</div>
+            </div>
+            {yearBuys !== null && (
+              <div className="border-l-[3px] border-rose-700 pl-2.5">
+                <div className="text-[11.5px] font-semibold text-slate-900">One more year of work buys about {formatGBP(yearBuys)} a year</div>
+                <div className="text-[11px] text-slate-600 leading-relaxed">Measured off the black line rather than asserted: the average step between one row and the next across this window.</div>
+              </div>
+            )}
+            <div className="border-l-[3px] border-blue-700 pl-2.5">
+              <div className="text-[11.5px] font-semibold text-slate-900">Click a cell to take it</div>
+              <div className="text-[11px] text-slate-600 leading-relaxed">It sets the sandbox to that age and that spending and opens the dashboard, where the amber line moves to it. Your saved plan is not touched until you press Apply.</div>
+            </div>
+          </div>
+        )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10.5px] text-slate-500">
+          <span className="flex items-center gap-1.5">
+            <span className="w-4 h-0 border-t-2 border-slate-900" /> where the plan crosses {targetSurvivalRate}%, read between the cells
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3.5 h-3.5 rounded-[3px] border-2 border-slate-900" /> your plan as entered
+          </span>
+          <span>Click a cell to put that age and that spending in the sandbox.</span>
+        </div>
+        <p className="text-[10.5px] text-slate-400 leading-relaxed">
+          Every cell is a real run of the same engine on the same {fmtNum(GRID_TRIALS)} market paths (seed {mcSeed}), so
+          neighbouring cells differ by the plan rather than by luck. Sampling error at {fmtNum(GRID_TRIALS)} paths is about
+          &plusmn;2 points at 95% confidence, so read a cell as a band rather than as a number.
+          {(plan?.spending?.spendBands || []).length > 0 && <> Your spending bands still win for the ages they cover; this is the figure for every year they do not name.</>}
+        </p>
+      </div>
+    );
+  };
+
   const sandboxSummary = () => {
     const spinner = mcBusy ? <Loader2 className="w-3 h-3 animate-spin shrink-0 text-blue-600" /> : null;
     const wrap = (text) => <span className="inline-flex items-center gap-1.5 min-w-0"><span className="truncate">{text}</span>{spinner}</span>;
     if (!isSandboxModified) return wrap('Sandbox — nothing changed yet');
     const bits = [];
     ctx.owners.forEach(o => { const b = sandboxRetireFromPlan(plan)[o.key]; if (sandboxRetire[o.key] !== b) bits.push(`retire ${sandboxRetire[o.key]}`); });
+    if (isSpendModified) bits.push(`spend ${formatGBP(sandboxSpend)}`);
     const extra = (plan?.accounts || []).reduce((t, a) => t + (E.num((sandboxAccounts[a.id] || {}).contrib, 0) - E.num(a.contrib, 0)), 0);
     if (extra) bits.push(`${extra > 0 ? '+' : ''}${formatGBP(extra)}/yr`);
     if (sandboxMetrics) bits.push(`${sandboxMetrics.terminalDelta >= 0 ? '+' : ''}${formatGBP(sandboxMetrics.terminalDelta)} @ ${terminalAge}`);
@@ -12350,6 +12602,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   )}
                     </div>
                   </div>
+                  {spendAgeGrid()}
                   {slideNav(2)}
                 </div>
               )}
@@ -12360,7 +12613,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
             {/* Saved scenarios overlay on whichever chart is showing, and the table ranks them against each
                 other. Kept outside the five steps: it compares PLANS, where the steps compare methods. */}
-            <div className={`bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3 ${dashboardMode ? 'hidden' : ''}`}>
+            {/* An empty card is not a card. With one scenario saved there is nothing to overlay, and this
+                used to draw a blank white box under the deck saying so. */}
+            <div className={`bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3 ${dashboardMode || scenarios.filter(s => s.id !== activeScenarioId).length === 0 ? 'hidden' : ''}`}>
             {scenarios.filter(s => s.id !== activeScenarioId).length > 0 && (
               <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
                 <span className="text-xs text-slate-500 font-semibold whitespace-nowrap">Compare saved scenarios:</span>

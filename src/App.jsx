@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 /*
  * FOUR FUNCTIONS, NOT THIRTY PACKAGES.
  *
@@ -16,7 +16,7 @@ import { scaleLinear } from 'd3-scale';
 import { area, line, curveMonotoneX } from 'd3-shape';
 const d3 = { scaleLinear, area, line, curveMonotoneX };
 import {
-  TrendingUp, Layers, Check, RotateCcw, Dices, Zap, ShieldCheck, Sliders, Download, Upload, Users, Wallet, Coins,
+  TrendingUp, Layers, Check, RotateCcw, Zap, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
   Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, ChevronUp, ChevronDown, Home, Gift,
   GripVertical, Maximize2, Loader2
@@ -28,6 +28,7 @@ import { BottomNav, MoreSheet } from './nav.jsx';
 import { Term as T } from './glossary.jsx';
 import { Boundary } from './boundary.jsx';
 import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, CollapsedRow, Clamp, PercentInput } from './phone.jsx';
+import { fieldCls as inputCls, smallFieldCls as smallInputCls, parseTierLabel } from './ui.js';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
@@ -5949,7 +5950,7 @@ const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, i
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, parseFormatted, pathsForSeed, runTrial, summarizeTrials, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, pathsForSeed, runTrial, summarizeTrials, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan
@@ -5966,6 +5967,10 @@ const APP_VERSION = 'v0.8 beta';
  * cannot rot - a change that breaks it still breaks the build.
  */
 const SHOW_INHERITANCE = false;
+// The Documentation tab is prose, and prose can arrive when it is asked for rather than with the engine.
+// It sits here, below the export line, because research/build-engine.py takes everything above it as the
+// engine and strips the imports - a lazy() up there breaks engine.mjs.
+const Docs = /* @__PURE__ */ lazy(() => import('./Docs.jsx'));
 /*
  * THE TABS, ONCE.
  *
@@ -6390,8 +6395,7 @@ async function scoreInWorkers(jobs, { onProgress } = {}) {
  * them made the form look like a table of read-only values. The simple page has always been outline-only
  * and is the version that reads better, so the full planner matches it.
  */
-const inputCls = 'w-full p-2 bg-surface border border-slate-300 rounded-lg tabular-nums text-slate-900 font-semibold focus:ring-2 focus:ring-inset focus:ring-blue-600 focus:border-blue-600 focus:outline-none';
-const smallInputCls = 'w-full p-2 bg-surface border border-slate-300 rounded tabular-nums font-semibold text-slate-900 focus:ring-2 focus:ring-inset focus:ring-blue-600 focus:border-blue-600 focus:outline-none';
+// inputCls and smallInputCls come from src/ui.js, shared with the simple planner
 
 function ProgressBar({ value, label }) {
   return (
@@ -7316,6 +7320,15 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // solve, which describes a different spend and so cannot share the same card. Keeping them apart is
   // what stops the metric tiles quietly changing meaning depending on which button was pressed last.
   const [simResult, setSimResult] = useState(null);
+  /*
+   * WHICH PLAN THE RESULTS DESCRIBE. The deck stays up after an edit, which is right - nobody wants the
+   * chart to vanish because they nudged a figure - but it then shows an answer to a question that is no
+   * longer being asked, with nothing on screen to say so. So the run records what it ran against, and
+   * the head of the deck says when the inputs have moved on.
+   */
+  const [runPlanSig, setRunPlanSig] = useState(null);
+  const planSig = useMemo(() => { try { return JSON.stringify(plan); } catch { return null; } }, [plan]);
+  const resultsStale = !!simResult && !!runPlanSig && runPlanSig !== planSig;
   const [safeMaxResult, setSafeMaxResult] = useState(null);
   const [safeRetireResult, setSafeRetireResult] = useState(null);
   const [isSolvingRetire, setIsSolvingRetire] = useState(false);
@@ -7493,14 +7506,17 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * quietly dropping out of a list nobody re-checks. The equality test is what stops the effect looping.
    */
   const [docSections, setDocSections] = useState([]);
-  useEffect(() => {
-    if (activeTab !== 'docs') return;
-    const found = [...document.querySelectorAll('[id^="doc-"]')]
-      .map(el => { const h = el.querySelector('h2'); return h ? { id: el.id, label: h.textContent.trim() } : null; })
-      .filter(Boolean);
+  // the tab reports its cards once it has rendered (Docs.jsx); the equality test is what stops it looping
+  const onDocSections = useCallback((found) => {
     setDocSections(prev => (prev.length === found.length && prev.every((x, i) => x.id === found[i].id) ? prev : found));
-  }, [activeTab]);
-  const goToDoc = (id) => { setActiveTab('docs'); setTimeout(() => scrollToDocSection(id), 80); };
+  }, []);
+  // the tab is a lazy chunk, so on its first opening the card may not exist for a moment: keep looking
+  const goToDoc = (id) => {
+    setActiveTab('docs');
+    let tries = 0;
+    const attempt = () => { if (document.getElementById(id)) scrollToDocSection(id); else if (tries++ < 25) setTimeout(attempt, 80); };
+    setTimeout(attempt, 80);
+  };
 
   const timelineData = useMemo(() => {
     const exp = E.simulateDeterministic(ctx, 'expected');
@@ -8836,6 +8852,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     // Every stage is cleared, including one that is about to be skipped: a verdict line left over from an
     // earlier run would otherwise sit alongside fresh figures and read as part of the same measurement.
     setSimResult(null); setSafeMaxResult(null);
+    setRunPlanSig(planSig);
     setTournament(prev => (prev.results ? { ...prev, results: null } : prev));
     try {
       await runStageTest(wantSafeMax ? { from: 0, to: 0.35 } : { from: 0, to: 1 });
@@ -10207,7 +10224,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700"><Bookmark className="w-4 h-4 text-blue-600" /><span>Active scenario:</span></div>
             <div className="flex items-center gap-1.5">
-              <select aria-label="Active scenario" value={activeScenarioId} onChange={(e) => handleSelectScenario(e.target.value)} className="p-1.5 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+              <select aria-label="Active scenario" value={activeScenarioId} onChange={(e) => handleSelectScenario(e.target.value)} className="p-1.5 px-3 bg-surface border border-slate-300 rounded-lg text-xs font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                 {scenarios.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
               {scenarios.length > 1 && (
@@ -10216,7 +10233,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap ml-auto">
-            <input type="text" placeholder="Scenario name (optional)" value={scenarioNameInput} onChange={(e) => setScenarioNameInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSaveScenario(); }} className="p-1.5 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 sm:w-56" />
+            <input type="text" placeholder="Scenario name (optional)" value={scenarioNameInput} onChange={(e) => setScenarioNameInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSaveScenario(); }} className="p-1.5 px-3 bg-surface border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 sm:w-56" />
             <button onClick={handleSaveScenario} className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"><Save className="w-3.5 h-3.5" /> Save</button>
             <button onClick={handleSaveAsNewScenario} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border border-slate-200 cursor-pointer"><Plus className="w-3.5 h-3.5 text-slate-600" /> Save as new scenario</button>
             {saveSuccessMsg && <span className="text-xs font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200"><Check className="w-3 h-3 text-emerald-600" /> {saveSuccessMsg}</span>}
@@ -10507,9 +10524,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {displayedAccounts.map(acc => {
                     const over = (acc.id.startsWith('isa') && E.num(acc.contrib, 0) > P.isaAllowance) || (acc.id.startsWith('pen') && E.num(acc.contrib, 0) > P.pensionAllowance);
                     const riskOptions = Object.keys(activeRiskMatrix).map(rk => {
-                      const lab = activeRiskMatrix[rk].label || rk;
-                      const [title, rest] = lab.split(/:\s*/);
-                      return { key: rk, title, sub: rest ? rest.replace(/\s*Equities/i, ' eq.') : '', long: lab };
+                      const { name, rest, long } = parseTierLabel(activeRiskMatrix[rk].label, rk);
+                      return { key: rk, title: name, sub: rest ? rest.replace(/\s*Equities/i, ' eq.') : '', long };
                     });
                     return (
                       <div key={acc.id} data-wrapper-card className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 pt-2 pb-1">
@@ -10549,11 +10565,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <tr key={acc.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-2.5 font-sans font-bold text-slate-800">{acc.category}{Array.isArray(acc.contribByYear) && <span className="ml-2 px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px] font-normal">phased schedule</span>}</td>
                         {isCouple && <td className="py-2.5 font-sans text-slate-500">{acc.owner}</td>}
-                        <td className="py-2.5"><MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={acc.balance} onChange={(e) => updateAccountField(acc.id, 'balance', e.target.value)} className="w-32 p-1.5 bg-slate-50 border border-slate-300 rounded font-bold text-slate-900 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
+                        <td className="py-2.5"><MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={acc.balance} onChange={(e) => updateAccountField(acc.id, 'balance', e.target.value)} className="w-32 p-1.5 bg-surface border border-slate-300 rounded font-bold text-slate-900 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
                         <td className="py-2.5"><MoneyInput min="0" step="250" placeholder="0" onFocus={handleFocus} value={acc.contrib} onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }} className={`w-28 p-1.5 bg-slate-50 border rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none ${over ? 'border-rose-400 text-rose-700' : 'border-slate-300'}`} title={over ? 'Exceeds the annual allowance set in Config' : ''} /></td>
-                        <td className="py-2.5"><input type="number" step="0.5" placeholder="0" onFocus={handleFocus} value={acc.growth} onChange={(e) => updateAccountField(acc.id, 'growth', e.target.value)} className="w-20 p-1.5 bg-slate-50 border border-slate-300 rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
+                        <td className="py-2.5"><input type="number" step="0.5" placeholder="0" onFocus={handleFocus} value={acc.growth} onChange={(e) => updateAccountField(acc.id, 'growth', e.target.value)} className="w-20 p-1.5 bg-surface border border-slate-300 rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
                         <td className="py-2.5">
-                          <select aria-label={`${acc.category} risk tier`} value={acc.risk} onChange={(e) => updateAccountField(acc.id, 'risk', e.target.value)} className="p-1.5 bg-slate-50 border border-slate-300 rounded text-xs text-blue-700 font-semibold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                          <select aria-label={`${acc.category} risk tier`} value={acc.risk} onChange={(e) => updateAccountField(acc.id, 'risk', e.target.value)} className="p-1.5 bg-surface border border-slate-300 rounded text-xs text-blue-700 font-semibold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                             {Object.keys(activeRiskMatrix).map(rk => <option key={rk} value={rk}>{activeRiskMatrix[rk].label || rk}</option>)}
                           </select>
                         </td>
@@ -10984,7 +11000,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1">
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1"><T k="decumulation">Decumulation</T> policy</label>
-                  <select aria-label="Decumulation policy" value={plan?.spending?.decumulationPolicy} onChange={(e) => updateSpending('decumulationPolicy', e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                  <select aria-label="Decumulation policy" value={plan?.spending?.decumulationPolicy} onChange={(e) => updateSpending('decumulationPolicy', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                     {Object.entries(E.DECUMULATION_POLICIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                   </select>
                   <Fine isPhone={isPhone} label="What this policy does">
@@ -10995,7 +11011,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Pension drawdown strategy</label>
-                  <select aria-label="Pension drawdown strategy" value={plan?.spending?.drawdownStrategy} onChange={(e) => updateSpending('drawdownStrategy', e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                  <select aria-label="Pension drawdown strategy" value={plan?.spending?.drawdownStrategy} onChange={(e) => updateSpending('drawdownStrategy', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                     <option value="Phased Drawdown">Phased Drawdown (Ongoing {Math.round(P.pclsProp * 100)}% tax-free proportion)</option>
                     <option value="Full 25% Lump Sum">Full Lump Sum (Upfront statutory PCLS into Cash)</option>
                   </select>
@@ -11005,7 +11021,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Harvest unused 0% allowance</label>
-                  <label className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-300 rounded-lg cursor-pointer">
+                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
                     <input type="checkbox" checked={!!plan?.config?.harvestPersonalAllowance} onChange={(e) => updateConfig('harvestPersonalAllowance', e.target.checked)} className="accent-blue-600" />
                     <span className="text-slate-700 font-semibold">Draw pension beyond what the year needs and re-wrap it; proceeds fill the ISA first, then the GIA.</span>
                   </label>
@@ -11021,7 +11037,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1"><T k="CGT">Capital gains tax</T> on the <T k="GIA">GIA</T></label>
-                  <label className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-300 rounded-lg cursor-pointer">
+                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
                     <input type="checkbox" checked={!!plan?.config?.cgtEnabled} onChange={(e) => updateConfig('cgtEnabled', e.target.checked)} className="accent-blue-600" />
                     <span className="text-slate-700 font-semibold">Tax gains realised when Other Investments are sold, using the cost basis of each holding.</span>
                   </label>
@@ -11288,7 +11304,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           {field === 'lucky' || field === 'unlucky' ? (
                             <span className={`${color} font-bold`}>{(band[field] * 100).toFixed(2)}%</span>
                           ) : isEditingRisk ? (
-                            <input type="number" step={step} min={field === 'volatility' || field === 'sigmaParam' ? 0 : undefined} onFocus={handleFocus} value={val[field] ?? ''} onChange={(e) => updateRiskField(key, field, e.target.value)} className={`w-20 p-1 bg-slate-50 border border-slate-300 rounded font-mono ${color} font-bold focus:bg-surface focus:ring-1 focus:ring-blue-500`} />
+                            <input type="number" step={step} min={field === 'volatility' || field === 'sigmaParam' ? 0 : undefined} onFocus={handleFocus} value={val[field] ?? ''} onChange={(e) => updateRiskField(key, field, e.target.value)} className={`w-20 p-1 bg-surface border border-slate-300 rounded font-mono ${color} font-bold focus:bg-surface focus:ring-1 focus:ring-blue-500`} />
                           ) : <span className={`${color} font-bold`}>{E.num(val[field], 0).toFixed(field === 'volatility' ? 1 : 2)}%</span>}
                         </td>
                       ))}
@@ -11304,7 +11320,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               subtitle="Defaults are 2025/26 (frozen to April 2028), and all thresholds are held constant in real terms.">
               <div className="pb-1">
                 <label className="text-slate-600 font-semibold block mb-1 text-xs">Where you pay income tax</label>
-                <select aria-label="Where you pay tax" value={plan?.config?.taxRegion ?? 'ruk'} onChange={(e) => updateConfig('taxRegion', e.target.value)} className="w-full sm:w-80 p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                <select aria-label="Where you pay tax" value={plan?.config?.taxRegion ?? 'ruk'} onChange={(e) => updateConfig('taxRegion', e.target.value)} className="w-full sm:w-80 p-2 bg-surface border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                   {Object.entries(E.TAX_REGION_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
                 </select>
                 <span className="text-[10px] text-slate-400 mt-1 block">
@@ -11362,6 +11378,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900">Run the projection</h3>
+                  {resultsStale && <span data-stale-results className="block text-[11px] font-semibold text-amber-700 mb-0.5">Your inputs changed since this run. The steps below describe the plan as it was &mdash; run again to refresh.</span>}
                   <span className="text-[11px] text-slate-500">{simResult ? 'Six steps: what your plan does, the most you could spend, the earliest you could stop, the two ways of drawing the range, then both side by side.' : 'Answers arrive as they land, so the first is on screen while the rest is still working. Every figure is in today\u2019s money.'}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -12754,7 +12771,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Sell the home during retirement?</label>
-                  <label className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-300 rounded-lg cursor-pointer">
+                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
                     <input type="checkbox" checked={!!plan?.inheritance?.homeSold} onChange={(e) => updateInheritance('homeSold', e.target.checked)} className="accent-purple-600" />
                     <span className="text-slate-700 font-semibold text-[11px]">Yes, at age</span>
                     <input type="number" min={currentAge} max="120" disabled={!plan?.inheritance?.homeSold} onFocus={handleFocus} value={plan?.inheritance?.homeSaleAge ?? ''} onChange={(e) => updateInheritance('homeSaleAge', parseInputNumber(e.target.value))} className="w-16 p-1 bg-surface border border-slate-300 rounded tabular-nums text-slate-800 disabled:opacity-40" />
@@ -13241,327 +13258,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
         {/* TAB 7: DOCS */}
         {activeTab === 'docs' && (
-          <div className="space-y-6">
-            {!isPhone && docSections.length > 1 && (
-              <nav data-doc-contents aria-label="Documentation contents" className="bg-surface border border-slate-200/90 p-5 rounded-xl">
-                <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><BookOpen className="w-4 h-4 text-blue-600" /> What is in here</h2>
-                <ol className="mt-2.5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-0.5 text-xs">
-                  {docSections.map((sec, i) => (
-                    <li key={sec.id} className="flex gap-2 items-baseline">
-                      <span className="text-slate-400 tabular-nums shrink-0">{i + 1}</span>
-                      <button type="button" onClick={() => scrollToDocSection(sec.id)}
-                        className="text-left min-h-6 text-blue-700 hover:text-blue-900 hover:underline font-semibold cursor-pointer">{sec.label}</button>
-                    </li>
-                  ))}
-                </ol>
-              </nav>
-            )}
-            <div id="doc-mc-buttons" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
-              <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Dices className="w-4 h-4 text-blue-600" /> The Three Stages of a <T k="Monte Carlo">Monte Carlo</T> Run</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">Two of these run from one button on the Projection tab, each result appearing as its stage finishes. They use the same engine on the same {fmtNum(MC_TRIALS)} randomised market paths and differ only in which side of the equation is held fixed: one fixes your spending and reports the risk, the other fixes the risk and reports the spending. The second can be switched off if you only want the fast answer. The third leaves both alone and changes where the money sits instead; it answers a different question, so it has its own tab and its own button.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
-                  <strong className="text-slate-800 block">Stage 1, always runs: is the plan solvent?</strong>
-                  <p className="text-slate-500">Takes the target living expenditure from Plan Inputs exactly as entered and runs it through {fmtNum(MC_TRIALS)} paths. The answer is a <strong>survival rate</strong>: the share of paths that funded every year to age {terminalAge} without running dry and finished above your bequest floor. Use it once you know roughly what you want to spend. This stage reports a probability rather than targeting one, so the target survival rate does not affect it.</p>
-                </div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
-                  <strong className="text-slate-800 block">Stage 2, optional: "how much could I spend?"</strong>
-                  <p className="text-slate-500">Ignores your target figure and solves for the <strong>largest annual spend</strong> that still survives at the target survival rate you pick. It bisects on the spending amount, re-running the full simulation at each step, which is why it takes longer than the first stage. At 95% it finds the spend that fails in no more than 1 path in 20. Because it describes a different spend from the one you entered, it gets its own line in the verdict and its own row of figures, rather than overwriting stage 1.</p>
-                </div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
-                  <strong className="text-slate-800 block">The target survival rate (85 / 90 / 95%)</strong>
-                  <p className="text-slate-500">Only affects stage 2. It is the share of paths you are asking the spending figure to survive, so a <em>lower</em> target returns a <em>higher</em> figure: 85% buys you more income now in exchange for a 1-in-7 chance of running short. 95% is the conventional planning benchmark. Changing it after a run offers to solve stage 2 again on its own, since nothing else depends on it.</p>
-                </div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
-                  <strong className="text-slate-800 block">On the Strategy tab: "would a different split do better?"</strong>
-                  <p className="text-slate-500">Holds your spending and your budget fixed and re-splits the budget between wrappers, scoring each strategy on identical market paths. It is the slowest stage because it runs several full simulations, and two of its players search a range of candidates first. The methodology and the players are documented below.</p>
-                </div>
-              </div>
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1 text-xs">
-                <strong className="text-slate-800 block">One expected path, two ranges</strong>
-                <p className="text-slate-500">Stage 1 keeps every simulated path, not just its ending, so the chart can show where all {fmtNum(MC_TRIALS)} of them stood at each age: the shaded band is the 10th to 90th percentile, the solid line the median. Read the right-hand edge and you get the same three pot figures reported underneath it, because both use the same quantile. No path follows any of the three lines, and the band widens with age because nothing cancels out the early years.</p>
-                <p className="text-slate-500">The rate-based and Monte Carlo charts share a y-scale so they can be read against each other directly. What that shows is how little of the distribution a single line accounts for. The line itself is well placed &mdash; it tracks the simulated median to within a few percent (measured &minus;3.5%, &minus;1.5% and +0.4% across three households), because the engine compounds the same rate it draws around as the median of each year&rsquo;s return. The point is the distance above and below it. Read on its own, a single curve looks like an answer; against the spread of {fmtNum(MC_TRIALS)} paths it is visibly one thread of a very wide cloth.</p>
-                <p className="text-slate-500">The rate-based band answers the same question far more cheaply, as a shaded band either side of the expected line that redraws as you type. Each edge takes that age&rsquo;s own quantile rate: the spread of an annualised return is &radic;(sp&sup2; + &sigma;&sup2;/T) and narrows with the horizon, so one rate cannot describe every age on a chart &mdash; held fixed it is out by 24&ndash;29% at age 50 on a 45-year plan. Re-derived per age it lands within 2&ndash;3% of the Monte Carlo.</p>
-                <p className="text-slate-500">What survives is the real difference between the two. The band cannot run dry, because a smooth line has no bad decade in it; the fan can, because it is made of paths that did. So the band&rsquo;s lower edge stays optimistic, and increasingly so as a plan weakens &mdash; 5.5% out at 99.5% survival, 16.2% at 97.3%, 98% at 91.3%. Use the band to see the shape of the range as you type, and the fan when the downside is the decision.</p>
-                <p className="text-slate-500">Where the lower edge touches zero, a tenth of the paths have run dry by that age. That is a statement no smooth line could have made.</p>
-                <p className="text-slate-500"><strong className="text-slate-800">Sequence risk, priced.</strong> The card under the chart puts a number on the same effect rather than describing it. It takes each tier&rsquo;s 10th-percentile annualised return &mdash; the unlucky column of the Config risk matrix, over your own horizon &mdash; compounds it evenly to age {terminalAge}, and sets that against the 10th-percentile pot the simulation actually produced. The two runs share an expected return, a plan and a horizon; all that separates them is the order the returns arrive in, so the difference is sequence risk in pounds. It is one-sided by nature: the same comparison at the 90th percentile comes out far smaller, and sometimes favourable, because selling units cheaply to live on is irreversible in a way that buying them cheaply is not. While you are still contributing it disappears, and can turn mildly favourable &mdash; a bumpy path buys more units when prices are low. This is also the one thing a published return forecast cannot supply, however detailed: withdrawal order is not a property of a return distribution.</p>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed"><strong className="text-slate-800">Every figure is in today&rsquo;s money, and the headline carries a &plusmn; sampling error.</strong> At {fmtNum(MC_TRIALS)} trials a difference smaller than that is noise, so treat 94.2% and 95.1% as the same answer. Check the <strong>pre-SIPP access failure</strong> line separately: a plan can survive overall while still stranding you before age {nmpa}, which is a bridging problem, not a saving-enough problem. A path counts as failed in any year that living costs or a one-off cost cannot be met from an accessible wrapper, or if the terminal pot ends below your bequest floor. Paths are seeded, so the same seed reproduces the result exactly; change the seed in Config to test a different draw of markets.</p>
-              <p className="text-[11px] text-slate-500 leading-relaxed">No stage changes your plan on its own. Applying a strategy from stage 3 is a separate, deliberate click.</p>
-              </PhoneCollapse>
-            </div>
-
-            <div id="doc-tournament" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
-              <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Zap className="w-4 h-4 text-indigo-600" /> Automated Strategy Tournament &amp; Optimisation Methodology</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">The tournament compares six ways of splitting the same annual take-home budget between S&amp;S ISAs and pensions. Every player is run on the same {fmtNum(TOURNAMENT_TRIALS)} market paths (common random numbers), so the players are compared on identical markets rather than on separate draws. That is what makes the comparison fair; it does not make it exact. A single strategy's survival rate still moves by around half a point from one seed to the next at this path count, so read a lead smaller than about a point as sampling error. Any saved scenario can be entered as an extra player; those run exactly as saved and are not held to the same budget, which their cards state.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">1. Equal net budget</strong><p className="text-slate-500">Each strategy costs the same take-home pay. Pension money is grossed up using each owner's own salary (income tax + NIC relief, plus any employer NIC pass-through set in Config), capped by the annual allowance (£{fmtNum(P.pensionAllowance)}) and salary; ISA money is capped at £{fmtNum(P.isaAllowance)} per person; anything left over flows to a GIA.</p></div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">2. Conservative bridge sizing</strong><p className="text-slate-500">If spending starts before anyone can access a pension (age {nmpa}), the bridge reserve is the sum of net drawdown in those years (after guaranteed income and a working partner's take-home), uplifted by the safety margin ({E.num(plan?.config?.bridgeSafetyMargin, 30)}%) and assuming 0% real growth.</p></div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">3. The players</strong><p className="text-slate-500"><strong>Current plan</strong> · <strong>Survival maximiser</strong> (searches the ISA share from 0% to 100% and keeps the best survival, subject to the bridge-risk cap) · <strong>Bridge-Sized Relief</strong> (pension-first, with only the pre-access bridge carved out: the requirement is sized with growth counted on both existing balances and new contributions, then cover levels either side of it are searched, some paid in level and some over the final years only, and spare ISA capital above the reserve is moved into the pension) · <strong>Relief-First</strong> (pension first, bridge minimum kept; with a Bed &amp; SIPP transfer of spare ISA capital in full scope) · <strong>Bracket-Smoothed Sizing</strong> (pension funded only to the pot whose sustainable withdrawal plus state pension fills the basic-rate band, the rest to ISA) · <strong>Relief-First, Bridge-Last</strong> (pension-max early, ISA-max in the final years before retirement).</p></div>
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><strong className="text-slate-800 block">4. Reading the results</strong><p className="text-slate-500">Rank by survival first; ties within 0.5 points are broken by the 10th-percentile pot. Watch the pre-SIPP access failure rate: a strategy can win on total survival by accepting more bridge risk. The "Partner balancing" option steers new money to the partner with the smaller projected pension so both personal allowances can be used in retirement; it costs relief if that partner pays a lower marginal rate, so it does not always win.</p></div>
-              </div>
-              </PhoneCollapse>
-            </div>
-
-            <div id="doc-decumulation" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
-              <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sliders className="w-4 h-4 text-blue-600" /> Decumulation Policies &amp; Pension Drawdown Strategies</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">How money is withdrawn across wrappers changes lifetime tax and the size of the pot left at the end; it changes the probability of maintaining your living costs far less than the spend level, asset allocation and the pre-SIPP access bridge do.</p>
-              <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1.5">
-                <li><strong>Tax Smoothing (default):</strong> fills the £{fmtNum(P.pa)} allowance from pension income (0%), then draws pension income up to the £{fmtNum(P.basicLimit)} higher-rate threshold (about {Math.round((1 - P.pclsProp) * P.basicRate * 100)}% effective with the {Math.round(P.pclsProp * 100)}% tax-free element), then cash, GIA and ISA, with pension income above the threshold as the last resort. Cash and ISAs are preserved as the low-volatility reserve and the tax-free shield for later life.</li>
-                <li><strong>UK FIRE Bracket Fill:</strong> draws pension only up to the £{fmtNum(P.pa)} allowance, then cash, GIA and ISAs; pension income above the allowance is the last resort. Pays the least tax during your lifetime and leaves the largest pot, but that pot is mostly taxable pension. Set the pension death-tax haircut in Config to see the difference net of what beneficiaries would pay.</li>
-                <li><strong>Sequential:</strong> cash → GIA → ISA → pension, no bracket management. Shown as the naive baseline; it wastes the personal allowance in early retirement.</li>
-                <li><strong>Harvest unused allowance:</strong> once retired and past age {nmpa}, any unused 0% allowance is filled from the pension and the net proceeds moved to ISA (within the £{fmtNum(P.isaAllowance)} limit) or cash. It only matters when spending is largely covered by guaranteed income.</li>
-                <li><strong>Phased Drawdown</strong> crystallises {Math.round(P.pclsProp * 100)}% tax-free with each withdrawal (UFPLS-style), keeping the rest invested. <strong>Full lump sum</strong> moves the maximum tax-free cash (capped at £{fmtNum(P.lsa)}) into cash savings at retirement; later withdrawals are then fully taxable.</li>
-              </ul>
-              </PhoneCollapse>
-            </div>
-
-            <div id="doc-coverage" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
-              <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-indigo-600" /> Modelling Decisions, Coverage &amp; Known Gaps</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">Where the rules leave room for judgement, this is the decision the model makes and why. Read this before trusting a number.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Decisions taken</h3>
-              <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
-                <li><strong>Everything is in today's money.</strong> Growth uses each tier's <em>real</em> rate, so every pot, spend and bequest figure is in today's purchasing power. The "Combined (Nominal)" chart series is the only place inflation is added back, for display. A £100,000 bequest floor therefore means £100,000 of today's money. Do not gross it up.</li>
-                <li><strong>Pay is flat in real terms unless you say otherwise.</strong> Salary, or trading profit for the self-employed, is held at the figure you enter for every working year. Because the projection is in today's money that is not a frozen wage, it is pay rising exactly with inflation. Set a real growth rate per person under Advanced inputs to model promotions or a career winding down; it compounds on top of inflation and feeds the relevant-earnings cap, the annual allowance taper and the relief rate on every pension contribution.</li>
-                <li><strong>The MPAA is derived, not declared.</strong> The model runs the expected path once, finds the first year each person draws taxable pension income, and applies the £{fmtNum(P.mpaaLimit)} allowance from that age. It assumes you have <em>not</em> already flexibly accessed a pension: reasonable for planning, wrong if you have, which would need the trigger set earlier.</li>
-                <li><strong>Carry-forward is not consumed.</strong> Unused allowance from the prior three years is offered as headroom but is not tracked as being used up, so a plan that leans on it repeatedly is optimistic. It never lifts the earnings limit, and it accrues at each prior year's <em>tapered</em> allowance.</li>
-                <li><strong>The annual allowance taper keys off earnings.</strong> HMRC tapers on adjusted income, which adds employer contributions; the model only knows earnings, so the taper is approximate for anyone near the £{fmtNum(P.aaTaperThr)} threshold.</li>
-                <li><strong>A blank salary means "unknown", not "zero".</strong> While you are still working, leaving salary empty leaves the pension allowance unconstrained rather than dropping it to £{fmtNum(P.pensionNoEarningsLimit)}. Enter a salary for an accurate limit.</li>
-                <li><strong>CGT is realisation-based.</strong> Gains are booked only when the GIA is actually sold, using a running cost basis. Gains are wiped by the uplift on death, so nothing is charged on whatever remains at the terminal age.</li>
-                <li><strong>The tournament holds contributions equal.</strong> Every strategy is re-priced to cost the same total over the accumulation years as your current plan, by solving its contribution escalation. Without this a strategy could win simply by asking you to pay in more.</li>
-                <li><strong>Allowance harvesting is a bequest tool.</strong> It never improves survival. It moves money from a pot taxed on death into one that is not. It is worth nothing unless you set a pension death tax rate, and close calls are broken on the pot left <em>after</em> that tax.</li>
-                <li><strong>The self-employed get income tax relief only.</strong> A sole trader cannot salary sacrifice, so a personal contribution saves income tax at the marginal rate but no NIC, and no employer NIC can be passed through. That is 40% relief for a higher-rate trader against 42% for an employee, and 20% against 28% in the basic band. Set the employment type per person in Advanced inputs.</li>
-                <li><strong>Allowances are frozen in real terms</strong> at the Config figures. Any future rise in the ISA or pension allowance is not modelled, so long staging schedules are deliberately cautious.</li>
-              </ul>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Modelled</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Income tax including the personal-allowance taper, employee Class 1 NIC and self-employed Class 4 NIC, the {Math.round(P.pclsProp * 100)}% tax-free element capped at the £{fmtNum(P.lsa)} Lump Sum Allowance, the £{fmtNum(P.pensionAllowance)} annual allowance with taper and three-year carry-forward, the relevant-earnings limit, the MPAA, ISA allowances, realisation-based CGT with its annual exempt amount and band split, state pension timing, the pre-SIPP access bridge, one-off deposits with multi-year staging, one-off costs, spending bands by age, salary-sacrifice relief including any employer NIC pass-through, and relief at source for the self-employed.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Not modelled yet</h3>
-              <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
-                <li><strong>Lumpy self-employed profits.</strong> Trading profit is carried as a single figure that grows at a steady rate, exactly like a salary. Real self-employment swings year to year, and a bad year can waste an annual allowance that carry-forward only partly recovers. <strong>Class 2 NIC</strong> is also not charged: it stopped being mandatory above the Small Profits Threshold in 2024, and the voluntary route for those below it does not change a projection. Payments on account, the trading allowance, capital allowances and incorporation are all out of scope.</li>
-                <li><strong>Devolved income tax:</strong> covered. Set where you pay tax in Config. Scotland uses its own six bands, Wales
-                  is offered but currently matches England and Northern Ireland. Only the bands are devolved: National Insurance, capital gains
-                  tax, the personal allowance and its taper apply unchanged, and relief at source on a pension contribution stays at 20%.
-                  Note that the region only shows up where the model actually routes income through the tax calculation - pension drawdown,
-                  the state pension and other taxable income - so it does not change a projection whose earning years are all before anyone
-                  has retired.</li>
-                <li><strong>Inheritance tax on the estate.</strong> The pension death tax setting applies a haircut to leftover pension only, so it represents the <em>extra</em> tax a pension suffers relative to an ISA, not IHT on everything.</li>
-                <li><strong>Defined benefit pensions</strong> beyond entering them as a taxable income stream; no accrual, revaluation or transfer values.</li>
-                <li><strong>Care costs, the Lifetime ISA, the National Minimum Wage floor on salary sacrifice, dividend and savings-interest taxation inside the GIA, share pooling and the 30-day CGT rule.</strong></li>
-                <li><strong>Allowance and threshold changes</strong> announced for future years, and any change to the state pension triple lock.</li>
-              </ul>
-              <p className="text-xs text-slate-500 leading-relaxed">This is an educational model, not advice. Where a figure matters to a real decision, check it against current HMRC guidance or a regulated adviser.</p>
-              </PhoneCollapse>
-            </div>
-
-            <div id="doc-taper" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
-              <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><HelpCircle className="w-4 h-4 text-blue-600" /> Spending by Age</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">Retirement spending often isn't flat. Set what a stretch of years actually costs in Plan Inputs as bands: a start age, an end age and what those years cost in today's money. A band that names ages 58 to 67 at {formatGBP(45000)}, then 68 to 79 at {formatGBP(34000)}, then 80 onwards at {formatGBP(40000)}, says exactly that, including the rise at the end for care. Ages are "Myself" ages.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">Bands only override the years they cover. Any year outside every band falls back to the headline living spend, so naming a single expensive stretch is enough; you do not have to describe the whole retirement. Leave the end age blank to run a band to the terminal age. If two bands overlap the earlier one wins for the shared years, and the model says so in the warnings rather than picking silently.</p>
-              <p className="text-xs text-slate-500 leading-relaxed">Bands replaced an older pair of percentage "tapers" that could only step spending down at two fixed ages. Any saved plan still carrying tapers is converted to the equivalent bands when it loads, so its projection is unchanged. The safe-spend solver scales the whole shape at once: it finds the multiple of your headline spend that survives, and every band moves with it in proportion.</p>
-              </PhoneCollapse>
-            </div>
-
-            <div id="doc-risk-profiles" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
-              <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-blue-600" /> Asset Allocations, Return Bounds &amp; Volatility (σ)</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">Each wrapper is assigned a risk tier carrying an expected real return (treated as the median annual rate), a volatility, and a forecast uncertainty. The first two describe the <em>path</em>; the third describes how sure we are of the average that path is scattered around, and the distinction matters more the longer you plan for. Volatility averages out as σ/√T. Being wrong about the long-run average does not average out at all, so it is drawn once per simulated path and then lived with, giving an annualised spread of √(u² + σ²/T). The built-in tiers set that uncertainty to zero, which is itself a claim — that we know the long-run average and are only unsure of the route — and a published set of capital market assumptions will generally say otherwise.</p>
-              <p className="text-xs text-slate-600 leading-relaxed"><strong className="text-slate-800">&ldquo;Expected&rdquo; here means the middle, not the average.</strong> The figure in the first column is the <em>median</em> rate: half the simulated years land above it and half below. Compound the middle rate and you get the middle outcome, which is why the Expected line on the Projection chart sits almost exactly on the simulation&rsquo;s median &mdash; within half a percent on a plain lump sum, and within about 3&frac12;% on a real plan, where contributions and tax blur it slightly.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">The <em>average</em> would be a much bigger number and a far less useful one. Picture a casino floor: nobody is made to stop while they are winning, but everybody stops at zero. Money behaves the same way. A pot that compounds well keeps compounding with nothing above it, while a pot that runs dry is finished and stays finished &mdash; so a handful of runaway futures drag the average up and away from anything the rest experience. On one ordinary plan modelled here the middle outcome is {formatGBP(7193811)} while the average is {formatGBP(22457043)}: more than three times higher, and a figure almost nobody in the simulation actually ends up with. You plan around the outcome in the middle, so the middle rate is what this model compounds. It is the standard convention too &mdash; published capital market assumptions quote annualised returns, not arithmetic ones.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">The 10th and 90th percentile columns beside them are that spread at the two tails: over your horizon the annualised return lands between them eight times in ten. They also draw the rate-based band on the Projection chart, re-derived at every age rather than held at one rate, because that spread narrows as the horizon lengthens and a single rate is wrong everywhere except the horizon it came from. What they cannot do is stand in for the simulation: a smooth curve contains no bad decade and cannot run dry, so its lower edge stays optimistic on a plan under strain. All wrappers move together (one market factor scaled by each tier's σ), so the correlations a published set also carries cannot be used without a second factor; the historical backtest blends real US equity and bond returns by the tier's equity weight ({Object.entries(E.RISK_EQUITY_WEIGHTS).map(([k, v]) => `${k.replace(' Risk', '')} ${Math.round(v * 100)}%`).join(', ')}).</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                {Object.entries(activeRiskMatrix).map(([k, v]) => (
-                  <div key={k} className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1"><span className="font-bold text-slate-800">{k} ({v.label})</span><p className="text-slate-500">Expected real {E.num(v.real, 0).toFixed(2)}% pa, σ = {E.num(v.volatility, 0).toFixed(1)}%.</p></div>
-                ))}
-              </div>
-              </PhoneCollapse>
-            </div>
-
-            <div id="doc-one-off-deposits" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
-              <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-600" /> One-Off Deposits &amp; Multi-Year Staging</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">A one-off deposit is a lump sum paid into a chosen wrapper in a chosen year. Because ISAs and pensions are capped each tax year, the engine checks the deposit against that year's remaining allowance before it lands.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Where the money comes from</h3>
-              <p className="text-xs text-slate-600 leading-relaxed"><strong>External (new capital)</strong> is money arriving from outside the plan (an inheritance, a bonus, a property sale), and nothing is deducted from your existing pots. Choosing any wrapper instead treats it as an internal transfer: the full amount is taken out of that pot in the deposit year. If that pot does not hold enough at the time, the engine moves what is there and the rest is recorded as a shortfall.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">How much fits this year (headroom)</h3>
-              <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
-                <li><strong>S&amp;S ISA:</strong> {formatGBP(P.isaAllowance)} less whatever your regular ISA contribution is that year.</li>
-                <li><strong>Carry forward:</strong> unused annual allowance from the previous three tax years is added to the current year's. Years inside the projection are worked out from your contribution schedule; for the three years before it starts the model has no data, so it assumes nothing unless you enter a figure under Advanced inputs. Carry forward never lifts the earnings limit, so it does nothing for someone with no relevant earnings.</li>
-                <li><strong>Pension after flexible access:</strong> taking taxable pension income permanently replaces the allowance with the money purchase annual allowance of {formatGBP(P.mpaaLimit)}, and carry forward is no longer available. Taking only tax-free cash, or buying an annuity, does not trigger it. You do not enter this: the model works out the first year your plan draws taxable pension income and applies it from there.</li>
-                <li><strong>Pension:</strong> {formatGBP(P.pensionAllowance)}, but capped at your <em>relevant UK earnings</em>, less your regular pension contribution that year. Only employment and self-employment income counts as earnings; DB pensions, annuities, rent, dividends and interest do not. With no relevant earnings the limit is <strong>{formatGBP(P.pensionNoEarningsLimit)}</strong>, which is what normally applies once you have retired. If you leave your salary blank while still working, the engine treats your earnings as unknown and does not constrain the allowance.</li>
-                <li><strong>Other Investments and Cash Savings:</strong> no annual limit, so a deposit there is never staged.</li>
-              </ul>
-              <p className="text-xs text-slate-600 leading-relaxed">Headroom is therefore not a fixed number. It shrinks in later years if your regular contributions escalate, and it changes again at retirement, when regular contributions stop and the pension earnings test begins to constrain it. The card above the deposits table shows this tax year only. Each deposit row shows the headroom for its own year.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">If the deposit exceeds the headroom</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Rather than silently breaching the allowance, the deposit is staged across several tax years:</p>
-              <ol className="list-decimal pl-5 text-xs text-slate-600 space-y-1">
-                <li>As much as fits the current year's allowance goes straight into the target wrapper.</li>
-                <li>The surplus is parked in <strong>Other Investments (GIA)</strong>, where it stays invested and grows at that account's risk tier. Once it has grown, moving it out is a disposal, so with CGT switched on each transfer year realises a proportional gain.</li>
-                <li>At the start of each following tax year, as much as that year's allowance permits is moved from the GIA into the target wrapper, repeating until nothing is left. You can redirect where the staged money ends up from the row's settings icon.</li>
-              </ol>
-              <p className="text-xs text-slate-600 leading-relaxed">Where several deposits compete for the same person's allowance in the same year, they are resolved in date order, so one allowance is never counted twice. If a market fall shrinks the parked money, that year's transfer is capped at whatever the GIA actually holds. Anything still parked at the end of the plan stays in Other Investments and is flagged as a warning.</p>
-
-              <p className="text-xs text-slate-500 leading-relaxed"><strong>Assumption:</strong> allowances are held fixed in real terms at the figures in Config ({formatGBP(P.isaAllowance)} ISA, {formatGBP(P.pensionAllowance)} pension, {formatGBP(P.pensionNoEarningsLimit)} with no earnings). Any future increase in these limits is <strong>not</strong> modelled, so a long staging schedule is a cautious estimate. If allowances do rise, the money would move across in fewer years than shown. You can edit the figures in Config to test a different assumption.</p>
-              </PhoneCollapse>
-            </div>
-
-            {/* Held back with the tab itself - this section documents a tab the beta does not show,
-                and half of it names controls the reader cannot reach. Restored by the same flag. */}
-            {SHOW_INHERITANCE && (
-            <div id="doc-inheritance" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
-              <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> Inheritance Tax: the rules, and what is not modelled</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">Rules as published for 2026/27 and checked in September 2026. Three of the four regimes below changed between 2025 and 2027, so they are all editable in Config rather than baked in — if a Budget moves them, change the figure rather than waiting for the app.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">The one change that inverts the usual advice</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">From <strong>6 April 2027</strong> an unused pension counts as part of your estate. Before that date it sat outside, which is the entire basis of the conventional &ldquo;spend everything else first&rdquo; advice. And if you die at <strong>{E.num(plan?.config?.pensionIncomeTaxFromAge, 75)} or over</strong>, your beneficiaries then pay their own income tax on what they draw from it — on top of the inheritance tax the estate already paid. At the additional rate that is roughly <strong>67%</strong> of that pound gone, against 40% for the same pound in an ISA.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">We tested whether that means you should drain the pension early. <strong>It does not.</strong> Across 420 households ranked on what heirs actually receive, a &ldquo;pension first&rdquo; policy won 21 times out of 5,040 — and on one wealthy household it left £9.8m where the best policy left £22.0m. Emptying a pension early means paying income tax at <em>your</em> marginal rate, on a large pot, during retirement, and the proceeds cannot be sheltered fast enough because the ISA allowance is £20,000 a year. The double charge is real and still cheaper than volunteering for the single one early.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">What the change really does is make the answer depend on facts a projection never asked for. The best policy for a household dying at 74 wins 59% of the time; for the same household dying at 80 it wins 21%. That is why this tab prices several ages rather than asking you to pick one.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">The allowances</h3>
-              <div tabIndex={0} className="overflow-x-auto">
-                <table className="w-full text-left text-[11px] border-collapse">
-                  <tbody className="divide-y divide-slate-100">
-                    <tr><td className="py-1.5 pr-3 font-semibold text-slate-700">Nil-rate band</td><td className="py-1.5 pr-3 font-mono">{formatGBP(E.num(plan?.config?.ihtNrb, 325000))}</td><td className="py-1.5 text-slate-600">Frozen to 5 April 2031.</td></tr>
-                    <tr><td className="py-1.5 pr-3 font-semibold text-slate-700">Residence nil-rate band</td><td className="py-1.5 pr-3 font-mono">{formatGBP(E.num(plan?.config?.ihtRnrb, 175000))}</td><td className="py-1.5 text-slate-600">Only if a home passes to a child, grandchild or step-child. Capped at the home&rsquo;s own value, and lost £1 for every £2 of estate above {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))}.</td></tr>
-                    <tr><td className="py-1.5 pr-3 font-semibold text-slate-700">Transferred from a late spouse</td><td className="py-1.5 pr-3 font-mono">up to {formatGBP(E.num(plan?.config?.ihtNrb, 325000) + E.num(plan?.config?.ihtRnrb, 175000))}</td><td className="py-1.5 text-slate-600">Usually 100% of both, because anything passing to a spouse is exempt and so uses neither. Commonly missed.</td></tr>
-                    <tr><td className="py-1.5 pr-3 font-semibold text-slate-700">Rate</td><td className="py-1.5 pr-3 font-mono">{E.num(plan?.config?.ihtRate, 40)}%</td><td className="py-1.5 text-slate-600">Falling to {E.num(plan?.config?.ihtCharityRate, 36)}% where at least {E.num(plan?.config?.ihtCharityThresholdPct, 10)}% of the estate goes to charity — so just past that point, giving more away costs your family nothing.</td></tr>
-                    <tr><td className="py-1.5 pr-3 font-semibold text-slate-700">Quick succession relief</td><td className="py-1.5 pr-3 font-mono">{(E.DEFAULT_CONFIG.qsrScale || []).join('/')}%</td><td className="py-1.5 text-slate-600">Where you inherited within five years and tax was paid then, by whole years elapsed. <strong>Not automatic</strong> — it must be claimed.</td></tr>
-                    <tr><td className="py-1.5 pr-3 font-semibold text-slate-700">Death on active service</td><td className="py-1.5 pr-3 font-mono">exempt</td><td className="py-1.5 text-slate-600">Full exemption for armed forces deaths from service, and since 2014 emergency services personnel and anyone targeted because of their job.</td></tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Who inherits changes the tax, not just the shares</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">A spouse or civil partner is fully exempt and passes their unused allowances on. A charity is exempt and can pull the rate down for everyone else. A direct descendant unlocks the residence allowance. Anyone else gets no relief. And because an inherited pension is taxed at the <em>recipient&rsquo;s</em> marginal rate, the same pot is worth materially more to a grandchild with no income than to a child earning six figures — identical estate, identical will, different outcome.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Two documents, not one</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Your will divides the house, ISAs, investments and cash. Your pension does not pass under it at all — it goes to whoever is named on the <strong>nomination form</strong> held by your scheme, which most people completed once on joining. The tab asks for both because an inherited pension is taxed at the <em>recipient&rsquo;s</em> marginal rate: nominating it to someone with an unused personal allowance, and leaving the taxed assets to higher-rate earners, is usually the single most valuable choice available. How long each person draws it over matters just as much — every year of drawing gets its own allowance and basic-rate band, so a young grandchild spreading it over twenty years pays a fraction of what the same pot costs drawn over five.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Selling your home does not lose the residence band</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">If you sell or give away the home on or after 8 July 2015 — to pay for care, typically — the <strong>downsizing addition</strong> preserves the band it would have given, as long as assets of at least that value pass to direct descendants instead. The plan applies it whenever the home is marked as sold. A partial downsizing, where you move somewhere cheaper, would need the value of both properties and is not asked for, so a household that trades down is modelled on the more cautious footing of having kept the newer home only.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Gifts out of income</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">The exemption for <em>normal expenditure out of income</em> (s.21) is immediate, unlimited and needs no seven years: a habitual gift, paid from income rather than capital, that leaves your standard of living intact. This is the only gift that helps someone who does not expect to live seven years, and it is claimed by the executors on form IHT403 — which is far easier when the giver kept a record. The plan checks the arithmetic half of the test, comparing the gift against guaranteed income and earnings less living costs, in the <em>leanest</em> year rather than on average. It excludes pension drawdown from that income figure even though HMRC will often accept regular pension income, because a gift that fails the test becomes an ordinary transfer with a seven-year clock. Whether the gift is genuinely habitual is a question about a pattern of behaviour that no calculator can settle.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">The estate optimiser, and what it will not do</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">The Inheritance tab carries a second search, for households the contributions tournament cannot help because nothing is being paid in. It ranks six choices on one number &mdash; what the heirs keep, counting both the estate and anything handed over in the meantime, after inheritance tax and after their own income tax on drawing an inherited pension down: the <strong>order you draw wrappers down</strong>, <strong>how far up the tax bands you draw the pension each year</strong>, a <strong>gift now</strong>, <strong>how the pension is split between the people inheriting it</strong>, <strong>moving money between wrappers up to the allowances</strong> (including the £3,600 a year that basic-rate relief buys for £2,880 even with no earnings at all), and <strong>giving exempt compensation away before its window closes</strong>. Each lever is also measured on its own, against your plan untouched, because crediting whichever was searched first with everything the others deliver would send you after the wrong one.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">Two of those deserve a note. <strong>Drawing the pension past the tax-free allowance</strong> costs 20% today and only pays off if you die at 75 or over, when the pension is taxed twice &mdash; by the estate, then by the heir. The sign flips on the death age, so it is searched rather than recommended. And the <strong>pension split</strong> is swept in 5% steps rather than handed to whoever earns least, because that rule of thumb breaks on a large pot: £1.5m drawn over five years reaches the additional rate whoever receives it, while splitting it uses two sets of allowances. On one household here, half to a four-year-old and half to a £150,000 earner beat all of it to the four-year-old by £18,842.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">One thing the search will tell you it cannot improve: <strong>who receives which asset under your will</strong>. Inheritance tax is charged on the estate before it is divided, so among beneficiaries who are all taxable, giving one the house and another the ISA changes who gets what and not what survives. It moves the total only when someone exempt is named &mdash; a spouse or a charity &mdash; and then it is a question about who you want to benefit rather than about tax.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">Two things it deliberately refuses. It will not search <strong>how long your heirs take the pension</strong>, because that is their decision made after your death, and a candidate that won by assuming twenty years of patience from someone else would not be a plan &mdash; it is reported as a sensitivity instead. And it will not rank a <strong>charitable gift</strong>: leaving 10% cuts the rate from 40% to 36% but always leaves the family with less, so ranking it on what the heirs keep would score a donation as a failure. The cost and the benefit are both shown, and the choice stays yours. Nor will it recommend anything that leaves you short: a variant that breaks a plan which otherwise survives is rejected rather than ranked, however well it does for the estate.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Compensation, and the credit it carries</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Payments under the <strong>infected blood scheme</strong> administered by IBCA are exempt from income tax and capital gains tax, and for inheritance tax they carry a <strong>credit</strong> rather than an exemption: under para 5 of Sch 15 Finance Act 2020, where a qualifying payment <em>is at any time received</em>, the tax on the death is reduced by {E.num(plan?.config?.ihtRate, 40)}% of the payment, capped at the tax that would otherwise be due. Post Office Horizon, Windrush, Grenfell, the Troubles Permanent Disablement scheme and vaccine damage payments run through the same machinery.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">Three consequences the plan models, and each one moves the answer: <strong>what happened to the money is irrelevant</strong> &mdash; there is no tracing test, so an award spent, invested, paid into a pension or used to clear a mortgage earns the credit in full; <strong>the estate is unchanged</strong>, so the {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper and the 10% charity test are measured before the credit and not after it; and it <strong>cannot create a refund</strong>, being capped at the bill alongside quick succession relief. Enter the payment received, not what is left of it.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">Giving the money away is a separate relief with its own deadline: <strong>two years from the day you were paid</strong>, or two years from 4 December 2025 for anyone already holding an award when the relief was announced, whichever is later. Enter the date and the tab works out the deadline. <strong>You do not have to tell it which gifts came from the award.</strong> It knows the amount, the date and so the window, so a gift dated inside it is presumed to have come from the award while any of it remains &mdash; earliest first, split where a gift is larger than what is left, and left alone where the gift has already survived seven years and needs no relief. There is deliberately no way to say a gift did <em>not</em> come from the award. Money carries no label: a household holding an award alongside other savings and giving some away inside the window can always say the gift was the award, so an opt-out could only ever be wrong in the direction that costs money &mdash; and on one real plan it sat set, unnoticed, at a cost of £122,000. A saved plan carrying the old flag has it dropped on load. A gift dated after the window is priced as the ordinary transfer it has become, and the tab says so.</p>
-              <p className="text-xs text-slate-600 leading-relaxed"><strong>One reading worth knowing about, because it is a reading and not a quotation.</strong> The credit and the window are treated as independent: giving the award away does not forfeit the credit. The cautious alternative &mdash; netting the gifts off the credit, so the same money cannot be relieved twice &mdash; was tried first and measured, and it makes the window worth about £1,200. A relief created at the 2025 Budget precisely because secondary transfers were being taxed cannot have been designed to be worth £1,200, and the statute relieves tax on a death where a payment &ldquo;is at any time received&rdquo; without netting anything. So both apply, to two different events: the credit on the death, the window on the gift. It is the more generous of the two readings, and the one to revisit if HMRC&rsquo;s guidance disagrees.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Business Relief: priced if you own it, never suggested</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Two different questions live behind one relief, and this tab now answers one of them. <strong>Valuing what you already own</strong> is modelled: add a business, farmland or unquoted shares under <em>anything else you own</em> and the estate is priced with the relief. From 6 April 2026 that is 100% up to a {formatGBP(E.num(plan?.config?.brAprAllowance, 2500000))} allowance shared between business and agricultural property, {E.num(plan?.config?.brAprReducedRatePct, 50)}% above it, and {E.num(plan?.config?.aimReliefRatePct, 50)}% flat on shares not listed on a recognised exchange, which do not touch that allowance. That allowance is <strong>transferable between spouses</strong>, on the same percentage basis as the nil-rate band, so there is a box for it under <em>widowed</em> once you have entered relievable property. A death before that date still gets the old unlimited 100%, and the tab switches on the death year you choose. Relief needs the asset <strong>owned for two years</strong> at death, so the tab asks when you acquired it and gives nothing where the test fails.</p>
-              <p className="text-xs text-slate-600 leading-relaxed"><strong>Whether to buy into them</strong> is not modelled, and is deliberately absent from the optimiser. That same two-year test makes it the wrong tool for anyone with a short prognosis — the household this tab is most used by — and the assets that qualify carry investment risk far above anything else in the plan, so a tool that priced the tax saving without pricing that risk would be recommending a trade on half the picture. Two simplifications inside what is modelled: relief is scaled by the share of your will going to people who actually pay tax, because relief on a legacy to a spouse is wasted, but a will leaving the business to one child and the house to another is beyond a single set of percentages; and only the agricultural value of farmland qualifies, where development value above it does not, so enter the agricultural figure. The {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} residence-band taper is measured before reliefs (s.8D(5)), so a fully relieved farm still pushes the residence allowance away — the tab does that too.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">What this does not model</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Everyone receives the same proportion of every wrapper: a will leaving the pension to one person and the ISA to another is a legal document, not a plan input. An inherited pension is assumed drawn evenly over {E.num(plan?.config?.inheritedPensionSpreadYears, 5)} years at the income each beneficiary has given, which holds only while their circumstances do. Gifts, the seven-year rule, taper relief and regular gifts out of income are modelled; carrying an unused annual exemption forward is not, nor are the small-gift and wedding exemptions, a deed of variation after death, or life cover written in trust. Assets outside your wrappers are held flat in real terms and are never sold to fund your spending, so a business or second home you would in fact live off is understated as income and overstated as estate. Neither are trusts, business succession, or domicile.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Why only one gift is ever suggested</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Above {formatGBP(E.num(plan?.config?.ihtRnrbTaperFrom, 2000000))} the residence allowance is withdrawn £1 for every £2, and the test for it looks at what you <strong>owned at death</strong>. Money given away is not owned at death — so that allowance comes back the day the gift is made, seven years or not. Nothing else about gifting is so clear-cut: inside seven years a gift consumes the {formatGBP(E.num(plan?.config?.ihtNrb, 325000))} allowance the estate would have used anyway, so it is close to tax-neutral, and presenting it as a saving would be misleading. The tab therefore suggests the one gift that clears the taper and says plainly which part of the saving is certain and which part still needs the seven years.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">Sizing that gift is done by running your own plan, not by subtracting the excess: money given away also stops growing, and spending that would have come from it comes out of a pension instead, taxed on the way — so each £1 given can take £1 to £2 off the estate, and suggesting the excess itself would suggest roughly twice what is needed. The search stops at the largest gift the plan can still afford, since an allowance is no use to someone who has run out of money.</p>
-              <p className="text-xs text-slate-600 leading-relaxed"><strong>Giving away your home and continuing to live in it does not remove it from your estate.</strong> That is a gift with reservation of benefit, it is the most common estate-planning mistake there is, and no figure on this page will warn you about it.</p>
-              <p className="text-xs text-slate-500 leading-relaxed">All of this is illustration, not advice. Inheritance tax turns on facts about your family and your assets that a planning tool has no way to hold, and the amounts involved are usually large enough to be worth an hour of a professional&rsquo;s time.</p>
-              </PhoneCollapse>
-            </div>
-            )}
-
-            <div id="doc-priorities" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
-              <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Trophy className="w-4 h-4 text-blue-600" /> The Recommended Policy, and the Trade-offs Around It</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">A decumulation policy is only &quot;best&quot; relative to what you are trying to achieve. Across 420 test households, ranking on the size of the eventual pot rather than on avoiding depletion changed the recommended policy for <strong>75% of them</strong> &mdash; and took the simplest policy, Sequential, from winning 1% of households to winning 46%. Nothing about the policies changed; only the question being asked of them.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">Asking you to rank six abstract priorities before you have seen a single figure is the wrong way round. So the policy search runs every combination first &mdash; five policies, two ways of taking the tax-free cash, and whether the personal allowance is harvested, eighteen in all &mdash; on the same market paths, and then does two things with the results.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">First, it recommends</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">The recommendation is the combination with the best chance of staying solvent to your final age. Where several are within <strong>{E.RATE_EPSILON_PTS} percentage point</strong> of each other on survival &mdash; close enough that the simulation cannot honestly separate them &mdash; the near-tie is settled by resilience in poor markets, then by what is left behind, and so on down the default order. Running out of money is the one outcome no later good luck can undo, and it is not symmetric with the others: a smaller bequest is a disappointment, an empty pot at 84 is a crisis. That is why survival goes first and is never traded away by the recommendation itself.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">The search runs twice, on two independent sets of market paths, and ranks on the two runs combined. Where the two runs would each have recommended a different combination, the page says so: that is a close call the simulation cannot settle at this budget, and the other run&apos;s pick is offered alongside the recommendation rather than discarded. Either is a sound choice; the numbers are simply too close to separate them.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Then, it prices the alternatives</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">For each of the other five priorities it finds the combination that is best on that measure and states, in your own numbers, what switching to it would gain and what it would cost: <em>&pound;85,000 more in the typical pot, for 1.8 points of survival</em>. Three rules keep those cards honest:</p>
-              <ul className="text-xs text-slate-600 leading-relaxed list-disc pl-5 space-y-1">
-                <li><strong>A card appears only where there is a real difference.</strong> The gain has to exceed that measure&apos;s own tie threshold &mdash; {E.RATE_EPSILON_PTS} point on a rate, {Math.round(E.MONEY_EPSILON_REL * 100)}% on an amount of money, or the thresholds you set under Advanced. A difference the ranking itself would call a tie is not a choice, it is simulation noise with a button on it. If nothing clears the bar, the page says so rather than inventing a decision for you.</li>
-                <li><strong>Nothing more than {E.MAX_SURVIVAL_SACRIFICE_PTS} points below the best survival is ever offered.</strong> The same safety limit that bounds the ranking bounds the cards.</li>
-                <li><strong>Every cost is stated, not just the survival one.</strong> A combination that buys a larger pot with a worse bad case or a higher lifetime tax bill says so on the card.</li>
-              </ul>
-              <p className="text-xs text-slate-600 leading-relaxed">Measured across the same 420 households, some alternative with a real difference exists for 83% of them, most often a larger pot (70%) or a smaller tax bill (41%), and rarely one on bridge risk (under 1%). The other 17% are told there is no trade-off to make, which is the correct answer for their plan.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">If you rank the priorities yourself</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Under <strong>Advanced</strong> the full ranking is still there for anyone who genuinely has an order. The list is worked down in order: your first priority narrows the field to the settings that are best on it; the second then chooses among <em>those</em>, and so on. A lower priority can only ever break a near-tie on the ones above it, so ranking something first genuinely protects it &mdash; and if you promote the pot or the bequest above survival, you are telling the model you would accept a materially higher chance of running dry in exchange, and it will do exactly that, up to the {E.MAX_SURVIVAL_SACRIFICE_PTS}-point limit. <strong>Balance them all</strong> weighs every priority together instead, so a modest gain in several can outweigh a small loss in one. Whichever you use, the trade-off cards are always priced against the survival-first recommendation, so a card means the same thing every time it appears.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">&quot;Near-tie&quot; needs a number, or the top priority would decide everything, since exact ties are rare. The rate threshold is deliberately tighter than the money one: survival is already a probability, so three points of it (90% down to 87%) is a much larger concession than 3% of a pot. It is a tight tolerance rather than a generous one, and simulation sampling can occasionally put two runs of the same plan on opposite sides of it &mdash; the search then settles on a similarly good combination rather than the identical one, never a materially worse one.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">What each priority is, and which policy it pushes towards</h3>
-              <div tabIndex={0} className="overflow-x-auto">
-                <table className="w-full text-left text-[11px] border-collapse">
-                  <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Priority</th><th className="pb-1.5 pr-3">What it measures</th><th className="pb-1.5">Why it favours the policy it does</th></tr></thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {E.PRIORITY_KEYS.map(k => (
-                      <tr key={k} className="align-top">
-                        <td className="py-1.5 pr-3 font-bold text-slate-800">{E.PRIORITY_METRICS[k].label}</td>
-                        <td className="py-1.5 pr-3 text-slate-600">{E.PRIORITY_METRICS[k].why}</td>
-                        <td className="py-1.5 text-slate-600">{E.PRIORITY_METRICS[k].serves}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">What this does not yet cover</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Two priorities people legitimately hold are not on the list, because the model cannot yet measure them honestly. <strong>Access before pension age</strong> &mdash; a policy that drains ISAs early leaves you richer on paper but with wealth locked until pension age and taxable to reach &mdash; needs a measure of accessible wealth the engine does not currently report. <strong>Simplicity</strong> is real too: Sequential needs no annual bracket management, and that is worth something in effort and in avoided mistakes, but it is not a number this model can produce.</p>
-              </PhoneCollapse>
-            </div>
-
-            <div id="doc-cgt" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
-              <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Wallet className="w-4 h-4 text-blue-600" /> Capital Gains Tax on Other Investments (GIA)</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">Pensions and ISAs shelter growth, but a general investment account does not. When CGT is switched on in Config, the engine tracks the <strong>cost basis</strong> of each person's GIA and charges tax on gains as they are realised.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Growth is not taxed until you sell</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">Holding costs nothing. Money paid in is added at cost; growth raises the value without raising the cost, so the unrealised gain builds up untaxed. Tax is only triggered by a disposal: funding your spending, paying a one-off cost, or moving money out under a staged deposit. Each disposal is treated as selling a slice of the whole holding, so the gain is the same proportion of the sale as the unrealised gain is of the pot.</p>
-              <p className="text-xs text-slate-600 leading-relaxed">Example: a {formatGBP(100000)} GIA holding {formatGBP(40000)} of gain is 40% gain. Selling {formatGBP(10000)} realises {formatGBP(4000)}; the remaining {formatGBP(3000)} exemption leaves {formatGBP(1000)} taxable, so the bill is {formatGBP(180)} at the basic rate.</p>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Rates and allowances</h3>
-              <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1">
-                <li>Each person has a {formatGBP(P.cgtAnnualExempt)} annual exempt amount. If you have already realised gains this tax year, enter them in Plan Inputs so the current year's exemption is reduced; leaving it blank assumes the full allowance is available.</li>
-                <li>Gains stack on top of that year's income: the part falling in your remaining basic-rate band is taxed at {Math.round(P.cgtBasicRate * 100)}%, anything above at {Math.round(P.cgtHigherRate * 100)}%.</li>
-                <li>The bill is settled from cash, then the GIA, then ISAs, then an accessible pension. This is the same order used for one-off costs. Selling to pay the bill realises a little more gain, which is carried into the next year, mirroring the fact that CGT is due the January after the tax year.</li>
-              </ul>
-
-              <h3 className="text-sm font-semibold text-slate-800 pt-1">Setting your opening position</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">The "of which unrealised gain" figure on the GIA row tells the engine how much of today's balance is profit. Left blank, the balance is treated as entirely cost, so only future growth is ever taxed, which may provide too much weight to GIA. If you hold long-standing investments with a large embedded gain, enter it, or the model will understate your tax.</p>
-
-              <p className="text-xs text-slate-500 leading-relaxed"><strong>Deliberate omissions:</strong> gains are wiped by the uplift on death, so nothing is charged on whatever remains at the terminal age. This is a real reason to spend other wrappers first. Dividends and interest inside the GIA are not modelled separately, share pooling and the 30-day rule are ignored, and the exempt amount and rates are held flat in real terms at the Config figures.</p>
-              </PhoneCollapse>
-            </div>
-
-            <div id="doc-one-offs" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
-              <PhoneCollapse isPhone={isPhone}>
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Coins className="w-4 h-4 text-blue-600" /> One-Off Cost Liquidation Hierarchy</h2>
-              <p className="text-xs text-slate-600 leading-relaxed">When a one-off capital cost is scheduled, the engine liquidates assets in this order:</p>
-              <ol className="list-decimal pl-5 text-xs text-slate-600 space-y-1">
-                <li><strong>Cash Savings</strong> (both owners), then <strong>Other Investments (GIA)</strong>, then <strong>Stocks &amp; Shares ISAs</strong>.</li>
-                <li><strong>Pensions</strong>, but only for an owner who has reached the access age ({nmpa}). If the cost still cannot be met, the year is flagged as a shortfall, or a pre-SIPP access gap when pension money existed but was locked.</li>
-              </ol>
-              <p className="text-xs text-slate-500">Known simplifications: state pension is held flat in real terms (no triple-lock uplift), tax thresholds and allowances are held flat in real terms, and the death of a partner is not modelled.</p>
-              <p className="text-xs text-slate-500 leading-relaxed"><strong>Pension allowance limitations.</strong> The model assumes you have <strong>not</strong> yet flexibly accessed a pension, because it is built for planning towards retirement rather than for someone already drawing an income. If you have already taken taxable pension income, your annual allowance is already {formatGBP(P.mpaaLimit)} and the projection will overstate how much you can contribute until the year it starts drawing. Carry forward is also worked out independently for each year rather than being consumed as it is used, so several large staged deposits in overlapping years could each count the same unused allowance. Neither the tapered annual allowance for high earners nor annual allowance charges themselves are modelled.</p>
-              </PhoneCollapse>
-            </div>
-          </div>
+          <Suspense fallback={<div className="min-h-[40vh] flex items-center justify-center text-sm text-slate-400">Loading the documentation&hellip;</div>}>
+            <Docs E={E} P={P} plan={plan} nmpa={nmpa} terminalAge={terminalAge} activeRiskMatrix={activeRiskMatrix} isPhone={isPhone}
+              docSections={docSections} onSections={onDocSections} scrollToDocSection={scrollToDocSection}
+              MC_TRIALS={MC_TRIALS} TOURNAMENT_TRIALS={TOURNAMENT_TRIALS} SHOW_INHERITANCE={SHOW_INHERITANCE} formatGBP={formatGBP} fmtNum={fmtNum} />
+          </Suspense>
         )}
 
         </Boundary>
@@ -13610,7 +13311,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <div className="flex items-center gap-2">
                       <Bookmark className="w-4 h-4 text-blue-600 shrink-0" aria-hidden="true" />
                       <select aria-label="Active scenario" value={activeScenarioId} onChange={(e) => handleSelectScenario(e.target.value)}
-                        className="flex-1 min-w-0 min-h-11 px-2 bg-slate-50 border border-slate-300 rounded-lg text-sm font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                        className="flex-1 min-w-0 min-h-11 px-2 bg-surface border border-slate-300 rounded-lg text-sm font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                         {scenarios.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
                       </select>
                       {scenarios.length > 1 && (
@@ -13632,7 +13333,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           placeholder={scenarioNaming === 'new' ? `Scenario ${scenarios.length + 1}` : 'Keep the current name'}
                           value={scenarioNameInput} onChange={(e) => setScenarioNameInput(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter') commitScenario(); if (e.key === 'Escape') setScenarioNaming(null); }}
-                          className="flex-1 min-w-0 min-h-11 px-3 bg-slate-50 border border-slate-300 rounded-lg text-[16px] text-slate-900 placeholder:text-slate-400 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          className="flex-1 min-w-0 min-h-11 px-3 bg-surface border border-slate-300 rounded-lg text-[16px] text-slate-900 placeholder:text-slate-400 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         <button type="button" onClick={commitScenario}
                           className="min-h-11 px-4 rounded-lg bg-accent text-onaccent text-xs font-bold cursor-pointer active:scale-95">{scenarioNaming === 'new' ? 'Save new' : 'Save'}</button>
                       </div>

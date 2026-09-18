@@ -112,23 +112,43 @@ function applyFonts(html, fonts, report) {
   return out;
 }
 
+// the files that carry copy, in the order they are searched; a piece not shown in one is looked for in the next
+const COPY_FILES = ['src/App.jsx', 'src/Docs.jsx'];
+
 export function applyPatch(patch, { root = DEFAULT_ROOT, write = true } = {}) {
-  const appPath = path.join(root, 'src', 'App.jsx');
   const htmlPath = path.join(root, 'index.html');
   const report = { ok: true, applied: [], failed: [], skipped: [], files: [] };
 
-  const originalApp = fs.readFileSync(appPath, 'utf8');
   const originalHtml = fs.readFileSync(htmlPath, 'utf8');
-
-  const nextApp = applyCopy(originalApp, patch.copy || [], report);
   let nextHtml = applyTokens(originalHtml, patch.tokens, report);
   nextHtml = applyFonts(nextHtml, patch.fonts, report);
+
+  /*
+   * Copy lives in more than one file now. Each edit is tried on the files in turn: one that a file does
+   * not show is carried to the next, and only one that no file shows is a failure. The two safety checks
+   * below run per file, so an edit that would reach past its text in either file blocks the whole patch.
+   */
+  const files = [];
+  let remaining = patch.copy || [];
+  for (const rel of COPY_FILES) {
+    const filePath = path.join(root, ...rel.split('/'));
+    let original = ''; try { original = fs.readFileSync(filePath, 'utf8'); } catch { continue; }
+    const sub = { applied: [], failed: [], skipped: [] };
+    const next = applyCopy(original, remaining, sub);
+    report.applied.push(...sub.applied); report.skipped.push(...sub.skipped);
+    const notHere = sub.failed.filter(f => /not shown anywhere/.test(f.reason));
+    report.failed.push(...sub.failed.filter(f => !/not shown anywhere/.test(f.reason)));
+    remaining = notHere.map(f => ({ before: f.before, after: f.after }));
+    files.push({ rel, filePath, original, next });
+  }
+  report.failed.push(...remaining.map(e => ({ ...e, reason: 'not shown anywhere in the source — the text was probably a calculated value, not fixed copy' })));
 
   /*
    * The decisive safety check. With every piece of copy cut out, the file must be byte-for-byte what it
    * was: same code, same structure, same string boundaries. If it is not, the edit reached past the text
    * it was supposed to change and nothing at all gets written.
    */
+  for (const { next: nextApp, original: originalApp } of files) {
   if (nextApp !== originalApp && skeleton(nextApp) !== skeleton(originalApp)) {
     // much the commonest cause is new wording that reads as code, which the extractor then stops
     // recognising as text at all; say so rather than leaving the refusal looking arbitrary
@@ -152,6 +172,7 @@ export function applyPatch(patch, { root = DEFAULT_ROOT, write = true } = {}) {
       reason: 'the edit reached into a code comment, which is never editable copy — refusing to write'
     });
   }
+  }
 
   // all or nothing: a partly-applied patch leaves the source in a state nobody asked for
   if (report.failed.length) {
@@ -159,7 +180,7 @@ export function applyPatch(patch, { root = DEFAULT_ROOT, write = true } = {}) {
     return report;
   }
   if (write) {
-    if (nextApp !== originalApp) { fs.writeFileSync(appPath, nextApp); report.files.push('src/App.jsx'); }
+    for (const f of files) if (f.next !== f.original) { fs.writeFileSync(f.filePath, f.next); report.files.push(f.rel); }
     if (nextHtml !== originalHtml) { fs.writeFileSync(htmlPath, nextHtml); report.files.push('index.html'); }
   }
   return report;

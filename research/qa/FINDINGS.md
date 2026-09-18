@@ -7,6 +7,32 @@ Phase 2 of the QA pass: measurements only, nothing changed on `main`. Every prob
 in a way people will hit · *low* = worth fixing, nobody is blocked · *pass* = checked and fine.
 **Size:** S = under an hour · M = a morning · L = a day or more.
 
+## Status after phase 3 (same day)
+
+Implemented on `main` in the order below; every number re-measured with the same probe that found it.
+
+| # | Done | Measured after |
+|---|---|---|
+| R1 | Error boundary (`src/boundary.jsx`) around the app shell, each planner and the active tab; four unguarded result reads guarded | The fuzz's crash mechanism cannot blank the page: the fallback names the error and offers *Try again* / *Reload* |
+| R2 | `sanitiseSimple` keeps only fields of the saved shape; scenario list must be an array | The corrupt simple save loads; storage probe 10/10 |
+| A2 | Caption token `--slate-400` darkened per theme; `--amber-700` darkened (light, sepia); harness bar raised to WCAG's 4.5:1 for small text | axe colour-contrast: 0 nodes in light, dark and sepia (was 393) |
+| A1 | `FieldRow` associates label and control (`useId`); 19 selects and 2 inputs carry `aria-label` | axe `label` / `select-name`: 0 (was 63) |
+| A3 | Glossary terms render plain inside phone summaries (`TermPlain` context) | axe `nested-interactive`: 0 (was 6) |
+| A4 | Every `overflow-x-auto` region is focusable | axe `scrollable-region-focusable`: 0; **axe reports 0 violations on all 33 screen/theme/device combinations** |
+| P1 | The simple page's five curves run in a second instance of `simWorker.js` (latest-wins coalescing); two duplicate calls and an unused context build removed; first draw stays synchronous | Spending-field keystroke: desktop **125ms → 29ms**, phone at 4× CPU **349ms to paint + 565ms of long tasks → 23ms, 0 long tasks**; first line on screen 165ms after navigation |
+| C4 | Simple page figures use the full planner's `formatGBP` | Both planners follow the Config number-format setting |
+| E1 | `src/ui.js`: one field class, one tier short-name list, one tier-label parser; 14 ad-hoc field strings in App.jsx replaced | The five duplicated helpers are three fewer; steppers and tiles were already gone |
+| R4 | The run records the plan it ran against; the deck head says *Your inputs changed since this run* when they differ | Probe: absent after a run, shown after an edit, gone once re-run |
+| C5 | Documentation tab's tournament paragraph describes the swept budget | — |
+| E4 | `run-all.sh` prints every failing line; the five inheritance harnesses are skipped (not "failed") while `SHOW_INHERITANCE` is off | Suite output names the failing assertion rather than the last fifteen lines |
+| P2 | Documentation tab is a `React.lazy` chunk (`src/Docs.jsx`); the copy editor's manifest, hot reload and apply script scan both files | First chunk **724,883 → 673,390 bytes raw (215.2KB → 200.5KB gzipped, −7%)**; docs chunk 74.9KB fetched only when the tab opens; worker chunks byte-identical |
+
+**Left as found:** C2/C3 (engine answers on inverted ages; a year-one failure is permanent) and E2 (42
+cosmetic lint warnings). Both are low and neither was in the order above; C2/C3 is an engine-behaviour
+decision worth its own conversation rather than a QA fix. The Inheritance tab's 1,336 lines still ship
+switched off: making them lazy means moving a tab with 60 handlers into its own module, which is a
+refactor, not a QA fix.
+
 ## Summary
 
 | # | Area | Finding | Severity | Size |

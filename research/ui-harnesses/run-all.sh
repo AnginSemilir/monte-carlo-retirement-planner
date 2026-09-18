@@ -44,12 +44,19 @@ run_one() {   # name kind
   if [ ! -f "$f" ]; then NAMES+=("$1"); CODES+=("skip"); KINDS+=("$2"); return; fi
   local out; out=$(node "$f" "$PORT" 2>&1); local code=$?
   NAMES+=("$1"); CODES+=("$code"); KINDS+=("$2")
-  if [ "$code" -ne 0 ]; then echo "--- $1 ---"; echo "$out" | tail -15; fi
+  # every failing line, then the tail: a harness with twelve failures used to show the last three
+  if [ "$code" -ne 0 ]; then echo "--- $1 ---"; echo "$out" | grep -E '^\s*FAIL|^[A-Za-z].*@' | head -40; echo "   ..."; echo "$out" | tail -6; fi
 }
 
 echo "== harnesses =="
 for n in "${REQUIRED[@]}"; do run_one "$n" required; done
-for n in "${OPTIONAL[@]}"; do run_one "$n" optional; done
+# the optional harnesses cover a tab that is switched off in the source; running them is ten minutes of
+# known red, so they run only once the switch is on
+if grep -q '^const SHOW_INHERITANCE = true' src/App.jsx; then
+  for n in "${OPTIONAL[@]}"; do run_one "$n" optional; done
+else
+  for n in "${OPTIONAL[@]}"; do NAMES+=("$n"); CODES+=("off"); KINDS+=("optional"); done
+fi
 
 echo
 printf '%-22s %-9s %s\n' HARNESS KIND RESULT
@@ -57,6 +64,7 @@ FAILED=0
 for i in "${!NAMES[@]}"; do
   c="${CODES[$i]}"
   if   [ "$c" = "skip" ]; then r="NOT PRESENT"; [ "${KINDS[$i]}" = required ] && FAILED=1
+  elif [ "$c" = "off" ];  then r="not run: SHOW_INHERITANCE is off"
   elif [ "$c" -eq 0 ];   then r="pass"
   else r="FAIL ($c)"; [ "${KINDS[$i]}" = required ] && FAILED=1
   fi

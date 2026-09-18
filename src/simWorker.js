@@ -18,7 +18,7 @@
 import './workerShim.js';   // must be first: gives dev's injected HMR client a window to find
 import {
   buildContext, resolveMpaa, monteCarlo, optimizeSpend, safeRetirementAge,
-  buildPolicyCandidates, explainPick, simulateDeterministic, averageStats
+  buildPolicyCandidates, explainPick, simulateDeterministic, averageStats, quantileCurve
 } from './App.jsx';
 import { toFullPlan } from './simplePlan.js';
 
@@ -73,8 +73,26 @@ function run({ seq, simple, trials, target, quiet }) {
   post({ stage: 'done' });
 }
 
+/*
+ * The compounded curves the chart and the figures draw: one deterministic run per quantile, keyed by z.
+ * A second instance of this worker serves only these, because a curve request queued behind a
+ * six-second simulation would arrive long after the keystroke that asked for it. Only what the page
+ * reads is posted back - the year-by-year pot and where the line runs dry.
+ */
+function curves({ seq, simple, plan, zs }) {
+  const src = plan || resolveMpaa(toFullPlan(simple));
+  const out = {};
+  for (const z of zs) { const c = quantileCurve(src, z); out[z] = { pot: c.pot, failAge: c.failAge }; }
+  self.postMessage({ kind: 'curves', seq, curves: out });
+}
+
 self.onmessage = (e) => {
   const job = e.data;
+  if (job.kind === 'curves') {
+    try { curves(job); }
+    catch (err) { self.postMessage({ kind: 'curves', seq: job.seq, curves: null, error: String(err && err.message ? err.message : err) }); }
+    return;
+  }
   try { run(job); }
   catch (err) { self.postMessage({ seq: job.seq, quiet: job.quiet, stage: 'error', error: String(err && err.message ? err.message : err) }); }
 };

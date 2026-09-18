@@ -1,14 +1,18 @@
 import { Fragment, useState, useMemo, useEffect, useRef } from 'react';
 import { TrendingUp, Plus, X, Loader2, Download, Minus, Bookmark, Maximize2, ChevronRight, SlidersHorizontal, LineChart, Table2 } from 'lucide-react';
 import {
-  buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
+  resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
   buildPolicyCandidates, explainPick, toleranceFor, simulateDeterministic, DEFAULT_RISK_PROFILES,
-  STATE_PENSION_FULL, BAND_QUANTILES, TAX_REGION_LABELS, num, fmtNum, parseFormatted
+  STATE_PENSION_FULL, BAND_QUANTILES, TAX_REGION_LABELS, num, fmtNum, formatGBP, parseFormatted
 } from './App.jsx';
+import { RISK_SHORT, parseTierLabel } from './ui.js';
 import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId, earningId } from './simplePlan.js';
 import { ChartFullscreen, Fine, FieldRow, RiskChips } from './phone.jsx';
 import { SimpleTabs } from './nav.jsx';
 import { SectionTabs } from './tabs.jsx';
+
+// every curve the page can show: the expected path and both edges of each band, computed together
+const CURVE_ZS = [...new Set([0, ...Object.values(BAND_QUANTILES).flatMap(v => (v.z ? [-v.z, v.z] : []))])];
 
 /*
  * THE STREAMLINED PAGE.
@@ -21,8 +25,8 @@ import { SectionTabs } from './tabs.jsx';
  * the full app calls for it, so the two cannot drift apart and a fix to either reaches both.
  */
 
-const GBP = (v) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 })
-  .format(Number.isFinite(v) ? v : 0);
+// the full planner's formatter, so the Config setting for thousands separators reaches these figures too
+const GBP = formatGBP;
 // axis labels only: £1.7m reads at a glance where £1,748,069 has to be counted
 const GBP_SHORT = (v) => {
   const n = Number.isFinite(v) ? v : 0;
@@ -249,7 +253,6 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
   const ready = useMemo(() => readiness(s), [s]);
   const full = useMemo(() => (ready.ready ? toFullPlan(s) : null), [s, ready.ready]);
   const resolved = useMemo(() => { try { return full ? resolveMpaa(full) : null; } catch { return null; } }, [full]);
-  const ctx = useMemo(() => { try { return resolved ? buildContext(resolved) : null; } catch { return null; } }, [resolved]);
 
   /*
    * The expected view is arithmetic on the return assumptions - no simulation - so it can and does
@@ -265,18 +268,76 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    */
   const timeline = res?.timeline || null;
 
+  /*
+   * THE FIVE CURVES COME FROM A SECOND WORKER.
+   *
+   * Each compounded curve is 21ms of arithmetic (a context and a deterministic run per year of the plan),
+   * and the page wants five of them - the expected path and both edges of both bands - on every edit.
+   * Run on the main thread that was a 105ms stall per keystroke on a desktop and over half a second on
+   * a phone, which is the "it catches" complaint again in a smaller size. The simulation worker cannot
+   * take them: it is busy for seconds at a time and a curve request would queue behind the Monte Carlo.
+   * So a second instance of the same worker does nothing but curves. Requests coalesce, latest wins: a
+   * keystroke that lands while a job is in flight parks its request and the reply posts it, so typing a
+   * five-digit figure costs at most two jobs rather than five.
+   *
+   * The curves follow the chosen policy's plan once it has landed and the typed-in one until then, so
+   * the chart and the figures below it describe the same recommendation rather than two different ones.
+   */
+  const [curves, setCurves] = useState(null);
+  const curveWorkerRef = useRef(null);
+  const curveSeqRef = useRef(0);
+  const curveBusyRef = useRef(false);
+  const curveNextRef = useRef(null);
+  const postCurves = (job) => {
+    const w = curveWorkerRef.current;
+    if (!w) return;
+    curveBusyRef.current = true;
+    w.postMessage({ kind: 'curves', seq: ++curveSeqRef.current, zs: CURVE_ZS, ...job });
+  };
+  useEffect(() => {
+    const w = new Worker(new URL('./simWorker.js', import.meta.url), { type: 'module' });
+    curveWorkerRef.current = w;
+    w.onmessage = (e) => {
+      const m = e.data;
+      curveBusyRef.current = false;
+      if (m.seq === curveSeqRef.current && m.curves) setCurves(m.curves);
+      const next = curveNextRef.current;
+      curveNextRef.current = null;
+      if (next) postCurves(next);
+    };
+    return () => { w.terminate(); curveWorkerRef.current = null; };
+  }, []);   // eslint-disable-line react-hooks/exhaustive-deps
+  /*
+   * The first draw is the exception: it runs on the main thread, once. A page that opens on a blank
+   * chart and fills it in whenever a worker has loaded, parsed the engine and found a free core is a
+   * page that flickers - and on a single-core machine the simulation worker, which starts at the same
+   * moment, can hold that core for seconds. 105ms once, at mount, is what the page cost before; every
+   * edit after that goes to the worker.
+   */
+  const firstDrawnRef = useRef(false);
+  useEffect(() => {
+    if (!resolved) { setCurves(null); curveNextRef.current = null; return; }
+    const job = res?.plan ? { plan: res.plan } : { simple: s };
+    if (!firstDrawnRef.current) {
+      firstDrawnRef.current = true;
+      try {
+        const src = res?.plan || resolved;
+        const out = {};
+        for (const z of CURVE_ZS) { const c = quantileCurve(src, z); out[z] = { pot: c.pot, failAge: c.failAge }; }
+        setCurves(out);
+        return;
+      } catch { /* fall through to the worker */ }
+    }
+    if (curveBusyRef.current) curveNextRef.current = job; else postCurves(job);
+  }, [resolved, res?.plan]);   // eslint-disable-line react-hooks/exhaustive-deps
+
   const expected = useMemo(() => {
-    // quantileCurve takes a PLAN and builds its own context per quantile - handing it a ctx silently
-    // falls back to blank ages and a nonsense rate, which draws a plausible-looking wrong chart.
-    // the chosen policy's plan once it has landed, the typed-in one until then, so the chart and the
-    // figures below it describe the same recommendation rather than two different ones
-    const src = res?.plan || resolved;
-    if (!src) return null;
-    try {
-      const lo = quantileCurve(src, -band.z), mid = quantileCurve(src, 0), hi = quantileCurve(src, band.z);
-      return { lo: lo.pot, mid: mid.pot, hi: hi.pot, failAge: lo.failAge };
-    } catch { return null; }
-  }, [resolved, res?.plan, band.z]);
+    if (!curves) return null;
+    const zk = band.z || 0;
+    const mid = curves[0], lo = curves[-zk] || mid, hi = curves[zk] || mid;
+    if (!mid || !lo || !hi) return null;
+    return { lo: lo.pot, mid: mid.pot, hi: hi.pot, failAge: lo.failAge };
+  }, [curves, band.z]);
 
   /*
    * THE WORK, AND WHEN IT HAPPENS.
@@ -775,8 +836,6 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
     </label>
   );
 
-  const RISK_SHORT = { 'High Risk': 'High', 'Medium/High Risk': 'Med-hi', 'Medium Risk': 'Med',
-    'Medium/Low Risk': 'Med-lo', 'Low Risk': 'Low', 'Cash Equivalents': 'Cash' };
   /*
    * "High" and "Med-lo" are a ranking, not a portfolio: they say which tier is riskier than which, and
    * nothing about what is actually held. The equity range is the part somebody can check against their
@@ -784,11 +843,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    * names a tier now names its range too. Read off the same matrix the full planner and the engine use,
    * so the two pages cannot drift apart on what "Medium" means.
    */
-  const RISK_EQUITY = (r) => {
-    const lab = (DEFAULT_RISK_PROFILES[r] || {}).label || '';
-    const m = lab.match(/([\d]+\s*[–-]\s*[\d]+%|[\d]+%)\s*Equities/i);
-    return m ? m[1].replace(/\s+/g, '') : (r === 'Low Risk' ? 'bonds & cash' : r === 'Cash Equivalents' ? 'cash' : '');
-  };
+  const RISK_EQUITY = (r) => parseTierLabel((DEFAULT_RISK_PROFILES[r] || {}).label, r).range;
 
   /*
    * THE PORTFOLIO AS FOUR ROWS, ON A PHONE.
@@ -1028,19 +1083,17 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    * would draw if you switched to that band.
    */
   const allRateEnds = useMemo(() => {
-    const src = res?.plan || resolved;
-    if (!src) return null;
+    if (!curves) return null;
     const end = (curve) => (curve && curve.pot && curve.pot.length ? curve.pot[curve.pot.length - 1].totalCombined : null);
     const out = {};
-    try {
-      for (const [k, v] of Object.entries(BAND_QUANTILES)) {
-        if (!v.z) continue;
-        const lo = quantileCurve(src, -v.z), hi = quantileCurve(src, v.z);
-        out[k] = { lo: end(lo), hi: end(hi), failAge: lo.failAge, lowPct: v.lowPct, highPct: v.highPct };
-      }
-      return out;
-    } catch { return null; }
-  }, [resolved, res?.plan]);
+    for (const [k, v] of Object.entries(BAND_QUANTILES)) {
+      if (!v.z) continue;
+      const lo = curves[-v.z], hi = curves[v.z];
+      if (!lo || !hi) continue;
+      out[k] = { lo: end(lo), hi: end(hi), failAge: lo.failAge, lowPct: v.lowPct, highPct: v.highPct };
+    }
+    return out;
+  }, [curves]);
 
   const potAtRetirement = useMemo(() => {
     if (!timeline) return null;

@@ -133,7 +133,15 @@ const plan = {
    */
   ok('the chart switch sits above the chart, as on every other step', probe.modeTop !== null && probe.modeTop < probe.chartTop,
      `switch ${probe.modeTop === null ? 'missing' : Math.round(probe.modeTop)} vs chart ${Math.round(probe.chartTop)}`);
-  ok('...and it opens on the rate-based projection', probe.kind === 'Rate based', String(probe.kind));
+  /*
+   * It opens on the SIMULATION now, because one state decides what every chart on the tab is - the deck's
+   * and the dashboard's - and the dashboard opens on the Monte Carlo. The old default was the rate-based
+   * run on the grounds that it redraws instantly under a dial; the cost was that the same setting was
+   * silently deciding what the amber line over the dashboard's FAN was made of, so a smooth deterministic
+   * line was being drawn over a simulated chart in the same colour. An edit here now simulates, and says
+   * so while it does; the toggle is one click away for anyone who wants the instant redraw.
+   */
+  ok('...and it opens on the simulation, which is what the toggle beside it changes', probe.kind === 'Monte Carlo', String(probe.kind));
   ok('...with the old amber-line-only row gone', !probe.oldAmberRow);
 
   // 4. it is the last step

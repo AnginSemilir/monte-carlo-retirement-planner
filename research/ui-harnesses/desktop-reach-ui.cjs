@@ -277,20 +277,26 @@ async function runProjection(p) {
       if (!d) return null;
       const row = d.children[1];
       const cols = [...row.children].map(c => ({ h: Math.round(c.getBoundingClientRect().height), content: c.scrollHeight }));
+      const card = document.querySelector('[data-dash-chart]');
       return {
-        charts: [...document.querySelectorAll('[data-dash-chart]')].map(c => c.getAttribute('data-dash-chart')),
+        chart: card ? card.getAttribute('data-dash-chart') : null,
         tiles: [...document.querySelectorAll('[data-dash-tile]')].map(t => t.querySelector('span').textContent.trim()),
         dials: document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]').length,
         retireStep: ([...document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]')]
           .map(b => b.getAttribute('aria-label')).find(l => /retire at/i.test(l)) || '').replace(/.* by /, ''),
         jumps: document.querySelectorAll('[data-dash-jump]').length,
-        over: cols.filter(c => c.content > c.h + 1).length, cols
+        bands: [...document.querySelectorAll('[data-dash-chart] [data-chart-head] button')].map(x => x.textContent.trim()),
+        legend: [...document.querySelectorAll('[data-chart-legend] button')].map(x => x.textContent.trim()),
+        legendRows: new Set([...document.querySelectorAll('[data-chart-legend] button')].map(x => Math.round(x.getBoundingClientRect().top))).size,
+        bottom: Math.round(d.getBoundingClientRect().bottom + window.scrollY),
+        /* the chart column must fit the row it was given; the rail is a scroll container by design */
+        chartOver: Math.max(0, cols[0] ? cols[0].content - cols[0].h : 0), cols
       };
     });
     const both = await shape();
-    ok('...and then it is a dashboard with both charts', !!both && both.charts.join() === 'mc,rate', both ? both.charts.join(' + ') : 'none');
-    ok('...a strip of figures over them', !!both && both.tiles.length === 7, both ? `${both.tiles.length} tiles` : '');
-    ok('...the dials that move them, beside rather than below', !!both && both.dials > 0, both ? `${both.dials} dials` : '');
+    ok('...and then it is a dashboard, opening on the simulation', !!both && both.chart === 'mc', both ? both.chart : 'none');
+    ok('...a strip of figures over it', !!both && both.tiles.length === 7, both ? `${both.tiles.length} tiles` : '');
+    ok('...the dials that move it, beside rather than below', !!both && both.dials > 0, both ? `${both.dials} dials` : '');
     ok('...and the deck order kept as a way to jump', !!both && both.jumps === 7, both ? `${both.jumps} jump links` : '');
     /*
      * One pair of buttons means one step, and for an age the step people want is a year. The rail took
@@ -299,44 +305,56 @@ async function runProjection(p) {
      */
     ok('...stepping a retirement age by a year, not five', !!both && both.retireStep === '1', both ? `by ${both.retireStep || 'no retire dial'}` : '');
     /*
-     * Neither column may be taller than the row it was given. The chart is a viewBox with h-auto, so its
-     * height is its WIDTH times an aspect - shrinking its card does not shrink the picture, it makes it
-     * overflow, and the card's legend wraps to two lines and costs 77px of the allowance. Both of those
-     * were wrong at first and the only symptom was a column quietly 27px too tall.
+     * THE CONTROLS THE CHART NEEDS, ON THE SCREEN THE CHART IS ON.
+     *
+     * The dashboard used to render the charts with no band picker at all, so the y-axis was scaled to
+     * whichever band the deck happened to be left on and there was no way to change it from here. The
+     * axis follows the band, so this is not a preference - it is whether the picture is readable.
      */
-    ok('...with neither column overflowing the row', !!both && both.over === 0,
-      both ? both.cols.map(c => `${c.content} in ${c.h}`).join(' · ') : '');
+    ok('...with the band picker above the chart', !!both && ['Expected only', 'Upper/lower quartiles', '10th/90th percentiles'].every(l => both.bands.includes(l)),
+      both ? both.bands.join(' · ') : '');
+    ok('...and every series in the legend, on one line', !!both && both.legend.length === 6 && both.legendRows === 1,
+      both ? `${both.legend.join(', ')} in ${both.legendRows} row(s)` : '');
+    ok('...the whole of it on one 1440x900 screen', !!both && both.bottom <= 900, both ? `ends at ${both.bottom}px` : '');
+    ok('...with the chart column inside the row it was given', !!both && both.chartOver === 0,
+      both ? both.cols.map(c => `${c.content} in ${c.h}`).join(' \u00b7 ') : '');
 
     /*
-     * The rail is the only sandbox on a desktop now, so everything the wide panel could change has to be
-     * reachable from it. Both dials for every account would double the rail's length, so they share one
-     * row and a toggle: contributions, or balances.
+     * THE TOGGLE, WHERE THE EXPAND BUTTON USED TO BE. Two charts at 300px each was a shape rather than
+     * a picture; one at full size with a switch is the phone's answer and now the desktop's.
      */
-    const dialLabels = () => dash.p.evaluate(() => [...document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]')]
-      .map(b => b.getAttribute('aria-label')).filter(l => !/retire/i.test(l)));
-    const onContrib = await dialLabels();
-    await dash.p.evaluate(() => { const b = [...document.querySelectorAll('[data-dial-kind] button')].find(x => x.textContent.trim() === 'Balance'); if (b) b.click(); });
-    await dash.p.waitForTimeout(300);
-    const onBalance = await dialLabels();
-    ok('the rail toggles between what you pay in and what you hold',
-      onContrib.length > 0 && onBalance.length === onContrib.length && onContrib.every(l => / a year by /.test(l)) && onBalance.every(l => / today by /.test(l)),
-      `${onContrib[0] || 'none'} \u2192 ${onBalance[0] || 'none'}`);
-    await dash.p.evaluate(() => { const b = [...document.querySelectorAll('[data-dial-kind] button')].find(x => x.textContent.trim() === 'A year'); if (b) b.click(); });
-    await dash.p.waitForTimeout(300);
-
-    await dash.p.evaluate(() => document.querySelector('[data-dash-expand="mc"]').click());
-    await dash.p.waitForTimeout(1200);
-    const one = await shape();
-    ok('expanding one chart drops the other', !!one && one.charts.join() === 'mc', one ? one.charts.join(' + ') : '');
+    await dash.p.evaluate(() => { const x = [...document.querySelectorAll('[data-sandbox-chart-mode] button')].find(y => y.textContent.trim() === 'Rate based'); if (x) x.click(); });
+    await dash.p.waitForTimeout(900);
+    const rate = await shape();
+    ok('the toggle swaps which chart has the column', !!rate && rate.chart === 'rate', rate ? rate.chart : 'none');
     ok('...and swaps the strip to what that chart produces',
-      !!one && one.tiles.length === 6 && one.tiles.some(t => /failure age/i.test(t)) && !one.tiles.some(t => /Safe maximum/i.test(t)),
-      one ? one.tiles.join(' | ') : '');
-    ok('...while the dials stay, because an edit is possible in every state', !!one && one.dials > 0, one ? `${one.dials} dials` : '');
-    ok('...and it still fits its row', !!one && one.over === 0, one ? one.cols.map(c => `${c.content} in ${c.h}`).join(' · ') : '');
-    await dash.p.evaluate(() => document.querySelector('[data-dash-expand="mc"]').click());
-    await dash.p.waitForTimeout(1000);
-    const back = await shape();
-    ok('collapsing puts both back', !!back && back.charts.join() === 'mc,rate', back ? back.charts.join(' + ') : '');
+      !!rate && rate.tiles.some(t => /Expected pot/i.test(t)) && !rate.tiles.some(t => /quartile/i.test(t)),
+      rate ? rate.tiles.join(' | ') : '');
+    ok('...while the dials stay, because an edit is possible in every state', !!rate && rate.dials > 0, rate ? `${rate.dials} dials` : '');
+
+    /*
+     * THE AMBER LINE HAS TO BE MADE OF WHAT THE CHART IS MADE OF.
+     *
+     * The dashboard drew both charts and took the sandbox line from step 7's own setting, which defaults
+     * to the compounded run - so the Monte Carlo chart got a smooth deterministic line laid over its fan,
+     * in the same amber, with nothing saying it was a different method. On the rate chart an edit still
+     * redraws instantly; on the simulation it has to simulate, and say that it is.
+     */
+    const dashed = () => dash.p.evaluate(() => [...document.querySelectorAll('svg path')]
+      .filter(x => x.getAttribute('stroke-dasharray') === '6,4' && x.getAttribute('stroke-width') === '3.5').length);
+    const beforeEdit = await dashed();
+    await dash.p.evaluate(() => { const x = [...document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]')].find(y => /retire at/i.test(y.getAttribute('aria-label'))); if (x) x.click(); });
+    await dash.p.waitForTimeout(700);
+    ok('an edit on the rate chart moves the line at once', (await dashed()) > beforeEdit, `${beforeEdit} then ${await dashed()} dashed path(s)`);
+    await dash.p.evaluate(() => { const x = [...document.querySelectorAll('[data-sandbox-chart-mode] button')].find(y => y.textContent.trim() === 'Monte Carlo'); if (x) x.click(); });
+    const simulating = await dash.p.waitForFunction(() => /simulating/i.test(document.querySelector('[data-sandbox-chart-mode]')?.innerText || ''),
+      null, { timeout: 20000 }).then(() => true).catch(() => false);
+    ok('...and on the simulation it says it is simulating, rather than drawing the smooth line over the fan', simulating, '');
+    const settled = await dash.p.waitForFunction(() => /sandbox survival/i.test(document.querySelector('[data-sandbox-chart-mode]')?.innerText || ''),
+      null, { timeout: 120000 }).then(() => true).catch(() => false);
+    ok('...then reports what the simulated edit actually survives', settled,
+      await dash.p.evaluate(() => (document.querySelector('[data-sandbox-chart-mode]')?.innerText || '').replace(/\s+/g, ' ').slice(0, 80)));
+
     ok('no page errors on the dashboard', dash.errs.length === 0, dash.errs.slice(0, 2).join(' | '));
   }
 

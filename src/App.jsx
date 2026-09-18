@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback, lazy, Suspense } from 'react';
 /*
  * FOUR FUNCTIONS, NOT THIRTY PACKAGES.
  *
@@ -19,7 +19,7 @@ import {
   TrendingUp, Layers, Check, RotateCcw, Zap, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
   Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, ChevronUp, ChevronDown, Home, Gift,
-  GripVertical, Maximize2, Loader2, FileText
+  GripVertical, Maximize2, Minimize2, Loader2, FileText
 } from 'lucide-react';
 import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
@@ -7486,6 +7486,29 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
 
   const [slide, setSlide] = useState(1);
   const [seeAll, setSeeAll] = useState(false);
+  /*
+   * null = both charts; 'mc' or 'rate' = that one has the column to itself. Only meaningful on a
+   * desktop "See all"; leaving that view puts it back, so coming in again always starts on both.
+   */
+  const [dashChart, setDashChart] = useState(null);
+  /*
+   * The row's height is measured, not guessed. A vh fraction cannot know how much page sits above it -
+   * the banner, the title card and the run card come to about 460px on this page - so the charts either
+   * overflowed the window or left a band of empty ground under them depending on the screen. This takes
+   * what is left below the dashboard's own top, with a floor so a very short window still draws a
+   * readable chart and scrolls instead.
+   */
+  const dashRef = useRef(null);
+  const dashColRef = useRef(null);
+  const dashRailRef = useRef(null);
+  const [dashRowH, setDashRowH] = useState(520);
+  /*
+   * The chart is a viewBox with `h-auto`, so its drawn height is its WIDTH times the box's aspect: giving
+   * its card less room does not make the picture shorter, it makes it overflow. So the aspect is derived
+   * from the space the layout actually has - the measured column width and the height one or two cards
+   * get out of the row - and the chart lands at exactly the height there is room for.
+   */
+  const [dashChartBox, setDashChartBox] = useState({ w: 1200, h: 350 });
   // which row of the phone's step index has its sentence open; one at a time, because the index is a
   // list you scan rather than a document you read
   const [indexOpen, setIndexOpen] = useState(null);
@@ -7503,6 +7526,8 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const slideRef = useRef(null);
   const scrollTo = (el) => el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   useEffect(() => { if (!seeAll) scrollTo(slideRef.current); }, [slide, seeAll]);
+  // leaving the dashboard puts both charts back, so it never reopens on one
+  useEffect(() => { if (!seeAll) setDashChart(null); }, [seeAll]);
   // In "see all" every step is on the page at once, so a sheet pinned over it is in the way rather than
   // beside the chart it belongs to. Collapse it there and open it when a single step is showing.
   useEffect(() => { if (isPhone) setSheetMode(seeAll ? 'collapsed' : 'quick'); }, [seeAll, isPhone]);
@@ -8060,10 +8085,68 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * which leaves room for the chart and the thing you are dragging to share a screen. The plot was mostly
    * empty vertically anyway.
    */
+  /*
+   * The desktop "See all" is a dashboard rather than a stack of seven cards; projectionDashboard()
+   * draws it. simResult is part of the test because there is nothing to lay out before a run.
+   */
+  const dashboardMode = seeAll && !isPhone && !!simResult;
+  /*
+   * The box sets the chart's PROPORTIONS, not its pixels, so this is how the dashboard gets two half
+   * charts or one tall one out of the same renderer: both modes draw at the same width, and the height
+   * is whatever the layout has room for. 350 renders about 300px into the dashboard's column; 760
+   * renders about 650, which is what expanding one chart is for.
+   */
   const chartBox = overlayBox || (isPhone
     ? { w: viewport.width, h: Math.min(Math.round(viewport.width * 0.8), 340, Math.round(viewport.height * 0.34)) }
+    : dashboardMode ? dashChartBox
     : { w: 1200, h: 420 });
   const chartWidth = chartBox.w, chartHeight = chartBox.h;
+
+  /*
+   * Below dashboardMode on purpose: a dependency array is built during render, so naming a const that is
+   * declared further down the component reads it in its temporal dead zone and takes the whole tab to
+   * the error boundary. Same trap as the Monte Carlo arrival effect.
+   */
+  useLayoutEffect(() => {
+    if (!dashboardMode) return undefined;
+    const measure = () => {
+      const el = dashRef.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      /*
+       * Two demands on the row, and the taller one wins.
+       *
+       * What is left of the window below the dashboard's own top is the first: this page carries about
+       * 500px of banner, title card and run card above it, so on a 900px screen that leaves roughly 400.
+       * The rail's own content is the second, and it does not compress - dials, two solved answers and a
+       * five-age table come to about 700px, and a 400px column simply cuts the table off.
+       *
+       * So the row takes the larger, which means a short window scrolls a little rather than hiding half
+       * the rail, and a tall one puts the whole thing on screen. 96px is the tile strip's gap, the jump
+       * strip and a bottom margin; the cap stops a very tall monitor from stretching the charts to fill.
+       */
+      const spare = Math.round(window.innerHeight - top - 96);
+      const railH = dashRailRef.current ? Math.ceil(dashRailRef.current.scrollHeight) : 0;
+      const rowH = Math.min(820, Math.max(500, spare, railH));
+      setDashRowH(rowH);
+      const col = dashColRef.current;
+      if (!col) return;
+      const colW = col.getBoundingClientRect().width || 1050;
+      /*
+       * What the card spends on things that are not the plot: 48px of heading row and padding, and the
+       * series legend the chart renders under itself, which wraps to two lines at this width and comes
+       * to 77. Measured rather than estimated - an allowance a few pixels short makes every chart
+       * overflow its own card, which is how the column ended up 27px taller than the row it was given.
+       */
+      const chrome = 125;
+      const chartH = (dashChart ? rowH : (rowH - 10) / 2) - chrome;
+      setDashChartBox({ w: 1200, h: Math.max(150, Math.round(1200 * chartH / colW)) });
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [dashboardMode, dashChart]);
+
   const margin = isNarrow ? { top: 14, right: 10, bottom: 34, left: 48 } : { top: 25, right: 35, bottom: 45, left: 80 };
   const innerWidth = chartWidth - margin.left - margin.right;
   const innerHeight = chartHeight - margin.top - margin.bottom;
@@ -9687,6 +9770,208 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     </div>
   );
 
+  /*
+   * "SEE ALL", AS A DASHBOARD RATHER THAN A STACK.
+   *
+   * The deck shows one step at a time, which is right the first time through and wrong afterwards: once
+   * you know what the seven steps are, what you want is the figures and the two pictures at once, and
+   * "See all" gave you the same seven cards in the same order, three screens of scrolling deep.
+   *
+   * So on a desktop it lays out across as well as down. Seven figures in one strip, both charts stacked
+   * in the main column on ONE shared axis so they can be compared by eye, and a rail holding the dials
+   * that move them, the two solved answers and the five-age comparison. Everything is on one 1440x900
+   * screen, which is the commonest laptop this will be read on.
+   *
+   * Either chart can take the whole column. Expanding one drops the other and swaps the strip to the six
+   * figures THAT chart produces: a simulation has percentiles and a failure age, a compounded line has
+   * band edges and no failure rate at all, and showing the wrong six beside a chart is how you end up
+   * reading a number the picture above it did not make. The dials never go, in any state.
+   *
+   * The phone keeps the deck. One step at a time is the right answer on a 390px screen, and none of this
+   * would fit.
+   */
+  const DASH_TONE = { good: 'text-emerald-700', bad: 'text-rose-700', flat: 'text-slate-900' };
+  const dashMoney = (v) => {
+    const n = Number.isFinite(v) ? v : 0;
+    return Math.abs(n) >= 1e6 ? `£${(n / 1e6).toFixed(2)}m` : Math.abs(n) >= 1000 ? fmtK(n) : formatGBP(n);
+  };
+  const dashTile = (label, value, sub, tone = 'flat') => (
+    <div key={label} data-dash-tile className="flex-1 min-w-0 px-3.5 flex flex-col justify-center gap-0.5 border-l border-slate-100 first:border-l-0">
+      <span className="text-[10px] font-semibold text-slate-500 truncate">{label}</span>
+      <span className={`text-[19px] font-semibold font-mono leading-none tracking-tight ${DASH_TONE[tone]}`}>{value}</span>
+      <span className="text-[10px] text-slate-500 truncate">{sub}</span>
+    </div>
+  );
+
+  /*
+   * Which six or seven figures belong beside what is drawn. A figure only appears next to a chart that
+   * could have produced it.
+   */
+  const dashTiles = () => {
+    const st = simResult;
+    if (!st) return [];
+    const retireAge = ctx.owners[0].retireAge;
+    const fails = Math.max(0, 100 - E.num(st.successRate, 0));
+    const survival = dashTile('Survival rate', `${E.num(st.successRate, 0).toFixed(1)}%`,
+      `±${(1.96 * E.num(st.standardError, 0)).toFixed(1)} pts`,
+      st.successRate >= targetSurvivalRate ? 'good' : 'bad');
+    if (dashChart === 'mc') return [
+      survival,
+      dashTile(`Median pot @ ${terminalAge}`, dashMoney(st.medianTerminal), 'half of runs end above'),
+      dashTile(`Upper quartile @ ${terminalAge}`, dashMoney(st.p75Terminal), 'one run in four above'),
+      dashTile(`Lower quartile @ ${terminalAge}`, dashMoney(st.p25Terminal), 'one run in four below'),
+      dashTile(`Unlucky pot @ ${terminalAge}`, dashMoney(st.p10Terminal), 'one run in ten below',
+        E.num(st.p10Terminal, 0) > 0 ? 'flat' : 'bad'),
+      dashTile('Median failure age', st.medianFailAge ? `Age ${st.medianFailAge}` : 'None',
+        st.medianFailAge ? `${fails.toFixed(1)}% of runs fall short` : 'no run falls short',
+        st.medianFailAge ? 'bad' : 'good')
+    ];
+    if (dashChart === 'rate') {
+      const q = (k) => compareRows2?.quantiles.find(x => x.label === k);
+      const smooth = compareRows2?.extras.find(x => /^Survives to/.test(x.label));
+      const midEnd = rateCurves?.mid?.[rateCurves.mid.length - 1]?.totalCombined;
+      const atRetire = rateCurves?.mid?.find(d => d.ageSelf === retireAge)?.totalCombined;
+      const dry = bandCurves && bandCurves.lo.failAge !== null ? `Age ${bandCurves.lo.failAge}` : 'Never';
+      return [
+        dashTile('Pot at retirement', dashMoney(atRetire), `age ${retireAge}, expected path`),
+        dashTile(`Expected pot @ ${terminalAge}`, dashMoney(midEnd), 'one steady rate per wrapper'),
+        dashTile(`75th percentile @ ${terminalAge}`, dashMoney(q('75th percentile')?.rate), 'compounded at that rate'),
+        dashTile(`25th percentile @ ${terminalAge}`, dashMoney(q('25th percentile')?.rate), 'compounded at that rate'),
+        dashTile('Lower edge runs dry', dry, dry === 'Never' ? 'within the plan horizon' : 'the band is broken below this',
+          dry === 'Never' ? 'good' : 'bad'),
+        dashTile('Smooth survival', smooth ? smooth.rate : '—', 'flatters: no run can fail mid-way', 'bad')
+      ];
+    }
+    const potAtRetire = timelineData.find(r => r.ageSelf === retireAge)?.totalCombined;
+    return [
+      survival,
+      dashTile('Pot at retirement', dashMoney(potAtRetire), `age ${retireAge}, expected path`),
+      dashTile(`Median pot @ ${terminalAge}`, dashMoney(st.medianTerminal), 'half of runs end above'),
+      dashTile(`Unlucky pot @ ${terminalAge}`, dashMoney(st.p10Terminal), 'one run in ten below',
+        E.num(st.p10Terminal, 0) > 0 ? 'flat' : 'bad'),
+      dashTile('Safe maximum', safeMaxResult ? formatGBP(safeMaxResult.spend) : '—',
+        safeMaxResult ? `a year, clears ${targetSurvivalRate}%` : 'still solving',
+        safeMaxResult ? (safeMaxResult.spend >= E.num(st.spend, 0) ? 'good' : 'bad') : 'flat'),
+      dashTile('Earliest retirement', safeRetireResult?.age ? `${safeRetireResult.age}` : safeRetireResult ? '—' : '…',
+        safeRetireResult?.age ? (safeRetireResult.age <= retireAge ? 'at or before your date' : `${safeRetireResult.age - retireAge} yr later than planned`) : 'at this spending',
+        safeRetireResult?.age ? (safeRetireResult.age <= retireAge ? 'good' : 'bad') : 'flat'),
+      dashTile('Bridge failures', `${E.num(st.preNmpaFailRate, 0).toFixed(1)}%`,
+        `short before ${nmpa}`, E.num(st.preNmpaFailRate, 0) > 0 ? 'bad' : 'good')
+    ];
+  };
+
+  const dashChartCard = (kind) => {
+    const on = dashChart === kind;
+    const name = kind === 'mc' ? 'Monte Carlo' : 'Rate based projection';
+    return (
+      <div data-dash-chart={kind} className="bg-surface border border-slate-200/90 rounded-xl px-3.5 pt-2.5 pb-2 flex flex-col flex-1 min-h-0">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-baseline gap-2.5 min-w-0">
+            <h3 className="text-[13px] font-semibold text-slate-900 whitespace-nowrap">{name}</h3>
+            <span className="text-[10.5px] text-slate-500 truncate">
+              {kind === 'mc' ? `${fmtNum(E.num(simResult?.trials, MC_TRIALS))} randomised futures` : 'one steady real rate per wrapper'}
+            </span>
+          </div>
+          {/* The corner-arrows convention, so it needs no word: out to the corners takes the chart full
+              size, in to the middle puts it back. Icon-only, so it carries a name for a screen reader. */}
+          <button type="button" data-dash-expand={kind} onClick={() => setDashChart(on ? null : kind)}
+            aria-label={on ? 'Show both charts again' : `Expand the ${name} chart`} title={on ? 'Collapse' : 'Expand'}
+            className={`w-7 h-7 shrink-0 flex items-center justify-center rounded-lg border cursor-pointer transition-colors ${on ? 'bg-blue-50 border-blue-600 text-blue-800' : 'bg-surface border-slate-200 text-slate-600 hover:text-slate-900'}`}>
+            {on ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+        <div className="flex-1 min-h-0">{renderProjectionChart(kind)}</div>
+      </div>
+    );
+  };
+
+  const projectionDashboard = () => (
+    <div data-projection-dashboard ref={dashRef} className="space-y-2.5">
+      <div className="bg-surface border border-slate-200/90 rounded-xl h-[60px] flex items-stretch overflow-hidden">
+        {dashTiles()}
+      </div>
+
+      {/* A height, not content: flex-1 only shares out a box that HAS one, and without this the charts
+          and the rail each grew to whatever they wanted and the dashboard came out 1,670px tall - the
+          same scroll it exists to replace. See dashRowH for where the number comes from. */}
+      <div className="flex gap-2.5 items-stretch" style={{ height: dashRowH }}>
+        <div ref={dashColRef} className="flex-1 min-w-0 flex flex-col gap-2.5">
+          {(!dashChart || dashChart === 'mc') && dashChartCard('mc')}
+          {(!dashChart || dashChart === 'rate') && dashChartCard('rate')}
+        </div>
+
+        <div ref={dashRailRef} className="w-[330px] shrink-0 flex flex-col gap-2.5">
+          <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5">
+            <div className="flex items-baseline justify-between mb-1">
+              <h3 className="text-xs font-semibold text-slate-900">Change something</h3>
+              <span className="text-[10px] text-slate-500">the amber line is your edit</span>
+            </div>
+            {sandboxQuickDials({ inSheet: false, rail: true })}
+          </div>
+
+          <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5 space-y-1.5">
+            <h3 className="text-xs font-semibold text-slate-900">What the solver found</h3>
+            {[['Safe maximum spend', safeMaxResult ? formatGBP(safeMaxResult.spend) : '—', `a year, clears ${targetSurvivalRate}%`],
+              ['Earliest retirement', safeRetireResult?.age ? `age ${safeRetireResult.age}` : '—', `at ${formatGBP(E.num(simResult?.spend, 0))} a year`]].map(([l, v, s]) => (
+              <div key={l} className="flex items-baseline justify-between gap-2">
+                <span className="text-[11px] text-slate-600">{l}</span>
+                <span className="text-right"><span className="font-mono text-sm font-semibold text-slate-900">{v}</span>
+                  <span className="block text-[9.5px] text-slate-500">{s}</span></span>
+              </div>
+            ))}
+            <p className="text-[10px] text-slate-500 leading-relaxed pt-0.5">Both are counted over the simulated runs at the {targetSurvivalRate}% target, so they re-solve when you run again.</p>
+          </div>
+
+          {compareRows2 && (
+            <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5">
+              <h3 className="text-xs font-semibold text-slate-900 mb-1.5">Both methods at {terminalAge}</h3>
+              <table className="w-full text-[11px] border-collapse">
+                <thead>
+                  <tr className="text-[10px] font-semibold text-slate-500">
+                    <th className="text-left pb-1 font-semibold">Outcome</th>
+                    <th className="text-right pb-1 font-semibold" style={{ color: cp.rateEdge }}>Rate</th>
+                    <th className="text-right pb-1 font-semibold" style={{ color: cp.fanMedian }}>Simulated</th>
+                    <th className="text-right pb-1 font-semibold">Gap</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {compareRows2.quantiles.map(r => (
+                    <tr key={r.label}>
+                      <td className="py-[7px] text-slate-600 border-t border-slate-100">{r.label.replace(' percentile', 'th').replace('Medianth', 'Median')}</td>
+                      <td className="py-[7px] text-right font-mono text-slate-900 border-t border-slate-100">{dashMoney(r.rate)}</td>
+                      <td className="py-[7px] text-right font-mono text-slate-900 border-t border-slate-100">{dashMoney(r.mc)}</td>
+                      <td className="py-[7px] pl-2 border-t border-slate-100">
+                        {/* the gap as a bar as well as a number: the shape of the disagreement down the
+                            column is the point, and five bare percentages do not show it */}
+                        <span className="flex items-center justify-end gap-1.5">
+                          <span className="h-1.5 rounded-sm bg-rose-300" style={{ width: `${Math.min(34, Math.abs(r.pct) * 1.1)}px` }} />
+                          <span className="font-mono text-[10px] text-rose-700">{r.mc > 0 ? `${r.pct > 0 ? '+' : '−'}${Math.abs(r.pct).toFixed(0)}%` : '—'}</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-[10px] text-slate-500 leading-relaxed pt-2 mt-2 border-t border-slate-100">The smooth line cannot run dry mid-way, so it sits above the simulation, and the gap widens with the horizon.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* The deck's order survives as a way to jump rather than as the only way to read. */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <span className="text-[10px] font-semibold text-slate-500 mr-0.5">Jump to</span>
+        {PROJECTION_SLIDES.map(s => (
+          <button key={s.n} type="button" data-dash-jump={s.n}
+            onClick={() => { setSeeAll(false); setDashChart(null); setSlide(s.n); }}
+            className="text-[10px] px-2 py-1 rounded-full border border-slate-200 bg-surface text-slate-700 hover:text-slate-900 cursor-pointer">
+            {s.n} {s.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   const slideNav = (n) => (
     <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 md:sticky md:bottom-0 md:bg-surface md:pb-1 md:z-10">
       {isPhone ? slideIndex() : (
@@ -9893,8 +10178,23 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * across the card instead of down it, the same four dials sit under the chart and the full panel keeps
    * everything else below.
    */
-  const sandboxQuickDials = ({ inSheet = true } = {}) => {
-    const dial = (label, value, steps, onStep) => (
+  const sandboxQuickDials = ({ inSheet = true, rail = false } = {}) => {
+    const railDial = (label, value, steps, onStep) => {
+      const step = Math.max(...steps);
+      return (
+        <div key={label} className="flex items-center justify-between gap-2 h-8 border-b border-slate-100 last:border-0">
+          <span className="text-[11px] text-slate-600 truncate min-w-0">{label}</span>
+          <span className="flex items-center gap-1 shrink-0">
+            <button type="button" onClick={() => onStep(-step)} aria-label={`decrease ${label} by ${fmtNum(step)}`}
+              className="w-6 h-6 rounded-md border border-slate-200 bg-slate-50 text-slate-700 text-[13px] leading-none cursor-pointer">&minus;</button>
+            <span className="font-mono text-xs text-slate-900 tabular-nums min-w-[62px] text-right">{value}</span>
+            <button type="button" onClick={() => onStep(step)} aria-label={`increase ${label} by ${fmtNum(step)}`}
+              className="w-6 h-6 rounded-md border border-slate-200 bg-slate-50 text-slate-700 text-[13px] leading-none cursor-pointer">+</button>
+          </span>
+        </div>
+      );
+    };
+    const dial = rail ? railDial : (label, value, steps, onStep) => (
       <div key={label} className="py-2 border-b border-slate-100 last:border-0">
         <div className="flex items-baseline justify-between gap-2 mb-1">
           <span className="text-xs font-semibold text-slate-700 truncate">{label}</span>
@@ -9912,9 +10212,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       </div>
     );
     return (
-      <div className={inSheet ? 'space-y-1' : ''} data-quick-dials>
-        <div className={inSheet ? 'space-y-1' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-5'}>
-          {ctx.owners.map(o => dial(`${o.label}: retire at`, sandboxRetire[o.key], [-5, -1, 1, 5], (d) => adjustSandboxRetire(o.key, d)))}
+      <div className={inSheet || rail ? 'space-y-1' : ''} data-quick-dials>
+        {/* One column in the dashboard's 330px rail: the grid's breakpoints watch the VIEWPORT, so on a
+            wide screen they would put three dials side by side inside a narrow column. */}
+        <div className={inSheet || rail ? 'space-y-1' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-5'}>
+          {ctx.owners.map(o => dial(rail && !isCouple ? 'Retire at' : `${o.label}: retire at`, sandboxRetire[o.key], [-5, -1, 1, 5], (d) => adjustSandboxRetire(o.key, d)))}
           {/*
             * Balance as well as contribution. Step 7 used to be followed by a full Sandbox card holding
             * typed fields for both; that card is gone, so anything it could change has to be reachable
@@ -9924,20 +10226,20 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           {displayedAccounts.map(acc => {
             const sb = sandboxAccounts[acc.id] || {};
             const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
-            return dial(`${label}: annual contribution`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
+            return dial(rail ? `${label} a year` : `${label}: annual contribution`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
           })}
-          {displayedAccounts.map(acc => {
+          {!rail && displayedAccounts.map(acc => {
             const sb = sandboxAccounts[acc.id] || {};
             const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
             const now = E.num(sb.balance, E.num(acc.balance, 0));
             return dial(`${label}: balance today`, formatGBP(now), [-25000, -5000, 5000, 25000], (d) => adjustSandboxBalance(acc.id, d));
           })}
         </div>
-        <div className={`flex items-center gap-2 pt-2 ${inSheet ? '' : 'justify-end'}`}>
+        <div className={`flex items-center gap-2 pt-2 ${inSheet || rail ? '' : 'justify-end'}`}>
           <button type="button" onClick={handleResetSandbox} disabled={!isSandboxModified}
-            className={`${inSheet ? 'flex-1' : 'px-4'} min-h-11 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer`}>Reset</button>
+            className={`${inSheet || rail ? 'flex-1' : 'px-4'} ${rail ? 'min-h-8' : 'min-h-11'} rounded-lg border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer`}>Reset</button>
           <button type="button" onClick={handleApplySandboxToPlan} disabled={!isSandboxModified}
-            className={`${inSheet ? 'flex-1' : 'px-4'} min-h-11 rounded-lg bg-accent text-onaccent text-xs font-bold disabled:opacity-40 cursor-pointer`}>Apply to plan</button>
+            className={`${inSheet || rail ? 'flex-1' : 'px-4'} ${rail ? 'min-h-8' : 'min-h-11'} rounded-lg bg-accent text-onaccent text-xs font-bold disabled:opacity-40 cursor-pointer`}>Apply to plan</button>
         </div>
         {/* Only the sheet needs this: on a desktop the full panel is already the next thing down the page. */}
         {inSheet && (
@@ -11542,7 +11844,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900">Run the projection</h3>
                   {resultsStale && <span data-stale-results className="block text-[11px] font-semibold text-amber-700 mb-0.5">Your inputs changed since this run. The steps below describe the plan as it was &mdash; run again to refresh.</span>}
-                  <span className="text-[11px] text-slate-500">{simResult ? 'Six steps: what your plan does, the most you could spend, the earliest you could retire, the two ways of drawing the range, then both side by side.' : 'Answers arrive as they land, so the first is on screen while the rest is still working. Every figure is in today\u2019s money.'}</span>
+                  {!dashboardMode && <span className="text-[11px] text-slate-500">{simResult ? 'Six steps: what your plan does, the most you could spend, the earliest you could retire, the two ways of drawing the range, then both side by side.' : 'Answers arrive as they land, so the first is on screen while the rest is still working. Every figure is in today\u2019s money.'}</span>}
                 </div>
                 <div className="flex items-center gap-2">
                   {mcBusy && (
@@ -11581,7 +11883,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {slideIndex({ preview: true })}
                 <p className="leading-relaxed text-slate-500 pt-0.5">Each is drawn off the same {fmtNum(MC_TRIALS)} randomised paths, and every figure is in today&rsquo;s money.</p>
               </div>
-            ) : (
+            ) : dashboardMode ? projectionDashboard() : (
             <>
               {isCouple && (
                 <div className="bg-surface border border-slate-200/90 rounded-xl p-4 flex flex-wrap items-center gap-2">
@@ -11833,7 +12135,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
             {/* Saved scenarios overlay on whichever chart is showing, and the table ranks them against each
                 other. Kept outside the five steps: it compares PLANS, where the steps compare methods. */}
-            <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+            <div className={`bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3 ${dashboardMode ? 'hidden' : ''}`}>
             {scenarios.filter(s => s.id !== activeScenarioId).length > 0 && (
               <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
                 <span className="text-xs text-slate-500 font-semibold whitespace-nowrap">Compare saved scenarios:</span>
@@ -11915,7 +12217,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 draws is on screen while you are dragging the thing that moves it. Monte Carlo rather than
                 the rate-based band, because that is the chart the survival figure everything else quotes
                 is actually read from. */}
-            {showSlide(SANDBOX_SLIDE) && (
+            {!dashboardMode && showSlide(SANDBOX_SLIDE) && (
               <div ref={slideRef} className="space-y-6"
                 /* room at the foot for the sheet, so the Rerun card below is not stranded under it */
                 style={{ scrollMarginTop: 12, paddingBottom: isPhone ? sheetH : 0 }}>

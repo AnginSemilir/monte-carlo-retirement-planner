@@ -7215,7 +7215,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
                       </div>
                     )}
                     <div className="pt-2 border-t border-slate-100 space-y-1 text-[11px]  tabular-nums">
-                      <div className="flex justify-between"><span className="text-slate-500">S&amp;S ISA:</span><strong className="text-teal-700">£{fmtNum(Math.round(res.isaContrib || 0))}/yr{res.phase && res.phase.switchYears > 0 ? ' avg' : ''}</strong></div>
+                      <div className="flex justify-between"><span className="text-slate-500"><T k="S&amp;S ISA">S&amp;S ISA</T>:</span><strong className="text-teal-700">£{fmtNum(Math.round(res.isaContrib || 0))}/yr{res.phase && res.phase.switchYears > 0 ? ' avg' : ''}</strong></div>
                       <div className="flex justify-between"><span className="text-slate-500">Pension:</span><strong className="text-blue-700">£{fmtNum(Math.round(res.penContrib || 0))}/yr{res.phase && res.phase.switchYears > 0 ? ' avg' : ''}</strong></div>
                       {res.giaContrib > 0 && <div className="flex justify-between"><span className="text-slate-500">GIA overflow:</span><strong className="text-amber-700">£{fmtNum(Math.round(res.giaContrib))}/yr</strong></div>}
                       {res.taxReliefSaved > 0 && <div className="flex justify-between text-emerald-700 font-bold"><span className="font-sans">{selfEmployedOnly ? 'Tax relief:' : 'Tax & NIC relief:'}</span><span>+£{fmtNum(Math.round(res.taxReliefSaved))}/yr</span></div>}
@@ -7387,8 +7387,8 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
 
   /*
    * The results are a six-step walk rather than one long page: topline, safe spend, safe retirement age,
-   * the rate-based chart, the Monte Carlo, then the two side by side. Six screens of one idea each beats
-   * one screen of six, and the two charts in particular only mean anything read against each other, which is far
+   * the rate-based chart, the Monte Carlo, the two side by side, then a sandbox. Seven screens of one idea
+   * each beats one screen of seven, and the two charts in particular only mean anything read against each other, which is far
    * easier when they occupy the same space one after the other than when they are stacked a scroll apart.
    *
    * `seeAll` cascades the lot for anyone who would rather scroll, and is what a re-run lands on: having
@@ -9515,7 +9515,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * in. Each keeps its own outer 10th/90th toggle, since that is a property of the range, not the plan.
    */
   /*
-   * Slide chrome. The numbered row is the map - six steps, where you are, and one click to any of them -
+   * Slide chrome. The numbered row is the map - seven steps, where you are, and one click to any of them -
    * and "See all" is the escape hatch for anyone who would rather scroll than walk.
    */
   const slideHead = (n, title, sub) => (
@@ -10178,9 +10178,25 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * across the card instead of down it, the same four dials sit under the chart and the full panel keeps
    * everything else below.
    */
+  /*
+   * WHICH ACCOUNT DIAL THE RAIL SHOWS.
+   *
+   * The wide sandbox lists both a contribution dial and a balance dial for every account. The dashboard's
+   * rail is 330px and holds the retirement ages as well, so showing both doubles its length and pushes
+   * the reset button off the bottom of a 900px screen. The rail is now the only place the sandbox is
+   * reached from on a desktop, though, so "balance" cannot simply be dropped: it is a toggle, one row,
+   * and the dials swap underneath it. Both call the same handlers the wide panel calls.
+   */
+  const [railDialKind, setRailDialKind] = useState('contrib');
   const sandboxQuickDials = ({ inSheet = true, rail = false } = {}) => {
     const railDial = (label, value, steps, onStep) => {
-      const step = Math.max(...steps);
+      /*
+       * One pair of buttons, so one of the four steps has to be the one they carry: the FINE step, not
+       * the coarse one. Math.max picked 5 for "Retire at", which is not a step anybody wants as their
+       * only option - retiring a year later is the question this dial exists to ask. Holding the button
+       * repeats it; there is no way to ask for less than the step it is given.
+       */
+      const step = Math.min(...steps.filter(d => d > 0));
       return (
         <div key={label} className="flex items-center justify-between gap-2 h-8 border-b border-slate-100 last:border-0">
           <span className="text-[11px] text-slate-600 truncate min-w-0">{label}</span>
@@ -10213,6 +10229,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     );
     return (
       <div className={inSheet || rail ? 'space-y-1' : ''} data-quick-dials>
+        {rail && (
+          <div data-dial-kind className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 mb-1">
+            {[['contrib', 'A year'], ['balance', 'Balance']].map(([k, label]) => (
+              <button key={k} type="button" onClick={() => setRailDialKind(k)} aria-pressed={railDialKind === k}
+                className={`flex-1 min-h-7 rounded-md text-[11px] font-bold cursor-pointer ${railDialKind === k ? 'bg-surface border border-slate-300 text-slate-900' : 'text-slate-500'}`}>{label}</button>
+            ))}
+          </div>
+        )}
         {/* One column in the dashboard's 330px rail: the grid's breakpoints watch the VIEWPORT, so on a
             wide screen they would put three dials side by side inside a narrow column. */}
         <div className={inSheet || rail ? 'space-y-1' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-5'}>
@@ -10223,16 +10247,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             * from a dial or it is not reachable at all. Escalation is the one thing left behind - it is
             * an Advanced input, and it lives on the Plan Inputs tab.
             */}
-          {displayedAccounts.map(acc => {
+          {(!rail || railDialKind === 'contrib') && displayedAccounts.map(acc => {
             const sb = sandboxAccounts[acc.id] || {};
             const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
             return dial(rail ? `${label} a year` : `${label}: annual contribution`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
           })}
-          {!rail && displayedAccounts.map(acc => {
+          {(!rail || railDialKind === 'balance') && displayedAccounts.map(acc => {
             const sb = sandboxAccounts[acc.id] || {};
             const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
             const now = E.num(sb.balance, E.num(acc.balance, 0));
-            return dial(`${label}: balance today`, formatGBP(now), [-25000, -5000, 5000, 25000], (d) => adjustSandboxBalance(acc.id, d));
+            return dial(rail ? `${label} today` : `${label}: balance today`, formatGBP(now), [-25000, -5000, 5000, 25000], (d) => adjustSandboxBalance(acc.id, d));
           })}
         </div>
         <div className={`flex items-center gap-2 pt-2 ${inSheet || rail ? '' : 'justify-end'}`}>
@@ -10384,6 +10408,19 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   const [openRow, setOpenRow] = useState(null);
   const toggleRow = (id) => setOpenRow(v => (v === id ? null : id));
   /*
+   * THE WRAPPER NAME, WITH ITS ACRONYM EXPLAINED.
+   *
+   * `acc.category` is a plain string because it is also a key, an aria-label and a dial label. Wherever
+   * it is READ rather than used, the acronym inside it gets the shimmering underline the rest of the app
+   * gives its jargon: "S&S ISA" and "GIA" are exactly the words somebody meets here for the first time,
+   * and the portfolio is where they meet them.
+   */
+  const wrapperName = (category) => {
+    if (category === 'S&S ISAs') return <T k="S&S ISA">S&amp;S ISAs</T>;
+    if (/GIA/.test(category)) return <>Other Investments (e.g. <T k="GIA">GIA</T>)</>;
+    return category;
+  };
+  /*
    * THE FIRST SECTION AS ROWS, FOR A PHONE.
    *
    * The desktop grid is label-above-field in four columns. Collapsed to one column it was a label, a
@@ -10404,8 +10441,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         <input type="number" min={lo} max="120" onFocus={handleFocus} value={d[field] ?? ''} onChange={(e) => updateDemographics(field, e.target.value)} className={`${inputCls} text-right`} />
       </FieldRow>
     );
+    /*
+     * `key` separately from `label`, because three of these labels are no longer strings: the word that
+     * needs explaining carries the definition itself now, on the shimmering underline, rather than a "?"
+     * opening a paragraph under the row.
+     */
     const money = (label, value, onChange, opts = {}) => (
-      <FieldRow key={label} label={label} hint={opts.hint} wide={opts.wide}>
+      <FieldRow key={opts.key || label} label={label} hint={opts.hint} wide={opts.wide}>
         <MoneyInput min="0" step={opts.step || 1000} placeholder={opts.placeholder || '0'} onFocus={handleFocus} value={value ?? ''} onChange={onChange} className={`${inputCls} text-right ${opts.cls || ''}`} />
       </FieldRow>
     );
@@ -10416,18 +10458,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {isCouple && ageRow('Partner: age now', 'currentAgePart')}
         {ageRow('Retire at', 'retireAgeSelf')}
         {isCouple && ageRow('Partner: retire at', 'retireAgePart')}
-        {money(seSelf ? 'Profit a year' : 'Gross salary', d.salarySelf, (e) => updateDemographics('salarySelf', e.target.value),
-          { placeholder: 'a year', hint: 'Before tax. It sets the tax relief on pension contributions and the take-home pay that bridges the years before retirement. Self-employed? Set the employment type under Advanced and this becomes your trading profit, which is relieved differently.' })}
+        {money(seSelf ? 'Profit a year' : <T k="gross salary">Gross salary</T>, d.salarySelf, (e) => updateDemographics('salarySelf', e.target.value),
+          { key: 'salarySelf', placeholder: 'a year' })}
         {isCouple && money(sePart ? 'Partner: profit a year' : 'Partner: gross salary', d.salaryPart, (e) => updateDemographics('salaryPart', e.target.value), { placeholder: 'a year' })}
         {/* not `wide`: the Full shortcut used to sit beside the field and needed the extra 32px. Inside
             it, the row goes back to the same 152px control column as every other row on this tab. */}
         <FieldRow label="State Pension a year">{statePensionField('statePensionSelf')}</FieldRow>
         {isCouple && <FieldRow label="Partner: State Pension">{statePensionField('statePensionPart')}</FieldRow>}
-        {money(isCouple ? 'Joint living spend' : 'Living spend', plan?.spending?.targetSpend, (e) => updateSpending('targetSpend', e.target.value),
-          { placeholder: 'e.g. 30,000', hint: 'A year, after tax, drawn from the first retirement. A partner still working offsets it with their take-home pay when a salary is entered.' })}
+        {money(<>{isCouple ? 'Joint ' : ''}<T k="living spend">living spend</T></>, plan?.spending?.targetSpend, (e) => updateSpending('targetSpend', e.target.value),
+          { key: 'targetSpend', placeholder: 'e.g. 30,000' })}
         {ageRow('Plan to age', 'terminalAge', 1)}
-        {money(`Minimum pot at ${terminalAge}`, plan?.config?.solvencyFloor, (e) => updateConfig('solvencyFloor', e.target.value),
-          { step: 5000, cls: 'text-amber-700', hint: "A bequest floor in today's money, tested at the final age only. The whole projection is in real terms, so there is no need to gross it up for inflation." })}
+        {money(<><T k="minimum pot">Minimum pot</T> at {terminalAge}</>, plan?.config?.solvencyFloor, (e) => updateConfig('solvencyFloor', e.target.value),
+          { key: 'solvencyFloor', step: 5000, cls: 'text-amber-700' })}
       </div>
     );
   };
@@ -10538,10 +10580,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             value={plan?.demographics?.[field] ?? ''}
                             onChange={(e) => updateDemographics(field, e.target.value)} className={inputCls} />
                           <span className="text-[10px] text-slate-400 mt-1 block">
-                            Default is 0, meaning pay rises with inflation. The projection is in today's money, so 0 holds
-                            {isSE ? ' profit' : ' pay'} flat in real terms rather than freezing it in cash terms. Enter 1 for a
-                            1% real rise a year; a negative figure winds earnings down.
-                            {rate !== 0 && ` At ${rate}%, ${formatGBP(o.salary)} today is worth ${formatGBP(o.salary * Math.pow(1 + rate / 100, Math.max(0, o.retireAge - o.age0)))} in today's money at retirement.`}
+                            Default is 0, which holds{isSE ? ' profit' : ' pay'} flat in real terms rather than freezing it in
+                            cash terms. Enter 1 for a 1% real rise a year; a negative figure winds earnings down.
+                            {rate !== 0 && ` At ${rate}%, ${formatGBP(o.salary)} today becomes ${formatGBP(o.salary * Math.pow(1 + rate / 100, Math.max(0, o.retireAge - o.age0)))} by retirement.`}
                           </span>
                         </div>
                       );
@@ -10612,9 +10653,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 * One line, and it is the one a first-time visitor needs: where to start. The
                 * "educational only" sentence used to live here too and now sits in the footer, where it
                 * belongs - a disclaimer repeated above every screen stops being read by the second one.
+                *
+                * The real-terms note is here for the same reason. It was a blue banner on this card, a
+                * grey line over the inputs, and a clause in several field hints - said so often that it
+                * had stopped being information. It is a property of the whole model, so it belongs with
+                * the sentence that describes the whole model, in the one line that is on screen whichever
+                * tab you are on.
                 */}
               <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
                 A UK drawdown model across pensions, ISAs, GIA and cash. Start with <span className="font-semibold text-blue-700">Plan Inputs</span>; everything else reads from it.
+                Every amount is in today&rsquo;s money.
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -10639,14 +10687,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             * Full width under the header row rather than inside its left column, which the tab bar
             * squeezes to about a third of the card.
             */}
-          {/* Not on a phone: the card this sits in is Start Here's alone there, and Start Here has no
-              amounts on it to be in today's money. The line Plan Inputs carries is the one that matters,
-              and it is rendered with the fields it qualifies. */}
-          {isPhone ? null : (
-            <p data-money-banner className="text-xs mt-4 leading-relaxed rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-blue-900">
-              <strong className="font-semibold">Every amount here is in today&rsquo;s money.</strong>
-            </p>
-          )}
         </div>
         )}
         {/*
@@ -10746,7 +10786,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     tab is gone there, so this line carries what it carried. */}
                 <p className="text-[11px] text-slate-500 pt-1">
                   <strong className="text-slate-700 font-semibold">Educational and illustrative only. This is not financial advice.</strong> Everything
-                  is modelled, every figure is in today&rsquo;s money, and your plan stays in this browser.
+                  is modelled{isPhone ? ', every figure is in today’s money,' : ''} and your plan stays in this browser.
                 </p>
               </div>
               <div className="shrink-0 self-center mx-auto md:mx-0 md:ml-auto">
@@ -10859,7 +10899,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             {isPhone && (
               <>
                 <SectionTabs sections={INPUT_SECTIONS} active={inputSection} onSelect={selectSection} />
-                <p data-money-banner className="text-[10px] text-slate-400 leading-none pt-1.5 px-0.5">Every amount here is in today&rsquo;s money.</p>
               </>
             )}
             {/* Demographics & Targets */}
@@ -10883,20 +10922,23 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Current age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 40" onFocus={handleFocus} value={plan?.demographics?.currentAgePart ?? ''} onChange={(e) => updateDemographics('currentAgePart', e.target.value)} className={inputCls} /></div>}
                 <div><label className="text-slate-600 font-semibold block mb-1">Retirement age (Myself)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgeSelf ?? ''} onChange={(e) => updateDemographics('retireAgeSelf', e.target.value)} className={inputCls} /></div>
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Retirement age (Partner)</label><input type="number" min="0" max="120" placeholder="e.g. 60" onFocus={handleFocus} value={plan?.demographics?.retireAgePart ?? ''} onChange={(e) => updateDemographics('retireAgePart', e.target.value)} className={inputCls} /></div>}
-                <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentSelf === 'self-employed' ? 'Annual Profit: self-employment (Myself £/yr)' : 'Gross salary (Myself £/yr)'}</label><MoneyInput min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salarySelf ?? ''} onChange={(e) => updateDemographics('salarySelf', e.target.value)} className={inputCls} /></div>
-                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentPart === 'self-employed' ? 'Annual Profit: self-employment (Partner £/yr)' : 'Gross salary (Partner £/yr)'}</label><MoneyInput min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salaryPart ?? ''} onChange={(e) => updateDemographics('salaryPart', e.target.value)} className={inputCls} /></div>}
+                <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentSelf === 'self-employed' ? 'Annual Profit: self-employment (Myself £/yr)' : <><T k="gross salary">Gross salary</T> (Myself £/yr)</>}</label><MoneyInput min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salarySelf ?? ''} onChange={(e) => updateDemographics('salarySelf', e.target.value)} className={inputCls} /></div>
+                {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">{plan?.demographics?.employmentPart === 'self-employed' ? 'Annual Profit: self-employment (Partner £/yr)' : <><T k="gross salary">Gross salary</T> (Partner £/yr)</>}</label><MoneyInput min="0" step="1000" placeholder="for tax relief & bridging" onFocus={handleFocus} value={plan?.demographics?.salaryPart ?? ''} onChange={(e) => updateDemographics('salaryPart', e.target.value)} className={inputCls} /></div>}
                 <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Myself £/yr)</label>{statePensionField('statePensionSelf')}</div>
                 {isCouple && <div><label className="text-slate-600 font-semibold block mb-1">Expected State Pension (Partner £/yr)</label>{statePensionField('statePensionPart')}</div>}
                 <div className="sm:col-span-2">
-                  <label className="text-slate-600 font-semibold block mb-1">{isCouple ? 'Joint net living spend (£/yr)' : 'Net living spend (£/yr)'}</label>
+                  {/*
+                    * The sentence under this field is now the definition behind the word, not a line of
+                    * grey text under every field forever. Same explanation, one hover away, and the form
+                    * is a form rather than a form with a commentary running down it.
+                    */}
+                  <label className="text-slate-600 font-semibold block mb-1">{isCouple ? 'Joint net ' : 'Net '}<T k="living spend">living spend</T> (£/yr)</label>
                   <MoneyInput min="0" step="1000" placeholder="e.g. 30000" onFocus={handleFocus} value={plan?.spending?.targetSpend ?? ''} onChange={(e) => updateSpending('targetSpend', e.target.value)} className={inputCls} />
-                  <span className="text-[10px] text-slate-400 mt-1 block">Drawn from the first retirement. A partner still working offsets it with their take-home pay when a salary is entered.</span>
                 </div>
                 <div><label className="text-slate-600 font-semibold block mb-1">Plan to age</label><input type="number" min="1" max="120" placeholder="100" onFocus={handleFocus} value={plan?.demographics?.terminalAge ?? ''} onChange={(e) => updateDemographics('terminalAge', e.target.value)} className={inputCls} /></div>
                 <div>
-                  <label className="text-slate-600 font-semibold block mb-1">Minimum pot at age {terminalAge} (£)</label>
+                  <label className="text-slate-600 font-semibold block mb-1"><T k="minimum pot">Minimum pot</T> at age {terminalAge} (£)</label>
                   <MoneyInput min="0" step="5000" placeholder="0" onFocus={handleFocus} value={plan?.config?.solvencyFloor ?? ''} onChange={(e) => updateConfig('solvencyFloor', e.target.value)} className={`${inputCls} text-amber-700`} />
-                  <span className="text-[10px] text-slate-400 mt-1 block">Bequest floor in today's money, tested at the terminal age only. The whole projection is in real terms, so £100,000 here means £100,000 of today's purchasing power. There is no need to gross it up for inflation.</span>
                 </div>
               </div>
               )}
@@ -10908,7 +10950,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
                 <Fine isPhone={isPhone} label="What is a band?">
                 <p className="text-[11px] text-slate-500 mb-2 max-w-3xl">
-                  Set what a stretch of years actually costs, in today's money, instead of one figure for the whole
+                  Set what a stretch of years actually costs, instead of one figure for the whole
                   retirement. Ages are &quot;Myself&quot; ages. Any year you do not cover falls back to the {isCouple ? 'joint ' : ''}living
                   spend above, so you can name only the years that differ. Spending can rise as well as fall.
                 </p>
@@ -10974,7 +11016,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <button type="button" onClick={() => goToDoc('doc-risk-profiles')} className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"><HelpCircle className="w-3.5 h-3.5" /> Guide to investment allocations &amp; fund types &rarr;</button>
               </div>
               <Fine isPhone={isPhone} label="What counts as a contribution?">
-              <p className="text-[11px] text-slate-500">Pension contributions are gross (including tax relief and employer amounts); ISA, GIA and cash contributions are net. Contributions stop at each owner's retirement age. Allowances: ISA £{fmtNum(P.isaAllowance)}, pension £{fmtNum(P.pensionAllowance)} per person (Config).</p>
+              <p className="text-[11px] text-slate-500">Pension contributions are gross (including tax relief and employer amounts); <T k="S&S ISA">ISA</T>, <T k="GIA">GIA</T> and cash contributions are net. Contributions stop at each owner's retirement age. Allowances: ISA £{fmtNum(P.isaAllowance)}, pension £{fmtNum(P.pensionAllowance)} per person (Config).</p>
               </Fine>
               {/*
                 * ON A PHONE, A CARD PER WRAPPER; ON A DESKTOP, THE TABLE.
@@ -10995,7 +11037,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     return (
                       <div key={acc.id} data-wrapper-card className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 pt-2 pb-1">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm font-bold text-slate-800">{acc.category}{isCouple && <span className="text-slate-500 font-normal"> &middot; {acc.owner}</span>}</span>
+                          <span className="text-sm font-bold text-slate-800">{wrapperName(acc.category)}{isCouple && <span className="text-slate-500 font-normal"> &middot; {acc.owner}</span>}</span>
                           {Array.isArray(acc.contribByYear) && <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px]">phased schedule</span>}
                         </div>
                         <FieldRow label="Balance today">
@@ -11028,7 +11070,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     const over = (acc.id.startsWith('isa') && E.num(acc.contrib, 0) > P.isaAllowance) || (acc.id.startsWith('pen') && E.num(acc.contrib, 0) > P.pensionAllowance);
                     return (
                       <tr key={acc.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-2.5 font-sans font-bold text-slate-800">{acc.category}{Array.isArray(acc.contribByYear) && <span className="ml-2 px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px] font-normal">phased schedule</span>}</td>
+                        <td className="py-2.5 font-sans font-bold text-slate-800">{wrapperName(acc.category)}{Array.isArray(acc.contribByYear) && <span className="ml-2 px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px] font-normal">phased schedule</span>}</td>
                         {isCouple && <td className="py-2.5 font-sans text-slate-500">{acc.owner}</td>}
                         <td className="py-2.5"><MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={acc.balance} onChange={(e) => updateAccountField(acc.id, 'balance', e.target.value)} className="w-32 p-1.5 bg-surface border border-slate-300 rounded font-bold text-slate-900 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
                         <td className="py-2.5"><MoneyInput min="0" step="250" placeholder="0" onFocus={handleFocus} value={acc.contrib} onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }} className={`w-28 p-1.5 bg-slate-50 border rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none ${over ? 'border-rose-400 text-rose-700' : 'border-slate-300'}`} title={over ? 'Exceeds the annual allowance set in Config' : ''} /></td>
@@ -11844,7 +11886,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900">Run the projection</h3>
                   {resultsStale && <span data-stale-results className="block text-[11px] font-semibold text-amber-700 mb-0.5">Your inputs changed since this run. The steps below describe the plan as it was &mdash; run again to refresh.</span>}
-                  {!dashboardMode && <span className="text-[11px] text-slate-500">{simResult ? 'Six steps: what your plan does, the most you could spend, the earliest you could retire, the two ways of drawing the range, then both side by side.' : 'Answers arrive as they land, so the first is on screen while the rest is still working. Every figure is in today\u2019s money.'}</span>}
+                  {!dashboardMode && <span className="text-[11px] text-slate-500">{simResult ? 'Seven steps: what your plan does, the most you could spend, the earliest you could retire, the two ways of drawing the range, both side by side, then change something and watch it move.' : 'Answers arrive as they land, so the first is on screen while the rest is still working.'}</span>}
                 </div>
                 <div className="flex items-center gap-2">
                   {mcBusy && (
@@ -11881,7 +11923,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   * there is nothing yet to go to.
                   */}
                 {slideIndex({ preview: true })}
-                <p className="leading-relaxed text-slate-500 pt-0.5">Each is drawn off the same {fmtNum(MC_TRIALS)} randomised paths, and every figure is in today&rsquo;s money.</p>
+                <p className="leading-relaxed text-slate-500 pt-0.5">Each is drawn off the same {fmtNum(MC_TRIALS)} randomised paths.</p>
               </div>
             ) : dashboardMode ? projectionDashboard() : (
             <>
@@ -11934,7 +11976,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {safeMaxResult ? (
                     <>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Safe maximum</span><span className="text-xl font-semibold text-emerald-700">{formatGBP(safeMaxResult.spend)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year, today&rsquo;s money</span></div>
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Safe maximum</span><span className="text-xl font-semibold text-emerald-700">{formatGBP(safeMaxResult.spend)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year</span></div>
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Against your {formatGBP(simResult.spend)}</span><span className={`text-xl font-semibold font-mono ${safeMaxResult.spend >= simResult.spend ? 'text-emerald-700' : 'text-rose-700'}`}>{safeMaxResult.spend >= simResult.spend ? '+' : '−'}{formatGBP(Math.abs(safeMaxResult.spend - simResult.spend))}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">a year {safeMaxResult.spend >= simResult.spend ? 'more' : 'less'}</span></div>
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">It actually survives</span><span className="text-xl font-semibold text-emerald-700">{safeMaxResult.stats.successRate.toFixed(1)}%</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">at or above the {targetSurvivalRate}% asked for</span></div>
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80"><span className="text-slate-500 block mb-0.5">Median pot @ {terminalAge}</span><span className="text-xl font-semibold text-blue-700">{formatGBP(safeMaxResult.stats.medianTerminal)}</span><span className="text-[10px] text-slate-400 block mt-0.5  tabular-nums">spending the maximum</span></div>
@@ -12118,7 +12160,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   )}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
                     <Clamp isPhone={isPhone} lines={2} label="What this means…">
-                    Read the <strong>Difference</strong> column downward. The two methods agree near the middle and part company at the bottom: the rate-based figures sit above the Monte Carlo ones precisely where the plan is under most strain, because that is where being unable to go bust flatters you most. Everything here is in today&rsquo;s money.
+                    Read the <strong>Difference</strong> column downward. The two methods agree near the middle and part company at the bottom: the rate-based figures sit above the Monte Carlo ones precisely where the plan is under most strain, because that is where being unable to go bust flatters you most.
                     </Clamp>
                   </p>
                   {sequenceLoss && sequenceLoss.state === 'loss' && (
@@ -12158,7 +12200,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
                 <div>
                   <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Scenario Comparison</h2>
-                  <span className="text-xs text-slate-500">Every figure on the expected-return path, in today&rsquo;s money. Each scenario&rsquo;s retirement pot is read at its own retirement age. Click a column to sort.</span>
+                  <span className="text-xs text-slate-500">Every figure on the expected-return path. Each scenario&rsquo;s retirement pot is read at its own retirement age. Click a column to sort.</span>
                 </div>
                 <div tabIndex={0} className="overflow-x-auto border border-slate-200 rounded-lg">
                   <table className="w-full text-left text-xs border-collapse">

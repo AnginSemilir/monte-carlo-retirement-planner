@@ -1191,8 +1191,6 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
         {/* The form is three parallel groups, and on a phone one screen holds one of them. The full
             planner's Inputs tab is divided exactly this way, by the same component. */}
         {isPhone && <SectionTabs sections={INPUT_SECTIONS} active={section} onSelect={selectSection} gutter={3} />}
-        {/* said once, quietly, where the amounts are - not as a banner of its own */}
-        {isPhone && <p data-money-banner className="text-[10px] text-slate-400 leading-none pt-0.5 px-0.5">Every amount here is in today&rsquo;s money.</p>}
 
         {showSection('you') && (
         <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 p-1 rounded-lg">
@@ -1456,7 +1454,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
             {isPhone && <div className="flex flex-col gap-0.5 text-[11px] text-slate-500 pb-1">{runNotes()}</div>}
 
             <p className="text-[11px] text-slate-500 leading-relaxed border-t border-slate-100 pt-3">
-              All three are quoted at a <strong className="text-slate-700">{TARGET}% target</strong>: the most you could spend, and the earliest you could retire, while still coming through {TARGET} futures in 100. Every figure is in today&rsquo;s money.
+              All three are quoted at a <strong className="text-slate-700">{TARGET}% target</strong>: the most you could spend, and the earliest you could retire, while still coming through {TARGET} futures in 100.
               {ss && ss.spend < num(s.spend, 0) && <> <strong className="text-rose-700">You are planning to spend more than the safe figure.</strong> The difference is the additional risk you are accepting, not a reason you cannot do it.</>}
             </p>
 
@@ -1472,15 +1470,23 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                 )}
               </p>
             )}
-            {/* The page's beta notice lives in the footer, and the phone page has no footer: it is one
-                fixed screen. It belongs with the numbers it qualifies anyway. */}
+            </Fine>
+            {/*
+              * The page's beta notice lives in the footer, and the phone page has no footer: it is one
+              * fixed screen. Outside the fold, not inside it - it carries the real-terms note, and on a
+              * phone this page has nowhere else to say it: the desktop puts it under the title and the
+              * bar across the top here is 44px with no room for a second line.
+              */}
             {isPhone && (
-              <p className="text-[10px] text-slate-400 leading-snug">
-                A beta, for education and illustration only &mdash; this is not financial advice. Everything is
-                modelled, every figure is in today&rsquo;s money, and your plan stays in this browser.
+              /*
+                * One line, not three: this tab has to fit a 664px iPhone screen without scrolling, and
+                * the long form of the notice cost it 9px. The full wording is in the desktop footer and
+                * in the fold directly above.
+                */
+              <p className="text-[10px] text-slate-400 leading-snug pt-1">
+                A beta, for illustration &mdash; not financial advice. Today&rsquo;s money, kept in this browser.
               </p>
             )}
-            </Fine>
           </>
         )}
       </div>

@@ -66,8 +66,19 @@ const plan = {
         h1: (document.querySelector('h1') || {}).textContent || '',
         sections: [...document.querySelectorAll('h2')].map(h => h.textContent.trim()),
         tables: tables.length,
-        moveRows: tables[0] ? cells(tables[0]).length : 0,
-        compareRows: tables[1] ? cells(tables[1]).length : 0,
+        // by class, not by position: the funding note puts a third table between these two
+        moveRows: document.querySelector('table.moves') ? cells(document.querySelector('table.moves')).length : 0,
+        compareRows: document.querySelector('table.compare') ? cells(document.querySelector('table.compare')).length : 0,
+        /*
+         * The funding note exists to answer "where is the extra coming from - my ISA balance?". It is
+         * only there when money both stops and starts, so this reads it when it is there and checks the
+         * arithmetic it claims: what you stop, plus the residual, is what goes in.
+         */
+        funding: document.querySelector('table.funding')
+          ? cells(document.querySelector('table.funding')).map(r => r.map(c => c.replace(/[^0-9.\u2212-]/g, '')))
+          : null,
+        hasFunding: !!document.querySelector('[data-funding]'),
+        saysUntouched: /taken out of the money you have already invested|same money, pointed somewhere else/.test(document.body.innerText),
         steps: document.querySelectorAll('ol.steps > li').length,
         policy: document.querySelectorAll('.policy').length,
         junk: (document.body.innerText.match(/undefined|NaN|\[object|\u2212£0\b/g) || []),
@@ -77,6 +88,12 @@ const plan = {
     ok('...carrying a real document, not a blank tab', doc.chars > 1500, `${doc.chars} characters`);
     ok('...titled for the strategy it describes', /^How to move to .+/.test(doc.h1), doc.h1);
     ok('...with a table of what to pay in instead', doc.moveRows > 0, `${doc.moveRows} rows`);
+    if (doc.funding) {
+      const n = (x) => Number(String(x).replace(/\u2212/, '-')) || 0;
+      const [stop, gap, total] = doc.funding.map(r => n(r[1]));
+      ok('...adding up where the extra money comes from', Math.abs(stop + gap - total) <= 2, `${stop} + ${gap} = ${total}`);
+    }
+    if (doc.hasFunding) ok('...and saying the balances are not raided for it', doc.saysUntouched, '');
     ok('...numbered steps to do it', doc.steps >= 2, `${doc.steps} steps`);
     ok('...how to draw on it afterwards', doc.policy > 0, `${doc.policy} policy notes`);
     ok('...and the figures now against the figures after', doc.compareRows >= 3, `${doc.compareRows} rows`);

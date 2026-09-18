@@ -51,11 +51,19 @@ const TABS = [
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
 
+const PHONE_MAX = 767;                 // in step with src/viewport.js
+
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
   for (const theme of ['light', 'dark', 'sepia']) {
     for (const width of [1400, 390]) {
-      const p = await b.newPage({ viewport: { width, height: 1000 } });
+      /*
+       * `hasTouch` on the narrow one, because a phone is no longer a width alone: a narrow window with a
+       * trackpad is a desktop with a narrow window - which is what a Chromebook at 200% display scaling
+       * is, and what sent one to the phone layout. A page opened at 390 with a mouse is now correctly
+       * the desktop layout, so a harness that means to test the phone has to say it is a phone.
+       */
+      const p = await b.newPage({ viewport: { width, height: 1000 }, hasTouch: width <= PHONE_MAX });
       const errs = [];
       p.on('pageerror', e => errs.push(e.message));
       await p.route('https://fonts.googleapis.com/**', r => r.abort());

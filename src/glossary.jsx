@@ -35,7 +35,7 @@
 import { createContext, useContext, useEffect, useId, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { PHONE_MAX } from './viewport.js';
+import { PHONE_MAX, phoneLayout } from './viewport.js';
 
 /*
  * The phone question on its own, rather than useViewport: that hook also follows width and height for
@@ -44,12 +44,13 @@ import { PHONE_MAX } from './viewport.js';
  */
 const PHONE_Q = `(max-width: ${PHONE_MAX}px)`;
 function useIsPhone() {
-  const [phone, setPhone] = useState(() => (typeof window !== 'undefined' && window.matchMedia
-    ? window.matchMedia(PHONE_Q).matches : false));
+  // `phoneLayout` rather than the width alone, so a word behaves the same way here as the layout around
+  // it does: a trackpad hovers to open, a finger taps.
+  const [phone, setPhone] = useState(phoneLayout);
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return undefined;
     const mq = window.matchMedia(PHONE_Q);
-    const on = () => setPhone(mq.matches);
+    const on = () => setPhone(phoneLayout());
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
   }, []);

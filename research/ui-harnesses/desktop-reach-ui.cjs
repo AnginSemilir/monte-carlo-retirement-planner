@@ -77,6 +77,30 @@ async function runProjection(p) {
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 
+  /*
+   * ---------- WHAT COUNTS AS A PHONE ----------
+   *
+   * Width alone was the rule, and it sent a Chromebook to the phone layout: display scaling is common on
+   * those machines and a 1366px panel at 200% reports 683 CSS pixels. The rule now asks a second
+   * question - is the thing pointing at this a finger - so a narrow window with a trackpad keeps the
+   * desktop layout, and a phone keeps the phone one whatever its width.
+   *
+   * Asserted from the outside, by which navigation is on the page: the bottom bar belongs to one layout
+   * and the tab strip to the other, and both at once (or neither) is the failure this guards.
+   */
+  console.log('a narrow window is not a phone');
+  for (const w of [683, 700]) {
+    const nar = await open(b, w, 800);
+    const shape = await nar.p.evaluate(() => ({
+      bottomNav: !!document.querySelector('[data-bottomnav]'),
+      phoneBar: !!document.querySelector('[data-phone-bar]'),
+      tabStrip: (() => { const t = document.querySelector('[data-tabbar]'); return !!t && t.getBoundingClientRect().height > 0; })()
+    }));
+    ok(`${w}px with a pointer keeps the desktop layout`, shape.tabStrip && !shape.bottomNav && !shape.phoneBar,
+      JSON.stringify(shape));
+    await nar.p.close();
+  }
+
   // ---------- a 1366x768 laptop ----------
   console.log('1366x768, the commonest laptop screen');
   const { p, errs } = await open(b, 1366, 768);

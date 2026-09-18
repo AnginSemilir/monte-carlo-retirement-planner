@@ -10,11 +10,22 @@
  * of what it means for this plan. The Documentation tab still holds the long version; this is for the
  * moment you meet the word, which is the moment you want it explained.
  *
- * TWO TRIGGERS, ONE BUBBLE. A tooltip needs a pointer that can rest somewhere without pressing, so on a
- * desktop the word itself is the target: underlined, explained on hover. A phone has no hover and making
- * the word a tap target fights whatever it sits inside, so there the sentence is left alone and a 24px
- * "?" follows the term - the same mark the rest of this app uses for optional explanation. The bubble is
- * the same in both, with a close and a tap-away backdrop on the phone.
+ * ONE TRIGGER, ONE BUBBLE: THE WORD ITSELF, ON EVERY DEVICE.
+ *
+ * The phone used to get a 24px "?" after the term instead of a tappable word, on the theory that a word
+ * cannot advertise itself as a control. It could not be tapped at all: the global touch rule lifts every
+ * button to 44px, so that "?" had a 44px-tall box inside a 20px line, the box overflowed into the block
+ * below it, and the block - later in the document - painted on top. The visible glyph was not the hit
+ * target, and a finger landed on whatever was behind it.
+ *
+ * So the word is the target everywhere, and it advertises itself the way a link does: a shimmering
+ * underline, drawn as a moving gradient under the text rather than a text-decoration, since a decoration
+ * cannot hold a gradient. Hover opens it on a desktop, a tap opens it under a finger, and both close on
+ * Escape, on scroll, and on a tap outside.
+ *
+ * This is deliberately NOT the "?" that the rest of the app uses (`Fine` in phone.jsx). That one folds
+ * out a paragraph of optional explanation in place. This one is a word that has a definition - a
+ * different promise, so a different mark.
  *
  * The bubble is a portal to the body, positioned fixed. It has to be: half these terms sit inside table
  * cells and cards with their own `overflow`, and an absolutely positioned tooltip inside one of those is
@@ -108,26 +119,26 @@ export const GLOSSARY = {
     body: 'The years between stopping work and the pension unlocking, funded from ISAs, a GIA and cash. A plan can hold plenty and still fail here, because the money is in the wrong place.' }
 };
 
-/*
- * `k` is the glossary key; the children are what is shown, so the same entry can be reached from "GIA",
- * "a GIA" or "General Investment Account" without three copies of the definition. An unknown key renders
- * as plain text rather than throwing, because a typo in a label should not take a tab down.
- */
 // Set by a container that cannot hold a button - a <summary> - so the term renders as its word alone.
 export const TermPlain = createContext(false);
 
-export function Term({ k, isPhone, children }) {
-  const entry = GLOSSARY[k];
-  const plain = useContext(TermPlain);
+/*
+ * THE BUBBLE, SHARED.
+ *
+ * Both the glossary word and the odd one-off note (the simple page's spending taper) want the same
+ * thing: a short title and a sentence or two, anchored to a word, over the top of whatever the word sits
+ * inside. This holds the position and the dismissal rules; the callers supply the trigger and the text.
+ *
+ * The portal is not decoration. Half these words sit inside table cells and cards with their own
+ * `overflow`, and an absolutely positioned bubble inside one of those is clipped by it. Fixed
+ * coordinates from getBoundingClientRect are immune, at the cost of going stale on scroll - so it closes
+ * on scroll rather than following.
+ */
+function useBubble() {
   const ref = useRef(null);
   const [box, setBox] = useState(null);
-  const id = useId();
-  const phone = useIsPhone();
-  const off = isPhone === undefined ? phone : isPhone;
-
   useEffect(() => {
-    if (!box) return;
-    // Fixed coordinates go stale the moment anything moves, so the bubble closes rather than drifts.
+    if (!box) return undefined;
     const shut = () => setBox(null);
     const key = (e) => { if (e.key === 'Escape') setBox(null); };
     window.addEventListener('scroll', shut, true);
@@ -139,9 +150,6 @@ export function Term({ k, isPhone, children }) {
       window.removeEventListener('keydown', key);
     };
   }, [box]);
-
-  if (!entry || plain) return <>{children ?? k}</>;
-
   const open = () => {
     const el = ref.current;
     if (!el) return;
@@ -152,56 +160,96 @@ export function Term({ k, isPhone, children }) {
     const below = r.top < 150;   // no room above: flip under the word instead
     setBox({ left, top: below ? r.bottom + 8 : r.top - 8, below, W });
   };
+  return { ref, box, open, close: () => setBox(null) };
+}
 
-  /*
-   * ON A PHONE THE WORD KEEPS ITS SHAPE AND GAINS A "?".
-   *
-   * A tooltip needs a pointer that can rest somewhere without pressing, so the desktop version - the
-   * word itself, underlined, explained on hover - has nothing to attach to here. Making the word a tap
-   * target instead fights whatever it sits inside and gives no sign that it would do anything.
-   *
-   * So the sentence is left alone and a 24px "?" follows the term: the same mark this app already uses
-   * for optional explanation, small enough to sit in running text, and unmistakably a control. The
-   * bubble it opens is the same bubble, with a close of its own and a backdrop that dismisses it.
-   */
+/*
+ * The trigger and its bubble. `sticky` is the touch behaviour - a backdrop that dismisses, and a close
+ * button in the bubble - and it is on whenever there is no hover to close the bubble for us.
+ */
+function Bubble({ id, title, body, box, close, sticky }) {
   return (
-    // The span is the anchor AND the inline exception the 24px rule is measured by: a definition inside a
-    // sentence is text, not a control, and stretching it to 24px would break the line it sits in.
-    <span className="whitespace-normal">
-      {off ? (
-        <>
-          {children ?? k}
-          <button ref={ref} type="button" data-term={k} aria-expanded={!!box} aria-label={`What is ${entry.title}?`}
-            onClick={() => (box ? setBox(null) : open())}
-            className="inline-flex items-center justify-center align-text-bottom w-6 h-6 ml-0.5 rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 bg-surface cursor-pointer">?</button>
-        </>
-      ) : (
-        <button ref={ref} type="button" data-term={k} aria-describedby={box ? id : undefined}
-          onMouseEnter={open} onMouseLeave={() => setBox(null)}
-          onFocus={open} onBlur={() => setBox(null)}
-          onClick={() => (box ? setBox(null) : open())}
-          className="inline p-0 m-0 bg-transparent border-0 border-b border-dotted border-slate-400 cursor-help text-inherit">
-          {children ?? k}
-        </button>
-      )}
-      {box && off && createPortal(
-        <span role="presentation" onClick={() => setBox(null)} className="fixed inset-0 z-[57]" />,
-        document.body)}
-      {box && createPortal(
+    <>
+      {sticky && createPortal(
+        <span role="presentation" onClick={close} className="fixed inset-0 z-[57]" />, document.body)}
+      {createPortal(
         /* z-58: above the fullscreen chart at 55, below the in-app editor's dev chrome at 60. */
         <span role="tooltip" id={id}
           style={{ left: box.left, top: box.top, width: box.W, transform: box.below ? undefined : 'translateY(-100%)' }}
-          className={`fixed z-[58] ${off ? '' : 'pointer-events-none'} rounded-lg bg-surface border border-slate-300 shadow-lg px-3 py-2`}>
-          <span className="block text-[12px] font-bold text-slate-900 leading-snug pr-6">{entry.title}</span>
-          <span className="block text-[12px] text-slate-600 leading-snug mt-0.5">{entry.body}</span>
-          {off && (
-            <button type="button" onClick={() => setBox(null)} aria-label="Close"
+          className={`fixed z-[58] ${sticky ? '' : 'pointer-events-none'} rounded-lg bg-surface border border-slate-300 shadow-lg px-3 py-2`}>
+          <span className="block text-[12px] font-bold text-slate-900 leading-snug pr-6">{title}</span>
+          <span className="block text-[12px] text-slate-600 leading-snug mt-0.5">{body}</span>
+          {sticky && (
+            <button type="button" onClick={close} aria-label="Close"
               className="absolute top-0 right-0 w-9 h-9 flex items-center justify-center text-slate-400 cursor-pointer">
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </span>,
         document.body)}
+    </>
+  );
+}
+
+/*
+ * `k` is the glossary key; the children are what is shown, so the same entry can be reached from "GIA",
+ * "a GIA" or "General Investment Account" without three copies of the definition. An unknown key renders
+ * as plain text rather than throwing, because a typo in a label should not take a tab down.
+ */
+export function Term({ k, isPhone, children }) {
+  const entry = GLOSSARY[k];
+  const plain = useContext(TermPlain);
+  const { ref, box, open, close } = useBubble();
+  const id = useId();
+  const phone = useIsPhone();
+  const off = isPhone === undefined ? phone : isPhone;
+
+  if (!entry || plain) return <>{children ?? k}</>;
+
+  return (
+    <span className="whitespace-normal">
+      {/*
+        * `term-link` carries the shimmering underline and, with `inline-control`, opts out of the
+        * global 44px touch floor: a definition inside a sentence is text with a meaning, not a control
+        * on its own line, and a 44px box in the middle of a paragraph is what broke this before.
+        */}
+      <button ref={ref} type="button" data-term={k} aria-expanded={!!box}
+        aria-describedby={box ? id : undefined} aria-label={`What is ${entry.title}?`}
+        onMouseEnter={off ? undefined : open} onMouseLeave={off ? undefined : close}
+        onFocus={off ? undefined : open} onBlur={off ? undefined : close}
+        /* Where there is hover, a click must not undo what the hover just did: the pointer arriving
+           opens the bubble, so a toggle here would close it the instant somebody clicked the word. */
+        onClick={() => (off ? (box ? close() : open()) : open())}
+        className="term-link inline-control inline p-0 m-0 bg-transparent border-0 text-inherit text-left cursor-pointer">
+        {children ?? k}
+      </button>
+      {box && <Bubble id={id} title={entry.title} body={entry.body} box={box} close={close} sticky={off} />}
+    </span>
+  );
+}
+
+/*
+ * The same affordance for a note that is not a glossary word: a phrase that names an explanation, which
+ * opens in the same bubble. Used where the alternative would be a paragraph of small print sitting under
+ * a field forever - the simple page's spending taper is the case it was built for.
+ */
+export function Hint({ label, title, children, isPhone }) {
+  const { ref, box, open, close } = useBubble();
+  const id = useId();
+  const phone = useIsPhone();
+  const off = isPhone === undefined ? phone : isPhone;
+  return (
+    <span className="whitespace-normal">
+      <button ref={ref} type="button" data-hint aria-expanded={!!box} aria-describedby={box ? id : undefined}
+        onMouseEnter={off ? undefined : open} onMouseLeave={off ? undefined : close}
+        onFocus={off ? undefined : open} onBlur={off ? undefined : close}
+        /* Where there is hover, a click must not undo what the hover just did: the pointer arriving
+           opens the bubble, so a toggle here would close it the instant somebody clicked the word. */
+        onClick={() => (off ? (box ? close() : open()) : open())}
+        className="term-link inline-control inline p-0 m-0 bg-transparent border-0 text-inherit text-left cursor-pointer">
+        {label}
+      </button>
+      {box && <Bubble id={id} title={title ?? label} body={children} box={box} close={close} sticky={off} />}
     </span>
   );
 }

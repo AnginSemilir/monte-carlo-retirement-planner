@@ -10,6 +10,7 @@ import { SIMPLE_BLANK, toFullPlan, readiness, oneOffId, earningId } from './simp
 import { ChartFullscreen, Fine, FieldRow, RiskChips } from './phone.jsx';
 import { SimpleTabs } from './nav.jsx';
 import { SectionTabs } from './tabs.jsx';
+import { Hint } from './glossary.jsx';
 
 // every curve the page can show: the expected path and both edges of each band, computed together
 const CURVE_ZS = [...new Set([0, ...Object.values(BAND_QUANTILES).flatMap(v => (v.z ? [-v.z, v.z] : []))])];
@@ -1239,9 +1240,11 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
               onFocus={(e) => e.target.select()} onChange={(e) => set('taperFromAge', parse(e.target.value))}
               aria-label="taper start age" className={`${subCls} w-11 text-center tabular-nums`} />
           </div>
-          <Fine isPhone={isPhone} label="What the taper does">
-            <p className="text-[10px] text-slate-400 leading-snug pt-0.5">{taperNote}</p>
-          </Fine>
+          {/* A popup rather than a fold: the note is two sentences about a figure you have just typed,
+              and a fold leaves a "?" and a heading sitting under the field for the rest of the session. */}
+          <p className="text-[10px] text-slate-400 leading-snug pt-0.5">
+            <Hint isPhone={isPhone} label="What the taper does" title="What the taper does">{taperNote}</Hint>
+          </p>
         </div>
         )}
 
@@ -1453,7 +1456,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
             {isPhone && <div className="flex flex-col gap-0.5 text-[11px] text-slate-500 pb-1">{runNotes()}</div>}
 
             <p className="text-[11px] text-slate-500 leading-relaxed border-t border-slate-100 pt-3">
-              All three are quoted at a <strong className="text-slate-700">{TARGET}% target</strong>: the most you could spend, and the earliest you could stop, while still coming through {TARGET} futures in 100. Every figure is in today&rsquo;s money.
+              All three are quoted at a <strong className="text-slate-700">{TARGET}% target</strong>: the most you could spend, and the earliest you could retire, while still coming through {TARGET} futures in 100. Every figure is in today&rsquo;s money.
               {ss && ss.spend < num(s.spend, 0) && <> <strong className="text-rose-700">You are planning to spend more than the safe figure.</strong> The difference is the additional risk you are accepting, not a reason you cannot do it.</>}
             </p>
 

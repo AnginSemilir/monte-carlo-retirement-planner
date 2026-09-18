@@ -141,6 +141,15 @@ async function runProjection(p) {
   await tab(p, 'Config & Assumptions');
   const terms = await p.evaluate(() => document.querySelectorAll('[data-term]').length);
   ok('Config carries glossary terms', terms > 0, `${terms} terms`);
+  const mark = await p.evaluate(() => {
+    const el = document.querySelector('[data-term]');
+    el.scrollIntoView({ block: 'center' });
+    const r = el.getBoundingClientRect();
+    const on = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return { hitOk: !!on && (on === el || el.contains(on)), shimmer: /gradient/.test(getComputedStyle(el).backgroundImage) };
+  });
+  ok('...each one is its own hit target, marked by a shimmering underline', mark.hitOk && mark.shimmer,
+    `hit target ${mark.hitOk}, underline gradient ${mark.shimmer}`);
   // A real pointer, not a synthetic MouseEvent: React derives onMouseEnter from a bubbling mouseover at
   // the root, so a hand-dispatched non-bubbling 'mouseenter' reaches nothing and the tooltip never opens.
   await p.hover('[data-term]');
@@ -154,11 +163,22 @@ async function runProjection(p) {
       inside: r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight,
       described: el.getAttribute('aria-describedby') === bub.id };
   });
+  /*
+   * A CLICK MUST NOT UNDO WHAT THE HOVER JUST DID. The trigger is one control on every device now, so it
+   * carries both a hover handler and a click handler - and while it toggled on click, arriving with the
+   * pointer opened the bubble and the click that followed closed it again. Somebody who clicks a word
+   * rather than resting on it saw nothing happen at all.
+   */
+  await p.click('[data-term]');
+  await p.waitForTimeout(200);
+  tip.heldOnClick = await p.evaluate(() => !!document.querySelector('[role=tooltip]'));
   await p.mouse.move(2, 2);
   await p.waitForTimeout(200);
   tip.gone = await p.evaluate(() => !document.querySelector('[role=tooltip]'));
   ok('...and hovering one explains it', !!tip && tip.shown && tip.text > 40, tip ? `${tip.term}: ${tip.text} chars` : 'nothing shown');
   ok('...inside the window, not clipped or off the edge', !!tip && tip.inside, tip ? String(tip.inside) : '');
+  ok('...and a click on the word keeps it open rather than closing it', !!tip && tip.heldOnClick === true,
+     tip ? `open after the click: ${tip.heldOnClick}` : '');
   ok('...named to a screen reader, and gone on the way out', !!tip && tip.described && tip.gone,
      tip ? `described ${tip.described}, gone ${tip.gone}` : '');
 
@@ -186,6 +206,50 @@ async function runProjection(p) {
   const overW = await wide.p.evaluate(OVERFLOW_PROBE);
   ok('...without the card escaping the page', overW <= 1, `${overW}px`);
   await wide.p.close();
+
+  /*
+   * THE CHART STAYS INSIDE ITS CARD ON A LARGE MONITOR.
+   *
+   * The chart card escapes the page's 1280px cap from 1536px up, so a big screen is not mostly empty
+   * beside the picture. The first version of that moved the CHART and left the card behind, and from
+   * 1536px the drawn line crossed its own card's border and ended 33px past it. Both halves are checked
+   * here: the line is inside the card, and the card's prose is still on the same left margin as the
+   * cards above and below it, since the fix could otherwise have dragged the text out with the chart.
+   */
+  for (const width of [1536, 1920]) {
+    console.log(`the chart card at ${width}x900`);
+    const wide = await open(b, width, 900);
+    await tab(wide.p, 'Projection');
+    const headLeft = await wide.p.evaluate(() => { const h = [...document.querySelectorAll('h3')].find(x => /Run the projection/.test(x.textContent)); return h ? Math.round(h.getBoundingClientRect().left) : null; });
+    await wide.p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); if (x) x.click(); });
+    await wide.p.waitForFunction(() => !!document.querySelector('[data-slide-pill="4"]'), null, { timeout: 240000 });
+    await step(wide.p, 4);
+    const geo = await wide.p.evaluate(() => {
+      const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+      const card = svg && svg.closest('.wide-chart-card');
+      if (!card) return null;
+      const cr = card.getBoundingClientRect();
+      let right = -1e9, left = 1e9;
+      for (const pa of svg.querySelectorAll('path')) {
+        const s = pa.getAttribute('stroke');
+        if (!s || s === 'none') continue;
+        const r = pa.getBoundingClientRect();
+        if (r.width === 0) continue;
+        right = Math.max(right, r.right); left = Math.min(left, r.left);
+      }
+      // the card's own words: its first child that is not the chart, and its explanation paragraph
+      const first = [...card.children].find(c => !c.classList.contains('chart-holder'));
+      const para = card.querySelector('p');
+      return { over: Math.round(right - cr.right), under: Math.round(cr.left - left), svgW: Math.round(svg.getBoundingClientRect().width),
+        head: first ? Math.round(first.getBoundingClientRect().left) : null, para: para ? Math.round(para.getBoundingClientRect().left) : null };
+    });
+    ok('the drawn chart stays inside its card', !!geo && geo.over <= 0 && geo.under <= 0,
+      geo ? `${geo.over > 0 ? geo.over + 'px past the right edge' : 'inside'}, ${geo.svgW}px wide` : 'no wide chart card found');
+    ok('...and the card keeps the page\'s left margin for its words', !!geo && geo.head === headLeft && geo.para === headLeft,
+      geo ? `heading ${geo.head}, paragraph ${geo.para}, the page ${headLeft}` : '');
+    ok('...with the chart wider than the capped page would allow', !!geo && geo.svgW > 1280, geo ? `${geo.svgW}px` : '');
+    ok(`no page errors at ${width}`, wide.errs.length === 0, wide.errs.slice(0, 2).join(' | '));
+  }
 
   // ---------- the simple page ----------
   console.log('the simple page at 1440x900');

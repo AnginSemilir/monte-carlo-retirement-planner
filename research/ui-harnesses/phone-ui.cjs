@@ -596,18 +596,69 @@ const navigate = async (page, label, short) => {
        */
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Strategy'); if (b) b.click(); });
       await p.waitForTimeout(900);
+      /*
+       * Open the folds first, the way a reader does. Most of this tab's prose is inside a collapsed card
+       * on a phone, and a term inside a closed one is laid out - it has a width, so every "is it there"
+       * check passes - while sitting past the end of the document where nothing can scroll to it. Asking
+       * what a finger hits is only a fair question once the text is on the page.
+       */
+      // PhoneCollapse is a <details>, so opening those is enough. Pressing every collapsed control on
+      // the tab is not: some of them open sheets and overlays that cover the text being measured.
+      await p.evaluate(() => { document.querySelectorAll('details:not([open])').forEach(d => { d.open = true; }); });
+      await p.waitForTimeout(500);
       const help = await p.evaluate(() => {
         const vis = (el) => el.getBoundingClientRect().width > 0;
         const term = [...document.querySelectorAll('[data-term]')].find(vis);
         const dot = [...document.querySelectorAll('[data-help-dot]')].find(vis);
+        let hitOk = null, shimmer = null, tall = null, reached = null;
+        // the first term that can actually be brought onto the screen, which is the only one a finger
+        // could ever reach - and the only one elementFromPoint can answer for
+        let onScreen = null;
+        for (const cand of document.querySelectorAll('[data-term]')) {
+          if (!vis(cand)) continue;
+          cand.scrollIntoView({ block: 'center' });
+          const rr = cand.getBoundingClientRect();
+          if (rr.top >= 0 && rr.bottom <= window.innerHeight) { onScreen = cand; cand.setAttribute('data-term-probe', '1'); break; }
+        }
+        reached = !!onScreen;
+        if (onScreen) {
+          const term2 = onScreen;
+          const r = term2.getBoundingClientRect();
+          const on = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+          /*
+           * THE ASSERTION THIS HARNESS WAS MISSING.
+           *
+           * The definitions were unopenable on a phone for weeks and every check here passed, because
+           * each one asked whether the mark was PRESENT. It was: a 24px circle, visible, with a working
+           * handler. What it did not have was the tap - the global 44px touch floor gave it a box taller
+           * than the line it sat in, the box overflowed into the block below, and that block painted over
+           * it. So ask the browser the question a finger asks: at the middle of this mark, what would I
+           * hit? Anything but the mark itself is a control that cannot be operated.
+           */
+          hitOk = !!on && (on === term2 || term2.contains(on));
+          tall = Math.round(r.height);
+          shimmer = /gradient/.test(getComputedStyle(term2).backgroundImage);
+        }
         return { terms: document.querySelectorAll('[data-term]').length, dots: document.querySelectorAll('[data-help-dot]').length,
-                 termW: term ? Math.round(term.getBoundingClientRect().width) : 0,
+                 termW: term ? Math.round(term.getBoundingClientRect().width) : 0, hitOk, shimmer, tall, reached,
                  clickable: !!term && !!dot, dotClosed: dot ? dot.getAttribute('aria-expanded') : null };
       });
-      ok('a glossary term offers a "?" on a phone', help.terms > 0 && help.termW >= 24, `${help.terms} terms, ${help.termW}px`);
+      ok('a glossary term can be brought onto the screen at all', help.terms > 0 && help.reached === true,
+        `${help.terms} terms on the tab, reachable by scrolling: ${help.reached}`);
+      ok('...and it is the tap target itself, not a mark beside it', help.hitOk === true,
+        `at the middle of it a finger hits ${help.hitOk ? 'the term' : 'something else'}`);
+      ok('...marked as pressable by a shimmering underline', help.shimmer === true, `background gradient: ${help.shimmer}`);
+      ok('...at the height of the text it sits in, not the 44px floor', help.tall !== null && help.tall <= 30, `${help.tall}px tall`);
       ok('...and the long explanations are "?" too, closed to start', help.dots > 0 && help.dotClosed === 'false', `${help.dots} dots, expanded=${help.dotClosed}`);
       if (help.clickable) {
-        await p.evaluate(() => [...document.querySelectorAll('[data-term]')].find(x => x.getBoundingClientRect().width > 0).click());
+        /*
+         * Tap the one the probe just measured, and let the scrolling settle first. The bubble closes on
+         * scroll by design - its coordinates are fixed, so a page that moves under it would leave it
+         * pointing at nothing - and a scrollIntoView still settling when the tap lands closes it again
+         * immediately. That is a flaky test rather than a flaky feature, so it waits.
+         */
+        await p.waitForTimeout(400);
+        await p.evaluate(() => { const t = document.querySelector('[data-term-probe]') || [...document.querySelectorAll('[data-term]')].find(x => x.getBoundingClientRect().width > 0); t.click(); });
         await p.waitForTimeout(350);
         const bub = await p.evaluate(() => { const t = document.querySelector('[role=tooltip]'); return t ? { w: Math.round(t.getBoundingClientRect().width), chars: t.textContent.trim().length } : null; });
         ok('...tapping one opens its definition', !!bub && bub.chars > 40, bub ? `${bub.w}px, ${bub.chars} chars` : 'nothing opened');

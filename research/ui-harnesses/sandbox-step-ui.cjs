@@ -102,17 +102,39 @@ const plan = {
     const xs = d => [...d.matchAll(/[ML]\s*(-?[\d.]+)/g)].map(m=>Number(m[1]));
     const span = d => { const v = xs(d); return v.length ? Math.max(...v)-Math.min(...v) : 0; };
     const filled = paths.filter(x=>x.fill && x.fill!=='none');
-    const panel = [...document.querySelectorAll('h3')].some(h=>/Sandbox/.test(h.textContent));
-    const chartTop = r.top, panelEl = [...document.querySelectorAll('h3')].find(h=>/Sandbox/.test(h.textContent));
+    /*
+     * The controls are the DIALS now, inside the chart's own card. Step 7 used to be a chart card
+     * followed by a second "Sandbox" card holding the same job again in typed fields, and this harness
+     * looked for that card's heading - so it would have gone red on the removal and told us nothing
+     * about whether the step still worked. What matters is unchanged: there are controls, and the chart
+     * is above them on the same screen.
+     */
+    const dials = document.querySelector('[data-quick-dials]');
+    const mode = document.querySelector('[data-sandbox-chart-mode]');
+    const chartTop = r.top;
     return { width: r.width, long: paths.filter(x=>x.d.length>200).length, bandSpan: Math.max(0,...filled.map(x=>span(x.d))),
-             panel, chartTop, panelTop: panelEl ? panelEl.getBoundingClientRect().top : null,
+             panel: !!dials, chartTop, panelTop: dials ? dials.getBoundingClientRect().top : null,
+             secondCard: [...document.querySelectorAll('h3')].some(h=>/^Sandbox$/.test(h.textContent.trim())),
+             modeTop: mode ? mode.getBoundingClientRect().top : null,
+             kind: mode ? [...mode.querySelectorAll('button')].filter(b=>/bg-accent/.test(b.className)).map(b=>b.textContent.trim())[0] : null,
+             oldAmberRow: !!document.querySelector('[data-sandbox-line-mode]'),
              amber: paths.filter(x=>x.dash==='6,4' && x.width==='3.5').length };
   });
   ok('step 7 renders a chart', !!probe && probe.width > 400, probe ? `${Math.round(probe.width)}px` : 'none');
   ok('...arriving FINISHED, not rewound to a stub band', probe.bandSpan > 0.6*probe.width, `band ${Math.round(probe.bandSpan)}px of ${Math.round(probe.width)}px`);
   ok('...with full-length paths, not two-point ones', probe.long >= 3, `${probe.long} long paths`);
-  ok('the sandbox panel is on the same screen', probe.panel);
-  ok('...and the chart is ABOVE the controls', probe.panelTop !== null && probe.chartTop < probe.panelTop, `chart ${Math.round(probe.chartTop)} vs panel ${Math.round(probe.panelTop)}`);
+  ok('the sandbox controls are on the same screen', probe.panel);
+  ok('...and the chart is ABOVE the controls', probe.panelTop !== null && probe.chartTop < probe.panelTop, `chart ${Math.round(probe.chartTop)} vs controls ${Math.round(probe.panelTop)}`);
+  ok('...with no second Sandbox card repeating them underneath', !probe.secondCard);
+  /*
+   * One switch decides what step 7 draws, above the chart where steps 4 and 5 keep theirs. It replaced
+   * an "Amber line: Expected / Monte Carlo" row UNDER the chart that changed only the sandbox's own
+   * line, leaving the picture behind it saying something else.
+   */
+  ok('the chart switch sits above the chart, as on every other step', probe.modeTop !== null && probe.modeTop < probe.chartTop,
+     `switch ${probe.modeTop === null ? 'missing' : Math.round(probe.modeTop)} vs chart ${Math.round(probe.chartTop)}`);
+  ok('...and it opens on the rate-based projection', probe.kind === 'Rate based', String(probe.kind));
+  ok('...with the old amber-line-only row gone', !probe.oldAmberRow);
 
   // 4. it is the last step
   const next7 = await p.evaluate(() => [...document.querySelectorAll('button')].some(b=>/^Next:/.test(b.textContent.trim())));
@@ -125,12 +147,11 @@ const plan = {
   // Money fields are text inputs carrying thousands separators, not number inputs: a plain number input
   // cannot show a separator at all. `data-money` marks them, and the displayed value has to be stripped
   // before it is a number again - Number("12,000") is NaN, which would have quietly found no target.
+  // A dial, not a typed field: the dials are what step 7 offers now.
   const edited = await p.evaluate(() => {
-    const ins = [...document.querySelectorAll('input[data-money], input[type="number"]')];
-    const val = (el) => Number(String(el.value).replace(/[^0-9.-]/g, ''));
-    const set = (el, v) => { const s = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set; s.call(el, String(v)); el.dispatchEvent(new Event('input',{bubbles:true})); };
-    const target = ins.find(i => val(i) === 12000) || ins.find(i => val(i) > 1000);
-    if (!target) return false; set(target, val(target) + 9000); return true;
+    const d = [...document.querySelectorAll('[data-quick-dials] button')]
+      .find(b => /^increase .*contribution/i.test(b.getAttribute('aria-label') || ''));
+    if (!d) return false; d.click(); return true;
   });
   await p.waitForTimeout(1200);
   const after = await p.evaluate(() => {

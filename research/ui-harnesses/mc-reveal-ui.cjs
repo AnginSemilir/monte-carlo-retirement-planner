@@ -40,21 +40,26 @@ const plan = {
   await p.waitForFunction(() => !!document.querySelector('[data-slide-pill="5"]'), null, { timeout: 120000 });
   await p.waitForTimeout(2000);
   await p.evaluate(() => { const x=document.querySelector('[data-slide-pill="5"]'); x.click(); });
-  /*
-   * The band toggle now opens on "Expected only" - one line, on an axis that follows it, because that is
-   * what makes a change to the plan visible. This harness is about the reveal, which is the band and the
-   * sixty runs dissolving into it, so it asks for a band first. The reveal is unchanged; it is one tap
-   * further in than it was.
-   */
-  await p.waitForTimeout(400);
-  await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Upper/lower quartiles'); if (x) x.click(); });
-  await p.waitForTimeout(300);
-  // the reveal replays from the top when the mode changes, so re-enter the slide to watch it from 0
-  await p.evaluate(() => { const x=document.querySelector('[data-slide-pill="4"]'); if (x) x.click(); });
-  await p.waitForTimeout(400);
-  await p.evaluate(() => { const x=document.querySelector('[data-slide-pill="5"]'); x.click(); });
+  await p.waitForTimeout(600);
   let fails = 0;
   const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
+
+  /*
+   * THE STEP ARRIVES WITH ITS SPREAD ALREADY DRAWN.
+   *
+   * The band picker is shared with the rate-based step and opens on "Expected only", which is right for
+   * step 4 - one line you can watch move as you type. On step 5 it meant the simulation drew a single
+   * median line and nothing else: no fan, no sixty runs, no reveal, on a result that had already been
+   * computed. This harness used to press "Upper/lower quartiles" itself before measuring anything, which
+   * is precisely how the empty opening went unnoticed. It measures the opening instead now.
+   */
+  const arrival = await p.evaluate(() => {
+    const on = [...document.querySelectorAll('button')].find(b => /quartile/i.test(b.textContent) && /bg-accent/.test(b.className));
+    return { band: !!document.querySelector('g.mc-band'), spaghetti: document.querySelectorAll('g.mc-spaghetti path').length, picker: !!on };
+  });
+  ok('step 5 opens with the spread drawn, not one line', arrival.band && arrival.spaghetti > 10,
+     `band ${arrival.band}, ${arrival.spaghetti} sample runs`);
+  ok('...and the picker says which band that is', arrival.picker, `quartiles selected: ${arrival.picker}`);
   const probe = () => p.evaluate(() => {
     const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
     const paths = [...svg.querySelectorAll('path')].map(x => ({ d: x.getAttribute('d') || '', fill: x.getAttribute('fill') || '', stroke: x.getAttribute('stroke') || '' }));

@@ -21,7 +21,7 @@
  * clipped by it. Fixed coordinates from getBoundingClientRect are immune to that, at the cost of going
  * stale on scroll - so it closes on scroll rather than following.
  */
-import { useEffect, useId, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useId, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { PHONE_MAX } from './viewport.js';
@@ -113,8 +113,12 @@ export const GLOSSARY = {
  * "a GIA" or "General Investment Account" without three copies of the definition. An unknown key renders
  * as plain text rather than throwing, because a typo in a label should not take a tab down.
  */
+// Set by a container that cannot hold a button - a <summary> - so the term renders as its word alone.
+export const TermPlain = createContext(false);
+
 export function Term({ k, isPhone, children }) {
   const entry = GLOSSARY[k];
+  const plain = useContext(TermPlain);
   const ref = useRef(null);
   const [box, setBox] = useState(null);
   const id = useId();
@@ -136,7 +140,7 @@ export function Term({ k, isPhone, children }) {
     };
   }, [box]);
 
-  if (!entry) return <>{children ?? k}</>;
+  if (!entry || plain) return <>{children ?? k}</>;
 
   const open = () => {
     const el = ref.current;

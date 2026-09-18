@@ -13,7 +13,8 @@
  * than against the viewport, and this app has transforms in the charts - so a sheet left in place would
  * work until somebody nested it one level deeper, then silently stop filling the screen.
  */
-import { Children, useEffect, useRef, useState } from 'react';
+import { Children, useEffect, useId, useRef, useState } from 'react';
+import { TermPlain } from './glossary.jsx';
 import { createPortal } from 'react-dom';
 import { X, Trash2 } from 'lucide-react';
 
@@ -145,7 +146,9 @@ export function PhoneCollapse({ isPhone, children }) {
   return (
     <details>
       <summary className="cursor-pointer list-none min-h-11 flex items-center justify-between gap-2">
-        {kids[0]}
+        {/* a glossary term in this heading would put a "?" button inside the summary - a control inside
+            a control - so inside a summary the term is just its word; the definition is in the body */}
+        <TermPlain.Provider value={true}>{kids[0]}</TermPlain.Provider>
         <span aria-hidden="true" className="text-slate-400 text-xs shrink-0">&#9662;</span>
       </summary>
       <div className="space-y-3 pt-3">{kids.slice(1)}</div>
@@ -235,17 +238,30 @@ export function SheetPanel({ mode, onMode, summary, quick, full, onHeight }) {
  */
 export function FieldRow({ label, hint, wide = false, children }) {
   const [open, setOpen] = useState(false);
+  /*
+   * The label is a <label> beside the control, not around it, so the association was visual only: a
+   * screen reader read every one of these fields as "edit text". The control can be an input, a select,
+   * a MoneyInput, or an input inside a span (the State Pension field), so rather than threading an id
+   * through every shape the row finds its first control after render and names it, unless it already
+   * carries a name of its own.
+   */
+  const id = useId();
+  const ctrl = useRef(null);
+  useEffect(() => {
+    const el = ctrl.current && ctrl.current.querySelector('input, select, textarea');
+    if (el && !el.id && !el.getAttribute('aria-label') && !el.getAttribute('aria-labelledby')) el.id = id;
+  });
   return (
     <div className="border-b border-slate-100 last:border-0">
       <div className="flex items-center gap-2 min-h-11 py-0.5">
-        <label className="flex-1 min-w-0 text-[13px] font-semibold text-slate-700 leading-tight">{label}</label>
+        <label htmlFor={id} className="flex-1 min-w-0 text-[13px] font-semibold text-slate-700 leading-tight">{label}</label>
         {hint && (
           <button type="button" aria-label={`About ${typeof label === 'string' ? label : 'this field'}`} aria-expanded={open}
             onClick={() => setOpen(v => !v)} className="min-w-11 h-11 flex items-center justify-center shrink-0 cursor-pointer">
             <span className={`w-6 h-6 rounded-full border text-[11px] font-bold flex items-center justify-center ${open ? 'bg-blue-50 border-blue-600 text-blue-700' : 'border-slate-300 text-slate-500'}`}>?</span>
           </button>
         )}
-        <div className={`shrink-0 ${wide ? 'w-[184px]' : 'w-[152px]'} flex items-center justify-end gap-1`}>{children}</div>
+        <div ref={ctrl} className={`shrink-0 ${wide ? 'w-[184px]' : 'w-[152px]'} flex items-center justify-end gap-1`}>{children}</div>
       </div>
       {hint && open && <p className="text-[11px] text-slate-500 leading-relaxed pb-2.5 pr-1">{hint}</p>}
     </div>

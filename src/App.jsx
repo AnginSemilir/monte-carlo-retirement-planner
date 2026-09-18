@@ -26,6 +26,7 @@ import { BottomNav, MoreSheet } from './nav.jsx';
 // `T` at module scope, not a wrapper defined inside the render: a component redeclared every render
 // remounts, which would shut a tooltip the moment a worker result came back underneath it.
 import { Term as T } from './glossary.jsx';
+import { Boundary } from './boundary.jsx';
 import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, CollapsedRow, Clamp, PercentInput } from './phone.jsx';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs } from './tabs.jsx';
@@ -7067,7 +7068,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
         </div>
         <div>
           <label className="text-slate-700 font-semibold block mb-1">Owner split of new money</label>
-          <select value={balance} disabled={!isCouple} onChange={(e) => setBalance(e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold focus:ring-1 focus:ring-indigo-500 focus:outline-none cursor-pointer disabled:opacity-50">
+          <select aria-label="How new money is split between you" value={balance} disabled={!isCouple} onChange={(e) => setBalance(e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold focus:ring-1 focus:ring-indigo-500 focus:outline-none cursor-pointer disabled:opacity-50">
             <option value="proportional">Keep current Myself/Partner ratio</option>
             <option value="balanced">Balance pensions between partners</option>
           </select>
@@ -9864,7 +9865,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 shadow-2xs"><span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 block mb-1">Wealth compounding multiple</span><div className="text-xl font-bold font-mono text-indigo-700 mt-1">{sandboxMetrics.cumulativeExtraCapital !== 0 ? `${sandboxMetrics.multiplier.toFixed(2)}x` : '-'}</div><span className="text-[11px] text-slate-500 block mt-0.5">Terminal change per £1 of extra deposits</span></div>
         </div>
       )}
-      <div className="overflow-x-auto border border-slate-200 rounded-lg">
+      <div tabIndex={0} className="overflow-x-auto border border-slate-200 rounded-lg">
         <table className="w-full text-left text-xs border-collapse">
           <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans"><tr><th className="p-3">Portfolio wrapper</th>{isCouple && <th className="p-3">Owner</th>}<th className="p-3">Balance today (£)</th><th className="p-3">Annual contribution (£)</th><th className="p-3">Quick adjust</th><th className="p-3">Percentage increase (% / yr)</th><th className="p-3 text-right">Status</th></tr></thead>
           <tbody className="divide-y divide-slate-100 font-mono">
@@ -10032,7 +10033,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       return (
                         <div key={`emp_${o.key}`}>
                           <label className="text-slate-600 font-semibold block mb-1">Employment type ({o.label})</label>
-                          <select value={isSE ? 'self-employed' : 'employed'} onChange={(e) => updateDemographics(field, e.target.value)} className={`${inputCls} cursor-pointer`}>
+                          <select aria-label="Employment type" value={isSE ? 'self-employed' : 'employed'} onChange={(e) => updateDemographics(field, e.target.value)} className={`${inputCls} cursor-pointer`}>
                             <option value="employed">Employed (Class 1 NIC, salary sacrifice)</option>
                             <option value="self-employed">Self-employed (Class 4 NIC, relief at source)</option>
                           </select>
@@ -10187,6 +10188,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           */}
 
 
+        {/*
+          * Everything below the header sits inside one error boundary, keyed on the tab. A render error on
+          * a tab shows a message and a way back in the tab's place; the header, the tab strip and the
+          * bottom bar stay alive, and switching tabs remounts the boundary so the next screen is clean.
+          */}
+        <Boundary resetKey={activeTab}>
         {/* Scenario Toolbar. Plan Inputs only: saving a scenario means saving THE PLAN, so it belongs
             beside the plan, not floating over a chart where it reads as saving what is on screen.
 
@@ -10200,7 +10207,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700"><Bookmark className="w-4 h-4 text-blue-600" /><span>Active scenario:</span></div>
             <div className="flex items-center gap-1.5">
-              <select value={activeScenarioId} onChange={(e) => handleSelectScenario(e.target.value)} className="p-1.5 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+              <select aria-label="Active scenario" value={activeScenarioId} onChange={(e) => handleSelectScenario(e.target.value)} className="p-1.5 px-3 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                 {scenarios.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
               {scenarios.length > 1 && (
@@ -10546,7 +10553,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <td className="py-2.5"><MoneyInput min="0" step="250" placeholder="0" onFocus={handleFocus} value={acc.contrib} onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }} className={`w-28 p-1.5 bg-slate-50 border rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none ${over ? 'border-rose-400 text-rose-700' : 'border-slate-300'}`} title={over ? 'Exceeds the annual allowance set in Config' : ''} /></td>
                         <td className="py-2.5"><input type="number" step="0.5" placeholder="0" onFocus={handleFocus} value={acc.growth} onChange={(e) => updateAccountField(acc.id, 'growth', e.target.value)} className="w-20 p-1.5 bg-slate-50 border border-slate-300 rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
                         <td className="py-2.5">
-                          <select value={acc.risk} onChange={(e) => updateAccountField(acc.id, 'risk', e.target.value)} className="p-1.5 bg-slate-50 border border-slate-300 rounded text-xs text-blue-700 font-semibold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                          <select aria-label={`${acc.category} risk tier`} value={acc.risk} onChange={(e) => updateAccountField(acc.id, 'risk', e.target.value)} className="p-1.5 bg-slate-50 border border-slate-300 rounded text-xs text-blue-700 font-semibold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                             {Object.keys(activeRiskMatrix).map(rk => <option key={rk} value={rk}>{activeRiskMatrix[rk].label || rk}</option>)}
                           </select>
                         </td>
@@ -10586,7 +10593,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <div key={inc.id} className="grid grid-cols-1 sm:grid-cols-6 gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs items-center">
                       <input type="text" onFocus={handleFocus} value={inc.name} onChange={(e) => updateListItem('otherIncomes', inc.id, { name: e.target.value })} className="p-1.5 bg-surface border border-slate-300 rounded font-bold text-slate-800 sm:col-span-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Description" />
                       {isCouple ? (
-                        <select value={inc.owner} onChange={(e) => updateListItem('otherIncomes', inc.id, { owner: e.target.value })} className="p-1.5 bg-surface border border-slate-300 rounded text-slate-700"><option value="Myself">Myself</option><option value="Partner">Partner</option></select>
+                        <select aria-label="Whose income" value={inc.owner} onChange={(e) => updateListItem('otherIncomes', inc.id, { owner: e.target.value })} className="p-1.5 bg-surface border border-slate-300 rounded text-slate-700"><option value="Myself">Myself</option><option value="Partner">Partner</option></select>
                       ) : <div className="p-1.5 text-slate-500 font-semibold">Myself</div>}
                       <div className="flex items-center gap-1">
                         <span className="text-slate-500">Age</span>
@@ -10596,7 +10603,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       </div>
                       <div className="flex items-center gap-2">
                         <MoneyInput min="0" step="500" placeholder="£/yr" onFocus={handleFocus} value={inc.amount} onChange={(e) => updateListItem('otherIncomes', inc.id, { amount: parseInputNumber(e.target.value) })} className="w-24 p-1.5 bg-surface border border-slate-300 rounded tabular-nums text-emerald-700 font-bold" />
-                        <select value={inc.incomeType} onChange={(e) => updateListItem('otherIncomes', inc.id, { incomeType: e.target.value })} className="p-1.5 bg-surface border border-slate-300 rounded text-xs font-semibold text-amber-700" title="Drives both income tax and whether this counts as relevant earnings for pension contributions">
+                        <select aria-label="Type of income" value={inc.incomeType} onChange={(e) => updateListItem('otherIncomes', inc.id, { incomeType: e.target.value })} className="p-1.5 bg-surface border border-slate-300 rounded text-xs font-semibold text-amber-700" title="Drives both income tax and whether this counts as relevant earnings for pension contributions">
                           {Object.keys(E.INCOME_TYPES).map(k => <option key={k} value={k}>{E.INCOME_TYPES[k].label}</option>)}
                         </select>
                       </div>
@@ -10661,11 +10668,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           <div className="flex flex-wrap items-center gap-2">
                             <input type="date" value={c.date || (c.year ? `${c.year}-01-01` : '')} onChange={(e) => { const d = e.target.value; updateListItem('oneOffContributions', c.id, { date: d, year: parseInt(d.slice(0, 4)) || '' }); }} className={`p-1 bg-surface border rounded font-mono text-slate-800 text-xs ${missingDate ? 'border-rose-400 ring-1 ring-rose-300' : 'border-slate-300'}`} />
                             {isCouple ? (
-                              <select value={c.owner} onChange={(e) => updateListItem('oneOffContributions', c.id, { owner: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700"><option value="Myself">Myself</option><option value="Partner">Partner</option></select>
+                              <select aria-label="Whose deposit" value={c.owner} onChange={(e) => updateListItem('oneOffContributions', c.id, { owner: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700"><option value="Myself">Myself</option><option value="Partner">Partner</option></select>
                             ) : <span className="text-slate-500 font-semibold px-1">Myself</span>}
                             <div className="flex flex-col gap-0.5">
                               <span className="text-[9px] text-slate-400 leading-none">Funding source: new capital or internal transfer?</span>
-                              <select value={c.transferredFrom} onChange={(e) => updateListItem('oneOffContributions', c.id, { transferredFrom: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700" title="Transferred from">
+                              <select aria-label="Paid from" value={c.transferredFrom} onChange={(e) => updateListItem('oneOffContributions', c.id, { transferredFrom: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700" title="Transferred from">
                                 <option value="External">External (new capital)</option>
                                 {Object.values(E.CATEGORY_LABEL).map(l => <option key={l} value={l}>{l}</option>)}
                               </select>
@@ -10677,7 +10684,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                               </span>
                               {/* AUTO hands the choice to the decumulation policy, which is the only way a
                                   windfall-routing policy can ever fire for a real plan rather than only in a study */}
-                              <select value={c.category} onChange={(e) => { const category = e.target.value; const patch = { category }; if (c.stagedTargetWrapper === c.category) patch.stagedTargetWrapper = category; updateListItem('oneOffContributions', c.id, patch); }} className={`p-1 bg-surface border rounded text-blue-700 font-semibold ${missingDest ? 'border-rose-400 ring-1 ring-rose-300' : 'border-slate-300'}`}>
+                              <select aria-label="Into which wrapper" value={c.category} onChange={(e) => { const category = e.target.value; const patch = { category }; if (c.stagedTargetWrapper === c.category) patch.stagedTargetWrapper = category; updateListItem('oneOffContributions', c.id, patch); }} className={`p-1 bg-surface border rounded text-blue-700 font-semibold ${missingDest ? 'border-rose-400 ring-1 ring-rose-300' : 'border-slate-300'}`}>
                                 {Object.values(E.CATEGORY_LABEL).map(l => <option key={l} value={l}>{l}</option>)}
                                 <option value={E.AUTO_DEPOSIT}>{E.AUTO_DEPOSIT}</option>
                               </select>
@@ -10715,7 +10722,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             <div className="w-full p-2.5 bg-surface border border-amber-200 rounded-lg text-[11px] space-y-1.5">
                               <div className="flex items-center gap-2">
                                 <span className="font-semibold text-slate-600">Staged destination:</span>
-                                <select value={c.stagedTargetWrapper} onChange={(e) => updateListItem('oneOffContributions', c.id, { stagedTargetWrapper: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700">
+                                <select aria-label="Staged into" value={c.stagedTargetWrapper} onChange={(e) => updateListItem('oneOffContributions', c.id, { stagedTargetWrapper: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700">
                                   {Object.values(E.CATEGORY_LABEL).map(l => <option key={l} value={l}>{l}</option>)}
                                 </select>
                               </div>
@@ -10841,7 +10848,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <Zap className="w-3.5 h-3.5 shrink-0 text-amber-300 fill-amber-300" />
                     {isPolicySearching ? 'Searching…' : (
                       <span className="text-left leading-tight">Auto-pick best policy
-                        <span className="block text-[10px] font-semibold text-onaccent/80">based on my priorities</span>
+                        <span className="block text-[10px] font-semibold text-onaccent">based on my priorities</span>
                       </span>
                     )}
                   </button>
@@ -10977,7 +10984,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1">
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1"><T k="decumulation">Decumulation</T> policy</label>
-                  <select value={plan?.spending?.decumulationPolicy} onChange={(e) => updateSpending('decumulationPolicy', e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                  <select aria-label="Decumulation policy" value={plan?.spending?.decumulationPolicy} onChange={(e) => updateSpending('decumulationPolicy', e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                     {Object.entries(E.DECUMULATION_POLICIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                   </select>
                   <Fine isPhone={isPhone} label="What this policy does">
@@ -10988,7 +10995,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Pension drawdown strategy</label>
-                  <select value={plan?.spending?.drawdownStrategy} onChange={(e) => updateSpending('drawdownStrategy', e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                  <select aria-label="Pension drawdown strategy" value={plan?.spending?.drawdownStrategy} onChange={(e) => updateSpending('drawdownStrategy', e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                     <option value="Phased Drawdown">Phased Drawdown (Ongoing {Math.round(P.pclsProp * 100)}% tax-free proportion)</option>
                     <option value="Full 25% Lump Sum">Full Lump Sum (Upfront statutory PCLS into Cash)</option>
                   </select>
@@ -11006,7 +11013,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {/* How far up the bands that harvest runs. The second setting is a bequest trade, not a
                       spending one, so it is offered here rather than assumed by a policy. */}
                   <label className="text-slate-600 font-semibold block mb-1 mt-2">…and draw up to</label>
-                  <select value={plan?.config?.harvestCeiling === 'basic' ? 'basic' : 'pa'} onChange={(e) => updateConfig('harvestCeiling', e.target.value)} disabled={!plan?.config?.harvestPersonalAllowance} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold cursor-pointer disabled:opacity-50">
+                  <select aria-label="Harvest ceiling" value={plan?.config?.harvestCeiling === 'basic' ? 'basic' : 'pa'} onChange={(e) => updateConfig('harvestCeiling', e.target.value)} disabled={!plan?.config?.harvestPersonalAllowance} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold cursor-pointer disabled:opacity-50">
                     <option value="pa">the tax-free personal allowance ({formatGBP(P.pa)}) — costs nothing</option>
                     <option value="basic">the basic-rate limit ({formatGBP(P.higherRateStartsAt)}) — pays 20% now</option>
                   </select>
@@ -11189,7 +11196,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       </div>
                     );
                   })()}
-                  <div className="overflow-x-auto">
+                  <div tabIndex={0} className="overflow-x-auto">
                     <table className="w-full text-left text-[11px] border-collapse">
                       <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Policy combination</th><th className="pb-1.5 pr-3">Survival</th><th className="pb-1.5 pr-3">Pre-<T k="SIPP">SIPP</T> access failures</th><th className="pb-1.5 pr-3">10th <T k="percentile">%ile</T> pot</th><th className="pb-1.5">Median pot</th></tr></thead>
                       <tbody className="divide-y divide-slate-100 font-mono">
@@ -11231,7 +11238,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
             <CollapsibleCard title="Asset allocations, return matrix & volatilities (σ)"
               subtitle="The expected real return, volatility and forecast uncertainty behind every projection.">
-              <div className="overflow-x-auto space-y-4">
+              <div tabIndex={0} className="overflow-x-auto space-y-4">
               <div className="flex justify-between items-start gap-3">
                 <span className="text-[11px] text-slate-500">Expected real return is treated as the median (geometric) annual rate; <T k="Monte Carlo">Monte Carlo</T> paths are log-normal around it with the stated σ, one market factor for all wrappers. The lucky and unlucky columns are calculated from the expected rate, σ, forecast uncertainty and your {ctx.totalYears}-year horizon, so they are not editable.</span>
                 <button onClick={() => setIsEditingRisk(!isEditingRisk)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${isEditingRisk ? 'bg-accent text-onaccent border-blue-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}`}><Pencil className="w-3.5 h-3.5" />{isEditingRisk ? 'Done Editing' : 'Edit Matrix'}</button>
@@ -11297,7 +11304,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               subtitle="Defaults are 2025/26 (frozen to April 2028), and all thresholds are held constant in real terms.">
               <div className="pb-1">
                 <label className="text-slate-600 font-semibold block mb-1 text-xs">Where you pay income tax</label>
-                <select value={plan?.config?.taxRegion ?? 'ruk'} onChange={(e) => updateConfig('taxRegion', e.target.value)} className="w-full sm:w-80 p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                <select aria-label="Where you pay tax" value={plan?.config?.taxRegion ?? 'ruk'} onChange={(e) => updateConfig('taxRegion', e.target.value)} className="w-full sm:w-80 p-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-blue-700 font-bold focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
                   {Object.entries(E.TAX_REGION_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
                 </select>
                 <span className="text-[10px] text-slate-400 mt-1 block">
@@ -11454,7 +11461,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <Clamp isPhone={isPhone} lines={2} label="What this means…">
                         {safeMaxResult.stats.note
                           ? <><strong className="text-rose-700">{safeMaxResult.stats.note}</strong>{' '}</>
-                          : <><strong className="text-slate-700">{formatGBP(safeMaxResult.spend)} a year clears {targetSurvivalRate}%</strong>, and the {safeMaxResult.stats.successRate.toFixed(1)}% beside it is measured on the same {fmtNum(safeMaxResult.stats.trials)} paths that figure is quoted from &mdash; not a separate sample, so the number is the one you are actually buying.{' '}</>}
+                          : <><strong className="text-slate-700">{formatGBP(safeMaxResult.spend)} a year clears {targetSurvivalRate}%</strong>, and the {E.num(safeMaxResult.stats?.successRate, 0).toFixed(1)}% beside it is measured on the same {fmtNum(safeMaxResult.stats?.trials)} paths that figure is quoted from &mdash; not a separate sample, so the number is the one you are actually buying.{' '}</>}
                         A lower target returns a higher figure: you are choosing how much risk of running short to accept in exchange for income now. 95% is the conventional planning benchmark; 99% is close to belt-and-braces and costs a lot of income to reach.
                         {safeMaxResult.spend < simResult.spend && <> <strong className="text-rose-700">Your entered spend is above this.</strong> That is not a prohibition &mdash; it is the size of the bet you are making.</>}
                         </Clamp>
@@ -11514,7 +11521,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <Clamp isPhone={isPhone} lines={2} label="What this means…">
                         {safeRetireResult.note
                           ? <><strong className="text-rose-700">{safeRetireResult.note}</strong>{' '}</>
-                          : <><strong className="text-slate-700">Stopping at {safeRetireResult.age} holds {safeRetireResult.rate.toFixed(1)}%</strong> on {fmtNum(safeRetireResult.stats.trials)} paths, spending the {formatGBP(simResult.spend)} a year you entered throughout.{' '}</>}
+                          : <><strong className="text-slate-700">Stopping at {safeRetireResult.age} holds {safeRetireResult.rate.toFixed(1)}%</strong> on {fmtNum(safeRetireResult.stats?.trials)} paths, spending the {formatGBP(simResult?.spend)} a year you entered throughout.{' '}</>}
                         Moving the date does not move everything with it. <strong className="text-slate-700">Employed and self-employed income shifts with the retirement age</strong> in both directions, and with it the contributions that come out of it. <strong className="text-slate-700">Defined-benefit pensions, annuities and the State Pension keep their own dates</strong>, because the scheme sets those and retiring sooner does not bring them forward &mdash; which is most of why going earlier costs more than the missing salary alone.
                         {safeRetireResult.verifySteps > 0 && <> The first answer the scan found was {safeRetireResult.verifySteps} {safeRetireResult.verifySteps === 1 ? 'year' : 'years'} earlier and did not hold when re-run at full precision, so it was moved later until it did.</>}
                         </Clamp>
@@ -11570,7 +11577,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* ---------------- 5. MONTE CARLO CHART ---------------- */}
               {showSlide(5) && (
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(5, 'Monte Carlo', `${fmtNum(simResult.trials)} randomised futures, same axes as the last screen.`)}
+                  {slideHead(5, 'Monte Carlo', `${fmtNum(simResult?.trials)} randomised futures, same axes as the last screen.`)}
                   <div className="flex flex-wrap items-center gap-3">
                     {bandToggle}
                     {horizonSlider}
@@ -11596,7 +11603,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
                   {slideHead(6, 'Side by side', 'The same plan, both ways, at the same five points.')}
                   {compareRows2 && (
-                    <div className="overflow-x-auto border border-slate-200 rounded-lg">
+                    <div tabIndex={0} className="overflow-x-auto border border-slate-200 rounded-lg">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans">
                           <tr>
@@ -11671,7 +11678,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Scenario Comparison</h2>
                   <span className="text-xs text-slate-500">Every figure on the expected-return path, in today&rsquo;s money. Each scenario&rsquo;s retirement pot is read at its own retirement age. Click a column to sort.</span>
                 </div>
-                <div className="overflow-x-auto border border-slate-200 rounded-lg">
+                <div tabIndex={0} className="overflow-x-auto border border-slate-200 rounded-lg">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans">
                       <tr>
@@ -11774,7 +11781,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     summary={sandboxSummary()} quick={sandboxQuickDials()} full={renderSandboxPanel()} />
                 ) : renderSandboxPanel()}
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {fmtNum(simResult.trials)} randomised futures and refresh every step, run it again.</span>
+                  <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {fmtNum(simResult?.trials)} randomised futures and refresh every step, run it again.</span>
                   <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                     {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Running…' : 'Rerun projections'}
@@ -11975,7 +11982,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                                   * shows the account being emptied next to the one that is not.
                                   */}
                                 {a.fundingTable && a.fundingTable.rows.length > 0 && (
-                                  <div className="overflow-x-auto" data-funding-table>
+                                  <div tabIndex={0} className="overflow-x-auto" data-funding-table>
                                     <table className="w-full text-left text-[10px] border-collapse">
                                       <thead><tr className="border-b border-purple-200 text-purple-600 font-semibold">
                                         <th className="pb-1 pr-2">Where it comes from</th>
@@ -12114,7 +12121,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             : 'Every line of the arithmetic, from the pot to what your heirs hold.'}</span>
                         </button>
                         {estateOpen('workings') && (<>
-                        <div className="overflow-x-auto">
+                        <div tabIndex={0} className="overflow-x-auto">
                           <table className="w-full text-left text-[11px] border-collapse">
                             <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
                               <th className="pb-1.5 pr-3">Line</th><th className="pb-1.5 pr-3 text-right">Amount</th><th className="pb-1.5 text-right">Running</th>
@@ -12151,7 +12158,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           * to whom.
                           */}
                         {(estatePlan.bestEst.beneficiaries || []).length > 0 && (
-                          <div className="overflow-x-auto" data-recommended-people>
+                          <div tabIndex={0} className="overflow-x-auto" data-recommended-people>
                             <table className="w-full text-left text-[11px] border-collapse">
                               <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
                                 <th className="pb-1.5 pr-3">Who</th><th className="pb-1.5 pr-3">Share</th>
@@ -12192,7 +12199,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           <span className="text-[10px] text-slate-500 block mt-1">The routes you would have considered, priced on the same number: what your heirs end up holding.</span>
                         </button>
                         {estateOpen('alternatives') && (<>
-                        <div className="overflow-x-auto">
+                        <div tabIndex={0} className="overflow-x-auto">
                           <table className="w-full text-left text-[11px] border-collapse">
                             <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
                               <th className="pb-1.5 pr-3">Route</th><th className="pb-1.5 pr-3 text-right">Heirs hold</th><th className="pb-1.5 text-right">Against the plan above</th>
@@ -12240,7 +12247,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     </button>
                     {estateOpen('search') && (<>
                   {/* what each lever is worth on its own, so the household acts on the right one */}
-                  <div className="overflow-x-auto">
+                  <div tabIndex={0} className="overflow-x-auto">
                     <table className="w-full text-left text-[11px] border-collapse" data-lever-table>
                       <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Lever</th><th className="pb-1.5 pr-3">Worth on its own</th><th className="pb-1.5">Best setting</th></tr></thead>
                       <tbody className="divide-y divide-slate-100">
@@ -12263,7 +12270,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
                   <div>
                     <h3 className="text-sm font-semibold text-slate-700 mb-1.5">Every candidate, best first</h3>
-                    <div className="overflow-x-auto">
+                    <div tabIndex={0} className="overflow-x-auto">
                       <table className="w-full text-left text-[11px] border-collapse" data-estate-ranked>
                         <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">What you would do</th><th className="pb-1.5 pr-3">Heirs keep</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5">Their income tax</th></tr></thead>
                         <tbody className="divide-y divide-slate-100">
@@ -12318,7 +12325,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           </span>
                         </button>
                         {estateOpen('taper') && (<>
-                          <div className="overflow-x-auto">
+                          <div tabIndex={0} className="overflow-x-auto">
                             <table className="w-full text-left text-[11px] border-collapse">
                               <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
                                 <th className="pb-1.5 pr-3">Gift</th>
@@ -12428,7 +12435,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {inheritanceView.bens.map(b => (
                     <div key={b.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                       <input type="text" placeholder="Name" value={b.name} onChange={(e) => updateBeneficiary(b.id, { name: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 w-28" />
-                      <select value={b.relationship} onChange={(e) => updateBeneficiary(b.id, { relationship: e.target.value })} title={E.IHT_RELATIONSHIPS[b.relationship].who} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer">
+                      <select aria-label="Relationship to you" value={b.relationship} onChange={(e) => updateBeneficiary(b.id, { relationship: e.target.value })} title={E.IHT_RELATIONSHIPS[b.relationship].who} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer">
                         {Object.entries(E.IHT_RELATIONSHIPS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                       </select>
                       <label className="flex items-center gap-1 text-slate-500" title={pensionSplitShown ? 'Their share of everything except the pension: the house, ISAs, investments and cash. This is the will.' : 'Their share of everything you leave.'}>{pensionSplitShown ? 'under your will' : 'gets'}
@@ -12554,7 +12561,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
               )}
               {inheritanceView.chosen && inheritanceView.chosen.gifts && inheritanceView.chosen.gifts.length > 0 && (
-                <div className="overflow-x-auto pt-1">
+                <div tabIndex={0} className="overflow-x-auto pt-1">
                   <table className="w-full text-left text-[11px] border-collapse">
                     <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Gift</th><th className="pb-1.5 pr-3">Years before death</th><th className="pb-1.5 pr-3">Allowance it uses</th><th className="pb-1.5 pr-3">Tax on the gift</th><th className="pb-1.5">Status</th></tr></thead>
                     <tbody className="divide-y divide-slate-100 font-mono">
@@ -12662,7 +12669,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <strong>This tab is using its own balances.</strong> Everything on the Inheritance tab is priced from the figures below, and nothing here changes the projection, the simulation or the tournament. Put them back with the button above.
                   </div>
                 )}
-                <div className="overflow-x-auto">
+                <div tabIndex={0} className="overflow-x-auto">
                   <table className="w-full text-left text-[11px] border-collapse">
                     <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
                       <th className="pb-1.5 pr-3">Held in</th><th className="pb-1.5 pr-3">Today</th>
@@ -12779,7 +12786,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       return (
                         <div key={a.id} className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                           <input type="text" placeholder="What is it?" value={a.name ?? ''} onChange={(e) => updateEstateAsset(a.id, { name: e.target.value })} className="p-1 bg-surface border border-slate-300 rounded text-slate-700 w-36" />
-                          <select value={a.kind} onChange={(e) => updateEstateAsset(a.id, { kind: e.target.value })} title={kind.who} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer max-w-full">
+                          <select aria-label="Asset type" value={a.kind} onChange={(e) => updateEstateAsset(a.id, { kind: e.target.value })} title={kind.who} className="p-1 bg-surface border border-slate-300 rounded text-purple-700 font-semibold cursor-pointer max-w-full">
                             {Object.entries(E.ESTATE_ASSET_KINDS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                           </select>
                           <label className="flex items-center gap-1 text-slate-500">worth
@@ -13035,7 +13042,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
                 <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
                   <h3 className="text-sm font-semibold text-slate-900">What they receive, by when you die</h3>
-                  <div className="overflow-x-auto">
+                  <div tabIndex={0} className="overflow-x-auto">
                     <table className="w-full text-left text-[11px] border-collapse">
                       <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
                         <th className="pb-1.5 pr-3">If you die at</th><th className="pb-1.5 pr-3">Estate</th><th className="pb-1.5 pr-3">Allowances</th>
@@ -13084,7 +13091,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {ihtWorkings && (
                   <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
                     <h3 className="text-sm font-semibold text-slate-900">How the tax is worked out, if you die at {inheritanceView.chosen.age}</h3>
-                    <div className="overflow-x-auto">
+                    <div tabIndex={0} className="overflow-x-auto">
                       <table className="w-full text-left text-[11px] border-collapse" data-iht-workings>
                         <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold">
                           <th className="pb-1.5 pr-3">Line</th><th className="pb-1.5 pr-3 text-right">Amount</th><th className="pb-1.5 text-right">Running</th>
@@ -13113,7 +13120,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
                 <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
                   <h3 className="text-sm font-semibold text-slate-900">Person by person, if you die at {inheritanceView.chosen.age}</h3>
-                  <div className="overflow-x-auto">
+                  <div tabIndex={0} className="overflow-x-auto">
                     <table data-person-table className="w-full text-left text-[11px] border-collapse">
                       <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Who</th><th className="pb-1.5 pr-3">{pensionSplitShown ? 'Will' : 'Share'}</th><th className="pb-1.5 pr-3">{pensionSplitShown ? 'Pension' : 'Of which pension'}</th><th className="pb-1.5 pr-3">{inheritanceView.chosen.giftsToHeirs > 0 ? 'From the estate' : 'Before tax'}</th><th className="pb-1.5 pr-3">Estate tax</th><th className="pb-1.5 pr-3">Their income tax</th>{inheritanceView.chosen.giftsToHeirs > 0 && <th className="pb-1.5 pr-3">Gifted to them</th>}<th className="pb-1.5 pr-3">They keep{inheritanceView.chosen.giftsToHeirs > 0 ? ', in total' : ''}</th><th className="pb-1.5">Effective rate</th></tr></thead>
                       <tbody className="divide-y divide-slate-100 font-mono">
@@ -13157,7 +13164,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div><h3 className="text-sm font-semibold text-slate-900">Select a historical scenario or start year</h3>{!isPhone && <span className="text-[11px] text-slate-500">Select an iconic crisis preset or slide to any year between {E.HISTORICAL_FIRST_YEAR} and {maxHistoricalStartYear}.</span>}</div>
-                <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono font-bold text-indigo-700"><span>Start Year:</span><input type="number" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Math.max(E.HISTORICAL_FIRST_YEAR, Math.min(maxHistoricalStartYear, Number(e.target.value) || E.HISTORICAL_FIRST_YEAR)))} className="w-16 p-1 bg-surface border border-slate-300 rounded text-center text-indigo-900 focus:outline-none focus:ring-1 focus:ring-indigo-500" /></div>
+                <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono font-bold text-indigo-700"><span>Start Year:</span><input aria-label="Start year" type="number" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Math.max(E.HISTORICAL_FIRST_YEAR, Math.min(maxHistoricalStartYear, Number(e.target.value) || E.HISTORICAL_FIRST_YEAR)))} className="w-16 p-1 bg-surface border border-slate-300 rounded text-center text-indigo-900 focus:outline-none focus:ring-1 focus:ring-indigo-500" /></div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                 {HISTORICAL_PRESETS.map(p => {
@@ -13165,12 +13172,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   return (
                     <button key={p.year} onClick={() => isValid && setSelectedHistoricalYear(p.year)} disabled={!isValid} className={`p-2.5 rounded-lg border text-left transition-all ${!isValid ? 'bg-slate-50 text-slate-400 border-slate-200/50 cursor-not-allowed opacity-50' : activeHistoricalStartYear === p.year ? 'bg-accent text-onaccent border-accent cursor-pointer' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 cursor-pointer'}`}>
                       <div className="flex items-center justify-between"><span className="font-bold text-xs">{p.year}</span>{!isValid && <span className="text-[9px] text-slate-400 font-sans">Over {E.HISTORICAL_LAST_YEAR}</span>}</div>
-                      <div className={`text-[10px] leading-tight truncate mt-0.5 ${!isValid ? 'text-slate-400' : activeHistoricalStartYear === p.year ? 'text-onaccent/80' : 'text-slate-500'}`}>{p.label.split('(')[0]}</div>
+                      <div className={`text-[10px] leading-tight truncate mt-0.5 ${!isValid ? 'text-slate-400' : activeHistoricalStartYear === p.year ? 'text-onaccent' : 'text-slate-500'}`}>{p.label.split('(')[0]}</div>
                     </button>
                   );
                 })}
               </div>
-              <div className="pt-2 flex items-center gap-3"><span className="text-xs font-mono text-slate-400">{E.HISTORICAL_FIRST_YEAR}</span><input type="range" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Number(e.target.value))} className="w-full accent-indigo-600 cursor-pointer" /><span className="text-xs font-mono text-slate-600 font-bold">{maxHistoricalStartYear}</span></div>
+              <div className="pt-2 flex items-center gap-3"><span className="text-xs font-mono text-slate-400">{E.HISTORICAL_FIRST_YEAR}</span><input aria-label="Start year" type="range" min={E.HISTORICAL_FIRST_YEAR} max={maxHistoricalStartYear} value={activeHistoricalStartYear} onChange={(e) => setSelectedHistoricalYear(Number(e.target.value))} className="w-full accent-indigo-600 cursor-pointer" /><span className="text-xs font-mono text-slate-600 font-bold">{maxHistoricalStartYear}</span></div>
             </div>
             {/* One column of four cards is 470px on a phone for three numbers and a verdict. The verdict
                 keeps the full width - it is a sentence - and the three figures go three across, which is
@@ -13208,7 +13215,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 of the tab scrolled away and the column names with it. Capped at 60% of the screen with
                 its own scroll and a stuck header, the tab is one screen and the table is still all there
                 - which is the shape a table wants on a phone anyway. The desktop box is unchanged. */}
-            <div className={`overflow-x-auto border border-slate-200 rounded-lg ${isPhone ? 'max-h-[60vh] overflow-y-auto' : ''}`}>
+            <div tabIndex={0} className={`overflow-x-auto border border-slate-200 rounded-lg ${isPhone ? 'max-h-[60vh] overflow-y-auto' : ''}`}>
               <table className="w-full text-left text-xs border-collapse">
                 <thead className={`bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans ${isPhone ? 'sticky top-0 z-10' : ''}`}><tr><th className="p-2.5">Year</th><th className="p-2.5">Age (M)</th>{isCouple && <th className="p-2.5">Age (P)</th>}<th className="p-2.5">Spend target</th><th className="p-2.5">Guaranteed + Take-home (net)</th><th className="p-2.5">Net drawdown</th><th className="p-2.5">Pension draw (gross)</th><th className="p-2.5">Tax</th>{P.cgtEnabled && <th className="p-2.5">CGT</th>}<th className="p-2.5">Pensions</th><th className="p-2.5">ISAs</th><th className="p-2.5">Other inv</th><th className="p-2.5">Cash</th><th className="p-2.5">Total combined</th><th className="p-2.5">Pre-SIPP access Liquid</th><th className="p-2.5 text-right">Status</th></tr></thead>
                 <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
@@ -13422,7 +13429,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-xs text-slate-600 leading-relaxed">What the change really does is make the answer depend on facts a projection never asked for. The best policy for a household dying at 74 wins 59% of the time; for the same household dying at 80 it wins 21%. That is why this tab prices several ages rather than asking you to pick one.</p>
 
               <h3 className="text-sm font-semibold text-slate-800 pt-1">The allowances</h3>
-              <div className="overflow-x-auto">
+              <div tabIndex={0} className="overflow-x-auto">
                 <table className="w-full text-left text-[11px] border-collapse">
                   <tbody className="divide-y divide-slate-100">
                     <tr><td className="py-1.5 pr-3 font-semibold text-slate-700">Nil-rate band</td><td className="py-1.5 pr-3 font-mono">{formatGBP(E.num(plan?.config?.ihtNrb, 325000))}</td><td className="py-1.5 text-slate-600">Frozen to 5 April 2031.</td></tr>
@@ -13499,7 +13506,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <p className="text-xs text-slate-600 leading-relaxed">&quot;Near-tie&quot; needs a number, or the top priority would decide everything, since exact ties are rare. The rate threshold is deliberately tighter than the money one: survival is already a probability, so three points of it (90% down to 87%) is a much larger concession than 3% of a pot. It is a tight tolerance rather than a generous one, and simulation sampling can occasionally put two runs of the same plan on opposite sides of it &mdash; the search then settles on a similarly good combination rather than the identical one, never a materially worse one.</p>
 
               <h3 className="text-sm font-semibold text-slate-800 pt-1">What each priority is, and which policy it pushes towards</h3>
-              <div className="overflow-x-auto">
+              <div tabIndex={0} className="overflow-x-auto">
                 <table className="w-full text-left text-[11px] border-collapse">
                   <thead><tr className="border-b border-slate-200 text-slate-500 font-semibold"><th className="pb-1.5 pr-3">Priority</th><th className="pb-1.5 pr-3">What it measures</th><th className="pb-1.5">Why it favours the policy it does</th></tr></thead>
                   <tbody className="divide-y divide-slate-100">
@@ -13557,6 +13564,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           </div>
         )}
 
+        </Boundary>
       </div>
       {/*
         * Edit mode is an authoring tool, not a feature: it rewrites copy in the source through a dev-only

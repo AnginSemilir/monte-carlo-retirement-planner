@@ -143,17 +143,44 @@ const policyLabel = (c) => c ? `${POLICY_NAME[c.decumulationPolicy] || c.decumul
 
 const tick = () => new Promise(r => setTimeout(r, 0));
 
+/*
+ * A SAVE IS DATA, NOT A SHAPE TO TRUST.
+ *
+ * This used to spread the parsed JSON straight over the blank state, which meant a save with `oneOffs`
+ * as a number - one bad write, a hand-edited export, an extension - crashed the page on load with
+ * `oneOffs.map is not a function`, and reloading did not help because the save was still there. The
+ * full planner has `normalizePlan` for exactly this; the simple page had nothing.
+ *
+ * So every field is taken only in the shape the blank state has it: lists must be arrays of plain
+ * objects, everything else must be a string, number or boolean. Anything else falls back to the blank
+ * value, and the rest of the save is kept - a corrupt field costs that field, not the plan.
+ */
+const sanitiseSimple = (raw) => {
+  const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+  const out = { ...SIMPLE_BLANK };
+  for (const k of Object.keys(SIMPLE_BLANK)) {
+    if (!(k in src)) continue;
+    const v = src[k];
+    if (Array.isArray(SIMPLE_BLANK[k])) { if (Array.isArray(v)) out[k] = v.filter(x => x && typeof x === 'object' && !Array.isArray(x)); }
+    else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') out[k] = v;
+  }
+  return out;
+};
+
 const load = () => {
   try {
     const raw = localStorage.getItem(KEY);
-    // spread over the blank so a plan saved before a field existed still loads with it
-    if (raw) return { ...SIMPLE_BLANK, ...JSON.parse(raw), earnings: JSON.parse(raw).earnings || [] };
-  } catch { /* private mode */ }
+    if (raw) return sanitiseSimple(JSON.parse(raw));
+  } catch { /* private mode, or not JSON */ }
   return SIMPLE_BLANK;
 };
 
 const loadScenarios = () => {
-  try { const raw = localStorage.getItem(SCEN_KEY); if (raw) return JSON.parse(raw).slice(0, MAX_SCENARIOS); } catch { /* private mode */ }
+  try {
+    const raw = localStorage.getItem(SCEN_KEY);
+    const list = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(list)) return list.filter(x => x && typeof x === 'object').slice(0, MAX_SCENARIOS);
+  } catch { /* private mode */ }
   return [];
 };
 
@@ -1140,12 +1167,12 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
           {isPhone ? (
             <label className="block pt-1">
               <span className="block text-[11px] text-slate-500 font-semibold pb-1">Where you pay tax</span>
-              <select value={s.region} onChange={(e) => set('region', e.target.value)} className={`${subCls} w-full cursor-pointer`}>
+              <select aria-label="Where you pay tax" value={s.region} onChange={(e) => set('region', e.target.value)} className={`${subCls} w-full cursor-pointer`}>
                 {Object.entries(TAX_REGION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </label>
           ) : row('Where you pay tax',
-            <select value={s.region} onChange={(e) => set('region', e.target.value)} className={`${subCls} w-full cursor-pointer`}>
+            <select aria-label="Where you pay tax" value={s.region} onChange={(e) => set('region', e.target.value)} className={`${subCls} w-full cursor-pointer`}>
               {Object.entries(TAX_REGION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>)}
           {/* two inputs in one sentence, so it gets its own line rather than the label/control split */}
@@ -1216,7 +1243,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                 <div key={o.id} className="flex items-center gap-1.5">
                   <input type="date" value={o.date} onChange={(e) => setOneOff(o.id, 'date', e.target.value)} className={`${subCls} flex-1 min-w-0 tabular-nums`} />
                   <input type="text" inputMode="numeric" value={fmt(o.amount)} placeholder="0" onFocus={(e) => e.target.select()} onChange={(e) => setOneOff(o.id, 'amount', parse(e.target.value))} className={`${subCls} w-20 shrink-0 text-right tabular-nums tabular-nums`} />
-                  <select value={o.direction} onChange={(e) => setOneOff(o.id, 'direction', e.target.value)} className={`${subCls} shrink-0 font-semibold cursor-pointer`}>
+                  <select aria-label="Money in or out" value={o.direction} onChange={(e) => setOneOff(o.id, 'direction', e.target.value)} className={`${subCls} shrink-0 font-semibold cursor-pointer`}>
                     <option value="in">in</option><option value="out">out</option>
                   </select>
                   <button type="button" onClick={() => dropOneOff(o.id)} title="Remove" className="shrink-0 p-1 text-slate-400 hover:text-rose-600 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
@@ -1250,7 +1277,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                     <option value="gross">before tax</option><option value="net">after tax</option>
                   </select>
                   {s.couple && (
-                    <select value={e.owner || 'Myself'} onChange={(ev) => setEarning(e.id, 'owner', ev.target.value)} className={`shrink-0 ${isPhone ? 'min-h-11' : ''} p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-semibold`}>
+                    <select aria-label="Whose income" value={e.owner || 'Myself'} onChange={(ev) => setEarning(e.id, 'owner', ev.target.value)} className={`shrink-0 ${isPhone ? 'min-h-11' : ''} p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-semibold`}>
                       <option value="Myself">me</option><option value="Partner">them</option>
                     </select>
                   )}

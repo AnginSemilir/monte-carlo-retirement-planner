@@ -165,7 +165,7 @@ const navigate = async (page, label, short) => {
         const over = await p.evaluate(OVERFLOW_PROBE);
         ok(`${label}: no sideways scroll`, over <= 1, `${over}px`);
         const bad = await p.evaluate(CONTRAST_PROBE);
-        ok(`${label}: no text below 3:1`, bad.length === 0, bad.slice(0, 2).map(x => `"${x.text}" ${x.ratio}:1`).join(' | '));
+        ok(`${label}: no text below the WCAG bar`, bad.length === 0, bad.slice(0, 2).map(x => `"${x.text}" ${x.ratio}:1`).join(' | '));
         const small = await p.evaluate(TOUCH_PROBE, 44);
         ok(`${label}: no control under 44px`, small.length === 0, small.slice(0, 3).map(x => `${x.tag} "${x.text}" ${x.w}x${x.h}`).join(' | '));
         const tall = await p.evaluate(() => ({ h: document.documentElement.scrollHeight, vh: window.innerHeight,

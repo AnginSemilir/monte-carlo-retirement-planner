@@ -18,6 +18,7 @@ import { toFullPlan, fromFullPlan, simpleHasInput, SIMPLE_BLANK } from './simple
 import { useTheme, ThemeToggle } from './theme.jsx';
 import { setNumberFormat, DEFAULT_NUMBER_FORMAT, NUMBER_FORMATS } from './App.jsx';
 import { useViewport } from './viewport.js';
+import { Boundary } from './boundary.jsx';
 
 /*
  * ONE ENTRANCE, TWO APPS.
@@ -225,7 +226,7 @@ export default function Shell() {
       <PhoneBar title="Simple planner" cta="Full planner" onCross={cross}
         extra={<ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />} />
       <Suspense fallback={<div className="flex-1 flex items-center justify-center text-sm text-slate-400">Loading&hellip;</div>}>
-        <Simple isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} />
+        <Boundary resetKey="simple"><Simple isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} /></Boundary>
       </Suspense>
     </div>
   );
@@ -252,8 +253,10 @@ export default function Shell() {
       </div>
       )}
 
-      {which === 'full' ? <App theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} numFormat={numFormat} setNumFormat={setNumFormat}
-        isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} /> : (
+      {/* One boundary round each planner, so a render error inside either leaves this bar - and the way
+          across to the other planner - standing. Keyed on the planner so switching gives a clean start. */}
+      {which === 'full' ? <Boundary resetKey="full"><App theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} numFormat={numFormat} setNumFormat={setNumFormat}
+        isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} /></Boundary> : (
         <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center justify-between gap-3">
@@ -262,7 +265,7 @@ export default function Shell() {
             </div>
             {/* The fallback matches the card it replaces, so the page does not jump when it arrives. */}
             <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center text-sm text-slate-400">Loading…</div>}>
-              <Simple isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} />
+              <Boundary resetKey="simple"><Simple isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} /></Boundary>
             </Suspense>
             <p className="text-[11px] text-slate-400 leading-relaxed max-w-3xl">
               For educational and illustrative purposes only. This is not financial advice. Figures come from the same

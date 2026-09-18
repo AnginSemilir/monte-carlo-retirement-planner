@@ -71,7 +71,8 @@ const typeInto = (p, handle, text) => handle.evaluate((el, t) => {
     const el = [...document.querySelectorAll('input[data-money]')].find(i => String(i.value).replace(/\D/g, '') === '320000');
     return el ? el.value : null;
   });
-  ok('a six figure balance is grouped', shown === '320,000', String(shown));
+  // the field carries the currency sign as well as the separators once there is a figure in it
+  ok('a six figure balance is grouped, and says what it is', shown === '\u00a3320,000', String(shown));
 
   // ---------- the toggle, and whether parsing follows it ----------
   await tab(p, 'Config & Assumptions');
@@ -87,7 +88,7 @@ const typeInto = (p, handle, text) => handle.evaluate((el, t) => {
     const el = [...document.querySelectorAll('input[data-money]')].find(i => String(i.value).replace(/\D/g, '') === '320000');
     return el ? el.value : null;
   });
-  ok('the display follows the convention', euShown === '320.000', String(euShown));
+  ok('the display follows the convention', euShown === '\u00a3320.000', String(euShown));
 
   /*
    * The assertion that matters. Typing "1.234" under the European convention has to store 1234, not 1.234
@@ -99,13 +100,13 @@ const typeInto = (p, handle, text) => handle.evaluate((el, t) => {
   await p.evaluate(() => document.activeElement && document.activeElement.blur());
   await p.waitForTimeout(400);
   const readBack = await first.inputValue();
-  ok('...and parsing follows it too', readBack === '1.234', `read back "${readBack}", not "1" or "1,234"`);
+  ok('...and parsing follows it too', readBack === '\u00a31.234', `read back "${readBack}", not "1" or "1,234"`);
 
   await tab(p, 'Config & Assumptions');
   await pickFormat('1,234.56');
   await p.waitForTimeout(400);
   await tab(p, 'Plan Inputs');
-  ok('switching back restores the other convention', (await first.inputValue()) === '1,234', await first.inputValue());
+  ok('switching back restores the other convention', (await first.inputValue()) === '\u00a31,234', await first.inputValue());
 
   // ---------- the choice outlives a reload ----------
   await tab(p, 'Config & Assumptions');
@@ -118,7 +119,7 @@ const typeInto = (p, handle, text) => handle.evaluate((el, t) => {
     const el = [...document.querySelectorAll('input[data-money]')].find(i => String(i.value).replace(/\D/g, '') === '320000');
     return el ? el.value : null;
   });
-  ok('the convention survives a reload', afterReload === '320.000', String(afterReload));
+  ok('the convention survives a reload', afterReload === '\u00a3320.000', String(afterReload));
   await tab(p, 'Config & Assumptions');
   await pickFormat('1,234.56');
   await p.waitForTimeout(300);

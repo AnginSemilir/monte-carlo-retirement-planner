@@ -92,7 +92,7 @@ async function figures(page) {
     const i = L.indexOf(label);
     return i < 0 ? null : L[i + n];
   };
-  await page.evaluate(() => { const x = document.querySelector('[data-slide-pill="2"]'); if (x) x.click(); });
+  await page.evaluate(() => { const x = document.querySelector('[data-deck-step="2"]') || document.querySelector('[data-slide-pill="2"]'); if (x) x.click(); });
   await page.waitForTimeout(1200);
   const step2 = await page.evaluate(() => document.body.innerText);
   return {

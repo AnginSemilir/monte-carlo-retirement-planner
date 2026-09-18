@@ -171,7 +171,7 @@ export function PhoneCollapse({ isPhone, children }) {
  * In collapsed and quick the sheet sits ABOVE the navigation bar, so you can still change tab while
  * adjusting. Only `full` covers it, which is the one mode where the sheet is the whole task.
  */
-export function SheetPanel({ mode, onMode, summary, quick, full, onHeight }) {
+export function SheetPanel({ mode, onMode, summary, quick, full, onHeight, above = 0 }) {
   const ref = useRef(null);
   const [drag, setDrag] = useState(null);
 
@@ -201,7 +201,9 @@ export function SheetPanel({ mode, onMode, summary, quick, full, onHeight }) {
   return createPortal(
     <div data-no-swipe ref={ref} data-sandbox-sheet data-mode={mode}
       className={`fixed inset-x-0 bg-surface border-t border-slate-200 rounded-t-2xl shadow-lg md:hidden ${full_ ? 'z-50 top-[8dvh] bottom-0 flex flex-col' : 'z-[45]'}`}
-      style={full_ ? { paddingBottom: 'env(safe-area-inset-bottom)' } : { bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}>
+      /* `above` is whatever else is pinned over the navigation - the projection deck's own step bar is
+         44px of it - so the two stack rather than one covering the other. */
+      style={full_ ? { paddingBottom: 'env(safe-area-inset-bottom)' } : { bottom: `calc(3.5rem + ${above}px + env(safe-area-inset-bottom))` }}>
       <button type="button" onClick={cycle} onPointerDown={onDown} onPointerUp={onUp}
         aria-expanded={mode !== 'collapsed'} aria-label={mode === 'collapsed' ? 'Open the sandbox controls' : 'Close the sandbox controls'}
         className="w-full min-h-11 flex flex-col items-center justify-center gap-1 cursor-pointer shrink-0 touch-none">

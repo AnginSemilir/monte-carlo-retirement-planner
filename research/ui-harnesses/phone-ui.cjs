@@ -207,13 +207,13 @@ const navigate = async (page, label, short) => {
       });
       ok('the projection runs', ran);
       if (ran) {
-        await p.waitForFunction(() => !!document.querySelector('[data-slide-pill="3"]'), null, { timeout: 240000 });
+        await p.waitForFunction(() => !!document.querySelector('[data-deck-step="8"]'), null, { timeout: 240000 });
         await p.waitForTimeout(1200);
         const vw = desc.viewport.width;
-        // The deck is three steps and the chart lives on the last of them; the four chart steps this
-        // replaced were four screens on the way to one that held them all.
-        for (const step of ['3']) {
-          await p.evaluate((n) => { const b = document.querySelector(`[data-slide-pill="${n}"]`); if (b) b.click(); }, step);
+        // The phone keeps its own steps - the dashboard is a desktop layout - so the charts are on
+        // steps 5, 6 and 8 as they were, with the trade-off grid added as step 4.
+        for (const step of ['5', '6', '8']) {
+          await p.evaluate((n) => { const b = document.querySelector(`[data-deck-step="${n}"]`); if (b) b.click(); }, step);
           await p.waitForTimeout(900);
           const w = await p.evaluate(CHART_WIDTH_PROBE);
           ok(`step ${step}: the chart uses the screen`, w >= vw * 0.92, `${w}px of ${vw}px`);
@@ -226,7 +226,7 @@ const navigate = async (page, label, short) => {
          * beside it turns the clamp off silently - the text looks the same, the button still opens
          * something that was never shut. So measure the clamp, not just the button.
          */
-        await p.evaluate(() => { const b = document.querySelector('[data-slide-pill="1"]'); if (b) b.click(); });
+        await p.evaluate(() => { const b = document.querySelector('[data-deck-step="1"]'); if (b) b.click(); });
         await p.waitForTimeout(600);
         const clamp = await p.evaluate(() => {
           const btn = [...document.querySelectorAll('button')].find(x => /What this means/.test(x.textContent));
@@ -234,9 +234,24 @@ const navigate = async (page, label, short) => {
           return sp ? { shown: Math.round(sp.getBoundingClientRect().height), full: sp.scrollHeight } : null;
         });
         /* the deck's own contents list: a number on its own says where you are but not what is there */
-        const named = await p.evaluate(() => [...document.querySelectorAll('[data-slide-pill]')]
-          .map(b => b.textContent.trim()).filter(t => /[a-z]/i.test(t)));
-        ok('every step says what it is, not just its number', named.length === 3, `${named.length} of 3 named: ${named.join(' | ')}`);
+        /*
+         * THE STEPS, IN A BAR ABOVE THE NAVIGATION. They used to be a strip at the FOOT of each card, so
+         * moving from step 3 to step 6 meant scrolling to the bottom of step 3 first - and a card is one
+         * to three screens. The bar is where the tabs are, one level down from them.
+         */
+        const bar = await p.evaluate(() => {
+          const el = document.querySelector('[data-deck-bar]');
+          if (!el) return null;
+          const r = el.getBoundingClientRect();
+          const nav = document.querySelector('[data-bottomnav]');
+          const nr = nav ? nav.getBoundingClientRect() : null;
+          return { steps: el.querySelectorAll('[data-deck-step]').length,
+            named: [...el.querySelectorAll('[data-deck-step]')].map(b => b.textContent.trim()).filter(t => /[a-z]/i.test(t)).length,
+            sits: nr ? Math.round(r.bottom - nr.top) : null, onScreen: r.bottom <= window.innerHeight + 1 };
+        });
+        ok('the steps are a bar above the navigation', !!bar && bar.steps === 8, bar ? `${bar.steps} steps` : 'no bar');
+        ok('...each saying what it is, not just its number', !!bar && bar.named === 8, bar ? `${bar.named} named` : '');
+        ok('...sitting on the navigation, both on screen', !!bar && Math.abs(bar.sits) <= 2 && bar.onScreen, bar ? `${bar.sits}px from the nav` : '');
         ok('the step explanation is cut to its first lines', !!clamp && clamp.shown < clamp.full,
            clamp ? `${clamp.shown}px shown of ${clamp.full}px` : 'no clamp found');
         await p.evaluate(() => {
@@ -252,8 +267,8 @@ const navigate = async (page, label, short) => {
         ok('...and one tap opens the whole of it', !!reopened && reopened.h >= reopened.full - 1,
            reopened ? `${reopened.h}px of ${reopened.full}px` : 'never opened');
 
-        // fullscreen, on the chart
-        await p.evaluate(() => { const b = document.querySelector('[data-slide-pill="3"]'); if (b) b.click(); });
+        // fullscreen, on the Monte Carlo step
+        await p.evaluate(() => { const b = document.querySelector('[data-deck-step="6"]'); if (b) b.click(); });
         await p.waitForTimeout(900);
         const opened = await p.evaluate(() => { const b = document.querySelector('[data-chart-expand]'); if (!b) return false; b.click(); return true; });
         ok('the chart has an expand button', opened);
@@ -281,7 +296,7 @@ const navigate = async (page, label, short) => {
        * chart that is still on screen above.
        */
       if (ran) {
-        await p.evaluate(() => { const b = document.querySelector('[data-slide-pill="3"]'); if (b) b.click(); });
+        await p.evaluate(() => { const b = document.querySelector('[data-deck-step="8"]'); if (b) b.click(); });
         await p.waitForTimeout(900);
         const sheet = await p.evaluate(() => {
           const el = document.querySelector('[data-sandbox-sheet]');
@@ -771,12 +786,12 @@ const navigate = async (page, label, short) => {
       await navigate(p, 'Projection', 'Projection');
       await p.waitForTimeout(500);
       await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); if (x) x.click(); });
-      await p.waitForFunction(() => ![...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Stop') && !!document.querySelector('[data-slide-pill="3"]'), null, { timeout: 300000 });
+      await p.waitForFunction(() => ![...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Stop') && !!document.querySelector('[data-deck-step="8"]'), null, { timeout: 300000 });
       await p.waitForTimeout(1200);
       // the pills carry their names now, so the step is the marked pill's own attribute, not its text
-      const curStep = () => p.evaluate(() => { const on = document.querySelector('[data-slide-here="true"]'); return on ? Number(on.getAttribute('data-slide-pill')) : null; });
+      const curStep = () => p.evaluate(() => { const on = document.querySelector('[data-deck-step][aria-selected="true"]'); return on ? Number(on.getAttribute('data-deck-step')) : null; });
       // step 2 and step 3: the swipe is measured between the last two, because the chart is on step 3
-      await p.evaluate(() => { const x = document.querySelector('[data-slide-pill="2"]'); if (x) x.click(); });
+      await p.evaluate(() => { const x = document.querySelector('[data-deck-step="2"]'); if (x) x.click(); });
       await p.waitForTimeout(1500);
       /*
        * Scrolled into view first: a touch outside the viewport is cancelled by the browser, not
@@ -790,8 +805,9 @@ const navigate = async (page, label, short) => {
         const r = h.getBoundingClientRect();
         return r.top + r.height / 2;
       });
+      // the dots under each head are gone: the bar carries the position, and with somewhere to press
       const dots = await p.evaluate(() => document.querySelectorAll('[data-slide-dots] span').length);
-      ok('the step head shows where you are', dots === 3, `${dots} dots`);
+      ok('no second copy of the position inside the card', dots === 0, `${dots} dots`);
       await swipe(320, 80, await chartMid());
       await p.waitForTimeout(1200);
       ok('a swipe across the step turns it', (await curStep()) === 3, `step ${await curStep()}`);

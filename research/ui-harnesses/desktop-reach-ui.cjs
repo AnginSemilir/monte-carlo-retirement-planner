@@ -352,6 +352,9 @@ async function runProjection(p) {
      * it do not, which is what `headLeft` pins.
      */
     ok('...and the dashboard uses more than the capped page', !!geo && geo.dashW > 1280, geo ? `${geo.dashW}px of ${geo.page}px` : '');
+    /* and not by a fixed 6rem either, which left 448px of a 1920 screen empty: what it gets is the page
+       less its own gutter, whatever the monitor is */
+    ok('...all the way to the page\'s own gutter', !!geo && geo.page - geo.dashW <= 80, geo ? `${geo.page - geo.dashW}px of margin` : '');
     ok('...while the cards above it keep the page\'s own margin', headLeft !== null && headLeft > 0, `page margin ${headLeft}`);
     ok(`no page errors at ${width}`, wide.errs.length === 0, wide.errs.slice(0, 2).join(' | '));
   }
@@ -418,9 +421,58 @@ async function runProjection(p) {
      */
     ok('...with the band picker above the chart', !!both && ['Expected only', 'Upper/lower quartiles', '10th/90th percentiles'].every(l => both.bands.includes(l)),
       both ? both.bands.join(' · ') : '');
-    ok('...and every series in the legend, on one line', !!both && both.legend.length === 6 && both.legendRows === 1,
+    /*
+     * SEVEN CHIPS, NOT SIX. The six wrappers are drawn OVER the picture; the picture itself - the
+     * simulated median and its fan, or the compounded band - was drawn with no chip at all, so turning
+     * every series off left one line behind that nothing named and nothing could remove.
+     */
+    ok('...and every series in the legend, on one line', !!both && both.legend.length === 7 && both.legendRows === 1,
       both ? `${both.legend.join(', ')} in ${both.legendRows} row(s)` : '');
+    ok('...including the chart\'s own line, named for what drew it',
+      !!both && both.legend[0] === 'Simulated median', both ? both.legend[0] : '');
     ok('...the whole of it on one 1440x900 screen', !!both && both.bottom <= 900, both ? `ends at ${both.bottom}px` : '');
+    /*
+     * NOTHING DRAWN THAT NOTHING NAMES. Switch off all seven chips and the plot area must be empty of
+     * lines - the test that caught the unnamed one.
+     */
+    const plotted = () => dash.p.evaluate(() => [...document.querySelectorAll('[data-dash-chart] svg path')]
+      .filter(x => (x.getAttribute('stroke') || 'none') !== 'none' && !x.closest('[data-chart-legend]')).length);
+    const drawn = await plotted();
+    /* only the chips that are ON: three of the six series start off, and pressing those would draw
+       three more lines rather than clearing the picture */
+    const pressAllOn = () => dash.p.evaluate(async () => {
+      for (let i = 0; i < 12; i++) {
+        const on = document.querySelector('[data-chart-legend] button[aria-pressed="true"]');
+        if (!on) return;
+        on.click();
+        await new Promise(r => setTimeout(r, 90));
+      }
+    });
+    await pressAllOn();
+    await dash.p.waitForTimeout(500);
+    ok('...and every line in the picture can be switched off', (await plotted()) === 0, `${drawn} drawn, ${await plotted()} left`);
+    await dash.p.evaluate(async () => {
+      for (const b of [...document.querySelectorAll('[data-chart-legend] button[aria-pressed="false"]')]) { b.click(); await new Promise(r => setTimeout(r, 90)); }
+    });
+    await dash.p.waitForTimeout(500);
+    /*
+     * THE THINGS THE DASHBOARD MUST NOT COST YOU. It is where you stay, so the theme has to be
+     * changeable from it, the chart has to open full-screen from it, and the run card that starts the
+     * whole thing has no business sitting above a chart that has already been run.
+     */
+    const kit = await dash.p.evaluate(() => ({
+      theme: ['Light', 'Dark', 'Sepia'].every(t => [...document.querySelectorAll('button[aria-label]')].some(b => b.getAttribute('aria-label') === t)),
+      expand: !!document.querySelector('[data-dash-expand]'),
+      runCard: [...document.querySelectorAll('h3')].some(h => /Run the projection/.test(h.textContent)),
+    }));
+    ok('...with the theme still changeable from it', kit.theme, '');
+    ok('...an expander on the chart', kit.expand, '');
+    ok('...and no run card above a chart that has already run', !kit.runCard, '');
+    await dash.p.evaluate(() => { const x = document.querySelector('[data-dash-expand]'); if (x) x.click(); });
+    await dash.p.waitForTimeout(600);
+    ok('...which opens the chart full-screen', await dash.p.evaluate(() => !!document.querySelector('[role=dialog][aria-modal=true]')));
+    await dash.p.keyboard.press('Escape');
+    await dash.p.waitForTimeout(400);
     ok('...with the chart column inside the row it was given', !!both && both.chartOver === 0,
       both ? both.cols.map(c => `${c.content} in ${c.h}`).join(' \u00b7 ') : '');
 

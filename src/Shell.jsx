@@ -247,7 +247,9 @@ export default function Shell() {
           extra={<ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />} />
       ) : (
       <div className={`px-4 sm:px-6 lg:px-8 ${chrome === 'compact' ? 'pt-3' : 'pt-4 sm:pt-6 lg:pt-8'}`}>
-        <div className="max-w-7xl mx-auto space-y-2">
+        {/* Uncapped alongside the dashboard, which is what `compact` means here: the bar has to sit on
+            the same margin as the screen under it, or it reads as a different page. */}
+        <div className={`${chrome === 'compact' ? 'max-w-none' : 'max-w-7xl'} mx-auto space-y-2`}>
           {/* Kept on every screen, including the dashboard - it is the way out to the other planner and
               a visitor who wants the short answer should never have to scroll to find it. It just gets
               out of the way there: one 28px line rather than a 50px block. */}

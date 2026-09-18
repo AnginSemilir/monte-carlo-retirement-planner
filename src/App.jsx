@@ -25,7 +25,7 @@ import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
 // `T` at module scope, not a wrapper defined inside the render: a component redeclared every render
 // remounts, which would shut a tooltip the moment a worker result came back underneath it.
-import { Term as T } from './glossary.jsx';
+import { Term as T, Hint } from './glossary.jsx';
 import { Boundary } from './boundary.jsx';
 import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, CollapsedRow, Clamp, PercentInput } from './phone.jsx';
 import { fieldCls as inputCls, smallFieldCls as smallInputCls, parseTierLabel } from './ui.js';
@@ -6279,10 +6279,10 @@ const SERIES_CONFIG = [
  */
 const chartKey = (t) => (t === 'dark' ? 'dark' : 'light');
 const CHART_PALETTE = {
-  light:  { gridMajor: '#E3E6EB', gridMinor: '#F0F2F5', axisText: '#8A93A3', hoverCrosshair: '#A8B0BD', sandboxDash: '#A8701A', historicalLine: '#6D5BD0', trajectoryHoverFill: '#2148B8', historicalHoverFill: '#6D5BD0', hoverDotStroke: '#FFFFFF',
+  light:  { gridMajor: '#E3E6EB', gridMinor: '#F0F2F5', axisText: '#8A93A3', hoverCrosshair: '#A8B0BD', sandboxDash: '#A8701A', sandboxSim: '#D98A00', historicalLine: '#6D5BD0', trajectoryHoverFill: '#2148B8', historicalHoverFill: '#6D5BD0', hoverDotStroke: '#FFFFFF',
             fanBand: 'rgba(109, 91, 208, 0.14)', fanEdge: 'rgba(109, 91, 208, 0.5)', fanMedian: '#6D5BD0', fanOuter: 'rgba(109, 91, 208, 0.75)',
             rateBand: 'rgba(14, 159, 110, 0.14)', rateEdge: 'rgba(14, 159, 110, 0.55)', rateOuter: 'rgba(14, 159, 110, 0.8)' },
-  dark:   { gridMajor: '#262C35', gridMinor: '#1D222A', axisText: '#6B7480', hoverCrosshair: '#4A5361', sandboxDash: '#E0A64A', historicalLine: '#9C8CF0', trajectoryHoverFill: '#7B9CF2', historicalHoverFill: '#9C8CF0', hoverDotStroke: '#171B21',
+  dark:   { gridMajor: '#262C35', gridMinor: '#1D222A', axisText: '#6B7480', hoverCrosshair: '#4A5361', sandboxDash: '#E0A64A', sandboxSim: '#FFC24D', historicalLine: '#9C8CF0', trajectoryHoverFill: '#7B9CF2', historicalHoverFill: '#9C8CF0', hoverDotStroke: '#171B21',
             fanBand: 'rgba(156, 140, 240, 0.20)', fanEdge: 'rgba(156, 140, 240, 0.55)', fanMedian: '#9C8CF0', fanOuter: 'rgba(156, 140, 240, 0.8)',
             rateBand: 'rgba(63, 219, 199, 0.18)', rateEdge: 'rgba(63, 219, 199, 0.5)', rateOuter: 'rgba(63, 219, 199, 0.78)' },
 };
@@ -8446,6 +8446,15 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // unreadable the moment you have more than two.
   const [showSandboxLine, setShowSandboxLine] = useState(true);
   /*
+   * THE CHART'S OWN LINE, NAMED AND SWITCHABLE.
+   *
+   * The legend listed the six wrapper series and nothing else, but the picture also carries what the
+   * CHART itself produces - the simulated median and its fan, or the compounded band - and those are
+   * drawn whatever the legend says. Turn every series off and one line remained, unnamed, with no way
+   * to identify or remove it. It has a chip of its own now, first in the row, in the colour it is drawn.
+   */
+  const [showChartLine, setShowChartLine] = useState(true);
+  /*
    * THE SANDBOX LINE, THE SLOW WAY.
    *
    * The amber line is a deterministic run: one steady rate per wrapper, which is why it can redraw on
@@ -8511,6 +8520,8 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   }, [sandboxMcOn, isSandboxModified, sandboxPlan, sandboxCtx, mcSeed]);
   // the median of the sandbox's own simulation, drawn by the same generator as the deterministic line
   const sandboxMcRows = useMemo(() => (sandboxMc?.bands || []).map(b => ({ ageSelf: currentAge + b.t, totalCombined: b.p50 })), [sandboxMc, currentAge]);
+  // whether what is drawn came from the simulation or from the compounded run - the line's colour says so
+  const sandboxLineIsSim = sandboxMcOn && sandboxMcRows.length > 0;
   const sandboxLinePath = useMemo(() => {
     const rows = sandboxMcOn && sandboxMcRows.length ? sandboxMcRows : sandboxTimeline;
     if (!showSandboxLine || !isSandboxModified || !rows.length) return null;
@@ -9068,6 +9079,14 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     setSandboxCustomized(true);
     setSandboxRetire(prev => ({ ...prev, [key]: E.clamp(E.num(value, prev[key]), 0, 120) }));
   };
+  /*
+   * Clamped at zero and at nothing above: a plan that spends more than it can is exactly what somebody
+   * is entitled to model here, and the survival rate is the answer to it.
+   */
+  const adjustSandboxSpend = (delta) => {
+    setSandboxCustomized(true);
+    setSandboxSpend(prev => Math.max(0, E.num(prev === null ? plan?.spending?.targetSpend : prev, 0) + delta));
+  };
   const adjustSandboxRetire = (key, delta) => {
     setSandboxCustomized(true);
     setSandboxRetire(prev => ({ ...prev, [key]: E.clamp(E.num(prev[key], 60) + delta, 0, 120) }));
@@ -9298,11 +9317,16 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * It clears any tournament results as it goes. Those live on another tab and were scored against the
    * plan as it was, so leaving them up after a fresh run would present stale figures as current ones.
    */
-  const handleRunAll = async ({ cascade = false } = {}) => {
+  /*
+   * `stay` leaves the deck where it is. A re-run pressed FROM the dashboard used to throw you back to
+   * step 1 and turn See all on - so the answer you asked to refresh was three clicks away from the
+   * screen you asked for it on.
+   */
+  const handleRunAll = async ({ cascade = false, stay = false } = {}) => {
     if (isSimulating || isOptimizing) return;
     mcCancelRef.current = false;
     const wantSafeMax = true;          // both stages always run; there is nothing useful to switch off
-    setSlide(1); setSeeAll(cascade);
+    if (!stay) { setSlide(1); setSeeAll(cascade); }
     setIsSimulating(true);
     // Every stage is cleared, including one that is about to be skipped: a verdict line left over from an
     // earlier run would otherwise sit alongside fresh figures and read as part of the same measurement.
@@ -10145,6 +10169,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           </span>
         </div>
         {chartControls}
+        {/* The corner-arrows convention, so it needs no word. It used to swap which of two charts had the
+            column; with one chart there is nothing to swap, so it does what the phone's has always done
+            and gives the chart the whole window. */}
+        <button type="button" data-dash-expand={chartKind} onClick={() => setFullscreenChart(chartKind)}
+          aria-label={`Expand the ${chartKind === 'mc' ? 'Monte Carlo' : 'rate based'} chart`} title="Expand"
+          className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg border border-slate-200 bg-surface text-slate-600 hover:text-slate-900 cursor-pointer transition-colors">
+          <Maximize2 className="w-3.5 h-3.5" />
+        </button>
       </div>
       {/*
         * The reveal plays here, because this is where the fan is met. `mcPlayKey` is keyed on the step,
@@ -10221,7 +10253,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           )}
     </div>
   ) : (
-    <div data-projection-dashboard ref={dashRef} className="space-y-2.5 wide-dash">
+    <div data-projection-dashboard ref={dashRef} className="space-y-2.5">
       <div className="bg-surface border border-slate-200/90 rounded-xl h-[60px] flex items-stretch overflow-hidden">
         {dashTiles()}
       </div>
@@ -10241,7 +10273,21 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5 shrink-0">
             <div className="flex items-baseline justify-between mb-1">
               <h3 className="text-xs font-semibold text-slate-900">Change something</h3>
-              <span className="text-[10px] text-slate-500">the amber line is your edit</span>
+              {/*
+                * The line's own explanation, on the shimmering underline the rest of the app uses for a
+                * word with a meaning. It has to be said somewhere: the line changes colour and changes
+                * ENGINE halfway through, and a reader watching an amber dash turn gold with no warning
+                * is owed the reason rather than left to infer it.
+                */}
+              <span className="text-[10px] text-slate-500">
+                <Hint isPhone={isPhone} label="what the dashed line is" title="Your edit, drawn twice">
+                  It starts amber: the compounded run, redrawn the instant you press a dial, which is what
+                  makes a dial worth pressing. That line cannot go bust mid-way, so it flatters a stretched
+                  plan. Press <strong>Re-run the simulations</strong> and the same edit goes through {fmtNum(MC_TRIALS)} randomised
+                  futures; when it lands the line is redrawn in gold as the median of those runs, and every
+                  figure on this page is re-read from them.
+                </Hint>
+              </span>
             </div>
             {sandboxQuickDials({ inSheet: false, rail: true, scrollAt: Math.max(150, dashRowH - 190) })}
           </div>
@@ -10288,8 +10334,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * a second copy of the same control at the foot of every card was between one and three screens away
    * from the thumb that wanted it - as well as 80px of every card.
    */
-  const slideNav = (n) => (isPhone ? null : (
-    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 md:sticky md:bottom-0 md:bg-surface md:pb-1 md:z-10">
+  const slideNav = (n, { bare = false } = {}) => (isPhone ? null : (
+    <div className={bare ? 'flex flex-wrap items-center gap-3' : 'flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 md:sticky md:bottom-0 md:bg-surface md:pb-1 md:z-10'}>
       {isPhone ? slideIndex() : (
       <div className="flex flex-wrap items-center gap-1.5">
         {PROJECTION_SLIDES.map(s => (
@@ -10403,13 +10449,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {yScale.ticks(isNarrow ? 5 : 6).map((t, i) => <g key={i} transform={`translate(0, ${yScale(t)})`}><line x2={innerWidth} stroke={cp.gridMajor} strokeDasharray="3,3" /><text x={-8} dy="0.32em" fill={cp.axisText} fontSize={isNarrow ? 12 : 10} textAnchor="end" fontFamily="monospace">{t >= 1000000 ? `£${(t / 1000000).toFixed(t >= 10000000 ? 0 : 1)}m` : `£${(t / 1000).toFixed(0)}k`}</text></g>)}
               {xScale.ticks(isNarrow ? 5 : 10).map((t, i) => <g key={i} transform={`translate(${xScale(t)}, 0)`}><line y2={innerHeight} stroke={cp.gridMinor} /><text y={innerHeight + 20} fill={cp.axisText} fontSize={isNarrow ? 13 : 11} textAnchor="middle" fontFamily="monospace">{t}</text></g>)}
               {markers(xScale)}
-              {isRate && bandPaths && <>
+              {isRate && bandPaths && showChartLine && <>
                 <path d={bandPaths.area} fill={band} stroke="none" />
                 <path d={bandPaths.lo} fill="none" stroke={edge} strokeWidth="1.5" strokeDasharray="5,4" />
                 <path d={bandPaths.hi} fill="none" stroke={edge} strokeWidth="1.5" strokeDasharray="5,4" />
               </>}
               {/* the real trials, drawing themselves out, then dissolving into the band they make up */}
-              {!isRate && mcSpaghetti && (
+              {!isRate && mcSpaghetti && showChartLine && (
                 <g key={`sp-${mcPlayKey}`} className={animate ? 'mc-spaghetti' : undefined} opacity={animate ? undefined : 0}>
                   {mcSpaghetti.map(sp => (
                     <path key={sp.id} d={sp.d} fill="none" stroke={cp.fanMedian} strokeWidth="1" strokeOpacity="0.4" strokeLinecap="round"
@@ -10417,7 +10463,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   ))}
                 </g>
               )}
-              {!isRate && fanPaths && (
+              {!isRate && fanPaths && showChartLine && (
                 <g key={`band-${mcPlayKey}`} className={animate ? 'mc-band' : undefined}>
                   {fanPaths.band && <path d={fanPaths.band} fill={band} stroke="none" />}
                   {fanPaths.edgeLo && <path d={fanPaths.edgeLo} fill="none" stroke={edge} strokeWidth="1.5" />}
@@ -10426,7 +10472,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </g>
               )}
               {themedSeries.map(s => (activeSeries[s.id] && pathGenerators[s.id]) ? <path key={s.id} d={pathGenerators[s.id]} fill="none" stroke={s.color} strokeWidth={s.strokeWidth} strokeDasharray={s.dash} strokeLinecap="round" /> : null)}
-              {sandboxLinePath && <path d={sandboxLinePath} fill="none" stroke={cp.sandboxDash} strokeWidth="3.5" strokeDasharray="6,4" strokeLinecap="round" />}
+                {/*
+                * AMBER OR GOLD, AND THE DIFFERENCE IS WHICH ENGINE DREW IT. Amber is the compounded
+                * redraw, which is instant and is what you see while dragging a dial; gold is the same
+                * edit put through the simulation, which takes seconds and is the figure everything else
+                * on the page is quoted from. One dashed line in one colour could not tell you which of
+                * the two you were looking at, and they disagree by design.
+                */}
+              {sandboxLinePath && <path d={sandboxLinePath} fill="none" stroke={sandboxLineIsSim ? cp.sandboxSim : cp.sandboxDash} strokeWidth="3.5" strokeDasharray="6,4" strokeLinecap="round" />}
               {comparePaths.map(c => <path key={c.id} d={c.d} fill="none" stroke={c.tone} strokeWidth="2.5" strokeDasharray="5,3" strokeLinecap="round" />)}
               <rect width={innerWidth} height={innerHeight} fill="transparent" onMouseMove={(e) => { const rect = e.currentTarget.getBoundingClientRect(); const age = Math.round(xScale.invert((e.clientX - rect.left) * (innerWidth / Math.max(1, rect.width)))); setHoveredPoint(visibleData.find(d => d.ageSelf === age) || null); }} />
               {hoveredPoint && <g transform={`translate(${xScale(hoveredPoint.ageSelf)}, 0)`}><line y2={innerHeight} stroke={cp.hoverCrosshair} strokeWidth="1" strokeDasharray="2,2" /><circle cy={yScale(hoveredPoint.expected || 0)} r="4" fill={cp.trajectoryHoverFill} stroke={cp.hoverDotStroke} strokeWidth="2" /></g>}
@@ -10455,16 +10508,24 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             on by default are the three you see first. */}
         <div data-chart-legend data-no-swipe
           className={`items-center gap-2 pt-2 border-t border-slate-100 ${isPhone ? 'flex flex-nowrap overflow-x-auto [scrollbar-width:none] -mx-3 px-3' : 'flex flex-wrap'}`}>
+          {/* THE CHART'S OWN LINE, FIRST IN THE ROW. Every other chip here names a wrapper drawn OVER
+              the picture; this one names the picture. Turning all six off used to leave one line behind
+              with no chip to explain or remove it. */}
+          <button type="button" data-chart-line aria-pressed={showChartLine} onClick={() => setShowChartLine(v => !v)}
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer border shrink-0 whitespace-nowrap ${showChartLine ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold' : 'bg-surface border-slate-200 text-slate-400 opacity-60'}`}>
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: isRate ? cp.rateEdge : cp.fanMedian }} />
+            {isRate ? 'Compounded band' : 'Simulated median'}{showChartLine && <Check className="w-3 h-3 text-slate-600" />}
+          </button>
           {themedSeries.map(s => (
-            <button key={s.id} onClick={() => setActiveSeries(prev => ({ ...prev, [s.id]: !prev[s.id] }))} className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer border shrink-0 whitespace-nowrap ${activeSeries[s.id] ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold' : 'bg-surface border-slate-200 text-slate-400 opacity-60'}`}>
+            <button key={s.id} aria-pressed={!!activeSeries[s.id]} onClick={() => setActiveSeries(prev => ({ ...prev, [s.id]: !prev[s.id] }))} className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer border shrink-0 whitespace-nowrap ${activeSeries[s.id] ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold' : 'bg-surface border-slate-200 text-slate-400 opacity-60'}`}>
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />{dashboardMode || isPhone ? s.short : s.label}{activeSeries[s.id] && <Check className="w-3 h-3 text-slate-600" />}
             </button>
           ))}
           {(isSandboxModified || scenarios.filter(sc => sc.id !== activeScenarioId).length > 0) && <span className="w-px h-5 bg-slate-200 mx-1" />}
           {isSandboxModified && (
-            <button type="button" onClick={() => setShowSandboxLine(v => !v)}
+            <button type="button" aria-pressed={showSandboxLine} onClick={() => setShowSandboxLine(v => !v)}
               className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer border ${showSandboxLine ? 'bg-amber-50 border-amber-300 text-amber-800 font-semibold' : 'bg-surface border-slate-200 text-slate-400 opacity-60'}`}>
-              <span className="w-3.5 h-0 border-t-2 border-dashed" style={{ borderColor: cp.sandboxDash }} />Sandbox{showSandboxLine && <Check className="w-3 h-3 text-amber-700" />}
+              <span className="w-3.5 h-0 border-t-2 border-dashed" style={{ borderColor: sandboxLineIsSim ? cp.sandboxSim : cp.sandboxDash }} />{sandboxLineIsSim ? 'Your edit, simulated' : 'Your edit'}{showSandboxLine && <Check className="w-3 h-3 text-amber-700" />}
             </button>
           )}
           {scenarios.filter(sc => sc.id !== activeScenarioId).map(sc => {
@@ -10567,6 +10628,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         <div className={inSheet || rail ? 'space-y-1' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-5'}
           style={scrollAt ? { maxHeight: scrollAt, overflowY: 'auto' } : undefined}>
           {ctx.owners.map(o => dial(rail && !isCouple ? 'Retire at' : `${o.label}: retire at`, sandboxRetire[o.key], [-5, -1, 1, 5], (d) => adjustSandboxRetire(o.key, d)))}
+          {/* The figure the whole plan turns on, and the one the grid on the step before this is drawn
+              against. It was reachable only by taking a cell from that grid; here it is a dial like the
+              rest. */}
+          {dial('Retirement spend a year', formatGBP(E.num(sandboxSpend === null ? plan?.spending?.targetSpend : sandboxSpend, 0)),
+            [-5000, -1000, 1000, 5000], adjustSandboxSpend)}
           {/*
             * Balance as well as contribution. Step 7 used to be followed by a full Sandbox card holding
             * typed fields for both; that card is gone, so anything it could change has to be reachable
@@ -11321,7 +11387,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    */
   return (
     <div className={`min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans ${touch ? 'touch-ui' : ''} ${isPhone ? 'pb-[calc(4.5rem+env(safe-area-inset-bottom))]' : ''}`}>
-      <div data-app-content className={`max-w-7xl mx-auto ${isPhone ? 'space-y-3' : 'space-y-6'}`}>
+      {/*
+        * THE CAP IS FOR PROSE, AND A DASHBOARD IS NOT PROSE.
+        *
+        * 80rem is the right measure for a column of text and the wrong one for a picture: on a 1920
+        * screen it left 448px of empty page beside the chart people came to look at. The dashboard drops
+        * the cap and keeps only the page's own gutter, so the chart grows with the monitor; every other
+        * screen keeps the cap, because a 1,800px line of explanation is unreadable.
+        */}
+      <div data-app-content className={`${dashboardMode ? 'max-w-none' : 'max-w-7xl'} mx-auto ${isPhone ? 'space-y-3' : 'space-y-6'}`}>
 
         {/* Header Bar.
             ON A PHONE, ONLY ON START HERE. The bottom bar names the screen you are on, so the app's own
@@ -11376,7 +11450,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div data-tabbar className={`items-end gap-1 border-b border-slate-200 flex-wrap ${isPhone ? 'hidden' : 'flex'}`}>
                 {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
               </div>
-              {!dashboardMode && <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />}
+              {/* Not hidden on the dashboard any more. It was, to buy 40px of height, and the dashboard is
+                  where you stay - so the theme became unreachable for as long as you were reading it,
+                  which is the whole session. */}
+              <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
             </div>
           </div>
 
@@ -12598,6 +12675,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <DeckBar steps={PROJECTION_SLIDES} active={slide} onSelect={setSlide} />
             )}
 
+            {/*
+              * ONLY ON THE FIRST STEP, once there is something to read.
+              *
+              * It is the card that starts the run, and after the run it is a header on every step of a
+              * deck whose steps have their own heads - 90px of "Run the projection" above a chart that
+              * has already been run. Before the run it is the whole tab, so it always shows then; the
+              * dashboard carries its own re-run button.
+              */}
+            {(!simResult || seeAll || slide === slideNo('topline')) && (
             <div className={`bg-surface border border-slate-200/90 rounded-xl ${dashboardMode || (isPhone && simResult) ? 'px-3 py-2.5' : 'p-5 space-y-3'}`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -12636,6 +12722,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               )}
               {simProgress && <div className="w-full"><ProgressBar value={simProgress.value} label={simProgress.label} /></div>}
             </div>
+            )}
 
             {/* Nothing but the button until there is something to show. */}
             {!simResult ? (
@@ -13100,9 +13187,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 )}
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
                   <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {fmtNum(simResult?.trials)} randomised futures and refresh every step, run it again.</span>
-                  <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
+                  <button type="button" onClick={() => handleRunAll({ stay: true })} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
-                    {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Running…' : 'Rerun projections'}
+                    {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Simulating…' : 'Re-run the simulations'}
                   </button>
                 </div>
               </div>
@@ -13120,14 +13207,21 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   <SheetPanel mode={sheetMode} onMode={setSheetMode} onHeight={setSheetH} above={DECK_BAR_H}
                     summary={sandboxSummary()} quick={sandboxQuickDials()} full={renderSandboxPanel()} />
                 )}
-                <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-[11px] text-slate-500">An edit draws the amber line over the chart. To put it through {fmtNum(simResult?.trials)} randomised futures and refresh every figure on this page, run it again.</span>
-                  <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
+                {/*
+                  * ONE ROW UNDER THE CHART, not two cards under each other.
+                  *
+                  * The steps and the re-run were a 74px card and a 70px card stacked below the dashboard,
+                  * which on a 900px screen is the difference between the whole thing fitting and not.
+                  * They are the same kind of thing - what to do next - so they share a row: the deck on
+                  * the left, the button that refreshes what is on screen on the right.
+                  */}
+                <div className="bg-surface border border-slate-200/90 px-4 py-2.5 rounded-xl flex flex-wrap items-center justify-between gap-3">
+                  {slideNav(slideNo('dashboard'), { bare: true })}
+                  <button type="button" onClick={() => handleRunAll({ stay: true })} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
-                    {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Running…' : 'Rerun projections'}
+                    {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Simulating…' : 'Re-run the simulations'}
                   </button>
                 </div>
-                <div className="bg-surface border border-slate-200/90 p-5 rounded-xl">{slideNav(slideNo('dashboard'))}</div>
               </div>
             )}
           </div>
@@ -14604,7 +14698,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         * Carlo reveal from replaying when the overlay opens, since its animation groups are keyed to the
         * slide rather than to the chart's size, and unmounting them would restart the animation.
         */}
-      {isPhone && fullscreenChart && (
+      {fullscreenChart && (
         <ChartFullscreen
           open
           title={fullscreenChart === 'rate' ? 'Rate based' : fullscreenChart === 'hist' ? 'Historical backtest' : 'Monte Carlo'}

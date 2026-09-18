@@ -415,11 +415,10 @@
         .wide-chart-card { margin-left: -6rem; margin-right: -6rem; }
         .wide-chart-card > :not(.chart-holder) { margin-left: 6rem; margin-right: 6rem; }
         /*
-         * .wide-dash - the same escape for the dashboard, without the push-back. There the extra width
-         * is wanted by everything in it, not just the picture: the figure strip gets wider columns, the
-         * chart gets the rest, and the rail beside it stays the width it was.
+         * The dashboard used to escape the cap here too, by a fixed -6rem. That fixed the 1536 case and
+         * nothing else: at 1920 it still left 448px of empty page. It drops the cap instead now, in the
+         * container itself, so the width it gets is the width there is.
          */
-        .wide-dash { margin-left: -6rem; margin-right: -6rem; }
       }
       /*
        * .swipe-x - the container whose content can be swiped between sections or steps. pan-y keeps

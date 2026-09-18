@@ -207,10 +207,12 @@ const navigate = async (page, label, short) => {
       });
       ok('the projection runs', ran);
       if (ran) {
-        await p.waitForFunction(() => !!document.querySelector('[data-slide-pill="6"]'), null, { timeout: 240000 });
+        await p.waitForFunction(() => !!document.querySelector('[data-slide-pill="3"]'), null, { timeout: 240000 });
         await p.waitForTimeout(1200);
         const vw = desc.viewport.width;
-        for (const step of ['4', '5', '7']) {
+        // The deck is three steps and the chart lives on the last of them; the four chart steps this
+        // replaced were four screens on the way to one that held them all.
+        for (const step of ['3']) {
           await p.evaluate((n) => { const b = document.querySelector(`[data-slide-pill="${n}"]`); if (b) b.click(); }, step);
           await p.waitForTimeout(900);
           const w = await p.evaluate(CHART_WIDTH_PROBE);
@@ -234,7 +236,7 @@ const navigate = async (page, label, short) => {
         /* the deck's own contents list: a number on its own says where you are but not what is there */
         const named = await p.evaluate(() => [...document.querySelectorAll('[data-slide-pill]')]
           .map(b => b.textContent.trim()).filter(t => /[a-z]/i.test(t)));
-        ok('every step says what it is, not just its number', named.length === 7, `${named.length} of 7 named: ${named.slice(0, 3).join(' | ')}`);
+        ok('every step says what it is, not just its number', named.length === 3, `${named.length} of 3 named: ${named.join(' | ')}`);
         ok('the step explanation is cut to its first lines', !!clamp && clamp.shown < clamp.full,
            clamp ? `${clamp.shown}px shown of ${clamp.full}px` : 'no clamp found');
         await p.evaluate(() => {
@@ -250,8 +252,8 @@ const navigate = async (page, label, short) => {
         ok('...and one tap opens the whole of it', !!reopened && reopened.h >= reopened.full - 1,
            reopened ? `${reopened.h}px of ${reopened.full}px` : 'never opened');
 
-        // fullscreen, on the Monte Carlo step
-        await p.evaluate(() => { const b = document.querySelector('[data-slide-pill="5"]'); if (b) b.click(); });
+        // fullscreen, on the chart
+        await p.evaluate(() => { const b = document.querySelector('[data-slide-pill="3"]'); if (b) b.click(); });
         await p.waitForTimeout(900);
         const opened = await p.evaluate(() => { const b = document.querySelector('[data-chart-expand]'); if (!b) return false; b.click(); return true; });
         ok('the chart has an expand button', opened);
@@ -279,7 +281,7 @@ const navigate = async (page, label, short) => {
        * chart that is still on screen above.
        */
       if (ran) {
-        await p.evaluate(() => { const b = document.querySelector('[data-slide-pill="7"]'); if (b) b.click(); });
+        await p.evaluate(() => { const b = document.querySelector('[data-slide-pill="3"]'); if (b) b.click(); });
         await p.waitForTimeout(900);
         const sheet = await p.evaluate(() => {
           const el = document.querySelector('[data-sandbox-sheet]');
@@ -769,25 +771,36 @@ const navigate = async (page, label, short) => {
       await navigate(p, 'Projection', 'Projection');
       await p.waitForTimeout(500);
       await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); if (x) x.click(); });
-      await p.waitForFunction(() => ![...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Stop') && !!document.querySelector('[data-slide-pill="6"]'), null, { timeout: 300000 });
+      await p.waitForFunction(() => ![...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Stop') && !!document.querySelector('[data-slide-pill="3"]'), null, { timeout: 300000 });
       await p.waitForTimeout(1200);
       // the pills carry their names now, so the step is the marked pill's own attribute, not its text
       const curStep = () => p.evaluate(() => { const on = document.querySelector('[data-slide-here="true"]'); return on ? Number(on.getAttribute('data-slide-pill')) : null; });
-      await p.evaluate(() => { const x = document.querySelector('[data-slide-pill="4"]'); if (x) x.click(); });
+      // step 2 and step 3: the swipe is measured between the last two, because the chart is on step 3
+      await p.evaluate(() => { const x = document.querySelector('[data-slide-pill="2"]'); if (x) x.click(); });
       await p.waitForTimeout(1500);
-      // scrolled into view first: a touch outside the viewport is cancelled by the browser, not delivered
-      const chartMid = () => p.evaluate(() => { const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0]; svg.scrollIntoView({ block: 'center' }); const r = svg.getBoundingClientRect(); return r.top + r.height / 2; });
+      /*
+       * Scrolled into view first: a touch outside the viewport is cancelled by the browser, not
+       * delivered. The target is the step's own HEADING rather than its chart: a chart sits inside a
+       * container that can scroll sideways, and the swipe rules deliberately opt those out, so a drag
+       * begun on one proves nothing about whether the deck turns.
+       */
+      const chartMid = () => p.evaluate(() => {
+        const h = document.querySelector('[data-slide-dots]') || document.querySelector('h3');
+        h.scrollIntoView({ block: 'center' });
+        const r = h.getBoundingClientRect();
+        return r.top + r.height / 2;
+      });
       const dots = await p.evaluate(() => document.querySelectorAll('[data-slide-dots] span').length);
-      ok('the step head shows where you are', dots === 7, `${dots} dots`);
+      ok('the step head shows where you are', dots === 3, `${dots} dots`);
       await swipe(320, 80, await chartMid());
-      await p.waitForTimeout(1000);
-      ok('a swipe across the chart turns the step', (await curStep()) === 5, `step ${await curStep()}`);
+      await p.waitForTimeout(1200);
+      ok('a swipe across the step turns it', (await curStep()) === 3, `step ${await curStep()}`);
       const sl = await p.evaluate(() => { const r = document.querySelector('input[type=range]'); if (!r) return null; r.scrollIntoView({ block: 'center' }); const b = r.getBoundingClientRect(); return { x: b.left + b.width * 0.7, y: b.top + b.height / 2 }; });
-      if (sl) { await swipe(sl.x, sl.x - 220, sl.y); ok('...but not one that starts on the horizon slider', (await curStep()) === 5, `step ${await curStep()}`); }
+      if (sl) { await swipe(sl.x, sl.x - 220, sl.y); ok('...but not one that starts on the horizon slider', (await curStep()) === 3, `step ${await curStep()}`); }
       await p.evaluate(() => window.scrollTo(0, 0));
       await swipe(80, 320, await chartMid());
       await p.waitForTimeout(1000);
-      ok('...and a swipe right goes back, without leaving the site', (await curStep()) === 4 && (await p.evaluate(() => document.body.innerText.length > 100)), `step ${await curStep()}`);
+      ok('...and a swipe right goes back, without leaving the site', (await curStep()) === 2 && (await p.evaluate(() => document.body.innerText.length > 100)), `step ${await curStep()}`);
 
       if (SHOT && theme === 'light') await p.screenshot({ path: `${SHOT}/phone-${devName.replace(/\W/g, '')}.png`, fullPage: false });
       const real = errs.filter(e => !/ERR_CERT_AUTHORITY_INVALID|ERR_FAILED|fonts\./i.test(e));

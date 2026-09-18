@@ -7562,27 +7562,27 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    */
   const PROJECTION_SLIDES = [
     { n: 1, key: 'topline', name: 'Topline', desc: 'Your plan exactly as entered: how often it lasts, what it leaves behind, and when it fails if it does.' },
-    { n: 2, key: 'safespend', name: 'Safe spend', desc: 'Holds the risk fixed and solves for the income instead - the most you could spend a year and still clear your target survival rate.' },
-    { n: 3, key: 'saferetire', name: 'Safe retirement', desc: 'Holds the spending fixed and solves for the date - the earliest age you could retire and still clear the same target.' },
-    { n: 4, key: 'ratechart', name: 'Rate based projection', desc: 'One steady real rate per wrapper, compounded year by year. It redraws as you type, so it is the quickest way to see a change.' },
-    { n: 5, key: 'mcchart', name: 'Monte Carlo', desc: 'Thousands of randomised futures on the same axes, which show the spread that a single smooth rate hides.' },
-    { n: 6, key: 'compare', name: 'Side by side', desc: 'The same plan both ways at the same five ages, so the gap between the smooth line and the simulated one is explicit.' },
     /*
-     * The sandbox is a STEP, not an appendix.
+     * THE TWO ANSWERS, ON ONE STEP.
      *
-     * It used to sit below the deck behind its own `sandboxRevealed` flag, reachable only by walking all
-     * six steps and pressing "Change something" - six clicks from the Topline figure it exists to move,
-     * and far enough off the path that the results copy needed a signpost link pointing down at it. Worse,
-     * the deck shows one step at a time, so the amber line it draws was never on screen beside it: its own
-     * alert said "now visible in the chart above" while the chart sat two steps back.
-     *
-     * As step 7 it is one click from anywhere, it is included in "See all" like everything else, and it
-     * renders the Monte Carlo chart directly above the controls, so an edit and its effect share a screen.
+     * They were two, and separating them hid what they are: the same question asked from two ends. Hold
+     * the risk fixed and solve for the income, or hold the income fixed and solve for the date. Read one
+     * after the other they are two figures; read together they are the two ends of one trade, which is
+     * what the grid under them draws in full.
      */
-    { n: 7, key: 'sandbox', name: 'Change something', desc: 'Edit a contribution, a balance or an age and the amber line moves with you. Your saved plan is not touched.' }
+    { n: 2, key: 'answers', name: 'Spend and date', desc: 'The most you could spend and the earliest you could stop, and every combination of the two between them.' },
+    /*
+     * AND THE REST OF THE DECK IS THE DASHBOARD.
+     *
+     * There were four more steps: the rate-based chart, the Monte Carlo, the two side by side, and a
+     * sandbox. Every one of them is on the dashboard - the chart with a toggle for which method, the
+     * comparison as a table in the rail, the dials beside the chart they move - so as steps they were
+     * four screens you had to walk to reach one screen that already held them. Reading them in order was
+     * worth something the first time; it was never worth four clicks afterwards.
+     */
+    { n: 3, key: 'dashboard', name: 'Dashboard', desc: 'Both methods, the figures they produce, and the dials that move them - on one screen.' }
   ];
-  const SANDBOX_SLIDE = PROJECTION_SLIDES.find(x => x.key === 'sandbox').n;
-  const MC_SLIDE = PROJECTION_SLIDES.find(x => x.key === 'mcchart').n;
+  const DASH_SLIDE = PROJECTION_SLIDES.find(x => x.key === 'dashboard').n;
   /*
    * The Inheritance tab is a deck too, for the same reason the Projection tab is: it asks for a dozen
    * facts and then answers one question, and shown all at once the answer is buried under the asking.
@@ -8258,7 +8258,12 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * The desktop "See all" is a dashboard rather than a stack of seven cards; projectionDashboard()
    * draws it. simResult is part of the test because there is nothing to lay out before a run.
    */
-  const dashboardMode = seeAll && !isPhone && !!simResult;
+  /*
+   * The dashboard is a STEP now, not an alternative to the deck, so it is on screen whenever that step
+   * is - and on a phone as well, because the four chart steps it replaced were where a phone read its
+   * charts. It lays out down rather than across there; see projectionDashboard.
+   */
+  const dashboardMode = !!simResult && (seeAll || slide === DASH_SLIDE);
   /*
    * The box sets the chart's PROPORTIONS, not its pixels, so this is how the dashboard gets two half
    * charts or one tall one out of the same renderer: both modes draw at the same width, and the height
@@ -8418,12 +8423,12 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * render of the tab and took the whole screen to the error boundary.
    */
   useEffect(() => {
-    const onMc = seeAll || slide === MC_SLIDE || (slide === SANDBOX_SLIDE && chartKind === 'mc');
+    const onMc = (seeAll || slide === DASH_SLIDE) && chartKind === 'mc';
     if (!onMc) { mcArrivedRef.current = false; return; }
     if (mcArrivedRef.current) return;
     mcArrivedRef.current = true;
     setBandMode(m => (m === 'expected' ? 'quartile' : m));
-  }, [slide, seeAll, MC_SLIDE, SANDBOX_SLIDE, chartKind]);
+  }, [slide, seeAll, DASH_SLIDE, chartKind]);
   const [sandboxMc, setSandboxMc] = useState(null);
   const [sandboxMcBusy, setSandboxMcBusy] = useState(false);
   useEffect(() => {
@@ -9029,7 +9034,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     setSandboxAccounts(fresh);
     // Land on the sandbox step itself. Switching tabs alone used to drop you on whichever step you left,
     // with nothing on screen looking any different from before the click.
-    setSeeAll(false); setSlide(SANDBOX_SLIDE);
+    setSeeAll(false); setSlide(DASH_SLIDE);
     setActiveTab('projection');
     flash(`"${strategy.name}" applied to the Sandbox on the Projection chart`, 3500);
   };
@@ -9995,7 +10000,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     return Math.abs(n) >= 1e6 ? `£${(n / 1e6).toFixed(2)}m` : Math.abs(n) >= 1000 ? fmtK(n) : formatGBP(n);
   };
   const dashTile = (label, value, sub, tone = 'flat') => (
-    <div key={label} data-dash-tile className="flex-1 min-w-0 px-3.5 flex flex-col justify-center gap-0.5 border-l border-slate-100 first:border-l-0">
+    <div key={label} data-dash-tile className={isPhone
+      ? 'min-w-0 p-2 flex flex-col justify-center gap-0.5 bg-surface'
+      : 'flex-1 min-w-0 px-3.5 flex flex-col justify-center gap-0.5 border-l border-slate-100 first:border-l-0'}>
       <span className="text-[10px] font-semibold text-slate-500 truncate">{label}</span>
       <span className={`text-[19px] font-semibold font-mono leading-none tracking-tight ${DASH_TONE[tone]}`}>{value}</span>
       <span className="text-[10px] text-slate-500 truncate">{sub}</span>
@@ -10071,19 +10078,89 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         </div>
         {chartControls}
       </div>
-      <div className="flex-1 min-h-0">{renderProjectionChart(chartKind)}</div>
+      {/*
+        * The reveal plays here, because this is where the fan is met. `mcPlayKey` is keyed on the step,
+        * so it plays on arrival and not again while dials are moved - the sixty runs sweeping out is an
+        * explanation of what a simulation is, and an explanation that repeats on every keypress is an
+        * irritation.
+        */}
+      <div className="flex-1 min-h-0">{renderProjectionChart(chartKind, { animate: chartKind === 'mc' })}</div>
     </div>
   );
 
-  const projectionDashboard = () => (
-    <div data-projection-dashboard ref={dashRef} className="space-y-2.5">
+  /*
+   * ON A PHONE IT LAYS OUT DOWN, NOT ACROSS.
+   *
+   * Same parts, same order of importance: the figures, the chart with its controls, then the comparison
+   * of the two methods. The dials are not here - they are in the sheet pinned to the foot of the screen,
+   * which is where a phone has always kept them, so the chart stays visible while they move.
+   */
+  const projectionDashboard = () => (isPhone ? (
+    /*
+     * CHART FIRST ON A PHONE, FIGURES UNDER IT.
+     *
+     * The desktop puts the strip of figures over the chart because both are on one screen at once. A
+     * phone has no such screen: eight figures in a two-column grid is 200px, and putting them first put
+     * the chart below the sandbox sheet pinned to the foot of the window - so the one thing the sheet's
+     * dials exist to move was off-screen while you moved them.
+     */
+    <div data-projection-dashboard ref={dashRef} className="space-y-3">
+      <div className="bg-surface border border-slate-200/90 rounded-xl px-3 pt-2.5 pb-2">
+        <div data-chart-head className="pb-1.5">
+          <h3 className="text-[13px] font-semibold text-slate-900">{chartKind === 'mc' ? 'Monte Carlo' : 'Rate based projection'}</h3>
+        </div>
+        <div data-dash-chart={chartKind}>{renderProjectionChart(chartKind, { animate: chartKind === 'mc', tight: true })}</div>
+        {/* BELOW the chart on a phone, as step 7 kept them, and for the same measured reason: the sandbox
+            sheet is pinned to the foot of the screen and the chart clears it by a few pixels. A control
+            row above would spend all of them and hide the bottom of the chart behind the sheet. */}
+        <div className="pt-1.5">{chartControls}</div>
+      </div>
+      <div className="grid grid-cols-2 gap-px bg-slate-200 border border-slate-200/90 rounded-xl overflow-hidden">
+        {dashTiles()}
+      </div>
+          {compareRows2 && (
+            <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5">
+              <h3 className="text-xs font-semibold text-slate-900 mb-1.5">Both methods at {terminalAge}</h3>
+              <table className="w-full text-[11px] border-collapse">
+                <thead>
+                  <tr className="text-[10px] font-semibold text-slate-500">
+                    <th className="text-left pb-1 font-semibold">Outcome</th>
+                    <th className="text-right pb-1 font-semibold" style={{ color: cp.rateEdge }}>Rate</th>
+                    <th className="text-right pb-1 font-semibold" style={{ color: cp.fanMedian }}>Simulated</th>
+                    <th className="text-right pb-1 font-semibold">Gap</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {compareRows2.quantiles.map(r => (
+                    <tr key={r.label}>
+                      <td className="py-[7px] text-slate-600 border-t border-slate-100">{r.label.replace(' percentile', 'th').replace('Medianth', 'Median')}</td>
+                      <td className="py-[7px] text-right font-mono text-slate-900 border-t border-slate-100">{dashMoney(r.rate)}</td>
+                      <td className="py-[7px] text-right font-mono text-slate-900 border-t border-slate-100">{dashMoney(r.mc)}</td>
+                      <td className="py-[7px] pl-2 border-t border-slate-100">
+                        {/* the gap as a bar as well as a number: the shape of the disagreement down the
+                            column is the point, and five bare percentages do not show it */}
+                        <span className="flex items-center justify-end gap-1.5">
+                          <span className="h-1.5 rounded-sm bg-rose-300" style={{ width: `${Math.min(34, Math.abs(r.pct) * 1.1)}px` }} />
+                          <span className="font-mono text-[10px] text-rose-700">{r.mc > 0 ? `${r.pct > 0 ? '+' : '−'}${Math.abs(r.pct).toFixed(0)}%` : '—'}</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-[10px] text-slate-500 leading-relaxed pt-2 mt-2 border-t border-slate-100">The smooth line cannot run dry mid-way, so it sits above the simulation, and the gap widens with the horizon.</p>
+            </div>
+          )}
+    </div>
+  ) : (
+    <div data-projection-dashboard ref={dashRef} className="space-y-2.5 wide-dash">
       <div className="bg-surface border border-slate-200/90 rounded-xl h-[60px] flex items-stretch overflow-hidden">
         {dashTiles()}
       </div>
 
-      {/* A height, not content: flex-1 only shares out a box that HAS one, and without this the charts
-          and the rail each grew to whatever they wanted and the dashboard came out 1,670px tall - the
-          same scroll it exists to replace. See dashRowH for where the number comes from. */}
+      {/* A height, not content: flex-1 only shares out a box that HAS one, and without this the chart and
+          the rail each grew to whatever they wanted and the dashboard came out 1,670px tall - the same
+          scroll it exists to replace. See dashRowH for where the number comes from. */}
       <div className="flex gap-2.5 items-stretch" style={{ height: dashRowH }}>
         <div ref={dashColRef} className="flex-1 min-w-0 flex flex-col gap-2.5">
           {dashChartCard()}
@@ -10100,10 +10177,6 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
             {sandboxQuickDials({ inSheet: false, rail: true, scrollAt: Math.max(150, dashRowH - 190) })}
           </div>
-
-          {/* What the solver found used to be repeated here. It is the whole of the step before this one
-              now - both answers in full, with the grid of every age against every spend under them - and
-              a rail that repeats the previous screen is 120px the chart beside it could have had. */}
           {compareRows2 && (
             <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5">
               <h3 className="text-xs font-semibold text-slate-900 mb-1.5">Both methods at {terminalAge}</h3>
@@ -10139,20 +10212,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           )}
         </div>
       </div>
-
-      {/* The deck's order survives as a way to jump rather than as the only way to read. */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-[10px] font-semibold text-slate-500 mr-0.5">Jump to</span>
-        {PROJECTION_SLIDES.map(s => (
-          <button key={s.n} type="button" data-dash-jump={s.n}
-            onClick={() => { setSeeAll(false); setSlide(s.n); }}
-            className="text-[10px] px-2 py-1 rounded-full border border-slate-200 bg-surface text-slate-700 hover:text-slate-900 cursor-pointer">
-            {s.n} {s.name}
-          </button>
-        ))}
-      </div>
     </div>
-  );
+  ));
 
   const slideNav = (n) => (
     <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 md:sticky md:bottom-0 md:bg-surface md:pb-1 md:z-10">
@@ -10243,13 +10304,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * button (there is nowhere further to go) and it must not animate: the inline copy stays mounted
    * underneath, so re-running the reveal here would play a second, unsynchronised copy of it.
    */
-  const renderProjectionChart = (kind, { animate = false, inOverlay = false } = {}) => {
+  /*
+   * `tight` picks the bleed that matches the card's own padding. A bleed has to be the sum of the
+   * paddings it is cancelling - the page's p-4 plus the card's - so a p-3 card given the p-5 bleed runs
+   * 0.5rem too far each side, which is 7px of horizontal scroll and nothing else.
+   */
+  const renderProjectionChart = (kind, { animate = false, inOverlay = false, tight = false } = {}) => {
     const isRate = kind === 'rate';
     const band = isRate ? cp.rateBand : cp.fanBand;
     const edge = isRate ? cp.rateEdge : cp.fanEdge;
     return (
       <>
-        <div className={`relative ${isPhone && !inOverlay ? 'bleed swipe-x' : 'overflow-x-auto'} ${!isPhone && !inOverlay ? 'chart-holder' : ''} ${inOverlay ? 'h-full' : ''}`}>
+        <div className={`relative ${isPhone && !inOverlay ? `${tight ? 'bleed-tight' : 'bleed'} swipe-x` : 'overflow-x-auto'} ${!isPhone && !inOverlay ? 'chart-holder' : ''} ${inOverlay ? 'h-full' : ''}`}>
           {isPhone && !inOverlay && (
             <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setFullscreenChart(kind)}
               className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
@@ -10981,9 +11047,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   is modelled{isPhone ? ', every figure is in today’s money,' : ''} and your plan stays in this browser.
                 </p>
               </div>
+              {/* Not on a phone. It is an ornament that says what the model is - a wheel you spin, not a
+                  forecast - and on a 390px screen an ornament is a quarter of the first screen somebody
+                  sees before they have read a word. It stays where there is width for it. */}
+              {!isPhone && (
               <div className="shrink-0 self-center mx-auto md:mx-0 md:ml-auto">
-                <RouletteWheel className={isPhone ? 'w-24' : 'w-44 sm:w-52 lg:w-60'} />
+                <RouletteWheel className="w-44 sm:w-52 lg:w-60" />
               </div>
+              )}
               </div>
             </div>
 
@@ -12119,7 +12190,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {slideIndex({ preview: true })}
                 <p className="leading-relaxed text-slate-500 pt-0.5">Each is drawn off the same {fmtNum(MC_TRIALS)} randomised paths.</p>
               </div>
-            ) : dashboardMode ? projectionDashboard() : (
+            ) : (
             <>
               {isCouple && (
                 <div className="bg-surface border border-slate-200/90 rounded-xl p-4 flex flex-wrap items-center gap-2">
@@ -12153,10 +12224,25 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
               )}
 
-              {/* ---------------- 2. SAFE SPEND ---------------- */}
+              {/* ---------------- 2. THE TWO ANSWERS, AND THE TRADE BETWEEN THEM ---------------- */}
+              {/*
+                * Two cards, unchanged, on one slide.
+                *
+                * They were steps 2 and 3, and separating them hid what they are: the same question asked
+                * from two ends. Hold the risk and solve for the income, or hold the income and solve for
+                * the date. Read one after the other they are two figures; read side by side they are the
+                * two ends of one trade, which is what the grid under them draws in full.
+                */}
               {showSlide(2) && (
+                /* One card, two panels. Three stacked cards - a head, two answers and a nav - spent about
+                   a hundred pixels on padding and borders, and on a 1366x768 laptop that was the
+                   difference between the step's own pills being on the screen and being 12px under it. */
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(2, 'The most you could spend', 'Holds the risk fixed and solves for the income instead.')}
+                  {slideHead(2, 'The most you could spend, and the earliest you could stop', 'The same question from two ends: hold the risk and solve for the income, or hold the income and solve for the date.')}
+                  <div className={`grid gap-3 ${isPhone ? '' : 'xl:grid-cols-2'}`}>
+                    <div className="border border-slate-200 rounded-lg p-4 space-y-3" data-answer-card="spend">
+                      <h3 className="text-sm font-semibold text-slate-900">The most you could spend</h3>
+                      <p className="text-[11px] text-slate-500 -mt-2">Holds the risk fixed and solves for the income instead.</p>
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="text-slate-500 font-semibold">Survive at least:</span>
                     <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
@@ -12186,14 +12272,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       </p>
                     </>
                   ) : <p className="text-xs text-slate-500">Solving&hellip;</p>}
-                  {slideNav(2)}
-                </div>
-              )}
-
-              {/* ---------------- 3. SAFE RETIREMENT AGE ---------------- */}
-              {showSlide(3) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(3, 'The earliest you could retire', 'Holds the spending fixed and solves for the retirement age instead.')}
+                    </div>
+                    <div className="border border-slate-200 rounded-lg p-4 space-y-3" data-answer-card="retire">
+                      <h3 className="text-sm font-semibold text-slate-900">The earliest you could retire</h3>
+                      <p className="text-[11px] text-slate-500 -mt-2">Holds the spending fixed and solves for the retirement age instead.</p>
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="text-slate-500 font-semibold">Survive at least:</span>
                     <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
@@ -12249,7 +12331,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-lg text-[11px] text-slate-700 leading-relaxed space-y-1.5">
                           <div className="flex items-center gap-2 font-bold text-amber-900 text-xs"><AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> This is a bridge problem, not a saving problem</div>
                           <p>Going earlier than {safeRetireResult.age} does not fail because the money runs out &mdash; it fails because it is locked. At {safeRetireResult.below.age}, {safeRetireResult.below.preNmpaFailRate.toFixed(1)}% of paths are stranded before the pension unlocks at {nmpa}. <strong>Your ISA bridge is not big enough to carry the gap.</strong> More total saving will not fix that on its own; the same money held where you can reach it before {nmpa} would.</p>
-                          <p>Worth testing: move some contribution from the pension to the ISA, or bring the ISA balance up, and re-run. <button type="button" onClick={() => { setSeeAll(false); setSlide(SANDBOX_SLIDE); }} className="font-bold text-amber-900 underline hover:text-amber-950 cursor-pointer">Step {SANDBOX_SLIDE}</button> lets you change both without touching your saved plan.</p>
+                          <p>Worth testing: move some contribution from the pension to the ISA, or bring the ISA balance up, and re-run. <button type="button" onClick={() => { setSeeAll(false); setSlide(DASH_SLIDE); }} className="font-bold text-amber-900 underline hover:text-amber-950 cursor-pointer">The dashboard</button> lets you change both without touching your saved plan.</p>
                         </div>
                       )}
 
@@ -12266,105 +12348,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       )}
                     </>
                   )}
-                  {slideNav(3)}
-                </div>
-              )}
-
-              {/* ---------------- 4. RATE-BASED CHART ---------------- */}
-              {showSlide(4) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 wide-chart-card">
-                  {slideHead(4, 'Rate based projection', 'One steady rate per wrapper, compounded. Redraws as you type.')}
-                  <div className="flex flex-wrap items-center gap-3">
-                    {bandToggle}
-                    {horizonSlider}
-                  </div>
-                  {renderProjectionChart('rate')}
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    <Clamp isPhone={isPhone} lines={2} label="What this means…">
-                    <strong className="text-slate-700">{bandSpec
-                      ? `The band is the ${bandSpec.lowPct} to ${bandSpec.highPct} percentile, each edge compounded at that age\u2019s own rate.`
-                      : 'One line: the expected path, compounded at each age\u2019s own rate, on an axis that follows it. Switch the band on above to see the range around it.'}</strong>
-                    {' '}<strong className="text-rose-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with <T k="drawdown">drawdown</T> could take a higher-risk portfolio to £0. See the <T k="Monte Carlo">Monte Carlo</T> simulation for a better predictor of how robust your plan is.
-                    {bandCurves && bandCurves.lo.failAge !== null && <> <strong className="text-rose-700">Below age {bandCurves.lo.failAge} the bottom edge is broken, not low.</strong></>}
-                    </Clamp>
-                  </p>
-                  {slideNav(4)}
-                </div>
-              )}
-
-              {/* ---------------- 5. MONTE CARLO CHART ---------------- */}
-              {showSlide(5) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 wide-chart-card">
-                  {slideHead(5, 'Monte Carlo', `${fmtNum(simResult?.trials)} randomised futures, same axes as the last screen.`)}
-                  <div className="flex flex-wrap items-center gap-3">
-                    {bandToggle}
-                    {horizonSlider}
-                  </div>
-                  {renderProjectionChart('mc', { animate: true })}
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    <Clamp isPhone={isPhone} lines={2} label="What this means…">
-                    <strong className="text-emerald-700">Each path applies your withdrawals to one particular order of returns, and stops at £0 if the money is exhausted.</strong> A run of poor years early in drawdown forces selling at depressed prices and permanently reduces the capital left to recover, which is why the lower quartile here sits below the rate-based equivalent.
-                    {bandSpec
-                      ? <> The band is the same {bandSpec.lowPct} to {bandSpec.highPct} percentile, so the two charts can be read against each other directly.</>
-                      : <> The line is the median of those runs, on the same axis as the last screen; switch the band on above to see the spread it came from.</>}
-                    {fanRuinAge !== null
-                      ? <> <strong className="text-rose-700">A tenth are broke by {fanRuinAge}.</strong></>
-                      : <> Fewer than one in ten are broke by {terminalAge}.</>}
-                    </Clamp>
-                  </p>
-                  {slideNav(5)}
-                </div>
-              )}
-
-              {/* ---------------- 6. SIDE BY SIDE ---------------- */}
-              {showSlide(6) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(6, 'Side by side', 'The same plan, both ways, at the same five points.')}
-                  {compareRows2 && (
-                    <div tabIndex={0} className="overflow-x-auto border border-slate-200 rounded-lg">
-                      <table className="w-full text-left text-xs border-collapse">
-                        <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans">
-                          <tr>
-                            <th className="p-2.5">Pot at age {terminalAge}</th>
-                            <th className="p-2.5" style={{ color: cp.rateEdge }}>Rate based</th>
-                            <th className="p-2.5" style={{ color: cp.fanMedian }}>Monte Carlo</th>
-                            <th className="p-2.5">Difference</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
-                          {compareRows2.quantiles.map(r => (
-                            <tr key={r.label} className={r.label === 'Median' ? 'bg-slate-50/80' : ''}>
-                              <td className="p-2 font-sans font-semibold text-slate-700">{r.label}</td>
-                              <td className="p-2 text-slate-800">{formatGBP(r.rate)}</td>
-                              <td className="p-2 text-slate-800">{formatGBP(r.mc)}</td>
-                              <td className={`p-2 font-semibold ${Math.abs(r.pct) < 2 ? 'text-slate-400' : r.pct > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>{r.mc > 0 ? `${r.pct > 0 ? '+' : ''}${r.pct.toFixed(0)}%` : '—'}</td>
-                            </tr>
-                          ))}
-                          {compareRows2.extras.map(r => (
-                            <tr key={r.label} className="border-t-2 border-slate-200">
-                              <td className="p-2 font-sans font-semibold text-slate-700">{r.label}</td>
-                              <td className="p-2 text-slate-800">{r.rate}</td>
-                              <td className="p-2 text-slate-800">{r.mc}</td>
-                              <td className="p-2 text-slate-400 font-sans">{r.note || ''}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
                     </div>
-                  )}
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    <Clamp isPhone={isPhone} lines={2} label="What this means…">
-                    Read the <strong>Difference</strong> column downward. The two methods agree near the middle and part company at the bottom: the rate-based figures sit above the Monte Carlo ones precisely where the plan is under most strain, because that is where being unable to go bust flatters you most.
-                    </Clamp>
-                  </p>
-                  {sequenceLoss && sequenceLoss.state === 'loss' && (
-                    <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3 text-[11px] text-slate-600 leading-relaxed">
-                      <strong className="text-rose-700">{formatGBP(sequenceLoss.gapLow)} of that gap is order alone.</strong> An unlucky <em>rate</em> arriving evenly leaves {formatGBP(sequenceLoss.smoothLow)}; one plan in ten actually ends below {formatGBP(sequenceLoss.actualLow)}. Same average return, different order of arrival.
-                    </div>
-                  )}
-                  {slideNav(6)}
+                  </div>
+                  {slideNav(2)}
                 </div>
               )}
+
             </>
             )}
 
@@ -12448,70 +12437,36 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </Fine>
               </div>
             )}
-            {/* ---------------- 7. CHANGE SOMETHING ---------------- */}
-            {/* The chart sits ABOVE the controls, not on a step two back, so the amber line the sandbox
-                draws is on screen while you are dragging the thing that moves it. Monte Carlo rather than
-                the rate-based band, because that is the chart the survival figure everything else quotes
-                is actually read from. */}
-            {!dashboardMode && showSlide(SANDBOX_SLIDE) && (
-              <div ref={slideRef} className="space-y-6"
-                /* room at the foot for the sheet, so the Rerun card below is not stranded under it */
+            {/* ---------------- 3. THE DASHBOARD ---------------- */}
+            {/*
+              * The last step is the whole picture rather than another slice of it: the chart with a
+              * toggle for which method drew it, the figures that method produces, the dials that move it
+              * and the amber line they draw. It was reachable only through "See all" before, which meant
+              * the screen that holds everything was the one nobody walked to.
+              *
+              * The phone gets it too. The four steps this replaced were where a phone read its charts, so
+              * dropping them without this would have left the phone with two tables and no picture.
+              */}
+            {showSlide(DASH_SLIDE) && (
+              <div ref={slideRef} className="space-y-3"
+                /* room at the foot for the sheet, so the rerun card below is not stranded under it */
                 style={{ scrollMarginTop: 12, paddingBottom: isPhone ? sheetH : 0 }}>
-                <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(SANDBOX_SLIDE, 'Change something',
-                    'Edit below and the amber line moves with you. Your saved plan is not touched.')}
-                  {!isPhone && chartControls}
-                  {/*
-                    * ONE ROW, AND WHICH SIDE OF THE CHART IT SITS ON.
-                    *
-                    * The controls are the ones steps 4 and 5 carry - the band picker, the horizon
-                    * slider - plus one switch for which projection is drawn, and the spinner sits beside
-                    * that switch because that switch is what causes the wait.
-                    *
-                    * All on one row, because two rows of controls cost about eighty pixels and on a
-                    * 1366x768 laptop that is exactly what pushes the dials that move the chart below the
-                    * fold - which the desktop review had already fixed once.
-                    *
-                    * Above the chart on a desktop, where every other step keeps its controls. BELOW it
-                    * on a phone, because there the sandbox sheet is pinned to the foot of the screen and
-                    * this card's chart clears it by nineteen pixels: a control row above would spend all
-                    * of them and hide the bottom of the chart behind the sheet.
-                    */}
-                  {renderProjectionChart(chartKind)}
-                  {isPhone && chartControls}
-                  {!isSandboxModified && (
-                    <p className="text-[11px] text-slate-500 leading-relaxed">Nothing is changed yet, so there is no amber line to see. Edit a contribution, a balance or a retirement age here and one appears over this chart, beside the plan you already have.</p>
-                  )}
-                  {/* The phone's dials, on the desktop, inside the same card as the chart they move. */}
-                  {!isPhone && <div className="pt-1 border-t border-slate-100">{sandboxQuickDials({ inSheet: false })}</div>}
-                  {slideNav(SANDBOX_SLIDE)}
-                </div>
-                {/*
-                  * THE SECOND CARD IS GONE ON A DESKTOP.
-                  *
-                  * Step 7 used to be a chart card followed by a whole separate "Sandbox" card carrying
-                  * the same job again in typed fields. Two surfaces for one idea, and the second one
-                  * pushed the rerun button off the screen. The dials inside the chart card are the
-                  * controls now, and they cover balances as well as contributions and retirement ages
-                  * so that nothing the old card could change has become unreachable. Escalation is the
-                  * exception, and it lives on the Plan Inputs tab.
-                  *
-                  * The phone keeps its sheet. There the controls are not "underneath" anything - they
-                  * are pinned to the foot of the screen precisely so the chart stays visible while you
-                  * adjust, which is the whole point of a sandbox on a small screen, and its `full` mode
-                  * is the only place a phone can reach the typed fields.
-                  */}
+                {projectionDashboard()}
+                {/* The phone's dials stay in their sheet, pinned to the foot of the screen so the chart
+                    is still visible while you drag them - which is the whole point of a sandbox on a
+                    small screen, and its `full` mode is the only place a phone reaches the typed fields. */}
                 {isPhone && (
                   <SheetPanel mode={sheetMode} onMode={setSheetMode} onHeight={setSheetH}
                     summary={sandboxSummary()} quick={sandboxQuickDials()} full={renderSandboxPanel()} />
                 )}
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {fmtNum(simResult?.trials)} randomised futures and refresh every step, run it again.</span>
+                  <span className="text-[11px] text-slate-500">An edit draws the amber line over the chart. To put it through {fmtNum(simResult?.trials)} randomised futures and refresh every figure on this page, run it again.</span>
                   <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                     {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Running…' : 'Rerun projections'}
                   </button>
                 </div>
+                <div className="bg-surface border border-slate-200/90 p-5 rounded-xl">{slideNav(DASH_SLIDE)}</div>
               </div>
             )}
           </div>

@@ -1,15 +1,16 @@
 /*
- * THE SANDBOX IS STEP 7 OF THE PROJECTION DECK.
+ * THE SANDBOX IS THE LAST STEP, AND THE LAST STEP IS THE DASHBOARD.
  *
  * It used to hang below the deck behind its own reveal flag, which put it six clicks from the figure it
  * exists to move and - because the deck shows one step at a time - never on screen beside the chart it
- * draws on. Moving it into the deck is easy to undo by accident, and two of its properties are invisible
- * to every other harness:
+ * draws on. Then it was step 7. Now the deck is three steps and the third is the dashboard, which holds
+ * the chart, the figures and the dials at once; what this harness guards is unchanged, and still
+ * invisible to every other one:
  *
  *   1 it is REACHABLE like any other step, from the numbered pills, in one click
- *   2 the Monte Carlo chart renders ABOVE the controls, and arrives FINISHED rather than rewound - the
- *     reveal clock has to special-case this step, and getting that wrong gives a stub band and
- *     two-point paths, which is exactly the bug that shipped once before
+ *   2 the chart arrives FINISHED rather than rewound - the reveal clock has to special-case an arrival,
+ *     and getting that wrong gives a stub band and two-point paths, which is exactly the bug that
+ *     shipped once before
  *   3 editing a contribution puts the amber sandbox line on THAT SAME screen
  *   4 it is the last step, so it offers no "Next"
  *
@@ -53,15 +54,15 @@ const plan = {
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Projection/.test(b.textContent)); if(x) x.click(); });
   await p.waitForTimeout(400);
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Run the projection/i.test(b.textContent)); x.click(); });
-  await p.waitForFunction(() => !!document.querySelector('[data-slide-pill="6"]'), null, { timeout: 180000 });
+  await p.waitForFunction(() => !!document.querySelector('[data-slide-pill="3"]'), null, { timeout: 180000 });
   await p.waitForTimeout(1500);
 
-  // 1. the deck offers a seventh step
+  // 1. three steps, the last of which is the dashboard
   const pills = await p.evaluate(() => [...document.querySelectorAll('[data-slide-pill]')].map(b=>b.getAttribute('data-slide-pill')));
-  ok('the deck has a 7th numbered step', pills.includes('7'), `pills ${[...new Set(pills)].sort().join(',')}`);
+  ok('the deck is three steps', [...new Set(pills)].sort().join(',') === '1,2,3', `pills ${[...new Set(pills)].sort().join(',')}`);
   // and on a desktop each pill carries the step's full name, not the phone's shortened one
   const pillText = await p.evaluate(() => [...document.querySelectorAll('[data-slide-pill]')].map(b => b.textContent.trim()));
-  ok('...and each step is named in full', pillText.some(t => /Side by side/.test(t)) && pillText.every(t => /[a-z]/i.test(t)),
+  ok('...and each step is named in full', pillText.some(t => /Dashboard/.test(t)) && pillText.every(t => /[a-z]/i.test(t)),
      pillText.join(' | '));
 
   /*
@@ -73,26 +74,15 @@ const plan = {
   const folded = await p.evaluate(() => [...document.querySelectorAll('button')].filter(b => /What this means|Show less/.test(b.textContent)).length);
   ok('the step explanations are not folded on a desktop', folded === 0, `${folded} fold buttons`);
 
-  // step 6's Next names it
-  await pill(6); await p.waitForTimeout(500);
+  // step 2's Next names the step after it
+  await pill(2); await p.waitForTimeout(500);
   const next6 = await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/^Next:/.test(b.textContent.trim())); return x ? x.textContent.trim() : null; });
-  ok('step 6 offers Next: Change something', /Change something/.test(next6 || ''), String(next6));
-
-  /*
-   * The band toggle opens on "Expected only" now - one line, on an axis that follows it, because that is
-   * what makes a change to the plan visible. This harness measures the band's span to prove step 7
-   * arrives finished rather than mid-reveal, so it asks for a band first. The toggle lives on the two
-   * chart steps, so the ask happens there and step 7 inherits it: one control for the whole deck.
-   */
-  await pill(5); await p.waitForTimeout(600);
-  const asked = await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Upper/lower quartiles'); if (x) { x.click(); return true; } return false; });
-  ok('a band can be asked for from the chart step', asked);
-  await p.waitForTimeout(600);
+  ok('step 2 offers Next: Dashboard', /Dashboard/.test(next6 || ''), String(next6));
 
   // 2. one click from the pills, and the chart is there and FINISHED
-  const reached = await pill(7);
-  await p.waitForTimeout(1800);
-  ok('step 7 is reachable in one click from the pills', reached);
+  const reached = await pill(3);
+  await p.waitForTimeout(2200);
+  ok('the dashboard is reachable in one click from the pills', reached);
 
   const probe = await p.evaluate(() => {
     const svgs = [...document.querySelectorAll('svg')].sort((a,b)=>b.getBoundingClientRect().width-a.getBoundingClientRect().width);
@@ -103,11 +93,11 @@ const plan = {
     const span = d => { const v = xs(d); return v.length ? Math.max(...v)-Math.min(...v) : 0; };
     const filled = paths.filter(x=>x.fill && x.fill!=='none');
     /*
-     * The controls are the DIALS now, inside the chart's own card. Step 7 used to be a chart card
-     * followed by a second "Sandbox" card holding the same job again in typed fields, and this harness
-     * looked for that card's heading - so it would have gone red on the removal and told us nothing
-     * about whether the step still worked. What matters is unchanged: there are controls, and the chart
-     * is above them on the same screen.
+     * The controls are the DIALS, in the rail beside the chart. They were a second "Sandbox" card below
+     * it once, holding the same job again in typed fields, and this harness looked for that card's
+     * heading - so it would have gone red on the removal and told us nothing about whether the step
+     * still worked. What matters is unchanged: there are controls, and they are on the same screen as
+     * the chart they move.
      */
     const dials = document.querySelector('[data-quick-dials]');
     const mode = document.querySelector('[data-sandbox-chart-mode]');
@@ -120,18 +110,21 @@ const plan = {
              oldAmberRow: !!document.querySelector('[data-sandbox-line-mode]'),
              amber: paths.filter(x=>x.dash==='6,4' && x.width==='3.5').length };
   });
-  ok('step 7 renders a chart', !!probe && probe.width > 400, probe ? `${Math.round(probe.width)}px` : 'none');
+  ok('the dashboard renders a chart', !!probe && probe.width > 400, probe ? `${Math.round(probe.width)}px` : 'none');
   ok('...arriving FINISHED, not rewound to a stub band', probe.bandSpan > 0.6*probe.width, `band ${Math.round(probe.bandSpan)}px of ${Math.round(probe.width)}px`);
   ok('...with full-length paths, not two-point ones', probe.long >= 3, `${probe.long} long paths`);
   ok('the sandbox controls are on the same screen', probe.panel);
-  ok('...and the chart is ABOVE the controls', probe.panelTop !== null && probe.chartTop < probe.panelTop, `chart ${Math.round(probe.chartTop)} vs controls ${Math.round(probe.panelTop)}`);
+  /* Beside, not below: the dials are in the rail, so what matters is that both are in the window at
+     once - the chart moving under the dial is the whole point of a sandbox. */
+  ok('...and both are in the window at once', probe.panelTop !== null && probe.panelTop < 1000 && probe.chartTop < 1000,
+     `chart at ${Math.round(probe.chartTop)}, dials at ${Math.round(probe.panelTop)}`);
   ok('...with no second Sandbox card repeating them underneath', !probe.secondCard);
   /*
-   * One switch decides what step 7 draws, above the chart where steps 4 and 5 keep theirs. It replaced
-   * an "Amber line: Expected / Monte Carlo" row UNDER the chart that changed only the sandbox's own
-   * line, leaving the picture behind it saying something else.
+   * One switch decides what is drawn, above the chart. It replaced an "Amber line: Expected / Monte
+   * Carlo" row UNDER the chart that changed only the sandbox's own line, leaving the picture behind it
+   * saying something else.
    */
-  ok('the chart switch sits above the chart, as on every other step', probe.modeTop !== null && probe.modeTop < probe.chartTop,
+  ok('the chart switch sits above the chart', probe.modeTop !== null && probe.modeTop < probe.chartTop,
      `switch ${probe.modeTop === null ? 'missing' : Math.round(probe.modeTop)} vs chart ${Math.round(probe.chartTop)}`);
   /*
    * It opens on the SIMULATION now, because one state decides what every chart on the tab is - the deck's
@@ -146,7 +139,7 @@ const plan = {
 
   // 4. it is the last step
   const next7 = await p.evaluate(() => [...document.querySelectorAll('button')].some(b=>/^Next:/.test(b.textContent.trim())));
-  ok('step 7 is last, so it offers no Next', !next7);
+  ok('the dashboard is last, so it offers no Next', !next7);
 
   // 3. an edit puts the amber line on this same screen
   // the sandbox line's own signature: 3.5px, 6,4 dash. The nominal and cash series are dashed as well,
@@ -155,10 +148,10 @@ const plan = {
   // Money fields are text inputs carrying thousands separators, not number inputs: a plain number input
   // cannot show a separator at all. `data-money` marks them, and the displayed value has to be stripped
   // before it is a number again - Number("12,000") is NaN, which would have quietly found no target.
-  // A dial, not a typed field: the dials are what step 7 offers now.
+  // A dial, not a typed field: the dials are what the rail offers.
   const edited = await p.evaluate(() => {
     const d = [...document.querySelectorAll('[data-quick-dials] button')]
-      .find(b => /^increase .*contribution/i.test(b.getAttribute('aria-label') || ''));
+      .find(b => /^increase .*(contribution|a year)/i.test(b.getAttribute('aria-label') || ''));
     if (!d) return false; d.click(); return true;
   });
   await p.waitForTimeout(1200);

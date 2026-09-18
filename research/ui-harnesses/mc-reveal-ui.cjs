@@ -37,9 +37,10 @@ const plan = {
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Projection/.test(b.textContent)); if(x) x.click(); });
   await p.waitForTimeout(500);
   await p.evaluate(() => { const x=[...document.querySelectorAll('button')].find(b=>/Run the projection/i.test(b.textContent)); x.click(); });
-  await p.waitForFunction(() => !!document.querySelector('[data-slide-pill="5"]'), null, { timeout: 120000 });
+  await p.waitForFunction(() => !!document.querySelector('[data-slide-pill="3"]'), null, { timeout: 120000 });
   await p.waitForTimeout(2000);
-  await p.evaluate(() => { const x=document.querySelector('[data-slide-pill="5"]'); x.click(); });
+  // The simulation is the dashboard's own chart now - the four chart steps it replaced are gone.
+  await p.evaluate(() => { const x=document.querySelector('[data-slide-pill="3"]'); x.click(); });
   await p.waitForTimeout(600);
   let fails = 0;
   const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
@@ -47,17 +48,17 @@ const plan = {
   /*
    * THE STEP ARRIVES WITH ITS SPREAD ALREADY DRAWN.
    *
-   * The band picker is shared with the rate-based step and opens on "Expected only", which is right for
-   * step 4 - one line you can watch move as you type. On step 5 it meant the simulation drew a single
-   * median line and nothing else: no fan, no sixty runs, no reveal, on a result that had already been
-   * computed. This harness used to press "Upper/lower quartiles" itself before measuring anything, which
-   * is precisely how the empty opening went unnoticed. It measures the opening instead now.
+   * The band picker opens on "Expected only", which is right for a compounded line you watch move as you
+   * type. On the simulation it meant a single median line and nothing else: no fan, no sixty runs, no
+   * reveal, on a result that had already been computed. This harness used to press "Upper/lower
+   * quartiles" itself before measuring anything, which is precisely how the empty opening went
+   * unnoticed. It measures the opening instead now.
    */
   const arrival = await p.evaluate(() => {
     const on = [...document.querySelectorAll('button')].find(b => /quartile/i.test(b.textContent) && /bg-accent/.test(b.className));
     return { band: !!document.querySelector('g.mc-band'), spaghetti: document.querySelectorAll('g.mc-spaghetti path').length, picker: !!on };
   });
-  ok('step 5 opens with the spread drawn, not one line', arrival.band && arrival.spaghetti > 10,
+  ok('the dashboard opens with the spread drawn, not one line', arrival.band && arrival.spaghetti > 10,
      `band ${arrival.band}, ${arrival.spaghetti} sample runs`);
   ok('...and the picker says which band that is', arrival.picker, `quartiles selected: ${arrival.picker}`);
   const probe = () => p.evaluate(() => {

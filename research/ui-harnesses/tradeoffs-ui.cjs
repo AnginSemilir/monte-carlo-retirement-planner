@@ -25,7 +25,10 @@ const ok = (l, c, d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
   const run = async (width) => {
-    const p = await b.newPage({ viewport: { width, height: 1400 } });
+    // hasTouch below the breakpoint: a phone is a narrow screen AND a finger now, so a harness that
+    // means to test the phone layout has to say it is a phone - a narrow window with a mouse is a
+    // desktop with a narrow window, which is what a scaled Chromebook is.
+    const p = await b.newPage({ viewport: { width, height: 1400 }, hasTouch: width <= 767 });
     const errs = []; p.on('pageerror', e => errs.push(e.message));
     await p.route('https://cdn.tailwindcss.com/**', r => r.fulfill({ status:200, contentType:'application/javascript', body:'window.tailwind={config:{}};' }));
     await p.addInitScript(pl => { localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); }, plan);

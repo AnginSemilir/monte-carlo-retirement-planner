@@ -11364,7 +11364,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             <div className="flex items-center gap-2 flex-wrap">
               {/* data-tabbar keeps these clickable while the in-app editor is on, so you can still move
                   between tabs while editing; Alt-click edits a tab's own label. */}
-              <div data-tabbar className="hidden md:flex items-end gap-1 border-b border-slate-200 flex-wrap">
+              {/* `isPhone`, not `md:`: the two used to be the same question and are not any more. A
+                  Chromebook at 683 CSS pixels is a desktop with a narrow window, and a tab strip hidden
+                  by a media query would have left it with no tabs at all. */}
+              <div data-tabbar className={`items-end gap-1 border-b border-slate-200 flex-wrap ${isPhone ? 'hidden' : 'flex'}`}>
                 {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
               </div>
               {!dashboardMode && <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />}

@@ -5961,8 +5961,124 @@ function estateActionPlan(plan, result) {
   return out;
 }
 
+/*
+ * ==========================================================================================
+ * THE AGE AGAINST THE SPENDING, AS A GRID.
+ * ==========================================================================================
+ *
+ * The two solved answers - the most you could spend, the earliest you could retire - are the same
+ * question asked from two ends, and each is one number. A number is a poor answer to a trade: it says
+ * what you could do at the age you happened to enter, and nothing about what a year either way is worth.
+ * This runs the plan at every combination of a retirement age and a spending level and reports the
+ * survival rate of each, so the trade can be read off a picture rather than inferred from two figures.
+ *
+ * THREE THINGS MAKE IT AFFORDABLE.
+ *
+ * One path set per ROW. Every cell in a row is the same plan at the same retirement age, differing only
+ * in how much is drawn - which `runTrial` already takes as an override - so the context is built once
+ * and the gaussian draws are made once for the whole row. Drawing 1,000 paths costs 4ms and running a
+ * cell costs 292ms, so this is not the saving it looks like; what it buys is that neighbouring cells
+ * differ by the PLAN rather than by luck, which is what makes the grid readable at all.
+ *
+ * A row per worker. Rows are independent, so the pool runs as many abreast as there are cores.
+ *
+ * A small window. Eight ages by eight spends around what you entered is 64 cells; the whole 15-by-12
+ * board is 180 and is what "wider" is for.
+ *
+ * WHAT IS NOT DONE: pruning. Survival can only fall as spending rises, so in principle every cell
+ * cheaper than one reading 100% must also be 100% and could be filled without running. Measured over
+ * the 180-cell board that skipped 11 cells - 6% - in exchange for an assumption about the engine's
+ * monotonicity that nothing else here relies on. Not worth it: every cell is a real run.
+ */
+
+/*
+ * A round number near the asked-for size, so the columns are £5,000 apart on a £50,000 plan and £2,000
+ * apart on a £20,000 one. A fixed step would give the first household eight columns covering a tenth of
+ * its range and the second a grid where every cell is identical.
+ */
+const NICE_STEPS = [250, 500, 1000, 2000, 2500, 5000, 10000, 20000, 25000, 50000];
+function niceStep(x) {
+  for (const s of NICE_STEPS) if (x <= s * 1.25) return s;
+  return NICE_STEPS[NICE_STEPS.length - 1];
+}
+
+/*
+ * The window: your own age and your own spending are IN it, and so is the answer.
+ *
+ * Centring the columns on the entered spending alone is what the first version did, and on a plan that
+ * is comfortably inside its means every cell came back green - a table that says nothing, because the
+ * interesting edge was two columns off the right of it. So the columns are spanned between the spending
+ * ENTERED and the safe maximum SOLVED for that age, which are the two numbers the cards above the grid
+ * carry: whichever is larger sets the right-hand end, whichever is smaller the left, and the step is
+ * chosen so that eight columns cover both with room either side. Where the solved figure is not known
+ * yet, the entered spending is used alone and the window is recomputed when it arrives.
+ */
+function gridWindow(ctx, { rowsBefore = 4, rowsAfter = 3, cols = 8, step = null, anchor = null } = {}) {
+  const age0 = Math.round(num(ctx.owners?.[0]?.age0 ?? ctx.currentAge, 40));
+  const planned = Math.round(num(ctx.owners?.[0]?.retireAge, age0 + 20));
+  const terminal = Math.round(num(ctx.terminalAge, 100));
+  const lo = Math.max(age0, planned - rowsBefore);
+  const hi = Math.min(terminal - 1, Math.max(lo + 1, planned + rowsAfter));
+  const ages = [];
+  for (let a = lo; a <= hi; a++) ages.push(a);
+
+  const target = Math.max(1000, Math.round(num(ctx.targetSpend, 30000)));
+  const other = anchor && anchor > 0 ? Math.round(anchor) : target;
+  const from = Math.min(target, other), to = Math.max(target, other);
+  /*
+   * Two columns of margin on each side of the pair, so `cols` columns must cover the gap plus four
+   * steps: step >= (to - from) / (cols - 5). The floor keeps a plan whose two figures are almost equal
+   * from collapsing to a step of nothing.
+   */
+  const st = step || niceStep(Math.max(target * 0.06, (to - from) / Math.max(1, cols - 5)));
+  const base = Math.max(st, Math.round(from / st) * st - 2 * st);
+  const spends = [];
+  for (let i = 0; i < cols; i++) spends.push(base + i * st);
+  return { ages, spends, step: st, planned, target, age0, anchor: anchor || null };
+}
+
+/*
+ * One row: the same plan at one retirement age, run at each spending level on one draw of paths. The
+ * caller passes a plan (a worker cannot be handed a context) or a context (the main-thread fallback
+ * already has one).
+ */
+function spendRow(planOrCtx, { spends, trials = 1000, seed = 12345 } = {}) {
+  const ctx = planOrCtx && planOrCtx.P ? planOrCtx : buildContext(planOrCtx);
+  const paths = pathsForSeed(seed, trials, ctx.totalYears);
+  return spends.map(spend => {
+    let lived = 0, preNmpa = 0;
+    for (const zs of paths) {
+      const r = runTrial(ctx, zs, spend);
+      if (r.survived) lived++; else if (r.preNmpaFailed) preNmpa++;
+    }
+    return { spend, rate: (lived / trials) * 100, preNmpa: (preNmpa / trials) * 100 };
+  });
+}
+
+/*
+ * Where the row crosses the target, read between the two cells that straddle it.
+ *
+ * NOT the solver. `optimizeSpend` bisects to the pound and costs about ten runs of its own, which is
+ * three seconds per row - more than the row itself. Interpolating between neighbouring cells lands
+ * within a few hundred pounds of the solved figure on a £5,000 step (£58,750 against a solved £58,500
+ * on the household this was measured against), and the card above the grid still carries the solved
+ * number for the age you actually entered. The line is labelled as read off the cells, because it is.
+ */
+function frontierSpend(row, targetRate = 90) {
+  const cells = [...row].sort((a, b) => a.spend - b.spend);
+  for (let i = 0; i < cells.length; i++) {
+    if (cells[i].rate >= targetRate) continue;
+    if (i === 0) return null;                                  // even the cheapest column misses
+    const lo = cells[i - 1], hi = cells[i];
+    const span = lo.rate - hi.rate;
+    if (span <= 0) return lo.spend;
+    return lo.spend + (hi.spend - lo.spend) * ((lo.rate - targetRate) / span);
+  }
+  return null;                                                 // every column clears it
+}
+
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 /*
  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle
@@ -5970,7 +6086,7 @@ const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, i
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan
@@ -6352,11 +6468,18 @@ async function runMonteCarloAsync(ctx, { trials, seed, spendOverride = null, onP
  * answer.
  */
 const WORKER_POOL_MAX = 8;
-async function scoreInWorkers(jobs, { onProgress } = {}) {
+/*
+ * `message` and `take` are how a different KIND of job borrows this pool. The default pair is the
+ * original score job - post the plan, keep `stats` - and the grid passes its own: post a row of
+ * spending levels, keep `row`. Everything else (the fan-out, the fallback to the main thread, the
+ * progress accounting) is shared, because all of it is about running jobs rather than about what a job
+ * asks. `mainThread` is the fallback for a machine with no workers, which only the caller can write.
+ */
+async function scoreInWorkers(jobs, { onProgress, message = null, take = null, mainThread = null, shouldStop = null } = {}) {
   const results = new Map();
   if (!jobs.length) return results;
   const report = (job) => { if (onProgress) onProgress(results.size / jobs.length, job); };
-  const onMainThread = async (list) => {
+  const onMainThread = mainThread ? (list) => mainThread(list, { results, report }) : async (list) => {
     for (const j of list) {
       const p = j.resolve === false ? j.plan : E.resolveMpaa(j.plan);
       const ctx = E.buildContext(p);
@@ -6375,16 +6498,19 @@ async function scoreInWorkers(jobs, { onProgress } = {}) {
     for (let i = 0; i < n; i++) workers.push(new Worker(new URL('./mcWorker.js', import.meta.url), { type: 'module' }));
     await Promise.all(workers.map(w => new Promise((resolve, reject) => {
       const feed = () => {
-        if (next >= jobs.length) { resolve(); return; }
+        // `shouldStop` is asked between jobs rather than inside one: a question already in a worker runs
+        // to its end, but nothing new is started once the answer stops being wanted - which is what
+        // happens when the plan changes while a grid is half drawn.
+        if (next >= jobs.length || (shouldStop && shouldStop())) { resolve(); return; }
         const j = jobs[next++];
         w.onmessage = (e) => {
           if (!e.data || e.data.error) { reject(new Error((e.data && e.data.error) || 'worker returned nothing')); return; }
-          results.set(e.data.key, e.data.stats);
+          results.set(e.data.key, take ? take(e.data) : e.data.stats);
           report(j);
           feed();
         };
         w.onerror = (e) => reject((e && e.error) || new Error((e && e.message) || 'worker failed'));
-        w.postMessage({ key: j.key, plan: j.plan, trials: j.trials, seed: j.seed, resolve: j.resolve !== false, inheritance: !!j.inheritance });
+        w.postMessage(message ? message(j) : { key: j.key, plan: j.plan, trials: j.trials, seed: j.seed, resolve: j.resolve !== false, inheritance: !!j.inheritance });
       };
       feed();
     })));
@@ -6396,6 +6522,35 @@ async function scoreInWorkers(jobs, { onProgress } = {}) {
     workers.forEach(w => w.terminate());
   }
   return results;
+}
+
+/*
+ * THE GRID, RUN ACROSS THE CORES.
+ *
+ * One job per retirement age, which is what makes this parallel: the rows are independent, they are all
+ * the same size, and each is a self-contained "build this context once, draw these paths once, run these
+ * eight spending levels". The pool above does the fanning out; this only says what a job is and what to
+ * do with a row when it lands.
+ *
+ * `onRow` is called as each row arrives rather than at the end, because a grid that fills in under the
+ * reader is the difference between four seconds of progress and four seconds of nothing.
+ */
+async function runSpendGrid(plan, { ages, planned, spends, trials = 1000, seed = 12345, onRow = null, shouldStop = null } = {}) {
+  const jobs = ages.map(age => ({ key: age, age, plan: E.shiftRetirement(plan, age - planned) }));
+  const deliver = (age, row) => { if (onRow) onRow(age, row); return row; };
+  return scoreInWorkers(jobs, {
+    shouldStop,
+    message: (j) => ({ key: j.key, kind: 'gridRow', plan: j.plan, spends, trials, seed, resolve: true }),
+    take: (d) => deliver(d.key, d.row),
+    mainThread: async (list, { results, report }) => {
+      for (const j of list) {
+        if (shouldStop && shouldStop()) return;
+        results.set(j.key, deliver(j.age, E.spendRow(E.resolveMpaa(j.plan), { spends, trials, seed })));
+        report(j);
+        await tick();                       // one row, then let the page paint: eight cells is ~2.4s
+      }
+    }
+  });
 }
 
 /*

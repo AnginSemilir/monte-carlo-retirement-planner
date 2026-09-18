@@ -428,6 +428,15 @@
        */
       .swipe-x { touch-action: pan-y; }
       /*
+       * .sim-line - the sandbox line once it has actually been simulated. Amber and gold sat two steps
+       * apart on one hue and could not be told apart at 3.5px, and the difference between them is not
+       * decorative: one is a compounded redraw and the other is the median of 5,000 runs. So the gold one
+       * moves. The dash pattern is 6,4, and offsetting by a whole multiple of 10 keeps it seamless.
+       */
+      @keyframes sim-march { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -20; } }
+      .sim-line { animation: sim-march 1.4s linear infinite; }
+      @media (prefers-reduced-motion: reduce) { .sim-line { animation: none; } }
+      /*
        * And the other half of the same problem: Chrome on Android turns a rightward drag near the left
        * edge into "go back", and touch-action does not stop that because it is not a pan, it is a
        * navigation. Measured: the first right-swipe on the projection deck left the site entirely.

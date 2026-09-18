@@ -800,7 +800,9 @@ const navigate = async (page, label, short) => {
        * begun on one proves nothing about whether the deck turns.
        */
       const chartMid = () => p.evaluate(() => {
-        const h = document.querySelector('[data-slide-dots]') || document.querySelector('h3');
+        /* the step's own head, an h2. It used to fall back to an h3, which was the run card's - and that
+           card no longer sits above a deck that has already been run, so there was no h3 to find. */
+        const h = document.querySelector('[data-slide-dots]') || document.querySelector('h2');
         h.scrollIntoView({ block: 'center' });
         const r = h.getBoundingClientRect();
         return r.top + r.height / 2;

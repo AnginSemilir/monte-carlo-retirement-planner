@@ -23,10 +23,13 @@ const RESOLVED_ID = '\0' + VIRTUAL_ID;
  * the source but shown in four places, and only those four are an edit's business. The applier uses the
  * same extractor, so the count the editor shows is exactly the number of places a save will change.
  */
+// every file that carries copy the editor should reach; the Documentation tab lives in its own chunk
+export const COPY_FILES = ['src/App.jsx', 'src/Docs.jsx'];
+
 function buildManifest(root) {
-  const file = path.join(root, 'src', 'App.jsx');
   let source = '';
-  try { source = fs.readFileSync(file, 'utf8'); } catch { return { strings: {}, generatedAt: null }; }
+  for (const rel of COPY_FILES) { try { source += fs.readFileSync(path.join(root, ...rel.split('/')), 'utf8') + '\n'; } catch { /* a file that is not there carries no copy */ } }
+  if (!source) return { strings: {}, generatedAt: null };
   const strings = {};
   /*
    * Two lists, because there are two kinds of copy and only one of them can be clicked.
@@ -65,7 +68,7 @@ export const CAN_SAVE_TO_SOURCE = ${JSON.stringify(isDev)};
     // Rebuild the manifest when the source changes, so newly added copy becomes editable without a restart.
     // Vite reloads the page itself afterwards, which is what picks the edit up.
     handleHotUpdate({ file, server }) {
-      if (!file.endsWith(path.join('src', 'App.jsx'))) return;
+      if (!COPY_FILES.some(rel => file.endsWith(path.join(...rel.split('/'))))) return;
       const mod = server.moduleGraph.getModuleById(RESOLVED_ID);
       if (mod) server.moduleGraph.invalidateModule(mod);
     },

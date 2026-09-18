@@ -83,7 +83,7 @@ function Footer() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 pb-8">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
-        <span>A beta, for education and illustration only &mdash; this is not financial advice. Everything is modelled, every figure is in today&rsquo;s money, and your plan stays in this browser.</span>
+        <span>A beta, for education and illustration only &mdash; this is not financial advice. Everything is modelled and your plan stays in this browser.</span>
         {FEEDBACK_URL && (
           <a href={FEEDBACK_URL} target="_blank" rel="noreferrer noopener"
             className="inline-flex items-center min-h-11 font-semibold text-blue-600 hover:text-blue-800 hover:underline">{FEEDBACK_LABEL} &rarr;</a>
@@ -260,7 +260,12 @@ export default function Shell() {
         <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center justify-between gap-3">
-              <h1 className="text-xl font-bold tracking-tight text-slate-900">Can I retire?</h1>
+              {/* The real-terms note, said once and quietly - the same place the full planner says it,
+                  under the title rather than over the figures it used to qualify one by one. */}
+              <div>
+                <h1 className="text-xl font-bold tracking-tight text-slate-900">Can I retire?</h1>
+                <p className="text-[11px] text-slate-500 mt-0.5">Every amount is in today&rsquo;s money.</p>
+              </div>
               <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={isPhone || isCoarse} />
             </div>
             {/* The fallback matches the card it replaces, so the page does not jump when it arrives. */}

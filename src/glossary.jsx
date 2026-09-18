@@ -115,6 +115,12 @@ export const GLOSSARY = {
     body: 'Selling investments held outside a pension and paying the proceeds in, to pick up the tax relief. The gain on the sale is realised, so it can cost Capital Gains Tax to save income tax.' },
   'annual allowance': { title: 'Pension annual allowance',
     body: 'The most that can go into pensions in a tax year with tax relief — £60,000 for most people, tapered for high earners, and replaced by the MPAA once you flexibly draw.' },
+  'gross salary': { title: 'Gross salary',
+    body: 'Pay before income tax and National Insurance \u2014 what the contract says, not what lands in the bank. It is asked for two reasons: it caps the pension contributions that can attract tax relief, and the take-home pay behind it is what funds the years before retirement. Self-employed? Set the employment type under Advanced and this becomes your trading profit, which is relieved differently.' },
+  'living spend': { title: 'Net living spend',
+    body: 'What the household wants to spend in a year once it has stopped work, after tax, drawn from the first retirement onwards. A partner still working offsets it with their take-home pay when a salary is entered.' },
+  'minimum pot': { title: 'Minimum pot (bequest floor)',
+    body: 'What must still be there at the final age, tested at that age only rather than every year. It is in today\u2019s money, so \u00a3100,000 here means \u00a3100,000 of today\u2019s purchasing power and needs no grossing up for inflation.' },
   bridge: { title: 'The bridge',
     body: 'The years between stopping work and the pension unlocking, funded from ISAs, a GIA and cash. A plan can hold plenty and still fail here, because the money is in the wrong place.' }
 };

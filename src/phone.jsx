@@ -261,7 +261,7 @@ export function FieldRow({ label, hint, wide = false, children }) {
             <span className={`w-6 h-6 rounded-full border text-[11px] font-bold flex items-center justify-center ${open ? 'bg-blue-50 border-blue-600 text-blue-700' : 'border-slate-300 text-slate-500'}`}>?</span>
           </button>
         )}
-        <div ref={ctrl} className={`shrink-0 ${wide ? 'w-[184px]' : 'w-[152px]'} flex items-center justify-end gap-1`}>{children}</div>
+        <div ref={ctrl} data-field-control className={`shrink-0 ${wide ? 'w-[184px]' : 'w-[152px]'} flex items-center justify-end gap-1`}>{children}</div>
       </div>
       {hint && open && <p className="text-[11px] text-slate-500 leading-relaxed pb-2.5 pr-1">{hint}</p>}
     </div>

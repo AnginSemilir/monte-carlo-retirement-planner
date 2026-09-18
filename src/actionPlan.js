@@ -46,6 +46,8 @@ function movesFrom(diff, { isCouple, formatGBP }) {
       then: formatGBP(Math.round(d.to)),
       change: `${d.delta > 0 ? '+' : '−'}${formatGBP(Math.abs(Math.round(d.delta)))}`,
       monthly: `${d.delta > 0 ? '+' : '−'}${formatGBP(Math.abs(Math.round(d.delta / 12)))} a month`,
+      // the raw figures as well as the formatted ones: the funding note adds them up
+      delta: Math.round(d.delta), cat: d.cat, wrapper: wrapperName(d.id),
       up: d.delta > 0
     });
   }
@@ -113,7 +115,7 @@ function comparisonRows(baseStats, newStats, { terminalAge, formatGBP, fmtNum })
       note: `share of ${fmtNum(newStats.trials)} simulated futures the plan lasts` },
     { what: `Median pot at ${terminalAge}`, now: money(baseStats.medianTerminal), then: money(newStats.medianTerminal),
       delta: newStats.medianTerminal - baseStats.medianTerminal, fmt: cash,
-      note: 'the middle outcome, in today’s money' },
+      note: 'the middle outcome' },
     { what: `Unlucky pot at ${terminalAge}`, now: money(baseStats.p10Terminal), then: money(newStats.p10Terminal),
       delta: newStats.p10Terminal - baseStats.p10Terminal, fmt: cash,
       note: '10th percentile: only one run in ten leaves less' },
@@ -139,7 +141,7 @@ export function buildActionPlanHtml(data, { formatGBP, fmtNum }) {
   const title = `How to move to ${res.name || res.label || 'this strategy'}`;
 
   const moveTable = moves.length ? `
-    <table>
+    <table class="moves">
       <thead><tr><th>What</th><th class="n">Paying in now</th><th class="n">Pay in instead</th><th class="n">Change</th></tr></thead>
       <tbody>${moves.map(m => `
         <tr>
@@ -151,8 +153,57 @@ export function buildActionPlanHtml(data, { formatGBP, fmtNum }) {
       </tbody>
     </table>` : `<p class="none">This strategy pays in the same amounts you already do. What changes is further down: how the money is drawn once you retire.</p>`;
 
+  /*
+   * WHERE THE EXTRA MONEY COMES FROM.
+   *
+   * The table above is arithmetic the reader cannot do in their head, and the gap is alarming until it is
+   * named: stopping £10,600 of ISA and cash payments funds £17,633 of pension contributions, because a
+   * pension contribution is entered GROSS and the £7,033 difference is the relief added to it. Read
+   * without that line, the obvious explanation is that the difference is being taken out of the ISA
+   * balance - which is not what the strategy does, and is a frightening thing to leave a reader assuming.
+   *
+   * So the sheet adds up its own table and says which of the two it is. The residual is only called
+   * relief when every rise is a pension; otherwise it is named as a difference and left unexplained
+   * rather than explained wrongly.
+   */
+  const freed = moves.filter(m => !m.up).reduce((t, m) => t - m.delta, 0);
+  const added = moves.filter(m => m.up).reduce((t, m) => t + m.delta, 0);
+  const gap = added - freed;
+  const allPension = moves.filter(m => m.up).every(m => m.cat === 'pen');
+  const stopped = [...new Set(moves.filter(m => !m.up).map(m => m.wrapper))];
+  const keeps = stopped.length
+    // lower-cased mid-sentence, unless the name is an acronym: "s&s isa" is not a thing anybody calls it
+    ? `Your ${stopped.map(w => (/[A-Z]/.test(w.slice(1)) ? w : w.toLowerCase())).join(' and ')} ${stopped.length > 1 ? 'keep their balances' : 'keeps its balance'} and ${stopped.length > 1 ? 'carry' : 'carries'} on growing: what changes is where each year's new money goes.`
+    : '';
+  const untouched = res.transferNet > 0
+    ? `Apart from the one-off move in the steps below, nothing is taken out of the money you have already invested. ${keeps}`
+    : `Nothing is taken out of the money you have already invested. ${keeps}`;
+  const fundingRows = (r) => `
+    <table class="funding">
+      <tbody>${r.map(x => `<tr><td${x.total ? ' class="tot"' : ''}>${x.total ? `<strong>${esc(x.what)}</strong>` : esc(x.what)}</td>
+        <td class="n${x.total ? ' tot' : ''}">${x.total ? `<strong>${esc(x.amount)}</strong>` : esc(x.amount)}</td></tr>`).join('')}
+      </tbody>
+    </table>`;
+  const funding = (freed > 0 && added > 0) ? (
+    Math.abs(gap) < 50
+      ? `<div data-funding><p class="fund">The same money, pointed somewhere else: ${esc(formatGBP(Math.round(freed)))} a year stops going in where it does now and starts going in here instead. ${esc(untouched)}</p></div>`
+      : `<div data-funding><h3 class="fund-h">Where the extra comes from</h3>
+         ${fundingRows([
+           /* "freeing take-home pay" only where what stops is paid out of taxed income: stopping a GROSS
+              pension contribution frees less take-home than its face value, so it is not claimed. */
+           { what: moves.some(m => !m.up && m.cat === 'pen') ? 'Contributions you stop' : 'Contributions you stop, freeing take-home pay',
+             amount: formatGBP(Math.round(freed)) },
+           { what: gap > 0
+               ? (allPension ? 'Tax and NIC relief added on top, because a pension contribution is counted gross' : 'The difference, from tax relief and rounding')
+               : 'Less, because the new contributions cost more take-home pay than they show',
+             amount: `${gap > 0 ? '+' : '−'}${formatGBP(Math.abs(Math.round(gap)))}` },
+           { what: 'Paid in under the new split', amount: formatGBP(Math.round(added)), total: true }
+         ])}
+         <p class="fund">${esc(untouched)}</p></div>`
+  ) : '';
+
   const compareTable = rows.length ? `
-    <table>
+    <table class="compare">
       <thead><tr><th>Measure</th><th class="n">Your plan now</th><th class="n">After the change</th><th class="n">Difference</th></tr></thead>
       <tbody>${rows.map(r => {
         const moved = r.fmt(r.delta) !== NONE && r.fmt(r.delta) !== '';
@@ -197,6 +248,12 @@ export function buildActionPlanHtml(data, { formatGBP, fmtNum }) {
       display: flex; align-items: center; justify-content: center; }
   ol.steps h3 { margin: 3px 0 4px; font-size: 12pt; }
   ol.steps p { margin: 0 0 4px; }
+  table.funding { width: auto; min-width: 58%; margin: 6px 0 10px; }
+  table.funding td { border-bottom: 1px solid var(--rule); padding: 5px 10px 5px 0; }
+  table.funding td.tot { border-bottom: none; border-top: 1.5px solid var(--ink); }
+  h3.fund-h { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10pt; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--soft); margin: 18px 0 2px; }
+  p.fund { color: var(--soft); font-size: 10.5pt; margin: 0 0 6px; }
   .policy { break-inside: avoid; margin-bottom: 14px; padding-left: 14px; border-left: 3px solid var(--rule); }
   .policy h3 { margin: 0 0 3px; font-size: 11.5pt; }
   .policy .detail { color: var(--soft); font-size: 10pt; }
@@ -225,6 +282,7 @@ export function buildActionPlanHtml(data, { formatGBP, fmtNum }) {
 
   <h2>What to change</h2>
   ${moveTable}
+  ${funding}
 
   <h2>How to do it</h2>
   <ol class="steps">

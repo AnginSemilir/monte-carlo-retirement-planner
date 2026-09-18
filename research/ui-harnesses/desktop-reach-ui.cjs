@@ -281,6 +281,8 @@ async function runProjection(p) {
         charts: [...document.querySelectorAll('[data-dash-chart]')].map(c => c.getAttribute('data-dash-chart')),
         tiles: [...document.querySelectorAll('[data-dash-tile]')].map(t => t.querySelector('span').textContent.trim()),
         dials: document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]').length,
+        retireStep: ([...document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]')]
+          .map(b => b.getAttribute('aria-label')).find(l => /retire at/i.test(l)) || '').replace(/.* by /, ''),
         jumps: document.querySelectorAll('[data-dash-jump]').length,
         over: cols.filter(c => c.content > c.h + 1).length, cols
       };
@@ -291,6 +293,12 @@ async function runProjection(p) {
     ok('...the dials that move them, beside rather than below', !!both && both.dials > 0, both ? `${both.dials} dials` : '');
     ok('...and the deck order kept as a way to jump', !!both && both.jumps === 7, both ? `${both.jumps} jump links` : '');
     /*
+     * One pair of buttons means one step, and for an age the step people want is a year. The rail took
+     * the largest of the four the wide dial offers, which made the only way to move a retirement age a
+     * five-year jump.
+     */
+    ok('...stepping a retirement age by a year, not five', !!both && both.retireStep === '1', both ? `by ${both.retireStep || 'no retire dial'}` : '');
+    /*
      * Neither column may be taller than the row it was given. The chart is a viewBox with h-auto, so its
      * height is its WIDTH times an aspect - shrinking its card does not shrink the picture, it makes it
      * overflow, and the card's legend wraps to two lines and costs 77px of the allowance. Both of those
@@ -298,6 +306,23 @@ async function runProjection(p) {
      */
     ok('...with neither column overflowing the row', !!both && both.over === 0,
       both ? both.cols.map(c => `${c.content} in ${c.h}`).join(' · ') : '');
+
+    /*
+     * The rail is the only sandbox on a desktop now, so everything the wide panel could change has to be
+     * reachable from it. Both dials for every account would double the rail's length, so they share one
+     * row and a toggle: contributions, or balances.
+     */
+    const dialLabels = () => dash.p.evaluate(() => [...document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]')]
+      .map(b => b.getAttribute('aria-label')).filter(l => !/retire/i.test(l)));
+    const onContrib = await dialLabels();
+    await dash.p.evaluate(() => { const b = [...document.querySelectorAll('[data-dial-kind] button')].find(x => x.textContent.trim() === 'Balance'); if (b) b.click(); });
+    await dash.p.waitForTimeout(300);
+    const onBalance = await dialLabels();
+    ok('the rail toggles between what you pay in and what you hold',
+      onContrib.length > 0 && onBalance.length === onContrib.length && onContrib.every(l => / a year by /.test(l)) && onBalance.every(l => / today by /.test(l)),
+      `${onContrib[0] || 'none'} \u2192 ${onBalance[0] || 'none'}`);
+    await dash.p.evaluate(() => { const b = [...document.querySelectorAll('[data-dial-kind] button')].find(x => x.textContent.trim() === 'A year'); if (b) b.click(); });
+    await dash.p.waitForTimeout(300);
 
     await dash.p.evaluate(() => document.querySelector('[data-dash-expand="mc"]').click());
     await dash.p.waitForTimeout(1200);
@@ -313,6 +338,30 @@ async function runProjection(p) {
     const back = await shape();
     ok('collapsing puts both back', !!back && back.charts.join() === 'mc,rate', back ? back.charts.join(' + ') : '');
     ok('no page errors on the dashboard', dash.errs.length === 0, dash.errs.slice(0, 2).join(' | '));
+  }
+
+  /*
+   * SAID ONCE, IN THE CHROME. The real-terms note used to be a blue banner on the title card, a grey
+   * line over the inputs, a sub-line under half the figures and a clause in several field hints - and
+   * a thing said six times on one screen is not read anywhere. It is a property of the whole model, so
+   * it sits in the line that describes the whole model, which is on screen whichever tab you are on.
+   * The check is per tab, because the failure mode is not "missing", it is "back to twice".
+   */
+  {
+    const once = await open(b, 1440, 900);
+    const counts = [];
+    for (const name of ['Start Here', 'Plan Inputs', 'Config & Assumptions', 'Projection', 'Strategy']) {
+      await tab(once.p, name);
+      counts.push([name, await once.p.evaluate(() => (document.body.innerText.match(/in today\u2019s money|in today's money/g) || []).length)]);
+    }
+    const bad = counts.filter(([, n]) => n !== 1);
+    ok('the today\u2019s-money note is said exactly once on every tab', bad.length === 0,
+       counts.map(([n, c]) => `${n}:${c}`).join(' '));
+    const where = await once.p.evaluate(() => {
+      const p = [...document.querySelectorAll('p')].find(x => /Every amount is in today/.test(x.textContent));
+      return p ? p.textContent.replace(/\s+/g, ' ').trim().slice(-60) : null;
+    });
+    ok('...in the line under the title', !!where && /reads from it\. Every amount is in today/.test(where + ''), where || 'not found');
   }
 
   // ---------- the simple page ----------

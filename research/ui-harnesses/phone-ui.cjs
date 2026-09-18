@@ -556,7 +556,8 @@ const navigate = async (page, label, short) => {
         const H = (el) => el ? Math.round(el.getBoundingClientRect().height) : null;
         const fields = [...document.querySelectorAll('[data-section] input, [data-section] select')].filter(i => i.getBoundingClientRect().height > 0);
         return { titleCard: document.querySelector('[data-title-card]'), scenarioBar: H(document.querySelector('[data-scenario-bar]')), crossover: H(document.querySelector('[data-crossover]')),
-          bannerSentences: ((document.querySelector('[data-money-banner]') || {}).innerText || '').split('.').filter(x => x.trim()).length,
+          // the real-terms note is said ONCE per planner now, in the chrome, not over the amounts
+          moneySaid: (document.body.innerText.match(/in today\u2019s money|in today's money/g) || []).length,
           firstFieldTop: fields.length ? Math.round(fields[0].getBoundingClientRect().top + scrollY) : null, vh: innerHeight,
           carried: /figures came with you/i.test(document.body.innerText), tabs: document.querySelectorAll('[data-section-tabs] [role=tab]').length,
           sections: document.querySelectorAll('[data-section]').length };
@@ -677,10 +678,17 @@ const navigate = async (page, label, short) => {
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Inputs'); if (b) b.click(); });
       await p.waitForTimeout(700);
       ok('the crossover button is one line', first.crossover !== null && first.crossover <= 48, `${first.crossover}px`);
-      ok('the money banner is one sentence', first.bannerSentences === 1, `${first.bannerSentences}`);
+      /*
+       * It used to be a blue banner on the title card, a grey line over the inputs, a qualifier under
+       * half the figures and a clause in three field hints. All of that said the same thing about the
+       * whole model, so it is said once in the chrome instead - under the title on a desktop, and in
+       * the Start Here line a phone carries in place of that card. The tab where amounts are TYPED is
+       * the one that had it twice, so that is the one checked.
+       */
+      ok('the today\u2019s-money note is not repeated over the inputs', first.moneySaid === 0, `${first.moneySaid} time(s) on the Inputs tab`);
       ok('the first field is on the first screen', first.firstFieldTop !== null && first.firstFieldTop < first.vh, `${first.firstFieldTop} of ${first.vh}`);
       ok('nothing says your figures came with you', !first.carried);
-      ok('...but the today\u2019s-money line stays where amounts are typed', first.bannerSentences === 1, `${first.bannerSentences} sentence(s)`);
+
       /*
        * The title card is gone from the phone build altogether, Start Here included: the bar across the
        * top names the planner, so the card was saying it twice. That bar is the same one the simple page
@@ -712,17 +720,26 @@ const navigate = async (page, label, short) => {
       await sectionTab('You');
       const you = await p.evaluate(() => {
         const labels = [...document.querySelectorAll('[data-you-rows] label')];
-        const left = labels.filter(l => { const c = l.parentElement.querySelector('input, button'); return c && l.getBoundingClientRect().left < c.getBoundingClientRect().left; }).length;
+        // the CONTROL column, not the first button in the row: a label can now hold a glossary word,
+        // which is a button of its own and sits exactly where the label does
+        const left = labels.filter(l => { const c = l.parentElement.querySelector('[data-field-control]'); return c && l.getBoundingClientRect().left < c.getBoundingClientRect().left; }).length;
         // every control in one column, same left edge and same width: that is what dropping the
         // steppers bought, and a stray -/+ would show up here as a second left edge
         const ctrls = [...document.querySelectorAll('[data-you-rows] input, [data-you-rows] select')]
           .map(c => Math.round(c.getBoundingClientRect().right));
         return { labels: labels.length, left, hints: document.querySelectorAll('[data-you-rows] button[aria-label^="About"]').length,
+                 terms: document.querySelectorAll('[data-you-rows] button[data-term]').length,
                  steppers: document.querySelectorAll('[data-you-rows] button[aria-label^="increase"]').length,
                  edges: [...new Set(ctrls)].length, ctrls: ctrls.length };
       });
       ok('You is rows: label left, control right', you.labels >= 7 && you.left === you.labels, `${you.left} of ${you.labels}`);
-      ok('...every control ending on one line, and a ? on the explanations', you.edges === 1 && you.steppers === 0 && you.hints >= 3,
+      /*
+       * An explanation is reachable from at least three of these rows, and it does not matter which of
+       * the two marks carries it: a "?" folds a paragraph out under the row, a shimmering word opens its
+       * definition in a bubble. What is asserted is that the long prose is one tap away rather than
+       * printed under every field.
+       */
+      ok('...every control ending on one line, and the explanations one tap away', you.edges === 1 && you.steppers === 0 && (you.hints + you.terms) >= 3,
          `${you.ctrls} controls on ${you.edges} right edge(s), ${you.steppers} steppers, ${you.hints} hints`);
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /Add band/.test(x.textContent)); b.click(); });
       await p.waitForTimeout(400);

@@ -10910,10 +10910,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     })}
                   </div>
                 ))}
+                {/*
+                  * SEMI-TRANSPARENT, so the cells it crosses can still be read. The line runs through the
+                  * most interesting numbers on the grid - the ones either side of the target - and an
+                  * opaque one with a white casing under it blanked exactly those. The casing is a faint
+                  * halo now rather than a mask, and the line itself lets the digit through.
+                  */}
                 {pts.length > 1 && (
                   <svg width={CW * spends.length} height={CH * ages.length} className="absolute inset-0 pointer-events-none overflow-visible">
-                    <polyline points={pts.join(' ')} fill="none" stroke="#ffffff" strokeWidth="5" strokeLinejoin="round" strokeLinecap="round" opacity="0.85" />
-                    <polyline points={pts.join(' ')} fill="none" stroke="#141820" strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" />
+                    <polyline points={pts.join(' ')} fill="none" stroke="#ffffff" strokeWidth="4.5" strokeLinejoin="round" strokeLinecap="round" opacity="0.28" />
+                    <polyline points={pts.join(' ')} fill="none" stroke="#141820" strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" opacity="0.62" />
                   </svg>
                 )}
               </div>
@@ -10949,7 +10955,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10.5px] text-slate-500">
           <span className="flex items-center gap-1.5">
-            <span className="w-4 h-0 border-t-2 border-slate-900" /> where the plan crosses {targetSurvivalRate}%, read between the cells
+            <span className="w-4 h-0 border-t-2 border-slate-900 opacity-60" /> where the plan crosses {targetSurvivalRate}%, read between the cells
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-3.5 h-3.5 rounded-[3px] border-2 border-slate-900" /> your plan as entered

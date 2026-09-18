@@ -32,5 +32,59 @@ const plan = {
   const pct = t.match(/\d+\.\d%/g) || [];
   console.log(`tournament wall clock: ${((Date.now()-t0)/1000).toFixed(1)}s; survival figures on page: ${pct.length}; errors: ${errs.length} ${errs.join(' | ')}`);
   console.log('snippet:', (t.match(/[^\n]*(won|winner|Winner|best)[^\n]*/) || [''])[0].slice(0, 200));
+
+  /*
+   * "GIVE ME STEPS TO DO THIS" - the sheet the tournament's answer turns into.
+   *
+   * It replaced "Apply to sandbox", which drew the strategy as a line on a chart two tabs away. The
+   * sheet opens in its own tab so the browser's print dialogue - and its Save as PDF - has the whole
+   * document. Everything below is checked on the real document in the real second tab, because the two
+   * ways this can break are both invisible from the first one: window.open handing back null (which it
+   * does when asked for `noopener`, leaving a blank tab), and a reference error while building the
+   * markup, which leaves the button doing nothing at all.
+   */
+  let fails = 0;
+  const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
+  const stepsBtn = p.locator('[data-action-plan]').first();
+  ok('every strategy offers steps to follow', await p.locator('[data-action-plan]').count() > 0,
+     `${await p.locator('[data-action-plan]').count()} buttons`);
+  ok('...named as an instruction, not as a place to put it',
+     /give me steps/i.test((await stepsBtn.textContent()) || ''), (await stepsBtn.textContent() || '').trim());
+  await stepsBtn.scrollIntoViewIfNeeded();
+  const popupP = p.waitForEvent('popup', { timeout: 20000 }).catch(() => null);
+  await stepsBtn.click();
+  const sheet = await popupP;
+  ok('pressing it opens the sheet in its own tab', !!sheet);
+  if (sheet) {
+    await sheet.waitForLoadState('domcontentloaded');
+    await sheet.waitForTimeout(500);
+    const doc = await sheet.evaluate(() => {
+      const tables = [...document.querySelectorAll('table')];
+      const cells = (tbl) => [...tbl.querySelectorAll('tbody tr')].map(tr => [...tr.querySelectorAll('td')].map(td => td.textContent.trim()));
+      return {
+        chars: document.body.innerText.length,
+        h1: (document.querySelector('h1') || {}).textContent || '',
+        sections: [...document.querySelectorAll('h2')].map(h => h.textContent.trim()),
+        tables: tables.length,
+        moveRows: tables[0] ? cells(tables[0]).length : 0,
+        compareRows: tables[1] ? cells(tables[1]).length : 0,
+        steps: document.querySelectorAll('ol.steps > li').length,
+        policy: document.querySelectorAll('.policy').length,
+        junk: (document.body.innerText.match(/undefined|NaN|\[object|\u2212£0\b/g) || []),
+        printable: !!document.querySelector('style') && /@media print/.test([...document.querySelectorAll('style')].map(x => x.textContent).join(''))
+      };
+    });
+    ok('...carrying a real document, not a blank tab', doc.chars > 1500, `${doc.chars} characters`);
+    ok('...titled for the strategy it describes', /^How to move to .+/.test(doc.h1), doc.h1);
+    ok('...with a table of what to pay in instead', doc.moveRows > 0, `${doc.moveRows} rows`);
+    ok('...numbered steps to do it', doc.steps >= 2, `${doc.steps} steps`);
+    ok('...how to draw on it afterwards', doc.policy > 0, `${doc.policy} policy notes`);
+    ok('...and the figures now against the figures after', doc.compareRows >= 3, `${doc.compareRows} rows`);
+    ok('...no undefined, NaN or signed zero anywhere in it', doc.junk.length === 0, doc.junk.join(', '));
+    ok('...and a print stylesheet, since saving it as a PDF is the point', doc.printable);
+  }
+  ok('no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
   await b.close();
+  console.log(fails ? `\n${fails} FAILED` : '\nall ok');
+  process.exit(fails ? 1 : 0);
 })();

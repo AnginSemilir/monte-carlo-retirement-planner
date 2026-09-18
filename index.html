@@ -385,12 +385,19 @@
        *   media query rather than a `md:` variant because it must never apply on desktop, where the
        *   gutters are wider and a bleeding chart would escape the card entirely.
        *
-       * .wide-chart - the opposite problem at the other end. The page is capped at max-w-7xl (1280px), so
-       *   the chart measured 1,238px wide on a 1366, a 1440 and a 1920 screen alike: on a large monitor
-       *   that leaves 682px of empty page beside the thing people came to look at. The cap is right for
-       *   prose and wrong for a chart, so only the chart card escapes it, and only from 1536px up. 6rem
-       *   each side rather than the 8rem that would reach the edge, so a 1536px window keeps a 32px
-       *   gutter and nothing can overflow the page.
+       * .wide-chart-card - the opposite problem at the other end. The page is capped at max-w-7xl (1280px),
+       *   so the chart measured 1,238px wide on a 1366, a 1440 and a 1920 screen alike: on a large
+       *   monitor that leaves 682px of empty page beside the thing people came to look at. The cap is
+       *   right for prose and wrong for a chart, so the chart card escapes it from 1536px up. 6rem each
+       *   side rather than the 8rem that would reach the edge, so a 1536px window keeps a 32px gutter
+       *   and nothing can overflow the page.
+       *
+       *   THE CARD moves, not the chart inside it. The first version of this pulled the chart's own
+       *   container out by those 6rem and left the card where it was, so from 1536px up the drawn line
+       *   crossed its own card's border and ended 33px past it - the chart hanging outside the box it
+       *   belongs to. The card is what should be wide; everything in it that is NOT the chart is then
+       *   pushed back by the same 6rem, so headings, explanations and legends stay on the same left
+       *   margin as every other card on the page and only the picture uses the extra width.
        *
        * .touch-ui - touch-action: manipulation removes the ~300ms click delay browsers keep in case a tap
        *   turns out to be a double-tap-to-zoom. Applied only when the pointer is coarse.
@@ -404,7 +411,10 @@
        *   page had. A bleed has to be the sum of the paddings it is cancelling, not a constant.
        */
       @media (max-width: 767px) { .bleed-tight { margin-left: -1.75rem; margin-right: -1.75rem; } }
-      @media (min-width: 1536px) { .wide-chart { margin-left: -6rem; margin-right: -6rem; } }
+      @media (min-width: 1536px) {
+        .wide-chart-card { margin-left: -6rem; margin-right: -6rem; }
+        .wide-chart-card > :not(.chart-holder) { margin-left: 6rem; margin-right: 6rem; }
+      }
       /*
        * .swipe-x - the container whose content can be swiped between sections or steps. pan-y keeps
        *   vertical scrolling native and hands horizontal movement to the pointer listeners in swipe.js;
@@ -457,6 +467,46 @@
       body button, body select, body summary,
       body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) { min-height: 24px; }
       body input[type="range"] { height: 24px; }
+
+      /*
+       * THE EXCEPTION THE TWO RULES ABOVE ALWAYS MEANT TO HAVE.
+       *
+       * WCAG 2.5.5 and 2.5.8 both exempt a control that sits inside a sentence, and the probe that
+       * measures touch targets has followed that exemption from the start - but the CSS did not, so a
+       * glossary word's trigger got a 44px box inside a 20px line. The box overflowed the line into the
+       * block below, that block painted over it, and the visible mark stopped being the hit target: on a
+       * phone the definitions could not be opened at all. An inline control states that it is inline and
+       * keeps the size of the text it sits in.
+       */
+      body button.inline-control,
+      .touch-ui button.inline-control { min-height: 0; }
+
+      /*
+       * A WORD WITH A DEFINITION, MARKED THE WAY A LINK IS MARKED.
+       *
+       * These are the acronyms this planner cannot avoid - GIA, NMPA, MPAA - and on a phone there is no
+       * hover to discover them with, so they have to look pressable standing still. A text-decoration
+       * cannot hold a gradient, so the underline is a background image sized to two pixels at the bottom
+       * of the line box and slid sideways, which gives a slow shimmer along the rule and leaves the word
+       * itself in whatever colour it inherits. That matters: these sit in headings, labels and table
+       * cells across three themes, and a word that recoloured itself would fight all of them.
+       *
+       * The animation is decoration in the strict sense - nothing depends on it - so reduced motion
+       * simply stops it and keeps the underline.
+       */
+      .term-link {
+        background-image: linear-gradient(90deg,
+          rgb(var(--sky-600)) 0%, rgb(var(--blue-500)) 20%, rgb(var(--sky-600)) 35%,
+          rgb(var(--blue-200)) 50%, rgb(var(--sky-600)) 65%, rgb(var(--blue-500)) 80%, rgb(var(--sky-600)) 100%);
+        background-size: 220% 2px;
+        background-repeat: no-repeat;
+        background-position: 0% 100%;
+        padding-bottom: 1px;
+        animation: term-shimmer 4s linear infinite;
+      }
+      .term-link:hover, .term-link:focus-visible { background-size: 220% 3px; }
+      @keyframes term-shimmer { from { background-position: 0% 100%; } to { background-position: 220% 100%; } }
+      @media (prefers-reduced-motion: reduce) { .term-link { animation: none; } }
 
       /*
        * THE FULL PLANNER'S MONTE CARLO REVEAL, DONE BY THE BROWSER RATHER THAN BY REACT.

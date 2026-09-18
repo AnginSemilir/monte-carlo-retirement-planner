@@ -600,11 +600,33 @@ const navigate = async (page, label, short) => {
         const vis = (el) => el.getBoundingClientRect().width > 0;
         const term = [...document.querySelectorAll('[data-term]')].find(vis);
         const dot = [...document.querySelectorAll('[data-help-dot]')].find(vis);
+        let hitOk = null, shimmer = null, tall = null;
+        if (term) {
+          term.scrollIntoView({ block: 'center' });
+          const r = term.getBoundingClientRect();
+          const on = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+          /*
+           * THE ASSERTION THIS HARNESS WAS MISSING.
+           *
+           * The definitions were unopenable on a phone for weeks and every check here passed, because
+           * each one asked whether the mark was PRESENT. It was: a 24px circle, visible, with a working
+           * handler. What it did not have was the tap - the global 44px touch floor gave it a box taller
+           * than the line it sat in, the box overflowed into the block below, and that block painted over
+           * it. So ask the browser the question a finger asks: at the middle of this mark, what would I
+           * hit? Anything but the mark itself is a control that cannot be operated.
+           */
+          hitOk = !!on && (on === term || term.contains(on));
+          tall = Math.round(r.height);
+          shimmer = /gradient/.test(getComputedStyle(term).backgroundImage);
+        }
         return { terms: document.querySelectorAll('[data-term]').length, dots: document.querySelectorAll('[data-help-dot]').length,
-                 termW: term ? Math.round(term.getBoundingClientRect().width) : 0,
+                 termW: term ? Math.round(term.getBoundingClientRect().width) : 0, hitOk, shimmer, tall,
                  clickable: !!term && !!dot, dotClosed: dot ? dot.getAttribute('aria-expanded') : null };
       });
-      ok('a glossary term offers a "?" on a phone', help.terms > 0 && help.termW >= 24, `${help.terms} terms, ${help.termW}px`);
+      ok('a glossary term is the tap target itself, not a mark beside it', help.terms > 0 && help.hitOk === true,
+        `${help.terms} terms; at the middle of the first one a finger hits ${help.hitOk ? 'the term' : 'something else'}`);
+      ok('...marked as pressable by a shimmering underline', help.shimmer === true, `background gradient: ${help.shimmer}`);
+      ok('...at the height of the text it sits in, not the 44px floor', help.tall !== null && help.tall <= 30, `${help.tall}px tall`);
       ok('...and the long explanations are "?" too, closed to start', help.dots > 0 && help.dotClosed === 'false', `${help.dots} dots, expanded=${help.dotClosed}`);
       if (help.clickable) {
         await p.evaluate(() => [...document.querySelectorAll('[data-term]')].find(x => x.getBoundingClientRect().width > 0).click());

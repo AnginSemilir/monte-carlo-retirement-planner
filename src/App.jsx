@@ -19,7 +19,7 @@ import {
   TrendingUp, Layers, Check, RotateCcw, Zap, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
   Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, ChevronUp, ChevronDown, Home, Gift,
-  GripVertical, Maximize2, Loader2
+  GripVertical, Maximize2, Loader2, FileText
 } from 'lucide-react';
 import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
@@ -29,6 +29,7 @@ import { Term as T } from './glossary.jsx';
 import { Boundary } from './boundary.jsx';
 import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, CollapsedRow, Clamp, PercentInput } from './phone.jsx';
 import { fieldCls as inputCls, smallFieldCls as smallInputCls, parseTierLabel } from './ui.js';
+import { buildActionPlanHtml, openActionPlan } from './actionPlan.js';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
@@ -105,6 +106,25 @@ const parseFormatted = (raw) => {
     // anything else, the group separator included, is display and not value
   }
   return out;
+};
+/*
+ * The display form of a figure somebody is still typing.
+ *
+ * fmtNum goes through Number(), which cannot carry a half-finished number: "1234." comes back as "1,234"
+ * and the decimal mark vanishes from under the caret, "1234.50" loses its trailing zero. So while a field
+ * has focus the DIGIT STRING is grouped rather than the value, which means what is shown is always what
+ * was typed with the separators added and nothing else changed. parseFormatted is its exact inverse.
+ */
+const groupDigits = (plain) => {
+  const s = String(plain ?? '');
+  if (!s) return '';
+  const neg = s.startsWith('-');
+  const body = neg ? s.slice(1) : s;
+  const dot = body.indexOf('.');
+  const whole = dot === -1 ? body : body.slice(0, dot);
+  const frac = dot === -1 ? null : body.slice(dot + 1);
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, activeNumberFormat.group);
+  return (neg ? '-' : '') + grouped + (frac === null ? '' : activeNumberFormat.decimal + frac);
 };
 const formatGBP = (v) => fmtNum(Number.isFinite(v) ? v : 0, { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 });
 const isPlainObject = (o) => o !== null && typeof o === 'object' && !Array.isArray(o);
@@ -5950,7 +5970,7 @@ const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, i
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, pathsForSeed, runTrial, summarizeTrials, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan
@@ -6871,6 +6891,24 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
   const setProgress = setField('progress');
   const setIsEvaluating = setField('isEvaluating');
   const [confirmApplyId, setConfirmApplyId] = useState(null);
+  const [planBlocked, setPlanBlocked] = useState(false);
+
+  /*
+   * The winner as a sheet of instructions: what to change, how to change it, how to draw on it
+   * afterwards, and what the change is projected to be worth. It opens in its own tab so the browser's
+   * print dialogue - and its "Save as PDF" - has the whole document to work with.
+   */
+  const openStrategySteps = (res) => {
+    const base = results ? results.players.find(p => p.id === 'baseline') : null;
+    const html = buildActionPlanHtml({
+      res, baseline: base, plan, ctx,
+      diff: E.diffStrategyPlans(base?.planState || plan, res.planState),
+      playbook: E.policyPlaybook(plan?.spending?.decumulationPolicy, ctx.P),
+      isCouple, seed: results?.seed ?? seed, trials: TOURNAMENT_TRIALS,
+      summary: summarizeStrategyChange(res, base, { isCouple, meta: results?.meta, selfEmployedOnly })
+    }, { formatGBP, fmtNum });
+    setPlanBlocked(!openActionPlan(html));
+  };
   // A sandbox run is scored against the frozen sandbox plan rather than the saved inputs.
   const selfEmployedOnly = ctx.owners.length > 0 && ctx.owners.every(o => o.selfEmployed);
   const usingSandbox = !!state.basePlan;
@@ -7205,7 +7243,16 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
                     <p className="text-[10px] text-slate-500 leading-snug">A scenario differs in more than its contributions, so there is nothing here to copy across. Load it from the scenario selector at the top of the page to work on it.</p>
                   ) : res.id !== 'baseline' && (
                     <div className="space-y-1.5">
-                      <button type="button" onClick={() => onApplyStrategyToSandbox(res)} className="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition-colors cursor-pointer">Apply to sandbox</button>
+                      {/*
+                        * This used to say "Apply to sandbox", which drew the strategy as a line on a
+                        * chart two tabs away. The question somebody has at this point is not what it
+                        * looks like - they have just read the figures - it is what to actually do, and
+                        * the answer to that is a document you can take away rather than another view.
+                        */}
+                      <button type="button" data-action-plan onClick={() => openStrategySteps(res)}
+                        className="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5" /> Give me steps to do this
+                      </button>
                       {/* overwriting entered inputs is destructive, so it takes a second deliberate click */}
                       <button type="button"
                         onClick={() => { if (confirmApplyId === res.id) { onApplyStrategyToPlan(res); setConfirmApplyId(null); } else setConfirmApplyId(res.id); }}
@@ -7219,6 +7266,11 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
               );
             })}
           </div>
+          {planBlocked && (
+            <p className="mt-3 text-[11px] text-rose-700 font-semibold">
+              Your browser blocked the new tab the steps open in. Allow pop-ups for this site and press the button again.
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -7351,8 +7403,8 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const PROJECTION_SLIDES = [
     { n: 1, key: 'topline', name: 'Topline', desc: 'Your plan exactly as entered: how often it lasts, what it leaves behind, and when it fails if it does.' },
     { n: 2, key: 'safespend', name: 'Safe spend', desc: 'Holds the risk fixed and solves for the income instead - the most you could spend a year and still clear your target survival rate.' },
-    { n: 3, key: 'saferetire', name: 'Safe retirement', desc: 'Holds the spending fixed and solves for the date - the earliest age you could stop and still clear the same target.' },
-    { n: 4, key: 'ratechart', name: 'Rate based', desc: 'One steady real rate per wrapper, compounded year by year. It redraws as you type, so it is the quickest way to see a change.' },
+    { n: 3, key: 'saferetire', name: 'Safe retirement', desc: 'Holds the spending fixed and solves for the date - the earliest age you could retire and still clear the same target.' },
+    { n: 4, key: 'ratechart', name: 'Rate based projection', desc: 'One steady real rate per wrapper, compounded year by year. It redraws as you type, so it is the quickest way to see a change.' },
     { n: 5, key: 'mcchart', name: 'Monte Carlo', desc: 'Thousands of randomised futures on the same axes, which show the spread that a single smooth rate hides.' },
     { n: 6, key: 'compare', name: 'Side by side', desc: 'The same plan both ways at the same five ages, so the gap between the smooth line and the simulated one is explicit.' },
     /*
@@ -7370,6 +7422,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     { n: 7, key: 'sandbox', name: 'Change something', desc: 'Edit a contribution, a balance or an age and the amber line moves with you. Your saved plan is not touched.' }
   ];
   const SANDBOX_SLIDE = PROJECTION_SLIDES.find(x => x.key === 'sandbox').n;
+  const MC_SLIDE = PROJECTION_SLIDES.find(x => x.key === 'mcchart').n;
   /*
    * The Inheritance tab is a deck too, for the same reason the Projection tab is: it asks for a dozen
    * facts and then answers one question, and shown all at once the answer is buried under the asking.
@@ -7865,6 +7918,21 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // One control for both charts. They exist to be read against each other, so letting them sit on
   // different percentiles would make the only comparison that matters impossible to trust.
   const [bandMode, setBandMode] = useState('expected');   // 'expected' | 'quartile' | 'decile'
+  /*
+   * THE MONTE CARLO STEP ARRIVES WITH ITS SPREAD DRAWN.
+   *
+   * The band picker is shared with the rate-based step so the two pictures can be laid over each other,
+   * and it starts on "Expected only" - which is the right opening for step 4, a single line you can
+   * watch move as you type. On step 5 it meant the simulation drew one median line: no fan, no sixty
+   * paths sweeping out, none of the spread that is the entire reason the step exists. The picture only
+   * appeared if you happened to press "Upper/lower quartiles", and the run it was drawn from had been
+   * finished for some time by then.
+   *
+   * So arriving at step 5 turns the quartiles on, ONCE per arrival - after which the picker is yours
+   * again, "Expected only" included. The ref is what makes it an arrival rather than a rule: without it
+   * the effect would fight every attempt to switch the band back off while standing on the step.
+   */
+  const mcArrivedRef = useRef(false);
   // The Monte Carlo step exists to show its range, so there is nothing to switch off there.
   const showFan = true;
   // null in `expected`: no band to draw, and nothing lifting the axis away from the line.
@@ -7936,6 +8004,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * replays it too. Step 7 draws the same chart un-animated, so it is not in this key at all.
    */
   const mcPlayKey = `${simResult?.seed ?? 'x'}-${fanData.length}-${seeAll ? 'all' : slide}`;
+
 
   // ------------------------------------------------------------ chart scales
   /*
@@ -8047,7 +8116,38 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * projection runs and takes seconds rather than milliseconds. It is off until asked for, debounced so
    * dragging a dial does not queue a run per frame, and it says plainly that it is working.
    */
-  const [sandboxMcOn, setSandboxMcOn] = useState(false);
+  /*
+   * WHAT STEP 7 DRAWS.
+   *
+   * There used to be two controls here and they disagreed with each other. The chart was always the
+   * Monte Carlo fan, and a separate "Amber line: Expected / Monte Carlo" row under it switched only the
+   * sandbox's own line between the two - so the picture said one thing and the line drawn over it said
+   * another, and neither the band picker nor the horizon slider that every other step carries above its
+   * chart was here at all.
+   *
+   * One control now, in the place the other steps put theirs: it changes the whole chart, and the amber
+   * line follows whatever the chart is. Rate based opens first because it redraws as you press a dial;
+   * Monte Carlo has to simulate, which is what the spinner beside the toggle is for.
+   */
+  const [sandboxChartKind, setSandboxChartKind] = useState('rate');
+  const sandboxMcOn = sandboxChartKind === 'mc';
+
+  /*
+   * Arriving at a Monte Carlo chart draws its spread; see mcArrivedRef above for why it is an arrival
+   * rather than a rule. Step 7 counts whenever its own switch is set to Monte Carlo: a simulation drawn
+   * as a single median line is the same empty picture there as it was on step 5.
+   *
+   * It sits BELOW sandboxChartKind on purpose. A dependency array is built during render, so naming a
+   * const declared further down the component reads it in its temporal dead zone - which threw on every
+   * render of the tab and took the whole screen to the error boundary.
+   */
+  useEffect(() => {
+    const onMc = seeAll || slide === MC_SLIDE || (slide === SANDBOX_SLIDE && sandboxChartKind === 'mc');
+    if (!onMc) { mcArrivedRef.current = false; return; }
+    if (mcArrivedRef.current) return;
+    mcArrivedRef.current = true;
+    setBandMode(m => (m === 'expected' ? 'quartile' : m));
+  }, [slide, seeAll, MC_SLIDE, SANDBOX_SLIDE, sandboxChartKind]);
   const [sandboxMc, setSandboxMc] = useState(null);
   const [sandboxMcBusy, setSandboxMcBusy] = useState(false);
   useEffect(() => {
@@ -8629,6 +8729,14 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     setSandboxCustomized(true);
     setSandboxAccounts(prev => { const cur = { ...(prev[id] || {}) }; delete cur.contribByYear; return { ...prev, [id]: { ...cur, [field]: parseInputNumber(value) } }; });
   };
+  const adjustSandboxBalance = (id, delta) => {
+    setSandboxCustomized(true);
+    setSandboxAccounts(prev => {
+      const cur = { ...(prev[id] || {}) };
+      const now = E.num(cur.balance, E.num((plan.accounts || []).find(x => x.id === id)?.balance, 0));
+      return { ...prev, [id]: { ...cur, balance: Math.max(0, now + delta) } };
+    });
+  };
   const adjustSandboxContrib = (id, delta) => {
     setSandboxCustomized(true);
     setSandboxAccounts(prev => { const cur = { ...(prev[id] || {}) }; delete cur.contribByYear; return { ...prev, [id]: { ...cur, contrib: Math.max(0, E.num(cur.contrib, 0) + delta) } }; });
@@ -8851,18 +8959,21 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     setIsSimulating(true);
     // Every stage is cleared, including one that is about to be skipped: a verdict line left over from an
     // earlier run would otherwise sit alongside fresh figures and read as part of the same measurement.
-    setSimResult(null); setSafeMaxResult(null);
+    setSimResult(null); setSafeMaxResult(null); setSafeRetireResult(null);
     setRunPlanSig(planSig);
     setTournament(prev => (prev.results ? { ...prev, results: null } : prev));
     try {
-      await runStageTest(wantSafeMax ? { from: 0, to: 0.35 } : { from: 0, to: 1 });
+      await runStageTest(wantSafeMax ? { from: 0, to: 0.3 } : { from: 0, to: 1 });
       if (mcCancelRef.current) return;
       if (wantSafeMax) {
         setIsOptimizing(true);
-        await runStageSafeMax(targetSurvivalRate, { from: 0.35, to: 1 });
+        await runStageSafeMax(targetSurvivalRate, { from: 0.3, to: 0.55 });
+        if (mcCancelRef.current) return;
+        setIsOptimizing(false);
+        await runStageRetire(targetSurvivalRate, { from: 0.55, to: 1 });
       }
     } finally {
-      setIsSimulating(false); setIsOptimizing(false); setSimProgress(null);
+      setIsSimulating(false); setIsOptimizing(false); setIsSolvingRetire(false); setSimProgress(null);
     }
   };
 
@@ -8878,15 +8989,22 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   };
 
   /*
-   * The retirement-age solve is its own button rather than part of the main run. It is a scan - twenty
-   * or so Monte Carlo runs, one per candidate age - so it costs several times what the safe-spend solve
-   * does, and most people arriving at the deck want the spend answer rather than this one.
+   * Stage 3: the earliest age the plan still clears its target from.
+   *
+   * It used to be a button of its own, on the grounds that a scan of twenty Monte Carlo runs costs
+   * several times what the safe-spend solve does. Measured on a typical plan it is 1.8s against the
+   * 1.6s the other two stages take together - so the whole run went from 1.6s to 3.4s, and in exchange
+   * step 3 has its answer when you reach it instead of a button asking you to wait for one. Every stage
+   * already renders as it lands and all three run in the projection worker, so nothing on screen waits
+   * on this: steps 1 and 2 appear exactly when they did before.
+   *
+   * The button remains on step 3, for re-solving at a different target survival rate.
    */
-  const handleSolveRetirement = async (rate = targetSurvivalRate) => {
-    if (mcBusy || isSolvingRetire) return;
+  const runStageRetire = async (rate, scale = { from: 0, to: 1 }) => {
     setIsSolvingRetire(true);
     setSafeRetireResult(null);
     await tick();
+    const scaled = (value, label) => setSimProgress({ label, value: scale.from + (scale.to - scale.from) * (value || 0) });
     try {
       // `solved` rather than a truthiness test on the answer: the solver returns null for a plan with no
       // room to search at all, and that is an answer, not a failure to get one.
@@ -8895,7 +9013,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
         try {
           const d = await runInProjectionWorker(
             { kind: 'safeAge', plan, targetRate: rate, searchTrials: 500, finalTrials: 2500 },
-            { onProgress: (value, label) => setSimProgress({ label, value }) });
+            { onProgress: scaled });
           if (d === null) return;                       // cancelled
           r = d.result; solved = true;
         } catch (err) {
@@ -8906,12 +9024,18 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
       // The main-thread path is unchanged, and is what runs when there are no workers or one broke.
       if (!solved) {
         r = E.safeRetirementAge(plan, { targetRate: rate, searchTrials: 500, finalTrials: 2500,
-          onProgress: (pr) => setSimProgress({ label: pr.label, value: pr.value }) });
+          onProgress: (pr) => scaled(pr.value, pr.label) });
       }
       setSafeRetireResult(r);
     } catch (err) {
       setSafeRetireResult({ error: String(err && err.message ? err.message : err) });
-    } finally { setIsSolvingRetire(false); setSimProgress(null); }
+    } finally { setIsSolvingRetire(false); }
+  };
+
+  // The step-3 button: the same stage, on its own, with the progress bar to itself.
+  const handleSolveRetirement = async (rate = targetSurvivalRate) => {
+    if (mcBusy || isSolvingRetire) return;
+    try { await runStageRetire(rate); } finally { setSimProgress(null); }
   };
 
   /*
@@ -9587,7 +9711,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * as a scroll. Measured: it was, until overflow-x-auto became desktop-only.
    */
   const renderHistoricalChart = ({ inOverlay = false } = {}) => (
-                <div className={`relative ${isPhone && !inOverlay ? 'bleed swipe-x' : 'overflow-x-auto'} ${!isPhone && !inOverlay ? 'wide-chart' : ''} ${inOverlay ? 'h-full' : ''}`}>
+                <div className={`relative ${isPhone && !inOverlay ? 'bleed swipe-x' : 'overflow-x-auto'} ${!isPhone && !inOverlay ? 'chart-holder' : ''} ${inOverlay ? 'h-full' : ''}`}>
                   {isPhone && !inOverlay && (
               <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setFullscreenChart('hist')}
                 className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
@@ -9631,7 +9755,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     const edge = isRate ? cp.rateEdge : cp.fanEdge;
     return (
       <>
-        <div className={`relative ${isPhone && !inOverlay ? 'bleed swipe-x' : 'overflow-x-auto'} ${!isPhone && !inOverlay ? 'wide-chart' : ''} ${inOverlay ? 'h-full' : ''}`}>
+        <div className={`relative ${isPhone && !inOverlay ? 'bleed swipe-x' : 'overflow-x-auto'} ${!isPhone && !inOverlay ? 'chart-holder' : ''} ${inOverlay ? 'h-full' : ''}`}>
           {isPhone && !inOverlay && (
             <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setFullscreenChart(kind)}
               className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
@@ -9764,10 +9888,22 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       <div className={inSheet ? 'space-y-1' : ''} data-quick-dials>
         <div className={inSheet ? 'space-y-1' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-5'}>
           {ctx.owners.map(o => dial(`${o.label}: retire at`, sandboxRetire[o.key], [-5, -1, 1, 5], (d) => adjustSandboxRetire(o.key, d)))}
+          {/*
+            * Balance as well as contribution. Step 7 used to be followed by a full Sandbox card holding
+            * typed fields for both; that card is gone, so anything it could change has to be reachable
+            * from a dial or it is not reachable at all. Escalation is the one thing left behind - it is
+            * an Advanced input, and it lives on the Plan Inputs tab.
+            */}
           {displayedAccounts.map(acc => {
             const sb = sandboxAccounts[acc.id] || {};
             const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
             return dial(`${label}: annual contribution`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
+          })}
+          {displayedAccounts.map(acc => {
+            const sb = sandboxAccounts[acc.id] || {};
+            const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
+            const now = E.num(sb.balance, E.num(acc.balance, 0));
+            return dial(`${label}: balance today`, formatGBP(now), [-25000, -5000, 5000, 25000], (d) => adjustSandboxBalance(acc.id, d));
           })}
         </div>
         <div className={`flex items-center gap-2 pt-2 ${inSheet ? '' : 'justify-end'}`}>
@@ -10811,7 +10947,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               */}
             <div data-number-format className="bg-surface border border-slate-200/90 p-5 rounded-xl flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> How numbers are written</h2>
+                <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Table className="w-4 h-4 text-blue-600" /> Decimal choice</h2>
                 <p className="text-xs text-slate-500 mt-1">Applies everywhere, to what is shown and to what you type. Amounts group in thousands either way; this is only which mark does the grouping and which the decimal.</p>
               </div>
               <div className="flex items-center gap-1 p-0.5 bg-slate-100 rounded-lg border border-slate-200 shrink-0">
@@ -11379,7 +11515,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900">Run the projection</h3>
                   {resultsStale && <span data-stale-results className="block text-[11px] font-semibold text-amber-700 mb-0.5">Your inputs changed since this run. The steps below describe the plan as it was &mdash; run again to refresh.</span>}
-                  <span className="text-[11px] text-slate-500">{simResult ? 'Six steps: what your plan does, the most you could spend, the earliest you could stop, the two ways of drawing the range, then both side by side.' : 'Answers arrive as they land, so the first is on screen while the rest is still working. Every figure is in today\u2019s money.'}</span>
+                  <span className="text-[11px] text-slate-500">{simResult ? 'Six steps: what your plan does, the most you could spend, the earliest you could retire, the two ways of drawing the range, then both side by side.' : 'Answers arrive as they land, so the first is on screen while the rest is still working. Every figure is in today\u2019s money.'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {mcBusy && (
@@ -11407,7 +11543,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             {/* Nothing but the button until there is something to show. */}
             {!simResult ? (
               <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
-                <div className="flex items-center gap-2 font-bold text-blue-950 text-sm"><Layers className="w-4 h-4 text-blue-600" /> What you will get</div>
+                <div className="flex items-center gap-2 font-bold text-blue-950 text-sm"><Layers className="w-4 h-4 text-blue-600" /> Sections</div>
                 {/*
                   * The deck itself, before it exists. This said "The six steps" over a fold holding a
                   * paragraph ABOUT the six steps, which is the one thing a contents list should never
@@ -11492,7 +11628,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* ---------------- 3. SAFE RETIREMENT AGE ---------------- */}
               {showSlide(3) && (
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(3, 'The earliest you could stop', 'Holds the spending fixed and solves for the retirement age instead.')}
+                  {slideHead(3, 'The earliest you could retire', 'Holds the spending fixed and solves for the retirement age instead.')}
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="text-slate-500 font-semibold">Survive at least:</span>
                     <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
@@ -11571,8 +11707,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               {/* ---------------- 4. RATE-BASED CHART ---------------- */}
               {showSlide(4) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(4, 'Rate based', 'One steady rate per wrapper, compounded. Redraws as you type.')}
+                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 wide-chart-card">
+                  {slideHead(4, 'Rate based projection', 'One steady rate per wrapper, compounded. Redraws as you type.')}
                   <div className="flex flex-wrap items-center gap-3">
                     {bandToggle}
                     {horizonSlider}
@@ -11593,7 +11729,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
               {/* ---------------- 5. MONTE CARLO CHART ---------------- */}
               {showSlide(5) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
+                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 wide-chart-card">
                   {slideHead(5, 'Monte Carlo', `${fmtNum(simResult?.trials)} randomised futures, same axes as the last screen.`)}
                   <div className="flex flex-wrap items-center gap-3">
                     {bandToggle}
@@ -11757,30 +11893,37 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 /* room at the foot for the sheet, so the Rerun card below is not stranded under it */
                 style={{ scrollMarginTop: 12, paddingBottom: isPhone ? sheetH : 0 }}>
                 <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {/* The Monte Carlo warning is in the head on a desktop and beside the button that
-                      triggers it on a phone: a third sentence here wraps to another line, and this
-                      card's chart has nineteen pixels of clearance above the sandbox sheet. */}
-                  {slideHead(SANDBOX_SLIDE, 'Change something', isPhone
-                    ? 'Edit below and the amber line moves with you. Your saved plan is not touched.'
-                    : 'Edit below and the amber line moves with you. Your saved plan is not touched. Monte Carlo takes longer to load.')}
-                  {renderProjectionChart('mc')}
-                  {/* Under the chart, not over it: on a phone this card's chart has nineteen pixels of
-                      clearance above the sandbox sheet, and a control row above it would spend them. */}
-                  <div data-sandbox-line-mode className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                    <span className="text-slate-500 font-semibold">Amber line:</span>
-                    {[[false, 'Expected'], [true, 'Monte Carlo']].map(([mode, label]) => (
-                      <button key={label} type="button" onClick={() => setSandboxMcOn(mode)} aria-pressed={sandboxMcOn === mode}
-                        className={`rounded-lg border font-bold transition-all cursor-pointer ${isPhone ? 'min-h-11 px-3' : 'px-2.5 py-1'} ${sandboxMcOn === mode ? 'bg-amber-50 border-amber-400 text-amber-800' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900'}`}>
-                        {label}
-                      </button>
-                    ))}
-                    {isPhone && !sandboxMcOn && <span className="text-slate-400">Monte Carlo takes longer to load</span>}
-                    {sandboxMcOn && (sandboxMcBusy
-                      ? <span className="flex items-center gap-1.5 text-slate-500"><Loader2 className="w-3.5 h-3.5 animate-spin" /> simulating {fmtNum(MC_TRIALS)} paths&hellip;</span>
-                      : sandboxMc
+                  {slideHead(SANDBOX_SLIDE, 'Change something',
+                    'Edit below and the amber line moves with you. Your saved plan is not touched.')}
+                  {/*
+                    * The controls sit above the chart, where steps 4 and 5 put theirs: the same band
+                    * picker, the same horizon slider, and one switch for which projection is drawn.
+                    * The spinner is beside that switch because that switch is what causes the wait -
+                    * pressing a dial under Monte Carlo re-simulates, and a chart that sat still for two
+                    * seconds with nothing turning was the reason this needed saying in the head.
+                    */}
+                  <div data-sandbox-chart-mode className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px]">
+                    <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
+                      {[['rate', 'Rate based'], ['mc', 'Monte Carlo']].map(([kind, label]) => (
+                        <button key={kind} type="button" onClick={() => setSandboxChartKind(kind)} aria-pressed={sandboxChartKind === kind}
+                          className={`rounded-lg font-bold transition-all cursor-pointer ${isPhone ? 'min-h-11 px-3' : 'px-2.5 py-1'} ${sandboxChartKind === kind ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    {sandboxMcBusy
+                      ? <span className="flex items-center gap-1.5 text-slate-600 font-semibold"><Loader2 className="w-3.5 h-3.5 animate-spin" /> simulating {fmtNum(MC_TRIALS)} paths&hellip;</span>
+                      : sandboxMcOn && sandboxMc
                         ? <span className="text-slate-500">sandbox survival <strong className="text-slate-800">{sandboxMc.successRate.toFixed(1)}%</strong>, median path drawn</span>
-                        : <span className="text-slate-400">change something to simulate it</span>)}
+                        : sandboxMcOn
+                          ? <span className="text-slate-400">change something to simulate it</span>
+                          : <span className="text-slate-400">Monte Carlo takes longer to load</span>}
                   </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {bandToggle}
+                    {horizonSlider}
+                  </div>
+                  {renderProjectionChart(sandboxChartKind)}
                   {!isSandboxModified && (
                     <p className="text-[11px] text-slate-500 leading-relaxed">Nothing is changed yet, so there is no amber line to see. Edit a contribution, a balance or a retirement age here and one appears over this chart, beside the plan you already have.</p>
                   )}
@@ -11789,14 +11932,24 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {slideNav(SANDBOX_SLIDE)}
                 </div>
                 {/*
-                  * On a phone the controls become a sheet at the foot of the screen so the chart above
-                  * stays visible while you adjust - which is the entire point of a sandbox. Its `full`
-                  * mode renders this same panel, unchanged, so nothing is lost.
+                  * THE SECOND CARD IS GONE ON A DESKTOP.
+                  *
+                  * Step 7 used to be a chart card followed by a whole separate "Sandbox" card carrying
+                  * the same job again in typed fields. Two surfaces for one idea, and the second one
+                  * pushed the rerun button off the screen. The dials inside the chart card are the
+                  * controls now, and they cover balances as well as contributions and retirement ages
+                  * so that nothing the old card could change has become unreachable. Escalation is the
+                  * exception, and it lives on the Plan Inputs tab.
+                  *
+                  * The phone keeps its sheet. There the controls are not "underneath" anything - they
+                  * are pinned to the foot of the screen precisely so the chart stays visible while you
+                  * adjust, which is the whole point of a sandbox on a small screen, and its `full` mode
+                  * is the only place a phone can reach the typed fields.
                   */}
-                {isPhone ? (
+                {isPhone && (
                   <SheetPanel mode={sheetMode} onMode={setSheetMode} onHeight={setSheetH}
                     summary={sandboxSummary()} quick={sandboxQuickDials()} full={renderSandboxPanel()} />
-                ) : renderSandboxPanel()}
+                )}
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
                   <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {fmtNum(simResult?.trials)} randomised futures and refresh every step, run it again.</span>
                   <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}

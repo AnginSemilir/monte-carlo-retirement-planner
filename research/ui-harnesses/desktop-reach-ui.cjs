@@ -251,6 +251,70 @@ async function runProjection(p) {
     ok(`no page errors at ${width}`, wide.errs.length === 0, wide.errs.slice(0, 2).join(' | '));
   }
 
+  /*
+   * "SEE ALL" IS A DASHBOARD ON A DESKTOP.
+   *
+   * It used to be the same seven cards in the same order, stacked, which is the thing it exists to
+   * replace. Across as well as down now: a figure strip, both charts on one shared axis in the main
+   * column, and the dials that move them beside it. Either chart can take the column, and the strip
+   * then swaps to the six figures THAT chart produces - a simulation has a failure age, a compounded
+   * line has none, and a figure beside a picture that did not make it is the bug worth guarding.
+   */
+  console.log('See all, as a dashboard');
+  {
+    const dash = await open(b, 1440, 900);
+    await tab(dash.p, 'Projection');
+    await dash.p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); if (x) x.click(); });
+    await dash.p.waitForFunction(() => !!document.querySelector('[data-slide-pill="7"]'), null, { timeout: 240000 });
+    await dash.p.waitForFunction(() => { const x = [...document.querySelectorAll('button')].find(y => y.textContent.trim() === 'Run the projection'); return x && !x.disabled; }, null, { timeout: 240000 });
+    await dash.p.waitForTimeout(400);
+    ok('the deck is one step at a time until you ask for all of it',
+      !(await dash.p.evaluate(() => !!document.querySelector('[data-projection-dashboard]'))));
+    await dash.p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'See all'); if (x) x.click(); });
+    await dash.p.waitForTimeout(1400);
+    const shape = () => dash.p.evaluate(() => {
+      const d = document.querySelector('[data-projection-dashboard]');
+      if (!d) return null;
+      const row = d.children[1];
+      const cols = [...row.children].map(c => ({ h: Math.round(c.getBoundingClientRect().height), content: c.scrollHeight }));
+      return {
+        charts: [...document.querySelectorAll('[data-dash-chart]')].map(c => c.getAttribute('data-dash-chart')),
+        tiles: [...document.querySelectorAll('[data-dash-tile]')].map(t => t.querySelector('span').textContent.trim()),
+        dials: document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]').length,
+        jumps: document.querySelectorAll('[data-dash-jump]').length,
+        over: cols.filter(c => c.content > c.h + 1).length, cols
+      };
+    });
+    const both = await shape();
+    ok('...and then it is a dashboard with both charts', !!both && both.charts.join() === 'mc,rate', both ? both.charts.join(' + ') : 'none');
+    ok('...a strip of figures over them', !!both && both.tiles.length === 7, both ? `${both.tiles.length} tiles` : '');
+    ok('...the dials that move them, beside rather than below', !!both && both.dials > 0, both ? `${both.dials} dials` : '');
+    ok('...and the deck order kept as a way to jump', !!both && both.jumps === 7, both ? `${both.jumps} jump links` : '');
+    /*
+     * Neither column may be taller than the row it was given. The chart is a viewBox with h-auto, so its
+     * height is its WIDTH times an aspect - shrinking its card does not shrink the picture, it makes it
+     * overflow, and the card's legend wraps to two lines and costs 77px of the allowance. Both of those
+     * were wrong at first and the only symptom was a column quietly 27px too tall.
+     */
+    ok('...with neither column overflowing the row', !!both && both.over === 0,
+      both ? both.cols.map(c => `${c.content} in ${c.h}`).join(' · ') : '');
+
+    await dash.p.evaluate(() => document.querySelector('[data-dash-expand="mc"]').click());
+    await dash.p.waitForTimeout(1200);
+    const one = await shape();
+    ok('expanding one chart drops the other', !!one && one.charts.join() === 'mc', one ? one.charts.join(' + ') : '');
+    ok('...and swaps the strip to what that chart produces',
+      !!one && one.tiles.length === 6 && one.tiles.some(t => /failure age/i.test(t)) && !one.tiles.some(t => /Safe maximum/i.test(t)),
+      one ? one.tiles.join(' | ') : '');
+    ok('...while the dials stay, because an edit is possible in every state', !!one && one.dials > 0, one ? `${one.dials} dials` : '');
+    ok('...and it still fits its row', !!one && one.over === 0, one ? one.cols.map(c => `${c.content} in ${c.h}`).join(' · ') : '');
+    await dash.p.evaluate(() => document.querySelector('[data-dash-expand="mc"]').click());
+    await dash.p.waitForTimeout(1000);
+    const back = await shape();
+    ok('collapsing puts both back', !!back && back.charts.join() === 'mc,rate', back ? back.charts.join(' + ') : '');
+    ok('no page errors on the dashboard', dash.errs.length === 0, dash.errs.slice(0, 2).join(' | '));
+  }
+
   // ---------- the simple page ----------
   console.log('the simple page at 1440x900');
   const sp = await open(b, 1440, 900, 'simple');

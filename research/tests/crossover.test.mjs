@@ -83,8 +83,20 @@ console.log('\n=========== C. WHAT CANNOT CROSS SAYS SO ===========');
   const withIncome = E.normalizePlan({ ...base, otherIncomes: [
     ...(base.otherIncomes || []), { id: 'i1', incomeType: 'db_pension', amount: 9000, owner: 'Myself', startAge: 65, endAge: '' }] });
   const b = fromFullPlan(withIncome, SIMPLE_BLANK);
-  ok('a non-earnings income stream is reported', b.dropped.some(d => /not earnings/i.test(d)), b.dropped.join(' | '));
+  ok('a non-earnings income stream is reported', b.dropped.some(d => /neither earnings nor tax-free/i.test(d)), b.dropped.join(' | '));
   ok('...while the earnings one still crosses', b.simple.earnings.length === 1);
+  ok('...as a gross figure', b.simple.earnings[0].taxed === 'gross', String(b.simple.earnings[0].taxed));
+
+  // A tax-free stream is what the simple page's "after tax" option makes, so it has to survive the trip
+  // back down - and come back marked net, or the next crossing up would tax it.
+  const withNet = E.normalizePlan({ ...base, otherIncomes: [
+    ...(base.otherIncomes || []), { id: 'i2', incomeType: 'taxFree', amount: 6000, owner: 'Myself', startAge: 66, endAge: '' }] });
+  const c = fromFullPlan(withNet, SIMPLE_BLANK);
+  ok('an after-tax income stream crosses down as one', c.simple.earnings.length === 2 && c.simple.earnings.some(e => e.taxed === 'net'),
+    c.simple.earnings.map(e => `${e.amount}:${e.taxed}`).join(' | '));
+  ok('...and back up as tax-free rather than taxed twice',
+    (toFullPlan(c.simple).otherIncomes || []).some(i => i.incomeType === 'taxFree' && i.amount === 6000),
+    (toFullPlan(c.simple).otherIncomes || []).map(i => `${i.incomeType}:${i.amount}`).join(' | '));
 
   const withSchedule = E.normalizePlan({ ...base, accounts: base.accounts.map(x =>
     x.id === 'pen_self' ? { ...x, contribByYear: [1000, 2000, 3000] } : x) });

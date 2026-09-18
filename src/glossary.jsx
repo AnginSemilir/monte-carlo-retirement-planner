@@ -10,10 +10,11 @@
  * of what it means for this plan. The Documentation tab still holds the long version; this is for the
  * moment you meet the word, which is the moment you want it explained.
  *
- * DESKTOP ONLY, and not as a hedge: a tooltip needs a pointer that can rest somewhere without pressing
- * it. On a phone there is no hover, a tap would fight the control underneath, and the same explanations
- * are already one tap away behind the "?" folds. So on a phone `Term` renders its text and nothing else
- * - no button, no underline, no target to miss.
+ * TWO TRIGGERS, ONE BUBBLE. A tooltip needs a pointer that can rest somewhere without pressing, so on a
+ * desktop the word itself is the target: underlined, explained on hover. A phone has no hover and making
+ * the word a tap target fights whatever it sits inside, so there the sentence is left alone and a 24px
+ * "?" follows the term - the same mark the rest of this app uses for optional explanation. The bubble is
+ * the same in both, with a close and a tap-away backdrop on the phone.
  *
  * The bubble is a portal to the body, positioned fixed. It has to be: half these terms sit inside table
  * cells and cards with their own `overflow`, and an absolutely positioned tooltip inside one of those is
@@ -21,6 +22,7 @@
  * stale on scroll - so it closes on scroll rather than following.
  */
 import { useEffect, useId, useRef, useState } from 'react';
+import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { PHONE_MAX } from './viewport.js';
 
@@ -134,7 +136,7 @@ export function Term({ k, isPhone, children }) {
     };
   }, [box]);
 
-  if (!entry || off) return <>{children ?? k}</>;
+  if (!entry) return <>{children ?? k}</>;
 
   const open = () => {
     const el = ref.current;
@@ -147,24 +149,53 @@ export function Term({ k, isPhone, children }) {
     setBox({ left, top: below ? r.bottom + 8 : r.top - 8, below, W });
   };
 
+  /*
+   * ON A PHONE THE WORD KEEPS ITS SHAPE AND GAINS A "?".
+   *
+   * A tooltip needs a pointer that can rest somewhere without pressing, so the desktop version - the
+   * word itself, underlined, explained on hover - has nothing to attach to here. Making the word a tap
+   * target instead fights whatever it sits inside and gives no sign that it would do anything.
+   *
+   * So the sentence is left alone and a 24px "?" follows the term: the same mark this app already uses
+   * for optional explanation, small enough to sit in running text, and unmistakably a control. The
+   * bubble it opens is the same bubble, with a close of its own and a backdrop that dismisses it.
+   */
   return (
     // The span is the anchor AND the inline exception the 24px rule is measured by: a definition inside a
     // sentence is text, not a control, and stretching it to 24px would break the line it sits in.
     <span className="whitespace-normal">
-      <button ref={ref} type="button" data-term={k} aria-describedby={box ? id : undefined}
-        onMouseEnter={open} onMouseLeave={() => setBox(null)}
-        onFocus={open} onBlur={() => setBox(null)}
-        onClick={() => (box ? setBox(null) : open())}
-        className="inline p-0 m-0 bg-transparent border-0 border-b border-dotted border-slate-400 cursor-help text-inherit">
-        {children ?? k}
-      </button>
+      {off ? (
+        <>
+          {children ?? k}
+          <button ref={ref} type="button" data-term={k} aria-expanded={!!box} aria-label={`What is ${entry.title}?`}
+            onClick={() => (box ? setBox(null) : open())}
+            className="inline-flex items-center justify-center align-text-bottom w-6 h-6 ml-0.5 rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 bg-surface cursor-pointer">?</button>
+        </>
+      ) : (
+        <button ref={ref} type="button" data-term={k} aria-describedby={box ? id : undefined}
+          onMouseEnter={open} onMouseLeave={() => setBox(null)}
+          onFocus={open} onBlur={() => setBox(null)}
+          onClick={() => (box ? setBox(null) : open())}
+          className="inline p-0 m-0 bg-transparent border-0 border-b border-dotted border-slate-400 cursor-help text-inherit">
+          {children ?? k}
+        </button>
+      )}
+      {box && off && createPortal(
+        <span role="presentation" onClick={() => setBox(null)} className="fixed inset-0 z-[57]" />,
+        document.body)}
       {box && createPortal(
         /* z-58: above the fullscreen chart at 55, below the in-app editor's dev chrome at 60. */
         <span role="tooltip" id={id}
           style={{ left: box.left, top: box.top, width: box.W, transform: box.below ? undefined : 'translateY(-100%)' }}
-          className="fixed z-[58] pointer-events-none rounded-lg bg-surface border border-slate-300 shadow-lg px-3 py-2">
-          <span className="block text-[12px] font-bold text-slate-900 leading-snug">{entry.title}</span>
+          className={`fixed z-[58] ${off ? '' : 'pointer-events-none'} rounded-lg bg-surface border border-slate-300 shadow-lg px-3 py-2`}>
+          <span className="block text-[12px] font-bold text-slate-900 leading-snug pr-6">{entry.title}</span>
           <span className="block text-[12px] text-slate-600 leading-snug mt-0.5">{entry.body}</span>
+          {off && (
+            <button type="button" onClick={() => setBox(null)} aria-label="Close"
+              className="absolute top-0 right-0 w-9 h-9 flex items-center justify-center text-slate-400 cursor-pointer">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </span>,
         document.body)}
     </span>

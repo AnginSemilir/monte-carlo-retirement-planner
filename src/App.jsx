@@ -26,7 +26,7 @@ import { BottomNav, MoreSheet } from './nav.jsx';
 // `T` at module scope, not a wrapper defined inside the render: a component redeclared every render
 // remounts, which would shut a tooltip the moment a worker result came back underneath it.
 import { Term as T } from './glossary.jsx';
-import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, CollapsedRow, Clamp } from './phone.jsx';
+import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, CollapsedRow, Clamp, PercentInput } from './phone.jsx';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs } from './tabs.jsx';
 import { useSwipe } from './swipe.js';
@@ -2736,7 +2736,14 @@ function applyAllocationToPlan(plan, ctx, alloc, { contribByYear = null, transfe
     cloned.accounts.forEach(a => {
       if (a.id === o.ids.pen) { a.contrib = Math.round(alloc.penByOwner[i]); delete a.contribByYear; }
       if (a.id === o.ids.isa) { a.contrib = Math.round(alloc.isaByOwner[i]); delete a.contribByYear; }
-      if (a.id === o.ids.other && alloc.giaContrib > 0) { a.contrib = Math.round((num(a.contrib, 0)) + alloc.giaContrib / ctx.owners.length); }
+      /*
+       * The GIA and cash standing orders are part of the budget now, so a strategy that has spent them
+       * on a pension or an ISA must stop paying them too - otherwise the same money is invested twice
+       * and every entrant but Current Plan quietly costs more take-home than the plan it is compared to.
+       * What the allocation could not fit into a wrapper comes back to the GIA as overflow.
+       */
+      if (a.id === o.ids.other) { a.contrib = Math.round(alloc.giaContrib / ctx.owners.length); delete a.contribByYear; }
+      if (a.id === o.ids.cash) { a.contrib = 0; delete a.contribByYear; }
     });
   });
   if (contribByYear) Object.entries(contribByYear).forEach(([id, arr]) => { const a = cloned.accounts.find(x => x.id === id); if (a) { a.contribByYear = arr.map(v => Math.round(v)); a.contrib = Math.round(arr[0] || 0); } });
@@ -2909,11 +2916,32 @@ function buildTournament(rawPlan, { emergencyFloor = 25000, scope = 'contributio
   const cfg = plan.config;
   const margin = 1 + clamp(num(cfg.bridgeSafetyMargin, 30), 0, 500) / 100;
 
-  const currentPen = owners.map(o => acc[o.ids.pen] ? acc[o.ids.pen].contrib : 0);
-  const currentIsa = owners.map(o => acc[o.ids.isa] ? acc[o.ids.isa].contrib : 0);
+  /*
+   * WHAT THE HOUSEHOLD PUTS ASIDE EACH YEAR - ALL OF IT, WHEREVER IT LANDS.
+   *
+   * The budget used to count pension and ISA contributions only, which made the tournament read as
+   * broken to anyone whose saving goes anywhere else: money into a GIA or into cash savings each year is
+   * money being put aside, and "take-home budget: £0" beside a plan that pays in £18,000 is simply
+   * wrong. Worse, those are exactly the households this exists to help - moving a standing order from a
+   * GIA into an ISA is the cheapest wrapper decision there is, and it could not even be tested.
+   *
+   * So all four wrappers are swept. The strategies then zero the GIA and cash contributions they have
+   * taken into the budget (`applyAllocationToPlan`), so nothing is spent twice and every entrant still
+   * costs the same take-home. `Current Plan` keeps its own mix untouched, which is what makes the
+   * comparison mean anything.
+   *
+   * A phased schedule counts at its first year, like every other year-0 figure here.
+   */
+  const contribNow = (a) => (a ? contribAtYear(a, 0) : 0);
+  const currentPen = owners.map(o => contribNow(acc[o.ids.pen]));
+  const currentIsa = owners.map(o => contribNow(acc[o.ids.isa]));
+  const currentGia = owners.map(o => contribNow(acc[o.ids.other]));
+  const currentCash = owners.map(o => contribNow(acc[o.ids.cash]));
   const currentPenNet = owners.reduce((s, o, i) => s + netCostOfPensionContrib(currentPen[i], o.salary, cfg, o.selfEmployed), 0);
   const currentIsaNet = currentIsa.reduce((a, b) => a + b, 0);
-  const derivedBudget = currentIsaNet + currentPenNet;
+  const sweptGia = currentGia.reduce((a, b) => a + b, 0);
+  const sweptCash = currentCash.reduce((a, b) => a + b, 0);
+  const derivedBudget = currentIsaNet + currentPenNet + sweptGia + sweptCash;
   const netBudget = netBudgetOverride !== null && netBudgetOverride !== '' ? Math.max(0, num(netBudgetOverride, 0)) : derivedBudget;
 
   const liquidToday = owners.reduce((s, o) => s + ['isa', 'other', 'cash'].reduce((t, cat) => t + (acc[o.ids[cat]] ? acc[o.ids[cat]].balance : 0), 0), 0);
@@ -2924,7 +2952,8 @@ function buildTournament(rawPlan, { emergencyFloor = 25000, scope = 'contributio
   const annualIsaNeeded = bridge.gapYears > 0 ? bridgeShortfall / yearsToFirstRetire : 0;
 
   const salaryKnown = owners.some(o => o.salary > 0);
-  const meta = { netBudget, derivedBudget, bridge, bridgeCapital, bridgeShortfall, annualIsaNeeded, liquidToday, salaryKnown, yearsToFirstRetire };
+  const meta = { netBudget, derivedBudget, bridge, bridgeCapital, bridgeShortfall, annualIsaNeeded, liquidToday, salaryKnown, yearsToFirstRetire,
+    sweptGia, sweptCash, penIsaNet: currentIsaNet + currentPenNet };
 
   /*
    * Bed & SIPP: a one-off personal contribution funded from ISA capital that is genuinely spare. Relief at
@@ -7072,7 +7101,15 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
 
       {meta && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px] font-mono px-3 pb-3">
-          <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Net budget tested</span><strong>£{fmtNum(Math.round(meta.netBudget))}/yr</strong></div>
+          <div className="p-2.5 bg-surface border border-slate-200 rounded-lg">
+            <span className="text-slate-500 font-sans block">Net budget tested</span><strong>£{fmtNum(Math.round(meta.netBudget))}/yr</strong>
+            {(meta.sweptGia > 0 || meta.sweptCash > 0) && E.num(budgetOverride, 0) <= 0 && (
+              <span className="text-slate-500 font-sans block mt-0.5 leading-snug">
+                includes {[meta.sweptGia > 0 ? `${formatGBP(meta.sweptGia)} going into a GIA` : null,
+                           meta.sweptCash > 0 ? `${formatGBP(meta.sweptCash)} into cash` : null].filter(Boolean).join(' and ')}, which every strategy but Current Plan moves into a wrapper.
+              </span>
+            )}
+          </div>
           <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Pre-<T k="SIPP">SIPP</T> access <T k="bridge">gap</T></span><strong>{meta.bridge.gapYears} yr{meta.bridge.gapYears === 1 ? '' : 's'}</strong></div>
           <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Bridge reserve target (+{Math.round(E.num(plan?.config?.bridgeSafetyMargin, 30))}%)</span><strong>{fmtK(meta.bridgeCapital)}</strong></div>
           <div className="p-2.5 bg-surface border border-slate-200 rounded-lg"><span className="text-slate-500 font-sans block">Liquid today above buffer</span><strong>{fmtK(Math.max(0, meta.liquidToday - E.num(emergencyFloor, 0)))}</strong></div>
@@ -7091,18 +7128,16 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
       {/*
         * WHY THE BUTTON IS OFF, AND WHERE TO GO.
         *
-        * The tournament divides what goes into a pension and an ISA each year, so a plan paying into
-        * neither has nothing to divide. The old line said "enter ISA or pension contributions" and left
-        * it there, which reads as a fault when you HAVE entered contributions - into cash, say, which
-        * this does not redistribute, or on a phone where the field sits behind the chevron on a
-        * portfolio row. So it names what it found and takes you to the field.
+        * Every wrapper's contributions count towards the budget now, so this only fires on a plan that
+        * genuinely pays in nothing. The one case left where a figure exists and the budget is still zero
+        * is a schedule whose first year is nothing, so that is named rather than denied.
         */}
       {meta && meta.netBudget <= 0 && (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <p className="text-xs text-rose-700 flex-1 min-w-0">
             {contribElsewhere > 0
-              ? <>Your plan pays in <strong>{formatGBP(contribElsewhere)} a year</strong>, but none of it into a pension or an ISA. Those two are what this tournament moves money between, so it needs an annual contribution to at least one &mdash; or a take-home budget above, to test a figure you have not committed to.</>
-              : <>This divides what you pay in each year between the wrappers, and your plan pays in nothing yet. Add an <strong>annual contribution</strong> to a pension or an ISA &mdash; or set a take-home budget above to test a figure.</>}
+              ? <>Your plan pays in <strong>{formatGBP(contribElsewhere)} a year</strong> later on, but nothing in the first year, and the budget this divides is what you pay in now. Start the schedule earlier &mdash; or set a take-home budget above to test a figure.</>
+              : <>This divides what you pay in each year between the wrappers, and your plan pays in nothing yet. Add an <strong>annual contribution</strong> to a pension, an ISA, a GIA or cash &mdash; or set a take-home budget above to test a figure.</>}
           </p>
           {onGoToContributions && (
             <button type="button" onClick={onGoToContributions}
@@ -7985,10 +8020,38 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   // while saved scenarios start off, since a chart that silently draws every scenario you ever kept is
   // unreadable the moment you have more than two.
   const [showSandboxLine, setShowSandboxLine] = useState(true);
+  /*
+   * THE SANDBOX LINE, THE SLOW WAY.
+   *
+   * The amber line is a deterministic run: one steady rate per wrapper, which is why it can redraw on
+   * every keystroke. That makes it the right default and the wrong answer to "would this hold up?" -
+   * the survival rate everything else on this tab quotes comes from the simulation, not the smooth
+   * line. So the sandbox can be switched to Monte Carlo, which is the same thousands of paths the
+   * projection runs and takes seconds rather than milliseconds. It is off until asked for, debounced so
+   * dragging a dial does not queue a run per frame, and it says plainly that it is working.
+   */
+  const [sandboxMcOn, setSandboxMcOn] = useState(false);
+  const [sandboxMc, setSandboxMc] = useState(null);
+  const [sandboxMcBusy, setSandboxMcBusy] = useState(false);
+  useEffect(() => {
+    if (!sandboxMcOn || !isSandboxModified) { setSandboxMc(null); setSandboxMcBusy(false); return undefined; }
+    let dead = false;
+    setSandboxMcBusy(true);
+    const id = setTimeout(() => {
+      runMonteCarloAsync(sandboxCtx, { plan: sandboxPlan, trials: MC_TRIALS, seed: mcSeed })
+        .then(stats => { if (!dead && stats) setSandboxMc(stats); })
+        .catch(() => { /* the expected line stays on screen, which is still an answer */ })
+        .finally(() => { if (!dead) setSandboxMcBusy(false); });
+    }, 500);
+    return () => { dead = true; clearTimeout(id); };
+  }, [sandboxMcOn, isSandboxModified, sandboxPlan, sandboxCtx, mcSeed]);
+  // the median of the sandbox's own simulation, drawn by the same generator as the deterministic line
+  const sandboxMcRows = useMemo(() => (sandboxMc?.bands || []).map(b => ({ ageSelf: currentAge + b.t, totalCombined: b.p50 })), [sandboxMc, currentAge]);
   const sandboxLinePath = useMemo(() => {
-    if (!showSandboxLine || !isSandboxModified || !sandboxTimeline.length) return null;
-    return d3.line().x(d => xScale(d.ageSelf)).y(d => yScale(d.totalCombined)).curve(d3.curveMonotoneX)(sandboxTimeline.filter(d => d.ageSelf <= effectiveMaxVisibleAge));
-  }, [showSandboxLine, isSandboxModified, sandboxTimeline, effectiveMaxVisibleAge, xScale, yScale]);
+    const rows = sandboxMcOn && sandboxMcRows.length ? sandboxMcRows : sandboxTimeline;
+    if (!showSandboxLine || !isSandboxModified || !rows.length) return null;
+    return d3.line().x(d => xScale(d.ageSelf)).y(d => yScale(d.totalCombined)).curve(d3.curveMonotoneX)(rows.filter(d => d.ageSelf <= effectiveMaxVisibleAge));
+  }, [showSandboxLine, isSandboxModified, sandboxTimeline, sandboxMcOn, sandboxMcRows, effectiveMaxVisibleAge, xScale, yScale]);
   // Same generator as the sandbox line, one per overlaid scenario. Like the sandbox these are raw engine
   // rows, so the pot is read off totalCombined rather than the profile-aware `expected` key.
   const comparePaths = useMemo(() => compareRuns.filter(r => r.rows).map(r => ({
@@ -10122,9 +10185,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           * thing somebody has to know BEFORE they type an amount, so on a phone it stays on Plan Inputs
           * even though the card it used to sit in does not.
           */}
-        {isPhone && activeTab === 'inputs' && (
-          <p data-money-banner className="text-[11px] text-blue-800 px-0.5 -mb-1"><strong className="font-semibold">Every amount here is in today&rsquo;s money.</strong></p>
-        )}
+
 
         {/* Scenario Toolbar. Plan Inputs only: saving a scenario means saving THE PLAN, so it belongs
             beside the plan, not floating over a chart where it reads as saving what is on screen.
@@ -10304,8 +10365,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
             )}
 
+            {/* The one thing to know before typing an amount, said once and quietly under the tabs. It
+                was a bold blue line in a box of its own, which spent 40px of a 664px screen on a caption. */}
             {isPhone && (
-              <SectionTabs sections={INPUT_SECTIONS} active={inputSection} onSelect={selectSection} />
+              <>
+                <SectionTabs sections={INPUT_SECTIONS} active={inputSection} onSelect={selectSection} />
+                <p data-money-banner className="text-[10px] text-slate-400 leading-none pt-1.5 px-0.5">Every amount here is in today&rsquo;s money.</p>
+              </>
             )}
             {/* Demographics & Targets */}
             {showSection('you') && (
@@ -10453,8 +10519,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                             className={`${inputCls} text-right ${over ? 'border-rose-400 text-rose-700' : ''}`} />
                         </FieldRow>
                         <FieldRow label="Percentage increase" hint="How much the annual contribution rises each year, in real terms.">
-                          <input type="number" step="0.5" placeholder="0" onFocus={handleFocus} value={acc.growth} onChange={(e) => updateAccountField(acc.id, 'growth', e.target.value)} className={`${inputCls} text-right`} />
-                          <span className="text-xs text-slate-500 shrink-0">%</span>
+                          <PercentInput value={acc.growth ?? ''} onChange={(v) => updateAccountField(acc.id, 'growth', v)} className={`${inputCls} text-right`} />
                         </FieldRow>
                         <div className="pb-1">
                           <RiskChips collapsible name="Asset allocation" value={acc.risk} options={riskOptions} onChange={(rk) => updateAccountField(acc.id, 'risk', rk)} />
@@ -11668,8 +11733,30 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 /* room at the foot for the sheet, so the Rerun card below is not stranded under it */
                 style={{ scrollMarginTop: 12, paddingBottom: isPhone ? sheetH : 0 }}>
                 <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(SANDBOX_SLIDE, 'Change something', 'Edit below and the amber line moves with you. Your saved plan is not touched.')}
+                  {/* The Monte Carlo warning is in the head on a desktop and beside the button that
+                      triggers it on a phone: a third sentence here wraps to another line, and this
+                      card's chart has nineteen pixels of clearance above the sandbox sheet. */}
+                  {slideHead(SANDBOX_SLIDE, 'Change something', isPhone
+                    ? 'Edit below and the amber line moves with you. Your saved plan is not touched.'
+                    : 'Edit below and the amber line moves with you. Your saved plan is not touched. Monte Carlo takes longer to load.')}
                   {renderProjectionChart('mc')}
+                  {/* Under the chart, not over it: on a phone this card's chart has nineteen pixels of
+                      clearance above the sandbox sheet, and a control row above it would spend them. */}
+                  <div data-sandbox-line-mode className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                    <span className="text-slate-500 font-semibold">Amber line:</span>
+                    {[[false, 'Expected'], [true, 'Monte Carlo']].map(([mode, label]) => (
+                      <button key={label} type="button" onClick={() => setSandboxMcOn(mode)} aria-pressed={sandboxMcOn === mode}
+                        className={`rounded-lg border font-bold transition-all cursor-pointer ${isPhone ? 'min-h-11 px-3' : 'px-2.5 py-1'} ${sandboxMcOn === mode ? 'bg-amber-50 border-amber-400 text-amber-800' : 'bg-surface border-slate-200 text-slate-500 hover:text-slate-900'}`}>
+                        {label}
+                      </button>
+                    ))}
+                    {isPhone && !sandboxMcOn && <span className="text-slate-400">Monte Carlo takes longer to load</span>}
+                    {sandboxMcOn && (sandboxMcBusy
+                      ? <span className="flex items-center gap-1.5 text-slate-500"><Loader2 className="w-3.5 h-3.5 animate-spin" /> simulating {fmtNum(MC_TRIALS)} paths&hellip;</span>
+                      : sandboxMc
+                        ? <span className="text-slate-500">sandbox survival <strong className="text-slate-800">{sandboxMc.successRate.toFixed(1)}%</strong>, median path drawn</span>
+                        : <span className="text-slate-400">change something to simulate it</span>)}
+                  </div>
                   {!isSandboxModified && (
                     <p className="text-[11px] text-slate-500 leading-relaxed">Nothing is changed yet, so there is no amber line to see. Edit a contribution, a balance or a retirement age here and one appears over this chart, beside the plan you already have.</p>
                   )}
@@ -13545,19 +13632,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     {saveSuccessMsg && <div className="text-xs font-bold text-emerald-700 flex items-center gap-1"><Check className="w-3 h-3 text-emerald-600" /> {saveSuccessMsg}</div>}
                   </div>
                 )}
-                <div className="flex items-center justify-between px-3 min-h-12">
-                  <span className="text-sm font-semibold text-slate-700">Theme</span>
-                  <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch />
-                </div>
+                {/* The theme control moved to the top bar, where the simple page has always had it, so
+                    it is not two taps behind a sheet. Export and Import are no longer gated on being on
+                    Plan Inputs: a file is a file wherever you are, and looking for it from the Projection
+                    tab and finding nothing is how it reads as missing. Clear still asks to be on the tab
+                    it clears, because it is the one action here that destroys something. */}
+                <button type="button" onClick={() => { setMoreOpen(false); handleExportJSON(); }}
+                  className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"><Download className="w-4 h-4 shrink-0" /> Export plan (JSON)</button>
+                <button type="button" onClick={() => { setMoreOpen(false); fileInputRef.current?.click(); }}
+                  className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"><Upload className="w-4 h-4 shrink-0" /> Import plan (JSON)</button>
                 {activeTab === 'inputs' && (
-                  <>
-                    <button type="button" onClick={() => { setMoreOpen(false); handleExportJSON(); }}
-                      className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"><Download className="w-4 h-4 shrink-0" /> Export plan (JSON)</button>
-                    <button type="button" onClick={() => { setMoreOpen(false); fileInputRef.current?.click(); }}
-                      className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"><Upload className="w-4 h-4 shrink-0" /> Import plan (JSON)</button>
-                    <button type="button" onClick={() => { setMoreOpen(false); handleResetDefaults(); }}
-                      className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-rose-700 hover:bg-rose-50 cursor-pointer"><RotateCcw className="w-4 h-4 shrink-0" /> Clear all inputs</button>
-                  </>
+                  <button type="button" onClick={() => { setMoreOpen(false); handleResetDefaults(); }}
+                    className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-rose-700 hover:bg-rose-50 cursor-pointer"><RotateCcw className="w-4 h-4 shrink-0" /> Clear all inputs</button>
                 )}
               </>
             } />

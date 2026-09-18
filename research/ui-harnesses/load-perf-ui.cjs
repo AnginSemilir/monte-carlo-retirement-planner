@@ -39,8 +39,15 @@ const BEFORE = { content: 2203, js: 214 };
  * runs of the same build spread about 100ms either way - 2,011 to 2,080 after, 2,105 to 2,225 before - so
  * a threshold placed between the two medians would fail on noise as often as on a regression. The bytes
  * are deterministic: 198KB against 214KB, every run.
+ *
+ * RAISED TO 2,600 after this machine drifted into the old line. Measured on the same commit the ceiling
+ * was set for: 2,396ms and 2,413ms - straddling 2,400, so half the runs failed on nothing. The build
+ * under test the same afternoon measured 2,422ms and 2,440ms, inside the same 50ms spread, which is
+ * what says this is the runner rather than the page. The bytes are still the assertion that would catch
+ * a real regression; this one is here to catch a page that has become several times slower, and 2,600
+ * still does that.
  */
-const CEILING = 2400;
+const CEILING = 2600;
 
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };

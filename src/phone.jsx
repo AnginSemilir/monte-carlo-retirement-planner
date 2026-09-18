@@ -88,22 +88,40 @@ export function ChartFullscreen({ open, title, toolbar, onBox, onClose, children
 }
 
 /*
- * LONG EXPLANATIONS, FOLDED AWAY ON A PHONE ONLY.
+ * LONG EXPLANATIONS, BEHIND A QUESTION MARK, ON A PHONE ONLY.
  *
- * This app explains itself, at length, and that is the right call on a desktop where the prose sits
- * beside the figure it describes. On a 390px screen the same paragraph is eight lines and pushes the
- * number it is explaining off the bottom of the screen.
+ * This app explains itself at length, which is right on a desktop where the prose sits beside the
+ * figure it describes. On a 390px screen the same paragraph is eight lines and pushes the number it is
+ * explaining off the bottom.
  *
- * Native <details>, so the content is ALWAYS in the DOM - collapsed, not removed. Nothing is deleted,
- * screen readers and find-in-page still reach it, and on a desktop this component does nothing at all.
+ * It used to fold behind a line of blue text - "What the taper does" - which has two faults at once: it
+ * reads as a heading rather than a control, so people do not know it opens, and a line of it costs 44px
+ * on every card whether or not anybody wants it. A "?" is the convention for optional explanation, and
+ * it is round, small and unmistakably a button. The same mark `FieldRow` already puts beside a label.
+ *
+ * Open, the answer is a bordered box with its own close, so shutting it does not mean finding the "?"
+ * again in a page that has just moved. The content is ALWAYS in the DOM - hidden, not removed - so
+ * find-in-page and screen readers still reach it, and on a desktop this component does nothing at all.
  */
 export function Fine({ isPhone, label = 'Why?', children }) {
+  const [open, setOpen] = useState(false);
   if (!isPhone) return children;
   return (
-    <details className="text-xs">
-      <summary className="cursor-pointer min-h-11 flex items-center text-blue-700 font-semibold">{label}</summary>
-      <div className="pt-1">{children}</div>
-    </details>
+    <span className="block">
+      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-label={label} title={label}
+        data-help-dot className="min-w-11 h-11 -ml-2.5 flex items-center justify-start cursor-pointer">
+        <span className={`w-6 h-6 rounded-full border text-[11px] font-bold flex items-center justify-center ${
+          open ? 'bg-blue-50 border-blue-600 text-blue-700' : 'border-slate-300 text-slate-500'}`}>?</span>
+      </button>
+      <span className={`${open ? 'block' : 'hidden'} relative rounded-lg border border-slate-200 bg-slate-50 p-2.5 pr-9 text-xs text-slate-600`}>
+        <span className="block font-bold text-slate-700 text-[11px] mb-1">{label}</span>
+        {children}
+        <button type="button" onClick={() => setOpen(false)} aria-label={`Close: ${label}`}
+          className="absolute top-0 right-0 w-9 h-9 flex items-center justify-center text-slate-400 cursor-pointer">
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </span>
+    </span>
   );
 }
 
@@ -280,6 +298,34 @@ export function RiskChips({ name, value, options, onChange, collapsible = false 
         );
       })}
     </div>
+  );
+}
+
+/*
+ * A PERCENTAGE THAT WEARS ITS OWN SIGN.
+ *
+ * The contribution-growth field had a "%" printed beside it, outside the box - which made that one row
+ * narrower than every other control on the tab and put a kink in the column's right edge. The sign
+ * belongs to the number, so it goes inside: the placeholder suggests "0%", and a figure you have typed
+ * reads back as "3%" whenever the field is not being edited.
+ *
+ * It is a text input rather than type=number because a number input refuses to hold "3%". `inputMode`
+ * keeps the numeric keypad on a phone, and everything that is not a digit, a dot or a minus is stripped
+ * on the way in, so pasting "3 %" or "3.5%" works.
+ */
+export function PercentInput({ value, onChange, className = '', placeholder = '0%', ...rest }) {
+  const [live, setLive] = useState(null);      // the raw string while the field has focus
+  const shown = live !== null ? live : (value === '' || value === null || value === undefined ? '' : `${value}%`);
+  return (
+    <input type="text" inputMode="decimal" value={shown} placeholder={placeholder} className={className}
+      onFocus={(e) => { setLive(String(value ?? '')); requestAnimationFrame(() => e.target.select()); }}
+      onBlur={() => setLive(null)}
+      onChange={(e) => {
+        const raw = e.target.value.replace(/[^0-9.-]/g, '');
+        setLive(raw);
+        onChange(raw);
+      }}
+      {...rest} />
   );
 }
 

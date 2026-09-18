@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { Fragment, useState, useMemo, useEffect, useRef } from 'react';
 import { TrendingUp, Plus, X, Loader2, Download, Minus, Bookmark, Maximize2, ChevronRight, SlidersHorizontal, LineChart, Table2 } from 'lucide-react';
 import {
   buildContext, resolveMpaa, monteCarlo, quantileCurve, optimizeSpend, safeRetirementAge,
@@ -557,7 +557,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    * describes - so it is one function rendered in both places. The Figures tab keeps its own copy of the
    * pair because the six numbers change with them too.
    */
-  const viewToggles = () => (
+  const viewToggles = ({ band: withBand = true } = {}) => (
     <div className={`flex flex-wrap items-center gap-2 ${isPhone ? 'text-[11px]' : 'text-xs'}`}>
       <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 p-1 rounded-lg w-fit">
         {[['rate', 'Rate based'], ['mc', 'Monte Carlo']].map(([k, label]) => (
@@ -568,13 +568,13 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
       {/* one band control driving both charts, so the two stay comparable rather than drifting apart.
           The long names are what a desktop has room for; on a phone the two groups only sit on one row
           under the short ones, and a row each for two toggles is 90px of the screen the chart wants. */}
-      <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-lg w-fit">
+      {withBand && <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 p-1 rounded-lg w-fit">
         {Object.entries(BAND_QUANTILES).map(([k, v]) => (
           <button key={k} type="button" onClick={() => setBandMode(k)}
             title={v.z ? `Draw both charts at the ${v.lowPct} and ${v.highPct}` : 'Draw the middle line only, on an axis that follows it'}
             className={`${isPhone ? 'px-2.5 min-h-11' : 'px-2.5 py-0.5'} rounded-lg font-semibold transition-all cursor-pointer ${bandMode === k ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>{isPhone ? (v.label || k) : v.button}</button>
         ))}
-      </div>
+      </div>}
     </div>
   );
 
@@ -750,6 +750,18 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
 
   const RISK_SHORT = { 'High Risk': 'High', 'Medium/High Risk': 'Med-hi', 'Medium Risk': 'Med',
     'Medium/Low Risk': 'Med-lo', 'Low Risk': 'Low', 'Cash Equivalents': 'Cash' };
+  /*
+   * "High" and "Med-lo" are a ranking, not a portfolio: they say which tier is riskier than which, and
+   * nothing about what is actually held. The equity range is the part somebody can check against their
+   * own fund - "60-80% equities" is a sentence you can hold a factsheet up to - so every place this page
+   * names a tier now names its range too. Read off the same matrix the full planner and the engine use,
+   * so the two pages cannot drift apart on what "Medium" means.
+   */
+  const RISK_EQUITY = (r) => {
+    const lab = (DEFAULT_RISK_PROFILES[r] || {}).label || '';
+    const m = lab.match(/([\d]+\s*[–-]\s*[\d]+%|[\d]+%)\s*Equities/i);
+    return m ? m[1].replace(/\s+/g, '') : (r === 'Low Risk' ? 'bonds & cash' : r === 'Cash Equivalents' ? 'cash' : '');
+  };
 
   /*
    * THE PORTFOLIO AS FOUR ROWS, ON A PHONE.
@@ -765,13 +777,15 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
    * chevron opens those three - the risk as the same six chips the full planner uses, rather than a
    * drop-down nobody can read.
    */
-  const riskOptions = Object.keys(DEFAULT_RISK_PROFILES).map(r => ({ key: r, title: RISK_SHORT[r] || r, long: r }));
+  const riskOptions = Object.keys(DEFAULT_RISK_PROFILES).map(r => ({
+    key: r, title: RISK_SHORT[r] || r, sub: RISK_EQUITY(r), long: (DEFAULT_RISK_PROFILES[r] || {}).label || r }));
   const phoneWrapperRow = (k, label, cKey, pctKey = null, salKey = null) => {
     const isPct = !!(pctKey && s[pctKey]);
     const open = openWrapper === k;
     const paid = num(s[cKey], 0);
     const grow = num(s[k + 'G'], 0);
-    const tier = RISK_SHORT[s[k + 'Risk']] || s[k + 'Risk'] || 'Medium';
+    const tierKey = s[k + 'Risk'] || 'Medium Risk';
+    const tier = `${RISK_SHORT[tierKey] || tierKey}${RISK_EQUITY(tierKey) ? ` ${RISK_EQUITY(tierKey)}` : ''}`;
     const sub = `${tier} risk \u00b7 ${paid ? `${isPct ? `${paid}% of salary` : `\u00a3${fmt(s[cKey])}`} a year` : 'nothing going in'}${paid && grow ? `, rising ${grow}%` : ''}`;
     return (
       <div key={k} data-wrapper-row className="border-b border-slate-100 last:border-b-0">
@@ -849,7 +863,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
         <span className="flex items-stretch gap-0.5">{cash(k)}{!isPhone && stepper(k, 10000)}</span>
         <select value={s[k + 'Risk'] || 'Medium Risk'} onChange={(e) => set(k + 'Risk', e.target.value)}
           aria-label={`${label} risk level`} className={`${subCls} w-full cursor-pointer px-1`}>
-          {Object.keys(DEFAULT_RISK_PROFILES).map(r => <option key={r} value={r}>{RISK_SHORT[r] || r}</option>)}
+          {Object.keys(DEFAULT_RISK_PROFILES).map(r => <option key={r} value={r}>{RISK_SHORT[r] || r}{RISK_EQUITY(r) ? ` · ${RISK_EQUITY(r)}` : ''}</option>)}
         </select>
         <span className="flex items-stretch gap-0.5">
           <input type="text" inputMode="numeric" value={isPct ? s[cKey] : fmt(s[cKey])} placeholder={isPct ? '%' : '0'}
@@ -922,7 +936,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
   const addOneOff = () => setS(p => ({ ...p, oneOffs: [...p.oneOffs, { id: oneOffId(), date: '', amount: '', direction: 'in' }] }));
   const setOneOff = (id, k, v) => setS(p => ({ ...p, oneOffs: p.oneOffs.map(o => o.id === id ? { ...o, [k]: v } : o) }));
   const dropOneOff = (id) => setS(p => ({ ...p, oneOffs: p.oneOffs.filter(o => o.id !== id) }));
-  const addEarning = () => setS(p => ({ ...p, earnings: [...(p.earnings || []), { id: earningId(), amount: '', startAge: p.retireSelf || '', endAge: '', owner: 'Myself' }] }));
+  const addEarning = () => setS(p => ({ ...p, earnings: [...(p.earnings || []), { id: earningId(), amount: '', startAge: p.retireSelf || '', endAge: '', owner: 'Myself', taxed: 'gross' }] }));
   const setEarning = (id, k, v) => setS(p => ({ ...p, earnings: (p.earnings || []).map(e => e.id === id ? { ...e, [k]: v } : e) }));
   const dropEarning = (id) => setS(p => ({ ...p, earnings: (p.earnings || []).filter(e => e.id !== id) }));
 
@@ -975,6 +989,32 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
     return { retire: at(expected.mid, num(s.retireSelf, 0)), mid: end(expected.mid),
       lo: end(expected.lo), hi: end(expected.hi), failAge: expected.failAge };
   }, [expected, s.retireSelf]);
+  /*
+   * THE FIGURES SHOW ALL OF IT, WHATEVER THE CHART IS DRAWING.
+   *
+   * The chart has to choose a band - two edges are readable, six lines are not - but a list of figures
+   * has no such problem, and asking somebody to flip a toggle three times to read three numbers off the
+   * same projection is work for nothing. So the table quotes the quartiles and the tenths together and
+   * the band picker is dropped from that view; the chart above keeps it.
+   *
+   * Each edge is its own compounded run, like the chart's, so these are the same figures the chart
+   * would draw if you switched to that band.
+   */
+  const allRateEnds = useMemo(() => {
+    const src = res?.plan || resolved;
+    if (!src) return null;
+    const end = (curve) => (curve && curve.pot && curve.pot.length ? curve.pot[curve.pot.length - 1].totalCombined : null);
+    const out = {};
+    try {
+      for (const [k, v] of Object.entries(BAND_QUANTILES)) {
+        if (!v.z) continue;
+        const lo = quantileCurve(src, -v.z), hi = quantileCurve(src, v.z);
+        out[k] = { lo: end(lo), hi: end(hi), failAge: lo.failAge, lowPct: v.lowPct, highPct: v.highPct };
+      }
+      return out;
+    } catch { return null; }
+  }, [resolved, res?.plan]);
+
   const potAtRetirement = useMemo(() => {
     if (!timeline) return null;
     const at = num(s.retireSelf, 0);
@@ -1070,6 +1110,8 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
         {/* The form is three parallel groups, and on a phone one screen holds one of them. The full
             planner's Inputs tab is divided exactly this way, by the same component. */}
         {isPhone && <SectionTabs sections={INPUT_SECTIONS} active={section} onSelect={selectSection} gutter={3} />}
+        {/* said once, quietly, where the amounts are - not as a banner of its own */}
+        {isPhone && <p data-money-banner className="text-[10px] text-slate-400 leading-none pt-0.5 px-0.5">Every amount here is in today&rsquo;s money.</p>}
 
         {showSection('you') && (
         <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 p-1 rounded-lg">
@@ -1189,17 +1231,26 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
             <button type="button" onClick={addEarning} className="flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-900 cursor-pointer"><Plus className="w-3 h-3" /> Add</button>
           </div>
           {s.earnings.length === 0
-            ? <p className="text-[11px] text-slate-400">Consultancy, a day a week, a phased wind-down. Taxed as earnings, and it does not move your retirement age.</p>
+            ? <p className="text-[11px] text-slate-400">Consultancy, a day a week, a phased wind-down. Say whether the figure is before or after tax, and it does not move your retirement age.</p>
             : <div className="space-y-2">
               {s.earnings.map(e => (
-                <div key={e.id} className="flex items-center gap-1.5">
+                <div key={e.id} className="flex flex-wrap items-center gap-1.5">
                   <input type="text" inputMode="numeric" value={fmt(e.amount)} placeholder="£/yr" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'amount', parse(ev.target.value))} className={`${subCls} w-20 shrink-0 text-right tabular-nums tabular-nums`} />
                   <span className="text-[10px] text-slate-400 shrink-0">age</span>
                   <input type="number" min="0" max="120" value={e.startAge} placeholder="from" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'startAge', ev.target.value)} className={`${subCls} w-12 shrink-0 text-center tabular-nums`} />
                   <span className="text-[10px] text-slate-400 shrink-0">to</span>
                   <input type="number" min="0" max="120" value={e.endAge} placeholder="to" onFocus={(ev) => ev.target.select()} onChange={(ev) => setEarning(e.id, 'endAge', ev.target.value)} className={`${subCls} w-12 shrink-0 text-center tabular-nums`} />
+                  {/*
+                    * Before or after tax. People know one of these two and not the other: a day rate is
+                    * quoted gross, while "what I actually get" is net, and modelling the second as the
+                    * first taxes it twice. Default gross, because that is what work pays in.
+                    */}
+                  <select value={e.taxed === 'net' ? 'net' : 'gross'} onChange={(ev) => setEarning(e.id, 'taxed', ev.target.value)}
+                    aria-label="before or after tax" className={`shrink-0 ${isPhone ? 'min-h-11' : ''} p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-semibold cursor-pointer`}>
+                    <option value="gross">before tax</option><option value="net">after tax</option>
+                  </select>
                   {s.couple && (
-                    <select value={e.owner || 'Myself'} onChange={(ev) => setEarning(e.id, 'owner', ev.target.value)} className="shrink-0 p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-semibold">
+                    <select value={e.owner || 'Myself'} onChange={(ev) => setEarning(e.id, 'owner', ev.target.value)} className={`shrink-0 ${isPhone ? 'min-h-11' : ''} p-1.5 bg-surface border border-slate-300 rounded-lg text-[11px] font-semibold`}>
                       <option value="Myself">me</option><option value="Partner">them</option>
                     </select>
                   )}
@@ -1226,7 +1277,10 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
           <>
             {chart && (
               <>
-                {viewToggles()}
+                {/* On a phone this pane is the Figures tab and has no chart in it, so the band picker
+                    has nothing to pick for: the figures quote every band at once. On a desktop the
+                    chart sits in this same column and keeps its control. */}
+                {viewToggles({ band: !isPhone })}
                 {!isPhone && chartPanel()}
                 {/* The overlay renders the same markup at the size it measures for itself. This page has
                     no reveal animation to protect, so the one chart memo simply follows the overlay box. */}
@@ -1264,17 +1318,25 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                   `age ${num(s.retireSelf, 0)}, expected path`, 'text-slate-900', !rateCards)}
                 {figure(`Expected pot @ ${num(s.terminalAge, 95)}`, rateCards ? GBP(rateCards.mid) : '',
                   'the middle line, compounded', 'text-slate-900', !rateCards)}
-                {figure(`${band.highPct} @ ${num(s.terminalAge, 95)}`, rateCards ? GBP(rateCards.hi) : '',
-                  'the top edge of the band', 'text-slate-900', !rateCards)}
-                {figure(`${band.lowPct} @ ${num(s.terminalAge, 95)}`, rateCards ? GBP(rateCards.lo) : '',
-                  rateCards && rateCards.failAge !== null && rateCards.failAge !== undefined
-                    ? `broken from age ${rateCards.failAge}, not low` : 'the bottom edge of the band',
-                  rateCards && rateCards.failAge != null ? 'text-rose-700' : 'text-slate-900', !rateCards)}
+                {/* every band, not whichever one the chart is set to - and none of them named "null",
+                    which is what the expected-only mode used to put here */}
+                {Object.entries(allRateEnds || {}).map(([k, v]) => (
+                  <Fragment key={k}>
+                    {figure(`${v.highPct} @ ${num(s.terminalAge, 95)}`, v.hi == null ? '' : GBP(v.hi),
+                      'the lucky end of this range', 'text-slate-900', v.hi == null)}
+                    {figure(`${v.lowPct} @ ${num(s.terminalAge, 95)}`, v.lo == null ? '' : GBP(v.lo),
+                      v.failAge !== null && v.failAge !== undefined ? `broken from age ${v.failAge}, not low` : 'the unlucky end of this range',
+                      v.failAge != null ? 'text-rose-700' : 'text-slate-900', v.lo == null)}
+                  </Fragment>
+                ))}
               </> : <>
                 {figure('Survival rate', mc ? `${mc.successRate.toFixed(1)}%` : '',
                   mc ? `±${(1.96 * mc.standardError).toFixed(1)} pts, spending ${GBP(num(s.spend, 0))}` : 'simulating', rateTone, !mc)}
-                {figure('Safe maximum', ss ? GBP(ss.spend) : '', `a year, the most that clears ${TARGET}%`, 'text-slate-900', !ss)}
-                {figure('Earliest safe retirement',
+                {/* Both answers hold one of your inputs fixed and solve for the other, and which one is
+                    which is the first thing people get wrong about them. So each says it in its name. */}
+                {figure(<>Safe maximum <span className="font-normal text-slate-400">(at your retirement age)</span></>,
+                  ss ? GBP(ss.spend) : '', `a year, the most that clears ${TARGET}%`, 'text-slate-900', !ss)}
+                {figure(<>Earliest safe retirement <span className="font-normal text-slate-400">(at your retirement spending)</span></>,
                   sa ? (sa.alreadyRetired ? 'now' : sa.age == null ? 'later' : `Age ${sa.age}`) : '',
                   sa ? (sa.alreadyRetired ? 'you are already past the age you entered'
                     : sa.age == null ? `no age up to your horizon clears ${TARGET}%`
@@ -1285,6 +1347,12 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
                   `age ${num(s.retireSelf, 0)}, expected path`, 'text-slate-900', potAtRetirement == null)}
                 {figure(`Median pot @ ${num(s.terminalAge, 95)}`, mc ? GBP(mc.medianTerminal) : '',
                   'half of futures end above this', 'text-slate-900', !mc)}
+                {figure(`Upper quartile @ ${num(s.terminalAge, 95)}`, mc ? GBP(mc.p75Terminal) : '',
+                  'one plan in four ends above this', 'text-slate-900', !mc)}
+                {figure(`Lower quartile @ ${num(s.terminalAge, 95)}`, mc ? GBP(mc.p25Terminal) : '',
+                  'one plan in four ends below this', 'text-slate-900', !mc)}
+                {figure(`Lucky pot @ ${num(s.terminalAge, 95)}`, mc ? GBP(mc.p90Terminal) : '',
+                  'one plan in ten ends above', 'text-slate-900', !mc)}
                 {/* a pot floors at zero, so "below this" is meaningless once the tenth percentile has run dry */}
                 {figure(`Unlucky pot @ ${num(s.terminalAge, 95)}`, mc ? GBP(mc.p10Terminal) : '',
                   mc && mc.p10Terminal <= 0 ? 'one plan in ten runs out before the end' : 'one plan in ten ends below',

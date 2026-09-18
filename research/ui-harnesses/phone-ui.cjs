@@ -589,9 +589,42 @@ const navigate = async (page, label, short) => {
       ok('...and in the More sheet instead', !!inSheet && inSheet.select && inSheet.saves >= 2,
          inSheet ? `select ${inSheet.select}, ${inSheet.saves} save buttons` : 'not in the sheet');
       ok('...at 44px, like everything else in there', !!inSheet && inSheet.small === 0, inSheet ? `${inSheet.small} under 44` : '');
-      // desktop only, by design: there is no hover on a phone and the folds already carry the explanations
-      const terms = await p.evaluate(() => document.querySelectorAll('[data-term]').length);
-      ok('...no glossary buttons on a phone', terms === 0, `${terms}`);
+      /*
+       * THE EXPLANATIONS, ON A PHONE, ARE QUESTION MARKS. Two of them: the glossary term, which used to
+       * be desktop-only because there is no hover here, and the long explanation that used to be a line
+       * of blue text reading like a heading. Both are now a 24px "?" that opens something with a close.
+       */
+      await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Strategy'); if (b) b.click(); });
+      await p.waitForTimeout(900);
+      const help = await p.evaluate(() => {
+        const vis = (el) => el.getBoundingClientRect().width > 0;
+        const term = [...document.querySelectorAll('[data-term]')].find(vis);
+        const dot = [...document.querySelectorAll('[data-help-dot]')].find(vis);
+        return { terms: document.querySelectorAll('[data-term]').length, dots: document.querySelectorAll('[data-help-dot]').length,
+                 termW: term ? Math.round(term.getBoundingClientRect().width) : 0,
+                 clickable: !!term && !!dot, dotClosed: dot ? dot.getAttribute('aria-expanded') : null };
+      });
+      ok('a glossary term offers a "?" on a phone', help.terms > 0 && help.termW >= 24, `${help.terms} terms, ${help.termW}px`);
+      ok('...and the long explanations are "?" too, closed to start', help.dots > 0 && help.dotClosed === 'false', `${help.dots} dots, expanded=${help.dotClosed}`);
+      if (help.clickable) {
+        await p.evaluate(() => [...document.querySelectorAll('[data-term]')].find(x => x.getBoundingClientRect().width > 0).click());
+        await p.waitForTimeout(350);
+        const bub = await p.evaluate(() => { const t = document.querySelector('[role=tooltip]'); return t ? { w: Math.round(t.getBoundingClientRect().width), chars: t.textContent.trim().length } : null; });
+        ok('...tapping one opens its definition', !!bub && bub.chars > 40, bub ? `${bub.w}px, ${bub.chars} chars` : 'nothing opened');
+        await p.evaluate(() => { const b = document.querySelector('[role=tooltip] button'); if (b) b.click(); });
+        await p.waitForTimeout(300);
+        ok('...and it closes again', await p.evaluate(() => !document.querySelector('[role=tooltip]')));
+        await p.evaluate(() => [...document.querySelectorAll('[data-help-dot]')].find(x => x.getBoundingClientRect().width > 0).click());
+        await p.waitForTimeout(350);
+        const box = await p.evaluate(() => {
+          const dot = [...document.querySelectorAll('[data-help-dot]')].find(x => x.getBoundingClientRect().width > 0);
+          const b = dot.parentElement.querySelector('span.relative');
+          return { open: dot.getAttribute('aria-expanded'), h: b ? Math.round(b.getBoundingClientRect().height) : 0 };
+        });
+        ok('...a "?" opens its explanation in a box', box.open === 'true' && box.h > 20, `expanded=${box.open}, ${box.h}px`);
+      }
+      await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Inputs'); if (b) b.click(); });
+      await p.waitForTimeout(700);
       ok('the crossover button is one line', first.crossover !== null && first.crossover <= 48, `${first.crossover}px`);
       ok('the money banner is one sentence', first.bannerSentences === 1, `${first.bannerSentences}`);
       ok('the first field is on the first screen', first.firstFieldTop !== null && first.firstFieldTop < first.vh, `${first.firstFieldTop} of ${first.vh}`);

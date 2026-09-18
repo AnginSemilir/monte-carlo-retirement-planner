@@ -26,6 +26,22 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { fmtNum, groupDigits, parseFormatted } from './App.jsx';
 
+/*
+ * THE POUND SIGN, ONCE THERE IS SOMETHING TO PUT IT IN FRONT OF.
+ *
+ * An empty money box shows its placeholder; the moment a figure is in it the box says what the figure
+ * is, rather than leaving that to a "(£/yr)" in the label above - which is where it used to live, and
+ * which is not on screen at all once a form is long enough to scroll.
+ *
+ * It is part of the DISPLAYED string rather than an adornment beside the field, because an adornment
+ * needs a wrapper element and these inputs are handed their own width and padding by forty call sites:
+ * a relative wrapper around each one would have to inherit all of it. `parseFormatted` already treats
+ * anything that is not a digit as display, so the symbol never reaches the value - and the caret logic
+ * counts value characters, so it steps over the symbol the same way it steps over a separator. The one
+ * thing it needs told is not to park the caret in front of the sign.
+ */
+const CURRENCY = '\u00a3';
+
 export function MoneyInput({ value, onChange, onFocus, step, min, max, type, ...rest }) {
   const ref = useRef(null);
   // how many value characters sat to the left of the caret, held from the change to the render after it
@@ -34,15 +50,20 @@ export function MoneyInput({ value, onChange, onFocus, step, min, max, type, ...
   const empty = value === '' || value === null || value === undefined;
   // Focused: group the digit string, so a half-typed figure survives. Not focused: the ordinary
   // formatter, so a money field at rest reads exactly like every other figure on the page.
-  const shown = draft !== null ? groupDigits(draft) : (empty ? '' : fmtNum(value));
+  const body = draft !== null ? groupDigits(draft) : (empty ? '' : fmtNum(value));
+  // a minus sign belongs OUTSIDE the symbol: -£1,234, never £-1,234
+  const shown = body === '' || body === '-' ? body
+    : body.startsWith('-') ? '-' + CURRENCY + body.slice(1)
+      : CURRENCY + body;
 
   useLayoutEffect(() => {
     const el = ref.current;
     const want = caretRef.current;
     caretRef.current = null;
     if (!el || want === null || document.activeElement !== el) return;
-    // the first position with that many value characters to its left is where the caret belongs
-    let i = 0;
+    // the first position with that many value characters to its left is where the caret belongs - but
+    // never before the currency sign, which is not somewhere a caret can usefully sit
+    let i = el.value.startsWith(CURRENCY) ? 1 : 0;
     while (i < el.value.length && parseFormatted(el.value.slice(0, i)).length < want) i++;
     el.setSelectionRange(i, i);
   });

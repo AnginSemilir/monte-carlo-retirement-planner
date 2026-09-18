@@ -6026,12 +6026,17 @@ function gridWindow(ctx, { rowsBefore = 4, rowsAfter = 3, cols = 8, step = null,
   const other = anchor && anchor > 0 ? Math.round(anchor) : target;
   const from = Math.min(target, other), to = Math.max(target, other);
   /*
-   * Two columns of margin on each side of the pair, so `cols` columns must cover the gap plus four
-   * steps: step >= (to - from) / (cols - 5). The floor keeps a plan whose two figures are almost equal
-   * from collapsing to a step of nothing.
+   * A margin each side of the pair, so the window shows what is beyond the answer as well as the answer:
+   * two columns where there are eight or more, one on the phone's five. `cols` columns must then cover
+   * the gap plus twice the margin, which is step >= (to - from) / (cols - 1 - 2 * margin). Scaling the
+   * margin with the count matters - fixed at two, a five-column window had nothing left to divide by and
+   * fell back to a £10,000 step on a plan whose whole range was £8,500 wide.
+   *
+   * The floor keeps a plan whose two figures are almost equal from collapsing to a step of nothing.
    */
-  const st = step || niceStep(Math.max(target * 0.06, (to - from) / Math.max(1, cols - 5)));
-  const base = Math.max(st, Math.round(from / st) * st - 2 * st);
+  const margin = cols >= 8 ? 2 : 1;
+  const st = step || niceStep(Math.max(target * 0.06, (to - from) / Math.max(1, cols - 1 - 2 * margin)));
+  const base = Math.max(st, Math.round(from / st) * st - margin * st);
   const spends = [];
   for (let i = 0; i < cols; i++) spends.push(base + i * st);
   return { ages, spends, step: st, planned, target, age0, anchor: anchor || null };
@@ -10657,7 +10662,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     );
     const { ages, spends } = grid.window;
     const done = ages.filter(a => grid.rows[a]).length;
-    const CW = isPhone ? 54 : 66, CH = isPhone ? 30 : 32, LW = isPhone ? 34 : 42;
+    // 48px x 5 plus a 30px label column is 270 of the 282 a 390px phone leaves inside this card: the
+    // table fits without a sideways scroll, which is what makes every cell tappable without hunting.
+    const CW = isPhone ? 48 : 66, CH = isPhone ? 30 : 32, LW = isPhone ? 30 : 42;
     const xOf = (v) => ((v - spends[0]) / (spends[1] - spends[0])) * CW + CW / 2;
     const yOf = (a) => ages.indexOf(a) * CH + CH / 2;
     // the frontier, read between the two cells that straddle the target on each finished row
@@ -10675,7 +10682,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     return (
       <div data-spend-grid className="bg-surface border border-slate-200/90 rounded-xl p-4 space-y-2.5">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <div className="flex items-baseline gap-2.5 min-w-0">
+          <div className={`items-baseline gap-2.5 min-w-0 ${isPhone ? 'block' : 'flex'}`}>
             <h3 className="text-sm font-semibold text-slate-900">Every age against every spend</h3>
             <span className="text-[11px] text-slate-500">the share of {fmtNum(GRID_TRIALS)} futures that lasted to {terminalAge}</span>
           </div>

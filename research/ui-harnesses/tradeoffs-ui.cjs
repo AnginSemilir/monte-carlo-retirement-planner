@@ -39,10 +39,19 @@ const ok = (l, c, d='') => { console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:
      * checks lives inside it, so open it first. On a desktop there is no fold and this finds nothing.
      */
     await p.evaluate(() => {
-      const d = [...document.querySelectorAll('details')].find(x => /Decumulation &(amp;)? withdrawal/.test(x.querySelector('summary')?.textContent || ''));
+      // loose between the two words: on a phone the glossary term inside this heading now carries a
+      // "?" button of its own, so the summary reads "Decumulation? & withdrawal"
+      const d = [...document.querySelectorAll('details')].find(x => /Decumulation.{0,3}&(amp;)?\s*withdrawal/i.test(x.querySelector('summary')?.textContent || ''));
       if (d) d.open = true;
     });
     await p.waitForTimeout(250);
+    /*
+     * The long explanations on a phone are behind a "?" now rather than a line of blue text, and what a
+     * "?" hides is display:none - so innerText does not see it until it is opened. Open every one on the
+     * tab before reading the text. On a desktop there are none and this does nothing.
+     */
+    await p.evaluate(() => { document.querySelectorAll('[data-help-dot]').forEach(b => { if (b.getAttribute('aria-expanded') === 'false') b.click(); }); });
+    await p.waitForTimeout(300);
     const text = () => p.evaluate(() => document.body.innerText);
     let t = await text();
     ok(`${width}: gate line shows before a sweep`, /Run the policy search to see the recommended settings/.test(t));

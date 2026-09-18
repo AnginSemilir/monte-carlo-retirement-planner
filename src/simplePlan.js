@@ -39,7 +39,7 @@ export const SIMPLE_BLANK = {
   penRisk: 'High Risk', isaRisk: 'High Risk', giaRisk: 'Medium Risk', cashRisk: 'Cash Equivalents',
   penPartRisk: 'High Risk', isaPartRisk: 'High Risk', giaPartRisk: 'Medium Risk', cashPartRisk: 'Cash Equivalents',
   oneOffs: [],         // { id, date, amount, direction: 'in' | 'out' }
-  earnings: []         // { id, amount, startAge, endAge, owner } - work after the retirement date
+  earnings: []         // { id, amount, startAge, endAge, owner, taxed } - work after the retirement date
 };
 
 export const oneOffId = () => `o_${Math.random().toString(36).slice(2, 10)}`;
@@ -144,7 +144,15 @@ export function toFullPlan(s) {
      * earnings in its own right.
      */
     otherIncomes: (s.earnings || []).filter(e => n(e.amount) > 0 && e.startAge !== '').map(e => ({
-      id: e.id, incomeType: 'earnings', amount: n(e.amount),
+      id: e.id,
+      /*
+       * Before or after tax, as the person actually knows it. A day rate is quoted gross and taxed as
+       * earnings; a figure somebody has already worked out as "what lands in my account" must not be
+       * taxed a second time, so it enters as tax-free income of that amount. The engine has both kinds
+       * already - this only decides which one a simple-page figure becomes.
+       */
+      incomeType: e.taxed === 'net' ? 'taxFree' : 'earnings',
+      amount: n(e.amount),
       owner: couple && e.owner === 'Partner' ? 'Partner' : 'Myself',
       startAge: e.startAge, endAge: e.endAge === '' ? '' : e.endAge
     })),
@@ -210,9 +218,9 @@ export function fromFullPlan(plan, base = SIMPLE_BLANK) {
 
   // earnings after the retirement date carry; every other income type has nowhere to go
   const incomes = p.otherIncomes || [];
-  const earnings = incomes.filter(i => i.incomeType === 'earnings');
+  const earnings = incomes.filter(i => i.incomeType === 'earnings' || i.incomeType === 'taxFree');
   const otherKinds = incomes.length - earnings.length;
-  if (otherKinds > 0) dropped.push(`${otherKinds} income stream${otherKinds === 1 ? '' : 's'} that are not earnings (a DB pension, an annuity, rent and so on)`);
+  if (otherKinds > 0) dropped.push(`${otherKinds} income stream${otherKinds === 1 ? '' : 's'} that are neither earnings nor tax-free (a DB pension, an annuity, rent and so on)`);
 
   /*
    * A deposit's DESTINATION cannot survive, and cannot be detected either. normalizePlan resolves the
@@ -266,7 +274,7 @@ export function fromFullPlan(plan, base = SIMPLE_BLANK) {
       penPartRisk: pt.pen.risk || base.penPartRisk, isaPartRisk: pt.isa.risk || base.isaPartRisk,
       giaPartRisk: pt.gia.risk || base.giaPartRisk, cashPartRisk: pt.cash.risk || base.cashPartRisk,
       oneOffs: [...ins, ...outs].filter(o => o.date && o.amount > 0),
-      earnings: earnings.map(e => ({ id: e.id || earningId(), amount: n(e.amount), startAge: e.startAge, endAge: e.endAge === '' || e.endAge == null ? '' : e.endAge, owner: e.owner === 'Partner' ? 'Partner' : 'Myself' }))
+      earnings: earnings.map(e => ({ id: e.id || earningId(), amount: n(e.amount), startAge: e.startAge, endAge: e.endAge === '' || e.endAge == null ? '' : e.endAge, owner: e.owner === 'Partner' ? 'Partner' : 'Myself', taxed: e.incomeType === 'taxFree' ? 'net' : 'gross' }))
     }
   };
 }

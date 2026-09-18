@@ -236,7 +236,8 @@ export default function Shell() {
           sentence above every tab, and the app's name was said again in a card under it. A desktop has
           the width for the sentence and keeps it. */}
       {isPhone ? (
-        <PhoneBar title="Full planner" cta="Simple planner" onCross={cross} />
+        <PhoneBar title="Full planner" cta="Simple planner" onCross={cross}
+          extra={<ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />} />
       ) : (
       <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8">
         <div className="max-w-7xl mx-auto space-y-2">

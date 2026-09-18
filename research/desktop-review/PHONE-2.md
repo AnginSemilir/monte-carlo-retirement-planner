@@ -272,3 +272,57 @@ asserts, rather than counting steppers, because a stray one would show up as a s
 to find out what was in it, and what you found was prose. It is the same list now, rows inert because
 there is nothing yet to go to: on a phone each shows its first line with a chevron, on a desktop the
 whole sentence, since the column has the width for it.
+
+## A batch of ten, and one engine fix among them
+
+**The tournament's take-home budget was reading £0 for plans that pay in every month.** It counted
+pension and ISA contributions only. Money going into a GIA or into cash savings each year is money being
+put aside — and those are exactly the households this exists to help, since moving a standing order from
+a GIA into an ISA is the cheapest wrapper decision there is. All four wrappers are swept now; the
+strategies zero the GIA and cash flows they have taken, so nothing is spent twice and every entrant still
+costs the same take-home. Measured on a plan paying £12,000/yr into a GIA and £3,000 into cash with no
+pension or ISA contribution at all:
+
+| | Before | After |
+|---|---|---|
+| Net budget tested | £0/yr, button disabled | **£15,000/yr** |
+| Relief-First's plan | nothing to build | £25,862 gross into the pension, GIA and cash flows stopped |
+| Take-home outlay, baseline vs Relief-First | — | £300,000 vs £299,999 over the accumulation |
+
+A phased schedule counts at its first year, like every other year-0 figure there. The tile now says what
+it swept, and the blocked message is only for a plan that genuinely pays in nothing.
+
+**The phone's explanations are question marks.** "What the taper does" was a line of blue text that reads
+as a heading, so people did not know it opened, and it cost 44px on every card whether anybody wanted it
+or not. It is a 24px "?" now, opening a bordered box with its own close. Glossary terms get the same
+treatment rather than staying desktop-only: the word is left alone in the sentence and a "?" follows it,
+opening the same definition bubble the desktop shows on hover, with a close and a tap-away backdrop.
+
+**The rest of the batch.** The theme control rides in the full planner's top bar, as it always has on the
+simple page. The contribution-growth field carries its own "%" inside the box, so the column keeps one
+right edge. "Every amount here is in today's money" is a 10px grey line under the section tabs on both
+planners rather than a bold blue banner. Export and Import sit in the More sheet on every tab, not only
+on Plan Inputs. The simple page names the equity range beside every risk tier, reading it off the same
+matrix the engine uses; post-retirement income asks whether the figure is before or after tax, and an
+after-tax one enters the model as tax-free rather than being taxed twice; "Safe maximum" and "Earliest
+safe retirement" each say which of your inputs they hold fixed.
+
+**The sandbox can be simulated.** The amber line is a deterministic run, which is why it redraws on every
+keystroke — and the wrong answer to "would this hold up?", since the survival rate everything else quotes
+comes from the simulation. Step 7 now offers Expected or Monte Carlo, debounced half a second so
+dragging a dial does not queue a run a frame, with a spinner and the sandbox's own survival rate when it
+lands. The warning that it takes longer sits in the step's head on a desktop and beside the button on a
+phone, because a third sentence in that head wraps and this card's chart has 19px of clearance above the
+sandbox sheet.
+
+**The simple page's figures quote every band at once.** The chart has to choose one — two edges are
+readable, six lines are not — but a list of figures does not, and the band picker is gone from that view.
+It also fixes a plain bug: on "Expected only" the two edge rows had no percentiles to name and were
+rendering as "null @ 100" over the middle figure repeated twice.
+
+Three harness notes. `load-perf`'s 2,400ms ceiling was measured on a faster afternoon: the same commit it
+was set for now runs 2,396–2,413ms, so half the runs failed on nothing. Raised to 2,600 with both
+measurements recorded beside it; the byte count is the assertion that would catch a real regression.
+`tradeoffs` matched a Config heading by its exact text, which now carries a glossary "?" in the middle of
+it. And `phone` no longer asserts that a phone has no glossary buttons — it asserts the opposite, and
+that tapping one opens a definition and closes again.

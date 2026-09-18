@@ -143,17 +143,44 @@ const policyLabel = (c) => c ? `${POLICY_NAME[c.decumulationPolicy] || c.decumul
 
 const tick = () => new Promise(r => setTimeout(r, 0));
 
+/*
+ * A SAVE IS DATA, NOT A SHAPE TO TRUST.
+ *
+ * This used to spread the parsed JSON straight over the blank state, which meant a save with `oneOffs`
+ * as a number - one bad write, a hand-edited export, an extension - crashed the page on load with
+ * `oneOffs.map is not a function`, and reloading did not help because the save was still there. The
+ * full planner has `normalizePlan` for exactly this; the simple page had nothing.
+ *
+ * So every field is taken only in the shape the blank state has it: lists must be arrays of plain
+ * objects, everything else must be a string, number or boolean. Anything else falls back to the blank
+ * value, and the rest of the save is kept - a corrupt field costs that field, not the plan.
+ */
+const sanitiseSimple = (raw) => {
+  const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+  const out = { ...SIMPLE_BLANK };
+  for (const k of Object.keys(SIMPLE_BLANK)) {
+    if (!(k in src)) continue;
+    const v = src[k];
+    if (Array.isArray(SIMPLE_BLANK[k])) { if (Array.isArray(v)) out[k] = v.filter(x => x && typeof x === 'object' && !Array.isArray(x)); }
+    else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') out[k] = v;
+  }
+  return out;
+};
+
 const load = () => {
   try {
     const raw = localStorage.getItem(KEY);
-    // spread over the blank so a plan saved before a field existed still loads with it
-    if (raw) return { ...SIMPLE_BLANK, ...JSON.parse(raw), earnings: JSON.parse(raw).earnings || [] };
-  } catch { /* private mode */ }
+    if (raw) return sanitiseSimple(JSON.parse(raw));
+  } catch { /* private mode, or not JSON */ }
   return SIMPLE_BLANK;
 };
 
 const loadScenarios = () => {
-  try { const raw = localStorage.getItem(SCEN_KEY); if (raw) return JSON.parse(raw).slice(0, MAX_SCENARIOS); } catch { /* private mode */ }
+  try {
+    const raw = localStorage.getItem(SCEN_KEY);
+    const list = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(list)) return list.filter(x => x && typeof x === 'object').slice(0, MAX_SCENARIOS);
+  } catch { /* private mode */ }
   return [];
 };
 

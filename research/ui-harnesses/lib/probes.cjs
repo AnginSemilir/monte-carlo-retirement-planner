@@ -40,7 +40,11 @@ const CONTRAST_PROBE = () => {
     const bg = bgOf(el);
     const f = lum(over(fg, bg)), b = lum(bg);
     const ratio = (Math.max(f, b) + 0.05) / (Math.min(f, b) + 0.05);
-    if (ratio < 3) bad.push({ text: own.slice(0, 45), ratio: +ratio.toFixed(2), color: cs.color, size: cs.fontSize });
+    // WCAG AA: 4.5:1 for text, 3:1 for large text (24px, or 18.66px bold). This checked 3:1 for
+    // everything, which is why 393 caption nodes at 10-12px passed it and failed axe.
+    const px = parseFloat(cs.fontSize) || 16, bold = parseInt(cs.fontWeight, 10) >= 700;
+    const bar = px >= 24 || (bold && px >= 18.66) ? 3 : 4.5;
+    if (ratio < bar) bad.push({ text: own.slice(0, 45), ratio: +ratio.toFixed(2), color: cs.color, size: cs.fontSize, bar });
   }
   return bad;
 };

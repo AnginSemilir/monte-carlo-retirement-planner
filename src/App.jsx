@@ -26,6 +26,7 @@ import { BottomNav, MoreSheet } from './nav.jsx';
 // `T` at module scope, not a wrapper defined inside the render: a component redeclared every render
 // remounts, which would shut a tooltip the moment a worker result came back underneath it.
 import { Term as T } from './glossary.jsx';
+import { Boundary } from './boundary.jsx';
 import { ChartFullscreen, Fine, PhoneCollapse, SheetPanel, FieldRow, RiskChips, CollapsedRow, Clamp, PercentInput } from './phone.jsx';
 import { MoneyInput } from './numberFormat.jsx';
 import { SectionTabs } from './tabs.jsx';
@@ -10187,6 +10188,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           */}
 
 
+        {/*
+          * Everything below the header sits inside one error boundary, keyed on the tab. A render error on
+          * a tab shows a message and a way back in the tab's place; the header, the tab strip and the
+          * bottom bar stay alive, and switching tabs remounts the boundary so the next screen is clean.
+          */}
+        <Boundary resetKey={activeTab}>
         {/* Scenario Toolbar. Plan Inputs only: saving a scenario means saving THE PLAN, so it belongs
             beside the plan, not floating over a chart where it reads as saving what is on screen.
 
@@ -10841,7 +10848,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <Zap className="w-3.5 h-3.5 shrink-0 text-amber-300 fill-amber-300" />
                     {isPolicySearching ? 'Searching…' : (
                       <span className="text-left leading-tight">Auto-pick best policy
-                        <span className="block text-[10px] font-semibold text-onaccent/80">based on my priorities</span>
+                        <span className="block text-[10px] font-semibold text-onaccent">based on my priorities</span>
                       </span>
                     )}
                   </button>
@@ -11454,7 +11461,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <Clamp isPhone={isPhone} lines={2} label="What this means…">
                         {safeMaxResult.stats.note
                           ? <><strong className="text-rose-700">{safeMaxResult.stats.note}</strong>{' '}</>
-                          : <><strong className="text-slate-700">{formatGBP(safeMaxResult.spend)} a year clears {targetSurvivalRate}%</strong>, and the {safeMaxResult.stats.successRate.toFixed(1)}% beside it is measured on the same {fmtNum(safeMaxResult.stats.trials)} paths that figure is quoted from &mdash; not a separate sample, so the number is the one you are actually buying.{' '}</>}
+                          : <><strong className="text-slate-700">{formatGBP(safeMaxResult.spend)} a year clears {targetSurvivalRate}%</strong>, and the {E.num(safeMaxResult.stats?.successRate, 0).toFixed(1)}% beside it is measured on the same {fmtNum(safeMaxResult.stats?.trials)} paths that figure is quoted from &mdash; not a separate sample, so the number is the one you are actually buying.{' '}</>}
                         A lower target returns a higher figure: you are choosing how much risk of running short to accept in exchange for income now. 95% is the conventional planning benchmark; 99% is close to belt-and-braces and costs a lot of income to reach.
                         {safeMaxResult.spend < simResult.spend && <> <strong className="text-rose-700">Your entered spend is above this.</strong> That is not a prohibition &mdash; it is the size of the bet you are making.</>}
                         </Clamp>
@@ -11514,7 +11521,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <Clamp isPhone={isPhone} lines={2} label="What this means…">
                         {safeRetireResult.note
                           ? <><strong className="text-rose-700">{safeRetireResult.note}</strong>{' '}</>
-                          : <><strong className="text-slate-700">Stopping at {safeRetireResult.age} holds {safeRetireResult.rate.toFixed(1)}%</strong> on {fmtNum(safeRetireResult.stats.trials)} paths, spending the {formatGBP(simResult.spend)} a year you entered throughout.{' '}</>}
+                          : <><strong className="text-slate-700">Stopping at {safeRetireResult.age} holds {safeRetireResult.rate.toFixed(1)}%</strong> on {fmtNum(safeRetireResult.stats?.trials)} paths, spending the {formatGBP(simResult?.spend)} a year you entered throughout.{' '}</>}
                         Moving the date does not move everything with it. <strong className="text-slate-700">Employed and self-employed income shifts with the retirement age</strong> in both directions, and with it the contributions that come out of it. <strong className="text-slate-700">Defined-benefit pensions, annuities and the State Pension keep their own dates</strong>, because the scheme sets those and retiring sooner does not bring them forward &mdash; which is most of why going earlier costs more than the missing salary alone.
                         {safeRetireResult.verifySteps > 0 && <> The first answer the scan found was {safeRetireResult.verifySteps} {safeRetireResult.verifySteps === 1 ? 'year' : 'years'} earlier and did not hold when re-run at full precision, so it was moved later until it did.</>}
                         </Clamp>
@@ -11570,7 +11577,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* ---------------- 5. MONTE CARLO CHART ---------------- */}
               {showSlide(5) && (
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(5, 'Monte Carlo', `${fmtNum(simResult.trials)} randomised futures, same axes as the last screen.`)}
+                  {slideHead(5, 'Monte Carlo', `${fmtNum(simResult?.trials)} randomised futures, same axes as the last screen.`)}
                   <div className="flex flex-wrap items-center gap-3">
                     {bandToggle}
                     {horizonSlider}
@@ -11774,7 +11781,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     summary={sandboxSummary()} quick={sandboxQuickDials()} full={renderSandboxPanel()} />
                 ) : renderSandboxPanel()}
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {fmtNum(simResult.trials)} randomised futures and refresh every step, run it again.</span>
+                  <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {fmtNum(simResult?.trials)} randomised futures and refresh every step, run it again.</span>
                   <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                     {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Running…' : 'Rerun projections'}
@@ -13557,6 +13564,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           </div>
         )}
 
+        </Boundary>
       </div>
       {/*
         * Edit mode is an authoring tool, not a feature: it rewrites copy in the source through a dev-only

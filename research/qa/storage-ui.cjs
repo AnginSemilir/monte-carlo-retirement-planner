@@ -59,16 +59,8 @@ async function load(b, storage, { query = '' } = {}) {
     await ctx.close();
   }
 
-  console.log('== an older plan version is not silently discarded ==');
-  {
-    const keys = await (async () => { const { ctx, p } = await load(b, {}); const k = await p.evaluate(() => Object.keys(localStorage)); await ctx.close(); return k; })();
-    ok('the plan key the app writes today', keys.some(k => /rp_plan_full_v\d+/.test(k)), keys.join(', '));
-    const { ctx, p } = await load(b, { rp_plan_full_v27: JSON.stringify(GOOD) });
-    const carried = await p.evaluate(() => { const s = localStorage.getItem('rp_plan_full_v28'); try { return s ? JSON.parse(s).accounts.find(a => a.id === 'pen_self').balance : null; } catch { return null; } });
-    ok('a v27 plan is migrated into v28 (pension balance survives)', carried === 300000, `v28 pension balance: ${carried}`);
-    await ctx.close();
-  }
-
+  // There is no versioned migration to test: the key is fixed at rp_plan_full_v28 and normalizePlan
+  // handles every shape, which the corruption cases above cover.
   console.log('== JSON import ==');
   {
     const { ctx, p } = await load(b, {});

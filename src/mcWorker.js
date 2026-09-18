@@ -23,6 +23,9 @@
  *   stats               a full Monte Carlo with progress frames, the fan bands and the sample paths
  *   rate                survival at one spend, which is one step of the safe-spend bisection
  *   safeAge             the retirement-age scan, which is twenty Monte Carlo runs of its own
+ *   gridRow             one retirement age of the age-against-spend grid: the same plan run at each
+ *                       spending level on one draw of paths. One job per row, so a pool runs as many
+ *                       rows abreast as the machine has cores.
  *
  * `stats` reports progress every few hundred paths rather than only at the end, because the bar on the
  * page is the only thing telling somebody a five-second run has not hung.
@@ -36,7 +39,7 @@
 import './workerShim.js';
 import {
   buildContext, resolveMpaa, monteCarlo, postTaxInheritanceFor,
-  pathsForSeed, runTrial, summarizeTrials, safeRetirementAge
+  pathsForSeed, runTrial, summarizeTrials, safeRetirementAge, spendRow
 } from './App.jsx';
 
 let memo = null;
@@ -81,6 +84,14 @@ self.onmessage = (e) => {
       let survived = 0;
       for (const zs of m.paths) if (runTrial(m.ctx, zs, spend).survived) survived++;
       self.postMessage({ key, rate: (survived / trials) * 100 });
+      return;
+    }
+    if (kind === 'gridRow') {
+      const { plan, spends, trials, seed, resolve = true } = d;
+      // Not prep(): the row wants ONE context and ONE path draw for every cell in it, which is exactly
+      // what spendRow does, and the memo would be discarded on the next row anyway.
+      const row = spendRow(resolve ? resolveMpaa(plan) : plan, { spends, trials, seed });
+      self.postMessage({ key, row });
       return;
     }
     if (kind === 'safeAge') {

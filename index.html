@@ -414,6 +414,12 @@
       @media (min-width: 1536px) {
         .wide-chart-card { margin-left: -6rem; margin-right: -6rem; }
         .wide-chart-card > :not(.chart-holder) { margin-left: 6rem; margin-right: 6rem; }
+        /*
+         * .wide-dash - the same escape for the dashboard, without the push-back. There the extra width
+         * is wanted by everything in it, not just the picture: the figure strip gets wider columns, the
+         * chart gets the rest, and the rail beside it stays the width it was.
+         */
+        .wide-dash { margin-left: -6rem; margin-right: -6rem; }
       }
       /*
        * .swipe-x - the container whose content can be swiped between sections or steps. pan-y keeps

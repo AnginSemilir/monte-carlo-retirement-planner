@@ -192,6 +192,12 @@ export default function Shell() {
    * hundred call sites that are not components: children render after this line, so they see it, whereas
    * an effect would run after the first paint and show one frame of the wrong convention.
    */
+  /*
+   * 'full' or 'compact', set by whichever planner is mounted. Only the page knows when it has turned
+   * into something that wants the whole window - the projection dashboard is the case - and only the
+   * shell can shrink what it draws above it.
+   */
+  const [chrome, setChrome] = useState('full');
   const [numFormat, setNumFormat] = useState(() => {
     try { const v = localStorage.getItem(NUM_FORMAT_KEY); return NUMBER_FORMATS[v] ? v : DEFAULT_NUMBER_FORMAT; }
     catch { return DEFAULT_NUMBER_FORMAT; }
@@ -240,13 +246,16 @@ export default function Shell() {
         <PhoneBar title="Full planner" cta="Simple planner" onCross={cross}
           extra={<ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />} />
       ) : (
-      <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8">
+      <div className={`px-4 sm:px-6 lg:px-8 ${chrome === 'compact' ? 'pt-3' : 'pt-4 sm:pt-6 lg:pt-8'}`}>
         <div className="max-w-7xl mx-auto space-y-2">
+          {/* Kept on every screen, including the dashboard - it is the way out to the other planner and
+              a visitor who wants the short answer should never have to scroll to find it. It just gets
+              out of the way there: one 28px line rather than a 50px block. */}
           <button type="button" onClick={cross} data-crossover
-            className="w-full group flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 hover:border-blue-300 transition-colors cursor-pointer flex-wrap gap-x-2.5 gap-y-1 px-5 py-3">
-            <span className="text-sm text-blue-900/80">{other.lead}</span>
-            <span className="text-sm font-bold text-blue-800 group-hover:text-blue-900 flex items-center gap-1.5">
-              {other.cta} <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            className={`w-full group flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 hover:border-blue-300 transition-colors cursor-pointer flex-wrap gap-x-2.5 gap-y-1 ${chrome === 'compact' ? 'px-4 py-1' : 'px-5 py-3'}`}>
+            <span className={`text-blue-900/80 ${chrome === 'compact' ? 'text-[11px]' : 'text-sm'}`}>{other.lead}</span>
+            <span className={`font-bold text-blue-800 group-hover:text-blue-900 flex items-center gap-1.5 ${chrome === 'compact' ? 'text-[11px]' : 'text-sm'}`}>
+              {other.cta} <ArrowRight className={`transition-transform group-hover:translate-x-0.5 ${chrome === 'compact' ? 'w-3 h-3' : 'w-4 h-4'}`} />
             </span>
           </button>
         </div>
@@ -256,7 +265,7 @@ export default function Shell() {
       {/* One boundary round each planner, so a render error inside either leaves this bar - and the way
           across to the other planner - standing. Keyed on the planner so switching gives a clean start. */}
       {which === 'full' ? <Boundary resetKey="full"><App theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} numFormat={numFormat} setNumFormat={setNumFormat}
-        isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} /></Boundary> : (
+        isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} onChrome={setChrome} /></Boundary> : (
         <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center justify-between gap-3">

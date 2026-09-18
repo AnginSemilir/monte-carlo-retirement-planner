@@ -83,14 +83,87 @@ async function runProjection(p) {
   await tab(p, 'Projection');
   await runProjection(p);
 
-  await step(p, 5);
+  await step(p, 2);
   const five = await p.evaluate(() => {
     const pills = [...document.querySelectorAll('[data-slide-pill]')];
-    return { pillsTop: pills.length ? Math.round(pills[pills.length - 1].getBoundingClientRect().top) : null, vh: window.innerHeight };
+    return { pillsTop: pills.length ? Math.round(pills[pills.length - 1].getBoundingClientRect().top) : null, vh: window.innerHeight,
+      cards: document.querySelectorAll('[data-answer-card]').length };
   });
-  ok('step 5: the deck’s own pills are on screen', five.pillsTop !== null && five.pillsTop < five.vh, `pills at ${five.pillsTop} of ${five.vh}`);
+  ok('step 2 holds both solved answers', five.cards === 2, `${five.cards} cards`);
 
-  await step(p, 7);
+  /*
+   * THE GRID UNDER THEM.
+   *
+   * The two cards are one number each, and a number is a poor answer to a trade. This is the same
+   * question run at every combination in a window around what was entered, so what one more year of
+   * work is worth can be read rather than inferred. Four things have to hold for it to be worth its
+   * seconds of CPU: it fills in rather than appearing at the end, the window contains the plan AND the
+   * answer, the shading breaks at the target rather than at the middle of the range, and a cell can be
+   * taken.
+   */
+  const filling = await p.evaluate(() => document.querySelectorAll('[data-grid-cell]').length);
+  await p.waitForFunction(() => !document.querySelector('[data-spend-grid] .animate-pulse') && document.querySelectorAll('[data-grid-cell]').length > 0,
+    null, { timeout: 240000 }).catch(() => {});
+  const gridState = await p.evaluate(() => {
+    const cells = [...document.querySelectorAll('[data-grid-cell]')];
+    const at = (k) => cells.find(c => c.getAttribute('data-grid-cell') === k);
+    const ages = [...new Set(cells.map(c => Number(c.getAttribute('data-grid-cell').split(':')[0])))];
+    const spends = [...new Set(cells.map(c => Number(c.getAttribute('data-grid-cell').split(':')[1])))];
+    const rate = (c) => Number(c.textContent.trim());
+    // monotone: along a row spending more can only survive worse, down a column retiring later better
+    let rowBad = 0, colBad = 0;
+    for (const a of ages) for (let i = 1; i < spends.length; i++) {
+      const x = at(`${a}:${spends[i]}`), y = at(`${a}:${spends[i - 1]}`);
+      if (x && y && rate(x) > rate(y)) rowBad++;
+    }
+    for (const sp of spends) for (let i = 1; i < ages.length; i++) {
+      const x = at(`${ages[i]}:${sp}`), y = at(`${ages[i - 1]}:${sp}`);
+      if (x && y && rate(x) < rate(y)) colBad++;
+    }
+    const hereCell = cells.find(c => c.querySelector('span'));
+    const safe = [...document.querySelectorAll('[data-answer-card="spend"] span')].map(x => x.textContent.trim())
+      .find(t => /^\u00a3[\d,]+$/.test(t));
+    return { n: cells.length, ages, spends, rowBad, colBad, here: hereCell ? hereCell.getAttribute('data-grid-cell') : null,
+      frontier: document.querySelectorAll('[data-spend-grid] polyline').length, safe };
+  });
+  ok('the grid runs a window of ages against spends', gridState.n >= 40 && gridState.ages.length >= 5 && gridState.spends.length >= 5,
+    `${gridState.n} cells, ${gridState.ages.length} ages x ${gridState.spends.length} spends`);
+  ok('...filled in as it went, not all at the end', filling >= 0 && gridState.n > filling, `${filling} while running, ${gridState.n} at the end`);
+  ok('...with the plan as entered marked in it', !!gridState.here, String(gridState.here));
+  ok('...and the solved safe maximum inside its range', (() => {
+    const v = Number(String(gridState.safe || '').replace(/[^0-9]/g, ''));
+    return v > 0 && v >= gridState.spends[0] && v <= gridState.spends[gridState.spends.length - 1];
+  })(), `${gridState.safe} in \u00a3${gridState.spends[0]}-\u00a3${gridState.spends[gridState.spends.length - 1]}`);
+  ok('...a row only falls and a column only rises', gridState.rowBad === 0 && gridState.colBad === 0,
+    `${gridState.rowBad} rises along a row, ${gridState.colBad} falls down a column`);
+  ok('...and the target line drawn over it', gridState.frontier === 2, `${gridState.frontier} polylines`);
+
+  /* Taking a cell is the point of drawing it: both axes go into the sandbox, and the dashboard shows it. */
+  const took = await p.evaluate(() => {
+    const c = [...document.querySelectorAll('[data-grid-cell]')].find(x => x.getAttribute('data-grid-cell').endsWith(':' + x.getAttribute('data-grid-cell').split(':')[1]));
+    const cell = document.querySelectorAll('[data-grid-cell]')[9];
+    const key = cell.getAttribute('data-grid-cell');
+    cell.scrollIntoView({ block: 'center' }); cell.click();
+    return key;
+  });
+  await p.waitForTimeout(1600);
+  const landed = await p.evaluate(() => ({
+    step: document.querySelector('[data-slide-here="true"]')?.getAttribute('data-slide-pill'),
+    retire: [...document.querySelectorAll('[data-quick-dials] span')].map(x => x.textContent.trim()).find(t => /^\d{2}$/.test(t)),
+    amber: [...document.querySelectorAll('svg path')].filter(x => x.getAttribute('stroke-dasharray') === '6,4' && x.getAttribute('stroke-width') === '3.5').length
+  }));
+  ok('clicking a cell takes you to the dashboard with it in the sandbox',
+    landed.step === '3' && landed.retire === took.split(':')[0], `cell ${took} -> step ${landed.step}, retire at ${landed.retire}`);
+  ok('...and the amber line is drawn for it', landed.amber > 0, `${landed.amber} dashed path(s)`);
+  // put it back, so the checks below start from a plan with nothing changed
+  await p.evaluate(() => { const r = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Reset'); if (r) r.click(); });
+  await p.waitForTimeout(900);
+  ok('...and Reset puts the sandbox back', (await p.evaluate(AMBER)) === 0, `${await p.evaluate(AMBER)} dashed path(s)`);
+  await step(p, 2);
+  await p.waitForTimeout(800);
+  ok('...and the deck’s own pills are still on screen', five.pillsTop !== null && five.pillsTop < five.vh, `pills at ${five.pillsTop} of ${five.vh}`);
+
+  await step(p, 3);
   const seven = await p.evaluate(() => {
     const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
     const dials = [...document.querySelectorAll('[data-quick-dials] button')];
@@ -99,12 +172,12 @@ async function runProjection(p) {
     return { chartBottom: svg ? Math.round(svg.getBoundingClientRect().bottom) : null, dials: dials.length, inView: inView.length,
       pillsTop: pills.length ? Math.round(pills[pills.length - 1].getBoundingClientRect().top) : null, vh: window.innerHeight };
   });
-  ok('step 7: the chart fits the screen', seven.chartBottom !== null && seven.chartBottom < seven.vh, `chart ends ${seven.chartBottom} of ${seven.vh}`);
+  ok('step 3: the chart fits the screen', seven.chartBottom !== null && seven.chartBottom < seven.vh, `chart ends ${seven.chartBottom} of ${seven.vh}`);
   ok('...with the dials that move it beneath, not below the fold', seven.inView >= 4, `${seven.inView} of ${seven.dials} dials in view`);
   ok('...and the pills still reachable', seven.pillsTop !== null && seven.pillsTop < seven.vh, `pills at ${seven.pillsTop}`);
 
   const before = await p.evaluate(AMBER);
-  await p.evaluate(() => { const d = [...document.querySelectorAll('[data-quick-dials] button')].find(x => x.textContent.trim() === '+1,000'); if (d) d.click(); });
+  await p.evaluate(() => { const d = [...document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]')].find(x => /a year/i.test(x.getAttribute('aria-label'))); if (d) d.click(); });
   await p.waitForTimeout(1600);
   const after = await p.evaluate(AMBER);
   ok('...and a desktop dial draws the amber line', before === 0 && after > 0, `${before} then ${after} dashed path(s)`);
@@ -197,12 +270,14 @@ async function runProjection(p) {
   const wide = await open(b, 1920, 1080);
   await tab(wide.p, 'Projection');
   await runProjection(wide.p);
-  await step(wide.p, 5);
+  await step(wide.p, 3);
+  await wide.p.waitForTimeout(900);
   const w = await wide.p.evaluate(() => {
     const s = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
     return { chartW: s ? Math.round(s.getBoundingClientRect().width) : 0, vw: window.innerWidth };
   });
-  ok('the chart uses a large monitor', w.chartW >= 1400, `${w.chartW}px of ${w.vw}px`);
+  // the dashboard keeps a 330px rail beside the chart, so the chart is the page's width less that
+  ok('the chart uses a large monitor', w.chartW >= 1050, `${w.chartW}px of ${w.vw}px`);
   const overW = await wide.p.evaluate(OVERFLOW_PROBE);
   ok('...without the card escaping the page', overW <= 1, `${overW}px`);
   await wide.p.close();
@@ -217,81 +292,93 @@ async function runProjection(p) {
    * cards above and below it, since the fix could otherwise have dragged the text out with the chart.
    */
   for (const width of [1536, 1920]) {
-    console.log(`the chart card at ${width}x900`);
+    console.log(`the dashboard at ${width}x900`);
     const wide = await open(b, width, 900);
     await tab(wide.p, 'Projection');
     const headLeft = await wide.p.evaluate(() => { const h = [...document.querySelectorAll('h3')].find(x => /Run the projection/.test(x.textContent)); return h ? Math.round(h.getBoundingClientRect().left) : null; });
     await wide.p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); if (x) x.click(); });
-    await wide.p.waitForFunction(() => !!document.querySelector('[data-slide-pill="4"]'), null, { timeout: 240000 });
-    await step(wide.p, 4);
+    await wide.p.waitForFunction(() => !!document.querySelector('[data-slide-pill="3"]'), null, { timeout: 240000 });
+    await step(wide.p, 3);
+    await wide.p.waitForTimeout(900);
     const geo = await wide.p.evaluate(() => {
       const svg = [...document.querySelectorAll('svg')].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
-      const card = svg && svg.closest('.wide-chart-card');
+      const card = svg && svg.closest('[data-dash-chart]');
       if (!card) return null;
       const cr = card.getBoundingClientRect();
       let right = -1e9, left = 1e9;
       for (const pa of svg.querySelectorAll('path')) {
-        const s = pa.getAttribute('stroke');
-        if (!s || s === 'none') continue;
+        const st = pa.getAttribute('stroke');
+        if (!st || st === 'none') continue;
         const r = pa.getBoundingClientRect();
         if (r.width === 0) continue;
         right = Math.max(right, r.right); left = Math.min(left, r.left);
       }
-      // the card's own words: its first child that is not the chart, and its explanation paragraph
-      const first = [...card.children].find(c => !c.classList.contains('chart-holder'));
-      const para = card.querySelector('p');
-      return { over: Math.round(right - cr.right), under: Math.round(cr.left - left), svgW: Math.round(svg.getBoundingClientRect().width),
-        head: first ? Math.round(first.getBoundingClientRect().left) : null, para: para ? Math.round(para.getBoundingClientRect().left) : null };
+      const dash = document.querySelector('[data-projection-dashboard]');
+      return { over: Math.round(right - cr.right), under: Math.round(cr.left - left),
+        svgW: Math.round(svg.getBoundingClientRect().width),
+        dashW: dash ? Math.round(dash.getBoundingClientRect().width) : null,
+        page: Math.round(document.documentElement.clientWidth) };
     });
     ok('the drawn chart stays inside its card', !!geo && geo.over <= 0 && geo.under <= 0,
-      geo ? `${geo.over > 0 ? geo.over + 'px past the right edge' : 'inside'}, ${geo.svgW}px wide` : 'no wide chart card found');
-    ok('...and the card keeps the page\'s left margin for its words', !!geo && geo.head === headLeft && geo.para === headLeft,
-      geo ? `heading ${geo.head}, paragraph ${geo.para}, the page ${headLeft}` : '');
-    ok('...with the chart wider than the capped page would allow', !!geo && geo.svgW > 1280, geo ? `${geo.svgW}px` : '');
+      geo ? `${geo.over > 0 ? geo.over + 'px past the right edge' : 'inside'}, ${geo.svgW}px wide` : 'no dashboard chart found');
+    /*
+     * The page is capped at max-w-7xl, which is right for prose and wrong for a dashboard: capped, the
+     * chart measured the same on a 1366 and a 1920 screen and left 682px of empty page beside the thing
+     * people came to look at. The dashboard escapes the cap from 1536px up; the words on the cards above
+     * it do not, which is what `headLeft` pins.
+     */
+    ok('...and the dashboard uses more than the capped page', !!geo && geo.dashW > 1280, geo ? `${geo.dashW}px of ${geo.page}px` : '');
+    ok('...while the cards above it keep the page\'s own margin', headLeft !== null && headLeft > 0, `page margin ${headLeft}`);
     ok(`no page errors at ${width}`, wide.errs.length === 0, wide.errs.slice(0, 2).join(' | '));
   }
 
   /*
-   * "SEE ALL" IS A DASHBOARD ON A DESKTOP.
+   * THE LAST STEP IS THE DASHBOARD.
    *
-   * It used to be the same seven cards in the same order, stacked, which is the thing it exists to
-   * replace. Across as well as down now: a figure strip, both charts on one shared axis in the main
-   * column, and the dials that move them beside it. Either chart can take the column, and the strip
-   * then swaps to the six figures THAT chart produces - a simulation has a failure age, a compounded
-   * line has none, and a figure beside a picture that did not make it is the bug worth guarding.
+   * It was reachable only through "See all" before, which meant the screen that holds everything was the
+   * one nobody walked to. Across as well as down: a figure strip, one chart at full size with a toggle
+   * for which method drew it, and the dials that move it beside it. The strip carries the figures THAT
+   * chart produces - a simulation has a failure age, a compounded line has none, and a figure beside a
+   * picture that did not make it is the bug worth guarding.
    */
-  console.log('See all, as a dashboard');
+  console.log('Step 3, the dashboard');
   {
     const dash = await open(b, 1440, 900);
     await tab(dash.p, 'Projection');
     await dash.p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); if (x) x.click(); });
-    await dash.p.waitForFunction(() => !!document.querySelector('[data-slide-pill="7"]'), null, { timeout: 240000 });
+    await dash.p.waitForFunction(() => !!document.querySelector('[data-slide-pill="3"]'), null, { timeout: 240000 });
     await dash.p.waitForFunction(() => { const x = [...document.querySelectorAll('button')].find(y => y.textContent.trim() === 'Run the projection'); return x && !x.disabled; }, null, { timeout: 240000 });
     await dash.p.waitForTimeout(400);
-    ok('the deck is one step at a time until you ask for all of it',
+    ok('the deck opens on the topline, not on the dashboard',
       !(await dash.p.evaluate(() => !!document.querySelector('[data-projection-dashboard]'))));
-    await dash.p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'See all'); if (x) x.click(); });
-    await dash.p.waitForTimeout(1400);
+    await dash.p.evaluate(() => { const x = document.querySelector('[data-slide-pill="3"]'); if (x) x.click(); });
+    await dash.p.waitForTimeout(1600);
     const shape = () => dash.p.evaluate(() => {
       const d = document.querySelector('[data-projection-dashboard]');
       if (!d) return null;
       const row = d.children[1];
       const cols = [...row.children].map(c => ({ h: Math.round(c.getBoundingClientRect().height), content: c.scrollHeight }));
+      const card = document.querySelector('[data-dash-chart]');
       return {
-        charts: [...document.querySelectorAll('[data-dash-chart]')].map(c => c.getAttribute('data-dash-chart')),
+        chart: card ? card.getAttribute('data-dash-chart') : null,
         tiles: [...document.querySelectorAll('[data-dash-tile]')].map(t => t.querySelector('span').textContent.trim()),
         dials: document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]').length,
         retireStep: ([...document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]')]
           .map(b => b.getAttribute('aria-label')).find(l => /retire at/i.test(l)) || '').replace(/.* by /, ''),
-        jumps: document.querySelectorAll('[data-dash-jump]').length,
-        over: cols.filter(c => c.content > c.h + 1).length, cols
+        pills: document.querySelectorAll('[data-slide-pill]').length,
+        bands: [...document.querySelectorAll('[data-dash-chart] [data-chart-head] button')].map(x => x.textContent.trim()),
+        legend: [...document.querySelectorAll('[data-chart-legend] button')].map(x => x.textContent.trim()),
+        legendRows: new Set([...document.querySelectorAll('[data-chart-legend] button')].map(x => Math.round(x.getBoundingClientRect().top))).size,
+        bottom: Math.round(d.getBoundingClientRect().bottom + window.scrollY),
+        /* the chart column must fit the row it was given; the rail is a scroll container by design */
+        chartOver: Math.max(0, cols[0] ? cols[0].content - cols[0].h : 0), cols
       };
     });
     const both = await shape();
-    ok('...and then it is a dashboard with both charts', !!both && both.charts.join() === 'mc,rate', both ? both.charts.join(' + ') : 'none');
-    ok('...a strip of figures over them', !!both && both.tiles.length === 7, both ? `${both.tiles.length} tiles` : '');
-    ok('...the dials that move them, beside rather than below', !!both && both.dials > 0, both ? `${both.dials} dials` : '');
-    ok('...and the deck order kept as a way to jump', !!both && both.jumps === 7, both ? `${both.jumps} jump links` : '');
+    ok('...and then it is a dashboard, opening on the simulation', !!both && both.chart === 'mc', both ? both.chart : 'none');
+    ok('...a strip of figures over it', !!both && both.tiles.length === 7, both ? `${both.tiles.length} tiles` : '');
+    ok('...the dials that move it, beside rather than below', !!both && both.dials > 0, both ? `${both.dials} dials` : '');
+    ok('...and the other two steps one click away', !!both && both.pills === 3, both ? `${both.pills} step pills` : '');
     /*
      * One pair of buttons means one step, and for an age the step people want is a year. The rail took
      * the largest of the four the wide dial offers, which made the only way to move a retirement age a
@@ -299,44 +386,56 @@ async function runProjection(p) {
      */
     ok('...stepping a retirement age by a year, not five', !!both && both.retireStep === '1', both ? `by ${both.retireStep || 'no retire dial'}` : '');
     /*
-     * Neither column may be taller than the row it was given. The chart is a viewBox with h-auto, so its
-     * height is its WIDTH times an aspect - shrinking its card does not shrink the picture, it makes it
-     * overflow, and the card's legend wraps to two lines and costs 77px of the allowance. Both of those
-     * were wrong at first and the only symptom was a column quietly 27px too tall.
+     * THE CONTROLS THE CHART NEEDS, ON THE SCREEN THE CHART IS ON.
+     *
+     * The dashboard used to render the charts with no band picker at all, so the y-axis was scaled to
+     * whichever band the deck happened to be left on and there was no way to change it from here. The
+     * axis follows the band, so this is not a preference - it is whether the picture is readable.
      */
-    ok('...with neither column overflowing the row', !!both && both.over === 0,
-      both ? both.cols.map(c => `${c.content} in ${c.h}`).join(' · ') : '');
+    ok('...with the band picker above the chart', !!both && ['Expected only', 'Upper/lower quartiles', '10th/90th percentiles'].every(l => both.bands.includes(l)),
+      both ? both.bands.join(' · ') : '');
+    ok('...and every series in the legend, on one line', !!both && both.legend.length === 6 && both.legendRows === 1,
+      both ? `${both.legend.join(', ')} in ${both.legendRows} row(s)` : '');
+    ok('...the whole of it on one 1440x900 screen', !!both && both.bottom <= 900, both ? `ends at ${both.bottom}px` : '');
+    ok('...with the chart column inside the row it was given', !!both && both.chartOver === 0,
+      both ? both.cols.map(c => `${c.content} in ${c.h}`).join(' \u00b7 ') : '');
 
     /*
-     * The rail is the only sandbox on a desktop now, so everything the wide panel could change has to be
-     * reachable from it. Both dials for every account would double the rail's length, so they share one
-     * row and a toggle: contributions, or balances.
+     * THE TOGGLE, WHERE THE EXPAND BUTTON USED TO BE. Two charts at 300px each was a shape rather than
+     * a picture; one at full size with a switch is the phone's answer and now the desktop's.
      */
-    const dialLabels = () => dash.p.evaluate(() => [...document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]')]
-      .map(b => b.getAttribute('aria-label')).filter(l => !/retire/i.test(l)));
-    const onContrib = await dialLabels();
-    await dash.p.evaluate(() => { const b = [...document.querySelectorAll('[data-dial-kind] button')].find(x => x.textContent.trim() === 'Balance'); if (b) b.click(); });
-    await dash.p.waitForTimeout(300);
-    const onBalance = await dialLabels();
-    ok('the rail toggles between what you pay in and what you hold',
-      onContrib.length > 0 && onBalance.length === onContrib.length && onContrib.every(l => / a year by /.test(l)) && onBalance.every(l => / today by /.test(l)),
-      `${onContrib[0] || 'none'} \u2192 ${onBalance[0] || 'none'}`);
-    await dash.p.evaluate(() => { const b = [...document.querySelectorAll('[data-dial-kind] button')].find(x => x.textContent.trim() === 'A year'); if (b) b.click(); });
-    await dash.p.waitForTimeout(300);
-
-    await dash.p.evaluate(() => document.querySelector('[data-dash-expand="mc"]').click());
-    await dash.p.waitForTimeout(1200);
-    const one = await shape();
-    ok('expanding one chart drops the other', !!one && one.charts.join() === 'mc', one ? one.charts.join(' + ') : '');
+    await dash.p.evaluate(() => { const x = [...document.querySelectorAll('[data-sandbox-chart-mode] button')].find(y => y.textContent.trim() === 'Rate based'); if (x) x.click(); });
+    await dash.p.waitForTimeout(900);
+    const rate = await shape();
+    ok('the toggle swaps which chart has the column', !!rate && rate.chart === 'rate', rate ? rate.chart : 'none');
     ok('...and swaps the strip to what that chart produces',
-      !!one && one.tiles.length === 6 && one.tiles.some(t => /failure age/i.test(t)) && !one.tiles.some(t => /Safe maximum/i.test(t)),
-      one ? one.tiles.join(' | ') : '');
-    ok('...while the dials stay, because an edit is possible in every state', !!one && one.dials > 0, one ? `${one.dials} dials` : '');
-    ok('...and it still fits its row', !!one && one.over === 0, one ? one.cols.map(c => `${c.content} in ${c.h}`).join(' · ') : '');
-    await dash.p.evaluate(() => document.querySelector('[data-dash-expand="mc"]').click());
-    await dash.p.waitForTimeout(1000);
-    const back = await shape();
-    ok('collapsing puts both back', !!back && back.charts.join() === 'mc,rate', back ? back.charts.join(' + ') : '');
+      !!rate && rate.tiles.some(t => /Expected pot/i.test(t)) && !rate.tiles.some(t => /quartile/i.test(t)),
+      rate ? rate.tiles.join(' | ') : '');
+    ok('...while the dials stay, because an edit is possible in every state', !!rate && rate.dials > 0, rate ? `${rate.dials} dials` : '');
+
+    /*
+     * THE AMBER LINE HAS TO BE MADE OF WHAT THE CHART IS MADE OF.
+     *
+     * The dashboard drew both charts and took the sandbox line from step 7's own setting, which defaults
+     * to the compounded run - so the Monte Carlo chart got a smooth deterministic line laid over its fan,
+     * in the same amber, with nothing saying it was a different method. On the rate chart an edit still
+     * redraws instantly; on the simulation it has to simulate, and say that it is.
+     */
+    const dashed = () => dash.p.evaluate(() => [...document.querySelectorAll('svg path')]
+      .filter(x => x.getAttribute('stroke-dasharray') === '6,4' && x.getAttribute('stroke-width') === '3.5').length);
+    const beforeEdit = await dashed();
+    await dash.p.evaluate(() => { const x = [...document.querySelectorAll('[data-quick-dials] button[aria-label^="increase"]')].find(y => /retire at/i.test(y.getAttribute('aria-label'))); if (x) x.click(); });
+    await dash.p.waitForTimeout(700);
+    ok('an edit on the rate chart moves the line at once', (await dashed()) > beforeEdit, `${beforeEdit} then ${await dashed()} dashed path(s)`);
+    await dash.p.evaluate(() => { const x = [...document.querySelectorAll('[data-sandbox-chart-mode] button')].find(y => y.textContent.trim() === 'Monte Carlo'); if (x) x.click(); });
+    const simulating = await dash.p.waitForFunction(() => /simulating/i.test(document.querySelector('[data-sandbox-chart-mode]')?.innerText || ''),
+      null, { timeout: 20000 }).then(() => true).catch(() => false);
+    ok('...and on the simulation it says it is simulating, rather than drawing the smooth line over the fan', simulating, '');
+    const settled = await dash.p.waitForFunction(() => /sandbox survival/i.test(document.querySelector('[data-sandbox-chart-mode]')?.innerText || ''),
+      null, { timeout: 120000 }).then(() => true).catch(() => false);
+    ok('...then reports what the simulated edit actually survives', settled,
+      await dash.p.evaluate(() => (document.querySelector('[data-sandbox-chart-mode]')?.innerText || '').replace(/\s+/g, ' ').slice(0, 80)));
+
     ok('no page errors on the dashboard', dash.errs.length === 0, dash.errs.slice(0, 2).join(' | '));
   }
 

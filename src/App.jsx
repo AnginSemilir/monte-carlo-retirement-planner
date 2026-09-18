@@ -19,7 +19,7 @@ import {
   TrendingUp, Layers, Check, RotateCcw, Zap, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
   Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, ChevronUp, ChevronDown, Home, Gift,
-  GripVertical, Maximize2, Minimize2, Loader2, FileText
+  GripVertical, Maximize2, Loader2, FileText
 } from 'lucide-react';
 import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
@@ -5961,8 +5961,124 @@ function estateActionPlan(plan, result) {
   return out;
 }
 
+/*
+ * ==========================================================================================
+ * THE AGE AGAINST THE SPENDING, AS A GRID.
+ * ==========================================================================================
+ *
+ * The two solved answers - the most you could spend, the earliest you could retire - are the same
+ * question asked from two ends, and each is one number. A number is a poor answer to a trade: it says
+ * what you could do at the age you happened to enter, and nothing about what a year either way is worth.
+ * This runs the plan at every combination of a retirement age and a spending level and reports the
+ * survival rate of each, so the trade can be read off a picture rather than inferred from two figures.
+ *
+ * THREE THINGS MAKE IT AFFORDABLE.
+ *
+ * One path set per ROW. Every cell in a row is the same plan at the same retirement age, differing only
+ * in how much is drawn - which `runTrial` already takes as an override - so the context is built once
+ * and the gaussian draws are made once for the whole row. Drawing 1,000 paths costs 4ms and running a
+ * cell costs 292ms, so this is not the saving it looks like; what it buys is that neighbouring cells
+ * differ by the PLAN rather than by luck, which is what makes the grid readable at all.
+ *
+ * A row per worker. Rows are independent, so the pool runs as many abreast as there are cores.
+ *
+ * A small window. Eight ages by eight spends around what you entered is 64 cells; the whole 15-by-12
+ * board is 180 and is what "wider" is for.
+ *
+ * WHAT IS NOT DONE: pruning. Survival can only fall as spending rises, so in principle every cell
+ * cheaper than one reading 100% must also be 100% and could be filled without running. Measured over
+ * the 180-cell board that skipped 11 cells - 6% - in exchange for an assumption about the engine's
+ * monotonicity that nothing else here relies on. Not worth it: every cell is a real run.
+ */
+
+/*
+ * A round number near the asked-for size, so the columns are £5,000 apart on a £50,000 plan and £2,000
+ * apart on a £20,000 one. A fixed step would give the first household eight columns covering a tenth of
+ * its range and the second a grid where every cell is identical.
+ */
+const NICE_STEPS = [250, 500, 1000, 2000, 2500, 5000, 10000, 20000, 25000, 50000];
+function niceStep(x) {
+  for (const s of NICE_STEPS) if (x <= s * 1.25) return s;
+  return NICE_STEPS[NICE_STEPS.length - 1];
+}
+
+/*
+ * The window: your own age and your own spending are IN it, and so is the answer.
+ *
+ * Centring the columns on the entered spending alone is what the first version did, and on a plan that
+ * is comfortably inside its means every cell came back green - a table that says nothing, because the
+ * interesting edge was two columns off the right of it. So the columns are spanned between the spending
+ * ENTERED and the safe maximum SOLVED for that age, which are the two numbers the cards above the grid
+ * carry: whichever is larger sets the right-hand end, whichever is smaller the left, and the step is
+ * chosen so that eight columns cover both with room either side. Where the solved figure is not known
+ * yet, the entered spending is used alone and the window is recomputed when it arrives.
+ */
+function gridWindow(ctx, { rowsBefore = 4, rowsAfter = 3, cols = 8, step = null, anchor = null } = {}) {
+  const age0 = Math.round(num(ctx.owners?.[0]?.age0 ?? ctx.currentAge, 40));
+  const planned = Math.round(num(ctx.owners?.[0]?.retireAge, age0 + 20));
+  const terminal = Math.round(num(ctx.terminalAge, 100));
+  const lo = Math.max(age0, planned - rowsBefore);
+  const hi = Math.min(terminal - 1, Math.max(lo + 1, planned + rowsAfter));
+  const ages = [];
+  for (let a = lo; a <= hi; a++) ages.push(a);
+
+  const target = Math.max(1000, Math.round(num(ctx.targetSpend, 30000)));
+  const other = anchor && anchor > 0 ? Math.round(anchor) : target;
+  const from = Math.min(target, other), to = Math.max(target, other);
+  /*
+   * Two columns of margin on each side of the pair, so `cols` columns must cover the gap plus four
+   * steps: step >= (to - from) / (cols - 5). The floor keeps a plan whose two figures are almost equal
+   * from collapsing to a step of nothing.
+   */
+  const st = step || niceStep(Math.max(target * 0.06, (to - from) / Math.max(1, cols - 5)));
+  const base = Math.max(st, Math.round(from / st) * st - 2 * st);
+  const spends = [];
+  for (let i = 0; i < cols; i++) spends.push(base + i * st);
+  return { ages, spends, step: st, planned, target, age0, anchor: anchor || null };
+}
+
+/*
+ * One row: the same plan at one retirement age, run at each spending level on one draw of paths. The
+ * caller passes a plan (a worker cannot be handed a context) or a context (the main-thread fallback
+ * already has one).
+ */
+function spendRow(planOrCtx, { spends, trials = 1000, seed = 12345 } = {}) {
+  const ctx = planOrCtx && planOrCtx.P ? planOrCtx : buildContext(planOrCtx);
+  const paths = pathsForSeed(seed, trials, ctx.totalYears);
+  return spends.map(spend => {
+    let lived = 0, preNmpa = 0;
+    for (const zs of paths) {
+      const r = runTrial(ctx, zs, spend);
+      if (r.survived) lived++; else if (r.preNmpaFailed) preNmpa++;
+    }
+    return { spend, rate: (lived / trials) * 100, preNmpa: (preNmpa / trials) * 100 };
+  });
+}
+
+/*
+ * Where the row crosses the target, read between the two cells that straddle it.
+ *
+ * NOT the solver. `optimizeSpend` bisects to the pound and costs about ten runs of its own, which is
+ * three seconds per row - more than the row itself. Interpolating between neighbouring cells lands
+ * within a few hundred pounds of the solved figure on a £5,000 step (£58,750 against a solved £58,500
+ * on the household this was measured against), and the card above the grid still carries the solved
+ * number for the age you actually entered. The line is labelled as read off the cells, because it is.
+ */
+function frontierSpend(row, targetRate = 90) {
+  const cells = [...row].sort((a, b) => a.spend - b.spend);
+  for (let i = 0; i < cells.length; i++) {
+    if (cells[i].rate >= targetRate) continue;
+    if (i === 0) return null;                                  // even the cheapest column misses
+    const lo = cells[i - 1], hi = cells[i];
+    const span = lo.rate - hi.rate;
+    if (span <= 0) return lo.spend;
+    return lo.spend + (hi.spend - lo.spend) * ((lo.rate - targetRate) / span);
+  }
+  return null;                                                 // every column clears it
+}
+
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 /*
  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle
@@ -5970,7 +6086,7 @@ const E = { num, clamp, isBlank, transferredPct, round250, compensationWindow, i
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 const STORAGE_KEY = 'rp_plan_full_v28';          // unchanged: old saved plans are migrated by normalizePlan
@@ -6121,13 +6237,18 @@ const SEARCH_TRIALS = 400;
  * Hexes rather than tokens because these are handed to d3 as stroke values, and they are keyed by the
  * RESOLVED theme, never by the preference: 'system' is not a palette.
  */
+/*
+ * `short` is the same series named for a legend that has to fit on one line. Six buttons reading
+ * "Combined ..." wrap to two rows in the dashboard's column, and the second row is forty pixels taken
+ * off the chart itself - for a word that is already implied by every other button beside it.
+ */
 const SERIES_CONFIG = [
-  { id: 'expected', label: 'Expected (Real)', colors: { light: '#2148B8', dark: '#7B9CF2' }, strokeWidth: 3, dash: 'none', defaultActive: true },
-  { id: 'nominal', label: 'Combined (Nominal)', colors: { light: '#6D5BD0', dark: '#9C8CF0' }, strokeWidth: 2, dash: '4,3', defaultActive: false },
-  { id: 'pensions', label: 'Combined Pensions', colors: { light: '#1C7ED6', dark: '#4FC3F0' }, strokeWidth: 2, dash: 'none', defaultActive: true },
-  { id: 'isas', label: 'Combined ISAs', colors: { light: '#0E9F6E', dark: '#3FDBC7' }, strokeWidth: 2, dash: 'none', defaultActive: true },
-  { id: 'other', label: 'Combined Other', colors: { light: '#A8701A', dark: '#E0A64A' }, strokeWidth: 1.5, dash: 'none', defaultActive: false },
-  { id: 'cash', label: 'Combined Cash', colors: { light: '#6B7480', dark: '#9AA3B2' }, strokeWidth: 1.5, dash: '3,3', defaultActive: false }
+  { id: 'expected', label: 'Expected (Real)', short: 'Expected', colors: { light: '#2148B8', dark: '#7B9CF2' }, strokeWidth: 3, dash: 'none', defaultActive: true },
+  { id: 'nominal', label: 'Combined (Nominal)', short: 'Nominal', colors: { light: '#6D5BD0', dark: '#9C8CF0' }, strokeWidth: 2, dash: '4,3', defaultActive: false },
+  { id: 'pensions', label: 'Combined Pensions', short: 'Pensions', colors: { light: '#1C7ED6', dark: '#4FC3F0' }, strokeWidth: 2, dash: 'none', defaultActive: true },
+  { id: 'isas', label: 'Combined ISAs', short: 'ISAs', colors: { light: '#0E9F6E', dark: '#3FDBC7' }, strokeWidth: 2, dash: 'none', defaultActive: true },
+  { id: 'other', label: 'Combined Other', short: 'Other', colors: { light: '#A8701A', dark: '#E0A64A' }, strokeWidth: 1.5, dash: 'none', defaultActive: false },
+  { id: 'cash', label: 'Combined Cash', short: 'Cash', colors: { light: '#6B7480', dark: '#9AA3B2' }, strokeWidth: 1.5, dash: '3,3', defaultActive: false }
 ];
 
 /*
@@ -6352,11 +6473,18 @@ async function runMonteCarloAsync(ctx, { trials, seed, spendOverride = null, onP
  * answer.
  */
 const WORKER_POOL_MAX = 8;
-async function scoreInWorkers(jobs, { onProgress } = {}) {
+/*
+ * `message` and `take` are how a different KIND of job borrows this pool. The default pair is the
+ * original score job - post the plan, keep `stats` - and the grid passes its own: post a row of
+ * spending levels, keep `row`. Everything else (the fan-out, the fallback to the main thread, the
+ * progress accounting) is shared, because all of it is about running jobs rather than about what a job
+ * asks. `mainThread` is the fallback for a machine with no workers, which only the caller can write.
+ */
+async function scoreInWorkers(jobs, { onProgress, message = null, take = null, mainThread = null, shouldStop = null } = {}) {
   const results = new Map();
   if (!jobs.length) return results;
   const report = (job) => { if (onProgress) onProgress(results.size / jobs.length, job); };
-  const onMainThread = async (list) => {
+  const onMainThread = mainThread ? (list) => mainThread(list, { results, report }) : async (list) => {
     for (const j of list) {
       const p = j.resolve === false ? j.plan : E.resolveMpaa(j.plan);
       const ctx = E.buildContext(p);
@@ -6366,7 +6494,12 @@ async function scoreInWorkers(jobs, { onProgress } = {}) {
       report(j);
     }
   };
-  if (typeof Worker === 'undefined') { await onMainThread(jobs); return results; }
+  /*
+   * `workersUsable`, not just "does Worker exist": ?forceMain=1 is how the perf harness proves the
+   * worker path and the main-thread path produce the SAME figures, and a pool that spawned its four
+   * regardless made that comparison a lie about half the arithmetic.
+   */
+  if (!workersUsable()) { await onMainThread(jobs); return results; }
 
   const n = Math.max(1, Math.min(WORKER_POOL_MAX, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 2, jobs.length));
   const workers = [];
@@ -6375,16 +6508,19 @@ async function scoreInWorkers(jobs, { onProgress } = {}) {
     for (let i = 0; i < n; i++) workers.push(new Worker(new URL('./mcWorker.js', import.meta.url), { type: 'module' }));
     await Promise.all(workers.map(w => new Promise((resolve, reject) => {
       const feed = () => {
-        if (next >= jobs.length) { resolve(); return; }
+        // `shouldStop` is asked between jobs rather than inside one: a question already in a worker runs
+        // to its end, but nothing new is started once the answer stops being wanted - which is what
+        // happens when the plan changes while a grid is half drawn.
+        if (next >= jobs.length || (shouldStop && shouldStop())) { resolve(); return; }
         const j = jobs[next++];
         w.onmessage = (e) => {
           if (!e.data || e.data.error) { reject(new Error((e.data && e.data.error) || 'worker returned nothing')); return; }
-          results.set(e.data.key, e.data.stats);
+          results.set(e.data.key, take ? take(e.data) : e.data.stats);
           report(j);
           feed();
         };
         w.onerror = (e) => reject((e && e.error) || new Error((e && e.message) || 'worker failed'));
-        w.postMessage({ key: j.key, plan: j.plan, trials: j.trials, seed: j.seed, resolve: j.resolve !== false, inheritance: !!j.inheritance });
+        w.postMessage(message ? message(j) : { key: j.key, plan: j.plan, trials: j.trials, seed: j.seed, resolve: j.resolve !== false, inheritance: !!j.inheritance });
       };
       feed();
     })));
@@ -6396,6 +6532,35 @@ async function scoreInWorkers(jobs, { onProgress } = {}) {
     workers.forEach(w => w.terminate());
   }
   return results;
+}
+
+/*
+ * THE GRID, RUN ACROSS THE CORES.
+ *
+ * One job per retirement age, which is what makes this parallel: the rows are independent, they are all
+ * the same size, and each is a self-contained "build this context once, draw these paths once, run these
+ * eight spending levels". The pool above does the fanning out; this only says what a job is and what to
+ * do with a row when it lands.
+ *
+ * `onRow` is called as each row arrives rather than at the end, because a grid that fills in under the
+ * reader is the difference between four seconds of progress and four seconds of nothing.
+ */
+async function runSpendGrid(plan, { ages, planned, spends, trials = 1000, seed = 12345, onRow = null, shouldStop = null } = {}) {
+  const jobs = ages.map(age => ({ key: age, age, plan: E.shiftRetirement(plan, age - planned) }));
+  const deliver = (age, row) => { if (onRow) onRow(age, row); return row; };
+  return scoreInWorkers(jobs, {
+    shouldStop,
+    message: (j) => ({ key: j.key, kind: 'gridRow', plan: j.plan, spends, trials, seed, resolve: true }),
+    take: (d) => deliver(d.key, d.row),
+    mainThread: async (list, { results, report }) => {
+      for (const j of list) {
+        if (shouldStop && shouldStop()) return;
+        results.set(j.key, deliver(j.age, E.spendRow(E.resolveMpaa(j.plan), { spends, trials, seed })));
+        report(j);
+        await tick();                       // one row, then let the page paint: eight cells is ~2.4s
+      }
+    }
+  });
 }
 
 /*
@@ -7284,7 +7449,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
  */
 export default function App({ theme = 'system', setTheme = () => {}, resolvedTheme = 'light',
   numFormat = DEFAULT_NUMBER_FORMAT, setNumFormat = () => {},
-  isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 } }) {
+  isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 }, onChrome = () => {} }) {
   // a returning visitor already knows the layout, so only a first visit (no saved plan) opens on the guide
   const [activeTab, setActiveTab] = useState(() => (safeStorageGet(STORAGE_KEY) ? 'inputs' : 'home'));
   const [isEditingRisk, setIsEditingRisk] = useState(false);
@@ -7322,6 +7487,19 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const [sandboxCustomized, setSandboxCustomized] = useState(false);
   const [sandboxAccounts, setSandboxAccounts] = useState(() => sandboxFromPlan(plan));
   const [sandboxRetire, setSandboxRetire] = useState(() => sandboxRetireFromPlan(plan));
+  /*
+   * WHAT YOU SPEND, AS A SANDBOX DIMENSION.
+   *
+   * The sandbox could change balances, contributions and retirement ages but not the one figure the
+   * whole plan turns on. That was tolerable while the only way to edit was a dial; it stopped being so
+   * with a grid of every age against every spending level on the screen before it, where the obvious
+   * thing to do with a cell is take it. `null` means "as the plan says", so nothing is overridden until
+   * something is chosen.
+   *
+   * Spending bands, where they exist, still win for the ages they cover - they are per-age figures and
+   * this is the fallback for every year they do not name. The grid says so beneath itself.
+   */
+  const [sandboxSpend, setSandboxSpend] = useState(null);
   useEffect(() => { if (!sandboxCustomized) setSandboxAccounts(sandboxFromPlan(plan)); }, [plan?.accounts, sandboxCustomized]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!sandboxCustomized) setSandboxRetire(sandboxRetireFromPlan(plan)); }, [plan?.demographics?.retireAgeSelf, plan?.demographics?.retireAgePart, sandboxCustomized]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -7402,27 +7580,27 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    */
   const PROJECTION_SLIDES = [
     { n: 1, key: 'topline', name: 'Topline', desc: 'Your plan exactly as entered: how often it lasts, what it leaves behind, and when it fails if it does.' },
-    { n: 2, key: 'safespend', name: 'Safe spend', desc: 'Holds the risk fixed and solves for the income instead - the most you could spend a year and still clear your target survival rate.' },
-    { n: 3, key: 'saferetire', name: 'Safe retirement', desc: 'Holds the spending fixed and solves for the date - the earliest age you could retire and still clear the same target.' },
-    { n: 4, key: 'ratechart', name: 'Rate based projection', desc: 'One steady real rate per wrapper, compounded year by year. It redraws as you type, so it is the quickest way to see a change.' },
-    { n: 5, key: 'mcchart', name: 'Monte Carlo', desc: 'Thousands of randomised futures on the same axes, which show the spread that a single smooth rate hides.' },
-    { n: 6, key: 'compare', name: 'Side by side', desc: 'The same plan both ways at the same five ages, so the gap between the smooth line and the simulated one is explicit.' },
     /*
-     * The sandbox is a STEP, not an appendix.
+     * THE TWO ANSWERS, ON ONE STEP.
      *
-     * It used to sit below the deck behind its own `sandboxRevealed` flag, reachable only by walking all
-     * six steps and pressing "Change something" - six clicks from the Topline figure it exists to move,
-     * and far enough off the path that the results copy needed a signpost link pointing down at it. Worse,
-     * the deck shows one step at a time, so the amber line it draws was never on screen beside it: its own
-     * alert said "now visible in the chart above" while the chart sat two steps back.
-     *
-     * As step 7 it is one click from anywhere, it is included in "See all" like everything else, and it
-     * renders the Monte Carlo chart directly above the controls, so an edit and its effect share a screen.
+     * They were two, and separating them hid what they are: the same question asked from two ends. Hold
+     * the risk fixed and solve for the income, or hold the income fixed and solve for the date. Read one
+     * after the other they are two figures; read together they are the two ends of one trade, which is
+     * what the grid under them draws in full.
      */
-    { n: 7, key: 'sandbox', name: 'Change something', desc: 'Edit a contribution, a balance or an age and the amber line moves with you. Your saved plan is not touched.' }
+    { n: 2, key: 'answers', name: 'Spend and date', desc: 'The most you could spend and the earliest you could stop, and every combination of the two between them.' },
+    /*
+     * AND THE REST OF THE DECK IS THE DASHBOARD.
+     *
+     * There were four more steps: the rate-based chart, the Monte Carlo, the two side by side, and a
+     * sandbox. Every one of them is on the dashboard - the chart with a toggle for which method, the
+     * comparison as a table in the rail, the dials beside the chart they move - so as steps they were
+     * four screens you had to walk to reach one screen that already held them. Reading them in order was
+     * worth something the first time; it was never worth four clicks afterwards.
+     */
+    { n: 3, key: 'dashboard', name: 'Dashboard', desc: 'Both methods, the figures they produce, and the dials that move them - on one screen.' }
   ];
-  const SANDBOX_SLIDE = PROJECTION_SLIDES.find(x => x.key === 'sandbox').n;
-  const MC_SLIDE = PROJECTION_SLIDES.find(x => x.key === 'mcchart').n;
+  const DASH_SLIDE = PROJECTION_SLIDES.find(x => x.key === 'dashboard').n;
   /*
    * The Inheritance tab is a deck too, for the same reason the Projection tab is: it asks for a dozen
    * facts and then answers one question, and shown all at once the answer is buried under the asking.
@@ -7490,7 +7668,17 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * null = both charts; 'mc' or 'rate' = that one has the column to itself. Only meaningful on a
    * desktop "See all"; leaving that view puts it back, so coming in again always starts on both.
    */
-  const [dashChart, setDashChart] = useState(null);
+  /*
+   * WHICH CHART IS ON SCREEN - one state for the whole tab.
+   *
+   * There used to be two: the dashboard's "which of the two is expanded", and step 7's "what is the
+   * amber line drawn from". They disagreed, and the disagreement was visible: the dashboard drew both
+   * charts and took the sandbox line from step 7's setting, which defaults to the compounded run - so
+   * the Monte Carlo chart got a smooth deterministic line laid over its fan, in the same amber, with
+   * nothing saying it was a different method. One state cannot disagree with itself: the chart that is
+   * shown decides what the line is made of, and an edit on the Monte Carlo chart re-simulates.
+   */
+  const [chartKind, setChartKind] = useState('mc');
   /*
    * The row's height is measured, not guessed. A vh fraction cannot know how much page sits above it -
    * the banner, the title card and the run card come to about 460px on this page - so the charts either
@@ -7527,7 +7715,6 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const scrollTo = (el) => el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   useEffect(() => { if (!seeAll) scrollTo(slideRef.current); }, [slide, seeAll]);
   // leaving the dashboard puts both charts back, so it never reopens on one
-  useEffect(() => { if (!seeAll) setDashChart(null); }, [seeAll]);
   // In "see all" every step is on the page at once, so a sheet pinned over it is in the way rather than
   // beside the chart it belongs to. Collapse it there and open it when a single step is showing.
   useEffect(() => { if (isPhone) setSheetMode(seeAll ? 'collapsed' : 'quick'); }, [seeAll, isPhone]);
@@ -7607,6 +7794,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const sandboxPlan = useMemo(() => E.resolveMpaa({
     ...plan,
     demographics: { ...plan?.demographics, retireAgeSelf: sandboxRetire.self, retireAgePart: sandboxRetire.part },
+    spending: { ...plan?.spending, ...(sandboxSpend === null ? {} : { targetSpend: sandboxSpend }) },
     accounts: (plan?.accounts || []).map(acc => {
       const sb = sandboxAccounts[acc.id];
       if (!sb) return acc;
@@ -7615,17 +7803,18 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
       if (sb.contribByYear) out.contribByYear = sb.contribByYear; else delete out.contribByYear;
       return out;
     })
-  }), [plan, sandboxAccounts, sandboxRetire]);
+  }), [plan, sandboxAccounts, sandboxRetire, sandboxSpend]);
   const sandboxCtx = useMemo(() => E.buildContext(sandboxPlan), [sandboxPlan]);
   const isRetireModified = useMemo(() => {
     const base = sandboxRetireFromPlan(plan);
     return base.self !== sandboxRetire.self || (isCouple && base.part !== sandboxRetire.part);
   }, [plan?.demographics?.retireAgeSelf, plan?.demographics?.retireAgePart, sandboxRetire, isCouple]); // eslint-disable-line react-hooks/exhaustive-deps
-  const isSandboxModified = useMemo(() => isRetireModified || (plan?.accounts || []).some(acc => {
+  const isSpendModified = sandboxSpend !== null && E.num(sandboxSpend, 0) !== E.num(plan?.spending?.targetSpend, 0);
+  const isSandboxModified = useMemo(() => isRetireModified || isSpendModified || (plan?.accounts || []).some(acc => {
     const sb = sandboxAccounts[acc.id];
     if (!sb) return false;
     return E.num(acc.contrib, 0) !== E.num(sb.contrib, 0) || E.num(acc.growth, 0) !== E.num(sb.growth, 0) || (sb.balance !== undefined && E.num(acc.balance, 0) !== E.num(sb.balance, 0)) || !!sb.contribByYear;
-  }), [plan?.accounts, sandboxAccounts, isRetireModified]);
+  }), [plan?.accounts, sandboxAccounts, isRetireModified, isSpendModified]);
   const sandboxTimeline = useMemo(() => E.simulateDeterministic(sandboxCtx, 'expected'), [sandboxCtx]);
 
   /*
@@ -8089,7 +8278,12 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * The desktop "See all" is a dashboard rather than a stack of seven cards; projectionDashboard()
    * draws it. simResult is part of the test because there is nothing to lay out before a run.
    */
-  const dashboardMode = seeAll && !isPhone && !!simResult;
+  /*
+   * The dashboard is a STEP now, not an alternative to the deck, so it is on screen whenever that step
+   * is - and on a phone as well, because the four chart steps it replaced were where a phone read its
+   * charts. It lays out down rather than across there; see projectionDashboard.
+   */
+  const dashboardMode = !!simResult && (seeAll || slide === DASH_SLIDE);
   /*
    * The box sets the chart's PROPORTIONS, not its pixels, so this is how the dashboard gets two half
    * charts or one tall one out of the same renderer: both modes draw at the same width, and the height
@@ -8125,27 +8319,52 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
        * the rail, and a tall one puts the whole thing on screen. 96px is the tile strip's gap, the jump
        * strip and a bottom margin; the cap stops a very tall monitor from stretching the charts to fill.
        */
-      const spare = Math.round(window.innerHeight - top - 96);
-      const railH = dashRailRef.current ? Math.ceil(dashRailRef.current.scrollHeight) : 0;
-      const rowH = Math.min(820, Math.max(500, spare, railH));
+      /*
+       * What is left of the window below the dashboard's top, minus what the dashboard itself spends
+       * outside the row: the 60px figure strip and its gap, the jump chips at the foot, and a margin.
+       * The old allowance was 96 and left the dashboard ending 49px below the fold - close enough to
+       * look right in a screenshot and wrong on the screen it was measured for.
+       */
+      const spare = Math.round(window.innerHeight - top - 150);
+      /*
+       * THE WINDOW DECIDES, AND THE RAIL SCROLLS.
+       *
+       * Letting the rail set the height made the dashboard 1,185px tall on a 900px screen - the chart it
+       * exists to show ran off the bottom, which is the scroll it was built to replace. The row is the
+       * room the window actually has; the rail keeps its own overflow, so the dials stay at the top of it
+       * and the comparison table under them scrolls rather than pushing the chart off the screen.
+       */
+      const rowH = Math.max(420, Math.min(820, spare));
       setDashRowH(rowH);
       const col = dashColRef.current;
-      if (!col) return;
+      const card = col && col.querySelector('[data-dash-chart]');
+      if (!col || !card) return;
       const colW = col.getBoundingClientRect().width || 1050;
       /*
-       * What the card spends on things that are not the plot: 48px of heading row and padding, and the
-       * series legend the chart renders under itself, which wraps to two lines at this width and comes
-       * to 77. Measured rather than estimated - an allowance a few pixels short makes every chart
-       * overflow its own card, which is how the column ended up 27px taller than the row it was given.
+       * What the card spends on things that are not the plot, READ OFF THE PAGE rather than estimated.
+       *
+       * Both of them - the heading row with the chart's controls in it, and the series legend the chart
+       * renders under itself - have heights that depend on how much wraps at this width, which is
+       * exactly what an estimate cannot know: the first version allowed 125px, the legend wrapped to a
+       * second line on a narrower column, and the card came out taller than the row it was given. Both
+       * are measured here because neither depends on the plot's own height, so there is no loop.
        */
-      const chrome = 125;
-      const chartH = (dashChart ? rowH : (rowH - 10) / 2) - chrome;
+      const headH = card.querySelector('[data-chart-head]')?.offsetHeight || 34;
+      const legendH = card.querySelector('[data-chart-legend]')?.offsetHeight || 40;
+      const chrome = headH + legendH + 26;          // 26: the card's own vertical padding
+      const chartH = rowH - chrome;
       setDashChartBox({ w: 1200, h: Math.max(150, Math.round(1200 * chartH / colW)) });
     };
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, [dashboardMode, dashChart]);
+  }, [dashboardMode, chartKind, isSandboxModified]);
+
+  /*
+   * The shell owns the banner above this component, so the one thing it cannot know - whether the page
+   * under it has turned into a screenful that wants the room - is told to it here.
+   */
+  useEffect(() => { onChrome(dashboardMode ? 'compact' : 'full'); }, [dashboardMode, onChrome]);
 
   const margin = isNarrow ? { top: 14, right: 10, bottom: 34, left: 48 } : { top: 25, right: 35, bottom: 45, left: 80 };
   const innerWidth = chartWidth - margin.left - margin.right;
@@ -8212,25 +8431,24 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
    * line follows whatever the chart is. Rate based opens first because it redraws as you press a dial;
    * Monte Carlo has to simulate, which is what the spinner beside the toggle is for.
    */
-  const [sandboxChartKind, setSandboxChartKind] = useState('rate');
-  const sandboxMcOn = sandboxChartKind === 'mc';
+  const sandboxMcOn = chartKind === 'mc';
 
   /*
    * Arriving at a Monte Carlo chart draws its spread; see mcArrivedRef above for why it is an arrival
    * rather than a rule. Step 7 counts whenever its own switch is set to Monte Carlo: a simulation drawn
    * as a single median line is the same empty picture there as it was on step 5.
    *
-   * It sits BELOW sandboxChartKind on purpose. A dependency array is built during render, so naming a
+   * It sits BELOW chartKind on purpose. A dependency array is built during render, so naming a
    * const declared further down the component reads it in its temporal dead zone - which threw on every
    * render of the tab and took the whole screen to the error boundary.
    */
   useEffect(() => {
-    const onMc = seeAll || slide === MC_SLIDE || (slide === SANDBOX_SLIDE && sandboxChartKind === 'mc');
+    const onMc = (seeAll || slide === DASH_SLIDE) && chartKind === 'mc';
     if (!onMc) { mcArrivedRef.current = false; return; }
     if (mcArrivedRef.current) return;
     mcArrivedRef.current = true;
     setBandMode(m => (m === 'expected' ? 'quartile' : m));
-  }, [slide, seeAll, MC_SLIDE, SANDBOX_SLIDE, sandboxChartKind]);
+  }, [slide, seeAll, DASH_SLIDE, chartKind]);
   const [sandboxMc, setSandboxMc] = useState(null);
   const [sandboxMcBusy, setSandboxMcBusy] = useState(false);
   useEffect(() => {
@@ -8799,7 +9017,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     setPlan(prev => planFromSandbox(prev));
     flash('Sandbox applied to plan inputs');
   };
-  const handleResetSandbox = () => { setSandboxCustomized(false); setSandboxAccounts(sandboxFromPlan(plan)); setSandboxRetire(sandboxRetireFromPlan(plan)); };
+  const handleResetSandbox = () => { setSandboxCustomized(false); setSandboxAccounts(sandboxFromPlan(plan)); setSandboxRetire(sandboxRetireFromPlan(plan)); setSandboxSpend(null); };
   const updateSandboxRetire = (key, value) => {
     setSandboxCustomized(true);
     setSandboxRetire(prev => ({ ...prev, [key]: E.clamp(E.num(value, prev[key]), 0, 120) }));
@@ -8836,7 +9054,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     setSandboxAccounts(fresh);
     // Land on the sandbox step itself. Switching tabs alone used to drop you on whichever step you left,
     // with nothing on screen looking any different from before the click.
-    setSeeAll(false); setSlide(SANDBOX_SLIDE);
+    setSeeAll(false); setSlide(DASH_SLIDE);
     setActiveTab('projection');
     flash(`"${strategy.name}" applied to the Sandbox on the Projection chart`, 3500);
   };
@@ -9744,16 +9962,22 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
   );
 
   /*
-   * Step 7's controls, as one row: which projection is drawn, the band picker and the horizon slider
-   * that steps 4 and 5 also carry, and the state of the simulation. Two rows cost about eighty pixels,
-   * which is the difference between the dials being on a 1366x768 laptop screen and being below it.
+   * THE CHART'S CONTROLS, AS ONE ROW, WHEREVER THE CHART IS.
+   *
+   * Which projection is drawn, the band picker, the horizon slider, and what the simulation is doing.
+   * Built for step 7 and now the dashboard's row as well, which is the point: the dashboard had no band
+   * picker at all, so its y-axis was scaled to whatever band the deck was last left on and there was no
+   * way to change it from the screen you were looking at.
+   *
+   * One row rather than two. Two cost about eighty pixels, which is the difference between the dials
+   * being on a 1366x768 laptop screen and being below it.
    */
-  const sandboxControls = (
+  const chartControls = (
     <div data-sandbox-chart-mode className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px]">
       <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1 shrink-0">
         {[['rate', 'Rate based'], ['mc', 'Monte Carlo']].map(([kind, label]) => (
-          <button key={kind} type="button" onClick={() => setSandboxChartKind(kind)} aria-pressed={sandboxChartKind === kind}
-            className={`rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap ${isPhone ? 'min-h-11 px-3' : 'px-2.5 py-1'} ${sandboxChartKind === kind ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>
+          <button key={kind} type="button" onClick={() => setChartKind(kind)} aria-pressed={chartKind === kind}
+            className={`rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap ${isPhone ? 'min-h-11 px-3' : 'px-2.5 py-1'} ${chartKind === kind ? 'bg-accent text-onaccent' : 'text-slate-500 hover:text-slate-900'}`}>
             {label}
           </button>
         ))}
@@ -9796,7 +10020,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     return Math.abs(n) >= 1e6 ? `£${(n / 1e6).toFixed(2)}m` : Math.abs(n) >= 1000 ? fmtK(n) : formatGBP(n);
   };
   const dashTile = (label, value, sub, tone = 'flat') => (
-    <div key={label} data-dash-tile className="flex-1 min-w-0 px-3.5 flex flex-col justify-center gap-0.5 border-l border-slate-100 first:border-l-0">
+    <div key={label} data-dash-tile className={isPhone
+      ? 'min-w-0 p-2 flex flex-col justify-center gap-0.5 bg-surface'
+      : 'flex-1 min-w-0 px-3.5 flex flex-col justify-center gap-0.5 border-l border-slate-100 first:border-l-0'}>
       <span className="text-[10px] font-semibold text-slate-500 truncate">{label}</span>
       <span className={`text-[19px] font-semibold font-mono leading-none tracking-tight ${DASH_TONE[tone]}`}>{value}</span>
       <span className="text-[10px] text-slate-500 truncate">{sub}</span>
@@ -9815,7 +10041,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     const survival = dashTile('Survival rate', `${E.num(st.successRate, 0).toFixed(1)}%`,
       `±${(1.96 * E.num(st.standardError, 0)).toFixed(1)} pts`,
       st.successRate >= targetSurvivalRate ? 'good' : 'bad');
-    if (dashChart === 'mc') return [
+    if (chartKind === 'mc') return [
       survival,
       dashTile(`Median pot @ ${terminalAge}`, dashMoney(st.medianTerminal), 'half of runs end above'),
       dashTile(`Upper quartile @ ${terminalAge}`, dashMoney(st.p75Terminal), 'one run in four above'),
@@ -9824,9 +10050,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         E.num(st.p10Terminal, 0) > 0 ? 'flat' : 'bad'),
       dashTile('Median failure age', st.medianFailAge ? `Age ${st.medianFailAge}` : 'None',
         st.medianFailAge ? `${fails.toFixed(1)}% of runs fall short` : 'no run falls short',
-        st.medianFailAge ? 'bad' : 'good')
+        st.medianFailAge ? 'bad' : 'good'),
+      /*
+       * The bridge, kept beside the simulation because it is the one failure the simulation counts that
+       * the survival rate does not distinguish: running short at 92 and never reaching the pension at
+       * all are the same "did not survive" in one figure and completely different problems.
+       */
+      dashTile('Bridge failures', `${E.num(st.preNmpaFailRate, 0).toFixed(1)}%`,
+        `short before ${nmpa}`, E.num(st.preNmpaFailRate, 0) > 0 ? 'bad' : 'good')
     ];
-    if (dashChart === 'rate') {
+    if (chartKind === 'rate') {
       const q = (k) => compareRows2?.quantiles.find(x => x.label === k);
       const smooth = compareRows2?.extras.find(x => /^Survives to/.test(x.label));
       const midEnd = rateCurves?.mid?.[rateCurves.mid.length - 1]?.totalCombined;
@@ -9842,86 +10075,128 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         dashTile('Smooth survival', smooth ? smooth.rate : '—', 'flatters: no run can fail mid-way', 'bad')
       ];
     }
-    const potAtRetire = timelineData.find(r => r.ageSelf === retireAge)?.totalCombined;
-    return [
-      survival,
-      dashTile('Pot at retirement', dashMoney(potAtRetire), `age ${retireAge}, expected path`),
-      dashTile(`Median pot @ ${terminalAge}`, dashMoney(st.medianTerminal), 'half of runs end above'),
-      dashTile(`Unlucky pot @ ${terminalAge}`, dashMoney(st.p10Terminal), 'one run in ten below',
-        E.num(st.p10Terminal, 0) > 0 ? 'flat' : 'bad'),
-      dashTile('Safe maximum', safeMaxResult ? formatGBP(safeMaxResult.spend) : '—',
-        safeMaxResult ? `a year, clears ${targetSurvivalRate}%` : 'still solving',
-        safeMaxResult ? (safeMaxResult.spend >= E.num(st.spend, 0) ? 'good' : 'bad') : 'flat'),
-      dashTile('Earliest retirement', safeRetireResult?.age ? `${safeRetireResult.age}` : safeRetireResult ? '—' : '…',
-        safeRetireResult?.age ? (safeRetireResult.age <= retireAge ? 'at or before your date' : `${safeRetireResult.age - retireAge} yr later than planned`) : 'at this spending',
-        safeRetireResult?.age ? (safeRetireResult.age <= retireAge ? 'good' : 'bad') : 'flat'),
-      dashTile('Bridge failures', `${E.num(st.preNmpaFailRate, 0).toFixed(1)}%`,
-        `short before ${nmpa}`, E.num(st.preNmpaFailRate, 0) > 0 ? 'bad' : 'good')
-    ];
+    return [];      // chartKind is always one of the two, so there is no third strip to build
   };
 
-  const dashChartCard = (kind) => {
-    const on = dashChart === kind;
-    const name = kind === 'mc' ? 'Monte Carlo' : 'Rate based projection';
-    return (
-      <div data-dash-chart={kind} className="bg-surface border border-slate-200/90 rounded-xl px-3.5 pt-2.5 pb-2 flex flex-col flex-1 min-h-0">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-baseline gap-2.5 min-w-0">
-            <h3 className="text-[13px] font-semibold text-slate-900 whitespace-nowrap">{name}</h3>
-            <span className="text-[10.5px] text-slate-500 truncate">
-              {kind === 'mc' ? `${fmtNum(E.num(simResult?.trials, MC_TRIALS))} randomised futures` : 'one steady real rate per wrapper'}
-            </span>
-          </div>
-          {/* The corner-arrows convention, so it needs no word: out to the corners takes the chart full
-              size, in to the middle puts it back. Icon-only, so it carries a name for a screen reader. */}
-          <button type="button" data-dash-expand={kind} onClick={() => setDashChart(on ? null : kind)}
-            aria-label={on ? 'Show both charts again' : `Expand the ${name} chart`} title={on ? 'Collapse' : 'Expand'}
-            className={`w-7 h-7 shrink-0 flex items-center justify-center rounded-lg border cursor-pointer transition-colors ${on ? 'bg-blue-50 border-blue-600 text-blue-800' : 'bg-surface border-slate-200 text-slate-600 hover:text-slate-900'}`}>
-            {on ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-          </button>
+  /*
+   * ONE CHART, AT FULL SIZE, WITH ITS OWN CONTROLS.
+   *
+   * Two charts stacked at 300px each was the first shape, on the argument that the two methods only mean
+   * anything read against each other. They do - but a 300px chart with a 65-year axis is a shape rather
+   * than a picture, and the comparison they exist for is in the "both methods at 100" table in the rail
+   * beside them, in numbers, which is where a comparison of five percentiles belongs anyway. So the
+   * chart that is on screen gets the whole column, and the toggle above it swaps which one that is.
+   */
+  const dashChartCard = () => (
+    <div data-dash-chart={chartKind} className="bg-surface border border-slate-200/90 rounded-xl px-3.5 pt-2.5 pb-2 flex flex-col flex-1 min-h-0">
+      <div data-chart-head className="flex items-center justify-between gap-3 flex-wrap pb-1.5">
+        <div className="flex items-baseline gap-2.5 min-w-0">
+          <h3 className="text-[13px] font-semibold text-slate-900 whitespace-nowrap">{chartKind === 'mc' ? 'Monte Carlo' : 'Rate based projection'}</h3>
+          <span className="text-[10.5px] text-slate-500 truncate">
+            {chartKind === 'mc' ? `${fmtNum(E.num(simResult?.trials, MC_TRIALS))} randomised futures` : 'one steady real rate per wrapper'}
+          </span>
         </div>
-        <div className="flex-1 min-h-0">{renderProjectionChart(kind)}</div>
+        {chartControls}
       </div>
-    );
-  };
+      {/*
+        * The reveal plays here, because this is where the fan is met. `mcPlayKey` is keyed on the step,
+        * so it plays on arrival and not again while dials are moved - the sixty runs sweeping out is an
+        * explanation of what a simulation is, and an explanation that repeats on every keypress is an
+        * irritation.
+        */}
+      <div className="flex-1 min-h-0">{renderProjectionChart(chartKind, { animate: chartKind === 'mc' })}</div>
+    </div>
+  );
 
-  const projectionDashboard = () => (
-    <div data-projection-dashboard ref={dashRef} className="space-y-2.5">
+  /*
+   * ON A PHONE IT LAYS OUT DOWN, NOT ACROSS.
+   *
+   * Same parts, same order of importance: the figures, the chart with its controls, then the comparison
+   * of the two methods. The dials are not here - they are in the sheet pinned to the foot of the screen,
+   * which is where a phone has always kept them, so the chart stays visible while they move.
+   */
+  const projectionDashboard = () => (isPhone ? (
+    /*
+     * CHART FIRST ON A PHONE, FIGURES UNDER IT.
+     *
+     * The desktop puts the strip of figures over the chart because both are on one screen at once. A
+     * phone has no such screen: eight figures in a two-column grid is 200px, and putting them first put
+     * the chart below the sandbox sheet pinned to the foot of the window - so the one thing the sheet's
+     * dials exist to move was off-screen while you moved them.
+     */
+    <div data-projection-dashboard ref={dashRef} className="space-y-3">
+      <div className="bg-surface border border-slate-200/90 rounded-xl px-3 pt-2.5 pb-2">
+        <div data-chart-head className="pb-1.5">
+          <h3 className="text-[13px] font-semibold text-slate-900">{chartKind === 'mc' ? 'Monte Carlo' : 'Rate based projection'}</h3>
+        </div>
+        <div data-dash-chart={chartKind}>{renderProjectionChart(chartKind, { animate: chartKind === 'mc', tight: true })}</div>
+        {/* BELOW the chart on a phone, as step 7 kept them, and for the same measured reason: the sandbox
+            sheet is pinned to the foot of the screen and the chart clears it by a few pixels. A control
+            row above would spend all of them and hide the bottom of the chart behind the sheet. */}
+        <div className="pt-1.5">{chartControls}</div>
+      </div>
+      <div className="grid grid-cols-2 gap-px bg-slate-200 border border-slate-200/90 rounded-xl overflow-hidden">
+        {dashTiles()}
+      </div>
+          {compareRows2 && (
+            <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5">
+              <h3 className="text-xs font-semibold text-slate-900 mb-1.5">Both methods at {terminalAge}</h3>
+              <table className="w-full text-[11px] border-collapse">
+                <thead>
+                  <tr className="text-[10px] font-semibold text-slate-500">
+                    <th className="text-left pb-1 font-semibold">Outcome</th>
+                    <th className="text-right pb-1 font-semibold" style={{ color: cp.rateEdge }}>Rate</th>
+                    <th className="text-right pb-1 font-semibold" style={{ color: cp.fanMedian }}>Simulated</th>
+                    <th className="text-right pb-1 font-semibold">Gap</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {compareRows2.quantiles.map(r => (
+                    <tr key={r.label}>
+                      <td className="py-[7px] text-slate-600 border-t border-slate-100">{r.label.replace(' percentile', 'th').replace('Medianth', 'Median')}</td>
+                      <td className="py-[7px] text-right font-mono text-slate-900 border-t border-slate-100">{dashMoney(r.rate)}</td>
+                      <td className="py-[7px] text-right font-mono text-slate-900 border-t border-slate-100">{dashMoney(r.mc)}</td>
+                      <td className="py-[7px] pl-2 border-t border-slate-100">
+                        {/* the gap as a bar as well as a number: the shape of the disagreement down the
+                            column is the point, and five bare percentages do not show it */}
+                        <span className="flex items-center justify-end gap-1.5">
+                          <span className="h-1.5 rounded-sm bg-rose-300" style={{ width: `${Math.min(34, Math.abs(r.pct) * 1.1)}px` }} />
+                          <span className="font-mono text-[10px] text-rose-700">{r.mc > 0 ? `${r.pct > 0 ? '+' : '−'}${Math.abs(r.pct).toFixed(0)}%` : '—'}</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-[10px] text-slate-500 leading-relaxed pt-2 mt-2 border-t border-slate-100">The smooth line cannot run dry mid-way, so it sits above the simulation, and the gap widens with the horizon.</p>
+            </div>
+          )}
+    </div>
+  ) : (
+    <div data-projection-dashboard ref={dashRef} className="space-y-2.5 wide-dash">
       <div className="bg-surface border border-slate-200/90 rounded-xl h-[60px] flex items-stretch overflow-hidden">
         {dashTiles()}
       </div>
 
-      {/* A height, not content: flex-1 only shares out a box that HAS one, and without this the charts
-          and the rail each grew to whatever they wanted and the dashboard came out 1,670px tall - the
-          same scroll it exists to replace. See dashRowH for where the number comes from. */}
+      {/* A height, not content: flex-1 only shares out a box that HAS one, and without this the chart and
+          the rail each grew to whatever they wanted and the dashboard came out 1,670px tall - the same
+          scroll it exists to replace. See dashRowH for where the number comes from. */}
       <div className="flex gap-2.5 items-stretch" style={{ height: dashRowH }}>
         <div ref={dashColRef} className="flex-1 min-w-0 flex flex-col gap-2.5">
-          {(!dashChart || dashChart === 'mc') && dashChartCard('mc')}
-          {(!dashChart || dashChart === 'rate') && dashChartCard('rate')}
+          {dashChartCard()}
         </div>
 
-        <div ref={dashRailRef} className="w-[330px] shrink-0 flex flex-col gap-2.5">
-          <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5">
+        <div ref={dashRailRef} className="w-[330px] shrink-0 flex flex-col gap-2.5 overflow-y-auto">
+          {/* `shrink-0` and a max height: a couple with eight accounts has sixteen dials, and letting the
+              card grow put its Reset and Apply buttons below the fold of the rail's own scroll. The
+              DIALS scroll; the buttons under them do not move. */}
+          <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5 shrink-0">
             <div className="flex items-baseline justify-between mb-1">
               <h3 className="text-xs font-semibold text-slate-900">Change something</h3>
               <span className="text-[10px] text-slate-500">the amber line is your edit</span>
             </div>
-            {sandboxQuickDials({ inSheet: false, rail: true })}
+            {sandboxQuickDials({ inSheet: false, rail: true, scrollAt: Math.max(150, dashRowH - 190) })}
           </div>
-
-          <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5 space-y-1.5">
-            <h3 className="text-xs font-semibold text-slate-900">What the solver found</h3>
-            {[['Safe maximum spend', safeMaxResult ? formatGBP(safeMaxResult.spend) : '—', `a year, clears ${targetSurvivalRate}%`],
-              ['Earliest retirement', safeRetireResult?.age ? `age ${safeRetireResult.age}` : '—', `at ${formatGBP(E.num(simResult?.spend, 0))} a year`]].map(([l, v, s]) => (
-              <div key={l} className="flex items-baseline justify-between gap-2">
-                <span className="text-[11px] text-slate-600">{l}</span>
-                <span className="text-right"><span className="font-mono text-sm font-semibold text-slate-900">{v}</span>
-                  <span className="block text-[9.5px] text-slate-500">{s}</span></span>
-              </div>
-            ))}
-            <p className="text-[10px] text-slate-500 leading-relaxed pt-0.5">Both are counted over the simulated runs at the {targetSurvivalRate}% target, so they re-solve when you run again.</p>
-          </div>
-
           {compareRows2 && (
             <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5">
               <h3 className="text-xs font-semibold text-slate-900 mb-1.5">Both methods at {terminalAge}</h3>
@@ -9957,20 +10232,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           )}
         </div>
       </div>
-
-      {/* The deck's order survives as a way to jump rather than as the only way to read. */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-[10px] font-semibold text-slate-500 mr-0.5">Jump to</span>
-        {PROJECTION_SLIDES.map(s => (
-          <button key={s.n} type="button" data-dash-jump={s.n}
-            onClick={() => { setSeeAll(false); setDashChart(null); setSlide(s.n); }}
-            className="text-[10px] px-2 py-1 rounded-full border border-slate-200 bg-surface text-slate-700 hover:text-slate-900 cursor-pointer">
-            {s.n} {s.name}
-          </button>
-        ))}
-      </div>
     </div>
-  );
+  ));
 
   const slideNav = (n) => (
     <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 md:sticky md:bottom-0 md:bg-surface md:pb-1 md:z-10">
@@ -10061,13 +10324,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * button (there is nowhere further to go) and it must not animate: the inline copy stays mounted
    * underneath, so re-running the reveal here would play a second, unsynchronised copy of it.
    */
-  const renderProjectionChart = (kind, { animate = false, inOverlay = false } = {}) => {
+  /*
+   * `tight` picks the bleed that matches the card's own padding. A bleed has to be the sum of the
+   * paddings it is cancelling - the page's p-4 plus the card's - so a p-3 card given the p-5 bleed runs
+   * 0.5rem too far each side, which is 7px of horizontal scroll and nothing else.
+   */
+  const renderProjectionChart = (kind, { animate = false, inOverlay = false, tight = false } = {}) => {
     const isRate = kind === 'rate';
     const band = isRate ? cp.rateBand : cp.fanBand;
     const edge = isRate ? cp.rateEdge : cp.fanEdge;
     return (
       <>
-        <div className={`relative ${isPhone && !inOverlay ? 'bleed swipe-x' : 'overflow-x-auto'} ${!isPhone && !inOverlay ? 'chart-holder' : ''} ${inOverlay ? 'h-full' : ''}`}>
+        <div className={`relative ${isPhone && !inOverlay ? `${tight ? 'bleed-tight' : 'bleed'} swipe-x` : 'overflow-x-auto'} ${!isPhone && !inOverlay ? 'chart-holder' : ''} ${inOverlay ? 'h-full' : ''}`}>
           {isPhone && !inOverlay && (
             <button type="button" data-chart-expand aria-label="Expand chart" onClick={() => setFullscreenChart(kind)}
               className="absolute top-1 right-1 z-10 min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-surface/90 border border-slate-200 text-slate-600 cursor-pointer">
@@ -10129,10 +10397,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             </div>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+        <div data-chart-legend className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
           {themedSeries.map(s => (
             <button key={s.id} onClick={() => setActiveSeries(prev => ({ ...prev, [s.id]: !prev[s.id] }))} className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer border ${activeSeries[s.id] ? 'bg-slate-100 border-slate-300 text-slate-900 font-semibold' : 'bg-surface border-slate-200 text-slate-400 opacity-60'}`}>
-              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />{s.label}{activeSeries[s.id] && <Check className="w-3 h-3 text-slate-600" />}
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />{dashboardMode ? s.short : s.label}{activeSeries[s.id] && <Check className="w-3 h-3 text-slate-600" />}
             </button>
           ))}
           {(isSandboxModified || scenarios.filter(sc => sc.id !== activeScenarioId).length > 0) && <span className="w-px h-5 bg-slate-200 mx-1" />}
@@ -10188,7 +10456,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * and the dials swap underneath it. Both call the same handlers the wide panel calls.
    */
   const [railDialKind, setRailDialKind] = useState('contrib');
-  const sandboxQuickDials = ({ inSheet = true, rail = false } = {}) => {
+  const sandboxQuickDials = ({ inSheet = true, rail = false, scrollAt = 0 } = {}) => {
     const railDial = (label, value, steps, onStep) => {
       /*
        * One pair of buttons, so one of the four steps has to be the one they carry: the FINE step, not
@@ -10239,7 +10507,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         )}
         {/* One column in the dashboard's 330px rail: the grid's breakpoints watch the VIEWPORT, so on a
             wide screen they would put three dials side by side inside a narrow column. */}
-        <div className={inSheet || rail ? 'space-y-1' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-5'}>
+        <div className={inSheet || rail ? 'space-y-1' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-5'}
+          style={scrollAt ? { maxHeight: scrollAt, overflowY: 'auto' } : undefined}>
           {ctx.owners.map(o => dial(rail && !isCouple ? 'Retire at' : `${o.label}: retire at`, sandboxRetire[o.key], [-5, -1, 1, 5], (d) => adjustSandboxRetire(o.key, d)))}
           {/*
             * Balance as well as contribution. Step 7 used to be followed by a full Sandbox card holding
@@ -10280,12 +10549,244 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * the whole of the sandbox while the sheet is collapsed over the chart, so it is the only place a run
    * in flight can be seen from.
    */
+  /*
+   * ==========================================================================================
+   * EVERY AGE AGAINST EVERY SPEND.
+   * ==========================================================================================
+   *
+   * The two cards above this are one number each, and a number is a poor answer to a trade: it says
+   * what you could do at the age you happened to type in, and nothing about what a year either way is
+   * worth. This runs the plan at every combination in a window around what you entered and shades each
+   * by the share of futures that lasted, so the trade can be read rather than inferred.
+   *
+   * IT COSTS REAL TIME, so three things keep it usable. The window is eight by eight rather than the
+   * whole board; the rows run one per worker, so a four-core machine does four at a time; and the
+   * result is cached on a signature of the plan, so coming back to this step is free while nothing has
+   * changed. Rows land as they finish rather than all at the end, because a grid filling in under the
+   * reader is the difference between four seconds of progress and four seconds of nothing.
+   */
+  const [grid, setGrid] = useState(null);                 // { key, window, rows: { [age]: cells } }
+  const [gridBusy, setGridBusy] = useState(false);
+  const [gridWide, setGridWide] = useState(false);
+  const gridRunRef = useRef(0);
+  const GRID_TRIALS = 1000;
+  /*
+   * The window is anchored on the SOLVED safe maximum as well as the spending entered, so the frontier
+   * is inside the picture. Centred on the entered figure alone, a plan comfortably inside its means came
+   * back all green - a table that says nothing, because the interesting edge was two columns off the
+   * right of it.
+   */
+  const gridWin = useMemo(() => (simResult
+    ? E.gridWindow(ctx, { anchor: safeMaxResult?.spend ?? null, ...(gridWide ? { rowsBefore: 7, rowsAfter: 7, cols: 12 } : (isPhone ? { rowsBefore: 2, rowsAfter: 2, cols: 5 } : {})) })
+    : null), [ctx, simResult, safeMaxResult, gridWide, isPhone]);
+  const gridKey = gridWin ? JSON.stringify([planSig, gridWin.ages, gridWin.spends, mcSeed, GRID_TRIALS]) : null;
+
+  useEffect(() => {
+    // only while the step that shows it is on screen: the grid costs seconds of CPU and nobody on the
+    // topline has asked for it
+    if (!gridKey || !gridWin || !(seeAll || slide === 2)) return undefined;
+    /*
+     * Not while the safe maximum is still being solved. Its answer is what anchors the columns, so a
+     * grid started without it is drawn around the wrong range and then thrown away and run again the
+     * moment it lands - fourteen seconds of CPU for seven seconds of answer.
+     */
+    if (isOptimizing) return undefined;
+    if (grid && grid.key === gridKey) return undefined;
+    const run = ++gridRunRef.current;
+    setGrid({ key: gridKey, window: gridWin, rows: {} });
+    setGridBusy(true);
+    runSpendGrid(plan, {
+      ages: gridWin.ages, planned: gridWin.planned, spends: gridWin.spends,
+      trials: GRID_TRIALS, seed: mcSeed,
+      shouldStop: () => gridRunRef.current !== run,
+      onRow: (age, row) => {
+        if (gridRunRef.current !== run) return;
+        setGrid(g => (g && g.key === gridKey ? { ...g, rows: { ...g.rows, [age]: row } } : g));
+      }
+    }).catch(() => { /* a failed grid leaves the cards above it, which are the same answer in numbers */ })
+      .finally(() => { if (gridRunRef.current === run) setGridBusy(false); });
+    return undefined;
+  }, [gridKey, slide, seeAll, isOptimizing]);     // eslint-disable-line react-hooks/exhaustive-deps
+
+  /*
+   * Red below the target, green at or above it, and the break between them is the target itself rather
+   * than the middle of the range - which is what makes the picture answer "would this do?" instead of
+   * "how does this compare with the rest of the table".
+   */
+  const gridCell = (rate) => {
+    const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+    const c = rate >= targetSurvivalRate
+      ? mix([230, 244, 234], [21, 105, 65], Math.min(1, (rate - targetSurvivalRate) / 10) ** 0.8)
+      : mix([252, 232, 229], [160, 42, 32], Math.min(1, (targetSurvivalRate - rate) / 28) ** 0.65);
+    const lum = (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255;
+    return { bg: `rgb(${c[0]},${c[1]},${c[2]})`, fg: lum < 0.6 ? '#ffffff' : '#141820' };
+  };
+
+  /*
+   * Taking a cell means taking BOTH of its axes: the age and the spending. A partner moves with you by
+   * the same number of years, which is what the retirement-age scan does and what the dials do.
+   */
+  const takeGridCell = (age, spend) => {
+    const base = sandboxRetireFromPlan(plan);
+    const delta = age - Math.round(E.num(ctx.owners[0].retireAge, age));
+    setSandboxCustomized(true);
+    setSandboxRetire({ self: E.clamp(age, 0, 120), part: E.clamp(E.num(base.part, age) + delta, 0, 120) });
+    setSandboxSpend(spend);
+    setSlide(DASH_SLIDE);
+    setSeeAll(false);
+    flash(`Sandbox set to retiring at ${age} on ${formatGBP(spend)} a year`, 3500);
+  };
+
+  const spendAgeGrid = () => {
+    if (!gridWin) return null;
+    /*
+     * The shell arrives before the numbers do. The grid waits for the safe maximum - that answer is what
+     * anchors its columns - and on a slow machine that is several seconds during which a card appearing
+     * from nowhere is a worse experience than a card saying what it is waiting for.
+     */
+    if (!grid) return (
+      <div data-spend-grid className="bg-surface border border-slate-200/90 rounded-xl p-4">
+        <div className="flex items-baseline gap-2.5">
+          <h3 className="text-sm font-semibold text-slate-900">Every age against every spend</h3>
+          <span className="text-[11px] text-slate-500">every combination of the two answers above, run in full</span>
+        </div>
+        <p className="text-[11px] text-slate-500 pt-1.5 flex items-center gap-1.5">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" /> waiting for the safe maximum, which is what sets the range&hellip;
+        </p>
+      </div>
+    );
+    const { ages, spends } = grid.window;
+    const done = ages.filter(a => grid.rows[a]).length;
+    const CW = isPhone ? 54 : 66, CH = isPhone ? 30 : 32, LW = isPhone ? 34 : 42;
+    const xOf = (v) => ((v - spends[0]) / (spends[1] - spends[0])) * CW + CW / 2;
+    const yOf = (a) => ages.indexOf(a) * CH + CH / 2;
+    // the frontier, read between the two cells that straddle the target on each finished row
+    const pts = ages.map(a => { const r = grid.rows[a]; if (!r) return null; const v = E.frontierSpend(r, targetSurvivalRate); return v === null ? null : `${xOf(v).toFixed(1)},${yOf(a).toFixed(1)}`; }).filter(Boolean);
+    /*
+     * What a year is worth, from the line itself. Averaged over the window rather than quoted at one
+     * end: the step grows with the pot, so a single pair of rows is the wrong answer everywhere else.
+     */
+    const solved = ages.map(a => { const r = grid.rows[a]; return r ? E.frontierSpend(r, targetSurvivalRate) : null; });
+    const steps = [];
+    for (let i = 1; i < solved.length; i++) if (solved[i] !== null && solved[i - 1] !== null) steps.push(solved[i] - solved[i - 1]);
+    const yearBuys = steps.length >= 2 ? Math.round(steps.reduce((t, v) => t + v, 0) / steps.length / 100) * 100 : null;
+    const planAge = Math.round(E.num(ctx.owners[0].retireAge, 0));
+    const planSpend = Math.round(E.num(simResult?.spend, 0));
+    return (
+      <div data-spend-grid className="bg-surface border border-slate-200/90 rounded-xl p-4 space-y-2.5">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <div className="flex items-baseline gap-2.5 min-w-0">
+            <h3 className="text-sm font-semibold text-slate-900">Every age against every spend</h3>
+            <span className="text-[11px] text-slate-500">the share of {fmtNum(GRID_TRIALS)} futures that lasted to {terminalAge}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {gridBusy && <span className="flex items-center gap-1.5 text-[11px] text-slate-600 font-semibold"><Loader2 className="w-3.5 h-3.5 animate-spin" /> {done} of {ages.length} rows</span>}
+            {!isPhone && (
+              <button type="button" onClick={() => setGridWide(v => !v)} disabled={gridBusy}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 bg-surface text-[11px] font-semibold text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-50">
+                {gridWide ? 'Narrower' : 'Wider'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className={isPhone ? '' : 'flex gap-5 items-start'}>
+        <div className="overflow-x-auto shrink-0" data-no-swipe>
+          <div style={{ width: LW + CW * spends.length }}>
+            {/* £47.5k, not "£48k": the step can be £2,500, and a column label that rounds to the nearest
+                thousand names a figure that is not the one the column was run at. */}
+            <div className="flex" style={{ marginLeft: LW }}>
+              {spends.map(v => <div key={v} style={{ width: CW }} className="text-center text-[10.5px] font-semibold text-slate-500 tabular-nums pb-1">{`\u00a3${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k`}</div>)}
+            </div>
+            <div className="flex">
+              <div style={{ width: LW }}>
+                {ages.map(a => (
+                  <div key={a} style={{ height: CH }} className={`flex items-center justify-end pr-1.5 text-[11px] tabular-nums ${a === planAge ? 'font-bold text-slate-900' : 'text-slate-500'}`}>{a}</div>
+                ))}
+              </div>
+              <div className="relative" style={{ width: CW * spends.length, height: CH * ages.length }}>
+                {ages.map(a => (
+                  <div key={a} className="flex" style={{ height: CH }}>
+                    {spends.map(v => {
+                      const cell = grid.rows[a] ? grid.rows[a].find(x => x.spend === v) : null;
+                      if (!cell) return <div key={v} style={{ width: CW, height: CH }} className="border-r border-b border-white bg-slate-100 animate-pulse" />;
+                      const col = gridCell(cell.rate);
+                      const here = a === planAge && Math.abs(v - planSpend) < (spends[1] - spends[0]) / 2;
+                      return (
+                        <button key={v} type="button" data-grid-cell={`${a}:${v}`} onClick={() => takeGridCell(a, v)}
+                          aria-label={`Retire at ${a} on ${formatGBP(v)} a year: ${cell.rate.toFixed(0)}% of futures last to ${terminalAge}. Sets the sandbox.`}
+                          style={{ width: CW, height: CH, background: col.bg, color: col.fg }}
+                          className="relative border-r border-b border-white text-[11px] font-semibold tabular-nums cursor-pointer hover:outline hover:outline-2 hover:outline-slate-900 hover:z-10">
+                          {cell.rate.toFixed(0)}
+                          {here && <span className="absolute inset-[1px] border-2 border-slate-900 rounded-[3px] pointer-events-none" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+                {pts.length > 1 && (
+                  <svg width={CW * spends.length} height={CH * ages.length} className="absolute inset-0 pointer-events-none overflow-visible">
+                    <polyline points={pts.join(' ')} fill="none" stroke="#ffffff" strokeWidth="5" strokeLinejoin="round" strokeLinecap="round" opacity="0.85" />
+                    <polyline points={pts.join(' ')} fill="none" stroke="#141820" strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" />
+                  </svg>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/*
+          * The space to the right of the table, used. At 1440 the grid is 570px wide inside a 1000px
+          * column, and what was beside it was nothing at all - while the two things a reader most needs
+          * told (that the cards above are one line each through this, and what a year is worth) were
+          * nowhere on the screen.
+          */}
+        {!isPhone && (
+          <div className="flex-1 min-w-0 space-y-3 pt-4">
+            <div className="border-l-[3px] border-slate-900 pl-2.5">
+              <div className="text-[11.5px] font-semibold text-slate-900">The two cards above are one line each through this</div>
+              <div className="text-[11px] text-slate-600 leading-relaxed">Read <strong>along</strong> the ringed row for the most you could spend at the age you entered; read <strong>down</strong> your own column for the earliest age that still clears {targetSurvivalRate}%. Everything between the two is a trade you can make yourself.</div>
+            </div>
+            {yearBuys !== null && (
+              <div className="border-l-[3px] border-rose-700 pl-2.5">
+                <div className="text-[11.5px] font-semibold text-slate-900">One more year of work buys about {formatGBP(yearBuys)} a year</div>
+                <div className="text-[11px] text-slate-600 leading-relaxed">Measured off the black line rather than asserted: the average step between one row and the next across this window.</div>
+              </div>
+            )}
+            <div className="border-l-[3px] border-blue-700 pl-2.5">
+              <div className="text-[11.5px] font-semibold text-slate-900">Click a cell to take it</div>
+              <div className="text-[11px] text-slate-600 leading-relaxed">It sets the sandbox to that age and that spending and opens the dashboard, where the amber line moves to it. Your saved plan is not touched until you press Apply.</div>
+            </div>
+          </div>
+        )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[10.5px] text-slate-500">
+          <span className="flex items-center gap-1.5">
+            <span className="w-4 h-0 border-t-2 border-slate-900" /> where the plan crosses {targetSurvivalRate}%, read between the cells
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3.5 h-3.5 rounded-[3px] border-2 border-slate-900" /> your plan as entered
+          </span>
+          <span>Click a cell to put that age and that spending in the sandbox.</span>
+        </div>
+        <p className="text-[10.5px] text-slate-400 leading-relaxed">
+          Every cell is a real run of the same engine on the same {fmtNum(GRID_TRIALS)} market paths (seed {mcSeed}), so
+          neighbouring cells differ by the plan rather than by luck. Sampling error at {fmtNum(GRID_TRIALS)} paths is about
+          &plusmn;2 points at 95% confidence, so read a cell as a band rather than as a number.
+          {(plan?.spending?.spendBands || []).length > 0 && <> Your spending bands still win for the ages they cover; this is the figure for every year they do not name.</>}
+        </p>
+      </div>
+    );
+  };
+
   const sandboxSummary = () => {
     const spinner = mcBusy ? <Loader2 className="w-3 h-3 animate-spin shrink-0 text-blue-600" /> : null;
     const wrap = (text) => <span className="inline-flex items-center gap-1.5 min-w-0"><span className="truncate">{text}</span>{spinner}</span>;
     if (!isSandboxModified) return wrap('Sandbox — nothing changed yet');
     const bits = [];
     ctx.owners.forEach(o => { const b = sandboxRetireFromPlan(plan)[o.key]; if (sandboxRetire[o.key] !== b) bits.push(`retire ${sandboxRetire[o.key]}`); });
+    if (isSpendModified) bits.push(`spend ${formatGBP(sandboxSpend)}`);
     const extra = (plan?.accounts || []).reduce((t, a) => t + (E.num((sandboxAccounts[a.id] || {}).contrib, 0) - E.num(a.contrib, 0)), 0);
     if (extra) bits.push(`${extra > 0 ? '+' : ''}${formatGBP(extra)}/yr`);
     if (sandboxMetrics) bits.push(`${sandboxMetrics.terminalDelta >= 0 ? '+' : ''}${formatGBP(sandboxMetrics.terminalDelta)} @ ${terminalAge}`);
@@ -10641,13 +11142,22 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             at the foot of the More sheet, the theme in it, and the today's-money line is rendered with
             the fields it qualifies on Plan Inputs. */}
         {!isPhone && (
-        <div data-title-card className="bg-surface border border-slate-200/90 rounded-xl p-5">
+        /*
+         * TIGHTER WHEN THE DASHBOARD IS ON SCREEN.
+         *
+         * The dashboard is a screenful by design, and above it sat 596px of chrome - a banner, this
+         * card, the warnings and the run card - so the chart it exists to show started below the fold on
+         * the 1440x900 laptop it was laid out for. Nothing is removed: the padding closes up, the
+         * version badge and the theme toggle go (both are a click away in the tab strip's row), and the
+         * sentence under the title stays, because the today's-money note lives in it.
+         */
+        <div data-title-card className={`bg-surface border border-slate-200/90 rounded-xl ${dashboardMode ? 'px-4 py-2.5' : 'p-5'}`}>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="min-w-0">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-100"><TrendingUp className="w-5 h-5" /></div>
-                <h1 className="text-xl font-bold tracking-tight text-slate-900 truncate">Monte Carlo Retirement Planner</h1>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-semibold border border-blue-100">{APP_VERSION}</span>
+                {!dashboardMode && <div className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-100"><TrendingUp className="w-5 h-5" /></div>}
+                <h1 className={`font-bold tracking-tight text-slate-900 truncate ${dashboardMode ? 'text-base' : 'text-xl'}`}>Monte Carlo Retirement Planner</h1>
+                {!dashboardMode && <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-semibold border border-blue-100">{APP_VERSION}</span>}
               </div>
               {/*
                 * One line, and it is the one a first-time visitor needs: where to start. The
@@ -10660,7 +11170,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 * the sentence that describes the whole model, in the one line that is on screen whichever
                 * tab you are on.
                 */}
-              <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
+              <p className={`text-slate-500 max-w-3xl leading-relaxed ${dashboardMode ? 'text-[11px]' : 'text-xs mt-1'}`}>
                 A UK drawdown model across pensions, ISAs, GIA and cash. Start with <span className="font-semibold text-blue-700">Plan Inputs</span>; everything else reads from it.
                 Every amount is in today&rsquo;s money.
               </p>
@@ -10671,7 +11181,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <div data-tabbar className="hidden md:flex items-end gap-1 border-b border-slate-200 flex-wrap">
                 {visibleTabs().map(t => tabBtn(t.id, t.Icon, t.label, t.accent))}
               </div>
-              <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />
+              {!dashboardMode && <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch={touch} />}
             </div>
           </div>
 
@@ -10789,9 +11299,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   is modelled{isPhone ? ', every figure is in today’s money,' : ''} and your plan stays in this browser.
                 </p>
               </div>
+              {/* Not on a phone. It is an ornament that says what the model is - a wheel you spin, not a
+                  forecast - and on a 390px screen an ornament is a quarter of the first screen somebody
+                  sees before they have read a word. It stays where there is width for it. */}
+              {!isPhone && (
               <div className="shrink-0 self-center mx-auto md:mx-0 md:ml-auto">
-                <RouletteWheel className={isPhone ? 'w-24' : 'w-44 sm:w-52 lg:w-60'} />
+                <RouletteWheel className="w-44 sm:w-52 lg:w-60" />
               </div>
+              )}
               </div>
             </div>
 
@@ -11881,7 +12396,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {activeTab === 'projection' && (
           <div ref={deckSwipeRef} className={`${isPhone ? 'space-y-3 swipe-x' : 'space-y-6'}`}>
 
-            <div className="bg-surface border border-slate-200/90 rounded-xl p-5 space-y-3">
+            <div className={`bg-surface border border-slate-200/90 rounded-xl ${dashboardMode ? 'px-4 py-2.5' : 'p-5 space-y-3'}`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900">Run the projection</h3>
@@ -11902,12 +12417,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </button>
                 </div>
               </div>
+              {!dashboardMode && (
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-slate-600 pt-2.5 border-t border-slate-100">
                 <span className="text-slate-400">Tests how your current spend holds up, then solves for the most you could take instead.</span>
                 {/* min-h-6 is WCAG 2.5.8: this is a block-level button, not a link inside a sentence, so
                     the inline exception does not apply and 17px was a real failure on a mouse. */}
                 <button type="button" onClick={() => setActiveTab('strategy')} className="inline-flex items-center min-h-6 text-slate-500 hover:text-slate-800 hover:underline font-semibold cursor-pointer">Comparing wrapper strategies lives on the Strategy tab &rarr;</button>
               </div>
+              )}
               {simProgress && <div className="w-full"><ProgressBar value={simProgress.value} label={simProgress.label} /></div>}
             </div>
 
@@ -11925,7 +12442,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 {slideIndex({ preview: true })}
                 <p className="leading-relaxed text-slate-500 pt-0.5">Each is drawn off the same {fmtNum(MC_TRIALS)} randomised paths.</p>
               </div>
-            ) : dashboardMode ? projectionDashboard() : (
+            ) : (
             <>
               {isCouple && (
                 <div className="bg-surface border border-slate-200/90 rounded-xl p-4 flex flex-wrap items-center gap-2">
@@ -11959,10 +12476,25 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </div>
               )}
 
-              {/* ---------------- 2. SAFE SPEND ---------------- */}
+              {/* ---------------- 2. THE TWO ANSWERS, AND THE TRADE BETWEEN THEM ---------------- */}
+              {/*
+                * Two cards, unchanged, on one slide.
+                *
+                * They were steps 2 and 3, and separating them hid what they are: the same question asked
+                * from two ends. Hold the risk and solve for the income, or hold the income and solve for
+                * the date. Read one after the other they are two figures; read side by side they are the
+                * two ends of one trade, which is what the grid under them draws in full.
+                */}
               {showSlide(2) && (
+                /* One card, two panels. Three stacked cards - a head, two answers and a nav - spent about
+                   a hundred pixels on padding and borders, and on a 1366x768 laptop that was the
+                   difference between the step's own pills being on the screen and being 12px under it. */
                 <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(2, 'The most you could spend', 'Holds the risk fixed and solves for the income instead.')}
+                  {slideHead(2, 'The most you could spend, and the earliest you could stop', 'The same question from two ends: hold the risk and solve for the income, or hold the income and solve for the date.')}
+                  <div className={`grid gap-3 ${isPhone ? '' : 'xl:grid-cols-2'}`}>
+                    <div className="border border-slate-200 rounded-lg p-4 space-y-3" data-answer-card="spend">
+                      <h3 className="text-sm font-semibold text-slate-900">The most you could spend</h3>
+                      <p className="text-[11px] text-slate-500 -mt-2">Holds the risk fixed and solves for the income instead.</p>
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="text-slate-500 font-semibold">Survive at least:</span>
                     <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
@@ -11992,14 +12524,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       </p>
                     </>
                   ) : <p className="text-xs text-slate-500">Solving&hellip;</p>}
-                  {slideNav(2)}
-                </div>
-              )}
-
-              {/* ---------------- 3. SAFE RETIREMENT AGE ---------------- */}
-              {showSlide(3) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(3, 'The earliest you could retire', 'Holds the spending fixed and solves for the retirement age instead.')}
+                    </div>
+                    <div className="border border-slate-200 rounded-lg p-4 space-y-3" data-answer-card="retire">
+                      <h3 className="text-sm font-semibold text-slate-900">The earliest you could retire</h3>
+                      <p className="text-[11px] text-slate-500 -mt-2">Holds the spending fixed and solves for the retirement age instead.</p>
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="text-slate-500 font-semibold">Survive at least:</span>
                     <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
@@ -12055,7 +12583,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-lg text-[11px] text-slate-700 leading-relaxed space-y-1.5">
                           <div className="flex items-center gap-2 font-bold text-amber-900 text-xs"><AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> This is a bridge problem, not a saving problem</div>
                           <p>Going earlier than {safeRetireResult.age} does not fail because the money runs out &mdash; it fails because it is locked. At {safeRetireResult.below.age}, {safeRetireResult.below.preNmpaFailRate.toFixed(1)}% of paths are stranded before the pension unlocks at {nmpa}. <strong>Your ISA bridge is not big enough to carry the gap.</strong> More total saving will not fix that on its own; the same money held where you can reach it before {nmpa} would.</p>
-                          <p>Worth testing: move some contribution from the pension to the ISA, or bring the ISA balance up, and re-run. <button type="button" onClick={() => { setSeeAll(false); setSlide(SANDBOX_SLIDE); }} className="font-bold text-amber-900 underline hover:text-amber-950 cursor-pointer">Step {SANDBOX_SLIDE}</button> lets you change both without touching your saved plan.</p>
+                          <p>Worth testing: move some contribution from the pension to the ISA, or bring the ISA balance up, and re-run. <button type="button" onClick={() => { setSeeAll(false); setSlide(DASH_SLIDE); }} className="font-bold text-amber-900 underline hover:text-amber-950 cursor-pointer">The dashboard</button> lets you change both without touching your saved plan.</p>
                         </div>
                       )}
 
@@ -12072,112 +12600,22 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       )}
                     </>
                   )}
-                  {slideNav(3)}
-                </div>
-              )}
-
-              {/* ---------------- 4. RATE-BASED CHART ---------------- */}
-              {showSlide(4) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 wide-chart-card">
-                  {slideHead(4, 'Rate based projection', 'One steady rate per wrapper, compounded. Redraws as you type.')}
-                  <div className="flex flex-wrap items-center gap-3">
-                    {bandToggle}
-                    {horizonSlider}
-                  </div>
-                  {renderProjectionChart('rate')}
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    <Clamp isPhone={isPhone} lines={2} label="What this means…">
-                    <strong className="text-slate-700">{bandSpec
-                      ? `The band is the ${bandSpec.lowPct} to ${bandSpec.highPct} percentile, each edge compounded at that age\u2019s own rate.`
-                      : 'One line: the expected path, compounded at each age\u2019s own rate, on an axis that follows it. Switch the band on above to see the range around it.'}</strong>
-                    {' '}<strong className="text-rose-700">Using fixed rates of interest to project future growth tends to overestimate survival at the unlucky, lower quartile.</strong> This is because in reality a few loss-making years combined with <T k="drawdown">drawdown</T> could take a higher-risk portfolio to £0. See the <T k="Monte Carlo">Monte Carlo</T> simulation for a better predictor of how robust your plan is.
-                    {bandCurves && bandCurves.lo.failAge !== null && <> <strong className="text-rose-700">Below age {bandCurves.lo.failAge} the bottom edge is broken, not low.</strong></>}
-                    </Clamp>
-                  </p>
-                  {slideNav(4)}
-                </div>
-              )}
-
-              {/* ---------------- 5. MONTE CARLO CHART ---------------- */}
-              {showSlide(5) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4 wide-chart-card">
-                  {slideHead(5, 'Monte Carlo', `${fmtNum(simResult?.trials)} randomised futures, same axes as the last screen.`)}
-                  <div className="flex flex-wrap items-center gap-3">
-                    {bandToggle}
-                    {horizonSlider}
-                  </div>
-                  {renderProjectionChart('mc', { animate: true })}
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    <Clamp isPhone={isPhone} lines={2} label="What this means…">
-                    <strong className="text-emerald-700">Each path applies your withdrawals to one particular order of returns, and stops at £0 if the money is exhausted.</strong> A run of poor years early in drawdown forces selling at depressed prices and permanently reduces the capital left to recover, which is why the lower quartile here sits below the rate-based equivalent.
-                    {bandSpec
-                      ? <> The band is the same {bandSpec.lowPct} to {bandSpec.highPct} percentile, so the two charts can be read against each other directly.</>
-                      : <> The line is the median of those runs, on the same axis as the last screen; switch the band on above to see the spread it came from.</>}
-                    {fanRuinAge !== null
-                      ? <> <strong className="text-rose-700">A tenth are broke by {fanRuinAge}.</strong></>
-                      : <> Fewer than one in ten are broke by {terminalAge}.</>}
-                    </Clamp>
-                  </p>
-                  {slideNav(5)}
-                </div>
-              )}
-
-              {/* ---------------- 6. SIDE BY SIDE ---------------- */}
-              {showSlide(6) && (
-                <div ref={slideRef} style={{ scrollMarginTop: 12 }} className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(6, 'Side by side', 'The same plan, both ways, at the same five points.')}
-                  {compareRows2 && (
-                    <div tabIndex={0} className="overflow-x-auto border border-slate-200 rounded-lg">
-                      <table className="w-full text-left text-xs border-collapse">
-                        <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans">
-                          <tr>
-                            <th className="p-2.5">Pot at age {terminalAge}</th>
-                            <th className="p-2.5" style={{ color: cp.rateEdge }}>Rate based</th>
-                            <th className="p-2.5" style={{ color: cp.fanMedian }}>Monte Carlo</th>
-                            <th className="p-2.5">Difference</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
-                          {compareRows2.quantiles.map(r => (
-                            <tr key={r.label} className={r.label === 'Median' ? 'bg-slate-50/80' : ''}>
-                              <td className="p-2 font-sans font-semibold text-slate-700">{r.label}</td>
-                              <td className="p-2 text-slate-800">{formatGBP(r.rate)}</td>
-                              <td className="p-2 text-slate-800">{formatGBP(r.mc)}</td>
-                              <td className={`p-2 font-semibold ${Math.abs(r.pct) < 2 ? 'text-slate-400' : r.pct > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>{r.mc > 0 ? `${r.pct > 0 ? '+' : ''}${r.pct.toFixed(0)}%` : '—'}</td>
-                            </tr>
-                          ))}
-                          {compareRows2.extras.map(r => (
-                            <tr key={r.label} className="border-t-2 border-slate-200">
-                              <td className="p-2 font-sans font-semibold text-slate-700">{r.label}</td>
-                              <td className="p-2 text-slate-800">{r.rate}</td>
-                              <td className="p-2 text-slate-800">{r.mc}</td>
-                              <td className="p-2 text-slate-400 font-sans">{r.note || ''}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
                     </div>
-                  )}
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    <Clamp isPhone={isPhone} lines={2} label="What this means…">
-                    Read the <strong>Difference</strong> column downward. The two methods agree near the middle and part company at the bottom: the rate-based figures sit above the Monte Carlo ones precisely where the plan is under most strain, because that is where being unable to go bust flatters you most.
-                    </Clamp>
-                  </p>
-                  {sequenceLoss && sequenceLoss.state === 'loss' && (
-                    <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3 text-[11px] text-slate-600 leading-relaxed">
-                      <strong className="text-rose-700">{formatGBP(sequenceLoss.gapLow)} of that gap is order alone.</strong> An unlucky <em>rate</em> arriving evenly leaves {formatGBP(sequenceLoss.smoothLow)}; one plan in ten actually ends below {formatGBP(sequenceLoss.actualLow)}. Same average return, different order of arrival.
-                    </div>
-                  )}
-                  {slideNav(6)}
+                  </div>
+                  {spendAgeGrid()}
+                  {slideNav(2)}
                 </div>
               )}
+
             </>
             )}
 
 
             {/* Saved scenarios overlay on whichever chart is showing, and the table ranks them against each
                 other. Kept outside the five steps: it compares PLANS, where the steps compare methods. */}
-            <div className={`bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3 ${dashboardMode ? 'hidden' : ''}`}>
+            {/* An empty card is not a card. With one scenario saved there is nothing to overlay, and this
+                used to draw a blank white box under the deck saying so. */}
+            <div className={`bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3 ${dashboardMode || scenarios.filter(s => s.id !== activeScenarioId).length === 0 ? 'hidden' : ''}`}>
             {scenarios.filter(s => s.id !== activeScenarioId).length > 0 && (
               <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
                 <span className="text-xs text-slate-500 font-semibold whitespace-nowrap">Compare saved scenarios:</span>
@@ -12254,70 +12692,36 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 </Fine>
               </div>
             )}
-            {/* ---------------- 7. CHANGE SOMETHING ---------------- */}
-            {/* The chart sits ABOVE the controls, not on a step two back, so the amber line the sandbox
-                draws is on screen while you are dragging the thing that moves it. Monte Carlo rather than
-                the rate-based band, because that is the chart the survival figure everything else quotes
-                is actually read from. */}
-            {!dashboardMode && showSlide(SANDBOX_SLIDE) && (
-              <div ref={slideRef} className="space-y-6"
-                /* room at the foot for the sheet, so the Rerun card below is not stranded under it */
+            {/* ---------------- 3. THE DASHBOARD ---------------- */}
+            {/*
+              * The last step is the whole picture rather than another slice of it: the chart with a
+              * toggle for which method drew it, the figures that method produces, the dials that move it
+              * and the amber line they draw. It was reachable only through "See all" before, which meant
+              * the screen that holds everything was the one nobody walked to.
+              *
+              * The phone gets it too. The four steps this replaced were where a phone read its charts, so
+              * dropping them without this would have left the phone with two tables and no picture.
+              */}
+            {showSlide(DASH_SLIDE) && (
+              <div ref={slideRef} className="space-y-3"
+                /* room at the foot for the sheet, so the rerun card below is not stranded under it */
                 style={{ scrollMarginTop: 12, paddingBottom: isPhone ? sheetH : 0 }}>
-                <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-4">
-                  {slideHead(SANDBOX_SLIDE, 'Change something',
-                    'Edit below and the amber line moves with you. Your saved plan is not touched.')}
-                  {!isPhone && sandboxControls}
-                  {/*
-                    * ONE ROW, AND WHICH SIDE OF THE CHART IT SITS ON.
-                    *
-                    * The controls are the ones steps 4 and 5 carry - the band picker, the horizon
-                    * slider - plus one switch for which projection is drawn, and the spinner sits beside
-                    * that switch because that switch is what causes the wait.
-                    *
-                    * All on one row, because two rows of controls cost about eighty pixels and on a
-                    * 1366x768 laptop that is exactly what pushes the dials that move the chart below the
-                    * fold - which the desktop review had already fixed once.
-                    *
-                    * Above the chart on a desktop, where every other step keeps its controls. BELOW it
-                    * on a phone, because there the sandbox sheet is pinned to the foot of the screen and
-                    * this card's chart clears it by nineteen pixels: a control row above would spend all
-                    * of them and hide the bottom of the chart behind the sheet.
-                    */}
-                  {renderProjectionChart(sandboxChartKind)}
-                  {isPhone && sandboxControls}
-                  {!isSandboxModified && (
-                    <p className="text-[11px] text-slate-500 leading-relaxed">Nothing is changed yet, so there is no amber line to see. Edit a contribution, a balance or a retirement age here and one appears over this chart, beside the plan you already have.</p>
-                  )}
-                  {/* The phone's dials, on the desktop, inside the same card as the chart they move. */}
-                  {!isPhone && <div className="pt-1 border-t border-slate-100">{sandboxQuickDials({ inSheet: false })}</div>}
-                  {slideNav(SANDBOX_SLIDE)}
-                </div>
-                {/*
-                  * THE SECOND CARD IS GONE ON A DESKTOP.
-                  *
-                  * Step 7 used to be a chart card followed by a whole separate "Sandbox" card carrying
-                  * the same job again in typed fields. Two surfaces for one idea, and the second one
-                  * pushed the rerun button off the screen. The dials inside the chart card are the
-                  * controls now, and they cover balances as well as contributions and retirement ages
-                  * so that nothing the old card could change has become unreachable. Escalation is the
-                  * exception, and it lives on the Plan Inputs tab.
-                  *
-                  * The phone keeps its sheet. There the controls are not "underneath" anything - they
-                  * are pinned to the foot of the screen precisely so the chart stays visible while you
-                  * adjust, which is the whole point of a sandbox on a small screen, and its `full` mode
-                  * is the only place a phone can reach the typed fields.
-                  */}
+                {projectionDashboard()}
+                {/* The phone's dials stay in their sheet, pinned to the foot of the screen so the chart
+                    is still visible while you drag them - which is the whole point of a sandbox on a
+                    small screen, and its `full` mode is the only place a phone reaches the typed fields. */}
                 {isPhone && (
                   <SheetPanel mode={sheetMode} onMode={setSheetMode} onHeight={setSheetH}
                     summary={sandboxSummary()} quick={sandboxQuickDials()} full={renderSandboxPanel()} />
                 )}
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {fmtNum(simResult?.trials)} randomised futures and refresh every step, run it again.</span>
+                  <span className="text-[11px] text-slate-500">An edit draws the amber line over the chart. To put it through {fmtNum(simResult?.trials)} randomised futures and refresh every figure on this page, run it again.</span>
                   <button type="button" onClick={() => handleRunAll({ cascade: true })} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                     {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Running…' : 'Rerun projections'}
                   </button>
                 </div>
+                <div className="bg-surface border border-slate-200/90 p-5 rounded-xl">{slideNav(DASH_SLIDE)}</div>
               </div>
             )}
           </div>

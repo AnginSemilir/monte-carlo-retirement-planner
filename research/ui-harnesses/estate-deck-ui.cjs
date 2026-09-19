@@ -12,7 +12,7 @@ const plan = {
     compensationPayment:900000, compensationDate:'2025-06-01', transferredNrbPct:100, transferredRnrbPct:100,
     gifts:[{id:'g1',amount:308000,year:2026}],
     beneficiaries:[{id:'b1',name:'Alex',relationship:'descendant',sharePct:50,income:200000,age:36},
-                   {id:'b2',name:'Sam',relationship:'descendant',sharePct:50,income:93000,age:35}] }
+                   {id:'b2',name:'Sam',relationship:'descendant',sharePct:50,income:80000,age:33}] }
 };
 let fails=0; const ok=(l,c,d='')=>{console.log(`  ${c?'ok  ':'FAIL'}  ${l}${d?'   '+d:''}`); if(!c)fails++;};
 (async()=>{

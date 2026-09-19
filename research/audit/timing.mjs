@@ -19,7 +19,7 @@ const raw = {
   oneOffContributions: [], oneOffCosts: [], config: { valuationDate: '2026-09-13' },
   inheritance: { deathAge: 71, homeValue: 1400000, homeToDescendants: true,
     beneficiaries: [
-      { id: 'b1', name: 'Sam', relationship: 'descendant', sharePct: 45, income: 93000, age: 35 },
+      { id: 'b1', name: 'Sam', relationship: 'descendant', sharePct: 45, income: 80000, age: 33 },
       { id: 'b2', name: 'Kiki', relationship: 'descendant', sharePct: 10, income: 0, age: 4 },
       { id: 'b3', name: 'Alex', relationship: 'descendant', sharePct: 45, income: 150000, age: 36 }] }
 };

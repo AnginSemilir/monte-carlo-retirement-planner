@@ -978,7 +978,7 @@ console.log('=========== U. TIES GO TO THE SMALLER GIFT, AND THE PLATEAU IS SHOW
     inheritance: { deathAge: 71, homeValue: 1400000, homeToDescendants: true,
       compensationPayment: 900000, compensationDate: '2025-12-04',
       gifts: [{ id: 'g1', amount: 308000, year: 2026, desc: 'House' }],
-      beneficiaries: [{ id: 'a', name: 'Sam', relationship: 'descendant', sharePct: 50, income: 93000, age: 35 },
+      beneficiaries: [{ id: 'a', name: 'Sam', relationship: 'descendant', sharePct: 50, income: 80000, age: 33 },
                       { id: 'b', name: 'Alex', relationship: 'descendant', sharePct: 50, income: 150000, age: 36 }],
       ...(over.inh || {}) }
   });

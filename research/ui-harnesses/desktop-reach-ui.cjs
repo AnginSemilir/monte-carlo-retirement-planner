@@ -554,6 +554,40 @@ async function runProjection(p) {
   ok('...without crowding the form off the page', overS <= 1, `${overS}px`);
   ok('no page errors on the simple page', sp.errs.length === 0, sp.errs.slice(0, 2).join(' | '));
 
+  /*
+   * THE GAIN PROMPT SITS UNDER THE BALANCE IT IS ABOUT.
+   *
+   * It used to be an amber banner on every tab but this one - "no unrealised gain on Other Investments,
+   * so only future growth is taxed" - repeated per owner, above whatever you had come to read. It asks
+   * for a figure, so it belongs under the field that figure goes with, and the banner should not carry
+   * it at all.
+   */
+  {
+    const gia = await open(b, 1440, 900);
+    await tab(gia.p, 'Plan Inputs');
+    await gia.p.waitForTimeout(500);
+    const seen = await gia.p.evaluate(() => {
+      const hint = document.querySelector('[data-gia-gain-hint]');
+      const cell = hint && hint.closest('td');
+      const input = cell && cell.querySelector('input');
+      return { hint: !!hint, underTheField: !!(hint && input) && hint.getBoundingClientRect().top >= input.getBoundingClientRect().bottom - 1,
+        advanced: !!document.getElementById('advanced-inputs') };
+    });
+    ok('the GIA gain prompt is under the balance field', seen.hint && seen.underTheField, JSON.stringify(seen));
+    await gia.p.evaluate(() => { const h = document.querySelector('[data-gia-gain-hint]'); if (h) h.click(); });
+    await gia.p.waitForTimeout(600);
+    const opened = await gia.p.evaluate(() => {
+      const el = document.getElementById('advanced-inputs');
+      return el ? /unrealised gain/i.test(el.innerText) : false;
+    });
+    ok('...and pressing it opens Advanced inputs where the figure goes', opened === true, `advanced shows the field: ${opened}`);
+    await tab(gia.p, 'Projection');
+    await gia.p.waitForTimeout(500);
+    const banner = await gia.p.evaluate(() => /unrealised gain/i.test(document.body.innerText));
+    ok('...and the banner no longer says it on the other tabs', banner === false, `still in a banner: ${banner}`);
+    await gia.p.close();
+  }
+
   await b.close();
   console.log(fails ? `\n${fails} FAILED` : '\nall ok');
   process.exit(fails ? 1 : 0);

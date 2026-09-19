@@ -79,6 +79,37 @@ const plan = {
           : null,
         hasFunding: !!document.querySelector('[data-funding]'),
         saysUntouched: /taken out of the money you have already invested|same money, pointed somewhere else/.test(document.body.innerText),
+        // the mismatch has to be called expected where the sheet prints two figures that differ
+        saysExpected: /This is expected|Expect the two figures to differ/.test(document.body.innerText),
+        /*
+         * The breakdown on the rising pension row: "£X of this is the money that stops going in above,
+         * and about £Y is tax relief added on top". Read back as numbers so the arithmetic is checked
+         * against the row's own change figure rather than merely being present.
+         */
+        splitNote: (() => {
+          const tbl = document.querySelector('table.moves');
+          if (!tbl) return null;
+          for (const tr of tbl.querySelectorAll('tbody tr')) {
+            const sub = tr.querySelector('td:first-child .sub');
+            if (!sub) continue;
+            // a leading digit is required: [\d,]+ alone matches the comma in ", and about" as its own number
+            const nums = (sub.textContent.match(/\d[\d,]*(?:\.\d+)?/g) || []).map(x => Number(x.replace(/,/g, '')));
+            // the change cell carries the monthly figure in its own .sub, which must not join the number
+            const cell = tr.querySelector('td:last-child').cloneNode(true);
+            cell.querySelectorAll('.sub').forEach(x => x.remove());
+            const change = Number(cell.textContent.replace(/[^\d.]/g, ''));
+            return { text: sub.textContent.trim(), nums, change };
+          }
+          return null;
+        })(),
+        /*
+         * The one-off move sells from the ISA - that is the wrapper bedAndSipp is capped by and moves
+         * from. It used to say "general investment account", which would have had somebody sell the
+         * wrong holding and expect a CGT bill an ISA cannot produce, so the wrong name is asserted out.
+         */
+        oneOff: [...document.querySelectorAll('ol.steps > li')]
+          .filter(li => /Move money that is already invested/.test(li.querySelector('h3')?.textContent || ''))
+          .map(li => li.innerText)[0] || null,
         steps: document.querySelectorAll('ol.steps > li').length,
         policy: document.querySelectorAll('.policy').length,
         junk: (document.body.innerText.match(/undefined|NaN|\[object|\u2212£0\b/g) || []),
@@ -94,6 +125,18 @@ const plan = {
       ok('...adding up where the extra money comes from', Math.abs(stop + gap - total) <= 2, `${stop} + ${gap} = ${total}`);
     }
     if (doc.hasFunding) ok('...and saying the balances are not raided for it', doc.saysUntouched, '');
+    if (doc.hasFunding) ok('...and calling the mismatch expected rather than leaving it to be guessed at', doc.saysExpected, '');
+    if (doc.splitNote) {
+      const [net, relief] = doc.splitNote.nums;
+      ok('...splitting the pension rise into your own money and the relief on it',
+        doc.splitNote.nums.length >= 2 && Math.abs(net + relief - doc.splitNote.change) <= 2,
+        `${net} + ${relief} against a change of ${doc.splitNote.change} — "${doc.splitNote.text}"`);
+    }
+    if (doc.oneOff) {
+      ok('the one-off move names the wrapper it actually sells from', /S&S ISA/.test(doc.oneOff) && !/general investment account/i.test(doc.oneOff),
+        doc.oneOff.split('\n')[1] || '');
+      ok('...and says what lands in the pension is bigger than what left', /relief/i.test(doc.oneOff), '');
+    }
     ok('...numbered steps to do it', doc.steps >= 2, `${doc.steps} steps`);
     ok('...how to draw on it afterwards', doc.policy > 0, `${doc.policy} policy notes`);
     ok('...and the figures now against the figures after', doc.compareRows >= 3, `${doc.compareRows} rows`);

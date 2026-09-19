@@ -70,14 +70,32 @@ function stepsFrom(moves, res, { formatGBP }) {
     });
   }
   if (res.transferNet > 0) {
+    /*
+     * TWO FIGURES THAT ARE NOT THE SAME NUMBER, AND WHY.
+     *
+     * What leaves the ISA and what arrives in the pension differ by the relief, and a sheet that prints
+     * both without saying so reads as though money appeared or went missing. So the leaving figure and
+     * the arriving figure are stated as one sentence with the relief named between them.
+     *
+     * It says ISA because that is what the engine sells: bedAndSipp is capped by the ISA balance and
+     * moves from the ISA. This step used to say "general investment account", which named a wrapper the
+     * strategy never touches - so anyone following the sheet would have sold the wrong holding, and
+     * worried about a capital gains bill that an ISA sale cannot produce.
+     */
+    const tNet = Math.round(res.transferNet);
+    const tGross = Math.round(res.transferGross);
+    const atSource = tGross - tNet;
     steps.push({
       head: 'Move money that is already invested',
       body: [
-        `Sell ${formatGBP(Math.round(res.transferNet))} from your general investment account and pay it into the pension.`,
-        res.transferGross > res.transferNet
-          ? `With tax relief that lands as about ${formatGBP(Math.round(res.transferGross))} inside the pension.`
+        `Sell ${formatGBP(tNet)} from your S&S ISA and pay it into the pension as a personal contribution.`,
+        atSource > 0
+          ? `Expect the two figures to differ: ${formatGBP(tNet)} is your own money leaving the ISA, the pension provider adds about ${formatGBP(atSource)} in basic-rate relief, and about ${formatGBP(tGross)} lands inside the pension.`
           : null,
-        'Selling realises any gain, so check it against your capital gains allowance for the year before you do it, and consider splitting it across two tax years if it is close.'
+        atSource > 0
+          ? 'If you pay higher or additional rate, the relief above the basic rate is claimed through your tax return and comes back to you as cash rather than into the pension.'
+          : null,
+        'Selling inside an ISA realises no capital gain, so there is nothing to check against your CGT allowance. Moving it does give up the ISA wrapper permanently, and ISA subscription limits mean you cannot simply put it back.'
       ].filter(Boolean)
     });
   }
@@ -140,12 +158,40 @@ export function buildActionPlanHtml(data, { formatGBP, fmtNum }) {
   const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   const title = `How to move to ${res.name || res.label || 'this strategy'}`;
 
+  /*
+   * The arithmetic of the switch, worked out before the table is drawn because one of its rows quotes it.
+   * `freed` is what stops going in, `added` is what starts, and `gap` is the difference between them.
+   */
+  const freed = moves.filter(m => !m.up).reduce((t, m) => t - m.delta, 0);
+  const added = moves.filter(m => m.up).reduce((t, m) => t + m.delta, 0);
+  const gap = added - freed;
+  const allPension = moves.filter(m => m.up).every(m => m.cat === 'pen');
+
+  /*
+   * THE LINE THAT STOPS THE TABLE LOOKING WRONG.
+   *
+   * Stopping £10,600 of ISA payments and starting £17,633 of pension payments is the same money, but the
+   * two figures do not match and the reader is left to guess why. The guess people reach for is that the
+   * difference is being taken out of the ISA balance, which is not what the strategy does. The split is
+   * spelled out further down under "Where the extra comes from", and that was too late: by then the
+   * alarming number has already been read.
+   *
+   * So the rising pension row carries its own breakdown. Only where the attribution is unambiguous - one
+   * thing rises, it is a pension, something stopped to pay for it, and the gap is big enough to notice -
+   * because with two wrappers rising there is no honest way to say which relief belongs to which.
+   */
+  const rises = moves.filter(m => m.up);
+  const splitNote = (freed > 0 && gap >= 50 && rises.length === 1 && rises[0].cat === 'pen')
+    ? `${formatGBP(Math.round(freed))} of this is the money that stops going in above, and about ${formatGBP(Math.round(gap))} is tax relief added on top`
+    : null;
+  if (splitNote) rises[0].note = splitNote;
+
   const moveTable = moves.length ? `
     <table class="moves">
       <thead><tr><th>What</th><th class="n">Paying in now</th><th class="n">Pay in instead</th><th class="n">Change</th></tr></thead>
       <tbody>${moves.map(m => `
         <tr>
-          <td><strong>${esc(m.what)}</strong></td>
+          <td><strong>${esc(m.what)}</strong>${m.note ? `<span class="sub">${esc(m.note)}</span>` : ''}</td>
           <td class="n">${esc(m.now)}</td>
           <td class="n">${esc(m.then)}</td>
           <td class="n ${m.up ? 'up' : 'down'}">${esc(m.change)}<span class="sub">${esc(m.monthly)}</span></td>
@@ -166,10 +212,6 @@ export function buildActionPlanHtml(data, { formatGBP, fmtNum }) {
    * relief when every rise is a pension; otherwise it is named as a difference and left unexplained
    * rather than explained wrongly.
    */
-  const freed = moves.filter(m => !m.up).reduce((t, m) => t - m.delta, 0);
-  const added = moves.filter(m => m.up).reduce((t, m) => t + m.delta, 0);
-  const gap = added - freed;
-  const allPension = moves.filter(m => m.up).every(m => m.cat === 'pen');
   const stopped = [...new Set(moves.filter(m => !m.up).map(m => m.wrapper))];
   const keeps = stopped.length
     // lower-cased mid-sentence, unless the name is an acronym: "s&s isa" is not a thing anybody calls it
@@ -187,17 +229,20 @@ export function buildActionPlanHtml(data, { formatGBP, fmtNum }) {
   const funding = (freed > 0 && added > 0) ? (
     Math.abs(gap) < 50
       ? `<div data-funding><p class="fund">The same money, pointed somewhere else: ${esc(formatGBP(Math.round(freed)))} a year stops going in where it does now and starts going in here instead. ${esc(untouched)}</p></div>`
-      : `<div data-funding><h3 class="fund-h">Where the extra comes from</h3>
+      : `<div data-funding><h3 class="fund-h">Why the two figures do not match</h3>
+         <p class="fund">${esc(allPension
+            ? 'This is expected, and nothing extra comes out of your pocket. A pension contribution is entered gross, so the figure you pay in includes the tax relief on it; what actually leaves your bank account is the amount that stopped going in elsewhere.'
+            : 'This is expected. The amounts do not match because a pension contribution is counted gross, so part of what goes in is tax relief rather than money out of your bank account.')}</p>
          ${fundingRows([
            /* "freeing take-home pay" only where what stops is paid out of taxed income: stopping a GROSS
               pension contribution frees less take-home than its face value, so it is not claimed. */
-           { what: moves.some(m => !m.up && m.cat === 'pen') ? 'Contributions you stop' : 'Contributions you stop, freeing take-home pay',
+           { what: moves.some(m => !m.up && m.cat === 'pen') ? 'Your own money, no longer paid in where it was' : 'Your own money, no longer paid in where it was, freeing take-home pay',
              amount: formatGBP(Math.round(freed)) },
            { what: gap > 0
-               ? (allPension ? 'Tax and NIC relief added on top, because a pension contribution is counted gross' : 'The difference, from tax relief and rounding')
+               ? (allPension ? 'Tax and NIC relief added on top, which never passes through your bank account' : 'The difference, from tax relief and rounding')
                : 'Less, because the new contributions cost more take-home pay than they show',
              amount: `${gap > 0 ? '+' : '−'}${formatGBP(Math.abs(Math.round(gap)))}` },
-           { what: 'Paid in under the new split', amount: formatGBP(Math.round(added)), total: true }
+           { what: 'Shown as paid in under the new split', amount: formatGBP(Math.round(added)), total: true }
          ])}
          <p class="fund">${esc(untouched)}</p></div>`
   ) : '';

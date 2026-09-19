@@ -9277,7 +9277,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const rerunNote = () => {
     const parts = [];
     if (resultsStale) parts.push('Re-run: changed plan inputs');
-    if (isSandboxModified) parts.push('Apply to plan to include your sandbox changes');
+    if (isSandboxModified) parts.push('Sandbox simulated on its own \u00b7 Apply to plan to fold it into these figures');
     if (!parts.length) return null;
     return (
       <span data-rerun-note className="text-[11px] font-semibold text-amber-700 flex items-center gap-1.5 min-w-0">
@@ -10381,11 +10381,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 */}
               <span className="text-[10px] text-slate-500">
                 <Hint isPhone={isPhone} label="what the dashed line is" title="Your edit, drawn twice">
-                  It starts <strong>yellow</strong>: the compounded run, redrawn the instant you press a dial, which is
-                  what makes a dial worth pressing. That line cannot go bust mid-way, so it flatters a stretched
-                  plan. Press <strong>Re-run the simulations</strong> and the same edit goes through {fmtNum(MC_TRIALS)} randomised
-                  futures; when it lands the line is redrawn in <strong>dark gold</strong>, moving, as the median of those
-                  runs, and every figure on this page is re-read from them.
+                  It starts <strong>yellow</strong>: the compounded run, redrawn the instant you press a dial. That line
+                  cannot go bust mid-way, so it flatters a stretched plan. A moment after you stop, the same edit
+                  goes through {fmtNum(MC_TRIALS)} randomised futures on its own and comes back <strong>dark gold</strong>, moving, with
+                  the survival rate it earned beside the chart &mdash; nothing to press. The button re-runs the plan as
+                  saved, which is where the figures around the chart come from.
                 </Hint>
               </span>
             </div>
@@ -13368,7 +13368,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     summary={sandboxSummary()} quick={sandboxQuickDials()} full={renderSandboxPanel()} />
                 )}
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
-                  {rerunNote() || <span className="text-[11px] text-slate-500">These figures are the plan as saved. Edit the dials above and the sandbox is simulated beside it; re-run to refresh every step.</span>}
+                  {rerunNote() || <span className="text-[11px] text-slate-500">These figures are the plan as saved. An edit to the dials is drawn and simulated on its own; re-running refreshes every step from the saved plan.</span>}
                   <button type="button" onClick={() => handleRunAll({ stay: true })} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                     {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Simulating…' : 'Re-run the simulations'}

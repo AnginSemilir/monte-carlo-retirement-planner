@@ -19,7 +19,7 @@ import {
   TrendingUp, Layers, Check, RotateCcw, Zap, Sliders, Download, Upload, Users, Wallet, Coins,
   Settings, Plus, Trash2, Table, FileSpreadsheet, CheckCircle2, AlertTriangle, Pencil, HelpCircle, BookOpen, History, Bookmark,
   Save, Sparkles, ArrowUpRight, ArrowDownRight, Trophy, Info, ChevronUp, ChevronDown, Home, Gift,
-  GripVertical, Maximize2, Loader2, FileText
+  GripVertical, Maximize2, Loader2, FileText, ArrowRight
 } from 'lucide-react';
 import { ThemeToggle } from './theme.jsx';
 import { BottomNav, MoreSheet } from './nav.jsx';
@@ -7225,7 +7225,10 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
             <Zap className="w-4 h-4 text-indigo-600 fill-indigo-600" /> Automated Strategy Tournament &amp; Optimizer
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            <Clamp isPhone={isPhone} lines={2} label="What this is…">
+            {/* Four lines rather than two: this one is the whole of what the tab does, and the two-line
+                cut stopped mid-sentence on "so every…", which reads as a truncation rather than a
+                summary. The rest is still one press away. */}
+            <Clamp isPhone={isPhone} lines={4} label="What this is…">
             Six wrapper strategies with the same take-home budget, each tested on the same {fmtNum(TOURNAMENT_TRIALS)} market paths, so every strategy meets the same good and bad years rather than its own draw. That takes the luck of the draw out of the comparison, but not the sampling error: a gap of under a point of survival is a tie, not a better strategy.{selectedEntrants.length > 0 ? ` Plus ${selectedEntrants.length} saved scenario${selectedEntrants.length === 1 ? '' : 's'} entered as saved.` : ''}
             </Clamp>
           </p>
@@ -7471,7 +7474,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
  */
 export default function App({ theme = 'system', setTheme = () => {}, resolvedTheme = 'light',
   numFormat = DEFAULT_NUMBER_FORMAT, setNumFormat = () => {},
-  isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 }, onChrome = () => {} }) {
+  isPhone = false, isCoarse = false, viewport = { width: 1280, height: 800 }, onChrome = () => {}, onCross = null }) {
   // a returning visitor already knows the layout, so only a first visit (no saved plan) opens on the guide
   const [activeTab, setActiveTab] = useState(() => (safeStorageGet(STORAGE_KEY) ? 'inputs' : 'home'));
   const [isEditingRisk, setIsEditingRisk] = useState(false);
@@ -10874,7 +10877,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
                   {!safeRetireResult ? (
                     <p className="text-[11px] text-slate-500 leading-relaxed">
-                      <Clamp isPhone={isPhone} lines={2} label="What this means…">
+                      {/* Three lines, not two: a preview should end at a full stop. This one's first
+                          sentence runs to 132 characters, and two lines cut it in half. */}
+                      <Clamp isPhone={isPhone} lines={3} label="What this means…">
                       This one is asked for rather than run with the rest, because it is a scan: one full simulation per candidate age, from today up to {Math.min(terminalAge - 1, ctx.owners[0].retireAge + 20)}. Your spending stays exactly as entered &mdash; what moves is when the salary stops. <strong className="text-slate-700">Employed income moves with you</strong> in either direction; <strong className="text-slate-700">defined-benefit pensions and the State Pension do not</strong>, because their dates are set by the scheme rather than by you.
                       </Clamp>
                     </p>
@@ -11617,6 +11622,15 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   thousands of possible futures, with the goal of telling you how safe your retirement plan is, the most
                   efficient way to draw down, and what your alternatives are.
                 </p>
+                {/* The way across, where somebody choosing between the two planners is actually standing:
+                    under the sentence that says what this one does. A line, not a card - the phone's top
+                    bar used to carry it above every tab, which was 44px spent on a decision made once. */}
+                {isPhone && onCross && (
+                  <button type="button" onClick={onCross} data-crossover
+                    className="min-h-11 flex items-center gap-1.5 text-sm font-bold text-blue-700 cursor-pointer text-left">
+                    Just want the answer? Open the simple planner <ArrowRight className="w-4 h-4 shrink-0" />
+                  </button>
+                )}
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <button type="button" onClick={() => setActiveTab('inputs')}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95">
@@ -12942,7 +12956,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
                   {!safeRetireResult ? (
                     <p className="text-[11px] text-slate-500 leading-relaxed">
-                      <Clamp isPhone={isPhone} lines={2} label="What this means…">
+                      <Clamp isPhone={isPhone} lines={3} label="What this means…">
                       This one is asked for rather than run with the rest, because it is a scan: one full simulation per candidate age, from today up to {Math.min(terminalAge - 1, ctx.owners[0].retireAge + 20)}. Your spending stays exactly as entered &mdash; what moves is when the salary stops. <strong className="text-slate-700">Employed income moves with you</strong> in either direction; <strong className="text-slate-700">defined-benefit pensions and the State Pension do not</strong>, because their dates are set by the scheme rather than by you.
                       </Clamp>
                     </p>
@@ -13073,7 +13087,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   </div>
                   {renderProjectionChart('mc', { animate: true, tight: true })}
                   <p className="text-[11px] text-slate-500 leading-relaxed">
-                    <Clamp isPhone={isPhone} lines={2} label="What this means…">
+                    <Clamp isPhone={isPhone} lines={3} label="What this means…">
                     <strong className="text-emerald-700">Each path applies your withdrawals to one particular order of returns, and stops at £0 if the money is exhausted.</strong> A run of poor years early in drawdown forces selling at depressed prices and permanently reduces the capital left to recover, which is why the lower quartile here sits below the rate-based equivalent.
                     {bandSpec
                       ? <> The band is the same {bandSpec.lowPct} to {bandSpec.highPct} percentile, so the two charts can be read against each other directly.</>
@@ -14823,6 +14837,21 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             foot={APP_VERSION}
             extras={
               <>
+                {/*
+                  * WHAT THE TOP BAR USED TO CARRY. It was 44px above every tab to name the planner you
+                  * are already in and to offer the other one; both live here now, above the tab's own
+                  * actions, because a setting and a one-off switch are exactly what a More sheet is for.
+                  */}
+                <div className="flex items-center gap-3 px-3 pb-2 mb-1 border-b border-slate-100">
+                  <span className="flex-1 text-sm font-semibold text-slate-700">Theme</span>
+                  <ThemeToggle theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} touch />
+                </div>
+                {onCross && (
+                  <button type="button" onClick={() => { setMoreOpen(false); onCross(); }} data-crossover
+                    className="w-full min-h-12 flex items-center gap-3 px-3 rounded-lg text-sm font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer">
+                    <ArrowRight className="w-4 h-4 shrink-0" /> Open the simple planner
+                  </button>
+                )}
                 {activeTab === 'inputs' && (
                   <div data-scenario-bar className="px-3 pb-2 mb-1 border-b border-slate-100 space-y-1.5">
                     <div className="flex items-center gap-2">

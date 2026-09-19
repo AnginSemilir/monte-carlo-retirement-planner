@@ -239,13 +239,19 @@ export default function Shell() {
 
   return (
     <>
-      {/* The same chain the simple page carries, for the same reason: on a phone the banner was 60px of
-          sentence above every tab, and the app's name was said again in a card under it. A desktop has
-          the width for the sentence and keeps it. */}
-      {isPhone ? (
-        <PhoneBar title="Full planner" cta="Simple planner" onCross={cross}
-          extra={<ThemeToggle compact theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} />} />
-      ) : (
+      {/*
+        * NO BAR ON THE FULL PLANNER'S PHONE BUILD.
+        *
+        * It was 44px at the top of all eight tabs to say which planner you are in - which the bottom bar
+        * already implies - and to offer the other one, which is a thing people do once. The offer moves
+        * into More, where the tab's other whole-plan actions live, and on to Start Here as a line under
+        * the sentence that introduces the model, which is where somebody deciding between the two is
+        * actually standing. The theme goes to More with it.
+        *
+        * The simple page keeps its bar: it is one fixed-height screen with no More sheet to put either
+        * of those in. A desktop keeps the full sentence, which it has the width for.
+        */}
+      {isPhone ? null : (
       <div className={`px-4 sm:px-6 lg:px-8 ${chrome === 'compact' ? 'pt-3' : 'pt-4 sm:pt-6 lg:pt-8'}`}>
         {/* Uncapped alongside the dashboard, which is what `compact` means here: the bar has to sit on
             the same margin as the screen under it, or it reads as a different page. */}
@@ -267,7 +273,7 @@ export default function Shell() {
       {/* One boundary round each planner, so a render error inside either leaves this bar - and the way
           across to the other planner - standing. Keyed on the planner so switching gives a clean start. */}
       {which === 'full' ? <Boundary resetKey="full"><App theme={theme} setTheme={setTheme} resolvedTheme={resolvedTheme} numFormat={numFormat} setNumFormat={setNumFormat}
-        isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} onChrome={setChrome} /></Boundary> : (
+        isPhone={isPhone} isCoarse={isCoarse} viewport={viewport} onChrome={setChrome} onCross={cross} /></Boundary> : (
         <div className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-6 lg:p-8 font-sans">
           <div className="max-w-7xl mx-auto space-y-5">
             <div className="flex items-center justify-between gap-3">

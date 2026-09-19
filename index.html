@@ -27,17 +27,16 @@
          nav then pads itself back out with env(safe-area-inset-bottom). No maximum-scale: pinch-zoom
          is how somebody reads a chart on a small screen, and taking it away is an accessibility bug. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!--
-      Loaded WITHOUT blocking the first paint. A plain stylesheet link here holds the whole page blank
-      until Google answers: on a measured run with the request stalled, first paint went from 287ms to
-      12.7 SECONDS of blank screen. media="print" makes the browser fetch it at low priority and render
-      regardless; the onload flips it to all, so the fonts arrive when they arrive. display=swap already
-      handles the font FILES - this is about the stylesheet that asks for them.
+      NO FONT LINKS HERE, AND NO PRECONNECTS: the faces are served from this origin. src/main.jsx imports
+      them from @fontsource and Vite bundles the @font-face rules into the stylesheet this page already
+      loads, so there is no second request to another domain and nothing about a visitor reaches Google.
+
+      That also retires the trick this block used to need. A plain stylesheet link to fonts.googleapis.com
+      held the page blank until Google answered - on a measured run with the request stalled, first paint
+      went from 287ms to 12.7 SECONDS - so it was fetched with media="print" and flipped to all on load.
+      A same-origin stylesheet that is already on the critical path has no such failure mode.
     -->
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Newsreader:ital,wght@1,600;1,700&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.onload=null">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Newsreader:ital,wght@1,600;1,700&display=swap" rel="stylesheet"></noscript>
     <style>
       /*
        * ONE LIGHT PALETTE, AND ONE DARK ONE DESIGNED BESIDE IT.

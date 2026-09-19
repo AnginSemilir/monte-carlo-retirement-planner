@@ -1501,9 +1501,27 @@ function buildContext(rawPlan) {
     if (stillWorking.length) warnings.push(`${stillWorking.map(w => w.label).join(', ')} keeps working after the first retirement but has no salary entered, so the full joint spend will be drawn from the portfolio in those years.`);
   }
 
+  /*
+   * NOT BEFORE THE OWNER RETIRES.
+   *
+   * Nothing is drawn while somebody is still working - the model's accumulation phase is driven by the
+   * contributions you enter, not by a household budget - so a stream that starts earlier was computed,
+   * taxed, shown in the year-by-year table and then dropped on the floor. Measured: £20,000 a year from
+   * 45 to 59 moved the survival rate by 0.0 points and the pot at 95 by £0. The input will not take an
+   * earlier age now; this clamp is for a plan imported or saved before it would not.
+   */
+  const incomeFloor = (i) => {
+    const o = owners.find(x => x.key === (i.owner === 'Partner' ? 'part' : 'self')) || owners[0];
+    return o ? o.retireAge : 0;
+  };
+  plan.otherIncomes.filter(i => isCouple || i.owner === 'Myself').forEach(i => {
+    const floor = incomeFloor(i);
+    const from = Math.max(0, num(i.startAge, 0));
+    if (from < floor) warnings.push(`${i.name ? `${i.name}: ` : ''}income starting at ${from} is counted from ${floor}, the age ${i.owner === 'Partner' ? 'your partner retires' : 'you retire'} — nothing is drawn or saved before then.`);
+  });
   const otherIncomes = plan.otherIncomes.filter(i => isCouple || i.owner === 'Myself').map(i => ({
     owner: i.owner === 'Partner' ? 'part' : 'self',
-    startAge: Math.max(0, num(i.startAge, 0)),
+    startAge: Math.max(incomeFloor(i), num(i.startAge, 0)),
     endAge: isBlank(i.endAge) ? terminalAge : num(i.endAge, terminalAge),
     amount: Math.max(0, num(i.amount, 0)),
     taxFree: !incomeTypeOf(i.incomeType).taxable,
@@ -8921,6 +8939,20 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   });
   const deleteSpendBand = (id) => setPlan(prev => ({ ...prev, spending: { ...prev.spending, spendBands: (prev.spending?.spendBands || []).filter(b => b.id !== id) } }));
   const updateSpendBand = (id, patch) => setPlan(prev => ({ ...prev, spending: { ...prev.spending, spendBands: (prev.spending?.spendBands || []).map(b => b.id === id ? { ...b, ...patch } : b) } }));
+  /*
+   * A stream cannot start before its owner retires: nothing is drawn or saved while somebody is still
+   * working, so an earlier age was money entered and then ignored. The field will not take one, and
+   * buildContext clamps anything that arrives from an older saved plan or an import.
+   */
+  const incomeStartFloor = (owner) => {
+    const o = ctx.owners.find(x => x.key === (owner === 'Partner' ? 'part' : 'self')) || ctx.owners[0];
+    return o ? o.retireAge : 0;
+  };
+  const clampIncomeStart = (inc) => {
+    const floor = incomeStartFloor(inc.owner);
+    if (E.isBlank(inc.startAge)) return;
+    if (E.num(inc.startAge, floor) < floor) updateListItem('otherIncomes', inc.id, { startAge: floor });
+  };
   const addOtherIncome = () => setPlan(prev => ({ ...prev, otherIncomes: [...(prev.otherIncomes || []), { id: 'inc_' + Date.now(), name: '', owner: 'Myself', startAge: '', endAge: '', amount: '', incomeType: 'otherTaxable', notes: '' }] }));
   const deleteOtherIncome = (id) => setPlan(prev => ({ ...prev, otherIncomes: (prev.otherIncomes || []).filter(i => i.id !== id) }));
   /*
@@ -11317,7 +11349,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           <div className="py-1.5 border-b border-slate-100"><RiskChips name="Whose income" value={inc.owner} onChange={(v) => updateListItem('otherIncomes', inc.id, { owner: v })}
             options={[{ key: 'Myself', title: 'Myself' }, { key: 'Partner', title: 'Partner' }]} /></div>
         )}
-        <FieldRow label="From age"><input type="number" min="0" max="120" placeholder="Start" onFocus={handleFocus} value={inc.startAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { startAge: parseInputNumber(e.target.value) })} className={`${inputCls} text-right`} /></FieldRow>
+        <FieldRow label="From age" hint={`Not before ${inc.owner === 'Partner' ? 'your partner retires' : 'you retire'} at ${incomeStartFloor(inc.owner)}: nothing is drawn or saved while somebody is still working, so an earlier age would be entered and then ignored.`}>
+          <input type="number" min={incomeStartFloor(inc.owner)} max="120" placeholder={String(incomeStartFloor(inc.owner))} onFocus={handleFocus}
+            value={inc.startAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { startAge: parseInputNumber(e.target.value) })}
+            onBlur={() => clampIncomeStart(inc)} className={`${inputCls} text-right`} />
+        </FieldRow>
         <FieldRow label="To age" hint="Leave blank to run to the end of the plan."><input type="number" min="0" max="120" placeholder="plan end" onFocus={handleFocus} value={inc.endAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { endAge: parseInputNumber(e.target.value) })} className={`${inputCls} text-right`} /></FieldRow>
         <FieldRow label="Amount a year"><MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={inc.amount} onChange={(e) => updateListItem('otherIncomes', inc.id, { amount: parseInputNumber(e.target.value) })} className={`${inputCls} text-right`} /></FieldRow>
         <div className="py-1.5">
@@ -12018,7 +12054,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       ) : <div className="p-1.5 text-slate-500 font-semibold">Myself</div>}
                       <div className="flex items-center gap-1">
                         <span className="text-slate-500">Age</span>
-                        <input type="number" min="0" max="120" placeholder="Start" onFocus={handleFocus} value={inc.startAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { startAge: parseInputNumber(e.target.value) })} className="w-12 p-1 bg-surface border border-slate-300 rounded tabular-nums text-center font-bold" />
+                        <input type="number" min={incomeStartFloor(inc.owner)} max="120" placeholder={String(incomeStartFloor(inc.owner))} onFocus={handleFocus}
+                          title={`Not before ${inc.owner === 'Partner' ? 'your partner retires' : 'you retire'} at ${incomeStartFloor(inc.owner)}: nothing is drawn or saved while somebody is still working.`}
+                          value={inc.startAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { startAge: parseInputNumber(e.target.value) })}
+                          onBlur={() => clampIncomeStart(inc)} className="w-12 p-1 bg-surface border border-slate-300 rounded tabular-nums text-center font-bold" />
                         <span className="text-slate-400">to</span>
                         <input type="number" min="0" max="120" placeholder="End" onFocus={handleFocus} value={inc.endAge} onChange={(e) => updateListItem('otherIncomes', inc.id, { endAge: parseInputNumber(e.target.value) })} className="w-12 p-1 bg-surface border border-slate-300 rounded tabular-nums text-center font-bold" />
                       </div>

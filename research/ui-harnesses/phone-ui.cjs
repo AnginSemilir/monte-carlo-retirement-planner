@@ -835,6 +835,43 @@ const navigate = async (page, label, short) => {
         const over = await p.evaluate(OVERFLOW_PROBE);
         ok(`${t}: one section, under two screens and a half, nothing sideways`, m.one === 1 && m.h <= 1800 && over <= 1 && m.bigSelects === 0, `${m.h}px, ${m.bigSelects} long selects, ${over}px overflow`);
       }
+      /*
+       * AN INCOME STREAM CANNOT START BEFORE ITS OWNER RETIRES.
+       *
+       * Nothing is drawn or saved while somebody is still working, so an earlier start was money
+       * entered, taxed, shown in the year-by-year table and then dropped: measured on a 40-year-old
+       * retiring at 60, £20,000 a year from 45 to 59 moved the survival rate by 0.0 points and the pot
+       * at 95 by £0. The field takes the retirement age as its floor and snaps back to it.
+       */
+      await sectionTab('Income');
+      await p.evaluate(() => { const a = [...document.querySelectorAll('button')].find(b => /Add stream/i.test(b.textContent)); if (a) a.click(); });
+      await p.waitForTimeout(600);
+      const marked = await p.evaluate(() => {
+        const rows = [...document.querySelectorAll('div')].filter(d => /^From age/.test((d.innerText || '').trim()) && d.querySelector('input[type=number]'));
+        const el = rows[rows.length - 1];
+        if (!el) return null;
+        const i = el.querySelector('input[type=number]');
+        i.setAttribute('data-probe', '1');
+        return { min: i.getAttribute('min'), retire: JSON.parse(localStorage.getItem('rp_plan_full_v28')).demographics.retireAgeSelf };
+      });
+      ok('an income stream cannot start before the age you retire', !!marked && Number(marked.min) === Number(marked.retire),
+        marked ? `min ${marked.min}, retiring at ${marked.retire}` : 'no From age field');
+      if (marked) {
+        const field = p.locator('input[data-probe="1"]');
+        await field.fill(String(Number(marked.retire) - 12));
+        await p.waitForTimeout(250);
+        await p.keyboard.press('Tab');
+        await p.waitForTimeout(500);
+        const snapped = await p.evaluate(() => {
+          const i = document.querySelector('input[data-probe="1"]');
+          const saved = JSON.parse(localStorage.getItem('rp_plan_full_v28')).otherIncomes;
+          return { shown: i ? i.value : null, saved: saved.length ? saved[saved.length - 1].startAge : null };
+        });
+        ok('...and an earlier age typed in snaps back to it', Number(snapped.shown) === Number(marked.retire) && Number(snapped.saved) === Number(marked.retire),
+          `shows ${snapped.shown}, saved ${snapped.saved}`);
+        await p.evaluate(() => { const d = [...document.querySelectorAll('button')].find(b => /Remove this income stream/i.test(b.getAttribute('aria-label') || '')); if (d) d.click(); });
+        await p.waitForTimeout(400);
+      }
       await sectionTab('You');
       const you = await p.evaluate(() => {
         const labels = [...document.querySelectorAll('[data-you-rows] label')];

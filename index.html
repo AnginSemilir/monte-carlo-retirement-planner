@@ -463,9 +463,25 @@
        * exempt too - see the probe in research/ui-harnesses/lib/probes.cjs, which follows the same
        * WCAG exception rather than shoving 44px boxes into the middle of a paragraph.
        */
+      /*
+       * .hit44 - DRAWN SHORT, TAPPED TALL.
+       *
+       * Two segmented rows stacked in a bottom sheet is 88px if both obey the 44px floor below, on a
+       * screen where the chart above them is the point. These draw at their own height and carry an
+       * invisible ::before that IS 44px, so the finger gets its target and the eye gets its space -
+       * the technique the probe in lib/probes.cjs accepts, and the one the slide pills use.
+       *
+       * `-up` grows the target into the room above, `-down` into the room below, so two rows sitting
+       * one under the other never overlap each other's hit areas and a tap near the seam is unambiguous.
+       */
+      .hit44 { position: relative; }
+      .hit44::before { content: ''; position: absolute; left: 0; width: 100%; height: 44px; }
+      .hit44-up::before { bottom: 0; }
+      .hit44-down::before { top: 0; }
       @media (pointer: coarse) {
         .touch-ui button, .touch-ui select, .touch-ui summary,
         .touch-ui input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) { min-height: 44px; }
+        .touch-ui .hit44 { min-height: 0; }
         /* flex: none as well as a size - these sit in tight flex rows next to their label, where the
            default flex-shrink:1 lets the browser squeeze the box back below whatever width is set. */
         .touch-ui input[type="checkbox"], .touch-ui input[type="radio"] { width: 24px; height: 24px; flex: none; }

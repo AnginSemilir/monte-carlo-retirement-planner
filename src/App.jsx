@@ -10698,6 +10698,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
    * and the dials swap underneath it. Both call the same handlers the wide panel calls.
    */
   const [railDialKind, setRailDialKind] = useState('contrib');
+  /*
+   * WHOSE DIALS, beside WHICH dials. A couple with four wrappers each has sixteen account dials and two
+   * retirement ages; one list at a time was the first half of the answer and one person at a time is the
+   * second. The joint figure - what the household spends - is never filtered out.
+   */
+  const [dialOwner, setDialOwner] = useState('self');
   const sandboxQuickDials = ({ inSheet = true, rail = false, scrollAt = 0 } = {}) => {
     const railDial = (label, value, steps, onStep) => {
       /*
@@ -10746,21 +10752,37 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
      * the sheet picks between the two lists the way the rail does, on one row at the top of it.
      */
     const kinded = rail || inSheet;
+    const segRow = (which, label, value, onPick, options) => (
+      <div data-dial-kind={which === 'kind' ? true : undefined} data-dial-owner={which === 'owner' ? true : undefined}
+        role="group" aria-label={label}
+        className={`flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 ${rail ? 'mb-1' : 'mb-1'}`}>
+        {options.map(([k, text]) => (
+          <button key={k} type="button" onClick={() => onPick(k)} aria-pressed={value === k}
+            className={`flex-1 rounded-md text-[11px] font-bold cursor-pointer ${rail ? 'min-h-7' : `h-8 hit44 hit44-${which === 'kind' ? 'up' : 'down'}`} ${
+              value === k ? 'bg-surface border border-slate-300 text-slate-900' : 'text-slate-500'}`}>{text}</button>
+        ))}
+      </div>
+    );
+    /* With the owner row on screen, the dials do not have to repeat whose they are in every label. */
+    const mine = (key) => !kinded || !isCouple || key === dialOwner;
     return (
       <div className={inSheet || rail ? 'space-y-1' : ''} data-quick-dials>
-        {kinded && (
-          <div data-dial-kind className={`flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 ${rail ? 'mb-1' : 'mb-1.5'}`}>
-            {[['contrib', rail ? 'A year' : 'Paid in a year'], ['balance', rail ? 'Balance' : 'Balance today']].map(([k, label]) => (
-              <button key={k} type="button" onClick={() => setRailDialKind(k)} aria-pressed={railDialKind === k}
-                className={`flex-1 ${rail ? 'min-h-7' : 'min-h-11'} rounded-md text-[11px] font-bold cursor-pointer ${railDialKind === k ? 'bg-surface border border-slate-300 text-slate-900' : 'text-slate-500'}`}>{label}</button>
-            ))}
-          </div>
-        )}
+        {/*
+          * Two thin rows rather than one tall one: 32px each with a 44px hit area that grows away from
+          * its neighbour, so the pair costs about what the single 44px row cost and answers two
+          * questions instead of one.
+          */}
+        {kinded && segRow('kind', 'What the dials change', railDialKind, setRailDialKind,
+          [['contrib', 'Contributions'], ['balance', 'Balances today']])}
+        {kinded && isCouple && segRow('owner', 'Whose dials', dialOwner, setDialOwner,
+          ctx.owners.map(o => [o.key, o.label]))}
         {/* One column in the dashboard's 330px rail: the grid's breakpoints watch the VIEWPORT, so on a
             wide screen they would put three dials side by side inside a narrow column. */}
         <div className={inSheet || rail ? 'space-y-1' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-5'}
           style={scrollAt ? { maxHeight: scrollAt, overflowY: 'auto' } : undefined}>
-          {ctx.owners.map(o => dial(rail && !isCouple ? 'Retire at' : `${o.label}: retire at`, sandboxRetire[o.key], [-5, -1, 1, 5], (d) => adjustSandboxRetire(o.key, d)))}
+          {ctx.owners.filter(o => mine(o.key)).map(o => dial(
+            (kinded && isCouple) || (rail && !isCouple) ? 'Retire at' : `${o.label}: retire at`,
+            sandboxRetire[o.key], [-5, -1, 1, 5], (d) => adjustSandboxRetire(o.key, d)))}
           {/* The figure the whole plan turns on, and the one the grid on the step before this is drawn
               against. It was reachable only by taking a cell from that grid; here it is a dial like the
               rest. */}
@@ -10772,14 +10794,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             * from a dial or it is not reachable at all. Escalation is the one thing left behind - it is
             * an Advanced input, and it lives on the Plan Inputs tab.
             */}
-          {(!kinded || railDialKind === 'contrib') && displayedAccounts.map(acc => {
+          {(!kinded || railDialKind === 'contrib') && displayedAccounts.filter(acc => mine(acc.id.split('_')[1])).map(acc => {
             const sb = sandboxAccounts[acc.id] || {};
-            const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
+            const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple && !kinded ? ` (${acc.owner})` : ''}`;
             return dial(kinded ? `${label} a year` : `${label}: annual contribution`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
           })}
-          {(!kinded || railDialKind === 'balance') && displayedAccounts.map(acc => {
+          {(!kinded || railDialKind === 'balance') && displayedAccounts.filter(acc => mine(acc.id.split('_')[1])).map(acc => {
             const sb = sandboxAccounts[acc.id] || {};
-            const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
+            const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple && !kinded ? ` (${acc.owner})` : ''}`;
             const now = E.num(sb.balance, E.num(acc.balance, 0));
             return dial(kinded ? `${label} today` : `${label}: balance today`, formatGBP(now), [-25000, -5000, 5000, 25000], (d) => adjustSandboxBalance(acc.id, d));
           })}

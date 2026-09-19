@@ -336,8 +336,28 @@ const navigate = async (page, label, short) => {
               first: row ? Math.round(row.getBoundingClientRect().height) : null,
               contribShown: money().some(t => t === '+500'), balanceShown: money().some(t => /^\+25,?000$/.test(t)) };
           });
-          ok('...the dials pick between paid-in and balance, at the top', kinds.row === true && kinds.contribShown && !kinds.balanceShown,
+          ok('...the dials pick between contributions and balances, at the top', kinds.row === true && kinds.contribShown && !kinds.balanceShown,
             `row: ${kinds.row}, ${kinds.first}px, contributions ${kinds.contribShown}, balances ${kinds.balanceShown}`);
+          /*
+           * DRAWN SHORT, TAPPED TALL. The row is 38px so that a second one fits under it without eating
+           * the chart, and each button carries a 44px ::before - which is the technique, not a dodge:
+           * the finger's target really is 44. A single plan has nobody to choose between, so the second
+           * row is not there at all.
+           */
+          const thin = await p.evaluate(() => {
+            const el = document.querySelector('[data-sandbox-sheet]');
+            const row = el.querySelector('[data-dial-kind]');
+            const btn = row && row.querySelector('button');
+            const cs = btn && getComputedStyle(btn, '::before');
+            return { h: row ? Math.round(row.getBoundingClientRect().height) : null,
+              btnH: btn ? Math.round(btn.getBoundingClientRect().height) : null,
+              hit: cs ? Math.round(parseFloat(cs.height)) : null, pos: cs ? cs.position : null,
+              owner: !!el.querySelector('[data-dial-owner]') };
+          });
+          ok('...thin on the screen and 44px under the finger',
+            thin.h !== null && thin.h <= 40 && thin.hit === 44 && thin.pos === 'absolute',
+            `row ${thin.h}px, button ${thin.btnH}px, hit area ${thin.hit}px ${thin.pos}`);
+          ok('...with no whose-dials row on a single plan', thin.owner === false, String(thin.owner));
           const swapped = await p.evaluate(async () => {
             const el = document.querySelector('[data-sandbox-sheet]');
             const b = [...el.querySelectorAll('[data-dial-kind] button')].find(x => /Balance/i.test(x.textContent));
@@ -351,7 +371,7 @@ const navigate = async (page, label, short) => {
             swapped ? `balances ${swapped.balance}, contributions ${swapped.contrib}` : 'no toggle');
           await p.evaluate(async () => {
             const el = document.querySelector('[data-sandbox-sheet]');
-            const b = [...el.querySelectorAll('[data-dial-kind] button')].find(x => /year/i.test(x.textContent));
+            const b = [...el.querySelectorAll('[data-dial-kind] button')].find(x => /Contributions/i.test(x.textContent));
             if (b) { b.click(); await new Promise(r => setTimeout(r, 300)); }
           });
           await p.waitForTimeout(800);

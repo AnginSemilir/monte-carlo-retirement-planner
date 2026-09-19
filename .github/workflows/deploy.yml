@@ -8,7 +8,7 @@
 # That switch is what actually puts the site on the internet, so it is deliberately left to a person.
 # Until it is flipped, this workflow fails at the "Configure Pages" step and nothing is published.
 #
-# The site then lives at https://hapsariandforward.github.io/monte-carlo-retirement-planner/ and updates on every
+# The site then lives at https://AnginSemilir.github.io/monte-carlo-retirement-planner/ and updates on every
 # push to the branch below. That branch has to be the DEFAULT branch: the `github-pages` environment only
 # accepts deployments from the default branch, and a run from anywhere else is rejected before the deploy
 # job starts a single step - it fails with no logs at all, which is a confusing way to learn this.

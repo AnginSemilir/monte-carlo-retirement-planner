@@ -55,7 +55,7 @@ const NUM_FORMAT_KEY = 'rp_number_format_v1';
  * typed in. Asking for rounded figures up front costs nothing and is far easier than deleting a comment
  * that has already been indexed.
  */
-const FEEDBACK_REPO = 'hapsariandforward/monte-carlo-retirement-planner';
+const FEEDBACK_REPO = 'AnginSemilir/monte-carlo-retirement-planner';
 const FEEDBACK_BODY = [
   '**Which version were you using?** The simple page, or the full planner?',
   '',

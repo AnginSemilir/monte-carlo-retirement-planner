@@ -28,7 +28,7 @@ That switch is what actually puts the site on the internet, which is why it is a
 rather than something the workflow does for itself. Until it is flipped the workflow fails at
 "Configure Pages" and nothing is published. Afterwards the site is at
 
-> `https://hapsariandforward.github.io/monte-carlo-retirement-planner/`
+> `https://AnginSemilir.github.io/monte-carlo-retirement-planner/`
 
 and every push to `main` republishes it. It has to be `main`, or whatever the default branch is: the
 `github-pages` environment only accepts deployments from the default branch, and a run from any other

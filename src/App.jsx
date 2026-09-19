@@ -13094,9 +13094,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         ? 'Each simulated year spends what the pots can bear: a bad run is answered with a cut, a good one with a rise, so the survival rate is higher and the spending figures beside it say what that cost.'
                         : 'Every simulated year spends the plan whatever the markets did, so the survival rate is the strict test. A real household would cut back in a bad run, and the model can be told to.'}</span>
                     </Fine>{' '}
-                    <button type="button" onClick={() => goToDoc('doc-guardrails')} className="inline-flex items-center min-h-6 text-blue-600 hover:underline font-semibold cursor-pointer">Documentation</button>
+                    {/* min-w-11: "Config" is 33px of text, and a thumb target is 44px each way, not just tall */}
+                    <button type="button" onClick={() => goToDoc('doc-guardrails')} className="inline-flex items-center justify-center min-h-6 min-w-11 text-blue-600 hover:underline font-semibold cursor-pointer">Documentation</button>
                     <span className="text-slate-300 mx-1">&middot;</span>
-                    <button type="button" onClick={() => goToConfig('config-guardrails')} className="inline-flex items-center min-h-6 text-blue-600 hover:underline font-semibold cursor-pointer">Config</button>
+                    <button type="button" onClick={() => goToConfig('config-guardrails')} className="inline-flex items-center justify-center min-h-6 min-w-11 text-blue-600 hover:underline font-semibold cursor-pointer">Config</button>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

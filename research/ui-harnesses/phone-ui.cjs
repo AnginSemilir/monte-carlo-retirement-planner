@@ -609,9 +609,9 @@ const navigate = async (page, label, short) => {
           // the real-terms note is said ONCE per planner now, in the chrome, not over the amounts
           moneySaid: (document.body.innerText.match(/in today\u2019s money|in today's money/g) || []).length,
           firstFieldTop: fields.length ? Math.round(fields[0].getBoundingClientRect().top + scrollY) : null, vh: innerHeight,
-          /* the section strip against the bar above it: both are navigation, and the band of page
-             between them was 28px of empty grey above the fold on every visit */
-          barBottom: (() => { const h = document.querySelector('[data-phone-bar]'); return h ? Math.round(h.getBoundingClientRect().bottom) : null; })(),
+          /* the section strip at the very top: the full planner has no bar above it any more, and the
+             band of page that used to sit between the two was 28px of empty grey above the fold */
+          phoneBar: !!document.querySelector('[data-phone-bar]'),
           stripTop: (() => { const t = document.querySelector('[data-section-tabs]'); return t ? Math.round(t.getBoundingClientRect().top) : null; })(),
           carried: /figures came with you/i.test(document.body.innerText), tabs: document.querySelectorAll('[data-section-tabs] [role=tab]').length,
           sections: document.querySelectorAll('[data-section]').length };
@@ -766,7 +766,9 @@ const navigate = async (page, label, short) => {
         strat ? `${strat.h}px` : '');
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Inputs'); if (b) b.click(); });
       await p.waitForTimeout(700);
-      ok('the crossover button is one line', first.crossover !== null && first.crossover <= 48, `${first.crossover}px`);
+      /* and not on this tab at all any more: the way across is on Start Here and in More, so a tab you
+         are typing into spends nothing on it */
+      ok('the way across is off the tab you are working on', first.crossover === null, `${first.crossover}px`);
       /*
        * It used to be a blue banner on the title card, a grey line over the inputs, a qualifier under
        * half the figures and a clause in three field hints. All of that said the same thing about the
@@ -777,36 +779,54 @@ const navigate = async (page, label, short) => {
       ok('the today\u2019s-money note is not repeated over the inputs', first.moneySaid === 0, `${first.moneySaid} time(s) on the Inputs tab`);
       ok('the first field is on the first screen', first.firstFieldTop !== null && first.firstFieldTop < first.vh, `${first.firstFieldTop} of ${first.vh}`);
       /*
-       * FLUSH, NOT FLOATING. The strip is pulled up by a measured 28px - the page's 16px top padding
-       * plus the 12px row gap it inherits from a hidden sibling - so if either number ever changes, this
-       * is where it shows, rather than as a band of grey on somebody's phone or, worse, a strip lapping
-       * over the bar above it.
+       * FLUSH WITH THE TOP OF THE SCREEN. The strip is pulled up by a measured 28px - the page's 16px
+       * top padding plus the 12px row gap it inherits from a hidden sibling - so if either number ever
+       * changes, this is where it shows, rather than as a band of grey on somebody's phone.
        */
-      ok('the section strip sits against the bar above it',
-        first.stripTop !== null && first.barBottom !== null && Math.abs(first.stripTop - first.barBottom) <= 1,
-        `strip at ${first.stripTop}, bar ends at ${first.barBottom}`);
+      ok('the full planner has no bar above the tab it is on', first.phoneBar === false, String(first.phoneBar));
+      ok('...so the section strip starts at the top of the screen',
+        first.stripTop !== null && Math.abs(first.stripTop) <= 1, `strip at ${first.stripTop}`);
       ok('nothing says your figures came with you', !first.carried);
 
       /*
-       * The title card is gone from the phone build altogether, Start Here included: the bar across the
-       * top names the planner, so the card was saying it twice. That bar is the same one the simple page
-       * carries - the planner you are in on the left, the way to the other one on the right, 44px - in
-       * place of a 60px banner that said it in a sentence.
+       * THE WAY ACROSS, WHERE THE DECISION IS MADE.
+       *
+       * It used to be a 44px bar at the top of all eight tabs, naming the planner you are already in and
+       * offering the other one - a thing people do once, if at all. It is a line under the sentence that
+       * introduces the model on Start Here, and a row in More. Not a card either place: the card it
+       * replaced said the app's name a second time.
        */
       const bar = await (async () => { await navigate(p, 'Start Here', 'Start'); await p.waitForTimeout(500);
         const r = await p.evaluate(() => {
-          const h = document.querySelector('[data-phone-bar]');
           const c = document.querySelector('[data-title-card]');
-          const hr = h ? h.getBoundingClientRect() : null;
+          const x = document.querySelector('[data-crossover]');
+          const lead = [...document.querySelectorAll('p')].find(q => /Monte Carlo simulation/i.test(q.textContent));
           return { card: c ? Math.round(c.getBoundingClientRect().height) : null,
-            top: hr ? Math.round(hr.top) : null, h: hr ? Math.round(hr.height) : null,
-            name: h ? h.textContent.replace(/\s+/g, ' ').trim() : null };
+            bar: !!document.querySelector('[data-phone-bar]'),
+            cross: x ? x.innerText.replace(/\s+/g, ' ').trim() : null,
+            crossTag: x ? x.tagName : null, crossH: x ? Math.round(x.getBoundingClientRect().height) : null,
+            underLead: !!(x && lead) && x.getBoundingClientRect().top >= lead.getBoundingClientRect().bottom - 1 };
         });
         await navigate(p, 'Plan Inputs', 'Inputs'); await p.waitForTimeout(500); return r; })();
       ok('no title card on Start Here either', bar.card === null, bar.card === null ? 'gone' : `${bar.card}px`);
-      ok('...the bar across the top names the planner', bar.top === 0 && bar.h <= 48 && /Full planner/.test(bar.name || ''),
-         `${bar.h}px at ${bar.top}: ${bar.name}`);
-      ok('...and links to the other one', /Simple planner/.test(bar.name || ''), bar.name || '');
+      ok('...and no bar above it', bar.bar === false, String(bar.bar));
+      ok('...the way across is a line under the introduction', /simple planner/i.test(bar.cross || '') && bar.underLead === true,
+        `${bar.crossTag} ${bar.crossH}px: ${bar.cross}`);
+      const inMore = await p.evaluate(async () => {
+        const m = [...document.querySelectorAll('[data-bottomnav] button')].find(b => /More/.test(b.textContent));
+        if (!m) return null;
+        m.click();
+        await new Promise(r => setTimeout(r, 400));
+        const d = document.querySelector('[role=dialog][aria-label="More sections"]');
+        const out = d ? { cross: !!d.querySelector('[data-crossover]'),
+          theme: [...d.querySelectorAll('button[aria-label]')].filter(b => /^(Light|Dark|Sepia)$/.test(b.getAttribute('aria-label'))).length } : null;
+        const close = d && [...d.querySelectorAll('button')].find(b => b.textContent.trim() === 'Close');
+        if (close) close.click();
+        return out;
+      });
+      await p.waitForTimeout(400);
+      ok('...and it is in More too, with the theme the bar used to carry',
+        !!inMore && inMore.cross === true && inMore.theme === 3, JSON.stringify(inMore));
       ok('the sections are six tabs, one showing', first.tabs === 6 && first.sections === 1, `${first.tabs} tabs, ${first.sections} sections`);
       for (const t of ['You', 'Portfolio', 'Income', 'One-off deposits', 'One-off costs', 'Advanced']) {
         await sectionTab(t);

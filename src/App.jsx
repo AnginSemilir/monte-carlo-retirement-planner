@@ -11551,12 +11551,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       {/*
         * THE CAP IS FOR PROSE, AND A DASHBOARD IS NOT PROSE.
         *
-        * 80rem is the right measure for a column of text and the wrong one for a picture: on a 1920
-        * screen it left 448px of empty page beside the chart people came to look at. The dashboard drops
-        * the cap and keeps only the page's own gutter, so the chart grows with the monitor; every other
-        * screen keeps the cap, because a 1,800px line of explanation is unreadable.
+        * 80rem is the right measure for a column of text and the wrong one for a form, a table or a
+        * picture: on a 1920 screen it left 448px of empty page beside the chart people came to look at,
+        * and a Chromebook at 1536 showed the Plan Inputs grid with 128px of nothing either side. So the
+        * cap is kept for Documentation alone, the one tab that is a column of text, and every other
+        * screen runs to the page's own gutter and grows with the monitor.
         */}
-      <div data-app-content className={`${dashboardMode ? 'max-w-none' : 'max-w-7xl'} mx-auto ${isPhone ? 'space-y-3' : 'space-y-6'}`}>
+      <div data-app-content className={`${activeTab === 'docs' ? 'max-w-7xl' : 'max-w-none'} mx-auto ${isPhone ? 'space-y-3' : 'space-y-6'}`}>
 
         {/* Header Bar.
             ON A PHONE, ONLY ON START HERE. The bottom bar names the screen you are on, so the app's own

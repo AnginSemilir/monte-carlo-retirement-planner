@@ -1,0 +1,47 @@
+Copyright (c) 2026 the Monte Carlo Retirement Planner authors.
+All rights reserved.
+
+THE CHOICE THIS FILE MAKES, AND HOW TO CHANGE IT
+------------------------------------------------
+A public repository with no licence file is "all rights reserved" by default, which is what this is -
+written down rather than left to be inferred. Nobody may copy, modify, redistribute or host this code
+without permission. You may read it, and you may run it for your own use.
+
+It is deliberately the reversible choice. Opening the source later is one commit: replace this file
+with the MIT or Apache 2.0 text and say so in the README. Going the other way is not possible, because
+a permissive licence cannot be withdrawn from code that has already been published under it. So the
+narrow terms come first and the decision stays open.
+
+This does not restrict what the tool computes FOR you. A plan you build in the app is yours, it never
+leaves your browser, and the JSON you export is your own data in an open format.
+
+NOT FINANCIAL ADVICE
+--------------------
+This software is provided for education and illustration. It models UK pensions, ISAs, general
+investment accounts, cash, income tax, National Insurance, capital gains tax and pension allowances,
+but it is not regulated financial advice and no part of it is a recommendation to buy, sell, hold or
+contribute to anything. Its assumptions are visible in the Documentation tab and are assumptions, not
+forecasts. Decisions about your own retirement are yours, and worth taking to a regulated adviser.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+THIRD-PARTY COMPONENTS
+----------------------
+The terms above cover this project's own code. The fonts it redistributes are separately licensed, and
+their licence requires this notice to travel with them:
+
+  IBM Plex Sans  - Copyright 2019 IBM Corp. SIL Open Font License, Version 1.1.
+  IBM Plex Mono  - Copyright 2017 IBM Corp. SIL Open Font License, Version 1.1.
+  Newsreader     - Copyright 2020 The Newsreader Project Authors
+                   (http://github.com/productiontype/Newsreader). SIL Open Font License, Version 1.1.
+
+The full OFL 1.1 text ships with each package and is reproduced at https://openfontlicense.org. The
+font files are served from this site rather than a font CDN so that no visitor's details reach a third
+party; redistribution is what the OFL permits and this notice is the condition it attaches.
+
+Build and runtime dependencies (React, Vite, Tailwind CSS, lucide-react and others) are each under
+their own licences, listed in package.json and installed with their licence files intact.

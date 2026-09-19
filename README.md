@@ -15,6 +15,19 @@ npm run build
 npm run lint
 ```
 
+## Privacy, and the licence
+
+The site makes **no request to any host but its own**. Every figure is computed in the visitor's
+browser, their plan is saved in that browser's local storage, and there is no backend, no analytics and
+no tracker. The fonts are served from this origin rather than a font CDN, which was the last
+third-party call; `research/ui-harnesses/load-perf-ui.cjs` walks every request the page makes and fails
+if a foreign host ever appears, so the claim stays true rather than being true on the day it was
+written.
+
+The code is all rights reserved for now, and [LICENSE](LICENSE) explains why that is the reversible
+choice and how to open it later. The same file carries the SIL Open Font License notices the
+redistributed fonts require, and the not-financial-advice disclaimer the app shows in its footer.
+
 ## Editing the page from inside the page
 
 There is an **Edit page** button in the bottom-right corner. It lets you change wording, fonts and colours

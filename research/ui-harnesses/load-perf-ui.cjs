@@ -191,6 +191,32 @@ async function typingLatency(b) {
     `${runs[0].js}KB over the wire, ceiling ${JS_CEILING}KB (${BEFORE.js}KB before the loading work)`);
   ok('...and the streamlined page is not among it', runs[0].requests <= 3, `${runs[0].requests} script/style requests`);
 
+  /*
+   * NOTHING LEAVES THIS ORIGIN.
+   *
+   * The footer promises that a visitor's plan stays in their browser, and until the fonts were
+   * self-hosted that was true of the DATA while every visitor's IP address still reached Google for a
+   * stylesheet. This walks every request the page makes, of any kind, and fails on any host that is not
+   * the page's own - so a font link, an analytics snippet or a CDN icon set can never be added back
+   * without this going red first. It is the one assertion in the suite that is about a promise rather
+   * than a measurement.
+   */
+  console.log('every request the page makes, Pixel 7');
+  const hosts = await (async () => {
+    const ctx = await b.newContext({ ...devices['Pixel 7'] });
+    const p = await ctx.newPage();
+    const seen = new Set();
+    p.on('request', (r) => { try { seen.add(new URL(r.url()).host); } catch { /* data: and blob: have no host */ } });
+    await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle' });
+    // A projection run is where a worker and its chunks load, so the check covers more than first paint.
+    await p.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Run the projection/i.test(b.textContent)); if (x) x.click(); });
+    await p.waitForTimeout(4000);
+    await ctx.close();
+    return [...seen];
+  })();
+  const foreign = hosts.filter(h => h !== `localhost:${PORT}`);
+  ok('the page calls no host but its own', foreign.length === 0, foreign.length ? `also called ${foreign.join(', ')}` : `${hosts.join(', ')} only`);
+
   console.log('typing into a plan field, Pixel 7 at 4x throttle');
   const t = await typingLatency(b);
   ok('a typed character appears without waiting for the engine', !!t && t.median <= TYPE_CEILING,

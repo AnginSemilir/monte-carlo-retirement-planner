@@ -435,7 +435,14 @@
        */
       @keyframes sim-march { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -20; } }
       .sim-line { animation: sim-march 1.4s linear infinite; }
-      @media (prefers-reduced-motion: reduce) { .sim-line { animation: none; } }
+      /*
+       * .sim-sheen - a light running the length of that line when a simulated result ARRIVES, twice and
+       * then gone. `pathLength="1"` normalises the path to a unit length, so one dash pattern works on a
+       * line of any shape or scale: a 0.08 bright segment chasing a 0.92 gap.
+       */
+      @keyframes sim-sheen { from { stroke-dashoffset: 1; } to { stroke-dashoffset: -0.08; } }
+      .sim-sheen { stroke-dasharray: 0.08 0.92; animation: sim-sheen 1.15s ease-in-out 2; }
+      @media (prefers-reduced-motion: reduce) { .sim-line { animation: none; } .sim-sheen { display: none; } }
       /*
        * And the other half of the same problem: Chrome on Android turns a rightward drag near the left
        * edge into "go back", and touch-action does not stop that because it is not a pan, it is a

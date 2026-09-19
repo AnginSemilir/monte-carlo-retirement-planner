@@ -576,6 +576,10 @@ const navigate = async (page, label, short) => {
           // the real-terms note is said ONCE per planner now, in the chrome, not over the amounts
           moneySaid: (document.body.innerText.match(/in today\u2019s money|in today's money/g) || []).length,
           firstFieldTop: fields.length ? Math.round(fields[0].getBoundingClientRect().top + scrollY) : null, vh: innerHeight,
+          /* the section strip against the bar above it: both are navigation, and the band of page
+             between them was 28px of empty grey above the fold on every visit */
+          barBottom: (() => { const h = document.querySelector('[data-phone-bar]'); return h ? Math.round(h.getBoundingClientRect().bottom) : null; })(),
+          stripTop: (() => { const t = document.querySelector('[data-section-tabs]'); return t ? Math.round(t.getBoundingClientRect().top) : null; })(),
           carried: /figures came with you/i.test(document.body.innerText), tabs: document.querySelectorAll('[data-section-tabs] [role=tab]').length,
           sections: document.querySelectorAll('[data-section]').length };
       });
@@ -704,6 +708,15 @@ const navigate = async (page, label, short) => {
        */
       ok('the today\u2019s-money note is not repeated over the inputs', first.moneySaid === 0, `${first.moneySaid} time(s) on the Inputs tab`);
       ok('the first field is on the first screen', first.firstFieldTop !== null && first.firstFieldTop < first.vh, `${first.firstFieldTop} of ${first.vh}`);
+      /*
+       * FLUSH, NOT FLOATING. The strip is pulled up by a measured 28px - the page's 16px top padding
+       * plus the 12px row gap it inherits from a hidden sibling - so if either number ever changes, this
+       * is where it shows, rather than as a band of grey on somebody's phone or, worse, a strip lapping
+       * over the bar above it.
+       */
+      ok('the section strip sits against the bar above it',
+        first.stripTop !== null && first.barBottom !== null && Math.abs(first.stripTop - first.barBottom) <= 1,
+        `strip at ${first.stripTop}, bar ends at ${first.barBottom}`);
       ok('nothing says your figures came with you', !first.carried);
 
       /*

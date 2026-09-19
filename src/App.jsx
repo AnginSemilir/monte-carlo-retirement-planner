@@ -11686,7 +11686,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {/* TAB 1: PLAN INPUTS */}
         {activeTab === 'inputs' && (
           <div ref={inputsSwipeRef} className={`${isPhone ? 'space-y-3 swipe-x' : 'space-y-6'}`}>
-            <input type="file" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />
+            {/* Last, not first. It draws nothing, but as the first child of a `space-y` container it
+                still took the strip below it off the top of the screen by a row's worth of margin. */}
             {!isPhone && (
             <div className="flex flex-wrap items-center justify-between gap-3 bg-surface border border-slate-200/90 p-4 rounded-xl">
               <div>
@@ -11709,11 +11710,23 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
 
             {/* The one thing to know before typing an amount, said once and quietly under the tabs. It
                 was a bold blue line in a box of its own, which spent 40px of a 664px screen on a caption. */}
+            {/*
+              * FLUSH UNDER THE APP BAR.
+              *
+              * The strip is navigation - it belongs against the bar above it, the way the tab bar at the
+              * foot belongs against the bottom. It sat 28px below instead: the page's own 16px top
+              * padding, plus 12px of the container's row gap. On a 390px screen that is a band of empty
+              * grey between two rows of controls, above the fold, on every visit. The negative margin
+              * cancels both for this one element; it is sticky at top-0, so it then stays there as the
+              * form scrolls under it.
+              *
+              * 28px is measured, not derived, so phone-ui asserts the strip's top against the bar's
+              * bottom: anything that changes either number fails there rather than on somebody's screen.
+              */}
             {isPhone && (
-              <>
-                <SectionTabs sections={INPUT_SECTIONS} active={inputSection} onSelect={selectSection} />
-              </>
+              <SectionTabs sections={INPUT_SECTIONS} active={inputSection} onSelect={selectSection} className="-mt-7" />
             )}
+            <input type="file" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />
             {/* Demographics & Targets */}
             {showSection('you') && (
             <div data-section="you" className={`bg-surface border border-slate-200/90 rounded-xl space-y-4 ${isPhone ? 'p-3' : 'p-5'}`}>

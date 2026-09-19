@@ -121,20 +121,33 @@ async function measure(b, label) {
  * doing the engine's work on the keypress rather than after it.
  */
 const TYPE_CEILING = 60;
+/*
+ * AN INVENTED HOUSEHOLD, AND IT HAS TO STAY INVENTED.
+ *
+ * This fixture exists to make the typing measurement representative: a couple with eight accounts is
+ * roughly the heaviest plan somebody types into, and the projection behind each keystroke is what the
+ * ceiling below is guarding. What it must NOT be is anybody's real plan. This file is published in a
+ * public repository, and salaries, balances and retirement ages are exactly the sort of thing that
+ * reads as a test fixture to the person who wrote it and as a disclosure to everybody else - an
+ * oddly precise balance is a particular giveaway, because nobody invents 32157.
+ *
+ * So every figure here is round and made up. Keep it that way: when this needs a different shape, edit
+ * these numbers rather than pasting a plan out of the app.
+ */
 const COUPLE = {
-  demographics: { planningMode: 'couple', currentAgeSelf: 35, currentAgePart: 36, retireAgeSelf: 58, retireAgePart: 58,
-    salarySelf: 93000, salaryPart: 31000, employmentSelf: 'employed', employmentPart: 'employed',
-    statePensionAge: 68, privatePensionAge: 58, statePensionSelf: 12548, statePensionPart: 6500, terminalAge: 100 },
-  spending: { targetSpend: 50000, spendBands: [], drawdownStrategy: 'Phased Drawdown', decumulationPolicy: 'Bracket Fill Basic' },
+  demographics: { planningMode: 'couple', currentAgeSelf: 40, currentAgePart: 38, retireAgeSelf: 60, retireAgePart: 60,
+    salarySelf: 75000, salaryPart: 42000, employmentSelf: 'employed', employmentPart: 'employed',
+    statePensionAge: 68, privatePensionAge: 58, statePensionSelf: 12548, statePensionPart: 11000, terminalAge: 100 },
+  spending: { targetSpend: 48000, spendBands: [], drawdownStrategy: 'Phased Drawdown', decumulationPolicy: 'Bracket Fill Basic' },
   accounts: [
-    { id: 'p1', owner: 'Myself', category: 'Pensions', balance: 66000, contrib: 14000, growth: 4, risk: 'High Risk' },
-    { id: 'i1', owner: 'Myself', category: 'S&S ISAs', balance: 32157, contrib: 6600, growth: 0, risk: 'High Risk' },
+    { id: 'p1', owner: 'Myself', category: 'Pensions', balance: 90000, contrib: 15000, growth: 4, risk: 'High Risk' },
+    { id: 'i1', owner: 'Myself', category: 'S&S ISAs', balance: 40000, contrib: 7000, growth: 0, risk: 'High Risk' },
     { id: 'g1', owner: 'Myself', category: 'Other Investments (e.g. GIA)', balance: 0, contrib: 0, growth: 0, risk: 'Medium Risk' },
-    { id: 'c1', owner: 'Myself', category: 'Cash Savings', balance: 1500, contrib: 4000, growth: 0, risk: 'Cash Equivalents' },
-    { id: 'p2', owner: 'Partner', category: 'Pensions', balance: 17000, contrib: 4000, growth: 4, risk: 'High Risk' },
-    { id: 'i2', owner: 'Partner', category: 'S&S ISAs', balance: 9000, contrib: 2400, growth: 0, risk: 'High Risk' },
+    { id: 'c1', owner: 'Myself', category: 'Cash Savings', balance: 5000, contrib: 3000, growth: 0, risk: 'Cash Equivalents' },
+    { id: 'p2', owner: 'Partner', category: 'Pensions', balance: 35000, contrib: 6000, growth: 4, risk: 'High Risk' },
+    { id: 'i2', owner: 'Partner', category: 'S&S ISAs', balance: 15000, contrib: 3000, growth: 0, risk: 'High Risk' },
     { id: 'g2', owner: 'Partner', category: 'Other Investments (e.g. GIA)', balance: 0, contrib: 0, growth: 0, risk: 'Medium Risk' },
-    { id: 'c2', owner: 'Partner', category: 'Cash Savings', balance: 2000, contrib: 0, growth: 0, risk: 'Cash Equivalents' }],
+    { id: 'c2', owner: 'Partner', category: 'Cash Savings', balance: 2500, contrib: 0, growth: 0, risk: 'Cash Equivalents' }],
   otherIncomes: [], oneOffContributions: [], oneOffCosts: [], config: { valuationDate: '2026-01-01' } };
 
 async function typingLatency(b) {

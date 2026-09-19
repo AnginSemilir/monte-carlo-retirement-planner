@@ -37,7 +37,7 @@ const makePlan = (i) => {
   const rels = ['descendant', 'descendant', 'descendant', 'other', 'spouse', 'charity'];
   const bens = [...Array(heirs)].map((_, k) => ({
     id: 'b' + k, name: 'H' + k, relationship: k === 0 ? 'descendant' : pick(rels),
-    sharePct: Math.round(100 / heirs), income: pick([0, 0, 15000, 45000, 60000, 93000, 150000]),
+    sharePct: Math.round(100 / heirs), income: pick([0, 0, 15000, 45000, 60000, 90000, 150000]),
     age: pick(['', 4, 22, 45, 55, 70]),
     pensionSharePct: rnd() < 0.25 ? Math.round(100 / heirs) : '',
     spreadYears: rnd() < 0.2 ? pick([1, 5, 10, 20]) : ''

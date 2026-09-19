@@ -79,7 +79,7 @@ const plan = {
         "name": "Sam",
         "relationship": "descendant",
         "sharePct": "40",
-        "income": "93000",
+        "income": "80000",
         "age": "35"
       },
       {

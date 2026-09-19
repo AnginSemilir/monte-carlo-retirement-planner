@@ -201,6 +201,19 @@ const navigate = async (page, label, short) => {
        */
       await navigate(p, 'Projection', 'Projection');
       await p.waitForTimeout(500);
+      /*
+       * The guardrails note on the run card: the state is always readable, the explanation is folded
+       * behind the two-line clamp like every other explainer on a phone, and both links stay outside
+       * the fold so they can be pressed without opening it.
+       */
+      const gnote = await p.evaluate(() => {
+        const n = document.querySelector('[data-guardrail-note]'); if (!n) return null;
+        const links = [...n.querySelectorAll('button')].filter(x => /Documentation|Config/.test(x.textContent));
+        return { state: /guardrails (on|off)/i.test(n.innerText), clamped: !!n.querySelector('[data-fine] [data-help-dot]'),
+          linksVisible: links.length === 2 && links.every(x => x.getBoundingClientRect().height > 0 && !x.closest('[data-fine]')) };
+      });
+      ok('the run card names the guardrail state on a phone', !!gnote && gnote.state);
+      ok('...with the explanation folded and both links outside the fold', !!gnote && gnote.clamped && gnote.linksVisible, JSON.stringify(gnote));
       const ran = await p.evaluate(() => {
         const b = [...document.querySelectorAll('button')].find(x => /Run the projection/i.test(x.textContent));
         if (!b) return false; b.click(); return true;

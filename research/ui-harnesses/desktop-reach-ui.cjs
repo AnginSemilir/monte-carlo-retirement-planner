@@ -598,6 +598,60 @@ async function runProjection(p) {
     await gia.p.close();
   }
 
+  /*
+   * SPENDING GUARDRAILS.
+   *
+   * A rule that changes what the survival rate means has to be visible where the rate is made: the note
+   * beside the run button names the state and links to the switch and the explanation. Off by default,
+   * so every figure the app has ever shown is unchanged; on, the audit table grows a column naming the
+   * years the rule acted, and the dashboard grows the tile that keeps the rate honest. All of it is
+   * exercised through the real switch on the Config tab, not by seeding the plan, because the path a
+   * person takes is the one worth proving.
+   */
+  console.log('spending guardrails at 1400x900');
+  {
+    const g = await open(b, 1400, 900);
+    await tab(g.p, 'Projection');
+    const note = await g.p.evaluate(() => { const n = document.querySelector('[data-guardrail-note]'); return n ? { text: n.innerText, links: [...n.querySelectorAll('button')].map(x => x.textContent.trim()) } : null; });
+    ok('the run card says whether spending guardrails are on', !!note && /guardrails off/i.test(note.text), note ? note.text.split('\n')[0].slice(0, 60) : 'no note');
+    ok('...and links to the explanation and the switch', !!note && note.links.includes('Documentation') && note.links.includes('Config'), note ? note.links.join(', ') : '');
+    await tab(g.p, 'Audit Data Table');
+    ok('no guardrail column in the audit table while the rule is off', await g.p.evaluate(() => ![...document.querySelectorAll('th')].some(t => /Guardrail/.test(t.textContent))));
+    // the Config link from the note lands on the switch, which starts unchecked
+    await tab(g.p, 'Projection');
+    await g.p.evaluate(() => { [...document.querySelectorAll('[data-guardrail-note] button')].find(x => x.textContent.trim() === 'Config').click(); });
+    await g.p.waitForTimeout(900);
+    const sw = await g.p.evaluate(() => { const el = document.querySelector('[data-guardrails-toggle]'); if (!el) return null; const r = el.getBoundingClientRect(); return { checked: el.checked, onScreen: r.top >= 0 && r.bottom <= window.innerHeight }; });
+    ok('the Config link lands on the switch, unchecked and on screen', !!sw && !sw.checked && sw.onScreen, JSON.stringify(sw));
+    await g.p.evaluate(() => document.querySelector('[data-guardrails-toggle]').click());
+    await g.p.waitForTimeout(400);
+    ok('...and it switches on', await g.p.evaluate(() => document.querySelector('[data-guardrails-toggle]').checked));
+    await tab(g.p, 'Audit Data Table');
+    const audit = await g.p.evaluate(() => {
+      const th = [...document.querySelectorAll('th')].some(t => /Guardrail/.test(t.textContent));
+      const cells = [...document.querySelectorAll('[data-guardrail-cell]')];
+      const acted = cells.filter(c => !/^\s*\u2014\s*$/.test(c.innerText) && c.innerText.trim() !== '').map(c => c.innerText.replace(/\s+/g, ' ').trim());
+      return { th, rows: cells.length, acted: acted.slice(0, 4), actedN: acted.length };
+    });
+    ok('the audit table gains a Guardrail column when the rule is on', audit.th && audit.rows > 0, `${audit.rows} rows`);
+    ok('...naming the years the rule acted on the expected path', audit.actedN > 0, audit.acted.join(' | '));
+    ok('...and not every year, or it is not a list of events', audit.actedN < audit.rows, `${audit.actedN} of ${audit.rows}`);
+    await tab(g.p, 'Projection');
+    ok('the run card now says on', await g.p.evaluate(() => /guardrails on/i.test(document.querySelector('[data-guardrail-note]')?.innerText || '')));
+    await runProjection(g.p);
+    await step(g.p, 3);
+    const tile = await g.p.evaluate(() => { const t = [...document.querySelectorAll('[data-projection-dashboard] *')].find(el => /Spending after guardrails/.test(el.textContent) && el.children.length <= 3); return t ? t.parentElement.innerText.replace(/\s+/g, ' ').slice(0, 120) : null; });
+    ok('the dashboard shows what the household lived on beside the survival rate', !!tile && /£/.test(tile) && /unlucky tenth/.test(tile), tile || 'no tile');
+    // the Documentation link lands on the explainer
+    await step(g.p, 1);
+    await g.p.evaluate(() => { [...document.querySelectorAll('[data-guardrail-note] button')].find(x => x.textContent.trim() === 'Documentation').click(); });
+    await g.p.waitForTimeout(1500);
+    const doc = await g.p.evaluate(() => { const el = document.getElementById('doc-guardrails'); if (!el) return null; const r = el.getBoundingClientRect(); return { top: Math.round(r.top), h2: el.querySelector('h2')?.textContent || '' }; });
+    ok('the Documentation link lands on the guardrails explainer', !!doc && doc.top < 200 && /Guardrails/.test(doc.h2), doc ? `${doc.h2} at ${doc.top}px` : 'no section');
+    ok('no page errors with guardrails', g.errs.length === 0, g.errs.slice(0, 2).join(' | '));
+    await g.p.context().close();
+  }
+
   await b.close();
   console.log(fails ? `\n${fails} FAILED` : '\nall ok');
   process.exit(fails ? 1 : 0);

@@ -6297,10 +6297,10 @@ const SERIES_CONFIG = [
  */
 const chartKey = (t) => (t === 'dark' ? 'dark' : 'light');
 const CHART_PALETTE = {
-  light:  { gridMajor: '#E3E6EB', gridMinor: '#F0F2F5', axisText: '#8A93A3', hoverCrosshair: '#A8B0BD', sandboxDash: '#E3B505', sandboxSim: '#8C5000', historicalLine: '#6D5BD0', trajectoryHoverFill: '#2148B8', historicalHoverFill: '#6D5BD0', hoverDotStroke: '#FFFFFF',
+  light:  { gridMajor: '#E3E6EB', gridMinor: '#F0F2F5', axisText: '#8A93A3', hoverCrosshair: '#A8B0BD', sandboxDash: '#E3B505', sandboxSim: '#8C5000', sandboxSheen: '#FFC83D', historicalLine: '#6D5BD0', trajectoryHoverFill: '#2148B8', historicalHoverFill: '#6D5BD0', hoverDotStroke: '#FFFFFF',
             fanBand: 'rgba(109, 91, 208, 0.14)', fanEdge: 'rgba(109, 91, 208, 0.5)', fanMedian: '#6D5BD0', fanOuter: 'rgba(109, 91, 208, 0.75)',
             rateBand: 'rgba(14, 159, 110, 0.14)', rateEdge: 'rgba(14, 159, 110, 0.55)', rateOuter: 'rgba(14, 159, 110, 0.8)' },
-  dark:   { gridMajor: '#262C35', gridMinor: '#1D222A', axisText: '#6B7480', hoverCrosshair: '#4A5361', sandboxDash: '#FFE870', sandboxSim: '#E08A00', historicalLine: '#9C8CF0', trajectoryHoverFill: '#7B9CF2', historicalHoverFill: '#9C8CF0', hoverDotStroke: '#171B21',
+  dark:   { gridMajor: '#262C35', gridMinor: '#1D222A', axisText: '#6B7480', hoverCrosshair: '#4A5361', sandboxDash: '#FFE870', sandboxSim: '#E08A00', sandboxSheen: '#FFF3C4', historicalLine: '#9C8CF0', trajectoryHoverFill: '#7B9CF2', historicalHoverFill: '#9C8CF0', hoverDotStroke: '#171B21',
             fanBand: 'rgba(156, 140, 240, 0.20)', fanEdge: 'rgba(156, 140, 240, 0.55)', fanMedian: '#9C8CF0', fanOuter: 'rgba(156, 140, 240, 0.8)',
             rateBand: 'rgba(63, 219, 199, 0.18)', rateEdge: 'rgba(63, 219, 199, 0.5)', rateOuter: 'rgba(63, 219, 199, 0.78)' },
 };
@@ -8588,6 +8588,21 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
   const sandboxMcRows = useMemo(() => (sandboxMc?.bands || []).map(b => ({ ageSelf: currentAge + b.t, totalCombined: b.p50 })), [sandboxMc, currentAge]);
   // whether what is drawn came from the simulation or from the compounded run - the line's colour says so
   const sandboxLineIsSim = sandboxMcOn && sandboxMcRows.length > 0;
+  /*
+   * THE MOMENT IT LANDS, SAID IN THE PICTURE.
+   *
+   * A simulated edit takes seconds, and the only announcement was a colour swap somebody watching the
+   * dials would miss. A light runs the length of the line twice when a result arrives - the same idea as
+   * the shimmering underline the glossary uses for a word worth pressing - and then it stops, so the
+   * chart is not permanently animated. Keyed on `sandboxMc` as well, so every new result flashes again.
+   */
+  const [simFlash, setSimFlash] = useState(false);
+  useEffect(() => {
+    if (!sandboxLineIsSim) { setSimFlash(false); return undefined; }
+    setSimFlash(true);
+    const id = setTimeout(() => setSimFlash(false), 2400);
+    return () => clearTimeout(id);
+  }, [sandboxLineIsSim, sandboxMc]);
   const sandboxLinePath = useMemo(() => {
     const rows = sandboxMcOn && sandboxMcRows.length ? sandboxMcRows : sandboxTimeline;
     if (!showSandboxLine || !isSandboxModified || !rows.length) return null;
@@ -10581,6 +10596,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 */}
               {sandboxLinePath && <path d={sandboxLinePath} fill="none" stroke={sandboxLineIsSim ? cp.sandboxSim : cp.sandboxDash} strokeWidth="3.5" strokeDasharray="6,4" strokeLinecap="round"
                 className={sandboxLineIsSim ? 'sim-line' : undefined} />}
+              {sandboxLinePath && sandboxLineIsSim && simFlash && (
+                <path key={`sheen-${sandboxMc?.successRate ?? 0}`} d={sandboxLinePath} fill="none" stroke={cp.sandboxSheen}
+                  strokeWidth="4" strokeLinecap="round" pathLength="1" className="sim-sheen" aria-hidden="true" />
+              )}
               {comparePaths.map(c => <path key={c.id} d={c.d} fill="none" stroke={c.tone} strokeWidth="2.5" strokeDasharray="5,3" strokeLinecap="round" />)}
               <rect width={innerWidth} height={innerHeight} fill="transparent" onMouseMove={(e) => { const rect = e.currentTarget.getBoundingClientRect(); const age = Math.round(xScale.invert((e.clientX - rect.left) * (innerWidth / Math.max(1, rect.width)))); setHoveredPoint(visibleData.find(d => d.ageSelf === age) || null); }} />
               {hoveredPoint && <g transform={`translate(${xScale(hoveredPoint.ageSelf)}, 0)`}><line y2={innerHeight} stroke={cp.hoverCrosshair} strokeWidth="1" strokeDasharray="2,2" /><circle cy={yScale(hoveredPoint.expected || 0)} r="4" fill={cp.trajectoryHoverFill} stroke={cp.hoverDotStroke} strokeWidth="2" /></g>}

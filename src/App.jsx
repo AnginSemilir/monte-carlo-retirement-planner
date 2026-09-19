@@ -6297,10 +6297,10 @@ const SERIES_CONFIG = [
  */
 const chartKey = (t) => (t === 'dark' ? 'dark' : 'light');
 const CHART_PALETTE = {
-  light:  { gridMajor: '#E3E6EB', gridMinor: '#F0F2F5', axisText: '#8A93A3', hoverCrosshair: '#A8B0BD', sandboxDash: '#A8701A', sandboxSim: '#F0B429', historicalLine: '#6D5BD0', trajectoryHoverFill: '#2148B8', historicalHoverFill: '#6D5BD0', hoverDotStroke: '#FFFFFF',
+  light:  { gridMajor: '#E3E6EB', gridMinor: '#F0F2F5', axisText: '#8A93A3', hoverCrosshair: '#A8B0BD', sandboxDash: '#E3B505', sandboxSim: '#8C5000', historicalLine: '#6D5BD0', trajectoryHoverFill: '#2148B8', historicalHoverFill: '#6D5BD0', hoverDotStroke: '#FFFFFF',
             fanBand: 'rgba(109, 91, 208, 0.14)', fanEdge: 'rgba(109, 91, 208, 0.5)', fanMedian: '#6D5BD0', fanOuter: 'rgba(109, 91, 208, 0.75)',
             rateBand: 'rgba(14, 159, 110, 0.14)', rateEdge: 'rgba(14, 159, 110, 0.55)', rateOuter: 'rgba(14, 159, 110, 0.8)' },
-  dark:   { gridMajor: '#262C35', gridMinor: '#1D222A', axisText: '#6B7480', hoverCrosshair: '#4A5361', sandboxDash: '#E0A64A', sandboxSim: '#FFD24D', historicalLine: '#9C8CF0', trajectoryHoverFill: '#7B9CF2', historicalHoverFill: '#9C8CF0', hoverDotStroke: '#171B21',
+  dark:   { gridMajor: '#262C35', gridMinor: '#1D222A', axisText: '#6B7480', hoverCrosshair: '#4A5361', sandboxDash: '#FFE870', sandboxSim: '#E08A00', historicalLine: '#9C8CF0', trajectoryHoverFill: '#7B9CF2', historicalHoverFill: '#9C8CF0', hoverDotStroke: '#171B21',
             fanBand: 'rgba(156, 140, 240, 0.20)', fanEdge: 'rgba(156, 140, 240, 0.55)', fanMedian: '#9C8CF0', fanOuter: 'rgba(156, 140, 240, 0.8)',
             rateBand: 'rgba(63, 219, 199, 0.18)', rateEdge: 'rgba(63, 219, 199, 0.5)', rateOuter: 'rgba(63, 219, 199, 0.78)' },
 };
@@ -7654,7 +7654,7 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     { n: 5, key: 'ratechart', name: 'Rate based projection', short: 'Rate', desc: 'One steady real rate per wrapper, compounded year by year. It redraws as you type, so it is the quickest way to see a change.' },
     { n: 6, key: 'mcchart', name: 'Monte Carlo', short: 'Monte Carlo', desc: 'Thousands of randomised futures on the same axes, which show the spread that a single smooth rate hides.' },
     { n: 7, key: 'compare', name: 'Side by side', short: 'Both ways', desc: 'The same plan both ways at the same five ages, so the gap between the smooth line and the simulated one is explicit.' },
-    { n: 8, key: 'sandbox', name: 'Change something', short: 'Change', desc: 'Edit a contribution, a balance or an age and the amber line moves with you. Your saved plan is not touched.' }
+    { n: 8, key: 'sandbox', name: 'Sandbox', short: 'Sandbox', desc: 'Edit a contribution, a balance or an age and the yellow line moves with you. Your saved plan is not touched.' }
   ] : [
     { n: 1, key: 'topline', name: 'Topline', short: 'Topline', desc: 'Your plan exactly as entered: how often it lasts, what it leaves behind, and when it fails if it does.' },
     /*
@@ -8571,7 +8571,13 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     setSandboxMc(null);
     setSandboxMcBusy(true);
     const id = setTimeout(() => {
-      runMonteCarloAsync(sandboxCtx, { plan: sandboxPlan, trials: MC_TRIALS, seed: mcSeed })
+      /*
+       * `collectPaths` is what returns the per-year bands, and the bands ARE the line: without it the
+       * run came back with a survival rate and nothing to draw, so `sandboxMcRows` was always empty and
+       * the gold line - the whole point of simulating the edit - never appeared. The strip said
+       * "median path drawn" while the chart carried the compounded line.
+       */
+      runMonteCarloAsync(sandboxCtx, { plan: sandboxPlan, trials: MC_TRIALS, seed: mcSeed, collectPaths: true })
         .then(stats => { if (!dead && stats) setSandboxMc(stats); })
         .catch(() => { /* the expected line stays on screen, which is still an answer */ })
         .finally(() => { if (!dead) setSandboxMcBusy(false); });
@@ -9258,6 +9264,26 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
     const link = document.createElement('a'); link.setAttribute('href', encodeURI(csvContent)); link.setAttribute('download', `retirement_audit_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link); link.click(); link.remove();
+  };
+
+  /*
+   * WHY THE BUTTON IS WORTH PRESSING, BESIDE THE BUTTON.
+   *
+   * Two different things go out of date and they need two different actions, so saying "run it again"
+   * for both would be wrong half the time. A re-run scores THE SAVED PLAN, so it picks up edited inputs
+   * and never picks up the sandbox; the sandbox is simulated on its own (that is the gold line) and only
+   * joins the plan through Apply to plan.
+   */
+  const rerunNote = () => {
+    const parts = [];
+    if (resultsStale) parts.push('Re-run: changed plan inputs');
+    if (isSandboxModified) parts.push('Apply to plan to include your sandbox changes');
+    if (!parts.length) return null;
+    return (
+      <span data-rerun-note className="text-[11px] font-semibold text-amber-700 flex items-center gap-1.5 min-w-0">
+        <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> <span className="min-w-0">{parts.join(' \u00b7 ')}</span>
+      </span>
+    );
   };
 
   // ------------------------------------------------------------ Monte Carlo
@@ -10346,7 +10372,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               DIALS scroll; the buttons under them do not move. */}
           <div className="bg-surface border border-slate-200/90 rounded-xl px-3 py-2.5 shrink-0">
             <div className="flex items-baseline justify-between mb-1">
-              <h3 className="text-xs font-semibold text-slate-900">Change something</h3>
+              <h3 className="text-xs font-semibold text-slate-900">Sandbox</h3>
               {/*
                 * The line's own explanation, on the shimmering underline the rest of the app uses for a
                 * word with a meaning. It has to be said somewhere: the line changes colour and changes
@@ -10355,11 +10381,11 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 */}
               <span className="text-[10px] text-slate-500">
                 <Hint isPhone={isPhone} label="what the dashed line is" title="Your edit, drawn twice">
-                  It starts amber: the compounded run, redrawn the instant you press a dial, which is what
-                  makes a dial worth pressing. That line cannot go bust mid-way, so it flatters a stretched
+                  It starts <strong>yellow</strong>: the compounded run, redrawn the instant you press a dial, which is
+                  what makes a dial worth pressing. That line cannot go bust mid-way, so it flatters a stretched
                   plan. Press <strong>Re-run the simulations</strong> and the same edit goes through {fmtNum(MC_TRIALS)} randomised
-                  futures; when it lands the line is redrawn in gold as the median of those runs, and every
-                  figure on this page is re-read from them.
+                  futures; when it lands the line is redrawn in <strong>dark gold</strong>, moving, as the median of those
+                  runs, and every figure on this page is re-read from them.
                 </Hint>
               </span>
             </div>
@@ -11103,7 +11129,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             )}
             <div className="border-l-[3px] border-blue-700 pl-2.5">
               <div className="text-[11.5px] font-semibold text-slate-900">Click a cell to take it</div>
-              <div className="text-[11px] text-slate-600 leading-relaxed">It sets the sandbox to that age and that spending and opens the dashboard, where the amber line moves to it. Your saved plan is not touched until you press Apply.</div>
+              <div className="text-[11px] text-slate-600 leading-relaxed">It sets the sandbox to that age and that spending and opens the dashboard, where the yellow line moves to it. Your saved plan is not touched until you press Apply.</div>
             </div>
           </div>
         )}
@@ -11930,6 +11956,10 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               </div>
               <Fine isPhone={isPhone} label="What counts as a contribution?">
               <p className="text-[11px] text-slate-500">Pension contributions are gross (including tax relief and employer amounts); <T k="S&S ISA">ISA</T>, <T k="GIA">GIA</T> and cash contributions are net. Contributions stop at each owner's retirement age. Allowances: ISA £{fmtNum(P.isaAllowance)}, pension £{fmtNum(P.pensionAllowance)} per person (Config).</p>
+              {/* Said where the balance is typed, not only in the documentation: the wrapper earns its
+                  tier's return with nothing charged on it, which is a cash ISA or savings inside the
+                  personal savings allowance - and taxable cash above that has no wrapper of its own. */}
+              <p className="text-[11px] text-slate-500">Cash Savings is modelled with <strong className="text-slate-700">no tax on its interest</strong>, so it stands for a cash ISA or savings inside your personal savings allowance. For taxable cash above that allowance, the nearest fit is <T k="GIA">Other Investments</T> at a low risk tier &mdash; which taxes the growth as <T k="CGT">CGT</T> on disposal rather than as interest each year, so it flatters a large holding.</p>
               </Fine>
               {/*
                 * ON A PHONE, A CARD PER WRAPPER; ON A DESKTOP, THE TABLE.
@@ -13293,8 +13323,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 /* room at the foot for the sheet, so the Rerun card below is not stranded under it */
                 style={{ scrollMarginTop: 12, paddingBottom: isPhone ? sheetH : 0 }}>
                 <div className="bg-surface border border-slate-200/90 p-3 rounded-xl space-y-3">
-                  {slideHead(slideNo('sandbox'), 'Change something',
-                    'Edit below and the amber line moves with you. Your saved plan is not touched.')}
+                  {slideHead(slideNo('sandbox'), 'Sandbox',
+                    'Edit below and the yellow line moves with you. Your saved plan is not touched.')}
                                     {/*
                     * ONE ROW, AND WHICH SIDE OF THE CHART IT SITS ON.
                     *
@@ -13314,7 +13344,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {renderProjectionChart(chartKind, { tight: true })}
                   {isPhone && chartControls}
                   {!isSandboxModified && (
-                    <p className="text-[11px] text-slate-500 leading-relaxed">Nothing is changed yet, so there is no amber line to see. Edit a contribution, a balance or a retirement age here and one appears over this chart, beside the plan you already have.</p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">Nothing is changed yet, so there is no yellow line to see. Edit a contribution, a balance or a retirement age here and one appears over this chart, beside the plan you already have.</p>
                   )}
                   {/* The phone's dials, on the desktop, inside the same card as the chart they move. */}
                                   </div>
@@ -13338,7 +13368,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     summary={sandboxSummary()} quick={sandboxQuickDials()} full={renderSandboxPanel()} />
                 )}
                 <div className="bg-surface border border-slate-200/90 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-[11px] text-slate-500">The line above is the deterministic path. To put your edit through {fmtNum(simResult?.trials)} randomised futures and refresh every step, run it again.</span>
+                  {rerunNote() || <span className="text-[11px] text-slate-500">These figures are the plan as saved. Edit the dials above and the sandbox is simulated beside it; re-run to refresh every step.</span>}
                   <button type="button" onClick={() => handleRunAll({ stay: true })} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                     {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Simulating…' : 'Re-run the simulations'}
@@ -13369,6 +13399,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   */}
                 <div className="bg-surface border border-slate-200/90 px-4 py-2.5 rounded-xl flex flex-wrap items-center justify-between gap-3">
                   {slideNav(slideNo('dashboard'), { bare: true })}
+                  {rerunNote()}
                   <button type="button" onClick={() => handleRunAll({ stay: true })} disabled={mcBusy}
                     className="px-4 py-2 bg-accent hover:bg-accent-hover text-onaccent rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-60">
                     {mcBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />} {mcBusy ? 'Simulating…' : 'Re-run the simulations'}

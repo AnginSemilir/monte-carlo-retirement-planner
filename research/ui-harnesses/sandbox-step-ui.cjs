@@ -104,7 +104,9 @@ const plan = {
     const chartTop = r.top;
     return { width: r.width, long: paths.filter(x=>x.d.length>200).length, bandSpan: Math.max(0,...filled.map(x=>span(x.d))),
              panel: !!dials, chartTop, panelTop: dials ? dials.getBoundingClientRect().top : null,
-             secondCard: [...document.querySelectorAll('h3')].some(h=>/^Sandbox$/.test(h.textContent.trim())),
+             /* the fault this guards is a SECOND set of controls, so count the control surfaces rather
+                than matching a heading - the rail's own card is called Sandbox now */
+             secondCard: document.querySelectorAll('[data-quick-dials]').length > 1,
              modeTop: mode ? mode.getBoundingClientRect().top : null,
              kind: mode ? [...mode.querySelectorAll('button')].filter(b=>/bg-accent/.test(b.className)).map(b=>b.textContent.trim())[0] : null,
              oldAmberRow: !!document.querySelector('[data-sandbox-line-mode]'),
@@ -118,7 +120,7 @@ const plan = {
      once - the chart moving under the dial is the whole point of a sandbox. */
   ok('...and both are in the window at once', probe.panelTop !== null && probe.panelTop < 1000 && probe.chartTop < 1000,
      `chart at ${Math.round(probe.chartTop)}, dials at ${Math.round(probe.panelTop)}`);
-  ok('...with no second Sandbox card repeating them underneath', !probe.secondCard);
+  ok('...with no second set of them repeating underneath', !probe.secondCard);
   /*
    * One switch decides what is drawn, above the chart. It replaced an "Amber line: Expected / Monte
    * Carlo" row UNDER the chart that changed only the sandbox's own line, leaving the picture behind it

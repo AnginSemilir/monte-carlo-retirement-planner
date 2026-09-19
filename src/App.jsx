@@ -13215,7 +13215,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     </tbody>
                   </table>
                 </div>
-                <Fine isPhone={isPhone} label="Why?">
+                <Fine isPhone={isPhone} label="How these are ranked">
                 <p className="text-[11px] text-slate-500 leading-relaxed">One steady real rate per wrapper, so this ranks the plans against each other rather than against a market. It carries no sequence-of-returns risk: for the chance each scenario survives, enter them in the tournament on the Strategy tab, which runs every scenario on the same market paths.</p>
                 </Fine>
               </div>

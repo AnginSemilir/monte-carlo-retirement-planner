@@ -498,6 +498,13 @@ const DEFAULT_CONFIG = {
   cashBufferMonths: 6,               // months of spending kept in cash before surplus income is swept to ISA
   harvestPersonalAllowance: true,    // in retirement draw pension to fill unused 0% allowance and move it to ISA
   /*
+   * Guyton-Klinger guardrails: spending reacts to the portfolio instead of being taken regardless.
+   * Off by default, because every figure the app has ever shown was computed with spending held fixed,
+   * and switching the rule on makes the survival rate rise for a reason the number alone does not
+   * show - that the household cut its spending to get there. The parameters live in GUARDRAILS.
+   */
+  guardrails: false,
+  /*
    * How far up the bands that harvest goes: 'pa' stops at the tax-free allowance, 'basic' keeps drawing
    * to the basic-rate limit and pays 20% on the way. The second is a bequest strategy rather than a
    * spending one - it moves a pension that will be taxed twice after 2027 (inheritance tax, then the
@@ -921,6 +928,38 @@ const DECUMULATION_POLICIES = {
   }
 };
 
+/*
+ * GUYTON-KLINGER GUARDRAILS, in the model's own terms.
+ *
+ * Guyton & Klinger (2006) is a set of rules for HOW MUCH to take each year, which is a different question
+ * from the decumulation policies above, which say WHERE to take it from. The two compose: the policy
+ * still decides the order, and this decides the amount the order has to cover.
+ *
+ *   band        the current withdrawal rate may drift this far either side of the rate on the first
+ *               year the portfolio was drawn on before a rule fires: 20% each way, so a 5% start has
+ *               rails at 4% and 6%
+ *   cut         the capital preservation rule: above the upper rail, spending falls by this much
+ *   raise       the prosperity rule: below the lower rail, spending rises by this much
+ *   freezeYears the cut is not applied in the final years of the plan, where there is no long horizon
+ *               left to protect - 15, as the paper had it. The raise applies throughout.
+ *
+ * The inflation rule needs no parameter: in a year the portfolio lost money, the rise that would have
+ * kept spending level is skipped and never made up. This model runs in today's money, so "no rise" is
+ * spending falling by the inflation assumption in real terms, which is why ctx.inflation is read here.
+ *
+ * WHAT THE RATE IS MEASURED ON. The paper's withdrawal rate is the portfolio draw over the portfolio,
+ * and a household with a state pension draws less than it spends. So the rule governs the draw, not
+ * the spend: the multiplier applies to whatever the guaranteed income does not cover, the rate is that
+ * draw over the combined pot, and the rails are set on the first year the draw is above zero. One
+ * consequence worth knowing about: when the state pension starts, the draw falls, the rate falls with
+ * it, and the prosperity rule can grant a rise - which is the paper's own behaviour with Social
+ * Security, and is also true, since the household genuinely can afford more from that year.
+ *
+ * These are held constant rather than exposed: the point of the toggle is one decision, and four
+ * numbers under it would turn it into a tuning exercise before the first decision has been made.
+ */
+const GUARDRAILS = Object.freeze({ band: 0.20, cut: 0.10, raise: 0.10, freezeYears: 15 });
+
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 // Fraction of the calendar year remaining after the valuation date (0.01..1).
@@ -1052,6 +1091,8 @@ function normalizePlan(raw) {
   };
   scrub(plan.demographics); scrub(plan.spending, ['spendBands']); scrub(plan.config);
   if (typeof plan.config.harvestPersonalAllowance !== 'boolean') plan.config.harvestPersonalAllowance = plan.config.harvestPersonalAllowance === '' ? true : !!plan.config.harvestPersonalAllowance;
+  // A plan saved before the rule existed has no field, and no field means what it always meant: fixed.
+  if (typeof plan.config.guardrails !== 'boolean') plan.config.guardrails = false;
   if (!plan.config.valuationDate || isNaN(new Date(plan.config.valuationDate).getTime())) plan.config.valuationDate = todayISO();
   if (plan.demographics.planningMode !== 'single') plan.demographics.planningMode = 'couple';
   if (!DECUMULATION_POLICIES[plan.spending.decumulationPolicy]) plan.spending.decumulationPolicy = 'Bracket Fill Basic';
@@ -1700,6 +1741,7 @@ function buildContext(rawPlan) {
     cashBufferYears: clamp(num(c.cashBufferMonths, 6), 0, 120) / 12,
     solvencyFloor: Math.max(0, num(c.solvencyFloor, 0)),
     inflation: clamp(num(c.inflation, 2.5), -50, 100) / 100,
+    guardrails: c.guardrails ? GUARDRAILS : null,
     yf, baseYear, valuationDate,
     otherIncomes, oneOffContribs, oneOffCosts, oneOffDeductions, stagedTransfers, oneOffStaging
   };
@@ -1727,7 +1769,13 @@ const freshState = (ctx) => {
   const giaBasis = { self: 0, part: 0 };
   ctx.accounts.forEach(a => { if (a.cat === 'other') giaBasis[a.owner] = Math.max(0, a.balance - a.unrealisedGain); });
   // gains realised while settling a CGT bill are taxed the following year, so they carry forward
-  return { pots, giaBasis, cgtCarry: { self: 0, part: 0 }, cumPcls: { self: 0, part: 0 }, lumpSumTaken: { self: false, part: false } };
+  /*
+   * The guardrail's memory: the rate the rails were set from, the cumulative multiplier every rule has
+   * applied so far, and whether the portfolio lost money last year. Path-dependent like the GIA basis,
+   * which is why it lives here and not on the context.
+   */
+  const guard = { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 };
+  return { pots, giaBasis, cgtCarry: { self: 0, part: 0 }, cumPcls: { self: 0, part: 0 }, lumpSumTaken: { self: false, part: false }, guard };
 };
 
 // Money paid into the GIA is added at cost, so it creates no gain.
@@ -1947,11 +1995,63 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
   // 6. living-cost demand
   const spendBase = spendOverride !== null ? spendOverride : null;
   let annualLivingTarget = 0;
+  let guardrail = null;          // what the spending rule did this year, named for the audit table
   if (anyRetired) {
+    let scheduled;
     if (spendBase !== null) {
       const ratio = ctx.targetSpend > 0 ? spendTargetAtAge(ctx, ageSelf) / ctx.targetSpend : 1;
-      annualLivingTarget = Math.max(0, spendBase) * ratio;
-    } else annualLivingTarget = spendTargetAtAge(ctx, ageSelf);
+      scheduled = Math.max(0, spendBase) * ratio;
+    } else scheduled = spendTargetAtAge(ctx, ageSelf);
+    annualLivingTarget = scheduled;
+    /*
+     * THE GUARDRAILS, applied to the draw the portfolio is asked for rather than to the whole spend.
+     *
+     * `scheduled` is what the plan says to spend this year in today's money, bands and solver override
+     * included. `covered` is what arrives without touching the pots. The difference is the draw, and
+     * the draw is what the rails watch. Everything is in full-year terms here - the guaranteed figures
+     * above were pro-rated for year zero, so they are un-scaled - and the fraction is put back at the
+     * end as it always was, so a plan with the rule off computes exactly what it did before.
+     *
+     * The rails are set the first year the draw is above zero, not the first year of retirement: a
+     * household living on a DB pension for a while is not yet drawing, and a rate of zero is not a rate.
+     * From the next year on, three rules in the paper's order: skip the inflation rise after a losing
+     * year; then cut if the rate has drifted above the upper rail and the plan still has more than
+     * freezeYears to run; else raise if it has drifted below the lower rail.
+     */
+    if (ctx.guardrails) {
+      const g = ctx.guardrails, gs = state.guard;
+      const covered = (totalNetGuaranteed + workingTakeHome) / frac;
+      const baseDraw = Math.max(0, scheduled - covered);
+      const potNow = owners.reduce((s, o) => s + CATEGORIES.reduce((t2, cat) => t2 + (pots[o.ids[cat]] || 0), 0), 0);
+      if (baseDraw > 0 && potNow > 0) {
+        const did = [];
+        /*
+         * THE RAILS FOLLOW THE PLAN, NOT JUST THE FIRST YEAR OF IT.
+         *
+         * Measured against the first year's rate alone, the rule mistakes the household's own schedule
+         * for market news. The state pension starting halves the draw, a spend band the household
+         * chose for its eighties lowers it again, and to a rate test both look like prosperity - on a
+         * perfectly smooth path the prosperity rule raised spending to 2.1x by 80, undoing a cut the
+         * household had planned on purpose. So whenever the scheduled draw moves for a reason that is
+         * not the market - it is computed before the multiplier, so the market cannot move it - the
+         * rails are re-set on the current footing: the rate the plan now implies, with every cut and
+         * rise earned so far carried into it. That year applies the inflation rule and nothing else,
+         * and from the next year the rule is back to watching the pots.
+         */
+        const replanned = gs.rate0 !== null && Math.abs(baseDraw - gs.lastBaseDraw) > 0.01 * Math.max(1, gs.lastBaseDraw);
+        if (gs.rate0 !== null && gs.lostLastYear) { gs.mult /= (1 + ctx.inflation); did.push('no rise'); }
+        if (gs.rate0 === null) gs.rate0 = baseDraw / potNow;
+        else if (replanned) { gs.rate0 = (baseDraw * gs.mult) / potNow; did.push('rails re-set'); }
+        else {
+          const rate = (baseDraw * gs.mult) / potNow;
+          if (rate > gs.rate0 * (1 + g.band) && (ctx.totalYears - t) > g.freezeYears) { gs.mult *= (1 - g.cut); did.push('cut'); }
+          else if (rate < gs.rate0 * (1 - g.band)) { gs.mult *= (1 + g.raise); did.push('raise'); }
+        }
+        gs.lastBaseDraw = baseDraw;
+        annualLivingTarget = covered + baseDraw * gs.mult;
+        if (did.length) guardrail = did.join(', ');
+      }
+    }
     annualLivingTarget *= frac;
   }
   const netDemand = Math.max(0, annualLivingTarget - totalNetGuaranteed - workingTakeHome);
@@ -2061,6 +2161,8 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
   const preNmpaInsolvent = unmetDemand > 1 && (!anyAccess || lockedPensionWealth > 0);
 
   // 8. compounding (year 0 pro-rated)
+  // The guardrail's inflation rule asks one thing of this step: did the portfolio lose money this year.
+  const potBeforeGrowth = ctx.guardrails ? ctx.accounts.reduce((s2, a) => s2 + (pots[a.id] || 0), 0) : 0;
   ctx.accounts.forEach(a => {
     let g = a.real;
     if (isHistorical) g = (histPoint && !a.isCash) ? (a.equityWeight * histPoint.s + (1 - a.equityWeight) * histPoint.b) / 100 : a.real;
@@ -2072,6 +2174,7 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
     }
     pots[a.id] = Math.max(0, (pots[a.id] || 0) * (1 + g * frac));
   });
+  if (ctx.guardrails) state.guard.lostLastYear = ctx.accounts.reduce((s2, a) => s2 + (pots[a.id] || 0), 0) < potBeforeGrowth;
 
   const sumOwner = (o) => CATEGORIES.reduce((s, cat) => s + (pots[o.ids[cat]] || 0), 0);
   const totalSelf = sumOwner(ownerByKey.self);
@@ -2096,7 +2199,9 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
     drawdownPensions, taxablePensionSelf: taxablePensionDrawn.self, taxablePensionPart: taxablePensionDrawn.part, harvested, taxPaid, cgtPaid,
     otherTaxableSelf: otherTaxable.self, otherTaxablePart: otherTaxable.part,
     realisedGains: realisedGains.self + realisedGains.part,
-    preNmpaInsolvent, unmetDemand
+    preNmpaInsolvent, unmetDemand,
+    // the spending rule: what it did this year, and the multiplier now in force on the draw (1 = as planned)
+    guardrail, spendMult: ctx.guardrails ? state.guard.mult : 1
   };
 }
 
@@ -2162,6 +2267,8 @@ function runTrial(ctx, zs, spendOverride = null, collectPath = false) {
   const state = freshState(ctx);
   let failed = false, failAge = null, preNmpaFailed = false, minPot = Infinity, lifetimeTax = 0, unmetTotal = 0;
   let terminalRow = null;
+  // what was actually spent across the retired years, and the rule's footprint on this path
+  let spentTotal = 0, retiredYears = 0, cutYears = 0, raiseYears = 0, multMin = 1;
   /*
    * Opt-in, and the default matters: optimizeSpend calls this a few hundred times while bisecting and
    * buildTournament runs a full simulation per player plus two candidate searches. None of them wants
@@ -2182,6 +2289,10 @@ function runTrial(ctx, zs, spendOverride = null, collectPath = false) {
     if (path) path[t] = Math.max(0, row.totalCombined);
     // every pound of spending the plan could not meet, kept whether or not it has already failed
     unmetTotal += Math.max(0, row.unmetDemand || 0);
+    if (row.targetSpend > 0) { spentTotal += row.targetSpend; retiredYears++; }
+    if (row.guardrail && row.guardrail.includes('cut')) cutYears++;
+    if (row.guardrail && row.guardrail.includes('raise')) raiseYears++;
+    if (row.spendMult < multMin) multMin = row.spendMult;
     if (!failed && (row.unmetDemand > FAIL_TOLERANCE || row.preNmpaInsolvent)) {
       failed = true; failAge = row.ageSelf; preNmpaFailed = row.preNmpaInsolvent || !ctx.owners.some(o => (o.key === 'self' ? row.ageSelf : row.agePart) >= ctx.nmpa);
     }
@@ -2201,7 +2312,8 @@ function runTrial(ctx, zs, spendOverride = null, collectPath = false) {
    * that holds.
    */
   const out = { survived: !failed, failAge, preNmpaFailed, terminalPot, terminalPotNet, minPot, lifetimeTax,
-    unmetTotal, terminalPotShortfallAdj: terminalPotNet - unmetTotal };
+    unmetTotal, terminalPotShortfallAdj: terminalPotNet - unmetTotal,
+    realisedSpend: retiredYears ? spentTotal / retiredYears : 0, cutYears, raiseYears, multMin };
   if (path) out.path = path;
   return out;
 }
@@ -2282,7 +2394,19 @@ function summarizeTrials(results) {
     medianFailAge: fails.length ? q(fails, 0.5) : null,
     earliestFailAge: fails.length ? fails[0] : null,
     preNmpaFailRate: (results.filter(r => !r.survived && r.preNmpaFailed).length / n) * 100,
-    medianLifetimeTax: q(results.map(r => r.lifetimeTax).sort((a, b) => a - b), 0.5)
+    medianLifetimeTax: q(results.map(r => r.lifetimeTax).sort((a, b) => a - b), 0.5),
+    /*
+     * WHAT THE HOUSEHOLD ACTUALLY LIVED ON. With the guardrails off these repeat the plan; with them on
+     * they are the figures that keep the survival rate honest. A path that survives by cutting three
+     * times counts as a success, so the rate rises for a reason it cannot show on its own. These say
+     * what it cost: the typical year's spending after the rules, the unlucky tenth, and how many paths
+     * were ever cut at all.
+     */
+    medianRealisedSpend: q(results.map(r => r.realisedSpend).sort((a, b) => a - b), 0.5),
+    p10RealisedSpend: q(results.map(r => r.realisedSpend).sort((a, b) => a - b), 0.10),
+    cutPathShare: (results.filter(r => r.cutYears > 0).length / n) * 100,
+    raisePathShare: (results.filter(r => r.raiseYears > 0).length / n) * 100,
+    medianCutYears: q(results.map(r => r.cutYears).sort((a, b) => a - b), 0.5)
   };
 }
 
@@ -5657,9 +5781,19 @@ const WRAPPER_PHRASE = {
 };
 const phraseFor = (tok) => WRAPPER_PHRASE[tok] || tok;
 
-function policyPlaybook(policyKey, P) {
+function policyPlaybook(policyKey, P, opts = {}) {
   const pol = DECUMULATION_POLICIES[policyKey];
   if (!pol) return [];
+  /*
+   * The guardrails are a rule the household follows, not just one the simulation does, so when they are
+   * on the playbook says how - in the same plain steps as the drawdown order, and without a plan figure,
+   * because the rate is theirs to work out each year from that year's numbers.
+   */
+  const guardrailStep = opts.guardrails ? {
+    title: 'Each year, before you decide how much to take',
+    body: `Divide what you plan to draw from the pots this year by what the pots are worth today. If that rate is more than ${Math.round(GUARDRAILS.band * 100)}% above where it stood the first year you drew, take ${Math.round(GUARDRAILS.cut * 100)}% less than planned this year. If it is more than ${Math.round(GUARDRAILS.band * 100)}% below, take ${Math.round(GUARDRAILS.raise * 100)}% more.`,
+    detail: `After any year the pots fell, skip the inflation rise and do not make it up later. In the last ${GUARDRAILS.freezeYears} years of the plan, never cut. When the plan itself changes what you draw - the State Pension starting, a spending band beginning - measure from that new footing rather than the first year's.`
+  } : null;
   const list = (steps) => steps.map(phraseFor);
   const out = [];
 
@@ -5670,6 +5804,7 @@ function policyPlaybook(policyKey, P) {
       ? `The two pension steps are ceilings on TOTAL taxable income for the year, not on the pension alone: ${formatGBP(P.pa)} for the first and ${formatGBP(P.higherRateStartsAt)} for the second. A state pension, post-retirement earnings or any other taxable income counts towards them first, so where those already exceed ${formatGBP(P.pa)} the first step draws nothing at all and the order moves straight on.`
       : 'This policy does not manage tax bands: each wrapper is emptied before the next is touched.'
   });
+  if (guardrailStep) out.push(guardrailStep);
 
   out.push({
     title: 'When a one-off cost lands',
@@ -6105,7 +6240,7 @@ function frontierSpend(row, targetRate = 90) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
 /*
  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle
@@ -6113,7 +6248,7 @@ const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, 
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { GUARDRAILS, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 /*
@@ -7108,7 +7243,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
     const html = buildActionPlanHtml({
       res, baseline: base, plan, ctx,
       diff: E.diffStrategyPlans(base?.planState || plan, res.planState),
-      playbook: E.policyPlaybook(plan?.spending?.decumulationPolicy, ctx.P),
+      playbook: E.policyPlaybook(plan?.spending?.decumulationPolicy, ctx.P, { guardrails: !!plan?.config?.guardrails }),
       isCouple, seed: results?.seed ?? seed, trials: TOURNAMENT_TRIALS,
       summary: summarizeStrategyChange(res, base, { isCouple, meta: results?.meta, selfEmployedOnly })
     }, { formatGBP, fmtNum });
@@ -7871,6 +8006,13 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     setActiveTab('docs');
     let tries = 0;
     const attempt = () => { if (document.getElementById(id)) scrollToDocSection(id); else if (tries++ < 25) setTimeout(attempt, 80); };
+    setTimeout(attempt, 80);
+  };
+  // the same shape for a setting on the Config tab: switch, wait for it to render, scroll to it
+  const goToConfig = (id) => {
+    setActiveTab('config');
+    let tries = 0;
+    const attempt = () => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); else if (tries++ < 25) setTimeout(attempt, 80); };
     setTimeout(attempt, 80);
   };
 
@@ -10230,6 +10372,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
       st.successRate >= targetSurvivalRate ? 'good' : 'bad');
     if (chartKind === 'mc') return [
       survival,
+      /*
+       * With the guardrails on, survival is easier to reach because the household cuts to reach it, so
+       * the tile that says what it lived on sits right beside the rate. Absent when the rule is off:
+       * then the figure would only repeat the plan.
+       */
+      ...(ctx.guardrails ? [dashTile('Spending after guardrails', dashMoney(st.medianRealisedSpend),
+        `unlucky tenth ${dashMoney(st.p10RealisedSpend)} · ${E.num(st.cutPathShare, 0).toFixed(0)}% of runs cut`,
+        E.num(st.p10RealisedSpend, 0) < E.num(ctx.targetSpend, 0) * 0.85 ? 'bad' : 'flat')] : []),
       dashTile(`Median pot @ ${terminalAge}`, dashMoney(st.medianTerminal), 'half of runs end above'),
       dashTile(`Upper quartile @ ${terminalAge}`, dashMoney(st.p75Terminal), 'one run in four above'),
       dashTile(`Lower quartile @ ${terminalAge}`, dashMoney(st.p25Terminal), 'one run in four below'),
@@ -12535,6 +12685,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <span className="text-[10px] text-slate-400 mt-1 block">Phased crystallises {Math.round(P.pclsProp * 100)}% tax-free with each draw; Lump Sum moves the tax-free cash (capped at £{fmtNum(P.lsa)}) into cash savings at retirement.</span>
                   </Fine>
                 </div>
+                <div id="config-guardrails">
+                  <label className="text-slate-600 font-semibold block mb-1">Spending guardrails</label>
+                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
+                    <input type="checkbox" data-guardrails-toggle checked={!!plan?.config?.guardrails} onChange={(e) => updateConfig('guardrails', e.target.checked)} className="accent-blue-600" />
+                    <span className="text-slate-700 font-semibold">Let simulated spending react to the pots (Guyton-Klinger): cut {Math.round(E.GUARDRAILS.cut * 100)}% when the withdrawal rate drifts {Math.round(E.GUARDRAILS.band * 100)}% above where it started, raise {Math.round(E.GUARDRAILS.raise * 100)}% when it drifts that far below, and skip the inflation rise after a losing year.</span>
+                  </label>
+                  <Fine isPhone={isPhone} label="What it changes">
+                    <span className="text-[10px] text-slate-400 mt-1 block">Off, every simulated year spends the plan whatever the markets did, which is the strict test. On, the survival rate rises because bad runs are answered with cuts, so read it beside the spending figures it adds: what the typical run lived on, and what the unlucky tenth did. No cuts in the final {E.GUARDRAILS.freezeYears} years. <button type="button" onClick={() => goToDoc('doc-guardrails')} className="text-blue-600 hover:underline font-semibold cursor-pointer">Documentation &rarr;</button></span>
+                  </Fine>
+                </div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Harvest unused 0% allowance</label>
                   <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
@@ -12570,7 +12730,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <details className="pt-3 border-t border-slate-100" open={!isPhone}>
                 <summary className="cursor-pointer min-h-11 flex items-center text-sm font-semibold text-slate-900 hover:text-slate-900">How to actually follow this policy</summary>
                 <ol className="mt-2 space-y-2">
-                  {E.policyPlaybook(plan?.spending?.decumulationPolicy, P).map((step, i) => (
+                  {E.policyPlaybook(plan?.spending?.decumulationPolicy, P, { guardrails: !!plan?.config?.guardrails }).map((step, i) => (
                     <li key={i} className="flex gap-2.5 text-xs">
                       <span className="shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 grid place-items-center font-bold text-[10px] mt-0.5">{i + 1}</span>
                       <div className="min-w-0">
@@ -12921,6 +13081,24 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {!dashboardMode && simResult && <span className="text-[11px] text-slate-500">{isPhone
                     ? `${PROJECTION_SLIDES.length} steps, chosen from the bar above the navigation.`
                     : 'Three steps: what your plan does, the two answers and every trade between them, then everything on one screen.'}</span>}
+                  {/*
+                    * Whether spending is held fixed or allowed to react is the single setting that most
+                    * changes what the survival rate means, so it is named here, beside the button that
+                    * produces the number, rather than left on the Config tab for whoever thinks to look.
+                    * One line, folded on a phone; the links go to the explanation and to the switch.
+                    */}
+                  <div data-guardrail-note className="text-[11px] text-slate-600 mt-1 max-w-2xl">
+                    <span className="font-semibold text-slate-800">Spending guardrails {plan?.config?.guardrails ? 'on' : 'off'}.</span>{' '}
+                    <Fine isPhone={isPhone} label="What that means">
+                      <span>{plan?.config?.guardrails
+                        ? 'Each simulated year spends what the pots can bear: a bad run is answered with a cut, a good one with a rise, so the survival rate is higher and the spending figures beside it say what that cost.'
+                        : 'Every simulated year spends the plan whatever the markets did, so the survival rate is the strict test. A real household would cut back in a bad run, and the model can be told to.'}</span>
+                    </Fine>{' '}
+                    {/* min-w-11: "Config" is 33px of text, and a thumb target is 44px each way, not just tall */}
+                    <button type="button" onClick={() => goToDoc('doc-guardrails')} className="inline-flex items-center justify-center min-h-6 min-w-11 text-blue-600 hover:underline font-semibold cursor-pointer">Documentation</button>
+                    <span className="text-slate-300 mx-1">&middot;</span>
+                    <button type="button" onClick={() => goToConfig('config-guardrails')} className="inline-flex items-center justify-center min-h-6 min-w-11 text-blue-600 hover:underline font-semibold cursor-pointer">Config</button>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {mcBusy && (
@@ -14877,12 +15055,20 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 - which is the shape a table wants on a phone anyway. The desktop box is unchanged. */}
             <div tabIndex={0} className={`overflow-x-auto border border-slate-200 rounded-lg ${isPhone ? 'max-h-[60vh] overflow-y-auto' : ''}`}>
               <table className="w-full text-left text-xs border-collapse">
-                <thead className={`bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans ${isPhone ? 'sticky top-0 z-10' : ''}`}><tr><th className="p-2.5">Year</th><th className="p-2.5">Age (M)</th>{isCouple && <th className="p-2.5">Age (P)</th>}<th className="p-2.5">Spend target</th><th className="p-2.5">Guaranteed + Take-home (net)</th><th className="p-2.5">Net drawdown</th><th className="p-2.5">Pension draw (gross)</th><th className="p-2.5">Tax</th>{P.cgtEnabled && <th className="p-2.5">CGT</th>}<th className="p-2.5">Pensions</th><th className="p-2.5">ISAs</th><th className="p-2.5">Other inv</th><th className="p-2.5">Cash</th><th className="p-2.5">Total combined</th><th className="p-2.5">Pre-SIPP access Liquid</th><th className="p-2.5 text-right">Status</th></tr></thead>
+                <thead className={`bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans ${isPhone ? 'sticky top-0 z-10' : ''}`}><tr><th className="p-2.5">Year</th><th className="p-2.5">Age (M)</th>{isCouple && <th className="p-2.5">Age (P)</th>}<th className="p-2.5">Spend target</th>{!!plan?.config?.guardrails && <th className="p-2.5">Guardrail</th>}<th className="p-2.5">Guaranteed + Take-home (net)</th><th className="p-2.5">Net drawdown</th><th className="p-2.5">Pension draw (gross)</th><th className="p-2.5">Tax</th>{P.cgtEnabled && <th className="p-2.5">CGT</th>}<th className="p-2.5">Pensions</th><th className="p-2.5">ISAs</th><th className="p-2.5">Other inv</th><th className="p-2.5">Cash</th><th className="p-2.5">Total combined</th><th className="p-2.5">Pre-SIPP access Liquid</th><th className="p-2.5 text-right">Status</th></tr></thead>
                 <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
                   {timelineData.map(r => (
                     <tr key={r.year} className="hover:bg-slate-50/80 transition-colors">
                       <td className="p-2 font-bold text-slate-800">{r.year}</td><td className="p-2">{r.ageSelf}</td>{isCouple && <td className="p-2">{r.agePart}</td>}
                       <td className="p-2 font-sans font-medium text-slate-700">{formatGBP(r.targetSpend)}</td>
+                      {/* What the spending rule did this year, and the multiplier it has left on the draw. Only
+                          the rows where it acted carry a label, so the column reads as a list of events. */}
+                      {!!plan?.config?.guardrails && <td className="p-2 font-sans" data-guardrail-cell>
+                        {r.guardrail
+                          ? <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${/cut/.test(r.guardrail) ? 'bg-rose-100 text-rose-800' : /raise/.test(r.guardrail) ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{r.guardrail}</span>
+                          : <span className="text-slate-300">&mdash;</span>}
+                        {r.spendMult !== 1 && <span className="text-[9px] text-slate-400 block">draw &times;{r.spendMult.toFixed(2)}</span>}
+                      </td>}
                       <td className="p-2 text-emerald-700">{formatGBP(r.netGuaranteed + r.workingTakeHome)}</td>
                       <td className="p-2 text-rose-600 font-medium">{formatGBP(r.netDrawdown)}</td>
                       <td className="p-2 text-sky-700">{formatGBP(r.drawdownPensions)}{r.harvested > 0 && <span className="text-[9px] text-slate-400 block">incl. {formatGBP(r.harvested)} harvested</span>}</td>

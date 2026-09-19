@@ -6937,6 +6937,13 @@ function RouletteWheel({ className = '', onResult }) {
   );
 }
 
+/*
+ * The warnings are plain strings from the engine, which runs in node for the test suites and cannot
+ * carry JSX or tags. This is the one place that needs to tell a class of them apart, so the class is
+ * named here rather than threaded through the engine: anything about a gain that has not been entered.
+ */
+const CGT_WARNING = /unrealised gain|realised gain|capital gains/i;
+
 function WarningsBanner({ warnings }) {
   if (!warnings || !warnings.length) return null;
   return (
@@ -7796,6 +7803,17 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
     window.scrollTo({ top: 0 });
   };
   const showSection = (id) => !isPhone || inputSection === id;
+  /*
+   * ONE WAY TO GET TO ADVANCED INPUTS, FROM EITHER LAYOUT.
+   *
+   * On a phone it is a section of its own, reached through the strip; on a desktop it is a fold at the
+   * foot of the first card. The prompts that point at it should not have to know which.
+   */
+  const goToAdvanced = () => {
+    if (isPhone) { selectSection('advanced'); window.scrollTo({ top: 0 }); return; }
+    setShowAdvanced(true);
+    setTimeout(() => { const el = document.getElementById('advanced-inputs'); if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60);
+  };
   const stepSection = (by) => {
     const i = INPUT_SECTIONS.findIndex(x => x.id === inputSection);
     const j = Math.min(INPUT_SECTIONS.length - 1, Math.max(0, i + by));
@@ -10639,13 +10657,22 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         </div>
       </div>
     );
+    /*
+     * ONE LIST AT A TIME, IN THE SHEET AS WELL AS THE RAIL.
+     *
+     * Every wrapper has a contribution dial and a balance dial, so a couple with eight wrappers had
+     * sixteen of them stacked, the balances below the fold under the contributions. They answer
+     * different questions - what you pay in, what you already have - and nobody moves both at once, so
+     * the sheet picks between the two lists the way the rail does, on one row at the top of it.
+     */
+    const kinded = rail || inSheet;
     return (
       <div className={inSheet || rail ? 'space-y-1' : ''} data-quick-dials>
-        {rail && (
-          <div data-dial-kind className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 mb-1">
-            {[['contrib', 'A year'], ['balance', 'Balance']].map(([k, label]) => (
+        {kinded && (
+          <div data-dial-kind className={`flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 ${rail ? 'mb-1' : 'mb-1.5'}`}>
+            {[['contrib', rail ? 'A year' : 'Paid in a year'], ['balance', rail ? 'Balance' : 'Balance today']].map(([k, label]) => (
               <button key={k} type="button" onClick={() => setRailDialKind(k)} aria-pressed={railDialKind === k}
-                className={`flex-1 min-h-7 rounded-md text-[11px] font-bold cursor-pointer ${railDialKind === k ? 'bg-surface border border-slate-300 text-slate-900' : 'text-slate-500'}`}>{label}</button>
+                className={`flex-1 ${rail ? 'min-h-7' : 'min-h-11'} rounded-md text-[11px] font-bold cursor-pointer ${railDialKind === k ? 'bg-surface border border-slate-300 text-slate-900' : 'text-slate-500'}`}>{label}</button>
             ))}
           </div>
         )}
@@ -10665,16 +10692,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
             * from a dial or it is not reachable at all. Escalation is the one thing left behind - it is
             * an Advanced input, and it lives on the Plan Inputs tab.
             */}
-          {(!rail || railDialKind === 'contrib') && displayedAccounts.map(acc => {
+          {(!kinded || railDialKind === 'contrib') && displayedAccounts.map(acc => {
             const sb = sandboxAccounts[acc.id] || {};
             const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
-            return dial(rail ? `${label} a year` : `${label}: annual contribution`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
+            return dial(kinded ? `${label} a year` : `${label}: annual contribution`, formatGBP(E.num(sb.contrib, 0)), [-1000, -500, 500, 1000], (d) => adjustSandboxContrib(acc.id, d));
           })}
-          {(!rail || railDialKind === 'balance') && displayedAccounts.map(acc => {
+          {(!kinded || railDialKind === 'balance') && displayedAccounts.map(acc => {
             const sb = sandboxAccounts[acc.id] || {};
             const label = `${CATEGORY_LABEL[acc.id.split('_')[0]] || acc.category}${isCouple ? ` (${acc.owner})` : ''}`;
             const now = E.num(sb.balance, E.num(acc.balance, 0));
-            return dial(rail ? `${label} today` : `${label}: balance today`, formatGBP(now), [-25000, -5000, 5000, 25000], (d) => adjustSandboxBalance(acc.id, d));
+            return dial(kinded ? `${label} today` : `${label}: balance today`, formatGBP(now), [-25000, -5000, 5000, 25000], (d) => adjustSandboxBalance(acc.id, d));
           })}
         </div>
         <div className={`flex items-center gap-2 pt-2 ${inSheet || rail ? '' : 'justify-end'}`}>
@@ -11324,7 +11351,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
     onRight: () => setSlide(n => Math.max(1, n - 1)),
   });
   const renderAdvancedInputs = (standalone = false) => (
-              <div className={standalone ? '' : 'pt-3 border-t border-slate-100'}>
+              <div id="advanced-inputs" className={standalone ? '' : 'pt-3 border-t border-slate-100'}>
                 {!standalone && <button type="button" onClick={() => setShowAdvanced(v => !v)} className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 uppercase tracking-[0.08em] flex items-center gap-1.5 cursor-pointer">
                   <Settings className="w-3.5 h-3.5" /> Advanced inputs {showAdvanced ? '▾' : '▸'}
                   <span className="font-normal normal-case tracking-normal text-slate-400">(optional; sensible defaults are assumed if left blank)</span>
@@ -11561,7 +11588,17 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
           * reading before you trust a number, which is every other tab: the projection, the config the
           * projection reads, the strategy, the backtest, the audit. So they wait there instead.
           */}
-        {activeTab !== 'docs' && activeTab !== 'home' && activeTab !== 'inputs' && <WarningsBanner warnings={ctx.warnings} />}
+        {/*
+          * NOT THE CGT ONES.
+          *
+          * "No unrealised gain on Other Investments, so only future growth is taxed" is a true and
+          * useful note, and as a banner it is amber above whatever you came to read - repeated per
+          * owner, on every tab, on a phone three lines of it. It is a prompt to fill in a field, so it
+          * belongs under the field: the GIA balance on Plan Inputs asks for it there, once, while there
+          * is a balance and no figure.
+          */}
+        {activeTab !== 'docs' && activeTab !== 'home' && activeTab !== 'inputs' &&
+          <WarningsBanner warnings={ctx.warnings.filter(w => !CGT_WARNING.test(w))} />}
 
         {/* TAB 0: LANDING */}
         {activeTab === 'home' && (
@@ -11869,6 +11906,16 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                         <FieldRow label="Balance today">
                           <MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={acc.balance} onChange={(e) => updateAccountField(acc.id, 'balance', e.target.value)} className={`${inputCls} text-right`} />
                         </FieldRow>
+                        {/* Where the phone says what the amber banner used to: only on the wrapper it is
+                            about, only once there is a balance, and only while the figure is missing. */}
+                        {acc.id.startsWith('other_') && P.cgtEnabled && E.num(acc.balance, 0) > 0 && E.isBlank(acc.unrealisedGain) && (
+                          <div data-gia-gain-hint className="-mt-1 pb-1.5">
+                            <button type="button" onClick={goToAdvanced}
+                              className="text-[11px] text-blue-700 font-semibold underline underline-offset-2 cursor-pointer text-left leading-snug">
+                              Add unrealised and realised gain in Advanced inputs &rarr;
+                            </button>
+                          </div>
+                        )}
                         <FieldRow label="Annual contribution" hint={over ? 'This is above the annual allowance set in Config.' : 'Pension contributions are gross, including tax relief and employer amounts. ISA, GIA and cash are net. Contributions stop at retirement.'}>
                           <MoneyInput min="0" step="250" placeholder="0" onFocus={handleFocus} value={acc.contrib}
                             onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }}
@@ -11898,7 +11945,18 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                       <tr key={acc.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-2.5 font-sans font-bold text-slate-800">{wrapperName(acc.category)}{Array.isArray(acc.contribByYear) && <span className="ml-2 px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px] font-normal">phased schedule</span>}</td>
                         {isCouple && <td className="py-2.5 font-sans text-slate-500">{acc.owner}</td>}
-                        <td className="py-2.5"><MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={acc.balance} onChange={(e) => updateAccountField(acc.id, 'balance', e.target.value)} className="w-32 p-1.5 bg-surface border border-slate-300 rounded font-bold text-slate-900 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
+                        <td className="py-2.5">
+                          <MoneyInput min="0" step="500" placeholder="0" onFocus={handleFocus} value={acc.balance} onChange={(e) => updateAccountField(acc.id, 'balance', e.target.value)} className="w-32 p-1.5 bg-surface border border-slate-300 rounded font-bold text-slate-900 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                          {/* The same prompt the phone card carries, for the same reason: it asks for a
+                              figure, so it belongs under the figure it is about rather than in a banner
+                              on another tab. */}
+                          {acc.id.startsWith('other_') && P.cgtEnabled && E.num(acc.balance, 0) > 0 && E.isBlank(acc.unrealisedGain) && (
+                            <button type="button" data-gia-gain-hint onClick={goToAdvanced}
+                              className="block mt-1 font-sans text-[10px] text-blue-700 font-semibold underline underline-offset-2 cursor-pointer text-left leading-snug max-w-32">
+                              Add unrealised and realised gain in Advanced inputs &rarr;
+                            </button>
+                          )}
+                        </td>
                         <td className="py-2.5"><MoneyInput min="0" step="250" placeholder="0" onFocus={handleFocus} value={acc.contrib} onChange={(e) => { updateAccountField(acc.id, 'contrib', e.target.value); if (acc.contribByYear) setPlan(prev => ({ ...prev, accounts: prev.accounts.map(a => a.id === acc.id ? { ...a, contribByYear: undefined } : a) })); }} className={`w-28 p-1.5 bg-slate-50 border rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none ${over ? 'border-rose-400 text-rose-700' : 'border-slate-300'}`} title={over ? 'Exceeds the annual allowance set in Config' : ''} /></td>
                         <td className="py-2.5"><input type="number" step="0.5" placeholder="0" onFocus={handleFocus} value={acc.growth} onChange={(e) => updateAccountField(acc.id, 'growth', e.target.value)} className="w-20 p-1.5 bg-surface border border-slate-300 rounded text-slate-800 focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:outline-none" /></td>
                         <td className="py-2.5">
@@ -13272,8 +13330,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {activeTab === 'strategy' && (
           <div className="space-y-6">
             <div className="p-4 bg-indigo-50/80 border border-indigo-200 rounded-xl text-xs text-slate-700 space-y-1.5 shadow-2xs">
-              <div className="flex items-center gap-2 font-bold text-indigo-950 text-sm"><Zap className="w-4 h-4 text-indigo-600" /> Strategy Tournament</div>
-              <Fine isPhone={isPhone} label="What this is">
+              <Fine isPhone={isPhone} label="What this is"
+                head={<div className="flex items-center gap-2 font-bold text-indigo-950 text-sm"><Zap className="w-4 h-4 text-indigo-600" /> Strategy Tournament</div>}>
               <p className="leading-relaxed">A different question from the one the Projection tab answers. That one asks what happens to your plan; this asks whether a <strong>different split of the same money</strong> would do better. Your spending and your total budget are held fixed, the budget is re-divided between wrappers, and every strategy is scored on identical market paths so the comparison is like for like.</p>
               <p className="text-slate-500 text-[11px] leading-relaxed">Nothing here changes your plan on its own. Applying a winning strategy is a separate, deliberate click, and it lands in the Sandbox on the Projection tab so you can see it drawn before committing it.</p>
               <p className="text-slate-500 text-[11px] leading-relaxed">Nothing being paid in? Then this tournament has nothing to divide. {SHOW_INHERITANCE && <>The search for someone already retired is on the <button type="button" onClick={() => setActiveTab('inheritance')} className="text-purple-700 hover:text-purple-900 hover:underline font-semibold cursor-pointer">Inheritance tab</button>, which ranks the choices that are left on what your heirs keep.</>}</p>
@@ -13293,8 +13351,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {SHOW_INHERITANCE && activeTab === 'inheritance' && (
           <div className="space-y-6" data-estate-deck>
             <div className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3 text-xs text-slate-600 leading-relaxed">
-              <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> What your heirs actually receive</h2>
-              <Fine isPhone={isPhone} label="What this is">
+              <Fine isPhone={isPhone} label="What this is"
+                head={<h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Gift className="w-4 h-4 text-purple-600" /> What your heirs actually receive</h2>}>
               <p>The projection reports the pot you leave. This reports what reaches the people you leave it to, which is a different number. Two things separate them: from 6 April 2027 an unused pension counts as part of your estate for inheritance tax, and if you die at 75 or over your beneficiaries then pay their own income tax on what they draw from it — on top of the tax the estate already paid.</p>
               <p className="text-slate-500">So <strong>which wrapper the money sits in now changes what it is worth to them</strong>, and so does when you die and who inherits. Nothing here is advice; the figures are illustrations built from the rules in Config, which you can change.</p>
               </Fine>
@@ -14630,8 +14688,8 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
         {activeTab === 'historical' && (
           <div className="space-y-6">
             <div className="p-4 bg-indigo-50/70 border border-indigo-200/80 rounded-xl text-xs text-slate-700 space-y-2">
-              <div className="flex items-center gap-2 font-bold text-indigo-900 text-sm"><History className="w-4 h-4 text-indigo-600" /> Empirical Historical Backtest ({E.HISTORICAL_FIRST_YEAR}–{E.HISTORICAL_LAST_YEAR})</div>
-              <Fine isPhone={isPhone} label="How the backtest works">
+              <Fine isPhone={isPhone} label="How the backtest works"
+                head={<div className="flex items-center gap-2 font-bold text-indigo-900 text-sm"><History className="w-4 h-4 text-indigo-600" /> Empirical Historical Backtest ({E.HISTORICAL_FIRST_YEAR}–{E.HISTORICAL_LAST_YEAR})</div>}>
               <p>Feeds actual historical real returns (US large-cap equities and a 50/50 government/corporate bond blend, weighted by each wrapper's risk tier) into your plan, <strong>starting from today (Age {currentAge})</strong> through to Age {terminalAge}.</p>
               <p className="text-slate-500">Selectable start years are capped at <strong>{maxHistoricalStartYear}</strong> so your {spanYears}-year plan runs within recorded history through {E.HISTORICAL_LAST_YEAR}.{historicalMetrics?.beyondData && ' Years beyond the dataset use the expected return.'}</p>
               <p className="text-slate-500">Your working years cannot run the pot dry, because your living spend is only drawn from the first retirement onwards. The verdict below therefore counts <strong>drawdown years</strong>, not calendar years — a plan that fails the moment you stop working has funded nothing, however far away that moment is.</p>

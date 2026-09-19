@@ -104,24 +104,48 @@ export function ChartFullscreen({ open, title, toolbar, onBox, onClose, children
  * again in a page that has just moved. The content is ALWAYS in the DOM - hidden, not removed - so
  * find-in-page and screen readers still reach it, and on a desktop this component does nothing at all.
  */
-export function Fine({ isPhone, label = 'Why?', children }) {
+/*
+ * `head` puts the dot ON the heading's line instead of under it.
+ *
+ * The dot is a 44px touch target, so a card that opened with a heading and then a folded explanation
+ * spent a whole 44px row plus two gaps on a single question mark floating in the middle of an otherwise
+ * empty card - which is what the Strategy tab looked like before its tournament had anything to show.
+ * Sharing the heading's row costs nothing: the heading is 20px inside a row the dot already makes 44.
+ * Without `head` it behaves exactly as before, which is what the in-sentence uses want.
+ */
+export function Fine({ isPhone, label = 'Why?', head = null, children }) {
   const [open, setOpen] = useState(false);
-  if (!isPhone) return children;
+  if (!isPhone) return head ? <>{head}{children}</> : children;
+  const dot = (
+    <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-label={label} title={label}
+      data-help-dot className={`min-w-11 h-11 flex items-center cursor-pointer ${head ? 'shrink-0 -mr-2.5 justify-end' : '-ml-2.5 justify-start'}`}>
+      <span className={`w-6 h-6 rounded-full border text-[11px] font-bold flex items-center justify-center ${
+        open ? 'bg-blue-50 border-blue-600 text-blue-700' : 'border-slate-300 text-slate-500'}`}>?</span>
+    </button>
+  );
+  const panel = (
+    <span className={`${open ? 'block' : 'hidden'} relative rounded-lg border border-slate-200 bg-slate-50 p-2.5 pr-9 text-xs text-slate-600`}>
+      <span className="block font-bold text-slate-700 text-[11px] mb-1">{label}</span>
+      {children}
+      <button type="button" onClick={() => setOpen(false)} aria-label={`Close: ${label}`}
+        className="absolute top-0 right-0 w-9 h-9 flex items-center justify-center text-slate-400 cursor-pointer">
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </span>
+  );
+  if (head) return (
+    <div data-fine-head>
+      <div className="flex items-center justify-between gap-2 -my-2.5">
+        <div className="min-w-0">{head}</div>
+        {dot}
+      </div>
+      {panel}
+    </div>
+  );
   return (
     <span className="block">
-      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} aria-label={label} title={label}
-        data-help-dot className="min-w-11 h-11 -ml-2.5 flex items-center justify-start cursor-pointer">
-        <span className={`w-6 h-6 rounded-full border text-[11px] font-bold flex items-center justify-center ${
-          open ? 'bg-blue-50 border-blue-600 text-blue-700' : 'border-slate-300 text-slate-500'}`}>?</span>
-      </button>
-      <span className={`${open ? 'block' : 'hidden'} relative rounded-lg border border-slate-200 bg-slate-50 p-2.5 pr-9 text-xs text-slate-600`}>
-        <span className="block font-bold text-slate-700 text-[11px] mb-1">{label}</span>
-        {children}
-        <button type="button" onClick={() => setOpen(false)} aria-label={`Close: ${label}`}
-          className="absolute top-0 right-0 w-9 h-9 flex items-center justify-center text-slate-400 cursor-pointer">
-          <X className="w-3.5 h-3.5" />
-        </button>
-      </span>
+      {dot}
+      {panel}
     </span>
   );
 }

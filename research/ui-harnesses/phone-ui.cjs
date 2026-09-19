@@ -321,6 +321,39 @@ const navigate = async (page, label, short) => {
             if (!b) return false; b.click(); return true;
           });
           ok('...a contribution dial is there', bumped);
+          /*
+           * ONE LIST AT A TIME. Every wrapper has a contribution dial and a balance dial, so a couple
+           * with eight wrappers had sixteen stacked, the balances below the fold under the
+           * contributions. The sheet picks between the two the way the dashboard's rail does, on one row
+           * at the top - so the balances are a tap away rather than a scroll away, and neither list is
+           * showing while the other is.
+           */
+          const kinds = await p.evaluate(() => {
+            const el = document.querySelector('[data-sandbox-sheet]');
+            const row = el && el.querySelector('[data-dial-kind]');
+            const money = () => [...el.querySelectorAll('button')].map(b => b.textContent.trim());
+            return { row: !!row, top: row ? Math.round(row.getBoundingClientRect().top) : null,
+              first: row ? Math.round(row.getBoundingClientRect().height) : null,
+              contribShown: money().some(t => t === '+500'), balanceShown: money().some(t => /^\+25,?000$/.test(t)) };
+          });
+          ok('...the dials pick between paid-in and balance, at the top', kinds.row === true && kinds.contribShown && !kinds.balanceShown,
+            `row: ${kinds.row}, ${kinds.first}px, contributions ${kinds.contribShown}, balances ${kinds.balanceShown}`);
+          const swapped = await p.evaluate(async () => {
+            const el = document.querySelector('[data-sandbox-sheet]');
+            const b = [...el.querySelectorAll('[data-dial-kind] button')].find(x => /Balance/i.test(x.textContent));
+            if (!b) return null;
+            b.click();
+            await new Promise(r => setTimeout(r, 400));
+            const money = [...el.querySelectorAll('button')].map(x => x.textContent.trim());
+            return { balance: money.some(t => /^\+25,?000$/.test(t)), contrib: money.some(t => t === '+500') };
+          });
+          ok('...and tapping Balance swaps which list is showing', !!swapped && swapped.balance && !swapped.contrib,
+            swapped ? `balances ${swapped.balance}, contributions ${swapped.contrib}` : 'no toggle');
+          await p.evaluate(async () => {
+            const el = document.querySelector('[data-sandbox-sheet]');
+            const b = [...el.querySelectorAll('[data-dial-kind] button')].find(x => /year/i.test(x.textContent));
+            if (b) { b.click(); await new Promise(r => setTimeout(r, 300)); }
+          });
           await p.waitForTimeout(800);
           const after = await p.evaluate(AMBER_PROBE);
           ok('...and using it draws the amber line', after > 0, `${after} dashed path(s)`);
@@ -691,11 +724,39 @@ const navigate = async (page, label, short) => {
         await p.waitForTimeout(350);
         const box = await p.evaluate(() => {
           const dot = [...document.querySelectorAll('[data-help-dot]')].find(x => x.getBoundingClientRect().width > 0);
-          const b = dot.parentElement.querySelector('span.relative');
+          /* the panel is the dot's sibling, or the head variant's sibling one level up */
+          const root = dot.closest('[data-fine-head]') || dot.parentElement;
+          const b = root.querySelector('span.relative');
           return { open: dot.getAttribute('aria-expanded'), h: b ? Math.round(b.getBoundingClientRect().height) : 0 };
         });
         ok('...a "?" opens its explanation in a box', box.open === 'true' && box.h > 20, `expanded=${box.open}, ${box.h}px`);
       }
+      /*
+       * THE "?" ON THE HEADING'S LINE, NOT UNDER IT.
+       *
+       * The dot is a 44px touch target, so a card that opened with a heading and then a folded
+       * explanation spent a whole row plus two gaps on one question mark floating in an otherwise empty
+       * card. Measured on the Strategy tab with nothing to run: 156px of card for a heading, a dot and a
+       * link. Sharing the heading's row costs nothing and brings it to 110px.
+       */
+      await navigate(p, 'Strategy', 'Strategy');
+      await p.waitForTimeout(800);
+      // measured closed: an open explanation is meant to be tall, and this is about the folded state
+      await p.evaluate(() => { document.querySelectorAll('[data-help-dot][aria-expanded="true"]').forEach(b => b.click()); });
+      await p.waitForTimeout(350);
+      const strat = await p.evaluate(() => {
+        const card = [...document.querySelectorAll('div')].find(d => /Strategy Tournament/.test(d.textContent) && (d.className || '').includes('bg-indigo-50'));
+        if (!card) return null;
+        const dot = card.querySelector('[data-help-dot]');
+        const head = card.querySelector('[data-fine-head] > div > div');
+        if (!dot || !head) return { h: Math.round(card.getBoundingClientRect().height), sameRow: false };
+        return { h: Math.round(card.getBoundingClientRect().height),
+          sameRow: Math.abs(dot.getBoundingClientRect().top - head.getBoundingClientRect().top) < 24 };
+      });
+      ok('the Strategy card keeps its "?" on the heading\'s line', !!strat && strat.sameRow === true,
+        strat ? `${strat.h}px card, same row: ${strat.sameRow}` : 'card not found');
+      ok('...so the card is a heading and a link, not a screen of nothing', !!strat && strat.h <= 130,
+        strat ? `${strat.h}px` : '');
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Inputs'); if (b) b.click(); });
       await p.waitForTimeout(700);
       ok('the crossover button is one line', first.crossover !== null && first.crossover <= 48, `${first.crossover}px`);

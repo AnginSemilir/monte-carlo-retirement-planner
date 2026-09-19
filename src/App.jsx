@@ -12730,12 +12730,14 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   {resultsStale && <span data-stale-results className="block text-[11px] font-semibold text-amber-700 mb-0.5">Your inputs changed since this run. The steps below describe the plan as it was &mdash; run again to refresh.</span>}
                   {/* The deck is three steps on a desktop and eight on a phone, so this sentence cannot
                       be written once and be true - it counts them. On a phone it also says where the
-                      steps are, because they are in a bar above the navigation rather than on the card. */}
-                  {!dashboardMode && <span className="text-[11px] text-slate-500">{!simResult
-                    ? 'Answers arrive as they land, so the first is on screen while the rest is still working.'
-                    : isPhone
-                      ? `${PROJECTION_SLIDES.length} steps, chosen from the bar above the navigation.`
-                      : 'Three steps: what your plan does, the two answers and every trade between them, then everything on one screen.'}</span>}
+                      steps are, because they are in a bar above the navigation rather than on the card.
+
+                      Nothing before the run. It used to explain that the answers appear one at a time as
+                      each stage finishes, which is a description of the machinery rather than of the
+                      thing being offered - and it is visible as it happens anyway. */}
+                  {!dashboardMode && simResult && <span className="text-[11px] text-slate-500">{isPhone
+                    ? `${PROJECTION_SLIDES.length} steps, chosen from the bar above the navigation.`
+                    : 'Three steps: what your plan does, the two answers and every trade between them, then everything on one screen.'}</span>}
                 </div>
                 <div className="flex items-center gap-2">
                   {mcBusy && (

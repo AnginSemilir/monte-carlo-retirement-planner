@@ -356,6 +356,16 @@ async function runProjection(p) {
        less its own gutter, whatever the monitor is */
     ok('...all the way to the page\'s own gutter', !!geo && geo.page - geo.dashW <= 80, geo ? `${geo.page - geo.dashW}px of margin` : '');
     ok('...while the cards above it keep the page\'s own margin', headLeft !== null && headLeft > 0, `page margin ${headLeft}`);
+    /*
+     * The cap came off the other tabs too. A Chromebook at 1536 showed Plan Inputs as a 1280px column
+     * with 128px of empty page either side, which is the width the form's four-column grid could have
+     * used. So every tab runs to the page gutter now, except Documentation, which is a column of text
+     * and keeps the measure that suits one.
+     */
+    const contentW = async (name) => { await tab(wide.p, name); return wide.p.evaluate(() => { const c = document.querySelector('[data-app-content]'); return c ? Math.round(c.getBoundingClientRect().width) : null; }); };
+    const inputsW = await contentW('Plan Inputs'); const docsW = await contentW('Documentation');
+    ok(`Plan Inputs runs to the page gutter at ${width}`, inputsW !== null && width - inputsW <= 80, `${inputsW}px of ${width}px`);
+    ok('...and Documentation keeps its text column', docsW !== null && docsW <= 1280, `${docsW}px`);
     ok(`no page errors at ${width}`, wide.errs.length === 0, wide.errs.slice(0, 2).join(' | '));
   }
 

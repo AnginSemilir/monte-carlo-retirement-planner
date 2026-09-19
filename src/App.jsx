@@ -11576,9 +11576,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   * for is the sentence below it - what the model does - so that leads.
                   */}
                 <p className="text-base text-slate-600 leading-relaxed">
-                  This model runs your pensions, ISAs, GIA and cash through {fmtNum(MC_TRIALS)} different
-                  market histories, taxes every withdrawal under UK rules, and tells you how often the plan actually holds, not just how it looks
-                  on a good day.
+                  A <T k="Monte Carlo">Monte Carlo</T> simulation-driven retirement planner that tests your portfolio spread against
+                  thousands of possible futures, with the goal of telling you how safe your retirement plan is, the most
+                  efficient way to draw down, and what your alternatives are.
                 </p>
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <button type="button" onClick={() => setActiveTab('inputs')}

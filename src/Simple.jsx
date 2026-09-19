@@ -688,7 +688,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
         ) : null)}
       </div>
     )}
-    <Fine isPhone={isPhone} label="What the band shows">
+    <Fine isPhone={isPhone} dot label="What the band shows">
     <p className="text-[11px] text-slate-500 leading-relaxed">
       {!hasBand
         ? (chart.useFan
@@ -1450,7 +1450,7 @@ export default function Simple({ isPhone = false, isCoarse = false, viewport = {
               </button>
             </div>
 
-            <Fine isPhone={isPhone} label="Tax, how the money is drawn, and the small print">
+            <Fine isPhone={isPhone} dot label="Tax, how the money is drawn, and the small print">
             {isPhone && <div className="flex flex-col gap-0.5 text-[11px] text-slate-500 pb-1">{runNotes()}</div>}
 
             <p className="text-[11px] text-slate-500 leading-relaxed border-t border-slate-100 pt-3">

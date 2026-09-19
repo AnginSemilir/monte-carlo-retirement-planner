@@ -704,7 +704,11 @@ const navigate = async (page, label, short) => {
         `at the middle of it a finger hits ${help.hitOk ? 'the term' : 'something else'}`);
       ok('...marked as pressable by a shimmering underline', help.shimmer === true, `background gradient: ${help.shimmer}`);
       ok('...at the height of the text it sits in, not the 44px floor', help.tall !== null && help.tall <= 30, `${help.tall}px tall`);
-      ok('...and the long explanations are "?" too, closed to start', help.dots > 0 && help.dotClosed === 'false', `${help.dots} dots, expanded=${help.dotClosed}`);
+      /*
+       * A FOLD SHOWS ITS FIRST LINES, rather than a mark that promises an unknown quantity of prose.
+       * The clamp leaves its own ellipsis and the control under it names what opening gives you.
+       */
+      ok('...and a long explanation shows its first lines, closed to start', help.dots > 0 && help.dotClosed === 'false', `${help.dots} folds, expanded=${help.dotClosed}`);
       if (help.clickable) {
         /*
          * Tap the one the probe just measured, and let the scrolling settle first. The bubble closes on
@@ -724,12 +728,15 @@ const navigate = async (page, label, short) => {
         await p.waitForTimeout(350);
         const box = await p.evaluate(() => {
           const dot = [...document.querySelectorAll('[data-help-dot]')].find(x => x.getBoundingClientRect().width > 0);
-          /* the panel is the dot's sibling, or the head variant's sibling one level up */
-          const root = dot.closest('[data-fine-head]') || dot.parentElement;
-          const b = root.querySelector('span.relative');
-          return { open: dot.getAttribute('aria-expanded'), h: b ? Math.round(b.getBoundingClientRect().height) : 0 };
+          /* two shapes: the clamped fold unclamps in place, the head variant reveals a bordered panel */
+          const fine = dot.closest('[data-fine]');
+          const body = fine ? fine.firstElementChild
+            : (dot.closest('[data-fine-head]') || dot.parentElement).querySelector('span.relative');
+          return { open: dot.getAttribute('aria-expanded'), clamped: fine ? /line-clamp/.test(body.className || '') : null,
+            h: body ? Math.round(body.getBoundingClientRect().height) : 0 };
         });
-        ok('...a "?" opens its explanation in a box', box.open === 'true' && box.h > 20, `expanded=${box.open}, ${box.h}px`);
+        ok('...pressing it opens the rest of the explanation', box.open === 'true' && box.h > 20 && box.clamped !== true,
+          `expanded=${box.open}, ${box.h}px, still clamped: ${box.clamped}`);
       }
       /*
        * THE "?" ON THE HEADING'S LINE, NOT UNDER IT.
@@ -846,6 +853,24 @@ const navigate = async (page, label, short) => {
       await swipe(80, 320, yRow);
       ok('...and a swipe right comes back', (await activeSection()) === 'You', await activeSection());
       await sectionTab('Portfolio');
+      /*
+       * THE EXPLANATION IS ON THE SCREEN, NOT BEHIND A MARK.
+       *
+       * A "?" standing alone on a card says only that there is something to read - on the Income tab
+       * before a stream is added it was a circle floating in an empty card. Two clamped lines of the
+       * real sentence cost the same screen and answer the question for most readers without a press.
+       */
+      const preview = await p.evaluate(() => {
+        const f = [...document.querySelectorAll('[data-fine]')].find(x => x.getBoundingClientRect().height > 0);
+        if (!f) return null;
+        const txt = f.firstElementChild;
+        const btn = f.querySelector('[data-help-dot]');
+        return { chars: (txt.innerText || '').trim().length, clamped: /line-clamp/.test(txt.className || ''),
+          h: Math.round(f.getBoundingClientRect().height), label: (btn ? btn.textContent : '').trim() };
+      });
+      ok('a folded explanation shows its first lines and names the rest',
+        !!preview && preview.chars > 40 && preview.clamped === true && /\u2026$/.test(preview.label),
+        preview ? `${preview.chars} chars in ${preview.h}px, opens with "${preview.label}"` : 'no fold found');
       const risk = await p.evaluate(() => ({ summaries: document.querySelectorAll('[data-risk-summary]').length, cards: document.querySelectorAll('[data-wrapper-card]').length }));
       ok('each wrapper is a card showing its tier', risk.cards === 4 && risk.summaries === 4, `${risk.cards} cards, ${risk.summaries} tiers`);
       await p.evaluate(() => document.querySelector('[data-risk-summary]').click());

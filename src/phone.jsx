@@ -89,31 +89,26 @@ export function ChartFullscreen({ open, title, toolbar, onBox, onClose, children
 }
 
 /*
- * LONG EXPLANATIONS, BEHIND A QUESTION MARK, ON A PHONE ONLY.
+ * LONG EXPLANATIONS, SHORTENED ON A PHONE, NEVER HIDDEN BEHIND A MARK ALONE.
  *
  * This app explains itself at length, which is right on a desktop where the prose sits beside the
  * figure it describes. On a 390px screen the same paragraph is eight lines and pushes the number it is
- * explaining off the bottom.
+ * explaining off the bottom. On a desktop this component does nothing at all.
  *
- * It used to fold behind a line of blue text - "What the taper does" - which has two faults at once: it
- * reads as a heading rather than a control, so people do not know it opens, and a line of it costs 44px
- * on every card whether or not anybody wants it. A "?" is the convention for optional explanation, and
- * it is round, small and unmistakably a button. The same mark `FieldRow` already puts beside a label.
+ * TWO SHAPES, and the difference is whether there is a heading to hang the mark on.
  *
- * Open, the answer is a bordered box with its own close, so shutting it does not mean finding the "?"
- * again in a page that has just moved. The content is ALWAYS in the DOM - hidden, not removed - so
- * find-in-page and screen readers still reach it, and on a desktop this component does nothing at all.
+ *   - With `head`: the heading and a "?" share one row, the explanation folds under it. The heading is
+ *     already the summary, so a mark beside it is enough, and it costs nothing - the heading is 20px
+ *     inside a row the 44px target makes anyway.
+ *   - Without one: the FIRST TWO LINES show, clamped, with the rest a press away. A "?" standing on its
+ *     own says only that there is something to read; on a card with nothing else on it - the Income tab
+ *     before a stream is added - it was a circle floating in an empty card, and nobody presses a mark
+ *     that promises an unknown quantity of prose. The same two lines of screen carry the answer instead.
+ *
+ * Either way the text is ALWAYS in the DOM - clamped or hidden, never removed - so find-in-page and
+ * screen readers reach all of it.
  */
-/*
- * `head` puts the dot ON the heading's line instead of under it.
- *
- * The dot is a 44px touch target, so a card that opened with a heading and then a folded explanation
- * spent a whole 44px row plus two gaps on a single question mark floating in the middle of an otherwise
- * empty card - which is what the Strategy tab looked like before its tournament had anything to show.
- * Sharing the heading's row costs nothing: the heading is 20px inside a row the dot already makes 44.
- * Without `head` it behaves exactly as before, which is what the in-sentence uses want.
- */
-export function Fine({ isPhone, label = 'Why?', head = null, children }) {
+export function Fine({ isPhone, label = 'Why?', head = null, dot: dotOnly = false, children }) {
   const [open, setOpen] = useState(false);
   if (!isPhone) return head ? <>{head}{children}</> : children;
   const dot = (
@@ -142,10 +137,36 @@ export function Fine({ isPhone, label = 'Why?', head = null, children }) {
       {panel}
     </div>
   );
-  return (
+  /*
+   * `dot` keeps the mark alone, for a pane whose whole job is to fit one screen. The streamlined page's
+   * chart is measured to the space left over, so two lines of preview come straight out of the picture;
+   * there the mark beside the legend is the right trade, and it is not floating in an empty card.
+   */
+  if (dotOnly) return (
     <span className="block">
       {dot}
       {panel}
+    </span>
+  );
+  /*
+   * STANDING ALONE, IT SHOWS ITS FIRST TWO LINES.
+   *
+   * A "?" by itself says only that there is something to read. On a card with nothing else on it - the
+   * Income tab before a stream is added, the portfolio above its wrappers - it was a circle floating in
+   * an empty card, and nobody presses a mark that promises an unknown quantity of prose. Two lines of
+   * the actual explanation is the same 44px of screen doing useful work, and the ellipsis the clamp
+   * leaves behind says there is more. Same pattern as `Clamp`, which the deck already uses.
+   *
+   * The text is never removed from the DOM, only clamped, so find-in-page and screen readers still
+   * reach all of it.
+   */
+  return (
+    <span className="block" data-fine>
+      <span className={open ? 'block' : (CLAMP[2] || 'line-clamp-2')}>{children}</span>
+      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open} data-help-dot
+        className="min-h-11 flex items-center text-[11px] font-bold text-blue-700 cursor-pointer">
+        {open ? 'Show less' : `${label.replace(/\?$/, '')}\u2026`}
+      </button>
     </span>
   );
 }

@@ -396,6 +396,28 @@ solver here: within its one-point epsilon on survival, then better on downside. 
 weights buy at 0.02 and 0.5, and Phase 2c.3 (weights tuned on the odd households) is where it is
 settled. `ledger-S112.txt`.
 
+**Loss ledger, entry 4: S342 (−1.2). Cause: grid smear, S070's signature a third time.** Far household,
+61-year horizon, table optimistic by +11. Identical through accumulation; at 65 the "whole spend from
+the pension" move on 49% of paths, £27k tax against £8k, then a switch to ISA-first moves; lifetime tax
+£755k against £263k. Fixed-only survivals 33, solver-only 1. `ledger-S342.txt`.
+
+**Loss ledger, entry 5: S318 (−0.8). Cause named, not yet separated: the taxable pot over-valued.** Far
+household, table optimistic by +8. A different signature: no higher-rate tax (lifetime tax £167k
+against the fixed plan's £251k); instead the solver spends the ISA first while harvesting the GIA to
+the basic-rate limit on 88% of paths, so that at 76 it holds £1.09m in the taxable pot against the
+fixed plan's £45k, and £3.4m in the ISA against £4.5m. The table values holding a growing taxable pot
+above holding the ISA, and the simulation disagrees by 0.8 points (31 fixed-only survivals against 6).
+Two approximations could do this and the diagnosis does not separate them: the low end of the taxable
+axis (as in entries 1, 2 and 4) or the three-bucket unrealised-gain axis, where a freshly harvested
+pot sits at the favourable bucket. The separating test is a solve with finer gain buckets at the same
+points; it is queued with the resolution work. `ledger-S318.txt`.
+
+**The ledger, closed for phase 2.** Five losses: three are one cause (the smear at the cliff favouring
+the dearer move, converging with resolution), one is that cause or the gain buckets, one is the
+objective doing what it was set to do. None points at the five-node return model, none is
+unexplained, and none needs a change to the method; the first four need the resolution work already
+listed, the fifth the weight tuning.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

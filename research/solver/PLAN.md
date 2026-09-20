@@ -437,6 +437,19 @@ produces are mostly right, and the fix is resolution paid for by the reachable b
 reads (Phase 2c), not a patch. `points` may now differ per axis and `tieMargin` exists, both default
 off, for that work.
 
+**The total-wealth grid, on all 41 households (tag p2-total40; `results-p2-total40.txt`).** Same
+households, seeds, menu and judge as p2-7001, the grid changed to total-wealth coordinates at
+40 x 6 x 6 (1,440 cells against 8,000). Solver against the same menu: **mean +0.73 (was +0.59);
+29 up / 5 down beyond two standard errors; sign test p < 0.001; the app's own picker prefers the
+solver in 33 of 41 (was 28), p < 0.001.** Unlucky tenth +£19k (was +£10k); median pot −£182k (was
+−£243k); tax +£30k (was +£38k). Every one of the five losses shrank (S070 −2.1 to −0.7, S330 −1.4 to
+−1.0, S342 −1.2 to −0.6, S318 −0.8 to −0.5, S112 −0.4 to −0.3) and no win was lost; S058 moved from
+−0.3 to −0.5. **Mean solve time 144s to 21s.** 60 x 8 x 8 matched 40 x 6 x 6 to the decimal on the
+eight probe households, so the grid has converged; the cliff is one-dimensional in total wealth and
+smooth in the split, as guessed. This becomes the default grid. The four other candidates in the same
+batch (shortfall risk term at two weights, six gain buckets, Richardson extrapolation) moved nothing
+beyond noise and stay optional (`ledger-smear-fixes.txt`).
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -812,7 +825,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 2d | Part D pilot in the reduced model, against the guardrails | fully-funded rate and floor rate, both, on 41 households | 1× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
-| - | **phase 2 says**: +0.59 on 41 households, 32 up / 5 down, sign test p < 0.001, picker 28 of 41; median pot −£243k. Gate passed; 2c and 2d before Phase 3 | | |
+| - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | same on couple households | 1× |
 | 6 | tiers and spend dimension | same, plus safe spend within £500 | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |

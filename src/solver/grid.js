@@ -111,8 +111,9 @@ export function makeGrid(m, opts = {}) {
    * against 8,000 at twenty points per pot. The six-slot vector and everything downstream are
    * unchanged; only where a position sits, and what a cell means, differ.
    */
-  const total = opts.coords === 'total';
-  const n1 = total ? ((pts && pts.total) || opts.points || 12) : np;
+  // The default since the 41-household re-run: every loss smaller, no win lost, six times faster.
+  const total = (opts.coords || 'total') === 'total';
+  const n1 = total ? ((pts && pts.total) || opts.points || 40) : np;
   const n2 = total ? ((pts && pts.share) || opts.shares || 6) : ni;
   const n3 = total ? ((pts && pts.share) || opts.shares || 6) : nt;
   if (total) {

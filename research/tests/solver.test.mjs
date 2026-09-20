@@ -109,9 +109,10 @@ console.log('=========== B. MONOTONICITY, WHICH MUST HOLD WHATEVER THE HOUSEHOLD
           const ds = score(i) - score(j); if (ds > tol) { violScore++; worstScore = Math.max(worstScore, ds); }
           const dv = S[i] - S[j]; if (dv > tol) { violSurv++; worstSurv = Math.max(worstSurv, dv); }
         };
+        // richer along every pot axis on the per-pot grid; along total wealth only on the total-wealth grid
         if (ip + 1 < g.np) check(g.index(ip + 1, ii, it, ig, ic));
-        if (ii + 1 < g.ni) check(g.index(ip, ii + 1, it, ig, ic));
-        if (it + 1 < g.nt) check(g.index(ip, ii, it + 1, ig, ic));
+        if (g.mode !== 'total' && ii + 1 < g.ni) check(g.index(ip, ii + 1, it, ig, ic));
+        if (g.mode !== 'total' && it + 1 < g.nt) check(g.index(ip, ii, it + 1, ig, ic));
       }
   }
   ok(`B1  the score never falls as any pot grows (${cells} cells, ${r.m.ctx.totalYears + 1} years)`, violScore === 0, violScore ? `${violScore} violations, worst ${worstScore.toFixed(5)}` : 'none');
@@ -134,7 +135,7 @@ console.log('=========== C. WHY THERE IS NO CERTAIN-SUCCESS SHORTCUT ===========
     const line = zeroGrowthNeed(m, t);
     for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++)
       for (let it = 0; it < g.nt; it++) for (let ii = 0; ii < g.ni; ii++) for (let ip = 0; ip < g.np; ip++) {
-        const wealth = g.axes.pen.pts[ip] + g.axes.isa.pts[ii] + g.axes.tax.pts[it];
+        const wealth = g.mode === 'total' ? g.axes.W.pts[ip] : g.axes.pen.pts[ip] + g.axes.isa.pts[ii] + g.axes.tax.pts[it];
         if (wealth < line) continue;
         above++;
         const v = surv[t][g.index(ip, ii, it, ig, ic)];

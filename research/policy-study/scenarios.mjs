@@ -22,8 +22,10 @@ import * as E from '../engine.mjs';
 const GIA = 'Other Investments (e.g. GIA)';
 // Keys are the engine's own category keys, not friendly names: an account whose id does not match
 // `${cat}_${owner}` is silently dropped, which quietly deletes a chunk of the household's wealth.
-const CATS = { pen: 'Pensions', isa: 'S&S ISAs', other: GIA, cash: 'Cash Savings' };
-const RISK = { pen: 'High Risk', isa: 'Medium/High Risk', other: 'Medium Risk', cash: 'Cash Equivalents' };
+const CATS = { pen: 'Pensions', isa: 'S&S ISAs', other: GIA, cash: 'Cash Savings', cashIsa: 'Cash ISA' };
+const RISK = { pen: 'High Risk', isa: 'Medium/High Risk', other: 'Medium Risk', cash: 'Cash Equivalents', cashIsa: 'Cash Equivalents' };
+// how much of the household's cash is already inside a cash ISA: none, half, all - cycled like the other secondary axes
+const CASH_ISA = [0, 0.5, 1];
 
 // --- primary axes -------------------------------------------------------------------------------
 const STAGES = [
@@ -105,7 +107,7 @@ const acct = (owner, cat, balance, contrib) => ({
   growth: 3, risk: RISK[cat]
 });
 
-function build({ stage, mix, wealth, spend, household, flow, employ, region, bequest }, idx) {
+function build({ stage, mix, wealth, spend, household, flow, employ, region, bequest, cashIsa }, idx) {
   const isCouple = household === 'couple';
   const working = stage.salary > 0;
   const salary = working ? Math.round(stage.salary * wealth.salaryMul / 500) * 500 : 0;
@@ -116,6 +118,14 @@ function build({ stage, mix, wealth, spend, household, flow, employ, region, beq
     const bal = wealth.total * w;
     // contributions only while working: 12% of salary into pension, 6% into ISA, nothing elsewhere
     const contribSelf = !working ? 0 : cat === 'pen' ? salary * 0.12 : cat === 'isa' ? salary * 0.06 : 0;
+    if (cat === 'cash') {
+      // the cash split between taxable savings and a cash ISA, so the interest tax has something to bite on
+      const share = cashIsa === undefined ? 0 : cashIsa;
+      accounts.push(acct('Myself', 'cash', bal * selfShare * (1 - share), 0));
+      accounts.push(acct('Myself', 'cashIsa', bal * selfShare * share, 0));
+      if (isCouple) { accounts.push(acct('Partner', 'cash', bal * (1 - selfShare) * (1 - share), 0)); accounts.push(acct('Partner', 'cashIsa', bal * (1 - selfShare) * share, 0)); }
+      return;
+    }
     accounts.push(acct('Myself', cat, bal * selfShare, contribSelf));
     if (isCouple) accounts.push(acct('Partner', cat, bal * (1 - selfShare), contribSelf * 0.6));
   });
@@ -172,7 +182,7 @@ function build({ stage, mix, wealth, spend, household, flow, employ, region, beq
   return {
     id: `S${String(idx).padStart(3, '0')}`,
     name: `${stage.key}/${mix.key}/${wealth.key}/${spend.key}`,
-    tags: { stage: stage.key, mix: mix.key, wealth: wealth.key, spend: spend.key, household, flow, employ: working ? employ : 'retired', region, bequest: bequest.key },
+    tags: { stage: stage.key, mix: mix.key, wealth: wealth.key, spend: spend.key, household, flow, employ: working ? employ : 'retired', region, bequest: bequest.key, cashIsa },
     solvencyFloor: Math.round(wealth.total * bequest.share / 5000) * 5000,
     potAtRetire: Math.round(potAtRetire),
     targetSpend: draft.spending.targetSpend,
@@ -190,11 +200,12 @@ export function buildScenarios() {
       flow: FLOWS[i % FLOWS.length],
       employ: EMPLOY[Math.floor(i / 3) % EMPLOY.length],
       region: REGIONS[i % REGIONS.length],
-      bequest: BEQUESTS[i % BEQUESTS.length]
+      bequest: BEQUESTS[i % BEQUESTS.length],
+      cashIsa: CASH_ISA[i % CASH_ISA.length]
     }, i));
     i++;
   }
   return out;
 }
 
-export const AXES = { STAGES, MIXES, WEALTH, SPENDS, HOUSEHOLDS, FLOWS, EMPLOY, REGIONS, BEQUESTS };
+export const AXES = { STAGES, MIXES, WEALTH, SPENDS, HOUSEHOLDS, FLOWS, EMPLOY, REGIONS, BEQUESTS, CASH_ISA };

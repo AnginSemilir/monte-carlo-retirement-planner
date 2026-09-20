@@ -66,5 +66,23 @@ ok('B5  switched off the year is what it was before', rowOff.savingsTax === 0 &&
   ok('B8  the GIA grows exactly as before: the yield comes out of the return, not on top', near(r1.other, r0.other, 0.01));
 }
 
+console.log('=========== D. THE CASH ISA WRAPPER, MERGED INTO THE CASH POT ===========');
+{
+  const withIsa = E.resolveMpaa(E.normalizePlan({ ...base, accounts: [...base.accounts, { id: 'cashIsa_self', type: 'cashIsa', owner: 'Myself', balance: 120000, risk: 'Low Risk' }] }));
+  const ctxI = E.buildContext(withIsa);
+  const rows = E.simulateDeterministic(withIsa).rows;
+  ok('D1  the cash ISA balance joins the cash pot', near(ctxI.acc['cash_self'].balance, 320000, 0.01), `${ctxI.acc['cash_self'].balance}`);
+  ok('D2  ...and only the taxable part earns taxable interest', near(rows[0].savingsInterest, 200000 * nominal * ctxI.yf, 1), `${rows[0].savingsInterest.toFixed(0)}`);
+  ok('D3  the sheltered part is reported', rows[0].cashIsa > 0 && rows[0].cashIsa <= rows[0].cash + 0.01);
+  // leftover allowance shelters up to the cap a year: after the first full year the sheltered part has grown by about the cap
+  const capY1 = E.taxParams(withIsa.config).cashIsaCapAt(69, 2027);
+  ok('D4  each year the leftover allowance shelters more cash, up to the cash ISA cap', rows[1].cashIsa - rows[0].cashIsa > 0 && rows[1].cashIsa - rows[0].cashIsa <= capY1 + 1, `${(rows[1].cashIsa - rows[0].cashIsa).toFixed(0)} vs cap ${capY1}`);
+  const Pc = E.taxParams(E.DEFAULT_CONFIG);
+  ok('D5  the under-65 cap applies from the configured year', Pc.cashIsaCapAt(60, 2026) === 20000 && Pc.cashIsaCapAt(60, 2027) === 12000 && Pc.cashIsaCapAt(66, 2027) === 20000);
+  const allIsa = E.resolveMpaa(E.normalizePlan({ ...base, accounts: [{ ...base.accounts[0] }, { id: 'cash_self', type: 'cash', owner: 'Myself', balance: 0, risk: 'Cash Equivalents' }, { id: 'cashIsa_self', type: 'cashIsa', owner: 'Myself', balance: 200000, risk: 'Low Risk' }] }));
+  const rA = E.simulateDeterministic(allIsa).rows[0];
+  ok('D6  all cash in the ISA pays no interest tax, same as the switch off', rA.savingsTax === 0 && near(rA.netDrawdown, rowOff.netDrawdown, 1));
+}
+
 console.log(`\n=========== ${passed} passed, ${failed} failed ===========`);
 process.exit(failed ? 1 : 0);

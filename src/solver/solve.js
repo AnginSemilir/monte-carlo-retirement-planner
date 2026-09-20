@@ -34,7 +34,7 @@
  * than the fixed rules the app already has? The allocation-free version comes after that answer, not
  * before it.
  */
-import { makeGrid, toState, locateState, interp, certainSuccess } from './grid.js';
+import { makeGrid, toState, locateState, interp } from './grid.js';
 
 /*
  * Five-point Gauss-Hermite quadrature against a standard normal: five representative years, weighted so
@@ -100,6 +100,8 @@ function ratesByNode(m) {
 export function solve(E, M, plan, opts = {}) {
   const t0 = Date.now();
   const m = M.prepare(E, plan);
+  // one table per person; a couple needs two and a funding split, which is phase 5
+  if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');
   const g = makeGrid(m, opts);
   const actions = (opts.actions || buildActions()).map(a => ({ ...a, lump: !!opts.lump }));
   const rates = ratesByNode(m);
@@ -133,39 +135,27 @@ export function solve(E, M, plan, opts = {}) {
     dst.lumpTaken.self = src.lumpTaken.self; dst.lumpTaken.part = src.lumpTaken.part;
   };
 
-  let evaluated = 0, skipped = 0;
+  let evaluated = 0;
   for (let t = T; t >= 0; t--) {
     const sNext = t < T ? surv[t + 1] : null;
     const bNext = t < T ? beq[t + 1] : null;
     const St = surv[t], Bt = beq[t], Pt = pol[t];
-    /*
-     * Above this much total wealth the remaining years are payable however the markets behave - but
-     * only once the pension can be reached. Before that, wealth locked in a pension cannot pay for
-     * anything, and a household with a large pension and a thin bridge is at real risk however rich
-     * the total looks. So the shortcut is switched off entirely until the access age.
-     */
-    const canShortcut = opts.shortcut !== false && (m.ctx.ageSelf0 + t) >= m.ctx.nmpa && (!m.ctx.isCouple || (m.ctx.agePart0 + t) >= m.ctx.nmpa);
-    const sure = canShortcut ? certainSuccess(m, t) : Infinity;
     for (let ic = 0; ic < g.pcls.length; ic++) {
       for (let ig = 0; ig < g.gain.length; ig++) {
         for (let it = 0; it < g.n; it++) {
           for (let ii = 0; ii < g.n; ii++) {
             for (let ip = 0; ip < g.n; ip++) {
               const idx = g.index(ip, ii, it, ig, ic);
-              const wealth = g.axes.pen.pts[ip] + g.axes.isa.pts[ii] + g.axes.tax.pts[it];
               const base = toState(g, ip, ii, it, ig, ic, t);
               /*
-               * A position rich enough to pay every remaining year at the worst tax rate with no growth
-               * at all survives under any path this model can draw. The move still has to be chosen -
-               * the bequest depends on it - but only one sensible candidate is tried, which is where
-               * most of the saving in a well-funded household comes from.
+               * Every move is tried at every cell. There is no certain-success shortcut: the plan's
+               * bound assumed "no growth" was the worst case, and for an invested pot it is not - see
+               * zeroGrowthNeed in grid.js for the measurement that retired it.
                */
-              const list = wealth >= sure ? [actions[0]] : actions;
-              if (list.length === 1) skipped++;
               let bestS = -1, bestB = -Infinity, bestA = 0;
-              for (let ai = 0; ai < list.length; ai++) {
+              for (let ai = 0; ai < actions.length; ai++) {
                 copyInto(post, base);
-                const row = M.step(m, post, list[ai], t, null, true);
+                const row = M.step(m, post, actions[ai], t, null, true);
                 evaluated++;
                 let s = 0, b = 0;
                 if (row.unmetDemand > 1 || row.preNmpaInsolvent) { s = 0; b = 0; }
@@ -187,7 +177,7 @@ export function solve(E, M, plan, opts = {}) {
                   }
                 }
                 // survival first; among moves that tie on it within the app's own epsilon, the bequest
-                if (s > bestS + eps || (Math.abs(s - bestS) <= eps && b > bestB)) { bestS = s; bestB = b; bestA = ai === 0 && list !== actions ? 0 : ai; }
+                if (s > bestS + eps || (Math.abs(s - bestS) <= eps && b > bestB)) { bestS = s; bestB = b; bestA = ai; }
               }
               St[idx] = bestS; Bt[idx] = bestB; Pt[idx] = bestA;
             }
@@ -197,7 +187,7 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, skipped, lump: !!opts.lump, points: g.n };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.n };
   return {
     m, g, actions, surv, beq, pol, meta, M, eps,
     /* The move for a state the engine is actually in, which is how the bridge will read it. */
@@ -260,7 +250,7 @@ export function runPolicy(r, zs, opts = {}) {
  */
 export function chooseAction(r, state, t) {
   const { m, g, actions, surv, beq } = r;
-  const M = r.M, E = m.E;
+  const M = r.M;
   const T = m.ctx.totalYears;
   if (t >= T) return actions[pol0(r, state, t)];
   const eps = r.eps !== undefined ? r.eps : 1e-12;

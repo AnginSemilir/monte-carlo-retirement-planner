@@ -208,6 +208,33 @@ what it was told — survival first, bequest only as a tie-break — but a plan 
 survival with £382k of median pot is a trade the Strategy tab must show rather than bury, and it is
 what prioritisation is for.
 
+**The fair comparison, which is the number that matters.** The first signal confounded two things
+with the claim under test: the solver had the cash sweep on and the fixed arm off, and the two menus
+did not nest. Re-run with the solver's own 24 moves held fixed for life on the other side, sweep on
+both, 16 points, 600 held-out paths:
+
+| household | fixed, same menu | solved | difference |
+|---|---|---|---|
+| S000 | 100.0 | 100.0 | 0.0 |
+| S140 | 49.5 | 48.8 | −0.7 |
+| S280 | 67.0 | 68.7 | +1.7 |
+| mean | | | **+0.33** |
+
+So of the earlier +0.61, about half was the sweep and the wider menu, and +0.33 is state-dependence
+on three households. Thin, positive, and under-powered: 600 held-out paths give a paired standard
+error near a point, so −0.7 is noise and +1.7 is barely not. Two things follow. The solver must never
+lose to a fixed rule from its OWN menu, since "always this move" is a policy it could choose; where
+it does, as on S140, that shortfall is the approximation cost, measured directly. And the next run
+needs 3,000 held-out paths and 20 points, which is running. The fast flow waits on it.
+
+**Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
+invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
+8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
+the saving comes from the reachable band and the fast flow. And the table smears its cliff: eleven
+backward steps of interpolation compound, so at 8% either side of a closed-form need a 12-point table
+reads 0.8 and 0.2 rather than 1 and 0. The simulated policy is right at 2% either side, which is why
+the table's own figure is never the measurement and an adaptive grid near the cliff stays on the list.
+
 **Gate 2, `research/tests/solver.test.mjs`:** on a household with no tax and one wrapper the solved
 survival equals a closed-form answer within 0.5 points; the policy is monotone where the theory says
 it must be; the forward check stays inside the band; re-solving after a balance edit touches no table

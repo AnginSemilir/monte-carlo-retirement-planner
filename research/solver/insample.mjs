@@ -114,7 +114,7 @@ for (const sc of pick) {
   const fixedHeld = summarise(heldPaths.map(zs => runFixedPath(m, best.a, zs)));
 
   // ---- the solved arm: no paths seen while solving
-  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, shortcut: process.env.SHORTCUT !== 'off' });
+  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum });
   const solvedHeld = summarise(heldPaths.map(zs => runPolicy(r, zs)));
 
   const d = solvedHeld.survival - fixedHeld.survival;

@@ -170,18 +170,22 @@ export function interp(g, arr, loc, survival) {
 }
 
 /*
- * THE TWO BOUNDS, which is most of what makes this affordable.
+ * THE ZERO-GROWTH NEED, and why it is NOT a certain-success bound.
  *
- * Above a certain wealth the remaining years can be paid however the markets behave, so survival is 1
- * and there is nothing to solve. Below a certain wealth next year cannot be paid at all, so it is 0.
- * Both are cheap to find and between them lies the only region where the decision matters.
+ * The plan meant to skip every position rich enough to pay every remaining year with no growth at all
+ * and the worst tax rate on every pound, on the reasoning that such a position survives whatever the
+ * markets do. That reasoning is wrong for an invested portfolio: "no growth" is not the worst case,
+ * because returns can be negative, and five bad years in a row at the worst quadrature node take more
+ * than half of a pot held at the High Risk tier. Measured on a full solve with the shortcut off: of
+ * 161,946 cells above this line, 8,645 read below 0.999 and the lowest read 0.864. Writing 1 there would
+ * have been a fourteen-point error that propagated backwards.
  *
- * `certainFloor` is the pessimistic one: every remaining year's spending, met with no growth at all and
- * taxed at the worst rate the ladder charges, less the guaranteed income that arrives whatever happens.
- * A position above it survives under any path this model can draw, which makes the claim safe rather
- * than merely usually true.
+ * So there is no certain-success shortcut, and this figure is kept only so the test can keep proving
+ * that there must not be one. The saving the plan expected from it comes from the reachable band and
+ * the fast flow instead. (A certain-FAILURE check is sound, because the year's spending is drawn before
+ * the year's growth, and the model already applies it inside every step.)
  */
-export function certainSuccess(m, t) {
+export function zeroGrowthNeed(m, t) {
   const { E, ctx } = m;
   let need = 0;
   const worstRate = ctx.P.ladder[ctx.P.ladder.length - 1].rate;
@@ -193,7 +197,7 @@ export function certainSuccess(m, t) {
     if (age >= ctx.spa) guaranteed += ctx.owners[0].statePension;
     ctx.otherIncomes.forEach(inc => { if (age >= inc.startAge && age <= inc.endAge) guaranteed += inc.amount; });
     const net = Math.max(0, spend - E.calculateUKNetIncome(guaranteed, ctx.P));
-    need += net / (1 - worstRate);            // as if every pound came from a fully taxed pension
+    need += net / (1 - worstRate);
   }
   ctx.oneOffCosts.forEach((amt, year) => { if (year >= ctx.baseYear + t) need += amt / (1 - worstRate); });
   return Math.max(need, ctx.solvencyFloor);

@@ -33,9 +33,12 @@
  * Bequest is interpolated linearly, because it has no cliff.
  */
 
-const CLAMP = 1e-6;   // survival probabilities are held off 0 and 1 so the log-odds stay finite
-const logit = (p) => { const q = p < CLAMP ? CLAMP : (p > 1 - CLAMP ? 1 - CLAMP : p); return Math.log(q / (1 - q)); };
-const expit = (x) => 1 / (1 + Math.exp(-x));
+// survival probabilities are held off 0 and 1 so the log-odds stay finite; the clamp and the choice of
+// log-odds against plain probability are overridable from the environment for the smear experiments
+const CLAMP = process.env.SOLVER_CLAMP ? Number(process.env.SOLVER_CLAMP) : 1e-6;
+const LINEAR = process.env.SOLVER_INTERP === 'linear';
+const logit = LINEAR ? (p) => p : (p) => { const q = p < CLAMP ? CLAMP : (p > 1 - CLAMP ? 1 - CLAMP : p); return Math.log(q / (1 - q)); };
+const expit = LINEAR ? (x) => x : (x) => 1 / (1 + Math.exp(-x));
 
 /*
  * A log axis with a zero point. `points[0]` is 0; the rest run from `lo` to `hi` geometrically. Values

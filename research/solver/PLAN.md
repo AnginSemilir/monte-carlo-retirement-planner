@@ -450,6 +450,18 @@ smooth in the split, as guessed. This becomes the default grid. The four other c
 batch (shortfall risk term at two weights, six gain buckets, Richardson extrapolation) moved nothing
 beyond noise and stay optional (`ledger-smear-fixes.txt`).
 
+**Phase 2c.1, the perturbed-world evaluation: passed, and the edge grows when the world is worse
+(`results-2c1-perturbed.txt`).** Both arms solved and chosen exactly as in p2-total40, then scored on
+the same 3,000 held-out paths in three worlds neither arm was told about. Solver minus the same-menu
+fixed arm: **return one point lower, +0.95 (33 up / 4 down, picker 32 of 41); volatility a quarter
+higher, +0.96 (32 / 5, picker 35 of 41); a fatter left tail, +1.60 (32 / 8, picker 36 of 41)**; sign
+test p < 0.001 in all three, against +0.73 in the fitted world. No household's sign flipped from a win
+to a loss beyond two standard errors; two (S112, S206) flipped from loss to win under the lower return.
+The worst household in any world is S330 at −1.5 under the lower return. The median-pot cost shrinks
+as the world worsens (−£182k fitted, −£34k lower return, +£75k fatter tail): a state-dependent plan
+gives up upside it never needed and keeps it when it does. Gate 2c.1 is met; the solver's edge is a
+property of the policy, not of the model it was solved in.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

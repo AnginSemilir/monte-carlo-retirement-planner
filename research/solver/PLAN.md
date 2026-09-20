@@ -565,6 +565,18 @@ rule (fully-funded rate never omitted, floor rate never alone). Three moves per 
 the move count; five minutes a household at 20 points. **This is the experiment that decides whether
 the solver ships. Phase 3 waits for it.**
 
+Three arms, not two, and the judge is the reporting rule. (1) The app with Guyton-Klinger on, exactly
+as it ships: the honest "what you get today". (2) Guyton-Klinger with the person's floor: GK's 10% cuts
+have no floor of their own and can cut below the minimum the person named, so a version whose cuts stop
+at the floor is the like-for-like opponent that sees the same inputs the solver sees; it is probably an
+improvement to the app in its own right. (3) Fixed spending at the target, the phase 2 fixed arm, so the
+result can say what flexibility of any kind buys before arguing about whose is better. Survival is
+gameable once spending can flex (cut to the floor early and everything survives), so each arm reports
+the fully-funded rate and the floor rate, and the comparison is Pfau's: hold the floor rate equal, then
+ask who delivered more years at the target. Plumbing first: guardrails are a projection-time rule the
+fast flow does not have, and the paired-seed design needs every arm on the same draws, so GK goes into
+the fast flow and the model, proved against the engine by the golden test, before any solve.
+
 ### Phase 2e. Two engine gaps that flatter the taxable side, to close before any bridge
 
 Both are engine work, not solver work; the solver inherits them through the fast flow's tax table and

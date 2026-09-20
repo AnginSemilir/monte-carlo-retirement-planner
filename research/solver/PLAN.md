@@ -629,6 +629,14 @@ point, or 1,000 search paths. (e) The one household where the guardrails deliver
 (S070) is the one where the solver ends £1.2m richer: the objective is trading years at target for the
 pot there, which the bequest weight governs and the presets should expose.
 
+**At 34 of 41 households, three signals firm enough to act on before the pass lands.** (1) The
+headline holds at equal downside: more years at target on 33 of 34 (median 0.85 against 0.51, unlucky
+tenth 0.43 against 0.06), a tenth of the whipsaw, richer on 28 of 34. (2) The landing undershoots the
+ask on 10 of 34, always in the same direction and always by under a point: systematic, so the half-point
+margin is the default from the 2d.3 re-run on, not a candidate. (3) Fully funded reads zero on 12 of 34
+while four households needed no trim at all: the 0.95 level is the cause, so the first 2d.3 trial is the
+levels without it, the linear exponent second only if that fails to move it.
+
 **How the 2d.2 opponents are built.** Both run in the fast flow as rules in the same four memory slots
 the guardrails use, with the person's floor applied exactly as it is to the guardrails-with-floor arm,
 and each fixed arm's withdrawal order chosen by the app's picker with that rule on. Vanguard dynamic

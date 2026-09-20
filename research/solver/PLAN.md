@@ -363,6 +363,62 @@ survival equals a closed-form answer within 0.5 points; the policy is monotone w
 it must be; the forward check stays inside the band; re-solving after a balance edit touches no table
 and after a spend edit touches only years from the affected one; the timing budget holds on the CI box.
 
+### Phase 2c. Before Phase 3: what the literature says to do first (`research/solver/LITERATURE.md`)
+
+Four additions, decided after the phase 2 experiment was designed and while it ran, so none of them
+could bend it. Each is a re-run on the SAME 41 households, the same seeds, the same reduce; none
+touches the engine or the app.
+
+**2c.1 The perturbed-model evaluation.** Every serious published comparison solves under a fitted
+model and then tests on data that model did not generate (Forsyth: block-bootstrap resamples of
+history). Ours tests on held-out seeds of the same model, which rules out luck and nothing else. So:
+both arms, solved and chosen as they were, are re-scored on the engine with each of three
+perturbations the solver never saw: expected real return down one point on every tier; volatility up
+a quarter; a fatter left tail (the per-path shock `sigmaParam` doubled). Reported exactly as the main
+experiment is, one table per perturbation. **Read:** the solver's edge must keep its sign under all
+three. An edge that flips under any of them is a property of the model, not of the policy, and
+Phase 3 does not start. Where the engine can be driven from a return series, a block-bootstrap of the
+historical years is the fourth table.
+
+**2c.2 Expected shortfall in place of the resilience indicator.** `P(terminal ≥ opening)` is a step,
+and a step objective rewards a gamble at the line; the ruin literature shows the ruin-minimising
+investor takes MORE risk as wealth falls. Replace it with expected shortfall below the threshold,
+`E[max(0, K − W_T)] / K` with `K` the opening wealth, which is additive over paths and so stays
+exactly decomposable for the backward pass; the weight is set so that a full shortfall costs what the
+indicator did (0.5). Gate 2 re-run (B1 and B2 must still hold), then the 41 households re-run.
+**Read:** a survival edge no smaller than before with a smaller median-pot cost is the expected
+result; anything else is written down.
+
+**2c.3 The weights tuned on households the experiment never sees.** The two weights (0.5, 0.02) are
+preferences, not estimates, and they are the only free parameters. The band has 82 households and
+the experiment uses the even-indexed 41; the odd-indexed 41 are the tuning set. Grid the pair over
+{0.25, 0.5, 1} × {0, 0.02, 0.1}, score each by the app's own picker rate on the odd set, and re-run the
+even set only if the winner differs from (0.5, 0.02). **Read:** if the tuned pair changes the even-set
+verdict, the earlier verdict was the weights' and not the method's.
+
+**2c.4 The loss ledger.** Every household the solver loses by more than two standard errors gets a
+year-by-year diff against the fixed plan on the same seeds, written into the results log with the
+approximation it points at (grid smear near the cliff, the five-node return, the merged or bucketed
+state, or the objective). S070 (−2.1, just-retired, pension-heavy, £215k more lifetime tax) is the
+first entry. A loss with no named cause is a finding against the method; a loss with a named cause is
+a work item, and the ledger is what decides which approximations get tightened first.
+
+**Gate 2c:** sign held under all three perturbations; 2c.2 not worse on survival and better on the
+median pot; the tuned weights either confirm (0.5, 0.02) or the even set is re-run and the verdict
+re-stated; every loss in the ledger has a named cause or is recorded as unexplained.
+
+### Phase 2d. The Part D pilot, in the reduced model, before any bridge is built
+
+Every published gain worth having came from spending that responds to wealth; every withdrawal-order
+study found a modest one (DiLellio and Ostrov: ten percent of a bequest). Phase 2 is a
+withdrawal-order test, so a mean of half a point is what the literature predicts for it and is not the
+case for or against the method. The case is Part D, and it can be run in the reduced model now:
+spend as an action with a target and a floor exactly as Part D specifies, the solver against the
+engine's guardrails on the same 41 households at the same floor and confidence, reported by Part D's
+rule (fully-funded rate never omitted, floor rate never alone). Three moves per drawing year triples
+the move count; five minutes a household at 20 points. **This is the experiment that decides whether
+the solver ships. Phase 3 waits for it.**
+
 ### Phase 3. The bridge into the engine: a `table` policy override
 
 `plan.spending.policyOverride = { kind: 'table', solve }` is honoured by `buildContext` and consumed in
@@ -392,7 +448,8 @@ backtest run on both as the out-of-model check.
 
 **Gate 4, the decision:** the solver goes forward into the app only if, on held-out scoring, it beats
 the current pipeline by more than `RATE_EPSILON_PTS` on average, no household is worse by more than one
-point, and the historical backtest is not worse on average. Anything short of that and the write-up
+point, the historical backtest is not worse on average, and the sign holds on the three perturbed
+engines of Phase 2c. Anything short of that and the write-up
 says why and the app is untouched.
 
 ---
@@ -571,7 +628,7 @@ through the table is `survivalAtFloor − λ · shortfall` (plus the bequest com
 in Phase 2), and `λ` is found by bisection on the solved policy's actual floor survival, measured by
 a 1,000-path run in the reduced model, until it lands within half a point of `floorConfidence` from
 above. Each bisection step is one solve; eight steps bound it. `λ` is stored in `solve.meta` and shown
-nowhere. **No constant is ever asked of the person and none is hard-coded**: the floor, the target
+nowhere. The term the penalty multiplies is the expected shortfall BELOW the floor, `Σ_years max(0, floor − spend) / floor`, not the floor-survival indicator: the indicator is what is reported and what the bisection lands, but it is never what the table optimises, because a step objective rewards a gamble at the line (Phase 2c.2). Both shortfall terms are sums over years, so the value stays decomposable. **No constant is ever asked of the person and none is hard-coded**: the floor, the target
 and the confidence are theirs, the exponent 2 and the half-point landing tolerance are structural and
 named in the docs card.
 
@@ -664,6 +721,8 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 |---|---|---|---|
 | 1 | reduced model + golden test | **done**: exact to the pound, 29 assertions | 1.5× |
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
+| 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | sign holds under perturbation; every loss named | 0.5× |
+| 2d | Part D pilot in the reduced model, against the guardrails | fully-funded rate and floor rate, both, on 41 households | 1× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.37 fair, no losses, but -£241k median pot. Diagnose the bequest cost, and test flexible spending in-model, BEFORE part C | | |
@@ -677,7 +736,12 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 12 | words, docs, tests, rollout | full suite both ways | 1× |
 | 13 | flexible spending, guardrails retired | gate 13, versus guardrails | 1.5× |
 
-The decision point is the end of Phase 4. Phases 1 to 4 together are about the size of the evolver
+Distillation is a standing deliverable from Phase 2 on, not a fallback: every move the solver takes that a fixed rule
+does not (the cash sweep was the first; the loss ledger and the wins will name more) is written as a rule, given the
+versus protocol, and shipped into the fixed policies if it holds. Blanchett's regression formulas kept 99.9 percent of
+the strategy they were fitted to; the solver's findings can ship as rules wherever the solver itself does not.
+
+The decision point is the end of Phase 2d, confirmed at the end of Phase 4. Phases 1 to 4 together are about the size of the evolver
 build twice over, and nothing the person sees changes until Phase 8.
 
 ## Decisions I have taken that you may want to overrule
@@ -695,3 +759,10 @@ build twice over, and nothing the person sees changes until Phase 8.
 - Habit (a cut hurting more after a cut) is left out of Part D; it needs last year's spend as state.
 - The cash buffer stays sized on the planned target rather than the chosen spend, which is what keeps
   cash out of the grid; see the buffer trap in Part D.
+- Phase 3 waits for the Part D pilot (2d) and the robustness checks (2c); a small positive phase 2
+  result is read as "what withdrawal order alone is worth", not as the verdict on the method.
+- The risk term is expected shortfall, never a probability, wherever the table optimises; probabilities
+  are reported, not optimised.
+- If couples by rollout (Phase 5) fail their gate, the reserve is model-predictive control (re-plan
+  each year with a convex model of the rules, act on the first year), which the literature shows
+  handles many accounts where the grid cannot; it is not optimal under uncertainty and is not preferred.

@@ -1008,6 +1008,11 @@ build twice over, and nothing the person sees changes until Phase 8.
 
 ## Decisions I have taken that you may want to overrule
 
+- Authorised overnight (20 Sep): 2d.2 and 2d.3 on the same seeds, then 2d.4 (raises above target)
+  incorporating what the earlier passes show, then Phase 6 (the risk tier as an action) started
+  without a further check-in if the 2d gate is passed. Each step recorded here and committed; merge
+  to main only on a green suite.
+
 - The baseline "your plan" is contributions as entered plus the plain sequential draw order, not the
   best of the old policy search, because the point of the comparison is what you would do without the
   app.

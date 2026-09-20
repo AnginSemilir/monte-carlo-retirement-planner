@@ -186,6 +186,28 @@ only, the solved policy against the current pipeline's winning policy on ten lib
 in-model and cannot pass any gate, but if the solver is not clearly ahead even on its own terms, the
 plan stops here rather than after the bridge is built.
 
+**Convergence, measured — the result that says this is worth continuing.** The first solver lost to
+the best fixed rule. Three single-person households, scored in-model on 600 held-out paths, with the
+certain-success shortcut off so it could not confound the reading:
+
+| grid points | solved minus fixed, mean | S140 | S280 | wins / ties / losses |
+|---|---|---|---|---|
+| 8 | −1.50 | −3.5 | −1.0 | 0 / 2 / 1 |
+| 10 | −0.83 | −2.3 | −0.3 | 0 / 2 / 1 |
+| 12 | −0.39 | −2.3 | +1.2 | 1 / 1 / 1 |
+| 16 | **+0.61** | −0.7 | +2.5 | 1 / 2 / 0 |
+
+Monotone in every household, crossing zero between 12 and 16 points, and not yet plateaued. So the
+gap was resolution, not structure, and the fast flow is worth building. It is **not** evidence for
+gate 4: three households at +0.61 is nowhere near "more than a point ahead with none worse", and
+16 points costs 157–345s a household on the model, which is why the fast flow comes next.
+
+**The one thing that does not converge away**: the solver pays £38–55k more lifetime tax and ends with
+a lower median pot at every resolution, while winning on survival. That is the objective doing exactly
+what it was told — survival first, bequest only as a tie-break — but a plan that buys 2.5 points of
+survival with £382k of median pot is a trade the Strategy tab must show rather than bury, and it is
+what prioritisation is for.
+
 **Gate 2, `research/tests/solver.test.mjs`:** on a household with no tax and one wrapper the solved
 survival equals a closed-form answer within 0.5 points; the policy is monotone where the theory says
 it must be; the forward check stays inside the band; re-solving after a balance edit touches no table

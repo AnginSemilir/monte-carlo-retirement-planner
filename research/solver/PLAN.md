@@ -350,6 +350,19 @@ paths were marginal either way. If the solver also lifts the bad tail the case i
 points suggest; if it only nudges paths over the line it is weaker. `insample.mjs` carries median and
 tax but not p10 or failure age.
 
+**Phase 2 experiment, complete (tag p2-7001; 41 even-indexed households of the 70-98 band, 20 points,
+3,000 held-out paths, seeds 7001/7002; full table in `results-p2-7001.txt`).** Solver against the same
+menu chosen by the app's own judge: **mean +0.59 points, 32 up / 5 down beyond two standard errors,
+sign test p < 0.001; the app's own picker prefers the solver in 28 of 41 (p = 0.028)**. Against the app
+as it stands: +0.60, 32 up / 6 down, picker 30 of 41 (p = 0.004). Unlucky tenth +£10k; median pot
+−£243k; lifetime tax +£38k; failure age on failing paths −0.19 years. The wins cluster where decisions
+matter (in-drawdown and far-from-retirement households at 70-85% survival: +1.5 to +2.3); the losses
+are five, all with the solver paying more tax on a household that fails often anyway (S070 −2.1,
+S330 −1.4, S342 −1.2, S318 −0.8, S112 −0.4). The gate (about half a point with a clear sign test) is
+passed, and by the literature's reading a half-point edge is what withdrawal order alone is worth.
+The five losses go to the loss ledger (2c.4); the next steps are Phase 2c and the Part D pilot (2d),
+not Phase 3.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -725,7 +738,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 2d | Part D pilot in the reduced model, against the guardrails | fully-funded rate and floor rate, both, on 41 households | 1× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
-| - | **phase 2 says**: +0.37 fair, no losses, but -£241k median pot. Diagnose the bequest cost, and test flexible spending in-model, BEFORE part C | | |
+| - | **phase 2 says**: +0.59 on 41 households, 32 up / 5 down, sign test p < 0.001, picker 28 of 41; median pot −£243k. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | same on couple households | 1× |
 | 6 | tiers and spend dimension | same, plus safe spend within £500 | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |

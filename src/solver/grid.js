@@ -167,7 +167,7 @@ function locInto(ax, v, k) {
   const i = Math.min(ax.n - 2, Math.max(1, Math.floor(f)));
   LOC[k] = i; LOC[k + 1] = f - i;
 }
-export function readValues(g, lsArr, bArr, s, out) {
+export function readValues(g, lsArr, bArr, s, out, lrArr = null) {
   locInto(g.axes.pen, s[0], 0); locInto(g.axes.isa, s[1], 2); locInto(g.axes.tax, s[2], 4);
   const ig = nearest(g.gain, s[3]), ic = nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa));
   const n = g.n, nn = n * n;
@@ -181,8 +181,13 @@ export function readValues(g, lsArr, bArr, s, out) {
   IDX[5] = i0 + nn + 1;  W[5] = wp1 * wi0 * wt1;
   IDX[6] = i0 + nn + n;  W[6] = wp0 * wi1 * wt1;
   IDX[7] = i0 + nn + n + 1; W[7] = wp1 * wi1 * wt1;
-  let ls = 0, b = 0;
-  for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
+  let ls = 0, b = 0, lr = 0;
+  if (lrArr) {
+    for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; }
+    out[2] = expit(lr);
+  } else {
+    for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
+  }
   out[0] = expit(ls); out[1] = b;
   return out;
 }

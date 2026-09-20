@@ -86,26 +86,36 @@ const at = (id) => singles.find(s => s.id === id);
 console.log('=========== B. MONOTONICITY, WHICH MUST HOLD WHATEVER THE HOUSEHOLD ===========');
 {
   /*
-   * With the gain and lump-sum buckets fixed, more money on any pot axis can never lower survival: the
-   * move that leaves the extra money alone is always in the list. Interpolation and the bounds could
-   * both break this if they were wrong, so it is checked on every cell of every year.
+   * With the gain and lump-sum buckets fixed, more money on any pot axis can never lower what the
+   * solver is maximising: the move that leaves the extra money alone is always in the list. What it
+   * maximises is the SCORE - survival plus the weighted resilience and capped bequest - so that is the
+   * quantity that must be monotone, on every cell of every year. Survival alone need not be: a richer
+   * cell may legitimately choose a move that gives up a sliver of survival for resilience or bequest,
+   * and the first run of this test after the objective changed found exactly that, 373 cells out of
+   * 468,000 with the worst a tenth of a point. So survival is checked too, but against the size of
+   * trade the weights permit rather than against zero.
    */
   const r = solve(E, M, prep(at('S280').plan), { points: 10 });
-  const { g, surv } = r;
-  let viol = 0, worst = 0, cells = 0;
+  const { g, surv, resil, beq, wR, wB } = r;
+  let violScore = 0, worstScore = 0, violSurv = 0, worstSurv = 0, cells = 0;
   const tol = 1e-6;
   for (let t = 0; t <= r.m.ctx.totalYears; t++) {
-    const S = surv[t];
+    const S = surv[t], R = resil[t], B = beq[t];
+    const score = (i) => S[i] + wR * R[i] + wB * B[i];
     for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++)
       for (let it = 0; it < g.n; it++) for (let ii = 0; ii < g.n; ii++) for (let ip = 0; ip < g.n; ip++) {
-        const v = S[g.index(ip, ii, it, ig, ic)]; cells++;
-        const check = (v2) => { if (v2 < v - tol) { viol++; worst = Math.max(worst, v - v2); } };
-        if (ip + 1 < g.n) check(S[g.index(ip + 1, ii, it, ig, ic)]);
-        if (ii + 1 < g.n) check(S[g.index(ip, ii + 1, it, ig, ic)]);
-        if (it + 1 < g.n) check(S[g.index(ip, ii, it + 1, ig, ic)]);
+        const i = g.index(ip, ii, it, ig, ic); cells++;
+        const check = (j) => {
+          const ds = score(i) - score(j); if (ds > tol) { violScore++; worstScore = Math.max(worstScore, ds); }
+          const dv = S[i] - S[j]; if (dv > tol) { violSurv++; worstSurv = Math.max(worstSurv, dv); }
+        };
+        if (ip + 1 < g.n) check(g.index(ip + 1, ii, it, ig, ic));
+        if (ii + 1 < g.n) check(g.index(ip, ii + 1, it, ig, ic));
+        if (it + 1 < g.n) check(g.index(ip, ii, it + 1, ig, ic));
       }
   }
-  ok(`B1  survival never falls as any pot grows (${cells} cells, ${r.m.ctx.totalYears + 1} years)`, viol === 0, viol ? `${viol} violations, worst ${worst.toFixed(4)}` : 'none');
+  ok(`B1  the score never falls as any pot grows (${cells} cells, ${r.m.ctx.totalYears + 1} years)`, violScore === 0, violScore ? `${violScore} violations, worst ${worstScore.toFixed(5)}` : 'none');
+  ok('B2  ...and survival gives up at most a quarter-point where a richer cell trades it for resilience or bequest', worstSurv < 0.0025, `${violSurv} cells, worst ${(100 * worstSurv).toFixed(3)} pts`);
 }
 
 console.log('=========== C. WHY THERE IS NO CERTAIN-SUCCESS SHORTCUT ===========');

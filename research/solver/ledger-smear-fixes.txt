@@ -49,3 +49,21 @@ S070 just-retired/pension-heavy/wealthy/m  pts       24 richardson              
 S070 just-retired/pension-heavy/wealthy/m  pts       20 gain=6                        table@0 80.8  sim solver 67.9  bias +13.0  | best [18] sv 80.55 score 1.1439 | fixed [12] sv 80.26 score 1.1405 sim 70.3  | 241s
 S318 far/isa-heavy/comfortable/light       pts       20 gain=6                        table@0 86.9  sim solver 78.5  bias +8.4  | best [0] sv 86.80 score 1.3427 | fixed [12] sv 86.80 score 1.3427 sim 79.2  | 381s
 S342 far/balanced/comfortable/light        pts       24 richardson                    table@0 81.3  sim solver 73.1  bias +8.2  | best [0] sv 81.22 score 1.2605 | fixed [12] sv 81.22 score 1.2605 sim 74.1  | 369s
+
+## batch 3: total-wealth coordinates, 40 x 6 x 6 and 60 x 8 x 8 - 1,500 held-out paths
+S070 just-retired/pension-heavy/wealthy/m  pts       40 coords=totalx6                table@0 74.7  sim solver 69.5  bias +5.2  | best [2] sv 74.64 score 1.0582 | fixed [12] sv 74.65 score 1.0582 sim 70.3  | 19s
+S342 far/balanced/comfortable/light        pts       40 coords=totalx6                table@0 74.1  sim solver 73.5  bias +0.5  | best [0] sv 74.05 score 1.1400 | fixed [12] sv 74.05 score 1.1400 sim 74.1  | 31s
+S330 far/gia-heavy/comfortable/light       pts       40 coords=totalx6                table@0 79.9  sim solver 78.9  bias +0.9  | best [0] sv 79.83 score 1.2197 | fixed [12] sv 79.83 score 1.2197 sim 80.2  | 31s
+S318 far/isa-heavy/comfortable/light       pts       40 coords=totalx6                table@0 78.6  sim solver 78.7  bias -0.0  | best [0] sv 78.60 score 1.2053 | fixed [12] sv 78.60 score 1.2053 sim 79.2  | 31s
+S112 just-retired/cash-heavy/modest/moder  pts       40 coords=totalx6                table@0 96.6  sim solver 97.1  bias -0.5  | best [4] sv 96.58 score 1.4031 | fixed [10] sv 96.58 score 1.4031 sim 97.3  | 22s
+S004 in-drawdown/pension-heavy/modest/mod  pts       40 coords=totalx6                table@0 92.4  sim solver 93.6  bias -1.2  | best [5] sv 92.48 score 1.3604 | fixed [1] sv 92.19 score 1.3579 sim 92.2  | 17s
+S082 just-retired/isa-heavy/wealthy/moder  pts       40 coords=totalx6                table@0 80.2  sim solver 83.7  bias -3.5  | best [4] sv 80.19 score 1.1493 | fixed [0] sv 80.01 score 1.1478 sim 81.7  | 20s
+S354 far/cash-heavy/comfortable/light      pts       40 coords=totalx6                table@0 82.1  sim solver 82.7  bias -0.6  | best [0] sv 82.14 score 1.2707 | fixed [10] sv 82.14 score 1.2707 sim 80.3  | 30s
+S070 just-retired/pension-heavy/wealthy/m  pts       60 coords=totalx8                table@0 75.2  sim solver 69.4  bias +5.8  | best [2] sv 75.19 score 1.0676 | fixed [12] sv 75.19 score 1.0676 sim 70.3  | 46s
+S330 far/gia-heavy/comfortable/light       pts       60 coords=totalx8                table@0 80.0  sim solver 79.0  bias +1.0  | best [0] sv 80.01 score 1.2266 | fixed [12] sv 80.01 score 1.2266 sim 80.2  | 75s
+S342 far/balanced/comfortable/light        pts       60 coords=totalx8                table@0 74.5  sim solver 73.6  bias +0.9  | best [0] sv 74.52 score 1.1490 | fixed [12] sv 74.52 score 1.1490 sim 74.1  | 75s
+S318 far/isa-heavy/comfortable/light       pts       60 coords=totalx8                table@0 78.8  sim solver 78.7  bias +0.1  | best [0] sv 78.83 score 1.2110 | fixed [12] sv 78.83 score 1.2110 sim 79.2  | 77s
+S112 just-retired/cash-heavy/modest/moder  pts       60 coords=totalx8                table@0 96.5  sim solver 97.1  bias -0.5  | best [4] sv 96.54 score 1.4024 | fixed [10] sv 96.54 score 1.4024 sim 97.3  | 52s
+S082 just-retired/isa-heavy/wealthy/moder  pts       60 coords=totalx8                table@0 80.7  sim solver 83.8  bias -3.1  | best [4] sv 80.71 score 1.1558 | fixed [0] sv 80.57 score 1.1549 sim 81.7  | 46s
+S004 in-drawdown/pension-heavy/modest/mod  pts       60 coords=totalx8                table@0 92.4  sim solver 93.6  bias -1.2  | best [5] sv 92.35 score 1.3584 | fixed [1] sv 92.15 score 1.3568 sim 92.2  | 44s
+S354 far/cash-heavy/comfortable/light      pts       60 coords=totalx8                table@0 82.5  sim solver 82.8  bias -0.3  | best [0] sv 82.46 score 1.2775 | fixed [10] sv 82.46 score 1.2775 sim 80.3  | 75s

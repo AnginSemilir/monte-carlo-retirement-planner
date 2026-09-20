@@ -194,7 +194,9 @@ if (mode === 'run') {
   const cApp = F.compile(m, appM);
   const app = pickFixed(cApp, appM, search);
 
-  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum });
+  // grid coordinates from the environment, so a re-run of the whole experiment on the total-wealth grid is one flag
+  const COORDS = process.env.COORDS || undefined, SHARES = process.env.SHARES ? Number(process.env.SHARES) : undefined;
+  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, coords: COORDS, shares: SHARES });
   const solvedRs = held.map(zs => runSolvedPath(r, zs));
   const sameRs = held.map(zs => runFixedPath(cSame, same.ai, zs));
   const appRs = held.map(zs => runFixedPath(cApp, app.ai, zs));
@@ -202,7 +204,7 @@ if (mode === 'run') {
 
   const verdict = (fixedStats) => E.explainPick([{ id: 'solver', stats: S }, { id: 'fixed', stats: fixedStats }], { priorities: E.DEFAULT_PRIORITIES }).winner.id;
   const out = {
-    tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, held: HELD, seedSearch, seedHeld, solveMs: r.meta.ms, ms: Date.now() - t0,
+    tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, held: HELD, seedSearch, seedHeld, solveMs: r.meta.ms, ms: Date.now() - t0,
     solver: S, same: { ...Fs, label: same.label }, app: { ...A, label: app.label },
     pairedSame: paired(solvedRs, sameRs), pairedApp: paired(solvedRs, appRs),
     verdictSame: verdict(Fs), verdictApp: verdict(A)

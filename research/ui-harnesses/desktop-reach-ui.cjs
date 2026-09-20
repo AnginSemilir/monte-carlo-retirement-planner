@@ -51,7 +51,7 @@ const AMBER = () => [...document.querySelectorAll('svg path')]
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };
 
-async function open(b, w, h, app = 'full') {
+async function open(b, w, h, app = 'full', seed = plan) {
   const ctx = await b.newContext({ viewport: { width: w, height: h } });
   const p = await ctx.newPage();
   const errs = [];
@@ -61,7 +61,7 @@ async function open(b, w, h, app = 'full') {
     localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl));
     localStorage.setItem('rp_simple_v1', JSON.stringify(sp));
     localStorage.setItem('rp_which_app', which === 'simple' ? 'simple' : JSON.stringify('full'));
-  }, [plan, simple, app]);
+  }, [seed, simple, app]);
   await p.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(900);
   return { p, errs };
@@ -649,6 +649,53 @@ async function runProjection(p) {
     const doc = await g.p.evaluate(() => { const el = document.getElementById('doc-guardrails'); if (!el) return null; const r = el.getBoundingClientRect(); return { top: Math.round(r.top), h2: el.querySelector('h2')?.textContent || '' }; });
     ok('the Documentation link lands on the guardrails explainer', !!doc && doc.top < 200 && /Guardrails/.test(doc.h2), doc ? `${doc.h2} at ${doc.top}px` : 'no section');
     ok('no page errors with guardrails', g.errs.length === 0, g.errs.slice(0, 2).join(' | '));
+    await g.p.context().close();
+  }
+
+  /*
+   * THE ONE-OFF COST LOOKAHEAD.
+   *
+   * A number on the Config tab, five years by default, off at zero. The same household with a cost of
+   * £600k at 66, four years into retirement and past the access age: with the default the audit table
+   * carries a "Set aside" column naming the years the rule drew and the cost year each draw was for,
+   * and only the years before the cost carry a figure; set to 0 through the real field the column goes.
+   * The Documentation link lands on its card.
+   */
+  console.log('one-off cost lookahead at 1400x900');
+  {
+    const costly = JSON.parse(JSON.stringify(plan));
+    costly.oneOffCosts = [{ id: 'c1', date: '2047-06-01', year: 2047, owner: 'Myself', amount: 600000, desc: 'house move' }];
+    const g = await open(b, 1400, 900, 'full', costly);
+    await tab(g.p, 'Config');
+    const field = await g.p.evaluate(() => { const el = document.querySelector('[data-lookahead-years]'); if (!el) return null; const r = el.getBoundingClientRect(); return { value: el.value, h: Math.round(r.height), label: document.querySelector('label[for="config-lookahead-years"]')?.textContent || '' }; });
+    ok('the Config tab has the horizon field, at five by default, with a label', !!field && field.value === '5' && /years ahead/i.test(field.label) && field.h >= 24, JSON.stringify(field));
+    await tab(g.p, 'Audit Data Table');
+    const audit = await g.p.evaluate(() => {
+      const th = [...document.querySelectorAll('th')].some(t => /Set aside/.test(t.textContent));
+      const rows = [...document.querySelectorAll('tbody tr')].map(tr => ({ year: Number(tr.querySelector('td')?.textContent), cell: (tr.querySelector('[data-lookahead-cell]')?.innerText || '').replace(/\s+/g, ' ').trim() }));
+      const acted = rows.filter(r => /£/.test(r.cell));
+      return { th, n: rows.length, acted: acted.map(r => `${r.year}: ${r.cell}`), before: acted.every(r => r.year >= 2042 && r.year < 2047), named: acted.every(r => /for 2047/.test(r.cell)) };
+    });
+    ok('the audit table carries a Set aside column by default', audit.th && audit.n > 0, `${audit.n} rows`);
+    ok('...with figures only in the five years before the cost', audit.acted.length > 0 && audit.acted.length <= 5 && audit.before, audit.acted.join(' | '));
+    ok('...each naming the cost year it is for', audit.named);
+    await tab(g.p, 'Config');
+    await g.p.fill('[data-lookahead-years]', '0');
+    await g.p.waitForTimeout(400);
+    await tab(g.p, 'Audit Data Table');
+    ok('set to zero through the field, the column goes', await g.p.evaluate(() => ![...document.querySelectorAll('th')].some(t => /Set aside/.test(t.textContent))));
+    await tab(g.p, 'Config');
+    await g.p.evaluate(() => { [...document.querySelectorAll('#config-lookahead button')].find(x => /Documentation/.test(x.textContent)).click(); });
+    // The scroll is smooth, and the Documentation tab fills in its contents list after the scroll has
+    // started, which shifts what follows by up to 200px. So wait for the card to settle rather than
+    // sampling at a fixed moment, and accept a landing anywhere in the top third of the screen: the
+    // claim is that the link takes you to the card, not that the browser's scroll is pixel-exact.
+    await g.p.waitForFunction(() => { const el = document.getElementById('doc-lookahead'); return el && el.getBoundingClientRect().top < 260; }, null, { timeout: 6000 }).catch(() => {});
+    // ...and then for the smooth scroll to stop moving, so the figure reported is where it came to rest
+    await g.p.waitForFunction(() => new Promise(res => { const at = () => document.getElementById('doc-lookahead')?.getBoundingClientRect().top; const a = at(); setTimeout(() => res(at() === a), 250); }), null, { timeout: 6000 }).catch(() => {});
+    const doc = await g.p.evaluate(() => { const el = document.getElementById('doc-lookahead'); if (!el) return null; const r = el.getBoundingClientRect(); return { top: Math.round(r.top), h2: el.querySelector('h2')?.textContent || '' }; });
+    ok('the Documentation link lands on the lookahead explainer', !!doc && doc.top >= -24 && doc.top < 260 && /One-off Cost/.test(doc.h2), doc ? `${doc.h2} at ${doc.top}px` : 'no section');
+    ok('no page errors with the lookahead', g.errs.length === 0, g.errs.slice(0, 2).join(' | '));
     await g.p.context().close();
   }
 

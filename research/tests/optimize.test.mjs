@@ -974,7 +974,10 @@ console.log('=========== U. TIES GO TO THE SMALLER GIFT, AND THE PLATEAU IS SHOW
     // lands before the gift, and is what makes overshooting the exempt boundary affordable at all
     oneOffContributions: [{ id: 'c', date: '2027-01-01', year: 2027, owner: 'Myself',
       category: 'Other Investments (e.g. GIA)', amount: 120000, transferredFrom: 'External' }],
-    oneOffCosts: [], config: { valuationDate: '2026-09-13' },
+    // The lookahead is off here on purpose: a planned gift is a known cost, so with it on the plan draws
+    // pension at the basic rate ahead of the gift year, every gift size then carries a different tax
+    // bill, and the plateau this block exists to test never forms.
+    oneOffCosts: [], config: { valuationDate: '2026-09-13', lookaheadYears: 0 },
     inheritance: { deathAge: 71, homeValue: 1400000, homeToDescendants: true,
       compensationPayment: 900000, compensationDate: '2025-12-04',
       gifts: [{ id: 'g1', amount: 308000, year: 2026, desc: 'House' }],

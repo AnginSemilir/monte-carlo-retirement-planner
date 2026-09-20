@@ -125,6 +125,20 @@ export default function Docs({ E, P, plan, nmpa, terminalAge, activeRiskMatrix, 
         </PhoneCollapse>
       </div>
 
+      <div id="doc-lookahead" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
+        <PhoneCollapse isPhone={isPhone}>
+        <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-sky-600" /> Preparing for a One-off Cost</h2>
+        <p className="text-xs text-slate-600 leading-relaxed">A one-off cost you enter on Plan Inputs is a cost the plan can see coming, but until this setting it was met as if it were a surprise: read in its own year and paid by the cost order, cash then GIA then ISA and finally the pension, with no ceiling on the pension draw. A cost larger than the liquid wrappers therefore landed on the pension in one year and went through the higher and additional bands, when the same money drawn over the years before would have come out at the basic rate. The setting is <strong>Prepare for one-off costs, years ahead</strong> on the Config tab; the default is {E.DEFAULT_CONFIG.lookaheadYears === 0 ? 'off (0)' : `${E.DEFAULT_CONFIG.lookaheadYears} years`}.</p>
+        <ul className="list-disc pl-5 text-xs text-slate-600 space-y-1.5">
+          <li><strong>What it does.</strong> From that many years ahead, each year the plan sets the liquid wrappers, grown at the rate they earn, against every known cost inside the window. Whatever would still be short is divided by the years left until the cost lands, and that share is drawn from the pension on top of the living draw, never past the basic-rate limit ({formatGBP(P.higherRateStartsAt)} of total taxable income). The proceeds go to the ISA up to the allowance and then to cash, not the GIA, because money for spending within a few years should not realise a gain on the way out.</li>
+          <li><strong>Where it cannot act.</strong> Only once retired and past the pension access age, since before that the pension cannot be drawn. A household whose living draw already reaches the basic-rate limit has no room under the ceiling, and the rule correctly does nothing rather than draw at 40%. A cost the liquid wrappers will cover on their own leaves it idle too.</li>
+          <li><strong>Self-correcting, not scheduled.</strong> It is recomputed from the balances every year: a rise in the markets shrinks the shortfall and the reserve stops growing, a fall widens it and the next year draws more. Nothing is earmarked, because the cost order spends the liquid wrappers first when the year comes.</li>
+          <li><strong>What it costs.</strong> Money leaves the pension's tax-free growth a few years early and part of it sits in cash meanwhile. That is the trade against twenty or more points of tax on the year the cost lands.</li>
+        </ul>
+        <p className="text-xs text-slate-500 leading-relaxed"><strong>What the study found.</strong> Over the scenario library with a cost of a quarter or a half of the household's wealth placed six years into retirement, the rule was idle for most households, whose liquid wrappers covered the cost anyway. Where it acted, the cost-year pension draw fell by a hundred thousand pounds or more, lifetime tax fell by twenty to seventy thousand, the median terminal pot rose rather than fell, and survival rose by up to three points with no household worse by more than a point. The Audit Data Table gains a <strong>Set aside</strong> column when the setting is on, showing the years it acted and the cost year each draw was for; the instruction sheet on the Strategy tab includes it as a step.</p>
+        </PhoneCollapse>
+      </div>
+
       <div id="doc-coverage" className="bg-surface border border-slate-200/90 p-5 rounded-xl space-y-3">
         <PhoneCollapse isPhone={isPhone}>
         <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-indigo-600" /> Modelling Decisions, Coverage &amp; Known Gaps</h2>

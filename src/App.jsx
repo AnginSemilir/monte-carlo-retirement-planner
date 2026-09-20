@@ -505,6 +505,12 @@ const DEFAULT_CONFIG = {
    */
   guardrails: false,
   /*
+   * How many years ahead of a known one-off cost the plan starts setting money aside for it, drawing
+   * the pension up to the basic-rate limit and parking the proceeds where the cost will be paid from.
+   * Zero is off: the cost lands in its year and is met from whatever is there, as it always was.
+   */
+  lookaheadYears: 5,
+  /*
    * How far up the bands that harvest goes: 'pa' stops at the tax-free allowance, 'basic' keeps drawing
    * to the basic-rate limit and pays 20% on the way. The second is a bequest strategy rather than a
    * spending one - it moves a pension that will be taxed twice after 2027 (inheritance tax, then the
@@ -1093,6 +1099,8 @@ function normalizePlan(raw) {
   if (typeof plan.config.harvestPersonalAllowance !== 'boolean') plan.config.harvestPersonalAllowance = plan.config.harvestPersonalAllowance === '' ? true : !!plan.config.harvestPersonalAllowance;
   // A plan saved before the rule existed has no field, and no field means what it always meant: fixed.
   if (typeof plan.config.guardrails !== 'boolean') plan.config.guardrails = false;
+  // A plan saved before the field existed takes the default, as every other config field does.
+  plan.config.lookaheadYears = clamp(Math.round(num(plan.config.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15);
   if (!plan.config.valuationDate || isNaN(new Date(plan.config.valuationDate).getTime())) plan.config.valuationDate = todayISO();
   if (plan.demographics.planningMode !== 'single') plan.demographics.planningMode = 'couple';
   if (!DECUMULATION_POLICIES[plan.spending.decumulationPolicy]) plan.spending.decumulationPolicy = 'Bracket Fill Basic';
@@ -1752,6 +1760,7 @@ function buildContext(rawPlan) {
     solvencyFloor: Math.max(0, num(c.solvencyFloor, 0)),
     inflation: clamp(num(c.inflation, 2.5), -50, 100) / 100,
     guardrails: c.guardrails ? GUARDRAILS : null,
+    lookaheadYears: clamp(Math.round(num(c.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15),
     yf, baseYear, valuationDate,
     otherIncomes, oneOffContribs, oneOffCosts, oneOffDeductions, stagedTransfers, oneOffStaging
   };
@@ -2106,6 +2115,69 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
   }
 
   /*
+   * 7a. SET MONEY ASIDE FOR A COST THE PLAN CAN SEE COMING.
+   *
+   * A one-off cost used to arrive as a surprise: read from the map in its own year and met by the cost
+   * order, cash then GIA then ISA then pension with no ceiling. A large one therefore landed on the
+   * pension in a single year and went straight through the higher and additional bands, when the same
+   * money drawn over the years before would have come out at the basic rate.
+   *
+   * So, from `lookaheadYears` ahead, the plan prepares. Each year it looks at every known cost inside
+   * the horizon, nearest first, sets the liquid wrappers against them, and takes this year's share of
+   * whatever is still short - the shortfall spread over the years remaining until that cost - from the
+   * pension, with the basic-rate limit as the ceiling. drawPension enforces the ceiling on TOTAL taxable
+   * income, so a state pension that already fills the band stops this, as it should.
+   *
+   * It is recomputed from the balances every year rather than planned once, which is what makes it
+   * self-correcting: a market rise that lifts the ISA stops the reserve growing, a living draw that eats
+   * the cash is refilled the next year, and there is nothing to earmark, because the cost order spends
+   * liquid first when the year comes. The proceeds go to the ISA up to the allowance and then to cash,
+   * not the GIA as the harvest's do: this money is for spending within a few years, and a disposal on
+   * the way out would realise a gain for nothing.
+   *
+   * What it costs: money leaves the pension's tax-free growth and death-tax shelter a few years early,
+   * and the cash half earns cash's return meanwhile. That trade against twenty points of tax is what the
+   * lookahead study measures, and it is why the horizon is a setting rather than a constant.
+   */
+  let reserved = 0, reservedFor = null;
+  if (ctx.lookaheadYears > 0 && anyRetired && anyAccess) {
+    /*
+     * The liquid wrappers are projected forward at the real rate they earn, not counted at today's
+     * balance: money that will have grown to cover the cost by the time it lands does not need topping
+     * up, and counting it flat made the plan draw at 20% for shortfalls that growth alone erased.
+     */
+    let free = owners.reduce((s2, o) => s2 + (pots[o.ids.cash] || 0) + (pots[o.ids.isa] || 0) + (pots[o.ids.other] || 0), 0);
+    const g = 1 + liquidRealRate(ctx);
+    let share = 0;
+    for (let k = 1; k <= ctx.lookaheadYears; k++) {
+      const c = ctx.oneOffCosts.get(year + k) || 0;
+      if (!(c > 0)) continue;
+      if (reservedFor === null) reservedFor = year + k;
+      const grown = Math.pow(g, k);
+      const covered = Math.min(free * grown, c);
+      free -= covered / grown;
+      const short = c - covered;
+      if (short > 0) share += short / k;
+    }
+    share *= frac;
+    if (share > 0) {
+      let need = share;
+      owners.forEach(o => {
+        if (need <= 0 || working[o.key] || !access[o.key] || (pots[o.ids.pen] || 0) <= 0) return;
+        const net = drawPension(o.key, need, P.higherRateStartsAt);
+        if (net > 0) {
+          const isaRoom = Math.max(0, P.isaAllowance - isaContribThisYear[o.key]);
+          const toIsa = Math.min(net, isaRoom);
+          pots[o.ids.isa] = (pots[o.ids.isa] || 0) + toIsa;
+          isaContribThisYear[o.key] += toIsa;
+          pots[o.ids.cash] = (pots[o.ids.cash] || 0) + (net - toIsa);
+          reserved += net; need -= net;
+        }
+      });
+    }
+  }
+
+  /*
    * 7b. Harvest from the pension beyond what the year needs, and re-wrap it.
    *
    * The ceiling decides what this is FOR. Stopping at the personal allowance is free money: income drawn
@@ -2211,7 +2283,11 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
     realisedGains: realisedGains.self + realisedGains.part,
     preNmpaInsolvent, unmetDemand,
     // the spending rule: what it did this year, and the multiplier now in force on the draw (1 = as planned)
-    guardrail, spendMult: ctx.guardrails ? state.guard.mult : 1
+    guardrail, spendMult: ctx.guardrails ? state.guard.mult : 1,
+    // set aside this year for a cost the plan can see coming, and which year's cost it was for
+    reserved, reservedFor,
+    // the year's own one-off cost, so the bridge can size for one that falls before the pension unlocks
+    oneOffCost: cost
   };
 }
 
@@ -2693,7 +2769,12 @@ function bridgeRequirement(ctx) {
   for (const r of rows) {
     const anyAccess = ctx.owners.some(o => (o.key === 'self' ? r.ageSelf : r.agePart) >= ctx.nmpa);
     if (anyAccess) break;
-    if (r.targetSpend > 0) { pv += r.netDrawdown / Math.pow(1 + rate, years); years++; needed += r.netDrawdown; }
+    /*
+     * A one-off cost inside the gap has to come out of the same bridge: the pension cannot be reached
+     * for it, so it is the liquid wrappers or nothing. It used to be left out, which sized the bridge
+     * for the weekly shop and let a roof at 55 become a pre-access failure the tournament never saw.
+     */
+    if (r.targetSpend > 0) { const need = r.netDrawdown + (r.oneOffCost || 0); pv += need / Math.pow(1 + rate, years); years++; needed += need; }
   }
   return { gapYears: years, netNeeded: needed, pvNeeded: pv, rate };
 }
@@ -5868,6 +5949,10 @@ const WRAPPER_PHRASE = {
 };
 const phraseFor = (tok) => WRAPPER_PHRASE[tok] || tok;
 
+// Whether the plan holds a cost the lookahead could prepare for: a one-off cost, or a planned gift,
+// which buildContext folds into the same map.
+const planHasKnownCost = (plan) => (plan?.oneOffCosts || []).some(c => num(c.amount, 0) > 0) || (plan?.inheritance?.gifts || []).some(g => num(g.amount, 0) > 0);
+
 function policyPlaybook(policyKey, P, opts = {}) {
   const pol = DECUMULATION_POLICIES[policyKey];
   if (!pol) return [];
@@ -5881,6 +5966,16 @@ function policyPlaybook(policyKey, P, opts = {}) {
     body: `Divide what you plan to draw from the pots this year by what the pots are worth today. If that rate is more than ${Math.round(GUARDRAILS.band * 100)}% above where it stood the first year you drew, take ${Math.round(GUARDRAILS.cut * 100)}% less than planned this year. If it is more than ${Math.round(GUARDRAILS.band * 100)}% below, take ${Math.round(GUARDRAILS.raise * 100)}% more.`,
     detail: `After any year the pots fell, skip the inflation rise and do not make it up later. In the last ${GUARDRAILS.freezeYears} years of the plan, never cut. When the plan itself changes what you draw - the State Pension starting, a spending band beginning - measure from that new footing rather than the first year's.`
   } : null;
+  /*
+   * The cost lookahead is likewise a rule the household follows with a calendar in hand, so it gets a
+   * step naming the horizon and the ceiling, and no figure, since the shortfall is theirs to re-measure
+   * each year against the balances they actually have.
+   */
+  const lookaheadStep = opts.lookahead > 0 ? {
+    title: `Each year, look ${opts.lookahead} year${opts.lookahead === 1 ? '' : 's'} ahead for a one-off cost`,
+    body: `For every large cost you know is coming inside that window, set today's cash, GIA and ISA balances against it, grown at the rate they earn. Whatever would still be short, divide by the years left until it lands and take that share from the pension this year, on top of the living draw, but only while your total taxable income stays under ${formatGBP(P.higherRateStartsAt)}. Put it in the ISA up to the allowance and the rest in cash.`,
+    detail: 'Re-measure every year rather than following a schedule: a good year in the markets shrinks the shortfall and a bad one grows it. Once the cost has been paid, stop. If the living draw already reaches the basic-rate limit there is no room, and the rule correctly does nothing.'
+  } : null;
   const list = (steps) => steps.map(phraseFor);
   const out = [];
 
@@ -5892,6 +5987,7 @@ function policyPlaybook(policyKey, P, opts = {}) {
       : 'This policy does not manage tax bands: each wrapper is emptied before the next is touched.'
   });
   if (guardrailStep) out.push(guardrailStep);
+  if (lookaheadStep) out.push(lookaheadStep);
 
   out.push({
     title: 'When a one-off cost lands',
@@ -6327,7 +6423,7 @@ function frontierSpend(row, targetRate = 90) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
+const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, planHasKnownCost, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
 /*
  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle
@@ -6335,7 +6431,7 @@ const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, 
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { GUARDRAILS, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 /*
@@ -7341,7 +7437,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
     const html = buildActionPlanHtml({
       res, baseline: base, plan, ctx,
       diff: E.diffStrategyPlans(base?.planState || plan, res.planState),
-      playbook: E.policyPlaybook(plan?.spending?.decumulationPolicy, ctx.P, { guardrails: !!plan?.config?.guardrails }),
+      playbook: E.policyPlaybook(plan?.spending?.decumulationPolicy, ctx.P, { guardrails: !!plan?.config?.guardrails, lookahead: E.planHasKnownCost(plan) ? num(plan?.config?.lookaheadYears, 0) : 0 }),
       isCouple, seed: results?.seed ?? seed, trials: TOURNAMENT_TRIALS,
       summary: summarizeStrategyChange(res, base, { isCouple, meta: results?.meta, selfEmployedOnly })
     }, { formatGBP, fmtNum });
@@ -8140,7 +8236,14 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
 
   const handleFocus = (e) => e.target.select();
   const activeRiskMatrix = plan?.riskProfiles || E.DEFAULT_RISK_PROFILES;
-  const scrollToDocSection = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); };
+  const scrollToDocSection = (id) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth' });
+    // The Documentation tab fills in its contents list after first paint, which pushes every card down
+    // by the list's height once the scroll is already under way, so a link could land 200px short of
+    // its card. Look once more when the list is in, and correct if the card moved.
+    setTimeout(() => { const e = document.getElementById(id); if (e && Math.abs(e.getBoundingClientRect().top) > 24) e.scrollIntoView({ behavior: 'auto' }); }, 700);
+  };
   /*
    * WHAT IS IN THE REFERENCE, BEFORE YOU SCROLL THROUGH IT.
    *
@@ -12852,6 +12955,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <span className="text-[10px] text-slate-400 mt-1 block">Off, every simulated year spends the plan whatever the markets did, which is the strict test. On, the survival rate rises because bad runs are answered with cuts, so read it beside the spending figures it adds: what the typical run lived on, and what the unlucky tenth did. No cuts in the final {E.GUARDRAILS.freezeYears} years. <button type="button" onClick={() => goToDoc('doc-guardrails')} className="text-blue-600 hover:underline font-semibold cursor-pointer">Documentation &rarr;</button></span>
                   </Fine>
                 </div>
+                <div id="config-lookahead">
+                  <label htmlFor="config-lookahead-years" className="text-slate-600 font-semibold block mb-1">Prepare for one-off costs, years ahead</label>
+                  <input id="config-lookahead-years" type="number" min="0" max="15" step="1" data-lookahead-years value={plan?.config?.lookaheadYears ?? 0} onChange={(e) => updateConfig('lookaheadYears', e.target.value)} className="w-full p-2 bg-surface border border-slate-300 rounded-lg text-slate-800 font-bold" />
+                  <Fine isPhone={isPhone} label="What it changes">
+                    <span className="text-[10px] text-slate-400 mt-1 block">0 is off: a one-off cost is met in its own year, and whatever the liquid wrappers cannot cover comes out of the pension in one go, through the higher bands. From this many years ahead the plan instead draws the shortfall a share at a time, never past the basic-rate limit ({formatGBP(P.higherRateStartsAt)}), and parks it in the ISA then cash to pay the cost when it lands. Only once retired and past the pension access age; the Audit Data Table shows the years it acted. <button type="button" onClick={() => goToDoc('doc-lookahead')} className="text-blue-600 hover:underline font-semibold cursor-pointer">Documentation &rarr;</button></span>
+                  </Fine>
+                </div>
                 <div>
                   <label className="text-slate-600 font-semibold block mb-1">Harvest unused 0% allowance</label>
                   <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
@@ -12887,7 +12997,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <details className="pt-3 border-t border-slate-100" open={!isPhone}>
                 <summary className="cursor-pointer min-h-11 flex items-center text-sm font-semibold text-slate-900 hover:text-slate-900">How to actually follow this policy</summary>
                 <ol className="mt-2 space-y-2">
-                  {E.policyPlaybook(plan?.spending?.decumulationPolicy, P, { guardrails: !!plan?.config?.guardrails }).map((step, i) => (
+                  {E.policyPlaybook(plan?.spending?.decumulationPolicy, P, { guardrails: !!plan?.config?.guardrails, lookahead: E.planHasKnownCost(plan) ? num(plan?.config?.lookaheadYears, 0) : 0 }).map((step, i) => (
                     <li key={i} className="flex gap-2.5 text-xs">
                       <span className="shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 grid place-items-center font-bold text-[10px] mt-0.5">{i + 1}</span>
                       <div className="min-w-0">
@@ -15212,7 +15322,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                 - which is the shape a table wants on a phone anyway. The desktop box is unchanged. */}
             <div tabIndex={0} className={`overflow-x-auto border border-slate-200 rounded-lg ${isPhone ? 'max-h-[60vh] overflow-y-auto' : ''}`}>
               <table className="w-full text-left text-xs border-collapse">
-                <thead className={`bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans ${isPhone ? 'sticky top-0 z-10' : ''}`}><tr><th className="p-2.5">Year</th><th className="p-2.5">Age (M)</th>{isCouple && <th className="p-2.5">Age (P)</th>}<th className="p-2.5">Spend target</th>{!!plan?.config?.guardrails && <th className="p-2.5">Guardrail</th>}<th className="p-2.5">Guaranteed + Take-home (net)</th><th className="p-2.5">Net drawdown</th><th className="p-2.5">Pension draw (gross)</th><th className="p-2.5">Tax</th>{P.cgtEnabled && <th className="p-2.5">CGT</th>}<th className="p-2.5">Pensions</th><th className="p-2.5">ISAs</th><th className="p-2.5">Other inv</th><th className="p-2.5">Cash</th><th className="p-2.5">Total combined</th><th className="p-2.5">Pre-SIPP access Liquid</th><th className="p-2.5 text-right">Status</th></tr></thead>
+                <thead className={`bg-slate-100/80 border-b border-slate-200 text-slate-600 font-semibold font-sans ${isPhone ? 'sticky top-0 z-10' : ''}`}><tr><th className="p-2.5">Year</th><th className="p-2.5">Age (M)</th>{isCouple && <th className="p-2.5">Age (P)</th>}<th className="p-2.5">Spend target</th>{!!plan?.config?.guardrails && <th className="p-2.5">Guardrail</th>}{plan?.config?.lookaheadYears > 0 && <th className="p-2.5">Set aside</th>}<th className="p-2.5">Guaranteed + Take-home (net)</th><th className="p-2.5">Net drawdown</th><th className="p-2.5">Pension draw (gross)</th><th className="p-2.5">Tax</th>{P.cgtEnabled && <th className="p-2.5">CGT</th>}<th className="p-2.5">Pensions</th><th className="p-2.5">ISAs</th><th className="p-2.5">Other inv</th><th className="p-2.5">Cash</th><th className="p-2.5">Total combined</th><th className="p-2.5">Pre-SIPP access Liquid</th><th className="p-2.5 text-right">Status</th></tr></thead>
                 <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
                   {timelineData.map(r => (
                     <tr key={r.year} className="hover:bg-slate-50/80 transition-colors">
@@ -15225,6 +15335,13 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                           ? <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${/cut/.test(r.guardrail) ? 'bg-rose-100 text-rose-800' : /raise/.test(r.guardrail) ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{r.guardrail}</span>
                           : <span className="text-slate-300">&mdash;</span>}
                         {r.spendMult !== 1 && <span className="text-[9px] text-slate-400 block">draw &times;{r.spendMult.toFixed(2)}</span>}
+                      </td>}
+                      {/* Pension drawn at the basic rate ahead of a known cost and parked to pay it. Only the
+                          years it acted carry a figure, each naming the cost year it is for. */}
+                      {plan?.config?.lookaheadYears > 0 && <td className="p-2 font-sans" data-lookahead-cell>
+                        {r.reserved > 0
+                          ? <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800">{formatGBP(r.reserved)} <span className="font-normal">for {r.reservedFor}</span></span>
+                          : <span className="text-slate-300">&mdash;</span>}
                       </td>}
                       <td className="p-2 text-emerald-700">{formatGBP(r.netGuaranteed + r.workingTakeHome)}</td>
                       <td className="p-2 text-rose-600 font-medium">{formatGBP(r.netDrawdown)}</td>

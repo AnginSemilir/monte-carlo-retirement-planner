@@ -127,7 +127,7 @@ export function describeGenome(E, g, cand) {
  *   seedGenomes  genomes to put in generation zero beside the random ones (a warm start)
  *   emergencyFloor, scope, priorities  as the tournament takes them; scope 'full' allows the SIPP move
  */
-export function evolve(E, rawPlan, {
+export function* evolveGen(E, rawPlan, {
   budget = 60000, seed = 12345, pop = 24, coarse = 120, fine = 480, refineFrac = 0.4, elite = 2, pMut = 0.25,
   seedGenomes = [], emergencyFloor = 25000, scope = 'full', onGeneration = null
 } = {}) {
@@ -140,12 +140,30 @@ export function evolve(E, rawPlan, {
   };
   const shape = { hasGap: envs.proportional.bridge.gapYears > 0, canBackLoad: envs.proportional.canBackLoad, isCouple: ctx.isCouple, fullScope: scope === 'full' };
 
+  /*
+   * THE SAME TAKE-HOME BUDGET, FOR THE WHOLE RUN, NOT JUST YEAR ONE.
+   *
+   * Every candidate allocates the same net budget in year one, but contributions grow at each wrapper's
+   * own rate, so a plan that tilts towards a faster-escalating wrapper compounds a bigger base and ends
+   * up spending more over the years to retirement. It would then win the search by paying in more rather
+   * than by allocating better - which is the exact trap buildTournament holds its own players out of, by
+   * solving each one back to the baseline's lifetime outlay.
+   *
+   * So the search does it too, on every candidate it decodes. Without this the evolved player is not
+   * playing the same game as the named three, and its wins cannot be read as better allocation.
+   */
+  const baselineOutlay = E.accumulationOutlay(ctx);
+  const normalise = (planState) => {
+    const solved = E.solveEscalation(planState, baselineOutlay);
+    return solved.rate === null ? planState : E.applyEscalationToPlan(planState, solved.rate);
+  };
+
   const decode = (g) => {
     let cand = null, plan;
-    if (g.keep) plan = JSON.parse(JSON.stringify(base));
+    if (g.keep) plan = JSON.parse(JSON.stringify(base));   // the household's own plan is the baseline
     else {
       cand = E.accumulationCandidate(ctx, envs[g.balance], { cover: g.cover, isaShare: g.isaShare, backLoad: g.backLoad, sipp: g.sipp });
-      plan = cand.planState;
+      plan = normalise(cand.planState);
     }
     plan.spending.drawdownStrategy = g.lump ? 'Full 25% Lump Sum' : 'Phased Drawdown';
     plan.spending.policyOverride = { steps: g.steps, harvest: g.harvest, depositOrder: g.deposit };
@@ -221,8 +239,16 @@ export function evolve(E, rawPlan, {
     const nRefine = Math.max(elite, Math.ceil(popn.length * refineFrac));
     popn.slice(0, nRefine).forEach(ind => score(ind, fine));
     popn.sort((a, b) => better(b, a));
-    history.push({ gen, best: fit(popn[0]), bestRate: popn[0].stats.successRate, mean: popn.reduce((s, i) => s + fit(i), 0) / popn.length, used });
+    // the same four figures every other searching player reports per candidate, so a caller can show
+    // a generation the way it shows a candidate: rate, pre-access failures, the unlucky pot, the median
+    history.push({ gen, best: fit(popn[0]), bestRate: popn[0].stats.successRate, mean: popn.reduce((s, i) => s + fit(i), 0) / popn.length, used,
+      preAccess: popn[0].stats.preNmpaFailRate, p10: popn[0].stats.p10Terminal, median: popn[0].stats.medianTerminal,
+      // how many more generations the remaining budget affords, so a caller can show progress
+      remaining: Math.max(0, Math.floor((budget - used) / perGen)) });
     if (onGeneration) onGeneration(history[history.length - 1], popn[0]);
+    // The one yield point. A caller on a UI thread drives this with an await between generations so the
+    // page stays responsive; evolve() below just runs it to the end.
+    yield history[history.length - 1];
     if (used + perGen > budget) break;
     // breed the next generation: elites carried over, the rest from crossover and mutation
     const next = popn.slice(0, elite).map(ind => ind);
@@ -243,4 +269,37 @@ export function evolve(E, rawPlan, {
   if (!winner.plan) Object.assign(winner, decode(winner.g));
   const out = (ind) => ({ genome: ind.g, planState: ind.plan, cand: ind.cand, stats: ind.stats, trials: ind.trials, describe: describeGenome(E, ind.g, ind.cand) });
   return { winner: out(winner), elites: popn.slice(0, Math.min(5, popn.length)).map(out), generations: gen + 1, used, history, shape };
+}
+
+/* The same search, run to the end in one go. What the tests and the research scripts use. */
+export function evolve(E, rawPlan, opts = {}) {
+  const it = evolveGen(E, rawPlan, opts);
+  let r = it.next();
+  while (!r.done) r = it.next();
+  return r.value;
+}
+
+/*
+ * A resolved tournament player as a genome, so the search can start from the answers the named players
+ * already found. This is what makes the evolved player unable to lose to them: elitism carries the best
+ * genome of each generation forward untouched, so a warm start is a floor, not a suggestion.
+ *
+ * `player` is a strategy after its candidates have been scored and the best one chosen, which is where
+ * the share, the bridge cover and whether it back-loaded are known. `plan` supplies the draw genes,
+ * which no accumulation player varies - they are the household's own settings from the Config tab.
+ */
+export function genomeFromPlayer(E, player, plan, { balance = 'proportional' } = {}) {
+  const pol = E.DECUMULATION_POLICIES[plan?.spending?.decumulationPolicy] || E.DECUMULATION_POLICIES['Bracket Fill Basic'];
+  return {
+    keep: player.id === 'baseline',
+    cover: player.chosenCover === undefined ? null : player.chosenCover,
+    isaShare: E.num(player.chosenShare, 0),
+    backLoad: !!player.phase,
+    sipp: true,
+    balance,
+    steps: pol.steps.slice(),
+    harvest: !!pol.harvest && !!plan?.config?.harvestPersonalAllowance,
+    lump: plan?.spending?.drawdownStrategy === 'Full 25% Lump Sum',
+    deposit: (pol.depositOrder || E.DEFAULT_DEPOSIT_ORDER).slice()
+  };
 }

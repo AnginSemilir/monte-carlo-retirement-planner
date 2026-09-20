@@ -54,7 +54,10 @@ function armA(plan) {
   withPolicy.config.harvestPersonalAllowance = pol.harvestPersonalAllowance;
   // the tournament under that policy, every player scored on the same seed
   const t = E.buildTournament(withPolicy, { scope: 'full' });
-  const players = t.strategies.filter(s => !s.isEntrant).map(s => {
+  // `evolve` players carry no planState until a search has run them, and this arm does not run searches.
+  // Scoring one anyway is not an error that surfaces: monteCarlo on a null plan scores an empty
+  // household at 100% and hands arm A a phantom winner.
+  const players = t.strategies.filter(s => !s.isEntrant && !s.evolve).map(s => {
     if (s.candidates) { used += s.candidates.length * TT; return E.resolveSearchPlayer(s, { trials: TT, seed: SEED, priorities: E.DEFAULT_PRIORITIES }); }
     return s;
   }).map(p => { const stats = p.stats || E.monteCarlo(p.planState, { trials: TT, seed: SEED }); if (!p.stats) used += TT; return { ...p, stats }; });

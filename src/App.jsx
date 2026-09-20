@@ -3058,7 +3058,7 @@ function resolveSearchPlayer(strategy, { trials = 400, seed = 12345, preAccessCa
   const best = pickBest(evaluated, { preAccessCap, priorities, tolerances });
   return {
     ...strategy,
-    chosenShare: best.share, chosenLabel: best.label,
+    chosenShare: best.share, chosenCover: best.cover ?? null, chosenLabel: best.label,
     searchAxis: strategy.searchAxis || 'Candidate',
     searchResults: evaluated.map(e => ({ label: e.label, successRate: e.stats.successRate, preAccess: e.stats.preNmpaFailRate, p10: e.stats.p10Terminal, median: e.stats.medianTerminal })),
     isaContrib: best.alloc.isaContrib, penContrib: best.alloc.penContrib, giaContrib: best.alloc.giaContrib,
@@ -3401,6 +3401,31 @@ function buildTournament(rawPlan, { emergencyFloor = 25000, scope = 'contributio
     if (s.candidates) { s.candidates = s.candidates.map(c => ({ ...c, ...normalise(c.planState) })); return; }
     if (s.planState) Object.assign(s, normalise(s.planState));
   });
+
+  /*
+   * 6 THE EVOLVED PLAN - only where there is a bridge to fund.
+   *
+   * The five players above each fix most of the plan and search one thing: an ISA share, a bridge cover,
+   * a switch year. That is right when the best way to save does not depend on the way the money will be
+   * drawn. Measured across the household library it usually does not - but where retirement starts
+   * before the pension unlocks, it does, and the gap between searching the two together and searching
+   * them in turn was worth one to three points of survival on every household that had one.
+   *
+   * So this player exists exactly there. It is declared here and searched by the caller, because unlike
+   * the others it is not a list of candidates to score but a search to run: src/evolve.js breeds
+   * accumulation choices against draw orders, warm-started from whatever the players above found, so it
+   * cannot come back with less than they did. Where there is no bridge it is not offered at all - it
+   * found nothing the named players had not, and a player that never wins is a slower run for nothing.
+   *
+   * It carries no planState: until the search runs there is no plan to show.
+   */
+  if (bridge.gapYears > 0 && netBudget > 0) {
+    strategies.push({
+      id: 'evolved', name: 'Evolved Plan', searchAxis: 'Generation', evolve: true,
+      description: 'Searches the way of saving and the way of drawing together rather than one at a time: the bridge cover, the ISA split, the timing, the draw order and where a windfall goes, bred against each other on the same market paths. It starts from the plans the players above found, and it is the one player scored on paths it never searched on - so where it wins, it has won on figures nothing selected for.',
+      candidates: null, isaContrib: null, penContrib: null, taxReliefSaved: null, transferNet: 0, transferGross: 0, planState: null
+    });
+  }
 
   // Saved scenarios enter after the normalisation above, deliberately: they run exactly as saved.
   entrants.forEach((ent, i) => {
@@ -6456,6 +6481,17 @@ const POLICY_SEEDS = 2;
 // whether an inherited pension is taxable on the beneficiary. Module scope so the memo stays stable.
 const INHERITANCE_AGES = [70, 74, 80, 90];
 const SEARCH_TRIALS = 400;
+/*
+ * What the evolved player may spend searching, in simulated paths.
+ *
+ * The two enumerating players score about twenty candidates at SEARCH_TRIALS between them, so eight
+ * thousand paths is what searching costs today. Run head to head across forty households, the joint
+ * search at that budget was a dead heat with the staged pipeline and only pulled ahead at three times
+ * it - so three times it is what this is, measured against the whole run rather than the search alone.
+ * Six generations or so, five seconds of breeding on a desktop, yielded between generations so the
+ * page keeps painting. Only households with a bridge ever pay it.
+ */
+const EVOLVE_BUDGET = 45000;
 
 /*
  * THE FOUR WRAPPERS, IN ONE SET OF COLOURS, EVERYWHERE.
@@ -7353,9 +7389,62 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
     try {
       for (let i = 0; i < total; i++) {
         let s = preview.strategies[i];
-        // Any player that carries candidates is searched the same way, on the same paths, so the two
-        // searching players are ranked against each other on equal terms.
-        if (s.candidates) {
+        /*
+         * THE EVOLVED PLAYER, SEARCHED RATHER THAN ENUMERATED.
+         *
+         * It starts from the plans the players above just found, so it is searching outwards from the
+         * best answer the tournament already had rather than from nothing.
+         *
+         * AND IT SEARCHES ON A DIFFERENT SEED from the one every player is finally scored on. It picks
+         * from much the largest space here, which makes it the player most at risk of choosing whatever
+         * its own sample flattered, so its final figure is measured on paths it never saw. That is a
+         * stricter test than the other players face - they are selected and scored on one seed - and it
+         * means the evolved player can and does finish behind them. That is the intended behaviour, not
+         * a fault: an extra candidate that sometimes loses costs the household nothing, because the
+         * tournament picks the best of everyone at the end, while a flattered one would cost them a
+         * plan that is not actually better.
+         */
+        if (s.evolve) {
+          /*
+           * Fetched on the press, not shipped with the page. The search is a few kilobytes that only a
+           * household with a bridge ever runs, and only when it asks for a comparison - after which it
+           * spends several seconds breeding, so a chunk arriving first is not something anybody sees.
+           * Keeping it out of the main bundle is what stops a feature for some households costing the
+           * first paint of every visit.
+           */
+          const { evolveGen, genomeFromPlayer } = await import('./evolve.js');
+          const warm = prepared.filter(p => p.planState).map(p => genomeFromPlayer(E, p, basePlan, { balance }));
+          setProgress({ label: `Player ${i + 1}/${total}: ${s.name}: breeding…`, value: 0.6 * i / total });
+          await tick();
+          const it = evolveGen(E, E.resolveMpaa(basePlan), {
+            budget: EVOLVE_BUDGET, seed: seed + 1, scope, emergencyFloor: E.num(emergencyFloor, 0), seedGenomes: warm
+          });
+          let step = it.next();
+          while (!step.done) {
+            const h = step.value;
+            setProgress({ label: `Player ${i + 1}/${total}: generation ${h.gen + 1}${h.remaining ? ` of ~${h.gen + 1 + h.remaining}` : ''} → ${h.bestRate.toFixed(1)}% safe`,
+              value: 0.6 * (i + (h.gen + 1) / (h.gen + 1 + h.remaining)) / total });
+            await tick();
+            if (cancelRef.current) break;
+            step = it.next();
+          }
+          const r = step.done ? step.value : null;
+          if (r) {
+            s = { ...s, planState: r.winner.planState, chosenLabel: `Gen ${r.generations}`,
+              searchResults: r.history.map(h => ({ label: `Gen ${h.gen + 1}`, successRate: h.bestRate, preAccess: h.preAccess, p10: h.p10, median: h.median })),
+              isaContrib: r.winner.cand ? r.winner.cand.alloc.isaContrib : null,
+              penContrib: r.winner.cand ? r.winner.cand.alloc.penContrib : null,
+              giaContrib: r.winner.cand ? r.winner.cand.alloc.giaContrib : null,
+              taxReliefSaved: r.winner.cand ? r.winner.cand.alloc.taxReliefSaved + (r.winner.cand.reliefExtra || 0) : null,
+              transferNet: Math.round(r.winner.cand?.transferNet || 0), transferGross: Math.round(r.winner.cand?.transferGross || 0),
+              phase: r.winner.genome.backLoad ? { switchYears: null } : null,
+              description: `${s.description} It settled on: ${r.winner.describe}. Bred over ${r.generations} generations on ${fmtNum(r.used)} simulated paths, and scored below on ${fmtNum(TOURNAMENT_TRIALS)} paths it never saw while searching.`
+            };
+          } else {
+            // cancelled mid-search: drop the player rather than show a half-bred plan
+            if (cancelRef.current) break;
+          }
+        } else if (s.candidates) {
           setProgress({ label: `Player ${i + 1}/${total}: ${s.name}: searching…`, value: 0.6 * i / total });
           const evaluated = [];
           for (let k = 0; k < s.candidates.length; k++) {
@@ -7377,7 +7466,13 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
             description: (best.describe || s.description) + capNote
           };
         }
-        prepared.push(s);
+        /*
+         * A player with no plan is not scored. The evolved player carries none until its search has run,
+         * and a search that was cancelled or failed leaves it that way - and monteCarlo on a null plan
+         * does not throw, it quietly scores an empty household at 100%, which would put a phantom
+         * winner at the top of the board. So the guard is here rather than trusted to every caller.
+         */
+        if (s.planState) prepared.push(s);
         if (cancelRef.current) break;
       }
       // every player's final score in one batch across the worker pool, all on the same seed
@@ -7607,7 +7702,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
               const st = res.stats;
               const summaryLines = summarizeStrategyChange(res, baselinePlayer, { isCouple, meta: results.meta, selfEmployedOnly });
               return (
-                <div key={res.id} className={`p-4 rounded-xl border flex flex-col justify-between space-y-3 ${isBest ? 'bg-emerald-50/60 border-emerald-300' : res.id === 'baseline' ? 'bg-slate-50 border-slate-200' : res.isEntrant ? 'bg-surface border-amber-200' : 'bg-surface border-indigo-100'}`}>
+                <div key={res.id} data-strategy-card={res.id} className={`p-4 rounded-xl border flex flex-col justify-between space-y-3 ${isBest ? 'bg-emerald-50/60 border-emerald-300' : res.id === 'baseline' ? 'bg-slate-50 border-slate-200' : res.isEntrant ? 'bg-surface border-amber-200' : 'bg-surface border-indigo-100'}`}>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-bold text-slate-900 leading-tight flex items-center gap-1">{isBest && <Trophy className="w-3.5 h-3.5 text-emerald-600" />}{res.name}{res.isEntrant && <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-semibold">Saved scenario</span>}</span>

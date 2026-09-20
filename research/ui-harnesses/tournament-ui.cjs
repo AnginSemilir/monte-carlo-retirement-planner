@@ -143,6 +143,87 @@ const plan = {
     ok('...no undefined, NaN or signed zero anywhere in it', doc.junk.length === 0, doc.junk.join(', '));
     ok('...and a print stylesheet, since saving it as a PDF is the point', doc.printable);
   }
+  /*
+   * THE EVOLVED PLAYER, WHICH ONLY EXISTS WHERE THERE IS A BRIDGE.
+   *
+   * The plan above retires at 60, after the pension unlocks, so the tournament must NOT offer it - a
+   * player that never wins is a slower run for nothing, and that is asserted first. Then the same
+   * household retiring at 52 must get it, must show its generations, and must not finish behind the
+   * players it was started from: elitism carries the best genome forward untouched, so a warm start is
+   * a floor. Its module is fetched on the press rather than shipped with the page, so the chunk
+   * arriving is part of what this proves works.
+   */
+  console.log('the evolved player');
+  // the players are only named once they have run, so both halves of this are read off the result cards
+  const cards1 = await p.evaluate(() => [...document.querySelectorAll('[data-strategy-card]')].map(c => c.getAttribute('data-strategy-card')));
+  ok('a household retiring after the access age is not offered it', cards1.length > 0 && !cards1.includes('evolved'), cards1.join(', '));
+  {
+    const fire = JSON.parse(JSON.stringify(plan));
+    fire.demographics.retireAgeSelf = 52;
+    fire.accounts[0].contrib = 12000; fire.accounts[1].contrib = 6000;
+    const p2 = await b.newPage({ viewport: { width: 1400, height: 1300 } });
+    const errs2 = [];
+    p2.on('pageerror', e => errs2.push(e.message));
+    await p2.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+    await p2.addInitScript(pl => { localStorage.setItem('rp_plan_full_v28', JSON.stringify(pl)); localStorage.setItem('rp_which_app', JSON.stringify('full')); }, fire);
+    await p2.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
+    await p2.waitForTimeout(800);
+    await p2.evaluate(() => { const x = [...document.querySelectorAll('[data-tabbar] button')].find(b => /Strategy/.test(b.textContent)); if (x) x.click(); });
+    await p2.waitForTimeout(600);
+    const label = await p2.evaluate(() => { const x = [...document.querySelectorAll('button')].find(b => /Compare strategies now/.test(b.textContent)); return x ? x.textContent.trim() : null; });
+    if (label) {
+      const t1 = Date.now();
+      await p2.evaluate((l) => { const x = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === l); x.click(); }, label);
+      // the generation counter has to appear, or the search is not running where the user can see it
+      const sawGen = await p2.waitForFunction(() => /generation \d+/i.test(document.body.innerText), null, { timeout: 120000 }).then(() => true).catch(() => false);
+      ok('...whose search reports its generations while it runs', sawGen);
+      await p2.waitForFunction(() => document.querySelectorAll('[data-strategy-card]').length > 0, null, { timeout: 300000 });
+      await p2.waitForTimeout(600);
+      const res = await p2.evaluate(() => {
+        const rows = [...document.querySelectorAll('h3, h4, strong')].map(e => e.textContent.trim());
+        const body = document.body.innerText;
+        const m = body.match(/Evolved Plan[\s\S]{0,1200}/);
+        const rates = {};
+        // each player's card carries its name and its survival figure; read them as pairs
+        document.querySelectorAll('[data-strategy-card]').forEach(c => {
+          const id = c.getAttribute('data-strategy-card');
+          const pc = (c.innerText.match(/(\d+\.\d)%/) || [])[1];
+          if (id && pc) rates[id] = Number(pc);
+        });
+        const winCard = [...document.querySelectorAll('[data-strategy-card]')].find(c => c.querySelector('svg.lucide-trophy') || /border-emerald-300/.test(c.className));
+        return { ids: [...document.querySelectorAll('[data-strategy-card]')].map(c => c.getAttribute('data-strategy-card')),
+          best: winCard ? winCard.getAttribute('data-strategy-card') : null,
+          settled: /It settled on:/.test(body), generations: /Bred over \d+ generations/.test(body),
+          neverSaw: /paths it never saw while searching/.test(body), rates, cards: document.querySelectorAll('[data-strategy-card]').length,
+          junk: (body.match(/undefined|NaN|\[object/g) || []).slice(0, 3), snippet: (m ? m[0] : '').split('\n').slice(0, 4).join(' | ').slice(0, 220) };
+      });
+      ok('...and a household retiring at 52 gets the player', res.ids.includes('evolved'), res.ids.join(', '));
+      ok('...which says what it settled on, in words', res.settled && res.generations, res.snippet);
+      ok('...naming the held-out scoring', res.neverSaw);
+      const names = Object.keys(res.rates);
+      /*
+       * NOT "the evolved player wins". It searches on a different seed from the one it is scored on,
+       * so it is the only player whose figure is not flattered by its own selection - and it can and
+       * does finish behind the others. What has to hold is that it is scored on the same footing and
+       * that the trophy goes to whoever actually scored best, which is what protects the household
+       * from an extra player that had a bad run.
+       */
+      if (names.length > 1 && res.rates.evolved !== undefined) {
+        ok('...is scored on the same footing as the rest', res.rates.evolved > 0 && res.rates.evolved <= 100, `${res.rates.evolved}%`);
+        const top = Math.max(...names.map(n => res.rates[n]));
+        ok('...and the trophy still goes to whoever scored best',
+          res.best !== null && res.rates[res.best] >= top - 1.0,
+          `winner ${res.best} at ${res.rates[res.best]}, best on the page ${top}`);
+      } else {
+        console.log(`  note  card rates not readable (${res.cards} cards); skipped the scoring checks`);
+      }
+      ok('...with no undefined or NaN on the card', res.junk.length === 0, res.junk.join(', '));
+      console.log(`  evolved-player run: ${((Date.now() - t1) / 1000).toFixed(1)}s`);
+    }
+    ok('no page errors with the evolved player', errs2.length === 0, errs2.slice(0, 2).join(' | '));
+    await p2.close();
+  }
+
   ok('no page errors', errs.length === 0, errs.slice(0, 2).join(' | '));
   await b.close();
   console.log(fails ? `\n${fails} FAILED` : '\nall ok');

@@ -95,5 +95,38 @@ console.log('=========== C. THE SEARCH ===========');
   ok('C9  a single household never carries a couple\'s balance gene', s.elites.every(e => e.genome.balance === 'proportional'), single.id);
 }
 
+console.log('=========== E. THE PLAYER WITH NO PLAN ===========');
+{
+  const t = E.buildTournament(withGap.plan, { scope: 'full' });
+  const ev = t.strategies.find(s => s.id === 'evolved');
+  ok('E1  a household with a bridge is offered the evolved player', !!ev && ev.evolve === true);
+  ok('E2  ...carrying no plan until its search has run', !!ev && ev.planState === null && !ev.candidates);
+  const noGapT = E.buildTournament(noGap.plan, { scope: 'full' });
+  ok('E3  a household without one is not offered it', !noGapT.strategies.some(s => s.id === 'evolved'), noGapT.strategies.map(s => s.id).join(', '));
+  /*
+   * The trap this guards. monteCarlo on a null plan does not throw - it builds a blank household with
+   * nothing to spend and scores it 100%, which would sit at the top of any board that scored every
+   * strategy without looking. Every caller must skip a strategy with no plan of its own.
+   */
+  const blank = E.monteCarlo(null, { trials: 40, seed: 1 });
+  ok('E4  scoring a null plan is silently meaningless, which is why callers must skip it', blank.successRate === 100, `${blank.successRate}%`);
+  const scorable = t.strategies.filter(s => s.planState || s.candidates);
+  ok('E5  ...and every other player does carry one', scorable.length === t.strategies.length - 1, `${scorable.length} of ${t.strategies.length}`);
+}
+
+console.log('=========== D. THE SAME BUDGET AS EVERYONE ELSE ===========');
+{
+  // every evolved candidate must cost the baseline's lifetime outlay, as buildTournament's own do
+  const ctx = E.buildContext(withGap.plan);
+  const target = E.accumulationOutlay(ctx);
+  const r = evolve(E, withGap.plan, { budget: 6000, seed: 8, pop: 8, coarse: 60, fine: 180 });
+  const spends = r.elites.map(e => E.accumulationOutlay(E.buildContext(e.planState)));
+  const worst = Math.max(...spends.map(v => Math.abs(v / target - 1)));
+  ok('D1  every elite pays in what the household already pays in', worst < 0.02, `worst ${(worst * 100).toFixed(2)}% from ${Math.round(target)}`);
+  const t = E.buildTournament(withGap.plan, { scope: 'full' });
+  const named = t.strategies.filter(s => s.planState && s.id !== 'baseline').map(s => E.accumulationOutlay(E.buildContext(s.planState)));
+  ok('D2  ...which is what the named players are held to', named.every(v => Math.abs(v / target - 1) < 0.02), `${named.length} players checked`);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

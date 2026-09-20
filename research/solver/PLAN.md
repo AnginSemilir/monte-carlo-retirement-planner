@@ -605,6 +605,20 @@ point, or 1,000 search paths. (e) The one household where the guardrails deliver
 (S070) is the one where the solver ends £1.2m richer: the objective is trading years at target for the
 pot there, which the bequest weight governs and the presets should expose.
 
+**How the 2d.2 opponents are built.** Both run in the fast flow as rules in the same four memory slots
+the guardrails use, with the person's floor applied exactly as it is to the guardrails-with-floor arm,
+and each fixed arm's withdrawal order chosen by the app's picker with that rule on. Vanguard dynamic
+spending: the first retired year's draw as a rate of the pot; each later year's draw is that rate of
+the pot, held within +5% and −2.5% of last year's draw in real terms. ARVA: each year's draw is the pot
+spread as a level real annuity over the years the plan has left, at the household's own geometric
+expected real return (its pots' expected returns less half their variance, floored at zero); the
+literature's rate is a riskless real yield, which would make ARVA spend less and sooner cut - the
+household's own assumption is used because the solver and the guardrails are calibrated on the same
+assumption, so no arm is told more about the future than the others. Both re-foot, not react, when the
+plan itself changes what it draws (the State Pension starting, a band beginning), as the guardrails
+do. Total spending delivered (the mean spend level over the retired years, median run and unlucky
+tenth) is reported beside years at target from this pass on, per finding (b).
+
 ### Phase 2e. Two engine gaps that flatter the taxable side, to close before any bridge
 
 Both are engine work, not solver work; the solver inherits them through the fast flow's tax table and

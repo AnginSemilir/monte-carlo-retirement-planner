@@ -515,6 +515,22 @@ zero on 13 of 41 because the 0.95 level is nearly free under a squared shortfall
 is the levels without it; six households needed no trimming at all and the solve returned in one
 pass.
 
+**Phase 2d.2 and 2d.3, five arms on the same seeds (tag flex-2d3; `results-2d-flex-2d3.txt`).** One
+change to the solver, on the pilot's evidence: the 0.95 level dropped and a half-point landing margin.
+Both adopted. Against the guardrails-with-floor at the same floor rate (92.7 both): years at target
+0.87 → **0.92** (unlucky tenth 0.45 → 0.53), whipsaw 2.7 → **2.0** changes a run, fully funded
+31.5 → **50.2** (the guardrails 13.8), ahead on **41 of 41**, median pot +£311k. The landing now
+undershoots by more than half a point on 6 households (was 12), mean gap +0.1 (was −0.4). The two new
+opponents, each with the person's floor but landed on nothing: Vanguard dynamic spending reaches a
+floor rate of 90.4 with 0.80 years at target and 34 changes a run (its 2.5% steps are many small
+ones); ARVA reaches 86.8 with 0.90 years at target, 33 changes, and ends with a tenth of everyone
+else's pot, because it spends the pot. **Spending delivered is where the solver is behind**: median
+run 0.991 of target-years against 1.054 (guardrails), 1.123 (Vanguard) and 1.832 (ARVA), ahead of the
+guardrails on only 10 of 41, because every opponent raises and the solver never does; the solver's
+larger end pot is that unspent surplus. That is the case for 2d.4, made on the numbers: the solver
+protects the target better than any rule and keeps the surplus as bequest, and whether to spend some
+of it is a preference the objective must be able to hold.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -1016,7 +1032,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 1 | reduced model + golden test | **done**: exact to the pound, 29 assertions | 1.5× |
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
 | 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | **done**: edge grows in every perturbed world; shortfall adopted; (0.5, 0.02) confirmed; every loss named | 0.5× |
-| 2d | Part D pilot in the reduced model, against the guardrails | **pilot done**: at equal downside, years at target 0.87 vs 0.52, whipsaw 2.7 vs 26, ahead on 40 of 41; then 2d.2 two more opponents, 2d.3 one evidence-driven change, 2d.4 raises above target | 1× |
+| 2d | Part D pilot in the reduced model, against the guardrails | **pilot, 2d.2, 2d.3 done**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2.0 vs 26, ahead on 41 of 41; Vanguard and ARVA beaten on years at target, every rule ahead on spending delivered (the raises); 2d.4 raises above target next | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |

@@ -391,7 +391,8 @@ export function solveFlex(E, M, plan, opts = {}) {
   const floorRate = (r) => zs.filter(z => runPolicy(r, z).survived).length / zs.length;
   const at = (lambda) => { const r = solve(E, M, plan, { ...opts, spendLevels: levels, lambda }); r.floorRate = floorRate(r); r.solves = 1; return r; };
   if (levels.length === 1) { const r = at(0); r.meta.landed = 'no floor'; return r; }
-  let hi = opts.lambdaHigh || 8, lo = opts.lambdaLow || 1e-3;
+  // the bracket: landings in the pilot sat between 0.05 and 0.5, so 0.005 to 2 reaches them in fewer solves
+  let hi = opts.lambdaHigh || 2, lo = opts.lambdaLow || 5e-3;
   const rHi = at(hi);
   let solves = 1;
   if (rHi.floorRate >= confidence) { rHi.meta.landed = 'no trimming needed'; rHi.meta.solves = solves; return rHi; }

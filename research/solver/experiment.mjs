@@ -326,7 +326,7 @@ if (mode === 'flex') {
   // five points safer than the plan as written", which every household in the band can be asked
   const FLOOR = Number(process.env.FLOOR || 0.8), CONF_RAW = process.env.CONF || '+5';
   const CONF_REL = CONF_RAW.startsWith('+') ? Number(CONF_RAW.slice(1)) : null;
-  let CONF = CONF_REL === null ? Number(CONF_RAW) : 0.9;
+  let CONF = CONF_REL === null && CONF_RAW !== 'gkFloor' ? Number(CONF_RAW) : 0.9;
   const lo = Number(process.env.LO || 70), hi = Number(process.env.HI || 98);
   const band = JSON.parse(readFileSync(join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`), 'utf8'));
   const k = Number(process.env.ONLY);
@@ -350,7 +350,10 @@ if (mode === 'flex') {
     const rs = held.map(zs => runFixedPath(c, pick.ai, zs));
     arms[key] = { stats: { ...statsFlex(rs), label: pick.label }, rs };
   }
-  if (CONF_REL !== null) CONF = Math.min(0.99, Math.round((arms.fixed.stats.successRate + CONF_REL)) / 100);
+  if (CONF_REL !== null) CONF = Math.min(0.97, Math.round((arms.fixed.stats.successRate + CONF_REL)) / 100);
+  // CONF=gkFloor: the solver is asked for exactly the floor rate the guardrails-with-floor arm achieved, so the two
+  // are compared at equal downside (Pfau's calibration) on how many years at the target each delivers
+  if (CONF_RAW === 'gkFloor') CONF = Math.min(0.99, Math.round(arms.gkFloor.stats.floorRate * 10) / 1000);
   const mS = M.prepare(E, plans.solver);
   const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: 600, seed: seedSearch, confidence: CONF, bisectSteps: 5 });
   const solvedRs = held.map(zs => runPolicy(r, zs));

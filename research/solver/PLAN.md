@@ -117,6 +117,11 @@ the test header, and each must be one of the approximations above, not a bug.
 - **Output:** `{ tables, policy(state, year) → action, value(state, year), meta }` where `meta`
   records the band, the grid, the version of the model, and the solve time.
 
+**Early signal, before Phase 3:** `research/solver/insample.mjs` scores, inside the reduced model
+only, the solved policy against the current pipeline's winning policy on ten library households. It is
+in-model and cannot pass any gate, but if the solver is not clearly ahead even on its own terms, the
+plan stops here rather than after the bridge is built.
+
 **Gate 2, `research/tests/solver.test.mjs`:** on a household with no tax and one wrapper the solved
 survival equals a closed-form answer within 0.5 points; the policy is monotone where the theory says
 it must be; the forward check stays inside the band; re-solving after a balance edit touches no table

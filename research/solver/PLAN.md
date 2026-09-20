@@ -418,6 +418,25 @@ objective doing what it was set to do. None points at the five-node return model
 unexplained, and none needs a change to the method; the first four need the resolution work already
 listed, the fifth the weight tuning.
 
+**The smear: three cheap fixes tried on S070, none adopted (`ledger-smear-fixes.txt`).** (1) Density on
+one axis: the smear is spread evenly across the three pot axes (28 points on any one axis alone takes the
+optimism from +21 to +18 or +19; on all three, to +9), so the fix is n-cubed and there is no cheap axis.
+A tighter axis top does nothing (+20.7). (2) The interpolation scheme: plain probability in place of
+log-odds halves the optimism (+21 to +9 at 12 points, +7 at 20 and 28, where it plateaus) but smears the
+cliff itself - Gate 2's closed-form case reads 77% well above the need and 12% well below - and the
+wrong ranking survives at every resolution. A looser clamp behaves the same way. Log-odds stays. (3) A
+tax-averse tie-break in the forward choice (within the table's own margin, take the move that pays the
+least tax this year; values untouched, off by default, `tieMargin`): S070 recovers 1.5 points (67.2 to
+68.9, still short of the fixed 70.3) but the two largest wins each give back half a point (S082 83.6 to
+83.1, S354 82.5 to 81.9). Across 32 wins and 3 smear losses that is a net loss on the mean, so it is not
+switched on. As fixed policies on S070's own paths the contested moves are six points apart (basic-band
+69.3, whole-from-pension 63.1), which the table reads the wrong way by 0.3; the solver's simulated
+survival moves little under any variant (67.2 to 68.9). The honest reading: the smear at this
+dimensionality is a property of a trilinear table, the number it produces is soft, the decisions it
+produces are mostly right, and the fix is resolution paid for by the reachable band and the cheaper
+reads (Phase 2c), not a patch. `points` may now differ per axis and `tieMargin` exists, both default
+off, for that work.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

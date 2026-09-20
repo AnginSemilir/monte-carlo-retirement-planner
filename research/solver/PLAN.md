@@ -378,6 +378,24 @@ item: resolution where it matters (the adaptive grid near the cliff, already lis
 the low end of the taxable axis, where a small pot is over-valued), paid for by the reachable band and
 the cheaper reads. `diagnose.mjs` and `bias.mjs` are the ledger's tools; `ledger-S070.txt` the entry.
 
+**Loss ledger, entry 2: S330 (−1.4). Cause: grid smear, the same signature as S070.** A household 28
+years from retirement (61-year horizon, table optimistic by +11). Identical to the fixed plan for the
+28 accumulation years, then at 65 the solver takes "whole spend from the pension" on 49% of paths for
+four years (£25k tax a year against £8k), and afterwards leans on the ISA so that at 80 the ISA holds
+£1.2m against the fixed plan's £2.1m. On the discordant paths the fixed plan survived and the solver
+did not. Same work item as entry 1; the far households carry the largest smear because it compounds
+over the most years. `ledger-S330.txt`.
+
+**Loss ledger, entry 3: S112 (−0.4). Cause: the objective, as designed - not an error.** A modest
+household (spend £18k, survival 97%, table optimistic by only +1.5). At the opening position the
+solver's move and the fixed winner tie on survival to four places (0.9847) and differ in the fourth
+decimal of resilience; the solver's choice is the tie-break. Over the plan it keeps the ISA growing
+(£376k against £96k at 96) and ends with more total wealth (£1.41m against £1.31m on the mean path,
+median pot +£83k, unlucky tenth +£6k) for 0.4 points of survival. The app's own picker prefers the
+solver here: within its one-point epsilon on survival, then better on downside. This is the trade the
+weights buy at 0.02 and 0.5, and Phase 2c.3 (weights tuned on the odd households) is where it is
+settled. `ledger-S112.txt`.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

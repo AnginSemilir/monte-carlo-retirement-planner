@@ -577,6 +577,18 @@ ask who delivered more years at the target. Plumbing first: guardrails are a pro
 fast flow does not have, and the paired-seed design needs every arm on the same draws, so GK goes into
 the fast flow and the model, proved against the engine by the golden test, before any solve.
 
+**The queue after the first pass (2d.2 and 2d.3).** Two more opponents, as fast-flow forward-run arms
+carrying their memory in extra state slots the way GK does: Vanguard's dynamic spending (a percentage
+of the pot, bounded to +5% / −2.5% of last year's spend - the deliberately smooth rule, the fair test of
+whipsaw) and ARVA / percentage-of-pot by remaining years (Waring and Siegel; the rule that never runs
+out, spends up in good times, and is the benchmark of the decumulation literature - the fair test of
+raises). Risk-based guardrails (cut below 70% success, raise above 95%, re-projected yearly) are noted
+as the closest practical rival and left for a nested-simulation study if the solver clears the first
+three. Then 2d.3: whatever the first pass shows about the solver's own method - the levels, the
+shortfall exponent, the landing tolerance, a memory dimension if whipsaw appears, the ask's cap - is
+changed once, on the evidence, and every arm re-run on the same seeds. Findings from the first pass are
+listed under the results below as they land.
+
 ### Phase 2e. Two engine gaps that flatter the taxable side, to close before any bridge
 
 Both are engine work, not solver work; the solver inherits them through the fast flow's tax table and

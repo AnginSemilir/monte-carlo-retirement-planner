@@ -62,8 +62,18 @@ const JS_CEILING = 220;
  * what says this is the runner rather than the page. The bytes are still the assertion that would catch
  * a real regression; this one is here to catch a page that has become several times slower, and 2,600
  * still does that.
+ *
+ * RAISED TO 2,950 after the same drift again, and this time it is not an inference. The work in flight
+ * was the solver's reduced model, which no part of the app imports, so `vite build` on main and on the
+ * branch produced byte-identical dist trees - one sha256 over both, 1,538,303 bytes each. The page the
+ * harness loads was therefore literally the same bytes, and it measured 2,638 / 2,660 / 2,694 on main
+ * and 2,694 / 2,722 / 2,753 on the branch: one population, 2,638 to 2,753, median about 2,695, against
+ * a line at 2,600 that every run now crosses. 2,950 sits 200ms above the worst of them, nearly twice
+ * the 115ms spread, and still catches a page that has become several times slower. If a future change
+ * approaches this line, build both sides and compare the bundles before touching the number: identical
+ * bytes mean the runner, and different bytes mean the page.
  */
-const CEILING = 2600;
+const CEILING = 2950;
 
 let fails = 0;
 const ok = (l, c, d = '') => { console.log(`  ${c ? 'ok  ' : 'FAIL'}  ${l}${d ? '   ' + d : ''}`); if (!c) fails++; };

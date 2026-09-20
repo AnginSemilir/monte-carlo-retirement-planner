@@ -312,12 +312,37 @@ held-out paths, against the same fixed winner:
 | S252 survival | +0.3 | 0.0 | 0.0 | −0.1 |
 | S252 median pot | −204k | **+53k** | +64k | +64k |
 
-**A weight of 0.02 is the knee, and it is cheap.** It gives back a quarter to a half of the bequest
-loss for a fifth of the survival gain, and it turns S252 from a £204k loss into a £53k gain at no
-survival cost. Past 0.02 the curve is nearly flat: the solver has already dropped the trades that were
-poor value and the rest are ones it genuinely wants. **Recommendation: default the weight to 0.02**,
-expose it through the existing prioritisation presets rather than as a new setting, and report the
-bequest change beside the survival change wherever the solved plan is shown.
+**That first frontier was measured wrong, and the corrected one says something better.** Only the
+solver had been given the bequest weight; the fixed arm went on choosing by survival alone, so those
+rows compared two different questions. With the SAME objective on both sides, 16 points, 1,500
+held-out paths, solved minus fixed at each weight:
+
+| household | weight 0 | 0.02 | 0.1 |
+|---|---|---|---|
+| S252 | +0.5, −359k | +0.2, −102k | +0.1, −90k |
+| S294 | +0.7, −1,254k | +0.4, −941k | **+1.3**, −927k |
+| S336 | +1.3, −736k | +1.0, −385k | **+1.9**, −361k |
+
+**The solver's advantage GROWS as the bequest is valued, and that is the real argument for
+state-dependence.** At weight 0.1 the fixed arm's own survival falls (S294 86.1 to 85.4, S336 88.3 to
+87.4) because a fixed rule has only one lever: to hold more bequest it must pick a rule that is worse
+on survival for the whole plan. The solver has no such bind. It can favour the bequest in the years
+where that is cheap and protect survival in the years where it matters, so on S336 at weight 0.1 it
+holds 89.3 survival while keeping twice the bequest it kept at weight 0. That is a point the fixed
+rules cannot reach at any setting, which is precisely the claim worth testing.
+
+**On the product's weight, which is a different question.** Which weight to ship is about what the
+household wants, and belongs to the prioritisation presets, not to this measurement. This measurement
+only says the solver beats fixed rules at every weight tried, and by most where the bequest counts.
+
+**THE OBJECTIVE IS STILL NOT THE APP'S, and that is the next thing to fix.** The app ranks candidates
+through `DEFAULT_PRIORITIES`: survive, **downside**, bequest, bridge, pot, tax. The solver knows two of
+those six and has no notion of downside resilience at all, which the app puts SECOND. So the solver
+optimises a poorer objective than the app and is then scored on survival, the one thing it does
+optimise - which flatters it and hides where it may be worse. Owed, in order: measure the unlucky tenth
+and the failure age; add downside to the solver's value, which is already the lower tail of what the
+table holds; and for gate 4 select the fixed arm with `explainPick` and the app's own ranking rather
+than a survival-first simplification.
 
 **What is still not measured**, and should be before part C: the unlucky tenth and the failure age.
 Survival is a cliff, so +1.2 points means 1.2% of paths crossed from failing to not failing, and those

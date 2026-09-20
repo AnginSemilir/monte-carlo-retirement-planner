@@ -207,6 +207,7 @@ export function solve(E, M, plan, opts = {}) {
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap };
   const r = {
     m, g, c, actions, surv, lsurv, resil, lresil, beq, pol, meta, M, eps, nodeReal, wB, wR,
+    tieMargin: opts.tieMargin || 0,
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
     /* What the table says this position is worth, before anything is executed. */
@@ -236,6 +237,10 @@ export function chooseAction(r, s, t) {
   const grown = r._grown || (r._grown = new Float64Array(6));
   const rd = r._rd || (r._rd = new Float64Array(3));
   let bestScore = -Infinity, bestB = -Infinity, best = 0;
+  const tie = r.tieMargin || 0;
+  const SC = tie > 0 ? (r._sc || (r._sc = new Float64Array(actions.length))) : null;
+  const TX = tie > 0 ? (r._tx || (r._tx = new Float64Array(actions.length))) : null;
+  const BQ = tie > 0 ? (r._bq || (r._bq = new Float64Array(actions.length))) : null;
   for (let ai = 0; ai < actions.length; ai++) {
     post.set(s);
     const unmet = F.flow(c, t, ai, post);
@@ -251,7 +256,23 @@ export function chooseAction(r, s, t) {
       }
     }
     const score = sv + wR * rs + wB * bq;
+    if (SC) { SC[ai] = score; TX[ai] = c.last.taxPaid + c.last.cgtPaid; BQ[ai] = bq; }
     if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && bq > bestB)) { bestScore = score; bestB = bq; best = ai; }
+  }
+  /*
+   * WHEN THE TABLE CANNOT TELL, DO NOT PAY TAX NOW. The table is smeared near the cliff (see the loss
+   * ledger), and where two moves sit within that smear it has been seen to pick the one that pre-pays
+   * tax for a survival gain it cannot actually resolve. Within `tieMargin` of the best score, prefer the
+   * move with the least tax this year; an exact tie there still goes to the larger bequest. Off by
+   * default; the forward policy only, so the table's values are untouched.
+   */
+  if (tie > 0) {
+    let pick = best, pickTx = TX[best], pickB = BQ[best];
+    for (let ai = 0; ai < actions.length; ai++) {
+      if (SC[ai] < bestScore - tie) continue;
+      if (TX[ai] < pickTx - 1e-9 || (Math.abs(TX[ai] - pickTx) <= 1e-9 && BQ[ai] > pickB)) { pick = ai; pickTx = TX[ai]; pickB = BQ[ai]; }
+    }
+    return pick;
   }
   return best;
 }

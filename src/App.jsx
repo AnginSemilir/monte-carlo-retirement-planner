@@ -509,7 +509,7 @@ const DEFAULT_CONFIG = {
    * the pension up to the basic-rate limit and parking the proceeds where the cost will be paid from.
    * Zero is off: the cost lands in its year and is met from whatever is there, as it always was.
    */
-  lookaheadYears: 0,
+  lookaheadYears: 5,
   /*
    * How far up the bands that harvest goes: 'pa' stops at the tax-free allowance, 'basic' keeps drawing
    * to the basic-rate limit and pays 20% on the way. The second is a bequest strategy rather than a
@@ -1099,7 +1099,8 @@ function normalizePlan(raw) {
   if (typeof plan.config.harvestPersonalAllowance !== 'boolean') plan.config.harvestPersonalAllowance = plan.config.harvestPersonalAllowance === '' ? true : !!plan.config.harvestPersonalAllowance;
   // A plan saved before the rule existed has no field, and no field means what it always meant: fixed.
   if (typeof plan.config.guardrails !== 'boolean') plan.config.guardrails = false;
-  plan.config.lookaheadYears = clamp(Math.round(num(plan.config.lookaheadYears, 0)), 0, 15);
+  // A plan saved before the field existed takes the default, as every other config field does.
+  plan.config.lookaheadYears = clamp(Math.round(num(plan.config.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15);
   if (!plan.config.valuationDate || isNaN(new Date(plan.config.valuationDate).getTime())) plan.config.valuationDate = todayISO();
   if (plan.demographics.planningMode !== 'single') plan.demographics.planningMode = 'couple';
   if (!DECUMULATION_POLICIES[plan.spending.decumulationPolicy]) plan.spending.decumulationPolicy = 'Bracket Fill Basic';
@@ -1759,7 +1760,7 @@ function buildContext(rawPlan) {
     solvencyFloor: Math.max(0, num(c.solvencyFloor, 0)),
     inflation: clamp(num(c.inflation, 2.5), -50, 100) / 100,
     guardrails: c.guardrails ? GUARDRAILS : null,
-    lookaheadYears: clamp(Math.round(num(c.lookaheadYears, 0)), 0, 15),
+    lookaheadYears: clamp(Math.round(num(c.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15),
     yf, baseYear, valuationDate,
     otherIncomes, oneOffContribs, oneOffCosts, oneOffDeductions, stagedTransfers, oneOffStaging
   };
@@ -5948,6 +5949,10 @@ const WRAPPER_PHRASE = {
 };
 const phraseFor = (tok) => WRAPPER_PHRASE[tok] || tok;
 
+// Whether the plan holds a cost the lookahead could prepare for: a one-off cost, or a planned gift,
+// which buildContext folds into the same map.
+const planHasKnownCost = (plan) => (plan?.oneOffCosts || []).some(c => num(c.amount, 0) > 0) || (plan?.inheritance?.gifts || []).some(g => num(g.amount, 0) > 0);
+
 function policyPlaybook(policyKey, P, opts = {}) {
   const pol = DECUMULATION_POLICIES[policyKey];
   if (!pol) return [];
@@ -6418,7 +6423,7 @@ function frontierSpend(row, targetRate = 90) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
+const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, planHasKnownCost, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
 /*
  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle
@@ -6426,7 +6431,7 @@ const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, 
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { GUARDRAILS, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { GUARDRAILS, planHasKnownCost, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 /*
@@ -7432,7 +7437,7 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
     const html = buildActionPlanHtml({
       res, baseline: base, plan, ctx,
       diff: E.diffStrategyPlans(base?.planState || plan, res.planState),
-      playbook: E.policyPlaybook(plan?.spending?.decumulationPolicy, ctx.P, { guardrails: !!plan?.config?.guardrails, lookahead: num(plan?.config?.lookaheadYears, 0) }),
+      playbook: E.policyPlaybook(plan?.spending?.decumulationPolicy, ctx.P, { guardrails: !!plan?.config?.guardrails, lookahead: E.planHasKnownCost(plan) ? num(plan?.config?.lookaheadYears, 0) : 0 }),
       isCouple, seed: results?.seed ?? seed, trials: TOURNAMENT_TRIALS,
       summary: summarizeStrategyChange(res, base, { isCouple, meta: results?.meta, selfEmployedOnly })
     }, { formatGBP, fmtNum });
@@ -12985,7 +12990,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               <details className="pt-3 border-t border-slate-100" open={!isPhone}>
                 <summary className="cursor-pointer min-h-11 flex items-center text-sm font-semibold text-slate-900 hover:text-slate-900">How to actually follow this policy</summary>
                 <ol className="mt-2 space-y-2">
-                  {E.policyPlaybook(plan?.spending?.decumulationPolicy, P, { guardrails: !!plan?.config?.guardrails, lookahead: num(plan?.config?.lookaheadYears, 0) }).map((step, i) => (
+                  {E.policyPlaybook(plan?.spending?.decumulationPolicy, P, { guardrails: !!plan?.config?.guardrails, lookahead: E.planHasKnownCost(plan) ? num(plan?.config?.lookaheadYears, 0) : 0 }).map((step, i) => (
                     <li key={i} className="flex gap-2.5 text-xs">
                       <span className="shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-700 grid place-items-center font-bold text-[10px] mt-0.5">{i + 1}</span>
                       <div className="min-w-0">

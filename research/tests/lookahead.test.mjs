@@ -44,7 +44,8 @@ console.log('=========== A. OFF IS OFF, AND NO COST IS NO-OP ===========');
   ok('A2  ...nor across the simulation', ma.successRate === mb.successRate && ma.medianTerminal === mb.medianTerminal && ma.medianLifetimeTax === mb.medianLifetimeTax);
   const c0 = rows(mk({ cost: 400000, costYear, look: 0 }));
   ok('A3  with a cost and the horizon at zero, nothing is set aside', c0.every(r => r.reserved === 0));
-  ok('A4  a plan saved without the field reads as off', E.normalizePlan({ ...mk(), config: { valuationDate: `${BASE}-01-01` } }).config.lookaheadYears === 0);
+  ok('A4  a plan saved without the field takes the default, which is five years', E.normalizePlan({ ...mk(), config: { valuationDate: `${BASE}-01-01` } }).config.lookaheadYears === 5 && E.DEFAULT_CONFIG.lookaheadYears === 5);
+  ok('A5  ...and zero, saved deliberately, stays zero', E.normalizePlan({ ...mk(), config: { valuationDate: `${BASE}-01-01`, lookaheadYears: 0 } }).config.lookaheadYears === 0);
 }
 
 console.log('=========== B. A LARGE COST, SEEN FIVE YEARS OUT ===========');

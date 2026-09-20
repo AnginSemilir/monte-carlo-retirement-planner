@@ -655,23 +655,20 @@ async function runProjection(p) {
   /*
    * THE ONE-OFF COST LOOKAHEAD.
    *
-   * A number on the Config tab, off at zero. The same household with a cost of £300k at 66, eight years
-   * into retirement and past the access age: off, no column; set to 5 through the real field, the audit
-   * table grows a "Set aside" column naming the years the rule drew and the cost year each draw was
-   * for, and only the years before the cost carry a figure. The Documentation link lands on its card.
+   * A number on the Config tab, five years by default, off at zero. The same household with a cost of
+   * £300k at 66, eight years into retirement and past the access age: with the default the audit table
+   * carries a "Set aside" column naming the years the rule drew and the cost year each draw was for,
+   * and only the years before the cost carry a figure; set to 0 through the real field the column goes.
+   * The Documentation link lands on its card.
    */
   console.log('one-off cost lookahead at 1400x900');
   {
     const costly = JSON.parse(JSON.stringify(plan));
     costly.oneOffCosts = [{ id: 'c1', date: '2047-06-01', year: 2047, owner: 'Myself', amount: 300000, desc: 'house move' }];
     const g = await open(b, 1400, 900, 'full', costly);
-    await tab(g.p, 'Audit Data Table');
-    ok('no Set aside column while the horizon is zero', await g.p.evaluate(() => ![...document.querySelectorAll('th')].some(t => /Set aside/.test(t.textContent))));
     await tab(g.p, 'Config');
     const field = await g.p.evaluate(() => { const el = document.querySelector('[data-lookahead-years]'); if (!el) return null; const r = el.getBoundingClientRect(); return { value: el.value, h: Math.round(r.height), label: document.querySelector('label[for="config-lookahead-years"]')?.textContent || '' }; });
-    ok('the Config tab has the horizon field, at zero, with a label', !!field && field.value === '0' && /years ahead/i.test(field.label) && field.h >= 24, JSON.stringify(field));
-    await g.p.fill('[data-lookahead-years]', '5');
-    await g.p.waitForTimeout(400);
+    ok('the Config tab has the horizon field, at five by default, with a label', !!field && field.value === '5' && /years ahead/i.test(field.label) && field.h >= 24, JSON.stringify(field));
     await tab(g.p, 'Audit Data Table');
     const audit = await g.p.evaluate(() => {
       const th = [...document.querySelectorAll('th')].some(t => /Set aside/.test(t.textContent));
@@ -679,9 +676,14 @@ async function runProjection(p) {
       const acted = rows.filter(r => /£/.test(r.cell));
       return { th, n: rows.length, acted: acted.map(r => `${r.year}: ${r.cell}`), before: acted.every(r => r.year >= 2042 && r.year < 2047), named: acted.every(r => /for 2047/.test(r.cell)) };
     });
-    ok('setting it to 5 adds a Set aside column', audit.th && audit.n > 0, `${audit.n} rows`);
+    ok('the audit table carries a Set aside column by default', audit.th && audit.n > 0, `${audit.n} rows`);
     ok('...with figures only in the five years before the cost', audit.acted.length > 0 && audit.acted.length <= 5 && audit.before, audit.acted.join(' | '));
     ok('...each naming the cost year it is for', audit.named);
+    await tab(g.p, 'Config');
+    await g.p.fill('[data-lookahead-years]', '0');
+    await g.p.waitForTimeout(400);
+    await tab(g.p, 'Audit Data Table');
+    ok('set to zero through the field, the column goes', await g.p.evaluate(() => ![...document.querySelectorAll('th')].some(t => /Set aside/.test(t.textContent))));
     await tab(g.p, 'Config');
     await g.p.evaluate(() => { [...document.querySelectorAll('#config-lookahead button')].find(x => /Documentation/.test(x.textContent)).click(); });
     await g.p.waitForTimeout(1500);

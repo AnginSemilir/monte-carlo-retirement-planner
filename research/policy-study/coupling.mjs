@@ -22,12 +22,14 @@
 import * as E from '../engine.mjs';
 import { buildScenarios } from './scenarios.mjs';
 
-const N = Number(process.argv[2] || 40), TRIALS = Number(process.argv[3] || 300), SEED = 4242;
+// node coupling.mjs 40 300            screen 40 households at 300 paths
+// node coupling.mjs S265,S279 3000 777  confirm named households at 3000 paths on another seed
+const ARG = process.argv[2] || '40', TRIALS = Number(process.argv[3] || 300), SEED = Number(process.argv[4] || 4242);
 const all = buildScenarios().filter(s => s.plan.demographics.currentAgeSelf <= s.plan.demographics.retireAgeSelf - 5);
-// spread across the library rather than the first N, which would all share a stage
-const pick = [];
-for (let i = 0; i < N; i++) pick.push(all[Math.floor(i * all.length / N)]);
-console.log(`${all.length} accumulating households in the library, testing ${pick.length} at ${TRIALS} paths\n`);
+let pick = [];
+if (/^S\d/.test(ARG)) { const ids = new Set(ARG.split(',')); pick = all.filter(s => ids.has(s.id)); }
+else { const N = Number(ARG); for (let i = 0; i < N; i++) pick.push(all[Math.floor(i * all.length / N)]); }   // spread across the library
+console.log(`${all.length} accumulating households in the library, testing ${pick.length} at ${TRIALS} paths, seed ${SEED}\n`);
 
 const score = (planState) => {
   const cands = E.buildPolicyCandidates(planState);
@@ -36,8 +38,14 @@ const score = (planState) => {
     return { id: c.id, rate: stats.successRate, p10: stats.p10TerminalNet };
   });
 };
-// best by survival, ties (within the engine's own tolerance) to the larger unlucky pot
-const best = (rows) => rows.slice().sort((a, b) => (Math.abs(b.rate - a.rate) > E.RATE_EPSILON_PTS ? b.rate - a.rate : b.p10 - a.p10))[0];
+// best by survival; among those within the engine's tolerance of the top rate, the larger unlucky pot.
+// Two passes rather than one sort: a comparator with a tolerance is not transitive, and sorting on
+// it can hand back a row that is not the maximum, which showed up as a "joint best" losing to a cell
+// inside its own grid.
+const best = (rows) => {
+  const top = Math.max(...rows.map(r => r.rate));
+  return rows.filter(r => top - r.rate <= E.RATE_EPSILON_PTS).sort((a, b) => b.p10 - a.p10)[0];
+};
 
 let policyDiffers = 0, playerDiffers = 0, tested = 0;
 const losses = [];

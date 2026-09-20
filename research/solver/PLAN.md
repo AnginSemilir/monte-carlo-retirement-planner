@@ -261,6 +261,41 @@ eight log-odds, one exp), which a stored log-odds table would halve, and the cel
 reachable band is for. Neither is done; the signal at proper size comes first, because it is what the
 speed was for.
 
+**TEN HOUSEHOLDS, 20 POINTS, 3,000 HELD-OUT PATHS - the phase 2 result.**
+
+| household | fixed, same menu | solved | survival | median pot | lifetime tax |
+|---|---|---|---|---|---|
+| S000 in-drawdown, pension-heavy | 100.0 | 100.0 | 0.0 | -3k | 0 |
+| S042 in-drawdown, balanced | 99.7 | 99.7 | +0.1 | -21k | -5k |
+| S084 just-retired, GIA-heavy | 100.0 | 100.0 | 0.0 | -40k | 0 |
+| S126 early-bridge, pension-heavy | 98.6 | 98.6 | +0.1 | **+354k** | **-82k** |
+| S168 early-bridge, cash-heavy | 100.0 | 100.0 | 0.0 | -77k | +4k |
+| S210 near, GIA-heavy | 98.5 | 98.6 | +0.1 | +185k | -4k |
+| S252 mid, ISA-heavy | 95.3 | 96.0 | +0.7 | -423k | +22k |
+| S294 mid, cash-heavy | 85.0 | 86.2 | **+1.2** | **-1,253k** | +83k |
+| S336 far, balanced | 87.5 | 88.9 | **+1.4** | -757k | +98k |
+| S378 long-bridge, ISA-heavy | 98.1 | 98.3 | +0.2 | -373k | +38k |
+| **mean** | | | **+0.37** | **-241k** | **+15k** |
+
+Wins 2, ties 8, **losses 0**. The dominance property holds everywhere at 20 points: the solver never
+loses to a fixed rule drawn from its own menu, which is what a correct solver must do. The gains are
+where they should be - the three households with real risk and a long horizon - and there is nothing
+to win on the four already at or near 100%.
+
+**What this does and does not settle.** +0.37 is state-dependence alone, and it is BELOW gate 4's bar
+of more than a point. Gate 4 asks a different and easier question, solver against the app as it stands,
+which also carries the cash sweep (+0.30 measured in the real engine) and the wider menu, so that
+comparison would land higher, plausibly +0.6 to +0.9, still short of a point. On fixed spending the
+fixed rules are close to optimal for this model, exactly as the evolver found.
+
+**The bequest cost is the finding that most needs answering.** The median pot falls by £241k on
+average and by £1.25m on S294, for +1.2 points of survival. Lifetime tax is up only £83k there, so tax
+does not explain it: the solver is doing something structural to protect survival that costs a great
+deal of terminal wealth, and nobody asked for that trade. **One diagnostic is owed before any of part C
+is built**: trace S294's chosen moves against the fixed winner's and say in one sentence what differs.
+If the lexicographic objective is pathological at the top, the fix is prioritisation weights, not more
+solver.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -577,6 +612,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
+| - | **phase 2 says**: +0.37 fair, no losses, but -£241k median pot. Diagnose the bequest cost, and test flexible spending in-model, BEFORE part C | | |
 | 5 | couples by rollout | same on couple households | 1× |
 | 6 | tiers and spend dimension | same, plus safe spend within £500 | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |

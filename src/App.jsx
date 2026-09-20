@@ -1555,6 +1555,10 @@ function buildContext(rawPlan) {
   const spa = clamp(num(d.statePensionAge, 68), 0, 120);
   const targetSpend = Math.max(0, num(s.targetSpend, 0));
   if (targetSpend <= 0) warnings.push('Net living spend is blank or zero. No retirement spending is being modelled.');
+  // the spending floor (Part D): the least the household will live on, as a fraction of the year's target so
+  // spend bands keep their shape; blank or equal to the target means fixed spending, exactly today's question
+  const floorSpend = clamp(num(s.floorSpend, 0), 0, targetSpend);
+  const floorFrac = targetSpend > 0 && floorSpend > 0 ? floorSpend / targetSpend : 0;
   const totalYears = Math.max(1, Math.round(terminalAge - ageSelf0));
   const valuationDate = c.valuationDate || todayISO();
   const yf = calculateYearFraction(valuationDate);
@@ -1845,6 +1849,7 @@ function buildContext(rawPlan) {
     pensionDeathTaxRate: clamp(num(c.pensionDeathTaxRate, 0), 0, 100) / 100,
     cashBufferYears: clamp(num(c.cashBufferMonths, 6), 0, 120) / 12,
     solvencyFloor: Math.max(0, num(c.solvencyFloor, 0)),
+    floorSpend, floorFrac,
     inflation: clamp(num(c.inflation, 2.5), -50, 100) / 100,
     guardrails: c.guardrails ? GUARDRAILS : null,
     lookaheadYears: clamp(Math.round(num(c.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15),
@@ -2192,6 +2197,15 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
           const rate = (baseDraw * gs.mult) / potNow;
           if (rate > gs.rate0 * (1 + g.band) && (ctx.totalYears - t) > g.freezeYears) { gs.mult *= (1 - g.cut); did.push('cut'); }
           else if (rate < gs.rate0 * (1 - g.band)) { gs.mult *= (1 + g.raise); did.push('raise'); }
+        }
+        /*
+         * THE FLOOR. Guyton-Klinger's cuts compound with no bottom of their own; with a floor set, the
+         * multiplier can never take the year's spend below it. The floor scales with the band, so a
+         * household that planned a leaner stretch keeps a proportionally leaner floor there.
+         */
+        if (ctx.floorFrac > 0) {
+          const minMult = Math.max(0, scheduled * ctx.floorFrac - covered) / baseDraw;
+          if (gs.mult < minMult) { gs.mult = minMult; did.push('held at floor'); }
         }
         gs.lastBaseDraw = baseDraw;
         annualLivingTarget = covered + baseDraw * gs.mult;

@@ -73,14 +73,17 @@ export function compile(m, actions) {
     drip: CATS.map(() => new Float64Array(T + 1)),
     cgtExempt: new Float64Array(T + 1),
     // the cash ISA cap for the owner's age in the year, and the typical sheltered cash a grid cell assumes
-    cashIsaCap: new Float64Array(T + 1), cashIsaTypical: new Float64Array(T + 1)
+    cashIsaCap: new Float64Array(T + 1), cashIsaTypical: new Float64Array(T + 1),
+    // the full-year scheduled spend, which the guardrails measure the draw against
+    scheduled: new Float64Array(T + 1)
   };
   for (let t = 0; t <= T; t++) {
     const age = ctx.ageSelf0 + t, year = ctx.baseYear + t;
     yr.frac[t] = t === 0 ? ctx.yf : 1;
     yr.working[t] = age < o.retireAge ? 1 : 0;
     yr.access[t] = age >= ctx.nmpa ? 1 : 0;
-    yr.spend[t] = yr.working[t] ? 0 : E.spendTargetAtAge(ctx, age) * yr.frac[t];
+    yr.scheduled[t] = yr.working[t] ? 0 : E.spendTargetAtAge(ctx, age);
+    yr.spend[t] = yr.scheduled[t] * yr.frac[t];
     let taxable = 0, taxFree = 0;
     ctx.otherIncomes.forEach(inc => { if (age >= inc.startAge && age <= inc.endAge) { if (inc.taxFree) taxFree += inc.amount * yr.frac[t]; else taxable += inc.amount * yr.frac[t]; } });
     if (age >= ctx.spa) taxable += o.statePension * yr.frac[t];
@@ -123,6 +126,8 @@ export function compile(m, actions) {
   }));
   return {
     E, m, ctx, P, o, T, yr, tb, acts, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
+    // the guardrails, applied only on a forward run whose state vector carries their memory (slots 7 to 10)
+    guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, inflation: ctx.inflation,
     real: CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].real : 0)),
     // the annual spread per pot with the per-path shock folded in, for a solver that has no path memory
     volEff: CATS.map(c => { const a = acc[idOf[c]]; return a ? Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam) : 0; })
@@ -241,8 +246,36 @@ export function flow(c, t, ai, s) {
     for (let k = 0; k < a.costSteps.length && rem > 0; k++) rem -= drawStep(a.costSteps[k], rem);
     unmet += Math.max(0, rem);
   }
-  // 6, 7. the living target: sweep a surplus, or draw the shortfall in the move's order
-  const target = yr.spend[t];
+  /*
+   * 6. the living target. On a forward run that carries the rails' memory in slots 7 to 10 (rate0 or -1,
+   * the multiplier, whether last year lost money, the draw the rails were last set against) the
+   * guardrails apply exactly as the engine applies them, floor included; a grid cell carries no memory
+   * and the solver plans at the full spend.
+   */
+  let target = yr.spend[t];
+  if (c.guard && s.length > 10 && retired) {
+    const g = c.guard;
+    const scheduled = yr.scheduled[t];
+    const covered = netGuaranteed / frac;
+    const baseDraw = Math.max(0, scheduled - covered);
+    const potNow = pen + isa + gia + cash;
+    let rate0 = s[7], mult = s[8], lost = s[9] > 0.5, lastBase = s[10];
+    if (baseDraw > 0 && potNow > 0) {
+      const replanned = rate0 >= 0 && Math.abs(baseDraw - lastBase) > 0.01 * Math.max(1, lastBase);
+      if (rate0 >= 0 && lost) mult /= (1 + c.inflation);
+      if (rate0 < 0) rate0 = baseDraw / potNow;
+      else if (replanned) rate0 = (baseDraw * mult) / potNow;
+      else {
+        const rate = (baseDraw * mult) / potNow;
+        if (rate > rate0 * (1 + g.band) && (c.T - t) > g.freezeYears) mult *= (1 - g.cut);
+        else if (rate < rate0 * (1 - g.band)) mult *= (1 + g.raise);
+      }
+      if (c.floorFrac > 0) { const minMult = Math.max(0, scheduled * c.floorFrac - covered) / baseDraw; if (mult < minMult) mult = minMult; }
+      lastBase = baseDraw;
+      target = (covered + baseDraw * mult) * frac;
+    }
+    s[7] = rate0; s[8] = mult; s[10] = lastBase;
+  }
   const netDemand = Math.max(0, target - netGuaranteed);
   if (target > 0 && netGuaranteed >= target) {
     const surplus = netGuaranteed - target;
@@ -359,6 +392,7 @@ export function grow(c, t, s, real) {
   const gia2 = Math.max(0, gia * (1 + real[2] * frac));
   const cash2 = Math.max(0, cash * (1 + real[3] * frac));
   if (s.length > 6 && s[6] >= 0) s[6] = cash > 0 ? Math.min(cash2, s[6] * (cash2 / cash)) : 0;   // the sheltered part grows with the cash
+  if (s.length > 10) { const before = s[0] + s[1] + tax; s[9] = (s[0] * (1 + real[0] * frac) + s[1] * (1 + real[1] * frac) + gia2 + cash2) < before ? 1 : 0; }
   // the basis does not grow, so the gain fraction rises with the GIA and falls if it shrinks
   if (gia > 0 && gia2 > 0) { const basis = gia * (1 - s[3]); s[3] = Math.max(0, Math.min(1, (gia2 - basis) / gia2)); }
   s[2] = gia2 + cash2;

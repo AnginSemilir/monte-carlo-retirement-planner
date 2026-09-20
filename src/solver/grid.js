@@ -256,7 +256,10 @@ export function vecOf(m, st) {
   const o = m.ctx.owners[0];
   const gia = st.pots[o.ids.other] || 0;
   const gf = gia > 0 ? Math.max(0, Math.min(1, (gia - (st.basis.self || 0)) / gia)) : 0;
-  return Float64Array.from([st.pots[o.ids.pen] || 0, st.pots[o.ids.isa] || 0, gia + (st.pots[o.ids.cash] || 0), gf, st.cumPcls.self || 0, st.lumpTaken.self ? 1 : 0, st.cashIsa ? (st.cashIsa.self || 0) : 0]);
+  const base = [st.pots[o.ids.pen] || 0, st.pots[o.ids.isa] || 0, gia + (st.pots[o.ids.cash] || 0), gf, st.cumPcls.self || 0, st.lumpTaken.self ? 1 : 0, st.cashIsa ? (st.cashIsa.self || 0) : 0];
+  // a state that carries the guardrails' memory hands it to the forward run in four more slots
+  if (st.guard && m.ctx.guardrails) base.push(st.guard.rate0 === null ? -1 : st.guard.rate0, st.guard.mult, st.guard.lostLastYear ? 1 : 0, st.guard.lastBaseDraw);
+  return Float64Array.from(base);
 }
 
 /* Where a model state sits on the grid: the three continuous locations plus the two buckets. */

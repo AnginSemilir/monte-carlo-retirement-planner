@@ -39,6 +39,22 @@ const walk = (plan, zAt = () => 0) => {
 };
 const retired = (rows, ctx) => rows.filter(r => r.ageSelf >= ctx.owners[0].retireAge);
 
+console.log('=========== F. THE FLOOR (plan phase 2d): CUTS STOP AT THE LEAST THE HOUSEHOLD WILL LIVE ON ===========');
+{
+  // a run of losing years drives the cuts; with a floor at 80% of the target the spend never goes below it
+  const losing = (t) => (t >= 2 && t <= 12 ? -1.6 : 0.3);
+  const noFloor = mk({ spend: 40000, term: 90 });
+  const floored = { ...noFloor, spending: { ...noFloor.spending, floorSpend: 32000 } };
+  const a = walk(noFloor, losing), b = walk(floored, losing);
+  const ra = retired(a.rows, a.ctx), rb = retired(b.rows, b.ctx);
+  const minA = Math.min(...ra.map(r => r.targetSpend)), minB = Math.min(...rb.map(r => r.targetSpend));
+  ok('F1  without a floor the rails cut the spend below 80% of the target on a losing run', minA < 32000 - 1, `${minA.toFixed(0)}`);
+  ok('F2  with the floor the spend never goes below it', minB >= 32000 - 1, `${minB.toFixed(0)}`);
+  ok('F3  ...and the audit row says so the year it bites', rb.some(r => /held at floor/.test(r.guardrail || '')));
+  ok('F4  the floor changes nothing on years the rails would not have cut below it', ra.filter(r => r.targetSpend >= 32000).every((r, i) => Math.abs(r.targetSpend - rb[i].targetSpend) < 1e-6 || rb[i].targetSpend >= 32000 - 1));
+  ok('F5  a floor above the target is clamped to it', E.buildContext({ ...noFloor, spending: { ...noFloor.spending, floorSpend: 99000 } }).floorSpend === 40000);
+}
+
 console.log('=========== A. OFF IS OFF ===========');
 {
   const off = mk({ on: false });

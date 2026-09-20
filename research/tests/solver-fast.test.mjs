@@ -13,6 +13,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import * as F from '../../src/solver/fast.js';
 import { buildActions } from '../../src/solver/solve.js';
+import { vecOf } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let pass = 0, fail = 0;
@@ -94,6 +95,44 @@ console.log('=========== C. SPEED, WHICH IS WHY THE FILE EXISTS ===========');
   console.log(`      per year: exact model ${modelNs.toFixed(0)}ns, fast flow ${fastNs.toFixed(0)}ns (${(modelNs / fastNs).toFixed(1)}x)`);
   ok('C1  the fast flow is at least five times the exact model', modelNs / fastNs >= 5, `${(modelNs / fastNs).toFixed(1)}x`);
   ok('C2  ...and under a microsecond a year', fastNs < 1000, `${fastNs.toFixed(0)}ns`);
+}
+
+console.log('=========== D. THE GUARDRAILS ON A FORWARD RUN, AGAINST THE EXACT MODEL (plan 2d) ===========');
+{
+  // a plan with the rails on and a floor: the fast flow carries the rails' memory in four extra slots and
+  // must walk a shocked path exactly as the model does, cuts, re-sets and the floor included
+  const sc = singles[Math.floor(singles.length / 3)];
+  const base = JSON.parse(JSON.stringify(sc.plan));
+  const plan = E.resolveMpaa(E.normalizePlan({ ...base, config: { ...base.config, guardrails: true, lookaheadYears: 0 }, spending: { ...base.spending, floorSpend: Math.round(E.num(base.spending.targetSpend, 0) * 0.8) } }));
+  const m = M.prepare(E, plan);
+  const c = F.compile(m, actions);
+  const a = M.actionFromContext(m.ctx);
+  const ai = actions.findIndex(x => x.steps.join() === a.steps.join() && !!x.harvest === !!a.harvest && x.harvestCeil === (a.harvestCeil || 'pa'));
+  const act = ai >= 0 ? actions[ai] : { ...actions[0], steps: a.steps, costSteps: a.costSteps || a.steps, harvest: a.harvest, harvestCeil: a.harvestCeil || 'pa', sweepCash: true, lump: false };
+  const cc = F.compile(m, [act]);
+  const st = M.initialState(m);
+  const s = vecOf(m, st);
+  ok('D1  a state with the rails on hands the fast flow eleven slots', s.length === 11 && s[7] === -1 && s[8] === 1);
+  const zAt = (t) => (t % 7 === 3 ? -1.8 : (t % 5 === 0 ? -0.9 : 0.4));
+  let worst = 0, cuts = 0, floors = 0;
+  const real = new Float64Array(4);
+  for (let t = 0; t <= m.ctx.totalYears; t++) {
+    const z = zAt(t);
+    // the fast flow folds the per-path shock into its volatility, so the model is grown on the same convention
+    const rates = {}; m.ctx.accounts.forEach(x => { rates[x.id] = Math.exp(Math.log(1 + x.real) + Math.sqrt(x.vol * x.vol + x.sigmaParam * x.sigmaParam) * z) - 1; });
+    const mr = M.step(m, st, { ...act, sweepCash: true, lump: false }, t, rates);
+    F.flow(cc, t, 0, s);
+    const target = cc.last.target;
+    worst = Math.max(worst, Math.abs(target - mr.targetSpend), Math.abs(s[8] - (mr.spendMult || 1)) * 1e4);
+    if (/cut/.test(mr.guardrail || '')) cuts++;
+    if (/held at floor/.test(mr.guardrail || '')) floors++;
+    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + cc.real[i]) + cc.volEff[i] * z) - 1;
+    F.grow(cc, t, s, real);
+    const o = m.ctx.owners[0];
+    const mTot = (st.pots[o.ids.pen] || 0) + (st.pots[o.ids.isa] || 0) + (st.pots[o.ids.other] || 0) + (st.pots[o.ids.cash] || 0);
+    worst = Math.max(worst, Math.abs(s[0] + s[1] + s[2] - mTot));
+  }
+  ok('D2  the year\'s target and the multiplier agree with the model every year, cuts and floor included', worst < 0.05 && cuts > 0, `worst ${worst.toFixed(4)}, ${cuts} cuts, ${floors} at the floor`);
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

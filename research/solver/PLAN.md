@@ -227,6 +227,27 @@ lose to a fixed rule from its OWN menu, since "always this move" is a policy it 
 it does, as on S140, that shortfall is the approximation cost, measured directly. And the next run
 needs 3,000 held-out paths and 20 points, which is running. The fast flow waits on it.
 
+**At 20 points and 3,000 held-out paths — the decision.** Same fair protocol, paired standard error
+now about half a point:
+
+| household | fixed, same menu | solved | difference |
+|---|---|---|---|
+| S000 | 100.0 | 100.0 | 0.0 |
+| S140 | 49.3 | 49.3 | 0.0 |
+| S280 | 67.5 | 69.5 | **+1.9** |
+| mean | | | **+0.63**, no losses |
+
+S140's −0.7 was resolution, and at 20 points the solver matches the best fixed rule from its own
+menu exactly, which is the dominance property a correct solver must have. S280's gain held and grew
+to +1.9, outside the noise. So state-dependence is real, small on average, and concentrated in
+households with something to decide; and every step of resolution has helped, which is the case for
+the fast flow: 20 points costs 301–686s a household on the exact model, and a ten-household run needs
+it. **Decision: build the fast flow.**
+
+The trade it makes is unchanged at every resolution: S280 buys +1.9 of survival with −£583k of
+median pot and +£67k of lifetime tax. That is the objective as specified, and the Strategy tab must
+show it as a trade rather than hide it behind the survival figure.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

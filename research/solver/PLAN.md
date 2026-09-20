@@ -288,13 +288,42 @@ which also carries the cash sweep (+0.30 measured in the real engine) and the wi
 comparison would land higher, plausibly +0.6 to +0.9, still short of a point. On fixed spending the
 fixed rules are close to optimal for this model, exactly as the evolver found.
 
-**The bequest cost is the finding that most needs answering.** The median pot falls by £241k on
-average and by £1.25m on S294, for +1.2 points of survival. Lifetime tax is up only £83k there, so tax
-does not explain it: the solver is doing something structural to protect survival that costs a great
-deal of terminal wealth, and nobody asked for that trade. **One diagnostic is owed before any of part C
-is built**: trace S294's chosen moves against the fixed winner's and say in one sentence what differs.
-If the lexicographic objective is pathological at the top, the fix is prioritisation weights, not more
-solver.
+**The bequest cost, diagnosed and priced.** The median pot fell £241k on average and £1.25m on S294
+for +1.2 points of survival. Tracing S294 against the fixed winner on the same paths: the solver
+harvests to the basic-rate limit for decades, pre-paying income tax to turn pension pounds into ISA
+pounds, because in a bad year an ISA pound buys a whole pound of spending and a pension pound buys
+eighty pence. Real insurance, and it works. The premium: the median pension left falls from £5.9m to
+£2.5m, terminal wealth on surviving paths from £7.3m to £5.5m, lifetime tax doubles from £73k to £164k
+- and `pensionDeathTaxRate` is zero in these scenarios and zero by default, so none of that tax buys an
+inheritance benefit.
+
+The cause was the objective, not the solver. Survival strictly first with the bequest breaking only an
+exact tie means any survival gain however small justifies any bequest loss however large. The value
+now scores `survival + weight x bequest / openingWealth`, where the weight reads as how many points of
+survival one multiple of current wealth in extra bequest is worth. The frontier, 16 points, 1,500
+held-out paths, against the same fixed winner:
+
+| household | weight 0 | 0.02 | 0.1 | 0.5 |
+|---|---|---|---|---|
+| S294 survival | +1.2 | +1.0 | +0.9 | +0.8 |
+| S294 median pot | −1,242k | **−929k** | −812k | −775k |
+| S336 survival | +1.3 | +1.0 | +1.0 | +0.9 |
+| S336 median pot | −736k | **−385k** | −359k | −356k |
+| S252 survival | +0.3 | 0.0 | 0.0 | −0.1 |
+| S252 median pot | −204k | **+53k** | +64k | +64k |
+
+**A weight of 0.02 is the knee, and it is cheap.** It gives back a quarter to a half of the bequest
+loss for a fifth of the survival gain, and it turns S252 from a £204k loss into a £53k gain at no
+survival cost. Past 0.02 the curve is nearly flat: the solver has already dropped the trades that were
+poor value and the rest are ones it genuinely wants. **Recommendation: default the weight to 0.02**,
+expose it through the existing prioritisation presets rather than as a new setting, and report the
+bequest change beside the survival change wherever the solved plan is shown.
+
+**What is still not measured**, and should be before part C: the unlucky tenth and the failure age.
+Survival is a cliff, so +1.2 points means 1.2% of paths crossed from failing to not failing, and those
+paths were marginal either way. If the solver also lifts the bad tail the case is stronger than the
+points suggest; if it only nudges paths over the line it is weaker. `insample.mjs` carries median and
+tax but not p10 or failure age.
 
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve

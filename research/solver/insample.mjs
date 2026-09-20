@@ -41,6 +41,12 @@ const SEED = Number(process.argv[6] || 4242);
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
 const pick = [];
 for (let i = 0; i < N; i++) pick.push(singles[Math.floor(i * singles.length / N)]);
+/*
+ * ONLY=<i> runs just the i-th of the N, so a long sweep can be one process per household. A 20-point
+ * solve holds about 140MB of tables and ten in a row exhausted the container, killing the run with no
+ * output; one process each also makes progress visible rather than buffered to the end.
+ */
+if (process.env.ONLY !== undefined) { const i = Number(process.env.ONLY); pick.length = 0; pick.push(singles[Math.floor(i * singles.length / N)]); }
 
 const prep = (p) => E.resolveMpaa(E.normalizePlan({ ...JSON.parse(JSON.stringify(p)), config: { ...p.config, guardrails: false, lookaheadYears: 0 } }));
 

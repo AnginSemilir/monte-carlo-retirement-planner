@@ -589,6 +589,22 @@ shortfall exponent, the landing tolerance, a memory dimension if whipsaw appears
 changed once, on the evidence, and every arm re-run on the same seeds. Findings from the first pass are
 listed under the results below as they land.
 
+**Findings at the quarter mark of the equal-downside pass (ten households), for 2d.3.**
+(a) At the same floor rate the solver delivers nearly twice the years at target in the median run
+(0.66 against 0.35) and five times in the unlucky tenth (0.20 against 0.04), changes the spend level
+4 times a run against the guardrails' 24, and ends with a larger median pot on all ten. (b) The
+guardrails spend ABOVE target 3 to 18 years a run (the raises); the solver never does, so the report
+needs total spending delivered (the mean spend level over retirement) beside years at target, or it
+flatters the solver. (c) The solver trims at least once in every run on seven of ten households even
+when the ask is modest: with the shortfall squared, a 5% trim costs a hundredth of a 50% one, so the
+0.95 level is sprinkled freely and the fully-funded rate reads zero. Candidate changes, to be tried
+one at a time: the levels without 0.95, and a linear shortfall (exponent 1) that makes small trims
+proportionally dear. (d) The landing undershoots the ask on held-out paths by up to 0.8 of a point
+(the penalty is chosen on the search paths, a winner's curse). Candidate: land at the ask plus half a
+point, or 1,000 search paths. (e) The one household where the guardrails deliver more years at target
+(S070) is the one where the solver ends £1.2m richer: the objective is trading years at target for the
+pot there, which the bequest weight governs and the presets should expose.
+
 ### Phase 2e. Two engine gaps that flatter the taxable side, to close before any bridge
 
 Both are engine work, not solver work; the solver inherits them through the fast flow's tax table and

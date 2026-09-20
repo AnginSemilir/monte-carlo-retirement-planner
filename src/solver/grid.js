@@ -53,8 +53,21 @@ function logAxis(n, lo, hi) {
   return { pts, n, lo, hi, lg, step };
 }
 
+/* A linear axis on [0, 1], for the wrapper shares in the total-wealth coordinates. */
+function linAxis(n) {
+  const pts = new Float64Array(n);
+  for (let i = 0; i < n; i++) pts[i] = i / (n - 1);
+  return { pts, n, linear: true };
+}
+function locateLin(ax, v) {
+  const f = Math.max(0, Math.min(1, v)) * (ax.n - 1);
+  const i = Math.min(ax.n - 2, Math.floor(f));
+  return { i, w: f - i };
+}
+
 /* Where `v` sits on the axis: the lower index and the weight on the next one up. */
 function locate(ax, v) {
+  if (ax.linear) return locateLin(ax, v);
   if (!(v > 0)) return { i: 0, w: 0 };
   if (v <= ax.pts[1]) return { i: 0, w: v / ax.pts[1] };       // linear between the zero point and the first
   if (v >= ax.hi) return { i: ax.n - 2, w: 1 };
@@ -89,11 +102,29 @@ export function makeGrid(m, opts = {}) {
   };
   const gain = opts.gainBuckets || [0.05, 0.25, 0.55];      // representative unrealised-gain fractions
   const pcls = opts.pclsBuckets || [0, 0.5, 1];             // fraction of the lump-sum allowance used
-  const size = np * ni * nt * gain.length * pcls.length;
-  const stride = { isa: np, tax: np * ni, gain: np * ni * nt, pcls: np * ni * nt * gain.length };
+  /*
+   * TOTAL-WEALTH COORDINATES (`coords: 'total'`). The survival cliff runs along total wealth and is
+   * smooth in how that wealth is split between wrappers, so the three pot axes spend most of their
+   * points in directions the cliff does not run. These coordinates put one dense log axis on total
+   * wealth in years-of-spend and two coarse linear axes on the shares: a = pension / total,
+   * b = ISA / (total - pension). Forty points on the cliff and six on each share is 1,440 cells
+   * against 8,000 at twenty points per pot. The six-slot vector and everything downstream are
+   * unchanged; only where a position sits, and what a cell means, differ.
+   */
+  const total = opts.coords === 'total';
+  const n1 = total ? ((pts && pts.total) || opts.points || 12) : np;
+  const n2 = total ? ((pts && pts.share) || opts.shares || 6) : ni;
+  const n3 = total ? ((pts && pts.share) || opts.shares || 6) : nt;
+  if (total) {
+    axes.W = logAxis(n1, spend * 0.1, spend * top(open.pen + open.isa + open.tax));
+    axes.a = linAxis(n2);
+    axes.b = linAxis(n3);
+  }
+  const size = n1 * n2 * n3 * gain.length * pcls.length;
+  const stride = { isa: n1, tax: n1 * n2, gain: n1 * n2 * n3, pcls: n1 * n2 * n3 * gain.length };
   return {
-    m, n: Math.max(np, ni, nt), np, ni, nt, spend, axes, gain, pcls, size, stride, open,
-    index: (ip, ii, it, ig, ic) => ip + ii * stride.isa + it * stride.tax + ig * stride.gain + ic * stride.pcls
+    m, mode: total ? 'total' : 'pots', n: Math.max(n1, n2, n3), np: n1, ni: n2, nt: n3, spend, axes, gain, pcls, size, stride, open,
+    index: (i1, i2, i3, ig, ic) => i1 + i2 * stride.isa + i3 * stride.tax + ig * stride.gain + ic * stride.pcls
   };
 }
 
@@ -111,13 +142,14 @@ const nearest = (arr, v) => {
 export function toState(g, ip, ii, it, ig, ic, t) {
   const { m } = g;
   const o = m.ctx.owners[0];
-  const tax = g.axes.tax.pts[it];
+  const v = toVec(g, ip, ii, it, ig, ic, new Float64Array(6));
+  const tax = v[2];
   const cash = Math.min(tax, m.E.num(cashAtOf(m, t, tax), 0));
   const gia = tax - cash;
   const pots = {};
   m.ctx.accounts.forEach(a => { pots[a.id] = 0; });
-  pots[o.ids.pen] = g.axes.pen.pts[ip];
-  pots[o.ids.isa] = g.axes.isa.pts[ii];
+  pots[o.ids.pen] = v[0];
+  pots[o.ids.isa] = v[1];
   pots[o.ids.other] = gia;
   pots[o.ids.cash] = cash;
   return {
@@ -139,17 +171,25 @@ function cashAtOf(m, t, taxPot) {
 
 /* The same cell as a six-slot vector for the fast flow: pen, isa, taxable, gain fraction, tax-free used, lump taken. */
 export function toVec(g, ip, ii, it, ig, ic, out) {
-  out[0] = g.axes.pen.pts[ip]; out[1] = g.axes.isa.pts[ii]; out[2] = g.axes.tax.pts[it];
+  if (g.mode === 'total') {
+    const W = g.axes.W.pts[ip], a = g.axes.a.pts[ii], b = g.axes.b.pts[it];
+    const pen = a * W, rest = W - pen, isa = b * rest;
+    out[0] = pen; out[1] = isa; out[2] = rest - isa;
+  } else {
+    out[0] = g.axes.pen.pts[ip]; out[1] = g.axes.isa.pts[ii]; out[2] = g.axes.tax.pts[it];
+  }
   out[3] = g.gain[ig]; out[4] = g.pcls[ic] * g.m.P.lsa; out[5] = g.pcls[ic] > 0 ? 1 : 0;
   return out;
 }
 
 /* Where a six-slot vector sits on the grid. */
 export function locateVec(g, s) {
-  return {
-    p: locate(g.axes.pen, s[0]), i: locate(g.axes.isa, s[1]), t: locate(g.axes.tax, s[2]),
-    ig: nearest(g.gain, s[3]), ic: nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa))
-  };
+  const ig = nearest(g.gain, s[3]), ic = nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa));
+  if (g.mode === 'total') {
+    const W = s[0] + s[1] + s[2], rest = W - s[0];
+    return { p: locate(g.axes.W, W), i: locateLin(g.axes.a, W > 0 ? s[0] / W : 0), t: locateLin(g.axes.b, rest > 0 ? s[1] / rest : 0), ig, ic };
+  }
+  return { p: locate(g.axes.pen, s[0]), i: locate(g.axes.isa, s[1]), t: locate(g.axes.tax, s[2]), ig, ic };
 }
 
 /*
@@ -172,8 +212,18 @@ function locInto(ax, v, k) {
   const i = Math.min(ax.n - 2, Math.max(1, Math.floor(f)));
   LOC[k] = i; LOC[k + 1] = f - i;
 }
+function locLinInto(ax, v, k) {
+  const f = (v <= 0 ? 0 : v >= 1 ? 1 : v) * (ax.n - 1);
+  const i = Math.min(ax.n - 2, Math.floor(f));
+  LOC[k] = i; LOC[k + 1] = f - i;
+}
 export function readValues(g, lsArr, bArr, s, out, lrArr = null) {
-  locInto(g.axes.pen, s[0], 0); locInto(g.axes.isa, s[1], 2); locInto(g.axes.tax, s[2], 4);
+  if (g.mode === 'total') {
+    const W = s[0] + s[1] + s[2], rest = W - s[0];
+    locInto(g.axes.W, W, 0); locLinInto(g.axes.a, W > 0 ? s[0] / W : 0, 2); locLinInto(g.axes.b, rest > 0 ? s[1] / rest : 0, 4);
+  } else {
+    locInto(g.axes.pen, s[0], 0); locInto(g.axes.isa, s[1], 2); locInto(g.axes.tax, s[2], 4);
+  }
   const ig = nearest(g.gain, s[3]), ic = nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa));
   const n = g.stride.isa, nn = g.stride.tax;
   const i0 = LOC[0] + LOC[2] * n + LOC[4] * nn + ig * g.stride.gain + ic * g.stride.pcls;
@@ -208,19 +258,7 @@ export function vecOf(m, st) {
 }
 
 /* Where a model state sits on the grid: the three continuous locations plus the two buckets. */
-export function locateState(g, st) {
-  const o = g.m.ctx.owners[0];
-  const gia = st.pots[o.ids.other] || 0;
-  const tax = gia + (st.pots[o.ids.cash] || 0);
-  const gf = gia > 0 ? Math.max(0, Math.min(1, (gia - (st.basis.self || 0)) / gia)) : 0;
-  return {
-    p: locate(g.axes.pen, st.pots[o.ids.pen] || 0),
-    i: locate(g.axes.isa, st.pots[o.ids.isa] || 0),
-    t: locate(g.axes.tax, tax),
-    ig: nearest(g.gain, gf),
-    ic: nearest(g.pcls, Math.min(1, (st.cumPcls.self || 0) / g.m.P.lsa))
-  };
-}
+export function locateState(g, st) { return locateVec(g, vecOf(g.m, st)); }
 
 /*
  * Read a value at a position that is not a grid point: trilinear over the three pots, at the nearest

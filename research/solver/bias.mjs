@@ -24,7 +24,9 @@ const RESIL = process.env.RESIL || undefined;
 const WR = process.env.WR ? Number(process.env.WR) : undefined;
 const GAIN = process.env.GAIN ? process.env.GAIN.split(',').map(Number) : undefined;
 const RICH = process.env.RICH === '1';
-const TAG = [RESIL ? 'resil=' + RESIL : '', WR !== undefined ? 'wR=' + WR : '', GAIN ? 'gain=' + GAIN.length : '', RICH ? 'richardson' : '', TIE ? 'tie=' + TIE : ''].filter(Boolean).join(' ');
+const COORDS = process.env.COORDS || undefined;
+const SHARES = process.env.SHARES ? Number(process.env.SHARES) : undefined;
+const TAG = [COORDS ? 'coords=' + COORDS + (SHARES ? 'x' + SHARES : '') : '', RESIL ? 'resil=' + RESIL : '', WR !== undefined ? 'wR=' + WR : '', GAIN ? 'gain=' + GAIN.length : '', RICH ? 'richardson' : '', TIE ? 'tie=' + TIE : ''].filter(Boolean).join(' ');
 const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
 const band = JSON.parse(readFileSync(join(HERE, 'results', 'band-70-98-7001.json'), 'utf8'));
@@ -46,7 +48,7 @@ function run(zs, pick) {
   return !(m.ctx.solvencyFloor > 0 && s[0] + s[1] + s[2] < m.ctx.solvencyFloor);
 }
 const t0 = Date.now();
-const SOPTS = { points: POINTS, lump: m.ctx.fullLumpSum, headroom: HEADROOM, tieMargin: TIE, resilience: RESIL, resilienceWeight: WR, gainBuckets: GAIN };
+const SOPTS = { points: POINTS, lump: m.ctx.fullLumpSum, headroom: HEADROOM, tieMargin: TIE, resilience: RESIL, resilienceWeight: WR, gainBuckets: GAIN, coords: COORDS, shares: SHARES };
 const r = solve(E, M, plan, SOPTS);
 if (RICH) { const half = typeof POINTS === 'number' ? Math.round(POINTS / 2) : { pen: Math.round(POINTS.pen / 2), isa: Math.round(POINTS.isa / 2), tax: Math.round(POINTS.tax / 2) }; r.rich = solve(E, M, plan, { ...SOPTS, points: half }); }
 const s0 = vecOf(m, M.initialState(m));

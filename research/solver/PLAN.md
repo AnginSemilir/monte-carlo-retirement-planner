@@ -14,9 +14,55 @@ engine, the simulation, the reporting and the inputs stay. The person sees two p
 and the solved one, and gets this year's actions, the rule of thumb behind them, and the cost of not
 following them. The app becomes an annual review: come back with real balances and it re-solves.
 
-Out of scope, deliberately, and each is a phase of its own afterwards: flexible spending as an action
-(needs a utility), gifting as an action (needs the seven-year clock as state), retirement age as an
-action, mortality, annuities, a regime belief, and any change to the return model.
+Flexible spending is Part D, after the app has switched over, with its own inputs, objective and
+reporting rule. Out of scope altogether, each a plan of its own if ever wanted: gifting as an action
+(needs the seven-year clock as state), retirement age as an action, mortality, annuities, a regime
+belief, and any change to the return model.
+
+---
+
+## Working conventions for whoever builds this
+
+These are the rules this repository already runs on. They are not optional and none of them is
+repeated in the phases below.
+
+- **Branch and merge.** Develop on the session's designated branch. Merge to `main` with
+  `git merge --no-ff` only after `bash research/ui-harnesses/run-all.sh 4173` prints
+  `ALL REQUIRED GREEN`; that script builds, serves on the port given, runs every required harness and
+  then every engine test. Never merge on a partial run. Commit after each gate passes, with a message
+  that says what changed and why in prose; end it with the attribution lines the session provides, and
+  never put a model identifier in a commit, a comment or a pushed file.
+- **The engine is a slice, not a copy.** Everything from after the lucide-react import in
+  `src/App.jsx` down to the single one-line `export { … }` is the engine, and `python3
+  research/build-engine.py` slices it into `research/engine.mjs` (git-ignored) for the tests and
+  studies. So: no JSX and no React in that region; any new engine function must be added to BOTH the
+  `const E = { … }` map (App.jsx, one line, currently near line 6426) and the `export { … }` line, or
+  the app sees `E.name` as undefined while the tests pass. `src/solver/` is a separate module the
+  engine must not import at module level (the app imports it lazily); the studies import it directly.
+- **Tests.** Engine tests are `research/tests/*.test.mjs`, plain node scripts printing PASS/FAIL lines
+  and exiting non-zero on failure; `npm run test:engine` runs them all after rebuilding the slice.
+  Harnesses are `research/ui-harnesses/*-ui.cjs`, Playwright from `/tmp/node_modules/playwright` with
+  `executablePath: '/opt/pw-browsers/chromium'`, each with `open`, `tab` and `ok` helpers at the top
+  and a fixture plan seeded through localStorage; a new harness is registered in `run-all.sh`'s
+  `REQUIRED` list. The load-perf harness holds a 220 KB gzipped ceiling on the entry chunk and a
+  typing-latency ceiling; both stand throughout.
+- **Golden comparison is the method.** Every engine change in this repository has been proved by
+  running the same households through the old and new code and diffing, and every study reports
+  held-out figures. Do the same: the reference for "what the engine does" is `simulateDeterministic`
+  and `monteCarlo` on `research/engine.mjs` built from `main`, kept in the scratchpad as
+  `engine-main.mjs`, never a hand-written expectation.
+- **Households come from the library.** `research/policy-study/scenarios.mjs` builds 420 households;
+  the FIRE cohort is those under 45 with `retireAgeSelf` set to 52; the cost variants are built as in
+  `research/policy-study/lookahead-study.mjs`. The versus protocol is `research/policy-study/versus.mjs`
+  and its comment header is the specification of a fair comparison. Use `RATE_EPSILON_PTS` from the
+  engine as the tie threshold everywhere; never invent one.
+- **The person's own household is not a fixture.** No test, harness or study fixture may carry the
+  maintainer's real figures; invent households.
+- **Phones are first-class.** Anything on the Strategy or Projection tabs is checked on the phone
+  harnesses too, with 44px targets and no horizontal scroll.
+- **Words.** UI copy in the same voice as the existing tabs: plain sentences, no jargon without the
+  glossary, numbers labelled as today's money. New copy is added to the editable-copy manifest the
+  edit mode reads.
 
 ---
 
@@ -260,7 +306,8 @@ baseline's tooling until then.
 ### Phase 10. Projection, Simple, scenarios, audit, historical
 
 - **Projection** runs the solved plan and reports it as the headline, with the baseline's survival
-  beside it in one line ("as you are now: 71%"). The run card gains a solve state and a progress bar;
+  beside it in one line ("as you are now: 71%"). The reporting rule of Part D applies from the day
+  flexible spending lands: no safety-net rate anywhere without the fully-funded rate beside it. The run card gains a solve state and a progress bar;
   the guardrail note stays; the lookahead note goes.
 - **Quick dials** read the table (Phase 6's spend dimension), so they stay instant; the retirement-age
   dial still re-solves, with the progress bar visible, unless the age table has been pre-solved for
@@ -303,6 +350,95 @@ baseline's tooling until then.
 
 ---
 
+## Part D. Flexible spending (phase 13, after the switch is on for good)
+
+The one question the app has never answered properly: "if I could trim in a bad stretch, how much
+safer would I be, and how often would I be trimming?" Guardrails answer it with a fixed rail.
+This phase answers it from the person's position.
+
+### Inputs, on Plan Inputs beside the spending target
+
+| Field | Plan key | Default | Rule |
+|---|---|---|---|
+| Target spend | `spending.targetSpend` | as today | unchanged |
+| Floor spend | `spending.floorSpend` | equal to the target | `0 < floor ≤ target`; equal means fixed spending, exactly today's question |
+| Confidence at the floor | `spending.floorConfidence` | the existing target survival rate | percent, 50 to 99 |
+
+Spend bands keep working: the floor is a fraction of the band's target, `floor / target`, applied to
+every band. Both new fields are normalised in `normalizePlan` and carried by old exports as "equal to
+the target".
+
+### The objective, exactly
+
+1. **Hard:** the probability of never spending below the floor must be at least `floorConfidence`.
+2. **Then:** minimise the expected lifetime shortfall from target, with each year's shortfall squared
+   so one deep cut costs more than two shallow ones: `Σ_years ((target − spend) / target)²`.
+3. **Then:** the bequest net of death tax, ordered against 2 by the prioritisation preset (survival
+   presets put 2 first; the bequest preset puts 3 first; balanced weighs them as it weighs today).
+
+A constraint cannot go into backward induction directly. It is solved as a penalty: the value carried
+through the table is `survivalAtFloor − λ · shortfall` (plus the bequest component, kept separate as
+in Phase 2), and `λ` is found by bisection on the solved policy's actual floor survival, measured by
+a 1,000-path run in the reduced model, until it lands within half a point of `floorConfidence` from
+above. Each bisection step is one solve; eight steps bound it. `λ` is stored in `solve.meta` and shown
+nowhere. **No constant is ever asked of the person and none is hard-coded**: the floor, the target
+and the confidence are theirs, the exponent 2 and the half-point landing tolerance are structural and
+named in the docs card.
+
+### Actions
+
+Drawing years gain one lever: the year's spend, one of `target · {1, 0.9, 0.8, floor/target}`,
+de-duplicated and never below the floor. No new state: a cut has no memory. Working years are
+unchanged. The `pensionCeiling` action of "whatever the year needs" now means "whatever this year's
+chosen spend needs".
+
+### The engine hook
+
+`stepYear`'s `spendOverride` parameter accepts a function `(t, state) → spend` as well as a number,
+and `runTrial` and `monteCarlo` pass it through unchanged. The table policy override supplies that
+function, reading the spend action for the exact state at the top of each year, and the year then runs
+as today. The guardrail machinery (`state.guard`, the rails, the multiplier) is not touched by the
+table; with both on, the guardrail multiplier applies to the table's chosen spend, and the Config note
+says so. The audit row carries `spendChosen` beside `targetSpend`.
+
+### The reporting rule, and it is a rule
+
+A plan that survives by trimming is not a plan that never trims. So, on every surface that shows
+survival (the deck, the dashboard, the Simple page, the scenarios comparison, the print sheet, the
+Strategy comparison, the Audit summary):
+
+- the **fully-funded rate** (never below target, the number the app has always shown) is the headline
+  and is never omitted;
+- the **safety-net rate** (never below the floor) is shown beside it, labelled "safety net at £X held",
+  and is never shown alone;
+- the **years at target** in a typical run and the **unlucky tenth's typical spend** are shown with
+  them, in the tile the guardrails already use;
+- when years at target in the typical run fall below 80%, a sentence says so in words: "In a typical
+  run this plan spends the full £50,000 in 21 of 35 years. It is closer to a £45,000 plan."
+
+The harness asserts all four on every surface, and the copy manifest carries the sentence.
+
+### What it retires
+
+The Guyton-Klinger guardrails: the Config switch, `GUARDRAILS`, `state.guard`, the audit column, the
+run-card note and the docs card, replaced by the solved rails. The docs card becomes "Trimming in a bad
+stretch": what the floor means, what the two rates mean, and the two structural constants.
+
+### Gate 13
+
+- `research/tests/solver-flex.test.mjs`: with floor equal to target the solve is identical to Phase
+  6's tables to the bit; with a floor, floor survival lands within half a point above the confidence
+  on a held-out seed; the bisection converges in at most eight solves on every library household;
+  shortfall is monotone non-increasing in wealth at every age; the reporting rule's four figures are
+  present in `summarizeTrials`' output.
+- The versus protocol against today's guardrails on the same households at the same floor: the solved
+  rails must match or beat the guardrails' floor survival at a lower expected shortfall on average,
+  with no household worse on both.
+- `research/ui-harnesses/solver-flex-ui.cjs`: the two fields, the four figures on every surface, the
+  sentence below 80%, the guardrail switch gone, phones included.
+
+---
+
 ## Order, gates and rough size
 
 | Phase | Deliverable | Gate | Size relative to the evolver build |
@@ -319,6 +455,7 @@ baseline's tooling until then.
 | 10 | Projection, Simple, scenarios, audit | harness | 1× |
 | 11 | phone | phone harnesses | 0.5× |
 | 12 | words, docs, tests, rollout | full suite both ways | 1× |
+| 13 | flexible spending, guardrails retired | gate 13, versus guardrails | 1.5× |
 
 The decision point is the end of Phase 4. Phases 1 to 4 together are about the size of the evolver
 build twice over, and nothing the person sees changes until Phase 8.
@@ -332,3 +469,7 @@ build twice over, and nothing the person sees changes until Phase 8.
 - The retirement-age dial pre-solves ±3 years rather than making age a dimension.
 - Guardrails stay a projection-time rule the solver does not see, until flexible spending is a phase.
 - Old exports keep their policy fields and import as the baseline; nothing is migrated.
+- Flexible spending waits until the switch is on for good, and the guardrails stay until then.
+- The shortfall exponent is 2 and the floor-confidence landing tolerance is half a point; both are
+  structural, named in the docs, and not settings.
+- Habit (a cut hurting more after a cut) is left out of Part D; it needs last year's spend as state.

@@ -531,6 +531,34 @@ rule (fully-funded rate never omitted, floor rate never alone). Three moves per 
 the move count; five minutes a household at 20 points. **This is the experiment that decides whether
 the solver ships. Phase 3 waits for it.**
 
+### Phase 2e. Two engine gaps that flatter the taxable side, to close before any bridge
+
+Both are engine work, not solver work; the solver inherits them through the fast flow's tax table and
+the model's golden test, which is why they come before Phase 3 and not after. Neither changes the
+phase 2 verdict (both make the wrapper split matter MORE, in the direction the solver already wins),
+but a bridge is the moment the engine's tax and the solver's must agree to the pound, and they should
+agree on the truth.
+
+**2e.1 Tax on savings interest.** Cash Savings is modelled with no tax on its interest and the docs
+say so: it stands for a cash ISA or savings inside the personal savings allowance. Add the allowance
+(£1,000 basic, £500 higher, nil additional; the starting rate for savings where earned income is
+below it) as a config field with the other allowances, tax interest above it as income in the year it
+arises, and let the plan hold cash as "cash ISA" (untaxed, counts against the ISA allowance) or
+"savings" (taxed). Default for existing plans: savings within the allowance behave exactly as today,
+so no plan's numbers move unless it holds enough cash to breach it. Golden test: a household with
+£200k of taxable cash at 4% pays the right tax at each band and the solver's model matches the engine
+to the pound.
+
+**2e.2 Dividend tax in the GIA.** The GIA is taxed only as CGT on disposal; dividends inside it are not
+taxed. Add a dividend yield per risk tier (config, defaulting to the tier's income component from the
+capital-market assumptions), the dividend allowance as a config field, and tax the excess at the
+dividend rates by band in the year it arises, with the yield paid out of the return (not on top of it)
+so total return is unchanged. Golden test as above; the fast flow's net table gains a dividend row.
+
+**Gate 2e:** both engine tests green; the phase 1 golden test still exact; the 41-household experiment
+re-run once with both on, expecting the solver's edge to hold or grow and the cash-heavy and GIA-heavy
+households' fixed arms to fall.
+
 ### Phase 3. The bridge into the engine: a `table` policy override
 
 `plan.spending.policyOverride = { kind: 'table', solve }` is honoured by `buildContext` and consumed in
@@ -835,6 +863,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
 | 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | sign holds under perturbation; every loss named | 0.5× |
 | 2d | Part D pilot in the reduced model, against the guardrails | fully-funded rate and floor rate, both, on 41 households | 1× |
+| 2e | savings-interest tax and dividend tax in the engine | golden tests exact; experiment re-run once | 1× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |

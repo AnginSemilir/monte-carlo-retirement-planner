@@ -496,6 +496,25 @@ is +0.50 (was +0.65). Gate 2e is met on its first condition (the edge holds) and
 out smaller than expected (the fixed arms fall in tax, not in survival). Phase 1's golden test stays
 exact across the library with the split, so the engine and the solver agree to the pound on all three.
 
+**Phase 2d pilot, equal downside, 41 households (tag flex-eq; `results-2d-flex-eq.txt`).** Each
+household's solver was asked for exactly the floor rate the guardrails-with-floor arm achieved (Pfau's
+calibration), floor 80% of target, 30×6×6 grid, 3,000 held-out paths. At that equal downside (mean floor
+rate 92.3 against 92.7) the solver delivers **more years at the target on 40 of 41** (median run 0.87
+against 0.52 of retired years; unlucky tenth 0.45 against 0.07), changes the spend level **2.7 times a
+run against 26**, and ends with a larger median pot on 34 of 41 (+£293k on average). Fully funded on
+never-trimmed paths: solver 31.5 points above the guardrails on average, 28 up / 13 down, sign test
+p = 0.028. Against the guardrails as shipped (no floor, so 4.4 points more floor rate bought by cuts
+below 80%): years at target 0.87 against 0.45, whipsaw 2.7 against 30. Against fixed spending: +4.6
+points of floor rate at the cost of trimming on 42 points of paths. The one household where the
+guardrails deliver more years at target is S070, where the solver ends £1.2m richer. **Gate 2d is
+met on the reduced model**: the flexible solver beats the guardrails at equal downside on every
+reported figure except raises above target, which it does not make (2d.4). Three findings carried
+into 2d.3: the landing undershoots the ask by more than half a point on 12 of 41 (worst 1.4, all in
+the same direction), so a half-point margin is the default from here; the fully-funded rate reads
+zero on 13 of 41 because the 0.95 level is nearly free under a squared shortfall, so the first trial
+is the levels without it; six households needed no trimming at all and the solve returned in one
+pass.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -983,7 +1002,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 1 | reduced model + golden test | **done**: exact to the pound, 29 assertions | 1.5× |
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
 | 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | **done**: edge grows in every perturbed world; shortfall adopted; (0.5, 0.02) confirmed; every loss named | 0.5× |
-| 2d | Part D pilot in the reduced model, against the guardrails | fully-funded rate and floor rate, both, on 41 households; then 2d.2 two more opponents, 2d.3 one evidence-driven change, 2d.4 raises above target | 1× |
+| 2d | Part D pilot in the reduced model, against the guardrails | **pilot done**: at equal downside, years at target 0.87 vs 0.52, whipsaw 2.7 vs 26, ahead on 40 of 41; then 2d.2 two more opponents, 2d.3 one evidence-driven change, 2d.4 raises above target | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |

@@ -149,7 +149,7 @@ export function actionFromContext(ctx) {
  * Returns the small set of figures a solver or a comparison needs. Everything else the audit table shows
  * is the engine's job.
  */
-export function step(m, state, action, t, rates = null) {
+export function step(m, state, action, t, rates = null, skipGrowth = false) {
   const { E, ctx, P, owners, ownerByKey } = m;
   const pots = state.pots;
   const frac = t === 0 ? ctx.yf : 1.0;
@@ -457,11 +457,14 @@ export function step(m, state, action, t, rates = null) {
   const lockedPensionWealth = owners.reduce((s, o) => s + (access[o.key] ? 0 : (pots[o.ids.pen] || 0)), 0);
   const preNmpaInsolvent = unmetDemand > 1 && (!anyAccess || lockedPensionWealth > 0);
 
-  // 8. growth
-  ctx.accounts.forEach(a => {
-    const g = rates ? (rates[a.id] !== undefined ? rates[a.id] : a.real) : a.real;
-    pots[a.id] = Math.max(0, (pots[a.id] || 0) * (1 + g * frac));
-  });
+  /*
+   * 8. growth, unless the caller wants the position BEFORE the markets act.
+   *
+   * That position is the post-decision state, and it is what makes a solve affordable: every action
+   * from a given position leads to one of them, and the expectation over next year's returns is then
+   * taken once per post-decision state rather than once per state and action together.
+   */
+  if (!skipGrowth) grow(m, state, t, rates);
 
   const byCat = {};
   CATS.forEach(cat => { byCat[cat] = owners.reduce((s, o) => s + (pots[o.ids[cat]] || 0), 0); });
@@ -477,6 +480,15 @@ export function step(m, state, action, t, rates = null) {
     taxablePensionSelf: taxablePensionDrawn.self, taxablePensionPart: taxablePensionDrawn.part,
     unmetDemand, preNmpaInsolvent, oneOffCost: cost
   };
+}
+
+/* Apply one year's growth. `rates` is a map of account id to real rate, or null for the plan's own. */
+export function grow(m, state, t, rates = null) {
+  const frac = t === 0 ? m.ctx.yf : 1.0;
+  m.ctx.accounts.forEach(a => {
+    const g = rates ? (rates[a.id] !== undefined ? rates[a.id] : a.real) : a.real;
+    state.pots[a.id] = Math.max(0, (state.pots[a.id] || 0) * (1 + g * frac));
+  });
 }
 
 /*

@@ -449,7 +449,7 @@ console.log('=========== I. A PLANNED GIFT IS MONEY THAT LEAVES THE PLAN =======
       { id: 'cash_self', owner: 'Myself', category: 'Cash Savings', balance: 1000000, contrib: 0, growth: 0, risk: 'Cash Equivalents' }],
     riskProfiles: { 'Cash Equivalents': ZERO },
     otherIncomes: [], oneOffContributions: [], oneOffCosts: [],
-    config: { valuationDate: '2026-01-01' },
+    config: { valuationDate: '2026-01-01', cashInterestTaxed: false, giaDividendYield: 0 },   // a flat plan: no tax on interest or dividends muddying the gift arithmetic
     inheritance: { gifts }
   });
   const terminal = (gifts) => {
@@ -591,7 +591,7 @@ console.log('=========== L. GIFTS OUT OF INCOME ===========');
     riskProfiles: { 'Cash Equivalents': ZERO },
     // starts partway through, so the surplus genuinely varies and the leanest year is not the average
     otherIncomes: [{ id: 'db', name: 'DB pension', owner: 'Myself', startAge: 72, endAge: '', amount: 30000, incomeType: 'otherTaxable' }],
-    oneOffContributions: [], oneOffCosts: [], config: { valuationDate: '2026-01-01' },
+    oneOffContributions: [], oneOffCosts: [], config: { valuationDate: '2026-01-01', cashInterestTaxed: false, giaDividendYield: 0 },   // a flat plan: no tax on interest or dividends muddying the gift arithmetic
     inheritance: { surplusGift }
   });
   const terminal = (sg) => {

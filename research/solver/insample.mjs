@@ -29,7 +29,7 @@
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { solve, runPolicy } from '../../src/solver/solve.js';
+import { solve, runPolicy, buildActions } from '../../src/solver/solve.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const N = Number(process.argv[2] || 10);
@@ -84,9 +84,20 @@ for (const sc of pick) {
   const searchPaths = E.pathsForSeed(SEED, SEARCH, years);
   const heldPaths = E.pathsForSeed(SEED + 991, HELD, years);
 
-  // ---- the fixed arm: the app's own menu, picked on the search paths
+  /*
+   * ---- the fixed arm, two ways.
+   *
+   * FAIR=same: the SAME twenty-four moves the solver may choose from, each held fixed for life, with the
+   * cash sweep on, so the only thing that differs between the arms is whether the move may change with
+   * the position. That isolates state-dependence, which is the question this file exists to answer.
+   *
+   * Otherwise: the app's own menu as it stands today, sweep off. That measures "solver against the app",
+   * which is gate 4's question and is confounded here by the sweep and by the two menus not nesting.
+   */
   const menu = [];
-  for (const key of Object.keys(E.DECUMULATION_POLICIES)) {
+  if (process.env.FAIR === 'same') {
+    buildActions().forEach(a => menu.push({ ...a, lump: m.ctx.fullLumpSum }));
+  } else for (const key of Object.keys(E.DECUMULATION_POLICIES)) {
     const pol = E.DECUMULATION_POLICIES[key];
     for (const harvest of pol.harvest ? [false, true] : [false]) {
       for (const ceil of harvest ? ['pa', 'basic'] : ['pa']) {

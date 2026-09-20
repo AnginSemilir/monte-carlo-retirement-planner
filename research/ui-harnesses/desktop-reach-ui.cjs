@@ -656,7 +656,7 @@ async function runProjection(p) {
    * THE ONE-OFF COST LOOKAHEAD.
    *
    * A number on the Config tab, five years by default, off at zero. The same household with a cost of
-   * £300k at 66, eight years into retirement and past the access age: with the default the audit table
+   * £600k at 66, four years into retirement and past the access age: with the default the audit table
    * carries a "Set aside" column naming the years the rule drew and the cost year each draw was for,
    * and only the years before the cost carry a figure; set to 0 through the real field the column goes.
    * The Documentation link lands on its card.
@@ -664,7 +664,7 @@ async function runProjection(p) {
   console.log('one-off cost lookahead at 1400x900');
   {
     const costly = JSON.parse(JSON.stringify(plan));
-    costly.oneOffCosts = [{ id: 'c1', date: '2047-06-01', year: 2047, owner: 'Myself', amount: 300000, desc: 'house move' }];
+    costly.oneOffCosts = [{ id: 'c1', date: '2047-06-01', year: 2047, owner: 'Myself', amount: 600000, desc: 'house move' }];
     const g = await open(b, 1400, 900, 'full', costly);
     await tab(g.p, 'Config');
     const field = await g.p.evaluate(() => { const el = document.querySelector('[data-lookahead-years]'); if (!el) return null; const r = el.getBoundingClientRect(); return { value: el.value, h: Math.round(r.height), label: document.querySelector('label[for="config-lookahead-years"]')?.textContent || '' }; });
@@ -686,9 +686,15 @@ async function runProjection(p) {
     ok('set to zero through the field, the column goes', await g.p.evaluate(() => ![...document.querySelectorAll('th')].some(t => /Set aside/.test(t.textContent))));
     await tab(g.p, 'Config');
     await g.p.evaluate(() => { [...document.querySelectorAll('#config-lookahead button')].find(x => /Documentation/.test(x.textContent)).click(); });
-    await g.p.waitForTimeout(1500);
+    // The scroll is smooth, and the Documentation tab fills in its contents list after the scroll has
+    // started, which shifts what follows by up to 200px. So wait for the card to settle rather than
+    // sampling at a fixed moment, and accept a landing anywhere in the top third of the screen: the
+    // claim is that the link takes you to the card, not that the browser's scroll is pixel-exact.
+    await g.p.waitForFunction(() => { const el = document.getElementById('doc-lookahead'); return el && el.getBoundingClientRect().top < 260; }, null, { timeout: 6000 }).catch(() => {});
+    // ...and then for the smooth scroll to stop moving, so the figure reported is where it came to rest
+    await g.p.waitForFunction(() => new Promise(res => { const at = () => document.getElementById('doc-lookahead')?.getBoundingClientRect().top; const a = at(); setTimeout(() => res(at() === a), 250); }), null, { timeout: 6000 }).catch(() => {});
     const doc = await g.p.evaluate(() => { const el = document.getElementById('doc-lookahead'); if (!el) return null; const r = el.getBoundingClientRect(); return { top: Math.round(r.top), h2: el.querySelector('h2')?.textContent || '' }; });
-    ok('the Documentation link lands on the lookahead explainer', !!doc && doc.top < 200 && /One-off Cost/.test(doc.h2), doc ? `${doc.h2} at ${doc.top}px` : 'no section');
+    ok('the Documentation link lands on the lookahead explainer', !!doc && doc.top >= -24 && doc.top < 260 && /One-off Cost/.test(doc.h2), doc ? `${doc.h2} at ${doc.top}px` : 'no section');
     ok('no page errors with the lookahead', g.errs.length === 0, g.errs.slice(0, 2).join(' | '));
     await g.p.context().close();
   }

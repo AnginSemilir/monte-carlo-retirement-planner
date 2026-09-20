@@ -8236,7 +8236,14 @@ export default function App({ theme = 'system', setTheme = () => {}, resolvedThe
 
   const handleFocus = (e) => e.target.select();
   const activeRiskMatrix = plan?.riskProfiles || E.DEFAULT_RISK_PROFILES;
-  const scrollToDocSection = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); };
+  const scrollToDocSection = (id) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth' });
+    // The Documentation tab fills in its contents list after first paint, which pushes every card down
+    // by the list's height once the scroll is already under way, so a link could land 200px short of
+    // its card. Look once more when the list is in, and correct if the card moved.
+    setTimeout(() => { const e = document.getElementById(id); if (e && Math.abs(e.getBoundingClientRect().top) > 24) e.scrollIntoView({ behavior: 'auto' }); }, 700);
+  };
   /*
    * WHAT IS IN THE REFERENCE, BEFORE YOU SCROLL THROUGH IT.
    *

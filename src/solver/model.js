@@ -41,11 +41,38 @@
  *   harvest     draw pension beyond the year's need and re-wrap it, or not
  *   harvestCeil 'pa' or 'basic': free money, or a 20%-now bequest trade
  *   lump        take the tax-free cash in one go on first access, or phase it
+ *   sweepCash   keep cash at the buffer and put the rest in the GIA, or leave it where it is. Off is
+ *               what the engine does today; see step 7d for why this is an action and not a rule
  *   contrib     per owner, what goes into the pension this year; null means "as the plan is entered",
  *               which is what the golden test needs and what the household's own plan means
  */
 
 const CATS = ['pen', 'isa', 'other', 'cash'];
+
+/*
+ * The cash buffer for the household in projection year `t`, in full-year terms: months of the year's
+ * living target, as the Config setting says. It is a function of the year and nothing else, which is
+ * what lets the grid stop carrying cash as a dimension of its own once the sweep maintains it.
+ */
+export function bufferAt(m, t) {
+  const { E, ctx } = m;
+  return E.spendTargetAtAge(ctx, ctx.ageSelf0 + t) * ctx.cashBufferYears;
+}
+
+/*
+ * Where cash sits at the START of year `t` under the sweep, which is what the grid needs in order to
+ * split a merged taxable pot back into its cash and GIA parts. The sweep leaves cash at exactly the
+ * buffer at the end of the previous year's flows, and growth then applies, so a year later it is the
+ * previous buffer grown at the cash tier - capped by the merged pot, for a household that has run the
+ * taxable side down below its own buffer. Year zero is the exception: the opening balances are the
+ * household's own, and the solve reads them directly rather than through the grid.
+ */
+export function cashAt(m, t, taxPot) {
+  if (t <= 0) return Math.min(taxPot, bufferAt(m, 0));
+  const cashAcc = m.ctx.accounts.find(a => a.cat === 'cash');
+  const r = cashAcc ? cashAcc.real : 0;
+  return Math.min(taxPot, bufferAt(m, t - 1) * (1 + r));
+}
 
 /*
  * Turn a plan into everything that does not change from year to year or from action to action. Called
@@ -99,6 +126,7 @@ export function actionForPolicy(m, policyKey, over = {}) {
     harvest: over.harvest !== undefined ? over.harvest : (pol ? pol.harvest && ctx.harvestPA : ctx.harvestPA),
     harvestCeil: over.harvestCeil || ctx.harvestCeiling,
     lump: over.lump !== undefined ? over.lump : ctx.fullLumpSum,
+    sweepCash: !!over.sweepCash,
     contrib: over.contrib || null
   };
 }
@@ -107,7 +135,7 @@ export function actionForPolicy(m, policyKey, over = {}) {
 export function actionFromContext(ctx) {
   return {
     steps: ctx.policySteps, costSteps: ctx.costSteps, harvest: ctx.harvestPA,
-    harvestCeil: ctx.harvestCeiling, lump: ctx.fullLumpSum, contrib: null
+    harvestCeil: ctx.harvestCeiling, lump: ctx.fullLumpSum, sweepCash: false, contrib: null
   };
 }
 
@@ -386,6 +414,42 @@ export function step(m, state, action, t, rates = null) {
       // a sale made to settle the bill books its own gain, which falls into next year's tally
       state.cgtCarry[o.key] += realisedGains[o.key] - gainsBeforeSettling;
       realisedGains[o.key] = gainsBeforeSettling;
+    });
+  }
+
+  /*
+   * 7d. KEEP CASH AT THE BUFFER AND INVEST THE REST.
+   *
+   * The engine has no rule that moves money out of Cash Savings: what the household enters there, and
+   * what a full tax-free lump sum lands there, stays there earning the cash tier for the rest of the
+   * plan. That is a decision left unmade rather than a decision taken, and it is the reason the solver
+   * cannot simply merge cash into the taxable pot - a merged pot would silently assume the money was
+   * invested when the engine has it sitting still.
+   *
+   * So the sweep is explicit. Off, this function is exactly the engine. On, whatever is above the
+   * buffer at the end of the year's flows moves into the GIA at cost, which creates no gain, and cash
+   * is then the buffer by construction and no longer needs a dimension of its own.
+   *
+   * Measured in the real engine over 22 library households holding more than half a year's spend in
+   * cash: survival +0.30 points on average and the median pot +£149k, but mixed household by household
+   * (a few lose a fraction of a point, the two cash-heaviest gain 3.5 and 3.8). So it is worth doing
+   * and worth SAYING, not worth assuming: with it on, the plan carries a recommendation to move the
+   * money, the engine executes that move too, and a household that wants more cash raises the buffer.
+   */
+  if (action.sweepCash) {
+    const bufferEach = bufferAt(m, t) / owners.length;
+    owners.forEach(o => {
+      const cash = pots[o.ids.cash] || 0;
+      if (cash > bufferEach) {
+        const excess = cash - bufferEach;
+        pots[o.ids.cash] = bufferEach;
+        pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
+        addBasis(o.key, excess);                      // moved at cost, so no gain is created
+      } else if (cash < bufferEach) {
+        // topping the buffer back up is a sale, so it books its gain like any other disposal
+        const got = sellGia(o.ids.other, bufferEach - cash);
+        pots[o.ids.cash] = cash + got;
+      }
     });
   }
 

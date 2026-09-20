@@ -189,6 +189,88 @@ console.log('=========== E. THE GAIN FRACTION, WHICH THE GRID WILL LEAN ON =====
   ok('E4  ...and the balance moved, so this is not a no-op', Math.abs(gia() - bal) > 1);
 }
 
+console.log('=========== H. THE CASH SWEEP, WHICH IS WHAT LETS THE GRID DROP A DIMENSION ===========');
+{
+  /*
+   * The engine has no rule that moves money out of Cash Savings, so a household's entered cash and a
+   * full tax-free lump sum both sit there at the cash tier for the rest of the plan. The solver cannot
+   * merge cash into the taxable pot while that is true: a merged pot assumes the money is invested.
+   *
+   * With the sweep on, the buffer is MAINTAINED - excess goes to the GIA at cost, a shortfall is topped
+   * up by a sale - so cash is a function of the year alone and the merge becomes exact. Measured below
+   * as the round trip: collapse the state to one taxable pot at the top of every year, split it back by
+   * the rule the grid will use, and see how far the plan drifts from the exact one.
+   */
+  const collapse = (m, st, t) => {
+    m.ctx.owners.forEach(o => {
+      const tax = (st.pots[o.ids.cash] || 0) + (st.pots[o.ids.other] || 0);
+      const giaBefore = st.pots[o.ids.other] || 0;
+      const frac = giaBefore > 0 ? Math.max(0, giaBefore - st.basis[o.key]) / giaBefore : 0;
+      const cash = M.cashAt(m, t, tax) / m.ctx.owners.length;
+      st.pots[o.ids.cash] = Math.min(tax, cash);
+      st.pots[o.ids.other] = tax - st.pots[o.ids.cash];
+      st.basis[o.key] = st.pots[o.ids.other] * (1 - frac);
+    });
+  };
+  const roundTrip = (plan, action) => {
+    const m = M.prepare(E, E.resolveMpaa(plan));
+    const exact = M.runFixed(m, action);
+    const st = M.initialState(m); const merged = [];
+    for (let t = 0; t <= m.ctx.totalYears; t++) { collapse(m, st, t); merged.push(M.step(m, st, action, t)); }
+    const T = exact.length - 1;
+    const fe = exact.findIndex(r => r.unmetDemand > 1 || r.preNmpaInsolvent);
+    const fm = merged.findIndex(r => r.unmetDemand > 1 || r.preNmpaInsolvent);
+    return { rel: Math.abs(merged[T].totalCombined - exact[T].totalCombined) / Math.max(1000, exact[T].totalCombined), sameFail: fe === fm };
+  };
+  const picked = spread(60);
+  let worstOn = 0, worstOff = 0, failChangedOn = 0, failChangedOff = 0, n = 0;
+  for (const sc of picked) {
+    for (const lump of [false, true]) {
+      const plan = off(sc.plan);
+      plan.spending = { ...plan.spending, drawdownStrategy: lump ? 'Full 25% Lump Sum' : 'Phased Drawdown' };
+      const m0 = M.prepare(E, E.resolveMpaa(plan));
+      const base = M.actionFromContext(m0.ctx);
+      const rOn = roundTrip(plan, { ...base, sweepCash: true });
+      const rOff = roundTrip(plan, { ...base, sweepCash: false });
+      worstOn = Math.max(worstOn, rOn.rel); worstOff = Math.max(worstOff, rOff.rel);
+      if (!rOn.sameFail) failChangedOn++;
+      if (!rOff.sameFail) failChangedOff++;
+      n++;
+    }
+  }
+  ok(`H1  with the sweep, the merge never moves the year the plan fails (${n} runs)`, failChangedOn === 0, `${failChangedOn} changed`);
+  ok('H2  ...and terminal wealth stays within 5% in the worst case', worstOn < 0.05, `worst ${(worstOn * 100).toFixed(2)}%`);
+  ok('H3  without it the merge is not safe, which is why the sweep exists', failChangedOff > 0 && worstOff > worstOn * 20,
+    `${failChangedOff} failure years moved, worst ${(worstOff * 100).toFixed(0)}% against ${(worstOn * 100).toFixed(2)}%`);
+
+  // the rule the grid will use to split a merged pot has to be where the model actually leaves cash
+  const sc = library[140];
+  const plan = off(sc.plan);
+  const m = M.prepare(E, E.resolveMpaa(plan));
+  const action = { ...M.actionFromContext(m.ctx), sweepCash: true };
+  const st = M.initialState(m);
+  let worstSplit = 0, worstYear = 0, openingGap = 0;
+  for (let t = 0; t <= m.ctx.totalYears; t++) {
+    const tax = m.ctx.owners.reduce((s2, o) => s2 + (st.pots[o.ids.cash] || 0) + (st.pots[o.ids.other] || 0), 0);
+    const actual = m.ctx.owners.reduce((s2, o) => s2 + (st.pots[o.ids.cash] || 0), 0);
+    const d = Math.abs(M.cashAt(m, t, tax) - actual);
+    if (t === 0) openingGap = d;
+    else if (d > worstSplit) { worstSplit = d; worstYear = t; }
+    M.step(m, st, action, t);
+  }
+  ok('H4  from year one the rule is exactly where the model leaves cash', worstSplit < 1, `worst £${worstSplit.toFixed(2)}${worstSplit >= 1 ? ' in year ' + worstYear : ''}`);
+  /*
+   * Year zero is the exception, and it is the point rather than a gap: the opening balances are the
+   * household's own, so the rule cannot reconstruct them and the solve reads the real state directly.
+   * The difference IS the money the sweep is about to move, which is what the Strategy tab will print
+   * as an action: "move this much out of cash".
+   */
+  const openingCash = m.ctx.owners.reduce((s2, o) => s2 + (m.ctx.acc[o.ids.cash] ? m.ctx.acc[o.ids.cash].balance : 0), 0);
+  ok('H5  ...and year zero differs by exactly the cash the sweep is about to move',
+    Math.abs(openingGap - Math.max(0, openingCash - M.bufferAt(m, 0))) < 1, `£${Math.round(openingGap)} of £${Math.round(openingCash)} opening cash`);
+  ok('H6  the buffer is the Config setting in full-year terms', Math.abs(M.bufferAt(m, 0) - E.spendTargetAtAge(m.ctx, m.ctx.ageSelf0) * m.ctx.cashBufferYears) < 1e-9);
+}
+
 console.log('=========== F. THE ACTION VOCABULARY ===========');
 {
   const sc = library[7];

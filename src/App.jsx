@@ -1559,6 +1559,8 @@ function buildContext(rawPlan) {
   // spend bands keep their shape; blank or equal to the target means fixed spending, exactly today's question
   const floorSpend = clamp(num(s.floorSpend, 0), 0, targetSpend);
   const floorFrac = targetSpend > 0 && floorSpend > 0 ? floorSpend / targetSpend : 0;
+  // how sure the household wants to be of never spending below the floor, as a fraction (Part D)
+  const floorConfidence = clamp(num(s.floorConfidence, 90), 50, 99) / 100;
   const totalYears = Math.max(1, Math.round(terminalAge - ageSelf0));
   const valuationDate = c.valuationDate || todayISO();
   const yf = calculateYearFraction(valuationDate);
@@ -1849,7 +1851,7 @@ function buildContext(rawPlan) {
     pensionDeathTaxRate: clamp(num(c.pensionDeathTaxRate, 0), 0, 100) / 100,
     cashBufferYears: clamp(num(c.cashBufferMonths, 6), 0, 120) / 12,
     solvencyFloor: Math.max(0, num(c.solvencyFloor, 0)),
-    floorSpend, floorFrac,
+    floorSpend, floorFrac, floorConfidence,
     inflation: clamp(num(c.inflation, 2.5), -50, 100) / 100,
     guardrails: c.guardrails ? GUARDRAILS : null,
     lookaheadYears: clamp(Math.round(num(c.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15),

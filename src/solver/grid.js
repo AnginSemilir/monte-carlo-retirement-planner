@@ -219,7 +219,7 @@ function locLinInto(ax, v, k) {
   const i = Math.min(ax.n - 2, Math.floor(f));
   LOC[k] = i; LOC[k + 1] = f - i;
 }
-export function readValues(g, lsArr, bArr, s, out, lrArr = null) {
+export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null) {
   if (g.mode === 'total') {
     const W = s[0] + s[1] + s[2], rest = W - s[0];
     locInto(g.axes.W, W, 0); locLinInto(g.axes.a, W > 0 ? s[0] / W : 0, 2); locLinInto(g.axes.b, rest > 0 ? s[1] / rest : 0, 4);
@@ -238,8 +238,12 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null) {
   IDX[5] = i0 + nn + 1;  W[5] = wp1 * wi0 * wt1;
   IDX[6] = i0 + nn + n;  W[6] = wp0 * wi1 * wt1;
   IDX[7] = i0 + nn + n + 1; W[7] = wp1 * wi1 * wt1;
-  let ls = 0, b = 0, lr = 0;
-  if (lrArr) {
+  let ls = 0, b = 0, lr = 0, sh = 0;
+  if (lrArr && shArr) {
+    // the flexible-spending read: survival, bequest, resilience and the expected future shortfall from target
+    for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; sh += w * shArr[i]; }
+    out[2] = g.linearResil ? lr : expit(lr); out[3] = sh;
+  } else if (lrArr) {
     for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; }
     out[2] = g.linearResil ? lr : expit(lr);
   } else {

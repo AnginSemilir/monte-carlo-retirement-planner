@@ -50,7 +50,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import * as F from '../../src/solver/fast.js';
-import { solve, chooseAction, buildActions } from '../../src/solver/solve.js';
+import { solve, solveFlex, runPolicy, chooseAction, buildActions } from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -100,17 +100,42 @@ function runFixedPath(c, ai, zs, world = worldOf()) {
   const m = c.m;
   const s = vecOf(m, M.initialState(m));
   const real = new Float64Array(4);
-  let tax = 0;
+  let tax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null;
   for (let t = 0; t <= m.ctx.totalYears; t++) {
     const unmet = F.flow(c, t, ai, s);
     tax += c.last.taxPaid + c.last.cgtPaid;
-    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax };
+    // the year's spend as a fraction of the plan's target: 1 for a fixed rule, the rails' multiplier with guardrails on
+    if (c.yr.spend[t] > 0) {
+      spendYears++; const lv = c.last.level;
+      if (lv >= 1 - 1e-9) atTarget++; if (lv > 1 + 1e-9) aboveTarget++; if (lv < minLevel) minLevel = lv;
+      shortfall += (1 - Math.min(1, lv)) * (1 - Math.min(1, lv));
+      if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
+      lastLevel = lv;
+    }
+    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, fullyFunded: false };
     world(c, zs[t], real);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
-  if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, preAccess: false, failAge: m.ctx.ageSelf0 + m.ctx.totalYears, terminalNet: 0, terminal: 0, lifetimeTax: tax };
-  return { survived: true, preAccess: false, failAge: null, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax: tax };
+  const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, fullyFunded: atTarget === spendYears };
+  if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, preAccess: false, failAge: m.ctx.ageSelf0 + m.ctx.totalYears, terminalNet: 0, terminal: 0, lifetimeTax: tax, ...spendStats, fullyFunded: false };
+  return { survived: true, preAccess: false, failAge: null, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax: tax, ...spendStats };
+}
+
+/* The reporting rule's figures (plan Part D), on top of the stats the app's picker reads. */
+function statsFlex(rs) {
+  const q = (arr, p) => { const a = arr.slice().sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.floor(p * a.length))]; };
+  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+  const frac = rs.map(r => r.atTarget / Math.max(1, r.spendYears));
+  return {
+    ...statsOf(rs),
+    floorRate: 100 * rs.filter(r => r.survived).length / rs.length,           // never below the floor (never unmet)
+    fullyFundedRate: 100 * rs.filter(r => r.fullyFunded).length / rs.length,  // never below the target
+    yearsAtTargetMedian: q(frac, 0.5), yearsAtTargetP10: q(frac, 0.1),
+    aboveTargetYearsMean: mean(rs.map(r => r.aboveTarget)),
+    minLevelP10: q(rs.map(r => r.minLevel), 0.1),
+    changesMean: mean(rs.map(r => r.changes))
+  };
 }
 
 /* The solved plan on one path, choosing each year's move from the value function at the true position. */
@@ -157,10 +182,10 @@ function pickFixed(c, menu, paths) {
   return { ai: picked.winner.id, label: picked.winner.label, searchStats: picked.winner.stats };
 }
 
-/* Paired survival difference and its standard error, from the discordant paths. */
-function paired(a, b) {
+/* Paired difference on a yes/no outcome (survival by default) and its standard error, from the discordant paths. */
+function paired(a, b, field = 'survived') {
   let n10 = 0, n01 = 0;
-  for (let i = 0; i < a.length; i++) { if (a[i].survived && !b[i].survived) n10++; if (!a[i].survived && b[i].survived) n01++; }
+  for (let i = 0; i < a.length; i++) { if (a[i][field] && !b[i][field]) n10++; if (!a[i][field] && b[i][field]) n01++; }
   const N = a.length;
   return { diff: 100 * (n10 - n01) / N, se: 100 * Math.sqrt(n10 + n01) / N, n10, n01 };
 }
@@ -280,6 +305,91 @@ if (mode === 'perturb') {
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   const ps = out.pairedSame;
   console.log(`${sc.id} ${kind.padEnd(10)} solver ${S.successRate.toFixed(1)}  same ${Fs.successRate.toFixed(1)} (${ps.diff >= 0 ? '+' : ''}${ps.diff.toFixed(1)}±${ps.se.toFixed(1)}, picker: ${out.verdictSame})  base Δ ${base.pairedSame.diff >= 0 ? '+' : ''}${base.pairedSame.diff.toFixed(1)}  ${(out.ms / 1000).toFixed(0)}s`);
+}
+
+// ---------------------------------------------------------------------------------------------------
+/*
+ * THE SPENDING PILOT (plan Phase 2d). Three arms against the flexible solver on the same held-out paths:
+ *   gk       the app with Guyton-Klinger on, exactly as it ships (no floor of its own)
+ *   gkFloor  Guyton-Klinger whose cuts stop at the person's floor: the like-for-like opponent
+ *   fixed    spending at the target, the phase 2 fixed arm
+ * Each fixed arm's withdrawal order is chosen by the app's own picker on the search paths, with that
+ * arm's rules on. The solver is landed on the confidence by `solveFlex`. Every arm reports the
+ * reporting rule's figures: the floor rate and the fully-funded rate, never one without the other.
+ *   ONLY=<i> FLOOR=0.8 CONF=0.9 node experiment.mjs flex <tag> [points=40] [held=3000] [seedSearch=7001] [seedHeld=7002]
+ */
+if (mode === 'flex') {
+  const tag = process.argv[3] || 'flex';
+  const POINTS = Number(process.argv[4] || 40), HELD = Number(process.argv[5] || 3000);
+  const seedSearch = Number(process.argv[6] || 7001), seedHeld = Number(process.argv[7] || 7002);
+  // CONF is a fraction (0.9) or, as "+5", the fixed-target arm's own floor rate plus that many points: "make me
+  // five points safer than the plan as written", which every household in the band can be asked
+  const FLOOR = Number(process.env.FLOOR || 0.8), CONF_RAW = process.env.CONF || '+5';
+  const CONF_REL = CONF_RAW.startsWith('+') ? Number(CONF_RAW.slice(1)) : null;
+  let CONF = CONF_REL === null ? Number(CONF_RAW) : 0.9;
+  const lo = Number(process.env.LO || 70), hi = Number(process.env.HI || 98);
+  const band = JSON.parse(readFileSync(join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`), 'utf8'));
+  const k = Number(process.env.ONLY);
+  if (!Number.isFinite(k) || k < 0 || k >= band.length) { console.error(`ONLY must be 0..${band.length - 1}`); process.exit(2); }
+  const sc = singles[band[k].i];
+  const raw = JSON.parse(JSON.stringify(sc.plan));
+  const target = E.num(raw.spending.targetSpend, 0);
+  const floorSpend = Math.round(target * FLOOR);
+  const variant = (guardrails, floor) => E.resolveMpaa(E.normalizePlan({ ...raw, config: { ...raw.config, guardrails, lookaheadYears: 0 }, spending: { ...raw.spending, floorSpend: floor, floorConfidence: CONF * 100 } }));
+  const plans = { solver: variant(false, floorSpend), gk: variant(true, 0), gkFloor: variant(true, floorSpend), fixed: variant(false, 0) };
+  const t0 = Date.now();
+  const years = M.prepare(E, plans.fixed).ctx.totalYears;
+  const search = E.pathsForSeed(seedSearch, SEARCH_PATHS, years);
+  const held = E.pathsForSeed(seedHeld, HELD, years);
+  const arms = {};
+  for (const key of ['gk', 'gkFloor', 'fixed']) {
+    const m = M.prepare(E, plans[key]);
+    const menu = buildActions();
+    const c = F.compile(m, menu);
+    const pick = pickFixed(c, menu, search);
+    const rs = held.map(zs => runFixedPath(c, pick.ai, zs));
+    arms[key] = { stats: { ...statsFlex(rs), label: pick.label }, rs };
+  }
+  if (CONF_REL !== null) CONF = Math.min(0.99, Math.round((arms.fixed.stats.successRate + CONF_REL)) / 100);
+  const mS = M.prepare(E, plans.solver);
+  const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: 600, seed: seedSearch, confidence: CONF, bisectSteps: 5 });
+  const solvedRs = held.map(zs => runPolicy(r, zs));
+  arms.solver = { stats: { ...statsFlex(solvedRs), landed: r.meta.landed, lambda: r.lambda, solves: r.meta.solves, levels: r.meta.spendLevels, searchFloorRate: 100 * r.floorRate }, rs: solvedRs };
+  const out = {
+    tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, held: HELD, seedSearch, seedHeld, floor: FLOOR, confidence: CONF, target, floorSpend, ms: Date.now() - t0,
+    solver: arms.solver.stats, gk: arms.gk.stats, gkFloor: arms.gkFloor.stats, fixed: arms.fixed.stats,
+    pairedFloor: { gk: paired(solvedRs, arms.gk.rs), gkFloor: paired(solvedRs, arms.gkFloor.rs), fixed: paired(solvedRs, arms.fixed.rs) },
+    pairedFull: { gk: paired(solvedRs, arms.gk.rs, 'fullyFunded'), gkFloor: paired(solvedRs, arms.gkFloor.rs, 'fullyFunded'), fixed: paired(solvedRs, arms.fixed.rs, 'fullyFunded') }
+  };
+  mkdirSync(join(RESULTS, tag), { recursive: true });
+  writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
+  const f = (x) => x.toFixed(1);
+  console.log(`${sc.id} ${sc.name.slice(0, 30).padEnd(31)} floor/full: solver ${f(out.solver.floorRate)}/${f(out.solver.fullyFundedRate)} (${out.solver.landed}, ${out.solver.solves} solves)  gkFloor ${f(out.gkFloor.floorRate)}/${f(out.gkFloor.fullyFundedRate)}  gk ${f(out.gk.floorRate)}/${f(out.gk.fullyFundedRate)}  fixed ${f(out.fixed.floorRate)}/${f(out.fixed.fullyFundedRate)}  years@target med solver ${out.solver.yearsAtTargetMedian.toFixed(2)} gkFloor ${out.gkFloor.yearsAtTargetMedian.toFixed(2)}  changes ${out.solver.changesMean.toFixed(1)}/${out.gkFloor.changesMean.toFixed(1)}  ${(out.ms / 1000).toFixed(0)}s`);
+}
+
+// ---------------------------------------------------------------------------------------------------
+if (mode === 'reduceFlex') {
+  const tag = process.argv[3] || 'flex';
+  const dir = join(RESULTS, tag);
+  const rows = readdirSync(dir).filter(f => f.endsWith('.json')).map(f => JSON.parse(readFileSync(join(dir, f), 'utf8'))).sort((a, b) => a.id.localeCompare(b.id));
+  const mean = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
+  const binom = (w, l) => { const n = w + l; if (!n) return 1; const k = Math.min(w, l); let p = 0; const C = (n, r) => { let v = 1; for (let i = 1; i <= r; i++) v = v * (n - r + i) / i; return v; }; for (let i = 0; i <= k; i++) p += C(n, i) / Math.pow(2, n); return Math.min(1, 2 * p); };
+  console.log(`${rows.length} households, tag ${tag}, floor ${rows[0]?.floor} of target, confidence ${rows[0]?.confidence}, ${rows[0]?.held} held-out paths
+`);
+  console.log('id    floor rate: solver/gkFloor/gk/fixed   fully funded: solver/gkFloor/gk/fixed   years@target med: S/gkF/gk   above-target yrs gk   changes S/gkF   landed');
+  for (const r of rows) {
+    const f = (x) => x.toFixed(1).padStart(5);
+    console.log(`${r.id}  ${f(r.solver.floorRate)}/${f(r.gkFloor.floorRate)}/${f(r.gk.floorRate)}/${f(r.fixed.floorRate)}   ${f(r.solver.fullyFundedRate)}/${f(r.gkFloor.fullyFundedRate)}/${f(r.gk.fullyFundedRate)}/${f(r.fixed.fullyFundedRate)}   ${r.solver.yearsAtTargetMedian.toFixed(2)}/${r.gkFloor.yearsAtTargetMedian.toFixed(2)}/${r.gk.yearsAtTargetMedian.toFixed(2)}   ${r.gk.aboveTargetYearsMean.toFixed(1).padStart(5)}   ${r.solver.changesMean.toFixed(1)}/${r.gkFloor.changesMean.toFixed(1)}   ${r.solver.landed}`);
+  }
+  const conf = rows[0]?.confidence * 100;
+  for (const arm of ['gkFloor', 'gk', 'fixed']) {
+    const dFloor = rows.map(r => r.pairedFloor[arm].diff), dFull = rows.map(r => r.pairedFull[arm].diff);
+    const up = rows.filter(r => r.pairedFull[arm].diff > 2 * r.pairedFull[arm].se).length, down = rows.filter(r => r.pairedFull[arm].diff < -2 * r.pairedFull[arm].se).length;
+    console.log(`\nsolver against ${arm}:`);
+    console.log(`  floor rate: mean ${dFloor.length ? (mean(dFloor) >= 0 ? '+' : '') + mean(dFloor).toFixed(2) : '-'} pts;  fully-funded rate: mean ${(mean(dFull) >= 0 ? '+' : '') + mean(dFull).toFixed(2)} pts, ${up} up / ${down} down beyond two standard errors, sign test p = ${binom(up, down).toFixed(3)}`);
+    console.log(`  years at target (median run): solver ${mean(rows.map(r => r.solver.yearsAtTargetMedian)).toFixed(3)} vs ${mean(rows.map(r => r[arm].yearsAtTargetMedian)).toFixed(3)};  changes per path: ${mean(rows.map(r => r.solver.changesMean)).toFixed(2)} vs ${mean(rows.map(r => r[arm].changesMean)).toFixed(2)};  median pot: ${Math.round(mean(rows.map(r => r.solver.medianTerminalNet - r[arm].medianTerminalNet)) / 1000)}k`);
+  }
+  console.log(`\nsolver landed on the confidence (floor rate >= ${conf} - 0.5) in ${rows.filter(r => r.solver.floorRate >= conf - 0.5).length} of ${rows.length}; gkFloor meets it in ${rows.filter(r => r.gkFloor.floorRate >= conf - 0.5).length}; gk in ${rows.filter(r => r.gk.floorRate >= conf - 0.5).length}; fixed in ${rows.filter(r => r.fixed.floorRate >= conf - 0.5).length}`);
 }
 
 // ---------------------------------------------------------------------------------------------------

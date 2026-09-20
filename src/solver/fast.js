@@ -122,7 +122,9 @@ export function compile(m, actions) {
     steps: Int8Array.from(a.steps.map(s => STEP[s])),
     costSteps: Int8Array.from((a.costSteps || a.steps).map(s => STEP[s])),
     harvest: a.harvest ? 1 : 0, harvestCeil: a.harvestCeil === 'basic' ? P.higherRateStartsAt : P.pa,
-    lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1
+    lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1,
+    // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
+    level: a.spendLevel !== undefined ? a.spendLevel : 1
   }));
   return {
     E, m, ctx, P, o, T, yr, tb, acts, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
@@ -252,7 +254,7 @@ export function flow(c, t, ai, s) {
    * guardrails apply exactly as the engine applies them, floor included; a grid cell carries no memory
    * and the solver plans at the full spend.
    */
-  let target = yr.spend[t];
+  let target = yr.spend[t] * a.level;
   if (c.guard && s.length > 10 && retired) {
     const g = c.guard;
     const scheduled = yr.scheduled[t];
@@ -340,7 +342,9 @@ export function flow(c, t, ai, s) {
   s[0] = pen; s[1] = isa; s[2] = gia + cash;
   s[3] = gia > 0 ? Math.max(0, Math.min(1, (gia - basis) / gia)) : 0;
   s[4] = cumPcls; s[5] = lumpTaken ? 1 : 0; if (s.length > 6) s[6] = cashIsa;
-  c.last = { taxPaid, cgtPaid, drawdown, harvested, unmet, preNmpaInsolvent, cash, gia, netDemand, target };
+  // the year's spend as a fraction of the plan's target, whoever set it: the move's level, or the rails' multiplier
+  const level = yr.spend[t] > 0 ? target / yr.spend[t] : 1;
+  c.last = { taxPaid, cgtPaid, drawdown, harvested, unmet, preNmpaInsolvent, cash, gia, netDemand, target, level };
   return unmet;
 }
 

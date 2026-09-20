@@ -20,6 +20,11 @@ const PARG = process.argv[3] || '20';
 const POINTS = PARG.includes('/') ? (([a, b, c]) => ({ pen: +a, isa: +b, tax: +c }))(PARG.split('/')) : Number(PARG);
 const HEADROOM = process.env.HEADROOM ? Number(process.env.HEADROOM) : undefined;
 const TIE = process.env.SOLVER_TIE ? Number(process.env.SOLVER_TIE) : 0;
+const RESIL = process.env.RESIL || undefined;
+const WR = process.env.WR ? Number(process.env.WR) : undefined;
+const GAIN = process.env.GAIN ? process.env.GAIN.split(',').map(Number) : undefined;
+const RICH = process.env.RICH === '1';
+const TAG = [RESIL ? 'resil=' + RESIL : '', WR !== undefined ? 'wR=' + WR : '', GAIN ? 'gain=' + GAIN.length : '', RICH ? 'richardson' : '', TIE ? 'tie=' + TIE : ''].filter(Boolean).join(' ');
 const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
 const band = JSON.parse(readFileSync(join(HERE, 'results', 'band-70-98-7001.json'), 'utf8'));
@@ -41,7 +46,9 @@ function run(zs, pick) {
   return !(m.ctx.solvencyFloor > 0 && s[0] + s[1] + s[2] < m.ctx.solvencyFloor);
 }
 const t0 = Date.now();
-const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, headroom: HEADROOM, tieMargin: TIE });
+const SOPTS = { points: POINTS, lump: m.ctx.fullLumpSum, headroom: HEADROOM, tieMargin: TIE, resilience: RESIL, resilienceWeight: WR, gainBuckets: GAIN };
+const r = solve(E, M, plan, SOPTS);
+if (RICH) { const half = typeof POINTS === 'number' ? Math.round(POINTS / 2) : { pen: Math.round(POINTS.pen / 2), isa: Math.round(POINTS.isa / 2), tax: Math.round(POINTS.tax / 2) }; r.rich = solve(E, M, plan, { ...SOPTS, points: half }); }
 const s0 = vecOf(m, M.initialState(m));
 const v0 = r.value(M.initialState(m), 0);
 const post = new Float64Array(6), grown = new Float64Array(6), rd = new Float64Array(3);
@@ -50,4 +57,4 @@ const best = chooseAction(r, s0, 0);
 const sB = score(best), sF = score(fixedAi);
 const simS = 100 * held.filter(zs => run(zs, (s, t) => chooseAction(r, s, t))).length / HELD;
 const simF = 100 * held.filter(zs => run(zs, () => fixedAi)).length / HELD;
-console.log(`${sc.id} ${sc.name.slice(0, 36).padEnd(37)} pts ${PARG.padStart(8)}${HEADROOM ? ' hr ' + HEADROOM : ''}${TIE ? ' tie ' + TIE : ''}  table@0 ${(100 * v0.survival).toFixed(1)}  sim solver ${simS.toFixed(1)}  bias ${(100 * v0.survival - simS >= 0 ? '+' : '')}${(100 * v0.survival - simS).toFixed(1)}  | best [${best}] sv ${(100 * sB.sv).toFixed(2)} score ${sB.score.toFixed(4)} | fixed [${fixedAi}] sv ${(100 * sF.sv).toFixed(2)} score ${sF.score.toFixed(4)} sim ${simF.toFixed(1)}  | ${((Date.now() - t0) / 1000).toFixed(0)}s`);
+console.log(`${sc.id} ${sc.name.slice(0, 36).padEnd(37)} pts ${PARG.padStart(8)}${HEADROOM ? ' hr ' + HEADROOM : ''} ${TAG.padEnd(28)}  table@0 ${(100 * v0.survival).toFixed(1)}  sim solver ${simS.toFixed(1)}  bias ${(100 * v0.survival - simS >= 0 ? '+' : '')}${(100 * v0.survival - simS).toFixed(1)}  | best [${best}] sv ${(100 * sB.sv).toFixed(2)} score ${sB.score.toFixed(4)} | fixed [${fixedAi}] sv ${(100 * sF.sv).toFixed(2)} score ${sF.score.toFixed(4)} sim ${simF.toFixed(1)}  | ${((Date.now() - t0) / 1000).toFixed(0)}s`);

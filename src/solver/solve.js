@@ -139,6 +139,14 @@ export function solve(E, M, plan, opts = {}) {
   const wB = (opts.bequestWeight !== undefined ? opts.bequestWeight : 0.02) / scale;
   const resilK = opts.resilienceAt !== undefined ? opts.resilienceAt : scale;
   const beqCap = opts.bequestCap !== undefined ? opts.bequestCap : 4 * scale;
+  /*
+   * THE RISK TERM, INDICATOR OR SHORTFALL (plan 2c.2). The default is the indicator P(net >= K). With
+   * `resilience: 'shortfall'` it is 1 - E[min(1, max(0, K - net) / K)]: one when the household ends
+   * with at least K, falling linearly to zero at nothing. Same range, same weight, but continuous in
+   * wealth, so a table of it has no cliff to smear and no line to gamble at. Stored and read linearly.
+   */
+  const shortfall = opts.resilience === 'shortfall';
+  g.linearResil = shortfall;
 
   const surv = [], lsurv = [], resil = [], lresil = [], beq = [], pol = [];
   for (let t = 0; t <= T; t++) {
@@ -181,7 +189,7 @@ export function solve(E, M, plan, opts = {}) {
                       const alive = !(floor > 0 && total < floor);
                       const net = Math.max(0, total - grown[0] * deathTax);
                       s += WEIGHTS[zi] * (alive ? 1 : 0);
-                      rs += WEIGHTS[zi] * (alive && net >= resilK ? 1 : 0);
+                      rs += WEIGHTS[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
                       b += WEIGHTS[zi] * (alive ? Math.min(net, beqCap) : 0);
                     } else {
                       readValues(g, sNext, bNext, grown, rd, rNext);
@@ -201,17 +209,18 @@ export function solve(E, M, plan, opts = {}) {
       }
     }
     toLogOdds(St, lsurv[t]);
-    toLogOdds(Rt, lresil[t]);
+    if (shortfall) lresil[t].set(Rt); else toLogOdds(Rt, lresil[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator' };
   const r = {
     m, g, c, actions, surv, lsurv, resil, lresil, beq, pol, meta, M, eps, nodeReal, wB, wR,
     tieMargin: opts.tieMargin || 0,
+    rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
     /* What the table says this position is worth, before anything is executed. */
-    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); return { survival: interp(g, surv[k], loc, true), resilience: interp(g, resil[k], loc, true), bequest: interp(g, beq[k], loc, false) }; }
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); return { survival: interp(g, surv[k], loc, true), resilience: interp(g, resil[k], loc, !shortfall), bequest: interp(g, beq[k], loc, false) }; }
   };
   return r;
 }
@@ -229,52 +238,70 @@ export function solve(E, M, plan, opts = {}) {
  * did, taken once more at the position that actually arose, and it costs one year of arithmetic.
  */
 export function chooseAction(r, s, t) {
-  const { g, c, actions, lsurv, lresil, beq, nodeReal, wB, wR } = r;
+  const { actions } = r;
   const T = r.m.ctx.totalYears;
-  if (t >= T) return r.pol[T][nearestIndex(g, s)];
+  if (t >= T) return r.pol[T][nearestIndex(r.g, s)];
   const eps = r.eps;
-  const post = r._post || (r._post = new Float64Array(6));
-  const grown = r._grown || (r._grown = new Float64Array(6));
-  const rd = r._rd || (r._rd = new Float64Array(3));
+  const n = actions.length;
+  const SC = r._sc || (r._sc = new Float64Array(n));
+  const TX = r._tx || (r._tx = new Float64Array(n));
+  const BQ = r._bq || (r._bq = new Float64Array(n));
+  scoreMoves(r, s, t, SC, TX, BQ);
+  /*
+   * RICHARDSON EXTRAPOLATION. The table's optimism was measured to fall as 1/n in the grid points
+   * (S070: +21, +16, +13, +9 at 12, 16, 20, 28). With a second solve at half the points, 2 x score(n)
+   * - score(n/2) cancels the leading term of that error for every move at once, at the cost of one
+   * more, cheaper, solve. Off unless `r.rich` is set.
+   */
+  if (r.rich) {
+    const S2 = r._sc2 || (r._sc2 = new Float64Array(n));
+    scoreMoves(r.rich, s, t, S2, r._tx2 || (r._tx2 = new Float64Array(n)), r._bq2 || (r._bq2 = new Float64Array(n)));
+    for (let ai = 0; ai < n; ai++) SC[ai] = SC[ai] === -Infinity || S2[ai] === -Infinity ? -Infinity : 2 * SC[ai] - S2[ai];
+  }
   let bestScore = -Infinity, bestB = -Infinity, best = 0;
-  const tie = r.tieMargin || 0;
-  const SC = tie > 0 ? (r._sc || (r._sc = new Float64Array(actions.length))) : null;
-  const TX = tie > 0 ? (r._tx || (r._tx = new Float64Array(actions.length))) : null;
-  const BQ = tie > 0 ? (r._bq || (r._bq = new Float64Array(actions.length))) : null;
-  for (let ai = 0; ai < actions.length; ai++) {
-    post.set(s);
-    const unmet = F.flow(c, t, ai, post);
-    let sv = 0, bq = 0, rs = 0;
-    if (!(unmet > 1 || c.last.preNmpaInsolvent)) {
-      for (let zi = 0; zi < 5; zi++) {
-        grown.set(post);
-        F.grow(c, t, grown, nodeReal[zi]);
-        readValues(g, lsurv[t + 1], beq[t + 1], grown, rd, lresil[t + 1]);
-        sv += WEIGHTS[zi] * rd[0];
-        bq += WEIGHTS[zi] * rd[1];
-        rs += WEIGHTS[zi] * rd[2];
-      }
-    }
-    const score = sv + wR * rs + wB * bq;
-    if (SC) { SC[ai] = score; TX[ai] = c.last.taxPaid + c.last.cgtPaid; BQ[ai] = bq; }
-    if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && bq > bestB)) { bestScore = score; bestB = bq; best = ai; }
+  for (let ai = 0; ai < n; ai++) {
+    const score = SC[ai];
+    if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && BQ[ai] > bestB)) { bestScore = score; bestB = BQ[ai]; best = ai; }
   }
   /*
-   * WHEN THE TABLE CANNOT TELL, DO NOT PAY TAX NOW. The table is smeared near the cliff (see the loss
-   * ledger), and where two moves sit within that smear it has been seen to pick the one that pre-pays
-   * tax for a survival gain it cannot actually resolve. Within `tieMargin` of the best score, prefer the
+   * WHEN THE TABLE CANNOT TELL, DO NOT PAY TAX NOW. Within `tieMargin` of the best score, prefer the
    * move with the least tax this year; an exact tie there still goes to the larger bequest. Off by
-   * default; the forward policy only, so the table's values are untouched.
+   * default; measured to recover 1.5 points on S070 and give back half a point on the largest wins.
    */
+  const tie = r.tieMargin || 0;
   if (tie > 0) {
     let pick = best, pickTx = TX[best], pickB = BQ[best];
-    for (let ai = 0; ai < actions.length; ai++) {
+    for (let ai = 0; ai < n; ai++) {
       if (SC[ai] < bestScore - tie) continue;
       if (TX[ai] < pickTx - 1e-9 || (Math.abs(TX[ai] - pickTx) <= 1e-9 && BQ[ai] > pickB)) { pick = ai; pickTx = TX[ai]; pickB = BQ[ai]; }
     }
     return pick;
   }
   return best;
+}
+
+/* Every move's score from one solve's tables at the true position `s` in year `t`, with the year's tax and the expected bequest. */
+function scoreMoves(r, s, t, SC, TX, BQ) {
+  const { g, c, actions, lsurv, lresil, beq, nodeReal, wB, wR } = r;
+  const post = r._post || (r._post = new Float64Array(6));
+  const grown = r._grown || (r._grown = new Float64Array(6));
+  const rd = r._rd || (r._rd = new Float64Array(3));
+  for (let ai = 0; ai < actions.length; ai++) {
+    post.set(s);
+    const unmet = F.flow(c, t, ai, post);
+    TX[ai] = c.last.taxPaid + c.last.cgtPaid;
+    if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; continue; }
+    let sv = 0, bq = 0, rs = 0;
+    for (let zi = 0; zi < 5; zi++) {
+      grown.set(post);
+      F.grow(c, t, grown, nodeReal[zi]);
+      readValues(g, lsurv[t + 1], beq[t + 1], grown, rd, lresil[t + 1]);
+      sv += WEIGHTS[zi] * rd[0];
+      bq += WEIGHTS[zi] * rd[1];
+      rs += WEIGHTS[zi] * rd[2];
+    }
+    SC[ai] = sv + wR * rs + wB * bq; BQ[ai] = bq;
+  }
 }
 
 /*

@@ -189,7 +189,7 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null) {
   let ls = 0, b = 0, lr = 0;
   if (lrArr) {
     for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; }
-    out[2] = expit(lr);
+    out[2] = g.linearResil ? lr : expit(lr);
   } else {
     for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
   }

@@ -589,6 +589,22 @@ shortfall exponent, the landing tolerance, a memory dimension if whipsaw appears
 changed once, on the evidence, and every arm re-run on the same seeds. Findings from the first pass are
 listed under the results below as they land.
 
+**2d.4, at the end of the queue: spending above the target when it has been a great run.** The solver
+never spends above the plan, because nothing in its objective rewards it: the shortfall term punishes
+levels below 1 and is silent above it, so a level of 1.1 would never be chosen. The guardrails raise
+10% whenever the draw has fallen a fifth below its starting rate of the pot, and on this pass that is
+3 to 28 years a run. The exploration: add levels above 1 to the menu (1.1, then 1.2, matching the
+size of a GK raise) and a bounded reward for them, a concave credit for spending delivered above the
+target so that a raise is taken only when the pot is well ahead of the plan and the table still meets
+the confidence on the floor - the same bisection on the penalty lands the floor rate, the reward
+weight is tuned so the solver's above-target years land near the guardrails' count on the same
+households, and the comparison is then at equal downside AND a similar rate of raises. Measured on
+spending delivered (mean level, median run and unlucky tenth), years at or above target, whipsaw,
+and the end pot, against every arm on the same seeds. What to watch: a raise that is later trimmed
+is the whipsaw the solver has so far avoided, so the changes-per-run figure is a gate, not a
+footnote; and a raise spends the bequest, so the presets must expose the trade as they do the
+bequest weight.
+
 **Findings at the quarter mark of the equal-downside pass (ten households), for 2d.3.**
 (a) At the same floor rate the solver delivers nearly twice the years at target in the median run
 (0.66 against 0.35) and five times in the unlucky tenth (0.20 against 0.04), changes the spend level
@@ -951,7 +967,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 1 | reduced model + golden test | **done**: exact to the pound, 29 assertions | 1.5× |
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
 | 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | **done**: edge grows in every perturbed world; shortfall adopted; (0.5, 0.02) confirmed; every loss named | 0.5× |
-| 2d | Part D pilot in the reduced model, against the guardrails | fully-funded rate and floor rate, both, on 41 households | 1× |
+| 2d | Part D pilot in the reduced model, against the guardrails | fully-funded rate and floor rate, both, on 41 households; then 2d.2 two more opponents, 2d.3 one evidence-driven change, 2d.4 raises above target | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |

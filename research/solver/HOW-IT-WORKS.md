@@ -269,3 +269,31 @@ is the gap between any recipe and a decision that looks at where you actually ar
 that gap exactly, on a simplified model, and then proves itself on the real one. If it wins, the app
 gets a single, explainable, state-aware plan and sheds most of its decision machinery. If it does not
 win, we will know that too, by the same test that judged everything else, and the app stays as it is.
+
+## Added since the first experiment
+
+**The grid now measures total wealth, not each pot.** Whether the money lasts turns almost entirely on
+how many years of spending the household has in total; how it is split between wrappers changes the
+tax bill, not the outcome. So the table has one fine axis along total wealth (40 points) and two coarse
+ones for the split (6 each): 1,440 positions instead of 8,000, six times faster, and the table's number
+went from ten points too optimistic to honest within a few. Every loss shrank and no win was lost.
+
+**Three tax gaps closed in the engine.** Cash Savings now earns its nominal rate and the interest is
+taxed as savings income above the starting rate and the personal savings allowance. Other Investments
+is assumed to pay a dividend yield (2% a year, a Config setting) out of its return, taxed above the
+dividend allowance at the dividend rates. Both are costs the year has to fund, so they show on the
+audit row and in lifetime tax.
+
+**A Cash ISA wrapper that is one pot underneath.** A cash ISA and taxable cash are the same asset with
+one difference, the tax on the interest. The person enters a Cash ISA row; inside the projection it is
+merged with Cash Savings and the sheltered part is tracked. Money drawn comes out of taxable cash first,
+and each year whatever ISA allowance the S&S subscription leaves shelters more of the taxable cash, up to
+the cash ISA cap (the under-65 cap from 2027 is dated config). This "you will act logically" assumption
+is what lets the two stay one pot, which keeps the solver's grid to three dimensions. The library now
+splits every household's cash none, half or all into the ISA so the tax has households to bite on.
+
+**The risk term is a shortfall, not a step.** The table's downside term used to be "the chance of
+ending with at least what you started with", a step that rewards a gamble right at the line. It is now
+the expected shortfall below that line, which is smooth. It changed no decision; it removes the
+incentive. The weights were then tuned on the households the experiment never sees and the pair in
+use, (0.5, 0.02), was confirmed.

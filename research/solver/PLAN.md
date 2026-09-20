@@ -762,6 +762,20 @@ in the worker, minutes rather than seconds, offered as "solve in the background"
 **Gate 6:** the versus protocol with tiers on; the safe spend from the table within £500 of
 `optimizeSpend` on the same plan; the solve stays inside 1.5× the Phase 2 budget.
 
+**How 6 is built (decided before the build, 20 Sep).** The tier is part of the move, not of the state:
+switching funds inside the pension or the ISA is free and leaves nothing to remember, so the grid gains
+no dimension and every cell simply has more moves. The GIA's tier stays the plan's for now, because a
+switch there realises gain and the cost of the next switch depends on the last, which is a memory the
+grid does not carry (a fourth bucket if it ever earns one). Each wrapper offers its plan tier and up to
+two below, so a household has up to nine tier pairs; a move's tier variants share its flow (the year's
+draws and tax are the same whatever the funds hold) and differ only in growth, so the flow runs once per
+base move and the variants pay only for growth and the table reads. The forward run grows each year at
+the tiers the chosen move holds, and reports the years each wrapper sat below its plan tier and how often
+the tiers changed. The fixed arms cannot change tier, which is the point of the comparison. The second
+half of the phase as first written, the spend target as a seventh dimension, is deferred: Part D now
+carries spend as levels on the move, and the safe spend and the age-against-spend grid can be read by a
+sweep of solves rather than a dimension; that is decided when Part C reaches them.
+
 ---
 
 ## Part C. The app (phases 7 to 12), behind a switch

@@ -111,6 +111,27 @@ export function solve(E, M, plan, opts = {}) {
    */
   const eps = opts.eps !== undefined ? opts.eps : 1e-12;
   const deathTax = m.ctx.pensionDeathTaxRate;
+  /*
+   * HOW MUCH BEQUEST A POINT OF SURVIVAL MAY COST.
+   *
+   * With survival strictly first and the bequest only breaking an exact tie, ANY survival gain, however
+   * small, justifies ANY bequest loss, however large. That is not a theoretical worry: on S294 the
+   * solver pre-pays income tax at the basic rate for decades to convert pension pounds into ISA pounds,
+   * because a pound in an ISA buys a whole pound of spending in a bad year while a pound in a pension
+   * buys eighty pence. It is real insurance and it genuinely raises survival, by 1.5 points there. The
+   * premium is £1.8m of median terminal wealth on surviving paths, the pension left falls from £5.9m to
+   * £2.5m, and lifetime tax doubles from £73k to £164k - all for a death-tax benefit that is ZERO,
+   * because the rate defaults to nothing.
+   *
+   * So the objective scores `survival + weight x bequest / openingWealth`, and `weight` is readable:
+   * how many points of survival one multiple of the household's current wealth in extra bequest is
+   * worth. Zero is the lexicographic behaviour above. The app already carries this idea as
+   * MAX_SURVIVAL_SACRIFICE_PTS and its priority list; this is the same judgement made where the
+   * decision is actually taken.
+   */
+  const bequestWeight = opts.bequestWeight !== undefined ? opts.bequestWeight : 0;
+  const scale = Math.max(1, m.ctx.accounts.reduce((x, a) => x + a.balance, 0));
+  const wB = bequestWeight / scale;
 
   const surv = [], lsurv = [], beq = [], pol = [];
   for (let t = 0; t <= T; t++) { surv[t] = new Float64Array(g.size); lsurv[t] = new Float64Array(g.size); beq[t] = new Float64Array(g.size); pol[t] = new Uint8Array(g.size); }
@@ -133,7 +154,7 @@ export function solve(E, M, plan, opts = {}) {
                * bound assumed "no growth" was the worst case, and for an invested pot it is not - see
                * zeroGrowthNeed in grid.js for the measurement that retired it.
                */
-              let bestS = -1, bestB = -Infinity, bestA = 0;
+              let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestA = 0;
               for (let ai = 0; ai < actions.length; ai++) {
                 post.set(base);
                 const unmet = F.flow(c, t, ai, post);
@@ -155,7 +176,8 @@ export function solve(E, M, plan, opts = {}) {
                     }
                   }
                 }
-                if (s > bestS + eps || (Math.abs(s - bestS) <= eps && b > bestB)) { bestS = s; bestB = b; bestA = ai; }
+                const score = s + wB * b;
+                if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestA = ai; }
               }
               St[idx] = bestS; Bt[idx] = bestB; Pt[idx] = bestA;
             }
@@ -166,9 +188,9 @@ export function solve(E, M, plan, opts = {}) {
     toLogOdds(St, lsurv[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.n };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.n, bequestWeight };
   const r = {
-    m, g, c, actions, surv, lsurv, beq, pol, meta, M, eps, nodeReal,
+    m, g, c, actions, surv, lsurv, beq, pol, meta, M, eps, nodeReal, wB,
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
     /* What the table says this position is worth, before anything is executed. */
@@ -190,14 +212,14 @@ export function solve(E, M, plan, opts = {}) {
  * did, taken once more at the position that actually arose, and it costs one year of arithmetic.
  */
 export function chooseAction(r, s, t) {
-  const { g, c, actions, lsurv, beq, nodeReal } = r;
+  const { g, c, actions, lsurv, beq, nodeReal, wB } = r;
   const T = r.m.ctx.totalYears;
   if (t >= T) return r.pol[T][nearestIndex(g, s)];
   const eps = r.eps;
   const post = r._post || (r._post = new Float64Array(6));
   const grown = r._grown || (r._grown = new Float64Array(6));
   const rd = r._rd || (r._rd = new Float64Array(2));
-  let bestS = -1, bestB = -Infinity, best = 0;
+  let bestScore = -Infinity, bestB = -Infinity, best = 0;
   for (let ai = 0; ai < actions.length; ai++) {
     post.set(s);
     const unmet = F.flow(c, t, ai, post);
@@ -211,7 +233,8 @@ export function chooseAction(r, s, t) {
         bq += WEIGHTS[zi] * rd[1];
       }
     }
-    if (sv > bestS + eps || (Math.abs(sv - bestS) <= eps && bq > bestB)) { bestS = sv; bestB = bq; best = ai; }
+    const score = sv + wB * bq;
+    if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && bq > bestB)) { bestScore = score; bestB = bq; best = ai; }
   }
   return best;
 }

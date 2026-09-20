@@ -494,6 +494,21 @@ const DEFAULT_CONFIG = {
   cgtAnnualExempt: 3000,
   cgtBasicRate: 18,
   cgtHigherRate: 24,
+  // Tax on savings interest. Cash Savings earns its NOMINAL rate (real plus inflation) and that interest is
+  // taxed as income above the personal savings allowance and the starting rate for savings; switch off to
+  // treat all cash as a cash ISA. The tax is a cost the year has to fund, like any other bill.
+  cashInterestTaxed: true,
+  savingsAllowanceBasic: 1000,       // personal savings allowance for a basic-rate taxpayer
+  savingsAllowanceHigher: 500,       // ...for a higher-rate taxpayer; nil for additional rate
+  startingRateSavingsBand: 5000,     // 0% band for savings income where non-savings income is below the allowance plus this
+  // Tax on dividends inside the GIA. The GIA is assumed to pay `giaDividendYield` % of its value a year as
+  // dividends OUT OF its stated return (total return is unchanged); the dividends are taxed above the
+  // allowance at the dividend rates of the band they fall in, and the tax is a cost the year funds.
+  giaDividendYield: 2.0,             // % of the GIA's value a year, an approximation across the tiers
+  dividendAllowance: 500,
+  dividendBasicRate: 8.75,
+  dividendHigherRate: 33.75,
+  dividendAdditionalRate: 39.35,
   // Behavioural / modelling assumptions
   cashBufferMonths: 6,               // months of spending kept in cash before surplus income is swept to ISA
   harvestPersonalAllowance: true,    // in retirement draw pension to fill unused 0% allowance and move it to ISA
@@ -1172,6 +1187,15 @@ function taxParams(cfgIn) {
   const cgtAnnualExempt = Math.max(0, num(cfg.cgtAnnualExempt, DEFAULT_CONFIG.cgtAnnualExempt));
   const cgtBasicRate = clamp(num(cfg.cgtBasicRate, DEFAULT_CONFIG.cgtBasicRate), 0, 99) / 100;
   const cgtHigherRate = clamp(num(cfg.cgtHigherRate, DEFAULT_CONFIG.cgtHigherRate), 0, 99) / 100;
+  const cashInterestTaxed = cfg.cashInterestTaxed === undefined ? DEFAULT_CONFIG.cashInterestTaxed : !!cfg.cashInterestTaxed;
+  const psaBasic = Math.max(0, num(cfg.savingsAllowanceBasic, DEFAULT_CONFIG.savingsAllowanceBasic));
+  const psaHigher = Math.max(0, num(cfg.savingsAllowanceHigher, DEFAULT_CONFIG.savingsAllowanceHigher));
+  const srBand = Math.max(0, num(cfg.startingRateSavingsBand, DEFAULT_CONFIG.startingRateSavingsBand));
+  const giaDividendYield = clamp(num(cfg.giaDividendYield, DEFAULT_CONFIG.giaDividendYield), 0, 100) / 100;
+  const divAllowance = Math.max(0, num(cfg.dividendAllowance, DEFAULT_CONFIG.dividendAllowance));
+  const divBasic = clamp(num(cfg.dividendBasicRate, DEFAULT_CONFIG.dividendBasicRate), 0, 99) / 100;
+  const divHigher = clamp(num(cfg.dividendHigherRate, DEFAULT_CONFIG.dividendHigherRate), 0, 99) / 100;
+  const divAdditional = clamp(num(cfg.dividendAdditionalRate, DEFAULT_CONFIG.dividendAdditionalRate), 0, 99) / 100;
   // allowance remaining at a given income
   const paAt = (income) => taperRate > 0 && income > thr ? Math.max(0, pa - (income - thr) * taperRate) : pa;
   const basicWidth = Math.max(0, basicLimit - pa);                 // basic band measured in taxable income
@@ -1217,7 +1241,41 @@ function taxParams(cfgIn) {
   // Relief at source is given at the statutory 20% to everyone, including a Scottish starter-rate payer.
   const reliefAtSource = clamp(num(DEFAULT_CONFIG.basicTaxRate), 0, 99) / 100;
 
-  return { __isParams: true, pa, thr, taperRate, basicLimit, higherLimit, basicRate, higherRate, addRate, nicPT, nicUEL, nicMain, nicUpper, c4Main, c4Upper, erNic, erPass, pclsProp, lsa, isaAllowance, pensionAllowance, pensionNoEarningsLimit, mpaaLimit, aaTaperThr, aaTaperRate, aaTaperFloor, aaAt, cgtEnabled, cgtAnnualExempt, cgtBasicRate, cgtHigherRate, paAt, basicWidth, higherTop, taperEnd, region, ladder, grossLimits, higherRateStartsAt, cgtBandWidth, reliefAtSource };
+  /*
+   * Tax on savings interest, stacked on top of non-savings income as HMRC stacks it. The starting rate
+   * for savings covers interest up to `srBand` above the allowance where non-savings income leaves room;
+   * the personal savings allowance then covers the next slice, its size set by the band the household's
+   * total income ends in. Both exempt slices sit at the bottom of the interest, so what remains is taxed
+   * at the rates that apply above them: the whole-income tax less the tax with only the exempt interest.
+   */
+  const psaAt = (total) => total <= basicLimit ? psaBasic : (total <= higherLimit ? psaHigher : 0);
+  const params = { __isParams: true, pa, thr, taperRate, basicLimit, higherLimit, basicRate, higherRate, addRate, nicPT, nicUEL, nicMain, nicUpper, c4Main, c4Upper, erNic, erPass, pclsProp, lsa, isaAllowance, pensionAllowance, pensionNoEarningsLimit, mpaaLimit, aaTaperThr, aaTaperRate, aaTaperFloor, aaAt, cgtEnabled, cgtAnnualExempt, cgtBasicRate, cgtHigherRate, paAt, basicWidth, higherTop, taperEnd, region, ladder, grossLimits, higherRateStartsAt, cgtBandWidth, reliefAtSource, cashInterestTaxed, psaBasic, psaHigher, srBand, psaAt, giaDividendYield, divAllowance, divBasic, divHigher, divAdditional };
+  /*
+   * Tax on dividends, the top slice of income: above non-savings income and savings interest, the first
+   * `divAllowance` at 0% (it still uses up band space), the rest at the dividend rate of the band it sits
+   * in. Dividend rates are UK-wide, so the bands here are the UK basic and higher limits in taxable
+   * income whatever the region's own ladder says.
+   */
+  params.dividendTax = (nonSavings, interest, dividends) => {
+    if (!(dividends > 0)) return 0;
+    const base = Math.max(0, nonSavings) + Math.max(0, interest);
+    const hi = base + dividends, lo = Math.min(hi, base + divAllowance);
+    if (hi <= lo) return 0;
+    const allowance = paAt(hi);
+    const tl = Math.max(0, lo - allowance), th = Math.max(0, hi - allowance);
+    const bands = [[0, basicWidth, divBasic], [basicWidth, higherTop, divHigher], [higherTop, Infinity, divAdditional]];
+    let tax = 0;
+    for (const [a, b, r] of bands) { const w = Math.min(th, b) - Math.max(tl, a); if (w > 0) tax += w * r; }
+    return tax;
+  };
+  params.savingsTax = (nonSavings, interest) => {
+    if (!cashInterestTaxed || !(interest > 0)) return 0;
+    const ns = Math.max(0, nonSavings), i = interest;
+    const starting = Math.max(0, Math.min(srBand, pa + srBand - ns));
+    const exempt = Math.min(i, starting + psaAt(ns + i));
+    return Math.max(0, incomeTax(ns + i, params) - incomeTax(ns + exempt, params));
+  };
+  return params;
 }
 
 // The marginal rate on the next pound of income, used where a decision depends on which band someone is in.
@@ -1919,6 +1977,34 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
   });
   const statePension = { self: 0, part: 0 };
   owners.forEach(o => { if (ageOf(o.key) >= ctx.spa) { statePension[o.key] = o.statePension * frac; taxable[o.key] += statePension[o.key]; } });
+  /*
+   * 4a. Tax on the year's savings interest. Cash Savings grows at its real rate in step 8 as it always
+   * has (that growth IS the interest, net of inflation); what is new is that HMRC taxes the NOMINAL
+   * interest - real plus inflation - as savings income above the starting rate and the personal savings
+   * allowance. Measured on the cash held at this point in the year, before any draw, so it is knowable
+   * when the draws are sized, and charged as a cost the year must fund like any other bill. Interest is
+   * savings income, stacked on top of the non-savings income known here; a pension draw later in the year
+   * can push it up a band, and that second-order shift is deliberately not chased.
+   */
+  const savingsInterest = { self: 0, part: 0 }, savingsTax = { self: 0, part: 0 };
+  if (P.cashInterestTaxed) owners.forEach(o => {
+    const a = ctx.acc[o.ids.cash];
+    if (!a) return;
+    const nominal = (1 + a.real) * (1 + ctx.inflation) - 1;
+    savingsInterest[o.key] = Math.max(0, (pots[o.ids.cash] || 0) * nominal * frac);
+    savingsTax[o.key] = P.savingsTax(taxable[o.key], savingsInterest[o.key]);
+  });
+  /*
+   * 4b. Tax on the year's dividends inside the GIA, on the same footing: the GIA is assumed to pay its
+   * dividend yield out of its stated return, so growth in step 8 is unchanged and only the tax is new.
+   * Dividends are the top slice of income, above the interest; the allowance is a 0% band that still
+   * uses up band space; the rate is the dividend rate of the band the slice sits in.
+   */
+  const giaDividends = { self: 0, part: 0 }, dividendTax = { self: 0, part: 0 };
+  if (P.giaDividendYield > 0) owners.forEach(o => {
+    giaDividends[o.key] = Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac);
+    dividendTax[o.key] = P.dividendTax(taxable[o.key], savingsInterest[o.key], giaDividends[o.key]);
+  });
   const netGuaranteed = {};
   /*
    * Taxable income BEFORE any pension is drawn - state pension, post-retirement earnings, rent, a DB
@@ -1928,7 +2014,7 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
    * Without it the tab can only say "up to whatever is left" and leave the household to guess.
    */
   const otherTaxable = { self: taxable.self, part: taxable.part };
-  owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + calculateUKNetIncome(taxable[o.key], P); });
+  owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + calculateUKNetIncome(taxable[o.key], P) - savingsTax[o.key] - dividendTax[o.key]; });
   let totalNetGuaranteed = owners.reduce((sum, o) => sum + netGuaranteed[o.key], 0);
   // take-home of a partner who is still working after the household has started drawing (offsets living costs)
   let workingTakeHome = 0;
@@ -2262,7 +2348,7 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
   const totalSelf = sumOwner(ownerByKey.self);
   const totalPart = ctx.isCouple ? sumOwner(ownerByKey.part) : 0;
   const totalCombined = totalSelf + totalPart;
-  const taxPaid = owners.reduce((s, o) => s + incomeTax(taxable[o.key], P), 0);
+  const taxPaid = owners.reduce((s, o) => s + incomeTax(taxable[o.key], P) + savingsTax[o.key] + dividendTax[o.key], 0);
   const byCat = {};
   CATEGORIES.forEach(cat => { byCat[cat] = owners.reduce((s, o) => s + (pots[o.ids[cat]] || 0), 0); });
 
@@ -2280,6 +2366,8 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
     preNmpaLiquid: byCat.isa + byCat.other + byCat.cash,
     drawdownPensions, taxablePensionSelf: taxablePensionDrawn.self, taxablePensionPart: taxablePensionDrawn.part, harvested, taxPaid, cgtPaid,
     otherTaxableSelf: otherTaxable.self, otherTaxablePart: otherTaxable.part,
+    savingsInterest: savingsInterest.self + savingsInterest.part, savingsTax: savingsTax.self + savingsTax.part,
+    giaDividends: giaDividends.self + giaDividends.part, dividendTax: dividendTax.self + dividendTax.part,
     realisedGains: realisedGains.self + realisedGains.part,
     preNmpaInsolvent, unmetDemand,
     // the spending rule: what it did this year, and the multiplier now in force on the draw (1 = as planned)
@@ -12411,7 +12499,7 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
               {/* Said where the balance is typed, not only in the documentation: the wrapper earns its
                   tier's return with nothing charged on it, which is a cash ISA or savings inside the
                   personal savings allowance - and taxable cash above that has no wrapper of its own. */}
-              <p className="text-[11px] text-slate-500">Cash Savings is modelled with <strong className="text-slate-700">no tax on its interest</strong>, so it stands for a cash ISA or savings inside your personal savings allowance. For taxable cash above that allowance, the nearest fit is <T k="GIA">Other Investments</T> at a low risk tier &mdash; which taxes the growth as <T k="CGT">CGT</T> on disposal rather than as interest each year, so it flatters a large holding.</p>
+              <p className="text-[11px] text-slate-500">Cash Savings earns its nominal rate (the real rate plus inflation) and that interest is <strong className="text-slate-700">taxed as savings income</strong> above the starting rate for savings and the personal savings allowance, at the band your other income puts you in. The tax is a cost the year has to fund. Switch <em>Tax cash interest</em> off in Config to treat all cash as a cash ISA. <T k="GIA">Other Investments</T> is assumed to pay a dividend yield (Config, 2% by default) out of its return, taxed above the dividend allowance at the dividend rate of your band; set the yield to 0 to switch that off.</p>
               </Fine>
               {/*
                 * ON A PHONE, A CARD PER WRAPPER; ON A DESKTOP, THE TABLE.
@@ -12985,6 +13073,12 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                     <span className="text-slate-700 font-semibold">Tax gains realised when Other Investments are sold, using the cost basis of each holding.</span>
                   </label>
                   <span className="text-[10px] text-slate-400 mt-1 block">Off treats the GIA as tax-free. Gains are wiped on death, so nothing is charged at the terminal age.</span>
+                  <label className="text-slate-600 font-semibold block mb-1 mt-3">Tax cash interest</label>
+                  <label className="flex items-center gap-2 p-2 bg-surface border border-slate-300 rounded-lg cursor-pointer">
+                    <input type="checkbox" checked={plan?.config?.cashInterestTaxed !== false} onChange={(e) => updateConfig('cashInterestTaxed', e.target.checked)} className="accent-blue-600" />
+                    <span className="text-slate-700 font-semibold">Tax the nominal interest on Cash Savings as savings income above the starting rate and the personal savings allowance.</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Off treats all cash as a cash ISA. The allowances are set below.</span>
                   <button type="button" onClick={() => goToDoc('doc-cgt')} className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1 cursor-pointer mt-1"><HelpCircle className="w-3.5 h-3.5" /> How capital gains are tracked &amp; taxed &rarr;</button>
                 </div>
               </div>
@@ -13291,7 +13385,9 @@ ${t.rows.map(r => `<tr class="${r.recommended ? 'total' : ''}"><td>${r.amt > 0 ?
                   ['nicPrimaryThreshold', 'NIC Primary Threshold (£)'], ['nicUpperEarningsLimit', 'NIC Upper Earnings Limit (£)'], ['nicMainRate', 'NIC Main Rate (%)'], ['nicUpperRate', 'NIC Upper Rate (%)'],
                   ['class4MainRate', 'Class 4 Main Rate (%, self-employed)'], ['class4UpperRate', 'Class 4 Upper Rate (%, self-employed)'],
                   ['employerNicRate', 'Employer NIC Rate (%)'], ['pclsProportion', 'PCLS Tax-Free (%)'], ['pclsMaxCap', 'Lump Sum Allowance (£ LSA)'],
-                  ['isaAnnualAllowance', 'ISA Allowance (£/person/yr)'], ['pensionAnnualAllowance', 'Pension Annual Allowance (£/person/yr)'], ['pensionNoEarningsLimit', 'Pension Limit With No Earnings (£/person/yr)'], ['mpaaLimit', 'Money Purchase Annual Allowance (£/person/yr)'], ['pensionTaperThreshold', 'Annual Allowance Taper Threshold (£ earnings)'], ['pensionTaperRate', 'Annual Allowance Taper Rate (%)'], ['pensionTaperFloor', 'Tapered Annual Allowance Floor (£)'], ['cgtAnnualExempt', 'CGT Annual Exempt Amount (£/person/yr)'], ['cgtBasicRate', 'CGT Rate: Basic Band (%)'], ['cgtHigherRate', 'CGT Rate: Higher/Additional Band (%)']
+                  ['isaAnnualAllowance', 'ISA Allowance (£/person/yr)'], ['pensionAnnualAllowance', 'Pension Annual Allowance (£/person/yr)'], ['pensionNoEarningsLimit', 'Pension Limit With No Earnings (£/person/yr)'], ['mpaaLimit', 'Money Purchase Annual Allowance (£/person/yr)'], ['pensionTaperThreshold', 'Annual Allowance Taper Threshold (£ earnings)'], ['pensionTaperRate', 'Annual Allowance Taper Rate (%)'], ['pensionTaperFloor', 'Tapered Annual Allowance Floor (£)'], ['cgtAnnualExempt', 'CGT Annual Exempt Amount (£/person/yr)'], ['cgtBasicRate', 'CGT Rate: Basic Band (%)'], ['cgtHigherRate', 'CGT Rate: Higher/Additional Band (%)'],
+                  ['savingsAllowanceBasic', 'Personal Savings Allowance: Basic Rate (£)'], ['savingsAllowanceHigher', 'Personal Savings Allowance: Higher Rate (£)'], ['startingRateSavingsBand', 'Starting Rate for Savings Band (£)'],
+                  ['giaDividendYield', 'GIA Dividend Yield (% of value a year, 0 = off)'], ['dividendAllowance', 'Dividend Allowance (£)'], ['dividendBasicRate', 'Dividend Rate: Basic Band (%)'], ['dividendHigherRate', 'Dividend Rate: Higher Band (%)'], ['dividendAdditionalRate', 'Dividend Rate: Additional Band (%)']
                 ].map(([field, label]) => (
                   <div key={field}><span className="text-slate-600 font-sans font-semibold block mb-1">{label}</span><input type="number" min="0" placeholder={String(E.DEFAULT_CONFIG[field])} onFocus={handleFocus} value={plan?.config?.[field] ?? ''} onChange={(e) => updateConfig(field, e.target.value)} className={smallInputCls} /></div>
                 ))}

@@ -962,7 +962,8 @@ const navigate = async (page, label, short) => {
         !!preview && preview.chars > 40 && preview.clamped === true && /\u2026$/.test(preview.label),
         preview ? `${preview.chars} chars in ${preview.h}px, opens with "${preview.label}"` : 'no fold found');
       const risk = await p.evaluate(() => ({ summaries: document.querySelectorAll('[data-risk-summary]').length, cards: document.querySelectorAll('[data-wrapper-card]').length }));
-      ok('each wrapper is a card showing its tier', risk.cards === 4 && risk.summaries === 4, `${risk.cards} cards, ${risk.summaries} tiers`);
+      // five cards since the Cash ISA wrapper: four with a tier of their own, the Cash ISA saying it grows at the Cash Savings rate
+      ok('each wrapper is a card showing its tier, the Cash ISA borrowing Cash Savings\'', risk.cards === 5 && risk.summaries === 4, `${risk.cards} cards, ${risk.summaries} tiers`);
       await p.evaluate(() => document.querySelector('[data-risk-summary]').click());
       await p.waitForTimeout(300);
       const chips = await p.evaluate(() => document.querySelectorAll('[data-wrapper-card] [role=radio]').length);

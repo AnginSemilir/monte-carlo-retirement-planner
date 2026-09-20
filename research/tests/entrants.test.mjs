@@ -95,7 +95,7 @@ console.log('\n=== entrants are defensive ===');
   ] });
   ok('a null plan is normalised rather than thrown', t.strategies.filter(s => s.isEntrant).length === 2);
   const junk = t.strategies.find(s => s.id === 'entrant_junk');
-  ok('the empty entrant still has the canonical account set', junk.planState.accounts.length === 8);
+  ok('the empty entrant still has the canonical account set', junk.planState.accounts.length === 10);   // four pots plus a cash ISA, per owner
   ok('and a zero outlay rather than NaN', Number.isFinite(junk.entrantOutlay), String(junk.entrantOutlay));
 
   const noName = E.buildTournament(mk(), { entrants: [{ plan: mk() }] }).strategies.find(s => s.isEntrant);

@@ -1,0 +1,143 @@
+##### world: return-1
+solver against same menu, held fixed:
+  survival: mean +0.95 pts; beyond two standard errors in 37 of 41 (33 up, 4 down); sign test p = 0.000
+  the app's own picker prefers the solver in 32, the fixed plan in 9, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£12k mean;  median pot (net): £-34k;  tax: +£26k
+  mean failure age on failing paths: -0.34 years (41 households with failures on both)
+
+##### world: vol+25
+solver against same menu, held fixed:
+  survival: mean +0.96 pts; beyond two standard errors in 37 of 41 (32 up, 5 down); sign test p = 0.000
+  the app's own picker prefers the solver in 35, the fixed plan in 6, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£13k mean;  median pot (net): £-106k;  tax: +£32k
+  mean failure age on failing paths: -0.54 years (41 households with failures on both)
+
+##### world: left-tail
+solver against same menu, held fixed:
+  survival: mean +1.60 pts; beyond two standard errors in 40 of 41 (32 up, 8 down); sign test p = 0.000
+  the app's own picker prefers the solver in 36, the fixed plan in 5, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£1k mean;  median pot (net): +£75k;  tax: +£21k
+  mean failure age on failing paths: -0.59 years (41 households with failures on both)
+S004 left-tail  solver 77.5  same 73.8 (+3.7±0.4, picker: solver)  base Δ +1.7  19s
+S004 return-1   solver 87.1  same 85.7 (+1.4±0.2, picker: solver)  base Δ +1.7  21s
+S004 vol+25     solver 88.0  same 85.7 (+2.3±0.3, picker: solver)  base Δ +1.7  19s
+S020 left-tail  solver 57.8  same 55.6 (+2.2±0.3, picker: solver)  base Δ +1.8  17s
+S020 return-1   solver 68.4  same 66.7 (+1.7±0.2, picker: solver)  base Δ +1.8  17s
+S020 vol+25     solver 72.7  same 71.0 (+1.7±0.2, picker: solver)  base Δ +1.8  17s
+S034 left-tail  solver 62.2  same 60.7 (+1.5±0.2, picker: solver)  base Δ +0.7  17s
+S034 return-1   solver 72.8  same 72.1 (+0.7±0.2, picker: fixed)  base Δ +0.7  17s
+S034 vol+25     solver 78.4  same 77.2 (+1.2±0.2, picker: solver)  base Δ +0.7  17s
+S054 left-tail  solver 91.2  same 90.1 (+1.1±0.2, picker: solver)  base Δ +0.3  21s
+S054 return-1   solver 96.1  same 95.6 (+0.5±0.1, picker: fixed)  base Δ +0.3  20s
+S054 vol+25     solver 95.9  same 95.3 (+0.6±0.1, picker: solver)  base Δ +0.3  20s
+S058 left-tail  solver 82.8  same 83.7 (-1.0±0.2, picker: solver)  base Δ -0.5  17s
+S058 return-1   solver 89.7  same 89.5 (+0.2±0.2, picker: solver)  base Δ -0.5  17s
+S058 vol+25     solver 89.8  same 90.5 (-0.6±0.2, picker: fixed)  base Δ -0.5  17s
+S070 left-tail  solver 44.6  same 45.3 (-0.7±0.2, picker: fixed)  base Δ -0.7  22s
+S070 return-1   solver 56.6  same 57.5 (-0.9±0.2, picker: fixed)  base Δ -0.7  22s
+S070 vol+25     solver 63.6  same 64.2 (-0.6±0.1, picker: fixed)  base Δ -0.7  22s
+S082 left-tail  solver 58.8  same 55.2 (+3.6±0.3, picker: solver)  base Δ +2.4  21s
+S082 return-1   solver 70.1  same 67.9 (+2.2±0.3, picker: solver)  base Δ +2.4  22s
+S082 vol+25     solver 76.3  same 74.0 (+2.3±0.3, picker: solver)  base Δ +2.4  21s
+S100 left-tail  solver 88.4  same 87.8 (+0.6±0.1, picker: solver)  base Δ +0.1  24s
+S100 return-1   solver 94.5  same 94.5 (-0.0±0.1, picker: fixed)  base Δ +0.1  25s
+S100 vol+25     solver 93.7  same 93.3 (+0.4±0.1, picker: fixed)  base Δ +0.1  24s
+S112 left-tail  solver 85.0  same 85.7 (-0.7±0.2, picker: solver)  base Δ -0.3  24s
+S112 return-1   solver 91.9  same 91.5 (+0.5±0.2, picker: solver)  base Δ -0.3  24s
+S112 vol+25     solver 92.4  same 92.5 (-0.2±0.2, picker: solver)  base Δ -0.3  24s
+S118 left-tail  solver 64.8  same 64.0 (+0.7±0.2, picker: solver)  base Δ +0.4  21s
+S118 return-1   solver 75.8  same 74.7 (+1.0±0.2, picker: solver)  base Δ +0.4  22s
+S118 vol+25     solver 80.5  same 79.7 (+0.8±0.2, picker: solver)  base Δ +0.4  22s
+S126 left-tail  solver 89.7  same 89.1 (+0.6±0.2, picker: solver)  base Δ +0.1  26s
+S126 return-1   solver 95.4  same 95.4 (-0.0±0.2, picker: solver)  base Δ +0.1  28s
+S126 vol+25     solver 94.6  same 94.5 (+0.1±0.1, picker: solver)  base Δ +0.1  27s
+S142 left-tail  solver 52.6  same 50.2 (+2.4±0.3, picker: solver)  base Δ +2.0  23s
+S142 return-1   solver 64.5  same 63.2 (+1.4±0.2, picker: solver)  base Δ +2.0  23s
+S142 vol+25     solver 72.2  same 70.4 (+1.9±0.2, picker: solver)  base Δ +2.0  24s
+S154 left-tail  solver 45.0  same 42.5 (+2.5±0.3, picker: solver)  base Δ +1.4  23s
+S154 return-1   solver 56.0  same 54.4 (+1.6±0.2, picker: solver)  base Δ +1.4  24s
+S154 vol+25     solver 67.2  same 65.2 (+1.9±0.3, picker: solver)  base Δ +1.4  23s
+S162 left-tail  solver 87.2  same 84.0 (+3.2±0.3, picker: solver)  base Δ +0.9  27s
+S162 return-1   solver 93.7  same 92.3 (+1.4±0.2, picker: solver)  base Δ +0.9  27s
+S162 vol+25     solver 93.9  same 92.4 (+1.5±0.2, picker: solver)  base Δ +0.9  27s
+S172 left-tail  solver 74.4  same 73.7 (+0.7±0.2, picker: solver)  base Δ +0.6  26s
+S172 return-1   solver 85.1  same 83.2 (+1.9±0.3, picker: solver)  base Δ +0.6  26s
+S172 vol+25     solver 87.3  same 86.3 (+1.0±0.2, picker: solver)  base Δ +0.6  26s
+S178 left-tail  solver 56.3  same 54.9 (+1.4±0.2, picker: solver)  base Δ +0.8  23s
+S178 return-1   solver 67.0  same 65.4 (+1.5±0.2, picker: solver)  base Δ +0.8  24s
+S178 vol+25     solver 74.6  same 73.7 (+0.9±0.2, picker: solver)  base Δ +0.8  23s
+S184 left-tail  solver 50.7  same 46.9 (+3.8±0.4, picker: solver)  base Δ +2.1  25s
+S184 return-1   solver 63.6  same 61.7 (+1.9±0.2, picker: solver)  base Δ +2.1  27s
+S184 vol+25     solver 70.2  same 67.7 (+2.4±0.3, picker: solver)  base Δ +2.1  26s
+S194 left-tail  solver 69.9  same 66.6 (+3.2±0.3, picker: solver)  base Δ +0.7  29s
+S194 return-1   solver 81.5  same 80.0 (+1.4±0.2, picker: solver)  base Δ +0.7  29s
+S194 vol+25     solver 84.8  same 83.2 (+1.6±0.2, picker: solver)  base Δ +0.7  29s
+S198 left-tail  solver 87.8  same 86.3 (+1.5±0.2, picker: solver)  base Δ +0.7  26s
+S198 return-1   solver 93.9  same 92.9 (+1.0±0.2, picker: solver)  base Δ +0.7  27s
+S198 vol+25     solver 93.7  same 93.0 (+0.7±0.2, picker: solver)  base Δ +0.7  26s
+S206 left-tail  solver 87.7  same 88.2 (-0.5±0.2, picker: solver)  base Δ -0.1  30s
+S206 return-1   solver 93.8  same 93.4 (+0.3±0.1, picker: solver)  base Δ -0.1  31s
+S206 vol+25     solver 93.8  same 93.8 (+0.0±0.1, picker: solver)  base Δ -0.1  30s
+S218 left-tail  solver 82.4  same 81.4 (+0.9±0.2, picker: solver)  base Δ +0.1  29s
+S218 return-1   solver 90.5  same 89.4 (+1.0±0.2, picker: solver)  base Δ +0.1  30s
+S218 vol+25     solver 90.6  same 89.8 (+0.7±0.2, picker: solver)  base Δ +0.1  29s
+S222 left-tail  solver 81.4  same 79.4 (+2.0±0.3, picker: solver)  base Δ +0.6  28s
+S222 return-1   solver 90.8  same 89.6 (+1.1±0.2, picker: solver)  base Δ +0.6  27s
+S222 vol+25     solver 91.2  same 90.6 (+0.6±0.1, picker: solver)  base Δ +0.6  27s
+S230 left-tail  solver 90.3  same 90.9 (-0.6±0.2, picker: fixed)  base Δ -0.0  31s
+S230 return-1   solver 95.9  same 95.9 (-0.1±0.2, picker: solver)  base Δ -0.0  30s
+S230 vol+25     solver 95.3  same 95.9 (-0.6±0.2, picker: solver)  base Δ -0.0  30s
+S234 left-tail  solver 80.7  same 78.6 (+2.1±0.3, picker: solver)  base Δ +0.4  27s
+S234 return-1   solver 89.2  same 88.1 (+1.1±0.2, picker: solver)  base Δ +0.4  27s
+S234 vol+25     solver 91.4  same 90.5 (+0.9±0.2, picker: solver)  base Δ +0.4  27s
+S240 left-tail  solver 78.7  same 75.8 (+2.9±0.3, picker: solver)  base Δ +0.7  31s
+S240 return-1   solver 89.7  same 88.7 (+1.0±0.2, picker: solver)  base Δ +0.7  31s
+S240 vol+25     solver 90.3  same 89.4 (+0.9±0.2, picker: solver)  base Δ +0.7  31s
+S252 left-tail  solver 80.4  same 78.2 (+2.2±0.3, picker: solver)  base Δ +0.5  31s
+S252 return-1   solver 90.4  same 89.4 (+1.0±0.2, picker: solver)  base Δ +0.5  31s
+S252 vol+25     solver 91.5  same 90.8 (+0.7±0.2, picker: solver)  base Δ +0.5  31s
+S258 left-tail  solver 60.4  same 57.4 (+3.0±0.3, picker: solver)  base Δ +1.6  29s
+S258 return-1   solver 72.9  same 70.9 (+2.0±0.3, picker: solver)  base Δ +1.6  29s
+S258 vol+25     solver 80.7  same 77.9 (+2.8±0.3, picker: solver)  base Δ +1.6  29s
+S268 left-tail  solver 45.8  same 42.6 (+3.3±0.3, picker: solver)  base Δ +2.7  30s
+S268 return-1   solver 56.9  same 53.8 (+3.1±0.3, picker: solver)  base Δ +2.7  31s
+S268 vol+25     solver 68.9  same 66.0 (+2.9±0.3, picker: solver)  base Δ +2.7  30s
+S276 left-tail  solver 82.7  same 81.4 (+1.3±0.2, picker: solver)  base Δ +0.5  31s
+S276 return-1   solver 91.8  same 90.7 (+1.1±0.2, picker: solver)  base Δ +0.5  31s
+S276 vol+25     solver 92.3  same 91.7 (+0.6±0.1, picker: solver)  base Δ +0.5  31s
+S292 left-tail  solver 49.0  same 46.0 (+3.0±0.3, picker: solver)  base Δ +2.5  31s
+S292 return-1   solver 61.5  same 59.1 (+2.4±0.3, picker: solver)  base Δ +2.5  31s
+S292 vol+25     solver 72.0  same 69.6 (+2.5±0.3, picker: solver)  base Δ +2.5  31s
+S300 left-tail  solver 57.1  same 53.7 (+3.4±0.3, picker: solver)  base Δ +1.8  35s
+S300 return-1   solver 72.6  same 71.0 (+1.6±0.2, picker: solver)  base Δ +1.8  35s
+S300 vol+25     solver 79.5  same 77.7 (+1.8±0.3, picker: solver)  base Δ +1.8  35s
+S318 left-tail  solver 47.1  same 47.6 (-0.5±0.2, picker: solver)  base Δ -0.5  33s
+S318 return-1   solver 60.9  same 62.0 (-1.1±0.2, picker: fixed)  base Δ -0.5  33s
+S318 vol+25     solver 73.8  same 74.0 (-0.3±0.1, picker: solver)  base Δ -0.5  34s
+S330 left-tail  solver 47.9  same 48.7 (-0.8±0.2, picker: fixed)  base Δ -1.0  33s
+S330 return-1   solver 60.1  same 61.6 (-1.5±0.2, picker: fixed)  base Δ -1.0  34s
+S330 vol+25     solver 74.4  same 75.1 (-0.7±0.2, picker: solver)  base Δ -1.0  34s
+S342 left-tail  solver 41.4  same 41.9 (-0.5±0.1, picker: fixed)  base Δ -0.6  33s
+S342 return-1   solver 54.8  same 55.6 (-0.8±0.2, picker: fixed)  base Δ -0.6  34s
+S342 vol+25     solver 68.3  same 69.0 (-0.7±0.2, picker: fixed)  base Δ -0.6  33s
+S354 left-tail  solver 51.4  same 48.2 (+3.3±0.3, picker: solver)  base Δ +2.5  34s
+S354 return-1   solver 65.1  same 62.8 (+2.3±0.3, picker: solver)  base Δ +2.5  34s
+S354 vol+25     solver 77.0  same 75.1 (+1.9±0.2, picker: solver)  base Δ +2.5  34s
+S374 left-tail  solver 76.7  same 74.3 (+2.4±0.3, picker: solver)  base Δ +0.6  33s
+S374 return-1   solver 87.5  same 86.7 (+0.8±0.2, picker: fixed)  base Δ +0.6  33s
+S374 vol+25     solver 88.5  same 87.8 (+0.6±0.2, picker: fixed)  base Δ +0.6  32s
+S378 left-tail  solver 88.1  same 86.9 (+1.2±0.2, picker: solver)  base Δ +0.5  28s
+S378 return-1   solver 94.3  same 93.7 (+0.5±0.1, picker: fixed)  base Δ +0.5  29s
+S378 vol+25     solver 94.2  same 93.8 (+0.4±0.1, picker: fixed)  base Δ +0.5  29s
+S390 left-tail  solver 89.6  same 88.2 (+1.4±0.2, picker: solver)  base Δ +0.3  29s
+S390 return-1   solver 94.9  same 94.2 (+0.7±0.2, picker: solver)  base Δ +0.3  30s
+S390 vol+25     solver 94.8  same 94.2 (+0.6±0.1, picker: solver)  base Δ +0.3  29s
+S400 left-tail  solver 62.2  same 59.8 (+2.4±0.3, picker: solver)  base Δ +0.7  27s
+S400 return-1   solver 74.5  same 73.3 (+1.2±0.2, picker: solver)  base Δ +0.7  28s
+S400 vol+25     solver 77.8  same 76.2 (+1.6±0.2, picker: solver)  base Δ +0.7  28s
+S410 left-tail  solver 92.9  same 92.6 (+0.3±0.2, picker: fixed)  base Δ +0.2  33s
+S410 return-1   solver 97.3  same 97.0 (+0.3±0.1, picker: solver)  base Δ +0.2  34s
+S410 vol+25     solver 96.2  same 95.8 (+0.4±0.1, picker: solver)  base Δ +0.2  33s
+S414 left-tail  solver 76.1  same 73.0 (+3.1±0.3, picker: solver)  base Δ +0.8  29s
+S414 return-1   solver 86.9  same 85.7 (+1.2±0.2, picker: solver)  base Δ +0.8  29s
+S414 vol+25     solver 89.6  same 88.0 (+1.6±0.2, picker: solver)  base Δ +0.8  28s

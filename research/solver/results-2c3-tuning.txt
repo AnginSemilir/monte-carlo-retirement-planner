@@ -1,0 +1,119 @@
+=== phase 2c.3: weights tuned on the ODD households (never in the experiment), shortfall risk term, 40 x 6 x 6, 1500 held-out ===
+=== done ===
+
+##### wR=0.25 wB=0
+solver against same menu, held fixed:
+  survival: mean +1.19 pts; beyond two standard errors in 35 of 41 (32 up, 3 down); sign test p = 0.000
+  the app's own picker prefers the solver in 34, the fixed plan in 7, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£33k mean;  median pot (net): £-342k;  tax: +£36k
+  mean failure age on failing paths: -0.64 years (41 households with failures on both)
+
+solver against the app as it stands:
+  survival: mean +1.13 pts; beyond two standard errors in 35 of 41 (32 up, 3 down); sign test p = 0.000
+  the app's own picker prefers the solver in 32, the fixed plan in 9, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£33k mean;  median pot (net): £-335k;  tax: +£36k
+  mean failure age on failing paths: -0.61 years (41 households with failures on both)
+
+##### wR=0.25 wB=0.02
+solver against same menu, held fixed:
+  survival: mean +1.14 pts; beyond two standard errors in 36 of 41 (32 up, 4 down); sign test p = 0.000
+  the app's own picker prefers the solver in 33, the fixed plan in 8, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£31k mean;  median pot (net): £-246k;  tax: +£19k
+  mean failure age on failing paths: -0.66 years (41 households with failures on both)
+
+solver against the app as it stands:
+  survival: mean +1.08 pts; beyond two standard errors in 36 of 41 (32 up, 4 down); sign test p = 0.000
+  the app's own picker prefers the solver in 33, the fixed plan in 8, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£31k mean;  median pot (net): £-239k;  tax: +£18k
+  mean failure age on failing paths: -0.63 years (41 households with failures on both)
+
+##### wR=0.25 wB=0.1
+solver against same menu, held fixed:
+  survival: mean +0.86 pts; beyond two standard errors in 30 of 41 (28 up, 2 down); sign test p = 0.000
+  the app's own picker prefers the solver in 32, the fixed plan in 9, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£26k mean;  median pot (net): £-94k;  tax: +£11k
+  mean failure age on failing paths: -0.69 years (41 households with failures on both)
+
+solver against the app as it stands:
+  survival: mean +0.81 pts; beyond two standard errors in 29 of 41 (27 up, 2 down); sign test p = 0.000
+  the app's own picker prefers the solver in 31, the fixed plan in 10, ties 0; sign test p = 0.001
+  unlucky tenth (net): +£26k mean;  median pot (net): £-88k;  tax: +£10k
+  mean failure age on failing paths: -0.66 years (41 households with failures on both)
+
+##### wR=0.5 wB=0
+solver against same menu, held fixed:
+  survival: mean +1.12 pts; beyond two standard errors in 35 of 41 (32 up, 3 down); sign test p = 0.000
+  the app's own picker prefers the solver in 35, the fixed plan in 6, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£35k mean;  median pot (net): £-305k;  tax: +£37k
+  mean failure age on failing paths: -0.68 years (41 households with failures on both)
+
+solver against the app as it stands:
+  survival: mean +1.06 pts; beyond two standard errors in 35 of 41 (32 up, 3 down); sign test p = 0.000
+  the app's own picker prefers the solver in 33, the fixed plan in 8, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£34k mean;  median pot (net): £-298k;  tax: +£36k
+  mean failure age on failing paths: -0.64 years (41 households with failures on both)
+
+##### wR=0.5 wB=0.02
+solver against same menu, held fixed:
+  survival: mean +1.05 pts; beyond two standard errors in 34 of 41 (31 up, 3 down); sign test p = 0.000
+  the app's own picker prefers the solver in 35, the fixed plan in 6, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£33k mean;  median pot (net): £-221k;  tax: +£18k
+  mean failure age on failing paths: -0.68 years (41 households with failures on both)
+
+solver against the app as it stands:
+  survival: mean +0.99 pts; beyond two standard errors in 34 of 41 (31 up, 3 down); sign test p = 0.000
+  the app's own picker prefers the solver in 33, the fixed plan in 8, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£33k mean;  median pot (net): £-214k;  tax: +£17k
+  mean failure age on failing paths: -0.64 years (41 households with failures on both)
+
+##### wR=0.5 wB=0.1
+solver against same menu, held fixed:
+  survival: mean +0.82 pts; beyond two standard errors in 29 of 41 (27 up, 2 down); sign test p = 0.000
+  the app's own picker prefers the solver in 33, the fixed plan in 8, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£29k mean;  median pot (net): £-94k;  tax: +£11k
+  mean failure age on failing paths: -0.69 years (41 households with failures on both)
+
+solver against the app as it stands:
+  survival: mean +0.77 pts; beyond two standard errors in 28 of 41 (26 up, 2 down); sign test p = 0.000
+  the app's own picker prefers the solver in 30, the fixed plan in 11, ties 0; sign test p = 0.004
+  unlucky tenth (net): +£29k mean;  median pot (net): £-87k;  tax: +£10k
+  mean failure age on failing paths: -0.65 years (41 households with failures on both)
+
+##### wR=1 wB=0
+solver against same menu, held fixed:
+  survival: mean +0.96 pts; beyond two standard errors in 33 of 41 (30 up, 3 down); sign test p = 0.000
+  the app's own picker prefers the solver in 35, the fixed plan in 6, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£35k mean;  median pot (net): £-266k;  tax: +£35k
+  mean failure age on failing paths: -0.61 years (41 households with failures on both)
+
+solver against the app as it stands:
+  survival: mean +0.89 pts; beyond two standard errors in 33 of 41 (30 up, 3 down); sign test p = 0.000
+  the app's own picker prefers the solver in 32, the fixed plan in 9, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£35k mean;  median pot (net): £-258k;  tax: +£35k
+  mean failure age on failing paths: -0.60 years (41 households with failures on both)
+
+##### wR=1 wB=0.02
+solver against same menu, held fixed:
+  survival: mean +0.84 pts; beyond two standard errors in 33 of 41 (30 up, 3 down); sign test p = 0.000
+  the app's own picker prefers the solver in 34, the fixed plan in 7, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£33k mean;  median pot (net): £-203k;  tax: +£16k
+  mean failure age on failing paths: -0.58 years (41 households with failures on both)
+
+solver against the app as it stands:
+  survival: mean +0.78 pts; beyond two standard errors in 32 of 41 (29 up, 3 down); sign test p = 0.000
+  the app's own picker prefers the solver in 33, the fixed plan in 8, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£21k mean;  median pot (net): £-198k;  tax: +£16k
+  mean failure age on failing paths: -0.57 years (41 households with failures on both)
+
+##### wR=1 wB=0.1
+solver against same menu, held fixed:
+  survival: mean +0.68 pts; beyond two standard errors in 28 of 41 (24 up, 4 down); sign test p = 0.000
+  the app's own picker prefers the solver in 31, the fixed plan in 10, ties 0; sign test p = 0.001
+  unlucky tenth (net): +£29k mean;  median pot (net): £-108k;  tax: +£9k
+  mean failure age on failing paths: -0.60 years (41 households with failures on both)
+
+solver against the app as it stands:
+  survival: mean +0.62 pts; beyond two standard errors in 28 of 41 (23 up, 5 down); sign test p = 0.001
+  the app's own picker prefers the solver in 31, the fixed plan in 10, ties 0; sign test p = 0.001
+  unlucky tenth (net): +£17k mean;  median pot (net): £-103k;  tax: +£8k
+  mean failure age on failing paths: -0.58 years (41 households with failures on both)

@@ -34,7 +34,7 @@ function scenario({ gia = 0, gain = 0, sell = 0, income = 0, incomeType = 'other
     otherIncomes: income > 0 ? [{ id: 'i1', name: 'inc', owner: 'Myself', startAge: 0, endAge: 120, amount: income, incomeType }] : [],
     oneOffContributions: [],
     oneOffCosts: sell > 0 ? [{ id: 'c1', date: '2026-06-01', year: 2026, owner: 'Myself', amount: sell, desc: 'sale' }] : [],
-    config: { valuationDate: '2026-01-01', cgtEnabled: true, ...cfg }
+    config: { valuationDate: '2026-01-01', cgtEnabled: true, giaDividendYield: 0, cashInterestTaxed: false, ...cfg }   // income tax and CGT mechanics only: no dividend or interest tax unless a case asks
   };
 }
 const year0 = (plan) => E.simulateDeterministic(E.buildContext(plan), 'expected')[0];

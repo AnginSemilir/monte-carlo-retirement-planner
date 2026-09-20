@@ -1,0 +1,14 @@
+S070 just-retired/pension-heavy/wealthy/m  pts 12  table@0 88.5  sim solver 67.3  bias +21.1  | best [18] sv 87.89 score 1.2657 | fixed [12] sv 87.28 score 1.2549 sim 70.3  | 28s
+S070 just-retired/pension-heavy/wealthy/m  pts 16  table@0 83.7  sim solver 67.6  bias +16.1  | best [18] sv 83.22 score 1.1851 | fixed [12] sv 82.92 score 1.1810 sim 70.3  | 64s
+S330 far/gia-heavy/comfortable/light       pts 20  table@0 89.2  sim solver 78.2  bias +11.0  | best [0] sv 89.04 score 1.3775 | fixed [12] sv 89.04 score 1.3775 sim 80.2  | 190s
+S342 far/balanced/comfortable/light        pts 20  table@0 83.8  sim solver 72.8  bias +11.0  | best [0] sv 83.62 score 1.2976 | fixed [12] sv 83.62 score 1.2976 sim 74.1  | 188s
+S318 far/isa-heavy/comfortable/light       pts 20  table@0 86.9  sim solver 78.6  bias +8.3  | best [0] sv 86.80 score 1.3428 | fixed [12] sv 86.80 score 1.3428 sim 79.2  | 188s
+S112 just-retired/cash-heavy/modest/moder  pts 20  table@0 98.5  sim solver 97.0  bias +1.5  | best [4] sv 98.47 score 1.4671 | fixed [10] sv 98.47 score 1.4671 sim 97.3  | 127s
+S070 just-retired/pension-heavy/wealthy/m  pts 28  table@0 77.9  sim solver 68.5  bias +9.4  | best [18] sv 77.74 score 1.1074 | fixed [12] sv 77.61 score 1.1062 sim 70.3  | 326s
+S082 just-retired/isa-heavy/wealthy/moder  pts 20  table@0 87.9  sim solver 83.6  bias +4.3  | best [4] sv 87.56 score 1.2756 | fixed [0] sv 87.27 score 1.2710 sim 81.7  | 118s
+S354 far/cash-heavy/comfortable/light      pts 20  table@0 90.9  sim solver 82.5  bias +8.4  | best [0] sv 90.76 score 1.4149 | fixed [10] sv 90.76 score 1.4149 sim 80.3  | 185s
+S004 in-drawdown/pension-heavy/modest/mod  pts 20  table@0 96.0  sim solver 93.7  bias +2.2  | best [5] sv 95.82 score 1.4284 | fixed [1] sv 95.52 score 1.4235 sim 92.2  | 100s
+S292 mid/cash-heavy/modest/moderate        pts 20  table@0 85.0  sim solver 78.3  bias +6.7  | best [0] sv 84.77 score 1.2980 | fixed [10] sv 84.77 score 1.2980 sim 75.7  | 174s
+=== done ===
+
+[exited with code 0]

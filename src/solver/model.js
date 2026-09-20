@@ -41,11 +41,38 @@
  *   harvest     draw pension beyond the year's need and re-wrap it, or not
  *   harvestCeil 'pa' or 'basic': free money, or a 20%-now bequest trade
  *   lump        take the tax-free cash in one go on first access, or phase it
+ *   sweepCash   keep cash at the buffer and put the rest in the GIA, or leave it where it is. Off is
+ *               what the engine does today; see step 7d for why this is an action and not a rule
  *   contrib     per owner, what goes into the pension this year; null means "as the plan is entered",
  *               which is what the golden test needs and what the household's own plan means
  */
 
 const CATS = ['pen', 'isa', 'other', 'cash'];
+
+/*
+ * The cash buffer for the household in projection year `t`, in full-year terms: months of the year's
+ * living target, as the Config setting says. It is a function of the year and nothing else, which is
+ * what lets the grid stop carrying cash as a dimension of its own once the sweep maintains it.
+ */
+export function bufferAt(m, t) {
+  const { E, ctx } = m;
+  return E.spendTargetAtAge(ctx, ctx.ageSelf0 + t) * ctx.cashBufferYears;
+}
+
+/*
+ * Where cash sits at the START of year `t` under the sweep, which is what the grid needs in order to
+ * split a merged taxable pot back into its cash and GIA parts. The sweep leaves cash at exactly the
+ * buffer at the end of the previous year's flows, and growth then applies, so a year later it is the
+ * previous buffer grown at the cash tier - capped by the merged pot, for a household that has run the
+ * taxable side down below its own buffer. Year zero is the exception: the opening balances are the
+ * household's own, and the solve reads them directly rather than through the grid.
+ */
+export function cashAt(m, t, taxPot) {
+  if (t <= 0) return Math.min(taxPot, bufferAt(m, 0));
+  const cashAcc = m.ctx.accounts.find(a => a.cat === 'cash');
+  const r = cashAcc ? cashAcc.real : 0;
+  return Math.min(taxPot, bufferAt(m, t - 1) * (1 + r));
+}
 
 /*
  * Turn a plan into everything that does not change from year to year or from action to action. Called
@@ -69,20 +96,21 @@ export function initialState(m) {
   const { ctx } = m;
   const pots = {};
   ctx.accounts.forEach(a => { pots[a.id] = a.balance; });
-  const basis = {}, cgtCarry = {}, cumPcls = {}, lumpTaken = {};
+  const basis = {}, cgtCarry = {}, cumPcls = {}, lumpTaken = {}, cashIsa = {};
   ctx.owners.forEach(o => {
     const gia = ctx.acc[o.ids.other];
     // what the GIA cost, so a disposal knows how much of the proceeds is gain
     basis[o.key] = gia ? Math.max(0, gia.balance - gia.unrealisedGain) : 0;
     cgtCarry[o.key] = 0; cumPcls[o.key] = 0; lumpTaken[o.key] = false;
+    cashIsa[o.key] = Math.min(o.cashIsa0 || 0, pots[o.ids.cash] || 0);
   });
-  return { pots, basis, cgtCarry, cumPcls, lumpTaken };
+  return { pots, basis, cgtCarry, cumPcls, lumpTaken, cashIsa };
 }
 
 export function cloneState(s) {
   return {
     pots: { ...s.pots }, basis: { ...s.basis }, cgtCarry: { ...s.cgtCarry },
-    cumPcls: { ...s.cumPcls }, lumpTaken: { ...s.lumpTaken }
+    cumPcls: { ...s.cumPcls }, lumpTaken: { ...s.lumpTaken }, cashIsa: { ...(s.cashIsa || {}) }
   };
 }
 
@@ -99,6 +127,7 @@ export function actionForPolicy(m, policyKey, over = {}) {
     harvest: over.harvest !== undefined ? over.harvest : (pol ? pol.harvest && ctx.harvestPA : ctx.harvestPA),
     harvestCeil: over.harvestCeil || ctx.harvestCeiling,
     lump: over.lump !== undefined ? over.lump : ctx.fullLumpSum,
+    sweepCash: !!over.sweepCash,
     contrib: over.contrib || null
   };
 }
@@ -107,7 +136,7 @@ export function actionForPolicy(m, policyKey, over = {}) {
 export function actionFromContext(ctx) {
   return {
     steps: ctx.policySteps, costSteps: ctx.costSteps, harvest: ctx.harvestPA,
-    harvestCeil: ctx.harvestCeiling, lump: ctx.fullLumpSum, contrib: null
+    harvestCeil: ctx.harvestCeiling, lump: ctx.fullLumpSum, sweepCash: false, contrib: null
   };
 }
 
@@ -121,7 +150,7 @@ export function actionFromContext(ctx) {
  * Returns the small set of figures a solver or a comparison needs. Everything else the audit table shows
  * is the engine's job.
  */
-export function step(m, state, action, t, rates = null) {
+export function step(m, state, action, t, rates = null, skipGrowth = false) {
   const { E, ctx, P, owners, ownerByKey } = m;
   const pots = state.pots;
   const frac = t === 0 ? ctx.yf : 1.0;
@@ -208,6 +237,15 @@ export function step(m, state, action, t, rates = null) {
       if (a.cat === 'isa') isaContribThisYear[a.owner] += amt * frac;
     }
   });
+  // 2a. the cash ISA subscription out of the year's cash contribution (engine step 2a)
+  if (!state.cashIsa) state.cashIsa = { self: 0, part: 0 };   // a state built by hand carries no sheltered cash
+  const cashIsaSubscribed = { self: 0, part: 0 };
+  owners.forEach(o => {
+    if (!working[o.key] || !(o.cashIsaContrib > 0)) return;
+    const room = Math.min(P.cashIsaCapAt(ageOf(o.key), year), Math.max(0, P.isaAllowance - isaContribThisYear[o.key]));
+    const sub = Math.min(o.cashIsaContrib * frac, room, Math.max(0, (pots[o.ids.cash] || 0) - state.cashIsa[o.key]));
+    if (sub > 0) { state.cashIsa[o.key] += sub; isaContribThisYear[o.key] += sub; cashIsaSubscribed[o.key] += sub; }
+  });
 
   // 3. the whole tax-free lump sum on first access, when that is the choice
   if (action.lump) {
@@ -234,8 +272,18 @@ export function step(m, state, action, t, rates = null) {
   });
   const statePension = { self: 0, part: 0 };
   owners.forEach(o => { if (ageOf(o.key) >= ctx.spa) { statePension[o.key] = o.statePension * frac; taxable[o.key] += statePension[o.key]; } });
+  // 4a, 4b. tax on the year's savings interest (taxable cash only) and on the GIA's dividends, as the engine charges them
+  if (!state.cashIsa) state.cashIsa = { self: 0, part: 0 };   // a state built by hand carries no sheltered cash
+  const savingsTax = { self: 0, part: 0 }, dividendTax = { self: 0, part: 0 };
+  owners.forEach(o => {
+    const a = ctx.acc[o.ids.cash];
+    const nominal = a ? (1 + a.real) * (1 + ctx.inflation) - 1 : 0;
+    const interest = P.cashInterestTaxed && a ? Math.max(0, ((pots[o.ids.cash] || 0) - state.cashIsa[o.key]) * nominal * frac) : 0;
+    savingsTax[o.key] = P.savingsTax(taxable[o.key], interest);
+    if (P.giaDividendYield > 0) dividendTax[o.key] = P.dividendTax(taxable[o.key], interest, Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac));
+  });
   const netGuaranteed = {};
-  owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + E.calculateUKNetIncome(taxable[o.key], P); });
+  owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + E.calculateUKNetIncome(taxable[o.key], P) - savingsTax[o.key] - dividendTax[o.key]; });
   const totalNetGuaranteed = owners.reduce((s, o) => s + netGuaranteed[o.key], 0);
   let workingTakeHome = 0;
   if (anyRetired) {
@@ -389,19 +437,71 @@ export function step(m, state, action, t, rates = null) {
     });
   }
 
+  /*
+   * 7d. KEEP CASH AT THE BUFFER AND INVEST THE REST.
+   *
+   * The engine has no rule that moves money out of Cash Savings: what the household enters there, and
+   * what a full tax-free lump sum lands there, stays there earning the cash tier for the rest of the
+   * plan. That is a decision left unmade rather than a decision taken, and it is the reason the solver
+   * cannot simply merge cash into the taxable pot - a merged pot would silently assume the money was
+   * invested when the engine has it sitting still.
+   *
+   * So the sweep is explicit. Off, this function is exactly the engine. On, whatever is above the
+   * buffer at the end of the year's flows moves into the GIA at cost, which creates no gain, and cash
+   * is then the buffer by construction and no longer needs a dimension of its own.
+   *
+   * Measured in the real engine over 22 library households holding more than half a year's spend in
+   * cash: survival +0.30 points on average and the median pot +£149k, but mixed household by household
+   * (a few lose a fraction of a point, the two cash-heaviest gain 3.5 and 3.8). So it is worth doing
+   * and worth SAYING, not worth assuming: with it on, the plan carries a recommendation to move the
+   * money, the engine executes that move too, and a household that wants more cash raises the buffer.
+   */
+  if (action.sweepCash) {
+    const bufferEach = bufferAt(m, t) / owners.length;
+    owners.forEach(o => {
+      const cash = pots[o.ids.cash] || 0;
+      if (cash > bufferEach) {
+        const excess = cash - bufferEach;
+        pots[o.ids.cash] = bufferEach;
+        pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
+        addBasis(o.key, excess);                      // moved at cost, so no gain is created
+      } else if (cash < bufferEach) {
+        // topping the buffer back up is a sale, so it books its gain like any other disposal
+        const got = sellGia(o.ids.other, bufferEach - cash);
+        pots[o.ids.cash] = cash + got;
+      }
+    });
+  }
+
   const unmetDemand = owners.reduce((s, o) => s + Math.max(0, demand[o.key]), 0) + unmetCost + unmetDeduction + unmetCgt;
   const lockedPensionWealth = owners.reduce((s, o) => s + (access[o.key] ? 0 : (pots[o.ids.pen] || 0)), 0);
   const preNmpaInsolvent = unmetDemand > 1 && (!anyAccess || lockedPensionWealth > 0);
 
-  // 8. growth
-  ctx.accounts.forEach(a => {
-    const g = rates ? (rates[a.id] !== undefined ? rates[a.id] : a.real) : a.real;
-    pots[a.id] = Math.max(0, (pots[a.id] || 0) * (1 + g * frac));
+  /*
+   * 8. growth, unless the caller wants the position BEFORE the markets act.
+   *
+   * That position is the post-decision state, and it is what makes a solve affordable: every action
+   * from a given position leads to one of them, and the expectation over next year's returns is then
+   * taken once per post-decision state rather than once per state and action together.
+   */
+  /*
+   * 7e. The cash ISA at the end of the year's flows (engine step 7e): draws came out of taxable cash
+   * first, so the sheltered part is capped at what is left; then the leftover ISA allowance shelters
+   * more, up to the cash ISA's own cap.
+   */
+  owners.forEach(o => {
+    const cashNow = pots[o.ids.cash] || 0;
+    state.cashIsa[o.key] = Math.min(state.cashIsa[o.key], cashNow);
+    const cap = Math.max(0, P.cashIsaCapAt(ageOf(o.key), year) - cashIsaSubscribed[o.key]);
+    const room = Math.min(cap, Math.max(0, P.isaAllowance - isaContribThisYear[o.key]));
+    const move = Math.min(room, Math.max(0, cashNow - state.cashIsa[o.key]));
+    if (move > 0) { state.cashIsa[o.key] += move; isaContribThisYear[o.key] += move; cashIsaSubscribed[o.key] += move; }
   });
+  if (!skipGrowth) grow(m, state, t, rates);
 
   const byCat = {};
   CATS.forEach(cat => { byCat[cat] = owners.reduce((s, o) => s + (pots[o.ids[cat]] || 0), 0); });
-  const taxPaid = owners.reduce((s, o) => s + E.incomeTax(taxable[o.key], P), 0);
+  const taxPaid = owners.reduce((s, o) => s + E.incomeTax(taxable[o.key], P) + savingsTax[o.key] + dividendTax[o.key], 0);
 
   return {
     year, t, ageSelf, agePart,
@@ -413,6 +513,18 @@ export function step(m, state, action, t, rates = null) {
     taxablePensionSelf: taxablePensionDrawn.self, taxablePensionPart: taxablePensionDrawn.part,
     unmetDemand, preNmpaInsolvent, oneOffCost: cost
   };
+}
+
+/* Apply one year's growth. `rates` is a map of account id to real rate, or null for the plan's own. */
+export function grow(m, state, t, rates = null) {
+  const frac = t === 0 ? m.ctx.yf : 1.0;
+  m.ctx.accounts.forEach(a => {
+    const g = rates ? (rates[a.id] !== undefined ? rates[a.id] : a.real) : a.real;
+    const before = state.pots[a.id] || 0;
+    state.pots[a.id] = Math.max(0, before * (1 + g * frac));
+    // the sheltered part of the cash pot grows with the pot
+    if (a.cat === 'cash' && state.cashIsa) state.cashIsa[a.owner] = before > 0 ? Math.min(state.pots[a.id], (state.cashIsa[a.owner] || 0) * (state.pots[a.id] / before)) : 0;
+  });
 }
 
 /*

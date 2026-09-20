@@ -1,0 +1,154 @@
+S112 just-retired/cash-heavy/modest/moderate  age 61, 36 years, spend 18000, lump false
+opening: pen      0k isa      0k gia      0k cash      0k
+fixed winner (same menu, app's picker): [10] penPA first, ISA before taxable, harvest to the allowance
+
+solved: 20 points in 123s
+
+the value function at the opening position, best first (survival / resilience / bequest / score / year-0 tax):
+  [ 4] 0.9847 / 0.8648 /   1125k / 1.4671 /      0k  ISA before taxable, harvest to the allowance
+  [ 9] 0.9847 / 0.8648 /   1125k / 1.4671 /      0k  penPA first, ISA before taxable
+  [10] 0.9847 / 0.8648 /   1125k / 1.4671 /      0k  penPA first, ISA before taxable, harvest to the allowance   <- fixed winner
+  [ 6] 0.9847 / 0.8647 /   1125k / 1.4671 /      0k  penPA first, taxable before ISA
+  [ 7] 0.9847 / 0.8647 /   1125k / 1.4671 /      0k  penPA first, taxable before ISA, harvest to the allowance
+  [12] 0.9847 / 0.8646 /   1125k / 1.4670 /      0k  penPA+penBasic first, taxable before ISA
+  [10] 0.9847 / 0.8648 /   1125k / 1.4671 /      0k  penPA first, ISA before taxable, harvest to the allowance   <- fixed winner
+
+held-out: solver 98.8  fixed 99.1  solver-only survives 1, fixed-only survives 8
+median lifetime tax: solver      0k  fixed      0k
+
+by year (means over paths still alive that year): solver move mix | tax S/F | pension draw S/F | pension S/F | ISA S/F | taxable S/F
+   61  4:100%                 |      0k/     0k |     17k/    17k |    141k/   141k |     66k/    66k |    225k/   225k
+   62  4:51% 6:29% 1:20%      |      0k/     0k |     17k/    17k |    132k/   132k |     72k/    68k |    230k/   234k
+   63  4:41% 6:37% 1:19%      |      0k/     0k |     16k/    17k |    124k/   124k |     78k/    70k |    235k/   243k
+   64  4:38% 6:34% 1:22%      |      0k/     0k |     16k/    17k |    116k/   115k |     85k/    73k |    239k/   253k
+   65  4:32% 6:27% 1:24%      |      0k/     0k |     14k/    17k |    110k/   106k |     93k/    76k |    242k/   264k
+   66  1:29% 4:24% 6:22%      |      0k/     0k |     13k/    17k |    105k/    97k |    102k/    79k |    244k/   276k
+   67  4:25% 6:25% 0:23%      |      0k/     0k |     12k/    16k |    100k/    86k |    109k/    81k |    246k/   287k
+   68  4:30% 1:28% 6:16%      |      0k/     0k |      2k/     3k |    104k/    89k |    114k/    81k |    252k/   299k
+   69  4:32% 1:26% 0:19%      |      0k/     0k |      2k/     3k |    109k/    92k |    118k/    80k |    258k/   311k
+   70  4:34% 1:23% 0:19%      |      0k/     0k |      2k/     3k |    114k/    95k |    122k/    79k |    265k/   324k
+   71  4:34% 1:22% 0:20%      |      0k/     0k |      2k/     3k |    119k/    98k |    127k/    78k |    272k/   337k
+   72  4:34% 0:22% 1:21%      |      0k/     0k |      2k/     3k |    124k/   102k |    131k/    78k |    279k/   350k
+   73  4:35% 1:21% 0:21%      |      0k/     0k |      2k/     3k |    130k/   105k |    136k/    77k |    287k/   364k
+   74  4:34% 1:22% 0:21%      |      0k/     0k |      2k/     3k |    136k/   109k |    141k/    76k |    296k/   379k
+   75  4:33% 1:22% 0:22%      |      0k/     0k |      2k/     3k |    143k/   114k |    147k/    76k |    304k/   395k
+   76  4:33% 1:23% 0:23%      |      0k/     0k |      2k/     2k |    151k/   119k |    153k/    75k |    314k/   412k
+   77  4:34% 1:23% 0:22%      |      0k/     0k |      2k/     2k |    158k/   125k |    159k/    75k |    324k/   429k
+   78  4:33% 0:23% 1:22%      |      0k/     0k |      2k/     2k |    166k/   131k |    166k/    75k |    334k/   445k
+   79  4:33% 1:24% 0:22%      |      0k/     0k |      2k/     2k |    174k/   137k |    173k/    75k |    344k/   463k
+   80  4:32% 0:23% 1:22%      |      0k/     0k |      3k/     2k |    183k/   143k |    180k/    75k |    355k/   481k
+   81  4:31% 0:24% 1:23%      |      0k/     0k |      3k/     2k |    192k/   150k |    187k/    75k |    366k/   499k
+   82  4:30% 1:23% 0:23%      |      0k/     0k |      3k/     2k |    201k/   156k |    195k/    74k |    378k/   517k
+   83  4:28% 1:24% 0:23%      |      0k/     0k |      3k/     2k |    212k/   165k |    204k/    75k |    390k/   538k
+   84  4:29% 1:24% 0:23%      |      0k/     0k |      3k/     2k |    222k/   174k |    213k/    76k |    404k/   558k
+   85  4:27% 1:23% 0:22%      |      0k/     0k |      3k/     2k |    236k/   184k |    224k/    77k |    420k/   583k
+   86  4:26% 1:25% 0:22%      |      0k/     0k |      3k/     2k |    247k/   192k |    233k/    77k |    433k/   604k
+   87  1:25% 3:23% 4:23%      |      0k/     0k |      3k/     2k |    259k/   202k |    244k/    78k |    449k/   627k
+   88  1:25% 3:24% 4:22%      |      0k/     0k |      4k/     2k |    273k/   213k |    255k/    80k |    466k/   651k
+   89  3:25% 1:24% 0:22%      |      0k/     0k |      4k/     2k |    287k/   224k |    268k/    81k |    483k/   677k
+   90  3:26% 1:25% 0:22%      |      0k/     0k |      4k/     2k |    305k/   241k |    283k/    84k |    504k/   706k
+   91  1:26% 3:26% 0:22%      |      0k/     0k |      4k/     2k |    321k/   255k |    297k/    86k |    523k/   734k
+   92  1:26% 3:24% 0:23%      |      0k/     0k |      5k/     2k |    336k/   268k |    310k/    87k |    543k/   761k
+   93  1:24% 0:24% 3:24%      |      1k/     0k |      5k/     2k |    350k/   281k |    325k/    89k |    563k/   790k
+   94  0:24% 1:23% 3:23%      |      1k/     0k |      6k/     2k |    368k/   299k |    342k/    91k |    586k/   820k
+   95  0:25% 3:23% 1:20%      |      1k/     0k |      8k/     2k |    381k/   313k |    359k/    93k |    609k/   850k
+   96  0:82% 4:18% 3:0%       |      0k/     0k |      1k/     2k |    403k/   331k |    376k/    96k |    627k/   879k
+
+moves by index:
+  [ 0] taxable before ISA
+  [ 1] taxable before ISA, harvest to the allowance
+  [ 2] taxable before ISA, harvest to the basic-rate limit
+  [ 3] ISA before taxable
+  [ 4] ISA before taxable, harvest to the allowance
+  [ 5] ISA before taxable, harvest to the basic-rate limit
+  [ 6] penPA first, taxable before ISA
+  [ 7] penPA first, taxable before ISA, harvest to the allowance
+  [ 8] penPA first, taxable before ISA, harvest to the basic-rate limit
+  [ 9] penPA first, ISA before taxable
+  [10] penPA first, ISA before taxable, harvest to the allowance
+  [11] penPA first, ISA before taxable, harvest to the basic-rate limit
+  [12] penPA+penBasic first, taxable before ISA
+  [13] penPA+penBasic first, taxable before ISA, harvest to the allowance
+  [14] penPA+penBasic first, taxable before ISA, harvest to the basic-rate limit
+  [15] penPA+penBasic first, ISA before taxable
+  [16] penPA+penBasic first, ISA before taxable, harvest to the allowance
+  [17] penPA+penBasic first, ISA before taxable, harvest to the basic-rate limit
+  [18] penPA+penBasic+penAny first, taxable before ISA
+  [19] penPA+penBasic+penAny first, taxable before ISA, harvest to the allowance
+  [20] penPA+penBasic+penAny first, taxable before ISA, harvest to the basic-rate limit
+  [21] penPA+penBasic+penAny first, ISA before taxable
+  [22] penPA+penBasic+penAny first, ISA before taxable, harvest to the allowance
+  [23] penPA+penBasic+penAny first, ISA before taxable, harvest to the basic-rate limit
+
+discordant path #1689: solver fails at 94, fixed survives. age | z | solver move, tax, pen/isa/txb | fixed tax, pen/isa/txb
+   61 | -0.89 | [ 4]      0k    141k/    66k/   225k |      0k    141k/    66k/   225k
+   62 | -0.91 | [ 1]      0k    110k/    78k/   196k |      0k    110k/    60k/   214k
+   63 | -1.89 | [ 4]      0k     82k/    71k/   186k |      0k     82k/    54k/   203k
+   64 |  0.87 | [ 0]      0k     62k/    57k/   143k |      0k     45k/    42k/   175k
+   65 | -0.15 | [ 6]      0k     58k/    67k/   159k |      0k     38k/    48k/   197k
+   66 | -0.03 | [ 0]      0k     59k/    68k/   144k |      0k     22k/    48k/   201k
+   67 | -1.05 | [ 0]      0k     62k/    71k/   131k |      0k      6k/    49k/   208k
+   68 | -1.86 | [ 1]      0k     51k/    67k/   115k |      0k      2k/    39k/   194k
+   69 | -1.45 | [ 0]      0k     39k/    54k/    93k |      0k      0k/    26k/   168k
+   70 | -2.50 | [ 0]      0k     32k/    46k/    76k |      0k      0k/    15k/   152k
+   71 |  1.06 | [ 0]      0k     22k/    35k/    55k |      0k      0k/     3k/   124k
+   72 | -1.75 | [ 0]      0k     27k/    42k/    55k |      0k      0k/     0k/   138k
+   73 |  1.19 | [ 0]      0k     21k/    34k/    41k |      0k      0k/     0k/   114k
+   74 |  0.29 | [ 0]      0k     27k/    42k/    39k |      0k      0k/     0k/   124k
+   75 |  0.32 | [ 0]      0k     30k/    45k/    34k |      0k      0k/     0k/   125k
+   76 |  0.76 | [ 0]      0k     33k/    49k/    28k |      0k      0k/     0k/   125k
+   77 |  0.70 | [ 3]      0k     40k/    50k/    31k |      0k      0k/     0k/   132k
+   78 | -0.85 | [ 0]      0k     47k/    57k/    26k |      0k      0k/     0k/   138k
+   79 | -1.62 | [ 0]      0k     43k/    53k/    18k |      0k      0k/     0k/   124k
+   80 |  0.62 | [ 0]      0k     34k/    44k/     9k |      0k      0k/     0k/   103k
+   81 |  1.47 | [ 0]      0k     39k/    50k/     1k |      0k      0k/     0k/   105k
+   82 |  1.05 | [ 0]      0k     53k/    58k/     0k |      0k      0k/     0k/   117k
+   83 |  0.34 | [ 1]      0k     64k/    64k/     0k |      0k      0k/     0k/   126k
+   84 | -1.98 | [ 1]      0k     68k/    66k/     0k |      0k      0k/     0k/   127k
+   85 | -0.79 | [ 0]      0k     51k/    45k/     0k |      0k      0k/     0k/   102k
+   86 |  0.51 | [ 1]      0k     43k/    37k/     0k |      0k      0k/     0k/    90k
+   87 | -1.39 | [ 1]      0k     47k/    37k/     0k |      0k      0k/     0k/    90k
+   88 |  1.17 | [ 0]      0k     39k/    24k/     0k |      0k      0k/     0k/    75k
+   89 | -1.63 | [ 1]      0k     46k/    25k/     0k |      0k      0k/     0k/    78k
+   90 | -2.82 | [ 1]      0k     34k/    16k/     0k |      0k      0k/     0k/    62k
+   91 | -1.41 | [ 1]      0k     19k/     7k/     0k |      0k      0k/     0k/    43k
+   92 | -0.65 | [ 0]      0k     14k/     0k/     0k |      0k      0k/     0k/    32k
+   93 |  0.49 | [ 0]      1k      4k/     0k/     0k |      0k      0k/     0k/    23k
+   94 | -1.17 | [ 0]      0k      0k/     0k/     0k |      0k      0k/     0k/    17k
+
+discordant path #1697: solver fails at 94, fixed survives. age | z | solver move, tax, pen/isa/txb | fixed tax, pen/isa/txb
+   61 | -1.24 | [ 4]      0k    141k/    66k/   225k |      0k    141k/    66k/   225k
+   62 | -1.14 | [ 1]      0k    102k/    75k/   189k |      0k    102k/    57k/   207k
+   63 | -1.32 | [ 4]      0k     71k/    66k/   175k |      0k     71k/    50k/   192k
+   64 |  0.08 | [ 0]      0k     60k/    58k/   142k |      0k     43k/    42k/   175k
+   65 | -0.21 | [ 1]      0k     47k/    77k/   130k |      0k     29k/    43k/   183k
+   66 | -0.24 | [ 0]      0k     47k/    78k/   114k |      0k     12k/    43k/   185k
+   67 |  1.68 | [ 0]      0k     47k/    79k/    97k |      0k      0k/    37k/   188k
+   68 |  0.31 | [ 3]      0k     66k/    96k/   118k |      0k      0k/    41k/   228k
+   69 | -0.91 | [ 3]      0k     73k/    97k/   125k |      0k      0k/    37k/   244k
+   70 | -0.00 | [ 3]      0k     66k/    81k/   119k |      0k      0k/    27k/   231k
+   71 | -2.03 | [ 3]      0k     69k/    77k/   123k |      0k      0k/    20k/   240k
+   72 | -0.90 | [ 3]      0k     51k/    54k/   105k |      0k      0k/     8k/   204k
+   73 | -0.27 | [ 0]      0k     46k/    49k/    93k |      0k      0k/     0k/   194k
+   74 |  0.41 | [ 0]      0k     46k/    50k/    86k |      0k      0k/     0k/   188k
+   75 | -0.89 | [ 0]      0k     51k/    55k/    85k |      0k      0k/     0k/   195k
+   76 | -0.77 | [ 4]      0k     43k/    46k/    81k |      0k      0k/     0k/   178k
+   77 | -0.18 | [ 1]      0k     37k/    46k/    70k |      0k      0k/     0k/   163k
+   78 | -1.60 | [ 0]      0k     37k/    47k/    64k |      0k      0k/     0k/   159k
+   79 | -0.73 | [ 0]      0k     30k/    39k/    50k |      0k      0k/     0k/   133k
+   80 | -0.60 | [ 0]      0k     27k/    37k/    41k |      0k      0k/     0k/   121k
+   81 |  0.59 | [ 0]      0k     26k/    36k/    32k |      0k      0k/     0k/   111k
+   82 | -0.58 | [ 0]      0k     30k/    40k/    27k |      0k      0k/     0k/   114k
+   83 | -1.00 | [ 0]      0k     28k/    39k/    19k |      0k      0k/     0k/   104k
+   84 | -0.30 | [ 0]      0k     25k/    35k/    11k |      0k      0k/     0k/    90k
+   85 | -0.17 | [ 0]      0k     25k/    35k/     3k |      0k      0k/     0k/    83k
+   86 | -0.33 | [ 0]      0k     25k/    32k/     0k |      0k      0k/     0k/    77k
+   87 |  0.80 | [ 0]      0k     25k/    24k/     0k |      0k      0k/     0k/    70k
+   88 | -1.78 | [ 0]      0k     30k/    20k/     0k |      0k      0k/     0k/    70k
+   89 |  0.05 | [ 0]      0k     23k/     9k/     0k |      0k      0k/     0k/    54k
+   90 | -0.71 | [ 1]      0k     22k/     5k/     0k |      0k      0k/     0k/    49k
+   91 | -0.03 | [ 0]      0k     17k/     0k/     0k |      0k      0k/     0k/    40k
+   92 |  0.55 | [ 0]      1k      9k/     0k/     0k |      0k      0k/     0k/    33k
+   93 | -1.18 | [ 0]      1k      2k/     0k/     0k |      0k      0k/     0k/    28k
+   94 | -0.47 | [ 0]      0k      0k/     0k/     0k |      0k      0k/     0k/    19k
+=== done ===

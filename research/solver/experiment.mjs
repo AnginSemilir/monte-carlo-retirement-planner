@@ -352,7 +352,8 @@ if (mode === 'flex') {
     const menu = buildActions();
     const c = F.compile(m, menu);
     if (key === 'vanguard') c.rule = { kind: 'vanguard', up: 0.05, down: 0.025 };
-    if (key === 'arva') c.rule = { kind: 'arva', rate: F.arvaRate(c, vecOf(m, M.initialState(m))) };
+    // the pension after the tax its draw will pay: a quarter tax-free, the rest at the basic rate
+    if (key === 'arva') c.rule = { kind: 'arva', rate: F.arvaRate(c, vecOf(m, M.initialState(m))), pensionHaircut: 0.75 * m.P.basicRate };
     const pick = pickFixed(c, menu, search);
     const rs = held.map(zs => runFixedPath(c, pick.ai, zs));
     arms[key] = { stats: { ...statsFlex(rs), label: pick.label, ...(c.rule ? { rule: c.rule } : {}) }, rs };

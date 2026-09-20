@@ -129,7 +129,7 @@ export function compile(m, actions) {
   return {
     E, m, ctx, P, o, T, yr, tb, acts, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
     // the guardrails, applied only on a forward run whose state vector carries their memory (slots 7 to 10)
-    guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, inflation: ctx.inflation,
+    guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, inflation: ctx.inflation, solvencyFloor: ctx.solvencyFloor || 0,
     real: CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].real : 0)),
     // the annual spread per pot with the per-path shock folded in, for a solver that has no path memory
     volEff: CATS.map(c => { const a = acc[idOf[c]]; return a ? Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam) : 0; })
@@ -305,10 +305,15 @@ export function flow(c, t, ai, s) {
         else if (replanned) rate0 = (baseDraw * mult) / potNow;
         else { const want = (rate0 * potNow) / baseDraw; mult = Math.min(mult * (1 + rule.up), Math.max(mult * (1 - rule.down), want)); }
       } else if (rule.kind === 'arva') {
-        // ARVA (Waring and Siegel): the pot spread over the years left as a level real annuity at the rule's
-        // real rate, recomputed every year, so it spends up after good years and never runs out on its own
-        const n = c.T - t + 1, r = rule.rate;
-        const draw = r > 1e-9 ? (potNow * r) / (1 - Math.pow(1 + r, -n)) : potNow / n;
+        // ARVA (Waring and Siegel): the pot spread over the years left as a level real annuity-due at the
+        // rule's real rate, recomputed every year, so it spends up after good years and never runs out on
+        // its own. The paper ignores tax and ends at nothing; here the pension counts after the tax its
+        // draw will pay, the plan's solvency floor is kept back, and one year's cushion is added so the tax
+        // on the last draw is not counted as running out.
+        const n = c.T - t + 2, r = rule.rate;
+        const net = pen * (1 - (rule.pensionHaircut || 0)) + isa + gia + cash;
+        const spendable = Math.max(0, net - c.solvencyFloor / Math.pow(1 + r, n));
+        const draw = r > 1e-9 ? (spendable * r) / ((1 - Math.pow(1 + r, -n)) * (1 + r)) : spendable / n;
         mult = draw / baseDraw; rate0 = baseDraw / potNow;
       }
       if (c.floorFrac > 0) { const minMult = Math.max(0, scheduled * c.floorFrac - covered) / baseDraw; if (mult < minMult) mult = minMult; }

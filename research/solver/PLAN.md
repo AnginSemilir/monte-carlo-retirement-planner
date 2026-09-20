@@ -489,9 +489,37 @@ named in the docs card.
 ### Actions
 
 Drawing years gain one lever: the year's spend, one of `target · {1, 0.9, 0.8, floor/target}`,
-de-duplicated and never below the floor. No new state: a cut has no memory. Working years are
-unchanged. The `pensionCeiling` action of "whatever the year needs" now means "whatever this year's
-chosen spend needs".
+de-duplicated and never below the floor. Working years are unchanged. The `pensionCeiling` action of
+"whatever the year needs" now means "whatever this year's chosen spend needs".
+
+**Why this needs no new dimension**, stated precisely because the whole phase's cost turns on it. Two
+things have to hold and both do. The consequence of a cut flows entirely through the pots: spending
+less leaves more money, and that money is already in the state, so next year's choice is unconstrained
+by this year's. And the objective is additively separable across years, so the shortfall accumulated so
+far is a constant that cannot change which move is best from here. It would fail for an objective like
+"minimise the deepest single cut" or "minimise the variance of spending", which cannot be decomposed
+year by year, and for habit, which is why habit is out of scope.
+
+Worth noticing the direction: Guyton-Klinger genuinely does have memory - a multiplier that ratchets
+with every past cut and rise, the rate the rails were set from, whether last year lost money, all of it
+in `state.guard`. This phase replaces a memory-carrying heuristic with a memoryless optimal decision.
+
+**THE BUFFER TRAP — the one way an implementer could destroy a grid dimension by accident.**
+
+The grid merges cash and the GIA into one taxable pot, and it can do that only because `cashAt` is a
+function of the YEAR alone. That in turn holds only because the cash buffer is sized on the plan's
+spending target. The obvious-looking move when spending becomes a decision is to size the buffer on the
+spend actually chosen - and that is the trap: this year's cash split would then depend on last year's
+decision, `cashAt` would become path-dependent, the merged pot would be invalid, and cash would need a
+dimension of its own. The grid would grow several-fold and the phase's cost estimate with it.
+
+So: **the buffer stays sized on `spendTargetAtAge`, the planned target, never on the chosen spend.**
+That is also the better reading of what a buffer is - it holds the life you planned for, not the
+trimmed one - and it means a household trimming in a bad stretch does not also shrink its safety
+cushion at the worst moment. `bufferAt` in `model.js` and `yr.buffer` in `fast.js` already do this;
+gate 13 asserts that a solve with a floor below target produces the same `cashAt` series as one with
+the floor equal to it, which is what would break the moment someone "fixes" the buffer to follow the
+cut.
 
 ### The engine hook
 
@@ -531,7 +559,8 @@ stretch": what the floor means, what the two rates mean, and the two structural 
   6's tables to the bit; with a floor, floor survival lands within half a point above the confidence
   on a held-out seed; the bisection converges in at most eight solves on every library household;
   shortfall is monotone non-increasing in wealth at every age; the reporting rule's four figures are
-  present in `summarizeTrials`' output.
+  present in `summarizeTrials`' output; and **the cash buffer series is identical whether the floor is
+  below the target or equal to it**, which is the buffer trap above caught in the act.
 - The versus protocol against today's guardrails on the same households at the same floor: the solved
   rails must match or beat the guardrails' floor survival at a lower expected shortfall on average,
   with no household worse on both.
@@ -574,3 +603,5 @@ build twice over, and nothing the person sees changes until Phase 8.
 - The shortfall exponent is 2 and the floor-confidence landing tolerance is half a point; both are
   structural, named in the docs, and not settings.
 - Habit (a cut hurting more after a cut) is left out of Part D; it needs last year's spend as state.
+- The cash buffer stays sized on the planned target rather than the chosen spend, which is what keeps
+  cash out of the grid; see the buffer trap in Part D.

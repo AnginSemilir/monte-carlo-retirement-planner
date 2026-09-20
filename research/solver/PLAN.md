@@ -483,6 +483,19 @@ wins (batch 2 of `ledger-smear-fixes.txt`) and the tuning above was run with it;
 at the line that a probability objective gambles against, so it is the default from here and
 `resilience: 'indicator'` restores the old term for comparison.
 
+**Gate 2e, the 41 households with the tax gaps closed (tag p2-2e; `results-2e.txt`).** Savings-interest
+tax, dividend tax and the Cash ISA wrapper on, the library now splitting each household's cash none,
+half or all into the ISA, everything else as p2-total40. Solver against the same menu: **mean +0.73
+(unchanged), 32 up / 4 down, sign test p < 0.001, picker 30 of 41 (was 33)**; against the app as it
+stands +0.76, picker 31. The fixed arms' lifetime tax rose from £75k to £94k on average and their
+survival barely moved (87.8 to 87.7), which is the honest size of the gap that was closed: the
+interest and dividend tax are a real bill and a small survival effect. The one household that changed
+character is S354 (far, cash-heavy): its cash is now half in an ISA, its fixed arm re-chose and rose
+from 79.9 to 82.1, and the solver's +2.5 became a tie; the cash- and GIA-heavy households' mean edge
+is +0.50 (was +0.65). Gate 2e is met on its first condition (the edge holds) and its second turned
+out smaller than expected (the fixed arms fall in tax, not in survival). Phase 1's golden test stays
+exact across the library with the split, so the engine and the solver agree to the pound on all three.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -882,9 +895,9 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 |---|---|---|---|
 | 1 | reduced model + golden test | **done**: exact to the pound, 29 assertions | 1.5× |
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
-| 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | sign holds under perturbation; every loss named | 0.5× |
+| 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | **done**: edge grows in every perturbed world; shortfall adopted; (0.5, 0.02) confirmed; every loss named | 0.5× |
 | 2d | Part D pilot in the reduced model, against the guardrails | fully-funded rate and floor rate, both, on 41 households | 1× |
-| 2e | savings-interest tax and dividend tax in the engine | golden tests exact; experiment re-run once | 1× |
+| 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |

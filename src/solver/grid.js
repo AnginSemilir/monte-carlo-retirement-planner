@@ -132,6 +132,69 @@ function cashAtOf(m, t, taxPot) {
   return Math.min(taxPot, buffer(t - 1) * (1 + (cashAcc ? cashAcc.real : 0)));
 }
 
+/* The same cell as a six-slot vector for the fast flow: pen, isa, taxable, gain fraction, tax-free used, lump taken. */
+export function toVec(g, ip, ii, it, ig, ic, out) {
+  out[0] = g.axes.pen.pts[ip]; out[1] = g.axes.isa.pts[ii]; out[2] = g.axes.tax.pts[it];
+  out[3] = g.gain[ig]; out[4] = g.pcls[ic] * g.m.P.lsa; out[5] = g.pcls[ic] > 0 ? 1 : 0;
+  return out;
+}
+
+/* Where a six-slot vector sits on the grid. */
+export function locateVec(g, s) {
+  return {
+    p: locate(g.axes.pen, s[0]), i: locate(g.axes.isa, s[1]), t: locate(g.axes.tax, s[2]),
+    ig: nearest(g.gain, s[3]), ic: nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa))
+  };
+}
+
+/*
+ * THE HOT READ: both tables at one position, nothing allocated.
+ *
+ * A solve reads the next year's tables five times per move per cell - at 20 points that is 450 million
+ * reads - so the locator objects the general `interp` builds were most of the solve's time once the
+ * flow was fast. This locates the three axes into a scratch array, forms the eight corner indices once,
+ * and reads survival (in log-odds) and bequest (linear) from the same corners. `out[0]` is survival,
+ * `out[1]` bequest.
+ */
+const LOC = new Float64Array(6);     // i, w for each of the three axes
+const IDX = new Int32Array(8);
+const W = new Float64Array(8);
+function locInto(ax, v, k) {
+  if (!(v > 0)) { LOC[k] = 0; LOC[k + 1] = 0; return; }
+  if (v <= ax.pts[1]) { LOC[k] = 0; LOC[k + 1] = v / ax.pts[1]; return; }
+  if (v >= ax.hi) { LOC[k] = ax.n - 2; LOC[k + 1] = 1; return; }
+  const f = 1 + (Math.log(v) - ax.lg) / ax.step;
+  const i = Math.min(ax.n - 2, Math.max(1, Math.floor(f)));
+  LOC[k] = i; LOC[k + 1] = f - i;
+}
+export function readValues(g, sArr, bArr, s, out) {
+  locInto(g.axes.pen, s[0], 0); locInto(g.axes.isa, s[1], 2); locInto(g.axes.tax, s[2], 4);
+  const ig = nearest(g.gain, s[3]), ic = nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa));
+  const n = g.n, nn = n * n;
+  const i0 = LOC[0] + LOC[2] * n + LOC[4] * nn + ig * g.stride.gain + ic * g.stride.pcls;
+  const wp1 = LOC[1], wi1 = LOC[3], wt1 = LOC[5], wp0 = 1 - wp1, wi0 = 1 - wi1, wt0 = 1 - wt1;
+  IDX[0] = i0;           W[0] = wp0 * wi0 * wt0;
+  IDX[1] = i0 + 1;       W[1] = wp1 * wi0 * wt0;
+  IDX[2] = i0 + n;       W[2] = wp0 * wi1 * wt0;
+  IDX[3] = i0 + n + 1;   W[3] = wp1 * wi1 * wt0;
+  IDX[4] = i0 + nn;      W[4] = wp0 * wi0 * wt1;
+  IDX[5] = i0 + nn + 1;  W[5] = wp1 * wi0 * wt1;
+  IDX[6] = i0 + nn + n;  W[6] = wp0 * wi1 * wt1;
+  IDX[7] = i0 + nn + n + 1; W[7] = wp1 * wi1 * wt1;
+  let ls = 0, b = 0;
+  for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; ls += w * logit(sArr[IDX[k]]); b += w * bArr[IDX[k]]; }
+  out[0] = expit(ls); out[1] = b;
+  return out;
+}
+
+/* A model state as the vector: what the solver reads the household's real position through. */
+export function vecOf(m, st) {
+  const o = m.ctx.owners[0];
+  const gia = st.pots[o.ids.other] || 0;
+  const gf = gia > 0 ? Math.max(0, Math.min(1, (gia - (st.basis.self || 0)) / gia)) : 0;
+  return Float64Array.from([st.pots[o.ids.pen] || 0, st.pots[o.ids.isa] || 0, gia + (st.pots[o.ids.cash] || 0), gf, st.cumPcls.self || 0, st.lumpTaken.self ? 1 : 0]);
+}
+
 /* Where a model state sits on the grid: the three continuous locations plus the two buckets. */
 export function locateState(g, st) {
   const o = g.m.ctx.owners[0];

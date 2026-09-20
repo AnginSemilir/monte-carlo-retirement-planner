@@ -13,9 +13,9 @@
  * same distribution the Monte Carlo draws from.
  *
  * WHAT IS BEING MAXIMISED, in the order the app already ranks things: the probability of never falling
- * short, and then, among moves that tie on that within the app's own epsilon, the expected bequest net
- * of the pension death charge. Both are carried through the table separately so a change of
- * prioritisation can re-combine them without re-solving.
+ * short, and then, among moves that tie on it EXACTLY, the expected bequest net of the pension death
+ * charge. Both are carried through the table separately so a change of prioritisation can re-combine
+ * them without re-solving.
  *
  * THE MOVES. UK tax is straight lines with corners, and a best move can only sit at a corner: if it is
  * worth drawing a pound of pension at 20%, it is worth drawing the next one at 20% too, so the choice
@@ -29,12 +29,12 @@
  * Twenty-four moves a year, against the eighteen fixed combinations the app searches today - except
  * that here the choice is made again every year from the position the household is actually in.
  *
- * SPEED. This version is built on `model.js`, which computes a year exactly and takes microseconds. It
- * is fast enough to answer the only question that matters first: is a state-dependent plan worth more
- * than the fixed rules the app already has? The allocation-free version comes after that answer, not
- * before it.
+ * THE YEAR is `fast.js`, held to `model.js` to the pound, which is held to the engine to the pound. The
+ * state is six numbers, nothing is allocated in the loop, and the expectation over returns is taken
+ * from the post-decision state so it costs one flow per move rather than one per move and node.
  */
-import { makeGrid, toState, locateState, interp } from './grid.js';
+import { makeGrid, toVec, locateVec, interp, vecOf, readValues } from './grid.js';
+import * as F from './fast.js';
 
 /*
  * Five-point Gauss-Hermite quadrature against a standard normal: five representative years, weighted so
@@ -65,13 +65,9 @@ export function buildActions() {
       const steps = [...prefix, ...mid, ...rest];
       for (const harvest of [null, 'pa', 'basic']) {
         out.push({
-          steps,
-          costSteps: steps,
-          harvest: harvest !== null,
-          harvestCeil: harvest || 'pa',
-          sweepCash: true,
-          lump: false,
-          contrib: null,
+          steps, costSteps: steps,
+          harvest: harvest !== null, harvestCeil: harvest || 'pa',
+          sweepCash: true, lump: false, contrib: null,
           label: `${prefix.length ? prefix.join('+') + ' first, ' : ''}${isaFirst ? 'ISA' : 'taxable'} before ${isaFirst ? 'taxable' : 'ISA'}${harvest ? `, harvest to ${harvest === 'pa' ? 'the allowance' : 'the basic-rate limit'}` : ''}`
         });
       }
@@ -80,17 +76,10 @@ export function buildActions() {
   return out;
 }
 
-/* The real rate each account earns at each quadrature node, worked out once. */
-function ratesByNode(m) {
-  return NODES.map(z => {
-    const r = {};
-    m.ctx.accounts.forEach(a => {
-      // the per-path shock the solver cannot see is folded into the annual spread
-      const vol = Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam);
-      r[a.id] = Math.exp(Math.log(1 + a.real) + vol * z) - 1;
-    });
-    return r;
-  });
+/* The real rate of each pot (pension, ISA, GIA, cash) at a market draw z. */
+function realAt(c, z, out) {
+  for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * z) - 1;
+  return out;
 }
 
 /*
@@ -104,7 +93,8 @@ export function solve(E, M, plan, opts = {}) {
   if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');
   const g = makeGrid(m, opts);
   const actions = (opts.actions || buildActions()).map(a => ({ ...a, lump: !!opts.lump }));
-  const rates = ratesByNode(m);
+  const c = F.compile(m, actions);
+  const nodeReal = NODES.map(z => realAt(c, z, new Float64Array(4)));
   const T = m.ctx.totalYears;
   const floor = m.ctx.solvencyFloor;
   /*
@@ -125,16 +115,7 @@ export function solve(E, M, plan, opts = {}) {
   const surv = [], beq = [], pol = [];
   for (let t = 0; t <= T; t++) { surv[t] = new Float64Array(g.size); beq[t] = new Float64Array(g.size); pol[t] = new Uint8Array(g.size); }
 
-  // scratch, reused for every state so the loop allocates nothing it does not have to
-  const post = { pots: {}, basis: { self: 0, part: 0 }, cgtCarry: { self: 0, part: 0 }, cumPcls: { self: 0, part: 0 }, lumpTaken: { self: false, part: false } };
-  const copyInto = (dst, src) => {
-    for (const k in src.pots) dst.pots[k] = src.pots[k];
-    dst.basis.self = src.basis.self; dst.basis.part = src.basis.part;
-    dst.cgtCarry.self = src.cgtCarry.self; dst.cgtCarry.part = src.cgtCarry.part;
-    dst.cumPcls.self = src.cumPcls.self; dst.cumPcls.part = src.cumPcls.part;
-    dst.lumpTaken.self = src.lumpTaken.self; dst.lumpTaken.part = src.lumpTaken.part;
-  };
-
+  const base = new Float64Array(6), post = new Float64Array(6), grown = new Float64Array(6), rd = new Float64Array(2);
   let evaluated = 0;
   for (let t = T; t >= 0; t--) {
     const sNext = t < T ? surv[t + 1] : null;
@@ -146,7 +127,7 @@ export function solve(E, M, plan, opts = {}) {
           for (let ii = 0; ii < g.n; ii++) {
             for (let ip = 0; ip < g.n; ip++) {
               const idx = g.index(ip, ii, it, ig, ic);
-              const base = toState(g, ip, ii, it, ig, ic, t);
+              toVec(g, ip, ii, it, ig, ic, base);
               /*
                * Every move is tried at every cell. There is no certain-success shortcut: the plan's
                * bound assumed "no growth" was the worst case, and for an invested pot it is not - see
@@ -154,29 +135,26 @@ export function solve(E, M, plan, opts = {}) {
                */
               let bestS = -1, bestB = -Infinity, bestA = 0;
               for (let ai = 0; ai < actions.length; ai++) {
-                copyInto(post, base);
-                const row = M.step(m, post, actions[ai], t, null, true);
+                post.set(base);
+                const unmet = F.flow(c, t, ai, post);
                 evaluated++;
                 let s = 0, b = 0;
-                if (row.unmetDemand > 1 || row.preNmpaInsolvent) { s = 0; b = 0; }
-                else {
-                  for (let zi = 0; zi < NODES.length; zi++) {
-                    const grown = M.cloneState(post);
-                    M.grow(m, grown, t, rates[zi]);
-                    const o = m.ctx.owners[0];
-                    const total = (grown.pots[o.ids.pen] || 0) + (grown.pots[o.ids.isa] || 0) + (grown.pots[o.ids.other] || 0) + (grown.pots[o.ids.cash] || 0);
+                if (!(unmet > 1 || c.last.preNmpaInsolvent)) {
+                  for (let zi = 0; zi < 5; zi++) {
+                    grown.set(post);
+                    F.grow(c, t, grown, nodeReal[zi]);
                     if (t === T) {
+                      const total = grown[0] + grown[1] + grown[2];
                       const alive = !(floor > 0 && total < floor);
                       s += WEIGHTS[zi] * (alive ? 1 : 0);
-                      b += WEIGHTS[zi] * (alive ? Math.max(0, total - (grown.pots[o.ids.pen] || 0) * deathTax) : 0);
+                      b += WEIGHTS[zi] * (alive ? Math.max(0, total - grown[0] * deathTax) : 0);
                     } else {
-                      const loc = locateState(g, grown);
-                      s += WEIGHTS[zi] * interp(g, sNext, loc, true);
-                      b += WEIGHTS[zi] * interp(g, bNext, loc, false);
+                      readValues(g, sNext, bNext, grown, rd);
+                      s += WEIGHTS[zi] * rd[0];
+                      b += WEIGHTS[zi] * rd[1];
                     }
                   }
                 }
-                // survival first; among moves that tie on it within the app's own epsilon, the bequest
                 if (s > bestS + eps || (Math.abs(s - bestS) <= eps && b > bestB)) { bestS = s; bestB = b; bestA = ai; }
               }
               St[idx] = bestS; Bt[idx] = bestB; Pt[idx] = bestA;
@@ -188,52 +166,14 @@ export function solve(E, M, plan, opts = {}) {
   }
 
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.n };
-  return {
-    m, g, actions, surv, beq, pol, meta, M, eps,
-    /* The move for a state the engine is actually in, which is how the bridge will read it. */
-    policy(state, t) { return actions[pol[Math.min(t, T)][gIndexOf(g, state)]]; },
+  const r = {
+    m, g, c, actions, surv, beq, pol, meta, M, eps, nodeReal,
+    /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
+    policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
     /* What the table says this position is worth, before anything is executed. */
-    value(state, t) { const loc = locateState(g, state); return { survival: interp(g, surv[Math.min(t, T)], loc, true), bequest: interp(g, beq[Math.min(t, T)], loc, false) }; }
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); return { survival: interp(g, surv[Math.min(t, T)], loc, true), bequest: interp(g, beq[Math.min(t, T)], loc, false) }; }
   };
-}
-
-/* The nearest grid cell to a state, for reading a chosen move (which cannot be interpolated). */
-function gIndexOf(g, state) {
-  const loc = locateState(g, state);
-  return g.index(loc.p.i + (loc.p.w > 0.5 ? 1 : 0), loc.i.i + (loc.i.w > 0.5 ? 1 : 0), loc.t.i + (loc.t.w > 0.5 ? 1 : 0), loc.ig, loc.ic);
-}
-
-/*
- * RUN THE SOLVED PLAN FORWARD, reading the move from the table each year.
- *
- * This, and not the table's own number, is what the solver is judged on. A value function built on a
- * coarse grid and read by interpolation can flatter itself; a simulation cannot, because it spends the
- * money. `zs` is the same per-year market draw the named policies see, so the comparison is like for
- * like on common random numbers.
- */
-export function runPolicy(r, zs, opts = {}) {
-  const { m, g, actions, pol } = r;
-  const M = r.M;
-  const T = m.ctx.totalYears;
-  const state = M.initialState(m);
-  const rates = {};
-  let lifetimeTax = 0;
-  for (let t = 0; t <= T; t++) {
-    const action = opts.stored ? actions[pol[Math.min(t, T)][nearestIndex(g, state)]] : chooseAction(r, state, t);
-    const z = zs[t];
-    m.ctx.accounts.forEach(a => {
-      const vol = Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam);
-      rates[a.id] = Math.exp(Math.log(1 + a.real) + vol * z) - 1;
-    });
-    const row = M.step(m, state, action, t, rates);
-    lifetimeTax += row.taxPaid + row.cgtPaid;
-    if (row.unmetDemand > 1 || row.preNmpaInsolvent) return { survived: false, failYear: row.year, terminalNet: 0, lifetimeTax };
-  }
-  const o = m.ctx.owners[0];
-  const total = m.ctx.owners.reduce((s, ow) => s + ['pen', 'isa', 'other', 'cash'].reduce((x, c) => x + (state.pots[ow.ids[c]] || 0), 0), 0);
-  const pen = m.ctx.owners.reduce((s, ow) => s + (state.pots[ow.ids.pen] || 0), 0);
-  if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, failYear: m.ctx.baseYear + T, terminalNet: 0, lifetimeTax };
-  return { survived: true, failYear: null, terminalNet: Math.max(0, total - pen * m.ctx.pensionDeathTaxRate), lifetimeTax, unused: o };
+  return r;
 }
 
 /*
@@ -248,36 +188,59 @@ export function runPolicy(r, zs, opts = {}) {
  * are integrated over, and the move with the best value wins. It is the same maximisation the solve
  * did, taken once more at the position that actually arose, and it costs one year of arithmetic.
  */
-export function chooseAction(r, state, t) {
-  const { m, g, actions, surv, beq } = r;
-  const M = r.M;
-  const T = m.ctx.totalYears;
-  if (t >= T) return actions[pol0(r, state, t)];
-  const eps = r.eps !== undefined ? r.eps : 1e-12;
-  const rates = r.nodeRates || (r.nodeRates = ratesByNode(m));
-  let bestS = -1, bestB = -Infinity, best = actions[0];
+export function chooseAction(r, s, t) {
+  const { g, c, actions, surv, beq, nodeReal } = r;
+  const T = r.m.ctx.totalYears;
+  if (t >= T) return r.pol[T][nearestIndex(g, s)];
+  const eps = r.eps;
+  const post = r._post || (r._post = new Float64Array(6));
+  const grown = r._grown || (r._grown = new Float64Array(6));
+  const rd = r._rd || (r._rd = new Float64Array(2));
+  let bestS = -1, bestB = -Infinity, best = 0;
   for (let ai = 0; ai < actions.length; ai++) {
-    const post = M.cloneState(state);
-    const row = M.step(m, post, actions[ai], t, null, true);
+    post.set(s);
+    const unmet = F.flow(c, t, ai, post);
     let sv = 0, bq = 0;
-    if (!(row.unmetDemand > 1 || row.preNmpaInsolvent)) {
-      for (let zi = 0; zi < NODES.length; zi++) {
-        const grown = M.cloneState(post);
-        M.grow(m, grown, t, rates[zi]);
-        const loc = locateState(g, grown);
-        sv += WEIGHTS[zi] * interp(g, surv[t + 1], loc, true);
-        bq += WEIGHTS[zi] * interp(g, beq[t + 1], loc, false);
+    if (!(unmet > 1 || c.last.preNmpaInsolvent)) {
+      for (let zi = 0; zi < 5; zi++) {
+        grown.set(post);
+        F.grow(c, t, grown, nodeReal[zi]);
+        readValues(g, surv[t + 1], beq[t + 1], grown, rd);
+        sv += WEIGHTS[zi] * rd[0];
+        bq += WEIGHTS[zi] * rd[1];
       }
     }
-    if (sv > bestS + eps || (Math.abs(sv - bestS) <= eps && bq > bestB)) { bestS = sv; bestB = bq; best = actions[ai]; }
+    if (sv > bestS + eps || (Math.abs(sv - bestS) <= eps && bq > bestB)) { bestS = sv; bestB = bq; best = ai; }
   }
   return best;
 }
 
-const pol0 = (r, state, t) => r.pol[Math.min(t, r.m.ctx.totalYears)][nearestIndex(r.g, state)];
+/*
+ * RUN THE SOLVED PLAN FORWARD on one market path, reading the move each year from the value function
+ * at the true position (or, with `stored`, from the nearest cell). This, and not the table's own number,
+ * is what the solver is judged on: a value function read across a coarse grid can flatter itself; a
+ * simulation that actually spends the money cannot. `zs` is the same per-year draw the fixed rules see.
+ */
+export function runPolicy(r, zs, opts = {}) {
+  const { m, g, c, actions, pol } = r;
+  const T = m.ctx.totalYears;
+  const s = vecOf(m, r.M.initialState(m));
+  const real = new Float64Array(4);
+  let lifetimeTax = 0;
+  for (let t = 0; t <= T; t++) {
+    const ai = opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t);
+    const unmet = F.flow(c, t, ai, s);
+    lifetimeTax += c.last.taxPaid + c.last.cgtPaid;
+    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, terminalNet: 0, lifetimeTax, action: actions[ai] };
+    F.grow(c, t, s, realAt(c, zs[t], real));
+  }
+  const total = s[0] + s[1] + s[2];
+  if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, failYear: m.ctx.baseYear + T, terminalNet: 0, lifetimeTax };
+  return { survived: true, failYear: null, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), lifetimeTax };
+}
 
-function nearestIndex(g, state) {
-  const loc = locateState(g, state);
+function nearestIndex(g, s) {
+  const loc = locateVec(g, s);
   return g.index(Math.min(g.n - 1, loc.p.i + (loc.p.w > 0.5 ? 1 : 0)), Math.min(g.n - 1, loc.i.i + (loc.i.w > 0.5 ? 1 : 0)),
     Math.min(g.n - 1, loc.t.i + (loc.t.w > 0.5 ? 1 : 0)), loc.ig, loc.ic);
 }

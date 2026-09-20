@@ -248,6 +248,19 @@ The trade it makes is unchanged at every resolution: S280 buys +1.9 of survival 
 median pot and +£67k of lifetime tax. That is the objective as specified, and the Strategy tab must
 show it as a trade rather than hide it behind the survival figure.
 
+**The fast flow, built.** `src/solver/fast.js` is one person's year with nothing allocated: calendars
+and tax as tables, the state as six numbers, the pension draw inverted over the tax table's segments.
+Held to `model.js` on 6,400 random positions and moves across sixteen households at £0.0000 worst
+difference, including the insolvency flag and growth from the post-decision state, and the tax table
+to the engine at every £137 to £400k for both ladders (`solver-fast.test.mjs`, 7 assertions). Per
+year: 425ns against the exact model's 4,150ns. The solve loop and the true-position read were then
+rewritten on it with an allocation-free table read, Gate 2 still passing and the table values bit for
+bit the same. A 12-point solve went from 140s to 43s and a 20-point one from 686s to 209s. That is
+3.3x, not 10x: the remaining cost is the twelve transcendental calls per table read (three axis logs,
+eight log-odds, one exp), which a stored log-odds table would halve, and the cell count, which the
+reachable band is for. Neither is done; the signal at proper size comes first, because it is what the
+speed was for.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

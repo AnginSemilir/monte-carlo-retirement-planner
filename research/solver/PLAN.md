@@ -596,9 +596,17 @@ levels below 1 and is silent above it, so a level of 1.1 would never be chosen. 
 3 to 28 years a run. The exploration: add levels above 1 to the menu (1.1, then 1.2, matching the
 size of a GK raise) and a bounded reward for them, a concave credit for spending delivered above the
 target so that a raise is taken only when the pot is well ahead of the plan and the table still meets
-the confidence on the floor - the same bisection on the penalty lands the floor rate, the reward
-weight is tuned so the solver's above-target years land near the guardrails' count on the same
-households, and the comparison is then at equal downside AND a similar rate of raises. Measured on
+the confidence on the floor. The trade is priced by the value function: a raise this year means a
+smaller pot next year, and the table already says what that costs in survival, resilience and
+bequest over every later year and path, so a raise is taken only where the credit beats that cost -
+which the guardrails' band cannot know. The reward weight converts spending into the score's units,
+and there is no ground truth for it, so for the experiment it is tuned so the solver's above-target
+years land near the guardrails' count on the same households: a calibration for a fair comparison
+at equal downside AND a similar rate of raises, not a claim that the guardrails' rate is right. In
+the product it is a preference, exposed as the bequest weight is (never raise; raise a little when
+well ahead; treat a good run as licence to spend), each preset reported on the same three figures.
+The bisection on the penalty stays whatever the weight, so raises come only out of the surplus the
+confidence leaves. Measured on
 spending delivered (mean level, median run and unlucky tenth), years at or above target, whipsaw,
 and the end pot, against every arm on the same seeds. What to watch: a raise that is later trimmed
 is the whipsaw the solver has so far avoided, so the changes-per-run figure is a gate, not a

@@ -75,10 +75,24 @@ function runFixedPath(m, action, zs) {
 const summarise = (rs) => ({
   survival: 100 * rs.filter(r => r.survived).length / rs.length,
   median: (() => { const a = rs.map(r => r.terminalNet).sort((x, y) => x - y); return a[Math.floor(a.length / 2)]; })(),
+  // the solver's table carries the EXPECTED bequest, so the fixed arm's objective must use the mean too
+  mean: rs.reduce((x, r) => x + r.terminalNet, 0) / rs.length,
   tax: (() => { const a = rs.map(r => r.lifetimeTax).sort((x, y) => x - y); return a[Math.floor(a.length / 2)]; })()
 });
 
-console.log(`${pick.length} single-person households, grid ${POINTS} points, ${SEARCH} search paths, ${HELD} held-out, seed ${SEED}`);
+/*
+ * THE OBJECTIVE, WHICH BOTH ARMS MUST SHARE.
+ *
+ * The fixed arm used to pick by survival with the bequest breaking an exact tie, which is exactly the
+ * solver's objective at weight zero - so that comparison was like for like. It stopped being so the
+ * moment the solver got a bequest weight and the fixed arm did not: a solver told to value the bequest
+ * against a baseline that was not is two different questions, not one experiment. WEIGHT now applies
+ * the same score on both sides.
+ */
+const WEIGHT = Number(process.env.WEIGHT || 0);
+const scoreOf = (st, scale) => st.survival / 100 + (WEIGHT / scale) * st.mean;
+
+console.log(`${pick.length} single-person households, grid ${POINTS} points, ${SEARCH} search paths, ${HELD} held-out, seed ${SEED}, bequest weight ${WEIGHT}`);
 console.log('both arms simulated in the reduced model; the table\'s own figure is not used\n');
 
 const rows = [];
@@ -112,15 +126,17 @@ for (const sc of pick) {
       }
     }
   }
+  const scale = Math.max(1, m.ctx.accounts.reduce((x, a) => x + a.balance, 0));
   let best = null;
   for (const a of menu) {
     const s = summarise(searchPaths.map(zs => runFixedPath(m, a, zs)));
-    if (!best || s.survival > best.s.survival || (s.survival === best.s.survival && s.median > best.s.median)) best = { a, s };
+    const sc2 = scoreOf(s, scale);
+    if (!best || sc2 > best.score + 1e-12 || (Math.abs(sc2 - best.score) <= 1e-12 && s.mean > best.s.mean)) best = { a, s, score: sc2 };
   }
   const fixedHeld = summarise(heldPaths.map(zs => runFixedPath(m, best.a, zs)));
 
   // ---- the solved arm: no paths seen while solving
-  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum });
+  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, bequestWeight: WEIGHT });
   const solvedHeld = summarise(heldPaths.map(zs => runPolicy(r, zs)));
 
   const d = solvedHeld.survival - fixedHeld.survival;

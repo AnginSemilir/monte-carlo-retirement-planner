@@ -41,6 +41,7 @@
  * Usage:
  *   node experiment.mjs select   [lo=70] [hi=98]                 list the households in the band
  *   ONLY=<i> node experiment.mjs run <tag> [points=20] [held=3000] [seedSearch=7001] [seedHeld=7002]
+ *   ONLY=<i> node experiment.mjs perturb <baseTag> <return-1|vol+25|left-tail> [points=40] [held=3000]   (phase 2c.1)
  *   node experiment.mjs reduce <tag>                             aggregate one tag's results
  *
  * One process per household, on purpose: memory resets between them and every line lands as it is
@@ -79,8 +80,23 @@ function appMenu(m) {
   return out;
 }
 
+/*
+ * THE WORLD the evaluation runs in (plan Phase 2c.1). Both arms were solved and chosen under the model
+ * as fitted; the world can differ from it, and neither arm is told. `base` is the model's own returns.
+ *   return-1   every pot's expected real return one point lower
+ *   vol+25     every pot's volatility a quarter higher
+ *   left-tail  bad years worse than a normal says: a negative draw is scaled by 1.3
+ */
+function worldOf(kind) {
+  if (!kind || kind === 'base') return (c, z, out) => { for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * z) - 1; return out; };
+  if (kind === 'return-1') return (c, z, out) => { for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + c.real[i] - 0.01) + c.volEff[i] * z) - 1; return out; };
+  if (kind === 'vol+25') return (c, z, out) => { for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + c.real[i]) + 1.25 * c.volEff[i] * z) - 1; return out; };
+  if (kind === 'left-tail') return (c, z, out) => { const zz = z < 0 ? 1.3 * z : z; for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * zz) - 1; return out; };
+  throw new Error(`unknown world ${kind}`);
+}
+
 /* Run one fixed move on one path in the fast flow. */
-function runFixedPath(c, ai, zs) {
+function runFixedPath(c, ai, zs, world = worldOf()) {
   const m = c.m;
   const s = vecOf(m, M.initialState(m));
   const real = new Float64Array(4);
@@ -89,7 +105,7 @@ function runFixedPath(c, ai, zs) {
     const unmet = F.flow(c, t, ai, s);
     tax += c.last.taxPaid + c.last.cgtPaid;
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax };
-    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * zs[t]) - 1;
+    world(c, zs[t], real);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
@@ -98,7 +114,7 @@ function runFixedPath(c, ai, zs) {
 }
 
 /* The solved plan on one path, choosing each year's move from the value function at the true position. */
-function runSolvedPath(r, zs) {
+function runSolvedPath(r, zs, world = worldOf()) {
   const { m, c } = r;
   const s = vecOf(m, M.initialState(m));
   const real = new Float64Array(4);
@@ -108,7 +124,7 @@ function runSolvedPath(r, zs) {
     const unmet = F.flow(c, t, ai, s);
     tax += c.last.taxPaid + c.last.cgtPaid;
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax };
-    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * zs[t]) - 1;
+    world(c, zs[t], real);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
@@ -213,6 +229,55 @@ if (mode === 'run') {
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   const ps = out.pairedSame, pa = out.pairedApp;
   console.log(`${sc.id} ${sc.name.slice(0, 34).padEnd(35)} solver ${S.successRate.toFixed(1)}  same ${Fs.successRate.toFixed(1)} (${ps.diff >= 0 ? '+' : ''}${ps.diff.toFixed(1)}±${ps.se.toFixed(1)}, picker: ${out.verdictSame})  app ${A.successRate.toFixed(1)} (${pa.diff >= 0 ? '+' : ''}${pa.diff.toFixed(1)}±${pa.se.toFixed(1)}, picker: ${out.verdictApp})  p10 ${Math.round(S.p10TerminalNet / 1000)}k/${Math.round(Fs.p10TerminalNet / 1000)}k  median ${Math.round(S.medianTerminalNet / 1000)}k/${Math.round(Fs.medianTerminalNet / 1000)}k  failAge ${S.meanFailAge ? S.meanFailAge.toFixed(1) : '-'}/${Fs.meanFailAge ? Fs.meanFailAge.toFixed(1) : '-'}  ${(out.ms / 1000).toFixed(0)}s`);
+}
+
+// ---------------------------------------------------------------------------------------------------
+/*
+ * PERTURBED-MODEL EVALUATION (plan Phase 2c.1).
+ *   ONLY=<i> node experiment.mjs perturb <baseTag> <kind> [points] [held] [seedSearch] [seedHeld]
+ * Re-solves the household exactly as the base run did and takes the fixed arms' choices FROM the base
+ * run's result file, so nothing is re-chosen under the perturbed world; then scores all three arms on
+ * the same held-out paths with the world of `kind`. Writes results/<baseTag>-<kind>/<id>.json in the
+ * shape `reduce` reads.
+ */
+if (mode === 'perturb') {
+  const baseTag = process.argv[3] || 'p2-total40', kind = process.argv[4] || 'return-1';
+  const POINTS = Number(process.argv[5] || 40), HELD = Number(process.argv[6] || 3000);
+  const seedSearch = Number(process.argv[7] || 7001), seedHeld = Number(process.argv[8] || 7002);
+  const lo = Number(process.env.LO || 70), hi = Number(process.env.HI || 98);
+  const band = JSON.parse(readFileSync(join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`), 'utf8'));
+  const k = Number(process.env.ONLY);
+  if (!Number.isFinite(k) || k < 0 || k >= band.length) { console.error(`ONLY must be 0..${band.length - 1}`); process.exit(2); }
+  const sc = singles[band[k].i];
+  const base = JSON.parse(readFileSync(join(RESULTS, baseTag, `${sc.id}.json`), 'utf8'));
+  const plan = prep(sc.plan);
+  const m = M.prepare(E, plan);
+  const years = m.ctx.totalYears;
+  const held = E.pathsForSeed(seedHeld, HELD, years);
+  const world = worldOf(kind);
+  const t0 = Date.now();
+  const sameMenu = buildActions(), cSame = F.compile(m, sameMenu);
+  const sameAi = sameMenu.findIndex(a => a.label === base.same.label);
+  const appM = appMenu(m), cApp = F.compile(m, appM);
+  const appAi = appM.findIndex(a => a.label === base.app.label);
+  if (sameAi < 0 || appAi < 0) { console.error(`${sc.id}: could not find the base run's fixed choices`); process.exit(2); }
+  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum });
+  const solvedRs = held.map(zs => runSolvedPath(r, zs, world));
+  const sameRs = held.map(zs => runFixedPath(cSame, sameAi, zs, world));
+  const appRs = held.map(zs => runFixedPath(cApp, appAi, zs, world));
+  const S = statsOf(solvedRs), Fs = statsOf(sameRs), A = statsOf(appRs);
+  const verdict = (fixedStats) => E.explainPick([{ id: 'solver', stats: S }, { id: 'fixed', stats: fixedStats }], { priorities: E.DEFAULT_PRIORITIES }).winner.id;
+  const tag = `${baseTag}-${kind}`;
+  const out = {
+    tag, world: kind, baseTag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, held: HELD, seedSearch, seedHeld, solveMs: r.meta.ms, ms: Date.now() - t0,
+    solver: S, same: { ...Fs, label: base.same.label }, app: { ...A, label: base.app.label },
+    pairedSame: paired(solvedRs, sameRs), pairedApp: paired(solvedRs, appRs),
+    verdictSame: verdict(Fs), verdictApp: verdict(A)
+  };
+  mkdirSync(join(RESULTS, tag), { recursive: true });
+  writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
+  const ps = out.pairedSame;
+  console.log(`${sc.id} ${kind.padEnd(10)} solver ${S.successRate.toFixed(1)}  same ${Fs.successRate.toFixed(1)} (${ps.diff >= 0 ? '+' : ''}${ps.diff.toFixed(1)}±${ps.se.toFixed(1)}, picker: ${out.verdictSame})  base Δ ${base.pairedSame.diff >= 0 ? '+' : ''}${base.pairedSame.diff.toFixed(1)}  ${(out.ms / 1000).toFixed(0)}s`);
 }
 
 // ---------------------------------------------------------------------------------------------------

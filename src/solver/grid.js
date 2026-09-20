@@ -153,8 +153,8 @@ export function locateVec(g, s) {
  * A solve reads the next year's tables five times per move per cell - at 20 points that is 450 million
  * reads - so the locator objects the general `interp` builds were most of the solve's time once the
  * flow was fast. This locates the three axes into a scratch array, forms the eight corner indices once,
- * and reads survival (in log-odds) and bequest (linear) from the same corners. `out[0]` is survival,
- * `out[1]` bequest.
+ * and reads survival (from a table already in log-odds) and bequest (linear) from the same corners.
+ * `out[0]` is survival, `out[1]` bequest.
  */
 const LOC = new Float64Array(6);     // i, w for each of the three axes
 const IDX = new Int32Array(8);
@@ -167,7 +167,7 @@ function locInto(ax, v, k) {
   const i = Math.min(ax.n - 2, Math.max(1, Math.floor(f)));
   LOC[k] = i; LOC[k + 1] = f - i;
 }
-export function readValues(g, sArr, bArr, s, out) {
+export function readValues(g, lsArr, bArr, s, out) {
   locInto(g.axes.pen, s[0], 0); locInto(g.axes.isa, s[1], 2); locInto(g.axes.tax, s[2], 4);
   const ig = nearest(g.gain, s[3]), ic = nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa));
   const n = g.n, nn = n * n;
@@ -182,10 +182,12 @@ export function readValues(g, sArr, bArr, s, out) {
   IDX[6] = i0 + nn + n;  W[6] = wp0 * wi1 * wt1;
   IDX[7] = i0 + nn + n + 1; W[7] = wp1 * wi1 * wt1;
   let ls = 0, b = 0;
-  for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; ls += w * logit(sArr[IDX[k]]); b += w * bArr[IDX[k]]; }
+  for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
   out[0] = expit(ls); out[1] = b;
   return out;
 }
+/* Survival stored as log-odds, once per year, so a read costs eight multiplies instead of eight logs. */
+export function toLogOdds(sArr, out) { for (let i = 0; i < sArr.length; i++) out[i] = logit(sArr[i]); return out; }
 
 /* A model state as the vector: what the solver reads the household's real position through. */
 export function vecOf(m, st) {

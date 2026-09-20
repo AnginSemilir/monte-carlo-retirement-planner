@@ -33,7 +33,7 @@
  * state is six numbers, nothing is allocated in the loop, and the expectation over returns is taken
  * from the post-decision state so it costs one flow per move rather than one per move and node.
  */
-import { makeGrid, toVec, locateVec, interp, vecOf, readValues } from './grid.js';
+import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds } from './grid.js';
 import * as F from './fast.js';
 
 /*
@@ -112,13 +112,13 @@ export function solve(E, M, plan, opts = {}) {
   const eps = opts.eps !== undefined ? opts.eps : 1e-12;
   const deathTax = m.ctx.pensionDeathTaxRate;
 
-  const surv = [], beq = [], pol = [];
-  for (let t = 0; t <= T; t++) { surv[t] = new Float64Array(g.size); beq[t] = new Float64Array(g.size); pol[t] = new Uint8Array(g.size); }
+  const surv = [], lsurv = [], beq = [], pol = [];
+  for (let t = 0; t <= T; t++) { surv[t] = new Float64Array(g.size); lsurv[t] = new Float64Array(g.size); beq[t] = new Float64Array(g.size); pol[t] = new Uint8Array(g.size); }
 
   const base = new Float64Array(6), post = new Float64Array(6), grown = new Float64Array(6), rd = new Float64Array(2);
   let evaluated = 0;
   for (let t = T; t >= 0; t--) {
-    const sNext = t < T ? surv[t + 1] : null;
+    const sNext = t < T ? lsurv[t + 1] : null;
     const bNext = t < T ? beq[t + 1] : null;
     const St = surv[t], Bt = beq[t], Pt = pol[t];
     for (let ic = 0; ic < g.pcls.length; ic++) {
@@ -163,11 +163,12 @@ export function solve(E, M, plan, opts = {}) {
         }
       }
     }
+    toLogOdds(St, lsurv[t]);
   }
 
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.n };
   const r = {
-    m, g, c, actions, surv, beq, pol, meta, M, eps, nodeReal,
+    m, g, c, actions, surv, lsurv, beq, pol, meta, M, eps, nodeReal,
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
     /* What the table says this position is worth, before anything is executed. */
@@ -189,7 +190,7 @@ export function solve(E, M, plan, opts = {}) {
  * did, taken once more at the position that actually arose, and it costs one year of arithmetic.
  */
 export function chooseAction(r, s, t) {
-  const { g, c, actions, surv, beq, nodeReal } = r;
+  const { g, c, actions, lsurv, beq, nodeReal } = r;
   const T = r.m.ctx.totalYears;
   if (t >= T) return r.pol[T][nearestIndex(g, s)];
   const eps = r.eps;
@@ -205,7 +206,7 @@ export function chooseAction(r, s, t) {
       for (let zi = 0; zi < 5; zi++) {
         grown.set(post);
         F.grow(c, t, grown, nodeReal[zi]);
-        readValues(g, surv[t + 1], beq[t + 1], grown, rd);
+        readValues(g, lsurv[t + 1], beq[t + 1], grown, rd);
         sv += WEIGHTS[zi] * rd[0];
         bq += WEIGHTS[zi] * rd[1];
       }

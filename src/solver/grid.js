@@ -143,7 +143,7 @@ const nearest = (arr, v) => {
 export function toState(g, ip, ii, it, ig, ic, t) {
   const { m } = g;
   const o = m.ctx.owners[0];
-  const v = toVec(g, ip, ii, it, ig, ic, new Float64Array(6));
+  const v = toVec(g, ip, ii, it, ig, ic, new Float64Array(7));
   const tax = v[2];
   const cash = Math.min(tax, m.E.num(cashAtOf(m, t, tax), 0));
   const gia = tax - cash;
@@ -180,6 +180,7 @@ export function toVec(g, ip, ii, it, ig, ic, out) {
     out[0] = g.axes.pen.pts[ip]; out[1] = g.axes.isa.pts[ii]; out[2] = g.axes.tax.pts[it];
   }
   out[3] = g.gain[ig]; out[4] = g.pcls[ic] * g.m.P.lsa; out[5] = g.pcls[ic] > 0 ? 1 : 0;
+  out[6] = -1;   // the sheltered part of the cash pot is not a grid dimension: a cell reads the year's typical value
   return out;
 }
 
@@ -255,7 +256,7 @@ export function vecOf(m, st) {
   const o = m.ctx.owners[0];
   const gia = st.pots[o.ids.other] || 0;
   const gf = gia > 0 ? Math.max(0, Math.min(1, (gia - (st.basis.self || 0)) / gia)) : 0;
-  return Float64Array.from([st.pots[o.ids.pen] || 0, st.pots[o.ids.isa] || 0, gia + (st.pots[o.ids.cash] || 0), gf, st.cumPcls.self || 0, st.lumpTaken.self ? 1 : 0]);
+  return Float64Array.from([st.pots[o.ids.pen] || 0, st.pots[o.ids.isa] || 0, gia + (st.pots[o.ids.cash] || 0), gf, st.cumPcls.self || 0, st.lumpTaken.self ? 1 : 0, st.cashIsa ? (st.cashIsa.self || 0) : 0]);
 }
 
 /* Where a model state sits on the grid: the three continuous locations plus the two buckets. */

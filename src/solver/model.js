@@ -96,20 +96,21 @@ export function initialState(m) {
   const { ctx } = m;
   const pots = {};
   ctx.accounts.forEach(a => { pots[a.id] = a.balance; });
-  const basis = {}, cgtCarry = {}, cumPcls = {}, lumpTaken = {};
+  const basis = {}, cgtCarry = {}, cumPcls = {}, lumpTaken = {}, cashIsa = {};
   ctx.owners.forEach(o => {
     const gia = ctx.acc[o.ids.other];
     // what the GIA cost, so a disposal knows how much of the proceeds is gain
     basis[o.key] = gia ? Math.max(0, gia.balance - gia.unrealisedGain) : 0;
     cgtCarry[o.key] = 0; cumPcls[o.key] = 0; lumpTaken[o.key] = false;
+    cashIsa[o.key] = Math.min(o.cashIsa0 || 0, pots[o.ids.cash] || 0);
   });
-  return { pots, basis, cgtCarry, cumPcls, lumpTaken };
+  return { pots, basis, cgtCarry, cumPcls, lumpTaken, cashIsa };
 }
 
 export function cloneState(s) {
   return {
     pots: { ...s.pots }, basis: { ...s.basis }, cgtCarry: { ...s.cgtCarry },
-    cumPcls: { ...s.cumPcls }, lumpTaken: { ...s.lumpTaken }
+    cumPcls: { ...s.cumPcls }, lumpTaken: { ...s.lumpTaken }, cashIsa: { ...(s.cashIsa || {}) }
   };
 }
 
@@ -236,6 +237,15 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       if (a.cat === 'isa') isaContribThisYear[a.owner] += amt * frac;
     }
   });
+  // 2a. the cash ISA subscription out of the year's cash contribution (engine step 2a)
+  if (!state.cashIsa) state.cashIsa = { self: 0, part: 0 };   // a state built by hand carries no sheltered cash
+  const cashIsaSubscribed = { self: 0, part: 0 };
+  owners.forEach(o => {
+    if (!working[o.key] || !(o.cashIsaContrib > 0)) return;
+    const room = Math.min(P.cashIsaCapAt(ageOf(o.key), year), Math.max(0, P.isaAllowance - isaContribThisYear[o.key]));
+    const sub = Math.min(o.cashIsaContrib * frac, room, Math.max(0, (pots[o.ids.cash] || 0) - state.cashIsa[o.key]));
+    if (sub > 0) { state.cashIsa[o.key] += sub; isaContribThisYear[o.key] += sub; cashIsaSubscribed[o.key] += sub; }
+  });
 
   // 3. the whole tax-free lump sum on first access, when that is the choice
   if (action.lump) {
@@ -262,8 +272,18 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
   });
   const statePension = { self: 0, part: 0 };
   owners.forEach(o => { if (ageOf(o.key) >= ctx.spa) { statePension[o.key] = o.statePension * frac; taxable[o.key] += statePension[o.key]; } });
+  // 4a, 4b. tax on the year's savings interest (taxable cash only) and on the GIA's dividends, as the engine charges them
+  if (!state.cashIsa) state.cashIsa = { self: 0, part: 0 };   // a state built by hand carries no sheltered cash
+  const savingsTax = { self: 0, part: 0 }, dividendTax = { self: 0, part: 0 };
+  owners.forEach(o => {
+    const a = ctx.acc[o.ids.cash];
+    const nominal = a ? (1 + a.real) * (1 + ctx.inflation) - 1 : 0;
+    const interest = P.cashInterestTaxed && a ? Math.max(0, ((pots[o.ids.cash] || 0) - state.cashIsa[o.key]) * nominal * frac) : 0;
+    savingsTax[o.key] = P.savingsTax(taxable[o.key], interest);
+    if (P.giaDividendYield > 0) dividendTax[o.key] = P.dividendTax(taxable[o.key], interest, Math.max(0, (pots[o.ids.other] || 0) * P.giaDividendYield * frac));
+  });
   const netGuaranteed = {};
-  owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + E.calculateUKNetIncome(taxable[o.key], P); });
+  owners.forEach(o => { netGuaranteed[o.key] = taxFreeIncome[o.key] + E.calculateUKNetIncome(taxable[o.key], P) - savingsTax[o.key] - dividendTax[o.key]; });
   const totalNetGuaranteed = owners.reduce((s, o) => s + netGuaranteed[o.key], 0);
   let workingTakeHome = 0;
   if (anyRetired) {
@@ -464,11 +484,24 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
    * from a given position leads to one of them, and the expectation over next year's returns is then
    * taken once per post-decision state rather than once per state and action together.
    */
+  /*
+   * 7e. The cash ISA at the end of the year's flows (engine step 7e): draws came out of taxable cash
+   * first, so the sheltered part is capped at what is left; then the leftover ISA allowance shelters
+   * more, up to the cash ISA's own cap.
+   */
+  owners.forEach(o => {
+    const cashNow = pots[o.ids.cash] || 0;
+    state.cashIsa[o.key] = Math.min(state.cashIsa[o.key], cashNow);
+    const cap = Math.max(0, P.cashIsaCapAt(ageOf(o.key), year) - cashIsaSubscribed[o.key]);
+    const room = Math.min(cap, Math.max(0, P.isaAllowance - isaContribThisYear[o.key]));
+    const move = Math.min(room, Math.max(0, cashNow - state.cashIsa[o.key]));
+    if (move > 0) { state.cashIsa[o.key] += move; isaContribThisYear[o.key] += move; cashIsaSubscribed[o.key] += move; }
+  });
   if (!skipGrowth) grow(m, state, t, rates);
 
   const byCat = {};
   CATS.forEach(cat => { byCat[cat] = owners.reduce((s, o) => s + (pots[o.ids[cat]] || 0), 0); });
-  const taxPaid = owners.reduce((s, o) => s + E.incomeTax(taxable[o.key], P), 0);
+  const taxPaid = owners.reduce((s, o) => s + E.incomeTax(taxable[o.key], P) + savingsTax[o.key] + dividendTax[o.key], 0);
 
   return {
     year, t, ageSelf, agePart,
@@ -487,7 +520,10 @@ export function grow(m, state, t, rates = null) {
   const frac = t === 0 ? m.ctx.yf : 1.0;
   m.ctx.accounts.forEach(a => {
     const g = rates ? (rates[a.id] !== undefined ? rates[a.id] : a.real) : a.real;
-    state.pots[a.id] = Math.max(0, (state.pots[a.id] || 0) * (1 + g * frac));
+    const before = state.pots[a.id] || 0;
+    state.pots[a.id] = Math.max(0, before * (1 + g * frac));
+    // the sheltered part of the cash pot grows with the pot
+    if (a.cat === 'cash' && state.cashIsa) state.cashIsa[a.owner] = before > 0 ? Math.min(state.pots[a.id], (state.cashIsa[a.owner] || 0) * (state.pots[a.id] / before)) : 0;
   });
 }
 

@@ -140,12 +140,13 @@ export function solve(E, M, plan, opts = {}) {
   const resilK = opts.resilienceAt !== undefined ? opts.resilienceAt : scale;
   const beqCap = opts.bequestCap !== undefined ? opts.bequestCap : 4 * scale;
   /*
-   * THE RISK TERM, INDICATOR OR SHORTFALL (plan 2c.2). The default is the indicator P(net >= K). With
-   * `resilience: 'shortfall'` it is 1 - E[min(1, max(0, K - net) / K)]: one when the household ends
+   * THE RISK TERM, SHORTFALL OR INDICATOR (plan 2c.2). The default is the shortfall,
+   * 1 - E[min(1, max(0, K - net) / K)]; `resilience: 'indicator'` restores P(net >= K). The shortfall is: one when the household ends
    * with at least K, falling linearly to zero at nothing. Same range, same weight, but continuous in
    * wealth, so a table of it has no cliff to smear and no line to gamble at. Stored and read linearly.
    */
-  const shortfall = opts.resilience === 'shortfall';
+  // the shortfall term is the default since the tuning on the odd households (plan 2c.2, 2c.3); 'indicator' restores the step
+  const shortfall = opts.resilience !== 'indicator';
   g.linearResil = shortfall;
 
   const surv = [], lsurv = [], resil = [], lresil = [], beq = [], pol = [];
@@ -155,7 +156,7 @@ export function solve(E, M, plan, opts = {}) {
     beq[t] = new Float64Array(g.size); pol[t] = new Uint8Array(g.size);
   }
 
-  const base = new Float64Array(6), post = new Float64Array(6), grown = new Float64Array(6), rd = new Float64Array(3);
+  const base = new Float64Array(7), post = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(3);
   let evaluated = 0;
   for (let t = T; t >= 0; t--) {
     const sNext = t < T ? lsurv[t + 1] : null;
@@ -283,8 +284,8 @@ export function chooseAction(r, s, t) {
 /* Every move's score from one solve's tables at the true position `s` in year `t`, with the year's tax and the expected bequest. */
 function scoreMoves(r, s, t, SC, TX, BQ) {
   const { g, c, actions, lsurv, lresil, beq, nodeReal, wB, wR } = r;
-  const post = r._post || (r._post = new Float64Array(6));
-  const grown = r._grown || (r._grown = new Float64Array(6));
+  const post = r._post || (r._post = new Float64Array(7));
+  const grown = r._grown || (r._grown = new Float64Array(7));
   const rd = r._rd || (r._rd = new Float64Array(3));
   for (let ai = 0; ai < actions.length; ai++) {
     post.set(s);

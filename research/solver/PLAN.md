@@ -462,6 +462,27 @@ as the world worsens (−£182k fitted, −£34k lower return, +£75k fatter tai
 gives up upside it never needed and keeps it when it does. Gate 2c.1 is met; the solver's edge is a
 property of the policy, not of the model it was solved in.
 
+**Phase 2c.3, the weights tuned on the odd households: (0.5, 0.02) confirmed
+(`results-2c3-tuning.txt`).** The nine pairs of resilience weight {0.25, 0.5, 1} and bequest weight
+{0, 0.02, 0.1}, with the shortfall risk term, on the 41 odd-indexed households the experiment never
+sees, 40 x 6 x 6, 1,500 held-out paths, scored by the app's own picker against the same menu:
+
+| wR \ wB | 0 | 0.02 | 0.1 |
+|---|---|---|---|
+| 0.25 | 34 of 41, +1.19, pot −£342k | 33, +1.14, −£246k | 32, +0.86, −£94k |
+| 0.5 | **35**, +1.12, −£305k | **35**, +1.05, **−£221k** | 33, +0.82, −£94k |
+| 1 | **35**, +0.96, −£266k | 34, +0.84, −£203k | 31, +0.68, −£108k |
+
+Three pairs tie on the picker at 35 of 41; of those (0.5, 0.02) gives up the least median pot for its
+survival edge, so the pair in use stands and the even set is not re-run. The bequest weight is the
+lever that matters: 0.1 halves the pot cost and takes a third off the survival edge, which is the
+frontier the prioritisation presets should expose rather than a constant to settle here.
+
+**Phase 2c.2 adopted as the default.** The shortfall term changed no decision on the losses or the
+wins (batch 2 of `ledger-smear-fixes.txt`) and the tuning above was run with it; it removes the step
+at the line that a probability objective gambles against, so it is the default from here and
+`resilience: 'indicator'` restores the old term for comparison.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

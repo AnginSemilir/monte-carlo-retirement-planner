@@ -71,7 +71,9 @@ export function compile(m, actions) {
     dep: CATS.map(() => new Float64Array(T + 1)), ded: CATS.map(() => new Float64Array(T + 1)), con: CATS.map(() => new Float64Array(T + 1)),
     // staged transfers out of the GIA into a pot, by target pot
     drip: CATS.map(() => new Float64Array(T + 1)),
-    cgtExempt: new Float64Array(T + 1)
+    cgtExempt: new Float64Array(T + 1),
+    // the cash ISA cap for the owner's age in the year, and the typical sheltered cash a grid cell assumes
+    cashIsaCap: new Float64Array(T + 1), cashIsaTypical: new Float64Array(T + 1)
   };
   for (let t = 0; t <= T; t++) {
     const age = ctx.ageSelf0 + t, year = ctx.baseYear + t;
@@ -90,9 +92,28 @@ export function compile(m, actions) {
     (ctx.stagedTransfers.get(year) || []).forEach(x => { const c = catOfId[x.toId]; if (c && x.fromId === idOf.other) yr.drip[CATS.indexOf(c)][t] += x.amount; });
     if (yr.working[t]) CATS.forEach((c, i) => { const a = acc[idOf[c]]; if (a) yr.con[i][t] = E.contribAtYear(a, t); });
     yr.cgtExempt[t] = Math.max(0, P.cgtAnnualExempt - (t === 0 ? o.cgtGainsUsed : 0));
+    yr.cashIsaCap[t] = P.cashIsaCapAt(age, year);
   }
   const cashAcc = acc[idOf.cash];
   const cashReal = cashAcc ? cashAcc.real : 0;
+  // the nominal rate the year's savings interest is taxed on; zero when the tax is off
+  const cashNominal = cashAcc && P.cashInterestTaxed ? (1 + cashAcc.real) * (1 + ctx.inflation) - 1 : 0;
+  /*
+   * What a grid cell assumes about the sheltered cash. The sweep holds cash at the buffer, and the
+   * leftover allowance shelters up to the cap a year, so from the opening sheltered amount the typical
+   * path reaches "all of the buffer" within a few years. A cell has no memory of the true figure; the
+   * forward run carries it exactly in the seventh slot.
+   */
+  {
+    let sheltered = Math.min(o.cashIsa0 || 0, cashAcc ? cashAcc.balance : 0);
+    for (let t = 0; t <= T; t++) {
+      const cashHere = t === 0 ? (cashAcc ? cashAcc.balance : 0) : yr.buffer[t - 1] * (1 + cashReal);
+      const scheduledIsa = yr.working[t] ? yr.con[1][t] * yr.frac[t] : 0;
+      sheltered = Math.min(cashHere, sheltered + Math.min(yr.cashIsaCap[t], Math.max(0, P.isaAllowance - scheduledIsa)));
+      yr.cashIsaTypical[t] = sheltered;
+      sheltered = Math.min(yr.buffer[t], sheltered) * (1 + cashReal);
+    }
+  }
   const tb = netTable(E, P);
   const acts = actions.map(a => ({
     steps: Int8Array.from(a.steps.map(s => STEP[s])),
@@ -101,7 +122,7 @@ export function compile(m, actions) {
     lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1
   }));
   return {
-    E, m, ctx, P, o, T, yr, tb, acts, cashReal,
+    E, m, ctx, P, o, T, yr, tb, acts, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
     real: CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].real : 0)),
     // the annual spread per pot with the per-path shock folded in, for a solver that has no path memory
     volEff: CATS.map(c => { const a = acc[idOf[c]]; return a ? Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam) : 0; })
@@ -134,6 +155,9 @@ export function flow(c, t, ai, s) {
   let cumPcls = s[4];
   let lumpTaken = s[5] > 0.5;
   let basis = gia * (1 - gainFrac);
+  // the sheltered part of the cash: carried in the seventh slot by a forward run, the year's typical value for a
+  // grid cell (-1), and none at all for a six-slot vector built by hand, which is what the model assumes too
+  let cashIsa = s.length > 6 ? Math.min(cash, s[6] >= 0 ? s[6] : yr.cashIsaTypical[t]) : 0;
   let realised = 0;                  // gains booked this year (the grid carries none in)
   let taxable = yr.taxable0[t];
   let taxPaid = 0, cgtPaid = 0, unmet = 0, drawdown = 0, harvested = 0;
@@ -160,18 +184,27 @@ export function flow(c, t, ai, s) {
     const dr = yr.drip[i][t]; if (dr > 0) { const mv = sellGia(dr); if (i === 0) pen += mv; else if (i === 1) isa += mv; else if (i === 2) addGia(mv); else cash += mv; }
   }
   // 2. contributions while working
-  let isaContrib = 0;
+  let isaContrib = 0, cashIsaSubscribed = 0;
   if (working) {
     const cp = yr.con[0][t] * frac, ci = yr.con[1][t] * frac, co = yr.con[2][t] * frac, cc = yr.con[3][t] * frac;
     pen += cp; isa += ci; isaContrib += ci; addGia(co); cash += cc;
+    // 2a. the cash ISA subscription out of the cash paid in (the wrapper's own contribution is folded into cc)
+    if (c.cashIsaContrib > 0) {
+      const room = Math.min(yr.cashIsaCap[t], Math.max(0, P.isaAllowance - isaContrib));
+      const sub = Math.min(c.cashIsaContrib * frac, room, Math.max(0, cash - cashIsa));
+      if (sub > 0) { cashIsa += sub; isaContrib += sub; cashIsaSubscribed += sub; }
+    }
   }
   // 3. the whole lump sum on first access
   if (a.lump && !lumpTaken && access && retired && pen > 0) {
     const pcls = Math.min(pen * P.pclsProp, Math.max(0, P.lsa - cumPcls));
     pen -= pcls; cash += pcls; cumPcls += pcls; lumpTaken = true;
   }
-  // 4. guaranteed income
-  const netGuaranteed = yr.taxFree0[t] + netOf(tb, taxable);
+  // 4. guaranteed income, less the tax on this year's savings interest (taxable cash only) and GIA dividends (engine 4a, 4b)
+  const interest = c.cashNominal > 0 && cash > cashIsa ? (cash - cashIsa) * c.cashNominal * frac : 0;
+  const savingsTax = interest > 0 ? P.savingsTax(taxable, interest) : 0;
+  const dividendTax = P.giaDividendYield > 0 && gia > 0 ? P.dividendTax(taxable, interest, gia * P.giaDividendYield * frac) : 0;
+  const netGuaranteed = yr.taxFree0[t] + netOf(tb, taxable) - savingsTax - dividendTax;
 
   /* Draw `need` net from the pension without taking taxable income past `ceiling`. */
   const drawPension = (need, ceiling) => {
@@ -261,12 +294,19 @@ export function flow(c, t, ai, s) {
     if (cash > bufferEach) { addGia(cash - bufferEach); cash = bufferEach; }
     else if (cash < bufferEach) { const got = sellGia(bufferEach - cash); cash += got; }
   }
-  taxPaid = taxOf(tb, taxable);
+  // 7e. the cash ISA: taxable cash was drawn first, then the leftover allowance shelters more (engine 7e)
+  cashIsa = Math.min(cashIsa, cash);
+  {
+    const room = Math.min(Math.max(0, yr.cashIsaCap[t] - cashIsaSubscribed), Math.max(0, P.isaAllowance - isaContrib));
+    const move = Math.min(room, Math.max(0, cash - cashIsa));
+    if (move > 0) { cashIsa += move; isaContrib += move; }
+  }
+  taxPaid = taxOf(tb, taxable) + savingsTax + dividendTax;
   const preNmpaInsolvent = unmet > 1 && !access;      // the engine's test, with one owner
 
   s[0] = pen; s[1] = isa; s[2] = gia + cash;
   s[3] = gia > 0 ? Math.max(0, Math.min(1, (gia - basis) / gia)) : 0;
-  s[4] = cumPcls; s[5] = lumpTaken ? 1 : 0;
+  s[4] = cumPcls; s[5] = lumpTaken ? 1 : 0; if (s.length > 6) s[6] = cashIsa;
   c.last = { taxPaid, cgtPaid, drawdown, harvested, unmet, preNmpaInsolvent, cash, gia, netDemand, target };
   return unmet;
 }
@@ -318,6 +358,7 @@ export function grow(c, t, s, real) {
   s[1] = Math.max(0, s[1] * (1 + real[1] * frac));
   const gia2 = Math.max(0, gia * (1 + real[2] * frac));
   const cash2 = Math.max(0, cash * (1 + real[3] * frac));
+  if (s.length > 6 && s[6] >= 0) s[6] = cash > 0 ? Math.min(cash2, s[6] * (cash2 / cash)) : 0;   // the sheltered part grows with the cash
   // the basis does not grow, so the gain fraction rises with the GIA and falls if it shrinks
   if (gia > 0 && gia2 > 0) { const basis = gia * (1 - s[3]); s[3] = Math.max(0, Math.min(1, (gia2 - basis) / gia2)); }
   s[2] = gia2 + cash2;

@@ -135,5 +135,41 @@ console.log('=========== D. THE GUARDRAILS ON A FORWARD RUN, AGAINST THE EXACT M
   ok('D2  the year\'s target and the multiplier agree with the model every year, cuts and floor included', worst < 0.05 && cuts > 0, `worst ${worst.toFixed(4)}, ${cuts} cuts, ${floors} at the floor`);
 }
 
+console.log('=========== E. THE RESEARCH OPPONENTS: VANGUARD DYNAMIC SPENDING AND ARVA (plan 2d.2) ===========');
+{
+  const sc = singles[Math.floor(singles.length / 3)];
+  const base = JSON.parse(JSON.stringify(sc.plan));
+  const plan = E.resolveMpaa(E.normalizePlan({ ...base, config: { ...base.config, guardrails: false, lookaheadYears: 0 }, spending: { ...base.spending, floorSpend: Math.round(E.num(base.spending.targetSpend, 0) * 0.5) } }));
+  const m = M.prepare(E, plan);
+  const c = F.compile(m, actions);
+  const run = (rule, zAt) => {
+    c.rule = rule;
+    const s = F.withRuleSlots(vecOf(m, M.initialState(m)));
+    const levels = [], mults = [], real = new Float64Array(4);
+    for (let t = 0; t <= m.ctx.totalYears; t++) {
+      F.flow(c, t, 0, s);
+      if (c.yr.spend[t] > 0 && !c.yr.working[t]) { levels.push(c.last.level); mults.push(s[8]); }
+      const z = zAt(t);
+      for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * z) - 1;
+      F.grow(c, t, s, real);
+    }
+    c.rule = null;
+    return { levels, mults, s };
+  };
+  const s0 = F.withRuleSlots(vecOf(m, M.initialState(m)));
+  ok('E1  the rule slots start empty: no rate yet, multiplier one', s0.length === 11 && s0[7] === -1 && s0[8] === 1 && s0[9] === 0);
+  const v = run({ kind: 'vanguard', up: 0.05, down: 0.025 }, () => 0);
+  const steps = v.mults.slice(1).map((x, i) => x / v.mults[i]);
+  ok('E2  Vanguard starts at the target and never moves the multiplier more than +5% or -2.5% a year', Math.abs(v.mults[0] - 1) < 1e-9 && steps.every(r => r <= 1.05 + 1e-9 && r >= 0.975 - 1e-9), `steps ${Math.min(...steps).toFixed(3)}..${Math.max(...steps).toFixed(3)}`);
+  const vCrash = run({ kind: 'vanguard', up: 0.05, down: 0.025 }, (t) => (t < 3 ? -2.5 : 0));
+  ok('E3  ...after a crash it cuts, by the 2.5% a year the rule allows, not all at once', vCrash.mults.some(x => x < 1 - 1e-9) && vCrash.mults.slice(1).every((x, i) => x >= vCrash.mults[i] * 0.975 - 1e-9), `low ${Math.min(...vCrash.mults).toFixed(3)}`);
+  const rate = F.arvaRate(c, vecOf(m, M.initialState(m)));
+  ok('E4  ARVA\'s rate is the household\'s geometric expected real return, between 0 and 6%', rate >= 0 && rate <= 0.06, `${(100 * rate).toFixed(2)}%`);
+  const aRun = run({ kind: 'arva', rate }, () => 0);
+  ok('E5  ARVA spends the pot as an annuity: on a flat path the multiplier stays near where it starts and never falls below the floor', aRun.levels.every(x => x >= 0.5 - 1e-6) && Math.max(...aRun.mults) / Math.min(...aRun.mults) < 3, `mult ${Math.min(...aRun.mults).toFixed(2)}..${Math.max(...aRun.mults).toFixed(2)}`);
+  const aBoom = run({ kind: 'arva', rate }, (t) => (t < 3 ? 2 : 0));
+  ok('E6  ...and after good years it spends up, above the target', Math.max(...aBoom.levels) > 1 + 1e-9 && Math.max(...aBoom.mults) > Math.max(...aRun.mults), `peak level ${Math.max(...aBoom.levels).toFixed(2)}`);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

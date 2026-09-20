@@ -172,6 +172,9 @@ export function solve(E, M, plan, opts = {}) {
    * on the household's confidence. The buffer stays sized on the plan's target (the buffer trap).
    */
   const lambda = opts.lambda !== undefined ? opts.lambda : 0;
+  // the shortfall exponent: 2 (the plan) makes one deep cut dearer than two shallow ones; 1 makes small trims proportionally dear
+  const shortExp = opts.shortfallExponent !== undefined ? opts.shortfallExponent : 2;
+  const shortOf = (level) => Math.pow(1 - level, shortExp);
 
   const surv = [], lsurv = [], resil = [], lresil = [], beq = [], pol = [], short = [];
   for (let t = 0; t <= T; t++) {
@@ -208,7 +211,7 @@ export function solve(E, M, plan, opts = {}) {
                 const unmet = F.flow(c, t, ai, post);
                 evaluated++;
                 let s = 0, b = 0, rs = 0, h = 0;
-                const thisShort = spendYear && levelOf[ai] < 1 ? (1 - levelOf[ai]) * (1 - levelOf[ai]) : 0;
+                const thisShort = spendYear && levelOf[ai] < 1 ? shortOf(levelOf[ai]) : 0;
                 if (!(unmet > 1 || c.last.preNmpaInsolvent)) {
                   for (let zi = 0; zi < 5; zi++) {
                     grown.set(post);
@@ -245,7 +248,7 @@ export function solve(E, M, plan, opts = {}) {
 
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, spendLevels: [...new Set(levelOf)] };
   const r = {
-    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, wB, wR, lambda, levelOf,
+    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, wB, wR, lambda, levelOf, shortExp,
     tieMargin: opts.tieMargin || 0,
     rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
@@ -323,7 +326,7 @@ function scoreMoves(r, s, t, SC, TX, BQ) {
     const unmet = F.flow(c, t, ai, post);
     TX[ai] = c.last.taxPaid + c.last.cgtPaid;
     if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; continue; }
-    let sv = 0, bq = 0, rs = 0, h = spendYear && levelOf[ai] < 1 ? (1 - levelOf[ai]) * (1 - levelOf[ai]) : 0;
+    let sv = 0, bq = 0, rs = 0, h = spendYear && levelOf[ai] < 1 ? Math.pow(1 - levelOf[ai], r.shortExp || 2) : 0;
     for (let zi = 0; zi < 5; zi++) {
       grown.set(post);
       F.grow(c, t, grown, nodeReal[zi]);
@@ -348,24 +351,24 @@ export function runPolicy(r, zs, opts = {}) {
   const T = m.ctx.totalYears;
   const s = vecOf(m, r.M.initialState(m));
   const real = new Float64Array(4);
-  let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null;
+  let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0;
   for (let t = 0; t <= T; t++) {
     const ai = opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t);
     const unmet = F.flow(c, t, ai, s);
     lifetimeTax += c.last.taxPaid + c.last.cgtPaid;
     if (c.yr.spend[t] > 0) {
-      spendYears++; const lv = c.last.level;
+      spendYears++; const lv = c.last.level; levelSum += lv;
       if (lv >= 1 - 1e-9) atTarget++; if (lv > 1 + 1e-9) aboveTarget++; if (lv < minLevel) minLevel = lv;
       shortfall += (1 - Math.min(1, lv)) * (1 - Math.min(1, lv));
       // whipsaw: how often the year's spend level differs from last year's
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
       lastLevel = lv;
     }
-    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, fullyFunded: false };
+    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false };
     F.grow(c, t, s, realAt(c, zs[t], real));
   }
   const total = s[0] + s[1] + s[2];
-  const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, fullyFunded: atTarget === spendYears };
+  const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears };
   if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, failYear: m.ctx.baseYear + T, failAge: m.ctx.ageSelf0 + T, preAccess: false, terminalNet: 0, terminal: 0, lifetimeTax, ...spendStats, fullyFunded: false };
   return { survived: true, failYear: null, failAge: null, preAccess: false, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax, ...spendStats };
 }
@@ -385,7 +388,9 @@ export function solveFlex(E, M, plan, opts = {}) {
   const probe = M.prepare(E, plan);
   const floorFrac = probe.ctx.floorFrac || 0;
   const levels = opts.spendLevels || spendLevelsFor(floorFrac);
-  const confidence = opts.confidence !== undefined ? opts.confidence : (probe.ctx.floorConfidence || 0.9);
+  // the penalty is chosen on the search paths, so a policy that just meets the ask there tends to fall short on
+  // held-out paths; `margin` asks for a little more than the confidence to land on it
+  const confidence = (opts.confidence !== undefined ? opts.confidence : (probe.ctx.floorConfidence || 0.9)) + (opts.margin || 0);
   const tol = opts.tolerance !== undefined ? opts.tolerance : 0.005;
   const zs = E.pathsForSeed(opts.seed || 4242, opts.searchPaths || 1000, probe.ctx.totalYears);
   const floorRate = (r) => zs.filter(z => runPolicy(r, z).survived).length / zs.length;

@@ -136,6 +136,24 @@ export function compile(m, actions) {
   };
 }
 
+const GK = Object.freeze({ kind: 'gk' });
+
+/* An eleven-slot state for a forward run under a spending rule: the seven the plan carries plus the rule's memory. */
+export function withRuleSlots(s) {
+  if (s.length > 10) return s;
+  const out = new Float64Array(11); out.set(s); if (s.length < 7) out[6] = -1;
+  out[7] = -1; out[8] = 1; out[9] = 0; out[10] = 0;
+  return out;
+}
+
+/* ARVA's real rate for a household: the geometric expected real return of its opening pots, never below zero. */
+export function arvaRate(c, s) {
+  const w = [s[0], s[1], s[2], 0]; const tot = w[0] + w[1] + w[2];
+  if (tot <= 0) return 0;
+  let g = 0; for (let i = 0; i < 3; i++) g += (w[i] / tot) * (Math.log(1 + c.real[i]) - 0.5 * c.volEff[i] * c.volEff[i]);
+  return Math.max(0, Math.exp(g) - 1);
+}
+
 /* Where cash sits at the start of year t, given the merged taxable pot: the sweep's rule. */
 export function cashSplit(c, t, tax) {
   if (t <= 0) return Math.min(tax, c.yr.buffer[0]);
@@ -255,22 +273,43 @@ export function flow(c, t, ai, s) {
    * and the solver plans at the full spend.
    */
   let target = yr.spend[t] * a.level;
-  if (c.guard && s.length > 10 && retired) {
-    const g = c.guard;
+  /*
+   * A spending rule other than the plan's own (research opponents, plan 2d.2) uses the same four slots:
+   * `c.rule` is { kind:'vanguard', up, down } or { kind:'arva', rate }, set on the compiled household by
+   * the caller; the guardrails stay the engine's rule, chosen by the plan's config.
+   */
+  const rule = c.rule || (c.guard ? GK : null);
+  if (rule && s.length > 10 && retired) {
     const scheduled = yr.scheduled[t];
     const covered = netGuaranteed / frac;
     const baseDraw = Math.max(0, scheduled - covered);
     const potNow = pen + isa + gia + cash;
     let rate0 = s[7], mult = s[8], lost = s[9] > 0.5, lastBase = s[10];
     if (baseDraw > 0 && potNow > 0) {
+      // the plan itself changed what it draws (the State Pension starting, a band beginning): re-foot, do not react
       const replanned = rate0 >= 0 && Math.abs(baseDraw - lastBase) > 0.01 * Math.max(1, lastBase);
-      if (rate0 >= 0 && lost) mult /= (1 + c.inflation);
-      if (rate0 < 0) rate0 = baseDraw / potNow;
-      else if (replanned) rate0 = (baseDraw * mult) / potNow;
-      else {
-        const rate = (baseDraw * mult) / potNow;
-        if (rate > rate0 * (1 + g.band) && (c.T - t) > g.freezeYears) mult *= (1 - g.cut);
-        else if (rate < rate0 * (1 - g.band)) mult *= (1 + g.raise);
+      if (rule.kind === 'gk') {
+        const g = c.guard;
+        if (rate0 >= 0 && lost) mult /= (1 + c.inflation);
+        if (rate0 < 0) rate0 = baseDraw / potNow;
+        else if (replanned) rate0 = (baseDraw * mult) / potNow;
+        else {
+          const rate = (baseDraw * mult) / potNow;
+          if (rate > rate0 * (1 + g.band) && (c.T - t) > g.freezeYears) mult *= (1 - g.cut);
+          else if (rate < rate0 * (1 - g.band)) mult *= (1 + g.raise);
+        }
+      } else if (rule.kind === 'vanguard') {
+        // Vanguard's dynamic spending: the first year's rate of the pot, then each year's draw held within a
+        // ceiling and a floor of last year's (5% up, 2.5% down, in real terms), so it follows the pot slowly
+        if (rate0 < 0) rate0 = baseDraw / potNow;
+        else if (replanned) rate0 = (baseDraw * mult) / potNow;
+        else { const want = (rate0 * potNow) / baseDraw; mult = Math.min(mult * (1 + rule.up), Math.max(mult * (1 - rule.down), want)); }
+      } else if (rule.kind === 'arva') {
+        // ARVA (Waring and Siegel): the pot spread over the years left as a level real annuity at the rule's
+        // real rate, recomputed every year, so it spends up after good years and never runs out on its own
+        const n = c.T - t + 1, r = rule.rate;
+        const draw = r > 1e-9 ? (potNow * r) / (1 - Math.pow(1 + r, -n)) : potNow / n;
+        mult = draw / baseDraw; rate0 = baseDraw / potNow;
       }
       if (c.floorFrac > 0) { const minMult = Math.max(0, scheduled * c.floorFrac - covered) / baseDraw; if (mult < minMult) mult = minMult; }
       lastBase = baseDraw;

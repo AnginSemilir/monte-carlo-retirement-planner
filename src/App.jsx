@@ -1089,7 +1089,7 @@ function normalizePlan(raw) {
       if (v === null || v === undefined || typeof v === 'object') obj[k] = '';
     });
   };
-  scrub(plan.demographics); scrub(plan.spending, ['spendBands']); scrub(plan.config);
+  scrub(plan.demographics); scrub(plan.spending, ['spendBands', 'policyOverride']); scrub(plan.config);
   if (typeof plan.config.harvestPersonalAllowance !== 'boolean') plan.config.harvestPersonalAllowance = plan.config.harvestPersonalAllowance === '' ? true : !!plan.config.harvestPersonalAllowance;
   // A plan saved before the rule existed has no field, and no field means what it always meant: fixed.
   if (typeof plan.config.guardrails !== 'boolean') plan.config.guardrails = false;
@@ -1449,7 +1449,17 @@ function buildContext(rawPlan) {
   const P = taxParams(c);
   // resolved up here because deposit routing (below) needs the policy's depositOrder, and that runs
   // long before the context object itself is assembled
-  const policyForDeposits = DECUMULATION_POLICIES[s.decumulationPolicy] || DECUMULATION_POLICIES['Bracket Fill Basic'];
+  /*
+   * A policy is normally one of the named five. A search that composes its own draw order hands it in as
+   * `spending.policyOverride` - steps, harvest, and optionally the deposit and cost orders - and the
+   * context runs it exactly as it would a named one. Nothing else in the plan changes, so a winner found
+   * this way is a plan the rest of the app can already simulate, chart and print.
+   */
+  const ov = s.policyOverride;
+  const policyForDeposits = (ov && Array.isArray(ov.steps) && ov.steps.length)
+    ? { steps: ov.steps, harvest: !!ov.harvest, depositOrder: Array.isArray(ov.depositOrder) ? ov.depositOrder : null,
+        costSteps: Array.isArray(ov.costSteps) ? ov.costSteps : null, custom: true }
+    : (DECUMULATION_POLICIES[s.decumulationPolicy] || DECUMULATION_POLICIES['Bracket Fill Basic']);
 
   const req = (label, v, fallback, lo, hi) => {
     if (isBlank(v)) { warnings.push(`${label} is blank; using ${fallback}.`); return fallback; }
@@ -1734,7 +1744,7 @@ function buildContext(rawPlan) {
     ageSelf0, agePart0, terminalAge, totalYears, nmpa, spa, targetSpend,
     spendBands,
     fullLumpSum: s.drawdownStrategy === 'Full 25% Lump Sum',
-    policyKey: s.decumulationPolicy, policySteps: policy.steps, harvestPA: policy.harvest && !!c.harvestPersonalAllowance,
+    policyKey: policy.custom ? 'Custom' : s.decumulationPolicy, policySteps: policy.steps, harvestPA: policy.harvest && !!c.harvestPersonalAllowance,
     harvestCeiling: c.harvestCeiling === 'basic' ? 'basic' : 'pa',
     costSteps: policy.costSteps || DEFAULT_COST_STEPS, depositOrder: policy.depositOrder || null,
     pensionDeathTaxRate: clamp(num(c.pensionDeathTaxRate, 0), 0, 100) / 100,
@@ -3077,13 +3087,36 @@ function resolveSearchPlayer(strategy, { trials = 400, seed = 12345, preAccessCa
  * scenario differs in more than allocation, so normalising it would rewrite the thing being compared.
  * Each carries its own accumulation outlay instead, for the UI to show alongside the baseline's.
  */
-function buildTournament(rawPlan, { emergencyFloor = 25000, scope = 'contributions', netBudgetOverride = null, balance = 'proportional', entrants = [] } = {}) {
-  const ctx = buildContext(rawPlan);
-  const plan = ctx.plan;
+/*
+ * THE ACCUMULATION VOCABULARY, SHARED.
+ *
+ * The tournament used to build its candidates inside closures - the budget sweep, the bridge sizing, the
+ * Bed & SIPP move, the back-loaded schedule - which meant nothing else could build one. A search that
+ * wants to try "1.35x cover, back-loaded, with the SIPP move" had to be the tournament. These three take
+ * that vocabulary out so the tournament and any other search speak it: accumulationEnv works out what the
+ * household has to play with, accumulationCandidate turns a few choices into a plan, and bedAndSippFor is
+ * the one-off capital move both of them may add. The tournament's own candidates are built through them,
+ * and a test pins that they are byte-identical to what the closures produced.
+ */
+function bedAndSippFor(ctx, alloc, spare, scope) {
   const { P, owners, acc } = ctx;
+  if (scope !== 'full' || !(spare > 0)) return null;
+  const o = owners[0];
+  const isaSelfBal = acc[o.ids.isa] ? acc[o.ids.isa].balance : 0;
+  const aaRoom = Math.max(0, Math.min(P.aaAt(o.salary), o.salary > 0 ? o.salary : P.pensionAllowance) - alloc.penByOwner[0]);
+  const gross = Math.min(aaRoom, spare / (1 - P.reliefAtSource), isaSelfBal / (1 - P.reliefAtSource));
+  if (!(gross > 250)) return null;
+  const net = gross * (1 - P.reliefAtSource);
+  const reliefTotal = o.salary > 0 ? incomeTax(o.salary, P) - incomeTax(Math.max(0, o.salary - gross), P) : gross * P.higherRate;
+  const refund = Math.max(0, reliefTotal - gross * P.reliefAtSource);
+  return { transfer: { net, gross, refund, fromId: o.ids.isa, toId: o.ids.pen, refundId: o.ids.cash }, reliefExtra: gross - net + refund };
+}
+
+function accumulationEnv(ctx, { emergencyFloor = 25000, scope = 'contributions', netBudgetOverride = null, balance = 'proportional' } = {}) {
+  const plan = ctx.plan;
+  const { owners, acc } = ctx;
   const cfg = plan.config;
   const margin = 1 + clamp(num(cfg.bridgeSafetyMargin, 30), 0, 500) / 100;
-
   /*
    * WHAT THE HOUSEHOLD PUTS ASIDE EACH YEAR - ALL OF IT, WHEREVER IT LANDS.
    *
@@ -3118,10 +3151,101 @@ function buildTournament(rawPlan, { emergencyFloor = 25000, scope = 'contributio
   const bridgeCapital = bridge.gapYears > 0 ? bridge.netNeeded * margin : 0;
   const bridgeShortfall = Math.max(0, bridgeCapital - Math.max(0, liquidToday - emergencyFloor));
   const annualIsaNeeded = bridge.gapYears > 0 ? bridgeShortfall / yearsToFirstRetire : 0;
+  const lateYears = Math.max(1, Math.ceil(yearsToFirstRetire / 2));
+  const canBackLoad = bridge.gapYears > 0 && lateYears < yearsToFirstRetire;
 
   const salaryKnown = owners.some(o => o.salary > 0);
   const meta = { netBudget, derivedBudget, bridge, bridgeCapital, bridgeShortfall, annualIsaNeeded, liquidToday, salaryKnown, yearsToFirstRetire,
     sweptGia, sweptCash, penIsaNet: currentIsaNet + currentPenNet };
+  return { plan, cfg, margin, emergencyFloor, scope, balance, currentPen, currentIsa, currentGia, currentCash, currentPenNet, currentIsaNet,
+    sweptGia, sweptCash, derivedBudget, netBudget, liquidToday, bridge, yearsToFirstRetire, bridgeCapital, bridgeShortfall, annualIsaNeeded,
+    lateYears, canBackLoad, salaryKnown, meta };
+}
+
+/*
+ * One accumulation plan from a few choices. `cover` is the bridge multiple (0 = nothing set aside; null
+ * = no bridge sizing at all, split the budget by `isaShare` instead, which is the Survival Maximizer's
+ * shape); `backLoad` pays the bridge in over the final years rather than level; `sipp` allows the one-off
+ * capital move, which still needs the tournament to have been asked for `scope: 'full'`.
+ */
+function accumulationCandidate(ctx, env, { cover = 0, isaShare = 0, backLoad = false, sipp = true } = {}) {
+  const { plan, netBudget, emergencyFloor, margin, balance, liquidToday, yearsToFirstRetire, lateYears } = env;
+  const { owners, acc } = ctx;
+  const scope = sipp ? env.scope : 'contributions';
+  /*
+   * Capital that can be moved into the pension today without stranding the bridge. Relief-First only
+   * attempts this when there is no gap at all; knowing the size of the bridge means this player can
+   * reserve exactly what the gap needs and still move the rest. `target` is the requirement measured at
+   * the retirement date, so it is discounted back before being held out of today's balances.
+   */
+  const spareForSipp = (sized) => {
+    const g = sized.bridge.rate;
+    const reserved = sized.target > 0 ? sized.target / Math.pow(1 + g, sized.yearsToRetire || yearsToFirstRetire) : 0;
+    return Math.max(0, liquidToday - emergencyFloor - reserved);
+  };
+  const x = (m) => m.toFixed(2).replace(/0$/, '');
+  if (cover === null) {
+    const sized = bridgeIsaAnnual(ctx, { emergencyFloor, margin: 0 });
+    const alloc = allocateBudget(ctx, netBudget, isaShare, { balance });
+    const bs = bedAndSippFor(ctx, alloc, spareForSipp(sized), scope);
+    return {
+      share: isaShare, cover: null, label: `${Math.round(isaShare * 100)}% ISA`, alloc, sized,
+      transferNet: bs ? bs.transfer.net : 0, transferGross: bs ? bs.transfer.gross : 0, reliefExtra: bs ? bs.reliefExtra : 0,
+      describe: `${Math.round(isaShare * 100)}% of the budget to the ISA and the rest to the pension.` + (bs ? ' Spare ISA capital is moved into the pension as well.' : ''),
+      planState: applyAllocationToPlan(plan, ctx, alloc, bs ? { transfer: bs.transfer } : {})
+    };
+  }
+  const m = cover;
+  if (!backLoad) {
+    const sized = bridgeIsaAnnual(ctx, { emergencyFloor, margin: m * margin });
+    const alloc = allocateBudget(ctx, netBudget, 0, { isaMin: sized.annual, balance });
+    const bs = bedAndSippFor(ctx, alloc, spareForSipp(sized), scope);
+    return {
+      share: null, cover: m, label: m === 0 ? 'No bridge' : `${x(m)}x level`, alloc, sized,
+      transferNet: bs ? bs.transfer.net : 0, transferGross: bs ? bs.transfer.gross : 0, reliefExtra: bs ? bs.reliefExtra : 0,
+      describe: (m === 0
+        ? 'Everything to the pension, with nothing set aside for the bridge: on these paths that survived better than funding one.'
+        : `Everything to the pension except the bridge, sized at ${x(m)}x the growth-adjusted target (${formatGBP(sized.annual)}/yr to the ISA) and paid in level over ${sized.years} years.`)
+        + (bs ? ` Spare ISA capital above the bridge reserve is moved into the pension as well.` : ''),
+      planState: applyAllocationToPlan(plan, ctx, alloc, bs ? { transfer: bs.transfer } : {})
+    };
+  }
+  const sized = bridgeIsaAnnual(ctx, { emergencyFloor, margin: m * margin, overYears: lateYears });
+  const early = allocateBudget(ctx, netBudget, 0, { balance });
+  const late = allocateBudget(ctx, netBudget, 0, { isaMin: sized.annual, balance });
+  const contribByYear = {};
+  const horizon = ctx.totalYears + 1;
+  const switchAt = yearsToFirstRetire - lateYears;
+  owners.forEach((o, i) => {
+    const penArr = [], isaArr = [];
+    const gPen = acc[o.ids.pen] ? acc[o.ids.pen].growth : 0, gIsa = acc[o.ids.isa] ? acc[o.ids.isa].growth : 0;
+    for (let t = 0; t < horizon; t++) {
+      const src = t >= switchAt ? late : early;
+      penArr.push(src.penByOwner[i] * Math.pow(1 + gPen, t));
+      isaArr.push(src.isaByOwner[i] * Math.pow(1 + gIsa, t));
+    }
+    contribByYear[o.ids.pen] = penArr; contribByYear[o.ids.isa] = isaArr;
+  });
+  const bs = bedAndSippFor(ctx, late, spareForSipp(sized), scope);
+  return {
+    share: null, cover: m, label: `${x(m)}x last ${lateYears}y`, alloc: late, sized,
+    phase: { switchYears: lateYears, yearsToFirstRetire, early, late },
+    transferNet: bs ? bs.transfer.net : 0, transferGross: bs ? bs.transfer.gross : 0, reliefExtra: bs ? bs.reliefExtra : 0,
+    describe: `Pension-max for ${switchAt} year${switchAt === 1 ? '' : 's'}, then ${formatGBP(sized.annual)}/yr to the ISA over the final ${lateYears} to build the bridge, sized at ${x(m)}x the growth-adjusted target.`
+      + (bs ? ' Spare ISA capital above the bridge reserve is moved into the pension as well.' : ''),
+    planState: applyAllocationToPlan(plan, ctx, late, bs ? { contribByYear, transfer: bs.transfer } : { contribByYear })
+  };
+}
+
+function buildTournament(rawPlan, { emergencyFloor = 25000, scope = 'contributions', netBudgetOverride = null, balance = 'proportional', entrants = [] } = {}) {
+  const ctx = buildContext(rawPlan);
+  const plan = ctx.plan;
+  const { P, owners, acc } = ctx;
+  const cfg = plan.config;
+  const env = accumulationEnv(ctx, { emergencyFloor, scope, netBudgetOverride, balance });
+  const { margin, currentPen, currentIsa, currentGia, currentCash, currentPenNet, currentIsaNet, sweptGia, sweptCash, derivedBudget, netBudget,
+    liquidToday, bridge, yearsToFirstRetire, bridgeCapital, bridgeShortfall, annualIsaNeeded, salaryKnown, meta } = env;
+
 
   /*
    * Bed & SIPP: a one-off personal contribution funded from ISA capital that is genuinely spare. Relief at
@@ -3129,18 +3253,7 @@ function buildTournament(rawPlan, { emergencyFloor = 25000, scope = 'contributio
    * (this route saves no NIC). `spare` is the caller's judgement of what can be moved without leaving the
    * household short, which is the only part the two players disagree about.
    */
-  const bedAndSipp = (alloc, spare) => {
-    if (scope !== 'full' || !(spare > 0)) return null;
-    const o = owners[0];
-    const isaSelfBal = acc[o.ids.isa] ? acc[o.ids.isa].balance : 0;
-    const aaRoom = Math.max(0, Math.min(P.aaAt(o.salary), o.salary > 0 ? o.salary : P.pensionAllowance) - alloc.penByOwner[0]);
-    const gross = Math.min(aaRoom, spare / (1 - P.reliefAtSource), isaSelfBal / (1 - P.reliefAtSource));
-    if (!(gross > 250)) return null;
-    const net = gross * (1 - P.reliefAtSource);
-    const reliefTotal = o.salary > 0 ? incomeTax(o.salary, P) - incomeTax(Math.max(0, o.salary - gross), P) : gross * P.higherRate;
-    const refund = Math.max(0, reliefTotal - gross * P.reliefAtSource);
-    return { transfer: { net, gross, refund, fromId: o.ids.isa, toId: o.ids.pen, refundId: o.ids.cash }, reliefExtra: gross - net + refund };
-  };
+  const bedAndSipp = (alloc, spare) => bedAndSippFor(ctx, alloc, spare, scope);
 
   const mk = (id, name, description, alloc, extra = {}) => ({
     id, name, description,
@@ -3188,61 +3301,10 @@ function buildTournament(rawPlan, { emergencyFloor = 25000, scope = 'contributio
     // Multiples of the bridge target, which already carries the Config safety margin, so 1.0x is
     // "exactly what Config asks for" and the rest bracket it either side.
     const cover = [0, 0.75, 1.0, 1.35, 1.8, 2.4];
-    const lateYears = Math.max(1, Math.ceil(yearsToFirstRetire / 2));
-    const canBackLoad = bridge.gapYears > 0 && lateYears < yearsToFirstRetire;
+    const { lateYears, canBackLoad } = env;
     const candidates = [];
-    /*
-     * Capital that can be moved into the pension today without stranding the bridge. Relief-First only
-     * attempts this when there is no gap at all; knowing the size of the bridge means this player can
-     * reserve exactly what the gap needs and still move the rest. `target` is the requirement measured at
-     * the retirement date, so it is discounted back before being held out of today's balances.
-     */
-    const spareForSipp = (sized) => {
-      const g = sized.bridge.rate;
-      const reserved = sized.target > 0 ? sized.target / Math.pow(1 + g, sized.yearsToRetire || yearsToFirstRetire) : 0;
-      return Math.max(0, liquidToday - emergencyFloor - reserved);
-    };
-    const pushLevel = (m) => {
-      const sized = bridgeIsaAnnual(ctx, { emergencyFloor, margin: m * margin });
-      const alloc = allocateBudget(ctx, netBudget, 0, { isaMin: sized.annual, balance });
-      const bs = bedAndSipp(alloc, spareForSipp(sized));
-      candidates.push({
-        share: null, cover: m, label: m === 0 ? 'No bridge' : `${m.toFixed(2).replace(/0$/, '')}x level`, alloc, sized,
-        transferNet: bs ? bs.transfer.net : 0, transferGross: bs ? bs.transfer.gross : 0, reliefExtra: bs ? bs.reliefExtra : 0,
-        describe: (m === 0
-          ? 'Everything to the pension, with nothing set aside for the bridge: on these paths that survived better than funding one.'
-          : `Everything to the pension except the bridge, sized at ${m.toFixed(2).replace(/0$/, '')}x the growth-adjusted target (${formatGBP(sized.annual)}/yr to the ISA) and paid in level over ${sized.years} years.`)
-          + (bs ? ` Spare ISA capital above the bridge reserve is moved into the pension as well.` : ''),
-        planState: applyAllocationToPlan(plan, ctx, alloc, bs ? { transfer: bs.transfer } : {})
-      });
-    };
-    const pushLate = (m) => {
-      const sized = bridgeIsaAnnual(ctx, { emergencyFloor, margin: m * margin, overYears: lateYears });
-      const early = allocateBudget(ctx, netBudget, 0, { balance });
-      const late = allocateBudget(ctx, netBudget, 0, { isaMin: sized.annual, balance });
-      const contribByYear = {};
-      const horizon = ctx.totalYears + 1;
-      const switchAt = yearsToFirstRetire - lateYears;
-      owners.forEach((o, i) => {
-        const penArr = [], isaArr = [];
-        const gPen = acc[o.ids.pen] ? acc[o.ids.pen].growth : 0, gIsa = acc[o.ids.isa] ? acc[o.ids.isa].growth : 0;
-        for (let t = 0; t < horizon; t++) {
-          const src = t >= switchAt ? late : early;
-          penArr.push(src.penByOwner[i] * Math.pow(1 + gPen, t));
-          isaArr.push(src.isaByOwner[i] * Math.pow(1 + gIsa, t));
-        }
-        contribByYear[o.ids.pen] = penArr; contribByYear[o.ids.isa] = isaArr;
-      });
-      const bs = bedAndSipp(late, spareForSipp(sized));
-      candidates.push({
-        share: null, cover: m, label: `${m.toFixed(2).replace(/0$/, '')}x last ${lateYears}y`, alloc: late, sized,
-        phase: { switchYears: lateYears, yearsToFirstRetire, early, late },
-        transferNet: bs ? bs.transfer.net : 0, transferGross: bs ? bs.transfer.gross : 0, reliefExtra: bs ? bs.reliefExtra : 0,
-        describe: `Pension-max for ${switchAt} year${switchAt === 1 ? '' : 's'}, then ${formatGBP(sized.annual)}/yr to the ISA over the final ${lateYears} to build the bridge, sized at ${m.toFixed(2).replace(/0$/, '')}x the growth-adjusted target.`
-          + (bs ? ' Spare ISA capital above the bridge reserve is moved into the pension as well.' : ''),
-        planState: applyAllocationToPlan(plan, ctx, late, bs ? { contribByYear, transfer: bs.transfer } : { contribByYear })
-      });
-    };
+    const pushLevel = (m) => candidates.push(accumulationCandidate(ctx, env, { cover: m, backLoad: false }));
+    const pushLate = (m) => candidates.push(accumulationCandidate(ctx, env, { cover: m, backLoad: true }));
     if (bridge.gapYears > 0) {
       cover.forEach(pushLevel);
       if (canBackLoad) [1.0, 1.35, 1.8].forEach(pushLate);
@@ -6240,7 +6302,7 @@ function frontierSpend(row, targetRate = 90) {
 }
 
 // Namespace used by the UI (mirrors the modular engine.js exports)
-const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest };
+const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, transferredPct, round250, compensationWindow, ihtWorkings, ESTATE_ASSET_KINDS, normalizeEstateAssets, businessReliefFor, estateActionPlan, bestPensionSplit, optimizeInheritance, estateForPlanAt, surplusIncome, suggestGift, normalizeGifts, inheritedPensionTax, balancedScore, pickBalanced, policyPlaybook, DEFAULT_DEPOSIT_ORDER, postTaxInheritanceFor, IHT_RELATIONSHIPS, normalizeBeneficiaries, estateAtDeath, estateForCouple, RATE_EPSILON_PTS, MONEY_EPSILON_REL, MONEY_EPSILON_FLOOR, MAX_SURVIVAL_SACRIFICE_PTS, normalizeTolerances, toleranceFor, applySurvivalGuard, PRIORITY_METRICS, PRIORITY_KEYS, DEFAULT_PRIORITIES, normalizePriorities, explainPick, buildTradeoffs, tradeoffCard, averageStats, AUTO_DEPOSIT, DEFAULT_COST_STEPS, HISTORICAL_DATA, HISTORICAL_FIRST_YEAR, HISTORICAL_LAST_YEAR, getHistoricalPoint, RISK_EQUITY_WEIGHTS, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, OWNERS, OWNER_LABEL, CATEGORIES, CATEGORY_LABEL, accountId, DEFAULT_CONFIG, BLANK_PLAN, DECUMULATION_POLICIES, GUARDRAILS, todayISO, calculateYearFraction, normalizePlan, taxParams, incomeTax, marginalRateAt, taxBreakpoints, TAX_REGION_LABELS, calculateUKNetIncome, nicFor, calculateUKTaxAndNIC, calculateMarginalRelief, netCostOfPensionContrib, grossUpNet, grossUpNetIncremental, grossPensionNeededForNet, mulberry32, gaussianPath, buildContext, spendTargetAtAge, freshState, stepYear, simulateDeterministic, simulateHistorical, FAIL_TOLERANCE, evaluateRows, runTrial, pathsForSeed, summarizeTrials, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, annuityFactor, fvContribStream, bridgeRequirement, contribAtYear, salaryAtYear, relevantEarningsAtYear, mpaaAppliesAtYear, carryForwardAtYear, resolveMpaa, wrapperHeadroomAtYear, suggestOneOffDestination, INCOME_TYPES, incomeTypeOf, allocateBudget, applyAllocationToPlan, accumulationOutlay, solveEscalation, applyEscalationToPlan, diffStrategyPlans, resolveSearchPlayer, bridgeIsaAnnual, liquidRealRate, buildTournament, buildPolicyCandidates, pickBest, accumulationEnv, accumulationCandidate, bedAndSippFor };
 /*
  * The engine's public surface. Simple.jsx consumes it from here rather than from a module of its own,
  * which is a deliberate and temporary coupling: with one entrance both pages ship in the same bundle
@@ -6248,7 +6310,7 @@ const E = { niceStep, gridWindow, spendRow, frontierSpend, num, clamp, isBlank, 
  * at which point these lines move to src/engine.js and both pages import that instead. See
  * PLAN-streamlined.md, "Build shape".
  */
-export { GUARDRAILS, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
+export { GUARDRAILS, accumulationEnv, accumulationCandidate, DECUMULATION_POLICIES, DEFAULT_DEPOSIT_ORDER, DEFAULT_COST_STEPS, mulberry32, NUMBER_FORMATS, DEFAULT_NUMBER_FORMAT, setNumberFormat, numberFormat, fmtNum, formatGBP, parseFormatted, groupDigits, pathsForSeed, runTrial, summarizeTrials, spendRow, num, isBlank, clamp, BLANK_PLAN, DEFAULT_CONFIG, STATE_PENSION_FULL, TAX_REGION_LABELS, AUTO_DEPOSIT, resolveMpaa, explainPick, buildTradeoffs, tradeoffCard, averageStats, pickBalanced, suggestOneOffDestination, DEFAULT_PRIORITIES, PRIORITY_METRICS, PRIORITY_KEYS, toleranceFor, postTaxInheritanceFor, spendTargetAtAge, evaluateRows, HISTORICAL_DATA, RISK_EQUITY_WEIGHTS, getHistoricalPoint, DEFAULT_RISK_PROFILES, DEFAULT_RISK_SOURCE, BAND_QUANTILES, CMA_PRESETS, applyCmaPreset, realFromNominal, luckyBand, quantileRate, quantileCurve, normalCdf, smoothSurvivalRate, calculateUKTaxAndNIC, calculateMarginalRelief, grossUpNet, normalizePlan, buildContext, simulateDeterministic, simulateHistorical, monteCarlo, optimizeSpend, shiftRetirement, safeRetirementAge, buildTournament, diffStrategyPlans, buildPolicyCandidates, pickBest, accumulationOutlay, solveEscalation, applyEscalationToPlan };
 
 
 /*

@@ -363,6 +363,21 @@ passed, and by the literature's reading a half-point edge is what withdrawal ord
 The five losses go to the loss ledger (2c.4); the next steps are Phase 2c and the Part D pilot (2d),
 not Phase 3.
 
+**Loss ledger, entry 1: S070 (−2.1). Cause: grid smear, and it converges.** The value function at the
+opening position ranks "draw the whole spend from the pension into higher-rate tax" above "pension to
+the basic-rate limit, the rest from the taxable pot", 0.8049 to 0.8021; the simulation says 67.2 to
+69.3 the other way, and on all 63 discordant paths the fixed plan survived and the solver did not.
+The table is optimistic by +21 points at 12 grid points, +16 at 16, +13 at 20, +9 at 28
+(`ledger-bias.txt`); fitting a + b/n gives a residual of about half a point at infinite resolution, so
+the bias is the grid's, not the five-node return model's. The wrong margin shrinks with it (0.011,
+0.004, 0.003, 0.001) and would cross below about 32 points. The same optimism holds on every household
+probed (+1.5 to +11 at 20 points) and is largest on the far-from-retirement households with the
+longest horizons, wins and losses alike, so bias by itself does not predict a loss; what loses is a
+household where two moves differ by less than the smear and the smear favours the dearer one. Work
+item: resolution where it matters (the adaptive grid near the cliff, already listed; more points on
+the low end of the taxable axis, where a small pot is over-valued), paid for by the reachable band and
+the cheaper reads. `diagnose.mjs` and `bias.mjs` are the ledger's tools; `ledger-S070.txt` the entry.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

@@ -156,9 +156,9 @@ export function solve(E, M, plan, opts = {}) {
     const St = surv[t], Bt = beq[t], Rt = resil[t], Pt = pol[t];
     for (let ic = 0; ic < g.pcls.length; ic++) {
       for (let ig = 0; ig < g.gain.length; ig++) {
-        for (let it = 0; it < g.n; it++) {
-          for (let ii = 0; ii < g.n; ii++) {
-            for (let ip = 0; ip < g.n; ip++) {
+        for (let it = 0; it < g.nt; it++) {
+          for (let ii = 0; ii < g.ni; ii++) {
+            for (let ip = 0; ip < g.np; ip++) {
               const idx = g.index(ip, ii, it, ig, ic);
               toVec(g, ip, ii, it, ig, ic, base);
               /*
@@ -204,7 +204,7 @@ export function solve(E, M, plan, opts = {}) {
     toLogOdds(Rt, lresil[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.n, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap };
   const r = {
     m, g, c, actions, surv, lsurv, resil, lresil, beq, pol, meta, M, eps, nodeReal, wB, wR,
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
@@ -282,8 +282,8 @@ export function runPolicy(r, zs, opts = {}) {
 
 function nearestIndex(g, s) {
   const loc = locateVec(g, s);
-  return g.index(Math.min(g.n - 1, loc.p.i + (loc.p.w > 0.5 ? 1 : 0)), Math.min(g.n - 1, loc.i.i + (loc.i.w > 0.5 ? 1 : 0)),
-    Math.min(g.n - 1, loc.t.i + (loc.t.w > 0.5 ? 1 : 0)), loc.ig, loc.ic);
+  return g.index(Math.min(g.np - 1, loc.p.i + (loc.p.w > 0.5 ? 1 : 0)), Math.min(g.ni - 1, loc.i.i + (loc.i.w > 0.5 ? 1 : 0)),
+    Math.min(g.nt - 1, loc.t.i + (loc.t.w > 0.5 ? 1 : 0)), loc.ig, loc.ic);
 }
 
 /*

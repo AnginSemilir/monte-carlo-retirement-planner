@@ -67,7 +67,9 @@ function locate(ax, v) {
  */
 export function makeGrid(m, opts = {}) {
   const { E, ctx } = m;
-  const n = opts.points || 12;
+  // one count for every pot axis, or `{ pen, isa, tax }` so an axis the smear lives on can be denser than the others
+  const pts = opts.points && typeof opts.points === 'object' ? opts.points : null;
+  const np = (pts ? pts.pen : opts.points) || 12, ni = (pts ? pts.isa : opts.points) || 12, nt = (pts ? pts.tax : opts.points) || 12;
   const spend = Math.max(1000, E.spendTargetAtAge(ctx, ctx.ageSelf0));
   const open = { pen: 0, isa: 0, tax: 0 };
   ctx.accounts.forEach(a => {
@@ -78,16 +80,16 @@ export function makeGrid(m, opts = {}) {
   // the top of each axis: generous, because a lucky path compounds far past where it started
   const top = (v) => Math.max(opts.hiYears || 60, (v / spend) * (opts.headroom || 6));
   const axes = {
-    pen: logAxis(n, spend * 0.1, spend * top(open.pen)),
-    isa: logAxis(n, spend * 0.1, spend * top(open.isa)),
-    tax: logAxis(n, spend * 0.1, spend * top(open.tax))
+    pen: logAxis(np, spend * 0.1, spend * top(open.pen)),
+    isa: logAxis(ni, spend * 0.1, spend * top(open.isa)),
+    tax: logAxis(nt, spend * 0.1, spend * top(open.tax))
   };
   const gain = opts.gainBuckets || [0.05, 0.25, 0.55];      // representative unrealised-gain fractions
   const pcls = opts.pclsBuckets || [0, 0.5, 1];             // fraction of the lump-sum allowance used
-  const size = n * n * n * gain.length * pcls.length;
-  const stride = { isa: n, tax: n * n, gain: n * n * n, pcls: n * n * n * gain.length };
+  const size = np * ni * nt * gain.length * pcls.length;
+  const stride = { isa: np, tax: np * ni, gain: np * ni * nt, pcls: np * ni * nt * gain.length };
   return {
-    m, n, spend, axes, gain, pcls, size, stride, open,
+    m, n: Math.max(np, ni, nt), np, ni, nt, spend, axes, gain, pcls, size, stride, open,
     index: (ip, ii, it, ig, ic) => ip + ii * stride.isa + it * stride.tax + ig * stride.gain + ic * stride.pcls
   };
 }
@@ -170,7 +172,7 @@ function locInto(ax, v, k) {
 export function readValues(g, lsArr, bArr, s, out, lrArr = null) {
   locInto(g.axes.pen, s[0], 0); locInto(g.axes.isa, s[1], 2); locInto(g.axes.tax, s[2], 4);
   const ig = nearest(g.gain, s[3]), ic = nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa));
-  const n = g.n, nn = n * n;
+  const n = g.stride.isa, nn = g.stride.tax;
   const i0 = LOC[0] + LOC[2] * n + LOC[4] * nn + ig * g.stride.gain + ic * g.stride.pcls;
   const wp1 = LOC[1], wi1 = LOC[3], wt1 = LOC[5], wp0 = 1 - wp1, wi0 = 1 - wi1, wt0 = 1 - wt1;
   IDX[0] = i0;           W[0] = wp0 * wi0 * wt0;

@@ -103,15 +103,15 @@ console.log('=========== B. MONOTONICITY, WHICH MUST HOLD WHATEVER THE HOUSEHOLD
     const S = surv[t], R = resil[t], B = beq[t];
     const score = (i) => S[i] + wR * R[i] + wB * B[i];
     for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++)
-      for (let it = 0; it < g.n; it++) for (let ii = 0; ii < g.n; ii++) for (let ip = 0; ip < g.n; ip++) {
+      for (let it = 0; it < g.nt; it++) for (let ii = 0; ii < g.ni; ii++) for (let ip = 0; ip < g.np; ip++) {
         const i = g.index(ip, ii, it, ig, ic); cells++;
         const check = (j) => {
           const ds = score(i) - score(j); if (ds > tol) { violScore++; worstScore = Math.max(worstScore, ds); }
           const dv = S[i] - S[j]; if (dv > tol) { violSurv++; worstSurv = Math.max(worstSurv, dv); }
         };
-        if (ip + 1 < g.n) check(g.index(ip + 1, ii, it, ig, ic));
-        if (ii + 1 < g.n) check(g.index(ip, ii + 1, it, ig, ic));
-        if (it + 1 < g.n) check(g.index(ip, ii, it + 1, ig, ic));
+        if (ip + 1 < g.np) check(g.index(ip + 1, ii, it, ig, ic));
+        if (ii + 1 < g.ni) check(g.index(ip, ii + 1, it, ig, ic));
+        if (it + 1 < g.nt) check(g.index(ip, ii, it + 1, ig, ic));
       }
   }
   ok(`B1  the score never falls as any pot grows (${cells} cells, ${r.m.ctx.totalYears + 1} years)`, violScore === 0, violScore ? `${violScore} violations, worst ${worstScore.toFixed(5)}` : 'none');
@@ -133,7 +133,7 @@ console.log('=========== C. WHY THERE IS NO CERTAIN-SUCCESS SHORTCUT ===========
     if ((m.ctx.ageSelf0 + t) < m.ctx.nmpa) continue;
     const line = zeroGrowthNeed(m, t);
     for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++)
-      for (let it = 0; it < g.n; it++) for (let ii = 0; ii < g.n; ii++) for (let ip = 0; ip < g.n; ip++) {
+      for (let it = 0; it < g.nt; it++) for (let ii = 0; ii < g.ni; ii++) for (let ip = 0; ip < g.np; ip++) {
         const wealth = g.axes.pen.pts[ip] + g.axes.isa.pts[ii] + g.axes.tax.pts[it];
         if (wealth < line) continue;
         above++;

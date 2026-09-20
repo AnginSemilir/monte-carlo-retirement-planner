@@ -127,12 +127,30 @@ five Gauss-Hermite nodes; the per-path expected-return shock is folded into the 
 is a precomputed piecewise-linear table per person (`taxTable(ctx, year)`), so a tax evaluation is two
 lookups and a multiply.
 
-**Gate 1, `research/tests/solver-model.test.mjs`:** run the reduced model under each of the four
-bracket-fill policies and the sequential policy, mapped to fixed actions, on 40 library households and
-the harness fixtures, and compare year by year against `simulateDeterministic` on the expected path.
-Pass: every wrapper within 1.5% or £500 (whichever is larger) in every year, lifetime tax within 1%, and
-the failure year identical where one occurs. The differences that remain are listed with their cause in
-the test header, and each must be one of the approximations above, not a bug.
+**Gate 1, `research/tests/solver-model.test.mjs` — BUILT, and stricter than this plan first drafted.**
+The first draft allowed 1.5% per wrapper, on the assumption that the state collapse lived in the model.
+It does not, and should not: the collapse (cash merged into the taxable pot, the gain fraction in three
+buckets, returns as five nodes) is a property of the solver's GRID, so it belongs in `grid.js` where
+its cost is measured on its own. The model keeps all four pots per owner, calls the engine's own tax
+functions, and follows the engine's order, so under a fixed action it must agree **to the pound**.
+That makes this gate a bug detector rather than a tolerance negotiation: if the model ever drifts from
+`stepYear`, it names the year.
+
+Measured: 29 assertions, 200 household-policy pairs across the library and the five named policies,
+20 couples, and one case each for the lump sum, both harvest ceilings, a large one-off cost, an
+external and an internally-funded deposit, a Scottish taxpayer, spend bands, a household already in
+drawdown, a pre-access bridge, and four draw orders outside the named five. **Worst difference £0.00
+everywhere.** It also pins the gain-fraction invariant (a GIA sale leaves the fraction unchanged;
+only a deposit at cost and growth move it), which is what makes the grid's three buckets meaningful,
+and the two refusals below.
+
+**What the model refuses**, with the reason in the error: guardrails on and the cost lookahead on. The
+solver plans at the full spend and sees costs through the calendar, so neither rule has anything to do
+inside it; `prepare(E, plan, { allowUnsupported: true })` is the escape for a caller that knows.
+
+**Deferred to Phase 2, on purpose:** the precomputed piecewise-linear tax tables and the flat typed
+state. Fidelity first; the model is already 1.5x the engine's speed on a 40-year run simply by not
+assembling an audit row, and this gate is what will prove the fast versions changed nothing.
 
 ### Phase 2. The single-person solver: `src/solver/solve.js`
 
@@ -443,7 +461,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 
 | Phase | Deliverable | Gate | Size relative to the evolver build |
 |---|---|---|---|
-| 1 | reduced model + golden test | model matches engine within tolerance | 1.5× |
+| 1 | reduced model + golden test | **done**: exact to the pound, 29 assertions | 1.5× |
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |

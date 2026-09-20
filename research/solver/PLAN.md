@@ -584,10 +584,11 @@ so no plan's numbers move unless it holds enough cash to breach it. Golden test:
 to the pound.
 
 **2e.2 Dividend tax in the GIA.** The GIA is taxed only as CGT on disposal; dividends inside it are not
-taxed. Add a dividend yield per risk tier (config, defaulting to the tier's income component from the
-capital-market assumptions), the dividend allowance as a config field, and tax the excess at the
-dividend rates by band in the year it arises, with the yield paid out of the return (not on top of it)
-so total return is unchanged. Golden test as above; the fast flow's net table gains a dividend row.
+taxed. Built as one configurable dividend yield for the GIA (2% a year by default; the capital-market
+presets carry no income component to derive a per-tier figure from, so per tier is a later refinement),
+the dividend allowance and the three dividend rates as config fields, and the excess taxed at the
+dividend rate of the band it falls in, in the year it arises, with the yield paid out of the return
+(not on top of it) so total return is unchanged. Golden test as above.
 
 **Gate 2e:** both engine tests green; the phase 1 golden test still exact; the 41-household experiment
 re-run once with both on, expecting the solver's edge to hold or grow and the cash-heavy and GIA-heavy

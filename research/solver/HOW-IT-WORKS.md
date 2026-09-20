@@ -292,6 +292,13 @@ the cash ISA cap (the under-65 cap from 2027 is dated config). This "you will ac
 is what lets the two stay one pot, which keeps the solver's grid to three dimensions. The library now
 splits every household's cash none, half or all into the ISA so the tax has households to bite on.
 
+**What is still fixed, on purpose.** Each wrapper's risk tier is held at the tier set on Plan Inputs in
+this research build; the solver decides withdrawal order and harvesting, not how the money is invested.
+That is sequencing, not a decision to leave it out: Phase 6 makes the tier a move (stay, or a step down
+or up from the household's own tier), and it comes after the Part D spending pilot because the
+literature finds the larger gain in spending that responds to wealth. Mortality, annuities and market
+regimes stay out by design.
+
 **The risk term is a shortfall, not a step.** The table's downside term used to be "the chance of
 ending with at least what you started with", a step that rewards a gamble right at the line. It is now
 the expected shortfall below that line, which is smooth. It changed no decision; it removes the

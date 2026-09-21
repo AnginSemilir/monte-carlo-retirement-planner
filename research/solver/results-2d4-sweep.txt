@@ -1,0 +1,30 @@
+Phase 2d.4 raise-weight sweep: 8 households (S004 S034 S070 S100 S126 S154 S178 S218) x raise weight {0.005, 0.015, 0.05, 0.15}; levels 1.2/1.1/1/0.9/0.8; CONF=gkFloor; margin 0.5pt; 30x6x6; 3000 held-out; seeds 7001/7002
+credit = weight x sqrt(level - 1), capped at a 20% raise; the penalty on trims still bisected to land the floor rate
+
+--- raise weight 0.005
+solver against gkFloor:
+  floor rate: mean +0.26 pts;  fully-funded rate: mean +14.25 pts, 4 up / 4 down beyond two standard errors, sign test p = 1.000
+  years at target (median run): solver 0.864 vs 0.511;  years above target (mean): 21.2 vs 16.3;  spending delivered (mean level, median run): 1.096 vs 1.058;  changes per path: 6.99 vs 25.44;  median pot: 266k
+
+--- raise weight 0.015
+solver against gkFloor:
+  floor rate: mean +0.08 pts;  fully-funded rate: mean +11.59 pts, 4 up / 4 down beyond two standard errors, sign test p = 1.000
+  years at target (median run): solver 0.848 vs 0.511;  years above target (mean): 26.7 vs 16.3;  spending delivered (mean level, median run): 1.130 vs 1.058;  changes per path: 5.77 vs 25.44;  median pot: 71k
+
+--- raise weight 0.05
+solver against gkFloor:
+  floor rate: mean -0.95 pts;  fully-funded rate: mean +23.88 pts, 6 up / 1 down beyond two standard errors, sign test p = 0.125
+  years at target (median run): solver 0.911 vs 0.511;  years above target (mean): 29.3 vs 16.3;  spending delivered (mean level, median run): 1.161 vs 1.058;  changes per path: 3.11 vs 25.44;  median pot: -209k
+
+--- raise weight 0.15
+solver against gkFloor:
+  floor rate: mean -9.83 pts;  fully-funded rate: mean +40.37 pts, 7 up / 1 down beyond two standard errors, sign test p = 0.070
+  years at target (median run): solver 0.980 vs 0.511;  years above target (mean): 31.9 vs 16.3;  spending delivered (mean level, median run): 1.191 vs 1.058;  changes per path: 1.42 vs 25.44;  median pot: -764k
+
+=== sweep reduced ===
+
+weight | solver floor vs gkFloor | above-target years S/gkF | spending delivered median S/gkF | p10 S/gkF | changes S/gkF | pot diff | landed
+0.005  | 91.4 vs 91.2 | 21.2 / 16.3 | 1.096 / 1.058 | 0.948 / 0.870 |  7.0 / 25.4 | +266k | 8 of 8 landed
+0.015  | 91.3 vs 91.2 | 26.7 / 16.3 | 1.130 / 1.058 | 0.973 / 0.870 |  5.8 / 25.4 |  +71k | 8 of 8 landed
+0.05   | 90.2 vs 91.2 | 29.3 / 16.3 | 1.161 / 1.058 | 1.018 / 0.870 |  3.1 / 25.4 | -209k | 4 of 8 landed, 4 confidence not reachable
+0.15   | 81.3 vs 91.2 | 31.9 / 16.3 | 1.191 / 1.058 | 1.132 / 0.870 |  1.4 / 25.4 | -764k | 0 of 8 landed

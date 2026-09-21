@@ -531,6 +531,24 @@ larger end pot is that unspent surplus. That is the case for 2d.4, made on the n
 protects the target better than any rule and keeps the surplus as bequest, and whether to spend some
 of it is a preference the objective must be able to hold.
 
+**Phase 2d.4 raise-weight sweep, 8 households (tags flex-mu-*; `results-2d4-sweep.txt`).** The credit
+is weight × √(level − 1), capped at a 20% raise, levels 1.2 and 1.1 added to the menu, the penalty on
+trims still bisected to land the floor. Even the smallest weight tried (0.005) raises more often than
+the guardrails (21 years a run above target against 16) while still landing the floor on 8 of 8
+(91.4 against 91.2), and is ahead on spending delivered (1.096 against 1.058 in the median run, 0.95
+against 0.87 in the unlucky tenth) with 7 changes a run against 25 and £266k more pot. Three findings.
+(1) The whipsaw gate: raises bring the changes-per-run figure from 2 to 7 at the smallest weight,
+still a quarter of the guardrails', and falling as the weight rises (3 at 0.05, 1.4 at 0.15) because a
+heavier credit holds the raise rather than dipping in and out. (2) The floor and the credit fight: from
+0.05 up the bisection on the penalty cannot reach the confidence on half the households, because the
+credit is in absolute score units while the penalty is scaled by λ, so at the small λ the bracket
+starts from the credit still dominates. If a heavier preference is ever wanted, the credit should be a
+ratio to λ (a raise worth ρ trims) so the bisection scales both and stays monotone; at the weights
+that land, the absolute form is fine. (3) The calibration point is below the sweep: the guardrails'
+16 years sits under 0.005, so the full pass runs at 0.003. What the sweep already shows: at any weight
+that lands, the solver delivers more spending than the guardrails in the median run AND the unlucky
+tenth, with a fraction of the whipsaw and a larger pot.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

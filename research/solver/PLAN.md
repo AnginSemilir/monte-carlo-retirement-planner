@@ -549,6 +549,27 @@ that land, the absolute form is fine. (3) The calibration point is below the swe
 that lands, the solver delivers more spending than the guardrails in the median run AND the unlucky
 tenth, with a fraction of the whipsaw and a larger pot.
 
+**Gate 6, the versus protocol with the tier as part of the move, 41 households (tag p6-tiers;
+`results-p6-tiers.txt`).** Joint steps (pension and ISA down together, up to two tiers below the
+plan's, never above), 40-point grid, the same seeds as gate 2e. Solver against the same menu held
+fixed: **mean +5.03 points of survival (was +0.73 without tiers), 41 up / 0 down, sign test
+p < 0.001, the app's own picker for the solver on 41 of 41**; against the app as it stands +5.06.
+Every household gained from the tier freedom (smallest +1.1, largest +8.6 on S020, an ISA-heavy
+household in drawdown), the unlucky tenth is £85k better and the median pot **£917k smaller**: the
+solver buys survival with the upside, which is what the objective asks (survival first, the bequest
+capped and lightly weighted). How it uses the freedom, on six households across the band: **one or
+two tiers below the plan's for 72 to 91% of the years**, changing tier 3 to 7 times a run. The
+plan-tier of most library households is the highest, so this reads as "the app's default risk is
+above what a survival-first objective wants once the pot is ahead", and a bequest-weighted preset
+would keep more of it; that is a product question for the presets, not a solver fault. Cost: the
+solve took **2.05× the phase 2 time** on the same grid (45s against 22s, both measured with three
+other jobs running), so the gate's 1.5× is not met as measured; every pair of tiers costs 4 to 5×
+and adds nothing to the value, which is why the joint step is the default. Gate 6's first condition
+is met by a wide margin, its time condition is missed by a third, and its safe-spend condition is
+deferred with the spend dimension. Two follow-ups for Part C: a switching cost or a "stay unless it
+is worth it" margin, because free switching flips tiers more than a person would; and the GIA's tier,
+which needs a memory bucket.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -1056,7 +1077,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | same on couple households | 1× |
-| 6 | tiers and spend dimension | same, plus safe spend within £500 | 1× |
+| 6 | tiers and spend dimension | **tiers done**: +5.03 survival vs +0.73 without, 41 of 41, picker 41 of 41; 2.05× solve time (gate asked 1.5×); spend dimension deferred | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

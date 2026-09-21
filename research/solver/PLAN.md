@@ -711,6 +711,21 @@ five-node one on the 41 to the hundredth: gap −0.15 against −0.15, within a 
 engine's score of the plan 83.86 both, at 40 s against 71 s a household. Three is the default; the app's
 first solve is then three tables in parallel, about the cost of one.
 
+**Gate 5, couples by rollout (tag couple-20; `results-p5-couples.txt`).** Nineteen households across
+the couple band, three-world mixture, 2,000 held-out paths, every arm in the exact model on the engine's
+market. Rollout against the best of the same 24-move menu: **+0.77 points of survival, 14 up / 3 down
+beyond two standard errors, sign test p = 0.013, worst −0.85, median pot +£97k**; against the plan's own
+rule +0.91, 14 up / 2 down, p = 0.004, median pot +£217k. The split is used in 29 of about 32 retired
+years a run and averages 0.49, even overall but not even in any one household (0.33 to 0.72): it leans
+on whichever person's wrappers the tables say can bear it. Gate 5's survival conditions are met (the
+mean beats the epsilon, no household is worse by more than a point); its backtest and perturbed-world
+conditions, inherited from gate 4, have not been run for couples. Three households lose by up to 0.85,
+two of them with the most uneven splits (0.72, 0.66), which is where the single tables' assumption that
+the split stays even is most wrong; a second rollout step, or tables solved at the split the rollout
+tends to, are the candidates. The couples' edge is the singles' withdrawal-order edge in size (+0.86),
+which is what it should be: the tier freedom that gave the singles +6 is off for couples in this pilot.
+Cost: 81 s to solve the two people, 164 s to run 2,000 paths under the rollout.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -1239,7 +1254,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
-| 5 | couples by rollout | same on couple households | 1× |
+| 5 | couples by rollout | **done, survival conditions met**: +0.77 vs the best fixed rule on 19 couples, 14 up / 3 down, worst −0.85; tiers off for couples; backtest and perturbed worlds not yet run | 1× |
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |

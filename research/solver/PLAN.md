@@ -570,6 +570,25 @@ deferred with the spend dimension. Two follow-ups for Part C: a switching cost o
 is worth it" margin, because free switching flips tiers more than a person would; and the GIA's tier,
 which needs a memory bucket.
 
+**Phase 2d.4 full pass, 41 households (tag flex-2d4; `results-2d4-flex.txt`).** Raise weight 0.003,
+levels 1.2 and 1.1 on the menu, everything else as flex-2d3. At the same floor rate as the guardrails
+with floor (92.7 both, landed within half a point on 37 of 41) the solver now delivers **more spending:
+1.116 of target-years against 1.054 in the median run (ahead on 34 of 41) and 0.96 against 0.87 in the
+unlucky tenth (ahead on 41 of 41)**, with 5.7 changes a run against 26 and the same median pot (+£7k):
+the surplus the no-raise solver kept as bequest is now spent, and spent where the value function says
+it is safe. It raises in 23 years a run against the guardrails' 17, so the calibration point sits
+lower still (about 0.0015), and the "equal pot" reading is the more natural one: at 0.003 the solver
+and the guardrails end with the same money, and the solver has spent 6% more of it on the way while
+keeping the target in 93% of years against 52%. Against Vanguard it delivers the same spending (1.116
+against 1.123) at 2.4 points more floor rate, a sixth of the whipsaw and £382k more pot; against ARVA
+it delivers far less (ARVA spends the pot: 1.83) at 5.9 points more floor rate and ten times the pot,
+and is ahead in the unlucky tenth on only 12 of 41, because ARVA's unlucky paths still spend the pot
+down. **2d.4 done, and adopted as an option, not the default**: the raise weight is the preference the
+presets expose (0 keeps the surplus as bequest; 0.003 spends it), and the whipsaw it adds (2 → 5.7
+changes a run) is the price of the raises, still a fifth of any rule's. The one household where the
+confidence was not reachable with raises on (S154, early bridge, GIA-heavy, 75%) is the one whose
+floor rate is lowest, where the credit and the penalty fight at the bottom of the bracket.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -1071,7 +1090,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 1 | reduced model + golden test | **done**: exact to the pound, 29 assertions | 1.5× |
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
 | 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | **done**: edge grows in every perturbed world; shortfall adopted; (0.5, 0.02) confirmed; every loss named | 0.5× |
-| 2d | Part D pilot in the reduced model, against the guardrails | **pilot, 2d.2, 2d.3 done**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2.0 vs 26, ahead on 41 of 41; Vanguard and ARVA beaten on years at target, every rule ahead on spending delivered (the raises); 2d.4 raises above target next | 1× |
+| 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |

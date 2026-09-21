@@ -89,11 +89,11 @@ function appMenu(m) {
  */
 function worldOf(kind) {
   // `act` is the compiled move the year was run with: since phase 6 it carries the tiers held, and so the rates
-  const R = (c, act) => (act ? act.real : c.real), V = (c, act) => (act ? act.volEff : c.volEff);
-  if (!kind || kind === 'base') return (c, z, out, act) => { const r = R(c, act), v = V(c, act); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + v[i] * z) - 1; return out; };
-  if (kind === 'return-1') return (c, z, out, act) => { const r = R(c, act), v = V(c, act); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i] - 0.01) + v[i] * z) - 1; return out; };
-  if (kind === 'vol+25') return (c, z, out, act) => { const r = R(c, act), v = V(c, act); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + 1.25 * v[i] * z) - 1; return out; };
-  if (kind === 'left-tail') return (c, z, out, act) => { const r = R(c, act), v = V(c, act); const zz = z < 0 ? 1.3 * z : z; for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + v[i] * zz) - 1; return out; };
+  const R = (c, act) => (act ? act.real : c.real), V = (c, act, t) => (act ? act.volEffAt[t] : c.volEffAt[t]);
+  if (!kind || kind === 'base') return (c, z, out, act, t) => { const r = R(c, act), v = V(c, act, t); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + v[i] * z) - 1; return out; };
+  if (kind === 'return-1') return (c, z, out, act, t) => { const r = R(c, act), v = V(c, act, t); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i] - 0.01) + v[i] * z) - 1; return out; };
+  if (kind === 'vol+25') return (c, z, out, act, t) => { const r = R(c, act), v = V(c, act, t); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + 1.25 * v[i] * z) - 1; return out; };
+  if (kind === 'left-tail') return (c, z, out, act, t) => { const r = R(c, act), v = V(c, act, t); const zz = z < 0 ? 1.3 * z : z; for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + v[i] * zz) - 1; return out; };
   throw new Error(`unknown world ${kind}`);
 }
 
@@ -115,7 +115,7 @@ function runFixedPath(c, ai, zs, world = worldOf()) {
       lastLevel = lv;
     }
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false };
-    world(c, zs[t], real, c.acts[ai]);
+    world(c, zs[t], real, c.acts[ai], t);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
@@ -157,7 +157,7 @@ function runSolvedPath(r, zs, world = worldOf()) {
     tax += c.last.taxPaid + c.last.cgtPaid;
     { const a = c.acts[ai]; switchPaid += F.chargeSwitch(c, s, held, a); held.pen = a.tierPen; held.isa = a.tierIsa; if (a.tierPen > 0 || a.tierIsa > 0) tierYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, tierYears, tierChanges, switchPaid };
-    world(c, zs[t], real, c.acts[ai]);
+    world(c, zs[t], real, c.acts[ai], t);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];

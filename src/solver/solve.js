@@ -104,8 +104,8 @@ export function spendLevelsFor(floorFrac) {
 }
 
 /* The real rate of each pot (pension, ISA, GIA, cash) at a market draw z. */
-function realAt(c, z, out, act = null) {
-  const R = act ? act.real : c.real, V = act ? act.volEff : c.volEff;
+function realAt(c, z, out, act = null, t = 0) {
+  const R = act ? act.real : c.real, V = act ? act.volEffAt[t] : c.volEffAt[t];
   for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + V[i] * z) - 1;
   return out;
 }
@@ -146,10 +146,16 @@ export function solve(E, M, plan, opts = {}) {
   c.switchCost = opts.switchCost !== undefined ? opts.switchCost : (opts.tiers ? F.SWITCH_COST : 0);
   // ...and is made only when the table's gain from it is worth noticing (see chooseAction)
   const switchMargin = opts.switchMargin !== undefined ? opts.switchMargin : (opts.tiers ? SWITCH_MARGIN : 0);
-  const nodeReal = NODES.map(z => realAt(c, z, new Float64Array(4)));
-  // the quadrature rates for each move's tier combination, shared between moves that hold the same tiers
+  const T0 = m.ctx.totalYears;
+  // the quadrature rates by year (the folded spread depends on the years left) for each move's tier
+  // combination, shared between moves that hold the same tiers
   const byCombo = {};
-  const nodeRealOf = actions.map((a, ai) => { const k = `${c.acts[ai].tierPen}/${c.acts[ai].tierIsa}`; if (!byCombo[k]) byCombo[k] = NODES.map(z => realAt(c, z, new Float64Array(4), c.acts[ai])); return byCombo[k]; });
+  const nodeRealOfAt = [];
+  for (let t = 0; t <= T0; t++) {
+    const byK = {};
+    nodeRealOfAt[t] = actions.map((a, ai) => { const k = `${c.acts[ai].tierPen}/${c.acts[ai].tierIsa}`; if (!byK[k]) byK[k] = NODES.map(z => realAt(c, z, new Float64Array(4), c.acts[ai], t)); byCombo[k] = true; return byK[k]; });
+  }
+  const nodeReal = nodeRealOfAt[0][0];
   // tier variants of a move share its flow: `tierBase` names the move whose flow they reuse
   const tierBase = actions.map((a, ai) => (a.tierBase !== undefined && a.tierBase < ai && actions[a.tierBase].tierBase === a.tierBase ? a.tierBase : ai));
   const T = m.ctx.totalYears;
@@ -244,6 +250,7 @@ export function solve(E, M, plan, opts = {}) {
     const hNext = t < T ? short[t + 1] : null;
     const St = surv[t], Bt = beq[t], Rt = resil[t], Pt = pol[t], Ht = short[t];
     const spendYear = c.yr.spend[t] > 0;
+    const nodeRealOf = nodeRealOfAt[t];
     for (let ic = 0; ic < g.pcls.length; ic++) {
       for (let ig = 0; ig < g.gain.length; ig++) {
         for (let it = 0; it < g.nt; it++) {
@@ -305,7 +312,7 @@ export function solve(E, M, plan, opts = {}) {
 
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin };
   const r = {
-    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOf, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin,
+    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin,
     tieMargin: opts.tieMargin || 0,
     rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
@@ -392,7 +399,8 @@ export function chooseAction(r, s, t, held = null) {
 
 /* Every move's score from one solve's tables at the true position `s` in year `t`, with the year's tax and the expected bequest. */
 function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
-  const { g, c, actions, lsurv, lresil, beq, short, nodeRealOf, wB, wR, levelOf } = r;
+  const { g, c, actions, lsurv, lresil, beq, short, nodeRealOfAt, wB, wR, levelOf } = r;
+  const nodeRealOf = nodeRealOfAt[t];
   const post = r._post || (r._post = new Float64Array(Math.max(7, s.length)));
   const grown = r._grown || (r._grown = new Float64Array(Math.max(7, s.length)));
   const rd = r._rd || (r._rd = new Float64Array(4));
@@ -446,7 +454,7 @@ export function runPolicy(r, zs, opts = {}) {
       lastLevel = lv;
     }
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges, switchPaid };
-    F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai]));
+    F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai], t));
   }
   const total = s[0] + s[1] + s[2];
   const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid };

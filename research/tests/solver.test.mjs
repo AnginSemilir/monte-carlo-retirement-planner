@@ -22,6 +22,7 @@
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
+import * as F from '../../src/solver/fast.js';
 import { solve, runPolicy, buildActions } from '../../src/solver/solve.js';
 import { zeroGrowthNeed } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
@@ -156,7 +157,7 @@ console.log('=========== D. PLUMBING: ONE MOVE REPRODUCES A FIXED POLICY =======
   const r = solve(E, M, plan, { points: 8, actions: [one], lump: false });
   const zs = E.pathsForSeed(777, 200, m.ctx.totalYears);
   const direct = (z) => { const st = M.initialState(m); const rates = {};
-    for (let t = 0; t <= m.ctx.totalYears; t++) { m.ctx.accounts.forEach(a => { const v = Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam); rates[a.id] = Math.exp(Math.log(1 + a.real) + v * z[t]) - 1; });
+    for (let t = 0; t <= m.ctx.totalYears; t++) { m.ctx.accounts.forEach(a => { const v = F.foldedVol(a.vol, a.sigmaParam, m.ctx.totalYears - t + 1); rates[a.id] = Math.exp(Math.log(1 + a.real) + v * z[t]) - 1; });
       const row = M.step(m, st, one, t, rates); if (row.unmetDemand > 1 || row.preNmpaInsolvent) return false; }
     return true; };
   let agree = 0;

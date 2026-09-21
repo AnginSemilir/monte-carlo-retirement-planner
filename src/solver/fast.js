@@ -54,6 +54,20 @@ function taxOf(tb, g) { return g <= 0 ? 0 : g - netOf(tb, g); }
  * Compile a household. `m` is `model.prepare`'s result, so the fast flow and the exact one read the
  * same context; `actions` are the solver's moves.
  */
+/*
+ * THE HORIZON FOLD. The engine draws the long-run mean's error once per path (sigmaParam times a
+ * per-path normal) and the annual shock once per year. A solver with no path memory cannot carry the
+ * first, so it is folded into the annual spread; but a shift held for n years disperses the outcome as
+ * n^2 sigma^2, not n sigma^2, so folding it as one year's noise understated a long horizon's spread by
+ * up to five points of survival (gate 3, the 41 households). Folding it as vol^2 + (2n - 1) sigma^2 in
+ * the year with n years left makes the variance of the growth over every remaining horizon match the
+ * engine's exactly for a held pot; what it cannot match is the correlation a persistent shift gives
+ * the years, which is the memory the grid does not carry.
+ */
+export function foldedVol(vol, sigmaParam, yearsLeft) {
+  return Math.sqrt(vol * vol + (2 * Math.max(1, yearsLeft) - 1) * sigmaParam * sigmaParam);
+}
+
 /* The tiers on Plan Inputs, riskiest first; "below" means further along this list. */
 export const TIER_ORDER = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
 
@@ -172,12 +186,20 @@ export function compile(m, actions) {
   const tiers = tiersFor(m);
   const planReal = CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].real : 0));
   const planVolEff = CATS.map(c => { const a = acc[idOf[c]]; return a ? Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam) : 0; });
+  // the folded spread by year (see foldedVol): per category for the plan's tiers, and per tier pair for the moves
+  const foldAt = (volOf, sigOf) => { const out = new Array(T + 1); for (let t = 0; t <= T; t++) { out[t] = new Float64Array(4); for (let i = 0; i < 4; i++) out[t][i] = foldedVol(volOf(i), sigOf(i), T - t + 1); } return out; };
+  const planVol = CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].vol : 0)), planSig = CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].sigmaParam : 0));
+  const planVolEffAt = foldAt(i => planVol[i], i => planSig[i]);
+  const foldByCombo = {};
   const acts = actions.map(a => {
     // the tier held this year in the pension and the ISA (phase 6): 0 is the plan's, 1 and 2 are below it
     const tp = Math.min(a.tierPen || 0, tiers.pen.length - 1), ti = Math.min(a.tierIsa || 0, tiers.isa.length - 1);
     const real = Float64Array.from(planReal), volEff = Float64Array.from(planVolEff);
     if (tp > 0) { real[0] = tiers.pen[tp].real; volEff[0] = tiers.pen[tp].volEff; }
     if (ti > 0) { real[1] = tiers.isa[ti].real; volEff[1] = tiers.isa[ti].volEff; }
+    const key = `${tp}/${ti}`;
+    if (!foldByCombo[key]) foldByCombo[key] = (tp === 0 && ti === 0) ? planVolEffAt : foldAt(i => (i === 0 ? tiers.pen[tp].vol : i === 1 ? tiers.isa[ti].vol : planVol[i]), i => (i === 0 ? tiers.pen[tp].sigmaParam : i === 1 ? tiers.isa[ti].sigmaParam : planSig[i]));
+    const volEffAt = foldByCombo[key];
     return {
       steps: Int8Array.from(a.steps.map(s => STEP[s])),
       costSteps: Int8Array.from((a.costSteps || a.steps).map(s => STEP[s])),
@@ -185,7 +207,7 @@ export function compile(m, actions) {
       lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1,
       // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
       level: a.spendLevel !== undefined ? a.spendLevel : 1,
-      tierPen: tp, tierIsa: ti, real, volEff
+      tierPen: tp, tierIsa: ti, real, volEff, volEffAt
     };
   });
   return {
@@ -193,8 +215,10 @@ export function compile(m, actions) {
     // the guardrails, applied only on a forward run whose state vector carries their memory (slots 7 to 10)
     guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, inflation: ctx.inflation, solvencyFloor: ctx.solvencyFloor || 0,
     real: planReal,
-    // the annual spread per pot with the per-path shock folded in, for a solver that has no path memory
+    // the annual spread per pot with the per-path shock folded in as one year's noise (ARVA's rate uses it) ...
     volEff: planVolEff,
+    // ... and folded by the years left, which is what growth uses (see foldedVol)
+    volEffAt: planVolEffAt,
     tiers,
     // the round-trip cost of a tier change on the slice traded; the solver sets it when tiers are on
     switchCost: 0

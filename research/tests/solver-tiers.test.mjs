@@ -54,7 +54,7 @@ console.log('=========== B. TIER VARIANTS SHARE THE FLOW AND DIFFER ONLY IN GROW
     n++;
     if (Math.abs(uA - uB) > 1e-9 || sA.some((x, i) => Math.abs(x - sB[i]) > 1e-9)) sameFlow = false;
     if (ai !== b) { const gA = Float64Array.from(sA), gB = Float64Array.from(sB); const z = 1; const rA = new Float64Array(4), rB = new Float64Array(4);
-      for (let i = 0; i < 4; i++) { rA[i] = Math.exp(Math.log(1 + c.acts[ai].real[i]) + c.acts[ai].volEff[i] * z) - 1; rB[i] = Math.exp(Math.log(1 + c.acts[b].real[i]) + c.acts[b].volEff[i] * z) - 1; }
+      for (let i = 0; i < 4; i++) { rA[i] = Math.exp(Math.log(1 + c.acts[ai].real[i]) + c.acts[ai].volEffAt[t][i] * z) - 1; rB[i] = Math.exp(Math.log(1 + c.acts[b].real[i]) + c.acts[b].volEffAt[t][i] * z) - 1; }
       F.grow(c, t, gA, rA); F.grow(c, t, gB, rB); if (Math.abs(gA[0] - gB[0]) + Math.abs(gA[1] - gB[1]) > 1e-6) growsDiffer++; }
   }
   ok('B3  a variant\'s flow is its base move\'s flow, to the bit', sameFlow, `${n} positions`);

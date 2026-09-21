@@ -54,6 +54,34 @@ function taxOf(tb, g) { return g <= 0 ? 0 : g - netOf(tb, g); }
  * Compile a household. `m` is `model.prepare`'s result, so the fast flow and the exact one read the
  * same context; `actions` are the solver's moves.
  */
+/* The tiers on Plan Inputs, riskiest first; "below" means further along this list. */
+export const TIER_ORDER = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
+
+/*
+ * The tiers a wrapper may hold under the solver (phase 6): the one set on Plan Inputs first, then up to
+ * `below` tiers under it, each with the plan's own return assumptions for that tier. Never above.
+ */
+export function tiersFor(m, below = 2) {
+  const profiles = (m.plan && m.plan.riskProfiles) || m.E.DEFAULT_RISK_PROFILES;
+  const o = m.ctx.owners[0];
+  const out = {};
+  for (const cat of ['pen', 'isa']) {
+    const a = m.acc[o.ids[cat]];
+    if (!a) { out[cat] = [{ name: null, real: 0, vol: 0, sigmaParam: 0, volEff: 0 }]; continue; }
+    const k0 = TIER_ORDER.indexOf(a.risk);
+    const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam }];
+    for (let d = 1; d <= below && k0 >= 0 && k0 + d < TIER_ORDER.length; d++) {
+      const name = TIER_ORDER[k0 + d];
+      const prof = profiles[name] || m.E.DEFAULT_RISK_PROFILES[name];
+      if (!prof) break;
+      list.push({ name, real: (Number(prof.real) || 0) / 100, vol: (Number(prof.volatility) || 0) / 100, sigmaParam: (Number(prof.sigmaParam) || 0) / 100 });
+    }
+    list.forEach(x => { x.volEff = Math.sqrt(x.vol * x.vol + x.sigmaParam * x.sigmaParam); });
+    out[cat] = list;
+  }
+  return out;
+}
+
 export function compile(m, actions) {
   const { E, ctx, P } = m;
   if (ctx.isCouple) throw new Error('the fast flow takes one person; couples are phase 5');
@@ -118,21 +146,33 @@ export function compile(m, actions) {
     }
   }
   const tb = netTable(E, P);
-  const acts = actions.map(a => ({
-    steps: Int8Array.from(a.steps.map(s => STEP[s])),
-    costSteps: Int8Array.from((a.costSteps || a.steps).map(s => STEP[s])),
-    harvest: a.harvest ? 1 : 0, harvestCeil: a.harvestCeil === 'basic' ? P.higherRateStartsAt : P.pa,
-    lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1,
-    // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
-    level: a.spendLevel !== undefined ? a.spendLevel : 1
-  }));
+  const tiers = tiersFor(m);
+  const planReal = CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].real : 0));
+  const planVolEff = CATS.map(c => { const a = acc[idOf[c]]; return a ? Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam) : 0; });
+  const acts = actions.map(a => {
+    // the tier held this year in the pension and the ISA (phase 6): 0 is the plan's, 1 and 2 are below it
+    const tp = Math.min(a.tierPen || 0, tiers.pen.length - 1), ti = Math.min(a.tierIsa || 0, tiers.isa.length - 1);
+    const real = Float64Array.from(planReal), volEff = Float64Array.from(planVolEff);
+    if (tp > 0) { real[0] = tiers.pen[tp].real; volEff[0] = tiers.pen[tp].volEff; }
+    if (ti > 0) { real[1] = tiers.isa[ti].real; volEff[1] = tiers.isa[ti].volEff; }
+    return {
+      steps: Int8Array.from(a.steps.map(s => STEP[s])),
+      costSteps: Int8Array.from((a.costSteps || a.steps).map(s => STEP[s])),
+      harvest: a.harvest ? 1 : 0, harvestCeil: a.harvestCeil === 'basic' ? P.higherRateStartsAt : P.pa,
+      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1,
+      // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
+      level: a.spendLevel !== undefined ? a.spendLevel : 1,
+      tierPen: tp, tierIsa: ti, real, volEff
+    };
+  });
   return {
     E, m, ctx, P, o, T, yr, tb, acts, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
     // the guardrails, applied only on a forward run whose state vector carries their memory (slots 7 to 10)
     guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, inflation: ctx.inflation, solvencyFloor: ctx.solvencyFloor || 0,
-    real: CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].real : 0)),
+    real: planReal,
     // the annual spread per pot with the per-path shock folded in, for a solver that has no path memory
-    volEff: CATS.map(c => { const a = acc[idOf[c]]; return a ? Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam) : 0; })
+    volEff: planVolEff,
+    tiers
   };
 }
 

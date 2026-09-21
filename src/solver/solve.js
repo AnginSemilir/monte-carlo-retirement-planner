@@ -60,6 +60,8 @@ export function buildActions(opts = {}) {
   // the plan as written comes first at every level list, so a tie in the score goes to it and not to a trim or a raise
   const given = opts.spendLevels && opts.spendLevels.length ? opts.spendLevels : [1];
   const levels = given.includes(1) ? [1, ...given.filter(l => l !== 1)] : given;
+  // the risk tier as part of the move (phase 6): the plan's tier first, so a move's tier variants follow it and share its flow
+  const tiers = opts.tiers && opts.tiers.length ? opts.tiers : [[0, 0]];
   const out = [];
   for (let pi = 0; pi < PREFIX.length; pi++) {
     const prefix = PREFIX[pi];
@@ -69,12 +71,16 @@ export function buildActions(opts = {}) {
       const steps = [...prefix, ...mid, ...rest];
       for (const harvest of [null, 'pa', 'basic']) {
         for (const level of levels) {
-          out.push({
-            steps, costSteps: steps,
-            harvest: harvest !== null, harvestCeil: harvest || 'pa',
-            sweepCash: true, lump: false, contrib: null, spendLevel: level,
-            label: `${prefix.length ? prefix.join('+') + ' first, ' : ''}${isaFirst ? 'ISA' : 'taxable'} before ${isaFirst ? 'taxable' : 'ISA'}${harvest ? `, harvest to ${harvest === 'pa' ? 'the allowance' : 'the basic-rate limit'}` : ''}${level !== 1 ? `, spend ${Math.round(level * 100)}%` : ''}`
-          });
+          const base = out.length;
+          for (const [tp, ti] of tiers) {
+            out.push({
+              steps, costSteps: steps,
+              harvest: harvest !== null, harvestCeil: harvest || 'pa',
+              sweepCash: true, lump: false, contrib: null, spendLevel: level,
+              tierPen: tp, tierIsa: ti, tierBase: base,
+              label: `${prefix.length ? prefix.join('+') + ' first, ' : ''}${isaFirst ? 'ISA' : 'taxable'} before ${isaFirst ? 'taxable' : 'ISA'}${harvest ? `, harvest to ${harvest === 'pa' ? 'the allowance' : 'the basic-rate limit'}` : ''}${level !== 1 ? `, spend ${Math.round(level * 100)}%` : ''}${tp ? `, pension ${tp} tier${tp > 1 ? 's' : ''} down` : ''}${ti ? `, ISA ${ti} tier${ti > 1 ? 's' : ''} down` : ''}`
+            });
+          }
         }
       }
     }
@@ -95,8 +101,27 @@ export function spendLevelsFor(floorFrac) {
 }
 
 /* The real rate of each pot (pension, ISA, GIA, cash) at a market draw z. */
-function realAt(c, z, out) {
-  for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * z) - 1;
+function realAt(c, z, out, act = null) {
+  const R = act ? act.real : c.real, V = act ? act.volEff : c.volEff;
+  for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + V[i] * z) - 1;
+  return out;
+}
+
+/*
+ * The tier combinations a household's moves may hold (phase 6). The default ('joint', also `true`) moves
+ * the pension and the ISA down together, by the same step: on three households every pair of tiers
+ * ('pairs') scored the same opening value to four places at more than twice the cost, so the joint
+ * step is the menu and the pairs are kept for checking that.
+ */
+export function tierCombos(m, mode = true) {
+  const t = F.tiersFor(m);
+  const joint = mode !== 'pairs';
+  const out = [];
+  for (let tp = 0; tp < t.pen.length; tp++) for (let ti = 0; ti < t.isa.length; ti++) {
+    if (joint && tp !== ti && !(t.pen.length === 1 || t.isa.length === 1)) continue;
+    if (joint && (t.pen.length === 1 || t.isa.length === 1) && tp !== 0 && ti !== 0 && tp !== ti) continue;
+    out.push([tp, ti]);
+  }
   return out;
 }
 
@@ -112,9 +137,14 @@ export function solve(E, M, plan, opts = {}) {
   const g = makeGrid(m, opts);
   const raiseOn = (opts.raiseWeight || 0) > 0;
   const menuLevels = raiseOn || !opts.spendLevels ? opts.spendLevels : opts.spendLevels.filter(l => l <= 1);
-  const actions = (opts.actions || buildActions({ spendLevels: menuLevels })).map(a => ({ ...a, lump: !!opts.lump }));
+  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: opts.tiers ? tierCombos(m, opts.tiers) : null })).map(a => ({ ...a, lump: !!opts.lump }));
   const c = F.compile(m, actions);
   const nodeReal = NODES.map(z => realAt(c, z, new Float64Array(4)));
+  // the quadrature rates for each move's tier combination, shared between moves that hold the same tiers
+  const byCombo = {};
+  const nodeRealOf = actions.map((a, ai) => { const k = `${c.acts[ai].tierPen}/${c.acts[ai].tierIsa}`; if (!byCombo[k]) byCombo[k] = NODES.map(z => realAt(c, z, new Float64Array(4), c.acts[ai])); return byCombo[k]; });
+  // tier variants of a move share its flow: `tierBase` names the move whose flow they reuse
+  const tierBase = actions.map((a, ai) => (a.tierBase !== undefined && a.tierBase < ai && actions[a.tierBase].tierBase === a.tierBase ? a.tierBase : ai));
   const T = m.ctx.totalYears;
   const floor = m.ctx.solvencyFloor;
   /*
@@ -198,7 +228,7 @@ export function solve(E, M, plan, opts = {}) {
   }
   const levelOf = actions.map(a => (a.spendLevel !== undefined ? a.spendLevel : 1));
 
-  const base = new Float64Array(7), post = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(4);
+  const base = new Float64Array(7), post = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(4), cachedPost = new Float64Array(7);
   let evaluated = 0;
   for (let t = T; t >= 0; t--) {
     const sNext = t < T ? lsurv[t + 1] : null;
@@ -219,17 +249,23 @@ export function solve(E, M, plan, opts = {}) {
                * bound assumed "no growth" was the worst case, and for an invested pot it is not - see
                * zeroGrowthNeed in grid.js for the measurement that retired it.
                */
-              let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
+              let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0, cachedFail = false;
               for (let ai = 0; ai < actions.length; ai++) {
-                post.set(base);
-                const unmet = F.flow(c, t, ai, post);
-                evaluated++;
+                let fail;
+                if (tierBase[ai] === ai) {
+                  post.set(base);
+                  const unmet = F.flow(c, t, ai, post);
+                  evaluated++;
+                  fail = unmet > 1 || c.last.preNmpaInsolvent;
+                  cachedFail = fail; cachedPost.set(post);
+                } else { post.set(cachedPost); fail = cachedFail; }
                 let s = 0, b = 0, rs = 0, h = 0;
                 const thisShort = spendYear ? costOf(levelOf[ai]) : 0;
-                if (!(unmet > 1 || c.last.preNmpaInsolvent)) {
+                if (!fail) {
+                  const nr = nodeRealOf[ai];
                   for (let zi = 0; zi < 5; zi++) {
                     grown.set(post);
-                    F.grow(c, t, grown, nodeReal[zi]);
+                    F.grow(c, t, grown, nr[zi]);
                     if (t === T) {
                       const total = grown[0] + grown[1] + grown[2];
                       const alive = !(floor > 0 && total < floor);
@@ -260,15 +296,15 @@ export function solve(E, M, plan, opts = {}) {
     if (shortfall) lresil[t].set(Rt); else toLogOdds(Rt, lresil[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)] };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null };
   const r = {
-    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, wB, wR, lambda, levelOf, shortExp, costOf,
+    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOf, wB, wR, lambda, levelOf, shortExp, costOf,
     tieMargin: opts.tieMargin || 0,
     rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
     /* What the table says this position is worth, before anything is executed. */
-    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); return { survival: interp(g, surv[k], loc, true), resilience: interp(g, resil[k], loc, !shortfall), bequest: interp(g, beq[k], loc, false) }; }
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); const sv = interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   };
   return r;
 }
@@ -330,7 +366,7 @@ export function chooseAction(r, s, t) {
 
 /* Every move's score from one solve's tables at the true position `s` in year `t`, with the year's tax and the expected bequest. */
 function scoreMoves(r, s, t, SC, TX, BQ) {
-  const { g, c, actions, lsurv, lresil, beq, short, nodeReal, wB, wR, levelOf } = r;
+  const { g, c, actions, lsurv, lresil, beq, short, nodeRealOf, wB, wR, levelOf } = r;
   const post = r._post || (r._post = new Float64Array(Math.max(7, s.length)));
   const grown = r._grown || (r._grown = new Float64Array(Math.max(7, s.length)));
   const rd = r._rd || (r._rd = new Float64Array(4));
@@ -341,9 +377,10 @@ function scoreMoves(r, s, t, SC, TX, BQ) {
     TX[ai] = c.last.taxPaid + c.last.cgtPaid;
     if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; continue; }
     let sv = 0, bq = 0, rs = 0, h = spendYear ? r.costOf(levelOf[ai]) : 0;
+    const nr = nodeRealOf[ai];
     for (let zi = 0; zi < 5; zi++) {
       grown.set(post);
-      F.grow(c, t, grown, nodeReal[zi]);
+      F.grow(c, t, grown, nr[zi]);
       readValues(g, lsurv[t + 1], beq[t + 1], grown, rd, lresil[t + 1], short[t + 1]);
       sv += WEIGHTS[zi] * rd[0];
       bq += WEIGHTS[zi] * rd[1];
@@ -365,11 +402,12 @@ export function runPolicy(r, zs, opts = {}) {
   const T = m.ctx.totalYears;
   const s = vecOf(m, r.M.initialState(m));
   const real = new Float64Array(4);
-  let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0;
+  let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null;
   for (let t = 0; t <= T; t++) {
     const ai = opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t);
     const unmet = F.flow(c, t, ai, s);
     lifetimeTax += c.last.taxPaid + c.last.cgtPaid;
+    { const a = c.acts[ai]; if (a.tierPen > 0) tierPenYears++; if (a.tierIsa > 0) tierIsaYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
     if (c.yr.spend[t] > 0) {
       spendYears++; const lv = c.last.level; levelSum += lv;
       if (lv >= 1 - 1e-9) atTarget++; if (lv > 1 + 1e-9) aboveTarget++; if (lv < minLevel) minLevel = lv;
@@ -378,11 +416,11 @@ export function runPolicy(r, zs, opts = {}) {
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
       lastLevel = lv;
     }
-    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false };
-    F.grow(c, t, s, realAt(c, zs[t], real));
+    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges };
+    F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai]));
   }
   const total = s[0] + s[1] + s[2];
-  const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears };
+  const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges };
   if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, failYear: m.ctx.baseYear + T, failAge: m.ctx.ageSelf0 + T, preAccess: false, terminalNet: 0, terminal: 0, lifetimeTax, ...spendStats, fullyFunded: false };
   return { survived: true, failYear: null, failAge: null, preAccess: false, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax, ...spendStats };
 }

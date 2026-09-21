@@ -88,7 +88,7 @@ export function prepare(E, rawPlan, opts = {}) {
   }
   const ownerByKey = {};
   ctx.owners.forEach(o => { ownerByKey[o.key] = o; });
-  return { E, ctx, P: ctx.P, owners: ctx.owners, ownerByKey, acc: ctx.acc, cats: CATS };
+  return { E, ctx, P: ctx.P, owners: ctx.owners, ownerByKey, acc: ctx.acc, cats: CATS, plan: rawPlan };
 }
 
 /* The opening position, taken from the plan's own balances. */

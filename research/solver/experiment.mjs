@@ -88,10 +88,12 @@ function appMenu(m) {
  *   left-tail  bad years worse than a normal says: a negative draw is scaled by 1.3
  */
 function worldOf(kind) {
-  if (!kind || kind === 'base') return (c, z, out) => { for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * z) - 1; return out; };
-  if (kind === 'return-1') return (c, z, out) => { for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + c.real[i] - 0.01) + c.volEff[i] * z) - 1; return out; };
-  if (kind === 'vol+25') return (c, z, out) => { for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + c.real[i]) + 1.25 * c.volEff[i] * z) - 1; return out; };
-  if (kind === 'left-tail') return (c, z, out) => { const zz = z < 0 ? 1.3 * z : z; for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * zz) - 1; return out; };
+  // `act` is the compiled move the year was run with: since phase 6 it carries the tiers held, and so the rates
+  const R = (c, act) => (act ? act.real : c.real), V = (c, act) => (act ? act.volEff : c.volEff);
+  if (!kind || kind === 'base') return (c, z, out, act) => { const r = R(c, act), v = V(c, act); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + v[i] * z) - 1; return out; };
+  if (kind === 'return-1') return (c, z, out, act) => { const r = R(c, act), v = V(c, act); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i] - 0.01) + v[i] * z) - 1; return out; };
+  if (kind === 'vol+25') return (c, z, out, act) => { const r = R(c, act), v = V(c, act); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + 1.25 * v[i] * z) - 1; return out; };
+  if (kind === 'left-tail') return (c, z, out, act) => { const r = R(c, act), v = V(c, act); const zz = z < 0 ? 1.3 * z : z; for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + v[i] * zz) - 1; return out; };
   throw new Error(`unknown world ${kind}`);
 }
 
@@ -113,7 +115,7 @@ function runFixedPath(c, ai, zs, world = worldOf()) {
       lastLevel = lv;
     }
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false };
-    world(c, zs[t], real);
+    world(c, zs[t], real, c.acts[ai]);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
@@ -136,7 +138,9 @@ function statsFlex(rs) {
     minLevelP10: q(rs.map(r => r.minLevel), 0.1),
     changesMean: mean(rs.map(r => r.changes)),
     // total spending delivered over retirement as a fraction of the target years: the guardrails' raises count here
-    meanLevelMedian: q(rs.map(r => r.levelSum / Math.max(1, r.spendYears)), 0.5), meanLevelP10: q(rs.map(r => r.levelSum / Math.max(1, r.spendYears)), 0.1)
+    meanLevelMedian: q(rs.map(r => r.levelSum / Math.max(1, r.spendYears)), 0.5), meanLevelP10: q(rs.map(r => r.levelSum / Math.max(1, r.spendYears)), 0.1),
+    // phase 6: years a wrapper sat below its plan tier, and how often the tiers changed
+    tierPenYearsMean: mean(rs.map(r => r.tierPenYears || 0)), tierIsaYearsMean: mean(rs.map(r => r.tierIsaYears || 0)), tierChangesMean: mean(rs.map(r => r.tierChanges || 0))
   };
 }
 
@@ -151,7 +155,7 @@ function runSolvedPath(r, zs, world = worldOf()) {
     const unmet = F.flow(c, t, ai, s);
     tax += c.last.taxPaid + c.last.cgtPaid;
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax };
-    world(c, zs[t], real);
+    world(c, zs[t], real, c.acts[ai]);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
@@ -241,7 +245,9 @@ if (mode === 'run') {
   const COORDS = process.env.COORDS || undefined, SHARES = process.env.SHARES ? Number(process.env.SHARES) : undefined;
   // the objective's weights and risk term from the environment too, for the tuning on the odd households (plan 2c.3)
   const WR = process.env.WR ? Number(process.env.WR) : undefined, WB = process.env.WB ? Number(process.env.WB) : undefined, RESIL = process.env.RESIL || undefined;
-  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, coords: COORDS, shares: SHARES, resilienceWeight: WR, bequestWeight: WB, resilience: RESIL });
+  // phase 6: TIERS=1 lets every move also pick the pension's and the ISA's tier (the plan's or up to two below); TIERS=joint moves both together
+  const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);
+  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, coords: COORDS, shares: SHARES, resilienceWeight: WR, bequestWeight: WB, resilience: RESIL, tiers: TIERS });
   const solvedRs = held.map(zs => runSolvedPath(r, zs));
   const sameRs = held.map(zs => runFixedPath(cSame, same.ai, zs));
   const appRs = held.map(zs => runFixedPath(cApp, app.ai, zs));
@@ -249,7 +255,7 @@ if (mode === 'run') {
 
   const verdict = (fixedStats) => E.explainPick([{ id: 'solver', stats: S }, { id: 'fixed', stats: fixedStats }], { priorities: E.DEFAULT_PRIORITIES }).winner.id;
   const out = {
-    tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, objective: { wR: r.meta.wR, wB: r.meta.bequestWeight, resilience: r.meta.resilience }, held: HELD, seedSearch, seedHeld, solveMs: r.meta.ms, ms: Date.now() - t0,
+    tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, objective: { wR: r.meta.wR, wB: r.meta.bequestWeight, resilience: r.meta.resilience }, tiers: r.meta.tiers, held: HELD, seedSearch, seedHeld, solveMs: r.meta.ms, ms: Date.now() - t0,
     solver: S, same: { ...Fs, label: same.label }, app: { ...A, label: app.label },
     pairedSame: paired(solvedRs, sameRs), pairedApp: paired(solvedRs, appRs),
     verdictSame: verdict(Fs), verdictApp: verdict(A)
@@ -367,12 +373,13 @@ if (mode === 'flex') {
   const EXP = process.env.EXP ? Number(process.env.EXP) : undefined;
   const MARGIN = process.env.MARGIN ? Number(process.env.MARGIN) : 0;
   const RAISE = process.env.RAISE ? Number(process.env.RAISE) : 0;   // 2d.4: the credit weight for spending above the target
-  const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: Number(process.env.SEARCH || 600), seed: seedSearch, confidence: CONF, bisectSteps: 5, spendLevels: LEVELS, shortfallExponent: EXP, margin: MARGIN, raiseWeight: RAISE });
+  const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);
+  const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: Number(process.env.SEARCH || 600), seed: seedSearch, confidence: CONF, bisectSteps: 5, spendLevels: LEVELS, shortfallExponent: EXP, margin: MARGIN, raiseWeight: RAISE, tiers: TIERS });
   const solvedRs = held.map(zs => runPolicy(r, zs));
   arms.solver = { stats: { ...statsFlex(solvedRs), landed: r.meta.landed, lambda: r.lambda, solves: r.meta.solves, levels: r.meta.spendLevels, searchFloorRate: 100 * r.floorRate }, rs: solvedRs };
   const out = {
     tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, held: HELD, seedSearch, seedHeld, floor: FLOOR, confidence: CONF, target, floorSpend, ms: Date.now() - t0,
-    knobs: { levels: LEVELS || null, exponent: EXP === undefined ? 2 : EXP, margin: MARGIN, raise: RAISE },
+    knobs: { levels: LEVELS || null, exponent: EXP === undefined ? 2 : EXP, margin: MARGIN, raise: RAISE, tiers: r.meta.tiers || null },
     solver: arms.solver.stats, gk: arms.gk.stats, gkFloor: arms.gkFloor.stats, fixed: arms.fixed.stats,
     pairedFloor: { gk: paired(solvedRs, arms.gk.rs), gkFloor: paired(solvedRs, arms.gkFloor.rs), fixed: paired(solvedRs, arms.fixed.rs) },
     pairedFull: { gk: paired(solvedRs, arms.gk.rs, 'fullyFunded'), gkFloor: paired(solvedRs, arms.gkFloor.rs, 'fullyFunded'), fixed: paired(solvedRs, arms.fixed.rs, 'fullyFunded') }
@@ -420,6 +427,7 @@ if (mode === 'reduceFlex') {
 // ---------------------------------------------------------------------------------------------------
 if (mode === 'reduce') {
   const tag = process.argv[3] || 'exp';
+  { const dir0 = join(RESULTS, tag); const first = readdirSync(dir0).filter(f => f.endsWith('.json'))[0]; if (first) { const r0 = JSON.parse(readFileSync(join(dir0, first), 'utf8')); if (r0.tiers) console.log(`tiers on: ${r0.tiers.join(' ')}\n`); } }
   const dir = join(RESULTS, tag);
   const rows = readdirSync(dir).filter(f => f.endsWith('.json')).map(f => JSON.parse(readFileSync(join(dir, f), 'utf8'))).sort((a, b) => a.id.localeCompare(b.id));
   const mean = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);

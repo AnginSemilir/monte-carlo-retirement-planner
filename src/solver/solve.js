@@ -629,6 +629,12 @@ export function solveFlex(E, M, plan, opts = {}) {
      * them, so interpolate for the crossing rather than bisect to it (regula falsi, the same idiom the
      * app uses for the sacrifice curve). Bisection from a bracket bottom ten to twenty times below the
      * answer needs four or five solves to get back up; interpolation usually needs one.
+     *
+     * DORMANT by default: verifyPaths equals searchPaths above, so one sample runs throughout and this
+     * never executes. If it is ever re-enabled, note that plain regula falsi can stall by replacing the
+     * same endpoint over and over on a curved function; at three steps that cannot bite, but raising
+     * verifySteps means switching to the Illinois modification (halve the retained endpoint's value
+     * each time it survives a step) rather than adding steps to this loop.
      */
     let loL = rLo.lambda, loR = rLo.floorRate, good = rLo;
     let hiL = best.lambda, hiR = best.floorRate;

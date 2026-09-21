@@ -82,5 +82,38 @@ console.log('=========== C. THE SOLVE WITH TIERS ON: NO WORSE, AND ITS COST ====
   ok('C3  the forward run reports the years spent below the plan\'s tier', Number.isFinite(used));
 }
 
+console.log('=========== D. WHAT A TIER CHANGE COSTS ===========');
+{
+  const sc = singles[Math.floor(singles.length / 2)];
+  const plan = prep(sc.plan);
+  const m = M.prepare(E, plan);
+  const c = F.compile(m, buildActions({ tiers: tierCombos(m, 'pairs') }));
+  c.switchCost = F.SWITCH_COST;
+  const s = Float64Array.from([400000, 200000, 50000, 0.2, 0, 0, -1]);
+  const twoDown = c.acts.findIndex(a => a.tierPen === 2 && a.tierIsa === 0);
+  const paid = F.chargeSwitch(c, s, { pen: 0, isa: 0 }, c.acts[twoDown]);
+  const dEq = Math.abs(c.tiers.pen[2].equity - c.tiers.pen[0].equity);
+  ok('D1  a two-tier step in the pension costs the round trip on the slice traded, and nothing on the ISA', Math.abs(paid - 400000 * F.SWITCH_COST * dEq) < 1e-6 && Math.abs(s[0] - (400000 - paid)) < 1e-6 && s[1] === 200000, `£${paid.toFixed(0)} on a £400k pension, ${(100 * dEq).toFixed(0)} points of equity traded`);
+  ok('D2  staying put costs nothing', F.chargeSwitch(c, s, { pen: 2, isa: 0 }, c.acts[twoDown]) === 0);
+  ok('D3  the cost is a quarter of a percent of the slice: at most a tenth of a percent of the pot for a two-tier step', F.SWITCH_COST === 0.0025 && paid / 400000 <= 0.001 + 1e-12, `${(100 * paid / 400000).toFixed(3)}% of the pot`);
+  // with the cost on, the solved policy flips tiers less on the same paths and pays for the flips it makes
+  const free = solve(E, M, plan, { points: 16, tiers: true, switchCost: 0 });
+  const costed = solve(E, M, plan, { points: 16, tiers: true });
+  const zs = E.pathsForSeed(41, 200, m.ctx.totalYears);
+  const rf = zs.map(z => runPolicy(free, z)), rc = zs.map(z => runPolicy(costed, z));
+  const mean = (rs, k) => rs.reduce((a, x) => a + x[k], 0) / rs.length;
+  ok('D4  the default switching cost is on whenever tiers are, and off otherwise', costed.meta.switchCost === F.SWITCH_COST && free.meta.switchCost === 0 && solve(E, M, plan, { points: 16 }).meta.switchCost === 0);
+  ok('D5  with the cost charged the policy pays for its flips and does not flip more', mean(rc, 'switchPaid') > 0 && mean(rc, 'tierChanges') <= mean(rf, 'tierChanges') + 0.5, `${mean(rf, 'tierChanges').toFixed(1)} -> ${mean(rc, 'tierChanges').toFixed(1)} changes a run; £${mean(rc, 'switchPaid').toFixed(0)} paid a run`);
+  ok('D6  ...and keeps the survival the freedom bought', 100 * rc.filter(x => x.survived).length / rc.length >= 100 * rf.filter(x => x.survived).length / rf.length - 1, `${(100 * rf.filter(x => x.survived).length / rf.length).toFixed(1)} -> ${(100 * rc.filter(x => x.survived).length / rc.length).toFixed(1)}`);
+  // the worth-it margin: a change is made only when the table's gain from it beats a tenth of a survival point
+  ok('D7  the worth-it margin is on with tiers, a tenth of a survival point', costed.meta.switchMargin === 0.001 && free.meta.switchMargin === 0.001 && solve(E, M, plan, { points: 16 }).meta.switchMargin === 0);
+  costed.switchMargin = 0;
+  const rn = zs.map(z => runPolicy(costed, z));
+  costed.switchMargin = 0.001;
+  const sv = (rs) => 100 * rs.filter(x => x.survived).length / rs.length;
+  ok('D8  with the margin the policy changes tier far less often on the same paths', mean(rc, 'tierChanges') < 0.75 * mean(rn, 'tierChanges'), `${mean(rn, 'tierChanges').toFixed(1)} -> ${mean(rc, 'tierChanges').toFixed(1)} changes a run`);
+  ok('D9  ...and gives up no survival for it', sv(rc) >= sv(rn) - 0.5, `${sv(rn).toFixed(1)} -> ${sv(rc).toFixed(1)}`);
+}
+
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);
 process.exit(fail ? 1 : 0);

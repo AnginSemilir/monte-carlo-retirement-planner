@@ -44,6 +44,9 @@ import * as F from './fast.js';
  * per path rather than once per year - cannot be seen by a solver that has no memory of the path, so it
  * is folded into the annual spread instead. That makes the tails fatter, which is the safe direction.
  */
+/* The score gain a tier change must beat to be made, once it is also paying its trades: a tenth of a survival point. */
+export const SWITCH_MARGIN = 0.001;
+
 const NODES = [-2.856970, -1.355626, 0, 1.355626, 2.856970];
 const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
 
@@ -139,6 +142,10 @@ export function solve(E, M, plan, opts = {}) {
   const menuLevels = raiseOn || !opts.spendLevels ? opts.spendLevels : opts.spendLevels.filter(l => l <= 1);
   const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: opts.tiers ? tierCombos(m, opts.tiers) : null })).map(a => ({ ...a, lump: !!opts.lump }));
   const c = F.compile(m, actions);
+  // a tier change costs its round trip on the slice traded (see SWITCH_COST in fast.js); charged at decision time
+  c.switchCost = opts.switchCost !== undefined ? opts.switchCost : (opts.tiers ? F.SWITCH_COST : 0);
+  // ...and is made only when the table's gain from it is worth noticing (see chooseAction)
+  const switchMargin = opts.switchMargin !== undefined ? opts.switchMargin : (opts.tiers ? SWITCH_MARGIN : 0);
   const nodeReal = NODES.map(z => realAt(c, z, new Float64Array(4)));
   // the quadrature rates for each move's tier combination, shared between moves that hold the same tiers
   const byCombo = {};
@@ -296,9 +303,9 @@ export function solve(E, M, plan, opts = {}) {
     if (shortfall) lresil[t].set(Rt); else toLogOdds(Rt, lresil[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin };
   const r = {
-    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOf, wB, wR, lambda, levelOf, shortExp, costOf,
+    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOf, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin,
     tieMargin: opts.tieMargin || 0,
     rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
@@ -321,7 +328,7 @@ export function solve(E, M, plan, opts = {}) {
  * are integrated over, and the move with the best value wins. It is the same maximisation the solve
  * did, taken once more at the position that actually arose, and it costs one year of arithmetic.
  */
-export function chooseAction(r, s, t) {
+export function chooseAction(r, s, t, held = null) {
   const { actions } = r;
   const T = r.m.ctx.totalYears;
   if (t >= T) return r.pol[T][nearestIndex(r.g, s)];
@@ -330,7 +337,7 @@ export function chooseAction(r, s, t) {
   const SC = r._sc || (r._sc = new Float64Array(n));
   const TX = r._tx || (r._tx = new Float64Array(n));
   const BQ = r._bq || (r._bq = new Float64Array(n));
-  scoreMoves(r, s, t, SC, TX, BQ);
+  scoreMoves(r, s, t, SC, TX, BQ, held);
   /*
    * RICHARDSON EXTRAPOLATION. The table's optimism was measured to fall as 1/n in the grid points
    * (S070: +21, +16, +13, +9 at 12, 16, 20, 28). With a second solve at half the points, 2 x score(n)
@@ -339,13 +346,32 @@ export function chooseAction(r, s, t) {
    */
   if (r.rich) {
     const S2 = r._sc2 || (r._sc2 = new Float64Array(n));
-    scoreMoves(r.rich, s, t, S2, r._tx2 || (r._tx2 = new Float64Array(n)), r._bq2 || (r._bq2 = new Float64Array(n)));
+    scoreMoves(r.rich, s, t, S2, r._tx2 || (r._tx2 = new Float64Array(n)), r._bq2 || (r._bq2 = new Float64Array(n)), held);
     for (let ai = 0; ai < n; ai++) SC[ai] = SC[ai] === -Infinity || S2[ai] === -Infinity ? -Infinity : 2 * SC[ai] - S2[ai];
   }
   let bestScore = -Infinity, bestB = -Infinity, best = 0;
   for (let ai = 0; ai < n; ai++) {
     const score = SC[ai];
     if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && BQ[ai] > bestB)) { bestScore = score; bestB = BQ[ai]; best = ai; }
+  }
+  /*
+   * IS THE SWITCH WORTH IT (phase 6). A tier change is made only when the table's gain from it beats
+   * `switchMargin`, in score units (survival-equivalent): a gain the household could not tell from
+   * noise is not worth the trades and the bother. The moves that keep the tiers held are compared on
+   * their own; if the best of them is within the margin of the best overall, it is chosen.
+   */
+  const sm = r.switchMargin || 0;
+  if (held && sm > 0) {
+    const acts = r.c.acts;
+    if (acts[best].tierPen !== held.pen || acts[best].tierIsa !== held.isa) {
+      let stay = -1, stayScore = -Infinity, stayB = -Infinity;
+      for (let ai = 0; ai < n; ai++) {
+        if (acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa) continue;
+        const score = SC[ai];
+        if (score > stayScore + eps || (Math.abs(score - stayScore) <= eps && BQ[ai] > stayB)) { stayScore = score; stayB = BQ[ai]; stay = ai; }
+      }
+      if (stay >= 0 && stayScore > -Infinity && bestScore - stayScore <= sm) { best = stay; bestScore = stayScore; bestB = stayB; }
+    }
   }
   /*
    * WHEN THE TABLE CANNOT TELL, DO NOT PAY TAX NOW. Within `tieMargin` of the best score, prefer the
@@ -365,7 +391,7 @@ export function chooseAction(r, s, t) {
 }
 
 /* Every move's score from one solve's tables at the true position `s` in year `t`, with the year's tax and the expected bequest. */
-function scoreMoves(r, s, t, SC, TX, BQ) {
+function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
   const { g, c, actions, lsurv, lresil, beq, short, nodeRealOf, wB, wR, levelOf } = r;
   const post = r._post || (r._post = new Float64Array(Math.max(7, s.length)));
   const grown = r._grown || (r._grown = new Float64Array(Math.max(7, s.length)));
@@ -376,6 +402,8 @@ function scoreMoves(r, s, t, SC, TX, BQ) {
     const unmet = F.flow(c, t, ai, post);
     TX[ai] = c.last.taxPaid + c.last.cgtPaid;
     if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; continue; }
+    // a move that changes tier pays the round trip on the slice traded before the year's growth
+    if (held) F.chargeSwitch(c, post, held, c.acts[ai]);
     let sv = 0, bq = 0, rs = 0, h = spendYear ? r.costOf(levelOf[ai]) : 0;
     const nr = nodeRealOf[ai];
     for (let zi = 0; zi < 5; zi++) {
@@ -402,12 +430,13 @@ export function runPolicy(r, zs, opts = {}) {
   const T = m.ctx.totalYears;
   const s = vecOf(m, r.M.initialState(m));
   const real = new Float64Array(4);
-  let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null;
+  let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null, switchPaid = 0;
+  const held = { pen: 0, isa: 0 };   // the tiers held: the plan's until a move changes them
   for (let t = 0; t <= T; t++) {
-    const ai = opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t);
+    const ai = opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t, held);
     const unmet = F.flow(c, t, ai, s);
     lifetimeTax += c.last.taxPaid + c.last.cgtPaid;
-    { const a = c.acts[ai]; if (a.tierPen > 0) tierPenYears++; if (a.tierIsa > 0) tierIsaYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
+    { const a = c.acts[ai]; switchPaid += F.chargeSwitch(c, s, held, a); held.pen = a.tierPen; held.isa = a.tierIsa; if (a.tierPen > 0) tierPenYears++; if (a.tierIsa > 0) tierIsaYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
     if (c.yr.spend[t] > 0) {
       spendYears++; const lv = c.last.level; levelSum += lv;
       if (lv >= 1 - 1e-9) atTarget++; if (lv > 1 + 1e-9) aboveTarget++; if (lv < minLevel) minLevel = lv;
@@ -416,11 +445,11 @@ export function runPolicy(r, zs, opts = {}) {
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
       lastLevel = lv;
     }
-    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges };
+    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges, switchPaid };
     F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai]));
   }
   const total = s[0] + s[1] + s[2];
-  const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges };
+  const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid };
   if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, failYear: m.ctx.baseYear + T, failAge: m.ctx.ageSelf0 + T, preAccess: false, terminalNet: 0, terminal: 0, lifetimeTax, ...spendStats, fullyFunded: false };
   return { survived: true, failYear: null, failAge: null, preAccess: false, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax, ...spendStats };
 }

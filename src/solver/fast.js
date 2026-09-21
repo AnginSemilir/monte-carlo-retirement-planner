@@ -69,17 +69,40 @@ export function tiersFor(m, below = 2) {
     const a = m.acc[o.ids[cat]];
     if (!a) { out[cat] = [{ name: null, real: 0, vol: 0, sigmaParam: 0, volEff: 0 }]; continue; }
     const k0 = TIER_ORDER.indexOf(a.risk);
-    const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam }];
+    const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam, equity: a.equityWeight }];
     for (let d = 1; d <= below && k0 >= 0 && k0 + d < TIER_ORDER.length; d++) {
       const name = TIER_ORDER[k0 + d];
       const prof = profiles[name] || m.E.DEFAULT_RISK_PROFILES[name];
       if (!prof) break;
-      list.push({ name, real: (Number(prof.real) || 0) / 100, vol: (Number(prof.volatility) || 0) / 100, sigmaParam: (Number(prof.sigmaParam) || 0) / 100 });
+      const equity = m.E.RISK_EQUITY_WEIGHTS && m.E.RISK_EQUITY_WEIGHTS[name] !== undefined ? m.E.RISK_EQUITY_WEIGHTS[name] : 0.9;
+      list.push({ name, real: (Number(prof.real) || 0) / 100, vol: (Number(prof.volatility) || 0) / 100, sigmaParam: (Number(prof.sigmaParam) || 0) / 100, equity });
     }
     list.forEach(x => { x.volEff = Math.sqrt(x.vol * x.vol + x.sigmaParam * x.sigmaParam); });
     out[cat] = list;
   }
   return out;
+}
+
+/*
+ * WHAT A TIER CHANGE COSTS (phase 6). Moving a wrapper between tiers means selling one slice of it and
+ * buying another: from the highest tier (90% equities) to the next (70%) a fifth of the wrapper is
+ * traded. On a UK platform that trade costs the spread and any dealing charge, both ways, and a day or
+ * two out of the market: about a tenth of a percent each way on the slice traded, so a quarter of a
+ * percent for the round trip is the figure used, of the slice, not of the pot. It is charged to the
+ * wrapper the year the tier changes, at decision time, given the tier held; the table itself is solved
+ * with free switching, which is a small optimism (a tier step costs well under a tenth of a percent of
+ * the pot) that the decision-time charge corrects where it matters: a flip worth less than its cost
+ * is not made.
+ */
+export const SWITCH_COST = 0.0025;
+
+/* Charge a state for moving from the tiers held to the move's tiers; returns the pounds charged. */
+export function chargeSwitch(c, s, held, act) {
+  if (!(c.switchCost > 0) || !held) return 0;
+  let paid = 0;
+  if (act.tierPen !== held.pen) { const d = Math.abs(c.tiers.pen[act.tierPen].equity - c.tiers.pen[held.pen].equity); const x = s[0] * c.switchCost * d; s[0] -= x; paid += x; }
+  if (act.tierIsa !== held.isa) { const d = Math.abs(c.tiers.isa[act.tierIsa].equity - c.tiers.isa[held.isa].equity); const x = s[1] * c.switchCost * d; s[1] -= x; paid += x; }
+  return paid;
 }
 
 export function compile(m, actions) {
@@ -172,7 +195,9 @@ export function compile(m, actions) {
     real: planReal,
     // the annual spread per pot with the per-path shock folded in, for a solver that has no path memory
     volEff: planVolEff,
-    tiers
+    tiers,
+    // the round-trip cost of a tier change on the slice traded; the solver sets it when tiers are on
+    switchCost: 0
   };
 }
 

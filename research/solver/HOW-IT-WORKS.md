@@ -210,6 +210,21 @@ steps per decision, which is the kind of work the app already does for a tournam
 If the couple test shows this falls short, the fallback is the full joint table at a coarser grid,
 solved in the background in a minute or two.
 
+**What happened when it was built (Phase 5).** The rollout was tried on nineteen couples spread across
+the band where a plan is neither safe nor hopeless, with the three-world mixture below and every
+alternative judged in the same exact model. Against the best fixed rule chosen for each couple from the
+same menu of moves, it added three-quarters of a point of survival, better on fourteen couples and worse
+on three, the worst loss under a point, with a larger median pot. That is the same size of edge the
+single-person withdrawal order gave, which is what it should be: the tier freedom that gave singles
+their bigger gain was left off for couples in this first pass. The split is used in almost every retired
+year and is even on average but not in any one household; it leans on whichever person's wrappers the
+tables say can bear it. The three losses include the two most uneven splits, which is where the single
+tables' assumption that the split stays even is most wrong. The likely repair is a second look-ahead
+step, or tables solved at the split the rollout tends to. The survival conditions of the couples' gate
+are met; the backtest and perturbed-world checks that the single-person gate had have not yet been run
+for couples. Cost: about a minute and a half to solve both people, and the rollout itself is a few
+dozen engine steps per decision.
+
 ## 9. Two things added once the core works
 
 **The risk tier as a move.** Today each wrapper's risk tier is set once and held forever. The solver
@@ -334,11 +349,14 @@ trades bequest for spending or survival.
 engine as its policy, and on the 41 households the engine scored the solver four points below what
 the solver's own model had forecast. The cause: the engine draws the long-run mean's error once per
 future and holds it, and the solver's model had folded that into each year's noise, which understates
-how far a held error spreads a thirty-year outcome. The repair is not a fold but a mixture: solve five
-tables, each in a world where the held error takes one of five values chosen to stand in for the bell
-curve, and choose each move by the weighted average of their scores. The engine and the forecast now
-agree to a sixth of a point on average and within a point on 39 of 41 households, with nothing tuned by
-hand; the price is five solves, which run in parallel. It changed the forecasts, not the moves.
+how far a held error spreads a thirty-year outcome. The repair is not a fold but a mixture: solve a
+few tables, each in a world where the held error takes one value chosen to stand in for the bell
+curve, and choose each move by the weighted average of their scores. Five such worlds were tried first,
+then three (a low, a middle and a high, the middle weighted two-thirds), and three matched five to the
+hundredth of a point on the 41. The engine and the forecast now agree to a sixth of a point on average
+and within a point on 39 of 41 households, with nothing tuned by hand; the price is three solves, which
+run in parallel, so the app's first solve costs about what one did. It changed the forecasts, not the
+moves.
 
 **What is still fixed, on purpose.** Mortality, annuities and market regimes stay out by design.
 

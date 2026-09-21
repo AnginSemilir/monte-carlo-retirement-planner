@@ -888,7 +888,10 @@ death-tax rate, number format.
 
 Promoted: prioritisation moves to the top of the tab under "What the solver optimises for", with the
 three presets and the advanced weights as today; switching is instant because the tables carry the
-components.
+components. Two more presets, both off by default (decided 21 Sep): "spend some of the surplus after
+good years" (the 2d.4 raise credit at 0.003) and "let the plan step down a risk tier when it is ahead"
+(the Phase 6 joint tier moves with the switching cost); each re-solves, so it is a re-solve away
+rather than instant.
 
 Added: a "What the solver may change" card holding the locks, one row per wrapper plus the pension-age
 and lump-sum rows, with the equity ceiling per wrapper beside the tier from Plan Inputs.
@@ -1115,6 +1118,11 @@ build twice over, and nothing the person sees changes until Phase 8.
 
 ## Decisions I have taken that you may want to overrule
 
+- Decided 21 Sep: raises after a good run (2d.4) and the tier as a move (Phase 6) ship as **presets,
+  default off**. In the solver both are off unless asked for (`raiseWeight` 0, `tiers` unset), and in
+  Part C each is a row under "What the solver may change": "spend some of the surplus after good years"
+  (raise weight 0.003) and "let the plan step down a risk tier when it is ahead" (joint steps, the
+  switching cost charged). Both trade bequest for spending or survival, so neither is a default.
 - Authorised overnight (20 Sep): 2d.2 and 2d.3 on the same seeds, then 2d.4 (raises above target)
   incorporating what the earlier passes show, then Phase 6 (the risk tier as an action) started
   without a further check-in if the 2d gate is passed. Each step recorded here and committed; merge

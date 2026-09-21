@@ -149,18 +149,20 @@ function runSolvedPath(r, zs, world = worldOf()) {
   const { m, c } = r;
   const s = vecOf(m, M.initialState(m));
   const real = new Float64Array(4);
-  let tax = 0;
+  let tax = 0, tierYears = 0, tierChanges = 0, switchPaid = 0, lastTier = null;
+  const held = { pen: 0, isa: 0 };
   for (let t = 0; t <= m.ctx.totalYears; t++) {
-    const ai = chooseAction(r, s, t);
+    const ai = chooseAction(r, s, t, held);
     const unmet = F.flow(c, t, ai, s);
     tax += c.last.taxPaid + c.last.cgtPaid;
-    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax };
+    { const a = c.acts[ai]; switchPaid += F.chargeSwitch(c, s, held, a); held.pen = a.tierPen; held.isa = a.tierIsa; if (a.tierPen > 0 || a.tierIsa > 0) tierYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
+    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, tierYears, tierChanges, switchPaid };
     world(c, zs[t], real, c.acts[ai]);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
-  if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, preAccess: false, failAge: m.ctx.ageSelf0 + m.ctx.totalYears, terminalNet: 0, terminal: 0, lifetimeTax: tax };
-  return { survived: true, preAccess: false, failAge: null, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax: tax };
+  if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, preAccess: false, failAge: m.ctx.ageSelf0 + m.ctx.totalYears, terminalNet: 0, terminal: 0, lifetimeTax: tax, tierYears, tierChanges, switchPaid };
+  return { survived: true, preAccess: false, failAge: null, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax: tax, tierYears, tierChanges, switchPaid };
 }
 
 /* The stats the app's picker reads, plus the two figures never reported before. */
@@ -177,7 +179,9 @@ function statsOf(rs) {
     meanTerminalNet: rs.reduce((x, r) => x + r.terminalNet, 0) / rs.length,
     medianLifetimeTax: q(rs.map(r => r.lifetimeTax), 0.5),
     meanFailAge: fails.length ? fails.reduce((x, r) => x + r.failAge, 0) / fails.length : null,
-    failures: fails.length
+    failures: fails.length,
+    // phase 6, when the run carried tiers: years below the plan tier, tier changes and the switching cost paid, per path
+    ...(rs[0] && rs[0].tierYears !== undefined ? { tierYearsMean: rs.reduce((x, r) => x + r.tierYears, 0) / rs.length, tierChangesMean: rs.reduce((x, r) => x + r.tierChanges, 0) / rs.length, switchPaidMean: rs.reduce((x, r) => x + r.switchPaid, 0) / rs.length } : {})
   };
 }
 
@@ -247,7 +251,8 @@ if (mode === 'run') {
   const WR = process.env.WR ? Number(process.env.WR) : undefined, WB = process.env.WB ? Number(process.env.WB) : undefined, RESIL = process.env.RESIL || undefined;
   // phase 6: TIERS=1 lets every move also pick the pension's and the ISA's tier (the plan's or up to two below); TIERS=joint moves both together
   const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);
-  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, coords: COORDS, shares: SHARES, resilienceWeight: WR, bequestWeight: WB, resilience: RESIL, tiers: TIERS });
+  const SWITCH = process.env.SWITCH !== undefined ? Number(process.env.SWITCH) : undefined;   // the round-trip cost of a tier change, on the slice traded
+  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, coords: COORDS, shares: SHARES, resilienceWeight: WR, bequestWeight: WB, resilience: RESIL, tiers: TIERS, switchCost: SWITCH });
   const solvedRs = held.map(zs => runSolvedPath(r, zs));
   const sameRs = held.map(zs => runFixedPath(cSame, same.ai, zs));
   const appRs = held.map(zs => runFixedPath(cApp, app.ai, zs));
@@ -255,7 +260,7 @@ if (mode === 'run') {
 
   const verdict = (fixedStats) => E.explainPick([{ id: 'solver', stats: S }, { id: 'fixed', stats: fixedStats }], { priorities: E.DEFAULT_PRIORITIES }).winner.id;
   const out = {
-    tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, objective: { wR: r.meta.wR, wB: r.meta.bequestWeight, resilience: r.meta.resilience }, tiers: r.meta.tiers, held: HELD, seedSearch, seedHeld, solveMs: r.meta.ms, ms: Date.now() - t0,
+    tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, objective: { wR: r.meta.wR, wB: r.meta.bequestWeight, resilience: r.meta.resilience }, tiers: r.meta.tiers, switchCost: r.meta.switchCost, held: HELD, seedSearch, seedHeld, solveMs: r.meta.ms, ms: Date.now() - t0,
     solver: S, same: { ...Fs, label: same.label }, app: { ...A, label: app.label },
     pairedSame: paired(solvedRs, sameRs), pairedApp: paired(solvedRs, appRs),
     verdictSame: verdict(Fs), verdictApp: verdict(A)
@@ -427,7 +432,7 @@ if (mode === 'reduceFlex') {
 // ---------------------------------------------------------------------------------------------------
 if (mode === 'reduce') {
   const tag = process.argv[3] || 'exp';
-  { const dir0 = join(RESULTS, tag); const first = readdirSync(dir0).filter(f => f.endsWith('.json'))[0]; if (first) { const r0 = JSON.parse(readFileSync(join(dir0, first), 'utf8')); if (r0.tiers) console.log(`tiers on: ${r0.tiers.join(' ')}\n`); } }
+  { const dir0 = join(RESULTS, tag); const files0 = readdirSync(dir0).filter(f => f.endsWith('.json')); const first = files0[0]; if (first) { const r0 = JSON.parse(readFileSync(join(dir0, first), 'utf8')); if (r0.tiers) { const all = files0.map(f => JSON.parse(readFileSync(join(dir0, f), 'utf8'))); const mean0 = (k) => all.reduce((x, r) => x + (r.solver[k] || 0), 0) / all.length; console.log(`tiers on: ${r0.tiers.join(' ')}; switching cost ${r0.switchCost}; years below the plan tier ${mean0('tierYearsMean').toFixed(1)} a run, tier changes ${mean0('tierChangesMean').toFixed(1)} a run, switching cost paid £${Math.round(mean0('switchPaidMean'))} a run\n`); } } }
   const dir = join(RESULTS, tag);
   const rows = readdirSync(dir).filter(f => f.endsWith('.json')).map(f => JSON.parse(readFileSync(join(dir, f), 'utf8'))).sort((a, b) => a.id.localeCompare(b.id));
   const mean = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);

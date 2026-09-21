@@ -102,24 +102,26 @@ function runFixedPath(c, ai, zs, world = worldOf()) {
   const m = c.m;
   const s = c.rule ? F.withRuleSlots(vecOf(m, M.initialState(m))) : vecOf(m, M.initialState(m));
   const real = new Float64Array(4);
-  let tax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0;
+  let tax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, belowSum = 0, aboveSum = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0;
   for (let t = 0; t <= m.ctx.totalYears; t++) {
     const unmet = F.flow(c, t, ai, s);
     tax += c.last.taxPaid + c.last.cgtPaid;
     // the year's spend as a fraction of the plan's target: 1 for a fixed rule, the rails' multiplier with guardrails on
     if (c.yr.spend[t] > 0) {
       spendYears++; const lv = c.last.level; levelSum += lv;
-      if (lv >= 1 - 1e-9) atTarget++; if (lv > 1 + 1e-9) aboveTarget++; if (lv < minLevel) minLevel = lv;
+      if (lv >= 1 - 1e-9) atTarget++; else belowSum += lv;
+      if (lv > 1 + 1e-9) { aboveTarget++; aboveSum += lv; }
+      if (lv < minLevel) minLevel = lv;
       shortfall += (1 - Math.min(1, lv)) * (1 - Math.min(1, lv));
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
       lastLevel = lv;
     }
-    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false };
+    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false };
     world(c, zs[t], real, c.acts[ai], t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
-  const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears };
+  const spendStats = { spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears };
   if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, preAccess: false, failAge: m.ctx.ageSelf0 + m.ctx.totalYears, terminalNet: 0, terminal: 0, lifetimeTax: tax, ...spendStats, fullyFunded: false };
   return { survived: true, preAccess: false, failAge: null, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax: tax, ...spendStats };
 }
@@ -135,6 +137,11 @@ function statsFlex(rs) {
     fullyFundedRate: 100 * rs.filter(r => r.fullyFunded).length / rs.length,  // never below the target
     yearsAtTargetMedian: q(frac, 0.5), yearsAtTargetP10: q(frac, 0.1),
     aboveTargetYearsMean: mean(rs.map(r => r.aboveTarget)),
+    // pooled over every retired year of every path, so a household with more years weighs more in its own figure
+    spendYearsMean: mean(rs.map(r => r.spendYears)),
+    belowYearsMean: mean(rs.map(r => r.spendYears - r.atTarget)),
+    levelWhenBelowMean: (() => { const n = rs.reduce((x, r) => x + (r.spendYears - r.atTarget), 0); return n ? rs.reduce((x, r) => x + (r.belowSum || 0), 0) / n : null; })(),
+    levelWhenAboveMean: (() => { const n = rs.reduce((x, r) => x + r.aboveTarget, 0); return n ? rs.reduce((x, r) => x + (r.aboveSum || 0), 0) / n : null; })(),
     minLevelP10: q(rs.map(r => r.minLevel), 0.1),
     changesMean: mean(rs.map(r => r.changes)),
     // total spending delivered over retirement as a fraction of the target years: the guardrails' raises count here
@@ -407,6 +414,9 @@ if (mode === 'flex') {
 
 // ---------------------------------------------------------------------------------------------------
 if (mode === 'reduceFlex') {
+  // runs made before these fields existed print n/a rather than NaN
+  const fmtN = (a) => { const v = a.filter(x => x !== null && x !== undefined && !Number.isNaN(x)); return v.length ? (v.reduce((x, y) => x + y, 0) / v.length).toFixed(1) : 'n/a'; };
+  const fmtLvl = (a) => { const v = a.filter(x => x !== null && x !== undefined && !Number.isNaN(x)); return v.length ? (v.reduce((x, y) => x + y, 0) / v.length).toFixed(3) : 'n/a'; };
   const tag = process.argv[3] || 'flex';
   const dir = join(RESULTS, tag);
   const rows = readdirSync(dir).filter(f => f.endsWith('.json')).map(f => JSON.parse(readFileSync(join(dir, f), 'utf8'))).sort((a, b) => a.id.localeCompare(b.id));
@@ -430,7 +440,7 @@ if (mode === 'reduceFlex') {
     const up = rows.filter(r => r.pairedFull[arm].diff > 2 * r.pairedFull[arm].se).length, down = rows.filter(r => r.pairedFull[arm].diff < -2 * r.pairedFull[arm].se).length;
     console.log(`\nsolver against ${arm}:`);
     console.log(`  floor rate: mean ${dFloor.length ? (mean(dFloor) >= 0 ? '+' : '') + mean(dFloor).toFixed(2) : '-'} pts;  fully-funded rate: mean ${(mean(dFull) >= 0 ? '+' : '') + mean(dFull).toFixed(2)} pts, ${up} up / ${down} down beyond two standard errors, sign test p = ${binom(up, down).toFixed(3)}`);
-    console.log(`  years at or above target (median run): solver ${mean(rows.map(r => r.solver.yearsAtTargetMedian)).toFixed(3)} vs ${mean(rows.map(r => r[arm].yearsAtTargetMedian)).toFixed(3)};  years above target (mean): ${mean(rows.map(r => r.solver.aboveTargetYearsMean)).toFixed(1)} vs ${mean(rows.map(r => r[arm].aboveTargetYearsMean)).toFixed(1)};  spending delivered (mean level, median run): ${mean(rows.map(r => r.solver.meanLevelMedian || 0)).toFixed(3)} vs ${mean(rows.map(r => r[arm].meanLevelMedian || 0)).toFixed(3)};  changes per path: ${mean(rows.map(r => r.solver.changesMean)).toFixed(2)} vs ${mean(rows.map(r => r[arm].changesMean)).toFixed(2)};  median pot: ${Math.round(mean(rows.map(r => r.solver.medianTerminalNet - r[arm].medianTerminalNet)) / 1000)}k`);
+    console.log(` years below target: solver ${fmtN(rows.map(r => r.solver.belowYearsMean))} vs ${fmtN(rows.map(r => r[arm].belowYearsMean))};  average level when below: solver ${fmtLvl(rows.map(r => r.solver.levelWhenBelowMean))} vs ${fmtLvl(rows.map(r => r[arm].levelWhenBelowMean))};  average level when above: solver ${fmtLvl(rows.map(r => r.solver.levelWhenAboveMean))} vs ${fmtLvl(rows.map(r => r[arm].levelWhenAboveMean))};  retired years: ${fmtN(rows.map(r => r.solver.spendYearsMean))};\n   years at or above target (median run): solver ${mean(rows.map(r => r.solver.yearsAtTargetMedian)).toFixed(3)} vs ${mean(rows.map(r => r[arm].yearsAtTargetMedian)).toFixed(3)};  years above target (mean): ${mean(rows.map(r => r.solver.aboveTargetYearsMean)).toFixed(1)} vs ${mean(rows.map(r => r[arm].aboveTargetYearsMean)).toFixed(1)};  spending delivered (mean level, median run): ${mean(rows.map(r => r.solver.meanLevelMedian || 0)).toFixed(3)} vs ${mean(rows.map(r => r[arm].meanLevelMedian || 0)).toFixed(3)};  changes per path: ${mean(rows.map(r => r.solver.changesMean)).toFixed(2)} vs ${mean(rows.map(r => r[arm].changesMean)).toFixed(2)};  median pot: ${Math.round(mean(rows.map(r => r.solver.medianTerminalNet - r[arm].medianTerminalNet)) / 1000)}k`);
   }
   // each household's ask can differ (CONF=gkFloor), so the landing is judged against its own
   const meets = (arm) => rows.filter(r => r[arm].floorRate >= 100 * r.confidence - 0.5).length;

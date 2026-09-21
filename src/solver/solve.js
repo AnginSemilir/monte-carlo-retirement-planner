@@ -492,7 +492,9 @@ export function runPolicy(r, zs, opts = {}) {
   const real = new Float64Array(4);
   // the path's own long-run shift, drawn once (the engine keeps it after the yearly draws); nothing in fold mode
   const zPath = zs.length > T + 1 ? zs[T + 1] : 0;
-  let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null, switchPaid = 0;
+  // belowSum/aboveSum carry the level in the years it was under or over target, so the report can say how
+  // DEEP a trim was and how big a raise, not only how often each happened
+  let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, belowSum = 0, aboveSum = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null, switchPaid = 0;
   const held = { pen: 0, isa: 0 };   // the tiers held: the plan's until a move changes them
   for (let t = 0; t <= T; t++) {
     const ai = opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t, held);
@@ -501,7 +503,9 @@ export function runPolicy(r, zs, opts = {}) {
     { const a = c.acts[ai]; switchPaid += F.chargeSwitch(c, s, held, a); held.pen = a.tierPen; held.isa = a.tierIsa; if (a.tierPen > 0) tierPenYears++; if (a.tierIsa > 0) tierIsaYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
     if (c.yr.spend[t] > 0) {
       spendYears++; const lv = c.last.level; levelSum += lv;
-      if (lv >= 1 - 1e-9) atTarget++; if (lv > 1 + 1e-9) aboveTarget++; if (lv < minLevel) minLevel = lv;
+      if (lv >= 1 - 1e-9) atTarget++; else belowSum += lv;
+      if (lv > 1 + 1e-9) { aboveTarget++; aboveSum += lv; }
+      if (lv < minLevel) minLevel = lv;
       shortfall += (1 - Math.min(1, lv)) * (1 - Math.min(1, lv));
       // whipsaw: how often the year's spend level differs from last year's
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
@@ -511,7 +515,7 @@ export function runPolicy(r, zs, opts = {}) {
     F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai], t, zPath));
   }
   const total = s[0] + s[1] + s[2];
-  const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid };
+  const spendStats = { spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid };
   if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, failYear: m.ctx.baseYear + T, failAge: m.ctx.ageSelf0 + T, preAccess: false, terminalNet: 0, terminal: 0, lifetimeTax, ...spendStats, fullyFunded: false };
   return { survived: true, failYear: null, failAge: null, preAccess: false, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax, ...spendStats };
 }

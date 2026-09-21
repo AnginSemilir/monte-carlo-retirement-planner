@@ -387,9 +387,9 @@ if (mode === 'flex') {
   const MARGIN = process.env.MARGIN ? Number(process.env.MARGIN) : 0;
   const RAISE = process.env.RAISE ? Number(process.env.RAISE) : 0;   // 2d.4: the credit weight for spending above the target
   const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);
-  const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: Number(process.env.SEARCH || 600), seed: seedSearch, confidence: CONF, bisectSteps: 5, spendLevels: LEVELS, shortfallExponent: EXP, margin: MARGIN, raiseWeight: RAISE, tiers: TIERS, mix: MIX || undefined });
+  const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: Number(process.env.SEARCH || 2400), verifyPaths: process.env.VERIFY ? Number(process.env.VERIFY) : undefined, seed: seedSearch, confidence: CONF, bisectSteps: 5, spendLevels: LEVELS, shortfallExponent: EXP, margin: MARGIN, raiseWeight: RAISE, tiers: TIERS, mix: MIX || undefined });
   const solvedRs = held.map(zs => runPolicy(r, zs));
-  arms.solver = { stats: { ...statsFlex(solvedRs), landed: r.meta.landed, lambda: r.lambda, solves: r.meta.solves, levels: r.meta.spendLevels, searchFloorRate: 100 * r.floorRate }, rs: solvedRs };
+  arms.solver = { stats: { ...statsFlex(solvedRs), landed: r.meta.landed, lambda: r.lambda, solves: r.meta.solves, levels: r.meta.spendLevels, verifiedFloorRate: 100 * r.floorRate, searchFloorRate: 100 * (r.searchFloorRate ?? r.floorRate), searchPaths: r.meta.searchPaths, verifyPaths: r.meta.verifyPaths, verifySteps: r.meta.verifySteps }, rs: solvedRs };
   const out = {
     tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, held: HELD, seedSearch, seedHeld, floor: FLOOR, confidence: CONF, target, floorSpend, ms: Date.now() - t0,
     knobs: { levels: LEVELS || null, exponent: EXP === undefined ? 2 : EXP, margin: MARGIN, raise: RAISE, tiers: r.meta.tiers || null, mixture: r.meta.mixture || 0 },

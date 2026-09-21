@@ -528,27 +528,74 @@ export function solveFlex(E, M, plan, opts = {}) {
   // held-out paths; `margin` asks for a little more than the confidence to land on it
   const confidence = (opts.confidence !== undefined ? opts.confidence : (probe.ctx.floorConfidence || 0.9)) + (opts.margin || 0);
   const tol = opts.tolerance !== undefined ? opts.tolerance : 0.005;
-  const zs = E.pathsForSeed(opts.seed || 4242, opts.searchPaths || 1000, probe.ctx.totalYears);
-  const floorRate = (r) => zs.filter(z => runPolicy(r, z).survived).length / zs.length;
-  // under the scenario mixture (opts.mix) every landing step solves K tables, so the floor rate it lands on is the engine's
-  const at = (lambda) => { const r = (opts.mix ? solveMixture : solve)(E, M, plan, { ...opts, spendLevels: levels, lambda }); r.floorRate = floorRate(r); r.solves = 1; return r; };
-  if (levels.length === 1) { const r = at(0); r.meta.landed = 'no floor'; return r; }
-  if (!levels.some(l => l < 1)) { const r = at(0); r.meta.landed = 'no floor'; return r; }   // raises only: nothing to land
+  /*
+   * ONE DRAW, TWO STAGES, AND THE SECOND ONE IS NOT OPTIONAL.
+   *
+   * This is the lesson `optimizeSpend` in the app learned the hard way, re-learned here. Bisecting on a
+   * small sample selects, among the lambdas near the boundary, whichever one that sample happened to
+   * flatter - the winner's curse - so re-measuring regresses, and always downward, because the selection
+   * was upward. Measured on the flex-mix pilot, which searched on 600 paths with seed 7001 and reported
+   * on 3,000 with 7002: the three households that missed all MET their ask on the search paths and came
+   * back 1.5 to 2.1 points below it on held-out, each about one standard error of a 600-path estimate.
+   * A floor promised at 92% that holds 91% of the time is not a rounding error.
+   *
+   * So: one draw throughout. `pathsForSeed` builds path i deterministically from the seed, so the search
+   * set is a genuine PREFIX of the verification set rather than a different draw, and stage 2 re-measures
+   * the chosen table on the whole of it, walking lambda down until the rate we are about to PROMISE
+   * clears the ask. What is returned in `floorRate` is what was checked; the search estimate that guided
+   * the bisection is kept beside it as `searchFloorRate`.
+   *
+   * The app splits its budget the other way round (cheap re-runs, expensive paths) because its "solve" is
+   * one more Monte Carlo. Ours is a table, or K tables under the mixture, so paths are nearly free here:
+   * 12,600 forward runs take under two seconds. Verification costs no solve at all unless it has to walk.
+   */
+  const nSearch = opts.searchPaths || 2400;
+  const nVerify = Math.max(opts.verifyPaths || 4 * nSearch, nSearch);
+  const zsAll = E.pathsForSeed(opts.seed || 4242, nVerify, probe.ctx.totalYears);
+  const zsSearch = nVerify === nSearch ? zsAll : zsAll.slice(0, nSearch);
+  const rateOn = (r, paths) => paths.filter(z => runPolicy(r, z).survived).length / paths.length;
+  let solves = 0;
+  const at = (lambda) => {
+    const r = (opts.mix ? solveMixture : solve)(E, M, plan, { ...opts, spendLevels: levels, lambda });
+    r.floorRate = rateOn(r, zsSearch); solves++; return r;
+  };
+  // the rate about to be promised, on the full draw the search set is a prefix of
+  const verify = (r) => { if (r.searchFloorRate === undefined) { r.searchFloorRate = r.floorRate; r.floorRate = rateOn(r, zsAll); } return r; };
+  const done = (r, landed, vSteps = 0) => {
+    r.meta.landed = landed; r.meta.solves = solves; r.meta.confidence = confidence;
+    r.meta.searchPaths = nSearch; r.meta.verifyPaths = nVerify; r.meta.verifySteps = vSteps;
+    return r;
+  };
+  if (levels.length === 1) return done(verify(at(0)), 'no floor');
+  if (!levels.some(l => l < 1)) return done(verify(at(0)), 'no floor');   // raises only: nothing to land
   // the bracket: landings in the pilot sat between 0.05 and 0.5, so 0.005 to 2 reaches them in fewer solves
   let hi = opts.lambdaHigh || 2, lo = opts.lambdaLow || 5e-3;
   const rHi = at(hi);
-  let solves = 1;
-  if (rHi.floorRate >= confidence) { rHi.meta.landed = 'no trimming needed'; rHi.meta.solves = solves; return rHi; }
-  let best = at(lo); solves++;
-  if (best.floorRate < confidence) { best.meta.landed = 'confidence not reachable'; best.meta.solves = solves; return best; }
-  // best meets the confidence with heavy trimming; move lambda up while it still does
+  if (verify(rHi).floorRate >= confidence) return done(rHi, 'no trimming needed');
+  // the bracket's bottom: the most trimming on offer, and the fallback stage 2 walks back to
+  const rLo = at(lo);
+  if (verify(rLo).floorRate < confidence) return done(rLo, 'confidence not reachable');
+  let best = rLo;
+  // stage 1: find the neighbourhood on the search prefix, moving lambda up while it still meets the ask
   for (let k = 0; k < (opts.bisectSteps || 6); k++) {
     const mid = Math.exp((Math.log(lo) + Math.log(hi)) / 2);
-    const r = at(mid); solves++;
+    const r = at(mid);
     if (r.floorRate >= confidence) { lo = mid; best = r; if (r.floorRate - confidence <= tol) break; } else hi = mid;
   }
-  best.meta.landed = 'landed'; best.meta.solves = solves; best.meta.confidence = confidence;
-  return best;
+  // stage 2: re-measure on the full draw, and walk lambda back down until the promise holds
+  let vSteps = 0, hiL = best.lambda;
+  verify(best);
+  while (best.floorRate < confidence && vSteps < (opts.verifySteps || 3)) {
+    vSteps++;
+    const mid = Math.exp((Math.log(rLo.lambda) + Math.log(hiL)) / 2);
+    if (!(mid < hiL)) break;
+    const r = verify(at(mid));
+    best = r; hiL = mid;
+    if (r.floorRate >= confidence) break;
+  }
+  // the bottom of the bracket was verified above, so it is always a landing if the walk ran out of steps
+  if (best.floorRate < confidence) best = rLo;
+  return done(best, 'landed', vSteps);
 }
 
 function nearestIndex(g, s) {

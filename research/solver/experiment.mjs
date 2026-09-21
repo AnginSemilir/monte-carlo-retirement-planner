@@ -233,6 +233,10 @@ if (mode === 'run') {
   const sc = singles[band[k].i];
   const plan = prep(sc.plan);
   const m = M.prepare(E, plan);
+  // under the mixture every arm lives in the engine's world: the per-path shift applied on the forward run, the
+  // yearly spread the plain volatility (shift mode with a zero held shift); without it, all arms use the fold
+  const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 5;   // the scenario mixture over the per-path shift (gate 3): 5 tables by default, MIX=0 for the single folded table
+  if (MIX) m.shiftZ = 0;
   const years = m.ctx.totalYears;
   const search = E.pathsForSeed(seedSearch, SEARCH_PATHS, years);
   const held = E.pathsForSeed(seedHeld, HELD, years);
@@ -252,7 +256,6 @@ if (mode === 'run') {
   // phase 6: TIERS=1 lets every move also pick the pension's and the ISA's tier (the plan's or up to two below); TIERS=joint moves both together
   const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);
   const SWITCH = process.env.SWITCH !== undefined ? Number(process.env.SWITCH) : undefined;   // the round-trip cost of a tier change, on the slice traded
-  const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 5;   // the scenario mixture over the per-path shift (gate 3): 5 tables by default, MIX=0 for the single folded table
   const solveOpts = { points: POINTS, lump: m.ctx.fullLumpSum, coords: COORDS, shares: SHARES, resilienceWeight: WR, bequestWeight: WB, resilience: RESIL, tiers: TIERS, switchCost: SWITCH };
   const r = MIX ? solveMixture(E, M, plan, { ...solveOpts, mix: MIX }) : solve(E, M, plan, solveOpts);
   const solvedRs = held.map(zs => runSolvedPath(r, zs));
@@ -359,9 +362,12 @@ if (mode === 'flex') {
   const years = M.prepare(E, plans.fixed).ctx.totalYears;
   const search = E.pathsForSeed(seedSearch, SEARCH_PATHS, years);
   const held = E.pathsForSeed(seedHeld, HELD, years);
+  // the mixture (gate 3): the solver lands its floor on K tables and every arm runs in the engine's world
+  const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 5;
   const arms = {};
   for (const key of ['gk', 'gkFloor', 'fixed', ...EXTRA]) {
     const m = M.prepare(E, plans[key]);
+    if (MIX) m.shiftZ = 0;
     const menu = buildActions();
     const c = F.compile(m, menu);
     if (key === 'vanguard') c.rule = { kind: 'vanguard', up: 0.05, down: 0.025 };
@@ -381,12 +387,12 @@ if (mode === 'flex') {
   const MARGIN = process.env.MARGIN ? Number(process.env.MARGIN) : 0;
   const RAISE = process.env.RAISE ? Number(process.env.RAISE) : 0;   // 2d.4: the credit weight for spending above the target
   const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);
-  const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: Number(process.env.SEARCH || 600), seed: seedSearch, confidence: CONF, bisectSteps: 5, spendLevels: LEVELS, shortfallExponent: EXP, margin: MARGIN, raiseWeight: RAISE, tiers: TIERS });
+  const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: Number(process.env.SEARCH || 600), seed: seedSearch, confidence: CONF, bisectSteps: 5, spendLevels: LEVELS, shortfallExponent: EXP, margin: MARGIN, raiseWeight: RAISE, tiers: TIERS, mix: MIX || undefined });
   const solvedRs = held.map(zs => runPolicy(r, zs));
   arms.solver = { stats: { ...statsFlex(solvedRs), landed: r.meta.landed, lambda: r.lambda, solves: r.meta.solves, levels: r.meta.spendLevels, searchFloorRate: 100 * r.floorRate }, rs: solvedRs };
   const out = {
     tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, held: HELD, seedSearch, seedHeld, floor: FLOOR, confidence: CONF, target, floorSpend, ms: Date.now() - t0,
-    knobs: { levels: LEVELS || null, exponent: EXP === undefined ? 2 : EXP, margin: MARGIN, raise: RAISE, tiers: r.meta.tiers || null },
+    knobs: { levels: LEVELS || null, exponent: EXP === undefined ? 2 : EXP, margin: MARGIN, raise: RAISE, tiers: r.meta.tiers || null, mixture: r.meta.mixture || 0 },
     solver: arms.solver.stats, gk: arms.gk.stats, gkFloor: arms.gkFloor.stats, fixed: arms.fixed.stats,
     pairedFloor: { gk: paired(solvedRs, arms.gk.rs), gkFloor: paired(solvedRs, arms.gkFloor.rs), fixed: paired(solvedRs, arms.fixed.rs) },
     pairedFull: { gk: paired(solvedRs, arms.gk.rs, 'fullyFunded'), gkFloor: paired(solvedRs, arms.gkFloor.rs, 'fullyFunded'), fixed: paired(solvedRs, arms.fixed.rs, 'fullyFunded') }

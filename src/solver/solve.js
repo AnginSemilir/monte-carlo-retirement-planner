@@ -516,7 +516,8 @@ export function solveFlex(E, M, plan, opts = {}) {
   const tol = opts.tolerance !== undefined ? opts.tolerance : 0.005;
   const zs = E.pathsForSeed(opts.seed || 4242, opts.searchPaths || 1000, probe.ctx.totalYears);
   const floorRate = (r) => zs.filter(z => runPolicy(r, z).survived).length / zs.length;
-  const at = (lambda) => { const r = solve(E, M, plan, { ...opts, spendLevels: levels, lambda }); r.floorRate = floorRate(r); r.solves = 1; return r; };
+  // under the scenario mixture (opts.mix) every landing step solves K tables, so the floor rate it lands on is the engine's
+  const at = (lambda) => { const r = (opts.mix ? solveMixture : solve)(E, M, plan, { ...opts, spendLevels: levels, lambda }); r.floorRate = floorRate(r); r.solves = 1; return r; };
   if (levels.length === 1) { const r = at(0); r.meta.landed = 'no floor'; return r; }
   if (!levels.some(l => l < 1)) { const r = at(0); r.meta.landed = 'no floor'; return r; }   // raises only: nothing to land
   // the bracket: landings in the pilot sat between 0.05 and 0.5, so 0.005 to 2 reaches them in fewer solves

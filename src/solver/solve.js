@@ -47,8 +47,8 @@ import * as F from './fast.js';
 /* The score gain a tier change must beat to be made, once it is also paying its trades: a tenth of a survival point. */
 export const SWITCH_MARGIN = 0.001;
 
-const NODES = [-2.856970, -1.355626, 0, 1.355626, 2.856970];
-const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
+export const NODES = [-2.856970, -1.355626, 0, 1.355626, 2.856970];
+export const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
 
 /*
  * The draw orders worth considering. The three pension steps keep their band order - drawing to the
@@ -456,6 +456,20 @@ function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
     }
     SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
   }
+}
+
+/* The K best moves at a position, by the same score chooseAction uses (a couple's rollout builds its candidates from these). */
+export function rankActions(r, s, t, held = null, K = 3) {
+  const n = r.actions.length;
+  const SC = new Float64Array(n), TX = new Float64Array(n), BQ = new Float64Array(n);
+  if (r.mix) {
+    SC.fill(0);
+    const S2 = new Float64Array(n), T2 = new Float64Array(n), B2 = new Float64Array(n);
+    r.mix.tables.forEach((tab, k) => { scoreMoves(tab, s, Math.min(t, r.m.ctx.totalYears - 1), S2, T2, B2, held); const w = r.mix.weights[k]; for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; BQ[ai] += w * B2[ai]; } });
+  } else scoreMoves(r, s, Math.min(t, r.m.ctx.totalYears - 1), SC, TX, BQ, held);
+  const idx = []; for (let ai = 0; ai < n; ai++) if (SC[ai] > -Infinity) idx.push(ai);
+  idx.sort((a, b) => (SC[b] - SC[a]) || (BQ[b] - BQ[a]));
+  return idx.slice(0, K);
 }
 
 /*

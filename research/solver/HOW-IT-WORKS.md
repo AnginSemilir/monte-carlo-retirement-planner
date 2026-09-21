@@ -292,12 +292,39 @@ the cash ISA cap (the under-65 cap from 2027 is dated config). This "you will ac
 is what lets the two stay one pot, which keeps the solver's grid to three dimensions. The library now
 splits every household's cash none, half or all into the ISA so the tax has households to bite on.
 
-**What is still fixed, on purpose.** Each wrapper's risk tier is held at the tier set on Plan Inputs in
-this research build; the solver decides withdrawal order and harvesting, not how the money is invested.
-That is sequencing, not a decision to leave it out: Phase 6 makes the tier a move (stay, or a step down
-or up from the household's own tier), and it comes after the Part D spending pilot because the
-literature finds the larger gain in spending that responds to wealth. Mortality, annuities and market
-regimes stay out by design.
+**Spending that responds to the pot (Part D, the pilot).** The household names a target, a floor
+(80% of it in the pilot) and how sure it wants to be of never going below the floor. The solver gets
+the trims as moves (spend 90%, spend the floor) and a penalty on trimming; the penalty is turned up
+until the plan just meets the confidence on a set of search paths, so it trims as little as it can
+while keeping the promise. Against Guyton-Klinger guardrails asked to keep the same promise, on 41
+households, it delivered the full target in 92% of retired years against 52%, changed the spend level
+twice a run against 26 times, and ended with more money. The guardrails' one advantage was the raises:
+they spend above the target after good years and the solver did not, so its total spending delivered
+was a little lower and its end pot larger.
+
+**Raises after a good run (2d.4).** So a raise is now a move too (spend 110% or 120%), with a small,
+bounded credit for spending above the target that grows more slowly the bigger the raise. The value
+table already knows what a smaller pot next year costs in survival and bequest, so a raise is taken
+only where the credit beats that cost; a rule of thumb cannot make that comparison. The credit's
+weight is a preference, like the bequest weight: at the smallest weight tried the solver raised more
+often than the guardrails, delivered more spending in the median run and in the unlucky tenth, with a
+quarter of the whipsaw, and still landed the floor. Turned up too far the credit fights the floor and
+the landing fails, so it stays small.
+
+**The risk tier as a move (Phase 6).** Each year the pension's and the ISA's tier is part of the move:
+the tier set on Plan Inputs, or one or two below it, never above. Switching funds inside those wrappers
+is free and leaves nothing to remember, so the table gains no dimension, only more moves; and because
+the year's draws and tax do not depend on what the funds hold, a move's tier variants share its
+arithmetic and differ only in growth. The two wrappers step down together by default: every pair of
+tiers was tried and scored the same to four places at more than twice the cost. The GIA keeps its
+tier, because a switch there realises gain and the cost of the next switch depends on the last, which
+the table cannot remember. What it does with the freedom: a lean household near the edge de-risks for
+most of its retirement and its survival rises several points; a comfortable one de-risks the years it
+no longer needs the return. One thing to watch: with switching free the solver flips tiers freely,
+ten to twenty times a run, which is optimal in the model and odd in life; a small switching cost or a
+"stay unless it is worth it" margin is the likely fix.
+
+**What is still fixed, on purpose.** Mortality, annuities and market regimes stay out by design.
 
 **The risk term is a shortfall, not a step.** The table's downside term used to be "the chance of
 ending with at least what you started with", a step that rewards a gamble right at the line. It is now

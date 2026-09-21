@@ -44,6 +44,9 @@ import * as F from './fast.js';
  * per path rather than once per year - cannot be seen by a solver that has no memory of the path, so it
  * is folded into the annual spread instead. That makes the tails fatter, which is the safe direction.
  */
+/* The score gain a tier change must beat to be made, once it is also paying its trades: a tenth of a survival point. */
+export const SWITCH_MARGIN = 0.001;
+
 const NODES = [-2.856970, -1.355626, 0, 1.355626, 2.856970];
 const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
 
@@ -141,6 +144,8 @@ export function solve(E, M, plan, opts = {}) {
   const c = F.compile(m, actions);
   // a tier change costs its round trip on the slice traded (see SWITCH_COST in fast.js); charged at decision time
   c.switchCost = opts.switchCost !== undefined ? opts.switchCost : (opts.tiers ? F.SWITCH_COST : 0);
+  // ...and is made only when the table's gain from it is worth noticing (see chooseAction)
+  const switchMargin = opts.switchMargin !== undefined ? opts.switchMargin : (opts.tiers ? SWITCH_MARGIN : 0);
   const nodeReal = NODES.map(z => realAt(c, z, new Float64Array(4)));
   // the quadrature rates for each move's tier combination, shared between moves that hold the same tiers
   const byCombo = {};
@@ -298,9 +303,9 @@ export function solve(E, M, plan, opts = {}) {
     if (shortfall) lresil[t].set(Rt); else toLogOdds(Rt, lresil[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin };
   const r = {
-    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOf, wB, wR, lambda, levelOf, shortExp, costOf,
+    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOf, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin,
     tieMargin: opts.tieMargin || 0,
     rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
@@ -348,6 +353,25 @@ export function chooseAction(r, s, t, held = null) {
   for (let ai = 0; ai < n; ai++) {
     const score = SC[ai];
     if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && BQ[ai] > bestB)) { bestScore = score; bestB = BQ[ai]; best = ai; }
+  }
+  /*
+   * IS THE SWITCH WORTH IT (phase 6). A tier change is made only when the table's gain from it beats
+   * `switchMargin`, in score units (survival-equivalent): a gain the household could not tell from
+   * noise is not worth the trades and the bother. The moves that keep the tiers held are compared on
+   * their own; if the best of them is within the margin of the best overall, it is chosen.
+   */
+  const sm = r.switchMargin || 0;
+  if (held && sm > 0) {
+    const acts = r.c.acts;
+    if (acts[best].tierPen !== held.pen || acts[best].tierIsa !== held.isa) {
+      let stay = -1, stayScore = -Infinity, stayB = -Infinity;
+      for (let ai = 0; ai < n; ai++) {
+        if (acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa) continue;
+        const score = SC[ai];
+        if (score > stayScore + eps || (Math.abs(score - stayScore) <= eps && BQ[ai] > stayB)) { stayScore = score; stayB = BQ[ai]; stay = ai; }
+      }
+      if (stay >= 0 && stayScore > -Infinity && bestScore - stayScore <= sm) { best = stay; bestScore = stayScore; bestB = stayB; }
+    }
   }
   /*
    * WHEN THE TABLE CANNOT TELL, DO NOT PAY TAX NOW. Within `tieMargin` of the best score, prefer the

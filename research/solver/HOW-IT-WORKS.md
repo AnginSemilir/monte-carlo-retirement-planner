@@ -322,10 +322,13 @@ the table cannot remember. What it does with the freedom: a lean household near 
 most of its retirement and its survival rises several points; a comfortable one de-risks the years it
 no longer needs the return. A tier change is not free: the slice that moves is sold and bought, so
 a quarter of a percent of that slice (about a tenth of a percent each way for the spread and dealing,
-and a day or two out of the market) is charged to the wrapper the year it changes. The charge cut
-the flipping by a third and cost the household about £6k over a retirement; the survival gain
-survived it whole. Both this and the raises are presets, off unless the person turns them on,
-because each trades bequest for spending or survival.
+and a day or two out of the market) is charged to the wrapper the year it changes. That cut the
+flipping by a third; a realistic cost is too small to do more. So a change is also made only when it
+is worth noticing: the table's gain from switching has to beat a tenth of a survival point, or the
+household stays where it is. With both, the household changes tier about twice in a retirement and
+pays about £3k to do it, and the survival gain is intact (+4.9 points against +5.0 with free
+switching). Both this and the raises are presets, off unless the person turns them on, because each
+trades bequest for spending or survival.
 
 **What is still fixed, on purpose.** Mortality, annuities and market regimes stay out by design.
 

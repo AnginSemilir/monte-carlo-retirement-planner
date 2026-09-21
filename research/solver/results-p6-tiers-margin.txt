@@ -1,0 +1,62 @@
+Gate 6 with the switching cost (0.25% of the slice traded) AND the worth-it margin (a tier change only when the table's gain beats 0.001 of score, a tenth of a survival point), tag p6-tiers-margin; joint steps; 40-point total-wealth grid; 3000 held-out; seeds 7001/7002. Compare results-p6-tiers.txt (free) and results-p6-tiers-cost.txt (cost only).
+
+tiers on: 0/0 1/1 2/2; switching cost 0.0025; years below the plan tier 34.5 a run, tier changes 1.7 a run, switching cost paid £2900 a run
+
+41 households, tag p6-tiers-margin, 40 points, 3000 held-out paths, seeds 7001/7002
+
+id    survival: solver / same / app     Δsame±se   Δapp±se    picker(same,app)   p10 net s/f    median net s/f    tax s/f    failAge s/f
+S004   97.3 /  91.0 /  91.0      +6.3±0.5   +6.3±0.5    solver,solver     339k/  228k      770k/  1133k   11k/13k   94.8/94.4
+S020   87.2 /  76.7 /  76.8      +10.4±0.6   +10.4±0.6    solver,solver       0k/    0k      609k/   867k   16k/1k   89.4/89.1
+S034   88.4 /  82.3 /  82.4      +6.1±0.4   +6.0±0.4    solver,solver       0k/    0k     2862k/  3789k   97k/116k   93.7/93.7
+S054   99.2 /  98.0 /  97.9      +1.2±0.2   +1.3±0.2    solver,solver     942k/  899k     2201k/  2551k   32k/32k   95.0/95.0
+S058   98.0 /  94.6 /  94.6      +3.4±0.3   +3.4±0.3    solver,solver     651k/  351k     2951k/  2690k   87k/363k   91.7/92.1
+S070   76.2 /  69.3 /  69.3      +6.8±0.5   +6.8±0.5    solver,solver       0k/    0k     1995k/  2962k   1077k/809k   86.9/86.7
+S082   89.1 /  80.0 /  80.0      +9.1±0.6   +9.1±0.6    solver,solver       0k/    0k     2638k/  4480k   5k/6k   90.6/89.4
+S100   99.7 /  97.6 /  97.6      +2.1±0.3   +2.1±0.3    solver,solver     293k/  180k      695k/  1039k   0k/0k   92.9/90.4
+S112   99.0 /  96.6 /  96.6      +2.4±0.3   +2.4±0.3    solver,solver     291k/  228k      724k/   895k   0k/13k   94.5/94.7
+S118   90.6 /  85.3 /  85.3      +5.3±0.4   +5.3±0.4    solver,solver      55k/    0k     2718k/  2918k   114k/316k   89.2/89.1
+S126   99.7 /  97.2 /  97.2      +2.4±0.3   +2.4±0.3    solver,solver     905k/  565k     2505k/  3935k   41k/38k   88.8/87.5
+S142   84.9 /  75.7 /  75.9      +9.1±0.6   +9.0±0.5    solver,solver       0k/    0k     2728k/  4419k   8k/6k   86.0/86.5
+S154   76.8 /  70.0 /  69.4      +6.8±0.5   +7.3±0.5    solver,solver       0k/    0k     2893k/  4049k   128k/151k   87.4/88.2
+S162   99.6 /  96.6 /  96.8      +3.0±0.3   +2.8±0.3    solver,solver     959k/  707k     2310k/  3657k   1k/1k   92.8/91.8
+S172   96.5 /  91.0 /  91.0      +5.5±0.4   +5.5±0.4    solver,solver     183k/  118k      635k/   821k   0k/11k   90.3/91.2
+S178   85.6 /  78.9 /  79.0      +6.6±0.5   +6.5±0.5    solver,solver       0k/    0k     2606k/  2837k   137k/336k   85.8/86.1
+S184   82.4 /  73.8 /  73.9      +8.5±0.5   +8.5±0.5    solver,solver       0k/    0k      738k/  1173k   40k/49k   85.0/85.7
+S194   96.1 /  89.6 /  89.7      +6.5±0.5   +6.5±0.5    solver,solver     132k/    0k      356k/   631k   0k/0k   91.8/90.6
+S198   99.5 /  96.9 /  97.3      +2.6±0.3   +2.2±0.3    solver,solver     886k/  635k     2328k/  3606k   1k/35k   89.9/88.5
+S206   99.3 /  97.5 /  97.5      +1.8±0.2   +1.8±0.2    solver,solver     153k/  115k      444k/   553k   0k/1k   85.5/88.0
+S218   98.9 /  94.6 /  94.6      +4.3±0.4   +4.3±0.4    solver,solver     133k/   66k      394k/   561k   0k/0k   86.3/86.6
+S222   98.6 /  94.3 /  94.3      +4.3±0.4   +4.3±0.4    solver,solver     870k/  606k     2567k/  3800k   3k/41k   90.4/90.9
+S230   99.5 /  98.5 /  98.5      +0.9±0.2   +0.9±0.2    solver,solver     176k/  141k      483k/   600k   0k/1k   87.6/87.8
+S234   97.8 /  94.2 /  94.2      +3.6±0.3   +3.6±0.3    solver,solver     948k/  778k     2692k/  4003k   32k/35k   93.2/93.0
+S240   98.3 /  93.7 /  93.5      +4.6±0.4   +4.8±0.4    solver,solver     215k/  136k      932k/  1747k   8k/0k   83.4/83.3
+S252   98.7 /  94.8 /  94.8      +3.9±0.4   +3.9±0.4    solver,solver     240k/  198k      828k/  1482k   0k/0k   86.4/87.2
+S258   90.9 /  84.0 /  84.0      +6.9±0.5   +6.9±0.5    solver,solver      82k/    0k     3022k/  5613k   49k/11k   82.5/84.0
+S268   78.6 /  71.4 /  71.4      +7.2±0.5   +7.2±0.5    solver,solver       0k/    0k      968k/  1559k   45k/30k   80.8/82.4
+S276   99.1 /  95.7 /  95.7      +3.4±0.3   +3.4±0.3    solver,solver     234k/  188k      886k/  1561k   1k/0k   80.7/84.5
+S292   82.0 /  75.2 /  75.2      +6.8±0.5   +6.8±0.5    solver,solver       0k/    0k     1173k/  1992k   40k/24k   82.2/83.8
+S300   90.4 /  83.1 /  83.1      +7.3±0.5   +7.3±0.5    solver,solver      17k/    0k     1182k/  2639k   76k/48k   83.8/84.7
+S318   84.7 /  78.8 /  78.8      +5.9±0.5   +5.9±0.5    solver,solver       0k/    0k     4441k/  7531k   172k/252k   84.4/85.2
+S330   83.4 /  79.6 /  79.6      +3.8±0.4   +3.8±0.4    solver,solver       0k/    0k     4562k/  6946k   396k/369k   85.5/86.0
+S342   79.4 /  74.2 /  74.2      +5.2±0.4   +5.2±0.4    solver,solver       0k/    0k     4532k/  8227k   402k/271k   84.5/84.8
+S354   87.2 /  82.1 /  82.1      +5.0±0.4   +5.0±0.4    solver,solver       0k/    0k     5459k/  8400k   352k/345k   86.8/87.9
+S374   98.4 /  92.7 /  92.1      +5.7±0.4   +6.3±0.5    solver,solver     164k/  120k      394k/   623k   0k/0k   92.1/89.0
+S378   99.7 /  97.5 /  97.4      +2.2±0.3   +2.3±0.3    solver,solver     954k/  639k     2316k/  3761k   0k/43k   88.0/85.7
+S390   99.5 /  98.0 /  97.5      +1.5±0.2   +2.0±0.3    solver,solver     841k/  666k     2620k/  3666k   30k/58k   82.9/86.0
+S400   90.6 /  83.4 /  83.4      +7.2±0.5   +7.2±0.5    solver,solver       7k/    0k      609k/  1032k   0k/0k   77.0/76.9
+S410   99.8 /  98.4 /  98.4      +1.4±0.2   +1.4±0.2    solver,solver     172k/  120k      428k/   560k   0k/0k   68.0/68.7
+S414   97.3 /  93.1 /  92.8      +4.2±0.4   +4.5±0.4    solver,solver     860k/  642k     2553k/  3826k   23k/49k   91.9/92.0
+
+solver against same menu, held fixed:
+  survival: mean +4.91 pts; beyond two standard errors in 41 of 41 (41 up, 0 down); sign test p = 0.000
+  the app's own picker prefers the solver in 41, the fixed plan in 0, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£82k mean;  median pot (net): £-985k;  tax: £-11k
+  mean failure age on failing paths: -0.20 years (41 households with failures on both)
+
+solver against the app as it stands:
+  survival: mean +4.94 pts; beyond two standard errors in 41 of 41 (41 up, 0 down); sign test p = 0.000
+  the app's own picker prefers the solver in 41, the fixed plan in 0, ties 0; sign test p = 0.000
+  unlucky tenth (net): +£84k mean;  median pot (net): £-973k;  tax: £-12k
+  mean failure age on failing paths: -0.20 years (41 households with failures on both)
+
+Free -> cost -> cost and margin: edge +5.03 -> +4.97 -> +4.91 (41 of 41 up, picker 41 of 41 throughout); tier changes a run 5.1 -> 5.1 -> 1.7 (0.7 to 3.2 by household); switching cost paid a run 5,872 -> 2,900; years below the plan tier 35.6 -> 34.5; median pot vs cost-only -48k; unlucky tenth -3k. Margin sweep on six households at 30 points (one solve each): margin 0 / 0.0005 / 0.001 / 0.002 / 0.005 / 0.01 -> changes 3.43 / 1.71 / 1.62 / 1.53 / 1.11 / 0.62; survival 92.77 / 92.83 / 92.75 / 92.47 / 91.28 / 89.37; years down 30 / 31 / 31 / 24 / 13 / 2.5. Above 0.001 the margin blocks the first de-risking step, not the flips.

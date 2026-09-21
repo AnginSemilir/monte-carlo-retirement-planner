@@ -605,6 +605,20 @@ and leaves the ones the value function pays for, which is what a cost should do.
 is small enough that the tier freedom survives it whole; a household that wants fewer moves needs a
 preference (a hysteresis margin), not a bigger cost. Adopted: the cost is on whenever tiers are.
 
+**Gate 6 re-run with the worth-it margin (tag p6-tiers-margin; `results-p6-tiers-margin.txt`).** The
+cost alone left 5 changes a run, because a realistic cost is small against what the table sees in
+most flips. So a change is now made only when the table's gain from it beats a margin, a tenth of a
+survival point (0.001 of score): the moves that keep the tiers held are scored on their own, and if
+the best of them is within the margin of the best overall, it is chosen. A sweep on six households
+(one solve each, the margin applied at decision time) put the knee at 0.001: changes 3.4 → 1.6 a run
+with survival and both pots unchanged, while 0.002 and above began blocking the first de-risking step
+rather than the flips (years below the plan tier 31 → 24 → 13, survival down). On the 41 households:
+**edge +4.91 (free 5.03, cost 4.97), 41 of 41, picker 41 of 41; tier changes 1.7 a run (was 5.1),
+0.7 to 3.2 by household; switching cost paid £2.9k a run (was £5.9k)**; median pot £48k below the
+cost-only run, the unlucky tenth £3k. The household now changes tier about twice in a retirement and
+pays about £3k to do it, which reads like advice rather than trading. Adopted: cost and margin are
+both on whenever tiers are.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -1115,7 +1129,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | same on couple households | 1× |
-| 6 | tiers and spend dimension | **tiers done**: +4.97 survival with a 0.25% switching cost (+5.03 free) vs +0.73 without tiers, 41 of 41, picker 41 of 41; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
+| 6 | tiers and spend dimension | **tiers done**: +4.91 survival with the switching cost and the worth-it margin (+5.03 free) vs +0.73 without tiers, 41 of 41, picker 41 of 41, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

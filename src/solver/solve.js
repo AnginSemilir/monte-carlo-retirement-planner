@@ -47,8 +47,8 @@ import * as F from './fast.js';
 /* The score gain a tier change must beat to be made, once it is also paying its trades: a tenth of a survival point. */
 export const SWITCH_MARGIN = 0.001;
 
-const NODES = [-2.856970, -1.355626, 0, 1.355626, 2.856970];
-const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
+export const NODES = [-2.856970, -1.355626, 0, 1.355626, 2.856970];
+export const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
 
 /*
  * The draw orders worth considering. The three pension steps keep their band order - drawing to the
@@ -458,6 +458,20 @@ function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
   }
 }
 
+/* The K best moves at a position, by the same score chooseAction uses (a couple's rollout builds its candidates from these). */
+export function rankActions(r, s, t, held = null, K = 3) {
+  const n = r.actions.length;
+  const SC = new Float64Array(n), TX = new Float64Array(n), BQ = new Float64Array(n);
+  if (r.mix) {
+    SC.fill(0);
+    const S2 = new Float64Array(n), T2 = new Float64Array(n), B2 = new Float64Array(n);
+    r.mix.tables.forEach((tab, k) => { scoreMoves(tab, s, Math.min(t, r.m.ctx.totalYears - 1), S2, T2, B2, held); const w = r.mix.weights[k]; for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; BQ[ai] += w * B2[ai]; } });
+  } else scoreMoves(r, s, Math.min(t, r.m.ctx.totalYears - 1), SC, TX, BQ, held);
+  const idx = []; for (let ai = 0; ai < n; ai++) if (SC[ai] > -Infinity) idx.push(ai);
+  idx.sort((a, b) => (SC[b] - SC[a]) || (BQ[b] - BQ[a]));
+  return idx.slice(0, K);
+}
+
 /*
  * RUN THE SOLVED PLAN FORWARD on one market path, reading the move each year from the value function
  * at the true position (or, with `stored`, from the nearest cell). This, and not the table's own number,
@@ -516,7 +530,8 @@ export function solveFlex(E, M, plan, opts = {}) {
   const tol = opts.tolerance !== undefined ? opts.tolerance : 0.005;
   const zs = E.pathsForSeed(opts.seed || 4242, opts.searchPaths || 1000, probe.ctx.totalYears);
   const floorRate = (r) => zs.filter(z => runPolicy(r, z).survived).length / zs.length;
-  const at = (lambda) => { const r = solve(E, M, plan, { ...opts, spendLevels: levels, lambda }); r.floorRate = floorRate(r); r.solves = 1; return r; };
+  // under the scenario mixture (opts.mix) every landing step solves K tables, so the floor rate it lands on is the engine's
+  const at = (lambda) => { const r = (opts.mix ? solveMixture : solve)(E, M, plan, { ...opts, spendLevels: levels, lambda }); r.floorRate = floorRate(r); r.solves = 1; return r; };
   if (levels.length === 1) { const r = at(0); r.meta.landed = 'no floor'; return r; }
   if (!levels.some(l => l < 1)) { const r = at(0); r.meta.landed = 'no floor'; return r; }   // raises only: nothing to land
   // the bracket: landings in the pilot sat between 0.05 and 0.5, so 0.005 to 2 reaches them in fewer solves

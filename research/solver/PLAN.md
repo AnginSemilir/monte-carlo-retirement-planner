@@ -705,6 +705,27 @@ model showed: the median pot £459k smaller, the unlucky tenth £94k larger. The
 engine's +6.16 agree to the decimal, which closes the question of whether the model's edges survive
 contact with the engine. Cost: five tables with tiers, 130 s a household with four jobs on four cores.
 
+**Three worlds are enough (tag bridge-41-mix3; `results-p3-bridge-41-mix3.txt`).** The three-node
+mixture (−√3, 0, +√3 with weights 1/6, 2/3, 1/6, exact for the bell curve to second order) matches the
+five-node one on the 41 to the hundredth: gap −0.15 against −0.15, within a point on 39 of 41 both, the
+engine's score of the plan 83.86 both, at 40 s against 71 s a household. Three is the default; the app's
+first solve is then three tables in parallel, about the cost of one.
+
+**Gate 5, couples by rollout (tag couple-20; `results-p5-couples.txt`).** Nineteen households across
+the couple band, three-world mixture, 2,000 held-out paths, every arm in the exact model on the engine's
+market. Rollout against the best of the same 24-move menu: **+0.77 points of survival, 14 up / 3 down
+beyond two standard errors, sign test p = 0.013, worst −0.85, median pot +£97k**; against the plan's own
+rule +0.91, 14 up / 2 down, p = 0.004, median pot +£217k. The split is used in 29 of about 32 retired
+years a run and averages 0.49, even overall but not even in any one household (0.33 to 0.72): it leans
+on whichever person's wrappers the tables say can bear it. Gate 5's survival conditions are met (the
+mean beats the epsilon, no household is worse by more than a point); its backtest and perturbed-world
+conditions, inherited from gate 4, have not been run for couples. Three households lose by up to 0.85,
+two of them with the most uneven splits (0.72, 0.66), which is where the single tables' assumption that
+the split stays even is most wrong; a second rollout step, or tables solved at the split the rollout
+tends to, are the candidates. The couples' edge is the singles' withdrawal-order edge in size (+0.86),
+which is what it should be: the tier freedom that gave the singles +6 is off for couples in this pilot.
+Cost: 81 s to solve the two people, 164 s to run 2,000 paths under the rollout.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -940,6 +961,25 @@ Fallback if the gate fails: the joint grid at 8 points per wrapper per person (2
 in the worker, minutes rather than seconds, offered as "solve in the background".
 
 **Gate 5:** the versus protocol on the library's couple households; the same thresholds as gate 4.
+
+**How 5 is built (21 Sep).** `src/solver/couple.js`. The reduced model already steps couples to the pound
+(the golden test's twenty couples), so everything runs in it, on the engine's own market (a yearly draw
+per wrapper, a held shift per path). Each person gets a single plan cut from the couple's: their own
+wrappers and incomes, their own ages, half the household's spending, the household's horizon year for
+year; a table is solved for each (the mixture by default). The model's year gains two action fields:
+`split`, the first person's share of the household's net need (the engine's rule is even), and
+`perOwner`, each person's own draw order and harvest; at each step index the two draw from their own
+k-th pot and then cover each other's shortfall, which is the engine's interleaving exactly when the
+orders match. Each year the joint move is chosen by one-step rollout: five splits (0, ¼, ½, ¾, 1) times
+each person's two best moves from their own table at their own position, each candidate stepped one
+exact year in the model and valued by the two tables after growth, over the market's five nodes and
+the mixture's worlds, with survival and resilience multiplied (both must last) and the bequest summed.
+An infeasible candidate is dropped; if none funds the year the even split with each first-ranked move
+is taken and the year fails on its own terms. Cost: two solves plus about 20 model steps and 300 table
+reads a decision, 25 ms a path, so 2,000 held-out paths in under a minute. Tiers are off for couples in
+this pilot. The gate runs on 20 households across the couple band (74 couples with the plan's own rule
+between 70 and 98 on the search seed), the arms being the rollout, the plan's own rule, and the best of
+the same 24-move menu picked on the search seed, all in the same model on the same paths.
 
 ### Phase 6. The risk tier as an action, and spend as a dimension
 
@@ -1214,7 +1254,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
-| 5 | couples by rollout | same on couple households | 1× |
+| 5 | couples by rollout | **done, survival conditions met**: +0.77 vs the best fixed rule on 19 couples, 14 up / 3 down, worst −0.85; tiers off for couples; backtest and perturbed worlds not yet run | 1× |
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |

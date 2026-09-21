@@ -408,29 +408,34 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
       }
     });
   } else if (netDemand > 0) {
-    owners.forEach(o => { demand[o.key] = netDemand / owners.length; });
+    /*
+     * A couple's year (plan Phase 5). `action.split` is the share of the household's net need the first
+     * person funds (the engine's rule is an even split); `action.perOwner[key].steps` is each person's own
+     * draw order. At each step index the two draw from their own k-th pot, then cover each other's shortfall
+     * from it, which is the engine's interleaving exactly when both orders are the same, and the only
+     * sensible reading of "each in their own order" when they differ. Absent both, the year is the engine's.
+     */
+    const shareOf = (o) => (action.split !== undefined && owners.length === 2 ? (o.key === 'self' ? action.split : 1 - action.split) : 1 / owners.length);
+    owners.forEach(o => { demand[o.key] = netDemand * shareOf(o); });
     const remaining = () => owners.reduce((s, o) => s + demand[o.key], 0);
-    const tier = (cat) => {
-      owners.forEach(o => { demand[o.key] -= drawPot(o.ids[cat], demand[o.key]); });
-      owners.forEach(o => owners.forEach(x => { if (x.key !== o.key && demand[x.key] > 0) demand[x.key] -= drawPot(o.ids[cat], demand[x.key]); }));
-    };
-    const pensionTier = (ceiling) => {
-      owners.forEach(o => { if (demand[o.key] > 0) demand[o.key] = Math.max(0, demand[o.key] - drawPension(o.key, demand[o.key], ceiling)); });
-      owners.forEach(o => owners.forEach(x => { if (x.key !== o.key && demand[x.key] > 0) demand[x.key] = Math.max(0, demand[x.key] - drawPension(o.key, demand[x.key], ceiling)); }));
-    };
-    for (const s of action.steps) {
+    const stepsOf = (o) => (action.perOwner && action.perOwner[o.key] ? action.perOwner[o.key].steps : action.steps);
+    const drawFrom = (o, cat, need) => (cat === 'penPA' ? drawPension(o.key, need, P.pa) : cat === 'penBasic' ? drawPension(o.key, need, P.higherRateStartsAt) : cat === 'penAny' ? drawPension(o.key, need, Infinity) : drawPot(o.ids[cat], need));
+    const K = Math.max(...owners.map(o => stepsOf(o).length));
+    for (let k = 0; k < K; k++) {
       if (remaining() <= 0.005) break;
-      if (s === 'penPA') pensionTier(P.pa);
-      else if (s === 'penBasic') pensionTier(P.higherRateStartsAt);
-      else if (s === 'penAny') pensionTier(Infinity);
-      else tier(s);
+      owners.forEach(o => { const cat = stepsOf(o)[k]; if (cat && demand[o.key] > 0) demand[o.key] = Math.max(0, demand[o.key] - drawFrom(o, cat, demand[o.key])); });
+      owners.forEach(o => owners.forEach(x => { const cat = stepsOf(o)[k]; if (cat && x.key !== o.key && demand[x.key] > 0) demand[x.key] = Math.max(0, demand[x.key] - drawFrom(o, cat, demand[x.key])); }));
     }
   }
 
   // 7b. draw pension beyond the year's need and re-wrap it: ISA first, then the GIA at cost
-  if (action.harvest && anyRetired) {
-    const harvestCeil = action.harvestCeil === 'basic' ? P.higherRateStartsAt : P.pa;
+  const harvestAny = action.harvest || (action.perOwner && owners.some(o => action.perOwner[o.key] && action.perOwner[o.key].harvest));
+  if (harvestAny && anyRetired) {
     owners.forEach(o => {
+      // each person's own harvest switch and ceiling when the action carries them (a couple's year)
+      const own = action.perOwner && action.perOwner[o.key] ? action.perOwner[o.key] : action;
+      if (!own.harvest) return;
+      const harvestCeil = own.harvestCeil === 'basic' ? P.higherRateStartsAt : P.pa;
       if (working[o.key] || !access[o.key]) return;
       if ((pots[o.ids.pen] || 0) <= 0 || taxable[o.key] >= harvestCeil) return;
       const net = drawPension(o.key, 1e12, harvestCeil);

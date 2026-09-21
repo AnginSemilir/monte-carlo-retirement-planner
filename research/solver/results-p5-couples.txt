@@ -1,0 +1,29 @@
+Gate 5: couples by rollout (tag couple-20): 19 households spread across the couple band (74 couples with the plan's own rule between 70 and 98 on seed 7001); three-world mixture; 30 points; 2,000 held-out paths (seed 7002); every arm in the exact reduced model on the engine's market. Arms: the rollout; the plan's own rule; the best of the same 24-move menu picked on 600 search paths.
+
+19 couple households, tag couple-20, 30 points, mixture 3, 2000 held-out paths
+
+id    rollout / app / same    Δapp±se    Δsame±se   split  uneven yrs   median pot roll/same   fail age roll/same
+S007   95.8 /  94.8 /  96.7   +1.00±0.23   -0.85±0.21   0.72     27       2147k/1601k        94.0/94.7
+S029   95.5 /  96.2 /  96.3   -0.75±0.19   -0.80±0.21   0.66     27       986k/837k        95.0/95.0
+S065   96.3 /  96.0 /  96.1   +0.30±0.12   +0.20±0.10   0.37     32       1011k/1022k        86.4/87.1
+S079   87.7 /  87.3 /  87.4   +0.30±0.14   +0.25±0.15   0.48     30       2263k/2386k        94.1/94.4
+S105   91.2 /  91.0 /  90.6   +0.10±0.12   +0.55±0.17   0.40     25       4729k/4095k        88.1/88.1
+S137   80.1 /  78.2 /  79.0   +1.95±0.31   +1.15±0.27   0.33     29       691k/735k        82.3/82.9
+S153   90.0 /  89.6 /  89.3   +0.40±0.19   +0.75±0.21   0.50     26       4801k/4605k        84.8/86.0
+S173   88.5 /  87.9 /  87.3   +0.55±0.45   +1.20±0.28   0.42     32       657k/590k        77.1/78.2
+S187   82.0 /  78.5 /  79.3   +3.45±0.41   +2.75±0.37   0.47     26       2718k/2239k        86.0/87.3
+S201   88.5 /  87.6 /  87.3   +0.85±0.22   +1.10±0.23   0.42     26       6777k/6541k        85.9/86.3
+S221   80.2 /  78.4 /  78.5   +1.80±0.31   +1.75±0.29   0.39     27       993k/1060k        82.2/83.1
+S235   92.2 /  91.6 /  92.0   +0.55±0.36   +0.10±0.23   0.55     28       3019k/2852k        87.2/88.0
+S253   88.2 /  87.4 /  87.3   +0.75±0.21   +0.80±0.21   0.56     31       1395k/1579k        82.7/83.2
+S267   92.1 /  91.8 /  91.6   +0.30±0.12   +0.50±0.16   0.50     32       3100k/3826k        86.7/87.4
+S285   74.3 /  75.2 /  75.1   -0.85±0.22   -0.80±0.20   0.48     25       12482k/11794k        81.9/82.1
+S303   77.5 /  76.0 /  75.6   +1.50±0.27   +1.95±0.31   0.42     24       5604k/5774k        82.6/83.5
+S339   78.7 /  77.0 /  76.6   +1.75±0.29   +2.10±0.32   0.43     24       5033k/4956k        84.4/85.3
+S391   83.9 /  82.2 /  83.0   +1.75±0.29   +0.95±0.22   0.64     38       2187k/2149k        80.3/80.8
+S415   83.5 /  81.8 /  82.5   +1.60±0.34   +0.95±0.23   0.65     37       2294k/2411k        80.0/80.2
+
+rollout against the best of the same menu: survival mean +0.77 pts; beyond two standard errors 14 up / 3 down; sign test p = 0.013; worst -0.85; median pot 97k
+
+rollout against the plan's own rule: survival mean +0.91 pts; beyond two standard errors 14 up / 2 down; sign test p = 0.004; worst -0.85; median pot 217k
+mean split 0.49 (0.5 is even); uneven years 28.7 a run; solve 81s, rollout 164s per household

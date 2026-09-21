@@ -705,6 +705,12 @@ model showed: the median pot £459k smaller, the unlucky tenth £94k larger. The
 engine's +6.16 agree to the decimal, which closes the question of whether the model's edges survive
 contact with the engine. Cost: five tables with tiers, 130 s a household with four jobs on four cores.
 
+**Three worlds are enough (tag bridge-41-mix3; `results-p3-bridge-41-mix3.txt`).** The three-node
+mixture (−√3, 0, +√3 with weights 1/6, 2/3, 1/6, exact for the bell curve to second order) matches the
+five-node one on the 41 to the hundredth: gap −0.15 against −0.15, within a point on 39 of 41 both, the
+engine's score of the plan 83.86 both, at 40 s against 71 s a household. Three is the default; the app's
+first solve is then three tables in parallel, about the cost of one.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

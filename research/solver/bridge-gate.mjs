@@ -30,7 +30,7 @@ if (mode === 'run') {
   const plan = prep(sc.plan);
   const m0 = M.prepare(E, plan);
   const t0 = Date.now();
-  const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 5;   // the mixture by default since gate 3; MIX=0 for the folded single table
+  const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 3;   // the three-world mixture by default since gate 3 (five matched it to the hundredth at nearly twice the cost); MIX=0 for the folded single table
   const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);   // TIERS=1: the tier as a move, through the real engine
   const solveOpts = { points: POINTS, lump: m0.ctx.fullLumpSum, tiers: TIERS };
   const r = MIX ? solveMixture(E, M, plan, { ...solveOpts, mix: MIX }) : solve(E, M, plan, solveOpts);

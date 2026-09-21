@@ -235,7 +235,7 @@ if (mode === 'run') {
   const m = M.prepare(E, plan);
   // under the mixture every arm lives in the engine's world: the per-path shift applied on the forward run, the
   // yearly spread the plain volatility (shift mode with a zero held shift); without it, all arms use the fold
-  const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 5;   // the scenario mixture over the per-path shift (gate 3): 5 tables by default, MIX=0 for the single folded table
+  const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 3;   // the scenario mixture over the per-path shift (gate 3): three tables by default (five matched it to the hundredth at nearly twice the cost), MIX=0 for the single folded table
   if (MIX) m.shiftZ = 0;
   const years = m.ctx.totalYears;
   const search = E.pathsForSeed(seedSearch, SEARCH_PATHS, years);
@@ -363,7 +363,7 @@ if (mode === 'flex') {
   const search = E.pathsForSeed(seedSearch, SEARCH_PATHS, years);
   const held = E.pathsForSeed(seedHeld, HELD, years);
   // the mixture (gate 3): the solver lands its floor on K tables and every arm runs in the engine's world
-  const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 5;
+  const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 3;
   const arms = {};
   for (const key of ['gk', 'gkFloor', 'fixed', ...EXTRA]) {
     const m = M.prepare(E, plans[key]);

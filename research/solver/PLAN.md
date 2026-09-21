@@ -941,6 +941,25 @@ in the worker, minutes rather than seconds, offered as "solve in the background"
 
 **Gate 5:** the versus protocol on the library's couple households; the same thresholds as gate 4.
 
+**How 5 is built (21 Sep).** `src/solver/couple.js`. The reduced model already steps couples to the pound
+(the golden test's twenty couples), so everything runs in it, on the engine's own market (a yearly draw
+per wrapper, a held shift per path). Each person gets a single plan cut from the couple's: their own
+wrappers and incomes, their own ages, half the household's spending, the household's horizon year for
+year; a table is solved for each (the mixture by default). The model's year gains two action fields:
+`split`, the first person's share of the household's net need (the engine's rule is even), and
+`perOwner`, each person's own draw order and harvest; at each step index the two draw from their own
+k-th pot and then cover each other's shortfall, which is the engine's interleaving exactly when the
+orders match. Each year the joint move is chosen by one-step rollout: five splits (0, ¼, ½, ¾, 1) times
+each person's two best moves from their own table at their own position, each candidate stepped one
+exact year in the model and valued by the two tables after growth, over the market's five nodes and
+the mixture's worlds, with survival and resilience multiplied (both must last) and the bequest summed.
+An infeasible candidate is dropped; if none funds the year the even split with each first-ranked move
+is taken and the year fails on its own terms. Cost: two solves plus about 20 model steps and 300 table
+reads a decision, 25 ms a path, so 2,000 held-out paths in under a minute. Tiers are off for couples in
+this pilot. The gate runs on 20 households across the couple band (74 couples with the plan's own rule
+between 70 and 98 on the search seed), the arms being the rollout, the plan's own rule, and the best of
+the same 24-move menu picked on the search seed, all in the same model on the same paths.
+
 ### Phase 6. The risk tier as an action, and spend as a dimension
 
 - Each wrapper's action set gains the tier set on Plan Inputs and up to two tiers below it; never above.

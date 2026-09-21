@@ -582,19 +582,40 @@ export function solveFlex(E, M, plan, opts = {}) {
     const r = at(mid);
     if (r.floorRate >= confidence) { lo = mid; best = r; if (r.floorRate - confidence <= tol) break; } else hi = mid;
   }
-  // stage 2: re-measure on the full draw, and walk lambda back down until the promise holds
-  let vSteps = 0, hiL = best.lambda;
+  /*
+   * Stage 2: re-measure on the full draw, and if the promise does not hold, bisect on the VERIFIED rate
+   * for the LARGEST lambda that still clears it - the least trimming that keeps the promise.
+   *
+   * Taking the first lambda that clears instead is the mistake this replaced, and it is a worse bug than
+   * the one it was fixing. The bracket bottom is ten to twenty times below where the answer sits, so one
+   * step of "halve the gap and accept" landed S004 at lambda 0.043 against the 0.45 it wanted: the floor
+   * cleared its 92.2 ask by two points, and the years at the full target fell from 1.00 to 0.61. Landing
+   * a floor by over-trimming spends exactly what the floor exists to protect.
+   */
   verify(best);
-  while (best.floorRate < confidence && vSteps < (opts.verifySteps || 3)) {
-    vSteps++;
-    const mid = Math.exp((Math.log(rLo.lambda) + Math.log(hiL)) / 2);
-    if (!(mid < hiL)) break;
-    const r = verify(at(mid));
-    best = r; hiL = mid;
-    if (r.floorRate >= confidence) break;
+  let vSteps = 0;
+  if (best.floorRate < confidence) {
+    /*
+     * loL clears the ask, hiL does not, and the floor rate is smooth and monotone in log lambda between
+     * them, so interpolate for the crossing rather than bisect to it (regula falsi, the same idiom the
+     * app uses for the sacrifice curve). Bisection from a bracket bottom ten to twenty times below the
+     * answer needs four or five solves to get back up; interpolation usually needs one.
+     */
+    let loL = rLo.lambda, loR = rLo.floorRate, good = rLo;
+    let hiL = best.lambda, hiR = best.floorRate;
+    for (; vSteps < (opts.verifySteps || 3); vSteps++) {
+      const lgLo = Math.log(loL), lgHi = Math.log(hiL);
+      if (!(lgHi > lgLo + 1e-9)) break;
+      // where the straight line through the two verified points crosses the ask, then kept off the ends
+      const t = loR > hiR + 1e-12 ? (confidence - hiR) / (loR - hiR) : 0.5;
+      const lg = Math.min(lgHi - 0.05 * (lgHi - lgLo), Math.max(lgLo + 0.05 * (lgHi - lgLo),
+        lgHi + Math.min(1, Math.max(0, t)) * (lgLo - lgHi)));
+      const r = verify(at(Math.exp(lg)));
+      if (r.floorRate >= confidence) { loL = r.lambda; loR = r.floorRate; good = r; if (r.floorRate - confidence <= tol) break; }
+      else { hiL = r.lambda; hiR = r.floorRate; }
+    }
+    best = good;
   }
-  // the bottom of the bracket was verified above, so it is always a landing if the walk ran out of steps
-  if (best.floorRate < confidence) best = rLo;
   return done(best, 'landed', vSteps);
 }
 

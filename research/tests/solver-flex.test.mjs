@@ -50,7 +50,7 @@ console.log('=========== C. A FLOOR: THE LANDED POLICY MEETS THE CONFIDENCE ====
   const floorRate = 100 * rs.filter(x => x.survived).length / rs.length;
   const full = 100 * rs.filter(x => x.fullyFunded).length / rs.length;
   ok('C1  the bisection lands', r.meta.landed === 'landed', `${r.meta.landed}, lambda ${r.lambda.toExponential(2)}, ${r.meta.solves} solves in ${((Date.now() - t0) / 1000).toFixed(0)}s`);
-  ok('C2  ...within eight solves', r.meta.solves <= 8);
+  ok('C2  ...within ten solves: two to bracket, up to five to find the neighbourhood, up to three to verify the promise', r.meta.solves <= 10);
   ok('C3  held-out floor rate meets the confidence within a point', floorRate >= 100 * ASK - 1, `ask ${(100 * ASK).toFixed(0)}: ${floorRate.toFixed(1)} on held-out paths, ${(100 * r.floorRate).toFixed(1)} on search paths`);
   ok('C4  the fully-funded rate is below the floor rate: the plan trims, and says so', full < floorRate, `fully funded ${full.toFixed(1)}`);
   ok('C5  every path spends at or above the floor in every year it is solvent', rs.every(x => !x.survived || x.minLevel >= 0.8 - 1e-9));

@@ -313,7 +313,7 @@ the trims as moves (spend 90%, spend the floor) and a penalty on trimming; the p
 until the plan just meets the confidence on a set of search paths, so it trims as little as it can
 while keeping the promise. Against Guyton-Klinger guardrails asked to keep the same promise, on 41
 households, it delivered the full target in 92% of retired years against 52%, changed the spend level
-twice a run against 26 times, and ended with more money. The guardrails' one advantage was the raises:
+twice a run against 26 times, and ended with more money. Those figures came from a solver whose floor landing was later found to under-trim by about a point; the clean re-run with the fixed landing keeps the promise honestly and shows a somewhat lower share of years at target for the solver, with the guardrails' figure unchanged. The guardrails' one advantage was the raises:
 they spend above the target after good years and the solver did not, so its total spending delivered
 was a little lower and its end pot larger.
 
@@ -325,6 +325,20 @@ weight is a preference, like the bequest weight: at the smallest weight tried th
 often than the guardrails, delivered more spending in the median run and in the unlucky tenth, with a
 quarter of the whipsaw, and still landed the floor. Turned up too far the credit fights the floor and
 the landing fails, so it stays small.
+
+**The floor was being promised on the wrong sample.** Landing the floor means trying values of the
+trim penalty and measuring, on simulated futures, how often the floor held at each. For a while each
+try was measured on 600 futures and the promise was then judged on 3,000 different ones, and on three
+households the promise came up about a point short. Nothing was wrong with the solver: every one of
+the three met its target on the 600 and fell short on the 3,000, by about the amount a 600-future
+measurement wobbles. Picking the penalty that just passes on a small sample picks the one that sample
+happened to flatter, so re-measuring elsewhere falls short, and always downward. The app's own
+safe-spend solver had learned this months earlier and says so in a comment. The cure was more futures
+rather than cleverness: measuring every try on 5,400, one sample throughout, landed the promise on all
+three. A two-stage shortcut, search cheaply then check the winner properly, was tried and lost, because
+building a table is the expensive step and checking it is nearly free, so skimping on the check only
+made the search wander and cost more tables to put right. Its first version was worse than the bug it
+replaced: it kept the promise by cutting spending far more than needed.
 
 **The risk tier as a move (Phase 6).** Each year the pension's and the ISA's tier is part of the move:
 the tier set on Plan Inputs, or one or two below it, never above. Switching funds inside those wrappers

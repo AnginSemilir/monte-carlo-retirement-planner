@@ -1,0 +1,35 @@
+The spending pilot under the mixture, first pass (tag flex-mix): SHELVED, no headline
+
+WHY IT IS NOT A RESULT. solve.js was edited three times while this 41-household batch was in flight
+(14:51, then twice more), and the batch spawns a fresh Node per household, so households that started
+after each edit loaded a different solver. Classified by the SOLVER_VERSION / verifyPaths fields that
+only the later code writes:
+
+  clean, the original single-sample landing on 600 search paths:   35 households
+  contaminated, one of two later solvers:                            6   S374 S378 S390 S400 S410 S414
+
+A pre-registered set of 41 has to be solved one way. This one was not. The clean pass with the fixed
+landing is tag flex-landed (`batch-flex-landed.sh`, run from a snapshot); its results file replaces
+this one for every purpose.
+
+WHAT THE 35 CLEAN HOUSEHOLDS SAY, kept only because it is the sharpest measurement of the OLD landing.
+Reduced by copying the 35 uncontaminated records to a scratch tag and running reduceFlex on it; the
+scratch directory was then removed. Against the guardrails at equal downside:
+
+  floor rate                          mean +0.23 pts
+  years at or above target, median    0.881 vs 0.414
+  spending delivered, median run      1.102 vs 1.010
+  spend-level changes per run         5.27 vs 25.13
+  median pot                          +£159k
+  landed the floor promise            28 of 35     (the guardrails, by construction, 35 of 35)
+
+Twenty-eight of thirty-five. The partial reduce at 24 households had read 21 of 24, and the three
+misses looked like the whole story; on the full clean set a fifth of households fell short of the
+floor they were promised. That is the winner's curse at 600 search paths, diagnosed and fixed in
+`results-2d-flex-landing.txt`, and it is why these comparison figures cannot stand: a solver that is
+not keeping its promise is spending money it should have held back, and the years-at-target and
+spending-delivered figures above are flattered by exactly that amount. Expect the clean pass to show
+the solver lower on both, and the guardrails unchanged.
+
+The shape of the comparison is not in doubt and will survive: twice the years at the full target, a
+fifth of the whipsaw, more spending delivered, a larger pot. The size is what the clean pass sets.

@@ -402,7 +402,7 @@ if (mode === 'flex') {
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   const f = (x) => x.toFixed(1);
   const extra = EXTRA.map(k => `  ${k} ${f(out[k].floorRate)}/${f(out[k].fullyFundedRate)} lv ${out[k].meanLevelMedian.toFixed(2)}`).join('');
-  console.log(`${sc.id} ${sc.name.slice(0, 30).padEnd(31)} floor/full: solver ${f(out.solver.floorRate)}/${f(out.solver.fullyFundedRate)} (${out.solver.landed}, ${out.solver.solves} solves)  gkFloor ${f(out.gkFloor.floorRate)}/${f(out.gkFloor.fullyFundedRate)}  gk ${f(out.gk.floorRate)}/${f(out.gk.fullyFundedRate)}  fixed ${f(out.fixed.floorRate)}/${f(out.fixed.fullyFundedRate)}${extra}  years@target med solver ${out.solver.yearsAtTargetMedian.toFixed(2)} gkFloor ${out.gkFloor.yearsAtTargetMedian.toFixed(2)}  changes ${out.solver.changesMean.toFixed(1)}/${out.gkFloor.changesMean.toFixed(1)}  ${(out.ms / 1000).toFixed(0)}s`);
+  console.log(`${sc.id} ${sc.name.slice(0, 30).padEnd(31)} floor/full: solver ${f(out.solver.floorRate)}/${f(out.solver.fullyFundedRate)} (${out.solver.landed}, ${out.solver.solves} solves)  gkFloor ${f(out.gkFloor.floorRate)}/${f(out.gkFloor.fullyFundedRate)}  gk ${f(out.gk.floorRate)}/${f(out.gk.fullyFundedRate)}  fixed ${f(out.fixed.floorRate)}/${f(out.fixed.fullyFundedRate)}${extra}  years at/above target med solver ${out.solver.yearsAtTargetMedian.toFixed(2)} gkFloor ${out.gkFloor.yearsAtTargetMedian.toFixed(2)}  changes ${out.solver.changesMean.toFixed(1)}/${out.gkFloor.changesMean.toFixed(1)}  ${(out.ms / 1000).toFixed(0)}s`);
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -414,14 +414,14 @@ if (mode === 'reduceFlex') {
   const binom = (w, l) => { const n = w + l; if (!n) return 1; const k = Math.min(w, l); let p = 0; const C = (n, r) => { let v = 1; for (let i = 1; i <= r; i++) v = v * (n - r + i) / i; return v; }; for (let i = 0; i <= k; i++) p += C(n, i) / Math.pow(2, n); return Math.min(1, 2 * p); };
   console.log(`${rows.length} households, tag ${tag}, floor ${rows[0]?.floor} of target, confidence ${rows[0]?.confidence}, ${rows[0]?.held} held-out paths
 `);
-  console.log('id    floor rate: solver/gkFloor/gk/fixed   fully funded: solver/gkFloor/gk/fixed   years@target med: S/gkF/gk   above-target yrs gk   changes S/gkF   landed');
+  console.log('id    floor rate: solver/gkFloor/gk/fixed   fully funded: solver/gkFloor/gk/fixed   years at/above target med: S/gkF/gk   above-target yrs gk   changes S/gkF   landed');
   for (const r of rows) {
     const f = (x) => x.toFixed(1).padStart(5);
     console.log(`${r.id}  ${f(r.solver.floorRate)}/${f(r.gkFloor.floorRate)}/${f(r.gk.floorRate)}/${f(r.fixed.floorRate)}   ${f(r.solver.fullyFundedRate)}/${f(r.gkFloor.fullyFundedRate)}/${f(r.gk.fullyFundedRate)}/${f(r.fixed.fullyFundedRate)}   ${r.solver.yearsAtTargetMedian.toFixed(2)}/${r.gkFloor.yearsAtTargetMedian.toFixed(2)}/${r.gk.yearsAtTargetMedian.toFixed(2)}   ${r.gk.aboveTargetYearsMean.toFixed(1).padStart(5)}   ${r.solver.changesMean.toFixed(1)}/${r.gkFloor.changesMean.toFixed(1)}   ${r.solver.landed}`);
   }
   const armsHere = ['gkFloor', 'gk', 'fixed', ...['vanguard', 'arva'].filter(k => rows.every(r => r[k]))];
   if (armsHere.length > 3) {
-    console.log('\nid    floor rate: vanguard/arva   fully funded: vanguard/arva   years@target med: vanguard/arva   spending delivered (mean level, median run): S/gkF/gk/vanguard/arva   changes vanguard/arva');
+    console.log('\nid    floor rate: vanguard/arva   fully funded: vanguard/arva   years at/above target med: vanguard/arva   spending delivered (mean level, median run): S/gkF/gk/vanguard/arva   changes vanguard/arva');
     for (const r of rows) { const f = (x) => x.toFixed(1).padStart(5); const lv = (a) => (r[a].meanLevelMedian || 0).toFixed(2);
       console.log(`${r.id}  ${f(r.vanguard.floorRate)}/${f(r.arva.floorRate)}   ${f(r.vanguard.fullyFundedRate)}/${f(r.arva.fullyFundedRate)}   ${r.vanguard.yearsAtTargetMedian.toFixed(2)}/${r.arva.yearsAtTargetMedian.toFixed(2)}   ${lv('solver')}/${lv('gkFloor')}/${lv('gk')}/${lv('vanguard')}/${lv('arva')}   ${r.vanguard.changesMean.toFixed(1)}/${r.arva.changesMean.toFixed(1)}`); }
   }
@@ -430,7 +430,7 @@ if (mode === 'reduceFlex') {
     const up = rows.filter(r => r.pairedFull[arm].diff > 2 * r.pairedFull[arm].se).length, down = rows.filter(r => r.pairedFull[arm].diff < -2 * r.pairedFull[arm].se).length;
     console.log(`\nsolver against ${arm}:`);
     console.log(`  floor rate: mean ${dFloor.length ? (mean(dFloor) >= 0 ? '+' : '') + mean(dFloor).toFixed(2) : '-'} pts;  fully-funded rate: mean ${(mean(dFull) >= 0 ? '+' : '') + mean(dFull).toFixed(2)} pts, ${up} up / ${down} down beyond two standard errors, sign test p = ${binom(up, down).toFixed(3)}`);
-    console.log(`  years at target (median run): solver ${mean(rows.map(r => r.solver.yearsAtTargetMedian)).toFixed(3)} vs ${mean(rows.map(r => r[arm].yearsAtTargetMedian)).toFixed(3)};  years above target (mean): ${mean(rows.map(r => r.solver.aboveTargetYearsMean)).toFixed(1)} vs ${mean(rows.map(r => r[arm].aboveTargetYearsMean)).toFixed(1)};  spending delivered (mean level, median run): ${mean(rows.map(r => r.solver.meanLevelMedian || 0)).toFixed(3)} vs ${mean(rows.map(r => r[arm].meanLevelMedian || 0)).toFixed(3)};  changes per path: ${mean(rows.map(r => r.solver.changesMean)).toFixed(2)} vs ${mean(rows.map(r => r[arm].changesMean)).toFixed(2)};  median pot: ${Math.round(mean(rows.map(r => r.solver.medianTerminalNet - r[arm].medianTerminalNet)) / 1000)}k`);
+    console.log(`  years at or above target (median run): solver ${mean(rows.map(r => r.solver.yearsAtTargetMedian)).toFixed(3)} vs ${mean(rows.map(r => r[arm].yearsAtTargetMedian)).toFixed(3)};  years above target (mean): ${mean(rows.map(r => r.solver.aboveTargetYearsMean)).toFixed(1)} vs ${mean(rows.map(r => r[arm].aboveTargetYearsMean)).toFixed(1)};  spending delivered (mean level, median run): ${mean(rows.map(r => r.solver.meanLevelMedian || 0)).toFixed(3)} vs ${mean(rows.map(r => r[arm].meanLevelMedian || 0)).toFixed(3)};  changes per path: ${mean(rows.map(r => r.solver.changesMean)).toFixed(2)} vs ${mean(rows.map(r => r[arm].changesMean)).toFixed(2)};  median pot: ${Math.round(mean(rows.map(r => r.solver.medianTerminalNet - r[arm].medianTerminalNet)) / 1000)}k`);
   }
   // each household's ask can differ (CONF=gkFloor), so the landing is judged against its own
   const meets = (arm) => rows.filter(r => r[arm].floorRate >= 100 * r.confidence - 0.5).length;

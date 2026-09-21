@@ -692,8 +692,10 @@ gate, forecast and floor landing from here (`MIX=5`; `solveMixture`), the fold k
 cheap single-table option and for the app's first draft while the worker fan-out is built (Part C).
 The two versus results under the fold (p2-fold, p6-fold) stand as the quoted edges: they are paired
 forecasts, so the fold's small bias cancels between arms, and the engine edge (+1.62 against the plan's
-own rule, up on 31 of 41) is the product's number. Queued, not now: the spending pilot re-run under the
-mixture, whose floor landings are the one place the forecast's bias reaches a promise (5× cost).
+own rule, up on 31 of 41) is the product's number. The spending pilot re-run under the
+mixture, whose floor landings are the one place the forecast's bias reaches a promise, was run next: its
+first pass (tag flex-mix) found the landing itself was measured on the wrong sample and is shelved
+(`results-2d-flex-mix.txt`); the clean pass with the fixed landing is tag flex-landed.
 
 **The tier solver scored by the real engine (tag bridge-41-tiers; `results-p3-bridge-41-tiers.txt`).**
 The large edges had only been measured in the reduced model; this is the referee's number. Five-world
@@ -1046,6 +1048,39 @@ half of the phase as first written, the spend target as a seventh dimension, is 
 carries spend as levels on the move, and the safe spend and the age-against-spend grid can be read by a
 sweep of solves rather than a dimension; that is decided when Part C reaches them.
 
+### Phase 6b. Flexible spending and the tier as a move, together
+
+Pre-registered 21 Sep, before any run. The two presets ship together, off by default, so a household can
+turn on both; nothing above tests that. Phase 2d has spending flexible with the tier fixed, Phase 6 has
+the tier free with spending fixed, and their headline figures come from two solvers that have never
+been the same solver.
+
+**The run (tag flex-tiers, `batch-flex-tiers.sh`, from a snapshot, nothing else on the box).** The same
+41 households, seeds 7001/7002, 3,000 held-out paths, three-world mixture, 30 points, exactly the
+flex-landed configuration (levels 1.2/1.1/1/0.9/0.8, raise weight 0.003, CONF=gkFloor, margin 0.5pt,
+single-stage landing on 5,400 search paths) plus `TIERS=1`: joint steps, the switching cost, the
+worth-it margin. The ask is the guardrails' floor rate, which does not depend on tiers, so every
+household's ask is identical in flex-landed and flex-tiers and the two solvers can be compared
+household by household on the same paths.
+
+**Hypothesis.** De-risking narrows the spread of outcomes, so the floor is easier to hold and less
+trimming buys the same promise: with tiers on, years at or above target and spending delivered should
+rise at equal floor, and the median pot should not fall by more than the tier trade already seen.
+
+**Gate 6b passes when all four hold:**
+1. Landing: floor rate at or above each household's ask less 0.5 on all 41, and no household more
+   than 2 points above its ask (the over-trim guard, C4b in the suite).
+2. Against flex-landed, paired on the 41: years at or above target (median run) not lower on the mean,
+   and spending delivered (mean level, median run) not lower; sign test reported.
+3. Cost: solve time per household at most 2.5x flex-landed (Phase 6 measured the tier menu at 2x).
+4. Tier behaviour: at most 3 tier changes a retirement on the mean (Phase 6: 1.7), years below the
+   plan tier reported per household.
+
+Reported, not gated: the comparison against the guardrails at equal downside, and the decomposition
+per household of (flex-tiers minus flex-landed), which is what the tier freedom adds on top of flexible
+spending. If 2 fails because the tiers trade spending for pot, that is a finding about the objective,
+not a bug, and the preset copy has to say so.
+
 ---
 
 ## Part C. The app (phases 7 to 12), behind a switch
@@ -1296,6 +1331,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | **done, survival conditions met**: +0.77 vs the best fixed rule on 19 couples, 14 up / 3 down, worst −0.85; tiers off for couples; backtest and perturbed worlds not yet run | 1× |
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
+| 6b | flexible spending and tiers together | gate 6b: lands on 41, not below flex-landed on years at target or spending delivered, ≤2.5× cost, ≤3 tier changes; pre-registered, not yet run | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

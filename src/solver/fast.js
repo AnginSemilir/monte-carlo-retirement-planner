@@ -73,7 +73,7 @@ export function foldedVol(vol, sigmaParam, yearsLeft, k = FOLD_K) {
  * being drawn down and a solver that fails year by year sit between: k = 2 overshot the engine by as
  * much as k = 0 undershot it on the 41 households, so k is calibrated on the model-to-engine gap.
  */
-export const FOLD_K = Number(process.env.SOLVER_FOLD_K || 1);
+export const FOLD_K = Number(process.env.SOLVER_FOLD_K || 0.75);
 
 /* The tiers on Plan Inputs, riskiest first; "below" means further along this list. */
 export const TIER_ORDER = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];

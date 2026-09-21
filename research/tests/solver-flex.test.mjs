@@ -37,7 +37,11 @@ console.log('=========== B. NO FLOOR IS THE PHASE 2 SOLVE, TO THE BIT ==========
 
 console.log('=========== C. A FLOOR: THE LANDED POLICY MEETS THE CONFIDENCE ===========');
 {
-  const plan = variant(at('S004').plan, 0.8, 0.95);   // fixed-target survival about 91, so 95 needs trimming and is reachable
+  // the ask is three points above what the plan as written reaches on the search paths (the pilot's "+3"), so it
+  // needs trimming and is reachable whatever the fold makes of this household
+  const probe = solveFlex(E, M, variant(at('S004').plan, 0, 0.5), { points: POINTS, lump: M.prepare(E, variant(at('S004').plan, 0, 0.5)).ctx.fullLumpSum, searchPaths: 400, seed: 7001 });
+  const ASK = Math.min(0.97, Math.round(100 * probe.floorRate + 3) / 100);
+  const plan = variant(at('S004').plan, 0.8, ASK);
   const m = M.prepare(E, plan);
   const t0 = Date.now();
   const r = solveFlex(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, searchPaths: 400, seed: 7001 });
@@ -47,7 +51,7 @@ console.log('=========== C. A FLOOR: THE LANDED POLICY MEETS THE CONFIDENCE ====
   const full = 100 * rs.filter(x => x.fullyFunded).length / rs.length;
   ok('C1  the bisection lands', r.meta.landed === 'landed', `${r.meta.landed}, lambda ${r.lambda.toExponential(2)}, ${r.meta.solves} solves in ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   ok('C2  ...within eight solves', r.meta.solves <= 8);
-  ok('C3  held-out floor rate meets the confidence within a point', floorRate >= 95 - 1, `${floorRate.toFixed(1)} on held-out paths, ${(100 * r.floorRate).toFixed(1)} on search paths`);
+  ok('C3  held-out floor rate meets the confidence within a point', floorRate >= 100 * ASK - 1, `ask ${(100 * ASK).toFixed(0)}: ${floorRate.toFixed(1)} on held-out paths, ${(100 * r.floorRate).toFixed(1)} on search paths`);
   ok('C4  the fully-funded rate is below the floor rate: the plan trims, and says so', full < floorRate, `fully funded ${full.toFixed(1)}`);
   ok('C5  every path spends at or above the floor in every year it is solvent', rs.every(x => !x.survived || x.minLevel >= 0.8 - 1e-9));
   // the penalty is monotone: a heavier penalty on trimming trims less

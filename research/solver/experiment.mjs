@@ -252,7 +252,7 @@ if (mode === 'run') {
   // phase 6: TIERS=1 lets every move also pick the pension's and the ISA's tier (the plan's or up to two below); TIERS=joint moves both together
   const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);
   const SWITCH = process.env.SWITCH !== undefined ? Number(process.env.SWITCH) : undefined;   // the round-trip cost of a tier change, on the slice traded
-  const MIX = process.env.MIX ? Number(process.env.MIX) : 0;   // the scenario mixture over the per-path shift: 3 or 5 tables
+  const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 5;   // the scenario mixture over the per-path shift (gate 3): 5 tables by default, MIX=0 for the single folded table
   const solveOpts = { points: POINTS, lump: m.ctx.fullLumpSum, coords: COORDS, shares: SHARES, resilienceWeight: WR, bequestWeight: WB, resilience: RESIL, tiers: TIERS, switchCost: SWITCH };
   const r = MIX ? solveMixture(E, M, plan, { ...solveOpts, mix: MIX }) : solve(E, M, plan, solveOpts);
   const solvedRs = held.map(zs => runSolvedPath(r, zs));

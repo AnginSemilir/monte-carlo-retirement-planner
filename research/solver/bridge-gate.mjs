@@ -30,7 +30,7 @@ if (mode === 'run') {
   const plan = prep(sc.plan);
   const m0 = M.prepare(E, plan);
   const t0 = Date.now();
-  const MIX = process.env.MIX ? Number(process.env.MIX) : 0;
+  const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 5;   // the mixture by default since gate 3; MIX=0 for the folded single table
   const r = MIX ? solveMixture(E, M, plan, { points: POINTS, lump: m0.ctx.fullLumpSum, mix: MIX }) : solve(E, M, plan, { points: POINTS, lump: m0.ctx.fullLumpSum });
   const mcT = E.monteCarlo(withTable(plan, r), { trials: TRIALS, seed: SEED });
   const mcF = E.monteCarlo(plan, { trials: TRIALS, seed: SEED });

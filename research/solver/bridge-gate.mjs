@@ -31,13 +31,15 @@ if (mode === 'run') {
   const m0 = M.prepare(E, plan);
   const t0 = Date.now();
   const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 5;   // the mixture by default since gate 3; MIX=0 for the folded single table
-  const r = MIX ? solveMixture(E, M, plan, { points: POINTS, lump: m0.ctx.fullLumpSum, mix: MIX }) : solve(E, M, plan, { points: POINTS, lump: m0.ctx.fullLumpSum });
+  const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);   // TIERS=1: the tier as a move, through the real engine
+  const solveOpts = { points: POINTS, lump: m0.ctx.fullLumpSum, tiers: TIERS };
+  const r = MIX ? solveMixture(E, M, plan, { ...solveOpts, mix: MIX }) : solve(E, M, plan, solveOpts);
   const mcT = E.monteCarlo(withTable(plan, r), { trials: TRIALS, seed: SEED });
   const mcF = E.monteCarlo(plan, { trials: TRIALS, seed: SEED });
   const zs = E.pathsForSeed(SEED, TRIALS, m0.ctx.totalYears);
   const fwd = zs.map(z => runPolicy(r, z));
   const forecast = 100 * fwd.filter(x => x.survived).length / zs.length;
-  const out = { tag, id: sc.id, name: sc.name, points: POINTS, trials: TRIALS, seed: SEED, mixture: MIX, solveMs: r.meta.ms, engineTable: mcT.successRate, engineFixed: mcF.successRate, forecast, gap: mcT.successRate - forecast, edge: mcT.successRate - mcF.successRate, medianTable: mcT.medianTerminalNet, medianFixed: mcF.medianTerminalNet, p10Table: mcT.p10TerminalNet, p10Fixed: mcF.p10TerminalNet, ms: Date.now() - t0 };
+  const out = { tag, id: sc.id, name: sc.name, points: POINTS, trials: TRIALS, seed: SEED, mixture: MIX, tiers: r.meta.tiers || null, solveMs: r.meta.ms, engineTable: mcT.successRate, engineFixed: mcF.successRate, forecast, gap: mcT.successRate - forecast, edge: mcT.successRate - mcF.successRate, medianTable: mcT.medianTerminalNet, medianFixed: mcF.medianTerminalNet, p10Table: mcT.p10TerminalNet, p10Fixed: mcF.p10TerminalNet, ms: Date.now() - t0 };
   mkdirSync(join(RESULTS, tag), { recursive: true });
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   console.log(`${sc.id} ${sc.name.slice(0, 32).padEnd(33)} engine: table ${out.engineTable.toFixed(1)}  fixed ${out.engineFixed.toFixed(1)}  edge ${out.edge >= 0 ? '+' : ''}${out.edge.toFixed(2)}  | model forecast ${forecast.toFixed(1)}  gap ${out.gap >= 0 ? '+' : ''}${out.gap.toFixed(2)}  ${(out.ms / 1000).toFixed(0)}s`);

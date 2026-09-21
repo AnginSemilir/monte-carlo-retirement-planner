@@ -330,6 +330,16 @@ pays about £3k to do it, and the survival gain is intact (+4.9 points against +
 switching). Both this and the raises are presets, off unless the person turns them on, because each
 trades bequest for spending or survival.
 
+**The check the real engine failed, and the fix (Phase 3).** A solved table now drives the real
+engine as its policy, and on the 41 households the engine scored the solver four points below what
+the solver's own model had forecast. The cause: the engine draws the long-run mean's error once per
+future and holds it, and the solver's model had folded that into each year's noise, which understates
+how far a held error spreads a thirty-year outcome. The repair is not a fold but a mixture: solve five
+tables, each in a world where the held error takes one of five values chosen to stand in for the bell
+curve, and choose each move by the weighted average of their scores. The engine and the forecast now
+agree to a sixth of a point on average and within a point on 39 of 41 households, with nothing tuned by
+hand; the price is five solves, which run in parallel. It changed the forecasts, not the moves.
+
 **What is still fixed, on purpose.** Mortality, annuities and market regimes stay out by design.
 
 **The risk term is a shortfall, not a step.** The table's downside term used to be "the chance of

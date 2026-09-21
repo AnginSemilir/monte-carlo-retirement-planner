@@ -675,6 +675,26 @@ paid. Both edges grew under the corrected model, which is the direction one woul
 sees the long horizon's true spread values de-risking and tax-efficiency more, and those are the two
 things the solver does that the fixed rules cannot. The results the plan quotes from here are these.
 
+**Gate 3 with the scenario mixture, 41 households (tag bridge-41-mix5; `results-p3-bridge-41-mix5.txt`).**
+The statistician's option 1: five tables per household, each solved with the per-path shift held at a
+Gauss–Hermite node for the whole horizon and the yearly spread the plain volatility, the move chosen by
+the weighted average of the five scores; the forward run applies each path's own shift as the engine
+does. Learning which world the path drew is discarded, and costs nothing here (twenty years of returns
+narrow the mean from ±2.1 to ±1.8 points). Result: **model-to-engine gap −0.15 on average, within 2
+points on 41 of 41, within 1 on 39 of 41, worst −1.4** (the calibrated fold: −1.07, 32 of 41, worst
+−4.6; the one-year fold: −4.39, 4 of 41). Twenty households agree to the tenth of a point; the 21 that
+differ still lean negative (18 to 3, sign test p = 0.001), by a few tenths, which is the correlation a
+persistent shift adds across years that no memoryless model carries. The engine's score of the plan is
+unchanged (83.86 against 83.87 under the fold, 83.80 under the one-year fold), so the mixture changes
+the forecast, not the tactics. Cost: five solves, 67 s against 13 s on the 30-point grid, independent
+and parallel. **Gate 3 is met with no tuned constant. Adopted**: the mixture is the default for every
+gate, forecast and floor landing from here (`MIX=5`; `solveMixture`), the fold kept at k = 0.75 as the
+cheap single-table option and for the app's first draft while the worker fan-out is built (Part C).
+The two versus results under the fold (p2-fold, p6-fold) stand as the quoted edges: they are paired
+forecasts, so the fold's small bias cancels between arms, and the engine edge (+1.62 against the plan's
+own rule, up on 31 of 41) is the product's number. Queued, not now: the spending pilot re-run under the
+mixture, whose floor landings are the one place the forecast's bias reaches a promise (5× cost).
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -1181,7 +1201,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | **done**: edge grows in every perturbed world; shortfall adopted; (0.5, 0.02) confirmed; every loss named | 0.5× |
 | 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
-| 3 | table override in engine | **done**: exact to the pound (echo table, 160 paths); on the 41, the engine within 2 points of the model's forecast on 32 of 41 after the horizon fold (mean −1.1; was 4 of 41 before it); engine edge +1.63, up 32 / down 9 | 0.5× |
+| 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | same on couple households | 1× |

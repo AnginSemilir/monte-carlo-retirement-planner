@@ -634,6 +634,26 @@ in the real engine (+0.6 on average, +2.1 on the far household). A pension force
 the round trip once and compounds at that tier's rate. One known gap kept honest: the sweep's top-up
 sale books its gain into next year's tally in the engine, which the reduced model does not tax.
 
+**Gate 3 on the pre-registered set, and what it found (tags bridge-41, bridge-41-fold;
+`results-p3-bridge-41-before.txt`, `results-p3-bridge-41-fold2.txt`).** The first gate-3 run used three
+households picked by position in the library, two of them at 99.5 and 100% survival; on the 41 band
+households the gate's condition **failed**: the real engine scored the solved table 4.4 points below
+the reduced model's forecast on average, worst 9.0, within 2 points on only 4 of 41, and the gap was
+negative on every household. The cause was isolated on the worst case by zeroing the per-path mean
+shift (sigmaParam) in both: the gap went from −4.7 to −0.2. The reduced model folded that shift
+into each year's spread as one year's noise; a shift held for n years disperses the outcome as n²σ²,
+not nσ², so the model understated a long horizon's spread and thought long retirements safer than
+the engine does. The fold was rewritten to grow with the years left (`foldedVol`, the (2n − 1) rule
+that matches a held pot's growth variance over every remaining horizon exactly): on the 41 the gap
+flipped to +3.1 on average, positive on every household, so the exact rule overshoots for a pot
+being drawn down and a solver that fails year by year. The rule is therefore parametrised
+(vol² + (1 + k(n − 1))σ²; k = 0 the old fold, k = 2 the exact sum) and k is calibrated on the
+model-to-engine gap (sweep below). Two things did not move: the engine's score of the fixed rule
+(the engine is the same engine), and the solved table's own engine score (83.8 → 84.0), which
+says the policy is nearly insensitive to the fold and the fold mostly changes the forecast. The edge
+in the real engine against the plan's own rule is +1.6 to +1.7 on average, up on 30 to 33 of 41,
+worst −1.2, on either fold.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

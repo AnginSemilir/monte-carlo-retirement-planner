@@ -64,9 +64,16 @@ function taxOf(tb, g) { return g <= 0 ? 0 : g - netOf(tb, g); }
  * engine's exactly for a held pot; what it cannot match is the correlation a persistent shift gives
  * the years, which is the memory the grid does not carry.
  */
-export function foldedVol(vol, sigmaParam, yearsLeft) {
-  return Math.sqrt(vol * vol + (2 * Math.max(1, yearsLeft) - 1) * sigmaParam * sigmaParam);
+export function foldedVol(vol, sigmaParam, yearsLeft, k = FOLD_K) {
+  return Math.sqrt(vol * vol + (1 + k * (Math.max(1, yearsLeft) - 1)) * sigmaParam * sigmaParam);
 }
+/*
+ * How much of the horizon's extra spread the fold carries: k = 2 matches the variance of a held pot's
+ * growth over every remaining horizon exactly (the (2n - 1) rule), k = 0 is the one-year fold. A pot
+ * being drawn down and a solver that fails year by year sit between: k = 2 overshot the engine by as
+ * much as k = 0 undershot it on the 41 households, so k is calibrated on the model-to-engine gap.
+ */
+export const FOLD_K = Number(process.env.SOLVER_FOLD_K || 1);
 
 /* The tiers on Plan Inputs, riskiest first; "below" means further along this list. */
 export const TIER_ORDER = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
@@ -187,7 +194,8 @@ export function compile(m, actions) {
   const planReal = CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].real : 0));
   const planVolEff = CATS.map(c => { const a = acc[idOf[c]]; return a ? Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam) : 0; });
   // the folded spread by year (see foldedVol): per category for the plan's tiers, and per tier pair for the moves
-  const foldAt = (volOf, sigOf) => { const out = new Array(T + 1); for (let t = 0; t <= T; t++) { out[t] = new Float64Array(4); for (let i = 0; i < 4; i++) out[t][i] = foldedVol(volOf(i), sigOf(i), T - t + 1); } return out; };
+  const foldK = m.foldK !== undefined ? m.foldK : FOLD_K;
+  const foldAt = (volOf, sigOf) => { const out = new Array(T + 1); for (let t = 0; t <= T; t++) { out[t] = new Float64Array(4); for (let i = 0; i < 4; i++) out[t][i] = foldedVol(volOf(i), sigOf(i), T - t + 1, foldK); } return out; };
   const planVol = CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].vol : 0)), planSig = CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].sigmaParam : 0));
   const planVolEffAt = foldAt(i => planVol[i], i => planSig[i]);
   const foldByCombo = {};

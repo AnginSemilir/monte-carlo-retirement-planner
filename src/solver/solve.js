@@ -57,7 +57,9 @@ export function buildActions(opts = {}) {
   const PREFIX = [[], ['penPA'], ['penPA', 'penBasic'], ['penPA', 'penBasic', 'penAny']];
   const PEN = ['penPA', 'penBasic', 'penAny'];
   // flexible spending (Part D): each withdrawal move at each spend level, 1 meaning the plan as written
-  const levels = opts.spendLevels && opts.spendLevels.length ? opts.spendLevels : [1];
+  // the plan as written comes first at every level list, so a tie in the score goes to it and not to a trim or a raise
+  const given = opts.spendLevels && opts.spendLevels.length ? opts.spendLevels : [1];
+  const levels = given.includes(1) ? [1, ...given.filter(l => l !== 1)] : given;
   const out = [];
   for (let pi = 0; pi < PREFIX.length; pi++) {
     const prefix = PREFIX[pi];
@@ -108,7 +110,9 @@ export function solve(E, M, plan, opts = {}) {
   // one table per person; a couple needs two and a funding split, which is phase 5
   if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');
   const g = makeGrid(m, opts);
-  const actions = (opts.actions || buildActions({ spendLevels: opts.spendLevels })).map(a => ({ ...a, lump: !!opts.lump }));
+  const raiseOn = (opts.raiseWeight || 0) > 0;
+  const menuLevels = raiseOn || !opts.spendLevels ? opts.spendLevels : opts.spendLevels.filter(l => l <= 1);
+  const actions = (opts.actions || buildActions({ spendLevels: menuLevels })).map(a => ({ ...a, lump: !!opts.lump }));
   const c = F.compile(m, actions);
   const nodeReal = NODES.map(z => realAt(c, z, new Float64Array(4)));
   const T = m.ctx.totalYears;
@@ -175,6 +179,16 @@ export function solve(E, M, plan, opts = {}) {
   // the shortfall exponent: 2 (the plan) makes one deep cut dearer than two shallow ones; 1 makes small trims proportionally dear
   const shortExp = opts.shortfallExponent !== undefined ? opts.shortfallExponent : 2;
   const shortOf = (level) => Math.pow(1 - level, shortExp);
+  /*
+   * RAISES (plan 2d.4). A move may also spend above the target after a good run. Nothing else in the
+   * score rewards that, so a raise earns a bounded, concave credit, sqrt(level - 1) capped at a 20% raise,
+   * at `raiseWeight`; the value function prices what the smaller pot costs in survival, resilience and
+   * bequest, so a raise is taken only where the credit beats that cost. The table carries the signed
+   * cost in score units: lambda times the shortfall for a trim, minus the credit for a raise.
+   */
+  const mu = opts.raiseWeight !== undefined ? opts.raiseWeight : 0;
+  const creditOf = (level) => Math.sqrt(Math.min(0.2, level - 1));
+  const costOf = (level) => (level < 1 ? lambda * shortOf(level) : level > 1 ? -mu * creditOf(level) : 0);
 
   const surv = [], lsurv = [], resil = [], lresil = [], beq = [], pol = [], short = [];
   for (let t = 0; t <= T; t++) {
@@ -211,7 +225,7 @@ export function solve(E, M, plan, opts = {}) {
                 const unmet = F.flow(c, t, ai, post);
                 evaluated++;
                 let s = 0, b = 0, rs = 0, h = 0;
-                const thisShort = spendYear && levelOf[ai] < 1 ? shortOf(levelOf[ai]) : 0;
+                const thisShort = spendYear ? costOf(levelOf[ai]) : 0;
                 if (!(unmet > 1 || c.last.preNmpaInsolvent)) {
                   for (let zi = 0; zi < 5; zi++) {
                     grown.set(post);
@@ -233,7 +247,7 @@ export function solve(E, M, plan, opts = {}) {
                   }
                 }
                 h += thisShort;
-                const score = s + wR * rs + wB * b - lambda * h;
+                const score = s + wR * rs + wB * b - h;
                 if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
               }
               St[idx] = bestS; Bt[idx] = bestB; Rt[idx] = bestR; Pt[idx] = bestA; Ht[idx] = bestH;
@@ -246,9 +260,9 @@ export function solve(E, M, plan, opts = {}) {
     if (shortfall) lresil[t].set(Rt); else toLogOdds(Rt, lresil[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, spendLevels: [...new Set(levelOf)] };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)] };
   const r = {
-    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, wB, wR, lambda, levelOf, shortExp,
+    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, wB, wR, lambda, levelOf, shortExp, costOf,
     tieMargin: opts.tieMargin || 0,
     rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
@@ -316,7 +330,7 @@ export function chooseAction(r, s, t) {
 
 /* Every move's score from one solve's tables at the true position `s` in year `t`, with the year's tax and the expected bequest. */
 function scoreMoves(r, s, t, SC, TX, BQ) {
-  const { g, c, actions, lsurv, lresil, beq, short, nodeReal, wB, wR, lambda, levelOf } = r;
+  const { g, c, actions, lsurv, lresil, beq, short, nodeReal, wB, wR, levelOf } = r;
   const post = r._post || (r._post = new Float64Array(Math.max(7, s.length)));
   const grown = r._grown || (r._grown = new Float64Array(Math.max(7, s.length)));
   const rd = r._rd || (r._rd = new Float64Array(4));
@@ -326,7 +340,7 @@ function scoreMoves(r, s, t, SC, TX, BQ) {
     const unmet = F.flow(c, t, ai, post);
     TX[ai] = c.last.taxPaid + c.last.cgtPaid;
     if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; continue; }
-    let sv = 0, bq = 0, rs = 0, h = spendYear && levelOf[ai] < 1 ? Math.pow(1 - levelOf[ai], r.shortExp || 2) : 0;
+    let sv = 0, bq = 0, rs = 0, h = spendYear ? r.costOf(levelOf[ai]) : 0;
     for (let zi = 0; zi < 5; zi++) {
       grown.set(post);
       F.grow(c, t, grown, nodeReal[zi]);
@@ -336,7 +350,7 @@ function scoreMoves(r, s, t, SC, TX, BQ) {
       rs += WEIGHTS[zi] * rd[2];
       h += WEIGHTS[zi] * rd[3];
     }
-    SC[ai] = sv + wR * rs + wB * bq - lambda * h; BQ[ai] = bq;
+    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
   }
 }
 
@@ -396,6 +410,7 @@ export function solveFlex(E, M, plan, opts = {}) {
   const floorRate = (r) => zs.filter(z => runPolicy(r, z).survived).length / zs.length;
   const at = (lambda) => { const r = solve(E, M, plan, { ...opts, spendLevels: levels, lambda }); r.floorRate = floorRate(r); r.solves = 1; return r; };
   if (levels.length === 1) { const r = at(0); r.meta.landed = 'no floor'; return r; }
+  if (!levels.some(l => l < 1)) { const r = at(0); r.meta.landed = 'no floor'; return r; }   // raises only: nothing to land
   // the bracket: landings in the pilot sat between 0.05 and 0.5, so 0.005 to 2 reaches them in fewer solves
   let hi = opts.lambdaHigh || 2, lo = opts.lambdaLow || 5e-3;
   const rHi = at(hi);

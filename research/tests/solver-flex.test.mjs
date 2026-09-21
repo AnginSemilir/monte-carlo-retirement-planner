@@ -66,5 +66,28 @@ console.log('=========== D. THE BUFFER TRAP ===========');
   ok('D1  the cash buffer is sized on the plan\'s target whether or not there is a floor', same);
 }
 
+console.log('=========== E. RAISES ABOVE THE TARGET (plan 2d.4) ===========');
+{
+  // a comfortable household: with no credit the solver never spends above the plan even when the level is on
+  // the menu; with the credit on it does, only after good years, and the floor rate still lands
+  const sc = singles.find(x => x.id === 'S100') || singles[0];
+  const base = JSON.parse(JSON.stringify(sc.plan));
+  const target = E.num(base.spending.targetSpend, 0);
+  const plan = E.resolveMpaa(E.normalizePlan({ ...base, config: { ...base.config, guardrails: false, lookaheadYears: 0 }, spending: { ...base.spending, floorSpend: Math.round(target * 0.8), floorConfidence: 90 } }));
+  const m = M.prepare(E, plan);
+  const held = E.pathsForSeed(9002, 400, m.ctx.totalYears);
+  const stats = (r) => { const rs = held.map(z => runPolicy(r, z)); return { floor: 100 * rs.filter(x => x.survived).length / rs.length, above: rs.reduce((a, x) => a + x.aboveTarget, 0) / rs.length, changes: rs.reduce((a, x) => a + x.changes, 0) / rs.length }; };
+  const common = { points: 16, lump: m.ctx.fullLumpSum, searchPaths: 300, seed: 9001, confidence: 0.9, bisectSteps: 4, spendLevels: [1.2, 1.1, 1, 0.9, 0.8] };
+  const offR = solveFlex(E, M, plan, { ...common, raiseWeight: 0 });
+  const off = stats(offR);
+  ok('E1  with no credit, the raise levels leave the menu: the true objective never wants them', off.above === 0 && offR.meta.spendLevels.every(l => l <= 1), `above-target years ${off.above.toFixed(2)}, levels ${offR.meta.spendLevels.join('/')}`);
+  const on = solveFlex(E, M, plan, { ...common, raiseWeight: 0.1 });
+  const onS = stats(on);
+  ok('E2  with the credit on, the solver spends above the target in some years', onS.above > 0, `above-target years ${onS.above.toFixed(2)} a run, ${on.meta.landed}`);
+  ok('E3  ...and the floor rate still lands on the confidence within two points', onS.floor >= 90 - 2, `${onS.floor.toFixed(1)}`);
+  ok('E4  the credit is bounded: a 30% raise earns the same as a 20% one', Math.abs(on.costOf(1.3) - on.costOf(1.2)) < 1e-12 && on.costOf(1.1) < 0 && on.costOf(1.2) < on.costOf(1.1));
+  ok('E5  ...and concave: the second 10% earns less than the first', -on.costOf(1.1) > -(on.costOf(1.2) - on.costOf(1.1)));
+}
+
 console.log(`\n=========== ${passed} passed, ${failed} failed ===========`);
 process.exit(failed ? 1 : 0);

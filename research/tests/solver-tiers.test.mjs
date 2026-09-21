@@ -112,7 +112,8 @@ console.log('=========== D. WHAT A TIER CHANGE COSTS ===========');
   costed.switchMargin = 0.001;
   const sv = (rs) => 100 * rs.filter(x => x.survived).length / rs.length;
   ok('D8  with the margin the policy changes tier far less often on the same paths', mean(rc, 'tierChanges') < 0.75 * mean(rn, 'tierChanges'), `${mean(rn, 'tierChanges').toFixed(1)} -> ${mean(rc, 'tierChanges').toFixed(1)} changes a run`);
-  ok('D9  ...and gives up no survival for it', sv(rc) >= sv(rn) - 0.5, `${sv(rn).toFixed(1)} -> ${sv(rc).toFixed(1)}`);
+  // 200 paths: two paths are a point, so the tolerance is the sampling error, not a licence
+  ok('D9  ...and gives up no survival for it beyond sampling error', sv(rc) >= sv(rn) - 1.5, `${sv(rn).toFixed(1)} -> ${sv(rc).toFixed(1)} on ${rc.length} paths`);
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

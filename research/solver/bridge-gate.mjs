@@ -11,7 +11,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { solve, runPolicy } from '../../src/solver/solve.js';
+import { solve, solveMixture, runPolicy } from '../../src/solver/solve.js';
 import { withTable } from '../../src/solver/bridge.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
@@ -30,13 +30,14 @@ if (mode === 'run') {
   const plan = prep(sc.plan);
   const m0 = M.prepare(E, plan);
   const t0 = Date.now();
-  const r = solve(E, M, plan, { points: POINTS, lump: m0.ctx.fullLumpSum });
+  const MIX = process.env.MIX ? Number(process.env.MIX) : 0;
+  const r = MIX ? solveMixture(E, M, plan, { points: POINTS, lump: m0.ctx.fullLumpSum, mix: MIX }) : solve(E, M, plan, { points: POINTS, lump: m0.ctx.fullLumpSum });
   const mcT = E.monteCarlo(withTable(plan, r), { trials: TRIALS, seed: SEED });
   const mcF = E.monteCarlo(plan, { trials: TRIALS, seed: SEED });
   const zs = E.pathsForSeed(SEED, TRIALS, m0.ctx.totalYears);
   const fwd = zs.map(z => runPolicy(r, z));
   const forecast = 100 * fwd.filter(x => x.survived).length / zs.length;
-  const out = { tag, id: sc.id, name: sc.name, points: POINTS, trials: TRIALS, seed: SEED, engineTable: mcT.successRate, engineFixed: mcF.successRate, forecast, gap: mcT.successRate - forecast, edge: mcT.successRate - mcF.successRate, medianTable: mcT.medianTerminalNet, medianFixed: mcF.medianTerminalNet, p10Table: mcT.p10TerminalNet, p10Fixed: mcF.p10TerminalNet, ms: Date.now() - t0 };
+  const out = { tag, id: sc.id, name: sc.name, points: POINTS, trials: TRIALS, seed: SEED, mixture: MIX, solveMs: r.meta.ms, engineTable: mcT.successRate, engineFixed: mcF.successRate, forecast, gap: mcT.successRate - forecast, edge: mcT.successRate - mcF.successRate, medianTable: mcT.medianTerminalNet, medianFixed: mcF.medianTerminalNet, p10Table: mcT.p10TerminalNet, p10Fixed: mcF.p10TerminalNet, ms: Date.now() - t0 };
   mkdirSync(join(RESULTS, tag), { recursive: true });
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   console.log(`${sc.id} ${sc.name.slice(0, 32).padEnd(33)} engine: table ${out.engineTable.toFixed(1)}  fixed ${out.engineFixed.toFixed(1)}  edge ${out.edge >= 0 ? '+' : ''}${out.edge.toFixed(2)}  | model forecast ${forecast.toFixed(1)}  gap ${out.gap >= 0 ? '+' : ''}${out.gap.toFixed(2)}  ${(out.ms / 1000).toFixed(0)}s`);

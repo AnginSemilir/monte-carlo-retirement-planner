@@ -104,10 +104,30 @@ export function spendLevelsFor(floorFrac) {
 }
 
 /* The real rate of each pot (pension, ISA, GIA, cash) at a market draw z. */
-function realAt(c, z, out, act = null, t = 0) {
-  const R = act ? act.real : c.real, V = act ? act.volEffAt[t] : c.volEffAt[t];
-  for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + V[i] * z) - 1;
+function realAt(c, z, out, act = null, t = 0, zPath = 0) {
+  const R = act ? act.real : c.real, V = act ? act.volEffAt[t] : c.volEffAt[t], S = act ? act.sigma : c.sigma;
+  for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + S[i] * zPath + V[i] * z) - 1;
   return out;
+}
+
+/*
+ * THE SCENARIO MIXTURE over the per-path mean shift (the statistician's option 1). K tables, each solved
+ * with the shift held at its quadrature node for the whole horizon and the yearly spread the plain
+ * volatility; the move at a position is the one with the best weighted average of the K tables' scores.
+ * Each table has the right persistent drift, so the dispersion and its shape are the engine's; what is
+ * left out is learning which shift the path drew, which twenty years of returns barely do. The returned
+ * object is the central table with `mix` attached, so everything that runs a table runs a mixture.
+ */
+const MIX3 = { z: [-Math.sqrt(3), 0, Math.sqrt(3)], w: [1 / 6, 2 / 3, 1 / 6] };
+export function solveMixture(E, M, plan, opts = {}) {
+  const K = opts.mix === 3 ? 3 : 5;
+  const zs = K === 3 ? MIX3.z : NODES, ws = K === 3 ? MIX3.w : WEIGHTS;
+  const tables = zs.map(z => solve(E, M, plan, { ...opts, shiftZ: z }));
+  const r = tables[K === 3 ? 1 : 2];
+  r.mix = { tables, weights: ws, nodes: zs };
+  r.meta.mixture = K;
+  r.meta.ms = tables.reduce((a, x) => a + x.meta.ms, 0);
+  return r;
 }
 
 /*
@@ -135,6 +155,7 @@ export function tierCombos(m, mode = true) {
 export function solve(E, M, plan, opts = {}) {
   const t0 = Date.now();
   const m = M.prepare(E, plan);
+  if (opts.shiftZ !== undefined) m.shiftZ = opts.shiftZ;   // the scenario mixture: this table's held shift
   // one table per person; a couple needs two and a funding split, which is phase 5
   if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');
   const g = makeGrid(m, opts);
@@ -338,13 +359,23 @@ export function solve(E, M, plan, opts = {}) {
 export function chooseAction(r, s, t, held = null) {
   const { actions } = r;
   const T = r.m.ctx.totalYears;
-  if (t >= T) return r.pol[T][nearestIndex(r.g, s)];
+  if (t >= T && !r.mix) return r.pol[T][nearestIndex(r.g, s)];
+  if (t >= T) return r.mix.tables[Math.floor(r.mix.tables.length / 2)].pol[T][nearestIndex(r.g, s)];
   const eps = r.eps;
   const n = actions.length;
   const SC = r._sc || (r._sc = new Float64Array(n));
   const TX = r._tx || (r._tx = new Float64Array(n));
   const BQ = r._bq || (r._bq = new Float64Array(n));
-  scoreMoves(r, s, t, SC, TX, BQ, held);
+  if (r.mix) {
+    // the mixture: the weighted average of every table's score for each move; a move that fails in any table fails
+    SC.fill(0); TX.fill(0); BQ.fill(0);
+    const S2 = r._scm || (r._scm = new Float64Array(n)), T2 = r._txm || (r._txm = new Float64Array(n)), B2 = r._bqm || (r._bqm = new Float64Array(n));
+    r.mix.tables.forEach((tab, k) => {
+      scoreMoves(tab, s, t, S2, T2, B2, held);
+      const w = r.mix.weights[k];
+      for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; TX[ai] += w * T2[ai]; BQ[ai] += w * B2[ai]; }
+    });
+  } else scoreMoves(r, s, t, SC, TX, BQ, held);
   /*
    * RICHARDSON EXTRAPOLATION. The table's optimism was measured to fall as 1/n in the grid points
    * (S070: +21, +16, +13, +9 at 12, 16, 20, 28). With a second solve at half the points, 2 x score(n)
@@ -438,6 +469,8 @@ export function runPolicy(r, zs, opts = {}) {
   const T = m.ctx.totalYears;
   const s = vecOf(m, r.M.initialState(m));
   const real = new Float64Array(4);
+  // the path's own long-run shift, drawn once (the engine keeps it after the yearly draws); nothing in fold mode
+  const zPath = zs.length > T + 1 ? zs[T + 1] : 0;
   let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null, switchPaid = 0;
   const held = { pen: 0, isa: 0 };   // the tiers held: the plan's until a move changes them
   for (let t = 0; t <= T; t++) {
@@ -454,7 +487,7 @@ export function runPolicy(r, zs, opts = {}) {
       lastLevel = lv;
     }
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges, switchPaid };
-    F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai], t));
+    F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai], t, zPath));
   }
   const total = s[0] + s[1] + s[2];
   const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid };

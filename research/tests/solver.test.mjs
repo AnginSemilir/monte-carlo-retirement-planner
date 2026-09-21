@@ -153,7 +153,10 @@ console.log('=========== D. PLUMBING: ONE MOVE REPRODUCES A FIXED POLICY =======
   const plan = prep(at('S140').plan);
   const m = M.prepare(E, plan);
   const pol = E.DECUMULATION_POLICIES['Bracket Fill'];
-  const one = { steps: pol.steps, costSteps: m.ctx.costSteps, harvest: false, harvestCeil: 'pa', sweepCash: false, lump: false, contrib: null };
+  // the sweep is on: the fast flow holds cash and the GIA as one pot split by the sweep's rule, so a model run
+  // without the sweep drifts from it by a few thousand pounds over a long path, which on a path that ends
+  // with almost nothing is the difference between surviving and not
+  const one = { steps: pol.steps, costSteps: m.ctx.costSteps, harvest: false, harvestCeil: 'pa', sweepCash: true, lump: false, contrib: null };
   const r = solve(E, M, plan, { points: 8, actions: [one], lump: false });
   const zs = E.pathsForSeed(777, 200, m.ctx.totalYears);
   const direct = (z) => { const st = M.initialState(m); const rates = {};

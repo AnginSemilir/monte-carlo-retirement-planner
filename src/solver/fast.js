@@ -194,17 +194,27 @@ export function compile(m, actions) {
   const planReal = CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].real : 0));
   const planVolEff = CATS.map(c => { const a = acc[idOf[c]]; return a ? Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam) : 0; });
   // the folded spread by year (see foldedVol): per category for the plan's tiers, and per tier pair for the moves
+  /*
+   * Two ways to carry the per-path mean shift. FOLD (the default): it is folded into the yearly spread by
+   * the years left (foldedVol). SHIFT (m.shiftZ set, the scenario mixture): this table is solved with the
+   * shift held at sigmaParam x shiftZ for the whole horizon and the yearly spread is the plain volatility;
+   * the forward run then applies each path's own shift (zPath) exactly as the engine does.
+   */
+  const shiftMode = m.shiftZ !== undefined && m.shiftZ !== null;
+  const shiftZ = shiftMode ? m.shiftZ : 0;
   const foldK = m.foldK !== undefined ? m.foldK : FOLD_K;
-  const foldAt = (volOf, sigOf) => { const out = new Array(T + 1); for (let t = 0; t <= T; t++) { out[t] = new Float64Array(4); for (let i = 0; i < 4; i++) out[t][i] = foldedVol(volOf(i), sigOf(i), T - t + 1, foldK); } return out; };
+  const foldAt = (volOf, sigOf) => { const out = new Array(T + 1); for (let t = 0; t <= T; t++) { out[t] = new Float64Array(4); for (let i = 0; i < 4; i++) out[t][i] = shiftMode ? volOf(i) : foldedVol(volOf(i), sigOf(i), T - t + 1, foldK); } return out; };
   const planVol = CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].vol : 0)), planSig = CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].sigmaParam : 0));
+  const shifted = (real, sig) => (shiftMode ? Math.exp(Math.log(1 + real) + sig * shiftZ) - 1 : real);
   const planVolEffAt = foldAt(i => planVol[i], i => planSig[i]);
   const foldByCombo = {};
   const acts = actions.map(a => {
     // the tier held this year in the pension and the ISA (phase 6): 0 is the plan's, 1 and 2 are below it
     const tp = Math.min(a.tierPen || 0, tiers.pen.length - 1), ti = Math.min(a.tierIsa || 0, tiers.isa.length - 1);
-    const real = Float64Array.from(planReal), volEff = Float64Array.from(planVolEff);
-    if (tp > 0) { real[0] = tiers.pen[tp].real; volEff[0] = tiers.pen[tp].volEff; }
-    if (ti > 0) { real[1] = tiers.isa[ti].real; volEff[1] = tiers.isa[ti].volEff; }
+    const real = Float64Array.from(planReal.map((r, i) => shifted(r, planSig[i]))), volEff = Float64Array.from(planVolEff);
+    const sigma = Float64Array.from(planSig);
+    if (tp > 0) { real[0] = shifted(tiers.pen[tp].real, tiers.pen[tp].sigmaParam); volEff[0] = tiers.pen[tp].volEff; sigma[0] = tiers.pen[tp].sigmaParam; }
+    if (ti > 0) { real[1] = shifted(tiers.isa[ti].real, tiers.isa[ti].sigmaParam); volEff[1] = tiers.isa[ti].volEff; sigma[1] = tiers.isa[ti].sigmaParam; }
     const key = `${tp}/${ti}`;
     if (!foldByCombo[key]) foldByCombo[key] = (tp === 0 && ti === 0) ? planVolEffAt : foldAt(i => (i === 0 ? tiers.pen[tp].vol : i === 1 ? tiers.isa[ti].vol : planVol[i]), i => (i === 0 ? tiers.pen[tp].sigmaParam : i === 1 ? tiers.isa[ti].sigmaParam : planSig[i]));
     const volEffAt = foldByCombo[key];
@@ -215,14 +225,16 @@ export function compile(m, actions) {
       lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1,
       // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
       level: a.spendLevel !== undefined ? a.spendLevel : 1,
-      tierPen: tp, tierIsa: ti, real, volEff, volEffAt
+      tierPen: tp, tierIsa: ti, real, volEff, volEffAt,
+      // the per-path shift a forward run applies in shift mode (zeros in fold mode, where it is already folded)
+      sigma: shiftMode ? sigma : new Float64Array(4)
     };
   });
   return {
     E, m, ctx, P, o, T, yr, tb, acts, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
     // the guardrails, applied only on a forward run whose state vector carries their memory (slots 7 to 10)
     guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, inflation: ctx.inflation, solvencyFloor: ctx.solvencyFloor || 0,
-    real: planReal,
+    real: Float64Array.from(planReal.map((r, i) => shifted(r, planSig[i]))), shiftMode, shiftZ, sigma: shiftMode ? Float64Array.from(planSig) : new Float64Array(4),
     // the annual spread per pot with the per-path shock folded in as one year's noise (ARVA's rate uses it) ...
     volEff: planVolEff,
     // ... and folded by the years left, which is what growth uses (see foldedVol)

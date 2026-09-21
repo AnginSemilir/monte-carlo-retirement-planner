@@ -50,7 +50,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import * as F from '../../src/solver/fast.js';
-import { solve, solveFlex, runPolicy, chooseAction, buildActions } from '../../src/solver/solve.js';
+import { solve, solveFlex, solveMixture, runPolicy, chooseAction, buildActions } from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -89,11 +89,11 @@ function appMenu(m) {
  */
 function worldOf(kind) {
   // `act` is the compiled move the year was run with: since phase 6 it carries the tiers held, and so the rates
-  const R = (c, act) => (act ? act.real : c.real), V = (c, act, t) => (act ? act.volEffAt[t] : c.volEffAt[t]);
-  if (!kind || kind === 'base') return (c, z, out, act, t) => { const r = R(c, act), v = V(c, act, t); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + v[i] * z) - 1; return out; };
-  if (kind === 'return-1') return (c, z, out, act, t) => { const r = R(c, act), v = V(c, act, t); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i] - 0.01) + v[i] * z) - 1; return out; };
-  if (kind === 'vol+25') return (c, z, out, act, t) => { const r = R(c, act), v = V(c, act, t); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + 1.25 * v[i] * z) - 1; return out; };
-  if (kind === 'left-tail') return (c, z, out, act, t) => { const r = R(c, act), v = V(c, act, t); const zz = z < 0 ? 1.3 * z : z; for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + v[i] * zz) - 1; return out; };
+  const R = (c, act) => (act ? act.real : c.real), V = (c, act, t) => (act ? act.volEffAt[t] : c.volEffAt[t]), S = (c, act) => (act ? act.sigma : c.sigma);
+  if (!kind || kind === 'base') return (c, z, out, act, t, zp = 0) => { const r = R(c, act), v = V(c, act, t), sg = S(c, act); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + sg[i] * zp + v[i] * z) - 1; return out; };
+  if (kind === 'return-1') return (c, z, out, act, t, zp = 0) => { const r = R(c, act), v = V(c, act, t), sg = S(c, act); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i] - 0.01) + sg[i] * zp + v[i] * z) - 1; return out; };
+  if (kind === 'vol+25') return (c, z, out, act, t, zp = 0) => { const r = R(c, act), v = V(c, act, t), sg = S(c, act); for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + sg[i] * zp + 1.25 * v[i] * z) - 1; return out; };
+  if (kind === 'left-tail') return (c, z, out, act, t, zp = 0) => { const r = R(c, act), v = V(c, act, t), sg = S(c, act); const zz = z < 0 ? 1.3 * z : z; for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + r[i]) + sg[i] * zp + v[i] * zz) - 1; return out; };
   throw new Error(`unknown world ${kind}`);
 }
 
@@ -115,7 +115,7 @@ function runFixedPath(c, ai, zs, world = worldOf()) {
       lastLevel = lv;
     }
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false };
-    world(c, zs[t], real, c.acts[ai], t);
+    world(c, zs[t], real, c.acts[ai], t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
@@ -157,7 +157,7 @@ function runSolvedPath(r, zs, world = worldOf()) {
     tax += c.last.taxPaid + c.last.cgtPaid;
     { const a = c.acts[ai]; switchPaid += F.chargeSwitch(c, s, held, a); held.pen = a.tierPen; held.isa = a.tierIsa; if (a.tierPen > 0 || a.tierIsa > 0) tierYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, tierYears, tierChanges, switchPaid };
-    world(c, zs[t], real, c.acts[ai], t);
+    world(c, zs[t], real, c.acts[ai], t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
@@ -252,7 +252,9 @@ if (mode === 'run') {
   // phase 6: TIERS=1 lets every move also pick the pension's and the ISA's tier (the plan's or up to two below); TIERS=joint moves both together
   const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);
   const SWITCH = process.env.SWITCH !== undefined ? Number(process.env.SWITCH) : undefined;   // the round-trip cost of a tier change, on the slice traded
-  const r = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, coords: COORDS, shares: SHARES, resilienceWeight: WR, bequestWeight: WB, resilience: RESIL, tiers: TIERS, switchCost: SWITCH });
+  const MIX = process.env.MIX ? Number(process.env.MIX) : 0;   // the scenario mixture over the per-path shift: 3 or 5 tables
+  const solveOpts = { points: POINTS, lump: m.ctx.fullLumpSum, coords: COORDS, shares: SHARES, resilienceWeight: WR, bequestWeight: WB, resilience: RESIL, tiers: TIERS, switchCost: SWITCH };
+  const r = MIX ? solveMixture(E, M, plan, { ...solveOpts, mix: MIX }) : solve(E, M, plan, solveOpts);
   const solvedRs = held.map(zs => runSolvedPath(r, zs));
   const sameRs = held.map(zs => runFixedPath(cSame, same.ai, zs));
   const appRs = held.map(zs => runFixedPath(cApp, app.ai, zs));
@@ -260,7 +262,7 @@ if (mode === 'run') {
 
   const verdict = (fixedStats) => E.explainPick([{ id: 'solver', stats: S }, { id: 'fixed', stats: fixedStats }], { priorities: E.DEFAULT_PRIORITIES }).winner.id;
   const out = {
-    tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, objective: { wR: r.meta.wR, wB: r.meta.bequestWeight, resilience: r.meta.resilience }, tiers: r.meta.tiers, switchCost: r.meta.switchCost, held: HELD, seedSearch, seedHeld, solveMs: r.meta.ms, ms: Date.now() - t0,
+    tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, objective: { wR: r.meta.wR, wB: r.meta.bequestWeight, resilience: r.meta.resilience }, tiers: r.meta.tiers, switchCost: r.meta.switchCost, mixture: r.meta.mixture || 0, held: HELD, seedSearch, seedHeld, solveMs: r.meta.ms, ms: Date.now() - t0,
     solver: S, same: { ...Fs, label: same.label }, app: { ...A, label: app.label },
     pairedSame: paired(solvedRs, sameRs), pairedApp: paired(solvedRs, appRs),
     verdictSame: verdict(Fs), verdictApp: verdict(A)

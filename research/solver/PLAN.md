@@ -695,6 +695,16 @@ forecasts, so the fold's small bias cancels between arms, and the engine edge (+
 own rule, up on 31 of 41) is the product's number. Queued, not now: the spending pilot re-run under the
 mixture, whose floor landings are the one place the forecast's bias reaches a promise (5× cost).
 
+**The tier solver scored by the real engine (tag bridge-41-tiers; `results-p3-bridge-41-tiers.txt`).**
+The large edges had only been measured in the reduced model; this is the referee's number. Five-world
+mixture, joint tier steps with the switching cost and the margin, through the real engine on the 41
+against the plan's own rule on the same 3,000 paths: **+6.16 points of survival, up on 41 of 41, worst
++1.5, best +12.1**; the forecast within 2 points of the engine on all 41 (mean −0.17). Against the
+withdrawal-only solver in the same engine, +4.54, better on every household. The trade is the one the
+model showed: the median pot £459k smaller, the unlucky tenth £94k larger. The model's +6.13 and the
+engine's +6.16 agree to the decimal, which closes the question of whether the model's edges survive
+contact with the engine. Cost: five tables with tiers, 130 s a household with four jobs on four cores.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -1205,7 +1215,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | same on couple households | 1× |
-| 6 | tiers and spend dimension | **tiers done**: +4.91 survival with the switching cost and the worth-it margin (+5.03 free) vs +0.73 without tiers, 41 of 41, picker 41 of 41, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
+| 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

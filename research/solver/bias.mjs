@@ -42,7 +42,7 @@ function run(zs, pick) {
   for (let t = 0; t <= T; t++) {
     const ai = pick(s, t); const unmet = F.flow(c, t, ai, s);
     if (unmet > 1 || c.last.preNmpaInsolvent) return false;
-    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * zs[t]) - 1;
+    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEffAt[t][i] * zs[t]) - 1;
     F.grow(c, t, s, real);
   }
   return !(m.ctx.solvencyFloor > 0 && s[0] + s[1] + s[2] < m.ctx.solvencyFloor);

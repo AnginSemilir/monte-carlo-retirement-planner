@@ -49,7 +49,13 @@ const BEFORE = { content: 2203, js: 214 };
  * move it deliberately when it is approached again; the 214 above stays as the historical mark, still
  * printed in the summary line.
  */
-const JS_CEILING = 220;
+/*
+ * RAISED TO 226 on 21 Sep 2026: the solver's bridge (plan Phase 3) put the table override, the tier
+ * profiles and the sweep into the engine's year, and index.js went from 212.8KB to 221KB gzipped. That
+ * is engine code the app will use, not a dependency, so the ceiling moves to the new figure plus the
+ * same headroom. The solver itself stays a lazy chunk (Part C), and this line is where it is checked.
+ */
+const JS_CEILING = 226;
 /*
  * The byte count is the load-bearing assertion and the ceiling below is the looser one, on purpose. Three
  * runs of the same build spread about 100ms either way - 2,011 to 2,080 after, 2,105 to 2,225 before - so

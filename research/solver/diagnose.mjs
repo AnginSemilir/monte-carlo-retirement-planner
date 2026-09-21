@@ -47,7 +47,7 @@ function runFixed(ai, zs, rec) {
     const unmet = F.flow(c, t, ai, s); tax += c.last.taxPaid + c.last.cgtPaid;
     if (rec) rec(t, ai, s, c.last);
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failT: t, tax };
-    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * zs[t]) - 1;
+    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEffAt[t][i] * zs[t]) - 1;
     F.grow(c, t, s, real);
   }
   return { survived: true, failT: null, tax, terminal: s[0] + s[1] + s[2] };
@@ -98,7 +98,7 @@ function runSolved(zs, rec) {
     const ai = chooseAction(r, s, t); const unmet = F.flow(c, t, ai, s); tax += c.last.taxPaid + c.last.cgtPaid;
     if (rec) rec(t, ai, s, c.last);
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failT: t, tax };
-    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * zs[t]) - 1;
+    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEffAt[t][i] * zs[t]) - 1;
     F.grow(c, t, s, real);
   }
   return { survived: true, failT: null, tax, terminal: s[0] + s[1] + s[2] };

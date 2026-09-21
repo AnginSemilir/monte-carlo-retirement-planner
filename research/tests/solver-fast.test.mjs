@@ -119,14 +119,14 @@ console.log('=========== D. THE GUARDRAILS ON A FORWARD RUN, AGAINST THE EXACT M
   for (let t = 0; t <= m.ctx.totalYears; t++) {
     const z = zAt(t);
     // the fast flow folds the per-path shock into its volatility, so the model is grown on the same convention
-    const rates = {}; m.ctx.accounts.forEach(x => { rates[x.id] = Math.exp(Math.log(1 + x.real) + Math.sqrt(x.vol * x.vol + x.sigmaParam * x.sigmaParam) * z) - 1; });
+    const rates = {}; m.ctx.accounts.forEach(x => { rates[x.id] = Math.exp(Math.log(1 + x.real) + F.foldedVol(x.vol, x.sigmaParam, m.ctx.totalYears - t + 1) * z) - 1; });
     const mr = M.step(m, st, { ...act, sweepCash: true, lump: false }, t, rates);
     F.flow(cc, t, 0, s);
     const target = cc.last.target;
     worst = Math.max(worst, Math.abs(target - mr.targetSpend), Math.abs(s[8] - (mr.spendMult || 1)) * 1e4);
     if (/cut/.test(mr.guardrail || '')) cuts++;
     if (/held at floor/.test(mr.guardrail || '')) floors++;
-    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + cc.real[i]) + cc.volEff[i] * z) - 1;
+    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + cc.real[i]) + cc.volEffAt[t][i] * z) - 1;
     F.grow(cc, t, s, real);
     const o = m.ctx.owners[0];
     const mTot = (st.pots[o.ids.pen] || 0) + (st.pots[o.ids.isa] || 0) + (st.pots[o.ids.other] || 0) + (st.pots[o.ids.cash] || 0);
@@ -150,7 +150,7 @@ console.log('=========== E. THE RESEARCH OPPONENTS: VANGUARD DYNAMIC SPENDING AN
       F.flow(c, t, 0, s);
       if (c.yr.spend[t] > 0 && !c.yr.working[t]) { levels.push(c.last.level); mults.push(s[8]); }
       const z = zAt(t);
-      for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * z) - 1;
+      for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEffAt[t][i] * z) - 1;
       F.grow(c, t, s, real);
     }
     c.rule = null;

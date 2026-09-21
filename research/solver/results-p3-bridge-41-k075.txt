@@ -1,0 +1,51 @@
+Gate 3 on the 41 band households with the horizon fold calibrated at k = 0.75 (tag bridge-41-k075); same protocol as results-p3-bridge-41-before.txt. Fold sweep on 8 households (2000 paths), model-to-engine gap mean: k=0 -4.39 (41), k=0.5 -1.00, k=1 +0.96, k=1.5 +2.58, k=2 +3.13 (41).
+
+41 households, tag bridge-41-k075, 30 points, 3000 paths through the real engine, seed 9102
+
+id    engine: table / fixed   edge    model forecast   gap
+S004   88.2 /  85.3   + 2.87     90.5        -2.30
+S020   73.5 /  72.2   + 1.27     74.7        -1.20
+S034   77.4 /  73.2   + 4.13     79.3        -1.93
+S054   95.6 /  95.8   -0.20     97.1        -1.50
+S058   91.4 /  92.3   -0.90     92.6        -1.20
+S070   65.6 /  66.6   -0.97     64.4        +1.23
+S082   77.1 /  75.6   + 1.47     76.9        +0.17
+S100   96.0 /  96.2   -0.17     95.6        +0.40
+S112   94.3 /  92.8   + 1.50     94.5        -0.13
+S118   81.3 /  79.0   + 2.30     80.9        +0.37
+S126   96.0 /  94.9   + 1.17     96.1        -0.10
+S142   72.4 /  70.8   + 1.60     72.7        -0.33
+S154   65.4 /  59.9   + 5.53     67.1        -1.63
+S162   94.2 /  93.7   + 0.53     95.5        -1.27
+S172   87.7 /  84.1   + 3.57     88.4        -0.70
+S178   74.1 /  71.0   + 3.10     74.4        -0.27
+S184   70.2 /  64.9   + 5.33     71.0        -0.73
+S194   85.5 /  84.4   + 1.13     85.7        -0.17
+S198   95.1 /  94.8   + 0.27     95.6        -0.53
+S206   95.7 /  95.6   + 0.03     95.5        +0.17
+S218   92.2 /  91.8   + 0.40     92.1        +0.13
+S222   92.1 /  91.1   + 1.00     92.6        -0.53
+S230   96.8 /  97.0   -0.20     96.4        +0.37
+S234   91.3 /  88.0   + 3.30     92.3        -0.97
+S240   89.8 /  88.4   + 1.37     90.6        -0.80
+S252   90.7 /  89.7   + 0.97     91.8        -1.13
+S258   78.7 /  77.1   + 1.60     80.3        -1.57
+S268   66.9 /  62.9   + 4.07     69.3        -2.37
+S276   92.5 /  91.3   + 1.23     92.7        -0.20
+S292   70.4 /  61.9   + 8.47     73.6        -3.20
+S300   77.7 /  75.7   + 2.03     80.6        -2.87
+S318   71.5 /  71.7   -0.23     74.5        -2.97
+S330   70.5 /  70.7   -0.23     74.7        -4.20
+S342   66.6 /  67.0   -0.37     69.3        -2.63
+S354   73.5 /  69.9   + 3.57     78.1        -4.63
+S374   88.2 /  86.5   + 1.73     89.6        -1.37
+S378   94.8 /  93.8   + 0.93     95.5        -0.70
+S390   95.2 /  95.1   + 0.03     96.1        -0.93
+S400   78.4 /  76.6   + 1.80     77.9        +0.47
+S410   97.6 /  98.0   -0.40     96.5        +1.07
+S414   86.6 /  84.3   + 2.33     89.8        -3.23
+
+model-to-engine gap (engine minus forecast): mean -1.07, worst |gap| 4.63, within 2 points on 32 of 41, within 1 on 21
+edge in the real engine (table minus the plan's own rule): mean +1.63, up on 32, down on 9; worst -0.97; median pot table minus fixed £322k
+
+Gap sign: negative on 32, positive on 9; |gap| mean 1.28; forecast mean 84.9 vs engine 83.9 (fixed rule in the engine 82.2). The largest residual gaps (-3 to -4.6) sit on the far-from-retirement households, where a persistent shift's correlation across 40+ years is furthest from anything a memoryless fold can carry.

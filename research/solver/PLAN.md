@@ -619,6 +619,92 @@ cost-only run, the unlucky tenth £3k. The household now changes tier about twic
 pays about £3k to do it, which reads like advice rather than trading. Adopted: cost and margin are
 both on whenever tiers are.
 
+**Gate 3, the bridge (`research/tests/solver-bridge.test.mjs`, 27 assertions).** The engine honours
+`spending.policyOverride = { kind: 'table', choose }`: at the top of each year `choose(state, t,
+tiersHeld)` returns the move and the year runs on a context carrying it (draw order, cost order,
+harvesting, the lump sum), with the spend level applied to the target, the model's cash sweep as step
+7d, the tier's switching cost and growth as step 7f, and the audit row gaining `action`, `spendLevel`,
+`tierPen`, `tierIsa` and `switchPaid`. `src/solver/bridge.js` turns a solve result into that override
+(`tablePolicy`, `withTable`) and maps the engine's state to the model's without copying. Results: a
+table that answers with the plan's own settings reproduces the engine to the pound on eight households,
+deterministic and on 160 Monte Carlo paths; the opening position is the same vector from either side
+and still is after two years; the solved table through the real engine scores **within 0.5 of a point
+of the model's forecast on all three households tried** (gate asked 2), and beats the plan's own rule
+in the real engine (+0.6 on average, +2.1 on the far household). A pension forced two tiers down pays
+the round trip once and compounds at that tier's rate. One known gap kept honest: the sweep's top-up
+sale books its gain into next year's tally in the engine, which the reduced model does not tax.
+
+**Gate 3 on the pre-registered set, and what it found (tags bridge-41, bridge-41-fold;
+`results-p3-bridge-41-before.txt`, `results-p3-bridge-41-fold2.txt`).** The first gate-3 run used three
+households picked by position in the library, two of them at 99.5 and 100% survival; on the 41 band
+households the gate's condition **failed**: the real engine scored the solved table 4.4 points below
+the reduced model's forecast on average, worst 9.0, within 2 points on only 4 of 41, and the gap was
+negative on every household. The cause was isolated on the worst case by zeroing the per-path mean
+shift (sigmaParam) in both: the gap went from −4.7 to −0.2. The reduced model folded that shift
+into each year's spread as one year's noise; a shift held for n years disperses the outcome as n²σ²,
+not nσ², so the model understated a long horizon's spread and thought long retirements safer than
+the engine does. The fold was rewritten to grow with the years left (`foldedVol`, the (2n − 1) rule
+that matches a held pot's growth variance over every remaining horizon exactly): on the 41 the gap
+flipped to +3.1 on average, positive on every household, so the exact rule overshoots for a pot
+being drawn down and a solver that fails year by year. The rule is therefore parametrised
+(vol² + (1 + k(n − 1))σ²; k = 0 the old fold, k = 2 the exact sum) and k is calibrated on the
+model-to-engine gap (sweep below). Two things did not move: the engine's score of the fixed rule
+(the engine is the same engine), and the solved table's own engine score (83.8 → 84.0), which
+says the policy is nearly insensitive to the fold and the fold mostly changes the forecast. The edge
+in the real engine against the plan's own rule is +1.6 to +1.7 on average, up on 30 to 33 of 41,
+worst −1.2, on either fold.
+
+**Gate 3 at the calibrated fold (tag bridge-41-k075; `results-p3-bridge-41-k075.txt`).** The sweep on
+eight households put the gap's zero between k = 0.5 (−1.0) and k = 1 (+1.0), so the fold runs at
+k = 0.75. On the 41: **model-to-engine gap mean −1.07 (was −4.39), within 2 points on 32 of 41
+(was 4), within 1 on 21, worst −4.6**; the edge in the real engine against the plan's own rule
+**+1.63, up on 32, down on 9, worst −0.97, median pot +£322k**. The gate as written (within 2 on every
+household) is met in the mean and on 32 of 41, not on all: the nine outside are mostly the far-from-
+retirement households, where a shift held for 40 or more years correlates the whole path in a way no
+memoryless fold can carry. Recorded as met with that residual named; the honest answer to "does the
+engine agree with the model" is now "to about a point, and to two points on four in five households",
+and the honest measure of the solver is the engine's own score, which every later gate uses.
+
+**The versus results re-measured under the calibrated fold (tags p2-fold, p6-fold; `results-p2-fold.txt`,
+`results-p6-fold.txt`).** Every earlier edge was solved and forecast under the one-year fold, so both were
+re-run on the same seeds with the fold at k = 0.75. Withdrawal order only: **+0.86 (was +0.73), 33 up /
+6 down beyond two standard errors, the app's picker for the solver on 34 (was 30)**, unlucky tenth +£35k,
+median pot −£226k. The tier as a move with the switching cost and the margin: **+6.13 (was +4.91),
+41 of 41 up, picker 41 of 41**, unlucky tenth +£123k, median pot −£889k, 1.7 tier changes a run, £3.3k
+paid. Both edges grew under the corrected model, which is the direction one would expect: a model that
+sees the long horizon's true spread values de-risking and tax-efficiency more, and those are the two
+things the solver does that the fixed rules cannot. The results the plan quotes from here are these.
+
+**Gate 3 with the scenario mixture, 41 households (tag bridge-41-mix5; `results-p3-bridge-41-mix5.txt`).**
+The statistician's option 1: five tables per household, each solved with the per-path shift held at a
+Gauss–Hermite node for the whole horizon and the yearly spread the plain volatility, the move chosen by
+the weighted average of the five scores; the forward run applies each path's own shift as the engine
+does. Learning which world the path drew is discarded, and costs nothing here (twenty years of returns
+narrow the mean from ±2.1 to ±1.8 points). Result: **model-to-engine gap −0.15 on average, within 2
+points on 41 of 41, within 1 on 39 of 41, worst −1.4** (the calibrated fold: −1.07, 32 of 41, worst
+−4.6; the one-year fold: −4.39, 4 of 41). Twenty households agree to the tenth of a point; the 21 that
+differ still lean negative (18 to 3, sign test p = 0.001), by a few tenths, which is the correlation a
+persistent shift adds across years that no memoryless model carries. The engine's score of the plan is
+unchanged (83.86 against 83.87 under the fold, 83.80 under the one-year fold), so the mixture changes
+the forecast, not the tactics. Cost: five solves, 67 s against 13 s on the 30-point grid, independent
+and parallel. **Gate 3 is met with no tuned constant. Adopted**: the mixture is the default for every
+gate, forecast and floor landing from here (`MIX=5`; `solveMixture`), the fold kept at k = 0.75 as the
+cheap single-table option and for the app's first draft while the worker fan-out is built (Part C).
+The two versus results under the fold (p2-fold, p6-fold) stand as the quoted edges: they are paired
+forecasts, so the fold's small bias cancels between arms, and the engine edge (+1.62 against the plan's
+own rule, up on 31 of 41) is the product's number. Queued, not now: the spending pilot re-run under the
+mixture, whose floor landings are the one place the forecast's bias reaches a promise (5× cost).
+
+**The tier solver scored by the real engine (tag bridge-41-tiers; `results-p3-bridge-41-tiers.txt`).**
+The large edges had only been measured in the reduced model; this is the referee's number. Five-world
+mixture, joint tier steps with the switching cost and the margin, through the real engine on the 41
+against the plan's own rule on the same 3,000 paths: **+6.16 points of survival, up on 41 of 41, worst
++1.5, best +12.1**; the forecast within 2 points of the engine on all 41 (mean −0.17). Against the
+withdrawal-only solver in the same engine, +4.54, better on every household. The trade is the one the
+model showed: the median pot £459k smaller, the unlucky tenth £94k larger. The model's +6.13 and the
+engine's +6.16 agree to the decimal, which closes the question of whether the model's edges survive
+contact with the engine. Cost: five tables with tiers, 130 s a household with four jobs on four cores.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -1125,11 +1211,11 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | **done**: edge grows in every perturbed world; shortfall adopted; (0.5, 0.02) confirmed; every loss named | 0.5× |
 | 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
-| 3 | table override in engine | exact reproduction of a named policy | 0.5× |
+| 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | same on couple households | 1× |
-| 6 | tiers and spend dimension | **tiers done**: +4.91 survival with the switching cost and the worth-it margin (+5.03 free) vs +0.73 without tiers, 41 of 41, picker 41 of 41, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
+| 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

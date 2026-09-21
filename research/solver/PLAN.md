@@ -665,6 +665,16 @@ memoryless fold can carry. Recorded as met with that residual named; the honest 
 engine agree with the model" is now "to about a point, and to two points on four in five households",
 and the honest measure of the solver is the engine's own score, which every later gate uses.
 
+**The versus results re-measured under the calibrated fold (tags p2-fold, p6-fold; `results-p2-fold.txt`,
+`results-p6-fold.txt`).** Every earlier edge was solved and forecast under the one-year fold, so both were
+re-run on the same seeds with the fold at k = 0.75. Withdrawal order only: **+0.86 (was +0.73), 33 up /
+6 down beyond two standard errors, the app's picker for the solver on 34 (was 30)**, unlucky tenth +£35k,
+median pot −£226k. The tier as a move with the switching cost and the margin: **+6.13 (was +4.91),
+41 of 41 up, picker 41 of 41**, unlucky tenth +£123k, median pot −£889k, 1.7 tier changes a run, £3.3k
+paid. Both edges grew under the corrected model, which is the direction one would expect: a model that
+sees the long horizon's true spread values de-risking and tax-efficiency more, and those are the two
+things the solver does that the fixed rules cannot. The results the plan quotes from here are these.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

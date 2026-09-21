@@ -726,6 +726,19 @@ tends to, are the candidates. The couples' edge is the singles' withdrawal-order
 which is what it should be: the tier freedom that gave the singles +6 is off for couples in this pilot.
 Cost: 81 s to solve the two people, 164 s to run 2,000 paths under the rollout.
 
+**The grid's ceiling: the multiple stays (`results-grid-ceiling.txt`).** The wealth axis tops out at
+the larger of 60 years of spending and six times what the household opens with, so a wealthy
+household's axis stretches and its cliff is resolved by fewer points: 10 across 5 to 40 years of
+spending against 12 for a lean one, 11.22 on average over the 41. A fixed ceiling was tested against
+it on the six most-stretched households. It loses: at 60 years the table's bias is better on one and
+worse on three, and at 40 years it is worse on all six, by up to 10 points. Wealth that compounds
+past the top is clamped to the top point, so a tight ceiling makes the table pessimistic, and that
+costs more than the extra resolution buys. The best move was identical under all three ceilings, so
+the ceiling is a forecasting parameter, not a tactical one. Two bugs fell out: `opts.headroom || 6`
+read a headroom of 0 as absent, so the knob could not be set at all (now `??`), and `bias.mjs` and
+`diagnose.mjs` still allocated the 6-slot state vector that grew to 7 with the cash-ISA slot. One
+anomaly is logged and not chased: S126 reads 7.5% at its opening cell against 96.8% simulated.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;

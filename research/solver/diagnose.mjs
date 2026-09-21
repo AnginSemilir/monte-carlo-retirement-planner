@@ -71,7 +71,7 @@ console.log(`solved: ${POINTS} points in ${((Date.now() - t0) / 1000).toFixed(0)
 // every move scored at the opening position
 {
   const s0 = vecOf(m, M.initialState(m));
-  const post = new Float64Array(6), grown = new Float64Array(6), rd = new Float64Array(3);
+  const post = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(3);
   const rows = [];
   for (let ai = 0; ai < menu.length; ai++) {
     post.set(s0); const unmet = F.flow(c, 0, ai, post);

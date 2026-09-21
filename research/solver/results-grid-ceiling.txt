@@ -1,0 +1,49 @@
+Grid ceiling: does a fixed headroom beat the multiple?
+
+The top of the wealth axis is top(v) = max(hiYears 60, (v/spend) * headroom 6), so it stretches with
+opening wealth. Conjecture: because the axis is log-spaced with a fixed point count, a wealthy
+household gets a coarser cliff than a lean one, and a fixed ceiling would put more points where the
+cliff is.
+
+The arithmetic first, on the 41 band households (headroom-diag): 35 of 41 have a ceiling above 60
+years; the worst stretch is 33.3 years of opening wealth giving a 200-year ceiling. But log spacing
+means the cost is small: neighbouring points go from 18.3% apart at a 60-year ceiling to 22.1% at
+200, and the count of points across 5 to 40 years of spending goes from 12 to 10. Mean over the 41:
+11.22 points against 12.00. So the resolution on offer is about one point in twelve.
+
+Measured on the six most-stretched households (bias.mjs, 40 points, 1,500 held-out paths), table
+bias in survival points, table minus the simulated truth of the table's own policy:
+
+  household   multiple (now)   fixed 60   fixed 40
+  S054            -0.4           -0.2       -1.6
+  S234            -0.6           -1.3       -5.6
+  S378            -0.5           -0.5       -3.0
+  S390            -0.6           -0.8       -2.9
+  S414            -2.7           -3.6      -12.8
+  S126          -89.3          -89.2      -90.9   (see the anomaly below)
+
+Verdict: the multiple stays. A fixed 60-year ceiling is a wash at best, better on one household and
+worse on three; a fixed 40-year ceiling is much worse everywhere. The mechanism is the one the
+headroom was put there for: wealth that compounds past the top of the axis is clamped to the top
+point, so the table reads low, and that pessimism is larger than the resolution the tighter ceiling
+buys. Cutting the ceiling trades a first-order error for a second-order gain.
+
+Two things the run showed that the question did not ask about.
+
+The knob could not be set. `opts.headroom || 6` read a headroom of 0 as absent, so the first pass of
+this test ran three identical grids and printed identical numbers to four decimals. Changed to `??`.
+No production path passes 0, so nothing else moves.
+
+Decisions did not change. The best move at the opening position is the same index under all three
+ceilings on all six households, and the simulated survival of the policy moves by at most 0.3 points.
+The ceiling is a forecasting parameter here, not a tactical one, which is the same thing the shift
+mixture turned out to be.
+
+ANOMALY, not chased: S126 (early-bridge, pension-heavy, comfortable) reads 7.5% at the opening cell
+while its own policy simulates at 96.8%, an 89-point gap that barely moves with the ceiling. Every
+other household is inside 3 points. The published results are unaffected because the experiment
+scores by simulation rather than by the opening cell, but either bias.mjs is stale in a second way or
+the table's t=0 read is wrong for bridge households. Worth its own diagnosis.
+
+Also fixed on the way: bias.mjs and diagnose.mjs allocated a 6-slot state vector and vecOf has
+returned 7 since the cash-ISA slot was added, so both threw RangeError on every run.

@@ -320,9 +320,12 @@ tiers was tried and scored the same to four places at more than twice the cost. 
 tier, because a switch there realises gain and the cost of the next switch depends on the last, which
 the table cannot remember. What it does with the freedom: a lean household near the edge de-risks for
 most of its retirement and its survival rises several points; a comfortable one de-risks the years it
-no longer needs the return. One thing to watch: with switching free the solver flips tiers freely,
-ten to twenty times a run, which is optimal in the model and odd in life; a small switching cost or a
-"stay unless it is worth it" margin is the likely fix.
+no longer needs the return. A tier change is not free: the slice that moves is sold and bought, so
+a quarter of a percent of that slice (about a tenth of a percent each way for the spread and dealing,
+and a day or two out of the market) is charged to the wrapper the year it changes. The charge cut
+the flipping by a third and cost the household about £6k over a retirement; the survival gain
+survived it whole. Both this and the raises are presets, off unless the person turns them on,
+because each trades bequest for spending or survival.
 
 **What is still fixed, on purpose.** Mortality, annuities and market regimes stay out by design.
 

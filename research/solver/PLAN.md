@@ -589,6 +589,22 @@ changes a run) is the price of the raises, still a fifth of any rule's. The one 
 confidence was not reachable with raises on (S154, early bridge, GIA-heavy, 75%) is the one whose
 floor rate is lowest, where the credit and the penalty fight at the bottom of the bracket.
 
+**Gate 6 re-run with a switching cost (tag p6-tiers-cost; `results-p6-tiers-cost.txt`).** A tier
+change is a sale and a purchase of the slice that moves: from the highest tier (90% equities) to the
+next (70%) a fifth of the wrapper is traded. On a UK platform that costs the spread and any dealing
+charge both ways and a day or two out of the market, about a tenth of a percent each way, so **0.25%
+of the slice traded** is charged to the wrapper the year the tier changes: £400 on a £400k pension
+for a two-tier step, a tenth of a percent of the pot. It is charged at decision time given the tier
+held (the forward run remembers it); the table is solved with free switching, an optimism of well
+under a tenth of a percent of the pot per step. Result: the edge is **+4.97 (was +5.03), 41 of 41,
+picker 41 of 41**, the solver spends £5.9k a run on switching (£1k to £22k by household), the median
+pot is £21k lower than with free switching and the unlucky tenth unchanged. Flipping fell by a third
+at the grid the pilots use (six households at 30 points: 4.8 → 3.4 changes a run) and sits at 5.1 a
+run at 40 points, 2.5 to 8.8 by household: the cost removes the flips worth less than their price
+and leaves the ones the value function pays for, which is what a cost should do. The realistic cost
+is small enough that the tier freedom survives it whole; a household that wants fewer moves needs a
+preference (a hysteresis margin), not a bigger cost. Adopted: the cost is on whenever tiers are.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -1099,7 +1115,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | same on couple households | 1× |
-| 6 | tiers and spend dimension | **tiers done**: +5.03 survival vs +0.73 without, 41 of 41, picker 41 of 41; 2.05× solve time (gate asked 1.5×); spend dimension deferred | 1× |
+| 6 | tiers and spend dimension | **tiers done**: +4.97 survival with a 0.25% switching cost (+5.03 free) vs +0.73 without tiers, 41 of 41, picker 41 of 41; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

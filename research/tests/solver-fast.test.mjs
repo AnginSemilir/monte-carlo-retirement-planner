@@ -13,6 +13,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import * as F from '../../src/solver/fast.js';
 import { buildActions } from '../../src/solver/solve.js';
+import { vecOf } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let pass = 0, fail = 0;
@@ -94,6 +95,80 @@ console.log('=========== C. SPEED, WHICH IS WHY THE FILE EXISTS ===========');
   console.log(`      per year: exact model ${modelNs.toFixed(0)}ns, fast flow ${fastNs.toFixed(0)}ns (${(modelNs / fastNs).toFixed(1)}x)`);
   ok('C1  the fast flow is at least five times the exact model', modelNs / fastNs >= 5, `${(modelNs / fastNs).toFixed(1)}x`);
   ok('C2  ...and under a microsecond a year', fastNs < 1000, `${fastNs.toFixed(0)}ns`);
+}
+
+console.log('=========== D. THE GUARDRAILS ON A FORWARD RUN, AGAINST THE EXACT MODEL (plan 2d) ===========');
+{
+  // a plan with the rails on and a floor: the fast flow carries the rails' memory in four extra slots and
+  // must walk a shocked path exactly as the model does, cuts, re-sets and the floor included
+  const sc = singles[Math.floor(singles.length / 3)];
+  const base = JSON.parse(JSON.stringify(sc.plan));
+  const plan = E.resolveMpaa(E.normalizePlan({ ...base, config: { ...base.config, guardrails: true, lookaheadYears: 0 }, spending: { ...base.spending, floorSpend: Math.round(E.num(base.spending.targetSpend, 0) * 0.8) } }));
+  const m = M.prepare(E, plan);
+  const c = F.compile(m, actions);
+  const a = M.actionFromContext(m.ctx);
+  const ai = actions.findIndex(x => x.steps.join() === a.steps.join() && !!x.harvest === !!a.harvest && x.harvestCeil === (a.harvestCeil || 'pa'));
+  const act = ai >= 0 ? actions[ai] : { ...actions[0], steps: a.steps, costSteps: a.costSteps || a.steps, harvest: a.harvest, harvestCeil: a.harvestCeil || 'pa', sweepCash: true, lump: false };
+  const cc = F.compile(m, [act]);
+  const st = M.initialState(m);
+  const s = vecOf(m, st);
+  ok('D1  a state with the rails on hands the fast flow eleven slots', s.length === 11 && s[7] === -1 && s[8] === 1);
+  const zAt = (t) => (t % 7 === 3 ? -1.8 : (t % 5 === 0 ? -0.9 : 0.4));
+  let worst = 0, cuts = 0, floors = 0;
+  const real = new Float64Array(4);
+  for (let t = 0; t <= m.ctx.totalYears; t++) {
+    const z = zAt(t);
+    // the fast flow folds the per-path shock into its volatility, so the model is grown on the same convention
+    const rates = {}; m.ctx.accounts.forEach(x => { rates[x.id] = Math.exp(Math.log(1 + x.real) + Math.sqrt(x.vol * x.vol + x.sigmaParam * x.sigmaParam) * z) - 1; });
+    const mr = M.step(m, st, { ...act, sweepCash: true, lump: false }, t, rates);
+    F.flow(cc, t, 0, s);
+    const target = cc.last.target;
+    worst = Math.max(worst, Math.abs(target - mr.targetSpend), Math.abs(s[8] - (mr.spendMult || 1)) * 1e4);
+    if (/cut/.test(mr.guardrail || '')) cuts++;
+    if (/held at floor/.test(mr.guardrail || '')) floors++;
+    for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + cc.real[i]) + cc.volEff[i] * z) - 1;
+    F.grow(cc, t, s, real);
+    const o = m.ctx.owners[0];
+    const mTot = (st.pots[o.ids.pen] || 0) + (st.pots[o.ids.isa] || 0) + (st.pots[o.ids.other] || 0) + (st.pots[o.ids.cash] || 0);
+    worst = Math.max(worst, Math.abs(s[0] + s[1] + s[2] - mTot));
+  }
+  ok('D2  the year\'s target and the multiplier agree with the model every year, cuts and floor included', worst < 0.05 && cuts > 0, `worst ${worst.toFixed(4)}, ${cuts} cuts, ${floors} at the floor`);
+}
+
+console.log('=========== E. THE RESEARCH OPPONENTS: VANGUARD DYNAMIC SPENDING AND ARVA (plan 2d.2) ===========');
+{
+  const sc = singles[Math.floor(singles.length / 3)];
+  const base = JSON.parse(JSON.stringify(sc.plan));
+  const plan = E.resolveMpaa(E.normalizePlan({ ...base, config: { ...base.config, guardrails: false, lookaheadYears: 0 }, spending: { ...base.spending, floorSpend: Math.round(E.num(base.spending.targetSpend, 0) * 0.5) } }));
+  const m = M.prepare(E, plan);
+  const c = F.compile(m, actions);
+  const run = (rule, zAt) => {
+    c.rule = rule;
+    const s = F.withRuleSlots(vecOf(m, M.initialState(m)));
+    const levels = [], mults = [], real = new Float64Array(4);
+    for (let t = 0; t <= m.ctx.totalYears; t++) {
+      F.flow(c, t, 0, s);
+      if (c.yr.spend[t] > 0 && !c.yr.working[t]) { levels.push(c.last.level); mults.push(s[8]); }
+      const z = zAt(t);
+      for (let i = 0; i < 4; i++) real[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * z) - 1;
+      F.grow(c, t, s, real);
+    }
+    c.rule = null;
+    return { levels, mults, s };
+  };
+  const s0 = F.withRuleSlots(vecOf(m, M.initialState(m)));
+  ok('E1  the rule slots start empty: no rate yet, multiplier one', s0.length === 11 && s0[7] === -1 && s0[8] === 1 && s0[9] === 0);
+  const v = run({ kind: 'vanguard', up: 0.05, down: 0.025 }, () => 0);
+  const steps = v.mults.slice(1).map((x, i) => x / v.mults[i]);
+  ok('E2  Vanguard starts at the target and never moves the multiplier more than +5% or -2.5% a year', Math.abs(v.mults[0] - 1) < 1e-9 && steps.every(r => r <= 1.05 + 1e-9 && r >= 0.975 - 1e-9), `steps ${Math.min(...steps).toFixed(3)}..${Math.max(...steps).toFixed(3)}`);
+  const vCrash = run({ kind: 'vanguard', up: 0.05, down: 0.025 }, (t) => (t < 3 ? -2.5 : 0));
+  ok('E3  ...after a crash it cuts, by the 2.5% a year the rule allows, not all at once', vCrash.mults.some(x => x < 1 - 1e-9) && vCrash.mults.slice(1).every((x, i) => x >= vCrash.mults[i] * 0.975 - 1e-9), `low ${Math.min(...vCrash.mults).toFixed(3)}`);
+  const rate = F.arvaRate(c, vecOf(m, M.initialState(m)));
+  ok('E4  ARVA\'s rate is the household\'s geometric expected real return, between 0 and 6%', rate >= 0 && rate <= 0.06, `${(100 * rate).toFixed(2)}%`);
+  const aRun = run({ kind: 'arva', rate }, () => 0);
+  ok('E5  ARVA spends the pot as an annuity: on a flat path the multiplier stays near where it starts and never falls below the floor', aRun.levels.every(x => x >= 0.5 - 1e-6) && Math.max(...aRun.mults) / Math.min(...aRun.mults) < 3, `mult ${Math.min(...aRun.mults).toFixed(2)}..${Math.max(...aRun.mults).toFixed(2)}`);
+  const aBoom = run({ kind: 'arva', rate }, (t) => (t < 3 ? 2 : 0));
+  ok('E6  ...and after good years it spends up, above the target', Math.max(...aBoom.levels) > 1 + 1e-9 && Math.max(...aBoom.mults) > Math.max(...aRun.mults), `peak level ${Math.max(...aBoom.levels).toFixed(2)}`);
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

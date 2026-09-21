@@ -496,6 +496,99 @@ is +0.50 (was +0.65). Gate 2e is met on its first condition (the edge holds) and
 out smaller than expected (the fixed arms fall in tax, not in survival). Phase 1's golden test stays
 exact across the library with the split, so the engine and the solver agree to the pound on all three.
 
+**Phase 2d pilot, equal downside, 41 households (tag flex-eq; `results-2d-flex-eq.txt`).** Each
+household's solver was asked for exactly the floor rate the guardrails-with-floor arm achieved (Pfau's
+calibration), floor 80% of target, 30×6×6 grid, 3,000 held-out paths. At that equal downside (mean floor
+rate 92.3 against 92.7) the solver delivers **more years at the target on 40 of 41** (median run 0.87
+against 0.52 of retired years; unlucky tenth 0.45 against 0.07), changes the spend level **2.7 times a
+run against 26**, and ends with a larger median pot on 34 of 41 (+£293k on average). Fully funded on
+never-trimmed paths: solver 31.5 points above the guardrails on average, 28 up / 13 down, sign test
+p = 0.028. Against the guardrails as shipped (no floor, so 4.4 points more floor rate bought by cuts
+below 80%): years at target 0.87 against 0.45, whipsaw 2.7 against 30. Against fixed spending: +4.6
+points of floor rate at the cost of trimming on 42 points of paths. The one household where the
+guardrails deliver more years at target is S070, where the solver ends £1.2m richer. **Gate 2d is
+met on the reduced model**: the flexible solver beats the guardrails at equal downside on every
+reported figure except raises above target, which it does not make (2d.4). Three findings carried
+into 2d.3: the landing undershoots the ask by more than half a point on 12 of 41 (worst 1.4, all in
+the same direction), so a half-point margin is the default from here; the fully-funded rate reads
+zero on 13 of 41 because the 0.95 level is nearly free under a squared shortfall, so the first trial
+is the levels without it; six households needed no trimming at all and the solve returned in one
+pass.
+
+**Phase 2d.2 and 2d.3, five arms on the same seeds (tag flex-2d3; `results-2d-flex-2d3.txt`).** One
+change to the solver, on the pilot's evidence: the 0.95 level dropped and a half-point landing margin.
+Both adopted. Against the guardrails-with-floor at the same floor rate (92.7 both): years at target
+0.87 → **0.92** (unlucky tenth 0.45 → 0.53), whipsaw 2.7 → **2.0** changes a run, fully funded
+31.5 → **50.2** (the guardrails 13.8), ahead on **41 of 41**, median pot +£311k. The landing now
+undershoots by more than half a point on 6 households (was 12), mean gap +0.1 (was −0.4). The two new
+opponents, each with the person's floor but landed on nothing: Vanguard dynamic spending reaches a
+floor rate of 90.4 with 0.80 years at target and 34 changes a run (its 2.5% steps are many small
+ones); ARVA reaches 86.8 with 0.90 years at target, 33 changes, and ends with a tenth of everyone
+else's pot, because it spends the pot. **Spending delivered is where the solver is behind**: median
+run 0.991 of target-years against 1.054 (guardrails), 1.123 (Vanguard) and 1.832 (ARVA), ahead of the
+guardrails on only 10 of 41, because every opponent raises and the solver never does; the solver's
+larger end pot is that unspent surplus. That is the case for 2d.4, made on the numbers: the solver
+protects the target better than any rule and keeps the surplus as bequest, and whether to spend some
+of it is a preference the objective must be able to hold.
+
+**Phase 2d.4 raise-weight sweep, 8 households (tags flex-mu-*; `results-2d4-sweep.txt`).** The credit
+is weight × √(level − 1), capped at a 20% raise, levels 1.2 and 1.1 added to the menu, the penalty on
+trims still bisected to land the floor. Even the smallest weight tried (0.005) raises more often than
+the guardrails (21 years a run above target against 16) while still landing the floor on 8 of 8
+(91.4 against 91.2), and is ahead on spending delivered (1.096 against 1.058 in the median run, 0.95
+against 0.87 in the unlucky tenth) with 7 changes a run against 25 and £266k more pot. Three findings.
+(1) The whipsaw gate: raises bring the changes-per-run figure from 2 to 7 at the smallest weight,
+still a quarter of the guardrails', and falling as the weight rises (3 at 0.05, 1.4 at 0.15) because a
+heavier credit holds the raise rather than dipping in and out. (2) The floor and the credit fight: from
+0.05 up the bisection on the penalty cannot reach the confidence on half the households, because the
+credit is in absolute score units while the penalty is scaled by λ, so at the small λ the bracket
+starts from the credit still dominates. If a heavier preference is ever wanted, the credit should be a
+ratio to λ (a raise worth ρ trims) so the bisection scales both and stays monotone; at the weights
+that land, the absolute form is fine. (3) The calibration point is below the sweep: the guardrails'
+16 years sits under 0.005, so the full pass runs at 0.003. What the sweep already shows: at any weight
+that lands, the solver delivers more spending than the guardrails in the median run AND the unlucky
+tenth, with a fraction of the whipsaw and a larger pot.
+
+**Gate 6, the versus protocol with the tier as part of the move, 41 households (tag p6-tiers;
+`results-p6-tiers.txt`).** Joint steps (pension and ISA down together, up to two tiers below the
+plan's, never above), 40-point grid, the same seeds as gate 2e. Solver against the same menu held
+fixed: **mean +5.03 points of survival (was +0.73 without tiers), 41 up / 0 down, sign test
+p < 0.001, the app's own picker for the solver on 41 of 41**; against the app as it stands +5.06.
+Every household gained from the tier freedom (smallest +1.1, largest +8.6 on S020, an ISA-heavy
+household in drawdown), the unlucky tenth is £85k better and the median pot **£917k smaller**: the
+solver buys survival with the upside, which is what the objective asks (survival first, the bequest
+capped and lightly weighted). How it uses the freedom, on six households across the band: **one or
+two tiers below the plan's for 72 to 91% of the years**, changing tier 3 to 7 times a run. The
+plan-tier of most library households is the highest, so this reads as "the app's default risk is
+above what a survival-first objective wants once the pot is ahead", and a bequest-weighted preset
+would keep more of it; that is a product question for the presets, not a solver fault. Cost: the
+solve took **2.05× the phase 2 time** on the same grid (45s against 22s, both measured with three
+other jobs running), so the gate's 1.5× is not met as measured; every pair of tiers costs 4 to 5×
+and adds nothing to the value, which is why the joint step is the default. Gate 6's first condition
+is met by a wide margin, its time condition is missed by a third, and its safe-spend condition is
+deferred with the spend dimension. Two follow-ups for Part C: a switching cost or a "stay unless it
+is worth it" margin, because free switching flips tiers more than a person would; and the GIA's tier,
+which needs a memory bucket.
+
+**Phase 2d.4 full pass, 41 households (tag flex-2d4; `results-2d4-flex.txt`).** Raise weight 0.003,
+levels 1.2 and 1.1 on the menu, everything else as flex-2d3. At the same floor rate as the guardrails
+with floor (92.7 both, landed within half a point on 37 of 41) the solver now delivers **more spending:
+1.116 of target-years against 1.054 in the median run (ahead on 34 of 41) and 0.96 against 0.87 in the
+unlucky tenth (ahead on 41 of 41)**, with 5.7 changes a run against 26 and the same median pot (+£7k):
+the surplus the no-raise solver kept as bequest is now spent, and spent where the value function says
+it is safe. It raises in 23 years a run against the guardrails' 17, so the calibration point sits
+lower still (about 0.0015), and the "equal pot" reading is the more natural one: at 0.003 the solver
+and the guardrails end with the same money, and the solver has spent 6% more of it on the way while
+keeping the target in 93% of years against 52%. Against Vanguard it delivers the same spending (1.116
+against 1.123) at 2.4 points more floor rate, a sixth of the whipsaw and £382k more pot; against ARVA
+it delivers far less (ARVA spends the pot: 1.83) at 5.9 points more floor rate and ten times the pot,
+and is ahead in the unlucky tenth on only 12 of 41, because ARVA's unlucky paths still spend the pot
+down. **2d.4 done, and adopted as an option, not the default**: the raise weight is the preference the
+presets expose (0 keeps the surplus as bequest; 0.003 spends it), and the whipsaw it adds (2 → 5.7
+changes a run) is the price of the raises, still a fifth of any rule's. The one household where the
+confidence was not reachable with raises on (S154, early bridge, GIA-heavy, 75%) is the one whose
+floor rate is lowest, where the credit and the penalty fight at the bottom of the bracket.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -576,6 +669,80 @@ the fully-funded rate and the floor rate, and the comparison is Pfau's: hold the
 ask who delivered more years at the target. Plumbing first: guardrails are a projection-time rule the
 fast flow does not have, and the paired-seed design needs every arm on the same draws, so GK goes into
 the fast flow and the model, proved against the engine by the golden test, before any solve.
+
+**The queue after the first pass (2d.2 and 2d.3).** Two more opponents, as fast-flow forward-run arms
+carrying their memory in extra state slots the way GK does: Vanguard's dynamic spending (a percentage
+of the pot, bounded to +5% / −2.5% of last year's spend - the deliberately smooth rule, the fair test of
+whipsaw) and ARVA / percentage-of-pot by remaining years (Waring and Siegel; the rule that never runs
+out, spends up in good times, and is the benchmark of the decumulation literature - the fair test of
+raises). Risk-based guardrails (cut below 70% success, raise above 95%, re-projected yearly) are noted
+as the closest practical rival and left for a nested-simulation study if the solver clears the first
+three. Then 2d.3: whatever the first pass shows about the solver's own method - the levels, the
+shortfall exponent, the landing tolerance, a memory dimension if whipsaw appears, the ask's cap - is
+changed once, on the evidence, and every arm re-run on the same seeds. Findings from the first pass are
+listed under the results below as they land.
+
+**2d.4, at the end of the queue: spending above the target when it has been a great run.** The solver
+never spends above the plan, because nothing in its objective rewards it: the shortfall term punishes
+levels below 1 and is silent above it, so a level of 1.1 would never be chosen. The guardrails raise
+10% whenever the draw has fallen a fifth below its starting rate of the pot, and on this pass that is
+3 to 28 years a run. The exploration: add levels above 1 to the menu (1.1, then 1.2, matching the
+size of a GK raise) and a bounded reward for them, a concave credit for spending delivered above the
+target so that a raise is taken only when the pot is well ahead of the plan and the table still meets
+the confidence on the floor. The trade is priced by the value function: a raise this year means a
+smaller pot next year, and the table already says what that costs in survival, resilience and
+bequest over every later year and path, so a raise is taken only where the credit beats that cost -
+which the guardrails' band cannot know. The reward weight converts spending into the score's units,
+and there is no ground truth for it, so for the experiment it is tuned so the solver's above-target
+years land near the guardrails' count on the same households: a calibration for a fair comparison
+at equal downside AND a similar rate of raises, not a claim that the guardrails' rate is right. In
+the product it is a preference, exposed as the bequest weight is (never raise; raise a little when
+well ahead; treat a good run as licence to spend), each preset reported on the same three figures.
+The bisection on the penalty stays whatever the weight, so raises come only out of the surplus the
+confidence leaves. Measured on
+spending delivered (mean level, median run and unlucky tenth), years at or above target, whipsaw,
+and the end pot, against every arm on the same seeds. What to watch: a raise that is later trimmed
+is the whipsaw the solver has so far avoided, so the changes-per-run figure is a gate, not a
+footnote; and a raise spends the bequest, so the presets must expose the trade as they do the
+bequest weight.
+
+**Findings at the quarter mark of the equal-downside pass (ten households), for 2d.3.**
+(a) At the same floor rate the solver delivers nearly twice the years at target in the median run
+(0.66 against 0.35) and five times in the unlucky tenth (0.20 against 0.04), changes the spend level
+4 times a run against the guardrails' 24, and ends with a larger median pot on all ten. (b) The
+guardrails spend ABOVE target 3 to 18 years a run (the raises); the solver never does, so the report
+needs total spending delivered (the mean spend level over retirement) beside years at target, or it
+flatters the solver. (c) The solver trims at least once in every run on seven of ten households even
+when the ask is modest: with the shortfall squared, a 5% trim costs a hundredth of a 50% one, so the
+0.95 level is sprinkled freely and the fully-funded rate reads zero. Candidate changes, to be tried
+one at a time: the levels without 0.95, and a linear shortfall (exponent 1) that makes small trims
+proportionally dear. (d) The landing undershoots the ask on held-out paths by up to 0.8 of a point
+(the penalty is chosen on the search paths, a winner's curse). Candidate: land at the ask plus half a
+point, or 1,000 search paths. (e) The one household where the guardrails deliver more years at target
+(S070) is the one where the solver ends £1.2m richer: the objective is trading years at target for the
+pot there, which the bequest weight governs and the presets should expose.
+
+**At 34 of 41 households, three signals firm enough to act on before the pass lands.** (1) The
+headline holds at equal downside: more years at target on 33 of 34 (median 0.85 against 0.51, unlucky
+tenth 0.43 against 0.06), a tenth of the whipsaw, richer on 28 of 34. (2) The landing undershoots the
+ask on 10 of 34, always in the same direction and always by under a point: systematic, so the half-point
+margin is the default from the 2d.3 re-run on, not a candidate. (3) Fully funded reads zero on 12 of 34
+while four households needed no trim at all: the 0.95 level is the cause, so the first 2d.3 trial is the
+levels without it, the linear exponent second only if that fails to move it.
+
+**How the 2d.2 opponents are built.** Both run in the fast flow as rules in the same four memory slots
+the guardrails use, with the person's floor applied exactly as it is to the guardrails-with-floor arm,
+and each fixed arm's withdrawal order chosen by the app's picker with that rule on. Vanguard dynamic
+spending: the first retired year's draw as a rate of the pot; each later year's draw is that rate of
+the pot, held within +5% and −2.5% of last year's draw in real terms. ARVA: each year's draw is the pot
+spread as a level real annuity over the years the plan has left, at the household's own geometric
+expected real return (its pots' expected returns less half their variance, floored at zero); the
+literature's rate is a riskless real yield, which would make ARVA spend less and sooner cut - the
+household's own assumption is used because the solver and the guardrails are calibrated on the same
+assumption, so no arm is told more about the future than the others. Both re-foot, not react, when the
+plan itself changes what it draws (the State Pension starting, a band beginning), as the guardrails
+do. Total spending delivered (the mean spend level over the retired years, median run and unlucky
+tenth) is reported beside years at target from this pass on, per finding (b).
 
 ### Phase 2e. Two engine gaps that flatter the taxable side, to close before any bridge
 
@@ -668,6 +835,20 @@ in the worker, minutes rather than seconds, offered as "solve in the background"
 
 **Gate 6:** the versus protocol with tiers on; the safe spend from the table within £500 of
 `optimizeSpend` on the same plan; the solve stays inside 1.5× the Phase 2 budget.
+
+**How 6 is built (decided before the build, 20 Sep).** The tier is part of the move, not of the state:
+switching funds inside the pension or the ISA is free and leaves nothing to remember, so the grid gains
+no dimension and every cell simply has more moves. The GIA's tier stays the plan's for now, because a
+switch there realises gain and the cost of the next switch depends on the last, which is a memory the
+grid does not carry (a fourth bucket if it ever earns one). Each wrapper offers its plan tier and up to
+two below, so a household has up to nine tier pairs; a move's tier variants share its flow (the year's
+draws and tax are the same whatever the funds hold) and differ only in growth, so the flow runs once per
+base move and the variants pay only for growth and the table reads. The forward run grows each year at
+the tiers the chosen move holds, and reports the years each wrapper sat below its plan tier and how often
+the tiers changed. The fixed arms cannot change tier, which is the point of the comparison. The second
+half of the phase as first written, the spend target as a seventh dimension, is deferred: Part D now
+carries spend as levels on the move, and the safe spend and the age-against-spend grid can be read by a
+sweep of solves rather than a dimension; that is decided when Part C reaches them.
 
 ---
 
@@ -909,13 +1090,13 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 1 | reduced model + golden test | **done**: exact to the pound, 29 assertions | 1.5× |
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
 | 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | **done**: edge grows in every perturbed world; shortfall adopted; (0.5, 0.02) confirmed; every loss named | 0.5× |
-| 2d | Part D pilot in the reduced model, against the guardrails | fully-funded rate and floor rate, both, on 41 households | 1× |
+| 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | exact reproduction of a named policy | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | same on couple households | 1× |
-| 6 | tiers and spend dimension | same, plus safe spend within £500 | 1× |
+| 6 | tiers and spend dimension | **tiers done**: +5.03 survival vs +0.73 without, 41 of 41, picker 41 of 41; 2.05× solve time (gate asked 1.5×); spend dimension deferred | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |
@@ -933,6 +1114,11 @@ The decision point is the end of Phase 2d, confirmed at the end of Phase 4. Phas
 build twice over, and nothing the person sees changes until Phase 8.
 
 ## Decisions I have taken that you may want to overrule
+
+- Authorised overnight (20 Sep): 2d.2 and 2d.3 on the same seeds, then 2d.4 (raises above target)
+  incorporating what the earlier passes show, then Phase 6 (the risk tier as an action) started
+  without a further check-in if the 2d gate is passed. Each step recorded here and committed; merge
+  to main only on a green suite.
 
 - The baseline "your plan" is contributions as entered plus the plain sequential draw order, not the
   best of the old policy search, because the point of the comparison is what you would do without the

@@ -81,14 +81,14 @@ export function cashAt(m, t, taxPot) {
 export function prepare(E, rawPlan, opts = {}) {
   const ctx = E.buildContext(E.resolveMpaa ? E.resolveMpaa(rawPlan) : rawPlan);
   const reasons = [];
-  if (ctx.guardrails) reasons.push('spending guardrails are on');
+  // the spending guardrails are carried exactly since phase 2d; only the one-off cost lookahead is still refused
   if (ctx.lookaheadYears > 0) reasons.push('the one-off cost lookahead is on');
   if (reasons.length && !opts.allowUnsupported) {
     throw new Error(`the reduced model does not carry ${reasons.join(' and ')}; solve with them off and let the engine apply them when it runs the plan`);
   }
   const ownerByKey = {};
   ctx.owners.forEach(o => { ownerByKey[o.key] = o; });
-  return { E, ctx, P: ctx.P, owners: ctx.owners, ownerByKey, acc: ctx.acc, cats: CATS };
+  return { E, ctx, P: ctx.P, owners: ctx.owners, ownerByKey, acc: ctx.acc, cats: CATS, plan: rawPlan };
 }
 
 /* The opening position, taken from the plan's own balances. */
@@ -104,13 +104,17 @@ export function initialState(m) {
     cgtCarry[o.key] = 0; cumPcls[o.key] = 0; lumpTaken[o.key] = false;
     cashIsa[o.key] = Math.min(o.cashIsa0 || 0, pots[o.ids.cash] || 0);
   });
-  return { pots, basis, cgtCarry, cumPcls, lumpTaken, cashIsa };
+  // the guardrails' memory, as the engine keeps it: the rate the rails were set from, the multiplier so far,
+  // whether last year lost money, and the draw the rails were last set against
+  const guard = { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 };
+  return { pots, basis, cgtCarry, cumPcls, lumpTaken, cashIsa, guard };
 }
 
 export function cloneState(s) {
   return {
     pots: { ...s.pots }, basis: { ...s.basis }, cgtCarry: { ...s.cgtCarry },
-    cumPcls: { ...s.cumPcls }, lumpTaken: { ...s.lumpTaken }, cashIsa: { ...(s.cashIsa || {}) }
+    cumPcls: { ...s.cumPcls }, lumpTaken: { ...s.lumpTaken }, cashIsa: { ...(s.cashIsa || {}) },
+    guard: s.guard ? { ...s.guard } : { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 }
   };
 }
 
@@ -350,8 +354,39 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
     unmetCost = Math.max(0, rem);
   }
 
-  // 6. what the year costs to live on. No rails: the solver plans at the full spend.
-  const annualLivingTarget = anyRetired ? E.spendTargetAtAge(ctx, ageSelf) * frac : 0;
+  // 6. what the year costs to live on, with the engine's guardrails applied exactly when they are on
+  let annualLivingTarget = 0, guardrail = null;
+  if (anyRetired) {
+    const scheduled = E.spendTargetAtAge(ctx, ageSelf);
+    annualLivingTarget = scheduled;
+    if (ctx.guardrails) {
+      if (!state.guard) state.guard = { rate0: null, mult: 1, lostLastYear: false, lastBaseDraw: 0 };
+      const g = ctx.guardrails, gs = state.guard;
+      const covered = (totalNetGuaranteed + workingTakeHome) / frac;
+      const baseDraw = Math.max(0, scheduled - covered);
+      const potNow = owners.reduce((s2, o) => s2 + CATS.reduce((t2, cat) => t2 + (pots[o.ids[cat]] || 0), 0), 0);
+      if (baseDraw > 0 && potNow > 0) {
+        const did = [];
+        const replanned = gs.rate0 !== null && Math.abs(baseDraw - gs.lastBaseDraw) > 0.01 * Math.max(1, gs.lastBaseDraw);
+        if (gs.rate0 !== null && gs.lostLastYear) { gs.mult /= (1 + ctx.inflation); did.push('no rise'); }
+        if (gs.rate0 === null) gs.rate0 = baseDraw / potNow;
+        else if (replanned) { gs.rate0 = (baseDraw * gs.mult) / potNow; did.push('rails re-set'); }
+        else {
+          const rate = (baseDraw * gs.mult) / potNow;
+          if (rate > gs.rate0 * (1 + g.band) && (ctx.totalYears - t) > g.freezeYears) { gs.mult *= (1 - g.cut); did.push('cut'); }
+          else if (rate < gs.rate0 * (1 - g.band)) { gs.mult *= (1 + g.raise); did.push('raise'); }
+        }
+        if (ctx.floorFrac > 0) {
+          const minMult = Math.max(0, scheduled * ctx.floorFrac - covered) / baseDraw;
+          if (gs.mult < minMult) { gs.mult = minMult; did.push('held at floor'); }
+        }
+        gs.lastBaseDraw = baseDraw;
+        annualLivingTarget = covered + baseDraw * gs.mult;
+        if (did.length) guardrail = did.join(', ');
+      }
+    }
+    annualLivingTarget *= frac;
+  }
   const netDemand = Math.max(0, annualLivingTarget - totalNetGuaranteed - workingTakeHome);
   const demand = { self: 0, part: 0 };
 
@@ -506,7 +541,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
   return {
     year, t, ageSelf, agePart,
     targetSpend: annualLivingTarget,
-    netDrawdown: netDemand,
+    netDrawdown: netDemand, guardrail, spendMult: ctx.guardrails && state.guard ? state.guard.mult : 1,
     pensions: byCat.pen, isas: byCat.isa, other: byCat.other, cash: byCat.cash,
     totalCombined: byCat.pen + byCat.isa + byCat.other + byCat.cash,
     drawdownPensions, harvested, taxPaid, cgtPaid,
@@ -518,6 +553,7 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
 /* Apply one year's growth. `rates` is a map of account id to real rate, or null for the plan's own. */
 export function grow(m, state, t, rates = null) {
   const frac = t === 0 ? m.ctx.yf : 1.0;
+  const totalBefore = m.ctx.accounts.reduce((s2, a) => s2 + (state.pots[a.id] || 0), 0);
   m.ctx.accounts.forEach(a => {
     const g = rates ? (rates[a.id] !== undefined ? rates[a.id] : a.real) : a.real;
     const before = state.pots[a.id] || 0;
@@ -525,6 +561,8 @@ export function grow(m, state, t, rates = null) {
     // the sheltered part of the cash pot grows with the pot
     if (a.cat === 'cash' && state.cashIsa) state.cashIsa[a.owner] = before > 0 ? Math.min(state.pots[a.id], (state.cashIsa[a.owner] || 0) * (state.pots[a.id] / before)) : 0;
   });
+  // the guardrails' inflation rule asks one thing of growth: did the portfolio lose money this year
+  if (state.guard) state.guard.lostLastYear = m.ctx.accounts.reduce((s2, a) => s2 + (state.pots[a.id] || 0), 0) < totalBefore;
 }
 
 /*

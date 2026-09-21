@@ -53,9 +53,15 @@ const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
  * cash sits directly before the GIA, because the grid holds them as one pot and the sweep decides the
  * split. Everything else varies.
  */
-export function buildActions() {
+export function buildActions(opts = {}) {
   const PREFIX = [[], ['penPA'], ['penPA', 'penBasic'], ['penPA', 'penBasic', 'penAny']];
   const PEN = ['penPA', 'penBasic', 'penAny'];
+  // flexible spending (Part D): each withdrawal move at each spend level, 1 meaning the plan as written
+  // the plan as written comes first at every level list, so a tie in the score goes to it and not to a trim or a raise
+  const given = opts.spendLevels && opts.spendLevels.length ? opts.spendLevels : [1];
+  const levels = given.includes(1) ? [1, ...given.filter(l => l !== 1)] : given;
+  // the risk tier as part of the move (phase 6): the plan's tier first, so a move's tier variants follow it and share its flow
+  const tiers = opts.tiers && opts.tiers.length ? opts.tiers : [[0, 0]];
   const out = [];
   for (let pi = 0; pi < PREFIX.length; pi++) {
     const prefix = PREFIX[pi];
@@ -64,21 +70,58 @@ export function buildActions() {
       const mid = isaFirst ? ['isa', 'cash', 'other'] : ['cash', 'other', 'isa'];
       const steps = [...prefix, ...mid, ...rest];
       for (const harvest of [null, 'pa', 'basic']) {
-        out.push({
-          steps, costSteps: steps,
-          harvest: harvest !== null, harvestCeil: harvest || 'pa',
-          sweepCash: true, lump: false, contrib: null,
-          label: `${prefix.length ? prefix.join('+') + ' first, ' : ''}${isaFirst ? 'ISA' : 'taxable'} before ${isaFirst ? 'taxable' : 'ISA'}${harvest ? `, harvest to ${harvest === 'pa' ? 'the allowance' : 'the basic-rate limit'}` : ''}`
-        });
+        for (const level of levels) {
+          const base = out.length;
+          for (const [tp, ti] of tiers) {
+            out.push({
+              steps, costSteps: steps,
+              harvest: harvest !== null, harvestCeil: harvest || 'pa',
+              sweepCash: true, lump: false, contrib: null, spendLevel: level,
+              tierPen: tp, tierIsa: ti, tierBase: base,
+              label: `${prefix.length ? prefix.join('+') + ' first, ' : ''}${isaFirst ? 'ISA' : 'taxable'} before ${isaFirst ? 'taxable' : 'ISA'}${harvest ? `, harvest to ${harvest === 'pa' ? 'the allowance' : 'the basic-rate limit'}` : ''}${level !== 1 ? `, spend ${Math.round(level * 100)}%` : ''}${tp ? `, pension ${tp} tier${tp > 1 ? 's' : ''} down` : ''}${ti ? `, ISA ${ti} tier${ti > 1 ? 's' : ''} down` : ''}`
+            });
+          }
+        }
       }
     }
   }
   return out;
 }
 
+/*
+ * The spend levels a household's floor allows: the plan as written, two trims, and the floor itself,
+ * never below the floor and never duplicated. With no floor (or the floor equal to the target) there is
+ * one level, and the solve is exactly the phase 2 solve.
+ */
+export function spendLevelsFor(floorFrac) {
+  if (!(floorFrac > 0) || floorFrac >= 1) return [1];
+  // 0.95 mirrors the gentlest move the guardrails make (skipping an inflation rise); the rest are real trims
+  const raw = [1, 0.95, 0.9, 0.8, floorFrac].filter(x => x >= floorFrac - 1e-9);
+  return [...new Set(raw.map(x => Math.round(x * 1e6) / 1e6))].sort((a, b) => b - a);
+}
+
 /* The real rate of each pot (pension, ISA, GIA, cash) at a market draw z. */
-function realAt(c, z, out) {
-  for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + c.real[i]) + c.volEff[i] * z) - 1;
+function realAt(c, z, out, act = null) {
+  const R = act ? act.real : c.real, V = act ? act.volEff : c.volEff;
+  for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + V[i] * z) - 1;
+  return out;
+}
+
+/*
+ * The tier combinations a household's moves may hold (phase 6). The default ('joint', also `true`) moves
+ * the pension and the ISA down together, by the same step: on three households every pair of tiers
+ * ('pairs') scored the same opening value to four places at more than twice the cost, so the joint
+ * step is the menu and the pairs are kept for checking that.
+ */
+export function tierCombos(m, mode = true) {
+  const t = F.tiersFor(m);
+  const joint = mode !== 'pairs';
+  const out = [];
+  for (let tp = 0; tp < t.pen.length; tp++) for (let ti = 0; ti < t.isa.length; ti++) {
+    if (joint && tp !== ti && !(t.pen.length === 1 || t.isa.length === 1)) continue;
+    if (joint && (t.pen.length === 1 || t.isa.length === 1) && tp !== 0 && ti !== 0 && tp !== ti) continue;
+    out.push([tp, ti]);
+  }
   return out;
 }
 
@@ -92,9 +135,16 @@ export function solve(E, M, plan, opts = {}) {
   // one table per person; a couple needs two and a funding split, which is phase 5
   if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');
   const g = makeGrid(m, opts);
-  const actions = (opts.actions || buildActions()).map(a => ({ ...a, lump: !!opts.lump }));
+  const raiseOn = (opts.raiseWeight || 0) > 0;
+  const menuLevels = raiseOn || !opts.spendLevels ? opts.spendLevels : opts.spendLevels.filter(l => l <= 1);
+  const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: opts.tiers ? tierCombos(m, opts.tiers) : null })).map(a => ({ ...a, lump: !!opts.lump }));
   const c = F.compile(m, actions);
   const nodeReal = NODES.map(z => realAt(c, z, new Float64Array(4)));
+  // the quadrature rates for each move's tier combination, shared between moves that hold the same tiers
+  const byCombo = {};
+  const nodeRealOf = actions.map((a, ai) => { const k = `${c.acts[ai].tierPen}/${c.acts[ai].tierIsa}`; if (!byCombo[k]) byCombo[k] = NODES.map(z => realAt(c, z, new Float64Array(4), c.acts[ai])); return byCombo[k]; });
+  // tier variants of a move share its flow: `tierBase` names the move whose flow they reuse
+  const tierBase = actions.map((a, ai) => (a.tierBase !== undefined && a.tierBase < ai && actions[a.tierBase].tierBase === a.tierBase ? a.tierBase : ai));
   const T = m.ctx.totalYears;
   const floor = m.ctx.solvencyFloor;
   /*
@@ -148,21 +198,45 @@ export function solve(E, M, plan, opts = {}) {
   // the shortfall term is the default since the tuning on the odd households (plan 2c.2, 2c.3); 'indicator' restores the step
   const shortfall = opts.resilience !== 'indicator';
   g.linearResil = shortfall;
+  /*
+   * FLEXIBLE SPENDING (Part D). A move may spend below the plan's target; each such year adds
+   * ((1 - level))^2 to a running shortfall that is carried as its own table and charged at `lambda`.
+   * With lambda at zero the solver would always trim to the floor (survival and bequest both like it);
+   * with lambda large it never trims. `solveFlex` bisects lambda until the policy's floor survival lands
+   * on the household's confidence. The buffer stays sized on the plan's target (the buffer trap).
+   */
+  const lambda = opts.lambda !== undefined ? opts.lambda : 0;
+  // the shortfall exponent: 2 (the plan) makes one deep cut dearer than two shallow ones; 1 makes small trims proportionally dear
+  const shortExp = opts.shortfallExponent !== undefined ? opts.shortfallExponent : 2;
+  const shortOf = (level) => Math.pow(1 - level, shortExp);
+  /*
+   * RAISES (plan 2d.4). A move may also spend above the target after a good run. Nothing else in the
+   * score rewards that, so a raise earns a bounded, concave credit, sqrt(level - 1) capped at a 20% raise,
+   * at `raiseWeight`; the value function prices what the smaller pot costs in survival, resilience and
+   * bequest, so a raise is taken only where the credit beats that cost. The table carries the signed
+   * cost in score units: lambda times the shortfall for a trim, minus the credit for a raise.
+   */
+  const mu = opts.raiseWeight !== undefined ? opts.raiseWeight : 0;
+  const creditOf = (level) => Math.sqrt(Math.min(0.2, level - 1));
+  const costOf = (level) => (level < 1 ? lambda * shortOf(level) : level > 1 ? -mu * creditOf(level) : 0);
 
-  const surv = [], lsurv = [], resil = [], lresil = [], beq = [], pol = [];
+  const surv = [], lsurv = [], resil = [], lresil = [], beq = [], pol = [], short = [];
   for (let t = 0; t <= T; t++) {
     surv[t] = new Float64Array(g.size); lsurv[t] = new Float64Array(g.size);
     resil[t] = new Float64Array(g.size); lresil[t] = new Float64Array(g.size);
-    beq[t] = new Float64Array(g.size); pol[t] = new Uint8Array(g.size);
+    beq[t] = new Float64Array(g.size); pol[t] = new Uint8Array(g.size); short[t] = new Float64Array(g.size);
   }
+  const levelOf = actions.map(a => (a.spendLevel !== undefined ? a.spendLevel : 1));
 
-  const base = new Float64Array(7), post = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(3);
+  const base = new Float64Array(7), post = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(4), cachedPost = new Float64Array(7);
   let evaluated = 0;
   for (let t = T; t >= 0; t--) {
     const sNext = t < T ? lsurv[t + 1] : null;
     const bNext = t < T ? beq[t + 1] : null;
     const rNext = t < T ? lresil[t + 1] : null;
-    const St = surv[t], Bt = beq[t], Rt = resil[t], Pt = pol[t];
+    const hNext = t < T ? short[t + 1] : null;
+    const St = surv[t], Bt = beq[t], Rt = resil[t], Pt = pol[t], Ht = short[t];
+    const spendYear = c.yr.spend[t] > 0;
     for (let ic = 0; ic < g.pcls.length; ic++) {
       for (let ig = 0; ig < g.gain.length; ig++) {
         for (let it = 0; it < g.nt; it++) {
@@ -175,16 +249,23 @@ export function solve(E, M, plan, opts = {}) {
                * bound assumed "no growth" was the worst case, and for an invested pot it is not - see
                * zeroGrowthNeed in grid.js for the measurement that retired it.
                */
-              let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0;
+              let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0, cachedFail = false;
               for (let ai = 0; ai < actions.length; ai++) {
-                post.set(base);
-                const unmet = F.flow(c, t, ai, post);
-                evaluated++;
-                let s = 0, b = 0, rs = 0;
-                if (!(unmet > 1 || c.last.preNmpaInsolvent)) {
+                let fail;
+                if (tierBase[ai] === ai) {
+                  post.set(base);
+                  const unmet = F.flow(c, t, ai, post);
+                  evaluated++;
+                  fail = unmet > 1 || c.last.preNmpaInsolvent;
+                  cachedFail = fail; cachedPost.set(post);
+                } else { post.set(cachedPost); fail = cachedFail; }
+                let s = 0, b = 0, rs = 0, h = 0;
+                const thisShort = spendYear ? costOf(levelOf[ai]) : 0;
+                if (!fail) {
+                  const nr = nodeRealOf[ai];
                   for (let zi = 0; zi < 5; zi++) {
                     grown.set(post);
-                    F.grow(c, t, grown, nodeReal[zi]);
+                    F.grow(c, t, grown, nr[zi]);
                     if (t === T) {
                       const total = grown[0] + grown[1] + grown[2];
                       const alive = !(floor > 0 && total < floor);
@@ -193,17 +274,19 @@ export function solve(E, M, plan, opts = {}) {
                       rs += WEIGHTS[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
                       b += WEIGHTS[zi] * (alive ? Math.min(net, beqCap) : 0);
                     } else {
-                      readValues(g, sNext, bNext, grown, rd, rNext);
+                      readValues(g, sNext, bNext, grown, rd, rNext, hNext);
                       s += WEIGHTS[zi] * rd[0];
                       b += WEIGHTS[zi] * rd[1];
                       rs += WEIGHTS[zi] * rd[2];
+                      h += WEIGHTS[zi] * rd[3];
                     }
                   }
                 }
-                const score = s + wR * rs + wB * b;
-                if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestA = ai; }
+                h += thisShort;
+                const score = s + wR * rs + wB * b - h;
+                if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
               }
-              St[idx] = bestS; Bt[idx] = bestB; Rt[idx] = bestR; Pt[idx] = bestA;
+              St[idx] = bestS; Bt[idx] = bestB; Rt[idx] = bestR; Pt[idx] = bestA; Ht[idx] = bestH;
             }
           }
         }
@@ -213,15 +296,15 @@ export function solve(E, M, plan, opts = {}) {
     if (shortfall) lresil[t].set(Rt); else toLogOdds(Rt, lresil[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator' };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null };
   const r = {
-    m, g, c, actions, surv, lsurv, resil, lresil, beq, pol, meta, M, eps, nodeReal, wB, wR,
+    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOf, wB, wR, lambda, levelOf, shortExp, costOf,
     tieMargin: opts.tieMargin || 0,
     rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
     /* What the table says this position is worth, before anything is executed. */
-    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); return { survival: interp(g, surv[k], loc, true), resilience: interp(g, resil[k], loc, !shortfall), bequest: interp(g, beq[k], loc, false) }; }
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); const sv = interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   };
   return r;
 }
@@ -283,25 +366,28 @@ export function chooseAction(r, s, t) {
 
 /* Every move's score from one solve's tables at the true position `s` in year `t`, with the year's tax and the expected bequest. */
 function scoreMoves(r, s, t, SC, TX, BQ) {
-  const { g, c, actions, lsurv, lresil, beq, nodeReal, wB, wR } = r;
-  const post = r._post || (r._post = new Float64Array(7));
-  const grown = r._grown || (r._grown = new Float64Array(7));
-  const rd = r._rd || (r._rd = new Float64Array(3));
+  const { g, c, actions, lsurv, lresil, beq, short, nodeRealOf, wB, wR, levelOf } = r;
+  const post = r._post || (r._post = new Float64Array(Math.max(7, s.length)));
+  const grown = r._grown || (r._grown = new Float64Array(Math.max(7, s.length)));
+  const rd = r._rd || (r._rd = new Float64Array(4));
+  const spendYear = c.yr.spend[t] > 0;
   for (let ai = 0; ai < actions.length; ai++) {
     post.set(s);
     const unmet = F.flow(c, t, ai, post);
     TX[ai] = c.last.taxPaid + c.last.cgtPaid;
     if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; continue; }
-    let sv = 0, bq = 0, rs = 0;
+    let sv = 0, bq = 0, rs = 0, h = spendYear ? r.costOf(levelOf[ai]) : 0;
+    const nr = nodeRealOf[ai];
     for (let zi = 0; zi < 5; zi++) {
       grown.set(post);
-      F.grow(c, t, grown, nodeReal[zi]);
-      readValues(g, lsurv[t + 1], beq[t + 1], grown, rd, lresil[t + 1]);
+      F.grow(c, t, grown, nr[zi]);
+      readValues(g, lsurv[t + 1], beq[t + 1], grown, rd, lresil[t + 1], short[t + 1]);
       sv += WEIGHTS[zi] * rd[0];
       bq += WEIGHTS[zi] * rd[1];
       rs += WEIGHTS[zi] * rd[2];
+      h += WEIGHTS[zi] * rd[3];
     }
-    SC[ai] = sv + wR * rs + wB * bq; BQ[ai] = bq;
+    SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
   }
 }
 
@@ -316,17 +402,68 @@ export function runPolicy(r, zs, opts = {}) {
   const T = m.ctx.totalYears;
   const s = vecOf(m, r.M.initialState(m));
   const real = new Float64Array(4);
-  let lifetimeTax = 0;
+  let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null;
   for (let t = 0; t <= T; t++) {
     const ai = opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t);
     const unmet = F.flow(c, t, ai, s);
     lifetimeTax += c.last.taxPaid + c.last.cgtPaid;
-    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai] };
-    F.grow(c, t, s, realAt(c, zs[t], real));
+    { const a = c.acts[ai]; if (a.tierPen > 0) tierPenYears++; if (a.tierIsa > 0) tierIsaYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
+    if (c.yr.spend[t] > 0) {
+      spendYears++; const lv = c.last.level; levelSum += lv;
+      if (lv >= 1 - 1e-9) atTarget++; if (lv > 1 + 1e-9) aboveTarget++; if (lv < minLevel) minLevel = lv;
+      shortfall += (1 - Math.min(1, lv)) * (1 - Math.min(1, lv));
+      // whipsaw: how often the year's spend level differs from last year's
+      if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
+      lastLevel = lv;
+    }
+    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges };
+    F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai]));
   }
   const total = s[0] + s[1] + s[2];
-  if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, failYear: m.ctx.baseYear + T, failAge: m.ctx.ageSelf0 + T, preAccess: false, terminalNet: 0, terminal: 0, lifetimeTax };
-  return { survived: true, failYear: null, failAge: null, preAccess: false, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax };
+  const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges };
+  if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, failYear: m.ctx.baseYear + T, failAge: m.ctx.ageSelf0 + T, preAccess: false, terminalNet: 0, terminal: 0, lifetimeTax, ...spendStats, fullyFunded: false };
+  return { survived: true, failYear: null, failAge: null, preAccess: false, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax, ...spendStats };
+}
+
+/*
+ * FLEXIBLE SPENDING: THE SOLVE THAT LANDS ON THE HOUSEHOLD'S CONFIDENCE (Part D).
+ *
+ * The household names a target, a floor and how sure it wants to be of never going below the floor.
+ * The solver is given the trims as moves and a penalty `lambda` on trimming; the larger the penalty,
+ * the less it trims and the lower its floor survival. This finds, by bisection on log lambda, the
+ * LARGEST penalty (the least trimming) whose floor survival still meets the confidence, measured by
+ * running the policy on `searchPaths` paths in the fast flow. If even the untrimmed plan meets the
+ * confidence, no trimming is asked for; if even trimming to the floor every year cannot meet it, the
+ * most protective policy is returned and `meta.landed` says the confidence was not reachable.
+ */
+export function solveFlex(E, M, plan, opts = {}) {
+  const probe = M.prepare(E, plan);
+  const floorFrac = probe.ctx.floorFrac || 0;
+  const levels = opts.spendLevels || spendLevelsFor(floorFrac);
+  // the penalty is chosen on the search paths, so a policy that just meets the ask there tends to fall short on
+  // held-out paths; `margin` asks for a little more than the confidence to land on it
+  const confidence = (opts.confidence !== undefined ? opts.confidence : (probe.ctx.floorConfidence || 0.9)) + (opts.margin || 0);
+  const tol = opts.tolerance !== undefined ? opts.tolerance : 0.005;
+  const zs = E.pathsForSeed(opts.seed || 4242, opts.searchPaths || 1000, probe.ctx.totalYears);
+  const floorRate = (r) => zs.filter(z => runPolicy(r, z).survived).length / zs.length;
+  const at = (lambda) => { const r = solve(E, M, plan, { ...opts, spendLevels: levels, lambda }); r.floorRate = floorRate(r); r.solves = 1; return r; };
+  if (levels.length === 1) { const r = at(0); r.meta.landed = 'no floor'; return r; }
+  if (!levels.some(l => l < 1)) { const r = at(0); r.meta.landed = 'no floor'; return r; }   // raises only: nothing to land
+  // the bracket: landings in the pilot sat between 0.05 and 0.5, so 0.005 to 2 reaches them in fewer solves
+  let hi = opts.lambdaHigh || 2, lo = opts.lambdaLow || 5e-3;
+  const rHi = at(hi);
+  let solves = 1;
+  if (rHi.floorRate >= confidence) { rHi.meta.landed = 'no trimming needed'; rHi.meta.solves = solves; return rHi; }
+  let best = at(lo); solves++;
+  if (best.floorRate < confidence) { best.meta.landed = 'confidence not reachable'; best.meta.solves = solves; return best; }
+  // best meets the confidence with heavy trimming; move lambda up while it still does
+  for (let k = 0; k < (opts.bisectSteps || 6); k++) {
+    const mid = Math.exp((Math.log(lo) + Math.log(hi)) / 2);
+    const r = at(mid); solves++;
+    if (r.floorRate >= confidence) { lo = mid; best = r; if (r.floorRate - confidence <= tol) break; } else hi = mid;
+  }
+  best.meta.landed = 'landed'; best.meta.solves = solves; best.meta.confidence = confidence;
+  return best;
 }
 
 function nearestIndex(g, s) {

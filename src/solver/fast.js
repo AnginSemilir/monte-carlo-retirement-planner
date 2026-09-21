@@ -54,6 +54,34 @@ function taxOf(tb, g) { return g <= 0 ? 0 : g - netOf(tb, g); }
  * Compile a household. `m` is `model.prepare`'s result, so the fast flow and the exact one read the
  * same context; `actions` are the solver's moves.
  */
+/* The tiers on Plan Inputs, riskiest first; "below" means further along this list. */
+export const TIER_ORDER = ['High Risk', 'Medium/High Risk', 'Medium Risk', 'Medium/Low Risk', 'Low Risk', 'Cash Equivalents'];
+
+/*
+ * The tiers a wrapper may hold under the solver (phase 6): the one set on Plan Inputs first, then up to
+ * `below` tiers under it, each with the plan's own return assumptions for that tier. Never above.
+ */
+export function tiersFor(m, below = 2) {
+  const profiles = (m.plan && m.plan.riskProfiles) || m.E.DEFAULT_RISK_PROFILES;
+  const o = m.ctx.owners[0];
+  const out = {};
+  for (const cat of ['pen', 'isa']) {
+    const a = m.acc[o.ids[cat]];
+    if (!a) { out[cat] = [{ name: null, real: 0, vol: 0, sigmaParam: 0, volEff: 0 }]; continue; }
+    const k0 = TIER_ORDER.indexOf(a.risk);
+    const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam }];
+    for (let d = 1; d <= below && k0 >= 0 && k0 + d < TIER_ORDER.length; d++) {
+      const name = TIER_ORDER[k0 + d];
+      const prof = profiles[name] || m.E.DEFAULT_RISK_PROFILES[name];
+      if (!prof) break;
+      list.push({ name, real: (Number(prof.real) || 0) / 100, vol: (Number(prof.volatility) || 0) / 100, sigmaParam: (Number(prof.sigmaParam) || 0) / 100 });
+    }
+    list.forEach(x => { x.volEff = Math.sqrt(x.vol * x.vol + x.sigmaParam * x.sigmaParam); });
+    out[cat] = list;
+  }
+  return out;
+}
+
 export function compile(m, actions) {
   const { E, ctx, P } = m;
   if (ctx.isCouple) throw new Error('the fast flow takes one person; couples are phase 5');
@@ -73,14 +101,17 @@ export function compile(m, actions) {
     drip: CATS.map(() => new Float64Array(T + 1)),
     cgtExempt: new Float64Array(T + 1),
     // the cash ISA cap for the owner's age in the year, and the typical sheltered cash a grid cell assumes
-    cashIsaCap: new Float64Array(T + 1), cashIsaTypical: new Float64Array(T + 1)
+    cashIsaCap: new Float64Array(T + 1), cashIsaTypical: new Float64Array(T + 1),
+    // the full-year scheduled spend, which the guardrails measure the draw against
+    scheduled: new Float64Array(T + 1)
   };
   for (let t = 0; t <= T; t++) {
     const age = ctx.ageSelf0 + t, year = ctx.baseYear + t;
     yr.frac[t] = t === 0 ? ctx.yf : 1;
     yr.working[t] = age < o.retireAge ? 1 : 0;
     yr.access[t] = age >= ctx.nmpa ? 1 : 0;
-    yr.spend[t] = yr.working[t] ? 0 : E.spendTargetAtAge(ctx, age) * yr.frac[t];
+    yr.scheduled[t] = yr.working[t] ? 0 : E.spendTargetAtAge(ctx, age);
+    yr.spend[t] = yr.scheduled[t] * yr.frac[t];
     let taxable = 0, taxFree = 0;
     ctx.otherIncomes.forEach(inc => { if (age >= inc.startAge && age <= inc.endAge) { if (inc.taxFree) taxFree += inc.amount * yr.frac[t]; else taxable += inc.amount * yr.frac[t]; } });
     if (age >= ctx.spa) taxable += o.statePension * yr.frac[t];
@@ -115,18 +146,52 @@ export function compile(m, actions) {
     }
   }
   const tb = netTable(E, P);
-  const acts = actions.map(a => ({
-    steps: Int8Array.from(a.steps.map(s => STEP[s])),
-    costSteps: Int8Array.from((a.costSteps || a.steps).map(s => STEP[s])),
-    harvest: a.harvest ? 1 : 0, harvestCeil: a.harvestCeil === 'basic' ? P.higherRateStartsAt : P.pa,
-    lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1
-  }));
+  const tiers = tiersFor(m);
+  const planReal = CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].real : 0));
+  const planVolEff = CATS.map(c => { const a = acc[idOf[c]]; return a ? Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam) : 0; });
+  const acts = actions.map(a => {
+    // the tier held this year in the pension and the ISA (phase 6): 0 is the plan's, 1 and 2 are below it
+    const tp = Math.min(a.tierPen || 0, tiers.pen.length - 1), ti = Math.min(a.tierIsa || 0, tiers.isa.length - 1);
+    const real = Float64Array.from(planReal), volEff = Float64Array.from(planVolEff);
+    if (tp > 0) { real[0] = tiers.pen[tp].real; volEff[0] = tiers.pen[tp].volEff; }
+    if (ti > 0) { real[1] = tiers.isa[ti].real; volEff[1] = tiers.isa[ti].volEff; }
+    return {
+      steps: Int8Array.from(a.steps.map(s => STEP[s])),
+      costSteps: Int8Array.from((a.costSteps || a.steps).map(s => STEP[s])),
+      harvest: a.harvest ? 1 : 0, harvestCeil: a.harvestCeil === 'basic' ? P.higherRateStartsAt : P.pa,
+      lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1,
+      // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
+      level: a.spendLevel !== undefined ? a.spendLevel : 1,
+      tierPen: tp, tierIsa: ti, real, volEff
+    };
+  });
   return {
     E, m, ctx, P, o, T, yr, tb, acts, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
-    real: CATS.map(c => (acc[idOf[c]] ? acc[idOf[c]].real : 0)),
+    // the guardrails, applied only on a forward run whose state vector carries their memory (slots 7 to 10)
+    guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, inflation: ctx.inflation, solvencyFloor: ctx.solvencyFloor || 0,
+    real: planReal,
     // the annual spread per pot with the per-path shock folded in, for a solver that has no path memory
-    volEff: CATS.map(c => { const a = acc[idOf[c]]; return a ? Math.sqrt(a.vol * a.vol + a.sigmaParam * a.sigmaParam) : 0; })
+    volEff: planVolEff,
+    tiers
   };
+}
+
+const GK = Object.freeze({ kind: 'gk' });
+
+/* An eleven-slot state for a forward run under a spending rule: the seven the plan carries plus the rule's memory. */
+export function withRuleSlots(s) {
+  if (s.length > 10) return s;
+  const out = new Float64Array(11); out.set(s); if (s.length < 7) out[6] = -1;
+  out[7] = -1; out[8] = 1; out[9] = 0; out[10] = 0;
+  return out;
+}
+
+/* ARVA's real rate for a household: the geometric expected real return of its opening pots, never below zero. */
+export function arvaRate(c, s) {
+  const w = [s[0], s[1], s[2], 0]; const tot = w[0] + w[1] + w[2];
+  if (tot <= 0) return 0;
+  let g = 0; for (let i = 0; i < 3; i++) g += (w[i] / tot) * (Math.log(1 + c.real[i]) - 0.5 * c.volEff[i] * c.volEff[i]);
+  return Math.max(0, Math.exp(g) - 1);
 }
 
 /* Where cash sits at the start of year t, given the merged taxable pot: the sweep's rule. */
@@ -241,8 +306,62 @@ export function flow(c, t, ai, s) {
     for (let k = 0; k < a.costSteps.length && rem > 0; k++) rem -= drawStep(a.costSteps[k], rem);
     unmet += Math.max(0, rem);
   }
-  // 6, 7. the living target: sweep a surplus, or draw the shortfall in the move's order
-  const target = yr.spend[t];
+  /*
+   * 6. the living target. On a forward run that carries the rails' memory in slots 7 to 10 (rate0 or -1,
+   * the multiplier, whether last year lost money, the draw the rails were last set against) the
+   * guardrails apply exactly as the engine applies them, floor included; a grid cell carries no memory
+   * and the solver plans at the full spend.
+   */
+  let target = yr.spend[t] * a.level;
+  /*
+   * A spending rule other than the plan's own (research opponents, plan 2d.2) uses the same four slots:
+   * `c.rule` is { kind:'vanguard', up, down } or { kind:'arva', rate }, set on the compiled household by
+   * the caller; the guardrails stay the engine's rule, chosen by the plan's config.
+   */
+  const rule = c.rule || (c.guard ? GK : null);
+  if (rule && s.length > 10 && retired) {
+    const scheduled = yr.scheduled[t];
+    const covered = netGuaranteed / frac;
+    const baseDraw = Math.max(0, scheduled - covered);
+    const potNow = pen + isa + gia + cash;
+    let rate0 = s[7], mult = s[8], lost = s[9] > 0.5, lastBase = s[10];
+    if (baseDraw > 0 && potNow > 0) {
+      // the plan itself changed what it draws (the State Pension starting, a band beginning): re-foot, do not react
+      const replanned = rate0 >= 0 && Math.abs(baseDraw - lastBase) > 0.01 * Math.max(1, lastBase);
+      if (rule.kind === 'gk') {
+        const g = c.guard;
+        if (rate0 >= 0 && lost) mult /= (1 + c.inflation);
+        if (rate0 < 0) rate0 = baseDraw / potNow;
+        else if (replanned) rate0 = (baseDraw * mult) / potNow;
+        else {
+          const rate = (baseDraw * mult) / potNow;
+          if (rate > rate0 * (1 + g.band) && (c.T - t) > g.freezeYears) mult *= (1 - g.cut);
+          else if (rate < rate0 * (1 - g.band)) mult *= (1 + g.raise);
+        }
+      } else if (rule.kind === 'vanguard') {
+        // Vanguard's dynamic spending: the first year's rate of the pot, then each year's draw held within a
+        // ceiling and a floor of last year's (5% up, 2.5% down, in real terms), so it follows the pot slowly
+        if (rate0 < 0) rate0 = baseDraw / potNow;
+        else if (replanned) rate0 = (baseDraw * mult) / potNow;
+        else { const want = (rate0 * potNow) / baseDraw; mult = Math.min(mult * (1 + rule.up), Math.max(mult * (1 - rule.down), want)); }
+      } else if (rule.kind === 'arva') {
+        // ARVA (Waring and Siegel): the pot spread over the years left as a level real annuity-due at the
+        // rule's real rate, recomputed every year, so it spends up after good years and never runs out on
+        // its own. The paper ignores tax and ends at nothing; here the pension counts after the tax its
+        // draw will pay, the plan's solvency floor is kept back, and one year's cushion is added so the tax
+        // on the last draw is not counted as running out.
+        const n = c.T - t + 2, r = rule.rate;
+        const net = pen * (1 - (rule.pensionHaircut || 0)) + isa + gia + cash;
+        const spendable = Math.max(0, net - c.solvencyFloor / Math.pow(1 + r, n));
+        const draw = r > 1e-9 ? (spendable * r) / ((1 - Math.pow(1 + r, -n)) * (1 + r)) : spendable / n;
+        mult = draw / baseDraw; rate0 = baseDraw / potNow;
+      }
+      if (c.floorFrac > 0) { const minMult = Math.max(0, scheduled * c.floorFrac - covered) / baseDraw; if (mult < minMult) mult = minMult; }
+      lastBase = baseDraw;
+      target = (covered + baseDraw * mult) * frac;
+    }
+    s[7] = rate0; s[8] = mult; s[10] = lastBase;
+  }
   const netDemand = Math.max(0, target - netGuaranteed);
   if (target > 0 && netGuaranteed >= target) {
     const surplus = netGuaranteed - target;
@@ -307,7 +426,9 @@ export function flow(c, t, ai, s) {
   s[0] = pen; s[1] = isa; s[2] = gia + cash;
   s[3] = gia > 0 ? Math.max(0, Math.min(1, (gia - basis) / gia)) : 0;
   s[4] = cumPcls; s[5] = lumpTaken ? 1 : 0; if (s.length > 6) s[6] = cashIsa;
-  c.last = { taxPaid, cgtPaid, drawdown, harvested, unmet, preNmpaInsolvent, cash, gia, netDemand, target };
+  // the year's spend as a fraction of the plan's target, whoever set it: the move's level, or the rails' multiplier
+  const level = yr.spend[t] > 0 ? target / yr.spend[t] : 1;
+  c.last = { taxPaid, cgtPaid, drawdown, harvested, unmet, preNmpaInsolvent, cash, gia, netDemand, target, level };
   return unmet;
 }
 
@@ -359,6 +480,7 @@ export function grow(c, t, s, real) {
   const gia2 = Math.max(0, gia * (1 + real[2] * frac));
   const cash2 = Math.max(0, cash * (1 + real[3] * frac));
   if (s.length > 6 && s[6] >= 0) s[6] = cash > 0 ? Math.min(cash2, s[6] * (cash2 / cash)) : 0;   // the sheltered part grows with the cash
+  if (s.length > 10) { const before = s[0] + s[1] + tax; s[9] = (s[0] * (1 + real[0] * frac) + s[1] * (1 + real[1] * frac) + gia2 + cash2) < before ? 1 : 0; }
   // the basis does not grow, so the gain fraction rises with the GIA and falls if it shrinks
   if (gia > 0 && gia2 > 0) { const basis = gia * (1 - s[3]); s[3] = Math.max(0, Math.min(1, (gia2 - basis) / gia2)); }
   s[2] = gia2 + cash2;

@@ -148,7 +148,26 @@ console.log('=========== D. WHAT THE MODEL REFUSES TO CARRY ===========');
   const withGuard = JSON.parse(JSON.stringify(sc.plan)); withGuard.config = { ...withGuard.config, guardrails: true };
   const withLook = JSON.parse(JSON.stringify(sc.plan)); withLook.config = { ...withLook.config, guardrails: false, lookaheadYears: 5 };
   const threw = (p) => { try { M.prepare(E, p); return false; } catch (e) { return /guardrails|lookahead/.test(e.message); } };
-  ok('D1  guardrails on is refused, naming the rule', threw(withGuard));
+  // since phase 2d the model carries the rails exactly: a shocked path through engine and model agree to the pound
+  {
+    const plan = E.resolveMpaa(E.normalizePlan({ ...withGuard, config: { ...withGuard.config, guardrails: true, lookaheadYears: 0 }, spending: { ...withGuard.spending, floorSpend: Math.round(E.num(withGuard.spending.targetSpend, 0) * 0.8) } }));
+    const ctx = E.buildContext(plan);
+    const m = M.prepare(E, plan);
+    const zAt = (t) => (t % 7 === 3 ? -1.8 : (t % 5 === 0 ? -0.9 : 0.4));
+    const eState = E.freshState(ctx), mState = M.initialState(m);
+    const action = M.actionFromContext(ctx);
+    let worst = 0, cuts = 0, floors = 0;
+    for (let t = 0; t <= ctx.totalYears; t++) {
+      const z = zAt(t);
+      const er = E.stepYear(ctx, eState, t, { z, zPath: 0 });
+      const rates = {}; ctx.accounts.forEach(a => { rates[a.id] = Math.exp(Math.log(1 + a.real) + a.vol * z) - 1; });
+      const mr = M.step(m, mState, action, t, rates);
+      worst = Math.max(worst, Math.abs(er.totalCombined - mr.totalCombined), Math.abs(er.targetSpend - mr.targetSpend), Math.abs((er.spendMult || 1) - (mr.spendMult || 1)) * 1e6);
+      if (/cut/.test(er.guardrail || '')) cuts++;
+      if (/held at floor/.test(er.guardrail || '')) floors++;
+    }
+    ok('D1  guardrails on: engine and model agree to the pound on a shocked path, cuts and floor included', worst < 0.01 && cuts > 0, `worst £${worst.toFixed(4)}, ${cuts} cuts, ${floors} years held at the floor`);
+  }
   ok('D2  the cost lookahead on is refused, naming the rule', threw(withLook));
   ok('D3  ...and both are accepted when the caller says it knows', (() => { try { M.prepare(E, withGuard, { allowUnsupported: true }); return true; } catch { return false; } })());
 }

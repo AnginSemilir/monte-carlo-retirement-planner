@@ -619,6 +619,21 @@ cost-only run, the unlucky tenth £3k. The household now changes tier about twic
 pays about £3k to do it, which reads like advice rather than trading. Adopted: cost and margin are
 both on whenever tiers are.
 
+**Gate 3, the bridge (`research/tests/solver-bridge.test.mjs`, 27 assertions).** The engine honours
+`spending.policyOverride = { kind: 'table', choose }`: at the top of each year `choose(state, t,
+tiersHeld)` returns the move and the year runs on a context carrying it (draw order, cost order,
+harvesting, the lump sum), with the spend level applied to the target, the model's cash sweep as step
+7d, the tier's switching cost and growth as step 7f, and the audit row gaining `action`, `spendLevel`,
+`tierPen`, `tierIsa` and `switchPaid`. `src/solver/bridge.js` turns a solve result into that override
+(`tablePolicy`, `withTable`) and maps the engine's state to the model's without copying. Results: a
+table that answers with the plan's own settings reproduces the engine to the pound on eight households,
+deterministic and on 160 Monte Carlo paths; the opening position is the same vector from either side
+and still is after two years; the solved table through the real engine scores **within 0.5 of a point
+of the model's forecast on all three households tried** (gate asked 2), and beats the plan's own rule
+in the real engine (+0.6 on average, +2.1 on the far household). A pension forced two tiers down pays
+the round trip once and compounds at that tier's rate. One known gap kept honest: the sweep's top-up
+sale books its gain into next year's tally in the engine, which the reduced model does not tax.
+
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
 8,645 cells above the line read below 0.999, the lowest 0.864. There is no certain-success shortcut;
@@ -1125,7 +1140,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | **done**: edge grows in every perturbed world; shortfall adopted; (0.5, 0.02) confirmed; every loss named | 0.5× |
 | 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
-| 3 | table override in engine | exact reproduction of a named policy | 0.5× |
+| 3 | table override in engine | **done**: exact to the pound (echo table, 160 paths); solved table within 0.5 of the model's forecast in the real engine; 27 assertions | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | same on couple households | 1× |

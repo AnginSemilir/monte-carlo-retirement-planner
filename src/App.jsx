@@ -1840,8 +1840,29 @@ function buildContext(rawPlan) {
   });
 
   const policy = policyForDeposits;
+  /*
+   * THE SOLVER'S BRIDGE (solver plan, Phase 3). `spending.policyOverride = { kind: 'table', choose }` hands
+   * the year's choice to a solved table: at the top of every year `choose(state, t, tiersHeld)` returns the
+   * move (draw order, cost order, harvesting, the lump sum, the spend level and the tier each wrapper holds)
+   * and the engine executes it through its own machinery, so tax, MPAA, CGT, the audit row and everything
+   * else keep happening exactly; the table only chooses. Each account's tiers are the one set on Plan
+   * Inputs and up to two below it, never above, with the plan's own assumptions for each.
+   */
+  const tableOverride = ov && ov.kind === 'table' && typeof ov.choose === 'function' ? ov : null;
+  const TIER_ORDER = Object.keys(RISK_EQUITY_WEIGHTS);
+  const tierProfiles = {};
+  accounts.forEach(a => {
+    const k0 = TIER_ORDER.indexOf(a.risk);
+    const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam, equityWeight: a.equityWeight, isCash: a.isCash }];
+    for (let d = 1; d <= 2 && k0 >= 0 && k0 + d < TIER_ORDER.length; d++) {
+      const name = TIER_ORDER[k0 + d]; const prof = riskOf(name);
+      list.push({ name, real: clamp(num(prof.real, 0), -50, 50) / 100, vol: clamp(num(prof.volatility, 12), 0, 100) / 100, sigmaParam: clamp(num(prof.sigmaParam, 0), 0, 100) / 100, equityWeight: RISK_EQUITY_WEIGHTS[name], isCash: name === 'Cash Equivalents' });
+    }
+    tierProfiles[a.id] = list;
+  });
   const ctx = {
     plan, warnings, isCouple, P, owners, accounts, acc,
+    policyOverride: tableOverride, tierProfiles,
     ageSelf0, agePart0, terminalAge, totalYears, nmpa, spa, targetSpend,
     spendBands,
     fullLumpSum: s.drawdownStrategy === 'Full 25% Lump Sum',
@@ -1891,7 +1912,9 @@ const freshState = (ctx) => {
   // how much of each owner's cash pot is inside a cash ISA: path-dependent, so it lives with the pots
   const cashIsa = { self: 0, part: 0 };
   ctx.owners.forEach(o => { cashIsa[o.key] = Math.min(o.cashIsa0 || 0, pots[o.ids.cash] || 0); });
-  return { pots, giaBasis, cgtCarry: { self: 0, part: 0 }, cumPcls: { self: 0, part: 0 }, lumpSumTaken: { self: false, part: false }, guard, cashIsa };
+  // the tier each wrapper holds under a solved table (0 is the one on Plan Inputs), so a change can be charged
+  const tierHeld = { self: { pen: 0, isa: 0 }, part: { pen: 0, isa: 0 } };
+  return { pots, giaBasis, cgtCarry: { self: 0, part: 0 }, cumPcls: { self: 0, part: 0 }, lumpSumTaken: { self: false, part: false }, guard, cashIsa, tierHeld };
 };
 
 // Money paid into the GIA is added at cost, so it creates no gain.
@@ -1910,7 +1933,19 @@ const giaDispose = (state, balanceBefore, ownerKey, amount) => {
  * market: 'expected' | { historical: true, startYear } | { z: number, zPath?: number }
  * Advances `state` by one year (index t) and returns the audit row for that year.
  */
-function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
+function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) {
+  /*
+   * Under a solved table the year's settings come from the table's choice for this exact position; the
+   * rest of the year runs unchanged on a context that carries them. Without one, ctx is the plan's own.
+   */
+  const table = ctxBase.policyOverride;
+  const chosen = table ? table.choose(state, t, state.tierHeld ? state.tierHeld.self : null) : null;
+  const ctx = chosen ? {
+    ...ctxBase,
+    policySteps: chosen.steps || ctxBase.policySteps, costSteps: chosen.costSteps || ctxBase.costSteps,
+    harvestPA: !!chosen.harvest, harvestCeiling: chosen.harvestCeil === 'basic' ? 'basic' : 'pa',
+    fullLumpSum: !!chosen.lump
+  } : ctxBase;
   const { P, owners, acc } = ctx;
   const pots = state.pots;
   const isYearZero = t === 0;
@@ -2156,6 +2191,8 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
       scheduled = Math.max(0, spendBase) * ratio;
     } else scheduled = spendTargetAtAge(ctx, ageSelf);
     annualLivingTarget = scheduled;
+    // a solved table may spend below the target (a trim) or above it (a raise) this year
+    if (chosen && chosen.spendLevel !== undefined && chosen.spendLevel !== 1) annualLivingTarget = scheduled * chosen.spendLevel;
     /*
      * THE GUARDRAILS, applied to the draw the portfolio is asked for rather than to the whole spend.
      *
@@ -2386,6 +2423,29 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
   const preNmpaInsolvent = unmetDemand > 1 && (!anyAccess || lockedPensionWealth > 0);
 
   /*
+   * 7d. THE SWEEP, under a solved table: cash is kept at the buffer (sized on the plan's target, whatever
+   * this year's level) and the rest sits in the GIA at cost; a shortfall is topped up from the GIA and
+   * books its gain like any disposal, into next year's tally since this year's bill is settled.
+   */
+  if (chosen && chosen.sweepCash) {
+    const bufferEach = spendTargetAtAge(ctx, ageSelf) * ctx.cashBufferYears / owners.length;
+    owners.forEach(o => {
+      const cash = pots[o.ids.cash] || 0;
+      if (cash > bufferEach) {
+        const excess = cash - bufferEach;
+        pots[o.ids.cash] = bufferEach;
+        pots[o.ids.other] = (pots[o.ids.other] || 0) + excess;
+        giaAddBasis(state, o.key, excess);
+      } else if (cash < bufferEach) {
+        const before = realisedGains[o.key];
+        const got = sellGia(o.ids.other, bufferEach - cash);
+        pots[o.ids.cash] = cash + got;
+        state.cgtCarry[o.key] += realisedGains[o.key] - before;
+      }
+    });
+  }
+
+  /*
    * 7e. The cash ISA at the end of the year's flows. Money drawn from cash this year is taken from the
    * taxable part first (nobody spends sheltered cash while unsheltered cash sits beside it), so the
    * sheltered portion is capped at what is left; then whatever ISA allowance the year's subscriptions
@@ -2403,17 +2463,42 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
   const cashBeforeGrowth = {};
   owners.forEach(o => { cashBeforeGrowth[o.key] = pots[o.ids.cash] || 0; });
 
+  /*
+   * 7f. THE TIER, under a solved table. A wrapper that changes tier this year is charged the round trip
+   * on the slice traded (the difference in equity weight, times the wrapper, times the table's rate),
+   * and then grows at the tier it now holds; the tiers held are remembered for next year's charge.
+   */
+  let switchPaid = 0;
+  const tierOf = (a) => {
+    if (!chosen || a.owner !== 'self' || (a.cat !== 'pen' && a.cat !== 'isa')) return a;
+    const profs = ctx.tierProfiles[a.id]; if (!profs) return a;
+    return profs[Math.min(a.cat === 'pen' ? (chosen.tierPen || 0) : (chosen.tierIsa || 0), profs.length - 1)];
+  };
+  if (chosen && state.tierHeld) {
+    const o = ownerByKey.self, held = state.tierHeld.self, rate = table.switchCost || 0;
+    for (const cat of ['pen', 'isa']) {
+      const id = o.ids[cat], profs = ctx.tierProfiles[id]; if (!profs) continue;
+      const k = Math.min(cat === 'pen' ? (chosen.tierPen || 0) : (chosen.tierIsa || 0), profs.length - 1);
+      if (k !== held[cat]) {
+        const d = Math.abs(profs[k].equityWeight - profs[held[cat]].equityWeight);
+        const x = (pots[id] || 0) * rate * d;
+        pots[id] = Math.max(0, (pots[id] || 0) - x); switchPaid += x; held[cat] = k;
+      }
+    }
+  }
+
   // 8. compounding (year 0 pro-rated)
   // The guardrail's inflation rule asks one thing of this step: did the portfolio lose money this year.
   const potBeforeGrowth = ctx.guardrails ? ctx.accounts.reduce((s2, a) => s2 + (pots[a.id] || 0), 0) : 0;
   ctx.accounts.forEach(a => {
-    let g = a.real;
-    if (isHistorical) g = (histPoint && !a.isCash) ? (a.equityWeight * histPoint.s + (1 - a.equityWeight) * histPoint.b) / 100 : a.real;
+    const p = tierOf(a);
+    let g = p.real;
+    if (isHistorical) g = (histPoint && !p.isCash) ? (p.equityWeight * histPoint.s + (1 - p.equityWeight) * histPoint.b) / 100 : p.real;
     else if (typeof market === 'object' && market !== null && market.z !== undefined) {
       // Log-return with median equal to the stated expected (geometric) real return. The sigmaParam
       // term shifts that median for the whole path at once, so it compounds instead of averaging out.
       const zp = market.zPath || 0;
-      g = Math.exp(Math.log(1 + a.real) + a.sigmaParam * zp + a.vol * market.z) - 1;
+      g = Math.exp(Math.log(1 + p.real) + p.sigmaParam * zp + p.vol * market.z) - 1;
     }
     pots[a.id] = Math.max(0, (pots[a.id] || 0) * (1 + g * frac));
   });
@@ -2456,7 +2541,10 @@ function stepYear(ctx, state, t, market = 'expected', spendOverride = null) {
     // set aside this year for a cost the plan can see coming, and which year's cost it was for
     reserved, reservedFor,
     // the year's own one-off cost, so the bridge can size for one that falls before the pension unlocks
-    oneOffCost: cost
+    oneOffCost: cost,
+    // under a solved table: what it chose this year, the tiers held, and what a tier change cost
+    action: chosen ? (chosen.code || null) : null, spendLevel: chosen && chosen.spendLevel !== undefined ? chosen.spendLevel : 1,
+    tierPen: state.tierHeld ? state.tierHeld.self.pen : 0, tierIsa: state.tierHeld ? state.tierHeld.self.isa : 0, switchPaid
   };
 }
 

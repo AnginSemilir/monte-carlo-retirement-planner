@@ -44,6 +44,13 @@ import * as F from './fast.js';
  * per path rather than once per year - cannot be seen by a solver that has no memory of the path, so it
  * is folded into the annual spread instead. That makes the tails fatter, which is the safe direction.
  */
+/*
+ * A stamp written into every result record, so a run that straddles an edit is visible in the JSON
+ * instead of being reconstructed from process start times. Bump it whenever the solved policy or the
+ * landing can move. Experiments run from a snapshot of the tree; this catches it when one does not.
+ */
+export const SOLVER_VERSION = '2026-09-21.single-stage-landing';
+
 /* The score gain a tier change must beat to be made, once it is also paying its trades: a tenth of a survival point. */
 export const SWITCH_MARGIN = 0.001;
 
@@ -331,7 +338,7 @@ export function solve(E, M, plan, opts = {}) {
     if (shortfall) lresil[t].set(Rt); else toLogOdds(Rt, lresil[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
   const r = {
     m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin,
     tieMargin: opts.tieMargin || 0,
@@ -549,8 +556,25 @@ export function solveFlex(E, M, plan, opts = {}) {
    * one more Monte Carlo. Ours is a table, or K tables under the mixture, so paths are nearly free here:
    * 12,600 forward runs take under two seconds. Verification costs no solve at all unless it has to walk.
    */
-  const nSearch = opts.searchPaths || 2400;
-  const nVerify = Math.max(opts.verifyPaths || 4 * nSearch, nSearch);
+  /*
+   * SINGLE STAGE BY DEFAULT, and the two-stage path below is kept only as the record of a loss.
+   *
+   * Bisecting on a cheap small sample and verifying the winner on a big one is the right shape when a
+   * try costs a simulation run - which is why `optimizeSpend` in the app is built that way. Here a try
+   * costs a SOLVE, three tables under the mixture, and the paths are nearly free beside it, so a noisy
+   * search lands in the wrong neighbourhood and the repair is paid in the expensive currency. Measured
+   * head to head on the two households the old landing missed by a point:
+   *
+   *            over the ask   years at target   solves   time
+   *   single       +0.80 / +0.13   0.86 / 0.97    7 / 7   2093s / 2814s
+   *   two-stage    +0.93 / +1.17   0.82 / 0.89   9 / 10   2989s / 4497s
+   *
+   * Single stage wins on all four, on both. So verifyPaths defaults to searchPaths, which makes the
+   * code below exactly one sample throughout, and stage 2 never runs. Raising verifyPaths re-enables
+   * it; do not, without re-running that comparison.
+   */
+  const nSearch = opts.searchPaths || 5400;
+  const nVerify = Math.max(opts.verifyPaths || nSearch, nSearch);
   const zsAll = E.pathsForSeed(opts.seed || 4242, nVerify, probe.ctx.totalYears);
   const zsSearch = nVerify === nSearch ? zsAll : zsAll.slice(0, nSearch);
   const rateOn = (r, paths) => paths.filter(z => runPolicy(r, z).survived).length / paths.length;
@@ -564,6 +588,7 @@ export function solveFlex(E, M, plan, opts = {}) {
   const done = (r, landed, vSteps = 0) => {
     r.meta.landed = landed; r.meta.solves = solves; r.meta.confidence = confidence;
     r.meta.searchPaths = nSearch; r.meta.verifyPaths = nVerify; r.meta.verifySteps = vSteps;
+    r.meta.solverVersion = SOLVER_VERSION;
     return r;
   };
   if (levels.length === 1) return done(verify(at(0)), 'no floor');

@@ -726,6 +726,33 @@ tends to, are the candidates. The couples' edge is the singles' withdrawal-order
 which is what it should be: the tier freedom that gave the singles +6 is off for couples in this pilot.
 Cost: 81 s to solve the two people, 164 s to run 2,000 paths under the rollout.
 
+**The floor landing was measured on the wrong sample (`results-2d-flex-landing.txt`).** In the
+flex-mix pilot three households missed their floor by about a point. None of it was the solver: all
+three MET their ask on the 600 search paths lambda is chosen on, and fell 1.5 to 2.1 points short on
+the 3,000 held-out paths it is judged on, each gap about one standard error of a 600-path estimate.
+`solveFlex` searched on seed 7001 and promised on 7002, which is the arrangement `optimizeSpend`
+already warns about in the app after the same bug was found there ("all twelve of twelve fixtures came
+back 0.5 to 2.4 points BELOW the target"). The low solve counts were a symptom: the bisection breaks as
+soon as the noisy estimate clears. Confirmed by brute force, search paths 600 to 5,400: all three land,
+at 2.2x the runtime. `solveFlex` now draws one sample so the search set is a prefix of the verification
+set, and re-measures the chosen table on the full draw before returning. The first version of that
+verification was a worse bug than the one it fixed, landing the floor by over-trimming on all three
+(lambda collapsing tenfold to the bracket bottom, the floor cleared by 2 to 7 points, years at the full
+target halving); stage 2 now interpolates for the crossing rather than bisecting to it. Two debts:
+single-stage at 5,400 paths is the proven option and the two-stage design must beat it head to head
+before it stays the default, and the unit suite passed both the broken version and the repair, so a
+landing assertion with teeth is owed. Audited the same pattern elsewhere: `optimizeSpend`,
+`safeRetirementAge` and the Monte Carlo spend dial all verify already; the tournament's headline is
+re-scored at 4,000 paths and only its search panel needed labelling; `pickFixed` is left alone because
+choosing the opponent on search data models what the app does for a user.
+
+**Experiments run from a snapshot, always.** `solve.js` was edited three times while the 41-household
+flex-mix run was in flight, and the batch spawns a fresh Node per household, so the run is a mix of
+three solver versions and is not reportable. The 33 that finished before the first edit are clean. Two
+rules follow: batch scripts copy the tree and run from the copy, and every result record carries a
+solver version stamp so contamination shows in the JSON instead of being reconstructed from process
+start times.
+
 **The grid's ceiling: the multiple stays (`results-grid-ceiling.txt`).** The wealth axis tops out at
 the larger of 60 years of spending and six times what the household opens with, so a wealthy
 household's axis stretches and its cliff is resolved by fewer points: 10 across 5 to 40 years of

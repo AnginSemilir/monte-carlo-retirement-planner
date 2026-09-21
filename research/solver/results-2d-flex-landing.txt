@@ -1,0 +1,122 @@
+The floor landing: why it missed, what fixed it, and what over-fixing it cost
+
+THE SYMPTOM. In the flex-mix pilot (three-world mixture, CONF=gkFloor, margin 0.5pt), the solver met
+its floor promise on 21 of the first 24 households. Three fell short by about a point:
+
+  id     ask    held-out floor   short
+  S004   92.2       91.17        -1.03
+  S178   86.1       85.13        -0.97
+  S184   74.6       73.40        -1.20
+
+A fourth, S162, was labelled "confidence not reachable" after 2 solves but is not a failure: its
+held-out floor was 98.00 against an ask of 98.07, inside the reducer's own criterion. Its search-path
+rate at the bracket bottom read 98.50 against a target of 98.60, so it missed by a tenth of a point on
+a noisy estimate and aborted. Same cause, different symptom.
+
+THE CAUSE. Not the solver. The estimator. Every one of the three MET its target on the paths lambda
+was chosen on, and only fell short on the paths it was judged on:
+
+  id     ask+margin   floor on search paths   floor on held-out   gap    SE of a 600-path estimate
+  S004      92.7            93.17                  91.17        +2.00            1.16
+  S178      86.6            86.67                  85.13        +1.54            1.45
+  S184      75.1            75.50                  73.40        +2.10            1.80
+  S162      98.6            98.50                  98.00        +0.50            0.57
+
+Every gap is about one standard error of the estimate the bisection was steering by. solveFlex chose
+lambda on 600 paths from seed 7001 while the ask and the verdict came from 3,000 paths of seed 7002.
+That is the arrangement optimizeSpend in App.jsx already warns about, in a comment written after the
+same bug was found there: "searching and reporting on different samples is how a solver quietly lies...
+all twelve of twelve test fixtures came back 0.5 to 2.4 points BELOW the target the user had asked
+for." Our 1.5 to 2.1 sits inside that range.
+
+Two effects compound. The small sample reads high, and then choosing the largest lambda that still
+clears on it adds selection bias on top - the winner's curse. The low bisection counts (4 to 6 solves)
+were a symptom rather than a separate problem: the loop breaks as soon as the noisy estimate clears
+the target, so noise ends the search early.
+
+SEPARATING THE TWO (research/solver/seedcheck.mjs). Running the SAME fixed policy, with no lambda
+selection involved, across five path samples:
+
+  id     7001/600   7002/3000   7001/3000   9001/3000   9002/3000
+  S004     93.83      92.23       93.13       92.97       91.17
+  S172     95.33      94.93       94.73       94.50       94.50
+  S194     91.17      89.07       90.10       90.47       89.60
+  S162     98.67      98.07       97.83       97.70       97.87
+
+The 600-path prefix reads highest in all four. CAVEAT, and it matters: pathsForSeed is deterministic
+per index, so the same seed gives the same draws to every household. These four rows are one
+favourable sample observed four times, not four independent observations. The direction is
+suggestive; the confirmation below is the evidence.
+
+CONFIRMATION BY BRUTE FORCE. Same code, search paths 600 -> 5,400, on the three that missed:
+
+  id     ask    before   after    was      now     time before   time after   solves
+  S004   92.2   91.17    93.00   -1.03   +0.80        749s         2093s       4 -> 7
+  S178   86.1   85.13    86.83   -0.97   +0.73       1344s         1893s       6 -> 7
+  S184   74.6   73.40    74.73   -1.20   +0.13       1219s         2814s       5 -> 7
+
+All three land. Cost 2.2x on average, from both the extra paths and the extra solves the better
+estimate justifies. An earlier claim that the paths were nearly free was wrong: it was measured on a
+single-table fixed policy, and a forward run under the mixture consults three tables through
+chooseAction.
+
+THE FIX, AND THE WORSE BUG IT FIRST INTRODUCED. solveFlex now draws one sample, so the search set is a
+genuine prefix of the verification set rather than a different draw, and re-measures the chosen table
+on the full draw before returning. What is returned in floorRate is what was checked.
+
+The first version of that verification walked lambda down by bisecting between the chosen value and the
+bracket bottom, accepting the first lambda that cleared. The bottom sits ten to twenty times below the
+answer, so one step overshot, every time:
+
+  id     ask    floor reached   over    lambda (was)      never below target   years at target (was)
+  S004   92.2       94.30      +2.10   0.0431 (0.4472)          0.0%             0.61 (1.00)
+  S178   86.1       89.50      +3.40   0.0357 (0.3075)          0.0%             0.45 (1.00)
+  S184   74.6       81.93      +7.33   0.0626 (0.9457)          6.1%             0.53 (1.00)
+
+Every lambda collapsed into a narrow band regardless of where it started, which is the bracket bottom
+dominating rather than the household's own answer, and the overshoot grows with how far the true
+lambda sat above the bottom. All three landed their floor and all three gave up roughly half their
+years at the full target to do it. A floor exists to protect spending; clearing it by two to seven
+points of headroom spends exactly what it was protecting. That is a worse bug than the undershoot.
+
+The unit suite passed both the broken version and the repair, because it cannot see over-trimming.
+A landing assertion with teeth is owed: the verified floor must not exceed the ask by more than a small
+allowance unless lambda sits at the bracket bottom, tested on a household whose lambda lands high.
+
+Stage 2 now interpolates for the crossing instead of bisecting to it. The floor rate is smooth and
+monotone in log lambda, so the straight line through the two verified points lands near the answer in
+about one solve where bisection from the bottom needed four or five (regula falsi, the idiom App.jsx
+already uses on the sacrifice curve). solver-flex passes at 17 with lambda 0.245 in 9 solves. The
+field check on S004 and S184 was still running when this was written.
+
+WHAT IS PROVEN AND WHAT IS NOT. Proven: single-stage on 5,400 paths lands all three, at 2.2x the cost.
+Not yet proven: the two-stage design is cheaper for the same landing. It must beat the single stage
+head to head on the same households, on landing, on years at target and on time, before it is the
+default. Setting verifyPaths equal to searchPaths degrades the new code to exactly the proven single
+stage, so that fallback is one option away.
+
+THE SAME PATTERN ELSEWHERE, audited.
+
+  site                                    search   reported on          verified?
+  optimizeSpend (safe spend)                 400        5,000           yes, one seed + walk-down
+  safeRetirementAge                          400        5,000           yes, one seed + walk later
+  Monte Carlo tab spend dial                 400        5,000           yes, one seed + confirm loop
+  solveFlex (this)                           600        3,000 (other)   no -> fixed here
+  tournament strategy pick                   400        re-scored 4,000 headline yes; panel no
+  pickFixed (experiment opponent)            600        3,000 (other)   no, and defensible
+
+The tournament's headline figures were already honest: every player is re-scored at TOURNAMENT_TRIALS
+after the search and the ranking uses those. Only the collapsed per-candidate panel showed the
+400-path estimates, and it now states the path count and says the winner's figure there reads high.
+
+pickFixed is left alone on purpose. Choosing the opponent on search data and scoring it on held-out
+data models what the app actually does for a user, and both sides are chosen the same way, so the
+comparison stays fair. The asymmetry was only ever in the promise: a claimed floor rate has to be
+verified on the sample it is claimed about.
+
+CONTAMINATION, recorded because it is the reason the pilot is not reportable. solve.js was edited three
+times while the 41-household flex-mix run was in flight, and the batch spawns a fresh Node per
+household, so households that started after each edit read different code. The 33 that finished before
+the first edit are clean and carry no verifyPaths field; the rest are a mix. Experiments must run from
+a snapshot of the tree, and every result record should carry a solver version stamp so this is visible
+in the JSON rather than reconstructed from process start times.

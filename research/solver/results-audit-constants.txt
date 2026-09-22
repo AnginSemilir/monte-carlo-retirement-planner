@@ -1,0 +1,147 @@
+AUDIT: FLAT REGIONS AND UNJUSTIFIED CONSTANTS IN THE SOLVER
+====================================================================================================
+
+Asked for after the bequest cap turned out to hide GBP 12.8M of pot movement on the clean 41: go
+looking for the same shape elsewhere. A "flat region" here means a place where more of something the
+household actually cares about earns the objective NOTHING, so the solver cannot see it and will not
+trade for it. A "cliff" is the same fault's twin: a place where one pound changes the answer by a step.
+
+Nine things checked. Two are clean, two are dormant, two need a sweep that has never been run, and
+three are live faults with the field numbers below. Measured on the clean 41 unless stated; the two
+probes are research/solver/audit-pcls.mjs and audit-gain.mjs, both walking each household's OWN model
+forward on its own plan, no solver involved.
+
+----------------------------------------------------------------------------------------------------
+LIVE 1. THE UNREALISED-GAIN AXIS TOPS OUT AT 55%, AND HOUSEHOLDS REACH 89%           (the worst one)
+
+  grid.js:104   const gain = opts.gainBuckets || [0.05, 0.25, 0.55];
+  grid.js:190   const ig = nearest(g.gain, s[3]);        <- nearest, NOT interpolated
+  grid.js:279   interp() is trilinear over the three pots AT the nearest gain and pcls buckets
+
+  The fraction of a general investment account that is unrealised gain decides its CGT bill. It is a
+  grid dimension with three representative values and no interpolation, so the boundaries sit at 15%
+  and 40%, and above 55% the axis is FLAT.
+
+  Measured, 41 households, every year each one holds a GIA:
+
+      household-years with a GIA        1,485 of 1,781
+      snapped more than 5 points away   1,035 of 1,485   (70%)
+      worst snap                        34.0 points      (S300, year 60: true 89.0%, read as 55%)
+      highest gain fraction reached     89.0%            top bucket is 55%
+
+      id     peak gain   read as
+      S300      89.0%      55%          S268      82.4%      55%
+      S240      84.8%      55%          S390      80.3%      55%
+      S252      84.8%      55%          S410      79.0%      55%
+      S276      84.8%      55%          S292      78.9%      55%
+      S330      83.7%      55%          S414      78.9%      55%
+
+  Direction: a cell at the 55% bucket was built with a GIA whose cost base is 45% of its value, so a
+  household at 89% is valued as though liquidating its GIA cost 55%-of-value in taxable gain when it
+  really costs 89%. The solver OVER-VALUES those positions and under-prices the CGT of touching them.
+  CGT is on by default (App.jsx:493 cgtEnabled: true), so this is live for every household with a GIA.
+
+  This is the bequest cap's shape exactly: a ceiling chosen as "representative", and the field runs a
+  long way past it.
+
+----------------------------------------------------------------------------------------------------
+LIVE 2. THE LUMP-SUM-ALLOWANCE AXIS READS 8 OF 41 AS NEVER HAVING TAKEN THEIR LUMP
+
+  grid.js:105   const pcls = opts.pclsBuckets || [0, 0.5, 1];
+  grid.js:183   out[5] = g.pcls[ic] > 0 ? 1 : 0;         <- the lump-taken FLAG comes from the bucket
+  grid.js:190   const ic = nearest(g.pcls, ...);
+
+  Three buckets on how much of the GBP 268,275 Lump Sum Allowance has been used, nearest-snap, so the
+  boundaries sit at 25% and 75% of it - GBP 67,069 and GBP 201,206. Measured peak use over the run:
+
+      bucket 0  (read as: no lump taken)    8 of 41
+      bucket 0.5                           16 of 41
+      bucket 1.0                           17 of 41
+      snapped more than 5 points away      26 of 41
+
+      the eight in bucket 0:  S374 7.1%  S194 8.8%  S410 10.1%  S206 10.2%
+                              S230 11.6%  S218 16.8%  S112 19.1%  S172 20.9%
+      the worst single snaps: S184 67.2% -> 50%   S234 67.9% -> 50%   S292 65.0% -> 50%
+
+  Two separate faults, not one:
+
+    (a) the allowance figure is wrong by up to GBP 67k in EITHER direction, so this is noise, not bias;
+    (b) for the eight in bucket 0 the derived FLAG says the lump has not been taken, so the continuation
+        value is the value of a household that may still take a tax-free lump it has already spent.
+        S172 has used GBP 56,047 of allowance and is valued as having used none.
+
+  (a) is coarseness. (b) is an action the real household no longer has.
+
+----------------------------------------------------------------------------------------------------
+LIVE 3. TWO DEFINITIONS OF "WHAT IS LEFT", ON ADJACENT LINES
+
+  alive = !(floor > 0 && total < floor)      <- config.solvencyFloor judged on the GROSS pot
+  b += WEIGHTS[zi] * (alive ? beqOf(net) : 0) <- the estate valued NET of pension death tax
+
+  The minimum-pot promise is kept in gross pounds and the bequest is counted in net ones. Dormant in
+  practice: all 210 library households run at pensionDeathTaxRate = 0, so gross == net and no run has
+  ever exercised the difference. It becomes live the moment a user sets a death-tax rate, which the UI
+  allows. Recorded, not fixed: fixing it without a household that shows the difference would be tuning
+  against nothing. solver-minpot.test.mjs A2 sets 40% inside the test for exactly this reason.
+
+----------------------------------------------------------------------------------------------------
+DORMANT 1. THE RAISE CREDIT IS CAPPED EXACTLY AT THE TOP OF THE SHIPPED MENU
+
+  solve.js:312   const creditOf = (level) => Math.sqrt(Math.min(0.2, level - 1));
+
+  Credit for spending ABOVE target stops at level 1.2. Above it the marginal credit is exactly zero:
+  a household spending 30% or 50% over target earns no more than one spending 20% over. The shipped
+  menu is LEVELS=1.2,1.1,1,0.9,0.8, which tops out at precisely 1.2, so the cap never binds today.
+  It becomes a flat region the first time anyone adds a 1.3 level - the same shape as the bequest cap,
+  waiting. Worth a comment in the code saying the two numbers are tied.
+
+DORMANT 2. THE BEQUEST CAP'S OTHER TWO UNJUSTIFIED PROPERTIES
+
+  Beyond the flat top already recorded in Phase 6c: the cap is 4 x opening wealth, a FIXED multiple
+  against a quantity that depends on the horizon, and it is measured at PLAN time rather than at
+  retirement. S342 is 37 with 28 working years to go, so its cap is set against a balance it will not
+  have for nearly three decades. Neither property was chosen; both were inherited.
+
+----------------------------------------------------------------------------------------------------
+NEVER SWEPT (a family exists, one member was tried)
+
+  shortExp = 2      the trim penalty's exponent, lambda * sum (1 - level)^shortExp. Five mentions in
+                    PLAN.md, no results file studies it. The exponent decides whether the solver would
+                    rather take one big cut or several small ones, which is a question about the
+                    household's taste, not about arithmetic.
+  wR = 0.5          the resilience weight. Touched once in results-2c3-tuning.txt, never swept since
+                    the objective took its current form.
+  SWITCH_COST 0.0025 / SWITCH_MARGIN 0.001   the cost of a tier change and the gain one must beat.
+                    No results file mentions either. Both were set by argument, not measurement.
+
+----------------------------------------------------------------------------------------------------
+CLEAN (checked and found sound)
+
+  resilK = scale    The shortfall measure 1 - min(1, max(0, resilK - net) / resilK) saturates at 1
+                    once the terminal pot clears opening wealth, which looks like a flat top. It is
+                    not one in the field: 0 of 41 households have their unlucky tenth (p10 terminal
+                    net) clear opening wealth, so the term discriminates everywhere it is used.
+                    Saturation at the top is also what a DOWNSIDE measure is supposed to do.
+
+  grid top          max(60 years of spend, 6 x opening wealth in years of spend) per axis. Generous
+                    on purpose and measured in results-grid-ceiling.txt. The top is not a flat region;
+                    it is a boundary, and the study showed nothing lives against it.
+
+  lambda bracket    2.0 down to 0.005. Seven of 41 sat at the top in gate 6b, which is not a failure:
+                    at the top the solver chose NO trimming and the de-risking alone met the ask. The
+                    bracket end is a label, and solve.js says so. Already on the record in 6b.
+
+----------------------------------------------------------------------------------------------------
+WHAT THIS CHANGES
+
+  Nothing yet. None of these is fixed here, because the standing rule is to record what is measured
+  and change one thing at a time with a field check. The three live ones want, in order of size:
+
+    1. the gain axis:  interpolate it instead of snapping, or raise the top bucket past 0.85. The
+       first costs one more interpolated dimension (2x the reads on that axis); the second is free.
+    2. the pcls axis:  same choice, plus deriving the lump-taken flag from the true state rather than
+       from the bucket, which is free and is a correctness fix, not a resolution one.
+    3. gross/net:      one line, but no household in the library can show the difference. Needs a
+       fixture with a death-tax rate before it is worth touching.
+
+  Written up before any of them is attempted, so the field numbers above are the before.

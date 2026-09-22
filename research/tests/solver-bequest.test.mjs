@@ -71,10 +71,27 @@ console.log('=========== C. SOFT CHANGES SOMETHING, AND ONLY UPWARDS ===========
   const hard = solve(E, M, plan, base);
   const soft = solve(E, M, plan, { ...base, bequestShape: 'soft' });
   ok("C1  'soft' is recorded in the meta", soft.meta.bequestShape === 'soft' && hard.meta.bequestShape === 'cap');
-  const T = hard.beq.length - 1;
-  let below = true;
-  for (let t = 0; t <= T; t++) for (let i = 0; i < hard.beq[t].length; i++) if (soft.beq[t][i] < hard.beq[t][i] - 1e-6) { below = false; break; }
-  ok('C2  the soft bequest value is never below the capped one: the shoulder only adds', below);
+  /*
+   * The transform is pointwise >= the cap (A1 to A4), but `beq` is not the transform applied to a fixed
+   * policy: it is the expected bequest under whichever policy THAT objective chooses, and the policy
+   * moves. An action picked for the whole score can sit a shade lower on the bequest component alone, so
+   * the right assertion is that the table rises almost everywhere and that the rare falls are negligible.
+   * Measured on S004 at 20 points, 22 Sep: higher at 102,423 cells by a mean of £140k, lower at 12 of
+   * 181,440 (0.007%), worst £6.4k or 0.36% of the cap. An earlier version of this test asserted "never
+   * lower" and failed on those 12 cells; the assertion was wrong, not the transform.
+   */
+  const cap = hard.meta.bequestCap;
+  let cells = 0, lower = 0, higher = 0, worst = 0, polDiff = 0;
+  for (let t = 0; t < hard.beq.length; t++) for (let i = 0; i < hard.beq[t].length; i++) {
+    cells++;
+    if (hard.pol[t][i] !== soft.pol[t][i]) polDiff++;
+    const d = soft.beq[t][i] - hard.beq[t][i];
+    if (d > 1e-9) higher++; else if (d < -1e-9) { lower++; if (d < worst) worst = d; }
+  }
+  ok('C2  the solved bequest rises almost everywhere: fewer than 0.1% of cells fall, and none by 1% of the cap',
+    lower / cells < 0.001 && Math.abs(worst) < 0.01 * cap && higher > lower * 100,
+    `higher at ${higher}, lower at ${lower} of ${cells} (${(100 * lower / cells).toFixed(3)}%), worst ${(100 * worst / cap).toFixed(3)}% of the cap`);
+  ok("C3  'soft' is not a no-op: it moves the policy", polDiff > 0, `policy differs at ${polDiff} of ${cells} cells (${(100 * polDiff / cells).toFixed(2)}%)`);
 }
 
 console.log(`\n=========== ${passed} passed, ${failed} failed ===========`);

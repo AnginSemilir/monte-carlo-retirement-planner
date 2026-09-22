@@ -1188,8 +1188,9 @@ gate is judged.
 
 ### Phase 6d. Two levers for the estate, and calibrating them
 
-Pre-registered 22 Sep, before any code, at the maintainer's direction. **Approved 22 Sep, to run after
-6c reports.** **How much an estate is worth
+Pre-registered 22 Sep, before any code, at the maintainer's direction. **Approved 22 Sep; parked the
+same evening before starting, to be scheduled deliberately rather than chained behind 6c.** The batch
+script and the weight passthrough are in place, so it starts on a word. **How much an estate is worth
 against the risk of running out is the household's question, not ours.** Phase 6c removes a flat spot
 that made a real loss invisible; it does not settle the exchange rate, and it should not. The weight is
 currently `wB = 0.02` of opening wealth, a constant no user can reach, and the curve bends at `4 x

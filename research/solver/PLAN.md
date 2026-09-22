@@ -1578,25 +1578,74 @@ a pre-registered loss it may not exceed). Not queued, only noted: the alternativ
 
 ### Phase E0. One flow per cell, shared across the three worlds (exact)
 
-`solveMixture` calls `solve` three times, once per held shift, and each call recomputes every
-post-decision state. `F.flow(c, t, ai, post)` moves money within the year; the world's shift enters
-only the growth rates (`fast.js`, `shifted` and `nodeRealOfAt`), so the three tables compute identical
-flows and differ only from the growth step on. With tiers on, flow is 29% of a solve and two of the
-three copies are redundant, about 19% of the mixture's time; with tiers off, 51% and about 34%.
+`solveMixture` is nine lines and the whole of it is `zs.map(z => solve(E, M, plan, {...opts, shiftZ: z}))`:
+three independent solves, each rebuilding every post-decision state. `F.flow(c, t, ai, post)` moves the
+year's money - draws, tax, sweeps - and the world's shift enters only the growth rates, so the three
+tables compute that identically and diverge only from the growth step on. With tiers on, flow is 29% of
+a solve and two of the three copies are waste, about 19% of the mixture; with tiers off, 51% and 34%.
 
-**Change.** `solve` takes an optional list of held shifts and solves the K tables interleaved: for each
-year, each cell and each base move, one flow, then for each world the growth at that world's node rates
-and the read of that world's own next-year table. Each table's year t depends only on its own year t+1,
-so the tables are those of the three separate solves. `solveMixture` becomes a call of that form; the
-single-world path is untouched.
+**The premise, checked in the code rather than assumed (22 Sep).** `flow()` reads off the action only
+`steps`, `costSteps`, `harvest`, `harvestCeil`, `level`, `lump` and `sweep` - all structural - and off
+the context only `T`, `acts`, `ctx`, `yr`, `P`, `tb`, `rule`, `guard`, `inflation`, `floorFrac`,
+`solvencyFloor`, `cashNominal`, `cashIsaContrib`, `last`. It never touches `c.real`, `c.sigma`,
+`volEff` or `volEffAt`, which are the only fields `compile` shifts. `makeGrid` has no reference to the
+shift either, so **all three worlds index the same cells**, which is what makes interleaving possible at
+all. If any of this stops being true the phase is void, so the gate below is bit-equality and not a
+tolerance.
 
-**Gate.** Bit-equality: a unit test that the interleaved mixture and three separate solves give the same
-`surv`, `beq`, `resil`, `short` and `pol` on two library households at 20 points, tiers off and on; and
-a field check that `runPolicy` on S004, S178 and S184 gives the same floor rate to the hundredth. If the
-tables differ, the flow depends on the world after all: the item is dropped and the reason written
-here. Reported: solve time before and after, tiers on and off. Expected 1.2× (tiers on) to 1.5× (tiers
-off). Not attempted: sharing flows across the landing's five to seven solves, which are also identical
-in flow, because it means holding every year's post-decision states at once (about 1 GB at 30 points).
+**What is shared and what is not**, which is the whole of the implementation:
+
+| Shared across worlds | Per world |
+|---|---|
+| the grid and cell indexing | the compiled context `c` (its `real`, `sigma`, `volEff`) |
+| `base`, the state vector at a cell | `nodeRealOfAt[t][ai][zi]`, the growth rates |
+| the action list and `tierBase` | the next year's tables read at the growth step |
+| `flow()`'s result: `post`, `unmet`, `fail` | the output tables `surv`, `lsurv`, `resil`, `lresil`, `beq`, `short`, `pol` |
+| the penalties `costOf`, `driftCostOf` | |
+| `scale`, `wR`, `wB`, `beqCap`, `resilK` | |
+
+**Design decision: one loop carrying K, not two loops.** The alternative - leaving `solve` alone and
+writing a second interleaved version - duplicates the hottest code in the project and guarantees the two
+drift apart. Factoring the per-cell body into a function to share it would put a call in the inner loop
+and give back the gain. So `solve` takes `opts.shifts`, an array, with the single-world path being
+`K = 1`. **That means the ordinary path is restructured too, and the gate has to cover it.**
+
+**Traps, each of which costs a day if met unprepared.**
+- **Floating-point order.** Bit-equality is the gate, and addition is not associative. Each world's
+  accumulation - the five-node `s += WEIGHTS[zi] * rd[0]` and the rest - must happen in exactly the
+  order it does now, per world, not reassociated into a K-wide sum. Interleaving may reorder work
+  *between* worlds freely; it may not reorder work *within* one.
+- **`c.last` belongs to whichever context computed the flow.** One flow means one `c`. `solve` reads
+  `c.last.preNmpaInsolvent` and the tax fields from it; none is shift-dependent, so world 0's context
+  may serve, but the code must say so deliberately rather than by accident.
+- **`nodeRealOfAt` becomes per-world.** At 61 years x 216 actions x 5 nodes x 4 pots that is about
+  2 MB a world - not a problem, but it is now built K times and must be indexed by world.
+- **Peak memory does not change.** `solveMixture` already retains all three tables at the end, so
+  holding them at once is what happens today; interleaving moves when they are allocated, not how many.
+
+**Gate E0 passes when all four hold. Any one fails and the change is dropped, not tuned.**
+1. **K = 1 is bit-identical to today's `solve`.** The ordinary single-world path must be untouched in
+   its output: `surv`, `beq`, `resil`, `short`, `pol` equal on two households, tiers off and on. The
+   first draft of this gate checked only the mixture and would have let a broken single-world path
+   through; it is the path every unit test and the whole of Part C use.
+2. **The interleaved mixture equals three separate solves, bit for bit**, on the same two households,
+   tiers off and on, all five tables.
+3. **The mechanism is real, not just the wall clock.** With `SOLVER_PROFILE=1`, `PROF.flows` for the
+   interleaved K = 3 mixture is exactly a third of the sum over three separate solves. Wall-clock timing
+   is noisy and a 1.2x claim is inside that noise; the call count is exact and is the honest check that
+   the work was actually shared.
+4. **Field check:** `runPolicy` on S004, S178 and S184 gives the same floor rate to the hundredth.
+
+**Reported:** solve time before and after, tiers on and off, at 30 points. Expected 1.2x with tiers on,
+1.5x with them off.
+
+**Order of work**, so the risky part is never the unverified part: build the K-carrying loop with K = 1
+first and prove condition 1 before any world is added; then K = 3 and condition 2; then 3 and 4. A
+failure at condition 1 is a refactoring bug, at condition 2 a sharing bug, and keeping them apart is
+worth the extra step.
+
+**Not attempted:** sharing flows across the landing's five to seven solves, which are also identical in
+flow, because it means holding every year's post-decision states at once - about 1 GB at 30 points.
 
 ### Phase E1. Candidate-set search seeded from the following year (heuristic)
 
@@ -1722,7 +1771,7 @@ to compare against.
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
 | - | **maintainer, 22 Sep**: E0 and E1 run **before** Phase 4, so the decision gate is run once at the lower cost, not twice. **Rows here are in phase-number order, not running order** - see "What runs next, in order" above: E0 goes early because its gate is bit-equality and the objective cannot affect it, E1 goes after the 6-series because its gate is a paired comparison against a baseline the 6-series is still moving | | |
-| E0 | one flow per cell shared across the three worlds | bit-equal to three separate solves on two households, tiers off and on; expected 1.2 to 1.5×; pre-registered, not yet run | 0.25× |
+| E0 | one flow per cell shared across the three worlds | gate E0: K=1 bit-identical to today's solve (the ordinary path is restructured too), the interleaved mixture bit-equal to three separate solves, the flow-call count exactly a third, and the field check to the hundredth; expected 1.2 to 1.5×; **implementation plan written 22 Sep, no code yet** | 0.25× |
 | E1 | candidate-set search seeded from the following year | gate E1: lands on 41, paired with flex-tiers within the margins above, ≤0.5× cost; pre-registered, not yet run | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |

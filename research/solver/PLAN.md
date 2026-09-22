@@ -1691,6 +1691,26 @@ solver change.
 
 ---
 
+## What runs next, in order
+
+**Added 22 Sep because the table below misleads.** Its rows are in historical phase-number order, not
+running order: E0 and E1 sit between phases 3 and 4 while the 6-series sits further down, which reads as
+though the speed work comes first. It does not. This is the schedule; the table below is the catalogue.
+
+| When | What | Why there |
+|---|---|---|
+| now | **6c** field check | running |
+| next | **E0**, one flow per cell across the three worlds | **Exact by construction** - its gate is bit-equality, so nothing about the objective can affect it. It is the one piece of work that does not care that 6c, the screen and 6d are still moving, and everything after it runs faster. |
+| then | **6c-screen**, 20 min | Before 6d, because curvature and weight substitute for each other. |
+| then | **6d stage 1**, 1-2 h | The lever sweep at fixed lambda. |
+| then | **6d stage 2**, a few hours | The promise, landed at the two extreme weights, only if stage 1 is healthy. |
+| then | **E1**, candidate-set search | **Deliberately last of the speed work.** Its gate is a paired comparison against the gate 6b results, and if 6c passes, `soft` becomes the default and those results stop being the baseline. Running it before the objective settles means measuring against a reference about to be replaced, then running it again. |
+| then | **Phase 4**, the versus study | Once E0 and E1 have landed, so the decision gate is run once at the lower cost. |
+
+The distinction between E0 and E1 is the point: **exact work can run against a moving objective, measured
+work cannot.** E0's gate is arithmetic; E1's gate is a comparison, and a comparison needs a fixed thing
+to compare against.
+
 ## Order, gates and rough size
 
 | Phase | Deliverable | Gate | Size relative to the evolver build |
@@ -1701,7 +1721,7 @@ solver change.
 | 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate ; **re-run clean under the mixture with the fixed landing: lands 41 of 41, years at or above target 0.849 vs 0.439, spending delivered 1.101 vs 1.012, 5.2 changes vs 26.4, pot +£186k** | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
-| - | **maintainer, 22 Sep**: E0 and E1 run **before** Phase 4, so the decision gate is run once at the lower cost, not twice | | |
+| - | **maintainer, 22 Sep**: E0 and E1 run **before** Phase 4, so the decision gate is run once at the lower cost, not twice. **Rows here are in phase-number order, not running order** - see "What runs next, in order" above: E0 goes early because its gate is bit-equality and the objective cannot affect it, E1 goes after the 6-series because its gate is a paired comparison against a baseline the 6-series is still moving | | |
 | E0 | one flow per cell shared across the three worlds | bit-equal to three separate solves on two households, tiers off and on; expected 1.2 to 1.5×; pre-registered, not yet run | 0.25× |
 | E1 | candidate-set search seeded from the following year | gate E1: lands on 41, paired with flex-tiers within the margins above, ≤0.5× cost; pre-registered, not yet run | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |

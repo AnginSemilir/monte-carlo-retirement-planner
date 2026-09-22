@@ -509,7 +509,15 @@ export function solve(E, M, plan, opts = {}) {
     m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
     surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
     nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0],
-    tieMargin: opts.tieMargin || 0, rich: null, worlds: null
+    tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
+    /*
+     * A world view answers `policy` and `value` as the central result does, reading ITS OWN tables.
+     * Leaving them off made the view scoreable but not readable, which is half a result: the mixture
+     * test asks each table what the opening position is worth, and that is the one question a table
+     * exists to answer. Same bodies as above, bound to this world's six tables.
+     */
+    policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[polW[k][Math.min(t, T)][nearestIndex(g, s)]]; },
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const kk = Math.min(t, T); const sv = interp(g, survW[k][kk], loc, true), rs = interp(g, resilW[k][kk], loc, !shortfall), bq = interp(g, beqW[k][kk], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   }));
   return r;
 }

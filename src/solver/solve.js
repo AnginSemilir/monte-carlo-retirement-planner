@@ -269,8 +269,26 @@ export function solve(E, M, plan, opts = {}) {
   }
   const levelOf = actions.map(a => (a.spendLevel !== undefined ? a.spendLevel : 1));
 
+  /*
+   * PROFILING, off unless SOLVER_PROFILE is set, because nobody has measured where a solve's time
+   * actually goes and every performance decision so far has been made from a measurement. The timers
+   * sit at the two hot calls: `flow`, the year's draws and tax, and the node loop that takes the
+   * expectation over returns. `performance.now()` is called about four times per evaluated move, so
+   * the overhead is real and is reported alongside, not hidden: compare `prof.total` against `ms`.
+   */
+  const PROF = typeof process !== 'undefined' && process.env && process.env.SOLVER_PROFILE ? { flow: 0, nodes: 0, cells: 0, flows: 0, nodeCalls: 0, skipped: 0 } : null;
+  const now = PROF ? () => performance.now() : null;
+  // the timers are not free: about 4 million pairs a solve, so calibrate one call and subtract the
+  // clock's own cost from each phase rather than reporting shares that flatter whichever phase is
+  // timed more often
+  if (PROF) {
+    const CAL = 2e6; const c0 = performance.now();
+    for (let i = 0; i < CAL; i++) performance.now();
+    PROF.nsPerCall = (performance.now() - c0) * 1e6 / CAL;
+  }
   const base = new Float64Array(7), post = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(4), cachedPost = new Float64Array(7);
   let evaluated = 0;
+  const profT0 = PROF ? now() : 0;
   for (let t = T; t >= 0; t--) {
     const sNext = t < T ? lsurv[t + 1] : null;
     const bNext = t < T ? beq[t + 1] : null;
@@ -295,15 +313,18 @@ export function solve(E, M, plan, opts = {}) {
               for (let ai = 0; ai < actions.length; ai++) {
                 let fail;
                 if (tierBase[ai] === ai) {
+                  const tf = PROF ? now() : 0;
                   post.set(base);
                   const unmet = F.flow(c, t, ai, post);
                   evaluated++;
                   fail = unmet > 1 || c.last.preNmpaInsolvent;
                   cachedFail = fail; cachedPost.set(post);
-                } else { post.set(cachedPost); fail = cachedFail; }
+                  if (PROF) { PROF.flow += now() - tf; PROF.flows++; }
+                } else { post.set(cachedPost); fail = cachedFail; if (PROF) PROF.skipped++; }
                 let s = 0, b = 0, rs = 0, h = 0;
                 const thisShort = spendYear ? costOf(levelOf[ai]) : 0;
                 if (!fail) {
+                  const tn = PROF ? now() : 0;
                   const nr = nodeRealOf[ai];
                   for (let zi = 0; zi < 5; zi++) {
                     grown.set(post);
@@ -323,11 +344,13 @@ export function solve(E, M, plan, opts = {}) {
                       h += WEIGHTS[zi] * rd[3];
                     }
                   }
+                  if (PROF) { PROF.nodes += now() - tn; PROF.nodeCalls++; }
                 }
                 h += thisShort;
                 const score = s + wR * rs + wB * b - h;
                 if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
               }
+              if (PROF) PROF.cells++;
               St[idx] = bestS; Bt[idx] = bestB; Rt[idx] = bestR; Pt[idx] = bestA; Ht[idx] = bestH;
             }
           }
@@ -339,6 +362,18 @@ export function solve(E, M, plan, opts = {}) {
   }
 
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
+  if (PROF) {
+    PROF.total = now() - profT0;
+    // two clock calls per timed region, and the outer pair too
+    const costMs = (n) => n * 2 * PROF.nsPerCall / 1e6;
+    PROF.flowNet = PROF.flow - costMs(PROF.flows);
+    PROF.nodesNet = PROF.nodes - costMs(PROF.nodeCalls);
+    PROF.overhead = costMs(PROF.flows + PROF.nodeCalls);
+    PROF.totalNet = PROF.total - PROF.overhead;
+    PROF.otherNet = PROF.totalNet - PROF.flowNet - PROF.nodesNet;
+    PROF.other = PROF.total - PROF.flow - PROF.nodes;
+    meta.profile = PROF;
+  }
   const r = {
     m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin,
     tieMargin: opts.tieMargin || 0,

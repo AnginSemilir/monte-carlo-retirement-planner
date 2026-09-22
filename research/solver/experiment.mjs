@@ -432,8 +432,19 @@ if (mode === 'flex') {
   mkdirSync(join(RESULTS, tag), { recursive: true });
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   const f = (x) => x.toFixed(1);
+  /*
+   * The progress line, which must survive SOLVERONLY. It did not: it read out.gkFloor, out.gk,
+   * out.fixed and the EXTRA arms, none of which exist when the rivals are skipped, so every cell of
+   * 6e stage 1 wrote its record and THEN died on the console line. The records were complete - the
+   * write happens first - so the run was salvageable, but the progress output was a stack trace and
+   * the exit codes were wrong. A summary line should never be able to lose a run.
+   */
+  if (SOLVER_ONLY) {
+    console.log(`${sc.id} ${sc.name.slice(0, 30).padEnd(31)} solver only: floor/full ${f(out.solver.floorRate)}/${f(out.solver.fullyFundedRate)} (${out.solver.landed}, ${out.solver.solves} solves)  years at/above target med ${out.solver.yearsAtTargetMedian.toFixed(2)}  median net ${Math.round(out.solver.medianTerminalNet / 1000)}k  changes ${out.solver.changesMean.toFixed(1)}  ${(out.ms / 1000).toFixed(0)}s`);
+  } else {
   const extra = EXTRA.map(k => `  ${k} ${f(out[k].floorRate)}/${f(out[k].fullyFundedRate)} lv ${out[k].meanLevelMedian.toFixed(2)}`).join('');
   console.log(`${sc.id} ${sc.name.slice(0, 30).padEnd(31)} floor/full: solver ${f(out.solver.floorRate)}/${f(out.solver.fullyFundedRate)} (${out.solver.landed}, ${out.solver.solves} solves)  gkFloor ${f(out.gkFloor.floorRate)}/${f(out.gkFloor.fullyFundedRate)}  gk ${f(out.gk.floorRate)}/${f(out.gk.fullyFundedRate)}  fixed ${f(out.fixed.floorRate)}/${f(out.fixed.fullyFundedRate)}${extra}  years at/above target med solver ${out.solver.yearsAtTargetMedian.toFixed(2)} gkFloor ${out.gkFloor.yearsAtTargetMedian.toFixed(2)}  changes ${out.solver.changesMean.toFixed(1)}/${out.gkFloor.changesMean.toFixed(1)}  ${(out.ms / 1000).toFixed(0)}s`);
+  }
 }
 
 // ---------------------------------------------------------------------------------------------------

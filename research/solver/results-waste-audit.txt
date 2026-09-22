@@ -1,0 +1,87 @@
+WHERE THE COMPUTE WAS GOING
+====================================================================================================
+
+Asked 22 Sep while 6e stage 1 was running: is there other wasted compute in the test runs? Four things
+found, three fixed the same night, one left open with a number on it. All figures measured on this box,
+not extrapolated - the estimate that started this was wrong by a factor of three, which is what prompted
+looking properly.
+
+----------------------------------------------------------------------------------------------------
+FIXED 1. THE VERIFY PASS RE-MEASURED THE SAME PATHS AGAINST THE SAME TABLE   (~25% of forward work)
+
+  solve.js   const zsSearch = nVerify === nSearch ? zsAll : zsAll.slice(0, nSearch);
+             const verify = (r) => { ... r.floorRate = rateOn(r, zsAll); ... }
+
+  `verifyPaths` DEFAULTS to `searchPaths` - deliberately, because the single-stage landing is meant to
+  be one sample throughout. So `zsSearch` and `zsAll` are the SAME ARRAY OBJECT, and `verify` ran
+  `rateOn` over it a second time, against an immutable table, and got the same bits back at full price.
+
+  A landing calls `at` eight times and `verify` three times - the bracket top, the bracket bottom and
+  the chosen table - so about a QUARTER of all forward-pass work was recomputing a number already held.
+
+  Fixed: `verify` returns early when the two draws are the same OBJECT. Identity, not equality, so it
+  cannot fire on two draws that merely coincide; with `verifyPaths` raised the second pass is real work
+  and still runs. Bit-identical by construction. Gate: research/tests/solver-verify-noop.test.mjs,
+  5 assertions.
+
+FIXED 2. SCREENS PAID FOR FIVE RIVAL ARMS NOBODY READS                        (906 s -> 182 s, 5.0x)
+
+  The `flex` harness scores fixed, GK, GK-floor, Vanguard and ARVA on every run. In a SCREEN that
+  compares the solver against itself across arms - 6e's grid fidelity, 6c-screen's curve, 6d's lever -
+  those five are identical in every cell, so the work is computed and discarded.
+
+  Measured on one 12-point probe: 906 s a cell with them, 182 s without.
+
+  Fixed: SOLVERONLY=1, which refuses to run unless CONF is a number and LAMBDA is held - because
+  CONF=gkFloor derives the solver's ask FROM the gkFloor arm, and silently dropping it would have
+  quietly changed what the solver was asked for rather than just making the run cheaper.
+
+FIXED 3. TWO BATCHES ON FOUR CORES                                                    (2x, briefly)
+
+  Two identical batches ran at once, eight jobs on four cores, both writing the same result files. The
+  cause was not carelessness about the rule but a shell subtlety: `A && B && nohup ... & sleep 20; head`
+  applies the `&` to the WHOLE `&&` list, so the variable assignment happened inside the background
+  subshell and the foreground confirmation failed on an empty path. The launch HAD worked; only the
+  check had not, so a second batch went on top of the first.
+
+  Fixed in run-from-snapshot.sh: a lock directory, recording what holds it and since when, released on
+  EXIT INT TERM, refusing a second run and printing how to clear a stale one. A discipline that depends
+  on reading a launch command correctly is not a discipline.
+
+----------------------------------------------------------------------------------------------------
+NOT FIXED, AND THE BIGGEST ONE LEFT: 5,400 SEARCH PATHS, NEVER SWEPT
+
+  Every solve in a landing scores its table on 5,400 paths. Eight solves is 43,200 policy runs per
+  household, 1.77 MILLION per 41-household field check. That number was chosen and has never been
+  swept - it is task #108 in the list, pending, with no date.
+
+  **It is not free money and should not be treated as such.** Fewer search paths means a noisier
+  estimate, and the bisection then picks whichever lambda that sample flattered - the winner's curse
+  solve.js already documents, and which 2d finding (d) measured as the landing undershooting its ask by
+  up to 0.8 of a point on held-out paths. Cutting to 1,000 would be a 5x saving on the dominant cost
+  and might buy it with exactly the property the landing exists to provide.
+
+  So #108 is a real trade-off study, not a cleanup. It is worth running BEFORE any further field check,
+  because every one of them pays this.
+
+----------------------------------------------------------------------------------------------------
+THE FINDING THAT MATTERS MOST, AND IT IS A QUESTION ABOUT PART E ITSELF
+
+  Every phase of Part E - E0, E1, E2, E3, E4 - makes the SOLVE faster. Nothing in it touches the
+  forward passes. Tonight's measurements suggest the forward passes are not a rounding error:
+
+      one solve at 12 points, no rivals, 400 search paths      182 s
+      the same with 5,400 search paths and the five rivals     906 s
+
+  Backing out a rough per-run cost and scaling to 30 points, a real landing looks like roughly half
+  solve and half forward passes. **If that holds, Part E is optimising one half of the run and E3's
+  30.2% is 30.2% of half.**
+
+  THIS IS AN ESTIMATE, NOT A MEASUREMENT, and it is stated as one. It comes from differencing two runs
+  that changed several things at once, which is exactly the reasoning that produced the wrong cost
+  estimates this file exists to correct. It is cheap to settle properly: SOLVER_PROFILE=1 already
+  exists for the flow counters, and one instrumented household would give the split directly.
+
+  **Recommendation: measure the split before E3 is built**, alongside E4's measurement, which is
+  already scheduled next and is the same kind of twenty-minute question. If forward passes really are
+  half the run, the cheapest remaining win is not E3 at all - it is #108.

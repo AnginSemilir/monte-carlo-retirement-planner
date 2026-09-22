@@ -372,7 +372,28 @@ if (mode === 'flex') {
   // the mixture (gate 3): the solver lands its floor on K tables and every arm runs in the engine's world
   const MIX = process.env.MIX !== undefined ? Number(process.env.MIX) : 3;
   const arms = {};
-  for (const key of ['gk', 'gkFloor', 'fixed', ...EXTRA]) {
+  /*
+   * SOLVERONLY=1: skip the rival arms entirely. For a SCREEN that compares the solver against ITSELF
+   * across arms - 6e's grid fidelity, 6c-screen's curve, 6d's lever - the five rivals are identical in
+   * every cell, so scoring them is work computed and thrown away.
+   *
+   * Measured before this existed: one cell at 12 points and 400 held paths took 15.1 MINUTES, for a
+   * single solve. The solve is not the cost. The cost is forward passes, and most of them are not read:
+   * five rival arms scored over the held draw, plus 10,800 policy runs whose only output is the search
+   * floor rate, which a held-lambda run does not use for anything.
+   *
+   * Two things it requires, both checked rather than assumed. CONF must be a NUMBER, because
+   * CONF=gkFloor derives the solver's ask from the gkFloor arm and there is no such arm here. And
+   * LAMBDA must be held, because without the rivals there is nothing to calibrate an ask against and a
+   * landing would be landing at a number pulled from the air. A screen that needs the rivals is a
+   * screen that should not be using this flag.
+   */
+  const SOLVER_ONLY = process.env.SOLVERONLY === '1';
+  if (SOLVER_ONLY) {
+    if (CONF_RAW === 'gkFloor' || CONF_REL !== null) { console.error('SOLVERONLY needs CONF as a number: gkFloor and +n both derive the ask from an arm that is not being run'); process.exit(2); }
+    if (!process.env.LAMBDA) { console.error('SOLVERONLY needs LAMBDA held: with no rivals there is nothing to land an ask against'); process.exit(2); }
+  }
+  for (const key of (SOLVER_ONLY ? [] : ['gk', 'gkFloor', 'fixed', ...EXTRA])) {
     const m = M.prepare(E, plans[key]);
     if (MIX) m.shiftZ = 0;
     const menu = buildActions();
@@ -400,11 +421,14 @@ if (mode === 'flex') {
   const out = {
     tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, held: HELD, seedSearch, seedHeld, floor: FLOOR, confidence: CONF, target, floorSpend, ms: Date.now() - t0,
     knobs: { levels: LEVELS || null, exponent: EXP === undefined ? 2 : EXP, margin: MARGIN, raise: RAISE, drift: r.meta.driftWeight || 0, bequestShape: r.meta.bequestShape, bequestCap: r.meta.bequestCap, gainBuckets: process.env.GAINB || null, gainInterp: process.env.GAININT === '1', pclsStrict: process.env.PCLSSTRICT === '1', bequestWeight: r.meta.bequestWeight, tiers: r.meta.tiers || null, mixture: r.meta.mixture || 0 },
-    solver: arms.solver.stats, gk: arms.gk.stats, gkFloor: arms.gkFloor.stats, fixed: arms.fixed.stats,
-    pairedFloor: { gk: paired(solvedRs, arms.gk.rs), gkFloor: paired(solvedRs, arms.gkFloor.rs), fixed: paired(solvedRs, arms.fixed.rs) },
-    pairedFull: { gk: paired(solvedRs, arms.gk.rs, 'fullyFunded'), gkFloor: paired(solvedRs, arms.gkFloor.rs, 'fullyFunded'), fixed: paired(solvedRs, arms.fixed.rs, 'fullyFunded') }
+    solver: arms.solver.stats, solverOnly: SOLVER_ONLY || undefined,
+    ...(SOLVER_ONLY ? {} : {
+      gk: arms.gk.stats, gkFloor: arms.gkFloor.stats, fixed: arms.fixed.stats,
+      pairedFloor: { gk: paired(solvedRs, arms.gk.rs), gkFloor: paired(solvedRs, arms.gkFloor.rs), fixed: paired(solvedRs, arms.fixed.rs) },
+      pairedFull: { gk: paired(solvedRs, arms.gk.rs, 'fullyFunded'), gkFloor: paired(solvedRs, arms.gkFloor.rs, 'fullyFunded'), fixed: paired(solvedRs, arms.fixed.rs, 'fullyFunded') }
+    })
   };
-  for (const key of EXTRA) { out[key] = arms[key].stats; out.pairedFloor[key] = paired(solvedRs, arms[key].rs); out.pairedFull[key] = paired(solvedRs, arms[key].rs, 'fullyFunded'); }
+  if (!SOLVER_ONLY) for (const key of EXTRA) { out[key] = arms[key].stats; out.pairedFloor[key] = paired(solvedRs, arms[key].rs); out.pairedFull[key] = paired(solvedRs, arms[key].rs, 'fullyFunded'); }
   mkdirSync(join(RESULTS, tag), { recursive: true });
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   const f = (x) => x.toFixed(1);

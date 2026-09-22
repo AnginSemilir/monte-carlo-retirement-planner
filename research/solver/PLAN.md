@@ -1188,7 +1188,8 @@ gate is judged.
 
 ### Phase 6d. Two levers for the estate, and calibrating them
 
-Pre-registered 22 Sep, before any code, at the maintainer's direction. **How much an estate is worth
+Pre-registered 22 Sep, before any code, at the maintainer's direction. **Approved 22 Sep, to run after
+6c reports.** **How much an estate is worth
 against the risk of running out is the household's question, not ours.** Phase 6c removes a flat spot
 that made a real loss invisible; it does not settle the exchange rate, and it should not. The weight is
 currently `wB = 0.02` of opening wealth, a constant no user can reach, and the curve bends at `4 x
@@ -1214,9 +1215,18 @@ The shoulder's anchor moves with lever 1 where it is set, so the bend sits at **
 number** rather than four times what they happened to have when they opened the app. Where no minimum
 is set the default anchor stands, and choosing it is part of this phase, not inherited.
 
-**The experiment (tag beq-lever).** Eight households spanning the horizons and both sides of the cap,
-swept across `bequestWeight` in {0, 0.02, 0.05, 0.1, 0.2} with the shoulder on and everything else at
-the gate 6b configuration. Forty landings, about four hours.
+**The experiment (tag beq-lever).** Eight households spanning the horizons and both sides of the cap -
+S004, S070, S178, S184, S206, S258, S318, S342 - swept across `bequestWeight` in
+{0, 0.02, 0.05, 0.1, 0.2} with the shoulder on and everything else at the gate 6b configuration. Forty
+landings. **Cost, measured from what these eight took in gate 6b rather than guessed: 51.9 core-hours,
+13 hours on four cores.** An earlier draft of this section said "about four hours", which was an
+invented figure; the household set is unchanged and the estimate is corrected rather than the set
+trimmed to fit it.
+
+**What this run does and does not cover.** It sweeps lever 2 only. Moving the shoulder's anchor onto
+lever 1 (the household's own minimum pot) is part of the design above but is a separate change with its
+own inertness check, and is not in this sweep: mixing an objective change and an anchor change in one
+run would leave neither attributable.
 
 **Gate 6d passes when all four hold:**
 1. **Monotone.** Median pot rises with the weight and the survival edge falls, with no reversals on any
@@ -1630,7 +1640,7 @@ solver change.
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 6b | flexible spending and tiers together | **run 22 Sep**: conditions 2 (years at target +0.125, 30 up / 1 down), 3 (1.80× of 2.5×) and 4 (1.57 changes of 3) pass; **condition 1b fails as written on 9 of 41**, seven of them households that took no trimming at all and two that are inside the bound on the sample the landing optimised. Fully-funded rate +54.93 vs the guardrails (p = 0.000) against flex-landed's +13.43 (p = 0.755); pot −£870k, the tier trade Phase 6 measured at −£917k. Recorded, not tuned, not merged | 1× |
 | 6c | the bequest shape: a shoulder, not a cliff | gate 6c: default bit-identical, `soft` equal below the cap and strictly increasing above, pot up on the 9 cap-binding households with no floor rate more than 0.5 lower, and bit-equality with the cap above the grid top (3b). Conditions 1 and 2 pass; condition 3's control clause was unsatisfiable as written and is corrected in place, with 8 of 12 reported | 0.5× |
-| 6d | two levers for the estate, and calibrating them | gate 6d: monotone, ends distinct on 6 of 8, the promise holds at every weight including zero; plus whether re-weighting without a re-solve is close enough to make the lever instant; pre-registered, not yet run | 0.5× |
+| 6d | two levers for the estate, and calibrating them | **approved 22 Sep**, gate 6d: monotone, ends distinct on 6 of 8, the promise holds at every weight including zero; plus whether re-weighting without a re-solve is close enough to make the lever instant; pre-registered, not yet run | 0.5× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

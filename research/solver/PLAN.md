@@ -1337,7 +1337,12 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 ## Part E. Speed, measured
 
 Written 22 Sep while gate 6b was running, before any code. Nothing here runs until 6b has reduced and
-been judged, and nothing here touches `src/solver` while a run is live. The profile (`profile.mjs`,
+been judged, and nothing here touches `src/solver` while a run is live. **Ordered before Phase 4 by the
+maintainer, 22 Sep**: Phase 4 is the decision gate and the largest run left (60 households, both arms,
+about 15 hours on four cores at today's cost), and it is the one you least want to repeat over a
+configuration mistake. E0 is exact, so it cannot change what Phase 4 measures; E1 either holds its
+pre-registered margins or stays off. Whichever way E1 lands, Phase 4 runs once, after them, at whatever
+the cost then is. The profile (`profile.mjs`,
 22 Sep, S004 at 20 points) says where a solve goes: tiers off, flow 51% / node loop 39% / other 10%;
 tiers on, flow 29% / nodes 59% / other 12%. Both phases below attack those two shares, and they are kept
 apart on purpose: E0 is exact (the same tables to the bit, so its gate is equality and it needs no
@@ -1432,13 +1437,14 @@ solver change.
 | 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate ; **re-run clean under the mixture with the fixed landing: lands 41 of 41, years at or above target 0.849 vs 0.439, spending delivered 1.101 vs 1.012, 5.2 changes vs 26.4, pot +£186k** | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
+| - | **maintainer, 22 Sep**: E0 and E1 run **before** Phase 4, so the decision gate is run once at the lower cost, not twice | | |
+| E0 | one flow per cell shared across the three worlds | bit-equal to three separate solves on two households, tiers off and on; expected 1.2 to 1.5×; pre-registered, not yet run | 0.25× |
+| E1 | candidate-set search seeded from the following year | gate E1: lands on 41, paired with flex-tiers within the margins above, ≤0.5× cost; pre-registered, not yet run | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | **done, survival conditions met**: +0.77 vs the best fixed rule on 19 couples, 14 up / 3 down, worst −0.85; tiers off for couples; backtest and perturbed worlds not yet run | 1× |
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 6b | flexible spending and tiers together | gate 6b: lands on 41, not below flex-landed on years at target or spending delivered, ≤2.5× cost, ≤3 tier changes; pre-registered, not yet run | 1× |
-| E0 | one flow per cell shared across the three worlds | bit-equal to three separate solves on two households, tiers off and on; expected 1.2 to 1.5×; pre-registered, not yet run | 0.25× |
-| E1 | candidate-set search seeded from the following year | gate E1: lands on 41, paired with flex-tiers within the margins above, ≤0.5× cost; pre-registered, not yet run | 0.5× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

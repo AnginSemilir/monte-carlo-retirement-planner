@@ -1,4 +1,14 @@
 /*
+ * TEMPORARY SCAFFOLDING, NOT PART OF THE SOLVER. A verbatim copy of `solve.js` as it stood immediately
+ * before Phase E0, kept only so the E0 checks can compare against it: gate E0 condition 1 (the
+ * K-carrying loop at K = 1 is bit-identical to this) and condition 2 (the interleaved mixture equals
+ * three separate solves from this, bit for bit). It lives in `src/solver` rather than the scratchpad
+ * because it imports `./grid.js` and `./fast.js` by relative path.
+ *
+ * Nothing imports it but those two checks. **Delete it, and them, when E0 is judged and merged.** If
+ * you are reading this and E0 is long since done, it was left behind by mistake.
+ */
+/*
  * BACKWARD INDUCTION: THE BEST MOVE FROM EVERY POSITION, WORKED OUT FROM THE END.
  *
  * The last year is easy. Whatever position the household is in at the terminal age, the year can either
@@ -129,16 +139,11 @@ const MIX3 = { z: [-Math.sqrt(3), 0, Math.sqrt(3)], w: [1 / 6, 2 / 3, 1 / 6] };
 export function solveMixture(E, M, plan, opts = {}) {
   const K = opts.mix === 3 ? 3 : 5;
   const zs = K === 3 ? MIX3.z : NODES, ws = K === 3 ? MIX3.w : WEIGHTS;
-  /*
-   * PHASE E0. This was `zs.map(z => solve(...))`: K independent solves, each rebuilding every
-   * post-decision state. The year's money movement does not depend on the world - `F.flow` reads only
-   * structural fields, checked field by field - so the K tables are now solved side by side with one
-   * flow a cell shared between them, and what comes out is what the separate solves produced, bit for
-   * bit. `solve` reports the whole interleaved build in `meta.ms`, so no summing here.
-   */
-  const r = solve(E, M, plan, { ...opts, shifts: zs, shiftZ: undefined });
-  r.mix = { tables: r.worlds, weights: ws, nodes: zs };
+  const tables = zs.map(z => solve(E, M, plan, { ...opts, shiftZ: z }));
+  const r = tables[K === 3 ? 1 : 2];
+  r.mix = { tables, weights: ws, nodes: zs };
   r.meta.mixture = K;
+  r.meta.ms = tables.reduce((a, x) => a + x.meta.ms, 0);
   return r;
 }
 
@@ -174,42 +179,20 @@ export function solve(E, M, plan, opts = {}) {
   const raiseOn = (opts.raiseWeight || 0) > 0;
   const menuLevels = raiseOn || !opts.spendLevels ? opts.spendLevels : opts.spendLevels.filter(l => l <= 1);
   const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: opts.tiers ? tierCombos(m, opts.tiers) : null })).map(a => ({ ...a, lump: !!opts.lump }));
-  /*
-   * PHASE E0, STEP 1: the loop carries K worlds. `opts.shifts` is the list of held shifts to solve
-   * side by side; absent, it is the single-world list `[opts.shiftZ]` and K is 1, which must stay
-   * bit-identical to the solve that came before this change (gate E0 condition 1). Nothing calls this
-   * with K > 1 yet: step 1 is the restructure alone, so that a failure here is a refactoring bug and a
-   * failure later is a sharing bug, and the two are never confused.
-   *
-   * The world enters in exactly one place. `F.flow` reads only structural fields of the action and the
-   * context - checked field by field, 22 Sep - and `F.grow` takes the growth rates as a PARAMETER, so
-   * the shift reaches the arithmetic solely through `nodeRealOfAt`. One context therefore serves every
-   * world for the flow; each world needs only its own rates and its own tables.
-   */
-  const shifts = opts.shifts !== undefined ? opts.shifts : [opts.shiftZ];
-  const K = shifts.length;
-  const cs = shifts.map(z => { if (z === undefined) delete m.shiftZ; else m.shiftZ = z; return F.compile(m, actions); });
-  const centre = K >> 1;                       // the middle world is the one the result presents, as solveMixture did
-  const c = cs[centre];
+  const c = F.compile(m, actions);
   // a tier change costs its round trip on the slice traded (see SWITCH_COST in fast.js); charged at decision time
-  const switchCost = opts.switchCost !== undefined ? opts.switchCost : (opts.tiers ? F.SWITCH_COST : 0);
-  for (const cc of cs) cc.switchCost = switchCost;
+  c.switchCost = opts.switchCost !== undefined ? opts.switchCost : (opts.tiers ? F.SWITCH_COST : 0);
   // ...and is made only when the table's gain from it is worth noticing (see chooseAction)
   const switchMargin = opts.switchMargin !== undefined ? opts.switchMargin : (opts.tiers ? SWITCH_MARGIN : 0);
   const T0 = m.ctx.totalYears;
   // the quadrature rates by year (the folded spread depends on the years left) for each move's tier
   // combination, shared between moves that hold the same tiers
   const byCombo = {};
-  // per world, per year, per action: the five quadrature rates. This is the only place the shift lands.
-  const nodeRealOfAtW = cs.map((cc) => {
-    const out = [];
-    for (let t = 0; t <= T0; t++) {
-      const byK = {};
-      out[t] = actions.map((a, ai) => { const k = `${cc.acts[ai].tierPen}/${cc.acts[ai].tierIsa}`; if (!byK[k]) byK[k] = NODES.map(z => realAt(cc, z, new Float64Array(4), cc.acts[ai], t)); byCombo[k] = true; return byK[k]; });
-    }
-    return out;
-  });
-  const nodeRealOfAt = nodeRealOfAtW[centre];
+  const nodeRealOfAt = [];
+  for (let t = 0; t <= T0; t++) {
+    const byK = {};
+    nodeRealOfAt[t] = actions.map((a, ai) => { const k = `${c.acts[ai].tierPen}/${c.acts[ai].tierIsa}`; if (!byK[k]) byK[k] = NODES.map(z => realAt(c, z, new Float64Array(4), c.acts[ai], t)); byCombo[k] = true; return byK[k]; });
+  }
   const nodeReal = nodeRealOfAt[0][0];
   // tier variants of a move share its flow: `tierBase` names the move whose flow they reuse
   const tierBase = actions.map((a, ai) => (a.tierBase !== undefined && a.tierBase < ai && actions[a.tierBase].tierBase === a.tierBase ? a.tierBase : ai));
@@ -342,15 +325,12 @@ export function solve(E, M, plan, opts = {}) {
     ? driftW * lambda * (eqDrop(c.tiers.pen, a.tierPen || 0) + eqDrop(c.tiers.isa, a.tierIsa || 0))
     : 0));
 
-  // one set of tables per world; at K = 1 these are the arrays the single-world solve always had
-  const mk = () => { const a = []; for (let t = 0; t <= T; t++) a[t] = new Float64Array(g.size); return a; };
-  const survW = [], lsurvW = [], resilW = [], lresilW = [], beqW = [], polW = [], shortW = [];
-  for (let k = 0; k < K; k++) {
-    survW[k] = mk(); lsurvW[k] = mk(); resilW[k] = mk(); lresilW[k] = mk(); beqW[k] = mk(); shortW[k] = mk();
-    polW[k] = []; for (let t = 0; t <= T; t++) polW[k][t] = new Uint8Array(g.size);
+  const surv = [], lsurv = [], resil = [], lresil = [], beq = [], pol = [], short = [];
+  for (let t = 0; t <= T; t++) {
+    surv[t] = new Float64Array(g.size); lsurv[t] = new Float64Array(g.size);
+    resil[t] = new Float64Array(g.size); lresil[t] = new Float64Array(g.size);
+    beq[t] = new Float64Array(g.size); pol[t] = new Uint8Array(g.size); short[t] = new Float64Array(g.size);
   }
-  const surv = survW[centre], lsurv = lsurvW[centre], resil = resilW[centre];
-  const lresil = lresilW[centre], beq = beqW[centre], pol = polW[centre], short = shortW[centre];
   const levelOf = actions.map(a => (a.spendLevel !== undefined ? a.spendLevel : 1));
 
   /*
@@ -370,22 +350,17 @@ export function solve(E, M, plan, opts = {}) {
     for (let i = 0; i < CAL; i++) performance.now();
     PROF.nsPerCall = (performance.now() - c0) * 1e6 / CAL;
   }
-  /*
-   * The flows for a whole cell are buffered, then the worlds are looped on the OUTSIDE. Interleaving
-   * world-inside-action would triple the hot working set - at 30 points each world's four next-year
-   * tables are 311 KB, which sits in L2, and three worlds are 933 KB, which does not - and handing the
-   * arithmetic saving straight back in cache misses is a real way to fail. The buffer is A x 7 doubles,
-   * about 12 KB, and each world's pass then reads only its own tables: today's access pattern exactly.
-   * It also keeps the order of operations within a world untouched, which is what bit-equality needs.
-   */
-  const base = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(4);
-  const A = actions.length;
-  const postBuf = new Float64Array(A * 7);     // every action's post-decision state at this cell
-  const failBuf = new Uint8Array(A);
+  const base = new Float64Array(7), post = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(4), cachedPost = new Float64Array(7);
   let evaluated = 0;
   const profT0 = PROF ? now() : 0;
   for (let t = T; t >= 0; t--) {
+    const sNext = t < T ? lsurv[t + 1] : null;
+    const bNext = t < T ? beq[t + 1] : null;
+    const rNext = t < T ? lresil[t + 1] : null;
+    const hNext = t < T ? short[t + 1] : null;
+    const St = surv[t], Bt = beq[t], Rt = resil[t], Pt = pol[t], Ht = short[t];
     const spendYear = c.yr.spend[t] > 0;
+    const nodeRealOf = nodeRealOfAt[t];
     for (let ic = 0; ic < g.pcls.length; ic++) {
       for (let ig = 0; ig < g.gain.length; ig++) {
         for (let it = 0; it < g.nt; it++) {
@@ -394,81 +369,60 @@ export function solve(E, M, plan, opts = {}) {
               const idx = g.index(ip, ii, it, ig, ic);
               toVec(g, ip, ii, it, ig, ic, base);
               /*
-               * PASS 1, shared by every world. Every move is tried at every cell; there is no
-               * certain-success shortcut, because the plan's bound assumed "no growth" was the worst
-               * case and for an invested pot it is not (see zeroGrowthNeed in grid.js). Tier variants
-               * of a move reuse its flow, as they always have; the buffer only removes the need for
-               * them to be adjacent.
+               * Every move is tried at every cell. There is no certain-success shortcut: the plan's
+               * bound assumed "no growth" was the worst case, and for an invested pot it is not - see
+               * zeroGrowthNeed in grid.js for the measurement that retired it.
                */
-              for (let ai = 0; ai < A; ai++) {
-                const o = ai * 7;
+              let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0, cachedFail = false;
+              for (let ai = 0; ai < actions.length; ai++) {
+                let fail;
                 if (tierBase[ai] === ai) {
                   const tf = PROF ? now() : 0;
-                  for (let q = 0; q < 7; q++) postBuf[o + q] = base[q];
-                  const unmet = F.flow(c, t, ai, postBuf.subarray(o, o + 7));
+                  post.set(base);
+                  const unmet = F.flow(c, t, ai, post);
                   evaluated++;
-                  failBuf[ai] = (unmet > 1 || c.last.preNmpaInsolvent) ? 1 : 0;
+                  fail = unmet > 1 || c.last.preNmpaInsolvent;
+                  cachedFail = fail; cachedPost.set(post);
                   if (PROF) { PROF.flow += now() - tf; PROF.flows++; }
-                } else {
-                  const b = tierBase[ai] * 7;
-                  for (let q = 0; q < 7; q++) postBuf[o + q] = postBuf[b + q];
-                  failBuf[ai] = failBuf[tierBase[ai]];
-                  if (PROF) PROF.skipped++;
-                }
-              }
-              // PASS 2, once per world: growth at that world's rates, read of that world's tables.
-              for (let k = 0; k < K; k++) {
-                const nodeRealOf = nodeRealOfAtW[k][t];
-                const sNext = t < T ? lsurvW[k][t + 1] : null;
-                const bNext = t < T ? beqW[k][t + 1] : null;
-                const rNext = t < T ? lresilW[k][t + 1] : null;
-                const hNext = t < T ? shortW[k][t + 1] : null;
-                let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
-                for (let ai = 0; ai < A; ai++) {
-                  const o = ai * 7;
-                  const fail = failBuf[ai] === 1;
-                  let s = 0, b = 0, rs = 0, h = 0;
-                  const thisShort = (spendYear ? costOf(levelOf[ai]) : 0) + driftCostOf[ai];
-                  if (!fail) {
-                    const tn = PROF ? now() : 0;
-                    const nr = nodeRealOf[ai];
-                    for (let zi = 0; zi < 5; zi++) {
-                      for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
-                      F.grow(cs[k], t, grown, nr[zi]);
-                      if (t === T) {
-                        const total = grown[0] + grown[1] + grown[2];
-                        const alive = !(floor > 0 && total < floor);
-                        const net = Math.max(0, total - grown[0] * deathTax);
-                        s += WEIGHTS[zi] * (alive ? 1 : 0);
-                        rs += WEIGHTS[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
-                        b += WEIGHTS[zi] * (alive ? beqOf(net) : 0);
-                      } else {
-                        readValues(g, sNext, bNext, grown, rd, rNext, hNext);
-                        s += WEIGHTS[zi] * rd[0];
-                        b += WEIGHTS[zi] * rd[1];
-                        rs += WEIGHTS[zi] * rd[2];
-                        h += WEIGHTS[zi] * rd[3];
-                      }
+                } else { post.set(cachedPost); fail = cachedFail; if (PROF) PROF.skipped++; }
+                let s = 0, b = 0, rs = 0, h = 0;
+                const thisShort = (spendYear ? costOf(levelOf[ai]) : 0) + driftCostOf[ai];
+                if (!fail) {
+                  const tn = PROF ? now() : 0;
+                  const nr = nodeRealOf[ai];
+                  for (let zi = 0; zi < 5; zi++) {
+                    grown.set(post);
+                    F.grow(c, t, grown, nr[zi]);
+                    if (t === T) {
+                      const total = grown[0] + grown[1] + grown[2];
+                      const alive = !(floor > 0 && total < floor);
+                      const net = Math.max(0, total - grown[0] * deathTax);
+                      s += WEIGHTS[zi] * (alive ? 1 : 0);
+                      rs += WEIGHTS[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+                      b += WEIGHTS[zi] * (alive ? beqOf(net) : 0);
+                    } else {
+                      readValues(g, sNext, bNext, grown, rd, rNext, hNext);
+                      s += WEIGHTS[zi] * rd[0];
+                      b += WEIGHTS[zi] * rd[1];
+                      rs += WEIGHTS[zi] * rd[2];
+                      h += WEIGHTS[zi] * rd[3];
                     }
-                    if (PROF) { PROF.nodes += now() - tn; PROF.nodeCalls++; }
                   }
-                  h += thisShort;
-                  const score = s + wR * rs + wB * b - h;
-                  if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
+                  if (PROF) { PROF.nodes += now() - tn; PROF.nodeCalls++; }
                 }
-                survW[k][t][idx] = bestS; beqW[k][t][idx] = bestB; resilW[k][t][idx] = bestR;
-                polW[k][t][idx] = bestA; shortW[k][t][idx] = bestH;
+                h += thisShort;
+                const score = s + wR * rs + wB * b - h;
+                if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
               }
               if (PROF) PROF.cells++;
+              St[idx] = bestS; Bt[idx] = bestB; Rt[idx] = bestR; Pt[idx] = bestA; Ht[idx] = bestH;
             }
           }
         }
       }
     }
-    for (let k = 0; k < K; k++) {
-      toLogOdds(survW[k][t], lsurvW[k][t]);
-      if (shortfall) lresilW[k][t].set(resilW[k][t]); else toLogOdds(resilW[k][t], lresilW[k][t]);
-    }
+    toLogOdds(St, lsurv[t]);
+    if (shortfall) lresil[t].set(Rt); else toLogOdds(Rt, lresil[t]);
   }
 
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
@@ -487,26 +441,12 @@ export function solve(E, M, plan, opts = {}) {
   const r = {
     m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
     tieMargin: opts.tieMargin || 0,
-    /*
-     * PHASE E0, STEP 2. One result-like view per world, for `chooseAction`'s mixture loop, which calls
-     * `scoreMoves(tab, ...)` on each and so needs a complete object. Everything immutable is shared by
-     * reference - the grid, the actions, the penalties - and only what the world owns differs: its
-     * context, its growth rates and its six tables. At K = 1 this is a one-element list holding `r`
-     * itself, so the single-world path allocates nothing extra.
-     */
-    worlds: null,
     rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
     /* What the table says this position is worth, before anything is executed. */
     value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); const sv = interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   };
-  r.worlds = K === 1 ? [r] : cs.map((cc, k) => (k === centre ? r : {
-    m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
-    surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
-    nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0],
-    tieMargin: opts.tieMargin || 0, rich: null, worlds: null
-  }));
   return r;
 }
 

@@ -1,0 +1,155 @@
+GATE 6b: FLEXIBLE SPENDING AND THE TIER AS A MOVE, TOGETHER  (tag flex-tiers)
+====================================================================================================
+
+Pre-registered 21 Sep in PLAN.md Phase 6b, before any run. 41 households, seeds 7001/7002, 3,000
+held-out paths, three-world mixture, 30 x 6 x 6, levels 1.2/1.1/1/0.9/0.8, raise 0.003, CONF=gkFloor,
+margin 0.5pt, single-stage landing on 5,400 search paths, TIERS=1. Run from snapshot /tmp/solver-snap-2pE14Q
+(commit e1b6c1a), 22 Sep 01:42-13:05 UTC, 43.6 core-hours on four cores. Solver version
+2026-09-21.single-stage-landing. Paired household by household against flex-landed: same asks, same paths.
+
+VERDICT: three conditions pass, condition 1's over-trim clause FAILS AS WRITTEN on 9 of 41.
+On inspection none of the nine is over-trimming; see CONDITION 1 below. Recorded, not tuned, not merged.
+
+----------------------------------------------------------------------------------------------------
+CONDITION 1. Landing
+
+  1a. floor rate at or above the ask less 0.5:  41 of 41.  PASS
+      margin (held-out floor minus ask): min +0.27, mean +1.33, max +3.00
+
+  1b. no household more than 2 points above its ask (the over-trim guard, C4b):  9 of 41 exceed. FAIL
+
+      Seven of the nine took NO TRIMMING AT ALL: lambda pinned at the bracket top (2.0), one solve,
+      zero trims. C4b's reasoning is 'lambda well above the bracket bottom means the solver CHOSE this
+      level of trimming'. At the bracket TOP it chose none, and the de-risking alone lifted the floor
+      above the ask. That case did not exist when the guard was written: flex-landed had 0 of 41 needing
+      no trimming, flex-tiers has 18 of 41.
+
+          S004 +2.13   S194 +2.67   S222 +2.47   S234 +2.43   S240 +2.43   S300 +3.00   S374 +2.47
+
+      Two are genuine landings, and on the sample the landing actually optimised they are inside 2:
+
+          S268  ask 75.1   held-out 77.83 (+2.73)   search 76.50 (+1.40)   lambda 0.946, 7 solves
+          S292  ask 77.2   held-out 79.57 (+2.37)   search 77.93 (+0.73)   lambda 1.140, 7 solves
+
+      The landing targets the 5,400 search paths; the guard is measured on the 3,000 held-out paths,
+      which carry about 0.8 points of standard error at these rates. The excess is the gap between two
+      samples, not spending given away. Both trim less than flex-landed did (lambda 0.946 vs 0.447,
+      1.140 vs 0.371: a HIGHER lambda is LESS trimming).
+
+      This is recorded as a failure because it is one as written. It is not re-specified here.
+
+----------------------------------------------------------------------------------------------------
+CONDITION 2. Against flex-landed, paired on the 41
+
+  years at or above target (median run)   mean +0.1247   30 up / 1 down   sign test p = 0.000   PASS
+  spending delivered (mean level, median) mean +0.0010   15 up / 23 down   sign test p = 0.256   PASS on the mean
+
+  The first is decisive: 30 households up, 1 down. The second is not - the mean is positive by a
+  thousandth and the sign is 15 up / 23 down. The condition asked for 'not lower on the mean' and it is
+  not lower, but the honest reading is that tiers buy CONSISTENCY of spending, not MORE spending.
+  Years below target fall to 3.0 a retirement against the guardrails' 18.7.
+
+----------------------------------------------------------------------------------------------------
+CONDITION 3. Cost
+
+  solve time per household vs flex-landed: mean 1.80x, median 1.98x   (gate 2.5x)   PASS
+  spread 0.38x to 3.98x; 43.6 core-hours against flex-landed's 26.6
+  solves per household: 3.5 mean (max 7) against flex-landed's 5.0
+
+  Cheaper than expected, and for a reason worth keeping: with tiers on, 18 of 41 households need no
+  trimming at all, so the landing costs one solve instead of five. The tier menu makes each solve
+  dearer and the landing shorter, and the two nearly cancel.
+
+----------------------------------------------------------------------------------------------------
+CONDITION 4. Tier behaviour
+
+  tier changes a retirement: mean 1.57, max 2.99 (S142)   (gate 3)   PASS
+  every household changes tier at least once; Phase 6 measured 1.7 with spending fixed
+  share of retired years at a de-risked pension tier: mean 0.70, up to 0.97
+
+  That last figure is not a gate and is the one to look at again: the solver is not de-risking late,
+  it is de-risking almost throughout. Worth a read before the preset ships.
+
+----------------------------------------------------------------------------------------------------
+REPORTED, NOT GATED
+
+  Against the guardrails at equal downside (gkFloor), on the 41:
+    floor rate            +1.26 pts
+    fully-funded rate    +54.93 pts, 37 up / 4 down, sign test p = 0.000
+    years at or above target (median run)   0.974 vs 0.439
+    spending delivered (median run)         1.102 vs 1.012
+    years below target                      3.0 vs 18.7
+    spending changes a path                 3.95 vs 26.35
+    median pot                              -£684k
+
+  The fully-funded rate is the headline. Flex-landed managed +13.43 on the mean but 22 up / 19 down at
+  p = 0.755 - noise. With tiers on it is +54.93, 37 up / 4 down, p = 0.000. De-risking is what turns
+  the flexible-spending promise from 'usually holds' into 'holds whole'.
+
+  THE POT. Tiers minus flex-landed, paired:
+    median pot   mean -870k, median -618k, 3 up / 38 down, p = 0.0000
+    worst: S342 -3,227k, S318 -2,870k, S354 -2,613k, S330 -2,144k, S070 -1,767k, S378 -1,615k
+
+  The hypothesis said the median pot 'should not fall by more than the tier trade already seen'.
+  Phase 6 measured that trade at -£917k with spending fixed. Here it is -£870k. It has not grown, and
+  the pre-registration anticipated it: the tiers trade pot for spending, that is a finding about the
+  objective rather than a bug, and the preset copy has to say so.
+
+----------------------------------------------------------------------------------------------------
+PER HOUSEHOLD
+
+  id     ask   floor   over  (search)  landing              lam  slv   yrs@tgt      tier    tier   pot vs   cost
+                                                                      landed->tiers chg   years   landed      x
+  S004   92.2  94.33  +2.13   +2.43  no trimming needed   2.000  1   0.86->1.00  0.79   0.95      -230k  0.38
+  S020   88.4  89.27  +0.87   +1.12  landed               1.375  7   0.61->1.00  1.82   0.79      -421k  1.98
+  S034   84.8  85.67  +0.87   +0.77  landed               0.784  7   0.61->1.00  1.33   0.86      -909k  2.67
+  S054   97.6  98.37  +0.77   +0.73  landed               0.100  3   0.75->1.00  0.91   0.29      -293k  3.02
+  S058   97.9  98.27  +0.37   +0.58  landed               0.100  3   0.39->0.61  1.45   0.30     -1065k  3.09
+  S070   76.5  77.27  +0.77   +0.98  landed               1.140  7   0.64->0.97  2.28   0.75     -1767k  2.10
+  S082   84.9  86.47  +1.57   +0.99  landed               1.140  7   0.69->1.00  1.90   0.86     -1376k  1.96
+  S100   99.0  99.67  +0.67   +0.67  no trimming needed   2.000  1   0.83->1.00  0.87   0.90      -362k  0.74
+  S112   98.5  99.20  +0.70   +0.63  landed               0.022  4   0.61->0.75  0.78   0.17       -17k  3.56
+  S118   91.6  92.30  +0.70   +0.92  landed               0.539  7   0.53->1.00  1.36   0.86     -1571k  2.07
+  S126   99.0  99.87  +0.87   +0.80  landed               0.022  4   0.80->0.93  0.71   0.97     -1197k  3.62
+  S142   78.1  79.67  +1.57   +1.75  no trimming needed   2.000  1   0.88->1.00  2.99   0.75     -1304k  0.39
+  S154   70.9  71.93  +1.03   +0.71  landed               1.375  6   0.88->1.00  2.12   0.62     -1061k  1.87
+  S162   98.1  99.10  +1.00   +0.60  landed               0.100  3   0.80->1.00  1.49   0.65      -996k  3.17
+  S172   94.9  95.93  +1.03   +0.71  landed               0.650  6   0.68->1.00  1.03   0.93      -354k  2.18
+  S178   86.1  87.17  +1.07   +0.70  landed               0.539  7   0.68->0.97  2.44   0.77     -1431k  2.91
+  S184   74.6  76.37  +1.77   +2.12  no trimming needed   2.000  1   0.97->1.00  2.58   0.73      -272k  0.45
+  S194   89.1  91.77  +2.67   +2.59  no trimming needed   2.000  1   1.00->1.00  1.23   0.93      -186k  0.43
+  S198   97.6  98.63  +1.03   +0.88  no trimming needed   2.000  1   0.92->1.00  1.82   0.80     -1154k  0.67
+  S206   99.0  99.80  +0.80   +0.67  landed               0.100  3   0.92->0.92  0.51   0.04       +68k  2.42
+  S218   98.2  99.33  +1.13   +0.80  landed               1.375  6   0.89->1.00  1.99   0.89      -197k  3.98
+  S222   94.1  96.57  +2.47   +1.88  no trimming needed   2.000  1   0.92->1.00  0.89   0.97      -945k  0.86
+  S230   99.0  99.87  +0.87   +0.89  landed               0.100  3   0.97->0.94  0.47   0.03       +70k  2.54
+  S234   92.1  94.53  +2.43   +1.83  no trimming needed   2.000  1   1.00->1.00  0.90   0.96      -618k  0.62
+  S240   94.1  96.53  +2.43   +2.38  no trimming needed   2.000  1   1.00->1.00  1.97   0.87      -368k  0.53
+  S252   95.0  96.23  +1.23   +1.13  no trimming needed   2.000  1   1.00->1.00  1.91   0.81      -467k  0.70
+  S258   84.7  85.47  +0.77   +1.17  no trimming needed   2.000  1   1.00->1.00  2.28   0.74     -1500k  0.46
+  S268   75.1  77.83  +2.73   +1.40  landed               0.946  7   0.89->1.00  2.14   0.60      -351k  3.70
+  S276   96.6  97.63  +1.03   +0.86  no trimming needed   2.000  1   1.00->1.00  1.89   0.80      -418k  1.00
+  S292   77.2  79.57  +2.37   +0.73  landed               1.140  7   0.92->1.00  2.13   0.63      -381k  2.48
+  S300   81.8  84.80  +3.00   +2.46  no trimming needed   2.000  1   1.00->1.00  2.19   0.66      -667k  0.57
+  S318   77.9  79.07  +1.17   +0.62  landed               1.375  6   0.97->1.00  2.23   0.59     -2870k  2.20
+  S330   78.4  79.70  +1.30   +0.97  landed               0.946  5   0.97->1.00  2.05   0.56     -2144k  2.26
+  S342   72.0  73.87  +1.87   +0.94  landed               1.659  7   0.97->1.00  2.06   0.55     -3227k  2.60
+  S354   79.4  81.13  +1.73   +1.01  landed               1.140  7   1.00->1.00  2.00   0.59     -2613k  2.97
+  S374   92.7  95.17  +2.47   +2.69  no trimming needed   2.000  1   1.00->1.00  0.90   0.96      -165k  0.48
+  S378   98.7  99.20  +0.50   +0.50  no trimming needed   2.000  1   0.83->1.00  0.85   0.94     -1615k  1.29
+  S390   99.0  99.27  +0.27   +0.33  at the bracket floor 0.005  2   0.80->0.83  0.54   0.07      +152k  2.66
+  S400   89.6  90.03  +0.43   +0.90  no trimming needed   2.000  1   0.87->1.00  1.86   0.84      -415k  0.55
+  S410   99.0  99.90  +0.90   +0.85  no trimming needed   2.000  1   0.89->1.00  1.81   0.83      -187k  1.05
+  S414   91.8  92.83  +1.03   +1.20  no trimming needed   2.000  1   0.89->1.00  0.94   0.95      -836k  0.62
+
+----------------------------------------------------------------------------------------------------
+WHAT I DID NOT DO
+
+  Not merged to main. Not re-specified condition 1b to make it pass. The standing instruction was that
+  a failed condition is recorded and the run stops rather than being tuned until it passes, and the
+  judgement about whether the guard is wrong for the tiers world belongs to the maintainer, not to the
+  person who wrote both the guard and the run.
+
+  Left open: the 0.70 mean share of years at a de-risked tier (condition 4's ungated figure); S268 and
+  S292 as the two households nearest every edge in both runs; and whether the guard should be measured
+  on the search sample it was optimised against rather than the held-out one.

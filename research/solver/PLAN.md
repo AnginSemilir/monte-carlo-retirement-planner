@@ -1098,6 +1098,27 @@ per household of (flex-tiers minus flex-landed), which is what the tier freedom 
 spending. If 2 fails because the tiers trade spending for pot, that is a finding about the objective,
 not a bug, and the preset copy has to say so.
 
+**Run 22 Sep, 01:42 to 13:05 UTC, 43.6 core-hours (`results-p6b-flex-tiers.txt`). Conditions 2, 3 and 4
+pass; condition 1's over-trim clause fails as written on 9 of 41. Not merged, not re-specified.**
+
+- 1a lands 41 of 41, margin +0.27 to +3.00, mean +1.33. 1b (nothing more than 2 points above the ask)
+  fails on nine. Seven of the nine took no trimming at all - lambda at the bracket **top**, one solve,
+  zero trims - which is the case C4b was not written for: it excuses the bracket bottom, and flex-landed
+  had 0 of 41 needing no trimming against this run's 18 of 41. The other two, S268 (+2.73) and S292
+  (+2.37) on the held-out sample, are +1.40 and +0.73 on the 5,400 search paths the landing actually
+  optimised against, and both trim *less* than they did in flex-landed. Nothing over-trimmed; the clause
+  still failed, and re-specifying a pre-registered condition after seeing the numbers is not mine to do.
+- 2 passes: years at or above target +0.125 (30 up / 1 down, p = 0.000); spending delivered +0.001 on the
+  mean but 15 up / 23 down, so tiers buy consistency of spending rather than more of it.
+- 3 passes at 1.80x mean (gate 2.5x), cheaper than expected because 18 of 41 need one solve instead of
+  five. 4 passes at 1.57 tier changes a retirement (gate 3).
+- The headline is the fully-funded rate against the guardrails: +54.93 points, 37 up / 4 down, p = 0.000,
+  where flex-landed managed +13.43 at p = 0.755. The pot falls £870k against flex-landed, 3 up / 38 down,
+  which is the tier trade Phase 6 already measured at £917k and not larger.
+- Left open, ungated and worth a read before any preset ships: the solver holds a de-risked pension tier
+  for 0.70 of retired years on the mean and up to 0.97. That is not de-risking with age, it is a
+  different portfolio for most of retirement, and the copy cannot call it a glidepath if it is not one.
+
 ---
 
 ## Part C. The app (phases 7 to 12), behind a switch
@@ -1470,7 +1491,7 @@ solver change.
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | **done, survival conditions met**: +0.77 vs the best fixed rule on 19 couples, 14 up / 3 down, worst −0.85; tiers off for couples; backtest and perturbed worlds not yet run | 1× |
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
-| 6b | flexible spending and tiers together | gate 6b: lands on 41, not below flex-landed on years at target or spending delivered, ≤2.5× cost, ≤3 tier changes; pre-registered, not yet run | 1× |
+| 6b | flexible spending and tiers together | **run 22 Sep**: conditions 2 (years at target +0.125, 30 up / 1 down), 3 (1.80× of 2.5×) and 4 (1.57 changes of 3) pass; **condition 1b fails as written on 9 of 41**, seven of them households that took no trimming at all and two that are inside the bound on the sample the landing optimised. Fully-funded rate +54.93 vs the guardrails (p = 0.000) against flex-landed's +13.43 (p = 0.755); pot −£870k, the tier trade Phase 6 measured at −£917k. Recorded, not tuned, not merged | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

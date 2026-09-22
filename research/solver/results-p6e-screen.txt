@@ -1,0 +1,88 @@
+PHASE 6e STAGE 1: THE GRID-FIDELITY SCREEN
+====================================================================================================
+
+Pre-registered 22 Sep in PLAN.md Phase 6e, before any code, from the constants audit. Twelve households
+worst affected on the unrealised-gain axis, each at the lambda it LANDED at in flex-tiers rather than
+re-searched, so every cell is one solve. Four arms, 48 cells. Run from snapshot /tmp/solver-snap-KQzqPw
+(commit 0f0c369), 22 Sep 21:23-23:34 UTC, 2.2 hours on four cores, 685 s a cell. Reducer
+(research/solver/reduce-6e.mjs) written and committed BEFORE the first record landed.
+
+VERDICT: QUIET. Every arm inside 2% of the current build on every household. Stage 2 does not run.
+
+    arm                            worst median-pot move
+    re-spaced 0.10/0.45/0.80       -1.74%  (S292)
+    gain interpolated              -0.22%  (S184)
+    lump flag from state           +0.00%  (identical on all twelve)
+
+Not one household's years-at-target moved at all, on any arm. Floor rates moved by at most 0.17.
+
+----------------------------------------------------------------------------------------------------
+WHAT THIS SETTLES
+
+The unrealised-gain axis tops out at 55% while households reach 89%, and 70% of GIA-holding
+household-years snap more than five points from the truth. Both facts stand - they were measured. What
+the screen adds is that **neither changes the answer**: moving the ceiling to 0.80 costs at most 1.74%
+of median pot, and removing the snap entirely costs at most 0.22%.
+
+So the buckets [0.05, 0.25, 0.55] now stand on evidence rather than on nobody having looked. That is a
+different and better position than the one the audit found them in, and it is the whole return on the
+2.2 hours.
+
+**Consequences, all of them subtractive, which is the point of a screen:**
+  - 6e stage 2 (~13 h wall) does not run.
+  - E3 and E4 are sized against a grid that is not going to grow: no fourth gain bucket, so E3's
+    30.2% is not cancelled by a 33% cell increase.
+  - Task #125 expires. 6c's failure on S390 stands unexplained by the gain ceiling, and nothing is
+    owed: no fresh 6c run, because the fix that would have triggered it is not happening.
+  - The audit's findings 1 and 2 close as recorded-and-checked rather than recorded-and-pending.
+
+----------------------------------------------------------------------------------------------------
+THE ONE RESULT I DID NOT TAKE AT FACE VALUE
+
+The lump-flag arm returned +0.00% on all twelve, to the pound. An arm that changes nothing on every
+household is as likely to be an arm that never applied - two tests earlier this week were vacuous in
+exactly that way - so it was checked rather than accepted.
+
+  - the knobs recorded in every record say `pclsStrict: true`, so the flag was set;
+  - walked forward, S172 spends 38 of its 40 years with between 0 and 25% of its allowance used, and
+    the strict rule reads a DIFFERENT CELL in all 38. S410: 38 of 46, likewise. **The arm bit.**
+  - and the value at those cells is identical to four decimal places on survival and to the pound on
+    bequest. The read moved; the answer did not.
+
+That raised a bigger question - if the lump-sum axis makes no difference, it is a whole grid dimension
+tripling the cell count for nothing, which would dwarf E3 and E4 together. **Tested, and the answer is
+no.** Reading one table at the same position across its three buckets, over every cell and year:
+
+    id     worst survival spread    worst bequest spread    cells where the chosen MOVE differs
+    S172        5.840 pts                  7.178%            5,247 of 86,400   (6.07%)
+    S184        5.522 pts                  7.948%            5,472 of 88,560   (6.18%)
+    S300      100.000 pts                 11.477%            6,116 of 131,760  (4.64%)
+    S390       14.194 pts                  4.666%            5,618 of 99,360   (5.65%)
+
+The axis carries real information; S172's and S410's own positions simply sit where two of its buckets
+agree. **The idea of collapsing it is dead, killed on evidence, and recorded here so nobody has it
+again.**
+
+----------------------------------------------------------------------------------------------------
+THE LIMITATION, STATED RATHER THAN BURIED
+
+**The twelve were chosen as worst on the GAIN axis, not the lump-sum axis.** Only two of the eight
+households the audit found sitting in lump-sum bucket 0 - S410 and S172 - are in this sample. So the
+gain arms were tested where they bite hardest, and the flag arm was not.
+
+The pre-registered gate was written over these twelve and its verdict stands as written. But the
+honest summary of the flag arm is **"no effect on two households chosen for something else"**, not
+"no effect". The remaining six - S374, S194, S206, S230, S218, S112 - are six cells, about seventeen
+minutes, and are run as a follow-up rather than claiming what has not been measured.
+
+----------------------------------------------------------------------------------------------------
+WHAT IT CANNOT SAY
+
+Lambda was HELD at each household's landed flex-tiers value, so the floor rate is not pinned, the arms
+are not compared at equal downside, and no figure here is a headline. It answers "does the ceiling
+matter", not "how much better is the solver".
+
+A cosmetic fault in the running snapshot: under SOLVERONLY the progress line read rival arms that were
+no longer being scored, so every cell wrote its record and then died on the console print. The records
+are complete - the write happens first - and the working tree was fixed rather than restarting 2.2
+hours of work for a print statement.

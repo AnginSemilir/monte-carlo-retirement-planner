@@ -990,17 +990,119 @@ the same household (the model-to-engine gap, reported per household).
 
 ### Phase 4. The versus study, and the decision: `research/solver/versus-solver.mjs`
 
-The same protocol as `research/policy-study/versus.mjs`: 40 households, half the library spread across
-it and half the FIRE cohort retiring at 52, plus the 20 cost variants from the lookahead study. Arm A is
-the current pipeline (policy search, then tournament, then the evolver where it applies). Arm S is the
-solver. Every finalist scored on a held-out seed at 3,000 paths through the real engine; the historical
-backtest run on both as the out-of-model check.
+**Rewritten 22 Sep, FOR APPROVAL, not yet approved.** The first draft inherited `versus.mjs`'s protocol
+wholesale: 40 households, arm A the current pipeline, arm S the solver, finalists scored on a held-out
+seed, gate on beating arm A by more than `RATE_EPSILON_PTS`. One part of that is right and worth keeping.
+Four parts would have made the headline number meaningless, and one of them would have made it
+meaningless in the solver's FAVOUR, which is the worse direction to be wrong in.
 
-**Gate 4, the decision:** the solver goes forward into the app only if, on held-out scoring, it beats
-the current pipeline by more than `RATE_EPSILON_PTS` on average, no household is worse by more than one
-point, the historical backtest is not worse on average, and the sign holds on the three perturbed
-engines of Phase 2c. Anything short of that and the write-up
-says why and the app is untouched.
+**What was right, and stays.** `versus.mjs` holds both arms out: "nothing either arm saw during its
+search is used to judge it". That matters because **arm A has an overfitting exposure the solver does
+not.** The policy search picks its winner on the same paths it scores on; the solver sees no paths at
+all while solving, because it integrates over a return distribution. `insample.mjs` says this in its own
+header. Holding both out is the fair treatment of an asymmetry that is real.
+
+#### The fault that mattered: survival rate cannot be the headline any more
+
+`RATE_EPSILON_PTS = 1.0` (`src/App.jsx:647`) and `versus.mjs`'s `rate = (st) => st.successRate` make
+Gate 4 a comparison of survival rates. That was defensible when both arms spent a fixed amount. It is
+not defensible now, because **since 6b the solver flexes spending**, and a plan that cuts spending
+survives more. Scoring on survival alone does one of two things and we cannot tell which:
+
+- it FLATTERS the solver, which bought survival with spending the household wanted; or
+- it HIDES the solver's real gains, which in 2d were years at target and spending delivered, not
+  survival.
+
+Either way the number decides a shipping question it cannot answer.
+
+**The replacement is not new and does not need inventing: it is 2d's, which is Pfau's.** Hold the floor
+rate EQUAL, then ask who delivered more. 2d ran exactly this and the headline held at equal downside -
+more years at target on 33 of 34, median 0.85 against 0.51. Phase 4 adopts it:
+
+> **Both arms are landed to the same ask before anything is compared.** The solver lands by bisecting
+> its trim penalty, as it does today. Arm A lands with the app's own `optimizeSpend`, which is built to
+> hit a target survival rate and is what the app actually ships. Survival is then EQUAL BY
+> CONSTRUCTION and stops being the headline: it becomes the precondition that makes the rest
+> comparable.
+
+**What is compared, once they are level.** Reported for every household, median run and unlucky tenth:
+
+| Measure | Why it is here |
+|---|---|
+| **years at or above the spending target** | 2d's headline; what the household experiences |
+| **total spending delivered** (mean level over the retired years) | 2d finding (b): years at target alone can be gamed by many tiny trims |
+| **median terminal net estate** | the bequest side, at the declared weight below |
+| **lifetime tax** | the solver's claimed edge is partly wrapper order; this is where it shows |
+| **changes of plan** (whipsaw) | a policy nobody can follow is not a policy |
+| **floor rate delivered vs asked** | the landing's own honesty, both arms |
+
+#### The other four corrections
+
+**1. Arm A gets the same freedoms, declared before the run.** Arm S flexes spending and changes risk
+tier. Arm A therefore runs with **guardrails ON** and the one-off cost lookahead at whatever the
+lookahead study settled. Anything less is not the current pipeline at its best, and beating a hobbled
+opponent proves nothing. Both arms' full configuration is written into the results file before the
+first household runs.
+
+**2. Two panels, and the gate is judged on ONE of them.** Every knob the solver has - `wR = 0.5`,
+`wB = 0.02`, the bequest cap's 4x, the level menu, margin 0.005, raise 0.003, and whatever 6e settles -
+was tuned on the clean 41, drawn from this library. Scoring the solver where it was fitted is not a
+test of anything.
+
+  - **Panel H, held out.** 40 households, **none of which has appeared in any tuning run**: the clean
+    41 and every household used in 2c, 2d, 6b, 6c, 6d or 6e are excluded by id. Half from the library
+    spread across it, half from the FIRE cohort retiring at 52, plus the 20 cost variants from the
+    lookahead study. **Gate 4 is judged on Panel H alone.**
+  - **Panel T, the tuning set.** The clean 41, run identically and reported beside it, for continuity
+    with everything already measured.
+
+  **The gap between the panels is itself a result.** If the solver's edge on Panel T is materially
+  larger than on Panel H, the knobs are overfitted and the write-up says so in those words, whatever
+  the gate says. That comparison is the only honest use the tuning set has left.
+
+**3. A third seed, used for nothing else, ever.** The solver lands on 7001 and verifies on 7002. Arm A
+searches on its own. Phase 4 scores both on **seed 7003 at 3,000 paths**, which no arm has seen at any
+point in this project. It is reserved here and must not be used for tuning afterwards, or the next
+study has the same problem.
+
+**4. Cost is reported, not equalised - and it can fail the phase on its own.** Equalising compute would
+be artificial: the question is whether the solver is worth building, and it is allowed to cost more.
+But it is NOT allowed to cost more than the app can pay. So the study reports core-seconds and wall
+time per household for both arms, and adds a product condition to the gate: **a solver that wins on
+accuracy but cannot run inside Phase 7's worker budget has not passed.** That is a real outcome, not a
+technicality - a ten-minute answer is a different product from a ten-second one.
+
+**And the one 6d already flagged.** The study runs at ONE declared bequest weight, chosen from 6d's
+result, written into the plan with its reason BEFORE the first household runs. That weight is the
+number every headline figure in this study is measured at, and changing it afterwards invalidates the
+study rather than improving it.
+
+#### Gate 4, the decision
+
+Judged on **Panel H**, at the declared weight, on seed 7003:
+
+1. **Level downside.** Both arms land within 0.5 of the ask on at least 38 of 40. A household where
+   either arm cannot land is reported separately and excluded from 2 to 4, because an unlanded arm is
+   not at equal downside and nothing below means anything for it.
+2. **The headline.** The solver delivers more years at or above target in the median run, on average
+   across Panel H, AND is not behind on total spending delivered. Both, not either.
+3. **No household badly hurt.** No household is worse by more than one point of floor rate, nor by
+   more than 5% of total spending delivered.
+4. **It survives the out-of-model checks.** The historical backtest is not worse on average, and the
+   sign of the result holds on all three perturbed engines of Phase 2c.
+5. **It fits the product.** Solve time per household is inside the budget Phase 7's worker sets, at the
+   resolution the study ran at.
+
+**Pass on all five**: the solver goes into the app behind the Part C switch. **Fail on 5 alone**: the
+accuracy result stands and is written up, and what ships is a question of resolution and speed, not of
+method - Part E's remaining work becomes the blocker rather than the science. **Fail on any of 1 to
+4**: the app is untouched and the write-up says which condition failed and by how much. **If a
+condition fails I record it and stop rather than tune until it passes.**
+
+**What this study cannot decide.** It compares the solver against THIS pipeline on THIS library. It
+does not establish that the solver is the best available method, only that it is better than what is
+shipped, on households that look like these. The FIRE cohort is in Panel H precisely because it is the
+furthest from the library's centre; if the result holds there it travels further than if it does not.
 
 ---
 
@@ -2040,7 +2142,7 @@ though the speed work comes first. It does not. This is the schedule; the table 
 | then | **6d stage 2**, a few hours | The promise, landed at the two extreme weights, only if stage 1 is healthy. |
 | then | **E2**, split the cells across cores | **Designed with Phase 7's worker plumbing, not before it.** Concurrency is the one place a passing test is not proof: a race can pass a hundred times and fail on the hundred-and-first, so bit-equality here is evidence rather than a guarantee. It also needs infrastructure Phase 7 builds anyway, and doing that twice is waste. |
 | then | **E1**, candidate-set search | **Deliberately last of the speed work.** Its gate is a paired comparison against the gate 6b results, and if the objective moves those results stop being the baseline. Running it before the objective settles means measuring against a reference about to be replaced, then running it again. |
-| then | **Phase 4**, the versus study | Once the speed work has landed, so the decision gate is run once at the lower cost. |
+| then | **Phase 4**, the versus study | Once the speed work has landed, so the decision gate is run once at the lower cost. **Rewritten 22 Sep and awaiting approval**: survival rate can no longer be the headline now that the solver flexes spending, so both arms are landed to the same ask first and judged on years at target and spending delivered, on a held-out panel of 40 households that no tuning run has touched, at seed 7003. |
 
 **E3 and E4 run BEFORE 6d; E2 waits for Phase 7. Maintainer's decision, 22 Sep, against my
 recommendation, which is recorded here rather than quietly replaced.** I argued they should wait: 30%
@@ -2075,7 +2177,7 @@ to compare against.
 | E3 | collapse the dimensions that describe an empty pot | gate E3: bit-equal, and the copied cells equal the computed ones; **30.2% of cell work removable, measured from the grid** | 0.25× |
 | E4 | one interleaved value array instead of four | 8 cache lines a corner-read instead of 32; measure the access pattern before building, because cache guesses are the ones that come out wrong | 0.25× |
 | E1 | candidate-set search seeded from the following year | gate E1: lands on 41, paired with flex-tiers within the margins above, ≤0.5× cost; pre-registered, not yet run | 0.5× |
-| 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
+| 4 | versus study | **rewritten 22 Sep, awaiting approval.** Five conditions on a HELD-OUT panel of 40 households no tuning run has touched, at seed 7003, at one declared bequest weight: (1) both arms land within 0.5 of the ask on 38 of 40; (2) the solver delivers more years at target AND is not behind on total spending delivered; (3) no household worse by more than 1 point of floor rate or 5% of spending delivered; (4) historical backtest not worse and the sign holds on all three perturbed engines; (5) it fits Phase 7's worker budget. Survival rate is no longer the headline - both arms are landed to the same ask first, so it is equal by construction | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | **done, survival conditions met**: +0.77 vs the best fixed rule on 19 couples, 14 up / 3 down, worst −0.85; tiers off for couples; backtest and perturbed worlds not yet run | 1× |
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |

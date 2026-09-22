@@ -1186,6 +1186,49 @@ and is a fallback only if 6c and a `wB` decision together leave the behaviour un
 function of horizon, so this touches Phase 2, 2c, 2d and 6 as well as 6b. Nothing is restated until the
 gate is judged.
 
+### Phase 6c-screen. Is the curve's shape a free choice? A twenty-minute screen
+
+Written 22 Sep while 6c was still running, before any code. **The logarithm in 6c was asserted, not
+derived.** Its recorded justification is that it joins the straight part smoothly, never reaches zero,
+and holds a hundred-times-the-cap outcome to about 5.6 cap. Those are sanity conditions, and a whole
+family of curves satisfies every one of them. Nothing says why a logarithm, and nothing tests it.
+
+**Why that matters more than it looks: curvature and weight substitute for each other.** A gentle curve
+at a high weight and a steep curve at a low weight behave almost alike over the range households reach.
+So Phase 6d could pass on every condition - smooth, ends distinct, promise intact - while the curve
+beneath it is the wrong shape, because the weight sweep quietly compensated. "The lever works" would
+not then mean "the curve is right". This screen runs **before** 6d for exactly that reason.
+
+**The family.** Write the marginal value above the bend as `(C / net)^p`, integrating to
+
+    p = 1    soft(net) = C (1 + ln(1 + (net - C)/C))        the current logarithm
+    p != 1   soft(net) = C + C ((net/C)^(1-p) - 1) / (1 - p)
+
+Every member is C1-continuous at `C` with slope 1 from both sides, concave above it, and strictly
+increasing. `p = 0.5` bends gently and grows like the square root; `p = 2` bends hard and its total
+approaches `2C` without ever reaching it - a ceiling it never touches, which is the cap's intent with
+none of the cap's cliff. One parameter, so this is a sweep rather than a beauty contest.
+
+**The screen (tag beq-curve).** Four households where the cap binds hardest (S318, S330, S342, S354)
+and two where it barely does (S004, S206), at `p` in {0.5, 1, 2, 4}. **Lambda is held at each
+household's landed value from flex-tiers rather than re-searched**, so each cell is one solve instead of
+five to seven: 24 solves, about 68 core-hours minutes - 20 minutes on four cores.
+
+**What it decides, and it is a screen so it decides only this.**
+- **If the four shapes give near-identical policies and pots** (median pot within 2% across `p` on every
+  household), the shape is second-order, the logarithm stands on the evidence, and nothing more is spent
+  on it. Recorded and closed.
+- **If they differ materially**, the curve is a live variable, it must be chosen before anything ships,
+  and 6d's weight sweep cannot be read as validating the objective until it is.
+
+**What it cannot decide.** With lambda fixed the floor rate is not pinned, so the arms are not compared
+at equal downside and none of these numbers is a headline. It answers "does the shape matter", not
+"which shape is best". If the answer is that it matters, the proper study is a separate phase with its
+own landing, and this screen will have earned its cost by saying so for twenty minutes rather than
+thirteen hours.
+
+---
+
 ### Phase 6d. Two levers for the estate, and calibrating them
 
 Pre-registered 22 Sep, before any code, at the maintainer's direction. **Approved 22 Sep; parked the
@@ -1652,6 +1695,7 @@ solver change.
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 6b | flexible spending and tiers together | **run 22 Sep**: conditions 2 (years at target +0.125, 30 up / 1 down), 3 (1.80× of 2.5×) and 4 (1.57 changes of 3) pass; **condition 1b fails as written on 9 of 41**, seven of them households that took no trimming at all and two that are inside the bound on the sample the landing optimised. Fully-funded rate +54.93 vs the guardrails (p = 0.000) against flex-landed's +13.43 (p = 0.755); pot −£870k, the tier trade Phase 6 measured at −£917k. Recorded, not tuned, not merged | 1× |
 | 6c | the bequest shape: a shoulder, not a cliff | gate 6c: default bit-identical, `soft` equal below the cap and strictly increasing above, pot up on the 9 cap-binding households with no floor rate more than 0.5 lower, and bit-equality with the cap above the grid top (3b). Conditions 1 and 2 pass; condition 3's control clause was unsatisfiable as written and is corrected in place, with 8 of 12 reported | 0.5× |
+| 6c-screen | is the curve's shape a free choice? | 20 minutes at fixed lambda: if the median pot is within 2% across p on every household the logarithm stands, otherwise the curve is a live variable and 6d cannot validate the objective until it is settled; runs before 6d | 0.1× |
 | 6d | two levers for the estate, and calibrating them | **approved 22 Sep**, gate 6d: monotone, ends distinct on 6 of 8, the promise holds at every weight including zero; plus whether re-weighting without a re-solve is close enough to make the lever instant; pre-registered, not yet run | 0.5× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |

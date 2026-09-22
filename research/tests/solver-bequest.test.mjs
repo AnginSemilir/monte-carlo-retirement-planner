@@ -118,7 +118,7 @@ console.log('=========== D. THE EXACT CONTROL: NO SHOULDER ABOVE THE GRID ======
     && hard.resil.every((v, t) => same(Array.from(v), Array.from(soft.resil[t])))
     && hard.short.every((v, t) => same(Array.from(v), Array.from(soft.short[t])));
   ok('D1  with the cap above the top of the grid, cap and soft are bit-identical: the shoulder cannot reach',
-    eq, `cap £${(HIGH / 1e6).toFixed(0)}m against a grid top of £${(Math.max(60 * m.ctx.yr.spend.find(x => x > 0), 6 * open) / 1e6).toFixed(2)}m`);
+    eq, `cap £${(HIGH / 1e6).toFixed(0)}m, far above this household's grid top of at most £${(6 * open / 1e6).toFixed(2)}m or 60 years of spending`);
   // and the guard on the guard: at the REAL cap the two must differ, or D1 proves nothing
   const realHard = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum });
   const realSoft = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, bequestShape: 'soft' });

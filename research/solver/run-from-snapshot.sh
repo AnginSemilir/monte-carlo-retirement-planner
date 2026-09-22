@@ -16,6 +16,30 @@
 #
 set -euo pipefail
 REAL="$(cd "$(dirname "$0")/../.." && pwd)"
+#
+# ONE EXPERIMENT AT A TIME, ENFORCED RATHER THAN REMEMBERED.
+#
+# The box has four cores and a batch takes all of them. Two batches at once do not take two hours each
+# instead of one - they thrash, and if they share a tag they race on the same result files and the
+# output is not trustworthy.
+#
+# That happened on 2026-09-22 and it did not look like a mistake at the time. The launch was written
+# as `A && B && nohup ... & sleep 20; head ...`, and bash applies the `&` to the WHOLE `&&` list, so
+# the variable assignment happened inside the background subshell and the foreground `head` failed on
+# an empty path. The launch had worked; only the confirmation had not. A second batch went on top of
+# the first, and eight jobs ran on four cores for six minutes before anyone noticed.
+#
+# A discipline that depends on reading a launch command correctly is not a discipline. This is a lock.
+#
+LOCK="${TMPDIR:-/tmp}/solver-experiment.lock"
+if ! mkdir "$LOCK" 2>/dev/null; then
+  echo "=== REFUSED: an experiment is already running (lock $LOCK)" >&2
+  echo "=== $(cat "$LOCK/what" 2>/dev/null || echo 'unknown command')" >&2
+  echo "=== if that is stale - nothing in ps - remove the lock: rm -rf $LOCK" >&2
+  exit 1
+fi
+echo "$* (pid $$, started $(date -u +%Y-%m-%dT%H:%M:%SZ))" > "$LOCK/what"
+trap 'rm -rf "$LOCK"' EXIT INT TERM
 SNAP="$(mktemp -d "${TMPDIR:-/tmp}/solver-snap-XXXXXX")"
 cp -r "$REAL/src" "$REAL/research" "$REAL/package.json" "$SNAP"/
 # results go back to the real tree; node_modules is large, unchanging and shared

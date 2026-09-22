@@ -1701,6 +1701,98 @@ worth the extra step.
 **Not attempted:** sharing flows across the landing's five to seven solves, which are also identical in
 flow, because it means holding every year's post-decision states at once - about 1 GB at 30 points.
 
+### Phases E2 to E4. What is left after E0, all exact
+
+Written 22 Sep, after E0 landed and with its lessons applied. E0 moved the target: with tiers on the
+profile was flow 29% / nodes 59% / other 12%, and sharing the flow three ways leaves roughly **flow 12%,
+nodes 73%, other 15%**. The node loop is now the whole game, and its hot centre is `readValues` -
+locate, eight corner reads across four separate arrays, eight weight products, and an `expit` - called
+once per node per action per world per cell per year. On S004 at 30 points that is of the order of a
+billion calls.
+
+**What is NOT available, said once so it is not re-proposed.** A cheaper `expit`, or three quadrature
+nodes instead of five, or fewer share points: each changes the answer, and the standing rule is that
+speed is not bought with accuracy. The certain-success shortcut was tried and retired (see
+`zeroGrowthNeed` in `grid.js`); it is not revived here without new evidence.
+
+---
+
+**Phase E2. Split the cells across cores.** The biggest exact win left, and worth more than E0 and E1
+together. Within a year every cell is independent: it reads only next year's tables, which are complete
+and read-only, and writes only its own index. Split the 12,960 cells across N workers and synchronise
+once a year. Near-linear in cores - **about 4x here, more on a modern laptop** - and bit-exact, because
+each cell computes precisely what it computes now.
+
+The plan already carried "one world per thread" as a Phase 7 idea worth 2 to 3x. Splitting cells is
+strictly better: it is not capped at three, and **it composes with E0** rather than competing with it -
+E0 merged the worlds, E2 splits the work underneath them. In research runs that is `worker_threads` over
+a `SharedArrayBuffer`; in the product it is the Phase 7 worker plumbing, so the two should be designed
+together rather than twice.
+
+**Gate E2.** Bit-equality against the single-threaded build on two households, tiers off and on; the
+same at two different worker counts, because a result that depends on how the work was divided is a
+race. Reported: wall clock at 1, 2 and 4 workers, and the efficiency (speedup divided by workers), since
+falling well short of linear means the year barrier is costing more than the split saves.
+
+---
+
+**Phase E3. Collapse the dimensions that describe an empty pot.** Exact, contained, no new
+infrastructure, and **measured at 30.2% of the cell work** on the shipping grid.
+
+The grid carries three embedded-gain buckets and three lump-sum buckets. The gain bucket describes the
+taxable account; where that account is empty the three buckets are the same state and the three
+solves are the same arithmetic. The lump-sum bucket describes the pension; where the pension is empty,
+likewise. On the 6 x 6 share plane the taxable account is empty on 11 of 36 cells (a = 1 or b = 1) and
+the pension on 6 of 36 (a = 0), so:
+
+    gain redundant   20.4% of cell work
+    pcls redundant   11.1%
+    less the overlap  1.2%
+    ------------------------
+    removable        30.2%, exactly
+
+Compute one bucket at such a cell and copy it to the others. The values stored are the values that
+would have been computed, so interpolation from neighbours is unaffected.
+
+**Gate E3.** Bit-equality on two households, tiers off and on - and specifically **a check that the
+copied cells equal the computed ones**, which is the assertion that fails if "empty pot" has been
+mis-identified. Reported: the measured saving against the 30.2% predicted here, since a prediction from
+cell counts ignores that the skipped cells may be cheaper or dearer than average.
+
+---
+
+**Phase E4. One interleaved value array instead of four.** `readValues` accumulates from `lsArr`,
+`bArr`, `lrArr` and `shArr` at the same index: four arrays, four places in memory, eight corners, so up
+to 32 cache lines a call. At 30 points each array is 78 KB, so the four together miss L1 (32 to 48 KB) on
+every read. Store the four values for a cell adjacently - value `v` at `4i + v` - and one corner is four
+consecutive doubles, 32 bytes, one line: **8 lines a call instead of 32**. Identical arithmetic in an
+identical order; only the storage changes.
+
+**Measure before building.** E0's forecast was beaten because the structure was chosen from a sizing
+calculation rather than a guess, and the honest lesson is the other way round too: cache guesses are
+exactly the guesses that come out wrong. Time a loop reading four separate arrays against one
+interleaved array, at this size, on this machine, before touching `grid.js`. A morning's work if the
+number is good; nothing if it is not.
+
+---
+
+**Considered and not queued.** Dominance pruning - if one action leaves more in every pot at the same
+spend level and tier it cannot lose, which is exact given monotonicity in wealth - but most draw orders
+trade one pot against another, so strict dominance is probably rare; worth a counting experiment before
+any code. Duplicate post-states at low-wealth cells, where orders coincide because the pots they differ
+over are empty: the comparisons may cost more than the evaluations they save. A WebAssembly inner loop:
+plausibly 2 to 3x and exact if written carefully, but a large project and a second implementation of the
+hottest code to keep in step.
+
+**Order and timing.** E2 is worth the most and needs designing with Phase 7's worker plumbing rather
+than separately. E3 is the best value for a contained change. E4 is cheap to test and cheap to abandon.
+**None of them should delay 6d**: 6d's first stage is one to two hours, so 30% would save twenty
+minutes, and 6d answers a product question that has been open all day. These are all bit-exact, so
+unlike a heuristic they can land after 6d without invalidating its baseline - which is precisely the
+argument that let E0 run early, read the other way round.
+
+---
+
 ### Phase E1. Candidate-set search seeded from the following year (heuristic)
 
 **What was seen** (`policy-shape.mjs`, S004, 22 Sep, tiers and levels on). Along wealth a cell agrees
@@ -1810,6 +1902,11 @@ though the speed work comes first. It does not. This is the schedule; the table 
 | then | **E1**, candidate-set search | **Deliberately last of the speed work.** Its gate is a paired comparison against the gate 6b results, and if 6c passes, `soft` becomes the default and those results stop being the baseline. Running it before the objective settles means measuring against a reference about to be replaced, then running it again. |
 | then | **Phase 4**, the versus study | Once E0 and E1 have landed, so the decision gate is run once at the lower cost. |
 
+**E2, E3 and E4 (the remaining speed work) sit after 6d**, not before it. They are all bit-exact, so
+unlike E1 they cannot invalidate a baseline and could run at any time - but 6d's first stage is one to
+two hours, so 30% would save twenty minutes, and 6d answers a product question that has been open all
+day. The exactness that let E0 run early is the same property that lets these wait.
+
 The distinction between E0 and E1 is the point: **exact work can run against a moving objective, measured
 work cannot.** E0's gate is arithmetic; E1's gate is a comparison, and a comparison needs a fixed thing
 to compare against.
@@ -1826,6 +1923,9 @@ to compare against.
 | 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
 | - | **maintainer, 22 Sep**: E0 and E1 run **before** Phase 4, so the decision gate is run once at the lower cost, not twice. **Rows here are in phase-number order, not running order** - see "What runs next, in order" above: E0 goes early because its gate is bit-equality and the objective cannot affect it, E1 goes after the 6-series because its gate is a paired comparison against a baseline the 6-series is still moving | | |
 | E0 | one flow per cell shared across the three worlds | **done 22 Sep, all four conditions**: K=1 bit-identical, the interleaved mixture bit-equal to three separate solves, flow calls 19,595,520 → 6,531,840 exactly, field check identical on three households. **Measured 1.66× tiers off, 1.33× on** against a 1.5×/1.2× forecast; the cache risk did not bite because a cell's flows are buffered and the worlds looped outside | 0.25× |
+| E2 | split the cells across cores | gate E2: bit-equal to the single-threaded build and to itself at two worker counts (a result that depends on the division is a race); near-linear, about 4× here; composes with E0 and should be designed with Phase 7's workers | 0.75× |
+| E3 | collapse the dimensions that describe an empty pot | gate E3: bit-equal, and the copied cells equal the computed ones; **30.2% of cell work removable, measured from the grid** | 0.25× |
+| E4 | one interleaved value array instead of four | 8 cache lines a corner-read instead of 32; measure the access pattern before building, because cache guesses are the ones that come out wrong | 0.25× |
 | E1 | candidate-set search seeded from the following year | gate E1: lands on 41, paired with flex-tiers within the margins above, ≤0.5× cost; pre-registered, not yet run | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |

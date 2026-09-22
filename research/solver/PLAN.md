@@ -1604,6 +1604,27 @@ tolerance.
 | the penalties `costOf`, `driftCostOf` | |
 | `scale`, `wR`, `wB`, `beqCap`, `resilK` | |
 
+**Granularity: buffer the flows per cell, loop worlds on the outside.** E0 does less arithmetic but
+touches more memory, and the second can eat the first. At 30 points each world's next-year tables read
+at the growth step - `lsurv`, `beq`, `lresil`, `short` - are 4 x 9,720 x 8 bytes = **311 KB**, which sits
+in L2. Interleaving naively, world-inside-action, makes the hot working set **933 KB** for three worlds
+and spills to L3. Removing a third of the work and giving it straight back in cache misses is a real
+outcome and the most demoralising kind: the arithmetic is right and the clock does not move.
+
+So the loop is: at a cell, compute all the flows once into a scratch buffer, then loop worlds outside
+and actions inside. The buffer is 216 actions x 7 doubles = **about 12 KB**, nothing, and each world's
+pass then reads only its own tables - today's access pattern exactly. It also makes condition 2 easier,
+since within a world nothing is reordered. A search of the cache-blocking and cache-oblivious DP
+literature (Intel's loop-interchange guidance; Lam et al. 1991; Chowdhury and Ramachandran 2006) offers
+the principle - maximise work done on data while it is resident - but nothing specific: that work is
+about recursive divide-and-conquer over DP *tables*, where the table walk is the cost, and here the
+transition function is the cost. The sizing above is ours.
+
+**De-risking step before the rewrite, twenty minutes.** Time a loop that reads three worlds' next-year
+tables against one that reads one, at 30 points, on this machine. If the difference is negligible the
+simpler world-inside-action structure is fine; if it is not, the buffered structure is built knowing
+why. A number rather than a guess, for the price of a coffee.
+
 **Design decision: one loop carrying K, not two loops.** The alternative - leaving `solve` alone and
 writing a second interleaved version - duplicates the hottest code in the project and guarantees the two
 drift apart. Factoring the per-cell body into a function to share it would put a call in the inner loop

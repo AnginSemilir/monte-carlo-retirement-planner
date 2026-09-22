@@ -10,7 +10,9 @@
  *
  * The rule is enforced in four places and all four compare the pot BEFORE death tax: the solver's
  * terminal node (`solve`), `runPolicy`, and the two forward runners in `experiment.mjs`. Comparing the
- * net pot instead would be a silent, plausible bug; A1 and A2 are written to catch it.
+ * net pot instead would be a silent, plausible bug; A1 and A2 are written to catch it. A2 has to set a
+ * death tax of its own to do so: every household in the library runs at a rate of zero, where the gross
+ * and net pots are identical and no assertion can tell which one the code compared.
  *
  * 19 of the 41 experiment households set one, from £35k to £1.08m, so every headline figure in the plan
  * was measured with this active on nearly half the sample.
@@ -25,12 +27,12 @@ const ok = (name, cond, note = '') => { if (cond) { passed++; console.log(`PASS 
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
 const base = singles.find(s => s.id === 'S004').plan;
 /* minPot: the MINIMUM POT. floorFrac: the SPENDING floor, as a share of target, or 0 for none. */
-const variant = (minPot, floorFrac = 0) => {
+const variant = (minPot, floorFrac = 0, deathTax = 0) => {
   const raw = JSON.parse(JSON.stringify(base));
   const target = E.num(raw.spending.targetSpend, 0);
   return E.resolveMpaa(E.normalizePlan({
     ...raw,
-    config: { ...raw.config, guardrails: false, lookaheadYears: 0, solvencyFloor: minPot },
+    config: { ...raw.config, guardrails: false, lookaheadYears: 0, solvencyFloor: minPot, pensionDeathTaxRate: deathTax },
     spending: floorFrac ? { ...raw.spending, floorSpend: Math.round(target * floorFrac), floorConfidence: 90 } : raw.spending
   }));
 };
@@ -50,10 +52,19 @@ console.log('=========== A. THE CONTRACT ON REPLAY (minimum pot) ===========');
   const bad = surv.filter(x => x.terminal < MIN - 1e-6);
   ok('A1  every surviving run ends with a pot at or above the minimum, measured BEFORE death tax',
     bad.length === 0, `${surv.length} survived of ${rs.length}, ${bad.length} below the minimum`);
-  // if the code compared the NET pot to the minimum, runs with gross >= min > net would be marked failed
-  const netBelow = surv.filter(x => x.terminalNet < MIN).length;
-  ok('A2  ...and the gross test is the one in force: survivors exist whose NET pot is below the minimum',
-    netBelow > 0, `${netBelow} survivors have a net pot below £${(MIN / 1000).toFixed(0)}k; comparing net would have failed them`);
+  /*
+   * A2 needs the gross and net pots to DIFFER, which needs a death tax: every household in the library
+   * runs at pensionDeathTaxRate 0, so gross === net and the first version of this assertion could never
+   * pass whatever the code did. It is set to 40% here purely so the two figures separate and the
+   * comparison in force can be identified. Without this the test would be vacuous rather than passing.
+   */
+  const DT = 40;
+  const { r: rDt } = solveAt(variant(MIN, 0, DT));
+  const sDt = zs.map(z => runPolicy(rDt, z)).filter(x => x.survived);
+  const band = sDt.filter(x => x.terminal >= MIN && x.terminalNet < MIN);
+  ok('A2  with a death tax on, the gross figure is the one compared: survivors exist whose NET pot is below the minimum',
+    band.length > 0 && sDt.every(x => x.terminal >= MIN - 1e-6),
+    `${band.length} of ${sDt.length} survivors sit at or above £${(MIN / 1000).toFixed(0)}k gross but below it net; comparing net would have failed them`);
 }
 
 console.log('=========== B. THE SOLVER RESPONDS TO IT ===========');

@@ -8085,7 +8085,8 @@ function WrapperStrategyTournament({ plan, ctx, seed, scenarios = [], activeScen
                     </div>
                     {res.searchResults && (
                       <details className="text-[10px] text-slate-500">
-                        <summary className="cursor-pointer font-semibold">Search results by {(res.searchAxis || 'candidate').toLowerCase()}</summary>
+                        <summary className="cursor-pointer font-semibold">Search results by {(res.searchAxis || 'candidate').toLowerCase()} &middot; {fmtNum(SEARCH_TRIALS)} paths each</summary>
+                        <p className="mt-1 not-italic">Search estimates, used only to choose between candidates. Picking the best of several on one sample flatters whichever the sample favoured, so the winner&rsquo;s figure here reads a little high. The headline figures above are the chosen plan re-scored on {fmtNum(TOURNAMENT_TRIALS)} paths, and those are the ones to read.</p>
                         <div className="grid grid-cols-4 gap-x-2 mt-1 font-mono">
                           {res.searchResults.map(r => <React.Fragment key={r.label}><span className={r.label === res.chosenLabel ? 'font-bold text-slate-800' : ''}>{r.label}</span><span>{r.successRate.toFixed(1)}%</span><span>{r.preAccess.toFixed(1)}% pre</span><span>{fmtK(r.p10)}</span></React.Fragment>)}
                         </div>

@@ -94,7 +94,8 @@ export function makeGrid(m, opts = {}) {
     else open.tax += a.balance;
   });
   // the top of each axis: generous, because a lucky path compounds far past where it started
-  const top = (v) => Math.max(opts.hiYears || 60, (v / spend) * (opts.headroom || 6));
+  // `??`, not `||`: a headroom of 0 is a real choice (a fixed ceiling), and `||` silently read it as absent.
+  const top = (v) => Math.max(opts.hiYears ?? 60, (v / spend) * (opts.headroom ?? 6));
   const axes = {
     pen: logAxis(np, spend * 0.1, spend * top(open.pen)),
     isa: logAxis(ni, spend * 0.1, spend * top(open.isa)),

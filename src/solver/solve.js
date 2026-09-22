@@ -44,6 +44,13 @@ import * as F from './fast.js';
  * per path rather than once per year - cannot be seen by a solver that has no memory of the path, so it
  * is folded into the annual spread instead. That makes the tails fatter, which is the safe direction.
  */
+/*
+ * A stamp written into every result record, so a run that straddles an edit is visible in the JSON
+ * instead of being reconstructed from process start times. Bump it whenever the solved policy or the
+ * landing can move. Experiments run from a snapshot of the tree; this catches it when one does not.
+ */
+export const SOLVER_VERSION = '2026-09-21.single-stage-landing';
+
 /* The score gain a tier change must beat to be made, once it is also paying its trades: a tenth of a survival point. */
 export const SWITCH_MARGIN = 0.001;
 
@@ -331,7 +338,7 @@ export function solve(E, M, plan, opts = {}) {
     if (shortfall) lresil[t].set(Rt); else toLogOdds(Rt, lresil[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
   const r = {
     m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin,
     tieMargin: opts.tieMargin || 0,
@@ -485,7 +492,9 @@ export function runPolicy(r, zs, opts = {}) {
   const real = new Float64Array(4);
   // the path's own long-run shift, drawn once (the engine keeps it after the yearly draws); nothing in fold mode
   const zPath = zs.length > T + 1 ? zs[T + 1] : 0;
-  let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null, switchPaid = 0;
+  // belowSum/aboveSum carry the level in the years it was under or over target, so the report can say how
+  // DEEP a trim was and how big a raise, not only how often each happened
+  let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, belowSum = 0, aboveSum = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null, switchPaid = 0;
   const held = { pen: 0, isa: 0 };   // the tiers held: the plan's until a move changes them
   for (let t = 0; t <= T; t++) {
     const ai = opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t, held);
@@ -494,7 +503,9 @@ export function runPolicy(r, zs, opts = {}) {
     { const a = c.acts[ai]; switchPaid += F.chargeSwitch(c, s, held, a); held.pen = a.tierPen; held.isa = a.tierIsa; if (a.tierPen > 0) tierPenYears++; if (a.tierIsa > 0) tierIsaYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
     if (c.yr.spend[t] > 0) {
       spendYears++; const lv = c.last.level; levelSum += lv;
-      if (lv >= 1 - 1e-9) atTarget++; if (lv > 1 + 1e-9) aboveTarget++; if (lv < minLevel) minLevel = lv;
+      if (lv >= 1 - 1e-9) atTarget++; else belowSum += lv;
+      if (lv > 1 + 1e-9) { aboveTarget++; aboveSum += lv; }
+      if (lv < minLevel) minLevel = lv;
       shortfall += (1 - Math.min(1, lv)) * (1 - Math.min(1, lv));
       // whipsaw: how often the year's spend level differs from last year's
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
@@ -504,7 +515,7 @@ export function runPolicy(r, zs, opts = {}) {
     F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai], t, zPath));
   }
   const total = s[0] + s[1] + s[2];
-  const spendStats = { spendYears, atTarget, aboveTarget, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid };
+  const spendStats = { spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid };
   if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, failYear: m.ctx.baseYear + T, failAge: m.ctx.ageSelf0 + T, preAccess: false, terminalNet: 0, terminal: 0, lifetimeTax, ...spendStats, fullyFunded: false };
   return { survived: true, failYear: null, failAge: null, preAccess: false, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax, ...spendStats };
 }
@@ -528,27 +539,128 @@ export function solveFlex(E, M, plan, opts = {}) {
   // held-out paths; `margin` asks for a little more than the confidence to land on it
   const confidence = (opts.confidence !== undefined ? opts.confidence : (probe.ctx.floorConfidence || 0.9)) + (opts.margin || 0);
   const tol = opts.tolerance !== undefined ? opts.tolerance : 0.005;
-  const zs = E.pathsForSeed(opts.seed || 4242, opts.searchPaths || 1000, probe.ctx.totalYears);
-  const floorRate = (r) => zs.filter(z => runPolicy(r, z).survived).length / zs.length;
-  // under the scenario mixture (opts.mix) every landing step solves K tables, so the floor rate it lands on is the engine's
-  const at = (lambda) => { const r = (opts.mix ? solveMixture : solve)(E, M, plan, { ...opts, spendLevels: levels, lambda }); r.floorRate = floorRate(r); r.solves = 1; return r; };
-  if (levels.length === 1) { const r = at(0); r.meta.landed = 'no floor'; return r; }
-  if (!levels.some(l => l < 1)) { const r = at(0); r.meta.landed = 'no floor'; return r; }   // raises only: nothing to land
+  /*
+   * ONE DRAW, TWO STAGES, AND THE SECOND ONE IS NOT OPTIONAL.
+   *
+   * This is the lesson `optimizeSpend` in the app learned the hard way, re-learned here. Bisecting on a
+   * small sample selects, among the lambdas near the boundary, whichever one that sample happened to
+   * flatter - the winner's curse - so re-measuring regresses, and always downward, because the selection
+   * was upward. Measured on the flex-mix pilot, which searched on 600 paths with seed 7001 and reported
+   * on 3,000 with 7002: the three households that missed all MET their ask on the search paths and came
+   * back 1.5 to 2.1 points below it on held-out, each about one standard error of a 600-path estimate.
+   * A floor promised at 92% that holds 91% of the time is not a rounding error.
+   *
+   * So: one draw throughout. `pathsForSeed` builds path i deterministically from the seed, so the search
+   * set is a genuine PREFIX of the verification set rather than a different draw, and stage 2 re-measures
+   * the chosen table on the whole of it, walking lambda down until the rate we are about to PROMISE
+   * clears the ask. What is returned in `floorRate` is what was checked; the search estimate that guided
+   * the bisection is kept beside it as `searchFloorRate`.
+   *
+   * The app splits its budget the other way round (cheap re-runs, expensive paths) because its "solve" is
+   * one more Monte Carlo. Ours is a table, or K tables under the mixture, so paths are nearly free here:
+   * 12,600 forward runs take under two seconds. Verification costs no solve at all unless it has to walk.
+   */
+  /*
+   * SINGLE STAGE BY DEFAULT, and the two-stage path below is kept only as the record of a loss.
+   *
+   * Bisecting on a cheap small sample and verifying the winner on a big one is the right shape when a
+   * try costs a simulation run - which is why `optimizeSpend` in the app is built that way. Here a try
+   * costs a SOLVE, three tables under the mixture, and the paths are nearly free beside it, so a noisy
+   * search lands in the wrong neighbourhood and the repair is paid in the expensive currency. Measured
+   * head to head on the two households the old landing missed by a point:
+   *
+   *            over the ask   years at target   solves   time
+   *   single       +0.80 / +0.13   0.86 / 0.97    7 / 7   2093s / 2814s
+   *   two-stage    +0.93 / +1.17   0.82 / 0.89   9 / 10   2989s / 4497s
+   *
+   * Single stage wins on all four, on both. So verifyPaths defaults to searchPaths, which makes the
+   * code below exactly one sample throughout, and stage 2 never runs. Raising verifyPaths re-enables
+   * it; do not, without re-running that comparison.
+   */
+  const nSearch = opts.searchPaths || 5400;
+  const nVerify = Math.max(opts.verifyPaths || nSearch, nSearch);
+  const zsAll = E.pathsForSeed(opts.seed || 4242, nVerify, probe.ctx.totalYears);
+  const zsSearch = nVerify === nSearch ? zsAll : zsAll.slice(0, nSearch);
+  const rateOn = (r, paths) => paths.filter(z => runPolicy(r, z).survived).length / paths.length;
+  let solves = 0;
+  const at = (lambda) => {
+    const r = (opts.mix ? solveMixture : solve)(E, M, plan, { ...opts, spendLevels: levels, lambda });
+    r.floorRate = rateOn(r, zsSearch); solves++; return r;
+  };
+  // the rate about to be promised, on the full draw the search set is a prefix of
+  const verify = (r) => { if (r.searchFloorRate === undefined) { r.searchFloorRate = r.floorRate; r.floorRate = rateOn(r, zsAll); } return r; };
+  const done = (r, landed, vSteps = 0) => {
+    r.meta.landed = landed; r.meta.solves = solves; r.meta.confidence = confidence;
+    r.meta.searchPaths = nSearch; r.meta.verifyPaths = nVerify; r.meta.verifySteps = vSteps;
+    r.meta.solverVersion = SOLVER_VERSION;
+    return r;
+  };
+  if (levels.length === 1) return done(verify(at(0)), 'no floor');
+  if (!levels.some(l => l < 1)) return done(verify(at(0)), 'no floor');   // raises only: nothing to land
   // the bracket: landings in the pilot sat between 0.05 and 0.5, so 0.005 to 2 reaches them in fewer solves
   let hi = opts.lambdaHigh || 2, lo = opts.lambdaLow || 5e-3;
   const rHi = at(hi);
-  let solves = 1;
-  if (rHi.floorRate >= confidence) { rHi.meta.landed = 'no trimming needed'; rHi.meta.solves = solves; return rHi; }
-  let best = at(lo); solves++;
-  if (best.floorRate < confidence) { best.meta.landed = 'confidence not reachable'; best.meta.solves = solves; return best; }
-  // best meets the confidence with heavy trimming; move lambda up while it still does
+  if (verify(rHi).floorRate >= confidence) return done(rHi, 'no trimming needed');
+  /*
+   * The bracket's bottom: the most trimming on offer, and what stage 2 falls back to.
+   *
+   * Reaching it is not a failure, and calling it one was misleading. On the clean 41, seven households
+   * ended here, every one with an ask between 97.6 and 99.0, and every one delivered within 0.37 of that
+   * ask; the reducer counted all seven as landings. What the bottom of the bracket means is that the ask
+   * PLUS the margin is more than trimming can buy, because the failures left at that level are ones no
+   * amount of trimming fixes. So the label says where the solve stopped and leaves the pass/fail to the
+   * caller, which judges the delivered rate against the ask on its own terms.
+   */
+  const rLo = at(lo);
+  if (verify(rLo).floorRate < confidence) return done(rLo, 'at the bracket floor');
+  let best = rLo;
+  // stage 1: find the neighbourhood on the search prefix, moving lambda up while it still meets the ask
   for (let k = 0; k < (opts.bisectSteps || 6); k++) {
     const mid = Math.exp((Math.log(lo) + Math.log(hi)) / 2);
-    const r = at(mid); solves++;
+    const r = at(mid);
     if (r.floorRate >= confidence) { lo = mid; best = r; if (r.floorRate - confidence <= tol) break; } else hi = mid;
   }
-  best.meta.landed = 'landed'; best.meta.solves = solves; best.meta.confidence = confidence;
-  return best;
+  /*
+   * Stage 2: re-measure on the full draw, and if the promise does not hold, bisect on the VERIFIED rate
+   * for the LARGEST lambda that still clears it - the least trimming that keeps the promise.
+   *
+   * Taking the first lambda that clears instead is the mistake this replaced, and it is a worse bug than
+   * the one it was fixing. The bracket bottom is ten to twenty times below where the answer sits, so one
+   * step of "halve the gap and accept" landed S004 at lambda 0.043 against the 0.45 it wanted: the floor
+   * cleared its 92.2 ask by two points, and the years at the full target fell from 1.00 to 0.61. Landing
+   * a floor by over-trimming spends exactly what the floor exists to protect.
+   */
+  verify(best);
+  let vSteps = 0;
+  if (best.floorRate < confidence) {
+    /*
+     * loL clears the ask, hiL does not, and the floor rate is smooth and monotone in log lambda between
+     * them, so interpolate for the crossing rather than bisect to it (regula falsi, the same idiom the
+     * app uses for the sacrifice curve). Bisection from a bracket bottom ten to twenty times below the
+     * answer needs four or five solves to get back up; interpolation usually needs one.
+     *
+     * DORMANT by default: verifyPaths equals searchPaths above, so one sample runs throughout and this
+     * never executes. If it is ever re-enabled, note that plain regula falsi can stall by replacing the
+     * same endpoint over and over on a curved function; at three steps that cannot bite, but raising
+     * verifySteps means switching to the Illinois modification (halve the retained endpoint's value
+     * each time it survives a step) rather than adding steps to this loop.
+     */
+    let loL = rLo.lambda, loR = rLo.floorRate, good = rLo;
+    let hiL = best.lambda, hiR = best.floorRate;
+    for (; vSteps < (opts.verifySteps || 3); vSteps++) {
+      const lgLo = Math.log(loL), lgHi = Math.log(hiL);
+      if (!(lgHi > lgLo + 1e-9)) break;
+      // where the straight line through the two verified points crosses the ask, then kept off the ends
+      const t = loR > hiR + 1e-12 ? (confidence - hiR) / (loR - hiR) : 0.5;
+      const lg = Math.min(lgHi - 0.05 * (lgHi - lgLo), Math.max(lgLo + 0.05 * (lgHi - lgLo),
+        lgHi + Math.min(1, Math.max(0, t)) * (lgLo - lgHi)));
+      const r = verify(at(Math.exp(lg)));
+      if (r.floorRate >= confidence) { loL = r.lambda; loR = r.floorRate; good = r; if (r.floorRate - confidence <= tol) break; }
+      else { hiL = r.lambda; hiR = r.floorRate; }
+    }
+    best = good;
+  }
+  return done(best, 'landed', vSteps);
 }
 
 function nearestIndex(g, s) {

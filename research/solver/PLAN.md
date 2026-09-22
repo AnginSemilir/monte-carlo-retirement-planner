@@ -692,8 +692,10 @@ gate, forecast and floor landing from here (`MIX=5`; `solveMixture`), the fold k
 cheap single-table option and for the app's first draft while the worker fan-out is built (Part C).
 The two versus results under the fold (p2-fold, p6-fold) stand as the quoted edges: they are paired
 forecasts, so the fold's small bias cancels between arms, and the engine edge (+1.62 against the plan's
-own rule, up on 31 of 41) is the product's number. Queued, not now: the spending pilot re-run under the
-mixture, whose floor landings are the one place the forecast's bias reaches a promise (5× cost).
+own rule, up on 31 of 41) is the product's number. The spending pilot re-run under the
+mixture, whose floor landings are the one place the forecast's bias reaches a promise, was run next: its
+first pass (tag flex-mix) found the landing itself was measured on the wrong sample and is shelved
+(`results-2d-flex-mix.txt`); the clean pass with the fixed landing is tag flex-landed.
 
 **The tier solver scored by the real engine (tag bridge-41-tiers; `results-p3-bridge-41-tiers.txt`).**
 The large edges had only been measured in the reduced model; this is the referee's number. Five-world
@@ -725,6 +727,63 @@ the split stays even is most wrong; a second rollout step, or tables solved at t
 tends to, are the candidates. The couples' edge is the singles' withdrawal-order edge in size (+0.86),
 which is what it should be: the tier freedom that gave the singles +6 is off for couples in this pilot.
 Cost: 81 s to solve the two people, 164 s to run 2,000 paths under the rollout.
+
+**Phase 2d under the mixture, clean (tag flex-landed; `results-2d-flex-landed.txt`).** The re-run with
+the fixed landing, from a frozen snapshot so all 41 share one solver. **It lands 41 of 41**, against 28
+of the 35 clean households in the shelved pilot; the margin runs from −0.27 to +2.10 with a mean of
++0.80, and nothing is short by more than a third of a point. The cost of keeping the promise is
+visible: lambda is 0.69 of what it was, so the solver trims about a third more, and paired on the 35
+the two runs share, years at or above target fall 0.037 and spending delivered 0.005. Against the
+guardrails at equal downside on the 41: floor rate +0.73, **years at or above target 0.849 against
+0.439**, spending delivered 1.101 against 1.012, 5.2 spend-level changes a run against 26.4, median pot
++£186k. Against Vanguard +3.50 on the floor with a £472k larger pot; against ARVA +7.53. One metric
+runs the other way and belongs in the product copy rather than a footnote: the fully-funded rate (never
+below target in any year) is +13.4 on the mean but 22 up / 19 down, p = 0.755, because the solver makes
+small adjustments across most futures while the guardrails leave good futures untouched and cut hard in
+bad ones. Cost 1.29× the pilot (5.0 solves a household, 26.6 core-hours for the 41), not the 2.2× first
+measured under contention. Seven households finishing at the bottom of the lambda bracket were
+mislabelled "confidence not reachable"; every one delivered within 0.37 of an ask between 97.6 and 99.0,
+and the label now reads "at the bracket floor" with no behaviour changed.
+
+**The floor landing was measured on the wrong sample (`results-2d-flex-landing.txt`).** In the
+flex-mix pilot three households missed their floor by about a point. None of it was the solver: all
+three MET their ask on the 600 search paths lambda is chosen on, and fell 1.5 to 2.1 points short on
+the 3,000 held-out paths it is judged on, each gap about one standard error of a 600-path estimate.
+`solveFlex` searched on seed 7001 and promised on 7002, which is the arrangement `optimizeSpend`
+already warns about in the app after the same bug was found there ("all twelve of twelve fixtures came
+back 0.5 to 2.4 points BELOW the target"). The low solve counts were a symptom: the bisection breaks as
+soon as the noisy estimate clears. Confirmed by brute force, search paths 600 to 5,400: all three land,
+at 2.2x the runtime. `solveFlex` now draws one sample so the search set is a prefix of the verification
+set, and re-measures the chosen table on the full draw before returning. The first version of that
+verification was a worse bug than the one it fixed, landing the floor by over-trimming on all three
+(lambda collapsing tenfold to the bracket bottom, the floor cleared by 2 to 7 points, years at the full
+target halving); stage 2 now interpolates for the crossing rather than bisecting to it. Two debts:
+single-stage at 5,400 paths is the proven option and the two-stage design must beat it head to head
+before it stays the default, and the unit suite passed both the broken version and the repair, so a
+landing assertion with teeth is owed. Audited the same pattern elsewhere: `optimizeSpend`,
+`safeRetirementAge` and the Monte Carlo spend dial all verify already; the tournament's headline is
+re-scored at 4,000 paths and only its search panel needed labelling; `pickFixed` is left alone because
+choosing the opponent on search data models what the app does for a user.
+
+**Experiments run from a snapshot, always.** `solve.js` was edited three times while the 41-household
+flex-mix run was in flight, and the batch spawns a fresh Node per household, so the run is a mix of
+three solver versions and is not reportable. The 33 that finished before the first edit are clean. Two
+rules follow: batch scripts copy the tree and run from the copy, and every result record carries a
+solver version stamp so contamination shows in the JSON instead of being reconstructed from process
+start times.
+
+**The grid's ceiling: the multiple stays (`results-grid-ceiling.txt`).** The wealth axis tops out at
+the larger of 60 years of spending and six times what the household opens with, so a wealthy
+household's axis stretches and its cliff is resolved by fewer points: 10 across 5 to 40 years of
+spending against 12 for a lean one, 11.22 on average over the 41. A fixed ceiling was tested against
+it on the six most-stretched households. It loses: at 60 years the table's bias is better on one and
+worse on three, and at 40 years it is worse on all six, by up to 10 points. Wealth that compounds
+past the top is clamped to the top point, so a tight ceiling makes the table pessimistic, and that
+costs more than the extra resolution buys. The best move was identical under all three ceilings, so
+the ceiling is a forecasting parameter, not a tactical one. Two bugs fell out: `opts.headroom || 6`
+read a headroom of 0 as absent, so the knob could not be set at all (now `??`), and `bias.mjs` and
+`diagnose.mjs` still allocated the 6-slot state vector that grew to 7 with the cash-ISA slot. One
+anomaly is logged and not chased: S126 reads 7.5% at its opening cell against 96.8% simulated.
 
 **Two corrections from gate 2's first run.** The certain-success bound in the plan was wrong for an
 invested pot: "no growth" is not the worst case when returns can be negative, and on a full solve
@@ -1006,6 +1065,39 @@ half of the phase as first written, the spend target as a seventh dimension, is 
 carries spend as levels on the move, and the safe spend and the age-against-spend grid can be read by a
 sweep of solves rather than a dimension; that is decided when Part C reaches them.
 
+### Phase 6b. Flexible spending and the tier as a move, together
+
+Pre-registered 21 Sep, before any run. The two presets ship together, off by default, so a household can
+turn on both; nothing above tests that. Phase 2d has spending flexible with the tier fixed, Phase 6 has
+the tier free with spending fixed, and their headline figures come from two solvers that have never
+been the same solver.
+
+**The run (tag flex-tiers, `batch-flex-tiers.sh`, from a snapshot, nothing else on the box).** The same
+41 households, seeds 7001/7002, 3,000 held-out paths, three-world mixture, 30 points, exactly the
+flex-landed configuration (levels 1.2/1.1/1/0.9/0.8, raise weight 0.003, CONF=gkFloor, margin 0.5pt,
+single-stage landing on 5,400 search paths) plus `TIERS=1`: joint steps, the switching cost, the
+worth-it margin. The ask is the guardrails' floor rate, which does not depend on tiers, so every
+household's ask is identical in flex-landed and flex-tiers and the two solvers can be compared
+household by household on the same paths.
+
+**Hypothesis.** De-risking narrows the spread of outcomes, so the floor is easier to hold and less
+trimming buys the same promise: with tiers on, years at or above target and spending delivered should
+rise at equal floor, and the median pot should not fall by more than the tier trade already seen.
+
+**Gate 6b passes when all four hold:**
+1. Landing: floor rate at or above each household's ask less 0.5 on all 41, and no household more
+   than 2 points above its ask (the over-trim guard, C4b in the suite).
+2. Against flex-landed, paired on the 41: years at or above target (median run) not lower on the mean,
+   and spending delivered (mean level, median run) not lower; sign test reported.
+3. Cost: solve time per household at most 2.5x flex-landed (Phase 6 measured the tier menu at 2x).
+4. Tier behaviour: at most 3 tier changes a retirement on the mean (Phase 6: 1.7), years below the
+   plan tier reported per household.
+
+Reported, not gated: the comparison against the guardrails at equal downside, and the decomposition
+per household of (flex-tiers minus flex-landed), which is what the tier freedom adds on top of flexible
+spending. If 2 fails because the tiers trade spending for pot, that is a finding about the objective,
+not a bug, and the preset copy has to say so.
+
 ---
 
 ## Part C. The app (phases 7 to 12), behind a switch
@@ -1249,13 +1341,14 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 1 | reduced model + golden test | **done**: exact to the pound, 29 assertions | 1.5× |
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
 | 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | **done**: edge grows in every perturbed world; shortfall adopted; (0.5, 0.02) confirmed; every loss named | 0.5× |
-| 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate | 1× |
+| 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate ; **re-run clean under the mixture with the fixed landing: lands 41 of 41, years at or above target 0.849 vs 0.439, spending delivered 1.101 vs 1.012, 5.2 changes vs 26.4, pot +£186k** | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | **done, survival conditions met**: +0.77 vs the best fixed rule on 19 couples, 14 up / 3 down, worst −0.85; tiers off for couples; backtest and perturbed worlds not yet run | 1× |
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
+| 6b | flexible spending and tiers together | gate 6b: lands on 41, not below flex-landed on years at target or spending delivered, ≤2.5× cost, ≤3 tier changes; pre-registered, not yet run | 1× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

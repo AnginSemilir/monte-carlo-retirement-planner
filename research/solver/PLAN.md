@@ -1238,6 +1238,17 @@ run would leave neither attributable.
 4. **Zero is safe.** At `bequestWeight` 0 the landing still converges, no household fails to solve, and
    nothing in the score is degenerate.
 
+   **Named before the run, because zero is not a neutral setting.** With the weight at zero the estate
+   contributes nothing to the score but still breaks exact ties (`solve.js`, the `b > bestB` clause), so
+   survival differences of any size beat estate differences of any size. That is structurally the
+   configuration Phase 2c replaced, and the note above the weights records what it did: *"with survival
+   strictly first and the bequest only breaking exact ties, ANY survival gain justified ANY bequest
+   loss, and the solver doubled a household's lifetime tax for a death-tax benefit that was zero."*
+   **Median lifetime tax is therefore reported at every weight**, and a return of that behaviour at zero
+   - tax sharply up against the other weights for no gain the household can see - fails this condition.
+   If it fails, the finding is that the lever needs a floor above zero, or that the tie-break should
+   scale with the weight, and either is a design decision rather than a tuning.
+
 **Reported, not gated, and the finding that decides the product shape:** whether the lever can be
 *instant*. The tables already carry survival, resilience and bequest separately and combine them at
 action selection, so a table solved at one weight can be re-scored at another without re-solving. That

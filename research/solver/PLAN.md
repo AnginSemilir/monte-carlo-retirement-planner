@@ -1404,18 +1404,44 @@ the box).** `batch-flex-tiers.sh`'s configuration exactly plus `SOLVER_SEARCH=ca
 SOLVER_ANCHOR=5`, so it pairs with flex-tiers household by household on the same ask and the same
 paths.
 
-**Gate E1 passes when all of 1 to 3 hold:**
-1. Landing: gate 6b's condition 1 (floor at or above the ask less 0.5 on all 41, none more than 2 over).
-2. Paired against flex-tiers on the 41: floor rate mean within ±0.25 points and no household more than
-   1.0 lower; years at or above target (median run) mean within ±0.02; spending delivered within
-   ±0.01; median pot mean within ±£50k.
-3. Cost: solve time per household at most 0.5× flex-tiers.
-4. Reported, not gated: the anchor-year disagreement rate (expected at or below 5% of cells), the mean
-   score gap at disagreeing cells, and the household with the worst disagreement, by name.
+**The standard, set by the maintainer 22 Sep: speed is not bought with accuracy.** E0 meets it by
+construction, because bit-equality is the gate. E1 cannot be proved exact - it is a heuristic, and a
+heuristic that never misses is a heuristic you did not need - so it has to meet the standard by
+measurement instead, and the margins below are set at the level where a difference stops being visible
+to the household rather than at the level where it stops being significant. E1 is not approved for
+being fast. It is approved only for being fast and indistinguishable, and the burden is on E1.
 
-**Decision.** Pass: `'candidates'` becomes the default and the full sweep stays as an option for anomaly
-checks. Fail: it stays off, the numbers are written here, and nothing is tuned to make it pass. Budget:
-step 0 minutes, step 1 a day, step 2 three to four hours if it works.
+**Gate E1 passes when all of 1 to 4 hold. Any one fails and it stays off.**
+1. Landing: gate 6b's condition 1 (floor at or above the ask less 0.5 on all 41, none more than 2 over).
+2. **No household is worse.** Paired against flex-tiers on the same 41, same asks, same paths: no
+   household's floor rate lower by more than 0.5 points - the landing tolerance itself, so a household
+   inside it is one whose promise is still kept - and no household's median pot lower by more than
+   £25k. A single household outside either is a fail, however good the means.
+3. **The means do not move.** Floor rate within ±0.1 points; years at or above target (median run)
+   within ±0.005; spending delivered within ±0.005; median pot within ±£25k. These are equivalence
+   bands, not significance tests: the claim being made is that the two solvers are the same, so the
+   burden is on E1 to fall inside them, and a wide confidence interval is a fail, not a pass. The sign
+   test on each measure is reported beside it.
+4. **The search itself does not miss.** On anchor years, where both searches run, the candidate set
+   contains the full sweep's best move on at least 97% of cells, and the mean score gap at the cells
+   where it does not is below 0.001 of the cell's score. This is the direct measurement, and it is the
+   one that would catch a loss the 41 happened not to show: the paired run says E1 did no harm to these
+   households on these paths, while the anchor report says how much room there was to do harm at all.
+   Reported beside it: the disagreement rate by household and the worst household by name.
+
+**Decision.** Pass on all four: `'candidates'` becomes the default and the full sweep stays as an option
+for anomaly checks. Fail on any: it stays off. **One pre-registered retry, declared here before the
+run**: `anchorEvery` 5 failing on 2, 3 or 4 may be re-run once at `anchorEvery: 2`, which trades speed
+for accuracy monotonically and is the one knob that does; the cost condition still has to hold at the
+new anchor. That is the only second run, it is declared now rather than chosen after seeing the
+numbers, and nothing else is tuned to make it pass. Budget: step 0 minutes, step 1 a day, step 2 three
+to four hours if it works.
+
+**Not available: an exact version.** A search that skipped moves with a proof they could not win would
+be exact, and would need an upper bound on an unevaluated move's score that costs less than evaluating
+it. The expensive part is the flow, and the flow is what such a bound would have to avoid computing, so
+any bound cheap enough to help is almost certainly too loose to skip anything. Noted here so the option
+is on the record as considered and rejected on its merits, not overlooked.
 
 **Alternatives considered, ranked below these, not queued.** Fewer share points (`SHARES=5` or `4`, no
 code: 1.44× or 2.25× on every phase): the share axes were never studied the way the wealth axis was,

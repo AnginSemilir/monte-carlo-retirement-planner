@@ -1098,6 +1098,78 @@ per household of (flex-tiers minus flex-landed), which is what the tier freedom 
 spending. If 2 fails because the tiers trade spending for pot, that is a finding about the objective,
 not a bug, and the preset copy has to say so.
 
+**Run 22 Sep, 01:42 to 13:05 UTC, 43.6 core-hours (`results-p6b-flex-tiers.txt`). Conditions 2, 3 and 4
+pass; condition 1's over-trim clause fails as written on 9 of 41. Not merged, not re-specified.**
+
+- 1a lands 41 of 41, margin +0.27 to +3.00, mean +1.33. 1b (nothing more than 2 points above the ask)
+  fails on nine. Seven of the nine took no trimming at all - lambda at the bracket **top**, one solve,
+  zero trims - which is the case C4b was not written for: it excuses the bracket bottom, and flex-landed
+  had 0 of 41 needing no trimming against this run's 18 of 41. The other two, S268 (+2.73) and S292
+  (+2.37) on the held-out sample, are +1.40 and +0.73 on the 5,400 search paths the landing actually
+  optimised against, and both trim *less* than they did in flex-landed. Nothing over-trimmed; the clause
+  still failed, and re-specifying a pre-registered condition after seeing the numbers is not mine to do.
+- 2 passes: years at or above target +0.125 (30 up / 1 down, p = 0.000); spending delivered +0.001 on the
+  mean but 15 up / 23 down, so tiers buy consistency of spending rather than more of it.
+- 3 passes at 1.80x mean (gate 2.5x), cheaper than expected because 18 of 41 need one solve instead of
+  five. 4 passes at 1.57 tier changes a retirement (gate 3).
+- The headline is the fully-funded rate against the guardrails: +54.93 points, 37 up / 4 down, p = 0.000,
+  where flex-landed managed +13.43 at p = 0.755. The pot falls £870k against flex-landed, 3 up / 38 down,
+  which is the tier trade Phase 6 already measured at £917k and not larger.
+- Left open, ungated and worth a read before any preset ships: the solver holds a de-risked pension tier
+  for 0.70 of retired years on the mean and up to 0.97. That is not de-risking with age, it is a
+  different portfolio for most of retirement, and the copy cannot call it a glidepath if it is not one.
+
+### Phase 6c. The bequest shape: a shoulder, not a cliff
+
+Pre-registered 22 Sep, after gate 6b and before any code. **This is an objective change, so it cannot be
+gated on the solver scoring better: the objective is what "better" means.** It is gated on the cliff
+being gone and on nothing else moving.
+
+**What 6b exposed.** The bequest term is `wB x min(net, 4 x openingWealth)`. Above four times opening
+wealth an extra pound of estate scores exactly zero, so the solver is *indifferent* there and will trade
+the pot away for any gain at all. Measured on the 41: the cap binds on **9 households** (all 52 or 61
+year horizons), and of the £35.9M of median pot the tiers gave up against flex-landed, **£12.8M sat
+above the cap and cost nothing in the score**. S354 went £7.31M to £4.69M with both ends above its
+£3.80M cap: the whole £2.6M was free. The other £23.1M was below the cap, priced, and chosen - that part
+is the objective doing what it was told, and it is a question about `wB`, not about the cap.
+
+The cap earns its keep. Survival and resilience are bounded; an estate is not, and an unbounded average
+is dominated by the lucky tail - a strategy leaving £200M in one future of a hundred beats one leaving
+£1M in all hundred on the mean. The fault is not that the solver stops chasing upside, it is that it
+stops caring *abruptly*.
+
+**The change.** `opts.bequestShape`, `'cap'` (today, the default) or `'soft'`:
+
+    soft(net) = net                                             for net <= cap
+              = cap x (1 + ln(1 + (net - cap) / cap))           for net >  cap
+
+Identical below the cap, C1-continuous at it (both one-sided derivatives are 1), and above it the
+marginal value decays like cap/net - always positive, never zero. An outcome a hundred times the cap
+scores about 5.6 cap, not 100, so the lottery ticket still loses. The same shape the raise credit
+already uses, for the same reason.
+
+**Gate 6c passes when all four hold:**
+1. Inertness: with `bequestShape` unset the tables are bit-identical to the current solver - `surv`,
+   `beq`, `resil`, `short` and `pol` on two households, tiers off and on.
+2. The transform itself: `soft` equals `cap` to the pound at every wealth at or below the cap, is
+   continuous and strictly increasing above it, and its slope at the cap is 1 from both sides.
+3. Field, on the 9 cap-binding households plus 3 controls whose grid never reaches the cap: median pot
+   rises on all 9, no household's floor rate falls by more than 0.5 points, and the 3 controls are
+   unchanged to the pound.
+4. Reported, not gated: how much of the £12.8M is recovered; the tier occupancy before and after; the
+   effect on all 41 when the full re-run happens.
+
+**Decision.** Pass: `'soft'` becomes the default, every headline figure from Phase 2 onward is restated
+under it, and the results files say which shape they were measured with. Fail: it stays off and the
+numbers are recorded. **If the pot recovers but the solver still holds a de-risked tier for most of
+retirement, that is the point at which `wB` is the question** - a preference, to be decided with the
+£23.1M in view, not guessed at now. The drift penalty (`driftWeight`, 2a94a4a) stays at zero throughout
+and is a fallback only if 6c and a `wB` decision together leave the behaviour unexplained.
+
+**Scope.** The cap binds wherever a household's grid reaches above four times opening wealth, which is a
+function of horizon, so this touches Phase 2, 2c, 2d and 6 as well as 6b. Nothing is restated until the
+gate is judged.
+
 ---
 
 ## Part C. The app (phases 7 to 12), behind a switch
@@ -1334,6 +1406,125 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 
 ---
 
+## Part E. Speed, measured
+
+Written 22 Sep while gate 6b was running, before any code. Nothing here runs until 6b has reduced and
+been judged, and nothing here touches `src/solver` while a run is live. **Ordered before Phase 4 by the
+maintainer, 22 Sep**: Phase 4 is the decision gate and the largest run left (60 households, both arms,
+about 15 hours on four cores at today's cost), and it is the one you least want to repeat over a
+configuration mistake. E0 is exact, so it cannot change what Phase 4 measures; E1 either holds its
+pre-registered margins or stays off. Whichever way E1 lands, Phase 4 runs once, after them, at whatever
+the cost then is. The profile (`profile.mjs`,
+22 Sep, S004 at 20 points) says where a solve goes: tiers off, flow 51% / node loop 39% / other 10%;
+tiers on, flow 29% / nodes 59% / other 12%. Both phases below attack those two shares, and they are kept
+apart on purpose: E0 is exact (the same tables to the bit, so its gate is equality and it needs no
+study), E1 is a heuristic (it can choose a different move, so its gate is a paired study on the 41 with
+a pre-registered loss it may not exceed). Not queued, only noted: the alternatives at the end.
+
+### Phase E0. One flow per cell, shared across the three worlds (exact)
+
+`solveMixture` calls `solve` three times, once per held shift, and each call recomputes every
+post-decision state. `F.flow(c, t, ai, post)` moves money within the year; the world's shift enters
+only the growth rates (`fast.js`, `shifted` and `nodeRealOfAt`), so the three tables compute identical
+flows and differ only from the growth step on. With tiers on, flow is 29% of a solve and two of the
+three copies are redundant, about 19% of the mixture's time; with tiers off, 51% and about 34%.
+
+**Change.** `solve` takes an optional list of held shifts and solves the K tables interleaved: for each
+year, each cell and each base move, one flow, then for each world the growth at that world's node rates
+and the read of that world's own next-year table. Each table's year t depends only on its own year t+1,
+so the tables are those of the three separate solves. `solveMixture` becomes a call of that form; the
+single-world path is untouched.
+
+**Gate.** Bit-equality: a unit test that the interleaved mixture and three separate solves give the same
+`surv`, `beq`, `resil`, `short` and `pol` on two library households at 20 points, tiers off and on; and
+a field check that `runPolicy` on S004, S178 and S184 gives the same floor rate to the hundredth. If the
+tables differ, the flow depends on the world after all: the item is dropped and the reason written
+here. Reported: solve time before and after, tiers on and off. Expected 1.2× (tiers on) to 1.5× (tiers
+off). Not attempted: sharing flows across the landing's five to seven solves, which are also identical
+in flow, because it means holding every year's post-decision states at once (about 1 GB at 30 points).
+
+### Phase E1. Candidate-set search seeded from the following year (heuristic)
+
+**What was seen** (`policy-shape.mjs`, S004, 22 Sep, tiers and levels on). Along wealth a cell agrees
+with its poorer neighbour on 70.7% of pairs. Against next year's table at the same cell, 94.5% of moves
+are identical, 96.8% share the draw order (the steps and the harvest key; nine of 216 moves share an
+order), 97.7% share the order of next year's move or of the poorer neighbour's; and only 65 of the 216
+moves are ever chosen anywhere. The node loop tries all 216 at every cell. Searching only upward from
+the neighbour (a monotone policy) was rejected: 29.3% of pairs switch, in both directions.
+
+**Step 0, reads, minutes, after 6b.** Repeat `policy-shape.mjs` on four households of different shape
+(S004 at 28 years, S184 at 41, S268 at 52, S330 at 61) at the shipping configuration (30 points, levels
+1.2/1.1/1/0.9/0.8, tiers on, λ from each household's flex-tiers record). Proceed only if "same draw
+order as next year OR as the wealth neighbour" is at or above 95% on all four; otherwise stop and
+report the numbers.
+
+**Step 1, implementation, after 6b, behind an option.** `opts.search: 'full' | 'candidates'`, default
+`'full'`, and `opts.anchorEvery`, default 5. In candidates mode the last year, year 0 and every
+`anchorEvery`-th year are full sweeps; at every other year a cell tries only its candidate set: every
+move sharing the draw order of `pol[t+1][idx]`, every move sharing the order of `pol[t][idx-1]` (the
+poorer wealth neighbour, already solved this year) and the plan's own move. On an anchor year the
+candidates are scored first and the full sweep after, and the cell is a disagreement when the full
+sweep's best is not in the candidate set; the disagreement rate and the mean score gap at disagreeing
+cells go into `meta.search`, with `anchorEvery` and the counts of candidate and full evaluations. Unit
+test: with `anchorEvery: 1` candidates mode equals full mode exactly, every year being an anchor.
+`experiment.mjs` passes `SOLVER_SEARCH` and `SOLVER_ANCHOR` through. Expected: about 15 candidates of
+216 at non-anchor years, so the flow and node work (88% with tiers on) falls to a fifth on four years in
+five, about 3× on a solve, less once E0 has taken its share.
+
+**Step 2, the run (tag flex-tiers-cand, `batch-flex-tiers-cand.sh`, from a snapshot, nothing else on
+the box).** `batch-flex-tiers.sh`'s configuration exactly plus `SOLVER_SEARCH=candidates
+SOLVER_ANCHOR=5`, so it pairs with flex-tiers household by household on the same ask and the same
+paths.
+
+**The standard, set by the maintainer 22 Sep: speed is not bought with accuracy.** E0 meets it by
+construction, because bit-equality is the gate. E1 cannot be proved exact - it is a heuristic, and a
+heuristic that never misses is a heuristic you did not need - so it has to meet the standard by
+measurement instead, and the margins below are set at the level where a difference stops being visible
+to the household rather than at the level where it stops being significant. E1 is not approved for
+being fast. It is approved only for being fast and indistinguishable, and the burden is on E1.
+
+**Gate E1 passes when all of 1 to 4 hold. Any one fails and it stays off.**
+1. Landing: gate 6b's condition 1 (floor at or above the ask less 0.5 on all 41, none more than 2 over).
+2. **No household is worse.** Paired against flex-tiers on the same 41, same asks, same paths: no
+   household's floor rate lower by more than 0.5 points - the landing tolerance itself, so a household
+   inside it is one whose promise is still kept - and no household's median pot lower by more than
+   £25k. A single household outside either is a fail, however good the means.
+3. **The means do not move.** Floor rate within ±0.1 points; years at or above target (median run)
+   within ±0.005; spending delivered within ±0.005; median pot within ±£25k. These are equivalence
+   bands, not significance tests: the claim being made is that the two solvers are the same, so the
+   burden is on E1 to fall inside them, and a wide confidence interval is a fail, not a pass. The sign
+   test on each measure is reported beside it.
+4. **The search itself does not miss.** On anchor years, where both searches run, the candidate set
+   contains the full sweep's best move on at least 97% of cells, and the mean score gap at the cells
+   where it does not is below 0.001 of the cell's score. This is the direct measurement, and it is the
+   one that would catch a loss the 41 happened not to show: the paired run says E1 did no harm to these
+   households on these paths, while the anchor report says how much room there was to do harm at all.
+   Reported beside it: the disagreement rate by household and the worst household by name.
+
+**Decision.** Pass on all four: `'candidates'` becomes the default and the full sweep stays as an option
+for anomaly checks. Fail on any: it stays off. **One pre-registered retry, declared here before the
+run**: `anchorEvery` 5 failing on 2, 3 or 4 may be re-run once at `anchorEvery: 2`, which trades speed
+for accuracy monotonically and is the one knob that does; the cost condition still has to hold at the
+new anchor. That is the only second run, it is declared now rather than chosen after seeing the
+numbers, and nothing else is tuned to make it pass. Budget: step 0 minutes, step 1 a day, step 2 three
+to four hours if it works.
+
+**Not available: an exact version.** A search that skipped moves with a proof they could not win would
+be exact, and would need an upper bound on an unevaluated move's score that costs less than evaluating
+it. The expensive part is the flow, and the flow is what such a bound would have to avoid computing, so
+any bound cheap enough to help is almost certainly too loose to skip anything. Noted here so the option
+is on the record as considered and rejected on its merits, not overlooked.
+
+**Alternatives considered, ranked below these, not queued.** Fewer share points (`SHARES=5` or `4`, no
+code: 1.44× or 2.25× on every phase): the share axes were never studied the way the wealth axis was,
+and the tier as a move is exactly a move along them, so the accuracy is unknown and a study costs a
+full batch; a read for later. Three Gauss-Hermite nodes instead of five: the note at the top of
+`solve.js` says fat tails are the safe direction, and thinning the tails is not. Workers in the product
+(one world per thread): exact and worth 2 to 3× on a phone, but that is Phase 7's plumbing, not a
+solver change.
+
+---
+
 ## Order, gates and rough size
 
 | Phase | Deliverable | Gate | Size relative to the evolver build |
@@ -1344,11 +1535,15 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate ; **re-run clean under the mixture with the fixed landing: lands 41 of 41, years at or above target 0.849 vs 0.439, spending delivered 1.101 vs 1.012, 5.2 changes vs 26.4, pot +£186k** | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
+| - | **maintainer, 22 Sep**: E0 and E1 run **before** Phase 4, so the decision gate is run once at the lower cost, not twice | | |
+| E0 | one flow per cell shared across the three worlds | bit-equal to three separate solves on two households, tiers off and on; expected 1.2 to 1.5×; pre-registered, not yet run | 0.25× |
+| E1 | candidate-set search seeded from the following year | gate E1: lands on 41, paired with flex-tiers within the margins above, ≤0.5× cost; pre-registered, not yet run | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |
 | 5 | couples by rollout | **done, survival conditions met**: +0.77 vs the best fixed rule on 19 couples, 14 up / 3 down, worst −0.85; tiers off for couples; backtest and perturbed worlds not yet run | 1× |
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
-| 6b | flexible spending and tiers together | gate 6b: lands on 41, not below flex-landed on years at target or spending delivered, ≤2.5× cost, ≤3 tier changes; pre-registered, not yet run | 1× |
+| 6b | flexible spending and tiers together | **run 22 Sep**: conditions 2 (years at target +0.125, 30 up / 1 down), 3 (1.80× of 2.5×) and 4 (1.57 changes of 3) pass; **condition 1b fails as written on 9 of 41**, seven of them households that took no trimming at all and two that are inside the bound on the sample the landing optimised. Fully-funded rate +54.93 vs the guardrails (p = 0.000) against flex-landed's +13.43 (p = 0.755); pot −£870k, the tier trade Phase 6 measured at −£917k. Recorded, not tuned, not merged | 1× |
+| 6c | the bequest shape: a shoulder, not a cliff | gate 6c: default bit-identical, `soft` equal below the cap and strictly increasing above, pot up on the 9 cap-binding households with no floor rate more than 0.5 lower; pre-registered, not yet run | 0.5× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

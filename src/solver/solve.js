@@ -231,6 +231,30 @@ export function solve(E, M, plan, opts = {}) {
   const resilK = opts.resilienceAt !== undefined ? opts.resilienceAt : scale;
   const beqCap = opts.bequestCap !== undefined ? opts.bequestCap : 4 * scale;
   /*
+   * THE BEQUEST SHAPE (phase 6c). `min(net, cap)` scores an extra pound of estate at exactly zero above
+   * the cap, so up there the solver is INDIFFERENT and will trade the pot away for any gain at all.
+   * Gate 6b caught it doing that: the cap binds on 9 of the 41 (every one a 52 or 61 year horizon), and
+   * of the £35.9M of median pot the tier freedom gave up, £12.8M sat above the cap and cost nothing.
+   * S354 went from £7.31M to £4.69M with both ends above its £3.80M cap, so the whole £2.6M was free.
+   *
+   * The cap itself is right to exist. Survival and resilience are bounded and an estate is not, and the
+   * mean of an unbounded quantity is set by the lucky tail: uncapped, a policy leaving £200M in one
+   * future of a hundred beats one leaving £1M in all hundred. What is wrong is the cliff, not the
+   * refusal to chase upside. `soft` keeps the refusal and loses the cliff:
+   *
+   *     soft(net) = net                                    net <= cap
+   *               = cap x (1 + ln(1 + (net - cap) / cap))  net >  cap
+   *
+   * Identical below the cap and C1-continuous at it (both one-sided slopes are 1), and above it the
+   * marginal value decays like cap/net: always positive, never zero. A hundred times the cap scores
+   * about 5.6 cap rather than 100, so the lottery ticket still loses. `cap` stays the default until
+   * gate 6c is judged, and every result to date was measured with it.
+   */
+  const beqShape = opts.bequestShape === 'soft' ? 'soft' : 'cap';
+  const beqOf = beqShape === 'soft'
+    ? (net) => (net <= beqCap ? net : beqCap * (1 + Math.log(1 + (net - beqCap) / beqCap)))
+    : (net) => Math.min(net, beqCap);
+  /*
    * THE RISK TERM, SHORTFALL OR INDICATOR (plan 2c.2). The default is the shortfall,
    * 1 - E[min(1, max(0, K - net) / K)]; `resilience: 'indicator'` restores P(net >= K). The shortfall is: one when the household ends
    * with at least K, falling linearly to zero at nothing. Same range, same weight, but continuous in
@@ -260,6 +284,36 @@ export function solve(E, M, plan, opts = {}) {
   const mu = opts.raiseWeight !== undefined ? opts.raiseWeight : 0;
   const creditOf = (level) => Math.sqrt(Math.min(0.2, level - 1));
   const costOf = (level) => (level < 1 ? lambda * shortOf(level) : level > 1 ? -mu * creditOf(level) : 0);
+  /*
+   * HOLDING AN OFF-PLAN TIER (the one-dial form of plan item (b), 22 Sep). Gate 6b found the solver
+   * holding a de-risked pension tier for 0.70 of retired years on the mean and up to 0.97, and paying
+   * £870k of median pot for it. Nothing in the score charged for HOLDING a lower tier: `switchCost`
+   * charges the round trip and `switchMargin` stops a switch for noise, but once moved the solver sat
+   * there for free, and at the objective's exchange rate (a point of survival against half the opening
+   * wealth in bequest) sitting there always won.
+   *
+   * The dial is the one already being landed. A year holding a tier below the plan's costs
+   * `driftWeight x lambda x (equity given up)`, summed over the two wrappers, where lambda is the same
+   * penalty `solveFlex` bisects to hit the household's floor-rate promise. Tying it to lambda rather
+   * than giving de-risking a bisection of its own is what makes this cost nothing: no extra solves, and
+   * the promise still governs both levers. It also points the right way. In gate 6b the households
+   * holding the most de-risked tier (0.79 to 0.97 of years) were the ones whose ask was lenient enough
+   * that lambda pinned at the bracket top, and the ones trimming hardest (lambda at or below 0.1) held
+   * 0.04 to 0.30: high lambda means a comfortable household, and a comfortable household should be
+   * paying MORE to leave its plan's portfolio, not less.
+   *
+   * Equity given up, not tier steps, because a step is not a fixed amount of risk and `chargeSwitch`
+   * already prices a move by the same measure. The cost is per action and per year, so it is free to
+   * evaluate: with driftWeight at zero every entry is zero and the tables are the ones solved before.
+   */
+  const driftW = opts.driftWeight !== undefined ? opts.driftWeight : 0;
+  const eqDrop = (list, k) => {
+    if (!list || !list[0] || !list[k] || list[0].equity === undefined || list[k].equity === undefined) return 0;
+    return Math.max(0, list[0].equity - list[k].equity);
+  };
+  const driftCostOf = actions.map(a => (driftW > 0 && c.tiers
+    ? driftW * lambda * (eqDrop(c.tiers.pen, a.tierPen || 0) + eqDrop(c.tiers.isa, a.tierIsa || 0))
+    : 0));
 
   const surv = [], lsurv = [], resil = [], lresil = [], beq = [], pol = [], short = [];
   for (let t = 0; t <= T; t++) {
@@ -269,8 +323,26 @@ export function solve(E, M, plan, opts = {}) {
   }
   const levelOf = actions.map(a => (a.spendLevel !== undefined ? a.spendLevel : 1));
 
+  /*
+   * PROFILING, off unless SOLVER_PROFILE is set, because nobody has measured where a solve's time
+   * actually goes and every performance decision so far has been made from a measurement. The timers
+   * sit at the two hot calls: `flow`, the year's draws and tax, and the node loop that takes the
+   * expectation over returns. `performance.now()` is called about four times per evaluated move, so
+   * the overhead is real and is reported alongside, not hidden: compare `prof.total` against `ms`.
+   */
+  const PROF = typeof process !== 'undefined' && process.env && process.env.SOLVER_PROFILE ? { flow: 0, nodes: 0, cells: 0, flows: 0, nodeCalls: 0, skipped: 0 } : null;
+  const now = PROF ? () => performance.now() : null;
+  // the timers are not free: about 4 million pairs a solve, so calibrate one call and subtract the
+  // clock's own cost from each phase rather than reporting shares that flatter whichever phase is
+  // timed more often
+  if (PROF) {
+    const CAL = 2e6; const c0 = performance.now();
+    for (let i = 0; i < CAL; i++) performance.now();
+    PROF.nsPerCall = (performance.now() - c0) * 1e6 / CAL;
+  }
   const base = new Float64Array(7), post = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(4), cachedPost = new Float64Array(7);
   let evaluated = 0;
+  const profT0 = PROF ? now() : 0;
   for (let t = T; t >= 0; t--) {
     const sNext = t < T ? lsurv[t + 1] : null;
     const bNext = t < T ? beq[t + 1] : null;
@@ -295,15 +367,18 @@ export function solve(E, M, plan, opts = {}) {
               for (let ai = 0; ai < actions.length; ai++) {
                 let fail;
                 if (tierBase[ai] === ai) {
+                  const tf = PROF ? now() : 0;
                   post.set(base);
                   const unmet = F.flow(c, t, ai, post);
                   evaluated++;
                   fail = unmet > 1 || c.last.preNmpaInsolvent;
                   cachedFail = fail; cachedPost.set(post);
-                } else { post.set(cachedPost); fail = cachedFail; }
+                  if (PROF) { PROF.flow += now() - tf; PROF.flows++; }
+                } else { post.set(cachedPost); fail = cachedFail; if (PROF) PROF.skipped++; }
                 let s = 0, b = 0, rs = 0, h = 0;
-                const thisShort = spendYear ? costOf(levelOf[ai]) : 0;
+                const thisShort = (spendYear ? costOf(levelOf[ai]) : 0) + driftCostOf[ai];
                 if (!fail) {
+                  const tn = PROF ? now() : 0;
                   const nr = nodeRealOf[ai];
                   for (let zi = 0; zi < 5; zi++) {
                     grown.set(post);
@@ -314,7 +389,7 @@ export function solve(E, M, plan, opts = {}) {
                       const net = Math.max(0, total - grown[0] * deathTax);
                       s += WEIGHTS[zi] * (alive ? 1 : 0);
                       rs += WEIGHTS[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
-                      b += WEIGHTS[zi] * (alive ? Math.min(net, beqCap) : 0);
+                      b += WEIGHTS[zi] * (alive ? beqOf(net) : 0);
                     } else {
                       readValues(g, sNext, bNext, grown, rd, rNext, hNext);
                       s += WEIGHTS[zi] * rd[0];
@@ -323,11 +398,13 @@ export function solve(E, M, plan, opts = {}) {
                       h += WEIGHTS[zi] * rd[3];
                     }
                   }
+                  if (PROF) { PROF.nodes += now() - tn; PROF.nodeCalls++; }
                 }
                 h += thisShort;
                 const score = s + wR * rs + wB * b - h;
                 if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
               }
+              if (PROF) PROF.cells++;
               St[idx] = bestS; Bt[idx] = bestB; Rt[idx] = bestR; Pt[idx] = bestA; Ht[idx] = bestH;
             }
           }
@@ -338,9 +415,21 @@ export function solve(E, M, plan, opts = {}) {
     if (shortfall) lresil[t].set(Rt); else toLogOdds(Rt, lresil[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
+  if (PROF) {
+    PROF.total = now() - profT0;
+    // two clock calls per timed region, and the outer pair too
+    const costMs = (n) => n * 2 * PROF.nsPerCall / 1e6;
+    PROF.flowNet = PROF.flow - costMs(PROF.flows);
+    PROF.nodesNet = PROF.nodes - costMs(PROF.nodeCalls);
+    PROF.overhead = costMs(PROF.flows + PROF.nodeCalls);
+    PROF.totalNet = PROF.total - PROF.overhead;
+    PROF.otherNet = PROF.totalNet - PROF.flowNet - PROF.nodesNet;
+    PROF.other = PROF.total - PROF.flow - PROF.nodes;
+    meta.profile = PROF;
+  }
   const r = {
-    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin,
+    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
     tieMargin: opts.tieMargin || 0,
     rich: null,   // a second solve at half the resolution, for Richardson extrapolation of the move scores
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
@@ -450,7 +539,7 @@ function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
     if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; continue; }
     // a move that changes tier pays the round trip on the slice traded before the year's growth
     if (held) F.chargeSwitch(c, post, held, c.acts[ai]);
-    let sv = 0, bq = 0, rs = 0, h = spendYear ? r.costOf(levelOf[ai]) : 0;
+    let sv = 0, bq = 0, rs = 0, h = (spendYear ? r.costOf(levelOf[ai]) : 0) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
     const nr = nodeRealOf[ai];
     for (let zi = 0; zi < 5; zi++) {
       grown.set(post);

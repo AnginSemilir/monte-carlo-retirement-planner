@@ -1212,7 +1212,7 @@ none of the cap's cliff. One parameter, so this is a sweep rather than a beauty 
 **The screen (tag beq-curve).** Four households where the cap binds hardest (S318, S330, S342, S354)
 and two where it barely does (S004, S206), at `p` in {0.5, 1, 2, 4}. **Lambda is held at each
 household's landed value from flex-tiers rather than re-searched**, so each cell is one solve instead of
-five to seven: 24 solves, about 68 core-hours minutes - 20 minutes on four cores.
+five to seven: 24 solves at roughly 170 s a solve, about 68 core-minutes - 20 minutes on four cores.
 
 **What it decides, and it is a screen so it decides only this.**
 - **If the four shapes give near-identical policies and pots** (median pot within 2% across `p` on every

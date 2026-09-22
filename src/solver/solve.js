@@ -384,8 +384,12 @@ export function solve(E, M, plan, opts = {}) {
   const failBuf = new Uint8Array(A);
   let evaluated = 0;
   const profT0 = PROF ? now() : 0;
+  const shortOfAction = new Float64Array(A);
   for (let t = T; t >= 0; t--) {
     const spendYear = c.yr.spend[t] > 0;
+    // world-independent, so computed once a year rather than once a world: E0 made the world loop the
+    // outer one and this would otherwise be evaluated K times for the same answer
+    for (let ai = 0; ai < A; ai++) shortOfAction[ai] = (spendYear ? costOf(levelOf[ai]) : 0) + driftCostOf[ai];
     for (let ic = 0; ic < g.pcls.length; ic++) {
       for (let ig = 0; ig < g.gain.length; ig++) {
         for (let it = 0; it < g.nt; it++) {
@@ -428,7 +432,7 @@ export function solve(E, M, plan, opts = {}) {
                   const o = ai * 7;
                   const fail = failBuf[ai] === 1;
                   let s = 0, b = 0, rs = 0, h = 0;
-                  const thisShort = (spendYear ? costOf(levelOf[ai]) : 0) + driftCostOf[ai];
+                  const thisShort = shortOfAction[ai];
                   if (!fail) {
                     const tn = PROF ? now() : 0;
                     const nr = nodeRealOf[ai];

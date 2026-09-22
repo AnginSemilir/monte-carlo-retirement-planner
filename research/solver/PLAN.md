@@ -1288,6 +1288,34 @@ and is a fallback only if 6c and a `wB` decision together leave the behaviour un
 function of horizon, so this touches Phase 2, 2c, 2d and 6 as well as 6b. Nothing is restated until the
 gate is judged.
 
+#### A conditional follow-up: 6c may deserve a fresh run, and only a fresh one
+
+**Noted 22 Sep, while 6e stage 1 was running. Conditional, not scheduled.**
+
+6c failed on S390, its control, whose estate sits at 97% of its bend. **S390 is also seventh worst on
+the unrealised-gain axis: its true gain fraction reaches 80.3% and the grid reads it as 55%.** S300,
+worst of all at 89.0%, was one of the nine over-trim cases in gate 6b. So two of this series' awkward
+judgements sit on households that the constants audit has now measured a known distortion on.
+
+**No claim is made that the distortion caused either**, and 6c's recorded verdict does not move on this
+note. But if 6e stage 1 fires and stage 2 lands a fix, then 6c's failure was measured on a value
+function with a named error on that exact household, and the honest response is:
+
+> **Re-run 6c from scratch, as a NEW run with a new record.** Not a re-reading of the old numbers, not
+> a re-specification of the control now that we know which way it went. The old run stays on the record
+> as a failure, because it was one, under the solver as it stood.
+
+That distinction is the whole discipline here. 6c's control clause was already corrected once with
+partial sight, and a second re-specification with full sight was refused for this reason. A fresh run
+after a fix chosen for unrelated reasons is legitimate; re-reading the same numbers through a new lens
+is not.
+
+**Trigger:** 6e stage 2 passes and lands. **Cost:** a 6c-class run, twelve households, now much cheaper
+with `SOLVERONLY`. **If 6e stage 1 is quiet this note expires** - the ceiling was second-order, 6c's
+failure stands unexplained by it, and nothing is owed.
+
+---
+
 ### Phase 6c-screen. Is the curve's shape a free choice? A twenty-minute screen
 
 Written 22 Sep while 6c was still running, before any code. **The logarithm in 6c was asserted, not
@@ -1314,7 +1342,15 @@ none of the cap's cliff. One parameter, so this is a sweep rather than a beauty 
 **The screen (tag beq-curve).** Four households where the cap binds hardest (S318, S330, S342, S354)
 and two where it barely does (S004, S206), at `p` in {0.5, 1, 2, 4}. **Lambda is held at each
 household's landed value from flex-tiers rather than re-searched**, so each cell is one solve instead of
-five to seven: 24 solves at roughly 170 s a solve, about 68 core-minutes - 20 minutes on four cores.
+five to seven: 24 solves.
+
+**Re-costed 22 Sep, downwards, after measuring instead of estimating.** The original figure - 170 s a
+solve, 68 core-minutes - counted the five rival arms the harness scores on every run. Timed on a
+12-point probe they are most of it: **906 s a cell with them, 182 s without, five times.** They are
+identical in every arm of a screen that compares the solver against itself, so `SOLVERONLY=1` (added
+for 6e, same night) applies here unchanged, with `SEARCH=400` because a held-lambda run never reads the
+search floor rate. **Run it with both.** The old figure stands as a reminder that a cost taken from a
+previous run's shape rather than from a stopwatch is a guess wearing a number's clothes.
 
 **What it decides, and it is a screen so it decides only this.**
 - **If the four shapes give near-identical policies and pots** (median pot within 2% across `p` on every

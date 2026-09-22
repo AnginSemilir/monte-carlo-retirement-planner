@@ -1170,6 +1170,65 @@ and is a fallback only if 6c and a `wB` decision together leave the behaviour un
 function of horizon, so this touches Phase 2, 2c, 2d and 6 as well as 6b. Nothing is restated until the
 gate is judged.
 
+### Phase 6d. Two levers for the estate, and calibrating them
+
+Pre-registered 22 Sep, before any code, at the maintainer's direction. **How much an estate is worth
+against the risk of running out is the household's question, not ours.** Phase 6c removes a flat spot
+that made a real loss invisible; it does not settle the exchange rate, and it should not. The weight is
+currently `wB = 0.02` of opening wealth, a constant no user can reach, and the curve bends at `4 x
+opening wealth`, a number never justified in writing and measured against the household's savings *at
+plan time* - for S342 that is age 37, twenty-eight working years before the drawdown the plan is about.
+
+**This was already the conclusion.** Phase 2c.3 swept the weight and recorded: *"The bequest weight is
+the lever that matters: 0.1 halves the pot cost and takes a third off the survival edge, which is the
+frontier the prioritisation presets should expose rather than a constant to settle here."* The frontier
+was mapped and the constant stayed. This phase acts on it.
+
+**The two levers.**
+
+1. **The floor, which already exists.** `config.solvencyFloor`, "I must leave at least this much",
+   a hard requirement: a run finishing below it is a failure. Built, and tested as of 22 Sep
+   (`solver-minpot.test.mjs`, nine assertions).
+2. **What an extra pound above the floor is worth, which does not exist.** Today: 0.02, fixed. The
+   household that says *"hit my number and nothing beyond it matters"* sets this to zero and every
+   remaining pound goes into making the plan safe - which is a coherent, common preference the solver
+   cannot currently express.
+
+The shoulder's anchor moves with lever 1 where it is set, so the bend sits at **the household's own
+number** rather than four times what they happened to have when they opened the app. Where no minimum
+is set the default anchor stands, and choosing it is part of this phase, not inherited.
+
+**The experiment (tag beq-lever).** Eight households spanning the horizons and both sides of the cap,
+swept across `bequestWeight` in {0, 0.02, 0.05, 0.1, 0.2} with the shoulder on and everything else at
+the gate 6b configuration. Forty landings, about four hours.
+
+**Gate 6d passes when all four hold:**
+1. **Monotone.** Median pot rises with the weight and the survival edge falls, with no reversals on any
+   household. A lever that is not monotone is not a lever.
+2. **The ends are distinct.** At 0 against 0.2 the median pot differs by at least 20% on at least six
+   of the eight. If both ends behave alike the control is decorative and must not ship.
+3. **The promise survives every setting.** The floor rate lands within the usual tolerance at all five
+   weights, including zero. A preference about inheritance must not be able to break a spending promise.
+4. **Zero is safe.** At `bequestWeight` 0 the landing still converges, no household fails to solve, and
+   nothing in the score is degenerate.
+
+**Reported, not gated, and the finding that decides the product shape:** whether the lever can be
+*instant*. The tables already carry survival, resilience and bequest separately and combine them at
+action selection, so a table solved at one weight can be re-scored at another without re-solving. That
+is one step of policy improvement over the wrong table, not the right table, so it is an approximation
+and its size is unknown. Measure it: at each weight, compare re-scoring the default table against a
+full re-solve at that weight, on floor rate, years at target and median pot. If the gap is negligible
+the household moves the lever and sees the answer change immediately; if not, moving it costs a
+ten-minute re-solve and the interface has to say so.
+
+**A consequence to settle before Phase 4, not during it.** A user-settable objective means the versus
+study must run at one declared weight, and that weight is the number every headline figure is measured
+at. It has to be chosen and written down before the study, with its reason.
+
+**Decision.** Pass: the two levers go into Part C as the prioritisation control, with the default named
+and justified here. Fail on 2: the frontier is too flat to be worth a control and the constant stays,
+recorded. Fail on 1 or 3: the lever is unsafe and does not ship in that form.
+
 ---
 
 ## Part C. The app (phases 7 to 12), behind a switch
@@ -1544,6 +1603,7 @@ solver change.
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 6b | flexible spending and tiers together | **run 22 Sep**: conditions 2 (years at target +0.125, 30 up / 1 down), 3 (1.80× of 2.5×) and 4 (1.57 changes of 3) pass; **condition 1b fails as written on 9 of 41**, seven of them households that took no trimming at all and two that are inside the bound on the sample the landing optimised. Fully-funded rate +54.93 vs the guardrails (p = 0.000) against flex-landed's +13.43 (p = 0.755); pot −£870k, the tier trade Phase 6 measured at −£917k. Recorded, not tuned, not merged | 1× |
 | 6c | the bequest shape: a shoulder, not a cliff | gate 6c: default bit-identical, `soft` equal below the cap and strictly increasing above, pot up on the 9 cap-binding households with no floor rate more than 0.5 lower; pre-registered, not yet run | 0.5× |
+| 6d | two levers for the estate, and calibrating them | gate 6d: monotone, ends distinct on 6 of 8, the promise holds at every weight including zero; plus whether re-weighting without a re-solve is close enough to make the lever instant; pre-registered, not yet run | 0.5× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

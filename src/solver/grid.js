@@ -126,6 +126,8 @@ export function makeGrid(m, opts = {}) {
   const stride = { isa: n1, tax: n1 * n2, gain: n1 * n2 * n3, pcls: n1 * n2 * n3 * gain.length };
   return {
     m, mode: total ? 'total' : 'pots', n: Math.max(n1, n2, n3), np: n1, ni: n2, nt: n3, spend, axes, gain, pcls, size, stride, open,
+    /* Phase 6e arms 3 and 4. Both default off, so the shipped build is bit-identical to before. */
+    gainInterp: !!opts.gainInterp, pclsStrict: !!opts.pclsStrict,
     index: (i1, i2, i3, ig, ic) => i1 + i2 * stride.isa + i3 * stride.tax + ig * stride.gain + ic * stride.pcls
   };
 }
@@ -135,6 +137,44 @@ const nearest = (arr, v) => {
   let best = 0, bd = Infinity;
   for (let i = 0; i < arr.length; i++) { const d = Math.abs(arr[i] - v); if (d < bd) { bd = d; best = i; } }
   return best;
+};
+
+/*
+ * PHASE 6e ARM 4. The lump-sum-allowance axis, snapped so that bucket 0 is reachable ONLY by a state
+ * that has taken nothing.
+ *
+ * `nearest` puts everything below a quarter of the allowance on bucket 0, and `toVec` derives the
+ * lump-taken FLAG from the bucket (`out[5] = pcls[ic] > 0 ? 1 : 0`). So a household that has spent part
+ * of its tax-free lump is valued as one that may still take the whole thing - an action it no longer
+ * has. Measured on the clean 41: eight of them, using between 7.1% and 20.9% of the allowance, S172
+ * having spent GBP 56,047 and read as having spent nothing.
+ *
+ * This keeps the flag honest by excluding bucket 0 from the search once anything has been taken. It is
+ * not free: S374, at 7.1% of the allowance, then reads as 50% instead of 0%, so the FIGURE gets worse
+ * for the eight while the FLAG gets right. Which of the two errors costs more is what the screen is for.
+ */
+const nearestPclsStrict = (arr, v) => {
+  if (!(v > 0)) return 0;
+  let best = 1, bd = Infinity;
+  for (let i = 1; i < arr.length; i++) { const d = Math.abs(arr[i] - v); if (d < bd) { bd = d; best = i; } }
+  return best;
+};
+
+/*
+ * PHASE 6e ARM 3. Bracket a value on an ascending bucket list, for interpolating the gain axis instead
+ * of snapping to it. Returns the lower index and the weight on the one above, clamped at both ends, so
+ * a household beyond the top bucket reads as the top bucket and the axis stays flat there - this arm
+ * removes the SNAPPING, not the ceiling. Arm 2 moves the ceiling; the two are measured separately on
+ * purpose, because one is free and the other is not.
+ */
+const bracket = (arr, v) => {
+  if (v <= arr[0]) return { i: 0, w: 0 };
+  const n = arr.length;
+  if (v >= arr[n - 1]) return { i: n - 2 < 0 ? 0 : n - 2, w: n > 1 ? 1 : 0 };
+  let k = 0;
+  while (k < n - 2 && v > arr[k + 1]) k++;
+  const lo = arr[k], hi = arr[k + 1];
+  return { i: k, w: hi > lo ? (v - lo) / (hi - lo) : 0 };
 };
 
 /*
@@ -187,12 +227,17 @@ export function toVec(g, ip, ii, it, ig, ic, out) {
 
 /* Where a six-slot vector sits on the grid. */
 export function locateVec(g, s) {
-  const ig = nearest(g.gain, s[3]), ic = nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa));
+  const pf = Math.min(1, s[4] / g.m.P.lsa);
+  const ic = g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);
+  // when the gain axis is interpolated, `ig` is the LOWER bracket and `igw` the weight on the one above
+  const gb = g.gainInterp ? bracket(g.gain, s[3]) : null;
+  const ig = gb ? gb.i : nearest(g.gain, s[3]);
+  const igw = gb ? gb.w : 0;
   if (g.mode === 'total') {
     const W = s[0] + s[1] + s[2], rest = W - s[0];
-    return { p: locate(g.axes.W, W), i: locateLin(g.axes.a, W > 0 ? s[0] / W : 0), t: locateLin(g.axes.b, rest > 0 ? s[1] / rest : 0), ig, ic };
+    return { p: locate(g.axes.W, W), i: locateLin(g.axes.a, W > 0 ? s[0] / W : 0), t: locateLin(g.axes.b, rest > 0 ? s[1] / rest : 0), ig, ic, igw };
   }
-  return { p: locate(g.axes.pen, s[0]), i: locate(g.axes.isa, s[1]), t: locate(g.axes.tax, s[2]), ig, ic };
+  return { p: locate(g.axes.pen, s[0]), i: locate(g.axes.isa, s[1]), t: locate(g.axes.tax, s[2]), ig, ic, igw };
 }
 
 /*
@@ -205,8 +250,8 @@ export function locateVec(g, s) {
  * `out[0]` is survival, `out[1]` bequest.
  */
 const LOC = new Float64Array(6);     // i, w for each of the three axes
-const IDX = new Int32Array(8);
-const W = new Float64Array(8);
+const IDX = new Int32Array(16);   // 8 corners, or 16 when the gain axis is interpolated too (Phase 6e arm 3)
+const W = new Float64Array(16);
 function locInto(ax, v, k) {
   if (!(v > 0)) { LOC[k] = 0; LOC[k + 1] = 0; return; }
   if (v <= ax.pts[1]) { LOC[k] = 0; LOC[k + 1] = v / ax.pts[1]; return; }
@@ -227,7 +272,10 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null) {
   } else {
     locInto(g.axes.pen, s[0], 0); locInto(g.axes.isa, s[1], 2); locInto(g.axes.tax, s[2], 4);
   }
-  const ig = nearest(g.gain, s[3]), ic = nearest(g.pcls, Math.min(1, s[4] / g.m.P.lsa));
+  const pf = Math.min(1, s[4] / g.m.P.lsa);
+  const ic = g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);
+  const gb = g.gainInterp ? bracket(g.gain, s[3]) : null;
+  const ig = gb ? gb.i : nearest(g.gain, s[3]);
   const n = g.stride.isa, nn = g.stride.tax;
   const i0 = LOC[0] + LOC[2] * n + LOC[4] * nn + ig * g.stride.gain + ic * g.stride.pcls;
   const wp1 = LOC[1], wi1 = LOC[3], wt1 = LOC[5], wp0 = 1 - wp1, wi0 = 1 - wi1, wt0 = 1 - wt1;
@@ -239,16 +287,31 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null) {
   IDX[5] = i0 + nn + 1;  W[5] = wp1 * wi0 * wt1;
   IDX[6] = i0 + nn + n;  W[6] = wp0 * wi1 * wt1;
   IDX[7] = i0 + nn + n + 1; W[7] = wp1 * wi1 * wt1;
+  /*
+   * PHASE 6e ARM 3. With the gain axis interpolated, the same eight corners are read again one gain
+   * bucket up and the two sets are blended. Sixteen reads instead of eight on this path, no extra cells.
+   * `gw` is 0 at or below the bottom bucket and at or above the top, so the flat region above the top
+   * bucket is untouched - removing the snap is not the same as removing the ceiling.
+   */
+  let NC = 8;
+  if (gb) {
+    const gw = gb.w;
+    if (gw > 0) {
+      const step = g.stride.gain;
+      for (let k = 0; k < 8; k++) { IDX[k + 8] = IDX[k] + step; W[k + 8] = W[k] * gw; W[k] *= 1 - gw; }
+      NC = 16;
+    }
+  }
   let ls = 0, b = 0, lr = 0, sh = 0;
   if (lrArr && shArr) {
     // the flexible-spending read: survival, bequest, resilience and the expected future shortfall from target
-    for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; sh += w * shArr[i]; }
+    for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; sh += w * shArr[i]; }
     out[2] = g.linearResil ? lr : expit(lr); out[3] = sh;
   } else if (lrArr) {
-    for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; }
+    for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; const i = IDX[k]; ls += w * lsArr[i]; b += w * bArr[i]; lr += w * lrArr[i]; }
     out[2] = g.linearResil ? lr : expit(lr);
   } else {
-    for (let k = 0; k < 8; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
+    for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
   }
   out[0] = expit(ls); out[1] = b;
   return out;
@@ -277,6 +340,8 @@ export function locateState(g, st) { return locateVec(g, vecOf(g.m, st)); }
  */
 export function interp(g, arr, loc, survival) {
   const { p, i, t, ig, ic } = loc;
+  // Phase 6e arm 3: when the gain axis is interpolated, loc carries the weight on the bucket above
+  const gw = g.gainInterp && loc.igw > 0 && ig + 1 < g.gain.length ? loc.igw : 0;
   let acc = 0;
   for (let dp = 0; dp < 2; dp++) {
     const wp = dp ? p.w : 1 - p.w; if (wp === 0) continue;
@@ -284,8 +349,13 @@ export function interp(g, arr, loc, survival) {
       const wi = di ? i.w : 1 - i.w; if (wi === 0) continue;
       for (let dt = 0; dt < 2; dt++) {
         const wt = dt ? t.w : 1 - t.w; if (wt === 0) continue;
+        const w3 = wp * wi * wt;
         const v = arr[g.index(p.i + dp, i.i + di, t.i + dt, ig, ic)];
-        acc += wp * wi * wt * (survival ? logit(v) : v);
+        acc += w3 * (1 - gw) * (survival ? logit(v) : v);
+        if (gw > 0) {
+          const v2 = arr[g.index(p.i + dp, i.i + di, t.i + dt, ig + 1, ic)];
+          acc += w3 * gw * (survival ? logit(v2) : v2);
+        }
       }
     }
   }

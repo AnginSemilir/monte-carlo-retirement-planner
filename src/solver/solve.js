@@ -768,6 +768,17 @@ export function solveFlex(E, M, plan, opts = {}) {
   };
   if (levels.length === 1) return done(verify(at(0)), 'no floor');
   if (!levels.some(l => l < 1)) return done(verify(at(0)), 'no floor');   // raises only: nothing to land
+  /*
+   * LAMBDA HELD, FOR A SCREEN. One solve instead of the five to seven a landing takes, by skipping the
+   * bisection and using a penalty that was landed on a previous run of the same household.
+   *
+   * This exists so a screen can compare ARMS at a fixed penalty rather than comparing landings, which
+   * is a different and much more expensive question. The cost is stated wherever it is used and is not
+   * negotiable: with lambda held, THE FLOOR RATE IS NOT PINNED, so the arms are not compared at equal
+   * downside and no number from such a run is a headline. `landed` says 'lambda held' so a reducer
+   * cannot mistake one of these for a landing.
+   */
+  if (opts.lambdaFixed !== undefined) return done(verify(at(opts.lambdaFixed)), 'lambda held');
   // the bracket: landings in the pilot sat between 0.05 and 0.5, so 0.005 to 2 reaches them in fewer solves
   let hi = opts.lambdaHigh || 2, lo = opts.lambdaLow || 5e-3;
   const rHi = at(hi);

@@ -1660,6 +1660,39 @@ and give back the gain. So `solve` takes `opts.shifts`, an array, with the singl
 **Reported:** solve time before and after, tiers on and off, at 30 points. Expected 1.2x with tiers on,
 1.5x with them off.
 
+**RUN AND PASSED, 22 Sep.** All four conditions, and the gain beat the forecast.
+
+| | |
+|---|---|
+| 1 K = 1 bit-identical to the solve before E0 | **pass**, 4 of 4, S004 and S178, tiers off and on |
+| 2 interleaved mixture equals three separate solves | **pass**, 4 of 4, bit for bit, all five tables and the moves |
+| 3 flow calls exactly a third | **pass**, 19,595,520 to 6,531,840 |
+| 4 field check, floor rate to the hundredth | **pass**, S004 94.25, S178 79.38, S184 75.38, identical |
+
+**Measured 1.66x with tiers off and 1.33x on**, against 1.5x and 1.2x forecast. **The cache risk did not
+bite**, and the reason is the structure chosen for it: a cell's flows are buffered and the worlds looped
+outside, so each world's pass reads only its own 311 KB rather than three worlds' 933 KB. Had the naive
+world-inside-action interleave been written, this line would likely record a disappointment instead.
+
+Two process notes worth keeping, because they are the transferable part:
+- **The gate was the call count, not the clock.** A 1.2x claim sits inside timing noise, so a build that
+  shared nothing could have passed a stopwatch. The count could not be argued with.
+- **Two steps, not one.** The restructure was proved at K = 1 before any world was added, so a failure
+  was never ambiguous between a refactoring bug and a sharing bug. It cost one extra verification run.
+
+**Found and fixed in the same phase:** the restructure made the world loop the outer one, which left the
+per-action spend penalty being computed K times for the same answer, about ten million redundant calls a
+solve. Hoisted to once a year; bit-equality re-checked after, because an obviously harmless change to a
+hot loop is exactly the kind that is not.
+
+**The durable check** is `research/tests/solver-mixture-shared.test.mjs`. The gate compared against a
+verbatim copy of the pre-change solver, which cannot live in the tree forever; the test asks the same
+question against K separate builds made by the current code, so nothing rots.
+
+**What E0 does not establish.** Two households at 20 points and three at 30, which is the gate as
+written and proportionate for an exact change with a bit-equality oracle. It is not the 41-household
+sweep a behavioural change would need, and should not be cited as one.
+
 **Order of work**, so the risky part is never the unverified part: build the K-carrying loop with K = 1
 first and prove condition 1 before any world is added; then K = 3 and condition 2; then 3 and 4. A
 failure at condition 1 is a refactoring bug, at condition 2 a sharing bug, and keeping them apart is
@@ -1769,9 +1802,9 @@ though the speed work comes first. It does not. This is the schedule; the table 
 
 | When | What | Why there |
 |---|---|---|
-| now | **6c** field check | running |
-| next | **E0**, one flow per cell across the three worlds | **Exact by construction** - its gate is bit-equality, so nothing about the objective can affect it. It is the one piece of work that does not care that 6c, the screen and 6d are still moving, and everything after it runs faster. |
-| then | **6c-screen**, 20 min | Before 6d, because curvature and weight substitute for each other. |
+| done | **6c** field check | **not passed**: conditions 1, 2 and 3b pass, 3's control clause fails on S390, whose estate sits at 97% of its bend and which was therefore never a control. `soft` stays off; the curve returns as a question inside 6d |
+| done | **E0**, one flow per cell across the three worlds | **passed**, 1.66× / 1.33× |
+| **next** | **6c-screen**, 20 min | Before 6d, because curvature and weight substitute for each other. **Its purpose has changed**: with 6c not passed and the curve staying off, it no longer validates a shipped change, it tells 6d whether the curve is a live variable underneath the weight. |
 | then | **6d stage 1**, 1-2 h | The lever sweep at fixed lambda. |
 | then | **6d stage 2**, a few hours | The promise, landed at the two extreme weights, only if stage 1 is healthy. |
 | then | **E1**, candidate-set search | **Deliberately last of the speed work.** Its gate is a paired comparison against the gate 6b results, and if 6c passes, `soft` becomes the default and those results stop being the baseline. Running it before the objective settles means measuring against a reference about to be replaced, then running it again. |
@@ -1792,7 +1825,7 @@ to compare against.
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
 | - | **maintainer, 22 Sep**: E0 and E1 run **before** Phase 4, so the decision gate is run once at the lower cost, not twice. **Rows here are in phase-number order, not running order** - see "What runs next, in order" above: E0 goes early because its gate is bit-equality and the objective cannot affect it, E1 goes after the 6-series because its gate is a paired comparison against a baseline the 6-series is still moving | | |
-| E0 | one flow per cell shared across the three worlds | gate E0: K=1 bit-identical to today's solve (the ordinary path is restructured too), the interleaved mixture bit-equal to three separate solves, the flow-call count exactly a third, and the field check to the hundredth; expected 1.2 to 1.5×; **implementation plan written 22 Sep, no code yet** | 0.25× |
+| E0 | one flow per cell shared across the three worlds | **done 22 Sep, all four conditions**: K=1 bit-identical, the interleaved mixture bit-equal to three separate solves, flow calls 19,595,520 → 6,531,840 exactly, field check identical on three households. **Measured 1.66× tiers off, 1.33× on** against a 1.5×/1.2× forecast; the cache risk did not bite because a cell's flows are buffered and the worlds looped outside | 0.25× |
 | E1 | candidate-set search seeded from the following year | gate E1: lands on 41, paired with flex-tiers within the margins above, ≤0.5× cost; pre-registered, not yet run | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |
 | - | **phase 2 says**: +0.73 on 41 households on the total-wealth grid (was +0.59 per pot), 29 up / 5 down, sign test p < 0.001, picker 33 of 41; median pot −£182k; 21s a solve. Gate passed; 2c and 2d before Phase 3 | | |

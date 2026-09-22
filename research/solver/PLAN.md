@@ -1334,6 +1334,94 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 
 ---
 
+## Part E. Speed, measured
+
+Written 22 Sep while gate 6b was running, before any code. Nothing here runs until 6b has reduced and
+been judged, and nothing here touches `src/solver` while a run is live. The profile (`profile.mjs`,
+22 Sep, S004 at 20 points) says where a solve goes: tiers off, flow 51% / node loop 39% / other 10%;
+tiers on, flow 29% / nodes 59% / other 12%. Both phases below attack those two shares, and they are kept
+apart on purpose: E0 is exact (the same tables to the bit, so its gate is equality and it needs no
+study), E1 is a heuristic (it can choose a different move, so its gate is a paired study on the 41 with
+a pre-registered loss it may not exceed). Not queued, only noted: the alternatives at the end.
+
+### Phase E0. One flow per cell, shared across the three worlds (exact)
+
+`solveMixture` calls `solve` three times, once per held shift, and each call recomputes every
+post-decision state. `F.flow(c, t, ai, post)` moves money within the year; the world's shift enters
+only the growth rates (`fast.js`, `shifted` and `nodeRealOfAt`), so the three tables compute identical
+flows and differ only from the growth step on. With tiers on, flow is 29% of a solve and two of the
+three copies are redundant, about 19% of the mixture's time; with tiers off, 51% and about 34%.
+
+**Change.** `solve` takes an optional list of held shifts and solves the K tables interleaved: for each
+year, each cell and each base move, one flow, then for each world the growth at that world's node rates
+and the read of that world's own next-year table. Each table's year t depends only on its own year t+1,
+so the tables are those of the three separate solves. `solveMixture` becomes a call of that form; the
+single-world path is untouched.
+
+**Gate.** Bit-equality: a unit test that the interleaved mixture and three separate solves give the same
+`surv`, `beq`, `resil`, `short` and `pol` on two library households at 20 points, tiers off and on; and
+a field check that `runPolicy` on S004, S178 and S184 gives the same floor rate to the hundredth. If the
+tables differ, the flow depends on the world after all: the item is dropped and the reason written
+here. Reported: solve time before and after, tiers on and off. Expected 1.2× (tiers on) to 1.5× (tiers
+off). Not attempted: sharing flows across the landing's five to seven solves, which are also identical
+in flow, because it means holding every year's post-decision states at once (about 1 GB at 30 points).
+
+### Phase E1. Candidate-set search seeded from the following year (heuristic)
+
+**What was seen** (`policy-shape.mjs`, S004, 22 Sep, tiers and levels on). Along wealth a cell agrees
+with its poorer neighbour on 70.7% of pairs. Against next year's table at the same cell, 94.5% of moves
+are identical, 96.8% share the draw order (the steps and the harvest key; nine of 216 moves share an
+order), 97.7% share the order of next year's move or of the poorer neighbour's; and only 65 of the 216
+moves are ever chosen anywhere. The node loop tries all 216 at every cell. Searching only upward from
+the neighbour (a monotone policy) was rejected: 29.3% of pairs switch, in both directions.
+
+**Step 0, reads, minutes, after 6b.** Repeat `policy-shape.mjs` on four households of different shape
+(S004 at 28 years, S184 at 41, S268 at 52, S330 at 61) at the shipping configuration (30 points, levels
+1.2/1.1/1/0.9/0.8, tiers on, λ from each household's flex-tiers record). Proceed only if "same draw
+order as next year OR as the wealth neighbour" is at or above 95% on all four; otherwise stop and
+report the numbers.
+
+**Step 1, implementation, after 6b, behind an option.** `opts.search: 'full' | 'candidates'`, default
+`'full'`, and `opts.anchorEvery`, default 5. In candidates mode the last year, year 0 and every
+`anchorEvery`-th year are full sweeps; at every other year a cell tries only its candidate set: every
+move sharing the draw order of `pol[t+1][idx]`, every move sharing the order of `pol[t][idx-1]` (the
+poorer wealth neighbour, already solved this year) and the plan's own move. On an anchor year the
+candidates are scored first and the full sweep after, and the cell is a disagreement when the full
+sweep's best is not in the candidate set; the disagreement rate and the mean score gap at disagreeing
+cells go into `meta.search`, with `anchorEvery` and the counts of candidate and full evaluations. Unit
+test: with `anchorEvery: 1` candidates mode equals full mode exactly, every year being an anchor.
+`experiment.mjs` passes `SOLVER_SEARCH` and `SOLVER_ANCHOR` through. Expected: about 15 candidates of
+216 at non-anchor years, so the flow and node work (88% with tiers on) falls to a fifth on four years in
+five, about 3× on a solve, less once E0 has taken its share.
+
+**Step 2, the run (tag flex-tiers-cand, `batch-flex-tiers-cand.sh`, from a snapshot, nothing else on
+the box).** `batch-flex-tiers.sh`'s configuration exactly plus `SOLVER_SEARCH=candidates
+SOLVER_ANCHOR=5`, so it pairs with flex-tiers household by household on the same ask and the same
+paths.
+
+**Gate E1 passes when all of 1 to 3 hold:**
+1. Landing: gate 6b's condition 1 (floor at or above the ask less 0.5 on all 41, none more than 2 over).
+2. Paired against flex-tiers on the 41: floor rate mean within ±0.25 points and no household more than
+   1.0 lower; years at or above target (median run) mean within ±0.02; spending delivered within
+   ±0.01; median pot mean within ±£50k.
+3. Cost: solve time per household at most 0.5× flex-tiers.
+4. Reported, not gated: the anchor-year disagreement rate (expected at or below 5% of cells), the mean
+   score gap at disagreeing cells, and the household with the worst disagreement, by name.
+
+**Decision.** Pass: `'candidates'` becomes the default and the full sweep stays as an option for anomaly
+checks. Fail: it stays off, the numbers are written here, and nothing is tuned to make it pass. Budget:
+step 0 minutes, step 1 a day, step 2 three to four hours if it works.
+
+**Alternatives considered, ranked below these, not queued.** Fewer share points (`SHARES=5` or `4`, no
+code: 1.44× or 2.25× on every phase): the share axes were never studied the way the wealth axis was,
+and the tier as a move is exactly a move along them, so the accuracy is unknown and a study costs a
+full batch; a read for later. Three Gauss-Hermite nodes instead of five: the note at the top of
+`solve.js` says fat tails are the safe direction, and thinning the tails is not. Workers in the product
+(one world per thread): exact and worth 2 to 3× on a phone, but that is Phase 7's plumbing, not a
+solver change.
+
+---
+
 ## Order, gates and rough size
 
 | Phase | Deliverable | Gate | Size relative to the evolver build |
@@ -1349,6 +1437,8 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 5 | couples by rollout | **done, survival conditions met**: +0.77 vs the best fixed rule on 19 couples, 14 up / 3 down, worst −0.85; tiers off for couples; backtest and perturbed worlds not yet run | 1× |
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 6b | flexible spending and tiers together | gate 6b: lands on 41, not below flex-landed on years at target or spending delivered, ≤2.5× cost, ≤3 tier changes; pre-registered, not yet run | 1× |
+| E0 | one flow per cell shared across the three worlds | bit-equal to three separate solves on two households, tiers off and on; expected 1.2 to 1.5×; pre-registered, not yet run | 0.25× |
+| E1 | candidate-set search seeded from the following year | gate E1: lands on 41, paired with flex-tiers within the margins above, ≤0.5× cost; pre-registered, not yet run | 0.5× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

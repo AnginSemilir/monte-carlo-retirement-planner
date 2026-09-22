@@ -1153,9 +1153,25 @@ already uses, for the same reason.
    `beq`, `resil`, `short` and `pol` on two households, tiers off and on.
 2. The transform itself: `soft` equals `cap` to the pound at every wealth at or below the cap, is
    continuous and strictly increasing above it, and its slope at the cap is 1 from both sides.
-3. Field, on the 9 cap-binding households plus 3 controls whose grid never reaches the cap: median pot
-   rises on all 9, no household's floor rate falls by more than 0.5 points, and the 3 controls are
-   unchanged to the pound.
+3. Field, on the 9 cap-binding households plus 3 low-exposure households: median pot rises on all 9,
+   no household's floor rate falls by more than 0.5 points, and the 3 low-exposure households move by
+   less than a tenth of the mean move of the 9.
+
+   **Corrected 22 Sep, with 8 of the 12 already reported, and the correction is recorded rather than
+   made quietly.** As first written this condition asked for 3 controls "whose grid never reaches the
+   cap", unchanged to the pound. No such household exists. The grid's top is
+   `max(60 x spend, 6 x openingWealth)` (`grid.js`, `top()`) and the cap is `4 x openingWealth`; six
+   exceeds four, so **every** household's grid extends above its cap and `soft` perturbs every table
+   somewhere. The clause was unsatisfiable by any correct implementation - the same fault as an
+   assertion corrected in `solver-bequest.test.mjs` the same morning, but in a pre-registered gate,
+   which is worse. S004's result was already in when the fault was found, so this correction is made
+   with partial sight of the outcome and that has to be weighed when reading the verdict.
+
+3b. **The exact control the original clause was reaching for.** Solve one household twice with
+   `bequestCap` set above the top of its grid, once at `bequestShape: 'cap'` and once at `'soft'`. The
+   shoulder cannot activate there, so the tables must be bit-identical - `surv`, `beq`, `resil`, `short`
+   and `pol`. Unfakeable, costs one pair of solves, and tests what condition 3 was meant to test. It is
+   a unit test, not a field run, and it is the condition that carries the weight.
 4. Reported, not gated: how much of the £12.8M is recovered; the tier occupancy before and after; the
    effect on all 41 when the full re-run happens.
 
@@ -1543,7 +1559,18 @@ to the household rather than at the level where it stops being significant. E1 i
 being fast. It is approved only for being fast and indistinguishable, and the burden is on E1.
 
 **Gate E1 passes when all of 1 to 4 hold. Any one fails and it stays off.**
-1. Landing: gate 6b's condition 1 (floor at or above the ask less 0.5 on all 41, none more than 2 over).
+1. Landing: the floor rate is at or above each household's ask less 0.5 on all 41.
+
+   **Not** gate 6b's condition 1 as a whole. **Rewritten 22 Sep, before E1 runs and before any E1
+   numbers exist.** That condition's second half - nothing more than 2 points above the ask - failed in
+   gate 6b on 9 of 41 for reasons that were not over-trimming: seven took no trim at all with lambda at
+   the bracket top, and the two genuine landings were inside the bound on the 5,400 search paths the
+   bisection optimised against, the excess appearing only in the 3,000-path held-out re-score at about
+   0.8 points of standard error. Inheriting it would fail E1 on the same households for the same wrong
+   reason, and a gate that fails for a reason unconnected to what it is testing tells you nothing.
+   Over-trimming is still reported for E1, measured on the search sample the landing actually
+   optimised against, and flagged above +2 there - but it does not gate, because E1 changes the search
+   over actions and not the landing at all.
 2. **No household is worse.** Paired against flex-tiers on the same 41, same asks, same paths: no
    household's floor rate lower by more than 0.5 points - the landing tolerance itself, so a household
    inside it is one whose promise is still kept - and no household's median pot lower by more than
@@ -1602,7 +1629,7 @@ solver change.
 | 5 | couples by rollout | **done, survival conditions met**: +0.77 vs the best fixed rule on 19 couples, 14 up / 3 down, worst −0.85; tiers off for couples; backtest and perturbed worlds not yet run | 1× |
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 6b | flexible spending and tiers together | **run 22 Sep**: conditions 2 (years at target +0.125, 30 up / 1 down), 3 (1.80× of 2.5×) and 4 (1.57 changes of 3) pass; **condition 1b fails as written on 9 of 41**, seven of them households that took no trimming at all and two that are inside the bound on the sample the landing optimised. Fully-funded rate +54.93 vs the guardrails (p = 0.000) against flex-landed's +13.43 (p = 0.755); pot −£870k, the tier trade Phase 6 measured at −£917k. Recorded, not tuned, not merged | 1× |
-| 6c | the bequest shape: a shoulder, not a cliff | gate 6c: default bit-identical, `soft` equal below the cap and strictly increasing above, pot up on the 9 cap-binding households with no floor rate more than 0.5 lower; pre-registered, not yet run | 0.5× |
+| 6c | the bequest shape: a shoulder, not a cliff | gate 6c: default bit-identical, `soft` equal below the cap and strictly increasing above, pot up on the 9 cap-binding households with no floor rate more than 0.5 lower, and bit-equality with the cap above the grid top (3b). Conditions 1 and 2 pass; condition 3's control clause was unsatisfiable as written and is corrected in place, with 8 of 12 reported | 0.5× |
 | 6d | two levers for the estate, and calibrating them | gate 6d: monotone, ends distinct on 6 of 8, the promise holds at every weight including zero; plus whether re-weighting without a re-solve is close enough to make the lever instant; pre-registered, not yet run | 0.5× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |

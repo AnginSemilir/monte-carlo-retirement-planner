@@ -94,5 +94,37 @@ console.log('=========== C. SOFT CHANGES SOMETHING, AND ONLY UPWARDS ===========
   ok("C3  'soft' is not a no-op: it moves the policy", polDiff > 0, `policy differs at ${polDiff} of ${cells} cells (${(100 * polDiff / cells).toFixed(2)}%)`);
 }
 
+console.log('=========== D. THE EXACT CONTROL: NO SHOULDER ABOVE THE GRID ===========');
+{
+  /*
+   * Gate 6c condition 3b. The field probe's original "controls whose grid never reaches the cap" was
+   * unsatisfiable: the grid's top is max(60 x spend, 6 x openingWealth) and the cap is 4 x openingWealth,
+   * so six beats four and EVERY household's grid runs above its cap. The control that does exist is a
+   * synthetic one - push the cap above the top of the grid, where the shoulder cannot activate, and the
+   * two shapes must agree bit for bit. This is the check the field clause was reaching for, and unlike
+   * a field comparison it cannot be fudged by a threshold.
+   */
+  const plan = prep(at('S004').plan);
+  const m = M.prepare(E, plan);
+  const open = m.ctx.accounts.reduce((x, a) => x + a.balance, 0);
+  const HIGH = 1e4 * Math.max(1, open);            // far above max(60 x spend, 6 x opening)
+  const o = { points: POINTS, lump: m.ctx.fullLumpSum, bequestCap: HIGH };
+  const hard = solve(E, M, plan, { ...o, bequestShape: 'cap' });
+  const soft = solve(E, M, plan, { ...o, bequestShape: 'soft' });
+  const same = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+  const eq = hard.pol.every((p, t) => same(Array.from(p), Array.from(soft.pol[t])))
+    && hard.surv.every((v, t) => same(Array.from(v), Array.from(soft.surv[t])))
+    && hard.beq.every((v, t) => same(Array.from(v), Array.from(soft.beq[t])))
+    && hard.resil.every((v, t) => same(Array.from(v), Array.from(soft.resil[t])))
+    && hard.short.every((v, t) => same(Array.from(v), Array.from(soft.short[t])));
+  ok('D1  with the cap above the top of the grid, cap and soft are bit-identical: the shoulder cannot reach',
+    eq, `cap £${(HIGH / 1e6).toFixed(0)}m against a grid top of £${(Math.max(60 * m.ctx.yr.spend.find(x => x > 0), 6 * open) / 1e6).toFixed(2)}m`);
+  // and the guard on the guard: at the REAL cap the two must differ, or D1 proves nothing
+  const realHard = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum });
+  const realSoft = solve(E, M, plan, { points: POINTS, lump: m.ctx.fullLumpSum, bequestShape: 'soft' });
+  const differs = realHard.pol.some((p, t) => !same(Array.from(p), Array.from(realSoft.pol[t])));
+  ok('D2  ...and at the real cap they do differ, so D1 is a control and not a tautology', differs);
+}
+
 console.log(`\n=========== ${passed} passed, ${failed} failed ===========`);
 process.exit(failed ? 1 : 0);

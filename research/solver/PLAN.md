@@ -728,6 +728,23 @@ tends to, are the candidates. The couples' edge is the singles' withdrawal-order
 which is what it should be: the tier freedom that gave the singles +6 is off for couples in this pilot.
 Cost: 81 s to solve the two people, 164 s to run 2,000 paths under the rollout.
 
+**Phase 2d under the mixture, clean (tag flex-landed; `results-2d-flex-landed.txt`).** The re-run with
+the fixed landing, from a frozen snapshot so all 41 share one solver. **It lands 41 of 41**, against 28
+of the 35 clean households in the shelved pilot; the margin runs from −0.27 to +2.10 with a mean of
++0.80, and nothing is short by more than a third of a point. The cost of keeping the promise is
+visible: lambda is 0.69 of what it was, so the solver trims about a third more, and paired on the 35
+the two runs share, years at or above target fall 0.037 and spending delivered 0.005. Against the
+guardrails at equal downside on the 41: floor rate +0.73, **years at or above target 0.849 against
+0.439**, spending delivered 1.101 against 1.012, 5.2 spend-level changes a run against 26.4, median pot
++£186k. Against Vanguard +3.50 on the floor with a £472k larger pot; against ARVA +7.53. One metric
+runs the other way and belongs in the product copy rather than a footnote: the fully-funded rate (never
+below target in any year) is +13.4 on the mean but 22 up / 19 down, p = 0.755, because the solver makes
+small adjustments across most futures while the guardrails leave good futures untouched and cut hard in
+bad ones. Cost 1.29× the pilot (5.0 solves a household, 26.6 core-hours for the 41), not the 2.2× first
+measured under contention. Seven households finishing at the bottom of the lambda bracket were
+mislabelled "confidence not reachable"; every one delivered within 0.37 of an ask between 97.6 and 99.0,
+and the label now reads "at the bracket floor" with no behaviour changed.
+
 **The floor landing was measured on the wrong sample (`results-2d-flex-landing.txt`).** In the
 flex-mix pilot three households missed their floor by about a point. None of it was the solver: all
 three MET their ask on the 600 search paths lambda is chosen on, and fell 1.5 to 2.1 points short on
@@ -1324,7 +1341,7 @@ stretch": what the floor means, what the two rates mean, and the two structural 
 | 1 | reduced model + golden test | **done**: exact to the pound, 29 assertions | 1.5× |
 | 2 | single solver | closed form, monotone, band, incremental, timing | 1.5× |
 | 2c | perturbed-model check, expected shortfall, tuned weights, loss ledger | **done**: edge grows in every perturbed world; shortfall adopted; (0.5, 0.02) confirmed; every loss named | 0.5× |
-| 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate | 1× |
+| 2d | Part D pilot in the reduced model, against the guardrails | **done, 2d.1 to 2d.4**: at equal downside, years at target 0.92 vs 0.52, whipsaw 2 vs 26, ahead on 41 of 41; with raises on (2d.4) spending delivered 1.116 vs 1.054 at the same pot, ahead in the unlucky tenth on 41 of 41; Vanguard and ARVA beaten on years at target and floor rate ; **re-run clean under the mixture with the fixed landing: lands 41 of 41, years at or above target 0.849 vs 0.439, spending delivered 1.101 vs 1.012, 5.2 changes vs 26.4, pot +£186k** | 1× |
 | 2e | savings-interest tax, dividend tax and the Cash ISA wrapper in the engine | **done**: 27 assertions, golden test exact, edge unchanged at +0.73 | 1× |
 | 3 | table override in engine | **done, gate met**: exact to the pound (echo table, 160 paths); with the five-world mixture the engine is within 2 points of the model's forecast on 41 of 41 (mean −0.15, within 1 on 39; the one-year fold managed 4 of 41); engine edge +1.62, up 31 / down 10 | 0.5× |
 | 4 | versus study | > 1 point, none worse than 1, historical not worse | 0.5× |

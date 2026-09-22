@@ -1,0 +1,70 @@
+Phase 2d under the three-world mixture, clean (tag flex-landed)
+
+The run the shelved pilot should have been: the pre-registered 41, seeds 7001/7002, 3,000 held-out
+paths, three-world mixture, 30 points, levels 1.2/1.1/1/0.9/0.8, raise weight 0.003, CONF=gkFloor
+(equal downside against the guardrails), margin 0.5pt, and the single-stage landing on 5,400 search
+paths. Run from a frozen snapshot of 3308982, every household stamped
+solverVersion 2026-09-21.single-stage-landing, so the 41 were solved by identical code.
+
+THE LANDING, which is why this was re-run.
+
+  short of the ask (floor < ask - 0.5)     old landing 7 of 35     new landing 0 of 41
+  landing margin (floor minus ask)         min -0.27, mean +0.80, max +2.10
+  below the ask at all                     4 of 41, none by more than 0.27
+  above the ask by more than 2 points      1 of 41 (S292, +2.10, lambda 0.371, not the bracket floor)
+
+Forty-one of forty-one. The old landing met its promise on 28 of the 35 clean pilot households; this
+one meets it on every household, and the cost of doing so is visible: paired on the 35 the two runs
+share, lambda is about 0.69 of what it was, so the solver trims roughly a third more than it did when
+it was quietly under-trimming.
+
+WHAT THAT COST, paired on the same 35:
+
+  years at or above target (median run)    -0.037
+  spending delivered (mean level)          -0.005
+
+Both are small, and both were predicted before the run from the direction of the bias. This is the
+price of the floor being kept honestly rather than a regression, and the guardrail columns do not move.
+
+AGAINST THE GUARDRAILS AT EQUAL DOWNSIDE, 41 households:
+
+                                        solver     GK with floor
+  floor rate                            +0.73 pts over the guardrails' own
+  years at or above target, median run    0.849        0.439
+  spending delivered, median run          1.101        1.012
+  spend-level changes per run             5.18        26.35
+  median pot                            +£186k
+
+The shape the pilot showed survives and is now measured on a solver that keeps its promise: roughly
+twice the years at the full target, a fifth of the whipsaw, more spending delivered, a larger pot.
+Against the guardrails as shipped (no floor to respect) the solver gives up 4.10 points of floor rate,
+which is the survival those rules buy by simply spending less; against Vanguard's dynamic rule it is
++3.50 on the floor with a £472k larger pot; against ARVA +7.53.
+
+ONE METRIC THAT GOES THE OTHER WAY, and it is worth understanding rather than burying. The
+fully-funded rate (paths that are never below target in ANY year) is +13.43 for the solver on the mean
+but only 22 up / 19 down, sign test p = 0.755, and on several households the solver's is 0.0 against
+the guardrails' 19.2. The two rules distribute their trimming differently: the solver makes small
+adjustments across most futures, so few futures are entirely untouched, while the guardrails do
+nothing at all until a ratio crosses a line and then cut hard. A household is at its full target in
+85% of years under the solver and 44% under the guardrails; it is far rarer under the solver to have a
+retirement with no adjustment at all. Which of those a person prefers is a real preference, not a
+defect, and the product copy has to say both.
+
+THE LABEL THAT WAS WRONG. Seven households finished at the bottom of the lambda bracket and were
+labelled "confidence not reachable". None had failed. Every one had an ask between 97.6 and 99.0, sat
+at lambda 0.0050 after 2 solves, and delivered within 0.37 of its ask; the reducer counted all seven
+as landings. What the bracket floor means is that the ask PLUS the half-point margin is more than
+trimming can buy, because at that level the remaining failures are ones no amount of trimming fixes.
+The label now reads "at the bracket floor" and describes where the solve stopped, leaving the pass/fail
+to the caller. No behaviour changed.
+
+COST. Mean 5.0 solves a household (max 7), mean 2,332 s, 26.6 core-hours for the 41 on four cores.
+Paired on the 35 shared with the pilot, 2,369 s against 1,836 s: 1.29x, not the 2.2x measured earlier.
+That earlier figure was taken with six processes fighting over four cores; 1.29x is the honest price of
+5,400 search paths and the extra solves a good estimate justifies.
+
+STILL OPEN. 5,400 was chosen because it worked, not because it is the least that works; a sweep on the
+three households the old landing missed would say whether a smaller count holds. And S292's +2.10
+sits right at the over-trim guard the suite asserts, at a lambda well off the bracket floor, so it is
+the one household worth a look before that guard is trusted as a bound.

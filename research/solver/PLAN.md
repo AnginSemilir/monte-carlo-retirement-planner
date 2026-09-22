@@ -1784,12 +1784,15 @@ over are empty: the comparisons may cost more than the evaluations they save. A 
 plausibly 2 to 3x and exact if written carefully, but a large project and a second implementation of the
 hottest code to keep in step.
 
-**Order and timing.** E2 is worth the most and needs designing with Phase 7's worker plumbing rather
-than separately. E3 is the best value for a contained change. E4 is cheap to test and cheap to abandon.
-**None of them should delay 6d**: 6d's first stage is one to two hours, so 30% would save twenty
-minutes, and 6d answers a product question that has been open all day. These are all bit-exact, so
-unlike a heuristic they can land after 6d without invalidating its baseline - which is precisely the
-argument that let E0 run early, read the other way round.
+**Order and timing, settled 22 Sep.** E4's measurement, then E3, then E4's build if the measurement
+justified it - all **before** 6d, at the maintainer's direction and against my recommendation to wait,
+with both positions recorded above. E2 waits for Phase 7's workers, because concurrency is the one place
+where the bit-equality gate stops being a guarantee and because the infrastructure is being built there
+anyway.
+
+E3 is built in two steps, as E0 was: first identify the redundant cells and **assert they would have
+produced identical values**, then skip them. That keeps a failure from being ambiguous between
+mis-identifying a cell and breaking the copy, which is the single practice that made E0 go smoothly.
 
 ---
 
@@ -1896,16 +1899,28 @@ though the speed work comes first. It does not. This is the schedule; the table 
 |---|---|---|
 | done | **6c** field check | **not passed**: conditions 1, 2 and 3b pass, 3's control clause fails on S390, whose estate sits at 97% of its bend and which was therefore never a control. `soft` stays off; the curve returns as a question inside 6d |
 | done | **E0**, one flow per cell across the three worlds | **passed**, 1.66× / 1.33× |
-| **next** | **6c-screen**, 20 min | Before 6d, because curvature and weight substitute for each other. **Its purpose has changed**: with 6c not passed and the curve staying off, it no longer validates a shipped change, it tells 6d whether the curve is a live variable underneath the weight. |
+| **next** | **E4's measurement**, 20 min | Decides whether E4 exists at all: time four separate arrays against one interleaved, at the real size, on this machine. Negligible difference and E4 is dead for twenty minutes rather than a morning. |
+| then | **E3**, collapse the empty-pot dimensions, ~1 day | 30.2% of cell work, measured. Built in two steps like E0: detect the redundant cells and assert they would have produced identical values, then skip them - so a failure is never ambiguous between mis-identifying a cell and breaking the copy. |
+| then | **E4's build**, ~half a day | Only if its measurement justified it. |
+| then | **6c-screen**, 20 min | Before 6d, because curvature and weight substitute for each other. **Its purpose has changed**: with 6c not passed and the curve staying off, it no longer validates a shipped change, it tells 6d whether the curve is a live variable underneath the weight. |
 | then | **6d stage 1**, 1-2 h | The lever sweep at fixed lambda. |
 | then | **6d stage 2**, a few hours | The promise, landed at the two extreme weights, only if stage 1 is healthy. |
-| then | **E1**, candidate-set search | **Deliberately last of the speed work.** Its gate is a paired comparison against the gate 6b results, and if 6c passes, `soft` becomes the default and those results stop being the baseline. Running it before the objective settles means measuring against a reference about to be replaced, then running it again. |
-| then | **Phase 4**, the versus study | Once E0 and E1 have landed, so the decision gate is run once at the lower cost. |
+| then | **E2**, split the cells across cores | **Designed with Phase 7's worker plumbing, not before it.** Concurrency is the one place a passing test is not proof: a race can pass a hundred times and fail on the hundred-and-first, so bit-equality here is evidence rather than a guarantee. It also needs infrastructure Phase 7 builds anyway, and doing that twice is waste. |
+| then | **E1**, candidate-set search | **Deliberately last of the speed work.** Its gate is a paired comparison against the gate 6b results, and if the objective moves those results stop being the baseline. Running it before the objective settles means measuring against a reference about to be replaced, then running it again. |
+| then | **Phase 4**, the versus study | Once the speed work has landed, so the decision gate is run once at the lower cost. |
 
-**E2, E3 and E4 (the remaining speed work) sit after 6d**, not before it. They are all bit-exact, so
-unlike E1 they cannot invalidate a baseline and could run at any time - but 6d's first stage is one to
-two hours, so 30% would save twenty minutes, and 6d answers a product question that has been open all
-day. The exactness that let E0 run early is the same property that lets these wait.
+**E3 and E4 run BEFORE 6d; E2 waits for Phase 7. Maintainer's decision, 22 Sep, against my
+recommendation, which is recorded here rather than quietly replaced.** I argued they should wait: 30%
+off a one-to-two-hour run saves twenty minutes, against roughly a day and a half to build, and 6d
+answers a product question that had been open all day. The decision was to take them first on the
+grounds that they carry no risk to the model, and on that the answer is: **E3 and E4 carry very little,
+E2 carries a different kind.**
+
+E3 and E4 are single-threaded and must produce byte-identical answers, and bit-equality is unfakeable -
+an index-arithmetic error fails the check immediately and loudly. E2 is concurrency, where a passing
+test is not proof: a race can pass a hundred times and fail on the hundred-and-first, because it turns
+on timing rather than logic. Bit-equality there is evidence, not a guarantee. E2 also needs worker
+infrastructure that Phase 7 builds regardless, so it is designed alongside that rather than twice.
 
 The distinction between E0 and E1 is the point: **exact work can run against a moving objective, measured
 work cannot.** E0's gate is arithmetic; E1's gate is a comparison, and a comparison needs a fixed thing

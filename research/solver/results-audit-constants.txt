@@ -145,3 +145,20 @@ WHAT THIS CHANGES
        fixture with a death-tax rate before it is worth touching.
 
   Written up before any of them is attempted, so the field numbers above are the before.
+
+----------------------------------------------------------------------------------------------------
+WHERE THESE WENT IN THE PLAN  (added 22 Sep, after the audit was reported)
+
+  Faults 1 and 2   ->  Phase 6e, two stages. They are batched into ONE field check because each of
+                       them changes what the value function returns, so each would otherwise need its
+                       own 6b-class run: ~44 core-hours, ~13 hours wall, three times over.
+                       6e stage 1 (~40 min) runs NEXT, ahead of E3, because a fourth gain bucket would
+                       cost 33% of cells against E3's measured 30.2% saving - the two cancel, and
+                       sizing E3 against a grid about to change is the E1 mistake in a different coat.
+                       6e stage 2 runs before BOTH 6d stages.
+  Fault 3           ->  parked in 6e, needs a synthetic household with a non-zero pension death tax.
+  shortExp = 2      ->  folded into Phase 6d stage 1 as a third screen question. 24 extra solves on a
+                       sweep already running, ~40 core-minutes. As its own phase it would cost a day.
+  wR, SWITCH_COST,  ->  recorded as never-swept and left closed. Three more sweeps is scope we have no
+  SWITCH_MARGIN         evidence to justify.
+  raise credit cap  ->  dormant, wants a code comment tying it to the shipped level menu, not a phase.

@@ -758,8 +758,29 @@ export function solveFlex(E, M, plan, opts = {}) {
     const r = (opts.mix ? solveMixture : solve)(E, M, plan, { ...opts, spendLevels: levels, lambda });
     r.floorRate = rateOn(r, zsSearch); solves++; return r;
   };
-  // the rate about to be promised, on the full draw the search set is a prefix of
-  const verify = (r) => { if (r.searchFloorRate === undefined) { r.searchFloorRate = r.floorRate; r.floorRate = rateOn(r, zsAll); } return r; };
+  /*
+   * The rate about to be promised, on the full draw the search set is a prefix of.
+   *
+   * WHEN THE TWO DRAWS ARE THE SAME ARRAY, THIS IS A NO-OP, AND IT USED NOT TO BE. `verifyPaths`
+   * defaults to `searchPaths` - that is the whole point of the single-stage landing above - so
+   * `zsSearch` and `zsAll` are the SAME OBJECT, and re-running `rateOn` against the same immutable
+   * table on the same paths returned the same bits at full price.
+   *
+   * It was not a small price. A landing calls `at` eight times and `verify` three times (the bracket
+   * top, the bracket bottom, and the chosen table), so a QUARTER of all forward-pass work was
+   * recomputing a number already in hand - and forward passes dominate: a single-solve probe at 12
+   * points still took 15 minutes, almost none of it solving.
+   *
+   * The guard is identity, not equality, so it cannot fire on two draws that merely happen to match.
+   * When `verifyPaths` is raised above `searchPaths` the second pass is real work and still happens.
+   */
+  const sameDraw = zsSearch === zsAll;
+  const verify = (r) => {
+    if (r.searchFloorRate !== undefined) return r;
+    r.searchFloorRate = r.floorRate;
+    if (!sameDraw) r.floorRate = rateOn(r, zsAll);
+    return r;
+  };
   const done = (r, landed, vSteps = 0) => {
     r.meta.landed = landed; r.meta.solves = solves; r.meta.confidence = confidence;
     r.meta.searchPaths = nSearch; r.meta.verifyPaths = nVerify; r.meta.verifySteps = vSteps;

@@ -1119,6 +1119,57 @@ pass; condition 1's over-trim clause fails as written on 9 of 41. Not merged, no
   for 0.70 of retired years on the mean and up to 0.97. That is not de-risking with age, it is a
   different portfolio for most of retirement, and the copy cannot call it a glidepath if it is not one.
 
+### Phase 6c. The bequest shape: a shoulder, not a cliff
+
+Pre-registered 22 Sep, after gate 6b and before any code. **This is an objective change, so it cannot be
+gated on the solver scoring better: the objective is what "better" means.** It is gated on the cliff
+being gone and on nothing else moving.
+
+**What 6b exposed.** The bequest term is `wB x min(net, 4 x openingWealth)`. Above four times opening
+wealth an extra pound of estate scores exactly zero, so the solver is *indifferent* there and will trade
+the pot away for any gain at all. Measured on the 41: the cap binds on **9 households** (all 52 or 61
+year horizons), and of the £35.9M of median pot the tiers gave up against flex-landed, **£12.8M sat
+above the cap and cost nothing in the score**. S354 went £7.31M to £4.69M with both ends above its
+£3.80M cap: the whole £2.6M was free. The other £23.1M was below the cap, priced, and chosen - that part
+is the objective doing what it was told, and it is a question about `wB`, not about the cap.
+
+The cap earns its keep. Survival and resilience are bounded; an estate is not, and an unbounded average
+is dominated by the lucky tail - a strategy leaving £200M in one future of a hundred beats one leaving
+£1M in all hundred on the mean. The fault is not that the solver stops chasing upside, it is that it
+stops caring *abruptly*.
+
+**The change.** `opts.bequestShape`, `'cap'` (today, the default) or `'soft'`:
+
+    soft(net) = net                                             for net <= cap
+              = cap x (1 + ln(1 + (net - cap) / cap))           for net >  cap
+
+Identical below the cap, C1-continuous at it (both one-sided derivatives are 1), and above it the
+marginal value decays like cap/net - always positive, never zero. An outcome a hundred times the cap
+scores about 5.6 cap, not 100, so the lottery ticket still loses. The same shape the raise credit
+already uses, for the same reason.
+
+**Gate 6c passes when all four hold:**
+1. Inertness: with `bequestShape` unset the tables are bit-identical to the current solver - `surv`,
+   `beq`, `resil`, `short` and `pol` on two households, tiers off and on.
+2. The transform itself: `soft` equals `cap` to the pound at every wealth at or below the cap, is
+   continuous and strictly increasing above it, and its slope at the cap is 1 from both sides.
+3. Field, on the 9 cap-binding households plus 3 controls whose grid never reaches the cap: median pot
+   rises on all 9, no household's floor rate falls by more than 0.5 points, and the 3 controls are
+   unchanged to the pound.
+4. Reported, not gated: how much of the £12.8M is recovered; the tier occupancy before and after; the
+   effect on all 41 when the full re-run happens.
+
+**Decision.** Pass: `'soft'` becomes the default, every headline figure from Phase 2 onward is restated
+under it, and the results files say which shape they were measured with. Fail: it stays off and the
+numbers are recorded. **If the pot recovers but the solver still holds a de-risked tier for most of
+retirement, that is the point at which `wB` is the question** - a preference, to be decided with the
+£23.1M in view, not guessed at now. The drift penalty (`driftWeight`, 2a94a4a) stays at zero throughout
+and is a fallback only if 6c and a `wB` decision together leave the behaviour unexplained.
+
+**Scope.** The cap binds wherever a household's grid reaches above four times opening wealth, which is a
+function of horizon, so this touches Phase 2, 2c, 2d and 6 as well as 6b. Nothing is restated until the
+gate is judged.
+
 ---
 
 ## Part C. The app (phases 7 to 12), behind a switch
@@ -1492,6 +1543,7 @@ solver change.
 | 5 | couples by rollout | **done, survival conditions met**: +0.77 vs the best fixed rule on 19 couples, 14 up / 3 down, worst −0.85; tiers off for couples; backtest and perturbed worlds not yet run | 1× |
 | 6 | tiers and spend dimension | **tiers done, confirmed by the engine**: +6.13 in the model and **+6.16 in the real engine**, 41 of 41 both ways, 1.7 tier changes a retirement; 2× solve time (gate asked 1.5×); a preset, off by default; spend dimension deferred | 1× |
 | 6b | flexible spending and tiers together | **run 22 Sep**: conditions 2 (years at target +0.125, 30 up / 1 down), 3 (1.80× of 2.5×) and 4 (1.57 changes of 3) pass; **condition 1b fails as written on 9 of 41**, seven of them households that took no trimming at all and two that are inside the bound on the sample the landing optimised. Fully-funded rate +54.93 vs the guardrails (p = 0.000) against flex-landed's +13.43 (p = 0.755); pot −£870k, the tier trade Phase 6 measured at −£917k. Recorded, not tuned, not merged | 1× |
+| 6c | the bequest shape: a shoulder, not a cliff | gate 6c: default bit-identical, `soft` equal below the cap and strictly increasing above, pot up on the 9 cap-binding households with no floor rate more than 0.5 lower; pre-registered, not yet run | 0.5× |
 | 7 | worker, staleness, locks, cache | suite green with switch off | 1× |
 | 8 | Config | harness | 0.5× |
 | 9 | Strategy | harness | 1.5× |

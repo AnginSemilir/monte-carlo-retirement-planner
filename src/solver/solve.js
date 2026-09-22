@@ -231,6 +231,30 @@ export function solve(E, M, plan, opts = {}) {
   const resilK = opts.resilienceAt !== undefined ? opts.resilienceAt : scale;
   const beqCap = opts.bequestCap !== undefined ? opts.bequestCap : 4 * scale;
   /*
+   * THE BEQUEST SHAPE (phase 6c). `min(net, cap)` scores an extra pound of estate at exactly zero above
+   * the cap, so up there the solver is INDIFFERENT and will trade the pot away for any gain at all.
+   * Gate 6b caught it doing that: the cap binds on 9 of the 41 (every one a 52 or 61 year horizon), and
+   * of the £35.9M of median pot the tier freedom gave up, £12.8M sat above the cap and cost nothing.
+   * S354 went from £7.31M to £4.69M with both ends above its £3.80M cap, so the whole £2.6M was free.
+   *
+   * The cap itself is right to exist. Survival and resilience are bounded and an estate is not, and the
+   * mean of an unbounded quantity is set by the lucky tail: uncapped, a policy leaving £200M in one
+   * future of a hundred beats one leaving £1M in all hundred. What is wrong is the cliff, not the
+   * refusal to chase upside. `soft` keeps the refusal and loses the cliff:
+   *
+   *     soft(net) = net                                    net <= cap
+   *               = cap x (1 + ln(1 + (net - cap) / cap))  net >  cap
+   *
+   * Identical below the cap and C1-continuous at it (both one-sided slopes are 1), and above it the
+   * marginal value decays like cap/net: always positive, never zero. A hundred times the cap scores
+   * about 5.6 cap rather than 100, so the lottery ticket still loses. `cap` stays the default until
+   * gate 6c is judged, and every result to date was measured with it.
+   */
+  const beqShape = opts.bequestShape === 'soft' ? 'soft' : 'cap';
+  const beqOf = beqShape === 'soft'
+    ? (net) => (net <= beqCap ? net : beqCap * (1 + Math.log(1 + (net - beqCap) / beqCap)))
+    : (net) => Math.min(net, beqCap);
+  /*
    * THE RISK TERM, SHORTFALL OR INDICATOR (plan 2c.2). The default is the shortfall,
    * 1 - E[min(1, max(0, K - net) / K)]; `resilience: 'indicator'` restores P(net >= K). The shortfall is: one when the household ends
    * with at least K, falling linearly to zero at nothing. Same range, same weight, but continuous in
@@ -365,7 +389,7 @@ export function solve(E, M, plan, opts = {}) {
                       const net = Math.max(0, total - grown[0] * deathTax);
                       s += WEIGHTS[zi] * (alive ? 1 : 0);
                       rs += WEIGHTS[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
-                      b += WEIGHTS[zi] * (alive ? Math.min(net, beqCap) : 0);
+                      b += WEIGHTS[zi] * (alive ? beqOf(net) : 0);
                     } else {
                       readValues(g, sNext, bNext, grown, rd, rNext, hNext);
                       s += WEIGHTS[zi] * rd[0];
@@ -391,7 +415,7 @@ export function solve(E, M, plan, opts = {}) {
     if (shortfall) lresil[t].set(Rt); else toLogOdds(Rt, lresil[t]);
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
   if (PROF) {
     PROF.total = now() - profT0;
     // two clock calls per timed region, and the outer pair too

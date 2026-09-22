@@ -752,10 +752,29 @@ export function solveFlex(E, M, plan, opts = {}) {
   const nVerify = Math.max(opts.verifyPaths || nSearch, nSearch);
   const zsAll = E.pathsForSeed(opts.seed || 4242, nVerify, probe.ctx.totalYears);
   const zsSearch = nVerify === nSearch ? zsAll : zsAll.slice(0, nSearch);
-  const rateOn = (r, paths) => paths.filter(z => runPolicy(r, z).survived).length / paths.length;
+  /*
+   * THE SPLIT, off unless SOLVER_PROFILE is set: how much of a LANDING is solving, and how much is
+   * running the policy forward over paths?
+   *
+   * It matters because the whole of Part E - E0 through E4 - makes the SOLVE faster and none of it
+   * touches the forward passes. If those are half the run then E3's measured 30.2% is 30.2% of half,
+   * and the cheapest remaining win is the search-path count instead. That was an estimate differenced
+   * from two runs that changed several things at once, which is exactly the reasoning that produced
+   * the wrong cost figures this instrument exists to replace. So: measure it directly.
+   */
+  const FPROF = typeof process !== 'undefined' && process.env && process.env.SOLVER_PROFILE
+    ? { solveMs: 0, fwdMs: 0, solveCalls: 0, fwdRuns: 0 } : null;
+  const rateOn = (r, paths) => {
+    const t = FPROF ? Date.now() : 0;
+    const v = paths.filter(z => runPolicy(r, z).survived).length / paths.length;
+    if (FPROF) { FPROF.fwdMs += Date.now() - t; FPROF.fwdRuns += paths.length; }
+    return v;
+  };
   let solves = 0;
   const at = (lambda) => {
+    const t = FPROF ? Date.now() : 0;
     const r = (opts.mix ? solveMixture : solve)(E, M, plan, { ...opts, spendLevels: levels, lambda });
+    if (FPROF) { FPROF.solveMs += Date.now() - t; FPROF.solveCalls++; }
     r.floorRate = rateOn(r, zsSearch); solves++; return r;
   };
   /*
@@ -785,6 +804,7 @@ export function solveFlex(E, M, plan, opts = {}) {
     r.meta.landed = landed; r.meta.solves = solves; r.meta.confidence = confidence;
     r.meta.searchPaths = nSearch; r.meta.verifyPaths = nVerify; r.meta.verifySteps = vSteps;
     r.meta.solverVersion = SOLVER_VERSION;
+    if (FPROF) r.meta.split = { ...FPROF, totalMs: FPROF.solveMs + FPROF.fwdMs };
     return r;
   };
   if (levels.length === 1) return done(verify(at(0)), 'no floor');

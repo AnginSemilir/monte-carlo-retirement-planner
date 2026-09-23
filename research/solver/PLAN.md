@@ -650,6 +650,36 @@ The winning #106 option joins the new baseline, which every later step builds on
 
 ---
 
+## Step 2b. The ranking check, and what follows from its result
+
+**The question (maintainer, 23 Sep): when the table ranks two moves, does its first choice really simulate
+better than its second?** Phase V showed the table's own numbers are off by several points while the
+plans are stable; the phase-2 loss ledger showed a near-tie misranked on the old grid (S070, about 6 points
+on that one decision). This measures how often the table picks the worse of its top two, and what it costs.
+
+**Method (`audit-ranking.mjs`, ~30 min).** On the new baseline for the 12 step-2 households: sample
+positions along simulated paths across the whole retirement; at each, take the table's top two moves and
+their score margin; simulate each (take the move, then follow the solver) on the same 500 paths; record
+whether the first choice did at least as well, and by how much it lost when it did not, bucketed by the
+table's margin. Prediction and falsifier: in the predictions register.
+
+**What each result leads to - agreed with the maintainer before the run:**
+
+| result | answer | why |
+|---|---|---|
+| wrong picks rare, or losses under half a point | **nothing** | the imperfection is real but does not reach outcomes |
+| wrong picks frequent on near-ties, losses small | **a tie-break rule** among near-tied moves - less tax, then fewer changes; a tax-averse tie-break was measured in phase 2 | cheap, and removes pointless churn between equal moves |
+| losses of a point or more on near-ties | **settle near-ties by simulation (rollout)**: when the top moves are within a margin, simulate each for a few hundred paths and take the better | **provably no worse than the table**: the table's own pick is one of the candidates, so rollout can only correct it (the rollout-improvement property). Costs only on near-ties; for the app's "this year's action" it is seconds |
+| errors concentrated where survival changes sharply | **extra grid points on the cliff only** (the adaptive grid the loss ledger already named) | puts resolution where it pays, not everywhere |
+
+**Not the answer: a uniformly finer grid.** Phase V showed the table's error shrinks only slowly with
+resolution - still moving at 56 points, about twice today's cost - and near-ties exist at any resolution.
+
+**If a fix is needed** it is built and checked before K5, so the guardrail matching and Phase 4 run on the
+fixed solver. It adds a few hours to Thursday.
+
+---
+
 ## Step 3. The lever builds
 
 - **The estate credit curve** `credit(net) = w x s x ln(1 + (net - P)/s)` above the minimum pot P, with one

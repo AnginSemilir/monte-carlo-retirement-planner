@@ -216,7 +216,11 @@ export function solve(E, M, plan, opts = {}) {
   if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');
   const g = makeGrid(m, opts);
   const raiseOn = (opts.raiseWeight || 0) > 0;
-  const menuLevels = raiseOn || !opts.spendLevels ? opts.spendLevels : opts.spendLevels.filter(l => l <= 1);
+  let menuLevels = raiseOn || !opts.spendLevels ? opts.spendLevels : opts.spendLevels.filter(l => l <= 1);
+  /* THE USER'S RULES ON THE MENU (PLAN.md step 3). `raiseCap`: no level above it (1 blocks raises). `blockTrim`:
+   * no level below 1 - never spend under the target. Both only remove moves, never add them. */
+  if (menuLevels && opts.raiseCap !== undefined) menuLevels = menuLevels.filter(l => l <= opts.raiseCap + 1e-9);
+  if (menuLevels && opts.blockTrim) menuLevels = menuLevels.filter(l => l >= 1 - 1e-9);
   const actions = (opts.actions || buildActions({ spendLevels: menuLevels, tiers: opts.tiers ? tierCombos(m, opts.tiers) : null })).map(a => ({ ...a, lump: !!opts.lump }));
   /*
    * PHASE E0, STEP 1: the loop carries K worlds. `opts.shifts` is the list of held shifts to solve
@@ -327,10 +331,21 @@ export function solve(E, M, plan, opts = {}) {
    * about 5.6 cap rather than 100, so the lottery ticket still loses. `cap` stays the default until
    * gate 6c is judged, and every result to date was measured with it.
    */
-  const beqShape = opts.bequestShape === 'soft' ? 'soft' : 'cap';
+  /*
+   * THE ESTATE CREDIT CURVE ABOVE THE MINIMUM POT (`bequestShape: 'logfloor'`, PLAN.md K4). What the
+   * maintainer asked for: credit starts at the user's minimum end pot P, not at zero, and each extra pound
+   * counts a little less than the one before - a pound counts half at P + s, a third at P + 2s. `estateScale`
+   * sets s in multiples of opening wealth; no cap is needed, since the logarithm already refuses to chase a
+   * lucky tail. K4 maps the user's 0-100% slider onto (bequestWeight, estateScale).
+   */
+  const beqShape = opts.bequestShape === 'soft' ? 'soft' : opts.bequestShape === 'logfloor' ? 'logfloor' : 'cap';
+  const estS = (opts.estateScale !== undefined ? opts.estateScale : 1) * scale;
+  const minPot = m.ctx.solvencyFloor || 0;
   const beqOf = beqShape === 'soft'
     ? (net) => (net <= beqCap ? net : beqCap * (1 + Math.log(1 + (net - beqCap) / beqCap)))
-    : (net) => Math.min(net, beqCap);
+    : beqShape === 'logfloor'
+      ? (net) => (net <= minPot ? 0 : estS * Math.log(1 + (net - minPot) / estS))
+      : (net) => Math.min(net, beqCap);
   /*
    * THE RISK TERM, SHORTFALL OR INDICATOR (plan 2c.2). The default is the shortfall,
    * 1 - E[min(1, max(0, K - net) / K)]; `resilience: 'indicator'` restores P(net >= K). The shortfall is: one when the household ends

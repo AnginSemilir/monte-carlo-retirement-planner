@@ -278,6 +278,24 @@ repeated in the phases below.
 | the lambda curve | cancelled: answered by algebra (a Lagrangian relaxation; 0 reversals in 15 pairs) | history |
 | 6c, the soft bequest shoulder | not passed on its control, S390; not re-specified | history |
 
+### What removing the survival target saved (derived from the flex-tiers records, no run)
+
+A landing searched the trim penalty: each step is a solve (314 s) plus 5,400 forward paths to measure
+the floor rate (373 s), and the flex-tiers landings took 3.46 steps on average (18 of 41 needed one; the
+23 that trimmed needed 5.4). Without a target a plan is ONE solve plus one forward run for the reported
+figures (3,000 paths, ~207 s):
+
+| | before (landing) | after (one solve) | faster by |
+|---|---|---|---|
+| average household | ~2,580 s | ~520 s | **about 5x** |
+| households that trim | ~3,920 s | ~520 s | **about 7.5x** |
+| households needing no trim | ~890 s | ~520 s | about 1.7x |
+
+Research timings (three-world mixture, 30 points, one core); the ratio carries to the app. Cutting the
+reporting run to 1,000 paths in the app makes the average about 6.7x. The six-level ternary search takes a
+little more off each solve on top. **The solve is now almost the whole cost**, which changes what the
+speed work is worth - see "After Phase 4".
+
 ### Bugs found and fixed on 23 Sep
 
 - **The E0 world views lacked `value()`**, turning the engine suite red - fixed.
@@ -336,10 +354,14 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 
 Step 6 is the one point the maintainer is on the critical path.
 
-**After Phase 4, in this order:** the speed work (E3; Brent with error-based stopping for any lambda
-search that remains - K5's matching and Phase 4's equal-survival diagnostic); #109's remaining probes
-(households whose landing saturates, households already on the Low tier; recommendations only, in a
-scratch note); E2 after Phase 7.
+**After Phase 4, in this order - re-weighted 23 Sep now that the solve is the whole cost:**
+- **E3, collapse the empty-pot dimensions** - was 13.8% of a landing because forward runs were half the
+  cost; with no landing it is close to its full **30.2% of the solve**. Worth roughly twice what it was.
+- **E2, split one solve across cores** - in the app the user waits on one household's single solve, so
+  near-4x on four cores is now most of the waiting time. Still designed with Phase 7's workers.
+- **#109's remaining probes** - recommendations only, in a scratch note.
+- **Brent with error-based stopping - DOWNGRADED.** Only K5's matching and Phase 4's equal-survival
+  diagnostic still search lambda; the product never does. Worth it only if those searches become slow.
 
 ---
 
@@ -869,6 +891,25 @@ mistaken for an oversight, and so that anyone who notices one of these can see i
   sight; **a second re-specification with full sight was refused.** `soft` stays off.
 
 ### 5. Open questions
+
+**Reopened by the 23 Sep scope changes (survival no longer a target, resilience gone, two sliders):**
+- **The Simple page's "safe spend" and "safe retirement age", and the quick dials, are survival-target
+  concepts.** Each asks "the most you can spend (or the earliest you can stop) at X% survival". The
+  solver no longer lands on a survival figure, so Part C Phase 10's plan to read them from the table
+  needs a product decision: keep them on the existing `optimizeSpend` landing, re-define them on the
+  solver's reported survival, or retire them. **Must be decided before Part C, not needed for Phase 4.**
+- **Couples (Phase 5) were validated under the old objective** (resilience on, a landed penalty) and
+  their backtest and perturbed worlds were never run. Phase 4 is singles only; couples need their own
+  check under the new objective and levers before couples can ship.
+- **Phase 2c's tuned weights (resilience 0.5, bequest 0.02) are obsolete** - one term is gone and the
+  other becomes the estate curve. The robustness half of 2c (the edge holding in perturbed worlds) is
+  re-checked by Phase 4's condition 4 under the new objective, so nothing extra is scheduled.
+- **Moot now, recorded so nobody revives them by accident:** 6b's over-trim guard (condition 1b) and
+  the landing's tolerance window only concern landing to a survival ask; 6c's cliff above the 4x cap
+  disappears when the capped credit is replaced by K4's diminishing curve, which needs no cap; the
+  search-path count (#108) matters only to the two landings that remain.
+
+**Still open from before:**
 
 - **#109, single-household probes at the frontier** - its first target list is answered: the phase-2
   losers no longer lose (no household behind on floor rate by two standard errors in flex-tiers). The

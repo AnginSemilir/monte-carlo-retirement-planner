@@ -2904,6 +2904,27 @@ resilience test (into step 2 and K2); the landed confirmation (no longer needed 
 target). **After Phase 4:** the speed work (E3; the single-peak level search, confirmed safe, about one
 evaluation in five; the lambda search), #109's remaining probes, E2 after Phase 7. **E1 is not built.**
 
+### BUG FOUND 23 Sep ~15:15 - the stored policy was a byte, and the menu is wider than a byte
+
+`pol` was a `Uint8Array`; with tiers and five levels the menu has 360 moves (432 with six), so any
+stored move numbered above 255 read back as a different move. **One reader acted on it: the final year
+of every simulated path**, where `chooseAction` returns the stored move. Every full-menu simulation -
+flex-tiers, #108, the convergence test, 6f - played its last year with the wrong move wherever the
+best was above 255. **Fixed** (`Uint16Array`, commit fc26c07, a test that fails on the old width).
+Found while writing the ternary search, not by a test: no test had a menu wider than 255.
+
+Consequences, handled in this order:
+- **The Phase V run was stopped 15 minutes in and restarts on the fixed code** (its simulations read the
+  final year the same way).
+- **The E1 probe read its persistence figures from the same corrupted table**, so its verdict ("not
+  built", 98.68% coverage) is re-run on the fixed code before it is trusted - one solve.
+- **The size of the damage to existing results** is measured by `audit-pol-overflow.mjs`: the same
+  paths simulated with the true and the wrapped final-year move, on four households. Prediction: small -
+  one year in 35 to 61, and only where the best final move sits above 255 - but a final-year move that
+  spends 20% more or draws from the wrong pot can fail a path that was about to survive, so it is
+  measured, not assumed. Written up in `results-pol-overflow.txt`.
+- Paired comparisons (6e, 6f, #108) shared the bug in both arms and are expected to survive it.
+
 ### Phase K. Calibrating the user's levers
 
 Two different jobs that must not be confused. **A rule the user sets must be HONOURED** - exact, not

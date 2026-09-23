@@ -177,3 +177,143 @@ WHAT FOLLOWS
   its controls, all with the exact final year. The base carries NO #106 option while drop stands failed
   as written; an option joins the baseline only if the re-check clears it.
 - The ternary decision (M11) is taken on the re-check; its fallback is the full scan at +35% solve time.
+
+
+=====================================================================================================
+STEP 2 RE-CHECK WITH THE EXACT FINAL YEAR                                       23 Sep 2026, 19:00-19:45
+
+batch-step2-recheck.sh from snapshot /tmp/solver-snap-WjHDJ5 (f90a334 + three uncommitted files: PLAN.md,
+the batch itself, and a comment-only change to solve.js - no code difference). 42 cells, all with
+finalExact: fnew (new baseline, no #106 option), fnewex (full scan), fnewp56 (56 points), and fdrop /
+flinear on S126, S184, S162. Decision rules written into PLAN.md at 19:15, before any result was read.
+
+1. THE EXACT FINAL YEAR ITSELF (fnew against new): survival up on 9 of 12, never down beyond noise -
+   S070 +1.67, S330 +0.70, S390 +0.47, S126 +0.40. PREDICTION HELD. It is on from here.
+
+2. TERNARY AGAINST THE FULL SCAN (fnew against fnewex): the original gate PASSES (worst -0.20, spending
+   within 0.26%) - but the rule's second condition FAILS: S112 -0.20 +/- 0.08 and S390 -0.20 +/- 0.08, both
+   2.4 paired standard errors, and not one household better. DECISION BY THE RULE: the full scan from here
+   (+35% solve time); the maintainer is told the six-levels-at-today's-cost decision no longer holds.
+   (S390's earlier -0.67 was mostly the final year: 27 of 28 lost paths. What remains is small and real.)
+
+3. 56 POINTS AGAINST 30 (fnew against fnewp56): FAIL on one household - S184 -0.67 +/- 0.40 (1.7 se, 82
+   lost / 62 gained, failures spread over years 10-40: noise-shaped). S206's -1.67 is GONE (0.00): it was
+   entirely the final year. Finer is better beyond noise on S162 (+0.50, 3.9 se) and S054 (+0.30, 3.0 se).
+   DECISION BY THE RULE: recorded; the grid stays at 30 points. Resolution moves simulated survival by up to
+   about half a point either way - a real, small sensitivity, not a trend.
+
+4. #106 ON S126 (with the exact final year):
+                 survival  years below  fully funded  pension years off-tier  median pot  unlucky tenth
+     none         99.87      1.71          0.0%              40.0              GBP1,897k     GBP307k
+     drop         99.57      2.20         71.0%               9.0              GBP2,612k     GBP81k
+     linear       99.87      1.70          0.0%              40.0              GBP1,896k     GBP307k
+   drop: -0.30 +/- 0.10 (3.0 se, 0 gained / 9 lost) and MORE trimmed years - FAILS the rule on both counts.
+   linear: identical to none; cuts nothing - FAILS. Controls within noise under every option.
+   DECISION BY THE RULE: no #106 option. Without a fix S126 holds its pension one or two tiers down for all 40
+   years and trims a little in every path's bridge years; with drop it keeps its planned risk, 71% of paths
+   never cut, the median pot is 38% larger and the unlucky tenth 74% smaller, for 0.3 points of survival.
+   Neither is plainly better: the dead corner changes the plan's CHARACTER. Recorded as an open defect,
+   put to the maintainer, and to the mathematician as question 5.
+
+TABLE: the reducer's section 5 and the paired analysis follow.
+5. RE-CHECK WITH THE EXACT FINAL YEAR (finalExact) and the chosen #106 option
+
+5a. TERNARY AGAINST EXHAUSTIVE, both with the exact final year
+   S054  survival +0.00   spending +0.00%   solve 81s vs 107s   ok
+   S070  survival -0.10   spending +0.00%   solve 90s vs 119s   ok
+   S100  survival -0.03   spending +0.00%   solve 97s vs 134s   ok
+   S112  survival -0.20   spending +0.23%   solve 99s vs 134s   ok
+   S126  survival -0.07   spending +0.00%   solve 110s vs 149s   ok
+   S162  survival +0.00   spending +0.00%   solve 106s vs 144s   ok
+   S184  survival +0.00   spending +0.00%   solve 109s vs 146s   ok
+   S206  survival -0.07   spending +0.00%   solve 124s vs 168s   ok
+   S252  survival -0.10   spending -0.23%   solve 145s vs 195s   ok
+   S330  survival -0.13   spending +0.00%   solve 159s vs 216s   ok
+   S354  survival -0.03   spending +0.26%   solve 163s vs 218s   ok
+   S390  survival -0.20   spending +0.00%   solve 118s vs 157s   ok
+   GATE: every household within 0.5 of survival and 1% of spending ... PASS
+
+5b. 56 WEALTH POINTS AGAINST 30, both with the exact final year
+   S054  survival +0.30   spending -0.30%   solve 81s vs 151s   ok
+   S070  survival -0.30   spending +0.53%   solve 90s vs 169s   ok
+   S100  survival -0.10   spending +0.47%   solve 97s vs 188s   ok
+   S112  survival +0.13   spending -0.23%   solve 99s vs 189s   ok
+   S126  survival -0.03   spending +0.00%   solve 110s vs 208s   ok
+   S162  survival +0.50   spending +0.21%   solve 106s vs 204s   ok
+   S184  survival -0.67   spending +0.51%   solve 109s vs 203s   OUTSIDE
+   S206  survival +0.00   spending +0.00%   solve 124s vs 235s   ok
+   S252  survival -0.10   spending +0.00%   solve 145s vs 268s   ok
+   S330  survival +0.27   spending +0.13%   solve 159s vs 301s   ok
+   S354  survival +0.07   spending +0.26%   solve 163s vs 307s   ok
+   S390  survival +0.13   spending +0.00%   solve 118s vs 228s   ok
+   GATE: every household within 0.5 of survival and 1% of spending ... FAIL
+
+5c. THE EXACT FINAL YEAR AGAINST THE NEAREST-CELL READ (fnew against new; prediction: never lower beyond noise)
+   S054  survival +0.03   spending +0.00%   solve 77s vs 81s   ok
+   S070  survival +1.67   spending +0.00%   solve 89s vs 90s   ok
+   S100  survival +0.20   spending +0.00%   solve 100s vs 97s   ok
+   S112  survival -0.03   spending +0.00%   solve 101s vs 99s   ok
+   S126  survival +0.40   spending +0.00%   solve 105s vs 110s   ok
+   S162  survival -0.13   spending +0.00%   solve 107s vs 106s   ok
+   S184  survival +0.23   spending +0.00%   solve 112s vs 109s   ok
+   S206  survival +0.10   spending +0.00%   solve 123s vs 124s   ok
+   S252  survival +0.17   spending +0.00%   solve 142s vs 145s   ok
+   S330  survival +0.70   spending +0.00%   solve 163s vs 159s   ok
+   S354  survival +0.23   spending +0.00%   solve 163s vs 163s   ok
+   S390  survival +0.47   spending +0.00%   solve 115s vs 118s   ok
+   GATE: every household within 99 of survival and 99% of spending ... PASS
+paired survival difference, arm minus fnew, on the same 3,000 paths
+  S054
+        fnewex +0.00 +/- 0.00 (0.0 se; 0 gained, 0 lost)
+        fnewp56 +0.30 +/- 0.10 (3.0 se; 9 gained, 0 lost)
+        stored moves differing, ternary vs exhaustive: 5151 of 272160 cell-years (1.8926%); year 0: 553 of 9720; worst year 2 with 749
+  S070
+        fnewex -0.10 +/- 0.10 (-1.0 se; 3 gained, 6 lost)
+        fnewp56 -0.30 +/- 0.25 (-1.2 se; 24 gained, 33 lost)
+        stored moves differing, ternary vs exhaustive: 8073 of 349920 cell-years (2.3071%); year 0: 72 of 9720; worst year 29 with 469
+  S100
+        fnewex -0.03 +/- 0.03 (-1.0 se; 0 gained, 1 lost)
+        fnewp56 -0.10 +/- 0.06 (-1.7 se; 0 gained, 3 lost)
+        stored moves differing, ternary vs exhaustive: 18012 of 349920 cell-years (5.1475%); year 0: 115 of 9720; worst year 31 with 927
+  S112
+        fnewex -0.20 +/- 0.08 (-2.4 se; 0 gained, 6 lost)
+        fnewp56 +0.13 +/- 0.07 (2.0 se; 4 gained, 0 lost)
+        stored moves differing, ternary vs exhaustive: 33980 of 349920 cell-years (9.7108%); year 0: 175 of 9720; worst year 33 with 1548
+  S126
+        fnewex -0.07 +/- 0.05 (-1.4 se; 0 gained, 2 lost)
+        fnewp56 -0.03 +/- 0.03 (-1.0 se; 0 gained, 1 lost)
+        fdrop -0.30 +/- 0.10 (-3.0 se; 0 gained, 9 lost)
+        flinear +0.00 +/- 0.00 (0.0 se; 0 gained, 0 lost)
+        stored moves differing, ternary vs exhaustive: 25500 of 388800 cell-years (6.5586%); year 0: 439 of 9720; worst year 37 with 1338
+  S162
+        fnewex +0.00 +/- 0.05 (0.0 se; 1 gained, 1 lost)
+        fnewp56 +0.50 +/- 0.13 (3.9 se; 15 gained, 0 lost)
+        fdrop -0.03 +/- 0.03 (-1.0 se; 0 gained, 1 lost)
+        flinear -0.07 +/- 0.05 (-1.4 se; 0 gained, 2 lost)
+        stored moves differing, ternary vs exhaustive: 12739 of 388800 cell-years (3.2765%); year 0: 343 of 9720; worst year 38 with 787
+  S184
+        fnewex +0.00 +/- 0.00 (0.0 se; 0 gained, 0 lost)
+        fnewp56 -0.67 +/- 0.40 (-1.7 se; 62 gained, 82 lost)
+        fdrop +0.03 +/- 0.07 (0.4 se; 3 gained, 2 lost)
+        flinear +0.07 +/- 0.11 (0.6 se; 6 gained, 4 lost)
+        stored moves differing, ternary vs exhaustive: 53551 of 398520 cell-years (13.4375%); year 0: 9720 of 9720; worst year 0 with 9720
+  S206
+        fnewex -0.07 +/- 0.05 (-1.4 se; 0 gained, 2 lost)
+        fnewp56 +0.00 +/- 0.05 (0.0 se; 1 gained, 1 lost)
+        stored moves differing, ternary vs exhaustive: 77601 of 398520 cell-years (19.4723%); year 0: 9720 of 9720; worst year 0 with 9720
+  S252
+        fnewex -0.10 +/- 0.10 (-1.0 se; 3 gained, 6 lost)
+        fnewp56 -0.10 +/- 0.13 (-0.8 se; 6 gained, 9 lost)
+        stored moves differing, ternary vs exhaustive: 154740 of 505440 cell-years (30.6149%); year 0: 9720 of 9720; worst year 0 with 9720
+  S330
+        fnewex -0.13 +/- 0.14 (-0.9 se; 7 gained, 11 lost)
+        fnewp56 +0.27 +/- 0.23 (1.2 se; 27 gained, 19 lost)
+        stored moves differing, ternary vs exhaustive: 283569 of 592920 cell-years (47.8258%); year 0: 9720 of 9720; worst year 0 with 9720
+  S354
+        fnewex -0.03 +/- 0.12 (-0.3 se; 6 gained, 7 lost)
+        fnewp56 +0.07 +/- 0.20 (0.3 se; 19 gained, 17 lost)
+        stored moves differing, ternary vs exhaustive: 281388 of 592920 cell-years (47.4580%); year 0: 9720 of 9720; worst year 0 with 9720
+  S390
+        fnewex -0.20 +/- 0.08 (-2.4 se; 0 gained, 6 lost)
+        fnewp56 +0.13 +/- 0.08 (1.6 se; 5 gained, 1 lost)
+        stored moves differing, ternary vs exhaustive: 30740 of 447120 cell-years (6.8751%); year 0: 429 of 9720; worst year 42 with 1396

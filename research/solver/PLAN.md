@@ -99,7 +99,7 @@ cannot see - passes to the user's own minimum end-of-life pot, with a default. M
 | **pension harvesting** | drawing pension BEYOND the year's need, up to the personal allowance or the basic-rate limit, and re-wrapping it into the ISA (then the taxable account). Band filling for income tax, not capital-gains harvesting (corrected 23 Sep plan review; capital gains are realised only by the draws themselves) |
 | **risk tier** | the pension and the ISA moved TOGETHER, by the same step (0/0, 1/1, 2/2 below the plan's tier; independent pairs were measured to add nothing), paying `SWITCH_COST` and having to beat `SWITCH_MARGIN` (corrected 23 Sep plan review: this said independently) |
 | **spending level** | 1.2 / 1.1 / 1 / 0.95 / 0.9 / floor - **down AND up** (six levels, decided 23 Sep; the lowest is always the user's floor). The solver raises spending in good years unless the user caps or blocks raises |
-| **how the level is found** | a ternary search over the levels in each group (four evaluated of six), **provisionally**: the probe found 24 misses in 5.0 million, but step 2 found stored moves differing from the full scan on 2-48% of cell-years (mostly equivalent ties in years with no spending) and one genuine loss (S112, 0.27 points). The re-check decides it (finding M11); the fallback is the full scan |
+| **how the level is found** | **the full scan of all six levels (decided 19:45 by the rule written before the re-check).** The ternary search lost 0.20 points on S112 and S390 at 2.4 paired standard errors with the exact final year, and gained on none, so it is out. Cost: about 35% more solve time than ternary, and six levels now cost about 20% more than the old five - **the maintainer's "six levels at today's cost" no longer holds** |
 
 ### Not the solver's to choose
 
@@ -277,7 +277,8 @@ repeated in the phases below.
 | the seed pair 7001/7002 | agree within noise across 41 (+0.18 against +/-0.91) | `results-converge.txt` |
 | resilience | load-bearing for the unlucky tenth's end pot AND the main source of trimming -> **removed** | 6f, `results-p6f-kink.txt` |
 | numerical convergence (Phase V) | plans stable, table numbers not (optimistic 2-3 points, not converged at 56 points); judged on simulation, decision A | `results-phase-v.txt`; full text in history |
-| the S126 anomaly (#106) | confirmed: a dead corner in log-odds on a SHARE axis; only S126 of the 41 is in the class at t = 0 | `results-106-deadcorner.txt` |
+| step 2 and its re-check | the final year read the nearest cell's move (M10) - fixed, survival up on 9 of 12; ternary OUT (-0.20 at 2.4 se on two households, none better); 15 nodes no better than 5; 56 points within half a point either way (one household outside, noise-shaped); no #106 option passed | `results-step2.txt`; full text in history |
+| the S126 anomaly (#106) | confirmed: a dead corner in log-odds on a SHARE axis; only S126 of the 41 is in the class at t = 0. **Still open (step 2):** neither fix passed; without one S126 holds its pension off-tier for 40 years, with `drop` 9, a 38% larger median pot, a 74% smaller unlucky tenth, 0.3 points less survival. It changes the plan's character; put to the maintainer and the mathematician (Q5) | `results-106-deadcorner.txt`, `results-step2.txt` |
 | E4, interleaved value arrays | dead: 3.8% slower | `results-part-e-measured.txt` |
 | E1, seeding from next year's move | **re-read from step 2's full-width stored moves, 19:20: not built.** The best candidate set (41 of 432 moves) covers 97.72% of this year's best moves across 4.1 million retired cell-years, against a 99.5% bar; the corrupted first read said 98.68%. Prediction (98-99%, verdict stands) held on the verdict, slightly low on the figure | `results-e1-records.txt` |
 | single-peakedness in level | measured over 5.0 million combinations (24 misses); **qualified by step 2** (finding M11): the ternary search is not bit-identical to the full scan, and is re-checked | `results-probes-e1-unimodal.txt`, step 2 |
@@ -354,7 +355,7 @@ changes a result on file; four need work before something downstream is trusted.
 | M8 | **The minimum pot is tested on the GROSS pot**, the estate on the NET (after pension death tax). Dormant: every library household has a zero death-tax rate. | With a minimum-pot default the product now has a user-visible number whose meaning depends on this. | The copy says "before any tax on the pension at death" until a synthetic fixture tests the net version. Put to the maintainer with the step-6 defaults. | step 6 |
 | M9 | **The questions for the mathematician now have owners.** Q1 (does monotonicity survive an approximate solver) before K7; Q2 (fitting two dials to a stepped response) before K5; Q3 (a path for the estate slider) before K4's fit; Q4 (why the choice is stable) alongside 2b; Q5 (drop's discontinuity) only if step 2 picks `drop`; Q6 (noisy rollout) only if 2b calls for rollout; Q9 before couples ship; Q7, Q8, Q10 not blocking. | Nothing tonight waits on an answer; K5 on Thursday is the first step that could. | Send the page when the maintainer has shared it. | - |
 | M10 | **The final year read the NEAREST CELL's stored move** - the one read `chooseAction` exists to avoid. Found from the step-2 records at 18:43: all 53 paths S206 lost at 56 points, and 27 of the 28 S390 lost under the ternary search (plus all 8 it gained), failed in the final year from a near-empty position. On 300 random final-year positions of S206 the nearest-cell move fails outright on 81 where a paying move exists. | It affects every simulated result on file in its last year, and it decided both step-2 gate failures. Paired comparisons share it, so their direction mostly survives; absolute survival is slightly understated on thin households. | **Built:** `finalExact` scores the final year's moves at the true position against the same end-of-plan rule the backward pass applies at t = T. Off by default (bit-identical, tested); on in `PRODUCT_BASELINE` and in every run from here (`FINALEXACT=1`). `solver-final.test.mjs`: tables untouched, the choice is the exact argmax on 300 positions, never a failing move when a paying one exists. The two failed comparisons are re-run with it on (`batch-step2-recheck.sh`); the failures stand as recorded. | before 2b |
-| M11 | **The ternary search is not bit-identical where it "finds the peak".** In a year with no spending every level scores the same and the search never evaluates level 1, so it stores a different, equivalent move (all 9,720 year-0 cells on four working households). Separately S112 lost 8 paths (0.27 points, 2.8 se), none in the final year: a genuine miss. | The probe's "24 misses in 5.0 million" was on a different configuration; stored moves differ from the full scan on 2-48% of cell-years here, mostly harmless ties. | Judged by the re-check: if the ternary gate passes once the final year is exact, ternary stays; if not, downstream runs use the full scan (+35% solve time) and the six-levels-at-today's-cost decision is reported back to the maintainer. | re-check |
+| M11 | **RESOLVED 19:45: ternary OUT.** **The ternary search is not bit-identical where it "finds the peak".** In a year with no spending every level scores the same and the search never evaluates level 1, so it stores a different, equivalent move (all 9,720 year-0 cells on four working households). Separately S112 lost 8 paths (0.27 points, 2.8 se), none in the final year: a genuine miss. | The probe's "24 misses in 5.0 million" was on a different configuration; stored moves differ from the full scan on 2-48% of cell-years here, mostly harmless ties. | Judged by the re-check: if the ternary gate passes once the final year is exact, ternary stays; if not, downstream runs use the full scan (+35% solve time) and the six-levels-at-today's-cost decision is reported back to the maintainer. | re-check |
 
 ### The plan review, 23 Sep evening - errors corrected in place
 
@@ -383,34 +384,30 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 |---|---|---|---|---|
 | 0 | ~~Byte-wide policy bug's cost~~ **zero effect** | - | - | done |
 | 1 | ~~Phase V~~ **done: plans stable, table numbers not; judged on simulation (decision A)** | - | - | done |
-| 2 | ~~Step 2 field check~~ **first run done 18:52**: two gates failed, #106 falsifier fired; M10 behind most of it | 1 | - | done |
-| 2r | **Step 2 re-check with the exact final year**, 42 cells | 2 | ~50 min | Wed ~19:55 |
-| 2w | Step 2 write-up, the #106 option chosen, step 2 moved to history | 2 | ~30 min | Wed ~19:40 |
-| 2b | **Ranking check**: does the table's first choice simulate better than its second? (solver tests re-run first: `runPolicy` changed) | 2w | ~45 min | Wed ~20:25 |
+| 2 | ~~Step 2 and its re-check~~ **done 19:45**: finalExact on, ternary out, 30 points kept, no #106 option (history) | 1 | - | done |
+| 2b | **Ranking check**: does the table's first choice simulate better than its second? Full scan, exact final year (solver tests first: running 19:50) | 2 | ~55 min | Wed ~21:00 |
 | 3 | **Lever builds** - estate curve, raise cap/block, block trimming and `solvePlan` (M1) built and tested; the minimum-pot default waits on step 6 and lambda's slider map on K6 | 2w | done except those two | - |
-| 4 | **K1 honouring checks**, now three arms (M2) | 2w | ~1 h | Wed ~21:45 |
-| 5 | **K2-K4 screens** overnight, with records | 4 | ~5 h | Thu ~03:00 |
-| 5b | **Phase 4 panel selection**: the app's own pipeline on library candidates, to find 40 held-out households where it survives 75-95% | 5 | ~1 h | Thu ~04:00 |
-| 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording | 5 | no cores | Thu ~06:30 |
+| 4 | **K1 honouring checks**, three arms (M2), full scan | 2b | ~1.3 h | Wed ~22:30 |
+| 5 | **K2-K4 screens** overnight, with records, full scan | 4 | ~6.5 h | Thu ~05:00 |
+| 5b | **Phase 4 panel selection**: the app's own pipeline on library candidates, to find 40 held-out households where it survives 75-95% | 5 | ~1 h | Thu ~06:00 |
+| 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording, the #106 trade-off and the ternary decision | 5 | no cores | Thu ~07:00 |
 | 6 | **The maintainer picks the product defaults** | 5c | - | Thu morning |
 | 7 | **K5 guardrail matching** | 6 | ~5 h | Thu ~14:00 |
 | 8 | **K6 slider spread, K7 monotone checks** | 7 | ~1.5 h | Thu ~15:30 |
 | 9 | **Phase 4**, with its bundled extras (below) | 8 | ~6 h | Thu ~21:30 |
 
-### The next 12 hours (written Wed 18:35 UTC, revised 18:50 for M10)
+### The next 12 hours (written Wed 18:35 UTC, revised 19:50 after the step-2 re-check: the full scan adds about 35%)
 
 | UTC | cores | alongside, no cores |
 |---|---|---|
-| now - 19:10 | step 2 finishes | M10 found and fixed (`finalExact`, tested); M1's `solvePlan` built and tested; K1 arms; panel-selection script; K reducer |
-| 19:10 - 19:30 | - | reduce step 2; choose the #106 option; `results-step2.txt` |
-| 19:30 - 20:15 | **step 2 re-check with the exact final year**, 36 cells | write-up continues |
-| 20:15 - 20:30 | - | judge the re-check: ternary stays or the full scan is used downstream (M11) |
-| 20:30 - 21:10 | solver tests, then the ranking check | - |
-| 21:10 - 21:20 | - | 2b against its agreed decision table |
-| 21:20 - 22:20 | K1, three arms, `FINALEXACT=1` | - |
-| 22:20 - ~04:00 | K2-K4 screens, 192 cells, `FINALEXACT=1` (about +35% if the full scan replaces ternary) | K2-K4 reducer runs; E1 re-read offline |
-| ~04:00 - 05:00 | Phase 4 panel selection | - |
-| 05:00 - 06:30 | - | the morning summary for step 6 |
+| ~~18:35 - 19:45~~ | ~~step 2, then its re-check~~ **done** | M10 fixed; `solvePlan`; plan review; E1 re-read (not built) |
+| 19:50 - 20:05 | solver test suite (runtime policy and baseline changed) | step 2 write-up and history move |
+| 20:05 - 21:00 | ranking check, full scan, exact final year | - |
+| 21:00 - 21:10 | - | 2b against its agreed decision table |
+| 21:10 - 22:30 | K1, three arms | - |
+| 22:30 - ~05:00 | K2-K4 screens, 192 cells | K2-K4 reducer runs as cells land |
+| ~05:00 - 06:00 | Phase 4 panel selection | - |
+| 06:00 - 07:00 | - | the morning summary for step 6 |
 
 Stops that would change this: step 2 failing a gate (the queue stops there, per the standing rule); the
 ranking check landing in its "losses of a point or more" row (rollout is built before K5, which moves K5
@@ -475,72 +472,6 @@ written here, each derived from records already on file.
 | Phase 4, phone grid (14 points) on 12 | simulated survival within about a point of the 30-point grid - Phase V's 16-point arm simulated within 0.7 of 30 points on all three households - while the table's own reading is further off | any household more than 1.5 points worse | **written now**, from Phase V |
 | E1 re-run from stored moves | coverage stays near 98-99% and the verdict (not built) stands: the moves above 255 that corrupted it are the "draw the pension first" families, rarely chosen | coverage above 99.5% with a small set - E1 would then be worth building | **DONE 19:20: 97.72%, not built** (`results-e1-records.txt`) |
 | E3 | bit-identical results; about 30% off the solve | any bit differs | E3 |
-
----
-
-## Step 2. The solver changes, and one field check
-
-Each change is built behind an option, defaulting to today's behaviour, and bit-identity of the default
-is tested before anything is switched on.
-
-- **The interpolation fix** for #106, chosen by Phase V's measurements. Candidates: (a) read survival
-  linearly across a corner at the clamp - the cliff log-odds is for runs along total wealth, not the
-  shares; (b) a share node at each household's opening share, which only helps at t = 0; (c) mark cells
-  that cannot fund a bridge and exclude them from the read. Prediction: (a), because V3 should show
-  linear winning only across dead share corners.
-- **Resilience off by default** (weight 0). Its effect at a fixed lambda is already measured by 6f.
-- **Lambda as a direct setting** - one solve, no landing. The landing code stays for Phase 4's
-  equal-survival diagnostic and K5's matching.
-- **Six levels plus the ternary level search** (`levelSearch: 'ternary'`, written and waiting). Gate: on
-  the field-check households, stored moves differ from the exhaustive scan on under 0.01% of cells, the
-  simulated survival within noise, and the solve at least 15% faster.
-- **The E1 probe re-run** on the fixed code before its verdict is trusted.
-
-**The #106 fix, as built (both options, default off, in `readValues`):** `shareDead: 'drop'` gives a
-share-axis corner that is dead no weight while a live corner sits in the same total-wealth slice;
-`'linear'` blends survival in probability instead of log-odds when such a pair is present. Neither
-touches the survival cliff along total wealth, which is what log-odds is for.
-
-**The field check (`batch-step2.sh`), single table, 3,000 held-out paths, judged on simulation (A):**
-- **The new baseline against today's code on 12 households:** today (resilience 0.5, five levels,
-  exhaustive) against new (resilience off, six levels, ternary). Reported: survival, spending delivered,
-  years below target, total cut, lifetime tax, median and unlucky-tenth end pot.
-- **Ternary against exhaustive, on the new baseline:** survival within 0.5, spending within 1%, and the
-  solve faster by at least 15%.
-- **The sub-point numerics check V could not make (decision A):** the new baseline at 15 nodes and at 56
-  points against 5 and 30, on survival, spending and tax. Gate: within half a point of survival and 1% of
-  spending on every household.
-- **The #106 fix on S126 and two controls** (S184, S162): none / drop / linear.
-  PREDICTION: 'drop' leaves every control bit-identical (no dead share corner, per the census) and on S126
-  cuts the bridge-year trimming (years below target, 1.6 with resilience off) toward zero without moving
-  survival; 'linear' helps less. FALSIFIED IF 'drop' LOWERS S126's survival - which would mean the
-  dropped corner was carrying real information near the all-pension edge, where a household really
-  cannot fund its bridge.
-The winning #106 option joins the new baseline, which every later step builds on.
-
-**FIRST RUN, 17:32-18:52 - OUTCOME (`results-step2.txt`).** Two of three gates FAILED as written and the
-#106 falsifier FIRED; all three stand as recorded. Ternary vs exhaustive: S390 -0.67 (3.3 se), 26% faster;
-15 nodes vs 5: PASS; 56 points vs 30: S206 -1.67 (6.7 se); `drop` on S126: -1.23 (5.3 se). The saved records
-put one defect behind most of all three: **the final year read the nearest cell's stored move** (M10) - all
-53 paths S206 lost at 56 points, 27 of 28 S390 lost under ternary, and 37 of 43 S126 lost under `drop` fail
-in the final year. Also: the "cuts far less" prediction was falsified on 5 of 12 (raises paid back as cuts,
-K3's falsifier), and without any #106 fix S126 cuts to the floor and holds both wrappers two tiers down from
-year 0. **The re-check** (`batch-step2-recheck.sh`, 42 cells, launched 19:00) repeats the failed comparisons
-and the #106 options with `finalExact`, its predictions written in its header before launch; the base
-carries no #106 option until the re-check clears one.
-
-**How the re-check decides, written 19:15 before any re-check result was read:**
-- **Ternary (M11):** stays only if `fnew` against `fnewex` passes step 2's own gate unchanged - every household
-  within 0.5 of survival and 1% of spending - AND no household is worse by more than two paired standard
-  errors. Otherwise every run from here uses the full scan (`TERNARY=0`, about +35% solve time) and the
-  maintainer is told the six-levels-at-today's-cost decision no longer holds.
-- **Resolution:** `fnew` against `fnewp56` under the same gate. A failure there does not change the grid
-  tonight (56 points is twice the cost and Phase V showed no convergence to chase); it is recorded, and each
-  failing household's lost paths are located by year from the records, as M10 was.
-- **#106:** `drop` joins the baseline if, on S126, its survival is within 0.5 of `fnew`'s and within two paired
-  standard errors, AND it cuts S126's trimmed years; and both controls stay within noise. `linear` joins
-  instead only if it meets the same test and beats `drop` on S126's trimming. If neither passes, the
-  baseline carries no #106 option and S126's bridge-year trimming is recorded as a known defect.
 
 ---
 

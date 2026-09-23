@@ -1140,8 +1140,8 @@ export function solveBoth(E, M, plan, opts = {}) {
  * this instead, which carries the baseline decided on 23 Sep and nothing else:
  *
  *   survival the anchor, no resilience term; the six-level menu down to the user's floor (raises to 1.2 unless
- *   capped or blocked); raise credit 0.003; the ternary level search; the chosen #106 read; the pension and
- *   ISA tiers when the user consents; the three-world mixture; 30 wealth points.
+ *   capped or blocked); raise credit 0.003; the full level scan; the exact final year; the pension and ISA tiers
+ *   when the user consents; the three-world mixture; 30 wealth points.
  *
  * The user's settings arrive as `opts`: `lambda` (dislike of cuts), `raiseCap`, `riskConsent` (default on),
  * and anything the caller must override for a test (`points`). Block trimming is the plan's floor set equal
@@ -1150,7 +1150,10 @@ export function solveBoth(E, M, plan, opts = {}) {
  * written out (solver-plan.test.mjs).
  */
 export const PRODUCT_BASELINE = Object.freeze({
-  resilienceWeight: 0, raiseWeight: 0.003, levelSearch: 'ternary', shareDead: 'drop', finalExact: true, mix: 3, points: 30
+  resilienceWeight: 0, raiseWeight: 0.003, finalExact: true, mix: 3, points: 30
+  // no levelSearch: the full scan. The ternary search lost 0.20 points on S112 and S390 at 2.4 paired standard errors in
+  // the step-2 re-check (none gained), so by the rule written before it the full scan stays. No shareDead: neither #106
+  // option passed its test on S126 (results-step2.txt).
 });
 /* The menu for a floor, as a fraction of target: raises to 1.2, then 1, 0.95, 0.9 and the floor itself, never below it. */
 export function productLevels(floorFrac) {

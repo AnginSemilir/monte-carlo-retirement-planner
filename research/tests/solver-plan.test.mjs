@@ -30,8 +30,8 @@ const b = solveMixture(E, M, plan, { ...PRODUCT_BASELINE, points: 8, lambda: 0.5
 let same = a.mix.tables.length === b.mix.tables.length;
 a.mix.tables.forEach((ta, k) => { const tb = b.mix.tables[k]; for (let t = 0; t < ta.lsurv.length; t++) for (let i = 0; i < ta.g.size; i++) if (ta.lsurv[t][i] !== tb.lsurv[t][i] || ta.beq[t][i] !== tb.beq[t][i] || ta.short[t][i] !== tb.short[t][i] || ta.pol[t][i] !== tb.pol[t][i]) same = false; });
 ok(same, 'solvePlan equals solveMixture with the baseline written out, bit for bit, in every world');
-ok(a.meta.wR === 0 && a.meta.levelSearch === 'ternary' && a.meta.raiseWeight === 0.003 && a.meta.tiers, 'the result records the product baseline');
-ok(a.g.shareDead === PRODUCT_BASELINE.shareDead, 'the chosen #106 read is on');
+ok(a.meta.wR === 0 && a.meta.levelSearch === 'exhaustive' && a.meta.raiseWeight === 0.003 && a.meta.tiers && a.finalExact, 'the result records the product baseline: full scan, exact final year');
+ok(a.g.shareDead === null, 'no #106 option: neither passed its re-check');
 const noRisk = solvePlan(E, M, plan, { lambda: 0.5, points: 8, riskConsent: false });
 ok(!noRisk.meta.tiers, 'without consent to change risk there are no tier moves');
 

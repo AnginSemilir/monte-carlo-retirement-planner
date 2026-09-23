@@ -4,8 +4,8 @@
  *
  *   node research/solver/audit-ranking.mjs <bandIndex> <lambda> [positions=40] [paths=500]
  *
- * Solves the household on the new baseline (resilience off, six levels, ternary, tiers, raises, single
- * table), walks the solver's own plan along simulated paths and samples positions it actually reaches
+ * Solves the household on the new baseline (resilience off, six levels, the full level scan, tiers, raises,
+ * the exact final year with FINALEXACT=1, single table), walks the solver's own plan along simulated paths and samples positions it actually reaches
  * across the whole retirement. At each, it takes the table's top two moves (by the score chooseAction
  * uses) and their margin, then simulates each - take that move now, follow the solver afterwards - on the
  * same fresh paths. It records whether the first choice did at least as well, on survival and on
@@ -29,7 +29,7 @@ const sc = singles[band[K].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...sc.plan, config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan);
 const T = m.ctx.totalYears;
-const r = solve(E, M, plan, { points: 30, lambda: LAMBDA, raiseWeight: 0.003, spendLevels: [1.2, 1.1, 1, 0.95, 0.9, 0.8], tiers: true, lump: m.ctx.fullLumpSum, resilienceWeight: 0, levelSearch: process.env.TERNARY === '0' ? undefined : 'ternary', shareDead: process.env.SHAREDEAD || undefined, finalExact: process.env.FINALEXACT === '1' || undefined });
+const r = solve(E, M, plan, { points: 30, lambda: LAMBDA, raiseWeight: 0.003, spendLevels: [1.2, 1.1, 1, 0.95, 0.9, 0.8], tiers: true, lump: m.ctx.fullLumpSum, resilienceWeight: 0, levelSearch: process.env.TERNARY === '1' ? 'ternary' : undefined, shareDead: process.env.SHAREDEAD || undefined, finalExact: process.env.FINALEXACT === '1' || undefined });
 
 /* 1. positions the plan actually reaches: walk it on a sampling draw, keep every visited (t, state, tiers) */
 const visits = [];

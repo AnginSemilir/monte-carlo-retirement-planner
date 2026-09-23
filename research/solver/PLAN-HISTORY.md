@@ -1988,3 +1988,75 @@ a clue V3 should confirm. This is the check-existing-data rule failing in my own
 
 **Restart note, 23 Sep:** the first launch (14:59) was stopped after 15 minutes when the byte-wide policy
 bug was found - its simulations read the final year from that table. It restarts on the fixed code.
+
+---
+
+## Step 2 (COMPLETED 23 Sep 19:45, with its re-check) - moved here from PLAN.md
+
+Outcome: the exact final year (finalExact, M10) is on everywhere; the ternary search is OUT (the full scan is
+used, +35% solve time); the grid stays at 30 points; no #106 option joins the baseline. Results:
+`results-step2.txt` (first run and re-check), `results-e1-records.txt`.
+
+## Step 2. The solver changes, and one field check
+
+Each change is built behind an option, defaulting to today's behaviour, and bit-identity of the default
+is tested before anything is switched on.
+
+- **The interpolation fix** for #106, chosen by Phase V's measurements. Candidates: (a) read survival
+  linearly across a corner at the clamp - the cliff log-odds is for runs along total wealth, not the
+  shares; (b) a share node at each household's opening share, which only helps at t = 0; (c) mark cells
+  that cannot fund a bridge and exclude them from the read. Prediction: (a), because V3 should show
+  linear winning only across dead share corners.
+- **Resilience off by default** (weight 0). Its effect at a fixed lambda is already measured by 6f.
+- **Lambda as a direct setting** - one solve, no landing. The landing code stays for Phase 4's
+  equal-survival diagnostic and K5's matching.
+- **Six levels plus the ternary level search** (`levelSearch: 'ternary'`, written and waiting). Gate: on
+  the field-check households, stored moves differ from the exhaustive scan on under 0.01% of cells, the
+  simulated survival within noise, and the solve at least 15% faster.
+- **The E1 probe re-run** on the fixed code before its verdict is trusted.
+
+**The #106 fix, as built (both options, default off, in `readValues`):** `shareDead: 'drop'` gives a
+share-axis corner that is dead no weight while a live corner sits in the same total-wealth slice;
+`'linear'` blends survival in probability instead of log-odds when such a pair is present. Neither
+touches the survival cliff along total wealth, which is what log-odds is for.
+
+**The field check (`batch-step2.sh`), single table, 3,000 held-out paths, judged on simulation (A):**
+- **The new baseline against today's code on 12 households:** today (resilience 0.5, five levels,
+  exhaustive) against new (resilience off, six levels, ternary). Reported: survival, spending delivered,
+  years below target, total cut, lifetime tax, median and unlucky-tenth end pot.
+- **Ternary against exhaustive, on the new baseline:** survival within 0.5, spending within 1%, and the
+  solve faster by at least 15%.
+- **The sub-point numerics check V could not make (decision A):** the new baseline at 15 nodes and at 56
+  points against 5 and 30, on survival, spending and tax. Gate: within half a point of survival and 1% of
+  spending on every household.
+- **The #106 fix on S126 and two controls** (S184, S162): none / drop / linear.
+  PREDICTION: 'drop' leaves every control bit-identical (no dead share corner, per the census) and on S126
+  cuts the bridge-year trimming (years below target, 1.6 with resilience off) toward zero without moving
+  survival; 'linear' helps less. FALSIFIED IF 'drop' LOWERS S126's survival - which would mean the
+  dropped corner was carrying real information near the all-pension edge, where a household really
+  cannot fund its bridge.
+The winning #106 option joins the new baseline, which every later step builds on.
+
+**FIRST RUN, 17:32-18:52 - OUTCOME (`results-step2.txt`).** Two of three gates FAILED as written and the
+#106 falsifier FIRED; all three stand as recorded. Ternary vs exhaustive: S390 -0.67 (3.3 se), 26% faster;
+15 nodes vs 5: PASS; 56 points vs 30: S206 -1.67 (6.7 se); `drop` on S126: -1.23 (5.3 se). The saved records
+put one defect behind most of all three: **the final year read the nearest cell's stored move** (M10) - all
+53 paths S206 lost at 56 points, 27 of 28 S390 lost under ternary, and 37 of 43 S126 lost under `drop` fail
+in the final year. Also: the "cuts far less" prediction was falsified on 5 of 12 (raises paid back as cuts,
+K3's falsifier), and without any #106 fix S126 cuts to the floor and holds both wrappers two tiers down from
+year 0. **The re-check** (`batch-step2-recheck.sh`, 42 cells, launched 19:00) repeats the failed comparisons
+and the #106 options with `finalExact`, its predictions written in its header before launch; the base
+carries no #106 option until the re-check clears one.
+
+**How the re-check decides, written 19:15 before any re-check result was read:**
+- **Ternary (M11):** stays only if `fnew` against `fnewex` passes step 2's own gate unchanged - every household
+  within 0.5 of survival and 1% of spending - AND no household is worse by more than two paired standard
+  errors. Otherwise every run from here uses the full scan (`TERNARY=0`, about +35% solve time) and the
+  maintainer is told the six-levels-at-today's-cost decision no longer holds.
+- **Resolution:** `fnew` against `fnewp56` under the same gate. A failure there does not change the grid
+  tonight (56 points is twice the cost and Phase V showed no convergence to chase); it is recorded, and each
+  failing household's lost paths are located by year from the records, as M10 was.
+- **#106:** `drop` joins the baseline if, on S126, its survival is within 0.5 of `fnew`'s and within two paired
+  standard errors, AND it cuts S126's trimmed years; and both controls stay within noise. `linear` joins
+  instead only if it meets the same test and beats `drop` on S126's trimming. If neither passes, the
+  baseline carries no #106 option and S126's bridge-year trimming is recorded as a known defect.

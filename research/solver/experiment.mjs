@@ -53,6 +53,7 @@ import * as F from '../../src/solver/fast.js';
 import { solve, solveFlex, solveMixture, runPolicy, chooseAction, buildActions } from '../../src/solver/solve.js';
 import { vecOf } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
+import { RECORD, STOREPOL, makeTrace, mark, markFail, writeRecord, polToB64 } from './record.mjs';
 import { mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -98,7 +99,7 @@ function worldOf(kind) {
 }
 
 /* Run one fixed move on one path in the fast flow. */
-function runFixedPath(c, ai, zs, world = worldOf()) {
+function runFixedPath(c, ai, zs, world = worldOf(), tr = null) {
   const m = c.m;
   const s = c.rule ? F.withRuleSlots(vecOf(m, M.initialState(m))) : vecOf(m, M.initialState(m));
   const real = new Float64Array(4);
@@ -116,9 +117,10 @@ function runFixedPath(c, ai, zs, world = worldOf()) {
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
       lastLevel = lv;
     }
-    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false };
+    if (unmet > 1 || c.last.preNmpaInsolvent) { if (tr) markFail(tr, t); return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false }; }
     world(c, zs[t], real, c.acts[ai], t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
     F.grow(c, t, s, real);
+    if (tr) mark(tr, t, c.yr.spend[t] > 0, c.last.level, s, c.last.taxPaid + c.last.cgtPaid, 0);
   }
   const total = s[0] + s[1] + s[2];
   const spendStats = { spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears };
@@ -407,8 +409,9 @@ if (mode === 'flex') {
     // the pension after the tax its draw will pay: a quarter tax-free, the rest at the basic rate
     if (key === 'arva') c.rule = { kind: 'arva', rate: F.arvaRate(c, vecOf(m, M.initialState(m))), pensionHaircut: 0.75 * m.P.basicRate };
     const pick = pickFixed(c, menu, search);
-    const rs = held.map(zs => runFixedPath(c, pick.ai, zs));
-    arms[key] = { stats: { ...statsFlex(rs), label: pick.label, ...(c.rule ? { rule: c.rule } : {}) }, rs };
+    const trK = RECORD ? makeTrace(held.length, m.ctx.totalYears + 1) : null;
+    const rs = held.map((zs, i) => { if (trK) trK.row = i; return runFixedPath(c, pick.ai, zs, worldOf(), trK); });
+    arms[key] = { stats: { ...statsFlex(rs), label: pick.label, ...(c.rule ? { rule: c.rule } : {}) }, rs, trace: trK, spendYears: Array.from(c.yr.spend, v => (v > 0 ? 1 : 0)) };
   }
   if (CONF_REL !== null) CONF = Math.min(0.97, Math.round((arms.fixed.stats.successRate + CONF_REL)) / 100);
   // CONF=gkFloor: the solver is asked for exactly the floor rate the guardrails-with-floor arm achieved, so the two
@@ -421,7 +424,8 @@ if (mode === 'flex') {
   const RAISE = process.env.RAISE ? Number(process.env.RAISE) : 0;   // 2d.4: the credit weight for spending above the target
   const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);
   const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: Number(process.env.SEARCH || 5400), verifyPaths: process.env.VERIFY ? Number(process.env.VERIFY) : undefined, seed: seedSearch, confidence: CONF, bisectSteps: process.env.BISECT ? Number(process.env.BISECT) : 5, spendLevels: LEVELS, shortfallExponent: EXP, margin: MARGIN, raiseWeight: RAISE, tiers: TIERS, driftWeight: process.env.DRIFT ? Number(process.env.DRIFT) : undefined, bequestShape: process.env.BEQSHAPE || undefined, lambdaFixed: process.env.LAMBDA ? Number(process.env.LAMBDA) : undefined, gainBuckets: process.env.GAINB ? process.env.GAINB.split(',').map(Number) : undefined, gainInterp: process.env.GAININT === '1' || undefined, pclsStrict: process.env.PCLSSTRICT === '1' || undefined, bequestWeight: process.env.WB !== undefined ? Number(process.env.WB) : undefined, resilienceWeight: process.env.WR !== undefined ? Number(process.env.WR) : undefined, mix: MIX || undefined, levelSearch: process.env.TERNARY === '1' ? 'ternary' : undefined, shareDead: process.env.SHAREDEAD || undefined, quadNodes: process.env.QUAD ? Number(process.env.QUAD) : undefined });
-  const solvedRs = held.map(zs => runPolicy(r, zs));
+  const trS = RECORD ? makeTrace(held.length, mS.ctx.totalYears + 1) : null;
+  const solvedRs = held.map((zs, i) => { if (trS) trS.row = i; return runPolicy(r, zs, trS ? { trace: trS } : {}); });
   arms.solver = { stats: { ...statsFlex(solvedRs), landed: r.meta.landed, lambda: r.lambda, solves: r.meta.solves, levels: r.meta.spendLevels, verifiedFloorRate: 100 * r.floorRate, searchFloorRate: 100 * (r.searchFloorRate ?? r.floorRate), searchPaths: r.meta.searchPaths, verifyPaths: r.meta.verifyPaths, verifySteps: r.meta.verifySteps, solverVersion: r.meta.solverVersion, driftWeight: r.meta.driftWeight }, rs: solvedRs };
   const out = {
     tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, held: HELD, seedSearch, seedHeld, floor: FLOOR, confidence: CONF, target, floorSpend, ms: Date.now() - t0,
@@ -436,6 +440,16 @@ if (mode === 'flex') {
   if (!SOLVER_ONLY) for (const key of EXTRA) { out[key] = arms[key].stats; out.pairedFloor[key] = paired(solvedRs, arms[key].rs); out.pairedFull[key] = paired(solvedRs, arms[key].rs, 'fullyFunded'); }
   mkdirSync(join(RESULTS, tag), { recursive: true });
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
+  if (RECORD) {
+    // one record per arm run, beside the results JSON (record.mjs); the solver's also carries its moves with STOREPOL=1
+    const meta = { tag, id: sc.id, knobs: out.knobs, held: HELD, seedHeld, points: POINTS, lambda: r.lambda, solveMs: r.meta.ms, target, floorSpend, ageSelf0: mS.ctx.ageSelf0, nmpa: mS.ctx.nmpa, arms: Object.keys(arms) };
+    for (const key of Object.keys(arms)) {
+      const arm = arms[key], tr = key === 'solver' ? trS : arm.trace; if (!tr) continue;
+      const spend = key === 'solver' ? Array.from(r.c.yr.spend, v => (v > 0 ? 1 : 0)) : arm.spendYears;
+      const extra = key === 'solver' && STOREPOL ? { pol: polToB64(r.pol), grid: { np: r.g.np, ni: r.g.ni, nt: r.g.nt, gain: r.g.gain, pcls: r.g.pcls, W: Array.from(r.g.axes.W.pts) }, actions: r.actions.map(a => a.label) } : {};
+      writeRecord(join(RESULTS, tag, `${sc.id}.${key}.record.json.gz`), tr, arm.rs, { ...meta, arm: key, spendYears: spend }, extra);
+    }
+  }
   const f = (x) => x.toFixed(1);
   /*
    * The progress line, which must survive SOLVERONLY. It did not: it read out.gkFloor, out.gk,

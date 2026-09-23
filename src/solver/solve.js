@@ -818,6 +818,13 @@ export function runPolicy(r, zs, opts = {}) {
   // DEEP a trim was and how big a raise, not only how often each happened
   let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, belowSum = 0, aboveSum = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null, switchPaid = 0;
   const held = { pen: 0, isa: 0 };   // the tiers held: the plan's until a move changes them
+  /* RUN RECORDS (research/solver/record.mjs): a per-year trace when a caller asks for one. Off, it costs a null check. */
+  const tr = opts.trace || null;
+  const traceYear = (t, lv, spendYear, taxYear) => {
+    const k = tr.row * tr.Y + t, w = s[0] + s[1] + s[2];
+    tr.level[k] = spendYear ? Math.max(0, Math.min(255, Math.round(100 * lv))) : 0;
+    tr.tier[k] = held.pen * 4 + held.isa; tr.wealth[k] = w; tr.penShare[k] = w > 0 ? Math.round(100 * s[0] / w) : 0; tr.taxPaid[k] = taxYear;
+  };
   for (let t = 0; t <= T; t++) {
     const ai = opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t, held);
     const unmet = F.flow(c, t, ai, s);
@@ -833,8 +840,9 @@ export function runPolicy(r, zs, opts = {}) {
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
       lastLevel = lv;
     }
-    if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges, switchPaid };
+    if (unmet > 1 || c.last.preNmpaInsolvent) { if (tr) tr.failYear[tr.row] = t; return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges, switchPaid }; }
     F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai], t, zPath));
+    if (tr) traceYear(t, c.last.level, c.yr.spend[t] > 0, c.last.taxPaid + c.last.cgtPaid);
   }
   const total = s[0] + s[1] + s[2];
   const spendStats = { spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid };

@@ -27,7 +27,7 @@ echo "=== step 2: $(printf '%s' "$J" | grep -c .) cells ==="
 printf '%s' "$J" | grep . | xargs -P 4 -I{} sh -c '
   set -- $(echo "{}" | tr ":" " ")
   K=$1; LAM=$2; ARM=$3; PTS=$4
-  COMMON="SOLVERONLY=1 LAMBDA=$LAM SEARCH=400 MIX=0 TIERS=1 ONLY=$K FLOOR=0.8 CONF=0.9 MARGIN=0.005 RAISE=0.003"
+  COMMON="RECORD=1 STOREPOL=1 SOLVERONLY=1 LAMBDA=$LAM SEARCH=400 MIX=0 TIERS=1 ONLY=$K FLOOR=0.8 CONF=0.9 MARGIN=0.005 RAISE=0.003"
   case $ARM in
     today)  ENVS="LEVELS=1.2,1.1,1,0.9,0.8" ;;
     newex)  ENVS="WR=0 LEVELS=1.2,1.1,1,0.95,0.9,0.8" ;;

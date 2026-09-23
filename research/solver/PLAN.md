@@ -279,7 +279,7 @@ repeated in the phases below.
 | numerical convergence (Phase V) | plans stable, table numbers not (optimistic 2-3 points, not converged at 56 points); judged on simulation, decision A | `results-phase-v.txt`; full text in history |
 | the S126 anomaly (#106) | confirmed: a dead corner in log-odds on a SHARE axis; only S126 of the 41 is in the class at t = 0 | `results-106-deadcorner.txt` |
 | E4, interleaved value arrays | dead: 3.8% slower | `results-part-e-measured.txt` |
-| E1, seeding from next year's move | fails its bar (98.68% coverage) - **to be re-run**, it read the byte-wide table | `results-probes-e1-unimodal.txt` |
+| E1, seeding from next year's move | **re-read from step 2's full-width stored moves, 19:20: not built.** The best candidate set (41 of 432 moves) covers 97.72% of this year's best moves across 4.1 million retired cell-years, against a 99.5% bar; the corrupted first read said 98.68%. Prediction (98-99%, verdict stands) held on the verdict, slightly low on the figure | `results-e1-records.txt` |
 | single-peakedness in level | measured over 5.0 million combinations (24 misses); **qualified by step 2** (finding M11): the ternary search is not bit-identical to the full scan, and is re-checked | `results-probes-e1-unimodal.txt`, step 2 |
 | the lambda curve | cancelled: answered by algebra (a Lagrangian relaxation; 0 reversals in 15 pairs) | history |
 | 6c, the soft bequest shoulder | not passed on its control, S390; not re-specified | history |
@@ -473,7 +473,7 @@ written here, each derived from records already on file.
 | Phase 4 | in Phase 4 | - | Phase 4 |
 | Phase 4, second seed on 12 | every household within about +/-0.9 of seed 7003, the average within +/-0.3 (the 7001/7002 pair differed by +0.18 on average) | the average moves by more than half a point | **written now** |
 | Phase 4, phone grid (14 points) on 12 | simulated survival within about a point of the 30-point grid - Phase V's 16-point arm simulated within 0.7 of 30 points on all three households - while the table's own reading is further off | any household more than 1.5 points worse | **written now**, from Phase V |
-| E1 re-run from stored moves | coverage stays near 98-99% and the verdict (not built) stands: the moves above 255 that corrupted it are the "draw the pension first" families, rarely chosen | coverage above 99.5% with a small set - E1 would then be worth building | **written now** |
+| E1 re-run from stored moves | coverage stays near 98-99% and the verdict (not built) stands: the moves above 255 that corrupted it are the "draw the pension first" families, rarely chosen | coverage above 99.5% with a small set - E1 would then be worth building | **DONE 19:20: 97.72%, not built** (`results-e1-records.txt`) |
 | E3 | bit-identical results; about 30% off the solve | any bit differs | E3 |
 
 ---

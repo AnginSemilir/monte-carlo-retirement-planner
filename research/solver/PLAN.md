@@ -344,16 +344,30 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 
 | # | Step | Conditional on | Size | ETA (UTC) |
 |---|---|---|---|---|
-| 0 | ~~Measure the byte-wide policy bug's cost~~ **done: zero effect on any simulation** | the fix | - | done |
-| 1 | **Phase V - done.** Plans stable, table numbers not; re-judged on simulation (decision A) | 0 | done | done 16:35 |
-| 2 | **Solver changes + one field check**: the interpolation fix (#106 and whatever V finds); resilience off; lambda as a direct setting, no landing; six levels with the ternary search; the E1 probe re-run | 1 | build ~1.5 h, run ~1 h | Wed ~19:15 |
-| 3 | **Lever builds**: the estate credit curve above the minimum pot; the raise cap and block; the minimum-pot default; block trimming (floor = target) | 2 | ~2.5 h, no cores | Wed ~21:45 |
-| 4 | **K1 honouring checks** - exact; a failure is a bug | 3 | ~20 min | Wed ~22:15 |
-| 5 | **K2-K4 screens** overnight: minimum-pot default, raise cap, estate slider spread | 4 | ~5 h | Thu ~03:15 |
-| 6 | **The maintainer picks the product defaults**: minimum pot, raise cap, estate slider default | 5 | - | Thu morning |
-| 7 | **K5 guardrail matching**: dislike of cuts and the trim curve fitted so the solver cuts as much as the guardrails | 6 | ~5 h | Thu ~14:30 |
-| 8 | **K6 dislike slider spread, K7 monotone checks**, at the matched setting | 7 | ~1.5 h | Thu ~16:00 |
-| 9 | **Phase 4**, the head-to-head, with its diagnostics | 8 | ~7 h | Thu ~23:30 |
+| 0 | ~~Byte-wide policy bug's cost~~ **zero effect** | - | - | done |
+| 1 | ~~Phase V~~ **done: plans stable, table numbers not; judged on simulation (decision A)** | - | - | done |
+| 2 | **Step 2 field check**, 66 cells, now with full run records | 1 | ~2.2 h | Wed ~19:45 |
+| 2b | **Ranking check**: does the table's first choice simulate better than its second? | 2 | ~30 min | Wed ~20:15 |
+| 3 | **Lever builds** (built while step 2 runs): estate curve, raise cap/block, minimum-pot default, block trimming, lambda as the dislike setting | 2 | no cores | ready ~20:15 |
+| 4 | **K1 honouring checks** | 3 | ~20 min | Wed ~20:45 |
+| 5 | **K2-K4 screens** overnight, with records | 4 | ~5 h | Thu ~02:00 |
+| 5b | **Phase 4 panel selection**: the app's own pipeline on library candidates, to find 40 held-out households where it survives 75-95% | 5 | ~1 h | Thu ~03:00 |
+| 6 | **The maintainer picks the product defaults** | 5 | - | Thu morning |
+| 7 | **K5 guardrail matching** | 6 | ~5 h | Thu ~14:00 |
+| 8 | **K6 slider spread, K7 monotone checks** | 7 | ~1.5 h | Thu ~15:30 |
+| 9 | **Phase 4**, with its bundled extras (below) | 8 | ~6 h | Thu ~21:30 |
+
+**Bundled into the runs, now that a plan is one solve (maintainer, 23 Sep: "we've bought back a lot of
+time").** Every run from step 2 on writes a RUN RECORD (`record.mjs`): every path-year's spending level,
+tier, wealth, pension share and tax, per-path outcomes, per-year aggregates, and with STOREPOL the solver's
+stored moves - so a later question is a script over saved data, not a re-run. Phase 4 adds, at little
+cost: **a second held-out seed (7004) on 12 households**, closing the open item that absolute levels were
+never checked on a third draw; **the phone grid (14 points) on 12 households**, because Part C Phase 11
+plans a coarser phone grid that has never been tested against the full one; **records for arm A too**, so
+the guardrails' year-by-year cutting can be compared with the solver's directly; and **the E1 and ranking
+analyses re-read offline** from Phase 4's stored moves. Panel size: from the tuning records the
+per-household survival difference has a spread of 0.82 points, so 40 households give 80% power to detect
+an edge of about 0.4 points - enough; 80 would only buy power within each half of the panel.
 
 Step 6 is the one point the maintainer is on the critical path.
 

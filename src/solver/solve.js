@@ -397,7 +397,9 @@ export function solve(E, M, plan, opts = {}) {
   const survW = [], lsurvW = [], resilW = [], lresilW = [], beqW = [], polW = [], shortW = [];
   for (let k = 0; k < K; k++) {
     survW[k] = mk(); lsurvW[k] = mk(); resilW[k] = mk(); lresilW[k] = mk(); beqW[k] = mk(); shortW[k] = mk();
-    polW[k] = []; for (let t = 0; t <= T; t++) polW[k][t] = new Uint8Array(g.size);
+    // Uint16, not Uint8: with tiers and five spending levels the menu has 360 moves (432 with six), and a
+    // byte silently wrapped every index above 255 to a different move. Found 23 Sep; see results-pol-overflow.txt
+    polW[k] = []; for (let t = 0; t <= T; t++) polW[k][t] = new Uint16Array(g.size);
   }
   const surv = survW[centre], lsurv = lsurvW[centre], resil = resilW[centre];
   const lresil = lresilW[centre], beq = beqW[centre], pol = polW[centre], short = shortW[centre];

@@ -251,7 +251,7 @@ repeated in the phases below.
   the single-peak probe printed "safe" on zero tests. Both now refuse to run on the wrong menu or to
   give a verdict on nothing.
 
-### The byte-wide policy bug, found 23 Sep ~15:15 - the stored policy was a byte, and the menu is wider than a byte
+### The byte-wide policy bug, found 23 Sep ~15:00 - the stored policy was a byte, and the menu is wider than a byte
 
 `pol` was a `Uint8Array`; with tiers and five levels the menu has 360 moves (432 with six), so any
 stored move numbered above 255 read back as a different move. **One reader acted on it: the final year
@@ -289,11 +289,11 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | # | Step | Conditional on | Size | ETA (UTC) |
 |---|---|---|---|---|
 | 0 | ~~Measure the byte-wide policy bug's cost~~ **done: zero effect on any simulation** | the fix | - | done |
-| 1 | **Phase V**, restarted on the fixed code, extended to the share axes | 0 | ~1.5 h | Wed ~17:30 |
-| 2 | **Solver changes + one field check**: the interpolation fix (#106 and whatever V finds); resilience off; lambda as a direct setting, no landing; six levels with the ternary search; the E1 probe re-run | 1 | build ~1.5 h, run ~1 h | Wed ~20:00 |
-| 3 | **Lever builds**: the estate credit curve above the minimum pot; the raise cap and block; the minimum-pot default; block trimming (floor = target) | 2 | ~2.5 h, no cores | Wed ~22:30 |
-| 4 | **K1 honouring checks** - exact; a failure is a bug | 3 | ~20 min | Wed ~23:00 |
-| 5 | **K2-K4 screens** overnight: minimum-pot default, raise cap, estate slider spread | 4 | ~5 h | Thu ~04:00 |
+| 1 | **Phase V**, restarted on the fixed code, extended to the share axes | 0 | ~1.5 h | Wed ~16:45 (restarted 15:07) |
+| 2 | **Solver changes + one field check**: the interpolation fix (#106 and whatever V finds); resilience off; lambda as a direct setting, no landing; six levels with the ternary search; the E1 probe re-run | 1 | build ~1.5 h, run ~1 h | Wed ~19:15 |
+| 3 | **Lever builds**: the estate credit curve above the minimum pot; the raise cap and block; the minimum-pot default; block trimming (floor = target) | 2 | ~2.5 h, no cores | Wed ~21:45 |
+| 4 | **K1 honouring checks** - exact; a failure is a bug | 3 | ~20 min | Wed ~22:15 |
+| 5 | **K2-K4 screens** overnight: minimum-pot default, raise cap, estate slider spread | 4 | ~5 h | Thu ~03:15 |
 | 6 | **The maintainer picks the product defaults**: minimum pot, raise cap, estate slider default | 5 | - | Thu morning |
 | 7 | **K5 guardrail matching**: dislike of cuts and the trim curve fitted so the solver cuts as much as the guardrails | 6 | ~5 h | Thu ~14:30 |
 | 8 | **K6 dislike slider spread, K7 monotone checks**, at the matched setting | 7 | ~1.5 h | Thu ~16:00 |

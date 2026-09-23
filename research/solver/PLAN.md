@@ -529,6 +529,19 @@ year 0. **The re-check** (`batch-step2-recheck.sh`, 42 cells, launched 19:00) re
 and the #106 options with `finalExact`, its predictions written in its header before launch; the base
 carries no #106 option until the re-check clears one.
 
+**How the re-check decides, written 19:15 before any re-check result was read:**
+- **Ternary (M11):** stays only if `fnew` against `fnewex` passes step 2's own gate unchanged - every household
+  within 0.5 of survival and 1% of spending - AND no household is worse by more than two paired standard
+  errors. Otherwise every run from here uses the full scan (`TERNARY=0`, about +35% solve time) and the
+  maintainer is told the six-levels-at-today's-cost decision no longer holds.
+- **Resolution:** `fnew` against `fnewp56` under the same gate. A failure there does not change the grid
+  tonight (56 points is twice the cost and Phase V showed no convergence to chase); it is recorded, and each
+  failing household's lost paths are located by year from the records, as M10 was.
+- **#106:** `drop` joins the baseline if, on S126, its survival is within 0.5 of `fnew`'s and within two paired
+  standard errors, AND it cuts S126's trimmed years; and both controls stay within noise. `linear` joins
+  instead only if it meets the same test and beats `drop` on S126's trimming. If neither passes, the
+  baseline carries no #106 option and S126's bridge-year trimming is recorded as a known defect.
+
 ---
 
 ## Step 2b. The ranking check, and what follows from its result

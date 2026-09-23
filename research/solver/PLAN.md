@@ -16,11 +16,38 @@ that does not serve it is scope, and should be justified as scope or dropped.
    *The third is not optional and was missing from the stated description; it is added here because it
    is the number the entire landing bisects toward.* A floor without a confidence is not a promise.
 3. **They choose what they value**: survivability alone; or also a minimum end-of-life pot above zero;
-   or also the size of the pot they leave. **More levers may come later. Not now.**
+   or also the size of the pot they leave. **More levers may come later. Not now.** The full set of
+   user levers is fixed in the table below.
 4. **The solver returns the predicted figures through retirement and the survivability of the plan**,
    using the levers it is allowed to pull.
 5. **Trimming of retirement spending must be minimised, and the user must be able to trust that.** A
    default curve is supplied; letting the user adjust it may come in a later build.
+
+### The levers the USER sets  (agreed with the maintainer, 23 Sep)
+
+These are the only things the solver is told to value or respect, beyond the plan inputs. **Anything
+the solver values that is not on this list is a defect**, which is how resilience was found and removed.
+
+| user lever | what it does | status in the solver | exposed to the user |
+|---|---|---|---|
+| **survival target** | the share of futures in which the floor must hold | the ask the landing bisects to | yes |
+| **spending target** | what they want to spend each year | yes | yes |
+| **spending floor** | the lowest the solver may trim to | yes (0.8 of target in the research runs) | yes |
+| **block trimming** | never spend below target: the floor set equal to the target | supported (a floor of 1 leaves no level below 1); **needs its honouring check** | **yes - agreed 23 Sep** |
+| **trim curve** | how the cost of a trim grows with its depth, between target and floor | the shortfall exponent, 2 | **no - a fixed default; adjustable in a later build** |
+| **raises above target** | whether, and how far, the solver may spend ABOVE target in good years | on, up to 1.2; the raise weight 0.003 sets how eagerly | **yes - agreed 23 Sep: allow, cap, or block** (block = no level above 1) |
+| **minimum end-of-life pot** | a hard line: a future that ends below it counts as failed | yes (`solvencyFloor`) | yes, **with a sensible default above zero - agreed 23 Sep**, because it now carries the job resilience did |
+| **credit for pot above that** | how much the pot left over counts, and the cap on counting it | the estate weight 0.02 and a cap at 4x opening wealth; a capped MEAN, not a median | yes, as the estate lever; 6d calibrates it |
+| **permission to change investment risk** | may the solver move a pot to a lower risk tier | tiers, up to two below the plan's, at a switching cost | **yes - agreed 23 Sep, as consent** |
+
+**Deliberately left out, 23 Sep:** a stability lever (how often spending may change). The drift penalty
+stays off and unexposed.
+
+**Removed 23 Sep: resilience.** It was a graded reward on the end pot up to opening wealth, on for every
+user, chosen by nobody. Phase 6f measured it as the main source of trimming (years below target 1.6 ->
+9.4 on S126, 2.8 -> 14.6 on S390, 4.0 -> 13.8 on S112 between weights 0 and 0.5) for 0.4 to 2.1 points of
+floor rate. Its legitimate job - keeping bad futures from ending just above zero, which pass/fail survival
+cannot see - passes to the user's own minimum end-of-life pot, with a default. Maintainer's decision.
 
 ### The levers the solver may pull  (confirmed against `buildActions`, 23 Sep)
 
@@ -57,8 +84,10 @@ that does not serve it is scope, and should be justified as scope or dropped.
    - **Phase 6d inherits this**, since it turns that weight into a user-facing lever: whatever the lever
      is called, it is a dial on a capped mean, and its help text has to say so in a sentence a person
      can read.
-2. **Resilience is a fourth thing being valued that nobody asked for**, carrying six times the weight of
-   the estate term the user did ask for, invisible and uncontrollable. Phase 6f decides its future.
+2. ~~**Resilience is a fourth thing being valued that nobody asked for.**~~ **RESOLVED 23 Sep: removed.**
+   6f found it load-bearing for the unlucky tenth's end pot and the main source of trimming; the
+   maintainer removed it and moved its job to the minimum end-of-life pot, with a default. See the
+   user-lever table above.
 3. **Survival is judged on the GROSS pot and bequest on the NET.** Two definitions of what is left, on
    adjacent lines. Dormant only because every library household runs at a zero pension death-tax rate.
 
@@ -2741,6 +2770,65 @@ solver change.
 ---
 
 ## What runs next, in order
+
+### CURRENT SCHEDULE, 23 Sep afternoon - supersedes the rows below where they differ
+
+Rewritten after 6f, #106 and the lever decisions. Every run keeps its derive-first prediction.
+
+| # | What | Why here | Size | ETA (UTC) |
+|---|---|---|---|---|
+| 1 | **Phase V**, extended to the share axes | Numerics first: its failure would invalidate results rather than redirect them. #106 showed the share axes were never tested. Build ~1.5 h (quadrature dial, share-axis refinement, V3 reads between share nodes), run ~1.5 h | ~3 h | ~17:00 |
+| 2 | **The two solver changes, one field check** | (a) the interpolation fix for #106 and whatever V finds; (b) resilience removed, the minimum end pot defaulted. Landed on 12 households in two arms - fix only, and fix plus resilience off - against the flex-tiers records, so each change is attributed | ~3.5 h | ~21:00 |
+| 3 | **Calibration of the user's levers** (Phase K below) | Screens at fixed lambda overnight; needs the objective settled, which step 2 does | ~5 h | ~02:00 |
+| 4 | **Maintainer picks the defaults** | The screens give the trade-offs; the defaults are product choices | - | tomorrow morning |
+| 5 | **Landed confirmation at the chosen defaults** | Screens do not hold the ask; this does | ~3 h | tomorrow midday |
+| 6 | **Phase 4**, at the declared defaults | The decision | ~11 h | Friday ~08:00 |
+
+**Folded in, not separate any more:** 6c-screen and both 6d stages become parts of Phase K; the fair
+resilience test is replaced by step 2's arm and Phase K's end-pot sweep. **After Phase 4:** the speed
+work (E3; the single-peak level search, confirmed safe but worth about one evaluation in five; the
+lambda search improvements), #109's remaining probes, E2 after Phase 7. **E1 is not built.**
+
+### Phase K. Calibrating the user's levers
+
+Two different jobs, and they must not be confused. **A lever the user sets must be HONOURED** - that is
+exact, not tuned. **A lever's DEFAULT must be CHOSEN** - that is a trade-off the maintainer picks from
+measured curves.
+
+**K1. Honouring checks - exact, minutes.** Each must hold on every path of 12 households:
+- block trimming (floor = target): zero years below target, by construction;
+- block raises: no year above target; a cap of c: no year above c;
+- minimum end pot P: no future counted as surviving ends below P, and the landing still meets the ask;
+- risk permission off: every year at the plan's tier.
+A failure here is a bug, fixed before anything else.
+
+**K2. The minimum end-pot default - it replaces resilience, so it goes first.** Sweep P in {0, 1, 3, 5}
+years of target spending, landed lambda, 12 households.
+PREDICTION, derived: trimmed years stay near resilience-off levels (1.6 to 4) and far below
+resilience-on (9 to 15) for every P tested. Reason: resilience rewarded every pound up to opening
+wealth, and the unlucky tenth ends at 0.64 to 0.84 of it - roughly 15 to 30 years of spending. A floor of
+1 to 5 years sits an order of magnitude lower, and a hard floor only binds on the futures heading below
+it. FALSIFIED IF P = 3 costs more than half of resilience's trimming.
+
+**K3. The estate lever: weight and shape (was 6d stage 1 and 6c-screen).** Weight sweep, and the capped
+against the soft shoulder at each weight.
+PREDICTION: the weight moves the median end pot MORE than 6d would have seen, because resilience's
+segment, 26x steeper, no longer sits underneath it and absorbs the first pounds. Shape: as 6c-screen's
+existing hypothesis.
+
+**K4. The trim curve default (the exponent).** Sweep {1.5, 2, 3} - with lambda RESCALED per arm, the
+confound already found in 6d's design.
+PREDICTION: a higher exponent spreads trims into more, shallower years; total spending delivered moves
+little.
+
+**K5. Raises: the default cap and eagerness.** Cap in {1.0, 1.1, 1.2}.
+PREDICTION from existing records: raises are frequent (a typical level of 1.15 to 1.2 in good states),
+so blocking them raises median end pots substantially and barely moves survival; the cap is a pure
+spend-now-or-leave-it preference.
+
+**K6. The promise (was 6d stage 2).** At the extreme settings of each exposed lever, landed: the survival
+ask still holds. A lever that breaks the promise at an extreme gets a bounded range, not a caveat.
+
 
 **Added 22 Sep because the table below misleads.** Its rows are in historical phase-number order, not
 running order: E0 and E1 sit between phases 3 and 4 while the 6-series sits further down, which reads as

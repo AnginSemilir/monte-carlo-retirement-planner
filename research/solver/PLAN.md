@@ -51,6 +51,11 @@ present it: (a) survival is the fixed anchor and the other two levels are each m
 (b) three sliders shown, normalised underneath, with the copy saying they are relative. The maintainer's
 "survival largest by default" fits either. To settle before Part C's copy; Phase K calibrates the two
 free ratios whichever is chosen.
+**Clarified 23 Sep: "moveable" means ON A SCALE.** The three priorities - survival, dislike of cuts,
+estate credit - are each a slider, as distinct from the fixed rules (floor, block trimming, minimum pot,
+raise permission, risk consent), which are set values or on/off. Three sliders are the requirement;
+the ratio point above governs how they are implemented (normalised: each weight is its slider's share
+of the total) and how the copy describes them ("relative importance").
 
 **Deliberately left out, 23 Sep:** a stability lever (how often spending may change). The drift penalty
 stays off and unexposed.

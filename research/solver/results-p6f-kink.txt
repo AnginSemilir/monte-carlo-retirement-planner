@@ -1,0 +1,67 @@
+PHASE 6f: THE KINK SCREEN - is resilience doing anything the bequest term is not?
+
+Run 23 Sep 11:51-12:48 UTC from snapshot /tmp/solver-snap-MZwrQA (commit 758e389), 24 cells, four
+cores. (A first launch at 11:16 was killed at ~11:49 when the idle container was reclaimed; no cell had
+finished. Relaunched as a harness-tracked task.) Lambda held at each household's flex-tiers landing, so
+this is a SCREEN: floor rates are not pinned and the arms are not at equal downside.
+
+PREDICTION, written before the run: p10 terminal net falls materially at wR = 0 -> re-anchor.
+
+THE DECIDING METRIC - p10 terminal net (the unlucky tenth's pot at the end), by resilience weight:
+
+                wR = 0     0.25      0.5 (today)   1.0
+    S126         223k      664k      797k          882k
+    S054         618k      688k      761k          832k
+    S252          67k      111k      128k          148k
+    S390          39k      512k      624k          759k
+    S206           1k       81k      116k          157k
+    S112         121k      242k      286k          359k
+
+**PREDICTION CONFIRMED. Removing resilience cuts the unlucky tenth's pot on all six, by 19% (S054) to
+99% (S206).** Per the rule agreed before the run: the term is load-bearing -> design the re-anchoring,
+with its own gate. It is not removed.
+
+WHAT IT COSTS - the finding the screen was not asked for, and the more important one. Resilience buys
+that pot with TRIMMED SPENDING, not with survival:
+
+    years below target (mean)    wR = 0    0.25     0.5     1.0
+    S126                          1.6      6.1      9.4    14.3
+    S054                          1.3      2.1      3.2     4.8
+    S252                          0.3      0.3      0.4     0.5
+    S390                          2.8     10.2     14.6    18.5
+    S206                          2.5      7.5      9.6    11.6
+    S112                          4.0     11.1     13.8    17.7
+
+    floor rate                   wR = 0    0.25     0.5     1.0
+    S126                         98.8     99.9     99.9    99.9
+    S054                         97.6     98.0     98.4    98.7
+    S252                         96.2     96.3     96.2    96.5
+    S390                         97.2     99.3     99.3    99.2
+    S206                         99.5     99.7     99.8    99.7
+    S112                         98.8     99.3     99.2    99.4
+
+At today's weight, S390 spends 14.6 of its ~45 years below target and S112 13.8 of 35, against 2.8
+and 4.0 without the term, while the floor rate differs by 0.4 to 2.1 points. Fully-funded rate at
+wR = 0 against 0.5: S390 69% -> 0%, S112 56% -> 0%, S206 79% -> 36%. **Resilience is the main driver
+of trimming in this solver.** The unlucky tenth's END POT is protected by cutting spending during LIFE.
+
+CAVEAT that bounds this: lambda is held, so at wR = 0 the floor rate sits 0.3 to 2.1 points lower.
+Re-landing wR = 0 to the same ask would put some trimming back. The screen cannot say how much; the
+gap in trimming (roughly 3x to 5x) is much larger than a 0.3-2.1 point floor-rate gap usually costs,
+so the direction is not in doubt, the size is.
+
+WHY IT MATTERS FOR THE PRODUCT. The fixed requirements say the user chooses what they value -
+survival alone, or also a minimum end-of-life pot, or also the median pot - and "needs to trust that
+the trimming of retirement spending is minimised". Resilience is none of those levers. It is the
+solver's own preference for a fat unlucky-tenth estate, it is on for every user, and it is the largest
+source of trimming. The user already has a lever that asks for exactly this, explicitly: the minimum
+end-of-life pot. So the re-anchoring design has a real option the plan did not list: **wR = 0 by
+default, with downside wealth protected only as far as the user asks through their own pot floor.**
+That is a product decision for the maintainer, not a tuning result.
+
+SIDE OBSERVATION bearing on task #106 (not a conclusion): with resilience off, S126 is the only one of
+the six that still never fully funds (0%), and its 1.6 trimmed years match its two-year bridge, with
+4.9 years of liquid money available to fund it. That is what the dead-corner hypothesis predicts. The
+#106 run (started 12:49) tests the mechanism directly.
+
+S252 (lean, ISA-heavy, 94% fully funded) is insensitive throughout: the term has nothing to protect.

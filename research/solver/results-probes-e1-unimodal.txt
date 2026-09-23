@@ -23,3 +23,22 @@ wrong move with no signal that it had. That is not a speed-up, it is a silent ap
 A variant that could still be worth it, recorded and NOT planned: search the 38, then check the winner
 against the full 360 only where the top two in the set are close - which costs what the check costs,
 and needs its own measurement. One household; the resilience decision may change the policy's shape.
+
+SINGLE-PEAKEDNESS IN SPENDING LEVEL - can a ternary search replace the five-level scan?
+Prediction, written before: single-peaked on almost every cell, rare exceptions at tax band edges,
+ternary loss under 1e-6 of score. FALSIFIED IF exceptions exceed a few percent or any loss > 1e-4.
+
+First full-menu pass (ten states on one path): 720 of 720 single-peaked - too few to settle it.
+Whole grid (GRID=1: every cell at every fourth year; snapshot /tmp/solver-snap-7B792b, 143955a plus the
+GRID change, committed as 98449ea):
+
+    tested                5,023,296 (cell-year, action-group) combinations
+    NOT single-peaked            72   (0.0014%)
+    ternary picked worse          0
+    worst loss                    0
+
+**PREDICTION CONFIRMED.** The 72 exceptions are exactly one per action group, which suggests a single
+state rather than scattered band edges; not chased, because ternary search lost nothing even there.
+**The saving is small**: with five levels a ternary search evaluates about four, not three - it
+removes roughly one level in five from the expectation step, not two in five as first written. Safe,
+cheap to build, modest. One household. Joins the speed work after Phase 4; not a reason to reorder.

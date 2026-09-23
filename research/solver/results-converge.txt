@@ -108,3 +108,24 @@ two arms do not land to the same effective target.
 
 PROCESS: a test's households must not be chosen by the outcome the test is meant to explain. A
 representative set with a control would have avoided a false finding that survived an hour.
+
+====================================================================================================
+CLOSED ACROSS ALL 22, FROM EXISTING RECORDS (no new run)
+
+The stopping rule lands a household between +0.5 and +1.0 above its ask ON THE SEARCH DRAW. Above +1.0
+means the budget ran out before the tolerance fired - the only case more steps can help. flex-tiers
+records the search-draw rate for every landing:
+
+    inside the window (tolerance fired)     19 of 22
+    above +1.0 (budget-limited)              3 of 22   S020 +1.12, S268 +1.40, S354 +1.01
+    below +0.5 (impossible by construction)  0
+
+**S268 is the one household that moved in the convergence test; S292 and S342, which did not, are not
+on the budget-limited list.** The existing records would have predicted the test's outcome had they been
+read first. More steps can help at most 3 of 22 households, by under a point. Closed.
+
+THE HALF-POINT MARGIN IS ADEQUATE AND SHOULD NOT BE CUT. It absorbs the held-out draw coming in below the
+search draw: across 41 households that happened on 14, worst -0.47 (S400), and no genuine landing fell
+below its ask on held-out (minimum +0.37). The margin covers the worst case using 0.47 of its 0.5 - it
+is load-bearing. Of the ~1 point of extra safety, the MARGIN is load-bearing and the TOLERANCE WINDOW is
+discretionary; if either is ever trimmed, it is the window.

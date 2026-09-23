@@ -2872,8 +2872,15 @@ mistaken for an oversight, and so that anyone who notices one of these can see i
 - **The S126 opening-cell anomaly** (task #106) - noticed, never diagnosed.
 - **Single-household probes at the frontier** (task #109) - would show WHERE the solver's edge comes
   from rather than that it exists. Useful for the write-up, not for the decision.
-- **One seed pair throughout.** Every result uses 7001/7002. Paired comparisons are robust to this;
-  absolute levels are not. No second draw has ever been run.
+- ~~**One seed pair throughout.**~~ **Checked 23 Sep, downgraded.** Scoring the SAME policy on both draws
+  across all 41 flex-tiers households: mean gap +0.18 points, median +0.08, against per-household noise
+  of +/-0.91. The two draws agree. Not a test against a genuinely new seed, so absolute levels are still
+  unconfirmed on a third draw - but there is no evidence of a problem, and it is no longer an open concern.
+- **The tolerance window: a decision for the maintainer, not a test.** Landings carry ~1 point of safety
+  above the ask: a +0.5 margin, which is LOAD-BEARING (the worst held-out shortfall against search on 41
+  households is -0.47, using nearly all of it), and a half-point tolerance window, which is DISCRETIONARY.
+  Narrowing the window lands closer to the ask and returns up to half a point of safety as spending, at
+  the cost of extra solves. If either is ever trimmed, it is the window.
 - **41 households, no power analysis.** Fine for "41 of 41" claims, weaker for mean differences.
 
 ### 6. The boundary with the shipping engine

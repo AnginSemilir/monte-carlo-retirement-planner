@@ -379,3 +379,68 @@ ending with at least what you started with", a step that rewards a gamble right 
 the expected shortfall below that line, which is smooth. It changed no decision; it removes the
 incentive. The weights were then tuned on the households the experiment never sees and the pair in
 use, (0.5, 0.02), was confirmed.
+
+**Three worlds at once, for free (E0).** The solver does not assume one future for returns; it solves
+three, a pessimistic, a central and an optimistic one, and averages their advice. That used to mean
+three full passes. But the expensive part of a year - working out the withdrawals, the tax, what lands
+in which pot - does not depend on which world you are in; only the growth rate does. So the three are
+now solved side by side, sharing one pass of that work. Exactly a third of the calls, and the answers
+are identical to the last decimal place, which the test checks rather than assumes: 1.66 times faster
+with the risk tier off, 1.33 with it on.
+
+**A hunt for other hidden cliffs, and what it found.** Earlier work found that valuing an estate at
+"whatever you leave, up to four times what you started with" made the solver blind above that ceiling -
+it would give away millions it could not see. That raised a fair question: where else is the model
+blind? Nine constants were checked. Three turned out to be live faults on paper. The biggest: the
+model tracks what fraction of a general investment account is profit, because that sets the capital
+gains tax, but it only holds three values - 5%, 25% and 55% - and rounds to the nearest. Households
+actually reach 89%, and seven in ten of the years they hold such an account are rounded by more than
+five points. On paper the solver was under-pricing the tax of touching those accounts.
+
+**And then the fix turned out not to matter.** Rather than assume the fault was worth fixing, three
+repairs were tried on the twelve worst-affected households: move the ceiling up, stop rounding, and
+fix a related fault where a household that had spent part of its tax-free lump sum was treated as
+still having all of it. **Every one of them changed the answer by less than 2%, and not one changed how
+many years the household spent at its target.** So the rounding stays. That is a better place to be
+than before - the values now rest on evidence instead of on nobody having looked - and it cancelled
+about thirteen hours of further checking. The lump-sum fix was deliberately NOT made: it swaps one
+wrong number for another (a household that has used 7% of its allowance would read as 50% instead of
+0%), and the field says neither is visible. Changing working code for no measured benefit only buys
+risk.
+
+**A guess about computer memory that came out backwards.** One speed idea was to store four numbers
+per position next to each other rather than in four separate lists, so a single read fetches all four
+from one place in memory. It was timed before being built, as the plan insisted. **It is 3.8% slower**,
+because the processor handles four steady streams at least as well as one skipping one. Twenty minutes
+of measuring saved a morning of building, and the idea is dead.
+
+**Where the time actually goes, finally measured.** Every speed idea so far has made the SOLVING
+faster. But a plan is not just solved; it is then tested against thousands of simulated futures, and
+that is done several times over while the solver tunes how hard to cut spending in bad years. Timed
+properly: **solving is 46% of the work and testing is 54%.** So the whole speed programme has been
+aimed at the smaller half. One idea worth a day and a half of building turns out to be worth 14% of a
+run rather than the 30% it looked like.
+
+**A quarter of the testing was re-running a sum already done.** The search measures a candidate on a
+set of futures, then "verifies" it on the full set. Those two sets have been the same set for some
+time - deliberately, so the whole thing uses one sample throughout - so the verification was running
+the identical calculation against the identical table and getting the identical answer, at full price.
+It happens three times per plan. Now it returns immediately when the two sets are the same object.
+
+**How many futures are enough?** The number was 5,400 and had been picked once, early, and never
+checked. Fewer would be much faster. The answer so far is clear and negative: at 1,200 futures the
+measurement is so noisy that the solver often concludes no spending cuts are needed at all, stops after
+one attempt, and then misses the survival rate it promised - five households of eight did exactly that.
+At 600, four of eight. The failures are FAST, which is the trap: a plain speed comparison would have
+shown a large saving that is really a broken promise with a stopwatch on it.
+
+**A question about the score that turned out to matter.** The solver scores an outcome on survival,
+"resilience", and the estate left behind. Asked why resilience exists at all when the estate is already
+counted, the answer is uncomfortable: they are not two ideas. Both are functions of the same number -
+what is left at the end - and added together they make a single bent line. Resilience is its steep part
+and the estate its shallow part. **The bend is at what the household started with, and the value of a
+pound drops twenty-six-fold as you cross it.** Nobody chose that. It fell out of two weights being
+picked separately, years apart, and it sits in the middle of where outcomes actually land: the unlucky
+tenth finishes below that line on every household tested, and the typical outcome above it. It is a
+bigger feature than the ceiling that started this hunt, and the earlier audit could not have found it,
+because it examined each number on its own and the shape only exists in the sum.

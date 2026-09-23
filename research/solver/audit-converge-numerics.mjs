@@ -56,43 +56,56 @@ const f = (x, d = 2) => (x >= 0 ? '+' : '') + x.toFixed(d);
 const row = (label, x, ref, pd) => console.log(`  ${label.padEnd(12)} table ${x.table.toFixed(2).padStart(6)}  sim ${x.sim.toFixed(2).padStart(6)}  |  vs ref: table ${ref ? f(x.table - ref.table) : '   -  '}  sim ${ref ? f(x.sim - ref.sim) : '   -  '}  moves differing ${pd === null || pd === undefined ? '   -   ' : pd.toFixed(3) + '%'}  ${x.s.toFixed(0)}s`);
 
 console.log(`Phase V on ${sc.id} ${sc.name.slice(0, 40)} - ${T + 1} years, lambda ${LAMBDA}, resilience off, six levels, ${HELD} held-out paths\n`);
-const b30 = run({});
+if (process.env.ONLY === 'v3') {
+  const solveOnly = (o) => ({ r: solve(E, M, plan, { ...base, points: 30, ...o }) });
+  globalThis.__v3 = { b30: solveOnly({}), ref56: solveOnly({ points: 56 }), sh12: solveOnly({ shares: 12 }) };
+}
+const b30 = process.env.ONLY === 'v3' ? globalThis.__v3.b30 : run({});
 
+let v1 = null, v2 = null, v2s = null, ref56, sh12;
+if (process.env.ONLY !== 'v3') {
 console.log('=========== V1. THE QUADRATURE (30 points, 6 shares) ===========');
 const q9 = run({ quadNodes: 9 }), q15 = run({ quadNodes: 15 });
 row('5 nodes', b30, q15, policyDiff(b30.r, q15.r));
 row('9 nodes', q9, q15, policyDiff(q9.r, q15.r));
 row('15 nodes', q15, null, null);
-const v1 = Math.abs(b30.sim - q15.sim) <= 0.5 && Math.abs(b30.table - q15.table) <= 0.1 && policyDiff(b30.r, q15.r) < 1;
+v1 = Math.abs(b30.sim - q15.sim) <= 0.5 && Math.abs(b30.table - q15.table) <= 0.1 && policyDiff(b30.r, q15.r) < 1;
 console.log(`  GATE V1: five stand if the table is within 0.1 of fifteen, the simulation within noise (0.5), and under 1% of moves differ ... ${v1 ? 'PASS' : 'FAIL'}\n`);
 
 console.log('=========== V2. THE TOTAL-WEALTH AXIS (6 shares) ===========');
 const seq = [];
 for (const p of [16, 24, 30, 40, 56]) seq.push({ p, x: p === 30 ? b30 : run({ points: p }) });
-const ref56 = seq[seq.length - 1].x;
+ref56 = seq[seq.length - 1].x;
 let prev = null;
 for (const { p, x } of seq) { row(`${p} points`, x, ref56, null); if (prev) x.step = x.table - prev.table; prev = x; }
 const steps = seq.slice(1).map(({ x }) => Math.abs(x.step));
 const shrinking = steps.every((v, i) => i === 0 || v <= steps[i - 1] + 1e-9);
-const v2 = shrinking && Math.abs(b30.table - ref56.table) <= 0.2 && Math.abs(b30.sim - ref56.sim) <= 0.5;
+v2 = shrinking && Math.abs(b30.table - ref56.table) <= 0.2 && Math.abs(b30.sim - ref56.sim) <= 0.5;
 console.log(`  table steps ${steps.map(v => v.toFixed(3)).join(' / ')} - ${shrinking ? 'shrinking' : 'NOT shrinking'}`);
 console.log(`  GATE V2: thirty stand if the steps shrink, 30-to-56 is within 0.2 on the table and within noise on the simulation ... ${v2 ? 'PASS' : 'FAIL'}\n`);
 
 console.log('=========== V2s. THE SHARE AXES (30 points) ===========');
-const sh9 = run({ shares: 9 }), sh12 = run({ shares: 12 });
+const sh9 = run({ shares: 9 }); sh12 = run({ shares: 12 });
 row('6 shares', b30, sh12, null);
 row('9 shares', sh9, sh12, null);
 row('12 shares', sh12, null, null);
-const v2s = Math.abs(b30.table - sh12.table) <= 0.2 && Math.abs(b30.sim - sh12.sim) <= 0.5;
+v2s = Math.abs(b30.table - sh12.table) <= 0.2 && Math.abs(b30.sim - sh12.sim) <= 0.5;
 console.log(`  GATE V2s: six shares stand if 6-to-12 is within 0.2 on the table and within noise on the simulation ... ${v2s ? 'PASS' : 'FAIL'}\n`);
+
+} else { ref56 = globalThis.__v3.ref56; sh12 = globalThis.__v3.sh12; }
 
 console.log('=========== V3. LOG-ODDS AGAINST LINEAR, BETWEEN COARSE NODES ===========');
 /* Random positions between the coarse grid's nodes, read three ways: the 30x6 table in log-odds, the
  * same table read linearly, and a refined table (log-odds) as the reference. Errors in survival points. */
-let seed = 12345; const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+/* mulberry32, a well-mixed generator (the plain-double LCG it replaced was weak but was NOT the fault). */
+let seed = 12345;
+const rnd = () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 function v3(coarse, fine, label) {
   const g = coarse.r.g, gf = fine.r.g;
-  const W0 = g.axes.W.pts[0], W1 = g.axes.W.pts[g.axes.W.pts.length - 1];
+  // pts[0] is the axis's ZERO point (logAxis puts wealth 0 first), so the log-uniform draw must start at
+  // pts[1]. The first version started at pts[0]: log(0) is -Infinity, every "random" position came out
+  // NaN and was read as the same empty cell, and V3 compared nothing with nothing - a vacuous PASS (23 Sep).
+  const W0 = g.axes.W.pts[1], W1 = g.axes.W.pts[g.axes.W.pts.length - 1];
   const years = [0, 5, 10, 20, 30].filter(t => t < T);
   const acc = { lo: [], li: [], loCliff: [], liCliff: [] };
   for (const t of years) for (let k = 0; k < 2000; k++) {
@@ -111,12 +124,14 @@ function v3(coarse, fine, label) {
   console.log(`  ${label}`);
   console.log(`    all positions (${acc.lo.length})         log-odds ${st(acc.lo)}   |   linear ${st(acc.li)}`);
   console.log(`    on the cliff, 5-95% (${acc.loCliff.length})   log-odds ${st(acc.loCliff)}   |   linear ${st(acc.liCliff)}`);
+  if (acc.loCliff.length < 100) { console.log(`    VACUOUS: only ${acc.loCliff.length} positions on the cliff - no verdict`); return null; }
   const mx = (xs) => xs.length ? Math.max(...xs) : 0;
   return mx(acc.loCliff) <= mx(acc.liCliff);
 }
 const v3w = v3(b30, ref56, 'reference: 56 points on total wealth');
 const v3s = v3(b30, sh12, 'reference: 12 points on each share axis');
-console.log(`  GATE V3: log-odds stands if its worst error on the cliff is no larger than linear's ... total axis ${v3w ? 'PASS' : 'FAIL'}, share axes ${v3s ? 'PASS' : 'FAIL'}\n`);
+const vv = (x) => x === null ? 'NO VERDICT' : (x ? 'PASS' : 'FAIL');
+console.log(`  GATE V3: log-odds stands if its worst error on the cliff is no larger than linear's ... total axis ${vv(v3w)}, share axes ${vv(v3s)}\n`);
 
 console.log('=========== CENSUS: DEAD CORNERS ===========');
 /* A cell reading >= 50% with a corner at <= 1e-5 one step along a SHARE axis - the #106 signature. */
@@ -139,4 +154,5 @@ console.log('=========== CENSUS: DEAD CORNERS ===========');
   }
   for (const [k, { live, hit }] of Object.entries(byDecade)) console.log(`  years ${k.padEnd(6)} cells reading >= 50%: ${String(live).padStart(7)}   beside a dead corner: ${String(hit).padStart(6)} (${(100 * hit / Math.max(1, live)).toFixed(2)}%)`);
 }
-console.log(`\nSUMMARY ${sc.id}: V1 ${v1 ? 'PASS' : 'FAIL'}  V2 ${v2 ? 'PASS' : 'FAIL'}  V2s ${v2s ? 'PASS' : 'FAIL'}  V3 ${v3w && v3s ? 'PASS' : 'FAIL'}`);
+const pf = (x) => x === null ? 'not run' : (x ? 'PASS' : 'FAIL');
+console.log(`\nSUMMARY ${sc.id}: V1 ${pf(v1)}  V2 ${pf(v2)}  V2s ${pf(v2s)}  V3 total ${vv(v3w)} shares ${vv(v3s)}`);

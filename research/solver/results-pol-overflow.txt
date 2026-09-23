@@ -1,0 +1,23 @@
+THE BYTE-WIDE POLICY TABLE: WHAT IT COST                                              23 Sep 2026
+
+`pol` was a Uint8Array while the menu had 360 moves, so a stored move above 255 read back as a different
+move. The one reader that acted on it is the final year of every simulated path (chooseAction returns the
+stored move at t = T). Fixed in fc26c07. Measured with audit-pol-overflow.mjs: each household solved in its
+flex-tiers configuration (landed lambda, five levels, raises, tiers, single table), the same 2,000
+held-out paths simulated twice - the true final-year move and the wrapped one the old code used.
+Snapshot /tmp/solver-snap-xAbnAb.
+
+S054  final-year cells storing a move above 255: 0.0%  |  survival true 98.95 wrapped 98.95 (+0.00)  |  median end pot 1977k vs 1977k  |  p10 870k vs 870k
+S112  final-year cells storing a move above 255: 0.0%  |  survival true 99.25 wrapped 99.25 (+0.00)  |  median end pot 888k vs 888k  |  p10 348k vs 348k
+S126  final-year cells storing a move above 255: 0.0%  |  survival true 99.85 wrapped 99.85 (+0.00)  |  median end pot 2240k vs 2240k  |  p10 913k vs 913k
+S390  final-year cells storing a move above 255: 0.0%  |  survival true 99.45 wrapped 99.45 (+0.00)  |  median end pot 3031k vs 3031k  |  p10 855k vs 855k
+
+**NO EFFECT ON ANY SIMULATED RESULT.** On all four households, not one final-year cell stores a move
+numbered above 255, so the wrapped read returned the right move every time: survival, median and
+unlucky-tenth end pots are identical to the pound. The moves above 255 are the "draw all the pension
+first" families, which no household chooses in its last year. Prediction was "small"; it is zero.
+
+**What it DID corrupt: the E1 persistence probe**, which compares stored moves across EVERY year,
+where moves above 255 do occur. Its "98.68% coverage, not built" verdict is re-run on the fixed code
+(step 2). Phase V's policy-difference counts would have been affected the same way; it restarted on the
+fixed code. No other reader of `pol` acts on the stored index.

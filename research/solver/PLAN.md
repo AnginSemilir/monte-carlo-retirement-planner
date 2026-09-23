@@ -37,7 +37,8 @@ the solver values that is not on this list is a defect**, which is how resilienc
 | **trim curve** | how the cost of a trim grows with its depth, between target and floor | the shortfall exponent, 2 | **no - a fixed default; adjustable in a later build** |
 | **raises above target** | whether, and how far, the solver may spend ABOVE target in good years | on, up to 1.2; the raise weight 0.003 sets how eagerly | **yes - agreed 23 Sep: allow, cap, or block** (block = no level above 1) |
 | **minimum end-of-life pot** | a hard line: a future that ends below it counts as failed | yes (`solvencyFloor`) | yes, **with a sensible default above zero - agreed 23 Sep**, because it now carries the job resilience did |
-| **credit for pot above that** | how much the pot left over counts, and the cap on counting it | the estate weight 0.02 and a cap at 4x opening wealth; a capped MEAN, not a median | yes, as the estate lever; 6d calibrates it |
+| **credit for pot above that** | how much the pot left over counts | the estate weight 0.02, a capped MEAN, not a median | yes, as the estate lever; Phase K3 calibrates it |
+| **the credit curve above the minimum pot** | each extra pound above the minimum counts a little less than the one before | **NOT BUILT (found 23 Sep).** Today every pound from ZERO (not from the minimum) to 4x opening wealth counts the same, then nothing: a straight line and a cliff. With resilience gone, nothing in the objective has diminishing returns | **a fixed default now, adjustable later - like the trim curve**; built and calibrated in Phase K3 |
 | **permission to change investment risk** | may the solver move a pot to a lower risk tier | tiers, up to two below the plan's, at a switching cost | **yes - agreed 23 Sep, as consent** |
 
 **Deliberately left out, 23 Sep:** a stability lever (how often spending may change). The drift penalty
@@ -2810,11 +2811,27 @@ wealth, and the unlucky tenth ends at 0.64 to 0.84 of it - roughly 15 to 30 year
 1 to 5 years sits an order of magnitude lower, and a hard floor only binds on the futures heading below
 it. FALSIFIED IF P = 3 costs more than half of resilience's trimming.
 
-**K3. The estate lever: weight and shape (was 6d stage 1 and 6c-screen).** Weight sweep, and the capped
-against the soft shoulder at each weight.
-PREDICTION: the weight moves the median end pot MORE than 6d would have seen, because resilience's
-segment, 26x steeper, no longer sits underneath it and absorbs the first pounds. Shape: as 6c-screen's
-existing hypothesis.
+**K3. The estate lever: weight and the credit curve (was 6d stage 1 and 6c-screen).**
+The requirement (maintainer, 23 Sep) is a curve that credits pounds ABOVE THE MINIMUM POT with
+diminishing returns. It does not exist: the term is `w x min(net, 4K)`, linear from zero and flat above
+the cap. Built here, as one new shape:
+
+    credit(net) = w x s x ln(1 + (net - P) / s)      for net above the minimum pot P
+
+- it starts at the minimum pot, as the requirement says, not at zero;
+- the first pound above P counts w; a pound counts HALF as much at P + s, a third at P + 2s. **s is
+  the one dial - the "half-value point" - and it reads in a sentence a user understands**;
+- no cap is needed: the logarithm already refuses to chase a lucky tail (a pot 100s above P scores
+  about 4.6s, not 100s), which is what the cap and the 6c shoulder were for, without a cliff;
+- it decomposes year by year like any terminal reward, so backward induction carries it unchanged.
+
+Sweep w, and s in {1, 2, 4} x opening wealth, against today's linear-and-capped term.
+PREDICTION: (a) with resilience gone, w moves the median end pot MORE than 6d would have seen, because
+the 26x-steeper segment no longer absorbs the first pounds; (b) a smaller s protects poorer outcomes
+more and the median less - it partly restores what resilience did, but through the user's own lever,
+on a scale the copy can state; (c) trimmed years rise as s shrinks, and at s = 1 x opening wealth they
+stay below resilience's, because the curve starts at P and is gentler than resilience's 26x drop.
+Step 2's field check keeps today's linear term, so the resilience removal is measured on its own.
 
 **K4. The trim curve default (the exponent).** Sweep {1.5, 2, 3} - with lambda RESCALED per arm, the
 confound already found in 6d's design.

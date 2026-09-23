@@ -7,14 +7,15 @@
 # above the 0.8 share node while it is still short of pension access draws a quarter of its read from
 # the a = 1.0 node, which cannot fund the bridge. Predicted pull: 0.25 x -13.8 = -3.45 in log-odds.
 #
-# THE CLASS (from the inputs, no run): S126, S184, S240, S300. CONTROLS: S004 (a = 0.85, already past
-# access - the a = 1.0 node is alive) and S162 (in the bridge, a = 0.5 - no weight on that node).
+# THE CLASS (from the inputs, no run): S126 alone - retired at 55, access at 58, share 0.85.
+# CONTROLS: S184, S240, S300 (share 0.85 but still WORKING, retiring after access - node alive),
+# S004 (share 0.85, past access) and S162 (in the bridge, share 0.5 - no weight on that node).
 #
 # TWO ARMS. The clamp is the mechanism's own dial: at 1e-3 the dead corner enters at -6.9, half the pull.
-#   default clamp 1e-6   PREDICTED: the class reads far below its simulation; controls within ~3 points
-#   clamp 1e-3           PREDICTED: the class's read rises sharply (S126 from ~7.5% toward ~30%: odds x ~5.6);
+#   default clamp 1e-6   PREDICTED: S126 reads far below its simulation; controls within ~3 points
+#   clamp 1e-3           PREDICTED: S126's read rises sharply (S126 from ~7.5% toward ~30%: odds x ~5.6);
 #                        the controls do not move by more than a point
-# FALSIFIED IF: a control reads badly, or the class's read does not respond to the clamp.
+# FALSIFIED IF: a control reads badly, or S126's read does not respond to the clamp.
 #
 # bias.mjs prints table@0 against the simulated survival of the solver's own policy (1,500 held-out paths).
 set -u

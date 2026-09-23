@@ -1431,9 +1431,8 @@ share nodes (and V2 gains a share-axis refinement) before V runs; if #106 is fal
 written. Either way, any interpolation fix lands ONCE, after V, with one field check, and BEFORE 6d
 stage 2 and Phase 4 - the runs whose absolute numbers are reported. Paired screens (6f, 6c-screen, 6d
 stage 1) survive a class-specific bias, as the common-bias argument above already establishes.
-**The E1 and single-peak probes default to band 32, which is S184 - one of the four.** If #106
-confirms, they run on S162 (band 26: in the bridge, share 0.5) instead, so they measure the solver's
-structure rather than the artefact.
+(The E1 and single-peak probes default to band 32, S184 - first flagged as in the class, cleared the
+same day: it is still working at t = 0, so they keep their default.)
 
 ---
 
@@ -2759,7 +2758,7 @@ though the speed work comes first. It does not. This is the schedule; the table 
 | then | **the convergence test**, ~1.9 h | **Replaces the lambda curve.** Bisection on log lambda takes the GEOMETRIC midpoint, so five steps take the 400x bracket to **1.21x** (not 12.5x - that first claim was wrong by ten). Measured from the #108 landings, a 1.21x uncertainty in lambda costs about **1.1 points of floor rate** on sensitive households, and `best` is the last lambda that MET the ask, so the miss is always on the OVER-TRIMMING side. Overshoot decomposes as +0.5 deliberate margin, up to ~1.1 bracket, remainder granularity. **Still matters for Phase 4** - the app's own optimizeSpend converges to a 250-pound bracket while ours stops a point short, so the bias is one-sided against the solver on a headline metric. |
 | ~~cancelled~~ | ~~**the lambda curve**~~ | **Cancelled before running.** Its question - is floorRate(lambda) a staircase - was answered by algebra plus free data. The search is a Lagrangian relaxation, so the floor rate IS piecewise constant, but the trim cost is a sum over ~9,720 cells x 40 years and cells flip one at a time, so the steps are microscopic: effectively a smooth monotone curve. The four landings per household in task #108 confirm it - **0 reversals in 15 adjacent pairs.** Spending 1.6 h to confirm something derivable is the mistake this plan keeps making in reverse. | What shape is floorRate(lambda)? Asked against my claim that it is smooth and monotone, which was a quote from a comment rather than a description. It is a STAIRCASE - the policy is an argmax over a finite action set - and the tax kinks enlarge its steps. Decides how much a bracketed superlinear root-finder can buy; Brent degrades to bisection on a bad staircase, so the shape bounds the upside only. |
 | then | **6f**, the kink screen, ~1.2 h | **The 26x drop in marginal value at opening wealth is larger than the cliff at 4x that 6c and 6e spent fifteen hours on, and nobody chose it.** Four resilience weights including ZERO, six households straddling the bend, judged on the unlucky tenth. |
-| then | **#106, the dead corner**, ~30 min | S126's table reads 7.5% against 96.8% simulated. Derived first: survival is interpolated in log-odds, and a corner at true zero enters at -13.8, so the quarter weight S126 puts on the all-pension node - dead because it is two years short of pension access - divides its odds by ~32. Class of four from the inputs, two controls, two clamps. Predicts extra bridge-year trimming, which is the user's trust requirement. |
+| then | **#106, the dead corner**, ~30 min | S126's table reads 7.5% against 96.8% simulated. Derived first: survival is interpolated in log-odds, and a corner at true zero enters at -13.8, so the quarter weight S126 puts on the all-pension node - dead because it is two years short of pension access - divides its odds by ~32. One household in the class (S126), five controls including three at the same share that are still working, two clamps. Predicts extra bridge-year trimming, which is the user's trust requirement. |
 | then | **Phase V**, the convergence checks, ~1.5 h | **The question nobody asked.** The lambda search was found under-converged by accident; the same question applies to the quadrature (5 nodes, hardcoded, NEVER varied), the grid resolution (20 and 40 exist as alternatives, never as a convergence sequence - and the Richardson hook in the code is permanently null) and the interpolation scheme. All three sit upstream of every number here, and **a discretisation bias is identical in both arms of Phase 4, so Phase 4 cannot detect it.** Runs before anything else because its failure would invalidate work already done rather than redirect work not yet started. |
 | then | **6c-screen**, 20 min | Before 6d, because curvature and weight substitute for each other. **Its purpose has changed**: with 6c not passed and the curve staying off, it no longer validates a shipped change, it tells 6d whether the curve is a live variable underneath the weight. |
 | cancelled | **6e stage 2**, the field check | Stage 1 came back quiet on every arm, so the ~13 h field check does not run. Task #125 (a fresh 6c) expires with it: nothing is owed. |
@@ -2891,24 +2890,39 @@ mistaken for an oversight, and so that anyone who notices one of these can see i
   contribution is 0.25 x -13.8 = -3.45 in log-odds, dividing the odds by about 32. Even if every other
   corner read 97%, the table would say about 50%; linear interpolation would have said 73%. The
   simulated 96.8% is unaffected because simulation walks real pots, not the table.
-  **Checked against existing inputs, no run:** the class is "a > 0.8 AND short of pension access at
-  t = 0". Of the 41 it holds exactly four: S126, S184, S240, S300. S126 was the only one of them
-  among the six households the grid-ceiling test measured - which is why it looked unique.
+  **Checked against existing inputs, no run:** the class is "a > 0.8 AND already retired but short of
+  pension access at t = 0". **Of the 41 it holds only S126.** (A first pass named four - S126, S184,
+  S240, S300 - by counting every pre-access year as a bridge year; S184, S240 and S300 are still
+  WORKING and retire at 60, 60 and 65, after access, so their all-pension node is alive. Corrected
+  the same day. It makes them the sharpest controls available: same share as S126, no dead node.)
+  That is why S126 looked unique - it is. The six households that retire at 50 (eight-year bridges,
+  share 0.25 to 0.5) could drift into the zone as they spend liquid money, but on a middle path none
+  crosses 0.8 before access (S400 comes closest, ~0.73); a bad path could, which a t = 0 read cannot
+  test.
   **Why it may matter beyond a read-out:** the slope of that dead corner is about 86 log-odds per unit
   of share, so every pound drawn from ISA/GIA during the bridge (which raises a) is scored as a large
-  survival loss. The prediction is extra trimming in bridge years for those four, not lower survival.
+  survival loss. The prediction is extra trimming in S126's bridge years, not lower survival.
   **Not settleable from saved data** - no table values or per-year trim profile are stored. One
-  small run confirms or kills it: `bias.mjs` on S126, S184, S240, S300 (predicted: table far below
-  simulation) and controls S004 (a = 0.85, already past access - predicted fine) and S162 (in the
-  bridge, a = 0.5 - predicted fine). **Queued 23 Sep, straight after 6f** (`batch-106-deadcorner.sh`):
+  small run confirms or kills it: `bias.mjs` on S126 (predicted: table far below simulation) and five
+  controls - S184, S240, S300 (share 0.85, still working), S004 (share 0.85, past access) and S162 (in
+  the bridge, share 0.5) - all predicted within ~3 points. **Queued 23 Sep, straight after 6f** (`batch-106-deadcorner.sh`):
   those six at the default clamp AND at a clamp of 1e-3, which halves the dead corner's pull (-6.9
   instead of -13.8) and so is the mechanism's own dial - predicted to lift S126's read from ~7.5%
   toward ~30% (odds x ~5.6) while the controls move by under a point. Falsified if a control reads
-  badly or the class does not respond to the clamp. Twelve solves, ~30 min. It is also Phase V's
+  badly or S126 does not respond to the clamp. Twelve solves, ~30 min. It is also Phase V's
   concrete interpolation case (V3). A fixed-rate claim about S126's zero fully-funded rate was
   considered and rejected: S058, S112 and S390 also score 0 and are not in the class.
 - **Single-household probes at the frontier** (task #109) - would show WHERE the solver's edge comes
   from rather than that it exists. Useful for the write-up, not for the decision.
+  **Its first target list is already answered from saved data (23 Sep).** The probe list named the
+  phase-2 losers S070, S330, S318 and S342. Those were losses in a withdrawal-order-only test on an
+  older grid. In the current design (flex-tiers against the guardrails at equal downside, 41
+  households) **no household loses on floor rate beyond two standard errors**; the worst is S100 at
+  -0.13 points (-1.3 se, noise), which gains +0.89 in years at target. S070 is now +0.73. The other
+  two probe ideas (households whose landing saturates; households already on the Low tier) still need
+  compute. **Placed after Phase 4 and after any interpolation fix**, not before: it is filler by its
+  own definition, it informs the write-up rather than the decision, and probing a solver that #106 or
+  Phase V may still change would be measuring the thing about to be replaced.
 - ~~**One seed pair throughout.**~~ **Checked 23 Sep, downgraded.** Scoring the SAME policy on both draws
   across all 41 flex-tiers households: mean gap +0.18 points, median +0.08, against per-household noise
   of +/-0.91. The two draws agree. Not a test against a genuinely new seed, so absolute levels are still

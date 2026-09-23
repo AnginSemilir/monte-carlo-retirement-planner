@@ -37,8 +37,7 @@ the solver values that is not on this list is a defect**, which is how resilienc
 | **trim curve** | how the cost of a trim grows with its depth, between target and floor | the shortfall exponent, 2 | **no - a fixed default; adjustable in a later build** |
 | **raises above target** | whether, and how far, the solver may spend ABOVE target in good years | on, up to 1.2; the raise weight 0.003 sets how eagerly | **yes - agreed 23 Sep: allow, cap, or block** (block = no level above 1) |
 | **minimum end-of-life pot** | a hard line: a future that ends below it counts as failed | yes (`solvencyFloor`) | yes, **with a sensible default above zero - agreed 23 Sep**, because it now carries the job resilience did |
-| **credit for pot above that** | how much the pot left over counts | the estate weight 0.02, a capped MEAN, not a median | yes, as the estate lever; Phase K3 calibrates it |
-| **the credit curve above the minimum pot** | each extra pound above the minimum counts a little less than the one before | **NOT BUILT (found 23 Sep).** Today every pound from ZERO (not from the minimum) to 4x opening wealth counts the same, then nothing: a straight line and a cliff. With resilience gone, nothing in the objective has diminishing returns | **a fixed default now, adjustable later - like the trim curve**; built and calibrated in Phase K3 |
+| **estate priority, 0 to 100%** | how much the pot left above the minimum matters against everything else. One user-facing level; internally it sets BOTH the credit's weight and how steeply each extra pound's credit diminishes | **NOT BUILT (found 23 Sep).** Today: a fixed weight 0.02 on `min(net, 4K)` - every pound from ZERO (not from the minimum) counts the same up to the cap, then nothing. No diminishing curve, no level | **yes - a user level, agreed 23 Sep.** Moving it changes survival and other results, and that is the user choosing priorities, not a bug. **Phase K3's job is the SPREAD**: equal steps on the level must give roughly equal steps in outcome - 10% must not already have swung hard toward the estate, 100% may cost a lot |
 | **permission to change investment risk** | may the solver move a pot to a lower risk tier | tiers, up to two below the plan's, at a switching cost | **yes - agreed 23 Sep, as consent** |
 
 **Deliberately left out, 23 Sep:** a stability lever (how often spending may change). The drift penalty
@@ -2811,27 +2810,42 @@ wealth, and the unlucky tenth ends at 0.64 to 0.84 of it - roughly 15 to 30 year
 1 to 5 years sits an order of magnitude lower, and a hard floor only binds on the futures heading below
 it. FALSIFIED IF P = 3 costs more than half of resilience's trimming.
 
-**K3. The estate lever: weight and the credit curve (was 6d stage 1 and 6c-screen).**
-The requirement (maintainer, 23 Sep) is a curve that credits pounds ABOVE THE MINIMUM POT with
-diminishing returns. It does not exist: the term is `w x min(net, 4K)`, linear from zero and flat above
-the cap. Built here, as one new shape:
+**K3. The estate priority level, 0 to 100% - build it, then calibrate its SPREAD.**
+Maintainer, 23 Sep: this is a level the user moves, not a hidden default. Moving it WILL change
+survival and other results; that is the user choosing priorities. **Calibration is not about stopping
+that. It is about making the level mean the same thing all the way along**: 10% is a small tilt, 50%
+a real trade, 100% the estate first even at a large cost.
 
-    credit(net) = w x s x ln(1 + (net - P) / s)      for net above the minimum pot P
+The shape underneath, credited only ABOVE the minimum pot P:
 
-- it starts at the minimum pot, as the requirement says, not at zero;
-- the first pound above P counts w; a pound counts HALF as much at P + s, a third at P + 2s. **s is
-  the one dial - the "half-value point" - and it reads in a sentence a user understands**;
-- no cap is needed: the logarithm already refuses to chase a lucky tail (a pot 100s above P scores
-  about 4.6s, not 100s), which is what the cap and the 6c shoulder were for, without a cliff;
-- it decomposes year by year like any terminal reward, so backward induction carries it unchanged.
+    credit(net) = w(level) x s(level) x ln(1 + (net - P) / s(level))
 
-Sweep w, and s in {1, 2, 4} x opening wealth, against today's linear-and-capped term.
-PREDICTION: (a) with resilience gone, w moves the median end pot MORE than 6d would have seen, because
-the 26x-steeper segment no longer absorbs the first pounds; (b) a smaller s protects poorer outcomes
-more and the median less - it partly restores what resilience did, but through the user's own lever,
-on a scale the copy can state; (c) trimmed years rise as s shrinks, and at s = 1 x opening wealth they
-stay below resilience's, because the curve starts at P and is gentler than resilience's 26x drop.
-Step 2's field check keeps today's linear term, so the resilience removal is measured on its own.
+w sets how much the estate counts at all; s sets how fast each extra pound's credit falls (a pound
+counts half at P + s). One level drives both along a calibrated path. At 0% the term is off. No cap is
+needed: the logarithm already refuses to chase a lucky tail, which is what the cap and the 6c shoulder
+were for.
+
+**The derivation that makes calibration necessary, from data already on file** (phase 2's frontier,
+table above): on S294 the median-pot cost of the solver went -1,242k at weight 0, -929k at 0.02,
+-812k at 0.1, -775k at 0.5. **Three quarters of the whole response happened in the first 4% of the
+weight range.** A slider mapped linearly onto the weight would do almost everything in its first few
+percent and nothing after - exactly the failure the maintainer described. So the level must map to the
+weight roughly LOGARITHMICALLY, and the map is fitted, not guessed.
+
+**The method.** On 12 households, sweep the internal (w, s) path finely at fixed lambda, and record
+the outcomes that matter: survival, years at target, spending delivered, median and unlucky-tenth end
+pot. For each household, express each outcome as a fraction of its own full swing between 0% and
+100%. Choose the map from level to (w, s) so the MEDIAN household's fraction tracks the level (10% ->
+about 10% of the swing), and report the worst household's spread, because a map that is even on the
+median can still be lumpy on one.
+**Gate K3:** at every level the across-household fraction stays within an agreed band of the level
+(proposed: 10 points), and 100% is not over the edge of a cliff (the last step is not bigger than
+three ordinary ones).
+**PREDICTION:** the fitted map is close to logarithmic in w; households with long horizons swing most
+and set the worst-case spread; and the level's cost falls mainly on SPENDING (trims, fewer raises)
+rather than survival, because pounds kept for the estate also protect survival - with investment risk
+the one route by which a high level could cut survival. **Which outcome is allowed to give way at high
+levels - spending only, or survival below the user's own target - is a maintainer decision, open.**
 
 **K4. The trim curve default (the exponent).** Sweep {1.5, 2, 3} - with lambda RESCALED per arm, the
 confound already found in 6d's design.

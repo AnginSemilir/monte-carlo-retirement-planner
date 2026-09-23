@@ -2060,3 +2060,18 @@ carries no #106 option until the re-check clears one.
   standard errors, AND it cuts S126's trimmed years; and both controls stay within noise. `linear` joins
   instead only if it meets the same test and beats `drop` on S126's trimming. If neither passes, the
   baseline carries no #106 option and S126's bridge-year trimming is recorded as a known defect.
+
+**RE-CHECK, 19:00-19:45 - OUTCOME (`results-step2.txt` section 5), judged by the rules above:**
+- **The exact final year** (`fnew` against `new`): survival up on 9 of 12, never down beyond noise (S070
+  +1.67, S330 +0.70, S390 +0.47, S126 +0.40). Prediction held; `finalExact` is on from here.
+- **Ternary: OUT.** The original gate passes (worst -0.20, spending within 0.26%), but S112 and S390 each
+  lose 0.20 +/- 0.08 (2.4 paired se) and no household gains. By the rule: the full scan from here (about
+  +35% solve time), and six levels now cost about 20% more than the old five.
+- **56 points against 30:** one household outside the gate, S184 -0.67 +/- 0.40 (1.7 se, failures spread
+  over years 10-40: noise-shaped); S206's -1.67 was entirely the final year and is gone. S162 (+0.50,
+  3.9 se) and S054 (+0.30, 3.0 se) are better at 56. Recorded; the grid stays at 30 points.
+- **#106: no option.** `drop` on S126: -0.30 +/- 0.10 (3.0 se) and more trimmed years (2.20 against
+  1.71); `linear` identical to none. Without a fix S126 holds its pension off-tier all 40 years (median
+  pot GBP1.9m, unlucky tenth GBP307k); with `drop` it keeps its tier, 71% of paths fully funded, median
+  GBP2.6m, unlucky tenth GBP81k. Recorded as an open defect for the maintainer and as the mathematician's
+  question 5.

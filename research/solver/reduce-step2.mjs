@@ -19,11 +19,11 @@ for (const id of ids) {
   console.log(`   ${id}  ${f1(a.floorRate)} -> ${f1(b.floorRate)}   ${f1(a.belowYearsMean)} -> ${f1(b.belowYearsMean)}     ${f1(a.levelWhenBelowMean, 2)} -> ${f1(b.levelWhenBelowMean, 2)}   ${f1(a.aboveTargetYearsMean)} -> ${f1(b.aboveTargetYearsMean)}   ${f1(a.meanLevelMedian, 3)} -> ${f1(b.meanLevelMedian, 3)}   ${f1(a.medianLifetimeTax / 1e3, 0)} -> ${f1(b.medianLifetimeTax / 1e3, 0)}   ${f1(a.medianTerminalNet / 1e3, 0)} -> ${f1(b.medianTerminalNet / 1e3, 0)}`);
 }
 
-const gate = (label, other, survTol, spendTol) => {
+const gate = (label, other, survTol, spendTol, baseArm = 'new') => {
   console.log(`\n${label}`);
   let pass = true;
   for (const id of ids) {
-    const n = load('new', id), o = load(other, id); if (!n || !o) continue;
+    const n = load(baseArm, id), o = load(other, id); if (!n || !o) continue;
     const ds = o.solver.floorRate - n.solver.floorRate, dl = 100 * (o.solver.meanLevelMedian - n.solver.meanLevelMedian) / n.solver.meanLevelMedian;
     const ok = Math.abs(ds) <= survTol && Math.abs(dl) <= spendTol; if (!ok) pass = false;
     const tn = n.knobs?.solveMs, to = o.knobs?.solveMs;
@@ -45,4 +45,12 @@ for (const id of ['S126', 'S184', 'S162']) {
   const n = load('new', id)?.solver, d = load('drop', id)?.solver, l = load('linear', id)?.solver; if (!n) continue;
   const row = (x) => x ? `surv ${f1(x.floorRate)} below ${f1(x.belowYearsMean)} full ${f1(x.fullyFundedRate)} spend ${f1(x.meanLevelMedian, 3)}` : '-';
   console.log(`   ${id}  none: ${row(n)}\n          drop: ${row(d)}\n          lin:  ${row(l)}`);
+}
+
+/* THE RE-CHECK with the exact final year (batch-step2-recheck.sh), when its results exist */
+if (existsSync(join(R, 's2-fnew'))) {
+  console.log('\n5. RE-CHECK WITH THE EXACT FINAL YEAR (finalExact) and the chosen #106 option');
+  gate('5a. TERNARY AGAINST EXHAUSTIVE, both with the exact final year', 'fnewex', 0.5, 1, 'fnew');
+  gate('5b. 56 WEALTH POINTS AGAINST 30, both with the exact final year', 'fnewp56', 0.5, 1, 'fnew');
+  gate('5c. THE EXACT FINAL YEAR AGAINST THE NEAREST-CELL READ (fnew against new; prediction: never lower beyond noise)', 'fnew', 99, 99, 'new');
 }

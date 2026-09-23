@@ -29,7 +29,7 @@ const sc = singles[band[K].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...sc.plan, config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan);
 const T = m.ctx.totalYears;
-const r = solve(E, M, plan, { points: 30, lambda: LAMBDA, raiseWeight: 0.003, spendLevels: [1.2, 1.1, 1, 0.95, 0.9, 0.8], tiers: true, lump: m.ctx.fullLumpSum, resilienceWeight: 0, levelSearch: 'ternary' });
+const r = solve(E, M, plan, { points: 30, lambda: LAMBDA, raiseWeight: 0.003, spendLevels: [1.2, 1.1, 1, 0.95, 0.9, 0.8], tiers: true, lump: m.ctx.fullLumpSum, resilienceWeight: 0, levelSearch: process.env.TERNARY === '0' ? undefined : 'ternary', shareDead: process.env.SHAREDEAD || undefined, finalExact: process.env.FINALEXACT === '1' || undefined });
 
 /* 1. positions the plan actually reaches: walk it on a sampling draw, keep every visited (t, state, tiers) */
 const visits = [];
@@ -44,7 +44,7 @@ for (let pi = 0; pi < picks.length; pi++) {
   const v = picks[pi];
   const top = rankActions(r, v.s, v.t, v.held, 2);
   if (top.length < 2) continue;
-  scoreMoves(r, v.s, Math.min(v.t, T - 1), SC, TX, BQ, v.held);
+  scoreMoves(r, v.s, r.finalExact ? v.t : Math.min(v.t, T - 1), SC, TX, BQ, v.held);
   const margin = SC[top[0]] - SC[top[1]];
   const paths = E.pathsForSeed(9000 + pi, NP, T);
   const sim = (ai) => { const ok = new Uint8Array(NP); let lvl = 0, n = 0; paths.forEach((zs, i) => { const o = runPolicy(r, zs, { start: { s: v.s, t: v.t, held: v.held, firstAi: ai } }); ok[i] = o.survived ? 1 : 0; if (o.spendYears) { lvl += o.levelSum / o.spendYears; n++; } }); return { ok, surv: 100 * ok.reduce((p, q) => p + q, 0) / NP, level: n ? lvl / n : 0 }; };

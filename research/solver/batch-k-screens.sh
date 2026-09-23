@@ -22,6 +22,6 @@ echo "=== K screens: $(printf '%s' "$J" | grep -c .) cells ==="
 printf '%s' "$J" | grep . | xargs -P 4 -I{} sh -c '
   set -- $(echo "{}" | tr ":" " ")
   K=$1; LAM=$2; TAG=$3; EXTRA=$(echo "$4" | tr "," " ")
-  env RECORD=1 SOLVERONLY=1 LAMBDA=$LAM SEARCH=400 MIX=0 TIERS=1 ONLY=$K FLOOR=0.8 CONF=0.9 MARGIN=0.005 RAISE=0.003 WR=0 LEVELS=1.2,1.1,1,0.95,0.9,0.8 TERNARY=1 SHAREDEAD='"$SHAREDEAD"' $EXTRA \
+  env RECORD=1 SOLVERONLY=1 LAMBDA=$LAM SEARCH=400 MIX=0 TIERS=1 ONLY=$K FLOOR=0.8 CONF=0.9 MARGIN=0.005 RAISE=0.003 WR=0 LEVELS=1.2,1.1,1,0.95,0.9,0.8 FINALEXACT=1 TERNARY=${TERNARY:-1} SHAREDEAD='"$SHAREDEAD"' $EXTRA \
     timeout 7200 node research/solver/experiment.mjs flex $TAG 30 3000 7001 7002 2>&1 | tail -1'
 echo "=== K screens done ==="

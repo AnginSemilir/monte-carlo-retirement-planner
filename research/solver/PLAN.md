@@ -342,7 +342,7 @@ changes a result on file; four need work before something downstream is trusted.
 
 | # | finding | why it matters | action | slot |
 |---|---|---|---|---|
-| M1 | **The code's defaults are still the OLD objective.** Bare `solve()` means resilience 0.5, the full level scan, no raises (raise weight 0, menu from `spendLevelsFor`: 1 / 0.95 / 0.9 / 0.8 / floor), the capped estate credit, and no #106 fix. Every research run sets the new baseline explicitly through its flags, so no result is affected. | Anything that calls `solve()` without those flags - the app in Part C, or a script that forgets one - silently gets the old objective. The step-2 `today` arm relies on the 0.5 default, so it would change if the default moved underneath it. | Flip the defaults to the decided baseline once step 2 picks the #106 option: resilience 0, six levels, raise weight 0.003, ternary search, the chosen `shareDead`, bump `SOLVER_VERSION`. Every script that means the old objective says so explicitly (`WR=0.5`, its old `LEVELS`). Gate: bare `solve()` equals the explicit new-baseline options bit for bit, and the explicit old options reproduce a stored old result bit for bit. | step 3; built in the overnight gap, tests after the screens |
+| M1 | **The code's defaults are still the OLD objective.** Bare `solve()` means resilience 0.5, the full level scan, no raises (raise weight 0, menu from `spendLevelsFor`: 1 / 0.95 / 0.9 / 0.8 / floor), the capped estate credit, and no #106 fix. Every research run sets the new baseline explicitly through its flags, so no result is affected. | Anything that calls `solve()` without those flags - the app in Part C, or a script that forgets one - silently gets the old objective. The step-2 `today` arm relies on the 0.5 default, so it would change if the default moved underneath it. | **Revised 18:45 after scoping:** 14 test suites call `solve()` on its bare defaults, so flipping them would break every one for no gain. Instead a single product entry point, `solvePlan()`, carries the decided baseline (resilience 0, six levels, raise weight 0.003, ternary search, the chosen `shareDead`; the estate curve and minimum pot join after step 6), and the app calls only that. `solve()` keeps its historical defaults, documented as the research engine's and never the product's. Gate: `solvePlan()` equals `solve()` with the same options written out, bit for bit. | step 3; built in the overnight gap, tests after the screens |
 | M2 | **K1 tested the rules only at their extreme.** With trimming AND raises blocked the menu has one level, so "no cut" passes trivially; a raise cap between levels, and block-trimming alongside raises and tier changes, were never exercised. | K1 is the only check that the user's rules hold. | **Done:** `batch-k1.sh` gains `k1-cap` (cap 1.1, trimming allowed, tiers on) and `k1-block` (block trimming, raises allowed, tiers on), 6 households each, all with a 3-year minimum pot; `check-k1.mjs` checks each arm against its own rules. K1 becomes about an hour. | K1 |
 | M3 | **Pension draws are only ever tried at the tax corners** (the allowance, the basic-rate limit, unlimited). The argument (tax is linear between corners) is exact only if the value of next year's position is linear in the amount drawn along a stretch; it is curved. Amounts between corners have never been searched. | An assumption every household's plan rests on, never measured. | A table-only probe: at positions the plan reaches, score draws at 25 / 50 / 75% of the way between the chosen move's corners with the one-step lookahead; simulate any that beat the corner by more than 0.1 points. PREDICTION: rare and sub-point, since over one year's draw the continuation value is close to linear. FALSIFIED IF an in-between draw beats the corners by more than half a point in simulation on any household. About 2 h to build (custom-ceiling moves in a probe copy), 30 min to run. | after Phase 4 (or a free Thursday gap) |
 | M4 | **The couples rollout has three gaps.** Its value omits the trim table, so it never weighs cuts; the year's spending level comes from the first person's move only; its expectation hard-codes five nodes and ignores `quadNodes`. | Couples were validated under the old objective, where the trim penalty was landed per household; under the dislike-of-cuts slider the rollout would ignore the slider. | Fix all three before the couples re-validation; added to the mathematician's question 9. | "Couples under the new objective", after Phase 4 |
@@ -351,6 +351,8 @@ changes a result on file; four need work before something downstream is trusted.
 | M7 | **Step 2b's first remedy already exists.** `tieMargin` (among moves within a margin of the best, take the least tax this year) is in `chooseAction`, off, measured on the old grid at +1.5 points on S070 and -0.5 on the largest wins. Richardson extrapolation (`rich`) also exists, never measured. | If the ranking check calls for a tie-break, it is a re-measurement, not a build. | Re-measure `tieMargin` on the new grid if 2b's result calls for it. | after 2b, only if needed |
 | M8 | **The minimum pot is tested on the GROSS pot**, the estate on the NET (after pension death tax). Dormant: every library household has a zero death-tax rate. | With a minimum-pot default the product now has a user-visible number whose meaning depends on this. | The copy says "before any tax on the pension at death" until a synthetic fixture tests the net version. Put to the maintainer with the step-6 defaults. | step 6 |
 | M9 | **The questions for the mathematician now have owners.** Q1 (does monotonicity survive an approximate solver) before K7; Q2 (fitting two dials to a stepped response) before K5; Q3 (a path for the estate slider) before K4's fit; Q4 (why the choice is stable) alongside 2b; Q5 (drop's discontinuity) only if step 2 picks `drop`; Q6 (noisy rollout) only if 2b calls for rollout; Q9 before couples ship; Q7, Q8, Q10 not blocking. | Nothing tonight waits on an answer; K5 on Thursday is the first step that could. | Send the page when the maintainer has shared it. | - |
+| M10 | **The final year read the NEAREST CELL's stored move** - the one read `chooseAction` exists to avoid. Found from the step-2 records at 18:43: all 53 paths S206 lost at 56 points, and 27 of the 28 S390 lost under the ternary search (plus all 8 it gained), failed in the final year from a near-empty position. On 300 random final-year positions of S206 the nearest-cell move fails outright on 81 where a paying move exists. | It affects every simulated result on file in its last year, and it decided both step-2 gate failures. Paired comparisons share it, so their direction mostly survives; absolute survival is slightly understated on thin households. | **Built:** `finalExact` scores the final year's moves at the true position against the same end-of-plan rule the backward pass applies at t = T. Off by default (bit-identical, tested); on in `PRODUCT_BASELINE` and in every run from here (`FINALEXACT=1`). `solver-final.test.mjs`: tables untouched, the choice is the exact argmax on 300 positions, never a failing move when a paying one exists. The two failed comparisons are re-run with it on (`batch-step2-recheck.sh`); the failures stand as recorded. | before 2b |
+| M11 | **The ternary search is not bit-identical where it "finds the peak".** In a year with no spending every level scores the same and the search never evaluates level 1, so it stores a different, equivalent move (all 9,720 year-0 cells on four working households). Separately S112 lost 8 paths (0.27 points, 2.8 se), none in the final year: a genuine miss. | The probe's "24 misses in 5.0 million" was on a different configuration; stored moves differ from the full scan on 2-48% of cell-years here, mostly harmless ties. | Judged by the re-check: if the ternary gate passes once the final year is exact, ternary stays; if not, downstream runs use the full scan (+35% solve time) and the six-levels-at-today's-cost decision is reported back to the maintainer. | re-check |
 
 ---
 
@@ -378,19 +380,20 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 8 | **K6 slider spread, K7 monotone checks** | 7 | ~1.5 h | Thu ~15:30 |
 | 9 | **Phase 4**, with its bundled extras (below) | 8 | ~6 h | Thu ~21:30 |
 
-### The next 12 hours (written Wed 18:35 UTC)
+### The next 12 hours (written Wed 18:35 UTC, revised 18:50 for M10)
 
 | UTC | cores | alongside, no cores |
 |---|---|---|
-| now - 19:10 | step 2 finishes (23 cells left: the last of the 12 households on four arms, then the #106 arms on S126, S184, S162) | this plan update; K1's extra arms (done) |
-| 19:10 - 19:40 | - | reduce step 2 against its gates and predictions; `results-step2.txt`; choose none / drop / linear for #106; step 2 to history; report |
-| 19:40 - 20:25 | solver tests, then the ranking check on the 12 households | - |
-| 20:25 - 20:40 | - | read 2b against its agreed decision table. A fix, if called for, is built before K5 (M7: the tie-break exists) and does not hold up K1-K4 |
-| 20:40 - 21:45 | K1, three arms, with the chosen #106 option | write the Phase 4 panel-selection script |
-| 21:45 - ~03:00 | K2-K4 screens, 192 cells | M1 build (defaults flip, no cores until its tests); K2-K4 reducers; E1 re-read offline from step 2's stored moves (minutes) |
-| ~03:00 - 04:00 | Phase 4 panel selection | - |
-| 04:00 - 05:00 | M1's bit-identity tests; the 2b fix's measurement if one was called for | - |
-| 05:00 - 06:30 | free: E3's build and bit-equality test in the gap, never ahead of the above | the morning summary for step 6 |
+| now - 19:10 | step 2 finishes | M10 found and fixed (`finalExact`, tested); M1's `solvePlan` built and tested; K1 arms; panel-selection script; K reducer |
+| 19:10 - 19:30 | - | reduce step 2; choose the #106 option; `results-step2.txt` |
+| 19:30 - 20:15 | **step 2 re-check with the exact final year**, 36 cells | write-up continues |
+| 20:15 - 20:30 | - | judge the re-check: ternary stays or the full scan is used downstream (M11) |
+| 20:30 - 21:10 | solver tests, then the ranking check | - |
+| 21:10 - 21:20 | - | 2b against its agreed decision table |
+| 21:20 - 22:20 | K1, three arms, `FINALEXACT=1` | - |
+| 22:20 - ~04:00 | K2-K4 screens, 192 cells, `FINALEXACT=1` (about +35% if the full scan replaces ternary) | K2-K4 reducer runs; E1 re-read offline |
+| ~04:00 - 05:00 | Phase 4 panel selection | - |
+| 05:00 - 06:30 | - | the morning summary for step 6 |
 
 Stops that would change this: step 2 failing a gate (the queue stops there, per the standing rule); the
 ranking check landing in its "losses of a point or more" row (rollout is built before K5, which moves K5
@@ -446,7 +449,7 @@ written here, each derived from records already on file.
 | K2 minimum pot | in K2 | - | K2 |
 | K3 raise cap | in K3 | - | K3 |
 | K4 estate slider | in K4 | - | K4 |
-| Phase 4 panel selection | about half to two thirds of library candidates land in the app's 75-95% band (the tuning 41 ran from 70.9% to 99.9% with a median of 92.1%, 27 of 41 under 95%), so filling 40 needs roughly 60 to 80 candidates | under a third land in the band - the library would then be too comfortable for the test, and the band is revisited with the maintainer | **written now** |
+| Phase 4 panel selection | FIRE: 12 to 20 of the 30 candidates land in the band (retiring at 52 adds a six-year bridge, which pushes survival down into the band more often than out of it), so the FIRE half may fall short and the library fill in; library: about half to two thirds of library candidates land in the app's 75-95% band (the tuning 41 ran from 70.9% to 99.9% with a median of 92.1%, 27 of 41 under 95%), so filling 40 needs roughly 60 to 80 candidates | under a third land in the band - the library would then be too comfortable for the test, and the band is revisited with the maintainer | **written now** |
 | K5 guardrail matching | in K5 | - | K5 |
 | K6 dislike slider | in K6 | - | K6 |
 | K7 monotone | **two parts are PROVABLE, one is not.** Raising dislike of cuts can never add trimming, and raising the estate slider can never lower the EXPECTED credited end pot - both follow from the same relaxation argument that settled the lambda curve. The MEDIAN end pot and the survival chance are not guaranteed monotone and are empirical. So a reversal in the first two is a bug; in the last two it is a finding | a reversal in trimming or in expected credited pot | **written now** |
@@ -542,9 +545,9 @@ fixed solver. It adds a few hours to Thursday.
 - **The minimum end-of-life pot default**, wired so a plan without one gets the default K2 settles.
 - **Block trimming** - the floor set equal to the target, which leaves no level below 1.
 - **Lambda exposed as the dislike-of-cuts level**, its map fitted in K6.
-- **The code defaults flipped to the decided baseline** (finding M1): resilience 0, six levels, raise
-  weight 0.003, ternary search, the chosen #106 option, a new `SOLVER_VERSION`; scripts that mean the old
-  objective say so explicitly. Gate: bit-identity both ways.
+- **`solvePlan()`, the product entry point with the decided baseline** (finding M1, revised): resilience 0,
+  six levels, raise weight 0.003, ternary search, the chosen #106 option; the estate curve and minimum pot
+  after step 6. `solve()` keeps its research defaults. Gate: bit-identity with the options written out.
 
 ---
 
@@ -703,6 +706,20 @@ Both arms' full configuration is written into the results file before the first 
   survival across the tuning 41 has a median of 92.1% and is below 95% on 27 of them, so this is a
   safeguard: Panel H is drawn where arm A survives 75 to 95%, by the clean 41's band-selection method
   applied to arm A, with targets fixed before either arm runs.
+- **Selection rules, fixed 23 Sep 18:45 before the run (`select-phase4.mjs`, `batch-p4-select.sh`).**
+  Arm A for selection is exactly Phase 4's arm A: the app's own policy search then its strategy tournament
+  (`versus.mjs`'s arm A code), guardrails on with a floor of 80% of target, the lookahead at 5 years.
+  Excluded: every household id appearing in any file under `results/` (156 at writing). Library
+  candidates in library order (128 free); FIRE candidates are every single household aged 44 or under,
+  retiring at 52 instead (30 in the whole library; the 21 whose library id is unused go first; no 'F' id
+  has ever been run). The pipeline searches on seed 7001; the band is measured on 1,000 paths of seed
+  7005, used for nothing else; Phase 4 is judged on 7003, never touched by selection. The band is measured
+  with no minimum pot, since the default is chosen afterwards; it is a ceiling safeguard, so the panel is
+  not re-selected when the default arrives. Walking each list in order: the first 20 of each cohort in
+  [75, 95]. **The FIRE pool is small** - 30 candidates for 20 places - so if it runs out, the library fills
+  the panel to 40 and the write-up reports the split.
+  **A known tilt, conservative against the solver:** arm A's tournament may change a working household's
+  contributions, which the solver takes as given.
 
 ### What is reported, for every household, median run and unlucky tenth
 

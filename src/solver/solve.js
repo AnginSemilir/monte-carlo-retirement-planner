@@ -650,6 +650,9 @@ export function solve(E, M, plan, opts = {}) {
     m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
     quadWeights: QW,
     tieMargin: opts.tieMargin || 0,
+    /* the end-of-plan rule the backward pass applies at t = T, so the final year can be scored exactly (see scoreMoves) */
+    terminal: { floor, deathTax, resilK, shortfall, beqOf },
+    finalExact: !!opts.finalExact,
     /*
      * PHASE E0, STEP 2. One result-like view per world, for `chooseAction`'s mixture loop, which calls
      * `scoreMoves(tab, ...)` on each and so needs a complete object. Everything immutable is shared by
@@ -669,6 +672,7 @@ export function solve(E, M, plan, opts = {}) {
     surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
     nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW,
     tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
+    terminal: { floor, deathTax, resilK, shortfall, beqOf }, finalExact: !!opts.finalExact,
     /*
      * A world view answers `policy` and `value` as the central result does, reading ITS OWN tables.
      * Leaving them off made the view scoreable but not readable, which is half a result: the mixture
@@ -696,8 +700,16 @@ export function solve(E, M, plan, opts = {}) {
 export function chooseAction(r, s, t, held = null) {
   const { actions } = r;
   const T = r.m.ctx.totalYears;
-  if (t >= T && !r.mix) return r.pol[T][nearestIndex(r.g, s)];
-  if (t >= T) return r.mix.tables[Math.floor(r.mix.tables.length / 2)].pol[T][nearestIndex(r.g, s)];
+  /*
+   * THE FINAL YEAR (`finalExact`, 23 Sep, found by the step-2 records). Off, the last year reads the stored
+   * move of the NEAREST cell - the one read this function exists to avoid. It decided the step-2 outliers:
+   * all 53 paths S206 lost at 56 points, and 27 of the 28 S390 lost under the ternary search, failed in the
+   * final year, from a near-empty position whose nearest cell could afford a move the real one could not.
+   * On, every move is scored at the exact position against the end-of-plan rule the backward pass itself
+   * applies at t = T (scoreMoves below), so the last year is the same exact maximisation as every other.
+   */
+  if (t >= T && !r.finalExact && !r.mix) return r.pol[T][nearestIndex(r.g, s)];
+  if (t >= T && !r.finalExact) return r.mix.tables[Math.floor(r.mix.tables.length / 2)].pol[T][nearestIndex(r.g, s)];
   const eps = r.eps;
   const n = actions.length;
   const SC = r._sc || (r._sc = new Float64Array(n));
@@ -789,6 +801,22 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
     let sv = 0, bq = 0, rs = 0, h = (spendYear ? r.costOf(levelOf[ai]) : 0) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
     const nr = nodeRealOf[ai];
     const QW = r.quadWeights || WEIGHTS;
+    if (t >= r.m.ctx.totalYears) {
+      // the final year, exactly as the backward pass scores it at t = T: grown, then judged by the end-of-plan rule
+      const { floor, deathTax, resilK, shortfall, beqOf } = r.terminal;
+      for (let zi = 0; zi < QW.length; zi++) {
+        grown.set(post);
+        F.grow(c, t, grown, nr[zi]);
+        const total = grown[0] + grown[1] + grown[2];
+        const alive = !(floor > 0 && total < floor);
+        const net = Math.max(0, total - grown[0] * deathTax);
+        sv += QW[zi] * (alive ? 1 : 0);
+        rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+        bq += QW[zi] * (alive ? beqOf(net) : 0);
+      }
+      SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
+      continue;
+    }
     for (let zi = 0; zi < QW.length; zi++) {
       grown.set(post);
       F.grow(c, t, grown, nr[zi]);
@@ -809,8 +837,8 @@ export function rankActions(r, s, t, held = null, K = 3) {
   if (r.mix) {
     SC.fill(0);
     const S2 = new Float64Array(n), T2 = new Float64Array(n), B2 = new Float64Array(n);
-    r.mix.tables.forEach((tab, k) => { scoreMoves(tab, s, Math.min(t, r.m.ctx.totalYears - 1), S2, T2, B2, held); const w = r.mix.weights[k]; for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; BQ[ai] += w * B2[ai]; } });
-  } else scoreMoves(r, s, Math.min(t, r.m.ctx.totalYears - 1), SC, TX, BQ, held);
+    r.mix.tables.forEach((tab, k) => { scoreMoves(tab, s, r.finalExact ? t : Math.min(t, r.m.ctx.totalYears - 1), S2, T2, B2, held); const w = r.mix.weights[k]; for (let ai = 0; ai < n; ai++) { if (S2[ai] === -Infinity || SC[ai] === -Infinity) SC[ai] = -Infinity; else SC[ai] += w * S2[ai]; BQ[ai] += w * B2[ai]; } });
+  } else scoreMoves(r, s, r.finalExact ? t : Math.min(t, r.m.ctx.totalYears - 1), SC, TX, BQ, held);
   const idx = []; for (let ai = 0; ai < n; ai++) if (SC[ai] > -Infinity) idx.push(ai);
   idx.sort((a, b) => (SC[b] - SC[a]) || (BQ[b] - BQ[a]));
   return idx.slice(0, K);
@@ -1102,4 +1130,42 @@ export function solveBoth(E, M, plan, opts = {}) {
   const better = (bt.survival > at.survival + eps || (Math.abs(bt.survival - at.survival) <= eps && bt.bequest > at.bequest)) ? b : a;
   better.alternative = better === a ? b : a;
   return better;
+}
+
+/*
+ * THE PRODUCT ENTRY POINT (PLAN.md finding M1, 23 Sep). `solve()` keeps the research engine's historical
+ * defaults - resilience 0.5, the full level scan, no raises, no #106 fix - because fourteen test suites and
+ * every recorded result are written against them. The app must never inherit those by omission, so it calls
+ * this instead, which carries the baseline decided on 23 Sep and nothing else:
+ *
+ *   survival the anchor, no resilience term; the six-level menu down to the user's floor (raises to 1.2 unless
+ *   capped or blocked); raise credit 0.003; the ternary level search; the chosen #106 read; the pension and
+ *   ISA tiers when the user consents; the three-world mixture; 30 wealth points.
+ *
+ * The user's settings arrive as `opts`: `lambda` (dislike of cuts), `raiseCap`, `riskConsent` (default on),
+ * and anything the caller must override for a test (`points`). Block trimming is the plan's floor set equal
+ * to its target, which leaves the menu nothing below 1. The estate curve and the minimum-pot default join
+ * after the maintainer's step-6 choices. Gate: identical, bit for bit, to `solveMixture` with the same options
+ * written out (solver-plan.test.mjs).
+ */
+export const PRODUCT_BASELINE = Object.freeze({
+  resilienceWeight: 0, raiseWeight: 0.003, levelSearch: 'ternary', shareDead: 'drop', finalExact: true, mix: 3, points: 30
+});
+/* The menu for a floor, as a fraction of target: raises to 1.2, then 1, 0.95, 0.9 and the floor itself, never below it. */
+export function productLevels(floorFrac) {
+  const f = floorFrac > 0 ? Math.min(1, floorFrac) : 1;
+  const raw = [1.2, 1.1, 1, 0.95, 0.9, f].filter(l => l >= f - 1e-9);
+  return [...new Set(raw.map(x => Math.round(x * 1e6) / 1e6))].sort((a, b) => b - a);
+}
+export function solvePlan(E, M, plan, opts = {}) {
+  if (!(opts.lambda >= 0)) throw new Error('solvePlan needs the dislike-of-cuts setting as lambda');
+  const m = M.prepare(E, plan);
+  const { riskConsent, ...rest } = opts;
+  const o = {
+    ...PRODUCT_BASELINE, ...rest,
+    spendLevels: productLevels(m.ctx.floorFrac || 0),
+    lump: m.ctx.fullLumpSum,
+    tiers: riskConsent === false ? undefined : true
+  };
+  return solveMixture(E, M, plan, o);
 }

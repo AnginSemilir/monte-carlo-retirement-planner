@@ -255,7 +255,7 @@ repeated in the phases below.
 
 ---
 
-## Where things stand (23 Sep evening, updated 18:35)
+## Where things stand (23 Sep, updated 21:30)
 
 ### Settled, with the evidence (full text in `PLAN-HISTORY.md`, results in the files named)
 
@@ -283,7 +283,7 @@ repeated in the phases below.
 | the S126 anomaly (#106) | confirmed: a dead corner in log-odds on a SHARE axis; only S126 of the 41 is in the class at t = 0. **Still open (step 2):** neither fix passed; without one S126 holds its pension off-tier for 40 years, with `drop` 9, a 38% larger median pot, a 74% smaller unlucky tenth, 0.3 points less survival. It changes the plan's character; put to the maintainer and the mathematician (Q5) | `results-106-deadcorner.txt`, `results-step2.txt` |
 | E4, interleaved value arrays | dead: 3.8% slower | `results-part-e-measured.txt` |
 | E1, seeding from next year's move | **re-read from step 2's full-width stored moves, 19:20: not built.** The best candidate set (41 of 432 moves) covers 97.72% of this year's best moves across 4.1 million retired cell-years, against a 99.5% bar; the corrupted first read said 98.68%. Prediction (98-99%, verdict stands) held on the verdict, slightly low on the figure | `results-e1-records.txt` |
-| single-peakedness in level | measured over 5.0 million combinations (24 misses); **qualified by step 2** (finding M11): the ternary search is not bit-identical to the full scan, and is re-checked | `results-probes-e1-unimodal.txt`, step 2 |
+| single-peakedness in level | measured over 5.0 million combinations (24 misses) on an earlier configuration; on step 2's households the ternary search was not bit-identical and lost 0.20 points on two, so it is **OUT** (M11); the full scan is used | `results-probes-e1-unimodal.txt`, `results-step2.txt` |
 | the lambda curve | cancelled: answered by algebra (a Lagrangian relaxation; 0 reversals in 15 pairs) | history |
 | 6c, the soft bequest shoulder | not passed on its control, S390; not re-specified | history |
 
@@ -301,8 +301,10 @@ figures (3,000 paths, ~207 s):
 | households needing no trim | ~890 s | ~520 s | about 1.7x |
 
 Research timings (three-world mixture, 30 points, one core); the ratio carries to the app. Cutting the
-reporting run to 1,000 paths in the app makes the average about 6.7x. The six-level ternary search would take about 26% off each solve on top, if it survives the step-2
-re-check (finding M11). **The solve is now almost the whole cost**, which changes what the
+reporting run to 1,000 paths in the app makes the average about 6.7x. **Corrected 21:30:** these timings
+are for five levels. The sixth level with the full scan (the ternary search failed its re-check, M11)
+makes the solve about 20% dearer - about 380 s - so a plan is about 590 s and the saving about 4.4x on
+average (6.6x for households that trim). **The solve is now almost the whole cost**, which changes what the
 speed work is worth - see "After Phase 4".
 
 ### Bugs found and fixed on 23 Sep
@@ -348,21 +350,43 @@ changes a result on file; four need work before something downstream is trusted.
 | # | finding | why it matters | action | slot |
 |---|---|---|---|---|
 | M1 | **The code's defaults are still the OLD objective.** Bare `solve()` means resilience 0.5, the full level scan, no raises (raise weight 0, menu from `spendLevelsFor`: 1 / 0.95 / 0.9 / 0.8 / floor), the capped estate credit, and no #106 fix. Every research run sets the new baseline explicitly through its flags, so no result is affected. | Anything that calls `solve()` without those flags - the app in Part C, or a script that forgets one - silently gets the old objective. The step-2 `today` arm relies on the 0.5 default, so it would change if the default moved underneath it. | **Revised 18:45 after scoping:** 14 test suites call `solve()` on its bare defaults, so flipping them would break every one for no gain. Instead a single product entry point, `solvePlan()`, carries the decided baseline (resilience 0, six levels, raise weight 0.003, ternary search, the chosen `shareDead`; the estate curve and minimum pot join after step 6), and the app calls only that. `solve()` keeps its historical defaults, documented as the research engine's and never the product's. Gate: `solvePlan()` equals `solve()` with the same options written out, bit for bit. | **done 18:47**: `solvePlan`, `solver-plan.test.mjs` 10 passed |
-| M2 | **K1 tested the rules only at their extreme.** With trimming AND raises blocked the menu has one level, so "no cut" passes trivially; a raise cap between levels, and block-trimming alongside raises and tier changes, were never exercised. | K1 is the only check that the user's rules hold. | **Done:** `batch-k1.sh` gains `k1-cap` (cap 1.1, trimming allowed, tiers on) and `k1-block` (block trimming, raises allowed, tiers on), 6 households each, all with a 3-year minimum pot; `check-k1.mjs` checks each arm against its own rules. K1 becomes about an hour. | K1 |
+| M2 | **DONE 21:13: K1 passed on all three arms** (`results-k1.txt`). **K1 tested the rules only at their extreme.** With trimming AND raises blocked the menu has one level, so "no cut" passes trivially; a raise cap between levels, and block-trimming alongside raises and tier changes, were never exercised. | K1 is the only check that the user's rules hold. | **Done:** `batch-k1.sh` gains `k1-cap` (cap 1.1, trimming allowed, tiers on) and `k1-block` (block trimming, raises allowed, tiers on), 6 households each, all with a 3-year minimum pot; `check-k1.mjs` checks each arm against its own rules. K1 becomes about an hour. | K1 |
 | M3 | **Pension draws are only ever tried at the tax corners** (the allowance, the basic-rate limit, unlimited). The argument (tax is linear between corners) is exact only if the value of next year's position is linear in the amount drawn along a stretch; it is curved. Amounts between corners have never been searched. | An assumption every household's plan rests on, never measured. | A table-only probe: at positions the plan reaches, score draws at 25 / 50 / 75% of the way between the chosen move's corners with the one-step lookahead; simulate any that beat the corner by more than 0.1 points. PREDICTION: rare and sub-point, since over one year's draw the continuation value is close to linear. FALSIFIED IF an in-between draw beats the corners by more than half a point in simulation on any household. About 2 h to build (custom-ceiling moves in a probe copy), 30 min to run. | after Phase 4 (or a free Thursday gap) |
 | M4 | **The couples rollout has three gaps.** Its value omits the trim table, so it never weighs cuts; the year's spending level comes from the first person's move only; its expectation hard-codes five nodes and ignores `quadNodes`. | Couples were validated under the old objective, where the trim penalty was landed per household; under the dislike-of-cuts slider the rollout would ignore the slider. | Fix all three before the couples re-validation; added to the mathematician's question 9. | "Couples under the new objective", after Phase 4 |
 | M5 | **The Phase 4 power statement was loose.** With a per-household spread of 0.82 points, the edge detectable at 80% power is 2.80 x 0.82/sqrt(40) = **0.36 points**; at 0.4 the power is about 87%. | The panel is stronger than stated; no change to its size. | Text corrected below. | done |
 | M6 | **The landings run five bisection steps, not eight.** The derive-first section says eight suffice; `experiment.mjs` defaults to five, leaving the bracket ratio at 1.21 (eight would leave 1.024). | Only two landings remain: Phase 4's equal-survival diagnostic and any K5 landing. | Run those with `BISECT=8`: three more solves per landing, about 45 minutes on the 12-household diagnostic. | Phase 4 diagnostic |
-| M7 | **RESOLVED 21:00: not needed - 2b landed in its "nothing" row.** **Step 2b's first remedy already exists.** `tieMargin` (among moves within a margin of the best, take the least tax this year) is in `chooseAction`, off, measured on the old grid at +1.5 points on S070 and -0.5 on the largest wins. Richardson extrapolation (`rich`) also exists, never measured. | If the ranking check calls for a tie-break, it is a re-measurement, not a build. | Re-measure `tieMargin` on the new grid if 2b's result calls for it. | after 2b, only if needed |
+| M7 | **RESOLVED 21:00: not needed - 2b landed in its "nothing" row.** **Step 2b's first remedy already exists.** `tieMargin` (among moves within a margin of the best, take the least tax this year) is in `chooseAction`, off, measured on the old grid at +1.5 points on S070 and -0.5 on the largest wins. Richardson extrapolation (`rich`) also exists - **corrected 21:30 (plan audit): it WAS measured, in Phase 2c's smear batch on the old per-pot grid (S070 and S342, 24 + 12 points), and "moved nothing beyond noise" (`ledger-smear-fixes.txt`, history line ~391); never measured on the total-wealth grid.** | If the ranking check calls for a tie-break, it is a re-measurement, not a build. | Re-measure `tieMargin` on the new grid if 2b's result calls for it. | after 2b, only if needed |
 | M8 | **The minimum pot is tested on the GROSS pot**, the estate on the NET (after pension death tax). Dormant: every library household has a zero death-tax rate. | With a minimum-pot default the product now has a user-visible number whose meaning depends on this. | The copy says "before any tax on the pension at death" until a synthetic fixture tests the net version. Put to the maintainer with the step-6 defaults. | step 6 |
-| M9 | **The questions for the mathematician now have owners.** Q1 (does monotonicity survive an approximate solver) before K7; Q2 (fitting two dials to a stepped response) before K5; Q3 (a path for the estate slider) before K4's fit; Q4 (why the choice is stable) alongside 2b; Q5 (drop's discontinuity) only if step 2 picks `drop`; Q6 (noisy rollout) only if 2b calls for rollout; Q9 before couples ship; Q7, Q8, Q10 not blocking. | Nothing tonight waits on an answer; K5 on Thursday is the first step that could. | Send the page when the maintainer has shared it. | - |
+| M9 | **The questions for the mathematician now have owners.** Q1 (does monotonicity survive an approximate solver) before K7; Q2 (fitting two dials to a stepped response) before K5; Q3 (a path for the estate slider) before K4's fit; Q4 (why the choice is stable) alongside 2b; Q5 (drop's discontinuity) only if step 2 picks `drop`; Q6 (noisy rollout) only if 2b calls for rollout; Q9 before couples ship; Q7, Q8, Q10 not blocking. **Updated 21:30:** 2b needed nothing, so Q6 is moot; step 2 picked neither #106 option, so Q5 is the open defect's question, not a precondition; the ternary search is out, so Q10 is withdrawn (removed from the page); Q4 now also bears on the calibration curve (M16). | Nothing tonight waits on an answer; K5 on Thursday is the first step that could. | Send the page when the maintainer has shared it. | - |
 | M10 | **The final year read the NEAREST CELL's stored move** - the one read `chooseAction` exists to avoid. Found from the step-2 records at 18:43: all 53 paths S206 lost at 56 points, and 27 of the 28 S390 lost under the ternary search (plus all 8 it gained), failed in the final year from a near-empty position. On 300 random final-year positions of S206 the nearest-cell move fails outright on 81 where a paying move exists. | It affects every simulated result on file in its last year, and it decided both step-2 gate failures. Paired comparisons share it, so their direction mostly survives; absolute survival is slightly understated on thin households. | **Built:** `finalExact` scores the final year's moves at the true position against the same end-of-plan rule the backward pass applies at t = T. Off by default (bit-identical, tested); on in `PRODUCT_BASELINE` and in every run from here (`FINALEXACT=1`). `solver-final.test.mjs`: tables untouched, the choice is the exact argmax on 300 positions, never a failing move when a paying one exists. The two failed comparisons are re-run with it on (`batch-step2-recheck.sh`); the failures stand as recorded. | before 2b |
 | M11 | **RESOLVED 19:45: ternary OUT.** **The ternary search is not bit-identical where it "finds the peak".** In a year with no spending every level scores the same and the search never evaluates level 1, so it stores a different, equivalent move (all 9,720 year-0 cells on four working households). Separately S112 lost 8 paths (0.27 points, 2.8 se), none in the final year: a genuine miss. | The probe's "24 misses in 5.0 million" was on a different configuration; stored moves differ from the full scan on 2-48% of cell-years here, mostly harmless ties. | Judged by the re-check: if the ternary gate passes once the final year is exact, ternary stays; if not, downstream runs use the full scan (+35% solve time) and the six-levels-at-today's-cost decision is reported back to the maintainer. | re-check |
 | M12 | **The solver's handling of one-off COSTS has never been tested on a single household.** Found 23 Sep 20:30 answering the maintainer. The library puts a cost (6% of wealth, always 3 years in) only on its 210 couples; its 210 singles have none. So the 41, the 12 of step 2, Phase K and Phase 4's panel H (singles only) contain no cost at all. The arithmetic is exact (the golden test has a large cost, worst difference £0.00); the DECISIONS around a cost are untested. Also: a cost is paid in the same draw order as that year's living spending (`costSteps: steps` in `buildActions`), although the model and the app's policies allow a separate cost order - a large cost can push a year's pension draw through a band on its own, which is why the app keeps them separate. | The solver replaces the app's lookahead rule (draw early within the basic-rate limit, park it) on the claim that it "sees the calendar" and can do the same with its harvest move. That claim is plausible from the maths and unmeasured. | **Probe M12** (written before any run): step 2's 12 households plus a cost of 10% and 30% of opening wealth at retirement + 3 and + 10 years (48 cells), solver against arm A with the lookahead at 5, paired, 3,000 paths. PREDICTION: the solver is no worse than arm A on survival beyond noise on every cell, and pays less tax in the cost year on most; FALSIFIED IF any cell is worse by more than two paired se. If falsified, a separate cost order joins the move set in the cost year only (x8 moves in one year, not every year). | after K5, in a run gap, ~2.5 h |
 | M13 | **Where a deposit goes is fixed before the solver runs.** A deposit's wrapper is the user's choice or, marked "Auto", the plan's policy's deposit order (pension, ISA, taxable, cash: the first with room this year); what does not fit lands in the taxable account and is moved in over later years as allowances allow. All of it is set by `buildContext`, so the solver plans around a deposit but never chooses its wrapper. Separately, the top of the wealth axis is set from opening balances only (`max(60, 6 x opening)` years), so a very large later deposit can land above the grid. | Routing is a real decision (the engine's own note calls it worth more than most contribution decisions) that the solver is not making. The grid top matters only for a windfall several times the opening wealth. | Recorded, no run tonight. Routing as a solver move is a design question for the maintainer (it is a one-year decision, so it would cost little). The grid top: check `buildGrid` against the largest dated deposit when E3 is built. | maintainer; E3 |
 | M14 | **Allowing risk ABOVE the user's tier: what a survival objective does with it.** Maintainer's question, 23 Sep 21:00: would up-moves be gambles, given each move is averaged over five markets? Toy (`toy-tier-up.mjs`, `results-toy-tier-up.txt`: one pot, the app's tier returns, 5-node average, backward induction, user tier Medium, 30 years): up-moves are NEVER chosen above 90% survival and 30-76% of them are made below 50% - the averaging is what makes spread attractive when behind (survival is convex in wealth below the cliff). Survival rises a lot (4% withdrawal 88.8 -> 93.4; 5%: 51.2 -> 72.9; with cuts 78.4 -> 84.2) and mean years unfunded falls in 5 of 6 cases, but the tail worsens: running out before year 20 rises in 4 of 6 (5%: 8.5 -> 13.5%) and the worst 5% are funded 2-3 years fewer in 5 of 6. A charge of 0.02 per unfunded year barely changes this. Side result (toy only): with cuts, a hopeless position chose LOW risk and no cut - nothing rewards lasting longer once survival is near 0, and failing sooner avoids trim charges. | The ceiling is a values trade, not a pure consent question: more households make it, those that do not run out sooner, and the moves come exactly when a plan is in trouble. | **Probe M14** on the real solver (written before any run): 12 step-2 households, tiers allowed one above the plan's, research only. PREDICTION: up-moves only below 90% survival; survival up; run-out-before-year-20 up on most. FALSIFIED IF up-moves appear in comfortable positions or the early-ruin rate falls on most. Product question for the maintainer: an opt-in "may take more risk than my setting", shown with the early-ruin figure beside survival. Also check the hopeless-position behaviour on the real records. | after the overnight runs, ~1.5 h |
-| M15 | **The taxable account (GIA) never changes tier** - Phase 6 left it at the plan's tier because a switch there can realise gain, and the tier held is not in the state. Maintainer, 23 Sep 21:10: a big artificiality? Measured: 42 of the 210 library singles hold 45% of wealth in the GIA (the rest 2-10%); every library GIA is Medium with no unrealised gain. On step 2's records (`s2-fnew`, retired path-years) the pension and ISA sit at the LOWEST step allowed (two down) 88% of the time on S330 (45% GIA), and 85-89% on S184 and S070 - the floor binds, and on S330 almost half the wealth cannot follow. What makes it cheap: a tier step trades only the slice whose equity weight changes (20% of the pot per step), and the model already tracks the gain fraction and taxes pro-rata sales - one step on a GBP300k GIA with 25% gain realises GBP15k, about GBP2-3k of CGT after the GBP3,000 exemption, and nothing when gains are small. | Material for about a fifth of households; nothing for the rest. | **Design at no solve cost:** the GIA joins the joint step - (pension, ISA, GIA) = (0,0,0), (1,1,1), (2,2,2): the same 432 moves, the same table reads, one more rate per node already computed per pot. The tables treat a GIA switch as untaxed (as they treat dealing costs now); the CGT on the slice is charged at decision time from the true gain and tier held, so no switch is made that is not worth its tax. To avoid forcing a GIA sale whenever the pension de-risks, the decision also scores the winning move with the GIA held where it is (about six more evaluations a decision, ~1-2% of a forward run). **Probe M15** (written before any run): S206, S330, S390 plus S054, S112, S184 as controls, and the three GIA-heavy ones again with a 40% unrealised gain. PREDICTION: S330 gains survival beyond noise; the controls are unchanged within noise; the solve time is unchanged within 3%; with 40% gains fewer GIA switches, none that lowers survival. FALSIFIED IF any household is worse by more than two paired se, or the solve slows by more than 5%. Also worth a separate look: whether a third step down should exist, since the floor binds so often. | build Thu in a gap (no cores); probe ~1.5 h after K5 and before Phase 4, whose panel includes GIA-heavy households |
+| M15 | **The taxable account (GIA) never changes tier** - Phase 6 left it at the plan's tier because a switch there can realise gain, and the tier held is not in the state. Maintainer, 23 Sep 21:10: a big artificiality? Measured: 42 of the 210 library singles hold 45% of wealth in the GIA (the rest 2-10%); every library GIA is Medium with no unrealised gain. On step 2's records (`s2-fnew`, retired path-years) the pension and ISA sit at the LOWEST step allowed (two down) 88% of the time on S330 (45% GIA), and 85-89% on S184 and S070 - the floor binds, and on S330 almost half the wealth cannot follow. What makes it cheap: a tier step trades only the slice whose equity weight changes (20% of the pot per step), and the model already tracks the gain fraction and taxes pro-rata sales - one step on a GBP300k GIA with 25% gain realises GBP15k, about GBP2-3k of CGT after the GBP3,000 exemption, and nothing when gains are small. | Material for about a fifth of households; nothing for the rest. | **Design at no solve cost:** the GIA joins the joint step - (pension, ISA, GIA) = (0,0,0), (1,1,1), (2,2,2): the same 432 moves, the same table reads, one more rate per node already computed per pot. The tables treat a GIA switch as untaxed (as they treat dealing costs now); the CGT on the slice is charged at decision time from the true gain and tier held, so no switch is made that is not worth its tax. To avoid forcing a GIA sale whenever the pension de-risks, the decision also scores the winning move with the GIA held where it is (about six more evaluations a decision, ~1-2% of a forward run). **Probe M15** (written before any run): S206, S330, S390 plus S054, S112, S184 as controls, and the three GIA-heavy ones again with a 40% unrealised gain. PREDICTION: S330 gains survival beyond noise; the controls are unchanged within noise; the solve time is unchanged within 3%; with 40% gains fewer GIA switches, none that lowers survival. FALSIFIED IF any household is worse by more than two paired se, or the solve slows by more than 5%. Also worth a separate look: whether a third step down should exist, since the floor binds so often. **From the history (plan audit 21:30):** Phase 6 already flagged "the GIA's tier, which needs a memory bucket" as a follow-up - the decision-time charge above is the way round that bucket; Phase 6 also measured independent tier pairs at 4-5x the cost for no gain in value, which is why the GIA joins the JOINT step rather than getting a step of its own; and Phase 6 saw the same floor-binding (one or two tiers down for 72-91% of years). | build Thu in a gap (no cores); probe ~1.5 h after K5 and before Phase 4, whose panel includes GIA-heavy households |
 | M16 | **Is the table's survival number calibrated along the paths the plan takes?** Maintainer, 23 Sep 21:10: "is the solver score linear with Monte Carlo survivability?" Phase V measured the table only at year 0 (2-3 points optimistic); 2b measured ranking, not level. No new simulation is needed: each held-out path visits one position a year, the table's forecast for the move taken there is one read, and the path's own outcome labels every visit on it - about 100,000 (forecast, outcome) pairs a household, binned into a calibration curve. `audit-calibration.mjs`, `batch-calibration.sh`: 12 step-2 households, 3,000 paths, ~8 min each, ~25 min on four cores. | On the diagonal, the table could give the app instant survival figures (the quick dials without a simulation); off it, the rule "the table is never a reported number" stands, with the curve showing where and by how much. | Run right after K1 (prediction in the register). The curve goes to the maintainer as a chart. | Wed ~21:20 |
+| M17 | **In futures that fail, the solver spends ABOVE target and holds the riskiest tier allowed until the money runs out.** Found 21:30 from `s2-fnewex`'s records, no run. On the five households with material failure (S184, S330, S070, S354, S252), two to three years before a path fails the solver raises spending (mostly to 1.2) on 94-100% of failing paths and holds the plan's own, highest tier on 97-100%, while survivors in the same years sit two tiers down 94-96% of the time. Five years out it was still cutting on some (S070 50%, S330 36%). **Mechanism (derived):** once a position's survival chance is near zero, the survival term barely moves with the move, so the live terms are the raise credit, which rewards 1.2, and the trim penalty, which punishes cuts: the score says "spend it while you can". The tier then maximises whatever sliver of survival remains, and below the cliff that is the most risk (M14's convexity). Same root cause as the toy's side result in M14: nothing in the objective rewards making the money last. | A plan that tells a household heading for trouble to spend 20% more and hold maximum risk is the opposite of what anyone would do, and it shortens how long the money lasts in exactly the futures that fail. Survival cannot see it (the path fails either way), which is why no gate caught it. | **Candidate fix (derived, to probe): count a raise only in futures that survive** - credit x the survival chance from the position it leads to, S(t+1). It decomposes in the backward pass, because S(t+1) is already read at every node: no extra reads, no extra state. A raise in a hopeless position is then worth nothing and the plan's own level wins the tie. Comfortable households barely move (their S is close to 1). **Probe M17** (prediction written now): the four thin households and S126, S112 as controls. PREDICTION: raises in the last three years before failure fall from ~95% to under 20%; money lasts longer in failing futures (mean years unfunded down by 0.3-1.5 on the thin four); survival unchanged within noise or slightly up; controls within noise. FALSIFIED IF survival falls beyond two paired se on any household, or raises before failure stay above half. The tier gamble is left alone (it is survival-maximising; M14's product question covers it). An alternative, if the maintainer prefers: a small credit per year funded. | build tonight (option, off by default, bit-identical when off); probe ~1 h in the Thursday morning window; the verdict goes to the maintainer with step 6, because it changes the objective every K result was measured under |
+
+### The plan audit against the history and the records, 23 Sep 21:15-21:45 (maintainer: "make sure it hasn't been answered previously")
+
+Every pending item in this file was searched for in `PLAN-HISTORY.md` and, where the records could
+settle it, read from them before any run. What it found:
+
+| item | verdict | where |
+|---|---|---|
+| K2-K4 screens | **19 of 192 cells already on file** (cap 1.2 everywhere; minimum pot 0 on the six plans with no floor of their own; minimum pot 5 on S112) - copied from `s2-fnewex`, not re-run. **Six of the twelve plans carry their own minimum pot**, which `MINPOTYEARS` replaces - found checking the duplicates, and now in K2's prediction | `batch-k-screens.sh`, K2 |
+| K2, K3, K4 predictions | re-derived from the step-2 records (the exact baseline the screens run on), written before launch | K2, K3, K4 |
+| Richardson extrapolation | **measured before** (Phase 2c, old grid, "moved nothing beyond noise") - the plan said never | M7 corrected |
+| the raise weight mu | **swept before** (2d.4, 0.005-0.15, calibrated against the guardrails' raise count) - the constants table said unswept; K5 now matches raise years with mu | K5, constants table |
+| Phase 4's no-tiers diagnostic | the prediction said the solver keeps "most" of its win without tiers; **the history says a minority** (Phase 6 +0.73 of +5.03; 6b flexible spending alone p = 0.755) | Phase 4 prediction corrected |
+| M15, the taxable account's tier | Phase 6 had flagged it, measured independent pairs as worthless, and seen the floor bind; references added | M15 |
+| the eight-year bridge question | **answered from the records**: S390's pension share never exceeds 51% in its bridge; closed | open questions |
+| M14's "check the hopeless positions on the real records" | **answered from the records - and it is a finding**: M17 | M17 |
+| K7 | a reading of K4's and K6's sweeps; no run of its own | K7, schedule |
+| the table's calibration (M16) | **not done before**: Phase V and the 2c bias ledger read the table only at year 0 | M16 (running) |
+| 6c-screen and 6d (estate curve shape and levers) | pre-registered on 22 Sep, never run, superseded by K4; nothing to reuse | history 1732-1734 |
+| M3 (draws between tax corners), M12 (one-off costs), the phone grid, the second seed 7004 | nothing in the history answers them; the runs stay | - |
+| stale statements | the ternary search in step 3, K5 and the speed note; single-peakedness "re-checked"; Q5/Q6/Q10 status; K1's size - all corrected in place, marked "21:30" | throughout |
 
 ### The plan review, 23 Sep evening - errors corrected in place
 
@@ -395,31 +419,29 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 2b | ~~Ranking check~~ **done 21:00**: nothing to fix - the first choice did worse at 8 of 479 positions, none beyond noise, worst 0.6 points (`results-ranking.txt`; history) | 2 | - | done |
 | 3 | **Lever builds** - estate curve, raise cap/block, block trimming and `solvePlan` (M1) built and tested; the minimum-pot default waits on step 6 and lambda's slider map on K6 | 2w | done except those two | - |
 | 4 | ~~K1 honouring checks~~ **done 21:13: PASSED** - every rule held on every path-year of 24 records (`results-k1.txt`) | 2b | - | done |
-| 5 | **K2-K4 screens** overnight, with records, full scan | 4 | ~6.5 h | Thu ~05:00 |
-| 5b | **Phase 4 panel selection**: the app's own pipeline on library candidates, to find 40 held-out households where it survives 75-95% | 5 | ~1 h | Thu ~06:00 |
-| 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording, the #106 trade-off and the ternary decision | 5 | no cores | Thu ~07:00 |
+| 4b | ~~Calibration check (M16)~~ **done ~21:35** | 4 | ~25 min | done |
+| 5 | **K2-K4 screens** overnight, with records, full scan - 173 cells (19 reused); about 3.5 h at K1's measured 4-5 min a cell, not the 6.5 h first estimated | 4 | ~3.5 h | Thu ~01:15 |
+| 5b | **Phase 4 panel selection**: the app's own pipeline on library candidates, to find 40 held-out households where it survives 75-95% | 5 | ~1 h | Thu ~02:15 |
+| 5d | **Probes in the freed night, each built (option off, bit-identical) while the screens run and predicted in its finding**: M17 (raise credit only in surviving futures), M15 (the taxable account in the joint tier step), M14 (one tier above the plan's), then M12 (one-off costs) if time allows | 5b | ~2-3 h | Thu ~05:00 |
+| 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording, the #106 trade-off, the ternary decision, **M17 and the probes' verdicts, and the calibration curve** | 5 | no cores | Thu ~07:00 |
 | 6 | **The maintainer picks the product defaults** | 5c | - | Thu morning |
 | 7 | **K5 guardrail matching** | 6 | ~5 h | Thu ~14:00 |
-| 8 | **K6 slider spread, K7 monotone checks** | 7 | ~1.5 h | Thu ~15:30 |
+| 8 | **K6 slider spread**, with **K7 read off K4's and K6's sweeps** (no run of its own) | 7 | ~1.5 h | Thu ~15:30 |
 | 9 | **Phase 4**, with its bundled extras (below) | 8 | ~6 h | Thu ~21:30 |
 
-### The next 12 hours (written Wed 18:35 UTC, revised 19:50 after the step-2 re-check: the full scan adds about 35%)
+### The next 12 hours (rewritten Wed 21:30 UTC, after K1 finished in 8 minutes and the plan audit)
 
 | UTC | cores | alongside, no cores |
 |---|---|---|
-| ~~18:35 - 19:45~~ | ~~step 2, then its re-check~~ **done** | M10 fixed; `solvePlan`; plan review; E1 re-read (not built) |
-| 19:50 - 20:05 | solver test suite (runtime policy and baseline changed) | step 2 write-up and history move |
-| ~~20:05 - 21:00~~ | ~~ranking check~~ **done** | - |
-| ~~21:00 - 21:10~~ | - | ~~2b against its decision table~~ **done: nothing** |
-| ~~21:05 - 21:13~~ | ~~K1, three arms~~ **done: passed** (8 min, not 80: the rules arm has one level) | - |
-| 21:15 - ~21:45 | calibration check (M16), 12 households | K1 write-up |
-| ~21:45 - ~04:15 | K2-K4 screens, 192 cells | calibration chart; K2-K4 reducer runs as cells land |
-| ~04:15 - 05:15 | Phase 4 panel selection | - |
-| 06:00 - 07:00 | - | the morning summary for step 6 |
+| ~~18:35 - 21:13~~ | ~~step 2 and its re-check, the ranking check, K1~~ **done** | write-ups, history moves |
+| ~~21:13 - ~21:35~~ | ~~calibration check (M16)~~ | plan audit against the history; K2-K4 predictions re-derived; M17 found |
+| ~21:35 - ~01:15 | K2-K4 screens, 173 cells | calibration chart; build the M17, M14 and M15 options with their tests |
+| ~01:15 - ~02:15 | Phase 4 panel selection | K2-K4 reduced against their predictions |
+| ~02:15 - ~05:00 | probes M17, M15, M14; M12 if time | each reduced against its prediction |
+| 05:00 - 07:00 | - | the morning summary; the mathematician's page brought up to date |
 
-Stops that would change this: step 2 failing a gate (the queue stops there, per the standing rule); the
-ranking check landing in its "losses of a point or more" row (rollout is built before K5, which moves K5
-and Phase 4 by a few hours); any K1 breach (a bug, fixed before the screens start).
+Stops that would change this: a K2-K4 cell failing to run (re-run once, then recorded); a probe build that
+is not bit-identical with its option off (it does not run until it is); nothing else tonight is gated.
 
 **Bundled into the runs, now that a plan is one solve (maintainer, 23 Sep: "we've bought back a lot of
 time").** Every run from step 2 on writes a RUN RECORD (`record.mjs`): every path-year's spending level,
@@ -492,9 +514,10 @@ written here, each derived from records already on file.
 - **The minimum end-of-life pot default**, wired so a plan without one gets the default K2 settles.
 - **Block trimming** - the floor set equal to the target, which leaves no level below 1.
 - **Lambda exposed as the dislike-of-cuts level**, its map fitted in K6.
-- **`solvePlan()`, the product entry point with the decided baseline** (finding M1, revised): resilience 0,
-  six levels, raise weight 0.003, ternary search, the chosen #106 option; the estate curve and minimum pot
-  after step 6. `solve()` keeps its research defaults. Gate: bit-identity with the options written out.
+- **`solvePlan()`, the product entry point with the decided baseline** (finding M1, revised) - **built 18:47,
+  updated 19:45**: resilience 0, six levels, raise weight 0.003, the full level scan (ternary out), the exact
+  final year, no #106 option (neither passed); the estate curve and minimum pot after step 6. `solve()` keeps
+  its research defaults. Gate: bit-identity with the options written out - passing (`solver-plan.test.mjs`).
 
 ---
 
@@ -641,7 +664,9 @@ unfloored guardrails (a first draft of this section used the unfloored arm; corr
    search. Measured the same afternoon:** the ternary search evaluates 4.00 levels a group on six levels
    - FEWER than today's exhaustive five - with 24 misses in 5.0 million, worst 0.009 survival points,
    under the pre-set 1e-4 line. The lighter cut is free, and the solve gets slightly cheaper.
-   `results-probes-e1-unimodal.txt`.
+   `results-probes-e1-unimodal.txt`. **SUPERSEDED 19:45 by the step-2 re-check:** the ternary search lost
+   0.20 points on two households and is out, so the sixth level costs about 20% more solve time; the 0.95
+   level stays.
 3. **Raises must be matched as well as cuts.** The guardrails raise about 16 years at a typical 1.29;
    the solver WITH resilience raised about 20 years at 1.16, and WITHOUT it raises 27 to 43 years at about
    1.18 (K3). Matching cuts alone while one side raises far more would compare different spending
@@ -650,6 +675,16 @@ unfloored guardrails (a first draft of this section used the unfloored arm; corr
    against cuts and is the backstop; K3's raise-cap screen reports the comparison. **Step 2 bears on this
    (23 Sep):** without resilience the new baseline cut MORE than today's on several thinner households
    (S070 3.0 -> 6.7 years below target), consistent with raises being paid back as cuts - K3's own falsifier.
+   **Already in the history (plan audit, 21:30): the raise weight mu is the dial for HOW OFTEN the solver
+   raises, and it was calibrated once against the guardrails.** Phase 2d.4 swept mu over 0.005-0.15 on eight
+   households and ran 0.003 on the 41 because the guardrails' 16-17 raise years sat below the smallest weight
+   swept; at 0.003 the solver raised 23 years against the guardrails' 17, and the history notes "the
+   calibration point sits lower still (about 0.0015)" - all under the old objective, with resilience on.
+   Without resilience the solver now raises 15-43 years at 0.003 (`s2-fnewex`). So matching raises is a
+   second dial pair, not only the cap: K5 matches cuts with (lambda, exponent) and raise years with mu,
+   reporting the cap's effect from K3 beside it. The history also records that an absolute raise credit
+   fights the lambda bisection above 0.05, and recommends a credit scaled to lambda if a heavier preference
+   is ever wanted - irrelevant at the weights that land, noted for K6.
 
 METHOD: a grid of lambda x exponent {1.5, 2, 3, 4} on 12 households, then the chosen point checked on
 all 41. Match (i) total amount cut, median household, within 10%; (ii) depth when below within 3 points,
@@ -663,7 +698,8 @@ is easy to draw.
 landed values span 400x and 0 reversals in 15 adjacent pairs showed a smooth, monotone response, so the
 map is close to logarithmic in lambda.
 
-**K7. Monotone and sane.** Raising dislike of cuts never adds EXPECTED trimming, and raising the estate
+**K7. Monotone and sane - a reading of K4's and K6's sweeps, not a run of its own (plan audit, 21:30).**
+Raising dislike of cuts never adds EXPECTED trimming, and raising the estate
 slider never lowers the EXPECTED credited end pot: both follow from the Lagrangian argument, so a reversal
 in either is a bug (subject to question 1 to the mathematician: the argument is for the exact optimum,
 and the solver is an approximation). The median end pot and the survival chance carry no such guarantee:
@@ -754,7 +790,10 @@ recorded and stopped on, not tuned until it passes.**
 ### Prediction
 
 Arm S wins survival on most households, most where the app's fixed tier is wrong for the household
-(pension-heavy, long horizons); the no-tiers diagnostic keeps most but not all of the win; spending
+(pension-heavy, long horizons); **the no-tiers diagnostic keeps a MINORITY of the win** (corrected 21:30 plan
+audit: this said "most", against the history - Phase 6 put +0.73 of the +5.03 edge over fixed rules in the
+withdrawal order and the rest in the tiers, and 6b found flexible spending alone NOT significantly ahead of
+the guardrails with the floor, +13.43 fully-funded at p = 0.755, against +54.93 with tiers); spending
 delivered is within 1% or ahead because the guardrails cut harder in bad markets; and the edge on Panel
 H is SMALLER than on Panel T, because the defaults were fitted there. **The size of that shrinkage is the
 real result.**
@@ -908,7 +947,7 @@ mistaken for an oversight, and so that anyone who notices one of these can see i
 |---|---|---|
 | trim curve exponent, 2 | one deep cut or several shallow ones | **fitted in K5** to the guardrails' shape |
 | lambda (dislike of cuts) | how much is cut | **a user slider; default fitted in K5, spread in K6** |
-| `mu = 0.003` (raise credit) | how readily good years are spent | unswept; K3 screens the raise cap, which bounds it |
+| `mu = 0.003` (raise credit) | how readily good years are spent | **swept in 2d.4** (0.005-0.15 on 8 households, old objective; 0.003 chosen to approach the guardrails' raise count, 0.0015 noted as closer) - corrected 21:30 plan audit, which found it listed as unswept; K3 screens the cap, K5 matches raise years with it |
 | `SWITCH_COST = 0.0025`, `SWITCH_MARGIN = 0.001` | the price of changing risk tier | the cost set by argument (a round trip on the slice traded); the margin SWEPT on six households in phase 6 (0 to 0.01; changes halve by 0.001 with survival unmoved) - corrected 23 Sep plan review, which found it listed as unswept |
 | gain buckets `[0.05, 0.25, 0.55]` | how finely capital-gains tax is tracked | **6e checked these and they stand** |
 | search paths 5,400 | sampling noise in any landing | #108: 2,400 fails, 5,400 works; only landings use it now (K5, Phase 4's diagnostic) |
@@ -962,8 +1001,11 @@ mistaken for an oversight, and so that anyone who notices one of these can see i
 - **~~41 households, no power analysis~~ answered 23 Sep:** the per-household spread is 0.82 points, so 41
   households detect about 0.36 points of mean edge at 80% power (finding M5).
 - **The eight-year bridge households** (retiring at 50) could drift past a 0.8 pension share on a bad
-  path, into #106's zone, later in the bridge; a t = 0 read cannot test it. Covered once the
-  interpolation fix lands, since the fix is general.
+  path, into #106's zone, later in the bridge; a t = 0 read cannot test it. ~~Covered once the
+  interpolation fix lands~~ - no fix landed. **Answered from the records, 21:30:** on S390 (retires at 50)
+  the pension share never exceeds 51% in any bridge year of 3,000 paths (`s2-fnewex`), because the bridge
+  is drawn from the ISA and taxable pots; S162 peaks at 57%. Only a household that STARTS pension-heavy is in
+  the zone - S126 (88%), which is #106 itself. Closed for the bridge; the defect stays open for S126's kind.
 
 ### 6. The boundary with the shipping engine
 

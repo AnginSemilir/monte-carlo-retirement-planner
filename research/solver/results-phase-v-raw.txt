@@ -1,0 +1,129 @@
+PHASE V RAW OUTPUT, run 23 Sep 15:07-16:07 UTC, snapshot /tmp/solver-snap-8T3xFj (commit aadcc7a).
+NOTE: the V3 sections below are VACUOUS (sampling started at the wealth axis's zero point, see commit 1e101ad) and are superseded by the ONLY=v3 re-run.
+
+################ band 32
+Phase V on S184 near/pension-heavy/modest/moderate - 41 years, lambda 2, resilience off, six levels, 1000 held-out paths
+
+=========== V1. THE QUADRATURE (30 points, 6 shares) ===========
+  5 nodes      table  81.55  sim  81.40  |  vs ref: table -0.51  sim -0.30  moves differing 9.382%  164s
+  9 nodes      table  81.80  sim  81.50  |  vs ref: table -0.26  sim -0.20  moves differing 6.556%  252s
+  15 nodes     table  82.06  sim  81.70  |  vs ref: table    -    sim    -    moves differing    -     367s
+  GATE V1: five stand if the table is within 0.1 of fifteen, the simulation within noise (0.5), and under 1% of moves differ ... FAIL
+
+=========== V2. THE TOTAL-WEALTH AXIS (6 shares) ===========
+  16 points    table  83.09  sim  80.70  |  vs ref: table +3.90  sim -0.30  moves differing    -     98s
+  24 points    table  82.79  sim  81.30  |  vs ref: table +3.60  sim +0.30  moves differing    -     138s
+  30 points    table  81.55  sim  81.40  |  vs ref: table +2.36  sim +0.40  moves differing    -     164s
+  40 points    table  80.64  sim  81.80  |  vs ref: table +1.45  sim +0.80  moves differing    -     212s
+  56 points    table  79.19  sim  81.00  |  vs ref: table +0.00  sim +0.00  moves differing    -     285s
+  table steps 0.301 / 1.241 / 0.908 / 1.455 - NOT shrinking
+  GATE V2: thirty stand if the steps shrink, 30-to-56 is within 0.2 on the table and within noise on the simulation ... FAIL
+
+=========== V2s. THE SHARE AXES (30 points) ===========
+  6 shares     table  81.55  sim  81.40  |  vs ref: table -0.19  sim +0.30  moves differing    -     164s
+  9 shares     table  81.68  sim  81.10  |  vs ref: table -0.06  sim +0.00  moves differing    -     334s
+  12 shares    table  81.74  sim  81.10  |  vs ref: table    -    sim    -    moves differing    -     580s
+  GATE V2s: six shares stand if 6-to-12 is within 0.2 on the table and within noise on the simulation ... PASS
+
+=========== V3. LOG-ODDS AGAINST LINEAR, BETWEEN COARSE NODES ===========
+  reference: 56 points on total wealth
+    all positions (10000)         log-odds mean 0.00  p95 0.00  max 0.00   |   linear mean 0.00  p95 0.00  max 0.00
+    on the cliff, 5-95% (0)   log-odds mean 0.00  p95 -  max -   |   linear mean 0.00  p95 -  max -
+  reference: 12 points on each share axis
+    all positions (10000)         log-odds mean 0.00  p95 0.00  max 0.00   |   linear mean 0.00  p95 0.00  max 0.00
+    on the cliff, 5-95% (0)   log-odds mean 0.00  p95 -  max -   |   linear mean 0.00  p95 -  max -
+  GATE V3: log-odds stands if its worst error on the cliff is no larger than linear's ... total axis PASS, share axes PASS
+
+=========== CENSUS: DEAD CORNERS ===========
+  years 0-9    cells reading >= 50%:   17284   beside a dead corner:      0 (0.00%)
+  years 10-19  cells reading >= 50%:   18258   beside a dead corner:      0 (0.00%)
+  years 20-29  cells reading >= 50%:   19977   beside a dead corner:      0 (0.00%)
+  years 30-39  cells reading >= 50%:   21213   beside a dead corner:      0 (0.00%)
+  years 40-49  cells reading >= 50%:    2250   beside a dead corner:      0 (0.00%)
+
+SUMMARY S184: V1 FAIL  V2 FAIL  V2s PASS  V3 PASS
+
+################ band 64
+Phase V on S330 far/gia-heavy/comfortable/light - 61 years, lambda 0.9457416090031758, resilience off, six levels, 1000 held-out paths
+
+=========== V1. THE QUADRATURE (30 points, 6 shares) ===========
+  5 nodes      table  85.73  sim  82.10  |  vs ref: table -0.05  sim +0.40  moves differing 6.011%  241s
+  9 nodes      table  85.82  sim  82.00  |  vs ref: table +0.04  sim +0.30  moves differing 3.933%  378s
+  15 nodes     table  85.78  sim  81.70  |  vs ref: table    -    sim    -    moves differing    -     569s
+  GATE V1: five stand if the table is within 0.1 of fifteen, the simulation within noise (0.5), and under 1% of moves differ ... FAIL
+
+=========== V2. THE TOTAL-WEALTH AXIS (6 shares) ===========
+  16 points    table  86.36  sim  81.50  |  vs ref: table +2.14  sim -0.40  moves differing    -     143s
+  24 points    table  86.57  sim  81.70  |  vs ref: table +2.35  sim -0.20  moves differing    -     198s
+  30 points    table  85.73  sim  82.10  |  vs ref: table +1.51  sim +0.20  moves differing    -     241s
+  40 points    table  84.70  sim  82.20  |  vs ref: table +0.48  sim +0.30  moves differing    -     299s
+  56 points    table  84.22  sim  81.90  |  vs ref: table +0.00  sim +0.00  moves differing    -     408s
+  table steps 0.207 / 0.836 / 1.030 / 0.482 - NOT shrinking
+  GATE V2: thirty stand if the steps shrink, 30-to-56 is within 0.2 on the table and within noise on the simulation ... FAIL
+
+=========== V2s. THE SHARE AXES (30 points) ===========
+  6 shares     table  85.73  sim  82.10  |  vs ref: table -0.60  sim +0.20  moves differing    -     241s
+  9 shares     table  86.14  sim  82.10  |  vs ref: table -0.19  sim +0.20  moves differing    -     495s
+  12 shares    table  86.33  sim  81.90  |  vs ref: table    -    sim    -    moves differing    -     841s
+  GATE V2s: six shares stand if 6-to-12 is within 0.2 on the table and within noise on the simulation ... FAIL
+
+=========== V3. LOG-ODDS AGAINST LINEAR, BETWEEN COARSE NODES ===========
+  reference: 56 points on total wealth
+    all positions (10000)         log-odds mean 0.21  p95 0.63  max 0.63   |   linear mean 0.21  p95 0.63  max 0.63
+    on the cliff, 5-95% (6000)   log-odds mean 0.35  p95 0.63  max 0.63   |   linear mean 0.35  p95 0.63  max 0.63
+  reference: 12 points on each share axis
+    all positions (10000)         log-odds mean 0.20  p95 0.45  max 0.45   |   linear mean 0.20  p95 0.45  max 0.45
+    on the cliff, 5-95% (5345)   log-odds mean 0.35  p95 0.45  max 0.45   |   linear mean 0.35  p95 0.45  max 0.45
+  GATE V3: log-odds stands if its worst error on the cliff is no larger than linear's ... total axis PASS, share axes PASS
+
+=========== CENSUS: DEAD CORNERS ===========
+  years 0-9    cells reading >= 50%:   29010   beside a dead corner:      0 (0.00%)
+  years 10-19  cells reading >= 50%:   20966   beside a dead corner:      0 (0.00%)
+  years 20-29  cells reading >= 50%:   13366   beside a dead corner:      0 (0.00%)
+  years 30-39  cells reading >= 50%:   12880   beside a dead corner:      0 (0.00%)
+  years 40-49  cells reading >= 50%:   16477   beside a dead corner:      0 (0.00%)
+  years 50-59  cells reading >= 50%:   25517   beside a dead corner:     15 (0.06%)
+  years 60-69  cells reading >= 50%:    4185   beside a dead corner:     60 (1.43%)
+
+SUMMARY S330: V1 FAIL  V2 FAIL  V2s FAIL  V3 PASS
+
+################ band 20
+Phase V on S126 early-bridge/pension-heavy/comfortable/l - 40 years, lambda 0.0223606797749979, resilience off, six levels, 1000 held-out paths
+
+=========== V1. THE QUADRATURE (30 points, 6 shares) ===========
+  5 nodes      table  53.98  sim  99.50  |  vs ref: table -6.45  sim +0.00  moves differing 6.688%  168s
+  9 nodes      table  60.60  sim  99.50  |  vs ref: table +0.16  sim +0.00  moves differing 3.815%  248s
+  15 nodes     table  60.43  sim  99.50  |  vs ref: table    -    sim    -    moves differing    -     360s
+  GATE V1: five stand if the table is within 0.1 of fifteen, the simulation within noise (0.5), and under 1% of moves differ ... FAIL
+
+=========== V2. THE TOTAL-WEALTH AXIS (6 shares) ===========
+  16 points    table  47.73  sim  99.50  |  vs ref: table -14.95  sim -0.10  moves differing    -     99s
+  24 points    table  54.23  sim  99.10  |  vs ref: table -8.45  sim -0.50  moves differing    -     139s
+  30 points    table  53.98  sim  99.50  |  vs ref: table -8.70  sim -0.10  moves differing    -     168s
+  40 points    table  57.95  sim  99.30  |  vs ref: table -4.73  sim -0.30  moves differing    -     212s
+  56 points    table  62.68  sim  99.60  |  vs ref: table +0.00  sim +0.00  moves differing    -     283s
+  table steps 6.501 / 0.251 / 3.971 / 4.731 - NOT shrinking
+  GATE V2: thirty stand if the steps shrink, 30-to-56 is within 0.2 on the table and within noise on the simulation ... FAIL
+
+=========== V2s. THE SHARE AXES (30 points) ===========
+  6 shares     table  53.98  sim  99.50  |  vs ref: table -45.33  sim +1.10  moves differing    -     168s
+  9 shares     table  98.05  sim  99.60  |  vs ref: table -1.26  sim +1.20  moves differing    -     338s
+  12 shares    table  99.32  sim  98.40  |  vs ref: table    -    sim    -    moves differing    -     576s
+  GATE V2s: six shares stand if 6-to-12 is within 0.2 on the table and within noise on the simulation ... FAIL
+
+=========== V3. LOG-ODDS AGAINST LINEAR, BETWEEN COARSE NODES ===========
+  reference: 56 points on total wealth
+    all positions (10000)         log-odds mean 0.00  p95 0.00  max 0.00   |   linear mean 0.00  p95 0.00  max 0.00
+    on the cliff, 5-95% (0)   log-odds mean 0.00  p95 -  max -   |   linear mean 0.00  p95 -  max -
+  reference: 12 points on each share axis
+    all positions (10000)         log-odds mean 0.00  p95 0.00  max 0.00   |   linear mean 0.00  p95 0.00  max 0.00
+    on the cliff, 5-95% (0)   log-odds mean 0.00  p95 -  max -   |   linear mean 0.00  p95 -  max -
+  GATE V3: log-odds stands if its worst error on the cliff is no larger than linear's ... total axis PASS, share axes PASS
+
+=========== CENSUS: DEAD CORNERS ===========
+  years 0-9    cells reading >= 50%:   26324   beside a dead corner:    945 (3.59%)
+  years 10-19  cells reading >= 50%:   27474   beside a dead corner:      0 (0.00%)
+  years 20-29  cells reading >= 50%:   30381   beside a dead corner:      0 (0.00%)
+  years 30-39  cells reading >= 50%:   38853   beside a dead corner:     45 (0.12%)
+
+SUMMARY S126: V1 FAIL  V2 FAIL  V2s FAIL  V3 PASS

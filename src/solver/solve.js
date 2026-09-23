@@ -810,14 +810,17 @@ export function rankActions(r, s, t, held = null, K = 3) {
 export function runPolicy(r, zs, opts = {}) {
   const { m, g, c, actions, pol } = r;
   const T = m.ctx.totalYears;
-  const s = vecOf(m, r.M.initialState(m));
+  /* `start` (the ranking check, PLAN.md step 2b): begin at year t0 from a given position and tiers, taking
+   * `firstAi` in that first year and the solver's own move after it. Absent, the run starts at year 0 as always. */
+  const st0 = opts.start || null;
+  const s = st0 ? Float64Array.from(st0.s) : vecOf(m, r.M.initialState(m));
   const real = new Float64Array(4);
   // the path's own long-run shift, drawn once (the engine keeps it after the yearly draws); nothing in fold mode
   const zPath = zs.length > T + 1 ? zs[T + 1] : 0;
   // belowSum/aboveSum carry the level in the years it was under or over target, so the report can say how
   // DEEP a trim was and how big a raise, not only how often each happened
   let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, belowSum = 0, aboveSum = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null, switchPaid = 0;
-  const held = { pen: 0, isa: 0 };   // the tiers held: the plan's until a move changes them
+  const held = st0 ? { pen: st0.held.pen, isa: st0.held.isa } : { pen: 0, isa: 0 };   // the tiers held: the plan's until a move changes them
   /* RUN RECORDS (research/solver/record.mjs): a per-year trace when a caller asks for one. Off, it costs a null check. */
   const tr = opts.trace || null;
   const traceYear = (t, lv, spendYear, taxYear) => {
@@ -825,8 +828,9 @@ export function runPolicy(r, zs, opts = {}) {
     tr.level[k] = spendYear ? Math.max(0, Math.min(255, Math.round(100 * lv))) : 0;
     tr.tier[k] = held.pen * 4 + held.isa; tr.wealth[k] = w; tr.penShare[k] = w > 0 ? Math.round(100 * s[0] / w) : 0; tr.taxPaid[k] = taxYear;
   };
-  for (let t = 0; t <= T; t++) {
-    const ai = opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t, held);
+  for (let t = st0 ? st0.t : 0; t <= T; t++) {
+    const ai = st0 && t === st0.t ? st0.firstAi : (opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t, held));
+    if (opts.visit) opts.visit(t, s, held, ai);
     const unmet = F.flow(c, t, ai, s);
     lifetimeTax += c.last.taxPaid + c.last.cgtPaid;
     { const a = c.acts[ai]; switchPaid += F.chargeSwitch(c, s, held, a); held.pen = a.tierPen; held.isa = a.tierIsa; if (a.tierPen > 0) tierPenYears++; if (a.tierIsa > 0) tierIsaYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }

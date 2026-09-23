@@ -220,9 +220,28 @@ skipped describe pots that are empty, their values are copied from cells already
 either reproduces the current answer exactly or the identification is wrong. **There is nothing to
 predict beyond "identical", and a near-miss is a failure, not a small error.**
 
-**E1 is genuinely empirical** and cannot be derived: whether last year's best move is near this year's
-depends on how fast the policy moves with age and wealth, which is a property of the household library
-and UK tax over a 40-year horizon. **The run IS the argument**, and the rule says so.
+**E1 - I called this underivable and the maintainer was right that I was wrong.** I wrote that whether
+last year's best move is near this year's "depends on the household library and UK tax over a 40-year
+horizon, so the run IS the argument". That confused *not derivable from first principles* with *not
+measurable*, which are different things and only the first was true.
+
+**The quantity E1's whole saving depends on is ALREADY COMPUTED by any ordinary solve.** Backward
+induction fills `pol[t][cell]` for every year and cell. Comparing `pol[t]` with `pol[t+1]` measures
+policy persistence exactly - no new machinery, no approximation, and no need to build E1 to find out
+whether E1 is worth building. `research/solver/audit-e1-persistence.mjs` does it for the price of one
+solve, over four nested candidate sets:
+
+1. next year's winner alone;
+2. plus every action sharing its spend level and tier (differing only in draw order and harvest);
+3. plus every action sharing its draw order and harvest (differing only in level and tier);
+4. the union.
+
+Coverage is the fraction of cells whose true winner this year lies inside the set; the saving is
+`1 - size/360`. **E1 is worth building only where coverage is near total AND the set is small**, and
+the probe reports both against each other rather than either alone.
+
+**The lesson is the sharper half of the derive-first rule**: before writing "the run is the argument",
+check whether the number is already sitting in something you have computed. It usually is.
 
 ### Phase 4 - the decision
 
@@ -1934,6 +1953,16 @@ both sides of the cap - S004, S070, S178, S184, S206, S258, S318, S342 - at `beq
 {0, 0.02, 0.05, 0.1, 0.2}, shoulder on, **lambda held at each household's landed value from flex-tiers
 and only the solver arm scored**. One solve a cell instead of five to seven. Answers conditions 1, 2 and
 4: does the lever move smoothly, are the ends distinct, and does zero bring back the tax pathology.
+
+**REQUIRED FIX BEFORE STAGE 1 RUNS, found 23 Sep by deriving its hypothesis.** The `shortExp` arm as
+first specced is CONFOUNDED. The penalty is `lambda x (1 - level)^p` and lambda is HELD at the value
+landed under `p = 2`. At the floor level of 0.8 the penalty is 0.200, 0.040 and 0.008 for `p` = 1, 2, 3
+- so the three arms differ **five-fold in penalty STRENGTH** before they differ at all in SHAPE. The run
+would have measured strength and reported it as shape.
+
+**Rescale so the penalty at the floor level matches:** `lambda_p = lambda_2 x (1 - floorLevel)^(2 - p)`,
+which is **x0.2 for p=1, x1 for p=2, x5 for p=3**. Then only the curve differs. Without this the arm is
+not worth running.
 
 **`shortExp` joins stage 1, added 22 Sep from the constants audit.** The trim penalty is
 `lambda * sum (1 - level)^shortExp` with `shortExp = 2`, five mentions in this plan and not one results

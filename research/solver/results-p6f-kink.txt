@@ -65,3 +65,23 @@ the six that still never fully funds (0%), and its 1.6 trimmed years match its t
 #106 run (started 12:49) tests the mechanism directly.
 
 S252 (lean, ISA-heavy, 94% fully funded) is insensitive throughout: the term has nothing to protect.
+
+CORRECTION OF FRAMING, 23 Sep (asked by the maintainer: "have you answered whether resilience does
+something pot-at-end isn't?"). No - 6f answered a narrower question: does resilience do ANYTHING
+(yes: switching it off drops the unlucky tenth's end pot). It did not test it against the two
+end-pot terms the user already has. What the maths says, without a run:
+
+- AGAINST THE BEQUEST TERM: yes, it does something bequest cannot. Bequest is linear up to its cap, so
+  it values a pound left at the end the same on a bad path as on a good one - it rewards the AVERAGE
+  end pot. Resilience is steep below opening wealth and flat above it, so it values a pound on a bad
+  path far more than one on a good path - it rewards the TAIL. Raising the bequest weight would pull
+  end pots up everywhere, mostly the median; it cannot concentrate protection on bad paths.
+- AGAINST THE USER'S MINIMUM END POT (solvencyFloor, a hard threshold counted as failure): these
+  overlap. Both protect the tail. The difference is who sets the level and how hard it bites: the
+  user's floor is a line the user chose, pass or fail; resilience is a graded reward up to opening
+  wealth, chosen by the solver, on for everyone.
+
+THE TEST THAT ANSWERS THE REAL QUESTION, added to the fair comparison: resilience OFF with the user's
+minimum pot set so the unlucky tenth's end pot matches today's, landed to the same survival ask. If it
+matches the tail at fewer trimmed years, the user's own lever does resilience's job more cheaply and
+resilience can go. If it needs more trimming, resilience's graded shape is earning its keep.

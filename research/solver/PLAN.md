@@ -1423,6 +1423,18 @@ problem is V2's, not V3's.
 because it is the only remaining question whose failure would invalidate work already done rather than
 merely redirect work not yet started.
 
+**Amended 23 Sep: #106 runs first, ~30 min, because its answer changes V's design.** V2 refines the
+TOTAL-WEALTH axis and V3 compares reads between its nodes; neither ever varies the two SHARE axes, which
+have six points each and have never been convergence-tested. The #106 hypothesis is a failure on a
+share axis, so as designed Phase V could not see it. If #106 confirms, V3 is extended to reads between
+share nodes (and V2 gains a share-axis refinement) before V runs; if #106 is falsified, V runs as
+written. Either way, any interpolation fix lands ONCE, after V, with one field check, and BEFORE 6d
+stage 2 and Phase 4 - the runs whose absolute numbers are reported. Paired screens (6f, 6c-screen, 6d
+stage 1) survive a class-specific bias, as the common-bias argument above already establishes.
+**The E1 and single-peak probes default to band 32, which is S184 - one of the four.** If #106
+confirms, they run on S162 (band 26: in the bridge, share 0.5) instead, so they measure the solver's
+structure rather than the artefact.
+
 ---
 
 ### Phase 4. The versus study, and the decision: `research/solver/versus-solver.mjs`

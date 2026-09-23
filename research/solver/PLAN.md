@@ -5,6 +5,14 @@ is summarised in "Where things stand" below and kept in full, verbatim, in `PLAN
 were superseded before they ran are not kept; they are in git history (this file at commit af670e8 and
 earlier). Nothing in the app changes until Phase 4's gate passes.*
 
+**Keeping this plan current - a standing rule (maintainer, 23 Sep).** This file holds only what is
+current and what is still to do. **The moment a step, phase, gate or measurement is COMPLETED, its full
+text moves to `PLAN-HISTORY.md`** - verbatim, with its outcome and the results file named - and in this
+file it is replaced by one line in "Where things stand" pointing there. A design that is superseded
+before it runs is deleted, not archived (git history keeps it). A decision changes the plan in place,
+with the date and who decided. Nothing completed is ever deleted outright, and nothing superseded is left
+here to be mistaken for the current plan.
+
 **Where to read what.** The requirements the product must meet are first and do not move without the
 maintainer. The schedule and every pending phase follow, each with its prediction written before it
 runs. Results files sit beside this file as `results-*.txt`; `HOW-IT-WORKS.md` explains the machinery in
@@ -165,8 +173,35 @@ shape of the household library, on UK tax interacting with a 40-year horizon, or
 prefers, is empirical and the run IS the argument. The test is simple: if you can state what the answer
 should be and why, state it first. If you cannot, say so, and say what would change your mind.
 
-**In practice, every phase from here carries a HYPOTHESIS section stating what the mathematics predicts
-and what result would falsify it, written before the batch is launched.**
+### And before any run: is the answer already sitting in data we have?
+
+**The sharper half of the rule, which the maintainer caught me missing.** I once wrote that whether last
+year's best move is near this year's "depends on the household library and UK tax over a 40-year horizon,
+so the run IS the argument". That confused *not derivable from first principles* with *not measurable*,
+and only the first was true: the quantity was already computed by every ordinary solve, in the stored
+policy tables, and one solve's worth of reading answered it. **Before writing "the run is the argument",
+check whether the number is already sitting in something computed. It usually is.**
+
+What checking the records has already settled or sharpened, at no compute:
+- **The convergence test's outcome was predictable from the landings on file**: exactly the three
+  households whose search margin sat above the stopping window were the ones that could move, and the
+  one that did move was on that list.
+- **The seed pair was cleared** by scoring the same policy on both draws across 41 households.
+- **#109's target list was answered**: the phase-2 losers no longer lose in the current design.
+- **The guardrail matching was reframed before it ran**: the records showed the guardrails cut three to
+  fourteen times more, often and shallow, where the solver cuts rarely and deep - so matching needs two
+  dials, and the solver's menu could not reach their shallowest cuts at all.
+- **K2's minimum-pot prediction was sharpened** from 6f's end pots, down to which households it binds on.
+
+**And the discipline that goes with it: claim only what the data settles cleanly.** Where the existing
+records differ in configuration, or rest on one household, or were produced under a setting since
+changed, say that the data cannot settle it and run the test. A clear "not settleable from saved data"
+is a result; a borrowed number from a run that differs in some way nobody checked is not.
+
+**So the order, for every question, is: (1) can the mathematics state the answer? (2) do the existing
+records already contain it? (3) only then, run - and write the prediction down first.** Every phase from
+here carries a HYPOTHESIS section stating what the mathematics and the records predict and what result
+would falsify it, written before the batch is launched.
 
 ---
 

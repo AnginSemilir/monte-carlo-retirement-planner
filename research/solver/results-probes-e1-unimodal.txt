@@ -1,0 +1,25 @@
+TWO SPEED-WORK PROBES, ONE SOLVE EACH - S184 (band 32), its own flex-tiers configuration
+
+Run 23 Sep from snapshot /tmp/solver-snap-WNYKxs (commit 143955a): landed lambda 2, raise weight
+0.003, five levels, joint tiers, 30 points, 360 actions, single table (not the three-world mixture).
+
+A FIRST RUN WAS DISCARDED. It solved the defaults: with no raise weight the solver drops the levels
+above 1, so it had three levels and 216 actions, and the single-peak probe tested ZERO combinations and
+printed "safe". Both probes now refuse unless the menu has 360 actions, and the single-peak probe
+refuses a verdict on zero tests. Nothing from that run is used.
+
+E1: DOES THIS YEAR'S BEST MOVE SIT CLOSE TO NEXT YEAR'S?
+Bar set before the run: worth building only where coverage is near total AND the set is small.
+
+  candidate set                      size    coverage    work saved
+  next year's winner alone            1      92.33%        99.7%
+  + same level and tier              24      94.19%        93.3%
+  + same draw order and harvest      15      96.82%        95.8%
+  the union of both                  38      98.68%        89.4%
+  (388,800 cell-years)
+
+**E1 AS DESIGNED DOES NOT CLEAR ITS BAR.** The best set covers 98.68%: one cell-year in 76 would get a
+wrong move with no signal that it had. That is not a speed-up, it is a silent approximation. Not built.
+A variant that could still be worth it, recorded and NOT planned: search the 38, then check the winner
+against the full 360 only where the top two in the set are close - which costs what the check costs,
+and needs its own measurement. One household; the resilience decision may change the policy's shape.

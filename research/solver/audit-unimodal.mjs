@@ -26,7 +26,7 @@ import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
 import * as M from '/home/user/vitejs-vite-kdvuf9qw/src/solver/model.js';
 import { solve, scoreMoves, buildActions } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/solve.js';
 import { tiersFor } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/fast.js';
-import { vecOf } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/grid.js';
+import { vecOf, toVec } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/grid.js';
 import { buildScenarios } from '/home/user/vitejs-vite-kdvuf9qw/research/policy-study/scenarios.mjs';
 import { readFileSync } from 'node:fs';
 
@@ -62,10 +62,19 @@ console.log(`${sc.id}: ${nA} actions, ${groups.size} groups, ${full.length} with
 const zs = E.pathsForSeed(7001, 1, m.ctx.totalYears)[0];
 const st = M.initialState(m);
 let tested = 0, unimodal = 0, worstLoss = 0, lossCount = 0, worstAt = '';
-for (let t = 0; t < T; t++) {
-  M.step(m, st, M.actionFromContext(m.ctx), t, null);
-  if (t % 4) continue;                       // every fourth year is plenty
-  const v = vecOf(m, st);
+/* GRID=1: every grid cell at every fourth year, not ten positions on one path. The first full-menu run
+ * tested 720 combinations from ten states; with zero exceptions that bounds the exception rate only
+ * below ~0.4% (three over n), and ten states cannot find a tax band edge they never visit. */
+const GRID = process.env.GRID === '1';
+const states = [];
+if (GRID) {
+  const g = r.g; const buf = new Float64Array(7);
+  for (let t = 0; t < T; t += 4) for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++)
+    for (let it = 0; it < g.nt; it++) for (let ii = 0; ii < g.ni; ii++) for (let ip = 0; ip < g.np; ip++) states.push([t, Float64Array.from(toVec(g, ip, ii, it, ig, ic, buf))]);
+} else {
+  for (let t = 0; t < T; t++) { M.step(m, st, M.actionFromContext(m.ctx), t, null); if (t % 4 === 0) states.push([t, vecOf(m, st)]); }
+}
+for (const [t, v] of states) {
   scoreMoves(r, v, t, SC, TX, BQ, null);
   for (const g of full) {
     const ys = g.map(x => SC[x.i]);

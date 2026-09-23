@@ -1488,6 +1488,48 @@ same day: it is still working at t = 0, so they keep their default.)
 
 ### Phase 4. The versus study, and the decision: `research/solver/versus-solver.mjs`
 
+**REDESIGNED 23 Sep by the maintainer - supersedes the equal-survival design below where they differ.**
+The claim the product makes is that fixed policies which never change, and wrappers that are never
+rebalanced, give LOWER survival - and that for a household that would in fact adapt, the current app's
+survival figure is unfairly pessimistic. **Holding survival equal would hide exactly the thing being
+claimed.** So survival is the headline, not a control.
+
+**The head-to-head.** Same 40 held-out households, seed 7003, same spending target and floor on both
+sides.
+- **Arm A, the current app at its best**: its own strategy search's winner, **guardrails ON** (so it has
+  a flexible spending method), the one-off cost lookahead at its settled value. No tier changes -
+  the app cannot do them, and that is precisely what is being competed against.
+- **Arm S, the solver at the DEFAULT slider settings** Phase K and the maintainer settle - what a user
+  would actually get.
+
+**What counts as a win - survival up, and NOT bought with spending.** A solver that spent less would
+survive more for free; the guardrails could buy the same survival by trimming harder. So:
+1. **Survival**: arm S higher, by more than noise, with a clear sign test across the 40.
+2. **Not paid for in spending**: spending delivered not lower on average by more than 1%, and years at
+   target reported alongside.
+3. **No household badly worse**: none loses more than 1 point of survival AND none loses more than 5% of
+   spending delivered.
+4. **Robust**: the sign holds on the historical backtest and all three perturbed engines.
+5. **Fits Phase 7's worker budget.**
+The end pot (median and unlucky tenth) is reported for both, never hidden.
+
+**Two cheap diagnostics, reported, not gated:**
+- **Arm S without tier changes** - one extra solve a household. Splits the win into what flexible
+  spending and draw order buy and what rebalancing risk buys, which is the USP's own claim.
+- **The equal-survival check on 12 households** (the old design, kept small): the solver landed to arm
+  A's survival. It answers "is this a genuinely better plan, or a different point on the same
+  trade-off?" - the question a sceptical reader will ask first.
+
+**Cost: far lower than the old design.** One solve a household at defaults instead of a five-to-seven
+solve landing: roughly 3 to 4 hours on four cores, down from ~11.
+
+**PREDICTION:** arm S wins survival on most households, with the largest gains where the app's fixed
+tier is wrong for the household (pension-heavy and long-horizon); the no-tiers diagnostic keeps most but
+not all of the win; spending delivered is within 1% or ahead because guardrails trim harder than the
+solver in bad markets; and the held-out edge is SMALLER than on the tuning 41, because the defaults were
+fitted there.
+
+
 **Rewritten 22 Sep; APPROVED 22 Sep by the maintainer, along with blanket approval to reorder the remaining work on the evidence.** The first draft inherited `versus.mjs`'s protocol
 wholesale: 40 households, arm A the current pipeline, arm S the solver, finalists scored on a held-out
 seed, gate on beating arm A by more than `RATE_EPSILON_PTS`. One part of that is right and worth keeping.
@@ -2803,13 +2845,13 @@ Rewritten after 6f, #106 and the lever decisions. Every run keeps its derive-fir
 | 3 | **Calibration of the user's levers** (Phase K below) | Screens at fixed lambda overnight; needs the objective settled, which step 2 does | ~5 h | ~02:00 |
 | 4 | **Maintainer picks the defaults** | The screens give the trade-offs; the defaults are product choices | - | tomorrow morning |
 | 5 | **Landed confirmation at the chosen defaults** | Screens do not hold the ask; this does | ~3 h | tomorrow midday |
-| 6 | **Phase 4**, at the declared defaults | The decision | ~11 h | Friday ~08:00 |
+| 6 | **Phase 4**, head-to-head at the declared defaults | The decision | ~3-4 h | Thursday ~20:00 |
 
-**Survival is no longer a product target (23 Sep), but Phase 4 still lands both arms to the same
-survival.** That is a FAIRNESS device for the research comparison, not a product feature: comparing two
-methods at different survival chances would say nothing about which is better. The landing code stays
-for that, and for any user who later wants a "hit this chance" mode. Phase 4 additionally reports each
-arm at the declared default levels, which is what a user would actually get.
+**Phase 4 redesigned 23 Sep by the maintainer: survival is the HEADLINE, not held equal.** The current
+app at its best (its own search's winner, guardrails on) against the solver at its default sliders;
+a win is higher survival NOT bought with spending (delivered spending within 1%, no household badly
+worse). The equal-survival landing survives only as a 12-household diagnostic. ~3-4 h instead of ~11,
+so Phase 4 lands Thursday evening rather than Friday morning.
 
 **Folded in, not separate any more:** 6c-screen and both 6d stages become parts of Phase K; the fair
 resilience test is replaced by step 2's arm and Phase K's end-pot sweep. **After Phase 4:** the speed

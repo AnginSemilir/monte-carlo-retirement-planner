@@ -35,14 +35,15 @@ const band = JSON.parse(readFileSync('/home/user/vitejs-vite-kdvuf9qw/research/s
 const sc = singles[band[Number(process.argv[2] || 32)].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...sc.plan, config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan);
-const LEVELS = [1.2, 1.1, 1, 0.9, 0.8];
+const LEVELS = process.env.LEVELS ? process.env.LEVELS.split(',').map(Number) : [1.2, 1.1, 1, 0.9, 0.8];   // LEVELS=1.2,1.1,1,0.95,0.9,0.8 for the six-level menu
 /* the household's OWN flex-tiers configuration: its landed lambda, raises on (without a raise weight the
  * solver drops the levels above 1, which silently left three levels and 216 actions on the first run),
  * joint tiers, 30 points. Single table, not the three-world mixture: these probes read r.pol directly. */
 const FT = (() => { try { return JSON.parse(readFileSync('/home/user/vitejs-vite-kdvuf9qw/research/solver/results/flex-tiers/' + sc.id + '.json', 'utf8')); } catch { return null; } })();
 const LAMBDA = FT ? FT.solver.lambda : 0.5;
 const r = solve(E, M, plan, { points: 30, lambda: LAMBDA, raiseWeight: 0.003, spendLevels: LEVELS, tiers: true, lump: m.ctx.fullLumpSum });
-if (r.actions.length !== 360) { console.log(`REFUSED: ${r.actions.length} actions, expected 360 (5 levels x 24 cores x 3 tiers) - the probe would not measure the real menu`); process.exit(2); }
+const EXPECT = 24 * 3 * LEVELS.length;
+if (r.actions.length !== EXPECT) { console.log(`REFUSED: ${r.actions.length} actions, expected ${EXPECT} (${LEVELS.length} levels x 24 cores x 3 tiers) - the probe would not measure the real menu`); process.exit(2); }
 const acts = r.actions, T = r.m.ctx.totalYears;
 const nA = acts.length;
 const SC = new Float64Array(nA), TX = new Float64Array(nA), BQ = new Float64Array(nA);
@@ -61,7 +62,7 @@ console.log(`${sc.id}: ${nA} actions, ${groups.size} groups, ${full.length} with
 /* walk a real path so the states are ones the household actually reaches */
 const zs = E.pathsForSeed(7001, 1, m.ctx.totalYears)[0];
 const st = M.initialState(m);
-let tested = 0, unimodal = 0, worstLoss = 0, lossCount = 0, worstAt = '';
+let tested = 0, unimodal = 0, worstLoss = 0, lossCount = 0, worstAt = '', evals = 0;
 /* GRID=1: every grid cell at every fourth year, not ten positions on one path. The first full-menu run
  * tested 720 combinations from ten states; with zero exceptions that bounds the exception rate only
  * below ~0.4% (three over n), and ten states cannot find a tax band edge they never visit. */
@@ -85,11 +86,15 @@ for (const [t, v] of states) {
     let ok = true;
     for (let k = 1; k <= best; k++) if (ys[k] < ys[k - 1] - 1e-12) ok = false;
     for (let k = best + 1; k < ys.length; k++) if (ys[k] > ys[k - 1] + 1e-12) ok = false;
-    if (ok) { unimodal++; continue; }
-    /* what would a ternary search have returned, and what did that cost? */
+    if (ok) unimodal++;
+    /* What would a ternary search have returned, and what did it cost? Run on EVERY group, not only the
+     * ones that fail the single-peak test: a flat stretch followed by a rise (1,1,1,1,1,9) passes that
+     * test and still fools a ternary search, and flat stretches are exactly what a dead cell produces. */
+    const seen = new Set();
     let lo = 0, hi = ys.length - 1;
-    while (hi - lo > 2) { const m1 = lo + Math.floor((hi - lo) / 3), m2 = hi - Math.floor((hi - lo) / 3); if (ys[m1] < ys[m2]) lo = m1 + 1; else hi = m2 - 1; }
-    let pick = lo; for (let k = lo; k <= hi; k++) if (ys[k] > ys[pick]) pick = k;
+    while (hi - lo > 2) { const m1 = lo + Math.floor((hi - lo) / 3), m2 = hi - Math.floor((hi - lo) / 3); seen.add(m1); seen.add(m2); if (ys[m1] < ys[m2]) lo = m1 + 1; else hi = m2 - 1; }
+    let pick = lo; for (let k = lo; k <= hi; k++) { seen.add(k); if (ys[k] > ys[pick]) pick = k; }
+    evals += seen.size;
     const loss = ys[best] - ys[pick];
     if (loss > 1e-12) { lossCount++; if (loss > worstLoss) { worstLoss = loss; worstAt = `y${t} ${g[0] ? acts[g[0].i].label.slice(0, 44) : ''}`; } }
   }
@@ -97,6 +102,7 @@ for (const [t, v] of states) {
 if (tested === 0) { console.log("VACUOUS: zero combinations tested - no verdict. A probe that tests nothing must not print safe."); process.exit(3); }
 const pc = (x) => (100 * x / Math.max(1, tested)).toFixed(2);
 console.log(`tested            ${tested.toLocaleString()} (cell-year, action-group) combinations`);
+console.log(`levels evaluated  ${(evals / Math.max(1, tested)).toFixed(2)} a group on average, against ${LEVELS.length} for the full scan`);
 console.log(`single-peaked     ${unimodal.toLocaleString()}  (${pc(unimodal)}%)`);
 console.log(`NOT single-peaked ${(tested - unimodal).toLocaleString()}  (${pc(tested - unimodal)}%)`);
 console.log(`of those, a ternary search would have picked a WORSE action ${lossCount.toLocaleString()} times (${pc(lossCount)}% of all)`);

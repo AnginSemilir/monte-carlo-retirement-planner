@@ -469,9 +469,9 @@ written here, each derived from records already on file.
 | ranking check | where the table's first choice beats its second by a clear margin in score, it simulates at least as well in over 80% of sampled positions; where the margin is tiny, it is close to a coin toss; the average loss when it is wrong is under half a point, and no loss exceeds 2 points on the current grid (S070's 6-point misranking was on the old per-pot grid) | wrong in over 30% of positions with a clear margin, or any loss above 2 points | **HELD 21:00** on near-ties (8 better, 8 worse), average loss (0.25) and worst loss (0.60); the clear-margin clause UNTESTED - none sampled. Falsifier not triggered (`results-ranking.txt`) |
 | calibration (M16) | realised survival rises with the table's forecast in every bin with 1,000+ visits; close to the diagonal below 10% and above 99%; optimistic by 2-6 points between 20% and 90%, where the cliff is; the visit-weighted mean forecast above the realised rate by 1-3 points | a well-filled bin realising more than a lower bin beyond noise, or the table pessimistic on average | **written 21:15, before the run**, from Phase V's 2-3 points at year 0 and its slow 1/n decay |
 | K1 honouring | exact by construction: every rule holds on every path | any path breaks any rule - a bug | **PASSED 21:13** (`results-k1.txt`) |
-| K2 minimum pot | in K2 | - | K2 |
-| K3 raise cap | in K3 | - | K3 |
-| K4 estate slider | in K4 | - | K4 |
+| K2 minimum pot | in K2 (**re-derived 21:45 from `s2-fnewex`**: the buffer is kept by raising less, not by cutting or losing survival) | in K2 | K2 |
+| K3 raise cap | in K3 (**re-derived 21:45**: cap 1.1 leaves 50-65% of the extra spending; blocking lifts the thin households 0.5-2.5 points and S070's years below target under 4.5) | in K3 | K3 |
+| K4 estate slider | in K4 (**derived 21:45**: nothing below w = 0.03; the response sits between 0.1 and 0.3 where the estate credit overtakes the raise credit; survival never falls) | in K4 | K4 |
 | Phase 4 panel selection | FIRE: 12 to 20 of the 30 candidates land in the band (retiring at 52 adds a six-year bridge, which pushes survival down into the band more often than out of it), so the FIRE half may fall short and the library fill in; library: about half to two thirds of library candidates land in the app's 75-95% band (the tuning 41 ran from 70.9% to 99.9% with a median of 92.1%, 27 of 41 under 95%), so filling 40 needs roughly 60 to 80 candidates | under a third land in the band - the library would then be too comfortable for the test, and the band is revisited with the maintainer | **written now** |
 | K5 guardrail matching | in K5 | - | K5 |
 | K6 dislike slider | in K6 | - | K6 |
@@ -520,6 +520,21 @@ SHARPENED FROM 6f's RECORDS, no run: with resilience off, the unlucky tenth ends
 (S054), 4.5 (S252), 1.4 (S390), 0.1 (S206) and 6.7 (S112) years of spending. So at the tenth percentile a
 1-year floor binds only on S206; 3 years on S206 and S390; 5 years adds S252; S126, S054 and S112 are
 untouched up to 5. **The cost of the default lands on two or three households of six, not all of them.**
+**RE-DERIVED 23 Sep 21:45 from the step-2 full-scan records (`s2-fnewex`, the exact baseline the screens run
+on), before launch.** Two facts the 6f reading missed. (1) **Six of the twelve carry a minimum pot of their
+own in the library plan** (S054 15.1 years of target, S184 7.9, S162 6.6, S112 5.0, S354 3.8, S252 2.3), and
+`MINPOTYEARS` REPLACES it - so for them a small P is a LOWER floor than today's, and survival should rise,
+by up to the share of paths that fail only at the end: S184 4.87 points, S354 1.63, S054 1.57, S112 and S162
+0.77, S252 0.27. (2) **For the six with no floor, the mechanical loss is large on some**: the share of paths
+that survive but end below P years is, at P = 1 / 3 / 5: S206 11.9 / 15.4 / 18.6, S070 12.4 / 19.2 / 23.7,
+S390 5.7 / 7.9 / 9.8, S330 5.5 / 8.4 / 11.3, S126 3.5 / 4.9 / 6.4, S100 3.4 / 7.0 / 10.2. Those futures end near
+zero by CHOICE, not by luck: the baseline raises to 1.2 in 32-93% of retired years, because nothing values
+the end pot above the raise credit. **PREDICTION: the solver keeps the buffer by raising less, not by
+cutting and not by losing survival** - on the six without a floor, survival falls by under a quarter of
+the mechanical loss at every P; years ABOVE target fall; years below target move by under one year.
+FALSIFIED IF survival falls by more than half the mechanical loss on two or more of those six, or years
+below target rise by more than one year on any. Reused from the baseline, not re-run: P = 0 on the six
+without a floor, and P = 5 on S112 (its own floor).
 
 **K3. The raise cap default.** Cap in {1.0, 1.1, 1.2}.
 FROM 6f's RESILIENCE-OFF RECORDS, no run - the objective that will ship: **the solver raises in almost
@@ -532,6 +547,20 @@ lifting median end pots by more than the 5-8 years spent (it compounds), and hel
 thin-tailed households (S390 and S206, whose unlucky tenth ends with under 1.5 years of spending).
 FALSIFIED IF blocking raises changes survival by more than a point on the households with comfortable
 tails - that would mean raises are feeding back into cuts, not just spending surplus.
+**RE-DERIVED 23 Sep 21:45 from `s2-fnewex`, before launch.** Of retired years the baseline spends at 1.2 in
+32-93% and at 1.1 in 0-19%; the extra spending is 2.5 (S070) to 8.5 (S390) years of target per retirement.
+(a) **Cap 1.1:** the raise credit is concave (mu x sqrt(level - 1)), so a year that raised to 1.2 still
+raises to 1.1 (71% of the credit for half the money): the extra becomes (y1.2 + y1.1) x 0.1 against
+0.2 y1.2 + 0.1 y1.1 - **51 to 58% of today's on every household**, a little more as the kept money funds
+more raising years. PREDICTION: 50-65% of the baseline extra on every household. (b) **Block (cap 1.0):** the
+extra is zero; the median end pot rises by 1 to 2.5 times the extra that was spent (it compounds). The
+raise credit is worth at most mu x sqrt(0.2) = 0.0013 a year - about 1.7 to 5 survival points over a
+retirement - so that is the most survival the baseline can be trading for raises: **on the thin households
+(S070, S184, S330, S354, survival 79-84%) blocking raises lifts survival by 0.5 to 2.5 points**, never by more
+than the baseline's own total raise credit; on the eight comfortable ones by under a point (the falsifier
+above). **And S070's step-2 rise in years below target (3.0 -> 6.7) was raises paid back as cuts**: blocked, it
+falls below 4.5. FALSIFIED IF S070's years below target stay above 5 with raises blocked (the rise was then the
+removal of resilience, not raising). Cap 1.2 is the baseline, reused from `s2-fnewex`, not re-run.
 
 **K4. The estate slider, 0 to 100%: build it, then calibrate its SPREAD.** Survival is the fixed anchor
 (option (a)); this slider sets how much the pot above the minimum counts against running out, through
@@ -547,6 +576,24 @@ outcome as a fraction of the household's own 0-to-100% swing, fit the map so the
 tracks the slider, report the worst. GATE: every household within 10 points of the slider; the last
 step to 100% no bigger than three ordinary ones. PREDICTION: long-horizon households set the worst case;
 the cost falls mainly on spending, since pounds kept for the estate also protect survival.
+**DERIVED 23 Sep 21:45, before the screen (the weight grid 0 / 0.01 / 0.03 / 0.1 / 0.3 x scale 1, 4).** The
+estate credit competes with the RAISE credit, not with survival. A year of target spending kept at the
+margin reaches the end grown by G (about 2), worth w/W0 x 1/(1 + (m - P)/(k W0)) there, against a raise
+credit of 0.0039 per year of target for 1.1 -> 1.2 and 0.0095 for 1.0 -> 1.1. So the weight at which the
+estate starts to win, at each household's median end pot m (from `s2-fnewex`) and opening wealth W0
+(7.6 to 33 years of target), is: for 1.1 -> 1.2, **w* = 0.06-0.25 at scale 1 and 0.03-0.11 at scale 4**; for
+1.0 -> 1.1, 0.15-0.61 and 0.07-0.27. (Checked against today's capped credit, 0.02 on min(net, 4 W0): by the
+same arithmetic it restrains raises on S330 alone, W0 = 7.6 years - which raises to 1.2 in 58% of years
+against 75-93% on the comfortable households.) **PREDICTIONS:** (i) w = 0, 0.01 and 0.03 at scale 1 are
+the same plan within noise on every household (survival within 0.5, spending within 1%) - the slider's
+bottom third does nothing; (ii) w = 0.1 restrains raises on about half at scale 1 (S252, S206, S184, S330,
+S070, S100, S354) and nearly all at scale 4; (iii) w = 0.3 at scale 4 stops raises almost everywhere,
+spending falling by the baseline extra (2.5-8.5 years of target) and the median end pot rising by about
+twice that; (iv) survival never falls beyond noise as w rises (a pound kept for the estate is a pound
+that protects survival); (v) scale 4 moves more than scale 1 at every w. **So the useful range of w is
+about 0.03 to 0.3-1 and the slider must map onto it logarithmically**, with nothing to find below 0.03.
+FALSIFIED IF w = 0.03 differs from w = 0 by more than 1% of spending on three or more households, or
+w = 0.3 at scale 4 leaves years above target at more than half the baseline's on most.
 
 **K5. Guardrail matching: the trim curve and the dislike-of-cuts default (maintainer, 23 Sep) - the
 fairness condition for Phase 4.** The solver must cut about as much as the guardrails do, so Phase 4's

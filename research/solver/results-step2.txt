@@ -1,0 +1,179 @@
+STEP 2 FIELD CHECK - FIRST RUN                                                          23 Sep 2026
+
+Run 17:32-18:52 UTC from snapshot /tmp/solver-snap-u4VG7G, batch-step2.sh: 12 households, single table
+(MIX=0), lambda held at each household's flex-tiers landing, 3,000 held-out paths (seed 7002), records with
+stored moves. Judged on the SIMULATED outcome (decision A). Raw: s2-* result and record files; the paired
+analysis from the records is audit-step2-paired.mjs.
+
+VERDICT IN ONE LINE: two of three gates FAILED as written, and the #106 falsifier FIRED - and the saved
+records show one defect behind most of all three: the final year read the NEAREST CELL's stored move
+(finding M10). It is fixed (finalExact) and the failed comparisons are re-run with it; these failures
+stand as recorded.
+
+GATES AND PREDICTIONS AGAINST OUTCOMES
+  ternary vs exhaustive (0.5 survival, 1% spending, >= 15% faster)   FAIL: S390 -0.67 (3.3 se); 26.0% faster
+      paired: S112 -0.27 (2.8 se), S206 -0.27 (2.3 se), S126 -0.27 (1.6 se); 8 of 12 negative
+      stored moves differing from the full scan: 1.9% to 48% of cell-years (plan gate: under 0.01%)
+      - every year-0 cell on the four still-working households: in a year with no spending every level
+        ties, and the search never evaluates level 1, so it stores a different, equivalent move
+      - S390: 27 of its 28 lost paths, and all 8 gained, fail in the FINAL year (M10)
+      - S126, S206: every lost path fails in the final year; S112's 8 lost: none in the final year
+  15 nodes vs 5 (same gate)                                           PASS: every household within 0.33
+  56 points vs 30 (same gate)                                         FAIL: S206 -1.67 (6.7 se), S184 -0.63 (1.6 se)
+      - S206: all 53 lost paths fail in the final year, from ~GBP1k left (M10)
+      - S184: 82 lost / 63 gained, 6 in the final year: noise-sized
+      - S162 +0.43 (3.6 se), S054 +0.17 (2.2 se) better at 56 points
+  today vs new: "cuts far less everywhere"                            FALSIFIED on 5 of 12: years below rose on
+      S070 (3.0 -> 6.7), S184 (0.3 -> 1.5), S252, S330, S354; fell sharply where resilience drove cuts
+      (S390 15.0 -> 3.3, S112 14.3 -> 4.2, S126 9.6 -> 1.7). Survival 0.0 to -1.5, inside the 0.3-2
+      prediction. Tax mixed, against "rises". Raises being paid back as cuts: K3's own falsifier.
+  #106: drop bit-identical on controls, S126 not lower                FALSIFIED: S126 -1.23 (5.3 se, 43 lost /
+      6 gained); controls 1 to 2 paths off, not bit-identical
+      - 37 of the 43 lost paths fail in the FINAL year (M10)
+      - without any fix S126 cuts to the floor and holds both wrappers two tiers down from year 0 - the
+        dead corner's signature; with drop it spends at 1.2 and keeps its tier; fully funded 0% -> 70.9%
+      - linear: -0.03, within noise, and still 0% fully funded
+
+TABLE 1. today (resilience 0.5, five levels, exhaustive) against new (resilience off, six levels, ternary)
+   id     survival       years below     depth below    years above    spending     tax (k)       median pot (k)
+   S054  98.9 -> 98.4   3.0 -> 1.6     0.88 -> 0.90   24.8 -> 26.4   1.175 -> 1.200   31 -> 30   1986 -> 2082
+   S070  78.8 -> 77.4   3.0 -> 6.7     0.54 -> 0.54   7.7 -> 14.7   1.010 -> 1.053   1148 -> 1297   1858 -> 799
+   S100  99.6 -> 99.6   0.1 -> 0.2     0.72 -> 0.67   19.2 -> 33.7   1.089 -> 1.181   0 -> 0   617 -> 487
+   S112  99.5 -> 99.3   14.3 -> 4.2     0.81 -> 0.82   21.7 -> 31.8   1.069 -> 1.186   1 -> 0   888 -> 716
+   S126  99.9 -> 99.5   9.6 -> 1.7     0.82 -> 0.78   30.4 -> 38.3   1.140 -> 1.190   63 -> 85   2235 -> 1912
+   S162  99.7 -> 99.1   5.2 -> 2.9     0.89 -> 0.89   34.1 -> 37.0   1.160 -> 1.195   1 -> 3   1988 -> 1904
+   S184  79.8 -> 79.8   0.3 -> 1.5     0.77 -> 0.70   14.7 -> 17.6   1.058 -> 1.083   49 -> 49   662 -> 553
+   S206  99.8 -> 99.7   9.5 -> 3.6     0.87 -> 0.90   26.2 -> 32.4   1.136 -> 1.192   0 -> 2   549 -> 500
+   S252  97.3 -> 97.6   0.3 -> 0.8     0.69 -> 0.74   29.4 -> 32.5   1.181 -> 1.197   1 -> 1   723 -> 679
+   S330  83.2 -> 81.7   2.8 -> 3.8     0.54 -> 0.50   19.2 -> 22.0   1.124 -> 1.148   494 -> 566   4005 -> 3517
+   S354  85.0 -> 84.2   1.4 -> 2.8     0.62 -> 0.56   21.4 -> 23.1   1.148 -> 1.164   421 -> 446   4774 -> 4531
+   S390  99.6 -> 99.0   15.0 -> 3.3     0.79 -> 0.74   30.9 -> 42.6   1.122 -> 1.200   41 -> 31   3020 -> 2769
+
+
+TABLE 2. every comparison, from the reducer
+2. TERNARY (new) AGAINST EXHAUSTIVE (newex); speed from solve times
+   S054  survival +0.00   spending +0.00%   solve 77s vs 105s   ok
+   S070  survival -0.10   spending +0.00%   solve 89s vs 121s   ok
+   S100  survival +0.03   spending +0.00%   solve 100s vs 132s   ok
+   S112  survival -0.27   spending +0.23%   solve 101s vs 135s   ok
+   S126  survival -0.27   spending +0.00%   solve 105s vs 140s   ok
+   S162  survival +0.03   spending +0.00%   solve 107s vs 144s   ok
+   S184  survival +0.00   spending +0.00%   solve 112s vs 146s   ok
+   S206  survival -0.27   spending +0.00%   solve 123s vs 184s   ok
+   S252  survival -0.03   spending -0.23%   solve 142s vs 191s   ok
+   S330  survival -0.07   spending +0.00%   solve 163s vs 217s   ok
+   S354  survival -0.07   spending +0.00%   solve 163s vs 219s   ok
+   S390  survival -0.67   spending +0.00%   solve 115s vs 157s   OUTSIDE
+   GATE: every household within 0.5 of survival and 1% of spending ... FAIL
+   total solve time: ternary 1397s, exhaustive 1889s -> 26.0% faster (gate: at least 15%)
+
+3a. 15 QUADRATURE NODES AGAINST 5 (decision A)
+   S054  survival +0.10   spending +0.00%   solve 77s vs 174s   ok
+   S070  survival -0.30   spending +0.00%   solve 89s vs 199s   ok
+   S100  survival +0.00   spending +0.00%   solve 100s vs 225s   ok
+   S112  survival -0.10   spending +0.23%   solve 101s vs 224s   ok
+   S126  survival -0.07   spending +0.00%   solve 105s vs 237s   ok
+   S162  survival +0.03   spending +0.00%   solve 107s vs 242s   ok
+   S184  survival +0.33   spending -0.26%   solve 112s vs 250s   ok
+   S206  survival +0.07   spending +0.00%   solve 123s vs 274s   ok
+   S252  survival +0.00   spending -0.23%   solve 142s vs 336s   ok
+   S330  survival +0.27   spending +0.00%   solve 163s vs 389s   ok
+   S354  survival +0.33   spending +0.00%   solve 163s vs 457s   ok
+   S390  survival -0.13   spending +0.00%   solve 115s vs 267s   ok
+   GATE: every household within 0.5 of survival and 1% of spending ... PASS
+
+3b. 56 WEALTH POINTS AGAINST 30 (decision A)
+   S054  survival +0.17   spending -0.30%   solve 77s vs 145s   ok
+   S070  survival -0.13   spending +0.53%   solve 89s vs 170s   ok
+   S100  survival -0.10   spending +0.47%   solve 100s vs 189s   ok
+   S112  survival +0.10   spending -0.23%   solve 101s vs 186s   ok
+   S126  survival -0.03   spending +0.00%   solve 105s vs 201s   ok
+   S162  survival +0.43   spending +0.21%   solve 107s vs 205s   ok
+   S184  survival -0.63   spending +0.51%   solve 112s vs 206s   OUTSIDE
+   S206  survival -1.67   spending +0.00%   solve 123s vs 234s   OUTSIDE
+   S252  survival +0.07   spending +0.00%   solve 142s vs 268s   ok
+   S330  survival -0.07   spending +0.13%   solve 163s vs 303s   ok
+   S354  survival +0.17   spending +0.26%   solve 163s vs 364s   ok
+   S390  survival +0.23   spending +0.00%   solve 115s vs 221s   ok
+   GATE: every household within 0.5 of survival and 1% of spending ... FAIL
+
+4. THE #106 FIX (none / drop / linear)
+   S126  none: surv 99.5 below 1.7 full 0.0 spend 1.190
+          drop: surv 98.2 below 2.2 full 70.9 spend 1.200
+          lin:  surv 99.4 below 1.7 full 0.0 spend 1.190
+   S184  none: surv 79.8 below 1.5 full 66.4 spend 1.083
+          drop: surv 79.8 below 1.6 full 66.4 spend 1.083
+          lin:  surv 79.8 below 1.6 full 66.4 spend 1.083
+   S162  none: surv 99.1 below 2.9 full 69.3 spend 1.195
+          drop: surv 99.1 below 2.9 full 69.3 spend 1.195
+          lin:  surv 99.1 below 2.9 full 69.3 spend 1.195
+
+TABLE 3. paired on the same 3,000 paths (arm minus new), from the records
+paired survival difference, arm minus new, on the same 3,000 paths
+  S054
+        newex +0.00 +/- 0.00 (0.0 se; 0 gained, 0 lost)
+        newq15 +0.10 +/- 0.06 (1.7 se; 3 gained, 0 lost)
+        newp56 +0.17 +/- 0.07 (2.2 se; 5 gained, 0 lost)
+        stored moves differing, ternary vs exhaustive: 5151 of 272160 cell-years (1.8926%); year 0: 553 of 9720; worst year 2 with 749
+  S070
+        newex -0.10 +/- 0.16 (-0.6 se; 10 gained, 13 lost)
+        newq15 -0.30 +/- 0.27 (-1.1 se; 29 gained, 38 lost)
+        newp56 -0.13 +/- 0.37 (-0.4 se; 59 gained, 63 lost)
+        stored moves differing, ternary vs exhaustive: 8073 of 349920 cell-years (2.3071%); year 0: 72 of 9720; worst year 29 with 469
+  S100
+        newex +0.03 +/- 0.10 (0.3 se; 5 gained, 4 lost)
+        newq15 +0.00 +/- 0.07 (0.0 se; 2 gained, 2 lost)
+        newp56 -0.10 +/- 0.10 (-1.0 se; 3 gained, 6 lost)
+        stored moves differing, ternary vs exhaustive: 18012 of 349920 cell-years (5.1475%); year 0: 115 of 9720; worst year 31 with 927
+  S112
+        newex -0.27 +/- 0.09 (-2.8 se; 0 gained, 8 lost)
+        newq15 -0.10 +/- 0.06 (-1.7 se; 0 gained, 3 lost)
+        newp56 +0.10 +/- 0.06 (1.7 se; 3 gained, 0 lost)
+        stored moves differing, ternary vs exhaustive: 33980 of 349920 cell-years (9.7108%); year 0: 175 of 9720; worst year 33 with 1548
+  S126
+        newex -0.27 +/- 0.17 (-1.6 se; 9 gained, 17 lost)
+        newq15 -0.07 +/- 0.12 (-0.6 se; 5 gained, 7 lost)
+        newp56 -0.03 +/- 0.15 (-0.2 se; 9 gained, 10 lost)
+        stored moves differing, ternary vs exhaustive: 25500 of 388800 cell-years (6.5586%); year 0: 439 of 9720; worst year 37 with 1338
+  S162
+        newex +0.03 +/- 0.06 (0.6 se; 2 gained, 1 lost)
+        newq15 +0.03 +/- 0.06 (0.6 se; 2 gained, 1 lost)
+        newp56 +0.43 +/- 0.12 (3.6 se; 13 gained, 0 lost)
+        stored moves differing, ternary vs exhaustive: 12739 of 388800 cell-years (3.2765%); year 0: 343 of 9720; worst year 38 with 787
+  S184
+        newex +0.00 +/- 0.00 (0.0 se; 0 gained, 0 lost)
+        newq15 +0.33 +/- 0.22 (1.5 se; 27 gained, 17 lost)
+        newp56 -0.63 +/- 0.40 (-1.6 se; 63 gained, 82 lost)
+        stored moves differing, ternary vs exhaustive: 53551 of 398520 cell-years (13.4375%); year 0: 9720 of 9720; worst year 0 with 9720
+  S206
+        newex -0.27 +/- 0.12 (-2.3 se; 2 gained, 10 lost)
+        newq15 +0.07 +/- 0.05 (1.4 se; 2 gained, 0 lost)
+        newp56 -1.67 +/- 0.25 (-6.7 se; 3 gained, 53 lost)
+        stored moves differing, ternary vs exhaustive: 77601 of 398520 cell-years (19.4723%); year 0: 9720 of 9720; worst year 0 with 9720
+  S252
+        newex -0.03 +/- 0.07 (-0.4 se; 2 gained, 3 lost)
+        newq15 +0.00 +/- 0.12 (0.0 se; 6 gained, 6 lost)
+        newp56 +0.07 +/- 0.14 (0.5 se; 10 gained, 8 lost)
+        stored moves differing, ternary vs exhaustive: 154740 of 505440 cell-years (30.6149%); year 0: 9720 of 9720; worst year 0 with 9720
+  S330
+        newex -0.07 +/- 0.21 (-0.3 se; 19 gained, 21 lost)
+        newq15 +0.27 +/- 0.19 (1.4 se; 21 gained, 13 lost)
+        newp56 -0.07 +/- 0.26 (-0.3 se; 30 gained, 32 lost)
+        stored moves differing, ternary vs exhaustive: 283569 of 592920 cell-years (47.8258%); year 0: 9720 of 9720; worst year 0 with 9720
+  S354
+        newex -0.07 +/- 0.14 (-0.5 se; 8 gained, 10 lost)
+        newq15 +0.33 +/- 0.18 (1.9 se; 19 gained, 9 lost)
+        newp56 +0.17 +/- 0.21 (0.8 se; 22 gained, 17 lost)
+        stored moves differing, ternary vs exhaustive: 281388 of 592920 cell-years (47.4580%); year 0: 9720 of 9720; worst year 0 with 9720
+  S390
+        newex -0.67 +/- 0.20 (-3.3 se; 8 gained, 28 lost)
+        newq15 -0.13 +/- 0.12 (-1.2 se; 4 gained, 8 lost)
+        newp56 +0.23 +/- 0.15 (1.5 se; 14 gained, 7 lost)
+        stored moves differing, ternary vs exhaustive: 30740 of 447120 cell-years (6.8751%); year 0: 429 of 9720; worst year 42 with 1396
+
+WHAT FOLLOWS
+- finalExact (M10) built and tested; on in every run from here.
+- batch-step2-recheck.sh re-runs the ternary and 56-point comparisons and the #106 options on S126 and
+  its controls, all with the exact final year. The base carries NO #106 option while drop stands failed
+  as written; an option joins the baseline only if the re-check clears it.
+- The ternary decision (M11) is taken on the re-check; its fallback is the full scan at +35% solve time.

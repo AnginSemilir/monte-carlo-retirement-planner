@@ -59,7 +59,7 @@ the solver values that is not on this list is a defect**, which is how resilienc
 | **trim curve** | how the cost of a trim grows with its depth, between target and floor | the shortfall exponent, 2 | **no - a fixed default; adjustable in a later build.** Its default is FITTED so the solver's cuts have the guardrails' shape (K5) |
 | **raises above target** | whether, and how far, the solver may spend ABOVE target in good years | on, up to 1.2; the raise weight 0.003 sets how eagerly | **yes - agreed 23 Sep: allow, cap, or block** (block = no level above 1) |
 | **minimum end-of-life pot** | a hard line: a future that ends below it counts as failed | yes (`solvencyFloor`) | yes, **with a sensible default above zero - agreed 23 Sep**, because it now carries the job resilience did |
-| **estate priority, 0 to 100%** | how much the pot left above the minimum matters against everything else. One user-facing level; internally it sets BOTH the credit's weight and how steeply each extra pound's credit diminishes | **NOT BUILT (found 23 Sep).** Today: a fixed weight 0.02 on `min(net, 4K)` - every pound from ZERO (not from the minimum) counts the same up to the cap, then nothing. No diminishing curve, no level | **yes - a user level, agreed 23 Sep.** Moving it changes survival and other results, and that is the user choosing priorities, not a bug. **Phase K3's job is the SPREAD**: equal steps on the level must give roughly equal steps in outcome - 10% must not already have swung hard toward the estate, 100% may cost a lot |
+| **estate priority, 0 to 100%** | how much the pot left above the minimum matters against everything else. One user-facing level; internally it sets BOTH the credit's weight and how steeply each extra pound's credit diminishes | **NOT BUILT (found 23 Sep).** Today: a fixed weight 0.02 on `min(net, 4K)` - every pound from ZERO (not from the minimum) counts the same up to the cap, then nothing. No diminishing curve, no level | **yes - a user level, agreed 23 Sep.** Moving it changes survival and other results, and that is the user choosing priorities, not a bug. **Phase K4's job is the SPREAD** (corrected 23 Sep plan review: this said K3, the raise cap): equal steps on the level must give roughly equal steps in outcome - 10% must not already have swung hard toward the estate, 100% may cost a lot |
 | **permission to change investment risk** | may the solver move a pot to a lower risk tier | tiers, up to two below the plan's, at a switching cost | **yes - agreed 23 Sep, as consent** |
 
 **Three priority levels, two degrees of freedom - resolved by option (a).** The solver balances weighted
@@ -94,10 +94,10 @@ cannot see - passes to the user's own minimum end-of-life pot, with a default. M
 | lever | what it is |
 |---|---|
 | **draw order** | which pot to draw from first, and in what order; pension to the allowance or to the basic-rate limit; ISA before taxable or after |
-| **CGT harvesting** | realising gains up to the annual exemption or the basic-rate limit |
-| **risk tier** | per wrapper, pension and ISA independently, paying `SWITCH_COST` and having to beat `SWITCH_MARGIN` |
+| **pension harvesting** | drawing pension BEYOND the year's need, up to the personal allowance or the basic-rate limit, and re-wrapping it into the ISA (then the taxable account). Band filling for income tax, not capital-gains harvesting (corrected 23 Sep plan review; capital gains are realised only by the draws themselves) |
+| **risk tier** | the pension and the ISA moved TOGETHER, by the same step (0/0, 1/1, 2/2 below the plan's tier; independent pairs were measured to add nothing), paying `SWITCH_COST` and having to beat `SWITCH_MARGIN` (corrected 23 Sep plan review: this said independently) |
 | **spending level** | 1.2 / 1.1 / 1 / 0.95 / 0.9 / floor - **down AND up** (six levels, decided 23 Sep; the lowest is always the user's floor). The solver raises spending in good years unless the user caps or blocks raises |
-| **how the level is found** | a ternary search over the levels in each group, not a scan of all of them - measured safe (24 misses in 5.0 million, worst 0.009 survival points) and cheaper: four levels evaluated of six |
+| **how the level is found** | a ternary search over the levels in each group (four evaluated of six), **provisionally**: the probe found 24 misses in 5.0 million, but step 2 found stored moves differing from the full scan on 2-48% of cell-years (mostly equivalent ties in years with no spending) and one genuine loss (S112, 0.27 points). The re-check decides it (finding M11); the fallback is the full scan |
 
 ### Not the solver's to choose
 
@@ -278,7 +278,7 @@ repeated in the phases below.
 | the S126 anomaly (#106) | confirmed: a dead corner in log-odds on a SHARE axis; only S126 of the 41 is in the class at t = 0 | `results-106-deadcorner.txt` |
 | E4, interleaved value arrays | dead: 3.8% slower | `results-part-e-measured.txt` |
 | E1, seeding from next year's move | fails its bar (98.68% coverage) - **to be re-run**, it read the byte-wide table | `results-probes-e1-unimodal.txt` |
-| single-peakedness in level | confirmed over 5.0 million combinations; six levels plus ternary search evaluate four | `results-probes-e1-unimodal.txt` |
+| single-peakedness in level | measured over 5.0 million combinations (24 misses); **qualified by step 2** (finding M11): the ternary search is not bit-identical to the full scan, and is re-checked | `results-probes-e1-unimodal.txt`, step 2 |
 | the lambda curve | cancelled: answered by algebra (a Lagrangian relaxation; 0 reversals in 15 pairs) | history |
 | 6c, the soft bequest shoulder | not passed on its control, S390; not re-specified | history |
 
@@ -342,7 +342,7 @@ changes a result on file; four need work before something downstream is trusted.
 
 | # | finding | why it matters | action | slot |
 |---|---|---|---|---|
-| M1 | **The code's defaults are still the OLD objective.** Bare `solve()` means resilience 0.5, the full level scan, no raises (raise weight 0, menu from `spendLevelsFor`: 1 / 0.95 / 0.9 / 0.8 / floor), the capped estate credit, and no #106 fix. Every research run sets the new baseline explicitly through its flags, so no result is affected. | Anything that calls `solve()` without those flags - the app in Part C, or a script that forgets one - silently gets the old objective. The step-2 `today` arm relies on the 0.5 default, so it would change if the default moved underneath it. | **Revised 18:45 after scoping:** 14 test suites call `solve()` on its bare defaults, so flipping them would break every one for no gain. Instead a single product entry point, `solvePlan()`, carries the decided baseline (resilience 0, six levels, raise weight 0.003, ternary search, the chosen `shareDead`; the estate curve and minimum pot join after step 6), and the app calls only that. `solve()` keeps its historical defaults, documented as the research engine's and never the product's. Gate: `solvePlan()` equals `solve()` with the same options written out, bit for bit. | step 3; built in the overnight gap, tests after the screens |
+| M1 | **The code's defaults are still the OLD objective.** Bare `solve()` means resilience 0.5, the full level scan, no raises (raise weight 0, menu from `spendLevelsFor`: 1 / 0.95 / 0.9 / 0.8 / floor), the capped estate credit, and no #106 fix. Every research run sets the new baseline explicitly through its flags, so no result is affected. | Anything that calls `solve()` without those flags - the app in Part C, or a script that forgets one - silently gets the old objective. The step-2 `today` arm relies on the 0.5 default, so it would change if the default moved underneath it. | **Revised 18:45 after scoping:** 14 test suites call `solve()` on its bare defaults, so flipping them would break every one for no gain. Instead a single product entry point, `solvePlan()`, carries the decided baseline (resilience 0, six levels, raise weight 0.003, ternary search, the chosen `shareDead`; the estate curve and minimum pot join after step 6), and the app calls only that. `solve()` keeps its historical defaults, documented as the research engine's and never the product's. Gate: `solvePlan()` equals `solve()` with the same options written out, bit for bit. | **done 18:47**: `solvePlan`, `solver-plan.test.mjs` 10 passed |
 | M2 | **K1 tested the rules only at their extreme.** With trimming AND raises blocked the menu has one level, so "no cut" passes trivially; a raise cap between levels, and block-trimming alongside raises and tier changes, were never exercised. | K1 is the only check that the user's rules hold. | **Done:** `batch-k1.sh` gains `k1-cap` (cap 1.1, trimming allowed, tiers on) and `k1-block` (block trimming, raises allowed, tiers on), 6 households each, all with a 3-year minimum pot; `check-k1.mjs` checks each arm against its own rules. K1 becomes about an hour. | K1 |
 | M3 | **Pension draws are only ever tried at the tax corners** (the allowance, the basic-rate limit, unlimited). The argument (tax is linear between corners) is exact only if the value of next year's position is linear in the amount drawn along a stretch; it is curved. Amounts between corners have never been searched. | An assumption every household's plan rests on, never measured. | A table-only probe: at positions the plan reaches, score draws at 25 / 50 / 75% of the way between the chosen move's corners with the one-step lookahead; simulate any that beat the corner by more than 0.1 points. PREDICTION: rare and sub-point, since over one year's draw the continuation value is close to linear. FALSIFIED IF an in-between draw beats the corners by more than half a point in simulation on any household. About 2 h to build (custom-ceiling moves in a probe copy), 30 min to run. | after Phase 4 (or a free Thursday gap) |
 | M4 | **The couples rollout has three gaps.** Its value omits the trim table, so it never weighs cuts; the year's spending level comes from the first person's move only; its expectation hard-codes five nodes and ignores `quadNodes`. | Couples were validated under the old objective, where the trim penalty was landed per household; under the dislike-of-cuts slider the rollout would ignore the slider. | Fix all three before the couples re-validation; added to the mathematician's question 9. | "Couples under the new objective", after Phase 4 |
@@ -353,6 +353,20 @@ changes a result on file; four need work before something downstream is trusted.
 | M9 | **The questions for the mathematician now have owners.** Q1 (does monotonicity survive an approximate solver) before K7; Q2 (fitting two dials to a stepped response) before K5; Q3 (a path for the estate slider) before K4's fit; Q4 (why the choice is stable) alongside 2b; Q5 (drop's discontinuity) only if step 2 picks `drop`; Q6 (noisy rollout) only if 2b calls for rollout; Q9 before couples ship; Q7, Q8, Q10 not blocking. | Nothing tonight waits on an answer; K5 on Thursday is the first step that could. | Send the page when the maintainer has shared it. | - |
 | M10 | **The final year read the NEAREST CELL's stored move** - the one read `chooseAction` exists to avoid. Found from the step-2 records at 18:43: all 53 paths S206 lost at 56 points, and 27 of the 28 S390 lost under the ternary search (plus all 8 it gained), failed in the final year from a near-empty position. On 300 random final-year positions of S206 the nearest-cell move fails outright on 81 where a paying move exists. | It affects every simulated result on file in its last year, and it decided both step-2 gate failures. Paired comparisons share it, so their direction mostly survives; absolute survival is slightly understated on thin households. | **Built:** `finalExact` scores the final year's moves at the true position against the same end-of-plan rule the backward pass applies at t = T. Off by default (bit-identical, tested); on in `PRODUCT_BASELINE` and in every run from here (`FINALEXACT=1`). `solver-final.test.mjs`: tables untouched, the choice is the exact argmax on 300 positions, never a failing move when a paying one exists. The two failed comparisons are re-run with it on (`batch-step2-recheck.sh`); the failures stand as recorded. | before 2b |
 | M11 | **The ternary search is not bit-identical where it "finds the peak".** In a year with no spending every level scores the same and the search never evaluates level 1, so it stores a different, equivalent move (all 9,720 year-0 cells on four working households). Separately S112 lost 8 paths (0.27 points, 2.8 se), none in the final year: a genuine miss. | The probe's "24 misses in 5.0 million" was on a different configuration; stored moves differ from the full scan on 2-48% of cell-years here, mostly harmless ties. | Judged by the re-check: if the ternary gate passes once the final year is exact, ternary stays; if not, downstream runs use the full scan (+35% solve time) and the six-levels-at-today's-cost decision is reported back to the maintainer. | re-check |
+
+### The plan review, 23 Sep evening - errors corrected in place
+
+A line-by-line check of this file against the code and the results files. Each correction is marked in
+place ("corrected 23 Sep plan review"). The substantive ones: **harvesting** was described as capital-gains
+harvesting - it is pension band filling re-wrapped into the ISA; **tiers** were described as independent -
+the menu moves the pension and ISA together; **K7** claimed the median pot is monotone - only the expected
+credited pot is; **Part C** had quick dials and "cost of skipping" read from the table (both violate the
+standing rule that the table is never a reported number), a contribution lock and contribution actions
+(the solver does not choose contributions), and guardrails applied on top of a solved plan (cutting twice);
+and **re-weighting without a re-solve** was implied (Phase 12's harness, the solver's header comment) - it is
+not possible, because every stored continuation value was chosen under the weights in force. Smaller: K3/K4
+mislabelled, a sign error in a Phase V figure in the predictions register, "single-peakedness confirmed",
+"never worse", "lever builds built", a duplicated sentence, a stale count of test files.
 
 ---
 
@@ -367,10 +381,11 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 |---|---|---|---|---|
 | 0 | ~~Byte-wide policy bug's cost~~ **zero effect** | - | - | done |
 | 1 | ~~Phase V~~ **done: plans stable, table numbers not; judged on simulation (decision A)** | - | - | done |
-| 2 | **Step 2 field check**, 66 cells with full run records (43 of 66 at 18:28) | 1 | ~1.7 h | Wed ~19:10 |
+| 2 | ~~Step 2 field check~~ **first run done 18:52**: two gates failed, #106 falsifier fired; M10 behind most of it | 1 | - | done |
+| 2r | **Step 2 re-check with the exact final year**, 42 cells | 2 | ~50 min | Wed ~19:55 |
 | 2w | Step 2 write-up, the #106 option chosen, step 2 moved to history | 2 | ~30 min | Wed ~19:40 |
 | 2b | **Ranking check**: does the table's first choice simulate better than its second? (solver tests re-run first: `runPolicy` changed) | 2w | ~45 min | Wed ~20:25 |
-| 3 | **Lever builds** - built; plus M1, flipping the code defaults to the decided baseline | 2w | no cores; tests ~15 min | Thu ~05:00 |
+| 3 | **Lever builds** - estate curve, raise cap/block, block trimming and `solvePlan` (M1) built and tested; the minimum-pot default waits on step 6 and lambda's slider map on K6 | 2w | done except those two | - |
 | 4 | **K1 honouring checks**, now three arms (M2) | 2w | ~1 h | Wed ~21:45 |
 | 5 | **K2-K4 screens** overnight, with records | 4 | ~5 h | Thu ~03:00 |
 | 5b | **Phase 4 panel selection**: the app's own pipeline on library candidates, to find 40 held-out households where it survives 75-95% | 5 | ~1 h | Thu ~04:00 |
@@ -442,7 +457,7 @@ written here, each derived from records already on file.
 |---|---|---|---|
 | step 2, today against the new baseline | **At the same lambda the new baseline cuts far less and raises far more**: years below target fall from about 9-15 to about 1-4, years above target rise to 27-43, survival falls 0.3 to 2 points, lifetime tax RISES (more is spent, so more pension is drawn), the median end pot falls. The 0.95 level makes cuts shallower: depth when below rises from 0.63-0.87 toward 0.85-0.95 | the new baseline cuts MORE than today on any household, or loses more than 3 points of survival | **written now**, from 6f's resilience 0 and 0.5 arms at the same lambda |
 | step 2, ternary against exhaustive | simulated survival and spending identical within noise on every household (24 misses in 5.0 million); the backward pass 20-30% faster (four level evaluations of six, and flows computed only for levels visited) | any household beyond 0.5 of survival or 1% of spending, or under 15% faster | **written now**, from the single-peak probe |
-| step 2, 15 nodes and 56 points | within half a point of survival and 1% of spending, but NOT comfortably: Phase V put the 30-to-56 simulation gap at +0.2 to +0.4 and 5-to-15 at -0.3 to +0.4 at 1,000 paths, so one borderline household is likely | a gap over 1 point, or a systematic sign across all twelve | **written now**, from Phase V's simulated columns |
+| step 2, 15 nodes and 56 points | within half a point of survival and 1% of spending, but NOT comfortably: Phase V put the 30-to-56 simulation gap at -0.4 to +0.1 and 5-to-15 at -0.3 to +0.4 at 1,000 paths (the first range corrected 23 Sep plan review: it said +0.2 to +0.4), so one borderline household is likely | a gap over 1 point, or a systematic sign across all twelve | **written now**, from Phase V's simulated columns |
 | step 2, the #106 fix | in its section (step 2) | - | step 2 |
 | ranking check | where the table's first choice beats its second by a clear margin in score, it simulates at least as well in over 80% of sampled positions; where the margin is tiny, it is close to a coin toss; the average loss when it is wrong is under half a point, and no loss exceeds 2 points on the current grid (S070's 6-point misranking was on the old per-pot grid) | wrong in over 30% of positions with a clear margin, or any loss above 2 points | **written now**, from Phase V's 6-9% of moves changing without moving the simulation, and the phase-2 loss ledger |
 | K1 honouring | exact by construction: every rule holds on every path | any path breaks any rule - a bug | K1 |
@@ -500,6 +515,17 @@ touches the survival cliff along total wealth, which is what log-odds is for.
   dropped corner was carrying real information near the all-pension edge, where a household really
   cannot fund its bridge.
 The winning #106 option joins the new baseline, which every later step builds on.
+
+**FIRST RUN, 17:32-18:52 - OUTCOME (`results-step2.txt`).** Two of three gates FAILED as written and the
+#106 falsifier FIRED; all three stand as recorded. Ternary vs exhaustive: S390 -0.67 (3.3 se), 26% faster;
+15 nodes vs 5: PASS; 56 points vs 30: S206 -1.67 (6.7 se); `drop` on S126: -1.23 (5.3 se). The saved records
+put one defect behind most of all three: **the final year read the nearest cell's stored move** (M10) - all
+53 paths S206 lost at 56 points, 27 of 28 S390 lost under ternary, and 37 of 43 S126 lost under `drop` fail
+in the final year. Also: the "cuts far less" prediction was falsified on 5 of 12 (raises paid back as cuts,
+K3's falsifier), and without any #106 fix S126 cuts to the floor and holds both wrappers two tiers down from
+year 0. **The re-check** (`batch-step2-recheck.sh`, 42 cells, launched 19:00) repeats the failed comparisons
+and the #106 options with `finalExact`, its predictions written in its header before launch; the base
+carries no #106 option until the re-check clears one.
 
 ---
 
@@ -639,7 +665,7 @@ unfloored guardrails (a first draft of this section used the unfloored arm; corr
    the comparison is judged. Note also that the code's OWN default menu already carries 0.95 ("mirrors
    the gentlest move the guardrails make"); the research runs overrode it with LEVELS=1.2,...,0.8.
    **Recommended instead - six levels at today's cost:** add 0.95 AND switch the level scan to the
-   ternary search already confirmed safe (5.0 million combinations, never worse). On six levels it
+   ternary search, measured over 5.0 million combinations with 24 misses (not "never worse"; see finding M11). On six levels it
    evaluates about five, the same as today's exhaustive five. It brings that speed item forward from
    after Phase 4 into step 3, and needs the single-peak probe re-run on the six-level menu first (one
    solve, minutes). Fallback if single-peakedness fails on six levels: drop 1.1 rather than the floor,
@@ -652,9 +678,10 @@ unfloored guardrails (a first draft of this section used the unfloored arm; corr
    the solver WITH resilience raised about 20 years at 1.16, and WITHOUT it raises 27 to 43 years at about
    1.18 (K3). Matching cuts alone while one side raises far more would compare different spending
    policies. So K5 matches the cut side AND checks the total spending delivered, with raises capped at
-   the maintainer's step-6 default; Phase 4's condition 2 (spending within 1%) is the backstop. Phase 4's
-   condition 2 (total spending delivered within 1%) already nets raises against cuts; K3's raise-cap
-   screen should report this comparison.
+   the maintainer's step-6 default. Phase 4's condition 2 (total spending delivered within 1%) nets raises
+   against cuts and is the backstop; K3's raise-cap screen reports the comparison. **Step 2 bears on this
+   (23 Sep):** without resilience the new baseline cut MORE than today's on several thinner households
+   (S070 3.0 -> 6.7 years below target), consistent with raises being paid back as cuts - K3's own falsifier.
 
 METHOD: a grid of lambda x exponent {1.5, 2, 3, 4} on 12 households, then the chosen point checked on
 all 41. Match (i) total amount cut, median household, within 10%; (ii) depth when below within 3 points,
@@ -668,8 +695,12 @@ is easy to draw.
 landed values span 400x and 0 reversals in 15 adjacent pairs showed a smooth, monotone response, so the
 map is close to logarithmic in lambda.
 
-**K7. Monotone and sane.** Raising dislike of cuts never adds trimmed years; raising the estate slider
-never lowers the median end pot; nothing reverses anywhere. A reversal is a bug.
+**K7. Monotone and sane.** Raising dislike of cuts never adds EXPECTED trimming, and raising the estate
+slider never lowers the EXPECTED credited end pot: both follow from the Lagrangian argument, so a reversal
+in either is a bug (subject to question 1 to the mathematician: the argument is for the exact optimum,
+and the solver is an approximation). The median end pot and the survival chance carry no such guarantee:
+a reversal there is a finding, not a bug. (Corrected 23 Sep plan review: this said the MEDIAN pot never
+falls and that any reversal anywhere is a bug, contradicting the predictions register.)
 
 
 ---
@@ -778,10 +809,10 @@ Part C is gated on it, so main stays shippable throughout and beta users can be 
 - Every plan edit computes the earliest affected year (a small pure function `firstAffectedYear(prev,
   next)` in `src/solver/diff.js`) and either marks the tables `stale` and re-solves from there, or does
   nothing for a balance-only edit.
-- **Locks**, `plan.solver.locks`, normalised in `normalizePlan`: per wrapper `contribution: 'free' |
-  'fixed'`, `pensionBefore: age | null` ("do not draw the pension before"), `tierCeiling` per wrapper,
+- **Locks**, `plan.solver.locks`, normalised in `normalizePlan`: `pensionBefore: age | null` ("do not draw the pension before"), `tierCeiling` per wrapper,
   `lumpSum: 'free' | 'never' | 'now'`. Locks shrink the action set in `model.js`; they never add
-  actions.
+  actions. (No contribution lock: contributions are not the solver's to choose - corrected 23 Sep plan
+  review.)
 - The solver chunk is a lazy `import('./solver/index.js')`, and `load-perf-ui.cjs`'s 220 KB ceiling
   stands.
 - Tables are cached in IndexedDB under the plan hash so reopening the app does not re-solve; the cache
@@ -795,8 +826,9 @@ the whole policy search block with its results and trade-off cards (lines around
 The bridge safety margin becomes a solver constraint, "hold at least this much liquid before access",
 or is removed; recommendation: keep it as a lock.
 
-Kept: guardrails (with the note that the solver assumes them off and the projection applies them on
-top), cash buffer, returns and CMA presets, tax region, valuation date, inflation, solvency floor,
+Kept: guardrails **for the baseline plan only** - the solver's spending levels ARE its spending rule, so
+applying the guardrails on top of a solved plan would cut twice (corrected 23 Sep plan review: this said the
+projection applies them on top), cash buffer, returns and CMA presets, tax region, valuation date, inflation, solvency floor,
 death-tax rate, number format.
 
 Promoted: the user's levers from the Fixed requirements move to the top of the tab under "What the
@@ -814,10 +846,12 @@ The tournament, its players, the evolver and `data-strategy-card` go. The tab be
 1. **The comparison.** Your plan against the solved plan: survival, median and unlucky-tenth pot,
    lifetime tax, bequest net of death tax, each with the delta. "Your plan" is the baseline: the
    contributions as entered and the plain sequential draw order, or the policy an old export carried.
-2. **This year's actions, per person.** A short list in the playbook vocabulary (`phraseFor`): "Pay
-   £X into the pension and £Y into the ISA", "Draw the pension up to the basic-rate limit and re-wrap
-   £Z into the ISA", "Move the ISA to the Medium tier". Each with the survival cost of skipping it,
-   read from the table by valuing the next-best action.
+2. **This year's actions, per person.** A short list in the playbook vocabulary (`phraseFor`): "Draw
+   the pension up to the basic-rate limit and re-wrap £Z into the ISA", "Spend £Y this year", "Move the
+   ISA to the Medium tier". Each with the survival cost of skipping it, **measured by simulation** (take
+   the next-best move this year, then follow the plan: the ranking check's method), never read from the
+   table. (Corrected 23 Sep plan review: this read the cost from the table, against the standing rule,
+   and listed contributions, which the solver does not choose.)
 3. **The rule of thumb.** A decision tree fitted to the policy (`src/solver/distil.js`, CART on the
    action table with depth 3), printed as the instruction sheet's steps, with its fidelity: "following
    these rules instead of the table costs 0.4 points". The printable sheet in `actionPlan.js` gets the
@@ -838,8 +872,10 @@ baseline's tooling until then.
   beside it in one line ("as you are now: 71%"). The reporting rule applies throughout: no survival or
   floor rate anywhere without the spending delivered beside it. The run card gains a solve state and a progress bar;
   the guardrail note stays; the lookahead note goes.
-- **Quick dials** read the table (Phase 6's spend dimension), so they stay instant; the retirement-age
-  dial still re-solves, with the progress bar visible, unless the age table has been pre-solved for
+- **Quick dials** re-solve and re-simulate (a dial is a change of plan; the table has no spend dimension -
+  spending levels are moves - and is never a reported number). Corrected 23 Sep plan review: this said the
+  dials read the table and stay instant. At about one solve per dial movement they need the phone grid and
+  E2's parallel solve to feel quick; the retirement-age dial likewise re-solves, with the progress bar visible, unless the age table has been pre-solved for
   ±3 years, which is the recommended default.
 - **The Simple page** (decided 23 Sep, option (b)): "safe spend" is the highest target at which the
   solver's plan keeps reported survival at or above the user's chosen X%, and "safe age" the earliest
@@ -870,11 +906,11 @@ baseline's tooling until then.
   coverage card lists the reduced model's approximations verbatim from Phase 1.
 - **Tests retired:** `entrants.test.mjs`, `evolve.test.mjs`, `lookahead.test.mjs`, the tournament
   half of `escalation.test.mjs`, the search half of `policy.test.mjs`; **harnesses retired:**
-  `tournament-ui.cjs`, `tradeoffs-ui.cjs`, `priorities-ui.cjs`. **Replaced by:** the three solver
-  test files from Part A, `solver-couple.test.mjs`, `distil.test.mjs`, and harnesses
+  `tournament-ui.cjs`, `tradeoffs-ui.cjs`, `priorities-ui.cjs`. **Replaced by:** the solver test files
+  (`research/tests/solver-*.test.mjs`, sixteen at 23 Sep), `solver-couple.test.mjs`, `distil.test.mjs`, and harnesses
   `solver-strategy-ui.cjs` (comparison, actions, rule of thumb, fidelity figure, print sheet),
-  `solver-config-ui.cjs` (removed fields gone, locks shrink the actions, prioritisation switch is
-  instant), `solver-progress-ui.cjs` (stale and solving states, phone progress, balance edit needs no
+  `solver-config-ui.cjs` (removed fields gone, locks shrink the actions, a slider change marks the plan
+  stale and re-solves - not instant, since every stored continuation value was chosen under the old weights), `solver-progress-ui.cjs` (stale and solving states, phone progress, balance edit needs no
   re-solve). `run-all.sh` updated; the 220 KB and typing-latency ceilings unchanged.
 - **Rollout:** `SOLVER = true` for beta once the full suite is green with it on and off; two weeks of
   both paths shipping; then the retirements above and the switch removed.

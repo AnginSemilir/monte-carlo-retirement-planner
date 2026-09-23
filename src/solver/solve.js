@@ -14,8 +14,9 @@
  *
  * WHAT IS BEING MAXIMISED, in the order the app already ranks things: the probability of never falling
  * short, and then, among moves that tie on it EXACTLY, the expected bequest net of the pension death
- * charge. Both are carried through the table separately so a change of prioritisation can re-combine
- * them without re-solving.
+ * charge. Both are carried through the table separately, so each can be reported and read on its own.
+ * (They can NOT be re-weighted without a re-solve: every cell's stored continuation value was chosen under
+ * the weights in force, so new weights re-rank only the current year's choice. Corrected 23 Sep.)
  *
  * THE MOVES. UK tax is straight lines with corners, and a best move can only sit at a corner: if it is
  * worth drawing a pound of pension at 20%, it is worth drawing the next one at 20% too, so the choice

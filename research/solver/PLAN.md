@@ -1221,6 +1221,76 @@ pass; condition 1's over-trim clause fails as written on 9 of 41. Not merged, no
   for 0.70 of retired years on the mean and up to 0.97. That is not de-risking with age, it is a
   different portfolio for most of retirement, and the copy cannot call it a glidepath if it is not one.
 
+### Phase 6f. The kink nobody chose: is resilience doing anything the bequest term is not?
+
+**Asked by the maintainer, 23 Sep: "why do we even need resilience if we have bequest?"** Working it
+through gives an answer I did not expect and did not like.
+
+**They are not two concepts.** Both take the SAME quantity - terminal net wealth - and both are gated
+by the same `alive` test. Added together they are ONE piecewise-linear concave function of terminal
+wealth: resilience is its steep first segment, bequest its shallow second one. At K = opening wealth
+of 500,000:
+
+| terminal net | combined score | marginal value of the next 1,000 |
+|---|---|---|
+| 0 to K | rising to 0.52 | **10.4e-4** |
+| K to 4K | 0.52 to 0.58 | **0.4e-4** - a **26x drop**, at K |
+| above 4K | 0.58, flat | **0** - the cap, studied in 6c and 6e |
+
+So the honest answer to the question is: **mathematically you do not need both.** One concave utility
+of terminal wealth expresses the same preference. Resilience's stated justification - "a decomposable
+stand-in for the unlucky tenth" - is satisfied by the SHAPE, not by being a separate term; any concave
+function weights the bottom of the distribution automatically.
+
+**There is one real reason to keep them apart, and it is a product reason rather than a modelling one.**
+Phase 6d turns the bequest weight into a user control. Fused into a single function, moving the estate
+dial would also change the slope protecting the downside; kept separate, the user moves `wB` and the
+downside protection stays where it is. Separable dials are worth something. That is an argument for
+the parameterisation, not for the values.
+
+#### What the question actually exposed
+
+**The kink at K is 26 times larger than the cliff at 4K that 6c and 6e spent about fifteen hours of
+compute on.** And nobody chose it: it is what falls out of `wR = 0.5` and `wB = 0.02` having been
+picked independently, at different times, for different stated reasons.
+
+It also sits INSIDE the distribution rather than off in its tail. Measured across the 41: the unlucky
+tenth lands at **0.64 to 0.84 of opening wealth** - always on the steep side - while medians run
+**2.2x to 3.9x** - always on the shallow side. Every household straddles the bend.
+
+**The constants audit could not have found this, and that is a fault in how it was done.** It examined
+each constant for flat regions one at a time. The shape exists only in the SUM, which is the function
+the solver actually maximises and which appears nowhere in this plan until now. Term-by-term auditing
+is structurally blind to a relationship between terms.
+
+#### The screen (tag wr-*), ~1.2 h
+
+Four arms - `wR` in {0, 0.25, 0.5, 1.0}, making the slope ratio 1x, 13x, 26x (today) and 52x - on six
+households spanning opening wealth 180k to 950k and p10/K from 0.64 to 0.84. Lambda held at each
+household's landed flex-tiers value, so each cell is one solve.
+
+**`wR = 0` is the maintainer's question asked directly.** If deleting resilience changes nothing, the
+term is doing no work and should go.
+
+**The metric that decides it is p10 terminal net**, the unlucky tenth - because that is what resilience
+exists to protect, by its own comment. If varying its weight does not move the unlucky tenth, it is not
+doing the job it was added for, whatever else it moves.
+
+**What it decides.**
+- **If `wR = 0` leaves p10 within 2% on all six**: resilience earns nothing and the objective should
+  lose a term. A simpler objective with the same behaviour is strictly better.
+- **If all four arms are within 2%**: the 26x ratio is arbitrary and not load-bearing. Record it, stop
+  treating 0.5 as meaningful, and leave it alone.
+- **If p10 moves materially with `wR`**: the term is doing its job, the ratio is load-bearing, and it
+  deserves a proper study with a landing rather than a screen - and `wR` becomes a candidate for the
+  same user-lever treatment 6d is giving `wB`.
+
+**What it cannot decide.** Lambda is held, so the floor rate is not pinned, the arms are not compared
+at equal downside, and no figure here is a headline. It answers whether the weight matters, not what it
+should be.
+
+---
+
 ### Phase 6c. The bequest shape: a shoulder, not a cliff
 
 Pre-registered 22 Sep, after gate 6b and before any code. **This is an objective change, so it cannot be
@@ -2173,6 +2243,8 @@ though the speed work comes first. It does not. This is the schedule; the table 
 | **next** | **Task #108**, sweep the landing against search-path count | **Promoted ahead of E3 on the split measurement, 23 Sep.** Every solve is followed by 5,400 forward runs costing 373 s against the solve's own 314 s, and that number was chosen once and never swept. If 1,000 lands as well, roughly 44% comes off a landing - three times E3 - and it is a parameter sweep, not new code. **Not free money**: those paths CHOOSE lambda as well as measure it, and 2d finding (d) already measured the winner's curse at up to 0.8 of a point of undershoot. It may conclude 5,400 is needed, which is worth knowing before a day and a half goes into E3 rather than after. |
 | then | **E3**, collapse the empty-pot dimensions, ~1 day | **Re-sized 23 Sep: 13.8% of a landing, not 30.2%** - the 30.2% is of cell work, and cell work is 45.7% of the run. Still worth building: exact, gate is bit-equality, and it compounds with whatever #108 finds. Built in two steps like E0. |
 | cancelled | **E4's build** | Its measurement killed it: 3.8% slower, not faster. Recorded in results-part-e-measured.txt. |
+| then | **the lambda curve**, ~1.6 h | What shape is floorRate(lambda)? Asked against my claim that it is smooth and monotone, which was a quote from a comment rather than a description. It is a STAIRCASE - the policy is an argmax over a finite action set - and the tax kinks enlarge its steps. Decides how much a bracketed superlinear root-finder can buy; Brent degrades to bisection on a bad staircase, so the shape bounds the upside only. |
+| then | **6f**, the kink screen, ~1.2 h | **The 26x drop in marginal value at opening wealth is larger than the cliff at 4x that 6c and 6e spent fifteen hours on, and nobody chose it.** Four resilience weights including ZERO, six households straddling the bend, judged on the unlucky tenth. |
 | then | **6c-screen**, 20 min | Before 6d, because curvature and weight substitute for each other. **Its purpose has changed**: with 6c not passed and the curve staying off, it no longer validates a shipped change, it tells 6d whether the curve is a live variable underneath the weight. |
 | cancelled | **6e stage 2**, the field check | Stage 1 came back quiet on every arm, so the ~13 h field check does not run. Task #125 (a fresh 6c) expires with it: nothing is owed. |
 | then | **6d stage 1**, 1-2 h | The lever sweep at fixed lambda. |

@@ -32,12 +32,29 @@ REAL="$(cd "$(dirname "$0")/../.." && pwd)"
 # A discipline that depends on reading a launch command correctly is not a discipline. This is a lock.
 #
 LOCK="${TMPDIR:-/tmp}/solver-experiment.lock"
+#
+# THE LOCK CLEARS ITSELF WHEN STALE. DO NOT rm IT FROM A CALLER.
+#
+# The first version told the caller to `rm -rf` a stale lock, and that advice destroyed the lock. Every
+# chain script I wrote then began with a blind `rm -rf`, so the mkdir below ALWAYS succeeded and nothing
+# was ever refused. On 2026-09-23 two convergence runs started 59 seconds apart and both held what they
+# thought was the lock, because the second had deleted the first's. A guard whose documented usage is to
+# delete it first is not a guard.
+#
+# So staleness is now decided here, from the recorded pid, and never by the caller.
+#
 if ! mkdir "$LOCK" 2>/dev/null; then
-  echo "=== REFUSED: an experiment is already running (lock $LOCK)" >&2
-  echo "=== $(cat "$LOCK/what" 2>/dev/null || echo 'unknown command')" >&2
-  echo "=== if that is stale - nothing in ps - remove the lock: rm -rf $LOCK" >&2
-  exit 1
+  HOLDER="$(cat "$LOCK/pid" 2>/dev/null || echo 0)"
+  if [ "$HOLDER" -gt 0 ] 2>/dev/null && kill -0 "$HOLDER" 2>/dev/null; then
+    echo "=== REFUSED: an experiment is already running (lock $LOCK, pid $HOLDER)" >&2
+    echo "=== $(cat "$LOCK/what" 2>/dev/null || echo 'unknown command')" >&2
+    exit 1
+  fi
+  echo "=== stale lock from pid ${HOLDER:-?} (no such process); taking it over" >&2
+  rm -rf "$LOCK"
+  mkdir "$LOCK" || { echo "=== REFUSED: could not take the lock" >&2; exit 1; }
 fi
+echo "$$" > "$LOCK/pid"
 echo "$* (pid $$, started $(date -u +%Y-%m-%dT%H:%M:%SZ))" > "$LOCK/what"
 trap 'rm -rf "$LOCK"' EXIT INT TERM
 SNAP="$(mktemp -d "${TMPDIR:-/tmp}/solver-snap-XXXXXX")"

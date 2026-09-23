@@ -2075,3 +2075,39 @@ carries no #106 option until the re-check clears one.
   pot GBP1.9m, unlucky tenth GBP307k); with `drop` it keeps its tier, 71% of paths fully funded, median
   GBP2.6m, unlucky tenth GBP81k. Recorded as an open defect for the maintainer and as the mathematician's
   question 5.
+
+## Step 2b (COMPLETED 23 Sep 21:00, decision: nothing) - moved here from PLAN.md
+
+**OUTCOME (`results-ranking.txt`).** 479 positions on the 12 step-2 households, 500 paired paths each, full scan, exact final year. 387 positions: first and second choice give identical outcomes (337 with a margin of exactly 0 - moves that do the same thing). 76 differ only in spending (0.00-0.04%). 16 differ in survival: 8 better, 8 worse, none beyond two paired se; mean loss 0.25, worst 0.60 (S112, one tier down against two). By the agreed table: **nothing**. The prediction held on near-ties, average loss and worst loss; its clear-margin clause is untested, because the plan's positions almost never offer a clear second choice (99th percentile margin 1.6e-4, none above 0.005).
+
+## Step 2b. The ranking check (as planned), and what follows from its result
+
+**The question (maintainer, 23 Sep): when the table ranks two moves, does its first choice really simulate
+better than its second?** Phase V showed the table's own numbers are off by several points while the
+plans are stable; the phase-2 loss ledger showed a near-tie misranked on the old grid (S070, about 6 points
+on that one decision). This measures how often the table picks the worse of its top two, and what it costs.
+
+**Method (`audit-ranking.mjs`, ~30 min).** On the new baseline for the 12 step-2 households: sample
+positions along simulated paths across the whole retirement; at each, take the table's top two moves and
+their score margin; simulate each (take the move, then follow the solver) on the same 500 paths; record
+whether the first choice did at least as well, and by how much it lost when it did not, bucketed by the
+table's margin. Prediction and falsifier: in the predictions register.
+
+**What each result leads to - agreed with the maintainer before the run:**
+
+| result | answer | why |
+|---|---|---|
+| wrong picks rare, or losses under half a point | **nothing** | the imperfection is real but does not reach outcomes |
+| wrong picks frequent on near-ties, losses small | **a tie-break rule** among near-tied moves - less tax, then fewer changes; a tax-averse tie-break was measured in phase 2 | cheap, and removes pointless churn between equal moves |
+| losses of a point or more on near-ties | **settle near-ties by simulation (rollout)**: when the top moves are within a margin, simulate each for a few hundred paths and take the better | **provably no worse than the table**: the table's own pick is one of the candidates, so rollout can only correct it (the rollout-improvement property). Costs only on near-ties; for the app's "this year's action" it is seconds |
+| errors concentrated where survival changes sharply | **extra grid points on the cliff only** (the adaptive grid the loss ledger already named) | puts resolution where it pays, not everywhere |
+
+**Already in the code (finding M7):** the tie-break row is `tieMargin` in `chooseAction`, off, measured on the
+old grid at +1.5 points on S070 and -0.5 on the largest wins; it is re-measured, not rebuilt. Richardson
+extrapolation (`rich`) also exists and has never been measured.
+
+**Not the answer: a uniformly finer grid.** Phase V showed the table's error shrinks only slowly with
+resolution - still moving at 56 points, about twice today's cost - and near-ties exist at any resolution.
+
+**If a fix is needed** it is built and checked before K5, so the guardrail matching and Phase 4 run on the
+fixed solver. It adds a few hours to Thursday.

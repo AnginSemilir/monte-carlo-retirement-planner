@@ -1,0 +1,88 @@
+STEP 2b - THE RANKING CHECK (PLAN.md step 2b), 23 Sep 19:59-20:59, from snapshot /tmp/solver-snap-48b7YR (b9fb60c)
+New baseline, full scan, exact final year (FINALEXACT=1), single table, tiers and raises on, no #106 option.
+12 step-2 households, 40 sampled positions each (479 in all), 500 paths per position, paired.
+Per-position data: results/ranking/<id>.json.
+
+VERDICT BY THE AGREED TABLE: "wrong picks rare, or losses under half a point" -> NOTHING. No tie-break
+(tieMargin stays off), no rollout, no cliff points.
+
+ALL HOUSEHOLDS
+  positions                                   479
+  first and second choice identical outcome   387  (337 with a score margin of exactly 0: moves that do the
+                                                    same thing, e.g. a harvest with nothing to harvest, or
+                                                    the order of an empty pot)
+  differ only in spending delivered            76  (household spending differences 0.00% to 0.04%)
+  first choice survives better                  8
+  first choice survives worse                   8  (1.7% of positions; none beyond 2 paired se)
+  loss when worse: mean 0.25 points, worst 0.60 (S112, t=5, a one- vs two-tier-down pair)
+  margins: median 0; 99th percentile 1.6e-4; largest 1.5e-3 - the plan's positions almost never
+  offer a clear second choice (none in the "clear, > 0.005" bucket, 2 in "small").
+
+AGAINST THE PREDICTION (predictions register, written before the run)
+  near-ties close to a coin toss                     HELD: 8 better, 8 worse
+  average loss when wrong under half a point         HELD: 0.25
+  no loss above 2 points                             HELD: worst 0.60
+  clear margins win in over 80%                      UNTESTED: no clear-margin position was sampled
+  FALSIFIER (over 30% wrong with a clear margin, or a loss above 2 points): not triggered.
+Resolution: 500 paths resolve one path = 0.2 points, so a loss per position of about 0.6 points or
+more would be visible; smaller misrankings are below what this check can see.
+
+THE EIGHT POSITIONS WHERE THE FIRST CHOICE DID WORSE (all within noise)
+  S100 t=2  margin 8.8e-5  99.4 vs 99.6  se 0.20  first spends 110%, second 100%
+  S112 t=12 margin 2.0e-5  98.6 vs 98.8  se 0.35  harvest to the allowance or not
+  S112 t=11 margin 1.5e-5  99.6 vs 99.8  se 0.20  harvest or not
+  S112 t=7  margin 6.6e-5  97.4 vs 97.6  se 0.20  harvest or not
+  S112 t=5  margin 7.6e-6  98.6 vs 99.2  se 0.35  one tier down vs two
+  S184 t=10 margin 1.8e-4  89.6 vs 89.8  se 0.20  harvest ceiling and pension-first order
+  S184 t=6  margin 4.9e-5  92.4 vs 92.6  se 0.20  harvest ceiling and pension-first order
+  S206 t=13 margin 5.6e-5  99.8 vs 100.0 se 0.20  plan tier vs one down
+
+PER HOUSEHOLD (the audit's own buckets)
+S054 in-drawdown/cash-heavy/comfortable/light - 40 positions, 500 paths each, lambda 0.1
+  near-tie, margin < 0.0005     40 positions | first choice survives at least as well in 100% | when not: mean loss - pts, worst - | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second -0.00%
+  small, 0.0005 - 0.005        none
+  clear, > 0.005               none
+S126 early-bridge/pension-heavy/comfortable/l - 40 positions, 500 paths each, lambda 0.0223606797749979
+  near-tie, margin < 0.0005     40 positions | first choice survives at least as well in 100% | when not: mean loss - pts, worst - | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second -0.00%
+  small, 0.0005 - 0.005        none
+  clear, > 0.005               none
+S390 long-bridge/gia-heavy/comfortable/light - 40 positions, 500 paths each, lambda 0.005
+  near-tie, margin < 0.0005     39 positions | first choice survives at least as well in 100% | when not: mean loss - pts, worst - | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second -0.00%
+  small, 0.0005 - 0.005          1 positions | first choice survives at least as well in 100% | when not: mean loss - pts, worst - | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second 0.04%
+  clear, > 0.005               none
+S252 mid/isa-heavy/lean/light - 40 positions, 500 paths each, lambda 2
+  near-tie, margin < 0.0005     40 positions | first choice survives at least as well in 100% | when not: mean loss - pts, worst - | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second 0.00%
+  small, 0.0005 - 0.005        none
+  clear, > 0.005               none
+S112 just-retired/cash-heavy/modest/moderate - 40 positions, 500 paths each, lambda 0.0223606797749979
+  near-tie, margin < 0.0005     40 positions | first choice survives at least as well in 90% | when not: mean loss 0.30 pts, worst 0.60 | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second -0.02%
+  small, 0.0005 - 0.005        none
+  clear, > 0.005               none
+S206 near/gia-heavy/lean/heavy - 40 positions, 500 paths each, lambda 0.1
+  near-tie, margin < 0.0005     40 positions | first choice survives at least as well in 98% | when not: mean loss 0.20 pts, worst 0.20 | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second -0.01%
+  small, 0.0005 - 0.005        none
+  clear, > 0.005               none
+S184 near/pension-heavy/modest/moderate - 40 positions, 500 paths each, lambda 2
+  near-tie, margin < 0.0005     40 positions | first choice survives at least as well in 95% | when not: mean loss 0.20 pts, worst 0.20 | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second 0.00%
+  small, 0.0005 - 0.005        none
+  clear, > 0.005               none
+S330 far/gia-heavy/comfortable/light - 39 positions, 500 paths each, lambda 0.9457416090031758
+  near-tie, margin < 0.0005     39 positions | first choice survives at least as well in 100% | when not: mean loss - pts, worst - | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second 0.00%
+  small, 0.0005 - 0.005        none
+  clear, > 0.005               none
+S162 early-bridge/balanced/comfortable/light - 40 positions, 500 paths each, lambda 0.1
+  near-tie, margin < 0.0005     40 positions | first choice survives at least as well in 100% | when not: mean loss - pts, worst - | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second -0.00%
+  small, 0.0005 - 0.005        none
+  clear, > 0.005               none
+S070 just-retired/pension-heavy/wealthy/moder - 40 positions, 500 paths each, lambda 1.140477893362459
+  near-tie, margin < 0.0005     40 positions | first choice survives at least as well in 100% | when not: mean loss - pts, worst - | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second 0.00%
+  small, 0.0005 - 0.005        none
+  clear, > 0.005               none
+S100 just-retired/balanced/modest/moderate - 40 positions, 500 paths each, lambda 2
+  near-tie, margin < 0.0005     40 positions | first choice survives at least as well in 98% | when not: mean loss 0.20 pts, worst 0.20 | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second -0.01%
+  small, 0.0005 - 0.005        none
+  clear, > 0.005               none
+S354 far/cash-heavy/comfortable/light - 40 positions, 500 paths each, lambda 1.140477893362459
+  near-tie, margin < 0.0005     39 positions | first choice survives at least as well in 100% | when not: mean loss - pts, worst - | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second 0.00%
+  small, 0.0005 - 0.005          1 positions | first choice survives at least as well in 100% | when not: mean loss - pts, worst - | beyond noise (2 se): 0, of which also no better on spending: 0 | spending, first minus second 0.01%
+  clear, > 0.005               none

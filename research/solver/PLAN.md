@@ -278,6 +278,7 @@ repeated in the phases below.
 | resilience | load-bearing for the unlucky tenth's end pot AND the main source of trimming -> **removed** | 6f, `results-p6f-kink.txt` |
 | numerical convergence (Phase V) | plans stable, table numbers not (optimistic 2-3 points, not converged at 56 points); judged on simulation, decision A | `results-phase-v.txt`; full text in history |
 | step 2 and its re-check | the final year read the nearest cell's move (M10) - fixed, survival up on 9 of 12; ternary OUT (-0.20 at 2.4 se on two households, none better); 15 nodes no better than 5; 56 points within half a point either way (one household outside, noise-shaped); no #106 option passed | `results-step2.txt`; full text in history |
+| the ranking check (2b) | at 479 positions the plan reaches, the table's first and second choices mostly do the same thing (387 identical); where they differ in survival it is a coin toss (8 better, 8 worse), none beyond noise, worst 0.6 points. No tie-break, rollout or cliff points. Clear-margin positions were never sampled, so that part of the prediction is untested | `results-ranking.txt` |
 | the S126 anomaly (#106) | confirmed: a dead corner in log-odds on a SHARE axis; only S126 of the 41 is in the class at t = 0. **Still open (step 2):** neither fix passed; without one S126 holds its pension off-tier for 40 years, with `drop` 9, a 38% larger median pot, a 74% smaller unlucky tenth, 0.3 points less survival. It changes the plan's character; put to the maintainer and the mathematician (Q5) | `results-106-deadcorner.txt`, `results-step2.txt` |
 | E4, interleaved value arrays | dead: 3.8% slower | `results-part-e-measured.txt` |
 | E1, seeding from next year's move | **re-read from step 2's full-width stored moves, 19:20: not built.** The best candidate set (41 of 432 moves) covers 97.72% of this year's best moves across 4.1 million retired cell-years, against a 99.5% bar; the corrupted first read said 98.68%. Prediction (98-99%, verdict stands) held on the verdict, slightly low on the figure | `results-e1-records.txt` |
@@ -351,7 +352,7 @@ changes a result on file; four need work before something downstream is trusted.
 | M4 | **The couples rollout has three gaps.** Its value omits the trim table, so it never weighs cuts; the year's spending level comes from the first person's move only; its expectation hard-codes five nodes and ignores `quadNodes`. | Couples were validated under the old objective, where the trim penalty was landed per household; under the dislike-of-cuts slider the rollout would ignore the slider. | Fix all three before the couples re-validation; added to the mathematician's question 9. | "Couples under the new objective", after Phase 4 |
 | M5 | **The Phase 4 power statement was loose.** With a per-household spread of 0.82 points, the edge detectable at 80% power is 2.80 x 0.82/sqrt(40) = **0.36 points**; at 0.4 the power is about 87%. | The panel is stronger than stated; no change to its size. | Text corrected below. | done |
 | M6 | **The landings run five bisection steps, not eight.** The derive-first section says eight suffice; `experiment.mjs` defaults to five, leaving the bracket ratio at 1.21 (eight would leave 1.024). | Only two landings remain: Phase 4's equal-survival diagnostic and any K5 landing. | Run those with `BISECT=8`: three more solves per landing, about 45 minutes on the 12-household diagnostic. | Phase 4 diagnostic |
-| M7 | **Step 2b's first remedy already exists.** `tieMargin` (among moves within a margin of the best, take the least tax this year) is in `chooseAction`, off, measured on the old grid at +1.5 points on S070 and -0.5 on the largest wins. Richardson extrapolation (`rich`) also exists, never measured. | If the ranking check calls for a tie-break, it is a re-measurement, not a build. | Re-measure `tieMargin` on the new grid if 2b's result calls for it. | after 2b, only if needed |
+| M7 | **RESOLVED 21:00: not needed - 2b landed in its "nothing" row.** **Step 2b's first remedy already exists.** `tieMargin` (among moves within a margin of the best, take the least tax this year) is in `chooseAction`, off, measured on the old grid at +1.5 points on S070 and -0.5 on the largest wins. Richardson extrapolation (`rich`) also exists, never measured. | If the ranking check calls for a tie-break, it is a re-measurement, not a build. | Re-measure `tieMargin` on the new grid if 2b's result calls for it. | after 2b, only if needed |
 | M8 | **The minimum pot is tested on the GROSS pot**, the estate on the NET (after pension death tax). Dormant: every library household has a zero death-tax rate. | With a minimum-pot default the product now has a user-visible number whose meaning depends on this. | The copy says "before any tax on the pension at death" until a synthetic fixture tests the net version. Put to the maintainer with the step-6 defaults. | step 6 |
 | M9 | **The questions for the mathematician now have owners.** Q1 (does monotonicity survive an approximate solver) before K7; Q2 (fitting two dials to a stepped response) before K5; Q3 (a path for the estate slider) before K4's fit; Q4 (why the choice is stable) alongside 2b; Q5 (drop's discontinuity) only if step 2 picks `drop`; Q6 (noisy rollout) only if 2b calls for rollout; Q9 before couples ship; Q7, Q8, Q10 not blocking. | Nothing tonight waits on an answer; K5 on Thursday is the first step that could. | Send the page when the maintainer has shared it. | - |
 | M10 | **The final year read the NEAREST CELL's stored move** - the one read `chooseAction` exists to avoid. Found from the step-2 records at 18:43: all 53 paths S206 lost at 56 points, and 27 of the 28 S390 lost under the ternary search (plus all 8 it gained), failed in the final year from a near-empty position. On 300 random final-year positions of S206 the nearest-cell move fails outright on 81 where a paying move exists. | It affects every simulated result on file in its last year, and it decided both step-2 gate failures. Paired comparisons share it, so their direction mostly survives; absolute survival is slightly understated on thin households. | **Built:** `finalExact` scores the final year's moves at the true position against the same end-of-plan rule the backward pass applies at t = T. Off by default (bit-identical, tested); on in `PRODUCT_BASELINE` and in every run from here (`FINALEXACT=1`). `solver-final.test.mjs`: tables untouched, the choice is the exact argmax on 300 positions, never a failing move when a paying one exists. The two failed comparisons are re-run with it on (`batch-step2-recheck.sh`); the failures stand as recorded. | before 2b |
@@ -389,7 +390,7 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 0 | ~~Byte-wide policy bug's cost~~ **zero effect** | - | - | done |
 | 1 | ~~Phase V~~ **done: plans stable, table numbers not; judged on simulation (decision A)** | - | - | done |
 | 2 | ~~Step 2 and its re-check~~ **done 19:45**: finalExact on, ternary out, 30 points kept, no #106 option (history) | 1 | - | done |
-| 2b | **Ranking check**: does the table's first choice simulate better than its second? Full scan, exact final year (solver tests first: running 19:50) | 2 | ~55 min | Wed ~21:00 |
+| 2b | ~~Ranking check~~ **done 21:00**: nothing to fix - the first choice did worse at 8 of 479 positions, none beyond noise, worst 0.6 points (`results-ranking.txt`; history) | 2 | - | done |
 | 3 | **Lever builds** - estate curve, raise cap/block, block trimming and `solvePlan` (M1) built and tested; the minimum-pot default waits on step 6 and lambda's slider map on K6 | 2w | done except those two | - |
 | 4 | **K1 honouring checks**, three arms (M2), full scan | 2b | ~1.3 h | Wed ~22:30 |
 | 5 | **K2-K4 screens** overnight, with records, full scan | 4 | ~6.5 h | Thu ~05:00 |
@@ -406,8 +407,8 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 |---|---|---|
 | ~~18:35 - 19:45~~ | ~~step 2, then its re-check~~ **done** | M10 fixed; `solvePlan`; plan review; E1 re-read (not built) |
 | 19:50 - 20:05 | solver test suite (runtime policy and baseline changed) | step 2 write-up and history move |
-| 20:05 - 21:00 | ranking check, full scan, exact final year | - |
-| 21:00 - 21:10 | - | 2b against its agreed decision table |
+| ~~20:05 - 21:00~~ | ~~ranking check~~ **done** | - |
+| ~~21:00 - 21:10~~ | - | ~~2b against its decision table~~ **done: nothing** |
 | 21:10 - 22:30 | K1, three arms | - |
 | 22:30 - ~05:00 | K2-K4 screens, 192 cells | K2-K4 reducer runs as cells land |
 | ~05:00 - 06:00 | Phase 4 panel selection | - |
@@ -462,7 +463,7 @@ written here, each derived from records already on file.
 | step 2, ternary against exhaustive | simulated survival and spending identical within noise on every household (24 misses in 5.0 million); the backward pass 20-30% faster (four level evaluations of six, and flows computed only for levels visited) | any household beyond 0.5 of survival or 1% of spending, or under 15% faster | **written now**, from the single-peak probe |
 | step 2, 15 nodes and 56 points | within half a point of survival and 1% of spending, but NOT comfortably: Phase V put the 30-to-56 simulation gap at -0.4 to +0.1 and 5-to-15 at -0.3 to +0.4 at 1,000 paths (the first range corrected 23 Sep plan review: it said +0.2 to +0.4), so one borderline household is likely | a gap over 1 point, or a systematic sign across all twelve | **written now**, from Phase V's simulated columns |
 | step 2, the #106 fix | in its section (step 2) | - | step 2 |
-| ranking check | where the table's first choice beats its second by a clear margin in score, it simulates at least as well in over 80% of sampled positions; where the margin is tiny, it is close to a coin toss; the average loss when it is wrong is under half a point, and no loss exceeds 2 points on the current grid (S070's 6-point misranking was on the old per-pot grid) | wrong in over 30% of positions with a clear margin, or any loss above 2 points | **written now**, from Phase V's 6-9% of moves changing without moving the simulation, and the phase-2 loss ledger |
+| ranking check | where the table's first choice beats its second by a clear margin in score, it simulates at least as well in over 80% of sampled positions; where the margin is tiny, it is close to a coin toss; the average loss when it is wrong is under half a point, and no loss exceeds 2 points on the current grid (S070's 6-point misranking was on the old per-pot grid) | wrong in over 30% of positions with a clear margin, or any loss above 2 points | **HELD 21:00** on near-ties (8 better, 8 worse), average loss (0.25) and worst loss (0.60); the clear-margin clause UNTESTED - none sampled. Falsifier not triggered (`results-ranking.txt`) |
 | K1 honouring | exact by construction: every rule holds on every path | any path breaks any rule - a bug | K1 |
 | K2 minimum pot | in K2 | - | K2 |
 | K3 raise cap | in K3 | - | K3 |
@@ -476,40 +477,6 @@ written here, each derived from records already on file.
 | Phase 4, phone grid (14 points) on 12 | simulated survival within about a point of the 30-point grid - Phase V's 16-point arm simulated within 0.7 of 30 points on all three households - while the table's own reading is further off | any household more than 1.5 points worse | **written now**, from Phase V |
 | E1 re-run from stored moves | coverage stays near 98-99% and the verdict (not built) stands: the moves above 255 that corrupted it are the "draw the pension first" families, rarely chosen | coverage above 99.5% with a small set - E1 would then be worth building | **DONE 19:20: 97.72%, not built** (`results-e1-records.txt`) |
 | E3 | bit-identical results; about 30% off the solve | any bit differs | E3 |
-
----
-
-## Step 2b. The ranking check, and what follows from its result
-
-**The question (maintainer, 23 Sep): when the table ranks two moves, does its first choice really simulate
-better than its second?** Phase V showed the table's own numbers are off by several points while the
-plans are stable; the phase-2 loss ledger showed a near-tie misranked on the old grid (S070, about 6 points
-on that one decision). This measures how often the table picks the worse of its top two, and what it costs.
-
-**Method (`audit-ranking.mjs`, ~30 min).** On the new baseline for the 12 step-2 households: sample
-positions along simulated paths across the whole retirement; at each, take the table's top two moves and
-their score margin; simulate each (take the move, then follow the solver) on the same 500 paths; record
-whether the first choice did at least as well, and by how much it lost when it did not, bucketed by the
-table's margin. Prediction and falsifier: in the predictions register.
-
-**What each result leads to - agreed with the maintainer before the run:**
-
-| result | answer | why |
-|---|---|---|
-| wrong picks rare, or losses under half a point | **nothing** | the imperfection is real but does not reach outcomes |
-| wrong picks frequent on near-ties, losses small | **a tie-break rule** among near-tied moves - less tax, then fewer changes; a tax-averse tie-break was measured in phase 2 | cheap, and removes pointless churn between equal moves |
-| losses of a point or more on near-ties | **settle near-ties by simulation (rollout)**: when the top moves are within a margin, simulate each for a few hundred paths and take the better | **provably no worse than the table**: the table's own pick is one of the candidates, so rollout can only correct it (the rollout-improvement property). Costs only on near-ties; for the app's "this year's action" it is seconds |
-| errors concentrated where survival changes sharply | **extra grid points on the cliff only** (the adaptive grid the loss ledger already named) | puts resolution where it pays, not everywhere |
-
-**Already in the code (finding M7):** the tie-break row is `tieMargin` in `chooseAction`, off, measured on the
-old grid at +1.5 points on S070 and -0.5 on the largest wins; it is re-measured, not rebuilt. Richardson
-extrapolation (`rich`) also exists and has never been measured.
-
-**Not the answer: a uniformly finer grid.** Phase V showed the table's error shrinks only slowly with
-resolution - still moving at 56 points, about twice today's cost - and near-ties exist at any resolution.
-
-**If a fix is needed** it is built and checked before K5, so the guardrail matching and Phase 4 run on the
-fixed solver. It adds a few hours to Thursday.
 
 ---
 

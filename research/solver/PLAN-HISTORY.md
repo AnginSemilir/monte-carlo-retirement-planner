@@ -1788,3 +1788,203 @@ The distinction between E0 and E1 is the point: **exact work can run against a m
 work cannot.** E0's gate is arithmetic; E1's gate is a comparison, and a comparison needs a fixed thing
 to compare against.
 
+---
+
+## Phase V (COMPLETED 23 Sep 16:35, decision A) - moved here from PLAN.md 23 Sep evening
+
+Outcome: the plans are stable, the table's own numbers are not; V1 and V2 failed as written on the table
+reading, and the maintainer decided (A) to judge numerics on the simulated outcome. Results:
+`results-phase-v.txt`, `results-phase-v-raw.txt`. The sub-point check V could not make runs inside step 2.
+
+**Two arithmetic corrections found by the method audit, 23 Sep evening (neither changes a conclusion):**
+the V1 text says a 10% band of wealth spans "about 0.8 sd"; it is ln(1.1)/0.13 = 0.73 sd. The V2 text
+says the wealth axis has "h = ln(600)/n = 0.21 at 30 points, near 24% steps"; the axis has 29 log-spaced
+points, so h = ln(600)/28 = 0.23, steps of 26%.
+
+## Phase V: OUTCOME AND THE DECISION IT NEEDS (23 Sep, 16:35)
+
+**Result, in one line: the plans are stable; the table's own numbers are not.** Changing the quadrature
+(5/9/15 nodes), the wealth axis (16 to 56 points) and the share axes (6/9/12) moved the SIMULATED survival
+by no more than noise on all three households, while the TABLE's reading moved by up to several points
+and does not settle even at 56 points - optimistic by 2 to 3 points against its own simulation. 6 to 9%
+of stored moves change with the settings without moving the simulation, which points to near-ties.
+#106's dead corner is confirmed four ways and confined to S126's bridge years. Linear interpolation is not
+a safe replacement for log-odds (better on average along wealth for two households, catastrophic on the
+third). Full tables and predictions against outcomes: `results-phase-v.txt`.
+
+**Gate status: V1 and V2 FAILED as written** - the pass marks were set on the table's reading as well as
+the simulation. By the standing rule the queue stops here.
+
+**DECIDED 23 Sep, maintainer: (A).** The numerics are judged on the simulated outcome - what a user is
+shown - with the table used only to choose moves. The maintainer's test, in his words: as long as the
+solver's choices give a strong simulated result against the current app with the same inputs and
+settings, the table's own number does not matter. That is Phase 4; the step-2 check below adds the
+sub-point confirmation V could not make.
+
+**The options that were put:**
+- **(A) Re-judge V1, V2 and V2s on the SIMULATED outcome** - what a user is shown - and add the check
+  V could not make: at 3,000 paths, on the 12 step-2 households, the settings' extremes (5 vs 15 nodes,
+  30 vs 56 points) compared on survival AND spending delivered AND lifetime tax, gated at half a point and
+  1% of spending. Folded into step 2's field check; about an hour more. The table is never a reported
+  number (already a requirement, now written into the Fixed requirements). *Recommended.*
+- **(B) Treat V as failed and raise the resolution.** The table does not converge even at 56 points, so
+  no practical setting passes the gate as written; this buys solve time and not a pass.
+- **(C) Stop and investigate the table's bias further** before anything else. Informative, but the bias
+  does not reach the decisions on any evidence so far.
+
+**Unaffected either way:** the #106 fix (keep a dead share node out of the read) goes into step 2.
+
+---
+
+## Phase V. Is the numerical machinery converged?
+
+Nobody had asked whether the discretisation is converged: five Gauss-Hermite nodes, never varied; a
+30-point wealth axis never run as a convergence sequence; six points on each share axis, never tested at
+all; log-odds interpolation never compared against linear. **An unconverged discretisation biases
+everything, invisibly, and identically in both arms of Phase 4, so Phase 4 cannot detect it.** #106 then
+found a real fault on a share axis, which the original design could not have seen.
+
+#### HYPOTHESES, derived before the run
+
+**V1, and it is NOT simply "five is too few".** The rule integrates the next year's value against a
+standard normal. Computed from the rule itself:
+
+| nodes | nodes inside +/-2.2 sd | largest gap between nodes |
+|---|---|---|
+| 5 | **3** | **1.501 sd** |
+| 9 | 5 | 1.307 sd |
+| 15 | 5 | 1.174 sd |
+
+So at five nodes, 95% of the probability is carried by THREE points and the widest blind spot is 1.5
+standard deviations across. How wide is the cliff in the same units? Wealth grows by `exp(mu + sigma z)`,
+so at an equity volatility near 0.13 a 10% band of wealth spans about **0.8 sd** - narrower than the
+gap. On that alone five nodes look inadequate.
+
+**But the integrand is not the cliff.** `V_{t+1}` is already an expectation over every remaining year,
+so twenty years of future uncertainty have smoothed it into a sigmoid far wider than one year's cliff.
+The smoothing is weakest at the END of the horizon, where little future remains to average over.
+
+**So the prediction is specific: the quadrature error is concentrated in the last few years and largely
+washes out of the opening value.** V1 PASSES on its headline (opening survival within 0.1 of a point)
+**and** the policy differences it does find are concentrated at high `t`. **Falsified if** the opening
+value moves more than 0.1 of a point, or if the differing moves are spread evenly across years - the
+second would mean the smoothing argument is wrong and the error is everywhere.
+
+**V2.** Total wealth sits on a LOG axis read by linear interpolation, whose error is order
+`h^2 * |V''|` for spacing `h`. The axis spans roughly 600x, so `h = ln(600)/n = 6.4/n`: about 0.21 in
+log-wealth at 30 points, near 24% steps. **Prediction: successive differences shrink roughly as
+1/n^2**, so the 30-to-56 gap should be around three and a half times smaller than the 16-to-24 one.
+**Falsified if** the steps shrink materially slower than quadratically - which would mean the
+interpolation is resolving something non-smooth (the cliff) rather than a smooth function, and the
+resolution is genuinely insufficient rather than merely finite.
+
+**V3.** Survival as a function of log-wealth is approximately a normal CDF, being the probability that a
+sum of lognormal returns clears a threshold. A logistic and a probit agree to under 1% across the
+central range, so **log-odds interpolation should be close to exact near the cliff while plain linear
+interpolation carries the full curvature error.** Prediction: log-odds beats linear near the cliff by a
+visible margin and ties elsewhere. **Falsified if** linear matches or beats it - which would mean the
+comment in `grid.js` is folklore.
+
+#### V1. The quadrature: five nodes, hardcoded, never varied
+
+`NODES` holds five Gauss-Hermite points and nothing in the repository has ever changed it.
+
+Gauss-Hermite with five nodes is exact for polynomials to degree nine. **That guarantee does not apply
+here.** The integrand is a value function containing a survival cliff; near the cliff it is closer to a
+step than to a polynomial, and the degree-nine bound says nothing about steps.
+
+Concretely: the nodes sit at 0, +/-1.356 and +/-2.857, and **the outer pair carry 1.1% weight each**. If a
+cell's cliff falls near z = -2, the rule has NO NODE THERE - it spans the drop between a point worth
+1.1% and one worth 22%.
+
+**The check.** One household at 30 points, three arms: 5 nodes (today), 9, and 15. Node count multiplies
+the expectation step linearly, so this is about 5.8 solve-equivalents, half an hour.
+
+**Gate V1.** Five nodes stand if, against the 15-node answer: the opening position's survival is within
+**0.1 of a point**, and the stored move differs on **under 1% of cells**. If either fails, every result
+in this project carries an unmeasured bias and the node count must be raised before Phase 4.
+
+#### V2. Grid resolution: is thirty points converged?
+
+Runs exist at 20 and at 40 - but as ALTERNATIVES, chosen between, not as a convergence sequence. Nobody
+has solved the same household at increasing resolution and shown the answer stop moving.
+
+**And the code knows.** `solve()` carries a field `rich` - "a second solve at half the resolution, for
+Richardson extrapolation of the move scores" - permanently set to `null`. Someone saw this question
+coming and did not finish it.
+
+**The check.** One household at 16 / 24 / 30 / 40 / 56 points, all else fixed. Cost scales with the
+dense axis, so the five together are about 5.5 solve-equivalents.
+
+**Gate V2.** Thirty points stand if the sequence is visibly converging - each successive difference
+smaller than the last - **and** the gap from 30 to 56 is under **0.2 of a survival point** on the
+opening position. A sequence that is NOT visibly converging is the worse outcome: it would mean the
+answer depends on a resolution nobody chose on evidence.
+
+#### V3. The interpolation scheme
+
+Survival is read in log-odds "so the cliff between making it and not survives the read". A reasonable
+choice, never compared against the alternative.
+
+**It interacts with V2**, which is why it shares its run: better interpolation means fewer grid points
+are needed for the same accuracy, so the two questions are cheaper together than apart.
+
+**The check.** Take V2's 56-point solve as the reference. At positions BETWEEN coarse-grid nodes,
+compare what a 30-point table predicts under log-odds against what it predicts under plain linear
+interpolation, each against the fine-grid truth. No new solves.
+
+**Gate V3.** Log-odds stands if its worst error against the reference is no larger than linear's. If
+linear is better, the comment in `grid.js` is wrong and the read should change. If both are large, the
+problem is V2's, not V3's.
+
+
+#### Phase V as run, 23 Sep - extended, and its predictions written before the run
+
+`audit-converge-numerics.mjs`, rewritten: runs on the objective that will SHIP (resilience off, six
+levels, raises on, joint tiers, the household's landed lambda), reads every arm two ways - the table's
+opening value AND the simulated survival of its policy on 1,000 held-out paths - because #106 showed
+the first can be badly wrong while the second is fine. Adds **V2s** (the share axes at 6 / 9 / 12
+points) and a **census** of cells reading 50% or more with a dead corner one step along a share axis.
+Three households in parallel: S184 (the gate household, still working, no bridge), S330 (61-year
+horizon, the largest smear in the old loss ledger) and S126 (the #106 household).
+
+PREDICTIONS, derived:
+- **V1 passes on S184 and S330** (table within 0.1, under 1% of moves): the outer nodes carry 1.1% each
+  and the survival term is read in log-odds, where the cliff is a slope, not a step.
+- **V2 passes on S184 and S330**: phase 2 found 60 x 8 x 8 matching 40 x 6 x 6 to the decimal.
+- **V2s FAILS on S126 on the table read, and it is the dead corner, not resolution.** At 6 share points
+  the nodes are 0.8 and 1.0 and S126's 0.85 puts a quarter of its read on the dead all-pension node; at
+  9 points they are 0.75 and 0.875 and at 12 they are 0.818 and 0.909, so S126's read never touches the
+  dead node and should JUMP from about 8% toward its simulated ~97%. The SIMULATED survival should move
+  far less (within a point or two), because simulation walks real pots. V2s passes on S184 and S330.
+- **V3: log-odds beats linear along total wealth** (that is what it is for), **and loses along the share
+  axes where a dead corner sits** - which is the evidence for fix (a), reading linearly across a dead
+  share corner.
+- **Census: dead share corners in S126's bridge years only, near zero for S184 and S330**, whose
+  all-pension node is alive in every year.
+
+#### What each outcome costs
+
+- **All three pass**: the foundation is sound, this is recorded once and never revisited, and Phase 4
+  runs on a floor that has been checked rather than assumed. Cost: a few hours.
+- **V1 or V2 fails**: every existing result carries an unmeasured bias in an unknown direction. The
+  fix is more nodes or more points, both of which cost run time and neither of which is hard. **The
+  6-series conclusions would need re-reading**, though the PAIRED ones (6e, 6f) survive,
+  because a bias common to both arms cancels in a paired comparison - the same argument that saved
+  them from the lambda under-convergence.
+- **V2s fails on S126 only, as predicted**: the fix is the step-2 interpolation change, not more share
+  points everywhere.
+
+**A prediction I should have got right from the records (written mid-run, 23 Sep).** The V2 prediction
+("passes on S184 and S330") cited phase 2's "60 x 8 x 8 matched 40 x 6 x 6 to the decimal" - but that was
+a match of SIMULATED results, not of the table's own reading. The records on the table's reading say the
+opposite, and say it plainly: the phase-2 loss ledger (`ledger-bias.txt`, `ledger-smear-fixes.txt`)
+measured the table optimistic on S070 by +21, +16, +13 and +9 points at 12, 16, 20 and 28 points - a
+slow, roughly 1/n shrinkage, not the 1/n^2 assumed here - while the simulated survival of the same
+policy stayed at 67 to 68.5 throughout. Read correctly, the existing data predicted exactly what V2 is
+showing: **the table's reading does not converge at practical sizes; the simulated outcome does.** The
+same ledger showed linear interpolation cutting S070's table bias from +21 to +9 at 12 points, which is
+a clue V3 should confirm. This is the check-existing-data rule failing in my own hands, recorded as such.
+
+**Restart note, 23 Sep:** the first launch (14:59) was stopped after 15 minutes when the byte-wide policy
+bug was found - its simulations read the final year from that table. It restarts on the fixed code.

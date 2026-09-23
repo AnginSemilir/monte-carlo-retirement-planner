@@ -253,7 +253,7 @@ repeated in the phases below.
 
 ---
 
-## Where things stand (23 Sep evening)
+## Where things stand (23 Sep evening, updated 18:35)
 
 ### Settled, with the evidence (full text in `PLAN-HISTORY.md`, results in the files named)
 
@@ -274,6 +274,7 @@ repeated in the phases below.
 | the lambda search | no correctness fault; three of 22 landings were budget-limited; the +0.5 margin is load-bearing | `results-converge.txt` |
 | the seed pair 7001/7002 | agree within noise across 41 (+0.18 against +/-0.91) | `results-converge.txt` |
 | resilience | load-bearing for the unlucky tenth's end pot AND the main source of trimming -> **removed** | 6f, `results-p6f-kink.txt` |
+| numerical convergence (Phase V) | plans stable, table numbers not (optimistic 2-3 points, not converged at 56 points); judged on simulation, decision A | `results-phase-v.txt`; full text in history |
 | the S126 anomaly (#106) | confirmed: a dead corner in log-odds on a SHARE axis; only S126 of the 41 is in the class at t = 0 | `results-106-deadcorner.txt` |
 | E4, interleaved value arrays | dead: 3.8% slower | `results-part-e-measured.txt` |
 | E1, seeding from next year's move | fails its bar (98.68% coverage) - **to be re-run**, it read the byte-wide table | `results-probes-e1-unimodal.txt` |
@@ -333,6 +334,24 @@ one final-year cell stores a move above 255 - those are the "draw all the pensio
 no household chooses in its last year - so every simulation read the right move. Existing results stand.
 The E1 probe, which compares stored moves across all years, was corrupted and is re-run in step 2.
 
+### Findings from the method audit, 23 Sep evening - each with its action and slot
+
+Found while writing every calculation of the solver into the mathematician's page (the artifact
+"Drawdown by Dynamic Programming"), reading the source line by line rather than from memory. None
+changes a result on file; four need work before something downstream is trusted.
+
+| # | finding | why it matters | action | slot |
+|---|---|---|---|---|
+| M1 | **The code's defaults are still the OLD objective.** Bare `solve()` means resilience 0.5, the full level scan, no raises (raise weight 0, menu from `spendLevelsFor`: 1 / 0.95 / 0.9 / 0.8 / floor), the capped estate credit, and no #106 fix. Every research run sets the new baseline explicitly through its flags, so no result is affected. | Anything that calls `solve()` without those flags - the app in Part C, or a script that forgets one - silently gets the old objective. The step-2 `today` arm relies on the 0.5 default, so it would change if the default moved underneath it. | Flip the defaults to the decided baseline once step 2 picks the #106 option: resilience 0, six levels, raise weight 0.003, ternary search, the chosen `shareDead`, bump `SOLVER_VERSION`. Every script that means the old objective says so explicitly (`WR=0.5`, its old `LEVELS`). Gate: bare `solve()` equals the explicit new-baseline options bit for bit, and the explicit old options reproduce a stored old result bit for bit. | step 3; built in the overnight gap, tests after the screens |
+| M2 | **K1 tested the rules only at their extreme.** With trimming AND raises blocked the menu has one level, so "no cut" passes trivially; a raise cap between levels, and block-trimming alongside raises and tier changes, were never exercised. | K1 is the only check that the user's rules hold. | **Done:** `batch-k1.sh` gains `k1-cap` (cap 1.1, trimming allowed, tiers on) and `k1-block` (block trimming, raises allowed, tiers on), 6 households each, all with a 3-year minimum pot; `check-k1.mjs` checks each arm against its own rules. K1 becomes about an hour. | K1 |
+| M3 | **Pension draws are only ever tried at the tax corners** (the allowance, the basic-rate limit, unlimited). The argument (tax is linear between corners) is exact only if the value of next year's position is linear in the amount drawn along a stretch; it is curved. Amounts between corners have never been searched. | An assumption every household's plan rests on, never measured. | A table-only probe: at positions the plan reaches, score draws at 25 / 50 / 75% of the way between the chosen move's corners with the one-step lookahead; simulate any that beat the corner by more than 0.1 points. PREDICTION: rare and sub-point, since over one year's draw the continuation value is close to linear. FALSIFIED IF an in-between draw beats the corners by more than half a point in simulation on any household. About 2 h to build (custom-ceiling moves in a probe copy), 30 min to run. | after Phase 4 (or a free Thursday gap) |
+| M4 | **The couples rollout has three gaps.** Its value omits the trim table, so it never weighs cuts; the year's spending level comes from the first person's move only; its expectation hard-codes five nodes and ignores `quadNodes`. | Couples were validated under the old objective, where the trim penalty was landed per household; under the dislike-of-cuts slider the rollout would ignore the slider. | Fix all three before the couples re-validation; added to the mathematician's question 9. | "Couples under the new objective", after Phase 4 |
+| M5 | **The Phase 4 power statement was loose.** With a per-household spread of 0.82 points, the edge detectable at 80% power is 2.80 x 0.82/sqrt(40) = **0.36 points**; at 0.4 the power is about 87%. | The panel is stronger than stated; no change to its size. | Text corrected below. | done |
+| M6 | **The landings run five bisection steps, not eight.** The derive-first section says eight suffice; `experiment.mjs` defaults to five, leaving the bracket ratio at 1.21 (eight would leave 1.024). | Only two landings remain: Phase 4's equal-survival diagnostic and any K5 landing. | Run those with `BISECT=8`: three more solves per landing, about 45 minutes on the 12-household diagnostic. | Phase 4 diagnostic |
+| M7 | **Step 2b's first remedy already exists.** `tieMargin` (among moves within a margin of the best, take the least tax this year) is in `chooseAction`, off, measured on the old grid at +1.5 points on S070 and -0.5 on the largest wins. Richardson extrapolation (`rich`) also exists, never measured. | If the ranking check calls for a tie-break, it is a re-measurement, not a build. | Re-measure `tieMargin` on the new grid if 2b's result calls for it. | after 2b, only if needed |
+| M8 | **The minimum pot is tested on the GROSS pot**, the estate on the NET (after pension death tax). Dormant: every library household has a zero death-tax rate. | With a minimum-pot default the product now has a user-visible number whose meaning depends on this. | The copy says "before any tax on the pension at death" until a synthetic fixture tests the net version. Put to the maintainer with the step-6 defaults. | step 6 |
+| M9 | **The questions for the mathematician now have owners.** Q1 (does monotonicity survive an approximate solver) before K7; Q2 (fitting two dials to a stepped response) before K5; Q3 (a path for the estate slider) before K4's fit; Q4 (why the choice is stable) alongside 2b; Q5 (drop's discontinuity) only if step 2 picks `drop`; Q6 (noisy rollout) only if 2b calls for rollout; Q9 before couples ship; Q7, Q8, Q10 not blocking. | Nothing tonight waits on an answer; K5 on Thursday is the first step that could. | Send the page when the maintainer has shared it. | - |
+
 ---
 
 ## The schedule
@@ -346,16 +365,36 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 |---|---|---|---|---|
 | 0 | ~~Byte-wide policy bug's cost~~ **zero effect** | - | - | done |
 | 1 | ~~Phase V~~ **done: plans stable, table numbers not; judged on simulation (decision A)** | - | - | done |
-| 2 | **Step 2 field check**, 66 cells, now with full run records | 1 | ~2.2 h | Wed ~19:45 |
-| 2b | **Ranking check**: does the table's first choice simulate better than its second? | 2 | ~30 min | Wed ~20:15 |
-| 3 | **Lever builds** (built while step 2 runs): estate curve, raise cap/block, minimum-pot default, block trimming, lambda as the dislike setting | 2 | no cores | ready ~20:15 |
-| 4 | **K1 honouring checks** | 3 | ~20 min | Wed ~20:45 |
-| 5 | **K2-K4 screens** overnight, with records | 4 | ~5 h | Thu ~02:00 |
-| 5b | **Phase 4 panel selection**: the app's own pipeline on library candidates, to find 40 held-out households where it survives 75-95% | 5 | ~1 h | Thu ~03:00 |
-| 6 | **The maintainer picks the product defaults** | 5 | - | Thu morning |
+| 2 | **Step 2 field check**, 66 cells with full run records (43 of 66 at 18:28) | 1 | ~1.7 h | Wed ~19:10 |
+| 2w | Step 2 write-up, the #106 option chosen, step 2 moved to history | 2 | ~30 min | Wed ~19:40 |
+| 2b | **Ranking check**: does the table's first choice simulate better than its second? (solver tests re-run first: `runPolicy` changed) | 2w | ~45 min | Wed ~20:25 |
+| 3 | **Lever builds** - built; plus M1, flipping the code defaults to the decided baseline | 2w | no cores; tests ~15 min | Thu ~05:00 |
+| 4 | **K1 honouring checks**, now three arms (M2) | 2w | ~1 h | Wed ~21:45 |
+| 5 | **K2-K4 screens** overnight, with records | 4 | ~5 h | Thu ~03:00 |
+| 5b | **Phase 4 panel selection**: the app's own pipeline on library candidates, to find 40 held-out households where it survives 75-95% | 5 | ~1 h | Thu ~04:00 |
+| 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording | 5 | no cores | Thu ~06:30 |
+| 6 | **The maintainer picks the product defaults** | 5c | - | Thu morning |
 | 7 | **K5 guardrail matching** | 6 | ~5 h | Thu ~14:00 |
 | 8 | **K6 slider spread, K7 monotone checks** | 7 | ~1.5 h | Thu ~15:30 |
 | 9 | **Phase 4**, with its bundled extras (below) | 8 | ~6 h | Thu ~21:30 |
+
+### The next 12 hours (written Wed 18:35 UTC)
+
+| UTC | cores | alongside, no cores |
+|---|---|---|
+| now - 19:10 | step 2 finishes (23 cells left: the last of the 12 households on four arms, then the #106 arms on S126, S184, S162) | this plan update; K1's extra arms (done) |
+| 19:10 - 19:40 | - | reduce step 2 against its gates and predictions; `results-step2.txt`; choose none / drop / linear for #106; step 2 to history; report |
+| 19:40 - 20:25 | solver tests, then the ranking check on the 12 households | - |
+| 20:25 - 20:40 | - | read 2b against its agreed decision table. A fix, if called for, is built before K5 (M7: the tie-break exists) and does not hold up K1-K4 |
+| 20:40 - 21:45 | K1, three arms, with the chosen #106 option | write the Phase 4 panel-selection script |
+| 21:45 - ~03:00 | K2-K4 screens, 192 cells | M1 build (defaults flip, no cores until its tests); K2-K4 reducers; E1 re-read offline from step 2's stored moves (minutes) |
+| ~03:00 - 04:00 | Phase 4 panel selection | - |
+| 04:00 - 05:00 | M1's bit-identity tests; the 2b fix's measurement if one was called for | - |
+| 05:00 - 06:30 | free: E3's build and bit-equality test in the gap, never ahead of the above | the morning summary for step 6 |
+
+Stops that would change this: step 2 failing a gate (the queue stops there, per the standing rule); the
+ranking check landing in its "losses of a point or more" row (rollout is built before K5, which moves K5
+and Phase 4 by a few hours); any K1 breach (a bug, fixed before the screens start).
 
 **Bundled into the runs, now that a plan is one solve (maintainer, 23 Sep: "we've bought back a lot of
 time").** Every run from step 2 on writes a RUN RECORD (`record.mjs`): every path-year's spending level,
@@ -366,8 +405,9 @@ never checked on a third draw; **the phone grid (14 points) on 12 households**, 
 plans a coarser phone grid that has never been tested against the full one; **records for arm A too**, so
 the guardrails' year-by-year cutting can be compared with the solver's directly; and **the E1 and ranking
 analyses re-read offline** from Phase 4's stored moves. Panel size: from the tuning records the
-per-household survival difference has a spread of 0.82 points, so 40 households give 80% power to detect
-an edge of about 0.4 points - enough; 80 would only buy power within each half of the panel.
+per-household survival difference has a spread of 0.82 points, so 40 households detect an edge of
+2.80 x 0.82/sqrt(40) = 0.36 points with 80% power, and 0.4 points with about 87% (corrected 23 Sep, M5) -
+enough; 80 would only buy power within each half of the panel.
 
 Step 6 is the one point the maintainer is on the critical path.
 
@@ -415,196 +455,6 @@ written here, each derived from records already on file.
 | Phase 4, phone grid (14 points) on 12 | simulated survival within about a point of the 30-point grid - Phase V's 16-point arm simulated within 0.7 of 30 points on all three households - while the table's own reading is further off | any household more than 1.5 points worse | **written now**, from Phase V |
 | E1 re-run from stored moves | coverage stays near 98-99% and the verdict (not built) stands: the moves above 255 that corrupted it are the "draw the pension first" families, rarely chosen | coverage above 99.5% with a small set - E1 would then be worth building | **written now** |
 | E3 | bit-identical results; about 30% off the solve | any bit differs | E3 |
-
----
-
-## Phase V: OUTCOME AND THE DECISION IT NEEDS (23 Sep, 16:35)
-
-**Result, in one line: the plans are stable; the table's own numbers are not.** Changing the quadrature
-(5/9/15 nodes), the wealth axis (16 to 56 points) and the share axes (6/9/12) moved the SIMULATED survival
-by no more than noise on all three households, while the TABLE's reading moved by up to several points
-and does not settle even at 56 points - optimistic by 2 to 3 points against its own simulation. 6 to 9%
-of stored moves change with the settings without moving the simulation, which points to near-ties.
-#106's dead corner is confirmed four ways and confined to S126's bridge years. Linear interpolation is not
-a safe replacement for log-odds (better on average along wealth for two households, catastrophic on the
-third). Full tables and predictions against outcomes: `results-phase-v.txt`.
-
-**Gate status: V1 and V2 FAILED as written** - the pass marks were set on the table's reading as well as
-the simulation. By the standing rule the queue stops here.
-
-**DECIDED 23 Sep, maintainer: (A).** The numerics are judged on the simulated outcome - what a user is
-shown - with the table used only to choose moves. The maintainer's test, in his words: as long as the
-solver's choices give a strong simulated result against the current app with the same inputs and
-settings, the table's own number does not matter. That is Phase 4; the step-2 check below adds the
-sub-point confirmation V could not make.
-
-**The options that were put:**
-- **(A) Re-judge V1, V2 and V2s on the SIMULATED outcome** - what a user is shown - and add the check
-  V could not make: at 3,000 paths, on the 12 step-2 households, the settings' extremes (5 vs 15 nodes,
-  30 vs 56 points) compared on survival AND spending delivered AND lifetime tax, gated at half a point and
-  1% of spending. Folded into step 2's field check; about an hour more. The table is never a reported
-  number (already a requirement, now written into the Fixed requirements). *Recommended.*
-- **(B) Treat V as failed and raise the resolution.** The table does not converge even at 56 points, so
-  no practical setting passes the gate as written; this buys solve time and not a pass.
-- **(C) Stop and investigate the table's bias further** before anything else. Informative, but the bias
-  does not reach the decisions on any evidence so far.
-
-**Unaffected either way:** the #106 fix (keep a dead share node out of the read) goes into step 2.
-
----
-
-## Phase V. Is the numerical machinery converged?
-
-Nobody had asked whether the discretisation is converged: five Gauss-Hermite nodes, never varied; a
-30-point wealth axis never run as a convergence sequence; six points on each share axis, never tested at
-all; log-odds interpolation never compared against linear. **An unconverged discretisation biases
-everything, invisibly, and identically in both arms of Phase 4, so Phase 4 cannot detect it.** #106 then
-found a real fault on a share axis, which the original design could not have seen.
-
-#### HYPOTHESES, derived before the run
-
-**V1, and it is NOT simply "five is too few".** The rule integrates the next year's value against a
-standard normal. Computed from the rule itself:
-
-| nodes | nodes inside +/-2.2 sd | largest gap between nodes |
-|---|---|---|
-| 5 | **3** | **1.501 sd** |
-| 9 | 5 | 1.307 sd |
-| 15 | 5 | 1.174 sd |
-
-So at five nodes, 95% of the probability is carried by THREE points and the widest blind spot is 1.5
-standard deviations across. How wide is the cliff in the same units? Wealth grows by `exp(mu + sigma z)`,
-so at an equity volatility near 0.13 a 10% band of wealth spans about **0.8 sd** - narrower than the
-gap. On that alone five nodes look inadequate.
-
-**But the integrand is not the cliff.** `V_{t+1}` is already an expectation over every remaining year,
-so twenty years of future uncertainty have smoothed it into a sigmoid far wider than one year's cliff.
-The smoothing is weakest at the END of the horizon, where little future remains to average over.
-
-**So the prediction is specific: the quadrature error is concentrated in the last few years and largely
-washes out of the opening value.** V1 PASSES on its headline (opening survival within 0.1 of a point)
-**and** the policy differences it does find are concentrated at high `t`. **Falsified if** the opening
-value moves more than 0.1 of a point, or if the differing moves are spread evenly across years - the
-second would mean the smoothing argument is wrong and the error is everywhere.
-
-**V2.** Total wealth sits on a LOG axis read by linear interpolation, whose error is order
-`h^2 * |V''|` for spacing `h`. The axis spans roughly 600x, so `h = ln(600)/n = 6.4/n`: about 0.21 in
-log-wealth at 30 points, near 24% steps. **Prediction: successive differences shrink roughly as
-1/n^2**, so the 30-to-56 gap should be around three and a half times smaller than the 16-to-24 one.
-**Falsified if** the steps shrink materially slower than quadratically - which would mean the
-interpolation is resolving something non-smooth (the cliff) rather than a smooth function, and the
-resolution is genuinely insufficient rather than merely finite.
-
-**V3.** Survival as a function of log-wealth is approximately a normal CDF, being the probability that a
-sum of lognormal returns clears a threshold. A logistic and a probit agree to under 1% across the
-central range, so **log-odds interpolation should be close to exact near the cliff while plain linear
-interpolation carries the full curvature error.** Prediction: log-odds beats linear near the cliff by a
-visible margin and ties elsewhere. **Falsified if** linear matches or beats it - which would mean the
-comment in `grid.js` is folklore.
-
-#### V1. The quadrature: five nodes, hardcoded, never varied
-
-`NODES` holds five Gauss-Hermite points and nothing in the repository has ever changed it.
-
-Gauss-Hermite with five nodes is exact for polynomials to degree nine. **That guarantee does not apply
-here.** The integrand is a value function containing a survival cliff; near the cliff it is closer to a
-step than to a polynomial, and the degree-nine bound says nothing about steps.
-
-Concretely: the nodes sit at 0, +/-1.356 and +/-2.857, and **the outer pair carry 1.1% weight each**. If a
-cell's cliff falls near z = -2, the rule has NO NODE THERE - it spans the drop between a point worth
-1.1% and one worth 22%.
-
-**The check.** One household at 30 points, three arms: 5 nodes (today), 9, and 15. Node count multiplies
-the expectation step linearly, so this is about 5.8 solve-equivalents, half an hour.
-
-**Gate V1.** Five nodes stand if, against the 15-node answer: the opening position's survival is within
-**0.1 of a point**, and the stored move differs on **under 1% of cells**. If either fails, every result
-in this project carries an unmeasured bias and the node count must be raised before Phase 4.
-
-#### V2. Grid resolution: is thirty points converged?
-
-Runs exist at 20 and at 40 - but as ALTERNATIVES, chosen between, not as a convergence sequence. Nobody
-has solved the same household at increasing resolution and shown the answer stop moving.
-
-**And the code knows.** `solve()` carries a field `rich` - "a second solve at half the resolution, for
-Richardson extrapolation of the move scores" - permanently set to `null`. Someone saw this question
-coming and did not finish it.
-
-**The check.** One household at 16 / 24 / 30 / 40 / 56 points, all else fixed. Cost scales with the
-dense axis, so the five together are about 5.5 solve-equivalents.
-
-**Gate V2.** Thirty points stand if the sequence is visibly converging - each successive difference
-smaller than the last - **and** the gap from 30 to 56 is under **0.2 of a survival point** on the
-opening position. A sequence that is NOT visibly converging is the worse outcome: it would mean the
-answer depends on a resolution nobody chose on evidence.
-
-#### V3. The interpolation scheme
-
-Survival is read in log-odds "so the cliff between making it and not survives the read". A reasonable
-choice, never compared against the alternative.
-
-**It interacts with V2**, which is why it shares its run: better interpolation means fewer grid points
-are needed for the same accuracy, so the two questions are cheaper together than apart.
-
-**The check.** Take V2's 56-point solve as the reference. At positions BETWEEN coarse-grid nodes,
-compare what a 30-point table predicts under log-odds against what it predicts under plain linear
-interpolation, each against the fine-grid truth. No new solves.
-
-**Gate V3.** Log-odds stands if its worst error against the reference is no larger than linear's. If
-linear is better, the comment in `grid.js` is wrong and the read should change. If both are large, the
-problem is V2's, not V3's.
-
-
-#### Phase V as run, 23 Sep - extended, and its predictions written before the run
-
-`audit-converge-numerics.mjs`, rewritten: runs on the objective that will SHIP (resilience off, six
-levels, raises on, joint tiers, the household's landed lambda), reads every arm two ways - the table's
-opening value AND the simulated survival of its policy on 1,000 held-out paths - because #106 showed
-the first can be badly wrong while the second is fine. Adds **V2s** (the share axes at 6 / 9 / 12
-points) and a **census** of cells reading 50% or more with a dead corner one step along a share axis.
-Three households in parallel: S184 (the gate household, still working, no bridge), S330 (61-year
-horizon, the largest smear in the old loss ledger) and S126 (the #106 household).
-
-PREDICTIONS, derived:
-- **V1 passes on S184 and S330** (table within 0.1, under 1% of moves): the outer nodes carry 1.1% each
-  and the survival term is read in log-odds, where the cliff is a slope, not a step.
-- **V2 passes on S184 and S330**: phase 2 found 60 x 8 x 8 matching 40 x 6 x 6 to the decimal.
-- **V2s FAILS on S126 on the table read, and it is the dead corner, not resolution.** At 6 share points
-  the nodes are 0.8 and 1.0 and S126's 0.85 puts a quarter of its read on the dead all-pension node; at
-  9 points they are 0.75 and 0.875 and at 12 they are 0.818 and 0.909, so S126's read never touches the
-  dead node and should JUMP from about 8% toward its simulated ~97%. The SIMULATED survival should move
-  far less (within a point or two), because simulation walks real pots. V2s passes on S184 and S330.
-- **V3: log-odds beats linear along total wealth** (that is what it is for), **and loses along the share
-  axes where a dead corner sits** - which is the evidence for fix (a), reading linearly across a dead
-  share corner.
-- **Census: dead share corners in S126's bridge years only, near zero for S184 and S330**, whose
-  all-pension node is alive in every year.
-
-#### What each outcome costs
-
-- **All three pass**: the foundation is sound, this is recorded once and never revisited, and Phase 4
-  runs on a floor that has been checked rather than assumed. Cost: a few hours.
-- **V1 or V2 fails**: every existing result carries an unmeasured bias in an unknown direction. The
-  fix is more nodes or more points, both of which cost run time and neither of which is hard. **The
-  6-series conclusions would need re-reading**, though the PAIRED ones (6e, 6f) survive,
-  because a bias common to both arms cancels in a paired comparison - the same argument that saved
-  them from the lambda under-convergence.
-- **V2s fails on S126 only, as predicted**: the fix is the step-2 interpolation change, not more share
-  points everywhere.
-
-**A prediction I should have got right from the records (written mid-run, 23 Sep).** The V2 prediction
-("passes on S184 and S330") cited phase 2's "60 x 8 x 8 matched 40 x 6 x 6 to the decimal" - but that was
-a match of SIMULATED results, not of the table's own reading. The records on the table's reading say the
-opposite, and say it plainly: the phase-2 loss ledger (`ledger-bias.txt`, `ledger-smear-fixes.txt`)
-measured the table optimistic on S070 by +21, +16, +13 and +9 points at 12, 16, 20 and 28 points - a
-slow, roughly 1/n shrinkage, not the 1/n^2 assumed here - while the simulated survival of the same
-policy stayed at 67 to 68.5 throughout. Read correctly, the existing data predicted exactly what V2 is
-showing: **the table's reading does not converge at practical sizes; the simulated outcome does.** The
-same ledger showed linear interpolation cutting S070's table bias from +21 to +9 at 12 points, which is
-a clue V3 should confirm. This is the check-existing-data rule failing in my own hands, recorded as such.
-
-**Restart note, 23 Sep:** the first launch (14:59) was stopped after 15 minutes when the byte-wide policy
-bug was found - its simulations read the final year from that table. It restarts on the fixed code.
 
 ---
 
@@ -672,6 +522,10 @@ table's margin. Prediction and falsifier: in the predictions register.
 | losses of a point or more on near-ties | **settle near-ties by simulation (rollout)**: when the top moves are within a margin, simulate each for a few hundred paths and take the better | **provably no worse than the table**: the table's own pick is one of the candidates, so rollout can only correct it (the rollout-improvement property). Costs only on near-ties; for the app's "this year's action" it is seconds |
 | errors concentrated where survival changes sharply | **extra grid points on the cliff only** (the adaptive grid the loss ledger already named) | puts resolution where it pays, not everywhere |
 
+**Already in the code (finding M7):** the tie-break row is `tieMargin` in `chooseAction`, off, measured on the
+old grid at +1.5 points on S070 and -0.5 on the largest wins; it is re-measured, not rebuilt. Richardson
+extrapolation (`rich`) also exists and has never been measured.
+
 **Not the answer: a uniformly finer grid.** Phase V showed the table's error shrinks only slowly with
 resolution - still moving at 56 points, about twice today's cost - and near-ties exist at any resolution.
 
@@ -688,6 +542,9 @@ fixed solver. It adds a few hours to Thursday.
 - **The minimum end-of-life pot default**, wired so a plan without one gets the default K2 settles.
 - **Block trimming** - the floor set equal to the target, which leaves no level below 1.
 - **Lambda exposed as the dislike-of-cuts level**, its map fitted in K6.
+- **The code defaults flipped to the decided baseline** (finding M1): resilience 0, six levels, raise
+  weight 0.003, ternary search, the chosen #106 option, a new `SOLVER_VERSION`; scripts that mean the old
+  objective say so explicitly. Gate: bit-identity both ways.
 
 ---
 
@@ -697,11 +554,12 @@ Two different jobs that must not be confused. **A rule the user sets must be HON
 tuned. **A default or a slider's scale must be CHOSEN** - from measured curves, by the maintainer.
 Screens run at a fixed lambda (the flex-tiers landed value) on 12 households unless stated.
 
-**K1. Honouring checks - exact.** On every path of 12 households:
-- block trimming (floor = target): zero years below target, by construction;
-- block raises: no year above target; a cap c: no year above c;
-- minimum end pot P: no future counted as surviving ends below P;
-- risk permission off: every year at the plan's tier.
+**K1. Honouring checks - exact.** On every path-year, three arms (the last two added 23 Sep, finding M2):
+- `k1-rules`, 12 households, every rule at its extreme: trimming and raises blocked (every spending year at
+  exactly the target), risk permission off (every year at the plan's tier), minimum pot 3 years;
+- `k1-cap`, 6 households: raise cap 1.1 with trimming allowed and tiers on - no year above 1.1;
+- `k1-block`, 6 households: trimming blocked with raises allowed and tiers on - no year below target;
+- in every arm: no future counted as surviving ends below the minimum pot.
 
 **K2. The minimum end-pot default - it replaces resilience.** P in {0, 1, 3, 5} years of target spending.
 PREDICTION: trimmed years stay near resilience-off levels (1.6 to 4) and far below resilience-on (9 to
@@ -875,6 +733,7 @@ recorded and stopped on, not tuned until it passes.**
   spending. It answers the sceptic's first question - a genuinely better plan, or a different point on the
   same trade-off? When landing, both arms carry the same insurance: arm A is landed to the same
   `ask + margin` the solver uses (the solver's +0.5 margin is load-bearing and is not removed to match).
+  Landed with `BISECT=8` (bracket ratio 1.024, not five steps' 1.21; finding M6).
 
 ### Prediction
 
@@ -1061,7 +920,8 @@ mistaken for an oversight, and so that anyone who notices one of these can see i
   a user asks the question - the plan itself stays one solve. Built in Part C Phase 10; the search is
   where Brent with error-based stopping earns its place again, since each step is a full solve.
 - **Couples (Phase 5) were validated under the old objective** (resilience on, a landed penalty) and
-  their backtest and perturbed worlds were never run. Phase 4 is singles only; couples need their own
+  their backtest and perturbed worlds were never run. The rollout also has three gaps to fix first
+  (finding M4): it omits the trim table, takes the level from one person's move, and hard-codes five nodes. Phase 4 is singles only; couples need their own
   check under the new objective and levers before couples can ship.
 - **Phase 2c's tuned weights (resilience 0.5, bequest 0.02) are obsolete** - one term is gone and the
   other becomes the estate curve. The robustness half of 2c (the edge holding in perturbed worlds) is
@@ -1078,7 +938,8 @@ mistaken for an oversight, and so that anyone who notices one of these can see i
   remaining probes run after Phase 4, as recommendations only.
 - **The tolerance window** - a maintainer decision, relevant only where a landing remains. The +0.5
   margin is load-bearing (the worst held-out shortfall was -0.47); the window above it is discretionary.
-- **41 households, no power analysis.** Fine for "41 of 41" claims, weaker for mean differences.
+- **~~41 households, no power analysis~~ answered 23 Sep:** the per-household spread is 0.82 points, so 41
+  households detect about 0.36 points of mean edge at 80% power (finding M5).
 - **The eight-year bridge households** (retiring at 50) could drift past a 0.8 pension share on a bad
   path, into #106's zone, later in the bridge; a t = 0 read cannot test it. Covered once the
   interpolation fix lands, since the fix is general.

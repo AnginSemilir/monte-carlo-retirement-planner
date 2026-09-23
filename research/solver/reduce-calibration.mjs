@@ -14,7 +14,9 @@ import { fileURLToPath } from 'node:url';
 const DIR = join(dirname(fileURLToPath(import.meta.url)), 'results/calibration');
 const edges = [0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98, 0.99, 0.995, 0.999, 1.0000001];
 const binOf = f => { for (let i = 0; i < edges.length - 1; i++) if (f < edges[i + 1]) return i; return edges.length - 2; };
-const files = readdirSync(DIR).filter(f => /^S\d+\.json\.gz$/.test(f)).sort();
+const EXCLUDE = (process.env.EXCLUDE || '').split(',').filter(Boolean);   // e.g. EXCLUDE=S126 to read the curve without #106's dead corner
+const files = readdirSync(DIR).filter(f => /^S\d+\.json\.gz$/.test(f) && !EXCLUDE.includes(f.slice(0, 4))).sort();
+const OUT = process.env.OUT || 'curve.json';
 
 function curve(recs) {
   const B = edges.slice(0, -1).map((lo, i) => ({ lo, hi: Math.min(1, edges[i + 1]), n: 0, f: 0, ok: 0, paths: new Map() }));
@@ -63,5 +65,5 @@ const wf = pooled.filter(r => r.n >= 1000);
 const breaks = [];
 for (let i = 1; i < wf.length; i++) if (wf[i].realised < wf[i - 1].realised - 2 * Math.hypot(wf[i].se, wf[i - 1].se)) breaks.push(`${pct(wf[i - 1].lo)} -> ${pct(wf[i].lo)}`);
 console.log(`\nMONOTONE in well-filled bins: ${breaks.length ? 'NO - ' + breaks.join(', ') : 'yes'}`);
-writeFileSync(join(DIR, 'curve.json'), JSON.stringify({ pooled, per, visits: nv, meanForecast: sf / nv, meanRealised: so / nv,
+writeFileSync(join(DIR, OUT), JSON.stringify({ pooled, per, visits: nv, meanForecast: sf / nv, meanRealised: so / nv,
   year0: recs.map(r => { const y0 = r.visits.forecast.filter((_, k) => r.visits.t[k] === 0); return { id: r.id, table: y0.reduce((a, b) => a + b, 0) / y0.length, simulated: r.survived }; }) }));

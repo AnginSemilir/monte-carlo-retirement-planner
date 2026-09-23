@@ -40,10 +40,23 @@ that does not serve it is scope, and should be justified as scope or dropped.
 
 ### Known mismatches between the requirement and the build, to resolve before Phase 4
 
-1. **"Value median pot size" cannot be delivered as written.** A backward induction carries
-   EXPECTATIONS; a quantile does not decompose year by year, and `solve.js` says so. What the bequest
-   term maximises is `E[min(net, 4 x opening wealth)]` - a **capped mean**. The median is REPORTED, not
-   OPTIMISED. **Either the copy changes or the lever's label does; the engine does not make that claim.**
+1. ~~**"Value median pot size" cannot be delivered as written.**~~ **RESOLVED 23 Sep: the copy changes,
+   not the engine.** A backward induction carries EXPECTATIONS; a quantile does not decompose year by
+   year, and `solve.js` says so. What the bequest term maximises is `E[min(net, 4 x opening wealth)]` -
+   a **capped mean**. The maintainer's decision: that is fine, and the wording follows the engine.
+
+   **What this binds, and it is a real constraint on Part C's copy, not a note.**
+   - **No control, label, tooltip or headline may say the solver maximises the median pot.** It does
+     not, and saying so would be a claim the engine cannot keep.
+   - **Reporting a median remains entirely legitimate** and should continue: the median terminal pot is
+     the right thing to SHOW a household. The rule is report the median, never claim to optimise it.
+   - **The cap must be visible in the copy**, because it is the surprising part: outcomes above four
+     times opening wealth are counted at the cap, deliberately, so that a single lucky future cannot
+     drag the whole plan toward chasing upside. A user who is told "we value what you leave" and then
+     finds the solver indifferent between an 8x and a 12x outcome would be right to feel misled.
+   - **Phase 6d inherits this**, since it turns that weight into a user-facing lever: whatever the lever
+     is called, it is a dial on a capped mean, and its help text has to say so in a sentence a person
+     can read.
 2. **Resilience is a fourth thing being valued that nobody asked for**, carrying six times the weight of
    the estate term the user did ask for, invisible and uncontrollable. Phase 6f decides its future.
 3. **Survival is judged on the GROSS pot and bequest on the NET.** Two definitions of what is left, on

@@ -2951,6 +2951,18 @@ unfloored guardrails (a first draft of this section used the unfloored arm; corr
    41 (up to 0.94). No exponent can match those. **Recommended, for the maintainer to confirm before K5:
    add a 0.95 level** - six levels, 432 actions, about 20% more solve time, in the app as well.
    Without it, K5 matches the total amount only and reports the depth gap.
+   **Options weighed 23 Sep, maintainer asked to keep the cost flat by swapping the deepest cut for a
+   lighter one.** Derived: the deepest level is not an ordinary menu item - it IS the user's floor
+   (`spendLevelsFor` builds the menu down to the floor), and it is the solver's emergency brake in the
+   worst markets. Dropping it would make the floor lever meaningless and cut survival exactly where
+   the comparison is judged. Note also that the code's OWN default menu already carries 0.95 ("mirrors
+   the gentlest move the guardrails make"); the research runs overrode it with LEVELS=1.2,...,0.8.
+   **Recommended instead - six levels at today's cost:** add 0.95 AND switch the level scan to the
+   ternary search already confirmed safe (5.0 million combinations, never worse). On six levels it
+   evaluates about five, the same as today's exhaustive five. It brings that speed item forward from
+   after Phase 4 into step 3, and needs the single-peak probe re-run on the six-level menu first (one
+   solve, minutes). Fallback if single-peakedness fails on six levels: drop 1.1 rather than the floor,
+   making raises one step (1.0 -> 1.2). Maintainer to choose.
 3. **The guardrails raise harder than the solver**: about 16 years above target at a typical 1.29,
    against the solver's 20 years at 1.16, and 1.29 is above the solver's 1.2 cap. Phase 4's
    condition 2 (total spending delivered within 1%) already nets raises against cuts; K3's raise-cap

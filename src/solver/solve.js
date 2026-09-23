@@ -771,11 +771,28 @@ export function solveFlex(E, M, plan, opts = {}) {
     return v;
   };
   let solves = 0;
+  /*
+   * THE TRACE: every (lambda, floor rate) the search actually visits, in order.
+   *
+   * The landing computed these and threw them away, keeping only where it stopped. That made a fair
+   * question - what does the floor rate look like as a function of lambda? - unanswerable from any
+   * recorded run, and the answer decides whether a smarter root-finder than bisection can help.
+   *
+   * It matters because the shape is NOT the smooth curve the stage-2 comment below implies. The policy
+   * is an argmax over a finite action set, so it is constant in lambda until two actions tie and then
+   * jumps: the floor rate is a STAIRCASE. And the solver maximises survival + resilience + bequest,
+   * not survival alone, so nothing forces the survival component of an argmax to move monotonically
+   * when one term's weight changes - gate 6b found the de-risking channel lifting floors on its own.
+   * Free to keep, and it makes the shape a matter of record rather than of assumption.
+   */
+  const trace = [];
   const at = (lambda) => {
     const t = FPROF ? Date.now() : 0;
     const r = (opts.mix ? solveMixture : solve)(E, M, plan, { ...opts, spendLevels: levels, lambda });
     if (FPROF) { FPROF.solveMs += Date.now() - t; FPROF.solveCalls++; }
-    r.floorRate = rateOn(r, zsSearch); solves++; return r;
+    r.floorRate = rateOn(r, zsSearch); solves++;
+    trace.push({ lambda, searchRate: r.floorRate });
+    return r;
   };
   /*
    * The rate about to be promised, on the full draw the search set is a prefix of.
@@ -805,6 +822,7 @@ export function solveFlex(E, M, plan, opts = {}) {
     r.meta.searchPaths = nSearch; r.meta.verifyPaths = nVerify; r.meta.verifySteps = vSteps;
     r.meta.solverVersion = SOLVER_VERSION;
     if (FPROF) r.meta.split = { ...FPROF, totalMs: FPROF.solveMs + FPROF.fwdMs };
+    r.meta.trace = trace;
     return r;
   };
   if (levels.length === 1) return done(verify(at(0)), 'no floor');

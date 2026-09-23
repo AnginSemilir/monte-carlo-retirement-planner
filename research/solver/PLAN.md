@@ -366,8 +366,9 @@ Step 6 is the one point the maintainer is on the critical path.
   and its backtest and perturbed worlds were never run. Before couples can ship: the same levers and
   defaults, the same head-to-head against the app at its best, on the couples panel.
 - **#109's remaining probes** - recommendations only, in a scratch note.
-- **Brent with error-based stopping - DOWNGRADED.** Only K5's matching and Phase 4's equal-survival
-  diagnostic still search lambda; the product never does. Worth it only if those searches become slow.
+- **Brent with error-based stopping** - downgraded for the plan itself, which never searches, but it
+  returns for the Simple page's safe spend and safe age (decided 23 Sep, option (b)), where every step of
+  the search is a full solve and a user is waiting. Built with Part C Phase 10.
 
 ---
 
@@ -823,8 +824,10 @@ baseline's tooling until then.
 - **Quick dials** read the table (Phase 6's spend dimension), so they stay instant; the retirement-age
   dial still re-solves, with the progress bar visible, unless the age table has been pre-solved for
   ±3 years, which is the recommended default.
-- **The Simple page** switches its safe spend and safe age to the table once Phase 6 lands; until then
-  it stays on `optimizeSpend` and `safeRetirementAge` unchanged.
+- **The Simple page** (decided 23 Sep, option (b)): "safe spend" is the highest target at which the
+  solver's plan keeps reported survival at or above the user's chosen X%, and "safe age" the earliest
+  stop that does the same - found by a search over solves, run only when the user asks. Until the
+  switch is on it stays on `optimizeSpend` and `safeRetirementAge` unchanged.
 - **Scenarios** each carry a solve; the overlay and the comparison table show a solving pill per
   scenario and compare solved outcomes.
 - **Audit Data Table** gains an "Action" column from the row's code, replacing the guardrail and
@@ -910,11 +913,12 @@ mistaken for an oversight, and so that anyone who notices one of these can see i
 ### 5. Open questions
 
 **Reopened by the 23 Sep scope changes (survival no longer a target, resilience gone, two sliders):**
-- **The Simple page's "safe spend" and "safe retirement age", and the quick dials, are survival-target
-  concepts.** Each asks "the most you can spend (or the earliest you can stop) at X% survival". The
-  solver no longer lands on a survival figure, so Part C Phase 10's plan to read them from the table
-  needs a product decision: keep them on the existing `optimizeSpend` landing, re-define them on the
-  solver's reported survival, or retire them. **Must be decided before Part C, not needed for Phase 4.**
+- **The Simple page's "safe spend" and "safe retirement age", and the quick dials - DECIDED 23 Sep,
+  maintainer: option (b), redefined on the solver.** "Safe spend" becomes the most a household can set
+  as its target while the SOLVER's plan keeps its reported survival at or above X%; "safe age" the
+  earliest stop that does the same. That reintroduces a search, but only for this feature and only when
+  a user asks the question - the plan itself stays one solve. Built in Part C Phase 10; the search is
+  where Brent with error-based stopping earns its place again, since each step is a full solve.
 - **Couples (Phase 5) were validated under the old objective** (resilience on, a landed penalty) and
   their backtest and perturbed worlds were never run. Phase 4 is singles only; couples need their own
   check under the new objective and levers before couples can ship.

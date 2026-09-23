@@ -1,0 +1,79 @@
+THE CONVERGENCE TEST: MY HYPOTHESIS WAS WRONG, AND THE REAL CAUSE IS BETTER NEWS AND WORSE
+====================================================================================================
+
+Run 23 Sep 09:15-11:16 from snapshot /tmp/solver-snap-cYIajz (commit 70a3987). Four households landed
+at `bisectSteps = 12` against their recorded five-step results. Prediction written before the run, in
+batch-converge.sh.
+
+    id      ask     margin 5 -> 12      lambda 5 -> 12       spend level 5 -> 12    solves
+    S268   75.1    +2.73 -> +1.90    0.9457 -> 1.0385      1.0676 -> 1.0700       7 -> 8
+    S292   77.2    +2.37 -> +2.37    unchanged             unchanged              7 -> 7
+    S342   72.0    +1.87 -> +1.87    unchanged             unchanged              7 -> 7
+    S058   97.9    +0.37 -> +0.37    unchanged             unchanged              3 -> 3   (control)
+
+PREDICTED: S268 +2.73 -> ~1.6, S292 +2.37 -> ~1.3, S342 +1.87 -> ~0.8, control unchanged.
+HAPPENED: one of three moved, roughly as predicted. TWO DID NOT MOVE AT ALL. Control unchanged.
+
+**THE HYPOTHESIS IS FALSIFIED ON TWO OF THREE.** The bracket width is not the binding constraint.
+
+----------------------------------------------------------------------------------------------------
+WHAT IS ACTUALLY STOPPING THE SEARCH, READ OFF THE SOLVE COUNTS
+
+Solves = 2 bracket ends + loop iterations. With `bisectSteps = 12` the loop COULD run twelve times.
+
+    S268   8 solves = 2 + 6 iterations, then stopped
+    S292   7 solves = 2 + 5, then stopped
+    S342   7 solves = 2 + 5, then stopped
+
+**They stopped with six or seven iterations of budget unused. The tolerance fired.** And at five steps
+S292 and S342 also used 2 + 5 - so the tolerance was satisfiable at exactly the same iteration, and the
+extra budget had nothing to do. S268 was the one household whose sixth iteration mattered, and it is
+worth **0.83 of a point** and 0.0024 of spending level.
+
+**So the over-trimming is real - all 22 landings do overshoot - but the BRACKET is not why.** The
+stopping rule is:
+
+    break when  SEARCH rate <= ask + margin(0.5) + tol(0.5)  =  ask + 1.0
+
+and the reported margin is measured on HELD-OUT paths, a different draw. The solver stops when its
+SEARCH sample says it is within a point of the ask, and the held-out truth then comes in at +1.9 to
++2.4. **The search and held-out estimates disagree by about 1.4 points on these three, all in the same
+direction.**
+
+That direction is the surprise. The winner's curse predicts held-out LOWER than search, and the half-
+point margin exists to absorb exactly that. Here held-out is HIGHER. On three households it is not a
+conclusion, but it is the first evidence that **the two seeds do not agree as closely as the design
+assumes**, which is the "one seed pair throughout" item already recorded as unresolved.
+
+----------------------------------------------------------------------------------------------------
+WHAT THIS CHANGES
+
+**The fix is NOT more steps.** Twelve steps bought 0.83 of a point on one household of three and
+nothing on the rest, for double the solves. Raising `bisectSteps` is close to worthless.
+
+**The fix IS the stopping rule**, which is what the sensitivity analysis had already argued from the
+78-fold spread in how much the floor rate moves per unit of lambda. That argument now has a run behind
+it rather than only algebra. Stop on ESTIMATED REMAINING ERROR - slope x ln(bracket), with the slope
+read from pairs the search has already computed - rather than on whether a sample estimate has landed
+inside a fixed window.
+
+**And Phase 4's fairness worry shrinks.** The concern was a one-sided handicap against the solver on
+spending delivered, because the app's own optimizeSpend converges to a 250-pound bracket while ours
+stops early. Since more steps change almost nothing, that handicap is **smaller than feared** - worth
+fixing, no longer a precondition.
+
+**What does not change: the overshoot itself.** Every landing still delivers more safety than asked and
+pays for it in spending. The cause is now located in the stopping rule and in the search/held-out gap,
+not in the bracket, and the remedy is different from the one proposed yesterday.
+
+----------------------------------------------------------------------------------------------------
+THE PROCESS NOTE, WHICH IS THE POINT OF WRITING PREDICTIONS DOWN
+
+The prediction was specific enough to be wrong in a useful way. Had it said only "more steps should
+help", one household improving would have looked like confirmation. Because it named which households
+should move and by how much, two of them not moving AT ALL was unmissable, and the solve counts then
+said why within minutes.
+
+The first version of this finding also claimed the bracket was a factor of 12.5 when it is 1.21 -
+corrected before the run. Had that error survived, the run would have been read as "the fix works
+weakly" instead of "the diagnosis was wrong".

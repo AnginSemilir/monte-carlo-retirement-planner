@@ -279,6 +279,7 @@ repeated in the phases below.
 | numerical convergence (Phase V) | plans stable, table numbers not (optimistic 2-3 points, not converged at 56 points); judged on simulation, decision A | `results-phase-v.txt`; full text in history |
 | step 2 and its re-check | the final year read the nearest cell's move (M10) - fixed, survival up on 9 of 12; ternary OUT (-0.20 at 2.4 se on two households, none better); 15 nodes no better than 5; 56 points within half a point either way (one household outside, noise-shaped); no #106 option passed | `results-step2.txt`; full text in history |
 | the ranking check (2b) | at 479 positions the plan reaches, the table's first and second choices mostly do the same thing (387 identical); where they differ in survival it is a coin toss (8 better, 8 worse), none beyond noise, worst 0.6 points. No tie-break, rollout or cliff points. Clear-margin positions were never sampled, so that part of the prediction is untested | `results-ranking.txt` |
+| K1 honouring | every rule the user can set (no cuts, no raises, a raise cap, no cuts with raises, no risk change, a minimum pot) held on every path-year of 24 records | `results-k1.txt` |
 | the S126 anomaly (#106) | confirmed: a dead corner in log-odds on a SHARE axis; only S126 of the 41 is in the class at t = 0. **Still open (step 2):** neither fix passed; without one S126 holds its pension off-tier for 40 years, with `drop` 9, a 38% larger median pot, a 74% smaller unlucky tenth, 0.3 points less survival. It changes the plan's character; put to the maintainer and the mathematician (Q5) | `results-106-deadcorner.txt`, `results-step2.txt` |
 | E4, interleaved value arrays | dead: 3.8% slower | `results-part-e-measured.txt` |
 | E1, seeding from next year's move | **re-read from step 2's full-width stored moves, 19:20: not built.** The best candidate set (41 of 432 moves) covers 97.72% of this year's best moves across 4.1 million retired cell-years, against a 99.5% bar; the corrupted first read said 98.68%. Prediction (98-99%, verdict stands) held on the verdict, slightly low on the figure | `results-e1-records.txt` |
@@ -393,7 +394,7 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 2 | ~~Step 2 and its re-check~~ **done 19:45**: finalExact on, ternary out, 30 points kept, no #106 option (history) | 1 | - | done |
 | 2b | ~~Ranking check~~ **done 21:00**: nothing to fix - the first choice did worse at 8 of 479 positions, none beyond noise, worst 0.6 points (`results-ranking.txt`; history) | 2 | - | done |
 | 3 | **Lever builds** - estate curve, raise cap/block, block trimming and `solvePlan` (M1) built and tested; the minimum-pot default waits on step 6 and lambda's slider map on K6 | 2w | done except those two | - |
-| 4 | **K1 honouring checks**, three arms (M2), full scan | 2b | ~1.3 h | Wed ~22:30 |
+| 4 | ~~K1 honouring checks~~ **done 21:13: PASSED** - every rule held on every path-year of 24 records (`results-k1.txt`) | 2b | - | done |
 | 5 | **K2-K4 screens** overnight, with records, full scan | 4 | ~6.5 h | Thu ~05:00 |
 | 5b | **Phase 4 panel selection**: the app's own pipeline on library candidates, to find 40 held-out households where it survives 75-95% | 5 | ~1 h | Thu ~06:00 |
 | 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording, the #106 trade-off and the ternary decision | 5 | no cores | Thu ~07:00 |
@@ -410,9 +411,10 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 19:50 - 20:05 | solver test suite (runtime policy and baseline changed) | step 2 write-up and history move |
 | ~~20:05 - 21:00~~ | ~~ranking check~~ **done** | - |
 | ~~21:00 - 21:10~~ | - | ~~2b against its decision table~~ **done: nothing** |
-| 21:10 - 22:30 | K1, three arms | - |
-| 22:30 - ~05:00 | K2-K4 screens, 192 cells | K2-K4 reducer runs as cells land |
-| ~05:00 - 06:00 | Phase 4 panel selection | - |
+| ~~21:05 - 21:13~~ | ~~K1, three arms~~ **done: passed** (8 min, not 80: the rules arm has one level) | - |
+| 21:15 - ~21:45 | calibration check (M16), 12 households | K1 write-up |
+| ~21:45 - ~04:15 | K2-K4 screens, 192 cells | calibration chart; K2-K4 reducer runs as cells land |
+| ~04:15 - 05:15 | Phase 4 panel selection | - |
 | 06:00 - 07:00 | - | the morning summary for step 6 |
 
 Stops that would change this: step 2 failing a gate (the queue stops there, per the standing rule); the
@@ -466,7 +468,7 @@ written here, each derived from records already on file.
 | step 2, the #106 fix | in its section (step 2) | - | step 2 |
 | ranking check | where the table's first choice beats its second by a clear margin in score, it simulates at least as well in over 80% of sampled positions; where the margin is tiny, it is close to a coin toss; the average loss when it is wrong is under half a point, and no loss exceeds 2 points on the current grid (S070's 6-point misranking was on the old per-pot grid) | wrong in over 30% of positions with a clear margin, or any loss above 2 points | **HELD 21:00** on near-ties (8 better, 8 worse), average loss (0.25) and worst loss (0.60); the clear-margin clause UNTESTED - none sampled. Falsifier not triggered (`results-ranking.txt`) |
 | calibration (M16) | realised survival rises with the table's forecast in every bin with 1,000+ visits; close to the diagonal below 10% and above 99%; optimistic by 2-6 points between 20% and 90%, where the cliff is; the visit-weighted mean forecast above the realised rate by 1-3 points | a well-filled bin realising more than a lower bin beyond noise, or the table pessimistic on average | **written 21:15, before the run**, from Phase V's 2-3 points at year 0 and its slow 1/n decay |
-| K1 honouring | exact by construction: every rule holds on every path | any path breaks any rule - a bug | K1 |
+| K1 honouring | exact by construction: every rule holds on every path | any path breaks any rule - a bug | **PASSED 21:13** (`results-k1.txt`) |
 | K2 minimum pot | in K2 | - | K2 |
 | K3 raise cap | in K3 | - | K3 |
 | K4 estate slider | in K4 | - | K4 |

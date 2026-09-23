@@ -32,7 +32,7 @@ the solver values that is not on this list is a defect**, which is how resilienc
 
 | user lever | what it does | status in the solver | exposed to the user |
 |---|---|---|---|
-| **survival priority, 0 to 100%** | how much not running out (and not breaching the floor or the minimum pot) matters | the survival term's weight; today fixed at 1 and the reference every other weight is measured against | **yes - agreed 23 Sep; the LARGEST priority by default.** Not a target: the chance is reported, not promised. See the note below the table on three levels and two degrees of freedom |
+| **survival priority** | how much not running out (and not breaching the floor or the minimum pot) matters | the survival term's weight, fixed at 1: the reference every other weight is measured against | **the fixed anchor, not a slider - option (a), decided 23 Sep.** Always the largest priority. Not a target: the chance is reported, not promised |
 | **dislike of spending cuts, 0 to 100%** | how much a trim below target hurts | the trim penalty lambda - today found by the landing per household, ranging 0.005 to 2 (a 400x span) | **yes - a user level, agreed 23 Sep.** NOT BUILT as a level; Phase K calibrates its spread like the estate level |
 | **spending target** | what they want to spend each year | yes | yes |
 | **spending floor** | the lowest the solver may trim to | yes (0.8 of target in the research runs) | yes |
@@ -56,6 +56,10 @@ estate credit - are each a slider, as distinct from the fixed rules (floor, bloc
 raise permission, risk consent), which are set values or on/off. Three sliders are the requirement;
 the ratio point above governs how they are implemented (normalised: each weight is its slider's share
 of the total) and how the copy describes them ("relative importance").
+**DECIDED 23 Sep, maintainer: option (a).** Survival is the fixed anchor - always the largest priority,
+not a slider. The user moves TWO sliders, each measured against survival: how much spending cuts bother
+them compared with running out, and how much their estate matters compared with running out. No
+normalisation needed, no "move everything, nothing happens". Phase K calibrates exactly these two.
 
 **Deliberately left out, 23 Sep:** a stability lever (how often spending may change). The drift penalty
 stays off and unexposed.

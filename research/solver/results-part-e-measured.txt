@@ -1,0 +1,75 @@
+PART E, MEASURED: E4 IS DEAD AND THE SOLVE IS THE MINORITY OF A LANDING
+====================================================================================================
+
+Two twenty-minute measurements, run 22-23 Sep on a quiet box, both of which change what Part E should
+do. Neither is an argument; both are stopwatches, because three cost estimates this week were wrong by
+factors of three to twenty and every one of them came from reasoning rather than timing.
+
+----------------------------------------------------------------------------------------------------
+E4: DEAD. INTERLEAVING IS SLOWER, NOT FASTER.
+
+The proposal: `readValues` reads four separate arrays at the same index - survival, bequest, resilience,
+shortfall - so eight corners touch up to 32 cache lines. At 30 points each array is 76 KB and the four
+are 304 KB, well past a 32-48 KB L1. Store the four values adjacently and a corner becomes 32 bytes,
+one line: 8 lines a call instead of 32.
+
+Measured at the real shape (9,720 cells, readValues' own eight-corner pattern, starting cell drawn
+fresh each call, best of seven alternating rounds, both layouts asserted to produce identical totals):
+
+    four separate arrays     18.9 ms    47.1 ns a call
+    one interleaved array    19.6 ms    48.9 ns a call
+    speedup                  0.963x
+
+**Interleaving is 3.8% SLOWER.** The prefetcher handles four sequential streams at least as well as one
+strided one, and the strided access defeats it. The plan said "cache guesses are exactly the guesses
+that come out wrong" and told this phase to measure before building. It did, and the guess was wrong.
+
+**E4's build is cancelled.** Twenty minutes rather than a morning, which is what the instruction was for.
+
+----------------------------------------------------------------------------------------------------
+THE SPLIT: SOLVING IS 45.7% OF A LANDING. PART E ONLY TOUCHES THAT HALF.
+
+Timers inside `solveFlex`, around the solve and around `rateOn`, off without SOLVER_PROFILE. S184 at
+the real configuration - 30 points, 5,400 search paths, three-world mixture, tiers on:
+
+    solving (2 tables)                628.8 s    45.7%
+    running paths forward (10,800)    746.6 s    54.3%
+    landing, total                   1375.4 s
+
+    per solve        314.4 s
+    per 1,000 paths   69.1 s
+
+**The ratio is robust to how many solves a landing takes**, because each solve is followed by exactly
+one pass over the search paths. At two solves or at eight, it is the same 46/54. This household landed
+at the bracket floor in two solves; an eight-solve landing is 2,515 s of solving against 2,985 s of
+paths, the same split.
+
+**So every phase of Part E - E0, E1, E2, E3, E4 - speeds up 45.7% of a landing and leaves 54.3%
+untouched.** E3's measured 30.2% of CELL work is therefore **13.8% of a landing**, for a day and a half
+of building. That is not nothing, and E3 is exact and safe. But it is not what it looked like.
+
+----------------------------------------------------------------------------------------------------
+WHAT THIS PROMOTES: THE SEARCH-PATH COUNT (task #108), NEVER SWEPT
+
+Every solve is followed by 5,400 forward runs. At 69.1 s per thousand that is 373 s a solve - MORE than
+the 314 s the solve itself costs. The number was chosen once and has never been swept.
+
+If 1,000 paths landed as well as 5,400, the forward half shrinks by about 81%, which is **roughly 44%
+off a landing** - more than three times E3's 13.8%, and it is a parameter sweep rather than new code.
+
+**It is not free money, and the reason is in solve.js already.** The search paths are not only used to
+MEASURE a policy, they are used to CHOOSE lambda. With a small sample the bisection picks whichever
+lambda that sample flattered - the winner's curse - and 2d finding (d) measured the damage: landings
+undershooting their ask by up to 0.8 of a point on held-out paths. Cutting the sample attacks precisely
+the property the landing exists to deliver.
+
+So #108 is a real trade-off study with a real chance of concluding "5,400 is needed". That is worth
+knowing either way, and it is worth knowing BEFORE a day and a half goes into E3, because every field
+check from here pays the 5,400 and none of them pays E3 until it is built.
+
+RECOMMENDATION, and the reordering it implies:
+  1. **#108 first.** Sweep the landing against search-path count. Cheap to run, no new code, and it
+     prices the larger half of every run.
+  2. **E3 after it**, still worth building at 13.8% - it is exact, its gate is bit-equality, and it
+     compounds with whatever #108 finds.
+  3. **E4 never.** Measured and dead.

@@ -1,0 +1,80 @@
+PHASE V: IS THE NUMERICAL MACHINERY CONVERGED?                                          23 Sep 2026
+
+Run on the objective that will ship (resilience off, six levels, raises, joint tiers, each household's
+landed lambda), single table, 1,000 held-out paths per arm, households S184 (gate household), S330
+(61-year horizon) and S126 (#106). V1/V2/V2s: 15:07-16:07 UTC, snapshot /tmp/solver-snap-8T3xFj
+(aadcc7a). V3: re-run 16:08-16:35 after the zero-point sampling bug (1e101ad), snapshot
+/tmp/solver-snap-P65mRV. Raw output: results-phase-v-raw.txt and the V3 re-run below.
+
+Each arm is read TWO ways: the table's own opening value, and the simulated survival of the table's
+policy on the same paths. The pass marks were written, before the run, on BOTH.
+
+V1  QUADRATURE, 5 / 9 / 15 nodes (differences against 15)
+                table read        simulated        moves differing (5 vs 15)
+    S184        -0.51             -0.30            9.4%
+    S330        -0.05             +0.40            6.0%
+    S126        -6.45             +0.00            6.7%
+    Gate (table within 0.1, simulation within noise, under 1% of moves): FAIL as written, on the table
+    read and on moves; the simulation is within noise on all three.
+
+V2  TOTAL-WEALTH AXIS, 16 / 24 / 30 / 40 / 56 points
+                table read, 16 -> 56             simulated, 16 -> 56
+    S184        83.1  82.8  81.6  80.6  79.2     80.7  81.3  81.4  81.8  81.0
+    S330        86.4  86.6  85.7  84.7  84.2     81.5  81.7  82.1  82.2  81.9
+    S126        47.7  54.2  54.0  58.0  62.7     99.5  99.1  99.5  99.3  99.6
+    Gate (steps shrinking, 30-to-56 within 0.2 on the table, simulation within noise): FAIL as written.
+    The table's reading has NOT converged even at 56 points, and it is optimistic by 2 to 3 points
+    against its own simulation on S184 and S330. The simulated survival is flat within noise.
+
+V2s THE SHARE AXES, 6 / 9 / 12 points each
+                table read (6 vs 12)     simulated (6 vs 12)
+    S184        -0.19   PASS             +0.30
+    S330        -0.60   fails the 0.2    +0.20
+    S126        -45.3   (the dead corner: 54.0 -> 98.1 at 9 shares -> 99.3 at 12)   +1.10
+    S126 as PREDICTED: at 9 or 12 share points its read no longer touches the dead all-pension node and
+    jumps to ~98%. Its simulation moves about a point.
+
+V3  LOG-ODDS AGAINST LINEAR, errors in survival points against the refined table, on the cliff (5-95%)
+                                      log-odds mean / max      linear mean / max
+    S184  along total wealth          1.66 / 8.14              1.22 / 5.28     linear better
+    S330  along total wealth          0.86 / 5.68              0.75 / 4.08     linear better
+    S126  along total wealth          2.18 / 13.9              2.56 / 52.9     log-odds better, linear
+                                                                              catastrophic at worst
+    S184  across the shares           0.66 / 4.84              1.03 / 5.04     log-odds better
+    S330  across the shares           0.48 / 3.47              0.54 / 3.85     log-odds better
+    S126  across the shares           3.99 / 93.7              3.84 / 76.6     dead corner: both bad
+    CAVEAT: the reference is itself the 56-point / 12-share table, which V2 shows is not converged, so
+    V3 compares two approximations, not an approximation against the truth.
+
+CENSUS  cells reading 50% or more with a dead corner one step along a share axis
+    S184  0 in every decade.  S330  0 until the last decade of a 61-year plan (1.4% there).
+    S126  3.6% of cells in years 0-9, as predicted; ~0 after.
+
+PREDICTIONS AGAINST OUTCOMES
+    V1 passes on S184 and S330                    FAILED as written (table and moves); sim within noise
+    V2 passes on S184 and S330                    FAILED on the table - and PREDICTABLE from the phase-2
+                                                  loss ledger, which I misread (recorded in PLAN.md)
+    V2s fails on S126 only, sim moves little      CONFIRMED on S126; S330 missed the 0.2 table mark
+    V3 log-odds wins along wealth, loses only     WRONG along wealth on two of three (linear better);
+       across dead share corners                  right across the shares; the dead corner is bad
+                                                  under both schemes
+    Census: S126 bridge years only                CONFIRMED
+
+WHAT IT MEANS
+1. THE PLANS ARE STABLE; THE TABLE'S OWN NUMBERS ARE NOT. Every change of quadrature, wealth points and
+   share points moved the simulated survival by no more than noise (about a point at 1,000 paths), while
+   the table's reading moved by up to several points and does not settle. The policy - which move to
+   make - is robust; the value the table attaches to a position is not.
+2. SO THE TABLE MUST NEVER BE THE REPORTED NUMBER. Survival, spending and pots shown to a user come from
+   simulation. This was already the plan since survival stopped being a target; it is now a requirement.
+3. 6 TO 9% OF STORED MOVES CHANGE WITH THE SETTINGS without changing the simulated survival - consistent
+   with near-ties, but 1,000 paths cannot see below about a point, and survival is the only outcome V
+   measured. Spending and tax are not yet checked at the settings' extremes.
+4. THE ONE REAL NUMERICAL DEFECT IS #106's DEAD CORNER, confirmed four ways and confined to households
+   retired before pension access with a pension share above 0.8 (S126 of the 41). Neither interpolation
+   scheme reads it well; the fix is to keep the dead node out of the read.
+5. LINEAR IS NOT A SAFE REPLACEMENT FOR LOG-ODDS. It wins on average along wealth for two households and
+   fails catastrophically on the third (52 points at worst). No change to the wealth-axis read.
+
+GATE STATUS: V1 and V2 FAILED as written and the queue has stopped. Re-judging them on the simulated
+outcome is a maintainer decision (PLAN.md, Phase V).

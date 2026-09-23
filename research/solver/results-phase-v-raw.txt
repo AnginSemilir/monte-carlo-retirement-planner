@@ -127,3 +127,75 @@ Phase V on S126 early-bridge/pension-heavy/comfortable/l - 40 years, lambda 0.02
   years 30-39  cells reading >= 50%:   38853   beside a dead corner:     45 (0.12%)
 
 SUMMARY S126: V1 FAIL  V2 FAIL  V2s FAIL  V3 PASS
+
+================ V3 RE-RUN (ONLY=v3), after the zero-point fix, 16:08-16:35 UTC ================
+=== snapshot /tmp/solver-snap-P65mRV   from 26701d6
+band 20 exit 0
+band 32 exit 0
+band 64 exit 0
+
+################ band 32
+Phase V on S184 near/pension-heavy/modest/moderate - 41 years, lambda 2, resilience off, six levels, 1000 held-out paths
+
+=========== V3. LOG-ODDS AGAINST LINEAR, BETWEEN COARSE NODES ===========
+  reference: 56 points on total wealth
+    all positions (10000)         log-odds mean 0.37  p95 2.23  max 8.14   |   linear mean 0.26  p95 1.65  max 5.28
+    on the cliff, 5-95% (1884)   log-odds mean 1.66  p95 4.28  max 8.14   |   linear mean 1.22  p95 3.25  max 5.28
+  reference: 12 points on each share axis
+    all positions (10000)         log-odds mean 0.13  p95 0.74  max 4.84   |   linear mean 0.23  p95 1.40  max 5.04
+    on the cliff, 5-95% (1749)   log-odds mean 0.66  p95 2.08  max 4.84   |   linear mean 1.03  p95 2.70  max 5.04
+  GATE V3: log-odds stands if its worst error on the cliff is no larger than linear's ... total axis FAIL, share axes PASS
+
+=========== CENSUS: DEAD CORNERS ===========
+  years 0-9    cells reading >= 50%:   17284   beside a dead corner:      0 (0.00%)
+  years 10-19  cells reading >= 50%:   18258   beside a dead corner:      0 (0.00%)
+  years 20-29  cells reading >= 50%:   19977   beside a dead corner:      0 (0.00%)
+  years 30-39  cells reading >= 50%:   21213   beside a dead corner:      0 (0.00%)
+  years 40-49  cells reading >= 50%:    2250   beside a dead corner:      0 (0.00%)
+
+SUMMARY S184: V1 not run  V2 not run  V2s not run  V3 total FAIL shares PASS
+
+################ band 64
+Phase V on S330 far/gia-heavy/comfortable/light - 61 years, lambda 0.9457416090031758, resilience off, six levels, 1000 held-out paths
+
+=========== V3. LOG-ODDS AGAINST LINEAR, BETWEEN COARSE NODES ===========
+  reference: 56 points on total wealth
+    all positions (10000)         log-odds mean 0.55  p95 1.78  max 5.68   |   linear mean 0.47  p95 1.61  max 4.08
+    on the cliff, 5-95% (5898)   log-odds mean 0.86  p95 1.97  max 5.68   |   linear mean 0.75  p95 1.79  max 4.08
+  reference: 12 points on each share axis
+    all positions (10000)         log-odds mean 0.29  p95 0.87  max 3.47   |   linear mean 0.34  p95 1.05  max 3.85
+    on the cliff, 5-95% (5744)   log-odds mean 0.48  p95 1.07  max 3.47   |   linear mean 0.54  p95 1.26  max 3.85
+  GATE V3: log-odds stands if its worst error on the cliff is no larger than linear's ... total axis FAIL, share axes PASS
+
+=========== CENSUS: DEAD CORNERS ===========
+  years 0-9    cells reading >= 50%:   29010   beside a dead corner:      0 (0.00%)
+  years 10-19  cells reading >= 50%:   20966   beside a dead corner:      0 (0.00%)
+  years 20-29  cells reading >= 50%:   13366   beside a dead corner:      0 (0.00%)
+  years 30-39  cells reading >= 50%:   12880   beside a dead corner:      0 (0.00%)
+  years 40-49  cells reading >= 50%:   16477   beside a dead corner:      0 (0.00%)
+  years 50-59  cells reading >= 50%:   25517   beside a dead corner:     15 (0.06%)
+  years 60-69  cells reading >= 50%:    4185   beside a dead corner:     60 (1.43%)
+
+SUMMARY S330: V1 not run  V2 not run  V2s not run  V3 total FAIL shares PASS
+
+################ band 20
+Phase V on S126 early-bridge/pension-heavy/comfortable/l - 40 years, lambda 0.0223606797749979, resilience off, six levels, 1000 held-out paths
+
+=========== V3. LOG-ODDS AGAINST LINEAR, BETWEEN COARSE NODES ===========
+  reference: 56 points on total wealth
+    all positions (10000)         log-odds mean 0.33  p95 2.20  max 13.92   |   linear mean 0.66  p95 2.24  max 52.87
+    on the cliff, 5-95% (1332)   log-odds mean 2.18  p95 5.94  max 13.92   |   linear mean 2.56  p95 9.05  max 47.59
+  reference: 12 points on each share axis
+    all positions (10000)         log-odds mean 0.79  p95 1.01  max 98.64   |   linear mean 0.87  p95 2.95  max 76.56
+    on the cliff, 5-95% (1198)   log-odds mean 3.99  p95 17.12  max 93.67   |   linear mean 3.84  p95 11.71  max 76.56
+  GATE V3: log-odds stands if its worst error on the cliff is no larger than linear's ... total axis PASS, share axes FAIL
+
+=========== CENSUS: DEAD CORNERS ===========
+  years 0-9    cells reading >= 50%:   26324   beside a dead corner:    945 (3.59%)
+  years 10-19  cells reading >= 50%:   27474   beside a dead corner:      0 (0.00%)
+  years 20-29  cells reading >= 50%:   30381   beside a dead corner:      0 (0.00%)
+  years 30-39  cells reading >= 50%:   38853   beside a dead corner:     45 (0.12%)
+
+SUMMARY S126: V1 not run  V2 not run  V2s not run  V3 total PASS shares FAIL
+=== snapshot kept at /tmp/solver-snap-P65mRV for provenance; remove it when the results are written up
+exit 0

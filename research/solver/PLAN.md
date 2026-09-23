@@ -132,6 +132,9 @@ cannot see - passes to the user's own minimum end-of-life pot, with a default. M
   to polish.
 - **Background runs are launched as harness-tracked tasks**, never detached: a detached run was killed
   when an idle container was reclaimed on 23 Sep.
+- **The value table is never a reported number.** Every survival, spending or pot figure a user sees
+  comes from simulating the plan. Phase V showed the table's own reading is off by several points and
+  does not converge at practical sizes, while the plans it produces are stable (23 Sep).
 - **The maintainer decides whether the solver ships.** Running Phase 4 and writing its verdict is the
   end of this plan's remit.
 
@@ -342,7 +345,7 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | # | Step | Conditional on | Size | ETA (UTC) |
 |---|---|---|---|---|
 | 0 | ~~Measure the byte-wide policy bug's cost~~ **done: zero effect on any simulation** | the fix | - | done |
-| 1 | **Phase V**, restarted on the fixed code, extended to the share axes | 0 | ~1.5 h | Wed ~16:45 (restarted 15:07) |
+| 1 | **Phase V - RUN; V1 and V2 FAILED as written; queue STOPPED for the maintainer's decision** (below, and `results-phase-v.txt`) | 0 | done | done 16:35 |
 | 2 | **Solver changes + one field check**: the interpolation fix (#106 and whatever V finds); resilience off; lambda as a direct setting, no landing; six levels with the ternary search; the E1 probe re-run | 1 | build ~1.5 h, run ~1 h | Wed ~19:15 |
 | 3 | **Lever builds**: the estate credit curve above the minimum pot; the raise cap and block; the minimum-pot default; block trimming (floor = target) | 2 | ~2.5 h, no cores | Wed ~21:45 |
 | 4 | **K1 honouring checks** - exact; a failure is a bug | 3 | ~20 min | Wed ~22:15 |
@@ -369,6 +372,35 @@ Step 6 is the one point the maintainer is on the critical path.
 - **Brent with error-based stopping** - downgraded for the plan itself, which never searches, but it
   returns for the Simple page's safe spend and safe age (decided 23 Sep, option (b)), where every step of
   the search is a full solve and a user is waiting. Built with Part C Phase 10.
+
+---
+
+## Phase V: OUTCOME AND THE DECISION IT NEEDS (23 Sep, 16:35)
+
+**Result, in one line: the plans are stable; the table's own numbers are not.** Changing the quadrature
+(5/9/15 nodes), the wealth axis (16 to 56 points) and the share axes (6/9/12) moved the SIMULATED survival
+by no more than noise on all three households, while the TABLE's reading moved by up to several points
+and does not settle even at 56 points - optimistic by 2 to 3 points against its own simulation. 6 to 9%
+of stored moves change with the settings without moving the simulation, which points to near-ties.
+#106's dead corner is confirmed four ways and confined to S126's bridge years. Linear interpolation is not
+a safe replacement for log-odds (better on average along wealth for two households, catastrophic on the
+third). Full tables and predictions against outcomes: `results-phase-v.txt`.
+
+**Gate status: V1 and V2 FAILED as written** - the pass marks were set on the table's reading as well as
+the simulation. By the standing rule the queue stops here.
+
+**The decision, for the maintainer:**
+- **(A) Re-judge V1, V2 and V2s on the SIMULATED outcome** - what a user is shown - and add the check
+  V could not make: at 3,000 paths, on the 12 step-2 households, the settings' extremes (5 vs 15 nodes,
+  30 vs 56 points) compared on survival AND spending delivered AND lifetime tax, gated at half a point and
+  1% of spending. Folded into step 2's field check; about an hour more. The table is never a reported
+  number (already a requirement, now written into the Fixed requirements). *Recommended.*
+- **(B) Treat V as failed and raise the resolution.** The table does not converge even at 56 points, so
+  no practical setting passes the gate as written; this buys solve time and not a pass.
+- **(C) Stop and investigate the table's bias further** before anything else. Informative, but the bias
+  does not reach the decisions on any evidence so far.
+
+**Unaffected either way:** the #106 fix (keep a dead share node out of the read) goes into step 2.
 
 ---
 

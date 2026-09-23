@@ -32,7 +32,13 @@ const band = JSON.parse(readFileSync('/home/user/vitejs-vite-kdvuf9qw/research/s
 const sc = singles[band[Number(process.argv[2] || 32)].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...sc.plan, config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan);
-const r = solve(E, M, plan, { points: 24, lambda: 0.5, spendLevels: [1.2, 1.1, 1, 0.9, 0.8], tiers: tiersFor(m), lump: m.ctx.fullLumpSum });
+/* the household's OWN flex-tiers configuration: its landed lambda, raises on (without a raise weight the
+ * solver drops the levels above 1, which silently left three levels and 216 actions on the first run),
+ * joint tiers, 30 points. Single table, not the three-world mixture: these probes read r.pol directly. */
+const FT = (() => { try { return JSON.parse(readFileSync('/home/user/vitejs-vite-kdvuf9qw/research/solver/results/flex-tiers/' + sc.id + '.json', 'utf8')); } catch { return null; } })();
+const LAMBDA = FT ? FT.solver.lambda : 0.5;
+const r = solve(E, M, plan, { points: 30, lambda: LAMBDA, raiseWeight: 0.003, spendLevels: [1.2, 1.1, 1, 0.9, 0.8], tiers: true, lump: m.ctx.fullLumpSum });
+if (r.actions.length !== 360) { console.log(`REFUSED: ${r.actions.length} actions, expected 360 (5 levels x 24 cores x 3 tiers) - the probe would not measure the real menu`); process.exit(2); }
 const A = r.actions, nA = A.length, T = r.m.ctx.totalYears, N = r.g.size;
 /* the label minus its spend clause identifies the draw order + harvest core; tier is on the action */
 const core = (a) => a.label.replace(/, spend \d+%/, '').replace(/, pension \d+ tiers? down/, '').replace(/, ISA \d+ tiers? down/, '');
@@ -45,7 +51,7 @@ for (let i = 0; i < nA; i++) {
     if (coreOf[j] === coreOf[i]) sameCore[i].push(j);
   }
 }
-console.log(`${sc.id}: ${nA} actions, ${N.toLocaleString()} cells, ${T + 1} years, grid 24 points\n`);
+console.log(`${sc.id}: ${nA} actions, ${N.toLocaleString()} cells, ${T + 1} years, grid 30 points, lambda ${LAMBDA}\n`);
 console.log(`candidate set sizes from one winner:  1 / ${sameLevelTier[0].length} / ${sameCore[0].length} / ${new Set([...sameLevelTier[0], ...sameCore[0]]).size} of ${nA}\n`);
 
 let n = 0; const hit = [0, 0, 0, 0];

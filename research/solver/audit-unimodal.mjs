@@ -36,7 +36,13 @@ const sc = singles[band[Number(process.argv[2] || 32)].i];
 const plan = E.resolveMpaa(E.normalizePlan({ ...sc.plan, config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 } }));
 const m = M.prepare(E, plan);
 const LEVELS = [1.2, 1.1, 1, 0.9, 0.8];
-const r = solve(E, M, plan, { points: 16, lambda: 0.5, spendLevels: LEVELS, tiers: tiersFor(m), lump: m.ctx.fullLumpSum });
+/* the household's OWN flex-tiers configuration: its landed lambda, raises on (without a raise weight the
+ * solver drops the levels above 1, which silently left three levels and 216 actions on the first run),
+ * joint tiers, 30 points. Single table, not the three-world mixture: these probes read r.pol directly. */
+const FT = (() => { try { return JSON.parse(readFileSync('/home/user/vitejs-vite-kdvuf9qw/research/solver/results/flex-tiers/' + sc.id + '.json', 'utf8')); } catch { return null; } })();
+const LAMBDA = FT ? FT.solver.lambda : 0.5;
+const r = solve(E, M, plan, { points: 30, lambda: LAMBDA, raiseWeight: 0.003, spendLevels: LEVELS, tiers: true, lump: m.ctx.fullLumpSum });
+if (r.actions.length !== 360) { console.log(`REFUSED: ${r.actions.length} actions, expected 360 (5 levels x 24 cores x 3 tiers) - the probe would not measure the real menu`); process.exit(2); }
 const acts = r.actions, T = r.m.ctx.totalYears;
 const nA = acts.length;
 const SC = new Float64Array(nA), TX = new Float64Array(nA), BQ = new Float64Array(nA);
@@ -79,6 +85,7 @@ for (let t = 0; t < T; t++) {
     if (loss > 1e-12) { lossCount++; if (loss > worstLoss) { worstLoss = loss; worstAt = `y${t} ${g[0] ? acts[g[0].i].label.slice(0, 44) : ''}`; } }
   }
 }
+if (tested === 0) { console.log("VACUOUS: zero combinations tested - no verdict. A probe that tests nothing must not print safe."); process.exit(3); }
 const pc = (x) => (100 * x / Math.max(1, tested)).toFixed(2);
 console.log(`tested            ${tested.toLocaleString()} (cell-year, action-group) combinations`);
 console.log(`single-peaked     ${unimodal.toLocaleString()}  (${pc(unimodal)}%)`);

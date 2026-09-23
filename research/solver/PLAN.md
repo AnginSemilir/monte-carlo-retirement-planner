@@ -2870,6 +2870,26 @@ mistaken for an oversight, and so that anyone who notices one of these can see i
 ### 5. Open questions with nobody assigned
 
 - **The S126 opening-cell anomaly** (task #106) - noticed, never diagnosed.
+  **Hypothesis derived 23 Sep, before any run - the dead corner in logit space.** Survival is
+  interpolated in LOG-ODDS (`interp`, `logit` clamped at 1e-6), so a corner whose true survival is 0
+  enters at -13.8 rather than 0. S126 opens with pension share a = 0.85, between the share nodes 0.8
+  and 1.0, so 25% of the read comes from the a = 1.0 node - all pension, nothing liquid - and S126 is
+  two years short of pension access, so that node truly cannot fund the bridge: survival 0. Its
+  contribution is 0.25 x -13.8 = -3.45 in log-odds, dividing the odds by about 32. Even if every other
+  corner read 97%, the table would say about 50%; linear interpolation would have said 73%. The
+  simulated 96.8% is unaffected because simulation walks real pots, not the table.
+  **Checked against existing inputs, no run:** the class is "a > 0.8 AND short of pension access at
+  t = 0". Of the 41 it holds exactly four: S126, S184, S240, S300. S126 was the only one of them
+  among the six households the grid-ceiling test measured - which is why it looked unique.
+  **Why it may matter beyond a read-out:** the slope of that dead corner is about 86 log-odds per unit
+  of share, so every pound drawn from ISA/GIA during the bridge (which raises a) is scored as a large
+  survival loss. The prediction is extra trimming in bridge years for those four, not lower survival.
+  **Not settleable from saved data** - no table values or per-year trim profile are stored. One
+  small run confirms or kills it: `bias.mjs` on S126, S184, S240, S300 (predicted: table far below
+  simulation) and controls S004 (a = 0.85, already past access - predicted fine) and S162 (in the
+  bridge, a = 0.5 - predicted fine). Six solves, ~20 min on four cores. Folded into Phase V as its
+  concrete interpolation case (V3). A fixed-rate claim about S126's zero fully-funded rate was
+  considered and rejected: S058, S112 and S390 also score 0 and are not in the class.
 - **Single-household probes at the frontier** (task #109) - would show WHERE the solver's edge comes
   from rather than that it exists. Useful for the write-up, not for the decision.
 - ~~**One seed pair throughout.**~~ **Checked 23 Sep, downgraded.** Scoring the SAME policy on both draws

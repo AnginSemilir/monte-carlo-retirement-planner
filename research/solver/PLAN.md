@@ -1122,6 +1122,70 @@ invalidate it retroactively, which is the worst moment to find out.
 
 All three checks are hours. They are the last "is the floor solid" question before Phase 4.
 
+#### The fix this points at: stop on ESTIMATED ERROR, not on a step count
+
+**Raised by the maintainer, 23 Sep - "only use more solves on houses we know are strained?" The answer
+is yes, and the better version does not need to know which they are.**
+
+Measured across the eight households of task #108, the sensitivity of the floor rate to lambda - points
+per unit of log-lambda - varies by **78 times**:
+
+| id | ask | sensitivity | what a 1.21x bracket costs |
+|---|---|---|---|
+| S178 | 86.1 | 6.94 | 1.30 pts |
+| S070 | 76.5 | 6.77 | 1.27 |
+| S268 | 75.1 | 6.77 | 1.27 |
+| S020 | 88.4 | 6.05 | 1.13 |
+| S154 | 70.9 | 4.23 | 0.79 |
+| S318 | 77.9 | 3.56 | 0.67 |
+| S342 | 72.0 | 3.38 | 0.63 |
+| **S058** | **97.9** | **0.09** | **0.02** |
+
+So a fixed step count is wrong in both directions: it wastes five solves on S058, where the whole
+bracket is worth two hundredths of a point, and it stops a point short on S178.
+
+**"Strained" is a good proxy but not the right variable.** The one comfortable household is indeed the
+flat one - but sensitivity varies TWO TIMES among the strained ones, and worse, **you cannot know which
+households are strained until you have solved them.** The ask is an input; the achievable rate is not.
+
+**The solver already has what it needs.** The bisection computes `(lambda, rate)` pairs as it goes, so
+after two or three steps the local slope can be estimated and the residual error is
+`slope x ln(bracket)`. **Stop when that is under tolerance.** Flat households stop in three or four
+steps, sensitive ones run to nine or ten, nobody is labelled in advance, and it costs no extra
+evaluations - the slope comes from work already done.
+
+**And this names what is actually wrong with the present rule**, which is not that five is too few:
+
+    if (r.floorRate - confidence <= tol) break;
+
+That tests the **achieved value** - am I close above the ask - not the **remaining uncertainty**. Two
+failure modes follow, and both are visible in the landings: it fires early on a lucky hit while the
+bracket is still wide (the three-solve landings), and it never fires at all for households whose
+achievable rates skip over the window (the seven-solve landings, full budget, still overshooting).
+
+**One caution that matters.** The slope estimate must err HIGH - take the maximum seen so far, not the
+local one. An underestimate stops early and reintroduces precisely the bias being removed.
+
+**This supersedes the fixed eight steps recommended an hour earlier**, which was the right answer to the
+wrong question. Adaptive stopping is more accurate where accuracy matters and likely cheaper on
+average. With Brent underneath it - superlinear convergence to an error-based tolerance - that is the
+whole fix, and it is why Brent belongs here rather than in the speed programme.
+
+#### And it applies to trimming ONLY, which is worth stating
+
+Lambda is SEARCHED, because the floor is a promise the household made an input for. The raise credit
+`mu = 0.003` is a CONSTANT - never searched, never swept - because nothing in the product says how often
+a household wants to spend ABOVE target, so there is nothing to land against. That asymmetry is
+defensible but it should be deliberate rather than accidental, and it has two consequences:
+
+- **the raise side has no convergence question at all**, since there is no search to converge; but
+- **fixing the trim side should raise spending through TWO channels**: less trimming directly, and more
+  wealth left over, which creates more headroom for raises. So `meanLevelMedian` and the years spent
+  above target should BOTH rise in the convergence test, not just the first. If only the first moves,
+  the raise credit is too small to respond and `mu` deserves the sweep it has never had.
+
+---
+
 #### HYPOTHESES, derived before the run
 
 **V1, and it is NOT simply "five is too few".** The rule integrates the next year's value against a

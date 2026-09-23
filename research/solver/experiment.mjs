@@ -382,16 +382,21 @@ if (mode === 'flex') {
    * five rival arms scored over the held draw, plus 10,800 policy runs whose only output is the search
    * floor rate, which a held-lambda run does not use for anything.
    *
-   * Two things it requires, both checked rather than assumed. CONF must be a NUMBER, because
-   * CONF=gkFloor derives the solver's ask from the gkFloor arm and there is no such arm here. And
-   * LAMBDA must be held, because without the rivals there is nothing to calibrate an ask against and a
-   * landing would be landing at a number pulled from the air. A screen that needs the rivals is a
-   * screen that should not be using this flag.
+   * ONE requirement, checked rather than assumed: CONF must be a NUMBER. `CONF=gkFloor` and `CONF=+n`
+   * both derive the solver's ask FROM an arm, so dropping the arms would silently change what the
+   * solver was asked for rather than only making the run cheaper.
+   *
+   * It first also demanded LAMBDA be held, on the reasoning that without the rivals there is nothing
+   * to calibrate an ask against. **That was too strict and the reasoning was wrong.** With CONF given
+   * as a number the ask is explicit and owes the rivals nothing, so a real landing is perfectly
+   * well defined without them - which is exactly what the search-path sweep needs, since it must
+   * LAND at each path count and cannot hold lambda. The guard was written for screens and mistook the
+   * first use for the only one.
    */
   const SOLVER_ONLY = process.env.SOLVERONLY === '1';
-  if (SOLVER_ONLY) {
-    if (CONF_RAW === 'gkFloor' || CONF_REL !== null) { console.error('SOLVERONLY needs CONF as a number: gkFloor and +n both derive the ask from an arm that is not being run'); process.exit(2); }
-    if (!process.env.LAMBDA) { console.error('SOLVERONLY needs LAMBDA held: with no rivals there is nothing to land an ask against'); process.exit(2); }
+  if (SOLVER_ONLY && (CONF_RAW === 'gkFloor' || CONF_REL !== null)) {
+    console.error('SOLVERONLY needs CONF as a number: gkFloor and +n both derive the ask from an arm that is not being run');
+    process.exit(2);
   }
   for (const key of (SOLVER_ONLY ? [] : ['gk', 'gkFloor', 'fixed', ...EXTRA])) {
     const m = M.prepare(E, plans[key]);

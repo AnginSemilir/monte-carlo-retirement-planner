@@ -454,6 +454,34 @@ export function solve(E, M, plan, opts = {}) {
   const profT0 = PROF ? now() : 0;
   const shortOfAction = new Float64Array(A);
   /*
+   * RAISES COUNT ONLY IN FUTURES THAT SURVIVE (`raiseSurvival`, PLAN.md finding M17). The step-2 records
+   * showed that in futures heading for failure the solver raised spending to 1.2 in the last years on
+   * 94-100% of failing paths: once the survival chance is near zero it no longer moves with the move, so the
+   * raise credit is the only reward left and "spend it while you can" wins. With this on, a raise's credit
+   * is multiplied by the survival chance it leads to (the expected read of next year's survival table,
+   * already computed for the move), so a raise in a hopeless position is worth nothing. Off, every table is
+   * the one solved before, bit for bit.
+   */
+  const raiseSurv = !!opts.raiseSurvival;
+  const raiseOfAction = new Float64Array(A);
+  /*
+   * A YEAR WITH NO MONEY IS THE DEEPEST CUT (`failureShortfall`, M17's root cause). The trim penalty is charged
+   * only in years the household can still pay, so running out ENDS the charges: in a position heading for
+   * failure, spending more now reaches failure sooner and skips the cuts that staying alive would cost, and
+   * the score rewards it (found 23 Sep 22:00 on S070: at a hopeless cell, spending 1.2 scored above 1.0 purely
+   * through a smaller expected future trim cost). With this on, a move that cannot pay this year is charged
+   * every remaining spending year at the trim curve's own end point, a cut to nothing: lambda x (1 - 0)^gamma a
+   * year. Running out is then never cheaper than cutting. Off, every table is the one solved before.
+   */
+  // `true`: a year with no money costs what a year at the user's floor costs - the most any year WITH money can
+  // cost, so running out is never cheaper than cutting, and nothing else moves. `'zero'`: a cut to nothing,
+  // the trim curve's end point - a much heavier charge that makes the whole plan more cautious (measured in
+  // solver-raisesurv.test.mjs: raising in comfortable cells falls about a fifth), kept as the alternative.
+  const failShort = !!opts.failureShortfall;
+  const failLevel = opts.failureShortfall === 'zero' ? 0 : Math.min(...levelOf);
+  const failCostAt = new Float64Array(T + 2);
+  if (failShort) for (let t = T; t >= 0; t--) failCostAt[t] = failCostAt[t + 1] + (c.yr.spend[t] > 0 ? lambda * shortOf(Math.min(1, failLevel)) : 0);
+  /*
    * THE LEVEL SEARCH (`levelSearch: 'ternary'`, decided 23 Sep). Measured over 5.0 million combinations
    * on the six-level menu, the score is single-peaked in spending level almost everywhere, and a ternary
    * search per group - one draw order, harvest and tier, all its levels - evaluates four levels instead
@@ -476,7 +504,11 @@ export function solve(E, M, plan, opts = {}) {
     const spendYear = c.yr.spend[t] > 0;
     // world-independent, so computed once a year rather than once a world: E0 made the world loop the
     // outer one and this would otherwise be evaluated K times for the same answer
-    for (let ai = 0; ai < A; ai++) shortOfAction[ai] = (spendYear ? costOf(levelOf[ai]) : 0) + driftCostOf[ai];
+    for (let ai = 0; ai < A; ai++) {
+      const cst = spendYear ? costOf(levelOf[ai]) : 0;
+      if (raiseSurv && cst < 0) { shortOfAction[ai] = 0 + driftCostOf[ai]; raiseOfAction[ai] = cst; }
+      else { shortOfAction[ai] = cst + driftCostOf[ai]; raiseOfAction[ai] = 0; }
+    }
     for (let ic = 0; ic < g.pcls.length; ic++) {
       for (let ig = 0; ig < g.gain.length; ig++) {
         for (let it = 0; it < g.nt; it++) {
@@ -531,7 +563,9 @@ export function solve(E, M, plan, opts = {}) {
                         }
                       }
                     }
-                    h += shortOfAction[ai];
+                    if (failShort && fail) h = failCostAt[t];
+                    else h += shortOfAction[ai];
+                    if (raiseSurv) h += raiseOfAction[ai] * s;
                     stampScore[ai] = key; scS[ai] = s; scB[ai] = b; scR[ai] = rs; scH[ai] = h;
                     return (scV[ai] = s + wR * rs + wB * b - h);
                   };
@@ -615,7 +649,9 @@ export function solve(E, M, plan, opts = {}) {
                     }
                     if (PROF) { PROF.nodes += now() - tn; PROF.nodeCalls++; }
                   }
-                  h += thisShort;
+                  if (failShort && fail) h = failCostAt[t];
+                  else h += thisShort;
+                  if (raiseSurv) h += raiseOfAction[ai] * s;
                   const score = s + wR * rs + wB * b - h;
                   if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
                 }
@@ -634,7 +670,7 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, solverVersion: SOLVER_VERSION };
   if (PROF) {
     PROF.total = now() - profT0;
     // two clock calls per timed region, and the outer pair too
@@ -654,6 +690,7 @@ export function solve(E, M, plan, opts = {}) {
     /* the end-of-plan rule the backward pass applies at t = T, so the final year can be scored exactly (see scoreMoves) */
     terminal: { floor, deathTax, resilK, shortfall, beqOf },
     finalExact: !!opts.finalExact,
+    raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
     /*
      * PHASE E0, STEP 2. One result-like view per world, for `chooseAction`'s mixture loop, which calls
      * `scoreMoves(tab, ...)` on each and so needs a complete object. Everything immutable is shared by
@@ -673,7 +710,7 @@ export function solve(E, M, plan, opts = {}) {
     surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
     nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW,
     tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
-    terminal: { floor, deathTax, resilK, shortfall, beqOf }, finalExact: !!opts.finalExact,
+    terminal: { floor, deathTax, resilK, shortfall, beqOf }, finalExact: !!opts.finalExact, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
     /*
      * A world view answers `policy` and `value` as the central result does, reading ITS OWN tables.
      * Leaving them off made the view scoreable but not readable, which is half a result: the mixture
@@ -799,7 +836,9 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
     if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; continue; }
     // a move that changes tier pays the round trip on the slice traded before the year's growth
     if (held) F.chargeSwitch(c, post, held, c.acts[ai]);
-    let sv = 0, bq = 0, rs = 0, h = (spendYear ? r.costOf(levelOf[ai]) : 0) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
+    const cst = spendYear ? r.costOf(levelOf[ai]) : 0;
+    const rz = r.raiseSurvival && cst < 0 ? cst : 0;   // M17: a raise's credit, weighted below by the survival it leads to
+    let sv = 0, bq = 0, rs = 0, h = (rz ? 0 : cst) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
     const nr = nodeRealOf[ai];
     const QW = r.quadWeights || WEIGHTS;
     if (t >= r.m.ctx.totalYears) {
@@ -815,6 +854,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
         rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
         bq += QW[zi] * (alive ? beqOf(net) : 0);
       }
+      if (rz) h += rz * sv;
       SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
       continue;
     }
@@ -827,6 +867,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
       rs += QW[zi] * rd[2];
       h += QW[zi] * rd[3];
     }
+    if (rz) h += rz * sv;
     SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
   }
 }

@@ -1,0 +1,34 @@
+
+=== tiers only (survival alone) ===
+policy map, tier chosen at the start of a year (paying spend 1):
+  30 years left: 1.5:Medium|Medium (0%)  3:Medium|High (0%)  5:Medium|High (0%)  8:Medium|High (1%)  12:Medium|High (18%)  16:Medium|High (48%)  20:Medium|High (73%)  25:Med/Low|Med/Low (93%)  30:Low|Low (100%)  40:Low|Low (100%)
+  20 years left: 1.5:Medium|Medium (0%)  3:Medium|High (0%)  5:Medium|High (0%)  8:Medium|High (5%)  12:Medium|High (40%)  16:Medium|Med/High (79%)  20:Low|Low (99%)  25:Low|Low (100%)  30:Low|Low (100%)  40:Medium|Medium (100%)
+  10 years left: 1.5:Medium|Medium (0%)  3:Medium|High (0%)  5:Medium|High (1%)  8:Medium|High (54%)  12:Low|Low (100%)  16:Medium|Medium (100%)  20:Medium|Medium (100%)  25:Medium|Medium (100%)  30:Medium|Medium (100%)  40:Medium|Medium (100%)
+  3 years left: 1.5:Medium|Medium (0%)  3:Low|Low (87%)  5:Medium|Medium (100%)  8:Medium|Medium (100%)
+  (each entry: wealth in years of spending: down-only | up-allowed (survival chance up-allowed))
+start 25 years of spending (4.0% withdrawal), 30 years, 20,000 paths:
+  down only   survival 88.8%  | mean years unfunded 0.52  | failed paths run out in year 25.4  | run out before year 20: 0.3%  | worst 5% funded 25 yrs  | median end 3.8  unlucky-tenth end 0.0  | cut years 0.0%  | years above Medium 0.0%
+  up allowed  survival 93.4%  | mean years unfunded 0.44  | failed paths run out in year 23.2  | run out before year 20: 1.3%  | worst 5% funded 27 yrs  | median end 4.3  unlucky-tenth end 0.5  | cut years 0.0%  | years above Medium 5.5%  [up-moves made at survival <50%: 43.0%, 50-90%: 57.0%, >90%: 0.0%]
+start 20 years of spending (5.0% withdrawal), 30 years, 20,000 paths:
+  down only   survival 51.2%  | mean years unfunded 3.36  | failed paths run out in year 23.1  | run out before year 20: 8.5%  | worst 5% funded 18 yrs  | median end 0.2  unlucky-tenth end 0.0  | cut years 0.0%  | years above Medium 0.0%
+  up allowed  survival 72.9%  | mean years unfunded 2.77  | failed paths run out in year 19.8  | run out before year 20: 13.5%  | worst 5% funded 15 yrs  | median end 2.2  unlucky-tenth end 0.0  | cut years 0.0%  | years above Medium 29.4%  [up-moves made at survival <50%: 48.2%, 50-90%: 51.8%, >90%: 0.0%]
+start 16 years of spending (6.3% withdrawal), 30 years, 20,000 paths:
+  down only   survival 13.9%  | mean years unfunded 8.62  | failed paths run out in year 20.0  | run out before year 20: 42.1%  | worst 5% funded 14 yrs  | median end 0.0  unlucky-tenth end 0.0  | cut years 0.0%  | years above Medium 0.0%
+  up allowed  survival 47.5%  | mean years unfunded 6.36  | failed paths run out in year 17.9  | run out before year 20: 34.1%  | worst 5% funded 12 yrs  | median end 0.0  unlucky-tenth end 0.0  | cut years 0.0%  | years above Medium 50.4%  [up-moves made at survival <50%: 75.7%, 50-90%: 24.3%, >90%: 0.0%]
+
+=== tiers + cuts to 95/90/80% (lambda 0.5) ===
+policy map, tier chosen at the start of a year (paying spend 1):
+  30 years left: 1.5:Medium|Medium (0%)  3:Low|High (0%)  5:Low|High (0%)  8:Low|High (3%)  12:Medium|High@0.9 (29%)  16:Medium@0.9|High@0.95 (61%)  20:Medium@0.9|Med/High@0.95 (84%)  25:Low@0.95|Low (98%)  30:Low|Low (100%)  40:Low|Low (100%)
+  20 years left: 1.5:Medium|Medium (0%)  3:Low|High (0%)  5:Low|High (0%)  8:Medium|High@0.95 (12%)  12:Medium@0.8|High@0.9 (62%)  16:Med/Low@0.9|Med/Low@0.95 (95%)  20:Low|Low (100%)  25:Low|Low (100%)  30:Med/Low|Med/Low (100%)  40:Medium|Medium (100%)
+  10 years left: 1.5:Medium|Medium (0%)  3:Low|High (0%)  5:Low|High@0.9 (9%)  8:Low@0.8|Low@0.8 (96%)  12:Low|Low (100%)  16:Medium|Medium (100%)  20:Medium|Medium (100%)  25:Medium|Medium (100%)  30:Medium|Medium (100%)  40:Medium|Medium (100%)
+  3 years left: 1.5:Medium|Medium (0%)  3:Low|Low (100%)  5:Medium|Medium (100%)  8:Medium|Medium (100%)
+  (each entry: wealth in years of spending: down-only | up-allowed (survival chance up-allowed))
+start 25 years of spending (4.0% withdrawal), 30 years, 20,000 paths:
+  down only   survival 98.6%  | mean years unfunded 0.07  | failed paths run out in year 25.0  | run out before year 20: 0.0%  | worst 5% funded 30 yrs  | median end 2.1  unlucky-tenth end 0.0  | cut years 30.2%  | years above Medium 0.0%
+  up allowed  survival 98.2%  | mean years unfunded 0.13  | failed paths run out in year 22.8  | run out before year 20: 0.3%  | worst 5% funded 30 yrs  | median end 2.3  unlucky-tenth end 0.0  | cut years 19.6%  | years above Medium 1.4%  [up-moves made at survival <50%: 32.8%, 50-90%: 67.2%, >90%: 0.0%]
+start 20 years of spending (5.0% withdrawal), 30 years, 20,000 paths:
+  down only   survival 78.4%  | mean years unfunded 1.71  | failed paths run out in year 22.1  | run out before year 20: 5.3%  | worst 5% funded 19 yrs  | median end 0.1  unlucky-tenth end 0.0  | cut years 60.2%  | years above Medium 0.0%
+  up allowed  survival 84.2%  | mean years unfunded 1.69  | failed paths run out in year 19.3  | run out before year 20: 8.4%  | worst 5% funded 17 yrs  | median end 0.7  unlucky-tenth end 0.0  | cut years 47.7%  | years above Medium 21.1%  [up-moves made at survival <50%: 30.1%, 50-90%: 69.9%, >90%: 0.0%]
+start 16 years of spending (6.3% withdrawal), 30 years, 20,000 paths:
+  down only   survival 36.6%  | mean years unfunded 6.68  | failed paths run out in year 19.5  | run out before year 20: 34.5%  | worst 5% funded 15 yrs  | median end 0.0  unlucky-tenth end 0.0  | cut years 63.2%  | years above Medium 0.0%
+  up allowed  survival 60.7%  | mean years unfunded 4.97  | failed paths run out in year 17.3  | run out before year 20: 27.3%  | worst 5% funded 12 yrs  | median end 0.0  unlucky-tenth end 0.0  | cut years 58.4%  | years above Medium 40.1%  [up-moves made at survival <50%: 50.0%, 50-90%: 50.0%, >90%: 0.0%]

@@ -345,7 +345,7 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | # | Step | Conditional on | Size | ETA (UTC) |
 |---|---|---|---|---|
 | 0 | ~~Measure the byte-wide policy bug's cost~~ **done: zero effect on any simulation** | the fix | - | done |
-| 1 | **Phase V - RUN; V1 and V2 FAILED as written; queue STOPPED for the maintainer's decision** (below, and `results-phase-v.txt`) | 0 | done | done 16:35 |
+| 1 | **Phase V - done.** Plans stable, table numbers not; re-judged on simulation (decision A) | 0 | done | done 16:35 |
 | 2 | **Solver changes + one field check**: the interpolation fix (#106 and whatever V finds); resilience off; lambda as a direct setting, no landing; six levels with the ternary search; the E1 probe re-run | 1 | build ~1.5 h, run ~1 h | Wed ~19:15 |
 | 3 | **Lever builds**: the estate credit curve above the minimum pot; the raise cap and block; the minimum-pot default; block trimming (floor = target) | 2 | ~2.5 h, no cores | Wed ~21:45 |
 | 4 | **K1 honouring checks** - exact; a failure is a bug | 3 | ~20 min | Wed ~22:15 |
@@ -389,7 +389,13 @@ third). Full tables and predictions against outcomes: `results-phase-v.txt`.
 **Gate status: V1 and V2 FAILED as written** - the pass marks were set on the table's reading as well as
 the simulation. By the standing rule the queue stops here.
 
-**The decision, for the maintainer:**
+**DECIDED 23 Sep, maintainer: (A).** The numerics are judged on the simulated outcome - what a user is
+shown - with the table used only to choose moves. The maintainer's test, in his words: as long as the
+solver's choices give a strong simulated result against the current app with the same inputs and
+settings, the table's own number does not matter. That is Phase 4; the step-2 check below adds the
+sub-point confirmation V could not make.
+
+**The options that were put:**
 - **(A) Re-judge V1, V2 and V2s on the SIMULATED outcome** - what a user is shown - and add the check
   V could not make: at 3,000 paths, on the 12 step-2 households, the settings' extremes (5 vs 15 nodes,
   30 vs 56 points) compared on survival AND spending delivered AND lifetime tax, gated at half a point and
@@ -577,8 +583,27 @@ is tested before anything is switched on.
   simulated survival within noise, and the solve at least 15% faster.
 - **The E1 probe re-run** on the fixed code before its verdict is trusted.
 
-**The field check.** 12 households at a fixed lambda, arms: today's code; the fix only; the fix plus
-resilience off plus six levels plus ternary. The last arm is the new baseline every later step builds on.
+**The #106 fix, as built (both options, default off, in `readValues`):** `shareDead: 'drop'` gives a
+share-axis corner that is dead no weight while a live corner sits in the same total-wealth slice;
+`'linear'` blends survival in probability instead of log-odds when such a pair is present. Neither
+touches the survival cliff along total wealth, which is what log-odds is for.
+
+**The field check (`batch-step2.sh`), single table, 3,000 held-out paths, judged on simulation (A):**
+- **The new baseline against today's code on 12 households:** today (resilience 0.5, five levels,
+  exhaustive) against new (resilience off, six levels, ternary). Reported: survival, spending delivered,
+  years below target, total cut, lifetime tax, median and unlucky-tenth end pot.
+- **Ternary against exhaustive, on the new baseline:** survival within 0.5, spending within 1%, and the
+  solve faster by at least 15%.
+- **The sub-point numerics check V could not make (decision A):** the new baseline at 15 nodes and at 56
+  points against 5 and 30, on survival, spending and tax. Gate: within half a point of survival and 1% of
+  spending on every household.
+- **The #106 fix on S126 and two controls** (S184, S162): none / drop / linear.
+  PREDICTION: 'drop' leaves every control bit-identical (no dead share corner, per the census) and on S126
+  cuts the bridge-year trimming (years below target, 1.6 with resilience off) toward zero without moving
+  survival; 'linear' helps less. FALSIFIED IF 'drop' LOWERS S126's survival - which would mean the
+  dropped corner was carrying real information near the all-pension edge, where a household really
+  cannot fund its bridge.
+The winning #106 option joins the new baseline, which every later step builds on.
 
 ---
 

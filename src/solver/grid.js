@@ -128,6 +128,8 @@ export function makeGrid(m, opts = {}) {
     m, mode: total ? 'total' : 'pots', n: Math.max(n1, n2, n3), np: n1, ni: n2, nt: n3, spend, axes, gain, pcls, size, stride, open,
     /* Phase 6e arms 3 and 4. Both default off, so the shipped build is bit-identical to before. */
     gainInterp: !!opts.gainInterp, pclsStrict: !!opts.pclsStrict,
+    /* #106: how a survival read treats a corner that is dead along a SHARE axis (see shareDeadAdjust) */
+    shareDead: opts.shareDead === 'drop' || opts.shareDead === 'linear' ? opts.shareDead : null,
     index: (i1, i2, i3, ig, ic) => i1 + i2 * stride.isa + i3 * stride.tax + ig * stride.gain + ic * stride.pcls
   };
 }
@@ -302,6 +304,7 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null) {
       NC = 16;
     }
   }
+  const linearRead = g.shareDead ? shareDeadAdjust(g, lsArr, NC) : false;
   let ls = 0, b = 0, lr = 0, sh = 0;
   if (lrArr && shArr) {
     // the flexible-spending read: survival, bequest, resilience and the expected future shortfall from target
@@ -313,8 +316,42 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null) {
   } else {
     for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
   }
-  out[0] = expit(ls); out[1] = b;
+  if (linearRead) { let p = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w !== 0) p += w * expit(lsArr[IDX[k]]); } out[0] = p; }
+  else out[0] = expit(ls);
+  out[1] = b;
   return out;
+}
+
+/*
+ * #106, THE DEAD CORNER ON A SHARE AXIS (results-106-deadcorner.txt, results-phase-v.txt). Survival is
+ * blended in log-odds, so a corner at true zero enters at the clamp, -13.8, and a quarter's weight on it
+ * divides the odds by ~32. Along TOTAL WEALTH that sharpness is the point - it is the survival cliff. Along
+ * a SHARE axis it is not a cliff the position is near: it is the all-pension node of a household short of
+ * pension access, which cannot fund its bridge. Two treatments, both default off:
+ *   'drop'   - within each total-wealth slice, a share-axis corner that is dead while another corner in the
+ *              same slice is alive gets no weight, and the slice's weight goes to its live corners;
+ *   'linear' - when the stencil holds such a pair, survival is blended in probability, not log-odds.
+ * Operates on the corner weights in W before the reads, so every table read at that position agrees.
+ * Returns true when the caller should blend survival linearly.
+ */
+const DEAD_LS = -11.5;   // log-odds of about 1e-5: a corner the backward pass found (all but) certain to fail
+function shareDeadAdjust(g, lsArr, NC) {
+  let mixed = false;
+  for (let base = 0; base < NC; base += 8) {
+    for (let dp = 0; dp < 2; dp++) {
+      // the four corners of one total-wealth slice: k = dp + 2*di + 4*dt
+      let wAlive = 0, wDead = 0;
+      for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; const w = W[k]; if (w === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) wDead += w; else wAlive += w; }
+      if (wDead > 0 && wAlive > 0) {
+        mixed = true;
+        if (g.shareDead === 'drop') {
+          const f = (wAlive + wDead) / wAlive;
+          for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; if (W[k] === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) W[k] = 0; else W[k] *= f; }
+        }
+      }
+    }
+  }
+  return g.shareDead === 'linear' && mixed;
 }
 /* Survival stored as log-odds, once per year, so a read costs eight multiplies instead of eight logs. */
 export function toLogOdds(sArr, out) { for (let i = 0; i < sArr.length; i++) out[i] = logit(sArr[i]); return out; }

@@ -437,6 +437,25 @@ export function solve(E, M, plan, opts = {}) {
   let evaluated = 0;
   const profT0 = PROF ? now() : 0;
   const shortOfAction = new Float64Array(A);
+  /*
+   * THE LEVEL SEARCH (`levelSearch: 'ternary'`, decided 23 Sep). Measured over 5.0 million combinations
+   * on the six-level menu, the score is single-peaked in spending level almost everywhere, and a ternary
+   * search per group - one draw order, harvest and tier, all its levels - evaluates four levels instead
+   * of six, missing 24 times in 5.0 million by at most 0.009 survival points. Flows are computed lazily,
+   * only for the levels the search visits; every move it does evaluate is scored with exactly the
+   * arithmetic of the exhaustive scan, and the winner is chosen among the evaluated moves by the same
+   * rule in the same order, so where the search finds the true peak the table is bit-identical.
+   * Off by default: the exhaustive scan below is untouched.
+   */
+  const TERN = opts.levelSearch === 'ternary';
+  let groups = null, stampFlow = null, stampScore = null, scS = null, scB = null, scR = null, scH = null, scV = null, cellStamp = 0;
+  if (TERN) {
+    const byKey = new Map();
+    actions.forEach((a, ai) => { const key = `${(a.steps || []).join('>')}|${a.harvest ? a.harvestCeil : '-'}|${a.tierPen || 0}/${a.tierIsa || 0}`; if (!byKey.has(key)) byKey.set(key, []); byKey.get(key).push(ai); });
+    groups = [...byKey.values()].map(list => list.sort((x, y) => levelOf[x] - levelOf[y]));
+    stampFlow = new Int32Array(A).fill(-1); stampScore = new Float64Array(A).fill(-1);
+    scS = new Float64Array(A); scB = new Float64Array(A); scR = new Float64Array(A); scH = new Float64Array(A); scV = new Float64Array(A);
+  }
   for (let t = T; t >= 0; t--) {
     const spendYear = c.yr.spend[t] > 0;
     // world-independent, so computed once a year rather than once a world: E0 made the world loop the
@@ -449,6 +468,78 @@ export function solve(E, M, plan, opts = {}) {
             for (let ip = 0; ip < g.np; ip++) {
               const idx = g.index(ip, ii, it, ig, ic);
               toVec(g, ip, ii, it, ig, ic, base);
+              if (TERN) {
+                cellStamp++;
+                const ensure = (ai) => {
+                  const b0 = tierBase[ai];
+                  if (stampFlow[b0] !== cellStamp) {
+                    const ob = b0 * 7;
+                    for (let q = 0; q < 7; q++) postBuf[ob + q] = base[q];
+                    const unmet = F.flow(c, t, b0, postBuf.subarray(ob, ob + 7));
+                    evaluated++;
+                    failBuf[b0] = (unmet > 1 || c.last.preNmpaInsolvent) ? 1 : 0;
+                    stampFlow[b0] = cellStamp;
+                  }
+                  return b0;
+                };
+                for (let k = 0; k < K; k++) {
+                  const nodeRealOf = nodeRealOfAtW[k][t];
+                  const sNext = t < T ? lsurvW[k][t + 1] : null;
+                  const bNext = t < T ? beqW[k][t + 1] : null;
+                  const rNext = t < T ? lresilW[k][t + 1] : null;
+                  const hNext = t < T ? shortW[k][t + 1] : null;
+                  const key = cellStamp * K + k;
+                  const score = (ai) => {
+                    if (stampScore[ai] === key) return scV[ai];
+                    const o = ensure(ai) * 7;
+                    const fail = failBuf[tierBase[ai]] === 1;
+                    let s = 0, b = 0, rs = 0, h = 0;
+                    if (!fail) {
+                      const nr = nodeRealOf[ai];
+                      for (let zi = 0; zi < NQ; zi++) {
+                        for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
+                        F.grow(cs[k], t, grown, nr[zi]);
+                        if (t === T) {
+                          const total = grown[0] + grown[1] + grown[2];
+                          const alive = !(floor > 0 && total < floor);
+                          const net = Math.max(0, total - grown[0] * deathTax);
+                          s += QW[zi] * (alive ? 1 : 0);
+                          rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+                          b += QW[zi] * (alive ? beqOf(net) : 0);
+                        } else {
+                          readValues(g, sNext, bNext, grown, rd, rNext, hNext);
+                          s += QW[zi] * rd[0];
+                          b += QW[zi] * rd[1];
+                          rs += QW[zi] * rd[2];
+                          h += QW[zi] * rd[3];
+                        }
+                      }
+                    }
+                    h += shortOfAction[ai];
+                    stampScore[ai] = key; scS[ai] = s; scB[ai] = b; scR[ai] = rs; scH[ai] = h;
+                    return (scV[ai] = s + wR * rs + wB * b - h);
+                  };
+                  for (const G of groups) {
+                    let lo = 0, hi = G.length - 1;
+                    while (hi - lo > 2) {
+                      const m1 = lo + Math.floor((hi - lo) / 3), m2 = hi - Math.floor((hi - lo) / 3);
+                      if (score(G[m1]) < score(G[m2])) lo = m1 + 1; else hi = m2 - 1;
+                    }
+                    for (let j = lo; j <= hi; j++) score(G[j]);
+                  }
+                  // the winner among every move evaluated, by the exhaustive scan's own rule and order
+                  let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
+                  for (let ai = 0; ai < A; ai++) {
+                    if (stampScore[ai] !== key) continue;
+                    const score_ = scV[ai], b = scB[ai];
+                    if (score_ > bestScore + eps || (Math.abs(score_ - bestScore) <= eps && b > bestB)) { bestScore = score_; bestS = scS[ai]; bestB = b; bestR = scR[ai]; bestH = scH[ai]; bestA = ai; }
+                  }
+                  survW[k][t][idx] = bestS; beqW[k][t][idx] = bestB; resilW[k][t][idx] = bestR;
+                  polW[k][t][idx] = bestA; shortW[k][t][idx] = bestH;
+                }
+                if (PROF) PROF.cells++;
+                continue;
+              }
               /*
                * PASS 1, shared by every world. Every move is tried at every cell; there is no
                * certain-success shortcut, because the plan's bound assumed "no growth" was the worst
@@ -527,7 +618,7 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, solverVersion: SOLVER_VERSION };
   if (PROF) {
     PROF.total = now() - profT0;
     // two clock calls per timed region, and the outer pair too

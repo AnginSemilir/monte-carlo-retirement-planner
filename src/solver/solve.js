@@ -58,6 +58,50 @@ export const NODES = [-2.856970, -1.355626, 0, 1.355626, 2.856970];
 export const WEIGHTS = [0.011257, 0.222076, 0.533333, 0.222076, 0.011257];
 
 /*
+ * GAUSS-HERMITE AT ANY ORDER, so the five above can be CHECKED rather than trusted (PLAN.md Phase V).
+ *
+ * Five nodes is exact for polynomials to degree nine. That bound is quoted as though it settles the
+ * matter, and it does not: the integrand here contains a survival cliff, which is not a polynomial, and
+ * the outer two nodes carry 1.1% of the weight each. If a cell's cliff falls near z = -2 the rule has no
+ * node anywhere near it. Nothing in this repository has ever varied the count, so the question is open.
+ *
+ * Computed by Newton iteration on the physicists' Hermite polynomials - the classical `gauher` - then
+ * rescaled to the probabilists' form the solver wants (x*sqrt(2), w/sqrt(pi)), so it integrates against
+ * a standard normal. Derived rather than tabulated, so there are no new magic numbers to mistype; the
+ * gate for it is that n = 5 reproduces the constants above.
+ */
+export function gaussHermite(n) {
+  const x = new Array(n).fill(0), w = new Array(n).fill(0);
+  const m = (n + 1) >> 1;
+  for (let i = 0; i < m; i++) {
+    // the classical starting guesses, which converge in a handful of steps
+    let z = i === 0 ? Math.sqrt(2 * n + 1) - 1.85575 * Math.pow(2 * n + 1, -1 / 6)
+      : i === 1 ? z0 - 1.14 * Math.pow(n, 0.426) / x[0]
+        : i === 2 ? 1.86 * z0 - 0.86 * x[0]
+          : i === 3 ? 1.91 * z0 - 0.91 * x[1]
+            : 2 * z0 - x[i - 2];
+    var z0 = z;
+    let pp = 0;
+    for (let its = 0; its < 100; its++) {
+      let p1 = Math.PI ** -0.25, p2 = 0;
+      for (let j = 0; j < n; j++) { const p3 = p2; p2 = p1; p1 = z * Math.sqrt(2 / (j + 1)) * p2 - Math.sqrt(j / (j + 1)) * p3; }
+      pp = Math.sqrt(2 * n) * p2;
+      const dz = p1 / pp;
+      z -= dz;
+      if (Math.abs(dz) <= 1e-14) break;
+    }
+    z0 = z;
+    x[i] = z; x[n - 1 - i] = -z;
+    w[i] = 2 / (pp * pp); w[n - 1 - i] = w[i];
+  }
+  // physicists' (weight e^-x^2) -> probabilists' (standard normal)
+  // `x` comes out largest-positive first, so negating already gives ascending order; do NOT reverse it
+  const nodes = x.map(v => -v * Math.SQRT2);
+  const wts = w.map(v => v / Math.sqrt(Math.PI));
+  return { nodes, weights: wts };
+}
+
+/*
  * The draw orders worth considering. The three pension steps keep their band order - drawing to the
  * basic-rate limit before filling the allowance is not a different strategy, it is the same one - and
  * cash sits directly before the GIA, because the grid holds them as one pot and the sweep decides the

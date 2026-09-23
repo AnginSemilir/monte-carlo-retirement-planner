@@ -94,6 +94,41 @@ belief, and any change to the return model.
 
 ---
 
+## The rule that comes before the conventions: DERIVE FIRST, RUN TO FALSIFY
+
+**Added 23 Sep at the maintainer's direction, after it kept paying.** Where a question can be settled or
+narrowed by mathematics, **do the mathematics first and write the hypothesis down BEFORE the run.** The
+run then exists to prove or disprove a stated prediction, not to discover an answer.
+
+This is not a preference about rigour. It is about what the runs cost and what they teach:
+
+- **It deletes runs.** The lambda-curve run - 30 cells, 1.6 hours - was cancelled before it started
+  once the search was recognised as a Lagrangian relaxation: the floor rate is provably piecewise
+  constant, and the steps are microscopic because the trim cost sums over ~9,720 cells x 40 years and
+  cells flip one at a time. The free by-product of another run then confirmed it: 0 reversals in 15
+  pairs.
+- **It finds things no run would have.** The lambda search is under-converged - five halvings of a 400x
+  bracket leaves a factor of twelve, so the landing always stops on the over-trimming side. That is
+  arithmetic on two constants. No experiment was looking for it, and the evidence had been sitting in
+  the results unread: every one of 22 landings overshoots its ask.
+- **It makes a run worth more.** A run that confirms a stated prediction tells you the mechanism was
+  understood. A run with no prediction attached tells you only what happened, and invites the number to
+  be explained after the fact, which is how a result gets read to taste.
+- **A wrong prediction is the most valuable outcome of all.** I predicted the floor rate would show
+  local reversals from tax kinks; it showed none in 15 pairs. That disagreement located the error
+  exactly - the kinks move individual CELLS, and no cell is a meaningful fraction of a sum over ~9,720
+  of them - which no amount of staring at output would have produced.
+
+**It does not apply everywhere, and pretending otherwise is its own failure.** Anything resting on the
+shape of the household library, on UK tax interacting with a 40-year horizon, or on what a person
+prefers, is empirical and the run IS the argument. The test is simple: if you can state what the answer
+should be and why, state it first. If you cannot, say so, and say what would change your mind.
+
+**In practice, every phase from here carries a HYPOTHESIS section stating what the mathematics predicts
+and what result would falsify it, written before the batch is launched.**
+
+---
+
 ## Working conventions for whoever builds this
 
 These are the rules this repository already runs on. They are not optional and none of them is
@@ -1060,6 +1095,136 @@ the spend grid all work on a plan carrying the override with no change, because 
 reproduces the engine's Bracket Fill Basic path to the pound; the solved policy run through the real
 engine scores, on the expected path, within 2 points of the survival the reduced model predicted for
 the same household (the model-to-engine gap, reported per household).
+
+### Phase V. Is the numerical machinery converged? The question nobody asked
+
+**Written 23 Sep, after the maintainer asked what maths is worth doing against what has been left to
+chance. The answer is uncomfortable and it is a pattern, not three separate oversights.**
+
+The lambda search turned out to be under-converged - five halvings of a 400x bracket leaves a factor of
+twelve - and it was found by ACCIDENT, while looking at something else. **The same question, "is this
+discretisation converged?", applies in three more places, all upstream of every number this project has
+produced, and none of them has ever been asked.**
+
+**Why this is the wrong way round on risk.** Days have gone into the objective's SHAPE - 6c, 6d, 6e, 6f;
+the cliff, the cap, the 26x kink. Almost nothing has gone into whether the machinery computing it has
+converged. A wrong weight biases a PREFERENCE: visibly, in a direction that can be argued about, and
+detectably by a comparison. **An unconverged discretisation biases EVERYTHING, invisibly, by an unknown
+amount in an unknown direction - and it does so identically in both arms of Phase 4, so Phase 4 cannot
+detect it.** Discovering after the decision gate that five quadrature nodes were too few would
+invalidate it retroactively, which is the worst moment to find out.
+
+All three checks are hours. They are the last "is the floor solid" question before Phase 4.
+
+#### HYPOTHESES, derived before the run
+
+**V1, and it is NOT simply "five is too few".** The rule integrates the next year's value against a
+standard normal. Computed from the rule itself:
+
+| nodes | nodes inside +/-2.2 sd | largest gap between nodes |
+|---|---|---|
+| 5 | **3** | **1.501 sd** |
+| 9 | 5 | 1.307 sd |
+| 15 | 5 | 1.174 sd |
+
+So at five nodes, 95% of the probability is carried by THREE points and the widest blind spot is 1.5
+standard deviations across. How wide is the cliff in the same units? Wealth grows by `exp(mu + sigma z)`,
+so at an equity volatility near 0.13 a 10% band of wealth spans about **0.8 sd** - narrower than the
+gap. On that alone five nodes look inadequate.
+
+**But the integrand is not the cliff.** `V_{t+1}` is already an expectation over every remaining year,
+so twenty years of future uncertainty have smoothed it into a sigmoid far wider than one year's cliff.
+The smoothing is weakest at the END of the horizon, where little future remains to average over.
+
+**So the prediction is specific: the quadrature error is concentrated in the last few years and largely
+washes out of the opening value.** V1 PASSES on its headline (opening survival within 0.1 of a point)
+**and** the policy differences it does find are concentrated at high `t`. **Falsified if** the opening
+value moves more than 0.1 of a point, or if the differing moves are spread evenly across years - the
+second would mean the smoothing argument is wrong and the error is everywhere.
+
+**V2.** Total wealth sits on a LOG axis read by linear interpolation, whose error is order
+`h^2 * |V''|` for spacing `h`. The axis spans roughly 600x, so `h = ln(600)/n = 6.4/n`: about 0.21 in
+log-wealth at 30 points, near 24% steps. **Prediction: successive differences shrink roughly as
+1/n^2**, so the 30-to-56 gap should be around three and a half times smaller than the 16-to-24 one.
+**Falsified if** the steps shrink materially slower than quadratically - which would mean the
+interpolation is resolving something non-smooth (the cliff) rather than a smooth function, and the
+resolution is genuinely insufficient rather than merely finite.
+
+**V3.** Survival as a function of log-wealth is approximately a normal CDF, being the probability that a
+sum of lognormal returns clears a threshold. A logistic and a probit agree to under 1% across the
+central range, so **log-odds interpolation should be close to exact near the cliff while plain linear
+interpolation carries the full curvature error.** Prediction: log-odds beats linear near the cliff by a
+visible margin and ties elsewhere. **Falsified if** linear matches or beats it - which would mean the
+comment in `grid.js` is folklore.
+
+#### V1. The quadrature: five nodes, hardcoded, never varied
+
+`NODES` holds five Gauss-Hermite points and nothing in the repository has ever changed it.
+
+Gauss-Hermite with five nodes is exact for polynomials to degree nine. **That guarantee does not apply
+here.** The integrand is a value function containing a survival cliff; near the cliff it is closer to a
+step than to a polynomial, and the degree-nine bound says nothing about steps.
+
+Concretely: the nodes sit at 0, +/-1.356 and +/-2.857, and **the outer pair carry 1.1% weight each**. If a
+cell's cliff falls near z = -2, the rule has NO NODE THERE - it spans the drop between a point worth
+1.1% and one worth 22%.
+
+**The check.** One household at 30 points, three arms: 5 nodes (today), 9, and 15. Node count multiplies
+the expectation step linearly, so this is about 5.8 solve-equivalents, half an hour.
+
+**Gate V1.** Five nodes stand if, against the 15-node answer: the opening position's survival is within
+**0.1 of a point**, and the stored move differs on **under 1% of cells**. If either fails, every result
+in this project carries an unmeasured bias and the node count must be raised before Phase 4.
+
+#### V2. Grid resolution: is thirty points converged?
+
+Runs exist at 20 and at 40 - but as ALTERNATIVES, chosen between, not as a convergence sequence. Nobody
+has solved the same household at increasing resolution and shown the answer stop moving.
+
+**And the code knows.** `solve()` carries a field `rich` - "a second solve at half the resolution, for
+Richardson extrapolation of the move scores" - permanently set to `null`. Someone saw this question
+coming and did not finish it.
+
+**The check.** One household at 16 / 24 / 30 / 40 / 56 points, all else fixed. Cost scales with the
+dense axis, so the five together are about 5.5 solve-equivalents.
+
+**Gate V2.** Thirty points stand if the sequence is visibly converging - each successive difference
+smaller than the last - **and** the gap from 30 to 56 is under **0.2 of a survival point** on the
+opening position. A sequence that is NOT visibly converging is the worse outcome: it would mean the
+answer depends on a resolution nobody chose on evidence.
+
+#### V3. The interpolation scheme
+
+Survival is read in log-odds "so the cliff between making it and not survives the read". A reasonable
+choice, never compared against the alternative.
+
+**It interacts with V2**, which is why it shares its run: better interpolation means fewer grid points
+are needed for the same accuracy, so the two questions are cheaper together than apart.
+
+**The check.** Take V2's 56-point solve as the reference. At positions BETWEEN coarse-grid nodes,
+compare what a 30-point table predicts under log-odds against what it predicts under plain linear
+interpolation, each against the fine-grid truth. No new solves.
+
+**Gate V3.** Log-odds stands if its worst error against the reference is no larger than linear's. If
+linear is better, the comment in `grid.js` is wrong and the read should change. If both are large, the
+problem is V2's, not V3's.
+
+#### What each outcome costs
+
+- **All three pass**: the foundation is sound, this is recorded once and never revisited, and Phase 4
+  runs on a floor that has been checked rather than assumed. Cost: a few hours.
+- **V1 or V2 fails**: every existing result carries an unmeasured bias in an unknown direction. The
+  fix is more nodes or more points, both of which cost run time and neither of which is hard. **The
+  6-series conclusions would need re-reading**, though the PAIRED ones (6e, 6f, 6d stage 1) survive,
+  because a bias common to both arms cancels in a paired comparison - the same argument that saved
+  them from the lambda under-convergence.
+- **V3 fails**: a one-line change to how survival is read, plus a re-run of whatever it moves.
+
+**This runs immediately after 6f and before anything else.** Not because it is likely to fail, but
+because it is the only remaining question whose failure would invalidate work already done rather than
+merely redirect work not yet started.
+
+---
 
 ### Phase 4. The versus study, and the decision: `research/solver/versus-solver.mjs`
 
@@ -2356,6 +2521,7 @@ though the speed work comes first. It does not. This is the schedule; the table 
 | then | **the convergence test**, ~1.9 h | **Replaces the lambda curve, 23 Sep, after doing the algebra instead of a run.** The lambda search brackets 400x and takes 5 halvings, leaving a factor of 12.5 - so the landed lambda is only known to within a factor of twelve, and since `best` is the last lambda that MET the ask it always stops on the OVER-TRIMMING side. The evidence was already on disk: all 22 genuine landings overshoot, +0.37 to +2.73. **This is not speed, it is the requirement that trimming be minimised**, and the app's own optimizeSpend takes FOURTEEN iterations to a 250-pound bracket, so Phase 4's bias would be one-sided against the solver on spending delivered. |
 | ~~cancelled~~ | ~~**the lambda curve**~~ | **Cancelled before running.** Its question - is floorRate(lambda) a staircase - was answered by algebra plus free data. The search is a Lagrangian relaxation, so the floor rate IS piecewise constant, but the trim cost is a sum over ~9,720 cells x 40 years and cells flip one at a time, so the steps are microscopic: effectively a smooth monotone curve. The four landings per household in task #108 confirm it - **0 reversals in 15 adjacent pairs.** Spending 1.6 h to confirm something derivable is the mistake this plan keeps making in reverse. | What shape is floorRate(lambda)? Asked against my claim that it is smooth and monotone, which was a quote from a comment rather than a description. It is a STAIRCASE - the policy is an argmax over a finite action set - and the tax kinks enlarge its steps. Decides how much a bracketed superlinear root-finder can buy; Brent degrades to bisection on a bad staircase, so the shape bounds the upside only. |
 | then | **6f**, the kink screen, ~1.2 h | **The 26x drop in marginal value at opening wealth is larger than the cliff at 4x that 6c and 6e spent fifteen hours on, and nobody chose it.** Four resilience weights including ZERO, six households straddling the bend, judged on the unlucky tenth. |
+| then | **Phase V**, the convergence checks, ~1.5 h | **The question nobody asked.** The lambda search was found under-converged by accident; the same question applies to the quadrature (5 nodes, hardcoded, NEVER varied), the grid resolution (20 and 40 exist as alternatives, never as a convergence sequence - and the Richardson hook in the code is permanently null) and the interpolation scheme. All three sit upstream of every number here, and **a discretisation bias is identical in both arms of Phase 4, so Phase 4 cannot detect it.** Runs before anything else because its failure would invalidate work already done rather than redirect work not yet started. |
 | then | **6c-screen**, 20 min | Before 6d, because curvature and weight substitute for each other. **Its purpose has changed**: with 6c not passed and the curve staying off, it no longer validates a shipped change, it tells 6d whether the curve is a live variable underneath the weight. |
 | cancelled | **6e stage 2**, the field check | Stage 1 came back quiet on every arm, so the ~13 h field check does not run. Task #125 (a fresh 6c) expires with it: nothing is owed. |
 | then | **6d stage 1**, 1-2 h | The lever sweep at fixed lambda. |

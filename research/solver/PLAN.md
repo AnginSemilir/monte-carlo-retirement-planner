@@ -1467,6 +1467,31 @@ interpolation, each against the fine-grid truth. No new solves.
 linear is better, the comment in `grid.js` is wrong and the read should change. If both are large, the
 problem is V2's, not V3's.
 
+#### Phase V as run, 23 Sep - extended, and its predictions written before the run
+
+`audit-converge-numerics.mjs`, rewritten: runs on the objective that will SHIP (resilience off, six
+levels, raises on, joint tiers, the household's landed lambda), reads every arm two ways - the table's
+opening value AND the simulated survival of its policy on 1,000 held-out paths - because #106 showed
+the first can be badly wrong while the second is fine. Adds **V2s** (the share axes at 6 / 9 / 12
+points) and a **census** of cells reading 50% or more with a dead corner one step along a share axis.
+Three households in parallel: S184 (the gate household, still working, no bridge), S330 (61-year
+horizon, the largest smear in the old loss ledger) and S126 (the #106 household).
+
+PREDICTIONS, derived:
+- **V1 passes on S184 and S330** (table within 0.1, under 1% of moves): the outer nodes carry 1.1% each
+  and the survival term is read in log-odds, where the cliff is a slope, not a step.
+- **V2 passes on S184 and S330**: phase 2 found 60 x 8 x 8 matching 40 x 6 x 6 to the decimal.
+- **V2s FAILS on S126 on the table read, and it is the dead corner, not resolution.** At 6 share points
+  the nodes are 0.8 and 1.0 and S126's 0.85 puts a quarter of its read on the dead all-pension node; at
+  9 points they are 0.75 and 0.875 and at 12 they are 0.818 and 0.909, so S126's read never touches the
+  dead node and should JUMP from about 8% toward its simulated ~97%. The SIMULATED survival should move
+  far less (within a point or two), because simulation walks real pots. V2s passes on S184 and S330.
+- **V3: log-odds beats linear along total wealth** (that is what it is for), **and loses along the share
+  axes where a dead corner sits** - which is the evidence for fix (a), reading linearly across a dead
+  share corner.
+- **Census: dead share corners in S126's bridge years only, near zero for S184 and S330**, whose
+  all-pension node is alive in every year.
+
 #### What each outcome costs
 
 - **All three pass**: the foundation is sound, this is recorded once and never revisited, and Phase 4

@@ -1512,11 +1512,13 @@ sides.
   and dislike of cuts **matched to the guardrails' cutting (K5)** - so both sides cut about the same
   amount and the survival difference is not bought with spending.
 
-**The ceiling, and the panel that avoids it.** The guardrails already survive 97 to 100% on the tuning
-households measured, and two arms both at 100% cannot be told apart. The held-out panel is drawn where
-arm A - the app at its best, guardrails on - survives 75 to 95%, the same band-selection method as the
-clean 41 but applied to arm A. Its targets are set before either arm runs and written into the results
-file.
+**Arm A honours the user's floor** (guardrails with the floor, as the solver must), so both sides are
+held to the same spending floor.
+**The ceiling, and the panel that avoids it.** Two arms both near 100% cannot be told apart. With the
+floor honoured, the guardrails' survival across the tuning 41 has a median of 92.1% and is below 95% on
+27 of them, so this is a safeguard rather than a hard constraint: the held-out panel is drawn where arm A
+survives 75 to 95%, by the clean 41's band-selection method applied to arm A, with targets set before
+either arm runs and written into the results file.
 
 **What counts as a win - survival up, and NOT bought with spending.** A solver that spent less would
 survive more for free; the guardrails could buy the same survival by trimming harder. So:
@@ -2859,8 +2861,8 @@ the solver cuts depends on every other setting; the matching last, immediately b
 
 | # | What | Conditional on | Size | ETA (UTC) |
 |---|---|---|---|---|
-| 1 | **Phase V**, extended to the share axes | nothing - it is the foundation | build ~1.5 h, run ~1.5 h | Wed ~17:30 |
-| 2 | **Solver changes + one field check**: the interpolation fix (#106 and whatever V finds); resilience removed; survival no longer a target (one solve at a fixed lambda, no landing) | V | build ~1 h, run ~1 h | Wed ~19:30 |
+| 1 | **Phase V**, extended to the share axes. **Cheaper V1, derived:** the quadrature error of ONE backward step can be read from a single solve by re-taking each cell's expectation with 15 nodes instead of 5 - no re-solve per node count; only if the one-step error is not negligible does the full V1 run. **Free from the same solve: a dead-corner census** - how many cells, in every year, read through a clamped-zero corner beside a live one, which says how far #106 reaches beyond t = 0 | nothing - it is the foundation | build ~1.5 h, run ~1 h | Wed ~17:00 |
+| 2 | **Solver changes + one field check**: the interpolation fix (#106 and whatever V finds); resilience removed; survival no longer a target (one solve at a fixed lambda, no landing). **Resilience-off at fixed lambda is ALREADY MEASURED** by 6f's wR = 0 arm on six households - that arm's prediction is known; the run's new information is the fix, and the new baseline for everything after | V | build ~1 h, run ~1 h | Wed ~19:30 |
 | 3 | **Lever builds**: the estate credit curve above the minimum pot; the raise cap and block; the minimum-pot default wiring; lambda as a direct setting | 2 | ~2.5 h, no cores | Wed ~22:00 |
 | 4 | **K1 honouring checks** - exact, a failure is a bug | 3 | ~20 min | Wed ~22:30 |
 | 5 | **K2-K4 screens** overnight: minimum-pot default, raise cap, estate slider spread | 4 | ~5 h | Thu ~03:30 |
@@ -2894,6 +2896,10 @@ PREDICTION: trimmed years stay near resilience-off levels (1.6 to 4) and far bel
 15) at every P, because resilience rewarded pounds up to opening wealth - 15 to 30 years of spending on
 the unlucky tenth - and a hard floor of 1 to 5 years only binds on futures heading below it. FALSIFIED IF
 P = 3 costs more than half of resilience's trimming.
+SHARPENED FROM 6f's RECORDS, no run: with resilience off, the unlucky tenth ends at 7.7 (S126), 21.7
+(S054), 4.5 (S252), 1.4 (S390), 0.1 (S206) and 6.7 (S112) years of spending. So at the tenth percentile a
+1-year floor binds only on S206; 3 years on S206 and S390; 5 years adds S252; S126, S054 and S112 are
+untouched up to 5. **The cost of the default lands on two or three households of six, not all of them.**
 
 **K3. The raise cap default.** Cap in {1.0, 1.1, 1.2}. PREDICTION from records: raises are frequent (a
 typical level of 1.15 to 1.2 in good states), so blocking them lifts median end pots substantially and
@@ -2918,34 +2924,45 @@ the cost falls mainly on spending, since pounds kept for the estate also protect
 fairness condition for Phase 4.** The solver must cut about as much as the guardrails do, so Phase 4's
 survival comparison is not bought with spending. Fitted on the tuning 41, never the held-out panel.
 
-WHAT THE RECORDS ALREADY SHOW - derived from flex-tiers and 6f, no run:
+WHAT THE RECORDS ALREADY SHOW - derived from flex-tiers and 6f, no run. **Arm A must honour the same
+floor the user set**, so the comparison is against the guardrails WITH the floor (`gkFloor`), not the
+unfloored guardrails (a first draft of this section used the unfloored arm; corrected the same day):
 
-    household   guardrails: years below target   depth when below  |  solver, resilience off: years   depth
-    S126                  18.8                        0.84        |              1.6                  0.73
-    S054                  22.7                        0.91        |              1.3                  0.87
-    S252                  14.3                        0.87        |              0.3                  0.67
-    S390                  30.7                        0.83        |              2.8                  0.63
-    S206                  22.2                        0.93        |              2.5                  0.84
-    S112                  26.4                        0.90        |              4.0                  0.82
-    guardrails across the 41: 13.4 to 30.7 years below target, median 20.3
+    household   guardrails with floor:                        |  solver, resilience off (6f, fixed lambda):
+                years below  depth  total cut  survival        |  years below  depth  total cut  survival
+    S126           18.8      0.87     2.4       99.3          |     1.6       0.73     0.44      98.8
+    S054           22.7      0.92     1.9       97.6          |     1.3       0.87     0.17      97.6
+    S252           13.7      0.90     1.4       95.0          |     0.3       0.67     0.10      96.2
+    S390           27.9      0.88     3.3       99.2          |     2.8       0.63     1.01      97.2
+    S206           22.1      0.93     1.5       99.5          |     2.5       0.84     0.39      99.5
+    S112           26.4      0.91     2.4       98.5          |     4.0       0.82     0.72      98.8
+    (total cut = years below x (1 - depth), in years of target spending)
+    across the 41, guardrails with floor: years below median 18.7, depth 0.85 to 0.94 (median 0.88),
+    survival median 92.1% (70.9 to 99.9), 27 of 41 below 95%
 
-**The two cut in opposite shapes.** The guardrails cut OFTEN and SHALLOW (a fifth to three quarters of
-retirement, 7 to 17% deep); the solver cuts RARELY and DEEP (under 4 years, 13 to 37% deep). By total
-amount cut - years x depth - the guardrails cut about FIVE times more (S126: 3.0 target-years against
-0.44; S390: 5.1 against 1.0). So "match how much it cuts" is two numbers, not one, and the solver has two
-dials for them:
-- **the dislike-of-cuts level** sets HOW MUCH is cut in total;
-- **the trim curve's exponent** sets the SHAPE - a steeper curve makes deep cuts dearer, so the solver
-  spreads the same total into more, shallower years, toward the guardrails' pattern.
+**Three derived findings.**
+1. **The two cut in opposite shapes and very different amounts.** The guardrails cut OFTEN and SHALLOW;
+   the solver RARELY and DEEP. By total amount cut the guardrails cut 3 to 14 times more (median about
+   5) - for about the SAME survival on these six. Matching therefore needs both of the solver's dials:
+   the dislike-of-cuts level for the AMOUNT, the trim curve's exponent for the SHAPE (a steeper curve
+   makes deep cuts dearer and spreads the same total into more, shallower years).
+2. **The spending menu cannot reach the guardrails' shallowest cuts.** Below target the solver has only
+   0.9 and 0.8, so its average depth is at best 0.90. The guardrails' depth is above 0.90 on 11 of the
+   41 (up to 0.94). No exponent can match those. **Recommended, for the maintainer to confirm before K5:
+   add a 0.95 level** - six levels, 432 actions, about 20% more solve time, in the app as well.
+   Without it, K5 matches the total amount only and reports the depth gap.
+3. **The guardrails raise harder than the solver**: about 16 years above target at a typical 1.29,
+   against the solver's 20 years at 1.16, and 1.29 is above the solver's 1.2 cap. Phase 4's
+   condition 2 (total spending delivered within 1%) already nets raises against cuts; K3's raise-cap
+   screen should report this comparison.
+
 METHOD: a grid of lambda x exponent {1.5, 2, 3, 4} on 12 households, then the chosen point checked on
-all 41. Match (i) total amount cut below target, median household, within 10%; (ii) depth when below
-within 3 points. Report years below target too - it will not match exactly unless the shape does.
-PREDICTION: matching the guardrails' total needs a MUCH LOWER dislike of cuts than today's landings
-(the solver cuts about a fifth as much now), and a higher exponent than 2 to get near their depth; the
-fitted exponent lands at 3 or 4. **Consequence worth knowing before Phase 4:** at equal cutting the
-solver should survive MORE than today, which is the claim - but the guardrails already survive 97 to
-100% on these six, so Phase 4's households must be chosen where the current app sits well below 100%
-(see Phase 4) or both arms hit the ceiling and the test cannot tell them apart.
+all 41. Match (i) total amount cut, median household, within 10%; (ii) depth when below within 3 points,
+where the menu allows it. PREDICTION: matching needs a much LOWER dislike of cuts than today's landings,
+and an exponent of 3 or 4; at matched cutting the solver's survival rises above the guardrails', which
+is the claim. **The ceiling is a smaller problem than first feared**: with the floor honoured, the
+guardrails' survival has a median of 92.1% and sits below 95% on 27 of 41, so a 75-95% held-out panel
+is easy to draw.
 
 **K6. The dislike-of-cuts slider's spread**, centred on K5's matched value. Same method as K4. Lambda's
 landed values span 400x and 0 reversals in 15 adjacent pairs showed a smooth, monotone response, so the

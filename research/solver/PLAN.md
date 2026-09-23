@@ -2,6 +2,66 @@
 
 *Plan of record. Research phases first, each with a gate; nothing in the app changes until phase 4's gate passes.*
 
+## Fixed requirements: what the product must do
+
+**Stated by the maintainer, 23 Sep, in a holistic check, and fixed here so the research does not drift
+away from them.** Everything below this section exists to serve this section. Anything in this plan
+that does not serve it is scope, and should be justified as scope or dropped.
+
+### The journey
+
+1. **The user enters their portfolio and their own details.** Accounts, salary, contributions, state
+   pension, region, spending bands, one-off deposits and costs.
+2. **They choose a retirement spending target, then a floor**, and **how often that floor must hold**.
+   *The third is not optional and was missing from the stated description; it is added here because it
+   is the number the entire landing bisects toward.* A floor without a confidence is not a promise.
+3. **They choose what they value**: survivability alone; or also a minimum end-of-life pot above zero;
+   or also the size of the pot they leave. **More levers may come later. Not now.**
+4. **The solver returns the predicted figures through retirement and the survivability of the plan**,
+   using the levers it is allowed to pull.
+5. **Trimming of retirement spending must be minimised, and the user must be able to trust that.** A
+   default curve is supplied; letting the user adjust it may come in a later build.
+
+### The levers the solver may pull  (confirmed against `buildActions`, 23 Sep)
+
+| lever | what it is |
+|---|---|
+| **draw order** | which pot to draw from first, and in what order; pension to the allowance or to the basic-rate limit; ISA before taxable or after |
+| **CGT harvesting** | realising gains up to the annual exemption or the basic-rate limit |
+| **risk tier** | per wrapper, pension and ISA independently, paying `SWITCH_COST` and having to beat `SWITCH_MARGIN` |
+| **spending level** | 1.2 / 1.1 / 1 / 0.9 / 0.8 - **down AND up**. The solver raises spending in good years, which the stated description did not mention and users must expect |
+
+### Not the solver's to choose
+
+- **contributions** during accumulation (`contrib: null`) - accumulation is taken as given
+- **retirement age** - solved separately by the app
+- **lump sum vs phased drawdown** - taken from the plan, not chosen, despite being a large real decision
+- **when the household dies** - a fixed plan-to age. **No mortality, by design.**
+
+### Known mismatches between the requirement and the build, to resolve before Phase 4
+
+1. **"Value median pot size" cannot be delivered as written.** A backward induction carries
+   EXPECTATIONS; a quantile does not decompose year by year, and `solve.js` says so. What the bequest
+   term maximises is `E[min(net, 4 x opening wealth)]` - a **capped mean**. The median is REPORTED, not
+   OPTIMISED. **Either the copy changes or the lever's label does; the engine does not make that claim.**
+2. **Resilience is a fourth thing being valued that nobody asked for**, carrying six times the weight of
+   the estate term the user did ask for, invisible and uncontrollable. Phase 6f decides its future.
+3. **Survival is judged on the GROSS pot and bequest on the NET.** Two definitions of what is left, on
+   adjacent lines. Dormant only because every library household runs at a zero pension death-tax rate.
+
+### Standing constraints, not up for renegotiation
+
+- **No mortality, no annuities, no regime belief.**
+- **The maintainer's own household is never a fixture.**
+- **A gate that fails is recorded and stopped on, not tuned until it passes.**
+- **Nothing merges to `main` until `run-all.sh` prints ALL REQUIRED GREEN.**
+- **One experiment at a time on the four cores**, enforced by the lock in `run-from-snapshot.sh`.
+- **Nothing in the app changes until Phase 4's gate passes.** As of 23 Sep the solver has never been
+  shown to beat the shipping pipeline on held-out households. Every phase before Phase 4 is refining an
+  advantage that is, formally, still unproven - which is a reason to reach Phase 4, not to polish.
+
+---
+
 ## What changes, in one paragraph
 
 Today the app answers "what should I do" with hand-written rules and searches over them: 18 draw-order
@@ -1288,6 +1348,43 @@ doing the job it was added for, whatever else it moves.
 **What it cannot decide.** Lambda is held, so the floor rate is not pinned, the arms are not compared
 at equal downside, and no figure here is a headline. It answers whether the weight matters, not what it
 should be.
+
+#### The decision this feeds, agreed 23 Sep: keep, remove, or RE-ANCHOR
+
+The maintainer asked for the argument both ways and we aligned on the shape of the answer before the
+run, so the result cannot be read to taste afterwards.
+
+**The case to keep rests on exactly one point, and it is a good one.** Nothing else discriminates at
+the bottom. Survival is BINARY - a household ending with £10k and one ending with £400k both "survive"
+where no minimum pot is set - and the bequest term's slope down there is 0.4e-4, essentially flat.
+Delete resilience and **the solver becomes near-indifferent between scraping through and finishing
+comfortably.**
+
+**The case to remove has four, of which the first is the strongest.** It is a HIDDEN DUPLICATE of a
+control the user already has: `config.solvencyFloor`, the minimum end-of-life pot, is the visible,
+user-set way to say "do not leave me with nothing". Resilience says the same thing implicitly, at a
+level nobody chose. Its anchor is an accident - opening wealth at PLAN time, so for a 37-year-old with
+28 working years ahead it means ending with what they hold today. It is not a distinct concept, only
+the steep segment of one concave function. And it is a preference held on the user's behalf,
+invisibly, outweighing six to one one of the three things they did ask for.
+
+**Both are right, which is why the answer is probably neither.** The keep case says something must
+grade the bottom; the remove case says we already have a user-facing way to express that and this one
+is anchored arbitrarily. So:
+
+> **RE-ANCHOR.** Keep a graded downside term, but hang it on the minimum-pot figure the user actually
+> sets rather than on opening wealth at plan time. One downside preference: visible, user-chosen, and
+> graded - which also fixes `solvencyFloor`'s own binary cliff, since a hard floor is the same
+> pathology this plan has been hunting everywhere else.
+
+**How 6f decides between the three.**
+- **`wR = 0` leaves p10 within 2% on all six** -> the term earns nothing. **Remove it.** The objective
+  loses a term and the 26x kink goes with it, at no cost. Question closed.
+- **p10 moves materially with `wR`** -> the term is load-bearing, and the choice is NOT between keeping
+  a bad anchor and losing the protection. **Design the re-anchoring**, with its own gate.
+- **All four arms within 2% but p10 does move between the extremes** -> the weight is not load-bearing
+  even though the term is. Record it, stop treating 0.5 as meaningful, and leave it alone until the
+  re-anchoring is designed.
 
 ---
 

@@ -357,8 +357,14 @@ Step 6 is the one point the maintainer is on the critical path.
 **After Phase 4, in this order - re-weighted 23 Sep now that the solve is the whole cost:**
 - **E3, collapse the empty-pot dimensions** - was 13.8% of a landing because forward runs were half the
   cost; with no landing it is close to its full **30.2% of the solve**. Worth roughly twice what it was.
+  **Its BUILD can start earlier, in the gaps while Thursday's runs occupy the cores**: its gate is
+  bit-equality, so it cannot disturb any result, and it lands whenever it passes - never on the
+  critical path, and never ahead of the step 2 and 3 builds.
 - **E2, split one solve across cores** - in the app the user waits on one household's single solve, so
   near-4x on four cores is now most of the waiting time. Still designed with Phase 7's workers.
+- **Couples under the new objective** - Phase 5 was validated with resilience on and a landed penalty,
+  and its backtest and perturbed worlds were never run. Before couples can ship: the same levers and
+  defaults, the same head-to-head against the app at its best, on the couples panel.
 - **#109's remaining probes** - recommendations only, in a scratch note.
 - **Brent with error-based stopping - DOWNGRADED.** Only K5's matching and Phase 4's equal-survival
   diagnostic still search lambda; the product never does. Worth it only if those searches become slow.
@@ -565,9 +571,17 @@ SHARPENED FROM 6f's RECORDS, no run: with resilience off, the unlucky tenth ends
 1-year floor binds only on S206; 3 years on S206 and S390; 5 years adds S252; S126, S054 and S112 are
 untouched up to 5. **The cost of the default lands on two or three households of six, not all of them.**
 
-**K3. The raise cap default.** Cap in {1.0, 1.1, 1.2}. PREDICTION from records: raises are frequent (a
-typical level of 1.15 to 1.2 in good states), so blocking them lifts median end pots substantially and
-barely moves survival. A spend-now-or-leave-it choice for the maintainer.
+**K3. The raise cap default.** Cap in {1.0, 1.1, 1.2}.
+FROM 6f's RESILIENCE-OFF RECORDS, no run - the objective that will ship: **the solver raises in almost
+every year.** Years above target 26.6 to 43.2 (of 35 to 61), at a typical 1.18 to 1.19 - worth 5.1 to 7.8
+years of target spending over a retirement. With resilience gone, nothing restrains raising except the
+cap and the raise credit, so **the raise default is a first-order product choice, not a detail**: a user
+who sets a target of 30,000 would, by default, be shown a plan spending about 35,000 in most years.
+PREDICTION: capping at 1.1 roughly halves that extra spending; blocking moves all of it into the pot,
+lifting median end pots by more than the 5-8 years spent (it compounds), and helps survival most on the
+thin-tailed households (S390 and S206, whose unlucky tenth ends with under 1.5 years of spending).
+FALSIFIED IF blocking raises changes survival by more than a point on the households with comfortable
+tails - that would mean raises are feeding back into cuts, not just spending surplus.
 
 **K4. The estate slider, 0 to 100%: build it, then calibrate its SPREAD.** Survival is the fixed anchor
 (option (a)); this slider sets how much the pot above the minimum counts against running out, through
@@ -631,8 +645,11 @@ unfloored guardrails (a first draft of this section used the unfloored arm; corr
    - FEWER than today's exhaustive five - with 24 misses in 5.0 million, worst 0.009 survival points,
    under the pre-set 1e-4 line. The lighter cut is free, and the solve gets slightly cheaper.
    `results-probes-e1-unimodal.txt`.
-3. **The guardrails raise harder than the solver**: about 16 years above target at a typical 1.29,
-   against the solver's 20 years at 1.16, and 1.29 is above the solver's 1.2 cap. Phase 4's
+3. **Raises must be matched as well as cuts.** The guardrails raise about 16 years at a typical 1.29;
+   the solver WITH resilience raised about 20 years at 1.16, and WITHOUT it raises 27 to 43 years at about
+   1.18 (K3). Matching cuts alone while one side raises far more would compare different spending
+   policies. So K5 matches the cut side AND checks the total spending delivered, with raises capped at
+   the maintainer's step-6 default; Phase 4's condition 2 (spending within 1%) is the backstop. Phase 4's
    condition 2 (total spending delivered within 1%) already nets raises against cuts; K3's raise-cap
    screen should report this comparison.
 

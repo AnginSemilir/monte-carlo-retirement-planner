@@ -16,7 +16,9 @@ here to be mistaken for the current plan.
 **Where to read what.** The requirements the product must meet are first and do not move without the
 maintainer. The schedule and every pending phase follow, each with its prediction written before it
 runs. Results files sit beside this file as `results-*.txt`; `HOW-IT-WORKS.md` explains the machinery in
-plain language.
+plain language **as it stood before the 23 Sep scope changes** (it still describes the floor landing and
+resilience; rewritten with Part C Phase 12's documentation). The mathematician's page (the artifact
+"Drawdown by Dynamic Programming") is the current layer-by-layer description.
 
 ---
 
@@ -296,8 +298,8 @@ figures (3,000 paths, ~207 s):
 | households needing no trim | ~890 s | ~520 s | about 1.7x |
 
 Research timings (three-world mixture, 30 points, one core); the ratio carries to the app. Cutting the
-reporting run to 1,000 paths in the app makes the average about 6.7x. The six-level ternary search takes a
-little more off each solve on top. **The solve is now almost the whole cost**, which changes what the
+reporting run to 1,000 paths in the app makes the average about 6.7x. The six-level ternary search would take about 26% off each solve on top, if it survives the step-2
+re-check (finding M11). **The solve is now almost the whole cost**, which changes what the
 speed work is worth - see "After Phase 4".
 
 ### Bugs found and fixed on 23 Sep
@@ -941,7 +943,7 @@ mistaken for an oversight, and so that anyone who notices one of these can see i
 | trim curve exponent, 2 | one deep cut or several shallow ones | **fitted in K5** to the guardrails' shape |
 | lambda (dislike of cuts) | how much is cut | **a user slider; default fitted in K5, spread in K6** |
 | `mu = 0.003` (raise credit) | how readily good years are spent | unswept; K3 screens the raise cap, which bounds it |
-| `SWITCH_COST = 0.0025`, `SWITCH_MARGIN = 0.001` | the price of changing risk tier | unswept, set by argument |
+| `SWITCH_COST = 0.0025`, `SWITCH_MARGIN = 0.001` | the price of changing risk tier | the cost set by argument (a round trip on the slice traded); the margin SWEPT on six households in phase 6 (0 to 0.01; changes halve by 0.001 with survival unmoved) - corrected 23 Sep plan review, which found it listed as unswept |
 | gain buckets `[0.05, 0.25, 0.55]` | how finely capital-gains tax is tracked | **6e checked these and they stand** |
 | search paths 5,400 | sampling noise in any landing | #108: 2,400 fails, 5,400 works; only landings use it now (K5, Phase 4's diagnostic) |
 

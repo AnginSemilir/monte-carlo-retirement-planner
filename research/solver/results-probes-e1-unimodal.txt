@@ -42,3 +42,18 @@ state rather than scattered band edges; not chased, because ternary search lost 
 **The saving is small**: with five levels a ternary search evaluates about four, not three - it
 removes roughly one level in five from the expectation step, not two in five as first written. Safe,
 cheap to build, modest. One household. Joins the speed work after Phase 4; not a reason to reorder.
+
+SIX LEVELS AND THE TERNARY SEARCH - the menu decision, 23 Sep (maintainer: add 0.95, keep the cost flat)
+Probe corrected first: the ternary search now runs on EVERY group, not only those failing the single-
+peak test (a flat stretch then a rise passes that test and still fools it), and counts levels evaluated.
+Whole grid, S184, landed lambda, 5,023,296 combinations each:
+
+    menu                               levels evaluated   ternary worse   worst loss
+    five  1.2 1.1 1 0.9 0.8            4.00 of 5          0               0
+    six   1.2 1.1 1 0.95 0.9 0.8       4.00 of 6          24 (0.0005%)    8.9e-5 of score = 0.009 survival points
+
+**Six levels with the ternary search evaluate FOUR levels a group - fewer than today's exhaustive five.**
+So the 0.95 level costs nothing; the solve gets about a fifth cheaper on the level dimension. The pre-set
+falsification line was a loss above 1e-4 of score; the worst is 8.9e-5, under it, on 24 of 5.0 million.
+Passes, narrowly on the worst case. Adopted: six levels plus the ternary search, built in step 3, and
+the 24 exceptions are watched in the step-2 field check (paired against the exhaustive scan).

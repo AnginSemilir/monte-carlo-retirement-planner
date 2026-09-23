@@ -2962,7 +2962,11 @@ unfloored guardrails (a first draft of this section used the unfloored arm; corr
    evaluates about five, the same as today's exhaustive five. It brings that speed item forward from
    after Phase 4 into step 3, and needs the single-peak probe re-run on the six-level menu first (one
    solve, minutes). Fallback if single-peakedness fails on six levels: drop 1.1 rather than the floor,
-   making raises one step (1.0 -> 1.2). Maintainer to choose.
+   making raises one step (1.0 -> 1.2). **DECIDED 23 Sep (maintainer): six levels plus the ternary
+   search. Measured the same afternoon:** the ternary search evaluates 4.00 levels a group on six levels
+   - FEWER than today's exhaustive five - with 24 misses in 5.0 million, worst 0.009 survival points,
+   under the pre-set 1e-4 line. The lighter cut is free, and the solve gets slightly cheaper.
+   `results-probes-e1-unimodal.txt`.
 3. **The guardrails raise harder than the solver**: about 16 years above target at a typical 1.29,
    against the solver's 20 years at 1.16, and 1.29 is above the solver's 1.2 cap. Phase 4's
    condition 2 (total spending delivered within 1%) already nets raises against cuts; K3's raise-cap

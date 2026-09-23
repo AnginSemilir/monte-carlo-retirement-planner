@@ -245,11 +245,17 @@ export function solve(E, M, plan, opts = {}) {
   // combination, shared between moves that hold the same tiers
   const byCombo = {};
   // per world, per year, per action: the five quadrature rates. This is the only place the shift lands.
+  /*
+   * PHASE V1: the quadrature order is a parameter. `quadNodes` absent or 5 uses the tabulated constants,
+   * so every existing result is reproduced bit for bit; any other n comes from `gaussHermite`.
+   */
+  const QUAD = opts.quadNodes && opts.quadNodes !== 5 ? gaussHermite(opts.quadNodes) : { nodes: NODES, weights: WEIGHTS };
+  const QZ = QUAD.nodes, QW = QUAD.weights, NQ = QW.length;
   const nodeRealOfAtW = cs.map((cc) => {
     const out = [];
     for (let t = 0; t <= T0; t++) {
       const byK = {};
-      out[t] = actions.map((a, ai) => { const k = `${cc.acts[ai].tierPen}/${cc.acts[ai].tierIsa}`; if (!byK[k]) byK[k] = NODES.map(z => realAt(cc, z, new Float64Array(4), cc.acts[ai], t)); byCombo[k] = true; return byK[k]; });
+      out[t] = actions.map((a, ai) => { const k = `${cc.acts[ai].tierPen}/${cc.acts[ai].tierIsa}`; if (!byK[k]) byK[k] = QZ.map(z => realAt(cc, z, new Float64Array(4), cc.acts[ai], t)); byCombo[k] = true; return byK[k]; });
     }
     return out;
   });
@@ -480,22 +486,22 @@ export function solve(E, M, plan, opts = {}) {
                   if (!fail) {
                     const tn = PROF ? now() : 0;
                     const nr = nodeRealOf[ai];
-                    for (let zi = 0; zi < 5; zi++) {
+                    for (let zi = 0; zi < NQ; zi++) {
                       for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
                       F.grow(cs[k], t, grown, nr[zi]);
                       if (t === T) {
                         const total = grown[0] + grown[1] + grown[2];
                         const alive = !(floor > 0 && total < floor);
                         const net = Math.max(0, total - grown[0] * deathTax);
-                        s += WEIGHTS[zi] * (alive ? 1 : 0);
-                        rs += WEIGHTS[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
-                        b += WEIGHTS[zi] * (alive ? beqOf(net) : 0);
+                        s += QW[zi] * (alive ? 1 : 0);
+                        rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+                        b += QW[zi] * (alive ? beqOf(net) : 0);
                       } else {
                         readValues(g, sNext, bNext, grown, rd, rNext, hNext);
-                        s += WEIGHTS[zi] * rd[0];
-                        b += WEIGHTS[zi] * rd[1];
-                        rs += WEIGHTS[zi] * rd[2];
-                        h += WEIGHTS[zi] * rd[3];
+                        s += QW[zi] * rd[0];
+                        b += QW[zi] * rd[1];
+                        rs += QW[zi] * rd[2];
+                        h += QW[zi] * rd[3];
                       }
                     }
                     if (PROF) { PROF.nodes += now() - tn; PROF.nodeCalls++; }
@@ -534,6 +540,7 @@ export function solve(E, M, plan, opts = {}) {
   }
   const r = {
     m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
+    quadWeights: QW,
     tieMargin: opts.tieMargin || 0,
     /*
      * PHASE E0, STEP 2. One result-like view per world, for `chooseAction`'s mixture loop, which calls
@@ -552,7 +559,7 @@ export function solve(E, M, plan, opts = {}) {
   r.worlds = K === 1 ? [r] : cs.map((cc, k) => (k === centre ? r : {
     m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
     surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
-    nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0],
+    nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW,
     tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
     /*
      * A world view answers `policy` and `value` as the central result does, reading ITS OWN tables.
@@ -673,14 +680,15 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
     if (held) F.chargeSwitch(c, post, held, c.acts[ai]);
     let sv = 0, bq = 0, rs = 0, h = (spendYear ? r.costOf(levelOf[ai]) : 0) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
     const nr = nodeRealOf[ai];
-    for (let zi = 0; zi < 5; zi++) {
+    const QW = r.quadWeights || WEIGHTS;
+    for (let zi = 0; zi < QW.length; zi++) {
       grown.set(post);
       F.grow(c, t, grown, nr[zi]);
       readValues(g, lsurv[t + 1], beq[t + 1], grown, rd, lresil[t + 1], short[t + 1]);
-      sv += WEIGHTS[zi] * rd[0];
-      bq += WEIGHTS[zi] * rd[1];
-      rs += WEIGHTS[zi] * rd[2];
-      h += WEIGHTS[zi] * rd[3];
+      sv += QW[zi] * rd[0];
+      bq += QW[zi] * rd[1];
+      rs += QW[zi] * rd[2];
+      h += QW[zi] * rd[3];
     }
     SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
   }

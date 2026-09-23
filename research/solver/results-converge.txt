@@ -77,3 +77,34 @@ said why within minutes.
 The first version of this finding also claimed the bracket was a factor of 12.5 when it is 1.21 -
 corrected before the run. Had that error survived, the run would have been read as "the fix works
 weakly" instead of "the diagnosis was wrong".
+
+====================================================================================================
+CORRECTION, SAME DAY: THE "HELD-OUT RUNS HIGHER" CLAIM ABOVE WAS A SELECTION EFFECT
+
+Checked against every flex-tiers household, same policy scored on both draws (search: seed 7001, 5,400
+paths; held-out: seed 7002, 3,000 paths):
+
+    held-out higher on        26 of 41, not all
+    mean gap (held - search)  +0.18 pts, median +0.08, range -0.47 to +1.64
+    per-household noise       +/-0.91 pts
+
+**+0.18 is noise.** The ~1.4-point gap reported above came from S268, S292 and S342 - which were chosen
+FOR THIS TEST because they had the largest overshoots. A household picked for looking extreme on one
+draw looks extreme partly by luck, and will regress on another. **I selected on the outcome.** The
+claim is withdrawn, and the "one seed pair" item stays where it was: unresolved, not evidenced.
+
+WHAT THE OVERSHOOT ACTUALLY IS, averaged over the 22 genuine landings:
+
+    deliberate margin                   +0.50   set on purpose against the winner's curse
+    tolerance window                   ~+0.33   the search stops anywhere in +0.5..+1.0 above the ask
+    draw-to-draw noise                 ~+0.33   zero in expectation, positive in this sample
+    held-out total                      +1.16
+    (search-draw margin                 +0.83   squarely inside the window the stopping rule defines)
+
+**So there is no correctness fault.** The search lands exactly where its settings put it. What remains
+is one design choice - the half-point tolerance window buys up to half a point of extra safety with
+spending, and narrowing it costs solves - and one real consequence for Phase 4, recorded there: the
+two arms do not land to the same effective target.
+
+PROCESS: a test's households must not be chosen by the outcome the test is meant to explain. A
+representative set with a control would have avoided a false finding that survived an hour.

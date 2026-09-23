@@ -1514,6 +1514,23 @@ result, written into the plan with its reason BEFORE the first household runs. T
 number every headline figure in this study is measured at, and changing it afterwards invalidates the
 study rather than improving it.
 
+#### Equal downside must mean the SAME effective target - a correction found 23 Sep
+
+**The first draft of this phase would not have been at equal downside, and the gap favours the app.**
+The app's `optimizeSpend` lands AT the ask, converged to a 250-pound bracket. The solver lands with a
+deliberate +0.5 margin and then stops anywhere in a half-point tolerance window above that - measured
+across the 22 genuine landings, **+0.83 above the ask on its own search draw**. So as written, the
+solver arm enters the comparison about 0.8 of a point SAFER than arm A and pays for it in spending -
+on the very metric Phase 4 compares.
+
+**Before Phase 4 runs, one of these must hold:**
+- arm A is landed to `ask + margin` with a matching tolerance, so both carry the same insurance; or
+- arm S is landed with the tolerance window closed, so both target the ask itself.
+
+**The first is preferred**: the margin exists because the winner's curse is real (2d finding (d)), and
+removing it from the solver to match an arm that lacks it would weaken the promise rather than equalise
+the test. Whichever is chosen is written into the results file before the first household runs.
+
 #### Gate 4, the decision
 
 Judged on **Panel H**, at the declared weight, on seed 7003:

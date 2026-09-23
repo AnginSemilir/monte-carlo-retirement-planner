@@ -23,7 +23,8 @@ that does not serve it is scope, and should be justified as scope or dropped.
 4. **The solver returns the predicted figures through retirement and the survivability of the plan**,
    using the levers it is allowed to pull.
 5. **Trimming of retirement spending must be minimised, and the user must be able to trust that.** A
-   default curve is supplied; letting the user adjust it may come in a later build.
+   default curve is supplied; letting the user adjust it may come in a later build. The user also sets
+   how much cuts bother them (a slider), and can block cuts below target altogether.
 
 ### The levers the USER sets  (agreed with the maintainer, 23 Sep)
 
@@ -33,11 +34,11 @@ the solver values that is not on this list is a defect**, which is how resilienc
 | user lever | what it does | status in the solver | exposed to the user |
 |---|---|---|---|
 | **survival priority** | how much not running out (and not breaching the floor or the minimum pot) matters | the survival term's weight, fixed at 1: the reference every other weight is measured against | **the fixed anchor, not a slider - option (a), decided 23 Sep.** Always the largest priority. Not a target: the chance is reported, not promised |
-| **dislike of spending cuts, 0 to 100%** | how much a trim below target hurts | the trim penalty lambda - today found by the landing per household, ranging 0.005 to 2 (a 400x span) | **yes - a user level, agreed 23 Sep.** NOT BUILT as a level; Phase K calibrates its spread like the estate level |
+| **dislike of spending cuts, 0 to 100%** | how much a trim below target hurts | the trim penalty lambda - today found by the landing per household, ranging 0.005 to 2 (a 400x span) | **yes - a user level, agreed 23 Sep.** NOT BUILT as a level. Its DEFAULT is matched to how much the guardrails cut (K5, the Phase 4 fairness condition); K6 calibrates its spread around that |
 | **spending target** | what they want to spend each year | yes | yes |
 | **spending floor** | the lowest the solver may trim to | yes (0.8 of target in the research runs) | yes |
 | **block trimming** | never spend below target: the floor set equal to the target | supported (a floor of 1 leaves no level below 1); **needs its honouring check** | **yes - agreed 23 Sep** |
-| **trim curve** | how the cost of a trim grows with its depth, between target and floor | the shortfall exponent, 2 | **no - a fixed default; adjustable in a later build** |
+| **trim curve** | how the cost of a trim grows with its depth, between target and floor | the shortfall exponent, 2 | **no - a fixed default; adjustable in a later build.** Its default is FITTED so the solver's cuts have the guardrails' shape (K5) |
 | **raises above target** | whether, and how far, the solver may spend ABOVE target in good years | on, up to 1.2; the raise weight 0.003 sets how eagerly | **yes - agreed 23 Sep: allow, cap, or block** (block = no level above 1) |
 | **minimum end-of-life pot** | a hard line: a future that ends below it counts as failed | yes (`solvencyFloor`) | yes, **with a sensible default above zero - agreed 23 Sep**, because it now carries the job resilience did |
 | **estate priority, 0 to 100%** | how much the pot left above the minimum matters against everything else. One user-facing level; internally it sets BOTH the credit's weight and how steeply each extra pound's credit diminishes | **NOT BUILT (found 23 Sep).** Today: a fixed weight 0.02 on `min(net, 4K)` - every pound from ZERO (not from the minimum) counts the same up to the cap, then nothing. No diminishing curve, no level | **yes - a user level, agreed 23 Sep.** Moving it changes survival and other results, and that is the user choosing priorities, not a bug. **Phase K3's job is the SPREAD**: equal steps on the level must give roughly equal steps in outcome - 10% must not already have swung hard toward the estate, 100% may cost a lot |
@@ -137,8 +138,11 @@ engine, the simulation, the reporting and the inputs stay. The person sees two p
 and the solved one, and gets this year's actions, the rule of thumb behind them, and the cost of not
 following them. The app becomes an annual review: come back with real balances and it re-solves.
 
-Flexible spending is Part D, after the app has switched over, with its own inputs, objective and
-reporting rule. Out of scope altogether, each a plan of its own if ever wanted: gifting as an action
+**Updated 23 Sep - the paragraph above is the original vision; two things in it moved.** Contributions
+are not the solver's to choose (accumulation is taken as given - see "Not the solver's to choose"), and
+flexible spending is no longer a later Part D: it is in the solver now, and the product's levers,
+objective and Phase 4 test are built around it (see the Fixed requirements at the top). Survival is a
+weighted priority, not a target, and the plan reports its chance. Out of scope altogether, each a plan of its own if ever wanted: gifting as an action
 (needs the seven-year clock as state), retirement age as an action, mortality, annuities, a regime
 belief, and any change to the return model.
 
@@ -186,6 +190,11 @@ and what result would falsify it, written before the batch is launched.**
 ---
 
 ## Hypotheses for every outstanding run, derived before it goes
+
+> **23 Sep afternoon: several entries below are now historical.** 6f has run (confirmed). 6c-screen and
+> both 6d stages are folded into Phase K, whose current predictions live with it in "What runs next".
+> The Phase 4 prediction below belongs to the old equal-survival design; the current one is in Phase 4's
+> redesign block. The E1 and single-peak entries have run (E1 not built; single-peak confirmed).
 
 **Written 23 Sep, after the maintainer asked whether the derive-first rule had actually been applied to
 everything. It had not - two runs of seven carried a hypothesis.** This section is the audit, and it is
@@ -1499,8 +1508,15 @@ sides.
 - **Arm A, the current app at its best**: its own strategy search's winner, **guardrails ON** (so it has
   a flexible spending method), the one-off cost lookahead at its settled value. No tier changes -
   the app cannot do them, and that is precisely what is being competed against.
-- **Arm S, the solver at the DEFAULT slider settings** Phase K and the maintainer settle - what a user
-  would actually get.
+- **Arm S, the solver at the DEFAULT settings** Phase K and the maintainer settle, with its trim curve
+  and dislike of cuts **matched to the guardrails' cutting (K5)** - so both sides cut about the same
+  amount and the survival difference is not bought with spending.
+
+**The ceiling, and the panel that avoids it.** The guardrails already survive 97 to 100% on the tuning
+households measured, and two arms both at 100% cannot be told apart. The held-out panel is drawn where
+arm A - the app at its best, guardrails on - survives 75 to 95%, the same band-selection method as the
+clean 41 but applied to arm A. Its targets are set before either arm runs and written into the results
+file.
 
 **What counts as a win - survival up, and NOT bought with spending.** A solver that spent less would
 survive more for free; the guardrails could buy the same survival by trimming harder. So:
@@ -2834,112 +2850,109 @@ solver change.
 
 ## What runs next, in order
 
-### CURRENT SCHEDULE, 23 Sep afternoon - supersedes the rows below where they differ
+### CURRENT SCHEDULE - rewritten 23 Sep 14:30 UTC, supersedes everything below it where they differ
 
-Rewritten after 6f, #106 and the lever decisions. Every run keeps its derive-first prediction.
+Rewritten after 6f, #106, the lever decisions and the Phase 4 redesign. **The order is set by one rule:
+a step goes after everything it is conditional on.** Numerics before anything that reads the table;
+solver changes before any calibration; product defaults before the guardrail matching, because what
+the solver cuts depends on every other setting; the matching last, immediately before Phase 4.
 
-| # | What | Why here | Size | ETA (UTC) |
+| # | What | Conditional on | Size | ETA (UTC) |
 |---|---|---|---|---|
-| 1 | **Phase V**, extended to the share axes | Numerics first: its failure would invalidate results rather than redirect them. #106 showed the share axes were never tested. Build ~1.5 h (quadrature dial, share-axis refinement, V3 reads between share nodes), run ~1.5 h | ~3 h | ~17:00 |
-| 2 | **The two solver changes, one field check** | (a) the interpolation fix for #106 and whatever V finds; (b) resilience removed, the minimum end pot defaulted. Landed on 12 households in two arms - fix only, and fix plus resilience off - against the flex-tiers records, so each change is attributed | ~3.5 h | ~21:00 |
-| 3 | **Calibration of the user's levers** (Phase K below) | Screens at fixed lambda overnight; needs the objective settled, which step 2 does | ~5 h | ~02:00 |
-| 4 | **Maintainer picks the defaults** | The screens give the trade-offs; the defaults are product choices | - | tomorrow morning |
-| 5 | **Landed confirmation at the chosen defaults** | Screens do not hold the ask; this does | ~3 h | tomorrow midday |
-| 6 | **Phase 4**, head-to-head at the declared defaults | The decision | ~3-4 h | Thursday ~20:00 |
+| 1 | **Phase V**, extended to the share axes | nothing - it is the foundation | build ~1.5 h, run ~1.5 h | Wed ~17:30 |
+| 2 | **Solver changes + one field check**: the interpolation fix (#106 and whatever V finds); resilience removed; survival no longer a target (one solve at a fixed lambda, no landing) | V | build ~1 h, run ~1 h | Wed ~19:30 |
+| 3 | **Lever builds**: the estate credit curve above the minimum pot; the raise cap and block; the minimum-pot default wiring; lambda as a direct setting | 2 | ~2.5 h, no cores | Wed ~22:00 |
+| 4 | **K1 honouring checks** - exact, a failure is a bug | 3 | ~20 min | Wed ~22:30 |
+| 5 | **K2-K4 screens** overnight: minimum-pot default, raise cap, estate slider spread | 4 | ~5 h | Thu ~03:30 |
+| 6 | **Maintainer picks the product defaults**: minimum pot, raise cap, estate slider default | 5 | - | Thu morning |
+| 7 | **K5 guardrail matching**: the trim curve and the dislike-of-cuts default, fitted so the solver cuts as much as the guardrails | 6 | ~5 h | Thu ~14:00 |
+| 8 | **K6 dislike slider spread, K7 monotone checks**, at the matched setting | 7 | ~1.5 h | Thu ~15:30 |
+| 9 | **Phase 4**, head-to-head: headline run, backtest and perturbed engines, the no-tiers and equal-survival diagnostics | 8 | ~7 h | Thu ~23:00 |
 
-**Phase 4 redesigned 23 Sep by the maintainer: survival is the HEADLINE, not held equal.** The current
-app at its best (its own search's winner, guardrails on) against the solver at its default sliders;
-a win is higher survival NOT bought with spending (delivered spending within 1%, no household badly
-worse). The equal-survival landing survives only as a 12-household diagnostic. ~3-4 h instead of ~11,
-so Phase 4 lands Thursday evening rather than Friday morning.
+Any step whose result redirects the plan stops the queue there: a gate that fails is recorded and
+stopped on, not tuned. Step 6 is the one point the maintainer is on the critical path.
 
-**Folded in, not separate any more:** 6c-screen and both 6d stages become parts of Phase K; the fair
-resilience test is replaced by step 2's arm and Phase K's end-pot sweep. **After Phase 4:** the speed
-work (E3; the single-peak level search, confirmed safe but worth about one evaluation in five; the
-lambda search improvements), #109's remaining probes, E2 after Phase 7. **E1 is not built.**
+**Folded in, not separate any more:** 6c-screen and both 6d stages (into K4 and K7); the fair
+resilience test (into step 2 and K2); the landed confirmation (no longer needed - survival is not a
+target). **After Phase 4:** the speed work (E3; the single-peak level search, confirmed safe, about one
+evaluation in five; the lambda search), #109's remaining probes, E2 after Phase 7. **E1 is not built.**
 
 ### Phase K. Calibrating the user's levers
 
-Two different jobs, and they must not be confused. **A lever the user sets must be HONOURED** - that is
-exact, not tuned. **A lever's DEFAULT must be CHOSEN** - that is a trade-off the maintainer picks from
-measured curves.
+Two different jobs that must not be confused. **A rule the user sets must be HONOURED** - exact, not
+tuned. **A default or a slider's scale must be CHOSEN** - from measured curves, by the maintainer.
+Screens run at a fixed lambda (the flex-tiers landed value) on 12 households unless stated.
 
-**K1. Honouring checks - exact, minutes.** Each must hold on every path of 12 households:
+**K1. Honouring checks - exact.** On every path of 12 households:
 - block trimming (floor = target): zero years below target, by construction;
-- block raises: no year above target; a cap of c: no year above c;
+- block raises: no year above target; a cap c: no year above c;
 - minimum end pot P: no future counted as surviving ends below P;
 - risk permission off: every year at the plan's tier.
-A failure here is a bug, fixed before anything else.
 
-**K2. The minimum end-pot default - it replaces resilience, so it goes first.** Sweep P in {0, 1, 3, 5}
-years of target spending, landed lambda, 12 households.
-PREDICTION, derived: trimmed years stay near resilience-off levels (1.6 to 4) and far below
-resilience-on (9 to 15) for every P tested. Reason: resilience rewarded every pound up to opening
-wealth, and the unlucky tenth ends at 0.64 to 0.84 of it - roughly 15 to 30 years of spending. A floor of
-1 to 5 years sits an order of magnitude lower, and a hard floor only binds on the futures heading below
-it. FALSIFIED IF P = 3 costs more than half of resilience's trimming.
+**K2. The minimum end-pot default - it replaces resilience.** P in {0, 1, 3, 5} years of target spending.
+PREDICTION: trimmed years stay near resilience-off levels (1.6 to 4) and far below resilience-on (9 to
+15) at every P, because resilience rewarded pounds up to opening wealth - 15 to 30 years of spending on
+the unlucky tenth - and a hard floor of 1 to 5 years only binds on futures heading below it. FALSIFIED IF
+P = 3 costs more than half of resilience's trimming.
 
-**K3. The estate priority level, 0 to 100% - build it, then calibrate its SPREAD.**
-Maintainer, 23 Sep: this is a level the user moves, not a hidden default. Moving it WILL change
-survival and other results; that is the user choosing priorities. **Calibration is not about stopping
-that. It is about making the level mean the same thing all the way along**: 10% is a small tilt, 50%
-a real trade, 100% the estate first even at a large cost.
+**K3. The raise cap default.** Cap in {1.0, 1.1, 1.2}. PREDICTION from records: raises are frequent (a
+typical level of 1.15 to 1.2 in good states), so blocking them lifts median end pots substantially and
+barely moves survival. A spend-now-or-leave-it choice for the maintainer.
 
-The shape underneath, credited only ABOVE the minimum pot P:
+**K4. The estate slider, 0 to 100%: build it, then calibrate its SPREAD.** Survival is the fixed anchor
+(option (a)); this slider sets how much the pot above the minimum counts against running out, through
 
-    credit(net) = w(level) x s(level) x ln(1 + (net - P) / s(level))
+    credit(net) = w(level) x s(level) x ln(1 + (net - P) / s(level))      above the minimum pot P
 
-w sets how much the estate counts at all; s sets how fast each extra pound's credit falls (a pound
-counts half at P + s). One level drives both along a calibrated path. At 0% the term is off. No cap is
-needed: the logarithm already refuses to chase a lucky tail, which is what the cap and the 6c shoulder
-were for.
+w sets how much it counts; s how fast each extra pound's credit falls (a pound counts half at P + s). No
+cap needed. Moving it changes survival and other results - that is the user choosing priorities. The job
+is that equal steps give roughly equal steps in outcome: 10% a small tilt, 100% the estate first.
+DERIVATION: phase 2's frontier put three quarters of S294's response in the first 4% of the weight
+range, so a linear map fails; the map will be close to logarithmic. METHOD: sweep finely, express each
+outcome as a fraction of the household's own 0-to-100% swing, fit the map so the median household
+tracks the slider, report the worst. GATE: every household within 10 points of the slider; the last
+step to 100% no bigger than three ordinary ones. PREDICTION: long-horizon households set the worst case;
+the cost falls mainly on spending, since pounds kept for the estate also protect survival.
 
-**The derivation that makes calibration necessary, from data already on file** (phase 2's frontier,
-table above): on S294 the median-pot cost of the solver went -1,242k at weight 0, -929k at 0.02,
--812k at 0.1, -775k at 0.5. **Three quarters of the whole response happened in the first 4% of the
-weight range.** A slider mapped linearly onto the weight would do almost everything in its first few
-percent and nothing after - exactly the failure the maintainer described. So the level must map to the
-weight roughly LOGARITHMICALLY, and the map is fitted, not guessed.
+**K5. Guardrail matching: the trim curve and the dislike-of-cuts default (maintainer, 23 Sep) - the
+fairness condition for Phase 4.** The solver must cut about as much as the guardrails do, so Phase 4's
+survival comparison is not bought with spending. Fitted on the tuning 41, never the held-out panel.
 
-**The method.** On 12 households, sweep the internal (w, s) path finely at fixed lambda, and record
-the outcomes that matter: survival, years at target, spending delivered, median and unlucky-tenth end
-pot. For each household, express each outcome as a fraction of its own full swing between 0% and
-100%. Choose the map from level to (w, s) so the MEDIAN household's fraction tracks the level (10% ->
-about 10% of the swing), and report the worst household's spread, because a map that is even on the
-median can still be lumpy on one.
-**Gate K3:** at every level the across-household fraction stays within an agreed band of the level
-(proposed: 10 points), and 100% is not over the edge of a cliff (the last step is not bigger than
-three ordinary ones).
-**PREDICTION:** the fitted map is close to logarithmic in w; households with long horizons swing most
-and set the worst-case spread; and the level's cost falls mainly on SPENDING (trims, fewer raises)
-rather than survival, because pounds kept for the estate also protect survival - with investment risk
-the one route by which a high level could cut survival. **Which outcome is allowed to give way at high
-levels - spending only, or survival below the user's own target - is a maintainer decision, open.**
+WHAT THE RECORDS ALREADY SHOW - derived from flex-tiers and 6f, no run:
 
-**K4. The trim curve default (the exponent).** Sweep {1.5, 2, 3} - with lambda RESCALED per arm, the
-confound already found in 6d's design.
-PREDICTION: a higher exponent spreads trims into more, shallower years; total spending delivered moves
-little.
+    household   guardrails: years below target   depth when below  |  solver, resilience off: years   depth
+    S126                  18.8                        0.84        |              1.6                  0.73
+    S054                  22.7                        0.91        |              1.3                  0.87
+    S252                  14.3                        0.87        |              0.3                  0.67
+    S390                  30.7                        0.83        |              2.8                  0.63
+    S206                  22.2                        0.93        |              2.5                  0.84
+    S112                  26.4                        0.90        |              4.0                  0.82
+    guardrails across the 41: 13.4 to 30.7 years below target, median 20.3
 
-**K5. Raises: the default cap and eagerness.** Cap in {1.0, 1.1, 1.2}.
-PREDICTION from existing records: raises are frequent (a typical level of 1.15 to 1.2 in good states),
-so blocking them raises median end pots substantially and barely moves survival; the cap is a pure
-spend-now-or-leave-it preference.
+**The two cut in opposite shapes.** The guardrails cut OFTEN and SHALLOW (a fifth to three quarters of
+retirement, 7 to 17% deep); the solver cuts RARELY and DEEP (under 4 years, 13 to 37% deep). By total
+amount cut - years x depth - the guardrails cut about FIVE times more (S126: 3.0 target-years against
+0.44; S390: 5.1 against 1.0). So "match how much it cuts" is two numbers, not one, and the solver has two
+dials for them:
+- **the dislike-of-cuts level** sets HOW MUCH is cut in total;
+- **the trim curve's exponent** sets the SHAPE - a steeper curve makes deep cuts dearer, so the solver
+  spreads the same total into more, shallower years, toward the guardrails' pattern.
+METHOD: a grid of lambda x exponent {1.5, 2, 3, 4} on 12 households, then the chosen point checked on
+all 41. Match (i) total amount cut below target, median household, within 10%; (ii) depth when below
+within 3 points. Report years below target too - it will not match exactly unless the shape does.
+PREDICTION: matching the guardrails' total needs a MUCH LOWER dislike of cuts than today's landings
+(the solver cuts about a fifth as much now), and a higher exponent than 2 to get near their depth; the
+fitted exponent lands at 3 or 4. **Consequence worth knowing before Phase 4:** at equal cutting the
+solver should survive MORE than today, which is the claim - but the guardrails already survive 97 to
+100% on these six, so Phase 4's households must be chosen where the current app sits well below 100%
+(see Phase 4) or both arms hit the ceiling and the test cannot tell them apart.
 
-**K6. The dislike-of-cuts level, 0 to 100% - its spread (new, 23 Sep).** The trim penalty lambda
-becomes a user level. Same method as K3: sweep lambda over its observed 400x span on 12 households,
-express each outcome as a fraction of its own swing, fit the map so equal steps give equal steps.
-PREDICTION, derived from the landings on file: lambda ranged 0.005 to 2 across the 41, and 0 reversals
-in 15 adjacent pairs showed the response is smooth and monotone, so the map is close to LOGARITHMIC in
-lambda; and because the landed lambda differed 400x between households, one fixed level will give very
-different survival chances across households. That is now accepted - the chance is reported - but the
-worst-case spread must be reported with it.
+**K6. The dislike-of-cuts slider's spread**, centred on K5's matched value. Same method as K4. Lambda's
+landed values span 400x and 0 reversals in 15 adjacent pairs showed a smooth, monotone response, so the
+map is close to logarithmic in lambda.
 
-**K7. Monotone and sane (replaces "the promise", was 6d stage 2).** With survival no longer a target,
-the check is that every level moves its own outcome the right way and never the wrong way: raising
-dislike of cuts never adds trimmed years; raising estate priority never lowers the median end pot;
-raising survival priority never lowers the survival chance. A level that reverses anywhere is a bug.
-
+**K7. Monotone and sane.** Raising dislike of cuts never adds trimmed years; raising the estate slider
+never lowers the median end pot; nothing reverses anywhere. A reversal is a bug.
 
 **Added 22 Sep because the table below misleads.** Its rows are in historical phase-number order, not
 running order: E0 and E1 sit between phases 3 and 4 while the 6-series sits further down, which reads as

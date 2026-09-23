@@ -389,6 +389,35 @@ Step 6 is the one point the maintainer is on the critical path.
 
 ---
 
+## Predictions register - every planned run, derived before it goes (audited 23 Sep, 17:45)
+
+The derive-first rule applied to the whole queue, not only the runs that happened to get one. Where a
+prediction lives in its own section it is pointed to; the six that were MISSING when audited are
+written here, each derived from records already on file.
+
+| run | prediction | falsified if | source |
+|---|---|---|---|
+| step 2, today against the new baseline | **At the same lambda the new baseline cuts far less and raises far more**: years below target fall from about 9-15 to about 1-4, years above target rise to 27-43, survival falls 0.3 to 2 points, lifetime tax RISES (more is spent, so more pension is drawn), the median end pot falls. The 0.95 level makes cuts shallower: depth when below rises from 0.63-0.87 toward 0.85-0.95 | the new baseline cuts MORE than today on any household, or loses more than 3 points of survival | **written now**, from 6f's resilience 0 and 0.5 arms at the same lambda |
+| step 2, ternary against exhaustive | simulated survival and spending identical within noise on every household (24 misses in 5.0 million); the backward pass 20-30% faster (four level evaluations of six, and flows computed only for levels visited) | any household beyond 0.5 of survival or 1% of spending, or under 15% faster | **written now**, from the single-peak probe |
+| step 2, 15 nodes and 56 points | within half a point of survival and 1% of spending, but NOT comfortably: Phase V put the 30-to-56 simulation gap at +0.2 to +0.4 and 5-to-15 at -0.3 to +0.4 at 1,000 paths, so one borderline household is likely | a gap over 1 point, or a systematic sign across all twelve | **written now**, from Phase V's simulated columns |
+| step 2, the #106 fix | in its section (step 2) | - | step 2 |
+| ranking check | where the table's first choice beats its second by a clear margin in score, it simulates at least as well in over 80% of sampled positions; where the margin is tiny, it is close to a coin toss; the average loss when it is wrong is under half a point, and no loss exceeds 2 points on the current grid (S070's 6-point misranking was on the old per-pot grid) | wrong in over 30% of positions with a clear margin, or any loss above 2 points | **written now**, from Phase V's 6-9% of moves changing without moving the simulation, and the phase-2 loss ledger |
+| K1 honouring | exact by construction: every rule holds on every path | any path breaks any rule - a bug | K1 |
+| K2 minimum pot | in K2 | - | K2 |
+| K3 raise cap | in K3 | - | K3 |
+| K4 estate slider | in K4 | - | K4 |
+| Phase 4 panel selection | about half to two thirds of library candidates land in the app's 75-95% band (the tuning 41 ran from 70.9% to 99.9% with a median of 92.1%, 27 of 41 under 95%), so filling 40 needs roughly 60 to 80 candidates | under a third land in the band - the library would then be too comfortable for the test, and the band is revisited with the maintainer | **written now** |
+| K5 guardrail matching | in K5 | - | K5 |
+| K6 dislike slider | in K6 | - | K6 |
+| K7 monotone | **two parts are PROVABLE, one is not.** Raising dislike of cuts can never add trimming, and raising the estate slider can never lower the EXPECTED credited end pot - both follow from the same relaxation argument that settled the lambda curve. The MEDIAN end pot and the survival chance are not guaranteed monotone and are empirical. So a reversal in the first two is a bug; in the last two it is a finding | a reversal in trimming or in expected credited pot | **written now** |
+| Phase 4 | in Phase 4 | - | Phase 4 |
+| Phase 4, second seed on 12 | every household within about +/-0.9 of seed 7003, the average within +/-0.3 (the 7001/7002 pair differed by +0.18 on average) | the average moves by more than half a point | **written now** |
+| Phase 4, phone grid (14 points) on 12 | simulated survival within about a point of the 30-point grid - Phase V's 16-point arm simulated within 0.7 of 30 points on all three households - while the table's own reading is further off | any household more than 1.5 points worse | **written now**, from Phase V |
+| E1 re-run from stored moves | coverage stays near 98-99% and the verdict (not built) stands: the moves above 255 that corrupted it are the "draw the pension first" families, rarely chosen | coverage above 99.5% with a small set - E1 would then be worth building | **written now** |
+| E3 | bit-identical results; about 30% off the solve | any bit differs | E3 |
+
+---
+
 ## Phase V: OUTCOME AND THE DECISION IT NEEDS (23 Sep, 16:35)
 
 **Result, in one line: the plans are stable; the table's own numbers are not.** Changing the quadrature

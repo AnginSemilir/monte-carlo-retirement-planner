@@ -12,9 +12,11 @@ that does not serve it is scope, and should be justified as scope or dropped.
 
 1. **The user enters their portfolio and their own details.** Accounts, salary, contributions, state
    pension, region, spending bands, one-off deposits and costs.
-2. **They choose a retirement spending target, then a floor**, and **how often that floor must hold**.
-   *The third is not optional and was missing from the stated description; it is added here because it
-   is the number the entire landing bisects toward.* A floor without a confidence is not a promise.
+2. **They choose a retirement spending target, then a floor.** ~~And how often that floor must hold.~~
+   **Changed 23 Sep, maintainer: survival is NOT a target.** It is a weighted priority - the largest by
+   default - and the survival chance is an OUTCOME the plan reports, not a promise it is tuned to hit.
+   The landing that bisected the trim penalty to a survival ask leaves the product (it stays as a
+   research tool, below). One solve per plan instead of five to seven.
 3. **They choose what they value**: survivability alone; or also a minimum end-of-life pot above zero;
    or also the size of the pot they leave. **More levers may come later. Not now.** The full set of
    user levers is fixed in the table below.
@@ -30,7 +32,8 @@ the solver values that is not on this list is a defect**, which is how resilienc
 
 | user lever | what it does | status in the solver | exposed to the user |
 |---|---|---|---|
-| **survival target** | the share of futures in which the floor must hold | the ask the landing bisects to | yes |
+| **survival priority, 0 to 100%** | how much not running out (and not breaching the floor or the minimum pot) matters | the survival term's weight; today fixed at 1 and the reference every other weight is measured against | **yes - agreed 23 Sep; the LARGEST priority by default.** Not a target: the chance is reported, not promised. See the note below the table on three levels and two degrees of freedom |
+| **dislike of spending cuts, 0 to 100%** | how much a trim below target hurts | the trim penalty lambda - today found by the landing per household, ranging 0.005 to 2 (a 400x span) | **yes - a user level, agreed 23 Sep.** NOT BUILT as a level; Phase K calibrates its spread like the estate level |
 | **spending target** | what they want to spend each year | yes | yes |
 | **spending floor** | the lowest the solver may trim to | yes (0.8 of target in the research runs) | yes |
 | **block trimming** | never spend below target: the floor set equal to the target | supported (a floor of 1 leaves no level below 1); **needs its honouring check** | **yes - agreed 23 Sep** |
@@ -39,6 +42,15 @@ the solver values that is not on this list is a defect**, which is how resilienc
 | **minimum end-of-life pot** | a hard line: a future that ends below it counts as failed | yes (`solvencyFloor`) | yes, **with a sensible default above zero - agreed 23 Sep**, because it now carries the job resilience did |
 | **estate priority, 0 to 100%** | how much the pot left above the minimum matters against everything else. One user-facing level; internally it sets BOTH the credit's weight and how steeply each extra pound's credit diminishes | **NOT BUILT (found 23 Sep).** Today: a fixed weight 0.02 on `min(net, 4K)` - every pound from ZERO (not from the minimum) counts the same up to the cap, then nothing. No diminishing curve, no level | **yes - a user level, agreed 23 Sep.** Moving it changes survival and other results, and that is the user choosing priorities, not a bug. **Phase K3's job is the SPREAD**: equal steps on the level must give roughly equal steps in outcome - 10% must not already have swung hard toward the estate, 100% may cost a lot |
 | **permission to change investment risk** | may the solver move a pot to a lower risk tier | tiers, up to two below the plan's, at a switching cost | **yes - agreed 23 Sep, as consent** |
+
+**Three priority levels, two degrees of freedom - a design point, open.** The solver balances weighted
+priorities, and a weighted balance depends only on the RATIOS of the weights: survival 100% with cuts
+100% and estate 100% gives exactly the same plan as all three at 50%. So three sliders have only two
+independent settings, and a user who moves all three together sees nothing happen. Two honest ways to
+present it: (a) survival is the fixed anchor and the other two levels are each measured against it; or
+(b) three sliders shown, normalised underneath, with the copy saying they are relative. The maintainer's
+"survival largest by default" fits either. To settle before Part C's copy; Phase K calibrates the two
+free ratios whichever is chosen.
 
 **Deliberately left out, 23 Sep:** a stability lever (how often spending may change). The drift penalty
 stays off and unexposed.
@@ -2784,6 +2796,12 @@ Rewritten after 6f, #106 and the lever decisions. Every run keeps its derive-fir
 | 5 | **Landed confirmation at the chosen defaults** | Screens do not hold the ask; this does | ~3 h | tomorrow midday |
 | 6 | **Phase 4**, at the declared defaults | The decision | ~11 h | Friday ~08:00 |
 
+**Survival is no longer a product target (23 Sep), but Phase 4 still lands both arms to the same
+survival.** That is a FAIRNESS device for the research comparison, not a product feature: comparing two
+methods at different survival chances would say nothing about which is better. The landing code stays
+for that, and for any user who later wants a "hit this chance" mode. Phase 4 additionally reports each
+arm at the declared default levels, which is what a user would actually get.
+
 **Folded in, not separate any more:** 6c-screen and both 6d stages become parts of Phase K; the fair
 resilience test is replaced by step 2's arm and Phase K's end-pot sweep. **After Phase 4:** the speed
 work (E3; the single-peak level search, confirmed safe but worth about one evaluation in five; the
@@ -2798,7 +2816,7 @@ measured curves.
 **K1. Honouring checks - exact, minutes.** Each must hold on every path of 12 households:
 - block trimming (floor = target): zero years below target, by construction;
 - block raises: no year above target; a cap of c: no year above c;
-- minimum end pot P: no future counted as surviving ends below P, and the landing still meets the ask;
+- minimum end pot P: no future counted as surviving ends below P;
 - risk permission off: every year at the plan's tier.
 A failure here is a bug, fixed before anything else.
 
@@ -2857,8 +2875,19 @@ PREDICTION from existing records: raises are frequent (a typical level of 1.15 t
 so blocking them raises median end pots substantially and barely moves survival; the cap is a pure
 spend-now-or-leave-it preference.
 
-**K6. The promise (was 6d stage 2).** At the extreme settings of each exposed lever, landed: the survival
-ask still holds. A lever that breaks the promise at an extreme gets a bounded range, not a caveat.
+**K6. The dislike-of-cuts level, 0 to 100% - its spread (new, 23 Sep).** The trim penalty lambda
+becomes a user level. Same method as K3: sweep lambda over its observed 400x span on 12 households,
+express each outcome as a fraction of its own swing, fit the map so equal steps give equal steps.
+PREDICTION, derived from the landings on file: lambda ranged 0.005 to 2 across the 41, and 0 reversals
+in 15 adjacent pairs showed the response is smooth and monotone, so the map is close to LOGARITHMIC in
+lambda; and because the landed lambda differed 400x between households, one fixed level will give very
+different survival chances across households. That is now accepted - the chance is reported - but the
+worst-case spread must be reported with it.
+
+**K7. Monotone and sane (replaces "the promise", was 6d stage 2).** With survival no longer a target,
+the check is that every level moves its own outcome the right way and never the wrong way: raising
+dislike of cuts never adds trimmed years; raising estate priority never lowers the median end pot;
+raising survival priority never lowers the survival chance. A level that reverses anywhere is a bug.
 
 
 **Added 22 Sep because the table below misleads.** Its rows are in historical phase-number order, not

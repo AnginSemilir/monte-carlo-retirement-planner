@@ -607,7 +607,13 @@ export function chooseAction(r, s, t, held = null) {
 }
 
 /* Every move's score from one solve's tables at the true position `s` in year `t`, with the year's tax and the expected bequest. */
-function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
+/*
+ * Exported so a probe can ask what EVERY action scores at a position, not just which one wins.
+ * `chooseAction` returns the argmax and throws the rest away, which makes questions about the SHAPE of
+ * the action set - is the score single-peaked in spending level? are most actions dominated? -
+ * unanswerable from outside. Pure function, no state touched.
+ */
+export function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
   const { g, c, actions, lsurv, lresil, beq, short, nodeRealOfAt, wB, wR, levelOf } = r;
   const nodeRealOf = nodeRealOfAt[t];
   const post = r._post || (r._post = new Float64Array(Math.max(7, s.length)));

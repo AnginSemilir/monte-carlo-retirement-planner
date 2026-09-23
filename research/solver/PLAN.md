@@ -2658,6 +2658,84 @@ the strategy they were fitted to; the solver's findings can ship as rules wherev
 The decision point is the end of Phase 2d, confirmed at the end of Phase 4. Phases 1 to 4 together are about the size of the evolver
 build twice over, and nothing the person sees changes until Phase 8.
 
+## Known, recorded, and NOT planned
+
+**Added 23 Sep.** Everything here is a deliberate non-decision. It exists so that none of it is later
+mistaken for an oversight, and so that anyone who notices one of these can see it was already seen.
+**Nothing in this section is scheduled. Each entry says what would have to change for it to be.**
+
+### 1. Out of scope by design, not by omission
+
+| | |
+|---|---|
+| **Mortality** | No death probabilities. The horizon is a fixed plan-to age. A maintainer constraint, not a gap. |
+| **Annuities** | Not modelled, not compared against. |
+| **Regime belief** | No view that returns depend on a hidden state. The three-world mixture is uncertainty about the MEAN, which is a different and weaker claim. |
+| **Contributions** | `contrib: null` - the solver does not choose what you save. Accumulation is taken as given. |
+| **Retirement age** | Solved separately by the app, not by the solver. |
+| **Lump sum vs phased** | Read from the plan, never chosen, despite being a large real decision. |
+
+### 2. Constants never swept, and where each would go if it were
+
+| constant | what it decides | status |
+|---|---|---|
+| `shortExp = 2` | one big spending cut or several small ones | **folded into 6d stage 1**; the only one with a home |
+| `wR = 0.5` | how steeply the downside is protected | **6f screens whether it matters at all** |
+| `mu = 0.003` (raise credit) | how readily good years are spent | unswept. The convergence test gives it a first signal: if spending rises but years-above-target do not, mu is too small to respond |
+| `SWITCH_COST = 0.0025`, `SWITCH_MARGIN = 0.001` | the price of changing risk tier | unswept, set by argument. No results file mentions either |
+| gain buckets `[0.05, 0.25, 0.55]` | how finely capital-gains tax is tracked | **6e checked these and they stand** |
+| raise credit capped at level 1.2 | reward for spending above target | **dormant**: the shipped menu tops out at exactly 1.2, so the cap never binds. Adding a 1.3 level would silently do nothing until the cap moves with it |
+| 2,400 to 5,400 search paths | the sampling noise floor | task #108 established that 2,400 fails and 5,400 works. **The boundary between them is unexplored and deliberately so** - the prize is a fraction of that gap |
+
+### 3. Measured, understood, and deliberately not acted on
+
+- **The lump-taken flag.** The shipped grid reads a household that has spent part of its tax-free lump
+  as having spent none. Measured on all eight affected households: **changing it moves nothing.** And
+  the "fix" swaps a wrong flag for a wrong figure - 7.1% of allowance used would read as 50% instead of
+  0%. Not a correction, a different approximation. `pclsStrict` stays in the code defaulted off, with
+  its gate, so the next person to notice can test it in half an hour.
+- **Gross against net.** The minimum-pot promise is judged on the gross pot while the bequest is valued
+  net of pension death tax, on adjacent lines. Every library household runs at a zero death-tax rate,
+  so no run can show the difference. **Needs a synthetic fixture before it is worth touching**, and the
+  maintainer's own household is never a fixture.
+- **Both terminal-wealth anchors are the same number.** `resilK = scale` and `beqCap = 4 x scale`, both
+  opening wealth at PLAN time - so a 37-year-old's objective is pinned to what a 37-year-old holds. 6f
+  may replace both with the user's own minimum-pot figure; until it reports, this stays as it is.
+
+### 4. Gates recorded as NOT passed, and left that way
+
+- **6b condition 1b** - the over-trim guard failed as written on 9 of 41. Seven of the nine took no
+  trimming at all, at the top of the bracket, so the guard's own reasoning did not apply to them. **The
+  condition was not rewritten after the fact.**
+- **6c** - the soft bequest shoulder failed on its control, S390, whose estate sits at 97% of its bend
+  and which was therefore never a control. Its clause had already been corrected once with partial
+  sight; **a second re-specification with full sight was refused.** `soft` stays off.
+
+### 5. Open questions with nobody assigned
+
+- **The S126 opening-cell anomaly** (task #106) - noticed, never diagnosed.
+- **Single-household probes at the frontier** (task #109) - would show WHERE the solver's edge comes
+  from rather than that it exists. Useful for the write-up, not for the decision.
+- **One seed pair throughout.** Every result uses 7001/7002. Paired comparisons are robust to this;
+  absolute levels are not. No second draw has ever been run.
+- **41 households, no power analysis.** Fine for "41 of 41" claims, weaker for mean differences.
+
+### 6. The boundary with the shipping engine
+
+The projection engine is settled and in production, and this plan touches it only through the `table`
+override. Settled there and **not** this project's to revisit: UK income tax with the personal-allowance
+taper and the Scottish and Welsh bands; Class 1 and Class 4 NIC with salary sacrifice and employer
+pass-through; the pension rules (PCLS, Lump Sum Allowance, annual allowance with taper and carry-forward,
+MPAA, relief at source); ISA allowances and the Cash ISA wrapper; realisation-based CGT; savings-interest
+and dividend tax; state pension timing; the pre-access bridge; spending bands; one-off deposits and
+costs; Guyton-Klinger guardrails; the one-off cost lookahead; and the Monte Carlo percentile calibration
+that reproduces BlackRock's published figures. Inheritance is built and switched off.
+
+**The solver must not change any of it.** Phase 3's gate exists for exactly that: the table override is
+exact to the pound against the engine's own arithmetic.
+
+---
+
 ## Decisions I have taken that you may want to overrule
 
 - Decided 21 Sep: raises after a good run (2d.4) and the tier as a move (Phase 6) ship as **presets,

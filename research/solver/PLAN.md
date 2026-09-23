@@ -511,6 +511,17 @@ PREDICTIONS, derived:
 - **V2s fails on S126 only, as predicted**: the fix is the step-2 interpolation change, not more share
   points everywhere.
 
+**A prediction I should have got right from the records (written mid-run, 23 Sep).** The V2 prediction
+("passes on S184 and S330") cited phase 2's "60 x 8 x 8 matched 40 x 6 x 6 to the decimal" - but that was
+a match of SIMULATED results, not of the table's own reading. The records on the table's reading say the
+opposite, and say it plainly: the phase-2 loss ledger (`ledger-bias.txt`, `ledger-smear-fixes.txt`)
+measured the table optimistic on S070 by +21, +16, +13 and +9 points at 12, 16, 20 and 28 points - a
+slow, roughly 1/n shrinkage, not the 1/n^2 assumed here - while the simulated survival of the same
+policy stayed at 67 to 68.5 throughout. Read correctly, the existing data predicted exactly what V2 is
+showing: **the table's reading does not converge at practical sizes; the simulated outcome does.** The
+same ledger showed linear interpolation cutting S070's table bias from +21 to +9 at 12 points, which is
+a clue V3 should confirm. This is the check-existing-data rule failing in my own hands, recorded as such.
+
 **Restart note, 23 Sep:** the first launch (14:59) was stopped after 15 minutes when the byte-wide policy
 bug was found - its simulations read the final year from that table. It restarts on the fixed code.
 

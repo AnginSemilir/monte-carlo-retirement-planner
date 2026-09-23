@@ -135,6 +135,116 @@ and what result would falsify it, written before the batch is launched.**
 
 ---
 
+## Hypotheses for every outstanding run, derived before it goes
+
+**Written 23 Sep, after the maintainer asked whether the derive-first rule had actually been applied to
+everything. It had not - two runs of seven carried a hypothesis.** This section is the audit, and it is
+the place to check before launching anything. **Doing it caught a design fault in 6d stage 1 that would
+have produced a confounded result** (below), which is the argument for the rule in one line.
+
+### 6f - the resilience kink
+
+The combined terminal-wealth function is `wR*min(1, net/K) + (wB/K)*min(net, 4K)`, so `wR` sets the
+slope ratio at the bend:
+
+| `wR` | slope below K | ratio at the bend |
+|---|---|---|
+| 0 | 0.02/K | **1** - no bend at all |
+| 0.25 | 0.27/K | 13.5 |
+| 0.5 (today) | 0.52/K | 26 |
+| 1.0 | 1.02/K | 51 |
+
+The unlucky tenth lands at 0.64 to 0.84 of K on every household measured, so it sits on the steep
+segment. At `wR = 0` the marginal value of a pound there falls **twenty-six fold**.
+
+**PREDICTION: p10 terminal net falls materially at `wR = 0` and rises at `wR = 1`.** The score riding on
+the bottom decile's resilience is about `0.5 x 0.74 x 0.1 = 0.037`, roughly **3.7 survival points** - too
+much to be ignored unless the solver is already at a corner, doing the most or least de-risking whatever
+the weight. Gate 6b found the tier channel actively lifting floors on seven households, so it is not at
+a corner. **Therefore the expected answer is RE-ANCHOR, not remove.**
+
+**FALSIFIED IF** p10 moves less than 2% at `wR = 0`, which would mean the term is not binding and the
+objective should simply lose it.
+
+### 6c-screen - the bequest curve's shape
+
+The family is `soft(net) = C + C((net/C)^(1-p) - 1)/(1-p)`, `p = 1` being the logarithm. At twice the
+cap the four arms value the estate at **1.83C (p=0.5), 1.69C (p=1), 1.50C (p=2), 1.29C (p=4)** - a
+spread of 0.54C, which at `wB = 0.02` is `0.02 x 0.54 x 4 = 0.043` of score, about **4.3 survival
+points**. Households do reach that far: 6c recorded S354 moving between £7.31M and £4.69M with both
+ends above its £3.80M cap.
+
+**So the arithmetic says the shape matters. The field evidence says it may not:** 6c measured the whole
+`cap`-to-`soft` change recovering only **12%** of the £12.8M that had been invisible.
+
+**PREDICTION: the screen comes back QUIET - median pot within 2% across `p`** - despite a four-point
+score spread, because the actions available in that region do not differ enough to exploit it.
+**That tension is the finding either way.** Quiet means the curve is second-order and the logarithm
+stands on evidence; loud means 6c's 12% understated it and the curve must be chosen before anything
+ships.
+
+### 6d stage 1 - the estate lever, and a CONFOUND in its shortExp arm
+
+**The lever.** Maximum bequest contribution is `wB x 4`, so across the sweep it runs 0, 0.08, 0.2, 0.4,
+0.8 of score - that is **0, 8, 20, 40 and 80 survival points**. At `wB = 0.2` the estate term is nearly
+as powerful as survival itself.
+
+**PREDICTION: the frontier is strongly non-linear** - almost flat from 0 to 0.02 (8 points of range),
+steep from 0.1 to 0.2 (40 points). **So a linear slider would feel dead at one end and violent at the
+other, and the control should be logarithmic.** That is a UI conclusion available before the run.
+
+**THE CONFOUND, and it would have invalidated the arm.** `shortExp` is swept at a HELD lambda - the one
+landed at `p = 2`. But the penalty is `lambda x (1 - level)^p`, and at the floor level of 0.8 that is
+0.2, 0.04 and 0.008 for `p` = 1, 2, 3. **So the arms differ five-fold in penalty STRENGTH before they
+differ at all in SHAPE**: `p = 1` punishes a floor-level trim five times harder than today, `p = 3` five
+times less. The run would have measured penalty strength and called it shape.
+
+**THE FIX, required before 6d stage 1 runs:** rescale so the penalty at the floor level matches, i.e.
+`lambda_p = lambda_2 x (1 - floorLevel)^(2 - p)`, which is **x0.2 for p=1, x1 for p=2, x5 for p=3**.
+Then only the shape differs. **PREDICTION once fixed:** a higher exponent makes deep cuts
+disproportionately dear, so `p = 3` gives more frequent, shallower trims and a higher `changesMean`;
+`p = 1` gives fewer, deeper ones. Whether the household prefers that is a taste question the sweep
+cannot settle, which is the point of showing it.
+
+### 6d stage 2 - is the lever safe?
+
+**PREDICTION: it lands at both extremes.** `wB` does not touch the trim penalty, and the landing tunes
+lambda until the floor promise holds whatever else the objective wants. **FALSIFIED IF** either extreme
+fails to land - which would mean the estate term can overpower the floor, and the lever would not be
+safe to ship in that form.
+
+### E3 and E1 - the speed work
+
+**E3's gate is bit-equality, so the hypothesis is arithmetic rather than empirical:** the cells being
+skipped describe pots that are empty, their values are copied from cells already computed, and the run
+either reproduces the current answer exactly or the identification is wrong. **There is nothing to
+predict beyond "identical", and a near-miss is a failure, not a small error.**
+
+**E1 is genuinely empirical** and cannot be derived: whether last year's best move is near this year's
+depends on how fast the policy moves with age and wealth, which is a property of the household library
+and UK tax over a 40-year horizon. **The run IS the argument**, and the rule says so.
+
+### Phase 4 - the decision
+
+From 2d in the reduced model, at equal downside: years at target **0.85 against 0.51**. From Phase 3,
+the engine agrees with the model within 2 points on 41 of 41. **PREDICTION: the solver wins on years at
+target by a wide margin and on spending delivered by a narrower one - BUT the held-out panel shows a
+SMALLER edge than the tuning set, because every knob was fitted on the clean 41.**
+
+**The size of that shrinkage is the real result of Phase 4**, more than the headline. A small gap means
+the knobs generalise; a large one means they were fitted to 41 particular households and the honest
+write-up says so whatever the gate concludes.
+
+### The single-peakedness probe
+
+**PREDICTION: single-peaked on almost every cell, with rare exceptions at tax band edges, and a loss
+from ternary search under 1e-6 of score.** The trim penalty is convex in level and the continuation
+value is smooth in wealth; the tax kinks live in the flow, which MOVES the peak rather than creating a
+second one. **FALSIFIED IF** exceptions exceed a few percent or any loss exceeds 1e-4 - then the kinks
+do create second peaks and the exhaustive scan stays.
+
+---
+
 ## Working conventions for whoever builds this
 
 These are the rules this repository already runs on. They are not optional and none of them is

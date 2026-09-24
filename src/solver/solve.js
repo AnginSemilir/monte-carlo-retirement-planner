@@ -964,7 +964,7 @@ export function runPolicy(r, zs, opts = {}) {
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
       lastLevel = lv;
     }
-    if (unmet > 1 || c.last.preNmpaInsolvent) { if (tr) tr.failYear[tr.row] = t; return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges, switchPaid, ...(giaOn ? { giaYears, giaChanges } : {}) }; }
+    if (unmet > 1 || c.last.preNmpaInsolvent) { if (tr) tr.failYear[tr.row] = t; return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges, switchPaid, ...(giaOn ? { giaYears, giaChanges } : {}) }; }
     F.grow(c, t, s, realAt(c, zs[t], real, act, t, zPath));
     if (tr) traceYear(t, c.last.level, c.yr.spend[t] > 0, c.last.taxPaid + c.last.cgtPaid);
   }

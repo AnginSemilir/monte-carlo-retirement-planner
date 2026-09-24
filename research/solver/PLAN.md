@@ -596,6 +596,73 @@ written here, each derived from records already on file.
 
 ---
 
+### The replication, run 24 Sep 06:26-06:55 (`audit-s126.mjs variants 16 1000`; step-2 flags, lambda held)
+
+| variant | a0 | bridge | W | a\* (floor need) | class (floor-corrected) | table | simulated | gap | pension below plan tier, years/path |
+|---|---|---|---|---|---|---|---|---|---|
+| S126 as is | 0.85 | 2 | 950k | 0.951 | yes | 47.7 | 99.9 | -52.2 | 40.0 |
+| share 0.50 | 0.50 | 2 | 950k | 0.951 | no | 99.9 | 99.8 | +0.1 | 6.9 |
+| share 0.70 | 0.70 | 2 | 950k | 0.951 | no | 99.6 | 99.8 | -0.2 | 9.5 |
+| share 0.78 | 0.78 | 2 | 950k | 0.951 | no at t = 0 (drifts in at t = 1) | 99.1 | 99.9 | -0.8 | 40.0 |
+| share 0.90 | 0.90 | 2 | 950k | 0.951 | yes | 0.9 | 99.7 | -98.8 | 10.8 |
+| share 0.95 | 0.95 | 2 | 950k | 0.951 | yes (barely) | 0.0 | 68.2 | -68.2 | 4.6 |
+| bridge 0 | 0.85 | 0 | 950k | - | no | 99.9 | 99.8 | +0.1 | 6.7 |
+| bridge 1 | 0.85 | 1 | 950k | 0.976 | yes | 82.8 | 99.8 | -17.0 | 8.8 |
+| bridge 4 | 0.85 | 4 | 950k | 0.902 | yes | 5.3 | 99.9 | -94.6 | 42.0 |
+| bridge 6 | 0.85 | 6 | 950k | 0.853 | yes (barely) | 3.3 | 99.8 | -96.5 | 44.0 |
+| wealth x0.5 | 0.85 | 2 | 475k | 0.902 | yes | 3.2 | 96.8 | -93.6 | 36.8 |
+| wealth x2 | 0.85 | 2 | 1.9m | 0.976 | yes | 90.3 | 100.0 | -9.7 | 40.0 |
+
+**Against the prediction:**
+- **Class membership:** right on all 12 once a\* uses the floor-level need. Two variants I predicted "truly failing" (share 0.95, bridge 6) are in the class and simulate at 68% and 99.8%; that was my error, logged above.
+- **Out of class:** all within 1 point, as predicted.
+- **Magnitudes ("20+ below"):** held on 7 of 9. Missed on wealth x2 (-9.7) and bridge 1 (-17.0).
+- **Falsifier** (in-class within 5 points, or out-of-class 20+ below): NOT fired.
+
+### The root cause, refined by the replication
+
+The read at a position between a live share node a_k and a dead one above it is
+
+    eta_read = (1 - w) * eta_live + w * (-13.8),   w = (a - a_k)/0.2
+
+So the misread depends on three things:
+1. **w, the position's weight on the dead node.** Share 0.90 has twice S126's weight, and a gap of -99 against -52.
+2. **How alive the live node is.** A rich household's live node sits near +13.8, so the read flips only past w = 1/2. That is why wealth x2 misreads only -9.7.
+3. **How many bridge years compound it.** Each bridge year is paid from accessible money, so the pension share rises and the next read sits deeper in the interval: one year -17, two -52, four -95.
+
+The interpolant puts the 50% line at a_k + 0.2 x eta_live/(eta_live + 13.8), set by the clamp and the node's
+confidence, never by the money. The true cliff is at **a\* = 1 - (bridge need at the floor)/W**.
+
+**What it does to decisions.** The solver acts on a false belief, and which way it acts depends on how
+pessimistic the read is:
+- At S126's 48% it turns cautious: the pension sits below its tier all 40 years, against 5-11 for unaffected twins.
+- Where the read is near 0 (share 0.90 and 0.95), it holds its riskiest tier (4.6-10.8 years below). That is the
+  M17 behaviour, which these step-2 flags do not yet fix, acting on a misread.
+- Share 0.78 reads fine at year 0 and still shows the 40-year signature, because it drifts into the interval in
+  year 1.
+
+### The fix options
+
+| option | what it does | exactness | cost | risk |
+|---|---|---|---|---|
+| **F1. A cliff-aware read** (recommended first) | Where a read's share interval has a dead node above, test the QUERY itself: does its accessible money cover the bridge at the floor (a < a\*)? If yes, interpolate from the live nodes only, extrapolated in log-odds from the two live nodes below, so the rising risk toward a\* is kept. If no, it is truly short, and the read keeps the dead node. The cliff goes where the money says. | Places the cliff at a\* exactly; the live side's shape near a\* is extrapolated | A coverage test per read against a per-year need table: negligible. Local to the read. Bit-identical wherever no dead node is touched | Slightly optimistic just inside a\*, where market moves could still break the bridge. The extrapolation is there to limit it |
+| F2. A coverage coordinate in bridge years | Replace the pension share with c = accessible/need in bridge years, with nodes dense around c = 1. The cliff sits ON a node. | Exact by construction (Focus 1's principle, applied to the share axis) | Per-year axis definitions in the grid; a larger build (about a day) and test surface | Low once built; the most code |
+| F3. Raise the clamp (1e-6 to 1e-3) | Halves the dead node's pull | Does not place the cliff; S126 7.6 -> 45.6 (#106) | Trivial | Moves every other clamp read too, including the good W-axis ones |
+| F4. More share nodes near 1 | Narrows the band the error lives in | Phase V's 12 share nodes still read S126 at 48-63 | +33% cells everywhere | Pays everywhere for a local fault |
+| (`drop`, tested) | Ignores the dead node whatever side of a\* the query is on | Reads positions PAST a\* as alive | - | Explains its measured -0.30 on S126: it let the plan drift past the cliff |
+
+**F1 is `drop` made cliff-aware.** The same test, "is this position on the live side of a known cliff?",
+generalises: the minimum-pot cliff (C1: W against P_min at the end) and one-off costs (C2) have analytic cliff
+locations too. So F1 is also the pitfall sweep's main tool.
+
+**F1's test (prediction to be written before it runs):**
+- **The class:** the replication set plus the six library class households; table gaps within +/-5 points on every
+  in-class case (today -10 to -99).
+- **No survival cost:** simulated survival not lower than today's beyond two paired se on any household, which is
+  where `drop` failed.
+- **Behaviour:** the in-class "years below tier" falls toward the unaffected twins' 5-11.
+- **Everyone else:** bit-identical tables on out-of-class and non-bridge households.
+
 ## THE PITFALL SWEEP: S126's pattern, hunted elsewhere - a GATE before Phase 4 (maintainer, 24 Sep ~08:40)
 
 "Ensure that when we get the results and fix in for S126, we check for similar potential pitfalls and test and

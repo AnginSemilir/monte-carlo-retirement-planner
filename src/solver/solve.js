@@ -214,6 +214,7 @@ export function solve(E, M, plan, opts = {}) {
   const m = M.prepare(E, plan);
   if (opts.shiftZ !== undefined) m.shiftZ = opts.shiftZ;   // the scenario mixture: this table's held shift
   if (opts.tiersAbove) m.tiersAbove = opts.tiersAbove;   // M14, research only: tiers above the plan's (see tiersFor)
+  if (opts.giaTiers) m.giaTiers = true;   // M15, research only: the taxable account takes the joint tier step (see tiersFor)
   // one table per person; a couple needs two and a funding split, which is phase 5
   if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');
   const g = makeGrid(m, opts);
@@ -261,7 +262,7 @@ export function solve(E, M, plan, opts = {}) {
     const out = [];
     for (let t = 0; t <= T0; t++) {
       const byK = {};
-      out[t] = actions.map((a, ai) => { const k = `${cc.acts[ai].tierPen}/${cc.acts[ai].tierIsa}`; if (!byK[k]) byK[k] = QZ.map(z => realAt(cc, z, new Float64Array(4), cc.acts[ai], t)); byCombo[k] = true; return byK[k]; });
+      out[t] = actions.map((a, ai) => { const k = `${cc.acts[ai].tierPen}/${cc.acts[ai].tierIsa}${cc.acts[ai].tierGia ? '/' + cc.acts[ai].tierGia : ''}`; if (!byK[k]) byK[k] = QZ.map(z => realAt(cc, z, new Float64Array(4), cc.acts[ai], t)); byCombo[k] = true; return byK[k]; });
     }
     return out;
   });
@@ -405,8 +406,8 @@ export function solve(E, M, plan, opts = {}) {
     if (!list || !list[0] || !list[k] || list[0].equity === undefined || list[k].equity === undefined) return 0;
     return Math.max(0, list[0].equity - list[k].equity);
   };
-  const driftCostOf = actions.map(a => (driftW > 0 && c.tiers
-    ? driftW * lambda * (eqDrop(c.tiers.pen, a.tierPen || 0) + eqDrop(c.tiers.isa, a.tierIsa || 0))
+  const driftCostOf = actions.map((a, ai) => (driftW > 0 && c.tiers
+    ? driftW * lambda * (eqDrop(c.tiers.pen, a.tierPen || 0) + eqDrop(c.tiers.isa, a.tierIsa || 0) + (c.tiers.gia ? eqDrop(c.tiers.gia, c.acts[ai].tierGia) : 0))
     : 0));
 
   // one set of tables per world; at K = 1 these are the arrays the single-world solve always had
@@ -671,7 +672,7 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, solverVersion: SOLVER_VERSION };
   if (PROF) {
     PROF.total = now() - profT0;
     // two clock calls per timed region, and the outer pair too
@@ -686,7 +687,7 @@ export function solve(E, M, plan, opts = {}) {
   }
   const r = {
     m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
-    quadWeights: QW,
+    quadWeights: QW, quadNodes: QZ,
     tieMargin: opts.tieMargin || 0,
     /* the end-of-plan rule the backward pass applies at t = T, so the final year can be scored exactly (see scoreMoves) */
     terminal: { floor, deathTax, resilK, shortfall, beqOf },
@@ -709,7 +710,7 @@ export function solve(E, M, plan, opts = {}) {
   r.worlds = K === 1 ? [r] : cs.map((cc, k) => (k === centre ? r : {
     m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
     surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
-    nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW,
+    nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW, quadNodes: QZ,
     tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
     terminal: { floor, deathTax, resilK, shortfall, beqOf }, finalExact: !!opts.finalExact, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
     /*
@@ -749,6 +750,7 @@ export function chooseAction(r, s, t, held = null) {
    */
   if (t >= T && !r.finalExact && !r.mix) return r.pol[T][nearestIndex(r.g, s)];
   if (t >= T && !r.finalExact) return r.mix.tables[Math.floor(r.mix.tables.length / 2)].pol[T][nearestIndex(r.g, s)];
+  if (r.c.tiers.gia) r.giaHold = -1;
   const eps = r.eps;
   const n = actions.length;
   const SC = r._sc || (r._sc = new Float64Array(n));
@@ -811,9 +813,31 @@ export function chooseAction(r, s, t, held = null) {
       if (SC[ai] < bestScore - tie) continue;
       if (TX[ai] < pickTx - 1e-9 || (Math.abs(TX[ai] - pickTx) <= 1e-9 && BQ[ai] > pickB)) { pick = ai; pickTx = TX[ai]; pickB = BQ[ai]; }
     }
-    return pick;
+    return r.c.tiers.gia ? giaHoldCheck(r, s, t, held, pick) : pick;
   }
-  return best;
+  return r.c.tiers.gia ? giaHoldCheck(r, s, t, held, best) : best;
+}
+
+/*
+ * KEEP THE TAXABLE ACCOUNT WHERE IT IS? (M15, `giaTiers`.) The GIA takes the joint step, so without this every
+ * pension move would force a GIA sale and its capital gains tax. The chosen move is scored once more with the GIA
+ * at the tier it holds, paying no GIA charge; unless switching beats that by the switch margin, the GIA stays and
+ * `r.giaHold` names its tier (-1: take the move's). One move, five nodes: a few evaluations a decision. The single
+ * table only; a mixture or an extrapolated score takes the move's own tier.
+ */
+function giaHoldCheck(r, s, t, held, ai) {
+  const c = r.c;
+  if (!held || r.mix || r.rich) return ai;
+  const hg = held.gia || 0;
+  if (c.acts[ai].tierGia === hg) return ai;
+  const act = c.actWithGia(ai, hg);
+  const nr = r.quadNodes.map(z => realAt(c, z, new Float64Array(4), act, t));
+  const SC = r._sc, TX = r._tx, BQ = r._bq;
+  const was = SC[ai], wasTx = TX[ai], wasB = BQ[ai];
+  scoreMoves(r, s, t, SC, TX, BQ, held, { ai, act, nr });
+  if (SC[ai] >= was - (r.switchMargin || 0) - r.eps) r.giaHold = hg;
+  SC[ai] = was; TX[ai] = wasTx; BQ[ai] = wasB;
+  return ai;
 }
 
 /* Every move's score from one solve's tables at the true position `s` in year `t`, with the year's tax and the expected bequest. */
@@ -823,24 +847,26 @@ export function chooseAction(r, s, t, held = null) {
  * the action set - is the score single-peaked in spending level? are most actions dominated? -
  * unanswerable from outside. Pure function, no state touched.
  */
-export function scoreMoves(r, s, t, SC, TX, BQ, held = null) {
+export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null) {
   const { g, c, actions, lsurv, lresil, beq, short, nodeRealOfAt, wB, wR, levelOf } = r;
   const nodeRealOf = nodeRealOfAt[t];
   const post = r._post || (r._post = new Float64Array(Math.max(7, s.length)));
   const grown = r._grown || (r._grown = new Float64Array(Math.max(7, s.length)));
   const rd = r._rd || (r._rd = new Float64Array(4));
   const spendYear = c.yr.spend[t] > 0;
-  for (let ai = 0; ai < actions.length; ai++) {
+  // `variant` (M15): score one move only, run at the rates of `variant.act` (the taxable account held where it is)
+  const a0 = variant ? variant.ai : 0, a1 = variant ? variant.ai + 1 : actions.length;
+  for (let ai = a0; ai < a1; ai++) {
     post.set(s);
     const unmet = F.flow(c, t, ai, post);
     TX[ai] = c.last.taxPaid + c.last.cgtPaid;
     if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; continue; }
     // a move that changes tier pays the round trip on the slice traded before the year's growth
-    if (held) F.chargeSwitch(c, post, held, c.acts[ai]);
+    if (held) F.chargeSwitch(c, post, held, variant ? variant.act : c.acts[ai], t);
     const cst = spendYear ? r.costOf(levelOf[ai]) : 0;
     const rz = r.raiseSurvival && cst < 0 ? cst : 0;   // M17: a raise's credit, weighted below by the survival it leads to
     let sv = 0, bq = 0, rs = 0, h = (rz ? 0 : cst) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
-    const nr = nodeRealOf[ai];
+    const nr = variant ? variant.nr : nodeRealOf[ai];
     const QW = r.quadWeights || WEIGHTS;
     if (t >= r.m.ctx.totalYears) {
       // the final year, exactly as the backward pass scores it at t = T: grown, then judged by the end-of-plan rule
@@ -906,7 +932,9 @@ export function runPolicy(r, zs, opts = {}) {
   // belowSum/aboveSum carry the level in the years it was under or over target, so the report can say how
   // DEEP a trim was and how big a raise, not only how often each happened
   let lifetimeTax = 0, spendYears = 0, atTarget = 0, aboveTarget = 0, belowSum = 0, aboveSum = 0, minLevel = 1, shortfall = 0, changes = 0, lastLevel = null, levelSum = 0, tierPenYears = 0, tierIsaYears = 0, tierChanges = 0, lastTier = null, switchPaid = 0;
-  const held = st0 ? { pen: st0.held.pen, isa: st0.held.isa } : { pen: 0, isa: 0 };   // the tiers held: the plan's until a move changes them
+  const held = st0 ? { pen: st0.held.pen, isa: st0.held.isa, gia: st0.held.gia || 0 } : { pen: 0, isa: 0, gia: 0 };   // the tiers held: the plan's until a move changes them
+  const giaOn = !!c.tiers.gia;
+  let giaYears = 0, giaChanges = 0;
   /* RUN RECORDS (research/solver/record.mjs): a per-year trace when a caller asks for one. Off, it costs a null check. */
   const tr = opts.trace || null;
   const traceYear = (t, lv, spendYear, taxYear) => {
@@ -916,10 +944,13 @@ export function runPolicy(r, zs, opts = {}) {
   };
   for (let t = st0 ? st0.t : 0; t <= T; t++) {
     const ai = st0 && t === st0.t ? st0.firstAi : (opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t, held));
+    // M15: the move as run, with the taxable account kept at its tier when the decision said so
+    const act = giaOn && r.giaHold >= 0 && !(st0 && t === st0.t) && !opts.stored ? c.actWithGia(ai, r.giaHold) : c.acts[ai];
     if (opts.visit) opts.visit(t, s, held, ai);
     const unmet = F.flow(c, t, ai, s);
     lifetimeTax += c.last.taxPaid + c.last.cgtPaid;
-    { const a = c.acts[ai]; switchPaid += F.chargeSwitch(c, s, held, a); held.pen = a.tierPen; held.isa = a.tierIsa; if (a.tierPen > 0) tierPenYears++; if (a.tierIsa > 0) tierIsaYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
+    if (giaOn) { if (act.tierGia !== held.gia) giaChanges++; if (act.tierGia > 0) giaYears++; }
+    { const a = act; switchPaid += F.chargeSwitch(c, s, held, a, t); held.pen = a.tierPen; held.isa = a.tierIsa; held.gia = a.tierGia; if (a.tierPen > 0) tierPenYears++; if (a.tierIsa > 0) tierIsaYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
     if (c.yr.spend[t] > 0) {
       spendYears++; const lv = c.last.level; levelSum += lv;
       if (lv >= 1 - 1e-9) atTarget++; else belowSum += lv;
@@ -930,12 +961,12 @@ export function runPolicy(r, zs, opts = {}) {
       if (lastLevel !== null && Math.abs(lv - lastLevel) > 1e-6) changes++;
       lastLevel = lv;
     }
-    if (unmet > 1 || c.last.preNmpaInsolvent) { if (tr) tr.failYear[tr.row] = t; return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges, switchPaid }; }
-    F.grow(c, t, s, realAt(c, zs[t], real, c.acts[ai], t, zPath));
+    if (unmet > 1 || c.last.preNmpaInsolvent) { if (tr) tr.failYear[tr.row] = t; return { survived: false, failYear: m.ctx.baseYear + t, failAge: m.ctx.ageSelf0 + t, preAccess: !!c.last.preNmpaInsolvent, terminalNet: 0, terminal: 0, lifetimeTax, action: actions[ai], spendYears, atTarget, aboveTarget, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false, tierPenYears, tierIsaYears, tierChanges, switchPaid, ...(giaOn ? { giaYears, giaChanges } : {}) }; }
+    F.grow(c, t, s, realAt(c, zs[t], real, act, t, zPath));
     if (tr) traceYear(t, c.last.level, c.yr.spend[t] > 0, c.last.taxPaid + c.last.cgtPaid);
   }
   const total = s[0] + s[1] + s[2];
-  const spendStats = { spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid };
+  const spendStats = { spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel, shortfall, changes, levelSum, fullyFunded: atTarget === spendYears, tierPenYears, tierIsaYears, tierChanges, switchPaid, ...(giaOn ? { giaYears, giaChanges } : {}) };
   if (m.ctx.solvencyFloor > 0 && total < m.ctx.solvencyFloor) return { survived: false, failYear: m.ctx.baseYear + T, failAge: m.ctx.ageSelf0 + T, preAccess: false, terminalNet: 0, terminal: 0, lifetimeTax, ...spendStats, fullyFunded: false };
   return { survived: true, failYear: null, failAge: null, preAccess: false, terminalNet: Math.max(0, total - s[0] * m.ctx.pensionDeathTaxRate), terminal: total, lifetimeTax, ...spendStats };
 }

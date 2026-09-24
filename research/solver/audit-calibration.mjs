@@ -50,7 +50,7 @@ function forecast(s, t, ai, held) {
   post.set(s);
   const unmet = F.flow(r.c, t, ai, post);
   if (unmet > 1 || r.c.last.preNmpaInsolvent) return { sv: 0, score: -Infinity };
-  F.chargeSwitch(r.c, post, held, r.c.acts[ai]);
+  F.chargeSwitch(r.c, post, held, r.c.acts[ai], t);
   const nr = r.nodeRealOfAt[t][ai], QW = r.quadWeights || WEIGHTS;
   let sv = 0, bq = 0, h = (r.c.yr.spend[t] > 0 ? r.costOf(r.levelOf[ai]) : 0) + (r.driftCostOf ? r.driftCostOf[ai] : 0);
   for (let zi = 0; zi < QW.length; zi++) {

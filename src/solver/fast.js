@@ -86,8 +86,13 @@ export function tiersFor(m, below = 2) {
   const profiles = (m.plan && m.plan.riskProfiles) || m.E.DEFAULT_RISK_PROFILES;
   const o = m.ctx.owners[0];
   const out = {};
-  for (const cat of ['pen', 'isa']) {
-    const a = m.acc[o.ids[cat]];
+  /*
+   * THE TAXABLE ACCOUNT'S TIERS (`giaTiers`, PLAN.md finding M15) - research only. The GIA gets the same list as the
+   * other two, and the move's GIA tier follows the joint step (see compile), so the menu and the tables are
+   * unchanged in size. Off, there is no `gia` list and nothing below reads one.
+   */
+  for (const cat of m.giaTiers ? ['pen', 'isa', 'gia'] : ['pen', 'isa']) {
+    const a = m.acc[o.ids[cat === 'gia' ? 'other' : cat]];
     if (!a) { out[cat] = [{ name: null, real: 0, vol: 0, sigmaParam: 0, volEff: 0 }]; continue; }
     const k0 = TIER_ORDER.indexOf(a.risk);
     const list = [{ name: a.risk, real: a.real, vol: a.vol, sigmaParam: a.sigmaParam, equity: a.equityWeight }];
@@ -134,11 +139,33 @@ export function tiersFor(m, below = 2) {
 export const SWITCH_COST = 0.0025;
 
 /* Charge a state for moving from the tiers held to the move's tiers; returns the pounds charged. */
-export function chargeSwitch(c, s, held, act) {
+export function chargeSwitch(c, s, held, act, t) {
   if (!(c.switchCost > 0) || !held) return 0;
   let paid = 0;
   if (act.tierPen !== held.pen) { const d = Math.abs(c.tiers.pen[act.tierPen].equity - c.tiers.pen[held.pen].equity); const x = s[0] * c.switchCost * d; s[0] -= x; paid += x; }
   if (act.tierIsa !== held.isa) { const d = Math.abs(c.tiers.isa[act.tierIsa].equity - c.tiers.isa[held.isa].equity); const x = s[1] * c.switchCost * d; s[1] -= x; paid += x; }
+  /*
+   * THE TAXABLE ACCOUNT (M15). Its slice is sold and rebought like the others, and the sale realises that slice's
+   * share of the unrealised gain: taxed at decision time with what is left of the year's exemption and basic band
+   * after the year's own disposals (the flow leaves both in `c.last`), paid from the account. The rebought slice
+   * starts with no gain, so the gain fraction falls by the share sold. Needs the year, for where cash ends.
+   */
+  if (c.tiers.gia && t !== undefined && (act.tierGia || 0) !== (held.gia || 0)) {
+    const list = c.tiers.gia, d = Math.abs(list[act.tierGia || 0].equity - list[held.gia || 0].equity);
+    const gia = s[2] - Math.min(s[2], c.yr.buffer[t]);   // the sweep has just left cash at the year's buffer
+    if (gia > 0 && d > 0) {
+      const slice = gia * d;
+      let x = slice * c.switchCost;
+      if (c.P.cgtEnabled) {
+        const gain = Math.max(0, slice * s[3] - (c.last.cgtExemptLeft || 0));
+        const atBasic = Math.min(gain, c.last.cgtBasicLeft || 0);
+        x += atBasic * c.P.cgtBasicRate + (gain - atBasic) * c.P.cgtHigherRate;
+      }
+      x = Math.min(x, gia);
+      s[2] -= x; paid += x;
+      s[3] *= 1 - d;
+    }
+  }
   return paid;
 }
 
@@ -224,16 +251,32 @@ export function compile(m, actions) {
   const shifted = (real, sig) => (shiftMode ? Math.exp(Math.log(1 + real) + sig * shiftZ) - 1 : real);
   const planVolEffAt = foldAt(i => planVol[i], i => planSig[i]);
   const foldByCombo = {};
-  const acts = actions.map(a => {
-    // the tier held this year in the pension and the ISA (phase 6): 0 is the plan's, 1 and 2 are below it
-    const tp = Math.min(a.tierPen || 0, tiers.pen.length - 1), ti = Math.min(a.tierIsa || 0, tiers.isa.length - 1);
+  // the rates a year runs at with the pension, ISA and taxable account at tiers tp, ti and tg
+  const ratesFor = (tp, ti, tg) => {
     const real = Float64Array.from(planReal.map((r, i) => shifted(r, planSig[i]))), volEff = Float64Array.from(planVolEff);
     const sigma = Float64Array.from(planSig);
     if (tp > 0) { real[0] = shifted(tiers.pen[tp].real, tiers.pen[tp].sigmaParam); volEff[0] = tiers.pen[tp].volEff; sigma[0] = tiers.pen[tp].sigmaParam; }
     if (ti > 0) { real[1] = shifted(tiers.isa[ti].real, tiers.isa[ti].sigmaParam); volEff[1] = tiers.isa[ti].volEff; sigma[1] = tiers.isa[ti].sigmaParam; }
-    const key = `${tp}/${ti}`;
-    if (!foldByCombo[key]) foldByCombo[key] = (tp === 0 && ti === 0) ? planVolEffAt : foldAt(i => (i === 0 ? tiers.pen[tp].vol : i === 1 ? tiers.isa[ti].vol : planVol[i]), i => (i === 0 ? tiers.pen[tp].sigmaParam : i === 1 ? tiers.isa[ti].sigmaParam : planSig[i]));
-    const volEffAt = foldByCombo[key];
+    if (tg > 0) { real[2] = shifted(tiers.gia[tg].real, tiers.gia[tg].sigmaParam); volEff[2] = tiers.gia[tg].volEff; sigma[2] = tiers.gia[tg].sigmaParam; }
+    const key = tg > 0 ? `${tp}/${ti}/${tg}` : `${tp}/${ti}`;
+    if (!foldByCombo[key]) foldByCombo[key] = (tp === 0 && ti === 0 && tg === 0) ? planVolEffAt : foldAt(i => (i === 0 ? tiers.pen[tp].vol : i === 1 ? tiers.isa[ti].vol : i === 2 && tg > 0 ? tiers.gia[tg].vol : planVol[i]), i => (i === 0 ? tiers.pen[tp].sigmaParam : i === 1 ? tiers.isa[ti].sigmaParam : i === 2 && tg > 0 ? tiers.gia[tg].sigmaParam : planSig[i]));
+    return { real, volEff, sigma, volEffAt: foldByCombo[key] };
+  };
+  /*
+   * The taxable account's tier for a move (M15): it takes the joint step, the larger of the other two (they are equal
+   * on the joint menu; one is 0 when a wrapper is missing). Indices mean the same on every list - 0 the plan's, 1 and
+   * 2 below, then above - so a step the GIA's list lacks holds the lowest one it has below, or the plan's for above.
+   */
+  const giaTierOf = (tp, ti) => {
+    if (!tiers.gia) return 0;
+    const k = Math.max(tp, ti), n = tiers.gia.length;
+    return k < n ? k : (k <= 2 ? n - 1 : 0);
+  };
+  const acts = actions.map(a => {
+    // the tier held this year in the pension and the ISA (phase 6): 0 is the plan's, 1 and 2 are below it
+    const tp = Math.min(a.tierPen || 0, tiers.pen.length - 1), ti = Math.min(a.tierIsa || 0, tiers.isa.length - 1);
+    const tg = giaTierOf(tp, ti);
+    const { real, volEff, sigma, volEffAt } = ratesFor(tp, ti, tg);
     return {
       steps: Int8Array.from(a.steps.map(s => STEP[s])),
       costSteps: Int8Array.from((a.costSteps || a.steps).map(s => STEP[s])),
@@ -241,13 +284,20 @@ export function compile(m, actions) {
       lump: a.lump ? 1 : 0, sweep: a.sweepCash === false ? 0 : 1,
       // flexible spending (Part D): the year's spend as a fraction of the plan's target, 1 for the plan as written
       level: a.spendLevel !== undefined ? a.spendLevel : 1,
-      tierPen: tp, tierIsa: ti, real, volEff, volEffAt,
+      tierPen: tp, tierIsa: ti, tierGia: tg, real, volEff, volEffAt,
       // the per-path shift a forward run applies in shift mode (zeros in fold mode, where it is already folded)
       sigma: shiftMode ? sigma : new Float64Array(4)
     };
   });
+  /* A move with the taxable account held at tier tg instead of the step's (M15: the decision's "keep it where it is"). */
+  const variants = new Map();
+  const actWithGia = (ai, tg) => {
+    const key = ai * 8 + tg;
+    if (!variants.has(key)) { const a = acts[ai], rt = ratesFor(a.tierPen, a.tierIsa, tg); variants.set(key, { ...a, tierGia: tg, real: rt.real, volEff: rt.volEff, volEffAt: rt.volEffAt, sigma: shiftMode ? rt.sigma : new Float64Array(4) }); }
+    return variants.get(key);
+  };
   return {
-    E, m, ctx, P, o, T, yr, tb, acts, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
+    E, m, ctx, P, o, T, yr, tb, acts, actWithGia, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
     // the guardrails, applied only on a forward run whose state vector carries their memory (slots 7 to 10)
     guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, inflation: ctx.inflation, solvencyFloor: ctx.solvencyFloor || 0,
     real: Float64Array.from(planReal.map((r, i) => shifted(r, planSig[i]))), shiftMode, shiftZ, sigma: shiftMode ? Float64Array.from(planSig) : new Float64Array(4),
@@ -514,6 +564,10 @@ export function flow(c, t, ai, s) {
   // the year's spend as a fraction of the plan's target, whoever set it: the move's level, or the rails' multiplier
   const level = yr.spend[t] > 0 ? target / yr.spend[t] : 1;
   c.last = { taxPaid, cgtPaid, drawdown, harvested, unmet, preNmpaInsolvent, cash, gia, netDemand, target, level };
+  if (c.tiers.gia && cgtOn) {
+    c.last.cgtExemptLeft = Math.max(0, yr.cgtExempt[t] - realised);
+    c.last.cgtBasicLeft = Math.max(0, P.cgtBandWidth - Math.max(0, taxable - P.paAt(taxable)) - Math.max(0, realised - yr.cgtExempt[t]));
+  }
   return unmet;
 }
 

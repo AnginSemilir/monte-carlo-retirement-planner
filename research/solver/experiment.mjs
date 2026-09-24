@@ -118,7 +118,7 @@ function runFixedPath(c, ai, zs, world = worldOf(), tr = null) {
       lastLevel = lv;
     }
     if (unmet > 1 || c.last.preNmpaInsolvent) { if (tr) markFail(tr, t); return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false }; }
-    world(c, zs[t], real, c.acts[ai], t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
+    world(c, zs[t], real, act, t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
     F.grow(c, t, s, real);
     if (tr) mark(tr, t, c.yr.spend[t] > 0, c.last.level, s, c.last.taxPaid + c.last.cgtPaid, 0);
   }
@@ -149,7 +149,7 @@ function statsFlex(rs) {
     // total spending delivered over retirement as a fraction of the target years: the guardrails' raises count here
     meanLevelMedian: q(rs.map(r => r.levelSum / Math.max(1, r.spendYears)), 0.5), meanLevelP10: q(rs.map(r => r.levelSum / Math.max(1, r.spendYears)), 0.1),
     // phase 6: years a wrapper sat below its plan tier, and how often the tiers changed
-    tierPenYearsMean: mean(rs.map(r => r.tierPenYears || 0)), tierIsaYearsMean: mean(rs.map(r => r.tierIsaYears || 0)), tierChangesMean: mean(rs.map(r => r.tierChanges || 0))
+    tierPenYearsMean: mean(rs.map(r => r.tierPenYears || 0)), tierIsaYearsMean: mean(rs.map(r => r.tierIsaYears || 0)), tierChangesMean: mean(rs.map(r => r.tierChanges || 0)), ...(rs.some(r => r.giaYears !== undefined) ? { giaYearsMean: mean(rs.map(r => r.giaYears || 0)), giaChangesMean: mean(rs.map(r => r.giaChanges || 0)) } : {})
   };
 }
 
@@ -159,14 +159,15 @@ function runSolvedPath(r, zs, world = worldOf()) {
   const s = vecOf(m, M.initialState(m));
   const real = new Float64Array(4);
   let tax = 0, tierYears = 0, tierChanges = 0, switchPaid = 0, lastTier = null;
-  const held = { pen: 0, isa: 0 };
+  const held = { pen: 0, isa: 0, gia: 0 };
   for (let t = 0; t <= m.ctx.totalYears; t++) {
     const ai = chooseAction(r, s, t, held);
+    const act = c.tiers.gia && r.giaHold >= 0 ? c.actWithGia(ai, r.giaHold) : c.acts[ai];   // M15
     const unmet = F.flow(c, t, ai, s);
     tax += c.last.taxPaid + c.last.cgtPaid;
-    { const a = c.acts[ai]; switchPaid += F.chargeSwitch(c, s, held, a); held.pen = a.tierPen; held.isa = a.tierIsa; if (a.tierPen > 0 || a.tierIsa > 0) tierYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
+    { const a = act; switchPaid += F.chargeSwitch(c, s, held, a, t); held.pen = a.tierPen; held.isa = a.tierIsa; held.gia = a.tierGia; if (a.tierPen > 0 || a.tierIsa > 0) tierYears++; const k = a.tierPen * 4 + a.tierIsa; if (lastTier !== null && k !== lastTier) tierChanges++; lastTier = k; }
     if (unmet > 1 || c.last.preNmpaInsolvent) return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, tierYears, tierChanges, switchPaid };
-    world(c, zs[t], real, c.acts[ai], t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
+    world(c, zs[t], real, act, t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
     F.grow(c, t, s, real);
   }
   const total = s[0] + s[1] + s[2];
@@ -365,6 +366,9 @@ if (mode === 'flex') {
   // PLANTIER (M14, research only): hold the pension and the ISA at this tier in the plan, so the library - where every
   // household holds its pension at the top tier - can test a user who chose less risk
   if (process.env.PLANTIER) raw.accounts = raw.accounts.map(a => (/^Pensions|^S&S ISA/.test(a.category) ? { ...a, risk: process.env.PLANTIER } : a));
+  // GIAGAIN (M15, research only): the taxable account opens with this fraction of its balance as unrealised gain -
+  // every library GIA opens with none, which makes a tier switch there free of tax
+  if (process.env.GIAGAIN) raw.accounts = raw.accounts.map(a => (/^Other Investments/.test(a.category) && E.num(a.balance, 0) > 0 ? { ...a, unrealisedGain: Math.round(Number(process.env.GIAGAIN) * E.num(a.balance, 0)) } : a));
   const target = E.num(raw.spending.targetSpend, 0);
   const floorSpend = Math.round(target * FLOOR);
   // MINPOTYEARS: the minimum end-of-life pot, in years of target spending, set on EVERY arm's plan so the
@@ -429,13 +433,13 @@ if (mode === 'flex') {
   const MARGIN = process.env.MARGIN ? Number(process.env.MARGIN) : 0;
   const RAISE = process.env.RAISE ? Number(process.env.RAISE) : 0;   // 2d.4: the credit weight for spending above the target
   const TIERS = process.env.TIERS === '1' ? true : (process.env.TIERS || undefined);
-  const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: Number(process.env.SEARCH || 5400), verifyPaths: process.env.VERIFY ? Number(process.env.VERIFY) : undefined, seed: seedSearch, confidence: CONF, bisectSteps: process.env.BISECT ? Number(process.env.BISECT) : 5, spendLevels: LEVELS, shortfallExponent: EXP, margin: MARGIN, raiseWeight: RAISE, tiers: TIERS, driftWeight: process.env.DRIFT ? Number(process.env.DRIFT) : undefined, bequestShape: process.env.BEQSHAPE || undefined, lambdaFixed: process.env.LAMBDA ? Number(process.env.LAMBDA) : undefined, gainBuckets: process.env.GAINB ? process.env.GAINB.split(',').map(Number) : undefined, gainInterp: process.env.GAININT === '1' || undefined, pclsStrict: process.env.PCLSSTRICT === '1' || undefined, bequestWeight: process.env.WB !== undefined ? Number(process.env.WB) : undefined, resilienceWeight: process.env.WR !== undefined ? Number(process.env.WR) : undefined, mix: MIX || undefined, levelSearch: process.env.TERNARY === '1' ? 'ternary' : undefined, shareDead: process.env.SHAREDEAD || undefined, quadNodes: process.env.QUAD ? Number(process.env.QUAD) : undefined, raiseCap: process.env.RAISECAP !== undefined ? Number(process.env.RAISECAP) : undefined, blockTrim: process.env.BLOCKTRIM === '1' || undefined, raiseSurvival: process.env.RAISESURV === '1' || undefined, tiersAbove: process.env.TIERSABOVE ? Number(process.env.TIERSABOVE) : undefined, failureShortfall: process.env.FAILSHORT === 'zero' ? 'zero' : (process.env.FAILSHORT === '1' || undefined), estateScale: process.env.ESTATESCALE !== undefined ? Number(process.env.ESTATESCALE) : undefined, finalExact: process.env.FINALEXACT === '1' || undefined });
+  const r = solveFlex(E, M, plans.solver, { points: POINTS, lump: mS.ctx.fullLumpSum, searchPaths: Number(process.env.SEARCH || 5400), verifyPaths: process.env.VERIFY ? Number(process.env.VERIFY) : undefined, seed: seedSearch, confidence: CONF, bisectSteps: process.env.BISECT ? Number(process.env.BISECT) : 5, spendLevels: LEVELS, shortfallExponent: EXP, margin: MARGIN, raiseWeight: RAISE, tiers: TIERS, driftWeight: process.env.DRIFT ? Number(process.env.DRIFT) : undefined, bequestShape: process.env.BEQSHAPE || undefined, lambdaFixed: process.env.LAMBDA ? Number(process.env.LAMBDA) : undefined, gainBuckets: process.env.GAINB ? process.env.GAINB.split(',').map(Number) : undefined, gainInterp: process.env.GAININT === '1' || undefined, pclsStrict: process.env.PCLSSTRICT === '1' || undefined, bequestWeight: process.env.WB !== undefined ? Number(process.env.WB) : undefined, resilienceWeight: process.env.WR !== undefined ? Number(process.env.WR) : undefined, mix: MIX || undefined, levelSearch: process.env.TERNARY === '1' ? 'ternary' : undefined, shareDead: process.env.SHAREDEAD || undefined, quadNodes: process.env.QUAD ? Number(process.env.QUAD) : undefined, raiseCap: process.env.RAISECAP !== undefined ? Number(process.env.RAISECAP) : undefined, blockTrim: process.env.BLOCKTRIM === '1' || undefined, raiseSurvival: process.env.RAISESURV === '1' || undefined, tiersAbove: process.env.TIERSABOVE ? Number(process.env.TIERSABOVE) : undefined, giaTiers: process.env.GIATIERS === '1' || undefined, failureShortfall: process.env.FAILSHORT === 'zero' ? 'zero' : (process.env.FAILSHORT === '1' || undefined), estateScale: process.env.ESTATESCALE !== undefined ? Number(process.env.ESTATESCALE) : undefined, finalExact: process.env.FINALEXACT === '1' || undefined });
   const trS = RECORD ? makeTrace(held.length, mS.ctx.totalYears + 1) : null;
   const solvedRs = held.map((zs, i) => { if (trS) trS.row = i; return runPolicy(r, zs, trS ? { trace: trS } : {}); });
   arms.solver = { stats: { ...statsFlex(solvedRs), landed: r.meta.landed, lambda: r.lambda, solves: r.meta.solves, levels: r.meta.spendLevels, verifiedFloorRate: 100 * r.floorRate, searchFloorRate: 100 * (r.searchFloorRate ?? r.floorRate), searchPaths: r.meta.searchPaths, verifyPaths: r.meta.verifyPaths, verifySteps: r.meta.verifySteps, solverVersion: r.meta.solverVersion, driftWeight: r.meta.driftWeight }, rs: solvedRs };
   const out = {
     tag, id: sc.id, name: sc.name, years: years + 1, points: POINTS, coords: r.meta.points, held: HELD, seedSearch, seedHeld, floor: FLOOR, confidence: CONF, target, floorSpend, ms: Date.now() - t0,
-    knobs: { levels: LEVELS || null, exponent: EXP === undefined ? 2 : EXP, margin: MARGIN, raise: RAISE, drift: r.meta.driftWeight || 0, bequestShape: r.meta.bequestShape, bequestCap: r.meta.bequestCap, gainBuckets: process.env.GAINB || null, gainInterp: process.env.GAININT === '1', pclsStrict: process.env.PCLSSTRICT === '1', bequestWeight: r.meta.bequestWeight, resilienceWeight: r.meta.wR, tiers: r.meta.tiers || null, mixture: r.meta.mixture || 0, levelSearch: process.env.TERNARY === '1' ? 'ternary' : 'exhaustive', shareDead: process.env.SHAREDEAD || null, quadNodes: process.env.QUAD ? Number(process.env.QUAD) : 5, solveMs: r.meta.ms, raiseCap: process.env.RAISECAP ?? null, blockTrim: process.env.BLOCKTRIM === '1', raiseSurvival: process.env.RAISESURV === '1', failureShortfall: process.env.FAILSHORT || false, estateScale: process.env.ESTATESCALE ?? null, minPotYears: process.env.MINPOTYEARS ?? null, finalExact: process.env.FINALEXACT === '1' },
+    knobs: { levels: LEVELS || null, exponent: EXP === undefined ? 2 : EXP, margin: MARGIN, raise: RAISE, drift: r.meta.driftWeight || 0, bequestShape: r.meta.bequestShape, bequestCap: r.meta.bequestCap, gainBuckets: process.env.GAINB || null, gainInterp: process.env.GAININT === '1', pclsStrict: process.env.PCLSSTRICT === '1', bequestWeight: r.meta.bequestWeight, resilienceWeight: r.meta.wR, tiers: r.meta.tiers || null, mixture: r.meta.mixture || 0, levelSearch: process.env.TERNARY === '1' ? 'ternary' : 'exhaustive', shareDead: process.env.SHAREDEAD || null, quadNodes: process.env.QUAD ? Number(process.env.QUAD) : 5, solveMs: r.meta.ms, raiseCap: process.env.RAISECAP ?? null, blockTrim: process.env.BLOCKTRIM === '1', raiseSurvival: process.env.RAISESURV === '1', failureShortfall: process.env.FAILSHORT || false, estateScale: process.env.ESTATESCALE ?? null, minPotYears: process.env.MINPOTYEARS ?? null, finalExact: process.env.FINALEXACT === '1', giaTiers: process.env.GIATIERS === '1', giaGain: process.env.GIAGAIN ?? null, planTier: process.env.PLANTIER ?? null },
     solver: arms.solver.stats, solverOnly: SOLVER_ONLY || undefined,
     ...(SOLVER_ONLY ? {} : {
       gk: arms.gk.stats, gkFloor: arms.gkFloor.stats, fixed: arms.fixed.stats,

@@ -28,24 +28,30 @@ ok(!bad({ CONF: 'gkFloor' }) && !bad({ CONF: '+5' }) && !bad({ CONF: '0.9' }), '
 ok(!bad({}), 'no settings at all is fine (the defaults)');
 ok(!bad({ PLANTIER: 'Medium Risk', FAILSHORT: '1', BEQSHAPE: 'logfloor', RESIL: 'indicator', SHAREDEAD: 'none', TIERS: 'joint', RAISESURV: '1', MIX: '3', LEVELS: '1.2,1.1,1,0.95,0.9,0.8' }), 'valid values of each kind pass');
 
-// every literal value the batch scripts and the smoke run pass to experiment.mjs is accepted
+// every literal value the batch scripts and the smoke run pass to experiment.mjs is accepted. A batch sets its values on
+// the line before the one that runs experiment.mjs (inside an sh -c body), so a file that runs experiment.mjs is read
+// whole, less the lines that run another script (ONLY=v3 is an audit's band); the twelfth review found the first
+// version of this scan read no batch at all
 const KNOWN = new Set([...Object.keys(WORDS), ...FLAGS, ...NUMBERS, ...LISTS, ...Object.keys(SPECIAL)]);
-const seen = [];
+const seen = { batch: 0, smoke: 0 };
 for (const f of readdirSync(S).filter(x => /^batch-.+\.sh$/.test(x) || x === 'smoke.sh')) {
-  // only the lines that run experiment.mjs: other scripts read their own settings (ONLY=v3 is an audit's band)
-  const lines = readFileSync(join(S, f), 'utf8').split('\n').filter(l => /experiment\.mjs/.test(l)).join('\n');
+  const text = readFileSync(join(S, f), 'utf8');
+  if (!/experiment\.mjs/.test(text)) continue;
+  const lines = text.split('\n').filter(l => !/node\s+\S*\/(?!experiment\.mjs)[\w.-]+\.mjs/.test(l)).join('\n');
   // a whole assignment in quotes ("PLANTIER=Medium Risk") first, then the bare ones
-  const quoted = [...lines.matchAll(/["']([A-Z][A-Z0-9_]*)=([^"'$]*)["']/g)].map(m => [m[1], m[2]]);
+  // (one quoted string can hold several: "BLOCKTRIM=1 RAISECAP=1" is split before each NAME=)
+  const quoted = [...lines.matchAll(/["']([A-Z][A-Z0-9_]*=[^"'$]*)["']/g)].flatMap(m => m[1].split(/\s+(?=[A-Z][A-Z0-9_]*=)/)).map(x => { const k = x.slice(0, x.indexOf('=')), v = x.slice(x.indexOf('=') + 1); return [k, k === 'PLANTIER' ? v.trim() : v.split(/\s+/)[0]]; });   // only a tier name has spaces
   const rest = lines.replace(/["']([A-Z][A-Z0-9_]*)=([^"'$]*)["']/g, ' ');
   const bare = [...rest.matchAll(/(?:^|[\s"'(,])([A-Z][A-Z0-9_]*)=("[^"$]*"|'[^'$]*'|[^\s"'$,;)]+)/g)].map(m => [m[1], m[2]]);
-  for (const m of [...quoted.map(q => [null, ...q]), ...bare.map(b => [null, ...b])]) {
-    if (!KNOWN.has(m[1])) continue;
-    const v = m[2].replace(/^["']|["']$/g, '');
+  for (const [k, raw] of [...quoted, ...bare]) {
+    if (!KNOWN.has(k)) continue;
+    const v = raw.replace(/^["']|["']$/g, '');
     if (/[{}]/.test(v)) continue;   // an xargs or loop placeholder, filled at run time
-    seen.push(`${f}: ${m[1]}=${v}`);
-    const errs = checkSettings({ [m[1]]: v });
-    ok(errs.length === 0, `${f}: ${m[1]}=${v} is accepted${errs.length ? ` (${errs[0]})` : ''}`);
+    seen[f === 'smoke.sh' ? 'smoke' : 'batch']++;
+    const errs = checkSettings({ [k]: v });
+    ok(errs.length === 0, `${f}: ${k}=${v} is accepted${errs.length ? ` (${errs[0]})` : ''}`);
   }
 }
-ok(seen.length > 20, `the scan found the scripts' settings (${seen.length} values) - a check that ran on nothing is an error`);
+ok(seen.batch > 50 && seen.smoke > 10, `the scan read the batch scripts (${seen.batch} values) and the smoke run (${seen.smoke}) - a check that ran on nothing is an error`);
+ok(bad({ SOLVER_INTERP: 'Linear' }) && bad({ SOLVER_FOLD_K: 'x' }) && bad({ STOREPOL: 'true' }), "planted: the loaded modules' settings are checked too");
 console.log(`\n${n} passed`);

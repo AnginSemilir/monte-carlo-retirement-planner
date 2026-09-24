@@ -41,13 +41,10 @@ Item 2 - no survival cost beyond two paired se, on any case
   HELD   share 0.78: -0.1 +/- 0.10 (1.0 se)
   HELD   bridge 6: -0.5 +/- 0.26 (1.9 se)
 
-Item 3 - on S126 and the library class, years below tier fall by at least half (from ~40)
+Item 3 - on S126 and the library class (S120-S130), years below tier fall by at least half (from ~40)
   HELD   S126: 40.0 -> 10.7
-  MISSED bridge 4: 42.0 -> 42.0
-  MISSED bridge 6: 44.0 -> 38.1
-  MISSED wealth x0.5: 36.8 -> 39.4
-  HELD   wealth x2: 40.0 -> 1.0
   HELD   S120: 40.0 -> 0.2
+  MISSED S122: 2.2 -> 2.5 (it did not start near 40)
   MISSED S124: 39.1 -> 39.1
   MISSED S128: 28.1 -> 29.7
   MISSED S130: 35.4 -> 36.9

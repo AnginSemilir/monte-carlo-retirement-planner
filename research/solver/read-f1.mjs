@@ -7,9 +7,11 @@
  *
  * Why this is not a fair-gate reducer: the F1 test ran before result files carried their code and prediction (24 Sep
  * 08:05 UK, before the launcher), and its output is a text log, which fair-gate.mjs cannot read. Its fairness rests on
- * construction - both arms in one process, on the same 1,000 paths, paired - and on the prediction's fair-test table,
- * written before the run; its code is established by hand (commit 6dd1181), so its result is PROVISIONAL until the
- * retro audit (8e), like every result made before the stamps.
+ * construction - both arms in one process, on the same 1,000 paths, paired. Its prediction (items 1-5 and the
+ * falsifier) was committed before the run (6dd1181, 08:05 UK), but its fair-test table was written after both runs
+ * (~09:12 UK: the rule itself came at 08:45 UK), so the before-run check was never made; its code is established by
+ * hand (6dd1181). And it ran on step 2's settings in the single-table fold, not on the step-6 defaults or in the
+ * mixture. PROVISIONAL on all three counts (the plan-auditor's twelfth review, 24 Sep 12:37 UK).
  *
  *   node research/solver/read-f1.mjs          prints the reading (kept in results-f1-verdict.txt)
  */
@@ -47,8 +49,9 @@ console.log('\nItem 1 - the class: table within +/-5 of simulation in class, wit
 for (const r of rows.filter(r => r.cls)) { const lim = EDGE.has(r.id) ? 15 : 5; verdict(Math.abs(r.on.gap) <= lim, `${r.id}: gap ${f(r.on.gap)} (limit +/-${lim})`); }
 console.log('\nItem 2 - no survival cost beyond two paired se, on any case');
 for (const r of rows.filter(r => r.d < 0)) verdict(-r.d <= 2 * r.se, `${r.id}: ${f(r.d)} +/- ${r.se.toFixed(2)} (${(-r.d / (r.se || Infinity)).toFixed(1)} se)`);
-console.log('\nItem 3 - on S126 and the library class, years below tier fall by at least half (from ~40)');
-for (const r of rows.filter(r => r.cls && r.off.tier >= 20)) verdict(r.on.tier <= r.off.tier / 2, `${r.id}: ${r.off.tier.toFixed(1)} -> ${r.on.tier.toFixed(1)}`);
+// item 3 is scored on the cases it names, S126 and the library class (not a set chosen after the results)
+console.log('\nItem 3 - on S126 and the library class (S120-S130), years below tier fall by at least half (from ~40)');
+for (const id of ['S126', 'S120', 'S122', 'S124', 'S128', 'S130']) { const r = rows.find(x => x.id === id); verdict(r.on.tier <= r.off.tier / 2, `${r.id}: ${r.off.tier.toFixed(1)} -> ${r.on.tier.toFixed(1)}${r.off.tier < 20 ? ' (it did not start near 40)' : ''}`); }
 console.log('\nItem 4 - out of class');
 const by = id => rows.find(r => r.id === id);
 verdict(by('bridge 0').on.table === by('bridge 0').off.table && by('bridge 0').on.sim === by('bridge 0').off.sim, 'bridge 0 unchanged');

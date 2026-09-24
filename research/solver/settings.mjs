@@ -4,7 +4,9 @@
  * tier to 'High Risk'), FAILSHORT=true meant the M17 floor fix off, an unknown BEQSHAPE meant 'cap', an unknown RESIL
  * meant the shortfall term, an unknown SHAREDEAD meant none, and every on/off flag read anything but '1' as off - while
  * the result file recorded the value as typed, so fair-gate (which compares recorded values) could not notice
- * (24 Sep 12:16 UK, the plan-auditor's tenth review). Now an unknown word, flag or number stops the run.
+ * (24 Sep 12:16 UK, the plan-auditor's tenth review). Now an unknown word, flag or number stops the run - including the
+ * settings the modules it loads read (grid.js SOLVER_INTERP and SOLVER_CLAMP, fast.js SOLVER_FOLD_K, record.mjs
+ * RECORD and STOREPOL; the twelfth review, 12:37 UK).
  *
  *   checkSettings(env)  -> [] when every setting present is valid, else one message per bad setting
  */
@@ -18,11 +20,13 @@ export const WORDS = {
   RESIL: ['shortfall', 'indicator'],
   TIERS: ['1', 'joint'],   // not '0': experiment.mjs passes any other string through as the tier list
   COORDS: ['total', 'pots'],
+  SOLVER_INTERP: ['linear', 'logodds'],   // read by grid.js: anything but 'linear' meant log-odds
 };
 export const FLAGS = ['RAISESURV', 'FINALEXACT', 'TERNARY', 'GIATIERS', 'BRIDGEREAD', 'BLOCKTRIM', 'PCLSSTRICT', 'GAININT',
-  'SOLVERONLY', 'ARMSONLY', 'RECORD'];
+  'SOLVERONLY', 'ARMSONLY', 'RECORD', 'STOREPOL'];
 export const NUMBERS = ['MIX', 'EXP', 'MARGIN', 'RAISE', 'WR', 'WB', 'SHARES', 'SWITCH', 'SEARCH', 'VERIFY', 'DRIFT', 'TIERSABOVE',
-  'LAMBDA', 'FLOOR', 'ONLY', 'LO', 'HI', 'QUAD', 'MINPOTYEARS', 'RAISECAP', 'GIAGAIN', 'GUARDCAP', 'ESTATESCALE', 'BISECT'];
+  'LAMBDA', 'FLOOR', 'ONLY', 'LO', 'HI', 'QUAD', 'MINPOTYEARS', 'RAISECAP', 'GIAGAIN', 'GUARDCAP', 'ESTATESCALE', 'BISECT',
+  'SOLVER_CLAMP', 'SOLVER_FOLD_K'];   // the last two read by grid.js and fast.js
 export const LISTS = ['LEVELS', 'GAINB'];   // comma-separated numbers
 // CONF: a survival level (0.9), a margin over the guardrails' own rate (+5), or 'gkFloor' (the guardrails-with-floor rate)
 export const SPECIAL = { CONF: v => v === 'gkFloor' || (/^\+/.test(v) ? Number.isFinite(Number(v.slice(1))) : Number.isFinite(Number(v))) };

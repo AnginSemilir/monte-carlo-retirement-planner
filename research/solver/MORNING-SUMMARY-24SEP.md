@@ -104,6 +104,24 @@ The survival rate the app shows comes from simulating the plan, so it is accurat
 solver's internal table is 3-5 points too hopeful in the middle of the range (published chart: "Survival
 Forecast Calibration"), so it must never be shown as a number - which is already the rule.
 
+## 4b. Phase 4's panel cannot be drawn as written (stopped, for you)
+
+Phase 4 needs 40 held-out households where the app's own best plan survives 75-95%, so the two sides can
+differ. **Only 1 of 158 candidates lands there** (`results-p4-select.txt`): the library's households are either
+safe (53 at 99-100%) or thin (70 below 75%), and every FIRE household retiring at 52 is below 50% (median 14%).
+My prediction (half to two thirds in the band) was drawn from the tuning 41, which were themselves picked for
+their survival - that was the mistake.
+
+| option | what it does | households available |
+|---|---|---|
+| widen the band to 50-98% | takes the library as it is | 44 (no FIRE) |
+| **land each household** | set each one's spending target so the app's plan survives about 85%, keeping its wealth, pots and ages | all of them, both cohorts |
+| redefine FIRE | retire at 55 or 57 instead of 52 | unknown until run |
+
+**Recommendation: land each household at about 85%.** It keeps the point of the band (survival can move either
+way) without testing only the households the library happens to contain; the write-up would call them landed
+households. It costs minutes to run.
+
 ## 5. Open decisions for you
 
 1. Minimum pot default (recommended: 1 year).
@@ -114,6 +132,7 @@ Forecast Calibration"), so it must never be shown as a number - which is already
 6. Every library household holds its pension at the top tier (M21), so nothing has tested a cautious user.
    Recommended: a Phase 4 diagnostic at Medium tiers.
 7. Risk above the user's tier (M14): PENDING.
+8. Phase 4's panel (section 4b): recommended - land each household at about 85%.
 
 ## 6. What changed in the plan overnight
 

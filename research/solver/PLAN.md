@@ -448,8 +448,10 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | ~21:35 - ~00:30 | K2-K4 screens, 173 cells (measured: about a cell a minute) | calibration chart (published); M17 built and tested; M18 built |
 | ~00:30 - ~01:20 | M18, the purpose test | K2-K4 reduced against their predictions |
 | ~01:20 - ~01:50 | M17 probe, both cures | M18 reduced |
-| ~01:50 - ~02:50 | Phase 4 panel selection | M17 reduced; if M18 is falsified, its numerics follow-ups are queued here instead |
-| ~02:50 - ~05:00 | M15, M14 (built first), M12 if time | each reduced against its prediction |
+| ~01:50 - ~02:50 | Phase 4 panel selection | M17 reduced (**done: floor fix recommended**); M18 passed, so no numerics follow-ups |
+| ~02:50 - ~03:20 | M14, one tier above (plan held at Medium) | M14 reduced |
+| ~03:20 - ~04:15 | **M18 again with the floor fix on** (`batch-bestof-floor.sh`): the purpose test is the proof of any objective change. PREDICTION: the survival criterion still passes (best rival within noise at 90%+ of positions, mean advantage under half a point); positions where a rival wins now cut less, not more. FALSIFIED IF the best rival is ahead beyond noise at over 5% of positions on survival | morning summary finalised |
+| 04:15 - 07:00 | M15 build if time allows (else Thursday) | the mathematician's page brought up to date |
 | 05:00 - 07:00 | - | the morning summary; the mathematician's page brought up to date |
 
 Stops that would change this: a K2-K4 cell failing to run (re-run once, then recorded); a probe build that

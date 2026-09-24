@@ -71,6 +71,10 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 9. A receipt is stamped with the plan as it stands when the receipt is written, not the version the reviewer read:
    the plan must not change while a review runs (Claude holds plan edits until the receipt; seen 24 Sep 12:16 UK, when
    a review's receipt covered text committed during it).
+10. A script that imports code by an absolute path reads the live working tree, not the launcher's snapshot, and the
+   stamp's import test maps such a path to its stamped file, so it cannot see this. None is left in research/solver or
+   src/solver (git grep, 24 Sep 14:17 UK; PLAN.md O12); research/audit/timing.mjs and research/tests/safety.test.mjs
+   still do, and no batch runs them. A test against it is proposed to the maintainer.
 
 ---
 

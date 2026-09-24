@@ -1,7 +1,9 @@
 # F2: making the table see the bridge cliff (design, not built)
 
 Written 24 Sep 2026 alongside F1 v2 (PLAN.md schedule 7d; the F1 result section, "F1 is a patch on the read, not a fix to
-the table"). No run rests on this. The choice between F1 v2 and F2 is made after the pitfall sweep (8d).
+the table"). No run rests on this. The maintainer chose at 13:51 UK to build and test it (PLAN.md 7e): it is approved if its
+results are positive and it costs at most 20% more run time. The choice between F1 v2 and F2 is made at 7e, and the pitfall
+sweep (8d) then re-tests with the chosen fix.
 
 ## The problem F2 fixes, and F1 does not
 

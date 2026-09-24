@@ -17,8 +17,9 @@ simulated).
 F1 (v1 and v2) corrects the read after the fact, in one place: it drops the dead corners beside live ones and caps the read
 by a closed-form chance the money lasts. The table itself still has the wrong shape, so:
 - the moves are still chosen from that table in every year before the read is corrected (the policy is the table's);
-- the cap is a lognormal approximation, coarse for long, lean bridges (S360: v2's cap, worked out from its inputs, reads
-  about 27 against 44 simulated in the fold - results-f1-misses.txt; not yet solved);
+- the cap is a lognormal approximation. Where it is coarse is open: from the solver's own code, S360's cap is 47.2
+  against 44.1 simulated in the fold, but S370's is 84.8 and the cost case's 91.6 (results-f1v2-caps.txt; a first
+  figure for S360, about 27, came from a rough model). The F1 v2 test (7c) measures them;
 - under the mixture the cap uses the centre world's growth in every world;
 - any other hard limit that falls between grid nodes (the pitfall sweep's pattern) needs its own patch.
 

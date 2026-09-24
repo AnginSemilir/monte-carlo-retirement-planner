@@ -17,7 +17,9 @@ function mk(over = {}) {
   let out = 'F1 V2 TEST, planted\n';
   for (const id of CASES) {
     const o = { tOff: 50, sOff: 99, tOn: 98, sOn: 99, tierOff: 40, tierOn: 10, d: 0, se: 0.1, rOff: ran('false'), rOn: ran(2), ...(over[id] || {}) };
-    if (id === 'S360' && !over[id]?.tOn) { o.tOn = 30; o.sOn = 44; }
+    if (id === 'S360' && !over[id]?.tOn) { o.tOn = 47; o.sOn = 44; }
+    if (id === 'S370' && !over[id]?.tOn) { o.tOn = 84; o.sOn = 99; }
+    if (id === 'bridge 4+cost' && !over[id]?.tOn) { o.tOn = 91.5; o.sOn = 99.5; }
     if (id === 'bridge 0') { o.tOn = o.tOff = 99; o.sOn = o.sOff = 99; o.tierOn = o.tierOff = 6; }
     if (id.startsWith('share 0.5') || id.startsWith('share 0.7')) { o.tOn = o.tOff = 99; o.sOn = o.sOff = 99; }
     out += `${id.padEnd(16)} a0 0.85 B 2 class YES | OFF table ${f(o.tOff)} sim ${f(o.sOff)} gap ${(o.tOff - o.sOff).toFixed(1).padStart(6)} tier-below ${o.tierOff.toFixed(1).padStart(4)} below  1.0 | V2 table ${f(o.tOn)} sim ${f(o.sOn)} gap ${(o.tOn - o.sOn).toFixed(1).padStart(6)} tier-below ${o.tierOn.toFixed(1).padStart(4)} below  1.0 | survival ${o.d >= 0 ? '+' : ''}${o.d.toFixed(2)} +/- ${o.se.toFixed(2)} | 10 s\n`;
@@ -33,7 +35,7 @@ const plants = {
   'another grid': [Object.fromEntries(CASES.map(id => [id, { rOff: ran('false').replace('total16x6x6', 'pots16x16x16'), rOn: ran(2).replace('total16x6x6', 'pots16x16x16') }])), 'GATE FAILED'],
   'raise cap missing': [Object.fromEntries(CASES.map(id => [id, { rOff: ran('false').replace('levels 1.1', 'levels 1.2,1.1'), rOn: ran(2).replace('levels 1.1', 'levels 1.2,1.1') }])), 'GATE FAILED'],
   'in-class misread 12': [{ 'bridge 4': { tOn: 87 } }, 'FALSIFIED'],
-  'cost case misread 12': [{ 'bridge 4+cost': { tOn: 87 } }, 'FALSIFIED'],
+  'cost not counted (reads 99.5)': [{ 'bridge 4+cost': { tOn: 99.5 } }, 'FALSIFIED'],
   'S366 misread 20': [{ S366: { tOn: 79 } }, 'FALSIFIED'],
   'survival loss 3 se': [{ S122: { d: -0.3, se: 0.1 } }, 'FALSIFIED'],
 };

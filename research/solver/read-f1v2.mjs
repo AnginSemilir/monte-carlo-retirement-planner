@@ -65,11 +65,7 @@ console.log('FAIR-TEST GATE: passed - on all 21 cases the two arms ran the same 
 const scan = execFileSync('node', [join(HERE, 'audit-s126.mjs'), 'scan'], { cwd: join(HERE, '../..') }).toString();
 const inClass = new Set();
 for (const l of scan.split('\n')) { const m = /^(\S+(?: [\d.x]+)?)\s+.*class YES/.exec(l.trim()); if (m) inClass.add(m[1].trim()); }
-const by0 = id => rows.find(r => r.id === id);
 for (const r of rows) r.cls = inClass.has(r.id);
-// the cost case (added before any run, 14:05 UK): bridge 4 is in the class, and with its 30k cost counted in the floor need
-// a* is 0.871, still above its pension share of 0.85, so it is scored with the class; the scan does not list it (no solve)
-by0('bridge 4+cost').cls = true;
 const EDGE = new Set(['share 0.95', 'bridge 6']), THIN = new Set(['S128', 'S130']);
 const f = x => (x >= 0 ? '+' : '') + x.toFixed(1);
 const by = id => rows.find(r => r.id === id);
@@ -78,13 +74,16 @@ console.log('case         class  gap off -> v2    tier-below off -> v2   surviva
 for (const r of rows) console.log(`${r.id.padEnd(12)} ${(r.cls ? 'YES' : 'no').padEnd(5)}  ${f(r.off.gap).padStart(6)} -> ${f(r.on.gap).padStart(6)}   ${r.off.tier.toFixed(1).padStart(5)} -> ${r.on.tier.toFixed(1).padStart(5)}        ${f(r.d)} +/- ${r.se.toFixed(2)}`);
 
 const verdict = (ok, text) => console.log(`  ${ok ? 'HELD  ' : 'MISSED'} ${text}`);
-console.log('\nItem 1 - in class away from the edge (the cost case included): v2 within +/-5 of simulation (the thin S128 and S130 within +/-8)');
+console.log('\nItem 1 - in class away from the edge: v2 within +/-5 of simulation (the thin S128 and S130 within +/-8)');
 const away = rows.filter(r => r.cls && !EDGE.has(r.id));
 for (const r of away) { const lim = THIN.has(r.id) ? 8 : 5; verdict(Math.abs(r.on.gap) <= lim, `${r.id}: gap ${f(r.on.gap)} (limit +/-${lim})`); }
-console.log('\nItem 2 - what v2 changes: share 0.95 within +/-10; bridge 6, S366 and S370 within +/-5');
-for (const [id, lim] of [['share 0.95', 10], ['bridge 6', 5], ['S366', 5], ['S370', 5]]) { const r = by(id); verdict(Math.abs(r.on.gap) <= lim, `${id}: gap ${f(r.off.gap)} -> ${f(r.on.gap)} (limit +/-${lim})`); }
-console.log('\nItem 3 - S360, short even with its inflows: v2 acts, and reads below simulation by 5 to 30 points');
-{ const r = by('S360'); verdict(r.on.gap <= -5 && r.on.gap >= -30, `S360: gap ${f(r.off.gap)} -> ${f(r.on.gap)}`); }
+// the caps below are the solver's own (f1v2-caps.mjs, results-f1v2-caps.txt), re-derived before any run (the sixteenth review)
+const CAP = { S370: 84.8, cost: 91.6 };
+console.log('\nItem 2 - what v2 changes: share 0.95 within +/-10; bridge 6 and S366 within +/-5; S370 reads at most its cap 84.8 (+2)');
+for (const [id, lim] of [['share 0.95', 10], ['bridge 6', 5], ['S366', 5]]) { const r = by(id); verdict(Math.abs(r.on.gap) <= lim, `${id}: gap ${f(r.off.gap)} -> ${f(r.on.gap)} (limit +/-${lim})`); }
+{ const r = by('S370'); verdict(r.on.table <= CAP.S370 + 2, `S370: read ${r.on.table} (cap ${CAP.S370}); its gap ${f(r.on.gap)} is reported, not predicted`); }
+console.log('\nItem 3 - S360, short even with its inflows: v2 acts, and reads within +/-10 of simulation (cap 47.2)');
+{ const r = by('S360'); verdict(Math.abs(r.on.gap) <= 10, `S360: gap ${f(r.off.gap)} -> ${f(r.on.gap)}`); }
 console.log('\nItem 4 - no survival cost beyond two paired se, on any case');
 const losses = rows.filter(r => r.d < 0);
 for (const r of losses) verdict(-r.d <= 2 * r.se, `${r.id}: ${f(r.d)} +/- ${r.se.toFixed(2)} (${(-r.d / (r.se || Infinity)).toFixed(1)} se)`);
@@ -94,12 +93,16 @@ console.log('\nItem 5 - out of class: bridge 0 identical; share 0.50 and 0.70 wi
 for (const id of ['share 0.50', 'share 0.70']) { const r = by(id); verdict(Math.abs(r.on.table - r.off.table) <= 0.5 && Math.abs(r.on.sim - r.off.sim) <= 0.5, `${id}: table ${r.off.table} -> ${r.on.table}, sim ${r.off.sim} -> ${r.on.sim}`); }
 console.log('\nItem 6 - S126 and S120: years below tier fall by at least half, where they start at 20 or more');
 for (const id of ['S126', 'S120']) { const r = by(id); if (r.off.tier < 20) console.log(`  n/a    ${id}: started at ${r.off.tier.toFixed(1)}, below 20 (not scored, as written)`); else verdict(r.on.tier <= r.off.tier / 2, `${id}: ${r.off.tier.toFixed(1)} -> ${r.on.tier.toFixed(1)}`); }
+console.log('\nItem 7 - the cost case: v2 reads at its cap, 91.6 +/- 3 (the cost counted); its gap is reported');
+{ const r = by('bridge 4+cost'); verdict(Math.abs(r.on.table - CAP.cost) <= 3, `bridge 4+cost: read ${r.on.table} (cap ${CAP.cost}), gap ${f(r.on.gap)}`); }
 
-console.log('\nFalsifier - an in-class case away from the edge misreads by more than 10; or bridge 6 or S366 by more than 15; or any case loses survival beyond two paired se');
+console.log('\nFalsifier - an in-class case away from the edge misreads by more than 10; or bridge 6 or S366 by more than 15; or the cost case reads above 97 (the cost not counted); or any case loses survival beyond two paired se');
 const misread = away.filter(r => Math.abs(r.on.gap) > 10);
 const inflow = ['bridge 6', 'S366'].filter(id => Math.abs(by(id).on.gap) > 15);
+const costNotCounted = by('bridge 4+cost').on.table > 97;
 const loss = rows.filter(r => r.d < 0 && -r.d > 2 * r.se);
 console.log(`  in class away from the edge, |gap| > 10: ${misread.map(r => r.id).join(', ') || 'none'} (largest |gap| ${Math.max(...away.map(r => Math.abs(r.on.gap))).toFixed(1)})`);
 console.log(`  the inflow cases beyond +/-15: ${inflow.join(', ') || 'none'}`);
+console.log(`  the cost case above 97 (the cost not counted): ${costNotCounted ? 'yes' : 'no'} (read ${by('bridge 4+cost').on.table})`);
 console.log(`  survival lost beyond two paired se: ${loss.map(r => r.id).join(', ') || 'none'}`);
-console.log(`  => ${misread.length || inflow.length || loss.length ? 'FALSIFIED' : 'NOT FALSIFIED'}`);
+console.log(`  => ${misread.length || inflow.length || costNotCounted || loss.length ? 'FALSIFIED' : 'NOT FALSIFIED'}`);

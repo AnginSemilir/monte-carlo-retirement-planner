@@ -15,31 +15,33 @@ survival anywhere?
 
 ## Derivation
 
-From the F1 test and its diagnosis (`results-f1.txt`, `results-f1-misses.txt`, both in the fold on step 2's settings):
+From the F1 test (`results-f1.txt`, in the fold on step 2's settings) and **each case's cap from the solver's own code**
+(`f1v2-caps.mjs`, `results-f1v2-caps.txt`: bridgeTable v2 and bridgeChanceV2 at the opening position, the cases built as
+the f1v2 mode builds them; its v1 caps reproduce the F1 test's v1 reads exactly - share 0.95 57.4, bridge 6 53.3, bridge 4
+96.9). The cap is the ceiling on the opening read wherever the table's own read is above it. Re-derived before any run
+(the sixteenth review): the first version took its caps from diagnose-f1.mjs's rough model, which the code does not bear
+out for the cost case, S360 or S370.
 - **Covered, no inflow in the bridge** (S126, share 0.90, bridge 1, bridge 4, wealth x0.5 and x2, S120-S130): v1 already
-  read these within +/-5 (S130 +5.3). v2 changes nothing that binds there: the coverage is well above one, so both caps
-  are near one and both drop the same dead corners. So v2 reads as v1 did. The thin S128 and S130 read +3.2 and +5.3 with
+  read these within +/-5 (S130 +5.3). v2 changes nothing that binds there: its cap is 99.9 to 100.0 on every one of them
+  (results-f1v2-caps.txt), and both versions drop the same dead corners. So v2 reads as v1 did. The thin S128 and S130 read +3.2 and +5.3 with
   v1 (O9, a slightly optimistic read v2 does not address), and the mixture's table reads about 1 point higher than the
   fold's on average (gate 3: the fold reads a mean 1.07 points low) - so up to about +8 there.
-- **Share 0.95** (on the edge, coverage 1.02, no inflow in its 2-year bridge): the growth-aware cap alone reads 72.0
-  against 68.2 simulated, where v1's no-growth cap read 57.7 (57.4 in the solve).
-- **Bridge 6, S366, S370** (an inheritance inside the bridge): v2 needs only the years before it arrives. Bridge 6 needs
-  four of its six years first (the 2030 inheritance, at age 56); S366 four of eight. Coverage on the years that must be met
-  first is then well above one (about 1.5 for bridge 6; S366 and S370 covered by the inputs), so the cap is near one and
-  the read is the alive corners' - near simulation (99.3 and 99.2 in the fold). S370 is inferred from its inputs only: the
-  solver has never read or simulated it.
-- **S360** (lean, short even with its inflows, coverage 0.84): v2 now acts - its dead corners dropped, the cap with growth
-  about 27 against 44 simulated in the fold (-17). The cap's lognormal is coarse for a long, lean bridge, so the read stays
-  low, but by far less than v1's -40.
+- **Share 0.95** (on the edge, coverage 1.02, no inflow in its 2-year bridge): v2's cap is 73.2 against 68.2 simulated in
+  the fold, where v1's cap read 57.4.
+- **Bridge 6, S366, S370** (an inheritance inside the bridge): v2 needs only the years before it arrives - 92.8k where v1
+  needs 139.2k (bridge 6) and 185.6k (S366). Their caps are 99.7 and 99.4, so the read is the alive corners' - near
+  simulation (99.3 and 99.2 in the fold). **S370's cap is 84.8** (it needs 332.8k before its inheritance and has 360.0k):
+  v2 reads it at most about 85, and S370 has never been simulated, so its gap is reported, not predicted.
+- **S360** (lean, short even with its inflows: 27.0k against 32.0k): v2 now acts - its dead corners dropped - and its cap
+  is 47.2 against 44.1 simulated in the fold, so the read comes up to about the simulation from v1's -39.8; the cap sits a
+  little above it, so the read may be slightly optimistic.
 - **Out of class**: bridge 0 has no retired bridge, so the bridge table is empty and the solve is the same, bit for bit
   (pinned by solver-f1.test.mjs on S000). Share 0.50 and 0.70 are covered many times over: the cap is one and no dead corner
   sits beside a live one.
-- **The cost case** (bridge 4 with a 30k one-off cost in its year 2, added before any run): from its inputs, the
-  accessible money covers the bridge's floor need 1.54 times without the cost and 1.16 times with it (142.5k against
-  92.8k + 30k); the growth-aware cap is then about 97 (85 without growth), and with the cost counted in the floor need
-  a* is 0.871, still above the pension share of 0.85 - so it stays in the class. v2 should read it as it reads bridge 4.
-  At 30k the cap is near one whether or not the cost is counted, so this case checks that v2 reads a household with a
-  bridge cost correctly; that the cost is counted at all is pinned by solver-f1.test.mjs's planted checks.
+- **The cost case** (bridge 4 with a 30k one-off cost in its year 2, added before any run): it needs 122.8k where bridge 4
+  needs 92.8k, and its cap is **91.6** where bridge 4's is 99.9. Bridge 4's own read is near 100 (96.9 with v1 in the
+  fold), so the cost case reads at its cap, about 91.6 - which shows the cost is counted (at about 99.9 it would not be)
+  - and, if it simulates near bridge 4's 99.9, about 8 points below simulation: the cap is cautious here.
 - **Behaviour**: where v1 took S126 and S120 off the pension's lower tier (40 -> 10.7 and 40 -> 0.2 years in the fold), v2,
   reading them the same, does too.
 - **A known approximation, not predicted either way:** under the mixture every world's cap uses the centre world's growth
@@ -49,21 +51,23 @@ From the F1 test and its diagnosis (`results-f1.txt`, `results-f1-misses.txt`, b
 ## Prediction
 
 1. **In class away from the edge** (the class at the floor need, from `audit-s126.mjs scan`: S126, share 0.90, bridge 1,
-   bridge 4, wealth x0.5, wealth x2, S120, S122, S124, S128, S130; and the cost case): v2's table within +/-5 of simulated
-   survival; the thin S128 and S130 within +/-8.
-2. **What v2 changes:** share 0.95 within +/-10; bridge 6, S366 and S370 within +/-5 (v1 in the fold: -10.8, -46.0, -96.2;
-   S370 never run).
-3. **S360:** v2 reads below simulation by 5 to 30 points (v1 in the fold: -39.8).
+   bridge 4, wealth x0.5, wealth x2, S120, S122, S124, S128, S130): v2's table within +/-5 of simulated survival; the thin
+   S128 and S130 within +/-8.
+2. **What v2 changes:** share 0.95 within +/-10; bridge 6 and S366 within +/-5 (v1 in the fold: -10.8, -46.0, -96.2). S370
+   reads at most its cap, 84.8 (+2 for the grid); its gap is reported, not predicted.
+3. **S360:** v2 reads within +/-10 of simulation (its cap 47.2 against 44.1 simulated in the fold; v1 read -39.8).
 4. **No survival cost:** simulated survival with v2 not lower than off beyond two paired se, on any case.
 5. **Out of class:** bridge 0 identical (table, simulation and years below tier); share 0.50 and 0.70 within 0.5 of off,
    table and simulation.
 6. **Behaviour:** on S126 and S120, the years the pension sits below its tier fall by at least half with v2, scored where
    off starts at 20 or more (a case that starts below 20 is reported, not scored).
+7. **The cost case:** v2 reads at its cap, 91.6 +/- 3 - the cost counted - and its gap is reported.
 
 ## Falsified if
 
-An in-class case away from the edge (the cost case included) misreads by more than 10 points with v2; or bridge 6 or S366 misreads by more than
-15 (the inflow count does not work); or any case loses survival beyond two paired se. Then v2 is not carried forward, and
+An in-class case away from the edge misreads by more than 10 points with v2; or bridge 6 or S366 misreads by more than
+15 (the inflow count does not work); or the cost case reads above 97 (the cost not counted); or any case loses survival
+beyond two paired se. Then v2 is not carried forward, and
 F2 (a coverage axis in bridge years, or a node at the cliff) is built instead.
 
 ## Fair-test table
@@ -111,3 +115,12 @@ No result of this test exists yet; one change was made before the run.
   maintainer's request (14:05 UK, "Yes, add the cost case"). It covers a bridge household with a one-off cost, which the
   library does not have. Changed: the derivation, item 1, the falsifier and rows 1-2 now include the cost case. Nothing
   else changed. The case runs last (the 21st), and read-f1v2.mjs scores it with the class.
+- 24 Sep 14:35 UK, before any run: **the caps re-derived from the solver's own code** (`f1v2-caps.mjs`,
+  `results-f1v2-caps.txt`), after the sixteenth review (14:29 UK) found the first figures came from diagnose-f1.mjs's
+  rough model: the cost case's cap is 91.6, not about 97; S360's is 47.2, not about 27; S370's is 84.8, where the first
+  version assumed near one. Changed: the derivation; item 1 no longer holds the cost case, which gets its own item (7)
+  and its own falsifier clause (above 97: the cost not counted); item 2 no longer predicts S370 within +/-5; item 3 is
+  within +/-10 (was 5 to 30 below). Items 4-6 and the fair-test table are unchanged. **Same pattern searched:** every cap
+  or growth figure taken from diagnose-f1.mjs's rough model - here (all replaced), PLAN.md's "Why F1 missed" (share 0.95
+  72.0, bridge 6 75.6: the code's v2 caps are 73.2 and, with the inheritance counted, 99.7) and f2-design.md (S360 about
+  27: the code's 47.2).

@@ -1,0 +1,53 @@
+PROBE M17 - THE CURES FOR FAILING FUTURES, 24 Sep 01:35-01:47, from snapshot /tmp/solver-snap-2XbFAF (1bc4a92)
+Both options ON (raiseSurvival + failureShortfall) in two forms, against the baseline (s2-fnewex, identical flags
+otherwise) on the same 3,000 held-out paths (seed 7002). Four thin households and two controls. Full scan, exact
+final year, single table. Prediction: PLAN.md M17, written 22:10 before the run.
+
+VERDICT
+  floor (a year with no money costs a year at the floor):
+    raises in the last three paid years before failure under 30%       HELD: 82-89% -> 6-11% on the thin four
+    survival within noise                                              BETTER THAN PREDICTED: up on all four,
+                                                                       beyond noise on S070 (+0.90 +/- 0.29) and
+                                                                       S330 (+0.77 +/- 0.22); never down
+    controls within noise                                              HELD (S126 +0.03, S112 -0.03)
+    falsifiers (survival down beyond 2 se; raises before failure > 1/2) NOT FIRED
+    years without money per path: down 0.39-0.87 (20-40%); the price: years below target up 1.9 to 5.4 per path
+    (S184 1.6 -> 7.0) and spending down 1-2%. The charge scales with lambda x years left, so for households with a
+    high dislike of cuts it also raises the cost of failure generally - K5, which re-matches lambda to the
+    guardrails' cutting, re-balances that.
+  zero (a year with no money costs a cut to nothing):
+    raises before failure under 10%                                    HELD: 0-8%
+    survival up 0.5-3 points on the thin four                          NOT AS PREDICTED: S070 +9.83, S330 +4.73,
+                                                                       S354 +2.33, S184 +0.03
+    years without money down 0.3-1.5                                   HELD, more: down 0.9 to 2.0
+    more years below target                                            HELD, heavily: +5.3 to +11.4 per path;
+                                                                       S070 spending falls to 0.999 of target
+    falsifiers                                                         NOT FIRED
+  'zero' is not a cure for the defect so much as a different objective - it turns running out into the deepest
+  possible shortfall, and the plan becomes far more cautious. 'floor' is the targeted fix.
+
+RECOMMENDATION FOR STEP 6: adopt 'floor' (with the survival-weighted raise credit) as the baseline objective, and
+let K5 re-match the dislike of cuts to the guardrails afterwards. Offer 'zero' only as an explicit "make my money
+last as long as possible" mode, if at all.
+
+TABLE (reduce-m17.mjs)
+PROBE M17 - the cures for failing futures, paired against the baseline on the same 3,000 paths
+  id    arm        survival  (paired diff +/- se)   last 3 paid years before failure: raising / at plan tier   years unfunded/path  funded yrs (failing)  years below  spending
+  S070  baseline    79.00                             82% /   98%                            2.23               24.4             6.7   1.062
+  S070  floor       79.90   +0.90 +/- 0.29             9% /   81%                            1.77               26.2            10.2   1.047
+  S070  zero        88.83   +9.83 +/- 0.57             8% /   76%                            0.64               29.3            18.1   0.999
+  S184  baseline    80.03                             89% /  100%                            2.27               25.6             1.6   1.090
+  S184  floor       80.33   +0.30 +/- 0.38             6% /   68%                            1.40               28.3             7.0   1.070
+  S184  zero        80.07   +0.03 +/- 0.40             0% /   76%                            0.27               32.1            13.0   1.034
+  S330  baseline    82.27                             83% /   99%                            2.61               45.3             3.8   1.123
+  S330  floor       83.03   +0.77 +/- 0.22            10% /   81%                            2.15               47.3             5.7   1.109
+  S330  zero        87.00   +4.73 +/- 0.41             7% /   78%                            1.32               49.8             9.1   1.069
+  S354  baseline    84.43                             87% /  100%                            2.08               45.5             2.8   1.133
+  S354  floor       84.60   +0.17 +/- 0.21            11% /   78%                            1.69               47.5             4.7   1.121
+  S354  zero        86.77   +2.33 +/- 0.37             7% /   76%                            0.93               49.7             8.1   1.082
+  S126  baseline    99.80                             39% /   72%                            0.01               36.2             1.7   1.181
+  S126  floor       99.83   +0.03 +/- 0.03            20% /   80%                            0.00               36.6             1.7   1.180
+  S126  zero        99.87   +0.07 +/- 0.05             0% /  100%                            0.00               36.0             1.8   1.179
+  S112  baseline    99.10                            100% /  100%                            0.01               31.4             4.2   1.146
+  S112  floor       99.07   -0.03 +/- 0.07             0% /  100%                            0.00               32.7             4.2   1.146
+  S112  zero        99.07   -0.03 +/- 0.06             0% /  100%                            0.00               32.0             4.2   1.146

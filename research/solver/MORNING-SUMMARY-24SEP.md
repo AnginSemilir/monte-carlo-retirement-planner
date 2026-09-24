@@ -39,9 +39,22 @@ arithmetic.
 | **floor** | the same as a year at your floor | 13% (the rest are genuine ties) | 96% unchanged |
 | zero | the same as a cut to nothing | 0.2% | about a fifth fewer raises |
 
-Simulated on six households: PENDING (`reduce-m17.mjs`).
+**Simulated on six households** (`results-m17.txt`, same 3,000 markets as today's plan):
 
-**Recommendation:** PENDING.
+| on the four thin households | floor fix | zero fix |
+|---|---|---|
+| overspending in the last 3 years before running out | 82-89% of failing paths -> **6-11%** | -> 0-8% |
+| survival | **up 0.2 to 0.9 points** (never down) | up 0 to 9.8 points |
+| years with no money, per path | **down 20-40%** | down 40-90% |
+| extra years below target, per path | 2 to 5 | 5 to 11 |
+
+The two comfortable households did not move. The zero fix is really a different, much more cautious objective
+("make the money last at almost any cost"); the floor fix is the targeted one.
+
+**Recommendation: switch on the floor fix** (with the survival-weighted raise credit). It makes the year-by-year
+plan sensible in bad markets and raises survival a little. Its price is more cutting in futures that are
+struggling; the guardrail matching (K5), which sets the default dislike of cuts, runs after it and re-balances
+the total amount cut.
 
 ## 3. The defaults
 
@@ -96,7 +109,7 @@ Forecast Calibration"), so it must never be shown as a number - which is already
 1. Minimum pot default (recommended: 1 year).
 2. Raise cap default (recommended: 10%), and a minimum dislike of cuts when raises are blocked (M19).
 3. Estate slider: 0% = weight 0.01 (M20).
-4. The fix for failing futures (M17): PENDING.
+4. The fix for failing futures (M17): recommended - the floor fix, on.
 5. S126's dead corner (#106): still open; the table reads 38.5% where the plan survives 99.8%.
 6. Every library household holds its pension at the top tier (M21), so nothing has tested a cautious user.
    Recommended: a Phase 4 diagnostic at Medium tiers.

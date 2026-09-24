@@ -63,3 +63,18 @@ for (const { tag, c, x } of cells) {
   const ok1 = Math.abs(sCut / tCut - 1) <= 0.1, ok2 = Math.abs(sDepth - tDepth) <= 0.03;
   console.log(`  c ${String(c).padEnd(6)} exp ${x}  n ${String(n).padStart(2)}  total cut ${f(sCut)} (${f(100 * (sCut / tCut - 1), 0).padStart(4)}%)${ok1 ? ' OK' : '   '}  depth ${f(sDepth, 3)}${ok2 ? ' OK' : '   '}  raise total ${f(sRaise)} (${f(100 * (sRaise / tRaise - 1), 0)}%)  survival at/above the guardrails' on ${ahead}/${n}`);
 }
+
+// PER HOUSEHOLD (the seventeenth review, 24 Sep: the medians hid that S070 cuts MORE than the guardrails at every point
+// and delivers less spending). Spending delivered = years spent - total cut + raise total, in years of target spending
+// (means over the held paths), against the guardrails' own figure.
+console.log('\n  per household across the grid points: cuts more than the guardrails at | spending delivered against the guardrails\' | survival difference (points)');
+const grid = cells.map(({ tag }) => tag);
+const delivered = g => g.spendYearsMean - cut(g) + raise(g);
+for (const [i, id] of IDS.entries()) {
+  const g = tg[i];
+  const pts = grid.map(t => load(t, id, 'solver')).filter(Boolean);
+  if (!pts.length || !g) continue;
+  const more = pts.filter(s => cut(s) > cut(g)).length;
+  const dSpend = pts.map(s => 100 * (delivered(s) / delivered(g) - 1)), dSurv = pts.map(s => s.successRate - g.successRate);
+  console.log(`  ${id}  guardrails cut ${f(cut(g))}, solver ${f(Math.min(...pts.map(cut)))}-${f(Math.max(...pts.map(cut)))}  |  cuts more at ${String(more).padStart(2)}/${pts.length}  |  spending ${f(Math.min(...dSpend), 1)}% to ${f(Math.max(...dSpend), 1)}%  |  survival ${f(Math.min(...dSurv), 1)} to ${f(Math.max(...dSurv), 1)}`);
+}

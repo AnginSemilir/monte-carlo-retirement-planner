@@ -118,7 +118,7 @@ function runFixedPath(c, ai, zs, world = worldOf(), tr = null) {
       lastLevel = lv;
     }
     if (unmet > 1 || c.last.preNmpaInsolvent) { if (tr) markFail(tr, t); return { survived: false, preAccess: !!c.last.preNmpaInsolvent, failAge: m.ctx.ageSelf0 + t, terminalNet: 0, terminal: 0, lifetimeTax: tax, spendYears, atTarget, aboveTarget, belowSum, aboveSum, minLevel: 0, shortfall, changes, levelSum, fullyFunded: false }; }
-    world(c, zs[t], real, act, t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
+    world(c, zs[t], real, c.acts[ai], t, zs.length > m.ctx.totalYears + 1 ? zs[m.ctx.totalYears + 1] : 0);
     F.grow(c, t, s, real);
     if (tr) mark(tr, t, c.yr.spend[t] > 0, c.last.level, s, c.last.taxPaid + c.last.cgtPaid, 0);
   }
@@ -374,7 +374,9 @@ if (mode === 'flex') {
   // MINPOTYEARS: the minimum end-of-life pot, in years of target spending, set on EVERY arm's plan so the
   // rivals are held to the same rule the solver is (PLAN.md step 3, K2)
   const minPot = process.env.MINPOTYEARS !== undefined ? Number(process.env.MINPOTYEARS) * target : undefined;
-  const variant = (guardrails, floor) => E.resolveMpaa(E.normalizePlan({ ...raw, config: { ...raw.config, guardrails, lookaheadYears: 0, ...(minPot !== undefined ? { solvencyFloor: minPot } : {}) }, spending: { ...raw.spending, floorSpend: floor, floorConfidence: CONF * 100 } }));
+  // GUARDCAP (M23, maintainer 24 Sep: option A): the guardrails honour the user's raise cap, as the solver's menu does
+  const guardCap = process.env.GUARDCAP ? Number(process.env.GUARDCAP) : 0;
+  const variant = (guardrails, floor) => E.resolveMpaa(E.normalizePlan({ ...raw, config: { ...raw.config, guardrails, lookaheadYears: 0, ...(minPot !== undefined ? { solvencyFloor: minPot } : {}), ...(guardrails && guardCap > 0 ? { raiseCap: guardCap } : {}) }, spending: { ...raw.spending, floorSpend: floor, floorConfidence: CONF * 100 } }));
   const plans = { solver: variant(false, floorSpend), gk: variant(true, 0), gkFloor: variant(true, floorSpend), fixed: variant(false, 0), vanguard: variant(false, floorSpend), arva: variant(false, floorSpend) };
   const EXTRA = (process.env.ARMS || 'vanguard,arva').split(',').filter(Boolean);
   const t0 = Date.now();
@@ -427,6 +429,18 @@ if (mode === 'flex') {
   // CONF=gkFloor: the solver is asked for exactly the floor rate the guardrails-with-floor arm achieved, so the two
   // are compared at equal downside (Pfau's calibration) on how many years at the target each delivers
   if (CONF_RAW === 'gkFloor') CONF = Math.min(0.99, Math.round(arms.gkFloor.stats.floorRate * 10) / 1000);
+  /*
+   * ARMSONLY=1: the rival arms alone, no solve (K5's targets, 24 Sep). K5 matches the solver's cutting to the guardrails'
+   * and the two must be measured in the SAME market world (MIX) under the SAME user rules (GUARDCAP, MINPOTYEARS);
+   * the targets first used came from flex-tiers, simulated under the mixture and before the cap existed.
+   */
+  if (process.env.ARMSONLY === '1') {
+    mkdirSync(join(RESULTS, tag), { recursive: true });
+    writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify({ tag, id: sc.id, name: sc.name, held: HELD, seedHeld, floor: FLOOR, target, floorSpend, ms: Date.now() - t0,
+      knobs: { mixture: MIX, guardCap, minPotYears: process.env.MINPOTYEARS ?? null, armsOnly: true }, gk: arms.gk.stats, gkFloor: arms.gkFloor.stats, fixed: arms.fixed.stats }, null, 1));
+    console.log(`${sc.id} arms only (mixture ${MIX}, cap ${guardCap || 'none'}): gkFloor below ${arms.gkFloor.stats.belowYearsMean.toFixed(1)} yrs at ${arms.gkFloor.stats.levelWhenBelowMean.toFixed(3)}, above ${arms.gkFloor.stats.aboveTargetYearsMean.toFixed(1)} yrs at ${arms.gkFloor.stats.levelWhenAboveMean.toFixed(3)}, survival ${arms.gkFloor.stats.successRate.toFixed(1)}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
+    process.exit(0);
+  }
   const mS = M.prepare(E, plans.solver);
   const LEVELS = process.env.LEVELS ? process.env.LEVELS.split(',').map(Number) : undefined;
   const EXP = process.env.EXP ? Number(process.env.EXP) : undefined;

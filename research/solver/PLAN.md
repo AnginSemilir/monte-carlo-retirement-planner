@@ -47,10 +47,11 @@ should have changed it is running on assumptions that have already been disprove
 
 | date | the settled result | what it changed |
 |---|---|---|
+| 24 Sep ~09:00 | **Market-world audit** (maintainer: "so all the research configuration hasn't tested across three market worlds?"): every run since step 2 is single-table fold (MIX=0); K5's target was mixture, uncapped, own pot - three mismatches, each measured (`results-k5-targets.txt`) | K5 stage 1's target corrected before any cell was read (median cut 2.14, not 2.38; raise total 1.07, not 3.42); R3/R4 re-derived: the solver now OUT-spends arm A, so stage 2 is expected to run, on a lower mu grid; stage 3 moves to the mixture; M14b moves to the mixture; C8 (world transfer) joins the pitfall gate |
 | 24 Sep ~08:40 | S126 replication, first 9 variants (the mechanism holds; a\* must use the floor-level need) + the maintainer's directive | the pitfall sweep C1-C5 added as a gate before Phase 4; the class boundary corrected |
 | 24 Sep ~08:15 | (maintainer) risk above made the default for EVERY plan | M14b's prediction revised before its run: it now decides "every plan" against the 'auto' fallback |
 | 24 Sep ~08:00 | M14's records split by path outcome (a bet when behind, 3 saved for 1 lost), plus the maintainer's default-on decision | risk above made the default for thin plans, with a simulated threshold and a no-worse guard, PROVISIONAL; M14b re-check queued after K5 stage 1, because the evidence predates the M17 fix |
-| 24 Sep ~07:30 | M23 decided (A) and built | arm A carries the user's cap; gate 4's spending conditions are now a fair test. K5's matching is unaffected (cuts only) |
+| 24 Sep ~07:30 | M23 decided (A) and built | arm A carries the user's cap; gate 4's spending conditions are now a fair test. ~~K5's matching is unaffected (cuts only)~~ **WRONG (found 09:00): the cap changes the guardrails' later cuts as well as their raises (S126 fold: 14.9 -> 13.1 years below), and K5's target predated it** |
 | 24 Sep 06:30 | M15 probe (falsified), M17/M18-floor, K2-K4, and the diagnostic of the M15 mechanism | R1-R10 in "the maths reassessed": M15 v2 made nested; M22 and the third-step sibling; M23 (gate 4's spending condition at risk, a maintainer decision); K5 stage 2 made conditional; K6 and K7 restated in c; Phase 4 reconfigured and its prediction re-derived; Q12 |
 
 **Keeping this plan current - a standing rule (maintainer, 23 Sep).** This file holds only what is
@@ -373,6 +374,15 @@ speed work is worth - see "After Phase 4".
   the single-peak probe printed "safe" on zero tests. Both now refuse to run on the wrong menu or to
   give a verdict on nothing.
 
+### Bugs found and fixed on 24 Sep
+
+- **`runFixedPath` called `world(...)` with an undefined `act`** (the M15 edit replaced both `world` calls in
+  `experiment.mjs`, one of which reads `c.acts[ai]`). Only the rival arms use it; every batch since 02:50 was
+  SOLVERONLY, so no result was affected. Found 09:00 by the first ARMSONLY run; fixed.
+- **A sed edit put a `//` mid-line in the solver**, commenting out live code; the library run died on a
+  SyntaxError and was re-run (22add9d).
+- **K5's target was measured under other settings than its cells** (world, raise cap, minimum pot) - K5 below.
+
 ### The byte-wide policy bug, found 23 Sep ~15:00 - the stored policy was a byte, and the menu is wider than a byte
 
 `pol` was a `Uint8Array`; with tiers and five levels the menu has 360 moves (432 with six), so any
@@ -477,8 +487,8 @@ Every item below is derived from files already on disk; no run was made for this
 |---|---|---|---|
 | R1 | **Why M15 v1 lost (corrected).** | The joint menu removed (2,2,0), the most efficient de-risking move. The three families left were within ~1e-4 of each other, a tenth of the switch margin (0.001), so the margin kept the tier the path started with, which was the plan's (diagnostic table in "M15 v2"). | M15 v2 must be NESTED (a superset of today's menu); written into the design. New question Q12 below. |
 | R2 | **M22: the lower limit binds for every thin household.** Under the fixed solver (`m17-floor`) S330, S070, S184, S354 hold the pension and ISA at the lowest step allowed in 87-91% of spending years, 55-57% of them AHEAD of the median; the middle step is used 0-2%. Comfortable households mostly hold the plan tier (S206 92%, S390 79%). | With every pot on one draw, a step off the riskiest sleeve buys the most calm per point of return (S330: 1.6 and 1.5 points of spread for 0.07 and 0.11 of growth, falling to 1.4 for 0.14 and 0.8 for 0.19 below today's floor). A choice pinned at the boundary in both halves of the wealth distribution means the unconstrained optimum lies below the boundary. | The third pension/ISA step is a sibling arm in the M15 v2 probe, open to every household, not only GIA-heavy ones. Phase 4's prediction: the tier edge is broad on a panel landed at ~85% (thin by construction), not confined to pension-heavy households. |
-| R3 | **M23: the raise cap of 1.1 against the guardrails' raises.** On the twelve, the guardrails' raises add a median 3.42 years of target spending over a retirement (0.20 to 12.0; S184 raises 17.7 years at 1.68 x target, S252 21 years at 1.51). The capped solver adds a median 3.22 (0.60 to 4.30). | Medians match already: capped raises are frequent and small (15-43 years at 1.1), the guardrails' rare and large. Per household they do not. With cuts matched by K5 (mean 2.36), net extra spending is about +0.30 years for the solver against +1.84 for the guardrails (means of the twelve), about 4% of ~36 years of spending, and 20-30% on S184 and S252. | **Gate 4's condition 2 (spending within 1%) is predicted to FAIL by about 4%, and condition 3 (no household 5% lower) on the big raisers, unless arm A carries the same cap.** The cap is the user's rule, like the minimum pot, which is already set on every arm. **Recommended (maintainer to decide; it touches the shipping engine): a research-only option in the engine's guardrails to hold the multiplier at the user's raise cap, as it is held at the floor today (`gs.mult` beside `minMult`), used for arm A in Phase 4.** Otherwise the gate is judged against a rival spending up to 68% over target that the user said they did not want. |
-| R4 | **K5 stage 2 (the raise weight mu) is conditional now.** | By R3 the median raise total already matches within 6% at mu 0.003 under the cap. | Stage 2 runs only if stage 1's chosen point moves the median raise total outside +/-10% of the guardrails' 3.42 (3.08 to 3.76). |
+| R3 | **M23: the raise cap of 1.1 against the guardrails' raises.** On the twelve, the guardrails' raises add a median 3.42 years of target spending over a retirement (0.20 to 12.0; S184 raises 17.7 years at 1.68 x target, S252 21 years at 1.51). The capped solver adds a median 3.22 (0.60 to 4.30). | Medians match already: capped raises are frequent and small (15-43 years at 1.1), the guardrails' rare and large. Per household they do not. With cuts matched by K5 (mean 2.36), net extra spending is about +0.30 years for the solver against +1.84 for the guardrails (means of the twelve), about 4% of ~36 years of spending, and 20-30% on S184 and S252. | **Gate 4's condition 2 (spending within 1%) is predicted to FAIL by about 4%, and condition 3 (no household 5% lower) on the big raisers, unless arm A carries the same cap.** The cap is the user's rule, like the minimum pot, which is already set on every arm. **Recommended (maintainer to decide; it touches the shipping engine): a research-only option in the engine's guardrails to hold the multiplier at the user's raise cap, as it is held at the floor today (`gs.mult` beside `minMult`), used for arm A in Phase 4.** Otherwise the gate is judged against a rival spending up to 68% over target that the user said they did not want. | **SUPERSEDED 24 Sep ~09:00 by M23's decision:** arm A now carries the cap, and capped the guardrails raise a median 1.07 years (fold) / 0.61 (mixture), not 3.42 (`results-k5-targets.txt`). The capped solver raised 3.22 (K3, before the floor fix). With cuts matched, net spending is about +1.1 years for the solver against -1.1 for arm A: the SOLVER now spends about 6% more over ~36 years. Condition 2 is still predicted to fail, the other way round, unless stage 2 brings the solver's raises down. |
+| R4 | **K5 stage 2 (the raise weight mu) is conditional now.** | By R3 the median raise total already matches within 6% at mu 0.003 under the cap. | Stage 2 runs only if stage 1's chosen point moves the median raise total outside +/-10% of the guardrails' 3.42 (3.08 to 3.76). | **Re-derived 24 Sep ~09:00:** the band is now +/-10% of 1.07 (0.96 to 1.18), about a third of what the solver raises at mu 0.003, so stage 2 is EXPECTED to run. Its grid moves down: mu in {0.0003, 0.001} beside stage 1's 0.003 (steps of about 3x, like c), and 0 as the bracket if 0.0003 still raises too much. Lowering mu also lowers the cuts that pay raises back (K3), so stage 2 re-checks the cut match at each mu and reports the net (raise total - total cut) against gate 4's condition 2. |
 | R5 | **K6 in the units K5 uses.** | lambda means nothing across exponents; c (the cost of a floor year, lambda x 0.2^exponent) does. | K6 sweeps c from a tenth to ten times K5's value at K5's exponent; the slider maps to c on a log scale. |
 | R6 | **K7's monotone quantity, with the floor fix on.** | The Lagrangian argument covers the PENALISED quantity. With the fix that is the trim cost PLUS the charge for years with no money, not years below target alone. | K7 checks E[trim cost + unfunded-year charge] for monotonicity (a reversal is a bug, subject to Q1), and reports years below as a finding. K5's grid already gives 12 x 4 x 5 = 240 adjacent pairs to read; no run. |
 | R7 | **Phase 4's configuration after step 6.** | - | Arm S: floor fix on, cap 1.1, minimum pot 1 year, estate as today, risk above the tier OFF (an opt-in is not a default), GIA tier off, K5's c and exponent. The panel is LANDED at ~85% for arm A (decided): each household's target is set so arm A survives 85% +/- 2 on seed 7005 with the minimum pot on (the panel is now drawn after the defaults, so it is landed with them). Added diagnostic: **arm S with pension and ISA held at Medium** (M21: the library never tests a cautious user; this is also the only place M14's opt-in can show anything, since at High there is no tier above). |
@@ -507,8 +517,8 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 5d | **The purpose test and the probes, in order (maintainer, 22:00):** M18 (is the policy the best available, within noise), M17 (the two cures for failing futures), then Phase 4 selection; M15, M14 and M12 are built and run only if time allows | 5 | ~2.5 h | Thu ~03:30 |
 | 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording, the #106 trade-off, the ternary decision, **M17 and the probes' verdicts, and the calibration curve** | 5 | no cores | Thu ~07:00 |
 | 6 | ~~The maintainer picks the product defaults~~ **DECIDED 24 Sep ~05:30: every recommendation taken** - minimum pot 1 year; raise cap 1.1; estate slider 0% = weight 0.01; the M17 floor fix ON; risk above the user's tier as an opt-in; Phase 4's panel landed at ~85%; the taxable-account tier NOT allowed as built - **fully plan a version that works first** (M15, "the full design" below) | 5c | - | done |
-| 7 | **K5 guardrail matching** - stage 1 running since ~05:45 (288 cells at ~6.5 min each, four at a time: **~8 h, not 4.5**); stage 2 conditional (R4); stage 3 on the 41 | 6 | ~9.5 h | Thu ~15:30 |
-| 7b | **M14b** (`batch-m14b.sh`, 24 cells, ~40 min): risk above the tier re-checked under the step-6 defaults; decides whether "on in every plan" stands or falls back to 'auto' (thin plans, no-worse guard) | 7 stage 1 | ~40 min | Thu ~14:45 |
+| 7 | **K5 guardrail matching** - stage 1 running since ~05:45 (288 cells at ~6.5 min each, four at a time: **~8 h, not 4.5**), judged against the corrected fold target (09:00); stage 2 now expected (R4 re-derived); stage 3 on the 41 **in the mixture** | 6 | ~9.5 h | Thu ~15:30 |
+| 7b | **M14b** (`batch-m14b.sh`, 24 cells, **in the mixture**, ~2 h): risk above the tier re-checked under the step-6 defaults; decides whether "on in every plan" stands or falls back to 'auto' (thin plans, no-worse guard). Also C8's check for risk above | 7 stage 1 | ~2 h | Thu ~16:00 |
 | 8 | **K6 slider spread** (in c, R5), with **K7 read off K4's, K5's and K6's sweeps** (no run of its own) | 7 | ~1.5 h | Thu ~17:00 |
 | 8b | **M15 v2**: build in K5's run gaps (no cores), after Q12 is put to the mathematician; probe (4 arms, 8 households + 3 at 40% gain, ~2 h) | 7 | ~2 h | Thu ~19:00 |
 | 8d | **The pitfall sweep** (C1-C5 above): the S126 fix, then the same pattern hunted, tested and fixed. **Gates Phase 4** | S126 fix | ~4-6 h, in run gaps | Thu evening / Fri morning |
@@ -712,12 +722,17 @@ signature) or FIXED and re-tested.
 | C4 | **Snapped buckets:** the gain fraction {0.05, 0.25, 0.55} and the lump-sum-used share {0, 1/2, 1} | A snap is a jump, not a smear. For bridge households the lump sum at access is a large tax-free inflow | Reads at both neighbouring buckets, against the snapped read, at visited positions (bridge households and GIA-heavy ones) | Small (the 6e fidelity screen moved nothing by more than 2%), but never checked on bridge households |
 | C5 | **The switch margin deciding near-ties** (R1, Q12) | An artefact (a fixed margin) decides where the table is nearly indifferent, and paths stick to their starting tier | The M15 diagnostic, generalised: the share of decisions the margin overrules while tier families sit within 1e-4, on the twelve under today's defaults, including risk above | Frequent on comfortable households (it decides harmlessly among ties); on thin ones, rare unless a family is missing |
 | C6 | **Other inaccessible money** (a partner's pension before their own access; couples use even-split tables) | A second bridge per person | Deferred: couples ship after Phase 4 (Q9). Recorded, not checked now | - |
+| C8 | **The market world** (maintainer, 24 Sep ~09:00). Not a grid artefact but the same shape of risk: a setting of the approximation (single-table fold, MIX=0) decides a result that ships in another (the mixture) | Every run since step 2 used the fold, for speed; the product and Phase 4 use the mixture. Gate 3 found the two agree on DECISIONS (engine score 83.86 against 83.87) and differ on LEVELS (the fold reads a mean 1.07 points low, worst 4.6), so paired results within one world should carry over - measured once, before the floor fix, the cap and F1 | The settled defaults that MOVED survival, re-run paired in the mixture where they moved it: the floor fix (thin four, off/on, 8 cells), F1 (the S126 class, off/on, `audit-s126.mjs` with the mixture) and risk above (M14b, now run in the mixture). Any number quoted as a level (survival, the 'auto' rule's 95%) is taken from the mixture only | Same sign on every household; magnitudes within half to double the fold's. FALSIFIED IF any default reverses sign beyond two paired se in the mixture - then it is re-derived before Phase 4 |
 
 **The general detector, built once with the S126 fix and reused by C1-C4:** a census that flags every read touching
 a clamped node while the read point is alive by local simulation, and reports the read's error against that local
 simulation, split by segment (bridge years, the last 5 years, cost years, low wealth).
 
-**Gate:** Phase 4 does not start until C1-C5 are each cleared or fixed, and re-tested with the fix.
+**Gate:** Phase 4 does not start until C1-C5 and C8 are each cleared or fixed, and re-tested with the fix.
+
+**The rule C8 leaves behind (24 Sep ~09:00):** two arms compared in one table must share the market world, the raise
+cap and the minimum pot, and a result file must name all three (`knobs.mixture`, `raiseCap`/`guardCap`,
+`minPotYears`). A level quoted to the maintainer or used as a threshold comes from the mixture.
 
 **Correction logged during the S126 replication (my error, "a wrong assumption"):** a\* must use the bridge's need
 at the FLOOR spend, not the target. The solver may cut to the floor in a bridge. The "share 0.95" variant, which I
@@ -726,7 +741,9 @@ in the class, and it reads 0% (gap -68).
 
 ## M14b. Risk above the tier, re-checked under the step-6 defaults (prediction written 24 Sep ~08:00, before the run)
 
-Plan held at Medium; the M17 fix on, cap 1.1, one-year minimum pot; landed lambdas; 3,000 paired paths.
+Plan held at Medium; the M17 fix on, cap 1.1, one-year minimum pot; landed lambdas; 3,000 paired paths. **Run in the
+three-world mixture (MIX=3), changed 24 Sep ~09:00 before the run:** it decides a product default, and the 'auto'
+fallback's 95% threshold is a level, which the fold reads low. About three times the solve time (~2 h, not 40 min).
 Households: the thin four (S070 S184 S330 S354), two comfortable (S162, S252), and six with solver survival
 85-96% at the top tier (S082 S020 S194 S414 S234 S172).
 
@@ -1082,16 +1099,36 @@ unfloored guardrails (a first draft of this section used the unfloored arm; corr
   floor fix, raises capped at 1.1, a minimum pot of 1 year, estate weight as today). The dial is gridded as
   **c, the cost of one year at the floor**, with lambda = c / 0.2^exponent, so "how much a floor year hurts" is
   the same at every curve shape (with the floor fix on, c is also the price of a year with no money): c in
-  {0.0001, 0.0003, 0.001, 0.003, 0.01, 0.03} x exponent {1.5, 2, 3, 4}. The guardrails-with-floor figures
+  {0.0001, 0.0003, 0.001, 0.003, 0.01, 0.03} x exponent {1.5, 2, 3, 4}. ~~The guardrails-with-floor figures
   are read from `results/flex-tiers` (the same 3,000 paths, seed 7002); cutting is the guardrails' own
-  statistic, so the minimum pot (a rule at the end) does not change them.
-- **Stage 2** (~36 cells): the raise weight mu in {0.0015, 0.003, 0.006} at the stage-1 point, to match raise years.
-- **Stage 3** (~41 cells): the chosen point on all 41, reported against the guardrails household by household.
+  statistic, so the minimum pot (a rule at the end) does not change them.~~ **CORRECTED 24 Sep ~09:00, before any
+  stage-1 cell was read (maintainer's question on market worlds).** `flex-tiers` differs from the cells in three
+  ways, each measured on the twelve (`results-k5-targets.txt`, `reduce-k5.mjs targets`; the re-run with flex-tiers'
+  own settings reproduces it exactly, so the differences are the settings, not noise):
+  - **the market world:** flex-tiers is the three-world mixture; every cell since step 2 is the single-table fold
+    (MIX=0). Moves single households by up to 30% (S162's cut 2.51 -> 1.74, capped, one-year pot);
+  - **the raise cap:** M23 (decided ~07:30) makes arm A honour the cap. It changes the guardrails' cuts as well as
+    their raises (S390 mixture 3.33 -> 1.93) - my "unaffected" in the ledger was wrong;
+  - **the minimum pot:** "a rule at the end does not change the cutting" was a wrong assumption. The guardrails'
+    withdrawal rate sees the pot, and the one-year pot moves four of twelve (S054 22.7 -> 16.6 years below, S184
+    14.8 -> 23.0).
+
+  **Stage 1's target is now `k5t-fold-cap`** (fold, cap 1.1, one-year pot - the cells' own settings): median
+  total cut **2.14** (1.12 to 3.63), depth **0.892**, raise total **1.07**, against 2.38 / 0.882 / 3.18 first used.
+  The medians moved less than the households: the cut by -10%, exactly the match tolerance.
+- **Stage 2** (~24 cells): the raise weight mu, re-derived in R4: {0.0003, 0.001} beside 0.003 (0 as a bracket), at
+  the stage-1 point, matching the raise total 1.07 and re-checking the cut match at each mu.
+- **Stage 3** (~41 cells): the chosen point on all 41, **in the mixture (MIX=3), against the mixture's capped,
+  one-year-pot targets**, household by household. The mixture is the product's world and Phase 4's; this is the
+  first time the K5 point is seen there. On the twelve the mixture's guardrails cut 15% more than the fold's (2.46
+  against 2.14) and raise less (0.61 against 1.07), so the fold-matched point may under-cut there; stage 3 reports
+  it and, if the median total is outside 10%, moves c one grid step (a factor of 3) and re-runs the twelve only.
 - **Q2 (fitting two dials to a stepped response)** is handled by the grid itself: no fitted curve is trusted
   between grid points; the chosen point is a grid point, and the report says how far the nearest neighbours miss.
 
 **THE STARTING GAP (from the files, no run):** on the twelve the guardrails-with-floor cut a median 2.36 years
-of target spending over a retirement (1.40 to 3.33), at a median depth of 0.88. Today's solver (s2-fnewex, landed
+of target spending over a retirement (1.40 to 3.33), at a median depth of 0.88 (**corrected target, 09:00: 2.14,
+1.12 to 3.63, depth 0.89**). Today's solver (s2-fnewex, landed
 lambdas) cuts a median 0.40 (0.03 to 2.78), at depths of 0.52 to 0.90. So matching needs about six times more
 cutting.
 
@@ -1102,6 +1139,8 @@ cutting.
    median depth comes within 3 points of 0.88, because the 0.95 level becomes the cheap cut.
 3. At the matching point the solver's survival is at or above the guardrails' on at least 9 of 12 (the Phase 4 claim,
    previewed here, not tested).
+(09:00: the prediction is left as written and judged against the corrected target. A target about 10% lower moves
+the matching c up a little, inside the same 0.0003-0.001 bracket; depth 0.89 replaces 0.88 in item 2.)
 FALSIFIED IF no grid point brings the median total cut within 10% of the guardrails' (the dials cannot reach it),
 or the best match on both criteria needs exponent 2 or below.
 

@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 const S = mkdtempSync(join(tmpdir(), 'read-f1v2-'));
 const CASES = ['S126', 'share 0.50', 'share 0.70', 'share 0.78', 'share 0.90', 'share 0.95', 'bridge 0', 'bridge 1', 'bridge 4', 'bridge 6', 'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S124', 'S128', 'S130', 'S360', 'S366', 'S370'];
-const ran = br => `mix 3 pts 16 lambda 0.0223606797749979 levels 1.1,1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 25000 bridgeRead ${br}`;
+const ran = br => `mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1.1,1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 25000 bridgeRead ${br}`;
 const f = x => x.toFixed(1).padStart(5);
 function mk(over = {}) {
   let out = 'F1 V2 TEST, planted\n';
@@ -30,6 +30,7 @@ const plants = {
   'arms differ (mix)': [{ S124: { rOn: ran(2).replace('mix 3', 'mix 0') } }, 'GATE FAILED'],
   'no bridge difference': [{ S126: { rOn: ran('false') } }, 'GATE FAILED'],
   'fold, both arms': [Object.fromEntries(CASES.map(id => [id, { rOff: ran('false').replace('mix 3', 'mix 0'), rOn: ran(2).replace('mix 3', 'mix 0') }])), 'GATE FAILED'],
+  'another grid': [Object.fromEntries(CASES.map(id => [id, { rOff: ran('false').replace('total16x6x6', 'pots16x16x16'), rOn: ran(2).replace('total16x6x6', 'pots16x16x16') }])), 'GATE FAILED'],
   'raise cap missing': [Object.fromEntries(CASES.map(id => [id, { rOff: ran('false').replace('levels 1.1', 'levels 1.2,1.1'), rOn: ran(2).replace('levels 1.1', 'levels 1.2,1.1') }])), 'GATE FAILED'],
   'in-class misread 12': [{ 'bridge 4': { tOn: 87 } }, 'FALSIFIED'],
   'S366 misread 20': [{ S366: { tOn: 79 } }, 'FALSIFIED'],

@@ -47,7 +47,7 @@ for (const r of rows) {
   const strip = s => s.replace(/ bridgeRead \S+$/, '');
   if (strip(r.ranOff) !== strip(r.ranV2)) bad.push(`${r.id}: the arms differ beyond the bridge read (OFF "${r.ranOff}" / V2 "${r.ranV2}")`);
   if (field(r.ranOff, 'bridgeRead') !== 'false' || field(r.ranV2, 'bridgeRead') !== '2') bad.push(`${r.id}: the bridge read is not off against 2`);
-  const want = { mix: '3', pts: '16', lambda: '0.0223606797749979', raiseSurv: 'true', failShort: 'floor', tiersAbove: '1' };
+  const want = { mix: '3', pts: '16', grid: 'total16x6x6', lambda: '0.0223606797749979', raiseSurv: 'true', failShort: 'floor', tiersAbove: '1' };
   for (const [k, v] of Object.entries(want)) if (field(r.ranOff, k) !== v) bad.push(`${r.id}: ${k} is ${field(r.ranOff, k)}, not ${v}`);
   const levels = (field(r.ranOff, 'levels') || '').split(',').map(Number);
   if (!(Math.max(...levels) === 1.1 && Math.min(...levels) === 0.8)) bad.push(`${r.id}: the menu is ${field(r.ranOff, 'levels')}, not capped at 1.1 down to the floor 0.8`);

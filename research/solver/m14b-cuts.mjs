@@ -22,7 +22,9 @@ const perPath = (r, lam = 1) => { const b = new Float64Array(r.N), c = new Float
 { // planted at lambda 2: two years at 80% cost 2 x 2 x 0.04 x 100 = 16; a path failing in year 1 of 3 is charged 2 dead years
   const p = perPath({ N: 1, Y: 3, trace: { level: new Uint8Array([80, 80, 100]), failYear: new Int16Array([0]) }, paths: { survived: [1] } }, 2);
   const q = perPath({ N: 1, Y: 3, trace: { level: new Uint8Array([0, 0, 0]), failYear: new Int16Array([1]) }, paths: { survived: [0] } }, 2);
-  if (p.b[0] !== 2 || Math.abs(p.c[0] - 0.4) > 1e-12 || Math.abs(p.k[0] - 16) > 1e-9 || Math.abs(p.net[0] - 84) > 1e-9 || Math.abs(q.netD[0] + 16) > 1e-9) { console.log('PLANTED CHECK FAILED'); process.exit(1); } }
+  // a path that fails only by ending under the minimum pot keeps failYear -1: no dead-year charge; a level-0 year is no cut
+  const e = perPath({ N: 1, Y: 3, trace: { level: new Uint8Array([0, 90, 90]), failYear: new Int16Array([-1]) }, paths: { survived: [0] } }, 2);
+  if (p.b[0] !== 2 || Math.abs(p.c[0] - 0.4) > 1e-12 || Math.abs(p.k[0] - 16) > 1e-9 || Math.abs(p.net[0] - 84) > 1e-9 || Math.abs(q.netD[0] + 16) > 1e-9 || e.b[0] !== 2 || Math.abs(e.netD[0] + 4) > 1e-9) { console.log('PLANTED CHECK FAILED'); process.exit(1); } }
 const pd = (x, y) => { const n = x.length, d = Array.from(x, (v, i) => y[i] - v), m = d.reduce((a, v) => a + v, 0) / n, sd = Math.sqrt(d.reduce((a, v) => a + (v - m) ** 2, 0) / (n - 1)); return { m, se: sd / Math.sqrt(n) }; };
 const f = (x, k = 3) => x.toFixed(k), sg = x => (x >= 0 ? '+' : '') + f(x);
 console.log('# M14b cuts, per path: years below target and total cut (target-years), down -> up (paired se); lambda per household');

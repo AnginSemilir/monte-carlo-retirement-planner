@@ -52,8 +52,8 @@ const pair = (a, b) => {   // b - a, paired; se from the discordant paths
 const betPaths = r => { let n = 0; for (let i = 0; i < r.N; i++) for (let t = 0; t < r.Y; t++) { const j = i * r.Y + t; if (r.trace.level[j] && r.trace.tier[j] === ABOVE) { n++; break; } } return n; };
 const cuts = (r, lam) => { const b = new Float64Array(r.N), c = new Float64Array(r.N), k = new Float64Array(r.N); for (let i = 0; i < r.N; i++) for (let t = 0; t < r.Y; t++) { const l = r.trace.level[i * r.Y + t]; if (l > 0 && l < 100) { b[i]++; c[i] += (100 - l) / 100; k[i] += 100 * lam * ((100 - l) / 100) ** 2; } } return { b, c, k }; };
 { // planted at lambda 2: two years at 80% must cost 2 x 2 x 0.04 x 100 = 16 survival points, or nothing is printed
-  const p = cuts({ N: 1, Y: 3, trace: { level: new Uint8Array([80, 80, 100]) } }, 2);
-  if (p.b[0] !== 2 || Math.abs(p.c[0] - 0.4) > 1e-12 || Math.abs(p.k[0] - 16) > 1e-9) { console.log('PLANTED CHECK FAILED: the cut measures'); process.exit(1); }
+  const p = cuts({ N: 1, Y: 3, trace: { level: new Uint8Array([80, 80, 100]) } }, 2), z = cuts({ N: 1, Y: 3, trace: { level: new Uint8Array([0, 80, 100]) } }, 2);   // a level-0 year is no cut
+  if (p.b[0] !== 2 || Math.abs(p.c[0] - 0.4) > 1e-12 || Math.abs(p.k[0] - 16) > 1e-9 || z.b[0] !== 1 || Math.abs(z.k[0] - 8) > 1e-9) { console.log('PLANTED CHECK FAILED: the cut measures'); process.exit(1); }
 }
 const pdiff = (x, y) => { const n = x.length; let m = 0; for (let i = 0; i < n; i++) m += y[i] - x[i]; m /= n; let v = 0; for (let i = 0; i < n; i++) v += (y[i] - x[i] - m) ** 2; return { d: m, se: Math.sqrt(v / (n - 1) / n) }; };
 const estate = (a, b) => { const x = [], y = []; for (let i = 0; i < a.N; i++) if (a.paths.survived[i] && b.paths.survived[i]) { x.push(a.paths.terminalNet[i]); y.push(b.paths.terminalNet[i]); } return [med(x), med(y)]; };

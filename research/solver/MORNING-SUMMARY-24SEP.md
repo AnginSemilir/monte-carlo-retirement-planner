@@ -9,7 +9,18 @@ and every test had its prediction written down before it ran. Where a prediction
 
 ## 1. The purpose test: does the solver find the best plan? (M18)
 
-PENDING (`results-bestof.txt`).
+**Your test passes.** At 160 moments in 8 households' retirements (half of them on a knife-edge), the solver's
+top six ideas were each played out on the same simulated markets, the best picked on half the markets and
+measured on the other half. **At 159 of 160, no rival survived measurably better than the solver's own pick**;
+on average the best rival survived 0.02 points *worse*. Chart: "Best Plan Test"
+(https://claude.ai/artifact/Th7nNKELo3mi5j1yQCTVQi). `results-bestof.txt`.
+
+- The solver's internal table runs 3-5 points optimistic (section 4), but it ranks moves correctly: moves it
+  puts well behind do worse in simulation (ahead in 1 of 30).
+- One small lean on the full score (estate, cuts, raises): in comfortable positions it holds a tier more
+  caution than its own estate setting pays for. Ten of the 13 "beyond noise" cases are ties under 0.06 points.
+- What it does not cover: a completely different strategy (that is Phase 4, against the app's best), and
+  futures that are already failing (section 2).
 
 ## 2. What the plan does in bad markets, and the fix (M17)
 

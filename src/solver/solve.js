@@ -1230,11 +1230,12 @@ export const PRODUCT_BASELINE = Object.freeze({
   // step 6 (24 Sep): the M17 floor fix - a year with no money costs what a year at the floor costs, and a raise's
   // credit counts only in the futures that survive. It keeps the plan from spending up into a failure.
   raiseSurvival: true, failureShortfall: true,
-  // F1 v2, the bridge read (maintainer 24 Sep ~18:25 UK: PROVISIONAL until F2's test, schedule 7e): the table's read of a
-  // retired bridge counts the money arriving in it, the accessible money's growth, and acts when it looks short. On the
-  // F1 v2 test (results-f1v2.txt) the in-class reads moved to within a few points of simulation and survival rose by up
-  // to 22 points where the old read was blind; one case lost beyond two paired se (bridge 4, -0.8), not yet explained.
-  bridgeRead: 2
+  // The bridge read: OFF until F2's test (schedule 7e) chooses between off, F1 v1, F1 v2 and F2 in one setting. F1 v2
+  // was made the provisional default at 18:21 UK on the condition that it was genuinely better than v1; withdrawn 24 Sep
+  // 19:25 UK, since the files do not show that (v2 lost 0.8 +/- 0.32 on bridge 4, results-f1v2.txt, where v1 lost
+  // nothing beyond two se, results-f1-verdict.txt, in a different setting) and the F1 v2 test's registered consequence
+  // (predictions/f1v2-test.md) is that v2 is not carried forward. Callers pass `bridgeRead: 1` or `2` to read with F1.
+  bridgeRead: false
   // no levelSearch: the full scan. The ternary search lost 0.20 points on S112 and S390 at 2.4 paired standard errors in
   // the step-2 re-check (none gained), so by the rule written before it the full scan stays. No shareDead: neither #106
   // option passed its test on S126 (results-step2.txt).
@@ -1254,7 +1255,8 @@ export function productLevels(floorFrac) {
  *   - the estate slider (`estateWeight`) never below 0.01, because a weight of zero leaves nothing rewarding a pound
  *     saved from tax and the plan then pays far more of it (M20); left unset, the estate term is today's;
  *   - risk ABOVE the user's tier ON by default in every plan, one tier, only with consent to change risk
- *     (maintainer 24 Sep, widening the step-6 opt-in; PROVISIONAL until M14b; `riskAbove: 'auto'` below is the fallback);
+ *     (maintainer 24 Sep, widening the step-6 opt-in; M14b FALSIFIED it for comfortable plans, and the fallback,
+ *     `riskAbove: 'auto'` below, waits for the maintainer's decision after M14c);
  *   - the taxable account's tier is refused: the joint-step version failed its probe (M15) and a working design is
  *     planned, not built.
  */
@@ -1266,8 +1268,10 @@ export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, e
  * (75-81%) and did nothing measurable for comfortable ones, bar one small loss (S162, -0.23 +/- 0.09). It is a bet
  * made when behind: most of the futures it is used in still fail, but it saves about three for every one it loses,
  * and the years without money fell. So `riskAbove` left unset means ON (one tier above, only with consent to change
- * risk; nothing happens where the pension is already at the top tier). PROVISIONAL until M14b re-checks it under
- * today's defaults.
+ * risk; nothing happens where the pension is already at the top tier). M14b re-checked it under today's defaults
+ * (results-m14b.txt) and FALSIFIED it for comfortable plans: S172, S194 and S162 lose survival beyond two paired se.
+ * 'auto' at 85% was approved, then held by the maintainer for M14c (does the table misjudge the bets?); until that
+ * decision the default is still on.
  *
  * `riskAbove: 'auto'` keeps the earlier, more cautious rule (maintainer's first choice, 07:28 UK), for use if M14b finds
  * comfortable plans losing:
@@ -1276,7 +1280,7 @@ export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, e
  *     a seed used for nothing else. The table's own number is not used: it runs 3-5 points optimistic (M16) and
  *     reads dead corners low (#106);
  *   - and it is kept only if the plan with it survives at least as well on those same paths.
- * PROVISIONAL until M14b re-checks the gain under today's defaults (the evidence predates the M17 fix).
+ * M14b's registered consequence is this rule, its threshold set from its item 3 (85%); the maintainer holds that for M14c.
  */
 function solvePlanAuto(E, M, plan, opts) {
   const off = solvePlan(E, M, plan, { ...opts, riskAbove: false });

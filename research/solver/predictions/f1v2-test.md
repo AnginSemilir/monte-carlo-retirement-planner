@@ -110,7 +110,7 @@ F2 (a coverage axis in bridge years, or a node at the cliff) is built instead.
 
 ## Changes after seeing results
 
-No result of this test exists yet; one change was made before the run.
+Two changes were made before the run; after it, one decision went against the registered consequence and was withdrawn.
 - 24 Sep 14:08 UK, before any run: added the cost case, bridge 4 with a 30k one-off cost in its year 2, at the
   maintainer's request (14:05 UK, "Yes, add the cost case"). It covers a bridge household with a one-off cost, which the
   library does not have. Changed: the derivation, item 1, the falsifier and rows 1-2 now include the cost case. Nothing
@@ -124,3 +124,14 @@ No result of this test exists yet; one change was made before the run.
   or growth figure taken from diagnose-f1.mjs's rough model - here (all replaced), PLAN.md's "Why F1 missed" (share 0.95
   72.0, bridge 6 75.6: the code's v2 caps are 73.2 and, with the inheritance counted, 99.7) and f2-design.md (S360 about
   27: the code's 47.2).
+- 24 Sep 18:30 UK, AFTER the result (FALSIFIED on one clause: bridge 4 lost 0.8 +/- 0.32, 2.5 paired se;
+  results-f1v2.txt): **the registered consequence was overridden without saying so.** The falsifier's consequence is
+  "v2 is not carried forward, and F2 ... is built instead". The maintainer said at 18:21 UK: "If you believe v2 is
+  genuinely an improvement on v1 we can go with that provisionally until F2 is tested". That message had not been told
+  this rule. v2 was then made the provisional default (7add0ff). The judgment behind it overstated the files (PLAN.md,
+  the 19:25 row): v2 has no survival gain on bridge 6 or S366; v1 lost nothing beyond two se where v2 lost on bridge 4;
+  and v1's reading is PROVISIONAL.
+- 24 Sep 19:25 UK, AFTER the result: **the override withdrawn; the registered consequence stands.** v2 is not carried
+  forward. The bridge read is off by default (`PRODUCT_BASELINE.bridgeRead = false`). F2 is built and tested (7e), with
+  off, v1 and v2 as its other arms in one setting. Nothing in the prediction, its items or its falsifier changed, and
+  the result stands as read. The choice was put back to the maintainer with this rule stated.

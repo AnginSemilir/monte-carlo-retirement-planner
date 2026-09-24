@@ -5,7 +5,9 @@
 # to 40 first-bet positions simulates the bet against the table's best move without it on 500 fresh paths each.
 # Households: S194 S162 S252 (their bets lost in M14b) and S330 (the control: its bets won).
 set -u
-H="34:2 26:0.1 50:2 64:0.9457416090031758"
+# CELLS re-runs a subset with the same settings (24 Sep 19:45 UK: a container restart killed S330's bet audit; the other
+# three had finished): CELLS="64:0.9457416090031758"
+H="${CELLS:-34:2 26:0.1 50:2 64:0.9457416090031758}"
 printf '%s\n' $H | xargs -P 4 -I{} sh -c '
   set -- $(echo "{}" | tr ":" " ")
   K=$1; LAM=$2

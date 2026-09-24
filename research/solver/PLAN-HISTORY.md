@@ -2114,7 +2114,7 @@ fixed solver. It adds a few hours to Thursday.
 
 ## M14b (COMPLETED 24 Sep 16:49 UK, FALSIFIED; the default decision held for M14c) - moved here from PLAN.md 18:30 UK
 
-Outcome (results-m14b.txt, results-m14b-why.txt; the ledger row 24 Sep 16:49): the thin four gained less than predicted and comfortable plans lost survival beyond two se (S172, S194, S162), so the falsifier's second clause fired and its registered consequence is 'auto'. 'Auto' at 85% was approved at 16:57 UK and held at 17:35 UK for M14c. The section as it stood:
+Outcome (results-m14b.txt, results-m14b-why.txt; the ledger row 24 Sep 16:49): the thin four gained less than predicted and comfortable plans lost survival beyond two se (S172, S194, S162), so the falsifier's second clause fired and its registered consequence is 'auto'. 'Auto' at 85% was approved at 16:55 UK and held at 17:35 UK for M14c. The section as it stood:
 
 ## M14b. Risk above the tier, re-checked under the step-6 defaults (prediction committed 24 Sep 07:33 UK in 204335d, before the run)
 

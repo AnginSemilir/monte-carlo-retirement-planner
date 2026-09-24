@@ -1,0 +1,30 @@
+# The final year: survival by the solver's 5-node rule against the exact normal probability (three worlds, one pot)
+pot/K          Low exact/GH5   Medium/Low exact/GH5       Medium exact/GH5  Medium/High exact/GH5         High exact/GH5  
+1.00     68.66 /  76.67     67.14 /  76.67     64.12 /  76.67     62.06 /  76.67     60.70 /  76.67   
+1.05     92.08 /  95.17     87.37 /  80.37     80.20 /  76.67     74.78 /  76.67     71.04 /  76.67   
+1.10     98.90 /  98.87     96.50 /  98.87     90.55 /  80.37     84.41 /  76.67     79.52 /  76.67   
+1.15     99.91 / 100.00     99.29 /  98.87     96.06 /  98.87     90.99 /  80.37     86.05 /  76.67   
+1.20    100.00 / 100.00     99.89 /  99.81     98.54 /  98.87     95.10 /  98.87     90.82 /  80.37   
+1.22    100.00 / 100.00     99.95 / 100.00     99.05 /  98.87     96.22 /  98.87     92.30 /  95.17   
+1.25    100.00 / 100.00     99.99 / 100.00     99.52 /  98.87     97.48 /  98.87     94.14 /  98.87   
+1.30    100.00 / 100.00    100.00 / 100.00     99.86 /  99.81     98.77 /  98.87     96.36 /  98.87   
+1.35    100.00 / 100.00    100.00 / 100.00     99.96 / 100.00     99.42 /  98.87     97.79 /  98.87   
+1.40    100.00 / 100.00    100.00 / 100.00     99.99 / 100.00     99.74 /  99.06     98.69 /  98.87   
+1.50    100.00 / 100.00    100.00 / 100.00    100.00 / 100.00     99.95 / 100.00     99.57 /  99.06   
+1.60    100.00 / 100.00    100.00 / 100.00    100.00 / 100.00     99.99 / 100.00     99.86 /  99.81   
+
+One tier up, Medium -> Medium/High: the survival it costs, exact against the 5-node rule
+  pot/K 1.00:  exact -2.07   5-node +0.00   <- the rule misprices the step by 2.07
+  pot/K 1.05:  exact -5.42   5-node +0.00   <- the rule misprices the step by 5.42
+  pot/K 1.10:  exact -6.13   5-node -3.70   <- the rule misprices the step by 2.43
+  pot/K 1.15:  exact -5.06   5-node -18.51   <- the rule misprices the step by 13.44
+  pot/K 1.20:  exact -3.44   5-node +0.00   <- the rule misprices the step by 3.44
+  pot/K 1.22:  exact -2.83   5-node +0.00   <- the rule misprices the step by 2.83
+  pot/K 1.25:  exact -2.04   5-node +0.00   <- the rule misprices the step by 2.04
+  pot/K 1.30:  exact -1.09   5-node -0.94
+  pot/K 1.35:  exact -0.54   5-node -1.13
+  pot/K 1.40:  exact -0.25   5-node -0.94
+  pot/K 1.50:  exact -0.05   5-node +0.00
+  pot/K 1.60:  exact -0.01   5-node +0.00
+
+PLANTED: at pot/K 3 (every node survives) 5-node 100.00, exact 100.00: ok; the middle node's step 53.3: ok

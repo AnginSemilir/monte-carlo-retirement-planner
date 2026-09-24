@@ -198,7 +198,9 @@ Two versions are compared on the same paths:
    that runs across the pension-share axis α (A = W·(1 − α)), where there are only 6 points.
 3. **Running out part-way.** The same shape as the first, without the pot.
 
-**A first-order model of the end line** (a fixed reference plan: spend at the floor, one tier k, n = T − t years left):
+**A first-order model of the end line** (a fixed reference plan: spend at the floor, one tier k, n = T − t + 1 years of
+spending and growth left, since year T itself still draws and grows; at the start of year T the line is d_T + K·e^(−ρ),
+not K):
 
 ```
 W_T ≈ W_t · G_n − Σ_{i=0..n−1} d_{t+i} · G_{n−i}

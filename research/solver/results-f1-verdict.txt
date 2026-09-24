@@ -1,0 +1,68 @@
+F1 TEST, READ AGAINST predictions/f1-test.md (results-f1.txt; the class at the floor need from `audit-s126.mjs scan`)
+
+case         class(log) class(floor)  gap off -> on   tier-below off -> on   survival (paired se)
+S126         YES        YES            -52.2 ->   +0.1    40.0 ->  10.7        -0.1 +/- 0.10
+share 0.50   no         no              +0.1 ->   +0.1     6.9 ->   6.9        +0.0 +/- 0.00
+share 0.70   no         no              -0.2 ->   +0.1     9.5 ->   9.5        +0.0 +/- 0.00
+share 0.78   no         no              -0.8 ->   +0.1    40.0 ->  10.1        -0.1 +/- 0.10
+share 0.90   YES        YES            -98.8 ->   +0.2    10.8 ->  11.2        +0.0 +/- 0.00
+share 0.95   no         YES            -68.2 ->  -10.8     4.6 ->   4.6        +0.0 +/- 0.00
+bridge 0     no         no              +0.1 ->   +0.1     6.7 ->   6.7        +0.0 +/- 0.00
+bridge 1     YES        YES            -17.0 ->   +0.1     8.8 ->   8.8        +0.0 +/- 0.00
+bridge 4     YES        YES            -94.6 ->   -3.0    42.0 ->  42.0        +0.0 +/- 0.00
+bridge 6     no         YES            -96.5 ->  -46.0    44.0 ->  38.1        -0.5 +/- 0.26
+wealth x0.5  YES        YES            -93.6 ->   +0.1    36.8 ->  39.4        +0.7 +/- 0.30
+wealth x2    YES        YES             -9.7 ->   +0.0    40.0 ->   1.0        +0.0 +/- 0.00
+S120         YES        YES            -10.0 ->   +0.0    40.0 ->   0.2        +0.0 +/- 0.00
+S122         YES        YES            -66.0 ->   +0.0     2.2 ->   2.5        +0.0 +/- 0.00
+S124         YES        YES            -89.7 ->   +0.3    39.1 ->  39.1        +0.2 +/- 0.14
+S128         YES        YES            -71.0 ->   +3.2    28.1 ->  29.7        +0.5 +/- 0.73
+S130         YES        YES            -83.6 ->   +5.3    35.4 ->  36.9        +0.6 +/- 0.47
+S360         no         no             -39.5 ->  -39.8     0.0 ->  17.4        +3.9 +/- 0.64
+S366         no         no             -97.6 ->  -96.2    40.0 ->  28.2        +0.3 +/- 0.17
+
+Item 1 - the class: table within +/-5 of simulation in class, within +/-15 on the edge (share 0.95, bridge 6)
+  HELD   S126: gap +0.1 (limit +/-5)
+  HELD   share 0.90: gap +0.2 (limit +/-5)
+  HELD   share 0.95: gap -10.8 (limit +/-15)
+  HELD   bridge 1: gap +0.1 (limit +/-5)
+  HELD   bridge 4: gap -3.0 (limit +/-5)
+  MISSED bridge 6: gap -46.0 (limit +/-15)
+  HELD   wealth x0.5: gap +0.1 (limit +/-5)
+  HELD   wealth x2: gap +0.0 (limit +/-5)
+  HELD   S120: gap +0.0 (limit +/-5)
+  HELD   S122: gap +0.0 (limit +/-5)
+  HELD   S124: gap +0.3 (limit +/-5)
+  HELD   S128: gap +3.2 (limit +/-5)
+  MISSED S130: gap +5.3 (limit +/-5)
+
+Item 2 - no survival cost beyond two paired se, on any case
+  HELD   S126: -0.1 +/- 0.10 (1.0 se)
+  HELD   share 0.78: -0.1 +/- 0.10 (1.0 se)
+  HELD   bridge 6: -0.5 +/- 0.26 (1.9 se)
+
+Item 3 - on S126 and the library class, years below tier fall by at least half (from ~40)
+  HELD   S126: 40.0 -> 10.7
+  MISSED bridge 4: 42.0 -> 42.0
+  MISSED bridge 6: 44.0 -> 38.1
+  MISSED wealth x0.5: 36.8 -> 39.4
+  HELD   wealth x2: 40.0 -> 1.0
+  HELD   S120: 40.0 -> 0.2
+  MISSED S124: 39.1 -> 39.1
+  MISSED S128: 28.1 -> 29.7
+  MISSED S130: 35.4 -> 36.9
+
+Item 4 - out of class
+  HELD   bridge 0 unchanged
+  HELD   share 0.50: table 99.9 -> 99.9, sim 99.8 -> 99.8 (within 0.5)
+  HELD   share 0.70: table 99.6 -> 99.9, sim 99.8 -> 99.8 (within 0.5)
+  HELD   share 0.78: years below tier 40 -> 10.1
+
+Item 5 - the long-bridge controls: F1 never acts at the start; read low and simulate low, as without it
+  MISSED S360: table 0.7 -> 4.3, sim 40.2 -> 44.1, tier-below 0 -> 17.4
+  MISSED S366: table 1.3 -> 3, sim 98.9 -> 99.2, tier-below 40 -> 28.2
+
+Falsifier - an in-class case AWAY from the edge misreads by more than 10, or any case loses survival beyond two paired se
+  in class away from the edge, |gap| > 10: none (largest |gap| 5.3)
+  survival lost beyond two paired se: none
+  => NOT FALSIFIED

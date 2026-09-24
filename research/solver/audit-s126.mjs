@@ -49,21 +49,28 @@ function variant(name, { a0 = 0.85, bridge = 2, scale = 1 } = {}) {
 
 /* the inputs' view: pension share, bridge years, the bridge's need and the cliff */
 function facts(plan) {
-  const pl = E.resolveMpaa(E.normalizePlan(plan));
+  // the same floor the runs use (measure(): 0.8 of target): facts() read the raw plan, which has no floor, so its need
+  // was the target need whatever the formula below said (O8, found by the plan-auditor 24 Sep 09:45 UK)
+  const pl = E.resolveMpaa(E.normalizePlan({ ...plan, spending: { ...plan.spending, floorSpend: Math.round(0.8 * E.num(plan.spending.targetSpend, 0)) } }));
   const ctx = E.buildContext(pl);
   const o = ctx.owners[0];
   const bal = (re) => pl.accounts.filter(a => re.test(a.category) && a.owner === 'Myself').reduce((t, a) => t + E.num(a.balance, 0), 0);
   const pen = bal(/^Pensions/), liq = bal(LIQ), W = pen + liq;
   const retired = ctx.ageSelf0 >= o.retireAge;
   const B = Math.max(0, ctx.nmpa - Math.max(ctx.ageSelf0, o.retireAge));
-  let need = 0;
+  // the bridge's need at the FLOOR (floorFrac x target), not the target: the cliff is where the liquid money cannot
+  // carry the floor to pension access (the replication, 24 Sep 07:48 UK; O8: this function kept the target need until
+  // 24 Sep 12:12 UK). With no floor set, the target is the need.
+  let need = 0, needTarget = 0;
   for (let k = 0; k < B; k++) {
     const age = Math.max(ctx.ageSelf0, o.retireAge) + k;
     const guaranteed = ctx.otherIncomes.reduce((t, inc) => t + (age >= inc.startAge && age <= inc.endAge ? inc.amount : 0), 0) + (age >= ctx.spa ? o.statePension : 0);
-    need += Math.max(0, E.spendTargetAtAge(ctx, age) - guaranteed) * (k === 0 && ctx.ageSelf0 >= o.retireAge ? ctx.yf : 1);
+    const w = k === 0 && ctx.ageSelf0 >= o.retireAge ? ctx.yf : 1, target = E.spendTargetAtAge(ctx, age);
+    needTarget += Math.max(0, target - guaranteed) * w;
+    need += Math.max(0, (ctx.floorFrac > 0 ? ctx.floorFrac * target : target) - guaranteed) * w;
   }
   const a0 = W > 0 ? pen / W : 0, aStar = W > 0 ? 1 - need / W : 1;
-  return { pl, ctx, a0, B, need, W, liq, aStar, retired, inClass: B > 0 && a0 > 0.8 && a0 < aStar };
+  return { pl, ctx, a0, B, need, needTarget, W, liq, aStar, retired, inClass: B > 0 && a0 > 0.8 && a0 < aStar };
 }
 
 function measure(h, bridgeRead = false) {
@@ -91,11 +98,13 @@ function pairF1(id, h) {
   const d = b.sim - a.sim, se = 100 * Math.sqrt(disc) / NP;
   console.log(`${id.padEnd(16)} a0 ${f1(a.a0, 2)} B ${a.B} class ${a.inClass ? 'YES' : 'no '} | OFF table ${f1(a.table).padStart(5)} sim ${f1(a.sim).padStart(5)} gap ${f1(a.gap).padStart(6)} tier-below ${f1(a.tierYrs).padStart(4)} below ${f1(a.below).padStart(4)} | F1 table ${f1(b.table).padStart(5)} sim ${f1(b.sim).padStart(5)} gap ${f1(b.gap).padStart(6)} tier-below ${f1(b.tierYrs).padStart(4)} below ${f1(b.below).padStart(4)} | survival ${(d >= 0 ? '+' : '') + f1(d, 2)} +/- ${f1(se, 2)}`);
 }
+// the S126 variants the F1 test runs (also read, without solving, by the scan)
+const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', { a0: 0.7 }], ['share 0.78', { a0: 0.78 }], ['share 0.90', { a0: 0.9 }], ['share 0.95', { a0: 0.95 }],
+  ['bridge 0', { bridge: 0 }], ['bridge 1', { bridge: 1 }], ['bridge 4', { bridge: 4 }], ['bridge 6', { bridge: 6 }], ['wealth x0.5', { scale: 0.5 }], ['wealth x2', { scale: 2 }]];
 if (mode === 'f1') {
   const which = process.argv[5] || 'all';
   console.log(`F1 TEST, ${POINTS} points, ${NP} held paths (seed 7002), off against on, paired`);
-  const V = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', { a0: 0.7 }], ['share 0.78', { a0: 0.78 }], ['share 0.90', { a0: 0.9 }], ['share 0.95', { a0: 0.95 }],
-    ['bridge 0', { bridge: 0 }], ['bridge 1', { bridge: 1 }], ['bridge 4', { bridge: 4 }], ['bridge 6', { bridge: 6 }], ['wealth x0.5', { scale: 0.5 }], ['wealth x2', { scale: 2 }]];
+  const V = F1_VARIANTS;
   const L = ['S120', 'S122', 'S124', 'S128', 'S130', 'S360', 'S366'];
   if (which === 'all' || which === 'variants') for (const [id, o] of V) pairF1(id, variant(id, o));
   if (which === 'all' || which === 'library') for (const id of L) pairF1(id, all.find(s => s.id === id));
@@ -107,6 +116,9 @@ if (mode === 'f1') {
     if (f.B > 0 && f.a0 > 0.6) { n++; console.log(`${s.id.padEnd(6)} ${s.name.slice(0, 44).padEnd(44)} a0 ${f.a0.toFixed(2)}  B ${f.B}  a* ${f.aStar.toFixed(3)}  retired ${f.retired ? 'yes' : 'no '}  class ${f.inClass ? 'YES' : 'no'}`); }
   }
   console.log(`${n} singles in a bridge with a0 > 0.6; in the class: ${all.filter(s => facts(s.plan).inClass).map(s => s.id).join(' ') || 'none'}`);
+  // the F1 test's variants by the same test, at the floor need (O8: results-f1.txt's class column used the target need)
+  console.log('\nThe S126 variants of the F1 test, by the same test (no solve):');
+  for (const [id, o] of F1_VARIANTS) { const f = facts(variant(id, o).plan); console.log(`${id.padEnd(12)} a0 ${f.a0.toFixed(2)}  B ${f.B}  W ${(f.W / 1000).toFixed(0)}k  need ${(f.need / 1000).toFixed(0)}k (target ${(f.needTarget / 1000).toFixed(0)}k)  a* ${f.B > 0 ? f.aStar.toFixed(3) : '-'}  class ${f.inClass ? 'YES' : 'no'}`); }
 } else if (mode === 'ids') {
   console.log(`NAMED HOUSEHOLDS, ${POINTS} points, ${NP} held paths (seed 7002), lambda ${LAMBDA}`);
   for (const id of process.argv[3].split(',')) line(id, measure(all.find(s => s.id === id)));

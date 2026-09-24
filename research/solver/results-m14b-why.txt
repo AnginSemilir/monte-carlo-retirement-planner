@@ -1,4 +1,4 @@
-# M14b path by path, from its records and result files (no run): 24 Sep 17:48 UK, `node research/solver/diagnose-m14b.mjs` - the maintainer's questions why risk above loses on comfortable plans, and why the solver would make a move that lowers survival
+# M14b path by path, from its records and result files (no run): 24 Sep 17:57 UK, `node research/solver/diagnose-m14b.mjs` - the maintainer's questions why risk above loses on comfortable plans, why the solver would make a move that lowers survival, and whether the losing bets shrink the estate
 FAIR-TEST CHECK: m14b-down:solver  against  m14b-up:solver
   households: 12 shared
   [13] risk tiers allowed           ["0/0","1/1","2/2"]            | ["0/0","1/1","2/2","3/3"]      TESTED
@@ -48,3 +48,31 @@ WHAT IT BOUGHT (result files): survival | estate at the end, median / mean / unl
   S070  76.70 -> 77.27 | median 466k -> 468k (+0.5%)  mean 1568k -> 1532k (-2.3%)  tenth 0k -> 0k | 1.001 -> 1.006
   S330  76.03 -> 77.23 | median 2560k -> 2677k (+4.6%)  mean 9695k -> 10039k (+3.5%)  tenth 0k -> 0k | 1.067 -> 1.071
   S354  81.07 -> 82.37 | median 3397k -> 3340k (-1.7%)  mean 10772k -> 11118k (+3.2%)  tenth 0k -> 0k | 1.085 -> 1.085
+
+THE BETS, LIKE FOR LIKE (records): estate on paths surviving in BOTH arms, median down -> up | paths that bet: count, and their outcome both-survive / saved / lost / both-fail | lost paths: the no-bet arm's estate at the end, median (min-max), in years of target spending
+  S172  341k -> 564k (+65.1%) |   27 bet: 5 / 0 / 15 / 7 | 1.1 yrs (1.0-1.5)
+  S194  263k -> 262k (-0.5%) |   66 bet: 49 / 0 / 7 / 10 | 1.1 yrs (1.0-1.1)
+  S162  2292k -> 2292k (+0.0%) |    7 bet: 0 / 0 / 3 / 4 | 1.0 yrs (1.0-1.2)
+  S252  672k -> 675k (+0.3%) |  113 bet: 74 / 1 / 6 / 32 | 1.1 yrs (1.0-1.1)
+  S414  2018k -> 2000k (-0.9%) |   54 bet: 30 / 1 / 5 / 18 | 1.1 yrs (1.0-1.2)
+  S234  2486k -> 2496k (+0.4%) |   24 bet: 7 / 2 / 1 / 14 | 1.2 yrs (1.2-1.2)
+  S020  392k -> 392k (-0.2%) |  542 bet: 196 / 20 / 28 / 298 | 1.1 yrs (1.0-1.3)
+  S082  1993k -> 1989k (-0.2%) |  355 bet: 120 / 11 / 19 / 205 | 1.1 yrs (1.0-1.2)
+  S184  389k -> 386k (-0.9%) |  455 bet: 163 / 24 / 22 / 246 | 1.1 yrs (1.0-1.6)
+  S070  1104k -> 1047k (-5.2%) | 1073 bet: 344 / 50 / 33 / 646 | 1.1 yrs (1.0-1.7)
+  S330  5077k -> 5122k (+0.9%) |  915 bet: 185 / 47 / 17 / 666 | 1.2 yrs (1.1-1.4)
+  S354  5233k -> 5330k (+1.9%) |  710 bet: 133 / 50 / 10 / 517 | 1.1 yrs (1.0-1.2)
+
+HOW THE SAVED AND LOST PATHS FAIL (records): saved = the arm without the bet failed; lost = the arm with it failed. "ran out" = money ran out part-way; "end" = reached the end but under the minimum pot. Last-paid-year wealth in years of target, median, failing arm -> other arm
+  S172  saved   0: ran out   0, end   0  (-)  |  lost  23: ran out   4, end  19  (0.88 -> 1.11)
+  S194  saved   1: ran out   0, end   1  (1.00 -> 1.06)  |  lost   9: ran out   2, end   7  (0.92 -> 1.05)
+  S162  saved   1: ran out   0, end   1  (1.00 -> 1.01)  |  lost   7: ran out   0, end   7  (0.94 -> 1.03)
+  S252  saved   1: ran out   1, end   0  (0.02 -> 1.11)  |  lost   6: ran out   1, end   5  (0.86 -> 1.06)
+  S414  saved   2: ran out   0, end   2  (0.99 -> 1.15)  |  lost   6: ran out   4, end   2  (0.11 -> 1.09)
+  S234  saved   3: ran out   2, end   1  (0.22 -> 1.07)  |  lost   1: ran out   0, end   1  (0.93 -> 1.16)
+  S020  saved  23: ran out  13, end  10  (0.26 -> 1.10)  |  lost  33: ran out   4, end  29  (0.64 -> 1.09)
+  S082  saved  12: ran out   7, end   5  (0.53 -> 1.12)  |  lost  22: ran out   0, end  22  (0.59 -> 1.06)
+  S184  saved  24: ran out  20, end   4  (0.11 -> 1.15)  |  lost  29: ran out   5, end  24  (0.91 -> 1.08)
+  S070  saved  50: ran out  44, end   6  (0.13 -> 1.21)  |  lost  33: ran out  14, end  19  (0.46 -> 1.15)
+  S330  saved  53: ran out  44, end   9  (0.19 -> 1.20)  |  lost  17: ran out   7, end  10  (0.28 -> 1.22)
+  S354  saved  51: ran out  47, end   4  (0.17 -> 1.18)  |  lost  12: ran out   1, end  11  (0.81 -> 1.15)

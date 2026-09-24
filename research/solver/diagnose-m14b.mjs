@@ -8,6 +8,9 @@
  *                  spending level or its tier differs from the arm without the option - the option changing behaviour
  *                  where it is never used (the value of a later bet feeding back into today's choices)
  *   tier mix       the share of paid years each arm holds at each tier
+ *   what it bought each arm's estate at the end (median, mean, unlucky tenth) and spending on the median path, from the
+ *                  result files: the solver's score counts the estate as well as spending and years without money,
+ *                  so a survival loss can be a trade the score accepts (fields the runPolicy bug never touched)
  * Tier codes are tierPen * 4 + tierIsa (record.mjs); the menu's index 0 is the plan's tier, 1 and 2 one and two below,
  * and 3 one above (src/solver/fast.js tiersFor: "the tiers above go AFTER the ones below"), so 0, 5, 10 and 15 here.
  * Levels are percent of target.
@@ -15,7 +18,7 @@
  *   node research/solver/diagnose-m14b.mjs        (kept in results-m14b-why.txt)
  */
 import { readRecord } from './record.mjs';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireFair } from './fair-gate.mjs';
@@ -63,3 +66,10 @@ for (const id of ids) {
 console.log('\nTIER MIX, % of paid years at: plan / one below / two below / one above');
 console.log('  id    down (no tier above)       |  up (one tier above allowed)');
 for (const l of MIX) console.log(l);
+console.log('\nWHAT IT BOUGHT (result files): survival | estate at the end, median / mean / unlucky tenth | spending level on the median path');
+const S = (t, id) => JSON.parse(readFileSync(join(R, t, `${id}.json`), 'utf8')).solver;
+const k = x => `${(x / 1000).toFixed(0)}k`, ch = (a, b) => `${b >= a ? '+' : ''}${(100 * (b / a - 1)).toFixed(1)}%`;
+for (const id of ids) {
+  const d = S(DOWN, id), u = S(UP, id);
+  console.log(`  ${id}  ${d.floorRate.toFixed(2)} -> ${u.floorRate.toFixed(2)} | median ${k(d.medianTerminalNet)} -> ${k(u.medianTerminalNet)} (${ch(d.medianTerminalNet, u.medianTerminalNet)})  mean ${k(d.meanTerminalNet)} -> ${k(u.meanTerminalNet)} (${ch(d.meanTerminalNet, u.meanTerminalNet)})  tenth ${k(d.p10TerminalNet)} -> ${k(u.p10TerminalNet)} | ${d.meanLevelMedian.toFixed(3)} -> ${u.meanLevelMedian.toFixed(3)}`);
+}

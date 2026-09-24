@@ -1,4 +1,4 @@
-# M14b path by path, from its records (no run): 24 Sep 17:04 UK, `node research/solver/diagnose-m14b.mjs` - the maintainer's question why risk above loses on comfortable plans
+# M14b path by path, from its records and result files (no run): 24 Sep 17:48 UK, `node research/solver/diagnose-m14b.mjs` - the maintainer's questions why risk above loses on comfortable plans, and why the solver would make a move that lowers survival
 FAIR-TEST CHECK: m14b-down:solver  against  m14b-up:solver
   households: 12 shared
   [13] risk tiers allowed           ["0/0","1/1","2/2"]            | ["0/0","1/1","2/2","3/3"]      TESTED
@@ -34,3 +34,17 @@ TIER MIX, % of paid years at: plan / one below / two below / one above
   S070   12.1  80.6   7.3   0.0   |    1.2  85.7   3.9   9.2
   S330   32.6  62.5   4.9   0.0   |   24.3  61.8   2.5  11.4
   S354   33.2  62.6   4.2   0.0   |   29.7  58.3   3.6   8.5
+
+WHAT IT BOUGHT (result files): survival | estate at the end, median / mean / unlucky tenth | spending level on the median path
+  S172  99.77 -> 99.00 | median 338k -> 557k (+64.9%)  mean 527k -> 1068k (+102.9%)  tenth 52k -> 48k | 1.090 -> 1.093
+  S194  99.60 -> 99.33 | median 261k -> 260k (-0.6%)  mean 417k -> 422k (+1.1%)  tenth 51k -> 51k | 1.089 -> 1.089
+  S162  99.83 -> 99.63 | median 2276k -> 2276k (-0.0%)  mean 3667k -> 3668k (+0.0%)  tenth 417k -> 424k | 1.100 -> 1.100
+  S252  98.90 -> 98.73 | median 655k -> 660k (+0.7%)  mean 1519k -> 1533k (+0.9%)  tenth 92k -> 91k | 1.100 -> 1.100
+  S414  99.33 -> 99.20 | median 1996k -> 1971k (-1.2%)  mean 3153k -> 3943k (+25.0%)  tenth 419k -> 340k | 1.096 -> 1.096
+  S234  99.37 -> 99.43 | median 2460k -> 2477k (+0.7%)  mean 4034k -> 4043k (+0.2%)  tenth 440k -> 432k | 1.100 -> 1.100
+  S020  89.23 -> 88.90 | median 311k -> 306k (-1.6%)  mean 516k -> 514k (-0.5%)  tenth 0k -> 0k | 1.032 -> 1.032
+  S082  92.77 -> 92.43 | median 1753k -> 1756k (+0.2%)  mean 2649k -> 2644k (-0.2%)  tenth 118k -> 116k | 1.060 -> 1.061
+  S184  90.90 -> 90.73 | median 315k -> 314k (-0.3%)  mean 589k -> 587k (-0.3%)  tenth 27k -> 27k | 1.051 -> 1.053
+  S070  76.70 -> 77.27 | median 466k -> 468k (+0.5%)  mean 1568k -> 1532k (-2.3%)  tenth 0k -> 0k | 1.001 -> 1.006
+  S330  76.03 -> 77.23 | median 2560k -> 2677k (+4.6%)  mean 9695k -> 10039k (+3.5%)  tenth 0k -> 0k | 1.067 -> 1.071
+  S354  81.07 -> 82.37 | median 3397k -> 3340k (-1.7%)  mean 10772k -> 11118k (+3.2%)  tenth 0k -> 0k | 1.085 -> 1.085

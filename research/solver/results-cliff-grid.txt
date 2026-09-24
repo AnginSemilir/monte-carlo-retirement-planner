@@ -1,0 +1,16 @@
+# 24 Sep 19:11 UK, `node research/solver/cliff-grid.mjs`
+S194: age 55, retires 60, pension access 58, State Pension 8200/yr from 68, plan to 95; target spend 13000/yr; Pensions 45k High Risk, S&S 108k Medium/High Risk, Other 9k Medium Risk, Cash 18k Cash Equivalents
+   wealth axis: 0, then 0.10 to 83 years of target spending; neighbours 27% apart (log gap 0.240)
+   Low Risk     (vol 5.19%): cliff width (1 sd) in grid gaps, by years before the end: 1y 0.22  2y 0.31  4y 0.43  8y 0.61  16y 0.86
+   Medium Risk  (vol 9.93%): cliff width (1 sd) in grid gaps, by years before the end: 1y 0.41  2y 0.58  4y 0.83  8y 1.17  16y 1.65
+   High Risk    (vol 17.10%): cliff width (1 sd) in grid gaps, by years before the end: 1y 0.71  2y 1.01  4y 1.42  8y 2.01  16y 2.85
+S126: age 56, retires 55, pension access 58, State Pension 11976/yr from 68, plan to 95; target spend 29000/yr; Pensions 808k High Risk, S&S 76k Medium/High Risk, Other 19k Medium Risk, Cash 48k Cash Equivalents
+   wealth axis: 0, then 0.10 to 197 years of target spending; neighbours 31% apart (log gap 0.271)
+   Low Risk     (vol 5.19%): cliff width (1 sd) in grid gaps, by years before the end: 1y 0.19  2y 0.27  4y 0.38  8y 0.54  16y 0.77
+   Medium Risk  (vol 9.93%): cliff width (1 sd) in grid gaps, by years before the end: 1y 0.37  2y 0.52  4y 0.73  8y 1.04  16y 1.47
+   High Risk    (vol 17.10%): cliff width (1 sd) in grid gaps, by years before the end: 1y 0.63  2y 0.89  4y 1.26  8y 1.79  16y 2.53
+S162: age 56, retires 55, pension access 58, State Pension 11976/yr from 68, plan to 95; target spend 29000/yr; Pensions 475k High Risk, S&S 285k Medium/High Risk, Other 95k Medium Risk, Cash 95k Cash Equivalents
+   wealth axis: 0, then 0.10 to 197 years of target spending; neighbours 31% apart (log gap 0.271)
+   Low Risk     (vol 5.19%): cliff width (1 sd) in grid gaps, by years before the end: 1y 0.19  2y 0.27  4y 0.38  8y 0.54  16y 0.77
+   Medium Risk  (vol 9.93%): cliff width (1 sd) in grid gaps, by years before the end: 1y 0.37  2y 0.52  4y 0.73  8y 1.04  16y 1.47
+   High Risk    (vol 17.10%): cliff width (1 sd) in grid gaps, by years before the end: 1y 0.63  2y 0.89  4y 1.26  8y 1.79  16y 2.53

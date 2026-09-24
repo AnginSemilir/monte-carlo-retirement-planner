@@ -1,118 +1,189 @@
-# Brief: the solver's table blurs the cliffs
+# Brief: the retirement solver's table blurs the cliffs
 
-*A self-contained problem statement for a fresh reader (24 Sep 2026). Figures come from committed results files, named
-in brackets; anything not yet measured is marked as a hypothesis.*
+*Self-contained: you will not have the code, so everything needed is written out here. 24 Sep 2026. Measured figures
+come from runs of the real system; anything not yet measured is marked as a hypothesis.*
 
-## The system
+## 1. The task in one paragraph
 
-A UK retirement planner chooses, year by year, how a retired household spends and invests. The solver is a
-**backward-induction dynamic programme**:
+A dynamic-programming solver plans a UK retiree's spending, withdrawals and investment risk year by year. Its value
+table sits on a coarse grid. Some rules make the chance of the money lasting jump sharply at a line ("a cliff"), and
+where the grid is coarser than the jump, the table reads positions near the line wrongly. That makes the plan choose
+moves that score well in the table but do worse when simulated. We want a way to represent the value function near
+these cliffs accurately, at no more than 20% extra run time, and a test design to prove it.
 
-- **State**, per year t (about 40 years):
-  - total wealth W on a log-spaced axis of 30 points, from 0.1 to max(60, 6 x opening wealth) years of target spending;
-  - the pension's share and the ISA's share of W, 6 points each;
-  - small discrete buckets for unrealised gains (3) and the tax-free lump sum used (3).
-  - Neighbouring wealth points are 26-33% apart.
-- **Moves**:
-  - a spending level (1.2, 1.1, 1.0, 0.95, 0.9, or the floor of 0.8 of target);
-  - a withdrawal order across pension, ISA and taxable account;
-  - a risk tier, held jointly on pension and ISA: the plan's tier, one or two below, and optionally one above.
-- **Returns**: lognormal per tier, averaged each year with 5 quadrature nodes. There are three market "worlds"
-  (return shifts); each gets its own table, and a move is scored by weighting the three.
-  | Tier | Real return | Volatility |
-  |---|---|---|
-  | High | 4.44% | 15.5% |
-  | Medium/High | 3.72% | 11.5% |
-  | Medium | 3.0% | 8% |
-  | Medium/Low | 2.28% | 5.5% |
-  | Low | 1.56% | 3% |
-- **Score** of a position (what the backward induction maximises):
-  - the probability of surviving, the main term;
-  - plus a small estate credit, weight 0.02 (capped in these runs; log-shaped above the minimum pot under the
-    estate slider);
-  - plus a small credit for spending above target;
-  - minus a cost for spending below target, lambda x (1 - level)^2 a year;
-  - minus that same cost at the floor for every year with no money.
-- **The table**: the value of every grid cell is stored each year. Survival is stored and interpolated in **log-odds**,
-  clamped away from 0 and 1; the other terms linearly. At each position, the plan picks the move with the best
-  interpolated score.
-- **Judged by simulation, never by the table.** The solved plan is run forward through a tax-exact engine on thousands
-  of paired market paths. The survival reported to a user is this simulated figure. The table's own survival read is
-  known to run 3-5 points optimistic in bad positions (finding M16).
-- **Cost**: one solve takes about 314 s (30 points, three worlds, one core), and 1,000 forward paths about 69 s
-  (results-part-e-measured.txt).
+## 2. The household and the rules (one person; all money in today's pounds, inflation 2.5% removed)
 
-## The problem
+- **Wrappers**, each held at a risk tier:
+  - a defined-contribution **pension**: it can only be touched from its access age (e.g. 58). 25% of each withdrawal is
+    tax-free, up to a lifetime total of £268,275; the rest is taxed as income.
+  - an **ISA**: tax-free.
+  - a **taxable account**: gains taxed as capital gains; the unrealised gain is tracked.
+  - **cash**: at the Cash tier.
+- **Guaranteed income**: the State Pension from its age (e.g. £8,200 a year from 68), plus any other income. Income tax
+  (rest of UK) has a personal allowance of £12,570, 20% to £50,270, 40% to £125,140 and 45% above, with the allowance
+  tapered from £100,000; Scotland has its own bands.
+- **Spending**: a target T per year, and a floor at 0.8T. The plan runs to a terminal age (e.g. 95).
+- **Failure**: a path fails in any year where the spending cannot be paid (unmet demand above £1), including before the
+  pension can be touched. It also fails if it reaches the terminal age holding less than a **minimum pot of one year's
+  target spending** (1 x T).
+- **Returns**: each year a pot's growth factor is exp(ln(1+R) + V·z_year + S·z_path), where z_year ~ N(0,1) each year
+  and z_path ~ N(0,1) is drawn once per path (a persistent shift in expected return). The tiers, as the tests ran them:
 
-Hard rules make survival nearly a **step function** of the state in places ("cliffs"). The grid is coarser than those
-steps, so the table reads positions near a cliff badly: both the survival it predicts, and which move it prefers.
+  | Tier | Real return R | Yearly volatility V | Persistent shift S |
+  |---|---|---|---|
+  | High | 4.79% | 17.1% | 2.14% |
+  | Medium/High | 4.24% | 13.42% | 1.69% |
+  | Medium | 3.69% | 9.93% | 1.31% |
+  | Medium/Low | 3.14% | 6.89% | 1.03% |
+  | Low | 2.60% | 5.19% | 0.97% |
+  | Cash | 1.01% | 0% | 1.57% |
 
-### The bridge cliff (established)
+## 3. The solver
 
-- Before pension access age, only accessible money (ISA, taxable account and cash) can be spent. A household with a large
-  pension but too little accessible money fails in the bridge years.
-- The line runs across the pension-share axis (accessible = W x (1 - pension share)), where there are only 6 points.
-- **With no special handling, the table's opening survival was 43 to 98 points too low** on bridge households, for
-  example S126: table 56.4% against 99.6% simulated (results-f1v2.txt).
-- **F1 v2**, now the provisional default, patches this with an analytic cap. It uses a lognormal chance that accessible
-  money covers the remaining bridge need, counting money that arrives mid-bridge and growth.
-  - Reads come within about 1.5 points on most cases, and survival rises by up to 22 points.
-  - But one case loses 0.8 +/- 0.32 survival points, and three more lose 0.3-0.4 at about 2 standard errors.
-  - Those losses are unexplained (results-f1v2.txt).
+**Moves (actions), chosen at the start of each year:**
+- a spending level ℓ from {1.2, 1.1, 1.0, 0.95, 0.9, 0.8} of T, capped at 1.1 by default;
+- a withdrawal order across the wrappers;
+- a risk tier, held jointly by pension and ISA: the plan's own tier, one or two below it, and optionally one above;
+- how the tax-free lump sum is taken.
 
-### The end-of-plan line (hypothesis, under test)
+Changing tier needs a score gain above 0.001 (a hysteresis margin).
 
-- In the final year a path survives only if it ends with at least a minimum pot (one year of target spending).
-- In earlier years the transition is centred near the "funded" level: remaining spending at the floor, plus the pot,
-  minus guaranteed income, discounted. In log wealth its width is roughly the tier's volatility x sqrt(years left).
-- **That is narrower than one grid gap until about 8 years before the end** (Medium tier: 0.34 of a gap 1 year out, 0.68
-  at 4 years, 0.96 at 8). It is narrower still at lower tiers; and richer households have a coarser grid, so the same cliff spans even
-  less of a gap.
-- Evidence it matters (results-m14b.txt, results-m14b-why.txt):
-  - Allowing one tier above the plan costs comfortable households 0.2-0.8 survival points.
-  - Their lost paths mostly **end just under the line** (0.86-0.94 years of target, against 1.03-1.11 without the
-    option).
-  - The bets that cause them are placed 4-10 years before the end, and on a test solve the table's margins at such
-    bets were about 0.001 (a tenth of a survival point).
-  - Whether the table actually prefers bets that simulate worse is being tested now (M14c).
+**State and grid:**
+- s = (W, a, b, g, c), where:
+  - W is total wealth;
+  - a = pension / W;
+  - b = ISA / (W − pension);
+  - g is an unrealised-gain bucket (3 values);
+  - c is the tax-free lump sum used so far (3 buckets).
+- The W axis has 30 points: one at 0, then 29 geometric from 0.1·T up to max(60, 6·W₀/T)·T, where W₀ is opening wealth.
+  Neighbouring points are 27–31% apart.
+- The a and b axes have 6 evenly spaced points each on [0, 1].
+- 9,720 cells a year (30 × 6 × 6 × 3 × 3), for about 40 years.
 
-### Not everything is the cliff
+**What each cell stores:**
+- S, the probability of surviving, stored as log-odds (clamped at 10⁻⁶ and 1 − 10⁻⁶);
+- B, the expected estate credit;
+- H, the expected future cost of spending below target.
 
-- On one household the option raised the median estate by 65% at a cost of 0.77 survival points. That trade is the
-  score's estate term working as designed, not blurring.
+**Backward induction, for each cell and move:**
+1. Apply the year: take ℓ·T minus guaranteed income, grossed up for tax, from the wrappers in the chosen order.
+2. If the move fails this year: S = 0, B = 0, and H = F_t. F_t is the charge for a year with no money, λ·(1 − 0.8)², summed
+   over the remaining spending years.
+3. Otherwise, grow the post-withdrawal pots at the move's tiers over 5 Gauss-Hermite nodes in z_year, and read next
+   year's table at each resulting state:
+   - S = Σ w_q S_{t+1}(s′_q);
+   - B = Σ w_q B_{t+1}(s′_q);
+   - H = λ(1 − ℓ)² for ℓ < 1, plus Σ w_q H_{t+1}(s′_q).
+   - A raise (ℓ > 1) adds 0.003·√(ℓ − 1)·S to the score.
+4. Score = S + 0.02·B − H (plus the raise credit). The cell keeps the best move; ties must be exact.
+5. **Final year:** S = 1 if the grown total is at least the minimum pot, and 0 otherwise. This is evaluated exactly at
+   each quadrature node, not read from a table. B = the estate credit of wealth net of the tax charged on a pension at
+   death.
 
-## What has been tried or is known
+λ, the dislike of cuts, is set per household and ranges from 0.1 to 2 in these runs.
 
-| Approach | What we know |
-|---|---|
-| More points, uniformly | Converges slowly: the table's numbers were still moving at 56 points (about twice the cost of 30). Plans are stable; the numbers are not. |
-| Exact evaluation in the final year | On in the product. |
-| Log-odds interpolation | On by default. |
-| An analytic bridge read (F1 v1, then v2) | A patch on top of the table: it helps, with some cost (above). |
-| Coverage coordinate for the bridge (F2, designed, not built) | Measure accessible money in "bridge years of need" and put a grid node at coverage = 1. |
-| Near-tie tie-breaking | The table's top two moves are a coin toss where they differ: 8 better, 8 worse (the step-2b ranking check). |
+**Reading the table off-grid:**
+- Trilinear interpolation over (ln W, a, b): linear in ln W between points, and linear in W below the first non-zero
+  point.
+- The nearest bucket for g and c.
+- S is blended in log-odds; B and H linearly.
 
-## The ask
+**Three worlds:** three tables are solved, each with z_path held at −√3, 0 or +√3 for the whole horizon. A move's score
+at a position is the three tables' scores weighted 1/6, 2/3 and 1/6.
 
-Propose a way to represent the value function near these cliffs accurately at bounded cost. In particular:
+**The bridge patch (F1 v2), now the provisional default:**
+- In a retired year before pension access, the survival read is capped by
+  p = Φ((ln(acc/req) + m·τ) / (σ·f·√τ)), where:
+  - acc is the accessible money (ISA + taxable + cash);
+  - req is the most the bridge still needs at the floor, net of money due to arrive, across its remaining years;
+  - τ is half the bridge years left;
+  - f is the invested share of acc (not the cash buffer);
+  - σ is the balance-weighted volatility of the accessible pots;
+  - m = f·(their balance-weighted real return) + (1 − f)·(cash real return).
+- If the table's interpolated read is above p, p is used.
 
-1. **Where the cliffs are.** Closed-form or cheap estimates of each cliff's centre and width, year by year:
-   - the end-of-plan line, the bridge, and running out part-way;
-   - including withdrawals, UK income tax on pension draws, State Pension from a known age, three return worlds, and
-     flexible spending (between the floor and the target).
-2. **How to use that.** A coordinate change, adaptive nodes, a different interpolant, a boundary-fitted local model, or
-   something else. Say how it handles the two cliffs at once: the bridge in (wealth, pension share), the end line in
-   wealth.
-3. **Why it would fix the bets.** An argument that it would stop a plan choosing moves that raise its table score while
-   lowering simulated survival (the risk-tier bets above).
-4. **A test design.**
-   - Each proposal is judged by forward simulation, paired against today's solver on the same paths.
-   - It must pass on the known cases: bridge households, the risk-tier households, a control where betting genuinely
-     helps.
-   - Criteria stated before any run: the table-versus-simulation gap near cliffs; no case losing survival beyond two
-     paired standard errors.
+**How results are judged:** the solved plan is simulated forward through a tax-exact engine on 1,000–3,000 paired market
+paths (each drawing its own z_path and yearly z). Each year it picks the best move at the exact, off-grid state. The
+simulated survival is what a user is shown. Tests compare two versions on the same paths, with the standard error taken
+from paths where they disagree.
+
+**Cost:** one solve takes about 314 s on one core (30 points, three worlds); 1,000 simulated paths take about 69 s.
+
+## 4. The cliffs
+
+1. **End of plan.** In the final year the survival step sits exactly at W = minimum pot. Earlier, the step sits near the
+   "funded" level: the floor spending still to come, plus the pot, minus guaranteed income, discounted. Its width in
+   ln W is roughly V·√(years left). That's an upper estimate, since money spent early is exposed for less time.
+2. **The pension bridge.** Before access age, only accessible money can pay. The step is at acc ≈ req, a line that runs
+   across the pension-share axis a (accessible ≈ W·(1 − a) in these coordinates), where there are only 6 points.
+3. **Running out part-way.** The same shape as the first, without the pot.
+
+**The end-of-plan cliff against the real grid.** Width is 1 standard deviation, in units of the grid gap, computed with
+the solver's own grid code:
+
+| Household (grid gap) | Tier | 1 year left | 2 | 4 | 8 | 16 |
+|---|---|---|---|---|---|---|
+| S194 (27%) | Low | 0.22 | 0.31 | 0.43 | 0.61 | 0.86 |
+| S194 (27%) | Medium | 0.41 | 0.58 | 0.83 | 1.17 | 1.65 |
+| S194 (27%) | High | 0.71 | 1.01 | 1.42 | 2.01 | 2.85 |
+| S162 (31%) | Medium | 0.37 | 0.52 | 0.73 | 1.04 | 1.47 |
+
+At the Medium tier, the whole cliff is narrower than one grid gap for the last 6–7 years. At the Low tier it is
+narrower for more than 16 years. The table therefore interpolates straight across a step there.
+
+## 5. What we have measured
+
+**Bridge (established).**
+- With no patch, the table's opening survival was 43–98 points too low on bridge households. For example S126
+  (pension £808k, accessible £143k, retired at 56, access at 58): the table read 56% against 99.6% simulated.
+- F1 v2 brings most reads within 1.5 points, and raises survival by up to 22 points where the old read was blind.
+- But it costs one case 0.8 ± 0.32 points (2.5 standard errors), and three others 0.3–0.4 points at about 2 standard
+  errors. Those losses are unexplained.
+
+**End of plan (hypothesis, under test).**
+- M14b tested letting the plan move one tier above its own. With the plan held at Medium, this cost comfortable
+  households survival:
+
+  | Household | Survival without → with | Paths lost to the bets | Of those, ended just under the pot |
+  |---|---|---|---|
+  | S194 | 99.60 → 99.33% | 9 | 7 |
+  | S162 | 99.83 → 99.63% | 7 | 7 |
+  | S252 | 98.90 → 98.73% | 6 | 5 |
+
+- Those paths finished with 0.86–0.94 years of target spending, against 1.03–1.06 without the option. The bets were
+  placed 4–10 years before the end.
+- On thin households the same bets mostly rescued paths that would have run out part-way (S330: 44 of 53 saved paths).
+- On a test solve, the table's score margin at such bets was about 0.001, a tenth of a survival point.
+- **Hypothesis:** the table misreads positions near the end-of-plan line, where the grid is coarser than the cliff. A
+  test running now compares, at each position where the plan bet, the bet against the best alternative, simulated
+  from that exact position.
+
+**Not a cliff effect.** On one household (S172) the option held a riskier tier every year and raised the median estate
+by 65%, at a cost of 0.77 survival points. That is the estate term in the score doing what it was built for.
+
+**Background.**
+- The table's own survival numbers run 3–5 points optimistic in bad positions.
+- More points everywhere converges slowly: numbers were still moving at 56 points, which costs about twice as much.
+- Where the table's top two moves differ in simulated survival, it is a coin toss (8 better, 8 worse of 16).
+
+## 6. What we want from you
+
+1. **Cliff locations:** closed-form or cheap estimates of each cliff's centre and width, year by year. Include
+   withdrawals, income tax on pension draws, the State Pension start, the three worlds, and flexible spending between
+   the floor and the target.
+2. **A representation:** a coordinate change, adaptive nodes, a different interpolant, a local boundary-fitted model,
+   or something better, that resolves those cliffs. It must handle the bridge (in W and a) and the end line (in W)
+   together.
+3. **The mechanism:** why it would stop the plan choosing moves whose table score is higher but whose simulated
+   survival is lower (the risk-tier bets above).
+4. **A test design:**
+   - criteria fixed before any run;
+   - judged only by forward simulation, paired against today's solver;
+   - cases: bridge households, the risk-tier households, and a control where betting genuinely helps;
+   - measures: the table-versus-simulation gap near the cliffs, and no case losing survival beyond two paired standard
+     errors.
 
 **Hard constraints:**
-- At most 20% more run time than today's solve.
-- The reduced model stays exact to the pound against the engine away from the cliffs.
-- Nothing is judged by the table's own numbers.
+- At most 20% more run time than one solve today.
+- The year's cash flows stay exact to the pound against the engine; only how the table is stored and read may change.
+- A result counts only when simulated, never from the table's own numbers.

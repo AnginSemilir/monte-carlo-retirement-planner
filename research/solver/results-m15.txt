@@ -1,0 +1,65 @@
+PROBE M15 - THE TAXABLE ACCOUNT TAKES THE JOINT TIER STEP (giaTiers), 24 Sep 03:33-03:48
+From snapshot /tmp/solver-snap-682bxR (e05c321). Flags as s2-fnewex (TIERS=1, MIX=0, FINALEXACT=1, lambda held,
+3,000 held-out paths, 30 points); no-gain arms paired against s2-fnewex, 40%-gain arms against the same household
+with the option off at 40% gain. Reducer: node research/solver/reduce-m15.mjs. Build and test: commit 74791f8.
+
+AGAINST THE PREDICTION (the M15 row, written before any run)
+  S330 gains survival beyond noise                          FAILED: it LOSES 3.20 +/- 0.35 (no gain), 3.70 +/- 0.36 (40%)
+  controls unchanged within noise                           FAILED on S054: -0.23 +/- 0.10; S112, S184 within noise
+  solve time unchanged within 3%                            HELD (as near as a busy box measures): every pair within 3.1% (S206 at 40% gain 160 -> 165 s the widest), none slower by 5%
+  with 40% gains fewer GIA switches, none lowering survival HELD for switches (S390 0.08 -> 0.09, S206 0.01 both;
+                                                            S330 never switches), FAILED on survival (S330 above)
+  FALSIFIER (any household worse by more than 2 paired se)  FIRED: S330 at both gains, S054
+  VERDICT: FALSIFIED. The option is not offered; the design is wrong, not its tuning.
+
+WHY (read off the same results, no further run)
+  With the option on, the pension and ISA sit below their plan tier far less: S330 38.1 -> 9.7 years a path
+  (5.3 at 40% gain), S054 6.9 -> 4.5, S390 9.5 -> 7.3. The GIA itself barely moves (S330: 0.003 years a path).
+  On the joint menu, "pension and ISA one step down" now also means "the GIA one step down", and every library GIA
+  already sits at Medium, two tiers under the pension. So the bundled move scores worse than the pension-only step
+  it replaced, and the solver keeps the pension at High instead: the S330 estate rises (median 3.40m -> 4.63m) and
+  survival falls. The "keep the GIA where it is" check scores only the move that already WON; it cannot bring back
+  the pension-only step, which lost the ranking because it was bundled. The tables are solved the same way, so
+  their continuation values also assume the GIA follows every future step.
+
+WHAT A WORKING VERSION NEEDS (for the maintainer; not built)
+  The GIA's choice has to be scored for every tier-changing move, not only the winner - in the forward decision
+  (about twice the evaluations for the two thirds of moves that change tier) and in the tables (the max over "GIA
+  follows" and "GIA stays" per move, about 1.7x the solve). That is the "independent pair" Phase 6 measured at 4-5x
+  the cost for no value, in a cheaper form. Given the library's GIAs all sit at Medium, a separate GIA tier menu of
+  its own is the alternative worth deriving before building either.
+
+PER HOUSEHOLD
+PROBE M15 - the taxable account takes the tier step, paired against it held at the plan tier (same 3,000 paths)
+  id    kind      gain       survival off -> on   (paired diff +/- se)   GIA yrs below / switches   lifetime tax (median)   estate net (median)    solve s off/on
+  S206  GIA 45%   no gain     99.73 ->  99.73   +0.00 +/- 0.00           0.3 /  0.01                1.8k ->    1.8k        497k ->    508k   168/165
+  S206  GIA 45%   40% gain    99.73 ->  99.73   +0.00 +/- 0.00           0.3 /  0.01                2.7k ->    2.5k        492k ->    506k   160/165
+  S330  GIA 45%   no gain     82.27 ->  79.07   -3.20 +/- 0.35           0.0 /  0.00              567.6k ->  597.4k       3400k ->   4631k   216/212
+  S330  GIA 45%   40% gain    82.23 ->  78.53   -3.70 +/- 0.36           0.0 /  0.00              581.1k ->  621.2k       3376k ->   5111k   208/210
+  S390  GIA 45%   no gain     99.27 ->  99.37   +0.10 +/- 0.10           3.0 /  0.08               31.1k ->   30.8k       2735k ->   2876k   157/157
+  S390  GIA 45%   40% gain    99.30 ->  99.37   +0.07 +/- 0.09           3.1 /  0.09               43.0k ->   42.4k       2667k ->   2877k   153/156
+  S054  control   no gain     98.43 ->  98.20   -0.23 +/- 0.10           1.0 /  0.12               29.7k ->   29.6k       2077k ->   2190k   107/105
+  S112  control   no gain     99.10 ->  99.03   -0.07 +/- 0.07           0.1 /  0.00                0.2k ->    0.2k        728k ->    751k   134/132
+  S184  control   no gain     80.03 ->  79.93   -0.10 +/- 0.14           0.3 /  0.04               48.6k ->   48.8k        550k ->    548k   146/143
+
+  beyond two paired se: better none; worse S330 (no gain), S330 (40% gain), S054 (no gain)
+
+TIERS (years a path below the plan tier; changes a path)
+  s2-fnewex        S206 pension 3.0 isa 3.0 changes 0.16 gia -
+  s2-fnewex        S330 pension 38.1 isa 38.1 changes 1.50 gia -
+  s2-fnewex        S390 pension 9.5 isa 9.5 changes 0.32 gia -
+  s2-fnewex        S054 pension 6.9 isa 6.9 changes 0.42 gia -
+  s2-fnewex        S112 pension 7.4 isa 7.4 changes 0.36 gia -
+  s2-fnewex        S184 pension 33.6 isa 33.6 changes 1.73 gia -
+  m15-gia          S206 pension 2.6 isa 2.6 changes 0.16 gia 0.31
+  m15-gia          S330 pension 9.7 isa 9.7 changes 0.87 gia 0.00
+  m15-gia          S390 pension 7.3 isa 7.3 changes 0.32 gia 3.02
+  m15-gia          S054 pension 4.5 isa 4.5 changes 0.51 gia 0.97
+  m15-gia          S112 pension 6.7 isa 6.7 changes 0.36 gia 0.07
+  m15-gia          S184 pension 33.5 isa 33.5 changes 1.77 gia 0.25
+  m15-off-gain40   S206 pension 3.0 isa 3.0 changes 0.16 gia -
+  m15-off-gain40   S330 pension 38.3 isa 38.3 changes 1.51 gia -
+  m15-off-gain40   S390 pension 9.6 isa 9.6 changes 0.32 gia -
+  m15-gia-gain40   S206 pension 2.6 isa 2.6 changes 0.16 gia 0.31
+  m15-gia-gain40   S330 pension 5.3 isa 5.3 changes 0.61 gia 0.00
+  m15-gia-gain40   S390 pension 6.4 isa 6.4 changes 0.30 gia 3.09

@@ -145,6 +145,15 @@ households. It costs minutes to run.
    solver). Comfortable households barely used it. Recommended: offer it as an opt-in ("may take more risk than
    my setting when it helps"), since it acts exactly when a plan is in trouble. `results-m14.txt`.
 8. Phase 4's panel (section 4b): recommended - land each household at about 85%.
+9. The taxable account's tier (M15, your "big artificiality" question): **built and tested overnight, and it
+   failed its test** (`results-m15.txt`). Letting the taxable account step down together with the pension made
+   S330 (45% of its wealth taxable) survive 3.2 points LESS. The reason is useful: every library taxable account
+   already sits at Medium, two tiers under the pension. Tying the two together meant the pension could no longer
+   step down on its own, so the solver kept it at High. The taxable account itself hardly moved. So the
+   artificiality is real, but the cheap fix is the wrong shape. Doing it properly means letting the taxable
+   account stay or follow for every move, not just the winning one (about 1.7x the solve time), or giving it a
+   menu of its own. Recommended: leave it off, and derive the separate-menu version before building anything
+   (Thursday or later).
 
 ## 6. What changed in the plan overnight
 

@@ -11,7 +11,9 @@ import { readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const R = join(dirname(fileURLToPath(import.meta.url)), 'results');
-const ids = existsSync(join(R, 'm14-up')) ? readdirSync(join(R, 'm14-up')).filter(f => f.endsWith('.solver.record.json.gz')).map(f => f.slice(0, 4)).sort() : [];
+// UP / DOWN: the two arms' tags (m14-up / m14-down by default; m14b-up / m14b-down for the re-check under the step-6 defaults)
+const UP = process.env.UP || 'm14-up', DOWN = process.env.DOWN || 'm14-down';
+const ids = existsSync(join(R, UP)) ? readdirSync(join(R, UP)).filter(f => f.endsWith('.solver.record.json.gz')).map(f => f.slice(0, 4)).sort() : [];
 const f = (x, d = 1) => (Number.isFinite(x) ? x.toFixed(d) : '-');
 function stats(rec) {
   const { N, Y, trace: tr, paths: P } = rec;
@@ -33,7 +35,7 @@ function stats(rec) {
 console.log('PROBE M14 - one tier above allowed (plan held at Medium), paired against down-only on the same paths');
 console.log('  id     survival down -> up (paired +/- se)    ran out < 20y   worst 5% funded   unfunded/path   years above   of which behind (below median wealth)');
 for (const id of ids) {
-  const fd = join(R, 'm14-down', `${id}.solver.record.json.gz`), fu = join(R, 'm14-up', `${id}.solver.record.json.gz`);
+  const fd = join(R, DOWN, `${id}.solver.record.json.gz`), fu = join(R, UP, `${id}.solver.record.json.gz`);
   if (!existsSync(fd) || !existsSync(fu)) continue;
   const d = stats(readRecord(fd)), u = stats(readRecord(fu));
   let disc = 0; for (let i = 0; i < d.ok.length; i++) if (d.ok[i] !== u.ok[i]) disc++;

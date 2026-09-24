@@ -66,7 +66,7 @@ function measure(h) {
   const r = solve(E, M, plan, { points: POINTS, lambda: LAMBDA, raiseWeight: 0.003, spendLevels: [1.2, 1.1, 1, 0.95, 0.9, 0.8], tiers: true, lump: m.ctx.fullLumpSum, resilienceWeight: 0, finalExact: true });
   const table = 100 * r.value(M.initialState(m), 0).survival;
   let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(7002, NP, m.ctx.totalYears);
-  for (const zs of paths) { const o = runPolicy(r, zs); if (o.survived) ok++; below += (o.spendYears || 0) - (o.atTarget || 0) - (o.aboveTarget || 0); tierYrs += o.tierPenYears || 0; }
+  for (const zs of paths) { const o = runPolicy(r, zs); if (o.survived) ok++; below += (o.spendYears || 0) - (o.atTarget || 0);   // atTarget counts every year at or above target tierYrs += o.tierPenYears || 0; }
   const sim = 100 * ok / NP;
   return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, secs: (Date.now() - t0) / 1000 };
 }

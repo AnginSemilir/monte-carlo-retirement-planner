@@ -1249,11 +1249,42 @@ export function productLevels(floorFrac) {
  *   - the taxable account's tier is refused: the joint-step version failed its probe (M15) and a working design is
  *     planned, not built.
  */
-export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, estateWeightMin: 0.01 });
+export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, estateWeightMin: 0.01, thinSurvival: 0.95, thinPaths: 1000, thinSeed: 7101 });
+/*
+ * RISK ABOVE THE USER'S TIER, ON BY DEFAULT FOR THIN PLANS (maintainer, 24 Sep; PLAN.md M14, M14b).
+ *
+ * With the plan's tier below the top, allowing one tier above raised survival 2-3 points on every thin household
+ * (75-81%) and did nothing measurable for comfortable ones (one lost 0.23). It is a bet made when behind: most of
+ * the futures it is used in still fail, but it saves about three for every one it loses, and the years without
+ * money fell. So, unless the user says otherwise (`riskAbove` true or false), it is decided per plan:
+ *   - never without consent to change risk, and never where no tier above exists (a pension at the top tier);
+ *   - "thin" is the SIMULATED survival of the plan without it, below `thinSurvival` (95%), on `thinPaths` paths of
+ *     a seed used for nothing else. The table's own number is not used: it runs 3-5 points optimistic (M16) and
+ *     reads dead corners low (#106);
+ *   - and it is kept only if the plan with it survives at least as well on those same paths.
+ * PROVISIONAL until M14b re-checks the gain under today's defaults (the evidence predates the M17 fix).
+ */
+function solvePlanAuto(E, M, plan, opts) {
+  const off = solvePlan(E, M, plan, { ...opts, riskAbove: false });
+  const note = (r, decision, s0, s1) => { r.meta.riskAbove = { decision, thinSurvival: PRODUCT_DEFAULTS.thinSurvival, survivalWithout: s0, survivalWith: s1 }; return r; };
+  if (opts.riskConsent === false) return note(off, 'off: no consent to change risk');
+  // no tier above to allow when every wrapper already sits at the top tier
+  const probe = M.prepare(E, plan), probeUp = M.prepare(E, plan); probeUp.tiersAbove = 1;
+  if (tierCombos(probeUp).length === tierCombos(probe).length) return note(off, 'off: no tier above the plan');
+  const N = opts.thinPaths || PRODUCT_DEFAULTS.thinPaths;
+  const paths = E.pathsForSeed(opts.thinSeed || PRODUCT_DEFAULTS.thinSeed, N, off.m.ctx.totalYears);
+  const ok0 = paths.map(zs => runPolicy(off, zs).survived);
+  const s0 = ok0.filter(Boolean).length / N;
+  if (s0 >= PRODUCT_DEFAULTS.thinSurvival) return note(off, 'off: not thin', s0);
+  const on = solvePlan(E, M, plan, { ...opts, riskAbove: true });
+  const s1 = paths.filter(zs => runPolicy(on, zs).survived).length / N;
+  return s1 >= s0 ? note(on, 'on: thin, and no worse on the same paths', s0, s1) : note(off, 'off: thin, but worse with it on the same paths', s0, s1);
+}
 export function solvePlan(E, M, plan, opts = {}) {
   if (!(opts.lambda >= 0)) throw new Error('solvePlan needs the dislike-of-cuts setting as lambda');
   if (opts.giaTiers) throw new Error('the taxable account cannot change tier in the product: its first design failed (PLAN.md M15)');
-  const { riskConsent, riskAbove, minPotYears, estateWeight, ...rest } = opts;
+  if (opts.riskAbove === undefined || opts.riskAbove === 'auto') return solvePlanAuto(E, M, plan, opts);
+  const { riskConsent, riskAbove, minPotYears, estateWeight, thinPaths, thinSeed, ...rest } = opts;
   const years = minPotYears !== undefined ? minPotYears : PRODUCT_DEFAULTS.minPotYears;
   const own = Math.max(0, E.num(plan.config && plan.config.solvencyFloor, 0));
   const target = E.num(plan.spending && plan.spending.targetSpend, 0);

@@ -1223,7 +1223,10 @@ export function solveBoth(E, M, plan, opts = {}) {
  * written out (solver-plan.test.mjs).
  */
 export const PRODUCT_BASELINE = Object.freeze({
-  resilienceWeight: 0, raiseWeight: 0.003, finalExact: true, mix: 3, points: 30
+  resilienceWeight: 0, raiseWeight: 0.003, finalExact: true, mix: 3, points: 30,
+  // step 6 (24 Sep): the M17 floor fix - a year with no money costs what a year at the floor costs, and a raise's
+  // credit counts only in the futures that survive. It keeps the plan from spending up into a failure.
+  raiseSurvival: true, failureShortfall: true
   // no levelSearch: the full scan. The ternary search lost 0.20 points on S112 and S390 at 2.4 paired standard errors in
   // the step-2 re-check (none gained), so by the rule written before it the full scan stays. No shareDead: neither #106
   // option passed its test on S126 (results-step2.txt).
@@ -1234,15 +1237,37 @@ export function productLevels(floorFrac) {
   const raw = [1.2, 1.1, 1, 0.95, 0.9, f].filter(l => l >= f - 1e-9);
   return [...new Set(raw.map(x => Math.round(x * 1e6) / 1e6))].sort((a, b) => b - a);
 }
+/*
+ * THE USER'S DEFAULTS, decided at step 6 (24 Sep; PLAN.md schedule row 6, the evidence in the morning summary):
+ *   - raises capped at 110% of target unless the user sets `raiseCap` (1 blocks raises): half the extra spending of
+ *     the uncapped 120% for the same survival (K3);
+ *   - a minimum end-of-life pot of one year of target spending, before any tax on the pension at death, unless the
+ *     plan carries its own or the user sets `minPotYears` (0 for none): it stops the plan aiming to end at zero (K2);
+ *   - the estate slider (`estateWeight`) never below 0.01, because a weight of zero leaves nothing rewarding a pound
+ *     saved from tax and the plan then pays far more of it (M20); left unset, the estate term is today's;
+ *   - risk ABOVE the user's tier only as an opt-in (`riskAbove`, one tier), and only with consent to change risk (M14);
+ *   - the taxable account's tier is refused: the joint-step version failed its probe (M15) and a working design is
+ *     planned, not built.
+ */
+export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, estateWeightMin: 0.01 });
 export function solvePlan(E, M, plan, opts = {}) {
   if (!(opts.lambda >= 0)) throw new Error('solvePlan needs the dislike-of-cuts setting as lambda');
-  const m = M.prepare(E, plan);
-  const { riskConsent, ...rest } = opts;
+  if (opts.giaTiers) throw new Error('the taxable account cannot change tier in the product: its first design failed (PLAN.md M15)');
+  const { riskConsent, riskAbove, minPotYears, estateWeight, ...rest } = opts;
+  const years = minPotYears !== undefined ? minPotYears : PRODUCT_DEFAULTS.minPotYears;
+  const own = Math.max(0, E.num(plan.config && plan.config.solvencyFloor, 0));
+  const target = E.num(plan.spending && plan.spending.targetSpend, 0);
+  const floorPot = own > 0 && minPotYears === undefined ? own : Math.round(Math.max(0, years) * target);
+  const p = floorPot === own ? plan : { ...plan, config: { ...plan.config, solvencyFloor: floorPot } };
+  const m = M.prepare(E, p);
   const o = {
     ...PRODUCT_BASELINE, ...rest,
+    raiseCap: rest.raiseCap !== undefined ? rest.raiseCap : PRODUCT_DEFAULTS.raiseCap,
+    ...(estateWeight !== undefined ? { bequestShape: 'logfloor', bequestWeight: Math.max(PRODUCT_DEFAULTS.estateWeightMin, estateWeight) } : {}),
+    ...(riskAbove && riskConsent !== false ? { tiersAbove: 1 } : {}),
     spendLevels: productLevels(m.ctx.floorFrac || 0),
     lump: m.ctx.fullLumpSum,
     tiers: riskConsent === false ? undefined : true
   };
-  return solveMixture(E, M, plan, o);
+  return solveMixture(E, M, p, o);
 }

@@ -376,6 +376,10 @@ export function step(m, state, action, t, rates = null, skipGrowth = false) {
           if (rate > gs.rate0 * (1 + g.band) && (ctx.totalYears - t) > g.freezeYears) { gs.mult *= (1 - g.cut); did.push('cut'); }
           else if (rate < gs.rate0 * (1 - g.band)) { gs.mult *= (1 + g.raise); did.push('raise'); }
         }
+        if (ctx.raiseCapFrac > 0) {   // the user's raise cap, as the engine applies it (M23)
+          const maxMult = Math.max(0, scheduled * ctx.raiseCapFrac - covered) / baseDraw;
+          if (gs.mult > maxMult) { gs.mult = maxMult; did.push('held at cap'); }
+        }
         if (ctx.floorFrac > 0) {
           const minMult = Math.max(0, scheduled * ctx.floorFrac - covered) / baseDraw;
           if (gs.mult < minMult) { gs.mult = minMult; did.push('held at floor'); }

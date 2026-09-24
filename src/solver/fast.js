@@ -299,7 +299,7 @@ export function compile(m, actions) {
   return {
     E, m, ctx, P, o, T, yr, tb, acts, actWithGia, cashReal, cashNominal, cashIsaContrib: o.cashIsaContrib || 0,
     // the guardrails, applied only on a forward run whose state vector carries their memory (slots 7 to 10)
-    guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, inflation: ctx.inflation, solvencyFloor: ctx.solvencyFloor || 0,
+    guard: ctx.guardrails || null, floorFrac: ctx.floorFrac || 0, raiseCapFrac: ctx.raiseCapFrac || 0, inflation: ctx.inflation, solvencyFloor: ctx.solvencyFloor || 0,
     real: Float64Array.from(planReal.map((r, i) => shifted(r, planSig[i]))), shiftMode, shiftZ, sigma: shiftMode ? Float64Array.from(planSig) : new Float64Array(4),
     // the annual spread per pot with the per-path shock folded in as one year's noise (ARVA's rate uses it) ...
     volEff: planVolEff,
@@ -491,6 +491,7 @@ export function flow(c, t, ai, s) {
         const draw = r > 1e-9 ? (spendable * r) / ((1 - Math.pow(1 + r, -n)) * (1 + r)) : spendable / n;
         mult = draw / baseDraw; rate0 = baseDraw / potNow;
       }
+      if (c.raiseCapFrac > 0) { const maxMult = Math.max(0, scheduled * c.raiseCapFrac - covered) / baseDraw; if (mult > maxMult) mult = maxMult; }   // M23
       if (c.floorFrac > 0) { const minMult = Math.max(0, scheduled * c.floorFrac - covered) / baseDraw; if (mult < minMult) mult = minMult; }
       lastBase = baseDraw;
       target = (covered + baseDraw * mult) * frac;

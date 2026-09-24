@@ -1873,6 +1873,9 @@ function buildContext(rawPlan) {
     cashBufferYears: clamp(num(c.cashBufferMonths, 6), 0, 120) / 12,
     solvencyFloor: Math.max(0, num(c.solvencyFloor, 0)),
     floorSpend, floorFrac, floorConfidence,
+    // the user's raise cap as a multiple of target (0: none). The solver's menu honours it; so do the guardrails, so
+    // a comparison holds both sides to the same rule (PLAN.md M23). Unset in every shipped plan today.
+    raiseCapFrac: Math.max(0, num(c.raiseCap, 0)),
     inflation: clamp(num(c.inflation, 2.5), -50, 100) / 100,
     guardrails: c.guardrails ? GUARDRAILS : null,
     lookaheadYears: clamp(Math.round(num(c.lookaheadYears, DEFAULT_CONFIG.lookaheadYears)), 0, 15),
@@ -2242,6 +2245,11 @@ function stepYear(ctxBase, state, t, market = 'expected', spendOverride = null) 
          * multiplier can never take the year's spend below it. The floor scales with the band, so a
          * household that planned a leaner stretch keeps a proportionally leaner floor there.
          */
+        /* THE CAP, the floor's mirror (M23): with a raise cap set, the multiplier can never take the year's spend above it. */
+        if (ctx.raiseCapFrac > 0) {
+          const maxMult = Math.max(0, scheduled * ctx.raiseCapFrac - covered) / baseDraw;
+          if (gs.mult > maxMult) { gs.mult = maxMult; did.push('held at cap'); }
+        }
         if (ctx.floorFrac > 0) {
           const minMult = Math.max(0, scheduled * ctx.floorFrac - covered) / baseDraw;
           if (gs.mult < minMult) { gs.mult = minMult; did.push('held at floor'); }

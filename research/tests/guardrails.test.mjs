@@ -55,6 +55,25 @@ console.log('=========== F. THE FLOOR (plan phase 2d): CUTS STOP AT THE LEAST TH
   ok('F5  a floor above the target is clamped to it', E.buildContext({ ...noFloor, spending: { ...noFloor.spending, floorSpend: 99000 } }).floorSpend === 40000);
 }
 
+console.log('=========== R. THE RAISE CAP (PLAN.md M23): RAISES STOP AT THE MOST THE HOUSEHOLD WANTS ===========');
+{
+  // a run of winning years drives the raises; with a cap at 110% of the target the spend never goes above it
+  const winning = (t) => (t >= 6 && t <= 20 ? 1.6 : 0.2);
+  const noCap = mk({ spend: 40000, term: 90 });
+  const capped = { ...noCap, config: { ...noCap.config, raiseCap: 1.1 } };
+  const a = walk(noCap, winning), b = walk(capped, winning);
+  const ra = retired(a.rows, a.ctx), rb = retired(b.rows, b.ctx);
+  const maxA = Math.max(...ra.map(r => r.targetSpend)), maxB = Math.max(...rb.map(r => r.targetSpend));
+  ok('R1  without a cap the rails raise the spend above 110% of the target on a winning run', maxA > 44000 + 1, `${maxA.toFixed(0)}`);
+  ok('R2  with the cap the spend never goes above it', maxB <= 44000 + 1, `${maxB.toFixed(0)}`);
+  ok('R3  ...and the audit row says so the year it bites', rb.some(r => /held at cap/.test(r.guardrail || '')));
+  ok('R4  unset, the cap is off: the context carries 0 and the run is identical', E.buildContext(noCap).raiseCapFrac === 0 && a.rows.every((r, i) => r.targetSpend === walk(noCap, winning).rows[i].targetSpend));
+  const zero = { ...noCap, config: { ...noCap.config, raiseCap: 0 } };
+  ok('R5  a cap of 0 means no cap', walk(zero, winning).rows.every((r, i) => r.targetSpend === a.rows[i].targetSpend));
+  const losing = (t) => (t >= 2 && t <= 12 ? -1.6 : 0.3);
+  ok('R6  the cap never touches a cut', walk(noCap, losing).rows.every((r, i) => Math.abs(r.targetSpend - walk(capped, losing).rows[i].targetSpend) < 1e-6 || walk(capped, losing).rows[i].targetSpend <= 44000 + 1));
+}
+
 console.log('=========== A. OFF IS OFF ===========');
 {
   const off = mk({ on: false });

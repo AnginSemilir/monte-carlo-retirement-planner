@@ -2,7 +2,10 @@
  * REDUCER FOR PROBE M14 (PLAN.md finding M14): one tier ABOVE the plan's allowed, against down-only, both with the
  * plan held at Medium, paired on the same 3,000 paths. Reports survival (paired), running out within 20 years,
  * the worst 5% of years funded, years unfunded per path, and WHERE the up-moves happen: the share of up-move years
- * in which the path's wealth sits below that year's median across all paths (the toy's "only when behind").
+ * in which the path's wealth sits below that year's median across all paths (the toy's "only when behind"); and of all
+ * up-move years, the share in futures that fail and the share in a failing path's last three paid years before it
+ * fails (M14b's item 2, added 24 Sep; the window is reduce-m17.mjs's: the years t-3 to t-1 with spending, t the
+ * failure year). Checked against M14's own records first: they gave 74-83% and 10-20% on the thin four.
  *
  *   node research/solver/reduce-m14.mjs
  */
@@ -25,23 +28,28 @@ function stats(rec) {
   }
   funded.sort((a, b) => a - b);
   // where up-moves happen: tier code 15 = pension and ISA both one above (index 3)
-  let up = 0, upBehind = 0, years = 0;
+  let up = 0, upBehind = 0, years = 0, upFail = 0, upLast3 = 0;
+  for (let i = 0; i < N; i++) {
+    if (P.survived[i]) continue;
+    const t = tr.failYear[i] > 0 ? tr.failYear[i] : Y;
+    for (let k = 0; k < Y; k++) { const j = i * Y + k; if (!tr.level[j] || tr.tier[j] !== 15) continue; upFail++; if (k >= t - 3 && k < t) upLast3++; }
+  }
   for (let t = 0; t < Y; t++) {
     const w = []; for (let i = 0; i < N; i++) { const k = i * Y + t; if (tr.level[k]) w.push(tr.wealth[k]); }
     if (!w.length) continue; w.sort((a, b) => a - b); const med = w[w.length >> 1];
     for (let i = 0; i < N; i++) { const k = i * Y + t; if (!tr.level[k]) continue; years++; if (tr.tier[k] === 15) { up++; if (tr.wealth[k] < med) upBehind++; } }
   }
-  return { ok: P.survived, surv: 100 * surv / N, early: 100 * early / N, p5: funded[Math.floor(0.05 * (N - 1))], unfunded: unfunded / N, upShare: years ? 100 * up / years : 0, upBehind: up ? 100 * upBehind / up : NaN };
+  return { ok: P.survived, surv: 100 * surv / N, early: 100 * early / N, p5: funded[Math.floor(0.05 * (N - 1))], unfunded: unfunded / N, upShare: years ? 100 * up / years : 0, upBehind: up ? 100 * upBehind / up : NaN, upFail: up ? 100 * upFail / up : NaN, upLast3: up ? 100 * upLast3 / up : NaN };
 }
 // the fair-test gate (RULES.md): the two arms may differ only in the tiers allowed (variable 13)
 requireFair([[DOWN, UP, { tested: [13] }]]);
 console.log('PROBE M14 - one tier above allowed (plan held at Medium), paired against down-only on the same paths');
-console.log('  id     survival down -> up (paired +/- se)    ran out < 20y   worst 5% funded   unfunded/path   years above   of which behind (below median wealth)');
+console.log('  id     survival down -> up (paired +/- se)    ran out < 20y   worst 5% funded   unfunded/path   years above   of which behind (below median wealth)   of up-move years: in failing futures / in their last 3 paid years');
 for (const id of ids) {
   const fd = join(R, DOWN, `${id}.solver.record.json.gz`), fu = join(R, UP, `${id}.solver.record.json.gz`);
   if (!existsSync(fd) || !existsSync(fu)) continue;
   const d = stats(readRecord(fd)), u = stats(readRecord(fu));
   let disc = 0; for (let i = 0; i < d.ok.length; i++) if (d.ok[i] !== u.ok[i]) disc++;
   const se = 100 * Math.sqrt(disc) / d.ok.length;
-  console.log(`  ${id}   ${f(d.surv, 2)} -> ${f(u.surv, 2)} (${(u.surv - d.surv >= 0 ? '+' : '') + f(u.surv - d.surv, 2)} +/- ${f(se, 2)})    ${f(d.early)} -> ${f(u.early)}%      ${d.p5} -> ${u.p5} yrs        ${f(d.unfunded, 2)} -> ${f(u.unfunded, 2)}      ${f(u.upShare)}%        ${f(u.upBehind)}%`);
+  console.log(`  ${id}   ${f(d.surv, 2)} -> ${f(u.surv, 2)} (${(u.surv - d.surv >= 0 ? '+' : '') + f(u.surv - d.surv, 2)} +/- ${f(se, 2)})    ${f(d.early)} -> ${f(u.early)}%      ${d.p5} -> ${u.p5} yrs        ${f(d.unfunded, 2)} -> ${f(u.unfunded, 2)}      ${f(u.upShare)}%        ${f(u.upBehind)}%        ${f(u.upFail)}% / ${f(u.upLast3)}%`);
 }

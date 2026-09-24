@@ -44,8 +44,9 @@ template-residual averaging is worth building.
 
 - **Record the full score, not only survival.** M14c measured survival only, but the solver trades survival against cuts
   (λ = 2 on S194 and S252). Part A's rollouts at each position also record years below target, total cut, the estate
-  and the score (survival + estate credit − λ × cut cost + raise credit), so a bet that loses survival but wins on the
-  score is told apart from a misread. This answers O20.
+  and the score (survival + estate credit − λ × cut cost − the charge for years without money (FAILSHORT: each year from
+  a failure to the end at the floor's cut cost) + raise credit), so a bet that loses survival but wins on the score is
+  told apart from a misread. This answers O20.
 - **Positions at every horizon, at risk only.** S194's at-risk bet positions sit mostly 6 or more years from the end
   (results-m14c-horizon.txt); 17 of its 19 last-5-year positions survive for certain either way. Part A takes all
   at-risk positions (either choice below 100%), not only the last 6 years.

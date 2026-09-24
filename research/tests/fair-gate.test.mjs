@@ -7,6 +7,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareData, parseAccept, formatReport } from '../solver/fair-gate.mjs';
+import { codeFiles, smokeFiles } from '../solver/code-id.mjs';
 
 const S = join(dirname(fileURLToPath(import.meta.url)), '../solver');
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -61,5 +62,15 @@ const reducers = readdirSync(S).filter(f => /^reduce-.*\.mjs$/.test(f));
 const missing = reducers.filter(f => !LEGACY.includes(f) && !/requireFair\(/.test(readFileSync(join(S, f), 'utf8')));
 ok(missing.length === 0, `every reducer outside the legacy list calls requireFair (missing: ${missing.join(', ') || 'none'})`);
 ok(LEGACY.every(f => reducers.includes(f)), 'the legacy list names only reducers that exist');
+
+// the smoke stamp covers every script a batch runs, the code hash only what moves a result (24 Sep, the plan-auditor:
+// an edit to audit-s126.mjs alone did not re-run the smoke test)
+const SF = smokeFiles(), CF = codeFiles();
+ok(CF.every(x => SF.includes(x)), 'the smoke stamp hashes every file the code hash does');
+ok(['research/solver/audit-s126.mjs', 'research/solver/select-phase4.mjs', 'research/solver/couple-gate.mjs', 'research/solver/smoke.sh'].every(x => SF.includes(x)),
+   'the smoke stamp also hashes the audits, the Phase 4 selection, the gate scripts and smoke.sh');
+ok(!CF.includes('research/solver/audit-s126.mjs'), 'the code hash (result identity) still leaves the audit scripts out');
+const batchNamed = readdirSync(S).filter(x => /^batch-.+\.sh$/.test(x)).flatMap(b => [...readFileSync(join(S, b), 'utf8').matchAll(/research\/solver\/([\w.-]+\.mjs)/g)].map(m => 'research/solver/' + m[1]));
+ok(batchNamed.every(x => SF.includes(x)), 'every script a batch names is in the smoke stamp');
 
 console.log(`\n${n} passed`);

@@ -5,8 +5,14 @@
  * SOLVER_VERSION tag was not bumped between 21 and 24 Sep, through the M17 fix and F1, so it proves nothing alone.
  *
  *   node research/solver/code-id.mjs          prints the hash of the tree it sits in
+ *   node research/solver/code-id.mjs --smoke  prints the smoke stamp's hash (below)
  *
  * Shared by experiment.mjs (stamped into every result file), run-from-snapshot.sh (the smoke stamp) and fair-gate.mjs.
+ *
+ * THE SMOKE STAMP hashes more: every script a batch runs (the audits, the Phase 4 selection, the gate scripts, and any
+ * research/solver script a batch-*.sh names) and smoke.sh itself, so an edit to any of them re-runs the smoke test
+ * (24 Sep: the audit's ids-mode bug sat in a file the code hash left out). It is kept apart from the code hash so the
+ * result files' identity (fair-gate's MIXED CODE check) does not move when only an audit script changes.
  */
 import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
@@ -31,8 +37,28 @@ export function codeId(root = ROOT) {
   } catch { return null; }
 }
 
+export function smokeFiles(root = ROOT) {
+  const dir = join(root, 'research/solver');
+  const all = readdirSync(dir);
+  const named = new Set();
+  for (const b of all.filter(f => /^batch-.+\.sh$/.test(f)))
+    for (const m of readFileSync(join(dir, b), 'utf8').matchAll(/research\/solver\/([\w.-]+\.mjs)/g)) named.add(m[1]);
+  const run = all.filter(f => /^audit-.+\.mjs$/.test(f) || /^(select-phase4|couple-gate|bridge-gate|seedcheck)\.mjs$/.test(f) || named.has(f));
+  return [...new Set([...codeFiles(root), ...run.sort().map(f => `research/solver/${f}`), 'research/solver/smoke.sh'])];
+}
+
+export function smokeId(root = ROOT) {
+  try {
+    const h = createHash('sha256');
+    for (const f of smokeFiles(root)) h.update(f).update(readFileSync(join(root, f)));
+    return h.digest('hex').slice(0, 12);
+  } catch { return null; }
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const id = codeId(process.argv[2] || ROOT);
+  const smoke = process.argv.includes('--smoke');
+  const root = process.argv.slice(2).find(a => !a.startsWith('--')) || ROOT;
+  const id = smoke ? smokeId(root) : codeId(root)?.hash;
   if (!id) { console.error('code-id: could not hash the code files'); process.exit(1); }
-  console.log(id.hash);
+  console.log(id);
 }

@@ -3,11 +3,13 @@
 # THE SMOKE RUN (RULES.md rule 3: after any code edit, re-test every caller before launching anything).
 #
 # run-from-snapshot.sh runs this inside the snapshot before any batch, once per version of the code (a stamp keyed by
-# code-id.mjs's hash skips it next time). It runs, tiny: experiment.mjs flex in five configurations (the solver, the
+# `code-id.mjs --smoke` - the code hash plus every script a batch runs and this file - skips it next time; an edit to an
+# audit script or select-phase4.mjs re-runs it). It runs, tiny: experiment.mjs flex in five configurations (the solver, the
 # rival arms, both in the mixture, risk above with records, the F1 read), reduceFlex over the arms' files, and the S126
 # audit's scan and ids modes; and it checks every result file for the code and prediction stamps. It does NOT run
-# experiment.mjs's select/run/perturb/reduce modes, select-phase4.mjs or the other audit-*.mjs scripts: add a mode here
-# before a batch that uses it runs on edited code (the plan-auditor, 24 Sep 11:05 UK). It exists because on 24 Sep an edit made for one mode (M15, the solver
+# experiment.mjs's select/run/perturb/reduce modes, select-phase4.mjs or the other audit-*.mjs scripts: an edit to one
+# re-runs this file, but only the modes below are exercised, so add a mode here before a batch that uses it runs on
+# edited code (the plan-auditor, 24 Sep 11:05 and 11:24 UK). It exists because on 24 Sep an edit made for one mode (M15, the solver
 # arm) broke another (the rival arms' runFixedPath) and nothing noticed for a day: a batch only exercises its own mode.
 #
 #   bash research/solver/smoke.sh        (from the repository root or a snapshot of it; ~1-2 minutes)

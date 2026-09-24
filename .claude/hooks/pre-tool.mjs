@@ -8,18 +8,23 @@
  *   cannot quietly change them. Edits made through Bash (sed -i, >, tee, mv, cp, rm, an inline script) count. The first
  *   version said "ask", and in auto mode an ask is approved without the maintainer seeing it (24 Sep), so it is now a
  *   refusal that only the maintainer's own latest message can lift: the words "unlock enforcement" in a message they
- *   typed (origin human in the session transcript; a subagent's report or a tool result never counts).
+ *   typed (origin human in the session transcript; a subagent's report or a tool result never counts). The lock returns
+ *   as soon as they type anything else - a message still queued behind the turn counts, not only a delivered one
+ *   (24 Sep: an unlock stayed open for the rest of a turn after their next message was typed).
  * ASK - an edit to a registered (committed) prediction: legitimate before a run, and the prediction's hash in every
  *   result file (fair-gate: PREDICTION EDITED) is what enforces it after.
  * DENY - killing processes by pattern (`pkill -f` matched its own command twice on 24 Sep); committing with
  *   --no-verify; unsetting or redirecting core.hooksPath; removing the experiment lock; a plain force push; and launching
- *   an experiment (experiment.mjs, a batch-*.sh, an audit-*.mjs run) outside run-from-snapshot.sh, which is where the
- *   prediction gate, the smoke run, the lock and the run log live.
+ *   an experiment (experiment.mjs, a batch-*.sh, an audit-*.mjs, select-phase4.mjs or a gate script run: SCRIPTS below)
+ *   outside run-from-snapshot.sh, which is where the prediction gate, the smoke run, the lock and the run log live.
  *
  * Each part of a command (split at && || ; | & newlines and substitutions) is judged on its own, so nothing elsewhere in
  * a line exempts a part; and each rule looks for its command anywhere in the part, past variables and wrappers in front
- * of it (FOO=1, timeout 5, xargs, sudo), and inside `bash -c '...'` and `eval '...'`. It is a guardrail, not a sandbox:
- * a program that runs a command itself (a node or python script calling a shell) is not seen here.
+ * of it (FOO=1, timeout 5, xargs, sudo), inside `bash -c '...'` and `eval '...'`, and in a here-document fed to a shell
+ * (`bash <<EOF`, `cat <<EOF | sh`). It is a guardrail, not a sandbox. Not seen here: a program that runs a command
+ * itself (a node or python script calling a shell), a string piped or here-string'd into a shell (`echo ... | bash`,
+ * `bash <<< '...'`), a script written to a file and then run, and launches of scripts other than those listed in
+ * EXPERIMENT below.
  *
  * decide() is pure so research/tests/hooks.test.mjs can drive it; the bottom of the file is the hook itself.
  */
@@ -63,6 +68,34 @@ export function lastHumanText(transcriptText) {
   return '';
 }
 export const UNLOCK = /\bunlock enforcement\b/i;
+
+/* is the enforcement unlocked? Only by the maintainer's latest DELIVERED message saying so, and only until they type
+   anything else: a queued message (an enqueue of plain text - the queue also carries agent and task notices, which
+   start with "<") ends it at once. A queued entry records no origin, so it can end an unlock but never start one. */
+export function unlockedFrom(transcriptText) {
+  const lines = transcriptText.split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    let j; try { j = JSON.parse(lines[i]); } catch { continue; }
+    if (j.type === 'queue-operation' && j.operation === 'enqueue' && typeof j.content === 'string' && !/^\s*</.test(j.content)) return false;
+    if (j.type !== 'user' || !j.origin || j.origin.kind !== 'human' || j.isMeta || j.isCompactSummary) continue;
+    const c = j.message && j.message.content;
+    if (typeof c === 'string') return UNLOCK.test(c);
+    if (Array.isArray(c) && !c.some(x => x.type === 'tool_result')) return UNLOCK.test(c.filter(x => x.type === 'text').map(x => x.text).join(' '));
+  }
+  return false;
+}
+
+/* the bodies of here-documents fed to a shell: `bash <<EOF`, `sh -s <<'EOF'`, `cat <<EOF | bash` */
+export function shellHeredocs(raw) {
+  const out = [];
+  const re = /^([^\n]*?)<<-?[ \t]*(['"]?)(\w+)\2([^\n]*)\n([\s\S]*?)\n[ \t]*\3[ \t]*$/gm;
+  const SHELL = '(\\S*\\/)?(bash|sh|zsh|dash)(\\s+-[\\w-]+)*';
+  for (const m of raw.matchAll(re)) {
+    const [, before, , , after, body] = m;
+    if (new RegExp(`(^|[\\s;&|({])${SHELL}\\s*$`).test(before) || new RegExp(`\\|\\s*${SHELL}\\s*($|[;&|)])`).test(after)) out.push(body);
+  }
+  return out;
+}
 
 /* the parts of a command that run one after another, in a pipe, in the background or in a substitution */
 export const segments = code => code.split(/&&|\|\||;|\||\n|\$\(|`|\(|\)|&/).map(x => x.trim()).filter(Boolean);
@@ -111,7 +144,11 @@ export function innerCommands(raw) {
   return out;
 }
 
-const EXPERIMENT = /(^|[\s{!])((\S*\/)?(node|bash|sh|zsh|dash|source|\.)((?:\s+-\S+)*)\s+)?(\S*\/)?(experiment\.mjs|batch-[\w.-]+\.sh|audit-[\w.-]+\.mjs)(?=\s|$)(\s+(\S+))?/;
+// the scripts that run experiments: the solver's experiment script, the batches, the audits, the Phase 4 selection and
+// the gate scripts (24 Sep, the plan-auditor: select-phase4.mjs and the gates ran directly were not seen)
+const SCRIPTS = 'experiment\\.mjs|batch-[\\w.-]+\\.sh|audit-[\\w.-]+\\.mjs|select-phase4\\.mjs|couple-gate\\.mjs|bridge-gate\\.mjs|seedcheck\\.mjs';
+const EXPERIMENT = new RegExp(`(^|[\\s{!])((\\S*\\/)?(node|bash|sh|zsh|dash|source|\\.)((?:\\s+-\\S+)*)\\s+)?(\\S*\\/)?(${SCRIPTS})(?=\\s|$)(\\s+(\\S+))?`);
+const SCRIPT_WORD = new RegExp(`^(\\S*\\/)?(${SCRIPTS})$`);
 
 export function decide(input, { root = process.cwd(), tracked = () => false, unlocked = false, depth = 0 } = {}) {
   const tool = input.tool_name || '';
@@ -131,8 +168,8 @@ export function decide(input, { root = process.cwd(), tracked = () => false, unl
   const raw = String(ti.command || '');
   const code = shellCode(raw);
 
-  // a command hidden in bash -c '...' or eval '...' is judged as if typed
-  if (depth < 3) for (const inner of innerCommands(raw)) {
+  // a command hidden in bash -c '...', eval '...' or a here-document fed to a shell is judged as if typed
+  if (depth < 3) for (const inner of [...innerCommands(raw), ...shellHeredocs(raw)]) {
     const d = decide({ tool_name: 'Bash', tool_input: { command: inner } }, { root, tracked, unlocked, depth: depth + 1 });
     if (d && d.decision === 'deny') return d;
   }
@@ -157,7 +194,7 @@ export function decide(input, { root = process.cwd(), tracked = () => false, unl
     if (!m) continue;
     const interp = m[4], flags = (m[5] || '').trim().split(/\s+/).filter(Boolean), script = m[7], arg = m[9] || '';
     const w = commandOf(x).split(/\s+/);
-    if (!interp && !/^(\S*\/)?(experiment\.mjs|batch-[\w.-]+\.sh|audit-[\w.-]+\.mjs)$/.test(w[0])) continue;   // named, not run (cat, grep, git add ...)
+    if (!interp && !SCRIPT_WORD.test(w[0])) continue;   // named, not run (cat, grep, git add ...)
     if (/^(\S*\/)?run-from-snapshot\.sh$/.test(w[0]) || (/^(bash|sh)$/.test(w[0]) && /^(\S*\/)?run-from-snapshot\.sh$/.test(w[1] || ''))) continue;
     if (/^(bash|sh|zsh|dash)$/.test(interp) && flags.some(f => /^-[a-zA-Z]*n[a-zA-Z]*$/.test(f))) continue;   // a syntax check runs nothing
     if (interp === 'node' && flags.some(f => f === '--check' || f === '-c')) continue;
@@ -185,7 +222,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     try {
       const p = input.transcript_path, size = statSync(p).size, n = Math.min(size, 30e6), buf = Buffer.alloc(n), fd = openSync(p, 'r');
       readSync(fd, buf, 0, n, size - n); closeSync(fd);
-      unlocked = UNLOCK.test(lastHumanText(buf.toString('utf8')));
+      unlocked = unlockedFrom(buf.toString('utf8'));
     } catch { unlocked = false; }
     const d = decide(input, { root, tracked, unlocked });
     if (d) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: d.decision, permissionDecisionReason: d.reason } }));

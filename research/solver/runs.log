@@ -1,1 +1,2 @@
 24 Sep 09:36 UK | light | none: launcher self-test after the enforcement build (smoke on the new code) | code d89453776ea1 | b370285 | load 5.26 4.67 4.56 | true
+24 Sep 11:50 UK | light | none: self-test of the launcher's new smoke stamp (code-id --smoke), a cheap audit scan | code f15075f2eef3 | 610afa3 | load 5.08 4.92 4.77 | node research/solver/audit-s126.mjs scan

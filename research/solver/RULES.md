@@ -10,9 +10,8 @@ Claude Code guidance), so the always-loaded text is the checklist and the rules 
 remembers them, and every one looks at files, not at what was said about them. In order of strength:
 
 1. **The research scripts themselves** (work in any tool): `run-from-snapshot.sh` refuses a run without a registered,
-   pushed prediction and refuses code that fails `smoke.sh` (re-run when the hashed code changes: the solver, engine,
-   library and experiment.mjs - an edit to an audit script or select-phase4.mjs alone does not re-run it, so the smoke
-   run is run by hand after one); the reducers refuse to print a figure unless `fair-gate.mjs` passes; every result file
+   pushed prediction and refuses code that fails `smoke.sh` (re-run whenever the solver, engine, library,
+   experiment.mjs, any script a batch runs, or smoke.sh itself changes: the stamp is `code-id.mjs --smoke`); the reducers refuse to print a figure unless `fair-gate.mjs` passes; every result file
    experiment.mjs writes records the code (`code.hash`) and the prediction it ran under (the audit scripts' outputs do
    not yet).
 2. **`check-plan.mjs`**, run by GitHub CI on every push (outside any session: a red cross the maintainer sees), by the
@@ -20,13 +19,16 @@ remembers them, and every one looks at files, not at what was said about them. I
 3. **Claude Code hooks** (`.claude/settings.json`): the Stop hook refuses to end a turn while the plan check fails or the
    plan has changed without a review; before a tool runs, an edit to the enforcement files is REFUSED unless the
    maintainer's own latest message says "unlock enforcement" (a subagent's report, a tool result or a compaction summary
-   never counts; the lock returns when their next message is DELIVERED, at the end of the turn they typed it in) - an
-   "ask" would be approved unseen in auto mode; and killing by pattern, `--no-verify`, moving `core.hooksPath`,
-   removing the run lock, force pushes and runs of experiment.mjs, batch-*.sh and audit-*.mjs outside the launcher are
-   refused, each part of a command judged on its own, each rule finding its command past variables and wrappers in
-   front of it and inside `bash -c`/`eval` (maintainer's unlock, 24 Sep 11:00 UK). NOT seen - a guardrail, not a
-   sandbox: a shell fed a here-document, a launch of any other script (select-phase4.mjs, the gate scripts), a program
-   that runs a command itself (PLAN.md, bugs of 24 Sep, has the fixes proposed). **An unlock covers only the change the
+   never counts; the lock returns as soon as they type anything else, even while it waits in the queue) - an "ask"
+   would be approved unseen in auto mode; and killing by pattern, `--no-verify`, moving `core.hooksPath`, removing the
+   run lock, force pushes and runs of experiment.mjs, batch-*.sh, audit-*.mjs, select-phase4.mjs and the gate scripts
+   outside the launcher are refused, each part of a command judged on its own, each rule finding its command past
+   variables and wrappers in front of it and inside `bash -c`/`eval` and a here-document fed to a shell (maintainer's
+   unlocks, 24 Sep 11:00 and 11:42 UK). NOT seen - a guardrail, not a sandbox: an enforcement file named by a path
+   relative to another folder; a git restore of the whole tree (`git checkout <rev> -- .`, `git reset --hard`,
+   `git stash`); other ways of feeding a shell its commands (`bash - <<EOF`, a string piped into a shell); an answer to
+   Claude's question (it does not relock); a script written to a file and then run; a program that runs a command
+   itself (PLAN.md, bugs of 24 Sep, lists them and the fixes proposed). **An unlock covers only the change the
    maintainer agreed to:** anything else - above all a loosening, however sound - is proposed first; it ends as soon as
    their next message is seen, even queued; and the diff is shown before the commit (the seventh review, 24 Sep 11:24
    UK, found all three broken). After every compaction the checklist is restated.
@@ -178,14 +180,14 @@ is enforced now.
 |---|---|---|---|
 | 1 | **"It doesn't affect X" is a claim**, and needs a measurement or a proof beside it, or the words NOT CHECKED | "K5 is unaffected by the raise cap" and "the minimum pot does not change the guardrails' cutting" (both wrong, 24 Sep); S162 "has no minimum pot of its own"; "a tier above High exists"; the certain-success bound (gate 2); re-weighting without a re-solve implied possible (plan review) | `check-plan.mjs` (no-effect) on every new plan line; the plan-auditor |
 | 2 | **A check must be shown able to fail** before it is trusted: plant a known fault once and see it go red. A check that ran on zero cases is an error, not a pass | the single-peak probe printed "safe" on zero tests; E1 ran on the wrong menu; the unit suite passed both the broken landing and its repair; 6c's control clause could not be met by any correct code | every new check ships with a planted-fault test (`plan-checker.test.mjs`, `fair-gate.test.mjs`, `hooks.test.mjs`; the smoke run was shown to catch the planted runFixedPath bug); the plan-auditor |
-| 3 | **After any code edit, re-test every caller** before launching; no blind find-and-replace | the sed edit that commented out live code and killed a run; the M15 edit that broke the rival arms unnoticed for a day; old scripts that kept a 6-slot state after it grew to 7; solve.js edited three times during one run | `smoke.sh`, run by the launcher on every new version of the code (stamp keyed by the code hash) |
+| 3 | **After any code edit, re-test every caller** before launching; no blind find-and-replace | the sed edit that commented out live code and killed a run; the M15 edit that broke the rival arms unnoticed for a day; old scripts that kept a 6-slot state after it grew to 7; solve.js edited three times during one run | `smoke.sh`, run by the launcher whenever the code or any script a batch runs changes (stamp keyed by `code-id.mjs --smoke`); it exercises only its own modes |
 | 4 | **A decision changes the code's default in the same commit**, pinned by a test | bare `solve()` still meant the old objective (M1); the code ran five bisection steps where eight were derived (M6); research runs overrode the code's own 0.95 level; `opts.headroom \|\| 6` read 0 as absent; the solver version tag never bumped; the PRODUCT_DEFAULTS comment still said "risk above only as an opt-in" after the default changed | the decided-defaults block in PLAN.md and `plan-defaults.test.mjs` |
 | 5 | **After any bug, sweep for the same pattern** and write "Same pattern searched:" with what was found | done by habit after the landing-sample bug and the byte-wide bug; needed the maintainer's instruction after S126 | `check-plan.mjs` (bugs) on every bug entry from 24 Sep |
 | 6 | **Chase odd results.** Every one goes in the register with an owner and a gate; none is "noted, not chased" | S126 read 7.5% against 96.8% simulated, logged 21-22 Sep and not chased: it was #106, steering decisions for 40 years; #106 confirmed, then deferred | the odd results register in PLAN.md; `check-plan.mjs` (register) |
 | 7 | **Anything chosen on one sample is reported from another**, and anything promised is verified on the sample it is judged on | the app's spend finder (12 of 12 fixtures below target); then the solver's floor landing, the same mistake | fair-test variable 6; the plan-auditor |
 | 8 | **Do not measure against a comparison point a queued change is about to replace**; reorder instead | E1 and E3 were nearly measured on a grid about to change size; M14's evidence predated the M17 fix | the re-look (section 5); the plan-auditor |
 | 9 | **Time estimates come from a measured cell under the same load**, revised when the first cells land | K5 4.5 h, then 8, then about 12; 6e 40 min, measured 2.3 h; M14b 40 min, then 2 h | the launcher writes the load beside every run in `runs.log`; the plan-auditor |
-| 10 | **Start and stop runs safely**: never kill by pattern; check what is running before and after | a launch that started two batches at once; a cleanup `rm -rf` that destroyed the lock; a detached run lost when the container was reclaimed; `pkill -f` that matched its own command, twice | the PreToolUse hook (kill by pattern, removing the lock, experiments outside the launcher) |
+| 10 | **Start and stop runs safely**: never kill by pattern; check what is running before and after | a launch that started two batches at once; a cleanup `rm -rf` that destroyed the lock; a detached run lost when the container was reclaimed; `pkill -f` that matched its own command, twice | the PreToolUse hook (kill by pattern, removing the lock, the listed experiment scripts outside the launcher) |
 | 11 | **A test changed after any result is in is declared** ("Changes after seeing results" in its prediction file) or re-run from scratch | 6c's control clause changed with 8 of 12 results in; Phase 2's first draft chose households where the solver had already won | the prediction's git blob in every result file (fair-gate: PREDICTION EDITED) |
 | 12 | **One clock, and no out-of-date text** | the ledger mixed UTC and UK time (24 Sep); the 21:30 audit's stale statements; HOW-IT-WORKS.md; the mathematician's page | `check-plan.mjs` (clock); the plan-auditor for staleness |
 

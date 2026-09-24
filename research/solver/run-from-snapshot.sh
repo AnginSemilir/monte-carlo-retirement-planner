@@ -106,13 +106,16 @@ echo "=== snapshot $SNAP   from $REV$([ "$DIRTY" -gt 0 ] && echo " + $DIRTY unco
 [ "$DIRTY" -gt 0 ] && echo "=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone"
 cd "$SNAP"
 #
-# THE SMOKE GATE (RULES.md rule 3: after any code edit, re-test every caller). Every run mode the batches use runs once,
-# tiny, on the snapshot's own code before the batch starts; a stamp keyed by the code's hash skips it on the same code.
+# THE SMOKE GATE (RULES.md rule 3: after any code edit, re-test every caller). The modes in smoke.sh run once, tiny, on
+# the snapshot's own code before the batch starts (smoke.sh's header lists them; it is not every mode). The stamp is
+# keyed by code-id.mjs --smoke: the code hash plus every script a batch runs and smoke.sh itself, so an edit to an
+# audit script or select-phase4.mjs re-runs it too; the same code skips it.
 #
 HASH="$(node research/solver/code-id.mjs)"
-STAMP="$REAL/research/solver/results/.smoke/$HASH"
+SMOKEID="$(node research/solver/code-id.mjs --smoke)"
+STAMP="$REAL/research/solver/results/.smoke/$SMOKEID"
 if [ ! -f "$STAMP" ]; then
-  echo "=== smoke run on code $HASH: the modes in smoke.sh once, tiny (about 2-3 minutes)"
+  echo "=== smoke run on code $HASH (smoke stamp $SMOKEID): the modes in smoke.sh once, tiny (about 2-3 minutes)"
   bash research/solver/smoke.sh || { echo "=== REFUSED: the smoke run failed on this code. Fix it before any batch." >&2; exit 1; }
   mkdir -p "$(dirname "$STAMP")"; date -u +%FT%TZ > "$STAMP"
 fi

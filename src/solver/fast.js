@@ -98,6 +98,22 @@ export function tiersFor(m, below = 2) {
       const equity = m.E.RISK_EQUITY_WEIGHTS && m.E.RISK_EQUITY_WEIGHTS[name] !== undefined ? m.E.RISK_EQUITY_WEIGHTS[name] : 0.9;
       list.push({ name, real: (Number(prof.real) || 0) / 100, vol: (Number(prof.volatility) || 0) / 100, sigmaParam: (Number(prof.sigmaParam) || 0) / 100, equity });
     }
+    /*
+     * RISK ABOVE THE PLAN'S TIER (`tiersAbove`, PLAN.md finding M14) - research only, never the product without
+     * the user's consent. The tiers above go AFTER the ones below, so index 1 + below is "one above" on every
+     * wrapper and the joint step (pension and ISA by the same index) pairs like with like; a wrapper that does not
+     * have its full `below` list gets none, rather than an index that would mean something else.
+     */
+    const above = m.tiersAbove || 0;
+    if (above > 0 && list.length === 1 + below) {
+      for (let d = 1; d <= above && k0 - d >= 0; d++) {
+        const name = TIER_ORDER[k0 - d];
+        const prof = profiles[name] || m.E.DEFAULT_RISK_PROFILES[name];
+        if (!prof) break;
+        const equity = m.E.RISK_EQUITY_WEIGHTS && m.E.RISK_EQUITY_WEIGHTS[name] !== undefined ? m.E.RISK_EQUITY_WEIGHTS[name] : 0.9;
+        list.push({ name, real: (Number(prof.real) || 0) / 100, vol: (Number(prof.volatility) || 0) / 100, sigmaParam: (Number(prof.sigmaParam) || 0) / 100, equity, above: d });
+      }
+    }
     list.forEach(x => { x.volEff = Math.sqrt(x.vol * x.vol + x.sigmaParam * x.sigmaParam); });
     out[cat] = list;
   }

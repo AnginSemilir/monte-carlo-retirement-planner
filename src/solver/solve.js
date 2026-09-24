@@ -213,6 +213,7 @@ export function solve(E, M, plan, opts = {}) {
   const t0 = Date.now();
   const m = M.prepare(E, plan);
   if (opts.shiftZ !== undefined) m.shiftZ = opts.shiftZ;   // the scenario mixture: this table's held shift
+  if (opts.tiersAbove) m.tiersAbove = opts.tiersAbove;   // M14, research only: tiers above the plan's (see tiersFor)
   // one table per person; a couple needs two and a funding split, which is phase 5
   if (m.ctx.isCouple) throw new Error('the solver takes one person at a time; couples are phase 5');
   const g = makeGrid(m, opts);

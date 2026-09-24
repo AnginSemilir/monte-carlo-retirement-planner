@@ -13,13 +13,19 @@ Never edit any file. The only thing you write is your receipt, through `record-r
 
 ## What to do
 
-1. See what changed: `node research/solver/record-review.mjs --diff` (the plan since its last passing review).
-   Read `research/solver/CHECKLIST.md` and sections 2-5 of `research/solver/RULES.md`.
-   **Scope.** Review the change and whatever it rests on or contradicts - not the whole plan again. Read the whole plan
-   only when there is no passing review yet, or when the change settles a result (rule 11: everything downstream). Check
+0. First, before anything else: `node research/solver/record-review.mjs --start`. It records that a review of this exact
+   version is under way, so the Stop hook lets turns end for 30 minutes while you work; your receipt still decides.
+1. See what changed: `node research/solver/record-review.mjs --diff` (the plan since its last REVIEWED version, pass or
+   fail). Read `research/solver/CHECKLIST.md` and sections 2-5 of `research/solver/RULES.md`.
+   **Scope: judge the change, not the whole plan** (maintainer, 24 Sep 12:05 UK). Review the change and whatever it
+   rests on or contradicts. A problem you notice in older text the change did not touch and does not rest on is a
+   BACKLOG finding (below), not a reason to fail this change - unless it affects a result, a gate or a default, which
+   stays BLOCKING wherever it is. Read the whole plan only at a milestone: when the change settles a result (rule 11:
+   everything downstream), before Phase 4 starts, and before any value becomes a product default. Check
    a time against git, file times or the transcript where the ORDER of events matters (a prediction before its run, a
    decision before its code, a review before the fix it asked for); elsewhere a time label is a MINOR matter at most.
-   Read the previous receipt (`--status`, and the last lines of review-log.md): its MINOR findings must now be fixed.
+   Read the previous receipt (`--status`, and the last lines of review-log.md): its BLOCKING and MINOR findings must now
+   be fixed, and its BACKLOG findings must be in the plan's review backlog with an owner and a gate.
 2. The mechanical rules are already checked (`node research/solver/check-plan.mjs` - run it; if it fails, that is
    finding 1). Your job is the judgement rules the script cannot check. For each changed passage, ask:
    - **Settled?** A result used as settled must be beyond two paired standard errors (or a deterministic check that could
@@ -41,13 +47,19 @@ Never edit any file. The only thing you write is your receipt, through `record-r
    or two out, so every review now grades its findings):
    - **BLOCKING** - it changes, or could change, a result or a figure; a result's settled or provisional status; a
      prediction, falsifier or fair-test table; a gate, a decision or a default; the order of events the rules rest on;
-     or it claims more than is true (a check or enforcement that is not in force, a result more settled than it is, a
-     no-effect claim without evidence). Also: a check that fails, an odd result missing from the register, and a
-     previous receipt's MINOR finding still not fixed.
+     or it claims more than is true about the research (a result more settled than it is, a no-effect claim without
+     evidence). Also: a check that fails, an odd result missing from the register, and a previous receipt's MINOR
+     finding still not fixed or BACKLOG finding not yet in the backlog.
+   - **Claims about the enforcement itself** (what a hook, check or script does or does not catch) are graded by what
+     rests on them (maintainer, 24 Sep 12:05 UK): BLOCKING only when a research claim relies on it - a result called
+     settled because a check enforced it, a comparison called fair because the launcher guaranteed it. Otherwise an
+     overclaim is MINOR: the gap goes on RULES.md's list of the enforcement's known limits by the next review.
    - **MINOR** - nothing rests on it: a time label off by minutes where the order is unaffected, a stale phrase no
-     decision reads, wording.
-   PASS if there is no BLOCKING finding, listing any MINOR ones; FAIL if there is one:
+     decision reads, wording, an enforcement gap no research claim relies on.
+   - **BACKLOG** - a problem in older text the change did not touch and does not rest on, which affects no result, gate
+     or default: Claude adds it to the plan's review backlog with an owner and a gate; it does not fail this change.
+   PASS if there is no BLOCKING finding, listing any MINOR and BACKLOG ones; FAIL if there is one:
    `node research/solver/record-review.mjs --verdict pass --findings "none"` or
    `node research/solver/record-review.mjs --verdict pass --findings "MINOR 1. <where>: <what>; ..."` or
-   `node research/solver/record-review.mjs --verdict fail --findings "BLOCKING 1. <where>: <what is wrong and why>; MINOR 2. ..."`
+   `node research/solver/record-review.mjs --verdict fail --findings "BLOCKING 1. <where>: <what is wrong and why>; MINOR 2. ...; BACKLOG 3. ..."`
 4. Report back the verdict and the numbered findings, each graded, with the line or section and the evidence.

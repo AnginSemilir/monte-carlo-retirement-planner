@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decide as pre, shellCode, lastHumanText, UNLOCK, segments, unlockedFrom, shellHeredocs } from '../../.claude/hooks/pre-tool.mjs';
-import { decide as stop, MAX_REPEATS } from '../../.claude/hooks/stop-check.mjs';
+import { decide as stop, MAX_REPEATS, PENDING_MINUTES } from '../../.claude/hooks/stop-check.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -145,6 +145,17 @@ ok(stop({ checkOk: true, checkOutput: '', review: { receipt: null }, repeats: 0 
 ok(/FAILED/.test(stop({ checkOk: true, checkOutput: '', review: { receipt: { verdict: 'FAIL', findings: '1. x' } }, repeats: 0 }).reason), 'planted: a failed review blocks, with its findings');
 const tired = stop({ checkOk: false, checkOutput: '[ledger] x', review: pass, repeats: MAX_REPEATS });
 ok(!tired.block && /still failing/.test(tired.warn), `after ${MAX_REPEATS} blocks for the same reason the turn may end, with a warning to the maintainer`);
+
+// a review of this exact version under way lets a turn end; its receipt still decides (maintainer, 24 Sep 12:05 UK)
+const T0 = Date.parse('2026-09-24T11:00:00Z');
+const started = mins => ({ receipt: null, pending: { at: new Date(T0 - mins * 60e3).toISOString(), reviewer: 'plan-auditor' } });
+ok(!stop({ checkOk: true, checkOutput: '', review: started(5), repeats: 0, now: T0 }).block, 'a review of this version started 5 minutes ago lets the turn end');
+ok(stop({ checkOk: true, checkOutput: '', review: started(PENDING_MINUTES + 1), repeats: 0, now: T0 }).block, `planted: a start that has not reported within ${PENDING_MINUTES} minutes blocks again`);
+ok(/has not reported/.test(stop({ checkOk: true, checkOutput: '', review: started(PENDING_MINUTES + 1), repeats: 0, now: T0 }).reason), 'and says so');
+ok(stop({ checkOk: false, checkOutput: '[ledger] x', review: started(5), repeats: 0, now: T0 }).block, 'planted: a failing plan check blocks even while a review runs');
+ok(stop({ checkOk: true, checkOutput: '', review: { receipt: null, pending: { at: 'garbage' } }, repeats: 0, now: T0 }).block, 'planted: a start with no readable time does not let the turn end');
+ok(stop({ checkOk: true, checkOutput: '', review: { ...started(-5) }, repeats: 0, now: T0 }).block, 'planted: a start dated in the future does not let the turn end');
+ok(stop({ checkOk: true, checkOutput: '', review: { receipt: { verdict: 'FAIL', findings: '1. x' }, pending: null }, repeats: 0, now: T0 }).block, 'a failed receipt with no review under way still blocks');
 
 // session start, as a process: the checklist comes back after a compaction
 const out = execFileSync('bash', [join(ROOT, '.claude/hooks/session-start.sh')], { input: '{"source":"compact"}', env: { ...process.env, CLAUDE_PROJECT_DIR: ROOT } }).toString();

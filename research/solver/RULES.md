@@ -24,20 +24,22 @@ remembers them, and every one looks at files, not at what was said about them. I
    run lock, force pushes and runs of experiment.mjs, batch-*.sh, audit-*.mjs, select-phase4.mjs and the gate scripts
    outside the launcher are refused, each part of a command judged on its own, each rule finding its command past
    variables and wrappers in front of it and inside `bash -c`/`eval` and a here-document fed to a shell (maintainer's
-   unlocks, 24 Sep 11:00 and 11:42 UK). NOT seen - a guardrail, not a sandbox: an enforcement file named by a path
-   relative to another folder; a git restore of the whole tree (`git checkout <rev> -- .`, `git reset --hard`,
-   `git stash`); other ways of feeding a shell its commands (`bash - <<EOF`, a string piped into a shell); an answer to
-   Claude's question (it does not relock); a script written to a file and then run; a program that runs a command
-   itself (PLAN.md, bugs of 24 Sep, lists them and the fixes proposed). **An unlock covers only the change the
+   unlocks, 24 Sep 11:00 and 11:42 UK). It is a guardrail, not a sandbox: what it does not see is
+   in **Known limits** below. The Stop hook also lets a turn end while a review of this exact version of the plan is
+   under way (started within 30 minutes, not yet reported; maintainer, 24 Sep 12:05 UK). **An unlock covers only the change the
    maintainer agreed to:** anything else - above all a loosening, however sound - is proposed first; it ends as soon as
    their next message is seen, even queued; and the diff is shown before the commit (the seventh review, 24 Sep 11:24
    UK, found all three broken). After every compaction the checklist is restated.
 4. **The plan-auditor agent** (`.claude/agents/plan-auditor.md`): a reviewer with no stake in the work reads each change
    to the plan against the judgement rules below and writes a receipt to `review-log.md`; the Stop hook requires a
-   PASS receipt for the plan as it stands. It reviews the change (the whole plan only when there is no passing review
-   yet or the change settles a result) and grades each finding BLOCKING (it could change a result, a status, a
-   prediction, a gate, a default or the order of events, or it claims more than is true) or MINOR (nothing rests on it);
-   a PASS may carry MINOR findings, and the next review requires them fixed (maintainer, 24 Sep 11:01 UK).
+   PASS receipt for the plan as it stands. It judges the change, not the whole plan: the change since the last
+   reviewed version and what it rests on or contradicts, with a full read only at milestones (a settled result,
+   before Phase 4, before a value becomes a product default). It grades each finding BLOCKING (it could change a
+   result, a status, a prediction, a gate, a default or the order of events, or it claims more than is true about the
+   research), MINOR (nothing rests on it; an overclaim about the enforcement is MINOR unless a research claim relies on
+   it) or BACKLOG (older text the change did not touch, affecting no result, gate or default: it goes to the plan's
+   review backlog with an owner and a gate). A PASS may carry MINOR and BACKLOG findings; the next review requires the
+   MINOR ones fixed and the BACKLOG ones logged (maintainer, 24 Sep 11:01 and 12:05 UK).
 5. **`CLAUDE.md` and the checklist**, which say what to do; 1-4 make sure it is done.
 
 **What none of this can do.** A deliberate workaround cannot be stopped by a script; the receipts, the prediction
@@ -45,6 +47,21 @@ files and the run log sit in git where the maintainer can see them. The Stop hoo
 the same reason, with a warning (so a check only the maintainer can clear does not burn the session), which is why CI and
 the pre-commit hook stand behind it. The judgement rules (a mechanism
 that is only half right, a comparison point about to change) rest on the reviewer, which is a second model, not proof.
+
+**Known limits of the enforcement** - one list, kept current (maintainer, 24 Sep 12:05 UK). Each review checks a change
+against it; a gap here is MINOR unless a research claim relies on it. The fixes proposed are in PLAN.md, bugs of 24 Sep.
+1. The hook matches an enforcement file by its path from the repository root: named by a relative path after a `cd`
+   (`cd research/solver && sed -i ... smoke.sh`, or a redirect there), it is not seen.
+2. A git restore of the whole tree that names no file (`git checkout <rev> -- .`, `git reset --hard`, `git stash`).
+3. Ways of feeding a shell its commands other than `bash -c`, `eval` and a here-document fed to a shell: `bash - <<EOF`,
+   `bash /dev/stdin <<EOF`, `bash -c "$(cat <<EOF ...)"`, a string piped or here-string'd into a shell.
+4. An answer to one of Claude's questions does not relock (it is a tool result, not a message).
+5. A script written to a file and then run; bias.mjs and check-k1.mjs run directly; a program that runs a command
+   itself.
+6. A review start (`record-review.mjs --start`) can be written without a review running. It lapses after 30 minutes,
+   and every start sits in review-log.md beside its receipt, so a start with no receipt is visible.
+7. The smoke run exercises only its own modes; the audit scripts' outputs record no code.
+8. The judgement rules rest on the reviewer, a second model, not proof.
 
 ---
 

@@ -1,7 +1,11 @@
 /*
  * BEFORE A TURN MAY END (research/solver/RULES.md, layer 3). Two conditions, both about the plan as it stands:
  *   1. check-plan.mjs passes;
- *   2. the plan-auditor has a PASS receipt for this exact version of PLAN.md (review-log.md).
+ *   2. the plan-auditor has a PASS receipt for this exact version of PLAN.md (review-log.md) - or a review of this exact
+ *      version started within the last 30 minutes and has not reported yet (the reviewer's first step is
+ *      `record-review.mjs --start`). Nothing gets past unreviewed: the receipt is still needed, and a start that does not
+ *      report within 30 minutes blocks again (maintainer, 24 Sep 12:05 UK: three identical blocks at every turn end
+ *      while a review ran were noise, not rigour).
  * Otherwise the turn is blocked and the reason goes back to Claude. Claude Code itself ends the turn after eight blocks
  * in a row, and this hook lets a turn end after three blocks for the SAME reason - with a warning to the maintainer - so
  * a check that only the maintainer can resolve does not burn the session; GitHub CI still stands behind it.
@@ -15,11 +19,15 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const MAX_REPEATS = 3;
+export const PENDING_MINUTES = 30;
 
-export function decide({ checkOk, checkOutput, review, repeats }) {
+export function decide({ checkOk, checkOutput, review, repeats, now = Date.now() }) {
   const reasons = [];
   if (!checkOk) reasons.push(`The plan check fails - fix it before ending the turn:\n${checkOutput.trim()}`);
-  if (!review || !review.receipt) reasons.push('PLAN.md has changed since its last review. Run the plan-auditor agent (Agent tool, subagent_type "plan-auditor") on the change; it records its receipt with record-review.mjs.');
+  const startedAt = review && review.pending && review.pending.at ? Date.parse(review.pending.at) : NaN;
+  const running = Number.isFinite(startedAt) && now - startedAt >= 0 && now - startedAt < PENDING_MINUTES * 60e3;
+  if (running) { /* a review of this exact version is under way: its receipt will decide */ }
+  else if (!review || !review.receipt || review.pending) reasons.push(`PLAN.md has changed since its last review${review && review.pending ? ` (a review of it started ${review.pending.at} and has not reported within ${PENDING_MINUTES} minutes)` : ''}. Run the plan-auditor agent (Agent tool, subagent_type "plan-auditor") on the change; it records its receipt with record-review.mjs.`);
   else if (review.receipt.verdict !== 'PASS') reasons.push(`The plan-auditor's last review FAILED:\n  ${review.receipt.findings}\nFix the findings, then run the plan-auditor again.`);
   if (!reasons.length) return { block: false };
   const reason = reasons.join('\n\n');

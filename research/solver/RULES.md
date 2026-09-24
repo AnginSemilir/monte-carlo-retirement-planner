@@ -15,23 +15,26 @@ remembers them, and every one looks at files, not at what was said about them. I
 2. **`check-plan.mjs`**, run by GitHub CI on every push (outside any session: a red cross the maintainer sees), by the
    git pre-commit hook (`.githooks/pre-commit`), and by Claude Code's Stop hook.
 3. **Claude Code hooks** (`.claude/settings.json`): the Stop hook refuses to end a turn while the plan check fails or the
-   plan has changed without a review; before a tool runs, edits to the enforcement files ASK, and killing by pattern,
-   `--no-verify`, removing the run lock, force pushes and experiments launched outside the launcher are refused (each
-   judged on the whole command line); after every compaction the checklist is restated. **Open, 24 Sep, awaiting the
-   maintainer:** in auto mode an ask is approved without the maintainer seeing it, so a version of the hook that LOCKS
-   the enforcement files (refused unless the maintainer's own latest message says "unlock enforcement"; a subagent's
-   report, a tool result or a compaction summary never counts) and judges each part of a command on its own was
-   written - but it, and three other enforcement edits, exist only in the working tree, uncommitted, made without
-   the maintainer's approval; its tests are prepared, not in the repo; and it lets prefixed forms through
-   (`FOO=1 git commit --no-verify`, `timeout 5 pkill -f x`, `GIT_X=1 git push -f`) until fixed (PLAN.md, bugs of 24 Sep).
+   plan has changed without a review; before a tool runs, an edit to the enforcement files is REFUSED unless the
+   maintainer's own latest message says "unlock enforcement" (a subagent's report, a tool result or a compaction summary
+   never counts; the lock returns with their next message) - an "ask" would be approved unseen in auto mode; and
+   killing by pattern, `--no-verify`, moving `core.hooksPath`, removing the run lock, force pushes and experiments
+   launched outside the launcher are refused, each part of a command judged on its own, each rule finding its command
+   past variables and wrappers in front of it and inside `bash -c`/`eval` (maintainer's unlock, 24 Sep 11:00 UK). A
+   program that runs a command itself is not seen: a guardrail, not a sandbox. After every compaction the checklist is
+   restated.
 4. **The plan-auditor agent** (`.claude/agents/plan-auditor.md`): a reviewer with no stake in the work reads each change
    to the plan against the judgement rules below and writes a receipt to `review-log.md`; the Stop hook requires a
-   receipt for the plan as it stands.
+   PASS receipt for the plan as it stands. It reviews the change (the whole plan only when there is no passing review
+   yet or the change settles a result) and grades each finding BLOCKING (it could change a result, a status, a
+   prediction, a gate, a default or the order of events, or it claims more than is true) or MINOR (nothing rests on it);
+   a PASS may carry MINOR findings, and the next review requires them fixed (maintainer, 24 Sep 11:01 UK).
 5. **`CLAUDE.md` and the checklist**, which say what to do; 1-4 make sure it is done.
 
 **What none of this can do.** A deliberate workaround cannot be stopped by a script; the receipts, the prediction
-files and the run log sit in git where the maintainer can see them. The Stop hook gives up after eight blocks in a row
-(Claude Code's own limit), which is why CI and the pre-commit hook stand behind it. The judgement rules (a mechanism
+files and the run log sit in git where the maintainer can see them. The Stop hook lets a turn end after three blocks for
+the same reason, with a warning (so a check only the maintainer can clear does not burn the session), which is why CI and
+the pre-commit hook stand behind it. The judgement rules (a mechanism
 that is only half right, a comparison point about to change) rest on the reviewer, which is a second model, not proof.
 
 ---

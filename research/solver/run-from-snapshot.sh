@@ -112,7 +112,7 @@ cd "$SNAP"
 HASH="$(node research/solver/code-id.mjs)"
 STAMP="$REAL/research/solver/results/.smoke/$HASH"
 if [ ! -f "$STAMP" ]; then
-  echo "=== smoke run on code $HASH: every experiment mode once, tiny (about 2-3 minutes)"
+  echo "=== smoke run on code $HASH: the modes in smoke.sh once, tiny (about 2-3 minutes)"
   bash research/solver/smoke.sh || { echo "=== REFUSED: the smoke run failed on this code. Fix it before any batch." >&2; exit 1; }
   mkdir -p "$(dirname "$STAMP")"; date -u +%FT%TZ > "$STAMP"
 fi

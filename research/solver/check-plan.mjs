@@ -51,8 +51,25 @@ function tableAfter(text, marker) {
 }
 
 /* strip what should not trigger the no-effect check: quotations, code, struck-through text */
-function unquoted(line) {
-  return line.replace(/~~[^~]*~~/g, ' ').replace(/`[^`]*`/g, ' ').replace(/"[^"]*"/g, ' ').replace(/“[^”]*”/g, ' ');
+function unquoted(line, strike = { open: false, paired: false }) {
+  // a strikethrough can span lines: start struck if the paragraph opened one above, and drop one that runs off the end -
+  // but only in a paragraph whose ~~ pair up, so a stray ~~ strikes nothing (a claim after it is still read)
+  let l = (strike.open ? '~~' : '') + line;
+  l = l.replace(/~~[^~]*~~/g, ' ');
+  if (strike.paired) l = l.replace(/~~.*$/, ' ');
+  return l.replace(/`[^`]*`/g, ' ').replace(/"[^"]*"/g, ' ').replace(/“[^”]*”/g, ' ');
+}
+/* where this line sits in its paragraph's strikethroughs: open = it starts inside one opened above; paired = the
+   paragraph's ~~ come in pairs (an odd count means a stray, and then nothing spans lines) */
+function strikeAt(planLines, line) {
+  const i = planLines.indexOf(line);
+  if (i < 0) return { open: false, paired: false };
+  let a = i, b = i, above = 0, total = 0;
+  while (a > 0 && planLines[a - 1].trim()) a--;
+  while (b + 1 < planLines.length && planLines[b + 1].trim()) b++;
+  for (let k = a; k <= b; k++) { const n = (planLines[k].match(/~~/g) || []).length; total += n; if (k < i) above += n; }
+  const paired = total % 2 === 0;
+  return { open: paired && above % 2 === 1, paired };
 }
 export const NO_EFFECT = /\b(unaffected|not affected|does not (change|affect|matter)|doesn't (change|affect|matter)|do not (change|affect)|don't (change|affect)|no effect|cannot (change|affect)|can't (change|affect)|makes no difference|never changes)\b/i;
 const EVIDENCED = /(evidence:|not checked|proof:)/i;
@@ -170,8 +187,9 @@ export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, 
   else { try { JSON.parse(dd); } catch (e) { err('defaults', `the decided-defaults block is not JSON: ${e.message}`); } }
 
   // new lines
+  const planLines = plan.split('\n');
   for (const raw of added) {
-    const line = unquoted(raw);
+    const line = unquoted(raw, strikeAt(planLines, raw));
     if (NO_EFFECT.test(line) && !EVIDENCED.test(raw)) err('no-effect', `"${raw.trim().slice(0, 90)}": a claim of no effect needs "evidence: <file or proof>" or "NOT CHECKED" on the same line`);
     if (/\b\d{1,2}:\d{2}\b/.test(raw) && /\bUTC\b/.test(raw) && !/\bUK\b/.test(raw)) err('clock', `"${raw.trim().slice(0, 70)}": write times in UK time, not UTC`);
   }

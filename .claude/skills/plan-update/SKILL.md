@@ -34,5 +34,5 @@ launcher, the reducers and CI enforce them. This is the order to work in.
    "Same pattern searched:" and what was found. A claim of no effect carries `evidence:` or NOT CHECKED.
 4. A decision that changes a default changes the code and the decided-defaults block in the same commit.
 5. Finished work moves to `PLAN-HISTORY.md` verbatim.
-6. `node research/solver/check-plan.mjs`, then run the **plan-auditor** agent on the change and fix what it finds.
+6. `node research/solver/check-plan.mjs`, then run the **plan-auditor** agent on the change and fix what it finds: a BLOCKING finding before the turn ends, a MINOR one by the next review.
 7. Commit and push (the pre-commit hook and CI run the checks again). Report evidence - the command and its output.

@@ -5,6 +5,50 @@ is summarised in "Where things stand" below and kept in full, verbatim, in `PLAN
 were superseded before they ran are not kept; they are in git history (this file at commit af670e8 and
 earlier). Nothing in the app changes until Phase 4's gate passes.*
 
+## THE METHOD, AND THE RULE ABOVE ALL OTHERS: MATHS IT, TEST IT, THEN RE-MATHS THE REST (maintainer, 24 Sep)
+
+The work runs as a loop: **derive -> predict -> run -> settle -> re-derive everything downstream -> predict again.**
+The first half (derive, and write the prediction before the run) is the rule in "Derive first, run to falsify"
+below. **The second half is this: after every run that proves or disproves something, that result becomes the
+basis for looking again at every later step in the plan, at the maths behind it, and at its prediction. They are
+adjusted before the next run starts, not after.** A plan that runs its schedule unchanged after a result that
+should have changed it is running on assumptions that have already been disproved.
+
+**What counts as proved or disproved.** A result is settled only when all of these hold:
+1. **Beyond noise.** A difference beyond two paired standard errors on the held-out paths. Or a deterministic
+   check that could have failed and did not: bit-identity, a rule held on every path-year, an in-model bound.
+   A result within noise settles nothing, except that the effect, if there is one, is smaller than the noise.
+2. **Produced by a script from the files, not read by eye.** Every figure that changes the plan comes from a
+   reducer or a one-off script over saved results, and that script is kept.
+3. **Checked against my own error range.** I am a language model, and my errors are of known kinds. This
+   session alone made each of these:
+   - an arithmetic slip in a derivation (the M15 v2 rung table's first figures);
+   - a wrong assumption about the data (that S162 had no minimum pot of its own; that a tier above High exists);
+   - a mechanism that was right in part and missing a piece (the first M15 write-up missed the switch margin);
+   - text left stale after the facts moved (the mathematician's page).
+
+   So before a result changes the plan: recompute the derivation with a script, check every quoted figure
+   against the file it came from, and test the mechanism with a check that could have failed (the M15
+   diagnostic is the model). A result that has not been through this is marked "provisional" and changes
+   nothing downstream.
+4. **The prediction and its falsifier were written before the run.** A result read without one is a finding
+   to be predicted and tested next, not a settled fact.
+
+**What the re-look does, every time.** For each settled result:
+- (a) List every later step, prediction, gate and default whose premise it touches, including ones in other
+  sections.
+- (b) Re-derive the maths for each, from the files where possible, with no new run.
+- (c) Change the plan in place: a prediction re-derived, a stage made conditional or cancelled, a design
+  corrected, a question sent to the mathematician, or a decision put to the maintainer.
+- (d) Log it in the re-look ledger below (one row per result: what settled it, what it changed, where).
+- (e) Update the mathematician's page and any affected artifact the same day.
+
+**The re-look ledger**
+
+| date | the settled result | what it changed |
+|---|---|---|
+| 24 Sep 06:30 | M15 probe (falsified), M17/M18-floor, K2-K4, and the diagnostic of the M15 mechanism | R1-R10 in "the maths reassessed": M15 v2 made nested; M22 and the third-step sibling; M23 (gate 4's spending condition at risk, a maintainer decision); K5 stage 2 made conditional; K6 and K7 restated in c; Phase 4 reconfigured and its prediction re-derived; Q12 |
+
 **Keeping this plan current - a standing rule (maintainer, 23 Sep).** This file holds only what is
 current and what is still to do. **The moment a step, phase, gate or measurement is COMPLETED, its full
 text moves to `PLAN-HISTORY.md`** - verbatim, with its outcome and the results file named - and in this
@@ -143,6 +187,9 @@ cannot see - passes to the user's own minimum end-of-life pot, with a default. M
 ---
 
 ## The rule that comes before the conventions: DERIVE FIRST, RUN TO FALSIFY
+
+*(The first half of the loop at the top of this file. The second half, re-deriving everything downstream after
+each settled result, is the headline rule.)*
 
 **Added 23 Sep at the maintainer's direction, after it kept paying.** Where a question can be settled or
 narrowed by mathematics, **do the mathematics first and write the hypothesis down BEFORE the run.** The

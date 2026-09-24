@@ -47,6 +47,7 @@ should have changed it is running on assumptions that have already been disprove
 
 | date | the settled result | what it changed |
 |---|---|---|
+| 24 Sep ~08:15 | (maintainer) risk above made the default for EVERY plan | M14b's prediction revised before its run: it now decides "every plan" against the 'auto' fallback |
 | 24 Sep ~08:00 | M14's records split by path outcome (a bet when behind, 3 saved for 1 lost), plus the maintainer's default-on decision | risk above made the default for thin plans, with a simulated threshold and a no-worse guard, PROVISIONAL; M14b re-check queued after K5 stage 1, because the evidence predates the M17 fix |
 | 24 Sep ~07:30 | M23 decided (A) and built | arm A carries the user's cap; gate 4's spending conditions are now a fair test. K5's matching is unaffected (cuts only) |
 | 24 Sep 06:30 | M15 probe (falsified), M17/M18-floor, K2-K4, and the diagnostic of the M15 mechanism | R1-R10 in "the maths reassessed": M15 v2 made nested; M22 and the third-step sibling; M23 (gate 4's spending condition at risk, a maintainer decision); K5 stage 2 made conditional; K6 and K7 restated in c; Phase 4 reconfigured and its prediction re-derived; Q12 |
@@ -428,7 +429,7 @@ changes a result on file; four need work before something downstream is trusted.
 | M21 | **Every library household holds the same tiers: pension at High (the top), ISA Medium/High, taxable Medium, cash.** Found 00:50 building M14. So every tier result on file - Phase 6's +5.03, the 41 of 41, the floor binding in M15 - measures de-risking FROM THE TOP, and no test has ever had a user who chose less risk. | The product's users will choose their own tiers; the solver's edge for a cautious user is unmeasured, and "risk above the user's tier" (M14) cannot arise on the library at all. | M14's probe holds the plan at Medium to test it. Phase 4's panel is drawn from the same library, so it inherits the gap: recorded for the maintainer, with the option of a Phase 4 diagnostic at Medium plan tiers (12 households, ~30 min). | step 6; Phase 4 |
 | M22 | **The lower tier limit binds for every thin household** (24 Sep 06:00, from `m17-floor` and `s2-fnewex` records): pension and ISA at the lowest step allowed in 87-91% of spending years on S330, S070, S184, S354, 55-57% of them ahead of the median; the middle step used 0-2%. | The solver wants less equity than the menu allows, ahead or behind. | A third pension/ISA step is the sibling arm in the M15 v2 probe (R2). | M15 v2 probe, after K5 |
 | M23 | **DECIDED 24 Sep (maintainer): option A - the app's guardrails carry the same user raise cap in the comparison. Built the same morning:** `config.raiseCap` (a multiple of target; unset or 0 = none, so every shipped plan is unchanged) holds the guardrail multiplier at the cap as the floor holds it at the floor, in the engine (`App.jsx`) and both solver mirrors (`model.js`, `fast.js`); `guardrails.test.mjs` R1-R6 (35 passed), solver-model 35 and solver-fast 15 passed. Phase 4's arm A sets `raiseCap: 1.1`. **The decided raise cap (1.1) and the guardrails' raises cannot be matched per household** (24 Sep 06:20, from `k3-cap1.1` and `flex-tiers`): the medians agree (3.22 vs 3.42 years of target), but the guardrails reach 1.5-1.7x target on S184 and S252. With cuts matched, the solver delivers about 4% less spending on average, and 20-30% less on the big raisers. | Gate 4's spending conditions fail by construction unless arm A carries the user's cap. | **Maintainer:** a research-only guardrail cap in the engine for arm A (recommended), or judge gate 2 on spending up to the cap. | before Phase 4 |
-| M14b | **Risk above the user's tier: ON BY DEFAULT FOR THIN PLANS (maintainer, 24 Sep ~08:00), PROVISIONAL until re-checked.** Built in `solvePlan` (`riskAbove` undefined = auto): with consent to change risk and a tier above the plan's, the plan is simulated without it on 1,000 paths of seed 7101; if survival is below 95% ("thin") it is re-solved with it, and kept only if no worse on the same paths. The table's number is not used (M16's optimism, #106's low reads). **What the records say it is (from `m14-up`/`m14-down`, no run):** a bet made when behind. 74-83% of up-move years fall in futures that fail anyway, and only 10-20% in the last three paid years before failure (M17's signature). It saves 85-115 futures in 3,000 and loses 10-41 on the thin four (net +62 to +87), and the years without money fall. **Why a re-check:** M14 ran before the M17 fix, which prices exactly the failing futures where most up-moves happen. | The default rests on evidence gathered under the old objective. | **Probe M14b** (`batch-m14b.sh`, 24 cells, after K5 stage 1; prediction below). | M14b |
+| M14b | **Risk above the user's tier: ON BY DEFAULT IN EVERY PLAN (maintainer, 24 Sep ~08:15, widening the ~08:00 "thin plans only"), PROVISIONAL until re-checked.** `riskAbove` unset = on (one tier above, with consent; nothing changes where the pension is at the top tier, bit for bit, tested). The ~08:00 rule is kept as `riskAbove: 'auto'`, the fallback if M14b finds comfortable plans losing: with consent to change risk and a tier above the plan's, the plan is simulated without it on 1,000 paths of seed 7101; if survival is below 95% ("thin") it is re-solved with it, and kept only if no worse on the same paths. The table's number is not used (M16's optimism, #106's low reads). **What the records say it is (from `m14-up`/`m14-down`, no run):** a bet made when behind. 74-83% of up-move years fall in futures that fail anyway, and only 10-20% in the last three paid years before failure (M17's signature). It saves 85-115 futures in 3,000 and loses 10-41 on the thin four (net +62 to +87), and the years without money fall. **Why a re-check:** M14 ran before the M17 fix, which prices exactly the failing futures where most up-moves happen. | The default rests on evidence gathered under the old objective. | **Probe M14b** (`batch-m14b.sh`, 24 cells, after K5 stage 1; prediction below). | M14b |
 
 ### The plan audit against the history and the records, 23 Sep 21:15-21:45 (maintainer: "make sure it hasn't been answered previously")
 
@@ -506,7 +507,7 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording, the #106 trade-off, the ternary decision, **M17 and the probes' verdicts, and the calibration curve** | 5 | no cores | Thu ~07:00 |
 | 6 | ~~The maintainer picks the product defaults~~ **DECIDED 24 Sep ~05:30: every recommendation taken** - minimum pot 1 year; raise cap 1.1; estate slider 0% = weight 0.01; the M17 floor fix ON; risk above the user's tier as an opt-in; Phase 4's panel landed at ~85%; the taxable-account tier NOT allowed as built - **fully plan a version that works first** (M15, "the full design" below) | 5c | - | done |
 | 7 | **K5 guardrail matching** - stage 1 running since ~05:45 (288 cells at ~6.5 min each, four at a time: **~8 h, not 4.5**); stage 2 conditional (R4); stage 3 on the 41 | 6 | ~9.5 h | Thu ~15:30 |
-| 7b | **M14b** (`batch-m14b.sh`, 24 cells, ~40 min): risk above the tier re-checked under the step-6 defaults; decides whether the thin-plan default stands and at what threshold | 7 stage 1 | ~40 min | Thu ~14:45 |
+| 7b | **M14b** (`batch-m14b.sh`, 24 cells, ~40 min): risk above the tier re-checked under the step-6 defaults; decides whether "on in every plan" stands or falls back to 'auto' (thin plans, no-worse guard) | 7 stage 1 | ~40 min | Thu ~14:45 |
 | 8 | **K6 slider spread** (in c, R5), with **K7 read off K4's, K5's and K6's sweeps** (no run of its own) | 7 | ~1.5 h | Thu ~17:00 |
 | 8b | **M15 v2**: build in K5's run gaps (no cores), after Q12 is put to the mathematician; probe (4 arms, 8 households + 3 at 40% gain, ~2 h) | 7 | ~2 h | Thu ~19:00 |
 | 9 | **Phase 4**, with its bundled extras (below); M23 decided (A, built): arm A runs with `raiseCap: 1.1` | 8, M23 | ~6 h | Fri ~01:00 |
@@ -606,19 +607,22 @@ forward. In M14, unfunded years FELL with the bet, so the fix should trim it at 
 The gain should scale with the share of years spent behind, and so roughly with the failure rate: about 0.11
 points per point of failure on M14's thin four (2.5 / 22).
 
-**PREDICTION:**
+**PREDICTION (revised ~08:15 for the widened default, still before the run):**
 1. **The thin four:** still better with it, +1 to +3 points each, beyond two paired se on at least 3 of 4. Unfunded
    years per path not higher on any.
 2. **Where the bets happen:** the share of up-move years in failing paths' last three paid years falls below 10%
    on each thin household (it was 10-20%).
 3. **The zone six:** gains between 0 and the thin ones', about 0.1 points per point of failure without it:
    - roughly +1 at 90%;
-   - within noise at 95% and above.
-4. **Comfortable:** within noise.
+   - within noise at 95% and above;
+   - none worse beyond two paired se.
+4. **Comfortable (S162, S252):** within noise. M14's one loss (S162, -0.23 +/- 0.09) came under the old objective. The
+   M17 fix makes a failed bet dearer, so the loss should shrink.
 
 **FALSIFIED IF** any thin household is worse with it by more than two paired se, or unfunded years rise beyond two
-se on the thin four. Then the default reverts to opt-in. **The threshold is set from item 3:** the survival level
-below which the zone households gain beyond noise (95% provisionally).
+se on the thin four. Then the default reverts to opt-in. **What decides between "every plan" and `'auto'`:** if any
+zone or comfortable household is worse with it beyond two paired se, the default becomes `'auto'` (thin plans,
+with the no-worse guard) and the threshold is set from item 3. Otherwise "every plan" stands.
 
 ## M15 v2. The taxable account's tier: the full design (maintainer, 24 Sep: "fully plan out the taxable tier change so it works, don't allow it as is")
 

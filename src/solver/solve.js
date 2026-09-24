@@ -1251,12 +1251,17 @@ export function productLevels(floorFrac) {
  */
 export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, estateWeightMin: 0.01, thinSurvival: 0.95, thinPaths: 1000, thinSeed: 7101 });
 /*
- * RISK ABOVE THE USER'S TIER, ON BY DEFAULT FOR THIN PLANS (maintainer, 24 Sep; PLAN.md M14, M14b).
+ * RISK ABOVE THE USER'S TIER: ON BY DEFAULT IN EVERY PLAN (maintainer, 24 Sep ~08:15; PLAN.md M14, M14b).
  *
  * With the plan's tier below the top, allowing one tier above raised survival 2-3 points on every thin household
- * (75-81%) and did nothing measurable for comfortable ones (one lost 0.23). It is a bet made when behind: most of
- * the futures it is used in still fail, but it saves about three for every one it loses, and the years without
- * money fell. So, unless the user says otherwise (`riskAbove` true or false), it is decided per plan:
+ * (75-81%) and did nothing measurable for comfortable ones, bar one small loss (S162, -0.23 +/- 0.09). It is a bet
+ * made when behind: most of the futures it is used in still fail, but it saves about three for every one it loses,
+ * and the years without money fell. So `riskAbove` left unset means ON (one tier above, only with consent to change
+ * risk; nothing happens where the pension is already at the top tier). PROVISIONAL until M14b re-checks it under
+ * today's defaults.
+ *
+ * `riskAbove: 'auto'` keeps the earlier, more cautious rule (maintainer's first choice, ~08:00), for use if M14b finds
+ * comfortable plans losing:
  *   - never without consent to change risk, and never where no tier above exists (a pension at the top tier);
  *   - "thin" is the SIMULATED survival of the plan without it, below `thinSurvival` (95%), on `thinPaths` paths of
  *     a seed used for nothing else. The table's own number is not used: it runs 3-5 points optimistic (M16) and
@@ -1283,7 +1288,8 @@ function solvePlanAuto(E, M, plan, opts) {
 export function solvePlan(E, M, plan, opts = {}) {
   if (!(opts.lambda >= 0)) throw new Error('solvePlan needs the dislike-of-cuts setting as lambda');
   if (opts.giaTiers) throw new Error('the taxable account cannot change tier in the product: its first design failed (PLAN.md M15)');
-  if (opts.riskAbove === undefined || opts.riskAbove === 'auto') return solvePlanAuto(E, M, plan, opts);
+  if (opts.riskAbove === 'auto') return solvePlanAuto(E, M, plan, opts);
+  if (opts.riskAbove === undefined) return solvePlan(E, M, plan, { ...opts, riskAbove: true });
   const { riskConsent, riskAbove, minPotYears, estateWeight, thinPaths, thinSeed, ...rest } = opts;
   const years = minPotYears !== undefined ? minPotYears : PRODUCT_DEFAULTS.minPotYears;
   const own = Math.max(0, E.num(plan.config && plan.config.solvencyFloor, 0));

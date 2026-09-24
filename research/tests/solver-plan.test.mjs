@@ -26,11 +26,10 @@ assert.throws(() => solvePlan(E, M, planWith(0.8), {}), /lambda/); n++; console.
 const plan = planWith(0.8);
 const m = M.prepare(E, plan);
 const a = solvePlan(E, M, plan, { lambda: 0.5, points: 8 });
-ok(a.meta.riskAbove && a.meta.riskAbove.decision === 'off: no tier above the plan', 'by default, a plan whose pension is at the top tier gets no risk above and no extra simulation');
 // step 6's defaults written out: raises capped at 1.1; S162 carries a minimum pot of its own, which is kept
 const ownPot = E.num(plan.config.solvencyFloor, 0);
 ok(ownPot > 0, `S162 carries its own minimum pot (GBP${ownPot}), and the default does not replace it`);
-const b = solveMixture(E, M, plan, { ...PRODUCT_BASELINE, points: 8, lambda: 0.5, raiseCap: 1.1, spendLevels: productLevels(m.ctx.floorFrac), lump: m.ctx.fullLumpSum, tiers: true });
+const b = solveMixture(E, M, plan, { ...PRODUCT_BASELINE, points: 8, lambda: 0.5, raiseCap: 1.1, spendLevels: productLevels(m.ctx.floorFrac), lump: m.ctx.fullLumpSum, tiers: true, tiersAbove: 1 });
 let same = a.mix.tables.length === b.mix.tables.length;
 a.mix.tables.forEach((ta, k) => { const tb = b.mix.tables[k]; for (let t = 0; t < ta.lsurv.length; t++) for (let i = 0; i < ta.g.size; i++) if (ta.lsurv[t][i] !== tb.lsurv[t][i] || ta.beq[t][i] !== tb.beq[t][i] || ta.short[t][i] !== tb.short[t][i] || ta.pol[t][i] !== tb.pol[t][i]) same = false; });
 ok(same, 'solvePlan equals solveMixture with the baseline written out, bit for bit, in every world');
@@ -49,21 +48,26 @@ const blocked = solvePlan(E, M, plan, { lambda: 0.5, points: 8, raiseCap: 1, min
 ok(Math.max(...blocked.meta.spendLevels) === 1 && !(blocked.m.ctx.solvencyFloor > 0), 'the user can block raises and ask for no minimum pot');
 const est = solvePlan(E, M, plan, { lambda: 0.5, points: 8, estateWeight: 0 });
 ok(est.meta.bequestWeight > 0 && Math.abs(est.meta.bequestWeight - 0.01) < 1e-12 && est.meta.bequestShape === 'logfloor', 'an estate setting of 0% means a weight of 0.01, never zero (M20)');
-const up = solvePlan(E, M, plan, { lambda: 0.5, points: 8, riskAbove: true });
-ok(up.meta.tiers.length === a.meta.tiers.length, 'asking for risk above changes nothing when the pension is already at the top tier (every library household, M21)');
+const noAbove = solvePlan(E, M, plan, { lambda: 0.5, points: 8, riskAbove: false });
+let sameTop = true;
+a.mix.tables.forEach((ta, k) => { const tb = noAbove.mix.tables[k]; for (let t = 0; t < ta.lsurv.length; t++) for (let i = 0; i < ta.g.size; i++) if (ta.lsurv[t][i] !== tb.lsurv[t][i] || ta.pol[t][i] !== tb.pol[t][i]) sameTop = false; });
+ok(sameTop && a.meta.tiers.length === noAbove.meta.tiers.length, 'with the pension already at the top tier (every library household, M21), the default is bit for bit the plan without risk above');
 const med = { ...plan, accounts: plan.accounts.map(x => (/^Pensions|^S&S ISA/.test(x.category) ? { ...x, risk: 'Medium Risk' } : x)) };
 const medOff = solvePlan(E, M, med, { lambda: 0.5, points: 8, riskAbove: false }), medUp = solvePlan(E, M, med, { lambda: 0.5, points: 8, riskAbove: true });
 ok(medUp.meta.tiers.length === medOff.meta.tiers.length + 1, 'held at Medium, risk above adds exactly one tier when asked for (M14)');
 ok(solvePlan(E, M, med, { lambda: 0.5, points: 8, riskAbove: true, riskConsent: false }).meta.tiers === null, 'and never without consent to change risk');
-// by default it is decided per plan: thin (simulated survival below 95% without it) and no worse on the same paths
-const auto = solvePlan(E, M, med, { lambda: 0.5, points: 8, thinPaths: 200 });
+// by default it is ON in every plan (maintainer, 24 Sep ~08:15), with consent
+const medDefault = solvePlan(E, M, med, { lambda: 0.5, points: 8 });
+ok(medDefault.meta.tiers.length === medUp.meta.tiers.length, 'by default, held at Medium, the tier above is on the menu');
+// the earlier rule stays available as riskAbove 'auto': thin (simulated survival below 95% without it) and no worse on the same paths
+const auto = solvePlan(E, M, med, { lambda: 0.5, points: 8, thinPaths: 200, riskAbove: 'auto' });
 const d = auto.meta.riskAbove;
 ok(d && typeof d.survivalWithout === 'number' && (d.survivalWithout >= 0.95 ? /not thin/.test(d.decision) && auto.meta.tiers.length === medOff.meta.tiers.length : /thin/.test(d.decision)), `held at Medium, the default decides by simulated survival: ${d && d.decision} (${d && (100 * d.survivalWithout).toFixed(1)}% without${d && d.survivalWith !== undefined ? `, ${(100 * d.survivalWith).toFixed(1)}% with` : ''})`);
 ok(!d || !/^on/.test(d.decision) || d.survivalWith >= d.survivalWithout, 'it is kept only when no worse on the same paths');
 const thin = { ...med, spending: { ...med.spending, targetSpend: Math.round(1.6 * target), floorSpend: Math.round(0.8 * 1.6 * target) } };
-const dt = solvePlan(E, M, thin, { lambda: 0.5, points: 8, thinPaths: 200 }).meta.riskAbove;
+const dt = solvePlan(E, M, thin, { lambda: 0.5, points: 8, thinPaths: 200, riskAbove: 'auto' }).meta.riskAbove;
 ok(dt.survivalWithout < 0.95 && /^(on|off): thin/.test(dt.decision), `a thin plan (spending raised to 1.6x) is checked with it: ${dt.decision} (${(100 * dt.survivalWithout).toFixed(1)}% -> ${(100 * dt.survivalWith).toFixed(1)}%)`);
-ok(solvePlan(E, M, thin, { lambda: 0.5, points: 8, riskConsent: false, thinPaths: 200 }).meta.riskAbove.decision === 'off: no consent to change risk', 'and without consent the default never applies');
+ok(solvePlan(E, M, thin, { lambda: 0.5, points: 8, riskConsent: false, thinPaths: 200, riskAbove: 'auto' }).meta.riskAbove.decision === 'off: no consent to change risk', 'and without consent the auto rule never applies');
 assert.throws(() => solvePlan(E, M, plan, { lambda: 0.5, points: 8, giaTiers: true }), /taxable/); n++; console.log('PASS  the taxable account\'s tier is refused in the product (M15)');
 
 // the research engine's own defaults are untouched

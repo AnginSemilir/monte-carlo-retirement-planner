@@ -1,0 +1,146 @@
+# The F1 v2 test (7c), batch from 16:56 UK on code 14e60143d40d (runs.log), reduced by `node research/solver/read-f1v2.mjs results/f1v2/log.txt` at the end of the batch; the raw per-case log follows the reading
+F1 V2 TEST, READ AGAINST predictions/f1v2-test.md (the class at the floor need from `audit-s126.mjs scan`)
+
+FAIR-TEST GATE: passed - on all 21 cases the two arms ran the same settings but the bridge read (off, 2), and those settings are the step-6 defaults in the mixture
+
+case         class  gap off -> v2    tier-below off -> v2   survival (paired se)
+S126         YES     -43.2 ->   +0.6    40.0 ->   8.9        -0.3 +/- 0.17
+share 0.90   YES     -98.0 ->   +0.6     9.2 ->   9.5        +0.0 +/- 0.00
+bridge 4     YES     -91.3 ->   +1.4    42.0 ->  14.0        -0.8 +/- 0.32
+S120         YES      -9.5 ->   +0.0    40.0 ->   0.1        +0.0 +/- 0.00
+S130         YES     -77.1 ->   +8.6    34.9 ->  36.3        +0.1 +/- 0.52
+bridge 4+cost no      -92.1 ->   -7.0    10.7 ->  41.7        +4.9 +/- 0.70
+share 0.50   no       +0.6 ->   +0.6     5.4 ->   5.4        +0.0 +/- 0.00
+share 0.95   YES     -72.7 ->  -21.7     4.3 ->  38.2        +22.2 +/- 1.49
+bridge 6     YES     -94.2 ->   +0.3    44.0 ->  43.9        -0.1 +/- 0.10
+S122         YES     -55.1 ->   +0.3     1.2 ->   1.2        +0.1 +/- 0.10
+S360         no      -33.6 ->   +1.3     0.0 ->  19.5        +11.5 +/- 1.07
+share 0.70   no       +0.4 ->   +0.6     7.6 ->   7.6        +0.0 +/- 0.00
+bridge 0     no       +0.7 ->   +0.7     5.5 ->   5.5        +0.0 +/- 0.00
+wealth x0.5  YES     -90.5 ->   +1.1    37.9 ->  39.3        +0.4 +/- 0.32
+S124         YES     -84.4 ->   +0.2    39.0 ->  39.0        +0.0 +/- 0.14
+S366         no      -96.6 ->   +1.0    45.8 ->  45.8        -0.4 +/- 0.20
+share 0.78   no       -0.5 ->   +0.6    40.0 ->   8.4        -0.4 +/- 0.20
+bridge 1     YES     -12.7 ->   +1.1     7.0 ->   7.0        +0.0 +/- 0.00
+wealth x2    YES      -7.9 ->   +0.1    40.0 ->   0.6        -0.1 +/- 0.10
+S128         YES     -67.6 ->   +5.8    27.7 ->  28.9        -0.2 +/- 0.71
+S370         no      -68.8 ->   +5.2    30.2 ->  37.8        +5.7 +/- 1.06
+
+Item 1 - in class away from the edge: v2 within +/-5 of simulation (the thin S128 and S130 within +/-8)
+  HELD   S126: gap +0.6 (limit +/-5)
+  HELD   share 0.90: gap +0.6 (limit +/-5)
+  HELD   bridge 4: gap +1.4 (limit +/-5)
+  HELD   S120: gap +0.0 (limit +/-5)
+  MISSED S130: gap +8.6 (limit +/-8)
+  HELD   S122: gap +0.3 (limit +/-5)
+  HELD   wealth x0.5: gap +1.1 (limit +/-5)
+  HELD   S124: gap +0.2 (limit +/-5)
+  HELD   bridge 1: gap +1.1 (limit +/-5)
+  HELD   wealth x2: gap +0.1 (limit +/-5)
+  HELD   S128: gap +5.8 (limit +/-8)
+
+Item 2 - what v2 changes: share 0.95 within +/-10; bridge 6 and S366 within +/-5; S370 reads at most its cap 84.8 (+2)
+  MISSED share 0.95: gap -72.7 -> -21.7 (limit +/-10)
+  HELD   bridge 6: gap -94.2 -> +0.3 (limit +/-5)
+  HELD   S366: gap -96.6 -> +1.0 (limit +/-5)
+  HELD   S370: read 79.8 (cap 84.8); its gap +5.2 is reported, not predicted
+
+Item 3 - S360, short even with its inflows: v2 acts, and reads within +/-10 of simulation (cap 47.2)
+  HELD   S360: gap -33.6 -> +1.3
+
+Item 4 - no survival cost beyond two paired se, on any case
+  HELD   S126: -0.3 +/- 0.17 (1.8 se)
+  MISSED bridge 4: -0.8 +/- 0.32 (2.5 se)
+  HELD   bridge 6: -0.1 +/- 0.10 (1.0 se)
+  HELD   S366: -0.4 +/- 0.20 (2.0 se)
+  HELD   share 0.78: -0.4 +/- 0.20 (2.0 se)
+  HELD   wealth x2: -0.1 +/- 0.10 (1.0 se)
+  HELD   S128: -0.2 +/- 0.71 (0.3 se)
+
+Item 5 - out of class: bridge 0 identical; share 0.50 and 0.70 within 0.5 of off, table and simulation
+  HELD   bridge 0: table 99.9 -> 99.9, sim 99.2 -> 99.2
+  HELD   share 0.50: table 99.9 -> 99.9, sim 99.3 -> 99.3
+  HELD   share 0.70: table 99.7 -> 99.9, sim 99.3 -> 99.3
+
+Item 6 - S126 and S120: years below tier fall by at least half, where they start at 20 or more
+  HELD   S126: 40.0 -> 8.9
+  HELD   S120: 40.0 -> 0.1
+
+Item 7 - the cost case: v2 reads at its cap, 91.6 +/- 3 (the cost counted); its gap is reported
+  HELD   bridge 4+cost: read 91.6 (cap 91.6), gap -7.0
+
+Falsifier - an in-class case away from the edge misreads by more than 10; or bridge 6 or S366 by more than 15; or the cost case reads above 97 (the cost not counted); or any case loses survival beyond two paired se
+  in class away from the edge, |gap| > 10: none (largest |gap| 8.6)
+  the inflow cases beyond +/-15: none
+  the cost case above 97 (the cost not counted): no (read 91.6)
+  survival lost beyond two paired se: bridge 4
+  => FALSIFIED
+
+# RAW LOG (results/f1v2/log.txt)
+F1 V2 TEST, step-6 defaults in the mixture (solvePlan), 16 points, 1000 held paths (seed 7002), lambda 0.0223606797749979, off against v2, paired; part 0/4
+S126             a0 0.85 B 2 class YES | OFF table  56.4 sim  99.6 gap  -43.2 tier-below 40.0 below  1.6 | V2 table  99.9 sim  99.3 gap    0.6 tier-below  8.9 below  1.7 | survival -0.30 +/- 0.17 | 701 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+share 0.90       a0 0.90 B 2 class YES | OFF table   1.3 sim  99.3 gap  -98.0 tier-below  9.2 below  2.7 | V2 table  99.9 sim  99.3 gap    0.6 tier-below  9.5 below  1.8 | survival +0.00 +/- 0.00 | 846 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+bridge 4         a0 0.85 B 4 class YES | OFF table   7.9 sim  99.2 gap  -91.3 tier-below 42.0 below  3.9 | V2 table  99.8 sim  98.4 gap    1.4 tier-below 14.0 below  2.2 | survival -0.80 +/- 0.32 | 1073 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+S120             a0 0.85 B 2 class YES | OFF table  90.5 sim 100.0 gap   -9.5 tier-below 40.0 below  1.0 | V2 table 100.0 sim 100.0 gap   -0.0 tier-below  0.1 below  0.0 | survival +0.00 +/- 0.00 | 906 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 5000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 5000 bridgeRead 2
+S130             a0 0.85 B 2 class YES | OFF table   6.0 sim  83.1 gap  -77.1 tier-below 34.9 below 19.9 | V2 table  91.8 sim  83.2 gap    8.6 tier-below 36.3 below 20.5 | survival +0.10 +/- 0.52 | 627 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 104000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 104000 bridgeRead 2
+bridge 4+cost    a0 0.85 B 4 class YES | OFF table   1.6 sim  93.7 gap  -92.1 tier-below 10.7 below  4.8 | V2 table  91.6 sim  98.6 gap   -7.0 tier-below 41.7 below  3.3 | survival +4.90 +/- 0.70 | 698 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+F1 V2 TEST, step-6 defaults in the mixture (solvePlan), 16 points, 1000 held paths (seed 7002), lambda 0.0223606797749979, off against v2, paired; part 1/4
+share 0.50       a0 0.50 B 2 class no  | OFF table  99.9 sim  99.3 gap    0.6 tier-below  5.4 below  1.1 | V2 table  99.9 sim  99.3 gap    0.6 tier-below  5.4 below  1.1 | survival +0.00 +/- 0.00 | 687 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+share 0.95       a0 0.95 B 2 class YES | OFF table   0.0 sim  72.7 gap  -72.7 tier-below  4.3 below  2.3 | V2 table  73.2 sim  94.9 gap  -21.7 tier-below 38.2 below  2.4 | survival +22.20 +/- 1.49 | 806 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+bridge 6         a0 0.85 B 6 class YES | OFF table   5.1 sim  99.3 gap  -94.2 tier-below 44.0 below  6.0 | V2 table  99.5 sim  99.2 gap    0.3 tier-below 43.9 below  1.4 | survival -0.10 +/- 0.10 | 1125 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+S122             a0 0.85 B 2 class YES | OFF table  44.5 sim  99.6 gap  -55.1 tier-below  1.2 below  2.7 | V2 table 100.0 sim  99.7 gap    0.3 tier-below  1.2 below  1.8 | survival +0.10 +/- 0.10 | 949 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 35000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 35000 bridgeRead 2
+S360             a0 0.85 B 8 class no  | OFF table   0.8 sim  34.4 gap  -33.6 tier-below  0.0 below  6.7 | V2 table  47.2 sim  45.9 gap    1.3 tier-below 19.5 below  5.9 | survival +11.50 +/- 1.07 | 709 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 5000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 5000 bridgeRead 2
+F1 V2 TEST, step-6 defaults in the mixture (solvePlan), 16 points, 1000 held paths (seed 7002), lambda 0.0223606797749979, off against v2, paired; part 2/4
+share 0.70       a0 0.70 B 2 class no  | OFF table  99.7 sim  99.3 gap    0.4 tier-below  7.6 below  1.5 | V2 table  99.9 sim  99.3 gap    0.6 tier-below  7.6 below  1.5 | survival +0.00 +/- 0.00 | 684 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+bridge 0         a0 0.85 B 0 class no  | OFF table  99.9 sim  99.2 gap    0.7 tier-below  5.5 below  1.3 | V2 table  99.9 sim  99.2 gap    0.7 tier-below  5.5 below  1.3 | survival +0.00 +/- 0.00 | 794 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+wealth x0.5      a0 0.85 B 2 class YES | OFF table   5.0 sim  95.5 gap  -90.5 tier-below 37.9 below 13.7 | V2 table  97.0 sim  95.9 gap    1.1 tier-below 39.3 below 14.0 | survival +0.40 +/- 0.32 | 978 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+S124             a0 0.85 B 2 class YES | OFF table  10.3 sim  94.7 gap  -84.4 tier-below 39.0 below 15.7 | V2 table  94.9 sim  94.7 gap    0.2 tier-below 39.0 below 15.7 | survival +0.00 +/- 0.14 | 913 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 205000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 205000 bridgeRead 2
+S366             a0 0.85 B 8 class no  | OFF table   2.0 sim  98.6 gap  -96.6 tier-below 45.8 below  8.4 | V2 table  99.2 sim  98.2 gap    1.0 tier-below 45.8 below  2.1 | survival -0.40 +/- 0.20 | 766 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+F1 V2 TEST, step-6 defaults in the mixture (solvePlan), 16 points, 1000 held paths (seed 7002), lambda 0.0223606797749979, off against v2, paired; part 3/4
+share 0.78       a0 0.78 B 2 class no  | OFF table  99.2 sim  99.7 gap   -0.5 tier-below 40.0 below  1.5 | V2 table  99.9 sim  99.3 gap    0.6 tier-below  8.4 below  1.6 | survival -0.40 +/- 0.20 | 688 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+bridge 1         a0 0.85 B 1 class YES | OFF table  86.1 sim  98.8 gap  -12.7 tier-below  7.0 below  1.3 | V2 table  99.9 sim  98.8 gap    1.1 tier-below  7.0 below  1.3 | survival +0.00 +/- 0.00 | 818 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+wealth x2        a0 0.85 B 2 class YES | OFF table  92.1 sim 100.0 gap   -7.9 tier-below 40.0 below  1.0 | V2 table 100.0 sim  99.9 gap    0.1 tier-below  0.6 below  0.2 | survival -0.10 +/- 0.10 | 1026 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 bridgeRead 2
+S128             a0 0.85 B 2 class YES | OFF table   1.2 sim  68.8 gap  -67.6 tier-below 27.7 below 23.3 | V2 table  74.4 sim  68.6 gap    5.8 tier-below 28.9 below 24.4 | survival -0.20 +/- 0.71 | 802 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 53000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 53000 bridgeRead 2
+S370             a0 0.85 B 8 class no  | OFF table   0.1 sim  68.9 gap  -68.8 tier-below 30.2 below 20.2 | V2 table  79.8 sim  74.6 gap    5.2 tier-below 37.8 below 24.9 | survival +5.70 +/- 1.06 | 684 s
+                 ran OFF: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 104000 bridgeRead false
+                 ran V2:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 104000 bridgeRead 2

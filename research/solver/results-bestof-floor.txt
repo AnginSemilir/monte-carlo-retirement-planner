@@ -1,0 +1,80 @@
+M18 AGAIN, WITH THE M17 FLOOR FIX ON (raiseSurvival + failureShortfall 'floor'), 24 Sep 02:26-03:31
+From snapshot /tmp/solver-snap-fIPYGg (d64d217; solve.js unchanged since, M14/M15 touch only options that are off
+here). Same 8 households, same position seed, same candidate count and paths as the first run
+(results-bestof.txt); positions are drawn from where THIS policy goes, so they are not the same positions.
+Reducer: TAG=floor node research/solver/reduce-bestof.mjs (the same script reproduces the first run exactly).
+
+AGAINST THE PREDICTION (written in the PLAN schedule before the run)
+  survival criterion still passes: best rival within noise at 90%+     HELD: 158 of 159 (99%); first run 159 of 160
+                                   mean advantage under half a point    HELD: -0.01 +/- 0.02 (first run -0.02 +/- 0.03)
+  where a rival wins, it cuts less, not more                           HELD as a direction: rivals ahead by spending LESS
+                                                                        than the pick fell from 10 of 23 to 2 of 14; none
+                                                                        is ahead by spending more; the other 12 are the
+                                                                        same spend level (tier or order differs)
+  FALSIFIER (rival beyond noise on survival at over 5% of positions)   NOT FIRED: 1 of 159 (0.6%)
+  VERDICT: the floor fix keeps the purpose test passed. SUCCESS on the maintainer's criterion, again.
+
+WHAT THE OBJECTIVE COLUMNS CAN AND CANNOT SAY HERE
+  The audit simulates the OLD objective (survived + estate - cuts + raises, charged only in paid years). With the
+  floor fix, the solver's own objective also charges each year with no money at the floor's price, so on this run
+  the audit's objective is a different yardstick from the one the solver maximises. For the record:
+    beyond 2 se on the old yardstick at 12 of 159 (7.5%; first run 8.1%); mean advantage -0.03 +/- 0.03 points
+    the table's score gap against the simulated gap: r = -0.36 on survival, -0.38 on the old objective (first
+    run -0.46 and -0.52); the 46 moves the table puts over half a point behind simulate 0.65 points behind on
+    the old objective and are ahead at 12 (first run: 30 moves, 1.42 behind, ahead at 1)
+  The weaker correlation is what the change predicts rather than a fault: the new score separates moves by the
+  unfunded years they lead to, which the old yardstick does not count. It is not a test of the new objective; a
+  survival-only reading (the criterion above) is unaffected and passed.
+
+PER HOUSEHOLD (survival within noise / mean advantage on B; old-objective beyond 2 se)
+    S054  20/20  +0.03   1
+    S070  19/20  +0.04   2
+    S112  20/20  +0.03   5
+    S162  20/20  +0.00   1
+    S184  20/20  -0.05   2
+    S252  20/20  -0.05   0
+    S330  20/20  -0.06   0
+    S354  19/19  -0.03   1      (one position had a single distinct candidate and is skipped)
+
+FULL REDUCER OUTPUT
+THE PURPOSE TEST (floor): 8 households, 159 positions (80 on the cliff); knobs {"raiseSurvival":true,"failureShortfall":"floor"}
+  survival: best-on-A within noise of the solver's pick at 158 of 159 (99%); mean advantage on B -0.01 +/- 0.021 points; beyond 2 se at 1
+            on the cliff: within noise at 79 of 80, mean -0.00
+            where a rival is ahead on B (14 positions): it spends less than the solver's pick at 2, more at 0, the same at 12
+  objective (the audit's yardstick): beyond 2 se at 12 of 159 (7.5%); mean advantage -0.03 +/- 0.03 points
+  the table's ranking over 705 challengers: score gap vs simulated survival gap r = -0.36, vs simulated objective gap r = -0.38; the 46 put over half a point behind simulate -0.65 points on the objective, ahead at 12
+  per household (survival: within noise / mean advantage; objective: beyond 2 se)
+    S054  20/20  +0.03   1
+    S070  19/20  +0.04   2
+    S112  20/20  +0.03   5
+    S162  20/20  +0.00   1
+    S184  20/20  -0.05   2
+    S252  20/20  -0.05   0
+    S330  20/20  -0.06   0
+    S354  19/19  -0.03   1
+
+PER-HOUSEHOLD AUDIT LINES
+S184 near/pension-heavy/modest/moderate - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 2
+  all                              objective: solver's pick is best-on-A 9/20; best-on-A ahead on B -0.04 pts (beyond 2 se at 2/20)  |  survival: best-on-A ahead on B -0.05 pts (beyond 2 se at 0/20), its score gap from the top 3.2e-3
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 3/10; best-on-A ahead on B -0.02 pts (beyond 2 se at 0/10)  |  survival: best-on-A ahead on B -0.13 pts (beyond 2 se at 0/10), its score gap from the top 6.3e-3
+S070 just-retired/pension-heavy/wealthy/moder - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 1.140477893362459
+  all                              objective: solver's pick is best-on-A 12/20; best-on-A ahead on B -0.02 pts (beyond 2 se at 2/20)  |  survival: best-on-A ahead on B +0.04 pts (beyond 2 se at 1/20), its score gap from the top 7.3e-4
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 5/10; best-on-A ahead on B -0.05 pts (beyond 2 se at 1/10)  |  survival: best-on-A ahead on B +0.17 pts (beyond 2 se at 1/10), its score gap from the top 1.3e-3
+S354 far/cash-heavy/comfortable/light - 19 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 1.140477893362459
+  all                              objective: solver's pick is best-on-A 7/19; best-on-A ahead on B +0.08 pts (beyond 2 se at 1/19)  |  survival: best-on-A ahead on B -0.03 pts (beyond 2 se at 0/19), its score gap from the top 3.0e-4
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 3/10; best-on-A ahead on B +0.12 pts (beyond 2 se at 1/10)  |  survival: best-on-A ahead on B +0.00 pts (beyond 2 se at 0/10), its score gap from the top 3.4e-4
+S330 far/gia-heavy/comfortable/light - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 0.9457416090031758
+  all                              objective: solver's pick is best-on-A 6/20; best-on-A ahead on B -0.15 pts (beyond 2 se at 0/20)  |  survival: best-on-A ahead on B -0.06 pts (beyond 2 se at 0/20), its score gap from the top 5.8e-4
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 3/10; best-on-A ahead on B -0.15 pts (beyond 2 se at 0/10)  |  survival: best-on-A ahead on B +0.03 pts (beyond 2 se at 0/10), its score gap from the top 6.3e-4
+S054 in-drawdown/cash-heavy/comfortable/light - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 0.1
+  all                              objective: solver's pick is best-on-A 5/20; best-on-A ahead on B -0.07 pts (beyond 2 se at 1/20)  |  survival: best-on-A ahead on B +0.03 pts (beyond 2 se at 0/20), its score gap from the top 2.3e-5
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 0/10; best-on-A ahead on B -0.12 pts (beyond 2 se at 0/10)  |  survival: best-on-A ahead on B +0.05 pts (beyond 2 se at 0/10), its score gap from the top 4.6e-5
+S252 mid/isa-heavy/lean/light - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 2
+  all                              objective: solver's pick is best-on-A 11/20; best-on-A ahead on B -0.04 pts (beyond 2 se at 0/20)  |  survival: best-on-A ahead on B -0.05 pts (beyond 2 se at 0/20), its score gap from the top 7.2e-4
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 5/10; best-on-A ahead on B -0.09 pts (beyond 2 se at 0/10)  |  survival: best-on-A ahead on B -0.10 pts (beyond 2 se at 0/10), its score gap from the top 1.4e-3
+S112 just-retired/cash-heavy/modest/moderate - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 0.0223606797749979
+  all                              objective: solver's pick is best-on-A 8/20; best-on-A ahead on B +0.07 pts (beyond 2 se at 5/20)  |  survival: best-on-A ahead on B +0.03 pts (beyond 2 se at 0/20), its score gap from the top 1.3e-4
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 2/10; best-on-A ahead on B +0.05 pts (beyond 2 se at 2/10)  |  survival: best-on-A ahead on B +0.00 pts (beyond 2 se at 0/10), its score gap from the top 2.6e-4
+S162 early-bridge/balanced/comfortable/light - 20 positions (10 on the cliff), 6 candidates, 800 paths (400 to pick, 400 to measure), lambda 0.1
+  all                              objective: solver's pick is best-on-A 10/20; best-on-A ahead on B -0.05 pts (beyond 2 se at 1/20)  |  survival: best-on-A ahead on B +0.00 pts (beyond 2 se at 0/20), its score gap from the top 2.3e-4
+  on the cliff (forecast 30-97%)   objective: solver's pick is best-on-A 4/10; best-on-A ahead on B -0.11 pts (beyond 2 se at 0/10)  |  survival: best-on-A ahead on B -0.05 pts (beyond 2 se at 0/10), its score gap from the top 4.5e-4

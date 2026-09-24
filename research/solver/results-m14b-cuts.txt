@@ -1,13 +1,13 @@
 # M14b cuts, per path: years below target and total cut (target-years), down -> up (paired se); lambda per household
-  S020  lambda 1.3753  years below 7.442 -> 6.442 (-1.000 +/- 0.028)   total cut 0.552 -> 0.479 (-0.073 +/- 0.003)
-  S070  lambda 1.1404  years below 13.998 -> 11.706 (-2.292 +/- 0.041)   total cut 0.989 -> 0.859 (-0.130 +/- 0.006)
-  S082  lambda 1.1404  years below 4.403 -> 3.758 (-0.645 +/- 0.029)   total cut 0.317 -> 0.279 (-0.038 +/- 0.003)
-  S162  lambda 0.1     years below 0.549 -> 0.538 (-0.011 +/- 0.006)   total cut 0.053 -> 0.054 (+0.001 +/- 0.001)
-  S172  lambda 0.6503  years below 1.031 -> 1.782 (+0.751 +/- 0.050)   total cut 0.078 -> 0.140 (+0.062 +/- 0.005)
-  S184  lambda 2       years below 6.507 -> 5.935 (-0.572 +/- 0.032)   total cut 0.438 -> 0.401 (-0.037 +/- 0.004)
-  S194  lambda 2       years below 0.858 -> 0.821 (-0.037 +/- 0.010)   total cut 0.070 -> 0.065 (-0.004 +/- 0.001)
-  S234  lambda 2       years below 0.266 -> 0.249 (-0.017 +/- 0.007)   total cut 0.022 -> 0.021 (-0.001 +/- 0.001)
-  S252  lambda 2       years below 0.882 -> 0.819 (-0.064 +/- 0.013)   total cut 0.064 -> 0.060 (-0.004 +/- 0.002)
-  S330  lambda 0.9457  years below 7.264 -> 6.701 (-0.563 +/- 0.049)   total cut 0.545 -> 0.502 (-0.043 +/- 0.006)
-  S354  lambda 1.1404  years below 5.610 -> 5.202 (-0.408 +/- 0.040)   total cut 0.403 -> 0.372 (-0.031 +/- 0.005)
-  S414  lambda 2       years below 0.361 -> 0.387 (+0.025 +/- 0.012)   total cut 0.027 -> 0.028 (+0.002 +/- 0.001)
+  S020  lambda 1.3753  years below 7.442 -> 6.442 (-1.000 +/- 0.028)   total cut 0.552 -> 0.479 (-0.073 +/- 0.003)   cut cost in the score -0.963 +/- 0.094 survival points
+  S070  lambda 1.1404  years below 13.998 -> 11.706 (-2.292 +/- 0.041)   total cut 0.989 -> 0.859 (-0.130 +/- 0.006)   cut cost in the score -1.007 +/- 0.130 survival points
+  S082  lambda 1.1404  years below 4.403 -> 3.758 (-0.645 +/- 0.029)   total cut 0.317 -> 0.279 (-0.038 +/- 0.003)   cut cost in the score -0.289 +/- 0.061 survival points
+  S162  lambda 0.1     years below 0.549 -> 0.538 (-0.011 +/- 0.006)   total cut 0.053 -> 0.054 (+0.001 +/- 0.001)   cut cost in the score +0.004 +/- 0.002 survival points
+  S172  lambda 0.6503  years below 1.031 -> 1.782 (+0.751 +/- 0.050)   total cut 0.078 -> 0.140 (+0.062 +/- 0.005)   cut cost in the score +0.453 +/- 0.048 survival points
+  S184  lambda 2       years below 6.507 -> 5.935 (-0.572 +/- 0.032)   total cut 0.438 -> 0.401 (-0.037 +/- 0.004)   cut cost in the score -0.483 +/- 0.123 survival points
+  S194  lambda 2       years below 0.858 -> 0.821 (-0.037 +/- 0.010)   total cut 0.070 -> 0.065 (-0.004 +/- 0.001)   cut cost in the score -0.127 +/- 0.039 survival points
+  S234  lambda 2       years below 0.266 -> 0.249 (-0.017 +/- 0.007)   total cut 0.022 -> 0.021 (-0.001 +/- 0.001)   cut cost in the score -0.007 +/- 0.030 survival points
+  S252  lambda 2       years below 0.882 -> 0.819 (-0.064 +/- 0.013)   total cut 0.064 -> 0.060 (-0.004 +/- 0.002)   cut cost in the score -0.074 +/- 0.054 survival points
+  S330  lambda 0.9457  years below 7.264 -> 6.701 (-0.563 +/- 0.049)   total cut 0.545 -> 0.502 (-0.043 +/- 0.006)   cut cost in the score -0.415 +/- 0.103 survival points
+  S354  lambda 1.1404  years below 5.610 -> 5.202 (-0.408 +/- 0.040)   total cut 0.403 -> 0.372 (-0.031 +/- 0.005)   cut cost in the score -0.333 +/- 0.099 survival points
+  S414  lambda 2       years below 0.361 -> 0.387 (+0.025 +/- 0.012)   total cut 0.027 -> 0.028 (+0.002 +/- 0.001)   cut cost in the score +0.029 +/- 0.042 survival points

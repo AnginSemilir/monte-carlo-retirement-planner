@@ -270,9 +270,10 @@ narrower for more than 16 years. The table therefore interpolates straight acros
   | S330 (control, betting helps) | +0.22 ± 0.10 |
 
   Pooled over the three, betting is within noise of staying: "the table misreads the end line" does not explain
-  M14b's losses as a whole. On S194 the bets do lose survival when made, but the solver's score also counts cuts: at
-  S194's dislike of cuts (λ = 2) a year at the floor costs as much as 8 survival points, and with the option S194 spends
-  fewer years below target. So a table error and a deliberate trade are not yet told apart.
+  M14b's losses as a whole. On S194 the bets do lose survival when made, but the solver's score also counts cuts (λ = 2 on
+  S194): with the option S194 spends fewer years below target, worth about 0.13 survival points in the score's cut term
+  against the 0.27 lost - less than half, before the estate and the charge for years without money. So a table error
+  and a deliberate trade are not yet told apart.
 - **A newer lead, from outside review of this brief:** the final year's 5-node average is a staircase (section 4.4). For
   one pot in one year, at a pot 1.20–1.25 times the minimum, it prices Medium → Medium/High at 0.00 survival points
   where the exact cost is 2.0–3.4. The final year integrated exactly (the crossing shock) is built and is being tested

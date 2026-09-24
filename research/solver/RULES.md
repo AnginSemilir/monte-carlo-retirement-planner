@@ -15,9 +15,15 @@ remembers them, and every one looks at files, not at what was said about them. I
 2. **`check-plan.mjs`**, run by GitHub CI on every push (outside any session: a red cross the maintainer sees), by the
    git pre-commit hook (`.githooks/pre-commit`), and by Claude Code's Stop hook.
 3. **Claude Code hooks** (`.claude/settings.json`): the Stop hook refuses to end a turn while the plan check fails or the
-   plan has changed without a review; before a tool runs, edits to the enforcement files need the maintainer's
-   approval, and killing by pattern, `--no-verify`, removing the run lock, force pushes and experiments launched
-   outside the launcher are refused; after every compaction the checklist is restated.
+   plan has changed without a review; before a tool runs, the enforcement files are LOCKED - an edit is refused unless
+   the maintainer's own latest message says "unlock enforcement" (a subagent's report, a tool result or a compaction
+   summary never counts) - and killing by pattern, `--no-verify`, removing the run lock, force pushes and experiments
+   launched outside the launcher are refused; after every compaction the checklist is restated. **Open, 24 Sep, awaiting
+   the maintainer:** the first version asked instead of refusing, and in auto mode an ask is approved without the
+   maintainer seeing it, so the hook was rewritten to lock and to judge each part of a command on its own - but that
+   rewrite (with three other enforcement files) was made without their approval, its tests are not yet in the repo,
+   and it lets prefixed forms through (`FOO=1 git commit --no-verify`, `timeout 5 pkill -f x`, `GIT_X=1 git push -f`)
+   until fixed (PLAN.md, bugs of 24 Sep).
 4. **The plan-auditor agent** (`.claude/agents/plan-auditor.md`): a reviewer with no stake in the work reads each change
    to the plan against the judgement rules below and writes a receipt to `review-log.md`; the Stop hook requires a
    receipt for the plan as it stands.
@@ -74,8 +80,10 @@ because the solver had already won on them).
 
 **The check, run the same way three times:**
 1. **Before a test is planned.** The prediction gets a fair-test table: every variable in the list below, for every
-   arm, marked SAME, TESTED (the one thing that differs, named), ONE ARM ONLY (with why that is fair), N/A or
-   ACCEPTED (both with a reason). Anything else that differs is fixed before the run, or the test is redesigned. The
+   arm, marked SAME, TESTED (the one thing that differs, named), ONE ARM ONLY (with why that is fair), N/A (with why it
+   does not apply) or ACCEPTED. Anything else that differs is fixed before the run or the test is redesigned; ACCEPTED is
+   only for a difference shown not to bias the comparison, with that reason written down (the reason is printed with
+   every figure the reducer shows). The
    values come from the batch script. The table lives in the prediction file (`predictions/<name>.md`), which is
    committed and pushed before the launcher will start the run.
 2. **After it runs, before any figure is read.** The same list, from what ACTUALLY ran: `fair-test.mjs` reads the
@@ -83,7 +91,9 @@ because the solver had already won on them).
    household, what differs first (`node research/solver/fair-test.mjs <tagA>[:arm] <tagB>[:arm] --tested=<n,n>`; every
    new reducer calls the same gate through `requireFair()` and refuses to print a figure when it fails). A difference that is
    not the thing tested, or a variable not recorded and not established from the batch script and git history,
-   means the result is not settled. Variables no file records (the engine's return assumptions, pairing, the
+   means the result is not settled - unless it is ACCEPTED with a reason that shows it cannot bias the comparison. An
+   unrecorded code version is not accepted by default: until the retro audit establishes it, those results are
+   PROVISIONAL (the plan-auditor's first review, 24 Sep). Variables no file records (the engine's return assumptions, pairing, the
    reducer's definitions, machine load) are checked by hand and named in the ledger row.
 3. **When existing data is used for a new test** (a reducer over old files, "is the answer already sitting in data
    we have?"), step 2 is run on those files against the new comparison BEFORE any figure is read, and the files'

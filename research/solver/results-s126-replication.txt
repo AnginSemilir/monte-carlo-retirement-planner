@@ -1,6 +1,9 @@
 S126 REPLICATION (PLAN.md "S126's dead corner"), 24 Sep: audit-s126.mjs variants 16 1000, then the library class (ids).
 Copied verbatim from the run logs. NOTE: the 'years below/path' column in THIS log was computed with the double-subtraction bug
 (fixed afterwards in audit-s126.mjs); the plan quotes only the a0, B, class, table, sim, gap and 'pension below plan tier' columns.
+ALSO: the LIBRARY rows below ran in ids mode, which read the id list as the grid size (NaN, so a 12-point grid) and took
+the path count from the argument meant for points (bug found 24 Sep 09:45 UK by the plan-auditor, fixed). They are not comparable to the
+variants; F1's off arm (results-f1.txt) ran the same households correctly and supersedes them.
 
 S126 VARIED, 16 points, 1000 held paths (seed 7002), lambda 0.0223606797749979
 S126             a0 0.85  B 2  W 950k  need 58k  a* 0.939  class YES  |  table  47.7  sim  99.9  gap  -52.2  |  years below/path -36.8  pension below plan tier 40.0 yrs  (142 s)

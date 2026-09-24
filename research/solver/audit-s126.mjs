@@ -4,6 +4,11 @@
  *   node research/solver/audit-s126.mjs variants [points=16] [paths=1000]   S126 varied one factor at a time
  *   node research/solver/audit-s126.mjs scan                                the library singles in the class, from inputs
  *   node research/solver/audit-s126.mjs ids S126,S…  [points] [paths]       named library households
+ *   node research/solver/audit-s126.mjs f1 [points] [paths] [variants|library|all]   F1's paired test
+ *
+ * Each mode reads its OWN arguments (fixed 24 Sep: the numbers were read before the mode was chosen, so `ids` read its
+ * id list as the grid size - NaN, falling back to 12 points - and took the path count from the argument meant for points).
+ * Every mode prints the grid size and path count it actually used.
  *
  * For each household: the pension share a0, the bridge years B and the cliff a* = 1 - N/W (N the bridge's need at
  * target, net of guaranteed income), the table's opening survival and the simulated survival of the solver's own
@@ -16,7 +21,10 @@ import { solve, runPolicy } from '../../src/solver/solve.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const mode = process.argv[2] || 'variants';
-const POINTS = Number(process.argv[3] || 16), NP = Number(process.argv[4] || 1000);
+// ids mode puts the id list first, so its numbers sit one place later than every other mode's
+const NUMS = mode === 'ids' ? process.argv.slice(4) : process.argv.slice(3);
+const POINTS = Number(NUMS[0] || 16), NP = Number(NUMS[1] || 1000);
+if (!(POINTS >= 4) || !(NP >= 1)) { console.error(`audit-s126: bad grid size or path count (${NUMS.slice(0, 2).join(', ')})`); process.exit(2); }
 const LAMBDA = 0.0223606797749979;
 const all = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');
 const s126 = all.find(s => s.id === 'S126');
@@ -100,6 +108,7 @@ if (mode === 'f1') {
   }
   console.log(`${n} singles in a bridge with a0 > 0.6; in the class: ${all.filter(s => facts(s.plan).inClass).map(s => s.id).join(' ') || 'none'}`);
 } else if (mode === 'ids') {
+  console.log(`NAMED HOUSEHOLDS, ${POINTS} points, ${NP} held paths (seed 7002), lambda ${LAMBDA}`);
   for (const id of process.argv[3].split(',')) line(id, measure(all.find(s => s.id === id)));
 } else {
   const V = [

@@ -2,7 +2,7 @@
 
 - **Run:** `node research/solver/audit-s126.mjs f1 16 1000 variants` and `... library` (one script; off and on paired inside it); logs kept in `results-f1.txt`
 - **Kind:** test
-- **Written:** 24 Sep 08:05 UK in PLAN.md (commit 6dd1181, "F1 TEST - PREDICTION"), before the run; moved to this file unchanged 24 Sep ~09:45 UK
+- **Written:** 24 Sep 08:05 UK in PLAN.md (commit 6dd1181, "F1 TEST - PREDICTION"), before the run; moved to this file unchanged 24 Sep ~09:12 UK
 - **Plan section:** PLAN.md "S126's dead corner (#106)", the F1 test
 
 ## Question

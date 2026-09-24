@@ -1254,7 +1254,7 @@ export function productLevels(floorFrac) {
  */
 export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, estateWeightMin: 0.01, thinSurvival: 0.95, thinPaths: 1000, thinSeed: 7101 });
 /*
- * RISK ABOVE THE USER'S TIER: ON BY DEFAULT IN EVERY PLAN (maintainer, 24 Sep ~08:15; PLAN.md M14, M14b).
+ * RISK ABOVE THE USER'S TIER: ON BY DEFAULT IN EVERY PLAN (maintainer, 24 Sep 07:32 UK; PLAN.md M14, M14b).
  *
  * With the plan's tier below the top, allowing one tier above raised survival 2-3 points on every thin household
  * (75-81%) and did nothing measurable for comfortable ones, bar one small loss (S162, -0.23 +/- 0.09). It is a bet
@@ -1263,7 +1263,7 @@ export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, e
  * risk; nothing happens where the pension is already at the top tier). PROVISIONAL until M14b re-checks it under
  * today's defaults.
  *
- * `riskAbove: 'auto'` keeps the earlier, more cautious rule (maintainer's first choice, ~08:00), for use if M14b finds
+ * `riskAbove: 'auto'` keeps the earlier, more cautious rule (maintainer's first choice, 07:28 UK), for use if M14b finds
  * comfortable plans losing:
  *   - never without consent to change risk, and never where no tier above exists (a pension at the top tier);
  *   - "thin" is the SIMULATED survival of the plan without it, below `thinSurvival` (95%), on `thinPaths` paths of

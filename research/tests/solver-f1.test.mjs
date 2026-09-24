@@ -34,6 +34,16 @@ ok(Math.abs(v2.mu - (76000 * 0.0372 + 19000 * 0.03) / 95000) < 1e-12, "v2: the g
 yr.dep[2][4] = 0; yr.ded[1][2] = 10000;
 const v2b = bridgeTable(Estub, m, c, 1, 2);
 ok(v2b.req[0] === 8 * 23000 + 10000, 'v2: a deduction from an accessible pot adds to what is needed');
+// one-off costs (plan one-off costs, future gifts, regular gifts: the engine's oneOffCosts) are part of the need in both
+// versions; v2 also times them against the money arriving
+yr.ded[1][2] = 0; yr.dep[2][4] = 171000; yr.cost[2] = 30000;
+const c1 = bridgeTable(Estub, m, c, 1, 1), c2 = bridgeTable(Estub, m, c, 1, 2);
+ok(c1.need[0] === 8 * 23000 + 30000, 'planted: v1 counts a one-off cost in the bridge (214k, not 184k)');
+ok(c2.req[0] === 4 * 23000 + 30000, 'planted: v2 counts a one-off cost due before the inheritance (122k, not 92k)');
+yr.cost[2] = 0; yr.cost[6] = 30000;
+const c3 = bridgeTable(Estub, m, c, 1, 2);
+ok(c3.req[0] === 4 * 23000 && bridgeTable(Estub, m, c, 1, 1).need[0] === 8 * 23000 + 30000, 'v2: a cost due after the inheritance is met by it (92k); v1 still counts it (214k)');
+yr.cost[6] = 0;
 
 // --- v2's chance the money lasts
 const base = { cash: 11500, years: 6, sigma: 0.11, mu: 0.035, cashReal: -0.005 };

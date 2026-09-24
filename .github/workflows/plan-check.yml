@@ -1,0 +1,55 @@
+# THE PLAN CHECK, outside any session (research/solver/RULES.md: how each rule is enforced).
+#
+# On every push that touches the solver research, the plan checker runs on the pushed commit, with the lines this push
+# added checked for unevidenced "no effect" claims and UTC times; every prediction file is checked; and the checks'
+# own planted-fault tests run. A failure is a red cross on the commit, which no hook inside a session can hide.
+name: Plan check
+
+on:
+  push:
+    paths:
+      - 'research/solver/**'
+      - 'research/tests/plan-checker.test.mjs'
+      - 'research/tests/fair-gate.test.mjs'
+      - 'research/tests/plan-defaults.test.mjs'
+      - 'src/solver/**'
+      - 'CLAUDE.md'
+      - '.claude/**'
+      - '.githooks/**'
+      - '.github/workflows/plan-check.yml'
+  pull_request:
+    paths:
+      - 'research/solver/**'
+      - 'src/solver/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  plan-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: The plan checker, on the pushed commit
+        run: |
+          BEFORE="${{ github.event.before }}"
+          [ "${{ github.event_name }}" = "pull_request" ] && BEFORE="${{ github.event.pull_request.base.sha }}"
+          git fetch --quiet origin main || true
+          node research/solver/check-plan.mjs --range "${BEFORE:-0}..${{ github.sha }}"
+      - name: Every prediction file
+        run: |
+          ls research/solver/predictions/*.md >/dev/null 2>&1 || exit 0
+          node research/solver/check-prediction.mjs research/solver/predictions/*.md
+      - name: The checks' own planted-fault tests
+        run: |
+          node research/tests/plan-checker.test.mjs
+          node research/tests/fair-gate.test.mjs
+          node research/tests/plan-defaults.test.mjs
+      - name: The Claude Code hooks, on simulated input
+        run: node research/tests/hooks.test.mjs

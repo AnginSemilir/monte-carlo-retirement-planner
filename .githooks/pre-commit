@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# THE PRE-COMMIT CHECK (research/solver/RULES.md: how each rule is enforced). Runs the plan checker on what is staged
+# whenever the plan, its rules, a prediction or a results file is part of the commit. Switched on per clone by
+# `git config core.hooksPath .githooks` (Claude Code's SessionStart hook does it in every session).
+#
+# Do not bypass it with --no-verify: fix the plan. GitHub CI runs the same check on every push regardless.
+#
+if git diff --cached --name-only | grep -qE '^(research/solver/(PLAN|PLAN-HISTORY|RULES|CHECKLIST)\.md|research/solver/predictions/|research/solver/results-[^/]*\.txt$|research/solver/(check-plan|check-prediction|fair-variables)\.mjs$)'; then
+  node research/solver/check-plan.mjs --staged || {
+    echo "pre-commit: the plan check failed (above). Fix it; do not bypass the hook." >&2
+    exit 1
+  }
+  for f in $(git diff --cached --name-only --diff-filter=AM | grep -E '^research/solver/predictions/.*\.md$'); do
+    git show ":$f" > /tmp/.precommit-pred.md && node research/solver/check-prediction.mjs /tmp/.precommit-pred.md >/dev/null || {
+      echo "pre-commit: $f is not a complete prediction (node research/solver/check-prediction.mjs $f)" >&2
+      exit 1
+    }
+  done
+fi
+exit 0

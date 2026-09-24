@@ -10,6 +10,7 @@ import { readRecord } from './record.mjs';
 import { readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { requireFair } from './fair-gate.mjs';
 const R = join(dirname(fileURLToPath(import.meta.url)), 'results');
 // UP / DOWN: the two arms' tags (m14-up / m14-down by default; m14b-up / m14b-down for the re-check under the step-6 defaults)
 const UP = process.env.UP || 'm14-up', DOWN = process.env.DOWN || 'm14-down';
@@ -32,6 +33,8 @@ function stats(rec) {
   }
   return { ok: P.survived, surv: 100 * surv / N, early: 100 * early / N, p5: funded[Math.floor(0.05 * (N - 1))], unfunded: unfunded / N, upShare: years ? 100 * up / years : 0, upBehind: up ? 100 * upBehind / up : NaN };
 }
+// the fair-test gate (RULES.md): the two arms may differ only in the tiers allowed (variable 13)
+requireFair([[DOWN, UP, { tested: [13] }]]);
 console.log('PROBE M14 - one tier above allowed (plan held at Medium), paired against down-only on the same paths');
 console.log('  id     survival down -> up (paired +/- se)    ran out < 20y   worst 5% funded   unfunded/path   years above   of which behind (below median wealth)');
 for (const id of ids) {

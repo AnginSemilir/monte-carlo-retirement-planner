@@ -3,6 +3,7 @@
  *
  *   node research/solver/reduce-k5.mjs targets             the targets under each world / cap / minimum-pot setting
  *   TARGET=k5t-fold-cap node research/solver/reduce-k5.mjs  the stage-1 grid (results/k5-c<c>-x<exp>) against a target
+ *   (the grid is refused unless every cell passes the fair-test gate against the target; FAIR_ACCEPT names any accepted difference)
  *
  * The target must be measured under the SAME settings as the solver cells it is compared with: the market world
  * (MIX), the raise cap (the guardrails honour the user's cap, M23) and the minimum pot. Stage 1's cells are MIX=0,
@@ -15,6 +16,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { requireFair } from './fair-gate.mjs';
 const D = join(dirname(fileURLToPath(import.meta.url)), 'results');
 const med = a => { const s = [...a].sort((x, y) => x - y), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
 const load = (tag, id, arm) => { const p = join(D, tag, `${id}.json`); return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8'))[arm] : null; };
@@ -44,6 +46,8 @@ if (process.argv[2] === 'targets') {
 }
 
 const TARGET = process.env.TARGET || 'k5t-fold-cap';
+// the fair-test gate (RULES.md): every cell against the target, before any figure is printed
+requireFair(readdirSync(D).filter(t => /^k5-c[\d.]+-x[\d.]+$/.test(t)).sort().map(t => [t, `${TARGET}:gkFloor`, {}]), { compact: true });
 const tg = IDS.map(id => load(TARGET, id, 'gkFloor'));
 const tCut = med(tg.map(cut)), tDepth = med(tg.map(g => g.levelWhenBelowMean)), tRaise = med(tg.map(raise));
 console.log(`K5 STAGE 1 against ${TARGET}: guardrails' median total cut ${f(tCut)}, depth ${f(tDepth, 3)}, raise total ${f(tRaise)}`);

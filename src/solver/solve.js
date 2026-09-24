@@ -1247,7 +1247,8 @@ export function productLevels(floorFrac) {
  *     plan carries its own or the user sets `minPotYears` (0 for none): it stops the plan aiming to end at zero (K2);
  *   - the estate slider (`estateWeight`) never below 0.01, because a weight of zero leaves nothing rewarding a pound
  *     saved from tax and the plan then pays far more of it (M20); left unset, the estate term is today's;
- *   - risk ABOVE the user's tier only as an opt-in (`riskAbove`, one tier), and only with consent to change risk (M14);
+ *   - risk ABOVE the user's tier ON by default in every plan, one tier, only with consent to change risk
+ *     (maintainer 24 Sep, widening the step-6 opt-in; PROVISIONAL until M14b; `riskAbove: 'auto'` below is the fallback);
  *   - the taxable account's tier is refused: the joint-step version failed its probe (M15) and a working design is
  *     planned, not built.
  */

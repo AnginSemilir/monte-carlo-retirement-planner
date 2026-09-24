@@ -11,6 +11,7 @@ import { readRecord } from './record.mjs';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { requireFair } from './fair-gate.mjs';
 const R = join(dirname(fileURLToPath(import.meta.url)), 'results');
 const IDS = [['S206', 'GIA 45%'], ['S330', 'GIA 45%'], ['S390', 'GIA 45%'], ['S054', 'control'], ['S112', 'control'], ['S184', 'control']];
 const PAIRS = [['no gain', 's2-fnewex', 'm15-gia'], ['40% gain', 'm15-off-gain40', 'm15-gia-gain40']];
@@ -20,6 +21,8 @@ const load = (tag, id) => {
   if (!existsSync(j) || !existsSync(rec)) return null;
   return { j: JSON.parse(readFileSync(j, 'utf8')), ok: readRecord(rec).paths.survived };
 };
+// the fair-test gate (RULES.md): each pair may differ only in the GIA's tier moves (16), which also show in the tier labels (13: "1/1" becomes "1/1/1")
+requireFair(PAIRS.filter(([, o, n]) => existsSync(join(R, o)) && existsSync(join(R, n))).map(([, offTag, onTag]) => [offTag, onTag, { tested: [16, 13] }]));
 console.log('PROBE M15 - the taxable account takes the tier step, paired against it held at the plan tier (same 3,000 paths)');
 console.log('  id    kind      gain       survival off -> on   (paired diff +/- se)   GIA yrs below / switches   lifetime tax (median)   estate net (median)    solve s off/on');
 const rows = [];

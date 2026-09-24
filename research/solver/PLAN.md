@@ -7,146 +7,73 @@ earlier). Nothing in the app changes until Phase 4's gate passes.*
 
 ## THE METHOD, AND THE RULE ABOVE ALL OTHERS: MATHS IT, TEST IT, THEN RE-MATHS THE REST (maintainer, 24 Sep)
 
-The work runs as a loop: **derive -> predict -> run -> settle -> re-derive everything downstream -> predict again.**
-The first half (derive, and write the prediction before the run) is the rule in "Derive first, run to falsify"
-below. **The second half is this: after every run that proves or disproves something, that result becomes the
-basis for looking again at every later step in the plan, at the maths behind it, and at its prediction. They are
-adjusted before the next run starts, not after.** A plan that runs its schedule unchanged after a result that
-should have changed it is running on assumptions that have already been disproved.
+**Clock.** Times in this file are UK time from 24 Sep 09:00 UK; earlier entries mix UTC and UK time (the git log is exact).
 
-**What counts as proved or disproved.** A result is settled only when all of these hold:
-1. **Beyond noise.** A difference beyond two paired standard errors on the held-out paths. Or a deterministic
-   check that could have failed and did not: bit-identity, a rule held on every path-year, an in-model bound.
-   A result within noise settles nothing, except that the effect, if there is one, is smaller than the noise.
-2. **Produced by a script from the files, not read by eye.** Every figure that changes the plan comes from a
-   reducer or a one-off script over saved results, and that script is kept.
-3. **Checked against my own error range.** I am a language model, and my errors are of known kinds. This
-   session alone made each of these:
-   - an arithmetic slip in a derivation (the M15 v2 rung table's first figures);
-   - a wrong assumption about the data (that S162 had no minimum pot of its own; that a tier above High exists);
-   - a mechanism that was right in part and missing a piece (the first M15 write-up missed the switch margin);
-   - text left stale after the facts moved (the mathematician's page).
+The work runs as a loop: **derive -> predict -> run -> settle -> re-derive everything downstream -> predict again.** The
+rules in full - when a result counts as settled, the fair-test check and its 33 variables, the twelve mistakes made more
+than once, the re-look, and how each rule is enforced - are in **`RULES.md`**. The checklist below is the short form.
+It is loaded into every Claude Code session and again after every compaction, and the checks run whether or not anyone
+remembers them: the launcher (`run-from-snapshot.sh`: a registered, pushed prediction and a passing smoke run), the
+fair-test gate in the reducers, `check-plan.mjs` (GitHub CI, the pre-commit hook and the Stop hook) and the
+plan-auditor's review.
 
-   So before a result changes the plan: recompute the derivation with a script, check every quoted figure
-   against the file it came from, and test the mechanism with a check that could have failed (the M15
-   diagnostic is the model). A result that has not been through this is marked "provisional" and changes
-   nothing downstream.
-4. **The prediction and its falsifier were written before the run.** A result read without one is a finding
-   to be predicted and tested next, not a settled fact.
-5. **It was a fair test, checked twice: before it was planned and after it ran** (below). A result that fails
-   the check settles nothing, however large the difference.
+<!-- checklist:start -->
+# The checklist: every run, every result, every plan update (in full, with the evidence: research/solver/RULES.md)
 
-### EVERY TEST IS A FAIR TEST - checked before it is planned, and again after it runs (maintainer, 24 Sep)
+1. Before a run: write `predictions/<name>.md` (prediction, falsifier, all 33 fair-test rows), commit and push it, and launch only through `run-from-snapshot.sh` with `PREDICTION=`.
+2. Before reading a result: the reducer's fair-test gate must pass. Anything that differs other than the thing tested means the result is not settled.
+3. Reusing old result files for a new question is a new test: fair-test those files first.
+4. Every figure in the plan comes from a script's output over the files; cite the results file in the ledger's evidence cell.
+5. "No effect", "unaffected", "can't happen": add `evidence: <file or proof>` on the same line, or write NOT CHECKED.
+6. Trust a check only after it has failed on a planted fault. A check that ran on nothing is an error, not a pass.
+7. After any code edit, the launcher's smoke run must pass on that code before a batch; re-test every caller.
+8. A decision changes the code default in the same commit, and the decided-defaults block; a test pins the two together.
+9. After a bug, search for the same pattern elsewhere and write "Same pattern searched:" with what was found.
+10. Log every odd result in the register with an owner and a gate. Never note it and move on.
+11. After a settled result: re-derive everything downstream, add a ledger row with its evidence, run the plan-auditor.
+12. Times in UK time. Report evidence (the command and its output), not claims.
+<!-- checklist:end -->
 
-A test is fair when its arms differ ONLY in the thing being tested, or in a setting that one arm has and the other
-cannot (a rival rule has no trim penalty). Everything else - the households, the paths, the market, the user's
-rules, the code - is the same on both sides. Three unfair tests were caught in this project only by luck or late:
-K5's target (three settings different, found 24 Sep), M14's evidence (gathered before the M17 fix changed the
-objective, hence M14b), and Phase 2's first draft (a bequest weight given to one arm only, and households chosen
-because the solver had already won on them).
+**The decided product defaults** (step 6 and after), machine-readable; `plan-defaults.test.mjs` fails if the code's
+defaults differ, so a decision and the code change together (RULES.md, rule 4):
 
-**The check, run the same way three times:**
-1. **Before a test is planned.** The prediction gets a fair-test table: every variable in the list below, for every
-   arm, marked SAME, TESTED (the one thing that differs, named) or ONE ARM ONLY (with why that is fair). Anything
-   else that differs is fixed before the run, or the test is redesigned. The values come from the batch script.
-2. **After it runs, before any figure is read.** The same list, from what ACTUALLY ran: `fair-test.mjs` reads the
-   settings each result file recorded, not the batch script's intent, and prints them side by side, household by
-   household (`node research/solver/fair-test.mjs <tagA>[:arm] <tagB>[:arm] --tested=<name>`). A difference that is
-   not the thing tested, or a variable not recorded and not established from the batch script and git history,
-   means the result is not settled. Variables no file records (the engine's return assumptions, pairing, the
-   reducer's definitions, machine load) are checked by hand and named in the ledger row.
-3. **When existing data is used for a new test** (a reducer over old files, "is the answer already sitting in data
-   we have?"), step 2 is run on those files against the new comparison BEFORE any figure is read, and the files'
-   code is checked against every change since that touches the quantity. K5's target failed exactly here: files
-   made for one purpose, reused for another, under settings nobody re-read.
+<!-- decided-defaults
+{"raiseCap": 1.1, "minPotYears": 1, "estateWeightMin": 0.01, "thinSurvival": 0.95, "thinPaths": 1000, "thinSeed": 7101,
+ "raiseSurvival": true, "failureShortfall": true, "riskAboveDefault": "on", "giaTiers": "refused"}
+-->
 
-The ledger row of every settled result names the check's outcome. From 24 Sep every result file records the code
-that made it (`code.hash`, a hash of the solver, engine, library and experiment script, plus the git commit); files
-made earlier record no code identity, so for them it is established by hand from git history.
+**The re-look ledger** (one row per settled result or decision, newest first; `check-plan.mjs` checks every evidence
+cell: results files that exist, the fair-test outcome, the prediction, or "decision:"; and every figure in the settled
+result must be in a cited results file)
 
-**The full list of variables.** "Where" is the knob or the field in a result file (`knobs.*` unless said).
-
-| # | Variable | Where | A time it went wrong |
+| date | the settled result | what it changed | evidence |
 |---|---|---|---|
-| **A** | **Who and what is tested** | | |
-| 1 | The households, and how they were chosen (by a rule that never looks at the solver; tuning set, never the held-out panel) | band file, `ONLY` | Phase 2's first draft picked households where the solver had already won |
-| 2 | Changes the test makes to a household's inputs | `PLANTIER`, `GIAGAIN`, `audit-s126.mjs` variants, added costs | - |
-| 3 | The target spend and the spending floor, and whether each arm honours the floor | `target`, `FLOOR`, `floorSpend`; `gk` against `gkFloor` | K5's first draft used the guardrails WITHOUT the floor |
-| 4 | The survival asked for, when a run lands | `CONF` (a number, `+n` or `gkFloor`) | `CONF=gkFloor` takes the ask from a rival arm; SOLVERONLY refuses it |
-| 5 | The held-out paths: seed and count, and the SAME paths for every arm (paired) | `seedHeld`, `held` | - |
-| 6 | The search paths (landings, and the rival arms' choice of order) | `seedSearch`, `SEARCH`, `VERIFY` | #108: 2,400 paths fail a landing, 5,400 work |
-| **B** | **The market** | | |
-| 7 | The market world: single-table fold (`MIX=0`), three-world mixture (`MIX=3`), five-world (`MIX=5`) - for the table AND for how every arm is simulated | `mixture` | K5's target (mixture) against the cells (fold), 24 Sep |
-| 8 | How each year's return is averaged (quadrature points) | `QUAD`, `quadNodes` (5) | - |
-| 9 | The engine's return, volatility and charge assumptions, and the engine build | `research/engine.mjs` (rebuilt from `App.jsx`); `code.hash` | - |
-| **C** | **The user's rules - equal on every arm, always** | | |
-| 10 | The minimum pot | `MINPOTYEARS` (absent: the plan's own) | K5's target: the one-year pot moved the guardrails' cutting on 4 of 12 |
-| 11 | The raise cap | `RAISECAP` (solver), `GUARDCAP` (guardrails) | K5's target predated M23 |
-| 12 | The estate preference | `WB`, `BEQSHAPE`, the estate cap, `ESTATESCALE` | Phase 2: a bequest weight given to one arm only |
-| 13 | The risk tier chosen, consent to change it, risk above | `PLANTIER`, `TIERS`, `TIERSABOVE` | M14 on the library tests only the top tier (M21) |
-| 14 | The one-off cost lookahead | `lookaheadYears` (0 on every rival arm) | - |
-| 15 | The tax-free lump sum rule | `lump`, `PCLSSTRICT` | - |
-| 16 | The taxable account's tier | `GIATIERS` | - |
-| **D** | **The solver's own settings - equal between solver arms unless tested** | | |
-| 17 | The grid: points, shares, gain buckets | `POINTS`, `coords`, `SHARES`, `GAINB`, `GAININT` | - |
-| 18 | The spending menu and the tier menu | `LEVELS`, `TIERS` | research runs overrode the code's own menu (which has 0.95) |
-| 19 | The switch margin and switching cost | `MARGIN`, `SWITCH` | R1: the margin decided M15 v1's result |
-| 20 | The dislike of cuts: lambda (held or landed) and the trim curve's exponent (together, c) | `LAMBDA`, `EXP`; `solver.lambda`, `solver.landed` | - |
-| 21 | The raise credit, and whether it is weighted by survival | `RAISE` (mu), `RAISESURV` | mu was calibrated in 2d.4 with resilience on and the old objective |
-| 22 | The price of a year with no money | `FAILSHORT` | M14's evidence predates it (M14b) |
-| 23 | Resilience and drift | `WR`, `RESIL`, `DRIFT` | - |
-| 24 | The read and edge handling: final year exact, dead corners, the bridge read (F1), block trim | `FINALEXACT`, `SHAREDEAD`, `BRIDGEREAD`, `BLOCKTRIM` | - |
-| 25 | How it lands: bisection steps, level search | `BISECT`, `TERNARY` | M6: five steps where eight were derived |
-| **E** | **The rival arms** | | |
-| 26 | Which rivals, and each one's rule and parameters (the guardrails' thresholds, Vanguard's bands, ARVA's rate) | `ARMS`; engine config | - |
-| 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | `pickFixed`; `label` | - |
-| **F** | **The code** | | |
-| 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | `code.hash`, `code.commit` (from 24 Sep); `solverVersion` is hand-set and was not bumped through the M17 fix or F1 | the flex-mix pilot split across solver versions (21 Sep), hence `run-from-snapshot.sh` |
-| **G** | **The measurement** | | |
-| 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot) | the reducer | `audit-s126.mjs` subtracted the years above target twice |
-| 30 | The reducer and its version | script name, commit | - |
-| 31 | Paired or not, and the standard error used | the reducer | - |
-| 32 | The table's number is never the result: survival is simulated | the reducer | M16: the table reads 3-5 points optimistic |
-| 33 | For timings: what else the machine was running | `uptime` in the log | K5's 385 s median inflated by contention; the `solver-fast` speed check flaky under load |
+| 24 Sep ~09:50 | (maintainer) **The rules enforced by code, not memory**: the launcher's prediction and smoke gates, the fair-test gate in the reducers, the plan checker in CI, the pre-commit hook and the Stop hook, the plan-auditor | the headline cut to the twelve-line checklist and the rules in full moved to `RULES.md`, with the twelve repeated mistakes; this evidence column; the odd results register; `predictions/` for M14b, K5 stage 1 and F1; the stale PRODUCT_DEFAULTS comment corrected | decision: maintainer, 24 Sep ("implement the best changes now throughout"); results: results-fair-test-audit.txt; fair-test: n/a (a build, not a test: each check was shown to fail on a planted fault instead); prediction: none (a build) |
+| 24 Sep ~09:00 | (maintainer) **Every test a fair test, checked before and after, on existing data too** | the headline rule gains item 5 and the fair-test check with its 33 variables; `fair-test.mjs`; every result file now records its code; K5, M17 and M14 put through it (K5's first target fails, the corrected one passes; M17 and M14 pass, code unrecorded); a retro audit queued before Phase 4 | decision: maintainer, 24 Sep ~08:50 UK; results: results-fair-test-audit.txt; fair-test: n/a (the rule itself, not a test); prediction: none (a rule, not a test) |
+| 24 Sep ~08:45 | **Market-world audit** (maintainer: "so all the research configuration hasn't tested across three market worlds?"): every run since step 2 is single-table fold (MIX=0); K5's target was mixture, uncapped, own pot - three mismatches, each measured (`results-k5-targets.txt`) | K5 stage 1's target corrected before any cell was read (median cut 2.14, not 2.38; raise total 1.07, not 3.42); R3/R4 re-derived: the solver now OUT-spends arm A, so stage 2 is expected to run, on a lower mu grid; stage 3 moves to the mixture; M14b moves to the mixture; C8 (world transfer) joins the pitfall gate | results: results-k5-targets.txt; fair-test: n/a (a measurement of the targets under each setting; the re-run under flex-tiers' own settings reproduced it exactly); prediction: none (an audit prompted by the maintainer's question; no prediction was written, logged here) |
+| 24 Sep ~08:40 | S126 replication, first 9 variants (the mechanism holds; a\* must use the floor-level need) + the maintainer's directive | the pitfall sweep C1-C5 added as a gate before Phase 4; the class boundary corrected | results: results-s126-replication.txt; fair-test: n/a (one script, variants of one household on the same flags and paths; not an arm comparison); prediction: none as a file - written in PLAN.md before the run ("PREDICTION for the replication") |
+| 24 Sep ~08:15 | (maintainer) risk above made the default for EVERY plan | M14b's prediction revised before its run: it now decides "every plan" against the 'auto' fallback | decision: maintainer, 24 Sep ~08:15 |
+| 24 Sep ~08:00 | M14's records split by path outcome (a bet when behind, 3 saved for 1 lost), plus the maintainer's default-on decision | risk above made the default for thin plans, with a simulated threshold and a no-worse guard, PROVISIONAL; M14b re-check queued after K5 stage 1, because the evidence predates the M17 fix | results: results-m14.txt; fair-test: accepted (m14-down against m14-up differ only in 13; 28 unrecorded until the retro audit 8e; results-fair-test-audit.txt); prediction: none - a records analysis whose path-outcome split came from an unsaved one-off script, NOT IN A FILE (re-run into one in the retro audit 8e), so PROVISIONAL |
+| 24 Sep ~07:30 | M23 decided (A) and built | arm A carries the user's cap; gate 4's spending conditions are now a fair test. ~~K5's matching is unaffected (cuts only)~~ **WRONG (found 08:45): the cap changes the guardrails' later cuts as well as their raises (S126 fold: 14.9 -> 13.1 years below), and K5's target predated it** | decision: maintainer (option A), 24 Sep ~07:30 |
+| 24 Sep 06:30 | M15 probe (falsified), M17/M18-floor, K2-K4, and the diagnostic of the M15 mechanism | R1-R10 in "the maths reassessed": M15 v2 made nested; M22 and the third-step sibling; M23 (gate 4's spending condition at risk, a maintainer decision); K5 stage 2 made conditional; K6 and K7 restated in c; Phase 4 reconfigured and its prediction re-derived; Q12 | results: results-m15.txt, results-m17.txt, results-bestof-floor.txt, results-k-screens.txt; fair-test: accepted (M17, M14 and M15 pass on every recorded variable, results-fair-test-audit.txt; 28 unrecorded and the K screens not yet checked: retro audit 8e); prediction: none as files - each written in PLAN.md before its run (M15, M17, M18, K2-K4) |
 
-**Already run through it (24 Sep, `fair-test.mjs`):** K5's cells against `flex-tiers` fail on the market world, the
-minimum pot and the raise cap; against `k5t-fold-cap` they pass on every recorded variable. The M17 floor fix
-(`s2-fnewex` against `m17-floor`) and M14 (`m14-down` against `m14-up`) pass on every recorded variable, with only
-the tested ones differing. All three carry "code: not recorded" (the files predate the field), to be established
-from git history in the retro audit below.
+## Odd results register
 
-**The retro audit (queued, no cores, before Phase 4):** every result the current defaults rest on (the ledger's rows
-and step 6's evidence) put through step 2, with the code identity established from git history. A result that fails
-is marked provisional and re-run.
+Every result nobody can yet explain, with an owner and the gate by which it is explained, fixed or closed (RULES.md,
+rule 6). An open row with no owner or gate fails `check-plan.mjs`.
 
-**What the re-look does, every time.** For each settled result:
-- (a) List every later step, prediction, gate and default whose premise it touches, including ones in other
-  sections.
-- (b) Re-derive the maths for each, from the files where possible, with no new run.
-- (c) Change the plan in place: a prediction re-derived, a stage made conditional or cancelled, a design
-  corrected, a question sent to the mathematician, or a decision put to the maintainer.
-- (d) Log it in the re-look ledger below (one row per result: what settled it, what it changed, where).
-- (e) Update the mathematician's page and any affected artifact the same day.
+| id | what | found | owner | resolve by | status |
+|---|---|---|---|---|---|
+| O1 | S126's opening cell read 7.5% against 96.8% simulated; logged 21-22 Sep as "an anomaly, not chased" | 22 Sep | Claude | - | resolved: it was #106's dead corner steering the plan for 40 years; F1 closes the read on S126 (table 99.9 against 99.8 simulated, `results-f1.txt`) |
+| O2 | F1 leaves long bridges misread: bridge 6 (table 53.3 against 99.3 simulated), S360 (4.3 against 44.1), S366 (3.0 against 99.2) | 24 Sep, F1 test | Claude | the F1 write-up, then the pitfall sweep (8d) | open |
+| O3 | "share 0.95" (coverage 1.02 at the floor) still reads 57.4 against 68.2 with F1 | 24 Sep, F1 test | Claude | the F1 write-up | open |
+| O4 | F1 moved S360 (+3.90 +/- 0.64 survival; pension below tier 0 -> 17.4 years) although predicted inactive at the start | 24 Sep, F1 test | Claude | the F1 write-up | open |
+| O5 | With F1 on, the thin in-class households still hold the pension below its tier most of the plan (S124 39.1, S128 29.7, S130 36.9 years; bridge 4 42.0): F1's item 3 | 24 Sep, F1 test | Claude | the F1 write-up (the lower limit binding, M22, or the misread?) | open |
+| O6 | 6c's gate failure stands unexplained: the grid-ceiling explanation was ruled out when 6e came back quiet | 23 Sep | Claude | before the estate slider's shape ships (Part C, Phase 8) | open |
+| O7 | The rival arms' runFixedPath was broken for a day and nothing noticed | 24 Sep | Claude | - | resolved: fixed; `smoke.sh` now runs every mode before any batch and caught the bug when it was planted again |
 
-**The re-look ledger**
-
-| date | the settled result | what it changed |
-|---|---|---|
-| 24 Sep ~09:00 | (maintainer) **Every test a fair test, checked before and after, on existing data too** | the headline rule gains item 5 and the fair-test check with its 33 variables; `fair-test.mjs`; every result file now records its code; K5, M17 and M14 put through it (K5's first target fails, the corrected one passes; M17 and M14 pass, code unrecorded); a retro audit queued before Phase 4 |
-| 24 Sep ~08:45 | **Market-world audit** (maintainer: "so all the research configuration hasn't tested across three market worlds?"): every run since step 2 is single-table fold (MIX=0); K5's target was mixture, uncapped, own pot - three mismatches, each measured (`results-k5-targets.txt`) | K5 stage 1's target corrected before any cell was read (median cut 2.14, not 2.38; raise total 1.07, not 3.42); R3/R4 re-derived: the solver now OUT-spends arm A, so stage 2 is expected to run, on a lower mu grid; stage 3 moves to the mixture; M14b moves to the mixture; C8 (world transfer) joins the pitfall gate |
-| 24 Sep ~08:40 | S126 replication, first 9 variants (the mechanism holds; a\* must use the floor-level need) + the maintainer's directive | the pitfall sweep C1-C5 added as a gate before Phase 4; the class boundary corrected |
-| 24 Sep ~08:15 | (maintainer) risk above made the default for EVERY plan | M14b's prediction revised before its run: it now decides "every plan" against the 'auto' fallback |
-| 24 Sep ~08:00 | M14's records split by path outcome (a bet when behind, 3 saved for 1 lost), plus the maintainer's default-on decision | risk above made the default for thin plans, with a simulated threshold and a no-worse guard, PROVISIONAL; M14b re-check queued after K5 stage 1, because the evidence predates the M17 fix |
-| 24 Sep ~07:30 | M23 decided (A) and built | arm A carries the user's cap; gate 4's spending conditions are now a fair test. ~~K5's matching is unaffected (cuts only)~~ **WRONG (found 08:45): the cap changes the guardrails' later cuts as well as their raises (S126 fold: 14.9 -> 13.1 years below), and K5's target predated it** |
-| 24 Sep 06:30 | M15 probe (falsified), M17/M18-floor, K2-K4, and the diagnostic of the M15 mechanism | R1-R10 in "the maths reassessed": M15 v2 made nested; M22 and the third-step sibling; M23 (gate 4's spending condition at risk, a maintainer decision); K5 stage 2 made conditional; K6 and K7 restated in c; Phase 4 reconfigured and its prediction re-derived; Q12 |
-
-**Keeping this plan current - a standing rule (maintainer, 23 Sep).** This file holds only what is
-current and what is still to do. **The moment a step, phase, gate or measurement is COMPLETED, its full
-text moves to `PLAN-HISTORY.md`** - verbatim, with its outcome and the results file named - and in this
-file it is replaced by one line in "Where things stand" pointing there. A design that is superseded
-before it runs is deleted, not archived (git history keeps it). A decision changes the plan in place,
-with the date and who decided. Nothing completed is ever deleted outright, and nothing superseded is left
-here to be mistaken for the current plan.
+**Keeping this plan current** is RULES.md section 6: finished work moves to `PLAN-HISTORY.md` verbatim; a design
+superseded before it runs is deleted; a decision changes the plan in place, with the date and who decided.
 
 **Where to read what.** The requirements the product must meet are first and do not move without the
 maintainer. The schedule and every pending phase follow, each with its prediction written before it
@@ -464,10 +391,17 @@ speed work is worth - see "After Phase 4".
 
 - **`runFixedPath` called `world(...)` with an undefined `act`** (the M15 edit replaced both `world` calls in
   `experiment.mjs`, one of which reads `c.acts[ai]`). Only the rival arms use it; every batch since 02:50 was
-  SOLVERONLY, so no result was affected. Found 08:45 by the first ARMSONLY run; fixed.
+  SOLVERONLY, so no result was affected. Found 08:45 by the first ARMSONLY run; fixed. **Same pattern searched:**
+  every `world(` call in research/solver (24 Sep ~09:10 UK, grep): experiment.mjs's other call (runSolvedPath) and
+  seedcheck.mjs pass a move defined in their own scope. Structurally, `smoke.sh` now runs every run mode before any
+  batch, and caught this bug when it was planted again.
 - **A sed edit put a `//` mid-line in the solver**, commenting out live code; the library run died on a
-  SyntaxError and was re-run (22add9d).
+  SyntaxError and was re-run (22add9d). **Same pattern searched:** `node --check` on every .js/.mjs file in src/solver
+  and research/solver and `bash -n` on every batch script (24 Sep ~09:10 UK): all pass. The smoke run now refuses any
+  batch on code that does not run.
 - **K5's target was measured under other settings than its cells** (world, raise cap, minimum pot) - K5 below.
+  **Same pattern searched:** `fair-test.mjs` on the comparisons the defaults rest on (M17, M14, M15: each differs only
+  in the thing tested, `results-fair-test-audit.txt`); every other result they rest on goes through the retro audit (8e).
 
 ### The byte-wide policy bug, found 23 Sep ~15:00 - the stored policy was a byte, and the menu is wider than a byte
 
@@ -604,7 +538,7 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording, the #106 trade-off, the ternary decision, **M17 and the probes' verdicts, and the calibration curve** | 5 | no cores | Thu ~07:00 |
 | 6 | ~~The maintainer picks the product defaults~~ **DECIDED 24 Sep ~05:30: every recommendation taken** - minimum pot 1 year; raise cap 1.1; estate slider 0% = weight 0.01; the M17 floor fix ON; risk above the user's tier as an opt-in; Phase 4's panel landed at ~85%; the taxable-account tier NOT allowed as built - **fully plan a version that works first** (M15, "the full design" below) | 5c | - | done |
 | 7 | **K5 guardrail matching** - stage 1 running since ~05:45 (288 cells at ~6.5 min each, four at a time: **~8 h, not 4.5**; 64 done at 08:40, slower while F1's test shares the cores - **finish ~18:00**), judged against the corrected fold target (08:45); stage 2 now expected (R4 re-derived); stage 3 on the 41 **in the mixture** | 6 | ~12 h | Thu ~18:00 |
-| 7b | **M14b** (`batch-m14b.sh`, 24 cells, **in the mixture**, ~2 h): risk above the tier re-checked under the step-6 defaults; decides whether "on in every plan" stands or falls back to 'auto' (thin plans, no-worse guard). Also C8's check for risk above | 7 stage 1 | ~2 h | Thu ~16:00 |
+| 7b | **M14b** (`batch-m14b.sh`, 24 cells, **in the mixture**, ~2 h; registered prediction `predictions/m14b.md`): risk above the tier re-checked under the step-6 defaults; decides whether "on in every plan" stands or falls back to 'auto' (thin plans, no-worse guard). Also C8's check for risk above | 7 stage 1 | ~2 h | Thu ~16:00 |
 | 8 | **K6 slider spread** (in c, R5), with **K7 read off K4's, K5's and K6's sweeps** (no run of its own) | 7 | ~1.5 h | Thu ~17:00 |
 | 8b | **M15 v2**: build in K5's run gaps (no cores), after Q12 is put to the mathematician; probe (4 arms, 8 households + 3 at 40% gain, ~2 h) | 7 | ~2 h | Thu ~19:00 |
 | 8d | **The pitfall sweep** (C1-C5 above): the S126 fix, then the same pattern hunted, tested and fixed. **Gates Phase 4** | S126 fix | ~4-6 h, in run gaps | Thu evening / Fri morning |
@@ -760,7 +694,7 @@ in RETIRED bridge years. A working household with a bridge still ahead is a diff
 arrive, so the coverage test would be wrong). **It joins the pitfall sweep as C7.** The cap uses sigma = the ISA/GIA
 opening-weighted spread at the plan tiers, scaled by the invested share of the accessible money.
 
-**F1 TEST - PREDICTION (written 24 Sep ~07:12, before the run):** `audit-s126.mjs f1`, 16 points, 1,000 paired
+**F1 TEST - PREDICTION (written 24 Sep ~07:12, before the run; registered as `predictions/f1-test.md`):** `audit-s126.mjs f1`, 16 points, 1,000 paired
 paths; the 12 variants, the five library class households S120-S130, and the long-bridge controls S360, S366.
 1. **The class:** table within +/-5 points of simulation on every in-class case, except the two that sit on the cliff
    edge (share 0.95 and bridge 6, coverage 1.02 at the floor): there the cap is only a rough edge model, so within
@@ -809,6 +743,7 @@ signature) or FIXED and re-tested.
 | C4 | **Snapped buckets:** the gain fraction {0.05, 0.25, 0.55} and the lump-sum-used share {0, 1/2, 1} | A snap is a jump, not a smear. For bridge households the lump sum at access is a large tax-free inflow | Reads at both neighbouring buckets, against the snapped read, at visited positions (bridge households and GIA-heavy ones) | Small (the 6e fidelity screen moved nothing by more than 2%), but never checked on bridge households |
 | C5 | **The switch margin deciding near-ties** (R1, Q12) | An artefact (a fixed margin) decides where the table is nearly indifferent, and paths stick to their starting tier | The M15 diagnostic, generalised: the share of decisions the margin overrules while tier families sit within 1e-4, on the twelve under today's defaults, including risk above | Frequent on comfortable households (it decides harmlessly among ties); on thin ones, rare unless a family is missing |
 | C6 | **Other inaccessible money** (a partner's pension before their own access; couples use even-split tables) | A second bridge per person | Deferred: couples ship after Phase 4 (Q9). Recorded, not checked now | - |
+| C7 | **A working household with a bridge still ahead** (added to the table 24 Sep ~09:50 UK: the F1 section named it C7 but the row was missing) | F1 acts only in RETIRED bridge years: while contributions still arrive its coverage test would be wrong, so the dead corner can steer the years before retirement and the first bridge year | S126 variants still working 1-5 years before retirement (bridge 2-6): the table against simulation, and the pension-below-tier signature, with F1 off and on | NOT CHECKED: F1 does not act there, so the misread should be today's S126-sized error from the first retired bridge year; before retirement, unknown |
 | C8 | **The market world** (maintainer, 24 Sep ~08:45). Not a grid artefact but the same shape of risk: a setting of the approximation (single-table fold, MIX=0) decides a result that ships in another (the mixture) | Every run since step 2 used the fold, for speed; the product and Phase 4 use the mixture. Gate 3 found the two agree on DECISIONS (engine score 83.86 against 83.87) and differ on LEVELS (the fold reads a mean 1.07 points low, worst 4.6), so paired results within one world should carry over - measured once, before the floor fix, the cap and F1 | The settled defaults that MOVED survival, re-run paired in the mixture where they moved it: the floor fix (thin four, off/on, 8 cells), F1 (the S126 class, off/on, `audit-s126.mjs` with the mixture) and risk above (M14b, now run in the mixture). Any number quoted as a level (survival, the 'auto' rule's 95%) is taken from the mixture only | Same sign on every household; magnitudes within half to double the fold's. FALSIFIED IF any default reverses sign beyond two paired se in the mixture - then it is re-derived before Phase 4 |
 
 **The general detector, built once with the S126 fix and reused by C1-C4:** a census that flags every read touching
@@ -841,7 +776,7 @@ forward. In M14, unfunded years FELL with the bet, so the fix should trim it at 
 The gain should scale with the share of years spent behind, and so roughly with the failure rate: about 0.11
 points per point of failure on M14's thin four (2.5 / 22).
 
-**PREDICTION (revised ~08:15 for the widened default, still before the run):**
+**PREDICTION (revised ~08:15 for the widened default, still before the run; registered as `predictions/m14b.md`, which the launcher requires):**
 1. **The thin four:** still better with it, +1 to +3 points each, beyond two paired se on at least 3 of 4. Unfunded
    years per path not higher on any.
 2. **Where the bets happen:** the share of up-move years in failing paths' last three paid years falls below 10%
@@ -1219,7 +1154,7 @@ of target spending over a retirement (1.40 to 3.33), at a median depth of 0.88 (
 lambdas) cuts a median 0.40 (0.03 to 2.78), at depths of 0.52 to 0.90. So matching needs about six times more
 cutting.
 
-**PREDICTION (written 24 Sep 05:55, before stage 1):**
+**PREDICTION (written 24 Sep 05:55, before stage 1; registered as `predictions/k5-stage1.md`, with the target correction under its "Changes after seeing results"):**
 1. The total cut rises smoothly as c falls, at every exponent; the median household's total matches the
    guardrails' (within 10%) at c between 0.0003 and 0.001, a quarter to a tenth of the median landed value (0.004).
 2. Depth: at exponent 2 the solver still cuts deeper than the guardrails at the matching c. At exponent 3 or 4 the

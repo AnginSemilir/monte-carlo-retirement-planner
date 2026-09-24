@@ -11,11 +11,46 @@
 # reach a run already going. Results are symlinked back to the real tree, so output still lands in the
 # repository while the code that produced it stays frozen.
 #
-#   research/solver/run-from-snapshot.sh <command...>
-#   research/solver/run-from-snapshot.sh bash my-batch.sh
+#   PREDICTION=research/solver/predictions/<name>.md research/solver/run-from-snapshot.sh bash research/solver/batch-x.sh
+#   PREDICTION="none:<why this is a measurement, not a test>" research/solver/run-from-snapshot.sh <command...>
+#   LANE=light ...   one single-process job beside the main batch (its own lock; it costs the batch about a core)
 #
 set -euo pipefail
 REAL="$(cd "$(dirname "$0")/../.." && pwd)"
+#
+# THE PREDICTION GATE (RULES.md, maintainer 24 Sep: "maths it, test it" with the prediction written first).
+#
+# Nothing runs without a registered prediction. PREDICTION names a file that passes check-prediction.mjs (its
+# falsifier and the full fair-test table filled in), is committed with no local edits, and has been PUSHED: the
+# commit that last touched it must be on origin/<branch>, because a pushed commit cannot be quietly backdated and a
+# local one can. PREDICTION=none:<reason> runs a measurement (a target, a timing, a census); the reason is stamped in
+# every result file, and fair-gate.mjs refuses those files as evidence for a test unless the reason is accepted.
+#
+PRED="${PREDICTION:-}"
+if [ -z "$PRED" ]; then
+  echo "=== REFUSED: no prediction. Set PREDICTION=research/solver/predictions/<name>.md (a registered test)" >&2
+  echo "=== or PREDICTION=\"none:<why this is a measurement, not a test>\". See research/solver/RULES.md." >&2
+  exit 1
+fi
+if [ "${PRED#none:}" != "$PRED" ]; then
+  REASON="${PRED#none:}"
+  [ -n "${REASON// /}" ] || { echo "=== REFUSED: PREDICTION=none: needs a reason after the colon" >&2; exit 1; }
+  export PREDICTION_FILE=none PREDICTION_REASON="$REASON"
+  echo "=== a MEASUREMENT, not a test: $REASON (its results cannot settle a test)"
+else
+  case "$PRED" in /*) PRED="$(realpath --relative-to="$REAL" "$PRED")";; esac
+  cd "$REAL"
+  [ -f "$PRED" ] || { echo "=== REFUSED: no prediction file $PRED" >&2; exit 1; }
+  node research/solver/check-prediction.mjs "$PRED" >&2 || { echo "=== REFUSED: the prediction file is not complete" >&2; exit 1; }
+  git ls-files --error-unmatch "$PRED" >/dev/null 2>&1 || { echo "=== REFUSED: $PRED is not committed" >&2; exit 1; }
+  git diff --quiet HEAD -- "$PRED" || { echo "=== REFUSED: $PRED has uncommitted edits" >&2; exit 1; }
+  BR="$(git rev-parse --abbrev-ref HEAD)"
+  LAST="$(git log -1 --format=%H -- "$PRED")"
+  git merge-base --is-ancestor "$LAST" "refs/remotes/origin/$BR" 2>/dev/null || {
+    echo "=== REFUSED: $PRED is not pushed to origin/$BR. Push it first: the push is the timestamp." >&2; exit 1; }
+  export PREDICTION_FILE="$PRED" PREDICTION_SHA="$(git hash-object "$PRED")"
+  echo "=== prediction $PRED, registered in $(git log -1 --format='%h' -- "$PRED") at $(TZ=Europe/London git log -1 --format='%cd' --date=format-local:'%d %b %H:%M UK' -- "$PRED")"
+fi
 #
 # ONE EXPERIMENT AT A TIME, ENFORCED RATHER THAN REMEMBERED.
 #
@@ -32,6 +67,8 @@ REAL="$(cd "$(dirname "$0")/../.." && pwd)"
 # A discipline that depends on reading a launch command correctly is not a discipline. This is a lock.
 #
 LOCK="${TMPDIR:-/tmp}/solver-experiment.lock"
+# the light lane: one single-process job beside the main batch, under a lock of its own
+[ "${LANE:-}" = light ] && LOCK="${TMPDIR:-/tmp}/solver-experiment-light.lock"
 #
 # THE LOCK CLEARS ITSELF WHEN STALE. DO NOT rm IT FROM A CALLER.
 #
@@ -68,5 +105,18 @@ DIRTY="$(cd "$REAL" && git status --porcelain 2>/dev/null | wc -l)"
 echo "=== snapshot $SNAP   from $REV$([ "$DIRTY" -gt 0 ] && echo " + $DIRTY uncommitted file(s)")"
 [ "$DIRTY" -gt 0 ] && echo "=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone"
 cd "$SNAP"
+#
+# THE SMOKE GATE (RULES.md rule 3: after any code edit, re-test every caller). Every run mode the batches use runs once,
+# tiny, on the snapshot's own code before the batch starts; a stamp keyed by the code's hash skips it on the same code.
+#
+HASH="$(node research/solver/code-id.mjs)"
+STAMP="$REAL/research/solver/results/.smoke/$HASH"
+if [ ! -f "$STAMP" ]; then
+  echo "=== smoke run on code $HASH: every experiment mode once, tiny (about 2-3 minutes)"
+  bash research/solver/smoke.sh || { echo "=== REFUSED: the smoke run failed on this code. Fix it before any batch." >&2; exit 1; }
+  mkdir -p "$(dirname "$STAMP")"; date -u +%FT%TZ > "$STAMP"
+fi
+# the run log (committed with the results): when, which lane, under which prediction, on which code, and how busy the box was
+echo "$(TZ=Europe/London date '+%d %b %H:%M UK') | ${LANE:-main} | ${PREDICTION_FILE}${PREDICTION_REASON:+: $PREDICTION_REASON} | code $HASH | $REV | load $(cut -d' ' -f1-3 /proc/loadavg) | $*" >> "$REAL/research/solver/runs.log"
 "$@"
 echo "=== snapshot kept at $SNAP for provenance; remove it when the results are written up"

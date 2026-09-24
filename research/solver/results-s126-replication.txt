@@ -1,0 +1,38 @@
+S126 REPLICATION (PLAN.md "S126's dead corner"), 24 Sep: audit-s126.mjs variants 16 1000, then the library class (ids).
+Copied verbatim from the run logs. NOTE: the 'years below/path' column in THIS log was computed with the double-subtraction bug
+(fixed afterwards in audit-s126.mjs); the plan quotes only the a0, B, class, table, sim, gap and 'pension below plan tier' columns.
+
+S126 VARIED, 16 points, 1000 held paths (seed 7002), lambda 0.0223606797749979
+S126             a0 0.85  B 2  W 950k  need 58k  a* 0.939  class YES  |  table  47.7  sim  99.9  gap  -52.2  |  years below/path -36.8  pension below plan tier 40.0 yrs  (142 s)
+share 0.50       a0 0.50  B 2  W 950k  need 58k  a* 0.939  class no   |  table  99.9  sim  99.8  gap    0.1  |  years below/path -37.6  pension below plan tier 6.9 yrs  (142 s)
+share 0.70       a0 0.70  B 2  W 950k  need 58k  a* 0.939  class no   |  table  99.6  sim  99.8  gap   -0.2  |  years below/path -36.8  pension below plan tier 9.5 yrs  (140 s)
+share 0.78       a0 0.78  B 2  W 950k  need 58k  a* 0.939  class no   |  table  99.1  sim  99.9  gap   -0.8  |  years below/path -36.9  pension below plan tier 40.0 yrs  (144 s)
+share 0.90       a0 0.90  B 2  W 950k  need 58k  a* 0.939  class YES  |  table   0.9  sim  99.7  gap  -98.8  |  years below/path -34.3  pension below plan tier 10.8 yrs  (145 s)
+share 0.95       a0 0.95  B 2  W 950k  need 58k  a* 0.939  class no   |  table   0.0  sim  68.2  gap  -68.2  |  years below/path -22.9  pension below plan tier 4.6 yrs  (131 s)
+bridge 0         a0 0.85  B 0  W 950k  need 0k  a* 1.000  class no   |  table  99.9  sim  99.8  gap    0.1  |  years below/path -35.3  pension below plan tier 6.7 yrs  (139 s)
+bridge 1         a0 0.85  B 1  W 950k  need 29k  a* 0.969  class YES  |  table  82.8  sim  99.8  gap  -17.0  |  years below/path -35.7  pension below plan tier 8.8 yrs  (141 s)
+bridge 4         a0 0.85  B 4  W 950k  need 116k  a* 0.878  class YES  |  table   5.3  sim  99.9  gap  -94.6  |  years below/path -34.2  pension below plan tier 42.0 yrs  (152 s)
+bridge 6         a0 0.85  B 6  W 950k  need 174k  a* 0.817  class no   |  table   3.3  sim  99.8  gap  -96.5  |  years below/path -31.7  pension below plan tier 44.0 yrs  (158 s)
+wealth x0.5      a0 0.85  B 2  W 475k  need 58k  a* 0.878  class YES  |  table   3.2  sim  96.8  gap  -93.6  |  years below/path -14.0  pension below plan tier 36.8 yrs  (144 s)
+wealth x2        a0 0.85  B 2  W 1900k  need 58k  a* 0.969  class YES  |  table  90.3  sim 100.0  gap   -9.7  |  years below/path -38.0  pension below plan tier 40.0 yrs  (148 s)
+file:///home/user/vitejs-vite-kdvuf9qw/research/solver/audit-s126.mjs:96
+
+
+
+SyntaxError: Unexpected end of input
+    at compileSourceTextModule (node:internal/modules/esm/utils:346:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:107:18)
+    at #translate (node:internal/modules/esm/loader:546:20)
+    at afterLoad (node:internal/modules/esm/loader:596:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:601:12)
+    at #createModuleJob (node:internal/modules/esm/loader:624:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:25)
+
+Node.js v22.22.2
+exit 1
+
+LIBRARY CLASS:
+S120             a0 0.85  B 2  W 180k  need 10k  a* 0.944  class YES  |  table  91.8  sim 100.0  gap   -8.2  |  years below/path 1.0  pension below plan tier 40.0 yrs  (288 s)
+S122             a0 0.85  B 2  W 180k  need 18k  a* 0.900  class YES  |  table  48.3  sim 100.0  gap  -51.7  |  years below/path 4.8  pension below plan tier 2.8 yrs  (312 s)

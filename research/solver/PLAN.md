@@ -683,6 +683,56 @@ FALSIFIED IF any arm is worse than today by more than two paired se on any house
 qualifying household exceeds 1.7x. **What ships:** the cheaper arm that gets at least 80% of the best arm's
 gain, and nothing if no arm gains beyond noise.
 
+## S126's dead corner (#106): root cause, replication, fix options (maintainer, 24 Sep: "replicate with varied scenarios, maths out the cause, then give options")
+
+### The derivation (written 24 Sep ~07:40, before the replication)
+
+S126 is 56 and retired; its pension opens at 58, so two bridge years. Its £950k is 85% pension (£807.5k); the
+accessible £142.5k (ISA, GIA and cash) is 4.9 years of its £29k target, and the bridge needs 2 years (£58k). It
+bridges easily; the table reads it as likely to fail.
+
+- **A cliff on the SHARE axis.** In a bridge year only accessible money can pay, so at total wealth W and remaining
+  bridge need N_t, survival along the pension share a falls off a cliff at **a\* = 1 - N_t / W** (S126 at t = 0:
+  1 - 58/950 = 0.939). The cliff's width is set by market moves in accessible money over the bridge: narrow for
+  short bridges.
+- **The grid cannot see it.** The share axis has 6 nodes (0, 0.2, ..., 1). The node a = 1 is always dead in a
+  bridge year, because nothing is accessible. A household with 0.8 < a < a\* reads between a live node (0.8) and a dead
+  one (1.0), in log-odds, where dead is the clamp, -13.8. At S126's 0.85 the dead node carries weight
+  w = (a - 0.8)/0.2 = 0.25. The interpolant places the 50% line where the log-odds cross zero, at
+  0.8 + 0.2 x eta_live/(eta_live + 13.8) (about 0.83 for a live node at 0.97), not at a\* = 0.94. **The table puts
+  the cliff where the clamp says, not where the money says.**
+- **The bridge makes it compound.** Each bridge year is paid from accessible money, so the pension share RISES
+  (at the 0.8 node, 0.8 x 32.8/31.8 = 0.825 a year later). Next year's reads therefore sit deeper in the
+  dead-weighted interval, and the backward pass carries the error into the year-0 value. That is why S126 read
+  7.6% (#106) where a single read predicts about 30%.
+- **Why a finer share axis did not cure it** (Phase V, 6/9/12 share nodes; S126 still read 48-63%): a\* moves with W
+  and t, so it always falls inside some interval, and whenever the household is on its live side the same
+  misplacement happens, only over a shorter distance.
+
+**The class this predicts:** in a bridge year, 0.8 < a < a\* (more generally, a live household within one share
+interval below a\*, with the dead node above it). Outside it, no dead-corner error. Past a\* the household is truly
+failing, so table and simulation agree at low values. Before retirement the pension is not needed for the bridge
+(the #106 controls S184, S240 and S300, at 0.85 but still working, read fine).
+
+**PREDICTION for the replication** (S126 varied one factor at a time; 16 points, 1,000 held paths, step-2 flags):
+
+| variant | a0 | bridge years | W | a\* at t = 0 | predicted |
+|---|---|---|---|---|---|
+| S126 as is | 0.85 | 2 | 950k | 0.939 | table 20+ points below simulation |
+| share 0.50 / 0.70 | 0.50 / 0.70 | 2 | 950k | 0.939 | within 5 points (the calibration range) |
+| share 0.78 | 0.78 | 2 | 950k | 0.939 | milder than S126 (drifts past 0.8 only in year 1): gap under 20 |
+| share 0.90 | 0.90 | 2 | 950k | 0.939 | table 20+ below, and further below than S126 (w = 0.5) |
+| share 0.95 | 0.95 | 2 | 950k | 0.939 | truly failing (liquid 47.5k < 58k): both low, gap under 10 |
+| bridge 0 | 0.85 | 0 | 950k | - | within 5 points |
+| bridge 1 / 4 | 0.85 | 1 / 4 | 950k | 0.969 / 0.878 | table 20+ below |
+| bridge 6 | 0.85 | 6 | 950k | 0.817 (< a0) | truly failing: both low, gap under 10 |
+| wealth x0.5 / x2 | 0.85 | 2 | 475k / 1.9m | 0.878 / 0.969 | table 20+ below: W does not remove it |
+
+Plus a scan of all 210 library singles for the class (a read from the inputs, no solve), and the ones found
+solved the same way.
+FALSIFIED IF a variant in the predicted class reads within 5 points of its simulation, or one outside it reads 20+
+below.
+
 ## Step 3. The lever builds
 
 - **The estate credit curve** `credit(net) = w x s x ln(1 + (net - P)/s)` above the minimum pot P, with one

@@ -56,6 +56,14 @@ plan sensible in bad markets and raises survival a little. Its price is more cut
 struggling; the guardrail matching (K5), which sets the default dislike of cuts, runs after it and re-balances
 the total amount cut.
 
+**The purpose test, re-run with the floor fix on, passes again** (`results-bestof-floor.txt`): at 158 of 159
+positions no rival survived measurably better than the solver's pick (on average 0.01 points worse). In the first
+run, 10 of the 23 rivals that edged ahead did so by spending less; with the fix it is 2 of 14, because the solver
+now does its own cutting when a future is in trouble. My prediction and its falsifier were written first; the
+falsifier did not fire. (One caveat: the test scores by the old objective, which does not charge the years with
+no money. So on that score the ranking now looks a little looser. That is expected, and survival alone is the
+criterion.)
+
 ## 3. The defaults
 
 ### Minimum end-of-life pot (K2)

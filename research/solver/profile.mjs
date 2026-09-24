@@ -11,11 +11,11 @@
  * is the big lever when tiers are off; with tiers on the node loop dominates instead, and what helps
  * both is evaluating fewer (cell, action) pairs at all.
  */
-import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
-import * as M from '/home/user/vitejs-vite-kdvuf9qw/src/solver/model.js';
-import { solve, buildActions } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/solve.js';
-import { tiersFor } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/fast.js';
-import { buildScenarios } from '/home/user/vitejs-vite-kdvuf9qw/research/policy-study/scenarios.mjs';
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { solve, buildActions } from '../../src/solver/solve.js';
+import { tiersFor } from '../../src/solver/fast.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { readFileSync } from 'node:fs';
 const HERE = '/home/user/vitejs-vite-kdvuf9qw/research/solver';
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');

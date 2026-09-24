@@ -19,11 +19,11 @@
  * #106 showed the first can be badly wrong while the second is fine, so a gate on the first alone
  * would fail a correct solver on one household's artefact.
  */
-import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
-import * as M from '/home/user/vitejs-vite-kdvuf9qw/src/solver/model.js';
-import { solve, runPolicy } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/solve.js';
-import { locateVec, interp } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/grid.js';
-import { buildScenarios } from '/home/user/vitejs-vite-kdvuf9qw/research/policy-study/scenarios.mjs';
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { solve, runPolicy } from '../../src/solver/solve.js';
+import { locateVec, interp } from '../../src/solver/grid.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { readFileSync } from 'node:fs';
 
 const K = Number(process.argv[2] || 32), HELD = Number(process.argv[3] || 1000);

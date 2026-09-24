@@ -9,10 +9,10 @@
  * configuration (landed lambda, five levels, raises, tiers, single table), then simulates the same paths
  * twice - the true final-year move, and the wrapped one the old code used - and reports the difference.
  */
-import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
-import * as M from '/home/user/vitejs-vite-kdvuf9qw/src/solver/model.js';
-import { solve, runPolicy } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/solve.js';
-import { buildScenarios } from '/home/user/vitejs-vite-kdvuf9qw/research/policy-study/scenarios.mjs';
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { solve, runPolicy } from '../../src/solver/solve.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { readFileSync } from 'node:fs';
 const K = Number(process.argv[2]), N = Number(process.argv[3] || 2000);
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');

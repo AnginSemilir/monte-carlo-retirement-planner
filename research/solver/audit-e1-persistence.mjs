@@ -20,11 +20,11 @@
  * Coverage is the fraction of cells whose TRUE winner this year is inside the set. The saving is
  * 1 - (set size / 360). E1 is worth building only where coverage is near total AND the set is small.
  */
-import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
-import * as M from '/home/user/vitejs-vite-kdvuf9qw/src/solver/model.js';
-import { solve } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/solve.js';
-import { tiersFor } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/fast.js';
-import { buildScenarios } from '/home/user/vitejs-vite-kdvuf9qw/research/policy-study/scenarios.mjs';
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { solve } from '../../src/solver/solve.js';
+import { tiersFor } from '../../src/solver/fast.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { readFileSync } from 'node:fs';
 
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');

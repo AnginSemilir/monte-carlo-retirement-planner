@@ -15,10 +15,10 @@
  * positions; near-ties are close to a coin toss; the average loss when wrong is under half a point and
  * no loss exceeds 2 points on the current grid.
  */
-import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
-import * as M from '/home/user/vitejs-vite-kdvuf9qw/src/solver/model.js';
-import { solve, runPolicy, rankActions, scoreMoves } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/solve.js';
-import { buildScenarios } from '/home/user/vitejs-vite-kdvuf9qw/research/policy-study/scenarios.mjs';
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { solve, runPolicy, rankActions, scoreMoves } from '../../src/solver/solve.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
 const K = Number(process.argv[2]), LAMBDA = Number(process.argv[3]);

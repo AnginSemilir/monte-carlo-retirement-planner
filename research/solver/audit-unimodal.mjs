@@ -22,12 +22,12 @@
  * goes to the plan as written, so the menu order is [1, 1.2, 1.1, 0.9, 0.8]. The levels must be sorted
  * by VALUE before any single-peakedness test, or the test is meaningless.
  */
-import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
-import * as M from '/home/user/vitejs-vite-kdvuf9qw/src/solver/model.js';
-import { solve, scoreMoves, buildActions } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/solve.js';
-import { tiersFor } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/fast.js';
-import { vecOf, toVec } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/grid.js';
-import { buildScenarios } from '/home/user/vitejs-vite-kdvuf9qw/research/policy-study/scenarios.mjs';
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { solve, scoreMoves, buildActions } from '../../src/solver/solve.js';
+import { tiersFor } from '../../src/solver/fast.js';
+import { vecOf, toVec } from '../../src/solver/grid.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { readFileSync } from 'node:fs';
 
 const singles = buildScenarios().filter(s => s.plan.demographics.planningMode === 'single');

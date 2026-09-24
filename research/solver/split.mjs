@@ -12,11 +12,11 @@
  * The timers sit inside solveFlex, around the solve and around rateOn, and are off without
  * SOLVER_PROFILE. They cost a Date.now() per solve and per path batch, which is nothing beside either.
  */
-import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
-import * as M from '/home/user/vitejs-vite-kdvuf9qw/src/solver/model.js';
-import { solveFlex } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/solve.js';
-import { tiersFor } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/fast.js';
-import { buildScenarios } from '/home/user/vitejs-vite-kdvuf9qw/research/policy-study/scenarios.mjs';
+import * as E from '../engine.mjs';
+import * as M from '../../src/solver/model.js';
+import { solveFlex } from '../../src/solver/solve.js';
+import { tiersFor } from '../../src/solver/fast.js';
+import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { readFileSync } from 'node:fs';
 
 const HERE = '/home/user/vitejs-vite-kdvuf9qw/research/solver';

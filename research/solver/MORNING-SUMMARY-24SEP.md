@@ -131,7 +131,11 @@ households. It costs minutes to run.
 5. S126's dead corner (#106): still open; the table reads 38.5% where the plan survives 99.8%.
 6. Every library household holds its pension at the top tier (M21), so nothing has tested a cautious user.
    Recommended: a Phase 4 diagnostic at Medium tiers.
-7. Risk above the user's tier (M14): PENDING.
+7. Risk above the user's tier (M14): **tested - your intuition held.** With the plan at Medium and one tier up
+   allowed, survival rose 2-3 points on the four thin households, the solver moved up only when a household
+   was behind, and the bad tail did not get worse (my toy model said it would; it was wrong for the real
+   solver). Comfortable households barely used it. Recommended: offer it as an opt-in ("may take more risk than
+   my setting when it helps"), since it acts exactly when a plan is in trouble. `results-m14.txt`.
 8. Phase 4's panel (section 4b): recommended - land each household at about 85%.
 
 ## 6. What changed in the plan overnight

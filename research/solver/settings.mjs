@@ -24,10 +24,10 @@ export const WORDS = {
   BRIDGEREAD: ['0', '1', '2'],   // F1: off, version 1, version 2
 };
 export const FLAGS = ['RAISESURV', 'FINALEXACT', 'TERNARY', 'GIATIERS', 'BLOCKTRIM', 'PCLSSTRICT', 'GAININT',
-  'SOLVERONLY', 'ARMSONLY', 'RECORD', 'STOREPOL'];
+  'SOLVERONLY', 'ARMSONLY', 'RECORD', 'STOREPOL', 'BETAUDIT'];
 export const NUMBERS = ['MIX', 'EXP', 'MARGIN', 'RAISE', 'WR', 'WB', 'SHARES', 'SWITCH', 'SEARCH', 'VERIFY', 'DRIFT', 'TIERSABOVE',
   'LAMBDA', 'FLOOR', 'ONLY', 'LO', 'HI', 'QUAD', 'MINPOTYEARS', 'RAISECAP', 'GIAGAIN', 'GUARDCAP', 'ESTATESCALE', 'BISECT',
-  'SOLVER_CLAMP', 'SOLVER_FOLD_K'];   // the last two read by grid.js and fast.js
+  'SOLVER_CLAMP', 'SOLVER_FOLD_K', 'BETPOS', 'BETPATHS'];   // the last two read by grid.js and fast.js
 export const LISTS = ['LEVELS', 'GAINB'];   // comma-separated numbers
 // CONF: a survival level (0.9), a margin over the guardrails' own rate (+5), or 'gkFloor' (the guardrails-with-floor rate)
 export const SPECIAL = { CONF: v => v === 'gkFloor' || (/^\+/.test(v) ? Number.isFinite(Number(v.slice(1))) : Number.isFinite(Number(v))) };

@@ -1229,7 +1229,12 @@ export const PRODUCT_BASELINE = Object.freeze({
   resilienceWeight: 0, raiseWeight: 0.003, finalExact: true, mix: 3, points: 30,
   // step 6 (24 Sep): the M17 floor fix - a year with no money costs what a year at the floor costs, and a raise's
   // credit counts only in the futures that survive. It keeps the plan from spending up into a failure.
-  raiseSurvival: true, failureShortfall: true
+  raiseSurvival: true, failureShortfall: true,
+  // F1 v2, the bridge read (maintainer 24 Sep ~18:25 UK: PROVISIONAL until F2's test, schedule 7e): the table's read of a
+  // retired bridge counts the money arriving in it, the accessible money's growth, and acts when it looks short. On the
+  // F1 v2 test (results-f1v2.txt) the in-class reads moved to within a few points of simulation and survival rose by up
+  // to 22 points where the old read was blind; one case lost beyond two paired se (bridge 4, -0.8), not yet explained.
+  bridgeRead: 2
   // no levelSearch: the full scan. The ternary search lost 0.20 points on S112 and S390 at 2.4 paired standard errors in
   // the step-2 re-check (none gained), so by the rule written before it the full scan stays. No shareDead: neither #106
   // option passed its test on S126 (results-step2.txt).

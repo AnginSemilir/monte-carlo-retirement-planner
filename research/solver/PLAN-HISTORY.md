@@ -2111,3 +2111,40 @@ resolution - still moving at 56 points, about twice today's cost - and near-ties
 
 **If a fix is needed** it is built and checked before K5, so the guardrail matching and Phase 4 run on the
 fixed solver. It adds a few hours to Thursday.
+
+## M14b (COMPLETED 24 Sep 16:49 UK, FALSIFIED; the default decision held for M14c) - moved here from PLAN.md 18:30 UK
+
+Outcome (results-m14b.txt, results-m14b-why.txt; the ledger row 24 Sep 16:49): the thin four gained less than predicted and comfortable plans lost survival beyond two se (S172, S194, S162), so the falsifier's second clause fired and its registered consequence is 'auto'. 'Auto' at 85% was approved at 16:57 UK and held at 17:35 UK for M14c. The section as it stood:
+
+## M14b. Risk above the tier, re-checked under the step-6 defaults (prediction committed 24 Sep 07:33 UK in 204335d, before the run)
+
+Plan held at Medium; the M17 fix on, cap 1.1, one-year minimum pot; landed lambdas; 3,000 paired paths of held-out seed 7011
+(not 7002: see below). **Run in the
+three-world mixture (MIX=3), changed 24 Sep 08:39 before the run:** it decides a product default, and the 'auto'
+fallback's 95% threshold is a level, which the fold reads low. About three times the solve time (~2 h, not 40 min).
+Households: the thin four (S070 S184 S330 S354), two comfortable (S162, S252), and six with solver survival
+85-96% at the top tier (S082 S020 S194 S414 S234 S172).
+
+**The maths.** Survival is convex in wealth below the cliff, so more spread helps a position that is behind
+(Jensen). The M17 fix charges each unfunded year at the floor's price, which a bet that fails early now pays
+for. So the bet stays worth making where it saves futures, and gets dearer where it only brings failure
+forward. In M14, unfunded years FELL with the bet, so the fix should trim it at the margin, not reverse it.
+The gain should scale with the share of years spent behind, and so roughly with the failure rate: about 0.11
+points per point of failure on M14's thin four (2.5 / 22).
+
+**PREDICTION (revised 07:33 UK, commit 204335d, for the widened default, still before the run; registered as `predictions/m14b.md`, which the launcher requires):**
+1. **The thin four:** still better with it, +1 to +3 points each, beyond two paired se on at least 3 of 4. Unfunded
+   years per path not higher on any.
+2. **Where the bets happen:** the share of up-move years in failing paths' last three paid years falls below 10%
+   on each thin household (it was 10-20%).
+3. **The zone six:** gains between 0 and the thin ones', about 0.1 points per point of failure without it:
+   - roughly +1 at 90%;
+   - within noise at 95% and above;
+   - none worse beyond two paired se.
+4. **Comfortable (S162, S252):** within noise. M14's one loss (S162, -0.23 +/- 0.09) came under the old objective. The
+   M17 fix makes a failed bet dearer, so the loss should shrink.
+
+**FALSIFIED IF** any thin household is worse with it by more than two paired se, or unfunded years rise beyond two
+se on the thin four. Then the default reverts to opt-in. **What decides between "every plan" and `'auto'`:** if any
+zone or comfortable household is worse with it beyond two paired se, the default becomes `'auto'` (thin plans,
+with the no-worse guard) and the threshold is set from item 3. Otherwise "every plan" stands. **Held-out paths moved to seed 7011 (24 Sep 10:33 UK, the plan-auditor's third review, before the run):** the zone six and the thin four were chosen on seed 7002's paths (flex-tiers and M14), the paths M14b first meant to report on, so a selection on survival there could lean the result. Measured on seed 7011's paths, which chose nothing, the selection cannot lean it, and the falsifier reads both ways again.

@@ -1,0 +1,24 @@
+# 24 Sep 18:28 UK, `node research/solver/f1v2-tiers.mjs`
+planted: S126 held at Medium, combinations 3 -> 4 (one tier above exists) - the check can see a tier above
+S126           combinations 3 -> 3
+share 0.50     combinations 3 -> 3
+share 0.70     combinations 3 -> 3
+share 0.78     combinations 3 -> 3
+share 0.90     combinations 3 -> 3
+share 0.95     combinations 3 -> 3
+bridge 0       combinations 3 -> 3
+bridge 1       combinations 3 -> 3
+bridge 4       combinations 3 -> 3
+bridge 6       combinations 3 -> 3
+wealth x0.5    combinations 3 -> 3
+wealth x2      combinations 3 -> 3
+S120           combinations 3 -> 3
+S122           combinations 3 -> 3
+S124           combinations 3 -> 3
+S128           combinations 3 -> 3
+S130           combinations 3 -> 3
+S360           combinations 3 -> 3
+S366           combinations 3 -> 3
+S370           combinations 3 -> 3
+bridge 4+cost  combinations 3 -> 3
+21 cases, 0 with a tier above the plan

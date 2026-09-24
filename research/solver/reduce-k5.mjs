@@ -100,8 +100,8 @@ for (const { tag, c, x } of cells) {
   console.log(`  c ${String(c).padEnd(6)} exp ${x}  n ${String(n).padStart(2)}  total cut ${f(sCut)} (${f(100 * (sCut / tCut - 1), 0).padStart(4)}%)${ok1 ? ' OK' : '   '}  depth ${f(sDepth, 3)}${ok2 ? ' OK' : '   '}  raise total ${f(sRaise)} (${f(100 * (sRaise / tRaise - 1), 0)}%)  survival at/above the guardrails' on ${ahead}/${n}`);
 }
 
-// PER HOUSEHOLD (the seventeenth review, 24 Sep: the medians hid that S070 cuts MORE than the guardrails at every point
-// and delivers less spending). Spending delivered = years spent - total cut + raise total, in years of target spending
+// PER HOUSEHOLD (the seventeenth review, 24 Sep: the medians hid the households; the S070 finding it first printed - more
+// cutting and less spending at every point - came from the runPolicy bug and was withdrawn, 15:19 UK). Spending delivered = years spent - total cut + raise total, in years of target spending
 // (means over the held paths), against the guardrails' own figure.
 console.log('\n  per household across the grid points: cuts more than the guardrails at | spending delivered against the guardrails\' (mean over paths; and gate 4\'s measure, the mean level on the median path and the unlucky tenth) | survival difference (points)');
 const grid = cells.map(({ tag }) => tag);

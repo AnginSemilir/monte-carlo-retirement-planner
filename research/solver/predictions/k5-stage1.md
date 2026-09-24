@@ -72,6 +72,8 @@ on both criteria needs exponent 2 or below.
 
 ## Changes after seeing results
 
+**24 Sep 15:19 UK - the statistic recomputed from the per-path records, AFTER the result was read** (declared here 18:30 UK, the nineteenth review's MINOR 5). The eighteenth review found `runPolicy` dropped a failed path's below- and above-target totals, so the solver's depth, total cut and raise total were biased wherever paths fail. `reduce-k5.mjs records` rebuilds each solver file from its record (results-k5-stage1.txt; the JSON reading kept as results-k5-stage1-json.txt). Item 2's reading moved from held to wrong (the depth matches at c 0.003 and 0.01 at every exponent); FALSIFIED is unchanged. The prediction's text is unchanged.
+
 **24 Sep 08:39 UK - the target changed, after the run started and BEFORE any stage-1 cell was read.** The first
 target, `results/flex-tiers`, differed from the cells in the market world (mixture), the raise cap (none) and the
 minimum pot (each plan's own). Re-measured under the cells' own settings as `k5t-fold-cap` (`results-k5-targets.txt`):

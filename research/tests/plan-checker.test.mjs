@@ -58,7 +58,11 @@ caught(run({ plan: base.plan.replace('### Bugs found and fixed on 24 Sep\n', '##
 ok(!run({ plan: base.plan.replace('### Bugs found and fixed on 23 Sep\n', '### Bugs found and fixed on 23 Sep\n\n- **An old bug** from before the rule.\n') }).some(e => e.startsWith('[bugs]')), 'bug entries before 24 Sep are not held to the new rule');
 
 // schedule
-caught(run({ plan: base.plan.replace('registered prediction `predictions/m14b.md`', 'no prediction yet') }), 'schedule', 'a pending batch with no registered prediction');
+// a made-up pending row, so the planted fault never depends on a live row's state (it used to edit 7b, which then finished)
+const planted = '| 7b |';
+ok(base.plan.includes(planted), 'the schedule row the planted one goes before exists');
+caught(run({ plan: base.plan.replace(planted, '| 9z | **A planted run** (`batch-planted.sh`, no prediction) | - | - | not yet |\n' + planted) }), 'schedule', 'a pending batch with no registered prediction');
+ok(!run({ plan: base.plan.replace(planted, '| 9z | **A planted run** (`batch-planted.sh`) | - | - | done |\n' + planted) }).some(e => e.startsWith('[schedule]')), 'the same row marked done is not held to it');
 
 // predictions named in the plan
 caught(run({ plan: base.plan + '\nSee `predictions/not-there.md`.\n' }), 'predictions', 'a named prediction that does not exist');

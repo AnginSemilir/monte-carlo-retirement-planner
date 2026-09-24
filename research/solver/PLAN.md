@@ -435,7 +435,7 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 5b | ~~Phase 4 panel selection~~ **run 02:05: its FALSIFIER FIRED - 1 of 158 candidates in the 75-95% band (FIRE 0 of 30, median 13.7%; library split between 99-100% and below 75%). Stopped for the maintainer; options (widen, land each household at ~85%, redefine FIRE) in `results-p4-select.txt`, recommended: land** | 5d | - | maintainer |
 | 5d | **The purpose test and the probes, in order (maintainer, 22:00):** M18 (is the policy the best available, within noise), M17 (the two cures for failing futures), then Phase 4 selection; M15, M14 and M12 are built and run only if time allows | 5 | ~2.5 h | Thu ~03:30 |
 | 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording, the #106 trade-off, the ternary decision, **M17 and the probes' verdicts, and the calibration curve** | 5 | no cores | Thu ~07:00 |
-| 6 | **The maintainer picks the product defaults** | 5c | - | Thu morning |
+| 6 | ~~The maintainer picks the product defaults~~ **DECIDED 24 Sep ~05:30: every recommendation taken** - minimum pot 1 year; raise cap 1.1; estate slider 0% = weight 0.01; the M17 floor fix ON; risk above the user's tier as an opt-in; Phase 4's panel landed at ~85%; the taxable-account tier NOT allowed as built - **fully plan a version that works first** (M15, "the full design" below) | 5c | - | done |
 | 7 | **K5 guardrail matching** | 6 | ~5 h | Thu ~14:00 |
 | 8 | **K6 slider spread**, with **K7 read off K4's and K6's sweeps** (no run of its own) | 7 | ~1.5 h | Thu ~15:30 |
 | 9 | **Phase 4**, with its bundled extras (below) | 8 | ~6 h | Thu ~21:30 |
@@ -701,6 +701,34 @@ unfloored guardrails (a first draft of this section used the unfloored arm; corr
    reporting the cap's effect from K3 beside it. The history also records that an absolute raise credit
    fights the lambda bisection above 0.05, and recommends a credit scaled to lambda if a heavier preference
    is ever wanted - irrelevant at the weights that land, noted for K6.
+
+**AS RUN, from 24 Sep ~06:00 (after the maintainer's step-6 decisions), three stages:**
+- **Stage 1** (`batch-k5.sh`, 288 cells, ~4.5 h): the step-2 twelve, with the chosen defaults on (the M17
+  floor fix, raises capped at 1.1, a minimum pot of 1 year, estate weight as today). The dial is gridded as
+  **c, the cost of one year at the floor**, with lambda = c / 0.2^exponent, so "how much a floor year hurts" is
+  the same at every curve shape (with the floor fix on, c is also the price of a year with no money): c in
+  {0.0001, 0.0003, 0.001, 0.003, 0.01, 0.03} x exponent {1.5, 2, 3, 4}. The guardrails-with-floor figures
+  are read from `results/flex-tiers` (the same 3,000 paths, seed 7002); cutting is the guardrails' own
+  statistic, so the minimum pot (a rule at the end) does not change them.
+- **Stage 2** (~36 cells): the raise weight mu in {0.0015, 0.003, 0.006} at the stage-1 point, to match raise years.
+- **Stage 3** (~41 cells): the chosen point on all 41, reported against the guardrails household by household.
+- **Q2 (fitting two dials to a stepped response)** is handled by the grid itself: no fitted curve is trusted
+  between grid points; the chosen point is a grid point, and the report says how far the nearest neighbours miss.
+
+**THE STARTING GAP (from the files, no run):** on the twelve the guardrails-with-floor cut a median 2.36 years
+of target spending over a retirement (1.40 to 3.33), at a median depth of 0.88. Today's solver (s2-fnewex, landed
+lambdas) cuts a median 0.40 (0.03 to 2.78), at depths of 0.52 to 0.90. So matching needs about six times more
+cutting.
+
+**PREDICTION (written 24 Sep 05:55, before stage 1):**
+1. The total cut rises smoothly as c falls, at every exponent; the median household's total matches the
+   guardrails' (within 10%) at c between 0.0003 and 0.001, a quarter to a tenth of the median landed value (0.004).
+2. Depth: at exponent 2 the solver still cuts deeper than the guardrails at the matching c. At exponent 3 or 4 the
+   median depth comes within 3 points of 0.88, because the 0.95 level becomes the cheap cut.
+3. At the matching point the solver's survival is at or above the guardrails' on at least 9 of 12 (the Phase 4 claim,
+   previewed here, not tested).
+FALSIFIED IF no grid point brings the median total cut within 10% of the guardrails' (the dials cannot reach it),
+or the best match on both criteria needs exponent 2 or below.
 
 METHOD: a grid of lambda x exponent {1.5, 2, 3, 4} on 12 households, then the chosen point checked on
 all 41. Match (i) total amount cut, median household, within 10%; (ii) depth when below within 3 points,

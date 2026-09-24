@@ -96,7 +96,7 @@ rules differ only in row 8. All four run in one batch on one code snapshot.
 
 ## Changes after seeing results
 
-No O19 result exists. Changed before any run, after the twenty-second review (21:00 UK): the written and asked times
+No O19 result exists. Changed before any run, after the twenty-second review (20:56 UK): the written and asked times
 corrected (20:28 and 20:15 UK); the no-effect claim in the derivation now cites the code as well as the unit test; row
 33's note on what shares the machine; and the reducer gates each pairing on its one line ('risk tiers allowed', 'final-year
 integration') instead of the row number, whose group also holds `quadNodes` and `PLANTIER`. Nothing in the question,

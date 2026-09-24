@@ -1,3 +1,5 @@
+> **SUPERSEDED 25 Sep 00:43 UK** by the registered `predictions/quad-ref.md` (7h), which is this draft's Part B revised with M14c and O19. Part A (rollouts at S194's positions scoring the full objective) needs new code and is O20's next step, registered separately when built.
+
 # DRAFT - not registered. Test design: do the years before the last one need better averaging too? (the quadrature reference)
 
 **Status:** drafted 24 Sep ~21:35 UK at the maintainer's request ("go ahead with planning the tests - but ... assess the

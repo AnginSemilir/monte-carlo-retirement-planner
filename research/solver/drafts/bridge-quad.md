@@ -1,3 +1,5 @@
+> **SUPERSEDED 25 Sep 00:43 UK** by the registered `predictions/bridge-quad.md` (7i), revised with M14c and O19 (the final year left at 5 nodes in both arms, as the product has it).
+
 # DRAFT - not registered. Test design: is the bridge misread an averaging problem or a representation problem?
 
 **Status:** drafted 24 Sep ~21:35 UK with quad-oracle.md, under the same instruction (revise after M14c and O19 are read,

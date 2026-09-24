@@ -115,11 +115,11 @@ const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', {
  * is the mixture's: each world's opening read weighted as the solve weights them. The F1 test (mode f1) ran on step 2's
  * settings in the single-table fold; this is its re-test where the product runs.
  */
-function measureV2(h, bridgeRead) {
+function measureV2(h, bridgeRead, quad = 5) {
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
-  const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: bridgeRead || false });   // off is explicit, whatever the product default
+  const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad });   // off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
   const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
   let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(7002, NP, m.ctx.totalYears);
@@ -127,7 +127,7 @@ function measureV2(h, bridgeRead) {
   paths.forEach((zs, i) => { const o = runPolicy(r, zs); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
   const sim = 100 * ok / NP;
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
-  const ran = `mix ${r.meta.mixture} pts ${r.g.np} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} bridgeRead ${r.meta.bridgeRead}`;
+  const ran = `mix ${r.meta.mixture} pts ${r.g.np} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} bridgeRead ${r.meta.bridgeRead}`;
   return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, secs: (Date.now() - t0) / 1000, ran };
 }
 if (mode === 'f1v2') {
@@ -150,6 +150,31 @@ if (mode === 'f1v2') {
     console.log(`${id.padEnd(16)} a0 ${f1(a.a0, 2)} B ${a.B} class ${a.inClass ? 'YES' : 'no '} | OFF table ${f1(a.table).padStart(5)} sim ${f1(a.sim).padStart(5)} gap ${f1(a.gap).padStart(6)} tier-below ${f1(a.tierYrs).padStart(4)} below ${f1(a.below).padStart(4)} | V2 table ${f1(b.table).padStart(5)} sim ${f1(b.sim).padStart(5)} gap ${f1(b.gap).padStart(6)} tier-below ${f1(b.tierYrs).padStart(4)} below ${f1(b.below).padStart(4)} | survival ${(d >= 0 ? '+' : '') + f1(d, 2)} +/- ${f1(se, 2)} | ${f1(a.secs + b.secs, 0)} s`);
     console.log(`${''.padEnd(16)} ran OFF: ${a.ran}`);
     console.log(`${''.padEnd(16)} ran V2:  ${b.ran}`);
+  });
+} else if (mode === 'quad') {
+  /*
+   * IS THE BRIDGE MISREAD AVERAGING OR REPRESENTATION? (PLAN.md 7h; predictions/bridge-quad.md) F1 off in both arms, the
+   * same solvePlan settings as the f1v2 mode, the year's return averaged over 5 points against 15 (every year; the final
+   * year as the product has it, 5 nodes, in both), paired on the same paths. If 15 points close the table's misread, it
+   * is averaging; if not, the grid read across the share axis (a representation problem).
+   */
+  // built exactly as the f1v2 mode builds them (F1_VARIANTS and the library), so each case is the one 7c read
+  const cases = [['S126', () => variant('S126', {})], ['bridge 4', () => variant('bridge 4', { bridge: 4 })], ['bridge 6', () => variant('bridge 6', { bridge: 6 })],
+    ['share 0.95', () => variant('share 0.95', { a0: 0.95 })], ['S366', () => all.find(s => s.id === 'S366')], ['S360', () => all.find(s => s.id === 'S360')]];
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  console.log(`BRIDGE QUAD TEST, step-6 defaults in the mixture (solvePlan), ${POINTS} points, ${NP} held paths (seed 7002), lambda ${LAMBDA}, F1 off, 5 against 15 return points, paired; part ${pk}/${pn}`);
+  cases.forEach(([id, mk], i) => {
+    if (i % pn !== pk) return;
+    const h = mk();
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const a = measureV2(h, false, 5), b = measureV2(h, false, 15);
+    let disc = 0; for (let j = 0; j < NP; j++) if (a.okArr[j] !== b.okArr[j]) disc++;
+    const d = b.sim - a.sim, se = 100 * Math.sqrt(disc) / NP;
+    console.log(`${id.padEnd(16)} | Q5 table ${f1(a.table).padStart(5)} sim ${f1(a.sim).padStart(5)} gap ${f1(a.gap).padStart(6)} | Q15 table ${f1(b.table).padStart(5)} sim ${f1(b.sim).padStart(5)} gap ${f1(b.gap).padStart(6)} | survival ${d >= 0 ? '+' : ''}${d.toFixed(2)} +/- ${se.toFixed(2)} | ${Math.round(a.secs)} / ${Math.round(b.secs)} s`);
+    console.log(`${''.padEnd(16)} ran Q5:  ${a.ran}`);
+    console.log(`${''.padEnd(16)} ran Q15: ${b.ran}`);
   });
 } else if (mode === 'f1') {
   const which = process.argv[5] || 'all';

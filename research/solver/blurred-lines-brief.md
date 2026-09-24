@@ -247,23 +247,36 @@ narrower for more than 16 years. The table therefore interpolates straight acros
 - But it costs one case 0.8 ± 0.32 points (2.5 standard errors), and three others 0.3–0.4 points at about 2 standard
   errors. Those losses are unexplained.
 
-**End of plan (hypothesis, under test).**
+**End of plan (tested in part; one test running).**
 - M14b tested letting the plan move one tier above its own. With the plan held at Medium, this cost comfortable
   households survival:
 
-  | Household | Survival without → with | Paths lost to the bets | Of those, ended just under the pot |
-  |---|---|---|---|
-  | S194 | 99.60 → 99.33% | 9 | 7 |
-  | S162 | 99.83 → 99.63% | 7 | 7 |
-  | S252 | 98.90 → 98.73% | 6 | 5 |
+  | Household | Survival without → with | Paths lost with the option | Of those, paths that bet | Ended just under the pot |
+  |---|---|---|---|---|
+  | S194 | 99.60 → 99.33% | 9 | 7 | 7 |
+  | S162 | 99.83 → 99.63% | 7 | 3 | 7 |
+  | S252 | 98.90 → 98.73% | 6 | 6 | 5 |
 
-- Those paths finished with 0.86–0.94 years of target spending, against 1.03–1.06 without the option. The bets were
-  placed 4–10 years before the end.
+- Those paths finished with 0.86–0.94 years of target spending, against 1.03–1.06 without the option.
 - On thin households the same bets mostly rescued paths that would have run out part-way (S330: 44 of 53 saved paths).
-- On a test solve, the table's score margin at such bets was about 0.001, a tenth of a survival point.
-- **Hypothesis:** the table misreads positions near the end-of-plan line, where the grid is coarser than the cliff. A
-  test running now compares, at each position where the plan bet, the bet against the best alternative, simulated
-  from that exact position.
+- **Tested (M14c):** at each position where the plan bet, the bet and the best alternative were simulated from that
+  exact position on 500 fresh paths each (survival only):
+
+  | Household | Bet minus stay (survival points) |
+  |---|---|
+  | S194 | −0.51 ± 0.11 |
+  | S162 | +2.33 ± 0.47 |
+  | S252 | −0.14 ± 0.13 |
+  | S330 (control, betting helps) | +0.22 ± 0.10 |
+
+  Pooled over the three, betting is within noise of staying: "the table misreads the end line" does not explain
+  M14b's losses as a whole. On S194 the bets do lose survival when made, but the solver's score also counts cuts: at
+  S194's dislike of cuts (λ = 2) a year at the floor costs as much as 8 survival points, and with the option S194 spends
+  fewer years below target. So a table error and a deliberate trade are not yet told apart.
+- **A newer lead, from outside review of this brief:** the final year's 5-node average is a staircase (section 4.4). For
+  one pot in one year, at a pot 1.20–1.25 times the minimum, it prices Medium → Medium/High at 0.00 survival points
+  where the exact cost is 2.0–3.4. The final year integrated exactly (the crossing shock) is built and is being tested
+  on these households now, with and without the tier above, with each arm's cuts reported beside survival.
 
 **Not a cliff effect.** On one household (S172) the option held a riskier tier every year and raised the median estate
 by 65%, at a cost of 0.77 survival points. That is the estate term in the score doing what it was built for.

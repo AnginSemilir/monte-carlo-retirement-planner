@@ -40,6 +40,19 @@ year, on each household - the final year carries almost all of the averaging err
 beyond two se on any of the three, or shrinks the tier above's cost there beyond two se: earlier years matter, and the
 template-residual averaging is worth building.
 
+## Revised for M14c (22:28 UK; O19 still to come)
+
+- **Record the full score, not only survival.** M14c measured survival only, but the solver trades survival against cuts
+  (λ = 2 on S194 and S252). Part A's rollouts at each position also record years below target, total cut, the estate
+  and the score (survival + estate credit − λ × cut cost + raise credit), so a bet that loses survival but wins on the
+  score is told apart from a misread. This answers O20.
+- **Positions at every horizon, at risk only.** S194's at-risk bet positions sit mostly 6 or more years from the end
+  (results-m14c-horizon.txt); 17 of its 19 last-5-year positions survive for certain either way. Part A takes all
+  at-risk positions (either choice below 100%), not only the last 6 years.
+- **S162 (lambda 0.1) as a separate question:** 3 of its 7 lost paths bet and 4 never did (results-m14b-why.txt).
+  A records-only check (no new run) compares, on paths that never bet, the everyday tier and level with and without
+  the option (m14b-down against m14b-up, fair-tested first as a new question on old files, rule 3). This is O16.
+
 ## To revisit after M14c and O19 (before registering)
 
 - If O19's exact final year already removes the tier above's cost on S194, S162 and S252: Part B's tier arms answer

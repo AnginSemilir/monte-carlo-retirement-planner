@@ -6,7 +6,10 @@
  * The fair-test gate is run on each pairing, with its one tested variable: 13 (the tiers allowed) within each final-year
  * rule, 8 (how the final year is averaged) within each tier setting. Per household: survival in each arm, the paired
  * difference and its se (discordant paths); paths that ever hold the tier above; the median estate on paths both arms
- * of a pairing survive; the solve's time. Then each item of the prediction.
+ * of a pairing survive; the solve's time. Then each item of the prediction. Added before any O19 result was read (24 Sep
+ * ~22:45 UK, after M14c and the twenty-sixth review: the solver trades survival against cuts, lambda 2 on S194 and S252,
+ * so a survival cost can be a deliberate trade): the cuts in each arm - years below target and the total cut (target-years
+ * short) per path, over the years a path spends - so a survival cost that comes with fewer cuts is read as a trade.
  *
  *   node research/solver/reduce-o19.mjs
  */
@@ -43,6 +46,7 @@ const pair = (a, b) => {   // b - a, paired; se from the discordant paths
   return { d: 100 * d / a.N, se: 100 * Math.sqrt(disc) / a.N };
 };
 const betPaths = r => { let n = 0; for (let i = 0; i < r.N; i++) for (let t = 0; t < r.Y; t++) { const j = i * r.Y + t; if (r.trace.level[j] && r.trace.tier[j] === ABOVE) { n++; break; } } return n; };
+const cuts = r => { let below = 0, total = 0; for (let i = 0; i < r.N; i++) for (let t = 0; t < r.Y; t++) { const l = r.trace.level[i * r.Y + t]; if (l > 0 && l < 100) { below++; total += (100 - l) / 100; } } return { below: below / r.N, total: total / r.N }; };
 const estate = (a, b) => { const x = [], y = []; for (let i = 0; i < a.N; i++) if (a.paths.survived[i] && b.paths.survived[i]) { x.push(a.paths.terminalNet[i]); y.push(b.paths.terminalNet[i]); } return [med(x), med(y)]; };
 
 console.log('O19 - the final year exact against 5 nodes, with and without one tier above the plan (plan at Medium), paired on 3,000 paths');
@@ -55,10 +59,13 @@ for (const [id, { rec, json }] of Object.entries(data)) {
   const b5 = betPaths(rec['o19-u5']), bx = betPaths(rec['o19-ux']);
   const [e5, ex] = estate(rec['o19-u5'], rec['o19-ux']);
   const ms = a => (json[a].knobs && json[a].knobs.solveMs) || NaN;
-  res[id] = { up5, upx, exD, exU, b5, bx };
+  const C = Object.fromEntries(ARMS.map(a => [a, cuts(rec[a])]));
+  res[id] = { up5, upx, exD, exU, b5, bx, C };
   console.log(`  ${id}   ${ARMS.map(a => f(S[a])).join(' / ')}    ${sg(up5.d)} +/- ${f(up5.se)} | ${sg(upx.d)} +/- ${f(upx.se)}    ${sg(exD.d)} +/- ${f(exD.se)} | ${sg(exU.d)} +/- ${f(exU.se)}    ${b5} -> ${bx}    ${k(e5)} vs ${k(ex)}    ${f(ms('o19-u5') / 1000, 0)} / ${f(ms('o19-ux') / 1000, 0)}`);
 }
 const pool = (ids, key) => { const r = ids.filter(id => res[id]).map(id => res[id][key]); const n = r.length; return { n, d: r.reduce((a, x) => a + x.d, 0) / n, se: Math.sqrt(r.reduce((a, x) => a + x.se * x.se, 0)) / n }; };
+console.log('\nCUTS (added before reading, to read a survival cost as a trade or not): years below target / total cut in target-years, per path');
+for (const [id, r] of Object.entries(res)) console.log(`  ${id}   ${ARMS.map(a => `${a.slice(4)} ${f(r.C[a].below)} / ${f(r.C[a].total)}`).join('   ')}    tier above changes them: 5 nodes ${sg(r.C['o19-u5'].below - r.C['o19-d5'].below)} / ${sg(r.C['o19-u5'].total - r.C['o19-d5'].total)}, exact ${sg(r.C['o19-ux'].below - r.C['o19-dx'].below)} / ${sg(r.C['o19-ux'].total - r.C['o19-dx'].total)}`);
 console.log('\nPREDICTION CHECK (predictions/o19-final.md)');
 const lostHere = LOST.filter(id => res[id]);
 const within = lostHere.filter(id => res[id].upx.d > -2 * res[id].upx.se).length;

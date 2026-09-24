@@ -1,0 +1,8 @@
+# O19 item 1 and its falsifier, unrounded (the same records and pairing as results-o19.txt)
+  S194  tier above, exact final year: -0.1667 +/- 0.0882  z -1.890  beyond two se: no   (5 nodes: -0.2667 +/- 0.1054, z -2.530)
+  S162  tier above, exact final year: -0.1333 +/- 0.0667  z -2.000  beyond two se: no   (5 nodes: -0.2000 +/- 0.0943, z -2.121)
+  S252  tier above, exact final year: 0.0333 +/- 0.0745  z 0.447  beyond two se: no   (5 nodes: -0.1667 +/- 0.0882, z -1.890)
+  pooled, exact final year: -0.0889 +/- 0.0444  z -2.000  falsifier (beyond -2 se): not fired
+  beside it, not registered: the three pooled with 5 nodes: -0.2111 +/- 0.0556  z -3.800
+  beside it, not registered: exact - 5 nodes, pooled over the three: tier above allowed 0.1111 +/- 0.0385 (z 2.887); no tier above -0.0111 +/- 0.0248 (z -0.447)
+  beside it, not registered: exact - 5 nodes, pooled over all six: tier above allowed 0.1778 +/- 0.0393 (z 4.525); no tier above 0.0389 +/- 0.0266 (z 1.460)

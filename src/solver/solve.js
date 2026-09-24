@@ -1329,7 +1329,7 @@ export function productLevels(floorFrac) {
  *     saved from tax and the plan then pays far more of it (M20); left unset, the estate term is today's;
  *   - risk ABOVE the user's tier ON by default in every plan, one tier, only with consent to change risk
  *     (maintainer 24 Sep, widening the step-6 opt-in; M14b FALSIFIED it for comfortable plans, and the fallback,
- *     `riskAbove: 'auto'` below, waits for the maintainer's decision after M14c);
+ *     `riskAbove: 'auto'` below, waits for the maintainer's decision, now that M14c and O19 are read);
  *   - the taxable account's tier is refused: the joint-step version failed its probe (M15) and a working design is
  *     planned, not built.
  */
@@ -1343,7 +1343,9 @@ export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, e
  * and the years without money fell. So `riskAbove` left unset means ON (one tier above, only with consent to change
  * risk; nothing happens where the pension is already at the top tier). M14b re-checked it under today's defaults
  * (results-m14b.txt) and FALSIFIED it for comfortable plans: S172, S194 and S162 lose survival beyond two paired se.
- * 'auto' at 85% was approved, then held by the maintainer for M14c (does the table misjudge the bets?); until that
+ * 'auto' at 85% was approved, then held by the maintainer for M14c and O19 (both read 24-25 Sep: results-m14c.txt,
+ * results-o19.txt - the 5-node final year mispriced the tier above, and exact integration, `finalIntegral`, halves its
+ * cost on those plans); until that
  * decision the default is still on.
  *
  * `riskAbove: 'auto'` keeps the earlier, more cautious rule (maintainer's first choice, 07:28 UK), for use if M14b finds
@@ -1353,7 +1355,7 @@ export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, e
  *     a seed used for nothing else. The table's own number is not used: it runs 3-5 points optimistic (M16) and
  *     reads dead corners low (#106);
  *   - and it is kept only if the plan with it survives at least as well on those same paths.
- * M14b's registered consequence is this rule, its threshold set from its item 3 (85%); the maintainer holds that for M14c.
+ * M14b's registered consequence is this rule, its threshold set from its item 3 (85%); the maintainer holds that decision, now to be put with M14c and O19.
  */
 function solvePlanAuto(E, M, plan, opts) {
   const off = solvePlan(E, M, plan, { ...opts, riskAbove: false });

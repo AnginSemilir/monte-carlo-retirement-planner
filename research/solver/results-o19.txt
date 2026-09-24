@@ -1,0 +1,50 @@
+# O19 (7g), reduced 25 Sep 00:23 UK: node research/solver/reduce-o19.mjs (the batch 22:16 UK to ~00:20 UK, code 75d8f920dd05, runs.log)
+FAIR-TEST CHECK: o19-d5:solver  against  o19-u5:solver
+  households: 6 shared
+  [13] risk tiers allowed           ["0/0","1/1","2/2"]            | ["0/0","1/1","2/2","3/3"]      TESTED
+  34 recorded variables SAME; 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+FAIR-TEST CHECK: o19-dx:solver  against  o19-ux:solver
+  households: 6 shared
+  [13] risk tiers allowed           ["0/0","1/1","2/2"]            | ["0/0","1/1","2/2","3/3"]      TESTED
+  34 recorded variables SAME; 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+FAIR-TEST CHECK: o19-u5:solver  against  o19-ux:solver
+  households: 6 shared
+  [ 8] final-year integration       5 nodes                        | exact (the crossing shock)     TESTED
+  34 recorded variables SAME; 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+FAIR-TEST CHECK: o19-d5:solver  against  o19-dx:solver
+  households: 6 shared
+  [ 8] final-year integration       5 nodes                        | exact (the crossing shock)     TESTED
+  34 recorded variables SAME; 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+O19 - the final year exact against 5 nodes, with and without one tier above the plan (plan at Medium), paired on 3,000 paths
+  id     survival: d5 / u5 / dx / ux       tier above costs (u - d): 5 nodes | exact         exact - 5 nodes: no tier above | tier above     paths that bet u5 -> ux    median estate u5 vs ux (both survive)   solve s: 5 nodes / exact (u arms)
+  S194   99.60 / 99.33 / 99.63 / 99.47    -0.27 +/- 0.11 | -0.17 +/- 0.09    +0.03 +/- 0.03 | +0.13 +/- 0.07    66 -> 68    262k vs 263k    623 / 663
+  S162   99.83 / 99.63 / 99.83 / 99.70    -0.20 +/- 0.09 | -0.13 +/- 0.07    +0.00 +/- 0.05 | +0.07 +/- 0.07    7 -> 11    2292k vs 2292k    543 / 573
+  S252   98.90 / 98.73 / 98.83 / 98.87    -0.17 +/- 0.09 | +0.03 +/- 0.07    -0.07 +/- 0.05 | +0.13 +/- 0.07    113 -> 108    675k vs 675k    788 / 812
+  S172   99.77 / 99.00 / 99.83 / 99.17    -0.77 +/- 0.16 | -0.67 +/- 0.15    +0.07 +/- 0.05 | +0.17 +/- 0.10    27 -> 28    565k vs 563k    541 / 576
+  S330   76.03 / 77.23 / 76.23 / 77.60    +1.20 +/- 0.28 | +1.37 +/- 0.28    +0.20 +/- 0.11 | +0.37 +/- 0.14    915 -> 917    5011k vs 5011k    876 / 910
+  S354   81.07 / 82.37 / 81.07 / 82.57    +1.30 +/- 0.26 | +1.50 +/- 0.25    +0.00 +/- 0.08 | +0.20 +/- 0.12    710 -> 714    5129k vs 5100k    884 / 924
+
+SUPPLEMENTARY - the tier above's effect on cuts (u - d, paired +/- se, per path): years below target | total cut (target-years) | cut cost in the score (survival points); decides nothing, see the header
+  S194   5 nodes: -0.04 +/- 0.010 | -0.00 +/- 0.001 | -0.13 +/- 0.039     exact: -0.03 +/- 0.011 | -0.00 +/- 0.001 | -0.11 +/- 0.040
+  S162   5 nodes: -0.01 +/- 0.006 | +0.00 +/- 0.001 | +0.00 +/- 0.002     exact: -0.02 +/- 0.006 | +0.00 +/- 0.001 | +0.00 +/- 0.002
+  S252   5 nodes: -0.06 +/- 0.013 | -0.00 +/- 0.002 | -0.07 +/- 0.054     exact: -0.07 +/- 0.013 | -0.00 +/- 0.001 | -0.04 +/- 0.053
+  S172   5 nodes: +0.75 +/- 0.050 | +0.06 +/- 0.005 | +0.45 +/- 0.048     exact: +0.76 +/- 0.050 | +0.06 +/- 0.005 | +0.45 +/- 0.048
+  S330   5 nodes: -0.56 +/- 0.049 | -0.04 +/- 0.006 | -0.41 +/- 0.103     exact: -0.54 +/- 0.049 | -0.04 +/- 0.006 | -0.31 +/- 0.105
+  S354   5 nodes: -0.41 +/- 0.040 | -0.03 +/- 0.005 | -0.33 +/- 0.099     exact: -0.41 +/- 0.041 | -0.03 +/- 0.005 | -0.29 +/- 0.097
+
+PREDICTION CHECK (predictions/o19-final.md)
+  1. with the final year exact, the tier above costs no survival beyond two se on S194, S162 and S252: 2 of 3 -> MISSED
+     FALSIFIER - the three pooled, tier above with the final year exact: -0.09 +/- 0.04: not fired
+  2. the thin S330 and S354 still gain from the tier above beyond two se with the final year exact: 2 of 2 -> HELD
+  3. on S194, S162 and S252 the paths that ever hold the tier above fall by a third or more: 0 of 3 -> MISSED
+  4. S172's survival cost of the tier above shrinks with the final year exact: -0.77 -> -0.67 -> HELD
+  5. the exact final year loses survival beyond two se nowhere: HELD
+     FALSIFIER - any such loss (the exact final year is then not carried forward): not fired

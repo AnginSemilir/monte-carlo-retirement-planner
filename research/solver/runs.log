@@ -3,3 +3,4 @@
 24 Sep 14:37 UK | main | research/solver/predictions/m14b.md | code de180680d398 | 2e6ca2a | load 1.10 1.82 3.35 | bash research/solver/batch-m14b.sh
 24 Sep 16:56 UK | main | research/solver/predictions/f1v2-test.md | code 14e60143d40d | 3ab2397 | load 1.02 1.15 2.27 | bash research/solver/batch-f1v2.sh
 24 Sep 18:24 UK | main | research/solver/predictions/m14c-bets.md | code ca10fa602ae6 | a72954e | load 1.57 1.40 2.31 | bash research/solver/batch-m14c.sh
+24 Sep 20:08 UK | main | research/solver/predictions/m14c-bets.md | code cc636ea356b7 | df3d203 | load 1.00 1.00 1.24 | bash research/solver/batch-m14c.sh

@@ -4,10 +4,10 @@
  */
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareData, parseAccept, formatReport } from '../solver/fair-gate.mjs';
-import { codeFiles, smokeFiles } from '../solver/code-id.mjs';
+import { codeFiles, smokeFiles, ROOT } from '../solver/code-id.mjs';
 
 const S = join(dirname(fileURLToPath(import.meta.url)), '../solver');
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -55,6 +55,12 @@ r = cmp(tag('a', [file('S001')]), tag('g', [{ ...file('S001'), gkFloor: { succes
 ok(r.rows.find(x => x.n === 11).status === 'DIFFERS', "planted: the guardrails without the user's raise cap are caught (K5's first target)");
 r = cmp(tag('a', [file('S001')]), tag('b', [file('S009')]));
 ok(r.empty && r.bad, 'two arms with no household in common are not a fair test');
+// the F1 version is compared, not only whether F1 is on (maintainer's unlock, 24 Sep 13:44 UK)
+const f1 = b => [file('S001', { knobs: { bridgeRead: b } }), file('S002', { knobs: { bridgeRead: b } })];
+r = cmp(tag('a', f1(true)), tag('b', f1(2)));
+ok(r.bad === 1 && r.rows.find(x => x.name === 'bridge read (F1)').status === 'DIFFERS', 'planted: F1 v1 against F1 v2 is caught (24)');
+r = cmp(tag('a', f1(true)), tag('b', f1(true)));
+ok(r.bad === 0, 'v1 against v1 is still the same');
 
 // every reducer written from 24 Sep must call the gate; the older ones are listed and frozen
 const LEGACY = ['reduce-108.mjs', 'reduce-6e.mjs', 'reduce-bestof.mjs', 'reduce-calibration.mjs', 'reduce-k.mjs', 'reduce-m17.mjs', 'reduce-step2.mjs'];
@@ -72,5 +78,24 @@ ok(['research/solver/audit-s126.mjs', 'research/solver/select-phase4.mjs', 'rese
 ok(!CF.includes('research/solver/audit-s126.mjs'), 'the code hash (result identity) still leaves the audit scripts out');
 const batchNamed = readdirSync(S).filter(x => /^batch-.+\.sh$/.test(x)).flatMap(b => [...readFileSync(join(S, b), 'utf8').matchAll(/research\/solver\/([\w.-]+\.mjs)/g)].map(m => 'research/solver/' + m[1]));
 ok(batchNamed.every(x => SF.includes(x)), 'every script a batch names is in the smoke stamp');
+// ...and every module those import from inside the repository (maintainer's unlock, 24 Sep 13:44 UK: settings.mjs,
+// imported by every experiment.mjs run, and code-id.mjs itself were outside the stamp)
+function unstampedImports(SF, root = ROOT) {
+  const out = new Set();
+  for (const f of SF.filter(x => /\.(m?js)$/.test(x))) {
+    const text = readFileSync(join(root, f), 'utf8');
+    for (const m of text.matchAll(/(?:from\s+|import\s*\(\s*)['"]([^'"]+)['"]/g)) {
+      const spec = m[1];
+      if (spec.startsWith('node:') || !(spec.startsWith('.') || spec.startsWith('/'))) continue;
+      const abs = spec.startsWith('/') ? spec : join(root, dirname(f), spec);
+      const rel = relative(root, abs);
+      if (!rel.startsWith('..') && !SF.includes(rel)) out.add(`${rel} (imported by ${f})`);
+    }
+  }
+  return [...out];
+}
+const loose = unstampedImports(SF);
+ok(loose.length === 0, `every module a stamped script imports is stamped too (outside: ${loose.join(', ') || 'none'})`);
+ok(['research/solver/settings.mjs', 'research/solver/code-id.mjs'].every(x => SF.includes(x)), 'settings.mjs and code-id.mjs are in the smoke stamp');
 
 console.log(`\n${n} passed`);

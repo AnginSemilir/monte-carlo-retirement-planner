@@ -85,7 +85,8 @@ export function variablesOf(j, arm) {
     [23, 'drift weight', only(solver, kv('drift', x => x, ASSUME(0)))],
     [24, 'final year exact', only(solver, kv('finalExact', x => !!x, ASSUME(false)))],
     [24, 'dead-corner read', only(solver, kv('shareDead', x => x ?? 'off', ASSUME('off')))],
-    [24, 'bridge read (F1)', only(solver, kv('bridgeRead', x => !!x, ASSUME(false)))],
+    // the version, not just on or off (maintainer's unlock, 24 Sep 13:44 UK): v1 files keep recording true, v2 records 2
+    [24, 'bridge read (F1)', only(solver, kv('bridgeRead', x => (x === 2 ? 2 : !!x), ASSUME(false)))],
     [24, 'block trim', only(solver, kv('blockTrim', x => !!x, ASSUME(false)))],
     [25, 'level search', only(solver, kv('levelSearch', x => x, ASSUME('exhaustive')))],
     [26, 'rival rule', guard ? (s.label ?? NR) : 'n/a'],

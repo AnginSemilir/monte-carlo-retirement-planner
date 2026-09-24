@@ -11,7 +11,9 @@ remembers them, and every one looks at files, not at what was said about them. I
 
 1. **The research scripts themselves** (work in any tool): `run-from-snapshot.sh` refuses a run without a registered,
    pushed prediction and refuses code that fails `smoke.sh` (re-run whenever the solver, engine, library,
-   experiment.mjs, any script a batch runs, or smoke.sh itself changes: the stamp is `code-id.mjs --smoke`); the reducers refuse to print a figure unless `fair-gate.mjs` passes; every result file
+   experiment.mjs, any script a batch runs, a module those import, or smoke.sh itself changes: the stamp is `code-id.mjs --smoke`,
+   and fair-gate.test.mjs fails if a stamped script imports a module the stamp leaves out; maintainer's unlock, 24 Sep
+   13:44 UK); the reducers refuse to print a figure unless `fair-gate.mjs` passes; every result file
    experiment.mjs writes records the code (`code.hash`) and the prediction it ran under (the audit scripts' outputs do
    not yet).
 2. **`check-plan.mjs`**, run by GitHub CI on every push (outside any session: a red cross the maintainer sees), by the
@@ -39,7 +41,10 @@ remembers them, and every one looks at files, not at what was said about them. I
    research), MINOR (nothing rests on it; an overclaim about the enforcement is MINOR unless a research claim relies on
    it) or BACKLOG (older text the change did not touch, affecting no result, gate or default: it goes to the plan's
    review backlog with an owner and a gate). A PASS may carry MINOR and BACKLOG findings; the next review requires the
-   MINOR ones fixed and the BACKLOG ones logged (maintainer, 24 Sep 11:01 and 12:05 UK).
+   MINOR ones fixed and the BACKLOG ones logged (maintainer, 24 Sep 11:01 and 12:05 UK). It also checks what the change
+   says the code does against the code, following the path through its callers, and blocks on a deviation only when it
+   is serious - when a result, figure, prediction, gate, default or diagnosis the plan acts on rests on the claim;
+   otherwise it is MINOR (maintainer, 24 Sep 13:44 UK).
 5. **`CLAUDE.md` and the checklist**, which say what to do; 1-4 make sure it is done.
 
 **What none of this can do.** A deliberate workaround cannot be stopped by a script; the receipts, the prediction

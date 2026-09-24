@@ -4,9 +4,9 @@
 #
 # run-from-snapshot.sh runs this inside the snapshot before any batch, once per version of the code (a stamp keyed by
 # `code-id.mjs --smoke` - the code hash plus every script a batch runs and this file - skips it next time; an edit to an
-# audit script or select-phase4.mjs re-runs it). It runs, tiny: experiment.mjs flex in five configurations (the solver, the
-# rival arms, both in the mixture, risk above with records, the F1 read), reduceFlex over the arms' files, and the S126
-# audit's scan and ids modes; and it checks every result file for the code and prediction stamps. It does NOT run
+# audit script or select-phase4.mjs re-runs it). It runs, tiny: experiment.mjs flex in six configurations (the solver, the
+# rival arms, both in the mixture, risk above with records, the F1 read, F1 v2), reduceFlex over the arms' files, and the
+# S126 audit's scan, ids and f1v2 modes; and it checks every result file for the code and prediction stamps. It does NOT run
 # experiment.mjs's select/run/perturb/reduce modes, select-phase4.mjs or the other audit-*.mjs scripts: an edit to one
 # re-runs this file, but only the modes below are exercised, so add a mode here before a batch that uses it runs on
 # edited code (the plan-auditor, 24 Sep 11:05 and 11:24 UK). It exists because on 24 Sep an edit made for one mode (M15, the solver
@@ -31,12 +31,20 @@ run "rival arms only, fold, cap"         SOLVERONLY=0 ARMSONLY=1 ARMS= MIX=0 GUA
 run "solver and every arm, mixture"      SOLVERONLY=0 LAMBDA=0.02 MIX=3 TIERS=1 node research/solver/experiment.mjs flex "$T-c" 6 30 7001 7002
 run "risk above, plan at Medium, record" SOLVERONLY=1 LAMBDA=0.02 MIX=0 TIERS=1 TIERSABOVE=1 "PLANTIER=Medium Risk" RECORD=1 node research/solver/experiment.mjs flex "$T-d" 6 30 7001 7002
 run "F1 bridge read"                     SOLVERONLY=1 LAMBDA=0.02 MIX=0 TIERS=1 BRIDGEREAD=1 node research/solver/experiment.mjs flex "$T-e" 6 30 7001 7002
+run "F1 v2 bridge read"                  SOLVERONLY=1 LAMBDA=0.02 MIX=0 TIERS=1 BRIDGEREAD=2 node research/solver/experiment.mjs flex "$T-f" 6 30 7001 7002
 run "S126 audit scan (no solve)"         node research/solver/audit-s126.mjs scan
 run "reduceFlex over the arms' files"     node research/solver/experiment.mjs reduceFlex "$T-c"
 # a mode must use the settings it was given: the ids mode once read its id list as the grid size (24 Sep)
 out="$(node research/solver/audit-s126.mjs ids S126 6 20 2>&1)" || { echo "SMOKE FAILED: S126 audit, ids mode"; echo "$out" | tail -5; exit 1; }
 echo "$out" | grep -q "NAMED HOUSEHOLDS, 6 points, 20 held paths" || { echo "SMOKE FAILED: the ids mode did not run at the grid and paths it was given"; echo "$out" | head -3; exit 1; }
 echo "  ok  S126 audit, ids mode, at the settings it was given"
+# the F1 v2 test's mode (batch-f1v2.sh; maintainer's unlock 24 Sep 13:44 UK): solvePlan in the mixture, off against v2,
+# each arm's settings printed for read-f1v2.mjs's fair-test gate - S126 alone, tiny
+out="$(node research/solver/audit-s126.mjs f1v2 4 20 part 0/20 2>&1)" || { echo "SMOKE FAILED: S126 audit, f1v2 mode"; echo "$out" | tail -5; exit 1; }
+{ echo "$out" | grep -q "F1 V2 TEST, .*, 4 points, 20 held paths" && echo "$out" | grep -q "ran OFF: mix 3 pts 4 .*bridgeRead false$" \
+  && echo "$out" | grep -q "ran V2: .*bridgeRead 2$" && echo "$out" | grep -q "^S126 .* | survival "; } \
+  || { echo "SMOKE FAILED: the f1v2 mode did not run S126 off against v2 in the mixture at the settings it was given"; echo "$out" | head -5; exit 1; }
+echo "  ok  S126 audit, f1v2 mode, off against v2 in the mixture"
 # every file a batch writes must carry the code that made it and the prediction it was launched under
 node -e '
   const fs = require("fs"), p = require("path"), R = process.argv[1], T = process.argv[2];

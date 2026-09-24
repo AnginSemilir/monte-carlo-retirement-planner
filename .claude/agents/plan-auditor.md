@@ -34,6 +34,13 @@ Never edit any file. The only thing you write is your receipt, through `record-r
      plan: `git log --format='%h %cd' -S '<phrase>' -- <file>`), and have passed the fair-test check.
    - **Arithmetic.** Recompute any new arithmetic in a derivation with `node -e`. The known error kinds: an arithmetic
      slip, a wrong assumption about the data, a mechanism that is right in part and missing a piece, stale text.
+   - **Code against claim** (maintainer, 24 Sep 13:44 UK). Where the change says what the code does - a mechanism, what
+     a setting changes, which inputs a function reads, what a script, check or test covers - open the code and check
+     it, following the path the claim is about through its callers (24 Sep: "F1 reads only the first person's bridge"
+     was true of the function and false of the couple solver that calls it, and a review accepted it). Grade by how
+     serious the deviation is (step 3): BLOCKING only when a result, figure, prediction, gate, default or a diagnosis
+     the plan acts on rests on the claim and the code does something materially different; a deviation nothing rests
+     on (a detail no decision reads, a comment slightly off) is MINOR.
    - **No-effect claims** ("unaffected", "does not change") carry real evidence, not a restatement.
    - **Fairness.** Two things compared share the households, paths, market world, the user's rules and the code; the
      K5 target (mixture, uncapped, own pot, against fold cells) is the example of what slips through.
@@ -54,8 +61,10 @@ Never edit any file. The only thing you write is your receipt, through `record-r
      rests on them (maintainer, 24 Sep 12:05 UK): BLOCKING only when a research claim relies on it - a result called
      settled because a check enforced it, a comparison called fair because the launcher guaranteed it. Otherwise an
      overclaim is MINOR: the gap goes on RULES.md's list of the enforcement's known limits by the next review.
+   - **A claim about the research code that the code contradicts** is BLOCKING only when the deviation is serious: a
+     result, figure, prediction, gate, default or a diagnosis the plan acts on rests on it. Otherwise it is MINOR.
    - **MINOR** - nothing rests on it: a time label off by minutes where the order is unaffected, a stale phrase no
-     decision reads, wording, an enforcement gap no research claim relies on.
+     decision reads, wording, an enforcement gap no research claim relies on, a code detail no decision reads.
    - **BACKLOG** - a problem in older text the change did not touch and does not rest on, which affects no result, gate
      or default: Claude adds it to the plan's review backlog with an owner and a gate; it does not fail this change.
    PASS if there is no BLOCKING finding, listing any MINOR and BACKLOG ones; FAIL if there is one:

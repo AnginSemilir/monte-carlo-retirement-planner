@@ -50,8 +50,9 @@ that is only half right, a comparison point about to change) rest on the reviewe
 
 **Known limits of the enforcement** - one list, kept current (maintainer, 24 Sep 12:05 UK). Each review checks a change
 against it; a gap here is MINOR unless a research claim relies on it. The fixes proposed are in PLAN.md, bugs of 24 Sep.
-1. The hook matches an enforcement file by its path from the repository root: named by a relative path after a `cd`
-   (`cd research/solver && sed -i ... smoke.sh`, or a redirect there), it is not seen.
+1. The hook sees an enforcement file only by its full path from the repository root, written out in the command text.
+   Anything else gets through: a relative path after a `cd`, a whole folder that holds enforcement files (`rm -rf
+   .claude`, `git checkout <rev> -- research/solver`, `mv` or `cp -r` on the folder), a glob, a path split by quotes.
 2. A git restore of the whole tree that names no file (`git checkout <rev> -- .`, `git reset --hard`, `git stash`).
 3. Ways of feeding a shell its commands other than `bash -c`, `eval` and a here-document fed to a shell: `bash - <<EOF`,
    `bash /dev/stdin <<EOF`, `bash -c "$(cat <<EOF ...)"`, a string piped or here-string'd into a shell.
@@ -62,6 +63,9 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    and every start sits in review-log.md beside its receipt, so a start with no receipt is visible.
 7. The smoke run exercises only its own modes; the audit scripts' outputs record no code.
 8. The judgement rules rest on the reviewer, a second model, not proof.
+9. A receipt is stamped with the plan as it stands when the receipt is written, not the version the reviewer read:
+   the plan must not change while a review runs (Claude holds plan edits until the receipt; seen 24 Sep 12:16 UK, when
+   a review's receipt covered text committed during it).
 
 ---
 

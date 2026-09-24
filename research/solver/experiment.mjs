@@ -55,6 +55,7 @@ import { vecOf } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { RECORD, STOREPOL, makeTrace, mark, markFail, writeRecord, polToB64 } from './record.mjs';
 import { mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync } from 'node:fs';
+import { checkSettings } from './settings.mjs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { codeId } from './code-id.mjs';
@@ -66,6 +67,9 @@ import { codeId } from './code-id.mjs';
  */
 const CODE = codeId(join(dirname(fileURLToPath(import.meta.url)), '../..'));
 // null: not launched through run-from-snapshot.sh (fair-gate refuses it); { none }: launched as a measurement, not a test
+// every setting is checked before anything runs: an unknown word, flag or number stops the run instead of falling back
+// to a default the result file would not show (settings.mjs; 24 Sep, the plan-auditor's tenth review)
+{ const bad = checkSettings(process.env); if (bad.length) { console.error(`experiment.mjs: refused - ${bad.join('; ')}`); process.exit(2); } }
 const PREDICTION = !process.env.PREDICTION_FILE ? null
   : process.env.PREDICTION_FILE === 'none' ? { none: process.env.PREDICTION_REASON || 'no reason given' }
   : { file: process.env.PREDICTION_FILE, sha: process.env.PREDICTION_SHA || null };

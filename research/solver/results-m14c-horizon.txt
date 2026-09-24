@@ -1,0 +1,9 @@
+# M14c by years left at the bet - EXPLORATORY, not predicted; the same files as results-m14c.txt
+S194 (plan 41 years; median 6 years left at the bet)
+    1-5 yrs left: 19 positions, bet - stay -0.08 +/- 0.08 | 6-10 yrs left: 4 positions, bet - stay -1.75 +/- 0.48 | 11-20 yrs left: 10 positions, bet - stay -0.76 +/- 0.30 | 21+ yrs left: 7 positions, bet - stay -0.57 +/- 0.31
+S162 (plan 40 years; median 6 years left at the bet)
+    1-5 yrs left: 3 positions, bet - stay +2.33 +/- 0.62 | 6-10 yrs left: 3 positions, bet - stay +2.33 +/- 0.70
+S252 (plan 52 years; median 13 years left at the bet)
+    1-5 yrs left: 17 positions, bet - stay -0.36 +/- 0.12 | 11-20 yrs left: 9 positions, bet - stay -0.18 +/- 0.35 | 21+ yrs left: 14 positions, bet - stay +0.14 +/- 0.24
+S330 (plan 61 years; median 44 years left at the bet)
+    6-10 yrs left: 2 positions, bet - stay +1.30 +/- 0.69 | 21+ yrs left: 38 positions, bet - stay +0.16 +/- 0.10

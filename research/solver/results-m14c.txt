@@ -1,0 +1,27 @@
+# M14c (7f), reduced 24 Sep 22:08 UK: FAIR_ACCEPT="28=M14c's solve reproduced m14b-up's record path for path, survival and every year's tier and level (betAudit checks it before reporting) | mixed-code=S330 re-run after a container restart on cc636ea356b7; the only non-comment change in the stamped files from ca10fa602ae6 is PRODUCT_BASELINE.bridgeRead: false, which experiment.mjs never reads (git diff a72954e df3d203), and S330's solve reproduced m14b-up path for path | prediction-edited=only the Changes-after-seeing-results section changed (the restart declared); the question, items and falsifier are unchanged (git diff a9ed8a95 7cf82184)" node research/solver/reduce-m14c.mjs
+FAIR-TEST CHECK: m14b-up:solver  against  m14c:solver
+  households: 4 shared; only in m14b-up: S020 S070 S082 S172 S184 S234 S354 S414
+  [28] code                         de180680d398                   | ca10fa602ae6 / cc636ea356b7    ACCEPTED  - M14c's solve reproduced m14b-up's record path for path, survival and every year's tier and level (betAudit checks it before reporting)
+  [--] one version of the code in m14c: ACCEPTED (ca10fa602ae6, cc636ea356b7)  - S330 re-run after a container restart on cc636ea356b7; the only non-comment change in the stamped files from ca10fa602ae6 is PRODUCT_BASELINE.bridgeRead: false, which experiment.mjs never reads (git diff a72954e df3d203), and S330's solve reproduced m14b-up path for path
+  [--] prediction research/solver/predictions/m14c-bets.md unchanged since m14c ran: ACCEPTED (a9ed8a95 at launch, 7cf82184 now)  - only the Changes-after-seeing-results section changed (the restart declared); the question, items and falsifier are unchanged (git diff a9ed8a95 7cf82184)
+  34 recorded variables SAME (1 by an assumed default: final-year integration); 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+M14c - the bet against the table's best move without it, simulated from each first-bet position (tag m14c)
+  id     paths bet  positions x paths | bet - stay, survival points (pooled +/- se)   z | margins under 0.005 | table ranks the bet first | estate, bet vs stay (paths both survive)
+  S194     55        40 x 500        | -0.51 +/- 0.11   -4.6 | 34/40 | 40/40 | +1.72%
+  S162      6         6 x 500        | +2.33 +/- 0.47    5.0 | 3/6 | 6/6 | +1.07%
+  S252     86        40 x 500        | -0.14 +/- 0.13   -1.2 | 27/40 | 40/40 | +3.20%
+  S330   1210        40 x 500        | +0.22 +/- 0.10    2.2 | 37/40 | 40/40 | +2.19%
+
+  pooled over every position, by how often STAYING survives from it (item 4):
+    staying survives under 50%    15 positions   bet - stay +1.33 +/- 0.26
+    50% to 90%                    80 positions   bet - stay -0.29 +/- 0.09
+    90% or more                   31 positions   bet - stay +0.00 +/- 0.00
+
+PREDICTION CHECK (predictions/m14c-bets.md)
+  1. staying better beyond two se on at least two of S194 S162 S252: 1 of 3 -> MISSED
+     FALSIFIER - the three pooled: bet - stay -0.14 +/- 0.08: FALSIFIED (betting at least as good, within two se)
+  2. the control S330, betting better beyond two se: +0.22 +/- 0.10 -> HELD
+  3. margins under 0.005 at three quarters of positions or more: 101 of 126 -> HELD
+  4. bet worse where staying survives 90%+ (+0.00) and better under 50% (+1.33) -> MISSED

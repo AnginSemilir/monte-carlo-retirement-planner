@@ -60,7 +60,7 @@ function forecast(s, t, ai, held) {
       const alive = !(floor > 0 && total < floor);
       sv += QW[zi] * (alive ? 1 : 0); bq += QW[zi] * (alive ? beqOf(Math.max(0, total - grown[0] * deathTax)) : 0);
     } else {
-      readValues(r.g, r.lsurv[t + 1], r.beq[t + 1], grown, rd, r.lresil[t + 1], r.short[t + 1]);
+      readValues(r.g, r.lsurv[t + 1], r.beq[t + 1], grown, rd, r.lresil[t + 1], r.short[t + 1], t + 1);
       sv += QW[zi] * rd[0]; bq += QW[zi] * rd[1]; h += QW[zi] * rd[3];
     }
   }

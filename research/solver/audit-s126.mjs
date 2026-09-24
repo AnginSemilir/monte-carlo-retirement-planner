@@ -58,24 +58,40 @@ function facts(plan) {
   return { pl, ctx, a0, B, need, W, liq, aStar, retired, inClass: B > 0 && a0 > 0.8 && a0 < aStar };
 }
 
-function measure(h) {
+function measure(h, bridgeRead = false) {
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const m = M.prepare(E, plan);
   const t0 = Date.now();
-  const r = solve(E, M, plan, { points: POINTS, lambda: LAMBDA, raiseWeight: 0.003, spendLevels: [1.2, 1.1, 1, 0.95, 0.9, 0.8], tiers: true, lump: m.ctx.fullLumpSum, resilienceWeight: 0, finalExact: true });
+  const r = solve(E, M, plan, { points: POINTS, lambda: LAMBDA, raiseWeight: 0.003, spendLevels: [1.2, 1.1, 1, 0.95, 0.9, 0.8], tiers: true, lump: m.ctx.fullLumpSum, resilienceWeight: 0, finalExact: true, bridgeRead: bridgeRead || undefined });
   const table = 100 * r.value(M.initialState(m), 0).survival;
   let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(7002, NP, m.ctx.totalYears);
+  const okArr = new Uint8Array(NP);
   // below: atTarget counts every year at or above target, so years below = spend years - atTarget
-  for (const zs of paths) { const o = runPolicy(r, zs); if (o.survived) ok++; below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; }
+  paths.forEach((zs, i) => { const o = runPolicy(r, zs); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
   const sim = 100 * ok / NP;
-  return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, secs: (Date.now() - t0) / 1000 };
+  return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, secs: (Date.now() - t0) / 1000 };
 }
 
 const f1 = (x, d = 1) => (Number.isFinite(x) ? x.toFixed(d) : '-');
 const line = (id, x) => console.log(`${id.padEnd(16)} a0 ${f1(x.a0, 2)}  B ${x.B}  W ${f1(x.W / 1000, 0)}k  need ${f1(x.need / 1000, 0)}k  a* ${f1(x.aStar, 3)}  class ${x.inClass ? 'YES' : 'no '}  |  table ${f1(x.table).padStart(5)}  sim ${f1(x.sim).padStart(5)}  gap ${f1(x.gap).padStart(6)}  |  years below/path ${f1(x.below)}  pension below plan tier ${f1(x.tierYrs)} yrs  (${f1(x.secs, 0)} s)`);
 
-if (mode === 'scan') {
+/* F1's test: each case with the cliff-aware read off and on, on the same paths, paired */
+function pairF1(id, h) {
+  const a = measure(h, false), b = measure(h, true);
+  let disc = 0; for (let i = 0; i < NP; i++) if (a.okArr[i] !== b.okArr[i]) disc++;
+  const d = b.sim - a.sim, se = 100 * Math.sqrt(disc) / NP;
+  console.log(`${id.padEnd(16)} a0 ${f1(a.a0, 2)} B ${a.B} class ${a.inClass ? 'YES' : 'no '} | OFF table ${f1(a.table).padStart(5)} sim ${f1(a.sim).padStart(5)} gap ${f1(a.gap).padStart(6)} tier-below ${f1(a.tierYrs).padStart(4)} below ${f1(a.below).padStart(4)} | F1 table ${f1(b.table).padStart(5)} sim ${f1(b.sim).padStart(5)} gap ${f1(b.gap).padStart(6)} tier-below ${f1(b.tierYrs).padStart(4)} below ${f1(b.below).padStart(4)} | survival ${(d >= 0 ? '+' : '') + f1(d, 2)} +/- ${f1(se, 2)}`);
+}
+if (mode === 'f1') {
+  const which = process.argv[5] || 'all';
+  console.log(`F1 TEST, ${POINTS} points, ${NP} held paths (seed 7002), off against on, paired`);
+  const V = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', { a0: 0.7 }], ['share 0.78', { a0: 0.78 }], ['share 0.90', { a0: 0.9 }], ['share 0.95', { a0: 0.95 }],
+    ['bridge 0', { bridge: 0 }], ['bridge 1', { bridge: 1 }], ['bridge 4', { bridge: 4 }], ['bridge 6', { bridge: 6 }], ['wealth x0.5', { scale: 0.5 }], ['wealth x2', { scale: 2 }]];
+  const L = ['S120', 'S122', 'S124', 'S128', 'S130', 'S360', 'S366'];
+  if (which === 'all' || which === 'variants') for (const [id, o] of V) pairF1(id, variant(id, o));
+  if (which === 'all' || which === 'library') for (const id of L) pairF1(id, all.find(s => s.id === id));
+} else if (mode === 'scan') {
   console.log('Library singles in a bridge year at the start, by the class test (0.8 < a0 < a*), from inputs only:');
   let n = 0;
   for (const s of all) {

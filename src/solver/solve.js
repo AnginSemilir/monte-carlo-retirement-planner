@@ -34,7 +34,7 @@
  * state is six numbers, nothing is allocated in the loop, and the expectation over returns is taken
  * from the post-decision state so it costs one flow per move rather than one per move and node.
  */
-import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds } from './grid.js';
+import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds, bridgeTable } from './grid.js';
 import * as F from './fast.js';
 
 /*
@@ -422,6 +422,8 @@ export function solve(E, M, plan, opts = {}) {
   const surv = survW[centre], lsurv = lsurvW[centre], resil = resilW[centre];
   const lresil = lresilW[centre], beq = beqW[centre], pol = polW[centre], short = shortW[centre];
   const levelOf = actions.map(a => (a.spendLevel !== undefined ? a.spendLevel : 1));
+  // F1 (PLAN.md "S126's dead corner"): the cliff-aware read of a retired bridge year, research option until tested
+  if (opts.bridgeRead) g.bridge = bridgeTable(E, m, c, Math.min(...levelOf));
 
   /*
    * PROFILING, off unless SOLVER_PROFILE is set, because nobody has measured where a solve's time
@@ -557,7 +559,7 @@ export function solve(E, M, plan, opts = {}) {
                           rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
                           b += QW[zi] * (alive ? beqOf(net) : 0);
                         } else {
-                          readValues(g, sNext, bNext, grown, rd, rNext, hNext);
+                          readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1);
                           s += QW[zi] * rd[0];
                           b += QW[zi] * rd[1];
                           rs += QW[zi] * rd[2];
@@ -642,7 +644,7 @@ export function solve(E, M, plan, opts = {}) {
                         rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
                         b += QW[zi] * (alive ? beqOf(net) : 0);
                       } else {
-                        readValues(g, sNext, bNext, grown, rd, rNext, hNext);
+                        readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1);
                         s += QW[zi] * rd[0];
                         b += QW[zi] * rd[1];
                         rs += QW[zi] * rd[2];
@@ -672,7 +674,7 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: !!g.bridge, solverVersion: SOLVER_VERSION };
   if (PROF) {
     PROF.total = now() - profT0;
     // two clock calls per timed region, and the outer pair too
@@ -705,7 +707,7 @@ export function solve(E, M, plan, opts = {}) {
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
     /* What the table says this position is worth, before anything is executed. */
-    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); const sv = interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); const sv = g.bridge ? readValues(g, lsurv[k], beq[k], s, new Float64Array(4), null, null, k)[0] : interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   };
   r.worlds = K === 1 ? [r] : cs.map((cc, k) => (k === centre ? r : {
     m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
@@ -720,7 +722,7 @@ export function solve(E, M, plan, opts = {}) {
      * exists to answer. Same bodies as above, bound to this world's six tables.
      */
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[polW[k][Math.min(t, T)][nearestIndex(g, s)]]; },
-    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const kk = Math.min(t, T); const sv = interp(g, survW[k][kk], loc, true), rs = interp(g, resilW[k][kk], loc, !shortfall), bq = interp(g, beqW[k][kk], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const kk = Math.min(t, T); const sv = g.bridge ? readValues(g, lsurvW[k][kk], beqW[k][kk], s, new Float64Array(4), null, null, kk)[0] : interp(g, survW[k][kk], loc, true), rs = interp(g, resilW[k][kk], loc, !shortfall), bq = interp(g, beqW[k][kk], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   }));
   return r;
 }
@@ -888,7 +890,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null) {
     for (let zi = 0; zi < QW.length; zi++) {
       grown.set(post);
       F.grow(c, t, grown, nr[zi]);
-      readValues(g, lsurv[t + 1], beq[t + 1], grown, rd, lresil[t + 1], short[t + 1]);
+      readValues(g, lsurv[t + 1], beq[t + 1], grown, rd, lresil[t + 1], short[t + 1], t + 1);
       sv += QW[zi] * rd[0];
       bq += QW[zi] * rd[1];
       rs += QW[zi] * rd[2];

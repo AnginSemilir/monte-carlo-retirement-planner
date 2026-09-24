@@ -655,7 +655,33 @@ pessimistic the read is:
 generalises: the minimum-pot cliff (C1: W against P_min at the end) and one-off costs (C2) have analytic cliff
 locations too. So F1 is also the pitfall sweep's main tool.
 
-**F1's test (prediction to be written before it runs):**
+**F1 BUILT (24 Sep ~07:10), off by default and bit-identical off** (table hashes S070 d12c6e177e97cb6a and S330
+d9ad3e66a9b6d52c, before and after). It is `bridgeRead` in `solve` and BRIDGEREAD=1 in the harness.
+
+The need is taken at the lowest level on the menu, and includes any one-off costs due before access. F1 acts only
+in RETIRED bridge years. A working household with a bridge still ahead is a different case (contributions still
+arrive, so the coverage test would be wrong). **It joins the pitfall sweep as C7.** The cap uses sigma = the ISA/GIA
+opening-weighted spread at the plan tiers, scaled by the invested share of the accessible money.
+
+**F1 TEST - PREDICTION (written 24 Sep ~07:12, before the run):** `audit-s126.mjs f1`, 16 points, 1,000 paired
+paths; the 12 variants, the five library class households S120-S130, and the long-bridge controls S360, S366.
+1. **The class:** table within +/-5 points of simulation on every in-class case, except the two that sit on the cliff
+   edge (share 0.95 and bridge 6, coverage 1.02 at the floor): there the cap is only a rough edge model, so within
+   +/-15.
+2. **No survival cost:** simulated survival not lower with F1 than without, beyond two paired se, on any case.
+3. **Behaviour:** on S126 and the library class, the years the pension sits below its tier fall by at least half
+   (today 40), toward the unaffected twins' 5-11.
+4. **Out of class:**
+   - bridge 0: unchanged (no bridge years);
+   - share 0.50 and 0.70: year-0 table and simulated survival within 0.5 of the off values;
+   - share 0.78 (it drifts into the class in year 1): its 40-year signature falls, like item 3.
+5. **The truly short controls (S360, S366):** F1 never activates at the start (the accessible money is short of the
+   floor need), so they are read low and simulate low, as without it.
+
+**FALSIFIED IF** an in-class case away from the edge still misreads by more than 10 points, or any case loses
+survival beyond two paired se. **Then F2** (the coverage coordinate) is built instead.
+
+**F1's test (the original criteria):**
 - **The class:** the replication set plus the six library class households; table gaps within +/-5 points on every
   in-class case (today -10 to -99).
 - **No survival cost:** simulated survival not lower than today's beyond two paired se on any household, which is

@@ -130,6 +130,8 @@ export function makeGrid(m, opts = {}) {
     gainInterp: !!opts.gainInterp, pclsStrict: !!opts.pclsStrict,
     /* #106: how a survival read treats a corner that is dead along a SHARE axis (see shareDeadAdjust) */
     shareDead: opts.shareDead === 'drop' || opts.shareDead === 'linear' ? opts.shareDead : null,
+    /* F1, the cliff-aware read of a bridge year (see bridgeAdjust); set by `solve` when `bridgeRead` is on */
+    bridge: null,
     index: (i1, i2, i3, ig, ic) => i1 + i2 * stride.isa + i3 * stride.tax + ig * stride.gain + ic * stride.pcls
   };
 }
@@ -267,7 +269,7 @@ function locLinInto(ax, v, k) {
   const i = Math.min(ax.n - 2, Math.floor(f));
   LOC[k] = i; LOC[k + 1] = f - i;
 }
-export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null) {
+export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, yr = -1) {
   if (g.mode === 'total') {
     const W = s[0] + s[1] + s[2], rest = W - s[0];
     locInto(g.axes.W, W, 0); locLinInto(g.axes.a, W > 0 ? s[0] / W : 0, 2); locLinInto(g.axes.b, rest > 0 ? s[1] / rest : 0, 4);
@@ -304,7 +306,9 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null) {
       NC = 16;
     }
   }
-  const linearRead = g.shareDead ? shareDeadAdjust(g, lsArr, NC) : false;
+  // F1 in a retired bridge year (yr is the year of the table read); otherwise the #106 options, if set
+  const cap = g.bridge && yr >= 0 && g.bridge.need[yr] > 0 ? bridgeAdjust(g, lsArr, NC, s, yr) : null;
+  const linearRead = cap === null && g.shareDead ? shareDeadAdjust(g, lsArr, NC) : false;
   let ls = 0, b = 0, lr = 0, sh = 0;
   if (lrArr && shArr) {
     // the flexible-spending read: survival, bequest, resilience and the expected future shortfall from target
@@ -316,6 +320,7 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null) {
   } else {
     for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
   }
+  if (cap !== null && ls > cap) ls = cap;
   if (linearRead) { let p = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w !== 0) p += w * expit(lsArr[IDX[k]]); } out[0] = p; }
   else out[0] = expit(ls);
   out[1] = b;
@@ -353,6 +358,75 @@ function shareDeadAdjust(g, lsArr, NC) {
   }
   return g.shareDead === 'linear' && mixed;
 }
+/*
+ * F1, THE CLIFF-AWARE READ OF A BRIDGE YEAR (PLAN.md "S126's dead corner"; maintainer, 24 Sep).
+ *
+ * In a retired year before pension access only the ISA, the GIA and cash can pay, so along the pension share
+ * survival falls off a cliff at a* = 1 - (the bridge's need at the floor) / W. The share axis has six nodes, the
+ * all-pension one is dead in every bridge year, and a log-odds blend with a dead node puts the cliff where the clamp
+ * says (about 0.83 for S126) rather than where the money says (0.95). #106's `drop` removed the dead node whatever
+ * side of the cliff the position was on, so positions past a* read as alive (-0.30 on S126).
+ *
+ * F1 asks the position itself. If its accessible money does not cover the rest of the bridge at the floor, it is
+ * truly short and the read stands. If it does, the dead share-corners are on the far side of a cliff it has not
+ * reached: they get no weight (each wealth slice's weight goes to its live corners, as `drop`), and survival is capped
+ * at the chance the accessible money itself lasts the bridge, Phi(ln(coverage) / (sigma x sqrt(years left))), so a
+ * position just inside the cliff is not read as safe. Returns the cap in log-odds, or null when nothing applies.
+ */
+function Phi(z) {   // the standard normal distribution function (Abramowitz and Stegun 26.2.17, error under 7.5e-8)
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989422804014327 * Math.exp(-z * z / 2);
+  const p = d * t * (0.31938153 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  return z >= 0 ? 1 - p : p;
+}
+function bridgeAdjust(g, lsArr, NC, s, yr) {
+  const B = g.bridge, need = B.need[yr];
+  const acc = s[1] + s[2];                     // the ISA and the taxable pot with its cash: what can pay before access
+  if (!(acc >= need)) return null;             // short of the bridge even at the floor: the dead read is the truth
+  let dropped = false;
+  for (let base = 0; base < NC; base += 8) {
+    for (let dp = 0; dp < 2; dp++) {
+      let wAlive = 0, wDead = 0;
+      for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; const w = W[k]; if (w === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) wDead += w; else wAlive += w; }
+      if (wDead > 0 && wAlive > 0) {
+        dropped = true;
+        const f = (wAlive + wDead) / wAlive;
+        for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; if (W[k] === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) W[k] = 0; else W[k] *= f; }
+      }
+    }
+  }
+  if (!dropped) return null;
+  const cash = Math.min(acc, B.cash[yr]);
+  const sd = B.sigma * (acc > 0 ? (acc - cash) / acc : 0) * Math.sqrt(B.years[yr]);
+  if (!(sd > 0)) return null;                  // nothing invested: covered means covered
+  const p = Math.min(1 - CLAMP, Math.max(CLAMP, Phi(Math.log(acc / need) / sd)));
+  return Math.log(p / (1 - p));
+}
+/*
+ * The per-year bridge table F1 reads: for each retired year before access, the need from that year to access at the
+ * lowest spending level on the menu (the floor), net of guaranteed income, plus any one-off costs due in those years;
+ * the bridge years left; the cash buffer; and the spread of the accessible investments (the ISA and GIA at the plan's
+ * tiers, weighted by opening balance). Years that are working or past access carry no need, and F1 does nothing there.
+ */
+export function bridgeTable(E, m, c, floorLevel) {
+  const T = c.T, yr = c.yr;
+  const need = new Float64Array(T + 2), years = new Float64Array(T + 2), cash = new Float64Array(T + 2);
+  let accessAt = T + 1;
+  for (let t = 0; t <= T; t++) if (yr.access[t]) { accessAt = t; break; }
+  let run = 0, n = 0;
+  for (let t = Math.min(accessAt, T + 1) - 1; t >= 0; t--) {
+    const guaranteed = yr.taxFree0[t] + (yr.taxable0[t] > 0 ? E.calculateUKNetIncome(yr.taxable0[t], c.P) : 0);
+    run += Math.max(0, floorLevel * yr.spend[t] - guaranteed) + (yr.cost[t] || 0);
+    if (yr.spend[t] > 0) n += yr.frac[t];
+    if (yr.spend[t] > 0) { need[t] = run; years[t] = n; }
+    cash[t] = yr.buffer[t];
+  }
+  const o = m.ctx.owners[0], isaA = m.acc[o.ids.isa], giaA = m.acc[o.ids.other];
+  const bi = isaA ? isaA.balance : 0, bg = giaA ? giaA.balance : 0;
+  const sigma = bi + bg > 0 ? (bi * c.volEff[1] + bg * c.volEff[2]) / (bi + bg) : 0;
+  return { need, years, cash, sigma, accessAt, floorLevel };
+}
+
 /* Survival stored as log-odds, once per year, so a read costs eight multiplies instead of eight logs. */
 export function toLogOdds(sArr, out) { for (let i = 0; i < sArr.length; i++) out[i] = logit(sArr[i]); return out; }
 

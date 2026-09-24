@@ -25,7 +25,8 @@ reads (results-f1v2.txt: the gaps collapse to about zero with v2). So finer aver
 
 Six bridge cases (S126, bridge 4, bridge 6, share 0.95, S366, S360), each built exactly as the F1 v2 test built it, F1 off
 in both arms, the step-6 defaults in the mixture through solvePlan, 16 points, 1,000 paths of seed 7002, paired: 5 return
-points against 15 in every year (the final year as the product has it, 5 nodes, in both arms).
+points against 15 in every year, the final year included (the exact final year is off in both arms, as the product
+has it, so the final year is averaged over the same 5 or 15 points as every other year).
 1. **The misread stays:** every case that misreads by more than 40 points at 5 return points still misreads by more than
    30 at 15 (at 5 points in the F1 v2 test's OFF arm: S126 -43.2, bridge 4 -91.3, bridge 6 -94.2, share 0.95 -72.7,
    S366 -96.6; S360 -33.6 is under 40).
@@ -82,4 +83,6 @@ Arm A is 5 return points every year and arm B is 15, F1 off in both, both solves
 
 ## Changes after seeing results
 
-None - no bridge-quad result exists.
+No bridge-quad result exists. Before any run (25 Sep ~00:50 UK): the Prediction section said the final year stayed at 5
+nodes in both arms; with the exact final year off, the final year is averaged over the arm's own 5 or 15 points, as row 8
+already said. Corrected; nothing else changed.

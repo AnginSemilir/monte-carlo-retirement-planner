@@ -154,8 +154,8 @@ if (mode === 'f1v2') {
 } else if (mode === 'quad') {
   /*
    * IS THE BRIDGE MISREAD AVERAGING OR REPRESENTATION? (PLAN.md 7h; predictions/bridge-quad.md) F1 off in both arms, the
-   * same solvePlan settings as the f1v2 mode, the year's return averaged over 5 points against 15 (every year; the final
-   * year as the product has it, 5 nodes, in both), paired on the same paths. If 15 points close the table's misread, it
+   * same solvePlan settings as the f1v2 mode, the year's return averaged over 5 points against 15 (every year, the final
+   * year included: the exact final year is off in both, as the product has it), paired on the same paths. If 15 points close the table's misread, it
    * is averaging; if not, the grid read across the share axis (a representation problem).
    */
   // built exactly as the f1v2 mode builds them (F1_VARIANTS and the library), so each case is the one 7c read

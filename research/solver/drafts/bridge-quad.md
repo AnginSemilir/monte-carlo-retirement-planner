@@ -1,4 +1,4 @@
-> **SUPERSEDED 25 Sep 00:43 UK** by the registered `predictions/bridge-quad.md` (7i), revised with M14c and O19 (the final year left at 5 nodes in both arms, as the product has it).
+> **SUPERSEDED 25 Sep 00:43 UK** by the registered `predictions/bridge-quad.md` (7i), revised with M14c and O19 (the exact final year off in both arms, as the product has it, so the final year is averaged over each arm's own points).
 
 # DRAFT - not registered. Test design: is the bridge misread an averaging problem or a representation problem?
 

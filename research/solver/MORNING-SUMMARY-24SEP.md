@@ -3,6 +3,29 @@
 Written overnight for the maintainer, in plain words. Every figure is from a results file named beside it,
 and every test had its prediction written down before it ran. Where a prediction failed, it says so.
 
+**Update, 06:30 - your decisions and what followed.** You took every recommendation. They are now the product
+defaults in `solvePlan`:
+- minimum pot 1 year;
+- raises capped at 110%;
+- estate 0% = weight 0.01;
+- the floor fix on;
+- risk above your tier as an opt-in only;
+- the taxable-account tier refused.
+
+K5 started at 05:45 and runs about 8 hours, not 4.5. Three things came out of reassessing the plan's maths
+against last night's results (PLAN.md, "the maths reassessed", R1-R10):
+1. **Why the taxable-account tier failed.** Bundling it removed the best move, (2,2,0). The options left were
+   near-ties, and the switch margin then kept every path at the plan's tier. A nested design (a superset of
+   today's menu, so it cannot lose in-model) is in PLAN.md, "M15 v2", with its probe and prediction. A question
+   on the switch margin (Q12) has gone to the mathematician.
+2. **M22.** The lowest tier step binds for every thin household, 87-91% of spending years, ahead or behind. A
+   third pension/ISA step is the rival arm in M15 v2.
+3. **M23 - one decision for you before Phase 4.** With raises capped at 110%, the solver's raises match the
+   guardrails' in the median. But the guardrails raise to 1.5-1.7x target on some households. Phase 4's
+   spending condition would then fail by about 4% because of the cap you chose, not because of the solver.
+   **Recommended:** give the app's guardrails the same user cap in the Phase 4 comparison. The minimum pot is
+   already applied to both sides this way. This needs a small research-only option in the engine.
+
 **At a glance** (final, 04:00 UTC; every run of the night has finished and been reduced):
 
 - **Your purpose test passes**, with today's solver and again with the recommended fix on (sections 1 and 2).

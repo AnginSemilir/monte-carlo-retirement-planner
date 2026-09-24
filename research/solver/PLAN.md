@@ -377,6 +377,8 @@ changes a result on file; four need work before something downstream is trusted.
 | M19 | **Blocking raises turns them into frequent small cuts for users who say cuts barely bother them.** K3, 00:40: with raises blocked, S390 (lambda 0.005) goes from 3.2 to 30 years below target at depth 0.91, S126 (0.022) to 10.9, S112 (0.022) to 16.5; fully funded falls to 0 on all three. Derived: a 5% cut costs lambda x 0.0025 a year - 1.3e-5 at lambda 0.005 - while the estate credit pays for the pounds kept, so the solver trims to build the estate. With raises allowed the same trade shows up as "raise less", which nobody sees. | A user-visible absurdity: "no raises" produces cuts in most years. | The dislike-of-cuts slider needs a floor, or the estate credit must not be able to buy a cut: for K5 and the maintainer. Recorded; no run. | step 6, K5 |
 | M20 | **An estate weight of zero makes the plan pay needless tax.** K4, 00:40: at w = 0 lifetime tax rises from GBP12k to 88k on S162 and 28k to 101k on S390 against w = 0.01, with the same survival and spending: once survival is safe, nothing rewards a pound saved from tax except the estate credit. | The estate slider's 0% cannot mean weight 0. | Map the slider's 0% to a small weight (0.01 at scale 1 moves nothing else measurable). Recorded; no run. | Part C, the slider map |
 | M21 | **Every library household holds the same tiers: pension at High (the top), ISA Medium/High, taxable Medium, cash.** Found 00:50 building M14. So every tier result on file - Phase 6's +5.03, the 41 of 41, the floor binding in M15 - measures de-risking FROM THE TOP, and no test has ever had a user who chose less risk. | The product's users will choose their own tiers; the solver's edge for a cautious user is unmeasured, and "risk above the user's tier" (M14) cannot arise on the library at all. | M14's probe holds the plan at Medium to test it. Phase 4's panel is drawn from the same library, so it inherits the gap: recorded for the maintainer, with the option of a Phase 4 diagnostic at Medium plan tiers (12 households, ~30 min). | step 6; Phase 4 |
+| M22 | **The lower tier limit binds for every thin household** (24 Sep 06:00, from `m17-floor` and `s2-fnewex` records): pension and ISA at the lowest step allowed in 87-91% of spending years on S330, S070, S184, S354, 55-57% of them ahead of the median; the middle step used 0-2%. | The solver wants less equity than the menu allows, ahead or behind. | A third pension/ISA step is the sibling arm in the M15 v2 probe (R2). | M15 v2 probe, after K5 |
+| M23 | **The decided raise cap (1.1) and the guardrails' raises cannot be matched per household** (24 Sep 06:20, from `k3-cap1.1` and `flex-tiers`): the medians agree (3.22 vs 3.42 years of target), but the guardrails reach 1.5-1.7x target on S184 and S252. With cuts matched, the solver delivers about 4% less spending on average, and 20-30% less on the big raisers. | Gate 4's spending conditions fail by construction unless arm A carries the user's cap. | **Maintainer:** a research-only guardrail cap in the engine for arm A (recommended), or judge gate 2 on spending up to the cap. | before Phase 4 |
 
 ### The plan audit against the history and the records, 23 Sep 21:15-21:45 (maintainer: "make sure it hasn't been answered previously")
 
@@ -415,6 +417,23 @@ mislabelled, a sign error in a Phase V figure in the predictions register, "sing
 
 ---
 
+### The maths reassessed against the night's results (24 Sep 06:30; maintainer: "reassess the maths in the plan based on the latest results and use it to apply learnings and predictions as needed")
+
+Every item below is derived from files already on disk; no run was made for this section.
+
+| # | What the results changed | The maths | What it changes in the plan |
+|---|---|---|---|
+| R1 | **Why M15 v1 lost (corrected).** | The joint menu removed (2,2,0), the most efficient de-risking move. The three families left were within ~1e-4 of each other, a tenth of the switch margin (0.001), so the margin kept the tier the path started with, which was the plan's (diagnostic table in "M15 v2"). | M15 v2 must be NESTED (a superset of today's menu); written into the design. New question Q12 below. |
+| R2 | **M22: the lower limit binds for every thin household.** Under the fixed solver (`m17-floor`) S330, S070, S184, S354 hold the pension and ISA at the lowest step allowed in 87-91% of spending years, 55-57% of them AHEAD of the median; the middle step is used 0-2%. Comfortable households mostly hold the plan tier (S206 92%, S390 79%). | With every pot on one draw, a step off the riskiest sleeve buys the most calm per point of return (S330: 1.6 and 1.5 points of spread for 0.07 and 0.11 of growth, falling to 1.4 for 0.14 and 0.8 for 0.19 below today's floor). A choice pinned at the boundary in both halves of the wealth distribution means the unconstrained optimum lies below the boundary. | The third pension/ISA step is a sibling arm in the M15 v2 probe, open to every household, not only GIA-heavy ones. Phase 4's prediction: the tier edge is broad on a panel landed at ~85% (thin by construction), not confined to pension-heavy households. |
+| R3 | **M23: the raise cap of 1.1 against the guardrails' raises.** On the twelve, the guardrails' raises add a median 3.42 years of target spending over a retirement (0.20 to 12.0; S184 raises 17.7 years at 1.68 x target, S252 21 years at 1.51). The capped solver adds a median 3.22 (0.60 to 4.30). | Medians match already: capped raises are frequent and small (15-43 years at 1.1), the guardrails' rare and large. Per household they do not. With cuts matched by K5 (mean 2.36), net extra spending is about +0.30 years for the solver against +1.84 for the guardrails (means of the twelve), about 4% of ~36 years of spending, and 20-30% on S184 and S252. | **Gate 4's condition 2 (spending within 1%) is predicted to FAIL by about 4%, and condition 3 (no household 5% lower) on the big raisers, unless arm A carries the same cap.** The cap is the user's rule, like the minimum pot, which is already set on every arm. **Recommended (maintainer to decide; it touches the shipping engine): a research-only option in the engine's guardrails to hold the multiplier at the user's raise cap, as it is held at the floor today (`gs.mult` beside `minMult`), used for arm A in Phase 4.** Otherwise the gate is judged against a rival spending up to 68% over target that the user said they did not want. |
+| R4 | **K5 stage 2 (the raise weight mu) is conditional now.** | By R3 the median raise total already matches within 6% at mu 0.003 under the cap. | Stage 2 runs only if stage 1's chosen point moves the median raise total outside +/-10% of the guardrails' 3.42 (3.08 to 3.76). |
+| R5 | **K6 in the units K5 uses.** | lambda means nothing across exponents; c (the cost of a floor year, lambda x 0.2^exponent) does. | K6 sweeps c from a tenth to ten times K5's value at K5's exponent; the slider maps to c on a log scale. |
+| R6 | **K7's monotone quantity, with the floor fix on.** | The Lagrangian argument covers the PENALISED quantity. With the fix that is the trim cost PLUS the charge for years with no money, not years below target alone. | K7 checks E[trim cost + unfunded-year charge] for monotonicity (a reversal is a bug, subject to Q1), and reports years below as a finding. K5's grid already gives 12 x 4 x 5 = 240 adjacent pairs to read; no run. |
+| R7 | **Phase 4's configuration after step 6.** | - | Arm S: floor fix on, cap 1.1, minimum pot 1 year, estate as today, risk above the tier OFF (an opt-in is not a default), GIA tier off, K5's c and exponent. The panel is LANDED at ~85% for arm A (decided): each household's target is set so arm A survives 85% +/- 2 on seed 7005 with the minimum pot on (the panel is now drawn after the defaults, so it is landed with them). Added diagnostic: **arm S with pension and ISA held at Medium** (M21: the library never tests a cautious user; this is also the only place M14's opt-in can show anything, since at High there is no tier above). |
+| R8 | **Phase 4's survival prediction, re-derived.** | The floor fix adds 0.2-0.9 points on thin households (M17); the tiers' edge is concentrated where the lower limit binds (R2); the landed panel sits where decisions are not near-ties. Against that, K5's matched cutting is ~6x today's, which moves survival UP (cuts are the solver's other protective lever). | Prediction strengthened: arm S wins survival on at least 30 of 40, and the no-tiers diagnostic keeps a minority, as before. Spending: see R3, which is the condition most at risk, not survival. |
+| R9 | **The calibration (M16) and the ranking (M18) under the new defaults.** | M16 was measured without the fix. M18 passed with it (158 of 159), and its looser table-vs-simulation correlation is explained by the old yardstick. | "The table is never a reported number" stands. Phase 4's records re-read the calibration offline with the fix on (no extra run). |
+| R10 | **The mathematician's questions.** | Q2 (two dials, stepped response) is handled by K5's grid, with no curve trusted between points. Q11 (pricing a year with no money) is settled by the maintainer's decision for the floor price; it stays on the page as a check, not a blocker. | **New Q12:** when the table is nearly indifferent between tiers (R1: families within 1e-4), the switch margin decides, and a path stays wherever it started. Is a fixed margin of 0.001 right, or should it scale with the table's own resolution (M16's 3-5 point optimism)? Before M15 v2's build. |
+
 ## The schedule
 
 **One rule sets the order: a step goes after everything it is conditional on.** Numerics before
@@ -436,9 +455,10 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 5d | **The purpose test and the probes, in order (maintainer, 22:00):** M18 (is the policy the best available, within noise), M17 (the two cures for failing futures), then Phase 4 selection; M15, M14 and M12 are built and run only if time allows | 5 | ~2.5 h | Thu ~03:30 |
 | 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording, the #106 trade-off, the ternary decision, **M17 and the probes' verdicts, and the calibration curve** | 5 | no cores | Thu ~07:00 |
 | 6 | ~~The maintainer picks the product defaults~~ **DECIDED 24 Sep ~05:30: every recommendation taken** - minimum pot 1 year; raise cap 1.1; estate slider 0% = weight 0.01; the M17 floor fix ON; risk above the user's tier as an opt-in; Phase 4's panel landed at ~85%; the taxable-account tier NOT allowed as built - **fully plan a version that works first** (M15, "the full design" below) | 5c | - | done |
-| 7 | **K5 guardrail matching** | 6 | ~5 h | Thu ~14:00 |
-| 8 | **K6 slider spread**, with **K7 read off K4's and K6's sweeps** (no run of its own) | 7 | ~1.5 h | Thu ~15:30 |
-| 9 | **Phase 4**, with its bundled extras (below) | 8 | ~6 h | Thu ~21:30 |
+| 7 | **K5 guardrail matching** - stage 1 running since ~05:45 (288 cells at ~6.5 min each, four at a time: **~8 h, not 4.5**); stage 2 conditional (R4); stage 3 on the 41 | 6 | ~9.5 h | Thu ~15:30 |
+| 8 | **K6 slider spread** (in c, R5), with **K7 read off K4's, K5's and K6's sweeps** (no run of its own) | 7 | ~1.5 h | Thu ~17:00 |
+| 8b | **M15 v2**: build in K5's run gaps (no cores), after Q12 is put to the mathematician; probe (4 arms, 8 households + 3 at 40% gain, ~2 h) | 7 | ~2 h | Thu ~19:00 |
+| 9 | **Phase 4**, with its bundled extras (below); **needs the maintainer's M23 decision first** | 8, M23 | ~6 h | Fri ~01:00 |
 
 ### The next 12 hours (rewritten Wed 21:30 UTC, after K1 finished in 8 minutes and the plan audit)
 
@@ -521,6 +541,99 @@ written here, each derived from records already on file.
 | E3 | bit-identical results; about 30% off the solve | any bit differs | E3 |
 
 ---
+
+## M15 v2. The taxable account's tier: the full design (maintainer, 24 Sep: "fully plan out the taxable tier change so it works, don't allow it as is")
+
+**Status: designed, not built. The product refuses the option (`solvePlan` throws on `giaTiers`; `solver-plan.test.mjs`).**
+
+### Why v1 failed: the mechanism, measured (diagnostic 24 Sep 05:55, S330, 12 points, 20 paths, 548 decisions)
+
+| | best-score shortfall from the top, by tier family (x1e-4, mean) | family chosen | table's best overruled by the switch margin |
+|---|---|---|---|
+| option off: (0,0,0), (1,1,0), (2,2,0) | 3.11, 1.18, **0.03** | (2,2,0) 91% | 30% |
+| option on: (0,0,0), (1,1,1), (2,2,2) | 1.60, 0.76, 0.75 | (0,0,0) 40%, (1,1,1) 38%, (2,2,2) 23% | 44% (and the GIA hold check kept the GIA at 60%) |
+
+v1 REMOVED the best option. (2,2,0) takes the two riskiest sleeves down and leaves the GIA at Medium. Once it
+was gone, the three families that remained were within about 1e-4 of each other, a tenth of the switch margin
+(SWITCH_MARGIN = 0.001). The margin then keeps whatever tier is held, and a path starts at the plan's tier. So
+the solver sat at the plan tier: the 3.2-point loss is the solver losing its best de-risking move. It says
+nothing about the value of a GIA tier. (The M15 write-up's "the bundled move ranks below" was right about the
+menu but missed the margin's part; corrected here.)
+
+### The arithmetic that sets the design
+
+Every pot sees the same yearly draw, so the portfolio's return and spread are the wealth-weighted sums of the
+sleeves'. S330's tiers: return 4.79 / 4.24 / 3.69 / 3.14 / 2.60% and spread 17.1 / 13.4 / 9.9 / 6.9 / 5.2%
+(High -> Low). Return falls about 0.55 points a step, but spread falls 3.7, 3.5, 3.0, then 1.7. So a step off a
+risky sleeve buys more calm per point of return given up than a step off a calm sleeve: **de-risk the riskiest
+sleeve first.** Where two sleeves are equally risky, de-risk inside the pension or ISA first, where a switch
+costs no capital gains tax. With pots 30 / 15 / 45 / 10%:
+
+| rung | pension, ISA, GIA tiers | equity | return | spread | growth after spread |
+|---|---|---|---|---|---|
+| 0 (plan) | High, M/High, Medium | 0.60 | 3.83% | 11.6% | 3.16% |
+| 1 | M/High, Medium, Medium | 0.51 | 3.59% | 10.0% | 3.09% |
+| 2 (today's floor) | Medium, M/Low, Medium | 0.42 | 3.34% | 8.5% | 2.98% |
+| **3 (new)** | Medium, M/Low, **M/Low** | 0.33 | 3.09% | 7.1% | 2.84% |
+| **4 (new)** | Medium, M/Low, **Low** | 0.24 | 2.85% | 6.3% | 2.65% |
+| v1's (1,1,1), for comparison | M/High, Medium, M/Low | 0.42 | 3.34% | 8.6% | 2.97% |
+| the sibling's third step | M/Low, Low, Medium | 0.33 | 3.09% | 7.3% | 2.83% |
+
+(Cash at 1.01%, no spread. "Growth after spread" = return - spread^2/2.) Rungs 0 to 2 cost 0.07 and 0.11 points
+of growth for 1.6 and 1.5 points of spread. Rungs 3 and 4 cost 0.14 and 0.19 for 1.4 and 0.8: each step down buys
+less calm for more growth, so the value of going further is real but falling. v1's (1,1,1) is as good as (2,2,0)
+in this arithmetic, which is why the tables found the families within 1e-4 of each other and the switch margin
+decided. On S330 the third pension/ISA step is almost as calm as the GIA's rung 3 (7.3% against 7.1%) with no tax,
+which is why the sibling arm is a real rival.
+
+### The design
+
+1. **A nested ladder, never a swap.** Rungs 0-2 are exactly today's joint steps, and the GIA adds rungs 3 and 4
+   after them. The menu is a strict superset of today's, so the table's value can only rise (a maximum over more
+   moves) and every plan today's solver finds is still available. This is the property v1 lacked. A test
+   checks it: with the rungs added, the year-0 table value is at or above today's at every cell.
+2. **Only where it can matter.** The GIA rungs are added only when the GIA holds at least 10% of opening
+   investable wealth. Otherwise the menu is today's, bit for bit, at no cost (42 of the 210 library singles
+   qualify, at 45%; the rest hold 2-10%).
+3. **Cost: +67% on the households that qualify** (five tier variants in place of three), none elsewhere.
+   Tier variants share each move's flow (`tierBase`), so the true figure is measured in the build; bar: at most
+   1.7x the solve on a qualifying household.
+4. **Capital gains tax at decision time.** Keep v1's charge: the slice sold x its gain fraction, against what is
+   left of the year's exemption and basic band; the rebought slice starts with no gain. The tables treat a GIA
+   switch as untaxed (as they treat dealing costs today). That is optimistic by at most about 0.3% of the GIA per
+   rung change at a 40% gain. The decision-time charge and the switch margin keep switches rare, and the probe
+   counts them.
+5. **No hold check.** The ladder is explicit, so v1's "keep the GIA where it is" check goes: it scored only the
+   winner, and at 60% it was doing the menu's job badly.
+6. **Above the plan (M14's opt-in) stays on the pension and ISA only.** The GIA does not go above its tier.
+
+### The sibling it must beat: a third step for the pension and ISA
+
+The same records say the lower limit is the wider constraint. Under the fixed solver (`m17-floor`), the four thin
+households hold the pension and ISA at the lowest step allowed in 87-91% of spending years, as often when ahead
+of the median as behind (55% ahead), and the middle step is almost never used (0-2%). Three of the four hold
+almost nothing in a GIA. So the probe carries an arm with a **third pension/ISA step** (rung 3 = Medium/Low, Low,
+GIA held; no capital gains tax, same +33% cost for every household). If that arm gets most of the gain, the
+GIA ladder is not worth its tax and complexity, and the third step is what ships.
+
+### Probe M15 v2 (runs after K5 fixes the default dislike of cuts; derived before any run)
+
+Arms, all on the step-6 defaults and K5's c, paired on the same 3,000 paths: today; the GIA ladder; the third
+step; both. Households: S330, S206, S390 (GIA 45%), the thin S070, S184, S354 (lower limit binding, GIA 2-5%),
+and S054, S112 as controls; the three GIA-heavy ones again at a 40% unrealised gain.
+
+PREDICTION:
+- In-model: the year-0 table value is never below today's (by construction). A failure there is a bug and stops the probe.
+- Where the GIA holds under 10%, the ladder arm equals today's bit for bit (the rungs are not added).
+- S330: the ladder raises survival 0.5 to 2 points, reached from rungs 3-4 in at least half the years it sits at
+  rung 2 today. At a 40% gain, fewer rung-3/4 years and a smaller gain, never a loss beyond noise.
+- The third step: +0.3 to +1.5 points on each of the four thin households, and on S330 at least half the
+  ladder's gain.
+- S206 and S390 (mostly at the plan tier today): unchanged within noise under every arm.
+
+FALSIFIED IF any arm is worse than today by more than two paired se on any household, or the ladder's solve on a
+qualifying household exceeds 1.7x. **What ships:** the cheaper arm that gets at least 80% of the best arm's
+gain, and nothing if no arm gains beyond noise.
 
 ## Step 3. The lever builds
 
@@ -738,11 +851,13 @@ is the claim. **The ceiling is a smaller problem than first feared**: with the f
 guardrails' survival has a median of 92.1% and sits below 95% on 27 of 41, so a 75-95% held-out panel
 is easy to draw.
 
-**K6. The dislike-of-cuts slider's spread**, centred on K5's matched value. Same method as K4. Lambda's
+**K6. The dislike-of-cuts slider's spread**, centred on K5's matched value. Same method as K4. **In c, the cost of
+a floor year, not lambda (R5).** Lambda's
 landed values span 400x and 0 reversals in 15 adjacent pairs showed a smooth, monotone response, so the
 map is close to logarithmic in lambda.
 
-**K7. Monotone and sane - a reading of K4's and K6's sweeps, not a run of its own (plan audit, 21:30).**
+**K7. Monotone and sane - a reading of K4's and K6's sweeps, not a run of its own (plan audit, 21:30).** **With the
+floor fix on, the monotone quantity is the trim cost plus the unfunded-year charge, and K5's grid adds 240 pairs (R6).**
 Raising dislike of cuts never adds EXPECTED trimming, and raising the estate
 slider never lowers the EXPECTED credited end pot: both follow from the Lagrangian argument, so a reversal
 in either is a bug (subject to question 1 to the mathematician: the argument is for the exact optimum,
@@ -832,6 +947,10 @@ recorded and stopped on, not tuned until it passes.**
   Landed with `BISECT=8` (bracket ratio 1.024, not five steps' 1.21; finding M6).
 
 ### Prediction
+
+**Re-derived 24 Sep 06:30 (R2, R3, R7, R8 in "the maths reassessed"): arm S wins survival on at least 30 of 40;
+gate 2 is predicted to FAIL by about 4% unless arm A carries the user's raise cap (M23), which is the condition
+most at risk.** The earlier text follows.
 
 Arm S wins survival on most households, most where the app's fixed tier is wrong for the household
 (pension-heavy, long horizons); **the no-tiers diagnostic keeps a MINORITY of the win** (corrected 21:30 plan

@@ -47,6 +47,7 @@ should have changed it is running on assumptions that have already been disprove
 
 | date | the settled result | what it changed |
 |---|---|---|
+| 24 Sep ~08:40 | S126 replication, first 9 variants (the mechanism holds; a\* must use the floor-level need) + the maintainer's directive | the pitfall sweep C1-C5 added as a gate before Phase 4; the class boundary corrected |
 | 24 Sep ~08:15 | (maintainer) risk above made the default for EVERY plan | M14b's prediction revised before its run: it now decides "every plan" against the 'auto' fallback |
 | 24 Sep ~08:00 | M14's records split by path outcome (a bet when behind, 3 saved for 1 lost), plus the maintainer's default-on decision | risk above made the default for thin plans, with a simulated threshold and a no-worse guard, PROVISIONAL; M14b re-check queued after K5 stage 1, because the evidence predates the M17 fix |
 | 24 Sep ~07:30 | M23 decided (A) and built | arm A carries the user's cap; gate 4's spending conditions are now a fair test. K5's matching is unaffected (cuts only) |
@@ -510,7 +511,8 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 7b | **M14b** (`batch-m14b.sh`, 24 cells, ~40 min): risk above the tier re-checked under the step-6 defaults; decides whether "on in every plan" stands or falls back to 'auto' (thin plans, no-worse guard) | 7 stage 1 | ~40 min | Thu ~14:45 |
 | 8 | **K6 slider spread** (in c, R5), with **K7 read off K4's, K5's and K6's sweeps** (no run of its own) | 7 | ~1.5 h | Thu ~17:00 |
 | 8b | **M15 v2**: build in K5's run gaps (no cores), after Q12 is put to the mathematician; probe (4 arms, 8 households + 3 at 40% gain, ~2 h) | 7 | ~2 h | Thu ~19:00 |
-| 9 | **Phase 4**, with its bundled extras (below); M23 decided (A, built): arm A runs with `raiseCap: 1.1` | 8, M23 | ~6 h | Fri ~01:00 |
+| 8d | **The pitfall sweep** (C1-C5 above): the S126 fix, then the same pattern hunted, tested and fixed. **Gates Phase 4** | S126 fix | ~4-6 h, in run gaps | Thu evening / Fri morning |
+| 9 | **Phase 4**, with its bundled extras (below); M23 decided (A, built): arm A runs with `raiseCap: 1.1`. **Waits for the pitfall sweep (8d)** | 8, M23 | ~6 h | Fri ~01:00 |
 
 ### The next 12 hours (rewritten Wed 21:30 UTC, after K1 finished in 8 minutes and the plan audit)
 
@@ -593,6 +595,41 @@ written here, each derived from records already on file.
 | E3 | bit-identical results; about 30% off the solve | any bit differs | E3 |
 
 ---
+
+## THE PITFALL SWEEP: S126's pattern, hunted elsewhere - a GATE before Phase 4 (maintainer, 24 Sep ~08:40)
+
+"Ensure that when we get the results and fix in for S126, we check for similar potential pitfalls and test and
+fix them. They might be a slightly different cause but same pattern. Before Phase 4."
+
+**The pattern, stated so it can be searched for:** a sharp feature of the problem (a cliff, a constraint, a jump)
+falls between the table's grid points or buckets, and an ARTEFACT of the approximation (the log-odds clamp, a
+snapped bucket, the switch margin) decides where the solver thinks it is. The value is confidently wrong, and it
+steers decisions for years: S126's variants hold the pension below its tier for all 40-42 years where unaffected
+twins do so for 5-11.
+
+**The candidates, derived before any run.** Each gets a census or a variant test, a prediction and a falsifier.
+Each is either CLEARED (table within the calibration range of M16 at the positions concerned, and no decision
+signature) or FIXED and re-tested.
+
+| # | Candidate | Why it fits the pattern | How it is checked | Predicted |
+|---|---|---|---|---|
+| C1 | **The minimum-pot cliff at the end of the plan.** New default (step 6): every plan now has one | At t = T survival is 1[W >= P_min], a step along W. In the last few years a single year's market spread is narrower than a W step (26%), and the dead side sits at the clamp | Calibration by segment (the M16 tool) on the last 5 years, by distance to P_min, on the twelve with MINPOTYEARS=1. Records `k2-pot1` hold the behaviour: extra cutting near the end is the signature, and K2's falsifier already fired on "buffer kept by cutting" | A one-sided pessimism just above P_min in the last 2-3 years, smaller than S126's (W is finely spaced and log-odds suits a W cliff), but enough to explain part of K2's extra cutting |
+| C2 | **One-off costs.** A cost in a bridge year is S126 with a bigger need; any large cost is a W cliff in its year | Same mechanism; library singles carry no costs (M12), so it has never been looked at | S126 variants with a cost at 57 (10% and 30% of wealth), and a non-bridge household with a 30% cost at retirement + 3 | Bridge + cost: S126-sized errors wherever the household is on the live side of a\*. Cost outside a bridge: a smaller W-cliff error in the cost year |
+| C3 | **The very low end of the wealth axis** (0 to 0.1 years, linear; the node at zero is dead unless guaranteed income covers spending) | A clamped node next to live ones, in exactly the failing futures M17 concerns | Census: reads touching a node at the clamp with a live neighbour, over the whole plan, on the twelve | Rare, and confined to near-ruin positions. Checked because the M17 fix now prices those years |
+| C4 | **Snapped buckets:** the gain fraction {0.05, 0.25, 0.55} and the lump-sum-used share {0, 1/2, 1} | A snap is a jump, not a smear. For bridge households the lump sum at access is a large tax-free inflow | Reads at both neighbouring buckets, against the snapped read, at visited positions (bridge households and GIA-heavy ones) | Small (the 6e fidelity screen moved nothing by more than 2%), but never checked on bridge households |
+| C5 | **The switch margin deciding near-ties** (R1, Q12) | An artefact (a fixed margin) decides where the table is nearly indifferent, and paths stick to their starting tier | The M15 diagnostic, generalised: the share of decisions the margin overrules while tier families sit within 1e-4, on the twelve under today's defaults, including risk above | Frequent on comfortable households (it decides harmlessly among ties); on thin ones, rare unless a family is missing |
+| C6 | **Other inaccessible money** (a partner's pension before their own access; couples use even-split tables) | A second bridge per person | Deferred: couples ship after Phase 4 (Q9). Recorded, not checked now | - |
+
+**The general detector, built once with the S126 fix and reused by C1-C4:** a census that flags every read touching
+a clamped node while the read point is alive by local simulation, and reports the read's error against that local
+simulation, split by segment (bridge years, the last 5 years, cost years, low wealth).
+
+**Gate:** Phase 4 does not start until C1-C5 are each cleared or fixed, and re-tested with the fix.
+
+**Correction logged during the S126 replication (my error, "a wrong assumption"):** a\* must use the bridge's need
+at the FLOOR spend, not the target. The solver may cut to the floor in a bridge. The "share 0.95" variant, which I
+predicted truly failing, simulates at 68%: its £47.5k of accessible money covers two floor years (£46.4k). It is
+in the class, and it reads 0% (gap -68).
 
 ## M14b. Risk above the tier, re-checked under the step-6 defaults (prediction written 24 Sep ~08:00, before the run)
 

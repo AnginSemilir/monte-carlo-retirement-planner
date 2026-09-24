@@ -1,7 +1,8 @@
 # Raw results archive, 24 Sep 2026
 
 The solver research's raw result files are git-ignored (`research/solver/results/`, `research/policy-study/results/`).
-They are kept in the GitHub Release `results-2026-09-24`: they are too large for the repository's history.
+They are kept in the private repository `AnginSemilir/Retirement-calc-Archive` (branch `main`), not in this repository's
+history: they are too large for it, and every clone would download them (maintainer's choice, 24 Sep).
 
 | file | holds |
 |---|---|

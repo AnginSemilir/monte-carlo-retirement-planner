@@ -32,6 +32,7 @@ run "solver and every arm, mixture"      SOLVERONLY=0 LAMBDA=0.02 MIX=3 TIERS=1 
 run "risk above, plan at Medium, record" SOLVERONLY=1 LAMBDA=0.02 MIX=0 TIERS=1 TIERSABOVE=1 "PLANTIER=Medium Risk" RECORD=1 node research/solver/experiment.mjs flex "$T-d" 6 30 7001 7002
 run "F1 bridge read"                     SOLVERONLY=1 LAMBDA=0.02 MIX=0 TIERS=1 BRIDGEREAD=1 node research/solver/experiment.mjs flex "$T-e" 6 30 7001 7002
 run "F1 v2 bridge read"                  SOLVERONLY=1 LAMBDA=0.02 MIX=0 TIERS=1 BRIDGEREAD=2 node research/solver/experiment.mjs flex "$T-f" 6 30 7001 7002
+run "final year integrated exactly"     SOLVERONLY=1 LAMBDA=0.02 MIX=3 TIERS=1 FINALEXACT=1 MINPOTYEARS=1 FINALINT=1 node research/solver/experiment.mjs flex "$T-g" 6 30 7001 7002
 run "S126 audit scan (no solve)"         node research/solver/audit-s126.mjs scan
 run "reduceFlex over the arms' files"     node research/solver/experiment.mjs reduceFlex "$T-c"
 # a mode must use the settings it was given: the ids mode once read its id list as the grid size (24 Sep)
@@ -53,6 +54,7 @@ node -e '
     const j = JSON.parse(fs.readFileSync(p.join(R, d, f), "utf8")); n++;
     if (!j.code || !j.code.hash) { console.log(`SMOKE FAILED: ${d}/${f} has no code stamp`); process.exit(1); }
     if (!("prediction" in j) || !j.prediction || !j.prediction.none) { console.log(`SMOKE FAILED: ${d}/${f} has no prediction stamp`); process.exit(1); }
+    if (d.endsWith("-g") && !(j.knobs && j.knobs.finalIntegral === true)) { console.log(`SMOKE FAILED: ${d}/${f} ran without the exact final year (FINALINT=1 did not reach the solver)`); process.exit(1); }
   }
   if (n < 5) { console.log(`SMOKE FAILED: expected 5 result files, found ${n}`); process.exit(1); }
   console.log(`  ok  ${n} result files carry the code and prediction stamps`);

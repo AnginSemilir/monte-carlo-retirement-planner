@@ -373,7 +373,7 @@ function shareDeadAdjust(g, lsArr, NC) {
  * at the chance the accessible money itself lasts the bridge, Phi(ln(coverage) / (sigma x sqrt(years left))), so a
  * position just inside the cliff is not read as safe. Returns the cap in log-odds, or null when nothing applies.
  */
-function Phi(z) {   // the standard normal distribution function (Abramowitz and Stegun 26.2.17, error under 7.5e-8)
+export function Phi(z) {   // the standard normal distribution function (Abramowitz and Stegun 26.2.17, error under 7.5e-8)
   const t = 1 / (1 + 0.2316419 * Math.abs(z));
   const d = 0.3989422804014327 * Math.exp(-z * z / 2);
   const p = d * t * (0.31938153 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));

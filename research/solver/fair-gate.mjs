@@ -64,6 +64,7 @@ export function variablesOf(j, arm) {
     [4, 'survival asked for', only(solver, j.confidence ?? NR)],
     [7, 'market world', kv('mixture', x => (x ? `${x}-world mixture` : 'single-table fold'))],
     [8, 'return points a year', only(solver, kv('quadNodes', x => x, ASSUME(5)))],
+    [8, 'final-year integration', only(solver, kv('finalIntegral', x => (x ? 'exact (the crossing shock)' : '5 nodes'), ASSUME('5 nodes')))],
     [10, 'minimum pot', kv('minPotYears', x => (x == null ? "plan's own" : `${x} yr of target`), ASSUME("plan's own"))],
     [11, 'raise cap', solver ? kv('raiseCap', x => (x == null ? 'none' : String(x)), ASSUME('none')) : guard ? kv('guardCap', x => (x ? String(x) : 'none'), ASSUME('none')) : 'n/a'],
     [12, 'estate weight', only(solver, kv('bequestWeight', x => String(x), NR))],

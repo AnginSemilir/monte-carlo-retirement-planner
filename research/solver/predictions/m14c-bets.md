@@ -88,4 +88,11 @@ Both are run in the same process, from the same solve, on the same fresh paths.
 
 ## Changes after seeing results
 
-None - no M14c result exists.
+- 24 Sep ~19:30 UK: a container restart killed the batch after S162, S194 and S252 had written their bets files and
+  during S330's bet audit. S330 was re-run alone from 20:08 UK (`CELLS=` in batch-m14c.sh, the same settings and this
+  prediction), on newer code: cc636ea356b7 against ca10fa602ae6 for the other three. The one change reachable from the
+  solver is `PRODUCT_BASELINE.bridgeRead` (off), which experiment.mjs never uses (evidence: experiment.mjs has no
+  `solvePlan` or `PRODUCT_BASELINE`). Row 28's acceptance therefore also covers the mixed code, for the same reason: every
+  household's solve must reproduce m14b-up path for path before anything is reported (betAudit checks it). The summary
+  lines the batch printed for S162 and S252 were seen in the log before the gate ran. Nothing in the prediction, its
+  items or its falsifier changed.

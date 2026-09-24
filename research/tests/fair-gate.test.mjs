@@ -61,6 +61,12 @@ r = cmp(tag('a', f1(true)), tag('b', f1(2)));
 ok(r.bad === 1 && r.rows.find(x => x.name === 'bridge read (F1)').status === 'DIFFERS', 'planted: F1 v1 against F1 v2 is caught (24)');
 r = cmp(tag('a', f1(true)), tag('b', f1(true)));
 ok(r.bad === 0, 'v1 against v1 is still the same');
+// the final year integrated exactly against 5 nodes (O19; maintainer's unlock, 24 Sep ~20:10 UK)
+const fi = v => [file('S001', { knobs: { finalIntegral: v } }), file('S002', { knobs: { finalIntegral: v } })];
+r = cmp(tag('a', fi(false)), tag('b', fi(true)));
+ok(r.bad === 1 && r.rows.find(x => x.name === 'final-year integration').status === 'DIFFERS', 'planted: the exact final year against 5 nodes is caught (8)');
+r = cmp(tag('a', [file('S001'), file('S002')]), tag('b', fi(false)));
+ok(r.bad === 0, 'a file from before the setting existed reads as 5 nodes, the same as off');
 
 // every reducer written from 24 Sep must call the gate; the older ones are listed and frozen
 const LEGACY = ['reduce-108.mjs', 'reduce-6e.mjs', 'reduce-bestof.mjs', 'reduce-calibration.mjs', 'reduce-k.mjs', 'reduce-m17.mjs', 'reduce-step2.mjs'];

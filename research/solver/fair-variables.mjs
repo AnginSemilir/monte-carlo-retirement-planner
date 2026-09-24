@@ -25,7 +25,7 @@ export const VARIABLES = [
   { n: 5, g: 'A', name: 'The held-out paths: seed and count, and the SAME paths for every arm (paired)', where: '`seedHeld`, `held`', example: '' },
   { n: 6, g: 'A', name: "The search paths (landings, and the rival arms' choice of order), and that nothing chosen on them is reported from them", where: '`seedSearch`, `SEARCH`, `VERIFY`', example: 'the floor landing searched on 7001 and promised on 7002, as the app\'s spend finder had before it' },
   { n: 7, g: 'B', name: 'The market world: single-table fold (`MIX=0`), three-world mixture (`MIX=3`), five-world (`MIX=5`) - for the table AND for how every arm is simulated', where: '`mixture`', example: "K5's target (mixture) against the cells (fold), 24 Sep" },
-  { n: 8, g: 'B', name: "How each year's return is averaged (quadrature points)", where: '`QUAD`, `quadNodes` (5)', example: '' },
+  { n: 8, g: 'B', name: "How each year's return is averaged (quadrature points)", where: '`QUAD`, `quadNodes` (5); the final year: `FINALINT`, `finalIntegral` (off: 5 nodes)', example: '' },
   { n: 9, g: 'B', name: "The engine's return, volatility and charge assumptions, and the engine build", where: '`research/engine.mjs` (rebuilt from `App.jsx`); `code.hash`', example: '' },
   { n: 10, g: 'C', name: 'The minimum pot', where: '`MINPOTYEARS` (absent: the plan\'s own)', example: "K5's target: the one-year pot moved the guardrails' cutting on 4 of 12" },
   { n: 11, g: 'C', name: 'The raise cap', where: '`RAISECAP` (solver), `GUARDCAP` (guardrails)', example: "K5's target predated M23" },

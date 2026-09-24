@@ -34,7 +34,7 @@
  * state is six numbers, nothing is allocated in the loop, and the expectation over returns is taken
  * from the post-decision state so it costs one flow per move rather than one per move and node.
  */
-import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds, bridgeTable } from './grid.js';
+import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds, bridgeTable, Phi } from './grid.js';
 import * as F from './fast.js';
 
 /*
@@ -159,6 +159,71 @@ export function spendLevelsFor(floorFrac) {
 function realAt(c, z, out, act = null, t = 0, zPath = 0) {
   const R = act ? act.real : c.real, V = act ? act.volEffAt[t] : c.volEffAt[t], S = act ? act.sigma : c.sigma;
   for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + S[i] * zPath + V[i] * z) - 1;
+  return out;
+}
+
+/*
+ * THE FINAL YEAR INTEGRATED EXACTLY (`finalIntegral`; PLAN.md O19, a lead from an outside review of
+ * blurred-lines-brief.md, 24 Sep). With five nodes the last year's survival is a staircase: each node is judged exactly
+ * against the minimum pot, but their weighted count jumps by a node's weight (53 points at the middle one) and can price
+ * one tier up at nothing where it really costs several points (results-final-year-staircase.txt). The estate credit is
+ * zero below the pot, so it has the same step. Here the same cash flow and the same growth are used, and only the average
+ * changes: every pot grows with the one yearly shock z and wealth never falls as z rises, so the plan ends alive exactly
+ * when z >= z*, the shock at which it just reaches the pot. Survival is Phi(-z*), found by bisection to 1e-9 in z; the
+ * estate (and resilience) credit is integrated over the surviving shocks by 12-point Gauss-Legendre in u = Phi(z) on
+ * [Phi(z*), 1]. Returns [survival, estate, resilience] in `out`. Off, nothing changes: the five nodes as before.
+ */
+function gaussLegendre(n) {
+  const x = new Float64Array(n), w = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    let z = Math.cos(Math.PI * (i + 0.75) / (n + 0.5)), pp = 0;
+    for (let it = 0; it < 100; it++) {
+      let p1 = 1, p2 = 0;
+      for (let j = 1; j <= n; j++) { const p3 = p2; p2 = p1; p1 = ((2 * j - 1) * z * p2 - (j - 1) * p3) / j; }
+      pp = n * (z * p1 - p2) / (z * z - 1);
+      const dz = p1 / pp; z -= dz;
+      if (Math.abs(dz) < 1e-15) break;
+    }
+    x[i] = z; w[i] = 2 / ((1 - z * z) * pp * pp);
+  }
+  return { x, w };
+}
+const GL12 = gaussLegendre(12);
+// the inverse of Phi (Acklam's rational approximation, relative error under 1.2e-9)
+function PhiInv(u) {
+  const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239];
+  const b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572];
+  const c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416];
+  if (u <= 0) return -Infinity; if (u >= 1) return Infinity;
+  if (u < 0.02425) { const q = Math.sqrt(-2 * Math.log(u)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  if (u > 1 - 0.02425) { const q = Math.sqrt(-2 * Math.log(1 - u)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  const q = u - 0.5, r = q * q;
+  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+export function finalYearExact(c, t, post, act, terminal, grown, rbuf, out) {
+  const { floor, deathTax, resilK, shortfall, beqOf } = terminal;
+  const n = Math.min(post.length, grown.length);
+  const totalAt = z => { for (let q = 0; q < n; q++) grown[q] = post[q]; F.grow(c, t, grown, realAt(c, z, rbuf, act, t)); return grown[0] + grown[1] + grown[2]; };
+  const ZL = -9, ZH = 9;
+  let zStar = -Infinity;
+  if (floor > 0 && totalAt(ZL) < floor) {
+    if (totalAt(ZH) < floor) { out[0] = 0; out[1] = 0; out[2] = 0; return out; }
+    let lo = ZL, hi = ZH;
+    while (hi - lo > 1e-9) { const m = 0.5 * (lo + hi); if (totalAt(m) >= floor) hi = m; else lo = m; }
+    zStar = hi;
+  }
+  const u0 = zStar === -Infinity ? 0 : 1 - Phi(-zStar);
+  const sv = zStar === -Infinity ? 1 : Phi(-zStar);
+  let bq = 0, rs = 0;
+  for (let j = 0; j < GL12.x.length; j++) {
+    const u = u0 + (1 - u0) * (GL12.x[j] + 1) / 2, wj = sv * GL12.w[j] / 2;
+    const total = totalAt(PhiInv(u));
+    const net = Math.max(0, total - grown[0] * deathTax);
+    bq += wj * beqOf(net);
+    rs += wj * (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0));
+  }
+  out[0] = sv; out[1] = bq; out[2] = rs;
   return out;
 }
 
@@ -505,6 +570,8 @@ export function solve(E, M, plan, opts = {}) {
     stampFlow = new Int32Array(A).fill(-1); stampScore = new Float64Array(A).fill(-1);
     scS = new Float64Array(A); scB = new Float64Array(A); scR = new Float64Array(A); scH = new Float64Array(A); scV = new Float64Array(A);
   }
+  // the final year integrated exactly (finalYearExact, O19); off: the five nodes, as before
+  const FINT = !!opts.finalIntegral, FTERM = { floor, deathTax, resilK, shortfall, beqOf }, fx = new Float64Array(3), fxR = new Float64Array(4);
   for (let t = T; t >= 0; t--) {
     const spendYear = c.yr.spend[t] > 0;
     // world-independent, so computed once a year rather than once a world: E0 made the world loop the
@@ -549,7 +616,8 @@ export function solve(E, M, plan, opts = {}) {
                     let s = 0, b = 0, rs = 0, h = 0;
                     if (!fail) {
                       const nr = nodeRealOf[ai];
-                      for (let zi = 0; zi < NQ; zi++) {
+                      if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                      else for (let zi = 0; zi < NQ; zi++) {
                         for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
                         F.grow(cs[k], t, grown, nr[zi]);
                         if (t === T) {
@@ -634,7 +702,8 @@ export function solve(E, M, plan, opts = {}) {
                   if (!fail) {
                     const tn = PROF ? now() : 0;
                     const nr = nodeRealOf[ai];
-                    for (let zi = 0; zi < NQ; zi++) {
+                    if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                    else for (let zi = 0; zi < NQ; zi++) {
                       for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
                       F.grow(cs[k], t, grown, nr[zi]);
                       if (t === T) {
@@ -675,7 +744,7 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, solverVersion: SOLVER_VERSION };
   if (PROF) {
     PROF.total = now() - profT0;
     // two clock calls per timed region, and the outer pair too
@@ -694,7 +763,7 @@ export function solve(E, M, plan, opts = {}) {
     tieMargin: opts.tieMargin || 0,
     /* the end-of-plan rule the backward pass applies at t = T, so the final year can be scored exactly (see scoreMoves) */
     terminal: { floor, deathTax, resilK, shortfall, beqOf },
-    finalExact: !!opts.finalExact,
+    finalExact: !!opts.finalExact, finalIntegral: FINT,
     raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
     /*
      * PHASE E0, STEP 2. One result-like view per world, for `chooseAction`'s mixture loop, which calls
@@ -715,7 +784,7 @@ export function solve(E, M, plan, opts = {}) {
     surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
     nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW, quadNodes: QZ,
     tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
-    terminal: { floor, deathTax, resilK, shortfall, beqOf }, finalExact: !!opts.finalExact, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
+    terminal: { floor, deathTax, resilK, shortfall, beqOf }, finalExact: !!opts.finalExact, finalIntegral: FINT, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
     /*
      * A world view answers `policy` and `value` as the central result does, reading ITS OWN tables.
      * Leaving them off made the view scoreable but not readable, which is half a result: the mixture
@@ -874,7 +943,11 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null) {
     if (t >= r.m.ctx.totalYears) {
       // the final year, exactly as the backward pass scores it at t = T: grown, then judged by the end-of-plan rule
       const { floor, deathTax, resilK, shortfall, beqOf } = r.terminal;
-      for (let zi = 0; zi < QW.length; zi++) {
+      if (r.finalIntegral) {
+        const fx = r._fx || (r._fx = new Float64Array(3)), fxR = r._fxR || (r._fxR = new Float64Array(4));
+        finalYearExact(c, t, post, variant ? variant.act : c.acts[ai], r.terminal, grown, fxR, fx);
+        sv = fx[0]; bq = fx[1]; rs = fx[2];
+      } else for (let zi = 0; zi < QW.length; zi++) {
         grown.set(post);
         F.grow(c, t, grown, nr[zi]);
         const total = grown[0] + grown[1] + grown[2];

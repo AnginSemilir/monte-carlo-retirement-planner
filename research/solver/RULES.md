@@ -168,7 +168,7 @@ blob is stamped into every result file, so an edit after the run shows as PREDIC
 | 6 | The search paths (landings, and the rival arms' choice of order), and that nothing chosen on them is reported from them | `seedSearch`, `SEARCH`, `VERIFY` | the floor landing searched on 7001 and promised on 7002, as the app's spend finder had before it |
 | **B** | **The market** | | |
 | 7 | The market world: single-table fold (`MIX=0`), three-world mixture (`MIX=3`), five-world (`MIX=5`) - for the table AND for how every arm is simulated | `mixture` | K5's target (mixture) against the cells (fold), 24 Sep |
-| 8 | How each year's return is averaged (quadrature points) | `QUAD`, `quadNodes` (5) | - |
+| 8 | How each year's return is averaged (quadrature points) | `QUAD`, `quadNodes` (5); the final year: `FINALINT`, `finalIntegral` (off: 5 nodes) | - |
 | 9 | The engine's return, volatility and charge assumptions, and the engine build | `research/engine.mjs` (rebuilt from `App.jsx`); `code.hash` | - |
 | **C** | **The user's rules - equal on every arm, always** | | |
 | 10 | The minimum pot | `MINPOTYEARS` (absent: the plan's own) | K5's target: the one-year pot moved the guardrails' cutting on 4 of 12 |

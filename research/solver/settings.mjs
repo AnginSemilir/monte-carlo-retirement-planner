@@ -26,7 +26,7 @@ export const WORDS = {
 export const FLAGS = ['RAISESURV', 'FINALEXACT', 'TERNARY', 'GIATIERS', 'BLOCKTRIM', 'PCLSSTRICT', 'GAININT',
   'SOLVERONLY', 'ARMSONLY', 'RECORD', 'STOREPOL', 'BETAUDIT'];
 export const NUMBERS = ['MIX', 'EXP', 'MARGIN', 'RAISE', 'WR', 'WB', 'SHARES', 'SWITCH', 'SEARCH', 'VERIFY', 'DRIFT', 'TIERSABOVE',
-  'LAMBDA', 'FLOOR', 'ONLY', 'LO', 'HI', 'QUAD', 'MINPOTYEARS', 'RAISECAP', 'GIAGAIN', 'GUARDCAP', 'ESTATESCALE', 'BISECT',
+  'LAMBDA', 'FLOOR', 'ONLY', 'LO', 'HI', 'QUAD', 'FINALINT', 'MINPOTYEARS', 'RAISECAP', 'GIAGAIN', 'GUARDCAP', 'ESTATESCALE', 'BISECT',
   'SOLVER_CLAMP', 'SOLVER_FOLD_K', 'BETPOS', 'BETPATHS'];   // the last two read by grid.js and fast.js
 export const LISTS = ['LEVELS', 'GAINB'];   // comma-separated numbers
 // CONF: a survival level (0.9), a margin over the guardrails' own rate (+5), or 'gkFloor' (the guardrails-with-floor rate)

@@ -134,4 +134,5 @@ Two changes were made before the run; after it, one decision went against the re
 - 24 Sep 19:25 UK, AFTER the result: **the override withdrawn; the registered consequence stands.** v2 is not carried
   forward. The bridge read is off by default (`PRODUCT_BASELINE.bridgeRead = false`). F2 is built and tested (7e), with
   off, v1 and v2 as its other arms in one setting. Nothing in the prediction, its items or its falsifier changed, and
-  the result stands as read. The choice was put back to the maintainer with this rule stated.
+  the result stands as read. The choice was put back to the maintainer, with this rule stated, at 20:08 UK; the
+  maintainer approved "off until 7e" at 20:15 UK.

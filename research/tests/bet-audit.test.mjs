@@ -1,5 +1,5 @@
 /*
- * THE BET AUDIT (M14c, bet-audit.mjs) on a tiny solve: it must find the first bets, compare each with the table's best
+ * THE BET AUDIT (M14c, record.mjs betAudit) on a tiny solve: it must find the first bets, compare each with the table's best
  * move that does not bet, and simulate both from the same position - and it must REFUSE to report when the solve it is
  * given is not the one the reference record came from (planted: one path's outcome flipped in the reference).
  */
@@ -11,7 +11,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solve, runPolicy } from '../../src/solver/solve.js';
 import { makeTrace, writeRecord } from '../solver/record.mjs';
-import { betAudit, betSummary } from '../solver/bet-audit.mjs';
+import { betAudit, betSummary } from '../solver/record.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };

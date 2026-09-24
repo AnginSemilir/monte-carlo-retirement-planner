@@ -494,10 +494,10 @@ if (mode === 'flex') {
     }
   }
   // BETAUDIT=1 (M14c, 24 Sep): at each held path's first bet, the table's margin and bet against stay simulated; the
-  // solve must reproduce m14b-up's record first (bet-audit.mjs). Research only; needs RECORD=1 and TIERSABOVE=1.
+  // solve must reproduce m14b-up's record first (record.mjs, betAudit). Research only; needs RECORD=1 and TIERSABOVE=1.
   if (process.env.BETAUDIT === '1') {
     if (!RECORD || !process.env.TIERSABOVE) { console.error('BETAUDIT needs RECORD=1 and TIERSABOVE=1 (the M14b arm it audits)'); process.exit(2); }
-    const { betAudit, betSummary } = await import('./bet-audit.mjs');
+    const { betAudit, betSummary } = await import('./record.mjs');
     console.log(betSummary(betAudit({ E, r, held, solvedRs, trS, id: sc.id, tag, RESULTS, CODE, PREDICTION, NPOS: Number(process.env.BETPOS || 40), NP: Number(process.env.BETPATHS || 500) })));
   }
   const f = (x) => x.toFixed(1);

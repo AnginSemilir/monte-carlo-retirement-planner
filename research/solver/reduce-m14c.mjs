@@ -1,11 +1,11 @@
 /*
  * REDUCER FOR M14c (predictions/m14c-bets.md): does the solver's table misjudge the bets? Reads results/m14c/<id>.bets.json
- * (bet-audit.mjs) behind the fair-test gate against M14b's arm with the tier above, whose solve each household must have
+ * (record.mjs, betAudit) behind the fair-test gate against M14b's arm with the tier above, whose solve each household must have
  * reproduced path for path (the file's `reproduced`; any difference and the household is refused). The M14c files carry
  * newer code than m14b-up's (row 28): the reproduction check is what makes that difference harmless, so the gate is run
  * with row 28 accepted for that reason:
  *
- *   FAIR_ACCEPT="28=M14c's solve reproduced m14b-up's record path for path, survival and every year's tier and level (bet-audit.mjs checks it before reporting)" node research/solver/reduce-m14c.mjs
+ *   FAIR_ACCEPT="28=M14c's solve reproduced m14b-up's record path for path, survival and every year's tier and level (betAudit checks it before reporting)" node research/solver/reduce-m14c.mjs
  *
  * Per household: the bet minus staying in simulated survival, pooled over positions (se: root sum of squares over the
  * count); the table's margins; the estate on paths both survive. Then pooled over all four, by how often staying

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # M14c (predictions/m14c-bets.md): does the solver's table misjudge the bets M14b's arm with the tier above made? M14b's
 # arm B exactly (TIERSABOVE=1 and every other setting of batch-m14b.sh, the same lambdas, the same 3,000 held paths of
-# seed 7011), with BETAUDIT=1: bet-audit.mjs first checks the solve reproduces m14b-up's record path for path, then at up
+# seed 7011), with BETAUDIT=1: betAudit (record.mjs) first checks the solve reproduces m14b-up's record path for path, then at up
 # to 40 first-bet positions simulates the bet against the table's best move without it on 500 fresh paths each.
 # Households: S194 S162 S252 (their bets lost in M14b) and S330 (the control: its bets won).
 set -u

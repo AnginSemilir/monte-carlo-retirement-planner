@@ -10,19 +10,26 @@ Claude Code guidance), so the always-loaded text is the checklist and the rules 
 remembers them, and every one looks at files, not at what was said about them. In order of strength:
 
 1. **The research scripts themselves** (work in any tool): `run-from-snapshot.sh` refuses a run without a registered,
-   pushed prediction and refuses code that fails `smoke.sh`; the reducers refuse to print a figure unless
-   `fair-gate.mjs` passes; every result file records the code (`code.hash`) and the prediction it ran under.
+   pushed prediction and refuses code that fails `smoke.sh` (re-run when the hashed code changes: the solver, engine,
+   library and experiment.mjs - an edit to an audit script or select-phase4.mjs alone does not re-run it, so the smoke
+   run is run by hand after one); the reducers refuse to print a figure unless `fair-gate.mjs` passes; every result file
+   experiment.mjs writes records the code (`code.hash`) and the prediction it ran under (the audit scripts' outputs do
+   not yet).
 2. **`check-plan.mjs`**, run by GitHub CI on every push (outside any session: a red cross the maintainer sees), by the
    git pre-commit hook (`.githooks/pre-commit`), and by Claude Code's Stop hook.
 3. **Claude Code hooks** (`.claude/settings.json`): the Stop hook refuses to end a turn while the plan check fails or the
    plan has changed without a review; before a tool runs, an edit to the enforcement files is REFUSED unless the
    maintainer's own latest message says "unlock enforcement" (a subagent's report, a tool result or a compaction summary
-   never counts; the lock returns with their next message) - an "ask" would be approved unseen in auto mode; and
-   killing by pattern, `--no-verify`, moving `core.hooksPath`, removing the run lock, force pushes and experiments
-   launched outside the launcher are refused, each part of a command judged on its own, each rule finding its command
-   past variables and wrappers in front of it and inside `bash -c`/`eval` (maintainer's unlock, 24 Sep 11:00 UK). A
-   program that runs a command itself is not seen: a guardrail, not a sandbox. After every compaction the checklist is
-   restated.
+   never counts; the lock returns when their next message is DELIVERED, at the end of the turn they typed it in) - an
+   "ask" would be approved unseen in auto mode; and killing by pattern, `--no-verify`, moving `core.hooksPath`,
+   removing the run lock, force pushes and runs of experiment.mjs, batch-*.sh and audit-*.mjs outside the launcher are
+   refused, each part of a command judged on its own, each rule finding its command past variables and wrappers in
+   front of it and inside `bash -c`/`eval` (maintainer's unlock, 24 Sep 11:00 UK). NOT seen - a guardrail, not a
+   sandbox: a shell fed a here-document, a launch of any other script (select-phase4.mjs, the gate scripts), a program
+   that runs a command itself (PLAN.md, bugs of 24 Sep, has the fixes proposed). **An unlock covers only the change the
+   maintainer agreed to:** anything else - above all a loosening, however sound - is proposed first; it ends as soon as
+   their next message is seen, even queued; and the diff is shown before the commit (the seventh review, 24 Sep 11:24
+   UK, found all three broken). After every compaction the checklist is restated.
 4. **The plan-auditor agent** (`.claude/agents/plan-auditor.md`): a reviewer with no stake in the work reads each change
    to the plan against the judgement rules below and writes a receipt to `review-log.md`; the Stop hook requires a
    PASS receipt for the plan as it stands. It reviews the change (the whole plan only when there is no passing review
@@ -103,7 +110,7 @@ because the solver had already won on them).
    code is checked against every change since that touches the quantity. K5's target failed exactly here: files
    made for one purpose, reused for another, under settings nobody re-read.
 
-The ledger row of every settled result names the check's outcome. From 24 Sep every result file records the code
+The ledger row of every settled result names the check's outcome. From 24 Sep every result file experiment.mjs writes records the code
 that made it (`code.hash`, a hash of the solver, engine, library and experiment script, plus the git commit); files
 made earlier record no code identity, so for them it is established by hand from git history. Run on the comparisons
 the current plan rests on: `results-fair-test-audit.txt` (K5's first target fails on 7, 10 and 11; the corrected

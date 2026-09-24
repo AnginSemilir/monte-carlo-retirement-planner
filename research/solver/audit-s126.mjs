@@ -31,8 +31,10 @@ const all = buildScenarios().filter(s => s.plan.demographics.planningMode === 's
 const s126 = all.find(s => s.id === 'S126');
 const LIQ = /^S&S ISA|^Other Investments|^Cash/;
 
-/* S126 with its pension share, bridge length and wealth changed; everything else as it is */
-function variant(name, { a0 = 0.85, bridge = 2, scale = 1 } = {}) {
+/* S126 with its pension share, bridge length and wealth changed, and optionally a one-off cost `cost: [years from now,
+ * amount]` (the F1 v2 test's cost case, maintainer 24 Sep: no library bridge household has a cost inside its bridge);
+ * everything else as it is */
+function variant(name, { a0 = 0.85, bridge = 2, scale = 1, cost = null } = {}) {
   const p = JSON.parse(JSON.stringify(s126.plan));
   const W = p.accounts.reduce((t, a) => t + E.num(a.balance, 0), 0) * scale;
   const liq0 = p.accounts.filter(a => LIQ.test(a.category)).reduce((t, a) => t + E.num(a.balance, 0), 0);
@@ -45,6 +47,10 @@ function variant(name, { a0 = 0.85, bridge = 2, scale = 1 } = {}) {
   const nmpa = E.num(p.demographics.privatePensionAge, 58);
   const age = nmpa - bridge;
   p.demographics = { ...p.demographics, currentAgeSelf: age, retireAgeSelf: Math.min(age, E.num(p.demographics.retireAgeSelf, 55)) };
+  if (cost) {
+    const y = E.buildContext(E.normalizePlan(p)).baseYear + cost[0];
+    p.oneOffCosts = [...(p.oneOffCosts || []), { id: 'f1cost', date: `${y}-06-01`, year: y, owner: 'Myself', amount: cost[1], desc: 'One-off cost (test)' }];
+  }
   return { id: name, plan: p };
 }
 
@@ -127,7 +133,9 @@ function measureV2(h, bridgeRead) {
 if (mode === 'f1v2') {
   // the cases, in a fixed order; `part k/n` runs every n-th from the k-th, so a batch can split them across processes
   const cases = [...F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]),
-    ...['S120', 'S122', 'S124', 'S128', 'S130', 'S360', 'S366', 'S370'].map(id => [id, () => all.find(s => s.id === id)])];
+    ...['S120', 'S122', 'S124', 'S128', 'S130', 'S360', 'S366', 'S370'].map(id => [id, () => all.find(s => s.id === id)]),
+    // added before any run at the maintainer's request (24 Sep 14:05 UK): bridge 4 with a 30k one-off cost in its year 2
+    ['bridge 4+cost', () => variant('bridge 4+cost', { bridge: 4, cost: [2, 30000] })]];
   const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
   const [pk, pn] = part.split('/').map(Number);
   if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }

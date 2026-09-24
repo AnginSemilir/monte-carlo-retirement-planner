@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const log = readFileSync(process.argv[2] || join(HERE, 'results-f1v2.txt'), 'utf8');   // a path given is the run's own log, or a planted one
 const CASES = ['S126', 'share 0.50', 'share 0.70', 'share 0.78', 'share 0.90', 'share 0.95', 'bridge 0', 'bridge 1', 'bridge 4', 'bridge 6',
-  'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S124', 'S128', 'S130', 'S360', 'S366', 'S370'];
+  'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S124', 'S128', 'S130', 'S360', 'S366', 'S370', 'bridge 4+cost'];
 const num = x => Number(x);
 const rows = [];
 const lines = log.split('\n');
@@ -35,7 +35,7 @@ lines.forEach((l, i) => {
 });
 const missing = CASES.filter(id => !rows.some(r => r.id === id)), extra = rows.filter(r => !CASES.includes(r.id)).map(r => r.id);
 if (missing.length || extra.length || rows.length !== CASES.length) {
-  console.error(`read-f1v2: expected the 20 cases once each; missing ${missing.join(', ') || 'none'}, unexpected ${extra.join(', ') || 'none'}, rows ${rows.length}`);
+  console.error(`read-f1v2: expected the 21 cases once each; missing ${missing.join(', ') || 'none'}, unexpected ${extra.join(', ') || 'none'}, rows ${rows.length}`);
   process.exit(1);
 }
 
@@ -59,13 +59,17 @@ if (bad.length) {
   for (const b of bad) console.log(`  ${b}`);
   process.exit(1);
 }
-console.log('FAIR-TEST GATE: passed - on all 20 cases the two arms ran the same settings but the bridge read (off, 2), and those settings are the step-6 defaults in the mixture\n');
+console.log('FAIR-TEST GATE: passed - on all 21 cases the two arms ran the same settings but the bridge read (off, 2), and those settings are the step-6 defaults in the mixture\n');
 
 // the class at the floor need, from the inputs (no solve)
 const scan = execFileSync('node', [join(HERE, 'audit-s126.mjs'), 'scan'], { cwd: join(HERE, '../..') }).toString();
 const inClass = new Set();
 for (const l of scan.split('\n')) { const m = /^(\S+(?: [\d.x]+)?)\s+.*class YES/.exec(l.trim()); if (m) inClass.add(m[1].trim()); }
+const by0 = id => rows.find(r => r.id === id);
 for (const r of rows) r.cls = inClass.has(r.id);
+// the cost case (added before any run, 14:05 UK): bridge 4 is in the class, and with its 30k cost counted in the floor need
+// a* is 0.871, still above its pension share of 0.85, so it is scored with the class; the scan does not list it (no solve)
+by0('bridge 4+cost').cls = true;
 const EDGE = new Set(['share 0.95', 'bridge 6']), THIN = new Set(['S128', 'S130']);
 const f = x => (x >= 0 ? '+' : '') + x.toFixed(1);
 const by = id => rows.find(r => r.id === id);
@@ -74,7 +78,7 @@ console.log('case         class  gap off -> v2    tier-below off -> v2   surviva
 for (const r of rows) console.log(`${r.id.padEnd(12)} ${(r.cls ? 'YES' : 'no').padEnd(5)}  ${f(r.off.gap).padStart(6)} -> ${f(r.on.gap).padStart(6)}   ${r.off.tier.toFixed(1).padStart(5)} -> ${r.on.tier.toFixed(1).padStart(5)}        ${f(r.d)} +/- ${r.se.toFixed(2)}`);
 
 const verdict = (ok, text) => console.log(`  ${ok ? 'HELD  ' : 'MISSED'} ${text}`);
-console.log('\nItem 1 - in class away from the edge: v2 within +/-5 of simulation (the thin S128 and S130 within +/-8)');
+console.log('\nItem 1 - in class away from the edge (the cost case included): v2 within +/-5 of simulation (the thin S128 and S130 within +/-8)');
 const away = rows.filter(r => r.cls && !EDGE.has(r.id));
 for (const r of away) { const lim = THIN.has(r.id) ? 8 : 5; verdict(Math.abs(r.on.gap) <= lim, `${r.id}: gap ${f(r.on.gap)} (limit +/-${lim})`); }
 console.log('\nItem 2 - what v2 changes: share 0.95 within +/-10; bridge 6, S366 and S370 within +/-5');

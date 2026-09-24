@@ -34,6 +34,12 @@ From the F1 test and its diagnosis (`results-f1.txt`, `results-f1-misses.txt`, b
 - **Out of class**: bridge 0 has no retired bridge, so the bridge table is empty and the solve is the same, bit for bit
   (pinned by solver-f1.test.mjs on S000). Share 0.50 and 0.70 are covered many times over: the cap is one and no dead corner
   sits beside a live one.
+- **The cost case** (bridge 4 with a 30k one-off cost in its year 2, added before any run): from its inputs, the
+  accessible money covers the bridge's floor need 1.54 times without the cost and 1.16 times with it (142.5k against
+  92.8k + 30k); the growth-aware cap is then about 97 (85 without growth), and with the cost counted in the floor need
+  a* is 0.871, still above the pension share of 0.85 - so it stays in the class. v2 should read it as it reads bridge 4.
+  At 30k the cap is near one whether or not the cost is counted, so this case checks that v2 reads a household with a
+  bridge cost correctly; that the cost is counted at all is pinned by solver-f1.test.mjs's planted checks.
 - **Behaviour**: where v1 took S126 and S120 off the pension's lower tier (40 -> 10.7 and 40 -> 0.2 years in the fold), v2,
   reading them the same, does too.
 - **A known approximation, not predicted either way:** under the mixture every world's cap uses the centre world's growth
@@ -43,8 +49,8 @@ From the F1 test and its diagnosis (`results-f1.txt`, `results-f1-misses.txt`, b
 ## Prediction
 
 1. **In class away from the edge** (the class at the floor need, from `audit-s126.mjs scan`: S126, share 0.90, bridge 1,
-   bridge 4, wealth x0.5, wealth x2, S120, S122, S124, S128, S130): v2's table within +/-5 of simulated survival; the thin
-   S128 and S130 within +/-8.
+   bridge 4, wealth x0.5, wealth x2, S120, S122, S124, S128, S130; and the cost case): v2's table within +/-5 of simulated
+   survival; the thin S128 and S130 within +/-8.
 2. **What v2 changes:** share 0.95 within +/-10; bridge 6, S366 and S370 within +/-5 (v1 in the fold: -10.8, -46.0, -96.2;
    S370 never run).
 3. **S360:** v2 reads below simulation by 5 to 30 points (v1 in the fold: -39.8).
@@ -56,7 +62,7 @@ From the F1 test and its diagnosis (`results-f1.txt`, `results-f1-misses.txt`, b
 
 ## Falsified if
 
-An in-class case away from the edge misreads by more than 10 points with v2; or bridge 6 or S366 misreads by more than
+An in-class case away from the edge (the cost case included) misreads by more than 10 points with v2; or bridge 6 or S366 misreads by more than
 15 (the inflow count does not work); or any case loses survival beyond two paired se. Then v2 is not carried forward, and
 F2 (a coverage axis in bridge years, or a node at the cliff) is built instead.
 
@@ -64,8 +70,8 @@ F2 (a coverage axis in bridge years, or a node at the cliff) is built instead.
 
 | # | Variable | Arm A | Arm B | Status |
 |---|---|---|---|---|
-| 1 | The households, and how they were chosen (by a rule that never looks at the solver; tuning set, never the held-out panel) | the 12 S126 variants (the F1 test's), S120 S122 S124 S128 S130 (the library class), S360 S366 S370 (the long bridges: S370 added from its inputs, results-f1-misses.txt) | the same cases | SAME |
-| 2 | Changes the test makes to a household's inputs | variants of S126: pension share, bridge length, wealth | the same variants | SAME |
+| 1 | The households, and how they were chosen (by a rule that never looks at the solver; tuning set, never the held-out panel) | the 12 S126 variants (the F1 test's), S120 S122 S124 S128 S130 (the library class), S360 S366 S370 (the long bridges: S370 added from its inputs, results-f1-misses.txt), and the cost case (bridge 4 with a 30k cost in its year 2: no library bridge household has a cost inside its bridge) | the same cases | SAME |
+| 2 | Changes the test makes to a household's inputs | variants of S126: pension share, bridge length, wealth, and one with a one-off cost of 30k in 2028 | the same variants | SAME |
 | 3 | The target spend and the spending floor, and whether each arm honours the floor | the plan target; floor 0.8; guardrails off | the same | SAME |
 | 4 | The survival asked for, when a run lands | no ask: lambda held at S126's landed 0.02236 | the same | SAME |
 | 5 | The held-out paths: seed and count, and the SAME paths for every arm (paired) | 1,000 held paths, seed 7002 | the same paths, paired | SAME |
@@ -100,4 +106,8 @@ F2 (a coverage axis in bridge years, or a node at the cliff) is built instead.
 
 ## Changes after seeing results
 
-None yet.
+No result of this test exists yet; one change was made before the run.
+- 24 Sep 14:08 UK, before any run: added the cost case, bridge 4 with a 30k one-off cost in its year 2, at the
+  maintainer's request (14:05 UK, "Yes, add the cost case"). It covers a bridge household with a one-off cost, which the
+  library does not have. Changed: the derivation, item 1, the falsifier and rows 1-2 now include the cost case. Nothing
+  else changed. The case runs last (the 21st), and read-f1v2.mjs scores it with the class.

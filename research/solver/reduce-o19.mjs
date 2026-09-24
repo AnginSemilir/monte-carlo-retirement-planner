@@ -20,7 +20,8 @@ const R = join(dirname(fileURLToPath(import.meta.url)), 'results');
 const ARMS = ['o19-d5', 'o19-u5', 'o19-dx', 'o19-ux'];
 const LOST = ['S194', 'S162', 'S252'], THIN = ['S330', 'S354'], TRADE = 'S172';
 const ABOVE = 15;   // tier code: pension and ISA both one above the plan (index 3), as reduce-m14.mjs
-requireFair([['o19-d5', 'o19-u5', { tested: [13] }], ['o19-dx', 'o19-ux', { tested: [13] }], ['o19-u5', 'o19-ux', { tested: [8] }], ['o19-d5', 'o19-dx', { tested: [8] }]]);
+// each pairing is gated on its one LINE (a row number would let its whole group through: row 8 also holds quadNodes, row 13 PLANTIER)
+requireFair([['o19-d5', 'o19-u5', { tested: ['risk tiers allowed'] }], ['o19-dx', 'o19-ux', { tested: ['risk tiers allowed'] }], ['o19-u5', 'o19-ux', { tested: ['final-year integration'] }], ['o19-d5', 'o19-dx', { tested: ['final-year integration'] }]]);
 const f = (x, d = 2) => (Number.isFinite(x) ? x.toFixed(d) : '-');
 const sg = x => (x >= 0 ? '+' : '') + f(x);
 const med = a => { const b = [...a].sort((x, y) => x - y); return b.length ? b[b.length >> 1] : NaN; };

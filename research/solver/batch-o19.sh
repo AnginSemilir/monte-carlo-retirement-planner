@@ -2,7 +2,7 @@
 # O19: the final year integrated exactly (FINALINT=1) against the 5-node rule, each with and without one tier above the
 # plan (TIERSABOVE=1), plan held at Medium, M14b's settings otherwise - four arms, paired on the same 3,000 paths.
 # predictions/o19-final.md. Launch: PREDICTION=research/solver/predictions/o19-final.md bash research/solver/run-from-snapshot.sh bash research/solver/batch-o19.sh
-# CELLS re-runs a subset; P sets how many run at once (default 3: M14c's S330 re-run holds a core at launch).
+# CELLS re-runs a subset; P sets how many run at once (default 3; launched with P=4 once M14c has exited).
 set -u
 H="${CELLS:-34:2 26:0.1 50:2 28:0.6503449126242364 64:0.9457416090031758 68:1.140477893362459}"
 J=""; for h in $H; do J="$J$h:o19-d5:

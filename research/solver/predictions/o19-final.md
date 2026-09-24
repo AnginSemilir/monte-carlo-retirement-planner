@@ -2,7 +2,7 @@
 
 - **Run:** `batch-o19.sh` - result tags `o19-d5`, `o19-u5`, `o19-dx`, `o19-ux` (each household's result file and record); reducer `node research/solver/reduce-o19.mjs`
 - **Kind:** test
-- **Written:** 24 Sep ~20:55 UK, before any run with the exact final year beyond its unit test; the maintainer asked at ~20:10 UK to prioritise testing the outside review's ideas
+- **Written:** 24 Sep 20:28 UK (committed 20:45 UK), before any run with the exact final year beyond its unit test; the maintainer asked at 20:15 UK to prioritise testing the outside review's ideas
 - **Plan section:** PLAN.md O19 (the final year's 5-node staircase), O18 (M14b's lost bets)
 
 ## Question
@@ -25,8 +25,10 @@ then prefers the bet in the last years, and M14b's lost paths end exactly there:
 years before the end. Integrated exactly, the downside is priced at every pot, so the table should stop preferring bets
 that lose survival near the end, and earlier years inherit a final layer without steps. Where the bet is right (a thin
 household far below the line), the exact rule charges the same kind of cost it credits, so the gain should remain.
-The exact rule changes nothing else: the same cash flow, growth and rules, only the final year's average (evidence:
-final-integral.test.mjs, survival within 5.5e-6 and the estate within 0.03% of a brute-force integral of the same growth).
+The exact rule changes nothing else: the same cash flow, growth and rules, only the final year's average (evidence: the
+code - src/solver/solve.js keeps the 5-node loop as the `else` branch of each `t === T && FINT` test, in both backward
+loops and the forward pick; and final-integral.test.mjs checks the final year itself: survival within 5.5e-6 and the
+estate within 0.03% of a brute-force integral of the same growth).
 
 ## Prediction
 
@@ -90,8 +92,12 @@ rules differ only in row 8. All four run in one batch on one code snapshot.
 | 30 | The reducer and its version | reduce-o19.mjs (fair-gated on all four pairings) | the same | SAME |
 | 31 | Paired or not, and the standard error used | paired on the same 3,000 paths; se = sqrt(discordant)/N; pooled as the mean with the root sum of squares over the count | the same | SAME |
 | 32 | The table's number is never the result: survival is simulated | simulated | simulated | SAME |
-| 33 | For timings: what else the machine was running | the solve times are printed but no timing claim is made (M14c's S330 re-run shares the machine at launch); the run-time bar is measured separately on a quiet box before any decision | the same | N/A - no timing claim |
+| 33 | For timings: what else the machine was running | the solve times are printed but no timing claim is made (four at a time; the exact arms' extra cost is unmeasured); the run-time bar is measured separately on a quiet box before any decision | the same | N/A - no timing claim |
 
 ## Changes after seeing results
 
-None - no O19 result exists.
+No O19 result exists. Changed before any run, after the twenty-second review (21:00 UK): the written and asked times
+corrected (20:28 and 20:15 UK); the no-effect claim in the derivation now cites the code as well as the unit test; row
+33's note on what shares the machine; and the reducer gates each pairing on its one line ('risk tiers allowed', 'final-year
+integration') instead of the row number, whose group also holds `quadNodes` and `PLANTIER`. Nothing in the question,
+the items or the falsifier changed.

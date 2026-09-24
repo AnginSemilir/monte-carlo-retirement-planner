@@ -2,7 +2,8 @@
  * THE FINAL YEAR INTEGRATED EXACTLY (`finalIntegral`, O19). finalYearExact must give the same survival and estate as a
  * brute-force integral of the SAME growth over the yearly shock (a 400,001-point grid on [-10, 10]), on a real household's
  * compiled context; it must differ from the 5-node rule where the rule is a staircase (planted: the pot just inside a
- * node's step); and a solve with it on must run, say so in its meta, and leave every earlier year's arithmetic alone.
+ * node's step); and a solve with it on must run and say so in its meta. That earlier years' arithmetic is untouched is
+ * by the code (the 5-node loop is the `else` branch), not tested here.
  */
 import assert from 'node:assert/strict';
 import * as E from '../engine.mjs';

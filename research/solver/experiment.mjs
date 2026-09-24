@@ -57,6 +57,26 @@ import { RECORD, STOREPOL, makeTrace, mark, markFail, writeRecord, polToB64 } fr
 import { mkdirSync, writeFileSync, readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { execSync } from 'node:child_process';
+/*
+ * THE CODE THAT MADE A RESULT (the fair-test check, PLAN.md headline, 24 Sep). A hash of every file whose change can
+ * move a number - the solver, the engine, the library and this script - plus the git commit where there is one (a
+ * snapshot run has none). Two result files with the same hash were made by the same code. The hand-set solverVersion
+ * tag was not bumped between 21 and 24 Sep, through the M17 fix and F1, so it proves nothing on its own.
+ */
+const CODE = (() => {
+  try {
+    const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
+    const files = ['research/engine.mjs', 'research/solver/experiment.mjs', 'research/policy-study/scenarios.mjs',
+      ...readdirSync(join(root, 'src/solver')).filter(f => f.endsWith('.js')).sort().map(f => `src/solver/${f}`)];
+    const h = createHash('sha256');
+    for (const f of files) h.update(f).update(readFileSync(join(root, f)));
+    let commit = null;
+    try { commit = execSync('git rev-parse --short HEAD', { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { /* a snapshot has no .git */ }
+    return { hash: h.digest('hex').slice(0, 12), commit };
+  } catch { return null; }
+})();
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RESULTS = join(HERE, 'results');
@@ -281,6 +301,7 @@ if (mode === 'run') {
     verdictSame: verdict(Fs), verdictApp: verdict(A)
   };
   mkdirSync(join(RESULTS, tag), { recursive: true });
+  out.code = CODE;
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   const ps = out.pairedSame, pa = out.pairedApp;
   console.log(`${sc.id} ${sc.name.slice(0, 34).padEnd(35)} solver ${S.successRate.toFixed(1)}  same ${Fs.successRate.toFixed(1)} (${ps.diff >= 0 ? '+' : ''}${ps.diff.toFixed(1)}±${ps.se.toFixed(1)}, picker: ${out.verdictSame})  app ${A.successRate.toFixed(1)} (${pa.diff >= 0 ? '+' : ''}${pa.diff.toFixed(1)}±${pa.se.toFixed(1)}, picker: ${out.verdictApp})  p10 ${Math.round(S.p10TerminalNet / 1000)}k/${Math.round(Fs.p10TerminalNet / 1000)}k  median ${Math.round(S.medianTerminalNet / 1000)}k/${Math.round(Fs.medianTerminalNet / 1000)}k  failAge ${S.meanFailAge ? S.meanFailAge.toFixed(1) : '-'}/${Fs.meanFailAge ? Fs.meanFailAge.toFixed(1) : '-'}  ${(out.ms / 1000).toFixed(0)}s`);
@@ -330,6 +351,7 @@ if (mode === 'perturb') {
     verdictSame: verdict(Fs), verdictApp: verdict(A)
   };
   mkdirSync(join(RESULTS, tag), { recursive: true });
+  out.code = CODE;
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   const ps = out.pairedSame;
   console.log(`${sc.id} ${kind.padEnd(10)} solver ${S.successRate.toFixed(1)}  same ${Fs.successRate.toFixed(1)} (${ps.diff >= 0 ? '+' : ''}${ps.diff.toFixed(1)}±${ps.se.toFixed(1)}, picker: ${out.verdictSame})  base Δ ${base.pairedSame.diff >= 0 ? '+' : ''}${base.pairedSame.diff.toFixed(1)}  ${(out.ms / 1000).toFixed(0)}s`);
@@ -436,7 +458,7 @@ if (mode === 'flex') {
    */
   if (process.env.ARMSONLY === '1') {
     mkdirSync(join(RESULTS, tag), { recursive: true });
-    writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify({ tag, id: sc.id, name: sc.name, held: HELD, seedHeld, floor: FLOOR, target, floorSpend, ms: Date.now() - t0,
+    writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify({ tag, id: sc.id, name: sc.name, held: HELD, seedHeld, floor: FLOOR, target, floorSpend, ms: Date.now() - t0, code: CODE,
       knobs: { mixture: MIX, guardCap, minPotYears: process.env.MINPOTYEARS ?? null, armsOnly: true }, gk: arms.gk.stats, gkFloor: arms.gkFloor.stats, fixed: arms.fixed.stats }, null, 1));
     console.log(`${sc.id} arms only (mixture ${MIX}, cap ${guardCap || 'none'}): gkFloor below ${arms.gkFloor.stats.belowYearsMean.toFixed(1)} yrs at ${arms.gkFloor.stats.levelWhenBelowMean.toFixed(3)}, above ${arms.gkFloor.stats.aboveTargetYearsMean.toFixed(1)} yrs at ${arms.gkFloor.stats.levelWhenAboveMean.toFixed(3)}, survival ${arms.gkFloor.stats.successRate.toFixed(1)}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
     process.exit(0);
@@ -463,6 +485,7 @@ if (mode === 'flex') {
   };
   if (!SOLVER_ONLY) for (const key of EXTRA) { out[key] = arms[key].stats; out.pairedFloor[key] = paired(solvedRs, arms[key].rs); out.pairedFull[key] = paired(solvedRs, arms[key].rs, 'fullyFunded'); }
   mkdirSync(join(RESULTS, tag), { recursive: true });
+  out.code = CODE;
   writeFileSync(join(RESULTS, tag, `${sc.id}.json`), JSON.stringify(out, null, 1));
   if (RECORD) {
     // one record per arm run, beside the results JSON (record.mjs); the solver's also carries its moves with STOREPOL=1

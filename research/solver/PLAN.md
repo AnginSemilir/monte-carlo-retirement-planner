@@ -33,6 +33,91 @@ should have changed it is running on assumptions that have already been disprove
    nothing downstream.
 4. **The prediction and its falsifier were written before the run.** A result read without one is a finding
    to be predicted and tested next, not a settled fact.
+5. **It was a fair test, checked twice: before it was planned and after it ran** (below). A result that fails
+   the check settles nothing, however large the difference.
+
+### EVERY TEST IS A FAIR TEST - checked before it is planned, and again after it runs (maintainer, 24 Sep)
+
+A test is fair when its arms differ ONLY in the thing being tested, or in a setting that one arm has and the other
+cannot (a rival rule has no trim penalty). Everything else - the households, the paths, the market, the user's
+rules, the code - is the same on both sides. Three unfair tests were caught in this project only by luck or late:
+K5's target (three settings different, found 24 Sep), M14's evidence (gathered before the M17 fix changed the
+objective, hence M14b), and Phase 2's first draft (a bequest weight given to one arm only, and households chosen
+because the solver had already won on them).
+
+**The check, run the same way three times:**
+1. **Before a test is planned.** The prediction gets a fair-test table: every variable in the list below, for every
+   arm, marked SAME, TESTED (the one thing that differs, named) or ONE ARM ONLY (with why that is fair). Anything
+   else that differs is fixed before the run, or the test is redesigned. The values come from the batch script.
+2. **After it runs, before any figure is read.** The same list, from what ACTUALLY ran: `fair-test.mjs` reads the
+   settings each result file recorded, not the batch script's intent, and prints them side by side, household by
+   household (`node research/solver/fair-test.mjs <tagA>[:arm] <tagB>[:arm] --tested=<name>`). A difference that is
+   not the thing tested, or a variable not recorded and not established from the batch script and git history,
+   means the result is not settled. Variables no file records (the engine's return assumptions, pairing, the
+   reducer's definitions, machine load) are checked by hand and named in the ledger row.
+3. **When existing data is used for a new test** (a reducer over old files, "is the answer already sitting in data
+   we have?"), step 2 is run on those files against the new comparison BEFORE any figure is read, and the files'
+   code is checked against every change since that touches the quantity. K5's target failed exactly here: files
+   made for one purpose, reused for another, under settings nobody re-read.
+
+The ledger row of every settled result names the check's outcome. From 24 Sep every result file records the code
+that made it (`code.hash`, a hash of the solver, engine, library and experiment script, plus the git commit); files
+made earlier record no code identity, so for them it is established by hand from git history.
+
+**The full list of variables.** "Where" is the knob or the field in a result file (`knobs.*` unless said).
+
+| # | Variable | Where | A time it went wrong |
+|---|---|---|---|
+| **A** | **Who and what is tested** | | |
+| 1 | The households, and how they were chosen (by a rule that never looks at the solver; tuning set, never the held-out panel) | band file, `ONLY` | Phase 2's first draft picked households where the solver had already won |
+| 2 | Changes the test makes to a household's inputs | `PLANTIER`, `GIAGAIN`, `audit-s126.mjs` variants, added costs | - |
+| 3 | The target spend and the spending floor, and whether each arm honours the floor | `target`, `FLOOR`, `floorSpend`; `gk` against `gkFloor` | K5's first draft used the guardrails WITHOUT the floor |
+| 4 | The survival asked for, when a run lands | `CONF` (a number, `+n` or `gkFloor`) | `CONF=gkFloor` takes the ask from a rival arm; SOLVERONLY refuses it |
+| 5 | The held-out paths: seed and count, and the SAME paths for every arm (paired) | `seedHeld`, `held` | - |
+| 6 | The search paths (landings, and the rival arms' choice of order) | `seedSearch`, `SEARCH`, `VERIFY` | #108: 2,400 paths fail a landing, 5,400 work |
+| **B** | **The market** | | |
+| 7 | The market world: single-table fold (`MIX=0`), three-world mixture (`MIX=3`), five-world (`MIX=5`) - for the table AND for how every arm is simulated | `mixture` | K5's target (mixture) against the cells (fold), 24 Sep |
+| 8 | How each year's return is averaged (quadrature points) | `QUAD`, `quadNodes` (5) | - |
+| 9 | The engine's return, volatility and charge assumptions, and the engine build | `research/engine.mjs` (rebuilt from `App.jsx`); `code.hash` | - |
+| **C** | **The user's rules - equal on every arm, always** | | |
+| 10 | The minimum pot | `MINPOTYEARS` (absent: the plan's own) | K5's target: the one-year pot moved the guardrails' cutting on 4 of 12 |
+| 11 | The raise cap | `RAISECAP` (solver), `GUARDCAP` (guardrails) | K5's target predated M23 |
+| 12 | The estate preference | `WB`, `BEQSHAPE`, the estate cap, `ESTATESCALE` | Phase 2: a bequest weight given to one arm only |
+| 13 | The risk tier chosen, consent to change it, risk above | `PLANTIER`, `TIERS`, `TIERSABOVE` | M14 on the library tests only the top tier (M21) |
+| 14 | The one-off cost lookahead | `lookaheadYears` (0 on every rival arm) | - |
+| 15 | The tax-free lump sum rule | `lump`, `PCLSSTRICT` | - |
+| 16 | The taxable account's tier | `GIATIERS` | - |
+| **D** | **The solver's own settings - equal between solver arms unless tested** | | |
+| 17 | The grid: points, shares, gain buckets | `POINTS`, `coords`, `SHARES`, `GAINB`, `GAININT` | - |
+| 18 | The spending menu and the tier menu | `LEVELS`, `TIERS` | research runs overrode the code's own menu (which has 0.95) |
+| 19 | The switch margin and switching cost | `MARGIN`, `SWITCH` | R1: the margin decided M15 v1's result |
+| 20 | The dislike of cuts: lambda (held or landed) and the trim curve's exponent (together, c) | `LAMBDA`, `EXP`; `solver.lambda`, `solver.landed` | - |
+| 21 | The raise credit, and whether it is weighted by survival | `RAISE` (mu), `RAISESURV` | mu was calibrated in 2d.4 with resilience on and the old objective |
+| 22 | The price of a year with no money | `FAILSHORT` | M14's evidence predates it (M14b) |
+| 23 | Resilience and drift | `WR`, `RESIL`, `DRIFT` | - |
+| 24 | The read and edge handling: final year exact, dead corners, the bridge read (F1), block trim | `FINALEXACT`, `SHAREDEAD`, `BRIDGEREAD`, `BLOCKTRIM` | - |
+| 25 | How it lands: bisection steps, level search | `BISECT`, `TERNARY` | M6: five steps where eight were derived |
+| **E** | **The rival arms** | | |
+| 26 | Which rivals, and each one's rule and parameters (the guardrails' thresholds, Vanguard's bands, ARVA's rate) | `ARMS`; engine config | - |
+| 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | `pickFixed`; `label` | - |
+| **F** | **The code** | | |
+| 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | `code.hash`, `code.commit` (from 24 Sep); `solverVersion` is hand-set and was not bumped through the M17 fix or F1 | the flex-mix pilot split across solver versions (21 Sep), hence `run-from-snapshot.sh` |
+| **G** | **The measurement** | | |
+| 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot) | the reducer | `audit-s126.mjs` subtracted the years above target twice |
+| 30 | The reducer and its version | script name, commit | - |
+| 31 | Paired or not, and the standard error used | the reducer | - |
+| 32 | The table's number is never the result: survival is simulated | the reducer | M16: the table reads 3-5 points optimistic |
+| 33 | For timings: what else the machine was running | `uptime` in the log | K5's 385 s median inflated by contention; the `solver-fast` speed check flaky under load |
+
+**Already run through it (24 Sep, `fair-test.mjs`):** K5's cells against `flex-tiers` fail on the market world, the
+minimum pot and the raise cap; against `k5t-fold-cap` they pass on every recorded variable. The M17 floor fix
+(`s2-fnewex` against `m17-floor`) and M14 (`m14-down` against `m14-up`) pass on every recorded variable, with only
+the tested ones differing. All three carry "code: not recorded" (the files predate the field), to be established
+from git history in the retro audit below.
+
+**The retro audit (queued, no cores, before Phase 4):** every result the current defaults rest on (the ledger's rows
+and step 6's evidence) put through step 2, with the code identity established from git history. A result that fails
+is marked provisional and re-run.
 
 **What the re-look does, every time.** For each settled result:
 - (a) List every later step, prediction, gate and default whose premise it touches, including ones in other
@@ -47,6 +132,7 @@ should have changed it is running on assumptions that have already been disprove
 
 | date | the settled result | what it changed |
 |---|---|---|
+| 24 Sep ~09:00 | (maintainer) **Every test a fair test, checked before and after, on existing data too** | the headline rule gains item 5 and the fair-test check with its 33 variables; `fair-test.mjs`; every result file now records its code; K5, M17 and M14 put through it (K5's first target fails, the corrected one passes; M17 and M14 pass, code unrecorded); a retro audit queued before Phase 4 |
 | 24 Sep ~08:45 | **Market-world audit** (maintainer: "so all the research configuration hasn't tested across three market worlds?"): every run since step 2 is single-table fold (MIX=0); K5's target was mixture, uncapped, own pot - three mismatches, each measured (`results-k5-targets.txt`) | K5 stage 1's target corrected before any cell was read (median cut 2.14, not 2.38; raise total 1.07, not 3.42); R3/R4 re-derived: the solver now OUT-spends arm A, so stage 2 is expected to run, on a lower mu grid; stage 3 moves to the mixture; M14b moves to the mixture; C8 (world transfer) joins the pitfall gate |
 | 24 Sep ~08:40 | S126 replication, first 9 variants (the mechanism holds; a\* must use the floor-level need) + the maintainer's directive | the pitfall sweep C1-C5 added as a gate before Phase 4; the class boundary corrected |
 | 24 Sep ~08:15 | (maintainer) risk above made the default for EVERY plan | M14b's prediction revised before its run: it now decides "every plan" against the 'auto' fallback |
@@ -522,7 +608,8 @@ last, immediately before Phase 4. Any step whose result redirects the plan stops
 | 8 | **K6 slider spread** (in c, R5), with **K7 read off K4's, K5's and K6's sweeps** (no run of its own) | 7 | ~1.5 h | Thu ~17:00 |
 | 8b | **M15 v2**: build in K5's run gaps (no cores), after Q12 is put to the mathematician; probe (4 arms, 8 households + 3 at 40% gain, ~2 h) | 7 | ~2 h | Thu ~19:00 |
 | 8d | **The pitfall sweep** (C1-C5 above): the S126 fix, then the same pattern hunted, tested and fixed. **Gates Phase 4** | S126 fix | ~4-6 h, in run gaps | Thu evening / Fri morning |
-| 9 | **Phase 4**, with its bundled extras (below); M23 decided (A, built): arm A runs with `raiseCap: 1.1`. **Waits for the pitfall sweep (8d)** | 8, M23 | ~6 h | Fri ~01:00 |
+| 8e | **The retro fair-test audit**: every result the current defaults rest on through `fair-test.mjs`, code identity from git history; a failure is marked provisional and re-run | - | no cores, ~1 h | before Phase 4 |
+| 9 | **Phase 4**, with its bundled extras (below); M23 decided (A, built): arm A runs with `raiseCap: 1.1`. **Waits for the pitfall sweep (8d) and the retro fair-test audit (8e)** | 8, M23 | ~6 h | Fri ~01:00 |
 
 ### The next 12 hours (rewritten Wed 21:30 UTC, after K1 finished in 8 minutes and the plan audit)
 

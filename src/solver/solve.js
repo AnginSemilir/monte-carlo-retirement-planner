@@ -423,7 +423,8 @@ export function solve(E, M, plan, opts = {}) {
   const lresil = lresilW[centre], beq = beqW[centre], pol = polW[centre], short = shortW[centre];
   const levelOf = actions.map(a => (a.spendLevel !== undefined ? a.spendLevel : 1));
   // F1 (PLAN.md "S126's dead corner"): the cliff-aware read of a retired bridge year, research option until tested
-  if (opts.bridgeRead) g.bridge = bridgeTable(E, m, c, Math.min(...levelOf));
+  // F1 v2 (bridgeRead: 2) counts money arriving in the bridge, adds growth and acts when the money looks short too
+  if (opts.bridgeRead) g.bridge = bridgeTable(E, m, c, Math.min(...levelOf), opts.bridgeRead === 2 ? 2 : 1);
 
   /*
    * PROFILING, off unless SOLVER_PROFILE is set, because nobody has measured where a solve's time
@@ -674,7 +675,7 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: !!g.bridge, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, solverVersion: SOLVER_VERSION };
   if (PROF) {
     PROF.total = now() - profT0;
     // two clock calls per timed region, and the outer pair too

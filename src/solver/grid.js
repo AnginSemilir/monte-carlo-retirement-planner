@@ -382,6 +382,7 @@ function Phi(z) {   // the standard normal distribution function (Abramowitz and
 function bridgeAdjust(g, lsArr, NC, s, yr) {
   const B = g.bridge, need = B.need[yr];
   const acc = s[1] + s[2];                     // the ISA and the taxable pot with its cash: what can pay before access
+  if (B.version === 2) return bridgeAdjust2(B, lsArr, NC, acc, yr);
   if (!(acc >= need)) return null;             // short of the bridge even at the floor: the dead read is the truth
   let dropped = false;
   for (let base = 0; base < NC; base += 8) {
@@ -403,28 +404,86 @@ function bridgeAdjust(g, lsArr, NC, s, yr) {
   return Math.log(p / (1 - p));
 }
 /*
+ * F1 VERSION 2 (PLAN.md, the F1 write-up: why F1 missed what it missed; approved by the maintainer 24 Sep 12:42 UK). Three changes:
+ *  1. Money arriving later in the bridge counts. The test is no longer "does the accessible money cover the whole
+ *     bridge's need" but "does it cover every year up to access, with the deposits due by then": B.req[yr] is the
+ *     accessible money needed now (the largest shortfall of cumulative need over cumulative inflows), which an
+ *     inheritance inside the bridge lowers (S366 read dead without it: short on v1's test, so F1 stayed off; the
+ *     bridge-6 variant looked just covered, so F1 acted, but its cap read low; S370's is inferred from inputs, never solved).
+ *  2. The chance the money lasts has growth. Money spent evenly over the years left is invested for about half of them,
+ *     so the cap is Phi((ln(acc / req) + mu * tau) / (sigma * sqrt(tau))) with tau = half the bridge years left and mu, sigma
+ *     the accessible money's expected real return and spread (cash at its own rate). As built, F1's cap had neither
+ *     and reproduced its low reads (share 0.95 57.7 against 57.4 read; results-f1-misses.txt).
+ *  3. It acts when the money looks short too. A position short of the bridge is not certain to fail - its money may
+ *     grow into the gap - so its dead corners (no accessible money at all) get no weight either, and the cap, now below
+ *     one half, carries the risk (S360, short on v1's test, so F1 stayed off: read 4.3 against 44.1 simulated).
+ * Version 1 is unchanged for comparison (bridgeRead: true or 1); version 2 is bridgeRead: 2.
+ */
+function bridgeAdjust2(B, lsArr, NC, acc, yr) {
+  const req = B.req[yr];
+  let dropped = false;
+  for (let base = 0; base < NC; base += 8) {
+    for (let dp = 0; dp < 2; dp++) {
+      let wAlive = 0, wDead = 0;
+      for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; const w = W[k]; if (w === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) wDead += w; else wAlive += w; }
+      if (wDead > 0 && wAlive > 0) {
+        dropped = true;
+        const f = (wAlive + wDead) / wAlive;
+        for (let q = 0; q < 4; q++) { const k = base + dp + 2 * q; if (W[k] === 0) continue; if (lsArr[IDX[k]] <= DEAD_LS) W[k] = 0; else W[k] *= f; }
+      }
+    }
+  }
+  if (!dropped) return null;
+  const p = bridgeChanceV2(acc, req, B.cash[yr], B.years[yr], B.sigma, B.mu, B.cashReal);
+  return p === null ? null : Math.log(p / (1 - p));
+}
+/* v2's chance the accessible money lasts to access, or null when the inflows due cover every year (nothing to cap) */
+export function bridgeChanceV2(acc, req, cashBuffer, yearsLeft, sigma, mu, cashReal) {
+  if (!(req > 0)) return null;
+  if (!(acc > 0)) return CLAMP;
+  const cash = Math.min(acc, cashBuffer), f = (acc - cash) / acc;
+  const tau = yearsLeft / 2;                   // money spent evenly over the years left is invested for about half of them
+  const m = f * mu + (1 - f) * cashReal, sd = sigma * f * Math.sqrt(tau);
+  const z = sd > 0 ? (Math.log(acc / req) + m * tau) / sd : (acc * Math.exp(m * tau) >= req ? 40 : -40);
+  return Math.min(1 - CLAMP, Math.max(CLAMP, Phi(z)));
+}
+/*
  * The per-year bridge table F1 reads: for each retired year before access, the need from that year to access at the
  * lowest spending level on the menu (the floor), net of guaranteed income, plus any one-off costs due in those years;
  * the bridge years left; the cash buffer; and the spread of the accessible investments (the ISA and GIA at the plan's
  * tiers, weighted by opening balance). Years that are working or past access carry no need, and F1 does nothing there.
  */
-export function bridgeTable(E, m, c, floorLevel) {
+export function bridgeTable(E, m, c, floorLevel, version = 1) {
   const T = c.T, yr = c.yr;
   const need = new Float64Array(T + 2), years = new Float64Array(T + 2), cash = new Float64Array(T + 2);
   let accessAt = T + 1;
   for (let t = 0; t <= T; t++) if (yr.access[t]) { accessAt = t; break; }
   let run = 0, n = 0;
+  const needY = new Float64Array(T + 2), inY = new Float64Array(T + 2);
   for (let t = Math.min(accessAt, T + 1) - 1; t >= 0; t--) {
     const guaranteed = yr.taxFree0[t] + (yr.taxable0[t] > 0 ? E.calculateUKNetIncome(yr.taxable0[t], c.P) : 0);
-    run += Math.max(0, floorLevel * yr.spend[t] - guaranteed) + (yr.cost[t] || 0);
+    needY[t] = Math.max(0, floorLevel * yr.spend[t] - guaranteed) + (yr.cost[t] || 0);
+    run += needY[t];
     if (yr.spend[t] > 0) n += yr.frac[t];
     if (yr.spend[t] > 0) { need[t] = run; years[t] = n; }
     cash[t] = yr.buffer[t];
+    // v2: dated deposits into the accessible pots (ISA, taxable account, cash), less deductions from them
+    if (version === 2) for (let i = 1; i <= 3; i++) inY[t] += (yr.dep[i][t] || 0) - (yr.ded[i][t] || 0);
   }
   const o = m.ctx.owners[0], isaA = m.acc[o.ids.isa], giaA = m.acc[o.ids.other];
   const bi = isaA ? isaA.balance : 0, bg = giaA ? giaA.balance : 0;
   const sigma = bi + bg > 0 ? (bi * c.volEff[1] + bg * c.volEff[2]) / (bi + bg) : 0;
-  return { need, years, cash, sigma, accessAt, floorLevel };
+  if (version !== 2) return { need, years, cash, sigma, accessAt, floorLevel };
+  // v2: the accessible money needed now so every year to access is met, the inflows due by each year counted
+  const req = new Float64Array(T + 2);
+  for (let t = 0; t < Math.min(accessAt, T + 1); t++) {
+    if (!(need[t] > 0)) continue;
+    let cumNeed = 0, cumIn = 0, worst = -Infinity;
+    for (let j = t; j < Math.min(accessAt, T + 1); j++) { cumNeed += needY[j]; cumIn += inY[j]; worst = Math.max(worst, cumNeed - cumIn); }
+    req[t] = worst;
+  }
+  const mu = bi + bg > 0 ? (bi * c.real[1] + bg * c.real[2]) / (bi + bg) : 0;
+  return { need, years, cash, sigma, accessAt, floorLevel, version: 2, req, mu, cashReal: c.cashReal || 0 };
 }
 
 /* Survival stored as log-odds, once per year, so a read costs eight multiplies instead of eight logs. */

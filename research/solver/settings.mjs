@@ -21,8 +21,9 @@ export const WORDS = {
   TIERS: ['1', 'joint'],   // not '0': experiment.mjs passes any other string through as the tier list
   COORDS: ['total', 'pots'],
   SOLVER_INTERP: ['linear', 'logodds'],   // read by grid.js: anything but 'linear' meant log-odds
+  BRIDGEREAD: ['0', '1', '2'],   // F1: off, version 1, version 2
 };
-export const FLAGS = ['RAISESURV', 'FINALEXACT', 'TERNARY', 'GIATIERS', 'BRIDGEREAD', 'BLOCKTRIM', 'PCLSSTRICT', 'GAININT',
+export const FLAGS = ['RAISESURV', 'FINALEXACT', 'TERNARY', 'GIATIERS', 'BLOCKTRIM', 'PCLSSTRICT', 'GAININT',
   'SOLVERONLY', 'ARMSONLY', 'RECORD', 'STOREPOL'];
 export const NUMBERS = ['MIX', 'EXP', 'MARGIN', 'RAISE', 'WR', 'WB', 'SHARES', 'SWITCH', 'SEARCH', 'VERIFY', 'DRIFT', 'TIERSABOVE',
   'LAMBDA', 'FLOOR', 'ONLY', 'LO', 'HI', 'QUAD', 'MINPOTYEARS', 'RAISECAP', 'GIAGAIN', 'GUARDCAP', 'ESTATESCALE', 'BISECT',

@@ -3,7 +3,7 @@ singles retired before access (first person): 60; bridge length 2,8 years
   covered without growth or inflows: 54; short on that test: 6
   of the short, covered once dated inflows count (year by year): 2  [S366 S370]
   near the edge (coverage 0.8-1.25): 1  [S360 0.84]
-couples with a bridge for at least one partner: 60 (F1 reads only the first person's bridge)
+couples with a bridge for at least one partner: 60 (the couple solver gives each partner a single table, which reads that partner's own bridge with their own accessible money and half the spending; the funding split between them is not seen)
 
 profiles: High Risk real 4.44 vol 15.5 | Medium/High Risk real 3.72 vol 11.5 | Medium Risk real 3 vol 8 | Medium/Low Risk real 2.28 vol 5.5 | Low Risk real 1.56 vol 3 | Cash Equivalents real -0.5 vol 0.5
 accessible mix: invested share 0.66, expected real return 2.21%/yr, spread 7.2%/yr

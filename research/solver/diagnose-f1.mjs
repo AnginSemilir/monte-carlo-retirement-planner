@@ -40,7 +40,7 @@ console.log(`singles retired before access (first person): ${S.length}; bridge l
 console.log(`  covered without growth or inflows: ${S.filter(x => x.cover >= 1).length}; short on that test: ${S.filter(x => x.cover < 1).length}`);
 console.log(`  of the short, covered once dated inflows count (year by year): ${S.filter(x => x.cover < 1 && !x.shortAtSomePoint).length}  [${S.filter(x => x.cover < 1 && !x.shortAtSomePoint).map(x=>x.id).join(' ')}]`);
 console.log(`  near the edge (coverage 0.8-1.25): ${S.filter(x => x.cover >= 0.8 && x.cover < 1.25).length}  [${S.filter(x => x.cover >= 0.8 && x.cover < 1.25).map(x => x.id + ' ' + x.cover.toFixed(2)).join(', ')}]`);
-console.log(`couples with a bridge for at least one partner: ${out.bridgeCouples.length} (F1 reads only the first person's bridge)`);
+console.log(`couples with a bridge for at least one partner: ${out.bridgeCouples.length} (the couple solver gives each partner a single table, which reads that partner's own bridge with their own accessible money and half the spending; the funding split between them is not seen)`);
 
 console.log('');
 

@@ -5,6 +5,7 @@
  *   node research/solver/audit-s126.mjs scan                                the library singles in the class, from inputs
  *   node research/solver/audit-s126.mjs ids S126,S…  [points] [paths]       named library households
  *   node research/solver/audit-s126.mjs f1 [points] [paths] [variants|library|all]   F1's paired test
+ *   node research/solver/audit-s126.mjs f1v2 [points] [paths] [part k/n]            F1 v2's paired test (PLAN.md 7c)
  *
  * Each mode reads its OWN arguments (fixed 24 Sep: the numbers were read before the mode was chosen, so `ids` read its
  * id list as the grid size - NaN, falling back to 12 points - and took the path count from the argument meant for points).
@@ -17,7 +18,7 @@
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { solve, runPolicy } from '../../src/solver/solve.js';
+import { solve, solvePlan, runPolicy } from '../../src/solver/solve.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 const mode = process.argv[2] || 'variants';
@@ -101,7 +102,48 @@ function pairF1(id, h) {
 // the S126 variants the F1 test runs (also read, without solving, by the scan)
 const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', { a0: 0.7 }], ['share 0.78', { a0: 0.78 }], ['share 0.90', { a0: 0.9 }], ['share 0.95', { a0: 0.95 }],
   ['bridge 0', { bridge: 0 }], ['bridge 1', { bridge: 1 }], ['bridge 4', { bridge: 4 }], ['bridge 6', { bridge: 6 }], ['wealth x0.5', { scale: 0.5 }], ['wealth x2', { scale: 2 }]];
-if (mode === 'f1') {
+/*
+ * F1 V2'S TEST (PLAN.md 7c; predictions/f1v2-test.md): off against v2, paired, on the STEP-6 DEFAULTS IN THE MIXTURE -
+ * the product's own entry, solvePlan (three worlds, the M17 floor fix, raises capped at 1.1, a minimum pot of one year,
+ * risk above the tier with consent), with lambda held at S126's landed value and the grid at POINTS. The table's read
+ * is the mixture's: each world's opening read weighted as the solve weights them. The F1 test (mode f1) ran on step 2's
+ * settings in the single-table fold; this is its re-test where the product runs.
+ */
+function measureV2(h, bridgeRead) {
+  const f = facts(h.plan);
+  const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
+  const t0 = Date.now();
+  const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: bridgeRead || undefined });
+  const m = r.m, s0 = M.initialState(m);
+  const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
+  let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(7002, NP, m.ctx.totalYears);
+  const okArr = new Uint8Array(NP);
+  paths.forEach((zs, i) => { const o = runPolicy(r, zs); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
+  const sim = 100 * ok / NP;
+  // what the solve actually ran with, printed so the fair-test table can be checked against the log
+  const ran = `mix ${r.meta.mixture} pts ${r.meta.points} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} bridgeRead ${r.meta.bridgeRead}`;
+  return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, secs: (Date.now() - t0) / 1000, ran };
+}
+if (mode === 'f1v2') {
+  // the cases, in a fixed order; `part k/n` runs every n-th from the k-th, so a batch can split them across processes
+  const cases = [...F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]),
+    ...['S120', 'S122', 'S124', 'S128', 'S130', 'S360', 'S366', 'S370'].map(id => [id, () => all.find(s => s.id === id)])];
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  console.log(`F1 V2 TEST, step-6 defaults in the mixture (solvePlan), ${POINTS} points, ${NP} held paths (seed 7002), lambda ${LAMBDA}, off against v2, paired; part ${pk}/${pn}`);
+  cases.forEach(([id, mk], i) => {
+    if (i % pn !== pk) return;
+    const h = mk();
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const a = measureV2(h, false), b = measureV2(h, 2);
+    let disc = 0; for (let j = 0; j < NP; j++) if (a.okArr[j] !== b.okArr[j]) disc++;
+    const d = b.sim - a.sim, se = 100 * Math.sqrt(disc) / NP;
+    console.log(`${id.padEnd(16)} a0 ${f1(a.a0, 2)} B ${a.B} class ${a.inClass ? 'YES' : 'no '} | OFF table ${f1(a.table).padStart(5)} sim ${f1(a.sim).padStart(5)} gap ${f1(a.gap).padStart(6)} tier-below ${f1(a.tierYrs).padStart(4)} below ${f1(a.below).padStart(4)} | V2 table ${f1(b.table).padStart(5)} sim ${f1(b.sim).padStart(5)} gap ${f1(b.gap).padStart(6)} tier-below ${f1(b.tierYrs).padStart(4)} below ${f1(b.below).padStart(4)} | survival ${(d >= 0 ? '+' : '') + f1(d, 2)} +/- ${f1(se, 2)} | ${f1(a.secs + b.secs, 0)} s`);
+    console.log(`${''.padEnd(16)} ran OFF: ${a.ran}`);
+    console.log(`${''.padEnd(16)} ran V2:  ${b.ran}`);
+  });
+} else if (mode === 'f1') {
   const which = process.argv[5] || 'all';
   console.log(`F1 TEST, ${POINTS} points, ${NP} held paths (seed 7002), off against on, paired`);
   const V = F1_VARIANTS;

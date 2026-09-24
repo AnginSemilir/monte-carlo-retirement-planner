@@ -3,7 +3,15 @@
 Written overnight for the maintainer, in plain words. Every figure is from a results file named beside it,
 and every test had its prediction written down before it ran. Where a prediction failed, it says so.
 
-**DRAFT - sections marked PENDING are filled as the night's runs finish.**
+**At a glance** (final, 04:00 UTC; every run of the night has finished and been reduced):
+
+- **Your purpose test passes**, with today's solver and again with the recommended fix on (sections 1 and 2).
+- **One real flaw was found and fixed.** In futures that are going to fail, the solver overspent. The floor fix
+  cures it, raises survival a little and passes the purpose test (section 2). Recommended: on.
+- **Defaults to pick:** minimum pot 1 year, raise cap 10%, estate 0% = weight 0.01 (section 3).
+- **Risk above your tier helps** thin plans by 2-3 points (opt-in recommended). **The taxable account's tier,
+  done the cheap way, hurts** (-3.2 on S330; leave it off). Both are in section 5.
+- **Phase 4 is stopped for you:** its panel cannot be drawn as written (section 4b).
 
 ---
 
@@ -162,3 +170,15 @@ households. It costs minutes to run.
   All corrected.
 - 19 of the 192 overnight cells were already on file and were reused.
 - New findings M16-M21.
+- After the first draft: the purpose test re-run with the floor fix (passed); the taxable-account tier (M15)
+  built, bit-identical when off, tested and probed (falsified); a reducer for the purpose test that
+  reproduces the first run exactly (`reduce-bestof.mjs`).
+- Not run, and why: M12 (the solver and one-off costs on single households) needs a new paired harness
+  against the app's pipeline. Building one at 4am straight into results is how earlier nights went wrong, and
+  nothing this morning depends on it. It stays in the plan, after K5.
+
+## 7. What happens after you decide
+
+K5 (matching the guardrails' cutting, about 5 hours) runs first, on whichever settings you pick. It re-fits the
+default dislike of cuts, so if the floor fix is on, K5 runs with it. Then K6 (the slider spread) and Phase 4,
+with the panel option you choose.

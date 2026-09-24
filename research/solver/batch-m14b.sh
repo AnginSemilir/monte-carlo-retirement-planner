@@ -5,7 +5,7 @@
 # M14 (S070 S184 S330 S354), two comfortable (S162, the one M14 loss; S252), and six whose solver survival sat at
 # 85-96% (S082 S020 S194 S414 S234 S172), which is where "thin" is decided. Lambda: each household's landed value.
 # Run in the three-world mixture (MIX=3, 24 Sep 08:39 UK): it decides a product default and its threshold is a level.
-# Held-out paths of seed 7011, not 7002 (24 Sep 10:34 UK): these households were chosen on seed 7002's paths, so
+# Held-out paths of seed 7011, not 7002 (24 Sep 10:33 UK): these households were chosen on seed 7002's paths, so
 # measuring on them could lean the result; 7011's paths chose nothing.
 # Prediction: the M14b row in PLAN.md, written before this ran.
 set -u

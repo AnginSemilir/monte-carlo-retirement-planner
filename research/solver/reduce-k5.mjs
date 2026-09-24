@@ -6,7 +6,7 @@
  *
  * The target must be measured under the SAME settings as the solver cells it is compared with: the market world
  * (MIX), the raise cap (the guardrails honour the user's cap, M23) and the minimum pot. Stage 1's cells are MIX=0,
- * RAISECAP=1.1, MINPOTYEARS=1, so their target is k5t-fold-cap. Found 24 Sep ~09:00: the first target used,
+ * RAISECAP=1.1, MINPOTYEARS=1, so their target is k5t-fold-cap. Found 24 Sep ~08:45: the first target used,
  * results/flex-tiers, was the mixture world, uncapped, with each plan's own pot - three mismatches.
  *
  * total cut = years below target x (1 - level when below), in years of target spending (per household, means over

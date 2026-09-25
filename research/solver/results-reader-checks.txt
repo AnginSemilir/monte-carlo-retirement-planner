@@ -1,4 +1,4 @@
-# The bridge reader's own checks (drafts/reader-design.md checks 2 to 4): node research/tests/reader-solve.test.mjs, on the code committed as 2a0557a, run 25 Sep 11:05-11:13 UK (the first run, 11:00-11:09 UK, is kept below it: its planted fault, the residual dropped, had nothing to catch on S126)
+# The bridge reader's own checks (drafts/reader-design.md checks 2 to 4): node research/tests/reader-solve.test.mjs, on the code committed as 2a0557a, run 25 Sep, its output at 11:10:14 UK (the first run, its output at 11:07:57 UK, is kept below it; times corrected 25 Sep 21:25 UK from the transcript, the forty-sixth review: the header first said 11:05-11:13 and 11:00-11:09. Its planted fault, the residual dropped, read nothing on S126 because the clamp restores it - see results-reader-callers.txt)
 
 PASS  the trap: a query that can pay, three quarters toward the dead node, reads 0.40 (c 0.4/0.4, R 0/0)
 PASS  planted: the unit template reads 0.85 there and fails the 0.40 check

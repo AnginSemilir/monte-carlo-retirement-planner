@@ -13,7 +13,8 @@
   - Last, alone on the machine: the time bar (`readertime 30 2`).
   - Output: result logs in `results/bridge7e/*.txt`; the reducer is `node research/solver/reduce-7e.mjs`.
 - **Kind:** test
-- **Status: NOT REGISTERED** until check 6's figure is filled in below. Its decision rule is the outside review's
+- **Status:** registered by its push (the pushed commit is the timestamp), and launched only after the forty-seventh plan
+  review passes. Its decision rule is the outside review's
   section 19 (exact McNemar, Holm across the cases, per-case margins, three outcomes, two looks), in the regimen the
   maintainer adopted 25 Sep 20:47 UK, with the margins that review proposed. The old "beyond two se" reading is retired
   for this test.
@@ -23,7 +24,7 @@
   - 7c's results for off and v2 on these cases (results-f1v2.txt, seed 7002, final year averaged);
   - the reader's own checks (results-reader-checks.txt);
   - a coarse trial on S126 at 6 points, not registered: the opening table read 27.3 with off and 97.6 with the reader, solve times 72.5 s and 73.9 s;
-  - check 6, the reader's run time at 16 points (results-readertime.txt, filled in below when it lands, before registering).
+  - check 6, the reader's run time at 16 points (results-readertime.txt, landed 25 Sep 21:14 UK; its figures are below).
 - **Plan section:** PLAN.md schedule row 7e; drafts/reader-design.md
 
 ## Question
@@ -79,7 +80,9 @@ All of this is asked with the tier above and the final year exact held identical
   - The reader adds, per retired pre-access year and world, one pass over the nodes to build p, c and R; per read in
     those years, a log and a Phi per prefix.
   - The coarse trial on S126 at 6 points took 73.9 s against 72.5 s, about 2%.
-  - Check 6 at 16 points: [filled in from results-readertime.txt before registering].
+  - Check 6 at 16 points (results-readertime.txt, on the code before the growth-convention fix, which changes one
+    formula per reference and not the work; a re-timing NOT CHECKED): ratios 1.028 on S126, 1.032 on bridge 6 and
+    1.064 on S366, with 0 unsupported nodes.
   - At 30 points the pass per year grows with the nodes, as the solve does, so the ratio should hold. Hence at most 20%.
 - **The reference's growth convention** (fixed 25 Sep evening, before any 7e run): the solver grows each pot by
   exp(ln(1 + R) + V z), so R is the median. The reference first took V^2/2 off 1 + R as if R were the mean, about half a
@@ -175,9 +178,9 @@ gate and completeness is caught: results-reduce-7e-mutations.txt).
 
 ## Derivation script
 
-- `node research/solver/derive-7e.mjs` over results-f1v2.txt, output results-derive-7e.txt, sha256 beginning
-  cff230d2d36bf1ac. The launcher's check of this hash is part of the regimen's stage 2 (locked); until then it is
-  recorded here.
+- `derive: research/solver/derive-7e.mjs > research/solver/results-derive-7e.txt sha256 cff230d2d36bf1ac`
+  (reads results-f1v2.txt; the launcher's re-run of this line is part of the regimen's stage 2, locked; until then the
+  hash is recorded here).
 - The paired arithmetic: stats.mjs, checked by stats.test.mjs against the review's worked figures (Appendix A and
   section 19).
 

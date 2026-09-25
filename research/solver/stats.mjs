@@ -10,6 +10,12 @@
  * c = paths saved, N = paths in all.
  */
 
+/* the regimen's margins, in points (the review's section 16 item 3; adopted by the maintainer 25 Sep 20:47 UK): 0.25
+   where the comparison arm survives 95% or more, 0.5 below, 0.1 for a pooled mean. PLAN.md's decided-defaults block
+   carries the same numbers ("margins"). */
+export const MARGINS = Object.freeze({ high: 0.25, low: 0.5, pooled: 0.1, highAt: 95 });
+export const marginFor = offSim => (offSim >= MARGINS.highAt ? MARGINS.high : MARGINS.low);
+
 /* P(X >= k) for X ~ Bin(n, 1/2), exactly (n up to a few thousand) */
 export function binomUpperHalf(k, n) {
   if (k <= 0) return 1;

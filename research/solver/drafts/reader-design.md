@@ -101,8 +101,10 @@ negative values allowed.
 - **The panel** as the reviewer asked: S126 and every known F1 loser (bridge 4, S366, share 0.78), S194, S162 and S252,
   S330 (betting helps), S172 (the trade-off control), ordinary well-funded, low-risk and cash-heavy cases, and cases on
   both sides of pension access and State Pension start. The registered panel is fixed in the prediction.
-- **Reported:** survival, paired per household, with the rule that no household loses beyond two se, and the
-  table-against-simulation gap. The near-front calibration and the probes are diagnostics.
+- **Reported:** survival, paired per household, read by the regimen's exact rule (no household shows harm against a
+  registered margin: predictions/bridge-reader.md's decision rule, which replaced "no household loses beyond two se" on
+  25 Sep evening), and the table-against-simulation gap. The near-front calibration and the probes are diagnostics; the
+  probes are not built, and 7e reports only each reader solve's count of unsupported nodes.
 
 ## Not settled here
 

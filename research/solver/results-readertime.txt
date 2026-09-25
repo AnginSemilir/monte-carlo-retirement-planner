@@ -1,0 +1,36 @@
+# Check 6, the bridge reader's run time (drafts/reader-design.md), launched 25 Sep 20:37 UK through the launcher (runs.log) as a measurement: PREDICTION="none:..."; audit-s126.mjs readertime 16 2 on code 3e988bad8b71 (commit e15cdd9), before the reader's growth-convention fix (691f7cf), which changes one formula per reference, not the work; a re-timing on the fixed code is NOT CHECKED. The launcher's output follows verbatim.
+=== a MEASUREMENT, not a test: a measurement - the bridge reader's added solve time (drafts/reader-design.md check 6), judged later against 7e's 20% bar; not a test (its results cannot settle a test)
+=== snapshot /tmp/solver-snap-TehLJC   from e15cdd9
+=== smoke run on code 3e988bad8b71 (smoke stamp dfeab9460501): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+READER TIMING, 16 points, 2 runs each way, alternated; cases S126, bridge 6, S366; load before 1.81 1.23 0.64
+  S126 run 1 off   : 177.2 s (load 1.24)
+  S126 run 1 reader: 181.9 s (load 1.08), 6 reader tables, 0 unsupported nodes
+  S126 run 2 reader: 184.8 s (load 1.62), 6 reader tables, 0 unsupported nodes
+  S126 run 2 off   : 179.6 s (load 1.10)
+  bridge 6 run 1 off   : 196.4 s (load 1.02)
+  bridge 6 run 1 reader: 200.0 s (load 1.50), 18 reader tables, 0 unsupported nodes
+  bridge 6 run 2 reader: 205.5 s (load 1.17), 18 reader tables, 0 unsupported nodes
+  bridge 6 run 2 off   : 196.5 s (load 1.21)
+  S366 run 1 off   : 203.6 s (load 1.06)
+  S366 run 1 reader: 219.4 s (load 1.14), 24 reader tables, 0 unsupported nodes
+  S366 run 2 reader: 218.0 s (load 1.17), 24 reader tables, 0 unsupported nodes
+  S366 run 2 off   : 207.6 s (load 1.02)
+load after 1.02 1.07 1.08
+S126: median 178.4 s off, 183.4 s with the reader -> ratio 1.028
+bridge 6: median 196.5 s off, 202.7 s with the reader -> ratio 1.032
+S366: median 205.6 s off, 218.7 s with the reader -> ratio 1.064
+=== snapshot kept at /tmp/solver-snap-TehLJC for provenance; remove it when the results are written up

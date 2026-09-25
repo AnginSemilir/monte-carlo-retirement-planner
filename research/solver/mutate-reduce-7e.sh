@@ -18,8 +18,9 @@ mut() { # name, sed expression on the reducer, [sed expression on stats.mjs]
   n=$((n + 1)); out=$(node "$T/m.mjs" --planted 2>&1)
   if grep -q '^PLANTED CHECK FAILED' <<< "$out"; then echo "caught  $1: $(cut -c22-170 <<< "$out")"; else echo "FAIL  $1: NOT CAUGHT"; bad=1; fi
 }
-mut 'margin always 0.5' 's/(offSim >= 95 ? 0.25 : 0.5)/0.5/'
-mut 'margin always 0.25' 's/(offSim >= 95 ? 0.25 : 0.5)/0.25/'
+mut 'margin always 0.5' 's/const marginOf = marginFor;/const marginOf = () => 0.5;/'
+mut 'margin always 0.25' 's/const marginOf = marginFor;/const marginOf = () => 0.25;/'
+mut 'the pooled floor at -0.5' 's/POOL_FLOOR = -MARGINS.pooled/POOL_FLOOR = -0.5/'
 mut 'no Holm' 's/x.pHolm = adj\[i\];/x.pHolm = x.p;/'
 mut 'look 1 at 0.05' 's/LOOK1 = 0.005/LOOK1 = 0.05/'
 mut 'look 2 at 0.005' 's/LOOK2 = 0.045/LOOK2 = 0.005/'

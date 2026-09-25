@@ -1,0 +1,21 @@
+# node research/tests/reader-solve.test.mjs on the code with the growth-convention fix and the dropped-residual plant moved to S366, run 25 Sep 21:21-21:27 UK (the plant's first form failed at 21:17 UK: results-reader-callers.txt). Its output follows, verbatim.
+PASS  the trap: a query that can pay, three quarters toward the dead node, reads 0.40 (c 0.4/0.4, R 0/0)
+PASS  planted: the unit template reads 0.85 there and fails the 0.40 check
+PASS  the fake row is what it says: the second node has no accessible money
+PASS  buildReaderTable's split, by hand: a row with survival above the reference reproduces both nodes (c 1/1, R 0.30/0.30)
+PASS  planted: with the residual dropped the same nodes read 0.60 and 0.00, and fail
+PASS  S126 solves with the reader (meta.bridgeRead reader, 6 tables, 0 unsupported nodes)
+PASS  node reproduction on S126: 7776 nodes over 6 tables, largest miss 5.6e-17
+PASS  planted on S126: with p taken as 1 the largest miss is 1.000, and the check fails
+      (diagnostic: S126's residual is above 1e-9 at 4698 of 7776 nodes, largest 1.0e-6 - the clamp, where p x c is 0 - so dropping it reads 5.6e-17 from the table: the clamp restores it, and the dropped-residual fault is planted on S366 below)
+PASS  node reproduction on S366 (money arriving in the bridge): 31104 nodes over 24 tables, largest miss 2.8e-17
+PASS  planted on S366: with p taken as 1 the largest miss is 1.000, and the check fails
+PASS  planted on S366: the residual is above 1e-9 at 17334 of 31104 nodes (largest 3.2e-2); with it dropped the largest miss is 3.2e-2, and the check fails
+PASS  the reference's mean yearly growth matches the solver's rule on 3 reference years (largest miss 2.0e-14)
+PASS  planted: the old formula (R taken as the mean) misses by up to 0.0059 a year, and fails
+PASS  S126: every world's survival and bequest tables from the last bridge year (1) on are bit for bit the solve without the reader
+PASS  planted: the earlier bridge years' tables differ, so the comparison is not a solve against itself
+PASS  S000 (no bridge): the reader builds 0 tables and every table and move is bit for bit the solve without it
+
+reader-solve: 16 passed
+exit 0

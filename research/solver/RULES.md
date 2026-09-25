@@ -93,9 +93,12 @@ should have changed it is running on assumptions that have already been disprove
 ## 2. When a result counts as settled
 
 **What counts as proved or disproved.** A result is settled only when all of these hold:
-1. **Beyond noise.** A difference beyond two paired standard errors on the held-out paths. Or a deterministic
-   check that could have failed and did not: bit-identity, a rule held on every path-year, an in-model bound.
-   A result within noise settles nothing, except that the effect, if there is one, is smaller than the noise.
+1. **Beyond noise.** For a test registered from 25 Sep 20:47 UK: the exact rule of section 8 - exact tests against a
+   registered margin, with three outcomes (no material harm, harm, inconclusive). For a result settled before then: a
+   difference beyond two paired standard errors on the held-out paths; 8e re-reads, with the exact rule, the ones a
+   default rests on. Or a deterministic check that could have failed and did not: bit-identity, a rule held on every
+   path-year, an in-model bound. A result within noise settles nothing, except that the effect, if there is one, is
+   smaller than the noise.
 2. **Produced by a script from the files, not read by eye.** Every figure that changes the plan comes from a
    reducer or a one-off script over saved results, and that script is kept.
 3. **Checked against my own error range.** I am a language model, and my errors are of known kinds. This
@@ -248,6 +251,84 @@ deleted, not archived (git history keeps it). A decision changes the plan in pla
 Nothing completed is ever deleted outright, and nothing superseded is left to be mistaken for the current plan.
 **Enforced by:** `check-plan.mjs` (finished: no COMPLETED section left in PLAN.md) and the plan-auditor.
 
+## 8. The regimen: exact tests, stated uncertainty, review by stakes (the outside review of 25 Sep; adopted by the maintainer 25 Sep 20:47 UK)
+
+The outside review ("Solver research: review, new findings and the updated regimen", 25 Sep) found the two-se reading
+miscalibrated (its Finding 1: O19's "at the line" was 4 lost and 0 saved of 3,000, no material harm exactly) and review
+effort spent on labels rather than decisions (46 reviews in about 27 hours). The maintainer adopted its recommendations
+(25 Sep 20:47 UK). Nothing settled restarts; the regimen changes how new work is registered and read. Each rule names its
+enforcement; "stage 2" marks enforcement in locked files, waiting for the maintainer's unlock, and until then the
+plan-auditor checks it by hand.
+
+**Testing** (the review's section 16):
+1. **The per-household test** is the exact conditional McNemar on the discordant paths, one-sided for harm; mid-p only
+   where the prediction declares it. **The interval** for the survival change is Clopper-Pearson on the lost share,
+   mapped to points.
+2. **Margins, set once:** 0.25 points where the comparison arm survives 95% or more, 0.5 points below, 0.1 points for a
+   pooled mean. Gate 4's 1-point condition stays at the product level. They go into the decided-defaults block with a
+   test pinning them (stage 2: plan-defaults.test.mjs).
+3. **Three outcomes per household:** no material harm (the interval's lower end above minus the margin); harm (the
+   Holm-adjusted p below the error rate and a point loss of at least the margin); inconclusive (neither: extend at the
+   next look, or report the bound). A real loss smaller than the margin is reported and does not block.
+4. **Multiplicity:** Holm across the households of one comparison, unadjusted p reported beside it. Panel-level: a
+   random-effects (DerSimonian-Laird) pooled mean with its 95% interval, beside the sign test.
+5. **One primary outcome per test;** everything else is descriptive.
+6. **Power before the run:** the paths needed so the interval fits the margin, N > 1.96^2 d / delta^2 (d the discordance
+   rate), from the nearest earlier records, by a committed script.
+7. **Sequential looks:** 1,000 paths, then 3,000 for the households still open, at error rates 0.005 then 0.045 (valid
+   because pathsForSeed builds path i from seed + i x 7919, so the first 1,000 of 3,000 are the same paths).
+8. **Replication before a default changes:** a second held-out seed or panel, unless overwhelming (Holm-adjusted p below
+   0.001 and an effect above twice the margin).
+9. **A seed registry:** 7001 search, 7002 tuning, 7003 Phase 4 only, 7004 second seed, 7005 selection, 7011 M14b and 7e,
+   7101 the 'auto' rule. The launcher refuses a reserved seed for any other use (stage 2: run-from-snapshot.sh).
+
+Enforced by: `stats.mjs` (the arithmetic; `research/tests/stats.test.mjs` reproduces the review's worked figures and
+its planted outcomes); each reducer on the rule carries planted checks and a mutation script showing them able to fail
+(`reduce-7e.mjs`, `mutate-reduce-7e.sh`); the plan-auditor.
+
+**Predictions** (the review's section 15) gain these fields: Decision fed (what each outcome changes: held, falsified or
+inconclusive), Provenance (every input number with its source), Derivation script (the arithmetic in a committed
+script, its output hash recorded), Point and interval (a point and an 80% interval per primary quantity), Credence (the
+author's probability for each item), Power, Decision rule (primary outcome, test, margin, multiplicity, three outcomes,
+looks), Budget line (the error-budget line it reduces) and Pre-mortem (the most likely way each item fails, and what that
+would mean). A change to the decision rule after launch demotes that item to descriptive. Enforced by:
+`check-prediction.mjs` for predictions written from 25 Sep 20:47 UK (stage 2); until then the plan-auditor.
+**The scorecard** (not built yet): each item's credence against its outcome, the Brier score per test and cumulatively,
+target below 0.20; it starts with 7e. Every recommendation to the maintainer quotes the current score.
+
+**Evidence and review** (the review's section 17):
+1. **Evidence grades** on every ledger row and every claim a decision cites: A (registered, exact test with margin,
+   fair-test pass, reproduced by a second seed or an independent script) can support a product default; B (registered,
+   one run, fair-test pass) a plan reorder, or a default with the maintainer's explicit acceptance of the risk; C
+   (exploratory or "not registered") a hypothesis; D (derivation or argument only) a hypothesis, never a no-effect
+   claim. No-effect claims need grade A or B (extends section 4's rule 1). Enforced by: `check-plan.mjs` claim linting
+   - "settled", "shows", "causes", "no effect", "unaffected" and "costs nothing" need a grade A or B citation on the same
+   line - on added lines (stage 2); run once in 8e over the PLAN-HISTORY claims decisions still rest on.
+2. **Review depth by stakes.** Tier 0 (wording, time labels, history moves, typos): mechanical checks and a short
+   auditor pass on the labels only. Tier 1 (a new result row, a registered prediction, a register row): the auditor on
+   the diff, checklist-driven. Tier 2 (a product default, a gate decision, Phase 4's prediction or verdict): full audit,
+   the two-source rule, an outside review by a differently configured model, and red-team questions. The Stop hook's
+   receipt stays required for every change to the plan; the tier sets the review's depth, not whether one runs.
+   Enforced by: the plan-auditor's instructions (stage 2).
+3. **The two-source rule:** any figure a tier-2 decision rests on is produced twice by independent routes, and the
+   ledger row names both.
+4. **A materiality gate for the register:** before opening a row, estimate the largest plausible effect on the headline
+   (survival points times the share of households affected), with its evidence. Below 0.1 points on the panel mean,
+   with no default depending on it, the row reads "noted, below materiality" and needs no owner or gate (a relaxation
+   of section 4's rule 6 the maintainer adopted). Enforced by: `check-plan.mjs` register rule (stage 2).
+5. **Decision records:** every recommendation carries the options, the recommendation, its evidence grade, the author's
+   confidence in plain words, the most likely way it is wrong, the cost if it is, and a revisit trigger.
+6. **Stop rules:** grid and cliff work stops when the optimality-ceiling gap is below its target; an odd result closes
+   when its exact interval sits inside the margin; nothing is re-run to "resolve" noise without a new registered
+   prediction and a power statement.
+7. **A value-of-information screen before Phase 4:** an item runs before Phase 4 only if a plausible outcome would change
+   Phase 4's arms, panel, decision rule or verdict.
+
+**Accuracy targets and the error budget** (the review's section 14): code fidelity stays exact; table fidelity is split
+into grid, quadrature and information parts; policy optimality within 0.2 points of the ceiling on the panel mean and
+0.5 on any household; the edge's sign holds on every engine; external calibration reported. Before an accuracy task
+starts, its prediction names the budget line it reduces and by roughly how much, and the largest line goes first.
+
 ## 7. Where the approach came from (24 Sep)
 
 - Anthropic, "Best practices for Claude Code": CLAUDE.md is advisory, hooks are deterministic; keep CLAUDE.md short;
@@ -261,5 +342,7 @@ Nothing completed is ever deleted outright, and nothing superseded is left to be
   https://sakana.ai/ai-scientist/
 - Pre-registration by a pushed git commit: "local history can be rewritten; a public push cannot be quietly
   backdated". https://github.com/levi909-create/open-subject-prereg
+- The regimen of section 8: the outside review of 25 Sep, "Solver research: review, new findings and the updated
+  regimen" (the claude.ai document the maintainer shared, 25 Sep 20:42 UK), with its sources (Appendix B there).
 - Compare runs by what differs; the commonest cause of unreproducible results is a silent default.
   https://launchdarkly.com/blog/ml-experiment-tracking/

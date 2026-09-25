@@ -45,14 +45,14 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mcnemarHarmP, holm, outcome, pooledRE, signTest } from './stats.mjs';
+import { mcnemarHarmP, holm, outcome, pooledRE, signTest, MARGINS, marginFor } from './stats.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIR = process.argv.slice(2).find(a => !a.startsWith('--')) || join(HERE, 'results', 'bridge7e');
 const LAMBDA = '0.0223606797749979';
 const BR = { OFF: 'false', V1: 'true', V2: '2', READER: 'reader' };
-const WAVE1 = 24, LOOK1 = 0.005, LOOK2 = 0.045, ONE_LOOK = 0.05, POOL_FLOOR = -0.1, TIME_BAR = 1.2;
-const marginOf = offSim => (offSim >= 95 ? 0.25 : 0.5);
+const WAVE1 = 24, LOOK1 = 0.005, LOOK2 = 0.045, ONE_LOOK = 0.05, POOL_FLOOR = -MARGINS.pooled, TIME_BAR = 1.2;
+const marginOf = marginFor;   // stats.mjs: the decided margins (PLAN.md's decided-defaults block carries them)
 const field = (ran, k) => { const m = new RegExp(`(?:^| )${k} (\\S+)`).exec(ran || ''); return m ? m[1] : null; };
 const CELL = /(\S+) table\s+(-?[\d.]+) sim\s+(-?[\d.]+) gap\s+(-?[\d.]+) tier-below\s+(-?[\d.]+) below\s+(-?[\d.]+) (\d+) s(?: d ([+-]?[\d.]+) se ([\d.]+) \((\d+)\/(\d+)\))?/;
 

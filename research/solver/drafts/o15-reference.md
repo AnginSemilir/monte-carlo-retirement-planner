@@ -1,5 +1,9 @@
 # DRAFT, not registered: the dislike-of-cuts reference (O15), for the maintainer's decision
 
+**DECIDED 25 Sep 20:31 UK (the maintainer: "Approve lambda 0.025 as the research reference"):** option (A), c = 0.001,
+lambda 0.025 at exponent 2, as the RESEARCH reference. It is not solvePlan's default: that waits for K6 on held-out paths,
+as recommended below.
+
 **Status:** drafted 25 Sep, around 10:15 UK, during 7e's build gaps. The O15 gate asks for "a reference proposed with its
 evidence". This is a proposal read from existing files, not a test.
 

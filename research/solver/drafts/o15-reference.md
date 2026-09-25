@@ -120,7 +120,9 @@ values.
     -0.43 paired over the two steps.
   - one step up costs S070 1.50 points and S330 0.57 points (beyond two se);
   - every step after that costs all four thin households more.
-- **Spending.** It is the lowest c at which no household's unlucky tenth spends less than the guardrails'.
+- **Spending.** It is the lowest c at which no household's unlucky tenth spends less than the guardrails'. The margins
+  are thin, though: S070 +0.3% and S330 +0.5%, with no se computed. They were read on the same seed-7002 paths that
+  chose c, so they are not evidence until K6 reports them on other paths.
 - **Continuity.** It is where 7c, 7i and 7j already ran: S126's λ 0.0224 is c 0.00089.
 - **In a user's words:** "the planner will cut you to your floor for a year if that buys about a tenth of a point more
   chance that the money lasts."
@@ -152,7 +154,10 @@ values.
 K6 already sweeps c from a tenth to ten times the reference, which here is 0.0001 to 0.01 (R5). The proposal is that K6
 runs:
 - in the mixture, with the exact final year and 'auto';
-- on the twelve at their own tier AND held at Medium. Holding them at Medium answers stage 3b's question.
+- on the twelve at their own tier AND held at Medium. Holding them at Medium answers stage 3b's question;
+- **on held-out paths: 3,000 of seed 7011, not seed 7002.** c was chosen here on seed 7002's paths, and so were K5's
+  twelve. What is chosen on one sample is reported from another (RULES.md section 4, rule 7), as M14b did. The unlucky
+  tenth is reported with its se.
 
 Its prediction is registered first:
 - **(i)** from 0.001 to 0.003 the thin households lose survival, with S070 and S330 beyond two se;
@@ -173,8 +178,9 @@ The maintainer is asked two things:
 
 1. **The value:** (A) 0.001, (B) 0.003 or (C) 0.0003.
 2. **Whether `solvePlan` takes it as its default now.** Today it refuses to run without one.
-   - If yes, the same commit changes PRODUCT_DEFAULTS, the decided-defaults block and `plan-defaults.test.mjs` (rule 4).
-   - That test is locked, so the change needs "unlock enforcement".
-   - If not, the value is a research reference until K6 confirms it, and the product default is decided then.
+   - **Recommended: not yet.** The value is a research reference until K6 confirms it on the held-out paths. The
+     product default is decided then, on K6's figures rather than the seed-7002 ones that chose it.
+   - If it is made the default now, the same commit changes PRODUCT_DEFAULTS, the decided-defaults block and
+     `plan-defaults.test.mjs` (rule 4). That test is locked, so the change needs "unlock enforcement".
 
 The slider's two ends (0% and 100%) come from K6's sweep. They are not part of this decision.

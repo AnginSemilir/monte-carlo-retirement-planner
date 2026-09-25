@@ -1,4 +1,4 @@
-# O15's reference from K5 stage 1's records (descriptive, not registered; read 25 Sep 10:09 UK, the 12 households, fold, cap 1.1, one-year pot, top-tier plans, the averaged final year, as stage 1 ran them): FAIR_ACCEPT (28, as registered in predictions/k5-stage1.md) TARGET=k5t-fold-cap DETAIL=2 node research/solver/reduce-k5.mjs records
+# O15's reference from K5 stage 1's records (descriptive, not registered; read 25 Sep 10:09 UK, the 12 households, fold, cap 1.1, one-year pot, top-tier plans, the averaged final year, as stage 1 ran them): FAIR_ACCEPT="28=registered as ACCEPTED in predictions/k5-stage1.md row 28 during the run, before any cell was read" TARGET=k5t-fold-cap DETAIL=2 node research/solver/reduce-k5.mjs records
 FAIR-TEST CHECK: k5-c0.0001-x1.5:solver  against  k5t-fold-cap:gkFloor
   households: 12 shared
   [28] code                         NOT RECORDED                   | NOT RECORDED                   ACCEPTED  - registered as ACCEPTED in predictions/k5-stage1.md row 28 during the run, before any cell was read

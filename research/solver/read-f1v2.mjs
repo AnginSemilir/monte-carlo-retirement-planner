@@ -44,7 +44,7 @@ const field = (ran, k) => { const m = new RegExp(`(?:^| )${k} (\\S+)`).exec(ran 
 const bad = [];
 for (const r of rows) {
   if (!r.ranOff || !r.ranV2) { bad.push(`${r.id}: no "ran" lines`); continue; }
-  // unanchored (25 Sep): since the exact final year became the default, audit-s126's ran line ends in its finalIntegral, not the bridge read
+  // unanchored (25 Sep): the bridge read ends every audit-s126 mode's ran line, but O22's trace files end in finalIntegral
   const strip = s => s.replace(/ bridgeRead \S+/, '');
   if (strip(r.ranOff) !== strip(r.ranV2)) bad.push(`${r.id}: the arms differ beyond the bridge read (OFF "${r.ranOff}" / V2 "${r.ranV2}")`);
   if (field(r.ranOff, 'bridgeRead') !== 'false' || field(r.ranV2, 'bridgeRead') !== '2') bad.push(`${r.id}: the bridge read is not off against 2`);

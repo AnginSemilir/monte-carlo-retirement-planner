@@ -1,0 +1,181 @@
+# The reader's checks and every caller re-run on the code with the growth-convention fix (commit 691f7cf and the margins wiring after it), 25 Sep 21:17 UK; the forty-sixth review's MINOR 4 (the counts in the 11:13 row were in no results file). Each test's output follows, verbatim.
+
+=== node research/tests/reader-solve.test.mjs  (started 21:17:32 UK)
+PASS  the trap: a query that can pay, three quarters toward the dead node, reads 0.40 (c 0.4/0.4, R 0/0)
+PASS  planted: the unit template reads 0.85 there and fails the 0.40 check
+PASS  the fake row is what it says: the second node has no accessible money
+PASS  buildReaderTable's split, by hand: a row with survival above the reference reproduces both nodes (c 1/1, R 0.30/0.30)
+PASS  planted: with the residual dropped the same nodes read 0.60 and 0.00, and fail
+PASS  S126 solves with the reader (meta.bridgeRead reader, 6 tables, 0 unsupported nodes)
+PASS  node reproduction: 7776 nodes over 6 tables, largest miss 5.6e-17
+PASS  planted: with p taken as 1 the largest miss is 1.000, and the check fails
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: planted: with the residual dropped the largest miss is 5.6e-17, above the check's 1e-9, and the check fails
+    at ok (file:///home/user/vitejs-vite-kdvuf9qw/research/tests/reader-solve.test.mjs:28:44)
+    at file:///home/user/vitejs-vite-kdvuf9qw/research/tests/reader-solve.test.mjs:77:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.2
+=== exit 1
+
+=== node research/tests/reader.test.mjs  (started 21:18:41 UK)
+PASS  1 bills, 12% spread, money 0.9 x the bills: formula 0.0000, simulated 0.0000 (limit 0.0000, exact)
+PASS  1 bills, 12% spread, money 1 x the bills: formula 1.0000, simulated 1.0000 (limit 0.0000, exact)
+PASS  1 bills, 12% spread, money 1.1 x the bills: formula 1.0000, simulated 1.0000 (limit 0.0000, exact)
+PASS  2 bills, 12% spread, money 0.9 x the bills: formula 0.0471, simulated 0.0460 (limit 0.0026, exact)
+PASS  2 bills, 12% spread, money 1 x the bills: formula 0.5739, simulated 0.5745 (limit 0.0063, exact)
+PASS  2 bills, 12% spread, money 1.1 x the bills: formula 0.9560, simulated 0.9550 (limit 0.0026, exact)
+PASS  3 bills, 12% spread, money 0.9 x the bills: formula 0.1645, simulated 0.1642 (limit 0.0247)
+PASS  3 bills, 12% spread, money 1 x the bills: formula 0.5935, simulated 0.5927 (limit 0.0262)
+PASS  3 bills, 12% spread, money 1.1 x the bills: formula 0.8996, simulated 0.9004 (limit 0.0238)
+PASS  4 bills, 12% spread, money 0.9 x the bills: formula 0.2479, simulated 0.2485 (limit 0.0255)
+PASS  4 bills, 12% spread, money 1 x the bills: formula 0.6092, simulated 0.6131 (limit 0.0262)
+PASS  4 bills, 12% spread, money 1.1 x the bills: formula 0.8676, simulated 0.8673 (limit 0.0243)
+PASS  5 bills, 12% spread, money 0.9 x the bills: formula 0.3075, simulated 0.3085 (limit 0.0258)
+PASS  5 bills, 12% spread, money 1 x the bills: formula 0.6226, simulated 0.6249 (limit 0.0261)
+PASS  5 bills, 12% spread, money 1.1 x the bills: formula 0.8489, simulated 0.8491 (limit 0.0245)
+PASS  6 bills, 12% spread, money 0.9 x the bills: formula 0.3529, simulated 0.3522 (limit 0.0260)
+PASS  6 bills, 12% spread, money 1 x the bills: formula 0.6346, simulated 0.6420 (limit 0.0261)
+PASS  6 bills, 12% spread, money 1.1 x the bills: formula 0.8374, simulated 0.8375 (limit 0.0247)
+PASS  3 bills, 20% spread: formula 0.5425, simulated 0.5434 (limit 0.0263)
+PASS  6 bills, 20% spread: formula 0.5563, simulated 0.5627 (limit 0.0263)
+PASS  4 bills, cash-heavy (4% spread): formula 0.5766, simulated 0.5778 (limit 0.0262)
+PASS  5 uneven bills (a one-off cost in year 2): formula 0.6063, simulated 0.6080 (limit 0.0262)
+PASS  5 bills, money arriving in year 2: formula 0.9999, simulated 0.9999 (limit 0.0201)
+PASS  5 bills, money arriving in year 3 after the shortfall: formula 0.4829, simulated 0.4840 (limit 0.0263)
+PASS  planted: the copy without the drift term fails the check on 19 case(s)
+PASS  planted: the whole-run-only copy reads 1.0000 against simulated 0.4814 and fails the money-arriving case
+PASS  the reviewer's widths: 0.000, 0.500, 0.745, 0.935 (x v)
+PASS  one bill: unaffordable by more than GBP 1 fails, within GBP 1 pays
+PASS  nothing left to pay after today: certain
+PASS  no spread: the reference is certain either way
+
+reader: 30 passed
+=== exit 0
+
+=== node research/tests/stats.test.mjs  (started 21:18:42 UK)
+PASS  exact p for 3 lost, 0 saved: 0.1250 (A2: 0.1250)
+PASS  exact p for 4 lost, 0 saved: 0.06250 (A2: 0.06250)
+PASS  exact p for 7 lost, 1 saved: 0.03516 (A2: 0.03516)
+PASS  exact p for 9 lost, 1 saved: 0.01074 (A2: 0.01074)
+PASS  exact p for 8 lost, 0 saved: 0.003906 (A2: 0.003906)
+PASS  exact p for 23 lost, 0 saved: 1.192e-7 (A2: 1.192e-7)
+PASS  no discordant paths: p = 1
+PASS  Clopper-Pearson 4 of 4: 0.398 to 1 (A4: 0.398 to 1)
+PASS  Clopper-Pearson 9 of 10: 0.555 to 0.997 (A4: 0.555 to 0.997)
+PASS  4 lost of 3,000: change -0.13, interval -0.13 to +0.03 points (A4: -0.13 to +0.03)
+PASS  9 lost, 1 saved of 1,000: interval -0.99 to -0.11 (A4: -0.99 to -0.11)
+PASS  Holm over 21: the smallest p 0.0024 adjusts to 0.0504 (0.05/21 = 0.00238 is the threshold)
+PASS  Holm step-down with monotonicity: [0.01, 0.04, 0.03] -> [0.03, 0.06, 0.06]
+PASS  4 lost, 0 saved of 3,000 at a 0.25-point margin: no material harm
+PASS  9 lost, 1 saved of 1,000 at a 0.5-point margin, Holm over 23: inconclusive
+PASS  30 lost, 2 saved of 3,000: harm (p 1.2e-7)
+PASS  0 of 0 discordant: no material harm, never "at the line"
+PASS  paths needed: 1844, 14138, 3535 (A8: about 1,840, 14,100 and 3,530)
+PASS  the look's error rate: harm at 0.05, inconclusive at 0.005 (p 0.011)
+PASS  pooled over three equal households: 1.00 (0.58 to 1.42), tau^2 0
+PASS  pooled over +4, -4 and 0 points: 0.00 (-3.27 to 3.27), tau^2 8.11 > 0
+PASS  sign test 8 up, 1 down: p 0.0391
+PASS  planted: the old rule reads 4 lost, 0 saved as at or beyond two se; the exact outcome is no material harm, so the two disagree
+
+stats: 23 passed
+=== exit 0
+
+=== node research/tests/solver-f1.test.mjs  (started 21:18:42 UK)
+PASS  v1: the need is the whole bridge's, inflows not counted (184k from year 0)
+PASS  v1: the table carries nothing new
+PASS  v2: the need itself is unchanged
+PASS  planted: v2 needs only the four years before the inheritance arrives (92k, not 184k)
+PASS  v2: after the inheritance, the years left are needed in full (69k)
+PASS  v2: the growth is the accessible investments' own, balance-weighted
+PASS  v2: a deduction from an accessible pot adds to what is needed
+PASS  planted: v1 counts a one-off cost in the bridge (214k, not 184k)
+PASS  planted: v2 counts a one-off cost due before the inheritance (122k, not 92k)
+PASS  v2: a cost due after the inheritance is met by it (92k); v1 still counts it (214k)
+PASS  exactly covered with no growth: a half
+PASS  exactly covered with growth: above a half (v1 said a half whatever the growth)
+PASS  planted: short by 16% - a chance between nothing and a half, not the dead read
+PASS  three times covered: all but certain
+PASS  the inflows cover every year: no cap
+PASS  nothing accessible: dead
+PASS  all cash: covered or not, with no spread
+PASS  no retired bridge (S000): off, v1 and v2 read the same (0.999972)
+PASS  the solve records the version: off false, v1 true, v2 2
+
+19 passed
+=== exit 0
+
+=== node research/tests/f1-default.test.mjs  (started 21:18:48 UK)
+PASS  the bridge read: decided false, code false
+PASS  planted: a decided v2 against the code's off fails the same comparison
+PASS  planted: a decided-defaults block without the key fails it too
+PASS  by default solvePlan reads without F1 (meta.bridgeRead false)
+PASS  an explicit bridgeRead: 2 reads with v2 (meta.bridgeRead 2)
+
+5 passed
+=== exit 0
+
+=== node research/tests/solver-step2.test.mjs  (started 21:20:42 UK)
+solver-step2: 7 passed
+=== exit 0
+
+=== node research/tests/read-f1v2.test.mjs  (started 21:23:42 UK)
+PASS  clean: NOT FALSIFIED
+PASS  arms differ (mix): GATE FAILED
+PASS  no bridge difference: GATE FAILED
+PASS  fold, both arms: GATE FAILED
+PASS  another grid: GATE FAILED
+PASS  raise cap missing: GATE FAILED
+PASS  ran lines with finalIntegral false before bridgeRead: NOT FALSIFIED
+PASS  ran lines ending in finalIntegral false: NOT FALSIFIED
+PASS  an arm with the final year exact: GATE FAILED
+PASS  in-class misread 12: FALSIFIED
+PASS  cost not counted (reads 99.5): FALSIFIED
+PASS  S366 misread 20: FALSIFIED
+PASS  survival loss 3 se: FALSIFIED
+
+13 passed
+=== exit 0
+
+=== node research/tests/solver-plan.test.mjs  (started 21:23:48 UK)
+PASS  a floor of 80% gives the six-level menu
+PASS  the lowest level is always the floor itself
+PASS  a floor at 90% is not duplicated
+PASS  a floor at the target (block trimming) leaves nothing below 1
+PASS  solvePlan refuses to run without the dislike-of-cuts setting
+PASS  S162 carries its own minimum pot (GBP190000), and the default does not replace it
+PASS  solvePlan equals solveMixture with the baseline written out, bit for bit, in every world
+PASS  the result records the product baseline: full scan, exact final year
+PASS  no #106 option: neither passed its re-check
+PASS  without consent to change risk there are no tier moves
+PASS  the M17 floor fix is on
+PASS  raises are capped at 110% by default
+PASS  a plan's own minimum pot is kept
+PASS  a plan with none gets one year of target spending
+PASS  the user can block raises and ask for no minimum pot
+PASS  an estate setting of 0% means a weight of 0.01, never zero (M20)
+PASS  with the pension already at the top tier (every library household, M21), the default is bit for bit the plan without risk above
+PASS  held at Medium, risk above adds exactly one tier when asked for (M14)
+PASS  and never without consent to change risk
+PASS  the thin threshold is 85% (M14b)
+PASS  by default, held at Medium, the auto rule decides: off: not thin
+PASS  held at Medium, the default decides by simulated survival: off: not thin (99.0% without)
+PASS  it is kept only when no worse on the same paths
+PASS  a thin plan (spending raised to 1.8x) is checked with it: on: thin, and no worse on the same paths (71.5% -> 78.0%)
+PASS  and without consent the auto rule never applies
+PASS  the taxable account's tier is refused in the product (M15)
+PASS  solve() keeps its historical defaults
+solver-plan: 27 passed
+=== exit 0

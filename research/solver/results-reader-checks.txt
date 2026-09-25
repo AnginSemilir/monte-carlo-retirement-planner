@@ -1,0 +1,24 @@
+# The bridge reader's own checks (drafts/reader-design.md checks 2 to 4): node research/tests/reader-solve.test.mjs, on the code committed as 2a0557a, run 25 Sep 11:05-11:13 UK (the first run, 11:00-11:09 UK, is kept below it: its planted fault, the residual dropped, had nothing to catch on S126)
+
+PASS  the trap: a query that can pay, three quarters toward the dead node, reads 0.40 (c 0.4/0.4, R 0/0)
+PASS  planted: the unit template reads 0.85 there and fails the 0.40 check
+PASS  the fake row is what it says: the second node has no accessible money
+PASS  a row with survival above the reference reproduces both nodes (c 1/1, R 0.30/0.30)
+PASS  planted: with the residual dropped the same nodes read 0.60 and 0.00, and fail
+PASS  S126 solves with the reader (meta.bridgeRead reader, 6 tables, 0 unsupported nodes)
+PASS  node reproduction: 7776 nodes over 6 tables, largest miss 5.6e-17
+PASS  planted: with p taken as 1 the largest miss is 1.000, and the check fails
+      (diagnostic: the residual's largest size on S126 is 1.0e-6, above 1e-9 at 4698 of 7776 nodes)
+PASS  S126: every world's survival and bequest tables from the last bridge year (1) on are bit for bit the solve without the reader
+PASS  planted: the earlier bridge years' tables differ, so the comparison is not a solve against itself
+PASS  S000 (no bridge): the reader builds 0 tables and every table and move is bit for bit the solve without it
+
+reader-solve: 11 passed
+
+# the first run (its fifth check stopped the run; the checks after it did not run)
+PASS  the trap: a query that can pay, three quarters toward the dead node, reads 0.40 (c 0.4/0.4, R 0/0)
+PASS  planted: the unit template reads 0.85 there and fails the 0.40 check
+PASS  the fake row is what it says: the second node has no accessible money
+PASS  S126 solves with the reader (meta.bridgeRead reader, 6 tables, 0 unsupported nodes)
+PASS  node reproduction: 7776 nodes over 6 tables, largest miss 5.6e-17
+AssertionError [ERR_ASSERTION]: planted: with the residual dropped the largest miss is 0.000, and the check fails

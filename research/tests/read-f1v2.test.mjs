@@ -12,6 +12,7 @@ import { execFileSync } from 'node:child_process';
 const S = mkdtempSync(join(tmpdir(), 'read-f1v2-'));
 const CASES = ['S126', 'share 0.50', 'share 0.70', 'share 0.78', 'share 0.90', 'share 0.95', 'bridge 0', 'bridge 1', 'bridge 4', 'bridge 6', 'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S124', 'S128', 'S130', 'S360', 'S366', 'S370', 'bridge 4+cost'];
 const ran = br => `mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1.1,1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 25000 bridgeRead ${br}`;
+const ranFI = (br, fi) => ran(br).replace(' bridgeRead', ` finalIntegral ${fi} bridgeRead`);
 const f = x => x.toFixed(1).padStart(5);
 function mk(over = {}) {
   let out = 'F1 V2 TEST, planted\n';
@@ -34,10 +35,12 @@ const plants = {
   'fold, both arms': [Object.fromEntries(CASES.map(id => [id, { rOff: ran('false').replace('mix 3', 'mix 0'), rOn: ran(2).replace('mix 3', 'mix 0') }])), 'GATE FAILED'],
   'another grid': [Object.fromEntries(CASES.map(id => [id, { rOff: ran('false').replace('total16x6x6', 'pots16x16x16'), rOn: ran(2).replace('total16x6x6', 'pots16x16x16') }])), 'GATE FAILED'],
   'raise cap missing': [Object.fromEntries(CASES.map(id => [id, { rOff: ran('false').replace('levels 1.1', 'levels 1.2,1.1'), rOn: ran(2).replace('levels 1.1', 'levels 1.2,1.1') }])), 'GATE FAILED'],
-  // 25 Sep: audit-s126's ran line now ends in the final year it ran; the gate must still strip the bridge read from such a
-  // line, and must refuse an arm run exact (the test's prediction ran the final year averaged)
+  // 25 Sep: audit-s126's ran line now records the final year it ran - before bridgeRead in every mode, after it in the
+  // trace mode's files - so the gate must strip the bridge read wherever it sits, and must refuse an arm run exact (the
+  // test's prediction ran the final year averaged)
+  'ran lines with finalIntegral false before bridgeRead': [Object.fromEntries(CASES.map(id => [id, { rOff: ranFI('false', false), rOn: ranFI(2, false) }])), 'NOT FALSIFIED'],
   'ran lines ending in finalIntegral false': [Object.fromEntries(CASES.map(id => [id, { rOff: `${ran('false')} finalIntegral false`, rOn: `${ran(2)} finalIntegral false` }])), 'NOT FALSIFIED'],
-  'an arm with the final year exact': [{ S124: { rOff: `${ran('false')} finalIntegral true`, rOn: `${ran(2)} finalIntegral true` } }, 'GATE FAILED'],
+  'an arm with the final year exact': [{ S124: { rOff: ranFI('false', true), rOn: ranFI(2, true) } }, 'GATE FAILED'],
   'in-class misread 12': [{ 'bridge 4': { tOn: 87 } }, 'FALSIFIED'],
   'cost not counted (reads 99.5)': [{ 'bridge 4+cost': { tOn: 99.5 } }, 'FALSIFIED'],
   'S366 misread 20': [{ S366: { tOn: 79 } }, 'FALSIFIED'],

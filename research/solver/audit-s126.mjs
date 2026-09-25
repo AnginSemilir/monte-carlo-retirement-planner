@@ -129,8 +129,9 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace } 
   const t0 = Date.now();
   // riskAbove and finalIntegral are passed only when a mode names them (the trace mode, which names finalIntegral true or
   // false in every arm); unset, the product's defaults hold (the final year exact by default since the maintainer's decision, 25 Sep 09:36 UK).
-  // Every mode's ran line records the final year it ran (until 25 Sep only the trace mode's did), so a re-run of an older
-  // mode (7c's f1v2, 7i's quad), now exact by default, cannot pass a ran-line gate against files that ran it averaged.
+  // Every mode's ran line records the final year it ran (until 25 Sep only the trace mode's did, after bridgeRead), so a
+  // re-run of an older mode (7c's f1v2, 7i's quad), now exact by default, cannot pass a ran-line gate against files that
+  // ran it averaged. It sits BEFORE bridgeRead: smoke.sh's f1v2 check (locked) reads bridgeRead at the end of the line.
   const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
     ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}) });   // F1 off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
@@ -141,7 +142,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace } 
   paths.forEach((zs, i) => { if (tr) tr.row = i; const o = runPolicy(r, zs, tr ? { trace: tr } : {}); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
   const sim = 100 * ok / NP;
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
-  const ran = `mix ${r.meta.mixture} pts ${r.g.np} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} bridgeRead ${r.meta.bridgeRead} finalIntegral ${r.meta.finalIntegral === true}`;
+  const ran = `mix ${r.meta.mixture} pts ${r.g.np} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
   return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran };
 }
 if (mode === 'f1v2') {
@@ -169,7 +170,8 @@ if (mode === 'f1v2') {
   /*
    * IS THE BRIDGE MISREAD AVERAGING OR REPRESENTATION? (PLAN.md 7h; predictions/bridge-quad.md) F1 off in both arms, the
    * same solvePlan settings as the f1v2 mode, the year's return averaged over 5 points against 15 (every year, the final
-   * year included: the exact final year is off in both, as the product has it), paired on the same paths. If 15 points close the table's misread, it
+   * year included: the exact final year was off in both, as the product had it when 7i ran; it is the default since 25 Sep
+   * 09:36 UK, so a re-run now runs it exact and read-bridgequad.mjs refuses those arms), paired on the same paths. If 15 points close the table's misread, it
    * is averaging; if not, the grid read across the share axis (a representation problem).
    */
   // built exactly as the f1v2 mode builds them (F1_VARIANTS and the library), so each case is the one 7c read

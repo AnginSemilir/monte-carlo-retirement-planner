@@ -2148,3 +2148,261 @@ points per point of failure on M14's thin four (2.5 / 22).
 se on the thin four. Then the default reverts to opt-in. **What decides between "every plan" and `'auto'`:** if any
 zone or comfortable household is worse with it beyond two paired se, the default becomes `'auto'` (thin plans,
 with the no-worse guard) and the threshold is set from item 3. Otherwise "every plan" stands. **Held-out paths moved to seed 7011 (24 Sep 10:33 UK, the plan-auditor's third review, before the run):** the zone six and the thin four were chosen on seed 7002's paths (flex-tiers and M14), the paths M14b first meant to report on, so a selection on survival there could lean the result. Measured on seed 7011's paths, which chose nothing, the selection cannot lean it, and the falsifier reads both ways again.
+
+## Moved from PLAN.md 25 Sep 22:01 UK (the regimen's sweep: finished work, verbatim)
+
+### The schedule's finished rows (steps 0 to 7k, 23-25 Sep)
+
+| # | Step | Conditional on | Size | ETA (UTC) |
+|---|---|---|---|---|
+| 0 | ~~Byte-wide policy bug's cost~~ **zero effect** | - | - | done |
+| 1 | ~~Phase V~~ **done: plans stable, table numbers not; judged on simulation (decision A)** | - | - | done |
+| 2 | ~~Step 2 and its re-check~~ **done 19:45**: finalExact on, ternary out, 30 points kept, no #106 option (history) | 1 | - | done |
+| 2b | ~~Ranking check~~ **done 21:00**: nothing to fix - the first choice did worse at 8 of 479 positions, none beyond noise, worst 0.6 points (`results-ranking.txt`; history) | 2 | - | done |
+| 4 | ~~K1 honouring checks~~ **done 21:13: PASSED** - every rule held on every path-year of 24 records (`results-k1.txt`) | 2b | - | done |
+| 4b | ~~Calibration check (M16)~~ **done ~21:35** | 4 | ~25 min | done |
+| 5 | ~~K2-K4 screens~~ **done 00:33** (173 cells, 19 reused; `results-k-screens.txt`) | 4 | - | done |
+| 5b | ~~Phase 4 panel selection~~ **run 02:05: its FALSIFIER FIRED - 1 of 158 candidates in the 75-95% band (FIRE 0 of 30, median 13.7%; library split between 99-100% and below 75%). Stopped for the maintainer; options (widen, land each household at ~85%, redefine FIRE) in `results-p4-select.txt`, recommended: land** | 5d | - | maintainer |
+| 5d | **The purpose test and the probes, in order (maintainer, 22:00):** M18 (is the policy the best available, within noise), M17 (the two cures for failing futures), then Phase 4 selection; M15, M14 and M12 are built and run only if time allows | 5 | ~2.5 h | Thu ~03:30 |
+| 5c | **The morning summary for step 6**: K2-K4 in plain words, a recommended default for each lever, M8's wording, the #106 trade-off, the ternary decision, **M17 and the probes' verdicts, and the calibration curve** | 5 | no cores | Thu ~07:00 |
+| 6 | ~~The maintainer picks the product defaults~~ **DECIDED 24 Sep ~05:30: every recommendation taken** - minimum pot 1 year; raise cap 1.1; estate slider 0% = weight 0.01; the M17 floor fix ON; risk above the user's tier ~~as an opt-in~~ **then on in every plan (maintainer, 07:32 UK; PROVISIONAL until M14b)**; Phase 4's panel landed at ~85%; the taxable-account tier NOT allowed as built - **fully plan a version that works first** (M15, "the full design" below) | 5c | - | done |
+| 7 | **K5 guardrail matching** - **stage 1 FINISHED ~14:30 UK and FALSIFIED** (`results-k5-stage1.txt`: no setting reaches the guardrails' total cut; stages 2, 3 and 3b held for the maintainer's decision, 14:38 UK; **CANCELLED 16:35 UK: option A**). As planned: stage 1 from 06:38 UK (288 cells at ~6.5 min each, four at a time: **~8 h, not 4.5**; 64 done at 08:40, 168 at 11:11 UK (k5.log): about 41 an hour, so **finish ~14:05 UK**, not ~18:00), judged against the corrected fold target (08:39); stage 2 now expected (R4 re-derived); stage 3 on the 41 **in the mixture**; stage 3b, the twelve at Medium with risk above (12 cells plus the guardrails at Medium; ~35 min for the twelve at four at a time - measured: K5's 212 cells, median 5.7 min in the fold, and the mixture ~2.06x the fold on bridge-41 (medians 1.32 against 0.64 min), so ~12 min a cell; re-estimated from its first cells) | 6 | stage 1 ~8 h (done); stages 2, 3 and 3b cancelled (option A) | stage 1 done; the rest cancelled |
+| 7b | **M14b** (`batch-m14b.sh`, 24 cells, **in the mixture**, ~2 h; registered prediction `predictions/m14b.md`): risk above the tier re-checked under the step-6 defaults; decides whether "on in every plan" stands or falls back to 'auto' (thin plans, no-worse guard). Also C8's check for risk above | 7 stage 1 | ~2 h | **done: reduced 16:49 UK, FALSIFIED (results-m14b.txt)** |
+| 7c | **The F1 v2 test** (approved 12:42 UK): off against v2, paired, on the step-6 defaults **in the mixture** - the twelve S126 variants, S120-S130, S360, S366 and S370, and the cost case (bridge 4 with a 30k one-off cost in its year 2, added before any run at the maintainer's request, 14:05 UK); its prediction (`predictions/f1v2-test.md`) written and pushed before it launches. Settles O2, O4 and O9 or leaves them open; whether F1 becomes the default waits for it and for 8d (decided provisionally 18:21 UK: v2, until 7e; **withdrawn 19:25 UK**: the falsifier fired, and its registered consequence - v2 not carried forward - stands; 7e chooses, with the 30-point check below made inside it). It solves at 16 points, as the F1 test did; the product solves at 30, so before any F1 default v2 is also checked at 30 points on S126, bridge 6 and S366 (the fourteenth review) | 7 stage 1; 7b, since M14b may change the risk-above default this test runs on (rule 8; the fourteenth review) - it could not: none of the 21 cases has a tier above its plan (results-f1v2-tiers.txt), so 7c ran at 16:56 UK before M14b was written up; F1 v2 built; the f1v2 smoke line (in, 13:44 UK) | ~1 h (the F1 test took about 5 min a case in the fold, x2.06 for the mixture - the stage-3b estimate's ratio - so ~10 min a case; 21 cases split four ways put six in part 0, ~63 min), re-estimated from its first cases | **done: the batch 16:56 to ~18:15 UK (runs.log), FALSIFIED on one clause (results-f1v2.txt)** |
+| 7f | **M14c: does the solver's table misjudge the bets?** (the maintainer, 17:55 UK: "I'm surprised they make the wrong move, for me it points to a problem with the solver"; approved 18:01 UK): at up to 40 first-bet positions on S194, S162, S252 and the control S330, the bet against the table's best move without it, each simulated from the same position on 500 fresh paths; the solve must reproduce m14b-up path for path or nothing is reported (predictions/m14c-bets.md, registered 812e88b 18:12 UK; the audit's code moved inside the result stamp, a72954e) | 7b | ~1 h | **done: reduced 22:10 UK, FALSIFIED as registered (pooled); S194's bets lose survival when made, table error or trade NOT CHECKED (results-m14c.txt)** |
+| 7g | **O19: the final year integrated exactly** (`batch-o19.sh`, registered prediction `predictions/o19-final.md`; the maintainer, 20:15 UK: test the outside review's ideas first): the 5-node final year against the exact one (`FINALINT=1`), each with and without one tier above the plan, plan held at Medium, M14b's settings, on S194, S162, S252, S172, S330 and S354, paired on 3,000 paths; `reduce-o19.mjs` gates all four pairings. Decides whether the staircase caused M14b's lost bets, and whether the exact final year is carried forward | finalIntegral built and unit-tested (final-integral.test.mjs); the launcher's smoke line for it | ~3 h (M14b's measured times for these six average 23.1 min a solve, so 24 solves four at a time is ~140 min, three at a time ~185 min; the exact arms' extra cost is unmeasured) | **done: reduced 25 Sep 00:25 UK; item 1 and the falsifier exactly at two se; beside the registered reading, not registered, the exact final year about halves the tier above's cost (results-o19.txt, results-o19-exact.txt)** |
+| 7h | **The quadrature reference** (`batch-quadref.sh`, registered prediction `predictions/quad-ref.md`; the maintainer, 21:34 UK 24 Sep: plan the tests, revise them with M14c and O19 before running): 5 against 15 return points every year, the final year exact in both, with and without one tier above the plan, on S194, S162, S252 and S330; plus five worlds against three on S194 and S330. Does finer averaging of the earlier years remove what O19 left of the tier above's cost (-0.09 +/- 0.04, at two se)? The 5-point arms re-run O19's and must reproduce them path for path. reduce-quadref.mjs gates each pairing by its one line; the tie rule is stated in the prediction | 7g; finalIntegral; QUAD (quadNodes) | ~1.7 h (8 solves at 15 points, ~2.5 times a 5-point solve by the 00:37 UK functional check; O19's 5-point solves took 9-15 min; plus 8 at 5 points and 2 five-world) | **done: reduced 25 Sep 04:26 UK; items 1 and 2 held, item 3 missed (S330, O21), the falsifier not fired: the tier above's cost on the three is not the earlier years' averaging (results-quadref.txt, results-quadref-exact.txt)** |
+| 7i | **Is the bridge misread averaging or representation?** (`batch-bridgequad.sh`, registered prediction `predictions/bridge-quad.md`; drafted and revised under the same instruction): audit-s126.mjs's new quad mode, F1 off in both arms, 5 against 15 return points, on S126, bridge 4, bridge 6, share 0.95, S366 and S360 as 7c built them; read-bridgequad.mjs gates each case's two ran lines (shown refusing a planted mismatch) and checks the 5-point arm reproduces 7c's OFF arm. If the misread stays, the representation fix (7e's boundary-plus-residual reader) is the one to build | 7h (one batch at a time) | ~1 h (six cases in four parts; the 15-point solve ~2.5 times the 5-point) | **done: read 25 Sep 04:28 UK; items 1 and 2 held, the falsifier not fired: the misread is the read, not the averaging, so the reader joins 7e as its fifth arm; S360's gain logged (O22) (results-bridgequad.txt)** |
+| 7j | **O22's trace: S360's gain from 15 points, the final year or the earlier years?** (`batch-o22.sh`, registered prediction `predictions/o22-trace.md`; the maintainer, 06:31 UK 25 Sep: start the tests; launched 07:00 UK): audit-s126.mjs's new trace mode, F1 off, the tier above allowed (riskAbove true, as 7i ran it), four solves of S360 on 7i's 1,000 paths - 5 or 15 return points, each with the final year averaged or exact - with the per-year trace kept; reduce-o22.mjs gates each pairing's ran lines (shown refusing a planted lambda change) and checks q5 and q15 reproduce 7i's S360 line. If the exact final year carries the gain, 7e already covers it (every 7e arm runs the final year exact); if 15 points still gain with the final year exact, the earlier years' averaging returns as a candidate | 7i; the trace mode's tiny functional check (a declared measurement) | ~45 min, one process (7i's S360 solves took 317 s at 5 points and 852 s at 15) | **done: read 25 Sep 07:54 UK - FALSIFIED: the exact final year leaves S360's survival unchanged; the gain is the earlier years' averaging (results-o22.txt, results-o22-detail.txt); the template-integral averaging back as a candidate (7l)** |
+| 7k | **The exact final year: its time, then the default decision** (the maintainer, 25 Sep 07:29 UK: decided after its timing, before 7e): solves with and without `finalIntegral` on a quiet box (no other job), the same households and settings, alternated, several runs each, the ratio reported per household; then put to the maintainer with O19's evidence. A decision changes the code default and the decided-defaults block together (rule 8) | 7j finished (a quiet box) | ~1 h, an estimate from 7i's measured S360 solve at 5 points (317 s): about 12 solves - three households, with and without, two alternated runs each - the households named in its measurement note before it runs | **done: timing 09:23 UK (results-finalyear-timing.txt: ratios 1.089, 1.085 and 1.027 on S126, S194 and S330); DECIDED 09:36 UK - the exact final year is the product default** |
+
+### The next 12 hours, as planned 23 Sep 21:30 UTC
+
+### The next 12 hours (rewritten Wed 21:30 UTC, after K1 finished in 8 minutes and the plan audit)
+
+| UTC | cores | alongside, no cores |
+|---|---|---|
+| ~~18:35 - 21:13~~ | ~~step 2 and its re-check, the ranking check, K1~~ **done** | write-ups, history moves |
+| ~~21:13 - ~21:35~~ | ~~calibration check (M16)~~ | plan audit against the history; K2-K4 predictions re-derived; M17 found |
+| ~21:35 - ~00:30 | K2-K4 screens, 173 cells (measured: about a cell a minute) | calibration chart (published); M17 built and tested; M18 built |
+| ~00:30 - ~01:20 | M18, the purpose test | K2-K4 reduced against their predictions |
+| ~01:20 - ~01:50 | M17 probe, both cures | M18 reduced |
+| ~01:50 - ~02:50 | Phase 4 panel selection | M17 reduced (**done: floor fix recommended**); M18 passed, so no numerics follow-ups |
+| ~02:50 - ~03:20 | M14, one tier above (plan held at Medium) | M14 reduced |
+| ~~02:26 - 03:31~~ | **M18 again with the floor fix on - done: PASSED, falsifier not fired** (158 of 159 within noise, mean -0.01 +/- 0.02; rivals ahead by cutting more 2 of 14, was 10 of 23; `results-bestof-floor.txt`) (`batch-bestof-floor.sh`): the purpose test is the proof of any objective change. PREDICTION: the survival criterion still passes (best rival within noise at 90%+ of positions, mean advantage under half a point); positions where a rival wins now cut less, not more. FALSIFIED IF the best rival is ahead beyond noise at over 5% of positions on survival | morning summary finalised |
+| ~~02:30 - 03:05~~ | - | **M15 built** (while M18-floor ran): `giaTiers`, off by default and bit-identical off (table hashes S070 d12c6e177e97cb6a, S330 d9ad3e66a9b6d52c before and after); `solver-giatiers.test.mjs` 10 passed; solver-fast, -tiers, -model green |
+| ~~03:33 - 03:48~~ | **Probe M15 - done: FALSIFIED** (S330 -3.2 +/- 0.35 and -3.7 at 40% gain, S054 -0.23 +/- 0.10): bundling the GIA into the joint step makes pension-only de-risking unavailable, so the pension stays at High (S330 38.1 -> 9.7 years below plan tier); the GIA itself barely moves. Not offered; what a working version needs is in `results-m15.txt` | M18-floor reduced |
+| 05:00 - 07:00 | - | the morning summary; the mathematician's page brought up to date |
+
+Stops that would change this: a K2-K4 cell failing to run (re-run once, then recorded); a probe build that
+is not bit-identical with its option off (it does not run until it is); nothing else tonight is gated.
+
+### S126's dead corner (#106): the replication, the root cause, the fix options and F1's test
+
+### The replication, run 24 Sep 07:25-07:55 UK (06:25-06:55 UTC; `audit-s126.mjs variants 16 1000`; step-2 flags, lambda held)
+
+| variant | a0 | bridge | W | a\* (floor need) | class (floor-corrected) | table | simulated | gap | pension below plan tier, years/path |
+|---|---|---|---|---|---|---|---|---|---|
+| S126 as is | 0.85 | 2 | 950k | 0.951 | yes | 47.7 | 99.9 | -52.2 | 40.0 |
+| share 0.50 | 0.50 | 2 | 950k | 0.951 | no | 99.9 | 99.8 | +0.1 | 6.9 |
+| share 0.70 | 0.70 | 2 | 950k | 0.951 | no | 99.6 | 99.8 | -0.2 | 9.5 |
+| share 0.78 | 0.78 | 2 | 950k | 0.951 | no at t = 0 (drifts in at t = 1) | 99.1 | 99.9 | -0.8 | 40.0 |
+| share 0.90 | 0.90 | 2 | 950k | 0.951 | yes | 0.9 | 99.7 | -98.8 | 10.8 |
+| share 0.95 | 0.95 | 2 | 950k | 0.951 | yes (barely) | 0.0 | 68.2 | -68.2 | 4.6 |
+| bridge 0 | 0.85 | 0 | 950k | - | no | 99.9 | 99.8 | +0.1 | 6.7 |
+| bridge 1 | 0.85 | 1 | 950k | 0.976 | yes | 82.8 | 99.8 | -17.0 | 8.8 |
+| bridge 4 | 0.85 | 4 | 950k | 0.902 | yes | 5.3 | 99.9 | -94.6 | 42.0 |
+| bridge 6 | 0.85 | 6 | 950k | 0.853 | yes (barely) | 3.3 | 99.8 | -96.5 | 44.0 |
+| wealth x0.5 | 0.85 | 2 | 475k | 0.902 | yes | 3.2 | 96.8 | -93.6 | 36.8 |
+| wealth x2 | 0.85 | 2 | 1.9m | 0.976 | yes | 90.3 | 100.0 | -9.7 | 40.0 |
+
+**Against the prediction:**
+- **Class membership:** right on all 12 once a\* uses the floor-level need. Two variants I predicted "truly failing" (share 0.95, bridge 6) are in the class and simulate at 68% and 99.8%; that was my error, logged above.
+- **Out of class:** all within 1 point, as predicted.
+- **Magnitudes ("20+ below"):** held on 7 of 9. Missed on wealth x2 (-9.7) and bridge 1 (-17.0).
+- **Falsifier** (in-class within 5 points, or out-of-class 20+ below): NOT fired.
+
+### The root cause, refined by the replication
+
+The read at a position between a live share node a_k and a dead one above it is
+
+    eta_read = (1 - w) * eta_live + w * (-13.8),   w = (a - a_k)/0.2
+
+So the misread depends on three things:
+1. **w, the position's weight on the dead node.** Share 0.90 has twice S126's weight, and a gap of -99 against -52.
+2. **How alive the live node is.** A rich household's live node sits near +13.8, so the read flips only past w = 1/2. That is why wealth x2 misreads only -9.7.
+3. **How many bridge years compound it.** Each bridge year is paid from accessible money, so the pension share rises and the next read sits deeper in the interval: one year -17, two -52, four -95.
+
+The interpolant puts the 50% line at a_k + 0.2 x eta_live/(eta_live + 13.8), set by the clamp and the node's
+confidence, never by the money. The true cliff is at **a\* = 1 - (bridge need at the floor)/W**.
+
+**What it does to decisions.** The solver acts on a false belief, and which way it acts depends on how
+pessimistic the read is:
+- At S126's 48% it turns cautious: the pension sits below its tier all 40 years, against 5-11 for unaffected twins.
+- Where the read is near 0 (share 0.90 and 0.95), it holds its riskiest tier (4.6-10.8 years below). That is the
+  M17 behaviour, which these step-2 flags do not yet fix, acting on a misread.
+- Share 0.78 reads fine at year 0 and still shows the 40-year signature, because it drifts into the interval in
+  year 1.
+
+### The fix options
+
+| option | what it does | exactness | cost | risk |
+|---|---|---|---|---|
+| **F1. A cliff-aware read** (recommended first) | Where a read's share interval has a dead node above, test the QUERY itself: does its accessible money cover the bridge at the floor (a < a\*)? If yes, interpolate from the live nodes only, extrapolated in log-odds from the two live nodes below, so the rising risk toward a\* is kept. If no, it is truly short, and the read keeps the dead node. The cliff goes where the money says. | Places the cliff at a\* exactly; the live side's shape near a\* is extrapolated | A coverage test per read against a per-year need table: negligible. Local to the read. Bit-identical wherever no dead node is touched | Slightly optimistic just inside a\*, where market moves could still break the bridge. The extrapolation is there to limit it |
+| F2. A coverage coordinate in bridge years | Replace the pension share with c = accessible/need in bridge years, with nodes dense around c = 1. The cliff sits ON a node. | Exact by construction (Focus 1's principle, applied to the share axis) | Per-year axis definitions in the grid; a larger build (about a day) and test surface | Low once built; the most code |
+| F3. Raise the clamp (1e-6 to 1e-3) | Halves the dead node's pull | Does not place the cliff; S126 7.6 -> 45.6 (#106) | Trivial | Moves every other clamp read too, including the good W-axis ones |
+| F4. More share nodes near 1 | Narrows the band the error lives in | Phase V's 12 share nodes still read S126 at 48-63 | +33% cells everywhere | Pays everywhere for a local fault |
+| (`drop`, tested) | Ignores the dead node whatever side of a\* the query is on | Reads positions PAST a\* as alive | - | Explains its measured -0.30 on S126: it let the plan drift past the cliff |
+
+**F1 is `drop` made cliff-aware.** The same test, "is this position on the live side of a known cliff?",
+generalises: the minimum-pot cliff (C1: W against P_min at the end) and one-off costs (C2) have analytic cliff
+locations too. So F1 is also the pitfall sweep's main tool.
+
+**F1 BUILT (24 Sep, committed 08:05 UK in 6dd1181), off by default and bit-identical off** (table hashes S070 d12c6e177e97cb6a and S330
+d9ad3e66a9b6d52c, before and after). It is `bridgeRead` in `solve` and BRIDGEREAD=1 in the harness.
+
+The need is taken at the lowest level on the menu, and includes any one-off costs due before access. F1 acts only
+in RETIRED bridge years. A working household with a bridge still ahead is a different case (contributions still
+arrive, so the coverage test would be wrong). **It joins the pitfall sweep as C7.** The cap uses sigma = the ISA/GIA
+opening-weighted spread at the plan tiers, scaled by the invested share of the accessible money.
+
+**F1 TEST - PREDICTION (committed 24 Sep 08:05 UK in 6dd1181, before the run, which began 08:05:45 UK; registered as `predictions/f1-test.md`):** `audit-s126.mjs f1`, 16 points, 1,000 paired
+paths; the 12 variants, the five library class households S120-S130, and the long-bridge controls S360, S366.
+1. **The class:** table within +/-5 points of simulation on every in-class case, except the two that sit on the cliff
+   edge (share 0.95 and bridge 6, coverage 1.02 at the floor): there the cap is only a rough edge model, so within
+   +/-15.
+2. **No survival cost:** simulated survival not lower with F1 than without, beyond two paired se, on any case.
+3. **Behaviour:** on S126 and the library class, the years the pension sits below its tier fall by at least half
+   (today 40), toward the unaffected twins' 5-11.
+4. **Out of class:**
+   - bridge 0: unchanged (no bridge years);
+   - share 0.50 and 0.70: year-0 table and simulated survival within 0.5 of the off values;
+   - share 0.78 (it drifts into the class in year 1): its 40-year signature falls, like item 3.
+5. **The truly short controls (S360, S366):** F1 never activates at the start (the accessible money is short of the
+   floor need), so they are read low and simulate low, as without it.
+
+**FALSIFIED IF** an in-class case away from the edge still misreads by more than 10 points, or any case loses
+survival beyond two paired se. **Then F2** (the coverage coordinate) is built instead.
+
+**F1 TEST - THE RESULT (read 24 Sep 12:15 UK by `read-f1.mjs` over `results-f1.txt`, item 3 re-scored 12:41 UK on the cases
+it names; `results-f1-verdict.txt`): NOT FALSIFIED, PROVISIONAL** on three counts: its code, 6dd1181, is established by
+hand until 8e; its fair-test table was written after both runs (~09:12 UK; the rule came at 08:45 UK), so the before-run
+check was never made; and it ran on **step 2's settings in the single-table fold** (no M17 fix, no raise cap, each
+plan's own minimum pot), not on the step-6 defaults or in the mixture - so everything below holds there only. The class
+is re-read at the floor need (O8, fixed 12:12 UK), which puts share 0.95 and bridge 6 in it.
+1. **The class: held on 11 of 13.** The misread closes from -10 to -99 points to within +/-5 on S126, share 0.90, bridge 1,
+   bridge 4, wealth x0.5 and x2, and S120-S128; share 0.95 (edge) -10.8, inside its +/-15. **Missed:** S130 +5.3 (just
+   outside, and optimistic - O9) and bridge 6 -46.0 (the edge, outside +/-15 - O2).
+2. **No survival cost: held, on step 2's settings in the fold.** The nearest is bridge 6, -0.5 +/- 0.26 (1.9 se).
+3. **Behaviour: missed on 4 of the 6 it names** (S126 and the library class). Years below tier fall on S126 (40.0 -> 10.7)
+   and S120 (40.0 -> 0.2); S122 started at 2.2, not 40 (2.5 after); the thin S124 39.1 -> 39.1, S128 28.1 -> 29.7 and
+   S130 35.4 -> 36.9 do not fall (O5). The variants agree: bridge 4 42.0 -> 42.0, bridge 6 44.0 -> 38.1, wealth x0.5
+   36.8 -> 39.4.
+4. **Out of class: held.** bridge 0 identical; share 0.50 and 0.70 within 0.5; share 0.78's 40 years fall to 10.1.
+5. **The long-bridge controls: the premise was wrong.** F1 does act on them: S360's survival rises +3.9 +/- 0.64, and
+   S366 simulates 98.9% even without F1, so it was never "truly short" (O4).
+
+**The falsifier did not fire** (in class away from the edge, the largest |gap| is 5.3; no case loses survival beyond two
+paired se), so F2 is not built on the falsifier's terms.
+
+**Why F1 missed what it missed** (12:41 UK, `diagnose-f1.mjs` over the plans' inputs, no solve; `results-f1-misses.txt`;
+answering the maintainer, 12:29 UK: "look again at what could be done"):
+- **Money arriving later in the bridge is not counted.** F1's coverage test adds known costs but not known inflows, while
+  the solver's own model counts them. Two ways it shows (corrected 13:16 UK, the thirteenth review):
+  - **S366** (library) receives an inheritance at age 54, inside its 8-year bridge. Without it the test calls S366 short
+    (coverage 0.77), so F1 stays off and the dead read stands: 3.0 against 99.2 simulated. Counted year by year, the
+    inheritance covers it.
+  - **The bridge-6 variant** also receives one inside its bridge, but the test counts it just covered without it
+    (coverage 1.02), so F1 does act - and its cap, which sees neither the inheritance nor growth, reads 53.3 against 99.3
+    simulated (the no-growth cap reproduces it at 54.5; with growth alone it would read 75.6 - diagnose-f1.mjs's rough model;
+    the code's v2 cap, which also counts the inheritance, is 99.7: results-f1v2-caps.txt). That the remaining ~24
+    points are the uncounted inheritance is inferred, not measured: it is the hypothesis the F1 v2 test checks (7c,
+    item 2; the fourteenth review).
+  - **S370** (library) is short on the same test and covered once its inheritance counts - **an inference from its inputs
+    only: the solver has never read or simulated it** (its one run on file is the app's own policy, arm A, 0.0%:
+    `results-p4-select.txt`). It is in the F1 v2 test's cases (7c).
+  **Same pattern searched** (13:16 UK, a figure or a mechanism given to a case no script produced): every mention of
+  S366, S370 and bridge 6 in the plan, diagnose-f1.mjs, read-f1.mjs, audit-s126.mjs and src/solver - only the v2 build's
+  own comment in grid.js carried the same two errors; it is corrected with this. The search also found a wrong mechanism
+  of my own in the couples bullet below ("F1 reads only the first person's bridge"), in O11 and in diagnose-f1.mjs's
+  printed label: corrected in all three, and results-f1-misses.txt regenerated (only that label changed: `diff`).
+- **The cap has no growth.** As built it reproduces F1's reads (57.7 against 57.4 on share 0.95; 54.5 against 53.3 on
+  bridge 6); with the accessible money's expected growth, share 0.95 would read 72.0 against 68.2 simulated (the rough
+  model; the code's v2 cap is 73.2: results-f1v2-caps.txt, 14:38 UK).
+- **F1 switches off whenever the money looks short**, so a lean long bridge (S360, coverage 0.84) keeps the dead read
+  (4.3 against 44.1) instead of the chance its money lasts.
+- **Couples are untested:** the couple solver gives each partner a single table, so F1 reads each partner's own bridge
+  with their own money and half the spending, not the household's (corrected 13:16 UK: this said F1 reads only the
+  first person's); 60 of the library's 210 couples have a bridge for at least one partner, and none was tested (O11).
+- **The app's own bridge calculator** (engine `bridgeRequirement`) also counts costs but not inflows in the gap: cautious
+  there; whether it should count an expected inheritance is a product question for the maintainer.
+
+**F1 is a patch on the read, not a fix to the table** (maintainer, 12:35 UK: "a plaster, or a fundamental fix?"). The
+table cannot see a cliff that falls between its six share nodes; F1 corrects the read at the one place it was seen. The
+fundamental fix is F2 - a coverage axis in bridge years, or a node placed at the cliff - and the pitfall sweep's pattern (a
+hard limit between grid nodes) may recur elsewhere. **Proposed to the maintainer 12:41 UK, approved 12:42 UK** ("Agreed, proceed"): make
+F1 count money arriving in the bridge and add growth, re-test it on the step-6 defaults in the mixture, measure couples in a
+bridge, test whether the thin households' lower tier is a sound choice; design F2 alongside and choose between them after
+the pitfall sweep. **Whether F1 becomes the default: held** until then. (Superseded 14:17 UK: the maintainer chose at
+13:51 UK to build and test F2 (7e), so the choice between F1 v2 and F2 is made at 7e, before the pitfall sweep, which
+then re-tests with the chosen fix. Decided provisionally 18:21 UK, v2; withdrawn 19:25 UK: the bridge read is off until 7e. Superseded again 25 Sep 07:29 UK: F2 is held, and 7e chooses among off, v1, v2 and the reader.)
+
+**F1's test (the original criteria):**
+- **The class:** the replication set plus the six library class households; table gaps within +/-5 points on every
+  in-class case (today -10 to -99).
+- **No survival cost:** simulated survival not lower than today's beyond two paired se on any household, which is
+  where `drop` failed.
+- **Behaviour:** the in-class "years below tier" falls toward the unaffected twins' 5-11.
+- **Everyone else:** bit-identical tables on out-of-class and non-bridge households.
+
+### S126's dead corner (#106): the derivation
+
+## S126's dead corner (#106): root cause, replication, fix options (maintainer, 24 Sep: "replicate with varied scenarios, maths out the cause, then give options")
+
+### The derivation (committed 24 Sep 07:25:08 UK, before the replication, which began 07:25:51 UK)
+
+S126 is 56 and retired; its pension opens at 58, so two bridge years. Its £950k is 85% pension (£807.5k); the
+accessible £142.5k (ISA, GIA and cash) is 4.9 years of its £29k target, and the bridge needs 2 years (£58k). It
+bridges easily; the table reads it as likely to fail.
+
+- **A cliff on the SHARE axis.** In a bridge year only accessible money can pay, so at total wealth W and remaining
+  bridge need N_t, survival along the pension share a falls off a cliff at **a\* = 1 - N_t / W** (S126 at t = 0:
+  1 - 58/950 = 0.939). The cliff's width is set by market moves in accessible money over the bridge: narrow for
+  short bridges.
+- **The grid cannot see it.** The share axis has 6 nodes (0, 0.2, ..., 1). The node a = 1 is always dead in a
+  bridge year, because nothing is accessible. A household with 0.8 < a < a\* reads between a live node (0.8) and a dead
+  one (1.0), in log-odds, where dead is the clamp, -13.8. At S126's 0.85 the dead node carries weight
+  w = (a - 0.8)/0.2 = 0.25. The interpolant places the 50% line where the log-odds cross zero, at
+  0.8 + 0.2 x eta_live/(eta_live + 13.8) (about 0.83 for a live node at 0.97), not at a\* = 0.94. **The table puts
+  the cliff where the clamp says, not where the money says.**
+- **The bridge makes it compound.** Each bridge year is paid from accessible money, so the pension share RISES
+  (at the 0.8 node, 0.8 x 32.8/31.8 = 0.825 a year later). Next year's reads therefore sit deeper in the
+  dead-weighted interval, and the backward pass carries the error into the year-0 value. That is why S126 read
+  7.6% (#106) where a single read predicts about 30%.
+- **Why a finer share axis did not cure it** (Phase V, 6/9/12 share nodes; S126 still read 48-63%): a\* moves with W
+  and t, so it always falls inside some interval, and whenever the household is on its live side the same
+  misplacement happens, only over a shorter distance.
+
+**The class this predicts:** in a bridge year, 0.8 < a < a\* (more generally, a live household within one share
+interval below a\*, with the dead node above it). Outside it, no dead-corner error. Past a\* the household is truly
+failing, so table and simulation agree at low values. Before retirement the pension is not needed for the bridge
+(the #106 controls S184, S240 and S300, at 0.85 but still working, read fine).
+
+**PREDICTION for the replication** (S126 varied one factor at a time; 16 points, 1,000 held paths, step-2 flags):
+
+| variant | a0 | bridge years | W | a\* at t = 0 | predicted |
+|---|---|---|---|---|---|
+| S126 as is | 0.85 | 2 | 950k | 0.939 | table 20+ points below simulation |
+| share 0.50 / 0.70 | 0.50 / 0.70 | 2 | 950k | 0.939 | within 5 points (the calibration range) |
+| share 0.78 | 0.78 | 2 | 950k | 0.939 | milder than S126 (drifts past 0.8 only in year 1): gap under 20 |
+| share 0.90 | 0.90 | 2 | 950k | 0.939 | table 20+ below, and further below than S126 (w = 0.5) |
+| share 0.95 | 0.95 | 2 | 950k | 0.939 | truly failing (liquid 47.5k < 58k): both low, gap under 10 |
+| bridge 0 | 0.85 | 0 | 950k | - | within 5 points |
+| bridge 1 / 4 | 0.85 | 1 / 4 | 950k | 0.969 / 0.878 | table 20+ below |
+| bridge 6 | 0.85 | 6 | 950k | 0.817 (< a0) | truly failing: both low, gap under 10 |
+| wealth x0.5 / x2 | 0.85 | 2 | 475k / 1.9m | 0.878 / 0.969 | table 20+ below: W does not remove it |
+
+Plus a scan of all 210 library singles for the class (a read from the inputs, no solve), and the ones found
+solved the same way.
+FALSIFIED IF a variant in the predicted class reads within 5 points of its simulation, or one outside it reads 20+
+below.

@@ -257,8 +257,8 @@ The outside review ("Solver research: review, new findings and the updated regim
 miscalibrated (its Finding 1: O19's "at the line" was 4 lost and 0 saved of 3,000, no material harm exactly) and review
 effort spent on labels rather than decisions (46 reviews in about 27 hours). The maintainer adopted its recommendations
 (25 Sep 20:47 UK). Nothing settled restarts; the regimen changes how new work is registered and read. Each rule names its
-enforcement; "stage 2" marks enforcement in locked files, waiting for the maintainer's unlock, and until then the
-plan-auditor checks it by hand.
+enforcement: most of it was applied under the maintainer's unlock at 25 Sep 21:54 UK; what is NOT BUILT or NOT YET is
+checked by the plan-auditor by hand.
 
 **Testing** (the review's section 16):
 1. **The per-household test** is the exact conditional McNemar on the discordant paths, one-sided for harm; mid-p only
@@ -266,7 +266,7 @@ plan-auditor checks it by hand.
    mapped to points.
 2. **Margins, set once:** 0.25 points where the comparison arm survives 95% or more, 0.5 points below, 0.1 points for a
    pooled mean. Gate 4's 1-point condition stays at the product level. They go into the decided-defaults block with a
-   test pinning them (stage 2: plan-defaults.test.mjs).
+   test pinning them (plan-defaults.test.mjs, since 25 Sep 21:54 UK).
 3. **Three outcomes per household:** no material harm (the interval's lower end above minus the margin); harm (the
    Holm-adjusted p below the error rate and a point loss of at least the margin); inconclusive (neither: extend at the
    next look, or report the bound). A real loss smaller than the margin is reported and does not block.
@@ -280,7 +280,7 @@ plan-auditor checks it by hand.
 8. **Replication before a default changes:** a second held-out seed or panel, unless overwhelming (Holm-adjusted p below
    0.001 and an effect above twice the margin).
 9. **A seed registry:** 7001 search, 7002 tuning, 7003 Phase 4 only, 7004 second seed, 7005 selection, 7011 M14b and 7e,
-   7101 the 'auto' rule. The launcher refuses a reserved seed for any other use (stage 2: run-from-snapshot.sh).
+   7012 K6 (added 25 Sep 22:01 UK), 7101 the 'auto' rule. The launcher is to refuse a reserved seed for any other use: NOT BUILT (it needs a Seeds field in each prediction; the plan-auditor checks seeds by hand until then).
 
 Enforced by: `stats.mjs` (the arithmetic; `research/tests/stats.test.mjs` reproduces the review's worked figures and
 its planted outcomes); each reducer on the rule carries planted checks and a mutation script showing them able to fail
@@ -292,7 +292,7 @@ script, its output hash recorded), Point and interval (a point and an 80% interv
 author's probability for each item), Power, Decision rule (primary outcome, test, margin, multiplicity, three outcomes,
 looks), Budget line (the error-budget line it reduces) and Pre-mortem (the most likely way each item fails, and what that
 would mean). A change to the decision rule after launch demotes that item to descriptive. Enforced by:
-`check-prediction.mjs` for predictions written from 25 Sep 20:47 UK (stage 2); until then the plan-auditor.
+`check-prediction.mjs` for every prediction but the nine registered before (since 25 Sep 21:54 UK), and the launcher's re-run of each derive line.
 **The scorecard** (not built yet): each item's credence against its outcome, the Brier score per test and cumulatively,
 target below 0.20; it starts with 7e. Every recommendation to the maintainer quotes the current score.
 
@@ -303,19 +303,21 @@ target below 0.20; it starts with 7e. Every recommendation to the maintainer quo
    (exploratory or "not registered") a hypothesis; D (derivation or argument only) a hypothesis, never a no-effect
    claim. No-effect claims need grade A or B (extends section 4's rule 1). Enforced by: `check-plan.mjs` claim linting
    - "settled", "shows", "causes", "no effect", "unaffected" and "costs nothing" need a grade A or B citation on the same
-   line - on added lines (stage 2); run once in 8e over the PLAN-HISTORY claims decisions still rest on.
+   line - on added lines (since 25 Sep 21:54 UK); run once in 8e over the PLAN-HISTORY claims decisions still rest on.
 2. **Review depth by stakes.** Tier 0 (wording, time labels, history moves, typos): mechanical checks and a short
    auditor pass on the labels only. Tier 1 (a new result row, a registered prediction, a register row): the auditor on
    the diff, checklist-driven. Tier 2 (a product default, a gate decision, Phase 4's prediction or verdict): full audit,
    the two-source rule, an outside review by a differently configured model, and red-team questions. The Stop hook's
    receipt stays required for every change to the plan; the tier sets the review's depth, not whether one runs.
-   Enforced by: the plan-auditor's instructions (stage 2).
+   Enforced by: NOT YET - the reviewer's instructions (.claude/agents/plan-auditor.md) are the assistant's own
+   configuration, and the session's permission classifier refused the change (25 Sep 21:56 UK); the draft waits for the
+   maintainer. Until then each review is asked for its tier in its brief.
 3. **The two-source rule:** any figure a tier-2 decision rests on is produced twice by independent routes, and the
    ledger row names both.
 4. **A materiality gate for the register:** before opening a row, estimate the largest plausible effect on the headline
    (survival points times the share of households affected), with its evidence. Below 0.1 points on the panel mean,
    with no default depending on it, the row reads "noted, below materiality" and needs no owner or gate (a relaxation
-   of section 4's rule 6 the maintainer adopted). Enforced by: `check-plan.mjs` register rule (stage 2).
+   of section 4's rule 6 the maintainer adopted). Enforced by: `check-plan.mjs` register rule (since 25 Sep 21:54 UK).
 5. **Decision records:** every recommendation carries the options, the recommendation, its evidence grade, the author's
    confidence in plain words, the most likely way it is wrong, the cost if it is, and a revisit trigger.
 6. **Stop rules:** grid and cliff work stops when the optimality-ceiling gap is below its target; an odd result closes

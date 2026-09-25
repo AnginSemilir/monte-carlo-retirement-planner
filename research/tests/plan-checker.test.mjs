@@ -59,7 +59,7 @@ ok(!run({ plan: base.plan.replace('### Bugs found and fixed on 23 Sep\n', '### B
 
 // schedule
 // a made-up pending row, so the planted fault never depends on a live row's state (it used to edit 7b, which then finished)
-const planted = '| 7b |';
+const planted = '| 0-7k |';   // the finished rows' pointer, which stays (7b, its first anchor, moved to PLAN-HISTORY.md on 25 Sep)
 ok(base.plan.includes(planted), 'the schedule row the planted one goes before exists');
 caught(run({ plan: base.plan.replace(planted, '| 9z | **A planted run** (`batch-planted.sh`, no prediction) | - | - | not yet |\n' + planted) }), 'schedule', 'a pending batch with no registered prediction');
 ok(!run({ plan: base.plan.replace(planted, '| 9z | **A planted run** (`batch-planted.sh`) | - | - | done |\n' + planted) }).some(e => e.startsWith('[schedule]')), 'the same row marked done is not held to it');

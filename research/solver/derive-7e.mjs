@@ -17,7 +17,7 @@
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { pathsNeeded, mcnemarHarmP } from './stats.mjs';
+import { pathsNeeded, mcnemarHarmP, pooledRE } from './stats.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SRC = 'results-f1v2.txt', text = readFileSync(join(HERE, SRC), 'utf8'), N = 1000;
@@ -27,7 +27,7 @@ for (const l of text.split('\n')) {
   if (!m) continue;
   const [id, offSim, d, se] = [m[1].trim(), +m[2], +m[3], +m[4]];
   const n = Math.round((se * N / 100) ** 2), margin = offSim >= 95 ? 0.25 : 0.5;
-  const half = k => 196 * Math.sqrt(n) / k;   // points, at k paths
+  const half = k => 196 * Math.sqrt(n * k / N) / k;   // points, at k paths: the discordance scales with the paths (n k / N)
   const n3 = 3 * n; let k = 1; while (k <= n3 && mcnemarHarmP(Math.ceil((n3 + k) / 2), Math.floor((n3 - k) / 2)) * 24 >= 0.045) k++;
   rows.push({ id, offSim, d, se, n, margin, h1: half(N), h3: half(3000), need: n ? pathsNeeded(n / N, margin / 100) : 0, minHarm: Math.max(k, margin * 30) / 30 });
 }
@@ -42,3 +42,19 @@ console.log(`\n${rows.length} cases with a record; look 1 expected to leave open
 console.log('The half-width test assumes a true change near zero. A case with a large gain clears the margin whatever its width: with v2,');
 console.log(`${rows.filter(r => r.d - r.h1 > 0).map(r => `${r.id} ${r.d >= 0 ? '+' : ''}${r.d.toFixed(2)}`).join(', ')} lay above zero by more than the look-1 half-width.`);
 console.log('NOT KNOWN (no record for this comparison): S162, S172, S168. The no-bridge controls S194, S252, S330: 0 discordant by construction.');
+
+// THE POOLED FLOOR (the forty-seventh review's BLOCKING 1): the random-effects interval over the pool, each case at its
+// expected look (3,000 paths where look 1 is expected to leave it open, else 1,000), its discordance scaled to the paths,
+// under three scenarios. The pool is the cases the prediction expects unchanged (reduce-7e.mjs POOL); the three without a
+// record for this comparison (S162, S172, S168) are given the median discordance of the recorded pool cases (declared).
+const POOL = ['S126', 'share 0.90', 'bridge 1', 'bridge 4', 'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S124', 'S128', 'S130', 'bridge 6', 'S366', 'S162', 'S172', 'S168'];
+const byId = Object.fromEntries(rows.map(r => [r.id, r]));
+const med = (() => { const ns = POOL.filter(id => byId[id]).map(id => byId[id].n).sort((a, b) => a - b); return ns[Math.floor(ns.length / 2)]; })();
+const poolCase = (id, dPts) => { const r = byId[id], n1 = r ? r.n : med, open = r ? r.h1 >= r.margin : false, Nn = open ? 3000 : N, n = Math.round(n1 * Nn / N), net = Math.round(dPts * Nn / 100);
+  const c = Math.max(0, Math.round((n + net) / 2)), b = Math.max(0, c - net); return { b, c, N: Nn }; };
+const scen = (name, d) => { const pr = pooledRE(POOL.map(id => poolCase(id, d(id)))); return `${name.padEnd(62)} ${pr.mean >= 0 ? '+' : ''}${pr.mean.toFixed(3)}  (${pr.lo.toFixed(3)} to ${pr.hi.toFixed(3)})  ${pr.lo > -0.1 ? 'above -0.1' : 'NOT above -0.1'}`; };
+console.log(`\nThe pooled floor over the ${POOL.length} cases expected unchanged (median discordance ${med} for S162, S172, S168; each case at its expected look):`);
+console.log(scen('no change on any case', () => 0));
+console.log(scen('S130 gains 1 point (its 80% upper bound), the rest unchanged', id => (id === 'S130' ? 1 : 0)));
+console.log(scen('S128 loses 1 point (its 80% lower bound), the rest unchanged', id => (id === 'S128' ? -1 : 0)));
+console.log(scen('every case loses 0.2 points (a small systematic cost)', () => -0.2));

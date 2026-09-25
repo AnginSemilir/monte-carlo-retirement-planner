@@ -26,7 +26,9 @@
  *   - no material harm: the exact interval (at 1 - the look's rate) lies above minus the margin; harm: the Holm-adjusted p
  *     is below the look's rate and the point loss is at least the margin; else inconclusive, its bound reported
  *   - the 30-point cases and the no-bridge controls: each its own family, one look at 0.05
- *   - pooled over the bridge class (the mode's "class YES"): a DerSimonian-Laird mean with its 95% interval, and the
+ *   - pooled over POOL, the 16 cases the prediction expects unchanged (not the mode's class flag, which holds share 0.95
+ *     and bridge 4+cost, where gains are expected: one large gain widens a random-effects interval and falsified a run
+ *     with no path lost - the forty-seventh review): a DerSimonian-Laird mean with its 95% interval, and the
  *     sign test
  *   - the read gap (table minus simulation) per case: scored against the prediction's items, not tested
  *   Secondary (reported): the reader against v1 and against v2 from the pairs line, look 1, Holm across the 24, at 0.05.
@@ -109,6 +111,8 @@ const IN_CLASS = ['S126', 'share 0.90', 'bridge 1', 'bridge 4', 'wealth x0.5', '
 const THIN = ['S128', 'S130'];
 // the falsifier's class: 7c's reading of the same words (read-f1v2.mjs), the thin two and the cost case included
 const FALSIFIER_CLASS = [...IN_CLASS, ...THIN, 'bridge 4+cost'];
+// the pooled floor's cases: those the prediction expects unchanged (derive-7e.mjs gives its behaviour under no change)
+const POOL = [...IN_CLASS, ...THIN, 'bridge 6', 'S366', 'S162', 'S172', 'S168'];
 
 // one family: rows { id, b, c, N, margin }, Holm across them, each read at its own look's rate
 function family(rows) {
@@ -148,7 +152,7 @@ function decide({ main, controls, p30, time, look2 }) {
   const rows = family(main.map(c => (open.has(c.id) ? { ...versusOff(look2.find(k => k.id === c.id), 3000, LOOK2), look: 2 } : versusOff(c, 1000, LOOK1))));
   const r30 = family(p30.map(c => versusOff(c, 1000, ONE_LOOK, ' @30')));
   const rCtl = family(controls.map(c => versusOff(c, 1000, ONE_LOOK, ' (control)')));
-  const cls = rows.filter(x => main.find(c => c.id === x.id).cls);
+  const cls = rows.filter(x => POOL.includes(x.id));
   const pool = pooledRE(cls.map(x => ({ b: x.b, c: x.c, N: x.N }))), sign = signTest(cls.map(x => 100 * (x.c - x.b) / x.N));
   const ratios = Object.entries(time), worst = Math.max(...ratios.map(r => r[1]));
   const all = [...rows, ...r30, ...rCtl];
@@ -265,7 +269,16 @@ function report(set) {
     ['30 lost 2 saved at look 1', verdict(mk({ 'bridge 4': { lost: 30, saved: 2 } })), 'FALSIFIED'],
     ['Holm: 35 lost 17 saved of 3,000 at look 2 (p 0.009 alone, 0.21 across the 24)', verdict(mk({ 'bridge 4': { lost: 9, saved: 1 } }, [['bridge 4', { lost: 35, saved: 17 }]])), 'CARRIED, 1 inconclusive'],
     ['harm needs the margin: 16 lost 2 saved of 3,000 (Holm 0.016, a loss of 0.47 against 0.5)', verdict(mk({ 'bridge 4': { lost: 9, saved: 1 } }, [['bridge 4', { lost: 16, saved: 2 }]])), 'CARRIED, 1 inconclusive'],
-    ['the pool holds the class cases only (21 of the 24 here)', String(decide(mk()).pool.k), '21'],
+    ['the pool holds the 16 cases expected unchanged', String(decide(mk()).pool.k), '16'],
+    // one large gain and no loss, with 7c's discordance elsewhere (lost = saved: no change) - the forty-seventh review's case
+    ['one large gain, no loss, 7c-sized discordance elsewhere (share 0.95: 36 lost, 186 saved)', (() => {
+      // the mode's class flag as 7c's results-f1v2.txt has it (14 YES), so the class-flag pool the review ran is reproduced
+      const yes = ['S126', 'share 0.90', 'bridge 4', 'S120', 'S130', 'bridge 4+cost', 'share 0.95', 'bridge 6', 'S122', 'wealth x0.5', 'S124', 'bridge 1', 'wealth x2', 'S128'];
+      const over = { 'share 0.95': { lost: 36, saved: 186 }, S126: { lost: 1, saved: 1 }, 'bridge 4': { lost: 5, saved: 5 }, 'wealth x0.5': { lost: 5, saved: 5 }, S130: { lost: 13, saved: 13 }, S128: { lost: 25, saved: 25 }, S366: { lost: 2, saved: 2 }, 'bridge 4+cost': { lost: 24, saved: 24 }, S124: { lost: 1, saved: 1 } };
+      for (const id of ids) over[id] = { ...(over[id] || {}), cls: yes.includes(id) };
+      const open = openAfter1(mk(over).main);   // look 2: the open cases at three times the counts, still no change
+      return verdict(mk(over, open.map(id => [id, { lost: 3 * (over[id].lost || 0), saved: 3 * (over[id].saved || 0), sim: 90 }])));
+    })(), 'CARRIED, 3 inconclusive'],
     ["look 2's rate: 30 lost 10 saved of 3,000 (Holm 0.027, harm at 0.045)", verdict(mk({ 'bridge 4': { lost: 9, saved: 1 } }, [['bridge 4', { lost: 30, saved: 10 }]])), 'FALSIFIED'],
     ['the 0.25 margin where off simulates 95% or more: 3 lost 0 saved of 1,000 at off 97% goes to look 2', look1(mk({ 'bridge 1': { lost: 3, sim: 97 } }).main).find(x => x.id === 'bridge 1').res.outcome, 'inconclusive'],
     ["look 1's rate: 15 lost 2 saved of 1,000 (Holm 0.028) goes to look 2", look1(mk({ 'bridge 4': { lost: 15, saved: 2 } }).main).find(x => x.id === 'bridge 4').res.outcome, 'inconclusive'],

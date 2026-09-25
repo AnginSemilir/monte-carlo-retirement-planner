@@ -159,7 +159,7 @@ K6 already sweeps c from a tenth to ten times the reference, which here is 0.000
 runs:
 - in the mixture, with the exact final year and 'auto';
 - on the twelve at their own tier AND held at Medium. Holding them at Medium answers stage 3b's question;
-- **on held-out paths: 3,000 of seed 7011, not seed 7002.** c was chosen here on seed 7002's paths, and so were K5's
+- **on held-out paths: 3,000 of seed 7012, not seed 7002** (7012 since 25 Sep 22:01 UK: 7011 is registered to M14b and 7e, the seed registry, RULES.md section 8). c was chosen here on seed 7002's paths, and so were K5's
   twelve. What is chosen on one sample is reported from another (RULES.md section 4, rule 7), as M14b did. The unlucky
   tenth is reported with its se.
 

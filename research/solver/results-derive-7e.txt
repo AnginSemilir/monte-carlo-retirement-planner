@@ -1,34 +1,36 @@
 # node research/solver/derive-7e.mjs - 7e's power from results-f1v2.txt (7c: v2 against off, 1000 paths)
-case             off sim  change  se    discordant  margin  half-width @1000  @3000  paths needed  look 1 expected   least harm shown at 3,000
-S126               99.6  -0.30  0.17       3      0.25     0.34              0.20      1844      look 2 decides    0.33
-share 0.90         99.3  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
-bridge 4           99.2  -0.80  0.32      10      0.25     0.62              0.36      6147      may stay open     0.57
-S120              100.0  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
-S130               83.1  +0.10  0.52      27      0.50     1.02              0.59      4149      may stay open     0.87
-bridge 4+cost      93.7  +4.90  0.70      49      0.50     1.37              0.79      7530      may stay open     1.20
-share 0.50         99.3  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
-share 0.95         72.7  +22.20  1.49     222      0.50     2.92              1.69     34114      may stay open     2.50
-bridge 6           99.3  -0.10  0.10       1      0.25     0.20              0.11       615      decides           0.25
-S122               99.6  +0.10  0.10       1      0.25     0.20              0.11       615      decides           0.25
-S360               34.4  +11.50  1.07     114      0.50     2.09              1.21     17518      may stay open     1.83
-share 0.70         99.3  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
-bridge 0           99.2  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
-wealth x0.5        95.5  +0.40  0.32      10      0.25     0.62              0.36      6147      may stay open     0.57
-S124               94.7  +0.00  0.14       2      0.50     0.28              0.16       308      decides           0.50
-S366               98.6  -0.40  0.20       4      0.25     0.39              0.23      2459      look 2 decides    0.37
-share 0.78         99.7  -0.40  0.20       4      0.25     0.39              0.23      2459      look 2 decides    0.37
-bridge 1           98.8  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
-wealth x2         100.0  -0.10  0.10       1      0.25     0.20              0.11       615      decides           0.25
-S128               68.8  -0.20  0.71      50      0.50     1.39              0.80      7684      may stay open     1.23
-S370               68.9  +5.70  1.06     112      0.50     2.07              1.20     17211      may stay open     1.83
+case             off sim  change  se    discordant  margin  half-width @1000  look 2 paths  half-width  exact lower end, no change  paths needed  expected          least harm shown at look 2
+S126               99.6  -0.30  0.17       3      0.25     0.34              3000         0.20        -0.199                        1844      look 2 decides    0.33
+share 0.90         99.3  +0.00  0.00       0      0.25     0.00              3000         0.00         0.000                           0      decides at look 1 0.25
+bridge 4           99.2  -0.80  0.32      10      0.25     0.62              8000         0.22        -0.233                        6147      look 2 decides    0.34
+S120              100.0  +0.00  0.00       0      0.25     0.00              3000         0.00         0.000                           0      decides at look 1 0.25
+S130               83.1  +0.10  0.52      27      0.50     1.02              8000         0.36        -0.378                        4149      look 2 decides    0.54
+bridge 4+cost      93.7  +4.90  0.70      49      0.50     1.37              3000         0.79        -0.836                        7530      may stay open     1.20
+share 0.50         99.3  +0.00  0.00       0      0.25     0.00              3000         0.00         0.000                           0      decides at look 1 0.25
+share 0.95         72.7  +22.20  1.49     222      0.50     2.92              3000         1.69        -1.754                       34114      may stay open     2.50
+bridge 6           99.3  -0.10  0.10       1      0.25     0.20              3000         0.11        -0.093                         615      decides at look 1 0.25
+S122               99.6  +0.10  0.10       1      0.25     0.20              3000         0.11        -0.093                         615      decides at look 1 0.25
+S360               34.4  +11.50  1.07     114      0.50     2.09              3000         1.21        -1.264                       17518      may stay open     1.83
+share 0.70         99.3  +0.00  0.00       0      0.25     0.00              3000         0.00         0.000                           0      decides at look 1 0.25
+bridge 0           99.2  +0.00  0.00       0      0.25     0.00              3000         0.00         0.000                           0      decides at look 1 0.25
+wealth x0.5        95.5  +0.40  0.32      10      0.25     0.62              8000         0.22        -0.233                        6147      look 2 decides    0.34
+S124               94.7  +0.00  0.14       2      0.50     0.28              3000         0.16        -0.155                         308      decides at look 1 0.50
+S366               98.6  -0.40  0.20       4      0.25     0.39              3000         0.23        -0.235                        2459      look 2 decides    0.37
+share 0.78         99.7  -0.40  0.20       4      0.25     0.39              3000         0.23        -0.235                        2459      look 2 decides    0.37
+bridge 1           98.8  +0.00  0.00       0      0.25     0.00              3000         0.00         0.000                           0      decides at look 1 0.25
+wealth x2         100.0  -0.10  0.10       1      0.25     0.20              3000         0.11        -0.093                         615      decides at look 1 0.25
+S128               68.8  -0.20  0.71      50      0.50     1.39              8000         0.49        -0.512                        7684      may stay open     0.74
+S370               68.9  +5.70  1.06     112      0.50     2.07              3000         1.20        -1.253                       17211      may stay open     1.83
 
-21 cases with a record; look 1 expected to leave open 11 (S126, bridge 4, S130, bridge 4+cost, share 0.95, S360, wealth x0.5, S366, share 0.78, S128, S370); still open after look 2: 8 (bridge 4, S130, bridge 4+cost, share 0.95, S360, wealth x0.5, S128, S370)
+21 cases with a record; look 1 expected to leave open 11 (S126, bridge 4, S130, bridge 4+cost, share 0.95, S360, wealth x0.5, S366, share 0.78, S128, S370); still open after look 2 if the true change is zero (exact): 5 (bridge 4+cost, share 0.95, S360, S128, S370)
 The half-width test assumes a true change near zero. A case with a large gain clears the margin whatever its width: with v2,
 bridge 4+cost +4.90, share 0.95 +22.20, S360 +11.50, S370 +5.70 lay above zero by more than the look-1 half-width.
 NOT KNOWN (no record for this comparison): S162, S172, S168. The no-bridge controls S194, S252, S330: 0 discordant by construction.
 
-The pooled floor over the 16 cases expected unchanged (median discordance 2 for S162, S172, S168; each case at its expected look):
-no change on any case                                          +0.000  (-0.066 to 0.066)  above -0.1
-S130 gains 1 point (its 80% upper bound), the rest unchanged   +0.012  (-0.053 to 0.078)  above -0.1
-S128 loses 1 point (its 80% lower bound), the rest unchanged   -0.007  (-0.072 to 0.059)  above -0.1
-every case loses 0.2 points (a small systematic cost)          -0.200  (-0.272 to -0.128)  NOT above -0.1
+The pooled floor (fixed effect; random effects reported beside it) over the 16 cases expected unchanged (median discordance 2 for S162, S172, S168; each case at its expected look):
+no change on any case                                          +0.000  (-0.061 to 0.061)  above -0.1    random effects +0.000  (-0.061 to 0.061)
+S130 gains 1 point (its 80% upper bound), the rest unchanged   +0.029  (-0.032 to 0.090)  above -0.1    random effects +0.041  (-0.046 to 0.128)
+S128 loses 1 point (its 80% lower bound), the rest unchanged   -0.016  (-0.077 to 0.046)  above -0.1    random effects -0.016  (-0.080 to 0.047)
+S124 gains 3 points, the rest unchanged                        +0.010  (-0.052 to 0.073)  above -0.1    random effects +0.011  (-0.054 to 0.077)
+bridge 4 gains 3 points, the rest unchanged                    +0.083  (0.021 to 0.146)  above -0.1    random effects +0.122  (-0.083 to 0.327)
+every case loses 0.2 points (a small systematic cost)          -0.200  (-0.266 to -0.134)  NOT above -0.1    random effects -0.200  (-0.266 to -0.134)

@@ -21,19 +21,23 @@
  * THE RULE (section 19). Primary: the reader against off, per wave-1 case, b paths lost and c saved of N.
  *   - exact one-sided McNemar for harm; Holm across the 24 cases; the margin 0.25 points where off simulates 95% or more,
  *     0.5 below (the review's proposed margins, adopted with the regimen)
- *   - look 1 at 1,000 paths, error rate 0.005; look 2 at 3,000 paths (the same first 1,000 and 2,000 more: pathsForSeed
- *     builds path i from seed + i x 7919) for the cases look 1 left open, at 0.045, Holm on each case's latest p
+ *   - look 1 at 1,000 paths, error rate 0.005; look 2 for the cases look 1 left open, at 0.045, Holm on each case's
+ *     latest p: 8,000 paths for bridge 4, wealth x0.5, S130 and S128 (LONG: 3,000 would leave them open under no change,
+ *     derive-7e.mjs; the maintainer, 25 Sep 22:47 UK, the forty-eighth review's BLOCKING 1), 3,000 for the rest - the same
+ *     first 1,000 and the rest more (pathsForSeed builds path i from seed + i x 7919)
  *   - no material harm: the exact interval (at 1 - the look's rate) lies above minus the margin; harm: the Holm-adjusted p
  *     is below the look's rate and the point loss is at least the margin; else inconclusive, its bound reported
  *   - the 30-point cases and the no-bridge controls: each its own family, one look at 0.05
  *   - pooled over POOL, the 16 cases the prediction expects unchanged (not the mode's class flag, which holds share 0.95
  *     and bridge 4+cost, where gains are expected: one large gain widens a random-effects interval and falsified a run
- *     with no path lost - the forty-seventh review): a DerSimonian-Laird mean with its 95% interval, and the
+ *     with no path lost - the forty-seventh review): a fixed-effect (inverse-variance) mean with its 95% interval,
+ *     which a gain cannot widen (the maintainer, 25 Sep 22:47 UK; a random-effects interval fired on one pool case's gain
+ *     in 8 to 21% of simulated runs, results-pooled-floor.txt), the DerSimonian-Laird mean reported beside it, and the
  *     sign test
  *   - the read gap (table minus simulation) per case: scored against the prediction's items, not tested
  *   Secondary (reported): the reader against v1 and against v2 from the pairs line, look 1, Holm across the 24, at 0.05.
  * FALSIFIED (so NOT CARRIED FORWARD, and F2 is built: the maintainer, 25 Sep 07:29 UK) if any of: harm on a case; the
- * pooled interval's lower end at or below -0.1 points; a time ratio above 1.20 at 30 points; an in-class case misread by
+ * pooled (fixed-effect) interval's lower end at or below -0.1 points; a time ratio above 1.20 at 30 points; an in-class case misread by
  * more than 10 ("in class" is 7c's reading in read-f1v2.mjs: every class case but the edge, share 0.95, and the inflow
  * cases, bridge 6 and S366, so the thin S128 and S130 and the cost case are in it); bridge 6 or S366 misread by more than
  * 15. Otherwise NOT FALSIFIED, and the reader goes to the maintainer as the bridge read, with any inconclusive case and
@@ -43,15 +47,16 @@
  * planted block): section 19's four outcome checks (4 lost 0 saved of 3,000 at 0.25 no material harm; 9 lost 1 saved of
  * 1,000 at 0.5 inconclusive; 30 lost 2 saved of 3,000 harm; 0 of 0 no material harm), a second setting changed between
  * arms refused by the gate, and the older checks: the final year averaged, the fold, the wrong bridge read, seed 7002 and
- * 3,000 paths at look 1 refused; the misreads, the time bar and a pooled loss falsify; missing files read INCOMPLETE.
+ * 3,000 paths at look 1 refused, and each look-2 case at its own registered count; the misreads, the time bar and a pooled
+ * loss falsify, one pool case's gain does not; missing files read INCOMPLETE.
  *   node research/solver/reduce-7e.mjs [dir]          the verdict
- *   node research/solver/reduce-7e.mjs --look1 [dir]  the cases look 1 leaves open, comma-joined, or "none"
+ *   node research/solver/reduce-7e.mjs --look1 [dir]  the cases look 1 leaves open, as "<at 3,000>|<at 8,000>", each comma-joined or "none"
  *   node research/solver/reduce-7e.mjs --planted      the planted checks alone
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mcnemarHarmP, holm, outcome, pooledRE, signTest, MARGINS, marginFor } from './stats.mjs';
+import { mcnemarHarmP, holm, outcome, pooledRE, pooledFE, signTest, MARGINS, marginFor } from './stats.mjs';
 import { checkLogStamps, requireFairLogs } from './fair-gate.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -59,6 +64,10 @@ const DIR = process.argv.slice(2).find(a => !a.startsWith('--')) || join(HERE, '
 const LAMBDA = '0.0223606797749979';
 const BR = { OFF: 'false', V1: 'true', V2: '2', READER: 'reader' };
 const WAVE1 = 24, LOOK1 = 0.005, LOOK2 = 0.045, ONE_LOOK = 0.05, POOL_FLOOR = -MARGINS.pooled, TIME_BAR = 1.2;
+// look 2's path counts (the maintainer, 25 Sep 22:47 UK): 8,000 where derive-7e.mjs expects 3,000 to leave the case open
+export const LONG = ['bridge 4', 'wealth x0.5', 'S130', 'S128'];
+const L2 = 3000, L2_LONG = 8000, pathsL2 = id => (LONG.includes(id) ? L2_LONG : L2);
+const gateL2 = look2 => [...gate(look2.filter(c => !LONG.includes(c.id)), 16, L2), ...gate(look2.filter(c => LONG.includes(c.id)), 16, L2_LONG)];
 const marginOf = marginFor;   // stats.mjs: the decided margins (PLAN.md's decided-defaults block carries them)
 const field = (ran, k) => { const m = new RegExp(`(?:^| )${k} (\\S+)`).exec(ran || ''); return m ? m[1] : null; };
 const CELL = /(\S+) table\s+(-?[\d.]+) sim\s+(-?[\d.]+) gap\s+(-?[\d.]+) tier-below\s+(-?[\d.]+) below\s+(-?[\d.]+) (\d+) s(?: d ([+-]?[\d.]+) se ([\d.]+) \((\d+)\/(\d+)\))?/;
@@ -149,24 +158,24 @@ function complete({ main, controls, s360, p30, time, look2 }) {
 function decide({ main, controls, p30, time, look2 }) {
   // look 1, then look 2 for the open cases; Holm across the 24 on each case's latest p
   const open = new Set(openAfter1(main));
-  const rows = family(main.map(c => (open.has(c.id) ? { ...versusOff(look2.find(k => k.id === c.id), 3000, LOOK2), look: 2 } : versusOff(c, 1000, LOOK1))));
+  const rows = family(main.map(c => (open.has(c.id) ? { ...versusOff(look2.find(k => k.id === c.id), pathsL2(c.id), LOOK2), look: 2 } : versusOff(c, 1000, LOOK1))));
   const r30 = family(p30.map(c => versusOff(c, 1000, ONE_LOOK, ' @30')));
   const rCtl = family(controls.map(c => versusOff(c, 1000, ONE_LOOK, ' (control)')));
   const cls = rows.filter(x => POOL.includes(x.id));
-  const pool = pooledRE(cls.map(x => ({ b: x.b, c: x.c, N: x.N }))), sign = signTest(cls.map(x => 100 * (x.c - x.b) / x.N));
+  const pool = pooledFE(cls.map(x => ({ b: x.b, c: x.c, N: x.N }))), poolRE = pooledRE(cls.map(x => ({ b: x.b, c: x.c, N: x.N }))), sign = signTest(cls.map(x => 100 * (x.c - x.b) / x.N));
   const ratios = Object.entries(time), worst = Math.max(...ratios.map(r => r[1]));
   const all = [...rows, ...r30, ...rCtl];
   const harm = all.filter(x => x.res.outcome === 'harm'), inconclusive = all.filter(x => x.res.outcome === 'inconclusive');
   const by = id => main.find(c => c.id === id), gapOf = id => arm(by(id), 'READER').gap;
   const fire = [];
   if (harm.length) fire.push(`harm on ${harm.map(x => x.id).join(', ')}`);
-  if (!(pool.lo > POOL_FLOOR)) fire.push(`the pooled bridge-class interval's lower end ${pool.lo.toFixed(2)} is not above ${POOL_FLOOR}`);
+  if (!(pool.lo > POOL_FLOOR)) fire.push(`the pooled (fixed-effect) interval's lower end over the ${pool.k} cases expected unchanged, ${pool.lo.toFixed(2)}, is not above ${POOL_FLOOR}`);
   if (!(worst <= TIME_BAR)) fire.push(`the time bar: the largest ratio is ${worst.toFixed(3)}`);
   const far = FALSIFIER_CLASS.filter(id => by(id) && Math.abs(gapOf(id)) > 10);
   if (far.length) fire.push(`an in-class case misreads by more than 10 (${far.map(id => `${id} ${gapOf(id).toFixed(1)}`).join(', ')})`);
   const far2 = ['bridge 6', 'S366'].filter(id => by(id) && Math.abs(gapOf(id)) > 15);
   if (far2.length) fire.push(`bridge 6 or S366 misreads by more than 15 (${far2.map(id => `${id} ${gapOf(id).toFixed(1)}`).join(', ')})`);
-  return { rows, r30, rCtl, pool, sign, ratios, harm, inconclusive, fire };
+  return { rows, r30, rCtl, pool, poolRE, sign, ratios, harm, inconclusive, fire };
 }
 // the secondary comparisons, reported: the reader against v1 and v2, look 1, Holm across the 24, at 0.05
 const secondary = (main, other) => family(main.map(c => { const q = c.pairs[`READER-${other}`]; return { id: c.id, b: q.dn, c: q.up, N: 1000, margin: marginOf(arm(c, other).sim), level: ONE_LOOK }; }));
@@ -213,7 +222,7 @@ function report(set) {
   console.log('7e: THE BRIDGE FIXES SIDE BY SIDE, READ AGAINST predictions/bridge-reader.md BY THE EXACT RULE (section 19)\n');
   console.log('PRIMARY - the reader against off, per case (look 1 at 0.005, look 2 at 0.045; Holm across the 24):'); d.rows.forEach(x => console.log(f(x)));
   console.log('the 30-point cases and the no-bridge controls (each its own family, one look at 0.05):'); [...d.r30, ...d.rCtl].forEach(x => console.log(f(x)));
-  console.log(`POOLED over the bridge class (${d.pool.k} cases): ${d.pool.mean >= 0 ? '+' : ''}${d.pool.mean.toFixed(3)} points (${d.pool.lo.toFixed(3)} to ${d.pool.hi.toFixed(3)}), tau^2 ${d.pool.tau2.toFixed(4)}; sign test ${d.sign.pos} up, ${d.sign.neg} down, p ${d.sign.p.toFixed(3)}`);
+  console.log(`POOLED over the ${d.pool.k} cases expected unchanged (fixed effect, the floor): ${d.pool.mean >= 0 ? '+' : ''}${d.pool.mean.toFixed(3)} points (${d.pool.lo.toFixed(3)} to ${d.pool.hi.toFixed(3)}); random effects beside it, reported: ${d.poolRE.mean >= 0 ? '+' : ''}${d.poolRE.mean.toFixed(3)} (${d.poolRE.lo.toFixed(3)} to ${d.poolRE.hi.toFixed(3)}), tau^2 ${d.poolRE.tau2.toFixed(4)}; sign test ${d.sign.pos} up, ${d.sign.neg} down, p ${d.sign.p.toFixed(3)}`);
   console.log(`\nTHE PREDICTION'S ITEMS:`); it.out.forEach(l => console.log(l));
   console.log(`\nFALSIFIER: ${d.fire.length ? `fired - ${d.fire.join('; ')}` : 'not fired'}`);
   console.log(`=> ${d.fire.length ? 'FALSIFIED - NOT CARRIED FORWARD (F2 is built and tested the same way)' : 'NOT FALSIFIED - CARRIED FORWARD to the maintainer as the bridge read'}`);
@@ -245,11 +254,11 @@ function report(set) {
     s360: parse([`${'S360'.padEnd(16)} a0 0.85 B 8 class no  | ${cell('READER', 40)} | ${cell('READER@15', 40)}`, pad(`ran READER: ${ran('reader')}`), pad(`ran READER@15: ${ran('reader').replace('quad 5', 'quad 15')}`)].join('\n')),
     p30: parse(['S126', 'bridge 6', 'S366'].map(id => two(id, { pts: 30 })).join('\n')),
     time: { S126: 1.1, 'bridge 6': 1.1, S366: 1.1 },
-    look2: look2 === null ? null : parse(look2.map(([id, o]) => two(id, { paths: 3000, ...o })).join('\n')),
+    look2: look2 === null ? null : parse(look2.map(([id, o]) => two(id, { paths: pathsL2(id), ...o })).join('\n')),
   });
   const verdict = set => {
     if (complete(set).length) return 'INCOMPLETE';
-    if ([...gate(set.main, 16), ...gate(set.controls, 16), ...gate(set.s360, 16), ...gate(set.p30, 30), ...gate(set.look2, 16, 3000)].length) return 'GATE';
+    if ([...gate(set.main, 16), ...gate(set.controls, 16), ...gate(set.s360, 16), ...gate(set.p30, 30), ...gateL2(set.look2)].length) return 'GATE';
     let d; try { d = decide(set); } catch (e) { return `ERROR (${e.message})`; }
     return `${d.fire.length ? 'FALSIFIED' : 'CARRIED'}${d.inconclusive.length ? `, ${d.inconclusive.length} inconclusive` : ''}`;
   };
@@ -259,16 +268,16 @@ function report(set) {
     // section 19's planted outcomes, through the reducer's own looks
     ['4 lost 0 saved of 3,000 at a 0.25 margin (look 1: 3 lost 0 saved)', outcomeOf(mk({ 'bridge 1': { lost: 3, sim: 97 } }, [['bridge 1', { lost: 4, sim: 97 }]]), 'bridge 1'), 'no material harm'],
     ['9 lost 1 saved of 1,000 at a 0.5 margin, at look 1', look1(mk({ 'bridge 4': { lost: 9, saved: 1 } }).main).find(x => x.id === 'bridge 4').res.outcome, 'inconclusive'],
-    ['30 lost 2 saved of 3,000 (look 1: 9 lost 1 saved)', verdict(mk({ 'bridge 4': { lost: 9, saved: 1 } }, [['bridge 4', { lost: 30, saved: 2 }]])), 'FALSIFIED'],
+    ['30 lost 2 saved of 3,000 (look 1: 9 lost 1 saved)', verdict(mk({ 'S122': { lost: 9, saved: 1 } }, [['S122', { lost: 30, saved: 2 }]])), 'FALSIFIED'],
     ['0 of 0 discordant', outcomeOf(fifteen, 'S126'), 'no material harm'],
     ['a second setting changed between arms (minPot)', verdict(mk({ S126: { ranR: ran('reader').replace('minPot 25000', 'minPot 30000') } })), 'GATE'],
     // the rest of the rule
     ['clean', verdict(mk()), 'CARRIED'],
-    ['9 lost 1 saved, look 2 clears it (10 lost, 8 saved of 3,000)', verdict(mk({ 'bridge 4': { lost: 9, saved: 1 } }, [['bridge 4', { lost: 10, saved: 8 }]])), 'CARRIED'],
-    ['9 lost 1 saved, look 2 still open (15 lost, 5 saved of 3,000)', verdict(mk({ 'bridge 4': { lost: 9, saved: 1 } }, [['bridge 4', { lost: 15, saved: 5 }]])), 'CARRIED, 1 inconclusive'],
+    ['9 lost 1 saved, look 2 clears it (10 lost, 8 saved of 3,000)', verdict(mk({ 'S122': { lost: 9, saved: 1 } }, [['S122', { lost: 10, saved: 8 }]])), 'CARRIED'],
+    ['9 lost 1 saved, look 2 still open (15 lost, 5 saved of 3,000)', verdict(mk({ 'S122': { lost: 9, saved: 1 } }, [['S122', { lost: 15, saved: 5 }]])), 'CARRIED, 1 inconclusive'],
     ['30 lost 2 saved at look 1', verdict(mk({ 'bridge 4': { lost: 30, saved: 2 } })), 'FALSIFIED'],
-    ['Holm: 35 lost 17 saved of 3,000 at look 2 (p 0.009 alone, 0.21 across the 24)', verdict(mk({ 'bridge 4': { lost: 9, saved: 1 } }, [['bridge 4', { lost: 35, saved: 17 }]])), 'CARRIED, 1 inconclusive'],
-    ['harm needs the margin: 16 lost 2 saved of 3,000 (Holm 0.016, a loss of 0.47 against 0.5)', verdict(mk({ 'bridge 4': { lost: 9, saved: 1 } }, [['bridge 4', { lost: 16, saved: 2 }]])), 'CARRIED, 1 inconclusive'],
+    ['Holm: 35 lost 17 saved of 3,000 at look 2 (p 0.009 alone, 0.21 across the 24)', verdict(mk({ 'S122': { lost: 9, saved: 1 } }, [['S122', { lost: 35, saved: 17 }]])), 'CARRIED, 1 inconclusive'],
+    ['harm needs the margin: 16 lost 2 saved of 3,000 (Holm 0.016, a loss of 0.47 against 0.5)', verdict(mk({ 'S122': { lost: 9, saved: 1 } }, [['S122', { lost: 16, saved: 2 }]])), 'CARRIED, 1 inconclusive'],
     ['the pool holds the 16 cases expected unchanged', String(decide(mk()).pool.k), '16'],
     // one large gain and no loss, with 7c's discordance elsewhere (lost = saved: no change) - the forty-seventh review's case
     ['one large gain, no loss, 7c-sized discordance elsewhere (share 0.95: 36 lost, 186 saved)', (() => {
@@ -276,10 +285,21 @@ function report(set) {
       const yes = ['S126', 'share 0.90', 'bridge 4', 'S120', 'S130', 'bridge 4+cost', 'share 0.95', 'bridge 6', 'S122', 'wealth x0.5', 'S124', 'bridge 1', 'wealth x2', 'S128'];
       const over = { 'share 0.95': { lost: 36, saved: 186 }, S126: { lost: 1, saved: 1 }, 'bridge 4': { lost: 5, saved: 5 }, 'wealth x0.5': { lost: 5, saved: 5 }, S130: { lost: 13, saved: 13 }, S128: { lost: 25, saved: 25 }, S366: { lost: 2, saved: 2 }, 'bridge 4+cost': { lost: 24, saved: 24 }, S124: { lost: 1, saved: 1 } };
       for (const id of ids) over[id] = { ...(over[id] || {}), cls: yes.includes(id) };
-      const open = openAfter1(mk(over).main);   // look 2: the open cases at three times the counts, still no change
-      return verdict(mk(over, open.map(id => [id, { lost: 3 * (over[id].lost || 0), saved: 3 * (over[id].saved || 0), sim: 90 }])));
-    })(), 'CARRIED, 3 inconclusive'],
-    ["look 2's rate: 30 lost 10 saved of 3,000 (Holm 0.027, harm at 0.045)", verdict(mk({ 'bridge 4': { lost: 9, saved: 1 } }, [['bridge 4', { lost: 30, saved: 10 }]])), 'FALSIFIED'],
+      const open = openAfter1(mk(over).main);   // look 2: the open cases at their own counts (3,000 or 8,000), still no change
+      return verdict(mk(over, open.map(id => { const f = pathsL2(id) / 1000; return [id, { lost: f * (over[id].lost || 0), saved: f * (over[id].saved || 0), sim: 90 }]; })));
+    })(), 'CARRIED, 2 inconclusive'],   // S128 (exact lower end -0.51 at 8,000 against 0.5) and the cost case (3,000); 3 at 3,000 throughout
+    ['bridge 4 open at look 1, settled at 8,000 (40 lost, 40 saved)', outcomeOf(mk({ 'bridge 4': { lost: 5, saved: 5, sim: 99 } }, [['bridge 4', { lost: 40, saved: 40, sim: 99 }]]), 'bridge 4'), 'no material harm'],
+    ['bridge 4 at 3,000 in the look-2 file (registered at 8,000)', verdict(mk({ 'bridge 4': { lost: 5, saved: 5, sim: 99 } }, [['bridge 4', { lost: 15, saved: 15, sim: 99, paths: 3000 }]])), 'GATE'],
+    ['S122 at 8,000 in the look-2 file (registered at 3,000)', verdict(mk({ S122: { lost: 9, saved: 1 } }, [['S122', { lost: 20, saved: 20, paths: 8000 }]])), 'GATE'],
+    // one pool case's gain with chance noise on the rest (the forty-eighth review's MINOR 2): the fixed-effect lower end
+    // is -0.082 here (-0.087 without the gain); random effects over the same cases reads -0.151 and would falsify
+    ['one pool case gains 4 points (S124: 40 saved of 1,000), 7c-sized noise on the other pool cases: the fixed-effect floor holds', (() => {
+      const over = { S126: { lost: 3 }, 'share 0.90': { saved: 1 }, 'wealth x2': { saved: 1 }, 'bridge 1': { lost: 2 }, S122: { saved: 1 }, S120: { lost: 1 }, S168: { lost: 1 }, 'bridge 6': { lost: 2 }, S172: { saved: 1 }, S162: { lost: 1 }, S366: { lost: 3, saved: 1 },
+        'bridge 4': { lost: 6, saved: 4 }, 'wealth x0.5': { lost: 4, saved: 6 }, S130: { lost: 15, saved: 12 }, S128: { lost: 25, saved: 25 }, S124: { saved: 40 } };
+      const open = openAfter1(mk(over).main);
+      return verdict(mk(over, open.map(id => { const f = pathsL2(id) / 1000; return [id, { lost: f * (over[id].lost || 0), saved: f * (over[id].saved || 0) }]; })));
+    })(), 'CARRIED, 2 inconclusive'],   // S128 and S130, left open by the noise
+    ["look 2's rate: 30 lost 10 saved of 3,000 (Holm 0.027, harm at 0.045)", verdict(mk({ 'S122': { lost: 9, saved: 1 } }, [['S122', { lost: 30, saved: 10 }]])), 'FALSIFIED'],
     ['the 0.25 margin where off simulates 95% or more: 3 lost 0 saved of 1,000 at off 97% goes to look 2', look1(mk({ 'bridge 1': { lost: 3, sim: 97 } }).main).find(x => x.id === 'bridge 1').res.outcome, 'inconclusive'],
     ["look 1's rate: 15 lost 2 saved of 1,000 (Holm 0.028) goes to look 2", look1(mk({ 'bridge 4': { lost: 15, saved: 2 } }).main).find(x => x.id === 'bridge 4').res.outcome, 'inconclusive'],
     ['a pooled loss (twelve class cases lose 4 each, each no material harm alone)', verdict(mk(Object.fromEntries(['S126', 'bridge 1', 'bridge 4', 'S120', 'S122', 'S124', 'S128', 'S130', 'wealth x0.5', 'wealth x2', 'share 0.90', 'S162'].map(id => [id, { lost: 4 }])))), 'FALSIFIED'],
@@ -299,7 +319,7 @@ function report(set) {
     ['every arm of a case in the fold', verdict(mk({ S126: w1('S126').replaceAll('mix 3', 'mix 0') })), 'GATE'],
     ["S360's 15-point arm ran at 5 points", verdict({ ...mk(), s360: parse([`${'S360'.padEnd(16)} a0 0.85 B 8 class no  | ${cell('READER', 40)} | ${cell('READER@15', 40)}`, pad(`ran READER: ${ran('reader')}`), pad(`ran READER@15: ${ran('reader')}`)].join('\n')) }), 'GATE'],
     ['3,000 paths at look 1', verdict(mk({ S126: { ranR: ran('reader').replace('paths 1000', 'paths 3000') } })), 'GATE'],
-    ['1,000 paths in the look-2 file', verdict(mk({ 'bridge 4': { lost: 9, saved: 1 } }, [['bridge 4', { lost: 10, saved: 8, paths: 1000 }]])), 'GATE'],
+    ['1,000 paths in the look-2 file', verdict(mk({ 'S122': { lost: 9, saved: 1 } }, [['S122', { lost: 10, saved: 8, paths: 1000 }]])), 'GATE'],
     ['the controls missing', verdict({ ...mk(), controls: [] }), 'INCOMPLETE'],
     ['S360 at 15 points missing', verdict({ ...mk(), s360: [] }), 'INCOMPLETE'],
     ['the timing missing', verdict({ ...mk(), time: {} }), 'INCOMPLETE'],
@@ -332,8 +352,8 @@ requireFairLogs(Object.fromEntries(parts.map((t, k) => [`part${k}.txt`, t])), PR
 if (process.argv.includes('--look1')) {
   const g = gate(main, 16), short = main.length !== WAVE1 || main.some(c => labels(c) !== 'OFF,V1,V2,READER');
   if (short || g.length) { console.log(`INCOMPLETE - wave 1 is not ready for look 1 (${main.length} cases${g.length ? `; ${g.length} gate problems: ${g.join('; ')}` : ''})`); process.exit(1); }
-  const open = openAfter1(main);
-  console.log(open.length ? open.join(',') : 'none');
+  const open = openAfter1(main), o3 = open.filter(id => !LONG.includes(id)), o8 = open.filter(id => LONG.includes(id));
+  console.log(`${o3.length ? o3.join(',') : 'none'}|${o8.length ? o8.join(',') : 'none'}`);
   process.exit(0);
 }
 const controls = parse(read('controls.txt') || ''), s360 = parse(read('s360-quad.txt') || ''), p30 = parse(read('p30.txt') || '');
@@ -345,7 +365,7 @@ if (short.length) { console.log(`INCOMPLETE - nothing is scored:\n  ${short.join
 const logs = { 'controls.txt': read('controls.txt'), 's360-quad.txt': read('s360-quad.txt'), 'p30.txt': read('p30.txt'), 'time30.txt': read('time30.txt') };
 if (look2.length) logs['look2.txt'] = l2;
 requireFairLogs({ ...Object.fromEntries(parts.map((t, k) => [`part${k}.txt`, t])), ...logs }, PRED);
-const bad = [...gate(main, 16), ...gate(controls, 16), ...gate(s360, 16), ...gate(p30, 30), ...gate(look2, 16, 3000)];
+const bad = [...gate(main, 16), ...gate(controls, 16), ...gate(s360, 16), ...gate(p30, 30), ...gateL2(look2)];
 if (bad.length) { console.log(`FAIR-TEST GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
 console.log(`FAIR-TEST GATE: passed - ${main.length + controls.length + s360.length + p30.length + look2.length} case logs, each case's arms the same but the bridge read (and the return points for an @15 arm), at the registered settings and path counts\n`);
 report(set);

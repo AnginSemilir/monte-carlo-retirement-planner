@@ -99,6 +99,18 @@ export function pooledRE(cases) {
   const ws = v.map(x => 1 / (x + tau2)), sws = ws.reduce((a, b) => a + b, 0), mean = ws.reduce((a, x, i) => a + x * d[i], 0) / sws, se = Math.sqrt(1 / sws);
   return { mean, lo: mean - 1.96 * se, hi: mean + 1.96 * se, tau2, k };
 }
+/*
+ * A fixed-effect (inverse-variance) pooled mean change with its 95% interval, over the same per-household variances as
+ * pooledRE. Its interval does not widen with the spread between households, so a gain on one household cannot pull the
+ * lower end down: the floor for a registered set of cases expected unchanged (the forty-eighth review's MINOR 2; the
+ * maintainer chose it for 7e's pooled floor, 25 Sep 22:47 UK; results-pooled-floor.txt).
+ */
+export function pooledFE(cases) {
+  const k = cases.length; if (!k) return null;
+  const d = cases.map(x => 100 * (x.c - x.b) / x.N), v = cases.map(x => { const n = x.b + x.c, net = x.c - x.b; return 1e4 * Math.max(1, n - net * net / x.N) / (x.N * x.N); });
+  const w = v.map(x => 1 / x), sw = w.reduce((a, b) => a + b, 0), mean = w.reduce((a, x, i) => a + x * d[i], 0) / sw, se = Math.sqrt(1 / sw);
+  return { mean, lo: mean - 1.96 * se, hi: mean + 1.96 * se, k };
+}
 /* the two-sided sign test over households' changes (zeros dropped) */
 export function signTest(ds) {
   const pos = ds.filter(x => x > 0).length, neg = ds.filter(x => x < 0).length, n = pos + neg;

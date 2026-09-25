@@ -14,8 +14,9 @@ remembers them, and every one looks at files, not at what was said about them. I
    experiment.mjs, any script a batch runs, a module those import, or smoke.sh itself changes: the stamp is `code-id.mjs --smoke`,
    and fair-gate.test.mjs fails if a stamped script imports a module the stamp leaves out; maintainer's unlock, 24 Sep
    13:44 UK); the reducers refuse to print a figure unless `fair-gate.mjs` passes; every result file
-   experiment.mjs writes records the code (`code.hash`) and the prediction it ran under (the audit scripts' outputs do
-   not yet).
+   experiment.mjs writes records the code (`code.hash`) and the prediction it ran under; audit-s126.mjs stamps every log
+   with the code, its own hash and the prediction since f6a152d (25 Sep), read by fair-gate.mjs's requireFairLogs (the
+   other audit scripts' outputs do not yet).
 2. **`check-plan.mjs`**, run by GitHub CI on every push (outside any session: a red cross the maintainer sees), by the
    git pre-commit hook (`.githooks/pre-commit`), and by Claude Code's Stop hook.
 3. **Claude Code hooks** (`.claude/settings.json`): the Stop hook refuses to end a turn while the plan check fails or the
@@ -66,7 +67,12 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    itself.
 6. A review start (`record-review.mjs --start`) can be written without a review running. It lapses after 30 minutes,
    and every start sits in review-log.md beside its receipt, so a start with no receipt is visible.
-7. The smoke run exercises only its own modes; the audit scripts' outputs record no code.
+7. The smoke run exercises only its own modes; the audit scripts' outputs record no code, except audit-s126.mjs's
+   (stamped since f6a152d, 25 Sep).
+   Also (25 Sep 22:45 UK): local runs - the pre-commit hook, the Stop hook, a review - see gitignored build outputs
+   (research/engine.mjs, built from src/App.jsx) that CI's checkout lacks, so a test can pass locally and fail in CI; it
+   did, from 24 Sep 14:00 UK to 25 Sep 22:07 UK. CI builds the engine since fb9ca50; a CI question is settled in a fresh
+   clone.
 8. The judgement rules rest on the reviewer, a second model, not proof.
    Also: fair-gate.mjs's row 8 line 'final-year integration' reads a file without the exact final year as "5 nodes", which is
    wrong when QUAD is not 5 (the final year then uses the arm's own points); fairness is unaffected, since the gate compares
@@ -271,7 +277,10 @@ checked by the plan-auditor by hand.
    Holm-adjusted p below the error rate and a point loss of at least the margin); inconclusive (neither: extend at the
    next look, or report the bound). A real loss smaller than the margin is reported and does not block.
 4. **Multiplicity:** Holm across the households of one comparison, unadjusted p reported beside it. Panel-level: a
-   random-effects (DerSimonian-Laird) pooled mean with its 95% interval, beside the sign test.
+   random-effects (DerSimonian-Laird) pooled mean with its 95% interval, beside the sign test. A floor over a registered
+   set of cases expected unchanged, where some are expected to gain, is read by a fixed-effect mean instead, random
+   effects reported beside it: a random-effects interval widens with any spread, gains included, and fired on one
+   case's gain alone (7e; the maintainer, 25 Sep 22:47 UK; results-pooled-floor.txt). Each test's prediction names which.
 5. **One primary outcome per test;** everything else is descriptive.
 6. **Power before the run:** the paths needed so the interval fits the margin, N > 1.96^2 d / delta^2 (d the discordance
    rate), from the nearest earlier records, by a committed script.

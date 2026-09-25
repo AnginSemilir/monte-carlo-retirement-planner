@@ -1,0 +1,10 @@
+fire rate of the pooled floor (lower end <= -0.1), 4,000 simulated runs each
+  no change on any pool case           RE 2.3%  FE 1.1%
+  S128      gains 3 points, the rest none  RE 8.3%  FE 2.8%
+  S130      gains 3 points, the rest none  RE 12.8%  FE 0.1%
+  S124      gains 3 points, the rest none  RE 20.0%  FE 0.0%
+  bridge 4  gains 3 points, the rest none  RE 20.7%  FE 0.0%
+  S128 and S130 gain 1 point each       RE 0.0%  FE 0.0%
+  every pool case loses 0.1 points         RE 92.3%  FE 92.3%
+  every pool case loses 0.2 points         RE 100.0%  FE 100.0%
+  every pool case loses 0.3 points         RE 100.0%  FE 100.0%

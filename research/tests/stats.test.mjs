@@ -5,7 +5,7 @@
  *   node research/tests/stats.test.mjs
  */
 import assert from 'node:assert/strict';
-import { mcnemarHarmP, clopperPearson, survivalChange, holm, outcome, pathsNeeded, binomUpperHalf, pooledRE, signTest } from '../solver/stats.mjs';
+import { mcnemarHarmP, clopperPearson, survivalChange, holm, outcome, pathsNeeded, binomUpperHalf, pooledRE, pooledFE, signTest } from '../solver/stats.mjs';
 
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
 const near = (a, b, tol) => Math.abs(a - b) <= tol;
@@ -41,6 +41,17 @@ ok(near(pathsNeeded(0.003, 0.0025), 1844, 5) && near(pathsNeeded(0.023, 0.0025),
   const mix = pooledRE([{ b: 0, c: 40, N: 1000 }, { b: 40, c: 0, N: 1000 }, { b: 0, c: 0, N: 1000 }]);
   ok(mix.tau2 > 0 && mix.lo < 0 && mix.hi > 0, `pooled over +4, -4 and 0 points: ${mix.mean.toFixed(2)} (${mix.lo.toFixed(2)} to ${mix.hi.toFixed(2)}), tau^2 ${mix.tau2.toFixed(2)} > 0`); }
 { const st = signTest([1, 2, 3, 4, 5, 6, 7, 8, 0, -1]); ok(st.pos === 8 && st.neg === 1 && Math.abs(st.p - 2 * 10 / 512) < 1e-12, `sign test 8 up, 1 down: p ${st.p.toFixed(4)}`); }
+// the fixed-effect pool (7e's floor, the maintainer 25 Sep 22:47 UK): equal cases give the random-effects answer (tau^2 0);
+// a large gain on one case raises its mean and cannot lower its lower end, where the random-effects lower end falls
+{ const eq = [{ b: 2, c: 12, N: 1000 }, { b: 2, c: 12, N: 1000 }, { b: 2, c: 12, N: 1000 }], fe = pooledFE(eq), re = pooledRE(eq);
+  ok(Math.abs(fe.mean - re.mean) < 1e-12 && Math.abs(fe.lo - re.lo) < 1e-12 && fe.k === 3, `fixed effect equals random effects when the cases agree: ${fe.mean.toFixed(3)} (${fe.lo.toFixed(3)} to ${fe.hi.toFixed(3)})`);
+  const calm = Array.from({ length: 15 }, () => ({ b: 1, c: 1, N: 1000 })), gain = [...calm, { b: 0, c: 30, N: 1000 }];
+  const f0 = pooledFE(calm), f1 = pooledFE(gain), r0 = pooledRE(calm), r1 = pooledRE(gain);
+  ok(f1.mean > f0.mean && f1.lo > f0.lo, `fixed effect: one case gaining 3 points lifts the mean and the lower end (${f0.lo.toFixed(3)} -> ${f1.lo.toFixed(3)})`);
+  ok(r1.lo < f1.lo, `planted: random effects over the same cases puts the lower end lower (${r1.lo.toFixed(3)} against ${f1.lo.toFixed(3)}), the widening a gain causes`);
+  const loss = pooledFE(Array.from({ length: 16 }, () => ({ b: 3, c: 1, N: 1000 })));
+  ok(Math.abs(loss.mean + 0.2) < 1e-12 && loss.lo < -0.1, `fixed effect: a 0.2-point loss on every case reads ${loss.mean.toFixed(3)} (${loss.lo.toFixed(3)} to ${loss.hi.toFixed(3)}), below -0.1`);
+  ok(pooledFE([]) === null, 'fixed effect: no cases, no pool'); }
 // planted: the old two-se reading disagrees with the exact outcome on O19's 4 lost, 0 saved
 { const b = 4, c = 0, N = 3000, net = c - b, disc = b + c; const oldBeyondOrLine = net * net >= 4 * disc;
   ok(oldBeyondOrLine && o1.outcome === 'no material harm', 'planted: the old rule reads 4 lost, 0 saved as at or beyond two se; the exact outcome is no material harm, so the two disagree'); }

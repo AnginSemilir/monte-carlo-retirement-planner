@@ -71,12 +71,23 @@ export const UNLOCK = /\bunlock enforcement\b/i;
 
 /* is the enforcement unlocked? Only by the maintainer's latest DELIVERED message saying so, and only until they type
    anything else: a queued message (an enqueue of plain text - the queue also carries agent and task notices, which
-   start with "<") ends it at once. A queued entry records no origin, so it can end an unlock but never start one. */
+   start with "<") ends it at once. A queued entry records no origin, so it can end an unlock but never start one; the
+   same message absorbed mid-turn is recorded again as a queued_command attachment with its origin, and that record
+   counts as delivered. */
 export function unlockedFrom(transcriptText) {
   const lines = transcriptText.split('\n');
   for (let i = lines.length - 1; i >= 0; i--) {
     let j; try { j = JSON.parse(lines[i]); } catch { continue; }
     if (j.type === 'queue-operation' && j.operation === 'enqueue' && typeof j.content === 'string' && !/^\s*</.test(j.content)) return false;
+    // a message typed mid-turn and absorbed into the turn: the harness records it as a queued_command attachment carrying the
+    // typist's origin (a task notice is recorded the same way with commandMode task-notification and no origin), so it
+    // starts an unlock as a delivered message does and, like one, a later message ends it (the maintainer typed "unlock
+    // enforcement" three times mid-turn on 25 Sep, 20:54, 21:12 and 21:17 UK, and the hook read each as queued)
+    if (j.type === 'attachment' && j.attachment && j.attachment.type === 'queued_command') {
+      const a = j.attachment;
+      if (a.commandMode === 'prompt' && a.origin && a.origin.kind === 'human' && typeof a.prompt === 'string') return UNLOCK.test(a.prompt);
+      continue;
+    }
     if (j.type !== 'user' || !j.origin || j.origin.kind !== 'human' || j.isMeta || j.isCompactSummary) continue;
     const c = j.message && j.message.content;
     if (typeof c === 'string') return UNLOCK.test(c);

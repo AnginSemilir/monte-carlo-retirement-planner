@@ -12,7 +12,7 @@ if git diff --cached --name-only | grep -qE '^(research/solver/(PLAN|PLAN-HISTOR
     exit 1
   }
   # the staged copy keeps its own file name: the check's exemptions go by name (BEFORE_REGIMEN, BEFORE_SEEDS), and a copy
-  # named .precommit-pred.md matched neither, so every commit touching an older prediction was refused (25 Sep 23:05 UK)
+  # named .precommit-pred.md matched neither, so every commit touching an older prediction was refused (found 25 Sep 22:56 UK)
   for f in $(git diff --cached --name-only --diff-filter=AM | grep -E '^research/solver/predictions/.*\.md$'); do
     D=$(mktemp -d) && B="$D/$(basename "$f")"
     git show ":$f" > "$B" && node research/solver/check-prediction.mjs "$B" >/dev/null || {

@@ -35,6 +35,7 @@
  * from the post-decision state so it costs one flow per move rather than one per move and node.
  */
 import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds, bridgeTable, Phi } from './grid.js';
+import { referenceChance, buildReaderTable } from './reader.js';
 import * as F from './fast.js';
 
 /*
@@ -489,7 +490,35 @@ export function solve(E, M, plan, opts = {}) {
   const levelOf = actions.map(a => (a.spendLevel !== undefined ? a.spendLevel : 1));
   // F1 (PLAN.md "S126's dead corner"): the cliff-aware read of a retired bridge year, research option until tested
   // F1 v2 (bridgeRead: 2) counts money arriving in the bridge, adds growth and acts when the money looks short too
-  if (opts.bridgeRead) g.bridge = bridgeTable(E, m, c, Math.min(...levelOf), opts.bridgeRead === 2 ? 2 : 1);
+  /*
+   * THE BRIDGE READER (`bridgeRead: 'reader'`; src/solver/reader.js, drafts/reader-design.md; 7e's reader arm). F1 stays
+   * off (g.bridge null). For each retired year before access, once that year's table is solved (below), each world's
+   * survival is split into p x c + R against one declared reference: the year's floor bills to access, net of the
+   * money due into the accessible pots (the bridge table's needY - inY), paid from the accessible mix at the opening
+   * balances - the ISA, the taxable account and cash, weighted by balance, at the plan's tiers and this world's rates;
+   * the ISA and taxable account moving together, cash with no spread. Never the candidate move's own tiers.
+   */
+  if (opts.bridgeRead === 'reader') {
+    const B = bridgeTable(E, m, c, Math.min(...levelOf), 2);
+    const years = new Uint8Array(T + 2);
+    for (let t = 0; t <= T; t++) if (B.need[t] > 0 && t < B.accessAt) years[t] = 1;
+    const o = m.ctx.owners[0], bal = (id) => (id && m.acc[id] ? m.acc[id].balance : 0);
+    const bi = bal(o.ids.isa), bg = bal(o.ids.other), bc = bal(o.ids.cash), tot = bi + bg + bc;
+    const wi = tot > 0 ? bi / tot : 0, wg = tot > 0 ? bg / tot : 0, wc = tot > 0 ? bc / tot : 1;
+    const ai0 = actions.findIndex(a => !(a.tierPen > 0) && !(a.tierIsa > 0));
+    if (ai0 < 0) throw new Error('the bridge reader needs a move at the plan\'s tiers');
+    const chanceOf = (k, t) => {
+      const act = cs[k].acts[ai0], bills = [], rho = [], vol = [];
+      for (let j = t; j < Math.min(B.accessAt, T + 1); j++) bills.push(B.needY[j] - B.inY[j]);
+      for (let j = t; j < t + bills.length - 1; j++) {
+        const v = wi * act.volEffAt[j][1] + wg * act.volEffAt[j][2];
+        const gross = wi * (1 + act.real[1]) + wg * (1 + act.real[2]) + wc * (1 + act.real[3]);
+        rho.push(Math.log(gross) - v * v / 2); vol.push(v);
+      }
+      return referenceChance(bills, rho, vol);
+    };
+    g.reader = { years, of: new Map(), chanceOf, unsupported: 0, built: 0, weights: { isa: wi, gia: wg, cash: wc } };
+  } else if (opts.bridgeRead) g.bridge = bridgeTable(E, m, c, Math.min(...levelOf), opts.bridgeRead === 2 ? 2 : 1);
 
   /*
    * PROFILING, off unless SOLVER_PROFILE is set, because nobody has measured where a solve's time
@@ -741,10 +770,19 @@ export function solve(E, M, plan, opts = {}) {
     for (let k = 0; k < K; k++) {
       toLogOdds(survW[k][t], lsurvW[k][t]);
       if (shortfall) lresilW[k][t].set(resilW[k][t]); else toLogOdds(resilW[k][t], lresilW[k][t]);
+      // the bridge reader: this year's table split into p x c + R, from the clamped survival the table now holds
+      if (g.reader && g.reader.years[t]) {
+        const ls = lsurvW[k][t], Sc = new Float64Array(ls.length);
+        for (let i = 0; i < ls.length; i++) Sc[i] = 1 / (1 + Math.exp(-ls[i]));
+        const chance = g.reader.chanceOf(k, t), tb = buildReaderTable(g, Sc, chance);
+        g.reader.of.set(ls, { chance, c: tb.c, R: tb.R, p: tb.p, t, k });
+        g.reader.unsupported += tb.unsupported; g.reader.built++;
+      }
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, solverVersion: SOLVER_VERSION };
+  if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, weights: g.reader.weights };
   if (PROF) {
     PROF.total = now() - profT0;
     // two clock calls per timed region, and the outer pair too
@@ -777,7 +815,7 @@ export function solve(E, M, plan, opts = {}) {
     /* The stored move for the nearest cell to a state; `chooseAction` is the better read. */
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[pol[Math.min(t, T)][nearestIndex(g, s)]]; },
     /* What the table says this position is worth, before anything is executed. */
-    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); const sv = g.bridge ? readValues(g, lsurv[k], beq[k], s, new Float64Array(4), null, null, k)[0] : interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurv[k], beq[k], s, new Float64Array(4), null, null, k)[0] : interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   };
   r.worlds = K === 1 ? [r] : cs.map((cc, k) => (k === centre ? r : {
     m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
@@ -792,7 +830,7 @@ export function solve(E, M, plan, opts = {}) {
      * exists to answer. Same bodies as above, bound to this world's six tables.
      */
     policy(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); return actions[polW[k][Math.min(t, T)][nearestIndex(g, s)]]; },
-    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const kk = Math.min(t, T); const sv = g.bridge ? readValues(g, lsurvW[k][kk], beqW[k][kk], s, new Float64Array(4), null, null, kk)[0] : interp(g, survW[k][kk], loc, true), rs = interp(g, resilW[k][kk], loc, !shortfall), bq = interp(g, beqW[k][kk], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
+    value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const kk = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurvW[k][kk], beqW[k][kk], s, new Float64Array(4), null, null, kk)[0] : interp(g, survW[k][kk], loc, true), rs = interp(g, resilW[k][kk], loc, !shortfall), bq = interp(g, beqW[k][kk], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   }));
   return r;
 }

@@ -8,6 +8,7 @@
  *   node research/solver/audit-s126.mjs f1v2 [points] [paths] [part k/n]            F1 v2's paired test (PLAN.md 7c)
  *   node research/solver/audit-s126.mjs trace [points] [paths] [case]               O22's trace: 5/15 points x final year averaged/exact
  *   node research/solver/audit-s126.mjs time [points] [runs] [ids]                  7k: the solve's time with and without the exact final year
+ *   node research/solver/audit-s126.mjs readertime [points] [runs]                  the bridge reader's added solve time (its design's check 6)
  *
  * Each mode reads its OWN arguments (fixed 24 Sep: the numbers were read before the mode was chosen, so `ids` read its
  * id list as the grid size - NaN, falling back to 12 points - and took the path count from the argument meant for points).
@@ -249,6 +250,37 @@ if (mode === 'f1v2') {
   const med = xs => { const s = [...xs].sort((a, b) => a - b); return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };
   console.log(`load after ${loadavg().map(x => x.toFixed(2)).join(' ')}`);
   for (const id of ids) console.log(`${id}: median ${med(times[id].off).toFixed(1)} s averaged, ${med(times[id].on).toFixed(1)} s exact -> ratio ${(med(times[id].on) / med(times[id].off)).toFixed(3)}`);
+} else if (mode === 'readertime') {
+  /*
+   * THE BRIDGE READER'S RUN TIME (drafts/reader-design.md check 6; a measurement, not a test): the solve alone
+   * (solvePlan, no forward run) with the reader against with no bridge read, on S126, bridge 6 and S366 as the f1v2 and
+   * quad modes build them, at the settings 7e's arms hold (F1 off or the reader, the tier above allowed, lambda held,
+   * the final year exact), alternating which goes first run to run. Prints every solve's seconds, the load average
+   * before and after, and per case the ratio of the median times (reader / off), beside 7e's 20% bar.
+   *   node research/solver/audit-s126.mjs readertime [points=16] [runs=2]
+   */
+  const RUNS = Number(NUMS[1] || 2);
+  const cases = [['S126', () => variant('S126', {})], ['bridge 6', () => variant('bridge 6', { bridge: 6 })], ['S366', () => all.find(s => s.id === 'S366')]];
+  console.log(`READER TIMING, ${POINTS} points, ${RUNS} runs each way, alternated; cases ${cases.map(c => c[0]).join(', ')}; load before ${loadavg().map(x => x.toFixed(2)).join(' ')}`);
+  const times = {};
+  for (const [id, build] of cases) {
+    const h = build();
+    const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
+    times[id] = { off: [], on: [] };
+    for (let r = 0; r < RUNS; r++) {
+      for (const on of (r % 2 === 0 ? [false, true] : [true, false])) {
+        const t0 = process.hrtime.bigint();
+        const res = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: on ? 'reader' : false, riskAbove: true, finalIntegral: true });
+        const secs = Number(process.hrtime.bigint() - t0) / 1e9;
+        if ((res.meta.bridgeRead === 'reader') !== on || res.meta.finalIntegral !== true) { console.error(`audit-s126: ${id} asked reader ${on}, the solve ran ${res.meta.bridgeRead} (final year ${res.meta.finalIntegral})`); process.exit(2); }
+        times[id][on ? 'on' : 'off'].push(secs);
+        console.log(`  ${id} run ${r + 1} ${on ? 'reader' : 'off   '}: ${secs.toFixed(1)} s (load ${loadavg()[0].toFixed(2)})${on ? `, ${res.meta.reader.tables} reader tables, ${res.meta.reader.unsupported} unsupported nodes` : ''}`);
+      }
+    }
+  }
+  const med = xs => { const s = [...xs].sort((a, b) => a - b); return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };
+  console.log(`load after ${loadavg().map(x => x.toFixed(2)).join(' ')}`);
+  for (const id of Object.keys(times)) console.log(`${id}: median ${med(times[id].off).toFixed(1)} s off, ${med(times[id].on).toFixed(1)} s with the reader -> ratio ${(med(times[id].on) / med(times[id].off)).toFixed(3)}`);
 } else if (mode === 'f1') {
   const which = process.argv[5] || 'all';
   console.log(`F1 TEST, ${POINTS} points, ${NP} held paths (seed 7002), off against on, paired`);

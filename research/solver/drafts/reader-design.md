@@ -4,6 +4,23 @@
 showed the bridge misread is the read across the share axis, not the averaging (results-bridgequad.txt). This is a
 build design, not a test. 7e's prediction registers the test, and nothing below is a result.
 
+**Built 25 Sep (from about 11:05 UK), as `bridgeRead: 'reader'`:**
+- `src/solver/reader.js`:
+  - `referenceChance` precomputes one year's chance as a function of A;
+  - `buildReaderTable` splits the year's table into p, c and R.
+- `src/solver/solve.js` builds the reader's table for each retired pre-access year and each world, right after that
+  year's table is solved.
+- `src/solver/grid.js` `readValues` reassembles p x I[c] + I[R] there. F1 and the #106 options stay off.
+
+Where the build chose among the options above:
+- **Reference mix:** the ISA, taxable account and cash, weighted by their opening balances, at the plan's tiers and each
+  world's own rates. The ISA and taxable account move together; cash has no spread.
+- **Bills:** the bridge table's floor bills, net of the money due into the accessible pots (needY - inY).
+- **Coordinates:** total-wealth only. The reader refuses the pots coordinates.
+
+Its checks are `research/tests/reader-solve.test.mjs` (checks 2 to 4) and `audit-s126.mjs readertime` (check 6, to be run
+through the launcher). The probes (check 5) are not built.
+
 ## What the reviewer's claims were checked against (25 Sep 07:17 UK, a scratch calculation, no run)
 
 - **The width table** (equal bills, zero drift, small v; widths in ln A for 1-4 payments left): recomputed from the moment
@@ -89,8 +106,8 @@ negative values allowed.
 
 ## Not settled here
 
-- **The build's size:** the reference and the continuation fit are new code in grid.js and the solve loop, with the
-  cache per year and world (and per b-slice where the mix differs). A first estimate is half a day to build and test,
-  not yet measured.
+- **The build's size:** the reference and the continuation fit are new code in grid.js and the solve loop, cached per
+  year and world. One declared mix per world, not per b-slice. Built in about an hour (25 Sep); its added run time is
+  check 6's to measure.
 - **F2 is also unbuilt** (`f2-design.md`). Whether 7e waits for both builds or runs the reader against off, v1 and v2 first
   is a scheduling choice for the maintainer.

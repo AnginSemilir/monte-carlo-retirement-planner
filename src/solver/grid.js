@@ -306,9 +306,16 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
       NC = 16;
     }
   }
+  /*
+   * THE BRIDGE READER (`bridgeRead: 'reader'`; src/solver/reader.js): in a retired bridge year, survival is
+   * p x I[c] + I[R] - p from this position's own accessible money, c and R blended with the same corner weights, in
+   * probability. It replaces F1 and the #106 options there (neither runs with it); every other year, and the bequest,
+   * resilience and shortfall reads, are unchanged.
+   */
+  const RD = g.reader && yr >= 0 && g.reader.years[yr] ? g.reader.of.get(lsArr) : null;
   // F1 in a retired bridge year (yr is the year of the table read); otherwise the #106 options, if set
-  const cap = g.bridge && yr >= 0 && g.bridge.need[yr] > 0 ? bridgeAdjust(g, lsArr, NC, s, yr) : null;
-  const linearRead = cap === null && g.shareDead ? shareDeadAdjust(g, lsArr, NC) : false;
+  const cap = !RD && g.bridge && yr >= 0 && g.bridge.need[yr] > 0 ? bridgeAdjust(g, lsArr, NC, s, yr) : null;
+  const linearRead = !RD && cap === null && g.shareDead ? shareDeadAdjust(g, lsArr, NC) : false;
   let ls = 0, b = 0, lr = 0, sh = 0;
   if (lrArr && shArr) {
     // the flexible-spending read: survival, bequest, resilience and the expected future shortfall from target
@@ -321,7 +328,12 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
     for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; ls += w * lsArr[IDX[k]]; b += w * bArr[IDX[k]]; }
   }
   if (cap !== null && ls > cap) ls = cap;
-  if (linearRead) { let p = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w !== 0) p += w * expit(lsArr[IDX[k]]); } out[0] = p; }
+  if (RD) {
+    let cc = 0, rr = 0;
+    for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; cc += w * RD.c[IDX[k]]; rr += w * RD.R[IDX[k]]; }
+    const v = RD.chance(s[1] + s[2]) * cc + rr;
+    out[0] = v < CLAMP ? CLAMP : (v > 1 - CLAMP ? 1 - CLAMP : v);
+  } else if (linearRead) { let p = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w !== 0) p += w * expit(lsArr[IDX[k]]); } out[0] = p; }
   else out[0] = expit(ls);
   out[1] = b;
   return out;
@@ -467,13 +479,14 @@ export function bridgeTable(E, m, c, floorLevel, version = 1) {
     if (yr.spend[t] > 0) n += yr.frac[t];
     if (yr.spend[t] > 0) { need[t] = run; years[t] = n; }
     cash[t] = yr.buffer[t];
-    // v2: dated deposits into the accessible pots (ISA, taxable account, cash), less deductions from them
-    if (version === 2) for (let i = 1; i <= 3; i++) inY[t] += (yr.dep[i][t] || 0) - (yr.ded[i][t] || 0);
+    // dated deposits into the accessible pots (ISA, taxable account, cash), less deductions from them: v2's req and the
+    // reader read them; v1 never did, and its need, years, cash and sigma do not depend on them
+    for (let i = 1; i <= 3; i++) inY[t] += (yr.dep[i][t] || 0) - (yr.ded[i][t] || 0);
   }
   const o = m.ctx.owners[0], isaA = m.acc[o.ids.isa], giaA = m.acc[o.ids.other];
   const bi = isaA ? isaA.balance : 0, bg = giaA ? giaA.balance : 0;
   const sigma = bi + bg > 0 ? (bi * c.volEff[1] + bg * c.volEff[2]) / (bi + bg) : 0;
-  if (version !== 2) return { need, years, cash, sigma, accessAt, floorLevel };
+  if (version !== 2) return { need, years, cash, sigma, accessAt, floorLevel, needY, inY };
   // v2: the accessible money needed now so every year to access is met, the inflows due by each year counted
   const req = new Float64Array(T + 2);
   for (let t = 0; t < Math.min(accessAt, T + 1); t++) {
@@ -483,7 +496,7 @@ export function bridgeTable(E, m, c, floorLevel, version = 1) {
     req[t] = worst;
   }
   const mu = bi + bg > 0 ? (bi * c.real[1] + bg * c.real[2]) / (bi + bg) : 0;
-  return { need, years, cash, sigma, accessAt, floorLevel, version: 2, req, mu, cashReal: c.cashReal || 0 };
+  return { need, years, cash, sigma, accessAt, floorLevel, needY, inY, version: 2, req, mu, cashReal: c.cashReal || 0 };
 }
 
 /* Survival stored as log-odds, once per year, so a read costs eight multiplies instead of eight logs. */

@@ -3,10 +3,9 @@
  * 2 decimals and judges the tie rule on the counts without printing them). Reads the same qr-* records reduce-quadref.mjs
  * read behind its fair-test gate (results-quadref.txt) and pairs survival exactly as it does (difference and
  * se = sqrt(discordant)/N, in points; pooled as the mean with the root sum of squares over the count). Beside the
- * registered reading, not registered: the three's tier-above cost pooled with 5 and with 15 points, and how far item 2's
- * difference-in-differences sits from the value full removal of the 5-point remainder would give.
- * Planted: two made-up arms differing on one path of four must give +25 +/- 25 points, net 1 of 1; two pooled must sum
- * the counts.
+ * registered reading, not registered: the three's tier-above cost pooled with 5 and with 15 points.
+ * Planted: two made-up arms differing on one path of four must give +25 +/- 25 points, net 1 of 1; two pooled must give
+ * the mean and the root sum of squares over the count, and sum the counts.
  *
  *   node research/solver/quadref-exact.mjs > research/solver/results-quadref-exact.txt
  */
@@ -21,7 +20,7 @@ const did = (d5, u5, d15, u15) => { const n = d5.N; const v = new Float64Array(n
 {
   const mk = a => ({ N: 4, paths: { survived: a } }), P = pair(mk([0, 1, 1, 0]), mk([1, 1, 1, 0])), Q = pool([P, pair(mk([1, 1, 1, 1]), mk([0, 0, 1, 1]))]);
   const D = did(mk([1, 1, 1, 1]), mk([0, 1, 1, 1]), mk([1, 1, 1, 0]), mk([1, 1, 1, 0]));
-  if (P.d !== 25 || P.se !== 25 || P.net !== 1 || P.disc !== 1 || Q.net !== -1 || Q.disc !== 3 || Math.abs(D.d - 25) > 1e-9 || Math.abs(D.se - 25) > 1e-9) { console.log('PLANTED CHECK FAILED'); process.exit(1); }
+  if (P.d !== 25 || P.se !== 25 || P.net !== 1 || P.disc !== 1 || Q.net !== -1 || Q.disc !== 3 || Math.abs(Q.d + 12.5) > 1e-9 || Math.abs(Q.se - Math.sqrt(1875) / 2) > 1e-9 || Math.abs(D.d - 25) > 1e-9 || Math.abs(D.se - 25) > 1e-9) { console.log('PLANTED CHECK FAILED'); process.exit(1); }
 }
 const rec = (t, id) => readRecord(join(R, t, `${id}.solver.record.json.gz`));
 const z = x => (x.se > 0 ? (x.d / x.se).toFixed(3) : '-');
@@ -47,6 +46,5 @@ line('the falsifier, 15 - 5 points with the tier above', U);
 const C5 = pool(THREE.map(id => r[id].c5)), C15 = pool(THREE.map(id => r[id].c15));
 line('beside it, not registered: the tier above\'s cost, 5 points', C5);
 line('beside it, not registered: the tier above\'s cost, 15 points', C15);
-console.log(`  beside it, not registered: were the 5-point remainder fully removed at 15 points, the difference-in-differences would be ${(-C5.d).toFixed(4)}; it is ${DD.d.toFixed(4)}, ${((DD.d + C5.d) / DD.se).toFixed(3)} of its se from that`);
 console.log('five worlds against three (tier above, 5 points)');
 for (const id of ['S194', 'S330']) line(`${id}`, pair(rec('qr-u5', id), rec('qr-u5m5', id)));

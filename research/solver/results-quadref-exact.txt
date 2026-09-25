@@ -28,7 +28,6 @@ pooled over S194, S162 and S252
   the falsifier, 15 - 5 points with the tier above: -0.0667 +/- 0.0351  z -1.897  net -6 of 10 discordant (net^2 36 against 4 x discordant 40)
   beside it, not registered: the tier above's cost, 5 points: -0.0889 +/- 0.0444  z -2.000  net -8 of 16 discordant (net^2 64 against 4 x discordant 64)
   beside it, not registered: the tier above's cost, 15 points: -0.1444 +/- 0.0484  z -2.982  net -13 of 19 discordant (net^2 169 against 4 x discordant 76)
-  beside it, not registered: were the 5-point remainder fully removed at 15 points, the difference-in-differences would be 0.0889; it is -0.0556, -3.357 of its se from that
 five worlds against three (tier above, 5 points)
   S194: -0.0333 +/- 0.0577  z -0.577  net -1 of 3 discordant (net^2 1 against 4 x discordant 12)
   S330: +0.2667 +/- 0.1155  z 2.309  net 8 of 12 discordant (net^2 64 against 4 x discordant 48)

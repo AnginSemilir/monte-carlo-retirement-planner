@@ -282,8 +282,10 @@ narrower for more than 16 years. The table therefore interpolates straight acros
 - **Both follow-up tests are read (25 Sep).** Averaging every earlier year over 15 return points instead of 5, with
   the final year exact, leaves the tier above's cost on the three where it was: with both changes it is −0.14 ± 0.05
   points pooled (beside the registered reading, which held: the change is within noise). So what remains is not the
-  averaging; it is the grid read or the score's own trade, not yet told apart. Five market worlds instead of three raise
-  the thinnest household's survival by 0.27 ± 0.12 points (a registered item that missed; not yet explained). On the
+  averaging; it is the grid read, the score's own trade, or the three-market-world approximation, not yet told apart.
+  Five market worlds instead of three raise the thinnest household's survival by 0.27 ± 0.12 points with the tier above
+  allowed (a registered item that missed; not yet explained), and the tier above's cost on the three comfortable
+  households has not been measured under five worlds. On the
   six bridge cases, 15 points leave the opening misread almost unchanged (S126 −43 to −31; the other five move 5.3 points or less;
   none closes to within 10), so **the bridge misread is in the read across the pension-share axis, not the
   averaging**: better averaging does not make F1 redundant, and your boundary-plus-residual reader is the fix we will

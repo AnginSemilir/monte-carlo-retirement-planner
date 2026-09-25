@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
 # THE REDUCER'S PLANTED CHECKS, SHOWN TO FAIL (rule 6): each line breaks one part of reduce-7e.mjs's rule, gate or
 # completeness in a scratch copy (or stats.mjs's harm rule), runs the planted set on it, and must see PLANTED CHECK FAILED.
+# The stamp gate lives in fair-gate.mjs (requireFairLogs); its planted faults are in fair-gate.test.mjs.
 # The true reducer must pass. Any mutation that is not applied, or that the planted set does not catch, fails the script.
 #   bash research/solver/mutate-reduce-7e.sh
 set -u
 cd "$(dirname "$0")/../.."
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
-R=research/solver/reduce-7e.mjs; ABS=$PWD/research/solver/stats.mjs; bad=0; n=0
+R=research/solver/reduce-7e.mjs; ABS=$PWD/research/solver/stats.mjs; FG=$PWD/research/solver/fair-gate.mjs; bad=0; n=0
 node "$R" --planted > "$T/true.txt" 2>&1 || { echo "FAIL: the true reducer's planted set does not pass"; cat "$T/true.txt"; exit 1; }
 echo "true reducer: $(cut -c1-14 "$T/true.txt") checks pass"
 mut() { # name, sed expression on the reducer, [sed expression on stats.mjs]
   local S="$ABS"
   if [ -n "${3:-}" ]; then sed "$3" research/solver/stats.mjs > "$T/stats.mjs"; cmp -s research/solver/stats.mjs "$T/stats.mjs" && { echo "FAIL  $1: the mutation was not applied"; bad=1; return; }; S="$T/stats.mjs"; fi
-  sed -e "s#'./stats.mjs'#'$S'#" -e "$2" "$R" > "$T/m.mjs"
-  sed "s#'./stats.mjs'#'$S'#" "$R" > "$T/base.mjs"
+  sed -e "s#'./stats.mjs'#'$S'#" -e "s#'./fair-gate.mjs'#'$FG'#" -e "$2" "$R" > "$T/m.mjs"
+  sed -e "s#'./stats.mjs'#'$S'#" -e "s#'./fair-gate.mjs'#'$FG'#" "$R" > "$T/base.mjs"
   if [ -z "${3:-}" ] && cmp -s "$T/base.mjs" "$T/m.mjs"; then echo "FAIL  $1: the mutation was not applied"; bad=1; return; fi
   n=$((n + 1)); out=$(node "$T/m.mjs" --planted 2>&1)
   if grep -q '^PLANTED CHECK FAILED' <<< "$out"; then echo "caught  $1: $(cut -c22-170 <<< "$out")"; else echo "FAIL  $1: NOT CAUGHT"; bad=1; fi
@@ -44,9 +45,5 @@ mut 'no pairs-line completeness' "s/main.filter(c => !c.pairs\['READER-V1'\] || 
 mut 'no look-2 completeness' 's/else if (look2.map(c => c.id).sort().join/else if (false \&\& look2.map(c => c.id).sort().join/'
 mut 'no controls completeness' "s/if (controls.length !== 3 || controls.some(c => labels(c) !== 'OFF,READER'))/if (false)/"
 mut 'no timing completeness' 's/if (Object.keys(time).length !== 3)/if (false)/'
-mut 'the stamp gate ignores the code version' 's/if (versions.size > 1)/if (false)/'
-mut 'the stamp gate ignores an edited prediction' 's/else if (sha !== predBlob)/else if (false)/'
-mut 'the stamp gate ignores NOT-LAUNCHED' "s/if (pred === 'NOT-LAUNCHED')/if (false)/"
-mut 'the stamp gate ignores a missing stamp' 's/if (!all.length) {/if (false) {/'
 echo "$n mutations"
 [ $bad -eq 0 ] && echo "ALL CAUGHT" || { echo "MUTATION CHECK FAILED"; exit 1; }

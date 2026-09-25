@@ -46,7 +46,11 @@ export function smokeFiles(root = ROOT) {
   for (const b of all.filter(f => /^batch-.+\.sh$/.test(f)))
     for (const m of readFileSync(join(dir, b), 'utf8').matchAll(/research\/solver\/([\w.-]+\.mjs)/g)) named.add(m[1]);
   const run = all.filter(f => /^audit-.+\.mjs$/.test(f) || /^(select-phase4|couple-gate|bridge-gate|seedcheck)\.mjs$/.test(f) || named.has(f));
-  return [...new Set([...codeFiles(root), ...run.sort().map(f => `research/solver/${f}`), 'research/solver/settings.mjs', 'research/solver/code-id.mjs', 'research/solver/smoke.sh'])];
+  // and every module those scripts import from this directory (fair-gate.test.mjs: every module a stamped script imports is
+  // stamped too; 25 Sep evening, reduce-7e.mjs's stats.mjs and fair-gate.mjs were outside the stamp)
+  const imported = new Set();
+  for (const f of run) for (const m of readFileSync(join(dir, f), 'utf8').matchAll(/from '\.\/([\w.-]+\.mjs)'/g)) if (all.includes(m[1])) imported.add(m[1]);
+  return [...new Set([...codeFiles(root), ...run.sort().map(f => `research/solver/${f}`), ...[...imported].sort().map(f => `research/solver/${f}`), 'research/solver/settings.mjs', 'research/solver/code-id.mjs', 'research/solver/smoke.sh'])];
 }
 
 export function smokeId(root = ROOT) {

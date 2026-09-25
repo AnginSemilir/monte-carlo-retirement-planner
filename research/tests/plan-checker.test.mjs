@@ -76,7 +76,7 @@ caught(run({ plan: base.plan.replace('"raiseCap": 1.1,', '"raiseCap": 1.1,,') })
 // no-effect claims on new lines
 caught(run({ added: ["K5's matching is unaffected by the cap."] }), 'no-effect', 'an unevidenced "unaffected"');
 caught(run({ added: ['The minimum pot does not change the cutting.'] }), 'no-effect', 'an unevidenced "does not change"');
-ok(!run({ added: ['The minimum pot does not change the cutting (evidence: results-k5-targets.txt).'] }).some(e => e.startsWith('[no-effect]')), 'the same claim with evidence passes');
+ok(!run({ added: ['The minimum pot does not change the cutting (evidence: results-k5-targets.txt, grade B).'] }).some(e => e.startsWith('[no-effect]')), 'the same claim with graded evidence passes (grade A or B, RULES.md section 8)');
 ok(!run({ added: ['Probably unaffected - NOT CHECKED.'] }).some(e => e.startsWith('[no-effect]')), 'the same claim marked NOT CHECKED passes');
 ok(!run({ added: ['The rule: "it doesn\'t affect X" is a claim.', '~~K5 is unaffected~~ WRONG'] }).some(e => e.startsWith('[no-effect]')), 'quoted and struck-through text is not a claim');
 const multi = base.plan + '\n\nFirst line of a claim ~~that was\nstruck: the pot does not change the cutting~~ and then retracted.\n';
@@ -89,8 +89,8 @@ caught(run({ plan: stray, added: ['A stray ~~ here, and the pot does not change 
 
 // the prediction check
 const good = read('predictions/m14b.md');
-ok(checkPredictionText(good).length === 0, 'a complete prediction file passes');
-const pErr = t => checkPredictionText(t);
+ok(checkPredictionText(good, { name: 'm14b.md' }).length === 0, 'a complete prediction file passes (m14b.md, registered before the regimen)');
+const pErr = t => checkPredictionText(t, { name: 'm14b.md' });
 ok(pErr(good.replace(/\| 13 \|(.*)\| TESTED[^|]*\|/, '| 13 |$1| SAME |')).some(e => /TESTED/.test(e)), 'planted: a test with no TESTED row is refused');
 ok(pErr(good.replace(/^\| 22 \|.*\n/m, '')).some(e => /variable 22/.test(e)), 'planted: a missing fair-test row is refused');
 ok(pErr(good.replace(/^(\| 5 \|[^|]*\|)[^|]*\|/m, '$1 ? |')).some(e => /"\?"/.test(e)), 'planted: a "?" left in the table is refused');
@@ -98,5 +98,40 @@ ok(pErr(good.replace(/N\/A - the solver against itself; no rival arm/, 'N/A')).s
 ok(pErr(good.replace('## Changes after seeing results', '## Notes')).some(e => /Changes after seeing results/.test(e)), 'planted: no "Changes after seeing results" section is refused');
 ok(pErr(good.replace(/- \*\*Kind:\*\*.*\n/, '')).some(e => /Kind/.test(e)), 'planted: no Kind field is refused');
 ok(VARIABLES.length === 33 && VARIABLES.every((v, i) => v.n === i + 1), 'the variable list is numbered 1 to 33 without gaps');
+
+// the regimen's prediction fields (RULES.md section 8)
+const reg = read('predictions/bridge-reader.md');
+const rErr = t => checkPredictionText(t, { name: 'bridge-reader.md' });
+ok(rErr(reg).length === 0, 'a prediction written under the regimen, with every field, passes (bridge-reader.md)');
+ok(checkPredictionText(good).some(e => /the regimen/.test(e)), 'planted: an old prediction checked with no name is held to the regimen (the exemption is by name only)');
+ok(checkPredictionText(good, { name: 'new-test.md' }).some(e => /Decision rule/.test(e)), 'planted: a new file without the regimen\'s fields is refused');
+ok(rErr(reg.replace('## Pre-mortem', '## Afterthoughts')).some(e => /Pre-mortem/.test(e)), 'planted: a regimen prediction without its pre-mortem is refused');
+ok(rErr(reg.replace(/## Decision fed[\s\S]*?(?=\n## )/, '## Decision fed\n\n- **Held:** the reader goes forward.\n')).some(e => /held, falsified and inconclusive/.test(e)), 'planted: a decision-fed section naming one outcome of three is refused');
+ok(rErr(reg.replace(/^- `derive: [^\n]*$/m, '- the arithmetic is in derive-7e.mjs')).some(e => /derive:/.test(e)), 'planted: a derivation script with no derive line (and no hash) is refused');
+ok(rErr(reg.replace(/## Credence[\s\S]*?(?=\n## )/, '## Credence\n\nHigh on every item.\n')).some(e => /probability/.test(e)), 'planted: a credence with no probability is refused');
+
+// claim linting, evidence grades and the materiality gate (RULES.md section 8)
+caught(run({ added: ['The reader is settled by 7e.'] }), 'claims', 'an ungraded "settled by"');
+caught(run({ added: ['7c shows that v2 costs survival.'] }), 'claims', 'an ungraded "shows that"');
+caught(run({ added: ['The exact final year costs nothing.'] }), 'claims', 'an ungraded "costs nothing"');
+ok(!run({ added: ['7c shows that v2 costs survival (grade B: results-f1v2.txt).'] }).some(e => e.startsWith('[claims]')), 'the same claim with a grade B citation passes');
+ok(!run({ added: ['After a settled result, re-derive; the table shows the gap; it is not settled until 7e.'] }).some(e => e.startsWith('[claims]')), 'a noun use ("a settled result", "the table shows") and "not settled" are not claims');
+caught(run({ added: ['The cap does not change the cutting (evidence: results-k5-targets.txt).'] }), 'no-effect', 'a no-effect claim whose evidence names no grade');
+ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-targets.txt, grade A).'] }).some(e => e.startsWith('[no-effect]')), 'the same claim with grade A evidence passes');
+{
+  const row = '| 26 Sep 09:00 | **A planted result** | nothing | results: results-reader-checks.txt; fair-test: n/a (a planted row for the test); prediction: none (a planted row) |';
+  const ledgerAt = base.plan.indexOf('| 25 Sep 20:31 |');
+  const withRow = base.plan.slice(0, ledgerAt) + row + '\n' + base.plan.slice(ledgerAt);
+  caught(run({ plan: withRow, added: [row] }), 'grade', 'a new ledger row with no evidence grade');
+  const graded = row.replace('prediction: none (a planted row) |', 'prediction: none (a planted row); grade C |');
+  ok(!run({ plan: base.plan.slice(0, ledgerAt) + graded + '\n' + base.plan.slice(ledgerAt), added: [graded] }).some(e => e.startsWith('[grade]')), 'the same row naming grade C passes');
+}
+{
+  const o7 = /^\| O7 \|.*$/m.exec(base.plan)[0];
+  const noted = o7.replace(/\| [^|]*\|$/, '| noted, below materiality: at most 0.02 points on the panel mean (evidence: results-o19.txt) |');
+  ok(!run({ plan: base.plan.replace(o7, noted) }).some(e => e.startsWith('[register]')), 'a register row "noted, below materiality" with its estimate and evidence passes');
+  caught(run({ plan: base.plan.replace(o7, noted.replace('0.02 points', '0.3 points')) }), 'register', 'a noted row whose estimate is not below materiality (0.3 points)');
+  caught(run({ plan: base.plan.replace(o7, noted.replace(' (evidence: results-o19.txt)', '')) }), 'register', 'a noted row with no evidence');
+}
 
 console.log(`\n${n} passed`);

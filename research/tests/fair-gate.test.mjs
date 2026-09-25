@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { compareData, parseAccept, formatReport } from '../solver/fair-gate.mjs';
+import { compareData, parseAccept, formatReport, checkLogStamps } from '../solver/fair-gate.mjs';
 import { codeFiles, smokeFiles, ROOT } from '../solver/code-id.mjs';
 
 const S = join(dirname(fileURLToPath(import.meta.url)), '../solver');
@@ -69,10 +69,23 @@ r = cmp(tag('a', [file('S001'), file('S002')]), tag('b', fi(false)));
 ok(r.bad === 0, 'a file from before the setting existed reads as 5 nodes, the same as off');
 
 // every reducer written from 24 Sep must call the gate; the older ones are listed and frozen
-const LEGACY = ['reduce-108.mjs', 'reduce-6e.mjs', 'reduce-bestof.mjs', 'reduce-calibration.mjs', 'reduce-k.mjs', 'reduce-m17.mjs', 'reduce-step2.mjs'];
+// reduce-o22.mjs: its logs (7j, read 25 Sep 07:54 UK) predate the log stamp, so it is frozen with the others
+const LEGACY = ['reduce-108.mjs', 'reduce-6e.mjs', 'reduce-bestof.mjs', 'reduce-calibration.mjs', 'reduce-k.mjs', 'reduce-m17.mjs', 'reduce-step2.mjs', 'reduce-o22.mjs'];
 const reducers = readdirSync(S).filter(f => /^reduce-.*\.mjs$/.test(f));
-const missing = reducers.filter(f => !LEGACY.includes(f) && !/requireFair\(/.test(readFileSync(join(S, f), 'utf8')));
-ok(missing.length === 0, `every reducer outside the legacy list calls requireFair (missing: ${missing.join(', ') || 'none'})`);
+const missing = reducers.filter(f => !LEGACY.includes(f) && !/requireFair(Logs)?\(/.test(readFileSync(join(S, f), 'utf8')));
+ok(missing.length === 0, `every reducer outside the legacy list calls requireFair or, over text logs, requireFairLogs (missing: ${missing.join(', ') || 'none'})`);
+// the log gate, planted (audit-s126.mjs's stamp line)
+{
+  const P = 'research/solver/predictions/x.md', st = (code = 'c1', audit = 'a1', pred = P, sha = 'p1') => `stamp: code ${code} audit ${audit} prediction ${pred} sha ${sha}\nS126 | OFF table 1`;
+  const lg = (texts, b = 'p1') => checkLogStamps(texts, P, { blob: () => b });
+  ok(lg({ a: st(), b: `${st()}\n${st()}` }).length === 0, 'logs launched under the prediction, one code, pass the log gate');
+  ok(lg({ a: st(), b: st('c2') }).some(e => /more than one version/.test(e)), 'planted: a log made by other code is caught');
+  ok(lg({ a: st(), b: st('c1', 'a2') }).some(e => /more than one version/.test(e)), 'planted: a log made by another version of the audit script is caught');
+  ok(lg({ a: st() }, 'p2').some(e => /PREDICTION EDITED/.test(e)), 'planted: a prediction edited after launch is caught');
+  ok(lg({ a: st('c1', 'a1', 'NOT-LAUNCHED', '-') }).some(e => /outside run-from-snapshot/.test(e)), 'planted: a log launched outside the launcher is caught');
+  ok(lg({ a: st('c1', 'a1', 'none', '-') }).some(e => /launched under none/.test(e)), 'planted: a measurement cannot settle a test');
+  ok(lg({ a: 'S126 | OFF table 1' }).some(e => /no stamp/.test(e)), 'planted: a log with no stamp is caught');
+}
 ok(LEGACY.every(f => reducers.includes(f)), 'the legacy list names only reducers that exist');
 
 // the smoke stamp covers every script a batch runs, the code hash only what moves a result (24 Sep, the plan-auditor:

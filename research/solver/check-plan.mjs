@@ -14,14 +14,19 @@
  *   ledger      every re-look ledger row has an evidence cell: results files that exist, the fair-test outcome and the
  *               prediction (or "decision:" for a maintainer decision); every decimal figure in the settled-result cell
  *               appears in a cited results file; a failed fair test is marked PROVISIONAL
- *   register    every open odd result has an owner and a gate to be resolved by
+ *   register    every open odd result has an owner and a gate to be resolved by; a row below materiality reads "noted,
+ *               below materiality: <largest plausible effect on the panel mean, under 0.1 points> (evidence: ...)"
  *   bugs        every bug entry from 24 Sep on says "Same pattern searched:"
  *   schedule    every pending schedule row that names a batch script names its registered prediction
  *   predictions every prediction file the plan names exists and passes check-prediction.mjs
  *   finished    no "COMPLETED" section is left in PLAN.md (it moves to PLAN-HISTORY.md)
  *   defaults    the decided-defaults block parses (plan-defaults.test.mjs compares it with the code)
  * NEW-LINE CHECKS (lines this change adds to PLAN.md)
- *   no-effect   "unaffected", "does not change", "no effect" ... carry "evidence:" or "NOT CHECKED" on the same line
+ *   no-effect   "unaffected", "does not change", "no effect" ... carry "evidence:" of grade A or B (RULES.md section 8), or
+ *               "NOT CHECKED", on the same line
+ *   claims      "settled", "shows", "causes", "costs nothing", used as a claim (not "not settled", "until settled" ...),
+ *               carry a grade A or B citation, or NOT CHECKED or PROVISIONAL, on the same line (RULES.md section 8)
+ *   grade       a new ledger row's evidence cell names its evidence grade, A to D (a maintainer's decision row excepted)
  *   clock       no new time is written in UTC
  */
 import { readFileSync, existsSync } from 'node:fs';
@@ -73,6 +78,12 @@ function strikeAt(planLines, line) {
 }
 export const NO_EFFECT = /\b(unaffected|not affected|does not (change|affect|matter)|doesn't (change|affect|matter)|do not (change|affect)|don't (change|affect)|no effect|cannot (change|affect)|can't (change|affect)|makes no difference|never changes)\b/i;
 const EVIDENCED = /(evidence:|not checked|proof:)/i;
+// the regimen's claim linting (RULES.md section 8, evidence item 1): a claim word needs a grade A or B citation
+// the claim forms only: "is settled", "settled by / that / :", "shows that", "shows no", "causes", "costs nothing" - not
+// "a settled result", "the table shows" or "until it is settled"
+export const CLAIM = /\b(?:is|are|was|were|now|thus|so|hence)\s+(settled)\b|\b(settled)\s*(?::|\bby\b|\bthat\b)|\b(shows)\s+(?:that|no)\b|(?<!\bthe\s)\b(causes)\b|\b(costs nothing)\b/i;
+const NOT_A_CLAIM = /\b(?:not|never|nothing|until|once|when|if|before|whether|is it|was it)\s+(?:yet\s+|been\s+|be\s+|is\s+|was\s+)?settled\b|\bsettles nothing\b|\bunsettled\b/gi;
+const GRADE_AB = /\bgrade [AB]\b/i;
 
 export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, solverFileExists }) {
   const E = [];
@@ -143,7 +154,11 @@ export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, 
       if (seen.has(id)) err('register', `${id}: duplicate id`); seen.add(id);
       if (!what) err('register', `${id}: says nothing`);
       const st = status.toLowerCase();
-      if (!/^(open|resolved|closed)\b/.test(st)) err('register', `${id}: status must start with open, resolved or closed`);
+      if (!/^(open|resolved|closed|noted)\b/.test(st)) err('register', `${id}: status must start with open, resolved, closed or noted`);
+      if (/^noted/.test(st)) {
+        const est = /([\d.]+)\s*points?\b/.exec(st);
+        if (!/^noted, below materiality\b/.test(st) || !est || !(Number(est[1]) < 0.1) || !/evidence:/.test(st)) err('register', `${id}: a noted row reads "noted, below materiality: <the largest plausible effect on the panel mean, under 0.1 points> (evidence: ...)" (RULES.md section 8)`);
+      }
       if (/^open/.test(st) && (!owner || owner === '-' || owner === '?' || !by || by === '-' || by === '?')) err('register', `${id}: an open odd result needs an owner and a gate to be resolved by`);
       if (/^(resolved|closed)/.test(st) && st.replace(/^(resolved|closed)/, '').replace(/[\s:,()-]/g, '').length < 6) err('register', `${id}: say how it was resolved or why it was closed`);
     }
@@ -174,7 +189,7 @@ export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, 
   // predictions named anywhere in the plan
   for (const p of new Set([...plan.matchAll(/predictions\/[\w.-]+\.md/g)].map(m => m[0]))) {
     if (!solverFileExists(p)) { err('predictions', `${p} is named in the plan but does not exist`); continue; }
-    const errs = checkPredictionText(readSolverFile(p));
+    const errs = checkPredictionText(readSolverFile(p), { name: p });
     if (errs.length) err('predictions', `${p}: ${errs[0]}${errs.length > 1 ? ` (+${errs.length - 1} more)` : ''}`);
   }
 
@@ -188,9 +203,14 @@ export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, 
 
   // new lines
   const planLines = plan.split('\n');
+  const LR = tableAfter(plan, '**The re-look ledger**'), ledgerRow = new Map((LR ? LR.rows : []).map(r => [r.raw.trim(), r.cells]));
   for (const raw of added) {
     const line = unquoted(raw, strikeAt(planLines, raw));
     if (NO_EFFECT.test(line) && !EVIDENCED.test(raw)) err('no-effect', `"${raw.trim().slice(0, 90)}": a claim of no effect needs "evidence: <file or proof>" or "NOT CHECKED" on the same line`);
+    else if (NO_EFFECT.test(line) && !/not checked/i.test(raw) && !GRADE_AB.test(raw)) err('no-effect', `"${raw.trim().slice(0, 90)}": a claim of no effect needs evidence of grade A or B, named on the same line ("grade A" or "grade B"; RULES.md section 8)`);
+    if (CLAIM.test(line.replace(NOT_A_CLAIM, ' ')) && !GRADE_AB.test(raw) && !/not checked|provisional/i.test(raw)) err('claims', `"${raw.trim().slice(0, 90)}": "${CLAIM.exec(line.replace(NOT_A_CLAIM, ' ')).slice(1).find(Boolean)}" is a claim: name its grade A or B evidence on the same line, or write NOT CHECKED or PROVISIONAL (RULES.md section 8)`);
+    const lc = ledgerRow.get(raw.trim());
+    if (lc && lc.length === 4 && !(/\bdecision:/i.test(lc[3]) && !/results:/i.test(lc[3])) && !/\bgrade [ABCD]\b/i.test(lc[3])) err('grade', `row "${(lc[0] || '').slice(0, 20)}": a new ledger row names its evidence grade in the evidence cell ("grade A" to "grade D"; RULES.md section 8)`);
     if (/\b\d{1,2}:\d{2}\b/.test(raw) && /\bUTC\b/.test(raw) && !/\bUK\b/.test(raw)) err('clock', `"${raw.trim().slice(0, 70)}": write times in UK time, not UTC`);
   }
   return E;

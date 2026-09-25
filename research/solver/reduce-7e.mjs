@@ -9,8 +9,7 @@
  * look's file), lambda 0.0223606797749979, raiseSurv true, failShort floor, tiersAbove 1, finalIntegral true - and each
  * arm's bridgeRead and quad are its label's (OFF false, V1 true, V2 2, READER reader; @15 quad 15, else 5). Any failure
  * prints GATE FAILED and nothing else is read.
- * THE STAMP GATE (25 Sep evening: the shared fair-test gate, fair-gate.mjs's requireFair, reads JSON result files, and 7e's
- * are audit-s126.mjs's text logs, so this reducer reads their stamp lines instead, until fair-gate.mjs reads logs itself):
+ * THE STAMP GATE (fair-gate.mjs's requireFairLogs, the shared gate for audit-s126.mjs's text logs):
  * every log carries at least one stamp; one version of the code (code-id.mjs) and of audit-s126.mjs across them all;
  * launched through run-from-snapshot.sh under predictions/bridge-reader.md, whose git blob now is the one each log was
  * launched under (else PREDICTION EDITED). A measurement's stamp ("none") or NOT-LAUNCHED is refused.
@@ -50,8 +49,8 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execSync } from 'node:child_process';
 import { mcnemarHarmP, holm, outcome, pooledRE, signTest, MARGINS, marginFor } from './stats.mjs';
+import { checkLogStamps, requireFairLogs } from './fair-gate.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIR = process.argv.slice(2).find(a => !a.startsWith('--')) || join(HERE, 'results', 'bridge7e');
@@ -104,22 +103,6 @@ function gate(cases, pts, paths = 1000) {
   return bad;
 }
 const PRED = 'research/solver/predictions/bridge-reader.md';
-const STAMP = /^stamp: code (\S+) audit (\S+) prediction (\S+) sha (\S+)$/gm;
-function stampGate(texts, predBlob) {
-  const bad = [], versions = new Set();
-  for (const [f, t] of Object.entries(texts)) {
-    const all = [...t.matchAll(STAMP)];
-    if (!all.length) { bad.push(`${f}: no stamp line (not written by the stamped audit-s126.mjs)`); continue; }
-    for (const [, code, audit, pred, sha] of all) {
-      versions.add(`code ${code} audit ${audit}`);
-      if (pred === 'NOT-LAUNCHED') bad.push(`${f}: launched outside run-from-snapshot.sh`);
-      else if (pred !== PRED) bad.push(`${f}: launched under ${pred}, not ${PRED}`);
-      else if (sha !== predBlob) bad.push(`${f}: PREDICTION EDITED - ${sha.slice(0, 8)} at launch, ${predBlob.slice(0, 8)} now`);
-    }
-  }
-  if (versions.size > 1) bad.push(`more than one version of the code across the logs: ${[...versions].join('; ')}`);
-  return bad;
-}
 const labels = c => c.arms.map(a => a.label).join(',');
 const arm = (c, l) => c && c.arms.find(a => a.label === l);
 const IN_CLASS = ['S126', 'share 0.90', 'bridge 1', 'bridge 4', 'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S124'];
@@ -313,13 +296,13 @@ function report(set) {
   ];
   // the stamp gate
   const st = (code = 'c1', audit = 'a1', pred = PRED, sha = 'b1') => `stamp: code ${code} audit ${audit} prediction ${pred} sha ${sha}\nx`;
-  const sg = (texts, blob = 'b1') => (stampGate(texts, blob).length ? 'REFUSED' : 'PASSED');
+  const sg = (texts, b = 'b1') => (checkLogStamps(texts, PRED, { blob: () => b }).length ? 'REFUSED' : 'PASSED');
   cases.push(
     ['stamps: every log launched under the prediction, one code', sg({ p0: st(), p1: st(), look2: `${st()}\n${st()}` }), 'PASSED'],
     ['stamps: a log made by other code', sg({ p0: st(), p1: st('c2') }), 'REFUSED'],
     ['stamps: a log made by another version of audit-s126.mjs', sg({ p0: st(), p1: st('c1', 'a2') }), 'REFUSED'],
     ['stamps: the prediction edited after launch', sg({ p0: st(), p1: st() }, 'b2'), 'REFUSED'],
-    ['stamps: a log launched outside the launcher, said so', String(stampGate({ p0: st(), p1: st('c1', 'a1', 'NOT-LAUNCHED', '-') }, 'b1').some(e => /outside run-from-snapshot\.sh/.test(e))), 'true'],
+    ['stamps: a log launched outside the launcher, said so', String(checkLogStamps({ p0: st(), p1: st('c1', 'a1', 'NOT-LAUNCHED', '-') }, PRED, { blob: () => 'b1' }).some(e => /outside run-from-snapshot\.sh/.test(e))), 'true'],
     ['stamps: a log launched as a measurement', sg({ p0: st(), p1: st('c1', 'a1', 'none', '-') }), 'REFUSED'],
     ['stamps: a log with no stamp', sg({ p0: st(), p1: 'S126 | OFF table 1' }), 'REFUSED']);
   const wrong = cases.filter(([, got, w]) => got !== w);
@@ -332,9 +315,7 @@ const read = f => (existsSync(join(DIR, f)) ? readFileSync(join(DIR, f), 'utf8')
 const parts = ['part0.txt', 'part1.txt', 'part2.txt', 'part3.txt'].map(read);
 if (parts.some(p => p === null)) { console.log(`INCOMPLETE - missing wave-1 logs in ${DIR}`); process.exit(1); }
 const main = parts.flatMap(parse);
-const predBlob = execSync(`git hash-object ${PRED}`, { cwd: join(HERE, '../..') }).toString().trim();
-const partStamps = stampGate(Object.fromEntries(parts.map((t, k) => [`part${k}.txt`, t])), predBlob);
-if (partStamps.length) { console.log(`FAIR-TEST GATE: FAILED (stamps)\n  ${partStamps.join('\n  ')}`); process.exit(1); }
+requireFairLogs(Object.fromEntries(parts.map((t, k) => [`part${k}.txt`, t])), PRED);
 if (process.argv.includes('--look1')) {
   const g = gate(main, 16), short = main.length !== WAVE1 || main.some(c => labels(c) !== 'OFF,V1,V2,READER');
   if (short || g.length) { console.log(`INCOMPLETE - wave 1 is not ready for look 1 (${main.length} cases${g.length ? `; ${g.length} gate problems: ${g.join('; ')}` : ''})`); process.exit(1); }
@@ -350,8 +331,7 @@ const short = complete(set);
 if (short.length) { console.log(`INCOMPLETE - nothing is scored:\n  ${short.join('\n  ')}`); process.exit(1); }
 const logs = { 'controls.txt': read('controls.txt'), 's360-quad.txt': read('s360-quad.txt'), 'p30.txt': read('p30.txt'), 'time30.txt': read('time30.txt') };
 if (look2.length) logs['look2.txt'] = l2;
-const stamps = stampGate({ ...Object.fromEntries(parts.map((t, k) => [`part${k}.txt`, t])), ...logs }, predBlob);
-if (stamps.length) { console.log(`FAIR-TEST GATE: FAILED (stamps)\n  ${stamps.join('\n  ')}`); process.exit(1); }
+requireFairLogs({ ...Object.fromEntries(parts.map((t, k) => [`part${k}.txt`, t])), ...logs }, PRED);
 const bad = [...gate(main, 16), ...gate(controls, 16), ...gate(s360, 16), ...gate(p30, 30), ...gate(look2, 16, 3000)];
 if (bad.length) { console.log(`FAIR-TEST GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
 console.log(`FAIR-TEST GATE: passed - ${main.length + controls.length + s360.length + p30.length + look2.length} case logs, each case's arms the same but the bridge read (and the return points for an @15 arm), at the registered settings and path counts\n`);

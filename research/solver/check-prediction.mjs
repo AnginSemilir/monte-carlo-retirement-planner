@@ -9,15 +9,28 @@
  * each marked SAME, TESTED, ONE ARM ONLY, N/A or ACCEPTED (the last three with a reason), no "?" left, and at least
  * one TESTED row for a test; and a "Changes after seeing results" section (rule 11: a change made after any result
  * is in is declared there, never made quietly).
+ * THE REGIMEN'S FIELDS (RULES.md section 8; the maintainer adopted it 25 Sep 20:47 UK): a prediction not registered
+ * before then also carries, non-empty, for a test: Decision rule, Decision fed (naming what held, falsified and
+ * inconclusive each change), Provenance, Derivation script (at least one line "derive: <script> > <output> sha256 <16
+ * hex>", which the launcher re-runs, or "none: <why>"), Point and interval, Credence (a probability), Power, Budget line
+ * and Pre-mortem; for a measurement: Decision fed, Provenance, Point and interval and Budget line. The files registered
+ * before the regimen are exempt by name (BEFORE_REGIMEN); every other file, and a text checked with no name, is held to
+ * it. A section heading may carry a note after its name ("## Decision rule (registered before launch)").
  */
 import { readFileSync, existsSync } from 'node:fs';
+import { basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VARIABLES } from './fair-variables.mjs';
 
 export const PRED_STATUSES = ['SAME', 'TESTED', 'ONE ARM ONLY', 'N/A', 'ACCEPTED'];
+// registered before the regimen (25 Sep 20:47 UK): not held to its fields
+export const BEFORE_REGIMEN = ['bridge-quad.md', 'f1-test.md', 'f1v2-test.md', 'k5-stage1.md', 'm14b.md', 'm14c-bets.md', 'o19-final.md', 'o22-trace.md', 'quad-ref.md'];
+export const REGIMEN_TEST = ['Decision rule', 'Decision fed', 'Provenance', 'Derivation script', 'Point and interval', 'Credence', 'Power', 'Budget line', 'Pre-mortem'];
+export const REGIMEN_MEASUREMENT = ['Decision fed', 'Provenance', 'Point and interval', 'Budget line'];
+export const DERIVE = /^\s*-?\s*`?derive: (\S+) > (\S+) sha256 ([0-9a-f]{16})`?\s*$/gm;
 
-function section(text, name) {
-  const re = new RegExp(`^##\\s+${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'im');
+function section(text, name, { note = false } = {}) {
+  const re = new RegExp(`^##\\s+${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${note ? '(?:\\s+\\([^\\n]*\\))?' : ''}\\s*$`, 'im');
   const m = re.exec(text);
   if (!m) return null;
   const rest = text.slice(m.index + m[0].length);
@@ -25,7 +38,7 @@ function section(text, name) {
   return (next < 0 ? rest : rest.slice(0, next)).trim();
 }
 
-export function checkPredictionText(text) {
+export function checkPredictionText(text, { name } = {}) {
   const errs = [];
   if (!/^#\s+Prediction:\s+\S/m.test(text)) errs.push('the first heading must be "# Prediction: <name>"');
   const field = f => { const m = new RegExp(`^-\\s+\\*\\*${f}:\\*\\*\\s*(.+)$`, 'mi').exec(text); return m ? m[1].trim() : null; };
@@ -37,6 +50,21 @@ export function checkPredictionText(text) {
     const body = section(text, s);
     if (body === null) errs.push(`missing section "## ${s}"`);
     else if (!body) errs.push(`section "## ${s}" is empty`);
+  }
+  // the regimen's fields, for every prediction not registered before it
+  if (!(name && BEFORE_REGIMEN.includes(basename(name)))) {
+    const isTest = !kind || /^test/i.test(kind);
+    for (const s of isTest ? REGIMEN_TEST : REGIMEN_MEASUREMENT) {
+      const body = section(text, s, { note: true });
+      if (body === null) errs.push(`missing section "## ${s}" (the regimen, RULES.md section 8)`);
+      else if (!body) errs.push(`section "## ${s}" is empty (the regimen, RULES.md section 8)`);
+    }
+    const fed = section(text, 'Decision fed', { note: true });
+    if (isTest && fed && !(/\bheld\b/i.test(fed) && /\bfalsified\b/i.test(fed) && /\binconclusive\b/i.test(fed))) errs.push('"## Decision fed" must say what each outcome changes: held, falsified and inconclusive');
+    const cred = section(text, 'Credence', { note: true });
+    if (isTest && cred && !/\b0?\.\d+\b|\b\d{1,3}%/.test(cred)) errs.push('"## Credence" must give a probability for each item');
+    const der = section(text, 'Derivation script', { note: true });
+    if (isTest && der && ![...der.matchAll(DERIVE)].length && !/^\s*-?\s*none:\s*\S/m.test(der)) errs.push('"## Derivation script" needs a line "derive: <script> > <output> sha256 <16 hex>" (the launcher re-runs it) or "none: <why>"');
   }
   const table = section(text, 'Fair-test table');
   if (table === null) { errs.push('missing section "## Fair-test table"'); return errs; }
@@ -60,7 +88,7 @@ export function checkPredictionText(text) {
 
 export function checkPredictionFile(file) {
   if (!existsSync(file)) return [`no such file: ${file}`];
-  return checkPredictionText(readFileSync(file, 'utf8'));
+  return checkPredictionText(readFileSync(file, 'utf8'), { name: file });
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

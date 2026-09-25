@@ -48,6 +48,15 @@ else
   LAST="$(git log -1 --format=%H -- "$PRED")"
   git merge-base --is-ancestor "$LAST" "refs/remotes/origin/$BR" 2>/dev/null || {
     echo "=== REFUSED: $PRED is not pushed to origin/$BR. Push it first: the push is the timestamp." >&2; exit 1; }
+  # THE DERIVATION'S HASH (RULES.md section 8; the maintainer adopted the regimen 25 Sep 20:47 UK): each "derive: <script>
+  # > <output> sha256 <16 hex>" line in the prediction is re-run on the tree as it stands; the committed output must hash
+  # as recorded and the script must still print it, byte for byte, or the arithmetic moved after the prediction took it.
+  while read -r DS DO DH; do
+    [ -f "$DS" ] && [ -f "$DO" ] || { echo "=== REFUSED: derive: $DS or $DO does not exist" >&2; exit 1; }
+    [ "$(sha256sum < "$DO" | cut -c1-16)" = "$DH" ] || { echo "=== REFUSED: $DO does not hash $DH, as the prediction records" >&2; exit 1; }
+    node "$DS" | cmp -s - "$DO" || { echo "=== REFUSED: $DS no longer prints $DO: the derivation moved after the prediction recorded it" >&2; exit 1; }
+    echo "=== derivation $DS reproduced (sha256 $DH)"
+  done < <(sed -n 's/^[[:space:]]*-\{0,1\}[[:space:]]*`\{0,1\}derive: \([^ ]*\) > \([^ ]*\) sha256 \([0-9a-f]\{16\}\)`\{0,1\}.*$/\1 \2 \3/p' "$PRED")
   export PREDICTION_FILE="$PRED" PREDICTION_SHA="$(git hash-object "$PRED")"
   echo "=== prediction $PRED, registered in $(git log -1 --format='%h' -- "$PRED") at $(TZ=Europe/London git log -1 --format='%cd' --date=format-local:'%d %b %H:%M UK' -- "$PRED")"
 fi

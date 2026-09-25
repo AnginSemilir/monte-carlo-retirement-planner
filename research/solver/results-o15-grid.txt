@@ -1,0 +1,115 @@
+# O15's reference from K5 stage 1's records (descriptive, not registered; read 25 Sep 10:09 UK, the 12 households, fold, cap 1.1, one-year pot, top-tier plans, the averaged final year, as stage 1 ran them): FAIR_ACCEPT (28, as registered in predictions/k5-stage1.md) TARGET=k5t-fold-cap DETAIL=2 node research/solver/reduce-k5.mjs records
+FAIR-TEST CHECK: k5-c0.0001-x1.5:solver  against  k5t-fold-cap:gkFloor
+  households: 12 shared
+  [28] code                         NOT RECORDED                   | NOT RECORDED                   ACCEPTED  - registered as ACCEPTED in predictions/k5-stage1.md row 28 during the run, before any cell was read
+  [--] prediction registered for k5-c0.0001-x1.5: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  [--] prediction registered for k5t-fold-cap: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  8 recorded variables SAME (2 by an assumed default: plan tier held (PLANTIER), GIA opening gain (GIAGAIN)); 27 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+FAIR-TEST CHECK: k5-c0.0001-x2 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.0001-x3 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.0001-x4 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.0003-x1.5 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.0003-x2 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.0003-x3 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.0003-x4 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.001-x1.5 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.001-x2 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.001-x3 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.001-x4 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.003-x1.5 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.003-x2 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.003-x3 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.003-x4 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.01-x1.5 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.01-x2 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.01-x3 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.01-x4 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.03-x1.5 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.03-x2 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.03-x3 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.03-x4 against k5t-fold-cap:gkFloor: FAIR (accepted: 28)
+K5 STAGE 1 (the solver's figures from its per-path records) against k5t-fold-cap: guardrails' median total cut 2.14, depth 0.892, raise total 1.07
+  match (i) median total cut within 10%; (ii) median depth within 0.03; R4: stage 2 runs if the median raise total is outside +/-10% of the target
+  c 0.0001 exp 1.5  n 12  total cut 0.74 ( -66%)     depth 0.800     raise total 3.23 (201%)  survival at/above the guardrails' on 11/12
+  c 0.0003 exp 1.5  n 12  total cut 0.63 ( -71%)     depth 0.801     raise total 3.28 (206%)  survival at/above the guardrails' on 12/12
+  c 0.001  exp 1.5  n 12  total cut 0.48 ( -78%)     depth 0.806     raise total 3.35 (212%)  survival at/above the guardrails' on 12/12
+  c 0.003  exp 1.5  n 12  total cut 0.30 ( -86%)     depth 0.886 OK  raise total 3.28 (206%)  survival at/above the guardrails' on 11/12
+  c 0.01   exp 1.5  n 12  total cut 0.17 ( -92%)     depth 0.888 OK  raise total 3.23 (201%)  survival at/above the guardrails' on 12/12
+  c 0.03   exp 1.5  n 12  total cut 0.09 ( -96%)     depth 0.902 OK  raise total 3.17 (196%)  survival at/above the guardrails' on 12/12
+  c 0.0001 exp 2  n 12  total cut 0.74 ( -66%)     depth 0.801     raise total 3.23 (201%)  survival at/above the guardrails' on 11/12
+  c 0.0003 exp 2  n 12  total cut 0.63 ( -71%)     depth 0.801     raise total 3.28 (206%)  survival at/above the guardrails' on 12/12
+  c 0.001  exp 2  n 12  total cut 0.45 ( -79%)     depth 0.834     raise total 3.31 (209%)  survival at/above the guardrails' on 11/12
+  c 0.003  exp 2  n 12  total cut 0.31 ( -86%)     depth 0.892 OK  raise total 3.25 (203%)  survival at/above the guardrails' on 12/12
+  c 0.01   exp 2  n 12  total cut 0.22 ( -90%)     depth 0.914 OK  raise total 3.25 (203%)  survival at/above the guardrails' on 12/12
+  c 0.03   exp 2  n 12  total cut 0.11 ( -95%)     depth 0.922     raise total 3.21 (199%)  survival at/above the guardrails' on 12/12
+  c 0.0001 exp 3  n 12  total cut 0.74 ( -66%)     depth 0.801     raise total 3.23 (201%)  survival at/above the guardrails' on 11/12
+  c 0.0003 exp 3  n 12  total cut 0.63 ( -71%)     depth 0.801     raise total 3.28 (206%)  survival at/above the guardrails' on 12/12
+  c 0.001  exp 3  n 12  total cut 0.46 ( -79%)     depth 0.853     raise total 3.27 (205%)  survival at/above the guardrails' on 12/12
+  c 0.003  exp 3  n 12  total cut 0.37 ( -83%)     depth 0.878 OK  raise total 3.25 (203%)  survival at/above the guardrails' on 11/12
+  c 0.01   exp 3  n 12  total cut 0.28 ( -87%)     depth 0.921 OK  raise total 3.22 (200%)  survival at/above the guardrails' on 12/12
+  c 0.03   exp 3  n 12  total cut 0.22 ( -90%)     depth 0.937     raise total 3.28 (206%)  survival at/above the guardrails' on 12/12
+  c 0.0001 exp 4  n 12  total cut 0.74 ( -66%)     depth 0.801     raise total 3.23 (201%)  survival at/above the guardrails' on 11/12
+  c 0.0003 exp 4  n 12  total cut 0.63 ( -71%)     depth 0.801     raise total 3.28 (206%)  survival at/above the guardrails' on 12/12
+  c 0.001  exp 4  n 12  total cut 0.46 ( -78%)     depth 0.859     raise total 3.25 (203%)  survival at/above the guardrails' on 12/12
+  c 0.003  exp 4  n 12  total cut 0.40 ( -81%)     depth 0.881 OK  raise total 3.22 (200%)  survival at/above the guardrails' on 12/12
+  c 0.01   exp 4  n 12  total cut 0.31 ( -86%)     depth 0.914 OK  raise total 3.20 (199%)  survival at/above the guardrails' on 12/12
+  c 0.03   exp 4  n 12  total cut 0.27 ( -88%)     depth 0.935     raise total 3.22 (200%)  survival at/above the guardrails' on 12/12
+
+  per household across the grid points: cuts more than the guardrails at | spending delivered against the guardrails' (mean over paths; and gate 4's measure, the mean level on the median path and the unlucky tenth) | survival difference (points)
+  S054  guardrails cut 2.11, solver 0.00-0.01  |  cuts more at  0/24  |  spending 18.4% to 18.4% (median path 18.6 to 18.6, unlucky tenth 27.0 to 27.0)  |  survival 0.0 to 0.0
+  S070  guardrails cut 2.18, solver 0.64-3.56  |  cuts more at 16/24  |  spending -0.1% to 3.8% (median path -3.5 to 3.2, unlucky tenth -0.8 to 13.9)  |  survival 1.7 to 12.6
+  S100  guardrails cut 2.64, solver 0.03-0.68  |  cuts more at  0/24  |  spending 14.7% to 17.2% (median path 17.4 to 17.7, unlucky tenth 16.8 to 26.8)  |  survival 0.2 to 0.5
+  S112  guardrails cut 2.29, solver 0.02-0.47  |  cuts more at  0/24  |  spending 14.3% to 15.6% (median path 16.0 to 16.0, unlucky tenth 17.8 to 24.1)  |  survival -0.0 to 0.1
+  S126  guardrails cut 1.52, solver 0.23-0.42  |  cuts more at  0/24  |  spending 7.1% to 7.5% (median path 4.9 to 4.9, unlucky tenth 19.4 to 21.9)  |  survival 1.6 to 1.8
+  S162  guardrails cut 1.74, solver 0.02-0.39  |  cuts more at  0/24  |  spending 9.4% to 10.7% (median path 9.4 to 9.4, unlucky tenth 16.4 to 22.2)  |  survival 0.7 to 0.9
+  S184  guardrails cut 1.96, solver 0.50-2.25  |  cuts more at  8/24  |  spending 6.5% to 9.6% (median path 2.5 to 7.0, unlucky tenth 4.2 to 11.5)  |  survival 7.5 to 11.2
+  S206  guardrails cut 1.12, solver 0.08-0.79  |  cuts more at  0/24  |  spending 6.0% to 7.7% (median path 7.3 to 7.7, unlucky tenth 6.5 to 14.7)  |  survival 1.1 to 1.2
+  S252  guardrails cut 1.46, solver 0.10-0.83  |  cuts more at  0/24  |  spending 7.0% to 8.9% (median path 7.1 to 7.1, unlucky tenth 9.5 to 20.8)  |  survival 2.8 to 3.2
+  S330  guardrails cut 3.00, solver 0.31-2.12  |  cuts more at  0/24  |  spending 11.4% to 15.4% (median path 18.6 to 23.4, unlucky tenth -2.4 to 15.0)  |  survival 1.9 to 7.6
+  S354  guardrails cut 2.95, solver 0.26-1.76  |  cuts more at  0/24  |  spending 12.5% to 15.9% (median path 20.9 to 23.9, unlucky tenth -1.4 to 15.7)  |  survival 3.1 to 7.2
+  S390  guardrails cut 3.63, solver 0.05-0.62  |  cuts more at  0/24  |  spending 15.4% to 16.8% (median path 16.7 to 16.7, unlucky tenth 20.3 to 26.8)  |  survival 0.8 to 1.0
+
+  the bug reproduced from the records: zeroing the failed paths' below-target sums gives the JSON's depth to within 2.1e-3 on all 288 solver files (the trace stores each level to 0.01)
+
+  DETAIL at exponent 2 (lambda = c / 0.2^2): per household, each c - survival difference (points) / spending delivered (%) / gate 4's median path and unlucky tenth (%) / total cut / depth; the guardrails' cut and depth first
+  S054  guardrails cut 2.11 depth 0.910 survival 100.0  |  c 0.0001: 0.0 / 18.4 / 18.6, 27.0 / 0.01 / 0.802  |  c 0.0003: 0.0 / 18.4 / 18.6, 27.0 / 0.01 / 0.803  |  c 0.001: 0.0 / 18.4 / 18.6, 27.0 / 0.01 / 0.838  |  c 0.003: 0.0 / 18.4 / 18.6, 27.0 / 0.00 / 0.902  |  c 0.01: 0.0 / 18.4 / 18.6, 27.0 / 0.00 / 0.920  |  c 0.03: 0.0 / 18.4 / 18.6, 27.0 / 0.00 / 0.923
+  S070  guardrails cut 2.18 depth 0.859 survival 78.2  |  c 0.0001: 12.6 / -0.1 / -3.5, -0.6 / 3.55 / 0.801  |  c 0.0003: 12.5 / 0.6 / -2.6, -0.6 / 3.37 / 0.802  |  c 0.001: 12.2 / 1.8 / -0.7, 0.3 / 3.02 / 0.814  |  c 0.003: 10.7 / 2.9 / 0.7, 2.4 / 2.42 / 0.862  |  c 0.01: 8.2 / 3.5 / 1.7, 6.4 / 1.72 / 0.902  |  c 0.03: 2.9 / 3.4 / 2.4, 12.3 / 0.96 / 0.928
+  S100  guardrails cut 2.64 depth 0.906 survival 99.4  |  c 0.0001: 0.3 / 14.7 / 17.7, 16.8 / 0.68 / 0.800  |  c 0.0003: 0.3 / 15.2 / 17.7, 17.7 / 0.58 / 0.802  |  c 0.001: 0.3 / 15.8 / 17.7, 20.0 / 0.41 / 0.842  |  c 0.003: 0.4 / 16.0 / 17.7, 21.3 / 0.28 / 0.908  |  c 0.01: 0.5 / 16.7 / 17.7, 25.0 / 0.11 / 0.930  |  c 0.03: 0.5 / 16.8 / 17.7, 25.2 / 0.03 / 0.921
+  S112  guardrails cut 2.29 depth 0.915 survival 99.7  |  c 0.0001: -0.0 / 14.3 / 16.0, 17.8 / 0.47 / 0.800  |  c 0.0003: 0.0 / 14.5 / 16.0, 18.7 / 0.40 / 0.802  |  c 0.001: -0.0 / 14.9 / 16.0, 21.0 / 0.29 / 0.842  |  c 0.003: 0.0 / 15.0 / 16.0, 21.4 / 0.22 / 0.902  |  c 0.01: 0.1 / 15.3 / 16.0, 22.7 / 0.11 / 0.929  |  c 0.03: 0.1 / 15.6 / 16.0, 24.1 / 0.03 / 0.924
+  S126  guardrails cut 1.52 depth 0.883 survival 98.1  |  c 0.0001: 1.7 / 7.1 / 4.9, 19.4 / 0.42 / 0.800  |  c 0.0003: 1.8 / 7.2 / 4.9, 20.2 / 0.38 / 0.800  |  c 0.001: 1.7 / 7.4 / 4.9, 21.4 / 0.32 / 0.816  |  c 0.003: 1.7 / 7.4 / 4.9, 21.5 / 0.29 / 0.845  |  c 0.01: 1.6 / 7.4 / 4.9, 21.2 / 0.26 / 0.851  |  c 0.03: 1.6 / 7.3 / 4.9, 20.2 / 0.23 / 0.834
+  S162  guardrails cut 1.74 depth 0.902 survival 99.0  |  c 0.0001: 0.7 / 9.4 / 9.4, 16.4 / 0.39 / 0.801  |  c 0.0003: 0.7 / 9.5 / 9.4, 17.2 / 0.34 / 0.801  |  c 0.001: 0.7 / 9.9 / 9.4, 18.9 / 0.25 / 0.836  |  c 0.003: 0.8 / 10.1 / 9.4, 20.4 / 0.15 / 0.899  |  c 0.01: 0.9 / 10.6 / 9.4, 22.2 / 0.03 / 0.919  |  c 0.03: 0.8 / 10.5 / 9.4, 21.4 / 0.02 / 0.918
+  S184  guardrails cut 1.96 depth 0.872 survival 85.0  |  c 0.0001: 11.2 / 6.5 / 2.5, 4.2 / 2.24 / 0.801  |  c 0.0003: 11.1 / 7.2 / 3.4, 5.2 / 2.07 / 0.801  |  c 0.001: 11.0 / 8.6 / 5.3, 5.8 / 1.69 / 0.822  |  c 0.003: 10.7 / 9.3 / 6.6, 6.5 / 1.34 / 0.872  |  c 0.01: 9.6 / 9.4 / 6.7, 7.3 / 1.03 / 0.900  |  c 0.03: 7.6 / 8.7 / 6.1, 10.8 / 0.62 / 0.920
+  S206  guardrails cut 1.12 depth 0.925 survival 98.5  |  c 0.0001: 1.2 / 6.0 / 7.7, 6.5 / 0.79 / 0.800  |  c 0.0003: 1.2 / 6.5 / 7.7, 8.4 / 0.68 / 0.801  |  c 0.001: 1.1 / 7.0 / 7.7, 10.2 / 0.50 / 0.842  |  c 0.003: 1.1 / 7.1 / 7.7, 10.9 / 0.39 / 0.900  |  c 0.01: 1.2 / 7.4 / 7.7, 13.4 / 0.23 / 0.927  |  c 0.03: 1.2 / 7.7 / 7.7, 14.7 / 0.11 / 0.924
+  S252  guardrails cut 1.46 depth 0.897 survival 96.4  |  c 0.0001: 3.2 / 7.0 / 7.1, 9.5 / 0.83 / 0.800  |  c 0.0003: 3.2 / 7.5 / 7.1, 11.4 / 0.71 / 0.800  |  c 0.001: 3.2 / 8.1 / 7.1, 15.4 / 0.50 / 0.836  |  c 0.003: 3.1 / 8.6 / 7.1, 18.4 / 0.33 / 0.891  |  c 0.01: 3.0 / 8.8 / 7.1, 20.1 / 0.22 / 0.911  |  c 0.03: 2.8 / 8.9 / 7.1, 20.3 / 0.12 / 0.919
+  S330  guardrails cut 3.00 depth 0.861 survival 80.5  |  c 0.0001: 7.4 / 11.5 / 18.6, -2.3 / 2.11 / 0.802  |  c 0.0003: 7.4 / 12.1 / 19.6, -1.6 / 1.97 / 0.803  |  c 0.001: 7.5 / 14.0 / 21.3, 0.5 / 1.56 / 0.820  |  c 0.003: 6.9 / 14.8 / 22.5, 2.3 / 1.28 / 0.855  |  c 0.01: 5.5 / 15.2 / 23.0, 5.7 / 0.91 / 0.888  |  c 0.03: 2.4 / 14.9 / 22.5, 12.4 / 0.47 / 0.925
+  S354  guardrails cut 2.95 depth 0.862 survival 84.1  |  c 0.0001: 7.2 / 12.6 / 20.9, -1.2 / 1.75 / 0.802  |  c 0.0003: 7.2 / 13.3 / 21.9, -0.1 / 1.60 / 0.803  |  c 0.001: 7.2 / 14.7 / 23.3, 2.6 / 1.28 / 0.819  |  c 0.003: 7.0 / 15.3 / 23.9, 4.3 / 1.04 / 0.855  |  c 0.01: 6.0 / 15.8 / 23.6, 7.7 / 0.74 / 0.887  |  c 0.03: 3.8 / 15.7 / 23.3, 13.3 / 0.37 / 0.924
+  S390  guardrails cut 3.63 depth 0.886 survival 98.6  |  c 0.0001: 0.9 / 15.4 / 16.7, 20.3 / 0.62 / 0.801  |  c 0.0003: 0.9 / 15.7 / 16.7, 21.8 / 0.55 / 0.801  |  c 0.001: 0.9 / 16.1 / 16.7, 23.6 / 0.39 / 0.833  |  c 0.003: 0.8 / 16.3 / 16.7, 25.0 / 0.27 / 0.893  |  c 0.01: 1.0 / 16.8 / 16.7, 26.6 / 0.13 / 0.918  |  c 0.03: 0.8 / 16.5 / 16.7, 25.6 / 0.07 / 0.922
+FAIR-TEST CHECK: k5-c0.0001-x2:solver  against  k5-c0.0003-x2:solver
+  households: 12 shared
+  [20] dislike of cuts (lambda)     0.002500                       | 0.007500                       TESTED
+  [28] code                         NOT RECORDED                   | NOT RECORDED                   ACCEPTED  - registered as ACCEPTED in predictions/k5-stage1.md row 28 during the run, before any cell was read
+  [--] prediction registered for k5-c0.0001-x2: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  [--] prediction registered for k5-c0.0003-x2: NOT RECORDED (the files predate the launcher gate (24 Sep))
+  33 recorded variables SAME (2 by an assumed default: final-year integration, bridge read (F1)); 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+FAIR-TEST CHECK: k5-c0.0003-x2 against k5-c0.001-x2:solver: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.001-x2 against k5-c0.003-x2:solver: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.003-x2 against k5-c0.01-x2:solver: FAIR (accepted: 28)
+FAIR-TEST CHECK: k5-c0.01-x2 against k5-c0.03-x2:solver: FAIR (accepted: 28)
+
+  DETAIL at exponent 2: survival from each c to the next, paired - change +/- se in points (gained / lost paths)
+  S054  0.0001 -> 0.0003: +0.00 +/- 0.00 (0/0)  |  0.0003 -> 0.001: +0.00 +/- 0.00 (0/0)  |  0.001 -> 0.003: +0.00 +/- 0.00 (0/0)  |  0.003 -> 0.01: +0.00 +/- 0.00 (0/0)  |  0.01 -> 0.03: +0.00 +/- 0.00 (0/0)
+  S070  0.0001 -> 0.0003: -0.13 +/- 0.09 (2/6)  |  0.0003 -> 0.001: -0.30 +/- 0.11 (1/10)  |  0.001 -> 0.003: -1.50 +/- 0.24 (4/49)  |  0.003 -> 0.01: -2.47 +/- 0.32 (8/82)  |  0.01 -> 0.03: -5.27 +/- 0.43 (5/163)
+  S100  0.0001 -> 0.0003: +0.00 +/- 0.00 (0/0)  |  0.0003 -> 0.001: -0.03 +/- 0.06 (1/2)  |  0.001 -> 0.003: +0.17 +/- 0.07 (5/0)  |  0.003 -> 0.01: +0.07 +/- 0.07 (3/1)  |  0.01 -> 0.03: -0.03 +/- 0.03 (0/1)
+  S112  0.0001 -> 0.0003: +0.03 +/- 0.03 (1/0)  |  0.0003 -> 0.001: -0.03 +/- 0.06 (1/2)  |  0.001 -> 0.003: +0.03 +/- 0.06 (2/1)  |  0.003 -> 0.01: +0.10 +/- 0.07 (4/1)  |  0.01 -> 0.03: +0.03 +/- 0.03 (1/0)
+  S126  0.0001 -> 0.0003: +0.03 +/- 0.03 (1/0)  |  0.0003 -> 0.001: -0.10 +/- 0.06 (0/3)  |  0.001 -> 0.003: +0.03 +/- 0.06 (2/1)  |  0.003 -> 0.01: -0.10 +/- 0.06 (0/3)  |  0.01 -> 0.03: -0.03 +/- 0.03 (0/1)
+  S162  0.0001 -> 0.0003: -0.03 +/- 0.03 (0/1)  |  0.0003 -> 0.001: +0.00 +/- 0.07 (2/2)  |  0.001 -> 0.003: +0.07 +/- 0.08 (4/2)  |  0.003 -> 0.01: +0.13 +/- 0.08 (5/1)  |  0.01 -> 0.03: -0.13 +/- 0.07 (0/4)
+  S184  0.0001 -> 0.0003: -0.07 +/- 0.05 (0/2)  |  0.0003 -> 0.001: -0.17 +/- 0.11 (3/8)  |  0.001 -> 0.003: -0.23 +/- 0.13 (4/11)  |  0.003 -> 0.01: -1.10 +/- 0.21 (4/37)  |  0.01 -> 0.03: -2.03 +/- 0.28 (6/67)
+  S206  0.0001 -> 0.0003: +0.00 +/- 0.00 (0/0)  |  0.0003 -> 0.001: -0.13 +/- 0.07 (0/4)  |  0.001 -> 0.003: -0.03 +/- 0.03 (0/1)  |  0.003 -> 0.01: +0.10 +/- 0.07 (4/1)  |  0.01 -> 0.03: +0.00 +/- 0.05 (1/1)
+  S252  0.0001 -> 0.0003: +0.00 +/- 0.00 (0/0)  |  0.0003 -> 0.001: +0.00 +/- 0.05 (1/1)  |  0.001 -> 0.003: -0.07 +/- 0.07 (1/3)  |  0.003 -> 0.01: -0.13 +/- 0.07 (0/4)  |  0.01 -> 0.03: -0.17 +/- 0.07 (0/5)
+  S330  0.0001 -> 0.0003: +0.00 +/- 0.08 (3/3)  |  0.0003 -> 0.001: +0.03 +/- 0.14 (9/8)  |  0.001 -> 0.003: -0.57 +/- 0.17 (5/22)  |  0.003 -> 0.01: -1.40 +/- 0.26 (10/52)  |  0.01 -> 0.03: -3.07 +/- 0.33 (4/96)
+  S354  0.0001 -> 0.0003: +0.00 +/- 0.05 (1/1)  |  0.0003 -> 0.001: -0.03 +/- 0.10 (4/5)  |  0.001 -> 0.003: -0.20 +/- 0.17 (10/16)  |  0.003 -> 0.01: -0.93 +/- 0.21 (6/34)  |  0.01 -> 0.03: -2.20 +/- 0.29 (6/72)
+  S390  0.0001 -> 0.0003: -0.03 +/- 0.03 (0/1)  |  0.0003 -> 0.001: +0.00 +/- 0.00 (0/0)  |  0.001 -> 0.003: -0.03 +/- 0.06 (1/2)  |  0.003 -> 0.01: +0.13 +/- 0.07 (4/0)  |  0.01 -> 0.03: -0.17 +/- 0.07 (0/5)

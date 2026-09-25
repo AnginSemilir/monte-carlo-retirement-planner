@@ -118,3 +118,41 @@ for (const [i, id] of IDS.entries()) {
   console.log(`  ${id}  guardrails cut ${f(cut(g))}, solver ${f(Math.min(...pts.map(cut)))}-${f(Math.max(...pts.map(cut)))}  |  cuts more at ${String(more).padStart(2)}/${pts.length}  |  spending ${f(Math.min(...dSpend), 1)}% to ${f(Math.max(...dSpend), 1)}% (median path ${f(Math.min(...dMed), 1)} to ${f(Math.max(...dMed), 1)}, unlucky tenth ${f(Math.min(...dP10), 1)} to ${f(Math.max(...dP10), 1)})  |  survival ${f(Math.min(...dSurv), 1)} to ${f(Math.max(...dSurv), 1)}`);
 }
 if (RECORDS) console.log(`\n  the bug reproduced from the records: zeroing the failed paths' below-target sums gives the JSON's depth to within ${maxRepro.toExponential(1)} on all ${seenRepro.size} solver files (the trace stores each level to 0.01)`);
+
+// DETAIL=<exponent> (added 25 Sep for O15's reference, descriptive, not an item): each household at every c of one
+// exponent - survival, spending delivered and gate 4's two measures against the guardrails, and the total cut and depth.
+// Read behind the same fair-test gate as the grid above. Planted: a made-up solver file equal to a household's target
+// but for 1 point more survival and one more year at the floor (level 0.8) must read +1.0 survival and a lower spending
+// delivered, or nothing below is printed.
+if (process.env.DETAIL) {
+  const X = Number(process.env.DETAIL);
+  const row = (s, g) => ({ dSurv: s.successRate - g.successRate, dSpend: 100 * (delivered(s) / delivered(g) - 1), dMed: 100 * (s.meanLevelMedian / g.meanLevelMedian - 1), dP10: 100 * (s.meanLevelP10 / g.meanLevelP10 - 1), cut: cut(s), depth: s.levelWhenBelowMean });
+  { const g0 = tg.find(Boolean), yb = g0.belowYearsMean, lb = g0.levelWhenBelowMean;
+    const p = { ...g0, successRate: g0.successRate + 1, belowYearsMean: yb + 1, levelWhenBelowMean: (yb * lb + 0.8) / (yb + 1) }, r0 = row(p, g0);
+    if (Math.abs(r0.dSurv - 1) > 1e-9 || !(r0.dSpend < 0) || Math.abs(r0.cut - cut(g0) - 0.2) > 1e-9) { console.log('PLANTED CHECK FAILED'); process.exit(1); } }
+  const at = cells.filter(q => q.x === X);
+  if (!at.length) { console.error(`reduce-k5: no cells at exponent ${X}`); process.exit(2); }
+  console.log(`\n  DETAIL at exponent ${X} (lambda = c / 0.2^${X}): per household, each c - survival difference (points) / spending delivered (%) / gate 4's median path and unlucky tenth (%) / total cut / depth; the guardrails' cut and depth first`);
+  for (const [i, id] of IDS.entries()) {
+    const g = tg[i]; if (!g) continue;
+    const parts = at.map(({ tag, c }) => { const s = solverOf(tag, id); if (!s) return `c ${c}: -`; const r = row(s, g); return `c ${c}: ${f(r.dSurv, 1)} / ${f(r.dSpend, 1)} / ${f(r.dMed, 1)}, ${f(r.dP10, 1)} / ${f(r.cut)} / ${f(r.depth, 3)}`; });
+    console.log(`  ${id}  guardrails cut ${f(cut(g))} depth ${f(g.levelWhenBelowMean, 3)} survival ${f(g.successRate, 1)}  |  ${parts.join('  |  ')}`);
+  }
+}
+// ... and the survival change from each c to the next at that exponent, paired on the same 3,000 paths (seed 7002) from
+// the per-path records: net paths gained / discordant, the change and its se in points (se = sqrt(discordant) / N). A new
+// pairing of old files (checklist 3), so it is fair-tested first, cell against cell, with row 20 (the dislike of cuts)
+// the thing tested. Planted: two made-up runs differing on 3 paths, 2 gained and 1 lost of 100, must read +1.00 +/- 1.73.
+if (process.env.DETAIL) {
+  const X = Number(process.env.DETAIL), at = cells.filter(q => q.x === X);
+  const paired = (a, b) => { let up = 0, dn = 0; for (let i = 0; i < a.length; i++) { if (!a[i] && b[i]) up++; else if (a[i] && !b[i]) dn++; } const N = a.length; return { up, dn, d: 100 * (up - dn) / N, se: 100 * Math.sqrt(up + dn) / N }; };
+  { const a = new Uint8Array(100), b = new Uint8Array(100); a[5] = 1; b[1] = 1; b[2] = 1; const p = paired(a, b);
+    if (p.up !== 2 || p.dn !== 1 || Math.abs(p.d - 1) > 1e-9 || Math.abs(p.se - Math.sqrt(3)) > 1e-9) { console.log('PLANTED CHECK FAILED (paired)'); process.exit(1); } }
+  requireFair(at.slice(1).map((q, k) => [at[k].tag, `${q.tag}:solver`, { tested: [20] }]), { compact: true });
+  const surv = (tag, id) => readRecord(join(D, tag, `${id}.solver.record.json.gz`)).paths.survived;
+  console.log(`\n  DETAIL at exponent ${X}: survival from each c to the next, paired - change +/- se in points (gained / lost paths)`);
+  for (const id of IDS) {
+    const parts = at.slice(1).map((q, k) => { const p = paired(surv(at[k].tag, id), surv(q.tag, id)); return `${at[k].c} -> ${q.c}: ${p.d >= 0 ? '+' : ''}${f(p.d)} +/- ${f(p.se)} (${p.up}/${p.dn})`; });
+    console.log(`  ${id}  ${parts.join('  |  ')}`);
+  }
+}

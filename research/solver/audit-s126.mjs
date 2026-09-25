@@ -25,13 +25,23 @@ import * as M from '../../src/solver/model.js';
 import { solve, solvePlan, runPolicy } from '../../src/solver/solve.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { makeTrace } from './record.mjs';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadavg } from 'node:os';
+import { codeId } from './code-id.mjs';
 
 const mode = process.argv[2] || 'variants';
+// THE LOG'S STAMP (25 Sep evening): the shared fair-test gate reads JSON result files, and this script writes text logs, so
+// a reducer over them reads this line instead - the code that ran (code-id.mjs) and the prediction the launcher registered
+// (its file and git blob), "none" for a measurement, or NOT-LAUNCHED when run outside run-from-snapshot.sh
+// (code-id.mjs's hash covers the engine and src/solver, not this script, so the script's own hash is stamped beside it)
+{
+  const own = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).digest('hex').slice(0, 12), cid = codeId();
+  console.log(`stamp: code ${cid ? cid.hash : 'unknown'} audit ${own} prediction ${!process.env.PREDICTION_FILE ? 'NOT-LAUNCHED' : process.env.PREDICTION_FILE} sha ${process.env.PREDICTION_SHA || '-'}`);
+}
 // ids mode puts the id list first, so its numbers sit one place later than every other mode's
 const NUMS = mode === 'ids' ? process.argv.slice(4) : process.argv.slice(3);
 const POINTS = Number(NUMS[0] || 16), NP = Number(NUMS[1] || 1000);

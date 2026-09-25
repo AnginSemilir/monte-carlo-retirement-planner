@@ -1,5 +1,5 @@
-# bash research/solver/mutate-reduce-7e.sh  (25 Sep 21:13 UK)
-true reducer: planted (38):  checks pass
+# bash research/solver/mutate-reduce-7e.sh  (25 Sep 21:46 UK)
+true reducer: planted (45):  checks pass
 caught  margin always 0.5:  the 0.25 margin where off simulates 95% or more: 3 lost 0 saved of 1,000 at off 97% goes to look 2 read no material harm, should read inconclusive
 caught  margin always 0.25:  9 lost 1 saved, look 2 clears it (10 lost, 8 saved of 3,000) read CARRIED, 1 inconclusive, should read CARRIED; harm needs the margin: 16 lost 2 sav
 caught  the pooled floor at -0.5:  a pooled loss (twelve class cases lose 4 each, each no material harm alone) read CARRIED, should read FALSIFIED
@@ -26,5 +26,9 @@ caught  no pairs-line completeness:  a pairs line missing read CARRIED, should r
 caught  no look-2 completeness:  look 1 left a case open, the look-2 file holds none read ERROR (Cannot read properties of undefined (reading 'id')), should read INCOMPLETE
 caught  no controls completeness:  the controls missing read CARRIED, should read INCOMPLETE
 caught  no timing completeness:  the timing missing read CARRIED, should read INCOMPLETE
-26 mutations
+caught  the stamp gate ignores the code version:  stamps: a log made by other code read PASSED, should read REFUSED; stamps: a log made by another version of audit-s126.mjs read PASSED, should read 
+caught  the stamp gate ignores an edited prediction:  stamps: the prediction edited after launch read PASSED, should read REFUSED
+caught  the stamp gate ignores NOT-LAUNCHED:  stamps: a log launched outside the launcher, said so read false, should read true
+caught  the stamp gate ignores a missing stamp:  stamps: a log with no stamp read PASSED, should read REFUSED
+30 mutations
 ALL CAUGHT

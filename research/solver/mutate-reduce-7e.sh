@@ -44,5 +44,9 @@ mut 'no pairs-line completeness' "s/main.filter(c => !c.pairs\['READER-V1'\] || 
 mut 'no look-2 completeness' 's/else if (look2.map(c => c.id).sort().join/else if (false \&\& look2.map(c => c.id).sort().join/'
 mut 'no controls completeness' "s/if (controls.length !== 3 || controls.some(c => labels(c) !== 'OFF,READER'))/if (false)/"
 mut 'no timing completeness' 's/if (Object.keys(time).length !== 3)/if (false)/'
+mut 'the stamp gate ignores the code version' 's/if (versions.size > 1)/if (false)/'
+mut 'the stamp gate ignores an edited prediction' 's/else if (sha !== predBlob)/else if (false)/'
+mut 'the stamp gate ignores NOT-LAUNCHED' "s/if (pred === 'NOT-LAUNCHED')/if (false)/"
+mut 'the stamp gate ignores a missing stamp' 's/if (!all.length) {/if (false) {/'
 echo "$n mutations"
 [ $bad -eq 0 ] && echo "ALL CAUGHT" || { echo "MUTATION CHECK FAILED"; exit 1; }

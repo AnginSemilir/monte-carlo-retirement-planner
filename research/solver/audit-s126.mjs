@@ -7,6 +7,7 @@
  *   node research/solver/audit-s126.mjs f1 [points] [paths] [variants|library|all]   F1's paired test
  *   node research/solver/audit-s126.mjs f1v2 [points] [paths] [part k/n]            F1 v2's paired test (PLAN.md 7c)
  *   node research/solver/audit-s126.mjs trace [points] [paths] [case]               O22's trace: 5/15 points x final year averaged/exact
+ *   node research/solver/audit-s126.mjs time [points] [runs] [ids]                  7k: the solve's time with and without the exact final year
  *
  * Each mode reads its OWN arguments (fixed 24 Sep: the numbers were read before the mode was chosen, so `ids` read its
  * id list as the grid size - NaN, falling back to 12 points - and took the path count from the argument meant for points).
@@ -26,6 +27,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadavg } from 'node:os';
 
 const mode = process.argv[2] || 'variants';
 // ids mode puts the id list first, so its numbers sit one place later than every other mode's
@@ -210,6 +212,38 @@ if (mode === 'f1v2') {
     console.log(`${arm.padEnd(5)} table ${f1(a.table).padStart(5)} sim ${f1(a.sim).padStart(5)} | ${Math.round(a.secs)} s`);
     console.log(`      ran ${arm}: ${a.ran}`);
   }
+} else if (mode === 'time') {
+  /*
+   * 7k: THE EXACT FINAL YEAR'S RUN TIME (PLAN.md 7k; a measurement, not a test). Times the solve only (solvePlan, no
+   * forward run), with and without `finalIntegral`, on each named household, at the settings the trace mode uses (F1
+   * off, the tier above allowed, lambda held), alternating which goes first run to run so drift in the machine's load
+   * falls on both. Prints every solve's seconds, the load average before and after, and per household the ratio of the
+   * median times (with / without).
+   *   node research/solver/audit-s126.mjs time [points=16] [runs=2] [ids=S126,S194,S330]
+   */
+  const RUNS = Number(NUMS[1] || 2);
+  const ids = (process.argv[5] || 'S126,S194,S330').split(',');
+  console.log(`FINAL-YEAR TIMING, ${POINTS} points, ${RUNS} runs each way, alternated; households ${ids.join(', ')}; load before ${loadavg().map(x => x.toFixed(2)).join(' ')}`);
+  const times = {};
+  for (const id of ids) {
+    const h = all.find(s => s.id === id);
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
+    times[id] = { off: [], on: [] };
+    for (let r = 0; r < RUNS; r++) {
+      for (const fi of (r % 2 === 0 ? [false, true] : [true, false])) {
+        const t0 = process.hrtime.bigint();
+        const res = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: false, riskAbove: true, ...(fi ? { finalIntegral: true } : {}) });
+        const secs = Number(process.hrtime.bigint() - t0) / 1e9;
+        if ((res.meta.finalIntegral === true) !== fi) { console.error(`audit-s126: ${id} asked finalIntegral ${fi}, the solve ran ${res.meta.finalIntegral}`); process.exit(2); }
+        times[id][fi ? 'on' : 'off'].push(secs);
+        console.log(`  ${id} run ${r + 1} final year ${fi ? 'exact   ' : 'averaged'}: ${secs.toFixed(1)} s (load ${loadavg()[0].toFixed(2)})`);
+      }
+    }
+  }
+  const med = xs => { const s = [...xs].sort((a, b) => a - b); return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };
+  console.log(`load after ${loadavg().map(x => x.toFixed(2)).join(' ')}`);
+  for (const id of ids) console.log(`${id}: median ${med(times[id].off).toFixed(1)} s averaged, ${med(times[id].on).toFixed(1)} s exact -> ratio ${(med(times[id].on) / med(times[id].off)).toFixed(3)}`);
 } else if (mode === 'f1') {
   const which = process.argv[5] || 'all';
   console.log(`F1 TEST, ${POINTS} points, ${NP} held paths (seed 7002), off against on, paired`);

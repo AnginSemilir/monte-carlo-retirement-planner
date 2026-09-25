@@ -92,7 +92,7 @@ No O22 trace result existed when this paragraph was written (committed 07:10:07 
 found the Written line's order phrase loose by minutes: this file was drafted from 06:37 UK and the tiny functional check
 ran alongside the drafting (its snapshot 06:38 UK, runs.log 06:45 UK); the file was completed, committed and pushed after
 the check finished (07:00:38-40 UK), before the batch launched (07:00:49 UK). Nothing in the question, items or falsifier changed.
-- 25 Sep 07:19 UK (the outside reviewer's second reply, 07:16 UK), corrected 07:30 UK after the thirty-seventh review: NOT
+- 25 Sep 07:19 UK (the outside reviewer's second reply, 07:16 UK), corrected 07:28 UK after the thirty-seventh review: NOT
   before any result was seen. A progress check at 07:16 UK displayed the batch log's first arm (q5: table 0.8, sim 34.4,
   320 s, and its ran line) - the first arm of item 3's reproduction check, equal to 7i's figures; nothing else of 7j was
   seen, and no pairing, item or falsifier can be read from one arm. The edit, prompted by the reply, not by the arm: the

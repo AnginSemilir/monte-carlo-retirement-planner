@@ -1,0 +1,29 @@
+# bash research/solver/mutate-reduce-7e.sh  (25 Sep 21:01 UK)
+true reducer: planted (38):  checks pass
+caught  margin always 0.5:  the 0.25 margin where off simulates 95% or more: 3 lost 0 saved of 1,000 at off 97% goes to look 2 read no material harm, should read inconclusive
+caught  margin always 0.25:  9 lost 1 saved, look 2 clears it (10 lost, 8 saved of 3,000) read CARRIED, 1 inconclusive, should read CARRIED; harm needs the margin: 16 lost 2 sav
+caught  no Holm:  Holm: 35 lost 17 saved of 3,000 at look 2 (p 0.009 alone, 0.21 across the 24) read FALSIFIED, should read CARRIED, 1 inconclusive; look 1's rate: 15
+caught  look 1 at 0.05:  look 1's rate: 15 lost 2 saved of 1,000 (Holm 0.028) goes to look 2 read harm, should read inconclusive
+caught  look 2 at 0.005:  look 2's rate: 30 lost 10 saved of 3,000 (Holm 0.027, harm at 0.045) read CARRIED, 1 inconclusive, should read FALSIFIED
+caught  look 2 not used:  4 lost 0 saved of 3,000 at a 0.25 margin (look 1: 3 lost 0 saved) read inconclusive, should read no material harm; 30 lost 2 saved of 3,000 (look 1:
+caught  lost and saved swapped:  9 lost 1 saved of 1,000 at a 0.5 margin, at look 1 read no material harm, should read inconclusive; 30 lost 2 saved of 3,000 (look 1: 9 lost 1 saved
+caught  harm needs no margin (stats.mjs):  harm needs the margin: 16 lost 2 saved of 3,000 (Holm 0.016, a loss of 0.47 against 0.5) read FALSIFIED, should read CARRIED, 1 inconclusive
+caught  no pooled check:  a pooled loss (twelve class cases lose 4 each, each no material harm alone) read CARRIED, should read FALSIFIED
+caught  pooled over every case, not the class:  the pool holds the class cases only (21 of the 24 here) read 24, should read 21
+caught  no time bar:  a time ratio of 1.25 read CARRIED, should read FALSIFIED
+caught  no in-class misread check:  an in-class misread of 12 read CARRIED, should read FALSIFIED; S130 misread by 12 read CARRIED, should read FALSIFIED; the cost case misread by 12 r
+caught  no inflow misread check:  bridge 6 misread by 16 read CARRIED, should read FALSIFIED
+caught  the controls not tested:  harm on a control read CARRIED, should read FALSIFIED
+caught  the gate ignores the seed:  every arm of a case on seed 7002 read CARRIED, should read GATE
+caught  the gate ignores the path count:  1,000 paths in the look-2 file read CARRIED, should read GATE
+caught  the gate ignores the final year:  every arm of a case with the final year averaged read CARRIED, should read GATE
+caught  the gate ignores the fold:  every arm of a case in the fold read CARRIED, should read GATE
+caught  the gate ignores the bridge read:  wrong bridge read read CARRIED, should read GATE
+caught  the gate ignores the return points:  S360's 15-point arm ran at 5 points read CARRIED, should read GATE
+caught  the gate does not compare arms:  a second setting changed between arms (minPot) read CARRIED, should read GATE
+caught  no pairs-line completeness:  a pairs line missing read CARRIED, should read INCOMPLETE
+caught  no look-2 completeness:  look 1 left a case open, the look-2 file holds none read ERROR (Cannot read properties of undefined (reading 'id')), should read INCOMPLETE
+caught  no controls completeness:  the controls missing read CARRIED, should read INCOMPLETE
+caught  no timing completeness:  the timing missing read CARRIED, should read INCOMPLETE
+25 mutations
+ALL CAUGHT

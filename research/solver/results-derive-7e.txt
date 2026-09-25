@@ -1,0 +1,28 @@
+# node research/solver/derive-7e.mjs - 7e's power from results-f1v2.txt (7c: v2 against off, 1000 paths)
+case             off sim  change  se    discordant  margin  half-width @1000  @3000  paths needed  look 1 expected   least harm shown at 3,000
+S126               99.6  -0.30  0.17       3      0.25     0.34              0.11      1844      look 2 decides    0.33
+share 0.90         99.3  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
+bridge 4           99.2  -0.80  0.32      10      0.25     0.62              0.21      6147      look 2 decides    0.57
+S120              100.0  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
+S130               83.1  +0.10  0.52      27      0.50     1.02              0.34      4149      look 2 decides    0.87
+bridge 4+cost      93.7  +4.90  0.70      49      0.50     1.37              0.46      7530      look 2 decides    1.20
+share 0.50         99.3  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
+share 0.95         72.7  +22.20  1.49     222      0.50     2.92              0.97     34114      may stay open     2.50
+bridge 6           99.3  -0.10  0.10       1      0.25     0.20              0.07       615      decides           0.25
+S122               99.6  +0.10  0.10       1      0.25     0.20              0.07       615      decides           0.25
+S360               34.4  +11.50  1.07     114      0.50     2.09              0.70     17518      may stay open     1.83
+share 0.70         99.3  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
+bridge 0           99.2  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
+wealth x0.5        95.5  +0.40  0.32      10      0.25     0.62              0.21      6147      look 2 decides    0.57
+S124               94.7  +0.00  0.14       2      0.50     0.28              0.09       308      decides           0.50
+S366               98.6  -0.40  0.20       4      0.25     0.39              0.13      2459      look 2 decides    0.37
+share 0.78         99.7  -0.40  0.20       4      0.25     0.39              0.13      2459      look 2 decides    0.37
+bridge 1           98.8  +0.00  0.00       0      0.25     0.00              0.00         0      decides           0.25
+wealth x2         100.0  -0.10  0.10       1      0.25     0.20              0.07       615      decides           0.25
+S128               68.8  -0.20  0.71      50      0.50     1.39              0.46      7684      look 2 decides    1.23
+S370               68.9  +5.70  1.06     112      0.50     2.07              0.69     17211      may stay open     1.83
+
+21 cases with a record; look 1 expected to leave open 11 (S126, bridge 4, S130, bridge 4+cost, share 0.95, S360, wealth x0.5, S366, share 0.78, S128, S370); still open after look 2: 3 (share 0.95, S360, S370)
+The half-width test assumes a true change near zero. A case with a large gain clears the margin whatever its width: with v2,
+bridge 4+cost +4.90, share 0.95 +22.20, S360 +11.50, S370 +5.70 lay above zero by more than the look-1 half-width.
+NOT KNOWN (no record for this comparison): S162, S172, S168. The no-bridge controls S194, S252, S330: 0 discordant by construction.

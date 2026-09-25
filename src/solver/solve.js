@@ -511,11 +511,18 @@ export function solve(E, M, plan, opts = {}) {
       const act = cs[k].acts[ai0], bills = [], rho = [], vol = [];
       for (let j = t; j < Math.min(B.accessAt, T + 1); j++) bills.push(B.needY[j] - B.inY[j]);
       for (let j = t; j < t + bills.length - 1; j++) {
-        const v = wi * act.volEffAt[j][1] + wg * act.volEffAt[j][2];
-        const gross = wi * (1 + act.real[1]) + wg * (1 + act.real[2]) + wc * (1 + act.real[3]);
+        // the solver grows each pot by exp(ln(1 + R) + V z), one shared z (nodeRealOf above): R is the MEDIAN, and a pot's
+        // mean gross is (1 + R) e^{V^2/2}. The mix's mean gross is matched, and its log drift is that less v^2 / 2. (Until
+        // 25 Sep evening the drag was taken off 1 + R as if R were the mean - about half a point a year too pessimistic at
+        // Medium; the outside review's Finding 3, the same slip in R2 and M15 v2's derivations.)
+        const vi = act.volEffAt[j][1], vg = act.volEffAt[j][2], vc = act.volEffAt[j][3] || 0;
+        const v = wi * vi + wg * vg + wc * vc;
+        const gross = wi * (1 + act.real[1]) * Math.exp(vi * vi / 2) + wg * (1 + act.real[2]) * Math.exp(vg * vg / 2) + wc * (1 + act.real[3]) * Math.exp(vc * vc / 2);
         rho.push(Math.log(gross) - v * v / 2); vol.push(v);
       }
-      return referenceChance(bills, rho, vol);
+      const f = referenceChance(bills, rho, vol);
+      f.schedule = { bills, rho, vol, t, k, ai0 };   // kept for the checks (reader-solve.test.mjs)
+      return f;
     };
     g.reader = { years, of: new Map(), chanceOf, unsupported: 0, built: 0, weights: { isa: wi, gia: wg, cash: wc } };
   } else if (opts.bridgeRead) g.bridge = bridgeTable(E, m, c, Math.min(...levelOf), opts.bridgeRead === 2 ? 2 : 1);

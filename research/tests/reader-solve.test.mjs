@@ -2,17 +2,19 @@
  * THE BRIDGE READER IN THE SOLVER (`bridgeRead: 'reader'`; src/solver/reader.js, grid.js readValues; drafts/reader-design.md
  * checks 2 to 4). Written 25 Sep before 7e's prediction, which cites it.
  *   1. Node reproduction: at every node of every reader table (each bridge year, each world), the read at the node's own
- *      position gives back the survival the table holds, within 1e-9. Planted: the same read with p taken as 1 (the
- *      position's own reference ignored) must miss somewhere by more than 1e-3. The residual's own role is planted on a
- *      synthetic row where it carries value (S above p): dropped, the read at that node must miss. (On S126 at 4 points
- *      the residual is about zero everywhere - every node either has c = S / p exactly or holds S near zero - so dropping
- *      it there is no fault to catch; found on the first run, 25 Sep 11:09 UK, and reported below as a diagnostic.)
+ *      position gives back the survival the table holds, within 1e-9. Planted, each through readValues: the residual
+ *      dropped, and p taken as 1 (the position's own reference ignored), must each miss somewhere by more than the check's
+ *      own 1e-9. (On S126 at 4 points the residual is at most the clamp, 1.0e-6, so the first run's version of the
+ *      dropped-residual fault, judged at 1e-3, looked like nothing to catch; at the check's own tolerance it is caught -
+ *      the forty-sixth review.) A synthetic row where the residual carries value (S above p) checks buildReaderTable's
+ *      split by hand, not the read.
  *   2. The trap (the outside reviewer's counterexample): two nodes on a share row holding 0.4 (can pay) and 0 (cannot), a
  *      query three quarters of the way to the second that can pay reads 0.40, not 0.85. Planted: the unit template (c = 1
  *      where supported, so the residual carries S - p) must read 0.85 there and fail.
  *   3. Outside bridge years bit for bit: on S126, every world's survival and bequest tables from the last bridge year on
  *      equal the same solve without the reader; on S000 (retired at 68, no bridge) the reader builds no table and every
  *      table is equal. Planted: the bridge years' tables must differ (the check is not comparing a solve with itself).
+ *   5. The reference's growth convention, against the solver's own growth rule (added 25 Sep evening; below).
  *   node research/tests/reader-solve.test.mjs
  */
 import assert from 'node:assert/strict';
@@ -44,7 +46,7 @@ const OPTS = { lambda: 0.0223606797749979, points: 4, riskAbove: true };
   // the residual's role: survival above the reference (0.9 where p is 0.6; 0.3 where nothing can pay) sits in R
   const chance2 = A => (A >= 10000 ? 0.6 : 0), S2 = Float64Array.from([0.9, 0.3]), t2 = buildReaderTable(g, S2, chance2);
   const at = (i, dropR) => t2.p[i] * t2.c[i] + (dropR ? 0 : t2.R[i]);
-  ok(Math.abs(at(0, false) - 0.9) < 1e-12 && Math.abs(at(1, false) - 0.3) < 1e-12, `a row with survival above the reference reproduces both nodes (c ${Array.from(t2.c).join('/')}, R ${Array.from(t2.R).map(x => x.toFixed(2)).join('/')})`);
+  ok(Math.abs(at(0, false) - 0.9) < 1e-12 && Math.abs(at(1, false) - 0.3) < 1e-12, `buildReaderTable's split, by hand: a row with survival above the reference reproduces both nodes (c ${Array.from(t2.c).join('/')}, R ${Array.from(t2.R).map(x => x.toFixed(2)).join('/')})`);
   ok(Math.abs(at(0, true) - 0.9) > 1e-3 && Math.abs(at(1, true) - 0.3) > 1e-3, `planted: with the residual dropped the same nodes read ${at(0, true).toFixed(2)} and ${at(1, true).toFixed(2)}, and fail`);
 }
 
@@ -54,7 +56,7 @@ const off = solvePlan(E, M, plan, { ...OPTS, bridgeRead: false });
 const rdr = solvePlan(E, M, plan, { ...OPTS, bridgeRead: 'reader' });
 ok(rdr.meta.bridgeRead === 'reader' && rdr.meta.reader && rdr.meta.reader.tables > 0, `S126 solves with the reader (meta.bridgeRead ${rdr.meta.bridgeRead}, ${rdr.meta.reader && rdr.meta.reader.tables} tables, ${rdr.meta.reader && rdr.meta.reader.unsupported} unsupported nodes)`);
 const g = rdr.g, rd = new Float64Array(4), v = new Float64Array(7);
-let worst = 0, worstPlanted = 0, nodes = 0, maxR = 0, withR = 0;
+let worst = 0, worstPlanted = 0, worstDropped = 0, nodes = 0, maxR = 0, withR = 0;
 for (const [ls, T] of g.reader.of) {
   for (let ic = 0; ic < g.pcls.length; ic++) for (let ig = 0; ig < g.gain.length; ig++) for (let it = 0; it < g.nt; it++) for (let ii = 0; ii < g.ni; ii++) for (let ip = 0; ip < g.np; ip++) {
     const i = g.index(ip, ii, it, ig, ic);
@@ -64,13 +66,41 @@ for (const [ls, T] of g.reader.of) {
     worst = Math.max(worst, Math.abs(rd[0] - held));
     const ch = T.chance; T.chance = () => 1; readValues(g, ls, ls, v, rd, null, null, T.t); T.chance = ch;
     worstPlanted = Math.max(worstPlanted, Math.abs(rd[0] - held));
+    const Rk = T.R; T.R = new Float64Array(Rk.length); readValues(g, ls, ls, v, rd, null, null, T.t); T.R = Rk;
+    worstDropped = Math.max(worstDropped, Math.abs(rd[0] - held));
     maxR = Math.max(maxR, Math.abs(T.R[i])); if (Math.abs(T.R[i]) > 1e-9) withR++;
     nodes++;
   }
 }
 ok(nodes > 0 && worst <= 1e-9, `node reproduction: ${nodes} nodes over ${g.reader.of.size} tables, largest miss ${worst.toExponential(1)}`);
-ok(worstPlanted > 1e-3, `planted: with p taken as 1 the largest miss is ${worstPlanted.toFixed(3)}, and the check fails`);
+ok(worstPlanted > 1e-9, `planted: with p taken as 1 the largest miss is ${worstPlanted.toFixed(3)}, and the check fails`);
+ok(worstDropped > 1e-9, `planted: with the residual dropped the largest miss is ${worstDropped.toExponential(1)}, above the check's 1e-9, and the check fails`);
 console.log(`      (diagnostic: the residual's largest size on S126 is ${maxR.toExponential(1)}, above 1e-9 at ${withR} of ${nodes} nodes)`);
+
+// 5. The reference's growth convention (added 25 Sep evening, after the outside review's Finding 3): the solver grows each
+// pot by exp(ln(1 + R) + V z) with one shared z (solve.js nodeRealOf), so R is the median. Each reference year's mean
+// gross, e^{rho + v^2/2}, must equal the balance-weighted mean of that rule, integrated over z numerically (a 20,001-point
+// trapezoid on [-10, 10]), within 1e-9. Planted: the old formula, ln(sum w (1 + R)) - v^2/2, must miss by more than 1e-4.
+{
+  const W = g.reader.weights, ai0 = rdr.actions.findIndex(a => !(a.tierPen > 0) && !(a.tierIsa > 0));
+  let worst = 0, worstOld = 0, years = 0;
+  for (const [, T] of g.reader.of) {
+    const sc = T.chance.schedule, act = rdr.worlds[T.k].c.acts[ai0];
+    for (let j = 0; j < sc.rho.length; j++) {
+      const yr = sc.t + j, R = act.real, V = act.volEffAt[yr];
+      let m = 0; const n = 20000, a = -10, h = 20 / n;
+      for (let i = 0; i <= n; i++) {
+        const z = a + i * h, phi = Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI), wt = (i === 0 || i === n) ? 0.5 : 1;
+        m += wt * h * phi * (W.isa * Math.exp(Math.log(1 + R[1]) + V[1] * z) + W.gia * Math.exp(Math.log(1 + R[2]) + V[2] * z) + W.cash * Math.exp(Math.log(1 + R[3]) + (V[3] || 0) * z));
+      }
+      const mine = Math.exp(sc.rho[j] + sc.vol[j] ** 2 / 2);
+      const old = W.isa * (1 + R[1]) + W.gia * (1 + R[2]) + W.cash * (1 + R[3]);   // the old rho + v^2/2 gave back exactly this
+      worst = Math.max(worst, Math.abs(mine - m)); worstOld = Math.max(worstOld, Math.abs(old - m)); years++;
+    }
+  }
+  ok(years > 0 && worst <= 1e-9, `the reference's mean yearly growth matches the solver's rule on ${years} reference years (largest miss ${worst.toExponential(1)})`);
+  ok(worstOld > 1e-4, `planted: the old formula (R taken as the mean) misses by up to ${worstOld.toFixed(4)} a year, and fails`);
+}
 
 const years = g.reader.years; let last = -1; for (let t = 0; t < years.length; t++) if (years[t]) last = t;
 const same = (a, b) => a.length === b.length && a.every((x, i) => Object.is(x, b[i]));

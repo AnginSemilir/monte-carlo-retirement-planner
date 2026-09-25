@@ -144,9 +144,9 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   paths.forEach((zs, i) => { if (tr) tr.row = i; const o = runPolicy(r, zs, tr ? { trace: tr } : {}); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
   const sim = 100 * ok / NP;
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
-  // the held paths' seed sits after pts (added 25 Sep for 7e, which runs on held-out paths; smoke.sh's greps read around it)
-  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
-  return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran };
+  // the held paths' seed and count sit after pts (added 25 Sep for 7e, which runs on held-out paths; smoke.sh's greps read around them)
+  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
+  return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran, reader: r.meta.reader || null };
 }
 if (mode === 'f1v2') {
   // the cases, in a fixed order; `part k/n` runs every n-th from the k-th, so a batch can split them across processes
@@ -207,6 +207,11 @@ if (mode === 'f1v2') {
     });
     console.log(`${id.padEnd(16)} a0 ${f1(base.a0, 2)} B ${base.B} class ${base.inClass ? 'YES' : 'no '} | ${cells.join(' | ')}`);
     res.forEach((r, j) => console.log(`${''.padEnd(16)} ran ${arms[j].label}: ${r.ran}`));
+    res.forEach((r, j) => { if (r.reader) console.log(`${''.padEnd(16)} tables ${arms[j].label}: ${r.reader.tables} reader tables, ${r.reader.unsupported} unsupported nodes`); });
+    // every pair of arms, paired on the same paths (the exact rule's secondary comparisons): later arm's gained/lost against each earlier arm
+    const pairs = [];
+    for (let j = 1; j < res.length; j++) for (let i = 0; i < j; i++) { let up = 0, dn = 0; for (let k = 0; k < NP; k++) { if (!res[i].okArr[k] && res[j].okArr[k]) up++; else if (res[i].okArr[k] && !res[j].okArr[k]) dn++; } pairs.push(`${arms[j].label}-${arms[i].label} ${up}/${dn}`); }
+    if (pairs.length) console.log(`${''.padEnd(16)} pairs ${pairs.join(' ')}`);
   });
 } else if (mode === 'quad') {
   /*

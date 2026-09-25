@@ -125,7 +125,7 @@ const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', {
  * is the mixture's: each world's opening read weighted as the solve weights them. The F1 test (mode f1) ran on step 2's
  * settings in the single-table fold; this is its re-test where the product runs.
  */
-function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace } = {}) {
+function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002 } = {}) {
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
@@ -138,13 +138,14 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace } 
     ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}) });   // F1 off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
   const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
-  let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(7002, NP, m.ctx.totalYears);
+  let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(seed, NP, m.ctx.totalYears);
   const okArr = new Uint8Array(NP);
   const tr = trace ? makeTrace(NP, m.ctx.totalYears + 1) : null;
   paths.forEach((zs, i) => { if (tr) tr.row = i; const o = runPolicy(r, zs, tr ? { trace: tr } : {}); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
   const sim = 100 * ok / NP;
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
-  const ran = `mix ${r.meta.mixture} pts ${r.g.np} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
+  // the held paths' seed sits after pts (added 25 Sep for 7e, which runs on held-out paths; smoke.sh's greps read around it)
+  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
   return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran };
 }
 if (mode === 'f1v2') {
@@ -175,7 +176,7 @@ if (mode === 'f1v2') {
    * v2 (F1), reader (the bridge reader, src/solver/reader.js). Every arm holds the tier above allowed and the final year
    * exact EXPLICITLY (the reviewer: tier eligibility and the world count identical across arms; 'auto' could differ arm
    * to arm), three worlds, lambda held at S126's. An arm written name@q runs at q return points (S360 at 5 and 15).
-   *   node research/solver/audit-s126.mjs bridge7e [points] [paths] part k/n [arms=off,v1,v2,reader] [ids=7c's cases]
+   *   node research/solver/audit-s126.mjs bridge7e [points] [paths] part k/n [arms=off,v1,v2,reader] [ids=7c's cases] [seed=7002]
    * Per case: each arm's table, simulated survival, gap, tier-below and below-target years, its solve seconds, the paired
    * change against the first arm (net paths, se), and a ran line per arm for the reducer's gate.
    */
@@ -187,15 +188,17 @@ if (mode === 'f1v2') {
   const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
   const defIds = [...F1_VARIANTS.map(v => v[0]), 'S120', 'S122', 'S124', 'S128', 'S130', 'S360', 'S366', 'S370', 'bridge 4+cost'];
   const ids = process.argv[8] ? process.argv[8].split(',') : defIds;
+  const SEED = process.argv[9] ? Number(process.argv[9]) : 7002;
+  if (!(SEED >= 1)) { console.error(`audit-s126: bad seed ${process.argv[9]}`); process.exit(2); }
   const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
   const [pk, pn] = part.split('/').map(Number);
   if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
-  console.log(`BRIDGE READER TEST (7e), step-6 defaults in the mixture (solvePlan), ${POINTS} points, ${NP} held paths (seed 7002), lambda ${LAMBDA}, the tier above allowed and the final year exact in every arm; arms ${arms.map(a => a.label).join(', ')}, paired against ${arms[0].label}; part ${pk}/${pn}`);
+  console.log(`BRIDGE READER TEST (7e), step-6 defaults in the mixture (solvePlan), ${POINTS} points, ${NP} held paths (seed ${SEED}), lambda ${LAMBDA}, the tier above allowed and the final year exact in every arm; arms ${arms.map(a => a.label).join(', ')}, paired against ${arms[0].label}; part ${pk}/${pn}`);
   ids.forEach((id, i) => {
     if (i % pn !== pk) return;
     const h = byId(id)();
     if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
-    const res = arms.map(a => measureV2(h, a.br, a.quad, { finalIntegral: true, riskAbove: true }));
+    const res = arms.map(a => measureV2(h, a.br, a.quad, { finalIntegral: true, riskAbove: true, seed: SEED }));
     const base = res[0];
     const cells = res.map((r, j) => {
       let up = 0, dn = 0; for (let k = 0; k < NP; k++) { if (!base.okArr[k] && r.okArr[k]) up++; else if (base.okArr[k] && !r.okArr[k]) dn++; }

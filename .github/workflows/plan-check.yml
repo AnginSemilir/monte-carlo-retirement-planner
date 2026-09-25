@@ -46,6 +46,10 @@ jobs:
         run: |
           ls research/solver/predictions/*.md >/dev/null 2>&1 || exit 0
           node research/solver/check-prediction.mjs research/solver/predictions/*.md
+      # research/engine.mjs is built from src/App.jsx and gitignored; the code hash and the smoke stamp name it, and
+      # fair-gate.test.mjs reads every stamped file, so without the build CI failed on every push from 24 Sep 14:00 UK
+      - name: Build the engine the code hash covers
+        run: python3 research/build-engine.py
       - name: The checks' own planted-fault tests
         run: |
           node research/tests/plan-checker.test.mjs

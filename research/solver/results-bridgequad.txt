@@ -1,0 +1,50 @@
+# 7i (bridge-quad), read 25 Sep 04:28 UK: node research/solver/read-bridgequad.mjs research/solver/results/bridgequad/log.txt (the batch launched at 26f0856, past its smoke run 03:47 UK per runs.log, the log joined 04:26 UK)
+BRIDGE QUAD TEST, READ AGAINST predictions/bridge-quad.md
+
+FAIR-TEST GATE: passed - on all 6 cases the two arms ran the same settings but the return points (5, 15), F1 off in both, at the named settings
+
+case          gap 5 points -> 15 points     table 5 -> 15      sim 5 -> 15      survival 15 - 5 (paired se)   solve s 5 / 15
+S126            -43.2 ->   -31.3           56.4 ->  68.3     99.6 ->  99.6    +0.00 +/- 0.00            316 / 755
+S366            -96.6 ->   -95.4            2.0 ->   3.5     98.6 ->  98.9    +0.30 +/- 0.26            347 / 839
+bridge 4        -91.3 ->   -86.0            7.9 ->  13.3     99.2 ->  99.3    +0.10 +/- 0.10            331 / 799
+S360            -33.6 ->   -34.0            0.8 ->   2.4     34.4 ->  36.4    +2.00 +/- 0.47            317 / 852
+bridge 6        -94.2 ->   -90.5            5.1 ->   8.8     99.3 ->  99.3    +0.00 +/- 0.00            347 / 817
+share 0.95      -72.7 ->   -72.7            0.0 ->   0.0     72.7 ->  72.7    +0.00 +/- 0.00            289 / 702
+
+CHECK - the 5-point arm reproduces 7c's OFF arm (table / sim, to 0.1):
+  S126: 7c 56.4 / 99.6, now 56.4 / 99.6 reproduced
+  S366: 7c 2.0 / 98.6, now 2.0 / 98.6 reproduced
+  bridge 4: 7c 7.9 / 99.2, now 7.9 / 99.2 reproduced
+  S360: 7c 0.8 / 34.4, now 0.8 / 34.4 reproduced
+  bridge 6: 7c 5.1 / 99.3, now 5.1 / 99.3 reproduced
+  share 0.95: 7c 0.0 / 72.7, now 0.0 / 72.7 reproduced
+
+PREDICTION CHECK
+  1. every case misreading by more than 40 at 5 points still misreads by more than 30 at 15: 5 of 5 (S126 -31.3, S366 -95.4, bridge 4 -86.0, bridge 6 -90.5, share 0.95 -72.7) -> HELD
+  2. 15 points loses survival beyond two se on no case: HELD
+
+FALSIFIER - 15 points closes the gap to within 10 on at least half the cases (3 of 6): 0 (none) -> not fired
+
+## The log the reader read (results/bridgequad/log.txt, the four parts joined by batch-bridgequad.sh), as it stands:
+BRIDGE QUAD TEST, step-6 defaults in the mixture (solvePlan), 16 points, 1000 held paths (seed 7002), lambda 0.0223606797749979, F1 off, 5 against 15 return points, paired; part 0/4
+S126             | Q5 table  56.4 sim  99.6 gap  -43.2 | Q15 table  68.3 sim  99.6 gap  -31.3 | survival +0.00 +/- 0.00 (net 0 of 0 discordant) | 316 / 755 s
+                 ran Q5:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad 5 bridgeRead false
+                 ran Q15: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad 15 bridgeRead false
+S366             | Q5 table   2.0 sim  98.6 gap  -96.6 | Q15 table   3.5 sim  98.9 gap  -95.4 | survival +0.30 +/- 0.26 (net 3 of 7 discordant) | 347 / 839 s
+                 ran Q5:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad 5 bridgeRead false
+                 ran Q15: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad 15 bridgeRead false
+BRIDGE QUAD TEST, step-6 defaults in the mixture (solvePlan), 16 points, 1000 held paths (seed 7002), lambda 0.0223606797749979, F1 off, 5 against 15 return points, paired; part 1/4
+bridge 4         | Q5 table   7.9 sim  99.2 gap  -91.3 | Q15 table  13.3 sim  99.3 gap  -86.0 | survival +0.10 +/- 0.10 (net 1 of 1 discordant) | 331 / 799 s
+                 ran Q5:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad 5 bridgeRead false
+                 ran Q15: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad 15 bridgeRead false
+S360             | Q5 table   0.8 sim  34.4 gap  -33.6 | Q15 table   2.4 sim  36.4 gap  -34.0 | survival +2.00 +/- 0.47 (net 20 of 22 discordant) | 317 / 852 s
+                 ran Q5:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 5000 quad 5 bridgeRead false
+                 ran Q15: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 5000 quad 15 bridgeRead false
+BRIDGE QUAD TEST, step-6 defaults in the mixture (solvePlan), 16 points, 1000 held paths (seed 7002), lambda 0.0223606797749979, F1 off, 5 against 15 return points, paired; part 2/4
+bridge 6         | Q5 table   5.1 sim  99.3 gap  -94.2 | Q15 table   8.8 sim  99.3 gap  -90.5 | survival +0.00 +/- 0.00 (net 0 of 0 discordant) | 347 / 817 s
+                 ran Q5:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad 5 bridgeRead false
+                 ran Q15: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad 15 bridgeRead false
+BRIDGE QUAD TEST, step-6 defaults in the mixture (solvePlan), 16 points, 1000 held paths (seed 7002), lambda 0.0223606797749979, F1 off, 5 against 15 return points, paired; part 3/4
+share 0.95       | Q5 table   0.0 sim  72.7 gap  -72.7 | Q15 table   0.0 sim  72.7 gap  -72.7 | survival +0.00 +/- 0.00 (net 0 of 0 discordant) | 289 / 702 s
+                 ran Q5:  mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad 5 bridgeRead false
+                 ran Q15: mix 3 pts 16 grid total16x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad 15 bridgeRead false

@@ -1,0 +1,34 @@
+# 7h (quad-ref) unrounded, with the whole path counts (the same records and pairing as results-quadref.txt)
+S194
+  item 1, 15 - 5 points, no tier above: +0.0333 +/- 0.0745  z 0.447  net 1 of 5 discordant (net^2 1 against 4 x discordant 20)
+  item 1, 15 - 5 points, tier above: -0.0667 +/- 0.0471  z -1.414  net -2 of 2 discordant (net^2 4 against 4 x discordant 8)
+  the tier above's cost, 5 points: -0.1667 +/- 0.0882  z -1.890  net -5 of 7 discordant (net^2 25 against 4 x discordant 28)
+  the tier above's cost, 15 points: -0.2667 +/- 0.0943  z -2.828  net -8 of 8 discordant (net^2 64 against 4 x discordant 32)
+  item 2's difference-in-differences (15 - 5), per path: -0.1000 +/- 0.0745  z -1.342
+S162
+  item 1, 15 - 5 points, no tier above: -0.0333 +/- 0.0577  z -0.577  net -1 of 3 discordant (net^2 1 against 4 x discordant 12)
+  item 1, 15 - 5 points, tier above: -0.0333 +/- 0.0577  z -0.577  net -1 of 3 discordant (net^2 1 against 4 x discordant 12)
+  the tier above's cost, 5 points: -0.1333 +/- 0.0667  z -2.000  net -4 of 4 discordant (net^2 16 against 4 x discordant 16)
+  the tier above's cost, 15 points: -0.1333 +/- 0.0667  z -2.000  net -4 of 4 discordant (net^2 16 against 4 x discordant 16)
+  item 2's difference-in-differences (15 - 5), per path: +0.0000 +/- 0.0817  z 0.000
+S252
+  item 1, 15 - 5 points, no tier above: -0.0333 +/- 0.0577  z -0.577  net -1 of 3 discordant (net^2 1 against 4 x discordant 12)
+  item 1, 15 - 5 points, tier above: -0.1000 +/- 0.0745  z -1.342  net -3 of 5 discordant (net^2 9 against 4 x discordant 20)
+  the tier above's cost, 5 points: +0.0333 +/- 0.0745  z 0.447  net 1 of 5 discordant (net^2 1 against 4 x discordant 20)
+  the tier above's cost, 15 points: -0.0333 +/- 0.0882  z -0.378  net -1 of 7 discordant (net^2 1 against 4 x discordant 28)
+  item 2's difference-in-differences (15 - 5), per path: -0.0667 +/- 0.0667  z -1.000
+S330
+  item 1, 15 - 5 points, no tier above: +0.0333 +/- 0.1106  z 0.302  net 1 of 11 discordant (net^2 1 against 4 x discordant 44)
+  item 1, 15 - 5 points, tier above: +0.1667 +/- 0.1291  z 1.291  net 5 of 15 discordant (net^2 25 against 4 x discordant 60)
+  the tier above's cost, 5 points: +1.3667 +/- 0.2769  z 4.936  net 41 of 69 discordant (net^2 1681 against 4 x discordant 276)
+  the tier above's cost, 15 points: +1.5000 +/- 0.2769  z 5.417  net 45 of 69 discordant (net^2 2025 against 4 x discordant 276)
+  item 2's difference-in-differences (15 - 5), per path: +0.1333 +/- 0.1633  z 0.816
+pooled over S194, S162 and S252
+  item 2, the difference-in-differences: -0.0556 +/- 0.0430  z -1.291
+  the falsifier, 15 - 5 points with the tier above: -0.0667 +/- 0.0351  z -1.897  net -6 of 10 discordant (net^2 36 against 4 x discordant 40)
+  beside it, not registered: the tier above's cost, 5 points: -0.0889 +/- 0.0444  z -2.000  net -8 of 16 discordant (net^2 64 against 4 x discordant 64)
+  beside it, not registered: the tier above's cost, 15 points: -0.1444 +/- 0.0484  z -2.982  net -13 of 19 discordant (net^2 169 against 4 x discordant 76)
+  beside it, not registered: were the 5-point remainder fully removed at 15 points, the difference-in-differences would be 0.0889; it is -0.0556, -3.357 of its se from that
+five worlds against three (tier above, 5 points)
+  S194: -0.0333 +/- 0.0577  z -0.577  net -1 of 3 discordant (net^2 1 against 4 x discordant 12)
+  S330: +0.2667 +/- 0.1155  z 2.309  net 8 of 12 discordant (net^2 64 against 4 x discordant 48)

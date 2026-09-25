@@ -108,3 +108,6 @@ No quad-ref result exists. After the launch (25 Sep 00:45 UK) and before any res
   any result was read); reduce-quadref.mjs's planted check now has d15 unlike d5 and
   checks the se (a copy dropping d15, using d5 for it, or leaving /n out of the se now stops it).
 Nothing in the question, the items or the falsifier changed.
+- Read 25 Sep 04:26 UK (results-quadref.txt, whose first line carries the prediction-edited acceptance for the lines
+  above). "No quad-ref result exists" was true when each line above was written: the first record landed 01:24:57 UK, after
+  the last of them, and none was read before 04:26 UK.

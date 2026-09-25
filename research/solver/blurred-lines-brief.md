@@ -278,8 +278,17 @@ narrower for more than 16 years. The table therefore interpolates straight acros
   staircase (section 4.4). Integrated exactly (the crossing shock), survival rises only where the tier above is allowed
   (+0.18 ± 0.04 points over six households; +0.04 ± 0.03 without it), and the three comfortable households' tier-above
   cost goes from −0.21 ± 0.06 to −0.09 ± 0.04 points. Those figures sit beside O19's registered reading, whose item 1
-  and falsifier landed exactly at two standard errors. A test now running (7h) asks whether averaging the earlier
-  years more finely removes the rest; another (7i) asks whether the bridge misread is averaging or representation.
+  and falsifier landed exactly at two standard errors.
+- **Both follow-up tests are read (25 Sep).** Averaging every earlier year over 15 return points instead of 5, with
+  the final year exact, leaves the tier above's cost on the three where it was: with both changes it is −0.14 ± 0.05
+  points pooled (beside the registered reading, which held: the change is within noise). So what remains is not the
+  averaging; it is the grid read or the score's own trade, not yet told apart. Five market worlds instead of three raise
+  the thinnest household's survival by 0.27 ± 0.12 points (a registered item that missed; not yet explained). On the
+  six bridge cases, 15 points leave the opening misread almost unchanged (S126 −43 to −31; the other five move 5.3 points or less;
+  none closes to within 10), so **the bridge misread is in the read across the pension-share axis, not the
+  averaging**: better averaging does not make F1 redundant, and your boundary-plus-residual reader is the fix we will
+  build and test against F1 (plan item 7e). One oddity: 15 points raise one bridge household's (S360) survival by
+  2.0 ± 0.5 points while its table read barely moves.
 
 **Not a cliff effect.** On one household (S172) the option held a riskier tier every year and raised the median estate
 by 65%, at a cost of 0.77 survival points. That is the estate term in the score doing what it was built for.

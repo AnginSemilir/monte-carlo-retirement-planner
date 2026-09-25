@@ -1,0 +1,69 @@
+# 7h (quad-ref), reduced 25 Sep 04:26 UK: FAIR_ACCEPT="prediction-edited=after the 00:45 UK launch and before any result was read, only the Changes-after-seeing-results section changed (git diff e9716a8 HEAD: 16 lines added there, the None line removed): row 29 void, row 31's se for item 2, item 2's power, the Question's O19 figures not registered, the tie rule on whole counts and 0 of 0 as no change" node research/solver/reduce-quadref.mjs (the batch launched 00:45 UK at 912cbbd, past its smoke run 00:52 UK per runs.log, the last record 03:40 UK)
+FAIR-TEST CHECK: qr-d5:solver  against  qr-d15:solver
+  households: 4 shared
+  [ 8] return points a year         5                              | 15                             TESTED
+  [--] prediction research/solver/predictions/quad-ref.md unchanged since qr-d5 ran: ACCEPTED (38792c7d at launch, 15998371 now)  - after the 00:45 UK launch and before any result was read, only the Changes-after-seeing-results section changed (git diff e9716a8 HEAD: 16 lines added there, the None line removed): row 29 void, row 31's se for item 2, item 2's power, the Question's O19 figures not registered, the tie rule on whole counts and 0 of 0 as no change
+  [--] prediction research/solver/predictions/quad-ref.md unchanged since qr-d15 ran: ACCEPTED (38792c7d at launch, 15998371 now)  - after the 00:45 UK launch and before any result was read, only the Changes-after-seeing-results section changed (git diff e9716a8 HEAD: 16 lines added there, the None line removed): row 29 void, row 31's se for item 2, item 2's power, the Question's O19 figures not registered, the tie rule on whole counts and 0 of 0 as no change
+  34 recorded variables SAME; 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+FAIR-TEST CHECK: qr-u5:solver  against  qr-u15:solver
+  households: 4 shared
+  [ 8] return points a year         5                              | 15                             TESTED
+  [--] prediction research/solver/predictions/quad-ref.md unchanged since qr-u5 ran: ACCEPTED (38792c7d at launch, 15998371 now)  - after the 00:45 UK launch and before any result was read, only the Changes-after-seeing-results section changed (git diff e9716a8 HEAD: 16 lines added there, the None line removed): row 29 void, row 31's se for item 2, item 2's power, the Question's O19 figures not registered, the tie rule on whole counts and 0 of 0 as no change
+  [--] prediction research/solver/predictions/quad-ref.md unchanged since qr-u15 ran: ACCEPTED (38792c7d at launch, 15998371 now)  - after the 00:45 UK launch and before any result was read, only the Changes-after-seeing-results section changed (git diff e9716a8 HEAD: 16 lines added there, the None line removed): row 29 void, row 31's se for item 2, item 2's power, the Question's O19 figures not registered, the tie rule on whole counts and 0 of 0 as no change
+  34 recorded variables SAME; 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+FAIR-TEST CHECK: qr-d5:solver  against  qr-u5:solver
+  households: 4 shared
+  [13] risk tiers allowed           ["0/0","1/1","2/2"]            | ["0/0","1/1","2/2","3/3"]      TESTED
+  [--] prediction research/solver/predictions/quad-ref.md unchanged since qr-d5 ran: ACCEPTED (38792c7d at launch, 15998371 now)  - after the 00:45 UK launch and before any result was read, only the Changes-after-seeing-results section changed (git diff e9716a8 HEAD: 16 lines added there, the None line removed): row 29 void, row 31's se for item 2, item 2's power, the Question's O19 figures not registered, the tie rule on whole counts and 0 of 0 as no change
+  [--] prediction research/solver/predictions/quad-ref.md unchanged since qr-u5 ran: ACCEPTED (38792c7d at launch, 15998371 now)  - after the 00:45 UK launch and before any result was read, only the Changes-after-seeing-results section changed (git diff e9716a8 HEAD: 16 lines added there, the None line removed): row 29 void, row 31's se for item 2, item 2's power, the Question's O19 figures not registered, the tie rule on whole counts and 0 of 0 as no change
+  34 recorded variables SAME; 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+FAIR-TEST CHECK: qr-d15:solver  against  qr-u15:solver
+  households: 4 shared
+  [13] risk tiers allowed           ["0/0","1/1","2/2"]            | ["0/0","1/1","2/2","3/3"]      TESTED
+  [--] prediction research/solver/predictions/quad-ref.md unchanged since qr-d15 ran: ACCEPTED (38792c7d at launch, 15998371 now)  - after the 00:45 UK launch and before any result was read, only the Changes-after-seeing-results section changed (git diff e9716a8 HEAD: 16 lines added there, the None line removed): row 29 void, row 31's se for item 2, item 2's power, the Question's O19 figures not registered, the tie rule on whole counts and 0 of 0 as no change
+  [--] prediction research/solver/predictions/quad-ref.md unchanged since qr-u15 ran: ACCEPTED (38792c7d at launch, 15998371 now)  - after the 00:45 UK launch and before any result was read, only the Changes-after-seeing-results section changed (git diff e9716a8 HEAD: 16 lines added there, the None line removed): row 29 void, row 31's se for item 2, item 2's power, the Question's O19 figures not registered, the tie rule on whole counts and 0 of 0 as no change
+  34 recorded variables SAME; 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+FAIR-TEST CHECK: qr-u5:solver  against  qr-u5m5:solver
+  households: 2 shared; only in qr-u5: S162 S252
+  [ 7] market world                 3-world mixture                | 5-world mixture                TESTED
+  [--] prediction research/solver/predictions/quad-ref.md unchanged since qr-u5 ran: ACCEPTED (38792c7d at launch, 15998371 now)  - after the 00:45 UK launch and before any result was read, only the Changes-after-seeing-results section changed (git diff e9716a8 HEAD: 16 lines added there, the None line removed): row 29 void, row 31's se for item 2, item 2's power, the Question's O19 figures not registered, the tie rule on whole counts and 0 of 0 as no change
+  [--] prediction research/solver/predictions/quad-ref.md unchanged since qr-u5m5 ran: ACCEPTED (38792c7d at launch, 15998371 now)  - after the 00:45 UK launch and before any result was read, only the Changes-after-seeing-results section changed (git diff e9716a8 HEAD: 16 lines added there, the None line removed): row 29 void, row 31's se for item 2, item 2's power, the Question's O19 figures not registered, the tie rule on whole counts and 0 of 0 as no change
+  34 recorded variables SAME; 0 belong to one arm only
+  checked by hand, never in a file: the engine's return assumptions (9), the reducer's definitions (29-32), machine load (33)
+  FAIR on everything the files record
+QUADRATURE REFERENCE - 5 against 15 return points every year, the final year exact, paired on 3,000 paths
+  id     survival d5 / u5 / d15 / u15      15 - 5: no tier above | tier above            tier above costs: 5 points | 15 points     difference-in-differences (15 - 5)
+  S194   99.63 / 99.47 / 99.67 / 99.40    +0.03 +/- 0.07 (within) | -0.07 +/- 0.05 (within)    -0.17 +/- 0.09 | -0.27 +/- 0.09    -0.10 +/- 0.07
+  S162   99.83 / 99.70 / 99.80 / 99.67    -0.03 +/- 0.06 (within) | -0.03 +/- 0.06 (within)    -0.13 +/- 0.07 | -0.13 +/- 0.07    +0.00 +/- 0.08
+  S252   98.83 / 98.87 / 98.80 / 98.77    -0.03 +/- 0.06 (within) | -0.10 +/- 0.07 (within)    +0.03 +/- 0.07 | -0.03 +/- 0.09    -0.07 +/- 0.07
+  S330   76.23 / 77.60 / 76.27 / 77.77    +0.03 +/- 0.11 (within) | +0.17 +/- 0.13 (within)    +1.37 +/- 0.28 | +1.50 +/- 0.28    +0.13 +/- 0.16
+
+  five worlds against three (tier above, 5 points):
+    S194   99.47 -> 99.43   -0.03 +/- 0.06 (within)
+    S330   77.60 -> 77.87   +0.27 +/- 0.12 (beyond two se)
+
+CHECK - qr-d5 / qr-u5 reproduce O19's o19-dx / o19-ux path for path (same settings; the solver change between them is comments only):
+  S194 qr-d5 vs o19-dx: 0 paths and 0 path-years differ -> reproduced
+  S194 qr-u5 vs o19-ux: 0 paths and 0 path-years differ -> reproduced
+  S162 qr-d5 vs o19-dx: 0 paths and 0 path-years differ -> reproduced
+  S162 qr-u5 vs o19-ux: 0 paths and 0 path-years differ -> reproduced
+  S252 qr-d5 vs o19-dx: 0 paths and 0 path-years differ -> reproduced
+  S252 qr-u5 vs o19-ux: 0 paths and 0 path-years differ -> reproduced
+  S330 qr-d5 vs o19-dx: 0 paths and 0 path-years differ -> reproduced
+  S330 qr-u5 vs o19-ux: 0 paths and 0 path-years differ -> reproduced
+
+PREDICTION CHECK (predictions/quad-ref.md)
+  1. 15 points changes survival by no more than two se, 8 comparisons: HELD
+  2. the three's tier-above cost with 15 points within two se of it with 5 (pooled difference-in-differences): -0.06 +/- 0.04 -> HELD
+  3. five worlds within two se of three on S194 and S330: S194 within, S330 beyond two se -> MISSED
+
+FALSIFIER - with the tier above, 15 points raises survival beyond two se, pooled over the three: -0.07 +/- 0.04 -> not fired
+  SEPARATELY - 15 points lowers survival beyond two se: nowhere

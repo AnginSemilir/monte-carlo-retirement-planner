@@ -218,7 +218,8 @@ export function requireFair(pairs, { accept = parseAccept(), all = false, exit =
 /*
  * THE SAME GATE FOR TEXT LOGS (25 Sep evening; the maintainer's unlock): audit-s126.mjs's modes write text logs, not JSON
  * result files, so requireFair cannot read them - and fair-gate.test.mjs's rule that every reducer calls the gate was red
- * in CI from 25 Sep 06:00 UK (reduce-o22.mjs) to this change. Each log carries a stamp line from audit-s126.mjs:
+ * in CI from 25 Sep 06:00 UK (reduce-o22.mjs) to this change, beneath an older failure that had kept CI red since 24 Sep
+ * 14:00 UK (research/engine.mjs, gitignored, never built in CI; fixed in fb9ca50). Each log carries a stamp line from audit-s126.mjs:
  * "stamp: code <code-id hash> audit <the script's own hash> prediction <file | none | NOT-LAUNCHED> sha <blob>". Every log
  * needs at least one; one version of the code and of the script across them all; launched through run-from-snapshot.sh
  * under the named prediction, whose git blob now is the one each log was launched under (else PREDICTION EDITED).

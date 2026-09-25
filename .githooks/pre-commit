@@ -11,15 +11,26 @@ if git diff --cached --name-only | grep -qE '^(research/solver/(PLAN|PLAN-HISTOR
     echo "pre-commit: the plan check failed (above). Fix it; do not bypass the hook." >&2
     exit 1
   }
+  # the staged copy keeps its own file name: the check's exemptions go by name (BEFORE_REGIMEN, BEFORE_SEEDS), and a copy
+  # named .precommit-pred.md matched neither, so every commit touching an older prediction was refused (25 Sep 23:05 UK)
   for f in $(git diff --cached --name-only --diff-filter=AM | grep -E '^research/solver/predictions/.*\.md$'); do
-    git show ":$f" > /tmp/.precommit-pred.md && node research/solver/check-prediction.mjs /tmp/.precommit-pred.md >/dev/null || {
+    D=$(mktemp -d) && B="$D/$(basename "$f")"
+    git show ":$f" > "$B" && node research/solver/check-prediction.mjs "$B" >/dev/null || {
       echo "pre-commit: $f is not a complete prediction (node research/solver/check-prediction.mjs $f)" >&2
-      exit 1
+      rm -rf "$D"; exit 1
     }
+    rm -rf "$D"
   done
 fi
-# CI's four tests on every commit (about a second): GitHub CI failed on every push of 25 Sep from 06:00 UK on fair-gate.test.mjs
-# and nobody saw it, because only the plan check ran here (the maintainer, 25 Sep 21:54 UK)
+# CI's four tests on every commit (about a second): GitHub CI failed on every push from 24 Sep 14:00 UK to 25 Sep 22:07 UK
+# on fair-gate.test.mjs and nobody saw it, because only the plan check ran here (the maintainer, 25 Sep 21:54 UK). The
+# engine is built first, as CI builds it (fb9ca50), so a stale research/engine.mjs (gitignored) cannot pass here and fail
+# there (the maintainer, 25 Sep 22:47 UK). It is built from the working tree's src/App.jsx, CI's from the commit's.
+python3 research/build-engine.py > /tmp/.precommit-build.txt 2>&1 || {
+  tail -3 /tmp/.precommit-build.txt >&2
+  echo "pre-commit: research/build-engine.py failed (CI builds the engine the same way). Fix it; do not bypass the hook." >&2
+  exit 1
+}
 for t in plan-checker fair-gate plan-defaults hooks; do
   node "research/tests/$t.test.mjs" > /tmp/.precommit-test.txt 2>&1 || {
     grep -E "AssertionError|Error" /tmp/.precommit-test.txt | head -3 >&2

@@ -4,8 +4,9 @@
   - Wave 1, four at a time: 24 cases, each with arms off, v1, v2 and the reader, 16 points, 1,000 held-out paths of seed 7011.
   - Look 1: `reduce-7e.mjs --look1` reads wave 1 by the exact rule (Decision rule, below) and names the cases it leaves
     open.
-  - Look 2, beside wave 2: those cases at 3,000 paths of seed 7011 (their first 1,000 are wave 1's paths), off against the
-    reader, over two processes when more than four are open.
+  - Look 2, beside wave 2: those cases on more paths of seed 7011 (their first 1,000 are wave 1's paths), off against the
+    reader: 8,000 for bridge 4, wealth x0.5, S130 and S128, 3,000 for the rest (the maintainer, 25 Sep 22:47 UK), each
+    group over two processes when it is large.
   - Wave 2:
     - the no-bridge controls, off against the reader;
     - S360 with the reader at 5 and 15 return points;
@@ -14,7 +15,9 @@
   - Output: result logs in `results/bridge7e/*.txt`; the reducer is `node research/solver/reduce-7e.mjs`.
 - **Kind:** test
 - **Status:** registered by its push (the pushed commit is the timestamp), and launched only after a plan review passes on
-  this version (the forty-seventh failed, 21:56 UK; its findings are fixed here) and CI is green. Its decision rule is the outside review's
+  this version (the forty-seventh failed, 21:56 UK, and the forty-eighth, 22:40 UK; their findings are fixed here, with
+  the maintainer's two choices of 22:47 UK: look 2 at 8,000 paths on four cases, and a fixed-effect pooled floor) and CI is
+  green. Its decision rule is the outside review's
   section 19 (exact McNemar, Holm across the cases, per-case margins, three outcomes, two looks), in the regimen the
   maintainer adopted 25 Sep 20:47 UK, with the margins that review proposed. The old "beyond two se" reading is retired
   for this test.
@@ -127,12 +130,15 @@ All of this is asked with the tier above and the final year exact held identical
 
 ## Decision rule (registered before launch)
 
-Section 19 of the outside review, as reduce-7e.mjs implements it (46 planted checks; each of 27 mutations of its rule,
-gate and completeness is caught: results-reduce-7e-mutations.txt).
+Section 19 of the outside review, as reduce-7e.mjs implements it (50 planted checks; each of 31 mutations of its rule,
+gate and completeness is caught: results-reduce-7e-mutations.txt), with the maintainer's two choices of 25 Sep 22:47 UK
+(the forty-eighth review: look 2's path count put to them; the pooled floor's method).
 
 - **Primary outcome:** simulated survival, paired per case, on held-out seed 7011.
-- **Looks:** 1,000 paths; then 3,000 for the cases look 1 leaves inconclusive (the same first 1,000 paths: pathsForSeed
-  builds path i from seed + i x 7919). The error rate is split 0.005, then 0.045.
+- **Looks:** 1,000 paths; then, for the cases look 1 leaves inconclusive, 8,000 for bridge 4, wealth x0.5, S130 and S128
+  (where 3,000 would leave the case open if nothing changed: 6,147 to 7,684 paths needed, results-derive-7e.txt) and
+  3,000 for the rest (the same first 1,000 paths: pathsForSeed builds path i from seed + i x 7919). The error rate is
+  split 0.005, then 0.045. The gate checks each look-2 case at its own count.
 - **Comparisons:** the reader against off (primary). The reader against v1 and against v2 (secondary, reported: look 1,
   Holm across the 24, at 0.05).
 - **Per case,** b paths lost and c saved of N:
@@ -147,16 +153,22 @@ gate and completeness is caught: results-reduce-7e-mutations.txt).
   - Inconclusive: neither, after the second look; the bound is reported.
 - **The 30-point cases and the no-bridge controls:** each its own family of 3, one look at 0.05.
 - **Pooled over the 16 cases the prediction expects unchanged** (reduce-7e.mjs POOL: the nine in class away from the
-  edge, the thin S128 and S130, bridge 6, S366, S162, S172 and S168): a random-effects (DerSimonian-Laird) mean change with
-  its 95% interval, plus the sign test. Each case's variance is floored at one discordant path, so a case with none still
+  edge, the thin S128 and S130, bridge 6, S366, S162, S172 and S168): a fixed-effect (inverse-variance) mean change with
+  its 95% interval, plus the sign test; the random-effects (DerSimonian-Laird) mean is reported beside it. Fixed effect,
+  not the regimen's random effects, by the maintainer's choice (25 Sep 22:47 UK): a random-effects interval widens with
+  any spread between cases, gains included, so one pool case gaining 3 points fired the floor in 8 to 21% of simulated
+  runs with no case losing, against 0 to 3% for fixed effect, with the same power against a loss on every case (92% at
+  0.1 points; results-pooled-floor.txt, simulated at 3,000 paths before the 8,000-path choice; the forty-eighth review's
+  MINOR 2). A fixed-effect interval answers "is the average change over these 16 cases below -0.1", which is the
+  question; it does not generalise to other households, which 7e does not claim. Each case's variance is floored at one discordant path, so a case with none still
   carries weight (declared: a choice, not part of the method). Not the mode's class flag, which holds share 0.95 and
   bridge 4+cost, where gains are expected: one large gain there widens a random-effects interval, and a run with no path
   lost read FALSIFIED (the forty-seventh review; now a planted check). Those cases are read by items 3, 4 and 6. Under no
-  change on any pool case the interval's lower end is expected at -0.066; a 0.2-point loss on every case puts it at -0.272
-  (results-derive-7e.txt).
+  change on any pool case the interval's lower end is expected at -0.061; a 0.2-point loss on every case puts it at -0.266;
+  bridge 4 gaining 3 points leaves it at +0.021, where random effects would read -0.083 (results-derive-7e.txt).
 - **Read gap** (table minus simulation): scored per case against items 1-4, 7 and 8; not tested.
 - **Time:** the time bar at 30 points, at most 1.20 on each case.
-- **Carried forward if** no case shows harm, the pooled interval lies above -0.1 points, the time bar holds,
+- **Carried forward if** no case shows harm, the pooled (fixed-effect) interval lies above -0.1 points, the time bar holds,
   and neither misread condition below fires. Inconclusive cases are listed with their bounds for the maintainer.
 
 ## Decision fed
@@ -174,7 +186,7 @@ gate and completeness is caught: results-reduce-7e-mutations.txt).
 ## Provenance
 
 - The margins 0.25, 0.5 and 0.1 points: the review's section 16 item 3, adopted with the regimen (the maintainer, 25 Sep
-  20:47 UK). Not yet pinned by plan-defaults.test.mjs, which is locked (the regimen's stage 2).
+  20:47 UK). Pinned to stats.mjs's MARGINS by plan-defaults.test.mjs since ebf2a5a (the maintainer's unlock, 21:54 UK).
 - The look rates 0.005 and 0.045 and the path counts: the review's section 16 item 8.
 - lambda 0.0223606797749979: S126's landed lambda, the value in every ran line of results-f1v2.txt; the gate checks it.
 - The time bar, 20%: the maintainer, 24 Sep.
@@ -186,7 +198,7 @@ gate and completeness is caught: results-reduce-7e-mutations.txt).
 
 ## Derivation script
 
-- `derive: research/solver/derive-7e.mjs > research/solver/results-derive-7e.txt sha256 90b328c52799be20`
+- `derive: research/solver/derive-7e.mjs > research/solver/results-derive-7e.txt sha256 9ee90243f97a846b`
   (reads results-f1v2.txt; the launcher re-runs this line and refuses to launch if the output or its hash moved).
 - The paired arithmetic: stats.mjs, checked by stats.test.mjs against the review's worked figures (Appendix A and
   section 19).
@@ -202,8 +214,8 @@ The survival change, the reader against off, per case in points, with an 80% int
 - bridge 4+cost: +2 (-0.5 to +5.5). v2's +4.9 came from caution (years below tier 10.7 -> 41.7); the reader reads the
   dated bills, so it may gain less.
 - share 0.95: +15 (+5 to +23). S360: +8 (+2 to +13). S370: +4 (0 to +7).
-- The pooled mean over the 16 cases expected unchanged: 0.0 (-0.1 to +0.1); its 95% interval's lower end about -0.07
-  under no change (results-derive-7e.txt).
+- The pooled (fixed-effect) mean over the 16 cases expected unchanged: 0.0 (-0.1 to +0.1); its 95% interval's lower end
+  about -0.06 under no change (results-derive-7e.txt).
 - The time ratio at 30 points: 1.03 (1.00 to 1.08), from check 6 at 16 points.
 The read gaps: the items' own bands (1-4, 7, 8).
 
@@ -219,14 +231,19 @@ From results-derive-7e.txt (7c's v2 against off, the nearest earlier record for 
 - Look 1 at 1,000 paths can show no material harm, if the true change is near zero, on 10 of the 21 cases with a record.
   It is expected to leave 11 open: S126, bridge 4, S130, bridge 4+cost, share 0.95, S360, wealth x0.5, S366, share 0.78,
   S128 and S370.
-- Look 2 at 3,000 paths, if the true change is near zero, is expected to decide S126, S366 and share 0.78 and to leave
-  bridge 4, wealth x0.5, S130 and S128 open: inconclusive, with their bounds reported (corrected before registration, the
-  forty-seventh review: the half-width first used the 1,000-path discordance at 3,000 paths, a factor of sqrt(3) too
-  small). share 0.95, S360, S370 and bridge 4+cost gained 22.2, 11.5, 5.7 and 4.9 points with v2, so they clear the harm
-  margin through a gain unless the reader loses it.
-- What it cannot detect: the least loss look 2 can call harm is 0.25 to 0.57 points on the covered cases, 0.87 on S130,
-  1.20 on bridge 4+cost and 1.23 on S128. A smaller true loss on those reads inconclusive or no material harm, with its
-  bound.
+- Look 2, if the true change is near zero, is expected (by the exact interval) to decide S126, S366 and share 0.78 at
+  3,000 paths and bridge 4, wealth x0.5 and S130 at 8,000 (exact lower ends -0.23, -0.23 and -0.38 against margins of
+  0.25, 0.25 and 0.5). S128 at 8,000 sits at the edge: its exact lower end is -0.512 against a margin of 0.5, so it may
+  still read inconclusive, by a hair, with its bound reported. At 3,000 paths all four would have stayed open (the
+  forty-eighth review's BLOCKING 1; the maintainer chose 8,000, 25 Sep 22:47 UK). share 0.95, S360, S370 and bridge
+  4+cost gained 22.2, 11.5, 5.7 and 4.9 points with v2, so they clear the harm margin through a gain unless the reader
+  loses it.
+- What it cannot detect: the least loss look 2 can call harm is 0.25 to 0.37 points on the covered cases at 3,000, 0.34 on
+  bridge 4 and wealth x0.5, 0.54 on S130 and 0.74 on S128 at 8,000, and 1.20 on bridge 4+cost at 3,000. A smaller true
+  loss on those reads inconclusive or no material harm, with its bound.
+- The cost of the 8,000 paths: 92 s per 1,000 paths beside the solve (results-look2time.txt: S126 off, 274 s at 1,000
+  paths and 458 s at 3,000, side by side), so about 920 s an arm at 8,000 against 460 s at 3,000 - about 30 minutes more
+  over the four cases' two arms, run beside wave 2.
 - S162, S172 and S168 have no record for this comparison: NOT KNOWN, left to look 2.
 
 ## Budget line
@@ -241,8 +258,9 @@ reduces the bridge class's read gap from tens of points to within +/-5 (items 1-
   the table's own continuation, which reads high there (O9), and moves may lean on it. It would mean the reader fixes the
   bridge misread but exposes the table's general optimism (the review's Finding 2). The next step would then be the
   table-gap decomposition, not F2.
-- **Second:** the pooled interval reaches -0.1 because several covered cases each lose a few paths. It would mean a small
-  systematic cost; the next step is to read which moves changed.
+- **Second:** the pooled (fixed-effect) interval reaches -0.1 because several covered cases each lose a few paths. With
+  fixed effect a gain cannot cause it (results-pooled-floor.txt), so a fire means a small systematic cost; the next step
+  is to read which moves changed.
 - **Third:** share 0.50 or 0.70 differs from off by more than 0.5, through the probability blend against off's log-odds
   blend. It is a miss on item 7, not a falsifier. The blend then changes reads for covered households too, to be checked
   against simulation.
@@ -252,7 +270,7 @@ reduces the bridge class's read gap from tens of points to within +/-5 (items 1-
 
 Any of these (reduce-7e.mjs prints FALSIFIED - NOT CARRIED FORWARD):
 - the exact rule finds harm on any case: a wave-1 case after its looks, a 30-point case or a no-bridge control;
-- the pooled interval's lower end, over the 16 cases expected unchanged, is at or below -0.1 points;
+- the pooled (fixed-effect) interval's lower end, over the 16 cases expected unchanged, is at or below -0.1 points;
 - an in-class case away from the edge misreads by more than 10 with the reader. "In class" is read as in 7c
   (read-f1v2.mjs): every class case except the edge (share 0.95) and the inflow cases (bridge 6, S366), so it includes
   the thin S128 and S130 and the cost case (bridge 4+cost), where the derivation says the read could be optimistic;
@@ -274,7 +292,7 @@ Arm A is off, arm B the reader. v1 and v2 run on the same settings and are repor
 | 2 | Changes the test makes to a household's inputs | 7c's variants of S126 (pension share, bridge length, wealth, a 30k cost in year 2) | the same | SAME |
 | 3 | The target spend and the spending floor, and whether each arm honours the floor | the plan target; floor 0.8; guardrails off | the same | SAME |
 | 4 | The survival asked for, when a run lands | no ask: lambda held at S126's landed 0.0223606797749979 | the same | SAME |
-| 5 | The held-out paths: seed and count, and the SAME paths for every arm (paired) | 1,000 held paths of seed 7011 (held out: the reader was built after misreads seen on seed 7002's paths; the gate checks the seed and the count, 1000, in every ran line); look 2's cases on 3,000 paths of the same seed, whose first 1,000 are wave 1's (the gate checks 3000 in the look-2 file) | the same paths, paired | SAME |
+| 5 | The held-out paths: seed and count, and the SAME paths for every arm (paired) | 1,000 held paths of seed 7011 (held out: the reader was built after misreads seen on seed 7002's paths; the gate checks the seed and the count, 1000, in every ran line); look 2's cases on 8,000 paths of the same seed for bridge 4, wealth x0.5, S130 and S128 and 3,000 for the rest, whose first 1,000 are wave 1's (the gate checks each look-2 case at its own count) | the same paths, paired | SAME |
 | 6 | The search paths (landings, and the rival arms' choice of order), and that nothing chosen on them is reported from them | none | none | N/A - no landing, no rival |
 | 7 | The market world: single-table fold (`MIX=0`), three-world mixture (`MIX=3`), five-world (`MIX=5`) - for the table AND for how every arm is simulated | the three-world mixture (solvePlan), each path's own world in the forward run | the same | SAME |
 | 8 | How each year's return is averaged (quadrature points) | 5 (S360's reader@15 arm: 15, against the reader at 5, reported only) | 5 | SAME |
@@ -299,7 +317,7 @@ Arm A is off, arm B the reader. v1 and v2 run on the same settings and are repor
 | 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | none | none | N/A - no fixed arm |
 | 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | one process per part, every arm | the same process | SAME |
 | 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | survival: the floor paid every year and the minimum pot at the end, simulated; the table's read reported as the gap only | the same | SAME |
-| 30 | The reducer and its version | reduce-7e.mjs (its own gate on every ran line; read-f1v2.mjs refuses exact-final-year arms; it stops at INCOMPLETE unless every file is there with its full count, look 2's file holding exactly the cases look 1 left open; the exact rule, with 46 planted checks and 27 caught mutations, results-reduce-7e-mutations.txt; the logs' stamps checked by fair-gate.mjs's requireFairLogs) | the same | SAME |
+| 30 | The reducer and its version | reduce-7e.mjs (its own gate on every ran line; read-f1v2.mjs refuses exact-final-year arms; it stops at INCOMPLETE unless every file is there with its full count, look 2's file holding exactly the cases look 1 left open; the exact rule, with 50 planted checks and 31 caught mutations, results-reduce-7e-mutations.txt; the logs' stamps checked by fair-gate.mjs's requireFairLogs) | the same | SAME |
 | 31 | Paired or not, and the standard error used | paired on the same paths; the exact rule (Decision rule): exact one-sided McNemar, Clopper-Pearson interval in points, Holm, margins, two looks (stats.mjs) | the same | SAME |
 | 32 | The table's number is never the result: survival is simulated | the table read is reported only as the misread under test | the same | SAME |
 | 33 | For timings: what else the machine was running | the time bar runs last, alone (readertime 30 2, alternated); the waves' solve seconds are reported, not judged | the same | SAME |

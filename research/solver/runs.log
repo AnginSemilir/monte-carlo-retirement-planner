@@ -9,3 +9,4 @@
 25 Sep 00:52 UK | main | research/solver/predictions/quad-ref.md | code bb37f6b16d58 | 912cbbd | load 1.17 1.05 1.02 | bash research/solver/batch-quadref.sh
 25 Sep 03:47 UK | main | research/solver/predictions/bridge-quad.md | code 21c285b7474d | 26f0856 | load 1.00 1.02 1.35 | bash research/solver/batch-bridgequad.sh
 25 Sep 06:45 UK | light | none:  a tiny functional check of audit-s126.mjs's new trace mode (S360 at 4 points, 20 paths) before O22's trace is registered; not a test, its figures are not read | code cbcadc6c9310 | d092207 | load 2.09 1.98 1.41 | node research/solver/audit-s126.mjs trace 4 20 S360
+25 Sep 07:08 UK | main | research/solver/predictions/o22-trace.md | code cbcadc6c9310 | 3deb82d | load 1.33 1.41 1.44 | bash research/solver/batch-o22.sh

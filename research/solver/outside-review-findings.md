@@ -17,7 +17,8 @@ baseline was not your A.
   - Survival rises only where the tier above is allowed: +0.18 ± 0.04 points over six households, and +0.04 ± 0.03 without it.
   - On the three comfortable households (S194, S162, S252), the tier above's survival cost falls from −0.21 ± 0.06 to
     −0.09 ± 0.04.
-- **The registered item landed exactly on the line:** the three pooled came to −8 paths net of 16 discordant, z = −2.000.
+- **The registered readings landed exactly on the line:** item 1 (per household) through S162's −4 of 4, and the
+  falsifier (the three pooled) at −8 paths net of 16 discordant, z = −2.000.
   We now judge ties on whole counts: net² = 4·discordant is "at the line", and 0 of 0 counts as no change.
 
 ## 2. Your template-residual idea for earlier years. Tested by brute force; not needed for this (7h)
@@ -35,7 +36,7 @@ S252 and S330, with and without the tier above, on 3,000 paired paths.
   - the three-world approximation.
 - **Your warning about three worlds was right.** Five worlds instead of three raised S330's survival by +0.27 ± 0.12
   (net 8 of 12, beyond two se). That was a registered item, and it missed. We have not measured the comfortable three's cost
-  under five worlds; that test is registered before Phase 4.
+  under five worlds; that test will be registered before Phase 4.
 
 ## 3. Your variant B: boundary plus residual. The bridge misread calls for it (7i)
 
@@ -56,15 +57,16 @@ None closed to within 10 points. The misread is in reading across the 6-point pe
 averaging will not replace F1. **Variant B is the next build.** It joins our F1 replacement test as a fifth arm, beside
 off, F1 v1, F1 v2 and F2 (a coverage coordinate in bridge years), with the final year exact in every arm.
 
-**One oddity:** at 15 points, S360's simulated survival rose from 34.4 to 36.4, +2.00 ± 0.47 (net 20 of 22), while its table
-read barely moved (0.8 → 2.4). So the averaging changed the policy, not the read. It could be the final year, since this test
+**One oddity (not registered: not an item of this test):** at 15 points, S360's simulated survival rose from 34.4 to 36.4,
++2.00 ± 0.47 (net 20 of 22), while its table read barely moved (0.8 → 2.4). So the averaging changed the policy, not the read. It could be the final year, since this test
 did not hold it exact, or the earlier years. We will trace it before registering the F1 replacement test.
 
 ## 4. Your points on the objective and on testing
 
 - **S versus B versus H.** On S194 the bets lose survival when made: −0.51 ± 0.11 at its first-bet positions. But with
   the option, S194 spends fewer years below target, which is worth +0.127 ± 0.039 survival points in the score's cut term. So
-  per path, survival net of the cut cost changes by −0.140 ± 0.100, which is within noise. Table error or deliberate trade is
+  per path, survival net of the cut cost changes by −0.140 ± 0.100, which is within noise (both not registered: derived
+  from M14b's records afterwards, no prediction). Table error or deliberate trade is
   not yet told apart. Your full-score forced-first-move rollouts (S, B, H reported separately) are the planned next check.
 - **Decision taken today:** the tier above is now a default only where a plan is thin. It is allowed only when the plan's
   simulated survival without it is below 85%, and kept only if the plan is no worse on the same paths.

@@ -88,4 +88,7 @@ q5x/q15x in row 8, q5/q5x and q15/q15x in row 24.
 
 ## Changes after seeing results
 
-None - no O22 trace result exists.
+No O22 trace result exists. After the launch (25 Sep 07:00 UK) and before any result was read, the thirty-fifth review
+found the Written line's order phrase loose by minutes: this file was drafted from 06:37 UK and the tiny functional check
+ran alongside the drafting (its snapshot 06:38 UK, runs.log 06:45 UK); the file was completed, committed and pushed after
+the check finished (07:00:38-40 UK), before the batch launched (07:00:49 UK). Nothing in the question, items or falsifier changed.

@@ -56,7 +56,7 @@ const med = { ...plan, accounts: plan.accounts.map(x => (/^Pensions|^S&S ISA/.te
 const medOff = solvePlan(E, M, med, { lambda: 0.5, points: 8, riskAbove: false }), medUp = solvePlan(E, M, med, { lambda: 0.5, points: 8, riskAbove: true });
 ok(medUp.meta.tiers.length === medOff.meta.tiers.length + 1, 'held at Medium, risk above adds exactly one tier when asked for (M14)');
 ok(solvePlan(E, M, med, { lambda: 0.5, points: 8, riskAbove: true, riskConsent: false }).meta.tiers === null, 'and never without consent to change risk');
-// by default it is the 'auto' rule (maintainer, 24 Sep 16:57 UK, on M14b): thin (simulated survival below 85% without
+// by default it is the 'auto' rule (maintainer: approved 24 Sep 16:55 UK on M14b and held; decided 25 Sep 06:31 UK): thin (simulated survival below 85% without
 // it) and no worse on the same paths; 'on in every plan' lost survival on comfortable plans (results-m14b.txt)
 ok(PRODUCT_DEFAULTS.thinSurvival === 0.85, 'the thin threshold is 85% (M14b)');
 const auto = solvePlan(E, M, med, { lambda: 0.5, points: 8, thinPaths: 200, riskAbove: 'auto' });

@@ -65,9 +65,11 @@ ok(medDefault.meta.riskAbove && medDefault.meta.riskAbove.decision === auto.meta
 const d = auto.meta.riskAbove;
 ok(d && typeof d.survivalWithout === 'number' && (d.survivalWithout >= PRODUCT_DEFAULTS.thinSurvival ? /not thin/.test(d.decision) && auto.meta.tiers.length === medOff.meta.tiers.length : /thin/.test(d.decision)), `held at Medium, the default decides by simulated survival: ${d && d.decision} (${d && (100 * d.survivalWithout).toFixed(1)}% without${d && d.survivalWith !== undefined ? `, ${(100 * d.survivalWith).toFixed(1)}% with` : ''})`);
 ok(!d || !/^on/.test(d.decision) || d.survivalWith >= d.survivalWithout, 'it is kept only when no worse on the same paths');
-const thin = { ...med, spending: { ...med.spending, targetSpend: Math.round(1.6 * target), floorSpend: Math.round(0.8 * 1.6 * target) } };
+// spending raised to 1.8x (1.6x until 25 Sep: with the final year exact that plan simulated 85.0% on these 200 paths,
+// exactly at the threshold, where the averaged final year had read 84.0% - a fixture on the edge, not a thin plan)
+const thin = { ...med, spending: { ...med.spending, targetSpend: Math.round(1.8 * target), floorSpend: Math.round(0.8 * 1.8 * target) } };
 const dt = solvePlan(E, M, thin, { lambda: 0.5, points: 8, thinPaths: 200, riskAbove: 'auto' }).meta.riskAbove;
-ok(dt.survivalWithout < PRODUCT_DEFAULTS.thinSurvival && /^(on|off): thin/.test(dt.decision), `a thin plan (spending raised to 1.6x) is checked with it: ${dt.decision} (${(100 * dt.survivalWithout).toFixed(1)}% -> ${(100 * dt.survivalWith).toFixed(1)}%)`);
+ok(dt.survivalWithout < PRODUCT_DEFAULTS.thinSurvival && /^(on|off): thin/.test(dt.decision), `a thin plan (spending raised to 1.8x) is checked with it: ${dt.decision} (${(100 * dt.survivalWithout).toFixed(1)}% -> ${(100 * dt.survivalWith).toFixed(1)}%)`);
 ok(solvePlan(E, M, thin, { lambda: 0.5, points: 8, riskConsent: false, thinPaths: 200, riskAbove: 'auto' }).meta.riskAbove.decision === 'off: no consent to change risk', 'and without consent the auto rule never applies');
 assert.throws(() => solvePlan(E, M, plan, { lambda: 0.5, points: 8, giaTiers: true }), /taxable/); n++; console.log('PASS  the taxable account\'s tier is refused in the product (M15)');
 

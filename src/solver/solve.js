@@ -1303,6 +1303,12 @@ export const PRODUCT_BASELINE = Object.freeze({
   // step 6 (24 Sep): the M17 floor fix - a year with no money costs what a year at the floor costs, and a raise's
   // credit counts only in the futures that survive. It keeps the plan from spending up into a failure.
   raiseSurvival: true, failureShortfall: true,
+  // The final year integrated exactly (the maintainer, 25 Sep 09:36 UK, on O19, 7j and 7k): survival and the estate in the
+  // last year from the crossing shock, not averaged over the return points. O19: no harm on six households, and it stops
+  // the 5-node staircase pricing a riskier tier at nothing (results-o19.txt, results-o19-exact.txt); 7j: S360's survival
+  // unchanged and its end wealth higher (results-o22-detail.txt, not registered); 7k: 3-9% more solve time at 16 points
+  // (results-finalyear-timing.txt). Callers pass `finalIntegral: false` for the averaged final year.
+  finalIntegral: true,
   // The bridge read: OFF until F2's test (schedule 7e) chooses between off, F1 v1, F1 v2 and F2 in one setting. F1 v2
   // was made the provisional default at 18:21 UK on the condition that it was genuinely better than v1; withdrawn 24 Sep
   // 19:25 UK, since the files do not show that (v2 lost 0.8 +/- 0.32 on bridge 4, results-f1v2.txt, where v1 lost

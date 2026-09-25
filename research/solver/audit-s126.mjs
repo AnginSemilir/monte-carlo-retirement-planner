@@ -127,9 +127,12 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace } 
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
-  // riskAbove and finalIntegral are passed only when a mode names them (the trace mode); unset, the product's defaults hold
+  // riskAbove and finalIntegral are passed only when a mode names them (the trace mode, which names finalIntegral true or
+  // false in every arm); unset, the product's defaults hold (the final year exact by default since the maintainer's decision, 25 Sep 09:36 UK).
+  // Every mode's ran line records the final year it ran (until 25 Sep only the trace mode's did), so a re-run of an older
+  // mode (7c's f1v2, 7i's quad), now exact by default, cannot pass a ran-line gate against files that ran it averaged.
   const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
-    ...(finalIntegral ? { finalIntegral: true } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}) });   // F1 off is explicit, whatever the product default
+    ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}) });   // F1 off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
   const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
   let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(7002, NP, m.ctx.totalYears);
@@ -138,7 +141,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace } 
   paths.forEach((zs, i) => { if (tr) tr.row = i; const o = runPolicy(r, zs, tr ? { trace: tr } : {}); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
   const sim = 100 * ok / NP;
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
-  const ran = `mix ${r.meta.mixture} pts ${r.g.np} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} bridgeRead ${r.meta.bridgeRead}${trace ? ` finalIntegral ${r.meta.finalIntegral === true}` : ''}`;
+  const ran = `mix ${r.meta.mixture} pts ${r.g.np} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} bridgeRead ${r.meta.bridgeRead} finalIntegral ${r.meta.finalIntegral === true}`;
   return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran };
 }
 if (mode === 'f1v2') {
@@ -233,7 +236,7 @@ if (mode === 'f1v2') {
     for (let r = 0; r < RUNS; r++) {
       for (const fi of (r % 2 === 0 ? [false, true] : [true, false])) {
         const t0 = process.hrtime.bigint();
-        const res = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: false, riskAbove: true, ...(fi ? { finalIntegral: true } : {}) });
+        const res = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: false, riskAbove: true, finalIntegral: fi });
         const secs = Number(process.hrtime.bigint() - t0) / 1e9;
         if ((res.meta.finalIntegral === true) !== fi) { console.error(`audit-s126: ${id} asked finalIntegral ${fi}, the solve ran ${res.meta.finalIntegral}`); process.exit(2); }
         times[id][fi ? 'on' : 'off'].push(secs);

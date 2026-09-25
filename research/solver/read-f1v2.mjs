@@ -44,9 +44,12 @@ const field = (ran, k) => { const m = new RegExp(`(?:^| )${k} (\\S+)`).exec(ran 
 const bad = [];
 for (const r of rows) {
   if (!r.ranOff || !r.ranV2) { bad.push(`${r.id}: no "ran" lines`); continue; }
-  const strip = s => s.replace(/ bridgeRead \S+$/, '');
+  // unanchored (25 Sep): since the exact final year became the default, audit-s126's ran line ends in its finalIntegral, not the bridge read
+  const strip = s => s.replace(/ bridgeRead \S+/, '');
   if (strip(r.ranOff) !== strip(r.ranV2)) bad.push(`${r.id}: the arms differ beyond the bridge read (OFF "${r.ranOff}" / V2 "${r.ranV2}")`);
   if (field(r.ranOff, 'bridgeRead') !== 'false' || field(r.ranV2, 'bridgeRead') !== '2') bad.push(`${r.id}: the bridge read is not off against 2`);
+  // the test ran the final year averaged (before 25 Sep a ran line did not record it); a re-run on today's default would run it exact
+  if ([r.ranOff, r.ranV2].some(x => ![null, 'false'].includes(field(x, 'finalIntegral')))) bad.push(`${r.id}: an arm ran the final year exact, and the prediction ran it averaged`);
   const want = { mix: '3', pts: '16', grid: 'total16x6x6', lambda: '0.0223606797749979', raiseSurv: 'true', failShort: 'floor', tiersAbove: '1' };
   for (const [k, v] of Object.entries(want)) if (field(r.ranOff, k) !== v) bad.push(`${r.id}: ${k} is ${field(r.ranOff, k)}, not ${v}`);
   const levels = (field(r.ranOff, 'levels') || '').split(',').map(Number);

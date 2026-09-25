@@ -67,3 +67,7 @@ PREDICTION CHECK (predictions/quad-ref.md)
 
 FALSIFIER - with the tier above, 15 points raises survival beyond two se, pooled over the three: -0.07 +/- 0.04 -> not fired
   SEPARATELY - 15 points lowers survival beyond two se: nowhere
+
+# Annotation, 25 Sep (the forty-third review; not reducer output): the CHECK above ("path for path", "N paths and M
+# path-years differ") compares survival per path and the traced tier and spending level per path-year - not the draw
+# order or harvest, which the record does not hold. It is a reproduction check of a same-code rerun; no result rests on it.

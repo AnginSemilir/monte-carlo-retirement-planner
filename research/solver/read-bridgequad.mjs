@@ -40,6 +40,8 @@ for (const r of rows) {
   if (strip(r.ran5) !== strip(r.ran15)) bad.push(`${r.id}: the arms differ beyond the return points (Q5 "${r.ran5}" / Q15 "${r.ran15}")`);
   if (field(r.ran5, 'quad') !== '5' || field(r.ran15, 'quad') !== '15') bad.push(`${r.id}: the return points are not 5 against 15`);
   if (field(r.ran5, 'bridgeRead') !== 'false' || field(r.ran15, 'bridgeRead') !== 'false') bad.push(`${r.id}: F1 is not off in both arms`);
+  // the test ran the final year averaged (before 25 Sep a ran line did not record it); a re-run on today's default would run it exact
+  if ([r.ran5, r.ran15].some(x => ![null, 'false'].includes(field(x, 'finalIntegral')))) bad.push(`${r.id}: an arm ran the final year exact, and the prediction ran it averaged`);
   const want = { mix: '3', pts: '16', grid: 'total16x6x6', lambda: '0.0223606797749979', raiseSurv: 'true', failShort: 'floor', tiersAbove: '1' };
   for (const [k, v] of Object.entries(want)) if (field(r.ran5, k) !== v) bad.push(`${r.id}: ${k} is ${field(r.ran5, k)}, the prediction names ${v}`);
 }

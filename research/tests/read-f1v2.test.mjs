@@ -34,6 +34,10 @@ const plants = {
   'fold, both arms': [Object.fromEntries(CASES.map(id => [id, { rOff: ran('false').replace('mix 3', 'mix 0'), rOn: ran(2).replace('mix 3', 'mix 0') }])), 'GATE FAILED'],
   'another grid': [Object.fromEntries(CASES.map(id => [id, { rOff: ran('false').replace('total16x6x6', 'pots16x16x16'), rOn: ran(2).replace('total16x6x6', 'pots16x16x16') }])), 'GATE FAILED'],
   'raise cap missing': [Object.fromEntries(CASES.map(id => [id, { rOff: ran('false').replace('levels 1.1', 'levels 1.2,1.1'), rOn: ran(2).replace('levels 1.1', 'levels 1.2,1.1') }])), 'GATE FAILED'],
+  // 25 Sep: audit-s126's ran line now ends in the final year it ran; the gate must still strip the bridge read from such a
+  // line, and must refuse an arm run exact (the test's prediction ran the final year averaged)
+  'ran lines ending in finalIntegral false': [Object.fromEntries(CASES.map(id => [id, { rOff: `${ran('false')} finalIntegral false`, rOn: `${ran(2)} finalIntegral false` }])), 'NOT FALSIFIED'],
+  'an arm with the final year exact': [{ S124: { rOff: `${ran('false')} finalIntegral true`, rOn: `${ran(2)} finalIntegral true` } }, 'GATE FAILED'],
   'in-class misread 12': [{ 'bridge 4': { tOn: 87 } }, 'FALSIFIED'],
   'cost not counted (reads 99.5)': [{ 'bridge 4+cost': { tOn: 99.5 } }, 'FALSIFIED'],
   'S366 misread 20': [{ S366: { tOn: 79 } }, 'FALSIFIED'],

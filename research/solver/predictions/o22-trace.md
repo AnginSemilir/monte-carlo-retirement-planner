@@ -92,3 +92,6 @@ No O22 trace result exists. After the launch (25 Sep 07:00 UK) and before any re
 found the Written line's order phrase loose by minutes: this file was drafted from 06:37 UK and the tiny functional check
 ran alongside the drafting (its snapshot 06:38 UK, runs.log 06:45 UK); the file was completed, committed and pushed after
 the check finished (07:00:38-40 UK), before the batch launched (07:00:49 UK). Nothing in the question, items or falsifier changed.
+- 25 Sep 07:35 UK, before any result was read (the outside reviewer's second reply): the Question's "while its opening
+  table read barely moves (0.8 -> 2.4)" overstated it - the read rose 0.8 -> 2.4 as survival rose 34.4 -> 36.4, and what
+  barely moved is the gap (results-bridgequad.txt). The items compare survival only and are unchanged.

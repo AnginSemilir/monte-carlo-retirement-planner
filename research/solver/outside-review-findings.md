@@ -58,7 +58,7 @@ averaging will not replace F1. **Variant B is the next build.** It joins our F1 
 off, F1 v1, F1 v2 and F2 (a coverage coordinate in bridge years), with the final year exact in every arm.
 
 **One oddity (not registered: not an item of this test):** at 15 points, S360's simulated survival rose from 34.4 to 36.4,
-+2.00 ± 0.47 (net 20 of 22), while its table read barely moved (0.8 → 2.4). So the averaging changed the policy, not the read. It could be the final year, since this test
++2.00 ± 0.47 (net 20 of 22), while its table read rose from 0.8 to 2.4 (corrected 25 Sep after your reply: the gap barely moved, not the read). It could be the final year, since this test
 did not hold it exact, or the earlier years. We will trace it before registering the F1 replacement test.
 
 ## 4. Your points on the objective and on testing

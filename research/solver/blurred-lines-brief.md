@@ -290,7 +290,7 @@ narrower for more than 16 years. The table therefore interpolates straight acros
   none closes to within 10), so **the bridge misread is in the read across the pension-share axis, not the
   averaging**: better averaging does not make F1 redundant, and your boundary-plus-residual reader is the fix we will
   build and test against F1 (plan item 7e). One oddity: 15 points raise one bridge household's (S360) survival by
-  2.0 ± 0.5 points while its table read barely moves.
+  2.0 ± 0.5 points; its opening read rose too (0.8 to 2.4), so the gap barely moved.
 
 **Not a cliff effect.** On one household (S172) the option held a riskier tier every year and raised the median estate
 by 65%, at a cost of 0.77 survival points. That is the estate term in the score doing what it was built for.

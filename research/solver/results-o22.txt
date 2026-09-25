@@ -25,3 +25,9 @@ DESCRIPTIVE (not an item) - the 21 paths 15 points save (final year averaged): t
   no difference before the 5-point run fails: 0; a tier first: 2; a spending level first: 19
   first-difference year: median 7 of 45; years before the 5-point run fails: median 0; the 5-point run fails in its last year on 0 of 21
   at that year: pension share median 0%, wealth median 0
+
+# Annotation, 25 Sep (the forty-second review; not reducer output): the DESCRIPTIVE block above compares the traced tier and
+# spending level only - not the draw order or harvest - and its "first year the runs differ" lands on the failing run's
+# failure year, a trace slot runPolicy never writes (it returns before traceYear), so "a spending level first: 19",
+# "years before the 5-point run fails: median 0" and "pension share median 0%, wealth median 0" read empty slots. The
+# measured detail is in results-o22-detail.txt (o22-detail.mjs), which reads wealth too.

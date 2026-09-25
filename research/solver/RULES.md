@@ -68,6 +68,9 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    and every start sits in review-log.md beside its receipt, so a start with no receipt is visible.
 7. The smoke run exercises only its own modes; the audit scripts' outputs record no code.
 8. The judgement rules rest on the reviewer, a second model, not proof.
+   Also: fair-gate.mjs's row 8 line 'final-year integration' reads a file without the exact final year as "5 nodes", which is
+   wrong when QUAD is not 5 (the final year then uses the arm's own points); fairness is unaffected, since the gate compares
+   finalIntegral and quadNodes on separate lines (the thirtieth review, 25 Sep; fair-gate.mjs is locked).
 9. A receipt is stamped with the plan as it stands when the receipt is written, not the version the reviewer read:
    the plan must not change while a review runs (Claude holds plan edits until the receipt; seen 24 Sep 12:16 UK, when
    a review's receipt covered text committed during it).

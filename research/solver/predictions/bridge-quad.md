@@ -19,7 +19,7 @@ O19 showed the 5-point average misprices a steep final year. The bridge cliff is
 it depends on accessible money, W x (1 - share), and the table stores it at 6 share points, so at a position between two
 share columns the read blends a live column with a dead one whatever the averaging. More return points change how next
 year's table is averaged over growth, not where the share columns sit. F1's dead-corner drop was the fix that closed these
-reads (results-f1v2.txt: the gaps collapse to about zero with v2). So finer averaging should leave the gaps nearly as large.
+reads (results-f1v2.txt: with v2 most gaps fall within about 1.5 points; share 0.95 stays at -21.7). So finer averaging should leave the gaps nearly as large.
 
 ## Prediction
 
@@ -83,6 +83,10 @@ Arm A is 5 return points every year and arm B is 15, F1 off in both, both solves
 
 ## Changes after seeing results
 
-No bridge-quad result exists. Before any run (25 Sep ~00:50 UK): the Prediction section said the final year stayed at 5
+No bridge-quad result exists. Before any run (25 Sep 00:44 UK): the Prediction section said the final year stayed at 5
 nodes in both arms; with the exact final year off, the final year is averaged over the arm's own 5 or 15 points, as row 8
 already said. Corrected; nothing else changed.
+- Before any run (25 Sep 01:09 UK), after the thirtieth review: audit-s126.mjs's quad line also prints the whole path
+  counts (net and discordant), and read-bridgequad.mjs judges the tie rule on them (|net| = 2 x sqrt(discordant) exactly),
+  because the printed d and se are rounded to 0.01 and could not separate a tie from a near-tie at 1,000 paths; the
+  Derivation's "gaps collapse to about zero with v2" corrected (share 0.95 stays at -21.7). Nothing else changed.

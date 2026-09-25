@@ -6,3 +6,7 @@
   beside it, not registered: the three pooled with 5 nodes: -0.2111 +/- 0.0556  z -3.800
   beside it, not registered: exact - 5 nodes, pooled over the three: tier above allowed 0.1111 +/- 0.0385 (z 2.887); no tier above -0.0111 +/- 0.0248 (z -0.447)
   beside it, not registered: exact - 5 nodes, pooled over all six: tier above allowed 0.1778 +/- 0.0393 (z 4.525); no tier above 0.0389 +/- 0.0266 (z 1.460)
+  beside it, not registered: S194 the tier above's cost, exact minus 5 nodes, per path: 0.1000 +/- 0.0745  z 1.342
+  beside it, not registered: S162 the tier above's cost, exact minus 5 nodes, per path: 0.0667 +/- 0.0817  z 0.816
+  beside it, not registered: S252 the tier above's cost, exact minus 5 nodes, per path: 0.2000 +/- 0.0816  z 2.452
+  beside it, not registered: the same, pooled over the three: 0.1222 +/- 0.0458  z 2.669

@@ -19,11 +19,11 @@ const num = x => Number(x);
 const rows = [];
 const lines = log.split('\n');
 lines.forEach((l, i) => {
-  const m = /^(\S+(?: \S+)?)\s+\| Q5 table\s+([\d.]+) sim\s+([\d.]+) gap\s+(-?[\d.]+) \| Q15 table\s+([\d.]+) sim\s+([\d.]+) gap\s+(-?[\d.]+) \| survival ([+-][\d.]+) \+\/- ([\d.]+) \| (\d+) \/ (\d+) s$/.exec(l);
+  const m = /^(\S+(?: \S+)?)\s+\| Q5 table\s+([\d.]+) sim\s+([\d.]+) gap\s+(-?[\d.]+) \| Q15 table\s+([\d.]+) sim\s+([\d.]+) gap\s+(-?[\d.]+) \| survival ([+-][\d.]+) \+\/- ([\d.]+) \(net (-?\d+) of (\d+) discordant\) \| (\d+) \/ (\d+) s$/.exec(l);
   if (!m) return;
   const r5 = /^\s*ran Q5: (.*)$/.exec(lines[i + 1] || ''), r15 = /^\s*ran Q15: (.*)$/.exec(lines[i + 2] || '');
   rows.push({ id: m[1], q5: { table: num(m[2]), sim: num(m[3]), gap: num(m[4]) }, q15: { table: num(m[5]), sim: num(m[6]), gap: num(m[7]) },
-    d: num(m[8]), se: num(m[9]), secs: [num(m[10]), num(m[11])], ran5: r5 ? r5[1].trim() : null, ran15: r15 ? r15[1].trim() : null });
+    d: num(m[8]), se: num(m[9]), net: num(m[10]), disc: num(m[11]), secs: [num(m[12]), num(m[13])], ran5: r5 ? r5[1].trim() : null, ran15: r15 ? r15[1].trim() : null });
 });
 const missing = CASES.filter(id => !rows.some(r => r.id === id)), extra = rows.filter(r => !CASES.includes(r.id)).map(r => r.id);
 if (missing.length || extra.length || rows.length !== CASES.length) {
@@ -47,7 +47,10 @@ console.log('BRIDGE QUAD TEST, READ AGAINST predictions/bridge-quad.md');
 if (bad.length) { console.log(`\nFAIR-TEST GATE: FAILED - nothing is scored\n  ${bad.join('\n  ')}`); process.exit(1); }
 console.log('\nFAIR-TEST GATE: passed - on all 6 cases the two arms ran the same settings but the return points (5, 15), F1 off in both, at the named settings\n');
 const f = (x, d = 1) => x.toFixed(d), sg = x => (x >= 0 ? '+' : '') + x.toFixed(2);
-const beyondLow = r => r.d < -2 * r.se, atLine = r => Math.abs(r.d + 2 * r.se) < 1e-9 || Math.abs(r.d - 2 * r.se) < 1e-9;
+// the tie rule on whole path counts: |net| = 2 x sqrt(discordant) exactly is a tie (net^2 = 4 disc); the printed d and se are
+// rounded to 0.01 and cannot separate a tie from a near-tie at 1,000 paths (the thirtieth review)
+const beyondLow = r => r.net < 0 && r.net * r.net > 4 * r.disc, atLine = r => r.net !== 0 && r.net * r.net === 4 * r.disc;
+if (!(beyondLow({ net: -22, disc: 120 }) && !atLine({ net: -22, disc: 120 }) && atLine({ net: -4, disc: 4 }) && !beyondLow({ net: -4, disc: 4 }) && !beyondLow({ net: -21, disc: 120 }))) { console.log('PLANTED CHECK FAILED: the tie rule'); process.exit(1); }
 console.log('case          gap 5 points -> 15 points     table 5 -> 15      sim 5 -> 15      survival 15 - 5 (paired se)   solve s 5 / 15');
 for (const r of rows) console.log(`${r.id.padEnd(13)} ${f(r.q5.gap).padStart(7)} -> ${f(r.q15.gap).padStart(7)}          ${f(r.q5.table).padStart(5)} -> ${f(r.q15.table).padStart(5)}    ${f(r.q5.sim).padStart(5)} -> ${f(r.q15.sim).padStart(5)}    ${sg(r.d)} +/- ${r.se.toFixed(2)}${atLine(r) ? ' AT THE LINE' : ''}            ${r.secs[0]} / ${r.secs[1]}`);
 
@@ -66,7 +69,7 @@ console.log(`\nCHECK - the 5-point arm reproduces 7c's OFF arm (table / sim, to 
 console.log('\nPREDICTION CHECK');
 const big = rows.filter(r => Math.abs(r.q5.gap) > 40), stay = big.filter(r => Math.abs(r.q15.gap) > 30);
 console.log(`  1. every case misreading by more than 40 at 5 points still misreads by more than 30 at 15: ${stay.length} of ${big.length} (${big.map(r => `${r.id} ${f(r.q15.gap)}`).join(', ')}) -> ${stay.length === big.length ? 'HELD' : 'MISSED'}`);
-const losers = rows.filter(beyondLow), tied = rows.filter(r => Math.abs(r.d + 2 * r.se) < 1e-9 && r.d < 0);
+const losers = rows.filter(beyondLow), tied = rows.filter(r => r.net < 0 && atLine(r));
 console.log(`  2. 15 points loses survival beyond two se on no case: ${losers.length ? 'MISSED - ' + losers.map(r => `${r.id} ${sg(r.d)} +/- ${r.se.toFixed(2)}`).join('; ') : 'HELD'}${tied.length ? ` (at the line: ${tied.map(r => r.id).join(', ')})` : ''}`);
 const closed = rows.filter(r => Math.abs(r.q15.gap) <= 10 && Math.abs(r.q5.gap) > 10);
 console.log(`\nFALSIFIER - 15 points closes the gap to within 10 on at least half the cases (3 of 6): ${closed.length} (${closed.map(r => r.id).join(', ') || 'none'}) -> ${closed.length >= 3 ? 'FALSIFIED (the misread is mostly averaging)' : 'not fired'}`);

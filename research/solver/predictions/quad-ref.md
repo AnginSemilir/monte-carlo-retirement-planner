@@ -92,4 +92,16 @@ without the tier above (four arms). The 5-world arm is compared with `qr-u5` alo
 
 ## Changes after seeing results
 
-None - no quad-ref result exists.
+No quad-ref result exists. After the launch (25 Sep 00:45 UK) and before any result was read, the thirtieth review found
+(declared here; the registered text above is left as it was):
+- **Row 29:** reduce-quadref.mjs computes no cuts; the row's "the cuts as in reduce-o19.mjs, supplementary only" is void.
+- **Row 31:** item 2's difference-in-differences uses the per-path sample se, not sqrt(discordant)/N.
+- **Item 2's power:** a hold shows only that the change in the tier above's cost is under about two se (about 0.09); it
+  cannot tell the remainder staying from its full removal (O19's remainder is -0.0889; the same measure from 5 nodes to
+  exact on O19's files is +0.1222 +/- 0.0458 over the three, results-o19-exact.txt, not registered).
+- **The Question's O19 figures** (+0.18 +/- 0.04; -0.21 -> -0.09) stand beside O19's registered reading and were not
+  registered there.
+- **The tie rule** is judged on whole path counts (|net| = 2 x sqrt(discordant) exactly) where they exist, and on the
+  figures only for the per-path difference-in-differences; reduce-quadref.mjs's planted check now has d15 unlike d5 and
+  checks the se (a copy dropping d15, using d5 for it, or leaving /n out of the se now stops it).
+Nothing in the question, the items or the falsifier changed.

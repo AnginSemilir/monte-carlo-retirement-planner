@@ -1344,8 +1344,9 @@ export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, e
  * risk; nothing happens where the pension is already at the top tier). M14b re-checked it under today's defaults
  * (results-m14b.txt) and FALSIFIED it for comfortable plans: S172, S194 and S162 lose survival beyond two paired se.
  * 'auto' at 85% was approved, then held by the maintainer for M14c and O19 (both read 24-25 Sep: results-m14c.txt,
- * results-o19.txt - the 5-node final year mispriced the tier above, and exact integration, `finalIntegral`, halves its
- * cost on those plans); until that
+ * results-o19.txt - with the final year integrated exactly, `finalIntegral`, the tier above's cost on S194, S162 and S252
+ * pooled goes from about -0.21 to -0.09 survival points, a figure beside O19's registered reading, not registered);
+ * until that
  * decision the default is still on.
  *
  * `riskAbove: 'auto'` keeps the earlier, more cautious rule (maintainer's first choice, 07:28 UK), for use if M14b finds

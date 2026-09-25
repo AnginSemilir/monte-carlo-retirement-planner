@@ -33,3 +33,11 @@ for (const [lab, ids] of [['the three', three], ['all six', six]]) {
   const Q = poolOf(ids.map(id => pair(rec('o19-u5', id), rec('o19-ux', id)))), Z = poolOf(ids.map(id => pair(rec('o19-d5', id), rec('o19-dx', id))));
   console.log(`  beside it, not registered: exact - 5 nodes, pooled over ${lab}: tier above allowed ${Q.d.toFixed(4)} +/- ${Q.se.toFixed(4)} (z ${(Q.d / Q.se).toFixed(3)}); no tier above ${Z.d.toFixed(4)} +/- ${Z.se.toFixed(4)} (z ${(Z.d / Z.se).toFixed(3)})`);
 }
+// the change in the tier above's cost from 5 nodes to exact, per path: (ux - dx) - (u5 - d5), mean and sample se over the
+// paths (not registered; it sizes what a later test must detect - the thirtieth review)
+const did = (d5, u5, dx, ux) => { const n = d5.N; let m = 0; const v = new Float64Array(n); for (let i = 0; i < n; i++) { v[i] = 100 * ((ux.paths.survived[i] - dx.paths.survived[i]) - (u5.paths.survived[i] - d5.paths.survived[i])); m += v[i]; } m /= n; let s = 0; for (const x of v) s += (x - m) ** 2; return { d: m, se: Math.sqrt(s / (n - 1) / n) }; };
+{ const mk = a => ({ N: 4, paths: { survived: a } }), P = did(mk([1, 1, 1, 1]), mk([0, 1, 1, 1]), mk([1, 1, 1, 0]), mk([1, 1, 1, 0])); if (Math.abs(P.d - 25) > 1e-9 || Math.abs(P.se - 25) > 1e-9) { console.log('PLANTED CHECK FAILED: the difference-in-differences'); process.exit(1); } }
+const DD = three.map(id => [id, did(rec('o19-d5', id), rec('o19-u5', id), rec('o19-dx', id), rec('o19-ux', id))]);
+for (const [id, x] of DD) console.log(`  beside it, not registered: ${id} the tier above's cost, exact minus 5 nodes, per path: ${x.d.toFixed(4)} +/- ${x.se.toFixed(4)}  z ${(x.d / x.se).toFixed(3)}`);
+const PD = poolOf(DD.map(([, x]) => x));
+console.log(`  beside it, not registered: the same, pooled over the three: ${PD.d.toFixed(4)} +/- ${PD.se.toFixed(4)}  z ${(PD.d / PD.se).toFixed(3)}`);

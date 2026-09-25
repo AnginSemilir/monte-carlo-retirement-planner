@@ -170,9 +170,10 @@ if (mode === 'f1v2') {
     const h = mk();
     if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
     const a = measureV2(h, false, 5), b = measureV2(h, false, 15);
-    let disc = 0; for (let j = 0; j < NP; j++) if (a.okArr[j] !== b.okArr[j]) disc++;
+    let disc = 0, net = 0; for (let j = 0; j < NP; j++) if (a.okArr[j] !== b.okArr[j]) { disc++; net += b.okArr[j] ? 1 : -1; }
     const d = b.sim - a.sim, se = 100 * Math.sqrt(disc) / NP;
-    console.log(`${id.padEnd(16)} | Q5 table ${f1(a.table).padStart(5)} sim ${f1(a.sim).padStart(5)} gap ${f1(a.gap).padStart(6)} | Q15 table ${f1(b.table).padStart(5)} sim ${f1(b.sim).padStart(5)} gap ${f1(b.gap).padStart(6)} | survival ${d >= 0 ? '+' : ''}${d.toFixed(2)} +/- ${se.toFixed(2)} | ${Math.round(a.secs)} / ${Math.round(b.secs)} s`);
+    // the whole path counts too: the tie rule (exactly two se) is judged on them, not on the rounded figures (the thirtieth review)
+    console.log(`${id.padEnd(16)} | Q5 table ${f1(a.table).padStart(5)} sim ${f1(a.sim).padStart(5)} gap ${f1(a.gap).padStart(6)} | Q15 table ${f1(b.table).padStart(5)} sim ${f1(b.sim).padStart(5)} gap ${f1(b.gap).padStart(6)} | survival ${d >= 0 ? '+' : ''}${d.toFixed(2)} +/- ${se.toFixed(2)} (net ${net} of ${disc} discordant) | ${Math.round(a.secs)} / ${Math.round(b.secs)} s`);
     console.log(`${''.padEnd(16)} ran Q5:  ${a.ran}`);
     console.log(`${''.padEnd(16)} ran Q15: ${b.ran}`);
   });

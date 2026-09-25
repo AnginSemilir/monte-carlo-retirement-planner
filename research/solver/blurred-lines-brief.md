@@ -274,10 +274,12 @@ narrower for more than 16 years. The table therefore interpolates straight acros
   S194): with the option S194 spends fewer years below target, worth about 0.13 survival points in the score's cut term;
   paired per path, survival less the cut cost changes by −0.14 ± 0.10 points (−0.19 ± 0.10 with the charge for years
   without money), within noise of zero. So a table error and a deliberate trade are not yet told apart.
-- **A newer lead, from outside review of this brief:** the final year's 5-node average is a staircase (section 4.4). For
-  one pot in one year, at a pot 1.20–1.25 times the minimum, it prices Medium → Medium/High at 0.00 survival points
-  where the exact cost is 2.0–3.4. The final year integrated exactly (the crossing shock) is built and is being tested
-  on these households now, with and without the tier above, with each arm's cuts reported beside survival.
+- **A newer lead, from outside review of this brief, now tested (O19):** the final year's 5-node average is a
+  staircase (section 4.4). Integrated exactly (the crossing shock), survival rises only where the tier above is allowed
+  (+0.18 ± 0.04 points over six households; +0.04 ± 0.03 without it), and the three comfortable households' tier-above
+  cost goes from −0.21 ± 0.06 to −0.09 ± 0.04 points. Those figures sit beside O19's registered reading, whose item 1
+  and falsifier landed exactly at two standard errors. A test now running (7h) asks whether averaging the earlier
+  years more finely removes the rest; another (7i) asks whether the bridge misread is averaging or representation.
 
 **Not a cliff effect.** On one household (S172) the option held a riskier tier every year and raised the median estate
 by 65%, at a cost of 0.77 survival points. That is the estate term in the score doing what it was built for.

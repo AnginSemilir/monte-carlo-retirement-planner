@@ -1,20 +1,26 @@
 # 7j (O22) in detail: the paths the 5- and 15-point runs disagree on (descriptive, not an item)
-the exact final year against averaged: 3 path-years differ at 5 points, 2 at 15 points (of 46000)
+tier and level only (the trace's two move fields): the exact final year against averaged differs on 3 path-years at 5 points, 2 at 15 points (of 46000)
+wealth, 15 - 5 points, the final year averaged (q15 - q5): differs on 1000 of 1000 paths, first in year 0 (median 0); end-of-plan wealth on the 343 paths both survive, paired: -116732 +/- 46654 (z -2.50)
+wealth, 15 - 5 points, the final year exact (q15x - q5x): differs on 1000 of 1000 paths, first in year 0 (median 0); end-of-plan wealth on the 343 paths both survive, paired: -127030 +/- 46372 (z -2.74)
+wealth, exact - averaged final year, 5 points (q5x - q5): differs on 127 of 1000 paths, first in year 10 (median 35); end-of-plan wealth on the 344 paths both survive, paired: +15226 +/- 5058 (z 3.01)
+wealth, exact - averaged final year, 15 points (q15x - q15): differs on 214 of 1000 paths, first in year 4 (median 44); end-of-plan wealth on the 364 paths both survive, paired: +4826 +/- 1158 (z 4.17)
 
 saved by 15 points (q5 fails, q15 survives): 21 paths
   failing run fails in a spending year: 21; at the end of the plan (under the minimum pot): 0
-  the two runs identical (tier and level) in every year before the failure year: 19 of 21
+  the two runs' tier and level the same in every year before the failure year: 19 of 21 (the draw order and harvest are not traced)
+  the first year their wealth differs: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   failure year (years from the start): median 7, range 6-7
   the failing run's last paid year: wealth median 290520, pension share median 99%
-  the surviving run in that failure year: spending level (% of target) median 80; tier code median 0
+  the surviving run in that failure year: spending level (% of target) median 80, at the floor (80) on 16 of 21; tier code median 0
   per path (path: failure year, first difference, wealth and pension share the year before, the survivor's level that year): 20: 7, 7, 308096 at 99%, 80; 25: 7, 7, 256159 at 99%, 80; 110: 7, 7, 202264 at 98%, 80; 240: 7, 7, 327350 at 99%, 80; 265: 7, 7, 316352 at 99%, 80; 270: 7, 1, 375742 at 99%, 100; 271: 7, 7, 175231 at 98%, 80; 383: 7, 7, 366593 at 99%, 80; 404: 6, 6, 300189 at 99%, 80; 465: 7, 7, 240252 at 98%, 80; 470: 7, 7, 421478 at 100%, 110; 473: 7, 7, 185609 at 98%, 80; 520: 7, 7, 497632 at 99%, 110; 527: 7, 7, 319724 at 99%, 80; 586: 7, 7, 216567 at 98%, 80; 587: 7, 7, 290520 at 99%, 80; 680: 7, 7, 181226 at 98%, 80; 774: 7, 1, 211341 at 98%, 80; 883: 7, 7, 245725 at 99%, 95; 892: 7, 7, 216769 at 99%, 95; 931: 7, 7, 392020 at 99%, 80
 
 lost by 15 points (q5 survives, q15 fails): 1 paths
   failing run fails in a spending year: 1; at the end of the plan (under the minimum pot): 0
-  the two runs identical (tier and level) in every year before the failure year: 1 of 1
+  the two runs' tier and level the same in every year before the failure year: 1 of 1 (the draw order and harvest are not traced)
+  the first year their wealth differs: 0
   failure year (years from the start): median 7, range 7-7
   the failing run's last paid year: wealth median 347648, pension share median 99%
-  the surviving run in that failure year: spending level (% of target) median 80; tier code median 0
+  the surviving run in that failure year: spending level (% of target) median 80, at the floor (80) on 1 of 1; tier code median 0
   per path (path: failure year, first difference, wealth and pension share the year before, the survivor's level that year): 472: 7, 7, 347648 at 99%, 80
 
 # S360's ages, from the scenario library (node -e over research/policy-study/scenarios.mjs, buildScenarios(), S360's plan.demographics):

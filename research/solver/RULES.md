@@ -279,8 +279,15 @@ checked by the plan-auditor by hand.
    because pathsForSeed builds path i from seed + i x 7919, so the first 1,000 of 3,000 are the same paths).
 8. **Replication before a default changes:** a second held-out seed or panel, unless overwhelming (Holm-adjusted p below
    0.001 and an effect above twice the margin).
-9. **A seed registry:** 7001 search, 7002 tuning, 7003 Phase 4 only, 7004 second seed, 7005 selection, 7011 M14b and 7e,
-   7012 K6 (added 25 Sep 22:01 UK), 7101 the 'auto' rule. The launcher is to refuse a reserved seed for any other use: NOT BUILT (it needs a Seeds field in each prediction; the plan-auditor checks seeds by hand until then).
+9. **A seed registry:** 7001 search, 7002 tuning, 7003 Phase 4 only, 7004 second seed, 7005 selection, 7011 held out
+   for M14b, M14c, O19, quad-ref and 7e (M14c, O19 and quad-ref were missing from this list until 25 Sep 22:20 UK; their
+   batches ran on it), 7012 K6 (added 25 Sep 22:01 UK), 7101 the 'auto' rule. Built 25 Sep 22:20 UK under the
+   maintainer's unlock of 22:14 UK (their decision 3): the registry is check-prediction.mjs's SEED_REGISTRY, pinned to
+   this list by plan-checker.test.mjs; a prediction written after it carries "- **Seeds:**" (each seed registered, each
+   reserved one - 7003, 7011, 7012 - its own); the launcher reads the seeds in the command and the scripts it names and
+   refuses a reserved seed under any other prediction or under a measurement, and a seed the Seeds field does not
+   declare (planted: 15 checks; the launcher shown refusing 7011 under a measurement and 7003 under m14b.md). Its limit: a
+   seed a script takes by default (audit-s126.mjs and experiment.mjs default to 7002) is in no text the launcher reads.
 
 Enforced by: `stats.mjs` (the arithmetic; `research/tests/stats.test.mjs` reproduces the review's worked figures and
 its planted outcomes); each reducer on the rule carries planted checks and a mutation script showing them able to fail

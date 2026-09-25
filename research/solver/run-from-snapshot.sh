@@ -61,6 +61,17 @@ else
   echo "=== prediction $PRED, registered in $(git log -1 --format='%h' -- "$PRED") at $(TZ=Europe/London git log -1 --format='%cd' --date=format-local:'%d %b %H:%M UK' -- "$PRED")"
 fi
 #
+# THE SEED REGISTRY (RULES.md section 8 item 9; built under the maintainer's unlock of 25 Sep 22:14 UK): the seeds in
+# the command and in the scripts it names (their lines that are not comments) must be the prediction's to use - a
+# reserved seed only under a prediction it names, never under a measurement, and every seed declared in the
+# prediction's Seeds field when it has one (check-prediction.mjs --seeds). The command's paths are the repository's.
+#
+cd "$REAL"
+SEEDARGS=()
+for a in "$@"; do [ -f "$a" ] && case "$a" in *.sh|*.mjs|*.js) SEEDARGS+=("$a");; esac; done
+node research/solver/check-prediction.mjs --seeds "${PREDICTION_FILE}" --text "$*" ${SEEDARGS[@]+"${SEEDARGS[@]}"} >&2 || {
+  echo "=== REFUSED: the seed registry (RULES.md section 8 item 9)" >&2; exit 1; }
+#
 # ONE EXPERIMENT AT A TIME, ENFORCED RATHER THAN REMEMBERED.
 #
 # The box has four cores and a batch takes all of them. Two batches at once do not take two hours each

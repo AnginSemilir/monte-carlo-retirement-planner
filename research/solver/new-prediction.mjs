@@ -23,6 +23,7 @@ writeFileSync(file, `# Prediction: ${name}
 - **Run:** \`${batch}\` - result tags ?
 - **Kind:** test
 - **Written:** ${now} UK, before the run
+- **Seeds:** ? (each seed and its use, from the registry in RULES.md section 8 item 9, or "none: <why>")
 - **Plan section:** PLAN.md "?"
 
 ## Question

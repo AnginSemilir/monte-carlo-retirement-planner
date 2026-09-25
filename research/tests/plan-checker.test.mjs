@@ -7,7 +7,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkPlan, MAX_CHECKLIST } from '../solver/check-plan.mjs';
-import { checkPredictionText } from '../solver/check-prediction.mjs';
+import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS } from '../solver/check-prediction.mjs';
 import { VARIABLES } from '../solver/fair-variables.mjs';
 
 const S = join(dirname(fileURLToPath(import.meta.url)), '../solver');
@@ -109,6 +109,35 @@ ok(rErr(reg.replace('## Pre-mortem', '## Afterthoughts')).some(e => /Pre-mortem/
 ok(rErr(reg.replace(/## Decision fed[\s\S]*?(?=\n## )/, '## Decision fed\n\n- **Held:** the reader goes forward.\n')).some(e => /held, falsified and inconclusive/.test(e)), 'planted: a decision-fed section naming one outcome of three is refused');
 ok(rErr(reg.replace(/^- `derive: [^\n]*$/m, '- the arithmetic is in derive-7e.mjs')).some(e => /derive:/.test(e)), 'planted: a derivation script with no derive line (and no hash) is refused');
 ok(rErr(reg.replace(/## Credence[\s\S]*?(?=\n## )/, '## Credence\n\nHigh on every item.\n')).some(e => /probability/.test(e)), 'planted: a credence with no probability is refused');
+
+// the seed registry (RULES.md section 8 item 9; the maintainer's decision 3, built under the unlock of 25 Sep 22:14 UK)
+const withSeeds = (s, nm = 'k6-spread.md') => checkPredictionText(reg.replace(/^(- \*\*Kind:\*\*.*)$/m, `$1\n- **Seeds:** ${s}`), { name: nm });
+ok(withSeeds('7012 (held-out K6 paths)').length === 0, 'a new prediction declaring its own reserved seed passes (7012 under k6-spread.md)');
+ok(checkPredictionText(reg, { name: 'k6-spread.md' }).some(e => /Seeds/.test(e)), 'planted: a prediction written after the registry with no Seeds field is refused');
+ok(withSeeds('9999 (fresh)').some(e => /not in the seed registry/.test(e)), 'planted: an unregistered seed is refused');
+ok(withSeeds('7003 (Phase 4\'s paths)').some(e => /7003 is reserved/.test(e)), 'planted: Phase 4\'s seed 7003 in another prediction is refused');
+ok(withSeeds('7011', 'new-test.md').some(e => /7011 is reserved/.test(e)), 'planted: 7e\'s held-out seed 7011 claimed by a new test is refused');
+ok(withSeeds('none: a timing, no paths').length === 0 && withSeeds('see the batch').some(e => /names no seed/.test(e)), 'Seeds: "none: <why>" passes; a field naming no seed is refused');
+ok(rErr(reg).length === 0 && checkPredictionText(good, { name: 'm14b.md' }).length === 0, 'predictions written before the Seeds field pass without one (bridge-reader.md, m14b.md)');
+const L = o => seedLaunchProblems(o);
+ok(L({ name: 'bridge-reader.md', predText: reg, texts: [read('batch-7e.sh')] }).length === 0, '7e\'s batch launches under its prediction (seed 7011, owned)');
+ok(L({ name: null, texts: [read('batch-7e.sh')] }).some(e => /7011 is reserved.*measurement/.test(e)), 'planted: 7e\'s batch launched as a measurement is refused (7011 is reserved)');
+ok(L({ name: 'bridge-reader.md', texts: ['node research/solver/audit-s126.mjs bridge7e 16 1000 part 0/1 off,reader S126 7003'] }).some(e => /7003 is reserved/.test(e)), 'planted: Phase 4\'s seed in 7e\'s command is refused');
+ok(L({ name: 'k6-spread.md', predText: '- **Seeds:** 7012', texts: ['node x.mjs 7012 7004'] }).some(e => /7004.*does not declare/.test(e)), 'planted: a seed the Seeds field does not declare is refused');
+ok(L({ name: null, texts: ['# seed 7003 is Phase 4\'s\nnode x.mjs 7002'] }).length === 0 && L({ name: null, texts: ['timeout 7200 node x.mjs'] }).length === 0, 'comment lines and numbers that are not registered seeds (timeout 7200) are left alone');
+// every batch already written launches under the prediction whose Run field names it, or as a measurement if none does
+const { readdirSync } = await import('node:fs');
+const owner = {};
+for (const p of readdirSync(join(S, 'predictions')).filter(x => x.endsWith('.md'))) {
+  const t = read(`predictions/${p}`), m = /^-\s+\*\*Run:\*\*(.*)$/mi.exec(t);
+  for (const b of (m ? m[1].match(/batch-[\w.-]+\.sh/g) || [] : [])) owner[b] = { name: p, predText: t };
+}
+const batchFails = readdirSync(S).filter(x => /^batch-.+\.sh$/.test(x)).flatMap(b => L({ ...(owner[b] || { name: null }), texts: [read(b)] }).map(e => `${b}: ${e}`));
+ok(batchFails.length === 0 && Object.keys(owner).includes('batch-7e.sh') && Object.keys(owner).includes('batch-m14b.sh'), `every batch written passes the registry under its own prediction (refused: ${batchFails.join('; ') || 'none'})`);
+// the registry in code is the registry RULES.md lists
+const rulesSeeds = [...(/9\. \*\*A seed registry:\*\*([\s\S]*?)(?:\n\s*\n|The launcher)/.exec(base.rules) || ['', ''])[1].matchAll(/\b(7\d{3})\b/g)].map(m => Number(m[1]));
+ok(rulesSeeds.length > 0 && [...new Set(rulesSeeds)].sort().join() === Object.keys(SEED_REGISTRY).map(Number).sort().join(), `the code's seed registry is RULES.md's (${Object.keys(SEED_REGISTRY).join(', ')})`);
+ok(Object.values(SEED_OWNERS).flat().filter(o => typeof o === 'string').every(o => existsSync(join(S, 'predictions', o))), 'every prediction a reserved seed names as an owner exists');
 
 // claim linting, evidence grades and the materiality gate (RULES.md section 8)
 caught(run({ added: ['The reader is settled by 7e.'] }), 'claims', 'an ungraded "settled by"');

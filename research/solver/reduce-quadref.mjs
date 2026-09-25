@@ -28,7 +28,9 @@ const EPS = 1e-9;
 // the tie rule: on whole path counts where they exist (|net| = 2 x sqrt(discordant) exactly is a tie: net^2 = 4 disc),
 // otherwise on the figures (the per-path difference-in-differences, whose se is a sample se)
 const verdict = (d, se, net, disc) => (net !== undefined ? (net !== 0 && net * net === 4 * disc ? 'AT THE LINE' : net * net > 4 * disc ? 'beyond two se' : 'within')
-  : Math.abs(Math.abs(d) - 2 * se) < EPS ? 'AT THE LINE' : Math.abs(d) > 2 * se ? 'beyond two se' : 'within');
+  : Math.abs(d) < EPS && se < EPS ? 'within' : Math.abs(Math.abs(d) - 2 * se) < EPS ? 'AT THE LINE' : Math.abs(d) > 2 * se ? 'beyond two se' : 'within');
+// no discordant path (0 of 0) is no change, 'within': its difference and se are both zero, so 'exactly two se' is empty
+// (declared in predictions/quad-ref.md before any result was read; the thirty-first review)
 const V = x => verdict(x.d, x.se, x.net, x.disc);
 const pair = (a, b) => { let disc = 0, d = 0; for (let i = 0; i < a.N; i++) { const x = a.paths.survived[i], y = b.paths.survived[i]; if (x !== y) { disc++; d += y ? 1 : -1; } } return { d: 100 * d / a.N, se: 100 * Math.sqrt(disc) / a.N, net: d, disc }; };
 // the tier above's cost with 15 points minus with 5, per path: (u15 - d15) - (u5 - d5), mean and se over the paths
@@ -37,7 +39,7 @@ const did = (d5, u5, d15, u15) => { const n = d5.N; const v = new Float64Array(n
   // per path (u15 - d15) - (u5 - d5) = [+100, 0, 0, 0] -> mean 25, sample sd 50, se 25
   const mk = a => ({ N: 4, paths: { survived: a } }), P = did(mk([1, 1, 1, 1]), mk([0, 1, 1, 1]), mk([1, 1, 1, 0]), mk([1, 1, 1, 0]));
   if (Math.abs(P.d - 25) > EPS || Math.abs(P.se - 25) > EPS) { console.log('PLANTED CHECK FAILED: the difference-in-differences'); process.exit(1); }
-  if (verdict(0, 0, -4, 4) !== 'AT THE LINE' || verdict(0, 0, -22, 120) !== 'beyond two se' || verdict(0, 0, -21, 120) !== 'within' || verdict(-2, 1) !== 'AT THE LINE' || verdict(-2.01, 1) !== 'beyond two se') { console.log('PLANTED CHECK FAILED: the tie rule'); process.exit(1); }
+  if (verdict(0, 0, -4, 4) !== 'AT THE LINE' || verdict(0, 0, -22, 120) !== 'beyond two se' || verdict(0, 0, -21, 120) !== 'within' || verdict(-2, 1) !== 'AT THE LINE' || verdict(-2.01, 1) !== 'beyond two se' || verdict(0, 0, 0, 0) !== 'within' || verdict(0, 0) !== 'within') { console.log('PLANTED CHECK FAILED: the tie rule'); process.exit(1); }
 }
 const rec = (tag, id) => { const p = join(R, tag, `${id}.solver.record.json.gz`); return existsSync(p) ? readRecord(p) : null; };
 const surv = r => { let s = 0; for (let i = 0; i < r.N; i++) if (r.paths.survived[i]) s++; return 100 * s / r.N; };

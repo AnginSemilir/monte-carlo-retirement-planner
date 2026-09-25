@@ -87,6 +87,7 @@ No bridge-quad result exists. Before any run (25 Sep 00:44 UK): the Prediction s
 nodes in both arms; with the exact final year off, the final year is averaged over the arm's own 5 or 15 points, as row 8
 already said. Corrected; nothing else changed.
 - Before any run (25 Sep 01:09 UK), after the thirtieth review: audit-s126.mjs's quad line also prints the whole path
-  counts (net and discordant), and read-bridgequad.mjs judges the tie rule on them (|net| = 2 x sqrt(discordant) exactly),
+  counts (net and discordant), and read-bridgequad.mjs judges the tie rule on them (|net| = 2 x sqrt(discordant) exactly,
+  with at least one discordant path; 0 of 0 - the same outcome on every path - is no change, not a tie),
   because the printed d and se are rounded to 0.01 and could not separate a tie from a near-tie at 1,000 paths; the
   Derivation's "gaps collapse to about zero with v2" corrected (share 0.95 stays at -21.7). Nothing else changed.

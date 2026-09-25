@@ -101,7 +101,10 @@ No quad-ref result exists. After the launch (25 Sep 00:45 UK) and before any res
   exact on O19's files is +0.1222 +/- 0.0458 over the three, results-o19-exact.txt, not registered).
 - **The Question's O19 figures** (+0.18 +/- 0.04; -0.21 -> -0.09) stand beside O19's registered reading and were not
   registered there.
-- **The tie rule** is judged on whole path counts (|net| = 2 x sqrt(discordant) exactly) where they exist, and on the
-  figures only for the per-path difference-in-differences; reduce-quadref.mjs's planted check now has d15 unlike d5 and
+- **The tie rule** is judged on whole path counts (|net| = 2 x sqrt(discordant) exactly, with at least one discordant
+  path) where they exist, and on the figures only for the per-path difference-in-differences; a pair with no discordant
+  path (0 of 0: the same outcome on every path, difference and se both zero) reads as no change, 'within', not at the
+  line - the reducer as launched read that case at the line (added 25 Sep 01:24 UK after the thirty-first review, before
+  any result was read); reduce-quadref.mjs's planted check now has d15 unlike d5 and
   checks the se (a copy dropping d15, using d5 for it, or leaving /n out of the se now stops it).
 Nothing in the question, the items or the falsifier changed.

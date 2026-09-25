@@ -18,4 +18,13 @@ if git diff --cached --name-only | grep -qE '^(research/solver/(PLAN|PLAN-HISTOR
     }
   done
 fi
+# CI's four tests on every commit (about a second): GitHub CI failed on every push of 25 Sep from 06:00 UK on fair-gate.test.mjs
+# and nobody saw it, because only the plan check ran here (the maintainer, 25 Sep 21:54 UK)
+for t in plan-checker fair-gate plan-defaults hooks; do
+  node "research/tests/$t.test.mjs" > /tmp/.precommit-test.txt 2>&1 || {
+    grep -E "AssertionError|Error" /tmp/.precommit-test.txt | head -3 >&2
+    echo "pre-commit: research/tests/$t.test.mjs failed (as CI would). Fix it; do not bypass the hook." >&2
+    exit 1
+  }
+done
 exit 0

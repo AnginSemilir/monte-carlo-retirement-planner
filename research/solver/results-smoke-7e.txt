@@ -1,0 +1,15 @@
+# The smoke run on 4582ba8 (bash research/solver/smoke.sh, 25 Sep 11:16-11:25 UK), with 7e's new step
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED

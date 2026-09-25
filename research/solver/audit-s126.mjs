@@ -6,6 +6,7 @@
  *   node research/solver/audit-s126.mjs ids S126,S…  [points] [paths]       named library households
  *   node research/solver/audit-s126.mjs f1 [points] [paths] [variants|library|all]   F1's paired test
  *   node research/solver/audit-s126.mjs f1v2 [points] [paths] [part k/n]            F1 v2's paired test (PLAN.md 7c)
+ *   node research/solver/audit-s126.mjs trace [points] [paths] [case]               O22's trace: 5/15 points x final year averaged/exact
  *
  * Each mode reads its OWN arguments (fixed 24 Sep: the numbers were read before the mode was chosen, so `ids` read its
  * id list as the grid size - NaN, falling back to 12 points - and took the path count from the argument meant for points).
@@ -20,6 +21,11 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solve, solvePlan, runPolicy } from '../../src/solver/solve.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
+import { makeTrace } from './record.mjs';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { gzipSync } from 'node:zlib';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const mode = process.argv[2] || 'variants';
 // ids mode puts the id list first, so its numbers sit one place later than every other mode's
@@ -115,20 +121,23 @@ const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', {
  * is the mixture's: each world's opening read weighted as the solve weights them. The F1 test (mode f1) ran on step 2's
  * settings in the single-table fold; this is its re-test where the product runs.
  */
-function measureV2(h, bridgeRead, quad = 5) {
+function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace } = {}) {
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
-  const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad });   // off is explicit, whatever the product default
+  // riskAbove and finalIntegral are passed only when a mode names them (the trace mode); unset, the product's defaults hold
+  const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
+    ...(finalIntegral ? { finalIntegral: true } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}) });   // F1 off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
   const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
   let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(7002, NP, m.ctx.totalYears);
   const okArr = new Uint8Array(NP);
-  paths.forEach((zs, i) => { const o = runPolicy(r, zs); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
+  const tr = trace ? makeTrace(NP, m.ctx.totalYears + 1) : null;
+  paths.forEach((zs, i) => { if (tr) tr.row = i; const o = runPolicy(r, zs, tr ? { trace: tr } : {}); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
   const sim = 100 * ok / NP;
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
-  const ran = `mix ${r.meta.mixture} pts ${r.g.np} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} bridgeRead ${r.meta.bridgeRead}`;
-  return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, secs: (Date.now() - t0) / 1000, ran };
+  const ran = `mix ${r.meta.mixture} pts ${r.g.np} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} bridgeRead ${r.meta.bridgeRead}${trace ? ` finalIntegral ${r.meta.finalIntegral === true}` : ''}`;
+  return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran };
 }
 if (mode === 'f1v2') {
   // the cases, in a fixed order; `part k/n` runs every n-th from the k-th, so a batch can split them across processes
@@ -177,6 +186,30 @@ if (mode === 'f1v2') {
     console.log(`${''.padEnd(16)} ran Q5:  ${a.ran}`);
     console.log(`${''.padEnd(16)} ran Q15: ${b.ran}`);
   });
+} else if (mode === 'trace') {
+  /*
+   * O22'S TRACE (PLAN.md O22; predictions/o22-trace.md): one case (S360 unless named), F1 off, the tier above allowed
+   * (riskAbove true, as 7i ran it before the 'auto' default), four solves on the same paths - 5 or 15 return points, each
+   * with the final year averaged or exact - each run forward with the per-year trace kept. The 5- and 15-point arms with
+   * the final year averaged are 7i's own and must reproduce it. Written to results/o22-trace/<case>-<arm>.json.gz for
+   * reduce-o22.mjs, with each arm's "ran" line.
+   *   node research/solver/audit-s126.mjs trace [points=16] [paths=1000] [case=S360]
+   */
+  const id = process.argv[5] || 'S360';
+  const h = all.find(s => s.id === id);
+  if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+  const OUT = join(dirname(fileURLToPath(import.meta.url)), 'results', 'o22-trace');
+  mkdirSync(OUT, { recursive: true });
+  console.log(`O22 TRACE, ${id}, step-6 defaults in the mixture (solvePlan), ${POINTS} points, ${NP} held paths (seed 7002), lambda ${LAMBDA}, F1 off, riskAbove true`);
+  for (const [arm, quad, fi] of [['q5', 5, false], ['q15', 15, false], ['q5x', 5, true], ['q15x', 15, true]]) {
+    const a = measureV2(h, false, quad, { finalIntegral: fi, riskAbove: true, trace: true });
+    const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+    const T = a.tr;
+    writeFileSync(join(OUT, `${id}-${arm}.json.gz`), gzipSync(JSON.stringify({ id, arm, quad, finalIntegral: fi, N: NP, Y: T.Y, table: a.table, sim: a.sim, ran: a.ran,
+      survived: b64(a.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), penShare: b64(T.penShare), failYear: b64(T.failYear) })));
+    console.log(`${arm.padEnd(5)} table ${f1(a.table).padStart(5)} sim ${f1(a.sim).padStart(5)} | ${Math.round(a.secs)} s`);
+    console.log(`      ran ${arm}: ${a.ran}`);
+  }
 } else if (mode === 'f1') {
   const which = process.argv[5] || 'all';
   console.log(`F1 TEST, ${POINTS} points, ${NP} held paths (seed 7002), off against on, paired`);

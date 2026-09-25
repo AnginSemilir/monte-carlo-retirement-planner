@@ -29,7 +29,7 @@ const a = solvePlan(E, M, plan, { lambda: 0.5, points: 8 });
 // step 6's defaults written out: raises capped at 1.1; S162 carries a minimum pot of its own, which is kept
 const ownPot = E.num(plan.config.solvencyFloor, 0);
 ok(ownPot > 0, `S162 carries its own minimum pot (GBP${ownPot}), and the default does not replace it`);
-const b = solveMixture(E, M, plan, { ...PRODUCT_BASELINE, points: 8, lambda: 0.5, raiseCap: 1.1, spendLevels: productLevels(m.ctx.floorFrac), lump: m.ctx.fullLumpSum, tiers: true, tiersAbove: 1 });
+const b = solveMixture(E, M, plan, { ...PRODUCT_BASELINE, points: 8, lambda: 0.5, raiseCap: 1.1, spendLevels: productLevels(m.ctx.floorFrac), lump: m.ctx.fullLumpSum, tiers: true });
 let same = a.mix.tables.length === b.mix.tables.length;
 a.mix.tables.forEach((ta, k) => { const tb = b.mix.tables[k]; for (let t = 0; t < ta.lsurv.length; t++) for (let i = 0; i < ta.g.size; i++) if (ta.lsurv[t][i] !== tb.lsurv[t][i] || ta.beq[t][i] !== tb.beq[t][i] || ta.short[t][i] !== tb.short[t][i] || ta.pol[t][i] !== tb.pol[t][i]) same = false; });
 ok(same, 'solvePlan equals solveMixture with the baseline written out, bit for bit, in every world');
@@ -56,17 +56,18 @@ const med = { ...plan, accounts: plan.accounts.map(x => (/^Pensions|^S&S ISA/.te
 const medOff = solvePlan(E, M, med, { lambda: 0.5, points: 8, riskAbove: false }), medUp = solvePlan(E, M, med, { lambda: 0.5, points: 8, riskAbove: true });
 ok(medUp.meta.tiers.length === medOff.meta.tiers.length + 1, 'held at Medium, risk above adds exactly one tier when asked for (M14)');
 ok(solvePlan(E, M, med, { lambda: 0.5, points: 8, riskAbove: true, riskConsent: false }).meta.tiers === null, 'and never without consent to change risk');
-// by default it is ON in every plan (maintainer, 24 Sep ~08:15), with consent
-const medDefault = solvePlan(E, M, med, { lambda: 0.5, points: 8 });
-ok(medDefault.meta.tiers.length === medUp.meta.tiers.length, 'by default, held at Medium, the tier above is on the menu');
-// the earlier rule stays available as riskAbove 'auto': thin (simulated survival below 95% without it) and no worse on the same paths
+// by default it is the 'auto' rule (maintainer, 24 Sep 16:57 UK, on M14b): thin (simulated survival below 85% without
+// it) and no worse on the same paths; 'on in every plan' lost survival on comfortable plans (results-m14b.txt)
+ok(PRODUCT_DEFAULTS.thinSurvival === 0.85, 'the thin threshold is 85% (M14b)');
 const auto = solvePlan(E, M, med, { lambda: 0.5, points: 8, thinPaths: 200, riskAbove: 'auto' });
+const medDefault = solvePlan(E, M, med, { lambda: 0.5, points: 8, thinPaths: 200 });
+ok(medDefault.meta.riskAbove && medDefault.meta.riskAbove.decision === auto.meta.riskAbove.decision && medDefault.meta.tiers.length === auto.meta.tiers.length, `by default, held at Medium, the auto rule decides: ${medDefault.meta.riskAbove && medDefault.meta.riskAbove.decision}`);
 const d = auto.meta.riskAbove;
-ok(d && typeof d.survivalWithout === 'number' && (d.survivalWithout >= 0.95 ? /not thin/.test(d.decision) && auto.meta.tiers.length === medOff.meta.tiers.length : /thin/.test(d.decision)), `held at Medium, the default decides by simulated survival: ${d && d.decision} (${d && (100 * d.survivalWithout).toFixed(1)}% without${d && d.survivalWith !== undefined ? `, ${(100 * d.survivalWith).toFixed(1)}% with` : ''})`);
+ok(d && typeof d.survivalWithout === 'number' && (d.survivalWithout >= PRODUCT_DEFAULTS.thinSurvival ? /not thin/.test(d.decision) && auto.meta.tiers.length === medOff.meta.tiers.length : /thin/.test(d.decision)), `held at Medium, the default decides by simulated survival: ${d && d.decision} (${d && (100 * d.survivalWithout).toFixed(1)}% without${d && d.survivalWith !== undefined ? `, ${(100 * d.survivalWith).toFixed(1)}% with` : ''})`);
 ok(!d || !/^on/.test(d.decision) || d.survivalWith >= d.survivalWithout, 'it is kept only when no worse on the same paths');
 const thin = { ...med, spending: { ...med.spending, targetSpend: Math.round(1.6 * target), floorSpend: Math.round(0.8 * 1.6 * target) } };
 const dt = solvePlan(E, M, thin, { lambda: 0.5, points: 8, thinPaths: 200, riskAbove: 'auto' }).meta.riskAbove;
-ok(dt.survivalWithout < 0.95 && /^(on|off): thin/.test(dt.decision), `a thin plan (spending raised to 1.6x) is checked with it: ${dt.decision} (${(100 * dt.survivalWithout).toFixed(1)}% -> ${(100 * dt.survivalWith).toFixed(1)}%)`);
+ok(dt.survivalWithout < PRODUCT_DEFAULTS.thinSurvival && /^(on|off): thin/.test(dt.decision), `a thin plan (spending raised to 1.6x) is checked with it: ${dt.decision} (${(100 * dt.survivalWithout).toFixed(1)}% -> ${(100 * dt.survivalWith).toFixed(1)}%)`);
 ok(solvePlan(E, M, thin, { lambda: 0.5, points: 8, riskConsent: false, thinPaths: 200, riskAbove: 'auto' }).meta.riskAbove.decision === 'off: no consent to change risk', 'and without consent the auto rule never applies');
 assert.throws(() => solvePlan(E, M, plan, { lambda: 0.5, points: 8, giaTiers: true }), /taxable/); n++; console.log('PASS  the taxable account\'s tier is refused in the product (M15)');
 

@@ -20,7 +20,7 @@ const D = JSON.parse(m[1]);
 for (const k of ['raiseCap', 'minPotYears', 'estateWeightMin', 'thinSurvival', 'thinPaths', 'thinSeed']) ok(D[k] === PRODUCT_DEFAULTS[k], `${k}: decided ${D[k]}, code ${PRODUCT_DEFAULTS[k]}`);
 ok(Object.keys(PRODUCT_DEFAULTS).every(k => k in D), 'every default in the code is in the decided block');
 for (const k of ['raiseSurvival', 'failureShortfall']) ok(D[k] === PRODUCT_BASELINE[k], `${k}: decided ${D[k]}, code ${PRODUCT_BASELINE[k]}`);
-ok(D.riskAboveDefault === 'on' && /if \(opts\.riskAbove === undefined\) return solvePlan\(E, M, plan, \{ \.\.\.opts, riskAbove: true \}\)/.test(src), 'risk above: decided on by default, and solvePlan turns an unset riskAbove on');
+ok(D.riskAboveDefault === 'auto' && /if \(opts\.riskAbove === undefined\) return solvePlanAuto\(E, M, plan, opts\)/.test(src), 'risk above: decided auto by default (25 Sep), and solvePlan sends an unset riskAbove to the auto rule');
 ok(D.giaTiers === 'refused' && /if \(opts\.giaTiers\) throw/.test(src), 'the taxable-account tier: decided refused, and solvePlan throws on it');
 // planted: the check must be able to fail
 const drifted = { ...D, raiseCap: 1.2 };

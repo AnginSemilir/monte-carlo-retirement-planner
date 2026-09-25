@@ -1327,36 +1327,30 @@ export function productLevels(floorFrac) {
  *     plan carries its own or the user sets `minPotYears` (0 for none): it stops the plan aiming to end at zero (K2);
  *   - the estate slider (`estateWeight`) never below 0.01, because a weight of zero leaves nothing rewarding a pound
  *     saved from tax and the plan then pays far more of it (M20); left unset, the estate term is today's;
- *   - risk ABOVE the user's tier ON by default in every plan, one tier, only with consent to change risk
- *     (maintainer 24 Sep, widening the step-6 opt-in; M14b FALSIFIED it for comfortable plans, and the fallback,
- *     `riskAbove: 'auto'` below, waits for the maintainer's decision, now that M14c and O19 are read);
+ *   - risk ABOVE the user's tier by the 'auto' rule: one tier above, only with consent to change risk, only where the
+ *     plan is thin (simulated survival below 85% without it) and only if no worse on the same paths (M14b; approved
+ *     24 Sep 16:55 UK, held for M14c, O19 and 7h, decided 25 Sep 06:31 UK; "on in every plan" lost survival on
+ *     comfortable plans);
  *   - the taxable account's tier is refused: the joint-step version failed its probe (M15) and a working design is
  *     planned, not built.
  */
-export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, estateWeightMin: 0.01, thinSurvival: 0.95, thinPaths: 1000, thinSeed: 7101 });
+export const PRODUCT_DEFAULTS = Object.freeze({ raiseCap: 1.1, minPotYears: 1, estateWeightMin: 0.01, thinSurvival: 0.85, thinPaths: 1000, thinSeed: 7101 });
 /*
- * RISK ABOVE THE USER'S TIER: ON BY DEFAULT IN EVERY PLAN (maintainer, 24 Sep 07:32 UK; PLAN.md M14, M14b).
+ * RISK ABOVE THE USER'S TIER: THE 'AUTO' RULE BY DEFAULT (maintainer, decided 25 Sep 06:31 UK on M14b, M14c, O19 and 7h; PLAN.md M14, M14b).
  *
- * With the plan's tier below the top, allowing one tier above raised survival 2-3 points on every thin household
- * (75-81%) and did nothing measurable for comfortable ones, bar one small loss (S162, -0.23 +/- 0.09). It is a bet
- * made when behind: most of the futures it is used in still fail, but it saves about three for every one it loses,
- * and the years without money fell. So `riskAbove` left unset means ON (one tier above, only with consent to change
- * risk; nothing happens where the pension is already at the top tier). M14b re-checked it under today's defaults
- * (results-m14b.txt) and FALSIFIED it for comfortable plans: S172, S194 and S162 lose survival beyond two paired se.
- * 'auto' at 85% was approved, then held by the maintainer for M14c and O19 (both read 24-25 Sep: results-m14c.txt,
- * results-o19.txt - with the final year integrated exactly, `finalIntegral`, the tier above's cost on S194, S162 and S252
- * pooled goes from about -0.21 to -0.09 survival points, a figure beside O19's registered reading, not registered);
- * until that
- * decision the default is still on.
- *
- * `riskAbove: 'auto'` keeps the earlier, more cautious rule (maintainer's first choice, 07:28 UK), for use if M14b finds
- * comfortable plans losing:
+ * With the plan's tier below the top, allowing one tier above is a bet made when behind. Under the step-6 defaults
+ * (M14b, results-m14b.txt) it still helped the thinnest plans (S330 +1.20, S354 +1.30 points of survival, 76-81%
+ * without it) but lost on comfortable ones beyond two paired se (S172 -0.77, S194 -0.27, S162 -0.20, all 99%+): there
+ * the option made the solver hold a riskier tier in ordinary years, or the bet sped up failure in the worst markets
+ * (results-m14b-why.txt). Neither the exact final year (O19) nor finer averaging (7h) removed that cost
+ * (results-o19-exact.txt, results-quadref-exact.txt; figures beside the registered readings). So `riskAbove` left unset means 'auto':
  *   - never without consent to change risk, and never where no tier above exists (a pension at the top tier);
- *   - "thin" is the SIMULATED survival of the plan without it, below `thinSurvival` (95%), on `thinPaths` paths of
- *     a seed used for nothing else. The table's own number is not used: it runs 3-5 points optimistic (M16) and
- *     reads dead corners low (#106);
+ *   - only where the plan is thin: its SIMULATED survival without it is below `thinSurvival` (85%, between the last
+ *     household that gained, 81.1%, and the first that did not, 89.2% - fitted on M14b's twelve, to be checked on
+ *     other households), on `thinPaths` paths of a seed used for nothing else. The table's own number is not used: it
+ *     runs 3-5 points optimistic (M16) and reads dead corners low (#106);
  *   - and it is kept only if the plan with it survives at least as well on those same paths.
- * M14b's registered consequence is this rule, its threshold set from its item 3 (85%); the maintainer holds that decision, now to be put with M14c and O19.
+ * `riskAbove: true` still allows the tier above in any plan (research, and a user who asks for it); `false` never.
  */
 function solvePlanAuto(E, M, plan, opts) {
   const off = solvePlan(E, M, plan, { ...opts, riskAbove: false });
@@ -1378,7 +1372,7 @@ export function solvePlan(E, M, plan, opts = {}) {
   if (!(opts.lambda >= 0)) throw new Error('solvePlan needs the dislike-of-cuts setting as lambda');
   if (opts.giaTiers) throw new Error('the taxable account cannot change tier in the product: its first design failed (PLAN.md M15)');
   if (opts.riskAbove === 'auto') return solvePlanAuto(E, M, plan, opts);
-  if (opts.riskAbove === undefined) return solvePlan(E, M, plan, { ...opts, riskAbove: true });
+  if (opts.riskAbove === undefined) return solvePlanAuto(E, M, plan, opts);
   const { riskConsent, riskAbove, minPotYears, estateWeight, thinPaths, thinSeed, ...rest } = opts;
   const years = minPotYears !== undefined ? minPotYears : PRODUCT_DEFAULTS.minPotYears;
   const own = Math.max(0, E.num(plan.config && plan.config.solvencyFloor, 0));

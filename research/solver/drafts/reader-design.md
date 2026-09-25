@@ -1,10 +1,10 @@
 # DRAFT - not registered. The bridge reader (7e's fifth arm): boundary template plus residual
 
-**Status:** drafted 25 Sep ~07:30 UK from the outside reviewer's second reply (`outside-review-reply-2.md`), after 7i
+**Status:** drafted 25 Sep 07:18 UK from the outside reviewer's second reply (`outside-review-reply-2.md`), after 7i
 showed the bridge misread is the read across the share axis, not the averaging (results-bridgequad.txt). This is a
 build design, not a test. 7e's prediction registers the test, and nothing below is a result.
 
-## What the reviewer's claims were checked against (25 Sep ~07:25 UK, a scratch calculation, no run)
+## What the reviewer's claims were checked against (25 Sep 07:17 UK, a scratch calculation, no run)
 
 - **The width table** (equal bills, zero drift, small v; widths in ln A for 1-4 payments left): recomputed from the moment
   recursion at v = 0.01. It gives 0.000v, 0.500v, 0.745v, 0.935v, matching.
@@ -21,9 +21,11 @@ build design, not a test. 7e's prediction registers the test, and nothing below 
 - The grid is total wealth W (a log axis, 16 or 30 points), pension share a = pen / W (6 points, 0 to 1), ISA share b of
   the rest (6 points), gain bucket and lump-sum bucket (grid.js, `coords: 'total'`). Accessible money is A = W(1 - a) =
   s[1] + s[2] (ISA plus the taxable pot with its cash).
-- The reference per bridge year already exists in `bridgeTable` (grid.js). It holds `needY[t]`, the floor spending net of
-  guaranteed income plus one-off costs, and, in v2, the dated inflows `inY[t]`. It also holds `cash[t]`, the buffer, and
-  sigma and mu, the accessible mix's volatility and real return, weighted by the opening ISA and taxable balances.
+- A reference per bridge year partly exists in `bridgeTable` (grid.js). It computes, as LOCAL arrays not returned, `needY[t]`
+  (the floor spending net of guaranteed income, plus one-off costs) and, in v2, the dated inflows `inY[t]`. It returns the
+  cumulative `need[t]`, `years`, `cash[t]` (the buffer) and `sigma`, plus `req`, `mu` and `cashReal` in v2 only. sigma and
+  mu are weighted by the FIRST person's ISA and taxable balances only (`owners[0]`). The reader needs the per-year bills,
+  so bridgeTable must return `needY` and `inY` (a small change), and a couple needs its own treatment (O11).
 - Survival is stored as log-odds per year (`lsurv[t]`) and read with the trilinear log-odds blend in `readValues`
   (grid.js), where F1 hooks in (`bridgeAdjust`). The reader hooks in at the same place, in place of F1, and leaves
   every other year's read untouched.
@@ -38,7 +40,8 @@ For each retired bridge year t, after year t's table is solved:
    - Exact special cases: one payment left means p = 1 if affordable (the engine's GBP 1 tolerance), else 0. Two
      payments left have the closed form.
    - A - d_0 <= 0 means p = 0.
-   - With inflows inside the bridge, the requirement is the largest discounted prefix, as F1 v2's `req`.
+   - With inflows inside the bridge, the requirement is the largest DISCOUNTED prefix (new: F1 v2's `req` is the largest
+     UNDISCOUNTED cumulative shortfall).
    - Cash at zero yearly volatility within a world, the invested fraction counted once.
 2. **The continuation value.** Where p_i >= 0.5, c_i = clip(S_i / p_i). Along each share row, c is extended to the
    unfunded side from the nearest supported node. A row with no support takes its neighbouring wealth rows. Wholly

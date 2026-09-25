@@ -1,0 +1,27 @@
+# 7j (O22's trace), read 25 Sep 07:54 UK: node research/solver/reduce-o22.mjs S360 (the batch launched 07:00:49 UK at 3deb82d, past its smoke run 07:08 UK per runs.log, the last record 07:53:34 UK). The prediction's Changes-after-seeing-results section was edited after the launch (declared there); this reducer's gate reads the ran lines, not the prediction file.
+O22 TRACE, S360, READ AGAINST predictions/o22-trace.md
+
+FAIR-TEST GATE: passed - each pairing's two arms ran the same settings but the one tested (quad or finalIntegral), at the named settings
+
+  q5    table   0.8 sim  34.4
+  q15   table   2.4 sim  36.4
+  q5x   table   0.8 sim  34.4
+  q15x  table   2.4 sim  36.4
+
+  15 - 5 points, the final year averaged (7i's pairing): +2.00 +/- 0.47 (net 20 of 22 discordant; beyond two se)
+  exact - averaged final year, 5 points:               +0.00 +/- 0.00 (net 0 of 0 discordant; within)
+  15 - 5 points, the final year exact:                  +2.00 +/- 0.47 (net 20 of 22 discordant; beyond two se)
+  exact - averaged final year, 15 points:              +0.00 +/- 0.00 (net 0 of 0 discordant; within)
+
+CHECK - q5 and q15 reproduce 7i (table / sim to 0.1, the whole counts exactly): 7i 0.8 / 34.4 and 2.4 / 36.4, net 20 of 22; now 0.8 / 34.4 and 2.4 / 36.4, net 20 of 22 -> reproduced
+
+PREDICTION CHECK
+  1. the final year: exact against averaged at 5 points raises survival beyond two se: MISSED
+  2. the earlier years: 15 against 5 points with the final year exact is within two se: MISSED
+
+FALSIFIER - 15 points raise survival beyond two se with the final year exact: FALSIFIED (the earlier years' averaging matters on S360)
+
+DESCRIPTIVE (not an item) - the 21 paths 15 points save (final year averaged): the first year the runs differ
+  no difference before the 5-point run fails: 0; a tier first: 2; a spending level first: 19
+  first-difference year: median 7 of 45; years before the 5-point run fails: median 0; the 5-point run fails in its last year on 0 of 21
+  at that year: pension share median 0%, wealth median 0

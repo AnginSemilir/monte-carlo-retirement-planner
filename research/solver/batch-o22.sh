@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# O22's trace: why do 15 return points raise S360's survival while its table read barely moves? audit-s126.mjs trace:
+# O22's trace: why do 15 return points raise S360's survival while its table read rises only 0.8 -> 2.4 (7i)? audit-s126.mjs trace:
 # F1 off, the tier above allowed, 5 or 15 return points, each with the final year averaged or exact, on the same paths,
 # the per-year trace kept (predictions/o22-trace.md). One process (~45 min). Launch:
 #   PREDICTION=research/solver/predictions/o22-trace.md bash research/solver/run-from-snapshot.sh bash research/solver/batch-o22.sh

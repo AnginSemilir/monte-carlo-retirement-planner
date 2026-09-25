@@ -9,6 +9,7 @@
  *   node research/solver/audit-s126.mjs trace [points] [paths] [case]               O22's trace: 5/15 points x final year averaged/exact
  *   node research/solver/audit-s126.mjs time [points] [runs] [ids]                  7k: the solve's time with and without the exact final year
  *   node research/solver/audit-s126.mjs readertime [points] [runs]                  the bridge reader's added solve time (its design's check 6)
+ *   node research/solver/audit-s126.mjs bridge7e [points] [paths] part k/n [arms] [ids]  7e: off, F1 v1, F1 v2 and the reader, paired
  *
  * Each mode reads its OWN arguments (fixed 24 Sep: the numbers were read before the mode was chosen, so `ids` read its
  * id list as the grid size - NaN, falling back to 12 points - and took the path count from the argument meant for points).
@@ -166,6 +167,43 @@ if (mode === 'f1v2') {
     console.log(`${id.padEnd(16)} a0 ${f1(a.a0, 2)} B ${a.B} class ${a.inClass ? 'YES' : 'no '} | OFF table ${f1(a.table).padStart(5)} sim ${f1(a.sim).padStart(5)} gap ${f1(a.gap).padStart(6)} tier-below ${f1(a.tierYrs).padStart(4)} below ${f1(a.below).padStart(4)} | V2 table ${f1(b.table).padStart(5)} sim ${f1(b.sim).padStart(5)} gap ${f1(b.gap).padStart(6)} tier-below ${f1(b.tierYrs).padStart(4)} below ${f1(b.below).padStart(4)} | survival ${(d >= 0 ? '+' : '') + f1(d, 2)} +/- ${f1(se, 2)} | ${f1(a.secs + b.secs, 0)} s`);
     console.log(`${''.padEnd(16)} ran OFF: ${a.ran}`);
     console.log(`${''.padEnd(16)} ran V2:  ${b.ran}`);
+  });
+} else if (mode === 'bridge7e') {
+  /*
+   * 7e: THE BRIDGE FIXES SIDE BY SIDE (PLAN.md 7e; its prediction registers the panel and the arms before it runs). Each
+   * case solved with each named arm on the same held paths, paired against the first arm: off (no bridge read), v1 and
+   * v2 (F1), reader (the bridge reader, src/solver/reader.js). Every arm holds the tier above allowed and the final year
+   * exact EXPLICITLY (the reviewer: tier eligibility and the world count identical across arms; 'auto' could differ arm
+   * to arm), three worlds, lambda held at S126's. An arm written name@q runs at q return points (S360 at 5 and 15).
+   *   node research/solver/audit-s126.mjs bridge7e [points] [paths] part k/n [arms=off,v1,v2,reader] [ids=7c's cases]
+   * Per case: each arm's table, simulated survival, gap, tier-below and below-target years, its solve seconds, the paired
+   * change against the first arm (net paths, se), and a ran line per arm for the reducer's gate.
+   */
+  const ARM = { off: false, v1: 1, v2: 2, reader: 'reader' };
+  const arms = (process.argv[7] || 'off,v1,v2,reader').split(',').map(a => { const [name, q] = a.split('@'); return { label: a.toUpperCase(), br: ARM[name], quad: q ? Number(q) : 5, ok: name in ARM && (!q || Number(q) >= 1) }; });
+  if (arms.some(a => !a.ok)) { console.error(`audit-s126: unknown arm in ${process.argv[7]} (off, v1, v2, reader, each optionally @points)`); process.exit(2); }
+  const known = [...F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]),
+    ['bridge 4+cost', () => variant('bridge 4+cost', { bridge: 4, cost: [2, 30000] })]];
+  const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
+  const defIds = [...F1_VARIANTS.map(v => v[0]), 'S120', 'S122', 'S124', 'S128', 'S130', 'S360', 'S366', 'S370', 'bridge 4+cost'];
+  const ids = process.argv[8] ? process.argv[8].split(',') : defIds;
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  console.log(`BRIDGE READER TEST (7e), step-6 defaults in the mixture (solvePlan), ${POINTS} points, ${NP} held paths (seed 7002), lambda ${LAMBDA}, the tier above allowed and the final year exact in every arm; arms ${arms.map(a => a.label).join(', ')}, paired against ${arms[0].label}; part ${pk}/${pn}`);
+  ids.forEach((id, i) => {
+    if (i % pn !== pk) return;
+    const h = byId(id)();
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const res = arms.map(a => measureV2(h, a.br, a.quad, { finalIntegral: true, riskAbove: true }));
+    const base = res[0];
+    const cells = res.map((r, j) => {
+      let up = 0, dn = 0; for (let k = 0; k < NP; k++) { if (!base.okArr[k] && r.okArr[k]) up++; else if (base.okArr[k] && !r.okArr[k]) dn++; }
+      const vs = j === 0 ? '' : ` d ${r.sim - base.sim >= 0 ? '+' : ''}${f1(r.sim - base.sim)} se ${f1(100 * Math.sqrt(up + dn) / NP)} (${up}/${dn})`;
+      return `${arms[j].label} table ${f1(r.table).padStart(5)} sim ${f1(r.sim).padStart(5)} gap ${f1(r.gap).padStart(6)} tier-below ${f1(r.tierYrs).padStart(4)} below ${f1(r.below).padStart(4)} ${Math.round(r.secs)} s${vs}`;
+    });
+    console.log(`${id.padEnd(16)} a0 ${f1(base.a0, 2)} B ${base.B} class ${base.inClass ? 'YES' : 'no '} | ${cells.join(' | ')}`);
+    res.forEach((r, j) => console.log(`${''.padEnd(16)} ran ${arms[j].label}: ${r.ran}`));
   });
 } else if (mode === 'quad') {
   /*

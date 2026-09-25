@@ -46,6 +46,13 @@ out="$(node research/solver/audit-s126.mjs f1v2 4 20 part 0/20 2>&1)" || { echo 
   && echo "$out" | grep -q "ran V2: .*bridgeRead 2$" && echo "$out" | grep -q "^S126 .* | survival "; } \
   || { echo "SMOKE FAILED: the f1v2 mode did not run S126 off against v2 in the mixture at the settings it was given"; echo "$out" | head -5; exit 1; }
 echo "  ok  S126 audit, f1v2 mode, off against v2 in the mixture"
+# 7e's mode (the maintainer's unlock 25 Sep 11:14 UK): the bridge reader arm through solvePlan in the mixture, the tier above
+# and the final year exact set explicitly, each arm's settings printed for 7e's gate - S126 alone, the reader arm alone, tiny
+out="$(node research/solver/audit-s126.mjs bridge7e 4 20 part 0/21 reader 2>&1)" || { echo "SMOKE FAILED: S126 audit, bridge7e mode"; echo "$out" | tail -5; exit 1; }
+{ echo "$out" | grep -q "BRIDGE READER TEST (7e), .*, 4 points, 20 held paths" && echo "$out" | grep -q "ran READER: mix 3 pts 4 .*tiersAbove 1 .*finalIntegral true bridgeRead reader$" \
+  && echo "$out" | grep -q "^S126 .* | READER table "; } \
+  || { echo "SMOKE FAILED: the bridge7e mode did not run S126 with the reader in the mixture at the settings it was given"; echo "$out" | head -5; exit 1; }
+echo "  ok  S126 audit, bridge7e mode, the bridge reader in the mixture"
 # every file a batch writes must carry the code that made it and the prediction it was launched under
 node -e '
   const fs = require("fs"), p = require("path"), R = process.argv[1], T = process.argv[2];

@@ -66,8 +66,10 @@ export function unconditionalOver(ks, b, c, N, level, read) {
   return { d: ivs[0].d, lo: Math.min(...ivs.map(x => x.lo)), hi: Math.max(...ivs.map(x => x.hi)), rounding: reads.size > 1, ks };
 }
 // the count check: the interval's ends widened, where they apply, to the exact bounds from the one-sided counts
+const cpMemo = new Map();
+const cpUpper = (k, N, level) => { const key = `${k}|${N}|${level}`; if (!cpMemo.has(key)) cpMemo.set(key, clopperPearson(k, N, level)[1]); return cpMemo.get(key); };
 export function guarded(u, lost, saved, N, level) {
-  const bh = -100 * clopperPearson(lost, N, level)[1], bg = 100 * clopperPearson(saved, N, level)[1];
+  const bh = -100 * cpUpper(lost, N, level), bg = 100 * cpUpper(saved, N, level);
   const lo = saved <= lost ? Math.min(u.lo, bh) : u.lo, hi = lost <= saved ? Math.max(u.hi, bg) : u.hi;
   return { ...u, lo, hi, m10: { lo: u.lo, hi: u.hi } };
 }
@@ -84,8 +86,8 @@ function decide7r(swaps, reproduced, none) {
     : counted.includes('method') && !counted.some(x => x === 'tier' || x === 'both') ? 'FALSIFIED' : 'INCONCLUSIVE';
   return { outcome: outcome7r, reads };
 }
-// reduce-7s.mjs's decide (lines 109-121), with the g and h intervals given per row
-function decide7s(rows, gIv, hIv) {
+// reduce-7s.mjs's decide (lines 109-121; reduce-7t.mjs's decide is the same rule), with the g and h intervals given per row
+export function decide7s(rows, gIv, hIv) {
   const pGain = holm(rows.map(r => mcnemarHarmP(r.g.saved, r.g.lost))), pHarm = holm(rows.map(r => mcnemarHarmP(r.h.lost, r.h.saved)));
   const reads = rows.map((r, j) => {
     const gi = gIv(r), hi = hIv(r);

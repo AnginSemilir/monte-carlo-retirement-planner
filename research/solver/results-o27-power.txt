@@ -1,0 +1,14 @@
+O27: 7T'S POWER, EACH CAUSE, THE REGISTERED READING BESIDE THE UNCONDITIONAL ONE (derive-7t.mjs's stories and draws: 8000 paths, S126 40 and bridge 4 32 lost, 20000 draws a story, seed 7002; the reference arms at S126 99.3% (g) and 99.8% (h), bridge 4 99% (g) and 99.4% (h))
+
+the cause removes all the harm     background 1.33  | registered HELD 1.000 FALSIFIED 0.000 INCONCLUSIVE 0.000 | unconditional HELD 1.000 FALSIFIED 0.000 INCONCLUSIVE 0.000 | draws read differently 0.000
+removes three quarters             background 1.33  | registered HELD 0.976 FALSIFIED 0.000 INCONCLUSIVE 0.024 | unconditional HELD 0.410 FALSIFIED 0.000 INCONCLUSIVE 0.590 | draws read differently 0.566
+removes half                       background 1.33  | registered HELD 0.200 FALSIFIED 0.000 INCONCLUSIVE 0.800 | unconditional HELD 0.001 FALSIFIED 0.000 INCONCLUSIVE 0.999 | draws read differently 0.199
+removes a quarter                  background 1.33  | registered HELD 0.000 FALSIFIED 0.241 INCONCLUSIVE 0.759 | unconditional HELD 0.000 FALSIFIED 0.172 INCONCLUSIVE 0.828 | draws read differently 0.069
+removes none                       background 1.33  | registered HELD 0.000 FALSIFIED 0.986 INCONCLUSIVE 0.014 | unconditional HELD 0.000 FALSIFIED 0.978 INCONCLUSIVE 0.022 | draws read differently 0.008
+the cause removes all the harm     background 13.33 | registered HELD 0.900 FALSIFIED 0.000 INCONCLUSIVE 0.100 | unconditional HELD 0.256 FALSIFIED 0.000 INCONCLUSIVE 0.744 | draws read differently 0.643
+removes three quarters             background 13.33 | registered HELD 0.178 FALSIFIED 0.000 INCONCLUSIVE 0.822 | unconditional HELD 0.002 FALSIFIED 0.000 INCONCLUSIVE 0.998 | draws read differently 0.176
+removes half                       background 13.33 | registered HELD 0.001 FALSIFIED 0.001 INCONCLUSIVE 0.998 | unconditional HELD 0.000 FALSIFIED 0.000 INCONCLUSIVE 1.000 | draws read differently 0.002
+removes a quarter                  background 13.33 | registered HELD 0.000 FALSIFIED 0.167 INCONCLUSIVE 0.833 | unconditional HELD 0.000 FALSIFIED 0.001 INCONCLUSIVE 0.999 | draws read differently 0.166
+removes none                       background 13.33 | registered HELD 0.000 FALSIFIED 0.910 INCONCLUSIVE 0.090 | unconditional HELD 0.000 FALSIFIED 0.256 INCONCLUSIVE 0.744 | draws read differently 0.654
+
+the registered tallies reproduce results-derive-7t.txt's 10 lines exactly, and the copy of the rule read every draw as reduce-7t.mjs's decide() does

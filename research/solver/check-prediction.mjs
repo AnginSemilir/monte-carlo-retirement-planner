@@ -42,9 +42,9 @@ export const DERIVE = /^\s*-?\s*`?derive: (\S+) > (\S+) sha256 ([0-9a-f]{16})`?\
 // the tests whose batches ran on it (batch-m14b.sh, batch-m14c.sh, batch-o19.sh, batch-quadref.sh) and 7e's.
 export const SEED_REGISTRY = Object.freeze({
   7001: 'search', 7002: 'tuning', 7003: 'Phase 4 only', 7004: 'second seed (replication)', 7005: 'selection',
-  7011: 'held out: M14b, M14c, O19, quad-ref and 7e', 7012: 'held out: K6', 7101: "the 'auto' rule" });
+  7011: 'held out: M14b, M14c, O19, quad-ref and 7e', 7012: 'held out: K6', 7013: 'held out: 7u', 7101: "the 'auto' rule" });
 export const SEED_OWNERS = Object.freeze({
-  7003: [/^phase-?4[\w.-]*\.md$/], 7012: [/^k6[\w.-]*\.md$/],
+  7003: [/^phase-?4[\w.-]*\.md$/], 7012: [/^k6[\w.-]*\.md$/], 7013: [/^confirm-7u[\w.-]*\.md$/],
   7011: ['m14b.md', 'm14c-bets.md', 'o19-final.md', 'quad-ref.md', 'bridge-reader.md'] });
 // written before the Seeds field existed: the launcher's owner check still covers their reserved seeds
 export const BEFORE_SEEDS = [...BEFORE_REGIMEN, 'bridge-reader.md'];

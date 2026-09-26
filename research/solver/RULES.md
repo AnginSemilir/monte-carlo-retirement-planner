@@ -341,10 +341,11 @@ checked by the plan-auditor by hand.
    0.001 and an effect above twice the margin).
 9. **A seed registry:** 7001 search, 7002 tuning, 7003 Phase 4 only, 7004 second seed, 7005 selection, 7011 held out
    for M14b, M14c, O19, quad-ref and 7e (M14c, O19 and quad-ref were missing from this list until 25 Sep 22:20 UK; their
-   batches ran on it), 7012 K6 (added 25 Sep 22:01 UK), 7101 the 'auto' rule. Built 25 Sep 22:20 UK under the
+   batches ran on it), 7012 K6 (added 25 Sep 22:01 UK), 7013 held out for 7u (added 26 Sep under the maintainer's unlock
+   of 20:33 UK: 7u's own held-out futures, 7004 being held for 7o and Phase 4), 7101 the 'auto' rule. Built 25 Sep 22:20 UK under the
    maintainer's unlock of 22:14 UK (their decision 3): the registry is check-prediction.mjs's SEED_REGISTRY, pinned to
    this list by plan-checker.test.mjs; a prediction written after it carries "- **Seeds:**" (each seed registered, each
-   reserved one - 7003, 7011, 7012 - its own); the launcher reads the seeds in the command and the scripts it names and
+   reserved one - 7003, 7011, 7012, 7013 - its own); the launcher reads the seeds in the command and the scripts it names and
    refuses a reserved seed under any other prediction or under a measurement, and a seed the Seeds field does not
    declare (planted: 15 checks; the launcher shown refusing 7011 under a measurement and 7003 under m14b.md). Its limit: a
    seed a script takes by default (audit-s126.mjs and experiment.mjs default to 7002) is in no text the launcher reads.

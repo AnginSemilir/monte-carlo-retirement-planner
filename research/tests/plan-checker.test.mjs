@@ -131,6 +131,9 @@ ok(withSeeds('7012 (held-out K6 paths)').length === 0, 'a new prediction declari
 ok(checkPredictionText(reg, { name: 'k6-spread.md' }).some(e => /Seeds/.test(e)), 'planted: a prediction written after the registry with no Seeds field is refused');
 ok(withSeeds('9999 (fresh)').some(e => /not in the seed registry/.test(e)), 'planted: an unregistered seed is refused');
 ok(withSeeds('7003 (Phase 4\'s paths)').some(e => /7003 is reserved/.test(e)), 'planted: Phase 4\'s seed 7003 in another prediction is refused');
+// 7013, 7u's own held-out seed (the maintainer's unlock of 26 Sep 20:33 UK)
+ok(withSeeds('7013 (7u\'s held-out paths)', 'confirm-7u.md').length === 0, '7u\'s prediction declaring its own seed 7013 passes');
+ok(withSeeds('7013 (7u\'s held-out paths)').some(e => /7013 is reserved/.test(e)), 'planted: 7u\'s seed 7013 in another prediction is refused');
 ok(withSeeds('7011', 'new-test.md').some(e => /7011 is reserved/.test(e)), 'planted: 7e\'s held-out seed 7011 claimed by a new test is refused');
 ok(withSeeds('none: a timing, no paths').length === 0 && withSeeds('see the batch').some(e => /names no seed/.test(e)), 'Seeds: "none: <why>" passes; a field naming no seed is refused');
 ok(rErr(reg).length === 0 && checkPredictionText(good, { name: 'm14b.md' }).length === 0, 'predictions written before the Seeds field pass without one (bridge-reader.md, m14b.md)');

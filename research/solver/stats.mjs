@@ -66,12 +66,48 @@ export function clopperPearson(k, n, alpha = 0.05) {
   const hi = k === n ? 1 : betaQuantile(1 - alpha / 2, k + 1, n - k);
   return [lo, hi];
 }
-/* the survival change B - A in points, with its exact interval: Delta = (c - b)/N = n(1 - 2 pi)/N, pi = b/n */
+/* the survival change B - A in points, with its exact interval: Delta = (c - b)/N = n(1 - 2 pi)/N, pi = b/n.
+   CONDITIONAL ON n (the eighty-fourth review, 26 Sep, BLOCKING 2): Clopper-Pearson on b of n treats the discordant count as
+   fixed, so when every discordant path is lost (or every one saved) the interval's end on that side is the point estimate,
+   and a true loss exactly at the margin reads "no material harm" about half the time with one-sided losses (P(n <= 7) =
+   0.525 at 3,000 paths). The harm test (the exact McNemar p and the point loss) is sound; the no-material-harm and
+   no-material-gain ends are not. survivalChangeU below counts the chance in n too, and is reported beside it. */
 export function survivalChange(b, c, N, alpha = 0.05) {
   const n = b + c, d = 100 * (c - b) / N;
   if (n === 0) return { d: 0, lo: 0, hi: 0, n };
   const [pL, pU] = clopperPearson(b, n, alpha);
   return { d, lo: 100 * n * (1 - 2 * pU) / N, hi: 100 * n * (1 - 2 * pL) / N, n };
+}
+/* the standard normal's upper tail P(Z > z), by the complementary error function (Numerical Recipes erfcc, fractional
+   error below 1.2e-7), and the z leaving level/2 in each tail (1.96 at 0.05, 2.81 at 0.005) */
+export function normUpper(z) {
+  const x = Math.abs(z) / Math.SQRT2, t = 1 / (1 + 0.5 * x);
+  const erfc = t * Math.exp(-x * x - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+  return z >= 0 ? erfc / 2 : 1 - erfc / 2;
+}
+export function zFor(level) { let lo = 0, hi = 10; for (let i = 0; i < 100; i++) { const m = (lo + hi) / 2; if (normUpper(m) > level / 2) lo = m; else hi = m; } return (lo + hi) / 2; }
+/* Wilson's score interval for x of n at z */
+export function wilson(x, n, z) {
+  const p = x / n, z2 = z * z, den = 1 + z2 / n, mid = (p + z2 / (2 * n)) / den, h = z * Math.sqrt(p * (1 - p) / n + z2 / (4 * n * n)) / den;
+  return [mid - h, mid + h];
+}
+/*
+ * THE PAIRED SURVIVAL CHANGE, UNCONDITIONALLY (Newcombe 1998, "Improved confidence intervals for the difference between
+ * binomial proportions based on paired data", method 10: each arm's survival by Wilson's interval, combined through the
+ * paired correlation phi). Cells: a both survive, b arm A survives and B fails (lost), c B survives and A fails (saved),
+ * d both fail; the change B - A in points at 1 - level. Unlike survivalChange it counts the chance in how many paths
+ * differ: at a true one-sided loss exactly at the 0.25 margin it read "no material harm" 1.7% of the time at 3,000 paths
+ * and 2.6% at 8,000 (nominal 2.5%), where survivalChange reads it 52.5% (a simulation of 40,000 draws a case, 26 Sep; the
+ * planted calibration check in stats.test.mjs). Reported beside the registered exact interval; it replaces it only by the
+ * maintainer's decision (the regimen's item 1).
+ */
+export function survivalChangeU(a, b, c, d, level = 0.05) {
+  const N = a + b + c + d, z = zFor(level), pB = (a + c) / N, pA = (a + b) / N, dl = pB - pA;
+  const [lB, uB] = wilson(a + c, N, z), [lA, uA] = wilson(a + b, N, z);
+  const den = Math.sqrt((a + c) * (b + d) * (a + b) * (c + d)), phi = den > 0 ? (a * d - b * c) / den : 0;
+  const lo = dl - Math.sqrt(Math.max(0, (pB - lB) ** 2 - 2 * phi * (pB - lB) * (uA - pA) + (uA - pA) ** 2));
+  const hi = dl + Math.sqrt(Math.max(0, (uB - pB) ** 2 - 2 * phi * (uB - pB) * (pA - lA) + (pA - lA) ** 2));
+  return { d: 100 * dl, lo: 100 * lo, hi: 100 * hi, N };
 }
 /* Holm's step-down adjusted p-values, in the input order */
 export function holm(ps) {

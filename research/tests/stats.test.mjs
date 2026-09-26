@@ -5,7 +5,8 @@
  *   node research/tests/stats.test.mjs
  */
 import assert from 'node:assert/strict';
-import { mcnemarHarmP, clopperPearson, survivalChange, holm, outcome, pathsNeeded, binomUpperHalf, pooledRE, pooledFE, signTest } from '../solver/stats.mjs';
+import { mcnemarHarmP, clopperPearson, survivalChange, holm, outcome, pathsNeeded, binomUpperHalf, pooledRE, pooledFE, signTest,
+  normUpper, zFor, wilson, survivalChangeU } from '../solver/stats.mjs';
 
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
 const near = (a, b, tol) => Math.abs(a - b) <= tol;
@@ -61,4 +62,22 @@ ok(near(pathsNeeded(0.003, 0.0025), 1844, 5) && near(pathsNeeded(0.023, 0.0025),
 // planted: the old two-se reading disagrees with the exact outcome on O19's 4 lost, 0 saved
 { const b = 4, c = 0, N = 3000, net = c - b, disc = b + c; const oldBeyondOrLine = net * net >= 4 * disc;
   ok(oldBeyondOrLine && o1.outcome === 'no material harm', 'planted: the old rule reads 4 lost, 0 saved as at or beyond two se; the exact outcome is no material harm, so the two disagree'); }
+// THE UNCONDITIONAL PAIRED INTERVAL (the eighty-fourth review, 26 Sep, BLOCKING 2): survivalChange conditions on the
+// discordant count, so with every discordant path lost its lower end is the point estimate; survivalChangeU (Newcombe 1998,
+// method 10) counts the chance in that count too. Reference values for the normal tail and Wilson's interval; the planted
+// fault shown in the old interval; and the calibration that matters, by simulation: at a true one-sided loss exactly at
+// the 0.25 margin, how often each reads "no material harm" (nominal 2.5%). Newcombe's worked example (36, 12, 2, 0) reads
+// 0.0569 to 0.3404 here; its published figures are NOT CHECKED (no reference implementation in reach).
+ok(near(normUpper(1.96), 0.0249979, 2e-7) && near(normUpper(5), 2.8665e-7, 1e-10) && near(zFor(0.05), 1.95996, 1e-4) && near(zFor(0.005), 2.80703, 1e-4), `the normal tail and z: P(Z > 1.96) ${normUpper(1.96).toFixed(7)}, z ${zFor(0.05).toFixed(4)} at 0.05 and ${zFor(0.005).toFixed(4)} at 0.005`);
+{ const [l0, u0] = wilson(0, 10, zFor(0.05)); ok(near(l0, 0, 1e-12) && near(u0, 0.2775, 1e-4), `Wilson's interval for 0 of 10: 0 to ${u0.toFixed(4)} (0.2775)`); }
+{ const old = survivalChange(7, 0, 3000), u = survivalChangeU(2986, 7, 0, 7);
+  ok(near(old.lo, old.d, 1e-9) && u.lo < old.d - 0.2, `planted: 7 lost, 0 saved of 3,000 - the conditional lower end is the point estimate (${old.lo.toFixed(3)}), the unconditional one below it (${u.lo.toFixed(3)} to ${u.hi.toFixed(3)})`);
+  ok(outcome({ b: 7, c: 0, N: 3000, margin: 0.25, pHolm: 0.01 }).outcome === 'no material harm' && !(u.lo > -0.25), 'planted: a 0.233-point loss reads "no material harm" on the conditional interval and not on the unconditional one'); }
+{ let st = 7002; const rnd = () => { st = (st * 1103515245 + 12345) % 2147483648; return st / 2147483648; };
+  const pois = m => { const L = Math.exp(-m); let k = 0, p = 1; do { k++; p *= rnd(); } while (p > L); return k - 1; };
+  const R = 10000, N = 3000; let nmhU = 0, nmhC = 0;
+  for (let r = 0; r < R; r++) { const failA = pois(N * 0.002), b = pois(N * 0.0025), survA = N - failA;   // A survives 99.8%; B loses 0.25 points more, none saved
+    if (survivalChangeU(survA - b, b, 0, failA).lo > -0.25) nmhU++;
+    if (survivalChange(b, 0, N).lo > -0.25) nmhC++; }
+  ok(nmhU / R < 0.035 && nmhC / R > 0.4, `calibration at a true one-sided loss at the margin, ${R} draws at 3,000 paths: the unconditional interval reads "no material harm" ${(100 * nmhU / R).toFixed(1)}% of the time, the conditional ${(100 * nmhC / R).toFixed(1)}% (nominal 2.5%)`); }
 console.log(`\nstats: ${n} passed`);

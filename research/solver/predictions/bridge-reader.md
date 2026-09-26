@@ -5,7 +5,7 @@
   - Look 1: `reduce-7e.mjs --look1` reads wave 1 by the exact rule (Decision rule, below) and names the cases it leaves
     open.
   - Look 2, beside wave 2: those cases on more paths of seed 7011 (their first 1,000 are wave 1's paths), off against the
-    reader: 8,000 for bridge 4, wealth x0.5, S130 and S128, 3,000 for the rest (the maintainer, 25 Sep 22:47 UK), each
+    reader: 8,000 for bridge 4, wealth x0.5, S130 and S128, 3,000 for the rest (the maintainer, 25 Sep 22:45 UK), each
     group over two processes when it is large.
   - Wave 2:
     - the no-bridge controls, off against the reader;
@@ -16,7 +16,7 @@
 - **Kind:** test
 - **Status:** registered by its push (the pushed commit is the timestamp), and launched only after a plan review passes on
   this version (the forty-seventh failed, 21:56 UK, and the forty-eighth, 22:40 UK; their findings are fixed here, with
-  the maintainer's two choices of 22:47 UK: look 2 at 8,000 paths on four cases, and a fixed-effect pooled floor) and CI is
+  the maintainer's two choices of 22:45 UK: look 2 at 8,000 paths on four cases, and a fixed-effect pooled floor) and CI is
   green. Its decision rule is the outside review's
   section 19 (exact McNemar, Holm across the cases, per-case margins, three outcomes, two looks), in the regimen the
   maintainer adopted 25 Sep 20:47 UK, with the margins that review proposed. The old "beyond two se" reading is retired
@@ -131,7 +131,7 @@ All of this is asked with the tier above and the final year exact held identical
 ## Decision rule (registered before launch)
 
 Section 19 of the outside review, as reduce-7e.mjs implements it (50 planted checks; each of 31 mutations of its rule,
-gate and completeness is caught: results-reduce-7e-mutations.txt), with the maintainer's two choices of 25 Sep 22:47 UK
+gate and completeness is caught: results-reduce-7e-mutations.txt), with the maintainer's two choices of 25 Sep 22:45 UK
 (the forty-eighth review: look 2's path count put to them; the pooled floor's method).
 
 - **Primary outcome:** simulated survival, paired per case, on held-out seed 7011.
@@ -155,11 +155,15 @@ gate and completeness is caught: results-reduce-7e-mutations.txt), with the main
 - **Pooled over the 16 cases the prediction expects unchanged** (reduce-7e.mjs POOL: the nine in class away from the
   edge, the thin S128 and S130, bridge 6, S366, S162, S172 and S168): a fixed-effect (inverse-variance) mean change with
   its 95% interval, plus the sign test; the random-effects (DerSimonian-Laird) mean is reported beside it. Fixed effect,
-  not the regimen's random effects, by the maintainer's choice (25 Sep 22:47 UK): a random-effects interval widens with
-  any spread between cases, gains included, so one pool case gaining 3 points fired the floor in 8 to 21% of simulated
-  runs with no case losing, against 0 to 3% for fixed effect, with the same power against a loss on every case (92% at
-  0.1 points; results-pooled-floor.txt, simulated at 3,000 paths before the 8,000-path choice; the forty-eighth review's
-  MINOR 2). A fixed-effect interval answers "is the average change over these 16 cases below -0.1", which is the
+  not the regimen's random effects, by the maintainer's choice (25 Sep 22:45 UK): a random-effects interval widens with
+  any spread between cases, gains included. Simulated at the registered path counts (results-pooled-floor.txt,
+  sim-pooled-floor.mjs, rebuilt 26 Sep with a sound generator after the forty-ninth review found the first version's
+  cycled; grade C): with no change the whole falsifier fires in about 3% of runs either way; one pool case gaining 3
+  points fires it in 7 to 13% of runs with random effects and about 2% with fixed effect; a 0.1-point loss on every
+  pool case fires it in about 94% either way. The price, put to the maintainer 26 Sep 01:49 UK and accepted: a loss
+  concentrated on a few cases fires the fixed-effect floor less often (S128 and S130 each 1 point lower: 22% against
+  94%), but the per-case tests catch most of it, so the whole falsifier differs by at most about 4 points (bridge 4 and
+  wealth x0.5 each 0.3 lower: 60% against 64%; S128 and S130 each 1 lower: 99.5% against 99.7%). A fixed-effect interval answers "is the average change over these 16 cases below -0.1", which is the
   question; it does not generalise to other households, which 7e does not claim. Each case's variance is floored at one discordant path, so a case with none still
   carries weight (declared: a choice, not part of the method). Not the mode's class flag, which holds share 0.95 and
   bridge 4+cost, where gains are expected: one large gain there widens a random-effects interval, and a run with no path
@@ -235,7 +239,7 @@ From results-derive-7e.txt (7c's v2 against off, the nearest earlier record for 
   3,000 paths and bridge 4, wealth x0.5 and S130 at 8,000 (exact lower ends -0.23, -0.23 and -0.38 against margins of
   0.25, 0.25 and 0.5). S128 at 8,000 sits at the edge: its exact lower end is -0.512 against a margin of 0.5, so it may
   still read inconclusive, by a hair, with its bound reported. At 3,000 paths all four would have stayed open (the
-  forty-eighth review's BLOCKING 1; the maintainer chose 8,000, 25 Sep 22:47 UK). share 0.95, S360, S370 and bridge
+  forty-eighth review's BLOCKING 1; the maintainer chose 8,000, 25 Sep 22:45 UK). share 0.95, S360, S370 and bridge
   4+cost gained 22.2, 11.5, 5.7 and 4.9 points with v2, so they clear the harm margin through a gain unless the reader
   loses it.
 - What it cannot detect: the least loss look 2 can call harm is 0.25 to 0.37 points on the covered cases at 3,000, 0.34 on
@@ -259,7 +263,7 @@ reduces the bridge class's read gap from tens of points to within +/-5 (items 1-
   bridge misread but exposes the table's general optimism (the review's Finding 2). The next step would then be the
   table-gap decomposition, not F2.
 - **Second:** the pooled (fixed-effect) interval reaches -0.1 because several covered cases each lose a few paths. With
-  fixed effect a gain cannot cause it (results-pooled-floor.txt), so a fire means a small systematic cost; the next step
+  fixed effect a gain does not raise its fire rate above the no-change 2% (results-pooled-floor.txt), so a fire means a small systematic cost; the next step
   is to read which moves changed.
 - **Third:** share 0.50 or 0.70 differs from off by more than 0.5, through the probability blend against off's log-odds
   blend. It is a miss on item 7, not a falsifier. The blend then changes reads for covered households too, to be checked

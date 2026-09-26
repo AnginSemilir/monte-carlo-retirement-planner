@@ -1,10 +1,15 @@
-fire rate of the pooled floor (lower end <= -0.1), 4,000 simulated runs each
-  no change on any pool case           RE 2.3%  FE 1.1%
-  S128      gains 3 points, the rest none  RE 8.3%  FE 2.8%
-  S130      gains 3 points, the rest none  RE 12.8%  FE 0.1%
-  S124      gains 3 points, the rest none  RE 20.0%  FE 0.0%
-  bridge 4  gains 3 points, the rest none  RE 20.7%  FE 0.0%
-  S128 and S130 gain 1 point each       RE 0.0%  FE 0.0%
-  every pool case loses 0.1 points         RE 92.3%  FE 92.3%
-  every pool case loses 0.2 points         RE 100.0%  FE 100.0%
-  every pool case loses 0.3 points         RE 100.0%  FE 100.0%
+7e's pool, look 1 at 1,000 paths and look 2 at the registered counts (8,000 on the four long cases, 3,000 on the rest);
+4,000 simulated runs per scenario, mulberry32 seed 424242 (and 7 and 99 for no change). The floor fires when its lower end is at or below -0.1.
+  no change on any pool case                floor RE   2.4%  FE   2.0%   |   falsifier (harm or floor) RE   3.3%  FE   3.0%
+  no change, seed 7                         floor RE   2.4%  FE   2.0%   |   falsifier (harm or floor) RE   3.4%  FE   3.2%
+  no change, seed 99                        floor RE   2.1%  FE   1.8%   |   falsifier (harm or floor) RE   2.9%  FE   2.5%
+  S124      gains 3 points, the rest none  floor RE  12.4%  FE   1.1%   |   falsifier (harm or floor) RE  13.1%  FE   2.4%
+  bridge 4  gains 3 points, the rest none  floor RE  13.0%  FE   1.4%   |   falsifier (harm or floor) RE  13.4%  FE   2.3%
+  S130      gains 3 points, the rest none  floor RE   8.7%  FE   1.1%   |   falsifier (harm or floor) RE   8.9%  FE   1.7%
+  S128      gains 3 points, the rest none  floor RE   6.4%  FE   1.2%   |   falsifier (harm or floor) RE   6.9%  FE   2.0%
+  every pool case loses 0.1 points          floor RE  94.8%  FE  93.9%   |   falsifier (harm or floor) RE  94.9%  FE  94.2%
+  every pool case loses 0.2 points          floor RE 100.0%  FE 100.0%   |   falsifier (harm or floor) RE 100.0%  FE 100.0%
+  S128 and S130 each lose 1 point           floor RE  93.5%  FE  21.9%   |   falsifier (harm or floor) RE  99.7%  FE  99.5%
+  S128 and S130 each lose 0.5 points        floor RE  31.1%  FE   9.4%   |   falsifier (harm or floor) RE  55.4%  FE  52.6%
+  bridge 4 and wealth x0.5 each lose 0.3    floor RE  48.0%  FE  24.8%   |   falsifier (harm or floor) RE  63.9%  FE  60.2%
+  S128 loses 1.5 points                     floor RE  69.0%  FE   7.8%   |   falsifier (harm or floor) RE  99.3%  FE  99.3%

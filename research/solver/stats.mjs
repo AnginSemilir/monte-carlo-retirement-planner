@@ -103,7 +103,7 @@ export function pooledRE(cases) {
  * A fixed-effect (inverse-variance) pooled mean change with its 95% interval, over the same per-household variances as
  * pooledRE. Its interval does not widen with the spread between households, so a gain on one household cannot pull the
  * lower end down: the floor for a registered set of cases expected unchanged (the forty-eighth review's MINOR 2; the
- * maintainer chose it for 7e's pooled floor, 25 Sep 22:47 UK; results-pooled-floor.txt).
+ * maintainer chose it for 7e's pooled floor, 25 Sep 22:45 UK; results-pooled-floor.txt).
  */
 export function pooledFE(cases) {
   const k = cases.length; if (!k) return null;

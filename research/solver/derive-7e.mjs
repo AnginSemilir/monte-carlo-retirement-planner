@@ -9,7 +9,7 @@
  *   fits inside the margin; paths needed N > 1.96^2 d / delta^2 with d = n / N (the review's section 16 item 7)
  * The cases 7c did not run (S162, S172, S168) have no record for this comparison: NOT KNOWN, left to look 2. The
  * no-bridge controls have no reader table, so no discordant path by construction (reader-solve.test.mjs pins it on S000).
- * Look 2's paths (the maintainer, 25 Sep 22:47 UK, the forty-eighth review's BLOCKING 1): 8,000 for bridge 4, wealth
+ * Look 2's paths (the maintainer, 25 Sep 22:45 UK, the forty-eighth review's BLOCKING 1): 8,000 for bridge 4, wealth
  * x0.5, S130 and S128 (reduce-7e.mjs LONG), 3,000 for the rest. Beside the half-width, the exact lower end at look 2
  * under no change (b = c = half the scaled discordance; stats.mjs outcome at 0.045), which decides where the
  * approximation is close. The smallest harm look 2 can show: with the discordance scaled to look 2's paths, the least
@@ -48,7 +48,7 @@ console.log('The half-width test assumes a true change near zero. A case with a 
 console.log(`${rows.filter(r => r.d - r.h1 > 0).map(r => `${r.id} ${r.d >= 0 ? '+' : ''}${r.d.toFixed(2)}`).join(', ')} lay above zero by more than the look-1 half-width.`);
 console.log('NOT KNOWN (no record for this comparison): S162, S172, S168. The no-bridge controls S194, S252, S330: 0 discordant by construction.');
 
-// THE POOLED FLOOR (the forty-seventh review's BLOCKING 1; fixed effect since the maintainer's choice, 25 Sep 22:47 UK,
+// THE POOLED FLOOR (the forty-seventh review's BLOCKING 1; fixed effect since the maintainer's choice, 25 Sep 22:45 UK,
 // the forty-eighth review's MINOR 2): the fixed-effect interval over the pool, random effects beside it, each case at its
 // expected look (its look-2 paths where look 1 is expected to leave it open, else 1,000), its discordance scaled to the
 // paths, under five scenarios. The pool is the cases the prediction expects unchanged (reduce-7e.mjs POOL); the three without a

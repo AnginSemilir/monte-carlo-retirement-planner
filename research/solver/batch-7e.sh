@@ -7,7 +7,7 @@
 #   wave 2 (beside look 2): the no-bridge controls, off against the reader; S360 with the reader at 5 and 15 return
 #     points (7l's first evidence); S126, bridge 6 and S366 at the product's 30 points, off against the reader
 #   look 2, in wave 2: the open cases on more paths of the same seed (the first 1,000 are wave 1's), off against the
-#     reader - 8,000 for bridge 4, wealth x0.5, S130 and S128 (reduce-7e.mjs LONG; the maintainer, 25 Sep 22:47 UK),
+#     reader - 8,000 for bridge 4, wealth x0.5, S130 and S128 (reduce-7e.mjs LONG; the maintainer, 25 Sep 22:45 UK),
 #     3,000 for the rest - each group over two processes when it is large; none open writes an empty look2.txt
 #   last, alone on the machine: the time bar at 30 points (readertime), then the reducer
 # Launch:

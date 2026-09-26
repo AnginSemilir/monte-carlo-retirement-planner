@@ -41,7 +41,7 @@ ok(near(pathsNeeded(0.003, 0.0025), 1844, 5) && near(pathsNeeded(0.023, 0.0025),
   const mix = pooledRE([{ b: 0, c: 40, N: 1000 }, { b: 40, c: 0, N: 1000 }, { b: 0, c: 0, N: 1000 }]);
   ok(mix.tau2 > 0 && mix.lo < 0 && mix.hi > 0, `pooled over +4, -4 and 0 points: ${mix.mean.toFixed(2)} (${mix.lo.toFixed(2)} to ${mix.hi.toFixed(2)}), tau^2 ${mix.tau2.toFixed(2)} > 0`); }
 { const st = signTest([1, 2, 3, 4, 5, 6, 7, 8, 0, -1]); ok(st.pos === 8 && st.neg === 1 && Math.abs(st.p - 2 * 10 / 512) < 1e-12, `sign test 8 up, 1 down: p ${st.p.toFixed(4)}`); }
-// the fixed-effect pool (7e's floor, the maintainer 25 Sep 22:47 UK): equal cases give the random-effects answer (tau^2 0);
+// the fixed-effect pool (7e's floor, the maintainer 25 Sep 22:45 UK): equal cases give the random-effects answer (tau^2 0);
 // a large gain on one case raises its mean and cannot lower its lower end, where the random-effects lower end falls
 { const eq = [{ b: 2, c: 12, N: 1000 }, { b: 2, c: 12, N: 1000 }, { b: 2, c: 12, N: 1000 }], fe = pooledFE(eq), re = pooledRE(eq);
   ok(Math.abs(fe.mean - re.mean) < 1e-12 && Math.abs(fe.lo - re.lo) < 1e-12 && fe.k === 3, `fixed effect equals random effects when the cases agree: ${fe.mean.toFixed(3)} (${fe.lo.toFixed(3)} to ${fe.hi.toFixed(3)})`);

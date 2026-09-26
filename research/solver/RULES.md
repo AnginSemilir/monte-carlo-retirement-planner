@@ -280,7 +280,9 @@ checked by the plan-auditor by hand.
    random-effects (DerSimonian-Laird) pooled mean with its 95% interval, beside the sign test. A floor over a registered
    set of cases expected unchanged, where some are expected to gain, is read by a fixed-effect mean instead, random
    effects reported beside it: a random-effects interval widens with any spread, gains included, and fired on one
-   case's gain alone (7e; the maintainer, 25 Sep 22:47 UK; results-pooled-floor.txt). Each test's prediction names which.
+   case's gain alone (7e; the maintainer, 25 Sep 22:45 UK, confirmed 26 Sep 01:49 UK on the rebuilt simulation,
+   results-pooled-floor.txt). Its price: less sensitive to a loss on a few cases, which the per-case tests mostly catch.
+   Each test's prediction names which.
 5. **One primary outcome per test;** everything else is descriptive.
 6. **Power before the run:** the paths needed so the interval fits the margin, N > 1.96^2 d / delta^2 (d the discordance
    rate), from the nearest earlier records, by a committed script.

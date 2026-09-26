@@ -23,7 +23,7 @@
  *     0.5 below (the review's proposed margins, adopted with the regimen)
  *   - look 1 at 1,000 paths, error rate 0.005; look 2 for the cases look 1 left open, at 0.045, Holm on each case's
  *     latest p: 8,000 paths for bridge 4, wealth x0.5, S130 and S128 (LONG: 3,000 would leave them open under no change,
- *     derive-7e.mjs; the maintainer, 25 Sep 22:47 UK, the forty-eighth review's BLOCKING 1), 3,000 for the rest - the same
+ *     derive-7e.mjs; the maintainer, 25 Sep 22:45 UK, the forty-eighth review's BLOCKING 1), 3,000 for the rest - the same
  *     first 1,000 and the rest more (pathsForSeed builds path i from seed + i x 7919)
  *   - no material harm: the exact interval (at 1 - the look's rate) lies above minus the margin; harm: the Holm-adjusted p
  *     is below the look's rate and the point loss is at least the margin; else inconclusive, its bound reported
@@ -31,8 +31,8 @@
  *   - pooled over POOL, the 16 cases the prediction expects unchanged (not the mode's class flag, which holds share 0.95
  *     and bridge 4+cost, where gains are expected: one large gain widens a random-effects interval and falsified a run
  *     with no path lost - the forty-seventh review): a fixed-effect (inverse-variance) mean with its 95% interval,
- *     which a gain cannot widen (the maintainer, 25 Sep 22:47 UK; a random-effects interval fired on one pool case's gain
- *     in 8 to 21% of simulated runs, results-pooled-floor.txt), the DerSimonian-Laird mean reported beside it, and the
+ *     which a gain cannot widen (the maintainer, 25 Sep 22:45 UK; a random-effects interval fired on one pool case's gain
+ *     in 6 to 13% of simulated runs against about 1% for fixed effect, results-pooled-floor.txt, rebuilt 26 Sep), the DerSimonian-Laird mean reported beside it, and the
  *     sign test
  *   - the read gap (table minus simulation) per case: scored against the prediction's items, not tested
  *   Secondary (reported): the reader against v1 and against v2 from the pairs line, look 1, Holm across the 24, at 0.05.
@@ -64,7 +64,7 @@ const DIR = process.argv.slice(2).find(a => !a.startsWith('--')) || join(HERE, '
 const LAMBDA = '0.0223606797749979';
 const BR = { OFF: 'false', V1: 'true', V2: '2', READER: 'reader' };
 const WAVE1 = 24, LOOK1 = 0.005, LOOK2 = 0.045, ONE_LOOK = 0.05, POOL_FLOOR = -MARGINS.pooled, TIME_BAR = 1.2;
-// look 2's path counts (the maintainer, 25 Sep 22:47 UK): 8,000 where derive-7e.mjs expects 3,000 to leave the case open
+// look 2's path counts (the maintainer, 25 Sep 22:45 UK): 8,000 where derive-7e.mjs expects 3,000 to leave the case open
 export const LONG = ['bridge 4', 'wealth x0.5', 'S130', 'S128'];
 const L2 = 3000, L2_LONG = 8000, pathsL2 = id => (LONG.includes(id) ? L2_LONG : L2);
 const gateL2 = look2 => [...gate(look2.filter(c => !LONG.includes(c.id)), 16, L2), ...gate(look2.filter(c => LONG.includes(c.id)), 16, L2_LONG)];

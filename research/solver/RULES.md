@@ -316,7 +316,11 @@ checked by the plan-auditor by hand.
 **Testing** (the review's section 16):
 1. **The per-household test** is the exact conditional McNemar on the discordant paths, one-sided for harm; mid-p only
    where the prediction declares it. **The interval** for the survival change is Clopper-Pearson on the lost share,
-   mapped to points.
+   mapped to points. That interval conditions on the number of paths that differ, so with one-sided changes its
+   no-material-harm and no-material-gain ends read too kindly (a true loss at the margin reads "no material harm" about
+   half the time: the eighty-fourth review, 26 Sep; the plan's bugs list and O27). The harm test is sound. The
+   unconditional interval (stats.mjs survivalChangeU, Newcombe 1998 method 10) is reported beside it; replacing it is the
+   maintainer's decision (drafts/whole-score-rule.md).
 2. **Margins, set once:** 0.25 points where the comparison arm survives 95% or more, 0.5 points below, 0.1 points for a
    pooled mean. Gate 4's 1-point condition stays at the product level. They go into the decided-defaults block with a
    test pinning them (plan-defaults.test.mjs, since 25 Sep 21:54 UK).

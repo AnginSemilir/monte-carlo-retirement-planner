@@ -92,6 +92,10 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    one: `node -e "import('.../audit-s126.mjs')"` ran audit-s126.mjs's default mode outside the launcher on 26 Sep (PLAN.md,
    bugs of 26 Sep). A hook rule that also refuses node -e, node --eval and node -p naming those scripts is proposed with the
    next unlock.
+13. smoke.sh's diag7r line runs S126 at 4 points, where the reader changes no move, so 7r's swap arms swap nothing there:
+   the swap itself is checked only by research/tests/solver-choose-hook.test.mjs (8 points), which neither the launcher,
+   the pre-commit hook nor CI runs, and the smoke line does not grep the swap lines or the swap traces' stamps (the
+   sixty-seventh review, MINOR 1, 26 Sep 12:45 UK). Proposed for the next unlock: those greps, and the hook test in CI.
 
 ---
 

@@ -41,7 +41,8 @@ const mode = process.argv[2] || 'variants';
 // (code-id.mjs's hash covers the engine and src/solver, not this script, so the script's own hash is stamped beside it)
 // (kept as STAMP too, so a mode that writes files beside its log can stamp them: diag7r's traces)
 const STAMP = (() => {
-  const own = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).digest('hex').slice(0, 12), cid = codeId();
+  // the audit hash covers this script and swap.mjs, which picks every move of diag7r's swap arms (the sixty-seventh review, MINOR 3)
+  const own = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).update(readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'swap.mjs'))).digest('hex').slice(0, 12), cid = codeId();
   return { code: cid ? cid.hash : 'unknown', audit: own, prediction: !process.env.PREDICTION_FILE ? 'NOT-LAUNCHED' : process.env.PREDICTION_FILE, sha: process.env.PREDICTION_SHA || '-' };
 })();
 console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);
@@ -288,8 +289,9 @@ if (mode === 'f1v2') {
    * move from the arm's own state and tiers held; RTIER takes the reader's tiers with off's order, harvest and spending
    * level, RREST off's tiers with the reader's order, harvest and level (the move list holds every tier pair under each
    * such base: solve.js buildActions, tierBase). From access on, both pick off's move, which the reader's move equals there
-   * (the reader reads only tables of years before access); the run counts any year at or after the last bridge year where
-   * the two differ, which the derivation says is none. Whichever arm reproduces the reader's harm carries it.
+   * (the reader reads only tables of years before access); the run compares the two in the last bridge year and the first
+   * year of access and counts any difference there, which the derivation says is none; after that it takes off's move
+   * without asking the reader (research/tests/solver-choose-hook.test.mjs compares every later year on S126). Whichever arm reproduces the reader's harm carries it.
    *   node research/solver/audit-s126.mjs diag7r [points] [paths] part k/n [seed=7002]
    * Prints 7e's line format per case (so reduce-7r.mjs reuses 7e's parser and gate) and writes each arm's trace to
    * results/diag7r/<case>-<arm>.json.gz, stamped as the log is (reduce-7r.mjs checks the two agree), or to DIAG7R_OUT when

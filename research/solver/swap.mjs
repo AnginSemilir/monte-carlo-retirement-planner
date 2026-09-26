@@ -5,8 +5,9 @@
  * level from the other - RTIER the reader's tiers with off's rest, RREST off's tiers with the reader's rest. The move list
  * holds every tier pair under each base (solve.js buildActions, tierBase), so the swap is the base of one move plus the
  * other's offset into the tier pairs; swapIndex checks it landed. From the last bridge year on both pick off's move, which
- * the reader's move equals there (it reads only tables of years before access; the test pins that), and n.late counts any
- * year where they differ.
+ * the reader's move equals there (it reads only tables of years before access; the test pins that). n.late counts the
+ * path-years where the two differ in the last bridge year or the first year of access, the only years it compares both;
+ * after that it takes off's move without asking the reader (the hook test compares every later year on S126).
  */
 import { chooseAction } from '../../src/solver/solve.js';
 

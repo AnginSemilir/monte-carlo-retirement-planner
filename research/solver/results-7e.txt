@@ -1,0 +1,87 @@
+FAIR-TEST GATE: passed - 35 case logs, each case's arms the same but the bridge read (and the return points for an @15 arm), at the registered settings and path counts
+
+7e: THE BRIDGE FIXES SIDE BY SIDE, READ AGAINST predictions/bridge-reader.md BY THE EXACT RULE (section 19)
+
+PRIMARY - the reader against off, per case (look 1 at 0.005, look 2 at 0.045; Holm across the 24):
+   S126                    14 lost   0 saved of 3000  p  6.1e-5  Holm  1.4e-3  change -0.47 (-0.47 to -0.25)  margin 0.25  -> harm (look 2)
+   share 0.90               0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   bridge 4                26 lost   1 saved of 8000  p  2.1e-7  Holm  5.0e-6  change -0.31 (-0.34 to -0.21)  margin 0.25  -> harm (look 2)
+   S120                     0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   S130                     0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.5  -> no material harm
+   bridge 4+cost            0 lost  36 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +3.60 (2.50 to 3.60)  margin 0.25  -> no material harm
+   share 0.50               0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   share 0.95               0 lost 182 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +18.20 (17.02 to 18.20)  margin 0.5  -> no material harm
+   bridge 6                 1 lost   1 saved of 1000  p  7.5e-1  Holm  1.0e+0  change +0.00 (-0.20 to 0.20)  margin 0.25  -> no material harm
+   S122                     0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   S360                     0 lost 125 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +12.50 (11.33 to 12.50)  margin 0.5  -> no material harm
+   S162                     0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   share 0.70               0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   bridge 0                 0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   wealth x0.5             14 lost  68 saved of 8000  p  1.0e+0  Holm  1.0e+0  change +0.68 (0.47 to 0.83)  margin 0.25  -> no material harm (look 2)
+   S124                    28 lost  11 saved of 3000  p  4.7e-3  Holm  1.0e-1  change -0.57 (-0.92 to -0.12)  margin 0.5  -> inconclusive (look 2)
+   S366                     0 lost   1 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.10 (-0.10 to 0.10)  margin 0.25  -> no material harm
+   S172                     1 lost   0 saved of 1000  p  5.0e-1  Holm  1.0e+0  change -0.10 (-0.10 to 0.10)  margin 0.25  -> no material harm
+   share 0.78               0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   bridge 1                 0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   wealth x2                0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   S128                     0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.5  -> no material harm
+   S370                    17 lost  65 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +4.80 (2.35 to 6.58)  margin 0.5  -> no material harm
+   S168                     0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+the 30-point cases and the no-bridge controls (each its own family, one look at 0.05):
+   S126 @30                 3 lost   0 saved of 1000  p  1.2e-1  Holm  3.7e-1  change -0.30 (-0.30 to 0.12)  margin 0.25  -> inconclusive
+   bridge 6 @30             0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   S366 @30                 0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   S194 (control)           0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   S252 (control)           0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.25  -> no material harm
+   S330 (control)           0 lost   0 saved of 1000  p  1.0e+0  Holm  1.0e+0  change +0.00 (0.00 to 0.00)  margin 0.5  -> no material harm
+POOLED over the 16 cases expected unchanged (fixed effect, the floor): -0.042 points (-0.091 to 0.008); random effects beside it, reported: -0.031 (-0.148 to 0.086), tau^2 0.0450; sign test 2 up, 4 down, p 0.687
+
+THE PREDICTION'S ITEMS:
+1. in class (9 cases) the reader's gap within +/-5, the thin S128 and S130 within +/-8: held
+2. bridge 6 and S366 within +/-5: bridge 6 -1.6, S366 -2.7 -> held; S370 reported: S370 -3.0
+3. share 0.95 and S360 within +/-10: share 0.95 -12.6, S360 -14.0 -> MISSED
+4. bridge 4+cost within +/-8: bridge 4+cost -1.3 -> held
+5. no case shows harm by the exact rule: harm on S126, bridge 4 -> MISSED
+6. the reader gains survival on share 0.95 and S360 (the exact one-sided p for a gain below 0.05): share 0.95 +18.2 (182 saved, 0 lost; p 0.0e+0), S360 +12.5 (125 saved, 0 lost; p 0.0e+0) -> held
+7. bridge 0 identical: yes; share 0.50 and 0.70 within 0.5: yes; the no-bridge controls identical: 3 of 3 -> held
+8. at 30 points the reader's gap within +/-5: S126 0.2, bridge 6 0.0, S366 -0.1 -> held
+9. the reader's added solve time at 30 points at most 20% on each case: S126 1.027, bridge 6 1.041, S366 1.065 -> held
+
+FALSIFIER: fired - harm on S126, bridge 4
+=> FALSIFIED - NOT CARRIED FORWARD (F2 is built and tested the same way)
+   inconclusive, with their bounds, for the maintainer: S124 (-0.92 to -0.12); S126 @30 (-0.30 to 0.12)
+
+SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across the 24, at 0.05):
+   against V1: harm share 0.95; inconclusive S126 (-0.30 to 0.12), bridge 4 (-0.40 to 0.08), S130 (-1.60 to 0.37), S124 (-0.56 to 0.44), S128 (-1.88 to 1.12); no material harm on 18
+   against V2: harm share 0.95; inconclusive S126 (-0.30 to 0.12), S130 (-1.60 to 0.37), S360 (-0.56 to 0.44), S124 (-0.56 to 0.44), S128 (-1.88 to 1.12); no material harm on 18
+
+REPORTED, NOT PREDICTED:
+   S126           OFF gap  -44.2 sim 100.0 tier-below 40.0 | V1 gap    0.1 sim  99.8 tier-below  8.5 | V2 gap    0.1 sim  99.8 tier-below  8.5 | READER gap    0.1 sim  99.5 tier-below  7.9
+   share 0.90     OFF gap  -98.5 sim  99.7 tier-below  8.5 | V1 gap    0.1 sim  99.8 tier-below  9.1 | V2 gap    0.1 sim  99.8 tier-below  9.1 | READER gap   -0.1 sim  99.7 tier-below  8.5
+   bridge 4       OFF gap  -91.9 sim  99.7 tier-below 42.0 | V1 gap   -2.7 sim  99.6 tier-below 41.9 | V2 gap    0.9 sim  98.9 tier-below 14.0 | READER gap   -0.1 sim  99.2 tier-below 14.1
+   S120           OFF gap   -9.5 sim 100.0 tier-below 40.0 | V1 gap    0.0 sim 100.0 tier-below  0.1 | V2 gap    0.0 sim 100.0 tier-below  0.1 | READER gap    0.0 sim 100.0 tier-below  0.1
+   S130           OFF gap  -78.3 sim  84.3 tier-below 35.3 | V1 gap    6.6 sim  85.0 tier-below 36.5 | V2 gap    6.6 sim  85.0 tier-below 36.5 | READER gap    3.3 sim  84.3 tier-below 35.3
+   bridge 4+cost  OFF gap  -94.5 sim  96.0 tier-below 10.9 | V1 gap  -25.3 sim  99.4 tier-below 41.8 | V2 gap   -7.7 sim  99.3 tier-below 41.8 | READER gap   -1.3 sim  99.6 tier-below 41.9
+   share 0.50     OFF gap    0.0 sim  99.9 tier-below  4.5 | V1 gap    0.0 sim  99.9 tier-below  4.5 | V2 gap    0.0 sim  99.9 tier-below  4.5 | READER gap   -0.3 sim  99.9 tier-below  4.5
+   share 0.95     OFF gap  -76.0 sim  76.0 tier-below  5.0 | V1 gap  -39.1 sim  96.5 tier-below 38.7 | V2 gap  -23.3 sim  96.5 tier-below 38.7 | READER gap  -12.6 sim  94.2 tier-below  7.3
+   bridge 6       OFF gap  -94.4 sim  99.5 tier-below 43.9 | V1 gap  -45.9 sim  99.2 tier-below 38.9 | V2 gap    0.1 sim  99.4 tier-below 43.9 | READER gap   -1.6 sim  99.5 tier-below 40.3
+   S122           OFF gap  -55.5 sim  99.8 tier-below  1.0 | V1 gap    0.2 sim  99.8 tier-below  1.1 | V2 gap    0.2 sim  99.8 tier-below  1.1 | READER gap    0.1 sim  99.8 tier-below  1.0
+   S360           OFF gap  -33.7 sim  34.5 tier-below  0.0 | V1 gap  -39.8 sim  44.0 tier-below 18.3 | V2 gap    0.1 sim  47.1 tier-below 20.1 | READER gap  -14.0 sim  47.0 tier-below 19.8
+   S162           OFF gap    0.4 sim  99.2 tier-below 12.3 | V1 gap    0.4 sim  99.2 tier-below 12.3 | V2 gap    0.4 sim  99.2 tier-below 12.3 | READER gap   -0.2 sim  99.2 tier-below 12.3
+   share 0.70     OFF gap    0.0 sim  99.7 tier-below  6.8 | V1 gap    0.2 sim  99.7 tier-below  6.8 | V2 gap    0.2 sim  99.7 tier-below  6.8 | READER gap   -0.1 sim  99.7 tier-below  6.8
+   bridge 0       OFF gap    0.3 sim  99.6 tier-below  4.9 | V1 gap    0.3 sim  99.6 tier-below  4.9 | V2 gap    0.3 sim  99.6 tier-below  4.9 | READER gap    0.3 sim  99.6 tier-below  4.9
+   wealth x0.5    OFF gap  -90.7 sim  95.7 tier-below 37.9 | V1 gap    0.7 sim  96.2 tier-below 39.4 | V2 gap    0.7 sim  96.2 tier-below 39.4 | READER gap   -1.4 sim  96.2 tier-below 39.4
+   S124           OFF gap  -84.8 sim  95.1 tier-below 39.2 | V1 gap   -0.2 sim  95.1 tier-below 39.2 | V2 gap   -0.2 sim  95.1 tier-below 39.2 | READER gap   -3.8 sim  95.0 tier-below 37.9
+   S366           OFF gap  -97.2 sim  99.2 tier-below 45.8 | V1 gap  -95.4 sim  98.5 tier-below 24.2 | V2 gap    0.1 sim  99.1 tier-below 45.8 | READER gap   -2.7 sim  99.3 tier-below 45.8
+   S172           OFF gap   -0.2 sim  99.0 tier-below 40.0 | V1 gap   -0.2 sim  99.0 tier-below 40.0 | V2 gap   -0.2 sim  99.0 tier-below 40.0 | READER gap   -2.7 sim  98.9 tier-below 26.2
+   share 0.78     OFF gap   -0.8 sim 100.0 tier-below 40.0 | V1 gap    0.1 sim  99.8 tier-below  7.7 | V2 gap    0.1 sim  99.8 tier-below  7.7 | READER gap   -0.4 sim 100.0 tier-below 40.0
+   bridge 1       OFF gap  -13.8 sim  99.6 tier-below  6.5 | V1 gap    0.3 sim  99.6 tier-below  6.5 | V2 gap    0.3 sim  99.6 tier-below  6.5 | READER gap    0.2 sim  99.6 tier-below  6.5
+   wealth x2      OFF gap   -8.0 sim 100.0 tier-below 40.0 | V1 gap    0.0 sim 100.0 tier-below  0.5 | V2 gap    0.0 sim 100.0 tier-below  0.5 | READER gap    0.0 sim 100.0 tier-below  0.5
+   S128           OFF gap  -68.7 sim  69.9 tier-below 28.2 | V1 gap    3.9 sim  70.3 tier-below 29.5 | V2 gap    3.9 sim  70.3 tier-below 29.5 | READER gap   -1.8 sim  69.9 tier-below 28.2
+   S370           OFF gap  -73.0 sim  73.1 tier-below 31.8 | V1 gap  -72.6 sim  72.9 tier-below 33.5 | V2 gap    3.3 sim  76.4 tier-below 38.3 | READER gap   -3.0 sim  77.9 tier-below 37.6
+   S168           OFF gap    0.0 sim 100.0 tier-below  0.0 | V1 gap    0.0 sim 100.0 tier-below  0.0 | V2 gap    0.0 sim 100.0 tier-below  0.0 | READER gap    0.0 sim 100.0 tier-below  0.0
+   O5 S124: years below tier 39.2 off -> 37.9 reader; survival 3 saved, 4 lost (inconclusive; p for a gain 7.7e-1) - the lower tier holds with an accurate read: a sound choice
+   O5 S128: years below tier 28.2 off -> 28.2 reader; survival 0 saved, 0 lost (no material harm; p for a gain 1.0e+0) - the lower tier holds with an accurate read: a sound choice
+   O5 S130: years below tier 35.3 off -> 35.3 reader; survival 0 saved, 0 lost (no material harm; p for a gain 1.0e+0) - the lower tier holds with an accurate read: a sound choice
+   S360 with the reader, 15 against 5 return points: +0.3 (4 saved, 1 lost; exact p for a gain 1.9e-1) (7j: +2.00 +/- 0.47 with no bridge read)
+   the reader's unsupported nodes, over every solve: 0

@@ -7,7 +7,7 @@
  * simulated draws of one-sided losses: arm A's failures drawn as Poisson(N (1 - survival)), and B losing Poisson(N x 0.0025)
  * more of A's survivors, saving none (the pattern of every harm in 7r, 7s and O23). The nominal rate is level / 2.
  * Poisson draws stand in for binomial ones (declared: at 95% survival they slightly overstate the spread of A's failures).
- * mulberry32, seed 7002.
+ * Below 95% survival the rows read the 0.5-point margin (appended; the eighty-sixth review, MINOR 3). mulberry32, seed 7002.
  *   node research/solver/sim-unconditional.mjs > research/solver/results-sim-unconditional.txt
  */
 import { survivalChange, survivalChangeU } from './stats.mjs';
@@ -24,6 +24,21 @@ for (const [surv, N, level] of [[0.998, 1000, 0.005], [0.998, 3000, 0.05], [0.99
     const failA = Math.min(N, pois(N * (1 - surv))), survA = N - failA, b = Math.min(survA, pois(N * MARGIN / 100));
     if (survivalChangeU(survA - b, b, 0, failA, level).lo > -MARGIN) u++;
     if (survivalChange(b, 0, N, level).lo > -MARGIN) c++;
+  }
+  console.log(`${(100 * surv).toFixed(1).padStart(6)}%  ${String(N).padStart(5)}  ${level.toFixed(3)}  | ${(100 * u / R).toFixed(1).padStart(10)}%  ${(100 * c / R).toFixed(1).padStart(10)}%  ${(100 * level / 2).toFixed(2).padStart(6)}%`);
+}
+// BELOW 95% SURVIVAL, AT THE REGIMEN'S 0.5-POINT MARGIN (the eighty-sixth review, MINOR 3: 7e's S128 at 68.8% and S130 at
+// 83.1%, and 7t's items 10 and 14 on S360 and share 0.95). Appended after the rows above so their draws are unchanged; here
+// arm A's failures are drawn binomially (a normal draw with the binomial's spread, N q (1 - q)), since Poisson overstates
+// the spread when survival is far from 100%.
+const binomFail = (N, q) => { let u = 0; while (u === 0) u = rnd(); const v = rnd(); return Math.min(N, Math.max(0, Math.round(N * q + Math.sqrt(N * q * (1 - q)) * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)))); };
+console.log('\nbelow 95% survival, at the 0.5-point margin:');
+for (const [surv, N, level] of [[0.9, 1000, 0.005], [0.9, 3000, 0.05], [0.9, 8000, 0.05], [0.7, 1000, 0.005], [0.7, 3000, 0.05], [0.7, 8000, 0.05]]) {
+  let u = 0, c = 0; const M2 = 0.5;
+  for (let r = 0; r < R; r++) {
+    const failA = binomFail(N, 1 - surv), survA = N - failA, b = Math.min(survA, pois(N * M2 / 100));
+    if (survivalChangeU(survA - b, b, 0, failA, level).lo > -M2) u++;
+    if (survivalChange(b, 0, N, level).lo > -M2) c++;
   }
   console.log(`${(100 * surv).toFixed(1).padStart(6)}%  ${String(N).padStart(5)}  ${level.toFixed(3)}  | ${(100 * u / R).toFixed(1).padStart(10)}%  ${(100 * c / R).toFixed(1).padStart(10)}%  ${(100 * level / 2).toFixed(2).padStart(6)}%`);
 }

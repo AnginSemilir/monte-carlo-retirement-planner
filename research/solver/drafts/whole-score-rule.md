@@ -7,7 +7,7 @@ test, margins and power rule are built for survival counts, and choosing a test 
 fixing the margins once was adopted to stop. So the rule is decided once, before 7u registers, and then used by 7u, 7q
 and 7o alike.
 
-**What changed since the maintainer's "agreed" (20:46 UK).** The eighty-fourth review (20:56 UK) found two faults.
+**What changed since the maintainer's "agreed" (20:46 UK).** The eighty-fourth and eighty-fifth reviews found three faults.
 1. **Row 1's premise was false.** The earlier version said a household's 1,000 or more futures make the mean close to
    normal. They do not: the per-future whole-score difference is dominated by the +/-100-point survival flips. On S126
    the 15 lost paths carry about 50 of the 53.9 points^2 of per-future variance behind results-7r-failures.txt's se of
@@ -19,11 +19,16 @@ and 7o alike.
    52.5% of the time at 3,000 futures (nominal 2.5%). An interval that counts that chance too is built and checked
    (stats.mjs survivalChangeU, Newcombe 1998 method 10). results-sim-unconditional.txt (sim-unconditional.mjs, 20,000
    draws a row) shows it at or below the stated rate from 95% to 99.8% survival and 1,000 to 8,000 futures, except 4.1%
-   at 95% survival and 8,000 futures (nominal 2.5%), where the old interval reads about half on every row.
-3. **The pooled floor has the same kind of fault** (the eighty-fifth review). Each household's weight comes from its
-   own counts, so households that lost fewer futures by chance weigh more. At a true pooled loss of 0.1 points the floor
-   holds 6.1% (random effects) and 7.1% (fixed effect) of the time, against 2.5% (results-pooled-floor.txt).
+   at 95% survival and 8,000 futures (nominal 2.5%), where the old interval reads about half on every row. Below 95%
+   survival, at the regimen's 0.5-point margin, it runs a little high: 3.0% to 4.3% at 3,000 and 8,000 futures (0% to
+   1.1% at the first look's 1,000), against the old interval's 44% to 48%. So it is far better, but not exact.
    It is reported beside 7t's registered reading tonight; changing the regimen's item 1 is the maintainer's decision.
+3. **The pooled floor has the same kind of fault** (the eighty-fifth review). Each household's weight comes from its
+   own counts, so households that lost fewer futures by chance weigh more. Through 7e's two looks with Holm across 24
+   cases, a true pooled loss of 0.1 points holds the floor 6.1% (random effects) and 7.1% (fixed effect) of the time,
+   against 2.5% (results-pooled-floor.txt). At one fixed path count it is several times worse: 13% to 66% for fixed
+   effect and 7% to 51% for random effects (results-pooled-fixed.txt, sim-pooled-fixed.mjs: 3,000 or 8,000 paths, with
+   7e's backgrounds or none). The households' cells summed into one unconditional interval holds 2.0% to 3.2% there.
 
 ## The corrected proposal
 
@@ -32,7 +37,7 @@ and 7o alike.
 | 1 | The test | Split each household's whole-score change into its **survival part** (the futures that differ in survival, worth 100 points each, read by the unconditional interval, survivalChangeU) and **the rest** (the estate, cut and raise terms over every future, read by a normal interval, which suits them). Combine the two by a split error rate (each part at half the level), so the combined interval is conservative. Its calibration is shown by simulation before adoption, as a planted check: at a true loss exactly at the margin it must read "no material harm" no more often than the stated rate | It carries the uncertainty in how many futures differ, which the first version did not |
 | 2 | The margins | The regimen's own: 0.25 points a household where the comparison arm survives 95% or more, 0.5 below; 0.1 pooled | No new number; the whole score is in points of survival |
 | 3 | The outcomes | The regimen's three, in the same form | One way of reading every test |
-| 4 | Holm, looks and the pool | Holm across the households; the regimen's two looks. The pooled floor needs a form whose weights and spread do not come from the same counts; a candidate is the households' cells summed into one unconditional interval. Its calibration at a one-sided loss of 0.1 is shown before adoption | The floor has the same fault as the survival interval (3 above) |
+| 4 | Holm, looks and the pool | Holm across the households; the regimen's two looks. The pooled floor read on the households' cells summed into one unconditional interval, not weighted by each household's own counts: at a one-sided loss of 0.1 it holds 2.0% to 3.2% of the time (results-pooled-fixed.txt), where the current forms hold 7% to 66% | The floor has the same fault as the survival interval (3 above) |
 | 5 | Survival's role | Reported beside it by the unconditional interval. Not a veto, but a survival loss beyond twice the margin goes to the maintainer before any default | As agreed |
 | 6 | Scope | Every household | As agreed |
 | 7 | The score | The solver's own objective as it solved, realised per future. No function computes it today: runPolicy returns the parts (survival, end wealth, shortfall, spending), and the only figures so far come from read-7r-failures.mjs, a re-implementation. So a scorer is built first, beside the solver's objective code, with a planted check that it reproduces results-7r-failures.txt's -0.347 and -0.380 | The eighty-fourth review's MINOR 4 |
@@ -49,8 +54,10 @@ and 7o alike.
 - Phase 4's gate 4 is left as it is (it compares the solver with the app; its survival headline is the maintainer's
   decision), unless the maintainer chooses otherwise.
 
-**The calibration shown before asking** spans the comparison arm's survival (95% to 99.8%) and the futures (1,000 to
-8,000), as results-sim-unconditional.txt does for the survival part.
+**The calibration shown before asking** spans the comparison arm's survival (70% to 99.8%, at each band's margin) and
+the futures (1,000 to 8,000), as results-sim-unconditional.txt now does for the survival part; the combined whole-score
+form is shown the same way. Where the unconditional interval runs above its stated rate (below 95% survival, and 95% at
+8,000 futures), the maintainer may prefer a slightly wider interval there; the choice is put with the rest.
 
 **What the maintainer is asked, once the combined form's calibration is shown:**
 1. Agree to rows 1-9, or change them.

@@ -27,6 +27,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const TESTS = [
   { name: '7e (the bridge reader)', prediction: 'predictions/bridge-reader.md', results: 'results-7e.txt' },
   { name: '7r (why the reader harms)', prediction: 'predictions/diag-7r.md', results: 'results-7r.txt' },
+  { name: '7s (5 or 15 return points)', prediction: 'predictions/diag-7s.md', results: 'results-7s.txt' },
 ];
 
 export function credences(predText) {
@@ -49,7 +50,7 @@ export function outcomes(resultsText) {
   // FAILED (stamps)" and "REFUSED: not a fair test", any reducer's "PLANTED CHECK FAILED"
   if (/^INCOMPLETE|^FAIR-TEST GATE: FAILED|^\s*REFUSED: not a fair test|^PLANTED CHECK FAILED/m.test(resultsText)) return { refused: 'the reducer stopped before a verdict' };
   // the verdict: 7e's "=> NOT FALSIFIED" or "=> FALSIFIED", or a three-outcome reducer's "OUTCOME: HELD|FALSIFIED|INCONCLUSIVE"
-  const v = /^=>\s*(NOT FALSIFIED|FALSIFIED)/m.exec(resultsText) || /^OUTCOME:\s*(HELD|FALSIFIED|INCONCLUSIVE)\b/m.exec(resultsText);
+  const v = /^=>\s*(NOT FALSIFIED|FALSIFIED)/m.exec(resultsText) || /^OUTCOME:\s*(HELD|FALSIFIED|INCONCLUSIVE|NOT SETTLED)\b/m.exec(resultsText);   // NOT SETTLED (7s): the whole scored 0, the items as printed, so a missed reproduction is scored (the seventy-fourth review, MINOR 2)
   if (!v) return { refused: 'no verdict line' };
   const h = resultsText.indexOf("THE PREDICTION'S ITEMS:");
   const sec = h < 0 ? resultsText : resultsText.slice(h).split(/\n\s*\n/)[0];
@@ -138,6 +139,8 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
     ['a three-outcome verdict: HELD scores 1, INCONCLUSIVE and FALSIFIED 0', ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(v => outcomes(`THE PREDICTION'S ITEMS:\n1. a: x -> held\n\nOUTCOME: ${v} - why`).overall).join(','), '1,0,0'],
     ['7r, its real prediction against its saved results-7r.txt, scored', t(() => { const r = scoreTest(readFileSync(join(HERE, 'predictions/diag-7r.md'), 'utf8'), readFileSync(join(HERE, 'results-7r.txt'), 'utf8')); return `${r.status} ${r.pairs.length} ${r.pairs.map(x => x.o).join('')}`; }), 'SCORED 6 101111'],
     ['7r: reduce-7r\'s items() unchanged since 7r was read (else re-check the scorecard reads its lines)', (() => { const s7 = readFileSync(join(HERE, 'reduce-7r.mjs'), 'utf8'), i = s7.indexOf('export function items('); return createHash('sha256').update(s7.slice(i, s7.indexOf('\n}\n', i) + 3)).digest('hex').slice(0, 16); })(), 'd78aa77ac22e161f'],
+    ['7s, its real prediction against its saved results-7s.txt, scored', t(() => { const r = scoreTest(readFileSync(join(HERE, 'predictions/diag-7s.md'), 'utf8'), readFileSync(join(HERE, 'results-7s.txt'), 'utf8')); return `${r.status} ${r.pairs.length} ${r.pairs.map(x => x.o).join('')}`; }), 'SCORED 6 111110'],
+    ['a NOT SETTLED outcome is scored: the whole 0, a missed item 1 counted', t(() => { const r = scoreTest(readFileSync(join(HERE, 'predictions/diag-7s.md'), 'utf8'), 'THE PREDICTION\'S ITEMS:\n1. a: x -> MISSED\n2. b: NOT SETTLED -> MISSED\n3. c: x -> held\n4. d: x -> held\n5. e: x -> held\n\nOUTCOME: NOT SETTLED (x)'); return `${r.status} ${r.pairs.map(x => x.o).join('')}`; }), 'SCORED 001110'],
     ['7r, its real prediction and saved result, scored', t(() => { const r = scoreTest(readFileSync(join(HERE, 'predictions/diag-7r.md'), 'utf8'), 'THE PREDICTION\'S ITEMS:\n1. a: x -> held\n2. b: x -> MISSED\n3. c: x -> held\n4. d: x -> held\n5. e: x -> held\n\nOUTCOME: HELD - x'); return `${r.status} ${r.pairs.length}`; }), 'SCORED 6'],
     ['reliability bins: 0.7 in 60-75%, 0.8 in 75-90%, 0.9 and 0.6... ', JSON.stringify(reliability(scoreTest(P, R).pairs).map(b => b.n)), '[0,2,1,1]'],
   ];

@@ -2,11 +2,10 @@ THE SCORECARD: the author's stated credence against each item's outcome (PLAN.md
 
 7e (the bridge reader): Brier 0.166 over 10 (1 0.7 -> held; 2 0.8 -> held; 3 0.6 -> not; 4 0.65 -> held; 5 0.75 -> not; 6 0.8 -> held; 7 0.85 -> held; 8 0.75 -> held; 9 0.95 -> held; carried forward 0.6 -> not)
 7r (why the reader harms): Brier 0.331 over 6 (1 0.6 -> held; 2 0.9 -> not; 3 0.3 -> held; 4 0.55 -> held; 5 0.65 -> held; outcome HELD 0.55 -> held)
-7s (5 or 15 return points): Brier 0.098 over 6 (1 0.95 -> held; 2 0.45 -> held; 3 0.85 -> held; 4 0.6 -> held; 5 0.8 -> held; outcome HELD 0.25 -> not)
 
-CUMULATIVE: Brier 0.193 over 22 items
+CUMULATIVE: Brier 0.228 over 16 items
 RELIABILITY (credence bin: items, mean credence, share held):
-  under 60%       5   0.42   0.80
-  60-75%          7   0.63   0.71
-  75-90%          7   0.80   0.86
-  90% and over    3   0.93   0.67
+  under 60%       3   0.47   1.00
+  60-75%          6   0.63   0.67
+  75-90%          5   0.79   0.80
+  90% and over    2   0.93   0.50

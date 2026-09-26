@@ -160,10 +160,14 @@ gate and completeness is caught: results-reduce-7e-mutations.txt), with the main
   sim-pooled-floor.mjs, rebuilt 26 Sep with a sound generator after the forty-ninth review found the first version's
   cycled; grade C): with no change the whole falsifier fires in about 3% of runs either way; one pool case gaining 3
   points fires it in 7 to 13% of runs with random effects and about 2% with fixed effect; a 0.1-point loss on every
-  pool case fires it in about 94% either way. The price, put to the maintainer 26 Sep 01:49 UK and accepted: a loss
-  concentrated on a few cases fires the fixed-effect floor less often (S128 and S130 each 1 point lower: 22% against
-  94%), but the per-case tests catch most of it, so the whole falsifier differs by at most about 4 points (bridge 4 and
-  wealth x0.5 each 0.3 lower: 60% against 64%; S128 and S130 each 1 lower: 99.5% against 99.7%). A fixed-effect interval answers "is the average change over these 16 cases below -0.1", which is the
+  pool case fires it in about 93% either way (Holm across all 24 wave-1 cases, as registered). The price, put to the
+  maintainer 26 Sep 06:40 UK with these figures and accepted (an earlier "at most about 4 points", put at 01:49 UK, was
+  wrong: it came from two-case scenarios and Holm across 16; the fiftieth review): a small loss spread over three to
+  six covered cases is caught 8 to 10 points less often with fixed effect (S124, S122 and S366 each 0.3 lower: 57%
+  against 67%; the four long cases each 0.3 lower: 67% against 76%; six covered cases each 0.2 lower: 76% against 84%),
+  because the per-case tests alone catch only 28 to 53% there. A loss on one or two cases is caught by the per-case
+  tests either way (S128 and S130 each 1 point lower: 99.1% against 99.3%). A small spread loss that 7e misses still
+  meets 7e's replication (7o) and the combined no-harm run (step 7, 8f) before any default. A fixed-effect interval answers "is the average change over these 16 cases below -0.1", which is the
   question; it does not generalise to other households, which 7e does not claim. Each case's variance is floored at one discordant path, so a case with none still
   carries weight (declared: a choice, not part of the method). Not the mode's class flag, which holds share 0.95 and
   bridge 4+cost, where gains are expected: one large gain there widens a random-effects interval, and a run with no path

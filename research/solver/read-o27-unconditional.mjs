@@ -28,11 +28,14 @@
  * (results-sim-unconditional.txt: up to 1.1% at 70% survival and 1,000 paths, nominal 0.25%; with no path differing its
  * half-width shrinks as survival nears 50%: +/-0.31 at 68.8% and 1,000 paths at 0.005, where no loss below about 0.6 points
  * could be ruled out by 0 of 1,000). A bound that needs no approximation: the change B - A is at least minus B's lost share
- * (saves only help) and at most B's saved share, each share's exact one-sided end at level / 2 by Clopper-Pearson. Where
- * the arm loses at least as many paths as it saves the lower bound is nearly exact, and the lower end read is the lower
- * of it and the unconditional one (the least favourable, as for rounding); likewise the upper end where it saves at least
- * as many as it loses. Where the other side's count is larger the bound, which ignores it, is not informative and is not
- * applied. A read the check changes is flagged COUNT CHECK.
+ * (saves only help) and at most B's saved share, each share's exact one-sided end at level / 2 by Clopper-Pearson. It is
+ * near-exact only where the other side's count is zero - the one-sided pattern of every harm in 7r, 7s and O23 - so only
+ * there is it applied: with no path saved the lower end read is the lower of it and the unconditional one (the least
+ * favourable, as for rounding; taking the lower of the two only widens, so the read is never less cautious than the
+ * interval alone), and with no path lost likewise the upper end. Where both counts are above zero it is not applied: it
+ * ignores the other count, and at a tie it discards most of the power (13 lost and 13 saved of 8,000: -0.28 to +0.28
+ * against the interval's -0.13 to +0.13; the eighty-seventh review, BLOCKING 1, which found it first applied wherever
+ * one count was at least the other). A read the check changes is flagged COUNT CHECK.
  *   node research/solver/read-o27-unconditional.mjs > research/solver/results-o27-unconditional.txt
  *   node research/solver/read-o27-unconditional.mjs --planted
  */
@@ -70,7 +73,7 @@ const cpMemo = new Map();
 const cpUpper = (k, N, level) => { const key = `${k}|${N}|${level}`; if (!cpMemo.has(key)) cpMemo.set(key, clopperPearson(k, N, level)[1]); return cpMemo.get(key); };
 export function guarded(u, lost, saved, N, level) {
   const bh = -100 * cpUpper(lost, N, level), bg = 100 * cpUpper(saved, N, level);
-  const lo = saved <= lost ? Math.min(u.lo, bh) : u.lo, hi = lost <= saved ? Math.max(u.hi, bg) : u.hi;
+  const lo = saved === 0 ? Math.min(u.lo, bh) : u.lo, hi = lost === 0 ? Math.max(u.hi, bg) : u.hi;
   return { ...u, lo, hi, m10: { lo: u.lo, hi: u.hi } };
 }
 const checked = (g, read) => (read(g) !== read(g.m10) ? '; COUNT CHECK' : '');
@@ -136,6 +139,9 @@ function planted() {
   cases.push(['the count check agrees at 2 lost of 3,000 and 99.8%', `${h2(rr.m10)} ${h2(rr)} ${checked(rr, h2) === ''}`, 'true true true']);
   const gain = guarded(survivalChangeU(900, 0, 36, 64, 0.005), 0, 36, 1000, 0.005);
   cases.push(['the lower bound is not applied where the arm saves more than it loses', `${gain.lo === gain.m10.lo}`, 'true']);
+  // nor at a tie: 13 lost and 13 saved of 8,000 at 99.3% keeps the interval's own ends (the eighty-seventh review's case)
+  const tie = guarded(survivalChangeU(7944 - 13, 13, 13, 8000 - 7944 - 13, 0.05), 13, 13, 8000, 0.05);
+  cases.push(['the bounds are not applied at a tie', `${tie.lo === tie.m10.lo && tie.hi === tie.m10.hi} ${tie.lo.toFixed(2)}`, 'true -0.13']);
   // the 7e parse: a READER cell's (up/dn)
   const p = parse7e('S126             a0 | OFF table  55.8 sim  99.6 gap  -44.0 tier-below 40.0 below  1.6 430 s | READER table  99.6 sim  99.3 gap    0.2 tier-below  8.7 below  2.7 432 s d -0.3 se 0.1 (1/4)');
   cases.push(['the 7e parse reads the case, its arms and the reader\'s saved/lost', `${p[0].id} ${p[0].arms.OFF.sim} ${p[0].arms.READER.sim} ${p[0].arms.READER.up} ${p[0].arms.READER.dn}`, 'S126 99.6 99.3 1 4']);
@@ -287,7 +293,8 @@ function read7e() {
     if (mv) flips.push(x);
   }
   const byLook = k => flips.filter(x => (k === 1 ? x.look === 1 : k === 2 ? x.look === 2 : x.look === undefined));
-  if (flips.length) moves.push(`7e: ${flips.length} of ${all.length} reads move from "${flips[0].res.outcome}" to "${flips[0].uo}"${flips.some(x => x.res.outcome !== flips[0].res.outcome || x.uo !== flips[0].uo) ? ' (not all the same way: see the rows)' : ''} - ${byLook(1).length} at look 1 (1,000 paths), ${byLook(2).length} at look 2, ${byLook(0).length} of the 30-point cases and controls (1,000 paths at 0.05)`);
+  const nmh = all.filter(x => x.res.outcome === 'no material harm'), at1k = nmh.filter(x => x.N === 1000);
+  if (flips.length) moves.push(`7e: of its ${all.length} rows, ${nmh.length} read "no material harm" as registered (${at1k.length} of them at 1,000 paths); ${flips.length} reads move from "${flips[0].res.outcome}" to "${flips[0].uo}"${flips.some(x => x.res.outcome !== flips[0].res.outcome || x.uo !== flips[0].uo) ? ' (not all the same way: see the rows)' : ''} - ${byLook(1).length} at look 1 (1,000 paths), ${byLook(2).length} at look 2, ${byLook(0).length} of the 30-point cases and controls (1,000 paths at 0.05)`);
   // the pooled floor over the 16 pool cases at their latest look: the registered fixed-effect read, and O28's candidate
   const POOL = ['S126', 'share 0.90', 'bridge 1', 'bridge 4', 'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S124', 'S128', 'S130', 'bridge 6', 'S366', 'S162', 'S172', 'S168'];
   const pc = POOL.map(id => prim.find(x => x.id === id));

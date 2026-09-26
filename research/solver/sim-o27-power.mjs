@@ -2,11 +2,13 @@
  * O27: 7T'S POWER UNDER THE UNCONDITIONAL READING (PLAN.md's register O27: the power of derive-7t.mjs, "7t's partial-cure
  * HELD rates among them", may read too kindly). derive-7t.mjs draws each story's paired counts and reads them by
  * reduce-7t.mjs decide(), whose "no material gain" and "no material harm" ends are the registered, conditional interval.
- * This draws the same counts, by the same generator, seed and order, and reads each draw twice:
+ * This draws the same counts, by the same generator, seed and order, and reads each draw three times:
  *   registered: reduce-7t.mjs decide() itself; the tallies must reproduce results-derive-7t.txt line for line, else it stops;
  *   unconditional: the same rule (read-o27-unconditional.mjs decide7s, checked there against reduce-7s.mjs's decide, and
- *     here against reduce-7t.mjs's on every draw with the registered interval) with the unconditional interval and the
- *     count check (read-o27-unconditional.mjs guarded). The cells need each reference arm's survivors: g's (the reader as
+ *     here against reduce-7t.mjs's on every draw with the registered interval) with the unconditional interval alone, and
+ *     again with the count check beside it (read-o27-unconditional.mjs guarded(): the exact bound from the one-sided count,
+ *     applied only where the other side's count is zero; the eighty-seventh review, BLOCKING 1, found the first version
+ *     applied at ties too, which cost most of the power the first results file put down to the interval). The cells need each reference arm's survivors: g's (the reader as
  *     solved) at 7r's reader survival, h's (off under the same change) at 7r's off survival (results-7s.txt's 5-point arms,
  *     which reproduce 7r: S126 99.3 and 99.8, bridge 4 99.0 and 99.4); 7t's own arms will differ a little (declared).
  * The other derivations O27 names (derive-7e, 7r, 7s.mjs) were for experiments now finished and re-read directly by
@@ -29,29 +31,32 @@ const HARM = { S126: 15 * N / 3000, 'bridge 4': 12 * N / 3000 };
 // the reference arms' survival (%): g against the reader as solved, h against off under the same change
 const SURV = { S126: { g: 99.3, h: 99.8 }, 'bridge 4': { g: 99.0, h: 99.4 } };
 const memo = new Map();
-const U = (surv, x) => {
-  const SA = Math.round(N * surv / 100), key = `${SA}|${x.lost}|${x.saved}`;
-  if (!memo.has(key)) memo.set(key, guarded(survivalChangeU(SA - x.lost, x.lost, x.saved, N - SA - x.saved, ALPHA), x.lost, x.saved, N, ALPHA));
+// the unconditional interval for B against A (A's survivors at `surv`), with the count check (guard) or alone
+const U = (surv, x, guard) => {
+  const SA = Math.round(N * surv / 100), key = `${SA}|${x.lost}|${x.saved}|${guard}`;
+  if (!memo.has(key)) { const u = survivalChangeU(SA - x.lost, x.lost, x.saved, N - SA - x.saved, ALPHA); memo.set(key, guard ? guarded(u, x.lost, x.saved, N, ALPHA) : u); }
   return memo.get(key);
 };
 const caseOf = r => r.id.split('|')[1];
 const REG = new Map(), reg = x => { const k = `${x.lost}|${x.saved}`; if (!REG.has(k)) REG.set(k, survivalChange(x.lost, x.saved, N, ALPHA)); return REG.get(k); };
 const lines = [];
 function story(name, share, bg) {
-  const tR = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 }, tU = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 };
-  let moved = 0;
+  const tR = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 }, tU = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 }, tG = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 };
+  let moved = 0, movedG = 0;
   for (let d = 0; d < DRAWS; d++) {
     const rows = CAUSES.flatMap((cz, c) => Object.keys(HARM).map(id => { const sh = c === 0 ? share : 0; return { id: `${c}|${id}`, g: { saved: pois(sh * HARM[id] + bg), lost: pois(bg) }, h: { saved: pois(bg), lost: pois((1 - sh) * HARM[id] + bg) } }; }));
     const R = decide(rows), C = decide7s(rows, r => reg(r.g), r => reg(r.h));
     if (R.reads.map(x => x.read).join() !== C.reads.map(x => x.read).join()) { console.log(`STOP: the copy of the rule reads ${C.reads.map(x => x.read).join()} where reduce-7t.mjs reads ${R.reads.map(x => x.read).join()}`); process.exit(1); }
-    const Uc = decide7s(rows, r => U(SURV[caseOf(r)].g, r.g), r => U(SURV[caseOf(r)].h, r.h));
+    const Uc = decide7s(rows, r => U(SURV[caseOf(r)].g, r.g, false), r => U(SURV[caseOf(r)].h, r.h, false));
+    const Gc = decide7s(rows, r => U(SURV[caseOf(r)].g, r.g, true), r => U(SURV[caseOf(r)].h, r.h, true));
     const out = D => { const reads = D.reads.filter(r => r.id.startsWith('0|')); return reads.every(x => x.read === 'cures') ? 'HELD' : reads.every(x => x.read === 'does not cure') ? 'FALSIFIED' : 'INCONCLUSIVE'; };
-    const a = out(R), b = out(Uc);
-    tR[a]++; tU[b]++; if (a !== b) moved++;
+    const a = out(R), b = out(Uc), g = out(Gc);
+    tR[a]++; tU[b]++; tG[g]++; if (a !== b) moved++; if (a !== g) movedG++;
   }
   const f = v => (v / DRAWS).toFixed(3);
   lines.push(`${name.padEnd(44)} background ${bg.toFixed(2).padEnd(5)}  HELD ${f(tR.HELD)}  FALSIFIED ${f(tR.FALSIFIED)}  INCONCLUSIVE ${f(tR.INCONCLUSIVE)}`);
-  console.log(`${name.padEnd(34)} background ${bg.toFixed(2).padEnd(5)} | registered HELD ${f(tR.HELD)} FALSIFIED ${f(tR.FALSIFIED)} INCONCLUSIVE ${f(tR.INCONCLUSIVE)} | unconditional HELD ${f(tU.HELD)} FALSIFIED ${f(tU.FALSIFIED)} INCONCLUSIVE ${f(tU.INCONCLUSIVE)} | draws read differently ${f(moved)}`);
+  const t = x => `HELD ${f(x.HELD)} FALSIFIED ${f(x.FALSIFIED)} INCONCLUSIVE ${f(x.INCONCLUSIVE)}`;
+  console.log(`${name.padEnd(31)} background ${bg.toFixed(2).padEnd(5)} | registered ${t(tR)} | interval alone ${t(tU)}, read differently ${f(moved)} | with the count check ${t(tG)}, read differently ${f(movedG)}`);
 }
 console.log(`O27: 7T'S POWER, EACH CAUSE, THE REGISTERED READING BESIDE THE UNCONDITIONAL ONE (derive-7t.mjs's stories and draws: ${N} paths, S126 ${HARM.S126} and bridge 4 ${HARM['bridge 4']} lost, ${DRAWS} draws a story, seed 7002; the reference arms at ${Object.entries(SURV).map(([id, s]) => `${id} ${s.g}% (g) and ${s.h}% (h)`).join(', ')})\n`);
 for (const bg of [0.5 * N / 3000, 5 * N / 3000]) {

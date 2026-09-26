@@ -7,13 +7,14 @@ ok   a read that differs across the counts is flagged ROUNDING, and the least fa
 ok   the count check overrules the unconditional interval at 0 of 1,000 and 68.8%: true false -0.60 true
 ok   the count check agrees at 2 lost of 3,000 and 99.8%: true true true
 ok   the lower bound is not applied where the arm saves more than it loses: true
+ok   the bounds are not applied at a tie: true -0.13
 ok   the 7e parse reads the case, its arms and the reader's saved/lost: S126 99.6 99.3 1 4
 ok   the 7r copy: both tier -> HELD: HELD tier/tier
 ok   the 7r copy: bridge 4 RREST not "none" -> tier/unresolved, HELD: HELD tier/unresolved
 ok   the 7r copy: no RREST "none" -> INCONCLUSIVE: INCONCLUSIVE unresolved/unresolved
 ok   the 7s copy agrees with reduce-7s.mjs's decide: INCONCLUSIVE does not cure/cures
 ok   the 7s copy agrees on a tie and a harm: INCONCLUSIVE partial/does not cure
-planted (15): all read as they should
+planted (16): all read as they should
 
 O27: THE PAST NO-HARM AND NO-GAIN READS, THE REGISTERED INTERVAL BESIDE THE UNCONDITIONAL ONE (reported, not a test: each experiment stands as read)
 
@@ -30,7 +31,7 @@ O27: THE PAST NO-HARM AND NO-GAIN READS, THE REGISTERED INTERVAL BESIDE THE UNCO
             h READER@15 against OFF@15: 16 lost, 0 saved: registered (-0.53 to -0.31), unconditional (-0.87 to -0.30); no material harm: registered no, unconditional no
             item 3, OFF@15 against OFF: 0 lost, 0 saved: registered (0.00 to 0.00), unconditional (-0.13 to 0.13); inside +/-0.25: registered yes, unconditional yes
             the case: registered does not cure, unconditional does not cure
-  bridge 4  g READER@15 against READER: 3 lost, 2 saved: registered (-0.15 to 0.12), unconditional (-0.29 to 0.16); no material gain: registered yes, unconditional yes
+  bridge 4  g READER@15 against READER: 3 lost, 2 saved: registered (-0.15 to 0.12), unconditional (-0.23 to 0.16); no material gain: registered yes, unconditional yes
             h READER@15 against OFF@15: 12 lost, 0 saved: registered (-0.40 to -0.19), unconditional (-0.70 to -0.18); no material harm: registered no, unconditional no
             item 3, OFF@15 against OFF: 1 lost, 0 saved: registered (-0.03 to 0.03), unconditional (-0.19 to 0.10); inside +/-0.25: registered yes, unconditional yes
             the case: registered does not cure, unconditional does not cure
@@ -40,7 +41,7 @@ O27: THE PAST NO-HARM AND NO-GAIN READS, THE REGISTERED INTERVAL BESIDE THE UNCO
   each case at its latest look (1,000 paths at 0.005, or look 2: 3,000 or 8,000 at 0.045); the 30-point cases and the controls at 0.05
   S126                  14 lost   0 saved of 3000 at 0.045, margin 0.25: registered (-0.47 to -0.25) harm; unconditional (-0.79 to -0.24) harm
   share 0.90             0 lost   0 saved of 1000 at 0.005, margin 0.25: registered (0.00 to 0.00) no material harm; unconditional (-0.78 to 0.78) inconclusive  <-- MOVES
-  bridge 4              26 lost   1 saved of 8000 at 0.045, margin 0.25: registered (-0.34 to -0.21) harm; unconditional (-0.48 to -0.19) harm
+  bridge 4              26 lost   1 saved of 8000 at 0.045, margin 0.25: registered (-0.34 to -0.21) harm; unconditional (-0.47 to -0.19) harm
   S120                   0 lost   0 saved of 1000 at 0.005, margin 0.25: registered (0.00 to 0.00) no material harm; unconditional (-0.78 to 0.78) inconclusive  <-- MOVES
   S130                   0 lost   0 saved of 1000 at 0.005, margin 0.5: registered (0.00 to 0.00) no material harm; unconditional (-0.60 to 0.60) inconclusive  <-- MOVES
   bridge 4+cost          0 lost  36 saved of 1000 at 0.005, margin 0.25: registered (2.50 to 3.60) no material harm; unconditional (2.12 to 5.66) no material harm
@@ -52,15 +53,15 @@ O27: THE PAST NO-HARM AND NO-GAIN READS, THE REGISTERED INTERVAL BESIDE THE UNCO
   S162                   0 lost   0 saved of 1000 at 0.005, margin 0.25: registered (0.00 to 0.00) no material harm; unconditional (-0.77 to 0.77) inconclusive  <-- MOVES
   share 0.70             0 lost   0 saved of 1000 at 0.005, margin 0.25: registered (0.00 to 0.00) no material harm; unconditional (-0.78 to 0.78) inconclusive  <-- MOVES
   bridge 0               0 lost   0 saved of 1000 at 0.005, margin 0.25: registered (0.00 to 0.00) no material harm; unconditional (-0.78 to 0.78) inconclusive  <-- MOVES
-  wealth x0.5           14 lost  68 saved of 8000 at 0.045, margin 0.25: registered (0.47 to 0.83) no material harm; unconditional (0.45 to 1.08) no material harm
-  S124                  28 lost  11 saved of 3000 at 0.045, margin 0.5: registered (-0.92 to -0.12) inconclusive; unconditional (-1.36 to -0.14) inconclusive
+  wealth x0.5           14 lost  68 saved of 8000 at 0.045, margin 0.25: registered (0.47 to 0.83) no material harm; unconditional (0.45 to 0.91) no material harm
+  S124                  28 lost  11 saved of 3000 at 0.045, margin 0.5: registered (-0.92 to -0.12) inconclusive; unconditional (-1.01 to -0.14) inconclusive
   S366                   0 lost   1 saved of 1000 at 0.005, margin 0.25: registered (-0.10 to 0.10) no material harm; unconditional (-0.68 to 0.96) inconclusive  <-- MOVES
   S172                   1 lost   0 saved of 1000 at 0.005, margin 0.25: registered (-0.10 to 0.10) no material harm; unconditional (-0.95 to 0.68) inconclusive  <-- MOVES
   share 0.78             0 lost   0 saved of 1000 at 0.005, margin 0.25: registered (0.00 to 0.00) no material harm; unconditional (-0.78 to 0.78) inconclusive  <-- MOVES
   bridge 1               0 lost   0 saved of 1000 at 0.005, margin 0.25: registered (0.00 to 0.00) no material harm; unconditional (-0.78 to 0.78) inconclusive  <-- MOVES
   wealth x2              0 lost   0 saved of 1000 at 0.005, margin 0.25: registered (0.00 to 0.00) no material harm; unconditional (-0.78 to 0.78) inconclusive  <-- MOVES
   S128                   0 lost   0 saved of 1000 at 0.005, margin 0.5: registered (0.00 to 0.00) no material harm; unconditional (-0.60 to 0.60; COUNT CHECK) inconclusive  <-- MOVES
-  S370                  17 lost  65 saved of 1000 at 0.005, margin 0.5: registered (2.35 to 6.58) no material harm; unconditional (2.30 to 8.99) no material harm
+  S370                  17 lost  65 saved of 1000 at 0.005, margin 0.5: registered (2.35 to 6.58) no material harm; unconditional (2.30 to 7.35) no material harm
   S168                   0 lost   0 saved of 1000 at 0.005, margin 0.25: registered (0.00 to 0.00) no material harm; unconditional (-0.78 to 0.78) inconclusive  <-- MOVES
   S126 @30               3 lost   0 saved of 1000 at 0.05, margin 0.25: registered (-0.30 to 0.12) inconclusive; unconditional (-0.88 to 0.13) inconclusive
   bridge 6 @30           0 lost   0 saved of 1000 at 0.05, margin 0.25: registered (0.00 to 0.00) no material harm; unconditional (-0.38 to 0.38) inconclusive  <-- MOVES
@@ -72,4 +73,4 @@ O27: THE PAST NO-HARM AND NO-GAIN READS, THE REGISTERED INTERVAL BESIDE THE UNCO
   7e's verdict (FALSIFIED: harm on S126 and bridge 4) rests on the harm side and stands
 
 WHAT MOVES (1):
-  7e: 20 of 30 reads move from "no material harm" to "inconclusive" - 16 at look 1 (1,000 paths), 0 at look 2, 4 of the 30-point cases and controls (1,000 paths at 0.05)
+  7e: of its 30 rows, 26 read "no material harm" as registered (25 of them at 1,000 paths); 20 reads move from "no material harm" to "inconclusive" - 16 at look 1 (1,000 paths), 0 at look 2, 4 of the 30-point cases and controls (1,000 paths at 0.05)

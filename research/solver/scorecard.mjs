@@ -85,12 +85,12 @@ export function reliability(pairs) {
   const R = res(['1. a -> held', '2. b -> MISSED', '3. c: x, y -> held']);
   const near = (a, b) => Math.abs(a - b) < 1e-12;
   const t = f => { try { return f(); } catch (e) { return `ERROR ${e.message}`; } };
-  // 7e's item and verdict lines exactly as reduce-7e.mjs items() and report() print them (l.188-203, held and missed),
-  // with the section that follows them; the hash below fails if items() changes
+  // 7e's item and verdict lines as reduce-7e.mjs items() and report() print them (l.188-203, held and missed; the
+  // figures invented, the POOLED line shortened), with the section that follows them; the hash below fails if items() changes
   const R7 = ok => `POOLED over the 16 cases expected unchanged (fixed effect, the floor): +0.010 points (-0.050 to 0.070)
 
 THE PREDICTION'S ITEMS:
-1. in class (11 cases) the reader's gap within +/-5, the thin S128 and S130 within +/-8: ${ok ? 'held' : 'outside: S126 6.2, S128 9.1 -> MISSED'}
+1. in class (9 cases) the reader's gap within +/-5, the thin S128 and S130 within +/-8: ${ok ? 'held' : 'outside: S126 6.2, S128 9.1 -> MISSED'}
 2. bridge 6 and S366 within +/-5: bridge 6 1.2, S366 ${ok ? '-2.0' : '-6.0'} -> ${ok ? 'held' : 'MISSED'}; S370 reported: S370 3.1
 3. share 0.95 and S360 within +/-10: share 0.95 4.0, S360 ${ok ? '7.5' : '12.5'} -> ${ok ? 'held' : 'MISSED'}
 4. bridge 4+cost within +/-8: bridge 4+cost ${ok ? '3.0' : '9.0'} -> ${ok ? 'held' : 'MISSED'}

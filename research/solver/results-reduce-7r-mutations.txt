@@ -1,4 +1,4 @@
-true reducer: planted (28): all read as they should
+true reducer: planted (29): all read as they should
 caught  the tier above ranked least risky: the tier above ranks riskier than the plan's, the plan's than two below read false, should read true
 caught  pension and ISA swapped in the tier code: code 13 is the pension one above and the ISA one below read {"pen":1,"isa":3}, should read {"pen":3,"isa":1}
 caught  a tier-lift path needs every year riskier, not half: a bridge of 1 year: the path fails after it, a tier-lift path read 1 0, should read 1 1; a bridge of 2 years: the path fails in the first year of access, after the brid
@@ -12,5 +12,8 @@ caught  too few lost paths not checked: decide: 5 lost paths in all is too few e
 caught  the falsifier at two-thirds, not half: 14 of 24 tier-lift: INCONCLUSIVE read FALSIFIED, should read INCONCLUSIVE
 caught  the gate does not read the bridge read: S366 under v1 must read bridgeRead true in its ran line read false, should read true
 caught  the gate does not read the seed: a log with the wrong seed fails the gate read false, should read true
+caught  a trace's stamp is not compared with the logs': the stamp line read; a trace stamped as the logs are agrees; one from other code, another prediction version, or with no stamp, does not read research/solver/prediction
+caught  the prediction's version (its sha) not compared: the stamp line read; a trace stamped as the logs are agrees; one from other code, another prediction version, or with no stamp, does not read research/solver/prediction
+caught  the stamp line's prediction read from the wrong field: the stamp line read; a trace stamped as the logs are agrees; one from other code, another prediction version, or with no stamp, does not read 08477342e8c5 true false fa
 
-13 mutations: every one caught
+16 mutations: every one caught

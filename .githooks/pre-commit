@@ -25,7 +25,7 @@ fi
 # CI's four tests on every commit (about a second): GitHub CI failed on every push from 24 Sep 14:00 UK to 25 Sep 22:07 UK
 # on fair-gate.test.mjs and nobody saw it, because only the plan check ran here (the maintainer, 25 Sep 21:54 UK). The
 # engine is built first, as CI builds it (fb9ca50), so a stale research/engine.mjs (gitignored) cannot pass here and fail
-# there (the maintainer, 25 Sep 22:47 UK). It is built from the working tree's src/App.jsx, CI's from the commit's.
+# there (the maintainer, 25 Sep 22:45 UK). It is built from the working tree's src/App.jsx, CI's from the commit's.
 python3 research/build-engine.py > /tmp/.precommit-build.txt 2>&1 || {
   tail -3 /tmp/.precommit-build.txt >&2
   echo "pre-commit: research/build-engine.py failed (CI builds the engine the same way). Fix it; do not bypass the hook." >&2

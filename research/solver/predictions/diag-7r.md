@@ -2,7 +2,7 @@
 
 - **Run:** `research/solver/batch-7r.sh` - results/diag7r/part0-4.txt and the ten arms' traces; reduced by `reduce-7r.mjs` into results-7r.txt
 - **Kind:** test
-- **Written:** 26 Sept, 11:45 UK (begun 11:31 UK), before the run
+- **Written:** 26 Sept, 11:45 UK (begun 11:31 UK), before the run (revised 11:59 UK, before the run: the traces carry the log's stamp and the reducer checks it; smoke.sh gained diag7r's line under the maintainer's unlock)
 - **Seeds:** 7002 tuning (3,000 paths, the same paths for both arms of every case); 7e's held-out seed is not used (it is reserved to 7e's tests)
 - **Plan section:** PLAN.md "7r"
 
@@ -112,7 +112,7 @@ does not bias the comparison).
 | 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | none | none | N/A - no fixed arm in this run |
 | 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | one process per case writes both arms' log lines and traces | the same process | SAME |
 | 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | survival: the floor paid every year and the minimum pot at the end, simulated; end wealth: the trace's last-year wealth, 0 on a failed path; the per-year trace (runPolicy's own, record.mjs makeTrace) | the same | SAME |
-| 30 | The reducer and its version | reduce-7r.mjs: requireFairLogs over the logs' stamps, then its own gate on every ran line (each case's arms the same but the bridge read, at the registered settings) and every trace's count, seed and arm; INCOMPLETE unless all ten traces are there; 28 planted checks, 13 planted faults each caught (mutate-reduce-7r.py, results-reduce-7r-mutations.txt) | the same | SAME |
+| 30 | The reducer and its version | reduce-7r.mjs: requireFairLogs over the logs' stamps, then its own gate on every ran line (each case's arms the same but the bridge read, at the registered settings) and every trace's count, seed and arm, and each trace's stamp against the logs' (audit-s126.mjs stamps each trace as it stamps its log); INCOMPLETE unless all ten traces are there; 29 planted checks, 16 planted faults each caught (mutate-reduce-7r.py, results-reduce-7r-mutations.txt) | the same | SAME |
 | 31 | Paired or not, and the standard error used | paired on the same paths; exact one-sided McNemar with Holm (items 1, 3); the paired end-wealth median's exact order-statistic interval (item 5); no standard error is read | the same | SAME |
 | 32 | The table's number is never the result: survival is simulated | survival and end wealth are simulated; the table's read is printed in the log only | the same | SAME |
 | 33 | For timings: what else the machine was running | the solve seconds are printed, not read | the same | N/A - no timing is read: five processes share four cores, so the seconds are not comparable |

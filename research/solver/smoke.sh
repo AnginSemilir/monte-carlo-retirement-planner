@@ -53,6 +53,19 @@ out="$(node research/solver/audit-s126.mjs bridge7e 4 20 part 0/21 reader 2>&1)"
   && echo "$out" | grep -q "^S126 .* | READER table "; } \
   || { echo "SMOKE FAILED: the bridge7e mode did not run S126 with the reader in the mixture at the settings it was given"; echo "$out" | head -5; exit 1; }
 echo "  ok  S126 audit, bridge7e mode, the bridge reader in the mixture"
+# 7r's mode (added under the maintainer's unlock, 26 Sep 11:58 UK): off against the reader with the per-year trace kept, 7e's
+# settings on the tuning seed - S126 alone, tiny. Its traces go to the smoke's own folder (DIAG7R_OUT, removed by the trap
+# above), never over 7r's own in results/diag7r, and must carry the log's stamp (prediction "none" here)
+out="$(DIAG7R_OUT="$R/$T-diag7r" node research/solver/audit-s126.mjs diag7r 4 20 part 0/5 7002 2>&1)" || { echo "SMOKE FAILED: S126 audit, diag7r mode"; echo "$out" | tail -5; exit 1; }
+{ echo "$out" | grep -q "7R DIAGNOSIS, .*, 4 points, 20 paths (seed 7002)" \
+  && echo "$out" | grep -q "ran OFF: mix 3 pts 4 seed 7002 paths 20 .*tiersAbove 1 .*finalIntegral true bridgeRead false$" \
+  && echo "$out" | grep -q "ran READER: mix 3 pts 4 seed 7002 paths 20 .*tiersAbove 1 .*finalIntegral true bridgeRead reader$" \
+  && echo "$out" | grep -q "^S126 .* | OFF table .* | READER table " \
+  && node -e 'const z = require("zlib"), fs = require("fs"), d = process.argv[1];
+      for (const a of ["off", "reader"]) { const j = JSON.parse(z.gunzipSync(fs.readFileSync(`${d}/S126-${a}.json.gz`)));
+        if (j.N !== 20 || j.seed !== 7002 || j.arm !== a.toUpperCase() || !j.stamp || j.stamp.prediction !== "none") process.exit(1); }' "$R/$T-diag7r"; } \
+  || { echo "SMOKE FAILED: the diag7r mode did not run S126 off against the reader, with stamped traces in its own folder, at the settings it was given"; echo "$out" | head -5; exit 1; }
+echo "  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder"
 # every file a batch writes must carry the code that made it and the prediction it was launched under
 node -e '
   const fs = require("fs"), p = require("path"), R = process.argv[1], T = process.argv[2];

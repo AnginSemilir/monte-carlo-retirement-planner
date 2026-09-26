@@ -38,10 +38,12 @@ const mode = process.argv[2] || 'variants';
 // a reducer over them reads this line instead - the code that ran (code-id.mjs) and the prediction the launcher registered
 // (its file and git blob), "none" for a measurement, or NOT-LAUNCHED when run outside run-from-snapshot.sh
 // (code-id.mjs's hash covers the engine and src/solver, not this script, so the script's own hash is stamped beside it)
-{
+// (kept as STAMP too, so a mode that writes files beside its log can stamp them: diag7r's traces)
+const STAMP = (() => {
   const own = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).digest('hex').slice(0, 12), cid = codeId();
-  console.log(`stamp: code ${cid ? cid.hash : 'unknown'} audit ${own} prediction ${!process.env.PREDICTION_FILE ? 'NOT-LAUNCHED' : process.env.PREDICTION_FILE} sha ${process.env.PREDICTION_SHA || '-'}`);
-}
+  return { code: cid ? cid.hash : 'unknown', audit: own, prediction: !process.env.PREDICTION_FILE ? 'NOT-LAUNCHED' : process.env.PREDICTION_FILE, sha: process.env.PREDICTION_SHA || '-' };
+})();
+console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);
 // ids mode puts the id list first, so its numbers sit one place later than every other mode's
 const NUMS = mode === 'ids' ? process.argv.slice(4) : process.argv.slice(3);
 const POINTS = Number(NUMS[0] || 16), NP = Number(NUMS[1] || 1000);
@@ -282,7 +284,8 @@ if (mode === 'f1v2') {
    * it: the two harmed cases, two contrasts the reader lifted as far with no loss, and S366 under v1 (O23).
    *   node research/solver/audit-s126.mjs diag7r [points] [paths] part k/n [seed=7002]
    * Prints 7e's line format per case (so reduce-7r.mjs reuses 7e's parser and gate) and writes each arm's trace to
-   * results/diag7r/<case>-<arm>.json.gz.
+   * results/diag7r/<case>-<arm>.json.gz, stamped as the log is (reduce-7r.mjs checks the two agree), or to DIAG7R_OUT when
+   * set: smoke.sh's run sets it, so a smoke run never overwrites 7r's own traces.
    */
   const ARM = { off: false, v1: 1, v2: 2, reader: 'reader' };
   const PANEL = [['S126', 'off,reader'], ['bridge 4', 'off,reader'], ['S120', 'off,reader'], ['wealth x2', 'off,reader'], ['S366', 'off,v1']];
@@ -293,7 +296,7 @@ if (mode === 'f1v2') {
   const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
   const [pk, pn] = part.split('/').map(Number);
   if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
-  const OUT = join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7r');
+  const OUT = process.env.DIAG7R_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7r');
   mkdirSync(OUT, { recursive: true });
   console.log(`7R DIAGNOSIS, step-6 defaults in the mixture (solvePlan), ${POINTS} points, ${NP} paths (seed ${SEED}), lambda ${LAMBDA}, the tier above allowed and the final year exact in every arm; traces kept; part ${pk}/${pn}`);
   const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
@@ -313,7 +316,7 @@ if (mode === 'f1v2') {
     res.forEach((r, j) => console.log(`${''.padEnd(16)} ran ${labels[j]}: ${r.ran}`));
     res.forEach((r, j) => {
       const T = r.tr;
-      writeFileSync(join(OUT, `${id.replace(/ /g, '_')}-${names[j]}.json.gz`), gzipSync(JSON.stringify({ id, arm: labels[j], N: NP, Y: T.Y, seed: SEED, table: r.table, sim: r.sim, ran: r.ran,
+      writeFileSync(join(OUT, `${id.replace(/ /g, '_')}-${names[j]}.json.gz`), gzipSync(JSON.stringify({ id, arm: labels[j], stamp: STAMP, N: NP, Y: T.Y, seed: SEED, table: r.table, sim: r.sim, ran: r.ran,
         survived: b64(r.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
     });
   });

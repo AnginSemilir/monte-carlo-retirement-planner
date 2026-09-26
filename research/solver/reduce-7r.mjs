@@ -4,7 +4,8 @@
  *   node research/solver/reduce-7r.mjs --planted                        the planted checks alone
  * Reads the batch's logs (part*.txt: 7e's line format, the stamps and ran lines) and each arm's trace
  * (<case>-<arm>.json.gz, audit-s126.mjs diag7r). The fair-test gate first (the stamps, then every case's arms the same
- * but the bridge read, at the registered settings); anything short prints INCOMPLETE and scores nothing. Then, per case,
+ * but the bridge read, at the registered settings; every trace stamped as the logs are); anything short prints INCOMPLETE
+ * and scores nothing. Then, per case,
  * the second arm against the first (off) on the same paths:
  *   - survival: paths saved and lost, the exact one-sided p for harm (stats.mjs);
  *   - end wealth (the last year's; a failed path counts 0), a stand-in for estate, which the trace does not carry: median
@@ -67,6 +68,14 @@ export function gate(cases) {
   }
   return bad;
 }
+
+// the logs' stamp line (audit-s126.mjs), and whether a trace carries the same one: a trace is from the batch whose logs
+// passed the gate only if its stamp agrees (the batch clears the folder first; this catches a file from another run)
+export function logStamp(text) {
+  const m = /^stamp: code (\S+) audit (\S+) prediction (\S+) sha (\S+)$/m.exec(text || '');
+  return m ? { code: m[1], audit: m[2], prediction: m[3], sha: m[4] } : null;
+}
+export const stampAgrees = (j, st) => !!(st && j && j.stamp && ['code', 'audit', 'prediction', 'sha'].every(k => j.stamp[k] === st[k]));
 
 // one arm's trace, decoded
 const u8 = s => new Uint8Array(Buffer.from(s, 'base64'));
@@ -209,6 +218,7 @@ export function decide({ pooledLost, share, reproduced, estates }) {
     ['a log with the wrong seed fails the gate', String(gate([{ id: 'S126', labels: ['OFF', 'READER'], ran: { OFF: 'mix 3 pts 16 seed 7011 paths 3000 grid total16x6x6 lambda 0.0223606797749979 raiseSurv true failShort floor tiersAbove 1 quad 5 finalIntegral true bridgeRead false', READER: 'mix 3 pts 16 seed 7011 paths 3000 grid total16x6x6 lambda 0.0223606797749979 raiseSurv true failShort floor tiersAbove 1 quad 5 finalIntegral true bridgeRead reader' } }]).some(b => /seed is 7011/.test(b))), 'true'],
     ['S366 under v1 must read bridgeRead true in its ran line', String(gate([{ id: 'S366', labels: ['OFF', 'V1'], ran: { OFF: 'bridgeRead false', V1: 'bridgeRead 1' } }]).some(b => /S366: V1 bridgeRead is 1/.test(b))), 'true'],
     ['a missing case fails the gate', String(gate([]).length >= 5), 'true'],
+    ['the stamp line read; a trace stamped as the logs are agrees; one from other code, another prediction version, or with no stamp, does not', (() => { const st = logStamp('x\nstamp: code 100f24824a97 audit 08477342e8c5 prediction research/solver/predictions/diag-7r.md sha abc123\ny'); return `${st.prediction} ${stampAgrees({ stamp: { ...st } }, st)} ${stampAgrees({ stamp: { ...st, code: '0000' } }, st)} ${stampAgrees({ stamp: { ...st, sha: 'fff999' } }, st)} ${stampAgrees({}, st)} ${stampAgrees({ stamp: { ...st } }, null)}`; })(), 'research/solver/predictions/diag-7r.md true false false false false'],
   ];
   const wrong = cases.filter(([, got, want]) => got !== want);
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([n, got, w]) => `${n} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }
@@ -221,7 +231,9 @@ for (let k = 0; k < 5; k++) { const f = join(DIR, `part${k}.txt`); if (existsSyn
 if (!Object.keys(logs).length) { console.log(`INCOMPLETE - no logs in ${DIR}`); process.exit(1); }
 requireFairLogs(logs, PRED);
 const cases = Object.values(logs).flatMap(parseLog);
-const bad = gate(cases);
+const stamps = Object.entries(logs).map(([f, t]) => [f, logStamp(t)]);
+const STAMP = stamps[0][1];
+const bad = gate(cases).concat(stamps.filter(([, st]) => !st || JSON.stringify(st) !== JSON.stringify(STAMP)).map(([f]) => `${f}: its stamp line is missing or differs from ${stamps[0][0]}'s`));
 if (bad.length) { console.log(`FAIR-TEST GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
 const traces = {};
 for (const [id, labels] of PANEL) for (const l of labels) {
@@ -229,9 +241,10 @@ for (const [id, labels] of PANEL) for (const l of labels) {
   if (!existsSync(f)) { console.log(`INCOMPLETE - no trace ${f}`); process.exit(1); }
   const j = JSON.parse(gunzipSync(readFileSync(f)).toString());
   if (j.N !== PATHS || String(j.seed) !== SEED || j.arm !== l) { console.log(`INCOMPLETE - ${f}: N ${j.N}, seed ${j.seed}, arm ${j.arm}`); process.exit(1); }
+  if (!stampAgrees(j, STAMP)) { console.log(`FAIR-TEST GATE: FAILED\n  ${f}: its stamp ${JSON.stringify(j.stamp || null)} is not the logs' ${JSON.stringify(STAMP)}`); process.exit(1); }
   traces[`${id}|${l}`] = decode(j);
 }
-console.log(`FAIR-TEST GATE: passed - ${cases.length} cases, each case's arms the same but the bridge read, at the registered settings; ${Object.keys(traces).length} traces of ${PATHS} paths\n`);
+console.log(`FAIR-TEST GATE: passed - ${cases.length} cases, each case's arms the same but the bridge read, at the registered settings; ${Object.keys(traces).length} traces of ${PATHS} paths, each stamped as the logs are\n`);
 console.log('7R: THE SECOND ARM AGAINST OFF, PER CASE, ON THE SAME 3,000 PATHS OF SEED 7002 (predictions/diag-7r.md)\n');
 const k = x => (Number.isFinite(x) ? `${x >= 0 ? '' : '-'}${(Math.abs(x) / 1000).toFixed(0)}k` : String(x));
 const res = {};

@@ -23,6 +23,9 @@ M = [
     ("the falsifier at two-thirds, not half", "if (share < LIFT_FALSIFIED)", "if (share < LIFT_HELD)"),
     ("the gate does not read the bridge read", "bridgeRead: BR[l] };", "};"),
     ("the gate does not read the seed", "seed: SEED, paths", "paths"),
+    ("a trace's stamp is not compared with the logs'", "['code', 'audit', 'prediction', 'sha'].every(k => j.stamp[k] === st[k])", "true"),
+    ("the prediction's version (its sha) not compared", "['code', 'audit', 'prediction', 'sha'].every", "['code', 'audit', 'prediction'].every"),
+    ("the stamp line's prediction read from the wrong field", "prediction: m[3]", "prediction: m[2]"),
 ]
 run = lambda f: subprocess.run(['node', f, '--planted'], capture_output=True, text=True).stdout.strip()
 bad = 0

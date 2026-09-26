@@ -32,6 +32,8 @@ function planted(texts) {
     ['planted: a case run twice is not a size', plant(ts => [...ts, ts[0]], 'a case twice'), 'true'],
     ['planted: a wrong seed is not a size', plant(ts => ts.map(t => t.replace(/seed 7002/g, 'seed 7003')), 'a wrong seed'), 'true'],
     ['planted: jointWorlds on for a plain arm is not a size', plant(ts => ts.map(t => t.replace(/(joint OFF: )false/, '$1true')), 'joint on for OFF'), 'true'],
+    ['planted: a missing five-world learning line is not a size', plant(ts => ts.map(t => t.replace(/^\s+five-learn \|.*$/m, '')), 'no five-learn line'), 'true'],
+    ['planted: a five-world arm run on three worlds is not a size', plant(ts => ts.map(t => t.replace(/(ran OFF5: mix )5/, '$13')), 'OFF5 at mix 3'), 'true'],
   ];
   const wrong = cases.filter(([, got, want]) => got !== want);
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([n, got, w]) => `${n} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }

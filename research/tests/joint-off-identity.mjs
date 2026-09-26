@@ -32,11 +32,14 @@ const out = [];
   const r = solveMixture(E, M, plan, { points: 10, lump: m.ctx.fullLumpSum, tiers: tiersFor(m), mix: 3, spendLevels: [1, 0.95, 0.9, 0.8], lambda: 0.05, finalExact: true });
   out.push(`S004 solveMixture 10 points: ${hashOf(r.mix.tables)}`);
 }
-// 7t's product entry on S126, off and the reader, at 4 points (audit-s126.mjs measureV2's plan and settings, the option absent)
+// 7t's product entry on S126, off and the reader, at 4 points: measureV2's plan, and the settings 7t's arms pass (the tier above
+// allowed, the final year exact; riskAbove left unset would take the product's 'auto', which on S126 solves without the tier
+// above - the seventy-seventh review, MINOR 4), the option absent
 for (const bridgeRead of [false, 'reader']) {
   const h = all.find(x => x.id === 'S126');
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
-  const r = solvePlan(E, M, plan, { lambda: 0.0223606797749979, points: 4, bridgeRead });
-  out.push(`S126 solvePlan 4 points, bridgeRead ${bridgeRead}: ${hashOf(r.mix.tables)}`);
+  const r = solvePlan(E, M, plan, { lambda: 0.0223606797749979, points: 4, bridgeRead, riskAbove: true, finalIntegral: true });
+  if (!(r.m.tiersAbove >= 1)) throw new Error('joint-off-identity: the S126 arm solved without the tier above');
+  out.push(`S126 solvePlan 4 points, the tier above, bridgeRead ${bridgeRead}: ${hashOf(r.mix.tables)}`);
 }
 console.log(out.join('\n'));

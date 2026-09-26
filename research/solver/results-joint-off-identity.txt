@@ -21,3 +21,23 @@ S126 solvePlan 4 points, bridgeRead false: 2294e976f95a5f2a
 S126 solvePlan 4 points, bridgeRead reader: 69e613cfb77a5ab3
 Every hash changes, so the check can fail. (A 1e-12 change to the same weight left every hash equal: the tables store the
 survival, estate, resilience and shortfall components, and the weight enters only the choice of move, which it did not flip.)
+
+## re-run 26 Sep 17:47 UK at 7t's settings (the seventy-seventh review, MINOR 4: the S126 arms now pass the tier above allowed and the
+## final year exact, as 7t's arms do, and refuse a solve without the tier above)
+$ node research/tests/joint-off-identity.mjs <checkout of f3585fd>
+S004 solveMixture 10 points: 41412c96c8c4f77e
+S126 solvePlan 4 points, the tier above, bridgeRead false: e7d67220a8a0a99a
+S126 solvePlan 4 points, the tier above, bridgeRead reader: 9cb75ec74d8917f9
+$ node research/tests/joint-off-identity.mjs
+S004 solveMixture 10 points: 41412c96c8c4f77e
+S126 solvePlan 4 points, the tier above, bridgeRead false: e7d67220a8a0a99a
+S126 solvePlan 4 points, the tier above, bridgeRead reader: 9cb75ec74d8917f9
+planted, estate weight 0.02 -> 0.021 in the checkout of f3585fd:
+S004 solveMixture 10 points: 5ffd51009eb75638
+S126 solvePlan 4 points, the tier above, bridgeRead false: 2294e976f95a5f2a
+S126 solvePlan 4 points, the tier above, bridgeRead reader: 69e613cfb77a5ab3
+
+EQUAL again, and the planted change moves every hash. The S126 hashes are the first run's: S126's plan already holds the
+riskiest tier, so the tier above adds no move - solvePlan with riskAbove unset ('auto': "off: no tier above the plan"), true
+and false all solve 360 moves (a scratch check, 26 Sep 17:47 UK). The first run's comment ("measureV2's plan and settings") was
+wrong about the settings; its hashes cover the same tables.

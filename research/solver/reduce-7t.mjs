@@ -16,11 +16,14 @@
  * and the prefix line's survival and the reader's lost paths must be 7r's; if not, the outcome reads NOT SETTLED.
  *
  * THE RULE (the regimen's; 7s's rule, reduce-7s.mjs decide(), copied here with the path count 8,000 and its planted checks
- * and planted faults of its own), on S126 and bridge 4, paired on the same 8,000 paths: g, the reader with one policy for every world against the reader as the product solves
- * it (READER+J against READER): a gain (Holm over the two, exact) or no material gain (the exact 95% interval's upper end
- * below +0.25); h, READER+J against OFF+J: a harm (Holm, exact, the point loss at the margin) or no material harm (lower
- * end above -0.25). A case CURES when g gains and h shows no material harm; does NOT CURE when g does not gain, shows no
- * material gain, and h harms; otherwise PARTIAL. HELD: both cure. FALSIFIED: both do not cure. INCONCLUSIVE otherwise.
+ * and planted faults of its own), for EACH of five causes (the re-registration of 26 Sep 17:50 UK: CAUSES below), on S126
+ * and bridge 4, paired on the same 8,000 paths, Holm over all ten cause-and-case tests (decideCauses): g, the reader with
+ * the cause removed against the reader as the product solves it: a gain (exact) or no material gain (the exact 95%
+ * interval's upper end below +0.25); h, the reader with the cause removed against off with the same cause removed: a harm
+ * (exact, the point loss at the margin) or no material harm (lower end above -0.25). A case CURES when g gains and h shows
+ * no material harm; does NOT CURE when g does not gain, shows no material gain, and h harms; otherwise PARTIAL. A cause
+ * HELD: both cure. FALSIFIED: both do not cure. INCONCLUSIVE otherwise. The attribution (the prediction's Decision rule)
+ * is printed after the outcome.
  *
  * Reported and scored as items (the prediction words them): the bad world's table against what the policy realises there;
  * the margin at 0; the reader's gains on S360 and share 0.95 with one policy; S194's tier-above family; the realised
@@ -35,6 +38,7 @@ import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 import { mcnemarHarmP, holm, survivalChange } from './stats.mjs';
 import { requireFairLogs } from './fair-gate.mjs';
+import { pathsForSeed } from '../engine.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-7t.md';
@@ -42,13 +46,27 @@ export const N = 8000, WP = 2000, P0 = 3000, ALPHA = 0.05, MARGIN = 0.25;
 const LAMBDA = '0.0223606797749979', SEED = '7002', PTS = '16', SWITCH_MARGIN = '0.001';
 export const PANEL = { 'S126': ['OFF', 'READER', 'OFF+J', 'READER+J'], 'bridge 4': ['OFF', 'READER', 'OFF+J', 'READER+J'], 'S360': ['OFF', 'READER', 'OFF+J', 'READER+J'], 'share 0.95': ['OFF', 'READER', 'OFF+J', 'READER+J'], 'S194': ['OFF', 'OFF+J'] };
 export const HARMED = ['S126', 'bridge 4'], GAINED = ['S360', 'share 0.95'];
+// THE OTHER CAUSES (the first deep review, 26 Sep 17:12 UK; the maintainer, 17:15 UK: "Test all"): learning on the product's
+// tables (+L, every case); five worlds (OFF5, READER5) and learning on them (+L), on the harmed cases
+export const LEARN = Object.fromEntries(Object.entries(PANEL).map(([id, l]) => [id, l.filter(x => !x.endsWith('+J')).map(x => `${x}+L`)]));
+export const FIVE = { 'S126': ['OFF5', 'READER5'], 'bridge 4': ['OFF5', 'READER5'] };
+export const FIVE_L = Object.fromEntries(Object.entries(FIVE).map(([id, l]) => [id, l.map(x => `${x}+L`)]));
+// each cause's arms: g = the reader with the cause removed against the reader as the product solves it; h = the reader with
+// the cause removed against off with the cause removed
+export const CAUSES = [
+  { key: 'J', name: 'clairvoyance (one policy for every world)', g: ['READER+J', 'READER'], h: ['READER+J', 'OFF+J'] },
+  { key: 'L', name: 'fixed world weights (the learning chooser)', g: ['READER+L', 'READER'], h: ['READER+L', 'OFF+L'] },
+  { key: '5', name: 'three worlds at +/-sqrt 3 (five worlds)', g: ['READER5', 'READER'], h: ['READER5', 'OFF5'] },
+  { key: '5L', name: 'five worlds with the learning chooser', g: ['READER5+L', 'READER'], h: ['READER5+L', 'OFF5+L'] },
+  { key: 'M0', name: 'the switch margin\'s lock-in (margin 0)', g: ['READER/M0', 'READER'], h: ['READER/M0', 'OFF/M0'] }];
 const BR = { OFF: 'false', READER: 'reader' };
-export const NODES = [-Math.sqrt(3), 0, Math.sqrt(3)];
+export const NODES = [-Math.sqrt(3), 0, Math.sqrt(3)], NODES5 = 5;
 // 7r's figures for OFF and READER (results/diag7r/part0.txt and part1.txt): table, sim; the reader's saved/lost against off
 export const REPRO = { S126: { OFF: [55.8, 99.8], READER: [99.6, 99.3], saved: 0, lost: 15 }, 'bridge 4': { OFF: [7.8, 99.4], READER: [99.1, 99.0], saved: 0, lost: 12 } };
 const field = (ran, k) => { const m = new RegExp(`(?:^| )${k} (\\S+)`).exec(ran || ''); return m ? m[1] : null; };
 const CELL = /(\S+) table\s+(-?[\d.]+|-) sim\s+(-?[\d.]+) gap\s+(-?[\d.]+|-) tier-below\s+(-?[\d.]+) below\s+(-?[\d.]+) (\d+) s/;
 const M0CELL = /(\S+) sim\s+(-?[\d.]+) tier-below\s+(-?[\d.]+) below\s+(-?[\d.]+) (\d+) s/;
+const LCELL = /(\S+) sim\s+(-?[\d.]+) tier-below\s+(-?[\d.]+) below\s+(-?[\d.]+) w-end ([\d.,]+) (\d+) s/;
 const WORLD = /^\s+world (\S+) (\d) z (-?[\d.]+): table (-?[\d.]+) sim (-?[\d.]+) estate table (-?\d+) sim (-?\d+) tier-below (-?[\d.]+) paths (\d+)$/;
 const JOINTL = /^\s+joint (\S+): (true|false) switchMargin (\S+) scale (\d+) cap (\d+) deathTax (\S+)$/;
 
@@ -64,16 +82,20 @@ export function parse(text) {
       if ((m = WORLD.exec(line))) { (cur.worlds[m[1]] = cur.worlds[m[1]] || [])[+m[2]] = { z: +m[3], table: +m[4], sim: +m[5], estTable: +m[6], estSim: +m[7], tier: +m[8], paths: +m[9] }; continue; }
       if ((m = /^\s+prefix (\d+) \| (.*)$/.exec(line))) { cur.prefix = { n: +m[1], sims: {}, pair: null }; for (const p of m[2].split(' | ')) { let x; if ((x = /^(\S+) sim (-?[\d.]+)$/.exec(p))) cur.prefix.sims[x[1]] = +x[2]; else if ((x = /^READER-OFF (\d+)\/(\d+)$/.exec(p))) cur.prefix.pair = { saved: +x[1], lost: +x[2] }; } continue; }
       if (/^\s+margin0 \| /.test(line)) { for (const p of line.split(' | ').slice(1)) { const x = M0CELL.exec(p); if (x) cur.m0[x[1]] = { sim: +x[2], tier: +x[3], below: +x[4], secs: +x[5] }; } continue; }
+      if ((m = /^\s+(learn|five-learn) \| (.*)$/.exec(line))) { for (const p of m[2].split(' | ')) { const x = LCELL.exec(p); if (x) cur.learn[x[1]] = { sim: +x[2], tier: +x[3], below: +x[4], wEnd: x[5].split(',').map(Number), secs: +x[6] }; } continue; }
+      if (/^\s+five \| /.test(line)) { for (const p of line.split(' | ').slice(1)) { const x = CELL.exec(p); if (x) cur.five.push({ label: x[1], table: +x[2], sim: +x[3], gap: +x[4], tier: +x[5], below: +x[6], secs: +x[7] }); } continue; }
     }
     if (!/ \| \S+ table /.test(line)) continue;
     const parts = line.split(' | ');
-    cur = { id: parts[0].slice(0, 16).trim(), arms: [], m0: {}, ran: {}, joint: {}, pairs: {}, worlds: {}, prefix: null };
+    cur = { id: parts[0].slice(0, 16).trim(), arms: [], m0: {}, ran: {}, joint: {}, pairs: {}, worlds: {}, prefix: null, learn: {}, five: [] };
     for (const p of parts.slice(1)) { const x = CELL.exec(p); if (x) cur.arms.push({ label: x[1], table: +x[2], sim: +x[3], gap: +x[4], tier: +x[5], below: +x[6], secs: +x[7] }); }
     cases.push(cur);
   }
   return cases;
 }
 const runsOf = id => PANEL[id].flatMap(l => [l, `${l}/M0`]);
+// every run a case's log carries, in the log's order (the pairs line's): the arms and their margin-0 runs, learning, five worlds
+export const allRunsOf = id => [...runsOf(id), ...(LEARN[id] || []), ...(FIVE[id] || []), ...(FIVE_L[id] || [])];
 export function gate(cases) {
   const bad = [];
   for (const id of Object.keys(PANEL)) { const k = cases.filter(c => c.id === id).length; if (k !== 1) bad.push(`${id}: ${k} case lines, not 1`); }
@@ -102,7 +124,23 @@ export function gate(cases) {
       if (ws.length !== 3 || [0, 1, 2].some(k => !ws[k] || Math.abs(ws[k].z - NODES[k]) > 1e-3 || ws[k].paths !== WP)) bad.push(`${c.id}: ${l} lacks its three world runs at ${WP} paths`);
     }
     if (!c.prefix || c.prefix.n !== P0 || want.some(l => c.prefix.sims[l] === undefined) || (want.includes('READER') && !c.prefix.pair)) bad.push(`${c.id}: no prefix line for the first ${P0} paths`);
-    const runs = runsOf(c.id);
+    // learning: every product arm's +L run, its end weights over the arm's own worlds (three, or five), summing to one
+    const learnWant = [...(LEARN[c.id] || []), ...(FIVE_L[c.id] || [])];
+    if (Object.keys(c.learn).sort().join(',') !== [...learnWant].sort().join(',')) bad.push(`${c.id}: learning runs ${Object.keys(c.learn).join(',') || 'none'}, not ${learnWant.join(',')}`);
+    for (const l of learnWant) { const x = c.learn[l]; if (x && (x.wEnd.length !== (l.includes('5') ? NODES5 : 3) || Math.abs(x.wEnd.reduce((a, w) => a + w, 0) - 1) > 1e-3)) bad.push(`${c.id}: ${l} end weights ${x.wEnd.join(',')}`); }
+    // five worlds: the registered arms, each ran at the main arms' settings but the mixture (5) and its bridge read
+    const fiveWant = FIVE[c.id] || [];
+    if (c.five.map(a => a.label).join(',') !== fiveWant.join(',')) bad.push(`${c.id}: five-world arms ${c.five.map(a => a.label).join(',') || 'none'}, not ${fiveWant.join(',') || 'none'}`);
+    const mixOut = s => (s || '').replace(/ bridgeRead \S+/, '').replace(/^mix \d+ /, '');
+    for (const l of fiveWant) {
+      const ran = c.ran[l], j = c.joint[l];
+      if (!ran) { bad.push(`${c.id}: no ran line for ${l}`); continue; }
+      if (field(ran, 'mix') !== '5') bad.push(`${c.id}: ${l} ran mix ${field(ran, 'mix')}, the prediction names 5`);
+      if (mixOut(ran) !== mixOut(c.ran[want[0]])) bad.push(`${c.id}: ${l} differs from ${want[0]} beyond the mixture and the bridge read ("${ran}")`);
+      if (field(ran, 'bridgeRead') !== BR[l.replace('5', '')]) bad.push(`${c.id}: ${l} ran bridgeRead ${field(ran, 'bridgeRead')}`);
+      if (!j || j.joint || j.margin !== SWITCH_MARGIN || j.deathTax !== 0) bad.push(`${c.id}: ${l}'s joint line is missing or not the product's (${j ? `${j.joint} ${j.margin} ${j.deathTax}` : 'none'})`);
+    }
+    const runs = allRunsOf(c.id);
     for (let j = 1; j < runs.length; j++) for (let q = 0; q < j; q++) if (!c.pairs[`${runs[j]}-${runs[q]}`]) bad.push(`${c.id}: no pair ${runs[j]}-${runs[q]}`);
   }
   return bad;
@@ -130,6 +168,36 @@ export function decide(rows, n = N) {
   return { outcome: o, reads };
 }
 export const rowsOf = cases => HARMED.map(id => { const c = cases.find(x => x.id === id); return { id, g: c.pairs['READER+J-READER'], h: c.pairs['READER+J-OFF+J'] }; });
+// EVERY CAUSE BY THE SAME RULE, Holm over all ten cause-and-case tests (five causes, two harmed cases): each cause HELD
+// (cures on both), FALSIFIED (does not cure on both) or INCONCLUSIVE
+export function decideCauses(cases) {
+  const rows = CAUSES.flatMap(cz => HARMED.map(id => { const c = cases.find(x => x.id === id); return { id: `${cz.key}|${id}`, g: c.pairs[`${cz.g[0]}-${cz.g[1]}`], h: c.pairs[`${cz.h[0]}-${cz.h[1]}`] }; }));
+  const d = decide(rows);
+  return CAUSES.map(cz => {
+    const reads = d.reads.filter(r => r.id.startsWith(`${cz.key}|`)).map(r => ({ ...r, id: r.id.split('|')[1] }));
+    const outcome = reads.every(x => x.read === 'cures') ? 'HELD' : reads.every(x => x.read === 'does not cure') ? 'FALSIFIED' : 'INCONCLUSIVE';
+    return { ...cz, outcome, reads };
+  });
+}
+// a pension tier index as a risk step: 0 the plan's tier, 1-2 the tiers below (less risk), 3 the tier above (fast.js tiersFor,
+// below 2: the tiers above follow the ones below)
+export const riskStep = idx => (idx === 0 ? 0 : idx <= 2 ? -idx : idx - 2);
+// a path re-risks late: in the last 8 years it was alive it held the plan's tier or riskier, after at least 10 years below it.
+// runPolicy records no year for the year a path fails in (it returns first), and the trace's zero fill there reads as the plan's
+// tier, so a failed path's last year is the one before its failure year (the seventy-seventh review, MINOR 5)
+export function reRisksLate(T, i) {
+  const last = T.failYear[i] >= 0 ? T.failYear[i] - 1 : T.Y - 1, step = t => riskStep(T.tier[i * T.Y + t] >> 2);
+  let belowYears = 0;
+  for (let t = 0; t <= last - 8; t++) if (step(t) < 0) belowYears++;
+  if (belowYears < 10) return false;
+  for (let t = Math.max(0, last - 7); t <= last; t++) if (step(t) >= 0) return true;
+  return false;
+}
+// the paths one arm loses against another (the second survives, the first does not)
+export const lostAgainst = (A, B) => { const out = []; for (let i = 0; i < A.N; i++) if (!A.survived[i] && B.survived[i]) out.push(i); return out; };
+// the path's long-run shift by bin (the tables' worlds sit at -sqrt 3, 0, +sqrt 3)
+export const Z_BINS = [['below -sqrt 3', z => z < -Math.sqrt(3)], ['-sqrt 3 to -1', z => z >= -Math.sqrt(3) && z < -1], ['-1 to 0', z => z >= -1 && z < 0], ['0 and above', z => z >= 0]];
+export const binOf = z => Z_BINS.findIndex(([, f]) => f(z));
 // the clairvoyance gap: each world's table survival minus what the policy realises in that world (points)
 export const gaps = (c, l) => (c.worlds[l] || []).map(w => w.table - w.sim);
 
@@ -139,7 +207,7 @@ export const gaps = (c, l) => (c.worlds[l] || []).map(w => w.table - w.sim);
 // credit, MU x sqrt(min(0.2, level - 1)), only on paths that survive
 export const WB = 0.02, MU = 0.003;
 const b = s => Buffer.from(s, 'base64');
-export const decode = j => ({ N: j.N, Y: j.Y, survived: new Uint8Array(b(j.survived)), level: new Uint8Array(b(j.level)), wealth: (x => new Float32Array(x.buffer, x.byteOffset, x.byteLength / 4))(b(j.wealth)), failYear: (x => new Int16Array(x.buffer.slice(x.byteOffset, x.byteOffset + x.byteLength)))(b(j.failYear)) });
+export const decode = j => ({ N: j.N, Y: j.Y, survived: new Uint8Array(b(j.survived)), level: new Uint8Array(b(j.level)), tier: j.tier ? new Uint8Array(b(j.tier)) : null, wealth: (x => new Float32Array(x.buffer, x.byteOffset, x.byteLength / 4))(b(j.wealth)), failYear: (x => new Int16Array(x.buffer.slice(x.byteOffset, x.byteOffset + x.byteLength)))(b(j.failYear)) });
 export function scorePaths(T, { lambda, floor, scale, cap, spendYears }) {
   const out = new Float64Array(T.N);
   for (let i = 0; i < T.N; i++) {
@@ -151,28 +219,41 @@ export function scorePaths(T, { lambda, floor, scale, cap, spendYears }) {
   }
   return out;
 }
+// a run's trace file (audit-s126.mjs diag7t's names)
+export const traceName = (id, label) => `${id.replace(/ /g, '_')}-${label.toLowerCase().replace('+j', '_j').replace('+l', '_l').replace('/m0', '_m0')}.json.gz`;
 // a trace agrees with the logs: its count, seed, arm and every field of the stamp
 export const traceAgrees = (j, ST, label) => !!(j && ST && j.stamp && j.N === N && String(j.seed) === SEED && j.arm === label && ['code', 'audit', 'prediction', 'sha'].every(k => j.stamp[k] === ST[k]));
 export const mean = xs => xs.reduce((a, c) => a + c, 0) / xs.length;
 export const se = xs => { const m = mean(xs); return Math.sqrt(xs.reduce((a, c) => a + (c - m) ** 2, 0) / (xs.length - 1) / xs.length); };
 export const paired = (a, z) => { const d = Array.from(z, (x, i) => x - a[i]); return { d: mean(d), se: se(d) }; };
 
-// the prediction's items 3-8 (1 the reproduction, 2 the outcome): [text, held]
-export function items(cases, whole) {
+// the prediction's items 2-16 (1 the reproduction): [text, held]. `lost`: of the reader's paths lost against off on the harmed
+// cases, pooled, how many have a shift below -sqrt 3 and how many re-risk late (from the traces and pathsForSeed's shifts)
+export function items(cases, whole, lost) {
   const C = id => cases.find(x => x.id === id), iv = p => survivalChange(p.lost, p.saved, N, ALPHA);
-  const out = [];
+  const out = [], dc = decideCauses(cases), by = k => dc.find(x => x.key === k);
+  // 2-6: each cause removes the reader's harm on both harmed cases (HELD by the rule)
+  ['J', 'L', '5', '5L', 'M0'].forEach((k, j) => { const x = by(k); out.push([`${2 + j}. removing ${x.name} cures the reader's harm on both harmed cases (HELD): ${x.reads.map(r => `${r.id} ${r.read}`).join(', ')} -> ${x.outcome}`, x.outcome === 'HELD']); });
   const g3 = HARMED.map(id => ({ id, g: gaps(C(id), 'READER') }));
-  out.push([`3. the mixture's bad-world table overrates the reader's policy there by at least 1 point, and by more than its normal world, on both harmed cases: ${g3.map(x => `${x.id} bad ${x.g[0].toFixed(2)}, normal ${x.g[1].toFixed(2)}, good ${x.g[2].toFixed(2)}`).join('; ')}`, g3.every(x => x.g[0] >= 1 && x.g[0] > x.g[1])]);
+  out.push([`7. the mixture's bad-world table overrates the reader's policy there by at least 1 point, and by more than its normal world, on both harmed cases: ${g3.map(x => `${x.id} bad ${x.g[0].toFixed(2)}, normal ${x.g[1].toFixed(2)}, good ${x.g[2].toFixed(2)}`).join('; ')}`, g3.every(x => x.g[0] >= 1 && x.g[0] > x.g[1])]);
   const g4 = HARMED.map(id => ({ id, a: gaps(C(id), 'READER')[0], j: gaps(C(id), 'READER+J')[0] }));
-  out.push([`4. one policy for every world halves the bad world's overrating at least, on both harmed cases: ${g4.map(x => `${x.id} ${x.a.toFixed(2)} -> ${x.j.toFixed(2)}`).join('; ')}`, g4.every(x => Math.abs(x.j) <= Math.abs(x.a) / 2)]);
-  const m5 = HARMED.map(id => { const p = C(id).pairs['READER/M0-READER'], v = iv(p); return { id, p, v }; });
-  out.push([`5. the switch margin at 0 changes the reader's survival immaterially (the exact 95% interval inside +/-${MARGIN}), on both harmed cases: ${m5.map(x => `${x.id} ${x.p.saved}/${x.p.lost} (${x.v.lo.toFixed(2)} to ${x.v.hi.toFixed(2)})`).join('; ')}`, m5.every(x => x.v.lo > -MARGIN && x.v.hi < MARGIN)]);
-  const g6 = GAINED.map(id => { const p = C(id).pairs['READER+J-OFF+J'], q = C(id).pairs['READER+J-READER']; return { id, p, q, gain: p.saved > p.lost && mcnemarHarmP(p.saved, p.lost) < ALPHA, noHarm: iv(q).lo > -MARGIN }; });
-  out.push([`6. the reader keeps its gains with one policy: against off with one policy it gains (exact p below 0.05) and against itself as solved today it loses nothing material, on S360 and share 0.95: ${g6.map(x => `${x.id} ${x.p.saved}/${x.p.lost} against OFF+J, ${x.q.saved}/${x.q.lost} against READER`).join('; ')}`, g6.every(x => x.gain && x.noHarm)]);
+  out.push([`8. one policy for every world halves the bad world's overrating at least, on both harmed cases: ${g4.map(x => `${x.id} ${x.a.toFixed(2)} -> ${x.j.toFixed(2)}`).join('; ')}`, g4.every(x => Math.abs(x.j) <= Math.abs(x.a) / 2)]);
+  // 9: the unmasking read (RULES.md section 9): off's safety is the margin's accident if off at margin 0 loses against itself
+  const m9 = HARMED.map(id => { const p = C(id).pairs['OFF/M0-OFF']; return { id, p, harm: p.lost > p.saved && mcnemarHarmP(p.lost, p.saved) < ALPHA }; });
+  out.push([`9. at switch margin 0 off loses survival against itself as solved (more lost than saved, exact p for harm below 0.05), on both harmed cases: ${m9.map(x => `${x.id} ${x.p.saved}/${x.p.lost}`).join('; ')}`, m9.every(x => x.harm)]);
+  const keeps = (a, o) => GAINED.map(id => { const p = C(id).pairs[`${a}-${o}`], q = C(id).pairs[`${a}-READER`]; return { id, p, q, gain: p.saved > p.lost && mcnemarHarmP(p.saved, p.lost) < ALPHA, noHarm: iv(q).lo > -MARGIN }; });
+  const g6 = keeps('READER+J', 'OFF+J');
+  out.push([`10. the reader keeps its gains with one policy: against off with one policy it gains (exact p below 0.05) and against itself as solved today it loses nothing material, on S360 and share 0.95: ${g6.map(x => `${x.id} ${x.p.saved}/${x.p.lost} against OFF+J, ${x.q.saved}/${x.q.lost} against READER`).join('; ')}`, g6.every(x => x.gain && x.noHarm)]);
   const p7 = C('S194').pairs['OFF+J-OFF'];
-  out.push([`7. on S194 (M14b's family) one policy gains survival (exact p for a gain below 0.05): ${p7.saved}/${p7.lost}`, p7.saved > p7.lost && mcnemarHarmP(p7.saved, p7.lost) < ALPHA]);
+  out.push([`11. on S194 (M14b's family) one policy gains survival (exact p for a gain below 0.05): ${p7.saved}/${p7.lost}`, p7.saved > p7.lost && mcnemarHarmP(p7.saved, p7.lost) < ALPHA]);
   const w8 = HARMED.map(id => ({ id, a: whole[id]['READER+J-READER'], b: whole[id]['READER+J-OFF+J'] }));
-  out.push([`8. by the realised whole score the reader with one policy is above itself as solved today, and not more than two standard errors below off with one policy, on both harmed cases: ${w8.map(x => `${x.id} ${x.a.d.toFixed(3)} +/- ${x.a.se.toFixed(3)} against READER, ${x.b.d.toFixed(3)} +/- ${x.b.se.toFixed(3)} against OFF+J`).join('; ')}`, w8.every(x => x.a.d > 0 && x.b.d > -2 * x.b.se)]);
+  out.push([`12. by the realised whole score the reader with one policy is above itself as solved today, and not more than two standard errors below off with one policy, on both harmed cases: ${w8.map(x => `${x.id} ${x.a.d.toFixed(3)} +/- ${x.a.se.toFixed(3)} against READER, ${x.b.d.toFixed(3)} +/- ${x.b.se.toFixed(3)} against OFF+J`).join('; ')}`, w8.every(x => x.a.d > 0 && x.b.d > -2 * x.b.se)]);
+  const j13 = HARMED.map(id => { const p = C(id).pairs['READER+J/M0-OFF+J/M0']; return { id, p, v: iv(p) }; });
+  out.push([`13. one policy for every world leaves no material harm at switch margin 0 too (READER+J/M0 against OFF+J/M0, the interval's lower end above -${MARGIN}), on both harmed cases: ${j13.map(x => `${x.id} ${x.p.saved}/${x.p.lost} (${x.v.lo.toFixed(2)} to ${x.v.hi.toFixed(2)})`).join('; ')}`, j13.every(x => x.v.lo > -MARGIN)]);
+  const g14 = keeps('READER+L', 'OFF+L');
+  out.push([`14. the reader keeps its gains with the learning chooser: against off learning it gains (exact p below 0.05) and against itself as solved today it loses nothing material, on S360 and share 0.95: ${g14.map(x => `${x.id} ${x.p.saved}/${x.p.lost} against OFF+L, ${x.q.saved}/${x.q.lost} against READER`).join('; ')}`, g14.every(x => x.gain && x.noHarm)]);
+  out.push([`15. the reader's lost paths sit in the deep bad world: of its paths lost against off on the harmed cases, pooled, more than a quarter have a long-run shift below -sqrt 3 (about 4% of all paths do): ${lost.deep} of ${lost.n}`, lost.n > 0 && lost.deep / lost.n > 0.25]);
+  out.push([`16. the reader's lost paths re-risk late: of them, at least half hold the plan's tier or riskier in their last 8 years after 10 or more years below it: ${lost.late} of ${lost.n}`, lost.n > 0 && lost.late / lost.n >= 0.5]);
   return out;
 }
 
@@ -180,12 +261,15 @@ export function items(cases, whole) {
 function planted() {
   const ranOf = br => `mix 3 pts 16 seed 7002 paths 8000 grid total16x6x6 lambda ${LAMBDA} levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad 5 finalIntegral true bridgeRead ${br}`;
   const cell = (l, t, s) => `${l} table ${t.toFixed(1).padStart(5)} sim ${s.toFixed(1).padStart(5)} gap ${(t - s).toFixed(1).padStart(6)} tier-below  8.7 below  2.7 556 s`;
-  const log = (id, { pairs = {}, ran = {}, joint = {}, worlds = {}, repro = REPRO[id] || { OFF: [55.8, 99.8], READER: [99.6, 99.3] }, drop = '', prefix = null } = {}) => {
-    const labels = PANEL[id], runs = runsOf(id);
+  const log = (id, { pairs = {}, ran = {}, joint = {}, worlds = {}, repro = REPRO[id] || { OFF: [55.8, 99.8], READER: [99.6, 99.3] }, drop = '', prefix = null, wEnd = {} } = {}) => {
+    const labels = PANEL[id], runs = allRunsOf(id), five = FIVE[id] || [];
+    const lcell = l => `${l} sim  99.5 tier-below  8.7 below  2.7 w-end ${(wEnd[l] || (l.includes('5') ? [0.02, 0.2, 0.56, 0.2, 0.02] : [0.2, 0.6, 0.2])).join(',')} 300 s`;
     const L = [`${id.padEnd(16)} a0 0.85 B 2 class YES | ${labels.map(l => cell(l, ...(repro[l] || [99.5, 99.6]))).join(' | ')}`,
       `${''.padEnd(16)} margin0 | ${labels.map(l => `${l}/M0 sim  99.5 tier-below  8.7 below  2.7 250 s`).join(' | ')}`,
-      ...labels.map(l => `${''.padEnd(16)} ran ${l}: ${ran[l] || ranOf(BR[l.replace('+J', '')])}`),
-      ...labels.map(l => `${''.padEnd(16)} joint ${l}: ${joint[l] !== undefined ? joint[l] : l.endsWith('+J')} switchMargin 0.001 scale 950000 cap 3800000 deathTax 0`)];
+      `${''.padEnd(16)} learn | ${LEARN[id].map(lcell).join(' | ')}`,
+      ...(five.length ? [`${''.padEnd(16)} five | ${five.map(l => cell(l, 99.4, 99.5)).join(' | ')}`, `${''.padEnd(16)} five-learn | ${FIVE_L[id].map(lcell).join(' | ')}`] : []),
+      ...[...labels, ...five].map(l => `${''.padEnd(16)} ran ${l}: ${ran[l] || (five.includes(l) ? ranOf(BR[l.replace('5', '')]).replace('mix 3', 'mix 5') : ranOf(BR[l.replace('+J', '')]))}`),
+      ...[...labels, ...five].map(l => `${''.padEnd(16)} joint ${l}: ${joint[l] !== undefined ? joint[l] : l.endsWith('+J')} switchMargin 0.001 scale 950000 cap 3800000 deathTax 0`)];
     const pr = []; for (let j = 1; j < runs.length; j++) for (let q = 0; q < j; q++) { const k = `${runs[j]}-${runs[q]}`; pr.push(`${k} ${(pairs[k] || [0, 0]).join('/')}`); }
     L.push(`${''.padEnd(16)} pairs ${pr.join(' ')}`);
     const pre = prefix || { OFF: repro.OFF[1], READER: repro.READER[1], pair: [0, (REPRO[id] || { lost: 15 }).lost] };
@@ -202,7 +286,7 @@ function planted() {
     ['the gate refuses a missing prefix line', String(gate(parse(all5().replace(/\n\s+prefix 3000 \|[^\n]*/, ''))).length > 0), 'true'],
     ['the gate passes a log at the registered settings', String(gate(c0).length), '0'],
     ['the gate refuses a second setting changed between arms', String(gate(parse(all5({ S126: { ran: { 'READER+J': ranOf('reader').replace('minPot 29000', 'minPot 30000') } } }))).length > 0), 'true'],
-    ['the gate refuses the wrong seed', String(gate(parse(all5({ S126: { ran: Object.fromEntries(PANEL.S126.map(l => [l, ranOf(BR[l.replace('+J', '')]).replace('seed 7002', 'seed 7004')])) } }))).length > 0), 'true'],
+    ['the gate refuses the wrong seed (on every arm, the five-world ones too, so only the seed check can see it)', String(gate(parse(all5({ S126: { ran: Object.fromEntries([...PANEL.S126.map(l => [l, ranOf(BR[l.replace('+J', '')]).replace('seed 7002', 'seed 7004')]), ...FIVE.S126.map(l => [l, ranOf(BR[l.replace('5', '')]).replace('mix 3', 'mix 5').replace('seed 7002', 'seed 7004')])]) } }))).length > 0), 'true'],
     ['the gate refuses an arm whose joint line does not match its label', String(gate(parse(all5({ S126: { joint: { 'READER+J': false } } }))).length > 0), 'true'],
     ['the gate refuses a missing margin-0 run', String(gate(parse(all5({ S126: { drop: 'READER+J/M0 sim' } }).replace(/ \| READER\+J\/M0 sim[^|\n]*/, ''))).length > 0), 'true'],
     ['the gate refuses a missing world line', String(gate(parse(all5({ S126: { drop: 'world READER 0 ' } }))).length > 0), 'true'],
@@ -224,16 +308,42 @@ function planted() {
       return `${s[0].toFixed(4)} ${s[1].toFixed(4)}`; })(), `${(100 * (1 + 0.02 * 4 - 0.1 * 0.01 + 0.003 * Math.sqrt(0.1))).toFixed(4)} ${(100 * (0 - 2 * 0.1 * 0.04)).toFixed(4)}`],
     ['paired: the mean of the differences and its standard error', (() => { const p = paired(Float64Array.from([1, 2, 3, 4]), Float64Array.from([2, 2, 5, 4])); return `${p.d.toFixed(3)} ${p.se.toFixed(3)}`; })(), '0.750 0.479'],
   ];
-  // items on the planted log, with a whole score that holds item 8
+  // items on planted logs: every cause cures (38 saved, none lost against the reader; 1 lost against its off twin), then none
+  const cure = { 'OFF/M0-OFF': [0, 30], 'READER+J-READER': [38, 0], 'READER+J-OFF+J': [0, 1], 'READER+L-READER': [38, 0], 'READER+L-OFF+L': [0, 1], 'READER5-READER': [38, 0], 'READER5-OFF5': [0, 1], 'READER5+L-READER': [38, 0], 'READER5+L-OFF5+L': [0, 1], 'READER/M0-READER': [38, 0], 'READER/M0-OFF/M0': [0, 1], 'READER+J/M0-OFF+J/M0': [0, 1] };
+  const none = { 'READER+J-READER': [1, 1], 'READER+J-OFF+J': [0, 40], 'READER+L-READER': [1, 1], 'READER+L-OFF+L': [0, 40], 'READER5-READER': [1, 1], 'READER5-OFF5': [0, 40], 'READER5+L-READER': [1, 1], 'READER5+L-OFF5+L': [0, 40], 'READER/M0-READER': [1, 1], 'READER/M0-OFF/M0': [0, 40], 'READER+J/M0-OFF+J/M0': [0, 40] };
+  const gainL = { 'READER+J-OFF+J': [100, 0], 'READER+L-OFF+L': [100, 0] };
   const whole = Object.fromEntries(HARMED.map(id => [id, { 'READER+J-READER': { d: 0.2, se: 0.05 }, 'READER+J-OFF+J': { d: -0.05, se: 0.1 } }]));
-  const it = items(parse(Object.keys(PANEL).map(id => log(id, { pairs: { ...(good[id] || {}), ...(GAINED.includes(id) ? { 'READER+J-OFF+J': [100, 0] } : {}), ...(id === 'S194' ? { 'OFF+J-OFF': [9, 0] } : {}) }, worlds: { READER: [[97, 93.5], [99.8, 99.6], [100, 100]], 'READER+J': [[95, 94.5], [99.7, 99.6], [100, 100]] } })).join('\n')), whole);
-  cases.push(['items 3-8 on a planted log where each holds', it.map(x => x[1]).join(','), 'true,true,true,true,true,true']);
-  const it2 = items(parse(Object.keys(PANEL).map(id => log(id, { pairs: { ...(good[id] || {}), 'READER/M0-READER': [0, 25], ...(GAINED.includes(id) ? { 'READER+J-OFF+J': [100, 0], 'READER+J-READER': [0, 25] } : {}), ...(id === 'S194' ? { 'OFF+J-OFF': [0, 9] } : {}) }, worlds: { READER: [[99.5, 99.0], [99.8, 99.6], [100, 100]], 'READER+J': [[99.4, 99.0], [99.7, 99.6], [100, 100]] } })).join('\n')),
-    Object.fromEntries(HARMED.map(id => [id, { 'READER+J-READER': { d: -0.1, se: 0.05 }, 'READER+J-OFF+J': { d: -0.5, se: 0.1 } }])));
-  cases.push(['items 3-8 on a planted log where each misses (gap 0.5; 0.4 not halved; margin 0 loses 25; the gain cases lose 25 to themselves; S194 loses; the whole score below)', it2.map(x => x[1]).join(','), 'false,false,false,false,false,false']);
-  const it3 = items(parse(Object.keys(PANEL).map(id => log(id, { pairs: { ...(good[id] || {}), 'READER/M0-READER': [25, 0], ...(GAINED.includes(id) ? { 'READER+J-OFF+J': [100, 0] } : {}), ...(id === 'S194' ? { 'OFF+J-OFF': [3, 1] } : {}) }, worlds: { READER: [[97, 95.5], [99, 97], [100, 100]], 'READER+J': [[93, 95], [99.7, 99.6], [100, 100]] } })).join('\n')),
-    Object.fromEntries(HARMED.map(id => [id, { 'READER+J-READER': { d: 0.2, se: 0.05 }, 'READER+J-OFF+J': { d: -0.5, se: 0.1 } }])));
-  cases.push(['items 3-8 missing other ways (the normal world overrated more than the bad; the joint gap -2.0 not half of 1.5; margin 0 gains 25; S194 3/1 not significant; 0.5 below off with one policy at 0.1 se)', it3.map(x => x[1]).join(','), 'false,false,false,true,false,false']);
+  const W1 = { READER: [[97, 93.5], [99.8, 99.6], [100, 100]], 'READER+J': [[95, 94.5], [99.7, 99.6], [100, 100]] };
+  const it = items(parse(Object.keys(PANEL).map(id => log(id, { pairs: { ...(HARMED.includes(id) ? cure : {}), ...(GAINED.includes(id) ? gainL : {}), ...(id === 'S194' ? { 'OFF+J-OFF': [9, 0] } : {}) }, worlds: W1 })).join('\n')), whole, { n: 27, deep: 8, late: 14 });
+  cases.push(['items 2-16 on a planted log where each holds (every cause cures; 8 of 27 lost paths deep, 14 re-risk late: just past a quarter and a half)', it.map(x => x[1]).join(','), Array(15).fill('true').join(',')]);
+  const it2 = items(parse(Object.keys(PANEL).map(id => log(id, { pairs: { ...(HARMED.includes(id) ? none : {}), 'READER/M0-READER': [0, 25], ...(GAINED.includes(id) ? { 'READER+J-OFF+J': [100, 0], 'READER+J-READER': [0, 25], 'READER+L-OFF+L': [100, 0], 'READER+L-READER': [0, 25] } : {}), ...(id === 'S194' ? { 'OFF+J-OFF': [0, 9] } : {}) }, worlds: { READER: [[99.5, 99.0], [99.8, 99.6], [100, 100]], 'READER+J': [[99.4, 99.0], [99.7, 99.6], [100, 100]] } })).join('\n')),
+    Object.fromEntries(HARMED.map(id => [id, { 'READER+J-READER': { d: -0.1, se: 0.05 }, 'READER+J-OFF+J': { d: -0.5, se: 0.1 } }])), { n: 27, deep: 3, late: 5 });
+  cases.push(['items 2-16 on a planted log where each misses (no cause cures; gap 0.5; 0.4 not halved; off at margin 0 loses nothing; the gain cases lose 25 to themselves; S194 loses; the whole score below; one policy harms at margin 0; 3 and 5 of 27)', it2.map(x => x[1]).join(','), Array(15).fill('false').join(',')]);
+  const it3 = items(parse(Object.keys(PANEL).map(id => log(id, { pairs: { ...(HARMED.includes(id) ? { ...cure, 'OFF/M0-OFF': [1, 3], 'READER/M0-READER': [25, 0], 'READER+J/M0-OFF+J/M0': [0, 40] } : {}), ...(GAINED.includes(id) ? { 'READER+J-OFF+J': [100, 0], 'READER+L-OFF+L': [3, 1] } : {}), ...(id === 'S194' ? { 'OFF+J-OFF': [3, 1] } : {}) }, worlds: { READER: [[97, 95.5], [99, 97], [100, 100]], 'READER+J': [[93, 95], [99.7, 99.6], [100, 100]] } })).join('\n')),
+    Object.fromEntries(HARMED.map(id => [id, { 'READER+J-READER': { d: 0.2, se: 0.05 }, 'READER+J-OFF+J': { d: -0.5, se: 0.1 } }])), { n: 0, deep: 0, late: 0 });
+  cases.push(['items 7-16 missing other ways (the normal world overrated more than the bad; the joint gap -2.0 not half of 1.5; off at margin 0 loses 3 to 1, not significant; S194 3/1 not significant; 0.5 below off with one policy at 0.1 se; one policy harms at margin 0; learning 3/1 not significant; no lost paths is not a hold)', it3.slice(5).map(x => x[1]).join(','), 'false,false,false,true,false,false,false,false,false,false']);
+  // one cause alone: learning cures, the rest do not
+  const only = { ...none, 'READER+L-READER': [38, 0], 'READER+L-OFF+L': [0, 1] };
+  const dc1 = decideCauses(parse(Object.keys(PANEL).map(id => log(id, { pairs: HARMED.includes(id) ? only : {} })).join('\n')));
+  cases.push(['one cause alone cures: its outcome HELD, the others FALSIFIED; each cause reads its own pairs', dc1.map(x => `${x.key} ${x.outcome}`).join(', '), 'J FALSIFIED, L HELD, 5 FALSIFIED, 5L FALSIFIED, M0 FALSIFIED']);
+  cases.push(['no cause cures: every outcome FALSIFIED (each cause\'s h is its own pair: the pairs against plain off hold nothing)', decideCauses(parse(Object.keys(PANEL).map(id => log(id, { pairs: HARMED.includes(id) ? none : {} })).join('\n'))).map(x => x.outcome).join(','), 'FALSIFIED,FALSIFIED,FALSIFIED,FALSIFIED,FALSIFIED']);
+  cases.push(['a cause that cures on one harmed case only is INCONCLUSIVE', decideCauses(parse(Object.keys(PANEL).map(id => log(id, { pairs: id === 'S126' ? only : HARMED.includes(id) ? none : {} })).join('\n'))).find(x => x.key === 'L').outcome, 'INCONCLUSIVE']);
+  // Holm over all ten: a gain of 9 saved, none lost (raw p 0.002) survives Holm over two but not over ten
+  const seven = { ...none, 'READER5-READER': [7, 0], 'READER5-OFF5': [0, 0] };
+  cases.push(['Holm is over all ten cause-and-case tests: 7 saved, none lost (raw p 0.0078) gains over two (0.016) and not over ten (0.078)', `${decide(HARMED.map(id => ({ id, g: { saved: 7, lost: 0 }, h: { saved: 0, lost: 0 } }))).reads[0].gains} ${decideCauses(parse(Object.keys(PANEL).map(id => log(id, { pairs: HARMED.includes(id) ? seven : {} })).join('\n'))).find(x => x.key === '5').reads[0].gains}`, 'true false']);
+  // the trace reads
+  { const T = { N: 4, Y: 25, tier: new Uint8Array(100), survived: Uint8Array.from([0, 0, 1, 0]), failYear: Int16Array.from([24, 24, -1, 24]) };
+    for (let t = 0; t < 25; t++) { T.tier[t] = (t >= 2 && t < 18 ? 2 : 0) * 4; T.tier[25 + t] = (t >= 2 && t < 10 ? 2 : 0) * 4; T.tier[50 + t] = (t >= 1 ? 1 : 0) * 4; T.tier[75 + t] = (t >= 2 && t < 24 ? 2 : 0) * 4; }
+    cases.push(['re-risking late: 16 years two below then back to the plan\'s tier re-risks; 8 years below does not; below to the end does not; below until the failure year, whose unrecorded slot reads 0, does not', [0, 1, 2, 3].map(i => reRisksLate(T, i)).join(','), 'true,false,false,false']); }
+  cases.push(['a tier index as a risk step: the plan\'s 0, below -1 and -2, the tier above +1', [0, 1, 2, 3].map(riskStep).join(','), '0,-1,-2,1']);
+  cases.push(['the shift bins', [-2, -1.5, -0.5, 0, 1].map(binOf).join(','), '0,1,2,3,3']);
+  cases.push(['lost against: the paths the first arm loses and the second keeps', lostAgainst({ N: 4, survived: Uint8Array.from([0, 0, 1, 1]) }, { N: 4, survived: Uint8Array.from([1, 0, 1, 0]) }).join(','), '0']);
+  // the gate on the new arms
+  cases.push(['the gate refuses a missing learning run', String(gate(parse(all5().replace(/ \| READER\+L sim[^|\n]*/, ''))).length > 0), 'true']);
+  cases.push(['the gate refuses a five-world arm that ran three worlds', String(gate(parse(all5({ S126: { ran: { READER5: ranOf('reader') } } }))).length > 0), 'true']);
+  cases.push(['the gate refuses five-world end weights over three worlds', String(gate(parse(all5({ S126: { wEnd: { 'READER5+L': [0.2, 0.6, 0.2] } } }))).length > 0), 'true']);
+  cases.push(['the gate refuses a missing pair with a new arm', String(gate(parse(all5().replace(/ READER5\+L-OFF5\+L \d+\/\d+/, ''))).length > 0), 'true']);
+  cases.push(['a trace name for every kind of run', ['READER+J/M0', 'READER+L', 'OFF5', 'READER5+L'].map(l => traceName('bridge 4', l)).join(' '), 'bridge_4-reader_j_m0.json.gz bridge_4-reader_l.json.gz bridge_4-off5.json.gz bridge_4-reader5_l.json.gz']);
   { const ST = { code: 'a', audit: 'b', prediction: 'c', sha: 'd' }, j = { N, seed: 7002, arm: 'READER+J', stamp: { ...ST } };
     cases.push(['a trace agrees only with the logs\' count, seed, arm and every stamp field', [traceAgrees(j, ST, 'READER+J'), traceAgrees({ ...j, seed: 7004 }, ST, 'READER+J'), traceAgrees(j, ST, 'READER'), traceAgrees({ ...j, stamp: { ...ST, sha: 'e' } }, ST, 'READER+J'), traceAgrees({ ...j, N: 20 }, ST, 'READER+J')].join(','), 'true,false,false,false,false']); }
   const wrong = cases.filter(([, got, want]) => got !== want);
@@ -256,13 +366,13 @@ if (main) {
   const ST = st ? { code: st[1], audit: st[2], prediction: st[3], sha: st[4] } : null;
   const traces = {};
   const load = (id, label) => {
-    const f = join(DIR, `${id.replace(/ /g, '_')}-${label.toLowerCase().replace('+j', '_j').replace('/m0', '_m0')}.json.gz`);
+    const f = join(DIR, traceName(id, label));
     if (!existsSync(f)) { bad.push(`no trace ${f}`); return null; }
     const j = JSON.parse(gunzipSync(readFileSync(f)).toString());
     if (!traceAgrees(j, ST, label)) bad.push(`${f}: count, seed, arm or stamp is not the logs'`);
     return decode(j);
   };
-  if (!bad.length) for (const c of cases) for (const l of runsOf(c.id)) traces[`${c.id}|${l}`] = load(c.id, l);
+  if (!bad.length) for (const c of cases) for (const l of allRunsOf(c.id)) traces[`${c.id}|${l}`] = load(c.id, l);
   if (bad.length) { console.log(`FAIR-TEST GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
   // the realised whole score per run, paired against the comparisons the items read
   const whole = {};
@@ -271,30 +381,66 @@ if (main) {
     const cfg = { lambda: Number(field(ran, 'lambda')), floor: Math.min(...field(ran, 'levels').split(',').map(Number)), scale: j.scale, cap: j.cap };
     const ref = traces[`${c.id}|${PANEL[c.id][0]}`];
     cfg.spendYears = Array.from({ length: ref.Y }, (_, t) => { for (let i = 0; i < ref.N; i++) if (ref.level[i * ref.Y + t] > 0) return true; return false; });
-    const sc = Object.fromEntries(runsOf(c.id).map(l => [l, scorePaths(traces[`${c.id}|${l}`], cfg)]));
+    const sc = Object.fromEntries(allRunsOf(c.id).map(l => [l, scorePaths(traces[`${c.id}|${l}`], cfg)]));
     whole[c.id] = {};
-    const cmp = c.id === 'S194' ? [['OFF+J', 'OFF'], ['OFF/M0', 'OFF'], ['OFF+J/M0', 'OFF']] : [['READER', 'OFF'], ['READER+J', 'READER'], ['READER+J', 'OFF+J'], ['READER+J', 'OFF'], ['OFF+J', 'OFF'], ['READER/M0', 'READER'], ['READER+J/M0', 'OFF']];
+    const cmp = c.id === 'S194' ? [['OFF+J', 'OFF'], ['OFF/M0', 'OFF'], ['OFF+J/M0', 'OFF'], ['OFF+L', 'OFF']]
+      : [['READER', 'OFF'], ['READER+J', 'READER'], ['READER+J', 'OFF+J'], ['READER+J', 'OFF'], ['OFF+J', 'OFF'], ['READER/M0', 'READER'], ['READER+J/M0', 'OFF'],
+        ['READER+L', 'OFF+L'], ['READER+L', 'READER'], ['OFF+L', 'OFF'], ['READER/M0', 'OFF/M0'],
+        ...(FIVE[c.id] ? [['READER5', 'OFF5'], ['READER5', 'READER'], ['OFF5', 'OFF'], ['READER5+L', 'OFF5+L'], ['READER5+L', 'READER']] : [])];
     for (const [a, z] of cmp) whole[c.id][`${a}-${z}`] = paired(sc[z], sc[a]);
   }
   const f1 = x => x.toFixed(1), iv = x => `${x.d >= 0 ? '+' : ''}${x.d.toFixed(2)} (${x.lo.toFixed(2)} to ${x.hi.toFixed(2)})`;
   console.log(`7t: DO THE MIXTURE'S TABLES OVERRATE THE RISKIER TIER BECAUSE EACH WORLD PLANS AS IF IT KNEW ITS WORLD? Read against ${PRED}\n`);
   console.log(`FAIR-TEST GATE: passed - the stamps; on all five cases the arms ran the same settings but the bridge read, the joint lines match the labels, every margin-0 run, pair, world run and trace is there (seed ${SEED}, ${N} paths, ${WP} a world, ${PTS} points)\n`);
   console.log('case        run           table    sim    gap  tier-below  below   secs');
-  for (const id of Object.keys(PANEL)) { const c = cases.find(x => x.id === id); for (const a of c.arms) { const m0 = c.m0[`${a.label}/M0`]; console.log(`${id.padEnd(11)} ${a.label.padEnd(12)} ${f1(a.table).padStart(6)} ${f1(a.sim).padStart(6)} ${f1(a.gap).padStart(6)} ${f1(a.tier).padStart(11)} ${f1(a.below).padStart(6)} ${String(a.secs).padStart(6)}`); console.log(`${''.padEnd(11)} ${(a.label + '/M0').padEnd(12)} ${''.padStart(6)} ${f1(m0.sim).padStart(6)} ${''.padStart(6)} ${f1(m0.tier).padStart(11)} ${f1(m0.below).padStart(6)} ${String(m0.secs).padStart(6)}`); } }
+  const row = (id, l, t, sim, gap, tier, below, secs) => console.log(`${id.padEnd(11)} ${l.padEnd(12)} ${t === null ? ''.padStart(6) : f1(t).padStart(6)} ${f1(sim).padStart(6)} ${gap === null ? ''.padStart(6) : f1(gap).padStart(6)} ${f1(tier).padStart(11)} ${f1(below).padStart(6)} ${String(secs).padStart(6)}`);
+  for (const id of Object.keys(PANEL)) {
+    const c = cases.find(x => x.id === id);
+    for (const a of c.arms) { const m0 = c.m0[`${a.label}/M0`]; row(id, a.label, a.table, a.sim, a.gap, a.tier, a.below, a.secs); row('', `${a.label}/M0`, null, m0.sim, null, m0.tier, m0.below, m0.secs); }
+    for (const a of c.five) row(id, a.label, a.table, a.sim, a.gap, a.tier, a.below, a.secs);
+    for (const [l, x] of Object.entries(c.learn)) row(id, l, null, x.sim, null, x.tier, x.below, x.secs);
+  }
+  console.log('\nTHE LEARNING CHOOSER\'S END WEIGHTS, the mean over paths (the prior: 1/6, 2/3, 1/6 over three worlds; the five-point Gauss-Hermite weights over five):');
+  for (const id of Object.keys(PANEL)) { const c = cases.find(x => x.id === id); for (const [l, x] of Object.entries(c.learn)) console.log(`  ${id.padEnd(10)} ${l.padEnd(10)} ${x.wEnd.map(w => w.toFixed(3)).join(' ')}`); }
   console.log('\nIN EACH WORLD (2,000 paths a world, each path\'s persistent shift at the world\'s node): the world\'s own table against what the policy realises there');
   for (const id of Object.keys(PANEL)) { const c = cases.find(x => x.id === id); for (const l of PANEL[id]) console.log(`  ${id.padEnd(10)} ${l.padEnd(9)} ${c.worlds[l].map((w, k) => `${['bad', 'normal', 'good'][k]}: table ${w.table.toFixed(2)} sim ${w.sim.toFixed(2)} (gap ${(w.table - w.sim).toFixed(2)}), estate ${Math.round(w.estTable / 1000)}k / ${Math.round(w.estSim / 1000)}k, tier-below ${w.tier.toFixed(1)}`).join('; ')}`); }
   console.log('\nPAIRED on the same paths (saved/lost), the survival change in points with its exact 95% interval:');
-  const show = { default: ['READER-OFF', 'READER+J-READER', 'READER+J-OFF+J', 'READER+J-OFF', 'OFF+J-OFF', 'READER/M0-READER', 'OFF/M0-OFF', 'READER+J/M0-READER+J', 'READER+J/M0-OFF'], S194: ['OFF+J-OFF', 'OFF/M0-OFF', 'OFF+J/M0-OFF+J', 'OFF+J/M0-OFF'] };
-  for (const id of Object.keys(PANEL)) { const c = cases.find(x => x.id === id); for (const p of (show[id] || show.default)) { const x = c.pairs[p]; console.log(`  ${id.padEnd(10)} ${p.padEnd(22)} ${x.saved}/${x.lost}  ${iv(survivalChange(x.lost, x.saved, N, ALPHA))}`); } }
+  const show = { default: ['READER-OFF', 'READER+J-READER', 'READER+J-OFF+J', 'READER+J-OFF', 'OFF+J-OFF', 'READER/M0-READER', 'OFF/M0-OFF', 'READER/M0-OFF/M0', 'READER+J/M0-READER+J', 'READER+J/M0-OFF', 'READER+J/M0-OFF+J/M0', 'READER+L-READER', 'READER+L-OFF+L', 'OFF+L-OFF'],
+    five: ['READER5-READER', 'READER5-OFF5', 'OFF5-OFF', 'READER5+L-READER', 'READER5+L-OFF5+L', 'OFF5+L-OFF5'], S194: ['OFF+J-OFF', 'OFF/M0-OFF', 'OFF+J/M0-OFF+J', 'OFF+J/M0-OFF', 'OFF+L-OFF'] };
+  for (const id of Object.keys(PANEL)) { const c = cases.find(x => x.id === id); for (const p of [...(show[id] || show.default), ...(FIVE[id] ? show.five : [])]) { const x = c.pairs[p]; console.log(`  ${id.padEnd(10)} ${p.padEnd(22)} ${x.saved}/${x.lost}  ${iv(survivalChange(x.lost, x.saved, N, ALPHA))}`); } }
   console.log('\nTHE REALISED WHOLE SCORE (survival, the capped estate at 0.02, the dislike of cuts, the raise credit), per path, points, paired:');
   for (const id of Object.keys(PANEL)) for (const [k, v] of Object.entries(whole[id])) console.log(`  ${id.padEnd(10)} ${k.padEnd(22)} ${v.d >= 0 ? '+' : ''}${v.d.toFixed(3)} +/- ${v.se.toFixed(3)}`);
   const why = HARMED.flatMap(id => reproduced(cases.find(x => x.id === id)).map(w => `${id}: ${w}`));
-  const d = decide(rowsOf(cases));
-  console.log('\nTHE RULE, per harmed case (g: READER+J against READER; h: READER+J against OFF+J; Holm over the two):');
-  for (const r of d.reads) console.log(`  ${r.id.padEnd(9)} g ${iv(r.gi)}, p for a gain ${r.pGain.toExponential(1)} (Holm) -> ${r.gains ? 'gains' : r.noGain ? 'no material gain' : 'neither'}; h ${iv(r.hi)}, p for harm ${r.pHarm.toExponential(1)} (Holm) -> ${r.harms ? 'harms' : r.noHarm ? 'no material harm' : 'neither'}; the case ${r.read}`);
+  const dc = decideCauses(cases);
+  console.log('\nTHE RULE, each cause on each harmed case (g: the reader with the cause removed against the reader as solved today; h: against off with the cause removed; Holm over all ten):');
+  for (const cz of dc) { console.log(`  ${cz.key.padEnd(3)} ${cz.name}: g ${cz.g.join(' against ')}, h ${cz.h.join(' against ')} -> ${cz.outcome}`); for (const r of cz.reads) console.log(`      ${r.id.padEnd(9)} g ${iv(r.gi)}, p for a gain ${r.pGain.toExponential(1)} (Holm) -> ${r.gains ? 'gains' : r.noGain ? 'no material gain' : 'neither'}; h ${iv(r.hi)}, p for harm ${r.pHarm.toExponential(1)} (Holm) -> ${r.harms ? 'harms' : r.noHarm ? 'no material harm' : 'neither'}; the case ${r.read}`); }
+  // THE READS FROM THE TRACES (the first deep review): where the lost paths sit, what they do late, where every arm opens
+  const shifts = {};
+  for (const id of HARMED) { const ref = traces[`${id}|OFF`]; shifts[id] = pathsForSeed(Number(SEED), N, ref.Y - 1).map(zs => zs[ref.Y]); }
+  console.log('\nWHERE THE LOST PATHS SIT, by the path\'s long-run shift (lost/saved against the named reference; the share of all paths in the bin):');
+  const lost = { n: 0, deep: 0, late: 0 };
+  for (const id of HARMED) {
+    const z = shifts[id], share = Z_BINS.map((_, k) => z.filter(x => binOf(x) === k).length / z.length);
+    console.log(`  ${id}: all paths ${Z_BINS.map(([n], k) => `${n} ${(100 * share[k]).toFixed(1)}%`).join(', ')}`);
+    for (const [a, o] of [['READER', 'OFF'], ['READER+J', 'OFF+J'], ['READER+L', 'OFF+L'], ['READER/M0', 'OFF/M0'], ['READER5', 'OFF5'], ['READER5+L', 'OFF5+L']]) {
+      const A = traces[`${id}|${a}`], O = traces[`${id}|${o}`], L = lostAgainst(A, O), S = lostAgainst(O, A);
+      const late = L.filter(i => reRisksLate(A, i)).length;
+      console.log(`    ${`${a} against ${o}`.padEnd(22)} lost ${String(L.length).padStart(3)} (${Z_BINS.map((_, k) => L.filter(i => binOf(z[i]) === k).length).join('/')}), saved ${String(S.length).padStart(3)} (${Z_BINS.map((_, k) => S.filter(i => binOf(z[i]) === k).length).join('/')}); lost that re-risk late ${late}`);
+      if (a === 'READER') { lost.n += L.length; lost.deep += L.filter(i => binOf(z[i]) === 0).length; lost.late += late; }
+    }
+    const sv = (l, k) => { const T = traces[`${id}|${l}`]; let n = 0, ok = 0; for (let i = 0; i < T.N; i++) if (binOf(z[i]) === k) { n++; ok += T.survived[i]; } return n ? (100 * ok / n).toFixed(1) : '-'; };
+    console.log(`    survival by bin: ${['OFF', 'READER', 'OFF+J', 'READER+J', 'OFF+L', 'READER+L', 'OFF5', 'READER5'].map(l => `${l} ${Z_BINS.map((_, k) => sv(l, k)).join('/')}`).join('; ')}`);
+    const S1 = []; { const T = traces[`${id}|READER`]; for (let i = 0; i < T.N; i++) if (T.survived[i] && z[i] < -1) S1.push(i); }
+    console.log(`    the reader's surviving paths with a shift below -1 that re-risk late: ${S1.filter(i => reRisksLate(traces[`${id}|READER`], i)).length} of ${S1.length}`);
+  }
+  console.log('\nWHERE EVERY RUN OPENS (the pension tier held in year 0, as a risk step: 0 the plan\'s, -1 and -2 below, +1 above; the share of paths):');
+  for (const c of cases) console.log(`  ${c.id.padEnd(10)} ${allRunsOf(c.id).map(l => { const T = traces[`${c.id}|${l}`], n = {}; for (let i = 0; i < T.N; i++) { const k = riskStep(T.tier[i * T.Y] >> 2); n[k] = (n[k] || 0) + 1; } return `${l} ${Object.entries(n).sort((x, y) => y[1] - x[1]).map(([k, v]) => `${k}:${(100 * v / T.N).toFixed(0)}%`).join(',')}`; }).join('; ')}`);
+  console.log('\nTHE WORLDS WEIGHED AGAINST THE PATHS (1/6, 2/3, 1/6 times each world\'s realised survival, against the arm\'s survival on the 8,000 paths, whose shifts are drawn from the normal):');
+  for (const id of Object.keys(PANEL)) { const c = cases.find(x => x.id === id); for (const l of PANEL[id]) { const w = c.worlds[l], mix = w[0].sim / 6 + 2 * w[1].sim / 3 + w[2].sim / 6, a = c.arms.find(x => x.label === l); console.log(`  ${id.padEnd(10)} ${l.padEnd(9)} weighted ${mix.toFixed(2)} paths ${a.sim.toFixed(2)} (difference ${(mix - a.sim).toFixed(2)})`); } }
   console.log("\nTHE PREDICTION'S ITEMS:");
   console.log(`1. OFF and READER reproduce 7r on S126 and bridge 4 (tables and survival to 0.1, the reader's saved and lost against off): ${why.length ? why.join('; ') : 'both cases'} -> ${why.length ? 'MISSED' : 'held'}`);
-  console.log(`2. the outcome is HELD: ${why.length ? 'NOT SETTLED' : d.outcome} -> ${!why.length && d.outcome === 'HELD' ? 'held' : 'MISSED'}`);
-  for (const [t, ok] of items(cases, whole)) console.log(`${t} -> ${ok ? 'held' : 'MISSED'}`);
-  console.log(`\nOUTCOME: ${why.length ? 'NOT SETTLED (OFF and READER did not reproduce 7r)' : d.outcome}`);
+  for (const [t, ok] of items(cases, whole, lost)) console.log(`${t} -> ${ok ? 'held' : 'MISSED'}`);
+  const held = dc.filter(x => x.outcome === 'HELD').map(x => x.key);
+  console.log(`\nOUTCOME: ${why.length ? 'NOT SETTLED (OFF and READER did not reproduce 7r)' : dc.map(x => `${x.key} ${x.outcome}`).join(', ')}`);
+  if (!why.length) console.log(`ATTRIBUTION (the prediction's Decision fed): ${!held.length ? 'no cause tested removes the harm alone' : held.length === 1 ? `one cause removes the harm: ${held[0]}` : `several causes each remove the harm: ${held.join(', ')} (the attribution between them grade C)`}${held.includes('J') ? `; clairvoyance at margin 0 too: ${items(cases, whole, lost)[11][1] ? 'yes' : 'NO - the cure at the solved margin is not named clairvoyance'}` : ''}`);
 }

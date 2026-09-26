@@ -3,7 +3,10 @@
 Written 26 Sep, for the maintainer's next "unlock enforcement". **Built under the unlock of 26 Sep 16:47 UK** (RULES.md section 9,
 "Enforced by"): the checklist's three changes were folded into items 1, 2 and 11 rather than added as item 13, since the
 checklist is capped at 12 items; the deep review's start and receipt go through `record-deep-review.mjs`, and the index,
-the recorder, the log and the agent are locked. Not built: check-plan.mjs printing the index (optional), the overnight Routine. What is already in force without an unlock: RULES.md
+the recorder, the log and the agent are locked. Not built: check-plan.mjs printing the index (optional), the overnight Routine. Built differently from section 4 below (the
+seventy-seventh review, MINOR 1; put to the maintainer to keep or revert): a deep review is due by settled results only (the
+surprises, a family of 3 and the Brier score raise the level, which then makes every settled result due), and the Stop hook
+lets turns end for 30 minutes after a start, as it does for a plan review. What is already in force without an unlock: RULES.md
 section 4 rule 13 and section 9 (the plan-auditor reads RULES.md), the register's family note in PLAN.md, and the two
 unlocked pieces of the deep review below (`research/solver/uncertainty.mjs` and `.claude/agents/deep-reviewer.md`).
 What needs the unlock is the enforcement: the checklist line, the prediction checker, the plan-auditor's check and the

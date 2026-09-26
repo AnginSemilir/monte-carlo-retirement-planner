@@ -100,6 +100,15 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 14. A deep review's start and receipt (`record-deep-review.mjs --start`, `--findings`) can be written without a review
    running, as a plan review's can (limit 6). A start lapses after 30 minutes; every line sits in deep-review-log.md, and a
    receipt shorter than 200 characters is refused, but its content is the reviewer's, not checked (26 Sep).
+15. The prediction checker's Unmasking field takes new-prediction.mjs's own placeholder ("? (RULES.md section 9: ...)", over
+   80 characters) as filled in (the seventy-seventh review, MINOR 2). Proposed with the next unlock: refuse a field that
+   starts with "?", as the checker could for every field the template leaves as "?".
+16. diag-7t.md stays exempt from the Unmasking field by name (BEFORE_UNMASKING) after its re-registration of 26 Sep 17:50 UK;
+   it carries the field all the same, so nothing rests on the exemption. Proposed with the next unlock: remove it from the
+   list.
+17. The Stop hook's deep-review gate fails open: if uncertainty.mjs errors, or its planted checks fail, the hook reads "not
+   due" and the turn may end. Proposed with the next unlock: treat an error as due, with the error as the reason. Also
+   stale, locked: stop-check.mjs's header says "Two conditions"; there are three (the seventy-seventh review, MINOR 6).
 
 ---
 
@@ -248,7 +257,7 @@ is enforced now.
 | 10 | **Start and stop runs safely**: never kill by pattern; check what is running before and after | a launch that started two batches at once; a cleanup `rm -rf` that destroyed the lock; a detached run lost when the container was reclaimed; `pkill -f` that matched its own command, twice | the PreToolUse hook (kill by pattern, removing the lock, the listed experiment scripts outside the launcher) |
 | 11 | **A test changed after any result is in is declared** ("Changes after seeing results" in its prediction file) or re-run from scratch | 6c's control clause changed with 8 of 12 results in; Phase 2's first draft chose households where the solver had already won | the prediction's git blob in every result file (fair-gate: PREDICTION EDITED) |
 | 12 | **One clock, and no out-of-date text** | the ledger mixed UTC and UK time (24 Sep); the 21:30 audit's stale statements; HOW-IT-WORKS.md; the mathematician's page | `check-plan.mjs` (clock); the plan-auditor for staleness |
-| 13 | **A fix that removes a known error and makes a result worse has unmasked another error until shown otherwise**: judge the pair (the fix and the rest of the system), not the fix; before a fix is closed as harmful, show whether the baseline's better result depends on the error the fix removes (section 9) | F1 v2 read the bridge accurately and lost survival on bridge 4 and S126 (O17, 24 Sep: "not explained", yet v2 was withdrawn for it); the bridge reader did the same in 7e and was not carried forward, with F2 - another accurate read - pre-set as the next step (26 Sep 10:55 UK); the maintainer's "diagnose first" (11:16 UK) stopped the third repeat, and 7r found off's safer tier was a side effect of its own misread | section 9; proposed for the next unlock: a prediction field, a checklist item and a plan-auditor check (research/solver/drafts/unmasking-proposal.md) |
+| 13 | **A fix that removes a known error and makes a result worse has unmasked another error until shown otherwise**: judge the pair (the fix and the rest of the system), not the fix; before a fix is closed as harmful, show whether the baseline's better result depends on the error the fix removes (section 9) | F1 v2 read the bridge accurately and lost survival on bridge 4 and S126 (O17, 24 Sep: "not explained", yet v2 was withdrawn for it); the bridge reader did the same in 7e and was not carried forward, with F2 - another accurate read - pre-set as the next step (26 Sep 10:55 UK); the maintainer's "diagnose first" (11:16 UK) stopped the third repeat, and 7r found off's safer tier was a side effect of its own misread | section 9; built under the maintainer's unlock of 26 Sep 16:47 UK: the prediction's Unmasking field, checklist items 1, 2 and 11, the plan-auditor's section 9 checks and the deep review (section 9, "Enforced by") |
 
 ## 5. The re-look, after every settled result
 
@@ -425,14 +434,16 @@ The rules this adds:
    aggregate, since compensating errors cancel in the aggregate.
 5. **Families of odd results.** Register items that point the same way are linked as a family (the register's "family"
    note). When a family reaches three members, a root-cause diagnosis is scheduled before any further fix in that area.
-   The first family, "the tables value extra risk too highly": O9, O17, O18/O20, O19 with 7h, C5, O24 (PLAN.md).
+   The first family, "the tables value extra risk too highly": O9, O16, O17, O18/O20, O19 with 7h, C5, O24, O26 (PLAN.md; O16 and O26
+   added by the first deep review, 26 Sep 17:12 UK).
 6. **Design premises are claims.** An approximation justified by argument (the mixture's no-learning premise, the switch
    margin at today's settings, the fold's horizon factor) is listed with its grade (D until tested) and the failure it
    would cause if wrong, and is tested before a decision rests on it.
 7. **Sweep the records for prior tests of the same mechanism before writing a prediction**, and cite each with its
    verdict in the Derivation (7s missed 7h).
 
-**Enforced by** (built under the maintainer's unlock of 26 Sep 16:47 UK, as drafted in drafts/unmasking-proposal.md):
+**Enforced by** (built under the maintainer's unlock of 26 Sep 16:47 UK, from drafts/unmasking-proposal.md, with two departures
+from the draft named below and put to the maintainer to keep or revert):
 checklist items 1, 2 and 11; check-prediction.mjs's "Unmasking:" field, required of every test written after it (planted
 tests in research/tests/plan-checker.test.mjs); the plan-auditor's section 9 checks (a harm or FALSIFIED verdict on a fix
 of a known error with no decomposition, a "next fix of the same kind" consequence, a family at three with no scheduled
@@ -443,7 +454,14 @@ based on the level of uncertainty of the model"). `research/solver/uncertainty.m
 (calibration over the last 10 scored items, surprises and settled results since the last deep review, register
 families, decisions on grade C or D evidence, FALSIFIED or harm verdicts) and says a deep review is due after 6 settled
 results when LOW, 3 when MEDIUM and every one when HIGH. The Stop hook refuses to end a turn while one is due, except for
-30 minutes after `record-deep-review.mjs --start` (a review under way). The `deep-reviewer` agent steps back across the
+30 minutes after `record-deep-review.mjs --start` (a review under way).
+**The two departures from the draft** (the seventy-seventh review, MINOR 1): (d) the 30-minute pass after a start, copied from
+the plan review's; the draft blocked while a review was due and no receipt followed the trigger, so this loosens it; (e) a
+review is due by settled results only - the draft also made 2 surprises, a family of 3 or a Brier score over 0.25 due at
+once; here they raise the level to HIGH, which makes every settled result due, because a level alone never resets at a
+receipt and would have kept the Stop hook blocked for ever (uncertainty.mjs's planted check fails on the old rule). Also
+beyond the four things named at the unlock: the smoke run's diag7t line, fair-gate.mjs's comment, and locking the deep
+review's index, recorder, log and agent - each only adds a refusal or a comment. The `deep-reviewer` agent steps back across the
 record - families, unmasking, premises, calibration by slice, the ranked root causes and the one decisive test - and
 records its receipt with `record-deep-review.mjs`, which takes the time from the clock and the level and the test covered
 from the records. The index, the recorder, the log and the agent are locked (planted tests in hooks.test.mjs, which also

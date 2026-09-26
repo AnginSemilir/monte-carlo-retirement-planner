@@ -6,9 +6,13 @@
  * policy for every world changes the reader's tables at every cell, not only the tier, so paths may move both ways at
  * once: each story is drawn with a background of b paths each way on g and on h (b = 1.33, 7s's half a path a 3,000 scaled,
  * and b = 13.3, five a 3,000). Poisson counts, 20,000 draws a story.
+ * FIVE CAUSES, HOLM OVER TEN (26 Sep, the maintainer's "Test all": learning, five worlds, both, and margin 0 beside one
+ * policy): each cause is read by the same rule with Holm over all ten cause-and-case tests (reduce-7t.mjs decideCauses). The
+ * power of one cause is drawn with the other four removing none of the harm - its two p-values then take Holm's first two
+ * steps, x10 and x9, the least power it can have; a cause that shares the cure with another only gains.
  *   node research/solver/derive-7t.mjs > research/solver/results-derive-7t.txt
  */
-import { decide, N } from './reduce-7t.mjs';
+import { decide, N, CAUSES } from './reduce-7t.mjs';
 
 const DRAWS = 20000;
 let st = 7002 >>> 0;
@@ -19,15 +23,17 @@ function story(name, share, bg) {
   const tally = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 };
   for (let d = 0; d < DRAWS; d++) {
     // one policy removes `share` of the harm: g saves that share, h keeps the rest
-    const rows = Object.keys(HARM).map(id => ({ id, g: { saved: pois(share * HARM[id] + bg), lost: pois(bg) }, h: { saved: pois(bg), lost: pois((1 - share) * HARM[id] + bg) } }));
-    tally[decide(rows).outcome]++;
+    // the cause under study first, then the other four causes removing none of the harm; Holm over all ten
+    const rows = CAUSES.flatMap((cz, c) => Object.keys(HARM).map(id => { const sh = c === 0 ? share : 0; return { id: `${c}|${id}`, g: { saved: pois(sh * HARM[id] + bg), lost: pois(bg) }, h: { saved: pois(bg), lost: pois((1 - sh) * HARM[id] + bg) } }; }));
+    const reads = decide(rows).reads.filter(r => r.id.startsWith('0|'));
+    tally[reads.every(x => x.read === 'cures') ? 'HELD' : reads.every(x => x.read === 'does not cure') ? 'FALSIFIED' : 'INCONCLUSIVE']++;
   }
   const f = v => (v / DRAWS).toFixed(3);
   console.log(`${name.padEnd(44)} background ${bg.toFixed(2).padEnd(5)}  HELD ${f(tally.HELD)}  FALSIFIED ${f(tally.FALSIFIED)}  INCONCLUSIVE ${f(tally.INCONCLUSIVE)}`);
 }
-console.log(`7T'S POWER: ${N} paths; the reader's harm is 7r's rate (S126 ${HARM.S126} lost, bridge 4 ${HARM['bridge 4']}, none saved); ${DRAWS} draws a story (seed 7002); read by reduce-7t.mjs decide()\n`);
+console.log(`7T'S POWER, EACH CAUSE: ${N} paths; the reader's harm is 7r's rate (S126 ${HARM.S126} lost, bridge 4 ${HARM['bridge 4']}, none saved); ${DRAWS} draws a story (seed 7002); read by reduce-7t.mjs decide() with Holm over ${CAUSES.length * 2} tests, the other ${CAUSES.length - 1} causes removing none of the harm\n`);
 for (const bg of [0.5 * N / 3000, 5 * N / 3000]) {
-  story('one policy removes all the harm', 1, bg);
+  story('the cause removes all the harm', 1, bg);
   story('removes three quarters', 0.75, bg);
   story('removes half', 0.5, bg);
   story('removes a quarter', 0.25, bg);

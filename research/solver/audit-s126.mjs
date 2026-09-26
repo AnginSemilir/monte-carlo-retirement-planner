@@ -24,6 +24,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solve, solvePlan, runPolicy } from '../../src/solver/solve.js';
 import { swapChooser } from './swap.mjs';
+import { learningChooser } from './learn.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { makeTrace } from './record.mjs';
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
@@ -41,8 +42,10 @@ const mode = process.argv[2] || 'variants';
 // (code-id.mjs's hash covers the engine and src/solver, not this script, so the script's own hash is stamped beside it)
 // (kept as STAMP too, so a mode that writes files beside its log can stamp them: diag7r's traces)
 const STAMP = (() => {
-  // the audit hash covers this script and swap.mjs, which picks every move of diag7r's swap arms (the sixty-seventh review, MINOR 3)
-  const own = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).update(readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'swap.mjs'))).digest('hex').slice(0, 12), cid = codeId();
+  // the audit hash covers this script and the choosers it runs: swap.mjs, which picks every move of diag7r's swap arms (the
+  // sixty-seventh review, MINOR 3), and learn.mjs, which picks every move of diag7t's learning arms (26 Sep)
+  const here = dirname(fileURLToPath(import.meta.url));
+  const own = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).update(readFileSync(join(here, 'swap.mjs'))).update(readFileSync(join(here, 'learn.mjs'))).digest('hex').slice(0, 12), cid = codeId();
   return { code: cid ? cid.hash : 'unknown', audit: own, prediction: !process.env.PREDICTION_FILE ? 'NOT-LAUNCHED' : process.env.PREDICTION_FILE, sha: process.env.PREDICTION_SHA || '-' };
 })();
 console.log(`stamp: code ${STAMP.code} audit ${STAMP.audit} prediction ${STAMP.prediction} sha ${STAMP.sha}`);
@@ -139,7 +142,7 @@ const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', {
  * is the mixture's: each world's opening read weighted as the solve weights them. The F1 test (mode f1) ran on step 2's
  * settings in the single-table fold; this is its re-test where the product runs.
  */
-function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint } = {}) {
+function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint, mix } = {}) {
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
@@ -149,7 +152,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   // re-run of an older mode (7c's f1v2, 7i's quad), now exact by default, cannot pass a ran-line gate against files that
   // ran it averaged. It sits BEFORE bridgeRead: smoke.sh's f1v2 check (locked) reads bridgeRead at the end of the line.
   const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
-    ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}), ...(joint ? { jointWorlds: true } : {}) });   // F1 off is explicit, whatever the product default
+    ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}), ...(joint ? { jointWorlds: true } : {}), ...(mix ? { mix } : {}) });   // F1 off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
   const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
   let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(seed, NP, m.ctx.totalYears);
@@ -357,11 +360,19 @@ if (mode === 'f1v2') {
    *     +sqrt 3): the world's own table's opening survival and expected capped estate beside what the policy realises there.
    *   node research/solver/audit-s126.mjs diag7t [points] [paths] part k/n [seed=7002] [world paths=1000]
    * Prints 7e's case line for the four arms, a "margin0" line for the same arms at margin 0, a ran line and a "joint" line
-   * per arm, one pairs line over all eight runs, a "prefix" line (the arms' survival and the reader against off on the
-   * first 3,000 paths, which are 7r's: pathsForSeed builds path i from the seed and i alone), and a "world" line per arm and world; writes each of the eight runs' traces
+   * per arm, one pairs line over all the runs, a "prefix" line (the arms' survival and the reader against off on the
+   * first 3,000 paths, which are 7r's: pathsForSeed builds path i from the seed and i alone), and a "world" line per arm and world; writes each run's trace
    * to results/diag7t/<case>-<run>.json.gz (DIAG7T_OUT when set), stamped as the log is.
+   * THE OTHER CAUSES (the first deep review, 26 Sep 17:12 UK; the maintainer, 17:15 UK: "Test all"), on the same paths:
+   *   - LEARNING (+L): off's and the reader's own tables, run forward with learn.mjs's chooser, whose world weights are the
+   *     posterior given the returns the path has realised (the product's weights never move): a "learn" line, every case;
+   *   - FIVE WORLDS (OFF5, READER5; S126 and bridge 4): off and the reader solved with the five-world mixture (nodes to
+   *     +/-2.86) and run as solved: a "five" line in the case line's format, with their ran and joint lines;
+   *   - FIVE WORLDS LEARNING (OFF5+L, READER5+L): the five-world tables with the learning chooser: a "five-learn" line.
+   *   Each learning line gives every arm's mean end weights. Every run is traced and on the pairs line.
    */
   const PANEL = [['S126', 'off,reader'], ['bridge 4', 'off,reader'], ['S360', 'off,reader'], ['share 0.95', 'off,reader'], ['S194', 'off']];
+  const FIVE = new Set(['S126', 'bridge 4']);   // the five-world arms: the harmed cases only
   const ARM = { off: false, reader: 'reader' };
   const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
   const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
@@ -376,12 +387,19 @@ if (mode === 'f1v2') {
   console.log(`7T DIAGNOSIS, step-6 defaults in the mixture (solvePlan), ${POINTS} points, ${NP} paths (seed ${SEED}), ${WP} a world, lambda ${LAMBDA}, the tier above allowed and the final year exact in every arm; traces kept; part ${pk}/${pn}`);
   const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
   // one forward run of a solve on the given paths: survival, below-target and tier years, and optionally the trace
-  const forward = (r, paths, trace) => {
+  // `learn`: each path run with learn.mjs's chooser (the posterior world weights); its mean end weights are returned
+  const forward = (r, paths, trace, learn = false) => {
     const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = trace ? makeTrace(N, T + 1) : null;
     let ok = 0, below = 0, tierYrs = 0, estate = 0;
-    const cap = r.meta.bequestCap;
-    paths.forEach((zs, i) => { if (tr) tr.row = i; const o = runPolicy(r, zs, tr ? { trace: tr } : {}); if (o.survived) { ok++; okArr[i] = 1; estate += Math.min(o.terminalNet, cap); } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
-    return { sim: 100 * ok / N, below: below / N, tierYrs: tierYrs / N, estate: estate / N, okArr, tr, secs: (Date.now() - t0) / 1000 };
+    const cap = r.meta.bequestCap, wEnd = learn ? r.mix.nodes.map(() => 0) : null;
+    paths.forEach((zs, i) => {
+      if (tr) tr.row = i;
+      const L = learn ? learningChooser(r, zs) : null;
+      const o = runPolicy(r, zs, { ...(tr ? { trace: tr } : {}), ...(L ? { choose: L.choose } : {}) });
+      if (L) L.n.last.forEach((w, k) => { wEnd[k] += w / N; });
+      if (o.survived) { ok++; okArr[i] = 1; estate += Math.min(o.terminalNet, cap); } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0;
+    });
+    return { sim: 100 * ok / N, below: below / N, tierYrs: tierYrs / N, estate: estate / N, okArr, tr, wEnd, secs: (Date.now() - t0) / 1000 };
   };
   PANEL.forEach(([id, armList], i) => {
     if (i % pn !== pk) return;
@@ -406,7 +424,20 @@ if (mode === 'f1v2') {
         lines.push(`${''.padEnd(16)} world ${label} ${k} z ${z.toFixed(4)}: table ${(100 * v.survival).toFixed(2)} sim ${f.sim.toFixed(2)} estate table ${Math.round(v.bequest)} sim ${Math.round(f.estate)} tier-below ${f1(f.tierYrs)} paths ${WP}`);
       });
     }
-    const main = runs.filter(x => x.res), mzero = runs.filter(x => x.m0), base = main[0];
+    // the other causes: learning on the product's tables (every case); five worlds, and learning on them (the harmed cases)
+    const learnRun = (src, label, file) => { const f = forward(src.res.r, src.res.paths, true, true); return { label, file, res: null, sim: f.sim, okArr: f.okArr, tr: f.tr, lf: f }; };
+    const learnRuns = runs.filter(x => x.res && !x.label.endsWith('+J')).map(x => learnRun(x, `${x.label}+L`, `${x.file}_l`));
+    const fiveRuns = [], fiveLearn = [];
+    if (FIVE.has(id)) for (const name of armList.split(',')) {
+      const label = `${name.toUpperCase()}5`;
+      const res = measureV2(h, ARM[name], 5, { finalIntegral: true, riskAbove: true, trace: true, seed: SEED, mix: 5 });
+      if (res.r.meta.mixture !== 5 || res.r.meta.jointWorlds) { console.error(`audit-s126: ${label} ran mix ${res.r.meta.mixture} jointWorlds ${res.r.meta.jointWorlds}`); process.exit(2); }
+      const run = { label, file: `${name}5`, res, sim: res.sim, okArr: res.okArr, tr: res.tr };
+      fiveRuns.push(run);
+      fiveLearn.push(learnRun(run, `${label}+L`, `${name}5_l`));
+    }
+    runs.push(...learnRuns, ...fiveRuns, ...fiveLearn);
+    const main = runs.filter(x => x.res && !fiveRuns.includes(x)), mzero = runs.filter(x => x.m0), base = main[0];
     const cell = (x, j) => {
       let up = 0, dn = 0; for (let k = 0; k < NP; k++) { if (!base.okArr[k] && x.okArr[k]) up++; else if (base.okArr[k] && !x.okArr[k]) dn++; }
       const r = x.res;
@@ -414,8 +445,14 @@ if (mode === 'f1v2') {
     };
     console.log(`${id.padEnd(16)} a0 ${f1(base.res.a0, 2)} B ${base.res.B} class ${base.res.inClass ? 'YES' : 'no '} | ${main.map(cell).join(' | ')}`);
     console.log(`${''.padEnd(16)} margin0 | ${mzero.map(x => `${x.label} sim ${f1(x.m0.sim).padStart(5)} tier-below ${f1(x.m0.tierYrs).padStart(4)} below ${f1(x.m0.below).padStart(4)} ${Math.round(x.m0.secs)} s`).join(' | ')}`);
-    main.forEach(x => console.log(`${''.padEnd(16)} ran ${x.label}: ${x.res.ran}`));
-    main.forEach(x => console.log(`${''.padEnd(16)} joint ${x.label}: ${!!x.res.r.meta.jointWorlds} switchMargin ${x.res.r.switchMargin} scale ${Math.round(Math.max(1, x.res.r.m.ctx.accounts.reduce((t, a) => t + a.balance, 0)))} cap ${Math.round(x.res.r.meta.bequestCap)} deathTax ${x.res.r.m.ctx.pensionDeathTaxRate}`));
+    const learnCell = x => `${x.label} sim ${f1(x.lf.sim).padStart(5)} tier-below ${f1(x.lf.tierYrs).padStart(4)} below ${f1(x.lf.below).padStart(4)} w-end ${x.lf.wEnd.map(w => w.toFixed(4)).join(',')} ${Math.round(x.lf.secs)} s`;
+    console.log(`${''.padEnd(16)} learn | ${learnRuns.map(learnCell).join(' | ')}`);
+    if (fiveRuns.length) {
+      console.log(`${''.padEnd(16)} five | ${fiveRuns.map(x => cell(x, 1)).join(' | ')}`);
+      console.log(`${''.padEnd(16)} five-learn | ${fiveLearn.map(learnCell).join(' | ')}`);
+    }
+    [...main, ...fiveRuns].forEach(x => console.log(`${''.padEnd(16)} ran ${x.label}: ${x.res.ran}`));
+    [...main, ...fiveRuns].forEach(x => console.log(`${''.padEnd(16)} joint ${x.label}: ${!!x.res.r.meta.jointWorlds} switchMargin ${x.res.r.switchMargin} scale ${Math.round(Math.max(1, x.res.r.m.ctx.accounts.reduce((t, a) => t + a.balance, 0)))} cap ${Math.round(x.res.r.meta.bequestCap)} deathTax ${x.res.r.m.ctx.pensionDeathTaxRate}`));
     const pairs = [];
     for (let j = 1; j < runs.length; j++) for (let q = 0; q < j; q++) { let up = 0, dn = 0; for (let k = 0; k < NP; k++) { if (!runs[q].okArr[k] && runs[j].okArr[k]) up++; else if (runs[q].okArr[k] && !runs[j].okArr[k]) dn++; } pairs.push(`${runs[j].label}-${runs[q].label} ${up}/${dn}`); }
     console.log(`${''.padEnd(16)} pairs ${pairs.join(' ')}`);

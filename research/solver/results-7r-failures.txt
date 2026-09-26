@@ -1,0 +1,11 @@
+7R'S LOST PATHS BY THE KIND OF FAILURE (reported, not a test; the logs' gate and every trace's stamp checked). Against off on
+the same 3000 paths of seed 7002; the minimum pot 29000. An end-of-plan failure paid every year and ended below it.
+
+S126      READER lost 15: in life 8 (years 34, 36, 37, 38, 38, 39, 39, 39); at the end, below the minimum pot 7 (ending 5k to 29k; off on the same paths 29k to 39k); median failure year 39 of 39
+S126      RTIER  lost 14: in life 7 (years 34, 34, 38, 38, 39, 39, 39); at the end, below the minimum pot 7 (ending 1k to 25k; off on the same paths 30k to 39k); median failure year 39 of 39
+S126      RREST  lost 0
+bridge 4  READER lost 12: in life 5 (years 30, 36, 38, 40, 41); at the end, below the minimum pot 7 (ending 8k to 29k; off on the same paths 31k to 36k); median failure year 41 of 41
+bridge 4  RTIER  lost 10: in life 5 (years 29, 36, 38, 39, 41); at the end, below the minimum pot 5 (ending 3k to 23k; off on the same paths 31k to 36k); median failure year 41 of 41
+bridge 4  RREST  lost 2: in life 0; at the end, below the minimum pot 2 (ending 28k to 29k; off on the same paths 31k to 31k); median failure year 41 of 41
+wealth x2 READER lost 2: in life 1 (years 37); at the end, below the minimum pot 1 (ending 14k to 14k; off on the same paths 91k to 91k); median failure year 38 of 39
+S366      V1     lost 24: in life 8 (years 30, 33, 43, 43, 43, 45, 45, 45); at the end, below the minimum pot 16 (ending 1k to 29k; off on the same paths 29k to 39k); median failure year 45 of 45

@@ -9,7 +9,7 @@
 // floor both ways: random effects (the regimen's) and fixed effect (the maintainer's
 // choice of 25 Sep 22:45 UK). Discordance and off survival per case from 7c's records (results-derive-7e.txt); S162,
 // S172 and S168, with no record, at 2 discordant and 99%. Reported per scenario: how often the floor fires, and how often
-// the whole primary falsifier fires (harm on any pool case, or the floor).
+// the whole primary falsifier fires (harm on any of the 24 wave-1 cases, or the floor).
 import { pooledRE, pooledFE, mcnemarHarmP, holm, outcome, marginFor } from './stats.mjs';
 
 const rec = { S126: [3, 99.6], 'share 0.90': [0, 99.3], 'bridge 1': [0, 98.8], 'bridge 4': [10, 99.2], 'wealth x0.5': [10, 95.5], 'wealth x2': [1, 100], S120: [0, 100], S122: [1, 99.6], S124: [2, 94.7], S128: [50, 68.8], S130: [27, 83.1], 'bridge 6': [1, 99.3], S366: [4, 98.6], S162: [2, 99], S172: [2, 99], S168: [2, 99] };

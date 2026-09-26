@@ -1,0 +1,17 @@
+true script: planted (9): all read as they should
+caught  every loss counted as in life: two lost: one in life, one at the end read 2 2 0, should read 2 1 1; the end-of-plan failure: its end wealth and off's read undefined undefined, should read 20000 35000
+caught  the arm's end wealth and off's swapped: the end-of-plan failure: its end wealth and off's read 35000 20000, should read 20000 35000; the shortfall under the pot: ending 20000 under 29000 is 9000 read -6000, s
+caught  the median failure year ignores end-of-plan failures: the median failure year counts an end-of-plan failure as the last year (years 1 and 2) read 1, should read 1.5
+caught  the median failure year takes an end-of-plan failure's -1 as a year: the median failure year counts an end-of-plan failure as the last year (years 1 and 2) read 0, should read 1.5
+caught  the estate not capped: the estate credit: path 0 both survive (70k against 50k), path 1 the arm fails at the end with 15k left (its estate 0, against 40k), path 2 the arm ends above the cap (
+caught  a failed path keeps its estate: the estate credit: path 0 both survive (70k against 50k), path 1 the arm fails at the end with 15k left (its estate 0, against 40k), path 2 the arm ends above the cap (
+caught  the estate weight wrong: the estate credit: path 0 both survive (70k against 50k), path 1 the arm fails at the end with 15k left (its estate 0, against 40k), path 2 the arm ends above the cap (
+caught  the survival change's sign reversed: the estate credit: path 0 both survive (70k against 50k), path 1 the arm fails at the end with 15k left (its estate 0, against 40k), path 2 the arm ends above the cap (
+caught  the covered share's sign reversed: the estate credit covers 70% when +0.35 points of estate meet 0.50 points of survival lost read -70, should read 70
+caught  the shortfall taken from off's end wealth: the shortfalls: ending 20k, 27k and 5k (off 35k, 30k, 31k) under 29k: median 9000, 0.69 of the pot left, 1 within 5k, largest 24000 read -2000 0.69 3 of 3 -1000, should
+caught  within 5k counted the wrong way: the shortfalls: ending 20k, 27k and 5k (off 35k, 30k, 31k) under 29k: median 9000, 0.69 of the pot left, 1 within 5k, largest 24000 read 9000 0.69 2 of 3 24000, should 
+caught  the pot left read from off's end wealth: the shortfalls: ending 20k, 27k and 5k (off 35k, 30k, 31k) under 29k: median 9000, 0.69 of the pot left, 1 within 5k, largest 24000 read 9000 1.07 1 of 3 24000, should 
+caught  the prediction's version (its sha) not compared: the stamp line read field by field (code, audit, prediction, sha); a trace stamped as the logs agrees, one with another prediction version or no stamp does not read a b
+caught  the stamp line's prediction read from the wrong field: the stamp line read field by field (code, audit, prediction, sha); a trace stamped as the logs agrees, one with another prediction version or no stamp does not read a b
+
+14 mutations: every one caught

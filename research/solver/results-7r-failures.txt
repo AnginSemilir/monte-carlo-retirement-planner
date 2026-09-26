@@ -2,10 +2,29 @@
 the same 3000 paths of seed 7002; the minimum pot 29000. An end-of-plan failure paid every year and ended below it.
 
 S126      READER lost 15: in life 8 (years 34, 36, 37, 38, 38, 39, 39, 39); at the end, below the minimum pot 7 (ending 5k to 29k; off on the same paths 29k to 39k); median failure year 39 of 39
+                 shortfalls under the pot at the end: median 9.7k (0.66 years of the pot left), within 5k 3 of 7, largest 24.5k
 S126      RTIER  lost 14: in life 7 (years 34, 34, 38, 38, 39, 39, 39); at the end, below the minimum pot 7 (ending 1k to 25k; off on the same paths 30k to 39k); median failure year 39 of 39
+                 shortfalls under the pot at the end: median 15.7k (0.46 years of the pot left), within 5k 1 of 7, largest 28.3k
 S126      RREST  lost 0
 bridge 4  READER lost 12: in life 5 (years 30, 36, 38, 40, 41); at the end, below the minimum pot 7 (ending 8k to 29k; off on the same paths 31k to 36k); median failure year 41 of 41
+                 shortfalls under the pot at the end: median 9.4k (0.68 years of the pot left), within 5k 2 of 7, largest 21.3k
 bridge 4  RTIER  lost 10: in life 5 (years 29, 36, 38, 39, 41); at the end, below the minimum pot 5 (ending 3k to 23k; off on the same paths 31k to 36k); median failure year 41 of 41
+                 shortfalls under the pot at the end: median 10.4k (0.64 years of the pot left), within 5k 0 of 5, largest 25.8k
 bridge 4  RREST  lost 2: in life 0; at the end, below the minimum pot 2 (ending 28k to 29k; off on the same paths 31k to 31k); median failure year 41 of 41
+                 shortfalls under the pot at the end: median 0.6k (0.98 years of the pot left), within 5k 2 of 2, largest 1.0k
 wealth x2 READER lost 2: in life 1 (years 37); at the end, below the minimum pot 1 (ending 14k to 14k; off on the same paths 91k to 91k); median failure year 38 of 39
+                 shortfalls under the pot at the end: median 14.6k (0.50 years of the pot left), within 5k 0 of 1, largest 14.6k
 S366      V1     lost 24: in life 8 (years 30, 33, 43, 43, 43, 45, 45, 45); at the end, below the minimum pot 16 (ending 1k to 29k; off on the same paths 29k to 39k); median failure year 45 of 45
+                 shortfalls under the pot at the end: median 6.1k (0.79 years of the pot left), within 5k 6 of 16, largest 28.2k
+
+THE ESTATE CREDIT, in the solver's own units (reported, not a test): per path against off, the survival change in points and the
+capped estate change priced in points (100 x 0.02 x change / opening wealth; cap 4 x opening wealth; a failed path's estate 0).
+The dislike-of-cuts and raise terms are not included. Means over the 3000 paths, with their standard errors.
+
+S126      READER opening wealth 950k: capped estate +166k, worth +0.349 +/- 0.021 points; survival -0.500 points; together -0.151 +/- 0.131; the estate credit covers 70% of the survival lost
+S126      RTIER  opening wealth 950k: capped estate +166k, worth +0.350 +/- 0.021 points; survival -0.467 points; together -0.117 +/- 0.127; the estate credit covers 75% of the survival lost
+bridge 4  READER opening wealth 950k: capped estate +93k, worth +0.195 +/- 0.019 points; survival -0.400 points; together -0.205 +/- 0.117; the estate credit covers 49% of the survival lost
+bridge 4  RTIER  opening wealth 950k: capped estate +93k, worth +0.196 +/- 0.019 points; survival -0.333 points; together -0.137 +/- 0.107; the estate credit covers 59% of the survival lost
+S120      READER opening wealth 180k: capped estate +19k, worth +0.215 +/- 0.012 points; survival +0.000 points; together +0.215 +/- 0.012
+wealth x2 READER opening wealth 1900k: capped estate +244k, worth +0.257 +/- 0.014 points; survival -0.067 points; together +0.190 +/- 0.049; the estate credit covers 386% of the survival lost
+S366      V1     opening wealth 950k: capped estate -45k, worth -0.096 +/- 0.016 points; survival -0.800 points; together -0.896 +/- 0.163; the estate credit covers -12% of the survival lost

@@ -1,0 +1,44 @@
+FAIR-TEST GATE: passed - 5 cases, each case's arms the same but the bridge read, at the registered settings; 14 traces of 3000 paths, each stamped as the logs are
+
+7R: THE SECOND ARM AGAINST OFF, PER CASE, ON THE SAME 3,000 PATHS OF SEED 7002 (predictions/diag-7r.md)
+
+S126 (READER against OFF; bridge 2 years): saved 0, lost 15, the exact p for harm 3.1e-5
+   end wealth median 2249k -> 3225k, unlucky tenth 385k -> 173k; paired over the 2980 paths both survive: median 1116k (97.5% 911k to 1381k), margin 112k -> buys estate
+   lifetime spending paired -0.31 years of target; 2245 of 2980 paths both survive held a riskier pension tier than off in at least half their years
+   years a path: below target 1.60 -> 2.74; pension below its tier 40.0 -> 8.7, above 0.0 -> 0.0; ISA below 40.0 -> 8.7, above 0.0 -> 0.0; lifetime tax 62k -> 71k
+   RTIER (the reader's tiers, off's order, harvest and level) against OFF: saved 0, lost 14, p 6.1e-5, change -0.47 (-0.47 to -0.25); moves swapped 3000
+   RREST (off's tiers, the reader's order, harvest and level) against OFF: saved 0, lost 0, p 1.0e+0, change 0.00 (0.00 to 0.00); moves swapped 3000
+   RTIER against READER: saved 1, lost 0 (how far the tiers alone reproduce the reader's arm)
+   the 15 lost paths: median failure year 34, 15 at or after the bridge's end; first difference median year 0 (tier 15, level 0, both 0); tier-lift paths 1
+bridge 4 (READER against OFF; bridge 4 years): saved 0, lost 12, the exact p for harm 2.4e-4
+   end wealth median 2289k -> 2902k, unlucky tenth 315k -> 171k; paired over the 2971 paths both survive: median 368k (97.5% 241k to 593k), margin 114k -> buys estate
+   lifetime spending paired -0.27 years of target; 1840 of 2971 paths both survive held a riskier pension tier than off in at least half their years
+   years a path: below target 4.02 -> 5.04; pension below its tier 41.9 -> 14.9, above 0.0 -> 0.0; ISA below 41.9 -> 14.9, above 0.0 -> 0.0; lifetime tax 71k -> 78k
+   RTIER (the reader's tiers, off's order, harvest and level) against OFF: saved 0, lost 10, p 9.8e-4, change -0.33 (-0.33 to -0.13); moves swapped 6820
+   RREST (off's tiers, the reader's order, harvest and level) against OFF: saved 0, lost 2, p 2.5e-1, change -0.07 (-0.07 to 0.05); moves swapped 5541
+   RTIER against READER: saved 2, lost 0 (how far the tiers alone reproduce the reader's arm)
+   the 12 lost paths: median failure year -1, 12 at or after the bridge's end; first difference median year 0 (tier 12, level 0, both 0); tier-lift paths 2
+S120 (READER against OFF; bridge 2 years): saved 0, lost 0, the exact p for harm 1.0e+0
+   end wealth median 660k -> 959k, unlucky tenth 276k -> 229k; paired over the 3000 paths both survive: median 307k (97.5% 265k to 346k), margin 33k -> buys estate
+   lifetime spending paired +0.00 years of target; 3000 of 3000 paths both survive held a riskier pension tier than off in at least half their years
+   years a path: below target 1.00 -> 1.00; pension below its tier 40.0 -> 0.1, above 0.0 -> 0.0; ISA below 40.0 -> 0.1, above 0.0 -> 0.0; lifetime tax 7k -> 33k
+wealth x2 (READER against OFF; bridge 2 years): saved 0, lost 2, the exact p for harm 2.5e-1
+   end wealth median 6439k -> 9997k, unlucky tenth 1898k -> 1250k; paired over the 2998 paths both survive: median 3545k (97.5% 3000k to 4119k), margin 322k -> buys estate
+   lifetime spending paired -0.05 years of target; 2944 of 2998 paths both survive held a riskier pension tier than off in at least half their years
+   years a path: below target 1.00 -> 1.19; pension below its tier 40.0 -> 0.7, above 0.0 -> 0.0; ISA below 40.0 -> 0.7, above 0.0 -> 0.0; lifetime tax 30k -> 54k
+   the 2 lost paths: median failure year 37, 2 at or after the bridge's end; first difference median year 0 (tier 2, level 0, both 0); tier-lift paths 1
+S366 (V1 against OFF; bridge 8 years): saved 0, lost 24, the exact p for harm 6.0e-8
+   end wealth median 2595k -> 2622k, unlucky tenth 275k -> 149k; paired over the 2950 paths both survive: median -75k (97.5% -95k to -54k), margin 130k -> buys nothing
+   lifetime spending paired +0.77 years of target; 1218 of 2950 paths both survive held a riskier pension tier than off in at least half their years
+   years a path: below target 8.56 -> 6.15; pension below its tier 45.8 -> 24.9, above 0.0 -> 0.0; ISA below 45.8 -> 24.9, above 0.0 -> 0.0; lifetime tax 86k -> 90k
+   the 24 lost paths: median failure year -1, 24 at or after the bridge's end; first difference median year 0 (tier 24, level 0, both 0); tier-lift paths 2
+
+THE PREDICTION'S ITEMS:
+1. the reader harms S126 and bridge 4 on seed 7002 (exact one-sided p, Holm over the two, below 0.05): S126 15 lost 0 saved, Holm p 6.1e-5; bridge 4 12 lost 0 saved, Holm p 2.4e-4 -> held
+2. S120 and wealth x2: the reader loses and saves no path: S120 0/0; wealth x2 2/0 -> MISSED
+3. S366: v1 loses more than it saves (exact one-sided p below 0.05): 24 lost 0 saved, p 6.0e-8, change -0.80 (-0.80 to -0.57): O23 replicated -> held
+4. the tier carries the harm: RTIER reproduces it and RREST does not, on a case where the reader harms, and on no such case the reverse or both: the tier carries the harm (S126 tier; bridge 4 tier) -> held
+5. the reader's end wealth buys estate on S126 and on bridge 4: S126 buys estate; bridge 4 buys estate -> held
+
+OUTCOME: HELD - the tier carries the harm (S126 tier; bridge 4 tier); the reader's arm buys estate on both: to the maintainer, whether survival alone judges households at 99.5% and over
+O23: replicated

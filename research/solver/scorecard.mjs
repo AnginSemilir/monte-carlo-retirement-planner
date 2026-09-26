@@ -26,6 +26,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 // each test the scorecard covers: its prediction and the file its reducer's output is saved to when it is read
 export const TESTS = [
   { name: '7e (the bridge reader)', prediction: 'predictions/bridge-reader.md', results: 'results-7e.txt' },
+  { name: '7r (why the reader harms)', prediction: 'predictions/diag-7r.md', results: 'results-7r.txt' },
 ];
 
 export function credences(predText) {
@@ -34,18 +35,21 @@ export function credences(predText) {
   const body = m[1].replace(/\([^)]*\)/g, ' ');   // drop the reasons in brackets
   const items = {};
   for (const x of body.matchAll(/(?:holds:|;)\s*(\d+),\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) items[x[1]] = Number(x[2]);
-  const all = /Carried forward[^:]*:\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(body);
+  // the whole: 7e's "Carried forward: p", or a three-outcome test's "The outcome: HELD p, FALSIFIED q, INCONCLUSIVE r",
+  // whose HELD share is scored as the whole (7r, added 26 Sep: one whole-test pair per test, as 7e has)
+  const all = /Carried forward[^:]*:\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(body) || /The outcome:\s*HELD\s+(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(body);
   if (!Object.keys(items).length) throw new Error('no item credences in "## Credence"');
   for (const [k, p] of Object.entries(items)) if (!(p >= 0 && p <= 1)) throw new Error(`item ${k}: credence ${p} is not a probability`);
   if (all && !(Number(all[1]) >= 0 && Number(all[1]) <= 1)) throw new Error(`the whole: credence ${all[1]} is not a probability`);
-  return { items, overall: all ? Number(all[1]) : null };
+  return { items, overall: all ? Number(all[1]) : null, overallLabel: all && /^The outcome/.test(all[0]) ? 'outcome HELD' : 'carried forward' };
 }
 
 export function outcomes(resultsText) {
   // the stops the reducers print: reduce-7e's INCOMPLETE and "FAIR-TEST GATE: FAILED", fair-gate.mjs's "FAIR-TEST GATE:
   // FAILED (stamps)" and "REFUSED: not a fair test", any reducer's "PLANTED CHECK FAILED"
   if (/^INCOMPLETE|^FAIR-TEST GATE: FAILED|^\s*REFUSED: not a fair test|^PLANTED CHECK FAILED/m.test(resultsText)) return { refused: 'the reducer stopped before a verdict' };
-  const v = /^=>\s*(NOT FALSIFIED|FALSIFIED)/m.exec(resultsText);
+  // the verdict: 7e's "=> NOT FALSIFIED" or "=> FALSIFIED", or a three-outcome reducer's "OUTCOME: HELD|FALSIFIED|INCONCLUSIVE"
+  const v = /^=>\s*(NOT FALSIFIED|FALSIFIED)/m.exec(resultsText) || /^OUTCOME:\s*(HELD|FALSIFIED|INCONCLUSIVE)\b/m.exec(resultsText);
   if (!v) return { refused: 'no verdict line' };
   const h = resultsText.indexOf("THE PREDICTION'S ITEMS:");
   const sec = h < 0 ? resultsText : resultsText.slice(h).split(/\n\s*\n/)[0];
@@ -55,7 +59,7 @@ export function outcomes(resultsText) {
     if (!o) throw new Error(`item ${x[1]}: no outcome on its line`);
     items[x[1]] = o[1] === 'held' ? 1 : 0;
   }
-  return { items, overall: v[1] === 'NOT FALSIFIED' ? 1 : 0 };
+  return { items, overall: v[1] === 'NOT FALSIFIED' || v[1] === 'HELD' ? 1 : 0 };
 }
 
 export function scoreTest(predText, resultsText) {
@@ -67,7 +71,7 @@ export function scoreTest(predText, resultsText) {
   const missing = ck.filter(k => !(k in o.items)), extra = ok.filter(k => !(k in c.items));
   if (missing.length || extra.length) throw new Error(`items do not match: credence without outcome [${missing.join(', ')}], outcome without credence [${extra.join(', ')}]`);
   const pairs = ck.map(k => ({ item: k, p: c.items[k], o: o.items[k] }));
-  if (c.overall !== null) pairs.push({ item: 'carried forward', p: c.overall, o: o.overall });
+  if (c.overall !== null) pairs.push({ item: c.overallLabel, p: c.overall, o: o.overall });
   return { status: 'SCORED', pairs, brier: brier(pairs) };
 }
 
@@ -109,7 +113,7 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
   const src7 = readFileSync(join(HERE, 'reduce-7e.mjs'), 'utf8'), i7 = src7.indexOf('function items(');
   const itemsSrc = src7.slice(i7, src7.indexOf('  // reported, not predicted', i7));
   const cases = [
-    ['credences parsed, reasons in brackets ignored', JSON.stringify(credences(P)), '{"items":{"1":0.7,"2":0.8,"3":0.9},"overall":0.6}'],
+    ['credences parsed, reasons in brackets ignored', JSON.stringify(credences(P)), '{"items":{"1":0.7,"2":0.8,"3":0.9},"overall":0.6,"overallLabel":"carried forward"}'],
     ['outcomes parsed', JSON.stringify(outcomes(R)), '{"items":{"1":1,"2":0,"3":1},"overall":1}'],
     ['Brier by hand: (0.3^2 + 0.8^2 + 0.1^2 + 0.4^2) / 4 = 0.225', String(near(scoreTest(P, R).brier, (0.09 + 0.64 + 0.01 + 0.16) / 4)), 'true'],
     ['a perfect forecaster scores 0', String(scoreTest(pred('each item holds: 1, 1.0; 2, 0.0. Carried forward: 1.0.'), res(['1. a -> held', '2. b -> MISSED'])).brier), '0'],
@@ -130,6 +134,9 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
     ['planted: an outcome with no credence stops the scorecard', t(() => scoreTest(P, res(['1. a -> held', '2. b -> held', '3. c -> held', '4. d -> held']))), 'ERROR items do not match: credence '],
     ['planted: no Credence section stops the scorecard', t(() => credences('# Prediction: x\n\n## Power\n\nx\n')), 'ERROR no "## Credence" section'],
     ['planted: a credence above 1 stops the scorecard', t(() => credences(pred('each item holds: 1, 1.5.'))), 'ERROR item 1: credence 1.5 is not a probability'],
+    ['a three-outcome prediction: the HELD share is the whole', JSON.stringify(credences(pred('each item holds: 1, 0.60; 2, 0.90. The outcome: HELD 0.55, FALSIFIED 0.15, INCONCLUSIVE 0.30.')).overall), '0.55'],
+    ['a three-outcome verdict: HELD scores 1, INCONCLUSIVE and FALSIFIED 0', ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(v => outcomes(`THE PREDICTION'S ITEMS:\n1. a: x -> held\n\nOUTCOME: ${v} - why`).overall).join(','), '1,0,0'],
+    ['7r, its real prediction and saved result, scored', t(() => { const r = scoreTest(readFileSync(join(HERE, 'predictions/diag-7r.md'), 'utf8'), 'THE PREDICTION\'S ITEMS:\n1. a: x -> held\n2. b: x -> MISSED\n3. c: x -> held\n4. d: x -> held\n5. e: x -> held\n\nOUTCOME: HELD - x'); return `${r.status} ${r.pairs.length}`; }), 'SCORED 6'],
     ['reliability bins: 0.7 in 60-75%, 0.8 in 75-90%, 0.9 and 0.6... ', JSON.stringify(reliability(scoreTest(P, R).pairs).map(b => b.n)), '[0,2,1,1]'],
   ];
   const wrong = cases.filter(([, got, want]) => got !== want && !(want.startsWith('ERROR') && got.startsWith(want.trimEnd())));

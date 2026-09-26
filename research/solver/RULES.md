@@ -84,6 +84,10 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    stamp's import test maps such a path to its stamped file, so it cannot see this. None is left in research/solver or
    src/solver (git grep, 24 Sep 14:17 UK; PLAN.md O12); research/audit/timing.mjs and research/tests/safety.test.mjs
    still do, and no batch runs them. A test against it is proposed to the maintainer.
+11. fair-gate.test.mjs checks that a reducer calls the fair-test gate (requireFairLogs) only for files named
+   reduce-*.mjs (its l.74-76), so a script that reads result files under another name escapes it: read-o17.mjs, which prints
+   figures from 7e's logs and relies on reduce-7e.mjs's gate over the same files, as its header says (the sixty-fifth review,
+   MINOR 6, 26 Sep 11:48 UK). A test that looks for any script reading results/ is proposed with the next unlock.
 
 ---
 

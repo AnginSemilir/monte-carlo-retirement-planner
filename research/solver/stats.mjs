@@ -16,13 +16,21 @@
 export const MARGINS = Object.freeze({ high: 0.25, low: 0.5, pooled: 0.1, highAt: 95 });
 export const marginFor = offSim => (offSim >= MARGINS.highAt ? MARGINS.high : MARGINS.low);
 
-/* P(X >= k) for X ~ Bin(n, 1/2), exactly (n up to a few thousand) */
+/* P(X >= k) for X ~ Bin(n, 1/2), exactly. Up to about 1,000 tosses the direct sum, as it always ran; above that 2^-n
+ * underflows to 0 and the direct sum read 1 for every k (found 26 Sep building 7r, where n is 3,000 paths; no earlier
+ * caller passed more than a few hundred: every one passes a McNemar discordant count or a household count), so the terms
+ * are built in logs there, and the smaller tail is summed so a tiny p is not lost to 1 minus a sum near 1. */
 export function binomUpperHalf(k, n) {
   if (k <= 0) return 1;
   if (k > n) return 0;
-  let lp = -n * Math.LN2, term = Math.exp(lp), cdfBelow = 0;   // term = C(n, i) / 2^n, i from 0
-  for (let i = 0; i < k; i++) { cdfBelow += term; term *= (n - i) / (i + 1); }
-  return Math.max(0, 1 - cdfBelow);
+  if (n * Math.LN2 < 700) {
+    let lp = -n * Math.LN2, term = Math.exp(lp), cdfBelow = 0;   // term = C(n, i) / 2^n, i from 0
+    for (let i = 0; i < k; i++) { cdfBelow += term; term *= (n - i) / (i + 1); }
+    return Math.max(0, 1 - cdfBelow);
+  }
+  let lp = -n * Math.LN2, below = 0, above = 0;   // lp = log C(n, i) - n log 2, i from 0
+  for (let i = 0; i <= n; i++) { if (i < k) below += Math.exp(lp); else above += Math.exp(lp); lp += Math.log((n - i) / (i + 1)); }
+  return k > n / 2 ? above : Math.max(0, 1 - below);
 }
 /* the one-sided exact McNemar p-value for harm: the chance of at least b losses in n = b + c fair tosses */
 export function mcnemarHarmP(b, c, { midP = false } = {}) {

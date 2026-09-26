@@ -274,6 +274,49 @@ if (mode === 'f1v2') {
     console.log(`${arm.padEnd(5)} table ${f1(a.table).padStart(5)} sim ${f1(a.sim).padStart(5)} | ${Math.round(a.secs)} s`);
     console.log(`      ran ${arm}: ${a.ran}`);
   }
+} else if (mode === 'diag7r') {
+  /*
+   * 7r: WHY THE READER HARMS S126 AND BRIDGE 4 (PLAN.md 7r; predictions/diag-7r.md). 7e's arms and settings (the tier above
+   * allowed and the final year exact in every arm, three worlds, lambda held at S126's), each case solved with its named
+   * arms on the same paths, the per-year trace kept for every arm. The panel is fixed here, as the prediction registers
+   * it: the two harmed cases, two contrasts the reader lifted as far with no loss, and S366 under v1 (O23).
+   *   node research/solver/audit-s126.mjs diag7r [points] [paths] part k/n [seed=7002]
+   * Prints 7e's line format per case (so reduce-7r.mjs reuses 7e's parser and gate) and writes each arm's trace to
+   * results/diag7r/<case>-<arm>.json.gz.
+   */
+  const ARM = { off: false, v1: 1, v2: 2, reader: 'reader' };
+  const PANEL = [['S126', 'off,reader'], ['bridge 4', 'off,reader'], ['S120', 'off,reader'], ['wealth x2', 'off,reader'], ['S366', 'off,v1']];
+  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
+  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002;
+  if (!(SEED >= 1)) { console.error(`audit-s126: bad seed ${process.argv[7]}`); process.exit(2); }
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  const OUT = join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7r');
+  mkdirSync(OUT, { recursive: true });
+  console.log(`7R DIAGNOSIS, step-6 defaults in the mixture (solvePlan), ${POINTS} points, ${NP} paths (seed ${SEED}), lambda ${LAMBDA}, the tier above allowed and the final year exact in every arm; traces kept; part ${pk}/${pn}`);
+  const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+  PANEL.forEach(([id, armList], i) => {
+    if (i % pn !== pk) return;
+    const h = byId(id)();
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const names = armList.split(','), labels = names.map(a => a.toUpperCase());
+    const res = names.map(a => measureV2(h, ARM[a], 5, { finalIntegral: true, riskAbove: true, trace: true, seed: SEED }));
+    const base = res[0];
+    const cells = res.map((r, j) => {
+      let up = 0, dn = 0; for (let k = 0; k < NP; k++) { if (!base.okArr[k] && r.okArr[k]) up++; else if (base.okArr[k] && !r.okArr[k]) dn++; }
+      const vs = j === 0 ? '' : ` d ${r.sim - base.sim >= 0 ? '+' : ''}${f1(r.sim - base.sim)} se ${f1(100 * Math.sqrt(up + dn) / NP)} (${up}/${dn})`;
+      return `${labels[j]} table ${f1(r.table).padStart(5)} sim ${f1(r.sim).padStart(5)} gap ${f1(r.gap).padStart(6)} tier-below ${f1(r.tierYrs).padStart(4)} below ${f1(r.below).padStart(4)} ${Math.round(r.secs)} s${vs}`;
+    });
+    console.log(`${id.padEnd(16)} a0 ${f1(base.a0, 2)} B ${base.B} class ${base.inClass ? 'YES' : 'no '} | ${cells.join(' | ')}`);
+    res.forEach((r, j) => console.log(`${''.padEnd(16)} ran ${labels[j]}: ${r.ran}`));
+    res.forEach((r, j) => {
+      const T = r.tr;
+      writeFileSync(join(OUT, `${id.replace(/ /g, '_')}-${names[j]}.json.gz`), gzipSync(JSON.stringify({ id, arm: labels[j], N: NP, Y: T.Y, seed: SEED, table: r.table, sim: r.sim, ran: r.ran,
+        survived: b64(r.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
+    });
+  });
 } else if (mode === 'time') {
   /*
    * 7k: THE EXACT FINAL YEAR'S RUN TIME (PLAN.md 7k; a measurement, not a test). Times the solve only (solvePlan, no

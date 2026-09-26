@@ -14,6 +14,12 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
 for (const [b, c, want] of [[3, 0, 1 / 8], [4, 0, 1 / 16], [7, 1, 9 / 256], [9, 1, 11 / 1024], [8, 0, 1 / 256], [23, 0, 2 ** -23]])
   ok(near(mcnemarHarmP(b, c), want, 1e-12 + want * 1e-9), `exact p for ${b} lost, ${c} saved: ${mcnemarHarmP(b, c).toPrecision(4)} (A2: ${want.toPrecision(4)})`);
 ok(mcnemarHarmP(0, 0) === 1 && binomUpperHalf(0, 5) === 1, 'no discordant paths: p = 1');
+// above about 1,075 tosses 2^-n underflows: the tail once read 1 for every k (found 26 Sep, building 7r's median interval
+// at 3,000 paths). The references are exact, from Python's integers: sum(comb(3000, i) for i >= k) / 2**3000
+{ const p1 = binomUpperHalf(1540, 3000), p2 = binomUpperHalf(1600, 3000), p3 = binomUpperHalf(1460, 3000);
+  ok(near(p1, 0.07459769349731893, 1e-9) && near(p2, 1.3928198051961686e-4, 1e-12) && near(p3, 0.930416433308436, 1e-9), `3,000 tosses: P(X >= 1540) ${p1.toFixed(6)} (0.074598), P(X >= 1600) ${p2.toExponential(4)} (1.3928e-4), P(X >= 1460) ${p3.toFixed(6)} (0.930416)`); }
+// the log-space branch, both of its tails (1,200 tosses is over the switch): P(X >= n - j + 1) = P(X <= j - 1)
+ok(near(binomUpperHalf(621, 1200) + binomUpperHalf(580, 1200), 1, 1e-12) && near(binomUpperHalf(600, 1200) + binomUpperHalf(601, 1200), 1, 1e-12), 'the log-space tail is symmetric about n/2 at 1,200 tosses: P(X >= 621) + P(X >= 580) = 1, and both tails agree');
 // A4: exact intervals
 { const [lo, hi] = clopperPearson(4, 4); ok(near(lo, 0.398, 0.001) && hi === 1, `Clopper-Pearson 4 of 4: ${lo.toFixed(3)} to ${hi} (A4: 0.398 to 1)`); }
 { const [lo, hi] = clopperPearson(9, 10); ok(near(lo, 0.555, 0.001) && near(hi, 0.997, 0.001), `Clopper-Pearson 9 of 10: ${lo.toFixed(3)} to ${hi.toFixed(3)} (A4: 0.555 to 0.997)`); }

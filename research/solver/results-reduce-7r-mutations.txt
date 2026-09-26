@@ -1,0 +1,16 @@
+true reducer: planted (28): all read as they should
+caught  the tier above ranked least risky: the tier above ranks riskier than the plan's, the plan's than two below read false, should read true
+caught  pension and ISA swapped in the tier code: code 13 is the pension one above and the ISA one below read {"pen":1,"isa":3}, should read {"pen":3,"isa":1}
+caught  a tier-lift path needs every year riskier, not half: a bridge of 1 year: the path fails after it, a tier-lift path read 1 0, should read 1 1; a bridge of 2 years: the path fails in the first year of access, after the brid
+caught  a failure in the first year of access counted inside the bridge: a bridge of 2 years: the path fails in the first year of access, after the bridge read 0 0, should read 1 1
+caught  a failed path keeps its end wealth: a failed path counts 0 end wealth: unlucky tenth off of [30, 30, 0] read 3, should read 0
+caught  the paired end wealth over every path, not the paths both survive: end wealth paired over the one path both survive: 40 - 30 read 3 10, should read 1 10
+caught  the median's interval at alpha, not alpha/2: the median's exact 97.5% interval over 0..2999 is about the middle 2.24 sd (1438 to 1561) read 1445 1554, should read 1438 1561
+caught  estate bought without the margin on the point: estate: interval above 0 and median at the margin buys estate; upper end under the margin buys nothing; above 0 with the point under the margin is inconclusive read buy
+caught  item 1 without Holm: item 1 reads Holm: 5 lost, 0 saved on each (p 0.031 raw, 0.062 after Holm) is not harm read true, should read false
+caught  too few lost paths not checked: decide: 5 lost paths in all is too few even with the harm read on one case (items() cannot reach this under Holm over two: one case harmed needs 6 lost there) read HELD
+caught  the falsifier at two-thirds, not half: 14 of 24 tier-lift: INCONCLUSIVE read FALSIFIED, should read INCONCLUSIVE
+caught  the gate does not read the bridge read: S366 under v1 must read bridgeRead true in its ran line read false, should read true
+caught  the gate does not read the seed: a log with the wrong seed fails the gate read false, should read true
+
+13 mutations: every one caught

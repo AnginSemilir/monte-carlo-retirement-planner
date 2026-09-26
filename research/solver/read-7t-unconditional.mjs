@@ -10,6 +10,9 @@
  *   and item 13's pair (READER+J/M0 against OFF+J/M0), read as h; and items 10 and 14's no-harm legs on S360 and share
  *   0.95 (READER+J and READER+L against READER: "loses nothing material"; the eighty-fifth review, MINOR 4);
  * and flags every leg where the two readings disagree: each goes to the maintainer beside 7t's attribution.
+ * The unconditional interval is widened, where it applies, to the exact bound from the one-sided count (read-o27-unconditional.mjs
+ * guarded(), O27): it is itself too kind where few paths differ well below 100% survival (S360 and share 0.95 among them);
+ * a read the bound changes is marked COUNT CHECK.
  * Gated as read-7r-lost-paths.mjs is: requireFairLogs over the logs' stamps, then every trace's count, seed, arm and stamp.
  *   node research/solver/read-7t-unconditional.mjs > research/solver/results-7t-unconditional.txt
  *   node research/solver/read-7t-unconditional.mjs --planted
@@ -20,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 import { requireFairLogs } from './fair-gate.mjs';
 import { survivalChange, survivalChangeU } from './stats.mjs';
+import { guarded } from './read-o27-unconditional.mjs';
 import { CAUSES, HARMED, GAINED, MARGIN, PRED, decode, traceName, traceAgrees } from './reduce-7t.mjs';
 
 // the paired cells of arm B (changed) against arm A (reference): a both survive, b lost (A survives, B fails), c saved, d both fail
@@ -30,11 +34,11 @@ export function cells(A, B) {
 }
 // one leg read both ways: 'h' asks "no material harm" (lower end above -MARGIN), 'g' asks "no material gain" (upper end below +MARGIN)
 export function leg(kind, A, B) {
-  const k = cells(A, B), reg = survivalChange(k.b, k.c, k.N), un = survivalChangeU(k.a, k.b, k.c, k.d);
+  const k = cells(A, B), reg = survivalChange(k.b, k.c, k.N), un = guarded(survivalChangeU(k.a, k.b, k.c, k.d), k.b, k.c, k.N, 0.05);
   const read = iv => (kind === 'h' ? iv.lo > -MARGIN : iv.hi < MARGIN);
-  return { ...k, reg, un, regRead: read(reg), unRead: read(un), disagree: read(reg) !== read(un) };
+  return { ...k, reg, un, regRead: read(reg), unRead: read(un), counted: read(un) !== read(un.m10), disagree: read(reg) !== read(un) };
 }
-const fmt = (kind, x) => `${x.b} lost, ${x.c} saved: registered ${x.reg.d.toFixed(3)} (${x.reg.lo.toFixed(3)} to ${x.reg.hi.toFixed(3)}), unconditional (${x.un.lo.toFixed(3)} to ${x.un.hi.toFixed(3)}); ${kind === 'h' ? 'no material harm' : 'no material gain'}: registered ${x.regRead ? 'yes' : 'no'}, unconditional ${x.unRead ? 'yes' : 'no'}${x.disagree ? '  <-- DISAGREE' : ''}`;
+const fmt = (kind, x) => `${x.b} lost, ${x.c} saved: registered ${x.reg.d.toFixed(3)} (${x.reg.lo.toFixed(3)} to ${x.reg.hi.toFixed(3)}), unconditional (${x.un.lo.toFixed(3)} to ${x.un.hi.toFixed(3)}${x.counted ? '; COUNT CHECK' : ''}); ${kind === 'h' ? 'no material harm' : 'no material gain'}: registered ${x.regRead ? 'yes' : 'no'}, unconditional ${x.unRead ? 'yes' : 'no'}${x.disagree ? '  <-- DISAGREE' : ''}`;
 
 // PLANTED, before any real file (rule 6)
 function planted() {
@@ -48,6 +52,10 @@ function planted() {
   // 7 of 3,000 saved, none lost: the registered interval reads no material gain, the unconditional one does not
   const Bs = arr(3000, i => (i < 3000 ? 1 : 0)), g7 = leg('g', A, Bs);
   cases.push(['7 saved, none lost: the two readings of "no material gain" disagree', `${g7.c} ${g7.b} ${g7.regRead} ${g7.unRead} ${g7.disagree}`, '7 0 true false true']);
+  // the count check: 0 of 1,000 differing at 68.8% survival reads no material harm by the unconditional interval alone
+  // (-0.14 at 0.05), not with the exact bound from the lost count (0 of 1,000 at 0.05: -0.37), against a planted margin of 0.35
+  const A688 = arr(1000, i => (i < 688 ? 1 : 0)), c0 = leg('h', A688, A688);
+  cases.push(['the count check widens a no-harm read where no path differs at 68.8%', `${c0.un.m10.lo > -0.35} ${c0.un.lo > -0.35} ${c0.un.lo.toFixed(2)}`, 'true false -0.37']);
   // the cells add up and follow the arms' order (B against A)
   const k = cells(arr(4, i => [1, 1, 0, 0][i]), arr(4, i => [1, 0, 1, 0][i]));
   cases.push(['the cells: both, lost, saved, neither', `${k.a} ${k.b} ${k.c} ${k.d}`, '1 1 1 1']);

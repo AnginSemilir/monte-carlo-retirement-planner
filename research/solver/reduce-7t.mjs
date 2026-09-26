@@ -61,7 +61,7 @@ export const CAUSES = [
   { key: 'L', name: 'fixed world weights (a one-pot learner)', g: ['READER+L', 'READER'], h: ['READER+L', 'OFF+L'] },
   { key: 'O', name: 'fixed world weights (the oracle: the weights known exactly, the bound)', g: ['READER+O', 'READER'], h: ['READER+O', 'OFF+O'] },
   { key: '5', name: 'three worlds at +/-sqrt 3 (five worlds)', g: ['READER5', 'READER'], h: ['READER5', 'OFF5'] },
-  { key: '5L', name: 'five worlds with the learning chooser', g: ['READER5+L', 'READER'], h: ['READER5+L', 'OFF5+L'] },
+  { key: '5L', name: 'five worlds with the one-pot learner', g: ['READER5+L', 'READER'], h: ['READER5+L', 'OFF5+L'] },
   { key: 'M0', name: 'the switch margin\'s lock-in (margin 0)', g: ['READER/M0', 'READER'], h: ['READER/M0', 'OFF/M0'] }];
 const BR = { OFF: 'false', READER: 'reader' };
 export const NODES = [-Math.sqrt(3), 0, Math.sqrt(3)], NODES5 = 5;
@@ -354,7 +354,7 @@ function planted() {
     cases.push(['attribution: one HELD beside an INCONCLUSIVE reads grade C and keeps the partial suspect', attribution(D({ L: 'HELD', '5': 'INCONCLUSIVE' }), false), 'one cause removes the harm: L (grade C: partial suspects kept: 5)']);
     cases.push(['attribution: none HELD keeps the INCONCLUSIVE causes as suspects', attribution(D({ O: 'INCONCLUSIVE' }), false), "no cause removes the harm alone: FALSIFIED J, L, 5, 5L, M0 (dropped as sole causes); INCONCLUSIVE O (kept as partial suspects), with the score's own trade and the grid"]);
     cases.push(['attribution: J HELD alone without its mechanism is grade C and says so; with it, grade B', `${attribution(D({ J: 'HELD' }), false)} / ${attribution(D({ J: 'HELD' }), true)}`, 'one cause removes the harm: J (one policy cures; the bad-world mechanism or the cure at margin 0 not shown) (grade C: its mechanism not shown) / one cause removes the harm: J (grade B: every other cause FALSIFIED)']); }
-  // Holm over all ten: a gain of 9 saved, none lost (raw p 0.002) survives Holm over two but not over ten
+  // Holm over all twelve: 7 saved, none lost (raw p 0.0078) gains over two but not over twelve
   const seven = { ...none, 'READER5-READER': [7, 0], 'READER5-OFF5': [0, 0] };
   cases.push(['Holm is over all twelve cause-and-case tests: 7 saved, none lost (raw p 0.0078) gains over two (0.016) and not over twelve (0.094)', `${decide(HARMED.map(id => ({ id, g: { saved: 7, lost: 0 }, h: { saved: 0, lost: 0 } }))).reads[0].gains} ${decideCauses(parse(Object.keys(PANEL).map(id => log(id, { pairs: HARMED.includes(id) ? seven : {} })).join('\n'))).find(x => x.key === '5').reads[0].gains}`, 'true false']);
   // the trace reads

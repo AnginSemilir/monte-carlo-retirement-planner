@@ -6,10 +6,11 @@
  * policy for every world changes the reader's tables at every cell, not only the tier, so paths may move both ways at
  * once: each story is drawn with a background of b paths each way on g and on h (b = 1.33, 7s's half a path a 3,000 scaled,
  * and b = 13.3, five a 3,000). Poisson counts, 20,000 draws a story.
- * FIVE CAUSES, HOLM OVER TEN (26 Sep, the maintainer's "Test all": learning, five worlds, both, and margin 0 beside one
- * policy): each cause is read by the same rule with Holm over all ten cause-and-case tests (reduce-7t.mjs decideCauses). The
- * power of one cause is drawn with the other four removing none of the harm - its two p-values then take Holm's first two
- * steps, x10 and x9, the least power it can have; a cause that shares the cure with another only gains.
+ * SIX CAUSES, HOLM OVER TWELVE (26 Sep, the maintainer's "Test all": learning, five worlds, both, and margin 0 beside one
+ * policy; the oracle added after the seventy-eighth review): each cause is read by the same rule with Holm over all twelve
+ * cause-and-case tests (reduce-7t.mjs decideCauses). The power of one cause is drawn with the other five removing none of
+ * the harm - its two p-values then take Holm's first two steps, x12 and x11, the least power it can have; a cause that
+ * shares the cure with another only gains.
  *   node research/solver/derive-7t.mjs > research/solver/results-derive-7t.txt
  */
 import { decide, N, CAUSES } from './reduce-7t.mjs';
@@ -23,7 +24,7 @@ function story(name, share, bg) {
   const tally = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 };
   for (let d = 0; d < DRAWS; d++) {
     // one policy removes `share` of the harm: g saves that share, h keeps the rest
-    // the cause under study first, then the other four causes removing none of the harm; Holm over all ten
+    // the cause under study first, then the other five causes removing none of the harm; Holm over all twelve
     const rows = CAUSES.flatMap((cz, c) => Object.keys(HARM).map(id => { const sh = c === 0 ? share : 0; return { id: `${c}|${id}`, g: { saved: pois(sh * HARM[id] + bg), lost: pois(bg) }, h: { saved: pois(bg), lost: pois((1 - sh) * HARM[id] + bg) } }; }));
     const reads = decide(rows).reads.filter(r => r.id.startsWith('0|'));
     tally[reads.every(x => x.read === 'cures') ? 'HELD' : reads.every(x => x.read === 'does not cure') ? 'FALSIFIED' : 'INCONCLUSIVE']++;

@@ -76,8 +76,9 @@ What the code and the records say before any run:
   and cash carries no shock (V = 0), so one year's cash return, or any two pots with different S/V, reveal the path's
   shift exactly - which no real household can do. learn.mjs reads ONE risky pot a year, the one with the largest S/V
   (about 0.125 to 0.13 on S126's moves: pension 0.1251, ISA 0.1259, GIA 0.1319, the review's reading of the compiled
-  moves, grade C), so 27 years carry about 27 x 0.13^2, under half of the shift's variance, in information (arithmetic):
-  a household watching its own portfolio. So L tests a one-pot learner, not learning as such: L FALSIFIED says such a
+  moves, grade C), so S126's 39 years of returns (bridge 4's 41) carry about 39 x 0.13^2 = 0.66 of the shift's prior
+  variance in information, leaving about 1/(1 + 0.66) = 0.6 of it at the plan's end (arithmetic; the seventy-ninth
+  review's MINOR 1 corrected "27 years ... under half", S004's horizon): a household watching its own portfolio. So L tests a one-pot learner, not learning as such: L FALSIFIED says such a
   learner does not cure, and the fixed weights stay suspect unless O fails too.
 - **The bound, O** (learn.mjs oracleChooser): each year's weights are set from the path's true shift from year 0 - all on
   a node when the shift sits on one, else split between the two nodes around it in proportion to the distance, the outer
@@ -136,7 +137,9 @@ against the 8,000 paths; the realised whole score against every reference the re
 Each cause separately: on both harmed cases the reader with the cause removed still harms against off with the same cause
 removed (more lost than saved, Holm over the twelve, the point loss at the margin) and gains nothing material against the
 reader as the product solves it - that cause's FALSIFIED: removing it alone does not remove the reader's harm on these
-cases. L's FALSIFIED is a one-pot learner's (the fixed weights are dropped only when O is FALSIFIED too). INCONCLUSIVE is
+cases. L's FALSIFIED is a one-pot learner's (the fixed weights are dropped only when O is FALSIFIED too), and so is
+5L's: five worlds with the one-pot learner (no arm runs five worlds with the oracle's weights; the seventy-ninth review,
+MINOR 3). INCONCLUSIVE is
 not a negative: such a cause stays a suspect. If every cause reads FALSIFIED, none of the six is the cause alone; what is
 left is the score's own trade (item 12 and the whole-score lines) and the grid.
 
@@ -230,8 +233,10 @@ does not bias the comparison).
   question answered; F2, 7q, 7n and Phase 4 re-planned behind it.
 - **One HELD beside INCONCLUSIVE ones, or J without its mechanism:** the same candidate at grade C, with the INCONCLUSIVE
   causes named as partial suspects; no default until a test separates them.
-- **Several HELD:** each removes the harm; the cheapest, by solve time and code, goes to the maintainer first, with the
-  attribution between them grade C and a follow-up that combines them only if one alone falls short elsewhere.
+- **Several HELD:** each removes the harm; the cheapest, by solve time and code, goes to the maintainer first - for O its
+  candidate as in the first branch (a learner with a declared information set or the belief solved as a state, never
+  the oracle itself; the seventy-ninth review, MINOR 4) - with the attribution between them grade C and a follow-up
+  that combines them only if one alone falls short elsewhere.
 - **None HELD:** none of the six alone removes the harm. The FALSIFIED causes are dropped as sole causes; the INCONCLUSIVE
   ones stay suspects (partial effects; two halves read INCONCLUSIVE each), beside the score's own trade (item 12 and the
   whole-score lines: if the reader does better by the solver's own score, the objective prefers the risk and the "harm" is
@@ -303,15 +308,16 @@ drawn with the other five removing none of the harm, so its p-values take Holm's
 ## Budget line
 
 The bridge class's decision error: the reader cost S126 0.47 and bridge 4 0.31 points of survival in 7e, 0.50 and 0.40 in
-7r. 7t removes no error itself; it says which of five suspected errors of the solver's own carries it, each with a fix.
+7r. 7t removes no error itself; it says which of six suspected errors of the solver's own carries it, each with a fix.
 
 ## Pre-mortem
 
 - **Most likely:** no single cause HELD - partial effects from several (INCONCLUSIVE on two or three), with the lost paths'
   place (items 15, 16) showing where they act; the whole score (item 12) then says whether the objective itself wants
   the late gamble.
-- **Second:** five worlds with learning (5L) cures and nothing alone does - the three-world model's missing tail and its
-  never-updated weights together; the attribution is then "both", grade C between them.
+- **Second:** five worlds with the one-pot learner (5L) cures and nothing alone does - the three-world model's missing
+  tail and its fixed weights together, the weights moved only as far as one pot's returns take them; the attribution
+  is then "both", grade C between them.
 - **Third:** M0's h reads no harm because OFF at margin 0 got worse, not because the reader got better (item 9 holds, M0's
   g does not gain): the rule reads that partial, not a cure - off's safety was the margin's.
 - **Fourth:** the one-pot learner is too slow (S/V about 0.125 to 0.13 a year): L reads FALSIFIED and O HELD - the weights

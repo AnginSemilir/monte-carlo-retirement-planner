@@ -19,8 +19,9 @@
  *   - g: the reader at 15 points against the reader at 5 (saved, lost). It GAINS when it saves more than it loses and
  *     the exact one-sided p for a gain, Holm over the two cases, is below 0.05; NO MATERIAL GAIN when the exact 95%
  *     interval for its survival change has its upper end below +0.25 points.
- *   - h: the reader at 15 points against off at 15 points. It HARMS when it loses more than it saves and the exact
- *     one-sided p for harm, Holm over the two cases, is below 0.05; NO MATERIAL HARM when the interval's lower end is
+ *   - h: the reader at 15 points against off at 15 points. It HARMS when it loses more than it saves, the exact one-sided
+ *     p for harm, Holm over the two cases, is below 0.05 and the point loss is at least the margin (the regimen's harm,
+ *     RULES.md section 8; the seventy-third review, MINOR 2); NO MATERIAL HARM when the interval's lower end is
  *     above -0.25.
  *   - a case CURES when g gains and h shows no material harm; does NOT CURE when g neither gains nor shows a material
  *     gain and h harms; otherwise it is PARTIAL (a significant gain below the margin with the harm still there is partial).
@@ -111,7 +112,7 @@ export function decide(rows) {
   const reads = rows.map((r, j) => {
     const gi = survivalChange(r.g.lost, r.g.saved, N, ALPHA), hi = survivalChange(r.h.lost, r.h.saved, N, ALPHA);
     const gains = r.g.saved > r.g.lost && pGain[j] < ALPHA, noGain = gi.hi < MARGIN;
-    const harms = r.h.lost > r.h.saved && pHarm[j] < ALPHA, noHarm = hi.lo > -MARGIN;
+    const harms = r.h.lost > r.h.saved && pHarm[j] < ALPHA && -hi.d >= MARGIN, noHarm = hi.lo > -MARGIN;
     const read = gains && noHarm ? 'cures' : !gains && noGain && harms ? 'does not cure' : 'partial';
     return { id: r.id, read, gi, hi, pGain: pGain[j], pHarm: pHarm[j], gains, noGain, harms, noHarm };
   });
@@ -160,10 +161,11 @@ function planted() {
     ['half a cure (7 and 6 saved, none lost: significant after Holm, below the margin; 8 still lost at 15): partial on each, INCONCLUSIVE', decide([row('S126', [7, 0], [0, 8]), row('bridge 4', [6, 0], [0, 8])]).reads.map(x => x.read).join(',') + ' ' + decide([row('S126', [7, 0], [0, 8]), row('bridge 4', [6, 0], [0, 8])]).outcome, 'partial,partial INCONCLUSIVE'],
     ['a gain needs Holm: 6 saved, 0 lost on each (raw p 0.016, Holm 0.031) gains; 5 and 0 (raw 0.031, Holm 0.062) does not', `${decide([row('S126', [6, 0], [0, 0]), row('bridge 4', [6, 0], [0, 0])]).reads.map(x => x.gains).join(',')} ${decide([row('S126', [5, 0], [0, 0]), row('bridge 4', [5, 0], [0, 0])]).reads.map(x => x.gains).join(',')}`, 'true,true false,false'],
     ['no material gain is read by the interval, not by significance: 5 saved 0 lost (p 0.031 raw) is not a material gain; 12 saved 0 lost is', `${decide([row('S126', [5, 0], [0, 0]), row('bridge 4', [0, 0], [0, 0])]).reads[0].noGain} ${decide([row('S126', [12, 0], [0, 0]), row('bridge 4', [0, 0], [0, 0])]).reads[0].noGain}`, 'true false'],
-    ['harm at 15 needs Holm: 5 lost, 0 saved on each (raw p 0.031, Holm 0.062) does not harm', decide([row('S126', [0, 0], [0, 5]), row('bridge 4', [0, 0], [0, 5])]).reads.map(x => x.harms).join(','), 'false,false'],
+    ['harm at 15 needs Holm: 11 lost, 3 saved on each (raw p 0.029, Holm 0.057; a loss of 0.27 points, past the margin) does not harm', decide([row('S126', [0, 0], [3, 11]), row('bridge 4', [0, 0], [3, 11])]).reads.map(x => x.harms).join(','), 'false,false'],
     ['no material gain needs the interval\'s upper end below the margin: 9 saved, 4 lost (not significant, upper end 0.35) is not "no material gain"', String(decide([row('S126', [9, 4], [0, 0]), row('bridge 4', [0, 0], [0, 0])]).reads[0].noGain), 'false'],
     ['items 3-5 on the planted log: off unchanged at 15 (0/0), the reader at 15 no longer on a lower tier (+0.0), its gap 0.1 below 1: held, held, held', items(c0).map(x => x[1]).join(','), 'true,true,true'],
     ['items 3-5 miss: off at 15 saves 9 (upper end above the margin), the reader at 15 holds a lower tier 3.5 years more (off 40.0), its gap -1.2', items(parse(log('S126', { ...good, 'OFF@15-OFF': [9, 0] }).replace('READER@15 table  99.5 sim  99.6 gap   -0.1 tier-below  8.7', 'READER@15 table  98.4 sim  99.6 gap   -1.2 tier-below 12.2') + '\n' + log('bridge 4', goodB4))).map(x => x[1]).join(','), 'false,false,false'],
+    ['harm needs the point loss at the margin: 7 lost, 0 saved on each (Holm p 0.016, a loss of 0.23 points) does not harm', decide([row('S126', [0, 0], [0, 7]), row('bridge 4', [0, 0], [0, 7])]).reads.map(x => x.harms).join(','), 'false,false'],
     ['each case\'s g is the reader at 15 against the reader at 5 and h the reader at 15 against off at 15', rowsOf(c0).map(r => `${r.g.saved}/${r.g.lost} ${r.h.saved}/${r.h.lost}`).join(','), '14/0 0/1,11/1 1/1'],
     ['harm at 15 needs more lost than saved and Holm: 8 lost 0 saved harms; 4 lost 4 saved does not', `${decide([row('S126', [0, 0], [0, 8]), row('bridge 4', [0, 0], [0, 8])]).reads[0].harms} ${decide([row('S126', [0, 0], [4, 4]), row('bridge 4', [0, 0], [0, 8])]).reads[0].harms}`, 'true false'],
   ];
@@ -192,12 +194,13 @@ if (main) {
   console.log('\nPAIRED on the same paths (saved/lost), the survival change in points with its exact 95% interval:');
   for (const c of CASES.map(id => cases.find(x => x.id === id))) for (const p of PAIRS) { const x = c.pairs[p]; console.log(`  ${c.id.padEnd(9)} ${p.padEnd(18)} ${x.saved}/${x.lost}  ${iv(survivalChange(x.lost, x.saved, N, ALPHA))}`); }
   const why = CASES.flatMap(id => reproduced(cases.find(x => x.id === id)).map(w => `${id}: ${w}`));
-  console.log(`\n1. the 5-point arms reproduce 7r: ${why.length ? `NO - ${why.join('; ')}` : 'yes, both cases (tables and survival to 0.1, the reader\'s saved and lost against off)'}`);
   const d = decide(rowsOf(cases));
   console.log('\nTHE RULE, per case (g: the reader at 15 against the reader at 5; h: the reader at 15 against off at 15; Holm over the two cases):');
   for (const r of d.reads) console.log(`  ${r.id.padEnd(9)} g ${iv(r.gi)}, p for a gain ${fp(r.pGain)} (Holm) -> ${r.gains ? 'gains' : r.noGain ? 'no material gain' : 'neither'}; h ${iv(r.hi)}, p for harm ${fp(r.pHarm)} (Holm) -> ${r.harms ? 'harms' : r.noHarm ? 'no material harm' : 'neither'}; the case ${r.read}`);
-  console.log('\nTHE OTHER ITEMS (scored, not the outcome):');
-  for (const [t, ok] of items(cases)) console.log(`  ${t} -> ${ok ? 'held' : 'MISSED'}`);
-  console.log(`  2. the outcome as registered: see below`);
+  // the scorecard reads this block (scorecard.mjs outcomes(): each numbered line ends -> held or -> MISSED)
+  console.log("\nTHE PREDICTION'S ITEMS:");
+  console.log(`1. the 5-point arms reproduce 7r (tables and survival to 0.1, the reader's saved and lost against off): ${why.length ? why.join('; ') : 'both cases'} -> ${why.length ? 'MISSED' : 'held'}`);
+  console.log(`2. the outcome is FALSIFIED: ${why.length ? 'NOT SETTLED' : d.outcome} -> ${!why.length && d.outcome === 'FALSIFIED' ? 'held' : 'MISSED'}`);
+  for (const [t, ok] of items(cases)) console.log(`${t} -> ${ok ? 'held' : 'MISSED'}`);
   console.log(`\nOUTCOME: ${why.length ? 'NOT SETTLED (the 5-point arms did not reproduce 7r)' : d.outcome}`);
 }

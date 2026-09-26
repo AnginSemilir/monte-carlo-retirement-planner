@@ -25,6 +25,7 @@ M = [
     ("no material harm read at the wrong end of the interval", "noHarm = hi.lo > -MARGIN", "noHarm = hi.hi > -MARGIN"),
     ("a significant gain below the margin read as no cure", "!gains && noGain && harms", "noGain && harms"),
     ("HELD on one case's cure", "reads.every(x => x.read === 'cures') ? 'HELD'", "reads.some(x => x.read === 'cures') ? 'HELD'"),
+    ("harm without the point loss at the margin", "pHarm[j] < ALPHA && -hi.d >= MARGIN", "pHarm[j] < ALPHA"),
     ("item 3 reads only the lower end", "ok: iv.lo > -MARGIN && iv.hi < MARGIN", "ok: iv.lo > -MARGIN"),
     ("item 4 compares the reader at 15 with off", "arm(x, 'READER@15').tier - arm(x, 'READER').tier", "arm(x, 'READER@15').tier - arm(x, 'OFF').tier"),
     ("item 5 ignores a gap's sign", "Math.abs(g.g) <= 1", "g.g <= 1"),

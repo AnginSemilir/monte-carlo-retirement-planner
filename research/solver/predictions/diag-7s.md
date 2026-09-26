@@ -2,7 +2,7 @@
 
 - **Run:** `research/solver/batch-7s.sh` - results/diag7s/part0.txt (S126) and part1.txt (bridge 4), audit-s126.mjs's bridge7e mode; reduced by `reduce-7s.mjs` into results-7s.txt
 - **Kind:** test
-- **Written:** 26 Sept, 14:46 UK, before the run (the maintainer, 26 Sep: "go ahead with 7s, include a 15 return point arm")
+- **Written:** 26 Sept, 14:46 UK, before the run (the maintainer, 26 Sep 14:38 UK: "go ahead with 7s, include a 15 return point arm"); revised 14:57 UK, before the run (the seventy-third review's MINORs 1-3: the scorecard's item lines and credence, harm needs the point loss at the margin, the time)
 - **Seeds:** 7002 tuning (3,000 paths, 7r's paths, the same paths for all four arms of both cases)
 - **Plan section:** PLAN.md "7s"
 
@@ -100,7 +100,7 @@ does not bias the comparison).
 | 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | none | none | N/A - no fixed arm in this run |
 | 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | one process per case writes all four arms and every pair | the same process | SAME |
 | 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | survival: the floor paid every year and the minimum pot at the end, simulated; tier-below: runPolicy's tierPenYears a path | the same | SAME |
-| 30 | The reducer and its version | reduce-7s.mjs: requireFairLogs over the logs' stamps, then its own gate on every ran line (each case's arms the same but the bridge read and the return points, at the registered settings, each arm's own bridge read and points) and every pair; INCOMPLETE unless both cases' logs are there; the reproduction check; 21 planted checks, 20 planted faults each caught (mutate-reduce-7s.py, results-reduce-7s-mutations.txt) | the same | SAME |
+| 30 | The reducer and its version | reduce-7s.mjs: requireFairLogs over the logs' stamps, then its own gate on every ran line (each case's arms the same but the bridge read and the return points, at the registered settings, each arm's own bridge read and points) and every pair; INCOMPLETE unless both cases' logs are there; the reproduction check; 22 planted checks, 21 planted faults each caught (mutate-reduce-7s.py, results-reduce-7s-mutations.txt) | the same | SAME |
 | 31 | Paired or not, and the standard error used | paired on the same paths; exact one-sided McNemar with Holm over the two cases (g for a gain, h for harm), the exact 95% interval against the 0.25 margin (no material gain, no material harm, item 3); no standard error is read | the same | SAME |
 | 32 | The table's number is never the result: survival is simulated | survival is simulated; the table's read is printed and read only by item 5 | the same | SAME |
 | 33 | For timings: what else the machine was running | the solve seconds are printed, not read | the same | N/A - no timing is read: two processes share four cores |
@@ -111,14 +111,16 @@ does not bias the comparison).
   - **g**, the reader at 15 against the reader at 5: it **gains** when it saves more than it loses and the exact
     one-sided p for a gain, Holm over the two cases, is below 0.05; **no material gain** when the exact 95% interval
     for its survival change has its upper end below +0.25 points.
-  - **h**, the reader at 15 against off at 15: it **harms** when it loses more than it saves and the exact one-sided p
-    for harm, Holm over the two cases, is below 0.05; **no material harm** when the interval's lower end is above -0.25.
+  - **h**, the reader at 15 against off at 15: it **harms** when it loses more than it saves, the exact one-sided p
+    for harm, Holm over the two cases, is below 0.05 and the point loss is at least the margin (the regimen's harm);
+    **no material harm** when the interval's lower end is above -0.25.
   - A case **cures** when g gains and h shows no material harm; **does not cure** when g does not gain, shows no
     material gain, and h harms; otherwise it is **partial** (a significant gain below the margin with the harm still
     there is partial).
   - **HELD:** both cases cure. **FALSIFIED:** both cases do not cure. **INCONCLUSIVE:** otherwise.
   - **NOT SETTLED:** item 1 fails (the 5-point arms do not reproduce 7r): something besides the return points differs.
-- **Items 3-5:** read by reduce-7s.mjs items(), as the Prediction words them.
+- **Items:** reduce-7s.mjs prints them under "THE PREDICTION'S ITEMS:", each -> held or -> MISSED (scorecard.mjs reads
+  that block): item 1 the reproduction check, item 2 held when the outcome is FALSIFIED, items 3-5 by items().
 - **Declared choices, not derived:** the margin 0.25 (the regimen's, where off survives 95% or more: both do); Holm over
   the two cases; 3 years of tier-below and 1 point of gap for items 4 and 5 (judgement, no record fixes them).
 
@@ -147,7 +149,7 @@ does not bias the comparison).
 
 ## Derivation script
 
-- `derive: research/solver/derive-7s.mjs > research/solver/results-derive-7s.txt sha256 e1cd4c8b42d9a558`
+- `derive: research/solver/derive-7s.mjs > research/solver/results-derive-7s.txt sha256 5dabcf56b1bbb74d`
   (7r's harm at 5 points held fixed, g and h drawn as Poisson counts under each true story, read by reduce-7s.mjs's own
   decide()).
 
@@ -161,7 +163,7 @@ does not bias the comparison).
 
 ## Credence
 
-The author's probability that each item holds: 1, 0.95; 2 (FALSIFIED), 0.45; 3, 0.85; 4, 0.60; 5, 0.80. The outcome:
+The author's probability that each item holds: 1, 0.95; 2, 0.45 (the outcome FALSIFIED); 3, 0.85; 4, 0.60; 5, 0.80. The outcome:
 HELD 0.25, FALSIFIED 0.45, INCONCLUSIVE 0.30. Lowered from the explanation put to the maintainer: S360's reader barely
 moved at 15 points (the Derivation). The scorecard stands at 0.228 over 16 items, above the 0.20 target (O25), mostly
 from confident misses; these are kept below 0.9 except item 1, which is arithmetic. Scored by scorecard.mjs.
@@ -169,14 +171,16 @@ from confident misses; these are kept below 0.9 except item 1, which is arithmet
 ## Power
 
 From results-derive-7s.txt (7r's harm at 5 points fixed; 20,000 draws a story):
-- **15 points cures it all:** HELD 0.959 (INCONCLUSIVE 0.041). **Changes nothing:** FALSIFIED 0.959 (INCONCLUSIVE 0.041).
-- **Cures half:** INCONCLUSIVE 0.815 (HELD 0.128, FALSIFIED 0.057). **Three quarters:** HELD 0.746. **A quarter:**
-  FALSIFIED 0.651 - a small share of the harm reads as not the cause.
+- **15 points cures it all:** HELD 0.959 (INCONCLUSIVE 0.041). **Changes nothing:** FALSIFIED 0.852 (INCONCLUSIVE 0.148:
+  the remaining harm must reach the margin, 8 paths of 3,000, to read as harm).
+- **Cures half:** INCONCLUSIVE 0.860 (HELD 0.128, FALSIFIED 0.012). **Three quarters:** HELD 0.746. **A quarter:**
+  INCONCLUSIVE 0.598, FALSIFIED 0.401.
 - **What it cannot see:** a gain or a remaining harm of up to 7 paths of 3,000 with none the other way reads as not
   material (the exact interval against 0.25 points); a gain needs 6 saved with none lost on both cases (5 on one, the
-  other far stronger).
+  other far stronger); a harm needs 8 lost with none saved (the point loss at the margin).
 - **Time:** per case, two 5-point arms (7r: 556 to 622 s at 3,000 paths) and two 15-point arms (7i: 755 to 799 s
-  solves at 1,000 paths, plus about 240 s more forward runs at 3,000): about 55 to 65 minutes, both cases side by side
+  solves at 1,000 paths; the forward runs cost more at 15 points too, since each move is scored over the return points,
+  solve.js scoreMoves): about 52 to 68 minutes, both cases side by side
   on two of four cores, plus the smoke run if the code moved.
 
 ## Budget line

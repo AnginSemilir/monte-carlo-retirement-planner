@@ -3,14 +3,14 @@
 BY THE TRUE STORY (g saved/lost expected, h saved/lost expected, per case):
 15 points cures it all (g: the harm saved; h: 0.5/0.5)                     HELD 0.959  FALSIFIED 0.000  INCONCLUSIVE 0.041
                                                                            S126 cures 0.991, does not cure 0.000; bridge 4 cures 0.966, does not cure 0.000
-15 points changes nothing (g: 0.5/0.5; h: the harm lost), as on S360 in 7e HELD 0.000  FALSIFIED 0.959  INCONCLUSIVE 0.041
-                                                                           S126 cures 0.000, does not cure 0.992; bridge 4 cures 0.000, does not cure 0.966
-15 points cures half (g: half the harm saved; h: half lost)                HELD 0.128  FALSIFIED 0.057  INCONCLUSIVE 0.815
-                                                                           S126 cures 0.315, does not cure 0.178; bridge 4 cures 0.348, does not cure 0.231
-15 points cures a quarter                                                  HELD 0.001  FALSIFIED 0.651  INCONCLUSIVE 0.348
-                                                                           S126 cures 0.014, does not cure 0.800; bridge 4 cures 0.018, does not cure 0.791
+15 points changes nothing (g: 0.5/0.5; h: the harm lost), as on S360 in 7e HELD 0.000  FALSIFIED 0.852  INCONCLUSIVE 0.148
+                                                                           S126 cures 0.000, does not cure 0.970; bridge 4 cures 0.000, does not cure 0.878
+15 points cures half (g: half the harm saved; h: half lost)                HELD 0.128  FALSIFIED 0.012  INCONCLUSIVE 0.860
+                                                                           S126 cures 0.315, does not cure 0.109; bridge 4 cures 0.348, does not cure 0.093
+15 points cures a quarter                                                  HELD 0.001  FALSIFIED 0.401  INCONCLUSIVE 0.598
+                                                                           S126 cures 0.014, does not cure 0.704; bridge 4 cures 0.018, does not cure 0.562
 15 points cures three quarters                                             HELD 0.746  FALSIFIED 0.000  INCONCLUSIVE 0.254
-                                                                           S126 cures 0.887, does not cure 0.004; bridge 4 cures 0.830, does not cure 0.008
+                                                                           S126 cures 0.887, does not cure 0.001; bridge 4 cures 0.830, does not cure 0.001
 
 THE LEAST COUNTS, with none the other way:
   a gain (or a harm) on one case, the other far stronger (Holm's second step): 5; both cases alike: 6 each

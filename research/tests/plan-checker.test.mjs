@@ -24,7 +24,13 @@ ok(real.length === 0, 'the plan as it stands passes every whole-file check');
 
 // checklist
 caught(run({ checklist: base.checklist + '\n13. an extra rule' }), 'checklist', `more than ${MAX_CHECKLIST} items`);
-caught(run({ plan: base.plan.replace('4. Every figure in the plan', '4. Most figures in the plan') }), 'checklist', "PLAN.md's copy drifts from CHECKLIST.md");
+// a copy that stays must match (PLAN.md points to the file since 26 Sep: the copy is planted here)
+{ const withCopy = c => `${base.plan}\n<!-- checklist:start -->\n${c}\n<!-- checklist:end -->\n`;
+  caught(run({ plan: withCopy(base.checklist.replace('4. Every figure in the plan', '4. Most figures in the plan')) }), 'checklist', "PLAN.md's copy drifts from CHECKLIST.md");
+  ok(!run({ plan: withCopy(base.checklist) }).some(e => e.startsWith('[checklist]')), 'a word-for-word copy still passes'); }
+{ const noBlock = base.plan.replace(/<!-- checklist:start -->[\s\S]*?<!-- checklist:end -->/, 'The checklist: research/solver/CHECKLIST.md.');
+  ok(!run({ plan: noBlock }).some(e => e.startsWith('[checklist]')), 'one copy: a plan that points to CHECKLIST.md instead of copying it passes');
+  caught(run({ plan: noBlock.replace(/research\/solver\/CHECKLIST\.md/g, 'the checklist file') }), 'checklist', 'a plan with neither the copy nor a pointer to the file'); }
 // variables
 caught(run({ rules: base.rules.replace('| 7 | The market world', '| 7 | The market') }), 'variables', "RULES.md's table drifts from fair-variables.mjs");
 // clock
@@ -54,8 +60,8 @@ caught(run({ plan: regRow('an odd number | 25 Sep | Claude | Phase 4 | resolved'
 caught(run({ plan: base.plan.replace('| O2 |', '| O1 |') }), 'register', 'a duplicate id');
 
 // bugs
-caught(run({ plan: base.plan.replace('### Bugs found and fixed on 24 Sep\n', '### Bugs found and fixed on 24 Sep\n\n- **A planted bug** with no sweep line.\n') }), 'bugs', 'a bug entry with no "Same pattern searched:"');
-ok(!run({ plan: base.plan.replace('### Bugs found and fixed on 23 Sep\n', '### Bugs found and fixed on 23 Sep\n\n- **An old bug** from before the rule.\n') }).some(e => e.startsWith('[bugs]')), 'bug entries before 24 Sep are not held to the new rule');
+caught(run({ plan: base.plan.replace('### Bugs found on 26 Sep\n', '### Bugs found on 26 Sep\n\n- **A planted bug** with no sweep line.\n') }), 'bugs', 'a bug entry with no "Same pattern searched:"');
+ok(!run({ plan: base.plan.replace('### Bugs found on 26 Sep\n', '### Bugs found and fixed on 23 Sep\n\n- **An old bug** from before the rule.\n\n### Bugs found on 26 Sep\n') }).some(e => e.startsWith('[bugs]')), 'bug entries before 24 Sep are not held to the new rule (a 23 Sep section planted: the real ones are in PLAN-HISTORY.md since 26 Sep)');
 
 // schedule
 // a made-up pending row, so the planted fault never depends on a live row's state (it used to edit 7b, which then finished)
@@ -66,7 +72,7 @@ ok(!run({ plan: base.plan.replace(planted, '| 9z | **A planted run** (`batch-pla
 
 // predictions named in the plan
 caught(run({ plan: base.plan + '\nSee `predictions/not-there.md`.\n' }), 'predictions', 'a named prediction that does not exist');
-caught(run({ readSolverFile: p => (p === 'predictions/m14b.md' ? read(p).replace('## Falsified if', '## Something else') : read(p)) }), 'predictions', 'a named prediction that fails its own check');
+caught(run({ plan: base.plan + '\nSee `predictions/m14b.md`.\n', readSolverFile: p => (p === 'predictions/m14b.md' ? read(p).replace('## Falsified if', '## Something else') : read(p)) }), 'predictions', 'a named prediction that fails its own check (the mention planted too: the plan stopped naming m14b.md when its 24 Sep rows moved to PLAN-HISTORY.md)');
 
 // finished work
 caught(run({ plan: base.plan + '\n## Step 99 (COMPLETED 25 Sep)\n' }), 'finished', 'a COMPLETED section left in the plan');
@@ -93,6 +99,15 @@ ok(checkPredictionText(good, { name: 'm14b.md' }).length === 0, 'a complete pred
 const pErr = t => checkPredictionText(t, { name: 'm14b.md' });
 ok(pErr(good.replace(/\| 13 \|(.*)\| TESTED[^|]*\|/, '| 13 |$1| SAME |')).some(e => /TESTED/.test(e)), 'planted: a test with no TESTED row is refused');
 ok(pErr(good.replace(/^\| 22 \|.*\n/m, '')).some(e => /variable 22/.test(e)), 'planted: a missing fair-test row is refused');
+// the SAME rows may go behind one line (the maintainer, 26 Sep 18:02 UK: "Do all")
+{
+  const declare = t => t.replace(/(## Fair-test table[\s\S]*?\n)(\n## )/, '$1\n- **All other rows: SAME**\n$2');
+  const sameOut = t => t.split('\n').filter(l => !(/^\|\s*\d+\s*\|/.test(l) && /\|\s*SAME\b[^|]*\|\s*$/.test(l))).join('\n');
+  ok(pErr(declare(sameOut(good))).every(e => !/has no row/.test(e)), 'a table of only its non-SAME rows passes with "All other rows: SAME"');
+  ok(pErr(sameOut(good)).some(e => /has no row/.test(e)), 'planted: the same table without the line is refused');
+  ok(pErr(declare(sameOut(good).split('\n').filter(l => !/^\|\s*\d+\s*\|.*\|\s*TESTED\b/.test(l)).join('\n'))).some(e => /at least one TESTED row/.test(e)), 'planted: the line does not excuse a test with no TESTED row');
+  ok(pErr(declare(good.replace(/^(\| 26 \|[^\n]*\| )N\/A[^|]*\|$/m, '$1N/A |'))).some(e => /26: N\/A needs a reason/.test(e)), 'planted: a written N/A row still needs its reason');
+}
 ok(pErr(good.replace(/^(\| 5 \|[^|]*\|)[^|]*\|/m, '$1 ? |')).some(e => /"\?"/.test(e)), 'planted: a "?" left in the table is refused');
 ok(pErr(good.replace(/N\/A - the solver against itself; no rival arm/, 'N/A')).some(e => /needs a reason/.test(e)), 'planted: N/A without a reason is refused');
 ok(pErr(good.replace('## Changes after seeing results', '## Notes')).some(e => /Changes after seeing results/.test(e)), 'planted: no "Changes after seeing results" section is refused');

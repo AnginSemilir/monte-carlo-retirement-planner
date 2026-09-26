@@ -55,7 +55,41 @@ export function shellCode(cmd) {
     .replace(/(^|[\s;&|])#[^\n]*/g, '$1');
 }
 
-const WRITE_VERB = /(^|[\s;&|(])(sed\s+(-[a-zA-Z]*\s+)*-i|perl\s+-[a-zA-Z]*i|tee\b|mv\b|cp\b|rm\b|truncate\b|chmod\b|ln\b|install\b|dd\b|git\s+(checkout|restore)\b|python3?\s|node\s+(-e|--eval|--input-type|-)\b)/;
+/*
+ * WHAT WRITES A FILE (the maintainer, 26 Sep 18:02 UK: "Do all" - narrow the lock to actual writes). Until then a command
+ * was refused when it named an enforcement file anywhere and held a write-looking word anywhere (python3, cp, ...), so
+ * reading review-log.md in a script, or running check-plan.mjs beside an edit of PLAN.md, was refused (six times on 26 Sep).
+ * Now a command is refused only where an enforcement file is a write TARGET: a redirect into it; the file argument of sed -i,
+ * perl -i, tee, rm, unlink, truncate, chmod, chown, touch, shred, patch, mv (either end) or dd of=; the destination of cp,
+ * install, ln or rsync; a path after git checkout, restore, rm or mv; or an inline python or node program (a here-document
+ * fed to it, or its -c / -e text) that names the file and makes a write call. A program that builds the path from pieces, or
+ * a script written to a file and then run, is not seen (RULES.md known limits 1 and 5).
+ */
+const ANY_ARG = /^(sed|perl|tee|rm|unlink|truncate|chmod|chown|touch|shred|patch|mv)$/, DEST_ARG = /^(cp|install|ln|rsync)$/;
+const WRITE_CALL = /\bopen\s*\([^)]*,\s*(mode\s*=\s*)?['"]([wax]|r\+)|\.write_(text|bytes)\s*\(|\bshutil\.(copy\w*|move|rmtree)\s*\(|\bos\.(remove|unlink|rename|replace|truncate)\s*\(|\b(writeFileSync|appendFileSync|rmSync|unlinkSync|renameSync|copyFileSync|cpSync|truncateSync|writeFile|appendFile|createWriteStream)\s*\(/;
+// the words of a part, quotes kept together and taken off
+const words = part => [...part.matchAll(/'([^']*)'|"((?:\\.|[^"\\])*)"|(\S+)/g)].map(m => (m[1] !== undefined ? m[1] : m[2] !== undefined ? m[2] : m[3]));
+// the bodies of here-documents fed to python or node, and their -c / -e programs
+export function inlinePrograms(raw) {
+  const out = [];
+  for (const m of raw.matchAll(/^([^\n]*?)<<-?[ \t]*(['"]?)(\w+)\2[^\n]*\n([\s\S]*?)\n[ \t]*\3[ \t]*$/gm)) if (/(^|[\s;&|(])(\S*\/)?(python3?|node)(\s+-\S*)*\s*(-\s*)?$/.test(m[1])) out.push(m[4]);
+  for (const m of raw.matchAll(/(?:^|[\s;&|(])(?:\S*\/)?(?:python3?\s+(?:-\w+\s+)*-c|node\s+(?:-\w+\s+)*(?:-e|--eval|-p|--print))\s+(?:'([^']*)'|"((?:\\.|[^"\\])*)")/g)) out.push(m[1] !== undefined ? m[1] : m[2]);
+  return out;
+}
+// does a command write an enforcement file? `prot` says whether a path (or a folder holding one) is protected
+export function writesProtected(raw, prot) {
+  const text = raw.replace(HEREDOC, ' <<HEREDOC ');
+  for (const part of text.split(/&&|\|\||;|\||\n|\$\(|`|\(|\)|&/).map(x => x.trim()).filter(Boolean)) {
+    const w = words(commandOf(part)), cmd = (w[0] || '').replace(/^.*\//, ''), args = w.slice(1), files = args.filter(a => !/^-/.test(a));
+    if (cmd === 'sed' && !args.some(a => /^-[a-zA-Z]*i|^--in-place/.test(a))) continue;
+    if (cmd === 'perl' && !args.some(a => /^-[a-zA-Z]*i/.test(a))) continue;
+    if (ANY_ARG.test(cmd) && files.some(prot)) return true;
+    if (DEST_ARG.test(cmd) && files.length && prot(files[files.length - 1])) return true;
+    if (cmd === 'dd' && args.some(a => /^of=/.test(a) && prot(a.slice(3)))) return true;
+    if (cmd === 'git' && /^(checkout|restore|rm|mv)$/.test(files[0] || '') && files.slice(1).some(prot)) return true;
+  }
+  return inlinePrograms(raw).some(prog => WRITE_CALL.test(prog) && PROTECTED.some(p => prog.includes(p.replace(/\/$/, ''))));
+}
 
 /* the text of the maintainer's latest typed message, from the tail of the session transcript */
 export function lastHumanText(transcriptText) {
@@ -218,8 +252,9 @@ export function decide(input, { root = process.cwd(), tracked = () => false, unl
   // an edit to the enforcement made through the shell
   const redirect = [...code.matchAll(/>>?\s*([^\s;&|]+)/g)].map(m => m[1]).filter(t => !/^&?\d$/.test(t) && t !== '/dev/null');
   if (redirect.some(t => isProtected(rel(t)))) return unlocked ? null : deny(LOCKED('The file this redirects into'));
-  const mentioned = PROTECTED.filter(p => raw.includes(p.replace(/\/$/, '')));
-  if (mentioned.length && WRITE_VERB.test(code)) return unlocked ? null : deny(LOCKED(`This command may change ${mentioned.join(', ')}, which`));
+  // a path, or a folder that holds an enforcement file (cp x .claude/hooks)
+  const prot = t => { const r = rel(t).replace(/\/$/, ''); return isProtected(r) || PROTECTED.some(p => p.startsWith(r + '/')); };
+  if (writesProtected(raw, prot)) return unlocked ? null : deny(LOCKED('This command writes an enforcement file, which'));
   return null;
 }
 

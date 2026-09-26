@@ -49,6 +49,24 @@ remembers them, and every one looks at files, not at what was said about them. I
    otherwise it is MINOR (maintainer, 24 Sep 13:44 UK).
 5. **`CLAUDE.md` and the checklist**, which say what to do; 1-4 make sure it is done.
 
+**Loosened on 26 Sep** (the maintainer, 18:02 UK: "Do all", on five proposals weighed against the reviews' record - 77
+reviews, 131 BLOCKING and 337 MINOR findings, about a third of them on prose times or the enforcement's own wording; the
+count is a rough keyword split, grade C): (1) times come from the records (commits, runs.log, receipts); prose gives one
+only where the order of events matters, and the plan-auditor no longer reports a prose time elsewhere; (3) the pre-tool hook
+refuses a command only where an enforcement file is a write TARGET (a redirect, a writing command's file, git checkout or
+restore, an inline program's write call), not wherever one is named beside a write-looking word - it had refused six
+read-only or unrelated commands on 26 Sep (hooks.test.mjs: those pass, fifteen kinds of write are still refused); (4) a
+prediction's fair-test table may leave out the rows that are SAME behind the line "All other rows: SAME" - every other status
+is still written with its reason, and the reducers' gates still check the settings the runs print; (5) one copy of the
+checklist: PLAN.md points to CHECKLIST.md (a copy that stays must still match word for word). Not done: (2), a plan review
+only at gates (a registration, a settled result, a default change) with the launcher requiring a PASS receipt - the Stop
+hook's change was refused by the session's auto-mode permission classifier as self-modification of an oversight hook, and
+is left to the maintainer (the launcher half made sense only with it). What stays: predictions before runs, the fair-test
+gates, planted faults, exact tests and Holm, the unmasking rule, the deep review, and the plan review after every plan
+change. Found while re-anchoring the checker's planted tests after the move: check-plan.mjs's bug-sweep check read only
+headings "Bugs found and fixed on", so the section "Bugs found on 26 Sep" had never been checked; it now reads both (the
+section's entries all carry their "Same pattern searched:" line - check-plan passes on it).
+
 **What none of this can do.** A deliberate workaround cannot be stopped by a script; the receipts, the prediction
 files and the run log sit in git where the maintainer can see them. The Stop hook lets a turn end after three blocks for
 the same reason, with a warning (so a check only the maintainer can clear does not burn the session), which is why CI and
@@ -443,7 +461,7 @@ The rules this adds:
    verdict in the Derivation (7s missed 7h).
 
 **Enforced by** (built under the maintainer's unlock of 26 Sep 16:47 UK, from drafts/unmasking-proposal.md, with two departures
-from the draft named below and put to the maintainer to keep or revert):
+from the draft named below, kept by the maintainer with the other extras, 26 Sep 18:02 UK: "Do all"):
 checklist items 1, 2 and 11; check-prediction.mjs's "Unmasking:" field, required of every test written after it (planted
 tests in research/tests/plan-checker.test.mjs); the plan-auditor's section 9 checks (a harm or FALSIFIED verdict on a fix
 of a known error with no decomposition, a "next fix of the same kind" consequence, a family at three with no scheduled

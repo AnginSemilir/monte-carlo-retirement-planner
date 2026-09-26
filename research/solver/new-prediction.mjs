@@ -47,7 +47,8 @@ What the mathematics and the existing records say, with the scripts that compute
 
 Arm A and arm B as the batch script sets them. SAME, TESTED (the one thing that differs), ONE ARM ONLY (a setting
 only one arm has - say why that is fair), N/A (does not apply here - say why) or ACCEPTED (differs, and why that
-does not bias the comparison).
+does not bias the comparison). Rows that are SAME may be deleted: then keep the line "- **All other rows: SAME**" below the
+table (every other status is written out, with its reason).
 
 ${blankTable()}
 

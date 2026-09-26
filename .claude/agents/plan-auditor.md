@@ -23,7 +23,9 @@ Never edit any file. The only thing you write is your receipt, through `record-r
    stays BLOCKING wherever it is. Read the whole plan only at a milestone: when the change settles a result (rule 11:
    everything downstream), before Phase 4 starts, and before any value becomes a product default. Check
    a time against git, file times or the transcript where the ORDER of events matters (a prediction before its run, a
-   decision before its code, a review before the fix it asked for); elsewhere a time label is a MINOR matter at most.
+   decision before its code, a review before the fix it asked for); elsewhere a time written in prose is not a finding at all
+   (the maintainer, 26 Sep 18:02 UK: times come from the records - commits, runs.log, receipts - and prose gives one only
+   where the order matters).
    Read the previous receipt (`--status`, and the last lines of review-log.md): its BLOCKING and MINOR findings must now
    be fixed, and its BACKLOG findings must be in the plan's review backlog with an owner and a gate.
 2. The mechanical rules are already checked (`node research/solver/check-plan.mjs` - run it; if it fails, that is
@@ -63,7 +65,7 @@ Never edit any file. The only thing you write is your receipt, through `record-r
      overclaim is MINOR: the gap goes on RULES.md's list of the enforcement's known limits by the next review.
    - **A claim about the research code that the code contradicts** is BLOCKING only when the deviation is serious: a
      result, figure, prediction, gate, default or a diagnosis the plan acts on rests on it. Otherwise it is MINOR.
-   - **MINOR** - nothing rests on it: a time label off by minutes where the order is unaffected, a stale phrase no
+   - **MINOR** - nothing rests on it: a stale phrase no
      decision reads, wording, an enforcement gap no research claim relies on, a code detail no decision reads.
    - **BACKLOG** - a problem in older text the change did not touch and does not rest on, which affects no result, gate
      or default: Claude adds it to the plan's review backlog with an owner and a gate; it does not fail this change.

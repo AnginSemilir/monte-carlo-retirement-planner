@@ -5,7 +5,8 @@
  *   node research/solver/check-prediction.mjs research/solver/predictions/<name>.md [...]
  *
  * A prediction file must have: the title; Run, Kind (test | measurement) and Written fields; non-empty Question,
- * Prediction and Falsified if sections; the fair-test table with one row for every variable in fair-variables.mjs,
+ * Prediction and Falsified if sections; the fair-test table with one row for every variable in fair-variables.mjs (or every
+ * row that is not SAME, with the line "- **All other rows: SAME**": the maintainer, 26 Sep 18:02 UK),
  * each marked SAME, TESTED, ONE ARM ONLY, N/A or ACCEPTED (the last three with a reason), no "?" left, and at least
  * one TESTED row for a test; and a "Changes after seeing results" section (rule 11: a change made after any result
  * is in is declared there, never made quietly).
@@ -142,7 +143,11 @@ export function checkPredictionText(text, { name } = {}) {
     if (!st) errs.push(`fair-test row ${n}: status must start with one of ${PRED_STATUSES.join(' / ')}`);
     else if (st !== 'SAME' && st !== 'TESTED' && cells[4].replace(/^[A-Z/ ]+/, '').replace(/^[\s:,-]+/, '').length < 8) errs.push(`fair-test row ${n}: ${st} needs a reason after it`);
   }
-  for (const v of VARIABLES) if (!seen.has(v.n)) errs.push(`fair-test table has no row for variable ${v.n} (${v.name.slice(0, 40)})`);
+  // THE SAME ROWS MAY GO (the maintainer, 26 Sep 18:02 UK: "Do all"): a table that says "- **All other rows: SAME**" may leave out
+  // the variables that are the same in both arms; every row that is TESTED, ONE ARM ONLY, N/A or ACCEPTED is still written,
+  // with its reason, and the reducers' gates still check the settings the runs print
+  const allSame = /^\s*-?\s*\**\s*All other rows:?\s*\**\s*SAME\b/im.test(table);
+  if (!allSame) for (const v of VARIABLES) if (!seen.has(v.n)) errs.push(`fair-test table has no row for variable ${v.n} (${v.name.slice(0, 40)}) - write it, or leave out only rows that are SAME and add the line "- **All other rows: SAME**"`);
   if (kind && /^test/i.test(kind) && ![...seen.values()].some(c => (c[4] || '').toUpperCase().startsWith('TESTED'))) errs.push('a test needs at least one TESTED row - the thing it is about');
   return errs;
 }

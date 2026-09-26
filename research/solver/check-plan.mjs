@@ -8,7 +8,7 @@
  *   node research/solver/check-plan.mjs --range A..B commit B; new lines are those added between A and B (CI)
  *
  * WHOLE-FILE CHECKS
- *   checklist   PLAN.md's checklist block is word for word research/solver/CHECKLIST.md, which has at most 12 items
+ *   checklist   PLAN.md points to research/solver/CHECKLIST.md (or carries a word-for-word copy); the file has at most 12 items
  *   variables   RULES.md's variable table is exactly fair-variables.mjs's list
  *   clock       PLAN.md declares its clock (UK time)
  *   ledger      every re-look ledger row has an evidence cell: results files that exist, the fair-test outcome and the
@@ -93,9 +93,11 @@ export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, 
   const items = checklist.split('\n').filter(l => /^\s*\d+\.\s/.test(l));
   if (!items.length) err('checklist', 'CHECKLIST.md has no numbered items');
   if (items.length > MAX_CHECKLIST) err('checklist', `CHECKLIST.md has ${items.length} items; at most ${MAX_CHECKLIST} (long rule lists are followed less - RULES.md)`);
+  // ONE COPY (the maintainer, 26 Sep 18:02 UK: "Do all"): PLAN.md points to CHECKLIST.md instead of carrying a copy; a copy
+  // that is still there must match word for word, so the two can never drift
   const block = between(plan, '<!-- checklist:start -->', '<!-- checklist:end -->');
-  if (block === null) err('checklist', 'PLAN.md has no <!-- checklist:start --> ... <!-- checklist:end --> block');
-  else if (norm(block) !== norm(checklist)) err('checklist', "PLAN.md's checklist block differs from research/solver/CHECKLIST.md (copy it across word for word)");
+  if (block === null) { if (!/research\/solver\/CHECKLIST\.md/.test(plan)) err('checklist', 'PLAN.md neither points to research/solver/CHECKLIST.md nor carries its copy'); }
+  else if (norm(block) !== norm(checklist)) err('checklist', "PLAN.md's checklist block differs from research/solver/CHECKLIST.md (copy it across word for word, or replace the block with a pointer to the file)");
 
   // variables
   const vt = between(rules, '<!-- variables:start -->', '<!-- variables:end -->');
@@ -167,7 +169,9 @@ export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, 
   // bugs
   const lines = plan.split('\n');
   for (let i = 0; i < lines.length; i++) {
-    const m = /^###\s+Bugs found and fixed on (\d+) Sep/.exec(lines[i]);
+    // "Bugs found on" as well as "Bugs found and fixed on": the 26 Sep section's heading had escaped the check (found 26 Sep
+    // while re-anchoring its planted test)
+    const m = /^###\s+Bugs found(?: and fixed)? on (\d+) Sep/.exec(lines[i]);
     if (!m || Number(m[1]) < BUG_SWEEP_FROM) continue;
     let k = i + 1, cur = null;
     const bullets = [];

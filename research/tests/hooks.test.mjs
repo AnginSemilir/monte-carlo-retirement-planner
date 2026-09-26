@@ -57,6 +57,25 @@ ok(is(bash("python3 - <<'EOF'\nopen('research/solver/fair-gate.mjs','w').write('
 ok(is(bash('cat research/solver/check-plan.mjs'), null), 'reading the checker goes ahead');
 ok(is(bash('node research/solver/check-plan.mjs > /tmp/out.txt'), null), 'running the checker with its output redirected elsewhere goes ahead');
 ok(is(bash("python3 - <<'EOF'\nopen('research/solver/PLAN.md','w')\nEOF"), null), 'an inline edit of the plan itself goes ahead (the post-tool check runs)');
+// the lock narrowed to actual writes (the maintainer, 26 Sep 18:02 UK: "Do all"): reading or naming a locked file goes ahead,
+// writing one is refused - by redirect, a writing command's target, git checkout/restore, or an inline program's write call
+ok(is(bash("python3 - <<'EOF'\np='research/solver/PLAN.md'; s=open(p).read(); open(p,'w').write(s)\nEOF\nnode research/solver/check-plan.mjs 2>&1 | tail -3"), null), "an edit of the plan and a run of the checker in one command go ahead (refused five times on 26 Sep)");
+ok(is(bash("python3 - <<'EOF'\nfor l in open('research/solver/review-log.md'): print(l[:40])\nEOF"), null), 'a script that reads the review log and prints goes ahead');
+ok(is(bash('node research/solver/check-prediction.mjs research/solver/predictions/diag-7t.md && sed -n 1,5p research/solver/check-plan.mjs'), null), 'running the checkers and reading one with sed -n goes ahead');
+ok(is(bash('cp research/solver/check-plan.mjs /tmp/copy.mjs && git diff research/solver/fair-gate.mjs'), null), 'copying a locked file out and diffing one goes ahead');
+const W = [
+  ["python3 - <<'EOF'\nopen('research/solver/review-log.md','a').write('x')\nEOF", 'an inline python append to the review log'],
+  ["python3 - <<'EOF'\np='research/solver/check-plan.mjs'\ns=open(p).read()\nopen(p,'w').write(s)\nEOF", 'an inline python write through a variable holding a locked path'],
+  ["node -e \"require('fs').writeFileSync('research/solver/fair-gate.mjs','')\"", 'node -e writing the gate'],
+  ["python3 -c \"import shutil; shutil.copy('/tmp/x','.claude/hooks/stop-check.mjs')\"", 'python -c copying over a hook'],
+  ['cp /tmp/x research/solver/check-plan.mjs', 'cp onto the checker'], ['cp /tmp/x .claude/hooks', 'cp into the hooks folder'],
+  ['mv research/solver/check-plan.mjs /tmp/x', 'mv of the checker away'], ['rm -f research/solver/review-log.md', 'rm of the review log'],
+  ['git checkout HEAD -- research/solver/fair-gate.mjs', 'git checkout of the gate'], ['git restore research/solver/CHECKLIST.md', 'git restore of the checklist'],
+  ['echo x | tee -a research/solver/review-log.md', 'tee -a into the review log'], ['dd if=/dev/zero of=research/solver/check-plan.mjs count=1', 'dd of= the checker'],
+  ["perl -pi -e 's/a/b/' research/solver/check-plan.mjs", 'perl -i on the checker'], ["bash -c 'rm research/solver/check-plan.mjs'", "rm inside bash -c '...'"],
+  ['touch research/solver/deep-review-log.md', 'touch of the deep review log']];
+for (const [c, what] of W) ok(is(bash(c), 'deny') && is(bash(c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);
+
 ok(shellCode("a 'x' \"y\" b") === "a '' \"\" b", 'quoted text is blanked before a command is read');
 // each part of a command is judged on its own (24 Sep: a syntax check elsewhere in the line exempted a launch)
 ok(is(bash('bash -n research/solver/smoke.sh && timeout 300 node research/solver/audit-s126.mjs ids S126 6 20'), 'deny'), 'planted: a launch after a syntax check in the same line is still refused');

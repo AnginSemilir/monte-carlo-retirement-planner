@@ -12,7 +12,8 @@ launcher, the reducers and CI enforce them. This is the order to work in.
 1. Derive first: can the mathematics state the answer? Do the existing records already contain it (fair-test those
    files before reading them)? Only then run.
 2. `node research/solver/new-prediction.mjs <name> <batch-script>`; fill the question, derivation, prediction,
-   falsifier and every row of the fair-test table (arm A, arm B, SAME / TESTED / ONE ARM ONLY / N/A / ACCEPTED), and the
+   falsifier and the fair-test table's rows (arm A, arm B, SAME / TESTED / ONE ARM ONLY / N/A / ACCEPTED; rows that are SAME
+   may be left out behind the line "- **All other rows: SAME**"), and the
    regimen's fields (RULES.md section 8): decision rule (exact test, margin, Holm, three outcomes, looks), decision fed
    (held, falsified, inconclusive), provenance, derivation script (a committed script, its output's hash on a
    `derive:` line), point and interval, credence, power (from the nearest records, by script), budget line, pre-mortem.

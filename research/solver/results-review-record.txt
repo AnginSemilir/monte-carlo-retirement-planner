@@ -1,0 +1,16 @@
+THE PLAN REVIEWS' RECORD (review-log.md's receipts; the kinds are a rough keyword split, grade C)
+receipts 77 PASS 32 FAIL 45
+findings by severity BACKLOG 13, BLOCKING 131, MINOR 337
+  BACKLOG   a result, rule, prediction or default: 9
+  BACKLOG   a time or date: 2
+  BACKLOG   the enforcement itself (hooks, checker, gate, smoke): 7
+  BLOCKING  a result, rule, prediction or default: 69
+  BLOCKING  a time or date: 21
+  BLOCKING  the enforcement itself (hooks, checker, gate, smoke): 35
+  BLOCKING  wording, staleness or overclaim: 19
+  MINOR     a figure without its file: 3
+  MINOR     a result, rule, prediction or default: 161
+  MINOR     a time or date: 84
+  MINOR     the enforcement itself (hooks, checker, gate, smoke): 83
+  MINOR     wording, staleness or overclaim: 83
+PLAN.md lines: 1603 ; commits touching PLAN.md: 242

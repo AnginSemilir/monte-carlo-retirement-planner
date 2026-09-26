@@ -1,4 +1,4 @@
-true reducer: planted (29): all read as they should
+true reducer: planted (38): all read as they should
 caught  the tier above ranked least risky: the tier above ranks riskier than the plan's, the plan's than two below read false, should read true
 caught  pension and ISA swapped in the tier code: code 13 is the pension one above and the ISA one below read {"pen":1,"isa":3}, should read {"pen":3,"isa":1}
 caught  a tier-lift path needs every year riskier, not half: a bridge of 1 year: the path fails after it, a tier-lift path read 1 0, should read 1 1; a bridge of 2 years: the path fails in the first year of access, after the brid
@@ -7,13 +7,19 @@ caught  a failed path keeps its end wealth: a failed path counts 0 end wealth: u
 caught  the paired end wealth over every path, not the paths both survive: end wealth paired over the one path both survive: 40 - 30 read 3 10, should read 1 10
 caught  the median's interval at alpha, not alpha/2: the median's exact 97.5% interval over 0..2999 is about the middle 2.24 sd (1438 to 1561) read 1445 1554, should read 1438 1561
 caught  estate bought without the margin on the point: estate: interval above 0 and median at the margin buys estate; upper end under the margin buys nothing; above 0 with the point under the margin is inconclusive read buy
-caught  item 1 without Holm: item 1 reads Holm: 5 lost, 0 saved on each (p 0.031 raw, 0.062 after Holm) is not harm read true, should read false
-caught  too few lost paths not checked: decide: 5 lost paths in all is too few even with the harm read on one case (items() cannot reach this under Holm over two: one case harmed needs 6 lost there) read HELD
-caught  the falsifier at two-thirds, not half: 14 of 24 tier-lift: INCONCLUSIVE read FALSIFIED, should read INCONCLUSIVE
+caught  item 1 without Holm: item 1 reads Holm over the two: 5 lost, 0 saved on each (0.031 raw, 0.062 after Holm) is harm on neither read true,true, should read false,false
 caught  the gate does not read the bridge read: S366 under v1 must read bridgeRead true in its ran line read false, should read true
 caught  the gate does not read the seed: a log with the wrong seed fails the gate read false, should read true
+caught  the swap read without Holm over its four comparisons: decide adjusts over the four swap comparisons: S126's RTIER at 6 lost, 0 saved (0.016 raw) carries nothing after Holm, so no case reads tier read HELD, should read INCO
+caught  carrying none read by significance, not the interval: Holm over the four swap comparisons: 6 lost, 0 saved (raw 0.016, 0.062 after Holm) does not carry it read unresolved, should read neither; carrying none is read by the 
+caught  the tier and the rest swapped in the reading: the tier carries it on both cases: HELD read FALSIFIED, should read HELD; the rest carries it on both cases: FALSIFIED read HELD, should read FALSIFIED; a case where th
+caught  a case read though the reader showed no harm there: the reader harms neither case on these paths: INCONCLUSIVE, whatever the swaps show read HELD, should read INCONCLUSIVE; a case where the reader shows no harm is not re
+caught  HELD allowed where both carry the harm: both carry it on one case: INCONCLUSIVE read HELD, should read INCONCLUSIVE
+caught  O23 closed whenever it is not replicated: O23 read three ways: replicated; closes (1 lost, 1 saved: inside the margin); stays open (10 lost, 5 saved: p 0.15, lower end -0.38) read replicated|closes: no material
+caught  the gate ignores a swap arm's difference after the bridge: a swap arm with a difference in the last bridge year or after fails the gate read false, should read true
+caught  the swap line's access year misread: the swap line is read from the log read {"RTIER":{"swapped":3000,"late":0,"access":0}}, should read {"RTIER":{"swapped":3000,"late":0,"access":2}}
 caught  a trace's stamp is not compared with the logs': the stamp line read; a trace stamped as the logs are agrees; one from other code, another prediction version, or with no stamp, does not read research/solver/prediction
 caught  the prediction's version (its sha) not compared: the stamp line read; a trace stamped as the logs are agrees; one from other code, another prediction version, or with no stamp, does not read research/solver/prediction
 caught  the stamp line's prediction read from the wrong field: the stamp line read; a trace stamped as the logs are agrees; one from other code, another prediction version, or with no stamp, does not read 08477342e8c5 true false fa
 
-16 mutations: every one caught
+22 mutations: every one caught

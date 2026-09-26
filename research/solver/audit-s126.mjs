@@ -23,6 +23,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solve, solvePlan, runPolicy } from '../../src/solver/solve.js';
+import { swapChooser } from './swap.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { makeTrace } from './record.mjs';
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
@@ -158,7 +159,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
   // the held paths' seed and count sit after pts (added 25 Sep for 7e, which runs on held-out paths; smoke.sh's greps read around them)
   const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
-  return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran, reader: r.meta.reader || null };
+  return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran, reader: r.meta.reader || null, r, paths };
 }
 if (mode === 'f1v2') {
   // the cases, in a fixed order; `part k/n` runs every n-th from the k-th, so a batch can split them across processes
@@ -282,13 +283,31 @@ if (mode === 'f1v2') {
    * allowed and the final year exact in every arm, three worlds, lambda held at S126's), each case solved with its named
    * arms on the same paths, the per-year trace kept for every arm. The panel is fixed here, as the prediction registers
    * it: the two harmed cases, two contrasts the reader lifted as far with no loss, and S366 under v1 (O23).
+   * THE SWAP ARMS (the sixty-sixth review's BLOCKING 1, 26 Sep): on S126 and bridge 4, two more arms run forward on the
+   * same paths from the two tables already solved, no new solve. In each year before pension access both choosers pick a
+   * move from the arm's own state and tiers held; RTIER takes the reader's tiers with off's order, harvest and spending
+   * level, RREST off's tiers with the reader's order, harvest and level (the move list holds every tier pair under each
+   * such base: solve.js buildActions, tierBase). From access on, both pick off's move, which the reader's move equals there
+   * (the reader reads only tables of years before access); the run counts any year at or after the last bridge year where
+   * the two differ, which the derivation says is none. Whichever arm reproduces the reader's harm carries it.
    *   node research/solver/audit-s126.mjs diag7r [points] [paths] part k/n [seed=7002]
    * Prints 7e's line format per case (so reduce-7r.mjs reuses 7e's parser and gate) and writes each arm's trace to
    * results/diag7r/<case>-<arm>.json.gz, stamped as the log is (reduce-7r.mjs checks the two agree), or to DIAG7R_OUT when
    * set: smoke.sh's run sets it, so a smoke run never overwrites 7r's own traces.
    */
   const ARM = { off: false, v1: 1, v2: 2, reader: 'reader' };
-  const PANEL = [['S126', 'off,reader'], ['bridge 4', 'off,reader'], ['S120', 'off,reader'], ['wealth x2', 'off,reader'], ['S366', 'off,v1']];
+  const PANEL = [['S126', 'off,reader,rtier,rrest'], ['bridge 4', 'off,reader,rtier,rrest'], ['S120', 'off,reader'], ['wealth x2', 'off,reader'], ['S366', 'off,v1']];
+  // a swap arm: off's solve run forward with swap.mjs's chooser (the tiers from one table's move, the rest from the other's)
+  const swapArm = (off, rd, which) => {
+    const t0 = Date.now(), rO = off.r, T = rO.m.ctx.totalYears;
+    const { choose, n, accessAt } = swapChooser(rO, rd.r, which);
+    let ok = 0, below = 0, tierYrs = 0;
+    const okArr = new Uint8Array(NP), tr = makeTrace(NP, T + 1);
+    off.paths.forEach((zs, i) => { tr.row = i; const o = runPolicy(rO, zs, { trace: tr, choose }); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
+    const sim = 100 * ok / NP;
+    return { a0: off.a0, B: off.B, inClass: off.inClass, table: NaN, sim, gap: NaN, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000,
+      ran: off.ran.replace(/ bridgeRead false$/, ` bridgeRead swap-${which === 'rtier' ? 'tier' : 'rest'}`), swap: `moves swapped ${n.swapped}, differing in the last bridge year or at access ${n.late}, access at year ${accessAt}` };
+  };
   const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
   const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
   const SEED = process.argv[7] ? Number(process.argv[7]) : 7002;
@@ -305,7 +324,9 @@ if (mode === 'f1v2') {
     const h = byId(id)();
     if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
     const names = armList.split(','), labels = names.map(a => a.toUpperCase());
-    const res = names.map(a => measureV2(h, ARM[a], 5, { finalIntegral: true, riskAbove: true, trace: true, seed: SEED }));
+    const res = [];
+    names.forEach(a => res.push(a === 'rtier' || a === 'rrest' ? swapArm(res[names.indexOf('off')], res[names.indexOf('reader')], a)
+      : measureV2(h, ARM[a], 5, { finalIntegral: true, riskAbove: true, trace: true, seed: SEED })));
     const base = res[0];
     const cells = res.map((r, j) => {
       let up = 0, dn = 0; for (let k = 0; k < NP; k++) { if (!base.okArr[k] && r.okArr[k]) up++; else if (base.okArr[k] && !r.okArr[k]) dn++; }
@@ -314,6 +335,7 @@ if (mode === 'f1v2') {
     });
     console.log(`${id.padEnd(16)} a0 ${f1(base.a0, 2)} B ${base.B} class ${base.inClass ? 'YES' : 'no '} | ${cells.join(' | ')}`);
     res.forEach((r, j) => console.log(`${''.padEnd(16)} ran ${labels[j]}: ${r.ran}`));
+    res.forEach((r, j) => { if (r.swap) console.log(`${''.padEnd(16)} swap ${labels[j]}: ${r.swap}`); });
     res.forEach((r, j) => {
       const T = r.tr;
       writeFileSync(join(OUT, `${id.replace(/ /g, '_')}-${names[j]}.json.gz`), gzipSync(JSON.stringify({ id, arm: labels[j], stamp: STAMP, N: NP, Y: T.Y, seed: SEED, table: r.table, sim: r.sim, ran: r.ran,

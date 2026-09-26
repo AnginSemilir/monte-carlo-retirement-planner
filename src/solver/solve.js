@@ -1064,7 +1064,8 @@ export function runPolicy(r, zs, opts = {}) {
     tr.tier[k] = held.pen * 4 + held.isa; tr.wealth[k] = w; tr.penShare[k] = w > 0 ? Math.round(100 * s[0] / w) : 0; tr.taxPaid[k] = taxYear;
   };
   for (let t = st0 ? st0.t : 0; t <= T; t++) {
-    const ai = st0 && t === st0.t ? st0.firstAi : (opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : chooseAction(r, s, t, held));
+    // `choose` (research only, 7r's swap arms): a caller's own chooser in place of the solver's; absent, nothing changes
+    const ai = st0 && t === st0.t ? st0.firstAi : (opts.stored ? pol[Math.min(t, T)][nearestIndex(g, s)] : opts.choose ? opts.choose(t, s, held) : chooseAction(r, s, t, held));
     // M15: the move as run, with the taxable account kept at its tier when the decision said so
     const act = giaOn && r.giaHold >= 0 && !(st0 && t === st0.t) && !opts.stored ? c.actWithGia(ai, r.giaHold) : c.acts[ai];
     if (opts.visit) opts.visit(t, s, held, ai);

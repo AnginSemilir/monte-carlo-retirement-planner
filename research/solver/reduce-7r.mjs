@@ -17,25 +17,29 @@
  *     the first year the arms' moves differ and whether that is a tier or a spending level, and the years before failing
  *     with a riskier pension tier than off's. A TIER-LIFT PATH fails at or after the bridge's end having held a riskier
  *     pension tier than off in at least half its years before failing.
+ * On S126 and bridge 4, two swap arms from the same two tables (audit-s126.mjs diag7r, swap.mjs): RTIER, the reader's tiers
+ * with off's order, harvest and spending level in the bridge years, and RREST, the reverse. THE PRIMARY READ: which of them
+ * reproduces the reader's harm (decide()). The tier-lift paths and the other trace figures are reported, not scored.
  * The prediction's items and its three outcomes are scored below (items(), decide()); a miss is recorded, never re-read.
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
-import { mcnemarHarmP, binomUpperHalf, holm } from './stats.mjs';
+import { mcnemarHarmP, binomUpperHalf, holm, survivalChange } from './stats.mjs';
 import { requireFairLogs } from './fair-gate.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIR = process.argv.slice(2).find(a => !a.startsWith('--')) || join(HERE, 'results', 'diag7r');
 const PRED = 'research/solver/predictions/diag-7r.md';
 const LAMBDA = '0.0223606797749979', SEED = '7002', PATHS = 3000, PTS = 16;
-export const PANEL = [['S126', ['OFF', 'READER']], ['bridge 4', ['OFF', 'READER']], ['S120', ['OFF', 'READER']], ['wealth x2', ['OFF', 'READER']], ['S366', ['OFF', 'V1']]];
+export const PANEL = [['S126', ['OFF', 'READER', 'RTIER', 'RREST']], ['bridge 4', ['OFF', 'READER', 'RTIER', 'RREST']], ['S120', ['OFF', 'READER']], ['wealth x2', ['OFF', 'READER']], ['S366', ['OFF', 'V1']]];
 // the bridge: years from the case's current age to private pension access at 58 (the households' own privatePensionAge;
 // audit-s126.mjs variant() sets the variants' ages to 58 minus their bridge; S120 is 56 and S366 50 in the library)
 export const BRIDGE = { 'S126': 2, 'bridge 4': 4, 'S120': 2, 'wealth x2': 2, 'S366': 8 };
-const BR = { OFF: 'false', V1: 'true', READER: 'reader' };
-export const MIN_LOST = 6, LIFT_HELD = 2 / 3, LIFT_FALSIFIED = 1 / 2, ESTATE_MARGIN = 0.05, ALPHA = 0.05, ESTATE_ALPHA = 0.025;
+const BR = { OFF: 'false', V1: 'true', READER: 'reader', RTIER: 'swap-tier', RREST: 'swap-rest' };
+// MARGIN: off survives 99% or more on S126, bridge 4 and S366 (results-7e.txt), so the regimen's 0.25 points (stats.mjs MARGINS)
+export const ESTATE_MARGIN = 0.05, ALPHA = 0.05, ESTATE_ALPHA = 0.025, MARGIN = 0.25;
 const field = (ran, k) => { const m = new RegExp(`(?:^| )${k} (\\S+)`).exec(ran || ''); return m ? m[1] : null; };
 
 // the logs: case lines and ran lines (7e's format)
@@ -44,9 +48,11 @@ export function parseLog(text) {
   for (const line of text.split('\n')) {
     const r = /^\s+ran (\S+): (.*)$/.exec(line);
     if (r && cur) { cur.ran[r[1]] = r[2]; continue; }
+    const w = /^\s+swap (\S+): moves swapped (\d+), differing in the last bridge year or at access (\d+), access at year (\d+)$/.exec(line);
+    if (w && cur) { cur.swap[w[1]] = { swapped: +w[2], late: +w[3], access: +w[4] }; continue; }
     if (!/ \| \S+ table /.test(line)) continue;
     const parts = line.split(' | ');
-    cur = { id: parts[0].slice(0, 16).trim(), labels: parts.slice(1).map(p => p.split(' ')[0]), ran: {} };
+    cur = { id: parts[0].slice(0, 16).trim(), labels: parts.slice(1).map(p => p.split(' ')[0]), ran: {}, swap: {} };
     cases.push(cur);
   }
   return cases;
@@ -59,6 +65,11 @@ export function gate(cases) {
     if (c.labels.join(',') !== labels.join(',')) bad.push(`${id}: arms ${c.labels.join(',')}, the prediction names ${labels.join(',')}`);
     const strip = s => (s || '').replace(/ bridgeRead \S+/, '');
     for (const l of labels) {
+      if (l === 'RTIER' || l === 'RREST') {
+        const w = (c.swap || {})[l];
+        if (!w) bad.push(`${id}: no swap line for ${l}`);
+        else if (w.late !== 0 || w.access !== BRIDGE[id]) bad.push(`${id}: ${l} differs from off in the last bridge year or after on ${w.late} path-years, access at year ${w.access} (the bridge is ${BRIDGE[id]} years): the swap does not isolate what the prediction says`);
+      }
       const ran = c.ran[l];
       if (!ran) { bad.push(`${id}: no ran line for ${l}`); continue; }
       if (strip(ran) !== strip(c.ran[labels[0]])) bad.push(`${id}: ${l} differs beyond the bridge read`);
@@ -149,28 +160,47 @@ export function compare(A, B, bridge) {
 }
 
 // the prediction's items and outcome (predictions/diag-7r.md, Decision rule): res maps each case id to compare()'s result
-export function items(res) {
-  const harmed = ['S126', 'bridge 4'], hp = holm(harmed.map(id => res[id].p));
-  const reproduced = harmed.map((id, j) => res[id].lost > res[id].saved && hp[j] < ALPHA);
-  const pooledLost = harmed.reduce((t, id) => t + res[id].lost, 0), pooledLift = harmed.reduce((t, id) => t + res[id].liftPaths, 0);
-  const share = pooledLost ? pooledLift / pooledLost : NaN;
-  const it = [
-    ['1. the reader harms S126 and bridge 4 on seed 7002 (exact one-sided p, Holm over the two, below 0.05)', reproduced.every(Boolean), harmed.map((id, j) => `${id} ${res[id].lost} lost ${res[id].saved} saved, Holm p ${hp[j].toExponential(1)}`).join('; ')],
-    ['2. S120 and wealth x2: the reader loses and saves no path', ['S120', 'wealth x2'].every(id => res[id].lost === 0 && res[id].saved === 0), ['S120', 'wealth x2'].map(id => `${id} ${res[id].lost}/${res[id].saved}`).join('; ')],
-    ['3. S366: v1 loses more than it saves (exact one-sided p below 0.05)', res['S366'].lost > res['S366'].saved && res['S366'].p < ALPHA, `${res['S366'].lost} lost ${res['S366'].saved} saved, p ${res['S366'].p.toExponential(1)}`],
-    [`4. at least two-thirds of S126's and bridge 4's lost paths (at least ${MIN_LOST}) are tier-lift paths`, pooledLost >= MIN_LOST && share >= LIFT_HELD, `${pooledLift} of ${pooledLost}${pooledLost ? ` (${share.toFixed(2)})` : ''}`],
-    ['5. the reader\'s end wealth buys estate on S126 and on bridge 4', harmed.every(id => res[id].estate === 'buys estate'), harmed.map(id => `${id} ${res[id].estate}`).join('; ')],
-  ];
-  return { it, reproduced, pooledLost, pooledLift, share, decision: decide({ pooledLost, share, reproduced, estates: harmed.map(id => res[id].estate) }) };
+// against off; res[id].swaps (S126, bridge 4) holds RTIER's and RREST's against off
+export const HARMED = ['S126', 'bridge 4'];
+// one swap arm against off: carries the harm (more lost than saved, Holm-adjusted p below 0.05), carries none (the exact
+// interval's lower end above minus the margin), or neither
+export const carries = (x, pH) => x.lost > x.saved && pH < ALPHA;
+export const carriesNone = x => survivalChange(x.lost, x.saved, x.N, ALPHA).lo > -MARGIN;
+export function readCase(T, R, pT, pR) {
+  const t = carries(T, pT), r = carries(R, pR), tn = carriesNone(T), rn = carriesNone(R);
+  return t && r ? 'both' : t && rn ? 'tier' : r && tn ? 'method' : tn && rn ? 'neither' : 'unresolved';
 }
-export function decide({ pooledLost, share, reproduced, estates }) {
-  if (!reproduced.some(Boolean) || pooledLost < MIN_LOST) return { outcome: 'INCONCLUSIVE', why: `too few lost paths to read (${pooledLost}; the harm reproduced on ${reproduced.filter(Boolean).length} of 2 cases)` };
-  if (share < LIFT_FALSIFIED) return { outcome: 'FALSIFIED', why: 'fewer than half the lost paths are tier-lift paths: the harm lands in the bridge or with no riskier pension tier, where the reader acts -> the reader\'s method; F2 is built, after the early 8h read is put to the maintainer (the 08:17 row)' };
-  if (share < LIFT_HELD) return { outcome: 'INCONCLUSIVE', why: 'between half and two-thirds of the lost paths are tier-lift paths' };
-  const trade = estates.every(e => e === 'buys estate') ? 'the lift buys estate on both: to the maintainer, whether survival alone judges households at 99.5% and over'
-    : estates.some(e => e === 'buys nothing') ? 'the lift buys no estate on at least one: the solver\'s risk weighing is examined before any bridge fix'
+export function decide({ reproduced, swaps }) {
+  const ps = holm(HARMED.flatMap(id => [mcnemarHarmP(swaps[id].RTIER.lost, swaps[id].RTIER.saved), mcnemarHarmP(swaps[id].RREST.lost, swaps[id].RREST.saved)]));
+  const reads = HARMED.map((id, j) => readCase(swaps[id].RTIER, swaps[id].RREST, ps[2 * j], ps[2 * j + 1]));
+  const counted = HARMED.map((id, j) => reproduced[j] ? reads[j] : null).filter(Boolean);
+  const said = HARMED.map((id, j) => `${id} ${reproduced[j] ? reads[j] : `not read (the reader's harm did not show; ${reads[j]})`}`).join('; ');
+  if (!counted.length) return { outcome: 'INCONCLUSIVE', reads, ps, why: `the reader's harm showed on neither case, so there is nothing to split (${said})` };
+  if (counted.includes('tier') && !counted.some(x => x === 'method' || x === 'both')) return { outcome: 'HELD', reads, ps, why: `the tier carries the harm (${said})` };
+  if (counted.includes('method') && !counted.some(x => x === 'tier' || x === 'both')) return { outcome: 'FALSIFIED', reads, ps, why: `the reader's order, harvest or spending level carries the harm, not its tier (${said}) -> the reader's method; F2 is built, after the early 8h read is put to the maintainer (the 08:17 row)` };
+  return { outcome: 'INCONCLUSIVE', reads, ps, why: `no clean split (${said}): to the maintainer` };
+}
+export function o23(x) {
+  const iv = survivalChange(x.lost, x.saved, x.N, ALPHA);
+  return { ...iv, reading: x.lost > x.saved && x.p < ALPHA ? 'replicated' : iv.lo > -MARGIN ? 'closes: no material harm' : 'stays open with its bound' };
+}
+export function items(res) {
+  const hp = holm(HARMED.map(id => res[id].p));
+  const reproduced = HARMED.map((id, j) => res[id].lost > res[id].saved && hp[j] < ALPHA);
+  const swaps = Object.fromEntries(HARMED.map(id => [id, res[id].swaps]));
+  const d = decide({ reproduced, swaps }), q = o23(res['S366']);
+  const estates = HARMED.map(id => res[id].estate);
+  const trade = estates.every(e => e === 'buys estate') ? 'the reader\'s arm buys estate on both: to the maintainer, whether survival alone judges households at 99.5% and over'
+    : estates.some(e => e === 'buys nothing') ? 'it buys no estate on at least one case: the solver\'s risk weighing is examined before any bridge fix'
     : 'the trade is inconclusive on at least one case: to the maintainer with the intervals';
-  return { outcome: 'HELD', why: `the harm is the tier the accurate read lets the solver hold after the bridge; ${trade}` };
+  const it = [
+    ['1. the reader harms S126 and bridge 4 on seed 7002 (exact one-sided p, Holm over the two, below 0.05)', reproduced.every(Boolean), HARMED.map((id, j) => `${id} ${res[id].lost} lost ${res[id].saved} saved, Holm p ${hp[j].toExponential(1)}`).join('; ')],
+    ['2. S120 and wealth x2: the reader loses and saves no path', ['S120', 'wealth x2'].every(id => res[id].lost === 0 && res[id].saved === 0), ['S120', 'wealth x2'].map(id => `${id} ${res[id].lost}/${res[id].saved}`).join('; ')],
+    ['3. S366: v1 loses more than it saves (exact one-sided p below 0.05)', q.reading === 'replicated', `${res['S366'].lost} lost ${res['S366'].saved} saved, p ${res['S366'].p.toExponential(1)}, change ${q.d.toFixed(2)} (${q.lo.toFixed(2)} to ${q.hi.toFixed(2)}): O23 ${q.reading}`],
+    ['4. the tier carries the harm: RTIER reproduces it and RREST does not, on a case where the reader harms, and on no such case the reverse or both', d.outcome === 'HELD', d.why],
+    ['5. the reader\'s end wealth buys estate on S126 and on bridge 4', estates.every(e => e === 'buys estate'), HARMED.map(id => `${id} ${res[id].estate}`).join('; ')],
+  ];
+  return { it, reproduced, decision: d, o23: q, trade: d.outcome === 'HELD' ? trade : null };
 }
 
 // PLANTED, before any real file (rule 6: a check is trusted only after it has failed on a planted fault)
@@ -187,8 +217,12 @@ export function decide({ pooledLost, share, reproduced, estates }) {
   const c = compare(A, B, 1), c3 = compare(A, B, 3);
   const ci10 = medianCI([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 0.05);
   const big = medianCI(Array.from({ length: 3000 }, (_, i) => i), 0.025);
-  const res = id => ({ lost: 12, saved: 0, p: mcnemarHarmP(12, 0), liftPaths: 10, estate: 'buys estate', ...id });
-  const good = { 'S126': res({}), 'bridge 4': res({}), 'S120': res({ lost: 0, liftPaths: 0 }), 'wealth x2': res({ lost: 0, liftPaths: 0 }), 'S366': res({ lost: 7, p: mcnemarHarmP(7, 0) }) };
+  // the scoring's fixtures: x(lost, saved) one comparison of 3,000 paths; a case's reader result and its two swap arms
+  const x = (lost, saved) => ({ lost, saved, N: 3000, p: mcnemarHarmP(lost, saved) });
+  const rc = (rd, T, R, estate = 'buys estate') => ({ ...rd, estate, swaps: { RTIER: T, RREST: R } });
+  const world = (s126, b4, s366 = x(7, 0)) => ({ 'S126': s126, 'bridge 4': b4, 'S120': x(0, 0), 'wealth x2': x(0, 0), 'S366': s366 });
+  const tierW = world(rc(x(14, 0), x(14, 0), x(0, 0)), rc(x(10, 0), x(9, 0), x(1, 1)));
+  const out = w => items(w).decision.outcome;
   const cases = [
     ['saved and lost', `${c.saved}/${c.lost}`, '1/1'],
     ['the lost path fails in year 2', String(c.lostRows[0]?.failYear), '2'],
@@ -207,14 +241,23 @@ export function decide({ pooledLost, share, reproduced, estates }) {
     ['the median\'s exact 95% interval over 1..10 is x(2) to x(9)', `${ci10.lo} ${ci10.hi} ${ci10.med}`, '2 9 5.5'],
     ['the median\'s exact 97.5% interval over 0..2999 is about the middle 2.24 sd (1438 to 1561)', `${big.lo} ${big.hi}`, '1438 1561'],
     ['estate: interval above 0 and median at the margin buys estate; upper end under the margin buys nothing; above 0 with the point under the margin is inconclusive', `${estateOutcome({ lo: 1, hi: 9, med: 5 }, 5)}|${estateOutcome({ lo: -1, hi: 4, med: 1 }, 5)}|${estateOutcome({ lo: -1, hi: 9, med: 5 }, 5)}|${estateOutcome({ lo: 1, hi: 9, med: 4 }, 5)}`, 'buys estate|buys nothing|inconclusive|inconclusive'],
-    ['20 of 24 lost paths tier-lift, both buy estate: HELD', items(good).decision.outcome, 'HELD'],
-    ['4 of 24 tier-lift: FALSIFIED', items({ ...good, 'S126': res({ liftPaths: 2 }), 'bridge 4': res({ liftPaths: 2 }) }).decision.outcome, 'FALSIFIED'],
-    ['14 of 24 tier-lift: INCONCLUSIVE', items({ ...good, 'S126': res({ liftPaths: 7 }), 'bridge 4': res({ liftPaths: 7 }) }).decision.outcome, 'INCONCLUSIVE'],
-    ['5 lost paths in all: INCONCLUSIVE, too few', items({ ...good, 'S126': res({ lost: 3, liftPaths: 3, p: mcnemarHarmP(3, 0) }), 'bridge 4': res({ lost: 2, liftPaths: 2, p: mcnemarHarmP(2, 0) }) }).decision.outcome, 'INCONCLUSIVE'],
-    ['decide: 5 lost paths in all is too few even with the harm read on one case (items() cannot reach this under Holm over two: one case harmed needs 6 lost there)', decide({ pooledLost: 5, share: 1, reproduced: [true, false], estates: ['buys estate', 'buys estate'] }).outcome, 'INCONCLUSIVE'],
-    ['one case buys nothing: the risk weighing is examined', /risk weighing/.test(items({ ...good, 'bridge 4': res({ estate: 'buys nothing' }) }).decision.why) ? 'yes' : 'no', 'yes'],
-    ['item 1 needs both cases harmed after Holm', String(items({ ...good, 'bridge 4': res({ lost: 3, p: mcnemarHarmP(3, 0) }) }).it[0][1]), 'false'],
-    ['item 1 reads Holm: 5 lost, 0 saved on each (p 0.031 raw, 0.062 after Holm) is not harm', String(items({ ...good, 'S126': res({ lost: 5, p: mcnemarHarmP(5, 0) }), 'bridge 4': res({ lost: 5, p: mcnemarHarmP(5, 0) }) }).it[0][1]), 'false'],
+    ['the tier carries it on both cases: HELD', out(tierW), 'HELD'],
+    ['the rest carries it on both cases: FALSIFIED', out(world(rc(x(14, 0), x(0, 0), x(14, 0)), rc(x(10, 0), x(1, 1), x(9, 0)))), 'FALSIFIED'],
+    ['both carry it on one case: INCONCLUSIVE', out(world(rc(x(14, 0), x(14, 0), x(12, 0)), rc(x(10, 0), x(9, 0), x(0, 0)))), 'INCONCLUSIVE'],
+    ['tier on S126, method on bridge 4: INCONCLUSIVE', out(world(rc(x(14, 0), x(14, 0), x(0, 0)), rc(x(10, 0), x(0, 0), x(9, 0)))), 'INCONCLUSIVE'],
+    ['neither arm alone on either case (an interaction): INCONCLUSIVE', out(world(rc(x(14, 0), x(2, 0), x(2, 0)), rc(x(10, 0), x(1, 0), x(1, 0)))), 'INCONCLUSIVE'],
+    ['the reader harms neither case on these paths: INCONCLUSIVE, whatever the swaps show', out(world(rc(x(3, 1), x(14, 0), x(0, 0)), rc(x(2, 2), x(9, 0), x(0, 0)))), 'INCONCLUSIVE'],
+    ['a case where the reader shows no harm is not read: tier on S126 counts, bridge 4 (no harm) reading method does not', out(world(rc(x(14, 0), x(14, 0), x(0, 0)), rc(x(2, 2), x(0, 0), x(9, 0)))), 'HELD'],
+    ['Holm over the four swap comparisons: 6 lost, 0 saved (raw 0.016, 0.062 after Holm) does not carry it', readCase(x(6, 0), x(0, 0), holm([mcnemarHarmP(6, 0), 1, 1, 1])[0], 1), 'neither'],
+    ['decide adjusts over the four swap comparisons: S126\'s RTIER at 6 lost, 0 saved (0.016 raw) carries nothing after Holm, so no case reads tier', out(world(rc(x(14, 0), x(6, 0), x(0, 0)), rc(x(10, 0), x(0, 0), x(0, 0)))), 'INCONCLUSIVE'],
+    ['carrying none is read by the interval: 12 lost, 6 saved (p 0.12) is not "none" (its lower end is below -0.25)', `${carriesNone(x(12, 6))} ${carriesNone(x(1, 1))}`, 'false true'],
+    ['the tier and the rest are not swapped in the reading', readCase(x(14, 0), x(0, 0), 1e-4, 1), 'tier'],
+    ['item 1 reads Holm over the two: 5 lost, 0 saved on each (0.031 raw, 0.062 after Holm) is harm on neither', String(items(world(rc(x(5, 0), x(14, 0), x(0, 0)), rc(x(5, 0), x(9, 0), x(0, 0)))).reproduced), 'false,false'],
+    ['O23 read three ways: replicated; closes (1 lost, 1 saved: inside the margin); stays open (10 lost, 5 saved: p 0.15, lower end -0.38)', `${o23(x(10, 0)).reading}|${o23(x(1, 1)).reading}|${o23(x(10, 5)).reading}`, 'replicated|closes: no material harm|stays open with its bound'],
+    ['the trade: one case buying nothing sends HELD to the risk weighing', /risk weighing/.test(items(world(rc(x(14, 0), x(14, 0), x(0, 0)), rc(x(10, 0), x(9, 0), x(1, 1), 'buys nothing'))).trade || '') ? 'yes' : 'no', 'yes'],
+    ['a swap arm with a difference in the last bridge year or after fails the gate', String(gate([{ id: 'S126', labels: ['OFF', 'READER', 'RTIER', 'RREST'], ran: {}, swap: { RTIER: { swapped: 3, late: 1, access: 2 }, RREST: { swapped: 3, late: 0, access: 2 } } }]).some(b => /S126: RTIER differs from off in the last bridge year/.test(b))), 'true'],
+    ['a swap arm whose access year is not the case\'s bridge fails the gate', String(gate([{ id: 'S126', labels: ['OFF', 'READER', 'RTIER', 'RREST'], ran: {}, swap: { RTIER: { swapped: 3, late: 0, access: 2 }, RREST: { swapped: 3, late: 0, access: 4 } } }]).some(b => /S126: RREST .*access at year 4/.test(b))), 'true'],
+    ['the swap line is read from the log', JSON.stringify(parseLog('S126             a0 0.85 B 2 class YES | OFF table 1 | RTIER table - \n                 swap RTIER: moves swapped 3000, differing in the last bridge year or at access 0, access at year 2\n')[0].swap), '{"RTIER":{"swapped":3000,"late":0,"access":2}}'],
     ['a log with the wrong seed fails the gate', String(gate([{ id: 'S126', labels: ['OFF', 'READER'], ran: { OFF: 'mix 3 pts 16 seed 7011 paths 3000 grid total16x6x6 lambda 0.0223606797749979 raiseSurv true failShort floor tiersAbove 1 quad 5 finalIntegral true bridgeRead false', READER: 'mix 3 pts 16 seed 7011 paths 3000 grid total16x6x6 lambda 0.0223606797749979 raiseSurv true failShort floor tiersAbove 1 quad 5 finalIntegral true bridgeRead reader' } }]).some(b => /seed is 7011/.test(b))), 'true'],
     ['S366 under v1 must read bridgeRead true in its ran line', String(gate([{ id: 'S366', labels: ['OFF', 'V1'], ran: { OFF: 'bridgeRead false', V1: 'bridgeRead 1' } }]).some(b => /S366: V1 bridgeRead is 1/.test(b))), 'true'],
     ['a missing case fails the gate', String(gate([]).length >= 5), 'true'],
@@ -251,14 +294,23 @@ const res = {};
 for (const [id, labels] of PANEL) {
   const c = compare(traces[`${id}|${labels[0]}`], traces[`${id}|${labels[1]}`], BRIDGE[id]);
   res[id] = c;
+  if (labels.includes('RTIER')) c.swaps = Object.fromEntries(['RTIER', 'RREST'].map(l => [l, compare(traces[`${id}|OFF`], traces[`${id}|${l}`], BRIDGE[id])]));
   console.log(`${id} (${labels[1]} against OFF; bridge ${BRIDGE[id]} years): saved ${c.saved}, lost ${c.lost}, the exact p for harm ${c.p.toExponential(1)}`);
   console.log(`   end wealth median ${k(c.medA)} -> ${k(c.medB)}, unlucky tenth ${k(c.p10A)} -> ${k(c.p10B)}; paired over the ${c.nBoth} paths both survive: median ${k(c.ci.med)} (97.5% ${k(c.ci.lo)} to ${k(c.ci.hi)}), margin ${k(c.margin)} -> ${c.estate}`);
   console.log(`   lifetime spending paired ${c.dSpend >= 0 ? '+' : ''}${c.dSpend.toFixed(2)} years of target; ${c.bothLifted} of ${c.nBoth} paths both survive held a riskier pension tier than off in at least half their years`);
   console.log(`   years a path: below target ${c.a.below.toFixed(2)} -> ${c.b.below.toFixed(2)}; pension below its tier ${c.a.penBelow.toFixed(1)} -> ${c.b.penBelow.toFixed(1)}, above ${c.a.penAbove.toFixed(1)} -> ${c.b.penAbove.toFixed(1)}; ISA below ${c.a.isaBelow.toFixed(1)} -> ${c.b.isaBelow.toFixed(1)}, above ${c.a.isaAbove.toFixed(1)} -> ${c.b.isaAbove.toFixed(1)}; lifetime tax ${k(c.a.tax)} -> ${k(c.b.tax)}`);
+  if (c.swaps) {
+    const cs = cases.find(z => z.id === id);
+    for (const l of ['RTIER', 'RREST']) { const w = c.swaps[l], iv = survivalChange(w.lost, w.saved, w.N, ALPHA);
+      console.log(`   ${l} (${l === 'RTIER' ? "the reader's tiers, off's order, harvest and level" : "off's tiers, the reader's order, harvest and level"}) against OFF: saved ${w.saved}, lost ${w.lost}, p ${w.p.toExponential(1)}, change ${iv.d.toFixed(2)} (${iv.lo.toFixed(2)} to ${iv.hi.toFixed(2)}); moves swapped ${cs.swap[l].swapped}`); }
+    const vs = compare(traces[`${id}|READER`], traces[`${id}|RTIER`], BRIDGE[id]);
+    console.log(`   RTIER against READER: saved ${vs.saved}, lost ${vs.lost} (how far the tiers alone reproduce the reader's arm)`);
+  }
   if (c.lost) console.log(`   the ${c.lost} lost paths: median failure year ${c.medFail}, ${c.afterBridge} at or after the bridge's end; first difference median year ${c.medFirst} (tier ${c.kinds.tier}, level ${c.kinds.level}, both ${c.kinds.both}); tier-lift paths ${c.liftPaths}`);
 }
 const sc = items(res);
 console.log(`\nTHE PREDICTION'S ITEMS:`);
 for (const [name, ok, detail] of sc.it) console.log(`${name}: ${detail} -> ${ok ? 'held' : 'MISSED'}`);
-console.log(`\nOUTCOME: ${sc.decision.outcome} - ${sc.decision.why}`);
+console.log(`\nOUTCOME: ${sc.decision.outcome} - ${sc.decision.why}${sc.trade ? `; ${sc.trade}` : ''}`);
+console.log(`O23: ${sc.o23.reading}`);
 export { res };

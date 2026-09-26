@@ -1,8 +1,8 @@
 # Prediction: diag-7r
 
-- **Run:** `research/solver/batch-7r.sh` - results/diag7r/part0-4.txt and the ten arms' traces; reduced by `reduce-7r.mjs` into results-7r.txt
+- **Run:** `research/solver/batch-7r.sh` - results/diag7r/part0-4.txt and the fourteen arms' traces; reduced by `reduce-7r.mjs` into results-7r.txt
 - **Kind:** test
-- **Written:** 26 Sept, 11:45 UK (begun 11:31 UK), before the run (revised 11:59 UK, before the run: the traces carry the log's stamp and the reducer checks it; smoke.sh gained diag7r's line under the maintainer's unlock)
+- **Written:** 26 Sept, 11:45 UK (begun 11:31 UK), before the run; rewritten 12:28 UK, before the run, after the sixty-sixth review (FAIL: the tier-lift share could not tell the tier from the reader's method; O23's closing rule) - the first launch was stopped in its smoke run, before any 7r log existed
 - **Seeds:** 7002 tuning (3,000 paths, the same paths for both arms of every case); 7e's held-out seed is not used (it is reserved to 7e's tests)
 - **Plan section:** PLAN.md "7r"
 
@@ -10,70 +10,75 @@
 
 7e found the bridge reader harms S126 (14 lost, 0 saved of 3,000; -0.47 points) and bridge 4 (26 lost, 1 saved of
 8,000; -0.31) on held-out seed 7011 (results-7e.txt). Before F2 is built (the maintainer, 26 Sep 11:16 UK: "diagnose
-first"), where does that harm come from? The hypothesis (PLAN.md's 10:55 row, grade D, NOT CHECKED): an accurate read
-lifts the household off the low pension tier the misread left it on, and the riskier tier it then holds after the bridge
-costs survival. Its rival: the harm comes from what the reader itself decides in the bridge years, where alone it acts.
-The answer sends 7r one of three ways, each to the maintainer: the reader's own method (F2 is built), the tier trade
-buying estate (whether survival alone judges households at 99.5% and over), or the trade buying nothing (the solver's
-risk weighing is examined first).
+first"), which part of the reader's moves carries that harm? The hypothesis (PLAN.md's 10:55 row, grade D, NOT CHECKED):
+the tier - an accurate read lifts the household off the low tier the misread left it on, and the riskier tier costs
+survival. Its rival: the rest of the reader's moves in the bridge years (the withdrawal order, harvesting and spending
+level), where its own method decides. The answer sends 7r one of three ways, each to the maintainer: the rest (F2 is
+built), the tier with the trade buying estate (whether survival alone judges households at 99.5% and over), or the tier
+with the trade buying nothing (the solver's risk weighing is examined first).
 
 ## Derivation
 
 What the code and the records say before any run:
-- **The reader acts only in the bridge.** solve.js l.501-505 marks reader years only where `t < B.accessAt` (retired
-  years before private pension access), and l.781 reads the reader's tables only in those years. The tables from access
-  on are solved the same way in both arms. So after the bridge the two arms can differ only through the state each carries
-  out of it: the tiers held (a move changes them, and chooseAction takes the held tiers, so the switch cost and margin make
-  a held tier sticky: solve.js runPolicy) and the money. A lost path that fails after the bridge while holding a riskier
-  pension tier than off points at the tier carried out of the bridge. A lost path that fails in the bridge, or with no
-  riskier tier, points at the reader's own bridge-year moves.
+- **Where the reader acts.** solve.js l.501-505 marks reader years (retired, before access, a need to pay); the reader's
+  split changes how those years' tables are read (grid.js readValues), and a decision in year t reads year t+1's table
+  (chooseAction). So off's and the reader's choosers can differ only in years up to two before access; from the last bridge
+  year on they read the same tables and, from the same state and tiers held, pick the same move.
+  research/tests/solver-choose-hook.test.mjs checks this on S126 at 8 points: along off's own runs on 40 paths the two
+  choosers differ in 40 path-years, all in year 0, and in none from the last bridge year on (at 4 points they never
+  differ). So on S126 (access at year 2) the reader changes only the year-0 move; on bridge 4 (access at year 4), years
+  0 to 2. After that the arms differ only through the state each carries: the tiers held (sticky: a move changes them,
+  and chooseAction takes the held tiers, so the switch cost and margin hold them) and the money.
+- **Why a split of the move, not of the paths (the sixty-sixth review, BLOCKING 1).** The lift is on almost every path:
+  off holds the pension below its tier in 40.0 of S126's 40 years and the reader in 7.9 (results-7e.txt), so a lost path
+  held a riskier tier than off whatever caused the loss. The swap arms split the move instead. A move is a base (the
+  withdrawal order, harvesting and spending level) and a tier pair, and the move list holds every tier pair under every
+  base (the hook test checks the layout: 120 bases of 3 pairs on S126). RTIER takes the reader's tier pair on off's base in
+  each year the two choosers differ; RREST takes off's tier pair on the reader's base. Both run forward from off's solve on
+  the same paths, with no new solve (swap.mjs; runPolicy's `choose` hook, off unless a caller passes it). If the tier
+  carries the harm, RTIER reproduces it and RREST does not; if the rest does, the reverse.
 - **The bridge does not bind on S126.** Its variant (audit-s126.mjs variant(), from the library's S126) is 56 with access
-  at 58, a 2-year bridge; its accessible money is 142,500 (ISA 76,000, taxable 19,000, cash 47,500), about 4.9 years of
-  its 29,000 target. bridge 4 is the same household at 54: 4 years against the same 142,500. S366 is 50 (8 years).
+  at 58; its accessible money is 142,500 (ISA 76,000, taxable 19,000, cash 47,500), about 4.9 years of its 29,000 target.
+  bridge 4 is the same household at 54: 4 years against the same 142,500.
 - **What 7e's tier column counts.** reduce-7e.mjs's "tier-below" is runPolicy's tierPenYears, the years with the
-  pension's tier index above 0. With the tier above allowed, index 3 is the tier above (fast.js tiersFor), so the column
-  counts years off the plan's tier either way. Every panel case's own pension is at the top tier, High Risk (the library,
-  M21), which has no tier above, so in 7e it is years below: 40.0 under off and 7.9 under the reader on S126, 42.0 and
-  14.1 on bridge 4 (results-7e.txt). The trace codes seen in 7r's build check (S366, 40 paths) are 0, 5 and 10: pension
-  and ISA held together at the plan's tier, one below or two below.
-- **The contrasts.** S120 and wealth x2 were lifted as far (40.0 to 0.1 and 0.5 years) and lost nothing, but both arms
-  survive 100.0% there, so they show a lift with nothing at risk, not a lift that was risky and survived. S366 under v1
-  (O23) was lifted (45.8 to 24.2) while still misreading (gap -95.4) and lost 7, saving none, of 1,000 (p 0.0078
-  unadjusted, one of 48 comparisons read-o17.mjs reports; a lead, not a result: the sixty-fifth review). F1's own test
-  had v1 at +0.30 on S366, but under other settings (step 2's, the single-table fold, before the exact final year) on
-  seed 7002, so the two do not compare (checklist 3).
-- **Why seed 7002.** 7011 is 7e's held-out seed, reserved to its tests; 7r diagnoses, so it runs on tuning paths, and
-  item 1 checks the harm is there on them to diagnose.
+  pension's tier index above 0; with the tier above allowed index 3 is the tier above (fast.js tiersFor), so the column
+  counts years off the plan's tier either way. Every panel pension is at the top tier (High Risk), which has none above, so
+  in 7e it is years below.
+- **The contrasts.** S120 and wealth x2 were lifted as far and lost nothing, but both arms survive 100.0% there: a lift
+  with nothing at risk. S366 under v1 (O23) was lifted (45.8 to 24.2 years below tier) while still misreading (gap -95.4)
+  and lost 7, saving none, of 1,000 (p 0.0078 unadjusted, one of 48 comparisons: a lead). F1's own test had v1 at +0.30 on
+  S366, under other settings on seed 7002, so the two do not compare (checklist 3).
+- **Why seed 7002.** 7011 is reserved to 7e's tests; 7r diagnoses, on tuning paths, and item 1 checks the harm is there.
 
 ## Prediction
 
 Each case solved off and with the second arm (the reader; v1 on S366), 7e's settings otherwise, run forward on the same
-3,000 paths of seed 7002 with the per-year trace kept:
+3,000 paths of seed 7002 with the per-year trace kept; on S126 and bridge 4 also the two swap arms, RTIER and RREST:
 1. **The harm is there on these paths:** the reader loses more paths than it saves on S126 and on bridge 4, each with the
    exact one-sided p for harm below 0.05 after Holm over the two.
 2. **The contrasts risk nothing:** on S120 and wealth x2 the reader loses and saves no path.
-3. **O23 replicates:** on S366, v1 loses more paths than it saves, the exact one-sided p below 0.05. If it does not, O23
-   is read as one of 48 unadjusted comparisons that did not replicate, closed as noise-sized, and dropped from the
-   hypothesis's evidence; if it does, it replicates on a second seed at the same settings and counts for the lift, not
-   the accuracy, carrying the harm.
-4. **The tier lift carries the harm:** at least two-thirds of S126's and bridge 4's lost paths together (at least 6) are
-   tier-lift paths: each fails at or after the bridge's end (S126 year 2, bridge 4 year 4) having held a riskier pension
-   tier than off in at least half its years before failing.
-5. **The lift buys estate:** on S126 and on bridge 4, over the paths both arms survive, the paired end-wealth difference
+3. **O23 replicates:** on S366, v1 loses more paths than it saves, the exact one-sided p below 0.05. Read three ways: it
+   replicates (it then counts for the lift, not the accuracy, carrying the harm); it closes as no material harm only when
+   the exact 95% interval's lower end is above -0.25 points (RULES section 8, stop rule 6; the sixty-sixth review,
+   BLOCKING 2); otherwise it stays open with its bound. Either of the last two drops it from the hypothesis's evidence.
+4. **The tier carries the harm:** on a case where the reader's harm shows (item 1), RTIER reproduces it and RREST shows no
+   material harm; and on no such case the reverse, or both.
+5. **The trade buys estate:** on S126 and on bridge 4, over the paths both arms survive, the paired end-wealth difference
    (the reader's minus off's; the trace's last-year wealth, a stand-in for estate, which it does not carry) has its median
    at least 5% of off's median end wealth, with the exact 97.5% interval above 0.
 
-Reported, not items: each arm's end wealth (median and unlucky tenth), years below target, the pension's and the ISA's
-years below and above the plan's tier, lifetime tax, lifetime spending paired, how many paths both survive with the
-pension lifted in at least half their years, and for the lost paths their failure years and the first year and kind
-(tier or spending level) of the arms' first different move.
+Reported, not items: RTIER against the reader (how far the tiers alone reproduce its arm); each arm's end wealth (median
+and unlucky tenth), years below target, the pension's and the ISA's years below and above the plan's tier, lifetime tax,
+lifetime spending paired; for the lost paths their failure years, the first year and kind of the arms' first different
+move, and the tier-lift paths (at or after the bridge's end, a riskier pension tier in half their years or more) - no
+longer a decision figure, since the lift is on almost every path.
 
 ## Falsified if
 
-Fewer than half of S126's and bridge 4's lost paths together (at least 6) are tier-lift paths: the harm lands in the
-bridge, or with no riskier pension tier held, where only the reader's own moves differ. The tier-lift hypothesis is
-then wrong for this harm, and it goes to the reader's method: F2 is built, after the early 8h read is put to the
-maintainer (the 08:17 row's revisit trigger).
+On a case where the reader's harm shows, RREST reproduces it and RTIER shows no material harm, and on no such case the
+tier or both: the rest of the reader's bridge-year moves carries the harm, not the tier. The hypothesis is wrong for this
+harm and it goes to the reader's method: F2 is built, after the early 8h read is put to the maintainer (the 08:17 row's
+revisit trigger).
 
 ## Fair-test table
 
@@ -106,104 +111,112 @@ does not bias the comparison).
 | 21 | The raise credit, and whether it is weighted by survival | raise weight 0.003, weighted by survival | the same | SAME |
 | 22 | The price of a year with no money | the floor's price (the M17 fix) | the same | SAME |
 | 23 | Resilience and drift | resilience 0; no drift | the same | SAME |
-| 24 | The read and edge handling: final year exact, dead corners, the bridge read (F1), block trim | bridgeRead off; the final year exact (finalIntegral true, set explicitly); no block trim | bridgeRead 'reader' (S126, bridge 4, S120, wealth x2) or F1 v1 (S366: bridgeRead true); the rest the same | TESTED - the bridge read, off against the reader (v1 on S366) |
+| 24 | The read and edge handling: final year exact, dead corners, the bridge read (F1), block trim | bridgeRead off; the final year exact (finalIntegral true, set explicitly); no block trim | bridgeRead 'reader' (S126, bridge 4, S120, wealth x2) or F1 v1 (S366: bridgeRead true); on S126 and bridge 4 also RTIER and RREST, off's solve run forward with a chooser mixing the two tables' moves in the bridge years (bridgeRead swap-tier, swap-rest); the rest the same | TESTED - the bridge read, off against the reader (v1 on S366), and which part of the reader's move carries its effect |
 | 25 | How it lands: bisection steps, level search | no landing; the full level scan | the same | SAME |
 | 26 | Which rivals, and each one's rule and parameters (the guardrails' thresholds, Vanguard's bands, ARVA's rate) | none | none | N/A - the solver against itself, no rival arm |
 | 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | none | none | N/A - no fixed arm in this run |
-| 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | one process per case writes both arms' log lines and traces | the same process | SAME |
+| 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | one process per case writes every arm's log lines and traces; the swap arms reuse that process's two solves | the same process | SAME |
 | 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | survival: the floor paid every year and the minimum pot at the end, simulated; end wealth: the trace's last-year wealth, 0 on a failed path; the per-year trace (runPolicy's own, record.mjs makeTrace) | the same | SAME |
-| 30 | The reducer and its version | reduce-7r.mjs: requireFairLogs over the logs' stamps, then its own gate on every ran line (each case's arms the same but the bridge read, at the registered settings) and every trace's count, seed and arm, and each trace's stamp against the logs' (audit-s126.mjs stamps each trace as it stamps its log); INCOMPLETE unless all ten traces are there; 29 planted checks, 16 planted faults each caught (mutate-reduce-7r.py, results-reduce-7r-mutations.txt) | the same | SAME |
-| 31 | Paired or not, and the standard error used | paired on the same paths; exact one-sided McNemar with Holm (items 1, 3); the paired end-wealth median's exact order-statistic interval (item 5); no standard error is read | the same | SAME |
+| 30 | The reducer and its version | reduce-7r.mjs: requireFairLogs over the logs' stamps, then its own gate on every ran line (each case's arms the same but the bridge read, at the registered settings), every swap line (no difference from the last bridge year on; the access year the case's bridge) and every trace's count, seed, arm and stamp; INCOMPLETE unless all fourteen traces are there; 38 planted checks, 22 planted faults each caught (mutate-reduce-7r.py, results-reduce-7r-mutations.txt) | the same | SAME |
+| 31 | Paired or not, and the standard error used | paired on the same paths; exact one-sided McNemar with Holm (items 1, 3, and the four swap comparisons), the exact interval against the 0.25 margin (the swap arms' "carries none", item 3's close); the paired end-wealth median's exact order-statistic interval (item 5); no standard error is read | the same | SAME |
 | 32 | The table's number is never the result: survival is simulated | survival and end wealth are simulated; the table's read is printed in the log only | the same | SAME |
 | 33 | For timings: what else the machine was running | the solve seconds are printed, not read | the same | N/A - no timing is read: five processes share four cores, so the seconds are not comparable |
 
 ## Decision rule (registered before launch)
 
-- **Primary:** the tier-lift share over S126's and bridge 4's lost paths together (the reader against off on the same
-  3,000 paths of seed 7002), read by reduce-7r.mjs decide().
-- **Survival per case:** exact one-sided McNemar for harm (stats.mjs), Holm over S126 and bridge 4 at 0.05 (item 1);
-  S366's v1 at 0.05 alone (item 3); S120 and wealth x2 by their counts (item 2). No margin: 7r asks whether there is a
-  harm to diagnose on these paths, not its size, which 7e read.
-- **The outcome (three):**
-  - HELD: at least 6 lost paths together, the harm read on at least one of the two, and two-thirds or more of them
-    tier-lift paths.
-  - FALSIFIED: at least 6 lost paths together, the harm read on at least one, and under half tier-lift paths.
-  - INCONCLUSIVE: between half and two-thirds; or fewer than 6 lost paths; or the harm read on neither case.
-- **The trade (item 5; it sets which question HELD takes to the maintainer):** per case, over the paths both arms
-  survive, the paired end-wealth difference's median with its exact 97.5% order-statistic interval (Bonferroni over the
-  two cases; stats.mjs binomUpperHalf). The margin: 5% of off's median end wealth. It buys estate when the interval lies
-  above 0 and the median is at least the margin; it buys nothing when the interval's upper end is below the margin;
-  otherwise it is inconclusive.
-- **Declared choices, not derived:** two-thirds and half (a majority rule with a band between, so a near-even split is
-  not read either way); 6 lost paths (below that one path moves the share by a sixth or more); a tier-lift path's "at
-  least half its years" (the lift held for most of the path, not a passing year); the 5% margin (a twentieth of the
-  estate, material to a household; no record fixes it); 97.5% (two cases).
-- **Reported, not tested:** years below target, the tiers' years, lifetime tax, lifetime spending paired, the first
-  different move's year and kind, the failure years.
+- **Primary:** the swap arms against off on S126 and bridge 4 (reduce-7r.mjs decide()).
+  - Per swap arm against off, paired on the same 3,000 paths: it **carries the harm** when it loses more than it saves and
+    its exact one-sided p for harm, Holm-adjusted over the four swap comparisons, is below 0.05; it **carries none** when
+    the exact 95% interval for its survival change has its lower end above -0.25 points (the regimen's margin where off
+    survives 95% or more: S126 100.0, bridge 4 99.7 in 7e). A harm below the margin can read both; the case rule below
+    reads "both" first.
+  - Per case: **tier** (RTIER carries it, RREST carries none), **method** (the reverse), **both** (each carries it),
+    **neither** (each carries none: an interaction), or unresolved.
+  - A case is read only where the reader's harm shows (item 1: more lost than saved, Holm over the two at 0.05).
+  - **HELD:** a read case reads tier, and none reads method or both. **FALSIFIED:** a read case reads method, and none
+    reads tier or both. **INCONCLUSIVE:** otherwise - no case read; or both, neither, unresolved, or the two cases split.
+- **Survival, the other items:** exact one-sided McNemar for harm (stats.mjs); item 1 Holm over S126 and bridge 4 at
+  0.05; item 3 alone at 0.05, with its interval for the close; item 2 by its counts. No margin in item 1: it asks whether
+  the harm is there to split, not its size, which 7e read.
+- **The trade (item 5; it sets which question HELD takes to the maintainer):** per case, over the paths both arms survive,
+  the paired end-wealth difference's median with its exact 97.5% order-statistic interval (Bonferroni over the two
+  cases). The margin: 5% of off's median end wealth. It buys estate when the interval lies above 0 and the median is at
+  least the margin; it buys nothing when the interval's upper end is below the margin; otherwise it is inconclusive.
+- **The gate adds:** each swap arm's log line counts the path-years where the two choosers differ in the last bridge year
+  or after; the gate refuses any but 0, and an access year other than the case's bridge (S126 2, bridge 4 4).
+- **Declared choices, not derived:** the margin 0.25 (the regimen's); the 5% estate margin (a twentieth of the estate; no
+  record fixes it); 97.5% (two cases); Holm over four swap comparisons (two arms on two cases).
+- **Reported, not tested:** as the Prediction lists.
 
 ## Decision fed
 
-- **Held:** the harm is the tier the accurate read lets the solver hold after the bridge, not the reader's bridge-year
-  method. F2 is not built as the cure for it (F2 also reads accurately, so it would likely lift the same way; grade C, an
-  inference from this result). What goes to the maintainer depends on item 5: the lift buys estate on both cases -> whether
-  survival alone judges households at 99.5% and over, or the trade the household's own weights chose is accepted; it buys
-  nothing on either -> the solver's risk weighing (the switch margin, the tier menu's pricing) is examined before any
-  bridge fix; inconclusive -> the intervals go to the maintainer as they are.
-- **Falsified:** the harm comes from the reader's own moves in the bridge. F2 is built and tested as 7e was (the
+- **Held:** the tier carries the harm, not the reader's bridge-year method. F2 is not built as the cure for it (F2 also
+  reads accurately, so it would likely choose the same tier; grade C, an inference from this result). What goes to the
+  maintainer depends on item 5: the trade buys estate on both cases -> whether survival alone judges households at 99.5%
+  and over; it buys nothing on at least one case -> the solver's risk weighing (the switch margin, the tier menu's
+  pricing) is examined before any bridge fix; otherwise -> the intervals go to the maintainer as they are.
+- **Falsified:** the rest of the reader's bridge-year moves carries the harm. F2 is built and tested as 7e was (the
   maintainer, 25 Sep 07:29 UK), after the 08:17 row's revisit trigger (the early 8h read) is put to the maintainer.
-- **Inconclusive:** nothing is read about the mechanism. The counts go to the maintainer with the options then open (a
-  second tuning seed, 7004 as replication, or F2 on the design's own merits).
-- **Item 3, either way:** it resolves O23 as the Prediction says; it does not change the outcome.
+- **Inconclusive:** nothing is decided about the mechanism. The per-case reads and counts go to the maintainer with the
+  options then open (a second tuning seed, 7004 as replication, or F2 on the design's own merits).
+- **Item 3, either way:** it resolves or keeps O23 as the Prediction says; it does not change the outcome.
 
 ## Provenance
 
 - The panel, the bridge lengths and the balances: audit-s126.mjs (variant() and diag7r's PANEL) and the library
   (research/policy-study/scenarios.mjs), printed in the Derivation.
-- The reader's scope: solve.js l.501-505 and l.781. The tier coding: solve.js runPolicy (tierPen x 4 + tierIsa) and fast.js
-  tiersFor (index 3 the tier above). The trace: record.mjs makeTrace.
+- The reader's scope and the swap: solve.js l.501-505 and chooseAction; grid.js readValues; swap.mjs;
+  research/tests/solver-choose-hook.test.mjs (8 checks, 3 of them planted). The tier coding: solve.js runPolicy
+  (tierPen x 4 + tierIsa) and fast.js tiersFor. The trace: record.mjs makeTrace.
 - 7e's figures: results-7e.txt. O23's: results-o17-7e.txt. F1's S366 figure: results-f1.txt l.26.
 - lambda 0.0223606797749979: S126's landed lambda, 7e's; the gate checks it.
+- The margin 0.25: stats.mjs MARGINS, the regimen's (the maintainer, 25 Sep 20:47 UK).
 - The arm time: results-look2time.txt (S126 off at 3,000 paths, 458 s beside one other process) and 7e's look 2 (3,000-path
-  arms 426 to 576 s, results/bridge7e/look2.txt, as the sixty-fifth review read it).
-- The exact tail at 3,000 tosses: stats.mjs binomUpperHalf, fixed 26 Sep (it read 1 above about 1,075 tosses); checked in
-  stats.test.mjs against Python's exact integers.
+  arms 426 to 576 s, results/bridge7e/look2.txt).
+- The exact tail at 3,000 tosses: stats.mjs binomUpperHalf, fixed 26 Sep; stats.test.mjs against Python's exact integers.
 
 ## Derivation script
 
-- none: a diagnosis of 7e's settled result; its expected counts are 7e's rates scaled to 3,000 paths (arithmetic in Power),
-  and the chances in Power are Poisson and binomial sums printed by a one-line Python check, not a registered derivation.
+- `derive: research/solver/derive-7r.mjs > research/solver/results-derive-7r.txt sha256 7ff0d8930134e467`
+  (7e's rates scaled to 3,000 paths, Poisson draws from a fixed seed, read by 7r's rule restated; the launcher re-runs it
+  and refuses to launch if the output or its hash moved).
 
 ## Point and interval
 
 80% intervals, the author's:
 - S126, the reader against off on seed 7002: -0.45 points (-0.8 to -0.15). bridge 4: -0.3 (-0.6 to 0.0).
-- S120 and wealth x2: 0 (0 to 0).
-- S366, v1 against off: -0.1 (-0.5 to +0.3).
-- The tier-lift share of the lost paths together: 0.8 (0.55 to 0.95).
+- RTIER against off: S126 -0.45 (-0.8 to -0.1), bridge 4 -0.25 (-0.6 to 0.0). RREST against off: 0.0 (-0.1 to +0.05) on
+  each (S126's year-0 moves may differ in the tier alone, making RREST off itself).
+- S120 and wealth x2: 0 (0 to 0). S366, v1 against off: -0.1 (-0.5 to +0.3).
 - The paired end-wealth median over the paths both survive, as a share of off's median: S126 +15% (+3% to +40%), bridge 4
   +12% (0 to +35%).
 
 ## Credence
 
 The author's probability that each item holds: 1, 0.60 (S126 0.80, bridge 4 0.75: 7e's harm was on other paths); 2,
-0.90; 3, 0.30 (one of 48 unadjusted comparisons); 4, 0.60; 5, 0.65. The outcome: HELD 0.55, FALSIFIED 0.15,
+0.90; 3, 0.30 (one of 48 unadjusted comparisons); 4, 0.55; 5, 0.65. The outcome: HELD 0.55, FALSIFIED 0.15,
 INCONCLUSIVE 0.30. Scored by scorecard.mjs.
 
 ## Power
 
-- **Item 1:** at 7e's rates, 3,000 paths expect about 14 lost and 0 saved on S126 and about 9.75 lost and 0.4 saved on
-  bridge 4. Holm over the two needs 6 or more lost with none saved on a case. The chance of 6 or more lost is 0.994 on
-  S126 and 0.923 on bridge 4 (Poisson), if 7e's rates hold on these paths.
-- **Item 4:** with about 24 lost paths together and a true tier-lift share of 0.8, the chance of reading two-thirds or
-  more is 0.964 (0.87 with S126's 14 alone). With a true share of 0.3 it reads FALSIFIED with chance 0.969 and HELD
-  0.0002.
-- **Item 3:** 7 lost of 1,000 on seed 7011 would be about 21 of 3,000 if real; 5 lost with none saved is the least that
-  reads p below 0.05.
-- **Item 5:** about 2,985 pairs; the 97.5% interval spans about 61 order statistics either side of the median (2.24
-  standard deviations of the sign count). Its width in money is NOT KNOWN before the run: no record gives the spread of
-  the paired differences. It reads inconclusive only if the median lands within that width of 0 or of the margin.
-- **Time:** ten arms of 3,000 paths at 16 points, 426 to 576 s each measured (Provenance). Five processes on four cores,
-  two arms each: about 18 to 24 minutes, plus the smoke run (about 3 minutes, the code changed). About 30 minutes in all.
+From results-derive-7r.txt (7e's rates at 3,000 paths: S126 14 lost, 0 saved; bridge 4 9.75 lost, 0.375 saved; 20,000
+draws a scenario):
+- **Item 1:** the harm shows on S126 with chance 0.997, on bridge 4 0.916, on both 0.914, if 7e's rates hold here.
+- **The primary read, by the true story:** the tier carries it all -> HELD 0.997 (INCONCLUSIVE 0.003); the rest carries
+  it all -> FALSIFIED 0.997. Each carries half, independently -> INCONCLUSIVE 0.739, but HELD 0.130 and FALSIFIED 0.132:
+  a split truth reads one-sided about a quarter of the time, because half of S126's loss is about 7 paths, at the edge of
+  what a swap arm must lose to carry it (7 lost with none saved, after Holm over the four). The tier on S126 and the rest
+  on bridge 4 -> INCONCLUSIVE 0.819, HELD 0.177 (bridge 4's share missed). No harm on these paths -> INCONCLUSIVE 1.000.
+- **What it cannot see:** a loss a swap arm carries below 7 paths of 3,000 (about 0.23 points) reads as carrying none,
+  since up to 7 lost with none saved keeps the interval's lower end above -0.25.
+- **Item 3 (O23):** real at 7e's rate -> replicated 1.000; noise at 7e's discordance -> replicated 0.034, closes 0.339,
+  stays open 0.627; no change -> closes 0.999.
+- **Item 5:** about 2,985 pairs; the 97.5% interval runs 62 order statistics either side of the median. Its width in money
+  is NOT KNOWN before the run: no record gives the spread of the paired differences.
+- **Time:** ten arms of 3,000 paths at 16 points, 426 to 576 s each measured (Provenance), plus four swap arms, each a
+  forward run only (about 92 s per 1,000 paths beside the solve, results-look2time.txt, and two choosers in the bridge
+  years). S126's and bridge 4's processes run four arms, two solves: about 25 to 35 minutes in all on four cores, plus the
+  smoke run.
 
 ## Budget line
 
@@ -213,14 +226,14 @@ or the solver's decision error when it reads right (the risk weighing, or the ob
 
 ## Pre-mortem
 
-- **Most likely:** bridge 4's harm does not show on these paths (item 1 misses on it), and the read rests mostly on
-  S126's lost paths. It stays readable while there are 6 or more of them together.
-- **Second:** the lost paths fail after the bridge, but the arms hold the same pension tier after it, so few are tier-lift
-  paths, and the loss comes from money the reader spent or moved in the bridge. The falsifier then fires, correctly: that
-  is the reader's method.
+- **Most likely:** a mixed truth - the tier and the rest each carry part - which reads INCONCLUSIVE, or one-sided about a
+  quarter of the time (Power). The per-case counts go to the maintainer either way; RTIER against the reader shows how
+  much the tiers alone reproduce.
+- **Second:** bridge 4's harm does not show on these paths, so the read rests on S126, where the reader changes only the
+  year-0 move.
 - **Third:** item 5 is inconclusive on one case, so HELD takes the intervals to the maintainer rather than one question.
-- **Least likely:** the gate fails. The settings are 7e's, the build check ran the mode through the launcher, and the
-  smoke run re-runs the other modes on this code.
+- **Least likely:** the gate fails - the settings are 7e's, the smoke run exercises the mode and its swap arms, and the
+  hook test pins the swap and the reader's reach.
 
 ## Changes after seeing results
 

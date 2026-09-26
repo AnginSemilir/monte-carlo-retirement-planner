@@ -88,6 +88,10 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    reduce-*.mjs (its l.74-76), so a script that reads result files under another name escapes it: read-o17.mjs, which prints
    figures from 7e's logs and relies on reduce-7e.mjs's gate over the same files, as its header says (the sixty-fifth review,
    MINOR 6, 26 Sep 11:48 UK). A test that looks for any script reading results/ is proposed with the next unlock.
+12. The pre-tool hook refuses a named audit or experiment script run outside the launcher, but not a script that imports
+   one: `node -e "import('.../audit-s126.mjs')"` ran audit-s126.mjs's default mode outside the launcher on 26 Sep (PLAN.md,
+   bugs of 26 Sep). A hook rule that also refuses node -e, node --eval and node -p naming those scripts is proposed with the
+   next unlock.
 
 ---
 

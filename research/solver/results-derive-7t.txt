@@ -1,0 +1,12 @@
+7T'S POWER: 8000 paths; the reader's harm is 7r's rate (S126 40 lost, bridge 4 32, none saved); 20000 draws a story (seed 7002); read by reduce-7t.mjs decide()
+
+one policy removes all the harm              background 1.33   HELD 1.000  FALSIFIED 0.000  INCONCLUSIVE 0.000
+removes three quarters                       background 1.33   HELD 0.980  FALSIFIED 0.000  INCONCLUSIVE 0.020
+removes half                                 background 1.33   HELD 0.216  FALSIFIED 0.000  INCONCLUSIVE 0.784
+removes a quarter                            background 1.33   HELD 0.001  FALSIFIED 0.062  INCONCLUSIVE 0.937
+removes none                                 background 1.33   HELD 0.000  FALSIFIED 0.986  INCONCLUSIVE 0.014
+one policy removes all the harm              background 13.33  HELD 0.958  FALSIFIED 0.000  INCONCLUSIVE 0.042
+removes three quarters                       background 13.33  HELD 0.238  FALSIFIED 0.000  INCONCLUSIVE 0.762
+removes half                                 background 13.33  HELD 0.003  FALSIFIED 0.000  INCONCLUSIVE 0.997
+removes a quarter                            background 13.33  HELD 0.000  FALSIFIED 0.168  INCONCLUSIVE 0.833
+removes none                                 background 13.33  HELD 0.000  FALSIFIED 0.898  INCONCLUSIVE 0.102

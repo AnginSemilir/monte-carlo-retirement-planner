@@ -1,0 +1,36 @@
+true script: planted (26): all read as they should
+caught  the gate ignores a second setting changed between arms: the gate refuses a second setting changed between arms read false, should read true
+caught  the gate does not read the seed: the gate refuses the wrong seed read false, should read true
+caught  the gate ignores a joint line that does not match its label: the gate refuses an arm whose joint line does not match its label read false, should read true
+caught  the gate accepts a missing margin-0 run: the gate refuses a missing margin-0 run read false, should read true
+caught  the gate reads the worlds with some() and skips a missing one: the gate refuses a missing world line read false, should read true
+caught  the gate accepts a missing case: the gate refuses a missing case read false, should read true
+caught  the reproduction check ignores the counts: the reproduction check passes 7r's figures on the first 3,000 paths and refuses others (14 lost; the reader's survival 99.2) read 0 0 1, should read 0 1 1
+caught  g read from the wrong pair: the rule reads a cure on both harmed cases as HELD, and g and h are the joint reader against the reader and against joint off read INCONCLUSIVE 0/0 0/1,0/0 1/1, should 
+caught  h read from the wrong pair: the rule reads a cure on both harmed cases as HELD, and g and h are the joint reader against the reader and against joint off read HELD 38/0 0/0,30/1 0/0, should read H
+caught  the clairvoyance gap's sign reversed: the clairvoyance gap: world table minus world realised, per world read -3.5,-0.2,0.0, should read 3.5,0.2,0.0; items 3-8 on a planted log where each holds read false,tr
+caught  a raise credited on a failed path: the whole score of a path: survival, capped estate at 0.02, a cut, a raise on a survivor; a failed path in life (which raised before it failed: no credit) charged its r
+caught  the estate not capped: the whole score of a path: survival, capped estate at 0.02, a cut, a raise on a survivor; a failed path in life (which raised before it failed: no credit) charged its r
+caught  a failure in life charged from the year after: the whole score of a path: survival, capped estate at 0.02, a cut, a raise on a survivor; a failed path in life (which raised before it failed: no credit) charged its r
+caught  the paired difference's sign reversed: paired: the mean of the differences and its standard error read -0.750 0.479, should read 0.750 0.479
+caught  item 3 without the normal world: items 3-8 missing other ways (the normal world overrated more than the bad; the joint gap -2.0 not half of 1.5; margin 0 gains 25; S194 3/1 not significant; 0.5 below o
+caught  item 4 without the absolute gap: items 3-8 missing other ways (the normal world overrated more than the bad; the joint gap -2.0 not half of 1.5; margin 0 gains 25; S194 3/1 not significant; 0.5 below o
+caught  item 5 reads only the lower end: items 3-8 missing other ways (the normal world overrated more than the bad; the joint gap -2.0 not half of 1.5; margin 0 gains 25; S194 3/1 not significant; 0.5 below o
+caught  item 6 without the no-harm condition: items 3-8 on a planted log where each misses (gap 0.5; 0.4 not halved; margin 0 loses 25; the gain cases lose 25 to themselves; S194 loses; the whole score below) read 
+caught  item 7 without significance: items 3-8 missing other ways (the normal world overrated more than the bad; the joint gap -2.0 not half of 1.5; margin 0 gains 25; S194 3/1 not significant; 0.5 below o
+caught  item 8 without the comparison to off with one policy: items 3-8 missing other ways (the normal world overrated more than the bad; the joint gap -2.0 not half of 1.5; margin 0 gains 25; S194 3/1 not significant; 0.5 below o
+caught  a trace's stamp sha not compared: a trace agrees only with the logs' count, seed, arm and every stamp field read true,false,false,true,false, should read true,false,false,false,false
+caught  the gate accepts a missing prefix line: the gate refuses a missing prefix line read false, should read true
+caught  the reproduction check ignores the prefix's survival: the reproduction check passes 7r's figures on the first 3,000 paths and refuses others (14 lost; the reader's survival 99.2) read 0 1 0, should read 0 1 1
+caught  a gain without Holm: a gain needs Holm: 6 saved, 0 lost on each (Holm 0.031) gains; 5 and 0 (Holm 0.062) does not read true,true true,true, should read true,true false,false
+caught  the gain's p read as harm: the rule reads a cure on both harmed cases as HELD, and g and h are the joint reader against the reader and against joint off read INCONCLUSIVE 38/0 0/1,30/1 1/1, shoul
+caught  harm without Holm: harm needs Holm: 70 lost, 48 saved on each (raw p 0.026, Holm 0.053; a loss of 0.275, past the margin) does not harm read true,true, should read false,false
+caught  harm without the point loss at the margin: harm needs the point loss at the margin: 19 lost, 0 saved (0.2375 points) does not harm; 21 does read true true, should read false true
+caught  no material gain read by significance: no material gain needs the interval's upper end below the margin: 30 saved, 20 lost (not significant, upper end 0.30) is not read true, should read false
+caught  no material harm at the wrong end: half a cure (20 saved, none lost: significant, the interval not below the margin; 20 still lost): partial on each, INCONCLUSIVE read cures,cures HELD, should read parti
+caught  a significant gain below the margin read as no cure: a significant gain below the margin with the harm still there is partial, not "does not cure" (15 saved, none lost: Holm p tiny, upper end 0.19; 21 still lost) read doe
+caught  HELD on one case's cure: a cure on one case only: INCONCLUSIVE read HELD, should read INCONCLUSIVE
+caught  the rule's intervals on 3,000 paths: harm needs the point loss at the margin: 19 lost, 0 saved (0.2375 points) does not harm; 21 does read true true, should read false true
+caught  a trace's seed not compared: a trace agrees only with the logs' count, seed, arm and every stamp field read true,true,false,false,false, should read true,false,false,false,false
+
+33 mutations: every one caught

@@ -357,7 +357,8 @@ if (mode === 'f1v2') {
    *     +sqrt 3): the world's own table's opening survival and expected capped estate beside what the policy realises there.
    *   node research/solver/audit-s126.mjs diag7t [points] [paths] part k/n [seed=7002] [world paths=1000]
    * Prints 7e's case line for the four arms, a "margin0" line for the same arms at margin 0, a ran line and a "joint" line
-   * per arm, one pairs line over all eight runs, and a "world" line per arm and world; writes each of the eight runs' traces
+   * per arm, one pairs line over all eight runs, a "prefix" line (the arms' survival and the reader against off on the
+   * first 3,000 paths, which are 7r's: pathsForSeed builds path i from the seed and i alone), and a "world" line per arm and world; writes each of the eight runs' traces
    * to results/diag7t/<case>-<run>.json.gz (DIAG7T_OUT when set), stamped as the log is.
    */
   const PANEL = [['S126', 'off,reader'], ['bridge 4', 'off,reader'], ['S360', 'off,reader'], ['share 0.95', 'off,reader'], ['S194', 'off']];
@@ -386,7 +387,8 @@ if (mode === 'f1v2') {
     if (i % pn !== pk) return;
     const h = byId(id)();
     if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
-    const arms = armList.split(',').flatMap(a => [{ name: a, joint: false }, { name: a, joint: true }]);
+    // the product's arms first (off, then the reader), then the same with one policy for every world
+    const arms = [false, true].flatMap(j => armList.split(',').map(a => ({ name: a, joint: j })));
     const runs = [], lines = [];
     for (const a of arms) {
       const label = `${a.name.toUpperCase()}${a.joint ? '+J' : ''}`;
@@ -417,6 +419,10 @@ if (mode === 'f1v2') {
     const pairs = [];
     for (let j = 1; j < runs.length; j++) for (let q = 0; q < j; q++) { let up = 0, dn = 0; for (let k = 0; k < NP; k++) { if (!runs[q].okArr[k] && runs[j].okArr[k]) up++; else if (runs[q].okArr[k] && !runs[j].okArr[k]) dn++; } pairs.push(`${runs[j].label}-${runs[q].label} ${up}/${dn}`); }
     console.log(`${''.padEnd(16)} pairs ${pairs.join(' ')}`);
+    { const P0 = Math.min(3000, NP), sv = x => { let k = 0; for (let i = 0; i < P0; i++) k += x.okArr[i]; return (100 * k / P0).toFixed(2); };
+      const o = main.find(x => x.label === 'OFF'), rd = main.find(x => x.label === 'READER');
+      let up = 0, dn = 0; if (o && rd) for (let i = 0; i < P0; i++) { if (!o.okArr[i] && rd.okArr[i]) up++; else if (o.okArr[i] && !rd.okArr[i]) dn++; }
+      console.log(`${''.padEnd(16)} prefix ${P0} | ${main.map(x => `${x.label} sim ${sv(x)}`).join(' | ')}${o && rd ? ` | READER-OFF ${up}/${dn}` : ''}`); }
     lines.forEach(l => console.log(l));
     runs.forEach(x => {
       const T = x.tr;

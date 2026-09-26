@@ -58,6 +58,14 @@ M = [
     ("the gate does not count the end weights' worlds", "x.wEnd.length !== (l.includes('5') ? NODES5 : 3) || ", ""),
     ("the gate's pairs over the registered runs only", "    const runs = allRunsOf(c.id);", "    const runs = runsOf(c.id);"),
     ("a learning trace's name without its suffix", ".replace('+l', '_l')", ""),
+    # the oracle and the attribution (the seventy-eighth review, BLOCKINGs 1 and 2)
+    ("the oracle's h against plain off", "h: ['READER+O', 'OFF+O']", "h: ['READER+O', 'OFF']"),
+    ("item 17 reads the learner, not the oracle", "{ const x = by('O');", "{ const x = by('L');"),
+    ("an oracle trace's name without its suffix", ".replace('+o', '_o')", ""),
+    ("the attribution grades B beside an INCONCLUSIVE", "held.length === 1 && !inc.length && (held[0] !== 'J' || jMech)", "held.length === 1 && (held[0] !== 'J' || jMech)"),
+    ("the attribution names J without its mechanism", "held.length === 1 && !inc.length && (held[0] !== 'J' || jMech)", "held.length === 1 && !inc.length"),
+    ("the attribution drops the INCONCLUSIVE causes", "inc = by('INCONCLUSIVE'), fals", "inc = [], fals"),
+    ("the gate accepts a missing oracle run", "const learnWant = [...(LEARN[c.id] || []), ...(ORACLE[c.id] || []), ...(FIVE_L[c.id] || [])];", "const learnWant = [...(LEARN[c.id] || []), ...(FIVE_L[c.id] || [])];"),
     ("the rule's intervals on 3,000 paths", "export function decide(rows, n = N)", "export function decide(rows, n = 3000)"),
     ("a trace's seed not compared", "String(j.seed) === SEED && j.arm", "j.arm"),
 ]

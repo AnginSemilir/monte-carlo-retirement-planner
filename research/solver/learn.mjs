@@ -7,10 +7,16 @@
  *
  * The model the tables use: in world k the path's long-run shift is the node z_k, so a pot's log return in year t is
  * ln(1 + R_i) + S_i z_k + V_i e_t with e_t standard normal (solve.js realAt, with the move's rates R, S, V). The household
- * sees its returns, so it sees x_t = S_i zPath + V_i e_t for each pot; every pot carries the same zPath and e_t, so one pot
- * holds all the information, and the one with the largest S_i / V_i is used. The log likelihood of world k gains
- * -(x_t - S_i z_k)^2 / (2 V_i^2) a year; the posterior is the prior weights times exp of it, normalised. Year t's move uses
- * the returns of years 0..t-1. A research chooser for runPolicy's `choose` hook; the product is untouched.
+ * sees x_t = S_i zPath + V_i e_t for each pot. THE LEARNER'S INFORMATION IS A DESIGN PREMISE, NOT THE MODEL'S (the
+ * seventy-eighth review, BLOCKING 1): in the model every pot carries the same zPath and the same e_t, and cash has V = 0, so
+ * one year's cash return, or any two pots with different S/V, reveal zPath exactly - which no real household can do, since
+ * real pots do not share one yearly shock and cash does not carry the equity market's long-run error. This learner reads
+ * ONE risky pot a year (V > 0; the one with the largest S/V, about 0.125 to 0.13 on S126's tiers), so it learns as slowly as
+ * a household watching its own portfolio would. The log likelihood of world k gains -(x_t - S_i z_k)^2 / (2 V_i^2) a year;
+ * the posterior is the prior weights times exp of it, normalised. Year t's move uses the returns of years 0..t-1.
+ * THE BOUND (oracleChooser below): the weights set from the path's TRUE shift from year 0 - what the fullest learning could
+ * reach. A cure by the oracle and not by the learner says the weights matter and a real household cannot learn them in time.
+ * Research choosers for runPolicy's `choose` hook; the product is untouched.
  */
 import { chooseAction } from '../../src/solver/solve.js';
 
@@ -53,5 +59,23 @@ export function learningChooser(r, zs) {
     lastAi = ai; lastT = t; n.last = w;
     return ai;
   };
+  return { choose, n };
+}
+
+// the oracle's weights: all on the node the shift sits at, or split between the two nodes around it in proportion to the
+// distance (beyond the outer nodes, all on the outer one); nodes ascending
+export function oracleWeights(nodes, z) {
+  const w = nodes.map(() => 0), n = nodes.length;
+  if (z <= nodes[0]) { w[0] = 1; return w; }
+  if (z >= nodes[n - 1]) { w[n - 1] = 1; return w; }
+  for (let k = 0; k < n - 1; k++) if (z >= nodes[k] && z <= nodes[k + 1]) { const f = (z - nodes[k]) / (nodes[k + 1] - nodes[k]); w[k] = 1 - f; w[k + 1] = f; return w; }
+  return w;
+}
+export function oracleChooser(r, zs) {
+  if (!r.mix) throw new Error('learn: the oracle chooser needs a mixture');
+  const T = r.m.ctx.totalYears;
+  if (zs.length <= T + 1) throw new Error('learn: the path carries no long-run shift (a fold path)');
+  const w = oracleWeights(r.mix.nodes, zs[T + 1]), n = { last: w };
+  const choose = (t, s, held) => { const w0 = r.mix.weights; r.mix.weights = w; try { return chooseAction(r, s, t, held); } finally { r.mix.weights = w0; } };
   return { choose, n };
 }

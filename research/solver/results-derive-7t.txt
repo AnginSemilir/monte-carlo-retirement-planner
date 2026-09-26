@@ -1,12 +1,12 @@
-7T'S POWER, EACH CAUSE: 8000 paths; the reader's harm is 7r's rate (S126 40 lost, bridge 4 32, none saved); 20000 draws a story (seed 7002); read by reduce-7t.mjs decide() with Holm over 10 tests, the other 4 causes removing none of the harm
+7T'S POWER, EACH CAUSE: 8000 paths; the reader's harm is 7r's rate (S126 40 lost, bridge 4 32, none saved); 20000 draws a story (seed 7002); read by reduce-7t.mjs decide() with Holm over 12 tests, the other 5 causes removing none of the harm
 
 the cause removes all the harm               background 1.33   HELD 1.000  FALSIFIED 0.000  INCONCLUSIVE 0.000
 removes three quarters                       background 1.33   HELD 0.976  FALSIFIED 0.000  INCONCLUSIVE 0.024
-removes half                                 background 1.33   HELD 0.197  FALSIFIED 0.000  INCONCLUSIVE 0.803
-removes a quarter                            background 1.33   HELD 0.000  FALSIFIED 0.238  INCONCLUSIVE 0.762
+removes half                                 background 1.33   HELD 0.200  FALSIFIED 0.000  INCONCLUSIVE 0.800
+removes a quarter                            background 1.33   HELD 0.000  FALSIFIED 0.241  INCONCLUSIVE 0.759
 removes none                                 background 1.33   HELD 0.000  FALSIFIED 0.986  INCONCLUSIVE 0.014
-the cause removes all the harm               background 13.33  HELD 0.909  FALSIFIED 0.000  INCONCLUSIVE 0.091
-removes three quarters                       background 13.33  HELD 0.186  FALSIFIED 0.000  INCONCLUSIVE 0.814
+the cause removes all the harm               background 13.33  HELD 0.900  FALSIFIED 0.000  INCONCLUSIVE 0.100
+removes three quarters                       background 13.33  HELD 0.178  FALSIFIED 0.000  INCONCLUSIVE 0.822
 removes half                                 background 13.33  HELD 0.001  FALSIFIED 0.001  INCONCLUSIVE 0.998
-removes a quarter                            background 13.33  HELD 0.000  FALSIFIED 0.173  INCONCLUSIVE 0.827
-removes none                                 background 13.33  HELD 0.000  FALSIFIED 0.908  INCONCLUSIVE 0.092
+removes a quarter                            background 13.33  HELD 0.000  FALSIFIED 0.167  INCONCLUSIVE 0.833
+removes none                                 background 13.33  HELD 0.000  FALSIFIED 0.910  INCONCLUSIVE 0.090

@@ -2,9 +2,9 @@
 
 - **Run:** `research/solver/batch-7t.sh` - results/diag7t/part0-4.txt and every run's trace (audit-s126.mjs diag7t, with its learning and five-world arms); reduced by `reduce-7t.mjs` into results-7t.txt
 - **Kind:** test
-- **Written:** 26 Sep 16:40 UK, before the run; revised 17:11 UK for the seventy-sixth review's MINORs; RE-REGISTERED 26 Sep 17:50 UK, before any launch, for the maintainer's "Test all" (26 Sep 17:15 UK, answering the first deep review's finding that 7t as first registered could not separate its cause from two rivals): the learning and five-world arms, the margin read as a cause, a rule per cause with Holm over all ten tests, the attribution rule, and the reads from the traces. The first registration's items 3-8 are kept as items 7-12 (item 5 replaced: see item 9). Earlier quote: the maintainer, 26 Sep 16:17 UK: "One last check, Design and run. If you can slot in extra checks that would help answer the question once and for all on a level playing field, do so, even if it takes longer"
+- **Written:** 26 Sep 16:40 UK, before the run; revised 17:11 UK for the seventy-sixth review's MINORs; RE-REGISTERED 26 Sep 17:50 UK, before any launch, for the maintainer's "Test all" (26 Sep 17:15 UK, answering the first deep review's finding that 7t as first registered could not separate its cause from two rivals): the learning and five-world arms, the margin read as a cause, a rule per cause with Holm over all ten tests, the attribution rule, and the reads from the traces. The first registration's items 3-8 are kept as items 7-12 (item 5 replaced: see item 9). REVISED before any launch for the seventy-eighth review (FAIL; review-log.md): the oracle arm O, the bound on learning (BLOCKING 1: the learner's information set is declared a design premise and L read as a one-pot learner); the attribution rule keeps INCONCLUSIVE causes as suspects and names J only with items 7, 8 and 13 (BLOCKING 2); Holm over all twelve tests; item 17. Earlier quote: the maintainer, 26 Sep 16:17 UK: "One last check, Design and run. If you can slot in extra checks that would help answer the question once and for all on a level playing field, do so, even if it takes longer"
 - **Seeds:** 7002 tuning (8,000 paths, the first 3,000 of them 7r's and 7s's; 2,000 a world; the same paths for every arm of every case)
-- **Unmasking:** every arm removes a suspected error of the solver's own, not the bridge misread: J the per-world choice (each world's table plans as if it knew its world), L the fixed world weights of the forward choice, 5 the three worlds that stop at +/-sqrt 3, M0 the switch margin's hold on near-ties. The baseline behaviour those errors drive: off's misread of the bridge put it two tiers down at year 0 and the margin holds it there for life (7r's traces: off switches 0.03 times a path), so off's better survival on S126 and bridge 4 may be the margin's accident, not off being right. The separating arms: each cause's h (the reader against off with the SAME cause removed - both arms on the same footing), and item 9 (off at margin 0 against off as solved), which tells a harmful reader from an off made safe by accident. (diag-7t.md is exempt from this field by name; it is written here all the same.)
+- **Unmasking:** every arm removes a suspected error of the solver's own, not the bridge misread: J the per-world choice (each world's table plans as if it knew its world), L the fixed world weights of the forward choice as a one-pot learner would move them, O the same weights known exactly from the path's true shift (the bound on L), 5 the three worlds that stop at +/-sqrt 3, M0 the switch margin's hold on near-ties. The baseline behaviour those errors drive: off's misread of the bridge put it two tiers down at year 0 and the margin holds it there for life (7r's traces: off switches 0.03 times a path), so off's better survival on S126 and bridge 4 may be the margin's accident, not off being right. The separating arms: each cause's h (the reader against off with the SAME cause removed - both arms on the same footing), and item 9 (off at margin 0 against off as solved), which tells a harmful reader from an off made safe by accident. (diag-7t.md is exempt from this field by name; it is written here all the same.)
 - **Plan section:** PLAN.md "7t"
 
 ## Question
@@ -26,8 +26,9 @@ reader's harm, and is that where the overrating comes from?
 switch margin then holds, and the world lines put each path's shift exactly on a node, so 7t could not separate the
 clairvoyance from its rivals. Now each candidate cause is removed in its own arm, on the same paths, and read by the same
 rule: **J**, the per-world choice (one policy for every world, `jointWorlds`); **L**, the forward chooser's fixed world
-weights (learn.mjs: the weights become the posterior given the returns the path has realised, on the product's own
-tables); **5**, three worlds that stop at +/-sqrt 3 (five worlds, to +/-2.86); **5L**, both; **M0**, the switch margin's
+weights (learn.mjs: the weights become the posterior given one risky pot's realised returns, on the product's own tables -
+a declared information set, below); **O**, the same weights set from the path's true long-run shift from year 0 (the
+bound: what the fullest learning could reach); **5**, three worlds that stop at +/-sqrt 3 (five worlds, to +/-2.86); **5L**, both; **M0**, the switch margin's
 lock-in (the margin at 0, forward). The score's own trade is read by the realised whole score (item 12).
 
 **The design, and why it changed** (the seventy-sixth review, MINOR 7). The design put to the maintainer at 16:12 UK ran
@@ -60,29 +61,39 @@ What the code and the records say before any run:
   back up to the plan's tier late: 14 of 15 on S126 and 11 of 12 on bridge 4 in their last 8 recorded years - item 16's
   definition - against 0 of 451 and 2 of 466 surviving paths with a shift below -1; 7 of 15 and 6 of 12 lost paths have a
   shift below -sqrt 3, where 3.2% and 4.2% of all paths are: results-7r-lost-paths.txt, from 7r's gated traces, grade C,
-  reported not tested. Counting the plan's last 8 years instead, as the first deep review's scratch read did, bridge 4
-  gives 10 of 12, the seventy-seventh review's recount. Items 15 and 16 register the reads on 7t's own 8,000 paths); off holds two tiers down for life (0.03 switches a path). M14b's comfortable plans lost with a tier
+  reported not tested. Items 15 and 16 register the reads on 7t's own 8,000 paths); off holds two tiers down for life (0.03 switches a path). M14b's comfortable plans lost with a tier
   above (O18, M14c) - S194 is in the panel to see whether one policy changes that too.
 - **What each cause predicts that the others do not.** J: the reader with one policy loses nothing against off with one
   policy, at the solved margin AND at margin 0 (item 13), and the bad world's overrating halves (item 8). L: the reader
-  learning loses nothing against off learning; the learning weights leave the reader's gains (item 14). 5: the reader
+  learning loses nothing against off learning; the learning weights leave the reader's gains (item 14). O: the same with
+  the weights known exactly; O cures and L does not says the weights matter and one pot's returns teach them too slowly. 5: the reader
   under five worlds loses nothing against off under five. 5L: the same with both. M0: at margin 0 the reader gains
   against itself and loses nothing against off at margin 0; and off at margin 0 loses against itself (item 9) if its
   safety is the margin's accident. The lost paths' place (items 15 and 16) says where any cause must act: a deep bad world
   (below -sqrt 3, where no table world sits) and a late return to risk.
-- **The learning is slow by design of the markets, not of the code.** A pot's yearly return shows its long-run shift
-  through S/V, about 0.0214/0.171 = 0.125 for High Risk, so 27 years of returns carry about 0.4 of the shift's variance
-  in information (research/tests/solver-learn.test.mjs: a path at shift -2.5 with no yearly noise ends with the bad world
-  at most weight; with noise the weights move far less). L can cure only where the evidence has built up - late in the
-  plan, which is where the losses are.
+- **The learner's information set is a design premise, not the model's** (the seventy-eighth review, BLOCKING 1;
+  RULES.md section 9 rule 6). In the tables' model every pot carries the same long-run shift and the same yearly shock,
+  and cash carries no shock (V = 0), so one year's cash return, or any two pots with different S/V, reveal the path's
+  shift exactly - which no real household can do. learn.mjs reads ONE risky pot a year, the one with the largest S/V
+  (about 0.125 to 0.13 on S126's moves: pension 0.1251, ISA 0.1259, GIA 0.1319, the review's reading of the compiled
+  moves, grade C), so 27 years carry about 27 x 0.13^2, under half of the shift's variance, in information (arithmetic):
+  a household watching its own portfolio. So L tests a one-pot learner, not learning as such: L FALSIFIED says such a
+  learner does not cure, and the fixed weights stay suspect unless O fails too.
+- **The bound, O** (learn.mjs oracleChooser): each year's weights are set from the path's true shift from year 0 - all on
+  a node when the shift sits on one, else split between the two nodes around it in proportion to the distance, the outer
+  nodes taking the tails. It uses what no household has, so it is a bound, not a fix: O HELD with L not HELD says the
+  weights carry the harm and a real household cannot learn them in time; O FALSIFIED says the fixed weights are not the
+  cause on these cases. research/tests/solver-learn.test.mjs (23 checks): the posterior by hand, the simulation's model,
+  year 0, the hook neutral, a planted sign slip caught, the year-t weights blind to year t's own draw (look-ahead), and
+  the oracle's weights on and between the nodes.
 - **Why 8,000 paths.** One policy changes the reader's tables at every cell, so paths may move both ways at once; at
-  3,000 paths with five paths each way in the background a full cure reads HELD only 0.38 of the time (the first draft
-  of results-derive-7t.txt), at 8,000 with 13 each way 0.96 (below).
+  8,000 paths with 13 each way in the background a full cure reads HELD 0.900 under Holm over twelve (Power, below). 7r's
+  3,000 would carry about five each way and too few lost paths for a partial cure to show.
 
 ## Prediction
 
 Each case solved with off and the reader (S194: off) under the product's mixture and with one policy for every world
-(OFF+J, READER+J); every product arm also run with the learning chooser (+L); on S126 and bridge 4, off and the reader
+(OFF+J, READER+J); every product arm also run with the learning chooser (+L) and with the oracle's weights (+O); on S126 and bridge 4, off and the reader
 also solved with five worlds (OFF5, READER5) and run with the learning chooser on those (OFF5+L, READER5+L); every arm
 of the product's and one policy's run at switch margin 0 too (/M0) and in each of the three worlds on 2,000 paths; all on
 the same 8,000 paths of seed 7002:
@@ -113,19 +124,21 @@ the same 8,000 paths of seed 7002:
     more than a quarter have a long-run shift below -sqrt 3 (about 4% of all paths do).
 16. **The lost paths re-risk late:** of them, at least half hold the plan's tier or riskier in their last 8 recorded
     years after 10 or more years below it.
+17. **O (the weights known exactly) cures:** HELD - READER+O against READER, and against OFF+O.
 
 Reported, not items: every run's table, survival, tiers and below-target years; every pair among each case's runs; every
-world's table and realised survival and estate; the learning end weights; each arm's opening tier; the lost and saved
+world's table and realised survival and estate; the learning and oracle end weights; each arm's opening tier; the lost and saved
 paths by shift bin for every cause's h pair, survival by bin, and the late re-risking; the worlds weighted 1/6, 2/3, 1/6
 against the 8,000 paths; the realised whole score against every reference the reducer prints.
 
 ## Falsified if
 
 Each cause separately: on both harmed cases the reader with the cause removed still harms against off with the same cause
-removed (more lost than saved, Holm over the ten, the point loss at the margin) and gains nothing material against the
+removed (more lost than saved, Holm over the twelve, the point loss at the margin) and gains nothing material against the
 reader as the product solves it - that cause's FALSIFIED: removing it alone does not remove the reader's harm on these
-cases. If every cause reads FALSIFIED, none of the five is the cause alone; what is left is the score's own trade (item 12
-and the whole-score lines) and the grid.
+cases. L's FALSIFIED is a one-pot learner's (the fixed weights are dropped only when O is FALSIFIED too). INCONCLUSIVE is
+not a negative: such a cause stays a suspect. If every cause reads FALSIFIED, none of the six is the cause alone; what is
+left is the score's own trade (item 12 and the whole-score lines) and the grid.
 
 ## Fair-test table
 
@@ -141,7 +154,7 @@ does not bias the comparison).
 | 4 | The survival asked for, when a run lands | no ask: lambda held at S126's landed 0.0223606797749979 | the same | SAME |
 | 5 | The held-out paths: seed and count, and the SAME paths for every arm (paired) | 8,000 paths of seed 7002 (the first 3,000 are 7r's), and 2,000 a world (the first 2,000, each path's persistent shift set to the world's node); the gate checks the seed, the counts and the world lines | the same paths, paired, for every arm: one policy, learning, five worlds, margin 0 | SAME |
 | 6 | The search paths (landings, and the rival arms' choice of order), and that nothing chosen on them is reported from them | none | none | N/A - no landing and no rival: lambda is held and the solver runs against itself |
-| 7 | The market world: single-table fold (`MIX=0`), three-world mixture (`MIX=3`), five-world (`MIX=5`) - for the table AND for how every arm is simulated | the three-world mixture, each world's own move at every cell, the forward chooser's fixed weights 1/6, 2/3, 1/6 (the product) | one change an arm: one move for every world (`jointWorlds`, +J); the forward chooser's weights the posterior given the path's realised returns (learn.mjs, +L, the same tables); five worlds (`mix: 5`, OFF5 and READER5, the chooser's fixed five-point weights); five worlds with learning (+L on them). Every arm simulated on the same paths, each path's shift drawn from the normal as the engine draws it | TESTED - how the mixture's worlds choose and are weighed, one change an arm, the bridge read held: g, each against the reader as solved; h, the reader against off with the same change; the rule reads each cause on its own, Holm over all ten |
+| 7 | The market world: single-table fold (`MIX=0`), three-world mixture (`MIX=3`), five-world (`MIX=5`) - for the table AND for how every arm is simulated | the three-world mixture, each world's own move at every cell, the forward chooser's fixed weights 1/6, 2/3, 1/6 (the product) | one change an arm: one move for every world (`jointWorlds`, +J); the forward chooser's weights the posterior given the path's realised returns (learn.mjs, +L, the same tables, one risky pot read a year); the weights set from the path's true shift from year 0 (learn.mjs oracleChooser, +O, the same tables: the bound on +L); five worlds (`mix: 5`, OFF5 and READER5, the chooser's fixed five-point weights); five worlds with learning (+L on them). Every arm simulated on the same paths, each path's shift drawn from the normal as the engine draws it | TESTED - how the mixture's worlds choose and are weighed, one change an arm, the bridge read held: g, each against the reader as solved; h, the reader against off with the same change; the rule reads each cause on its own, Holm over all twelve |
 | 8 | How each year's return is averaged (quadrature points) | 5 | 5 | SAME |
 | 9 | The engine's return, volatility and charge assumptions, and the engine build | one process per case, one engine build | the same process | SAME |
 | 10 | The minimum pot | one year of target (solvePlan's default) or the plan's own | the same | SAME |
@@ -153,7 +166,7 @@ does not bias the comparison).
 | 16 | The taxable account's tier | off (the product refuses it) | off | SAME |
 | 17 | The grid: points, shares, gain buckets | 16 points, the default shares and gain buckets | the same | SAME |
 | 18 | The spending menu and the tier menu | the product menu for a 0.8 floor, capped at 1.1 | the same | SAME |
-| 19 | The switch margin and switching cost | the default margin 0.001 and cost, as solved | the same tables run forward with the margin at 0 (the /M0 runs; the cost unchanged) | TESTED - the switch margin, forward only: cause M0 (READER/M0 against READER, and against OFF/M0) and item 9 (OFF/M0 against OFF); the learning and five-world arms at the solved margin only |
+| 19 | The switch margin and switching cost | the default margin 0.001 and cost, as solved | the same tables run forward with the margin at 0 (the /M0 runs; the cost unchanged) | TESTED - the switch margin, forward only: cause M0 (READER/M0 against READER, and against OFF/M0) and item 9 (OFF/M0 against OFF); the learning, oracle and five-world arms at the solved margin only |
 | 20 | The dislike of cuts: lambda (held or landed) and the trim curve's exponent (together, c) | lambda held 0.0223606797749979; exponent 2 | the same | SAME |
 | 21 | The raise credit, and whether it is weighted by survival | raise weight 0.003, weighted by survival | the same | SAME |
 | 22 | The price of a year with no money | the floor's price (the M17 fix) | the same | SAME |
@@ -164,55 +177,66 @@ does not bias the comparison).
 | 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | none | none | N/A - no fixed arm in this run |
 | 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | one process per case writes every arm, run and trace; the log's audit stamp covers audit-s126.mjs, swap.mjs and learn.mjs | the same process | SAME |
 | 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | survival: the floor paid every year and the minimum pot at the end, simulated; the whole score: survival, the capped estate at 0.02 of opening wealth, the dislike of cuts and the raise credit, realised per path from the trace | the same | SAME |
-| 30 | The reducer and its version | reduce-7t.mjs: requireFairLogs over the logs' stamps, then its own gate on every ran line (the five-world ones at mix 5, the rest the same), joint line, margin-0 run, learning line (its end weights over three or five worlds), five-world line, pair, prefix line, world line and trace; INCOMPLETE unless all five cases' logs are there; the reproduction check; 39 planted checks, 50 planted faults each caught (mutate-reduce-7t.py, results-reduce-7t-mutations.txt) | the same | SAME |
-| 31 | Paired or not, and the standard error used | paired on the same paths; exact one-sided McNemar with Holm over all ten cause-and-case tests (g for a gain, h for harm), the exact 95% interval against the 0.25 margin; the whole score's paired mean with its standard error (item 12, reported beside the rule) | the same | SAME |
+| 30 | The reducer and its version | reduce-7t.mjs: requireFairLogs over the logs' stamps, then its own gate on every ran line (the five-world ones at mix 5, the rest the same), joint line, margin-0 run, learning and oracle lines (their end weights over three or five worlds), five-world line, pair, prefix line, world line and trace; INCOMPLETE unless all five cases' logs are there; the reproduction check; 44 planted checks, 57 planted faults each caught (mutate-reduce-7t.py, results-reduce-7t-mutations.txt) | the same | SAME |
+| 31 | Paired or not, and the standard error used | paired on the same paths; exact one-sided McNemar with Holm over all twelve cause-and-case tests (g for a gain, h for harm), the exact 95% interval against the 0.25 margin; the whole score's paired mean with its standard error (item 12, reported beside the rule) | the same | SAME |
 | 32 | The table's number is never the result: survival is simulated | survival, estate and the whole score are simulated; the tables' readings are read only by items 7 and 8, against the simulation | the same | SAME |
 | 33 | For timings: what else the machine was running | the solve seconds are printed, not read | the same | N/A - no timing is read: five processes share four cores |
 
 ## Decision rule (registered before launch)
 
-- **Each cause** (reduce-7t.mjs decideCauses(): 7s's rule, the path count 8,000, Holm over all ten cause-and-case
+- **Each cause** (reduce-7t.mjs decideCauses(): 7s's rule, the path count 8,000, Holm over all twelve cause-and-case
   tests), per harmed case, paired on the same paths:
   - **g**, the reader with the cause removed against the reader as the product solves it: it **gains** when it saves more
-    than it loses and the exact one-sided p for a gain, Holm over the ten, is below 0.05; **no material gain** when the
+    than it loses and the exact one-sided p for a gain, Holm over the twelve, is below 0.05; **no material gain** when the
     exact 95% interval's upper end is below +0.25.
   - **h**, the reader with the cause removed against off with the same cause removed: it **harms** when it loses more than
-    it saves, the exact one-sided p for harm, Holm over the ten, is below 0.05, and the point loss is at least the margin;
+    it saves, the exact one-sided p for harm, Holm over the twelve, is below 0.05, and the point loss is at least the margin;
     **no material harm** when the interval's lower end is above -0.25.
   - A case **cures** when g gains and h shows no material harm; **does not cure** when g neither gains nor shows a
     material gain and h harms; otherwise it is **partial**.
   - The cause **HELD:** both harmed cases cure. **FALSIFIED:** both do not cure. **INCONCLUSIVE:** otherwise.
-  - The pairs: J (READER+J; READER; OFF+J), L (READER+L; READER; OFF+L), 5 (READER5; READER; OFF5), 5L (READER5+L; READER;
+  - The pairs: J (READER+J; READER; OFF+J), L (READER+L; READER; OFF+L), O (READER+O; READER; OFF+O), 5 (READER5; READER; OFF5), 5L (READER5+L; READER;
     OFF5+L), M0 (READER/M0; READER; OFF/M0).
 - **NOT SETTLED:** item 1 fails - something besides the things tested moved.
-- **The attribution** (RULES.md section 9 rule 1; the first deep review): a cure is named a root cause only by elimination
-  and only as far as it goes -
-  - one cause HELD, and for J item 13 also holds: that cause removes the reader's harm on these cases and the others,
-    each tested, do not (grade B for the two cases);
-  - J HELD but item 13 misses: the cure at the solved margin is not named clairvoyance (the margin may carry it);
-  - several causes HELD: each removes the harm; the attribution between them is grade C, and the cheapest that holds goes
-    to the maintainer;
-  - none HELD: none of the five alone; the score's own trade (item 12) and the grid are left.
-- **Items 7-16:** read by reduce-7t.mjs items(), as the Prediction words them.
-- **Declared choices, not derived:** the margin 0.25 (the regimen's); Holm over the ten (every cause is a claim the plan may
+- **The attribution** (RULES.md section 9 rule 1; the first deep review; the seventy-eighth review, BLOCKING 2;
+  reduce-7t.mjs attribution(), printed as the ATTRIBUTION line): a cure is named a root cause only by elimination, and
+  INCONCLUSIVE is never read as a negative -
+  - one cause HELD and every other FALSIFIED (for J, items 7, 8 and 13 also hold): that cause removes the reader's harm on
+    these cases and the others, each tested, do not (grade B for the two cases);
+  - one cause HELD beside one or more INCONCLUSIVE: it removes the harm (grade C); the INCONCLUSIVE causes are kept as
+    partial suspects;
+  - J HELD without items 7, 8 and 13: one policy cures, but the cure is not named clairvoyance (grade C) - the first deep
+    review named clairvoyance only with the bad-world mechanism (items 7 and 8) and a cure at margin 0 (item 13);
+  - several HELD: each removes the harm; the attribution between them is grade C, and the cheapest goes to the
+    maintainer first;
+  - none HELD: the FALSIFIED causes are dropped as sole causes; the INCONCLUSIVE ones are kept as partial suspects,
+    beside the score's own trade (item 12) and the grid.
+- **Items 7-17:** read by reduce-7t.mjs items(), as the Prediction words them.
+- **Declared choices, not derived:** the margin 0.25 (the regimen's); Holm over the twelve (every cause is a claim the plan may
   act on, so the family is all of them); the 1-point and one-half thresholds of items 7 and 8, the two standard errors of
   item 12, the quarter of item 15 and the half of item 16 (judgement; the base rate below -sqrt 3 is about 4%, and the
   deep review's scratch read on 7r's 3,000 paths was about half on both); 2,000 paths a world; the learning chooser's
-  pot (the one with the largest S/V) and its likelihood (the tables' own world model).
+  information set (one risky pot a year, the one with the largest S/V: a design premise, the Derivation) and its
+  likelihood (the tables' own world model); the oracle's split between the two nodes around the shift (linear in it).
 
 ## Decision fed
 
-- **One cause HELD (with item 13 for J):** that cause is the root cause of the reader's harm on these cases (grade B, one
-  seed, two cases). What goes to the maintainer: its fix as the candidate (for J `jointWorlds`; for L a learning chooser;
-  for 5 five worlds; for 5L both; for M0 a margin of 0 or a solved held-tier state), each needing its own registered
-  no-harm test on a broad panel (the regimen's 8f shape) and its cost before any default; the bridge reader re-tested
-  with it on 7e's panel; 7r's question answered; F2, 7q, 7n and Phase 4 re-planned behind it.
+- **One cause HELD, every other FALSIFIED (for J, with items 7, 8 and 13):** that cause is the root cause of the reader's
+  harm on these cases (grade B, one seed, two cases). What goes to the maintainer: its fix as the candidate (for J
+  `jointWorlds`; for L a learning chooser; for O the weights, but not the oracle itself, which no household can follow -
+  a learner with a declared information set or the belief solved as a state, each its own test; for 5 five worlds; for 5L
+  both; for M0 a margin of 0 or a solved held-tier state), each needing its own registered no-harm test on a broad panel
+  (the regimen's 8f shape) and its cost before any default; the bridge reader re-tested with it on 7e's panel; 7r's
+  question answered; F2, 7q, 7n and Phase 4 re-planned behind it.
+- **One HELD beside INCONCLUSIVE ones, or J without its mechanism:** the same candidate at grade C, with the INCONCLUSIVE
+  causes named as partial suspects; no default until a test separates them.
 - **Several HELD:** each removes the harm; the cheapest, by solve time and code, goes to the maintainer first, with the
   attribution between them grade C and a follow-up that combines them only if one alone falls short elsewhere.
-- **None HELD (all FALSIFIED or INCONCLUSIVE):** none of the five alone removes the harm. Left: the score's own trade (item
-  12 and the whole-score lines: if the reader does better by the solver's own score, the objective prefers the risk and
-  the "harm" is the objective's), and the grid. They go to the maintainer with the per-cause counts, the lost paths'
-  place (items 15, 16) and the options (the objective's terms, a second seed, the grid).
+- **None HELD:** none of the six alone removes the harm. The FALSIFIED causes are dropped as sole causes; the INCONCLUSIVE
+  ones stay suspects (partial effects; two halves read INCONCLUSIVE each), beside the score's own trade (item 12 and the
+  whole-score lines: if the reader does better by the solver's own score, the objective prefers the risk and the "harm" is
+  the objective's) and the grid. They go to the maintainer with the per-cause counts, the lost paths' place (items 15,
+  16) and the options (combining the suspects, the objective's terms, a second seed, the grid).
 - **NOT SETTLED:** the run is repeated after the difference is found.
 
 ## Provenance
@@ -220,8 +244,8 @@ does not bias the comparison).
 - The option: solve.js `jointWorlds` (commit 70a8b55); its test research/tests/solver-joint.test.mjs; the off path's tables
   before and after it equal to the bit (results-joint-off-identity.txt).
 - The learning chooser: research/solver/learn.mjs, through runPolicy's `choose` hook (the product untouched); its test
-  research/tests/solver-learn.test.mjs (17 checks: Bayes by hand, the simulation's model, year 0, the hook neutral, a
-  planted sign slip caught). Five worlds: solveMixture's existing `mix: 5` (Gauss-Hermite nodes to +/-2.86).
+  research/tests/solver-learn.test.mjs (23 checks: Bayes by hand, the simulation's model, year 0, the hook neutral, a
+  planted sign slip caught, look-ahead, the oracle's weights). The oracle: learn.mjs oracleChooser, the same hook. Five worlds: solveMixture's existing `mix: 5` (Gauss-Hermite nodes to +/-2.86).
 - The mode: audit-s126.mjs diag7t; the batch batch-7t.sh; the preflight preflight-7t.sh (a measurement through the
   launcher, tiny, no figure read; preflight-parse-7t.mjs runs the reducer's parse and gate over it).
 - The first deep review: deep-review-log.md, 26 Sep 17:12 UK.
@@ -232,9 +256,9 @@ does not bias the comparison).
 
 ## Derivation script
 
-- `derive: research/solver/derive-7t.mjs > research/solver/results-derive-7t.txt sha256 5c774f810a002ecc`
+- `derive: research/solver/derive-7t.mjs > research/solver/results-derive-7t.txt sha256 fce9cfff5de6b1fe`
   (7r's harm scaled to 8,000 paths, g and h drawn as Poisson counts under each true story with a background of paths
-  moving both ways, read by reduce-7t.mjs's own decide() with Holm over all ten tests, the other four causes removing
+  moving both ways, read by reduce-7t.mjs's own decide() with Holm over all twelve tests, the other five causes removing
   none of the harm - the least power a cause can have).
 
 ## Point and interval
@@ -242,6 +266,7 @@ does not bias the comparison).
 80% intervals, the author's, g (the reader with the cause removed against the reader) and h (against off with it removed):
 - J: g S126 +0.25 (0.0 to +0.5), bridge 4 +0.2 (0.0 to +0.4); h -0.2 (-0.45 to +0.05) on each.
 - L: g +0.05 (-0.05 to +0.25) on each; h -0.35 (-0.5 to -0.1) on each.
+- O: g +0.3 (0.0 to +0.55) on each; h -0.1 (-0.35 to +0.1) on each.
 - 5: g +0.2 (0.0 to +0.45) on each; h -0.2 (-0.45 to +0.05) on each.
 - 5L: g +0.25 (0.0 to +0.5) on each; h -0.15 (-0.4 to +0.05) on each.
 - M0: g 0.0 (-0.2 to +0.2) on each; h -0.2 (-0.45 to +0.05) on each (off at margin 0 may lose too: item 9).
@@ -250,27 +275,30 @@ does not bias the comparison).
 ## Credence
 
 The author's probability that each item holds: 1, 0.95; 2 (J HELD), 0.25; 3 (L), 0.15; 4 (5), 0.20; 5 (5L), 0.25; 6 (M0), 0.15;
-7, 0.65; 8, 0.50; 9, 0.45; 10, 0.70; 11, 0.30; 12, 0.50; 13, 0.35; 14, 0.80; 15, 0.85; 16, 0.75. At least one cause HELD:
-about 0.5; none, about 0.5. Lower than the first registration's 0.45 on J: the deep review's reading (grade C) puts the
+7, 0.65; 8, 0.50; 9, 0.45; 10, 0.70; 11, 0.30; 12, 0.50; 13, 0.35; 14, 0.80; 15, 0.85; 16, 0.75; 17 (O), 0.35. At least
+one cause HELD: about 0.55; none, about 0.45. Lower than the first registration's 0.45 on J: the deep review's reading (grade C) puts the
 losses late and in the deep bad world, where the per-world choice has few decisions left to spoil. Scored by
 scorecard.mjs.
 
 ## Power
 
 From results-derive-7t.txt (7r's harm scaled to 8,000 paths: S126 40 lost, bridge 4 32; 20,000 draws a story; each cause
-drawn with the other four removing none of the harm, so its p-values take Holm's x10 and x9, the least power it can have):
+drawn with the other five removing none of the harm, so its p-values take Holm's x12 and x11, the least power it can have):
 - **With a background of 1.33 paths each way:** the cause removes all the harm -> HELD 1.000; three quarters -> HELD
-  0.976; half -> INCONCLUSIVE 0.803 (HELD 0.197); a quarter -> INCONCLUSIVE 0.762 (FALSIFIED 0.238); none -> FALSIFIED 0.986.
-- **With 13.3 each way:** all -> HELD 0.909; three quarters -> INCONCLUSIVE 0.814 (HELD 0.186); half -> INCONCLUSIVE 0.998;
-  none -> FALSIFIED 0.908.
-- **What Holm over ten costs:** against the first registration's Holm over two, a full cure at the larger background reads
-  HELD 0.909, not 0.958, and three quarters 0.186, not 0.238 - the price of reading five causes as five claims.
+  0.976; half -> INCONCLUSIVE 0.800 (HELD 0.200); a quarter -> INCONCLUSIVE 0.759 (FALSIFIED 0.241); none -> FALSIFIED 0.986.
+- **With 13.3 each way:** all -> HELD 0.900; three quarters -> INCONCLUSIVE 0.822 (HELD 0.178); half -> INCONCLUSIVE 0.998;
+  a quarter -> INCONCLUSIVE 0.833 (FALSIFIED 0.167); none -> FALSIFIED 0.910.
+- **What Holm over twelve costs:** against the first registration's Holm over two (results-derive-7t.txt as committed in
+  5ffe56c), a full cure at the larger background reads HELD 0.900, not 0.958, and three quarters 0.178, not 0.238 - the
+  price of reading six causes as six claims.
 - **What it cannot see:** a part of the harm below the margin (20 paths of 8,000, 0.25 points) reads as none; two causes
-  that each remove half read INCONCLUSIVE each, and only 5L reads them together (five worlds with learning).
+  that each remove half read INCONCLUSIVE each (kept as suspects by the attribution), and only 5L reads two of them
+  together (five worlds with learning).
 - **Time:** from 7r's and 7s's cells (a solve about 130 s at 16 points with three worlds, about 5/3 of that with five;
-  forward runs about 100 s a thousand paths with three worlds, about 150 with five, the learning chooser the same; the
-  preflight's tiny runs agree): S126 and bridge 4 about 4.6 h each, the gain cases about 3 h, S194 about 1.5 h; five
-  processes on four cores: about 5.5 to 6 hours, plus the smoke run.
+  forward runs about 100 s a thousand paths with three worlds, about 150 with five, the learning and oracle choosers the
+  same; the preflight's tiny runs agree): the oracle adds two forward runs of 8,000 paths a case (one on S194), about 27
+  minutes; S126 and bridge 4 about 5 h each, the gain cases about 3.5 h, S194 about 1.7 h; five processes on four cores:
+  about 6 to 6.5 hours, plus the smoke run.
 
 ## Budget line
 
@@ -286,11 +314,14 @@ The bridge class's decision error: the reader cost S126 0.47 and bridge 4 0.31 p
   never-updated weights together; the attribution is then "both", grade C between them.
 - **Third:** M0's h reads no harm because OFF at margin 0 got worse, not because the reader got better (item 9 holds, M0's
   g does not gain): the rule reads that partial, not a cure - off's safety was the margin's.
-- **Fourth:** the learning chooser is right in its model and still weak (S/V about 0.125 a year): L reads FALSIFIED because
-  the evidence builds too slowly, not because the weights do not matter. 5L and the end weights say how far it moved.
-- **The smoke run** now reaches diag7t's registered arms (the maintainer's unlock of 26 Sep 16:47 UK) but not the learning
-  or five-world arms (smoke.sh is locked); the preflight through the launcher, solver-learn.test.mjs and the reducer's
-  gate cover them.
+- **Fourth:** the one-pot learner is too slow (S/V about 0.125 to 0.13 a year): L reads FALSIFIED and O HELD - the weights
+  matter and one pot cannot teach them in time. The end weights say how far each moved.
+- **Fifth:** O cures by knowing the tail below -sqrt 3 that no table world holds, so its cure is the tail's as much as
+  the weights'; 5 and 5L read against it.
+- **The smoke run:** smoke.sh's diag7t line runs part 0/5, S126, and the mode now runs every arm there - the learning,
+  oracle and five-world ones included - so a crash in any arm fails it; it greps none of their lines or traces (smoke.sh is
+  locked). The preflight through the launcher (all five cases, every line through the reducer's parse and gate),
+  solver-learn.test.mjs and the reducer's planted checks cover what it does not read.
 - **Least likely:** item 1 fails; the run is then NOT SETTLED.
 
 ## Changes after seeing results

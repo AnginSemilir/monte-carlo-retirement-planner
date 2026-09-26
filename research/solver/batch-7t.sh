@@ -5,8 +5,9 @@
 #   with the mixture as the product solves it and with jointWorlds (one policy for every world); every arm run as solved and
 #   at switch margin 0 on 8,000 paths of the tuning seed 7002 (the first 3,000 are 7r's), and on 2,000 paths in each world;
 #   and (the re-registration of 26 Sep 17:50 UK, the maintainer's "Test all") every product arm run with the learning chooser
-#   (+L), and on S126 and bridge 4 off and the reader solved with five worlds, as solved and learning;
-#   16 points; one case a process; traces kept. The harmed cases take about 4.6 h each (the prediction's Power), so each
+#   (+L), and on S126 and bridge 4 off and the reader solved with five worlds, as solved and learning; and (the
+#   seventy-eighth review, BLOCKING 1) every product arm run with the oracle's weights, set from the path's true shift (+O);
+#   16 points; one case a process; traces kept. The harmed cases take about 5 h each (the prediction's Power), so each
 #   process may run 9 hours before it is stopped (was 7).
 set -u
 OUT=research/solver/results/diag7t

@@ -24,7 +24,7 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solve, solvePlan, runPolicy } from '../../src/solver/solve.js';
 import { swapChooser } from './swap.mjs';
-import { learningChooser } from './learn.mjs';
+import { learningChooser, oracleChooser } from './learn.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { makeTrace } from './record.mjs';
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
@@ -369,7 +369,9 @@ if (mode === 'f1v2') {
    *   - FIVE WORLDS (OFF5, READER5; S126 and bridge 4): off and the reader solved with the five-world mixture (nodes to
    *     +/-2.86) and run as solved: a "five" line in the case line's format, with their ran and joint lines;
    *   - FIVE WORLDS LEARNING (OFF5+L, READER5+L): the five-world tables with the learning chooser: a "five-learn" line.
-   *   Each learning line gives every arm's mean end weights. Every run is traced and on the pairs line.
+   *   - THE ORACLE (+O; the seventy-eighth review, BLOCKING 1: the bound on learning): off's and the reader's own tables with
+   *     the weights set from the path's TRUE shift from year 0 (learn.mjs oracleChooser): an "oracle" line, every case.
+   *   Each learning and oracle line gives every arm's mean end weights. Every run is traced and on the pairs line.
    */
   const PANEL = [['S126', 'off,reader'], ['bridge 4', 'off,reader'], ['S360', 'off,reader'], ['share 0.95', 'off,reader'], ['S194', 'off']];
   const FIVE = new Set(['S126', 'bridge 4']);   // the five-world arms: the harmed cases only
@@ -387,14 +389,15 @@ if (mode === 'f1v2') {
   console.log(`7T DIAGNOSIS, step-6 defaults in the mixture (solvePlan), ${POINTS} points, ${NP} paths (seed ${SEED}), ${WP} a world, lambda ${LAMBDA}, the tier above allowed and the final year exact in every arm; traces kept; part ${pk}/${pn}`);
   const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
   // one forward run of a solve on the given paths: survival, below-target and tier years, and optionally the trace
-  // `learn`: each path run with learn.mjs's chooser (the posterior world weights); its mean end weights are returned
+  // `learn`: each path run with learn.mjs's chooser - 'oracle' for the oracle's, any other true value for the learner's; the
+  // mean end weights are returned
   const forward = (r, paths, trace, learn = false) => {
     const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = trace ? makeTrace(N, T + 1) : null;
     let ok = 0, below = 0, tierYrs = 0, estate = 0;
     const cap = r.meta.bequestCap, wEnd = learn ? r.mix.nodes.map(() => 0) : null;
     paths.forEach((zs, i) => {
       if (tr) tr.row = i;
-      const L = learn ? learningChooser(r, zs) : null;
+      const L = learn ? (learn === 'oracle' ? oracleChooser(r, zs) : learningChooser(r, zs)) : null;
       const o = runPolicy(r, zs, { ...(tr ? { trace: tr } : {}), ...(L ? { choose: L.choose } : {}) });
       if (L) L.n.last.forEach((w, k) => { wEnd[k] += w / N; });
       if (o.survived) { ok++; okArr[i] = 1; estate += Math.min(o.terminalNet, cap); } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0;
@@ -425,8 +428,9 @@ if (mode === 'f1v2') {
       });
     }
     // the other causes: learning on the product's tables (every case); five worlds, and learning on them (the harmed cases)
-    const learnRun = (src, label, file) => { const f = forward(src.res.r, src.res.paths, true, true); return { label, file, res: null, sim: f.sim, okArr: f.okArr, tr: f.tr, lf: f }; };
+    const learnRun = (src, label, file, kind = true) => { const f = forward(src.res.r, src.res.paths, true, kind); return { label, file, res: null, sim: f.sim, okArr: f.okArr, tr: f.tr, lf: f }; };
     const learnRuns = runs.filter(x => x.res && !x.label.endsWith('+J')).map(x => learnRun(x, `${x.label}+L`, `${x.file}_l`));
+    const oracleRuns = runs.filter(x => x.res && !x.label.endsWith('+J')).map(x => learnRun(x, `${x.label}+O`, `${x.file}_o`, 'oracle'));
     const fiveRuns = [], fiveLearn = [];
     if (FIVE.has(id)) for (const name of armList.split(',')) {
       const label = `${name.toUpperCase()}5`;
@@ -436,7 +440,7 @@ if (mode === 'f1v2') {
       fiveRuns.push(run);
       fiveLearn.push(learnRun(run, `${label}+L`, `${name}5_l`));
     }
-    runs.push(...learnRuns, ...fiveRuns, ...fiveLearn);
+    runs.push(...learnRuns, ...oracleRuns, ...fiveRuns, ...fiveLearn);
     const main = runs.filter(x => x.res && !fiveRuns.includes(x)), mzero = runs.filter(x => x.m0), base = main[0];
     const cell = (x, j) => {
       let up = 0, dn = 0; for (let k = 0; k < NP; k++) { if (!base.okArr[k] && x.okArr[k]) up++; else if (base.okArr[k] && !x.okArr[k]) dn++; }
@@ -447,6 +451,7 @@ if (mode === 'f1v2') {
     console.log(`${''.padEnd(16)} margin0 | ${mzero.map(x => `${x.label} sim ${f1(x.m0.sim).padStart(5)} tier-below ${f1(x.m0.tierYrs).padStart(4)} below ${f1(x.m0.below).padStart(4)} ${Math.round(x.m0.secs)} s`).join(' | ')}`);
     const learnCell = x => `${x.label} sim ${f1(x.lf.sim).padStart(5)} tier-below ${f1(x.lf.tierYrs).padStart(4)} below ${f1(x.lf.below).padStart(4)} w-end ${x.lf.wEnd.map(w => w.toFixed(4)).join(',')} ${Math.round(x.lf.secs)} s`;
     console.log(`${''.padEnd(16)} learn | ${learnRuns.map(learnCell).join(' | ')}`);
+    console.log(`${''.padEnd(16)} oracle | ${oracleRuns.map(learnCell).join(' | ')}`);
     if (fiveRuns.length) {
       console.log(`${''.padEnd(16)} five | ${fiveRuns.map(x => cell(x, 1)).join(' | ')}`);
       console.log(`${''.padEnd(16)} five-learn | ${fiveLearn.map(learnCell).join(' | ')}`);

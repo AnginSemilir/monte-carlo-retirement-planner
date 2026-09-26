@@ -61,7 +61,9 @@ is still written with its reason, and the reducers' gates still check the settin
 checklist: PLAN.md points to CHECKLIST.md (a copy that stays must still match word for word). Not done: (2), a plan review
 only at gates (a registration, a settled result, a default change) with the launcher requiring a PASS receipt - the Stop
 hook's change was refused by the session's auto-mode permission classifier as self-modification of an oversight hook, and
-is left to the maintainer (the launcher half made sense only with it). What stays: predictions before runs, the fair-test
+is left to the maintainer (the launcher half made sense only with it). The maintainer approved it at 18:41 UK ("I approve
+the stock hook change. Unlock enforcement"); the classifier then refused the launcher half and a correction to the hook's
+own header, so the hook was restored to its committed version and the diff went to the maintainer to apply or allow. What stays: predictions before runs, the fair-test
 gates, planted faults, exact tests and Holm, the unmasking rule, the deep review, and the plan review after every plan
 change. Found while re-anchoring the checker's planted tests after the move: check-plan.mjs's bug-sweep check read only
 headings "Bugs found and fixed on", so the section "Bugs found on 26 Sep" had never been checked; it now reads both (the

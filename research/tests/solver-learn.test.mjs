@@ -12,6 +12,9 @@
  *      from the product's only through the weights; and the learning arm does differ somewhere
  *   F. five worlds: the chooser runs on a five-world mixture and its weights sum to one
  *   G. refusals: no mixture, a fold path with no long-run shift
+ *   H. no look-ahead: year t's weights ignore year t's draw, which is not yet realised (the seventy-eighth review, MINOR 7);
+ *      year t+1's do not
+ *   I. the oracle (the bound): the path's true shift on the nodes, fixed from year 0; the weights restored; refusals
  */
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -21,7 +24,7 @@ import * as M from '../../src/solver/model.js';
 import { solveMixture, runPolicy, chooseAction } from '../../src/solver/solve.js';
 import { tiersFor } from '../../src/solver/fast.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
-import { learningChooser, posterior, update, signalPot } from '../solver/learn.mjs';
+import { learningChooser, posterior, update, signalPot, oracleChooser, oracleWeights } from '../solver/learn.mjs';
 
 let passed = 0, failed = 0;
 const ok = (name, cond, note = '') => { if (cond) { passed++; console.log(`PASS  ${name}${note ? '  -- ' + note : ''}`); } else { failed++; console.log(`FAIL  ${name}${note ? '  -- ' + note : ''}`); } };
@@ -112,6 +115,30 @@ console.log('=========== G. REFUSALS ===========');
   const threw = f => { try { f(); return false; } catch { return true; } };
   ok('G  no mixture is refused', threw(() => learningChooser({ ...r, mix: null }, paths[0])));
   ok('G  a fold path (no long-run shift) is refused', threw(() => learningChooser(r, paths[0].slice(0, T + 1))));
+}
+
+console.log('=========== H. NO LOOK-AHEAD ===========');
+{
+  // two paths the same but for year 5's draw: the weights the chooser uses in year 5 must be the same (that draw is not yet
+  // realised), and in year 6 they must differ (it is)
+  const A = paths[3].slice(), B = paths[3].slice(); B[5] = A[5] + 2;
+  const at = zs => { const L = learningChooser(r, zs), w = []; runPolicy(r, zs, { choose: (t, st, h) => { const ai = L.choose(t, st, h); w[t] = L.n.last.slice(); return ai; } }); return w; };
+  const wa = at(A), wb = at(B), same = (x, y) => x && y && x.every((v, k) => v === y[k]);
+  ok('H  year 5: the weights ignore year 5\'s own draw', same(wa[5], wb[5]), wa[5] && wa[5].map(x => x.toFixed(4)).join(' '));
+  ok('H  year 6: the weights read it (the check can fail)', !!wa[6] && !!wb[6] && !same(wa[6], wb[6]));
+}
+
+console.log('=========== I. THE ORACLE ===========');
+{
+  const N3 = [-Math.sqrt(3), 0, Math.sqrt(3)], f = w => w.map(x => x.toFixed(3)).join(' ');
+  ok('I  the oracle\'s weights: beyond the bad node all on it, at 0 all on the normal, halfway split', f(oracleWeights(N3, -2.5)) === '1.000 0.000 0.000' && f(oracleWeights(N3, 0)) === '0.000 1.000 0.000' && f(oracleWeights(N3, -Math.sqrt(3) / 2)) === '0.500 0.500 0.000' && f(oracleWeights(N3, 3)) === '0.000 0.000 1.000');
+  ok('I  five nodes: a shift between -2.86 and -1.36 splits between them, summing to one', (() => { const w = oracleWeights([-2.85697, -1.355626, 0, 1.355626, 2.85697], -2); return w[0] > 0 && w[1] > 0 && Math.abs(w.reduce((a, b) => a + b, 0) - 1) < 1e-12; })());
+  const bad = paths[4].slice(); bad[T + 1] = -2.5;
+  const O = oracleChooser(r, bad), w0 = r.mix.weights; let first;
+  runPolicy(r, bad, { choose: (t, st, h) => { const ai = O.choose(t, st, h); if (t === 0) { const w = r.mix.weights; r.mix.weights = [1, 0, 0]; first = [ai, chooseAction(r, st, t, h)]; r.mix.weights = w; } return ai; } });
+  ok('I  the oracle picks the move of the bad world\'s weights from year 0, and restores the mixture\'s', first && first[0] === first[1] && r.mix.weights === w0);
+  const threw = g => { try { g(); return false; } catch { return true; } };
+  ok('I  the oracle refuses no mixture and a fold path', threw(() => oracleChooser({ ...r, mix: null }, paths[0])) && threw(() => oracleChooser(r, paths[0].slice(0, T + 1))));
 }
 
 console.log(`\n=========== ${passed} passed, ${failed} failed ===========`);

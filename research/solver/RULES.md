@@ -356,8 +356,7 @@ prediction that times a change reads it as a ratio against its bar, from the two
 process while the cases run in parallel, so both arms of a case share the same background load; the machine's load is
 logged (fair-test row 33). Absolute times are never scaled by the number of busy cores: contention is not linear (K5's
 median was inflated by it). A ratio measured side by side may still differ from one measured alone, since contention can
-slow two arms with different memory use unequally, so the first prediction to use this method also times one case alone,
-or reads its ratios against check 6's quiet-box ones (results-readertime.txt). Enforced by: NOT YET - the plan-auditor,
+slow two arms with different memory use unequally, so the first prediction to time side by side also times the same arms, cases, points and code alone on the machine; if the two ratios differ by more than 0.05 on any case (a quarter of a 20% bar; Claude's choice, open to the maintainer), the method goes back to the maintainer before it is relied on (the fifty-eighth review, MINOR 1: a comparison with check 6's quiet-box ratios tests the method only when it times that same pair on the same code). Enforced by: NOT YET - the plan-auditor,
 on each prediction that times a change.
 
 ## 7. Where the approach came from (24 Sep)

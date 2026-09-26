@@ -5,7 +5,8 @@
  *   node research/tests/stats.test.mjs
  */
 import assert from 'node:assert/strict';
-import { mcnemarHarmP, clopperPearson, survivalChange, holm, outcome, pathsNeeded, binomUpperHalf, pooledRE, pooledFE, signTest } from '../solver/stats.mjs';
+import { mcnemarHarmP, clopperPearson, survivalChange, holm, outcome, pathsNeeded, binomUpperHalf, pooledRE, pooledFE, signTest,
+  WHOLE_SCORE, normUpper, zFor, meanChange, wholeScoreOutcome, survivalFlagged, pooledMean, pathsNeededMean, MARGINS } from '../solver/stats.mjs';
 
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
 const near = (a, b, tol) => Math.abs(a - b) <= tol;
@@ -61,4 +62,28 @@ ok(near(pathsNeeded(0.003, 0.0025), 1844, 5) && near(pathsNeeded(0.023, 0.0025),
 // planted: the old two-se reading disagrees with the exact outcome on O19's 4 lost, 0 saved
 { const b = 4, c = 0, N = 3000, net = c - b, disc = b + c; const oldBeyondOrLine = net * net >= 4 * disc;
   ok(oldBeyondOrLine && o1.outcome === 'no material harm', 'planted: the old rule reads 4 lost, 0 saved as at or beyond two se; the exact outcome is no material harm, so the two disagree'); }
+// THE WHOLE-SCORE RULE (the maintainer, 26 Sep: drafts/whole-score-rule.md agreed). The normal tail against reference
+// values (P(Z > 1.96) = 0.0249979, P(Z > 5) = 2.8665e-7), the interval's z, a mean worked by hand, the three outcomes,
+// the refusal below 1,000 futures, survival's flag, the pool, and the futures needed
+ok(near(normUpper(1.96), 0.0249979, 2e-7) && near(normUpper(-1.96), 0.9750021, 2e-7) && near(normUpper(5), 2.8665e-7, 1e-10), `the normal tail: P(Z > 1.96) ${normUpper(1.96).toFixed(7)}, P(Z > 5) ${normUpper(5).toExponential(4)}`);
+ok(near(zFor(0.05), 1.95996, 1e-4) && near(zFor(0.005), 2.80703, 1e-4), `the interval's z: ${zFor(0.05).toFixed(4)} at 0.05, ${zFor(0.005).toFixed(4)} at 0.005 (the first look)`);
+{ const alt = (m, a, N = 1000) => Array.from({ length: N }, (_, i) => m + (i % 2 ? a : -a));   // mean m, sample sd a * sqrt(N / (N - 1))
+  const flat = meanChange(alt(0, 1)), se = Math.sqrt(1000 / 999 / 1000);
+  ok(near(flat.d, 0, 1e-12) && near(flat.se, se, 1e-12) && near(flat.pHarm, 0.5, 1e-7) && near(flat.lo, -1.96 * se, 1e-3), `by hand: 1,000 futures of +/-1 about 0 read mean 0, se ${se.toFixed(5)}, p for harm 0.5`);
+  const m = MARGINS.high;
+  ok(wholeScoreOutcome({ ds: alt(0, 1), margin: m, pHolm: 0.5 }).outcome === 'no material harm', 'no change, tight interval: no material harm');
+  const loss = alt(-0.5, 1), pl = meanChange(loss).pHarm;
+  ok(pl < 1e-12 && wholeScoreOutcome({ ds: loss, margin: m, pHolm: pl }).outcome === 'harm', `a 0.5-point loss, se 0.032: harm (p ${pl.toExponential(2)})`);
+  const wide = alt(-0.3, 5), pw = meanChange(wide).pHarm;
+  ok(wholeScoreOutcome({ ds: wide, margin: m, pHolm: Math.min(1, pw * 10) }).outcome === 'inconclusive', `a 0.3-point loss, se 0.158, Holm over ten (${Math.min(1, pw * 10).toFixed(3)}): inconclusive`);
+  ok(wholeScoreOutcome({ ds: alt(-0.2, 1), margin: m, pHolm: 1e-6 }).outcome === 'inconclusive', 'planted: a significant loss smaller than the margin is not harm');
+  ok(meanChange(alt(0.5, 1)).pHarm > 0.999, 'planted: a gain carries a p for harm near 1, never near 0 (the sign of the test)');
+  let refused = false; try { meanChange(alt(0, 1, 999)); } catch { refused = true; }
+  ok(refused, `planted: ${WHOLE_SCORE.minPaths - 1} futures are refused, not read on a normal interval`);
+}
+ok(survivalFlagged(-0.51, 0.25) && !survivalFlagged(-0.5, 0.25) && WHOLE_SCORE.survivalFlag === 2, 'survival is flagged beyond two margins (0.5 points at the 0.25 margin), not at them');
+{ const eq = pooledMean([{ d: -0.1, se: 0.1 }, { d: -0.1, se: 0.1 }]), sp = pooledMean([{ d: 1, se: 0.1 }, { d: -1, se: 0.1 }]);
+  ok(near(eq.fe.mean, -0.1, 1e-12) && near(eq.fe.lo, eq.re.lo, 1e-12) && eq.re.tau2 === 0 && near(eq.fe.hi - eq.fe.lo, 2 * 1.96 * 0.1 / Math.SQRT2, 1e-12), 'the pool: equal cases give one mean, no spread, fixed effect = random effects');
+  ok(sp.re.tau2 > 0 && sp.re.lo < sp.fe.lo, 'planted: cases that disagree widen the random-effects interval beyond the fixed effect\'s'); }
+ok(pathsNeededMean(7.34, 0.25) === 3312 && pathsNeededMean(6.52, 0.25) === 2613, `the futures needed at a 0.25 margin: ${pathsNeededMean(7.34, 0.25)} at a spread of 7.34, ${pathsNeededMean(6.52, 0.25)} at 6.52 (7r's measured spreads)`);
 console.log(`\nstats: ${n} passed`);

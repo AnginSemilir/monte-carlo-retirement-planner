@@ -127,3 +127,59 @@ export function signTest(ds) {
 }
 /* the paths needed so the interval's half-width fits the margin at discordance d (both as fractions) */
 export const pathsNeeded = (d, delta) => Math.ceil(1.96 * 1.96 * d / (delta * delta));
+
+/*
+ * THE WHOLE-SCORE RULE (the maintainer, 26 Sep, "agreed" to drafts/whole-score-rule.md rows 1-9, after answering 7r's
+ * question: "we keep the default settings, which is mostly survival but some other weights"). A change judged by the
+ * default objective realised per future, not by survival alone. Per household: ds holds the paired difference B - A of
+ * each future's realised whole score, in points, over the same futures; its mean, a normal interval at 1 - level
+ * (two-sided, as the survival rule's exact interval is) and the one-sided p for harm. The regimen's margins (MARGINS,
+ * marginFor on the comparison arm's survival) and its three outcomes, in the same form as outcome() above; Holm across the
+ * households by holm() above; the pooled mean by the same inverse-variance forms. Survival is reported beside it by the
+ * exact rule and is not a veto, but a survival loss beyond survivalFlag margins goes to the maintainer before any default.
+ * The normal interval needs many futures: fewer than minPaths is refused, never read.
+ */
+export const WHOLE_SCORE = Object.freeze({ survivalFlag: 2, minPaths: 1000 });
+/* the upper tail of the standard normal, P(Z > z), by the complementary error function (Numerical Recipes erfcc,
+   fractional error below 1.2e-7 everywhere, so a small p keeps its size) */
+export function normUpper(z) {
+  const x = Math.abs(z) / Math.SQRT2, t = 1 / (1 + 0.5 * x);
+  const erfc = t * Math.exp(-x * x - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+  return z >= 0 ? erfc / 2 : 1 - erfc / 2;
+}
+/* the z that leaves level/2 in each tail (1.96 at 0.05, 2.81 at 0.005), by bisection on normUpper */
+export function zFor(level) { let lo = 0, hi = 10; for (let i = 0; i < 100; i++) { const m = (lo + hi) / 2; if (normUpper(m) > level / 2) lo = m; else hi = m; } return (lo + hi) / 2; }
+/* the mean change B - A in points with its interval and the one-sided p for harm (P(Z <= mean / se)) */
+export function meanChange(ds, level = 0.05) {
+  const N = ds.length;
+  if (N < WHOLE_SCORE.minPaths) throw new Error(`the whole-score rule needs at least ${WHOLE_SCORE.minPaths} futures a household, not ${N}`);
+  let s = 0; for (const x of ds) s += x;
+  const d = s / N; let ss = 0; for (const x of ds) ss += (x - d) ** 2;
+  const se = Math.sqrt(ss / (N - 1) / N), z = zFor(level);
+  const pHarm = se > 0 ? 1 - normUpper(d / se) : (d < 0 ? 0 : 1);
+  return { d, se, lo: d - z * se, hi: d + z * se, pHarm, N };
+}
+/* the three outcomes for one household on the whole score, as outcome() reads survival: no material harm when the
+   interval's lower end is above minus the margin; harm when the Holm-adjusted p is below the level AND the point loss is
+   at least the margin; otherwise inconclusive */
+export function wholeScoreOutcome({ ds, margin, pHolm, level = 0.05 }) {
+  const iv = meanChange(ds, level);
+  if (iv.lo > -margin) return { ...iv, outcome: 'no material harm' };
+  if (pHolm < level && -iv.d >= margin) return { ...iv, outcome: 'harm' };
+  return { ...iv, outcome: 'inconclusive' };
+}
+/* survival's flag: a survival change (points) below minus survivalFlag margins goes to the maintainer before any default */
+export const survivalFlagged = (survivalD, margin) => survivalD < -WHOLE_SCORE.survivalFlag * margin;
+/* the pooled whole-score mean over households' { d, se }: fixed effect (inverse variance) and random effects
+   (DerSimonian-Laird), each with its 95% interval, read against the pooled margin as the survival pool is */
+export function pooledMean(cases) {
+  const k = cases.length; if (!k) return null;
+  const d = cases.map(x => x.d), v = cases.map(x => Math.max(x.se * x.se, 1e-12)), w = v.map(x => 1 / x), sw = w.reduce((a, b) => a + b, 0);
+  const mw = w.reduce((a, x, i) => a + x * d[i], 0) / sw, sef = Math.sqrt(1 / sw);
+  const Q = w.reduce((a, x, i) => a + x * (d[i] - mw) ** 2, 0), sw2 = w.reduce((a, x) => a + x * x, 0);
+  const tau2 = k > 1 ? Math.max(0, (Q - (k - 1)) / (sw - sw2 / sw)) : 0;
+  const ws = v.map(x => 1 / (x + tau2)), sws = ws.reduce((a, b) => a + b, 0), mr = ws.reduce((a, x, i) => a + x * d[i], 0) / sws, ser = Math.sqrt(1 / sws);
+  return { fe: { mean: mw, lo: mw - 1.96 * sef, hi: mw + 1.96 * sef }, re: { mean: mr, lo: mr - 1.96 * ser, hi: mr + 1.96 * ser, tau2 }, k };
+}
+/* the futures needed so a whole-score interval's half-width fits the margin, at a per-future spread sd (points) */
+export const pathsNeededMean = (sd, delta) => Math.ceil((1.96 * sd / delta) ** 2);

@@ -313,7 +313,7 @@ author's probability for each item), Power, Decision rule (primary outcome, test
 looks), Budget line (the error-budget line it reduces) and Pre-mortem (the most likely way each item fails, and what that
 would mean). A change to the decision rule after launch demotes that item to descriptive. Enforced by:
 `check-prediction.mjs` for every prediction but the nine registered before (since 25 Sep 21:54 UK), and the launcher's re-run of each derive line.
-**The scorecard** (not built yet): each item's credence against its outcome, the Brier score per test and cumulatively,
+**The scorecard** (built 26 Sep, research/solver/scorecard.mjs; 8j): each item's credence against its outcome, the Brier score per test and cumulatively,
 target below 0.20; it starts with 7e. Every recommendation to the maintainer quotes the current score.
 
 **Evidence and review** (the review's section 17):

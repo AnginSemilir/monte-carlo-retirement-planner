@@ -6,7 +6,8 @@
  *
  * For each registered test in TESTS: the prediction's "## Credence" section gives a probability per numbered item ("1,
  * 0.70; 2, 0.80; ...") and one for the whole ("Carried forward ...: 0.60"); the reducer's saved output gives each item's
- * outcome (a line "N. ... -> held" or "-> MISSED") and the verdict ("=> NOT FALSIFIED - CARRIED FORWARD" or "=>
+ * outcome (under "THE PREDICTION'S ITEMS:", a line "N. ..." whose first "-> held", "-> MISSED" or ": held" is the
+ * outcome - reduce-7e prints item 1 and 5 as ": held" and item 2 as "-> held; S370 reported: ...") and the verdict ("=> NOT FALSIFIED - CARRIED FORWARD" or "=>
  * FALSIFIED"). A test whose results file does not exist yet is PENDING; one whose reducer stopped (INCOMPLETE, a gate
  * refusal, no verdict) is REFUSED and never scored. An item with a credence but no outcome, or an outcome with no
  * credence, is an error: the scorecard stops rather than score part of a test.
@@ -17,6 +18,7 @@
  *   node research/solver/scorecard.mjs --planted    the planted checks alone
  */
 import { readFileSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,11 +42,19 @@ export function credences(predText) {
 }
 
 export function outcomes(resultsText) {
-  if (/^INCOMPLETE|^FAIR-TEST GATE: REFUSED|^PLANTED CHECK FAILED/m.test(resultsText)) return { refused: 'the reducer stopped before a verdict' };
+  // the stops the reducers print: reduce-7e's INCOMPLETE and "FAIR-TEST GATE: FAILED", fair-gate.mjs's "FAIR-TEST GATE:
+  // FAILED (stamps)" and "REFUSED: not a fair test", any reducer's "PLANTED CHECK FAILED"
+  if (/^INCOMPLETE|^FAIR-TEST GATE: FAILED|^\s*REFUSED: not a fair test|^PLANTED CHECK FAILED/m.test(resultsText)) return { refused: 'the reducer stopped before a verdict' };
   const v = /^=>\s*(NOT FALSIFIED|FALSIFIED)/m.exec(resultsText);
   if (!v) return { refused: 'no verdict line' };
+  const h = resultsText.indexOf("THE PREDICTION'S ITEMS:");
+  const sec = h < 0 ? resultsText : resultsText.slice(h).split(/\n\s*\n/)[0];
   const items = {};
-  for (const x of resultsText.matchAll(/^\s*(\d+)\.\s.*->\s*(held|MISSED)\s*$/gm)) items[x[1]] = x[2] === 'held' ? 1 : 0;
+  for (const x of sec.matchAll(/^\s*(\d+)\.\s(.*)$/gm)) {
+    const o = /(?:->|:)\s*(held|MISSED)\b/.exec(x[2]);
+    if (!o) throw new Error(`item ${x[1]}: no outcome on its line`);
+    items[x[1]] = o[1] === 'held' ? 1 : 0;
+  }
   return { items, overall: v[1] === 'NOT FALSIFIED' ? 1 : 0 };
 }
 
@@ -75,6 +85,29 @@ export function reliability(pairs) {
   const R = res(['1. a -> held', '2. b -> MISSED', '3. c: x, y -> held']);
   const near = (a, b) => Math.abs(a - b) < 1e-12;
   const t = f => { try { return f(); } catch (e) { return `ERROR ${e.message}`; } };
+  // 7e's item and verdict lines exactly as reduce-7e.mjs items() and report() print them (l.188-203, held and missed),
+  // with the section that follows them; the hash below fails if items() changes
+  const R7 = ok => `POOLED over the 16 cases expected unchanged (fixed effect, the floor): +0.010 points (-0.050 to 0.070)
+
+THE PREDICTION'S ITEMS:
+1. in class (11 cases) the reader's gap within +/-5, the thin S128 and S130 within +/-8: ${ok ? 'held' : 'outside: S126 6.2, S128 9.1 -> MISSED'}
+2. bridge 6 and S366 within +/-5: bridge 6 1.2, S366 ${ok ? '-2.0' : '-6.0'} -> ${ok ? 'held' : 'MISSED'}; S370 reported: S370 3.1
+3. share 0.95 and S360 within +/-10: share 0.95 4.0, S360 ${ok ? '7.5' : '12.5'} -> ${ok ? 'held' : 'MISSED'}
+4. bridge 4+cost within +/-8: bridge 4+cost ${ok ? '3.0' : '9.0'} -> ${ok ? 'held' : 'MISSED'}
+5. no case shows harm by the exact rule: ${ok ? 'held' : 'harm on S124, S128 -> MISSED'}
+6. the reader gains survival on share 0.95 and S360 (the exact one-sided p for a gain below 0.05): share 0.95 +12 (15 saved, 3 lost; p 3.8e-3), S360 +8 (10 saved, 2 lost; p 1.9e-2) -> ${ok ? 'held' : 'MISSED'}
+7. bridge 0 identical: yes; share 0.50 and 0.70 within 0.5: yes; the no-bridge controls identical: ${ok ? 3 : 2} of 3 -> ${ok ? 'held' : 'MISSED'}
+8. at 30 points the reader's gap within +/-5: S124@30 1.0, S126@30 ${ok ? '2.0' : '5.5'}, S130@30 -1.0 -> ${ok ? 'held' : 'MISSED'}
+9. the reader's added solve time at 30 points at most 20% on each case: S124@30 1.050, S126@30 ${ok ? '1.100' : '1.300'}, S130@30 1.020 -> ${ok ? 'held' : 'MISSED'}
+
+FALSIFIER: ${ok ? 'not fired' : 'fired - harm on S124'}
+=> ${ok ? 'NOT FALSIFIED - CARRIED FORWARD to the maintainer as the bridge read' : 'FALSIFIED - NOT CARRIED FORWARD (F2 is built and tested the same way)'}
+
+SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across the 24, at 0.05):
+   S126 3 lost 1 saved of 1000 -> no harm
+`;
+  const src7 = readFileSync(join(HERE, 'reduce-7e.mjs'), 'utf8'), i7 = src7.indexOf('function items(');
+  const itemsSrc = src7.slice(i7, src7.indexOf('  // reported, not predicted', i7));
   const cases = [
     ['credences parsed, reasons in brackets ignored', JSON.stringify(credences(P)), '{"items":{"1":0.7,"2":0.8,"3":0.9},"overall":0.6}'],
     ['outcomes parsed', JSON.stringify(outcomes(R)), '{"items":{"1":1,"2":0,"3":1},"overall":1}'],
@@ -84,7 +117,14 @@ export function reliability(pairs) {
     ['FALSIFIED scores the whole as not held', String(scoreTest(P, res(['1. a -> held', '2. b -> MISSED', '3. c -> held'], 'FALSIFIED - NOT CARRIED FORWARD')).pairs.at(-1).o), '0'],
     ['planted: no results file yet is PENDING, not scored', scoreTest(P, null).status, 'PENDING'],
     ['planted: an INCOMPLETE reducer is REFUSED, not scored', scoreTest(P, 'INCOMPLETE - nothing is scored:\n  x').status, 'REFUSED'],
-    ['planted: a gate refusal is REFUSED', scoreTest(P, 'FAIR-TEST GATE: REFUSED\n x').status, 'REFUSED'],
+    ['planted: reduce-7e\'s gate failure is REFUSED', scoreTest(P, 'FAIR-TEST GATE: FAILED\n  x').status, 'REFUSED'],
+    ['planted: fair-gate\'s stamp failure is REFUSED', scoreTest(P, 'FAIR-TEST GATE: FAILED (stamps)\n  x').status, 'REFUSED'],
+    ['planted: fair-gate\'s refusal is REFUSED', scoreTest(P, 'x\n\nREFUSED: not a fair test, so no figure is printed.').status, 'REFUSED'],
+    ['planted: a numbered item line with no outcome stops the scorecard', t(() => outcomes(res(['1. a -> held', '2. b: 4.1']))), 'ERROR item 2: no outcome on its line'],
+    ['7e, the reducer\'s own lines, every item held', t(() => JSON.stringify(outcomes(R7(true)))), '{"items":{"1":1,"2":1,"3":1,"4":1,"5":1,"6":1,"7":1,"8":1,"9":1},"overall":1}'],
+    ['7e, the reducer\'s own lines, every item missed', t(() => JSON.stringify(outcomes(R7(false)))), '{"items":{"1":0,"2":0,"3":0,"4":0,"5":0,"6":0,"7":0,"8":0,"9":0},"overall":0}'],
+    ['7e, its real prediction against the reducer\'s own lines, scored', t(() => scoreTest(readFileSync(join(HERE, 'predictions/bridge-reader.md'), 'utf8'), R7(true)).status), 'SCORED'],
+    ['7e: reduce-7e\'s items() unchanged since these lines were copied (else re-copy them)', createHash('sha256').update(itemsSrc).digest('hex').slice(0, 16), '21aadfd5e769be63'],
     ['planted: no verdict line is REFUSED', scoreTest(P, '1. a -> held\n2. b -> held\n3. c -> held').status, 'REFUSED'],
     ['planted: an item with a credence and no outcome stops the scorecard', t(() => scoreTest(P, res(['1. a -> held', '2. b -> held']))), 'ERROR items do not match: credence '],
     ['planted: an outcome with no credence stops the scorecard', t(() => scoreTest(P, res(['1. a -> held', '2. b -> held', '3. c -> held', '4. d -> held']))), 'ERROR items do not match: credence '],

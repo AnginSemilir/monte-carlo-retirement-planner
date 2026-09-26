@@ -3,6 +3,9 @@
  * there as noise-sized or not"; the sixty-third review, BLOCKING 1(d)). Reads the pairs lines of 7e's wave-1 logs, which
  * passed 7e's fair-test gate (results-7e.txt), and prints each fix against off on the same 1,000 held-out paths: paths
  * saved and lost, and the exact one-sided McNemar p for harm (stats.mjs). Reported, not a test: no margin, no Holm.
+ * It does not call the fair-test gate itself: it relies on reduce-7e.mjs's gate over the same files, which passes
+ * (results-7e.txt). Before it is reused on other logs it must call requireFairLogs (fair-gate.mjs) (the sixty-fourth
+ * review, MINOR 7).
  *   node research/solver/read-o17.mjs [dir]   > research/solver/results-o17-7e.txt
  */
 import { readFileSync, existsSync } from 'node:fs';

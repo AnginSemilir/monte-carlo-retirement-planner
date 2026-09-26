@@ -244,6 +244,7 @@ is enforced now.
 | 10 | **Start and stop runs safely**: never kill by pattern; check what is running before and after | a launch that started two batches at once; a cleanup `rm -rf` that destroyed the lock; a detached run lost when the container was reclaimed; `pkill -f` that matched its own command, twice | the PreToolUse hook (kill by pattern, removing the lock, the listed experiment scripts outside the launcher) |
 | 11 | **A test changed after any result is in is declared** ("Changes after seeing results" in its prediction file) or re-run from scratch | 6c's control clause changed with 8 of 12 results in; Phase 2's first draft chose households where the solver had already won | the prediction's git blob in every result file (fair-gate: PREDICTION EDITED) |
 | 12 | **One clock, and no out-of-date text** | the ledger mixed UTC and UK time (24 Sep); the 21:30 audit's stale statements; HOW-IT-WORKS.md; the mathematician's page | `check-plan.mjs` (clock); the plan-auditor for staleness |
+| 13 | **A fix that removes a known error and makes a result worse has unmasked another error until shown otherwise**: judge the pair (the fix and the rest of the system), not the fix; before a fix is closed as harmful, show whether the baseline's better result depends on the error the fix removes (section 9) | F1 v2 read the bridge accurately and lost survival on bridge 4 and S126 (O17, 24 Sep: "not explained", yet v2 was withdrawn for it); the bridge reader did the same in 7e and was not carried forward, with F2 - another accurate read - pre-set as the next step (26 Sep 10:55 UK); the maintainer's "diagnose first" (11:16 UK) stopped the third repeat, and 7r found off's safer tier was a side effect of its own misread | section 9; proposed for the next unlock: a prediction field, a checklist item and a plan-auditor check (research/solver/drafts/unmasking-proposal.md) |
 
 ## 5. The re-look, after every settled result
 
@@ -370,6 +371,66 @@ logged (fair-test row 33). Absolute times are never scaled by the number of busy
 median was inflated by it). A ratio measured side by side may still differ from one measured alone, since contention can
 slow two arms with different memory use unequally, so the first prediction to time side by side also times the same arms, cases, points and code alone on the machine; if the two ratios differ by more than 0.05 on any case (a quarter of a 20% bar; Claude's choice, open to the maintainer), the method goes back to the maintainer before it is relied on (the fifty-eighth review, MINOR 1: a comparison with check 6's quiet-box ratios tests the method only when it times that same pair on the same code). Enforced by: NOT YET - the plan-auditor,
 on each prediction that times a change.
+
+## 9. Fixes that unmask other errors: assigning responsibility in a coupled system (the maintainer, 26 Sep)
+
+The solver is a coupled system: its tables, its chooser, its bridge read, its tier menu and its objective each carry
+approximations, and a result is what they produce together. Fixing one part can expose an error another part was
+cancelling. The maintainer, 26 Sep: "you may fix one thing and it highlights another issue that wasn't otherwise known
+about. We need to take this into account when assigning responsibility." How it was missed (written 16:44 UK):
+
+- **The baseline was treated as right because it was the product.** Off misread S126's bridge by 44 points and, because
+  of that misread, held the pension two tiers down for all 40 years (7r's traces: 0.03 switches a path). Every fix that
+  read the bridge accurately (F1 v2, the reader, F2 by design) stopped that accidental de-risking and lost survival on the
+  same households. The fair-test table checked that the arms differed only in the bridge read - they did - but nothing
+  asked whether the baseline's better outcome came from the very error being fixed. Equal settings are not equal errors.
+- **The decision rule turned harm straight into blame.** 7e's registered consequence of harm on any case was "not carried
+  forward, F2 is built": responsibility went to the fix, and the next step was another fix of the same kind, which the
+  records suggest would have hit the same wall.
+- **Related anomalies were chased one at a time.** O9 (the tables turn optimistic with F1), O17 (F1 v2 loses where it
+  reads accurately, "not explained"), O18/O20 (M14b's tier-above bets lose on comfortable plans), O19 and 7h (the final
+  year's staircase priced a riskier tier at nothing; the rest of the cost stayed), C5 (the switch margin decides
+  near-ties) and O24 (the reader's tier scores below off by the solver's own objective) all point one way - the tables
+  value extra risk too highly - but each was diagnosed in its own frame and no step asked what they had in common.
+- **A design premise was never tested.** The mixture's comment says leaving out learning is harmless because twenty
+  years of returns barely reveal the world; the backward pass nevertheless lets each world plan as if it knew its world.
+  The premise argues the wrong way (slow learning makes the gap larger) and was never registered as a claim (7t tests it).
+- **The table was checked in aggregate.** The reader's table read its own survival within 0.3 points (99.6 against 99.3
+  on S126), so "the table is accurate" passed; a large error in the bad world and a small one elsewhere can net to that.
+- **A prior test was missed.** 7s's derivation did not cite 7h, which had already found finer return sampling leaves the
+  tier-above cost in place.
+
+The rules this adds:
+
+1. **Responsibility is assigned to a combination until a decomposition splits it.** A paired result reads "the system
+   with X" against "the system without X". It becomes a finding about X alone only after a decomposition (a swap, an
+   ablation or a component-by-component arm, as 7r's RTIER and RREST did) shows which part carries it. Until then the
+   grade for attributing it to X is C, whatever the test's grade for the combination.
+2. **The unmasking check, before a fix of a known error is closed as harmful.** Its prediction states (a) the known
+   error the fix removes, (b) which behaviours of the baseline that error drives (from the records or the traces: e.g.
+   off's tier held for life), and (c) the arm or item that tells "the fix is harmful" from "the fix unmasks another
+   error": a decomposition, or a second reference free of the error (a fixed policy, a consistent solver). A harm result
+   without (c) is not settled as the fix's fault; its registered consequence is a diagnosis, never the next fix of the
+   same kind.
+3. **Right for the right reason.** A baseline used as the reference is examined for known errors in the dimension being
+   compared (its register items, its table-against-simulation gap, what its traces show it doing). Where it has them,
+   the prediction names them and says how the comparison survives them.
+4. **The consistency invariant.** The tables must value the policy the forward chooser actually follows. A standing test
+   checks it on the chooser's own rule (research/tests/solver-joint.test.mjs, check D), and every candidate default is
+   calibrated table against simulation by slice - each world, each stage of the plan, each tier held - not only in
+   aggregate, since compensating errors cancel in the aggregate.
+5. **Families of odd results.** Register items that point the same way are linked as a family (the register's "family"
+   note). When a family reaches three members, a root-cause diagnosis is scheduled before any further fix in that area.
+   The first family, "the tables value extra risk too highly": O9, O17, O18/O20, O19 with 7h, C5, O24 (PLAN.md).
+6. **Design premises are claims.** An approximation justified by argument (the mixture's no-learning premise, the switch
+   margin at today's settings, the fold's horizon factor) is listed with its grade (D until tested) and the failure it
+   would cause if wrong, and is tested before a decision rests on it.
+7. **Sweep the records for prior tests of the same mechanism before writing a prediction**, and cite each with its
+   verdict in the Derivation (7s missed 7h).
+
+**Enforced by:** today, the plan-auditor reading this section and the register's family note; proposed for the next unlock
+(research/solver/drafts/unmasking-proposal.md): a checklist item, a check-prediction.mjs field ("Unmasking:" for a test
+whose arm removes a known error), and a plan-auditor check that a harm verdict on such a fix names its decomposition.
 
 ## 7. Where the approach came from (24 Sep)
 

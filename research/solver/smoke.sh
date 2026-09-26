@@ -66,6 +66,21 @@ out="$(DIAG7R_OUT="$R/$T-diag7r" node research/solver/audit-s126.mjs diag7r 4 20
         if (j.N !== 20 || j.seed !== 7002 || j.arm !== a.toUpperCase() || !j.stamp || j.stamp.prediction !== "none") process.exit(1); }' "$R/$T-diag7r"; } \
   || { echo "SMOKE FAILED: the diag7r mode did not run S126 off against the reader, with stamped traces in its own folder, at the settings it was given"; echo "$out" | head -5; exit 1; }
 echo "  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder"
+# 7t's mode (added under the maintainer's unlock, 26 Sep): off and the reader, each with the product's mixture and with
+# jointWorlds (one policy for every world), each run as solved, at switch margin 0 and in each of the three worlds - S126
+# alone, tiny, into the smoke's own folder (DIAG7T_OUT). The joint lines prove the option ran; every trace is stamped.
+out="$(DIAG7T_OUT="$R/$T-diag7t" node research/solver/audit-s126.mjs diag7t 4 20 part 0/5 7002 5 2>&1)" || { echo "SMOKE FAILED: S126 audit, diag7t mode"; echo "$out" | tail -5; exit 1; }
+{ echo "$out" | grep -q "7T DIAGNOSIS, .*, 4 points, 20 paths (seed 7002), 5 a world" \
+  && echo "$out" | grep -q "^S126 .* | OFF table .* | READER table .* | OFF+J table .* | READER+J table " \
+  && echo "$out" | grep -q "joint OFF: false switchMargin 0.001" && echo "$out" | grep -q "joint READER+J: true switchMargin 0.001" \
+  && echo "$out" | grep -q "margin0 | OFF/M0 sim" && echo "$out" | grep -q "prefix 20 | OFF sim .* | READER-OFF " \
+  && [ "$(echo "$out" | grep -c ' world ')" = 12 ] \
+  && node -e 'const z = require("zlib"), fs = require("fs"), d = process.argv[1];
+      for (const [f, a] of [["off", "OFF"], ["reader", "READER"], ["off_j", "OFF+J"], ["reader_j", "READER+J"], ["off_m0", "OFF/M0"], ["reader_m0", "READER/M0"], ["off_j_m0", "OFF+J/M0"], ["reader_j_m0", "READER+J/M0"]]) {
+        const j = JSON.parse(z.gunzipSync(fs.readFileSync(`${d}/S126-${f}.json.gz`)));
+        if (j.N !== 20 || j.seed !== 7002 || j.arm !== a || !j.stamp || j.stamp.prediction !== "none") process.exit(1); }' "$R/$T-diag7t"; } \
+  || { echo "SMOKE FAILED: the diag7t mode did not run S126's four arms with and without jointWorlds, at margin 0 and in each world, with stamped traces in its own folder"; echo "$out" | head -5; exit 1; }
+echo "  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder"
 # every file a batch writes must carry the code that made it and the prediction it was launched under
 node -e '
   const fs = require("fs"), p = require("path"), R = process.argv[1], T = process.argv[2];

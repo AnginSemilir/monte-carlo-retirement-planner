@@ -67,6 +67,14 @@ Never edit any file. The only thing you write is your receipt, through `record-r
      decision reads, wording, an enforcement gap no research claim relies on, a code detail no decision reads.
    - **BACKLOG** - a problem in older text the change did not touch and does not rest on, which affects no result, gate
      or default: Claude adds it to the plan's review backlog with an owner and a gate; it does not fail this change.
+   **Section 9 (fixes that unmask other errors; the maintainer's unlock, 26 Sep):** a harm or FALSIFIED verdict on a
+   change that removes a known error is BLOCKING unless the plan names the decomposition that splits the blame or
+   grades the attribution C (RULES.md section 9 rules 1-2); a registered consequence that is "the next fix of the same
+   kind" is BLOCKING until the unmasking check is answered. A new register item pointing the same way as an open one
+   must carry the "family:" note; a family of three open items with no scheduled root-cause step is BLOCKING for any
+   further fix in that area (rule 5). A test's prediction whose Unmasking field does not name the known error, the
+   baseline behaviour it drives and the separating arm is BLOCKING (the checker enforces only its presence).
+
    PASS if there is no BLOCKING finding, listing any MINOR and BACKLOG ones; FAIL if there is one:
    `node research/solver/record-review.mjs --verdict pass --findings "none"` or
    `node research/solver/record-review.mjs --verdict pass --findings "MINOR 1. <where>: <what>; ..."` or

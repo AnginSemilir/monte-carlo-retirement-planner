@@ -29,7 +29,8 @@ remembers them, and every one looks at files, not at what was said about them. I
    variables and wrappers in front of it and inside `bash -c`/`eval` and a here-document fed to a shell (maintainer's
    unlocks, 24 Sep 11:00 and 11:42 UK). It is a guardrail, not a sandbox: what it does not see is
    in **Known limits** below. The Stop hook also lets a turn end while a review of this exact version of the plan is
-   under way (started within 30 minutes, not yet reported; maintainer, 24 Sep 12:05 UK). **An unlock covers only the change the
+   under way (started within 30 minutes, not yet reported; maintainer, 24 Sep 12:05 UK), and refuses to end one while a
+   deep review is due (section 9; 26 Sep). **An unlock covers only the change the
    maintainer agreed to:** anything else - above all a loosening, however sound - is proposed first; it ends as soon as
    their next message is seen, even queued; and the diff is shown before the commit (the seventh review, 24 Sep 11:24
    UK, found all three broken). After every compaction the checklist is restated.
@@ -96,6 +97,9 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    the swap itself is checked only by research/tests/solver-choose-hook.test.mjs (8 points), which neither the launcher,
    the pre-commit hook nor CI runs, and the smoke line does not grep the swap lines or the swap traces' stamps (the
    sixty-seventh review, MINOR 1, 26 Sep 12:45 UK). Proposed for the next unlock: those greps, and the hook test in CI.
+14. A deep review's start and receipt (`record-deep-review.mjs --start`, `--findings`) can be written without a review
+   running, as a plan review's can (limit 6). A start lapses after 30 minutes; every line sits in deep-review-log.md, and a
+   receipt shorter than 200 characters is refused, but its content is the reviewer's, not checked (26 Sep).
 
 ---
 
@@ -428,9 +432,22 @@ The rules this adds:
 7. **Sweep the records for prior tests of the same mechanism before writing a prediction**, and cite each with its
    verdict in the Derivation (7s missed 7h).
 
-**Enforced by:** today, the plan-auditor reading this section and the register's family note; proposed for the next unlock
-(research/solver/drafts/unmasking-proposal.md): a checklist item, a check-prediction.mjs field ("Unmasking:" for a test
-whose arm removes a known error), and a plan-auditor check that a harm verdict on such a fix names its decomposition.
+**Enforced by** (built under the maintainer's unlock of 26 Sep 16:47 UK, as drafted in drafts/unmasking-proposal.md):
+checklist items 1, 2 and 11; check-prediction.mjs's "Unmasking:" field, required of every test written after it (planted
+tests in research/tests/plan-checker.test.mjs); the plan-auditor's section 9 checks (a harm or FALSIFIED verdict on a fix
+of a known error with no decomposition, a "next fix of the same kind" consequence, a family at three with no scheduled
+root-cause step); and the deep review below.
+
+**The deep review, paced by uncertainty** (the maintainer, 26 Sep: "automated deep thought review on a periodic basis
+based on the level of uncertainty of the model"). `research/solver/uncertainty.mjs` reads an index from the records
+(calibration over the last 10 scored items, surprises and settled results since the last deep review, register
+families, decisions on grade C or D evidence, FALSIFIED or harm verdicts) and says a deep review is due after 6 settled
+results when LOW, 3 when MEDIUM and every one when HIGH. The Stop hook refuses to end a turn while one is due, except for
+30 minutes after `record-deep-review.mjs --start` (a review under way). The `deep-reviewer` agent steps back across the
+record - families, unmasking, premises, calibration by slice, the ranked root causes and the one decisive test - and
+records its receipt with `record-deep-review.mjs`, which takes the time from the clock and the level and the test covered
+from the records. The index, the recorder, the log and the agent are locked (planted tests in hooks.test.mjs, which also
+runs both scripts' own planted checks).
 
 ## 7. Where the approach came from (24 Sep)
 

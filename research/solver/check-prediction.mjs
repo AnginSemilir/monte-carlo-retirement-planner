@@ -47,6 +47,9 @@ export const SEED_OWNERS = Object.freeze({
   7011: ['m14b.md', 'm14c-bets.md', 'o19-final.md', 'quad-ref.md', 'bridge-reader.md'] });
 // written before the Seeds field existed: the launcher's owner check still covers their reserved seeds
 export const BEFORE_SEEDS = [...BEFORE_REGIMEN, 'bridge-reader.md'];
+// written before the Unmasking field existed (RULES.md section 9, the maintainer's unlock of 26 Sep 16:47 UK); diag-7t.md is the test built
+// around the question the field asks (its arms decompose the reader's harm)
+export const BEFORE_UNMASKING = [...BEFORE_SEEDS, 'diag-7r.md', 'diag-7s.md', 'diag-7t.md', 'o22-trace.md', 'k5-stage1.md', 'f1v2-test.md', 'f1-test.md', 'bridge-quad.md', 'm14b.md', 'm14c-bets.md', 'o19-final.md', 'quad-ref.md'];
 export const ownsSeed = (seed, name) => !!name && (SEED_OWNERS[seed] || []).some(o => typeof o === 'string' ? o === basename(name) : o.test(basename(name)));
 // the registered seeds a text names, comment lines left out
 export const seedsIn = text => [...new Set((String(text).split('\n').filter(l => !/^\s*#/.test(l)).join('\n').match(/\b\d{4}\b/g) || []).map(Number))].filter(n => n in SEED_REGISTRY).sort();
@@ -102,6 +105,14 @@ export function checkPredictionText(text, { name } = {}) {
     if (isTest && cred && !/\b0?\.\d+\b|\b\d{1,3}%/.test(cred)) errs.push('"## Credence" must give a probability for each item');
     const der = section(text, 'Derivation script', { note: true });
     if (isTest && der && ![...der.matchAll(DERIVE)].length && !/^\s*-?\s*none:\s*\S/m.test(der)) errs.push('"## Derivation script" needs a line "derive: <script> > <output> sha256 <16 hex>" (the launcher re-runs it) or "none: <why>"');
+  }
+  // the unmasking check (RULES.md section 9 rule 2), for every test written after it: the known error the tested arm removes,
+  // the baseline behaviour that error drives, and the arm or item that tells 'harmful' from 'unmasks another error'
+  if (!(name && BEFORE_UNMASKING.includes(basename(name))) && (!kind || /^test/i.test(kind))) {
+    const uf = field('Unmasking');
+    if (uf === null) errs.push('missing "- **Unmasking:** <the known error the tested arm removes; the baseline behaviour it drives; the arm or item that tells a harmful change from one that unmasks another error>" or "none: <why the thing tested removes no known error>" (RULES.md section 9)');
+    else if (/^none:?\s*$/i.test(uf)) errs.push('"Unmasking: none:" needs a reason');
+    else if (!/^none:\s*\S/i.test(uf) && uf.length < 80) errs.push('"Unmasking" must name the known error the arm removes, the baseline behaviour it drives, and the arm or item that separates the two readings (RULES.md section 9)');
   }
   // the seed registry, for every prediction written after it
   if (!(name && BEFORE_SEEDS.includes(basename(name)))) {

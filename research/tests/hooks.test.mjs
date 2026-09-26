@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decide as pre, shellCode, lastHumanText, UNLOCK, segments, unlockedFrom, shellHeredocs } from '../../.claude/hooks/pre-tool.mjs';
-import { decide as stop, MAX_REPEATS, PENDING_MINUTES } from '../../.claude/hooks/stop-check.mjs';
+import { decide as stop, MAX_REPEATS, PENDING_MINUTES, deepRunning } from '../../.claude/hooks/stop-check.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -21,6 +21,9 @@ ok(is(edit(join(ROOT, 'research/solver/check-plan.mjs'), true), null), 'the same
 ok(is(edit('.claude/settings.json'), 'deny'), 'an edit to the hook settings is refused while locked');
 ok(is(edit('.claude/hooks/stop-check.mjs'), 'deny'), 'an edit to a hook is refused while locked');
 ok(is(edit('research/solver/review-log.md'), 'deny'), 'an edit to the review log is refused (receipts come from record-review.mjs)');
+ok(['research/solver/uncertainty.mjs', 'research/solver/record-deep-review.mjs', '.claude/agents/deep-reviewer.md'].every(f => is(edit(f), 'deny')), 'planted: an edit to the deep review\'s index, recorder or reviewer is refused while locked');
+ok(is(edit('research/solver/deep-review-log.md'), 'deny') && is(bash('echo "- 26 Sep 17:00 UK | covered x | level LOW | y" >> research/solver/deep-review-log.md'), 'deny'), 'planted: writing the deep review log by hand is refused (receipts come from record-deep-review.mjs)');
+ok(is(bash('node research/solver/record-deep-review.mjs --start'), null) && is(bash('node research/solver/uncertainty.mjs --due'), null), 'the deep review\'s recorder and index run');
 ok(is(edit('research/solver/predictions/m14b.md'), 'ask'), 'an edit to a registered (committed) prediction asks');
 ok(is(edit('research/solver/predictions/new-one.md'), null), 'an unregistered prediction can be written freely');
 ok(is(edit(join(ROOT, 'research/solver/PLAN.md')), null), 'an edit to the plan itself goes ahead (the checks run after)');
@@ -162,6 +165,23 @@ ok(stop({ checkOk: false, checkOutput: '[ledger] x', review: started(5), repeats
 ok(stop({ checkOk: true, checkOutput: '', review: { receipt: null, pending: { at: 'garbage' } }, repeats: 0, now: T0 }).block, 'planted: a start with no readable time does not let the turn end');
 ok(stop({ checkOk: true, checkOutput: '', review: { ...started(-5) }, repeats: 0, now: T0 }).block, 'planted: a start dated in the future does not let the turn end');
 ok(stop({ checkOk: true, checkOutput: '', review: { receipt: { verdict: 'FAIL', findings: '1. x' }, pending: null }, repeats: 0, now: T0 }).block, 'a failed receipt with no review under way still blocks');
+
+// the deep review, paced by uncertainty (RULES.md section 9; the maintainer's unlock of 26 Sep): due and nobody at work blocks
+const due = { due: true, running: false, summary: 'DEEP REVIEW DUE (HIGH)' };
+ok(stop({ checkOk: true, checkOutput: '', review: pass, repeats: 0, deep: due }).block, 'planted: a deep review that is due blocks the end of the turn');
+ok(/deep-reviewer/.test(stop({ checkOk: true, checkOutput: '', review: pass, repeats: 0, deep: due }).reason), 'and names the deep-reviewer agent');
+ok(!stop({ checkOk: true, checkOutput: '', review: pass, repeats: 0, deep: { ...due, running: true } }).block, 'a deep review under way lets the turn end');
+ok(!stop({ checkOk: true, checkOutput: '', review: pass, repeats: 0, deep: { due: false } }).block, 'a deep review not due lets the turn end');
+ok(stop({ checkOk: false, checkOutput: '[ledger] x', review: pass, repeats: 0, deep: { ...due, running: true } }).block, 'planted: a failing plan check blocks even while a deep review runs');
+const iso = m => new Date(T0 - m * 60e3).toISOString();
+ok(deepRunning(`# log\n- started ${iso(5)}\n`, T0), 'a deep review started 5 minutes ago, with no receipt after it, is at work');
+ok(!deepRunning(`# log\n- started ${iso(PENDING_MINUTES + 1)}\n`, T0), `planted: a start older than ${PENDING_MINUTES} minutes is not at work`);
+ok(!deepRunning(`- started ${iso(5)}\n- 26 Sep 17:00 UK | covered 7t (x) | level HIGH | y\n`, T0), 'planted: a start followed by its receipt is not at work');
+ok(!deepRunning('# log\n- 26 Sep 17:00 UK | covered 7t (x) | level HIGH | y\n', T0) && !deepRunning('', T0), 'planted: no start line is not at work');
+ok(!deepRunning('- started garbage\n', T0) && !deepRunning(`- started ${iso(-5)}\n`, T0), 'planted: an unreadable or future start is not at work');
+
+// the deep review's own planted checks run here, so CI and the pre-commit hook run them (rule 6)
+for (const f of ['uncertainty.mjs', 'record-deep-review.mjs']) ok(/all read as they should/.test(execFileSync('node', [join(ROOT, 'research/solver', f), '--planted']).toString()), `${f}'s planted checks read as they should`);
 
 // session start, as a process: the checklist comes back after a compaction
 const out = execFileSync('bash', [join(ROOT, '.claude/hooks/session-start.sh')], { input: '{"source":"compact"}', env: { ...process.env, CLAUDE_PROJECT_DIR: ROOT } }).toString();

@@ -2,7 +2,7 @@
 
 - **Run:** `research/solver/batch-7t.sh` - results/diag7t/part0-4.txt and every run's trace (audit-s126.mjs diag7t); reduced by `reduce-7t.mjs` into results-7t.txt
 - **Kind:** test
-- **Written:** 26 Sept, 16:45 UK, before the run (the maintainer, 26 Sep: "Design and run. If you can slot in extra checks that would help answer the question once and for all on a level playing field, do so, even if it takes longer")
+- **Written:** 26 Sep 16:40 UK, before the run; revised 26 Sep 17:11 UK, before the launch, for the seventy-sixth review's MINORs 3, 4, 5 and 7 (wording and provenance only: no item, rule, margin, falsifier, power figure or derive line changed) (the maintainer, 26 Sep 16:17 UK: "One last check, Design and run. If you can slot in extra checks that would help answer the question once and for all on a level playing field, do so, even if it takes longer")
 - **Seeds:** 7002 tuning (8,000 paths, the first 3,000 of them 7r's and 7s's; 2,000 a world; the same paths for every arm of every case)
 - **Plan section:** PLAN.md "7t"
 
@@ -15,15 +15,23 @@ and D) put one cause first: in the three-world mixture each world's backward pas
 every cell (solve.js, PASS 2 once per world), so each world's table values a future in which the household knows which
 world it is in and acts on it; the household never knows - the forward chooser weighs the worlds 1/6, 2/3, 1/6 every year
 and never updates. A riskier move is then valued as if, in the bad world, the household de-risked straight after; in
-fact it de-risks only after its wealth has fallen (7r's lost paths: first below the tier in years 4 to 13). Does valuing
+fact it de-risks only after its wealth has fallen (the 26 Sep analysis of 7r's lost paths, grade D; the years in which
+they first hold a lower tier are in no results file, so none are given here: the seventy-sixth review, MINOR 4). Does valuing
 the policy the household can actually follow - one move for every world, chosen by the chooser's own rule - remove the
 reader's harm, and is that where the overrating comes from?
+
+**The design, and why it changed** (the seventy-sixth review, MINOR 7). The design put to the maintainer at 16:12 UK ran
+off and the reader under the three-world mixture and under the single-table fold, with a margin-0 arm. The fold solves
+and simulates with one table over a spread of returns, so it would change how every arm is simulated as well as what the
+tables value (fair-test row 7). The level-playing-field version is a solver option instead, `jointWorlds`: every arm keeps
+the mixture's worlds, paths and simulation, and only the choice at each cell changes (one move for every world, by the
+forward chooser's own rule). The maintainer is told of the change with the launch.
 
 ## Derivation
 
 What the code and the records say before any run:
 - **The worlds are far apart.** The library's preset gives High Risk a persistent shift of 2.14% a year (Medium/High
-  1.69, Medium 1.31); the worlds sit at -sqrt 3, 0, +sqrt 3 of it, so High Risk returns about 1.1% real in the bad world
+  1.69, Medium 1.31); the worlds sit at -sqrt 3, 0, +sqrt 3 of it, so High Risk returns about 1.0% real in the bad world (0.98%)
   against Medium's 1.4%, with 17.1% volatility against 9.9% (fast.js tiersFor on S126, printed 26 Sep).
 - **The option isolates the one thing.** `jointWorlds` (solve.js, research only) keeps every world's rates, grid,
   quadrature and objective and changes only the choice at each cell: one move for every world, the best weighted score

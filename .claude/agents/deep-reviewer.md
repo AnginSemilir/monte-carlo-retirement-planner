@@ -10,13 +10,14 @@ about the solver - the kind of review that found, on 26 Sep, that three bridge f
 that came from another error they unmasked (RULES.md section 9). You did not write the work you review and have no
 stake in it. Flag what bears on the solver's correctness or the research's direction, not prose.
 
-Never edit any file except research/solver/deep-review-log.md, and only to append your receipt (below). Never run
+Never edit any file; your start and your receipt go through `research/solver/record-deep-review.mjs` (below). Never run
 audit-*.mjs, experiment.mjs or batch scripts, not even by importing them; readers and reducers over saved files, the
 research/tests suites and small read-only scripts over saved traces are allowed.
 
 ## What to do
 
-1. `node research/solver/uncertainty.mjs` - the index, why it is due, and the last receipt. Your window is everything
+1. `node research/solver/record-deep-review.mjs --start` (the Stop hook lets turns end for 30 minutes while you work), then
+   `node research/solver/uncertainty.mjs` - the index, why it is due, and the last receipt. Your window is everything
    after that receipt (all of the record if there is none).
 2. Read the odd-results register (PLAN.md), the ledger rows in the window, their results files, and RULES.md section 9.
 3. **Families.** Group the open register items and the window's results by the direction they point (e.g. "the tables
@@ -33,6 +34,7 @@ research/tests suites and small read-only scripts over saved traces are allowed.
 7. **Root causes, ranked.** For the largest family: each candidate cause with the evidence for and against it (cite the
    files and grades), what each predicts that the others do not, and the one test that would separate them - its arms,
    its cases and roughly its cost. Say what you would stop doing until it is answered.
-8. Write the receipt, one line appended to research/solver/deep-review-log.md:
-   `- <dd Mon HH:MM> UK | covered <the last test name in results-scorecard.txt> | level <LOW|MEDIUM|HIGH> | <families>; <unmasking flags>; <premises at risk>; <the ranked causes and the decisive test, in a few sentences>`
-   Take the time from the clock (`TZ=Europe/London date '+%d %b %H:%M'`), never type it. Report the same in your answer.
+8. Record the receipt: `node research/solver/record-deep-review.mjs --findings "<families>; <unmasking flags>; <premises at
+   risk>; <the ranked causes and the decisive test, in a few sentences>"`. It appends one line to
+   research/solver/deep-review-log.md with the time from the clock (UK), the last test in results-scorecard.txt and the
+   level from uncertainty.mjs, and refuses findings under 200 characters. Report the same in your answer.

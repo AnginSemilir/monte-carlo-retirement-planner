@@ -111,7 +111,7 @@ ok(rErr(reg.replace(/^- `derive: [^\n]*$/m, '- the arithmetic is in derive-7e.mj
 ok(rErr(reg.replace(/## Credence[\s\S]*?(?=\n## )/, '## Credence\n\nHigh on every item.\n')).some(e => /probability/.test(e)), 'planted: a credence with no probability is refused');
 
 // the seed registry (RULES.md section 8 item 9; the maintainer's decision 3, built under the unlock of 25 Sep 22:14 UK)
-const withSeeds = (s, nm = 'k6-spread.md') => checkPredictionText(reg.replace(/^(- \*\*Kind:\*\*.*)$/m, `$1\n- **Seeds:** ${s}`), { name: nm });
+const withSeeds = (s, nm = 'k6-spread.md') => checkPredictionText(reg.replace(/^(- \*\*Kind:\*\*.*)$/m, `$1\n- **Seeds:** ${s}\n- **Unmasking:** none: a seed-registry fixture, no fix is tested`), { name: nm });
 ok(withSeeds('7012 (held-out K6 paths)').length === 0, 'a new prediction declaring its own reserved seed passes (7012 under k6-spread.md)');
 ok(checkPredictionText(reg, { name: 'k6-spread.md' }).some(e => /Seeds/.test(e)), 'planted: a prediction written after the registry with no Seeds field is refused');
 ok(withSeeds('9999 (fresh)').some(e => /not in the seed registry/.test(e)), 'planted: an unregistered seed is refused');
@@ -119,6 +119,14 @@ ok(withSeeds('7003 (Phase 4\'s paths)').some(e => /7003 is reserved/.test(e)), '
 ok(withSeeds('7011', 'new-test.md').some(e => /7011 is reserved/.test(e)), 'planted: 7e\'s held-out seed 7011 claimed by a new test is refused');
 ok(withSeeds('none: a timing, no paths').length === 0 && withSeeds('see the batch').some(e => /names no seed/.test(e)), 'Seeds: "none: <why>" passes; a field naming no seed is refused');
 ok(rErr(reg).length === 0 && checkPredictionText(good, { name: 'm14b.md' }).length === 0, 'predictions written before the Seeds field pass without one (bridge-reader.md, m14b.md)');
+// the Unmasking field (RULES.md section 9 rule 2; the maintainer's unlock of 26 Sep), for every test written after it
+const withU = (u, nm = 'k6-spread.md') => checkPredictionText(reg.replace(/^(- \*\*Kind:\*\*.*)$/m, `$1\n- **Seeds:** 7012 (held-out K6 paths)${u === null ? '' : `\n- **Unmasking:** ${u}`}`), { name: nm });
+ok(withU(null).some(e => /Unmasking/.test(e)), 'planted: a new test with no Unmasking field is refused');
+ok(withU('none:').some(e => /needs a reason/.test(e)) && withU('none').some(e => /needs a reason/.test(e)), 'planted: "Unmasking: none:" with no reason is refused');
+ok(withU('the reader').some(e => /must name the known error/.test(e)), 'planted: a one-phrase Unmasking field is refused');
+ok(withU('none: a timing of the solver, no fix is tested').length === 0, 'Unmasking: "none: <why>" passes');
+ok(withU('the arm removes the bridge misread; off\'s misread pushes S126 onto a safer tier for life; the jointWorlds arm separates harm from unmasking').length === 0, 'a full Unmasking field passes');
+ok(checkPredictionText(reg, { name: 'diag-7t.md' }).every(e => !/Unmasking/.test(e)) && rErr(reg).every(e => !/Unmasking/.test(e)), 'predictions written before the Unmasking field pass without one (diag-7t.md, bridge-reader.md)');
 const L = o => seedLaunchProblems(o);
 ok(L({ name: 'bridge-reader.md', predText: reg, texts: [read('batch-7e.sh')] }).length === 0, '7e\'s batch launches under its prediction (seed 7011, owned)');
 ok(L({ name: null, texts: [read('batch-7e.sh')] }).some(e => /7011 is reserved.*measurement/.test(e)), 'planted: 7e\'s batch launched as a measurement is refused (7011 is reserved)');

@@ -6,10 +6,10 @@
  * THE STAMP GATE: fair-gate.mjs's requireFairLogs (one code version, launched under predictions/diag-7t.md at the blob each
  * log carries). THE RUN GATE: every registered case once, its arms exactly as registered (OFF, READER, OFF+J, READER+J;
  * S194 OFF and OFF+J); every arm a ran line, the lines equal once the bridge read is taken out, each naming the registered
- * settings (mix 3, 16 points, seed 7002, 3,000 paths, lambda 0.0223606797749979, raiseSurv true, failShort floor,
+ * settings (mix 3, 16 points, seed 7002, 8,000 paths, lambda 0.0223606797749979, raiseSurv true, failShort floor,
  * tiersAbove 1, finalIntegral true, quad 5) and its label's bridge read; a joint line per arm saying jointWorlds exactly
  * when the label carries +J, the switch margin 0.001 and a pension death charge of 0; a margin-0 run per arm; every pair
- * of the runs; three world lines per arm at 1,000 paths; every run's trace with the log's count, seed, arm and stamp.
+ * of the runs; three world lines per arm at 2,000 paths; every run's trace with the log's count, seed, arm and stamp.
  * COMPLETENESS: all five cases, or INCOMPLETE.
  * THE REPRODUCTION CHECK (item 1): OFF and READER on S126 and bridge 4 are 7r's arms, and the first 3,000 of the 8,000
  * paths are 7r's (pathsForSeed builds path i from the seed and i alone), so the tables (which do not depend on the paths)
@@ -281,7 +281,7 @@ if (main) {
   console.log(`FAIR-TEST GATE: passed - the stamps; on all five cases the arms ran the same settings but the bridge read, the joint lines match the labels, every margin-0 run, pair, world run and trace is there (seed ${SEED}, ${N} paths, ${WP} a world, ${PTS} points)\n`);
   console.log('case        run           table    sim    gap  tier-below  below   secs');
   for (const id of Object.keys(PANEL)) { const c = cases.find(x => x.id === id); for (const a of c.arms) { const m0 = c.m0[`${a.label}/M0`]; console.log(`${id.padEnd(11)} ${a.label.padEnd(12)} ${f1(a.table).padStart(6)} ${f1(a.sim).padStart(6)} ${f1(a.gap).padStart(6)} ${f1(a.tier).padStart(11)} ${f1(a.below).padStart(6)} ${String(a.secs).padStart(6)}`); console.log(`${''.padEnd(11)} ${(a.label + '/M0').padEnd(12)} ${''.padStart(6)} ${f1(m0.sim).padStart(6)} ${''.padStart(6)} ${f1(m0.tier).padStart(11)} ${f1(m0.below).padStart(6)} ${String(m0.secs).padStart(6)}`); } }
-  console.log('\nIN EACH WORLD (1,000 paths a world, each path\'s persistent shift at the world\'s node): the world\'s own table against what the policy realises there');
+  console.log('\nIN EACH WORLD (2,000 paths a world, each path\'s persistent shift at the world\'s node): the world\'s own table against what the policy realises there');
   for (const id of Object.keys(PANEL)) { const c = cases.find(x => x.id === id); for (const l of PANEL[id]) console.log(`  ${id.padEnd(10)} ${l.padEnd(9)} ${c.worlds[l].map((w, k) => `${['bad', 'normal', 'good'][k]}: table ${w.table.toFixed(2)} sim ${w.sim.toFixed(2)} (gap ${(w.table - w.sim).toFixed(2)}), estate ${Math.round(w.estTable / 1000)}k / ${Math.round(w.estSim / 1000)}k, tier-below ${w.tier.toFixed(1)}`).join('; ')}`); }
   console.log('\nPAIRED on the same paths (saved/lost), the survival change in points with its exact 95% interval:');
   const show = { default: ['READER-OFF', 'READER+J-READER', 'READER+J-OFF+J', 'READER+J-OFF', 'OFF+J-OFF', 'READER/M0-READER', 'OFF/M0-OFF', 'READER+J/M0-READER+J', 'READER+J/M0-OFF'], S194: ['OFF+J-OFF', 'OFF/M0-OFF', 'OFF+J/M0-OFF+J', 'OFF+J/M0-OFF'] };

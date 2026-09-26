@@ -2406,3 +2406,12 @@ Plus a scan of all 210 library singles for the class (a read from the inputs, no
 solved the same way.
 FALSIFIED IF a variant in the predicted class reads within 5 points of its simulation, or one outside it reads 20+
 below.
+
+## The review backlog's done items (moved from PLAN.md, verbatim, with how each was closed)
+
+| Found | Problem | Owner | Gate |
+|---|---|---|---|
+| 26 Sep 12:59 UK, the sixty-eighth review's MINOR 2 | fair-gate.mjs l.223 describes the stamp's audit field as "the script's own hash"; since d74a142 audit-s126.mjs's audit hash covers the script and swap.mjs. Nothing reads the comment and the stamp's format is unchanged. The file is locked | Claude | the next unlock of fair-gate.mjs |
+
+Closed 26 Sep under the maintainer's unlock of 16:47 UK: fair-gate.mjs's comment now reads "<the hash of audit-s126.mjs and
+swap.mjs, since d74a142>"; fair-gate.test.mjs 37 passed after it.

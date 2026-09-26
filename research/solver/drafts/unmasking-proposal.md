@@ -1,6 +1,9 @@
 # Proposal: fixes that unmask other errors, and a deep review paced by uncertainty
 
-Written 26 Sep, for the maintainer's next "unlock enforcement". What is already in force without an unlock: RULES.md
+Written 26 Sep, for the maintainer's next "unlock enforcement". **Built under the unlock of 26 Sep 16:47 UK** (RULES.md section 9,
+"Enforced by"): the checklist's three changes were folded into items 1, 2 and 11 rather than added as item 13, since the
+checklist is capped at 12 items; the deep review's start and receipt go through `record-deep-review.mjs`, and the index,
+the recorder, the log and the agent are locked. Not built: check-plan.mjs printing the index (optional), the overnight Routine. What is already in force without an unlock: RULES.md
 section 4 rule 13 and section 9 (the plan-auditor reads RULES.md), the register's family note in PLAN.md, and the two
 unlocked pieces of the deep review below (`research/solver/uncertainty.mjs` and `.claude/agents/deep-reviewer.md`).
 What needs the unlock is the enforcement: the checklist line, the prediction checker, the plan-auditor's check and the

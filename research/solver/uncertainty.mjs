@@ -10,8 +10,10 @@
  *   - unmasking flags: ledger rows after the last receipt reading FALSIFIED or harm on a fix (their title);
  *   - settled results: ledger rows after the last receipt that name a prediction file.
  * The level is HIGH when calibration is over 0.25, there are 2 surprises or a family of 3; MEDIUM when calibration is over
- * 0.20, there is a surprise, an unmasking flag, or 2 weak foundations; else LOW. A deep review is DUE when the level is
- * HIGH, or when the settled results since the last receipt reach 6 (LOW), 3 (MEDIUM) or 1 (HIGH).
+ * 0.20, there is a surprise, an unmasking flag, or 2 weak foundations; else LOW. A deep review is DUE when the settled
+ * results since the last receipt reach 6 (LOW), 3 (MEDIUM) or 1 (HIGH): at HIGH every settled result gets one, and a
+ * receipt with nothing settled after it is not due again (calibration and families do not reset at a receipt, so a level
+ * alone would keep the Stop hook blocked for ever).
  * The last receipt: the newest line of deep-review-log.md, "- <dd Mon HH:MM> UK | covered <test name> | ...".
  *   node research/solver/uncertainty.mjs            the index and whether a review is due
  *   node research/solver/uncertainty.mjs --due      exit 1 when a review is due (for a hook), else 0
@@ -69,7 +71,7 @@ export function index({ scorecard, plan, log }) {
   const level = (cal !== null && cal > 0.25) || surprises.length >= 2 || family >= 3 ? 'HIGH'
     : (cal !== null && cal > 0.20) || surprises.length >= 1 || unmask >= 1 || weak >= 2 ? 'MEDIUM' : 'LOW';
   const every = { LOW: 6, MEDIUM: 3, HIGH: 1 }[level];
-  return { cal, surprises, fams, family, weak, unmask, settled, level, every, due: level === 'HIGH' || settled >= every, last, covered };
+  return { cal, surprises, fams, family, weak, unmask, settled, level, every, due: settled >= every, last, covered };
 }
 
 // PLANTED (rule 6)
@@ -88,6 +90,7 @@ function planted() {
     ['the level: calibration 0.40 is HIGH, so a review is due', `${u.level} ${u.due}`, 'HIGH true'],
     ['LOW with few settled results is not due; LOW at six is', (() => { const a = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: '', log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); const rows = Array.from({ length: 6 }, (_, i) => `| 26 Sep 13:0${i} | r | y | prediction: predictions/p${i}.md; grade B |`).join('\n'); const b = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: rows, log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); return `${a.level} ${a.due} ${b.level} ${b.due}`; })(), 'LOW false LOW true'],
     ['no receipt yet: every test counts as after it', String(index({ scorecard: sc, plan: '', log: '' }).surprises.length), '2'],
+    ['HIGH with nothing settled since the receipt is not due (a family of 3 does not reset)', (() => { const fam = ['| O1 | a; family: r | 1 Sep | C | g | open |', '| O2 | b; family: r | 1 Sep | C | g | open |', '| O3 | c; family: r | 1 Sep | C | g | open |', '| 26 Sep 11:00 | **7s** | y | prediction: predictions/a.md; grade B |'].join('\n'); const v = index({ scorecard: sc, plan: fam, log: '- 26 Sep 12:00 UK | covered 7r (b) | x' }); return `${v.level} ${v.settled} ${v.due}`; })(), 'HIGH 0 false'],
   ];
   const wrong = cases.filter(([, got, want]) => got !== want);
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([n, got, w]) => `${n} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }

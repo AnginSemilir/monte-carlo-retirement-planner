@@ -24,6 +24,7 @@ writeFileSync(file, `# Prediction: ${name}
 - **Kind:** test
 - **Written:** ${now} UK, before the run
 - **Seeds:** ? (each seed and its use, from the registry in RULES.md section 8 item 9, or "none: <why>")
+- **Unmasking:** ? (RULES.md section 9: the known error the tested arm removes, the baseline behaviour that error drives, and the arm or item that tells a harmful change from one that unmasks another error; or "none: <why the thing tested removes no known error>")
 - **Plan section:** PLAN.md "?"
 
 ## Question

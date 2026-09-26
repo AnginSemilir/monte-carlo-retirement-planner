@@ -1,0 +1,23 @@
+# The off path before and after jointWorlds (the seventy-sixth review, MINOR 6), 26 Sep 17:11 UK
+# research/tests/joint-off-identity.mjs: a sha256 over every world's tables (surv, beq, resil, short, pol; every year).
+
+## before: a checkout of f3585fd (the commit before 70a8b55), engine built by research/build-engine.py
+$ node research/tests/joint-off-identity.mjs <checkout of f3585fd>
+S004 solveMixture 10 points: 41412c96c8c4f77e
+S126 solvePlan 4 points, bridgeRead false: e7d67220a8a0a99a
+S126 solvePlan 4 points, bridgeRead reader: 9cb75ec74d8917f9
+
+## now: b68d6cd with the working tree (src/solver/solve.js as committed in 70a8b55)
+$ node research/tests/joint-off-identity.mjs
+S004 solveMixture 10 points: 41412c96c8c4f77e
+S126 solvePlan 4 points, bridgeRead false: e7d67220a8a0a99a
+S126 solvePlan 4 points, bridgeRead reader: 9cb75ec74d8917f9
+
+EQUAL: the off path computes the same tables to the bit on all three arms.
+
+## planted (rule 6): the checkout of f3585fd with solve.js l.380's estate weight 0.02 -> 0.021
+S004 solveMixture 10 points: 5ffd51009eb75638
+S126 solvePlan 4 points, bridgeRead false: 2294e976f95a5f2a
+S126 solvePlan 4 points, bridgeRead reader: 69e613cfb77a5ab3
+Every hash changes, so the check can fail. (A 1e-12 change to the same weight left every hash equal: the tables store the
+survival, estate, resilience and shortfall components, and the weight enters only the choice of move, which it did not flip.)

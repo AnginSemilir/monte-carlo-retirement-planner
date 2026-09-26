@@ -1,0 +1,5 @@
+THE SCORECARD: the author's stated credence against each item's outcome (PLAN.md 8j). Brier target below 0.20; always 50% scores 0.25.
+
+7e (the bridge reader): PENDING (no results-7e.txt yet)
+
+No scored tests yet: no cumulative score.

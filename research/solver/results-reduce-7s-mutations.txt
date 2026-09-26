@@ -1,0 +1,23 @@
+true script: planted (21): all read as they should
+caught  the pairs' saved and lost swapped: a log parsed: two cases, four arms each, the pairs read as saved/lost read 2 4 1/11, should read 2 4 11/1; the reproduction check passes 7r's figures and refuses others
+caught  the gate ignores a second setting changed between arms: the gate refuses a second setting changed between arms (the minimum pot) read false, should read true
+caught  the gate does not read the seed: the gate refuses the wrong seed read false, should read true
+caught  the gate does not read the return points: the gate refuses an @15 arm run at 5 points read false, should read true
+caught  the gate does not read the bridge read: the gate refuses the wrong bridge read read false, should read true
+caught  the gate accepts a missing case: the gate refuses a missing case read false, should read true
+caught  the gate accepts a missing pair: the gate refuses a missing pair read false, should read true
+caught  the reproduction check ignores the counts: the reproduction check passes 7r's figures and refuses others read 0 0 1, should read 0 1 1
+caught  the reproduction check ignores the reader's simulation: the reproduction check passes 7r's figures and refuses others read 0 1 0, should read 0 1 1
+caught  a gain without Holm: a gain needs Holm: 6 saved, 0 lost on each (raw p 0.016, Holm 0.031) gains; 5 and 0 (raw 0.031, Holm 0.062) does not read true,true true,true, should read true,true fal
+caught  the gain's p read as harm: cures on both: HELD (14 saved 0 lost; 11 saved 1 lost; neither harms at 15) read INCONCLUSIVE, should read HELD; half a cure (7 and 6 saved, none lost: significant afte
+caught  harm at 15 without Holm: harm at 15 needs Holm: 5 lost, 0 saved on each (raw p 0.031, Holm 0.062) does not harm read true,true, should read false,false
+caught  no material gain read by significance, not the interval: no material gain needs the interval's upper end below the margin: 9 saved, 4 lost (not significant, upper end 0.35) is not "no material gain" read true, should read fal
+caught  no material harm read at the wrong end of the interval: half a cure (7 and 6 saved, none lost: significant after Holm, below the margin; 8 still lost at 15): partial on each, INCONCLUSIVE read cures,cures HELD, should read p
+caught  a significant gain below the margin read as no cure: half a cure (7 and 6 saved, none lost: significant after Holm, below the margin; 8 still lost at 15): partial on each, INCONCLUSIVE read does not cure,does not cure FAL
+caught  HELD on one case's cure: a cure on one case only: INCONCLUSIVE read HELD, should read INCONCLUSIVE
+caught  item 3 reads only the lower end: items 3-5 miss: off at 15 saves 9 (upper end above the margin), the reader at 15 holds a lower tier 3.5 years more (off 40.0), its gap -1.2 read true,false,false, shoul
+caught  item 4 compares the reader at 15 with off: items 3-5 miss: off at 15 saves 9 (upper end above the margin), the reader at 15 holds a lower tier 3.5 years more (off 40.0), its gap -1.2 read false,true,false, shoul
+caught  item 5 ignores a gap's sign: items 3-5 miss: off at 15 saves 9 (upper end above the margin), the reader at 15 holds a lower tier 3.5 years more (off 40.0), its gap -1.2 read false,false,true, shoul
+caught  the wrong pair read as g: each case's g is the reader at 15 against the reader at 5 and h the reader at 15 against off at 15 read 0/0 0/1,0/0 1/1, should read 14/0 0/1,11/1 1/1
+
+20 mutations: every one caught

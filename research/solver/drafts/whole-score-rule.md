@@ -23,6 +23,11 @@ and 7o alike.
    survival, at the regimen's 0.5-point margin, it runs a little high: 3.0% to 4.3% at 3,000 and 8,000 futures (0% to
    1.1% at the first look's 1,000), against the old interval's 44% to 48%. So it is far better, but not exact.
    It is reported beside 7t's registered reading tonight; changing the regimen's item 1 is the maintainer's decision.
+   Re-reading the earlier results by it (O27; results-o27-unconditional.txt, with an exact bound from the one-sided count
+   beside it, since the interval itself runs kind where few futures differ well below 100% survival) moves no verdict,
+   but 20 of 7e's 30 "no material harm" reads, all at 1,000 futures, become inconclusive; and 7t's registered rule
+   is far more decisive than the unconditional one (results-o27-power.txt: a three-quarter cure reads HELD 0.410
+   against 0.976).
 3. **The pooled floor has the same kind of fault** (the eighty-fifth review). Each household's weight comes from its
    own counts, so households that lost fewer futures by chance weigh more. Through 7e's two looks with Holm across 24
    cases, a true pooled loss of 0.1 points holds the floor 6.1% (random effects) and 7.1% (fixed effect) of the time,
@@ -37,7 +42,7 @@ and 7o alike.
 | 1 | The test | Split each household's whole-score change into its **survival part** (the futures that differ in survival, worth 100 points each, read by the unconditional interval, survivalChangeU) and **the rest** (the estate, cut and raise terms over every future, read by a normal interval, which suits them). Combine the two by a split error rate (each part at half the level), so the combined interval is conservative. Its calibration is shown by simulation before adoption, as a planted check: at a true loss exactly at the margin it must read "no material harm" no more often than the stated rate | It carries the uncertainty in how many futures differ, which the first version did not |
 | 2 | The margins | The regimen's own: 0.25 points a household where the comparison arm survives 95% or more, 0.5 below; 0.1 pooled | No new number; the whole score is in points of survival |
 | 3 | The outcomes | The regimen's three, in the same form | One way of reading every test |
-| 4 | Holm, looks and the pool | Holm across the households; the regimen's two looks. The pooled floor read on the households' cells summed into one unconditional interval, not weighted by each household's own counts: at a one-sided loss of 0.1 it holds 2.0% to 3.2% of the time (results-pooled-fixed.txt), where the current forms hold 7% to 66% | The floor has the same fault as the survival interval (3 above) |
+| 4 | Holm, looks and the pool | Holm across the households; the regimen's two looks, the first at 3,000 futures or more: at 1,000 no count of differing futures closes a household at the 0.25 margin by the unconditional interval (0 of 1,000 leaves a loss of 0.60 points open at 0.005; results-o27-unconditional.txt), so a 1,000-future look could only find harm. The pooled floor read on the households' cells summed into one unconditional interval, not weighted by each household's own counts: at a one-sided loss of 0.1 it holds 2.0% to 3.2% of the time (results-pooled-fixed.txt), where the current forms hold 7% to 66% | The floor has the same fault as the survival interval (3 above) |
 | 5 | Survival's role | Reported beside it by the unconditional interval. Not a veto, but a survival loss beyond twice the margin goes to the maintainer before any default | As agreed |
 | 6 | Scope | Every household | As agreed |
 | 7 | The score | The solver's own objective as it solved, realised per future. No function computes it today: runPolicy returns the parts (survival, end wealth, shortfall, spending), and the only figures so far come from read-7r-failures.mjs, a re-implementation. So a scorer is built first, beside the solver's objective code, with a planted check that it reproduces results-7r-failures.txt's -0.347 and -0.380 | The eighty-fourth review's MINOR 4 |

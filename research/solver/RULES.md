@@ -355,7 +355,10 @@ starts, its prediction names the budget line it reduces and by roughly how much,
 prediction that times a change reads it as a ratio against its bar, from the two arms of each case alternating in one
 process while the cases run in parallel, so both arms of a case share the same background load; the machine's load is
 logged (fair-test row 33). Absolute times are never scaled by the number of busy cores: contention is not linear (K5's
-median was inflated by it).
+median was inflated by it). A ratio measured side by side may still differ from one measured alone, since contention can
+slow two arms with different memory use unequally, so the first prediction to use this method also times one case alone,
+or reads its ratios against check 6's quiet-box ones (results-readertime.txt). Enforced by: NOT YET - the plan-auditor,
+on each prediction that times a change.
 
 ## 7. Where the approach came from (24 Sep)
 

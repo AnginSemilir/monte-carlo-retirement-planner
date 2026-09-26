@@ -351,6 +351,12 @@ into grid, quadrature and information parts; policy optimality within 0.2 points
 0.5 on any household; the edge's sign holds on every engine; external calibration reported. Before an accuracy task
 starts, its prediction names the budget line it reduces and by roughly how much, and the largest line goes first.
 
+**Timing checks** (the maintainer, 26 Sep 08:22 UK; 7e keeps its registered alone-on-the-machine time bar): a
+prediction that times a change reads it as a ratio against its bar, from the two arms of each case alternating in one
+process while the cases run in parallel, so both arms of a case share the same background load; the machine's load is
+logged (fair-test row 33). Absolute times are never scaled by the number of busy cores: contention is not linear (K5's
+median was inflated by it).
+
 ## 7. Where the approach came from (24 Sep)
 
 - Anthropic, "Best practices for Claude Code": CLAUDE.md is advisory, hooks are deterministic; keep CLAUDE.md short;

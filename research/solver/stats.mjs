@@ -96,10 +96,11 @@ export function wilson(x, n, z) {
  * binomial proportions based on paired data", method 10: each arm's survival by Wilson's interval, combined through the
  * paired correlation phi). Cells: a both survive, b arm A survives and B fails (lost), c B survives and A fails (saved),
  * d both fail; the change B - A in points at 1 - level. Unlike survivalChange it counts the chance in how many paths
- * differ: at a true one-sided loss exactly at the 0.25 margin it read "no material harm" 1.7% of the time at 3,000 paths
- * and 2.6% at 8,000 (nominal 2.5%), where survivalChange reads it 52.5% (a simulation of 40,000 draws a case, 26 Sep; the
- * planted calibration check in stats.test.mjs). Reported beside the registered exact interval; it replaces it only by the
- * maintainer's decision (the regimen's item 1).
+ * differ: at a true one-sided loss exactly at the 0.25 margin it reads "no material harm" at or below the nominal rate on
+ * nearly every row of results-sim-unconditional.txt (sim-unconditional.mjs: survival 95% to 99.8%, 1,000 to 8,000 paths),
+ * where survivalChange reads it about half the time - but 4.1% at 95% survival and 8,000 paths (nominal 2.5%), so it is not
+ * exact either (the eighty-fifth review, MINOR 2). Reported beside the registered exact interval; it replaces it only by
+ * the maintainer's decision (the regimen's item 1).
  */
 export function survivalChangeU(a, b, c, d, level = 0.05) {
   const N = a + b + c + d, z = zFor(level), pB = (a + c) / N, pA = (a + b) / N, dl = pB - pA;

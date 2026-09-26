@@ -1,0 +1,12 @@
+HOW OFTEN A TRUE LOSS OF EXACTLY 0.25 POINTS READS "NO MATERIAL HARM" (one-sided losses, 20000 draws a row; the nominal rate is level / 2)
+
+survival  paths  level  | unconditional  conditional  nominal
+  99.8%   1000  0.005  |        0.0%        54.4%    0.25%
+  99.8%   3000  0.050  |        2.2%        52.9%    2.50%
+  99.8%   8000  0.050  |        2.2%        47.3%    2.50%
+  99.0%   1000  0.005  |        0.0%        54.3%    0.25%
+  99.0%   3000  0.050  |        2.0%        52.4%    2.50%
+  99.0%   8000  0.050  |        2.1%        47.3%    2.50%
+  95.0%   1000  0.005  |        0.0%        54.2%    0.25%
+  95.0%   3000  0.050  |        2.1%        52.6%    2.50%
+  95.0%   8000  0.050  |        4.1%        47.4%    2.50%

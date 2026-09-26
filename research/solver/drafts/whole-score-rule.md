@@ -17,7 +17,12 @@ and 7o alike.
 2. **The survival rule has the same kind of fault** (the plan's bugs list, 26 Sep). Its exact interval treats the
    number of differing futures as fixed, so with one-sided losses a true loss at the margin reads "no material harm"
    52.5% of the time at 3,000 futures (nominal 2.5%). An interval that counts that chance too is built and checked
-   (stats.mjs survivalChangeU, Newcombe 1998 method 10: 2.1% at the same loss in stats.test.mjs's calibration check).
+   (stats.mjs survivalChangeU, Newcombe 1998 method 10). results-sim-unconditional.txt (sim-unconditional.mjs, 20,000
+   draws a row) shows it at or below the stated rate from 95% to 99.8% survival and 1,000 to 8,000 futures, except 4.1%
+   at 95% survival and 8,000 futures (nominal 2.5%), where the old interval reads about half on every row.
+3. **The pooled floor has the same kind of fault** (the eighty-fifth review). Each household's weight comes from its
+   own counts, so households that lost fewer futures by chance weigh more. At a true pooled loss of 0.1 points the floor
+   holds 6.1% (random effects) and 7.1% (fixed effect) of the time, against 2.5% (results-pooled-floor.txt).
    It is reported beside 7t's registered reading tonight; changing the regimen's item 1 is the maintainer's decision.
 
 ## The corrected proposal
@@ -27,12 +32,12 @@ and 7o alike.
 | 1 | The test | Split each household's whole-score change into its **survival part** (the futures that differ in survival, worth 100 points each, read by the unconditional interval, survivalChangeU) and **the rest** (the estate, cut and raise terms over every future, read by a normal interval, which suits them). Combine the two by a split error rate (each part at half the level), so the combined interval is conservative. Its calibration is shown by simulation before adoption, as a planted check: at a true loss exactly at the margin it must read "no material harm" no more often than the stated rate | It carries the uncertainty in how many futures differ, which the first version did not |
 | 2 | The margins | The regimen's own: 0.25 points a household where the comparison arm survives 95% or more, 0.5 below; 0.1 pooled | No new number; the whole score is in points of survival |
 | 3 | The outcomes | The regimen's three, in the same form | One way of reading every test |
-| 4 | Holm and looks | Holm across the households; the regimen's two looks | Unchanged |
+| 4 | Holm, looks and the pool | Holm across the households; the regimen's two looks. The pooled floor needs a form whose weights and spread do not come from the same counts; a candidate is the households' cells summed into one unconditional interval. Its calibration at a one-sided loss of 0.1 is shown before adoption | The floor has the same fault as the survival interval (3 above) |
 | 5 | Survival's role | Reported beside it by the unconditional interval. Not a veto, but a survival loss beyond twice the margin goes to the maintainer before any default | As agreed |
 | 6 | Scope | Every household | As agreed |
 | 7 | The score | The solver's own objective as it solved, realised per future. No function computes it today: runPolicy returns the parts (survival, end wealth, shortfall, spending), and the only figures so far come from read-7r-failures.mjs, a re-implementation. So a scorer is built first, beside the solver's objective code, with a planted check that it reproduces results-7r-failures.txt's -0.347 and -0.380 | The eighty-fourth review's MINOR 4 |
 | 8 | Which weights | The research reference (lambda 0.025). If K6 moves the reference before a default is decided, the test is **re-run** at the new weights: re-scoring futures of a policy solved at the old weights is not the solver at the new ones | The review's MINOR 5 |
-| 9 | Power | By a committed script at registration, for 80% power at a true zero change, not a half-width equal to the margin. By the review's arithmetic from 7r's measured spread, that is about 6,800 and 5,300 futures a household on S126-like cases (the half-width rule gave about 3,300 and 2,600) | The review's MINOR 6; RULES.md item 6 has the same gap (the review backlog) |
+| 9 | Power | By a committed script at registration, for 80% power at a true zero change, not a half-width equal to the margin. For the split form of row 1 (each part at half the level), the eighty-fifth review's arithmetic from 7r's measured spread gives about 11,300 and 8,700 futures a household on S126-like cases; a single normal interval would have needed about 6,800 and 5,300 | The eighty-fourth review's MINOR 6 and the eighty-fifth's MINOR 3; RULES.md item 6 has the same gap (the review backlog) |
 
 **What it touches.**
 - 7u, 7q and 7o read by it.
@@ -43,6 +48,9 @@ and 7o alike.
 - 7t is read as registered, with the unconditional interval reported beside its cure legs.
 - Phase 4's gate 4 is left as it is (it compares the solver with the app; its survival headline is the maintainer's
   decision), unless the maintainer chooses otherwise.
+
+**The calibration shown before asking** spans the comparison arm's survival (95% to 99.8%) and the futures (1,000 to
+8,000), as results-sim-unconditional.txt does for the survival part.
 
 **What the maintainer is asked, once the combined form's calibration is shown:**
 1. Agree to rows 1-9, or change them.

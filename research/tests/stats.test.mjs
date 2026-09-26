@@ -73,7 +73,7 @@ ok(near(normUpper(1.96), 0.0249979, 2e-7) && near(normUpper(5), 2.8665e-7, 1e-10
 { const old = survivalChange(7, 0, 3000), u = survivalChangeU(2986, 7, 0, 7);
   ok(near(old.lo, old.d, 1e-9) && u.lo < old.d - 0.2, `planted: 7 lost, 0 saved of 3,000 - the conditional lower end is the point estimate (${old.lo.toFixed(3)}), the unconditional one below it (${u.lo.toFixed(3)} to ${u.hi.toFixed(3)})`);
   ok(outcome({ b: 7, c: 0, N: 3000, margin: 0.25, pHolm: 0.01 }).outcome === 'no material harm' && !(u.lo > -0.25), 'planted: a 0.233-point loss reads "no material harm" on the conditional interval and not on the unconditional one'); }
-{ let st = 7002; const rnd = () => { st = (st * 1103515245 + 12345) % 2147483648; return st / 2147483648; };
+{ let st = 7002 >>> 0; const rnd = () => { st = (st + 0x6D2B79F5) >>> 0; let t = st; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };   // mulberry32 (the old LCG cycled every 10,466 calls: the eighty-fifth review, MINOR 2)
   const pois = m => { const L = Math.exp(-m); let k = 0, p = 1; do { k++; p *= rnd(); } while (p > L); return k - 1; };
   const R = 10000, N = 3000; let nmhU = 0, nmhC = 0;
   for (let r = 0; r < R; r++) { const failA = pois(N * 0.002), b = pois(N * 0.0025), survA = N - failA;   // A survives 99.8%; B loses 0.25 points more, none saved

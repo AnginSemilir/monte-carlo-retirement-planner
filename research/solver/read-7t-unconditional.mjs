@@ -7,7 +7,8 @@
  * interval and the unconditional one (stats.mjs survivalChangeU, Newcombe 1998 method 10) for:
  *   g, the reader with the cause removed against the reader as solved: "no material gain" when the upper end is below +0.25;
  *   h, the reader with the cause removed against off with the same change: "no material harm" when the lower end is above -0.25;
- *   and item 13's pair (READER+J/M0 against OFF+J/M0), read as h;
+ *   and item 13's pair (READER+J/M0 against OFF+J/M0), read as h; and items 10 and 14's no-harm legs on S360 and share
+ *   0.95 (READER+J and READER+L against READER: "loses nothing material"; the eighty-fifth review, MINOR 4);
  * and flags every leg where the two readings disagree: each goes to the maintainer beside 7t's attribution.
  * Gated as read-7r-lost-paths.mjs is: requireFairLogs over the logs' stamps, then every trace's count, seed, arm and stamp.
  *   node research/solver/read-7t-unconditional.mjs > research/solver/results-7t-unconditional.txt
@@ -19,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 import { requireFairLogs } from './fair-gate.mjs';
 import { survivalChange, survivalChangeU } from './stats.mjs';
-import { CAUSES, HARMED, MARGIN, PRED, decode, traceName, traceAgrees } from './reduce-7t.mjs';
+import { CAUSES, HARMED, GAINED, MARGIN, PRED, decode, traceName, traceAgrees } from './reduce-7t.mjs';
 
 // the paired cells of arm B (changed) against arm A (reference): a both survive, b lost (A survives, B fails), c saved, d both fail
 export function cells(A, B) {
@@ -86,6 +87,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const i13 = leg('h', load(id, 'OFF+J/M0'), load(id, 'READER+J/M0'));
     disagreements += i13.disagree;
     console.log(`  item 13: READER+J/M0 against OFF+J/M0: ${fmt('h', i13)}`);
+  }
+  for (const id of GAINED) {
+    console.log(id);
+    for (const [item, arm] of [[10, 'READER+J'], [14, 'READER+L']]) {
+      const x = leg('h', load(id, 'READER'), load(id, arm));
+      disagreements += x.disagree;
+      console.log(`  item ${item}: ${arm} against READER: ${fmt('h', x)}`);
+    }
   }
   console.log(`\n${disagreements} leg(s) where the two readings disagree${disagreements ? ': each goes to the maintainer beside 7t\'s attribution' : ''}`);
 }

@@ -247,7 +247,7 @@ export function solveMixture(E, M, plan, opts = {}) {
    * flow a cell shared between them, and what comes out is what the separate solves produced, bit for
    * bit. `solve` reports the whole interleaved build in `meta.ms`, so no summing here.
    */
-  const r = solve(E, M, plan, { ...opts, shifts: zs, shiftZ: undefined });
+  const r = solve(E, M, plan, { ...opts, shifts: zs, shiftZ: undefined, ...(opts.jointWorlds ? { shiftWeights: ws } : {}) });
   r.mix = { tables: r.worlds, weights: ws, nodes: zs };
   r.meta.mixture = K;
   return r;
@@ -306,6 +306,16 @@ export function solve(E, M, plan, opts = {}) {
   const shifts = opts.shifts !== undefined ? opts.shifts : [opts.shiftZ];
   const K = shifts.length;
   const cs = shifts.map(z => { if (z === undefined) delete m.shiftZ; else m.shiftZ = z; return F.compile(m, actions); });
+  /*
+   * ONE POLICY FOR EVERY WORLD (`jointWorlds`, research only: PLAN.md 7t). Off, each world's backward pass picks that
+   * world's own best move at every cell, so each world's table values a future in which the household knows which
+   * world it is in; the forward chooser never knows (chooseAction weighs the worlds by the mixture's fixed weights, every
+   * year). On, every world takes the one move with the best weighted score across the worlds - the forward chooser's own
+   * rule (weights `shiftWeights`, ties to the larger weighted estate) - so each table values the policy the household
+   * can actually follow. Off, nothing below changes.
+   */
+  const JOINT = !!opts.jointWorlds, JW = JOINT ? opts.shiftWeights : null;
+  if (JOINT && (!JW || JW.length !== K || K < 2 || opts.levelSearch === 'ternary')) throw new Error('jointWorlds needs the mixture (two worlds or more, with their weights) and the full level scan');
   const centre = K >> 1;                       // the middle world is the one the result presents, as solveMixture did
   const c = cs[centre];
   // a tier change costs its round trip on the slice traded (see SWITCH_COST in fast.js); charged at decision time
@@ -608,6 +618,8 @@ export function solve(E, M, plan, opts = {}) {
   }
   // the final year integrated exactly (finalYearExact, O19); off: the five nodes, as before
   const FINT = !!opts.finalIntegral, FTERM = { floor, deathTax, resilK, shortfall, beqOf }, fx = new Float64Array(3), fxR = new Float64Array(4);
+  // `jointWorlds`: each world's components for every move at a cell (PASS 2's, kept for the joint choice)
+  const jS = JOINT ? shifts.map(() => new Float64Array(A)) : null, jB = JOINT ? shifts.map(() => new Float64Array(A)) : null, jR = JOINT ? shifts.map(() => new Float64Array(A)) : null, jH = JOINT ? shifts.map(() => new Float64Array(A)) : null, jV = JOINT ? shifts.map(() => new Float64Array(A)) : null;
   for (let t = T; t >= 0; t--) {
     const spendYear = c.yr.spend[t] > 0;
     // world-independent, so computed once a year rather than once a world: E0 made the world loop the
@@ -722,6 +734,54 @@ export function solve(E, M, plan, opts = {}) {
                   if (PROF) PROF.skipped++;
                 }
               }
+              if (JOINT) {
+                // `jointWorlds`: every world's components for every move, as PASS 2 below computes them, then ONE move for
+                // every world - the best weighted score across the worlds, ties to the larger weighted estate (chooseAction)
+                for (let k = 0; k < K; k++) {
+                  const nodeRealOf = nodeRealOfAtW[k][t];
+                  const sNext = t < T ? lsurvW[k][t + 1] : null, bNext = t < T ? beqW[k][t + 1] : null;
+                  const rNext = t < T ? lresilW[k][t + 1] : null, hNext = t < T ? shortW[k][t + 1] : null;
+                  for (let ai = 0; ai < A; ai++) {
+                    const o = ai * 7, fail = failBuf[ai] === 1;
+                    let s = 0, b = 0, rs = 0, h = 0;
+                    if (!fail) {
+                      const nr = nodeRealOf[ai];
+                      if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                      else for (let zi = 0; zi < NQ; zi++) {
+                        for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
+                        F.grow(cs[k], t, grown, nr[zi]);
+                        if (t === T) {
+                          const total = grown[0] + grown[1] + grown[2];
+                          const alive = !(floor > 0 && total < floor);
+                          const net = Math.max(0, total - grown[0] * deathTax);
+                          s += QW[zi] * (alive ? 1 : 0);
+                          rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+                          b += QW[zi] * (alive ? beqOf(net) : 0);
+                        } else {
+                          readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1);
+                          s += QW[zi] * rd[0]; b += QW[zi] * rd[1]; rs += QW[zi] * rd[2]; h += QW[zi] * rd[3];
+                        }
+                      }
+                    }
+                    if (failShort && fail) h = failCostAt[t];
+                    else h += shortOfAction[ai];
+                    if (raiseSurv) h += raiseOfAction[ai] * s;
+                    jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = s + wR * rs + wB * b - h;
+                  }
+                }
+                let bestV = -Infinity, bestWB = -Infinity, bestA = 0;
+                for (let ai = 0; ai < A; ai++) {
+                  let v = 0, wb = 0;
+                  for (let k = 0; k < K; k++) { v += JW[k] * jV[k][ai]; wb += JW[k] * jB[k][ai]; }
+                  if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
+                }
+                for (let k = 0; k < K; k++) {
+                  survW[k][t][idx] = jS[k][bestA]; beqW[k][t][idx] = jB[k][bestA]; resilW[k][t][idx] = jR[k][bestA];
+                  polW[k][t][idx] = bestA; shortW[k][t][idx] = jH[k][bestA];
+                }
+                if (PROF) PROF.cells++;
+                continue;
+              }
               // PASS 2, once per world: growth at that world's rates, read of that world's tables.
               for (let k = 0; k < K; k++) {
                 const nodeRealOf = nodeRealOfAtW[k][t];
@@ -790,6 +850,7 @@ export function solve(E, M, plan, opts = {}) {
 
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, solverVersion: SOLVER_VERSION };
   if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, weights: g.reader.weights };
+  if (JOINT) meta.jointWorlds = true;
   if (PROF) {
     PROF.total = now() - profT0;
     // two clock calls per timed region, and the outer pair too

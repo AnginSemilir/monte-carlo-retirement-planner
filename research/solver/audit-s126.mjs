@@ -139,7 +139,7 @@ const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', {
  * is the mixture's: each world's opening read weighted as the solve weights them. The F1 test (mode f1) ran on step 2's
  * settings in the single-table fold; this is its re-test where the product runs.
  */
-function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002 } = {}) {
+function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint } = {}) {
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
@@ -149,7 +149,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   // re-run of an older mode (7c's f1v2, 7i's quad), now exact by default, cannot pass a ran-line gate against files that
   // ran it averaged. It sits BEFORE bridgeRead: smoke.sh's f1v2 check (locked) reads bridgeRead at the end of the line.
   const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
-    ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}) });   // F1 off is explicit, whatever the product default
+    ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}), ...(joint ? { jointWorlds: true } : {}) });   // F1 off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
   const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
   let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(seed, NP, m.ctx.totalYears);
@@ -342,6 +342,86 @@ if (mode === 'f1v2') {
       const T = r.tr;
       writeFileSync(join(OUT, `${id.replace(/ /g, '_')}-${names[j]}.json.gz`), gzipSync(JSON.stringify({ id, arm: labels[j], stamp: STAMP, N: NP, Y: T.Y, seed: SEED, table: r.table, sim: r.sim, ran: r.ran,
         survived: b64(r.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
+    });
+  });
+} else if (mode === 'diag7t') {
+  /*
+   * 7T: DO THE MIXTURE'S TABLES OVERRATE THE RISKIER TIER BECAUSE EACH WORLD PLANS AS IF IT KNEW ITS WORLD? (PLAN.md 7t;
+   * predictions/diag-7t.md). Each case solved four ways - off and the reader, each with the mixture as the product solves
+   * it and with `jointWorlds` (solve.js: one policy for every world, chosen by the forward chooser's own weighted rule) -
+   * at 7e's settings (the tier above allowed, the final year exact, three worlds, lambda held at S126's). Every arm is run
+   * forward three ways on the same seed's paths:
+   *   - as solved, on NP paths, the per-year trace kept;
+   *   - with the switch margin at 0 (the same tables; the chooser changes tier for any gain), on the same NP paths, traced;
+   *   - in each world, on the first WP paths with each path's persistent shift replaced by that world's node (-sqrt 3, 0,
+   *     +sqrt 3): the world's own table's opening survival and expected capped estate beside what the policy realises there.
+   *   node research/solver/audit-s126.mjs diag7t [points] [paths] part k/n [seed=7002] [world paths=1000]
+   * Prints 7e's case line for the four arms, a "margin0" line for the same arms at margin 0, a ran line and a "joint" line
+   * per arm, one pairs line over all eight runs, and a "world" line per arm and world; writes each of the eight runs' traces
+   * to results/diag7t/<case>-<run>.json.gz (DIAG7T_OUT when set), stamped as the log is.
+   */
+  const PANEL = [['S126', 'off,reader'], ['bridge 4', 'off,reader'], ['S360', 'off,reader'], ['share 0.95', 'off,reader'], ['S194', 'off']];
+  const ARM = { off: false, reader: 'reader' };
+  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
+  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002, WP = process.argv[8] ? Number(process.argv[8]) : 1000;
+  if (!(SEED >= 1) || !(WP >= 1)) { console.error(`audit-s126: bad seed or world paths ${process.argv[7]} ${process.argv[8]}`); process.exit(2); }
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  const OUT = process.env.DIAG7T_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7t');
+  mkdirSync(OUT, { recursive: true });
+  const NODES = [-Math.sqrt(3), 0, Math.sqrt(3)];
+  console.log(`7T DIAGNOSIS, step-6 defaults in the mixture (solvePlan), ${POINTS} points, ${NP} paths (seed ${SEED}), ${WP} a world, lambda ${LAMBDA}, the tier above allowed and the final year exact in every arm; traces kept; part ${pk}/${pn}`);
+  const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+  // one forward run of a solve on the given paths: survival, below-target and tier years, and optionally the trace
+  const forward = (r, paths, trace) => {
+    const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = trace ? makeTrace(N, T + 1) : null;
+    let ok = 0, below = 0, tierYrs = 0, estate = 0;
+    const cap = r.meta.bequestCap;
+    paths.forEach((zs, i) => { if (tr) tr.row = i; const o = runPolicy(r, zs, tr ? { trace: tr } : {}); if (o.survived) { ok++; okArr[i] = 1; estate += Math.min(o.terminalNet, cap); } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
+    return { sim: 100 * ok / N, below: below / N, tierYrs: tierYrs / N, estate: estate / N, okArr, tr, secs: (Date.now() - t0) / 1000 };
+  };
+  PANEL.forEach(([id, armList], i) => {
+    if (i % pn !== pk) return;
+    const h = byId(id)();
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const arms = armList.split(',').flatMap(a => [{ name: a, joint: false }, { name: a, joint: true }]);
+    const runs = [], lines = [];
+    for (const a of arms) {
+      const label = `${a.name.toUpperCase()}${a.joint ? '+J' : ''}`;
+      const res = measureV2(h, ARM[a.name], 5, { finalIntegral: true, riskAbove: true, trace: true, seed: SEED, joint: a.joint });
+      if (!!res.r.meta.jointWorlds !== a.joint) { console.error(`audit-s126: ${label} ran jointWorlds ${res.r.meta.jointWorlds}`); process.exit(2); }
+      runs.push({ label, file: `${a.name}${a.joint ? '_j' : ''}`, res, sim: res.sim, okArr: res.okArr, tr: res.tr });
+      const sm = res.r.switchMargin; res.r.switchMargin = 0;
+      const m0 = forward(res.r, res.paths, true);
+      res.r.switchMargin = sm;
+      runs.push({ label: `${label}/M0`, file: `${a.name}${a.joint ? '_j' : ''}_m0`, res: null, sim: m0.sim, okArr: m0.okArr, tr: m0.tr, m0 });
+      const s0 = M.initialState(res.r.m);
+      NODES.forEach((z, k) => {
+        const wpaths = res.paths.slice(0, WP).map(zs => { const c = Float64Array.from(zs); c[c.length - 1] = z; return c; });
+        const f = forward(res.r, wpaths, false), v = res.r.worlds[k].value(s0, 0);
+        lines.push(`${''.padEnd(16)} world ${label} ${k} z ${z.toFixed(4)}: table ${(100 * v.survival).toFixed(2)} sim ${f.sim.toFixed(2)} estate table ${Math.round(v.bequest)} sim ${Math.round(f.estate)} tier-below ${f1(f.tierYrs)} paths ${WP}`);
+      });
+    }
+    const main = runs.filter(x => x.res), mzero = runs.filter(x => x.m0), base = main[0];
+    const cell = (x, j) => {
+      let up = 0, dn = 0; for (let k = 0; k < NP; k++) { if (!base.okArr[k] && x.okArr[k]) up++; else if (base.okArr[k] && !x.okArr[k]) dn++; }
+      const r = x.res;
+      return `${x.label} table ${f1(r.table).padStart(5)} sim ${f1(r.sim).padStart(5)} gap ${f1(r.gap).padStart(6)} tier-below ${f1(r.tierYrs).padStart(4)} below ${f1(r.below).padStart(4)} ${Math.round(r.secs)} s${j === 0 ? '' : ` d ${r.sim - base.sim >= 0 ? '+' : ''}${f1(r.sim - base.sim)} se ${f1(100 * Math.sqrt(up + dn) / NP)} (${up}/${dn})`}`;
+    };
+    console.log(`${id.padEnd(16)} a0 ${f1(base.res.a0, 2)} B ${base.res.B} class ${base.res.inClass ? 'YES' : 'no '} | ${main.map(cell).join(' | ')}`);
+    console.log(`${''.padEnd(16)} margin0 | ${mzero.map(x => `${x.label} sim ${f1(x.m0.sim).padStart(5)} tier-below ${f1(x.m0.tierYrs).padStart(4)} below ${f1(x.m0.below).padStart(4)} ${Math.round(x.m0.secs)} s`).join(' | ')}`);
+    main.forEach(x => console.log(`${''.padEnd(16)} ran ${x.label}: ${x.res.ran}`));
+    main.forEach(x => console.log(`${''.padEnd(16)} joint ${x.label}: ${!!x.res.r.meta.jointWorlds} switchMargin ${x.res.r.switchMargin} scale ${Math.round(Math.max(1, x.res.r.m.ctx.accounts.reduce((t, a) => t + a.balance, 0)))} cap ${Math.round(x.res.r.meta.bequestCap)} deathTax ${x.res.r.m.ctx.pensionDeathTaxRate}`));
+    const pairs = [];
+    for (let j = 1; j < runs.length; j++) for (let q = 0; q < j; q++) { let up = 0, dn = 0; for (let k = 0; k < NP; k++) { if (!runs[q].okArr[k] && runs[j].okArr[k]) up++; else if (runs[q].okArr[k] && !runs[j].okArr[k]) dn++; } pairs.push(`${runs[j].label}-${runs[q].label} ${up}/${dn}`); }
+    console.log(`${''.padEnd(16)} pairs ${pairs.join(' ')}`);
+    lines.forEach(l => console.log(l));
+    runs.forEach(x => {
+      const T = x.tr;
+      writeFileSync(join(OUT, `${id.replace(/ /g, '_')}-${x.file}.json.gz`), gzipSync(JSON.stringify({ id, arm: x.label, stamp: STAMP, N: NP, Y: T.Y, seed: SEED, sim: x.sim,
+        survived: b64(x.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
     });
   });
 } else if (mode === 'time') {

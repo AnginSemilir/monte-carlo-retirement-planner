@@ -1,4 +1,4 @@
-true script: planted (9): all read as they should
+true script: planted (12): all read as they should
 caught  every loss counted as in life: two lost: one in life, one at the end read 2 2 0, should read 2 1 1; the end-of-plan failure: its end wealth and off's read undefined undefined, should read 20000 35000
 caught  the arm's end wealth and off's swapped: the end-of-plan failure: its end wealth and off's read 35000 20000, should read 20000 35000; the shortfall under the pot: ending 20000 under 29000 is 9000 read -6000, s
 caught  the median failure year ignores end-of-plan failures: the median failure year counts an end-of-plan failure as the last year (years 1 and 2) read 1, should read 1.5
@@ -11,7 +11,16 @@ caught  the covered share's sign reversed: the estate credit covers 70% when +0.
 caught  the shortfall taken from off's end wealth: the shortfalls: ending 20k, 27k and 5k (off 35k, 30k, 31k) under 29k: median 9000, 0.69 of the pot left, 1 within 5k, largest 24000 read -2000 0.69 3 of 3 -1000, should
 caught  within 5k counted the wrong way: the shortfalls: ending 20k, 27k and 5k (off 35k, 30k, 31k) under 29k: median 9000, 0.69 of the pot left, 1 within 5k, largest 24000 read 9000 0.69 2 of 3 24000, should 
 caught  the pot left read from off's end wealth: the shortfalls: ending 20k, 27k and 5k (off 35k, 30k, 31k) under 29k: median 9000, 0.69 of the pot left, 1 within 5k, largest 24000 read 9000 1.07 1 of 3 24000, should 
+caught  a raise credited on a path that fails: the cut and raise terms: path 0 the arm cuts to 0.9 and 0.8 (lambda 0.1: 0.005); path 1 the arm raises to 1.1, then fails in life in year 1 (charged years 1 and 2 at th
+caught  a failure in life charged from the year after it: the cut and raise terms: path 0 the arm cuts to 0.9 and 0.8 (lambda 0.1: 0.005); path 1 the arm raises to 1.1, then fails in life in year 1 (charged years 1 and 2 at th
+caught  a failure charged as a cut to nothing, not the floor: the cut and raise terms: path 0 the arm cuts to 0.9 and 0.8 (lambda 0.1: 0.005); path 1 the arm raises to 1.1, then fails in life in year 1 (charged years 1 and 2 at th
+caught  a raise's credit not capped at 0.2: the cut and raise terms: path 0 the arm cuts to 0.9 and 0.8 (lambda 0.1: 0.005); path 1 the arm raises to 1.1, then fails in life in year 1 (charged years 1 and 2 at th
+caught  a cut charged linearly, not squared: the cut and raise terms: path 0 the arm cuts to 0.9 and 0.8 (lambda 0.1: 0.005); path 1 the arm raises to 1.1, then fails in life in year 1 (charged years 1 and 2 at th
+caught  the cut term's sign reversed: the cut and raise terms: path 0 the arm cuts to 0.9 and 0.8 (lambda 0.1: 0.005); path 1 the arm raises to 1.1, then fails in life in year 1 (charged years 1 and 2 at th
+caught  the floor read as the menu's highest level: each case's settings read from its own log read 5000 0.5 1.1 29000 0.25 1, should read 5000 0.5 0.8 29000 0.25 0.9
+caught  one minimum pot for every case: each case's settings read from its own log read 29000 0.5 0.8 29000 0.25 0.9, should read 5000 0.5 0.8 29000 0.25 0.9
+caught  a log whose arms disagree accepted: a log whose arms ran at different settings is refused read accepted, should read refused
 caught  the prediction's version (its sha) not compared: the stamp line read field by field (code, audit, prediction, sha); a trace stamped as the logs agrees, one with another prediction version or no stamp does not read a b
 caught  the stamp line's prediction read from the wrong field: the stamp line read field by field (code, audit, prediction, sha); a trace stamped as the logs agrees, one with another prediction version or no stamp does not read a b
 
-14 mutations: every one caught
+23 mutations: every one caught

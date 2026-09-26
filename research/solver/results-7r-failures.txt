@@ -1,21 +1,21 @@
 7R'S LOST PATHS BY THE KIND OF FAILURE (reported, not a test; the logs' gate and every trace's stamp checked). Against off on
-the same 3000 paths of seed 7002; the minimum pot 29000. An end-of-plan failure paid every year and ended below it.
+the same 3000 paths of seed 7002; each case's own minimum pot (its log). An end-of-plan failure paid every year and ended below it.
 
 S126      READER lost 15: in life 8 (years 34, 36, 37, 38, 38, 39, 39, 39); at the end, below the minimum pot 7 (ending 5k to 29k; off on the same paths 29k to 39k); median failure year 39 of 39
-                 shortfalls under the pot at the end: median 9.7k (0.66 years of the pot left), within 5k 3 of 7, largest 24.5k
+                 shortfalls under the 29000 pot at the end: median 9.7k (0.66 years of the pot left), within 5k 3 of 7, largest 24.5k
 S126      RTIER  lost 14: in life 7 (years 34, 34, 38, 38, 39, 39, 39); at the end, below the minimum pot 7 (ending 1k to 25k; off on the same paths 30k to 39k); median failure year 39 of 39
-                 shortfalls under the pot at the end: median 15.7k (0.46 years of the pot left), within 5k 1 of 7, largest 28.3k
+                 shortfalls under the 29000 pot at the end: median 15.7k (0.46 years of the pot left), within 5k 1 of 7, largest 28.3k
 S126      RREST  lost 0
 bridge 4  READER lost 12: in life 5 (years 30, 36, 38, 40, 41); at the end, below the minimum pot 7 (ending 8k to 29k; off on the same paths 31k to 36k); median failure year 41 of 41
-                 shortfalls under the pot at the end: median 9.4k (0.68 years of the pot left), within 5k 2 of 7, largest 21.3k
+                 shortfalls under the 29000 pot at the end: median 9.4k (0.68 years of the pot left), within 5k 2 of 7, largest 21.3k
 bridge 4  RTIER  lost 10: in life 5 (years 29, 36, 38, 39, 41); at the end, below the minimum pot 5 (ending 3k to 23k; off on the same paths 31k to 36k); median failure year 41 of 41
-                 shortfalls under the pot at the end: median 10.4k (0.64 years of the pot left), within 5k 0 of 5, largest 25.8k
+                 shortfalls under the 29000 pot at the end: median 10.4k (0.64 years of the pot left), within 5k 0 of 5, largest 25.8k
 bridge 4  RREST  lost 2: in life 0; at the end, below the minimum pot 2 (ending 28k to 29k; off on the same paths 31k to 31k); median failure year 41 of 41
-                 shortfalls under the pot at the end: median 0.6k (0.98 years of the pot left), within 5k 2 of 2, largest 1.0k
+                 shortfalls under the 29000 pot at the end: median 0.6k (0.98 years of the pot left), within 5k 2 of 2, largest 1.0k
 wealth x2 READER lost 2: in life 1 (years 37); at the end, below the minimum pot 1 (ending 14k to 14k; off on the same paths 91k to 91k); median failure year 38 of 39
-                 shortfalls under the pot at the end: median 14.6k (0.50 years of the pot left), within 5k 0 of 1, largest 14.6k
+                 shortfalls under the 29000 pot at the end: median 14.6k (0.50 years of the pot left), within 5k 0 of 1, largest 14.6k
 S366      V1     lost 24: in life 8 (years 30, 33, 43, 43, 43, 45, 45, 45); at the end, below the minimum pot 16 (ending 1k to 29k; off on the same paths 29k to 39k); median failure year 45 of 45
-                 shortfalls under the pot at the end: median 6.1k (0.79 years of the pot left), within 5k 6 of 16, largest 28.2k
+                 shortfalls under the 29000 pot at the end: median 6.1k (0.79 years of the pot left), within 5k 6 of 16, largest 28.2k
 
 THE ESTATE CREDIT, in the solver's own units (reported, not a test): per path against off, the survival change in points and the
 capped estate change priced in points (100 x 0.02 x change / opening wealth; cap 4 x opening wealth; a failed path's estate 0).
@@ -28,3 +28,16 @@ bridge 4  RTIER  opening wealth 950k: capped estate +93k, worth +0.196 +/- 0.019
 S120      READER opening wealth 180k: capped estate +19k, worth +0.215 +/- 0.012 points; survival +0.000 points; together +0.215 +/- 0.012
 wealth x2 READER opening wealth 1900k: capped estate +244k, worth +0.257 +/- 0.014 points; survival -0.067 points; together +0.190 +/- 0.049; the estate credit covers 386% of the survival lost
 S366      V1     opening wealth 950k: capped estate -45k, worth -0.096 +/- 0.016 points; survival -0.800 points; together -0.896 +/- 0.163; the estate credit covers -12% of the survival lost
+
+THE OTHER TWO TERMS, realised per path from the traces' spending levels as the solver charges them (reported, not a test):
+the dislike of cuts (lambda x (1 - level)^2 a paid year below target; a failure in life charged every spending year from
+its year at the menu's lowest level) and the raise credit (the raise weight x sqrt(min(0.2, level - 1)), only on paths that
+survive). Per path against off, in points, with the survival and estate terms above: the solver's whole score, realised.
+
+S126      READER lambda 0.02236, floor 0.8, 40 spending years: cuts -0.083 +/- 0.004; raises -0.114 +/- 0.005; survival and estate -0.151; all four -0.347 +/- 0.134 points
+S126      RTIER  lambda 0.02236, floor 0.8, 40 spending years: cuts -0.083 +/- 0.004; raises -0.115 +/- 0.005; survival and estate -0.117; all four -0.315 +/- 0.129 points
+bridge 4  READER lambda 0.02236, floor 0.8, 42 spending years: cuts -0.075 +/- 0.004; raises -0.099 +/- 0.005; survival and estate -0.205; all four -0.380 +/- 0.119 points
+bridge 4  RTIER  lambda 0.02236, floor 0.8, 42 spending years: cuts -0.073 +/- 0.004; raises -0.097 +/- 0.005; survival and estate -0.137; all four -0.307 +/- 0.109 points
+S120      READER lambda 0.02236, floor 0.8, 40 spending years: cuts +0.000 +/- 0.000; raises +0.000 +/- 0.000; survival and estate +0.215; all four +0.215 +/- 0.012 points
+wealth x2 READER lambda 0.02236, floor 0.8, 40 spending years: cuts -0.013 +/- 0.002; raises -0.019 +/- 0.003; survival and estate +0.190; all four +0.158 +/- 0.052 points
+S366      V1     lambda 0.02236, floor 0.8, 46 spending years: cuts +0.235 +/- 0.005; raises +0.218 +/- 0.006; survival and estate -0.896; all four -0.443 +/- 0.167 points

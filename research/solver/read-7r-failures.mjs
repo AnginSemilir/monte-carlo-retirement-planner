@@ -19,7 +19,15 @@
  * for every case (it is: the households carry none), so the net estate is the trace's last-year wealth. The opening wealth
  * is the model's own (the sum of the accounts, as solve.js scales it), from each case rebuilt as audit-s126.mjs builds it
  * (its variant() is mirrored below: that script runs a mode when imported), each rebuilt case's bridge checked against the
- * log's. The dislike-of-cuts and raise terms of the score are not included.
+ * log's.
+ * THE OTHER TWO TERMS (the seventy-first review, MINOR 1): the dislike of cuts and the raise credit, realised per path from
+ * the traces' spending levels as the solver charges them (solve.js: costOf, raiseSurvival, failureShortfall): lambda x
+ * (1 - level)^2 in each paid year below target; a failure in life charged every spending year from its year on at the
+ * menu's lowest level (failureShortfall 'floor'; runPolicy returns before tracing the failed year, so nothing is charged
+ * twice); a raise's credit, the raise weight x sqrt(min(0.2, level - 1)), only on paths that survive (raiseSurvival: the
+ * solver weights it by the survival it leads to). No discounting (the score has none); switch costs are money, already in
+ * the wealth; the drift weight is 0 (neither PRODUCT_BASELINE nor solvePlan sets it). Each case's lambda, level menu and
+ * minimum pot come from its own log's ran lines, which must agree across its arms.
  *   node research/solver/read-7r-failures.mjs [dir=results/diag7r]   > research/solver/results-7r-failures.txt
  */
 import { readFileSync, existsSync } from 'node:fs';
@@ -38,7 +46,7 @@ const PATHS = 3000, SEED = '7002';
 const PANEL = [['S126', ['READER', 'RTIER', 'RREST']], ['bridge 4', ['READER', 'RTIER', 'RREST']], ['wealth x2', ['READER']], ['S366', ['V1']]];
 
 const b = s => Buffer.from(s, 'base64');
-export const decode = j => ({ N: j.N, Y: j.Y, survived: new Uint8Array(b(j.survived)), wealth: (x => new Float32Array(x.buffer, x.byteOffset, x.byteLength / 4))(b(j.wealth)), failYear: (x => new Int16Array(x.buffer, x.byteOffset, x.byteLength / 2))(b(j.failYear)) });
+export const decode = j => ({ N: j.N, Y: j.Y, survived: new Uint8Array(b(j.survived)), level: new Uint8Array(b(j.level)), wealth: (x => new Float32Array(x.buffer, x.byteOffset, x.byteLength / 4))(b(j.wealth)), failYear: (x => new Int16Array(x.buffer, x.byteOffset, x.byteLength / 2))(b(j.failYear)) });
 export function logStamp(text) {
   const m = /^stamp: code (\S+) audit (\S+) prediction (\S+) sha (\S+)$/m.exec(text || '');
   return m ? { code: m[1], audit: m[2], prediction: m[3], sha: m[4] } : null;
@@ -70,7 +78,33 @@ export function estateCredit(A, B, scale) {
   const mean = xs => xs.reduce((a, c) => a + c, 0) / xs.length;
   const se = xs => { const m = mean(xs); return Math.sqrt(xs.reduce((a, c) => a + (c - m) ** 2, 0) / (xs.length - 1) / xs.length); };
   const tot = dS.map((x, i) => x + dE[i]);
-  return { dW: mean(dW), dS: mean(dS), dE: mean(dE), dEse: se(dE), tot: mean(tot), totSe: se(tot) };
+  return { dW: mean(dW), dS: mean(dS), dE: mean(dE), dEse: se(dE), tot: mean(tot), totSe: se(tot), perPath: tot };
+}
+export const mean = xs => xs.reduce((a, c) => a + c, 0) / xs.length;
+export const se = xs => { const m = mean(xs); return Math.sqrt(xs.reduce((a, c) => a + (c - m) ** 2, 0) / (xs.length - 1) / xs.length); };
+// the dislike of cuts and the raise credit, realised per path, as the solver charges them (the header); per path against off, in points
+export function spendTerms(A, B, { lambda, mu, floor, spendYears }) {
+  const one = (T, i) => {
+    let cut = 0, raise = 0;
+    for (let t = 0; t < T.Y; t++) { const l = T.level[i * T.Y + t] / 100; if (l > 0 && l < 1) cut += lambda * (1 - l) ** 2; else if (l > 1) raise += mu * Math.sqrt(Math.min(0.2, l - 1)); }
+    if (T.failYear[i] >= 0) for (let t = T.failYear[i]; t < T.Y; t++) if (spendYears[t]) cut += lambda * (1 - floor) ** 2;
+    return { cut, raise: T.survived[i] ? raise : 0 };
+  };
+  const dCut = [], dRaise = [];
+  for (let i = 0; i < A.N; i++) { const a = one(A, i), z = one(B, i); dCut.push(-100 * (z.cut - a.cut)); dRaise.push(100 * (z.raise - a.raise)); }
+  return { dCut, dRaise };
+}
+// each case's lambda, level menu (its lowest the floor) and minimum pot, from its own log's ran lines; they must agree across its arms
+export function caseSettings(logs) {
+  const out = {};
+  for (const text of Object.values(logs)) {
+    const id = (/^(\S+(?: \S+)?)\s+a0 /m.exec(text) || [])[1];
+    const ran = [...text.matchAll(/lambda (\S+) levels (\S+) raiseSurv (\S+) failShort (\S+) tiersAbove \S+ minPot (\d+) /g)].map(m => m.slice(1).join(' '));
+    if (!id || !ran.length || new Set(ran).size !== 1) throw new Error(`a log's case or ran lines are missing or disagree: ${id}`);
+    const [lambda, levels, raiseSurv, failShort, minPot] = ran[0].split(' ');
+    out[id] = { lambda: Number(lambda), floor: Math.min(...levels.split(',').map(Number)), raiseSurv, failShort, minPot: Number(minPot) };
+  }
+  return out;
 }
 // the share of the survival lost that the estate credit makes up, in per cent
 export const covers = e => Math.round(-100 * e.dE / e.dS);
@@ -97,6 +131,9 @@ const range = xs => (xs.length ? `${k(Math.min(...xs))} to ${k(Math.max(...xs))}
     ['the estate credit: path 0 both survive (70k against 50k), path 1 the arm fails at the end with 15k left (its estate 0, against 40k), path 2 the arm ends above the cap (capped at 400k)', (() => { const A2 = mk([1, 1, 1], [-1, -1, -1], [50000, 40000, 60000]), B2 = mk([1, 0, 1], [-1, -1, -1], [70000, 15000, 900000]); const e = estateCredit(A2, B2, 100000); return `${Math.round(e.dW)} ${e.dS.toFixed(4)} ${e.dE.toFixed(4)}`; })(), `${Math.round((20000 - 40000 + 340000) / 3)} ${(-100 / 3).toFixed(4)} ${((100 * 0.02 * (20000 - 40000 + 340000) / 100000) / 3).toFixed(4)}`],
     ['the shortfall under the pot: ending 20000 under 29000 is 9000', String(29000 - c.atEnd[0]?.end), '9000'],
     ['the shortfalls: ending 20k, 27k and 5k (off 35k, 30k, 31k) under 29k: median 9000, 0.69 of the pot left, 1 within 5k, largest 24000', (() => { const f = shortfalls([{ end: 20000, offEnd: 35000 }, { end: 27000, offEnd: 30000 }, { end: 5000, offEnd: 31000 }], '29000'); return `${f.med} ${f.left.toFixed(2)} ${f.within} of ${f.n} ${f.largest}`; })(), '9000 0.69 1 of 3 24000'],
+    ['the cut and raise terms: path 0 the arm cuts to 0.9 and 0.8 (lambda 0.1: 0.005); path 1 the arm raises to 1.1, then fails in life in year 1 (charged years 1 and 2 at the floor 0.8: 0.008; its raise not credited), off raises to 1.1 and 1.3 and survives (0.01 x (sqrt 0.1 + sqrt 0.2), the raise capped at 0.2)', (() => { const mkL = (surv, fails, lv) => ({ N: surv.length, Y: 3, survived: Uint8Array.from(surv), failYear: Int16Array.from(fails), level: Uint8Array.from(lv.flat()) }); const A3 = mkL([1, 1], [-1, -1], [[100, 100, 100], [100, 110, 130]]), B3 = mkL([1, 0], [-1, 1], [[90, 80, 100], [110, 0, 0]]); const r = spendTerms(A3, B3, { lambda: 0.1, mu: 0.01, floor: 0.8, spendYears: [true, true, true] }); return `${mean(r.dCut).toFixed(4)} ${mean(r.dRaise).toFixed(4)}`; })(), `${(-100 * (0.005 + 0.008) / 2).toFixed(4)} ${(-100 * 0.01 * (Math.sqrt(0.1) + Math.sqrt(0.2)) / 2).toFixed(4)}`],
+    ['each case\'s settings read from its own log', (() => { const c = caseSettings({ 'a.txt': 'S1               a0 0.85 B 2 x\n  ran OFF: lambda 0.5 levels 1,1.1,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 5000 quad\n', 'b.txt': 'S2               a0 0.85 B 4 x\n  ran OFF: lambda 0.25 levels 1,0.9 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad\n' }); return `${c.S1.minPot} ${c.S1.lambda} ${c.S1.floor} ${c.S2.minPot} ${c.S2.lambda} ${c.S2.floor}`; })(), '5000 0.5 0.8 29000 0.25 0.9'],
+    ['a log whose arms ran at different settings is refused', (() => { try { caseSettings({ 'a.txt': 'S1               a0 0.85 B 2 x\n  ran OFF: lambda 0.5 levels 1,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 5000 quad\n  ran READER: lambda 0.5 levels 1,0.8 raiseSurv true failShort floor tiersAbove 1 minPot 29000 quad\n' }); return 'accepted'; } catch { return 'refused'; } })(), 'refused'],
     ['the estate credit covers 70% when +0.35 points of estate meet 0.50 points of survival lost', String(covers({ dE: 0.35, dS: -0.5 })), '70'],
     ['the stamp line read field by field (code, audit, prediction, sha); a trace stamped as the logs agrees, one with another prediction version or no stamp does not', (() => { const st = logStamp('x\nstamp: code a audit b prediction c sha d\n'); return `${st.code} ${st.audit} ${st.prediction} ${st.sha} ${stampAgrees({ stamp: { ...st } }, st)} ${stampAgrees({ stamp: { ...st, sha: 'e' } }, st)} ${stampAgrees({}, st)}`; })(), 'a b c d true false false'],
   ];
@@ -112,7 +149,7 @@ if (Object.keys(logs).length !== 5) { console.log(`INCOMPLETE - ${Object.keys(lo
 requireFairLogs(logs, PRED);
 const stamps = Object.values(logs).map(logStamp), ST = stamps[0];
 if (!ST || stamps.some(x => JSON.stringify(x) !== JSON.stringify(ST))) { console.log('FAIR-TEST GATE: FAILED\n  the logs\' stamp lines are missing or differ'); process.exit(1); }
-const minPot = (/ minPot (\d+) /.exec(Object.values(logs).join('\n')) || [])[1];
+const SET = caseSettings(logs);
 const load = (id, arm) => {
   const f = join(DIR, `${id.replace(/ /g, '_')}-${arm.toLowerCase()}.json.gz`);
   if (!existsSync(f)) { console.log(`INCOMPLETE - no trace ${f}`); process.exit(1); }
@@ -121,14 +158,14 @@ const load = (id, arm) => {
   return decode(j);
 };
 console.log(`7R'S LOST PATHS BY THE KIND OF FAILURE (reported, not a test; the logs' gate and every trace's stamp checked). Against off on`);
-console.log(`the same ${PATHS} paths of seed ${SEED}; the minimum pot ${minPot}. An end-of-plan failure paid every year and ended below it.\n`);
+console.log(`the same ${PATHS} paths of seed ${SEED}; each case's own minimum pot (its log). An end-of-plan failure paid every year and ended below it.\n`);
 for (const [id, arms] of PANEL) {
   const off = load(id, 'OFF');
   for (const arm of arms) {
     const c = lostKinds(off, load(id, arm));
     if (!c.lost) { console.log(`${id.padEnd(9)} ${arm.padEnd(6)} lost 0`); continue; }
     console.log(`${id.padEnd(9)} ${arm.padEnd(6)} lost ${c.lost}: in life ${c.inLife.length}${c.inLife.length ? ` (years ${c.inLife.map(x => x.year).sort((a, z) => a - z).join(', ')})` : ''}; at the end, below the minimum pot ${c.atEnd.length}${c.atEnd.length ? ` (ending ${range(c.atEnd.map(x => x.end))}; off on the same paths ${range(c.atEnd.map(x => x.offEnd))})` : ''}; median failure year ${c.medYear} of ${off.Y - 1}`);
-    if (c.atEnd.length) { const f = shortfalls(c.atEnd, minPot); console.log(`${''.padEnd(17)}shortfalls under the pot at the end: median ${(f.med / 1000).toFixed(1)}k (${f.left.toFixed(2)} years of the pot left), within 5k ${f.within} of ${f.n}, largest ${(f.largest / 1000).toFixed(1)}k`); }
+    if (c.atEnd.length) { const f = shortfalls(c.atEnd, SET[id].minPot); console.log(`${''.padEnd(17)}shortfalls under the ${SET[id].minPot} pot at the end: median ${(f.med / 1000).toFixed(1)}k (${f.left.toFixed(2)} years of the pot left), within 5k ${f.within} of ${f.n}, largest ${(f.largest / 1000).toFixed(1)}k`); }
   }
 }
 
@@ -146,7 +183,7 @@ function variant({ a0 = 0.85, bridge = 2, scale = 1 } = {}) {
   return p;
 }
 const PLANS = { 'S126': variant(), 'bridge 4': variant({ bridge: 4 }), 'S120': all.find(x => x.id === 'S120').plan, 'wealth x2': variant({ scale: 2 }), 'S366': all.find(x => x.id === 'S366').plan };
-const logText = Object.values(logs).join('\n');
+const logText = Object.values(logs).join('\n'), SCALES = {};
 console.log(`\nTHE ESTATE CREDIT, in the solver's own units (reported, not a test): per path against off, the survival change in points and the`);
 console.log(`capped estate change priced in points (100 x ${WB} x change / opening wealth; cap ${CAP} x opening wealth; a failed path's estate 0).`);
 console.log(`The dislike-of-cuts and raise terms are not included. Means over the ${PATHS} paths, with their standard errors.\n`);
@@ -154,6 +191,7 @@ for (const [id, arms] of [['S126', ['READER', 'RTIER']], ['bridge 4', ['READER',
   const h = PLANS[id];
   const plan = E.resolveMpaa(E.normalizePlan({ ...h, config: { ...h.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.spending, floorSpend: Math.round(0.8 * E.num(h.spending.targetSpend, 0)) } }));
   const m = M.prepare(E, plan), scale = Math.max(1, m.ctx.accounts.reduce((x, a) => x + a.balance, 0));
+  SCALES[id] = scale;
   if (m.ctx.pensionDeathTaxRate !== 0) { console.log(`STOPPED - ${id}: a pension death charge of ${m.ctx.pensionDeathTaxRate}; the net estate needs the pension share, which the trace does not carry`); process.exit(1); }
   const B = E.num(plan.demographics.privatePensionAge, 58) - E.num(plan.demographics.currentAgeSelf, 0);
   const line = new RegExp(`^${id.replace(/ /g, ' ')}\\s+a0 [\\d.]+ B (\\d+) `, 'm').exec(logText);
@@ -162,5 +200,24 @@ for (const [id, arms] of [['S126', ['READER', 'RTIER']], ['bridge 4', ['READER',
   for (const arm of arms) {
     const e = estateCredit(off, load(id, arm), scale);
     console.log(`${id.padEnd(9)} ${arm.padEnd(6)} opening wealth ${k(scale)}: capped estate ${e.dW >= 0 ? '+' : ''}${k(e.dW)}, worth ${e.dE >= 0 ? '+' : ''}${e.dE.toFixed(3)} +/- ${e.dEse.toFixed(3)} points; survival ${e.dS >= 0 ? '+' : ''}${e.dS.toFixed(3)} points; together ${e.tot >= 0 ? '+' : ''}${e.tot.toFixed(3)} +/- ${e.totSe.toFixed(3)}${e.dS < 0 ? `; the estate credit covers ${covers(e)}% of the survival lost` : ''}`);
+  }
+}
+
+// THE OTHER TWO TERMS, and all four together (the seventy-first review, MINOR 1)
+console.log(`\nTHE OTHER TWO TERMS, realised per path from the traces' spending levels as the solver charges them (reported, not a test):`);
+console.log(`the dislike of cuts (lambda x (1 - level)^2 a paid year below target; a failure in life charged every spending year from`);
+console.log(`its year at the menu's lowest level) and the raise credit (the raise weight x sqrt(min(0.2, level - 1)), only on paths that`);
+console.log(`survive). Per path against off, in points, with the survival and estate terms above: the solver's whole score, realised.\n`);
+const MU = 0.003; // PRODUCT_BASELINE's raiseWeight (solve.js), which audit-s126.mjs's solvePlan runs leave at its default
+for (const [id, arms] of [['S126', ['READER', 'RTIER']], ['bridge 4', ['READER', 'RTIER']], ['S120', ['READER']], ['wealth x2', ['READER']], ['S366', ['V1']]]) {
+  const st = SET[id];
+  if (st.raiseSurv !== 'true' || st.failShort !== 'floor') { console.log(`STOPPED - ${id}: raiseSurv ${st.raiseSurv}, failShort ${st.failShort}; the realised terms assume true and floor`); process.exit(1); }
+  const off = load(id, 'OFF'), spendYears = Array.from({ length: off.Y }, (_, t) => { for (let i = 0; i < off.N; i++) if (off.level[i * off.Y + t] > 0) return true; return false; });
+  const scale = SCALES[id];
+  for (const arm of arms) {
+    const B = load(id, arm), e = estateCredit(off, B, scale), sp = spendTerms(off, B, { lambda: st.lambda, mu: MU, floor: st.floor, spendYears });
+    const all = e.perPath.map((x, i) => x + sp.dCut[i] + sp.dRaise[i]);
+    const f = x => `${x >= 0 ? '+' : ''}${x.toFixed(3)}`;
+    console.log(`${id.padEnd(9)} ${arm.padEnd(6)} lambda ${st.lambda.toPrecision(4)}, floor ${st.floor}, ${spendYears.filter(Boolean).length} spending years: cuts ${f(mean(sp.dCut))} +/- ${se(sp.dCut).toFixed(3)}; raises ${f(mean(sp.dRaise))} +/- ${se(sp.dRaise).toFixed(3)}; survival and estate ${f(e.tot)}; all four ${f(mean(all))} +/- ${se(all).toFixed(3)} points`);
   }
 }

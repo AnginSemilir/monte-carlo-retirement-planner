@@ -142,8 +142,8 @@ export function gate(cases) {
 }
 // a trace agrees with the logs: its count, seed, arm, every field of the stamp, and its survival the run line's
 // the run line prints survival to three decimals (audit-s126.mjs l.577), so a trace agrees within half a unit of the last
-// place, 0.0005, reached exactly at 8,000 paths where survival moves in steps of 0.0125 (27 Sep, the batch's own gate
-// refused 55 of 113 traces at exactly 0.0005; the preflight ran 1,000 paths, where survival has one decimal)
+// place, 0.0005, reached at 8,000 paths where survival moves in steps of 0.0125 (27 Sep, the batch's own gate refused 33
+// of 113 traces; no preflight reached this check, which runs only in the full reduction)
 export const SIM_TOL = 5e-4 + 1e-9;
 export const traceAgrees = (j, ST, label, sim) => !!(j && ST && j.stamp && j.N === N && String(j.seed) === SEED && j.arm === label && ['code', 'audit', 'prediction', 'sha'].every(k => j.stamp[k] === ST[k]) && Math.abs(j.sim - sim) <= SIM_TOL);
 export const survivedShare = S => { let k = 0; for (let i = 0; i < S.length; i++) k += S[i]; return 100 * k / S.length; };

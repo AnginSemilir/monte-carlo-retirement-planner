@@ -57,7 +57,10 @@ nothing" and J's partial read were measured at a margin that hides small table c
 **The deep review's candidate is the reader with J at margin 0 (READER+J/M0).** Against 7t's off, among the arms that keep
 the reader's gains, it is best or level with the best non-oracle arm on every case, by survival and by the whole score
 (results-7t-vs-product.txt). The learner alone, without the reader, survives better on both harmed cases (5 saved and 0
-lost on S126, 18 and 1 on bridge 4), but it gives up the reader's gains elsewhere:
+lost on S126, 18 and 1 on bridge 4), but it gives up the reader's gains elsewhere (S360 0 saved and 1 lost; share 0.95
+17 saved and 0 lost, where the reader's arms save over 1,500).
+
+READER+J/M0 against 7t's off:
 
 | Case | Saved / lost | Whole score |
 |---|---|---|

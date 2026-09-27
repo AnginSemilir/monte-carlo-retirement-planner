@@ -7,6 +7,9 @@
  * scorePaths(), configured as its reducer configures it, paired against OFF, mean and standard error). Old files for a new
  * question (checklist item 3): the logs' stamp gate, reduce-7t.mjs's own gate and every trace's count, seed, arm and stamp,
  * as reduce-7t.mjs checks them. Grade C: unregistered comparisons on one seed.
+ * And, on the harmed cases, how many of the reader's lost paths against OFF are paths OFF itself loses at switch margin 0
+ * (the pre-mortem's third scenario and the Unmasking field's item 9: off made safe by the margin; the eighty-ninth review,
+ * BLOCKING 3).
  *   node research/solver/read-7t-vs-product.mjs > research/solver/results-7t-vs-product.txt
  *   node research/solver/read-7t-vs-product.mjs --planted
  */
@@ -30,6 +33,9 @@ function planted() {
   // the whole score's pairing is the arm minus OFF
   const p = paired(Float64Array.from([1, 2, 3]), Float64Array.from([2, 2, 5]));
   cases.push(['the whole score paired as the arm minus OFF', p.d.toFixed(3), '1.000']);
+  // the overlap: paths the reader loses against OFF that OFF/M0 also fails; path 0 both, path 1 the reader only, path 2 neither
+  const ov = (off, rd, m0) => { let n = 0, k = 0; for (let i = 0; i < off.length; i++) if (off[i] && !rd[i]) { n++; if (!m0[i]) k++; } return `${k} of ${n}`; };
+  cases.push(['the reader\'s lost paths that off at margin 0 also fails', ov(Uint8Array.from([1, 1, 1]), Uint8Array.from([0, 0, 1]), Uint8Array.from([0, 1, 0])), '1 of 2']);
   cases.push(['every arm printed is one 7t ran on the harmed cases', ORDER.filter(l => !allRunsOf('S126').includes(l)).join(',') || 'none', 'none']);
   let bad = 0;
   for (const [name, got, want] of cases) { const ok = got === want; if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${got}${ok ? '' : ` (want ${want})`}`); }
@@ -71,6 +77,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       const T = traces[`${c.id}|${l}`], x = leg('h', ref.survived, T.survived), w = paired(sOff, scorePaths(T, cfg));
       const pm = v => `${v >= 0 ? '+' : ''}${v.toFixed(3)}`;
       console.log(`  ${l.padEnd(12)} ${String(x.c).padStart(4)}/${String(x.b).padEnd(4)} ${pm(x.reg.d)} (registered ${x.reg.lo.toFixed(3)} to ${x.reg.hi.toFixed(3)}; unconditional ${x.un.lo.toFixed(3)} to ${x.un.hi.toFixed(3)})   whole score ${pm(w.d)} +/- ${w.se.toFixed(3)}`);
+    }
+    if (allRunsOf(c.id).includes('READER') && allRunsOf(c.id).includes('OFF/M0')) {
+      const off = ref.survived, rd = traces[`${c.id}|READER`].survived, m0 = traces[`${c.id}|OFF/M0`].survived;
+      let n = 0, k = 0; for (let i = 0; i < off.length; i++) if (off[i] && !rd[i]) { n++; if (!m0[i]) k++; }
+      if (n) console.log(`  of the reader's ${n} paths lost against OFF, OFF at margin 0 also fails ${k}`);
     }
   }
 }

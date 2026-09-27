@@ -1,7 +1,8 @@
 ok   the arm against OFF: 1 lost, 1 saved: 1 1
 ok   the whole score paired as the arm minus OFF: 1.000
+ok   the reader's lost paths that off at margin 0 also fails: 1 of 2
 ok   every arm printed is one 7t ran on the harmed cases: none
-planted (3): all read as they should
+planted (4): all read as they should
 
 7T'S ARMS AGAINST THE PRODUCT AS IT SHIPS (OFF), on the same 8,000 paths of seed 7002 (reported, not a test; grade C; the logs' stamp gate, reduce-7t.mjs's gate and every trace's stamp checked)
 survival: saved/lost against OFF, the change in points, the registered exact 95% interval and the unconditional one with the count check; the realised whole score against OFF, points, mean +/- se
@@ -20,6 +21,7 @@ S126
   OFF5+L          4/0    +0.050 (registered -0.010 to 0.050; unconditional -0.009 to 0.128)   whole score +0.033 +/- 0.025
   OFF/M0          0/14   -0.175 (registered -0.175 to -0.094; unconditional -0.293 to -0.088)   whole score +0.266 +/- 0.049
   OFF+J/M0        0/2    -0.025 (registered -0.025 to 0.017; unconditional -0.090 to 0.029)   whole score +0.400 +/- 0.021
+  of the reader's 42 paths lost against OFF, OFF at margin 0 also fails 13
 bridge 4
   READER          0/29   -0.362 (registered -0.362 to -0.276; unconditional -0.520 to -0.238)   whole score -0.333 +/- 0.070
   READER+J        1/15   -0.175 (registered -0.199 to -0.079; unconditional -0.293 to -0.077)   whole score -0.184 +/- 0.053
@@ -34,6 +36,7 @@ bridge 4
   OFF5+L         16/1    +0.188 (registered 0.091 to 0.212; unconditional 0.089 to 0.311)   whole score +0.167 +/- 0.052
   OFF/M0          0/6    -0.075 (registered -0.075 to -0.006; unconditional -0.163 to -0.006)   whole score +0.303 +/- 0.034
   OFF+J/M0        7/3    +0.050 (registered -0.038 to 0.108; unconditional -0.037 to 0.145)   whole score +0.411 +/- 0.042
+  of the reader's 29 paths lost against OFF, OFF at margin 0 also fails 5
 S360
   READER        904/0    +11.300 (registered 11.208 to 11.300; unconditional 10.605 to 12.014)   whole score +12.907 +/- 0.404
   READER+J      904/0    +11.300 (registered 11.208 to 11.300; unconditional 10.605 to 12.014)   whole score +12.907 +/- 0.404
@@ -58,6 +61,7 @@ share 0.95
   OFF+O          28/3    +0.313 (registered 0.188 to 0.372; unconditional 0.175 to 0.451)   whole score +0.384 +/- 0.072
   OFF/M0        437/1    +5.450 (registered 5.336 to 5.474; unconditional 4.954 to 5.952)   whole score +6.179 +/- 0.283
   OFF+J/M0      442/0    +5.525 (registered 5.433 to 5.525; unconditional 5.027 to 6.048)   whole score +6.247 +/- 0.284
+  of the reader's 1 paths lost against OFF, OFF at margin 0 also fails 1
 S194
   OFF+J          17/21   -0.050 (registered -0.203 to 0.111; unconditional -0.209 to 0.107)   whole score -0.086 +/- 0.078
   OFF+L          38/2    +0.450 (registered 0.331 to 0.494; unconditional 0.298 to 0.620)   whole score +0.395 +/- 0.080

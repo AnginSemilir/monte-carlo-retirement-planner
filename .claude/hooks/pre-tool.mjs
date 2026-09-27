@@ -63,9 +63,10 @@ export function shellCode(cmd) {
  * perl -i, tee, rm, unlink, truncate, chmod, chown, touch, shred, patch, mv (either end) or dd of=; the destination of cp,
  * install, ln or rsync; a path after git checkout, restore, rm or mv; or an inline python or node program (a here-document
  * fed to it, or its -c / -e text) that names the file and makes a write call. Relative paths are resolved from the session's
- * working directory, the project root and every directory the command cd's or pushd's into (past cd's own options), or
- * names with git -C, env -C or make -C, in order, and those of an enclosing command for one inside bash -c or a
- * here-document; past MAX_DIRS such places a locked command is refused (27 Sep: `cd research/solver` and then a
+ * working directory, the project root and every directory the command changes into (dirChanges: cd and pushd past their
+ * options, a bare cd, git -C / --work-tree, env -C / --chdir, make -C / --directory; read command by command, quote-aware,
+ * so a cd in quoted text or a here-document body is not one), in order, and those of an enclosing command for one inside
+ * bash -c or a here-document; past MAX_DIRS such places a locked command is refused (27 Sep: `cd research/solver` and then a
  * write to 'uncertainty.mjs' got through). A program that builds the path from pieces, or
  * a script written to a file and then run, is not seen (RULES.md known limits 1 and 5).
  */
@@ -91,7 +92,7 @@ export function writesProtected(raw, prot, lit = () => false) {
     if (DEST_ARG.test(cmd) && files.length && prot(files[files.length - 1])) return true;
     if (cmd === 'dd' && args.some(a => /^of=/.test(a) && prot(a.slice(3)))) return true;
     if (cmd === 'git') {   // git's own options first, -C <dir> and -c <key=value> with their values (git -C research/solver rm ...)
-      const g = []; for (let k = 0; k < args.length; k++) { if (args[k] === '-C' || args[k] === '-c') { k++; continue; } if (!/^-/.test(args[k])) g.push(args[k]); }
+      const g = []; for (let k = 0; k < args.length; k++) { if (/^(-C|-c|--work-tree|--git-dir|--namespace)$/.test(args[k])) { k++; continue; } if (!/^-/.test(args[k])) g.push(args[k]); }
       if (/^(checkout|restore|rm|mv)$/.test(g[0] || '') && g.slice(1).some(prot)) return true;
     }
   }
@@ -174,7 +175,7 @@ export function commandOf(part) {
     i++;
     while (i < t.length && (/^-/.test(t[i]) || (name === 'timeout' && /^\d+(\.\d+)?[smhd]?$/.test(t[i])) || (name === 'env' && /^[A-Za-z_]\w*=/.test(t[i])))) {
       const valued = /^-([a-zA-Z])$/.exec(t[i]);
-      i += valued && WRAPPERS[name].includes(valued[1]) ? 2 : 1;
+      i += (valued && WRAPPERS[name].includes(valued[1])) || (name === 'env' && /^--(chdir|unset|split-string)$/.test(t[i])) ? 2 : 1;
     }
   }
   return t.slice(i).join(' ');
@@ -208,6 +209,51 @@ const EXPERIMENT = new RegExp(`(^|[\\s{!])((\\S*\\/)?(node|bash|sh|zsh|dash|sour
 const SCRIPT_WORD = new RegExp(`^(\\S*\\/)?(${SCRIPTS})$`);
 
 export const MAX_DIRS = 64;
+/* the commands of a shell text, split at unquoted ; & | ( ) ` $( and newlines, with here-document bodies taken out: one
+   pass, quote-aware, so a cd inside a quoted string, a commit message or a here-document body is not a command (the
+   hundred-and-third review, MINORs 1-2: a lazy regex over the raw text was quadratic, and counted cds in quoted text) */
+export function shellCommands(text) {
+  const t = text.replace(HEREDOC, ' <<HEREDOC '), out = [];
+  let cur = '', q = null;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (q) { cur += c; if (c === '\\' && q === '"') { cur += t[++i] || ''; } else if (c === q) q = null; continue; }
+    if (c === "'" || c === '"') { q = c; cur += c; continue; }
+    if (c === '\\') { cur += c + (t[++i] || ''); continue; }
+    if (c === '#' && /(^|\s)$/.test(cur)) { while (i + 1 < t.length && t[i + 1] !== '\n') i++; continue; }
+    if (/[;&|\n()`]/.test(c) || (c === '$' && t[i + 1] === '(')) { if (cur.trim()) out.push(cur.trim()); cur = ''; if (c === '$') i++; continue; }
+    cur += c;
+  }
+  if (cur.trim()) out.push(cur.trim());
+  return out;
+}
+/* the directory changes a shell text makes, in order: cd and pushd (past their own options; a bare cd is HOME), and the
+   directory options of git (-C, repeated ones in turn, --work-tree), env (-C, --chdir) and make (-C, --directory) */
+export function dirChanges(text, home = process.env.HOME || '~') {
+  const out = [], tilde = d => d.replace(/^~(?=\/|$)/, home);
+  for (const cmdText of shellCommands(text)) {
+    const w = words(cmdText);
+    let i = 0;
+    while (i < w.length && (/^[{!]$/.test(w[i]) || /^[A-Za-z_]\w*=/.test(w[i]) || /^(sudo|nohup|time|command|builtin|exec|nice)$/.test(w[i]))) i++;
+    const name = (w[i] || '').replace(/^.*\//, ''), a = w.slice(i + 1);
+    if (name === 'cd' || name === 'pushd') {
+      const d = a.find(x => !/^-/.test(x) || x === '-');
+      if (d === undefined) { if (name === 'cd') out.push(home); } else if (d !== '-') out.push(tilde(d));
+      continue;
+    }
+    if (name === 'git' || name === 'env' || name === 'make') {
+      for (let k = 0; k < a.length; k++) {
+        const x = a[k];
+        if (name === 'git' && !/^-/.test(x)) break;   // git's own options end at the subcommand (git log -C is not a cd)
+        let m;
+        if (x === '-C' || (name === 'git' && x === '--work-tree') || (name === 'env' && x === '--chdir') || (name === 'make' && x === '--directory')) { if (a[k + 1] !== undefined) out.push(tilde(a[++k])); }
+        else if ((m = /^-C(.+)$/.exec(x)) || (m = /^--(?:work-tree|chdir|directory)=(.+)$/.exec(x))) out.push(tilde(m[1]));
+        else if (name === 'git' && /^(-c|--git-dir|--namespace)$/.test(x)) k++;
+      }
+    }
+  }
+  return out;
+}
 export function decide(input, { root = process.cwd(), cwd = root, outer = [], tracked = () => false, unlocked = false, depth = 0 } = {}) {
   const tool = input.tool_name || '';
   const ti = input.tool_input || {};
@@ -221,8 +267,7 @@ export function decide(input, { root = process.cwd(), cwd = root, outer = [], tr
   // (the hundred-and-second review, MINOR 2). The list is kept distinct as it grows and capped at MAX_DIRS: past the cap
   // a locked command is refused rather than followed, since each cd can double the list and a hook that runs past its
   // timeout lets the command through (the same review, MINOR 1: 24 cds took 41 s)
-  const dirRe = /(?:^|[\s;&|(])(?:(?:cd|pushd)(?:\s+-[A-Za-z@-]*)*|(?:git|env|make)\s[^\n;&|]*?(?:-C|--chdir=?|--directory=?))\s*(['"]?)([^\s;&|)'"]+)\1/g;
-  const cds = [...raw0.matchAll(dirRe)].map(m => m[2].replace(/^~(?=\/|$)/, home)).filter(d => d !== '-');
+  const cds = dirChanges(raw0, home);
   const seen = new Set([cwd, root, ...outer]);
   let tooMany = false;
   for (const d of cds) { for (const b of [...seen]) seen.add(resolve(b, d)); if (seen.size > MAX_DIRS) { tooMany = true; break; } }

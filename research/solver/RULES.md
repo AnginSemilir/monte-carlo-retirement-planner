@@ -79,12 +79,16 @@ that is only half right, a comparison point about to change) rest on the reviewe
 **Known limits of the enforcement** - one list, kept current (maintainer, 24 Sep 12:05 UK). Each review checks a change
 against it; a gap here is MINOR unless a research claim relies on it. The fixes proposed are in PLAN.md, bugs of 24 Sep.
 1. The hook sees an enforcement file by its path written out in the command text, resolved from the session's working
-   directory, the repository root, every directory the command cd's or pushd's into (in order, so `cd research && cd
-   solver` is followed, past cd's own options) or names with git -C, env -C or make -C, and those of an enclosing command
-   for one inside bash -c or a here-document. The list of places is capped at 64: past it a locked command is refused
-   outright (a command with six or more different cds can be refused though it writes nothing; split it), since each cd
-   can double the list and a hook that runs past its 10 s timeout lets the command through (the hundred-and-second
-   review, MINOR 1: 24 cds took 41 s before the cap). Since 27 Sep: before, only the full path
+   directory, the repository root and every directory the command changes into, in order: cd and pushd past their own
+   options, a bare cd (HOME), git -C (each in turn) and --work-tree, env -C and --chdir, make -C and --directory, and those
+   of an enclosing command for one inside bash -c or a here-document. Directory changes are read command by command,
+   quote-aware and in one pass, so a cd inside quoted text, a commit message, a here-document body or a comment is not
+   one, and git's -C counts only before its subcommand (the hundred-and-third review: a regex over the raw text counted
+   those and was quadratic, 70,000 env words taking over 10 s). The list of places is capped at 64: past it a locked
+   command is refused outright (about six or more real, different directory changes in one command; split it), since
+   each change can double the list and a hook that runs past its 10 s timeout lets the command through (the
+   hundred-and-second review: 24 cds took 41 s before the cap). Not followed: CDPATH, a directory held in a variable or
+   built from pieces, and any other program's own directory option. Since 27 Sep: before, only the full path
    from the root counted, and `cd research/solver` then an inline write to 'uncertainty.mjs' got through; the maintainer's
    unlock that day, planted in hooks.test.mjs). Anything else gets through: a whole folder that holds enforcement files (`rm -rf
    .claude`, `git checkout <rev> -- research/solver`, `mv` or `cp -r` on the folder), a glob, a path split by quotes.

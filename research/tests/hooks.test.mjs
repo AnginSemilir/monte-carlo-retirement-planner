@@ -104,6 +104,22 @@ const R = [
 { const t0 = Date.now(); const d = bashIn(ROOT, Array.from({ length: 40 }, () => 'cd .').join(' && ') + ' && rm research/solver/uncertainty.mjs');
   ok(is(d, 'deny') && (Date.now() - t0) < 1000, 'forty repeated cds and an rm of the index: refused in under 1 s (the list stays distinct)'); }
 ok(is(bashIn(ROOT, 'cd research/solver && git -C . status && ls'), null), 'cd and git -C with no write go ahead');
+// directory changes read command by command, quote-aware (the hundred-and-third review): cds in quoted text or a
+// here-document body are not commands, git's -C counts only before its subcommand, and the reading is linear
+const seven = Array.from({ length: 7 }, (_, i) => `cd d${i}`).join(' && ');
+ok(is(bashIn(ROOT, `git commit -q -m "the lock: ${seven}; cd x"`), null), 'a commit message quoting seven cds goes ahead while locked (it changes no directory)');
+ok(is(bashIn(ROOT, `cat > /tmp/notes.txt <<'EOF'\n${seven.split(' && ').join('\n')}\nEOF`), null), 'a here-document body of seven cd lines goes ahead while locked');
+ok(is(bashIn(ROOT, Array.from({ length: 7 }, (_, i) => `git log -C${i} --oneline -1`).join(' && ')), null), "seven git log -C parts go ahead (git's -C is read only before its subcommand)");
+ok(is(bashIn(ROOT, '# cd a\n# cd b\n# cd c\n# cd d\n# cd e\n# cd f\n# cd g\nls'), null), 'cds in shell comments are not directory changes');
+for (const [c, what] of [['env --chdir research/solver rm uncertainty.mjs', 'env --chdir (the space form), then rm of the index'],
+  ['git -C research -C solver rm uncertainty.mjs', 'two git -C in turn, then git rm of the index'],
+  ['make -C research/solver --directory=. -f /dev/null && cd research/solver && rm check-plan.mjs', 'make -C and a cd, then rm of the checker']])
+  ok(is(bashIn(ROOT, c), 'deny') && is(bashIn(ROOT, c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);
+for (const w of ['env', 'make', 'git']) {
+  const big = Array(70000).fill(w).join(' ') + ' ; rm research/solver/uncertainty.mjs', t0 = Date.now(), d = bashIn(ROOT, big), secs = (Date.now() - t0) / 1000;
+  ok(is(d, 'deny') && secs < 2, `planted: 70,000 '${w}' words then an rm of the index are refused in ${secs.toFixed(2)} s (under 2 s; d62f947 took over 10 s)`);
+}
+
 for (const [cwd, c, what] of R) ok(is(bashIn(cwd, c), 'deny') && is(bashIn(cwd, c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);
 ok(is(bashIn(ROOT, "cd research/solver && python3 - <<'EOF'\np='PLAN.md'; s=open(p).read(); open(p,'w').write(s.replace('a', '(review-log.md, 27 Sep)'))\nEOF"), null), 'an edit of the plan from research/solver that quotes the review log in its text goes ahead');
 ok(is(bashIn(ROOT, "python3 - <<'EOF'\nimport os\np=os.path.join('research/solver','PLAN.md'); open(p,'w').write('x')\nEOF"), null), "a program writing the plan beside the folder name 'research/solver' goes ahead (a folder is not a locked file)");

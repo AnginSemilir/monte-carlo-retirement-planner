@@ -51,10 +51,14 @@ The order:
 
 ## Tonight's runs (kept current)
 
-- **7z (Q's fix alone):** registered 22:55 UK (59bbac4), revised for the auditor's two minor findings (320a76d). The
-  auditor passed it. The preflight passed, and the batch launched 23:09 UK. The fix integrates across the reader's step
-  in the chooser. At share 0.95's opening, its test puts every move's score within 0.00013 of a 4,000-point average,
-  where the product's 5 points miss by up to 0.237. All 30 other solver test suites passed on it.
+- **7z (Q's fix alone): READ 28 Sep 00:03 UK; all four items HELD** (results-7z.txt; Brier 0.059; cumulative 0.211
+  over 67).
+  - On share 0.95 the fix saves 205 paths of 8,000 and loses none (+2.56 points). The year-0 gap rises from 2.3e-4 to
+    2.0e-2, so the solver now opens de-risked at the product's margin.
+  - On S126 and bridge 4 it changed **nothing**: the same paths, gaps and tables (O40). So its "no harm" there says
+    nothing about the fix where it would act, and S126's own harm is untouched by it.
+  - S194, with no bridge, is identical to the bit, as it should be.
+  - It is a research option only; nothing goes to a default.
 - **7y (the tier state):** built as a research option (solve.js tierState). Its test passes 12 of 12 core checks: the
   free endpoint to the bit, the held endpoint within 1e-8, and the chooser agreeing with the table at 2,601 of 2,601
   nodes. Registration is in progress.

@@ -111,7 +111,8 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
      131,072 bytes, and the worst known input under that (128,000 `(` then a python here-document) takes 17.7 s against
      the hook's 10 s timeout (27 s before 9156ab8).
    Refused though harmless, beyond the costs above: `git checkout -- .`, `git restore .`, `git rm -r --cached .`, `chmod
-   -R u+w .`, `touch src/`, `rsync -a /tmp/build/ ./`, and a `$VAR/`-prefixed absolute path (read as relative). The
+   -R u+w .`, `touch src/`, `rsync -a /tmp/build/ ./`, and a `$VAR/`-prefixed absolute path (read as relative). Also refused while locked (found 27 Sep at 7v's read): `sed -i 's/a/b/' file` anywhere, since the
+   substitution itself ends in / and is read as a folder target; use an inline program instead. The
    hooks test's timing checks have a 2 s bound; the `{` one ran in 1.69 s beside 7v and may fail spuriously on a busy
    box.
 2. A git restore of the whole tree that names no file (`git reset --hard`, `git stash`); `git checkout <rev> -- .` is

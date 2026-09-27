@@ -12,6 +12,7 @@
  *   node research/solver/audit-s126.mjs bridge7e [points] [paths] part k/n [arms] [ids]  7e: off, F1 v1, F1 v2 and the reader, paired
  *   node research/solver/audit-s126.mjs diag7v [points] [paths] part k/n [seed] [world paths]  7v: the switch margin's dose-response
  *   node research/solver/audit-s126.mjs diag7w [points] [paths] part k/n [seed]  7w: 5 against 15 return points on share 0.95 (Q)
+ *   node research/solver/audit-s126.mjs diag7x [points] [paths] part k/n [seed] [world paths]  7x: held-for-life tables against their own runs
  *
  * Each mode reads its OWN arguments (fixed 24 Sep: the numbers were read before the mode was chosen, so `ids` read its
  * id list as the grid size - NaN, falling back to 12 points - and took the path count from the argument meant for points).
@@ -146,7 +147,7 @@ const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', {
  */
 // `lambda` and `forward` (7v, 27 Sep): a case's own dislike of cuts in place of S126's, and `forward: false` to solve and
 // return the tables without the held-path run (7v runs its own forward runs, one a switch margin); unset, as before
-function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint, mix, lambda = LAMBDA, forward = true } = {}) {
+function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint, mix, lambda = LAMBDA, forward = true, holdTier } = {}) {
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
@@ -156,7 +157,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   // re-run of an older mode (7c's f1v2, 7i's quad), now exact by default, cannot pass a ran-line gate against files that
   // ran it averaged. It sits BEFORE bridgeRead: smoke.sh's f1v2 check (locked) reads bridgeRead at the end of the line.
   const r = solvePlan(E, M, plan, { lambda, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
-    ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}), ...(joint ? { jointWorlds: true } : {}), ...(mix ? { mix } : {}) });   // F1 off is explicit, whatever the product default
+    ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}), ...(joint ? { jointWorlds: true } : {}), ...(mix ? { mix } : {}), ...(holdTier ? { holdTier } : {}) });   // F1 off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
   const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
   let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(seed, NP, m.ctx.totalYears);
@@ -166,7 +167,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   const sim = forward ? 100 * ok / NP : NaN;
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
   // the held paths' seed and count sit after pts (added 25 Sep for 7e, which runs on held-out paths; smoke.sh's greps read around them)
-  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
+  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5}${holdTier ? ` holdTier ${holdTier.join('/')}` : ''} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
   return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran, reader: r.meta.reader || null, r, paths };
 }
 if (mode === 'f1v2') {
@@ -684,6 +685,67 @@ if (mode === 'f1v2') {
         survived: b64(x.f.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
     });
     console.log(`${''.padEnd(16)} done ${runs.length} runs`);
+  });
+} else if (mode === 'diag7x') {
+  /*
+   * 7X: IS THE DE-RISK'S UNDERVALUING FREE SWITCHING (FS) OR THE THREE WORLDS (W)? (PLAN.md 7x; the deep review after 7w,
+   * deep-review-log.md 27 Sep 20:17 UK; the maintainer's option A, 27 Sep; predictions/diag-7x.md). Each unit is one solve at
+   * the product's settings (solvePlan, 30 points, 'auto' risk above, lambda held at 7t's, 7v's and 7w's, 5 return points)
+   * with ONE TIER PAIR HELD FOR THE WHOLE PLAN (solve.js holdTier): the plan's (0/0) or the freed opening's (2/2: pension
+   * and ISA two tiers down), in three worlds or five. Each is run forward on the same NP paths (margin irrelevant: one
+   * tier), and in each world on the first WP paths with every path's long-run shift set to that world's node.
+   *   node research/solver/audit-s126.mjs diag7x [points=30] [paths] part k/n [seed=7002] [world paths=1000]
+   * Prints, per unit: a case line; solve (the mixture's year-0 table survival), ran, joint and hold lines; a world line per
+   * world (its table survival at the opening state against its own world run); a run line (the aggregate run); a done
+   * line. Every aggregate run's trace goes to results/diag7x/<case>-<unit>.json.gz (DIAG7X_OUT when set), stamped.
+   */
+  const CASES7X = [['S126', 'reader'], ['S194', 'off'], ['share 0.95', 'reader'], ['bridge 4', 'reader'], ['S360', 'off']];
+  const UNITS7X = [];
+  for (const mix of [3, 5]) for (const hold of [[0, 0], [2, 2]]) for (const [id, arm] of CASES7X) UNITS7X.push([id, arm, hold, mix]);
+  const ARM = { off: false, reader: 'reader' };
+  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
+  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002, WP = process.argv[8] ? Number(process.argv[8]) : 1000;
+  if (!(SEED >= 1) || !(WP >= 1)) { console.error(`audit-s126: bad seed or world paths ${process.argv[7]} ${process.argv[8]}`); process.exit(2); }
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  const OUT = process.env.DIAG7X_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7x');
+  mkdirSync(OUT, { recursive: true });
+  console.log(`7X DIAGNOSIS, the product's settings (solvePlan), ${POINTS} points, ${NP} paths (seed ${SEED}), ${WP} a world, one tier held for life (0/0 or 2/2), three or five worlds; part ${pk}/${pn}`);
+  const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+  const run = (r, paths, trace) => {
+    const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = trace ? makeTrace(N, T + 1) : null;
+    let ok = 0, tierYrs = 0, changes = 0;
+    paths.forEach((zs, i) => { if (tr) tr.row = i; const o = runPolicy(r, zs, tr ? { trace: tr } : {}); if (o.survived) { ok++; okArr[i] = 1; } tierYrs += o.tierPenYears || 0; changes += o.tierChanges || 0; });
+    return { sim: 100 * ok / N, tierYrs: tierYrs / N, changes: changes / N, okArr, tr, secs: (Date.now() - t0) / 1000 };
+  };
+  const fileOf = (id, label) => `${id.replace(/ /g, '_')}-${label.toLowerCase().replace(/\+/g, '_').replace(/\//g, '@')}.json.gz`;
+  UNITS7X.forEach(([id, arm, hold, mix], i) => {
+    if (i % pn !== pk) return;
+    const h = byId(id)();
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const label = `${arm.toUpperCase()}/H${hold.join('')}/M${mix}`;
+    console.log(`${id.padEnd(16)} case | unit ${label} | lambda ${LAMBDA} tier own riskAbove auto`);
+    const res = measureV2(h, ARM[arm], 5, { trace: false, seed: SEED, lambda: LAMBDA, forward: false, holdTier: hold, mix });
+    const r = res.r, s0 = M.initialState(r.m);
+    if (r.meta.holdTier !== hold.join('/')) { console.error(`audit-s126: ${label} held ${r.meta.holdTier}`); process.exit(2); }
+    const ra = r.meta.riskAbove ? r.meta.riskAbove.decision.replace(/ /g, '_') : 'unset';
+    console.log(`${''.padEnd(16)} solve ${label}: table ${res.table.toFixed(4)} secs ${Math.round(res.secs)}`);
+    console.log(`${''.padEnd(16)} ran ${label}: ${res.ran}`);
+    console.log(`${''.padEnd(16)} joint ${label}: ${!!r.meta.jointWorlds} switchMargin ${r.switchMargin} scale ${Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0)))} cap ${Math.round(r.meta.bequestCap)} deathTax ${r.m.ctx.pensionDeathTaxRate} tier own riskAbove ${ra}`);
+    { const t = r.c.tiers; console.log(`${''.padEnd(16)} hold ${label}: ${r.meta.holdTier} pension ${String(t.pen[hold[0]].name).replace(/ /g, '_')} isa ${String(t.isa[hold[1]].name).replace(/ /g, '_')} moves ${r.c.acts.length}`); }
+    r.mix.nodes.forEach((z, k) => {
+      const wpaths = res.paths.slice(0, WP).map(zs => { const c = Float64Array.from(zs); c[c.length - 1] = z; return c; });
+      const w = run(r, wpaths, false), v = r.worlds[k].value(s0, 0);
+      console.log(`${''.padEnd(16)} world ${label} ${k} z ${z.toFixed(4)} weight ${r.mix.weights[k].toFixed(4)}: table ${(100 * v.survival).toFixed(4)} sim ${w.sim.toFixed(4)} paths ${WP}`);
+    });
+    const f = run(r, res.paths, true);
+    console.log(`${''.padEnd(16)} run ${label}: sim ${f.sim.toFixed(4)} tier-below ${f.tierYrs.toFixed(2)} changes ${f.changes.toFixed(3)} secs ${Math.round(f.secs)}`);
+    const T = f.tr;
+    writeFileSync(join(OUT, fileOf(id, label)), gzipSync(JSON.stringify({ id, arm: label, stamp: STAMP, N: NP, Y: T.Y, seed: SEED, sim: f.sim,
+      survived: b64(f.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
+    console.log(`${''.padEnd(16)} done ${label}`);
   });
 } else if (mode === 'time') {
   /*

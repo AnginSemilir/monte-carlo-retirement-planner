@@ -2,8 +2,8 @@
 
 - **Run:** `research/solver/batch-7v.sh` - results/diag7v/case0-8.txt and every run's trace (audit-s126.mjs diag7v); reduced by `reduce-7v.mjs` into results-7v.txt
 - **Kind:** test
-- **Written:** 27 Sept, 07:22 UK, before the run; first registered in 11a474e. REVISED before any launch for the third deep review (deep-review-log.md, 27 Sep 07:42 UK: "not yet the decisive test") and the ninety-third review (review-log.md, 27 Sep 07:43 UK, FAIL: four BLOCKING, three MINOR): lambda held at 7t's on the core cases; item 5 read at margin 0 alone; items 10-13 added (P alone or P with C, the whole score, S194's world lines, the grid against 7t); item 4 read in off's and one policy's tables too; item 8's falsifier made to match the reducer; the power re-derived at 7e's 30-point size; the candidates read by the whole score as well; the year-0 gap logged. The maintainer, 27 Sep: "Run 7v first" (on the second deep review's proposal, drafts/after-7t-proposal.md; PLAN.md 7v)
-- **Seen before registration** (the ninety-third review, BLOCKING 3): the timing measurement (runs.log 07:09 UK, a measurement under PREDICTION=none) ran diag7v on S126 at 30 points on seed 7002's first 1,000 paths - 7v's own first 1,000 - at lambda 0.025, and its log printed every run's survival and tier years before 11a474e was committed. The author read OFF's four run lines on S126 (survival 99.7, 99.7, 99.6 and 99.6; pension years below the plan's tier falling from 40.0 to 27.8 as the margin falls) while reading the seconds; the reader's lines were not read. The log is kept whole in results-7v-timing.txt. The revision's lambda (0.0224) is not the one that ran; items 1 and 2 are also printed on paths 1,001 to 8,000 (reported beside the registered reading)
+- **Written:** 27 Sept, 07:22 UK, before the run; first registered in 11a474e. REVISED before any launch for the third deep review (deep-review-log.md, 27 Sep 07:42 UK: "not yet the decisive test") and the ninety-third review (review-log.md, 27 Sep 07:43 UK, FAIL: four BLOCKING, three MINOR): lambda held at 7t's on the core cases; item 5 read at margin 0 alone; items 10-13 added (P alone or P with C, the whole score, S194's world lines, the grid against 7t); item 4 read in off's and one policy's tables too; item 8's falsifier made to match the reducer; the power re-derived at 7e's 30-point size; the candidates read by the whole score as well; the year-0 gap logged. REVISED AGAIN before any launch for the ninety-fourth review (review-log.md, 27 Sep 08:48 UK, FAIL: four BLOCKING, four MINOR): item 10 read three ways in the attribution and the Decision fed, C named only from item 5, item 10's point re-derived (HELD); the timing log's disclosure made exact and item 10 added to the re-read on paths 1,001 to 8,000; the deep bad world picked from each case's own horizon; item 3 falsified only through a harm; Phase 6's sweep cited; item 4's arms named. The maintainer, 27 Sep: "Run 7v first" (on the second deep review's proposal, drafts/after-7t-proposal.md; PLAN.md 7v)
+- **Seen before registration** (the ninety-third review, BLOCKING 3; the ninety-fourth, BLOCKING 2): the timing measurement (runs.log 07:09 UK, a measurement under PREDICTION=none) ran diag7v on S126 at 30 points, lambda 0.025, on seed 7002's first 1,000 paths - 7v's own first 1,000 - and its log printed each run's lines as it ran, until 07:45 UK (the log's file time; kept whole in results-7v-timing.txt). What the author read, and when: BEFORE 11a474e (07:27 UK), OFF's solve line (its table 61.50), its ran and joint lines and OFF's four run lines in full (survival 99.7, 99.7, 99.6 and 99.6; pension years below the plan's tier 40.0, 32.5, 28.5 and 27.8; estates), and the seconds of READER's solve; AFTER 11a474e and before b31686c, by commands that printed only each line's label and seconds, the seconds of every other solve and run line (READER's runs, OFF+J, READER+J and the learner), and the count of world lines (24). No survival, table, tier or estate figure of any arm but OFF was read. No item, point or credence was set from the log: the revision's items, points and credences come from the two reviews and the records they cite. The revision's lambda (0.0224) is not the one that ran. Items 1, 2 and 10, which read S126's READER/1e-3, READER/0, OFF/0 and OFF/1e-3, are also printed on paths 1,001 to 8,000 (reported beside the registered reading)
 - **Seeds:** 7002 tuning (8,000 paths, the first 3,000 of them 7r's; 1,000 a world on the harmed cases and S194; the same paths for every run of every case). The product's 'auto' risk-above rule reads its own seed 7101 inside solvePlan (PRODUCT_DEFAULTS.thinSeed); on the five core cases it never draws a path (no tier above is within reach: the rule returns before its check, confirmed on all five by the preflight's gate), and the pairs set the tier above explicitly
 - **Unmasking:** every margin below the product's removes a suspected error of the solver's own, not the bridge misread: the forward chooser's switch margin (0.001) holding the tier it opens in, because the tables are solved as if switching were free and tier families sit within the margin (O30). The baseline behaviour that error drives: 7t's OFF switched its pension tier 0.03 and 0.04 times a path on S126 and bridge 4, so off's early de-risk is held for life by the margin whether or not it is right, and the reader's accurate read makes that de-risk a sub-margin gain it never takes (results-7t-deep.txt). The separating arms: item 2 (the reader against off at the SAME margin 0) tells the reader's own harm from the margin's; item 10 (the reader alone at 0 against the product) tells a cure by the margin from one that needs one policy for every world too; item 4 (margin 0 against a small positive margin, in off's own tables as well) tells a margin that hides noise from one that hides a near-tie; item 13 (off's churn at 30 points against 7t's at 16) tells the margin's churn from a coarse grid's noise. On S360 and share 0.95 the fix alone unmasks off's flat misread of the bridge (7t's OFF/M0 lost 520 paths on S360): its legs there are reported, not read as the fix's harm (item 9)
 - **Plan section:** PLAN.md "7v"
@@ -65,6 +65,11 @@ What the code and the records say before any run:
   is expected to show (item 5), and item 3's cure at 0, read on one policy, may be partly one policy's: item 10 reads the
   reader alone at 0 against the product (7t: READER/M0 0 saved and 14 lost on S126, 3 and 6 on bridge 4, against 7t's OFF;
   one policy at 0, 0 and 2, 11 and 5; results-7t-vs-product.txt).
+- **Phase 6's sweep** (results-p6-tiers-margin.txt l.62; gate 6 on 41 households at 40 points, the 21 Sep solver): free
+  switching, the switching cost, and the cost with the margin gave tier changes a run 5.1, 5.1 and 1.7 (0.7 to 3.2 by
+  household), and the edge +5.03, +4.97 and +4.91 - its verdict, the margin kept the edge while cutting the churn by two
+  thirds. It is the table-noise expectation for item 13: margin-0 churn of about 5 a run on a finer grid, against 7t's 10
+  at 16 points (the third deep review).
 - **What N predicts.** Where a table carries no signal a margin of 0 follows noise (7t's OFF/M0 on S360: 6 saved, 520
   lost, results-7t-vs-product.txt), so some small positive margin should beat 0 in that arm's own tables (item 4, read in
   off's, one policy's and the reader's tables). And if 7t's churn at margin 0 was a 16-point grid's noise, the churn falls
@@ -99,9 +104,13 @@ lines at 0.001 and 0; each solve's year-0 gap logged. The product is OFF/1e-3 on
 2. **The margin carries the reader's own harm (P):** READER/0 does no material harm against OFF/0, on both harmed cases (HELD).
 3. **The dose-response (P):** against the product, READER+J's net paths (saved less lost) rise as the margin falls (each
    step no more than 3 paths down, and more at 0 than at 0.001) and READER+J/0 does no material harm, on both harmed
-   cases (HELD).
+   cases (HELD). FALSIFIED only through a harm: READER+J/0 harming against the product, or ending more than 3 paths below
+   its 0.001 result where READER+J/1e-3 itself harms, on both; otherwise INCONCLUSIVE (the ninety-fourth review, BLOCKING 4:
+   where one policy has already removed the harm, 7t's record is a few paths down at 0 - OFF+J/M0 against OFF+J 0/2 on S126
+   and 1/4 on bridge 4 - which is noise or the objective's trade, not the harm surviving the margin).
 4. **Table noise (N):** margin 0 harms against the same arm's better small positive margin on at least one core case, in
-   off's, one policy's or the reader's tables (HELD: off's flat table on S360). A FALSIFIED would not clear margin 0 for 7u.
+   OFF's, OFF+J's or READER+J's tables - READER's own are not read (HELD: off's flat table on S360). A FALSIFIED would not
+   clear margin 0 for 7u.
 5. **A separate clairvoyance error (C):** READER+J gains against READER at margin 0, on both harmed cases (HELD).
 6. **A separate learning error (L):** READER+J/0+L shows no material gain against READER+J/0, on both harmed cases
    (FALSIFIED).
@@ -111,8 +120,10 @@ lines at 0.001 and 0; each solve's year-0 gap logged. The product is OFF/1e-3 on
    harmed cases (HELD); FALSIFIED is at least 0.8 of them on both; between, INCONCLUSIVE.
 9. **The candidates for 7u** (a list, not a verdict), by survival and by the realised whole score: READER+J/0 among them
    by the whole score; by survival it may carry an unconditional-reading warning.
-10. **P alone:** READER/0 does no material harm against the product, on both harmed cases (INCONCLUSIVE: 7t's READER/M0
-    left 14 lost on S126).
+10. **P alone:** READER/0 does no material harm against the product, on both harmed cases (HELD: 7t's READER/M0 left 14
+    lost and none saved on S126, 6 lost and 3 saved on bridge 4, against 7t's OFF, which the registered interval reads as no
+    material harm - the exact lower end -0.175 against the 0.25 margin; results-derive-7v.txt: HELD 0.828 at the small
+    background, INCONCLUSIVE 0.834 at the larger; the unconditional reading is printed beside it).
 11. **The whole score (grade C):** READER+J's realised whole score against the product rises as the margin falls (each step
     no more than 0.05 points down, and more at 0 than at 0.001), on both harmed cases (HELD).
 12. **S194's slice:** OFF+J/0 at least halves OFF/1e-3's bad-world overrating on S194 (HELD).
@@ -122,15 +133,16 @@ lines at 0.001 and 0; each solve's year-0 gap logged. The product is OFF/1e-3 on
 Reported, not items: every run's survival, saved and lost against the product, switches a path and the share reversed
 within three years, and the realised whole score against the product with its parts (survival, estate, cuts, raises);
 every solve's year-0 gap and the tier it opens in at each margin; every world line; survival on the deep bad world's paths
-on the harmed cases; O16's measure on S172; items 1 and 2 on paths 1,001 to 8,000; each solve's time.
+on the harmed cases; O16's measure on S172; items 1, 2 and 10 on paths 1,001 to 8,000; each solve's time.
 
 ## Falsified if
 
 The margin explanation (P) is FALSIFIED when READER/0 still harms against OFF/0 on both harmed cases (item 2), or when
-READER+J at 0 harms against the product or ends below its 0.001 result on both (item 3): the harm then survives the
-margin's removal. P is named alone only with item 10 as well; with items 2 and 3 but not 10 it is "P with C": the cure at
-margin 0 needs one policy for every world. N is named when item 4 HOLDS or item 13 is FALSIFIED; C when item 5 HOLDS; L
-when item 6 HOLDS. Item 7 FALSIFIED is both reproduced pairs staying different at 0; item 8 FALSIFIED is a small margin
+READER+J at 0 harms against the product, or ends more than 3 paths below its 0.001 result where READER+J/1e-3 itself
+harms, on both (item 3): the harm then survives the margin's removal. With items 2 and 3 HELD, item 10 says three things:
+HELD, the reader alone is cured at margin 0 (P alone); FALSIFIED, the reader alone still harms there, so the cure at 0
+needs one policy for every world as well; INCONCLUSIVE, that is not settled - never read as either. N is named when item
+4 HOLDS or item 13 is FALSIFIED; C only when item 5 HOLDS; L when item 6 HOLDS. Item 7 FALSIFIED is both reproduced pairs staying different at 0; item 8 FALSIFIED is a small margin
 churning at least 0.8 as much as 0 on both harmed cases; item 11 FALSIFIED is the whole score lower at 0 than at 0.001 on
 both; item 12 FALSIFIED is S194's bad-world overrating not halved. INCONCLUSIVE is not a negative: an explanation that
 reads INCONCLUSIVE stays a suspect. Item 1 FALSIFIED (no material harm at the product's settings) says the harm at 0.001 is
@@ -162,7 +174,7 @@ arm B the run read against it. The pairs of item 7 are read across their two cas
 | 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | none | none | N/A - no fixed arm in this run |
 | 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | one process per case writes every run and trace; the log's audit stamp covers audit-s126.mjs, swap.mjs and learn.mjs; item 7's pairs are two processes of the same code and stamp | the same | SAME within 7v. Item 13 reads 7t's figure (results-7t-deep.txt, from 7t's gated traces, code cd1026b8ff22): ACCEPTED - the solver code is the same (code-id's hash covers src/solver and the engine), the audit modes differ in how they log, not in how a run is simulated |
 | 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | survival: the floor paid every year and the minimum pot at the end, simulated; the whole score (survival, the capped estate at 0.02 of opening wealth, the dislike of cuts, the raise credit, per path from the trace) read by items 9 and 11 on point figures, grade C | the same | SAME |
-| 30 | The reducer and its version | reduce-7v.mjs: requireFairLogs over the logs' stamps, then its own gate on every case line, solve, gap, ran, joint, run and world line and the done count, and every trace's count, seed, arm, stamp and survival; INCOMPLETE unless all nine cases are done; 65 planted checks, 57 planted faults each caught (mutate-reduce-7v.py, results-reduce-7v-mutations.txt) | the same | SAME |
+| 30 | The reducer and its version | reduce-7v.mjs: requireFairLogs over the logs' stamps, then its own gate on every case line, solve, gap, ran, joint, run and world line and the done count, and every trace's count, seed, arm, stamp and survival; INCOMPLETE unless all nine cases are done; 70 planted checks, 62 planted faults each caught (mutate-reduce-7v.py, results-reduce-7v-mutations.txt) | the same | SAME |
 | 31 | Paired or not, and the standard error used | paired on the same paths; the regimen's exact rule per item (stats.mjs outcome() for harm, the exact one-sided McNemar test for a gain), Holm within each item, the exact 95% interval against the case's margin (marginFor: 0.25 at 95% survival or more, 0.5 below); the unconditional interval printed beside every no-material read; the whole score's paired mean read on point figures, its standard error printed only | the same | SAME |
 | 32 | The table's number is never the result: survival is simulated | survival, switching and the whole score are simulated; the tables' readings appear only in the world lines (item 12), against the simulation | the same | SAME |
 | 33 | For timings: what else the machine was running | the solve and run seconds are printed, not read | the same | N/A - no timing is read: nine processes share four cores, four at a time |
@@ -179,8 +191,9 @@ arm B the run read against it. The pairs of item 7 are read across their two cas
 - **Items 1-8 and 10-13** read HELD, FALSIFIED or INCONCLUSIVE as the Prediction and the Falsified-if section word them
   (item 7 also NOT REPRODUCED when neither pair differs at 0.001; a pair that does not reproduce is left out of item 7's
   reading). Item 3's step tolerance is 3 paths; item 11's is 0.05 points. Items 11, 12 and 13 read point figures (grade C).
-- **The attribution** (reduce-7v.mjs attribution(), printed as the ATTRIBUTION line): P alone when items 2, 3 and 10 HOLD;
-  "P with C" when items 2 and 3 HOLD and item 10 does not; N when item 4 HOLDS or item 13 is FALSIFIED; C when item 5 HOLDS;
+- **The attribution** (reduce-7v.mjs attribution(), printed as the ATTRIBUTION line): P when items 2 and 3 HOLD, with
+  item 10 read three ways - HELD, the reader alone is cured at margin 0; FALSIFIED, the cure there needs one policy for
+  every world as well; INCONCLUSIVE, not settled; N when item 4 HOLDS or item 13 is FALSIFIED; C only when item 5 HOLDS;
   L when item 6 HOLDS. INCONCLUSIVE is never read as a negative.
 - **The candidates** (item 9, reduce-7v.mjs candidates()): every arm but the product itself at every margin - the fix
   alone (OFF/m below 0.001, OFF+J/m) and the reader with or without one policy (READER/m, READER+J/m; on S194 read on off's
@@ -191,7 +204,7 @@ arm B the run read against it. The pairs of item 7 are read across their two cas
 - **NOT SETTLED:** the fair-test gate fails - something besides the things tested moved.
 - **The registered reading decides; the unconditional one is printed beside it** (the regimen's item 1 waits for the
   maintainer): every no-material read where the two disagree is marked, and a candidate with such a leg is marked too.
-  Items 1 and 2 on paths 1,001 to 8,000 are printed beside; the registered reading is on all 8,000.
+  Items 1, 2 and 10 on paths 1,001 to 8,000 are printed beside; the registered reading is on all 8,000.
 - **Declared choices, not derived:** Holm within each item (each item is its own claim, and the attribution names an
   explanation only from its own items); the tolerances of items 3 and 11; item 8's half and 0.8; item 12's half; item 13's
   30% and half; the margins 1e-4 and 3e-4 (the draft's, a tenth and three tenths of the product's); 1,000 paths a world.
@@ -202,8 +215,11 @@ arm B the run read against it. The pairs of item 7 are read across their two cas
   does no harm here. What goes to the maintainer: the candidates (item 9) by both readings, with their churn (item 8), the
   cheapest first, for 7u to test on 7e's panel and a broad one; the held tier as part of the solved state named as the
   principled fix if the churn at the candidate margin is not acceptable advice (the maintainer's open question 2).
-- **P with C (items 2 and 3, not 10), with item 5 HELD:** the margin and one policy's clairvoyance fix together carry the
-  cure; the candidate for 7u is the reader with one policy at the margin item 9 lists, and neither fix alone goes forward.
+- **P with item 10 FALSIFIED:** the reader alone still harms at margin 0, so the cure at 0 needs one policy for every
+  world as well; the candidate for 7u is the reader with one policy at the margin item 9 lists, and the reader alone at
+  that margin does not go forward. C is named only if item 5 HOLDS.
+- **P with item 10 INCONCLUSIVE:** whether the reader alone is cured at 0 is not settled; item 9's candidates with and
+  without one policy both go to the maintainer, with the unconditional reading beside, and 7u reads both.
 - **N HELD beside P (item 4 or item 13):** the margin carries the harm and margin 0 follows noise somewhere; the candidate
   for 7u is the small positive margin that item 9 lists with the least churn, or, if none is listed, the solved held-tier
   state is proposed to the maintainer as the build.
@@ -263,7 +279,7 @@ arm B the run read against it. The pairs of item 7 are read across their two cas
 ## Credence
 
 The author's probability that each item reads as predicted: 1 (INCONCLUSIVE), 0.45; 2 (HELD), 0.85; 3 (HELD), 0.40; 4
-(HELD), 0.70; 5 (HELD), 0.55; 6 (FALSIFIED), 0.70; 7 (HELD), 0.30; 8 (HELD), 0.50; 10 (INCONCLUSIVE), 0.40; 11 (HELD), 0.50;
+(HELD), 0.70; 5 (HELD), 0.55; 6 (FALSIFIED), 0.70; 7 (HELD), 0.30; 8 (HELD), 0.50; 10 (HELD), 0.50; 11 (HELD), 0.50;
 12 (HELD), 0.45; 13 (HELD), 0.55. P named (alone or with C): about 0.35. At least one READER+J candidate by the whole score:
 about 0.55. The cumulative scorecard stands at 0.223 against its 0.20 target (O29), and 7t's negatives were overconfident,
 so no item is given above 0.85. Scored by scorecard.mjs.
@@ -311,9 +327,10 @@ the candidate fix, at what churn.
 
 ## Pre-mortem
 
-- **Most likely:** P with C - items 2 and 3 hold, item 10 does not (the reader alone at 0 keeps some of its loss on S126,
-  as 7t's READER/M0 did), item 5 holds; noise at 0 on S360 in off's tables (item 4); the candidates then are one policy
-  with the reader at a small margin or at 0, with the unconditional reading marking the S126 legs.
+- **Most likely:** P, with C beside it - items 2, 3 and 10 hold (7t's READER/M0 loss of 14 reads no material harm by
+  the registered interval, though the unconditional reading may disagree), and item 5 holds too; noise at 0 on S360 in
+  off's tables (item 4); the candidates then are the reader, with and without one policy, at a small margin or at 0, with
+  the unconditional reading marking the S126 legs.
 - **Second:** item 1 INCONCLUSIVE - at 30 points the harm is too small to read on 8,000 paths (7e's S126 at 30 points, 3
   of 1,000); the margin's items still say what the margin does, but "the reader's harm" is then 7t's 16-point harm, and
   item 13 says whether the grid itself moved it.

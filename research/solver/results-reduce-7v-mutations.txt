@@ -1,4 +1,4 @@
-true script: planted (65): all read as they should
+true script: planted (70): all read as they should
 caught  the gate accepts a missing case: the gate refuses a missing case: false (want true)
 caught  the gate ignores the case line's settings: the gate refuses a case line that names another lambda: false (want true)
 caught  the gate ignores a second setting changed between arms: the gate refuses a second setting changed between arms: false (want true)
@@ -17,7 +17,7 @@ caught  a trace's seed not compared: a trace agrees only with the log's count, s
 caught  a trace's stamp sha not compared: a trace agrees only with the log's count, seed, arm, stamp and survival: true,false,true,false,false (want true,false,false,false,false)
 caught  a trace's survival not compared with the run line's: a trace agrees only with the log's count, seed, arm, stamp and survival: true,false,false,false,true (want true,false,false,false,false)
 caught  a trace name keeps the learner's +: trace names: case, run, + and / replaced: bridge_4-reader+j@0+l.json.gz (want bridge_4-reader_j@0_l.json.gz)
-caught  lost and saved swapped in the paired cells: the story as predicted reads items 1-8 and 10-13 as HELD except the four FALSIFIED (4, 5, 6) as predicted: FALSIFIED,HELD,FALSIFIED,FALSIFIED,FALSIFIED,FALSIFIED,NOT REPRODUCE
+caught  lost and saved swapped in the paired cells: the planted 'good' story (P alone; no noise, no C, no L) reads items 1-8 and 10-13 as HELD but 4, 5 and 6 FALSIFIED: FALSIFIED,HELD,INCONCLUSIVE,FALSIFIED,FALSIFIED,FALSIFIED,
 caught  harm without Holm: harm needs Holm: two legs of 48 saved, 70 lost (raw 0.026, Holm 0.053) are not harm: harm,harm (want inconclusive,inconclusive)
 caught  a gain without Holm: a gain needs Holm: 6 and 0 on two legs (Holm 0.031) gains, 5 and 0 (0.062) does not: gain,gain gain,gain (want gain,gain no material gain,no material gain)
 caught  the gain's p read as harm: a gain needs Holm: 6 and 0 on two legs (Holm 0.031) gains, 5 and 0 (0.062) does not: no material gain,no material gain no material gain,no material gain (want gain,gain no mat
@@ -25,7 +25,7 @@ caught  no material gain at the wrong end: no material gain needs the interval's
 caught  the margin fixed at 0.25 whatever the survival: the margin follows the product's survival: at 94% a loss of 30 paths (0.375) is not harm by the 0.5 margin, so item 1 reads FALSIFIED: HELD (want FALSIFIED)
 caught  the count guard dropped from the unconditional interval: the count guard, as read-o27-unconditional.mjs guarded() gives it (3 lost, none saved, 400 failing in both, of 8,000: raw -0.099217, guarded -0.109551): -0.099217 (want -0.109
 caught  the unconditional reading's disagreement read at the wrong end: no material harm by the exact interval, the unconditional one marked where it disagrees (7 of 3,000 lost, none saved; 7 of 8,000 agree): no material harm false false (want no 
-caught  item 1 reads the product against the reader: the story as predicted reads items 1-8 and 10-13 as HELD except the four FALSIFIED (4, 5, 6) as predicted: FALSIFIED,HELD,HELD,FALSIFIED,FALSIFIED,FALSIFIED,HELD,HELD,HELD,HEL
+caught  item 1 reads the product against the reader: the planted 'good' story (P alone; no noise, no C, no L) reads items 1-8 and 10-13 as HELD but 4, 5 and 6 FALSIFIED: FALSIFIED,HELD,HELD,FALSIFIED,FALSIFIED,FALSIFIED,HELD,HEL
 caught  item 2 reads the reader at 0 against the product, not off at 0: item 2 reads the reader against off at margin 0, not against the product (both lose the same 40 paths): FALSIFIED (want HELD)
 caught  item 3 without the tolerance: item 3 rises through a step that falls within the tolerance (net -40, -20, -22, -2): INCONCLUSIVE (want HELD)
 caught  item 3 without the rise from 0.001 to 0: item 3 does not rise when it is flat (net -5 at every margin, no harm at 0): HELD (want INCONCLUSIVE)
@@ -44,8 +44,8 @@ caught  item 10 reads the reader at 0 against off at 0, not the product: item 10
 caught  item 11 without its step tolerance: item 11 does not rise when a step falls by more than 0.05 (-0.4, -0.2, -0.3, +0.05): HELD (want INCONCLUSIVE)
 caught  item 12 reads the gap's sign, not its size: item 12 reads the bad world's gap by its size (-8 halved to 3 holds; 5 does not): FALSIFIED FALSIFIED (want HELD FALSIFIED)
 caught  item 13 HELD at anything above half: item 13 is INCONCLUSIVE between half and 70% of 7t's churn (6 a path): HELD (want INCONCLUSIVE)
-caught  item 13 against the wrong 7t figure: the story as predicted reads items 1-8 and 10-13 as HELD except the four FALSIFIED (4, 5, 6) as predicted: HELD,HELD,HELD,FALSIFIED,FALSIFIED,FALSIFIED,HELD,HELD,HELD,HELD,HEL
-caught  items 1 and 2 re-read on every path: items 1 and 2 re-read on paths 1,001-8,000: the harm on paths 1-1,000 is left out: 0/30,0/30 (want 0/0,0/0)
+caught  item 13 against the wrong 7t figure: the planted 'good' story (P alone; no noise, no C, no L) reads items 1-8 and 10-13 as HELD but 4, 5 and 6 FALSIFIED: HELD,HELD,HELD,FALSIFIED,FALSIFIED,FALSIFIED,HELD,HELD,HEL
+caught  items 1 and 2 re-read on every path: items 1, 2 and 10 re-read on paths 1,001-8,000: the harm on paths 1-1,000 is left out, and item 10 is among them: 0/30,0/30 6 true (want 0/0,0/0 6 true)
 caught  the gate accepts a missing year-0 gap line: the gate refuses a missing year-0 gap line: false (want true)
 caught  S194 registers no world lines: the gate refuses S194 without its world lines: false (want true)
 caught  a reader candidate without its gains: the candidates: no reader arm without its gains; READER+J/0 with them; the fix alone at 1e-4 (no harm anywhere): 5 READER/3e-4,READER/1e-4,READER/0,READER+J/1e-4,READER+J/0 tr
@@ -53,8 +53,13 @@ caught  a candidate on S194 read on the reader's own (missing) run: a candidate 
 caught  the product listed as its own candidate: the product is never a candidate of its own; the reader and one policy at 0.001 are: true true (want false true)
 caught  the fix alone refused for off's flat misread on S360: the fix alone is not refused for off's flat misread on S360 (reported beside), and is for harm on bridge 4: false 60 false (want true 60 false)
 caught  a whole-score candidate without the whole score: by the whole score a candidate needs at least 0 on every case of its set: true true (want true false)
-caught  the attribution names P alone without item 10: the attribution names P with C when items 2 and 3 hold and item 10 does not: HELD: P, the margin holding a near-tie (items 2, 3 and 10) (want HELD: P with C: the margin holds 
-caught  the attribution does not name N from item 13: the attribution names N from item 13 alone (off's churn gone at 30 points, item 4 FALSIFIED): HELD: P, the margin holding a near-tie (items 2, 3 and 10) (want HELD: P, the mar
-caught  the attribution names P on item 2 alone: the attribution names P only with item 3 as well as item 2: HELD: P, the margin holding a near-tie (items 2, 3 and 10) (want no explanation HELD)
+caught  the attribution names P alone without item 10: item 10 INCONCLUSIVE is not read as a negative, and C is not named without item 5: HELD: P, the margin holding a near-tie; the reader alone is cured at margin 0 (items 2, 3 an
+caught  the attribution reads item 10 INCONCLUSIVE as FALSIFIED: item 10 INCONCLUSIVE is not read as a negative, and C is not named without item 5: HELD: P, the margin holding a near-tie, but the reader alone still harms at margin 0: the cu
+caught  item 3 falls on any drop, without a harm: item 3 does not fall on a few paths where one policy has already removed the harm (net -2 at 0.001, -4 at 0, no harm): FALSIFIED (want INCONCLUSIVE)
+caught  item 3 falls past the tolerance without the harm at 0.001: item 3 does not fall past the tolerance where one policy does no harm at 0.001 (net +10 at 0.001, -4 at 0): FALSIFIED (want INCONCLUSIVE)
+caught  the deep bad world from a fixed horizon: the deep bad world is picked from each case's own horizon: 41 and 43 years pick different paths, each its own shift's: false false (want true true)
+caught  item 10 left out of the re-read on paths 1,001-8,000: items 1, 2 and 10 re-read on paths 1,001-8,000: the harm on paths 1-1,000 is left out, and item 10 is among them: 0/0,0/0 4 false (want 0/0,0/0 6 true)
+caught  the attribution does not name N from item 13: the attribution names N from item 13 alone (off's churn gone at 30 points, item 4 FALSIFIED): HELD: P, the margin holding a near-tie; the reader alone is cured at margin 0 (it
+caught  the attribution names P on item 2 alone: the attribution names P only with item 3 as well as item 2: HELD: P, the margin holding a near-tie; the reader alone is cured at margin 0 (items 2, 3 and 10) (want no explanat
 
-57 mutations: every one caught
+62 mutations: every one caught

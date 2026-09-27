@@ -67,6 +67,10 @@ export const runsOf = id => [...CASES[id].arms.flatMap(a => MARG.map(m => `${a}/
 // on a non-bridge case the reader is off (it reads no bridge), so an arm named for the reader is read on off's run
 export const armOn = (id, label) => (CASES[id].arms.includes('READER') ? label : label.replace('READER', 'OFF'));
 export const PRODUCT = 'OFF/1e-3';
+// the paths whose long-run shift is below -sqrt 3, for a case whose traces run Y years (the shift is path i's draw at index Y:
+// pathsForSeed builds a horizon's draws and then the shift, so a case of another horizon reads another draw - the
+// ninety-fourth review, BLOCKING 3: bridge 4 runs 42 years to S126's 40)
+export const deepIdx = (seed, n, Y) => { const out = []; pathsForSeed(seed, n, Y - 1).forEach((zs, i) => { if (zs[Y] < -Math.sqrt(3)) out.push(i); }); return out; };
 export const traceName = (id, label) => `${id.replace(/ /g, '_')}-${label.toLowerCase().replace(/\+/g, '_').replace(/\//g, '@')}.json.gz`;
 const field = (ran, k) => { const m = new RegExp(`(?:^| )${k} (\\S+)`).exec(ran || ''); return m ? m[1] : null; };
 
@@ -194,12 +198,16 @@ export function items(S, W, G) {
   out.push({ n: 2, text: 'at switch margin 0 the reader does no material harm against off at margin 0 (the reader\'s own harm is the margin\'s), on both harmed cases', legs: i2, outcome: tri(i2, x => x.o === 'no material harm', x => x.o === 'harm') });
   // 3. the dose-response against the product: one policy's net paths rise (within TOL) as the margin falls, and at 0 no
   // material harm, on both harmed cases
+  // a FALL is read only through a harm: one policy harming at 0, or ending more than TOL paths below its 0.001 result while
+  // one policy at 0.001 itself harms (the ninety-fourth review, BLOCKING 4: a few paths down where one policy has already
+  // removed the harm is noise, or the objective's own trade, not the harm surviving the margin)
   const i3h = harmFamily(HARMED.map(id => leg(id, PRODUCT, 'READER+J/0')));
+  const i3a = harmFamily(HARMED.map(id => leg(id, PRODUCT, 'READER+J/1e-3')));
   const i3 = HARMED.map((id, j) => {
     const ns = MARG.map(m => net(id, `READER+J/${m}`)), mono = ns.every((v, q) => q === 0 || v >= ns[q - 1] - TOL) && ns[3] > ns[0];
-    return { id, ns, mono, h: i3h[j], rises: mono && i3h[j].o === 'no material harm', falls: ns[3] < ns[0] || i3h[j].o === 'harm' };
+    return { id, ns, mono, h: i3h[j], rises: mono && i3h[j].o === 'no material harm', falls: i3h[j].o === 'harm' || (ns[3] < ns[0] - TOL && i3a[j].o === 'harm') };
   });
-  out.push({ n: 3, text: `against the product, one policy's net paths (saved less lost) rise as the margin falls (each step within ${TOL} paths, and more at 0 than at 0.001) and at margin 0 it does no material harm, on both harmed cases`, legs: i3h, extra: i3.map(x => `${x.id} READER+J net at ${MARG.join(', ')}: ${x.ns.join(', ')}${x.mono ? '' : ' (not rising)'}`), outcome: tri(i3, x => x.rises, x => x.falls) });
+  out.push({ n: 3, text: `against the product, one policy's net paths (saved less lost) rise as the margin falls (each step within ${TOL} paths, and more at 0 than at 0.001) and at margin 0 it does no material harm, on both harmed cases (FALSIFIED: it harms at 0, or ends more than ${TOL} paths below 0.001 where it harms at 0.001)`, legs: [...i3h, ...i3a], extra: i3.map(x => `${x.id} READER+J net at ${MARG.join(', ')}: ${x.ns.join(', ')}${x.mono ? '' : ' (not rising)'}`), outcome: tri(i3, x => x.rises, x => x.falls) });
   // 4. table noise, in every arm's tables (the fix alone's too: 7t's noise was off's flat table on S360): margin 0 harms
   // against the arm's better small positive margin on at least one core case
   const i4 = CORE_IDS.flatMap(id => (CASES[id].arms.includes('READER') ? ['OFF', 'OFF+J', 'READER+J'] : ['OFF', 'OFF+J']).map(X => {
@@ -207,7 +215,7 @@ export function items(S, W, G) {
     return { id, X, pk };
   }));
   const i4h = harmFamily(i4.map(x => leg(x.id, `${x.X}/${x.pk}`, `${x.X}/0`)));
-  out.push({ n: 4, text: 'table noise: margin 0 harms against the same arm\'s better small positive margin (3e-4 or 1e-4) on at least one core case, in off\'s, one policy\'s or the reader\'s tables (FALSIFIED does not clear margin 0 for 7u)', legs: i4h, outcome: i4h.some(x => x.o === 'harm') ? 'HELD' : i4h.every(x => x.o === 'no material harm') ? 'FALSIFIED' : 'INCONCLUSIVE' });
+  out.push({ n: 4, text: 'table noise: margin 0 harms against the same arm\'s better small positive margin (3e-4 or 1e-4) on at least one core case, in OFF\'s, OFF+J\'s or READER+J\'s tables (READER\'s own are not read; FALSIFIED does not clear margin 0 for 7u)', legs: i4h, outcome: i4h.some(x => x.o === 'harm') ? 'HELD' : i4h.every(x => x.o === 'no material harm') ? 'FALSIFIED' : 'INCONCLUSIVE' });
   // 5. a separate clairvoyance error, at margin 0 alone (at a positive margin one policy's table change can flip a held tier,
   // which is P's own mechanism: the third deep review): one policy gains against the reader at margin 0, on both harmed cases
   const i5 = gainFamily(HARMED.map(id => leg(id, 'READER/0', 'READER+J/0')));
@@ -231,7 +239,7 @@ export function items(S, W, G) {
   const i8 = HARMED.map(id => ({ id, a: sw(id, 'READER+J/1e-4'), z: sw(id, 'READER+J/0') }));
   out.push({ n: 8, text: 'a small margin keeps switching rare: one policy\'s pension switches a path at margin 1e-4 are at most half those at margin 0 (FALSIFIED: at least 0.8 of them), on both harmed cases', legs: [], extra: i8.map(x => `${x.id} ${x.a.toFixed(2)} at 1e-4, ${x.z.toFixed(2)} at 0`), outcome: tri(i8, x => x.a <= x.z / 2, x => x.a >= 0.8 * x.z) });
   // 10. P alone, or P with C: the reader without one policy does no material harm against the product at margin 0
-  const i10 = harmFamily(HARMED.map(id => leg(id, PRODUCT, 'READER/0')));
+  const i10 = harmFamily(HARMED.map(id => leg(id, PRODUCT, 'READER/0')));   // item 10
   out.push({ n: 10, text: 'the reader alone at margin 0 does no material harm against the product, on both harmed cases (item 3\'s cure is the margin\'s, not one policy\'s)', legs: i10, outcome: tri(i10, x => x.o === 'no material harm', x => x.o === 'harm') });
   // 11. the whole score (grade C, point figures): one policy's realised whole score against the product rises as the margin
   // falls (each step no more than WTOL down, and more at 0 than at 0.001), on both harmed cases
@@ -272,19 +280,24 @@ export function candidates(S, W) {
 export function attribution(it) {
   const o = n => it.find(x => x.n === n).outcome;
   const held = [];
-  if (o(2) === 'HELD' && o(3) === 'HELD') held.push(o(10) === 'HELD' ? 'P, the margin holding a near-tie (items 2, 3 and 10)' : 'P with C: the margin holds a near-tie, and the cure at margin 0 needs one policy for every world as well (items 2 and 3; item 10 not HELD)');
+  // item 10 three ways (the ninety-fourth review, BLOCKING 1: INCONCLUSIVE is never read as a negative); C is named only
+  // from item 5
+  if (o(2) === 'HELD' && o(3) === 'HELD') held.push(o(10) === 'HELD' ? 'P, the margin holding a near-tie; the reader alone is cured at margin 0 (items 2, 3 and 10)'
+    : o(10) === 'FALSIFIED' ? 'P, the margin holding a near-tie, but the reader alone still harms at margin 0: the cure there needs one policy for every world as well (items 2 and 3; item 10 FALSIFIED)'
+    : 'P, the margin holding a near-tie (items 2 and 3); whether the reader alone is cured at margin 0 is not settled (item 10 INCONCLUSIVE)');
   if (o(4) === 'HELD' || o(13) === 'FALSIFIED') held.push(`N, table noise (${[o(4) === 'HELD' ? 'item 4' : '', o(13) === 'FALSIFIED' ? 'item 13' : ''].filter(Boolean).join(' and ')})`);
   if (o(5) === 'HELD') held.push('C, a clairvoyance error the margin does not carry (item 5)');
   if (o(6) === 'HELD') held.push('L, a learning error the margin does not carry (item 6)');
   const pre = o(1) === 'FALSIFIED' ? 'the reader does no material harm at the product\'s settings (item 1 FALSIFIED: the harm at 0.001 is fragile to the settings, as P allows); ' : o(1) === 'INCONCLUSIVE' ? 'the harm at the product\'s settings is not settled (item 1 INCONCLUSIVE); ' : '';
   return `${pre}${held.length ? `HELD: ${held.join('; ')}` : 'no explanation HELD'}`;
 }
-// items 1 and 2 re-read on paths HOLD+1 to N (the timing measurement ran S126's first HOLD paths before registration)
+// items 1, 2 and 10 re-read on paths HOLD+1 to N (the timing measurement ran S126's first HOLD paths before registration;
+// item 10 reads the same S126 runs: the ninety-fourth review, BLOCKING 2)
 export function heldOut(S) {
   const cut = (id, l) => S(id, l).subarray(HOLD);
   const margin = id => marginFor(survivedShare(cut(id, PRODUCT)));
   const leg = (id, A, B) => ({ id, label: `${id}: ${B} against ${A} on paths ${HOLD + 1}-${N}`, k: cells(cut(id, A), cut(id, B)), margin: margin(id) });
-  return [...harmFamily(HARMED.map(id => leg(id, PRODUCT, 'READER/1e-3'))), ...harmFamily(HARMED.map(id => leg(id, 'OFF/0', 'READER/0')))];
+  return [...harmFamily(HARMED.map(id => leg(id, PRODUCT, 'READER/1e-3'))), ...harmFamily(HARMED.map(id => leg(id, 'OFF/0', 'READER/0'))), ...harmFamily(HARMED.map(id => leg(id, PRODUCT, 'READER/0')))];
 }
 
 // PLANTED, before any real file (rule 6)
@@ -374,8 +387,8 @@ function planted() {
     ['the count guard, as read-o27-unconditional.mjs guarded() gives it (3 lost, none saved, 400 failing in both, of 8,000: raw -0.099217, guarded -0.109551)', harmFamily([{ label: 'x', k: { a: 7597, lost: 3, saved: 0, d: 400, N }, margin: 0.25 }])[0].un.lo.toFixed(6), '-0.109551'],
     ['a gain needs Holm: 6 and 0 on two legs (Holm 0.031) gains, 5 and 0 (0.062) does not', `${gainFamily([0, 1].map(() => ({ label: 'x', k: { a: 7594, lost: 0, saved: 6, d: 400, N }, margin: 0.25 }))).map(x => x.o).join(',')} ${gainFamily([0, 1].map(() => ({ label: 'x', k: { a: 7595, lost: 0, saved: 5, d: 400, N }, margin: 0.25 }))).map(x => x.o).join(',')}`, 'gain,gain no material gain,no material gain'],
     ['no material gain needs the interval\'s upper end below the margin: 30 saved, 20 lost of 8,000 (upper end 0.30) is inconclusive', gainFamily([{ label: 'x', k: { a: 7550, lost: 20, saved: 30, d: 400, N }, margin: 0.25 }])[0].o, 'inconclusive'],
-    ['the story as predicted reads items 1-8 and 10-13 as HELD except the four FALSIFIED (4, 5, 6) as predicted', ALL.map(n => o(it0, n)).join(','), 'HELD,HELD,HELD,FALSIFIED,FALSIFIED,FALSIFIED,HELD,HELD,HELD,HELD,HELD,HELD'],
-    ['the attribution of that story names P alone', attribution(it0), 'HELD: P, the margin holding a near-tie (items 2, 3 and 10)'],
+    ['the planted \'good\' story (P alone; no noise, no C, no L) reads items 1-8 and 10-13 as HELD but 4, 5 and 6 FALSIFIED', ALL.map(n => o(it0, n)).join(','), 'HELD,HELD,HELD,FALSIFIED,FALSIFIED,FALSIFIED,HELD,HELD,HELD,HELD,HELD,HELD'],
+    ['the attribution of that story names P alone', attribution(it0), 'HELD: P, the margin holding a near-tie; the reader alone is cured at margin 0 (items 2, 3 and 10)'],
   ];
   // the opposite story: no harm at 0.001; the reader keeps harming at 0; one policy falls; noise at 0; clairvoyance and
   // learning gain; the pairs stay; churn at 1e-4 as at 0; the whole score falling; S194's gap kept; off's churn gone at 30
@@ -405,8 +418,13 @@ function planted() {
   cases.push(['item 7 reads S330\'s pair by its gain (mix5 against mix3), not S172\'s harm', run(good).find(x => x.n === 7).extra.join('; '), 'S172 (O16): MEETS; S330 (O21): MEETS']);
   cases.push(['item 8 is INCONCLUSIVE between a half and 0.8 (2 switches at 1e-4 against 3 at 0)', o(run(good, { sw: { S126: { 'READER+J/1e-4': 2, 'READER+J/0': 3, 'OFF/0': 10 }, 'bridge 4': { 'READER+J/1e-4': 2, 'READER+J/0': 3, 'OFF/0': 10 } } }), 8), 'INCONCLUSIVE']);
   cases.push(['item 10 reads the reader alone at 0 against the product: 40 lost there reads FALSIFIED', o(run((() => { const s = cp(good); for (const id of HARMED) { s[id]['READER/0'] = [0, 40]; s[id]['OFF/0'] = [0, 40]; } return s; })()), 10), 'FALSIFIED']);
-  cases.push(['the attribution names P with C when items 2 and 3 hold and item 10 does not', attribution(ALL.map(n => ({ n, outcome: [1, 2, 3, 13].includes(n) ? 'HELD' : n === 10 ? 'INCONCLUSIVE' : 'FALSIFIED' }))), 'HELD: P with C: the margin holds a near-tie, and the cure at margin 0 needs one policy for every world as well (items 2 and 3; item 10 not HELD)']);
-  cases.push(['the attribution names N from item 13 alone (off\'s churn gone at 30 points, item 4 FALSIFIED)', attribution(ALL.map(n => ({ n, outcome: [1, 2, 3, 10].includes(n) ? 'HELD' : 'FALSIFIED' }))), 'HELD: P, the margin holding a near-tie (items 2, 3 and 10); N, table noise (item 13)']);
+  cases.push(['item 10 INCONCLUSIVE is not read as a negative, and C is not named without item 5', attribution(ALL.map(n => ({ n, outcome: [1, 2, 3, 13].includes(n) ? 'HELD' : n === 10 ? 'INCONCLUSIVE' : 'FALSIFIED' }))), 'HELD: P, the margin holding a near-tie (items 2 and 3); whether the reader alone is cured at margin 0 is not settled (item 10 INCONCLUSIVE)']);
+  cases.push(['item 10 FALSIFIED says the cure at 0 needs one policy; C is still named only from item 5', attribution(ALL.map(n => ({ n, outcome: [1, 2, 3, 5, 13].includes(n) ? 'HELD' : 'FALSIFIED' }))), 'HELD: P, the margin holding a near-tie, but the reader alone still harms at margin 0: the cure there needs one policy for every world as well (items 2 and 3; item 10 FALSIFIED); C, a clairvoyance error the margin does not carry (item 5)']);
+  cases.push(['item 3 does not fall on a few paths where one policy has already removed the harm (net -2 at 0.001, -4 at 0, no harm)', (() => { const s = cp(good); for (const id of HARMED) { s[id]['READER+J/1e-3'] = [0, 2]; s[id]['READER+J/3e-4'] = [0, 2]; s[id]['READER+J/1e-4'] = [0, 3]; s[id]['READER+J/0'] = [0, 4]; } return o(run(s), 3); })(), 'INCONCLUSIVE']);
+  cases.push(['item 3 does not fall past the tolerance where one policy does no harm at 0.001 (net +10 at 0.001, -4 at 0)', (() => { const s = cp(good); for (const id of HARMED) { s[id]['READER+J/1e-3'] = [10, 0]; s[id]['READER+J/3e-4'] = [10, 0]; s[id]['READER+J/1e-4'] = [5, 0]; s[id]['READER+J/0'] = [0, 4]; } return o(run(s), 3); })(), 'INCONCLUSIVE']);
+  cases.push(['item 3 falls past the tolerance where one policy harms at 0.001 (net -40 at 0.001, -50 at 0; harm at both)', (() => { const s = cp(good); for (const id of HARMED) { s[id]['READER+J/1e-3'] = [0, 40]; s[id]['READER+J/0'] = [0, 50]; } return o(run(s), 3); })(), 'FALSIFIED']);
+  cases.push(['the deep bad world is picked from each case\'s own horizon: 41 and 43 years pick different paths, each its own shift\'s', (() => { const a = deepIdx(7002, 400, 41), b = deepIdx(7002, 400, 43), zb = pathsForSeed(7002, 400, 42).map(zs => zs[43]); return `${a.join(',') !== b.join(',')} ${b.every(i => zb[i] < -Math.sqrt(3)) && zb.filter(z => z < -Math.sqrt(3)).length === b.length}`; })(), 'true true']);
+  cases.push(['the attribution names N from item 13 alone (off\'s churn gone at 30 points, item 4 FALSIFIED)', attribution(ALL.map(n => ({ n, outcome: [1, 2, 3, 10].includes(n) ? 'HELD' : 'FALSIFIED' }))), 'HELD: P, the margin holding a near-tie; the reader alone is cured at margin 0 (items 2, 3 and 10); N, table noise (item 13)']);
   cases.push(['the attribution names P only with item 3 as well as item 2', attribution(ALL.map(n => ({ n, outcome: [1, 2, 10, 13].includes(n) ? 'HELD' : n === 3 ? 'INCONCLUSIVE' : 'FALSIFIED' }))), 'no explanation HELD']);
   cases.push(['item 11 does not rise when a step falls by more than 0.05 (-0.4, -0.2, -0.3, +0.05)', o(run(good, { w: { S126: { ...WUP.S126, 'READER+J/1e-4': -0.3 }, 'bridge 4': WUP['bridge 4'] } }), 11), 'INCONCLUSIVE']);
   cases.push(['item 12 reads the bad world\'s gap by its size (-8 halved to 3 holds; 5 does not)', `${o(run(good, { gp: { S194: { 'OFF/1e-3': [-8, 0, 0], 'OFF+J/0': [3, 0, 0] } } }), 12)} ${o(run(good, { gp: { S194: { 'OFF/1e-3': [8, 0, 0], 'OFF+J/0': [5, 0, 0] } } }), 12)}`, 'HELD FALSIFIED']);
@@ -421,7 +439,7 @@ function planted() {
   cases.push(['by the whole score a candidate needs at least 0 on every case of its set', (() => { const a = candidates(mkS(wg), mkW()).find(x => x.l === 'READER+J/0').okW; const b = candidates(mkS(wg), mkW({ S194: { 'OFF+J/0': -0.1 } })).find(x => x.l === 'READER+J/0').okW; return `${a} ${b}`; })(), 'true false']);
   cases.push(['the reader is off on a non-bridge case', `${armOn('S194', 'READER+J/0')} ${armOn('S126', 'READER+J/0')}`, 'OFF+J/0 READER+J/0']);
   cases.push(['the product is never a candidate of its own; the reader and one policy at 0.001 are', `${candidates(mkS(good), mkW()).some(x => x.l === PRODUCT)} ${['READER/1e-3', 'OFF+J/1e-3', 'READER+J/1e-3'].every(l => candidates(mkS(good), mkW()).some(x => x.l === l))}`, 'false true']);
-  cases.push(['items 1 and 2 re-read on paths 1,001-8,000: the harm on paths 1-1,000 is left out', (() => { const S = mkS(good); const S2 = (id, l) => { const a = Uint8Array.from(S(id, l)); if (HARMED.includes(id) && l === 'READER/1e-3') { for (let i = 0; i < 400; i++) a[i] = 0; for (let i = 400; i < 440; i++) a[i] = 1; for (let i = 400; i < 430; i++) a[i] = 0; } return a; }; return heldOut(S2).slice(0, 2).map(x => `${x.k.saved}/${x.k.lost}`).join(','); })(), '0/0,0/0']);
+  cases.push(['items 1, 2 and 10 re-read on paths 1,001-8,000: the harm on paths 1-1,000 is left out, and item 10 is among them', (() => { const S = mkS(good); const S2 = (id, l) => { const a = Uint8Array.from(S(id, l)); if (HARMED.includes(id) && l === 'READER/1e-3') { for (let i = 0; i < 400; i++) a[i] = 0; for (let i = 400; i < 440; i++) a[i] = 1; for (let i = 400; i < 430; i++) a[i] = 0; } return a; }; const h = heldOut(S2); return `${h.slice(0, 2).map(x => `${x.k.saved}/${x.k.lost}`).join(',')} ${h.length} ${!!h[4] && h[4].label.includes('READER/0 against OFF/1e-3')}`; })(), '0/0,0/0 6 true']);
   let nbad = 0;
   for (const [name, got, want] of cases) { const ok = got === want; if (!ok) nbad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${got}${ok ? '' : ` (want ${want})`}`); }
   if (nbad) { console.log(`PLANTED CHECK FAILED: ${nbad}`); process.exit(1); }
@@ -467,7 +485,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
   console.log(`7V: IS THE READER'S HARM THE SWITCH MARGIN HOLDING A NEAR-TIE? (predictions/diag-7v.md; ${N} paths of seed ${SEED}; the fair-test gate passed: the stamps, every case's settings, every run and trace)\n`);
   console.log('EVERY RUN: survival; against the product (OFF/1e-3 on the same case) saved/lost; pension switches a path (reversed within three years); the realised whole score against the product, points, and its parts - survival, estate, cuts, raises (grade C: reported; its standard error is printed, not read as an interval)');
-  const deepZ = pathsForSeed(Number(SEED), N, S.trace('S126', PRODUCT).Y - 1).map(zs => zs[zs.length - 1]);
   for (const c of cases) {
     const ref = S.trace(c.id, PRODUCT), P0 = parts(ref, cfgs[c.id]);
     console.log(`${c.id} (margin ${marginFor(survivedShare(ref.survived))}; solves ${CASES[c.id].arms.map(a => `${a} ${c.solve[a].secs} s`).join(', ')})`);
@@ -479,7 +496,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     }
     for (const [l, ws] of Object.entries(c.worlds)) console.log(`  world ${l.padEnd(14)} ${ws.map(wd => `z ${wd.z.toFixed(2)}: table ${wd.table.toFixed(2)} realised ${wd.sim.toFixed(2)} (gap ${(wd.table - wd.sim).toFixed(2)})`).join('; ')}`);
     if (HARMED.includes(c.id)) {
-      const deep = []; for (let i = 0; i < N; i++) if (deepZ[i] < -Math.sqrt(3)) deep.push(i);
+      const deep = deepIdx(Number(SEED), N, ref.Y);
       console.log(`  the deep bad world (${deep.length} paths with a long-run shift below -sqrt 3), survival: ${runsOf(c.id).map(l => `${l} ${(100 * deep.filter(i => S(c.id, l)[i]).length / deep.length).toFixed(1)}%`).join(', ')}`);
     }
     if (c.id.startsWith('S172')) {
@@ -494,7 +511,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     for (const l of x.legs) console.log(`     ${legText(l)}`);
     for (const e of x.extra || []) console.log(`     ${e}`);
   }
-  console.log(`\nITEMS 1 AND 2 ON PATHS ${HOLD + 1}-${N} (reported: the timing measurement ran S126 on paths 1-${HOLD} before registration; the ninety-third review, BLOCKING 3)`);
+  console.log(`\nITEMS 1, 2 AND 10 ON PATHS ${HOLD + 1}-${N} (reported: the timing measurement ran S126 on paths 1-${HOLD} before registration; the ninety-third review, BLOCKING 3, and the ninety-fourth, BLOCKING 2)`);
   for (const l of heldOut(S)) console.log(`     ${legText(l)}`);
   const cz = candidates(S, W);
   console.log('\n9. THE CANDIDATES FOR 7u (a list, not a verdict), by survival (the regimen\'s) and by the realised whole score (grade C): the fix alone read on S126, bridge 4 and S194 (its S360 and share 0.95 legs beside); a reader arm on all five core cases, and by survival it must also gain on S360 and share 0.95');

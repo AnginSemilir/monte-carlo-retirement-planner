@@ -130,6 +130,11 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
 17. The Stop hook's deep-review gate fails open: if uncertainty.mjs errors, or its planted checks fail, the hook reads "not
    due" and the turn may end. Proposed with the next unlock: treat an error as due, with the error as the reason. Also
    stale, locked: stop-check.mjs's header says "Two conditions"; there are three (the seventy-seventh review, MINOR 6).
+18. A measurement (PREDICTION=none) can run a test's own mode, settings and paths before that test is registered: the
+   launcher checks neither the mode nor the paths against registered or planned tests. 7v's timing measurement did (27 Sep,
+   runs.log 07:09 UK: S126 on 7v's own first 1,000 paths), and its lines were printed before registration (disclosed in
+   predictions/diag-7v.md; the ninety-third review, BLOCKING 3, and the ninety-fourth, MINOR 8). Until a check exists, a
+   timing measurement runs on a seed or paths the test will not read, or its lines are not read beyond the seconds.
 
 ---
 

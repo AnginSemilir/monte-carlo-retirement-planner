@@ -59,9 +59,16 @@ The order:
     nothing about the fix where it would act, and S126's own harm is untouched by it.
   - S194, with no bridge, is identical to the bit, as it should be.
   - It is a research option only; nothing goes to a default.
-- **7y (the tier state):** built as a research option (solve.js tierState). Its test passes 12 of 12 core checks: the
-  free endpoint to the bit, the held endpoint within 1e-8, and the chooser agreeing with the table at 2,601 of 2,601
-  nodes. Registration is in progress.
+- **7y (the tier state):** built as a research option (solve.js tierState; its test passes 15 of 15, and all 31 solver
+  suites pass on it). The plan-auditor needed three passes to accept the registration. On the way it found a real design
+  limit (**O41**): the tier state applies the switching margin **per world**, while the chooser applies it to the
+  mixture. So a negative 7y result will not clear free switching. The deep review after 7z said to launch as registered,
+  with that named as a premise, because rebuilding would add a second change. **Launched 00:40 UK.**
+- **Beside 7y:** a measurement of S360 with the reader, reading its bridge at the held tier (O36's gate). I am also
+  building a joint version of the tier state (TS+J) for a **tables-only** check that bounds O41 after 7y. It gets no
+  survival test tonight without you.
+- **The combination of the two fixes** is registered only if every condition the deep review set holds by about 04:30.
+  Otherwise it comes to you as a design.
 
 ## Things to tell you
 

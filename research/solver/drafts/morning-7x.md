@@ -12,7 +12,13 @@ the gain there.
 | 1. free switching (FS) | HELD | held tables see 0.790 (S126) and 0.970 (S194) of the realised gain |
 | 2. three worlds (W) | FALSIFIED | five worlds move the tables' difference 0.98 and 0.99 times |
 | 3. the Q control (share 0.95) | HELD | held tables see 0.206 of the gain: a second error there |
-| 4. the sign control (S360, off) | FALSIFIED | off's tables read S360 at 0.61% against 41.06% simulated, so they carried no sign (O37) |
+| 4. the sign control (S360, off) | FALSIFIED | off's held tables read S360 at 0.61% against 41.06% simulated, and they favour lowering risk (+0.33) where it loses 12.86 points (O37) |
+
+**What it means for the held tier (O37 and O38).**
+- Under off (the product's read), a held tier in the solved state would likely take S360's de-risk and lose. So 7y
+  carries S360 under off as a harm leg.
+- Holding the plan's tier for life does worse than the product on three of the four cases. It does better on S360
+  (results-7x-held.txt). So 7y's sizes come from the product's own arm, not from 7x.
 
 Scorecard for 7x: Brier 0.218 over 4 items. Cumulative: 0.221 over 63 (results-scorecard.txt).
 

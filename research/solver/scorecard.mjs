@@ -49,7 +49,12 @@ export function credences(predText) {
   if (!Object.keys(items).length) throw new Error('no item credences in "## Credence"');
   for (const [k, p] of Object.entries(items)) if (!(p >= 0 && p <= 1)) throw new Error(`item ${k}: credence ${p} is not a probability`);
   if (all && !(Number(all[1]) >= 0 && Number(all[1]) <= 1)) throw new Error(`the whole: credence ${all[1]} is not a probability`);
-  return { items, ...(Object.keys(predicted).length ? { predicted } : {}), overall: all ? Number(all[1]) : null, overallLabel: all && /^The outcome/.test(all[0]) ? 'outcome HELD' : all && /^At\s+least/.test(all[0]) ? 'a cause HELD' : 'carried forward' };
+  // 7v's two whole-level credences (the hundred-and-tenth review, MINOR 6): "P named (alone or with C): about p" and
+  // "At least one READER+J candidate by the whole score: about q", each scored against its own printed line (outcomes)
+  const wholes = [];
+  const pn = /P named[^:]*:\s*(?:about\s+)?(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(m[1]); if (pn) wholes.push({ item: 'P named', p: Number(pn[1]) });
+  const rj = /At\s+least\s+one\s+READER\+J\s+candidate\s+by\s+the\s+whole\s+score:\s*(?:about\s+)?(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(m[1]); if (rj) wholes.push({ item: 'a READER+J candidate by the whole score', p: Number(rj[1]) });
+  return { items, ...(Object.keys(predicted).length ? { predicted } : {}), ...(wholes.length ? { wholes } : {}), overall: all ? Number(all[1]) : null, overallLabel: all && /^The outcome/.test(all[0]) ? 'outcome HELD' : all && /^At\s+least/.test(all[0]) ? 'a cause HELD' : 'carried forward' };
 }
 
 export function outcomes(resultsText) {
@@ -59,11 +64,13 @@ export function outcomes(resultsText) {
   // the verdict: 7e's "=> NOT FALSIFIED" or "=> FALSIFIED", or a three-outcome reducer's "OUTCOME: HELD|FALSIFIED|INCONCLUSIVE"
   const v = /^=>\s*(NOT FALSIFIED|FALSIFIED)/m.exec(resultsText) || /^OUTCOME:\s*(HELD|FALSIFIED|INCONCLUSIVE|NOT SETTLED)\b/m.exec(resultsText);   // NOT SETTLED (7s): the whole scored 0, the items as printed, so a missed reproduction is scored (the seventy-fourth review, MINOR 2)
   // a several-cause reducer's "OUTCOME: J INCONCLUSIVE, L HELD, ..." (reduce-7t.mjs): the whole holds when any cause HELD
-  const many = v ? null : /^OUTCOME:\s*((?:[\w/+]+\s+(?:HELD|FALSIFIED|INCONCLUSIVE)(?:,\s*|\s*$))+)$/m.exec(resultsText);
+  const numbered0 = v ? null : /^OUTCOME:\s*(\d+\s+[A-Z][A-Z ]*[A-Z](?:,\s*\d+\s+[A-Z][A-Z ]*[A-Z])*)\s*$/m.exec(resultsText);   // read before the several-cause form, which also matches digit labels (the hundred-and-tenth review, MINOR 6; 7t's labels include 5L)
+  const many = v || numbered0 ? null : /^OUTCOME:\s*((?:[\w/+]+\s+(?:HELD|FALSIFIED|INCONCLUSIVE)(?:,\s*|\s*$))+)$/m.exec(resultsText);
   // a numbered-items reducer's "OUTCOME: 1 INCONCLUSIVE, 2 HELD, ..., 7 NOT REPRODUCED" (reduce-7v.mjs): each item's outcome
   // as printed, scored against the outcome its credence names (scoreTest)
-  const numbered = v || many ? null : /^OUTCOME:\s*(\d+\s+[A-Z][A-Z ]*[A-Z](?:,\s*\d+\s+[A-Z][A-Z ]*[A-Z])*)\s*$/m.exec(resultsText);
-  if (numbered) return { labels: Object.fromEntries(numbered[1].split(/,\s*/).map(x => { const [, k, o] = /^(\d+)\s+(.+)$/.exec(x); return [k, o]; })), overall: null };
+  const numbered = numbered0;
+  if (numbered) return { labels: Object.fromEntries(numbered[1].split(/,\s*/).map(x => { const [, k, o] = /^(\d+)\s+(.+)$/.exec(x); return [k, o]; })), overall: null,
+    wholes: { 'P named': /^ATTRIBUTION[^\n]*HELD:[^\n]*\bP\b/m.test(resultsText) ? 1 : 0, 'a READER+J candidate by the whole score': /^\s*READER\+J\/\S+\s+survival\s+\S+\s+whole score CANDIDATE/m.test(resultsText) ? 1 : 0 } };
   if (!v && !many) return { refused: 'no verdict line' };
   const h = resultsText.indexOf("THE PREDICTION'S ITEMS:");
   const sec = h < 0 ? resultsText : resultsText.slice(h).split(/\n\s*\n/)[0];
@@ -90,6 +97,7 @@ export function scoreTest(predText, resultsText) {
   if (missing.length || extra.length) throw new Error(`items do not match: credence without outcome [${missing.join(', ')}], outcome without credence [${extra.join(', ')}]`);
   const pairs = ck.map(k => ({ item: k, p: c.items[k], o: o.items[k] }));
   if (c.overall !== null) pairs.push({ item: c.overallLabel, p: c.overall, o: o.overall });
+  for (const w of c.wholes || []) { if (!o.wholes || !(w.item in o.wholes)) throw new Error(`the whole "${w.item}": no outcome`); pairs.push({ item: w.item, p: w.p, o: o.wholes[w.item] }); }
   return { status: 'SCORED', pairs, brier: brier(pairs) };
 }
 
@@ -166,7 +174,8 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
     ['reliability bins: 0.7 in 60-75%, 0.8 in 75-90%, 0.9 and 0.6... ', JSON.stringify(reliability(scoreTest(P, R).pairs).map(b => b.n)), '[0,2,1,1]'],
   ];
   // a three-outcome test with numbered items (7v): each item scored against the outcome its credence names
-  cases.push(['7v: items read as their bracketed outcome, NOT REPRODUCED against HELD a miss', t(() => { const r = scoreTest(pred('The author\'s probability that each item reads as predicted: 1 (INCONCLUSIVE), 0.40; 2 (HELD), 0.80; 3 (FALSIFIED), 0.70 (a reason). P named: about 0.35.'), 'x\nOUTCOME: 1 INCONCLUSIVE, 2 NOT REPRODUCED, 3 HELD\n'); return `${r.status} ${r.pairs.map(x => `${x.item}:${x.p}:${x.o}`).join(' ')} ${r.brier.toFixed(4)}`; }), 'SCORED 1:0.4:1 2:0.8:0 3:0.7:0 0.4967']);
+  cases.push(['7v: items read as their bracketed outcome, NOT REPRODUCED against HELD a miss', t(() => { const r = scoreTest(pred('The author\'s probability that each item reads as predicted: 1 (INCONCLUSIVE), 0.40; 2 (HELD), 0.80; 3 (FALSIFIED), 0.70 (a reason). P named: about 0.35.'), 'x\nOUTCOME: 1 INCONCLUSIVE, 2 NOT REPRODUCED, 3 HELD\n'); return `${r.status} ${r.pairs.map(x => `${x.item}:${x.p}:${x.o}`).join(' ')} ${r.brier.toFixed(4)}`; }), 'SCORED 1:0.4:1 2:0.8:0 3:0.7:0 P named:0.35:0 0.4031']);
+  cases.push(['7v: the two wholes scored from the attribution and the candidate list, and a numbered line with no NOT REPRODUCED still read as numbered', t(() => { const P7 = pred('The author\'s probability that each item reads as predicted: 1 (HELD), 0.60; 2 (FALSIFIED), 0.70. P named (alone or with C): about 0.35. At least one READER+J candidate by the whole score:\nabout 0.55.'); const r = scoreTest(P7, 'OUTCOME: 1 HELD, 2 FALSIFIED\n3. item 3 does not name P\nATTRIBUTION (x): HELD: N, table noise (item 4)\n  READER+J/0   survival CANDIDATE whole score CANDIDATE | x\n'); return `${r.status} ${r.pairs.map(x => `${x.p}:${x.o}`).join(' ')}`; }), 'SCORED 0.6:1 0.7:1 0.35:0 0.55:1']);
   const wrong = cases.filter(([, got, want]) => got !== want && !(want.startsWith('ERROR') && got.startsWith(want.trimEnd())));
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([n, got, w]) => `${n} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }
   if (process.argv.includes('--planted')) { console.log(`planted (${cases.length}): all read as they should`); process.exit(0); }

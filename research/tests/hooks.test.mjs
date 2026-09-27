@@ -96,11 +96,10 @@ const R = [
   [ROOT, 'git -C research/solver rm uncertainty.mjs', 'git -C, then git rm of the index'],
   [ROOT, 'git -C research/solver checkout HEAD~5 -- uncertainty.mjs', 'git -C, then git checkout of the index'],
   [ROOT, 'env -C research/solver rm uncertainty.mjs', 'env -C, then rm of the index']];
-// the directory list is capped: past MAX_DIRS a locked command is refused at once, not followed for tens of seconds
-// (the hundred-and-second review, MINOR 1: 24 cds took 41 s against a 10 s hook timeout)
+// no directory is followed any more, so many cds cost nothing (the hundred-and-second review: 24 cds once took 41 s)
 { const many = Array.from({ length: 40 }, (_, i) => `cd d${i}`).join(' && ') + ' && ls', t0 = Date.now();
   const d = bashIn(ROOT, many), d2 = bashIn(ROOT, many, true), secs = (Date.now() - t0) / 1000;
-  ok(is(d, 'deny') && is(d2, null) && secs < 1, `planted: forty distinct cds are refused while locked and go ahead unlocked, in ${secs.toFixed(2)} s (under 1 s)`); }
+  ok(is(d, null) && is(d2, null) && secs < 1, `forty distinct cds with no write go ahead, in ${secs.toFixed(2)} s (no list of places is kept)`); }
 { const t0 = Date.now(); const d = bashIn(ROOT, Array.from({ length: 40 }, () => 'cd .').join(' && ') + ' && rm research/solver/uncertainty.mjs');
   ok(is(d, 'deny') && (Date.now() - t0) < 1000, 'forty repeated cds and an rm of the index: refused in under 1 s (the list stays distinct)'); }
 ok(is(bashIn(ROOT, 'cd research/solver && git -C . status && ls'), null), 'cd and git -C with no write go ahead');
@@ -115,6 +114,30 @@ for (const [c, what] of [['env --chdir research/solver rm uncertainty.mjs', 'env
   ['git -C research -C solver rm uncertainty.mjs', 'two git -C in turn, then git rm of the index'],
   ['make -C research/solver --directory=. -f /dev/null && cd research/solver && rm check-plan.mjs', 'make -C and a cd, then rm of the checker']])
   ok(is(bashIn(ROOT, c), 'deny') && is(bashIn(ROOT, c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);
+// a relative target is judged by its file name, wherever the command has cd'd to (the hundred-and-fourth review, MINOR 1:
+// following directory changes missed these, which d62f947 refused and bash runs)
+for (const [c, what] of [
+  ['echo "$(cd research/solver && rm uncertainty.mjs)"', 'a cd and rm inside "$(...)"'],
+  ['x="$(cd research/solver && rm uncertainty.mjs)"', 'a cd and rm in a quoted assignment'],
+  ['for x in 1; do cd research/solver && rm uncertainty.mjs; done', 'a cd after do'],
+  ['if true; then cd research/solver; rm uncertainty.mjs; fi', 'a cd after then'],
+  ['timeout 5 git -C research/solver rm uncertainty.mjs', 'git -C behind timeout'],
+  ['nice -n 5 git -C research/solver rm uncertainty.mjs', 'git -C behind nice -n'],
+  ['eval cd research/solver; rm uncertainty.mjs', 'an unquoted eval cd'],
+  ["echo a\\ #; cd research/solver && rm uncertainty.mjs", 'an escaped space before #'],
+  ["echo $'\\''; cd research/solver && rm uncertainty.mjs", 'an ANSI-C quote before the cd'],
+  ['cd research/solver/predictions && rm ../uncertainty.mjs', 'a ../ path to the index'],
+  ['cd .claude && echo x > hooks/stop-check.mjs', 'a file in a locked folder, named from its parent'],
+  ['(cd .claude/hooks && echo x > pre-tool.mjs)', 'a redirect into a hook inside a subshell (the target read without its closing parenthesis)']])
+  ok(is(bashIn(ROOT, c), 'deny') && is(bashIn(ROOT, c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);
+ok(is(bashIn(ROOT, 'rm /tmp/x/uncertainty.mjs && echo x > /tmp/y/review-log.md'), null), 'an absolute path elsewhere with a locked name goes ahead (absolute paths are judged exactly)');
+ok(is(bashIn(ROOT, 'echo x > notes/settings.json'), 'deny'), 'the cost, pinned: a relative write to any file named like a locked one is refused while locked');
+{ const t0 = Date.now(); const d = bashIn(ROOT, 'echo a' + '#'.repeat(280000) + ' ; rm research/solver/uncertainty.mjs'); ok(is(d, 'deny') && Date.now() - t0 < 2000, `280,000 '#' then an rm of the index: refused in ${((Date.now() - t0) / 1000).toFixed(2)} s (under 2 s; 106a4a7 took 15 s)`); }
+// here-documents read line by line (the hundred-and-fourth review, BACKLOG 4)
+{ const t0 = Date.now(); const d = bashIn(ROOT, Array(24000).fill('cat <<a').join('\n') + '\nrm research/solver/uncertainty.mjs'); ok(is(d, 'deny') && Date.now() - t0 < 2000, `planted: 24,000 unterminated here-document openings then an rm of the index are refused in ${((Date.now() - t0) / 1000).toFixed(2)} s (under 2 s; 106a4a7 took 13 s)`); }
+ok(is(bashIn(ROOT, "cat <<EOF && rm research/solver/uncertainty.mjs\nx\nEOF"), 'deny'), 'planted: a write on the opening line of a here-document is read (the old pattern dropped the rest of that line)');
+ok(is(bashIn(ROOT, "cat <<\\EOF > /tmp/x\nit's here\nEOF\ncd research/solver && rm uncertainty.mjs"), 'deny'), "planted: a backslash-quoted delimiter's body with an apostrophe does not swallow the write after it");
+ok(is(bashIn(ROOT, "cat > /tmp/notes <<'EOF'\nrm research/solver/uncertainty.mjs\nEOF"), null), "a here-document body naming a write is data, and goes ahead");
 for (const w of ['env', 'make', 'git']) {
   const big = Array(70000).fill(w).join(' ') + ' ; rm research/solver/uncertainty.mjs', t0 = Date.now(), d = bashIn(ROOT, big), secs = (Date.now() - t0) / 1000;
   ok(is(d, 'deny') && secs < 2, `planted: 70,000 '${w}' words then an rm of the index are refused in ${secs.toFixed(2)} s (under 2 s; d62f947 took over 10 s)`);

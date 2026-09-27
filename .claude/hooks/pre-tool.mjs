@@ -29,8 +29,8 @@
  * decide() is pure so research/tests/hooks.test.mjs can drive it; the bottom of the file is the hook itself.
  */
 import { execSync } from 'node:child_process';
-import { statSync, openSync, readSync, closeSync } from 'node:fs';
-import { relative, isAbsolute, resolve } from 'node:path';
+import { statSync, openSync, readSync, closeSync, readdirSync } from 'node:fs';
+import { relative, isAbsolute, resolve, join, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const PROTECTED = [
@@ -46,10 +46,41 @@ export const PROTECTED = [
 const isProtected = rel => PROTECTED.some(p => (p.endsWith('/') ? rel.startsWith(p) : rel === p));
 
 /* strip what a command says rather than does: here-document bodies, quoted strings and comments */
-const HEREDOC = /<<-?\s*'?"?(\w+)'?"?[^\n]*\n[\s\S]*?\n\s*\1\b/g;
+/* the here-documents of a command, read line by line: each opening line (`<<EOF`, `<<-'EOF'`, `<<"EOF"`, `<<\EOF`) with
+   the text before and after its `<<` word, and its body up to the next line that is the delimiter alone. The next such
+   line is found by lookup, so a text of many openings stays near-linear (the hundred-and-fourth review, BACKLOG 4: three
+   lazy regexes took 11-13 s on 24,000 unterminated openings). An opening with no delimiter line after it is not a
+   here-document, as before */
+export function heredocs(raw) {
+  const lines = raw.split('\n'), ends = new Map(), out = [];
+  lines.forEach((l, i) => { const m = /^[ \t]*(\w+)[ \t]*$/.exec(l); if (m) { if (!ends.has(m[1])) ends.set(m[1], []); ends.get(m[1]).push(i); } });
+  const next = (d, i) => { const a = ends.get(d); if (!a) return -1; let lo = 0, hi = a.length; while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid] > i) hi = mid; else lo = mid + 1; } return lo < a.length ? a[lo] : -1; };
+  for (let i = 0; i < lines.length; i++) {
+    const m = /<<-?[ \t]*(?:\\|(['"]))?(\w+)\1?/.exec(lines[i]);
+    if (!m) continue;
+    const e = next(m[2], i);
+    if (e < 0) continue;
+    out.push({ line: i, end: e, before: lines[i].slice(0, m.index), after: lines[i].slice(m.index + m[0].length), body: lines.slice(i + 1, e).join('\n') });
+    i = e;
+  }
+  return out;
+}
+/* the text with each here-document's body and delimiter taken out, its opening kept as ` <<HEREDOC ` between the text
+   before and after it (so `cat <<EOF && rm x` still shows the rm) */
+export function stripHeredocs(raw) {
+  const hs = heredocs(raw);
+  if (!hs.length) return raw;
+  const lines = raw.split('\n'), out = [];
+  let k = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const h = hs[k];
+    if (h && i === h.line) { out.push(`${h.before} <<HEREDOC ${h.after}`); i = h.end; k++; continue; }
+    out.push(lines[i]);
+  }
+  return out.join('\n');
+}
 export function shellCode(cmd) {
-  return cmd
-    .replace(HEREDOC, ' <<HEREDOC ')
+  return stripHeredocs(cmd)
     .replace(/'[^']*'/g, "''")
     .replace(/"(?:\\.|[^"\\])*"/g, '""')
     .replace(/(^|[\s;&|])#[^\n]*/g, '$1');
@@ -62,12 +93,9 @@ export function shellCode(cmd) {
  * Now a command is refused only where an enforcement file is a write TARGET: a redirect into it; the file argument of sed -i,
  * perl -i, tee, rm, unlink, truncate, chmod, chown, touch, shred, patch, mv (either end) or dd of=; the destination of cp,
  * install, ln or rsync; a path after git checkout, restore, rm or mv; or an inline python or node program (a here-document
- * fed to it, or its -c / -e text) that names the file and makes a write call. Relative paths are resolved from the session's
- * working directory, the project root and every directory the command changes into (dirChanges: cd and pushd past their
- * options, a bare cd, git -C / --work-tree, env -C / --chdir, make -C / --directory; read command by command, quote-aware,
- * so a cd in quoted text or a here-document body is not one), in order, and those of an enclosing command for one inside
- * bash -c or a here-document; past MAX_DIRS such places a locked command is refused (27 Sep: `cd research/solver` and then a
- * write to 'uncertainty.mjs' got through). A program that builds the path from pieces, or
+ * fed to it, or its -c / -e text) that names the file and makes a write call. A relative target is refused by its file
+ * name alone when that is a locked file's name, wherever the command has cd'd to (lockedNames; 27 Sep: `cd research/solver`
+ * and then a write to 'uncertainty.mjs' got through). A program that builds the path from pieces, or
  * a script written to a file and then run, is not seen (RULES.md known limits 1 and 5).
  */
 const ANY_ARG = /^(sed|perl|tee|rm|unlink|truncate|chmod|chown|touch|shred|patch|mv)$/, DEST_ARG = /^(cp|install|ln|rsync)$/;
@@ -77,13 +105,13 @@ const words = part => [...part.matchAll(/'([^']*)'|"((?:\\.|[^"\\])*)"|(\S+)/g)]
 // the bodies of here-documents fed to python or node, and their -c / -e programs
 export function inlinePrograms(raw) {
   const out = [];
-  for (const m of raw.matchAll(/^([^\n]*?)<<-?[ \t]*(['"]?)(\w+)\2[^\n]*\n([\s\S]*?)\n[ \t]*\3[ \t]*$/gm)) if (/(^|[\s;&|(])(\S*\/)?(python3?|node)(\s+-\S*)*\s*(-\s*)?$/.test(m[1])) out.push(m[4]);
+  for (const h of heredocs(raw)) if (/(^|[\s;&|(])(\S*\/)?(python3?|node)(\s+-\S*)*\s*(-\s*)?$/.test(h.before)) out.push(h.body);
   for (const m of raw.matchAll(/(?:^|[\s;&|(])(?:\S*\/)?(?:python3?\s+(?:-\w+\s+)*-c|node\s+(?:-\w+\s+)*(?:-e|--eval|-p|--print))\s+(?:'([^']*)'|"((?:\\.|[^"\\])*)")/g)) out.push(m[1] !== undefined ? m[1] : m[2]);
   return out;
 }
 // does a command write an enforcement file? `prot` says whether a path (or a folder holding one) is protected
 export function writesProtected(raw, prot, lit = () => false) {
-  const text = raw.replace(HEREDOC, ' <<HEREDOC ');
+  const text = stripHeredocs(raw);
   for (const part of text.split(/&&|\|\||;|\||\n|\$\(|`|\(|\)|&/).map(x => x.trim()).filter(Boolean)) {
     const w = words(commandOf(part)), cmd = (w[0] || '').replace(/^.*\//, ''), args = w.slice(1), files = args.filter(a => !/^-/.test(a));
     if (cmd === 'sed' && !args.some(a => /^-[a-zA-Z]*i|^--in-place/.test(a))) continue;
@@ -146,10 +174,8 @@ export function unlockedFrom(transcriptText) {
 /* the bodies of here-documents fed to a shell: `bash <<EOF`, `sh -s <<'EOF'`, `cat <<EOF | bash` */
 export function shellHeredocs(raw) {
   const out = [];
-  const re = /^([^\n]*?)<<-?[ \t]*(['"]?)(\w+)\2([^\n]*)\n([\s\S]*?)\n[ \t]*\3[ \t]*$/gm;
   const SHELL = '(\\S*\\/)?(bash|sh|zsh|dash)(\\s+-[\\w-]+)*';
-  for (const m of raw.matchAll(re)) {
-    const [, before, , , after, body] = m;
+  for (const { before, after, body } of heredocs(raw)) {
     if (new RegExp(`(^|[\\s;&|({])${SHELL}\\s*$`).test(before) || new RegExp(`\\|\\s*${SHELL}\\s*($|[;&|)])`).test(after)) out.push(body);
   }
   return out;
@@ -197,7 +223,7 @@ const gitSub = (part, sub) => {
 export function innerCommands(raw) {
   const out = [];
   const re = /(?:^|[\s;&|(`])(?:(?:bash|sh|zsh|dash)\s+(?:-\w+\s+)*-\w*c\w*|eval)\s+(?:'([^']*)'|"((?:\\.|[^"\\])*)")/g;
-  const text = raw.replace(HEREDOC, ' <<HEREDOC ');   // a here-document's body is data (a script's text), not a command
+  const text = stripHeredocs(raw);   // a here-document's body is data (a script's text), not a command
   for (const m of text.matchAll(re)) out.push(m[1] !== undefined ? m[1] : m[2].replace(/\\(.)/g, '$1'));
   return out;
 }
@@ -208,71 +234,25 @@ const SCRIPTS = 'experiment\\.mjs|batch-[\\w.-]+\\.sh|audit-[\\w.-]+\\.mjs|selec
 const EXPERIMENT = new RegExp(`(^|[\\s{!])((\\S*\\/)?(node|bash|sh|zsh|dash|source|\\.)((?:\\s+-\\S+)*)\\s+)?(\\S*\\/)?(${SCRIPTS})(?=\\s|$)(\\s+(\\S+))?`);
 const SCRIPT_WORD = new RegExp(`^(\\S*\\/)?(${SCRIPTS})$`);
 
-export const MAX_DIRS = 64;
-/* the commands of a shell text, split at unquoted ; & | ( ) ` $( and newlines, with here-document bodies taken out: one
-   pass, quote-aware, so a cd inside a quoted string, a commit message or a here-document body is not a command (the
-   hundred-and-third review, MINORs 1-2: a lazy regex over the raw text was quadratic, and counted cds in quoted text) */
-export function shellCommands(text) {
-  const t = text.replace(HEREDOC, ' <<HEREDOC '), out = [];
-  let cur = '', q = null;
-  for (let i = 0; i < t.length; i++) {
-    const c = t[i];
-    if (q) { cur += c; if (c === '\\' && q === '"') { cur += t[++i] || ''; } else if (c === q) q = null; continue; }
-    if (c === "'" || c === '"') { q = c; cur += c; continue; }
-    if (c === '\\') { cur += c + (t[++i] || ''); continue; }
-    if (c === '#' && /(^|\s)$/.test(cur)) { while (i + 1 < t.length && t[i + 1] !== '\n') i++; continue; }
-    if (/[;&|\n()`]/.test(c) || (c === '$' && t[i + 1] === '(')) { if (cur.trim()) out.push(cur.trim()); cur = ''; if (c === '$') i++; continue; }
-    cur += c;
-  }
-  if (cur.trim()) out.push(cur.trim());
-  return out;
+/* the file names of the enforcement: every locked file's own name, and the names of the files in a locked folder today.
+   A relative path can only reach a locked file through a name that ends in the file's own name, wherever the command has
+   cd'd to (by cd, pushd, git -C, env --chdir, a wrapper, a loop, a subshell or "$(...)"), so a relative write target is
+   judged by its name alone and no directory is followed (the hundred-and-fourth review: following directory changes
+   missed some and allowed 2,728 commands d62f947 refused; this reading needs no list of places and runs in one pass) */
+export function lockedNames(root) {
+  const names = new Set(PROTECTED.filter(p => !p.endsWith('/')).map(p => p.split('/').pop()));
+  for (const d of PROTECTED.filter(p => p.endsWith('/'))) { try { for (const f of readdirSync(join(root, d))) names.add(f); } catch { /* no folder */ } }
+  return names;
 }
-/* the directory changes a shell text makes, in order: cd and pushd (past their own options; a bare cd is HOME), and the
-   directory options of git (-C, repeated ones in turn, --work-tree), env (-C, --chdir) and make (-C, --directory) */
-export function dirChanges(text, home = process.env.HOME || '~') {
-  const out = [], tilde = d => d.replace(/^~(?=\/|$)/, home);
-  for (const cmdText of shellCommands(text)) {
-    const w = words(cmdText);
-    let i = 0;
-    while (i < w.length && (/^[{!]$/.test(w[i]) || /^[A-Za-z_]\w*=/.test(w[i]) || /^(sudo|nohup|time|command|builtin|exec|nice)$/.test(w[i]))) i++;
-    const name = (w[i] || '').replace(/^.*\//, ''), a = w.slice(i + 1);
-    if (name === 'cd' || name === 'pushd') {
-      const d = a.find(x => !/^-/.test(x) || x === '-');
-      if (d === undefined) { if (name === 'cd') out.push(home); } else if (d !== '-') out.push(tilde(d));
-      continue;
-    }
-    if (name === 'git' || name === 'env' || name === 'make') {
-      for (let k = 0; k < a.length; k++) {
-        const x = a[k];
-        if (name === 'git' && !/^-/.test(x)) break;   // git's own options end at the subcommand (git log -C is not a cd)
-        let m;
-        if (x === '-C' || (name === 'git' && x === '--work-tree') || (name === 'env' && x === '--chdir') || (name === 'make' && x === '--directory')) { if (a[k + 1] !== undefined) out.push(tilde(a[++k])); }
-        else if ((m = /^-C(.+)$/.exec(x)) || (m = /^--(?:work-tree|chdir|directory)=(.+)$/.exec(x))) out.push(tilde(m[1]));
-        else if (name === 'git' && /^(-c|--git-dir|--namespace)$/.test(x)) k++;
-      }
-    }
-  }
-  return out;
-}
-export function decide(input, { root = process.cwd(), cwd = root, outer = [], tracked = () => false, unlocked = false, depth = 0 } = {}) {
+export function decide(input, { root = process.cwd(), cwd = root, names = lockedNames(root), tracked = () => false, unlocked = false, depth = 0 } = {}) {
   const tool = input.tool_name || '';
   const ti = input.tool_input || {};
   const rel = f => { const abs = isAbsolute(f) ? f : resolve(root, f); return relative(root, abs).split('\\').join('/'); };
-  // where a relative path in a shell command can point: the session's working directory, the project root, and every
-  // directory the command cd's into (27 Sep: a write to a locked file named from research/solver got through)
-  const raw0 = String(ti.command || ''), home = process.env.HOME || '~';
-  // cd and pushd in order, each from every directory the command could be in by then (cd research && cd solver), and the
-  // directories of an enclosing command (cd research/solver && bash -c '...': the hundred-and-first review, MINOR 1)
-  // cd's own options are skipped (cd -P, cd --), and git -C, env -C / --chdir and make -C count as a change of directory
-  // (the hundred-and-second review, MINOR 2). The list is kept distinct as it grows and capped at MAX_DIRS: past the cap
-  // a locked command is refused rather than followed, since each cd can double the list and a hook that runs past its
-  // timeout lets the command through (the same review, MINOR 1: 24 cds took 41 s)
-  const cds = dirChanges(raw0, home);
-  const seen = new Set([cwd, root, ...outer]);
-  let tooMany = false;
-  for (const d of cds) { for (const b of [...seen]) seen.add(resolve(b, d)); if (seen.size > MAX_DIRS) { tooMany = true; break; } }
-  const bases = [...seen];
-  const relAll = f => [...new Set(bases.map(b => relative(root, isAbsolute(f) ? f : resolve(b, f)).split('\\').join('/')))];
+  // a path an edit could reach: an absolute one exactly; a relative one by its file name (see lockedNames), and exactly
+  // from the root and the session's working directory
+  const relOf = f => relative(root, isAbsolute(f) ? f : resolve(root, f)).split('\\').join('/');
+  const named = f => !isAbsolute(f) && names.has(posix.normalize(f.replace(/\\/g, '/')).split('/').pop());
+  const exact = f => [relOf(f), relative(root, isAbsolute(f) ? f : resolve(cwd, f)).split('\\').join('/')];
   const deny = reason => ({ decision: 'deny', reason });
   const LOCKED = what => `${what} is part of the rules' enforcement (RULES.md) and is locked. Tell the maintainer what is wrong with the check and why the change does not weaken it; they unlock it by writing "unlock enforcement" in their next message.`;
   const ask = reason => ({ decision: 'ask', reason });
@@ -284,13 +264,12 @@ export function decide(input, { root = process.cwd(), cwd = root, outer = [], tr
     return null;
   }
   if (tool !== 'Bash') return null;
-  if (tooMany && !unlocked) return deny(`This command changes directory in more ways than the lock follows (over ${MAX_DIRS} places a relative path could point), so it cannot tell whether it writes an enforcement file. Split it, or name paths in full.`);
   const raw = String(ti.command || '');
   const code = shellCode(raw);
 
   // a command hidden in bash -c '...', eval '...' or a here-document fed to a shell is judged as if typed
   if (depth < 3) for (const inner of [...innerCommands(raw), ...shellHeredocs(raw)]) {
-    const d = decide({ tool_name: 'Bash', tool_input: { command: inner } }, { root, cwd, outer: bases, tracked, unlocked, depth: depth + 1 });
+    const d = decide({ tool_name: 'Bash', tool_input: { command: inner } }, { root, cwd, names, tracked, unlocked, depth: depth + 1 });
     if (d && d.decision === 'deny') return d;
   }
 
@@ -323,12 +302,13 @@ export function decide(input, { root = process.cwd(), cwd = root, outer = [], tr
   }
 
   // an edit to the enforcement made through the shell
-  const redirect = [...code.matchAll(/>>?\s*([^\s;&|]+)/g)].map(m => m[1]).filter(t => !/^&?\d$/.test(t) && t !== '/dev/null');
-  if (redirect.some(t => relAll(t).some(isProtected))) return unlocked ? null : deny(LOCKED('The file this redirects into'));
+  // a target ends at a closing parenthesis too: `(cd .claude/hooks && echo x > pre-tool.mjs)` (the fuzz of 27 Sep)
+  const redirect = [...code.matchAll(/>>?\s*([^\s;&|()]+)/g)].map(m => m[1]).filter(t => !/^&?\d$/.test(t) && t !== '/dev/null');
+  if (redirect.some(t => named(t) || exact(t).some(isProtected))) return unlocked ? null : deny(LOCKED('The file this redirects into'));
   // a path, or a folder that holds an enforcement file (cp x .claude/hooks)
-  const prot = t => relAll(t).some(x => { const r = x.replace(/\/$/, ''); return isProtected(r) || PROTECTED.some(p => p.startsWith(r + '/')); });
+  const prot = t => named(t) || exact(t).some(x => { const r = x.replace(/\/$/, ''); return isProtected(r) || PROTECTED.some(p => p.startsWith(r + '/')); });
   // a program's quoted string counts only when it is an enforcement file itself (a folder such as 'research/solver' is not)
-  const lit = t => relAll(t).some(isProtected);
+  const lit = t => named(t) || exact(t).some(isProtected);
   if (writesProtected(raw, prot, lit)) return unlocked ? null : deny(LOCKED('This command writes an enforcement file, which'));
   return null;
 }

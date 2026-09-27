@@ -63,7 +63,8 @@ export function shellCode(cmd) {
  * perl -i, tee, rm, unlink, truncate, chmod, chown, touch, shred, patch, mv (either end) or dd of=; the destination of cp,
  * install, ln or rsync; a path after git checkout, restore, rm or mv; or an inline python or node program (a here-document
  * fed to it, or its -c / -e text) that names the file and makes a write call. Relative paths are resolved from the session's
- * working directory, the project root and every directory the command cd's into (27 Sep: `cd research/solver` and then a
+ * working directory, the project root and every directory the command cd's or pushd's into, in order, and those of an
+ * enclosing command for one inside bash -c or a here-document (27 Sep: `cd research/solver` and then a
  * write to 'uncertainty.mjs' got through). A program that builds the path from pieces, or
  * a script written to a file and then run, is not seen (RULES.md known limits 1 and 5).
  */
@@ -202,15 +203,19 @@ const SCRIPTS = 'experiment\\.mjs|batch-[\\w.-]+\\.sh|audit-[\\w.-]+\\.mjs|selec
 const EXPERIMENT = new RegExp(`(^|[\\s{!])((\\S*\\/)?(node|bash|sh|zsh|dash|source|\\.)((?:\\s+-\\S+)*)\\s+)?(\\S*\\/)?(${SCRIPTS})(?=\\s|$)(\\s+(\\S+))?`);
 const SCRIPT_WORD = new RegExp(`^(\\S*\\/)?(${SCRIPTS})$`);
 
-export function decide(input, { root = process.cwd(), cwd = root, tracked = () => false, unlocked = false, depth = 0 } = {}) {
+export function decide(input, { root = process.cwd(), cwd = root, outer = [], tracked = () => false, unlocked = false, depth = 0 } = {}) {
   const tool = input.tool_name || '';
   const ti = input.tool_input || {};
   const rel = f => { const abs = isAbsolute(f) ? f : resolve(root, f); return relative(root, abs).split('\\').join('/'); };
   // where a relative path in a shell command can point: the session's working directory, the project root, and every
   // directory the command cd's into (27 Sep: a write to a locked file named from research/solver got through)
   const raw0 = String(ti.command || ''), home = process.env.HOME || '~';
-  const cds = [...raw0.matchAll(/(?:^|[\s;&|(])cd\s+(['"]?)([^\s;&|)'"]+)\1/g)].map(m => m[2].replace(/^~(?=\/|$)/, home)).filter(d => d !== '-');
-  const bases = [...new Set([cwd, root, ...cds.flatMap(d => [resolve(cwd, d), resolve(root, d)])])];
+  // cd and pushd in order, each from every directory the command could be in by then (cd research && cd solver), and the
+  // directories of an enclosing command (cd research/solver && bash -c '...': the hundred-and-first review, MINOR 1)
+  const cds = [...raw0.matchAll(/(?:^|[\s;&|(])(?:cd|pushd)\s+(['"]?)([^\s;&|)'"]+)\1/g)].map(m => m[2].replace(/^~(?=\/|$)/, home)).filter(d => d !== '-');
+  const bases = [...new Set([cwd, root, ...outer])];
+  for (const d of cds) for (const b of [...bases]) bases.push(resolve(b, d));
+  bases.splice(0, bases.length, ...new Set(bases));
   const relAll = f => [...new Set(bases.map(b => relative(root, isAbsolute(f) ? f : resolve(b, f)).split('\\').join('/')))];
   const deny = reason => ({ decision: 'deny', reason });
   const LOCKED = what => `${what} is part of the rules' enforcement (RULES.md) and is locked. Tell the maintainer what is wrong with the check and why the change does not weaken it; they unlock it by writing "unlock enforcement" in their next message.`;
@@ -228,7 +233,7 @@ export function decide(input, { root = process.cwd(), cwd = root, tracked = () =
 
   // a command hidden in bash -c '...', eval '...' or a here-document fed to a shell is judged as if typed
   if (depth < 3) for (const inner of [...innerCommands(raw), ...shellHeredocs(raw)]) {
-    const d = decide({ tool_name: 'Bash', tool_input: { command: inner } }, { root, cwd, tracked, unlocked, depth: depth + 1 });
+    const d = decide({ tool_name: 'Bash', tool_input: { command: inner } }, { root, cwd, outer: bases, tracked, unlocked, depth: depth + 1 });
     if (d && d.decision === 'deny') return d;
   }
 

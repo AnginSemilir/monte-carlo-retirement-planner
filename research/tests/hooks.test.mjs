@@ -86,7 +86,11 @@ const R = [
   [ROOT, 'cd research/solver && echo x >> review-log.md', 'cd research/solver, then a redirect into the review log'],
   [ROOT, "cd .claude/hooks && python3 -c \"open('stop-check.mjs','w')\"", 'cd .claude/hooks, then python -c writing a hook'],
   [SOLVER, 'git checkout -- uncertainty.mjs', 'git checkout of the index from research/solver'],
-  [ROOT, "cd /tmp && cd /home/user/vitejs-vite-kdvuf9qw/research/solver && node -e \"require('fs').writeFileSync('fair-gate.mjs','')\"", 'an absolute cd, then node -e writing the gate']];
+  [ROOT, "cd /tmp && cd /home/user/vitejs-vite-kdvuf9qw/research/solver && node -e \"require('fs').writeFileSync('fair-gate.mjs','')\"", 'an absolute cd, then node -e writing the gate'],
+  [ROOT, 'cd research && cd solver && echo x > uncertainty.mjs', 'two chained cds, then a redirect into the index'],
+  [ROOT, "cd research/solver && bash -c 'rm uncertainty.mjs'", "a cd, then rm inside bash -c '...'"],
+  [ROOT, "cd research/solver && bash -c 'echo x > review-log.md'", "a cd, then a redirect inside bash -c '...'"],
+  [ROOT, 'pushd research/solver && rm check-plan.mjs', 'pushd, then rm of the checker']];
 for (const [cwd, c, what] of R) ok(is(bashIn(cwd, c), 'deny') && is(bashIn(cwd, c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);
 ok(is(bashIn(ROOT, "cd research/solver && python3 - <<'EOF'\np='PLAN.md'; s=open(p).read(); open(p,'w').write(s.replace('a', '(review-log.md, 27 Sep)'))\nEOF"), null), 'an edit of the plan from research/solver that quotes the review log in its text goes ahead');
 ok(is(bashIn(ROOT, "python3 - <<'EOF'\nimport os\np=os.path.join('research/solver','PLAN.md'); open(p,'w').write('x')\nEOF"), null), "a program writing the plan beside the folder name 'research/solver' goes ahead (a folder is not a locked file)");

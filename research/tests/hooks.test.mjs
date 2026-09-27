@@ -90,7 +90,20 @@ const R = [
   [ROOT, 'cd research && cd solver && echo x > uncertainty.mjs', 'two chained cds, then a redirect into the index'],
   [ROOT, "cd research/solver && bash -c 'rm uncertainty.mjs'", "a cd, then rm inside bash -c '...'"],
   [ROOT, "cd research/solver && bash -c 'echo x > review-log.md'", "a cd, then a redirect inside bash -c '...'"],
-  [ROOT, 'pushd research/solver && rm check-plan.mjs', 'pushd, then rm of the checker']];
+  [ROOT, 'pushd research/solver && rm check-plan.mjs', 'pushd, then rm of the checker'],
+  [ROOT, 'cd -P research/solver && rm uncertainty.mjs', "cd -P, then rm of the index (cd's options skipped)"],
+  [ROOT, 'cd -- research/solver && echo x > uncertainty.mjs', 'cd --, then a redirect into the index'],
+  [ROOT, 'git -C research/solver rm uncertainty.mjs', 'git -C, then git rm of the index'],
+  [ROOT, 'git -C research/solver checkout HEAD~5 -- uncertainty.mjs', 'git -C, then git checkout of the index'],
+  [ROOT, 'env -C research/solver rm uncertainty.mjs', 'env -C, then rm of the index']];
+// the directory list is capped: past MAX_DIRS a locked command is refused at once, not followed for tens of seconds
+// (the hundred-and-second review, MINOR 1: 24 cds took 41 s against a 10 s hook timeout)
+{ const many = Array.from({ length: 40 }, (_, i) => `cd d${i}`).join(' && ') + ' && ls', t0 = Date.now();
+  const d = bashIn(ROOT, many), d2 = bashIn(ROOT, many, true), secs = (Date.now() - t0) / 1000;
+  ok(is(d, 'deny') && is(d2, null) && secs < 1, `planted: forty distinct cds are refused while locked and go ahead unlocked, in ${secs.toFixed(2)} s (under 1 s)`); }
+{ const t0 = Date.now(); const d = bashIn(ROOT, Array.from({ length: 40 }, () => 'cd .').join(' && ') + ' && rm research/solver/uncertainty.mjs');
+  ok(is(d, 'deny') && (Date.now() - t0) < 1000, 'forty repeated cds and an rm of the index: refused in under 1 s (the list stays distinct)'); }
+ok(is(bashIn(ROOT, 'cd research/solver && git -C . status && ls'), null), 'cd and git -C with no write go ahead');
 for (const [cwd, c, what] of R) ok(is(bashIn(cwd, c), 'deny') && is(bashIn(cwd, c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);
 ok(is(bashIn(ROOT, "cd research/solver && python3 - <<'EOF'\np='PLAN.md'; s=open(p).read(); open(p,'w').write(s.replace('a', '(review-log.md, 27 Sep)'))\nEOF"), null), 'an edit of the plan from research/solver that quotes the review log in its text goes ahead');
 ok(is(bashIn(ROOT, "python3 - <<'EOF'\nimport os\np=os.path.join('research/solver','PLAN.md'); open(p,'w').write('x')\nEOF"), null), "a program writing the plan beside the folder name 'research/solver' goes ahead (a folder is not a locked file)");

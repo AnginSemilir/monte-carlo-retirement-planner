@@ -80,7 +80,11 @@ that is only half right, a comparison point about to change) rest on the reviewe
 against it; a gap here is MINOR unless a research claim relies on it. The fixes proposed are in PLAN.md, bugs of 24 Sep.
 1. The hook sees an enforcement file by its path written out in the command text, resolved from the session's working
    directory, the repository root, every directory the command cd's or pushd's into (in order, so `cd research && cd
-   solver` is followed) and those of an enclosing command for one inside bash -c or a here-document (since 27 Sep: before, only the full path
+   solver` is followed, past cd's own options) or names with git -C, env -C or make -C, and those of an enclosing command
+   for one inside bash -c or a here-document. The list of places is capped at 64: past it a locked command is refused
+   outright (a command with six or more different cds can be refused though it writes nothing; split it), since each cd
+   can double the list and a hook that runs past its 10 s timeout lets the command through (the hundred-and-second
+   review, MINOR 1: 24 cds took 41 s before the cap). Since 27 Sep: before, only the full path
    from the root counted, and `cd research/solver` then an inline write to 'uncertainty.mjs' got through; the maintainer's
    unlock that day, planted in hooks.test.mjs). Anything else gets through: a whole folder that holds enforcement files (`rm -rf
    .claude`, `git checkout <rev> -- research/solver`, `mv` or `cp -r` on the folder), a glob, a path split by quotes.

@@ -63,8 +63,9 @@ export function shellCode(cmd) {
  * perl -i, tee, rm, unlink, truncate, chmod, chown, touch, shred, patch, mv (either end) or dd of=; the destination of cp,
  * install, ln or rsync; a path after git checkout, restore, rm or mv; or an inline python or node program (a here-document
  * fed to it, or its -c / -e text) that names the file and makes a write call. Relative paths are resolved from the session's
- * working directory, the project root and every directory the command cd's or pushd's into, in order, and those of an
- * enclosing command for one inside bash -c or a here-document (27 Sep: `cd research/solver` and then a
+ * working directory, the project root and every directory the command cd's or pushd's into (past cd's own options), or
+ * names with git -C, env -C or make -C, in order, and those of an enclosing command for one inside bash -c or a
+ * here-document; past MAX_DIRS such places a locked command is refused (27 Sep: `cd research/solver` and then a
  * write to 'uncertainty.mjs' got through). A program that builds the path from pieces, or
  * a script written to a file and then run, is not seen (RULES.md known limits 1 and 5).
  */
@@ -89,7 +90,10 @@ export function writesProtected(raw, prot, lit = () => false) {
     if (ANY_ARG.test(cmd) && files.some(prot)) return true;
     if (DEST_ARG.test(cmd) && files.length && prot(files[files.length - 1])) return true;
     if (cmd === 'dd' && args.some(a => /^of=/.test(a) && prot(a.slice(3)))) return true;
-    if (cmd === 'git' && /^(checkout|restore|rm|mv)$/.test(files[0] || '') && files.slice(1).some(prot)) return true;
+    if (cmd === 'git') {   // git's own options first, -C <dir> and -c <key=value> with their values (git -C research/solver rm ...)
+      const g = []; for (let k = 0; k < args.length; k++) { if (args[k] === '-C' || args[k] === '-c') { k++; continue; } if (!/^-/.test(args[k])) g.push(args[k]); }
+      if (/^(checkout|restore|rm|mv)$/.test(g[0] || '') && g.slice(1).some(prot)) return true;
+    }
   }
   return inlinePrograms(raw).some(prog => WRITE_CALL.test(prog) && (PROTECTED.some(p => prog.includes(p.replace(/\/$/, ''))) || pathLiterals(prog).some(lit)));
 }
@@ -203,6 +207,7 @@ const SCRIPTS = 'experiment\\.mjs|batch-[\\w.-]+\\.sh|audit-[\\w.-]+\\.mjs|selec
 const EXPERIMENT = new RegExp(`(^|[\\s{!])((\\S*\\/)?(node|bash|sh|zsh|dash|source|\\.)((?:\\s+-\\S+)*)\\s+)?(\\S*\\/)?(${SCRIPTS})(?=\\s|$)(\\s+(\\S+))?`);
 const SCRIPT_WORD = new RegExp(`^(\\S*\\/)?(${SCRIPTS})$`);
 
+export const MAX_DIRS = 64;
 export function decide(input, { root = process.cwd(), cwd = root, outer = [], tracked = () => false, unlocked = false, depth = 0 } = {}) {
   const tool = input.tool_name || '';
   const ti = input.tool_input || {};
@@ -212,10 +217,16 @@ export function decide(input, { root = process.cwd(), cwd = root, outer = [], tr
   const raw0 = String(ti.command || ''), home = process.env.HOME || '~';
   // cd and pushd in order, each from every directory the command could be in by then (cd research && cd solver), and the
   // directories of an enclosing command (cd research/solver && bash -c '...': the hundred-and-first review, MINOR 1)
-  const cds = [...raw0.matchAll(/(?:^|[\s;&|(])(?:cd|pushd)\s+(['"]?)([^\s;&|)'"]+)\1/g)].map(m => m[2].replace(/^~(?=\/|$)/, home)).filter(d => d !== '-');
-  const bases = [...new Set([cwd, root, ...outer])];
-  for (const d of cds) for (const b of [...bases]) bases.push(resolve(b, d));
-  bases.splice(0, bases.length, ...new Set(bases));
+  // cd's own options are skipped (cd -P, cd --), and git -C, env -C / --chdir and make -C count as a change of directory
+  // (the hundred-and-second review, MINOR 2). The list is kept distinct as it grows and capped at MAX_DIRS: past the cap
+  // a locked command is refused rather than followed, since each cd can double the list and a hook that runs past its
+  // timeout lets the command through (the same review, MINOR 1: 24 cds took 41 s)
+  const dirRe = /(?:^|[\s;&|(])(?:(?:cd|pushd)(?:\s+-[A-Za-z@-]*)*|(?:git|env|make)\s[^\n;&|]*?(?:-C|--chdir=?|--directory=?))\s*(['"]?)([^\s;&|)'"]+)\1/g;
+  const cds = [...raw0.matchAll(dirRe)].map(m => m[2].replace(/^~(?=\/|$)/, home)).filter(d => d !== '-');
+  const seen = new Set([cwd, root, ...outer]);
+  let tooMany = false;
+  for (const d of cds) { for (const b of [...seen]) seen.add(resolve(b, d)); if (seen.size > MAX_DIRS) { tooMany = true; break; } }
+  const bases = [...seen];
   const relAll = f => [...new Set(bases.map(b => relative(root, isAbsolute(f) ? f : resolve(b, f)).split('\\').join('/')))];
   const deny = reason => ({ decision: 'deny', reason });
   const LOCKED = what => `${what} is part of the rules' enforcement (RULES.md) and is locked. Tell the maintainer what is wrong with the check and why the change does not weaken it; they unlock it by writing "unlock enforcement" in their next message.`;
@@ -228,6 +239,7 @@ export function decide(input, { root = process.cwd(), cwd = root, outer = [], tr
     return null;
   }
   if (tool !== 'Bash') return null;
+  if (tooMany && !unlocked) return deny(`This command changes directory in more ways than the lock follows (over ${MAX_DIRS} places a relative path could point), so it cannot tell whether it writes an enforcement file. Split it, or name paths in full.`);
   const raw = String(ti.command || '');
   const code = shellCode(raw);
 

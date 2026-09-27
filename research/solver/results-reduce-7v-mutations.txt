@@ -1,4 +1,4 @@
-true script: planted (70): all read as they should
+true script: planted (71): all read as they should
 caught  the gate accepts a missing case: the gate refuses a missing case: false (want true)
 caught  the gate ignores the case line's settings: the gate refuses a case line that names another lambda: false (want true)
 caught  the gate ignores a second setting changed between arms: the gate refuses a second setting changed between arms: false (want true)
@@ -46,6 +46,9 @@ caught  item 12 reads the gap's sign, not its size: item 12 reads the bad world'
 caught  item 13 HELD at anything above half: item 13 is INCONCLUSIVE between half and 70% of 7t's churn (6 a path): HELD (want INCONCLUSIVE)
 caught  item 13 against the wrong 7t figure: the planted 'good' story (P alone; no noise, no C, no L) reads items 1-8 and 10-13 as HELD but 4, 5 and 6 FALSIFIED: HELD,HELD,HELD,FALSIFIED,FALSIFIED,FALSIFIED,HELD,HELD,HEL
 caught  items 1 and 2 re-read on every path: items 1, 2 and 10 re-read on paths 1,001-8,000: the harm on paths 1-1,000 is left out, and item 10 is among them: 0/30,0/30 6 true (want 0/0,0/0 6 true)
+caught  item 4 re-read on every path: item 4 re-read on paths 1,001-8,000: a noise harm on S126 OFF/0 in paths 1-1,000 is left out, one past them is read, on its own leg: FALSIFIED HELD HELD 14 true (want FALSIFIE
+caught  item 4's held-out read HELD only when every leg harms: item 4 re-read on paths 1,001-8,000: a noise harm on S126 OFF/0 in paths 1-1,000 is left out, one past them is read, on its own leg: FALSIFIED FALSIFIED INCONCLUSIVE 14 true (
+caught  item 4's held-out read leaves out the reader's arm: item 4 re-read on paths 1,001-8,000: a noise harm on S126 OFF/0 in paths 1-1,000 is left out, one past them is read, on its own leg: FALSIFIED FALSIFIED HELD 10 true (want FAL
 caught  the gate accepts a missing year-0 gap line: the gate refuses a missing year-0 gap line: false (want true)
 caught  S194 registers no world lines: the gate refuses S194 without its world lines: false (want true)
 caught  a reader candidate without its gains: the candidates: no reader arm without its gains; READER+J/0 with them; the fix alone at 1e-4 (no harm anywhere): 5 READER/3e-4,READER/1e-4,READER/0,READER+J/1e-4,READER+J/0 tr
@@ -62,4 +65,4 @@ caught  item 10 left out of the re-read on paths 1,001-8,000: items 1, 2 and 10 
 caught  the attribution does not name N from item 13: the attribution names N from item 13 alone (off's churn gone at 30 points, item 4 FALSIFIED): HELD: P, the margin holding a near-tie; the reader alone is cured at margin 0 (it
 caught  the attribution names P on item 2 alone: the attribution names P only with item 3 as well as item 2: HELD: P, the margin holding a near-tie; the reader alone is cured at margin 0 (items 2, 3 and 10) (want no explanat
 
-62 mutations: every one caught
+65 mutations: every one caught

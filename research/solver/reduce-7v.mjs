@@ -299,6 +299,19 @@ export function heldOut(S) {
   const leg = (id, A, B) => ({ id, label: `${id}: ${B} against ${A} on paths ${HOLD + 1}-${N}`, k: cells(cut(id, A), cut(id, B)), margin: margin(id) });
   return [...harmFamily(HARMED.map(id => leg(id, PRODUCT, 'READER/1e-3'))), ...harmFamily(HARMED.map(id => leg(id, 'OFF/0', 'READER/0'))), ...harmFamily(HARMED.map(id => leg(id, PRODUCT, 'READER/0')))];
 }
+// item 4 re-read on paths HOLD+1 to N (the maintainer, 27 Sep, after the ninety-fifth review's MINOR 4: its S126 OFF legs
+// come from OFF run lines read in full before registration). The whole item on the held-out paths: each arm's better small
+// margin picked there, Holm over its legs, the same three outcomes as item 4
+export function heldOut4(S) {
+  const cut = (id, l) => S(id, l).subarray(HOLD);
+  const margin = id => marginFor(survivedShare(cut(id, PRODUCT)));
+  const net = (id, l) => { const k = cells(cut(id, PRODUCT), cut(id, l)); return k.saved - k.lost; };
+  const legs = harmFamily(CORE_IDS.flatMap(id => (CASES[id].arms.includes('READER') ? ['OFF', 'OFF+J', 'READER+J'] : ['OFF', 'OFF+J']).map(X => {
+    const pk = net(id, `${X}/3e-4`) >= net(id, `${X}/1e-4`) ? '3e-4' : '1e-4';
+    return { id, label: `${id}: ${X}/0 against ${X}/${pk} on paths ${HOLD + 1}-${N}`, k: cells(cut(id, `${X}/${pk}`), cut(id, `${X}/0`)), margin: margin(id) };
+  })));
+  return { legs, outcome: legs.some(x => x.o === 'harm') ? 'HELD' : legs.every(x => x.o === 'no material harm') ? 'FALSIFIED' : 'INCONCLUSIVE' };
+}
 
 // PLANTED, before any real file (rule 6)
 function planted() {
@@ -440,6 +453,10 @@ function planted() {
   cases.push(['the reader is off on a non-bridge case', `${armOn('S194', 'READER+J/0')} ${armOn('S126', 'READER+J/0')}`, 'OFF+J/0 READER+J/0']);
   cases.push(['the product is never a candidate of its own; the reader and one policy at 0.001 are', `${candidates(mkS(good), mkW()).some(x => x.l === PRODUCT)} ${['READER/1e-3', 'OFF+J/1e-3', 'READER+J/1e-3'].every(l => candidates(mkS(good), mkW()).some(x => x.l === l))}`, 'false true']);
   cases.push(['items 1, 2 and 10 re-read on paths 1,001-8,000: the harm on paths 1-1,000 is left out, and item 10 is among them', (() => { const S = mkS(good); const S2 = (id, l) => { const a = Uint8Array.from(S(id, l)); if (HARMED.includes(id) && l === 'READER/1e-3') { for (let i = 0; i < 400; i++) a[i] = 0; for (let i = 400; i < 440; i++) a[i] = 1; for (let i = 400; i < 430; i++) a[i] = 0; } return a; }; const h = heldOut(S2); return `${h.slice(0, 2).map(x => `${x.k.saved}/${x.k.lost}`).join(',')} ${h.length} ${!!h[4] && h[4].label.includes('READER/0 against OFF/1e-3')}`; })(), '0/0,0/0 6 true']);
+  cases.push(['item 4 re-read on paths 1,001-8,000: a noise harm on S126 OFF/0 in paths 1-1,000 is left out, one past them is read, on its own leg', (() => {
+    const S = mkS(good), at = from => (id, l) => { const a = Uint8Array.from(S(id, l)); if (id === 'S126' && ['OFF/3e-4', 'OFF/1e-4', 'OFF/0'].includes(l)) for (let i = from; i < from + 60; i++) a[i] = l === 'OFF/0' ? 0 : 1; return a; };
+    const early = heldOut4(at(0)), late = heldOut4(at(3000)), leg = late.legs.find(x => x.o === 'harm');
+    return `${heldOut4(S).outcome} ${early.outcome} ${late.outcome} ${late.legs.length} ${!!leg && leg.label.startsWith('S126: OFF/0 against OFF/')}`; })(), 'FALSIFIED FALSIFIED HELD 14 true']);
   let nbad = 0;
   for (const [name, got, want] of cases) { const ok = got === want; if (!ok) nbad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${got}${ok ? '' : ` (want ${want})`}`); }
   if (nbad) { console.log(`PLANTED CHECK FAILED: ${nbad}`); process.exit(1); }
@@ -513,6 +530,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   console.log(`\nITEMS 1, 2 AND 10 ON PATHS ${HOLD + 1}-${N} (reported: the timing measurement ran S126 on paths 1-${HOLD} before registration; the ninety-third review, BLOCKING 3, and the ninety-fourth, BLOCKING 2)`);
   for (const l of heldOut(S)) console.log(`     ${legText(l)}`);
+  { const h4 = heldOut4(S); console.log(`\nITEM 4 ON PATHS ${HOLD + 1}-${N} (reported: its S126 OFF legs come from OFF run lines read before registration; the maintainer, 27 Sep): ${h4.outcome}`); for (const l of h4.legs) console.log(`     ${legText(l)}`); }
   const cz = candidates(S, W);
   console.log('\n9. THE CANDIDATES FOR 7u (a list, not a verdict), by survival (the regimen\'s) and by the realised whole score (grade C): the fix alone read on S126, bridge 4 and S194 (its S360 and share 0.95 legs beside); a reader arm on all five core cases, and by survival it must also gain on S360 and share 0.95');
   for (const x of cz) console.log(`  ${x.l.padEnd(12)} survival ${x.ok ? 'CANDIDATE' : 'no       '} whole score ${x.okW ? 'CANDIDATE' : 'no       '}${x.uncondOk ? '' : ' (the unconditional reading disagrees on a leg)'} | ${x.h.map(h => `${h.label} ${h.k.saved}/${h.k.lost} ${h.o}`).join('; ')}${x.g.length ? ` | ${x.g.map(q => `${q.label} ${q.k.saved}/${q.k.lost} ${q.o}`).join('; ')}` : ''}${x.beside.length ? ` | beside: ${x.beside.map(b => `${b.id} ${b.k.saved}/${b.k.lost}`).join('; ')}` : ''} | whole score ${x.ws.map(q => `${q.id} ${f3(q.w)}`).join('; ')}`);

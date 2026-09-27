@@ -19,6 +19,7 @@ M = [
     ("the gate does not read the held tier on the ran line", " holdTier: p.hold, finalIntegral", " finalIntegral"),
     ("the gate does not read the worlds on the ran line", "const w = { mix: p.mix, pts", "const w = { pts"),
     ("the gate ignores the hold line", "if (!u.hold || u.hold.pair !== p.hold)", "if (false)"),
+    ("the gate ignores the reader's reference", "    else if (u.hold.ref !== (p.arm === 'READER' ? 'plan' : 'none'))", "    else if (false)"),
     ("the gate ignores the solved margin", "u.joint.margin !== '0.001' || ", ""),
     ("the gate counts no world lines", "if (u.worlds.length !== nw || ", "if (false && "),
     ("the gate reads the worlds with some() over what is there and skips a hole", "Array.from({ length: nw }, (_, k) => u.worlds[k]).some(x => !x || x.paths !== WP)", "u.worlds.some(x => !x || x.paths !== WP)"),

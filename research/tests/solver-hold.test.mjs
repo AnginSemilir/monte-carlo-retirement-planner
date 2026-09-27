@@ -10,6 +10,8 @@
  *      need not: the tables maximise the score, and the free table gave up 0.02 of a point of survival in one world on S004
  *   E. planted: the same check with the free and held tables swapped fails - D can fail
  *   F. the option refuses a pair not on the menu; with the bridge reader a held table off the plan's tier still solves
+ *   G. with the reader, a held table keeps the reference at the plan's tiers unless readerRef 'held' (planted: the two differ
+ *      when held deep, and coincide at 0/0)
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -68,7 +70,24 @@ ok('F  with no tier menu (tiers off) it is refused', !!threw && /no tiers/.test(
 { const bridge = singles.find(x => x.id === 'S126');
   const bp = prep(bridge.plan), bm = M.prepare(E, bp), bdeep = tierCombos(bm, true).reduce((a, b) => (b[0] + b[1] > a[0] + a[1] ? b : a));
   let res = null, err = null; try { res = solveMixture(E, M, bp, { points: 6, lump: bm.ctx.fullLumpSum, tiers: tiersFor(bm), mix: 3, spendLevels: [1], lambda: 0.05, bridgeRead: 'reader', holdTier: bdeep }); } catch (e) { err = e.message; }
-  ok('F  the reader with a held table off the plan\'s tier solves (it reads the bridge at the held tier)', !!res && res.meta.bridgeRead === 'reader' && res.meta.holdTier === bdeep.join('/'), err || `S126 held at ${bdeep.join('/')}`); }
+  ok('F  the reader with a held table off the plan\'s tier solves, its reference at the plan\'s tiers by default', !!res && res.meta.bridgeRead === 'reader' && res.meta.holdTier === bdeep.join('/') && res.meta.readerRef === 'plan', err || `S126 held at ${bdeep.join('/')}`);
+  /* G. THE READER'S REFERENCE UNDER A HOLD (the review of 27 Sep 20:49 UK, BLOCKING 1): by default a held table reads the
+   * bridge at the plan's tiers, as the free table does, so a hold changes the menu alone. Held at 0/0 the two references
+   * coincide (the compiled plan rates are what a move at 0/0 carries): the tables are equal to the bit. Held deep they
+   * differ: the check can fail, and 'held' is the move's own tiers. */
+  // S126 itself has a two-year bridge, whose one growth step the reference barely moves; S126 four years before its pension
+  // age (audit-s126.mjs's bridge 4) gives the reference three growth steps
+  const b4 = JSON.parse(JSON.stringify(bridge.plan)), nmpa = E.num(b4.demographics.privatePensionAge, 58);
+  b4.demographics = { ...b4.demographics, currentAgeSelf: nmpa - 4, retireAgeSelf: Math.min(nmpa - 4, E.num(b4.demographics.retireAgeSelf, 55)) };
+  const bp4 = prep(b4), bm4 = M.prepare(E, bp4);
+  const bo = { points: 6, lump: bm4.ctx.fullLumpSum, tiers: tiersFor(bm4), mix: 3, spendLevels: [1], lambda: 0.05, bridgeRead: 'reader' };
+  const tabs = r => r.mix.tables.flatMap(tab => ['surv', 'lsurv', 'pol'].flatMap(kk => (tab[kk] || []).flatMap(v => (v ? Array.from(v) : []))));
+  const eq = (a, b) => { const x = tabs(a), y = tabs(b); return x.length === y.length && x.every((v, i) => v === y[i]); };
+  const p0 = solveMixture(E, M, bp4, { ...bo, holdTier: [0, 0] }), h0r = solveMixture(E, M, bp4, { ...bo, holdTier: [0, 0], readerRef: 'held' });
+  const pd = solveMixture(E, M, bp4, { ...bo, holdTier: bdeep }), hdr = solveMixture(E, M, bp4, { ...bo, holdTier: bdeep, readerRef: 'held' });
+  ok('G  held at 0/0 the plan\'s reference and the held one give the same tables, to the bit', eq(p0, h0r));
+  ok('G  held deep they differ (the reference moves the read: the option is not inert)', !eq(pd, hdr));
+  ok('G  meta names the reference', pd.meta.readerRef === 'plan' && hdr.meta.readerRef === 'held' && free.meta.readerRef === null); }
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

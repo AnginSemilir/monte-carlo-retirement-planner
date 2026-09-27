@@ -49,7 +49,7 @@ const CASEL = /^(\S.*?)\s+case \| unit (\S+) \| lambda (\S+) tier (\S+) riskAbov
 const SOLVEL = /^\s+solve (\S+): table (-?[\d.]+) secs (\d+)$/;
 const RANL = /^\s+ran (\S+): (.*)$/;
 const JOINTL = /^\s+joint (\S+): (true|false) switchMargin (\S+) scale (\S+) cap (\S+) deathTax (\S+) tier (\S+) riskAbove (\S+)$/;
-const HOLDL = /^\s+hold (\S+): (\d\/\d) pension (\S+) isa (\S+) moves (\d+)$/;
+const HOLDL = /^\s+hold (\S+): (\d\/\d) pension (\S+) isa (\S+) moves (\d+) ref (\S+)$/;
 const WORLDL = /^\s+world (\S+) (\d) z (-?[\d.]+) weight ([\d.]+): table (-?[\d.]+) sim (-?[\d.]+) paths (\d+)$/;
 const RUNL = /^\s+run (\S+): sim (-?[\d.]+) tier-below (\S+) changes (\S+) secs (\d+)$/;
 export const field = (ran, k) => { const m = new RegExp(`(?:^|\\s)${k} (\\S+)`).exec(ran || ''); return m ? m[1] : null; };
@@ -64,7 +64,7 @@ export function parse(text) {
     if ((m = SOLVEL.exec(line)) && m[1] === cur.label) { cur.table = +m[2]; cur.secs = +m[3]; continue; }
     if ((m = RANL.exec(line)) && m[1] === cur.label) { cur.ran = m[2]; continue; }
     if ((m = JOINTL.exec(line)) && m[1] === cur.label) { cur.joint = { joint: m[2] === 'true', margin: m[3], deathTax: +m[6], tier: m[7], decided: m[8] }; continue; }
-    if ((m = HOLDL.exec(line)) && m[1] === cur.label) { cur.hold = { pair: m[2], pen: m[3], isa: m[4], moves: +m[5] }; continue; }
+    if ((m = HOLDL.exec(line)) && m[1] === cur.label) { cur.hold = { pair: m[2], pen: m[3], isa: m[4], moves: +m[5], ref: m[6] }; continue; }
     if ((m = WORLDL.exec(line)) && m[1] === cur.label) { cur.worlds[+m[2]] = { z: +m[3], w: +m[4], table: +m[5], sim: +m[6], paths: +m[7] }; continue; }
     if ((m = RUNL.exec(line)) && m[1] === cur.label) { cur.run = { sim: +m[2], tierBelow: +m[3], changes: +m[4], secs: +m[5] }; continue; }
     if (/^\s+done (\S+)$/.test(line) && line.trim() === `done ${cur.label}`) { cur.done = true; continue; }
@@ -88,6 +88,9 @@ export function gate(units) {
     if (!u.joint) bad.push(`${u.id} ${u.label}: no joint line`);
     else if (u.joint.joint || u.joint.margin !== '0.001' || u.joint.deathTax !== 0 || u.joint.tier !== 'own' || u.joint.decided !== DECIDED) bad.push(`${u.id} ${u.label}: joint line ${JSON.stringify(u.joint)}`);
     if (!u.hold || u.hold.pair !== p.hold) bad.push(`${u.id} ${u.label}: hold line ${u.hold ? u.hold.pair : 'missing'}, not ${p.hold}`);
+    // the reader's reference stays at the plan's tiers under a hold (the review of 27 Sep 20:49 UK, BLOCKING 1): the held
+    // tables differ from the free ones in their menu alone
+    else if (u.hold.ref !== (p.arm === 'READER' ? 'plan' : 'none')) bad.push(`${u.id} ${u.label}: the reader's reference ${u.hold.ref}, not ${p.arm === 'READER' ? 'plan' : 'none'}`);
     const nw = +p.mix;
     if (u.worlds.length !== nw || Array.from({ length: nw }, (_, k) => u.worlds[k]).some(x => !x || x.paths !== WP)) bad.push(`${u.id} ${u.label}: lacks its ${nw} world lines at ${WP} paths`);
     if (!u.run) bad.push(`${u.id} ${u.label}: no run line`);
@@ -140,17 +143,18 @@ export function items(U, S) {
 function planted() {
   const cases = [];
   const ranOf = (label) => { const p = parts(label); return `mix ${p.mix} pts 30 seed 7002 paths 8000 grid total30x6x6 lambda ${LAMBDA} levels ${LEVELS} raiseSurv true failShort floor tiersAbove 0 minPot 29000 quad 5 holdTier ${p.hold} finalIntegral true bridgeRead ${p.arm === 'READER' ? 'reader' : 'false'}`; };
-  const unitText = (id, label, { ran = ranOf(label), worlds = +parts(label).mix, wp = WP, hold = parts(label).hold, margin = '0.001', done = true, table = '90.0000', skip = -1 } = {}) => [
+  const unitText = (id, label, { ran = ranOf(label), worlds = +parts(label).mix, wp = WP, hold = parts(label).hold, margin = '0.001', done = true, table = '90.0000', skip = -1, ref = parts(label).arm === 'READER' ? 'plan' : 'none' } = {}) => [
     `${id.padEnd(16)} case | unit ${label} | lambda ${LAMBDA} tier own riskAbove auto`,
     `${''.padEnd(16)} solve ${label}: table ${table} secs 1`, `${''.padEnd(16)} ran ${label}: ${ran}`,
     `${''.padEnd(16)} joint ${label}: false switchMargin ${margin} scale 1 cap 1 deathTax 0 tier own riskAbove ${DECIDED}`,
-    `${''.padEnd(16)} hold ${label}: ${hold} pension Medium isa Medium moves 96`,
+    `${''.padEnd(16)} hold ${label}: ${hold} pension Medium isa Medium moves 96 ref ${ref}`,
     ...Array.from({ length: worlds }, (_, k) => `${''.padEnd(16)} world ${label} ${k} z 0.0000 weight 0.3333: table 90.0000 sim 90.0000 paths ${wp}`).filter((_, k) => k !== skip),
     `${''.padEnd(16)} run ${label}: sim 90.0000 tier-below 0.00 changes 0.000 secs 1`, ...(done ? [`${''.padEnd(16)} done ${label}`] : [])].join('\n');
   const good = () => UNITS.map(([id, l]) => unitText(id, l)).join('\n');
   const bent = (id, label, o) => UNITS.map(([i, l]) => unitText(i, l, i === id && l === label ? o : {})).join('\n');
   cases.push(['a log parsed and gated: twenty units, the gate passes', `${parse(good()).length} ${gate(parse(good())).length}`, '20 0']);
   cases.push(['the gate refuses the wrong held tier on the ran line', String(gate(parse(bent('S126', 'READER/H22/M3', { ran: ranOf('READER/H22/M3').replace('holdTier 2/2', 'holdTier 0/0') }))).length > 0), 'true']);
+  cases.push(['the gate refuses the reader\'s reference at the held tier', String(gate(parse(bent('share 0.95', 'READER/H22/M3', { ref: 'held' }))).length > 0), 'true']);
   cases.push(['the gate refuses a hold line that disagrees', String(gate(parse(bent('S194', 'OFF/H22/M5', { hold: '1/1' }))).length > 0), 'true']);
   cases.push(['the gate refuses three worlds where five are named', String(gate(parse(bent('S360', 'OFF/H00/M5', { ran: ranOf('OFF/H00/M5').replace('mix 5', 'mix 3') }))).length > 0), 'true']);
   cases.push(['the gate refuses a missing world line', String(gate(parse(bent('S360', 'OFF/H00/M5', { worlds: 4 }))).length > 0), 'true']);

@@ -734,7 +734,7 @@ if (mode === 'f1v2') {
     console.log(`${''.padEnd(16)} solve ${label}: table ${res.table.toFixed(4)} secs ${Math.round(res.secs)}`);
     console.log(`${''.padEnd(16)} ran ${label}: ${res.ran}`);
     console.log(`${''.padEnd(16)} joint ${label}: ${!!r.meta.jointWorlds} switchMargin ${r.switchMargin} scale ${Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0)))} cap ${Math.round(r.meta.bequestCap)} deathTax ${r.m.ctx.pensionDeathTaxRate} tier own riskAbove ${ra}`);
-    { const t = r.c.tiers; console.log(`${''.padEnd(16)} hold ${label}: ${r.meta.holdTier} pension ${String(t.pen[hold[0]].name).replace(/ /g, '_')} isa ${String(t.isa[hold[1]].name).replace(/ /g, '_')} moves ${r.c.acts.length}`); }
+    { const t = r.c.tiers; console.log(`${''.padEnd(16)} hold ${label}: ${r.meta.holdTier} pension ${String(t.pen[hold[0]].name).replace(/ /g, '_')} isa ${String(t.isa[hold[1]].name).replace(/ /g, '_')} moves ${r.c.acts.length} ref ${r.meta.readerRef || 'none'}`); }
     r.mix.nodes.forEach((z, k) => {
       const wpaths = res.paths.slice(0, WP).map(zs => { const c = Float64Array.from(zs); c[c.length - 1] = z; return c; });
       const w = run(r, wpaths, false), v = r.worlds[k].value(s0, 0);

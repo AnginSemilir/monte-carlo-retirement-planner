@@ -1,4 +1,4 @@
-true script: planted (27): all read as they should
+true script: planted (28): all read as they should
 caught  the gate accepts a missing unit: the gate refuses a missing unit: false (want true)
 caught  the gate ignores a second setting changed within a case: the gate refuses a second setting changed within a case (the minimum pot): false (want true)
 caught  the gate strips the minimum pot with the held tier: the gate refuses a second setting changed within a case (the minimum pot): false (want true)
@@ -6,6 +6,7 @@ caught  the gate does not read the seed: the gate refuses the wrong seed on ever
 caught  the gate does not read the held tier on the ran line: the gate refuses the wrong held tier on the ran line: false (want true)
 caught  the gate does not read the worlds on the ran line: the gate refuses three worlds where five are named: false (want true)
 caught  the gate ignores the hold line: the gate refuses a hold line that disagrees: false (want true)
+caught  the gate ignores the reader's reference: the gate refuses the reader's reference at the held tier: false (want true)
 caught  the gate ignores the solved margin: the gate refuses a solve at another margin: false (want true)
 caught  the gate counts no world lines: the gate refuses a missing world line: false (want true)
 caught  the gate reads the worlds with some() over what is there and skips a hole: the gate refuses a hole among the world lines (the middle world missing): false (want true)
@@ -29,4 +30,4 @@ caught  item 4 held on the sign alone: the sign control with the tables under 0.
 caught  item 4 ignores the size floor: the sign control with the tables under 0.1 points: item 4 INCONCLUSIVE: HELD (want INCONCLUSIVE)
 caught  the margin from the wrong run: the sign control below 95% survival reads a 0.4-point loss at the 0.5 margin: not material, item 4 INCONCLUSIVE: HELD (want INCONCLUSIVE)
 
-29 mutations: every one caught
+30 mutations: every one caught

@@ -1,6 +1,6 @@
 /*
  * 7X'S POWER (predictions/diag-7x.md, Power; its output hashed in the prediction and re-run by the launcher). Items 1, 3
- * and 4 read a realised difference on 3,000 paths (dS) against the held tables' difference (dT, a table property with no
+ * and 4 read a realised difference on 8,000 paths (dS) against the held tables' difference (dT, a table property with no
  * path noise); item 2 reads tables alone and has no path power. Each story fixes dT and draws dS as Poisson counts (saved,
  * lost) with a background of b paths each way (b = 0.5 and 5), 20,000 draws a story, read by reduce-7x.mjs's own rules
  * (reduce-7v.mjs's gain and harm families, the ratio bounds).

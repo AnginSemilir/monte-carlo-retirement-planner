@@ -2,10 +2,10 @@
 
 - **Run:** `research/solver/batch-7x.sh` - results/diag7x/case0-19.txt and every unit's trace (audit-s126.mjs diag7x); reduced by `reduce-7x.mjs` into results-7x.txt
 - **Kind:** test
-- **Written:** 27 Sept, 20:37 UK, before the run (new-prediction.mjs's stamp). The maintainer, 27 Sep: "agree - do option A, run 7x", on the deep review after 7w (deep-review-log.md, 27 Sep 20:17 UK; PLAN.md 7x)
-- **Seen before registration:** no 7x output. The solver option's own test (research/tests/solver-hold.test.mjs, S004 at 10 points) printed S004's held and free tables' opening survival; S004 is not a 7x case and nothing here rests on it. The sizes in the Power section are 7v's traces, read and published at 7v's read (results-7v.txt, results-derive-7x.txt)
+- **Written:** 27 Sept, 20:37 UK, before the run (new-prediction.mjs's stamp); first registered in 6e8d2a0. REVISED before any launch for the review of 27 Sep 20:49 UK (review-log.md, FAIL: one BLOCKING, three MINOR): under a hold the bridge reader's reference stays at the plan's tiers (solve.js; readerRef 'held' kept only to size that premise), so a held table differs from the free one in its menu alone, and the gate requires it; the opening switch's cost bounded; the run time re-estimated; the derivation script's header corrected. The maintainer, 27 Sep: "agree - do option A, run 7x", on the deep review after 7w (deep-review-log.md, 27 Sep 20:17 UK; PLAN.md 7x)
+- **Seen before registration:** no 7x output. The solver option's own test (research/tests/solver-hold.test.mjs, S004 at 10 points, and S126 with a four-year bridge at 6 points) printed S004's held and free tables' opening survival and whether the reader's reference moves S126's tables; neither is a 7x unit's figure and nothing here rests on them. The preflight (a measurement through the launcher, 4 points, 20 paths) passed its parse check; only its verdict line was read. The sizes in the Power section are 7v's traces, read and published at 7v's read (results-7v.txt, results-derive-7x.txt)
 - **Seeds:** 7002 tuning (8,000 paths, 7v's; the first 1,000 of them for each world run, the path's long-run shift set to the world's node; the same paths for every unit). The product's 'auto' risk-above rule reads its own seed 7101 inside solvePlan; on these cases it never draws a path (no tier above within reach, as 7v's gate confirmed; 7x's gate requires the same joint-line decision). The held-out seed reserved to 7u is not used
-- **Unmasking:** holding one tier for the whole plan removes a suspected error of the solver's own, FS: the tables are solved as if switching were free (the backward pass holds no tier; fast.js's SWITCH_COST note, solve.js's chooser), so the value of keeping the plan's tier now includes a later de-risk at no cost, and the opening de-risk looks worth little. The baseline behaviour it drives: the free tables' year-0 gaps on S126 (8.0241e-4, reader) and S194 (7.5604e-4, off) sit inside the product's margin, so the chooser keeps the plan's tier, while opening in tier 2 realised 37 saved, 0 lost and 35 saved, 10 lost of 8,000 (results-derive-7x.txt, from 7v). The separating items: five worlds against three (item 2) tell W, the missing deep tail, from FS; share 0.95 (item 3) tells Q, the five-point average at the bridge's last year, which no hold removes; S360 under off (item 4) tells a table that reads the sign of the de-risk from one that cannot (off's flat misread, O33). A held table can also unmask the reader's own pessimism (O36): the per-world lines report each held table against its own world run
+- **Unmasking:** holding one tier for the whole plan removes a suspected error of the solver's own, FS: the tables are solved as if switching were free (the backward pass holds no tier; fast.js's SWITCH_COST note, solve.js's chooser), so the value of keeping the plan's tier now includes a later de-risk at no cost, and the opening de-risk looks worth little. The baseline behaviour it drives: the free tables' year-0 gaps on S126 (8.0241e-4, reader) and S194 (7.5604e-4, off) sit inside the product's margin, so the chooser keeps the plan's tier, while opening in tier 2 realised 37 saved, 0 lost and 35 saved, 10 lost of 8,000 (results-derive-7x.txt, from 7v). The separating items: five worlds against three (item 2) tell W, the missing deep tail, from FS; share 0.95 (item 3) tells Q, the five-point average at the bridge's last year, which no hold removes; S360 under off (item 4) tells a table that reads the sign of the de-risk from one that cannot (off's flat misread, O33). The bridge reader's reference is held at the plan's tiers in both arms (the review of 27 Sep 20:49 UK, BLOCKING 1: read at the held tier it would remove a second suspected premise, the reference never at the move's own tiers, which the deep review after 7w listed; research/tests/solver-hold.test.mjs G shows that reference moves the read on a four-year bridge), so on every case the two arms differ in the menu alone. The reader's own pessimism (O36) is not removed by either arm; the per-world lines report each held table against its own world run
 - **Plan section:** PLAN.md "7x"
 
 ## Question
@@ -31,7 +31,11 @@ What the code and the records say before any run:
   spend level still chosen. Free switching can only add value to a table (research/tests/solver-hold.test.mjs D: the free
   table's opening score is at least each held table's in every world, shown failing when swapped). The forward run of a held
   table switches once at year 0 (from the plan's tier, paying the 0.25% switching cost on the slice moved, which the table
-  does not charge) and never again (the test's C).
+  does not charge) and never again (the test's C). That cost (0.25% of the slice moved; the equity share moved, about 0.4
+  of the pension and ISA, so about 0.1% of them, once) lowers dS and so raises R, towards FS. A bound on S126 (grade C):
+  survival fell from 99.8 at its wealth to 95.7 at half of it under off at 16 points (results-7s.txt; results-7e.txt, wealth
+  x0.5), about 0.08 points a 1% cut if linear, so about 0.008 points for 0.1% - under 2% of S126's dS (0.4625). Not sized on
+  the other cases (NOT CHECKED); share 0.95's year-1 step may be more sensitive.
 - **What each cause predicts.** FS: the free tables undervalue the de-risk because keeping the plan's tier is credited with a
   free later de-risk; held tables lose that credit, so dT (2/2 less 0/0, the tables) matches dS (the same, realised on the
   same paths) within 1.5 times, and five worlds change dT little. W: the held tables still see only part of dS, because the
@@ -101,13 +105,13 @@ Arm A and arm B as the batch script sets them: for items 1, 3 and 4, the same ca
 | 17 | The grid: points, shares, gain buckets | 30 points (the product's), the default shares and gain buckets | the same | SAME |
 | 19 | The switch margin and switching cost | the product's 0.001 and switching cost: with one tier on the menu the margin never acts; the cost is charged once, at the opening switch to 2/2 | the same | SAME (the margin inert under a hold; the one opening switch is arm B's own, as the freed opening's was in 7w) |
 | 20 | The dislike of cuts: lambda (held or landed) and the trim curve's exponent (together, c) | 7t's, 7v's and 7w's 0.0223606797749979, exponent 2 | the same | SAME |
-| 24 | The read and edge handling: final year exact, dead corners, the bridge read (F1), block trim | bridgeRead 'reader' on S126, bridge 4 and share 0.95, off on S194 and S360; the final year exact; the reader reads the bridge at the held tier (solve.js: a held table has no other tier; at 0/0 that is the plan's tier, as before) | the same | SAME within every read (each item compares a case with itself) |
+| 24 | The read and edge handling: final year exact, dead corners, the bridge read (F1), block trim | bridgeRead 'reader' on S126, bridge 4 and share 0.95, off on S194 and S360; the final year exact; the reader's reference at the plan's tiers (solve.js holdTier's default, the hold line's `ref plan`, required by the gate) | the same: the reference at the plan's tiers under the 2/2 hold too | SAME within every read (each item compares a case with itself; the reference does not move with the held tier) |
 | 25 | How it lands: bisection steps, level search | no landing; the full level scan | the same | SAME |
 | 26 | Which rivals, and each one's rule and parameters (the guardrails' thresholds, Vanguard's bands, ARVA's rate) | none | none | N/A - the solver against itself, no rival arm |
 | 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | none | none | N/A - no fixed arm in this run |
 | 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | one process a unit, every unit from the same snapshot and stamp (requireFairLogs) | the same | SAME |
 | 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | the table's opening survival (dT, the thing FS and W are about, read as the table's reading) against simulated survival (dS: the floor paid every year and the minimum pot at the end) | the same | SAME |
-| 30 | The reducer and its version | reduce-7x.mjs: requireFairLogs over the logs' stamps, then its own gate on every unit's case, solve, ran, joint, hold, world, run and done lines, and every trace's count, seed, arm, stamp and survival (within 0.00005); INCOMPLETE unless all twenty units are done; 27 planted checks, 29 planted faults each caught (mutate-reduce-7x.py, results-reduce-7x-mutations.txt) | the same | SAME |
+| 30 | The reducer and its version | reduce-7x.mjs: requireFairLogs over the logs' stamps, then its own gate on every unit's case, solve, ran, joint, hold, world, run and done lines, and every trace's count, seed, arm, stamp and survival (within 0.00005); INCOMPLETE unless all twenty units are done; 28 planted checks, 30 planted faults each caught (mutate-reduce-7x.py, results-reduce-7x-mutations.txt) | the same | SAME |
 | 31 | Paired or not, and the standard error used | paired on the same paths; the regimen's exact rule (reduce-7v.mjs gainFamily and harmFamily), Holm within each item, the exact 95% interval against the case's margin, the unconditional one beside; the ratios by their registered bounds | the same | SAME |
 | 32 | The table's number is never the result: survival is simulated | dS is simulated; dT is the table's reading, read as that (it is what the test is about), never as survival | the same | SAME |
 | 33 | For timings: what else the machine was running | the solve and run seconds are printed, not read | the same | N/A - no timing is read: twenty processes share four cores, four at a time |
@@ -150,8 +154,8 @@ Arm A and arm B as the batch script sets them: for items 1, 3 and 4, the same ca
 ## Provenance
 
 - The option: solve.js `holdTier` (research only; the menu's one tier pair from the household's joint menu; a pair not on it
-  refused; with the reader, the bridge read at the held tier) and its test research/tests/solver-hold.test.mjs (15 checks,
-  A-F, one planted); research/tests/solver-joint.test.mjs and reader-solve.test.mjs pass on the changed solver.
+  refused; with the reader, the bridge read at the held tier) and its test research/tests/solver-hold.test.mjs (18 checks,
+  A-G, two planted); research/tests/solver-joint.test.mjs and reader-solve.test.mjs pass on the changed solver.
 - The mode: audit-s126.mjs diag7x; measureV2 passes `holdTier` and prints it on the ran line only when set (no other mode's
   ran line changes). The batch batch-7x.sh; the preflight preflight-7x.sh with preflight-parse-7x.mjs.
 - 7v's figures and traces: results-7v.txt, results/diag7v. 7w's: results-7w.txt. 7t's: results-7t.txt. 7h's:
@@ -189,11 +193,13 @@ From results-derive-7x.txt (20,000 draws a story; backgrounds of 0.5 and 5 paths
   FALSIFIED 1.000.
 - **Item 2** reads tables alone: no path power.
 - **What it cannot see:** a ratio between 0.5 and 1/1.5 (item 1 then INCONCLUSIVE); an error the hold shares with the free
-  tables, such as the reader's own pessimism (O36), which moves dT's level on both tiers alike (the per-world lines show it).
+  tables, such as the reader's own pessimism (O36): the reference is the same in both arms, but whether O36 moves dT is NOT
+  CHECKED (the per-world lines report each held table against its own world run).
 - **Time:** not measured for a held solve. From 7v (results-7v.txt): 30-point three-world solves 232 to 380 s with the full
   tier menu (a held menu has a third of the moves), a traced forward run about 63 s a thousand paths; five worlds about 5/3 of
-  three. So a unit about 12 to 18 minutes (a solve, 8,000 traced paths and 3,000 to 5,000 world paths), twenty units four
-  at a time: about 70 to 90 minutes, plus the smoke run and the launcher's re-run of derive-7x.mjs (about 2 minutes).
+  three (the review of 27 Sep 20:49 UK, MINOR 3: the first estimate left that factor off the five-world units). So a
+  three-world unit about 13 to 18 minutes and a five-world unit about 25 to 33, twenty units four at a time: about 95 to 130
+  minutes, plus the smoke run and the launcher's re-run of derive-7x.mjs (about 2 minutes).
 
 ## Budget line
 
@@ -208,7 +214,7 @@ removes no error itself.
 - **Second:** the held tables' level is off (O36's pessimism, or the opening switch's cost the table does not charge) and
   moves dT on one case; the per-world table-against-run lines show it.
 - **Third:** S194's realised gain under a hold differs from 7v's margin-0 size (margin 0 churns), shrinking item 1's power.
-- **Fourth:** the held solve costs more than assumed and the batch runs past two hours; nothing is read from the time.
+- **Fourth:** the held solve costs more than assumed and the batch runs past two and a half hours; nothing is read from the time.
 - **The smoke run:** smoke.sh (locked) does not run diag7x; the preflight through the launcher (all twenty units, every line
   through the reducer's parse and gate, every trace's name) and the solver option's own test cover it.
 - **Least likely:** the gate fails; the run is then NOT SETTLED.

@@ -52,15 +52,20 @@ const isProtected = rel => PROTECTED.some(p => (p.endsWith('/') ? rel.startsWith
    lazy regexes took 11-13 s on 24,000 unterminated openings). An opening with no delimiter line after it is not a
    here-document, as before */
 export function heredocs(raw) {
-  const lines = raw.split('\n'), ends = new Map(), out = [];
-  lines.forEach((l, i) => { const m = /^[ \t]*(\w+)[ \t]*$/.exec(l); if (m) { if (!ends.has(m[1])) ends.set(m[1], []); ends.get(m[1]).push(i); } });
-  const next = (d, i) => { const a = ends.get(d); if (!a) return -1; let lo = 0, hi = a.length; while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid] > i) hi = mid; else lo = mid + 1; } return lo < a.length ? a[lo] : -1; };
+  const lines = raw.split('\n'), exactAt = new Map(), tabAt = new Map(), out = [];
+  const add = (m, k, i) => { if (!m.has(k)) m.set(k, []); m.get(k).push(i); };
+  lines.forEach((l, i) => { add(exactAt, l, i); add(tabAt, l.replace(/^\t+/, ''), i); });
+  const next = (m, d, i) => { const a = m.get(d); if (!a) return -1; let lo = 0, hi = a.length; while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid] > i) hi = mid; else lo = mid + 1; } return lo < a.length ? a[lo] : -1; };
+  // the delimiter as bash takes it: \WORD, 'WORD', "WORD" or a bare word of any characters but blanks and operators
+  // (the hundred-and-fifth review, MINOR 2: <<'E-F' and <<EOF. were not found); `<<<` is a here-string, not an opening
+  const OPEN = /(^|[^<])<<(-?)[ \t]*(?:\\([^\s'"<>|;&()]+)|'([^'\n]+)'|"([^"\n]+)"|([^\s'"<>|;&()]+))/;
   for (let i = 0; i < lines.length; i++) {
-    const m = /<<-?[ \t]*(?:\\|(['"]))?(\w+)\1?/.exec(lines[i]);
+    const m = OPEN.exec(lines[i]);
     if (!m) continue;
-    const e = next(m[2], i);
+    const d = m[3] ?? m[4] ?? m[5] ?? m[6], e = next(m[2] ? tabAt : exactAt, d, i);   // bash: the delimiter line alone, tabs only after <<-
     if (e < 0) continue;
-    out.push({ line: i, end: e, before: lines[i].slice(0, m.index), after: lines[i].slice(m.index + m[0].length), body: lines.slice(i + 1, e).join('\n') });
+    const at = m.index + m[1].length;
+    out.push({ line: i, end: e, before: lines[i].slice(0, at), after: lines[i].slice(at + m[0].length - m[1].length), body: lines.slice(i + 1, e).join('\n') });
     i = e;
   }
   return out;
@@ -74,15 +79,26 @@ export function stripHeredocs(raw) {
   let k = 0;
   for (let i = 0; i < lines.length; i++) {
     const h = hs[k];
-    if (h && i === h.line) { out.push(`${h.before} <<HEREDOC ${h.after}`); i = h.end; k++; continue; }
+    if (h && i === h.line) { out.push(`${h.before} <<HEREDOC ${h.after.replace(/(^|\s)#.*$/, '$1')}`); i = h.end; k++; continue; }
     out.push(lines[i]);
   }
   return out.join('\n');
 }
+/* quoted strings blanked to '' and "" in one pass; an unclosed quote leaves the rest as it is (the hundred-and-fifth
+   review, MINOR 4: the double-quote pattern was quadratic on a run of unclosed quotes) */
+export function blankQuotes(t) {
+  let out = '', i = 0;
+  while (i < t.length) {
+    const c = t[i];
+    if (c === "'") { const e = t.indexOf("'", i + 1); if (e < 0) return out + t.slice(i); out += "''"; i = e + 1; continue; }
+    if (c === '"') { let e = i + 1; while (e < t.length && t[e] !== '"') e += t[e] === '\\' ? 2 : 1; if (e >= t.length) return out + t.slice(i); out += '""'; i = e + 1; continue; }
+    out += c; i++;
+  }
+  return out;
+}
 export function shellCode(cmd) {
   return stripHeredocs(cmd)
-    .replace(/'[^']*'/g, "''")
-    .replace(/"(?:\\.|[^"\\])*"/g, '""')
+    .replace(/[\s\S]*/, blankQuotes)
     .replace(/(^|[\s;&|])#[^\n]*/g, '$1');
 }
 
@@ -176,7 +192,9 @@ export function shellHeredocs(raw) {
   const out = [];
   const SHELL = '(\\S*\\/)?(bash|sh|zsh|dash)(\\s+-[\\w-]+)*';
   for (const { before, after, body } of heredocs(raw)) {
-    if (new RegExp(`(^|[\\s;&|({])${SHELL}\\s*$`).test(before) || new RegExp(`\\|\\s*${SHELL}\\s*($|[;&|)])`).test(after)) out.push(body);
+    // only the last and first 400 characters: a shell word and its flags are short, and a long run of ( before it made
+    // the test quadratic (the hundred-and-fifth review, MINOR 4: 280,000 ( took 42 s)
+    if (new RegExp(`(^|[\\s;&|({])${SHELL}\\s*$`).test(before.slice(-400)) || new RegExp(`\\|\\s*${SHELL}\\s*($|[;&|)])`).test(after.slice(0, 400))) out.push(body);
   }
   return out;
 }
@@ -209,7 +227,8 @@ export function commandOf(part) {
 
 /* what follows `<cmd>` (at a command word anywhere in the part), or null: the rules below read their options there */
 const after = (part, cmd) => {
-  const m = new RegExp(`(^|[\\s{!])(\\S*/)?${cmd}(?=\\s|$)`).exec(part);
+  // the path before the command word is bounded, as in EXPERIMENT (a run of { made \S* quadratic: the hundred-and-fifth review)
+  const m = new RegExp(`(^|[\\s{!])(\\S{0,1000}/)?${cmd}(?=\\s|$)`).exec(part);
   return m ? part.slice(m.index + m[0].length) : null;
 };
 const gitSub = (part, sub) => {
@@ -231,7 +250,7 @@ export function innerCommands(raw) {
 // the scripts that run experiments: the solver's experiment script, the batches, the audits, the Phase 4 selection and
 // the gate scripts (24 Sep, the plan-auditor: select-phase4.mjs and the gates ran directly were not seen)
 const SCRIPTS = 'experiment\\.mjs|batch-[\\w.-]+\\.sh|audit-[\\w.-]+\\.mjs|select-phase4\\.mjs|couple-gate\\.mjs|bridge-gate\\.mjs|seedcheck\\.mjs';
-const EXPERIMENT = new RegExp(`(^|[\\s{!])((\\S*\\/)?(node|bash|sh|zsh|dash|source|\\.)((?:\\s+-\\S+)*)\\s+)?(\\S*\\/)?(${SCRIPTS})(?=\\s|$)(\\s+(\\S+))?`);
+const EXPERIMENT = new RegExp(`(^|[\\s{!])((\\S{0,1000}\\/)?(node|bash|sh|zsh|dash|source|\\.)((?:\\s+-\\S+)*)\\s+)?(\\S{0,1000}\\/)?(${SCRIPTS})(?=\\s|$)(\\s+(\\S+))?`);
 const SCRIPT_WORD = new RegExp(`^(\\S*\\/)?(${SCRIPTS})$`);
 
 /* the file names of the enforcement: every locked file's own name, and the names of the files in a locked folder today.
@@ -244,15 +263,21 @@ export function lockedNames(root) {
   for (const d of PROTECTED.filter(p => p.endsWith('/'))) { try { for (const f of readdirSync(join(root, d))) names.add(f); } catch { /* no folder */ } }
   return names;
 }
-export function decide(input, { root = process.cwd(), cwd = root, names = lockedNames(root), tracked = () => false, unlocked = false, depth = 0 } = {}) {
+export const lockedDirNames = () => new Set(PROTECTED.flatMap(p => p.replace(/\/$/, '').split('/').slice(0, -1).concat(p.endsWith('/') ? [p.replace(/\/$/, '').split('/').pop()] : [])));
+export function decide(input, { root = process.cwd(), cwd = root, names = lockedNames(root), dirNames = lockedDirNames(), tracked = () => false, unlocked = false, depth = 0 } = {}) {
   const tool = input.tool_name || '';
   const ti = input.tool_input || {};
   const rel = f => { const abs = isAbsolute(f) ? f : resolve(root, f); return relative(root, abs).split('\\').join('/'); };
   // a path an edit could reach: an absolute one exactly; a relative one by its file name (see lockedNames), and exactly
   // from the root and the session's working directory
   const relOf = f => relative(root, isAbsolute(f) ? f : resolve(root, f)).split('\\').join('/');
-  const named = f => !isAbsolute(f) && names.has(posix.normalize(f.replace(/\\/g, '/')).split('/').pop());
-  const exact = f => [relOf(f), relative(root, isAbsolute(f) ? f : resolve(cwd, f)).split('\\').join('/')];
+  const home = process.env.HOME || '/root', expand = f => f.replace(/^(~|\$HOME|\$\{HOME\})(?=\/|$)/, home);
+  const named = f => { f = expand(f); return !isAbsolute(f) && names.has(posix.normalize(f.replace(/\\/g, '/')).split('/').pop()); };
+  // a relative target that is a folder the command could be standing in or near: `.`, `..`, a trailing slash, or the name
+  // of a folder on a locked path (cp x . inside research/solver; rm -rf hooks inside .claude: the hundred-and-fifth
+  // review, MINOR 1). Refused while locked for a writing command's target; the cost is in RULES.md known limit 1
+  const folderish = f => { f = expand(f); if (isAbsolute(f)) return false; const n = posix.normalize(f.replace(/\\/g, '/')); return n === '.' || n === '..' || /\/$/.test(f) || n.startsWith('../') && n.split('/').every(x => x === '..' || x === '') || dirNames.has(n.split('/').pop()); };
+  const exact = f => { f = expand(f); return [relOf(f), relative(root, isAbsolute(f) ? f : resolve(cwd, f)).split('\\').join('/')]; };
   const deny = reason => ({ decision: 'deny', reason });
   const LOCKED = what => `${what} is part of the rules' enforcement (RULES.md) and is locked. Tell the maintainer what is wrong with the check and why the change does not weaken it; they unlock it by writing "unlock enforcement" in their next message.`;
   const ask = reason => ({ decision: 'ask', reason });
@@ -269,7 +294,7 @@ export function decide(input, { root = process.cwd(), cwd = root, names = locked
 
   // a command hidden in bash -c '...', eval '...' or a here-document fed to a shell is judged as if typed
   if (depth < 3) for (const inner of [...innerCommands(raw), ...shellHeredocs(raw)]) {
-    const d = decide({ tool_name: 'Bash', tool_input: { command: inner } }, { root, cwd, names, tracked, unlocked, depth: depth + 1 });
+    const d = decide({ tool_name: 'Bash', tool_input: { command: inner } }, { root, cwd, names, dirNames, tracked, unlocked, depth: depth + 1 });
     if (d && d.decision === 'deny') return d;
   }
 
@@ -306,7 +331,7 @@ export function decide(input, { root = process.cwd(), cwd = root, names = locked
   const redirect = [...code.matchAll(/>>?\s*([^\s;&|()]+)/g)].map(m => m[1]).filter(t => !/^&?\d$/.test(t) && t !== '/dev/null');
   if (redirect.some(t => named(t) || exact(t).some(isProtected))) return unlocked ? null : deny(LOCKED('The file this redirects into'));
   // a path, or a folder that holds an enforcement file (cp x .claude/hooks)
-  const prot = t => named(t) || exact(t).some(x => { const r = x.replace(/\/$/, ''); return isProtected(r) || PROTECTED.some(p => p.startsWith(r + '/')); });
+  const prot = t => named(t) || folderish(t) || exact(t).some(x => { const r = x.replace(/\/$/, ''); return isProtected(r) || PROTECTED.some(p => p.startsWith(r + '/')); });
   // a program's quoted string counts only when it is an enforcement file itself (a folder such as 'research/solver' is not)
   const lit = t => named(t) || exact(t).some(isProtected);
   if (writesProtected(raw, prot, lit)) return unlocked ? null : deny(LOCKED('This command writes an enforcement file, which'));

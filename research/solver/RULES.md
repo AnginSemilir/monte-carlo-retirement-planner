@@ -83,9 +83,17 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    file in a locked folder today) is refused, wherever the command has cd'd to, since any relative path to a locked file
    ends in that file's name (since 27 Sep, the hundred-and-fourth review: following cd, pushd, git -C and the like first
    missed a relative path after any cd, then missed "$(...)", loops and wrappers; the name reading needs no directory at
-   all and runs in one pass). Its cost: a relative write to any file that merely shares a locked name (settings.json,
-   pre-commit, smoke.sh, CLAUDE.md, ...) is refused while locked; name it by an absolute path. Here-documents are read
-   line by line (heredocs()): a body is data, the rest of its opening line is code. Anything else gets through: a whole folder that holds enforcement files (`rm -rf
+   all and runs in one pass). A writing command's relative target that is a folder the command could be standing in or
+   beside - `.`, `..`, a path ending in /, or the name of a folder on a locked path (.claude, hooks, agents, .githooks,
+   .github, workflows, research, solver, tests) - is refused too (the hundred-and-fifth review: `cp x .` inside
+   research/solver and `rm -rf hooks` inside .claude got through the name rule). ~ and $HOME are read as absolute. Its
+   cost while locked: a relative write to any file that merely shares a locked name (settings.json, pre-commit, smoke.sh,
+   CLAUDE.md, ...), any cp, mv or rm whose relative target is `.`, `..`, ends in / or is one of those folder names
+   (`rm -rf results/diag7v/`), and an inline python or node program that writes anything while quoting a locked name it
+   only reads, are refused; name the path absolutely. Here-documents are read line by line (heredocs()): a body is data,
+   the rest of its opening line is code (less a comment), the delimiter is taken as bash takes it, and only the delimiter
+   line alone ends a << here-document (tabs stripped only for <<-). Not handled, as before: a `<<` inside quotes or a
+   comment read as an opening, and a delimiter partly quoted (`<<E"OF"`); symlinks, `>|` and `>&` targets. Anything else gets through: a whole folder that holds enforcement files (`rm -rf
    .claude`, `git checkout <rev> -- research/solver`, `mv` or `cp -r` on the folder), a glob, a path split by quotes.
 2. A git restore of the whole tree that names no file (`git checkout <rev> -- .`, `git reset --hard`, `git stash`).
 3. Ways of feeding a shell its commands other than `bash -c`, `eval` and a here-document fed to a shell: `bash - <<EOF`,

@@ -138,6 +138,29 @@ ok(is(bashIn(ROOT, 'echo x > notes/settings.json'), 'deny'), 'the cost, pinned: 
 ok(is(bashIn(ROOT, "cat <<EOF && rm research/solver/uncertainty.mjs\nx\nEOF"), 'deny'), 'planted: a write on the opening line of a here-document is read (the old pattern dropped the rest of that line)');
 ok(is(bashIn(ROOT, "cat <<\\EOF > /tmp/x\nit's here\nEOF\ncd research/solver && rm uncertainty.mjs"), 'deny'), "planted: a backslash-quoted delimiter's body with an apostrophe does not swallow the write after it");
 ok(is(bashIn(ROOT, "cat > /tmp/notes <<'EOF'\nrm research/solver/uncertainty.mjs\nEOF"), null), "a here-document body naming a write is data, and goes ahead");
+// the hundred-and-fifth review: folder targets, here-document edges, and three older quadratic patterns
+for (const [c, what] of [
+  ['cd .claude/hooks && cp /tmp/pre-tool.mjs .', 'cp into . inside the hooks folder'],
+  ['cd research/solver && mv /tmp/uncertainty.mjs .', 'mv into . inside research/solver'],
+  ['cd research/solver && ln -sf /tmp/uncertainty.mjs .', 'ln -sf into .'],
+  ['cd research && cp /tmp/uncertainty.mjs solver/', 'cp into solver/'],
+  ['cd research/solver/predictions && cp /tmp/uncertainty.mjs ..', 'cp into ..'],
+  ['cd .claude && rm -rf hooks', 'rm -rf of the hooks folder by its name'],
+  ['cd research && git checkout HEAD~3 -- solver', 'git checkout of the solver folder by its name'],
+  ['cd research && mv solver /tmp/x', 'mv of the solver folder away'],
+  ["cat <<'E-F' > /tmp/a\nit's\nE-F\necho x > research/solver/uncertainty.mjs # '", 'a redirect after a here-document whose delimiter has a hyphen'],
+  ["cat <<EOF. > /tmp/a\nit's\nEOF.\necho x > research/solver/uncertainty.mjs # '", 'a redirect after a here-document whose delimiter ends in a dot'],
+  ["cat <<'EOF' > /tmp/a # it's\nx\nEOF\necho x > research/solver/uncertainty.mjs # '", "a redirect after an opening line whose comment has an apostrophe"],
+  ["cat <<EOF > /tmp/a\n  EOF\nEOF\necho x > research/solver/uncertainty.mjs", 'a space-indented EOF, which does not end a << here-document'],
+  ['echo x > ~/../..' + ROOT + '/research/solver/uncertainty.mjs', 'a ~ path into the repository']])
+  ok(is(bashIn(ROOT, c), 'deny') && is(bashIn(ROOT, c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);
+ok(is(bashIn(ROOT, 'cat <<<"cd x" && ls'), null), 'a here-string is not a here-document opening');
+for (const [what, big, old] of [["280,000 '(' before bash <<a", '('.repeat(280000) + " bash <<a\nls\na\nrm research/solver/uncertainty.mjs", '42 s'],
+  ["100,000 '{' then an rm of the index", '{'.repeat(100000) + ' ; rm research/solver/uncertainty.mjs', '38 s'],
+  ['140,000 unclosed \\" then an rm of the index', '"\\'.repeat(140000) + '\n; rm research/solver/uncertainty.mjs', '19 s']]) {
+  const t0 = Date.now(), d = bashIn(ROOT, big), secs = (Date.now() - t0) / 1000;
+  ok(d && d.decision === 'deny' && secs < 2, `planted: ${what}: refused in ${secs.toFixed(2)} s (under 2 s; 9729d3c took about ${old})`);
+}
 for (const w of ['env', 'make', 'git']) {
   const big = Array(70000).fill(w).join(' ') + ' ; rm research/solver/uncertainty.mjs', t0 = Date.now(), d = bashIn(ROOT, big), secs = (Date.now() - t0) / 1000;
   ok(is(d, 'deny') && secs < 2, `planted: 70,000 '${w}' words then an rm of the index are refused in ${secs.toFixed(2)} s (under 2 s; d62f947 took over 10 s)`);

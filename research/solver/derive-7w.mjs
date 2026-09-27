@@ -12,6 +12,11 @@
  *     freed opening is drawn level with margin 0 (it takes margin 0's opening and holds it), at half and at the whole of
  *     1e-3's loss (freeing the opening does nothing).
  * The gap items (1, 3 and 5) are one solve each and read by a registered ratio, not by paths: no power is drawn for them.
+ * Their point comes from Q'S ARITHMETIC, printed first: the sixth deep review's year-1 thresholds on share 0.95 (a path
+ * fails in year 1 when z0 + 0.4 x its shift falls below -1.52 at the plan's tier and -1.69 at tier 2; deep-review-log.md,
+ * 27 Sep 18:19 UK, from its read-only scripts over 7v's traces, grade C) set against the solver's own return points
+ * (solve.js NODES and gaussHermite(15)) and the mixture's worlds (solve.js MIX3): the share of the de-risk's year-1 value
+ * each rule can see, against the continuous one.
  *   node research/solver/derive-7w.mjs > research/solver/results-derive-7w.txt
  */
 import { readFileSync, readdirSync } from 'node:fs';
@@ -24,6 +29,7 @@ import { decode } from './reduce-7t.mjs';
 import { marginFor } from './stats.mjs';
 import * as V from './reduce-7v.mjs';
 import { N } from './reduce-7w.mjs';
+import { NODES, gaussHermite } from '../../src/solver/solve.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 // 7w's paths are 7v's first N (a planted fault shown to fail: a different seed's first path differs)
@@ -47,6 +53,21 @@ for (const [id, a, b] of [['share 0.95', 'READER/1e-3', 'READER/1e-4'], ['share 
   ['S126', 'READER/0', 'READER/1e-3'], ['S194', 'OFF/0', 'OFF/1e-3']]) rec[`${id} ${a} ${b}`] = V.cells(S(id, a), S(id, b));
 const mar = { 'share 0.95': marginFor(V.survivedShare(S('share 0.95', 'OFF/1e-3'))), S126: marginFor(V.survivedShare(S('S126', 'READER/1e-3'))), S194: marginFor(V.survivedShare(S('S194', 'OFF/1e-3'))) };
 if (bad.length) { console.log(`FAIR-TEST GATE (7v's records): FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
+// Q'S ARITHMETIC
+{ const W = { z: [-Math.sqrt(3), 0, Math.sqrt(3)], w: [1 / 6, 2 / 3, 1 / 6] }, TP = -1.52, T2 = -1.69, LOAD = 0.4;
+  const erf = x => { const t = 1 / (1 + 0.3275911 * Math.abs(x)), y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; };
+  const Phi = x => 0.5 * (1 + erf(x / Math.SQRT2));
+  const g15 = gaussHermite(15), g5 = gaussHermite(5);
+  if (NODES.some((x, i) => Math.abs(x - g5.nodes[i]) > 1e-5)) { console.log('PLANTED CHECK FAILED: gaussHermite(5) is not the solver\'s five points'); process.exit(1); }
+  const seen = q => W.z.map((sh, k) => ({ sh, w: W.w[k], lo: T2 - LOAD * sh, hi: TP - LOAD * sh, mass: q.nodes.reduce((t, x, i) => t + (x >= T2 - LOAD * sh && x < TP - LOAD * sh ? q.weights[i] : 0), 0), nodes: q.nodes.filter(x => x >= T2 - LOAD * sh && x < TP - LOAD * sh) }));
+  const whole = r => r.reduce((t, x) => t + x.w * x.mass, 0);
+  const cont = W.z.reduce((t, sh, k) => t + W.w[k] * (Phi(TP - LOAD * sh) - Phi(T2 - LOAD * sh)), 0);
+  console.log("Q'S ARITHMETIC: the chance a path fails in year 1 at the plan's tier but not at tier 2, as each rule sees it (the sixth deep review's thresholds, grade C)");
+  for (const [nm, q] of [['5 points (the product)', { nodes: NODES, weights: g5.weights }], ['15 points', g15]]) {
+    const r = seen(q);
+    console.log(`  ${nm.padEnd(24)} ${whole(r).toFixed(4)}  (${r.map(x => `world ${x.sh.toFixed(2)}: z0 in [${x.lo.toFixed(3)}, ${x.hi.toFixed(3)}) holds ${x.nodes.length ? x.nodes.map(v => v.toFixed(3)).join(', ') : 'no point'}`).join('; ')})`);
+  }
+  console.log(`  the continuous chance     ${cont.toFixed(4)} (${(cont * 8000).toFixed(0)} of 8,000 paths; 7v's realised year-1 excess, 175, from the sixth deep review)\n`); }
 console.log(`7W'S POWER: ${N} paths; 20000 draws a story (seed 7002); read by reduce-7w.mjs's families with Holm over the item's legs\n`);
 console.log(`THE SIZES: 7v's traces on 7w's own paths (the first ${N} of seed 7002; 7v's stamp gate and trace checks passed), saved/lost of the second run against the first`);
 for (const [k, v] of Object.entries(rec)) console.log(`  ${k.padEnd(44)} ${v.saved}/${v.lost}`);

@@ -1,3 +1,8 @@
+Q'S ARITHMETIC: the chance a path fails in year 1 at the plan's tier but not at tier 2, as each rule sees it (the sixth deep review's thresholds, grade C)
+  5 points (the product)   0.0000  (world -1.73: z0 in [-0.997, -0.827) holds no point; world 0.00: z0 in [-1.690, -1.520) holds no point; world 1.73: z0 in [-2.383, -2.213) holds no point)
+  15 points                0.0596  (world -1.73: z0 in [-0.997, -0.827) holds no point; world 0.00: z0 in [-1.690, -1.520) holds -1.607; world 1.73: z0 in [-2.383, -2.213) holds no point)
+  the continuous chance     0.0208 (166 of 8,000 paths; 7v's realised year-1 excess, 175, from the sixth deep review)
+
 7W'S POWER: 3000 paths; 20000 draws a story (seed 7002); read by reduce-7w.mjs's families with Holm over the item's legs
 
 THE SIZES: 7v's traces on 7w's own paths (the first 3000 of seed 7002; 7v's stamp gate and trace checks passed), saved/lost of the second run against the first

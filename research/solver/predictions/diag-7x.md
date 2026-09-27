@@ -154,7 +154,7 @@ Arm A and arm B as the batch script sets them: for items 1, 3 and 4, the same ca
 ## Provenance
 
 - The option: solve.js `holdTier` (research only; the menu's one tier pair from the household's joint menu; a pair not on it
-  refused; with the reader, the bridge read at the held tier) and its test research/tests/solver-hold.test.mjs (18 checks,
+  refused; with the reader, the reference kept at the plan's tiers unless readerRef 'held') and its test research/tests/solver-hold.test.mjs (18 checks,
   A-G, two planted); research/tests/solver-joint.test.mjs and reader-solve.test.mjs pass on the changed solver.
 - The mode: audit-s126.mjs diag7x; measureV2 passes `holdTier` and prints it on the ran line only when set (no other mode's
   ran line changes). The batch batch-7x.sh; the preflight preflight-7x.sh with preflight-parse-7x.mjs.

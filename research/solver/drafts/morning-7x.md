@@ -49,6 +49,16 @@ The order:
 4. A deep review on both reads.
 5. The combination is at most registered, **not run tonight**, because it can't be run and read by 7am.
 
+## Tonight's runs (kept current)
+
+- **7z (Q's fix alone):** registered 22:55 UK (59bbac4), revised for the auditor's two minor findings (320a76d). The
+  auditor passed it. The preflight passed, and the batch launched 23:09 UK. The fix integrates across the reader's step
+  in the chooser. At share 0.95's opening, its test puts every move's score within 0.00013 of a 4,000-point average,
+  where the product's 5 points miss by up to 0.237. All 30 other solver test suites passed on it.
+- **7y (the tier state):** built as a research option (solve.js tierState). Its test passes 12 of 12 core checks: the
+  free endpoint to the bit, the held endpoint within 1e-8, and the chooser agreeing with the table at 2,601 of 2,601
+  nodes. Registration is in progress.
+
 ## Things to tell you
 
 - **The order was changed.** The order first put to you for Q's fix in parallel was revised for its review (the ledger

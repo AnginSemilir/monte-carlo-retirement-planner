@@ -35,3 +35,26 @@ export function swapChooser(rO, rR, which) {
   };
   return { choose, n, accessAt };
 }
+
+/*
+ * 7Y'S SWAP CHOOSER (audit-s126.mjs diag7y's TS-TIER and TS-REST arms; the deep review after 7x, deep-review-log.md 27 Sep
+ * 22:32 UK; PLAN.md O39's gate). Given the product's solve (rP) and the tier-state solve (rT, solve.js tierState) of one
+ * case with the same move list, a chooser for runPolicy's `choose` hook: in EVERY year both pick a move from the arm's own
+ * state and tier held, and the arm takes the tiers from one and the order, harvest and spending level from the other -
+ * 'tier' the tier state's tiers with the product's rest, 'rest' the product's tiers with the tier state's rest. Unlike
+ * swapChooser (7r, whose reader read only the bridge years) the tier state's tables differ in every year, so no year is
+ * left to one chooser. n.swapped counts the path-years where the two picked different moves.
+ */
+export function tsSwapChooser(rP, rT, which) {
+  if (which !== 'tier' && which !== 'rest') throw new Error(`tsSwap: no arm ${which}`);
+  const A = rP.actions;
+  if (A.length !== rT.actions.length || A.some((a, i) => a.label !== rT.actions[i].label)) throw new Error('tsSwap: the two solves have different move lists');
+  const n = { swapped: 0, same: 0 };
+  const choose = (t, s, held) => {
+    const aP = chooseAction(rP, s, t, held), aT = chooseAction(rT, s, t, held);
+    if (aP === aT) { n.same++; return aP; }
+    n.swapped++;
+    return which === 'tier' ? swapIndex(A, aT, aP) : swapIndex(A, aP, aT);
+  };
+  return { choose, n };
+}

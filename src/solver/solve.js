@@ -372,6 +372,34 @@ export function solve(E, M, plan, opts = {}) {
   for (const cc of cs) cc.switchCost = switchCost;
   // ...and is made only when the table's gain from it is worth noticing (see chooseAction)
   const switchMargin = opts.switchMargin !== undefined ? opts.switchMargin : (opts.tiers ? SWITCH_MARGIN : 0);
+  /*
+   * THE TIER STATE (`tierState: true`; PLAN.md 7y; research only; the deep review after 7x, deep-review-log.md 27 Sep 22:32
+   * UK). Off, the backward pass solves every table as if the tier could be changed each year for nothing: the tier is not
+   * part of the state, and the chooser's switching cost and margin are applied forward only (7x item 1: tables held at one
+   * tier price that tier's value within 0.79 to 0.97 of what holding it realises; the free tables see a fraction). On, the
+   * tier pair held on entering the year is part of the state: one table layer per pair on the menu, and at every cell of
+   * layer j each move is scored as the chooser scores it holding j - a move to another pair pays chargeSwitch on the
+   * slice traded before the year's growth and reads the NEXT year's layer of the pair it moves to - and the move kept is
+   * the chooser's: the best, unless a move that stays in j is within the switch margin of it (ties to staying, as
+   * chooseAction). Each world's layer is solved on its own (the forward chooser weighs the worlds before the margin; the
+   * backward pass, as today, one world at a time). The plan's own pair (0/0) is the layer the result's tables expose, and
+   * scoreMoves reads each move's next-year layer. The product's path only: the ternary level search, one policy for every
+   * world, a held tier and the taxable account's tier are refused.
+   */
+  const TS = !!opts.tierState;
+  let tsPairs = null, tsLayerOf = null, tsHeld = null, tsJ0 = 0;
+  if (TS) {
+    if (opts.holdTier) throw new Error('tierState and holdTier: a held tier is one layer, not a tier state');
+    if (opts.levelSearch === 'ternary') throw new Error('tierState: the ternary level search is not supported');
+    if (opts.jointWorlds) throw new Error('tierState: one policy for every world is not supported');
+    if (opts.giaTiers) throw new Error('tierState: the taxable account\'s tier is not supported');
+    tsPairs = [...new Set(actions.map(a => `${a.tierPen || 0}/${a.tierIsa || 0}`))].map(x => x.split('/').map(Number));
+    if (tsPairs.length < 2) throw new Error('tierState needs a tier menu of two pairs or more');
+    tsLayerOf = Uint8Array.from(actions, a => tsPairs.findIndex(([p, i]) => p === (a.tierPen || 0) && i === (a.tierIsa || 0)));
+    tsHeld = tsPairs.map(([pen, isa]) => ({ pen, isa, gia: 0 }));
+    tsJ0 = tsPairs.findIndex(([p, i]) => p === 0 && i === 0);
+    if (tsJ0 < 0) throw new Error('tierState: the menu has no move at the plan\'s own tiers');
+  }
   const T0 = m.ctx.totalYears;
   // the quadrature rates by year (the folded spread depends on the years left) for each move's tier
   // combination, shared between moves that hold the same tiers
@@ -544,6 +572,10 @@ export function solve(E, M, plan, opts = {}) {
     // byte silently wrapped every index above 255 to a different move. Found 23 Sep; see results-pol-overflow.txt
     polW[k] = []; for (let t = 0; t <= T; t++) polW[k][t] = new Uint16Array(g.size);
   }
+  // the tier state's layers (above): layer tsJ0, the plan's own pair, IS each world's tables; the others are allocated here
+  const mkPol = () => { const a = []; for (let t = 0; t <= T; t++) a[t] = new Uint16Array(g.size); return a; };
+  const layW = TS ? cs.map((_, k) => tsPairs.map((_, j) => (j === tsJ0 ? { surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k] }
+    : { surv: mk(), lsurv: mk(), resil: mk(), lresil: mk(), beq: mk(), short: mk(), pol: mkPol() }))) : null;
   const surv = survW[centre], lsurv = lsurvW[centre], resil = resilW[centre];
   const lresil = lresilW[centre], beq = beqW[centre], pol = polW[centre], short = shortW[centre];
   const levelOf = actions.map(a => (a.spendLevel !== undefined ? a.spendLevel : 1));
@@ -622,6 +654,7 @@ export function solve(E, M, plan, opts = {}) {
   const base = new Float64Array(7), grown = new Float64Array(7), rd = new Float64Array(4);
   const A = actions.length;
   const postBuf = new Float64Array(A * 7);     // every action's post-decision state at this cell
+  const tsPost = new Float64Array(7);          // the tier state: a move's post-decision state after its switch is charged
   const failBuf = new Uint8Array(A);
   let evaluated = 0;
   const profT0 = PROF ? now() : 0;
@@ -797,6 +830,61 @@ export function solve(E, M, plan, opts = {}) {
                   if (PROF) PROF.skipped++;
                 }
               }
+              if (TS) {
+                // THE TIER STATE (above): per world, per layer j (the pair held entering the year), every move scored as the
+                // chooser scores it holding j, reading the next year's layer of the move's own pair; the chooser's margin kept
+                for (let k = 0; k < K; k++) {
+                  const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k];
+                  for (let j = 0; j < tsPairs.length; j++) {
+                    let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
+                    let stayScore = -Infinity, stayS = -1, stayB = -Infinity, stayR = 0, stayA = -1, stayH = 0;
+                    for (let ai = 0; ai < A; ai++) {
+                      const lj = tsLayerOf[ai], Ln = layW[k][lj];
+                      const sNext = t < T ? Ln.lsurv[t + 1] : null, bNext = t < T ? Ln.beq[t + 1] : null;
+                      const rNext = t < T ? Ln.lresil[t + 1] : null, hNext = t < T ? Ln.short[t + 1] : null;
+                      const fail = failBuf[ai] === 1;
+                      let src = postBuf, o = ai * 7;
+                      if (!fail && lj !== j && ck.switchCost > 0) { for (let q = 0; q < 7; q++) tsPost[q] = postBuf[o + q]; F.chargeSwitch(ck, tsPost, tsHeld[j], ck.acts[ai], t); src = tsPost; o = 0; }
+                      let s = 0, b = 0, rs = 0, h = 0;
+                      if (!fail) {
+                        const nr = nodeRealOf[ai];
+                        if (t === T && FINT) { finalYearExact(ck, t, src.subarray(o, o + 7), ck.acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                        else if (stepAtW && stepAtW[k] !== null && stepExpect(ck, g, t, src.subarray(o, o + 7), ck.acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
+                        else for (let zi = 0; zi < NQ; zi++) {
+                          for (let q = 0; q < 7; q++) grown[q] = src[o + q];
+                          F.grow(ck, t, grown, nr[zi]);
+                          if (t === T) {
+                            const total = grown[0] + grown[1] + grown[2];
+                            const alive = !(floor > 0 && total < floor);
+                            const net = Math.max(0, total - grown[0] * deathTax);
+                            s += QW[zi] * (alive ? 1 : 0);
+                            rs += QW[zi] * (alive ? (shortfall ? 1 - Math.min(1, Math.max(0, resilK - net) / resilK) : (net >= resilK ? 1 : 0)) : 0);
+                            b += QW[zi] * (alive ? beqOf(net) : 0);
+                          } else {
+                            readValues(g, sNext, bNext, grown, rd, rNext, hNext, t + 1);
+                            s += QW[zi] * rd[0];
+                            b += QW[zi] * rd[1];
+                            rs += QW[zi] * rd[2];
+                            h += QW[zi] * rd[3];
+                          }
+                        }
+                      }
+                      if (failShort && fail) h = failCostAt[t];
+                      else h += shortOfAction[ai];
+                      if (raiseSurv) h += raiseOfAction[ai] * s;
+                      const score = s + wR * rs + wB * b - h;
+                      if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
+                      if (lj === j && (score > stayScore + eps || (Math.abs(score - stayScore) <= eps && b > stayB))) { stayScore = score; stayS = s; stayB = b; stayR = rs; stayH = h; stayA = ai; }
+                    }
+                    // the chooser's rule: a move to another pair only when it beats the best that stays by more than the margin
+                    if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayScore > -Infinity && bestScore - stayScore <= switchMargin) { bestS = stayS; bestB = stayB; bestR = stayR; bestH = stayH; bestA = stayA; }
+                    const Lj = layW[k][j];
+                    Lj.surv[t][idx] = bestS; Lj.beq[t][idx] = bestB; Lj.resil[t][idx] = bestR; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = bestH;
+                  }
+                }
+                if (PROF) PROF.cells++;
+                continue;
+              }
               if (JOINT) {
                 // `jointWorlds`: every world's components for every move, as PASS 2 below computes them, then ONE move for
                 // every world - the best weighted score across the worlds, ties to the larger weighted estate (chooseAction)
@@ -899,12 +987,12 @@ export function solve(E, M, plan, opts = {}) {
         }
       }
     }
-    for (let k = 0; k < K; k++) {
-      toLogOdds(survW[k][t], lsurvW[k][t]);
-      if (shortfall) lresilW[k][t].set(resilW[k][t]); else toLogOdds(resilW[k][t], lresilW[k][t]);
+    for (let k = 0; k < K; k++) for (const Ly of (TS ? layW[k] : [{ surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k] }])) {
+      toLogOdds(Ly.surv[t], Ly.lsurv[t]);
+      if (shortfall) Ly.lresil[t].set(Ly.resil[t]); else toLogOdds(Ly.resil[t], Ly.lresil[t]);
       // the bridge reader: this year's table split into p x c + R, from the clamped survival the table now holds
       if (g.reader && g.reader.years[t]) {
-        const ls = lsurvW[k][t], Sc = new Float64Array(ls.length);
+        const ls = Ly.lsurv[t], Sc = new Float64Array(ls.length);
         for (let i = 0; i < ls.length; i++) Sc[i] = 1 / (1 + Math.exp(-ls[i]));
         const chance = g.reader.chanceOf(k, t), tb = buildReaderTable(g, Sc, chance);
         g.reader.of.set(ls, { chance, c: tb.c, R: tb.R, p: tb.p, t, k });
@@ -913,7 +1001,7 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, readerRef: opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, readerRef: opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
   if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, weights: g.reader.weights };
   if (JOINT) meta.jointWorlds = true;
   if (PROF) {
@@ -935,6 +1023,7 @@ export function solve(E, M, plan, opts = {}) {
     /* the end-of-plan rule the backward pass applies at t = T, so the final year can be scored exactly (see scoreMoves) */
     terminal: { floor, deathTax, resilK, shortfall, beqOf },
     finalExact: !!opts.finalExact, finalIntegral: FINT, stepExact: STEPX,
+    tsLayers: TS ? layW[centre] : null, tsLayerOf,
     raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
     /*
      * PHASE E0, STEP 2. One result-like view per world, for `chooseAction`'s mixture loop, which calls
@@ -955,7 +1044,7 @@ export function solve(E, M, plan, opts = {}) {
     surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
     nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW, quadNodes: QZ,
     tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
-    terminal: { floor, deathTax, resilK, shortfall, beqOf }, finalExact: !!opts.finalExact, finalIntegral: FINT, stepExact: STEPX, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
+    terminal: { floor, deathTax, resilK, shortfall, beqOf }, finalExact: !!opts.finalExact, finalIntegral: FINT, stepExact: STEPX, tsLayers: TS ? layW[k] : null, tsLayerOf, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
     /*
      * A world view answers `policy` and `value` as the central result does, reading ITS OWN tables.
      * Leaving them off made the view scoreable but not readable, which is half a result: the mixture
@@ -1132,13 +1221,16 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null) {
       SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
       continue;
     }
+    // the tier state (solve's tierState): each move reads the next year's layer of the pair it moves to
+    const Ln = r.tsLayers ? r.tsLayers[r.tsLayerOf[ai]] : null;
+    const sN = Ln ? Ln.lsurv[t + 1] : lsurv[t + 1], bN = Ln ? Ln.beq[t + 1] : beq[t + 1], rN = Ln ? Ln.lresil[t + 1] : lresil[t + 1], hN = Ln ? Ln.short[t + 1] : short[t + 1];
     const stepAt = r.stepExact ? stepAtOf(g, t, lsurv[t + 1]) : null;
     const sx = r._sx || (r._sx = new Float64Array(4)), sxR = r._sxR || (r._sxR = new Float64Array(4));
-    if (stepAt !== null && stepExpect(c, g, t, post, variant ? variant.act : c.acts[ai], stepAt, grown, sxR, rd, lsurv[t + 1], beq[t + 1], lresil[t + 1], short[t + 1], sx)) { sv = sx[0]; bq = sx[1]; rs = sx[2]; h += sx[3]; }
+    if (stepAt !== null && stepExpect(c, g, t, post, variant ? variant.act : c.acts[ai], stepAt, grown, sxR, rd, sN, bN, rN, hN, sx)) { sv = sx[0]; bq = sx[1]; rs = sx[2]; h += sx[3]; }
     else for (let zi = 0; zi < QW.length; zi++) {
       grown.set(post);
       F.grow(c, t, grown, nr[zi]);
-      readValues(g, lsurv[t + 1], beq[t + 1], grown, rd, lresil[t + 1], short[t + 1], t + 1);
+      readValues(g, sN, bN, grown, rd, rN, hN, t + 1);
       sv += QW[zi] * rd[0];
       bq += QW[zi] * rd[1];
       rs += QW[zi] * rd[2];

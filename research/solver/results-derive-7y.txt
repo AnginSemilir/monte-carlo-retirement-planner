@@ -1,0 +1,42 @@
+7Y'S POWER: 8000 paths; 20000 draws a story (seed 7002); read by reduce-7y.mjs's families
+
+THE SIZES (grade C, see the header), and each case's margin (7v's product run)
+  S126        15/0 of 3000 (READER@5) -> 40.0/0.0 of 8000  margin 0.25
+  S194        16/0 of 3000 (OFF@5) -> 42.7/0.0 of 8000  margin 0.25
+  share 0.95  72/0 of 3000 (READER@5) -> 192.0/0.0 of 8000  margin 0.5
+  S360 off    9/497 of 8000 (7v OFF/3e-4) -> 9.0/497.0 of 8000  margin 0.5
+  bridge 4    no record  margin 0.25
+  S360        no record  margin 0.5
+
+BACKGROUND 0.5 PATHS EACH WAY ON EVERY LEG
+  item 1, the tier state as the freed opening                                      b 0.5  HELD 1.000
+  item 1, half of it                                                               b 0.5  HELD 1.000  INCONCLUSIVE 0.000
+  item 1, a quarter of it                                                          b 0.5  FALSIFIED 0.012  HELD 0.877  INCONCLUSIVE 0.111
+  item 1, the tier state doing nothing                                             b 0.5  FALSIFIED 1.000
+  item 2, the tier carries it all                                                  b 0.5  HELD 1.000
+  item 2, the rest carries it all                                                  b 0.5  FALSIFIED 1.000  INCONCLUSIVE 0.000
+  item 2, each carries half                                                        b 0.5  INCONCLUSIVE 1.000
+  item 4, all level                                                                b 0.5  HELD 1.000
+  item 4, share 0.95 as the freed opening, the rest level                          b 0.5  HELD 1.000
+  item 4, bridge 4 loses 40 paths (0.5 points)                                     b 0.5  FALSIFIED 1.000  HELD 0.000
+  item 4, S360 with the reader loses 80 paths (1 point)                            b 0.5  FALSIFIED 1.000
+  item 5, the tier state opens S360 in tier 2 under off (7v OFF/3e-4)              b 0.5  HELD 1.000
+  item 5, a quarter of it                                                          b 0.5  HELD 1.000
+  item 5, the tier state leaves S360 alone                                         b 0.5  FALSIFIED 1.000
+
+BACKGROUND 5 PATHS EACH WAY ON EVERY LEG
+  item 1, the tier state as the freed opening                                      b 5    HELD 1.000
+  item 1, half of it                                                               b 5    FALSIFIED 0.001  HELD 0.970  INCONCLUSIVE 0.029
+  item 1, a quarter of it                                                          b 5    FALSIFIED 0.186  HELD 0.459  INCONCLUSIVE 0.355
+  item 1, the tier state doing nothing                                             b 5    FALSIFIED 0.980  HELD 0.000  INCONCLUSIVE 0.019
+  item 2, the tier carries it all                                                  b 5    HELD 0.978  INCONCLUSIVE 0.022
+  item 2, the rest carries it all                                                  b 5    FALSIFIED 0.977  INCONCLUSIVE 0.023
+  item 2, each carries half                                                        b 5    FALSIFIED 0.001  HELD 0.001  INCONCLUSIVE 0.999
+  item 4, all level                                                                b 5    HELD 1.000
+  item 4, share 0.95 as the freed opening, the rest level                          b 5    HELD 1.000
+  item 4, bridge 4 loses 40 paths (0.5 points)                                     b 5    FALSIFIED 0.999  INCONCLUSIVE 0.001
+  item 4, S360 with the reader loses 80 paths (1 point)                            b 5    FALSIFIED 1.000
+  item 5, the tier state opens S360 in tier 2 under off (7v OFF/3e-4)              b 5    HELD 1.000
+  item 5, a quarter of it                                                          b 5    HELD 1.000
+  item 5, the tier state leaves S360 alone                                         b 5    FALSIFIED 1.000
+

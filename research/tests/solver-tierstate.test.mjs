@@ -9,7 +9,8 @@
  *      estate, resilience, shortfall, stored move), every year - planted: with the product's cost and margin it is not
  *   C. THE HELD ENDPOINT: with an infinite margin layer j is holdTier j's table, every year and every pair, within 1e-8. Not
  *      to the bit: on S126 at 8 points 1,222 of 1,244,160 cells differ, by at most 6.04e-10 (27 Sep), the first at year 11 in
- *      cells clamped at the survival floor, where two moves tie within eps and the tie goes to a bequest 1e-20 larger. The
+ *      cells clamped at the survival floor, where two moves tie within eps and the tie goes to the other move, whose
+ *      bequest differs by up to 6.04e-10. The
  *      reading (eps ties at survival clamped to the floor): checked read-only by the plan-auditor's review of 7y's registration
  *      (28 Sep): at the latest differing year the two kept moves score within 1.5e-17 of each other (eps 1e-12) and their
  *      bequests differ by up to 6.04e-10; grade C, no saved script. The count and the largest difference are printed

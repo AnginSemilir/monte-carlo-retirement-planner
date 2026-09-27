@@ -2,7 +2,7 @@
 
 - **Run:** `research/solver/batch-7y.sh` - results/diag7y/case0-13.txt and every run's trace (audit-s126.mjs diag7y); reduced by `reduce-7y.mjs` into results-7y.txt
 - **Kind:** test
-- **Written:** 27 Sept, 23:19 UK, before the run (new-prediction.mjs's stamp). Under the maintainer's overnight authority (PLAN.md ledger 27 Sep 21:22: on 7x's item 1 HELD with item 2 FALSIFIED, "build the held tier in the solved state as a research option with its tests and run 7y on the tuning seed against the product (7x's cases and 7e's bridge households)"; 7x read 22:17: 1 HELD, 2 FALSIFIED) and the deep review after 7x (deep-review-log.md 27 Sep 22:32 UK; PLAN.md ledger 22:32: the design is the tier state, not held-for-life; the arms PRODUCT, TS, TS-TIER, TS-REST and H0); O37's, O38's and O39's gates (PLAN.md register). REVISED before any launch for the plan-auditor's review of 7y's registration (28 Sep, FAIL: three BLOCKING, three MINOR): the Decision fed ties the opening claim to item 3; the per-world margin named as a design premise at grade D with its failure mode; the reader's plan-tier reference in every layer named in the Unmasking field, with its gate; the held endpoint's residual stated; the 20:17 review cited without a quotation; 7v's time ranges corrected
+- **Written:** 27 Sept, 23:19 UK, before the run (new-prediction.mjs's stamp). Under the maintainer's overnight authority (PLAN.md ledger 27 Sep 21:22: on 7x's item 1 HELD with item 2 FALSIFIED, "build the held tier in the solved state as a research option with its tests and run 7y on the tuning seed against the product (7x's cases and 7e's bridge households)"; 7x read 22:17: 1 HELD, 2 FALSIFIED) and the deep review after 7x (deep-review-log.md 27 Sep 22:32 UK; PLAN.md ledger 22:32: the design is the tier state, not held-for-life; the arms PRODUCT, TS, TS-TIER, TS-REST and H0); O37's, O38's and O39's gates (PLAN.md register). REVISED before any launch for the plan-auditor's review of 7y's registration (28 Sep, FAIL: three BLOCKING, three MINOR): the Decision fed ties the opening claim to item 3; the per-world margin named as a design premise at grade D with its failure mode; the reader's plan-tier reference in every layer named in the Unmasking field, with its gate; the held endpoint's residual stated; the 20:17 review cited without a quotation; 7v's time ranges corrected; and again for its re-review (FAIL, one BLOCKING, four MINOR): the route taken from the tier state's opening at 1e-3, not from item 3's ratio; O41's gate beside O36's; the reviewer's scripts kept (research/solver/drafts/check-7y-*.mjs); the scorecard cited as it stood after 7x
 - **Seen before registration:** 7x's results (results-7x.txt, results-7x-held.txt, results-7x-pair.txt, results-7x-o36.txt); the tier state's own test (research/tests/solver-tierstate.test.mjs, at 8 points on S126 and three worlds: the free endpoint to the bit, the held endpoint within 1e-8, the chooser agreeing with the table at 2,601 of 2,601 nodes, and forty forward runs with the pension below the plan's tier in 1,207 path-years). No 7y output: the preflight runs after this registration. 7z runs beside it and is read by its own rule
 - **Seeds:** 7002 tuning (8,000 paths, 7v's, 7x's and 7z's; the same paths for every unit). The product's 'auto' risk-above rule reads its own seed 7101 inside solvePlan; on these cases it draws no path (7v's to 7z's gates; 7y's gate requires the same decision). The held-out seed reserved to 7u is not used
 - **Unmasking:** the tier state removes free switching (FS) in the backward pass: the tables value every tier as if the next year's could be changed for nothing, while the chooser pays the switching cost and applies the margin, so the table's year-0 gap for a de-risk is a one-year gap the margin then holds against (O30, O33; 7x item 1 HELD for the held special case). The baseline behaviour it drives: the product keeps the plan's tier on a sub-margin gap (7w: S126 8.0241e-4, S194 7.5604e-4) and loses what the freed opening saves (7w: 15 and 16 of 3,000). What tells a harmful change from one that unmasks another error: (a) TS-TIER and TS-REST (7r's swap precedent, every year): whether the gain or harm is the tier choice or the other choices the tier state's tables change (O39); (b) H0, the plan's tier held for life, against which the product's later switching is measured (O38); (c) S360 under off (item 5, O37): off's tables misread S360 (0.61% against 41% simulated, results-7x.txt), and a tier state built on them is expected to take the de-risk and lose - a harm registered in advance as the misread's, not the tier state's; S360 with the reader beside it (item 4) says whether the tier state harms where the bridge is read. (d) NOT SEPARATED: in every layer the reader reads its bridge years at the PLAN's tiers (solve.js chanceOf uses the plan-tier move for every layer; O36's open part), so a de-risked layer's bridge read keeps the plan-tier reference; the tier state can unmask that on bridge 4 and S360 with the reader, and 7y has no arm that separates it there (the readerRef 'held' measurement the 22:32 row scheduled is not run tonight): a harm on those legs is attributed at grade C, and O36's open part is gated before any deep review judges the combination
@@ -35,14 +35,15 @@ that carries the gain, does the year-0 gap rise as FS says it should, and does i
 - **A design premise, grade D (RULES.md section 9 rule 6): the switch rule applied per world.** The backward pass solves
   each world on its own (as the product does), so the tier state applies the margin to each world's own score, where the
   forward chooser applies it to the mixture-weighted score. The plan-auditor's read-only check (the review of 7y's
-  registration, 28 Sep; S194, 8 points, three worlds, year 1, holding 0/0, 864 nodes; grade C, no saved script): the mixture
+  registration, 28 Sep; S194, 8 points, three worlds, year 1, holding 0/0, 864 nodes; grade C; its script kept as research/solver/drafts/check-7y-perworld.mjs, not re-run): the mixture
   chooser switches at 237 nodes; world 0's layer switches at 69 nodes where the chooser stays, and worlds 1 and 2 stay at 86
   and 195 nodes where it switches. So the tier state's tables still assume switches, world by world, that the chooser does
   not make - a residual of the free switching under test. The failure it can cause: items 1 and 3 can read FALSIFIED or
   INCONCLUSIVE without clearing FS in the tables; a negative read does not say FS is absent.
 - **The held endpoint** (research/tests/solver-tierstate.test.mjs, check C): within 1e-8, not to the bit - 1,222 of
   1,244,160 cells differ, by at most 6.04e-10, where two moves tie within eps at survival clamped to the floor (the kept moves
-  score within 1.5e-17 of each other, eps 1e-12: the plan-auditor's read-only check, grade C).
+  score within 1.5e-17 of each other, eps 1e-12: the plan-auditor's read-only check, grade C, its script kept as
+  research/solver/drafts/check-7y-tie.mjs, not re-run).
 - **The prior tests of the same mechanism** (RULES.md section 9 rule 7), each with its verdict:
   - **7x** (results-7x.txt): held-for-life tables: item 1 (FS) HELD, item 2 (W) FALSIFIED, item 3 HELD (fixed by design),
     item 4 FALSIFIED (off's misread).
@@ -112,17 +113,21 @@ H0 (the plan's tier held for life) - the same case, bridge read, solve settings,
 ## Decision fed
 
 - **Items 1, 2 and 4 HELD:** free switching costs paths through the tier on S126 and S194 at grade B, and the tier state
-  recovers them with the reader. **The opening claim** - that the product's opening undervaluing is FS - is grade B only
-  for a case where item 3's ratio is at least 5 as well; where item 3 is FALSIFIED or INCONCLUSIVE, the gain came through
-  later tier choices and the opening claim stays grade C (the 22:32 row). The tier state is a research option recorded in
-  the ledger; nothing to a default tonight (the 21:22 row's exclusions). Item 5 HELD then says it must never run under off
-  (O37). It is one of the two fixes the 21:34 row may combine with Q's (7z) - only after a deep review on both reads judges
-  it ready, with O36's open part (the reader's plan-tier reference in every layer) set before it, and tonight at most
-  registered (the 22:32 row).
-- **Item 3 on its own:** HELD - the tier state sees the opening's value as FS says (the premise above notwithstanding);
-  FALSIFIED - the tier state does not raise the opening's gap, so the opening is not the route by which FS costs paths,
-  or the per-world margin (the premise above) hides it: the opening claim stays grade C and the premise goes to the deep
-  review; INCONCLUSIVE - the same, sized.
+  recovers them with the reader. **The route** is read from the tier state's opening at the product's margin (the gap
+  line's "opens N at 1e-3", printed by the reducer; the tier state opens away from the plan's tier as soon as its gap
+  passes 1e-3, at a ratio of only 1.246 on S126 and 1.323 on S194): where the tier state opens de-risked and the product
+  does not, the gain came at least partly through the opening, and **the opening claim** - that the product's opening
+  undervaluing is FS - is grade B for that case; where the tier state opens in the plan's tier as the product does, the gain
+  came through later tier choices and the opening claim stays grade C (the 22:32 row). Item 3 does not decide the route: it
+  sizes FS at the opening. The tier state is a research option recorded in the ledger; nothing to a default tonight (the
+  21:22 row's exclusions). Item 5 HELD then says it must never run under off (O37). It is one of the two fixes the 21:34 row
+  may combine with Q's (7z) - only after a deep review on both reads judges it ready, with O36's open part (the reader's
+  plan-tier reference in every layer) and O41 (the per-world switch rule) set before it, as their gates require, and
+  tonight at most registered (the 22:32 row).
+- **Item 3 on its own** (the size of FS at the opening, not its route): HELD - the tier state's gap rises at least five-fold,
+  the size FS predicts; FALSIFIED - it rises less than twice on both: FS at the opening is smaller than predicted, or the
+  per-world rule (the premise above) hides part of it; the route is still read from the opening, and the premise goes to
+  the deep review; INCONCLUSIVE - between, sized.
 - **Item 1 HELD, item 2 FALSIFIED:** the gain is the other choices', not the tier's: FS is not the mechanism at the product
   level; a register row for what the tier state's tables change in the rest (O39's family), to the maintainer.
 - **Item 1 FALSIFIED:** the tier state does not recover the freed opening's paths. Because the tables still switch world
@@ -164,8 +169,8 @@ H0 (the plan's tier held for life) - the same case, bridge read, solve settings,
 ## Credence
 
 The author's probability that each item reads as predicted: 1 (HELD), 0.55; 2 (HELD), 0.45; 3 (HELD), 0.50; 4 (HELD),
-0.55; 5 (HELD), 0.55. The build is new tonight and the regimen's scorecard stands at 0.221 over 63 items against its 0.20
-target (results-scorecard.txt), so none is given above 0.55.
+0.55; 5 (HELD), 0.55. The build is new tonight and the regimen's scorecard stood at 0.221 over 63 items against its 0.20
+target when this was registered (results-scorecard-7x.txt), so none is given above 0.55.
 
 ## Power
 
@@ -180,7 +185,8 @@ From results-derive-7y.txt (20,000 draws a story; backgrounds of 0.5 and 5 paths
 - **Item 3** is two solves' reading: no power is drawn.
 - **Time: NOT MEASURED at 30 points.** From 7v's records a product solve on these cases takes 249 to 337 s and a traced
   forward run of 8,000 paths 208 to 613 s (results-7v.txt); the plan-auditor measured the tier state's solve at 2.68 and
-  2.69 times the product's at 12 points on S126 and S194 (read-only, grade C). The tier state's backward pass scores every move once per layer (three pairs:
+  2.69 times the product's at 12 points on S126 and S194 (read-only, grade C; research/solver/drafts/check-7y-time-ts.mjs,
+  not re-run). The tier state's backward pass scores every move once per layer (three pairs:
   about three times the product's pass 2), assumed 10 to 15 minutes a solve; a swap run calls both choosers, assumed about
   twice a forward run. The longest unit (a swap unit: two solves, two swap runs) about 45 to 70 minutes; fourteen units four
   at a time about 100 to 150 minutes, plus the smoke run and the launcher's re-run of derive-7y.mjs. Each process is

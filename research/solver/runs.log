@@ -36,3 +36,4 @@
 27 Sep 21:09 UK | main | none: 7x preflight re-run on the reader-reference revision, reduce-7x's gate at 4 points, 20 paths and 10 a world; no figure read | code bd8fe190faa4 | 99b1586 | load 1.64 1.56 1.31 | bash research/solver/preflight-7x.sh
 27 Sep 21:17 UK | main | research/solver/predictions/diag-7x.md | code bd8fe190faa4 | 70b7311 | load 0.89 1.10 1.19 | bash research/solver/batch-7x.sh
 27 Sep 21:50 UK | light | none: O35's diagnostic, the reader's step at the floor bill on share 0.95 per move and next year's read at 5, 15 and 201 points; a measurement, no test | code bd8fe190faa4 | 0b7cdde | load 4.40 4.41 4.12 | node research/solver/diag-o35.mjs 30
+27 Sep 22:02 UK | light | none: O35's diagnostic re-run with the dense reference fixed (4,000 equal-probability points); a measurement, no test | code bd8fe190faa4 | d73b559 | load 3.09 3.94 4.14 | node research/solver/diag-o35.mjs 30

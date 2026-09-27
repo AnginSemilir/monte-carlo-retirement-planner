@@ -10,6 +10,7 @@
  *   node research/solver/audit-s126.mjs time [points] [runs] [ids]                  7k: the solve's time with and without the exact final year
  *   node research/solver/audit-s126.mjs readertime [points] [runs]                  the bridge reader's added solve time (its design's check 6)
  *   node research/solver/audit-s126.mjs bridge7e [points] [paths] part k/n [arms] [ids]  7e: off, F1 v1, F1 v2 and the reader, paired
+ *   node research/solver/audit-s126.mjs diag7v [points] [paths] part k/n [seed] [world paths]  7v: the switch margin's dose-response
  *
  * Each mode reads its OWN arguments (fixed 24 Sep: the numbers were read before the mode was chosen, so `ids` read its
  * id list as the grid size - NaN, falling back to 12 points - and took the path count from the argument meant for points).
@@ -142,7 +143,9 @@ const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', {
  * is the mixture's: each world's opening read weighted as the solve weights them. The F1 test (mode f1) ran on step 2's
  * settings in the single-table fold; this is its re-test where the product runs.
  */
-function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint, mix } = {}) {
+// `lambda` and `forward` (7v, 27 Sep): a case's own dislike of cuts in place of S126's, and `forward: false` to solve and
+// return the tables without the held-path run (7v runs its own forward runs, one a switch margin); unset, as before
+function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint, mix, lambda = LAMBDA, forward = true } = {}) {
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
@@ -151,15 +154,15 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   // Every mode's ran line records the final year it ran (until 25 Sep only the trace mode's did, after bridgeRead), so a
   // re-run of an older mode (7c's f1v2, 7i's quad), now exact by default, cannot pass a ran-line gate against files that
   // ran it averaged. It sits BEFORE bridgeRead: smoke.sh's f1v2 check (locked) reads bridgeRead at the end of the line.
-  const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
+  const r = solvePlan(E, M, plan, { lambda, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
     ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}), ...(joint ? { jointWorlds: true } : {}), ...(mix ? { mix } : {}) });   // F1 off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
   const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
   let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(seed, NP, m.ctx.totalYears);
   const okArr = new Uint8Array(NP);
   const tr = trace ? makeTrace(NP, m.ctx.totalYears + 1) : null;
-  paths.forEach((zs, i) => { if (tr) tr.row = i; const o = runPolicy(r, zs, tr ? { trace: tr } : {}); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
-  const sim = 100 * ok / NP;
+  if (forward) paths.forEach((zs, i) => { if (tr) tr.row = i; const o = runPolicy(r, zs, tr ? { trace: tr } : {}); if (o.survived) { ok++; okArr[i] = 1; } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; });
+  const sim = forward ? 100 * ok / NP : NaN;
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
   // the held paths' seed and count sit after pts (added 25 Sep for 7e, which runs on held-out paths; smoke.sh's greps read around them)
   const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
@@ -471,6 +474,111 @@ if (mode === 'f1v2') {
       writeFileSync(join(OUT, `${id.replace(/ /g, '_')}-${x.file}.json.gz`), gzipSync(JSON.stringify({ id, arm: x.label, stamp: STAMP, N: NP, Y: T.Y, seed: SEED, sim: x.sim,
         survived: b64(x.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
     });
+  });
+} else if (mode === 'diag7v') {
+  /*
+   * 7V: IS THE READER'S HARM THE SWITCH MARGIN HOLDING A NEAR-TIE? THE MARGIN'S DOSE-RESPONSE (PLAN.md 7v; the second deep
+   * review, 27 Sep 02:07 UK, O30; the maintainer, 27 Sep: "Run 7v first"; predictions/diag-7v.md). At the product's settings -
+   * solvePlan with 30 points, risk above by the product's 'auto' rule, lambda the research reference 0.025 (O15, the
+   * maintainer 25 Sep 20:31 UK) - each case's arms are solved once, off and the reader (a non-bridge case, off alone), each
+   * with the mixture as the product solves it and with `jointWorlds` (+J), and every solve is run forward on the same NP paths
+   * at four switch margins: 0.001 (the product's; label /1e-3), 3e-4, 1e-4 and 0 (the margin is read only by the forward
+   * chooser: the tables do not depend on it). One policy at margin 0 is also run with learn.mjs's learning chooser (+L; the
+   * reader's on a bridge case, off's elsewhere). On the harmed cases each solve is also run in each of the three worlds on the
+   * first WP paths, at margins 0.001 and 0.
+   * The family pairs are run at their odd results' own setups (the ninety-first review, MINOR 5): S172 planned at Medium Risk
+   * with the tier above off and on (O16, M14b's settings: S172's landed lambda 0.6503449126242364, held); S330 planned at
+   * Medium Risk with the tier above on, in three and in five worlds (O21, 7h's: S330's landed 0.9457416090031758, held).
+   *   node research/solver/audit-s126.mjs diag7v [points=30] [paths] part k/n [seed=7002] [world paths=1000]
+   * Prints, per case: a case line; a solve line per arm (the table's opening read, seconds); a ran and a joint line per arm
+   * (the joint line also names the plan tier, lambda and what the risk-above rule decided); a run line per forward run
+   * (survival, years below target, pension years below the plan's tier, the mean capped estate, seconds); a world line per
+   * world run. Every run's trace goes to results/diag7v/<case>-<run>.json.gz (DIAG7V_OUT when set), stamped as the log is;
+   * the reducer (reduce-7v.mjs) reads every pair from the traces.
+   */
+  const MARG = [['1e-3', 0.001], ['3e-4', 3e-4], ['1e-4', 1e-4], ['0', 0]];
+  const REF_LAMBDA = 0.025;
+  const PANEL7V = [
+    ['S126', { arms: 'off,reader', worlds: true }], ['bridge 4', { arms: 'off,reader', worlds: true }],
+    ['S360', { arms: 'off,reader' }], ['share 0.95', { arms: 'off,reader' }], ['S194', { arms: 'off' }],
+    ['S172 down', { id: 'S172', arms: 'off', tier: 'Medium Risk', riskAbove: false, lambda: 0.6503449126242364 }],
+    ['S172 up', { id: 'S172', arms: 'off', tier: 'Medium Risk', riskAbove: true, lambda: 0.6503449126242364 }],
+    ['S330 mix3', { id: 'S330', arms: 'off', tier: 'Medium Risk', riskAbove: true, lambda: 0.9457416090031758, mix: 3 }],
+    ['S330 mix5', { id: 'S330', arms: 'off', tier: 'Medium Risk', riskAbove: true, lambda: 0.9457416090031758, mix: 5 }]];
+  const ARM = { off: false, reader: 'reader' };
+  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
+  // the plan held at a tier (M14's PLANTIER, experiment.mjs flex): the pension and the ISA at that tier
+  const atTier = (h, tier) => (!tier ? h : { ...h, plan: { ...h.plan, accounts: h.plan.accounts.map(a => (/^Pensions|^S&S ISA/.test(a.category) ? { ...a, risk: tier } : a)) } });
+  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002, WP = process.argv[8] ? Number(process.argv[8]) : 1000;
+  if (!(SEED >= 1) || !(WP >= 1)) { console.error(`audit-s126: bad seed or world paths ${process.argv[7]} ${process.argv[8]}`); process.exit(2); }
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  const OUT = process.env.DIAG7V_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7v');
+  mkdirSync(OUT, { recursive: true });
+  console.log(`7V DIAGNOSIS, the product's settings (solvePlan), ${POINTS} points, ${NP} paths (seed ${SEED}), ${WP} a world, margins ${MARG.map(m => m[0]).join(',')}; part ${pk}/${pn}`);
+  const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+  // one forward run of a solve at switch margin `sm` on the given paths; `learn` runs learn.mjs's learning chooser
+  const forward = (r, paths, sm, trace, learn = false) => {
+    const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = trace ? makeTrace(N, T + 1) : null;
+    let ok = 0, below = 0, tierYrs = 0, estate = 0;
+    const cap = r.meta.bequestCap, keep = r.switchMargin;
+    r.switchMargin = sm;
+    try {
+      paths.forEach((zs, i) => {
+        if (tr) tr.row = i;
+        const L = learn ? learningChooser(r, zs) : null;
+        const o = runPolicy(r, zs, { ...(tr ? { trace: tr } : {}), ...(L ? { choose: L.choose } : {}) });
+        if (o.survived) { ok++; okArr[i] = 1; estate += Math.min(o.terminalNet, cap); } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0;
+      });
+    } finally { r.switchMargin = keep; }
+    return { sim: 100 * ok / N, below: below / N, tierYrs: tierYrs / N, estate: estate / N, okArr, tr, secs: (Date.now() - t0) / 1000 };
+  };
+  const fileOf = (id, label) => `${id.replace(/ /g, '_')}-${label.toLowerCase().replace(/\+/g, '_').replace(/\//g, '@')}.json.gz`;
+  PANEL7V.forEach(([id, o], i) => {
+    if (i % pn !== pk) return;
+    const base = byId(o.id || id)();
+    if (!base) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const h = atTier(base, o.tier), lambda = o.lambda || REF_LAMBDA;
+    const names = o.arms.split(','), bridge = names.includes('reader');
+    const arms = [false, true].flatMap(j => names.map(a => ({ name: a, joint: j, label: `${a.toUpperCase()}${j ? '+J' : ''}` })));
+    console.log(`${id.padEnd(16)} case | arms ${arms.map(a => a.label).join(',')} | margins ${MARG.map(m => m[0]).join(',')} | lambda ${lambda} tier ${o.tier || 'own'} riskAbove ${o.riskAbove === undefined ? 'auto' : o.riskAbove} mix ${o.mix || 3}`);
+    const runs = [];
+    for (const a of arms) {
+      const res = measureV2(h, ARM[a.name], 5, { trace: false, seed: SEED, joint: a.joint, lambda, forward: false, ...(o.riskAbove !== undefined ? { riskAbove: o.riskAbove } : {}), ...(o.mix ? { mix: o.mix } : {}) });
+      const r = res.r;
+      if (!!r.meta.jointWorlds !== a.joint) { console.error(`audit-s126: ${a.label} ran jointWorlds ${r.meta.jointWorlds}`); process.exit(2); }
+      const ra = r.meta.riskAbove ? r.meta.riskAbove.decision.replace(/ /g, '_') : `set_${o.riskAbove}`;
+      console.log(`${''.padEnd(16)} solve ${a.label}: table ${f1(res.table, 2)} secs ${Math.round(res.secs)}`);
+      console.log(`${''.padEnd(16)} ran ${a.label}: ${res.ran}`);
+      console.log(`${''.padEnd(16)} joint ${a.label}: ${!!r.meta.jointWorlds} switchMargin ${r.switchMargin} scale ${Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0)))} cap ${Math.round(r.meta.bequestCap)} deathTax ${r.m.ctx.pensionDeathTaxRate} tier ${(o.tier || 'own').replace(/ /g, '_')} riskAbove ${ra}`);
+      for (const [tag, sm] of MARG) {
+        const f = forward(r, res.paths, sm, true);
+        runs.push({ label: `${a.label}/${tag}`, f });
+        console.log(`${''.padEnd(16)} run ${a.label}/${tag}: sim ${f.sim.toFixed(3)} below ${f1(f.below, 2)} tier-below ${f1(f.tierYrs, 2)} estate ${Math.round(f.estate)} secs ${Math.round(f.secs)}`);
+        if (o.worlds && (sm === 0.001 || sm === 0)) {
+          const s0 = M.initialState(r.m), nodes = r.mix.nodes;
+          nodes.forEach((z, k) => {
+            const wpaths = res.paths.slice(0, WP).map(zs => { const c = Float64Array.from(zs); c[c.length - 1] = z; return c; });
+            const w = forward(r, wpaths, sm, false), v = r.worlds[k].value(s0, 0);
+            console.log(`${''.padEnd(16)} world ${a.label}/${tag} ${k} z ${z.toFixed(4)}: table ${(100 * v.survival).toFixed(2)} sim ${w.sim.toFixed(2)} estate table ${Math.round(v.bequest)} sim ${Math.round(w.estate)} tier-below ${f1(w.tierYrs, 2)} paths ${WP}`);
+          });
+        }
+      }
+      // one policy at margin 0 with the learning chooser: the reader's on a bridge case, off's elsewhere
+      if (a.joint && a.name === (bridge ? 'reader' : 'off')) {
+        const f = forward(r, res.paths, 0, true, true);
+        runs.push({ label: `${a.label}/0+L`, f });
+        console.log(`${''.padEnd(16)} run ${a.label}/0+L: sim ${f.sim.toFixed(3)} below ${f1(f.below, 2)} tier-below ${f1(f.tierYrs, 2)} estate ${Math.round(f.estate)} secs ${Math.round(f.secs)}`);
+      }
+    }
+    runs.forEach(x => {
+      const T = x.f.tr;
+      writeFileSync(join(OUT, fileOf(id, x.label)), gzipSync(JSON.stringify({ id, arm: x.label, stamp: STAMP, N: NP, Y: T.Y, seed: SEED, sim: x.f.sim,
+        survived: b64(x.f.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
+    });
+    console.log(`${''.padEnd(16)} done ${runs.length} runs`);
   });
 } else if (mode === 'time') {
   /*

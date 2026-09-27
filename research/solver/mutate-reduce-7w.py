@@ -41,6 +41,8 @@ M = [
     ("item 4 held without the switch count", "const ok4 = i4.map((x, j) => x.o === 'no material harm' && sw4[j].open <= sw4[j].zero / 2);", "const ok4 = i4.map(x => x.o === 'no material harm');"),
     ("item 4 compares the freed opening against the product's margin, not 0", "leg(id, l, '0', l, '1e-3+open')", "leg(id, l, '1e-3', l, '1e-3+open')"),
     ("item 4 falsified on one leg's harm", ": i4.every(x => x.o === 'harm') ? 'FALSIFIED'", ": i4.some(x => x.o === 'harm') ? 'FALSIFIED'"),
+    ("the twins read against the 5-point run at 0.001, not the same margin", "k: cells(S(id, l5, run), S(id, l15, run))", "k: cells(S(id, l5, '1e-3'), S(id, l15, run))"),
+    ("the twins leave out the freed opening", "RUNS.map(run => ({ id, run, l15, l5,", "RUNS.slice(0, 2).map(run => ({ id, run, l15, l5,"),
     ("item 5 held without passing the margin", "outcome: r5 >= TEN && m5 ? 'HELD'", "outcome: r5 >= TEN ? 'HELD'"),
 ]
 def run(f):

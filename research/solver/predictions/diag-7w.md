@@ -2,10 +2,10 @@
 
 - **Run:** `research/solver/batch-7w.sh` - results/diag7w/case0-8.txt and every run's trace (audit-s126.mjs diag7w); reduced by `reduce-7w.mjs` into results-7w.txt
 - **Kind:** test
-- **Written:** 27 Sept, 18:37 UK, before the run (new-prediction.mjs's stamp). The maintainer, 27 Sep: "agree - do option A, waive the registered second seed" (PLAN.md ledger 27 Sep 18:25), on the sixth deep review's proposal (deep-review-log.md, 27 Sep 18:19 UK)
-- **Seen before registration:** no 7w output. The preflight (runs.log, a measurement under PREDICTION="none:...", 4 points and 20 paths) wrote logs whose lines carry figures at those sizes; only the parse check's verdict line was read. The sizes in the Power section are 7v's traces restricted to 7w's own paths, already read and published at 7v's read (results-7v.txt, results-derive-7w.txt)
+- **Written:** 27 Sept, 18:37 UK, before the run (new-prediction.mjs's stamp). The maintainer, 27 Sep: "agree - do option A, waive the registered second seed" (PLAN.md ledger 27 Sep 18:25), on the sixth deep review's proposal (deep-review-log.md, 27 Sep 18:19 UK). First registered in 9074b12. REVISED before any launch for the review of 27 Sep 18:53 UK (review-log.md, FAIL: three BLOCKING, four MINOR): the reducer prints each 15-point run against its 5-point twin at the same margin (the comparison the Unmasking field names); the prior tests of the same mechanism (7i, 7h, O22, beside 7s) cited with their verdicts, and item 5's credence re-set against 7i; the disclosure below made exact; fair-test row 19's status named
+- **Seen before registration:** no 7w output. At the first registration (9074b12, 18:42 UK) the preflight (runs.log 18:46 UK, a measurement under PREDICTION="none:...", 4 points and 20 paths) was still in its smoke run and had written no log. Before this revision it finished: its logs carry figures at those sizes, and only the smoke run's lines and the parse check's verdict line were read; nothing in this revision rests on them. The sizes in the Power section are 7v's traces restricted to 7w's own paths, already read and published at 7v's read (results-7v.txt, results-derive-7w.txt)
 - **Seeds:** 7002 tuning (3,000 paths, the first 3,000 of 7v's 8,000 and of 7r's; the same paths for every run of every unit). The product's 'auto' risk-above rule reads its own seed 7101 inside solvePlan; on the three cases it never draws a path (no tier above within reach, as 7v's gate confirmed, and 7w's gate requires the same joint-line decision). The registered second seed is waived by the maintainer; the held-out seed reserved to 7u is not used
-- **Unmasking:** fifteen return points remove a suspected error of the solver's own, Q: the five-point average of the year's return has no point between the year-1 failure thresholds of the plan's tier and tier 2 on share 0.95 (the sixth deep review, grade C; results-derive-7w.txt, "Q's arithmetic"), so the reader's table values the year-0 de-risk at 2.2992e-4 (about 1.8 paths of 8,000) where the realised year-1 excess is 175 paths. The baseline behaviour that error drives: the reader keeps the plan's tier at the product's margin (7v: READER/1e-3 opens in tier 0 and READER/0 saves 69 of these 3,000 paths). The separating arms: S126 (item 3), whose losses are not year-1 failures, tells a fix of the cliff from a quadrature change that moves every table; the 15-point runs at margin 0 against the 5-point ones (reported) tell whether fifteen points change anything beyond the opening; every 15-point run is set against its unit's 5-point run path by path, so a harm fifteen points unmask elsewhere (Q's arithmetic says fifteen points see about three times the true year-1 excess through one point, so they may over-de-risk) shows as lost paths. The freed-opening arm (item 4) removes P's opening hold alone and tells it from any later hold
+- **Unmasking:** fifteen return points remove a suspected error of the solver's own, Q: the five-point average of the year's return has no point between the year-1 failure thresholds of the plan's tier and tier 2 on share 0.95 (the sixth deep review, grade C; results-derive-7w.txt, "Q's arithmetic"), so the reader's table values the year-0 de-risk at 2.2992e-4 (about 1.8 paths of 8,000) where the realised year-1 excess is 175 paths. The baseline behaviour that error drives: the reader keeps the plan's tier at the product's margin (7v: READER/1e-3 opens in tier 0 and READER/0 saves 69 of these 3,000 paths). The separating arms: S126 (item 3), whose losses are not year-1 failures, tells a fix of the cliff from a quadrature change that moves every table; each 15-point run against its 5-point twin at the SAME margin (reported; reduce-7w.mjs quadPairs) - at margin 0 both open by the chooser's best, so that pair tells whether fifteen points change anything beyond the opening; every 15-point run is set against its 5-point twin path by path, so a harm fifteen points unmask elsewhere (Q's arithmetic says fifteen points see about three times the true year-1 excess through one point, so they may over-de-risk) shows as lost paths. The freed-opening arm (item 4) removes P's opening hold alone and tells it from any later hold
 - **Plan section:** PLAN.md "7w"
 
 ## Question
@@ -38,6 +38,24 @@ What the code and the records say before any run:
   and the continuous chance is 0.0208 (166 of 8,000 paths, against 7v's realised 175). So fifteen points see the cliff,
   through one point, at about three times its true size; the point sits 0.08 from each end of its interval, so a small
   error in the review's thresholds leaves this unchanged.
+- **The prior tests of the same mechanism** (RULES.md section 9 rule 7), each with its verdict:
+  - **7i** (PLAN-HISTORY.md, 7i; results-bridgequad.txt): 5 against 15 return points with the bridge read off, on six bridge
+    cases including share 0.95 and S126, at 16 points, 1,000 paths of seed 7002, the final year averaged over each arm's own
+    points (before the exact final year). Verdict: "the misread is the read, not the averaging" - on the five cases misread
+    by more than 40 at 5 points the misread stayed past 30 at 15. On share 0.95 off's table read 0.0 at both, survival 72.7 at both, 0 of 1,000 paths differing; on S126
+    99.6 at both. So fifteen points did not move off's policy on share 0.95 at all: that bears on item 5 (hence its
+    credence), and it does not bear on the reader (7i ran no reader), whose last-bridge-year step is Q's mechanism.
+  - **7s** (results-7s.txt): the reader at 15 points against 5 on S126 and bridge 4, 16 points, 3,000 paths: S126 0 saved,
+    1 lost; the reader still harmed at 15 points. Verdict: fifteen points do not stop the reader's harm there - the reason
+    item 3's control is expected to hold. 7s did not run share 0.95.
+  - **7h** (PLAN-HISTORY.md, 7h; results-quadref.txt, results-quadref-exact.txt): 5 against 15 points every year, the final
+    year exact in both, on S194, S162, S252 and S330, no bridge read. Verdict: the tier above's cost is not the earlier
+    years' averaging (items 1 and 2 held). No reader and no bridge step: it says fifteen points do not change the solver
+    where the value has no step, as Q expects.
+  - **O22** (PLAN.md; results-bridgequad.txt): fifteen points raised S360's survival under off by 2.00 +/- 0.47 (net 20 of
+    22 discordant), with its read and policy moving together; where and how NOT CHECKED. The precedent for fifteen points
+    changing a policy beyond one cliff: the pre-mortem's third outcome.
+  - So no earlier test ran the reader on share 0.95 at 15 points, which is what 7w adds.
 - **The gap's scale.** 7v's reader gap on share 0.95, 2.2992e-4, is about 1.8 paths of 8,000 (the sixth deep review):
   about one score unit a unit of survival chance. If the table's year-0 value moves by the seen excess, the 15-point gap is
   about 0.06, some 250 times the 5-point one, and far past the product's margin (0.001). The ratio items therefore read
@@ -77,7 +95,7 @@ each a Holm family of their own, 1, 3 and 5 read by their registered ratios):
 
 Reported, not items: every run's survival, saved/lost against its unit's own 5-point run at 0.001, switches a path; every
 solve's year-0 gap and the tier it opens in at 0.001 and 0; each 15-point run against the 5-point run at the same margin
-(the 15-point runs at margin 0 included); each solve's time.
+(reduce-7w.mjs quadPairs: at 0.001, at 0 and with the opening freed); each solve's time.
 
 ## Falsified if
 
@@ -103,7 +121,7 @@ points (A) and at 15 (B); for item 4, the same solve at margin 0 (A) and at 0.00
 | 8 | How each year's return is averaged (quadrature points) | 5 (the product's) | 15 (solve.js gaussHermite(15)) | TESTED - items 1, 2, 3 and 5; held at 5 in item 4 |
 | 13 | The risk tier chosen, consent to change it, risk above | the product's 'auto' rule (no tier above within reach: the joint line's "off: no tier above the plan", required by the gate) | the same | SAME |
 | 17 | The grid: points, shares, gain buckets | 30 points (the product's), the default shares and gain buckets | the same | SAME |
-| 19 | The switch margin and switching cost | the solved margin 0.001, the switching cost unchanged; items 1-3 and 5 at 0.001; item 4's arm A at 0 | item 4's arm B: 0 in year 0, 0.001 after (the cost unchanged) | TESTED in item 4 alone (the year-0 margin); SAME in items 1, 2, 3 and 5 |
+| 19 | The switch margin and switching cost | the solved margin 0.001, the switching cost unchanged; items 1-3 and 5 at 0.001; item 4's arm A at 0 | item 4's arm B: 0 in year 0, 0.001 after (the cost unchanged) | TESTED in item 4 alone: both arms run margin 0 in year 0, and differ from year 1 on (0 against 0.001), so what item 4 tests is the margin after the opening; SAME in items 1, 2, 3 and 5 |
 | 20 | The dislike of cuts: lambda (held or landed) and the trim curve's exponent (together, c) | 7t's and 7v's 0.0223606797749979, exponent 2 | the same | SAME |
 | 24 | The read and edge handling: final year exact, dead corners, the bridge read (F1), block trim | bridgeRead 'reader' on READER units, off on OFF units; the final year exact; no block trim | the same, unit by unit | SAME within every read (each item compares a unit with itself or its own 5-point twin) |
 | 25 | How it lands: bisection steps, level search | no landing; the full level scan | the same | SAME |
@@ -111,7 +129,7 @@ points (A) and at 15 (B); for item 4, the same solve at margin 0 (A) and at 0.00
 | 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | none | none | N/A - no fixed arm in this run |
 | 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | one process a unit, every unit from the same snapshot and stamp (requireFairLogs) | the same | SAME |
 | 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | survival: the floor paid every year and the minimum pot at the end, simulated; the year-0 gap: the smallest margin at which the chooser keeps the plan's tier at runPolicy's opening state (the table's own reading, read by items 1, 3 and 5 as the thing Q is about) | the same | SAME |
-| 30 | The reducer and its version | reduce-7w.mjs: requireFairLogs over the logs' stamps, then its own gate on every unit, solve, ran, gap, joint and run line and the done count, and every trace's count, seed, arm, stamp and survival (within 0.00005, the run line's four decimals); INCOMPLETE unless all nine units are done; 23 planted checks, 29 planted faults each caught (mutate-reduce-7w.py, results-reduce-7w-mutations.txt) | the same | SAME |
+| 30 | The reducer and its version | reduce-7w.mjs: requireFairLogs over the logs' stamps, then its own gate on every unit, solve, ran, gap, joint and run line and the done count, and every trace's count, seed, arm, stamp and survival (within 0.00005, the run line's four decimals); INCOMPLETE unless all nine units are done; 24 planted checks, 31 planted faults each caught (mutate-reduce-7w.py, results-reduce-7w-mutations.txt) | the same | SAME |
 | 31 | Paired or not, and the standard error used | paired on the same paths; the regimen's exact rule (reduce-7v.mjs gainFamily and harmFamily: stats.mjs outcome() for harm, the exact one-sided McNemar test for a gain), Holm within each item, the exact 95% interval against the case's margin; the unconditional interval printed beside | the same | SAME |
 | 32 | The table's number is never the result: survival is simulated | survival and switching are simulated; the gap is the table's reading, read as the table's reading (items 1, 3, 5), never as survival | the same | SAME |
 | 33 | For timings: what else the machine was running | the solve and run seconds are printed, not read | the same | N/A - no timing is read: nine processes share four cores, four at a time |
@@ -188,7 +206,7 @@ points (A) and at 15 (B); for item 4, the same solve at margin 0 (A) and at 0.00
 ## Credence
 
 The author's probability that each item reads as predicted: 1 (HELD), 0.65; 2 (HELD), 0.60; 3 (HELD), 0.55; 4 (HELD),
-0.35; 5 (FALSIFIED), 0.45. The cumulative scorecard stands at 0.221 against its 0.20 target (results-scorecard.txt), and
+0.35; 5 (FALSIFIED), 0.60 (7i: off's policy on share 0.95 did not move at 15 points; see the Derivation). The cumulative scorecard stands at 0.221 against its 0.20 target (results-scorecard.txt), and
 7v's HELD calls were overconfident, so none is given above 0.65. Scored by scorecard.mjs.
 
 ## Power
@@ -223,7 +241,7 @@ error itself; it says whether the five-point average is that error, and whether 
 - **Second:** item 1 INCONCLUSIVE - the gap rises but less than tenfold, because the table's cliff is smeared across its
   wealth grid; item 2 then decides whether the opening moved.
 - **Third:** fifteen points de-risk share 0.95 but also move other years (they see about three times the true year-1
-  excess), so item 2's gain comes with lost paths; the 15-point runs at margin 0 against the 5-point ones show it.
+  excess), so item 2's gain comes with lost paths; the same-margin twins (quadPairs) show it, at margin 0 above all, where the opening is the chooser's best in both. 7i's S360 is the precedent: fifteen points changed off's policy there (+2.00 +/- 0.47, net 20 of 22; O22).
 - **Fourth:** the gap line's opening state (one path's, as 7v's) is not the state most paths open in; the reported
   openings at 0.001 and 0 and item 2 cross-check it.
 - **The smoke run:** smoke.sh (locked) does not run diag7w; the preflight through the launcher (all nine units, every line

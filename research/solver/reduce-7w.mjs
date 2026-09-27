@@ -21,7 +21,8 @@
  *   5. Q on the product: off's year-0 gap on share 0.95 rises at least tenfold at 15 points and it opens de-risked at the
  *      product's margin (FALSIFIED: less than threefold)
  * Reported, not items: every run's survival, saved/lost against its unit's 5-point /1e-3 run on the same case, switches a path,
- * the year-0 gaps and openings, and each case's 15-point runs against the 5-point ones at every margin.
+ * the year-0 gaps and openings, and each 15-point run against its 5-point twin at the SAME margin (quadPairs: at margin 0
+ * both open by the chooser's best, so the pair there shows what fifteen points change beyond the opening).
  *   node research/solver/reduce-7w.mjs [dir] > research/solver/results-7w.txt
  *   node research/solver/reduce-7w.mjs --planted   the planted checks alone
  */
@@ -29,7 +30,7 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
-import { marginFor } from './stats.mjs';
+import { marginFor, survivalChange } from './stats.mjs';
 import { requireFairLogs } from './fair-gate.mjs';
 import { decode } from './reduce-7t.mjs';
 import { switching } from './read-7t-deep.mjs';
@@ -145,6 +146,10 @@ export function items(U, S, SW) {
   return out;
 }
 
+// EACH 15-POINT RUN AGAINST ITS 5-POINT TWIN AT THE SAME MARGIN (reported; the Unmasking field's separating comparison:
+// at margin 0 both twins open by the chooser's best, so what differs there is the return points beyond the opening)
+export const TWINS = UNITS.filter(([, l]) => l.endsWith('@15')).map(([id, l]) => [id, l, l.replace('@15', '@5')]);
+export const quadPairs = S => TWINS.flatMap(([id, l15, l5]) => RUNS.map(run => ({ id, run, l15, l5, k: cells(S(id, l5, run), S(id, l15, run)) })));
 // PLANTED, before any real file (rule 6)
 function planted() {
   const cases = [];
@@ -192,6 +197,9 @@ function planted() {
   cases.push(['the freed opening is read against margin 0: level with 0 while both lose to 1e-3 is item 4 HELD', items(mkU(qGaps), mkS({ ...qS, 'S126|READER@5|0': [0, 60], 'S126|READER@5|1e-3+open': [0, 60], 'S194|OFF@5|0': [0, 60], 'S194|OFF@5|1e-3+open': [0, 60] }), SWf(qSW))[3].outcome, 'HELD']);
   cases.push(['the freed opening harming on one case only is item 4 INCONCLUSIVE', items(mkU(qGaps), mkS({ ...qS, 'S126|READER@5|1e-3+open': [0, 60] }), SWf(qSW))[3].outcome, 'INCONCLUSIVE']);
   cases.push(['Q\'s survival: a gain on one leg only is INCONCLUSIVE', items(mkU(qGaps), mkS({ ...qS, 'share 0.95|READER+J@15|1e-3': [0, 0] }), SWf(qSW))[1].outcome, 'INCONCLUSIVE']);
+  { const tw = quadPairs(mkS({ 'share 0.95|READER@15|0': [5, 0], 'share 0.95|READER@5|0': [0, 3], 'S126|READER@15|1e-3+open': [0, 2] }));
+    const f = (id, l, run) => { const x = tw.find(t => t.id === id && t.l15 === l && t.run === run); return x ? `${x.k.saved}/${x.k.lost}` : 'missing'; };
+    cases.push(['the twins: each 15-point run against its 5-point twin at the same margin, and only there', `${tw.length} ${f('share 0.95', 'READER@15', '0')} ${f('share 0.95', 'READER@15', '1e-3')} ${f('S126', 'READER@15', '1e-3+open')} ${f('share 0.95', 'OFF@15', '0')}`, '12 8/0 0/0 0/2 0/0']); }
   let nbad = 0;
   for (const [name, got, want] of cases) { const ok = got === want; if (!ok) nbad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${got}${ok ? '' : ` (want ${want})`}`); }
   if (nbad) { console.log(`PLANTED CHECK FAILED: ${nbad}`); process.exit(1); }
@@ -234,6 +242,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       for (const run of RUNS) { const k = cells(S(id, ref, '1e-3'), S(id, u.label, run)); console.log(`    ${`${u.label}/${run}`.padEnd(22)} ${u.runs[run].sim.toFixed(4).padStart(8)}  ${`${k.saved}/${k.lost}`.padStart(9)}  switches ${SW(id, u.label, run).toFixed(2)}`); }
     }
   }
+  console.log('\nEACH 15-POINT RUN AGAINST ITS 5-POINT TWIN AT THE SAME MARGIN (reported: saved/lost at 15 points, the exact interval beside)');
+  for (const x of quadPairs(S)) { const iv = survivalChange(x.k.lost, x.k.saved, x.k.N, 0.05); console.log(`  ${x.id.padEnd(11)} ${`${x.l15}/${x.run} against ${x.l5}/${x.run}`.padEnd(44)} ${`${x.k.saved}/${x.k.lost}`.padStart(9)}  ${f3(iv.d)} (exact ${iv.lo.toFixed(3)} to ${iv.hi.toFixed(3)})`); }
   const it = items(U, S, SW);
   console.log('\nTHE ITEMS (each a Holm family of its own where it tests paths, the regimen\'s reading deciding, the unconditional one beside it; the gap items by their registered ratios)');
   for (const x of it) {

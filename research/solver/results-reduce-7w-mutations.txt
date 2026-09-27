@@ -1,4 +1,4 @@
-true script: planted (23): all read as they should
+true script: planted (24): all read as they should
 caught  the gate accepts a missing unit: the gate refuses a missing unit: false (want true)
 caught  the gate ignores a second setting changed within a case: the gate refuses a second setting changed within a case (the minimum pot, which no field check reads): false (want true)
 caught  the gate does not read the seed: the gate refuses the wrong seed: false (want true)
@@ -27,6 +27,8 @@ caught  item 3 never falsified: the control rising tenfold is item 3 FALSIFIED; 
 caught  item 4 held without the switch count: the freed opening harming on both is item 4 FALSIFIED; churning as much as 0 is not HELD: FALSIFIED HELD (want FALSIFIED INCONCLUSIVE)
 caught  item 4 compares the freed opening against the product's margin, not 0: the freed opening is read against margin 0: level with 0 while both lose to 1e-3 is item 4 HELD: FALSIFIED (want HELD)
 caught  item 4 falsified on one leg's harm: the freed opening harming on one case only is item 4 INCONCLUSIVE: FALSIFIED (want INCONCLUSIVE)
+caught  the twins read against the 5-point run at 0.001, not the same margin: the twins: each 15-point run against its 5-point twin at the same margin, and only there: 12 5/0 0/0 0/2 0/0 (want 12 8/0 0/0 0/2 0/0)
+caught  the twins leave out the freed opening: the twins: each 15-point run against its 5-point twin at the same margin, and only there: 8 8/0 0/0 missing 0/0 (want 12 8/0 0/0 0/2 0/0)
 caught  item 5 held without passing the margin: the gap exactly at the product's margin does not pass it: HELD (want INCONCLUSIVE)
 
-29 mutations: every one caught
+31 mutations: every one caught

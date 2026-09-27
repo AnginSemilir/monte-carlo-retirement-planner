@@ -515,8 +515,11 @@ The rules this adds:
    The first family, "the tables value extra risk too highly": O9, O16, O17, O18/O20, O19 with 7h, C5, O24, O26 (PLAN.md; O16 and O26
    added by the first deep review, 26 Sep 17:12 UK), renamed at 7v's read (the fifth deep review, 27 Sep 18:02 UK) into
    "a sub-margin opening gap decides the tier held for life" (O17, O24, O26, O30, O33) and a second family, "the chooser
-   keeps too much risk in the bad world" (O9, O20, O31, O32, O34), each over three members; the second's root-cause step
-   for its T/Q member is 7w (PLAN.md), the first's is the maintainer's next decision after 7w.
+   keeps too much risk in the bad world" (O9, O20, O31, O32, O34), each over three members. The fifth deep review also
+   put C in the second family "in calibration only": one policy for every world removes the bad world's overrating but
+   moves few paths (7v item 5 FALSIFIED, results-7v.txt), so it is a member without an open register item (no fix rests on
+   it). The second family's root-cause step for its T/Q member is 7w's items 1-3 (PLAN.md); the first's diagnosis step is
+   7w's item 4 (the year-0 move freed at the product's margin, against margin 0), with the maintainer's decision after it.
 6. **Design premises are claims.** An approximation justified by argument (the mixture's no-learning premise, the switch
    margin at today's settings, the fold's horizon factor) is listed with its grade (D until tested) and the failure it
    would cause if wrong, and is tested before a decision rests on it.

@@ -1,10 +1,10 @@
 /*
  * WORK IN PROGRESS, PARKED 27 Sep (not run by any suite): the test for the first attempt at Q's fix (drafts/q-step-exact.patch,
- * bridgeStep 'exact': the year's return split at the reader's step in next year's accessible money). It ran 6 passed, 2 failed:
- * on share 0.95 at the opening state the accessible money after year 0 (about 19k at z = 0) is below the year-1 bill (29,000)
- * at almost every return, so the reader's step is not what separates the year-1 survivors from the failures (the residual R
- * carries it; O36's pessimism fits), and C cannot move; D failed on the test's own error (M.initialState is not the state
- * vector: vecOf is). Parked until the O35 diagnostic says where the edge the five points miss actually lies.
+ * bridgeStep 'exact': the year's return split at the reader's step in next year's accessible money, at the reader's bill,
+ * the menu's lowest spend level's floor). It ran 6 passed, 2 failed: D on the test's own error (M.initialState is not the
+ * state vector: vecOf is); C - the opening survival not moved toward a 41-point table - UNEXPLAINED, NOT CHECKED (PLAN.md O35
+ * lists the candidates). An earlier header here said the reader's step is not the year-1 edge; that rested on a probe solved at
+ * spend level 1 alone (bill 29,000) and is withdrawn (the review of 27 Sep 21:45 UK). Parked until O35's diagnostic is read.
  */
 /*
  * `bridgeStep: 'exact'` (PLAN.md 7z, Q; research only): THE READER'S STEP, INTEGRATED ACROSS. In a year whose next year is a

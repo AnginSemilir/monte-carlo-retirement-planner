@@ -13,9 +13,11 @@ caught  the gate accepts a missing run: the gate refuses a missing run: false (w
 caught  the gate reads the worlds with some() and skips a missing one: the gate refuses a missing world line (the middle world, so the count stays three): false (want true)
 caught  the gate accepts world lines on a case that registers none: the gate refuses world lines on a case that registers none: false (want true)
 caught  the gate accepts a short done line: the gate refuses a short done line: false (want true)
-caught  a trace's seed not compared: a trace agrees only with the log's count, seed, arm, stamp and survival: true,true,false,false,false (want true,false,false,false,false)
-caught  a trace's stamp sha not compared: a trace agrees only with the log's count, seed, arm, stamp and survival: true,false,true,false,false (want true,false,false,false,false)
-caught  a trace's survival not compared with the run line's: a trace agrees only with the log's count, seed, arm, stamp and survival: true,false,false,false,true (want true,false,false,false,false)
+caught  a trace's seed not compared: a trace agrees only with the log's count, seed, arm, stamp and survival: true,true,false,false,false,true,false (want true,false,false,false,false,true,false)
+caught  a trace's stamp sha not compared: a trace agrees only with the log's count, seed, arm, stamp and survival: true,false,true,false,false,true,false (want true,false,false,false,false,true,false)
+caught  a trace's survival not compared with the run line's: a trace agrees only with the log's count, seed, arm, stamp and survival: true,false,false,false,true,true,true (want true,false,false,false,false,true,false)
+caught  a trace's survival compared strictly inside the print's rounding (27 Sep's gate fault): a trace agrees only with the log's count, seed, arm, stamp and survival: true,false,false,false,false,false,false (want true,false,false,false,false,true,false)
+caught  a trace's survival allowed well past the print's rounding: a trace agrees only with the log's count, seed, arm, stamp and survival: true,false,false,false,false,true,true (want true,false,false,false,false,true,false)
 caught  a trace name keeps the learner's +: trace names: case, run, + and / replaced: bridge_4-reader+j@0+l.json.gz (want bridge_4-reader_j@0_l.json.gz)
 caught  lost and saved swapped in the paired cells: the planted 'good' story (P alone; no noise, no C, no L) reads items 1-8 and 10-13 as HELD but 4, 5 and 6 FALSIFIED: FALSIFIED,HELD,INCONCLUSIVE,FALSIFIED,FALSIFIED,FALSIFIED,
 caught  harm without Holm: harm needs Holm: two legs of 48 saved, 70 lost (raw 0.026, Holm 0.053) are not harm: harm,harm (want inconclusive,inconclusive)
@@ -65,4 +67,4 @@ caught  item 10 left out of the re-read on paths 1,001-8,000: items 1, 2 and 10 
 caught  the attribution does not name N from item 13: the attribution names N from item 13 alone (off's churn gone at 30 points, item 4 FALSIFIED): HELD: P, the margin holding a near-tie; the reader alone is cured at margin 0 (it
 caught  the attribution names P on item 2 alone: the attribution names P only with item 3 as well as item 2: HELD: P, the margin holding a near-tie; the reader alone is cured at margin 0 (items 2, 3 and 10) (want no explanat
 
-65 mutations: every one caught
+67 mutations: every one caught

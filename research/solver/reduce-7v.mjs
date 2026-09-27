@@ -141,7 +141,11 @@ export function gate(cases) {
   return bad;
 }
 // a trace agrees with the logs: its count, seed, arm, every field of the stamp, and its survival the run line's
-export const traceAgrees = (j, ST, label, sim) => !!(j && ST && j.stamp && j.N === N && String(j.seed) === SEED && j.arm === label && ['code', 'audit', 'prediction', 'sha'].every(k => j.stamp[k] === ST[k]) && Math.abs(j.sim - sim) < 5e-4);
+// the run line prints survival to three decimals (audit-s126.mjs l.577), so a trace agrees within half a unit of the last
+// place, 0.0005, reached exactly at 8,000 paths where survival moves in steps of 0.0125 (27 Sep, the batch's own gate
+// refused 55 of 113 traces at exactly 0.0005; the preflight ran 1,000 paths, where survival has one decimal)
+export const SIM_TOL = 5e-4 + 1e-9;
+export const traceAgrees = (j, ST, label, sim) => !!(j && ST && j.stamp && j.N === N && String(j.seed) === SEED && j.arm === label && ['code', 'audit', 'prediction', 'sha'].every(k => j.stamp[k] === ST[k]) && Math.abs(j.sim - sim) <= SIM_TOL);
 export const survivedShare = S => { let k = 0; for (let i = 0; i < S.length; i++) k += S[i]; return 100 * k / S.length; };
 
 // THE PAIRED CELLS of run B (changed) against run A (reference): lost (A survives, B fails), saved, both, neither
@@ -390,7 +394,7 @@ function planted() {
     ['the gate refuses a short done line', String(g({ S194: { done: 8 } })), 'true'],
     ['a trace agrees only with the log\'s count, seed, arm, stamp and survival', (() => {
       const ST = { code: 'c', audit: 'a', prediction: 'p', sha: 's' }, j = { N, seed: 7002, arm: 'OFF/0', sim: 99.5, stamp: { ...ST } };
-      return [traceAgrees(j, ST, 'OFF/0', 99.5), traceAgrees({ ...j, seed: 7004 }, ST, 'OFF/0', 99.5), traceAgrees({ ...j, stamp: { ...ST, sha: 'x' } }, ST, 'OFF/0', 99.5), traceAgrees(j, ST, 'OFF/1e-3', 99.5), traceAgrees(j, ST, 'OFF/0', 99.4)].join(','); })(), 'true,false,false,false,false'],
+      return [traceAgrees(j, ST, 'OFF/0', 99.5), traceAgrees({ ...j, seed: 7004 }, ST, 'OFF/0', 99.5), traceAgrees({ ...j, stamp: { ...ST, sha: 'x' } }, ST, 'OFF/0', 99.5), traceAgrees(j, ST, 'OFF/1e-3', 99.5), traceAgrees(j, ST, 'OFF/0', 99.4), traceAgrees({ ...j, sim: 99.6375 }, ST, 'OFF/0', 99.638), traceAgrees({ ...j, sim: 99.6375 }, ST, 'OFF/0', 99.6381)].join(','); })(), 'true,false,false,false,false,true,false'],
     ['trace names: case, run, + and / replaced', traceName('bridge 4', 'READER+J/0+L'), 'bridge_4-reader_j@0_l.json.gz'],
     ['cells: lost, saved, both, neither', (() => { const k = cells(Uint8Array.from([1, 1, 0, 0]), Uint8Array.from([1, 0, 1, 0])); return `${k.a} ${k.lost} ${k.saved} ${k.d}`; })(), '1 1 1 1'],
     ['the margin is the case\'s: 0.25 at 95% survival or more, 0.5 below', `${marginFor(95)} ${marginFor(94.9)}`, '0.25 0.5'],
@@ -482,7 +486,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const j = JSON.parse(gunzipSync(readFileSync(f)).toString());
     if (!traceAgrees(j, ST, l, c.runs[l].sim)) { bad.push(`${f}: count, seed, arm, stamp or survival is not the log's`); continue; }
     const X = decode(j);
-    if (Math.abs(survivedShare(X.survived) - c.runs[l].sim) >= 5e-4) bad.push(`${f}: its survived paths give ${survivedShare(X.survived)}, the run line ${c.runs[l].sim}`);
+    if (Math.abs(survivedShare(X.survived) - c.runs[l].sim) > SIM_TOL) bad.push(`${f}: its survived paths give ${survivedShare(X.survived)}, the run line ${c.runs[l].sim}`);
     T[`${c.id}|${l}`] = X;
   }
   if (bad.length) { console.log(`FAIR-TEST GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }

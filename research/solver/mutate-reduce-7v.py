@@ -27,7 +27,9 @@ M = [
     ("the gate accepts a short done line", "if (c.done !== runs.length)", "if (false)"),
     ("a trace's seed not compared", "String(j.seed) === SEED && j.arm", "j.arm"),
     ("a trace's stamp sha not compared", "['code', 'audit', 'prediction', 'sha'].every(k => j.stamp[k] === ST[k])", "['code', 'audit', 'prediction'].every(k => j.stamp[k] === ST[k])"),
-    ("a trace's survival not compared with the run line's", " && Math.abs(j.sim - sim) < 5e-4);", ");"),
+    ("a trace's survival not compared with the run line's", " && Math.abs(j.sim - sim) <= SIM_TOL);", ");"),
+    ("a trace's survival compared strictly inside the print's rounding (27 Sep's gate fault)", "export const SIM_TOL = 5e-4 + 1e-9;", "export const SIM_TOL = 5e-4 - 1e-9;"),
+    ("a trace's survival allowed well past the print's rounding", "export const SIM_TOL = 5e-4 + 1e-9;", "export const SIM_TOL = 5e-3;"),
     ("a trace name keeps the learner's +", ".replace(/\\+/g, '_')", ""),
     # the rule
     ("lost and saved swapped in the paired cells", "else if (A[i]) lost++; else if (B[i]) saved++;", "else if (A[i]) saved++; else if (B[i]) lost++;"),

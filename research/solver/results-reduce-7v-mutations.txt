@@ -1,0 +1,45 @@
+true script: planted (50): all read as they should
+caught  the gate accepts a missing case: the gate refuses a missing case: false (want true)
+caught  the gate ignores the case line's settings: the gate refuses a case line that names another lambda: false (want true)
+caught  the gate ignores a second setting changed between arms: the gate refuses a second setting changed between arms: false (want true)
+caught  the gate does not read the seed: the gate refuses the wrong seed (on every arm, so only the seed check sees it): false (want true)
+caught  the gate does not read the points: the gate refuses 16 points on every arm (the grid line left at 30): false (want true)
+caught  the gate does not read the lambda: the gate refuses the reference lambda on every arm of S172 (its own is registered): false (want true)
+caught  the gate does not read the tier above: the gate refuses a tier above that did not open on S172 up: false (want true)
+caught  the gate does not read the mixture: the gate refuses five worlds run as three: false (want true)
+caught  the gate ignores a joint line that does not match its label: the gate refuses an arm whose joint line does not match its label: false (want true)
+caught  the gate ignores the risk-above decision: the gate refuses a risk-above decision the prediction does not name: false (want true)
+caught  the gate accepts a missing run: the gate refuses a missing run: false (want true)
+caught  the gate reads the worlds with some() and skips a missing one: the gate refuses a missing world line (the middle world, so the count stays three): false (want true)
+caught  the gate accepts world lines on a case that registers none: the gate refuses world lines on a case that registers none: false (want true)
+caught  the gate accepts a short done line: the gate refuses a short done line: false (want true)
+caught  a trace's seed not compared: a trace agrees only with the log's count, seed, arm, stamp and survival: true,true,false,false,false (want true,false,false,false,false)
+caught  a trace's stamp sha not compared: a trace agrees only with the log's count, seed, arm, stamp and survival: true,false,true,false,false (want true,false,false,false,false)
+caught  a trace's survival not compared with the run line's: a trace agrees only with the log's count, seed, arm, stamp and survival: true,false,false,false,true (want true,false,false,false,false)
+caught  a trace name keeps the learner's +: trace names: case, run, + and / replaced: bridge_4-reader+j@0+l.json.gz (want bridge_4-reader_j@0_l.json.gz)
+caught  lost and saved swapped in the paired cells: the story as predicted reads items 1-8 as HELD, HELD, HELD, FALSIFIED, FALSIFIED, FALSIFIED, HELD, HELD: FALSIFIED,HELD,FALSIFIED,FALSIFIED,FALSIFIED,FALSIFIED,NOT REPRODUCED,
+caught  harm without Holm: harm needs Holm: two legs of 48 saved, 70 lost (raw 0.026, Holm 0.053) are not harm: harm,harm (want inconclusive,inconclusive)
+caught  a gain without Holm: a gain needs Holm: 6 and 0 on two legs (Holm 0.031) gains, 5 and 0 (0.062) does not: gain,gain gain,gain (want gain,gain no material gain,no material gain)
+caught  the gain's p read as harm: a gain needs Holm: 6 and 0 on two legs (Holm 0.031) gains, 5 and 0 (0.062) does not: no material gain,no material gain no material gain,no material gain (want gain,gain no mat
+caught  no material gain at the wrong end: no material gain needs the interval's upper end below the margin: 30 saved, 20 lost of 8,000 (upper end 0.30) is inconclusive: no material gain (want inconclusive)
+caught  the margin fixed at 0.25 whatever the survival: the margin follows the product's survival: at 94% a loss of 30 paths (0.375) is not harm by the 0.5 margin, so item 1 reads FALSIFIED: HELD (want FALSIFIED)
+caught  the count guard dropped from the unconditional interval: the count guard, as read-o27-unconditional.mjs guarded() gives it (3 lost, none saved, 400 failing in both, of 8,000: raw -0.099217, guarded -0.109551): -0.099217 (want -0.109
+caught  the unconditional reading's disagreement read at the wrong end: no material harm by the exact interval, the unconditional one marked where it disagrees (7 of 3,000 lost, none saved; 7 of 8,000 agree): no material harm false false (want no 
+caught  item 1 reads the product against the reader: the story as predicted reads items 1-8 as HELD, HELD, HELD, FALSIFIED, FALSIFIED, FALSIFIED, HELD, HELD: FALSIFIED,HELD,HELD,FALSIFIED,FALSIFIED,FALSIFIED,HELD,HELD (want HELD
+caught  item 2 reads the reader at 0 against the product, not off at 0: item 2 reads the reader against off at margin 0, not against the product (both lose the same 40 paths): FALSIFIED (want HELD)
+caught  item 3 without the tolerance: item 3 rises through a step that falls within the tolerance (net -40, -20, -22, -2): INCONCLUSIVE (want HELD)
+caught  item 3 without the rise from 0.001 to 0: item 3 does not rise when it is flat (net -5 at every margin, no harm at 0): HELD (want INCONCLUSIVE)
+caught  item 3 without the no-harm condition at 0: item 3 reads FALSIFIED when it rises but still harms at 0 (net -80, -60, -40, -30): HELD (want FALSIFIED)
+caught  item 4 always against 1e-4: item 4 reads margin 0 against the better small margin, 3e-4 here (60 saved there, none at 1e-4 or 0): FALSIFIED (want HELD)
+caught  item 4 HELD only when every case harms: the opposite story reads item 1 FALSIFIED, 2 FALSIFIED, 4 HELD, 5 HELD, 6 HELD, 7 FALSIFIED, 8 FALSIFIED: FALSIFIED,FALSIFIED,INCONCLUSIVE,HELD,HELD,FALSIFIED,FALSIFIED (want 
+caught  item 5 at margin 0 alone: item 5 needs a gain at 1e-4 as well as at 0 (a gain at 0 alone is INCONCLUSIVE): HELD (want INCONCLUSIVE)
+caught  item 6 reads the learner the wrong way round: the opposite story reads item 1 FALSIFIED, 2 FALSIFIED, 4 HELD, 5 HELD, 6 HELD, 7 FALSIFIED, 8 FALSIFIED: FALSIFIED,FALSIFIED,HELD,HELD,FALSIFIED,FALSIFIED,FALSIFIED (want FAL
+caught  item 7 reads S330's pair as a harm: item 7 reads S330's pair by its gain (mix5 against mix3), not S172's harm: S172 (O16): MEETS; S330 (O21): NOT REPRODUCED (want S172 (O16): MEETS; S330 (O21): MEETS)
+caught  item 7 without the reproduction at 0.001: item 7 names an unreproduced pair NOT REPRODUCED: S172 (O16): MEETS; S330 (O21): MEETS (want S172 (O16): MEETS; S330 (O21): NOT REPRODUCED)
+caught  item 8 at the whole of margin 0's switching, not half: the opposite story reads item 1 FALSIFIED, 2 FALSIFIED, 4 HELD, 5 HELD, 6 HELD, 7 FALSIFIED, 8 FALSIFIED: FALSIFIED,FALSIFIED,HELD,HELD,HELD,FALSIFIED,HELD (want FALSIFIED,FAL
+caught  a reader candidate without its gains: the candidates: no reader arm without its gains; READER+J/0 with them; the fix alone at 1e-4 (no harm anywhere): 5 READER/3e-4,READER/1e-4,READER/0,READER+J/1e-4,READER+J/0 tr
+caught  a candidate on S194 read on the reader's own (missing) run: a candidate refused for harm on one core case (S194 read on off's run for a reader arm): true (want false)
+caught  the product listed as its own candidate: the product is never a candidate of its own: true (want false)
+caught  the attribution names P on item 2 alone: the attribution names P only with item 3 as well as item 2: HELD: P, the margin holding a near-tie (items 2 and 3) (want no explanation HELD)
+
+42 mutations: every one caught

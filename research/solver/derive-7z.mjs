@@ -4,8 +4,8 @@
  * solve's gap line and an identity, and have no path power. Each story fixes the true saved and lost counts and draws them
  * as Poisson counts with a background of b paths each way (b = 0.5 and 5), 20,000 draws a story, read by reduce-7z.mjs's
  * own families (reduce-7v.mjs's gain and harm families, Holm over item 3's two legs).
- * THE SIZES, from the records (the deep review after 7x, deep-review-log.md 27 Sep 22:32 UK: "take them from 7w's freed
- * opening against the product"): on 7w's 3,000 paths (the first 3,000 of 7v's 8,000 and of 7z's), the reader at 5 points
+ * THE SIZES, from the records (as the PLAN.md ledger's 22:32 row takes 7y's sizes from 7w's freed opening against the
+ * product; the plan-auditor's review of 7z's registration, MINOR 1): on 7w's 3,000 paths (the first 3,000 of 7v's 8,000 and of 7z's), the reader at 5 points
  * with the year-0 move freed (margin 0 in year 0, 0.001 after) against the reader at 0.001 - share 0.95 and S126 - scaled to
  * 8,000 paths; each case's margin from 7v's READER/1e-3 survival on the 8,000. Grade C: the fix frees the opening to the
  * move the exact integral prefers, which need not be margin 0's; bridge 4 has no freed-opening record and is drawn level

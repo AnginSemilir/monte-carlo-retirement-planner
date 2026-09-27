@@ -513,7 +513,10 @@ The rules this adds:
 5. **Families of odd results.** Register items that point the same way are linked as a family (the register's "family"
    note). When a family reaches three members, a root-cause diagnosis is scheduled before any further fix in that area.
    The first family, "the tables value extra risk too highly": O9, O16, O17, O18/O20, O19 with 7h, C5, O24, O26 (PLAN.md; O16 and O26
-   added by the first deep review, 26 Sep 17:12 UK).
+   added by the first deep review, 26 Sep 17:12 UK), renamed at 7v's read (the fifth deep review, 27 Sep 18:02 UK) into
+   "a sub-margin opening gap decides the tier held for life" (O17, O24, O26, O30, O33) and a second family, "the chooser
+   keeps too much risk in the bad world" (O9, O20, O31, O32, O34), each over three members; the second's root-cause step
+   for its T/Q member is 7w (PLAN.md), the first's is the maintainer's next decision after 7w.
 6. **Design premises are claims.** An approximation justified by argument (the mixture's no-learning premise, the switch
    margin at today's settings, the fold's horizon factor) is listed with its grade (D until tested) and the failure it
    would cause if wrong, and is tested before a decision rests on it.

@@ -42,3 +42,4 @@
 27 Sep 23:10 UK | main | research/solver/predictions/diag-7z.md | code 3ac3277fd780 | a02a546 | load 2.02 2.64 2.71 | bash research/solver/batch-7z.sh
 27 Sep 23:56 UK | light | none: 7y preflight, the diag7y mode at 4 points and 20 paths, every unit through reduce-7y's parse and gate; no figure read | code d84e6bab7648 | b495eb2 | load 5.88 5.88 5.83 | bash research/solver/preflight-7y.sh
 28 Sep 00:41 UK | main | research/solver/predictions/diag-7y.md | code d84e6bab7648 | 6292366 | load 0.86 0.39 0.84 | bash research/solver/batch-7y.sh
+28 Sep 00:53 UK | light | none: O36 on S360 with the reader (the deep review after 7x's step 3; O36's gate before any deep review judges the combination): held tables 0/0 and 2/2, the reader's reference at the plan's tiers and at the held tier, 30 points, 8,000 paths; a measurement, no test | code d84e6bab7648 | ccd3111 | load 6.52 5.62 3.54 | node research/solver/audit-s126.mjs refs360 30 8000 7002

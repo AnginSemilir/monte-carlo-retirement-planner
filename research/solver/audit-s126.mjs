@@ -15,6 +15,7 @@
  *   node research/solver/audit-s126.mjs diag7x [points] [paths] part k/n [seed] [world paths]  7x: held-for-life tables against their own runs
  *   node research/solver/audit-s126.mjs diag7z [points] [paths] part k/n [seed]  7z: Q's fix (bridgeStep 'exact') on against off, the reader on
  *   node research/solver/audit-s126.mjs diag7y [points] [paths] part k/n [seed]  7y: the tier state against the product, its tier and rest swapped, and held for life
+ *   node research/solver/audit-s126.mjs refs360 [points] [paths] [seed]  O36 on S360 with the reader: held tables, the reader's reference at the plan's tiers and at the held tier
  *
  * Each mode reads its OWN arguments (fixed 24 Sep: the numbers were read before the mode was chosen, so `ids` read its
  * id list as the grid size - NaN, falling back to 12 points - and took the path count from the argument meant for points).
@@ -149,7 +150,7 @@ const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', {
  */
 // `lambda` and `forward` (7v, 27 Sep): a case's own dislike of cuts in place of S126's, and `forward: false` to solve and
 // return the tables without the held-path run (7v runs its own forward runs, one a switch margin); unset, as before
-function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint, mix, lambda = LAMBDA, forward = true, holdTier, bridgeStep, tierState } = {}) {
+function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint, mix, lambda = LAMBDA, forward = true, holdTier, bridgeStep, tierState, readerRef } = {}) {
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
@@ -159,7 +160,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   // re-run of an older mode (7c's f1v2, 7i's quad), now exact by default, cannot pass a ran-line gate against files that
   // ran it averaged. It sits BEFORE bridgeRead: smoke.sh's f1v2 check (locked) reads bridgeRead at the end of the line.
   const r = solvePlan(E, M, plan, { lambda, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
-    ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}), ...(joint ? { jointWorlds: true } : {}), ...(mix ? { mix } : {}), ...(holdTier ? { holdTier } : {}), ...(bridgeStep ? { bridgeStep } : {}), ...(tierState ? { tierState: true } : {}) });   // F1 off is explicit, whatever the product default
+    ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}), ...(joint ? { jointWorlds: true } : {}), ...(mix ? { mix } : {}), ...(holdTier ? { holdTier } : {}), ...(bridgeStep ? { bridgeStep } : {}), ...(tierState ? { tierState: true } : {}), ...(readerRef ? { readerRef } : {}) });   // F1 off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
   const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
   let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(seed, NP, m.ctx.totalYears);
@@ -169,7 +170,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   const sim = forward ? 100 * ok / NP : NaN;
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
   // the held paths' seed and count sit after pts (added 25 Sep for 7e, which runs on held-out paths; smoke.sh's greps read around them)
-  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5}${holdTier ? ` holdTier ${holdTier.join('/')}` : ''}${r.meta.bridgeStep ? ` bridgeStep ${r.meta.bridgeStep}` : ''}${r.meta.tierState ? ` tierState ${r.meta.tierState}` : ''} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
+  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5}${holdTier ? ` holdTier ${holdTier.join('/')}` : ''}${r.meta.bridgeStep ? ` bridgeStep ${r.meta.bridgeStep}` : ''}${r.meta.tierState ? ` tierState ${r.meta.tierState}` : ''}${readerRef ? ` readerRef ${r.meta.readerRef}` : ''} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
   return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran, reader: r.meta.reader || null, r, paths };
 }
 if (mode === 'f1v2') {
@@ -896,6 +897,34 @@ if (mode === 'f1v2') {
     }
     console.log(`${''.padEnd(16)} done ${A}/${kind}`);
   });
+} else if (mode === 'refs360') {
+  /*
+   * O36'S OPEN PART ON S360 (PLAN.md O36's gate: before any deep review judges the combination of Q's fix and the tier state;
+   * the deep review after 7x, 27 Sep 22:32 UK, step 3; a measurement, no test): does the reader's reference at the PLAN's
+   * tiers, which every held or tier-state layer reads its bridge years at, turn the de-risk's sign on S360 with the reader?
+   * Held-for-life tables (solve.js holdTier) at the plan's tier (0/0) and the freed opening's (2/2), each with the reader's
+   * reference at the plan's tiers (readerRef 'plan', the product's) and at the held tier (readerRef 'held', research only),
+   * at the product's settings (solvePlan, 30 points, 'auto' risk above, lambda held, 5 return points), each run forward on
+   * the same NP paths. Prints each solve's opening table and simulated survival, and per reference dT (the tables' 2/2 less
+   * 0/0) against dS (the runs' 2/2 less 0/0) with the paired saved/lost.
+   *   node research/solver/audit-s126.mjs refs360 [points=30] [paths] [seed=7002]
+   */
+  const SEED = process.argv[5] ? Number(process.argv[5]) : 7002;
+  if (!(SEED >= 1)) { console.error(`audit-s126: bad seed ${process.argv[5]}`); process.exit(2); }
+  const h = all.find(s => s.id === 'S360');
+  console.log(`O36 ON S360 WITH THE READER: held tables 0/0 and 2/2, the reader's reference at the plan's tiers and at the held tier; ${POINTS} points, ${NP} paths (seed ${SEED}); a measurement`);
+  const res = {};
+  for (const ref of ['plan', 'held']) for (const hold of [[0, 0], [2, 2]]) {
+    const x = measureV2(h, 'reader', 5, { seed: SEED, lambda: LAMBDA, holdTier: hold, readerRef: ref });
+    if (x.r.meta.holdTier !== hold.join('/') || x.r.meta.readerRef !== ref) { console.error(`audit-s126: ran holdTier ${x.r.meta.holdTier} readerRef ${x.r.meta.readerRef}`); process.exit(2); }
+    res[`${ref}|${hold.join('')}`] = x;
+    console.log(`  ref ${ref.padEnd(4)} hold ${hold.join('/')}: table ${x.table.toFixed(4)} sim ${x.sim.toFixed(4)} secs ${Math.round(x.secs)} | ran ${x.ran}`);
+  }
+  for (const ref of ['plan', 'held']) {
+    const a = res[`${ref}|00`], b = res[`${ref}|22`];
+    let saved = 0, lost = 0; for (let i = 0; i < NP; i++) { if (!a.okArr[i] && b.okArr[i]) saved++; else if (a.okArr[i] && !b.okArr[i]) lost++; }
+    console.log(`  ref ${ref}: dT ${(b.table - a.table).toFixed(4)} dS ${(b.sim - a.sim).toFixed(4)} (2/2 against 0/0: ${saved} saved, ${lost} lost)`);
+  }
 } else if (mode === 'time') {
   /*
    * 7k: THE EXACT FINAL YEAR'S RUN TIME (PLAN.md 7k; a measurement, not a test). Times the solve only (solvePlan, no

@@ -13,7 +13,7 @@
  *      bequest differs by up to 6.04e-10. The
  *      reading (eps ties at survival clamped to the floor): checked read-only by the plan-auditor's review of 7y's registration
  *      (28 Sep): at the latest differing year the two kept moves score within 1.5e-17 of each other (eps 1e-12) and their
- *      bequests differ by up to 6.04e-10; grade C, no saved script. The count and the largest difference are printed
+ *      bequests differ by up to 6.04e-10; grade C; its script kept as research/solver/drafts/check-7y-tie.mjs, not re-run. The count and the largest difference are printed
  *   D. THE CHOOSER AGREES WITH THE TABLE: at grid nodes, holding pair j, chooseAction picks the move the backward pass
  *      stored in layer j (one world, the product's cost and margin), at every node sampled where some move can pay (where
  *      every move fails, the chooser scores all at -Infinity and keeps the first, the table scores them alike and keeps the

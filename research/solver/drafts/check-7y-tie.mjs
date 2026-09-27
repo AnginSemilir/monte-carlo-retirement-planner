@@ -1,4 +1,4 @@
-// KEPT (the plan-auditor's read-only check in its review of 7y's registration, 28 Sep; RULES.md section 2 item 2): run once by the reviewer, not re-run; its figures are cited in predictions/diag-7y.md and PLAN.md O41 at grade C.
+// KEPT (the plan-auditor's read-only check in its review of 7y's registration, 28 Sep; RULES.md section 2 item 2): run once by the reviewer, not re-run; its figures are cited in predictions/diag-7y.md (Derivation, the held endpoint) at grade C.
 import * as E from '/home/user/vitejs-vite-kdvuf9qw/research/engine.mjs';
 import * as M from '/home/user/vitejs-vite-kdvuf9qw/src/solver/model.js';
 import { solve, scoreMoves } from '/home/user/vitejs-vite-kdvuf9qw/src/solver/solve.js';

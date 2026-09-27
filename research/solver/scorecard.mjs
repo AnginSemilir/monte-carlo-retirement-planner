@@ -28,6 +28,7 @@ export const TESTS = [
   { name: '7e (the bridge reader)', prediction: 'predictions/bridge-reader.md', results: 'results-7e.txt' },
   { name: '7r (why the reader harms)', prediction: 'predictions/diag-7r.md', results: 'results-7r.txt' },
   { name: '7s (5 or 15 return points)', prediction: 'predictions/diag-7s.md', results: 'results-7s.txt' },
+  { name: '7t (six suspected causes)', prediction: 'predictions/diag-7t.md', results: 'results-7t.txt' },
 ];
 
 export function credences(predText) {
@@ -35,14 +36,15 @@ export function credences(predText) {
   if (!m) throw new Error('no "## Credence" section');
   const body = m[1].replace(/\([^)]*\)/g, ' ');   // drop the reasons in brackets
   const items = {};
-  for (const x of body.matchAll(/(?:holds:|;)\s*(\d+),\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) items[x[1]] = Number(x[2]);
+  for (const x of body.matchAll(/(?:holds:|;)\s*(\d+)\s*,\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) items[x[1]] = Number(x[2]);   // a space before the comma: a bracketed label dropped (7t's "2 (J HELD), 0.25")
   // the whole: 7e's "Carried forward: p", or a three-outcome test's "The outcome: HELD p, FALSIFIED q, INCONCLUSIVE r",
   // whose HELD share is scored as the whole (7r, added 26 Sep: one whole-test pair per test, as 7e has)
-  const all = /Carried forward[^:]*:\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(body) || /The outcome:\s*HELD\s+(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(body);
+  const all = /Carried forward[^:]*:\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(body) || /The outcome:\s*HELD\s+(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(body)
+    || /At\s+least\s+one\s+cause\s+HELD:\s*(?:about\s+)?(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/.exec(body);   // a several-cause test's whole (7t, added 27 Sep)
   if (!Object.keys(items).length) throw new Error('no item credences in "## Credence"');
   for (const [k, p] of Object.entries(items)) if (!(p >= 0 && p <= 1)) throw new Error(`item ${k}: credence ${p} is not a probability`);
   if (all && !(Number(all[1]) >= 0 && Number(all[1]) <= 1)) throw new Error(`the whole: credence ${all[1]} is not a probability`);
-  return { items, overall: all ? Number(all[1]) : null, overallLabel: all && /^The outcome/.test(all[0]) ? 'outcome HELD' : 'carried forward' };
+  return { items, overall: all ? Number(all[1]) : null, overallLabel: all && /^The outcome/.test(all[0]) ? 'outcome HELD' : all && /^At\s+least/.test(all[0]) ? 'a cause HELD' : 'carried forward' };
 }
 
 export function outcomes(resultsText) {
@@ -51,7 +53,9 @@ export function outcomes(resultsText) {
   if (/^INCOMPLETE|^FAIR-TEST GATE: FAILED|^\s*REFUSED: not a fair test|^PLANTED CHECK FAILED/m.test(resultsText)) return { refused: 'the reducer stopped before a verdict' };
   // the verdict: 7e's "=> NOT FALSIFIED" or "=> FALSIFIED", or a three-outcome reducer's "OUTCOME: HELD|FALSIFIED|INCONCLUSIVE"
   const v = /^=>\s*(NOT FALSIFIED|FALSIFIED)/m.exec(resultsText) || /^OUTCOME:\s*(HELD|FALSIFIED|INCONCLUSIVE|NOT SETTLED)\b/m.exec(resultsText);   // NOT SETTLED (7s): the whole scored 0, the items as printed, so a missed reproduction is scored (the seventy-fourth review, MINOR 2)
-  if (!v) return { refused: 'no verdict line' };
+  // a several-cause reducer's "OUTCOME: J INCONCLUSIVE, L HELD, ..." (reduce-7t.mjs): the whole holds when any cause HELD
+  const many = v ? null : /^OUTCOME:\s*((?:[\w/+]+\s+(?:HELD|FALSIFIED|INCONCLUSIVE)(?:,\s*|\s*$))+)$/m.exec(resultsText);
+  if (!v && !many) return { refused: 'no verdict line' };
   const h = resultsText.indexOf("THE PREDICTION'S ITEMS:");
   const sec = h < 0 ? resultsText : resultsText.slice(h).split(/\n\s*\n/)[0];
   const items = {};
@@ -60,7 +64,7 @@ export function outcomes(resultsText) {
     if (!o) throw new Error(`item ${x[1]}: no outcome on its line`);
     items[x[1]] = o[1] === 'held' ? 1 : 0;
   }
-  return { items, overall: v[1] === 'NOT FALSIFIED' || v[1] === 'HELD' ? 1 : 0 };
+  return { items, overall: many ? (/\bHELD\b/.test(many[1]) ? 1 : 0) : v[1] === 'NOT FALSIFIED' || v[1] === 'HELD' ? 1 : 0 };
 }
 
 export function scoreTest(predText, resultsText) {
@@ -121,6 +125,10 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
     ['always 50% scores 0.25', String(scoreTest(pred('each item holds: 1, 0.5; 2, 0.5.'), res(['1. a -> held', '2. b -> MISSED'])).brier), '0.25'],
     ['FALSIFIED scores the whole as not held', String(scoreTest(P, res(['1. a -> held', '2. b -> MISSED', '3. c -> held'], 'FALSIFIED - NOT CARRIED FORWARD')).pairs.at(-1).o), '0'],
     ['planted: no results file yet is PENDING, not scored', scoreTest(P, null).status, 'PENDING'],
+    // a several-cause test (7t's forms): bracketed labels before the commas, "At least one cause HELD: about p", and an
+    // OUTCOME line listing each cause - the whole held when any cause HELD, not when none does
+    ['planted: a several-cause test scored, the whole held when a cause HELD', t(() => { const r = scoreTest(pred('The author\'s probability that each item holds: 1, 0.9; 2 (J HELD), 0.25; 3 (L), 0.5. At least\none cause HELD: about 0.6; none, about 0.4.'), 'THE PREDICTION\'S ITEMS:\n1. a -> held\n2. b -> MISSED\n3. c -> held\n\nOUTCOME: J INCONCLUSIVE, L HELD, 5 FALSIFIED\n'); return `${r.pairs.map(x => `${x.item}:${x.p}:${x.o}`).join(' ')}`; }), '1:0.9:1 2:0.25:0 3:0.5:1 a cause HELD:0.6:1'],
+    ['planted: a several-cause test with no cause HELD scores the whole 0', t(() => { const r = scoreTest(pred('The author\'s probability that each item holds: 1, 0.9. At least one cause HELD: about 0.6.'), 'THE PREDICTION\'S ITEMS:\n1. a -> held\n\nOUTCOME: J INCONCLUSIVE, M0 FALSIFIED\n'); return String(r.pairs.at(-1).o); }), '0'],
     ['planted: an INCOMPLETE reducer is REFUSED, not scored', scoreTest(P, 'INCOMPLETE - nothing is scored:\n  x').status, 'REFUSED'],
     ['planted: reduce-7e\'s gate failure is REFUSED', scoreTest(P, 'FAIR-TEST GATE: FAILED\n  x').status, 'REFUSED'],
     ['planted: fair-gate\'s stamp failure is REFUSED', scoreTest(P, 'FAIR-TEST GATE: FAILED (stamps)\n  x').status, 'REFUSED'],

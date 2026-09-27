@@ -16,6 +16,7 @@
  *   node research/solver/audit-s126.mjs diag7z [points] [paths] part k/n [seed]  7z: Q's fix (bridgeStep 'exact') on against off, the reader on
  *   node research/solver/audit-s126.mjs diag7y [points] [paths] part k/n [seed]  7y: the tier state against the product, its tier and rest swapped, and held for life
  *   node research/solver/audit-s126.mjs refs360 [points] [paths] [seed]  O36 on S360 with the reader: held tables, the reader's reference at the plan's tiers and at the held tier
+ *   node research/solver/audit-s126.mjs o41 [points] [paths] [seed]  O41's bound: the tier state per world against the joint tier state, tables only
  *
  * Each mode reads its OWN arguments (fixed 24 Sep: the numbers were read before the mode was chosen, so `ids` read its
  * id list as the grid size - NaN, falling back to 12 points - and took the path count from the argument meant for points).
@@ -924,6 +925,49 @@ if (mode === 'f1v2') {
     const a = res[`${ref}|00`], b = res[`${ref}|22`];
     let saved = 0, lost = 0; for (let i = 0; i < NP; i++) { if (!a.okArr[i] && b.okArr[i]) saved++; else if (a.okArr[i] && !b.okArr[i]) lost++; }
     console.log(`  ref ${ref}: dT ${(b.table - a.table).toFixed(4)} dS ${(b.sim - a.sim).toFixed(4)} (2/2 against 0/0: ${saved} saved, ${lost} lost)`);
+  }
+} else if (mode === 'o41') {
+  /*
+   * O41'S BOUND (PLAN.md O41's gate; the deep review after 7z, 28 Sep 00:38 UK; a measurement, tables only, no survival test):
+   * the tier state with the switch rule applied per world (TS, 7y's arm) against the joint tier state (TS+J: the chooser's
+   * full rule, one move for every world, the margin on the mixture-weighted score), each solved at the product's settings
+   * (solvePlan, 30 points, 'auto' risk above, lambda held, 5 return points, margin 0.001), on S126 (reader), S194 (off) and
+   * share 0.95 (reader). Per solve: the year-0 gap (as 7v's to 7y's) and the pension tier it opens in at 1e-3 and at 0, the
+   * mixture's opening table and each world's. The bound rule, written before the measurement (O41's gate): O41 is BOUNDED at
+   * the opening on a case where TS+J opens in the same pair at 1e-3 as TS and its gap is within 2 times TS's.
+   *   node research/solver/audit-s126.mjs o41 [points=30] [paths=1] [seed=7002]
+   */
+  const SEED = process.argv[5] ? Number(process.argv[5]) : 7002;
+  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
+  const chooseAt = (r, st, t, held, sm) => { const keep = r.switchMargin; r.switchMargin = sm; try { return chooseAction(r, st, t, held); } finally { r.switchMargin = keep; } };
+  const openGap = (r, zs) => {
+    let s0 = null, h0 = null;
+    runPolicy(r, zs, { choose: (t, st, held) => { if (t === 0 && !s0) { s0 = Float64Array.from(st); h0 = { ...held }; } return chooseAction(r, st, t, held); } });
+    const acts = r.c.acts, at = sm => acts[chooseAt(r, s0, 0, h0, sm)];
+    const stays = sm => { const a = at(sm); return a.tierPen === h0.pen && a.tierIsa === h0.isa; };
+    let gap;
+    if (stays(0)) gap = '0';
+    else if (!stays(1)) gap = '>1';
+    else { let lo = 0, hi = 1; for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (stays(mid)) hi = mid; else lo = mid; } gap = hi.toExponential(4); }
+    return { gap, open: [0.001, 0].map(sm => at(sm).tierPen), s0 };
+  };
+  console.log(`O41'S BOUND: the tier state per world (TS) against the joint tier state (TS+J), tables only, ${POINTS} points (seed ${SEED} for the opening state); a measurement`);
+  const res = {};
+  for (const [id, arm] of [['S126', 'reader'], ['S194', 'off'], ['share 0.95', 'reader']]) {
+    const h = byId(id)();
+    for (const [tag, joint] of [['TS', false], ['TS+J', true]]) {
+      const x = measureV2(h, arm === 'reader' ? 'reader' : false, 5, { seed: SEED, lambda: LAMBDA, forward: false, tierState: true, joint });
+      const r = x.r;
+      if (!!r.meta.jointWorlds !== joint || !r.meta.tierState) { console.error(`audit-s126: ${tag} ran jointWorlds ${r.meta.jointWorlds} tierState ${r.meta.tierState}`); process.exit(2); }
+      const g = openGap(r, x.paths[0]);
+      const worlds = r.worlds.map(w => (100 * w.value(M.initialState(r.m), 0).survival).toFixed(4)).join(' / ');
+      res[`${id}|${tag}`] = g;
+      console.log(`${id.padEnd(11)} ${arm.padEnd(6)} ${tag.padEnd(5)} gap ${g.gap} opens ${g.open[0]} at 1e-3, ${g.open[1]} at 0 | table ${x.table.toFixed(4)} | worlds ${worlds} | secs ${Math.round(x.secs)} | ran ${x.ran}`);
+    }
+    const a = res[`${id}|TS`], b = res[`${id}|TS+J`], ga = a.gap === '0' ? 0 : a.gap === '>1' ? Infinity : Number(a.gap), gb = b.gap === '0' ? 0 : b.gap === '>1' ? Infinity : Number(b.gap);
+    const within = ga === gb || (ga > 0 && gb > 0 && gb / ga <= 2 && ga / gb <= 2);
+    console.log(`${id.padEnd(11)} the bound: TS+J opens in pair ${b.open[0]} at 1e-3, TS in ${a.open[0]}; gap ratio TS+J/TS ${ga > 0 && Number.isFinite(ga) && Number.isFinite(gb) ? (gb / ga).toFixed(3) : 'n/a'} -> ${b.open[0] === a.open[0] && within ? 'BOUNDED' : 'NOT BOUNDED'}`);
   }
 } else if (mode === 'time') {
   /*

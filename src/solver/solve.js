@@ -383,15 +383,18 @@ export function solve(E, M, plan, opts = {}) {
    * the chooser's: the best, unless a move that stays in j is within the switch margin of it (ties to staying, as
    * chooseAction). Each world's layer is solved on its own (the forward chooser weighs the worlds before the margin; the
    * backward pass, as today, one world at a time). The plan's own pair (0/0) is the layer the result's tables expose, and
-   * scoreMoves reads each move's next-year layer. The product's path only: the ternary level search, one policy for every
-   * world, a held tier and the taxable account's tier are refused.
+   * scoreMoves reads each move's next-year layer. The product's path only: the ternary level search, a held tier and the
+   * taxable account's tier are refused.
+   * With jointWorlds as well (TS+J; research only; O41, the deep review after 7z): the chooser's FULL rule - one move for every
+   * world, the margin on the mixture-weighted score - and each world's layer stores that world's value of the one move.
    */
   const TS = !!opts.tierState;
   let tsPairs = null, tsLayerOf = null, tsHeld = null, tsJ0 = 0;
   if (TS) {
     if (opts.holdTier) throw new Error('tierState and holdTier: a held tier is one layer, not a tier state');
     if (opts.levelSearch === 'ternary') throw new Error('tierState: the ternary level search is not supported');
-    if (opts.jointWorlds) throw new Error('tierState: one policy for every world is not supported');
+    // with jointWorlds (TS+J, research only; the deep review after 7z, O41): one move for every world at each cell and layer,
+    // chosen by the chooser's full rule on the mixture-weighted score, each world's layer storing its own value of that move
     if (opts.giaTiers) throw new Error('tierState: the taxable account\'s tier is not supported');
     tsPairs = [...new Set(actions.map(a => `${a.tierPen || 0}/${a.tierIsa || 0}`))].map(x => x.split('/').map(Number));
     if (tsPairs.length < 2) throw new Error('tierState needs a tier menu of two pairs or more');
@@ -832,10 +835,12 @@ export function solve(E, M, plan, opts = {}) {
               }
               if (TS) {
                 // THE TIER STATE (above): per world, per layer j (the pair held entering the year), every move scored as the
-                // chooser scores it holding j, reading the next year's layer of the move's own pair; the chooser's margin kept
+                // chooser scores it holding j, reading the next year's layer of the move's own pair; the chooser's margin kept.
+                // With jointWorlds (TS+J) each world's scores are kept (jS ...) and one move is chosen for every world below.
+                for (let j = 0; j < tsPairs.length; j++) {
                 for (let k = 0; k < K; k++) {
                   const nodeRealOf = nodeRealOfAtW[k][t], ck = cs[k];
-                  for (let j = 0; j < tsPairs.length; j++) {
+                  {
                     let bestScore = -Infinity, bestS = -1, bestB = -Infinity, bestR = 0, bestA = 0, bestH = 0;
                     let stayScore = -Infinity, stayS = -1, stayB = -Infinity, stayR = 0, stayA = -1, stayH = 0;
                     for (let ai = 0; ai < A; ai++) {
@@ -873,14 +878,30 @@ export function solve(E, M, plan, opts = {}) {
                       else h += shortOfAction[ai];
                       if (raiseSurv) h += raiseOfAction[ai] * s;
                       const score = s + wR * rs + wB * b - h;
+                      if (JOINT) { jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = score; continue; }
                       if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
                       if (lj === j && (score > stayScore + eps || (Math.abs(score - stayScore) <= eps && b > stayB))) { stayScore = score; stayS = s; stayB = b; stayR = rs; stayH = h; stayA = ai; }
                     }
+                    if (JOINT) continue;
                     // the chooser's rule: a move to another pair only when it beats the best that stays by more than the margin
                     if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayScore > -Infinity && bestScore - stayScore <= switchMargin) { bestS = stayS; bestB = stayB; bestR = stayR; bestH = stayH; bestA = stayA; }
                     const Lj = layW[k][j];
                     Lj.surv[t][idx] = bestS; Lj.beq[t][idx] = bestB; Lj.resil[t][idx] = bestR; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = bestH;
                   }
+                }
+                if (JOINT) {
+                  // TS+J: the chooser's full rule on the mixture - the best move by the weighted score (ties to the larger weighted
+                  // estate), the best that stays in j, the margin between them - and every world's layer j keeps ITS value of that move
+                  let bestV = -Infinity, bestWB = -Infinity, bestA = 0, stayV = -Infinity, stayWB = -Infinity, stayA = -1;
+                  for (let ai = 0; ai < A; ai++) {
+                    let v = 0, wb = 0;
+                    for (let k = 0; k < K; k++) { v += JW[k] * jV[k][ai]; wb += JW[k] * jB[k][ai]; }
+                    if (v > bestV + eps || (Math.abs(v - bestV) <= eps && wb > bestWB)) { bestV = v; bestWB = wb; bestA = ai; }
+                    if (tsLayerOf[ai] === j && (v > stayV + eps || (Math.abs(v - stayV) <= eps && wb > stayWB))) { stayV = v; stayWB = wb; stayA = ai; }
+                  }
+                  if (switchMargin > 0 && tsLayerOf[bestA] !== j && stayA >= 0 && stayV > -Infinity && bestV - stayV <= switchMargin) bestA = stayA;
+                  for (let k = 0; k < K; k++) { const Lj = layW[k][j]; Lj.surv[t][idx] = jS[k][bestA]; Lj.beq[t][idx] = jB[k][bestA]; Lj.resil[t][idx] = jR[k][bestA]; Lj.pol[t][idx] = bestA; Lj.short[t][idx] = jH[k][bestA]; }
+                }
                 }
                 if (PROF) PROF.cells++;
                 continue;

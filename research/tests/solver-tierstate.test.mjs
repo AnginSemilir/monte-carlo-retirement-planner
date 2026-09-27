@@ -4,7 +4,7 @@
  * as the chooser scores it holding j (chargeSwitch on a move to another pair, the next year's layer of the pair it moves to),
  * and the move kept is the chooser's (the switch margin, ties to staying).
  *
- *   A. it refuses what it cannot do: a held tier, the ternary level search, one policy for every world, a one-pair menu
+ *   A. it refuses what it cannot do: a held tier, the ternary level search, a one-pair menu
  *   B. THE FREE ENDPOINT: with no switching cost and no margin every layer is today's free table, to the bit (survival,
  *      estate, resilience, shortfall, stored move), every year - planted: with the product's cost and margin it is not
  *   C. THE HELD ENDPOINT: with an infinite margin layer j is holdTier j's table, every year and every pair, within 1e-8. Not
@@ -21,6 +21,10 @@
  *   E. meta names it; the mixture's world views carry their layers; a forward run holds, charges and finishes
  *   F. 7y's swap chooser (swap.mjs tsSwapChooser): against itself it swaps nothing and runs as the plain chooser, path by
  *      path; against the tier state it swaps somewhere, and every swapped move lands (swapIndex checks it)
+ *   G. THE JOINT TIER STATE (tierState with jointWorlds, TS+J; O41, the deep review after 7z): with no switching cost and no
+ *      margin every layer is the one-policy (jointWorlds) table to the bit; on the three-world mixture, holding pair j at a
+ *      node, the mixture's chooser picks the move stored in layer j at every node sampled where some move can pay - planted:
+ *      the per-world tier state fails that check somewhere (O41)
  *   node research/tests/solver-tierstate.test.mjs
  */
 import * as E from '../engine.mjs';
@@ -43,7 +47,7 @@ const tabsSame = (L, R) => { for (let t = 0; t <= T; t++) for (const kk of ['sur
 
 console.log('=========== A. REFUSALS ===========');
 const refuse = (extra, re, fn = solve) => { let e = null; try { fn(E, M, plan, { ...o, tierState: true, ...extra }); } catch (x) { e = x.message; } return !!e && re.test(e) ? e : `no refusal (${e})`; };
-for (const [nm, extra, re, fn] of [['a held tier', { holdTier: [0, 0] }, /holdTier/], ['the ternary level search', { levelSearch: 'ternary' }, /ternary/], ['one policy for every world (the mixture)', { jointWorlds: true, mix: 3 }, /one policy/, solveMixture], ['a one-pair menu', { tiers: false }, /two pairs/]]) {
+for (const [nm, extra, re, fn] of [['a held tier', { holdTier: [0, 0] }, /holdTier/], ['the ternary level search', { levelSearch: 'ternary' }, /ternary/], ['a one-pair menu', { tiers: false }, /two pairs/]]) {
   const r = refuse(extra, re, fn); ok(`A  refused: ${nm}`, !/^no refusal/.test(r), r);
 }
 
@@ -101,5 +105,30 @@ console.log('=========== F. 7Y\'S SWAP CHOOSER ===========');
   for (const zs of paths.slice(0, 20)) { const a = runPolicy(prod, zs), b = runPolicy(prod, zs, { choose: self.choose }); if (a.survived !== b.survived || a.terminalNet !== b.terminalNet || a.tierPenYears !== b.tierPenYears) sameRuns = false; }
   ok('F  against itself: nothing swapped, each run the plain chooser\'s', self.n.swapped === 0 && sameRuns, `${self.n.same} path-years`);
   for (const which of ['tier', 'rest']) { const sw = tsSwapChooser(prod, mix, which); let err = null; try { for (const zs of paths.slice(0, 20)) runPolicy(prod, zs, { choose: sw.choose }); } catch (e) { err = e.message; } ok(`F  ${which}: against the tier state it swaps somewhere and every swap lands`, !err && sw.n.swapped > 0, err || `${sw.n.swapped} swapped, ${sw.n.same} the same`); } }
+console.log('=========== G. THE JOINT TIER STATE ===========');
+{ const jfree = solveMixture(E, M, plan, { ...o, mix: 3, jointWorlds: true, switchCost: 0, switchMargin: 0 });
+  const tsj0 = solveMixture(E, M, plan, { ...o, mix: 3, jointWorlds: true, tierState: true, switchCost: 0, switchMargin: 0 });
+  let badG = null;
+  tsj0.worlds.forEach((w, k) => { for (let j = 0; j < w.tsLayers.length && !badG; j++) { const d = tabsSame(w.tsLayers[j], jfree.worlds[k]); if (d) badG = `world ${k} layer ${j}: ${d}`; for (let t = 0; t <= T && !badG; t++) if (!same(w.tsLayers[j].pol[t], jfree.worlds[k].pol[t])) badG = `world ${k} layer ${j}: move year ${t}`; } });
+  ok('G  no cost, no margin: every layer of every world is the one-policy table to the bit', !badG, badG || `${tsj0.worlds.length} worlds`);
+  const tsj = solveMixture(E, M, plan, { ...o, mix: 3, jointWorlds: true, tierState: true });
+  const agreeMix = (r) => { const g = r.g, v = new Float64Array(7), prs = r.meta.tierState.split(',').map(x => x.split('/').map(Number)); let ag = 0, nn = 0, first = null;
+    for (const t of [1, 5, 15, T - 2]) for (let idx = 0; idx < g.size; idx += 7) {
+      const ip = idx % g.np, ii = Math.floor(idx / g.np) % g.ni, it = Math.floor(idx / (g.np * g.ni)) % g.nt, ig = Math.floor(idx / (g.np * g.ni * g.nt)) % g.gain.length, ic = Math.floor(idx / (g.np * g.ni * g.nt * g.gain.length));
+      if (g.index(ip, ii, it, ig, ic) !== idx) continue;
+      toVec(g, ip, ii, it, ig, ic, v);
+      for (let j = 0; j < prs.length; j++) {
+        const held = { pen: prs[j][0], isa: prs[j][1], gia: 0 };
+        const SC = new Float64Array(r.actions.length), TX = new Float64Array(r.actions.length), BQ = new Float64Array(r.actions.length);
+        scoreMoves(r.worlds[0], Float64Array.from(v), t, SC, TX, BQ, held);
+        if (!SC.some(x => x > -Infinity)) continue;
+        const a = chooseAction(r, Float64Array.from(v), t, held), stored = r.worlds[1].tsLayers[j].pol[t][idx];
+        nn++; if (a === stored) ag++; else if (!first) first = `year ${t} node ${idx} layer ${j}: chooser ${a}, table ${stored}`;
+      } }
+    return { ag, nn, first }; };
+  const jg = agreeMix(tsj);
+  ok('G  on the mixture, holding pair j at a node, the chooser picks the move stored in layer j, at every node sampled', jg.nn > 0 && jg.ag === jg.nn, `${jg.ag} of ${jg.nn}${jg.first ? '; ' + jg.first : ''}`);
+  const pg = agreeMix(mix);
+  ok('G  planted: the per-world tier state does not agree with the mixture chooser everywhere (O41)', pg.nn > 0 && pg.ag < pg.nn, `${pg.ag} of ${pg.nn}`); }
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

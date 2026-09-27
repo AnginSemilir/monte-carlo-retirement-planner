@@ -78,8 +78,10 @@ that is only half right, a comparison point about to change) rest on the reviewe
 
 **Known limits of the enforcement** - one list, kept current (maintainer, 24 Sep 12:05 UK). Each review checks a change
 against it; a gap here is MINOR unless a research claim relies on it. The fixes proposed are in PLAN.md, bugs of 24 Sep.
-1. The hook sees an enforcement file only by its full path from the repository root, written out in the command text.
-   Anything else gets through: a relative path after a `cd`, a whole folder that holds enforcement files (`rm -rf
+1. The hook sees an enforcement file by its path written out in the command text, resolved from the session's working
+   directory, the repository root and every directory the command cd's into (since 27 Sep: before, only the full path
+   from the root counted, and `cd research/solver` then an inline write to 'uncertainty.mjs' got through; the maintainer's
+   unlock that day, planted in hooks.test.mjs). Anything else gets through: a whole folder that holds enforcement files (`rm -rf
    .claude`, `git checkout <rev> -- research/solver`, `mv` or `cp -r` on the folder), a glob, a path split by quotes.
 2. A git restore of the whole tree that names no file (`git checkout <rev> -- .`, `git reset --hard`, `git stash`).
 3. Ways of feeding a shell its commands other than `bash -c`, `eval` and a here-document fed to a shell: `bash - <<EOF`,
@@ -141,6 +143,10 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    54c05b1, restored in eede06a; the ninety-eighth review, BLOCKING 1, and the ninety-ninth, MINOR 2). Until the gate
    takes a declared change, a decision made after a stamp-gated launch is recorded in PLAN.md's ledger and in the
    reducer's own comment and printed label, and the prediction is left at its launch blob.
+20. uncertainty.mjs counts a settled result as a ledger row that names its prediction; since 27 Sep a maintainer's decision
+   row ("(maintainer)" in the result cell) is not counted even when it names one (the maintainer: two deep reviews were
+   triggered on 27 Sep by decision rows with no new result; a planted check fails on the old rule). A decision row that
+   is not marked "(maintainer)" would still count.
 
 ---
 

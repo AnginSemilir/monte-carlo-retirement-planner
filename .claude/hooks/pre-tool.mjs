@@ -62,7 +62,9 @@ export function shellCode(cmd) {
  * Now a command is refused only where an enforcement file is a write TARGET: a redirect into it; the file argument of sed -i,
  * perl -i, tee, rm, unlink, truncate, chmod, chown, touch, shred, patch, mv (either end) or dd of=; the destination of cp,
  * install, ln or rsync; a path after git checkout, restore, rm or mv; or an inline python or node program (a here-document
- * fed to it, or its -c / -e text) that names the file and makes a write call. A program that builds the path from pieces, or
+ * fed to it, or its -c / -e text) that names the file and makes a write call. Relative paths are resolved from the session's
+ * working directory, the project root and every directory the command cd's into (27 Sep: `cd research/solver` and then a
+ * write to 'uncertainty.mjs' got through). A program that builds the path from pieces, or
  * a script written to a file and then run, is not seen (RULES.md known limits 1 and 5).
  */
 const ANY_ARG = /^(sed|perl|tee|rm|unlink|truncate|chmod|chown|touch|shred|patch|mv)$/, DEST_ARG = /^(cp|install|ln|rsync)$/;
@@ -77,7 +79,7 @@ export function inlinePrograms(raw) {
   return out;
 }
 // does a command write an enforcement file? `prot` says whether a path (or a folder holding one) is protected
-export function writesProtected(raw, prot) {
+export function writesProtected(raw, prot, lit = () => false) {
   const text = raw.replace(HEREDOC, ' <<HEREDOC ');
   for (const part of text.split(/&&|\|\||;|\||\n|\$\(|`|\(|\)|&/).map(x => x.trim()).filter(Boolean)) {
     const w = words(commandOf(part)), cmd = (w[0] || '').replace(/^.*\//, ''), args = w.slice(1), files = args.filter(a => !/^-/.test(a));
@@ -88,8 +90,11 @@ export function writesProtected(raw, prot) {
     if (cmd === 'dd' && args.some(a => /^of=/.test(a) && prot(a.slice(3)))) return true;
     if (cmd === 'git' && /^(checkout|restore|rm|mv)$/.test(files[0] || '') && files.slice(1).some(prot)) return true;
   }
-  return inlinePrograms(raw).some(prog => WRITE_CALL.test(prog) && PROTECTED.some(p => prog.includes(p.replace(/\/$/, ''))));
+  return inlinePrograms(raw).some(prog => WRITE_CALL.test(prog) && (PROTECTED.some(p => prog.includes(p.replace(/\/$/, ''))) || pathLiterals(prog).some(lit)));
 }
+// the quoted strings of a program that look like a path (27 Sep: `cd research/solver && python3 ... open('uncertainty.mjs','w')`
+// named the locked file only relative to where the command ran, and got through)
+export const pathLiterals = prog => [...prog.matchAll(/(['"`])([\w.~\/-]{1,300})\1/g)].map(m => m[2]);
 
 /* the text of the maintainer's latest typed message, from the tail of the session transcript */
 export function lastHumanText(transcriptText) {
@@ -197,10 +202,16 @@ const SCRIPTS = 'experiment\\.mjs|batch-[\\w.-]+\\.sh|audit-[\\w.-]+\\.mjs|selec
 const EXPERIMENT = new RegExp(`(^|[\\s{!])((\\S*\\/)?(node|bash|sh|zsh|dash|source|\\.)((?:\\s+-\\S+)*)\\s+)?(\\S*\\/)?(${SCRIPTS})(?=\\s|$)(\\s+(\\S+))?`);
 const SCRIPT_WORD = new RegExp(`^(\\S*\\/)?(${SCRIPTS})$`);
 
-export function decide(input, { root = process.cwd(), tracked = () => false, unlocked = false, depth = 0 } = {}) {
+export function decide(input, { root = process.cwd(), cwd = root, tracked = () => false, unlocked = false, depth = 0 } = {}) {
   const tool = input.tool_name || '';
   const ti = input.tool_input || {};
   const rel = f => { const abs = isAbsolute(f) ? f : resolve(root, f); return relative(root, abs).split('\\').join('/'); };
+  // where a relative path in a shell command can point: the session's working directory, the project root, and every
+  // directory the command cd's into (27 Sep: a write to a locked file named from research/solver got through)
+  const raw0 = String(ti.command || ''), home = process.env.HOME || '~';
+  const cds = [...raw0.matchAll(/(?:^|[\s;&|(])cd\s+(['"]?)([^\s;&|)'"]+)\1/g)].map(m => m[2].replace(/^~(?=\/|$)/, home)).filter(d => d !== '-');
+  const bases = [...new Set([cwd, root, ...cds.flatMap(d => [resolve(cwd, d), resolve(root, d)])])];
+  const relAll = f => [...new Set(bases.map(b => relative(root, isAbsolute(f) ? f : resolve(b, f)).split('\\').join('/')))];
   const deny = reason => ({ decision: 'deny', reason });
   const LOCKED = what => `${what} is part of the rules' enforcement (RULES.md) and is locked. Tell the maintainer what is wrong with the check and why the change does not weaken it; they unlock it by writing "unlock enforcement" in their next message.`;
   const ask = reason => ({ decision: 'ask', reason });
@@ -217,7 +228,7 @@ export function decide(input, { root = process.cwd(), tracked = () => false, unl
 
   // a command hidden in bash -c '...', eval '...' or a here-document fed to a shell is judged as if typed
   if (depth < 3) for (const inner of [...innerCommands(raw), ...shellHeredocs(raw)]) {
-    const d = decide({ tool_name: 'Bash', tool_input: { command: inner } }, { root, tracked, unlocked, depth: depth + 1 });
+    const d = decide({ tool_name: 'Bash', tool_input: { command: inner } }, { root, cwd, tracked, unlocked, depth: depth + 1 });
     if (d && d.decision === 'deny') return d;
   }
 
@@ -251,10 +262,12 @@ export function decide(input, { root = process.cwd(), tracked = () => false, unl
 
   // an edit to the enforcement made through the shell
   const redirect = [...code.matchAll(/>>?\s*([^\s;&|]+)/g)].map(m => m[1]).filter(t => !/^&?\d$/.test(t) && t !== '/dev/null');
-  if (redirect.some(t => isProtected(rel(t)))) return unlocked ? null : deny(LOCKED('The file this redirects into'));
+  if (redirect.some(t => relAll(t).some(isProtected))) return unlocked ? null : deny(LOCKED('The file this redirects into'));
   // a path, or a folder that holds an enforcement file (cp x .claude/hooks)
-  const prot = t => { const r = rel(t).replace(/\/$/, ''); return isProtected(r) || PROTECTED.some(p => p.startsWith(r + '/')); };
-  if (writesProtected(raw, prot)) return unlocked ? null : deny(LOCKED('This command writes an enforcement file, which'));
+  const prot = t => relAll(t).some(x => { const r = x.replace(/\/$/, ''); return isProtected(r) || PROTECTED.some(p => p.startsWith(r + '/')); });
+  // a program's quoted string counts only when it is an enforcement file itself (a folder such as 'research/solver' is not)
+  const lit = t => relAll(t).some(isProtected);
+  if (writesProtected(raw, prot, lit)) return unlocked ? null : deny(LOCKED('This command writes an enforcement file, which'));
   return null;
 }
 
@@ -272,7 +285,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       readSync(fd, buf, 0, n, size - n); closeSync(fd);
       unlocked = unlockedFrom(buf.toString('utf8'));
     } catch { unlocked = false; }
-    const d = decide(input, { root, tracked, unlocked });
+    const d = decide(input, { root, cwd: input.cwd || root, tracked, unlocked });
     if (d) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: d.decision, permissionDecisionReason: d.reason } }));
     process.exit(0);
   });

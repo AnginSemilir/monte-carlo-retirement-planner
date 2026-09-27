@@ -75,6 +75,22 @@ const W = [
   ["perl -pi -e 's/a/b/' research/solver/check-plan.mjs", 'perl -i on the checker'], ["bash -c 'rm research/solver/check-plan.mjs'", "rm inside bash -c '...'"],
   ['touch research/solver/deep-review-log.md', 'touch of the deep review log']];
 for (const [c, what] of W) ok(is(bash(c), 'deny') && is(bash(c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);
+// relative paths resolved from where the command runs (27 Sep: `cd research/solver` and then an inline write to
+// 'uncertainty.mjs' got through, since the lock read every path from the project root)
+const SOLVER = join(ROOT, 'research/solver');
+const bashIn = (cwd, command, unlocked = false) => pre({ tool_name: 'Bash', tool_input: { command } }, { root: ROOT, cwd, unlocked });
+const R = [
+  [ROOT, "cd research/solver && python3 - <<'EOF'\np='uncertainty.mjs'; s=open(p).read(); open(p,'w').write(s)\nEOF", "cd research/solver, then an inline write to 'uncertainty.mjs' (the case that got through)"],
+  [SOLVER, "python3 - <<'EOF'\nopen('uncertainty.mjs','w').write('')\nEOF", "an inline write to 'uncertainty.mjs' from a session working in research/solver"],
+  [SOLVER, "sed -i 's/a/b/' check-plan.mjs", 'sed -i on the checker from research/solver'],
+  [ROOT, 'cd research/solver && echo x >> review-log.md', 'cd research/solver, then a redirect into the review log'],
+  [ROOT, "cd .claude/hooks && python3 -c \"open('stop-check.mjs','w')\"", 'cd .claude/hooks, then python -c writing a hook'],
+  [SOLVER, 'git checkout -- uncertainty.mjs', 'git checkout of the index from research/solver'],
+  [ROOT, "cd /tmp && cd /home/user/vitejs-vite-kdvuf9qw/research/solver && node -e \"require('fs').writeFileSync('fair-gate.mjs','')\"", 'an absolute cd, then node -e writing the gate']];
+for (const [cwd, c, what] of R) ok(is(bashIn(cwd, c), 'deny') && is(bashIn(cwd, c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);
+ok(is(bashIn(ROOT, "cd research/solver && python3 - <<'EOF'\np='PLAN.md'; s=open(p).read(); open(p,'w').write(s.replace('a', '(review-log.md, 27 Sep)'))\nEOF"), null), 'an edit of the plan from research/solver that quotes the review log in its text goes ahead');
+ok(is(bashIn(ROOT, "python3 - <<'EOF'\nimport os\np=os.path.join('research/solver','PLAN.md'); open(p,'w').write('x')\nEOF"), null), "a program writing the plan beside the folder name 'research/solver' goes ahead (a folder is not a locked file)");
+ok(is(bashIn(SOLVER, "python3 - <<'EOF'\nfor l in open('uncertainty.mjs'): print(l[:40])\nEOF"), null), 'reading the index from research/solver goes ahead');
 
 ok(shellCode("a 'x' \"y\" b") === "a '' \"\" b", 'quoted text is blanked before a command is read');
 // each part of a command is judged on its own (24 Sep: a syntax check elsewhere in the line exempted a launch)

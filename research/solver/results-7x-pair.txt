@@ -1,0 +1,26 @@
+7X'S HELD PLAN TIER AGAINST THE PRODUCT, PAIRED (8000 paths of seed 7002; both gates passed; grade C)
+
+S126 (READER)
+  paths the held run survives and the product does not: 3; the other way: 41
+  opens away from tier 0: product 0, held 0; solvent path-years away from tier 0: product 62104 of 319847, held 0 of 319565
+  spend level while solvent (percent of target), years 0, 1, 2, 5, 10, 20: product 80.0, 109.9, 109.6, 108.7, 108.2, 108.4; held 80.0, 108.7, 107.4, 106.7, 107.1, 108.0
+  solvent path-years spent below target: product 7.0%, held 9.0%
+
+S194 (OFF)
+  paths the held run survives and the product does not: 1; the other way: 271
+  opens away from tier 0: product 0, held 0; solvent path-years away from tier 0: product 209138 of 327866, held 0 of 327164
+  spend level while solvent (percent of target), years 0, 1, 2, 5, 10, 20: product -, -, -, 96.6, 99.8, 103.4; held -, -, -, 91.9, 97.2, 101.7
+  solvent path-years spent below target: product 23.0%, held 28.2%
+
+share 0.95 (READER)
+  paths the held run survives and the product does not: 2; the other way: 34
+  opens away from tier 0: product 0, held 0; solvent path-years away from tier 0: product 53941 of 299707, held 0 of 299474
+  spend level while solvent (percent of target), years 0, 1, 2, 5, 10, 20: product 80.0, 81.7, 109.8, 109.0, 108.4, 108.6; held 80.0, 81.7, 107.5, 106.8, 107.3, 108.2
+  solvent path-years spent below target: product 9.0%, held 11.1%
+
+S360 (OFF)
+  paths the held run survives and the product does not: 565; the other way: 24
+  opens away from tier 0: product 0, held 0; solvent path-years away from tier 0: product 95 of 159905, held 0 of 180786
+  spend level while solvent (percent of target), years 0, 1, 2, 5, 10, 20: product 80.0, 80.0, 80.0, 80.1, 110.0, 110.0; held 80.0, 80.0, 80.0, 80.1, 110.0, 110.0
+  solvent path-years spent below target: product 33.4%, held 29.4%
+

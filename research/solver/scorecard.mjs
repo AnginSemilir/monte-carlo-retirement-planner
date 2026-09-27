@@ -32,6 +32,7 @@ export const TESTS = [
   { name: '7v (the switch margin)', prediction: 'predictions/diag-7v.md', results: 'results-7v.txt' },
   { name: '7w (5 or 15 points at the bridge\'s last year)', prediction: 'predictions/diag-7w.md', results: 'results-7w.txt' },
   { name: '7x (held-for-life tables: free switching or three worlds)', prediction: 'predictions/diag-7x.md', results: 'results-7x.txt' },
+  { name: '7z (Q\'s fix alone: the reader\'s step integrated in the chooser)', prediction: 'predictions/diag-7z.md', results: 'results-7z.txt' },
 ];
 
 export function credences(predText) {

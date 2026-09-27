@@ -66,16 +66,16 @@ with the best non-oracle arm, on every case, by survival and by the whole score 
 
 It still churns: 9.01 and 9.40 pension switches a path on the harmed cases (results-7t-deep.txt).
 
-**7t's off is not the shipped product.** It ran at 16 wealth points with the tier above always allowed and lambda
-0.0224. The product runs 30 points and sets the tier above by 'auto' (solve.js PRODUCT_BASELINE; the decided-defaults
-block).
+**7t's off is not the shipped product.** It ran at 16 wealth points, with lambda held at S126's 0.0224 on every case.
+The product runs 30 points (solve.js PRODUCT_BASELINE). On these households the tier above offers the same menu as 'auto',
+because the pension already sits at its top tier (the ninetieth review).
 
 ## The decisive test proposed before 7u (7v, not registered)
 
 **The question.** Is the reader's harm the margin holding a sub-margin near-tie (procrastination)? Or is it table noise,
 a separate clairvoyance error, or a separate learning error?
 
-**The design.** It runs at the product's settings (30 points, the tier above by 'auto') on the tuning seed 7002:
+**The design.** It runs at the product's settings (30 points, each household's own lambda) on the tuning seed 7002:
 - **Arms:** the reader and the reader with J, each at margins 0.001 (today's), 3e-4, 1e-4 and 0, all on shared tables.
   Each margin is only a forward run. J at margin 0 is also run with the learner.
 - **Cases:** 7t's five, plus the family pairs S172 with the tier above on and off (O16) and S330 with five against

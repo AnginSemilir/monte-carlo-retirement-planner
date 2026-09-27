@@ -1,10 +1,11 @@
 ok   the arm against OFF: 1 lost, 1 saved: 1 1
 ok   the whole score paired as the arm minus OFF: 1.000
-ok   the reader's lost paths that off at margin 0 also fails: 1 of 2
+ok   the reader's lost paths that off at margin 0 also fails: 2 of 3
 ok   every arm printed is one 7t ran on the harmed cases: none
 planted (4): all read as they should
 
-7T'S ARMS AGAINST THE PRODUCT AS IT SHIPS (OFF), on the same 8,000 paths of seed 7002 (reported, not a test; grade C; the logs' stamp gate, reduce-7t.mjs's gate and every trace's stamp checked)
+7T'S ARMS AGAINST 7T'S OFF, on the same 8,000 paths of seed 7002 (reported, not a test; grade C; the logs' stamp gate, reduce-7t.mjs's gate and every trace's stamp checked)
+OFF is the product's solver at 7t's settings - 16 wealth points (the product solves at 30) and lambda held at S126's on every case - not the product as it ships
 survival: saved/lost against OFF, the change in points, the registered exact 95% interval and the unconditional one with the count check; the realised whole score against OFF, points, mean +/- se
 
 S126

@@ -135,6 +135,12 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    runs.log 07:09 UK: S126 on 7v's own first 1,000 paths), and its lines were printed before registration (disclosed in
    predictions/diag-7v.md; the ninety-third review, BLOCKING 3, and the ninety-fourth, MINOR 8). Until a check exists, a
    timing measurement runs on a seed or paths the test will not read, or its lines are not read beyond the seconds.
+19. Rule 11's route for a change after launch (the prediction's "Changes after seeing results") is closed to a stamp-gated
+   test: requireFairLogs (fair-gate.mjs checkLogStamps) compares each log's prediction sha with the file as it stands and,
+   unlike requireFair (FAIR_ACCEPT "prediction-edited=<reason>", used for 7h), has no accept path, so any edit to the prediction after launch makes the gate refuse the whole batch (7v, 27 Sep:
+   54c05b1, restored in eede06a; the ninety-eighth review, BLOCKING 1, and the ninety-ninth, MINOR 2). Until the gate
+   takes a declared change, a decision made after a stamp-gated launch is recorded in PLAN.md's ledger and in the
+   reducer's own comment and printed label, and the prediction is left at its launch blob.
 
 ---
 

@@ -11,6 +11,7 @@
  *   node research/solver/audit-s126.mjs readertime [points] [runs]                  the bridge reader's added solve time (its design's check 6)
  *   node research/solver/audit-s126.mjs bridge7e [points] [paths] part k/n [arms] [ids]  7e: off, F1 v1, F1 v2 and the reader, paired
  *   node research/solver/audit-s126.mjs diag7v [points] [paths] part k/n [seed] [world paths]  7v: the switch margin's dose-response
+ *   node research/solver/audit-s126.mjs diag7w [points] [paths] part k/n [seed]  7w: 5 against 15 return points on share 0.95 (Q)
  *
  * Each mode reads its OWN arguments (fixed 24 Sep: the numbers were read before the mode was chosen, so `ids` read its
  * id list as the grid size - NaN, falling back to 12 points - and took the path count from the argument meant for points).
@@ -590,6 +591,92 @@ if (mode === 'f1v2') {
         runs.push({ label: `${a.label}/0+L`, f });
         console.log(`${''.padEnd(16)} run ${a.label}/0+L: sim ${f.sim.toFixed(3)} below ${f1(f.below, 2)} tier-below ${f1(f.tierYrs, 2)} estate ${Math.round(f.estate)} secs ${Math.round(f.secs)}`);
       }
+    }
+    runs.forEach(x => {
+      const T = x.f.tr;
+      writeFileSync(join(OUT, fileOf(id, x.label)), gzipSync(JSON.stringify({ id, arm: x.label, stamp: STAMP, N: NP, Y: T.Y, seed: SEED, sim: x.f.sim,
+        survived: b64(x.f.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
+    });
+    console.log(`${''.padEnd(16)} done ${runs.length} runs`);
+  });
+} else if (mode === 'diag7w') {
+  /*
+   * 7W: IS T THE FIVE-POINT RETURN AVERAGE HIDING THE BRIDGE'S LAST YEAR? (Q; PLAN.md 7w; the sixth deep review, 27 Sep
+   * 18:19 UK; the maintainer's option A, 27 Sep; predictions/diag-7w.md). Each unit is one solve at the product's settings
+   * (solvePlan, 30 points, 'auto' risk above, lambda held at 7t's and 7v's), with the year's return averaged over QUAD points
+   * (5, the product's, or 15), run forward on the same NP paths at switch margin 0.001 (the product's; /1e-3), at 0 (/0), and
+   * at 0.001 with the year-0 move forced to the chooser's best at margin 0 (/1e-3+open: the opening freed, every later year
+   * as the product holds it). Every solve's YEAR-0 GAP is logged as in 7v (the smallest margin at which the chooser keeps the
+   * plan's tier at runPolicy's own opening state; 0 when it keeps it at margin 0) with the pension tier it opens in at 0.001
+   * and at 0.
+   *   node research/solver/audit-s126.mjs diag7w [points=30] [paths] part k/n [seed=7002]
+   * Prints, per unit: a case line; solve, ran, gap and joint lines; a run line per forward run (as 7v's). Every run's trace
+   * goes to results/diag7w/<case>-<run>.json.gz (DIAG7W_OUT when set), stamped as the log is; reduce-7w.mjs reads them.
+   */
+  const UNITS7W = [
+    ['share 0.95', 'reader', false, 15], ['share 0.95', 'reader', true, 15], ['share 0.95', 'off', false, 15], ['S126', 'reader', false, 15],
+    ['share 0.95', 'reader', false, 5], ['share 0.95', 'reader', true, 5], ['share 0.95', 'off', false, 5], ['S126', 'reader', false, 5],
+    ['S194', 'off', false, 5]];
+  const ARM = { off: false, reader: 'reader' };
+  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
+  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002;
+  if (!(SEED >= 1)) { console.error(`audit-s126: bad seed ${process.argv[7]}`); process.exit(2); }
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  const OUT = process.env.DIAG7W_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7w');
+  mkdirSync(OUT, { recursive: true });
+  console.log(`7W DIAGNOSIS, the product's settings (solvePlan), ${POINTS} points, ${NP} paths (seed ${SEED}), return points 5 and 15, margins 1e-3, 0 and 1e-3 with the opening freed; part ${pk}/${pn}`);
+  const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+  // the chooser at switch margin `sm` for one call, the solve's own margin restored after
+  const chooseAt = (r, st, t, held, sm) => { const keep = r.switchMargin; r.switchMargin = sm; try { return chooseAction(r, st, t, held); } finally { r.switchMargin = keep; } };
+  // one forward run at margin `sm`; `open` frees the year-0 move (the chooser at margin 0 in year 0, `sm` after)
+  const forward = (r, paths, sm, open = false) => {
+    const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = makeTrace(N, T + 1);
+    let ok = 0, below = 0, tierYrs = 0, estate = 0;
+    const cap = r.meta.bequestCap, keep = r.switchMargin;
+    r.switchMargin = sm;
+    try {
+      paths.forEach((zs, i) => {
+        tr.row = i;
+        const o = runPolicy(r, zs, { trace: tr, ...(open ? { choose: (t, st, held) => (t === 0 ? chooseAt(r, st, 0, held, 0) : chooseAction(r, st, t, held)) } : {}) });
+        if (o.survived) { ok++; okArr[i] = 1; estate += Math.min(o.terminalNet, cap); } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0;
+      });
+    } finally { r.switchMargin = keep; }
+    return { sim: 100 * ok / N, below: below / N, tierYrs: tierYrs / N, estate: estate / N, okArr, tr, secs: (Date.now() - t0) / 1000 };
+  };
+  const openGap = (r, zs) => {
+    let s0 = null, h0 = null;
+    runPolicy(r, zs, { choose: (t, st, held) => { if (t === 0 && !s0) { s0 = Float64Array.from(st); h0 = { ...held }; } return chooseAction(r, st, t, held); } });
+    const acts = r.c.acts, at = sm => acts[chooseAt(r, s0, 0, h0, sm)];
+    const stays = sm => { const a = at(sm); return a.tierPen === h0.pen && a.tierIsa === h0.isa; };
+    let gap;
+    if (stays(0)) gap = '0';
+    else if (!stays(1)) gap = '>1';
+    else { let lo = 0, hi = 1; for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (stays(mid)) hi = mid; else lo = mid; } gap = hi.toExponential(4); }
+    return { gap, open: [0.001, 0].map(sm => at(sm).tierPen).join(',') };
+  };
+  const fileOf = (id, label) => `${id.replace(/ /g, '_')}-${label.toLowerCase().replace(/\+/g, '_').replace(/\//g, '@')}.json.gz`;
+  UNITS7W.forEach(([id, arm, joint, quad], i) => {
+    if (i % pn !== pk) return;
+    const h = byId(id)();
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const label = `${arm.toUpperCase()}${joint ? '+J' : ''}@${quad}`;
+    console.log(`${id.padEnd(16)} case | unit ${label} | lambda ${LAMBDA} tier own riskAbove auto mix 3`);
+    const res = measureV2(h, ARM[arm], quad, { trace: false, seed: SEED, joint, lambda: LAMBDA, forward: false });
+    const r = res.r;
+    if (!!r.meta.jointWorlds !== joint) { console.error(`audit-s126: ${label} ran jointWorlds ${r.meta.jointWorlds}`); process.exit(2); }
+    const ra = r.meta.riskAbove ? r.meta.riskAbove.decision.replace(/ /g, '_') : 'unset';
+    console.log(`${''.padEnd(16)} solve ${label}: table ${f1(res.table, 2)} secs ${Math.round(res.secs)}`);
+    console.log(`${''.padEnd(16)} ran ${label}: ${res.ran}`);
+    { const g = openGap(r, res.paths[0]); console.log(`${''.padEnd(16)} gap ${label}: ${g.gap} opening ${g.open}`); }
+    console.log(`${''.padEnd(16)} joint ${label}: ${!!r.meta.jointWorlds} switchMargin ${r.switchMargin} scale ${Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0)))} cap ${Math.round(r.meta.bequestCap)} deathTax ${r.m.ctx.pensionDeathTaxRate} tier own riskAbove ${ra}`);
+    const runs = [];
+    for (const [tag, sm, open] of [['1e-3', 0.001, false], ['0', 0, false], ['1e-3+open', 0.001, true]]) {
+      const f = forward(r, res.paths, sm, open);
+      runs.push({ label: `${label}/${tag}`, f });
+      console.log(`${''.padEnd(16)} run ${label}/${tag}: sim ${f.sim.toFixed(4)} below ${f1(f.below, 2)} tier-below ${f1(f.tierYrs, 2)} estate ${Math.round(f.estate)} secs ${Math.round(f.secs)}`);
     }
     runs.forEach(x => {
       const T = x.f.tr;

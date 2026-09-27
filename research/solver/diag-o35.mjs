@@ -6,7 +6,7 @@
  * world: the year's flow; next year's reader bill (the menu's lowest level's floor, the reader's first bill at t = 1) and where
  * its step falls in the year's return (z*: the accessible money after the year's growth just meets the bill less 1); and next
  * year's table read (survival, through the reader, as the backward pass reads it) averaged over the year's return by 5 points
- * (the product's), 15 and 201 (Gauss-Hermite; 201 the reference). Then, for each spend level, the de-risk's year-1 value as
+ * (the product's) and 15 (Gauss-Hermite), and by 4,000 equal-probability points (the reference). Then, for each spend level, the de-risk's year-1 value as
  * each average sees it: the plan's tier against 2/2 (the freed opening's pair), mixture-weighted.
  *   node research/solver/diag-o35.mjs [points=30] > research/solver/results-o35-diag.txt
  * Grade C: one household, one state, the table's own read (no simulated paths).
@@ -34,7 +34,14 @@ const r = solvePlan(E, M, plan, { lambda: LAMBDA, points: POINTS, bridgeRead: 'r
 const secs = Math.round((Date.now() - t0) / 1000);
 const s0 = vecOf(r.m, M.initialState(r.m)), g = r.g;
 const realAt = (c, z, out, act, t) => { const R = act.real, V = act.volEffAt[t]; for (let i = 0; i < 4; i++) out[i] = Math.exp(Math.log(1 + R[i]) + V[i] * z) - 1; return out; };
-const rules = { 5: { nodes: NODES, weights: WEIGHTS }, 15: gaussHermite(15), 201: gaussHermite(201) };
+// the reference: 4,000 equal-probability points (the midpoint in u = Phi(z)). Not Gauss-Hermite at 201: solve.js
+// gaussHermite underflows at that order (its weights sum to about 3.6e-162, its nodes collapse), checked 27 Sep; the solver
+// uses it at 15 at most. PhiInv by Acklam's rational approximation (relative error under 1.2e-9).
+const PhiInv = p => { const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239], b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572], c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783], d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416]; const pl = 0.02425; if (p < pl) { const q = Math.sqrt(-2 * Math.log(p)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); } if (p > 1 - pl) { const q = Math.sqrt(-2 * Math.log(1 - p)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); } const q = p - 0.5, r2 = q * q; return (((((a[0] * r2 + a[1]) * r2 + a[2]) * r2 + a[3]) * r2 + a[4]) * r2 + a[5]) * q / (((((b[0] * r2 + b[1]) * r2 + b[2]) * r2 + b[3]) * r2 + b[4]) * r2 + 1); };
+const DENSE = 4000, dense = { nodes: Array.from({ length: DENSE }, (_, i) => PhiInv((i + 0.5) / DENSE)), weights: new Array(DENSE).fill(1 / DENSE) };
+const rules = { 5: { nodes: NODES, weights: WEIGHTS }, 15: gaussHermite(15), dense };
+// a planted check (rule 6): each rule integrates 1 and z^2 under the normal (weights sum to 1; the second moment 1)
+for (const [n, q] of Object.entries(rules)) { const s0 = q.weights.reduce((t, w) => t + w, 0), s2 = q.nodes.reduce((t, z, i) => t + q.weights[i] * z * z, 0); if (Math.abs(s0 - 1) > 1e-6 || Math.abs(s2 - 1) > 2e-3) { console.log(`PLANTED CHECK FAILED: the ${n}-point rule integrates 1 to ${s0} and z^2 to ${s2}`); process.exit(1); } }
 console.log(`O35'S DIAGNOSTIC: share 0.95, the product's settings with the reader, ${POINTS} points, 5 return points (solve ${secs} s); mixture ${r.meta.mixture} worlds, weights ${r.mix.weights.map(w => w.toFixed(4)).join(', ')}; the opening state (pension ${Math.round(s0[0])}, ISA ${Math.round(s0[1])}, taxable and cash ${Math.round(s0[2])})`);
 console.log(`the reader's years: ${Array.from(g.reader.years).map((v, i) => (v ? i : -1)).filter(i => i >= 0).join(', ')}; the risk above: ${r.meta.riskAbove ? r.meta.riskAbove.decision : 'unset'}\n`);
 const rows = [];
@@ -43,7 +50,7 @@ for (let k = 0; k < r.worlds.length; k++) {
   const RD = g.reader.of.get(tab.lsurv[1]), bills = RD && RD.chance.schedule ? RD.chance.schedule.bills : [];
   const stepAt = bills.length ? bills[0] - 1 : null;
   console.log(`WORLD ${k} (shift ${r.mix.nodes[k].toFixed(3)}): the reader's bills from year 1: ${bills.map(Math.round).join(', ')}; the step at accessible money ${stepAt === null ? 'none' : Math.round(stepAt)}`);
-  console.log('  move                                       level tier  flow   z*       5 points   15 points  201 points   (next year\'s survival read, %)');
+  console.log('  move                                       level tier  flow   z*       5 points   15 points  4000 points  (next year\'s survival read, %)');
   const post = new Float64Array(s0.length), grown = new Float64Array(s0.length), rb = new Float64Array(4), rd = new Float64Array(4);
   for (let ai = 0; ai < tab.actions.length; ai++) {
     const act = c.acts[ai];
@@ -57,10 +64,10 @@ for (let k = 0; k < r.worlds.length; k++) {
       else { let lo = -9, hi = 9; while (hi - lo > 1e-9) { const m = 0.5 * (lo + hi); if (accAt(m) >= stepAt) hi = m; else lo = m; } zs = hi; }
     }
     const ev = n => { if (fails) return 0; const q = rules[n]; let s = 0; for (let j = 0; j < q.nodes.length; j++) { accAt(q.nodes[j]); readValues(g, tab.lsurv[1], tab.beq[1], grown, rd, tab.lresil[1], tab.short[1], 1); s += q.weights[j] * rd[0]; } return s; };
-    const row = { k, ai, level: act.level, tp: act.tierPen, ti: act.tierIsa, fails, zs, e5: ev(5), e15: ev(15), e201: ev(201), label: tab.actions[ai].label };
+    const row = { k, ai, level: act.level, tp: act.tierPen, ti: act.tierIsa, fails, zs, e5: ev(5), e15: ev(15), e201: ev('dense'), label: tab.actions[ai].label };
     rows.push(row);
   }
-  // one line per level and tier: the move with the best 201-point read (the withdrawal order matters little here)
+  // one line per level and tier: the move with the best reference read (the withdrawal order matters little here)
   const best = new Map();
   for (const x of rows.filter(x => x.k === k)) { const key = `${x.level}|${x.tp}/${x.ti}`; if (!best.has(key) || x.e201 > best.get(key).e201) best.set(key, x); }
   for (const x of [...best.values()].sort((a, b) => b.level - a.level || a.tp - b.tp)) {
@@ -75,5 +82,5 @@ const levels = [...new Set(rows.map(x => x.level))].sort((a, b) => b - a);
 for (const lv of levels) {
   const at = (tier, n) => r.worlds.reduce((t, _, k) => { const xs = rows.filter(x => x.k === k && x.level === lv && `${x.tp}/${x.ti}` === tier); return t + r.mix.weights[k] * Math.max(...xs.map(x => x[n])); }, 0);
   const d = n => 100 * (at('2/2', n) - at('0/0', n));
-  console.log(`  level ${lv.toFixed(2)}: 5 points ${d('e5').toFixed(4)}, 15 points ${d('e15').toFixed(4)}, 201 points ${d('e201').toFixed(4)}`);
+  console.log(`  level ${lv.toFixed(2)}: 5 points ${d('e5').toFixed(4)}, 15 points ${d('e15').toFixed(4)}, 4000 points ${d('e201').toFixed(4)}`);
 }

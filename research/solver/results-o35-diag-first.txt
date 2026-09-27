@@ -1,0 +1,68 @@
+# THE FIRST RUN OF diag-o35.mjs (runs.log 21:50 UK), KEPT AS RUN: its 201-point reference column is BROKEN - solve.js gaussHermite(201) underflows (weights sum 3.6e-162) - so every 201-point figure below is void. The 5- and 15-point columns are valid. Superseded by results-o35-diag.txt (4,000 equal-probability points, with a planted check on each rule).
+=== a MEASUREMENT, not a test: O35's diagnostic, the reader's step at the floor bill on share 0.95 per move and next year's read at 5, 15 and 201 points; a measurement, no test (its results cannot settle a test)
+=== snapshot /tmp/solver-snap-CONG5E   from 0b7cdde + 1 uncommitted file(s)
+=== WARNING: uncommitted changes are baked into this snapshot and cannot be traced from the commit alone
+O35'S DIAGNOSTIC: share 0.95, the product's settings with the reader, 30 points, 5 return points (solve 245 s); mixture 3 worlds, weights 0.1667, 0.6667, 0.1667; the opening state (pension 902500, ISA 25333, taxable and cash 22166)
+the reader's years: 0, 1; the risk above: off: no tier above the plan
+
+WORLD 0 (shift -1.732): the reader's bills from year 1: 23200; the step at accessible money 23199
+  move                                       level tier  flow   z*       5 points   15 points  201 points   (next year's survival read, %)
+  taxable before ISA, spend 110%             1.10  0/0   ok    2.866      0.000      0.163      0.000
+  taxable before ISA, spend 110%, pension 1  1.10  1/1   ok    3.861      0.000      0.006      0.000
+  taxable before ISA, spend 110%, pension 2  1.10  2/2   ok    5.571      0.000      0.000      0.000
+  taxable before ISA                         1.00  0/0   ok    1.596      1.126     10.834      0.000
+  taxable before ISA, pension 1 tier down, I 1.00  1/1   ok    2.143      1.125      1.898      0.000
+  taxable before ISA, pension 2 tiers down,  1.00  2/2   ok    3.096      0.000      0.162      0.000
+  taxable before ISA, spend 95%              0.95  0/0   ok    1.033     23.316     10.834      0.000
+  taxable before ISA, spend 95%, pension 1 t 0.95  1/1   ok    1.384      1.125     10.833      0.000
+  taxable before ISA, spend 95%, pension 2 t 0.95  2/2   ok    2.001      1.125      1.898      0.000
+  taxable before ISA, spend 90%              0.90  0/0   ok    0.511     23.316     34.045      0.000
+  taxable before ISA, spend 90%, pension 1 t 0.90  1/1   ok    0.677     23.313     34.036      0.000
+  taxable before ISA, spend 90%, pension 2 t 0.90  2/2   ok    0.982     23.299     10.829      0.000
+  ISA before taxable, spend 80%              0.80  0/0   ok   -0.978     76.431     88.795      0.000
+  taxable before ISA, spend 80%, pension 1 t 0.80  1/1   ok   -0.603     76.477     65.762      0.000
+  taxable before ISA, spend 80%, pension 2 t 0.80  2/2   ok   -0.862     76.465     88.901      0.000
+
+WORLD 1 (shift 0.000): the reader's bills from year 1: 23200; the step at accessible money 23199
+  move                                       level tier  flow   z*       5 points   15 points  201 points   (next year's survival read, %)
+  ISA before taxable, spend 110%             1.10  0/0   ok    above      0.000      0.000      0.000
+  ISA before taxable, spend 110%, pension 1  1.10  1/1   ok    above      0.000      0.000      0.000
+  ISA before taxable, spend 110%, pension 2  1.10  2/2   ok    above      0.000      0.000      0.000
+  ISA before taxable                         1.00  0/0   ok    7.291      0.000      0.000      0.000
+  ISA before taxable, pension 1 tier down, I 1.00  1/1   ok    7.291      0.000      0.000      0.000
+  ISA before taxable, pension 2 tiers down,  1.00  2/2   ok    7.291      0.000      0.000      0.000
+  ISA before taxable, spend 95%              0.95  0/0   ok    4.175      0.000      0.006      0.000
+  ISA before taxable, spend 95%, pension 1 t 0.95  1/1   ok    4.175      0.000      0.006      0.000
+  ISA before taxable, spend 95%, pension 2 t 0.95  2/2   ok    4.175      0.000      0.006      0.000
+  ISA before taxable, spend 90%              0.90  0/0   ok    1.799      1.126      1.899      0.000
+  ISA before taxable, spend 90%, pension 1 t 0.90  1/1   ok    1.799      1.126      1.899      0.000
+  taxable before ISA, spend 90%, pension 2 t 0.90  2/2   ok    0.723     23.326     34.073      0.000
+  ISA before taxable, spend 80%              0.80  0/0   ok   -1.625     98.797     98.030      0.000
+  ISA before taxable, spend 80%, pension 1 t 0.80  1/1   ok   -1.735     98.803     98.034      0.000
+  taxable before ISA, spend 80%, pension 2 t 0.80  2/2   ok   -1.121     76.625     89.106      0.000
+
+WORLD 2 (shift 1.732): the reader's bills from year 1: 23200; the step at accessible money 23199
+  move                                       level tier  flow   z*       5 points   15 points  201 points   (next year's survival read, %)
+  ISA before taxable, spend 110%             1.10  0/0   ok    above      0.000      0.000      0.000
+  ISA before taxable, spend 110%, pension 1  1.10  1/1   ok    above      0.000      0.000      0.000
+  ISA before taxable, spend 110%, pension 2  1.10  2/2   ok    above      0.000      0.000      0.000
+  ISA before taxable                         1.00  0/0   ok    6.575      0.000      0.000      0.000
+  ISA before taxable, pension 1 tier down, I 1.00  1/1   ok    6.575      0.000      0.000      0.000
+  ISA before taxable, pension 2 tiers down,  1.00  2/2   ok    6.575      0.000      0.000      0.000
+  ISA before taxable, spend 95%              0.95  0/0   ok    3.459      0.000      0.006      0.000
+  ISA before taxable, spend 95%, pension 1 t 0.95  1/1   ok    3.459      0.000      0.006      0.000
+  ISA before taxable, spend 95%, pension 2 t 0.95  2/2   ok    3.459      0.000      0.006      0.000
+  ISA before taxable, spend 90%              0.90  0/0   ok    1.083     23.332     10.840      0.000
+  ISA before taxable, spend 90%, pension 1 t 0.90  1/1   ok    1.083     23.332     10.840      0.000
+  ISA before taxable, spend 90%, pension 2 t 0.90  2/2   ok    1.083     23.332     10.840      0.000
+  ISA before taxable, spend 80%              0.80  0/0   ok   -2.304     98.863     98.090      0.000
+  ISA before taxable, spend 80%, pension 1 t 0.80  1/1   ok   -2.451     98.863     99.826      0.000
+  ISA before taxable, spend 80%, pension 2 t 0.80  2/2   ok   -2.606     98.864     99.826      0.000
+
+THE DE-RISK'S YEAR-1 VALUE (next year's survival read, points, mixture-weighted): the best move at 2/2 less the best at 0/0, per spend level
+  level 1.10: 5 points -0.9380, 15 points -0.4518, 201 points -0.0000
+  level 1.00: 5 points -3.8887, 15 points -10.6758, 201 points -0.0000
+  level 0.95: 5 points -22.2012, 15 points -11.3237, 201 points -0.0000
+  level 0.90: 5 points -0.0045, 15 points -3.8725, 201 points -0.0000
+  level 0.80: 5 points 0.0054, 15 points 0.3108, 201 points -0.0000
+=== snapshot kept at /tmp/solver-snap-CONG5E for provenance; remove it when the results are written up

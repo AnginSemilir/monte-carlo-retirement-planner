@@ -95,18 +95,18 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    line alone ends a << here-document (tabs stripped only for <<-). Not handled, as before: a `<<` inside quotes or a
    comment read as an opening, and a delimiter partly quoted (`<<E"OF"`); symlinks, `>|` and `>&` targets. A whole
    folder named by its path (`rm -rf .claude`, `git checkout <rev> -- research/solver`, `mv` or `cp -r` on it) is refused
-   by every version of the hook (the hundred-and-sixth review). Gets through (the hundred-and-sixth review, 27 Sep; the
+   by every version of the hook since 2945f68, 26 Sep (the hundred-and-sixth and hundred-and-seventh reviews). Gets through (the hundred-and-sixth review, 27 Sep; the
    lock changes stopped there at the maintainer's word, "stop after this round"):
    - a glob (`rm -rf research/sol*`), a variable or expansion (`$PWD`, `~+`, `$(pwd)`), a path split by quotes or
      backslashes, a symlink;
    - a target given by an option: `cp -t .`, `--target-directory=.`, `install -t`, `ln -st`;
    - here-documents at the edges: an arithmetic `<<` (`$((1<<3))`) or two openings on one line (`<<A <<B`), an escaped
      `\'` outside quotes, `$'it\'s'` and `<<E\OF`, each able to hide a later redirect; and two made possible by the
-     27 Sep change (9156ab8), which the earlier hooks refused: a quoted ` #` after an opening, which the comment strip
+     27 Sep change (9156ab8): a quoted ` #` after an opening (refused only by 9729d3c, whose own fix 9156ab8 undid), which the comment strip
      reads as a comment and drops the rest of the line, and a here-document piped to a shell more than 400 characters
-     after its opening (or `bash<450 spaces><<EOF`);
+     after its opening (or `bash<450 spaces><<EOF`; refused by every version from 8823783 to 9729d3c);
    - a launch, `--no-verify` or force push padded with more than 1,000 characters of path (`node` then 501 `./`), also
-     new in 9156ab8; no real script word is near that (the longest in runs.log is 35 characters);
+     new in 9156ab8 (all eleven earlier versions refused it); no real script word is near that (the longest in runs.log is 35 characters);
    - a command of about 128 KB built to be slow: the harness passes a command as one `bash -c` argument, which fails at
      131,072 bytes, and the worst known input under that (128,000 `(` then a python here-document) takes 17.7 s against
      the hook's 10 s timeout (27 s before 9156ab8).

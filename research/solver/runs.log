@@ -34,3 +34,4 @@
 27 Sep 19:11 UK | main | research/solver/predictions/diag-7w.md | code cd1026b8ff22 | b8ea81c | load 1.00 0.95 0.83 | bash research/solver/batch-7w.sh
 27 Sep 20:49 UK | main | none: 7x preflight, the diag7x mode's logs parsed by reduce-7x's gate at 4 points, 20 paths and 10 a world; no figure read | code 505ecd8a202e | 0f1a2a0 | load 1.10 1.14 0.98 | bash research/solver/preflight-7x.sh
 27 Sep 21:09 UK | main | none: 7x preflight re-run on the reader-reference revision, reduce-7x's gate at 4 points, 20 paths and 10 a world; no figure read | code bd8fe190faa4 | 99b1586 | load 1.64 1.56 1.31 | bash research/solver/preflight-7x.sh
+27 Sep 21:17 UK | main | research/solver/predictions/diag-7x.md | code bd8fe190faa4 | 70b7311 | load 0.89 1.10 1.19 | bash research/solver/batch-7x.sh

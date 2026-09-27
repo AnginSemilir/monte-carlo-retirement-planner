@@ -93,9 +93,29 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    only reads, are refused; name the path absolutely. Here-documents are read line by line (heredocs()): a body is data,
    the rest of its opening line is code (less a comment), the delimiter is taken as bash takes it, and only the delimiter
    line alone ends a << here-document (tabs stripped only for <<-). Not handled, as before: a `<<` inside quotes or a
-   comment read as an opening, and a delimiter partly quoted (`<<E"OF"`); symlinks, `>|` and `>&` targets. Anything else gets through: a whole folder that holds enforcement files (`rm -rf
-   .claude`, `git checkout <rev> -- research/solver`, `mv` or `cp -r` on the folder), a glob, a path split by quotes.
-2. A git restore of the whole tree that names no file (`git checkout <rev> -- .`, `git reset --hard`, `git stash`).
+   comment read as an opening, and a delimiter partly quoted (`<<E"OF"`); symlinks, `>|` and `>&` targets. A whole
+   folder named by its path (`rm -rf .claude`, `git checkout <rev> -- research/solver`, `mv` or `cp -r` on it) is refused
+   by every version of the hook (the hundred-and-sixth review). Gets through (the hundred-and-sixth review, 27 Sep; the
+   lock changes stopped there at the maintainer's word, "stop after this round"):
+   - a glob (`rm -rf research/sol*`), a variable or expansion (`$PWD`, `~+`, `$(pwd)`), a path split by quotes or
+     backslashes, a symlink;
+   - a target given by an option: `cp -t .`, `--target-directory=.`, `install -t`, `ln -st`;
+   - here-documents at the edges: an arithmetic `<<` (`$((1<<3))`) or two openings on one line (`<<A <<B`), an escaped
+     `\'` outside quotes, `$'it\'s'` and `<<E\OF`, each able to hide a later redirect; and two made possible by the
+     27 Sep change (9156ab8), which the earlier hooks refused: a quoted ` #` after an opening, which the comment strip
+     reads as a comment and drops the rest of the line, and a here-document piped to a shell more than 400 characters
+     after its opening (or `bash<450 spaces><<EOF`);
+   - a launch, `--no-verify` or force push padded with more than 1,000 characters of path (`node` then 501 `./`), also
+     new in 9156ab8; no real script word is near that (the longest in runs.log is 35 characters);
+   - a command of about 128 KB built to be slow: the harness passes a command as one `bash -c` argument, which fails at
+     131,072 bytes, and the worst known input under that (128,000 `(` then a python here-document) takes 17.7 s against
+     the hook's 10 s timeout (27 s before 9156ab8).
+   Refused though harmless, beyond the costs above: `git checkout -- .`, `git restore .`, `git rm -r --cached .`, `chmod
+   -R u+w .`, `touch src/`, `rsync -a /tmp/build/ ./`, and a `$VAR/`-prefixed absolute path (read as relative). The
+   hooks test's timing checks have a 2 s bound; the `{` one ran in 1.69 s beside 7v and may fail spuriously on a busy
+   box.
+2. A git restore of the whole tree that names no file (`git reset --hard`, `git stash`); `git checkout <rev> -- .` is
+   refused since 9156ab8 (a target of `.`).
 3. Ways of feeding a shell its commands other than `bash -c`, `eval` and a here-document fed to a shell: `bash - <<EOF`,
    `bash /dev/stdin <<EOF`, `bash -c "$(cat <<EOF ...)"`, a string piped or here-string'd into a shell.
 4. An answer to one of Claude's questions does not relock (it is a tool result, not a message).

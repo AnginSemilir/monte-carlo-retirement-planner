@@ -229,6 +229,44 @@ export function finalYearExact(c, t, post, act, terminal, grown, rbuf, out) {
 }
 
 /*
+ * THE READER'S STEP, INTEGRATED ACROSS (`bridgeStep: 'exact'`; PLAN.md 7z, Q; research only). In a year t whose next
+ * year is a reader year, next year's survival read is p(acc) x c + R, and p is a hard step: 0 when the accessible money
+ * at t+1 (ISA plus taxable account and cash, s[1] + s[2]) cannot pay that year's first bill (reader.js referenceChance:
+ * acc - d0 < -1). The year's return is averaged over the quadrature's few points, and when the step falls between two
+ * of them the average cannot see it (7w: five points see none of share 0.95's year-1 step; fifteen see it through one).
+ * Here the step's place in z is found by bisection (the accessible money rises with z: one shared shock) and the
+ * expectation is taken by 12-point Gauss-Legendre on each side of it in probability (u = Phi(z)), as the exact final
+ * year does across its floor (finalYearExact, O19). Returns false - the caller keeps its points - when the step lies
+ * outside z in [-9, 9]. `out`: survival, bequest, resilience, shortfall, as the points would sum them.
+ */
+function stepExpect(c, g, t, post, act, stepAt, grown, rbuf, rd, sN, bN, rN, hN, out) {
+  const n = Math.min(post.length, grown.length);
+  const accAt = z => { for (let q = 0; q < n; q++) grown[q] = post[q]; F.grow(c, t, grown, realAt(c, z, rbuf, act, t)); return grown[1] + grown[2]; };
+  const ZL = -9, ZH = 9;
+  if (accAt(ZL) >= stepAt || accAt(ZH) < stepAt) return false;
+  let lo = ZL, hi = ZH;
+  while (hi - lo > 1e-9) { const m = 0.5 * (lo + hi); if (accAt(m) >= stepAt) hi = m; else lo = m; }
+  const uS = Phi(hi);
+  out[0] = 0; out[1] = 0; out[2] = 0; out[3] = 0;
+  for (const [u0, u1] of [[0, uS], [uS, 1]]) {
+    if (!(u1 > u0)) continue;
+    for (let j = 0; j < GL12.x.length; j++) {
+      const u = u0 + (u1 - u0) * (GL12.x[j] + 1) / 2, w = (u1 - u0) * GL12.w[j] / 2;
+      accAt(PhiInv(Math.min(1 - 1e-15, Math.max(1e-15, u))));
+      readValues(g, sN, bN, grown, rd, rN, hN, t + 1);
+      out[0] += w * rd[0]; out[1] += w * rd[1]; out[2] += w * rd[2]; out[3] += w * rd[3];
+    }
+  }
+  return true;
+}
+/* Where next year's reader step lies for the table `L` (next year's survival, log-odds), or null: no reader year next. */
+function stepAtOf(g, t, L) {
+  if (!g.reader || !g.reader.years[t + 1] || !L) return null;
+  const RD = g.reader.of.get(L), sch = RD && RD.chance && RD.chance.schedule;
+  return sch && sch.bills.length ? sch.bills[0] - 1 : null;
+}
+
+/*
  * THE SCENARIO MIXTURE over the per-path mean shift (the statistician's option 1). K tables, each solved
  * with the shift held at its quadrature node for the whole horizon and the yearly spread the plain
  * volatility; the move at a position is the one with the best weighted average of the K tables' scores.
@@ -637,10 +675,15 @@ export function solve(E, M, plan, opts = {}) {
   }
   // the final year integrated exactly (finalYearExact, O19); off: the five nodes, as before
   const FINT = !!opts.finalIntegral, FTERM = { floor, deathTax, resilK, shortfall, beqOf }, fx = new Float64Array(3), fxR = new Float64Array(4);
+  // Q's fix (stepExpect): research only; with the reader alone, since only the reader's read has the step
+  if (opts.bridgeStep && opts.bridgeStep !== 'exact') throw new Error(`bridgeStep ${opts.bridgeStep}: only 'exact'`);
+  const STEPX = opts.bridgeStep === 'exact' && opts.bridgeRead === 'reader', sx = new Float64Array(4), sxR = new Float64Array(4);
+  if (opts.bridgeStep === 'exact' && opts.bridgeRead !== 'reader') throw new Error("bridgeStep 'exact' needs the bridge reader (bridgeRead: 'reader')");
   // `jointWorlds`: each world's components for every move at a cell (PASS 2's, kept for the joint choice)
   const jS = JOINT ? shifts.map(() => new Float64Array(A)) : null, jB = JOINT ? shifts.map(() => new Float64Array(A)) : null, jR = JOINT ? shifts.map(() => new Float64Array(A)) : null, jH = JOINT ? shifts.map(() => new Float64Array(A)) : null, jV = JOINT ? shifts.map(() => new Float64Array(A)) : null;
   for (let t = T; t >= 0; t--) {
     const spendYear = c.yr.spend[t] > 0;
+    const stepAtW = STEPX && t < T ? lsurvW.map(L => stepAtOf(g, t, L[t + 1])) : null;
     // world-independent, so computed once a year rather than once a world: E0 made the world loop the
     // outer one and this would otherwise be evaluated K times for the same answer
     for (let ai = 0; ai < A; ai++) {
@@ -684,6 +727,7 @@ export function solve(E, M, plan, opts = {}) {
                     if (!fail) {
                       const nr = nodeRealOf[ai];
                       if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                      else if (stepAtW && stepAtW[k] !== null && stepExpect(cs[k], g, t, postBuf.subarray(o, o + 7), cs[k].acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
                       else for (let zi = 0; zi < NQ; zi++) {
                         for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
                         F.grow(cs[k], t, grown, nr[zi]);
@@ -766,6 +810,7 @@ export function solve(E, M, plan, opts = {}) {
                     if (!fail) {
                       const nr = nodeRealOf[ai];
                       if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                      else if (stepAtW && stepAtW[k] !== null && stepExpect(cs[k], g, t, postBuf.subarray(o, o + 7), cs[k].acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
                       else for (let zi = 0; zi < NQ; zi++) {
                         for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
                         F.grow(cs[k], t, grown, nr[zi]);
@@ -818,6 +863,7 @@ export function solve(E, M, plan, opts = {}) {
                     const tn = PROF ? now() : 0;
                     const nr = nodeRealOf[ai];
                     if (t === T && FINT) { finalYearExact(cs[k], t, postBuf.subarray(o, o + 7), cs[k].acts[ai], FTERM, grown, fxR, fx); s = fx[0]; b = fx[1]; rs = fx[2]; }
+                      else if (stepAtW && stepAtW[k] !== null && stepExpect(cs[k], g, t, postBuf.subarray(o, o + 7), cs[k].acts[ai], stepAtW[k], grown, sxR, rd, sNext, bNext, rNext, hNext, sx)) { s = sx[0]; b = sx[1]; rs = sx[2]; h += sx[3]; }
                     else for (let zi = 0; zi < NQ; zi++) {
                       for (let q = 0; q < 7; q++) grown[q] = postBuf[o + q];
                       F.grow(cs[k], t, grown, nr[zi]);
@@ -867,7 +913,7 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, readerRef: opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, readerRef: opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
   if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, weights: g.reader.weights };
   if (JOINT) meta.jointWorlds = true;
   if (PROF) {
@@ -888,7 +934,7 @@ export function solve(E, M, plan, opts = {}) {
     tieMargin: opts.tieMargin || 0,
     /* the end-of-plan rule the backward pass applies at t = T, so the final year can be scored exactly (see scoreMoves) */
     terminal: { floor, deathTax, resilK, shortfall, beqOf },
-    finalExact: !!opts.finalExact, finalIntegral: FINT,
+    finalExact: !!opts.finalExact, finalIntegral: FINT, stepExact: STEPX,
     raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
     /*
      * PHASE E0, STEP 2. One result-like view per world, for `chooseAction`'s mixture loop, which calls
@@ -909,7 +955,7 @@ export function solve(E, M, plan, opts = {}) {
     surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
     nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW, quadNodes: QZ,
     tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
-    terminal: { floor, deathTax, resilK, shortfall, beqOf }, finalExact: !!opts.finalExact, finalIntegral: FINT, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
+    terminal: { floor, deathTax, resilK, shortfall, beqOf }, finalExact: !!opts.finalExact, finalIntegral: FINT, stepExact: STEPX, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false,
     /*
      * A world view answers `policy` and `value` as the central result does, reading ITS OWN tables.
      * Leaving them off made the view scoreable but not readable, which is half a result: the mixture
@@ -1086,7 +1132,10 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null) {
       SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
       continue;
     }
-    for (let zi = 0; zi < QW.length; zi++) {
+    const stepAt = r.stepExact ? stepAtOf(g, t, lsurv[t + 1]) : null;
+    const sx = r._sx || (r._sx = new Float64Array(4)), sxR = r._sxR || (r._sxR = new Float64Array(4));
+    if (stepAt !== null && stepExpect(c, g, t, post, variant ? variant.act : c.acts[ai], stepAt, grown, sxR, rd, lsurv[t + 1], beq[t + 1], lresil[t + 1], short[t + 1], sx)) { sv = sx[0]; bq = sx[1]; rs = sx[2]; h += sx[3]; }
+    else for (let zi = 0; zi < QW.length; zi++) {
       grown.set(post);
       F.grow(c, t, grown, nr[zi]);
       readValues(g, lsurv[t + 1], beq[t + 1], grown, rd, lresil[t + 1], short[t + 1], t + 1);

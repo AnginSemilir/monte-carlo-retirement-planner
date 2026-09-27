@@ -2,10 +2,11 @@
 
 ## 7x: read (results-7x.txt; the gate passed; the ledger 27 Sep 22:17)
 
-**In one sentence:** the solver's tables undervalue lowering risk at the start because they assume switching tiers
-later is free. Once a tier is held for life, the tables see most of what lowering risk buys on S126 and S194 (79% and
-97%). Adding more market worlds changes nothing. On share 0.95 a second error remains: the held tables see only 21% of
-the gain there.
+**In one sentence:** tables held at one tier for life price lowering risk at 79% (S126) and 97% (S194) of what it
+actually buys. The free-switching tables see only a fraction, so the likely culprit is the free-switching assumption.
+For the product itself that stays grade C until the tier-state solve (7y) is measured. More market worlds change nothing.
+On share 0.95 the held tables see 21%, but 7x's design fixed that figure (the reader's opening chance is the same in both
+arms), so it is **not** evidence for the 5-point blind spot. That is tested separately (7z).
 
 | item | outcome | the numbers (results-7x.txt) |
 |---|---|---|

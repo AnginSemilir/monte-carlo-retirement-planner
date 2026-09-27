@@ -1,0 +1,29 @@
+7Z'S POWER: 8000 paths; 20000 draws a story (seed 7002); read by reduce-7z.mjs's families
+
+THE SIZES (the freed opening against the reader at 0.001 on 7w's paths, scaled to 8,000; grade C, see the header), and each case's margin (7v's READER/1e-3)
+  share 0.95  72/0 of 3000 -> 192.0/0.0 of 8000  margin 0.5
+  S126        15/0 of 3000 -> 40.0/0.0 of 8000  margin 0.25
+  bridge 4    no record  margin 0.25
+
+BACKGROUND 0.5 PATHS EACH WAY ON EVERY LEG
+  item 1, the fix as the freed opening                                           b 0.5  HELD 1.000
+  item 1, half of it                                                             b 0.5  HELD 1.000
+  item 1, a quarter of it                                                        b 0.5  HELD 1.000
+  item 1, the fix doing nothing                                                  b 0.5  FALSIFIED 1.000  HELD 0.000
+  item 3, S126 as the freed opening, bridge 4 level                              b 0.5  HELD 1.000
+  item 3, both level                                                             b 0.5  HELD 1.000
+  item 3, bridge 4 loses 40 paths (0.5 points)                                   b 0.5  FALSIFIED 1.000  HELD 0.000  INCONCLUSIVE 0.000
+  item 3, bridge 4 loses 20 paths (0.25 points)                                  b 0.5  FALSIFIED 0.531  HELD 0.418  INCONCLUSIVE 0.051
+  item 3, S126 loses 20 paths (0.25 points)                                      b 0.5  FALSIFIED 0.526  HELD 0.423  INCONCLUSIVE 0.052
+
+BACKGROUND 5 PATHS EACH WAY ON EVERY LEG
+  item 1, the fix as the freed opening                                           b 5    HELD 1.000
+  item 1, half of it                                                             b 5    HELD 1.000
+  item 1, a quarter of it                                                        b 5    HELD 1.000
+  item 1, the fix doing nothing                                                  b 5    FALSIFIED 0.977  HELD 0.023
+  item 3, S126 as the freed opening, bridge 4 level                              b 5    HELD 1.000
+  item 3, both level                                                             b 5    HELD 1.000
+  item 3, bridge 4 loses 40 paths (0.5 points)                                   b 5    FALSIFIED 0.999  INCONCLUSIVE 0.001
+  item 3, bridge 4 loses 20 paths (0.25 points)                                  b 5    FALSIFIED 0.530  HELD 0.107  INCONCLUSIVE 0.363
+  item 3, S126 loses 20 paths (0.25 points)                                      b 5    FALSIFIED 0.535  HELD 0.106  INCONCLUSIVE 0.359
+

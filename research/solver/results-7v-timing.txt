@@ -1,0 +1,65 @@
+# 7v's timing measurement, 27 Sep (runs.log 07:09 UK; PREDICTION=none), the whole log as it ran: audit-s126.mjs diag7v at 30 points on S126,
+# 1,000 paths of seed 7002 (7v's own first 1,000 of 8,000) and 100 a world, lambda 0.025 (the registration of 11a474e; the revision holds 7t's 0.0224).
+# Kept whole for the ninety-third review's BLOCKING 3: its survival and tier lines were printed before 7v was registered, and the author read
+# OFF's four run lines on S126 (survival and tier years) while reading the seconds. Only the seconds are cited (the prediction's Power).
+=== a MEASUREMENT, not a test: 7v's timing at 30 points - S126's four solves and 17 forward runs of 1,000 paths (100 a world), to set 7v's path count and time before it is registered; no figure but the seconds is read (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-SORlbU   from 39edb00
+stamp: code cd1026b8ff22 audit d2497e39839f prediction none sha -
+7V DIAGNOSIS, the product's settings (solvePlan), 30 points, 1000 paths (seed 7002), 100 a world, margins 1e-3,3e-4,1e-4,0; part 0/9
+S126             case | arms OFF,READER,OFF+J,READER+J | margins 1e-3,3e-4,1e-4,0 | lambda 0.025 tier own riskAbove auto mix 3
+                 solve OFF: table 61.50 secs 232
+                 ran OFF: mix 3 pts 30 seed 7002 paths 1000 grid total30x6x6 lambda 0.025 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 29000 quad 5 finalIntegral true bridgeRead false
+                 joint OFF: false switchMargin 0.001 scale 950000 cap 3800000 deathTax 0 tier own riskAbove off:_no_tier_above_the_plan
+                 run OFF/1e-3: sim 99.700 below 1.58 tier-below 39.96 estate 2245419 secs 63
+                 world OFF/1e-3 0 z -1.7321: table 37.03 sim 99.00 estate table 686056 sim 746005 tier-below 39.87 paths 100
+                 world OFF/1e-3 1 z 0.0000: table 62.38 sim 100.00 estate table 1663532 sim 2239385 tier-below 39.96 paths 100
+                 world OFF/1e-3 2 z 1.7321: table 82.43 sim 100.00 estate table 2351915 sim 3543656 tier-below 39.98 paths 100
+                 run OFF/3e-4: sim 99.700 below 1.62 tier-below 32.53 estate 2409210 secs 64
+                 run OFF/1e-4: sim 99.600 below 1.71 tier-below 28.51 estate 2472332 secs 64
+                 run OFF/0: sim 99.600 below 1.77 tier-below 27.76 estate 2506519 secs 62
+                 world OFF/0 0 z -1.7321: table 37.03 sim 98.00 estate table 686056 sim 855875 tier-below 25.60 paths 100
+                 world OFF/0 1 z 0.0000: table 62.38 sim 100.00 estate table 1663532 sim 2528426 tier-below 26.87 paths 100
+                 world OFF/0 2 z 1.7321: table 82.43 sim 100.00 estate table 2351915 sim 3703100 tier-below 33.54 paths 100
+                 solve READER: table 99.87 secs 234
+                 ran READER: mix 3 pts 30 seed 7002 paths 1000 grid total30x6x6 lambda 0.025 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 29000 quad 5 finalIntegral true bridgeRead reader
+                 joint READER: false switchMargin 0.001 scale 950000 cap 3800000 deathTax 0 tier own riskAbove off:_no_tier_above_the_plan
+                 run READER/1e-3: sim 99.300 below 2.76 tier-below 7.86 estate 2435154 secs 61
+                 world READER/1e-3 0 z -1.7321: table 99.54 sim 98.00 estate table 684584 sim 795478 tier-below 17.20 paths 100
+                 world READER/1e-3 1 z 0.0000: table 99.92 sim 100.00 estate table 1663532 sim 2489865 tier-below 7.82 paths 100
+                 world READER/1e-3 2 z 1.7321: table 99.99 sim 100.00 estate table 2351915 sim 3536280 tier-below 5.16 paths 100
+                 run READER/3e-4: sim 99.700 below 1.62 tier-below 32.53 estate 2409210 secs 63
+                 run READER/1e-4: sim 99.600 below 1.71 tier-below 28.51 estate 2472332 secs 64
+                 run READER/0: sim 99.600 below 1.77 tier-below 27.76 estate 2506519 secs 62
+                 world READER/0 0 z -1.7321: table 99.54 sim 98.00 estate table 684584 sim 855875 tier-below 25.60 paths 100
+                 world READER/0 1 z 0.0000: table 99.92 sim 100.00 estate table 1663532 sim 2528426 tier-below 26.87 paths 100
+                 world READER/0 2 z 1.7321: table 99.99 sim 100.00 estate table 2351915 sim 3703100 tier-below 33.54 paths 100
+                 solve OFF+J: table 70.16 secs 233
+                 ran OFF+J: mix 3 pts 30 seed 7002 paths 1000 grid total30x6x6 lambda 0.025 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 29000 quad 5 finalIntegral true bridgeRead false
+                 joint OFF+J: true switchMargin 0.001 scale 950000 cap 3800000 deathTax 0 tier own riskAbove off:_no_tier_above_the_plan
+                 run OFF+J/1e-3: sim 99.800 below 1.64 tier-below 39.96 estate 2246201 secs 62
+                 world OFF+J/1e-3 0 z -1.7321: table 17.63 sim 99.00 estate table 690576 sim 747199 tier-below 39.87 paths 100
+                 world OFF+J/1e-3 1 z 0.0000: table 78.48 sim 100.00 estate table 1618485 sim 2239208 tier-below 39.96 paths 100
+                 world OFF+J/1e-3 2 z 1.7321: table 89.42 sim 100.00 estate table 2290437 sim 3543393 tier-below 39.98 paths 100
+                 run OFF+J/3e-4: sim 99.800 below 1.67 tier-below 32.83 estate 2407061 secs 61
+                 run OFF+J/1e-4: sim 99.800 below 1.73 tier-below 29.11 estate 2462497 secs 61
+                 run OFF+J/0: sim 99.700 below 1.76 tier-below 28.17 estate 2490743 secs 61
+                 world OFF+J/0 0 z -1.7321: table 17.63 sim 98.00 estate table 690576 sim 848062 tier-below 26.53 paths 100
+                 world OFF+J/0 1 z 0.0000: table 78.48 sim 100.00 estate table 1618485 sim 2530875 tier-below 27.42 paths 100
+                 world OFF+J/0 2 z 1.7321: table 89.42 sim 100.00 estate table 2290437 sim 3696384 tier-below 33.82 paths 100
+                 solve READER+J: table 99.71 secs 235
+                 ran READER+J: mix 3 pts 30 seed 7002 paths 1000 grid total30x6x6 lambda 0.025 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 29000 quad 5 finalIntegral true bridgeRead reader
+                 joint READER+J: true switchMargin 0.001 scale 950000 cap 3800000 deathTax 0 tier own riskAbove off:_no_tier_above_the_plan
+                 run READER+J/1e-3: sim 99.800 below 1.64 tier-below 39.96 estate 2246201 secs 61
+                 world READER+J/1e-3 0 z -1.7321: table 98.38 sim 99.00 estate table 690616 sim 747199 tier-below 39.87 paths 100
+                 world READER+J/1e-3 1 z 0.0000: table 99.98 sim 100.00 estate table 1619018 sim 2239208 tier-below 39.96 paths 100
+                 world READER+J/1e-3 2 z 1.7321: table 100.00 sim 100.00 estate table 2291512 sim 3543393 tier-below 39.98 paths 100
+                 run READER+J/3e-4: sim 99.800 below 1.67 tier-below 32.83 estate 2407061 secs 62
+                 run READER+J/1e-4: sim 99.800 below 1.73 tier-below 29.11 estate 2462497 secs 63
+                 run READER+J/0: sim 99.700 below 1.76 tier-below 28.17 estate 2490743 secs 62
+                 world READER+J/0 0 z -1.7321: table 98.38 sim 98.00 estate table 690616 sim 848062 tier-below 26.53 paths 100
+                 world READER+J/0 1 z 0.0000: table 99.98 sim 100.00 estate table 1619018 sim 2530875 tier-below 27.42 paths 100
+                 world READER+J/0 2 z 1.7321: table 100.00 sim 100.00 estate table 2291512 sim 3696384 tier-below 33.82 paths 100
+                 run READER+J/0+L: sim 99.900 below 1.85 tier-below 28.05 estate 2474311 secs 61
+                 done 17 runs
+=== snapshot kept at /tmp/solver-snap-SORlbU for provenance; remove it when the results are written up

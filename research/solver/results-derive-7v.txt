@@ -1,40 +1,55 @@
-7V'S POWER: 8000 paths; 20000 draws a story (seed 7002); every leg read by reduce-7v.mjs's own families with Holm over the item's legs; margin 0.25 (the harmed cases survive 99%+)
+7V'S POWER: 8000 paths; 20000 draws a story (seed 7002); every leg read by reduce-7v.mjs's own families with Holm over the item's legs; margin 0.25 (the harmed cases survive 99%+) unless named
 
 BACKGROUND 1.33 PATHS EACH WAY ON EVERY LEG
-  item 1, the reader's harm at 7t's size (42, 29)                b 1.33  HELD 0.962  INCONCLUSIVE 0.038
-  item 1, the reader's harm at 7e's at 30 points (38, 25)        b 1.33  HELD 0.854  INCONCLUSIVE 0.146
-  item 1, the reader's harm at half 7e's (19, 13)                b 1.33  FALSIFIED 0.357  HELD 0.023  INCONCLUSIVE 0.620
-  item 1, the reader's harm at none                              b 1.33  FALSIFIED 1.000
-  item 2, the reader identical to off at 0 (P)                   b 1.33  HELD 1.000
-  item 2, the harm kept at 0 (7t's size)                         b 1.33  FALSIFIED 0.960  INCONCLUSIVE 0.040
-  item 3's no-harm leg at 0, none left (P)                       b 1.33  no material harm on both 1.000
-  item 3's no-harm leg at 0, 14 and 10 left (7t's margin-0 losses) b 1.33  harm on both 0.001  mixed 0.180  no material harm on both 0.820
-  item 3's no-harm leg at 0, the harm kept                       b 1.33  harm on both 0.962  mixed 0.038
-  item 5, one policy gains nothing                               b 1.33  FALSIFIED 1.000  INCONCLUSIVE 0.000
-  item 5, one policy saves half the harm at each margin          b 1.33  HELD 0.957  INCONCLUSIVE 0.043
-  item 6, the learner adds nothing                               b 1.33  FALSIFIED 0.999  INCONCLUSIVE 0.001
-  item 6, the learner saves a quarter of the harm                b 1.33  FALSIFIED 0.079  HELD 0.581  INCONCLUSIVE 0.340
-  item 7, S172 reproduces O16's loss (61 of 8,000)               b 1.33  harm 1.000
-  item 7, S172 meets at 0 (no difference there)                  b 1.33  no material harm 1.000
-  item 7, S330 reproduces O21's gain (21 of 8,000, margin 0.5)   b 1.33  gain 0.998  no material gain 0.002
-  item 7, S330 meets at 0 (no difference there, margin 0.5)      b 1.33  gain 0.004  no material gain 0.996
+  item 1, the reader's harm: 7e's 30-point S126 (24), bridge 4 at 24         b 1.33   FALSIFIED 0.011  HELD 0.652  INCONCLUSIVE 0.337
+  item 1, the reader's harm: 7e's 30-point S126 (24), bridge 4 at 16         b 1.33   FALSIFIED 0.073  HELD 0.165  INCONCLUSIVE 0.762
+  item 1, the reader's harm: 7e's 30-point S126 (24), bridge 4 at 8          b 1.33   FALSIFIED 0.108  HELD 0.001  INCONCLUSIVE 0.892
+  item 1, the reader's harm: 7e's 30-point S126 (24), bridge 4 at none       b 1.33   FALSIFIED 0.108  INCONCLUSIVE 0.892
+  item 1, the reader's harm: 7t's 16-point size (42, 29)                     b 1.33   HELD 0.962  INCONCLUSIVE 0.038
+  item 1, the reader's harm: no harm on either                               b 1.33   FALSIFIED 1.000
+  item 2, the reader identical to off at 0 (P)                               b 1.33   HELD 1.000
+  item 2, a harm of 24 and 16 kept at 0                                      b 1.33   FALSIFIED 0.164  HELD 0.073  INCONCLUSIVE 0.764
+  item 3's leg at 0: one policy leaves 7t's READER+J/M0 losses (2; 5 lost, 11 saved) b 1.33   no material harm on both 1.000
+  item 3's leg at 0: none left                                               b 1.33   no material harm on both 1.000
+  item 3's leg at 0: the harm kept (24 and 16)                               b 1.33   harm on both 0.166  mixed 0.761  no material harm on both 0.072
+  item 10: the reader alone leaves 7t's READER/M0 losses (14; 6 lost, 3 saved) b 1.33   HELD 0.828  INCONCLUSIVE 0.172
+  item 4, noise at 0: none on any leg                                        b 1.33   FALSIFIED 1.000
+  item 4, noise at 0: 24 lost on one leg of fourteen                         b 1.33   FALSIFIED 0.106  HELD 0.810  INCONCLUSIVE 0.084
+  item 4, noise at 0: 40 lost on one leg of fourteen                         b 1.33   FALSIFIED 0.000  HELD 1.000  INCONCLUSIVE 0.000
+  item 5, one policy gains nothing at 0                                      b 1.33   FALSIFIED 0.999  INCONCLUSIVE 0.001
+  item 5, 7t's size at 0 (12 saved; 11 saved, 2 lost)                        b 1.33   FALSIFIED 0.049  HELD 0.633  INCONCLUSIVE 0.318
+  item 6, the learner adds nothing                                           b 1.33   FALSIFIED 0.999  INCONCLUSIVE 0.002
+  item 6, the learner saves 6 and 4                                          b 1.33   FALSIFIED 0.481  HELD 0.141  INCONCLUSIVE 0.378
+  item 7, S172 reproduces O16's loss (61 of 8,000)                           b 1.33   harm 1.000
+  item 7, S172 reproduces the exact-final-year loss (-0.67: 54 of 8,000)     b 1.33   harm 1.000
+  item 7, S330 reproduces O21's gain (21 of 8,000, margin 0.5)               b 1.33   gain 0.997  no material gain 0.003
 
 BACKGROUND 13.33 PATHS EACH WAY ON EVERY LEG
-  item 1, the reader's harm at 7t's size (42, 29)                b 13.33 HELD 0.899  INCONCLUSIVE 0.101
-  item 1, the reader's harm at 7e's at 30 points (38, 25)        b 13.33 HELD 0.771  INCONCLUSIVE 0.229
-  item 1, the reader's harm at half 7e's (19, 13)                b 13.33 FALSIFIED 0.012  HELD 0.071  INCONCLUSIVE 0.916
-  item 1, the reader's harm at none                              b 13.33 FALSIFIED 0.963  INCONCLUSIVE 0.037
-  item 2, the reader identical to off at 0 (P)                   b 13.33 HELD 0.962  INCONCLUSIVE 0.038
-  item 2, the harm kept at 0 (7t's size)                         b 13.33 FALSIFIED 0.897  INCONCLUSIVE 0.103
-  item 3's no-harm leg at 0, none left (P)                       b 13.33 mixed 0.040  no material harm on both 0.960
-  item 3's no-harm leg at 0, 14 and 10 left (7t's margin-0 losses) b 13.33 harm on both 0.011  mixed 0.906  no material harm on both 0.083
-  item 3's no-harm leg at 0, the harm kept                       b 13.33 harm on both 0.896  mixed 0.104
-  item 5, one policy gains nothing                               b 13.33 FALSIFIED 0.918  INCONCLUSIVE 0.082
-  item 5, one policy saves half the harm at each margin          b 13.33 HELD 0.358  INCONCLUSIVE 0.642
-  item 6, the learner adds nothing                               b 13.33 FALSIFIED 0.949  HELD 0.001  INCONCLUSIVE 0.050
-  item 6, the learner saves a quarter of the harm                b 13.33 FALSIFIED 0.256  HELD 0.120  INCONCLUSIVE 0.625
-  item 7, S172 reproduces O16's loss (61 of 8,000)               b 13.33 harm 1.000
-  item 7, S172 meets at 0 (no difference there)                  b 13.33 harm 0.000  inconclusive 0.019  no material harm 0.981
-  item 7, S330 reproduces O21's gain (21 of 8,000, margin 0.5)   b 13.33 gain 0.847  no material gain 0.153
-  item 7, S330 meets at 0 (no difference there, margin 0.5)      b 13.33 gain 0.031  no material gain 0.969
+  item 1, the reader's harm: 7e's 30-point S126 (24), bridge 4 at 24         b 13.33  HELD 0.537  INCONCLUSIVE 0.463
+  item 1, the reader's harm: 7e's 30-point S126 (24), bridge 4 at 16         b 13.33  FALSIFIED 0.001  HELD 0.215  INCONCLUSIVE 0.784
+  item 1, the reader's harm: 7e's 30-point S126 (24), bridge 4 at 8          b 13.33  FALSIFIED 0.004  HELD 0.021  INCONCLUSIVE 0.975
+  item 1, the reader's harm: 7e's 30-point S126 (24), bridge 4 at none       b 13.33  FALSIFIED 0.007  HELD 0.000  INCONCLUSIVE 0.993
+  item 1, the reader's harm: 7t's 16-point size (42, 29)                     b 13.33  HELD 0.894  INCONCLUSIVE 0.106
+  item 1, the reader's harm: no harm on either                               b 13.33  FALSIFIED 0.960  INCONCLUSIVE 0.040
+  item 2, the reader identical to off at 0 (P)                               b 13.33  HELD 0.963  INCONCLUSIVE 0.037
+  item 2, a harm of 24 and 16 kept at 0                                      b 13.33  FALSIFIED 0.220  HELD 0.001  INCONCLUSIVE 0.779
+  item 3's leg at 0: one policy leaves 7t's READER+J/M0 losses (2; 5 lost, 11 saved) b 13.33  mixed 0.082  no material harm on both 0.918
+  item 3's leg at 0: none left                                               b 13.33  mixed 0.036  no material harm on both 0.964
+  item 3's leg at 0: the harm kept (24 and 16)                               b 13.33  harm on both 0.219  mixed 0.780  no material harm on both 0.001
+  item 10: the reader alone leaves 7t's READER/M0 losses (14; 6 lost, 3 saved) b 13.33  FALSIFIED 0.001  HELD 0.165  INCONCLUSIVE 0.834
+  item 4, noise at 0: none on any leg                                        b 13.33  FALSIFIED 0.762  HELD 0.002  INCONCLUSIVE 0.236
+  item 4, noise at 0: 24 lost on one leg of fourteen                         b 13.33  FALSIFIED 0.007  HELD 0.708  INCONCLUSIVE 0.285
+  item 4, noise at 0: 40 lost on one leg of fourteen                         b 13.33  HELD 0.990  INCONCLUSIVE 0.010
+  item 5, one policy gains nothing at 0                                      b 13.33  FALSIFIED 0.951  HELD 0.001  INCONCLUSIVE 0.048
+  item 5, 7t's size at 0 (12 saved; 11 saved, 2 lost)                        b 13.33  FALSIFIED 0.133  HELD 0.183  INCONCLUSIVE 0.684
+  item 6, the learner adds nothing                                           b 13.33  FALSIFIED 0.951  HELD 0.001  INCONCLUSIVE 0.048
+  item 6, the learner saves 6 and 4                                          b 13.33  FALSIFIED 0.621  HELD 0.026  INCONCLUSIVE 0.353
+  item 7, S172 reproduces O16's loss (61 of 8,000)                           b 13.33  harm 1.000
+  item 7, S172 reproduces the exact-final-year loss (-0.67: 54 of 8,000)     b 13.33  harm 1.000  inconclusive 0.000
+  item 7, S330 reproduces O21's gain (21 of 8,000, margin 0.5)               b 13.33  gain 0.847  no material gain 0.153
 
+THE PAIRS AT MARGIN 0 WITH A LARGE BACKGROUND (the ninety-third review, BLOCKING 1: the backgrounds above come from margin-0.001 runs)
+  item 7, S172 meets at 0 (no difference there)                              b 13.30  harm 0.000  inconclusive 0.018  no material harm 0.982
+  item 7, S330 meets at 0 (no difference there, margin 0.5)                  b 13.30  gain 0.034  no material gain 0.966
+  item 7, S172 meets at 0 (no difference there)                              b 100.00 harm 0.042  inconclusive 0.685  no material harm 0.272
+  item 7, S330 meets at 0 (no difference there, margin 0.5)                  b 100.00 gain 0.045  inconclusive 0.163  no material gain 0.793

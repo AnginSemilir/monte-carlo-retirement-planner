@@ -23,7 +23,7 @@
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { solve, solvePlan, runPolicy } from '../../src/solver/solve.js';
+import { solve, solvePlan, runPolicy, chooseAction } from '../../src/solver/solve.js';
 import { swapChooser } from './swap.mjs';
 import { learningChooser, oracleChooser } from './learn.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
@@ -479,28 +479,31 @@ if (mode === 'f1v2') {
   /*
    * 7V: IS THE READER'S HARM THE SWITCH MARGIN HOLDING A NEAR-TIE? THE MARGIN'S DOSE-RESPONSE (PLAN.md 7v; the second deep
    * review, 27 Sep 02:07 UK, O30; the maintainer, 27 Sep: "Run 7v first"; predictions/diag-7v.md). At the product's settings -
-   * solvePlan with 30 points, risk above by the product's 'auto' rule, lambda the research reference 0.025 (O15, the
-   * maintainer 25 Sep 20:31 UK) - each case's arms are solved once, off and the reader (a non-bridge case, off alone), each
+   * solvePlan with 30 points, risk above by the product's 'auto' rule, lambda held at 7t's (S126's landed 0.0224; the third
+   * deep review, 27 Sep 07:42 UK: 7t to 7v then differs in the grid alone, on the same paths) - each case's arms are solved once, off and the reader (a non-bridge case, off alone), each
    * with the mixture as the product solves it and with `jointWorlds` (+J), and every solve is run forward on the same NP paths
    * at four switch margins: 0.001 (the product's; label /1e-3), 3e-4, 1e-4 and 0 (the margin is read only by the forward
    * chooser: the tables do not depend on it). One policy at margin 0 is also run with learn.mjs's learning chooser (+L; the
-   * reader's on a bridge case, off's elsewhere). On the harmed cases each solve is also run in each of the three worlds on the
-   * first WP paths, at margins 0.001 and 0.
+   * reader's on a bridge case, off's elsewhere). On the harmed cases and S194 each solve is also run in each of the three
+   * worlds on the first WP paths, at margins 0.001 and 0. Every solve's YEAR-0 GAP is logged (the third deep review): the
+   * score the chooser's best opening move gains over keeping the plan's tier, read by the chooser itself as the smallest
+   * switch margin at which it keeps the plan's tier (0 when it keeps it at margin 0), and the pension tier it opens in at
+   * each margin.
    * The family pairs are run at their odd results' own setups (the ninety-first review, MINOR 5): S172 planned at Medium Risk
    * with the tier above off and on (O16, M14b's settings: S172's landed lambda 0.6503449126242364, held); S330 planned at
    * Medium Risk with the tier above on, in three and in five worlds (O21, 7h's: S330's landed 0.9457416090031758, held).
    *   node research/solver/audit-s126.mjs diag7v [points=30] [paths] part k/n [seed=7002] [world paths=1000]
    * Prints, per case: a case line; a solve line per arm (the table's opening read, seconds); a ran and a joint line per arm
-   * (the joint line also names the plan tier, lambda and what the risk-above rule decided); a run line per forward run
+   * (the joint line also names the plan tier, lambda and what the risk-above rule decided); a gap line per arm; a run line per forward run
    * (survival, years below target, pension years below the plan's tier, the mean capped estate, seconds); a world line per
    * world run. Every run's trace goes to results/diag7v/<case>-<run>.json.gz (DIAG7V_OUT when set), stamped as the log is;
    * the reducer (reduce-7v.mjs) reads every pair from the traces.
    */
   const MARG = [['1e-3', 0.001], ['3e-4', 3e-4], ['1e-4', 1e-4], ['0', 0]];
-  const REF_LAMBDA = 0.025;
+  const REF_LAMBDA = LAMBDA;
   const PANEL7V = [
     ['S126', { arms: 'off,reader', worlds: true }], ['bridge 4', { arms: 'off,reader', worlds: true }],
-    ['S360', { arms: 'off,reader' }], ['share 0.95', { arms: 'off,reader' }], ['S194', { arms: 'off' }],
+    ['S360', { arms: 'off,reader' }], ['share 0.95', { arms: 'off,reader' }], ['S194', { arms: 'off', worlds: true }],
     ['S172 down', { id: 'S172', arms: 'off', tier: 'Medium Risk', riskAbove: false, lambda: 0.6503449126242364 }],
     ['S172 up', { id: 'S172', arms: 'off', tier: 'Medium Risk', riskAbove: true, lambda: 0.6503449126242364 }],
     ['S330 mix3', { id: 'S330', arms: 'off', tier: 'Medium Risk', riskAbove: true, lambda: 0.9457416090031758, mix: 3 }],
@@ -535,6 +538,20 @@ if (mode === 'f1v2') {
     } finally { r.switchMargin = keep; }
     return { sim: 100 * ok / N, below: below / N, tierYrs: tierYrs / N, estate: estate / N, okArr, tr, secs: (Date.now() - t0) / 1000 };
   };
+  // the year-0 gap: runPolicy's own opening state and held tier (captured through its choose hook on one path), then the
+  // chooser asked at that state for the smallest margin at which it keeps the plan's tier (bisection, 40 steps on [0, 1])
+  const openGap = (r, zs) => {
+    let s0 = null, h0 = null;
+    runPolicy(r, zs, { choose: (t, st, held) => { if (t === 0 && !s0) { s0 = Float64Array.from(st); h0 = { ...held }; } return chooseAction(r, st, t, held); } });
+    const keep = r.switchMargin, acts = r.c.acts;
+    const at = sm => { r.switchMargin = sm; try { return acts[chooseAction(r, s0, 0, h0)]; } finally { r.switchMargin = keep; } };
+    const stays = sm => { const a = at(sm); return a.tierPen === h0.pen && a.tierIsa === h0.isa; };
+    let gap;
+    if (stays(0)) gap = '0';
+    else if (!stays(1)) gap = '>1';
+    else { let lo = 0, hi = 1; for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (stays(mid)) hi = mid; else lo = mid; } gap = hi.toExponential(4); }
+    return { gap, open: MARG.map(([, sm]) => at(sm).tierPen).join(',') };
+  };
   const fileOf = (id, label) => `${id.replace(/ /g, '_')}-${label.toLowerCase().replace(/\+/g, '_').replace(/\//g, '@')}.json.gz`;
   PANEL7V.forEach(([id, o], i) => {
     if (i % pn !== pk) return;
@@ -552,6 +569,7 @@ if (mode === 'f1v2') {
       const ra = r.meta.riskAbove ? r.meta.riskAbove.decision.replace(/ /g, '_') : `set_${o.riskAbove}`;
       console.log(`${''.padEnd(16)} solve ${a.label}: table ${f1(res.table, 2)} secs ${Math.round(res.secs)}`);
       console.log(`${''.padEnd(16)} ran ${a.label}: ${res.ran}`);
+      { const g = openGap(r, res.paths[0]); console.log(`${''.padEnd(16)} gap ${a.label}: ${g.gap} opening ${g.open}`); }
       console.log(`${''.padEnd(16)} joint ${a.label}: ${!!r.meta.jointWorlds} switchMargin ${r.switchMargin} scale ${Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0)))} cap ${Math.round(r.meta.bequestCap)} deathTax ${r.m.ctx.pensionDeathTaxRate} tier ${(o.tier || 'own').replace(/ /g, '_')} riskAbove ${ra}`);
       for (const [tag, sm] of MARG) {
         const f = forward(r, res.paths, sm, true);

@@ -29,7 +29,7 @@ By the unconditional interval, L and 5L are partial: they leave 15 and 14 lost p
   differ by about one year's exposure, well inside the chooser's 0.001 margin (solve.js SWITCH_MARGIN).
 - **The margin then holds the opening tier.** The chooser starts in the plan's tier and applies that margin every year,
   so it keeps whatever tier it opened in for decades:
-  - the product today makes 0.03 pension switches a path on S126 and 0.04 on bridge 4;
+  - 7t's off makes 0.03 pension switches a path on S126 and 0.04 on bridge 4;
   - the reader makes 0.33 and 0.45 (results-7t-deep.txt).
 - **With the reader, the early de-risk falls inside the margin.** The reader's accurate bridge read shrinks the gain from
   de-risking in year 0 below the margin, so it keeps the plan's tier. Its risk step in years 0 to 5 on deep-bad-world
@@ -54,8 +54,10 @@ of the reader's 42 lost paths there are paths off itself loses at margin 0 (resu
 S126 (0 saved, 0 lost). At margin 0 it cuts off's 14 lost paths to 2 (results-7t-vs-product.txt). So "five worlds does
 nothing" and J's partial read were measured at a margin that hides small table changes.
 
-**The deep review's candidate is the reader with J at margin 0 (READER+J/M0).** Against 7t's off it is best, or level
-with the best non-oracle arm, on every case, by survival and by the whole score (results-7t-vs-product.txt):
+**The deep review's candidate is the reader with J at margin 0 (READER+J/M0).** Against 7t's off, among the arms that keep
+the reader's gains, it is best or level with the best non-oracle arm on every case, by survival and by the whole score
+(results-7t-vs-product.txt). The learner alone, without the reader, survives better on both harmed cases (5 saved and 0
+lost on S126, 18 and 1 on bridge 4), but it gives up the reader's gains elsewhere:
 
 | Case | Saved / lost | Whole score |
 |---|---|---|
@@ -78,7 +80,7 @@ a separate clairvoyance error, or a separate learning error?
 **The design.** It runs at the product's settings (30 points, each household's own lambda) on the tuning seed 7002:
 - **Arms:** the reader and the reader with J, each at margins 0.001 (today's), 3e-4, 1e-4 and 0, all on shared tables.
   Each margin is only a forward run. J at margin 0 is also run with the learner.
-- **Cases:** 7t's five, plus the family pairs S172 with the tier above on and off (O16) and S330 with five against
+- **Cases:** 7t's five, plus the family pairs S172 planned at Medium Risk with the tier above on and off (O16's own setup) and S330 with five against
   three worlds (O21).
 - **Reported:** switches, reversals, the opening tier, the whole score against the product, and the world lines.
 

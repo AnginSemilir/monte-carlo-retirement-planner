@@ -26,11 +26,27 @@ The reader's pessimism on share 0.95 (O36, results-7x-o36.txt) persists with the
 read more than 2 points low, and at worst 14.33 points low. So switching does not explain it, and neither does the
 number of worlds.
 
-## The path from here (the Decision fed, as the 21:22 row maps it)
+## The deep review after 7x (22:32 UK) and the path from here
 
-Item 1 HELD with item 2 FALSIFIED: build the held tier in the solved state as a research option and run 7y. The deep
-review you asked for comes first, to lay out the path. In parallel, following the 21:29 row, comes Q's fix (7z),
-gated on O35's diagnostic.
+It had the auditor's corrections (O37-O39) before it concluded. What it found:
+- **share 0.95's pessimism (O36):** it is the bridge reader's opening estimate p0 (72.6/82.3/89.5% by world, against
+  the table's 69.3/82.0/89.5; results-o36-p0.txt). The chooser never reads that number. So 7x's item 3 is **not**
+  evidence for the blind spot; I've amended the ledger.
+- **The blind spot (Q):** it is real and sits in the chooser. At the 80% spend level, lowering risk is worth +2.02
+  points next year by a fine average and +0.005 by the product's 5 points (results-o35-diag.txt).
+- **Why the parked fix did nothing:** it only acted at grid points, none of which is near share 0.95's opening. Its
+  check measured the wrong thing. The part that matters, the chooser, is kept, with new tests.
+- **The held tier:** "hold for life" is the wrong design, because the product's later switching is worth a lot
+  (O39). The build is a **tier state**: one table per tier, with the chooser's own switching cost and margin
+  charged in the backward pass.
+- **7y** separates the tier's gain from everything else with swapped arms: TS-TIER and TS-REST, as in 7r.
+
+The order:
+1. Q's fix is revived and 7z runs.
+2. The tier state is built; there is no 7y tonight if it is not pinned by 01:45.
+3. 7y runs and is read.
+4. A deep review on both reads.
+5. The combination is at most registered, **not run tonight**, because it can't be run and read by 7am.
 
 ## Things to tell you
 

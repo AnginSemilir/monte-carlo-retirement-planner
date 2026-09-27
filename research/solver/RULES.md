@@ -521,7 +521,7 @@ The rules this adds:
    it). The second family's root-cause step for its T/Q member was 7w's items 1-3 (PLAN.md); the first's diagnosis step was
    7w's item 4 (the year-0 move freed at the product's margin, against margin 0). Both have run (7w read, 27 Sep 20:07 UK).
    The deep review after 7w (27 Sep 20:17 UK) proposes merging the two families on one signature (the tables' year-0 gap
-   5 to 100 times below what the de-risk realises); their shared root-cause step is 7x, held-for-life tables (FS against W).
+   5 to 100 times below what the de-risk realises); their shared root-cause step is 7x, held-for-life tables (FS against W). 7x read (27 Sep 22:17 UK): FS held on S126 and S194, W falsified. The deep review after 7x (27 Sep 22:32 UK) moved O32, O35 and O36 into a family of their own, "the reader at the bridge" (explained: Q in the chooser, the reader's reference p0 in the table), leaving O9, O20, O31 and O34 in the second family with no root-cause step scheduled, and O38 in the first.
 6. **Design premises are claims.** An approximation justified by argument (the mixture's no-learning premise, the switch
    margin at today's settings, the fold's horizon factor) is listed with its grade (D until tested) and the failure it
    would cause if wrong, and is tested before a decision rests on it.

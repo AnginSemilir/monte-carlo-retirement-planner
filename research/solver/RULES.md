@@ -197,6 +197,13 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    audit stamp matches a commit (the plan-auditor's review of 57238f0, MINOR 2). Until the launcher snapshots first: no
    edit to a file the snapshot copies while a launch is in its derivation step, and a warned snapshot is recorded with the
    file's commit.
+23. uncertainty.mjs l.51 counts a register family by a pattern that misses any register item whose family note is followed
+   by " (" - O37, O46 and O47 as written - so family 1 ("a sub-margin opening gap decides the tier held for life") reads 10
+   where 13 open register lines name it (the deep review after 7ac, deep-review-log.md 28 Sep 14:47 UK; the plan-auditor's
+   count, review-log.md 28 Sep 15:02 UK). Nothing rested on it: the index read HIGH and the family past three either way.
+   The same review adds to the family "checks run where the fault cannot show" the unchecked seed of read-7ac-beside.mjs
+   (the plan's bug list, fixed in fc12bea). Until the unlock fixes the pattern: a family count the index prints is checked
+   against the register by hand at each deep review.
 
 ---
 

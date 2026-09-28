@@ -1,7 +1,8 @@
 /*
  * READ BESIDE 7AC (the deep review after 7ab, deep-review-log.md 28 Sep 13:56 UK: "read beside it OPEN0's lost paths' first
  * de-risk year and year-0 draw, the paired interaction (TS+J-OPEN0)-(FREED-PRODUCT) by survival on the four units and the
- * world-price sum"). Written before any 7ac figure was read (7ac launched 13:35 UK, runs.log; this script 28 Sep 14:10 UK),
+ * world-price sum"). Written before any 7ac figure was read (7ac launched 13:35 UK, runs.log; this script committed in
+ * 2a0475d at 28 Sep 14:07 UK, git log; the case logs' world lines existed from about 13:49 UK but were not printed),
  * reported beside 7ac's registered items, never one of them: grade C. Every run is read only through its reducer's gates:
  * 7aa's (reduce-7aa.mjs gate and trace agreement), 7ab's (reduce-7ab.mjs gate, trace agreement and PRODUCT's identity with
  * 7aa's) and 7ac's (reduce-7ac.mjs gate against 7aa's TS+J and PRODUCT, trace agreement and TS+J's identity with 7aa's).

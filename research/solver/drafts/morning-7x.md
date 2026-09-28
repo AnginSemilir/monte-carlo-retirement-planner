@@ -73,13 +73,16 @@ The order:
     stays a grade-C suspect. By the registered Decision fed, the fix for S126's and S194's opening (O30, O33) comes back
     to you, and the per-world rule is the next thing to test.
   - **No harm with the reader** on share 0.95, bridge 4 or S360. On S360 the feared sign flip (O36) did not show.
-  - **O37's feared harm under off did not happen.** The tier state opens in the plan's tier on S360 and does not take the
-    de-risk. The harm 7x found belongs to tables held for life.
+  - **O37's feared harm under off did not happen, but that does not clear it.** At the product's margin the tier state
+    opens in the plan's tier on S360. Its tables still favour the de-risk, as the product's do: both would open de-risked
+    at margin 0, so it is the margin that holds the plan's tier. A solved-state tier under off stays suspect at a lower
+    margin, or once its opening moves.
   - **A pattern, not registered (O42, grade C; results-7y-whole.txt):** over the six legs the tier state saves 16 paths
-    and loses 49. It holds the plan's riskier tier more, switches more and leaves a larger estate, so the solver's own
-    whole score goes **up** on five of six cases while survival goes down. So it may be doing what its objective asks,
+    and loses 49. On most cases it holds the plan's riskier tier more (not on S194, where it de-risks earlier, to the middle
+    tier), switches more and leaves a larger estate. So the solver's own whole score is up on five of six cases (clearly
+    only on share 0.95 and bridge 4) while survival goes down. So it may be doing what its objective asks,
     trading a little survival for estate. Which measure should decide is your call, and it goes into any future design.
-  - H0 (the plan's tier held for life) loses to the product by 41 and 271 paths, as 7x suggested.
+  - H0 (the plan's tier held for life) saves 3 and 1 paths against the product and loses 41 and 271, as 7x suggested.
 - **Beside 7y:** a measurement of S360 with the reader, reading its bridge at the held tier (O36's gate). The joint
   version of the tier state (TS+J) is built and tested. Its **tables-only** check that bounds O41 was launched at 02:19 UK
   in the light lane. It gets no survival test tonight without you.
@@ -89,8 +92,8 @@ The order:
   right way. The tier state (7y) reads every tier at the plan's reference, so it *may* do the same on S360 with the
   reader. That is an argument, not measured (grade D): 7y's S360 leg is the first measurement, and it cannot say whose
   fault a harm is. A harm there is attributed at grade C.
-- **The combination of the two fixes** is registered only if every condition the deep review set holds by about 04:30.
-  Otherwise it comes to you as a design.
+- **The combination of the two fixes is not registered or run tonight; it comes to you as a design.** The overnight
+  authority (the ledger's 21:34 row) ends where either fix is not HELD, and 7y's gain item is FALSIFIED.
 
 ## Things to tell you
 

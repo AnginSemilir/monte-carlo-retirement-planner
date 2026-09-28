@@ -124,13 +124,15 @@ The order:
 - **Not bounded at the opening.** With the switch rule applied to the mixture (TS+J), the tables open **de-risked**
   (pair 2) at the product's margin on S126 and S194, where the per-world tier state opens in the plan's tier. On share
   0.95 both open in the plan's tier (bounded).
-- The gap ratios are 1.334 (S126) and 1.086 (S194), under the 2 times the rule reads. Those outcomes fall outside the
-  map written before the output, so, as agreed in advance, they are recorded as printed and **nothing is drawn from them
-  for the ranking**.
+- **How big the flips are.** S126's gap ratio is 1.334, and the margin it crosses sat 20.5% above the tier state's gap.
+  S194's ratio is 1.086, across a margin the tier state sat only 3.1% under. That is the knife-edge the deep review
+  named before the output. S126's outcome falls outside the map written in advance. Both are recorded as printed, and
+  **nothing is drawn from either for the ranking**.
 - The joint tables read the bad world lower: S126's worst world 98.81 against 99.56, S194's 92.52 against 95.62.
 - It was checked first: each tier-state row reproduced 7y's gap, table and settings exactly.
-- What it means for you: the per-world rule changes the opening decision on the two main cases. Only the TS+J forward run
-  (the one next test, above) can say whether that saves paths.
+- What it means for you: at the product's margin the per-world rule changes the opening decision on S126 and S194. It is
+  a clear flip on S126 and a knife-edge on S194. Only the TS+J forward run (the one next test, above) can say whether
+  opening de-risked saves paths.
 
 ## Things to tell you
 

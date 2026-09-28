@@ -84,7 +84,8 @@ The order:
     trading a little survival for estate. Which measure should decide is your call, and it goes into any future design.
   - H0 (the plan's tier held for life) saves 3 and 1 paths against the product and loses 41 and 271, as 7x suggested.
 - **Beside 7y:** a measurement of S360 with the reader, reading its bridge at the held tier (O36's gate). The joint
-  version of the tier state (TS+J) is built and tested. Its **tables-only** check that bounds O41 was launched at 02:19 UK
+  version of the tier state (TS+J) is built and tested; all 29 solver test suites pass on its code (re-run 02:23 to
+  02:53 UK, none failed). Its **tables-only** check that bounds O41 was launched at 02:19 UK
   in the light lane. It gets no survival test tonight without you.
 - **S360 with the reader (O36, measured 01:05; results-refs360.txt):** the reader's opening reference uses the plan's
   tiers. That **flips the sign** on S360: the held tables rate lowering risk **+1.0** point better, where the runs lose

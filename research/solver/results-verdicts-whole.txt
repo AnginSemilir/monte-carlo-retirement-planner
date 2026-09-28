@@ -1,0 +1,248 @@
+THE RECORDS CHECK: SURVIVAL AGAINST THE WHOLE SCORE ON EVERY PAST VERDICT (reported, grade C, no test)
+each leg: survival change (points, saved/lost), the whole score change +/- its standard error, its parts where known (survival, estate, cuts and raises), and whether the two agree in sign
+
+7t (67 legs)
+  S126               READER-OFF                         survival -0.530 (0/42)  whole -0.357 +/- 0.084  -> agree
+  S126               READER+J-READER                    survival +0.170 (14/0)  whole +0.140 +/- 0.047  -> agree
+  S126               READER+J-OFF+J                     survival -0.350 (0/28)  whole -0.200 +/- 0.069  -> agree
+  S126               READER+J-OFF                       survival -0.350 (0/28)  whole -0.217 +/- 0.069  -> agree
+  S126               OFF+J-OFF                          survival +0.000 (0/0)  whole -0.016 +/- 0.001  -> survival level
+  S126               READER/M0-READER                   survival +0.350 (29/1)  whole +0.623 +/- 0.071  -> agree
+  S126               READER/M0-OFF/M0                   survival +0.000 (0/0)  whole +0.000 +/- 0.000  -> both level
+  S126               READER+J/M0-OFF                    survival -0.030 (0/2)  whole +0.400 +/- 0.021  -> DISAGREE (whole clear)
+  S126               READER+L-READER                    survival +0.400 (32/0)  whole +0.337 +/- 0.072  -> agree
+  S126               READER+L-OFF+L                     survival -0.190 (0/15)  whole -0.067 +/- 0.051  -> agree
+  S126               OFF+L-OFF                          survival +0.060 (5/0)  whole +0.047 +/- 0.028  -> agree
+  S126               READER+O-READER                    survival +0.510 (45/4)  whole +0.635 +/- 0.090  -> agree
+  S126               READER+O-OFF+O                     survival -0.100 (1/9)  whole +0.197 +/- 0.043  -> DISAGREE (whole clear)
+  S126               READER5-READER                     survival +0.010 (1/0)  whole +0.013 +/- 0.013  -> agree
+  S126               READER5-OFF5                       survival -0.510 (0/41)  whole -0.343 +/- 0.083  -> agree
+  S126               OFF5-OFF                           survival +0.000 (0/0)  whole +0.000 +/- 0.000  -> both level
+  S126               READER5+L-READER                   survival +0.410 (33/0)  whole +0.347 +/- 0.073  -> agree
+  S126               READER5+L-OFF5+L                   survival -0.160 (0/13)  whole -0.043 +/- 0.048  -> agree
+  bridge 4           READER-OFF                         survival -0.360 (0/29)  whole -0.333 +/- 0.070  -> agree
+  bridge 4           READER+J-READER                    survival +0.190 (18/3)  whole +0.149 +/- 0.058  -> agree
+  bridge 4           READER+J-OFF+J                     survival -0.260 (1/22)  whole -0.255 +/- 0.063  -> agree
+  bridge 4           READER+J-OFF                       survival -0.170 (1/15)  whole -0.184 +/- 0.053  -> agree
+  bridge 4           OFF+J-OFF                          survival +0.090 (8/1)  whole +0.071 +/- 0.038  -> agree
+  bridge 4           READER/M0-READER                   survival +0.330 (28/2)  whole +0.674 +/- 0.071  -> agree
+  bridge 4           READER/M0-OFF/M0                   survival +0.040 (4/1)  whole +0.039 +/- 0.028  -> agree
+  bridge 4           READER+J/M0-OFF                    survival +0.070 (11/5)  whole +0.435 +/- 0.052  -> agree
+  bridge 4           READER+L-READER                    survival +0.400 (32/0)  whole +0.356 +/- 0.072  -> agree
+  bridge 4           READER+L-OFF+L                     survival -0.170 (0/14)  whole -0.170 +/- 0.049  -> agree
+  bridge 4           OFF+L-OFF                          survival +0.210 (18/1)  whole +0.193 +/- 0.055  -> agree
+  bridge 4           READER+O-READER                    survival +0.540 (47/4)  whole +0.671 +/- 0.091  -> agree
+  bridge 4           READER+O-OFF+O                     survival +0.000 (7/7)  whole +0.199 +/- 0.049  -> survival level
+  bridge 4           READER5-READER                     survival +0.000 (5/5)  whole +0.001 +/- 0.040  -> survival level
+  bridge 4           READER5-OFF5                       survival -0.350 (1/29)  whole -0.319 +/- 0.071  -> agree
+  bridge 4           OFF5-OFF                           survival -0.010 (2/3)  whole -0.013 +/- 0.028  -> agree
+  bridge 4           READER5+L-READER                   survival +0.390 (31/0)  whole +0.344 +/- 0.071  -> agree
+  bridge 4           READER5+L-OFF5+L                   survival -0.160 (0/13)  whole -0.156 +/- 0.047  -> agree
+  S360               READER-OFF                         survival +11.300 (904/0)  whole +12.907 +/- 0.404  -> agree
+  S360               READER+J-READER                    survival +0.000 (0/0)  whole +0.000 +/- 0.000  -> both level
+  S360               READER+J-OFF+J                     survival +11.640 (931/0)  whole +13.294 +/- 0.409  -> agree
+  S360               READER+J-OFF                       survival +11.300 (904/0)  whole +12.907 +/- 0.404  -> agree
+  S360               OFF+J-OFF                          survival -0.340 (0/27)  whole -0.388 +/- 0.074  -> agree
+  S360               READER/M0-READER                   survival -0.060 (5/10)  whole -0.058 +/- 0.056  -> agree
+  S360               READER/M0-OFF/M0                   survival +17.660 (1413/0)  whole +20.213 +/- 0.487  -> agree
+  S360               READER+J/M0-OFF                    survival +11.240 (899/0)  whole +12.847 +/- 0.403  -> agree
+  S360               READER+L-READER                    survival +0.000 (4/4)  whole +0.000 +/- 0.040  -> both level
+  S360               READER+L-OFF+L                     survival +11.310 (905/0)  whole +12.921 +/- 0.404  -> agree
+  S360               OFF+L-OFF                          survival -0.010 (0/1)  whole -0.015 +/- 0.014  -> agree
+  S360               READER+O-READER                    survival +0.150 (34/22)  whole +0.172 +/- 0.107  -> agree
+  S360               READER+O-OFF+O                     survival +10.260 (821/0)  whole +11.740 +/- 0.388  -> agree
+  share 0.95         READER-OFF                         survival +19.660 (1574/1)  whole +21.815 +/- 0.494  -> agree
+  share 0.95         READER+J-READER                    survival +0.100 (9/1)  whole +0.075 +/- 0.040  -> agree
+  share 0.95         READER+J-OFF+J                     survival +19.690 (1575/0)  whole +21.830 +/- 0.494  -> agree
+  share 0.95         READER+J-OFF                       survival +19.760 (1581/0)  whole +21.890 +/- 0.495  -> agree
+  share 0.95         OFF+J-OFF                          survival +0.070 (6/0)  whole +0.060 +/- 0.031  -> agree
+  share 0.95         READER/M0-READER                   survival +1.320 (107/1)  whole +1.661 +/- 0.141  -> agree
+  share 0.95         READER/M0-OFF/M0                   survival +15.540 (1247/4)  whole +17.297 +/- 0.453  -> agree
+  share 0.95         READER+J/M0-OFF                    survival +21.140 (1691/0)  whole +23.618 +/- 0.508  -> agree
+  share 0.95         READER+L-READER                    survival +0.250 (20/0)  whole +0.192 +/- 0.057  -> agree
+  share 0.95         READER+L-OFF+L                     survival +19.700 (1576/0)  whole +21.832 +/- 0.494  -> agree
+  share 0.95         OFF+L-OFF                          survival +0.210 (17/0)  whole +0.176 +/- 0.052  -> agree
+  share 0.95         READER+O-READER                    survival +0.040 (33/30)  whole +0.121 +/- 0.104  -> agree
+  share 0.95         READER+O-OFF+O                     survival +19.390 (1551/0)  whole +21.552 +/- 0.492  -> agree
+  S194               OFF+J-OFF                          survival -0.050 (17/21)  whole -0.086 +/- 0.078  -> agree
+  S194               OFF/M0-OFF                         survival +0.160 (25/12)  whole +0.511 +/- 0.079  -> agree
+  S194               OFF+J/M0-OFF                       survival +0.420 (39/5)  whole +0.727 +/- 0.085  -> agree
+  S194               OFF+L-OFF                          survival +0.450 (38/2)  whole +0.395 +/- 0.080  -> agree
+  S194               OFF+O-OFF                          survival +0.790 (78/15)  whole +1.055 +/- 0.123  -> agree
+7v (104 legs)
+  S126               OFF/3e-4 against OFF/1e-3          survival +0.000 (0/0)  whole +0.327 +/- 0.009  [estate +0.334, cuts and raises -0.006]  -> survival level
+  S126               OFF/1e-4 against OFF/1e-3          survival -0.063 (0/5)  whole +0.388 +/- 0.031  [estate +0.476, cuts and raises -0.025]  -> DISAGREE (whole clear)
+  S126               OFF/0 against OFF/1e-3             survival -0.088 (0/7)  whole +0.406 +/- 0.036  [estate +0.534, cuts and raises -0.040]  -> DISAGREE (whole clear)
+  S126               READER/1e-3 against OFF/1e-3       survival -0.550 (0/44)  whole -0.369 +/- 0.086  [estate +0.391, cuts and raises -0.210]  -> agree
+  S126               READER/3e-4 against OFF/1e-3       survival +0.000 (0/0)  whole +0.327 +/- 0.009  [estate +0.334, cuts and raises -0.006]  -> survival level
+  S126               READER/1e-4 against OFF/1e-3       survival -0.063 (0/5)  whole +0.388 +/- 0.031  [estate +0.476, cuts and raises -0.025]  -> DISAGREE (whole clear)
+  S126               READER/0 against OFF/1e-3          survival -0.088 (0/7)  whole +0.406 +/- 0.036  [estate +0.534, cuts and raises -0.040]  -> DISAGREE (whole clear)
+  S126               OFF+J/1e-3 against OFF/1e-3        survival +0.025 (2/0)  whole +0.019 +/- 0.018  [estate +0.002, cuts and raises -0.008]  -> agree
+  S126               OFF+J/3e-4 against OFF/1e-3        survival +0.025 (2/0)  whole +0.338 +/- 0.020  [estate +0.325, cuts and raises -0.012]  -> agree
+  S126               OFF+J/1e-4 against OFF/1e-3        survival +0.000 (2/2)  whole +0.434 +/- 0.028  [estate +0.459, cuts and raises -0.026]  -> survival level
+  S126               OFF+J/0 against OFF/1e-3           survival -0.025 (1/3)  whole +0.455 +/- 0.028  [estate +0.516, cuts and raises -0.036]  -> DISAGREE (whole clear)
+  S126               READER+J/1e-3 against OFF/1e-3     survival -0.513 (0/41)  whole -0.345 +/- 0.083  [estate +0.403, cuts and raises -0.236]  -> agree
+  S126               READER+J/3e-4 against OFF/1e-3     survival +0.025 (2/0)  whole +0.338 +/- 0.020  [estate +0.325, cuts and raises -0.012]  -> agree
+  S126               READER+J/1e-4 against OFF/1e-3     survival +0.000 (2/2)  whole +0.434 +/- 0.028  [estate +0.459, cuts and raises -0.026]  -> survival level
+  S126               READER+J/0 against OFF/1e-3        survival -0.025 (1/3)  whole +0.455 +/- 0.028  [estate +0.516, cuts and raises -0.036]  -> DISAGREE (whole clear)
+  S126               READER+J/0+L against OFF/1e-3      survival +0.100 (8/0)  whole +0.527 +/- 0.037  [estate +0.469, cuts and raises -0.042]  -> agree
+  bridge 4           OFF/3e-4 against OFF/1e-3          survival -0.012 (0/1)  whole +0.278 +/- 0.016  [estate +0.298, cuts and raises -0.008]  -> DISAGREE (whole clear)
+  bridge 4           OFF/1e-4 against OFF/1e-3          survival -0.037 (0/3)  whole +0.375 +/- 0.025  [estate +0.435, cuts and raises -0.022]  -> DISAGREE (whole clear)
+  bridge 4           OFF/0 against OFF/1e-3             survival -0.063 (0/5)  whole +0.376 +/- 0.031  [estate +0.476, cuts and raises -0.038]  -> DISAGREE (whole clear)
+  bridge 4           READER/1e-3 against OFF/1e-3       survival +0.025 (2/0)  whole +0.025 +/- 0.018  [estate -0.002, cuts and raises +0.003]  -> agree
+  bridge 4           READER/3e-4 against OFF/1e-3       survival +0.013 (2/1)  whole +0.305 +/- 0.024  [estate +0.297, cuts and raises -0.005]  -> agree
+  bridge 4           READER/1e-4 against OFF/1e-3       survival +0.000 (3/3)  whole +0.415 +/- 0.033  [estate +0.435, cuts and raises -0.019]  -> survival level
+  bridge 4           READER/0 against OFF/1e-3          survival -0.050 (2/6)  whole +0.388 +/- 0.038  [estate +0.475, cuts and raises -0.036]  -> DISAGREE (whole clear)
+  bridge 4           OFF+J/1e-3 against OFF/1e-3        survival +0.050 (4/0)  whole +0.042 +/- 0.025  [estate +0.003, cuts and raises -0.011]  -> agree
+  bridge 4           OFF+J/3e-4 against OFF/1e-3        survival +0.025 (4/2)  whole +0.282 +/- 0.033  [estate +0.283, cuts and raises -0.025]  -> agree
+  bridge 4           OFF+J/1e-4 against OFF/1e-3        survival +0.013 (4/3)  whole +0.394 +/- 0.035  [estate +0.416, cuts and raises -0.034]  -> agree
+  bridge 4           OFF+J/0 against OFF/1e-3           survival -0.012 (3/4)  whole +0.403 +/- 0.036  [estate +0.463, cuts and raises -0.047]  -> DISAGREE (whole clear)
+  bridge 4           READER+J/1e-3 against OFF/1e-3     survival +0.088 (7/0)  whole +0.079 +/- 0.033  [estate +0.000, cuts and raises -0.008]  -> agree
+  bridge 4           READER+J/3e-4 against OFF/1e-3     survival +0.075 (7/1)  whole +0.355 +/- 0.037  [estate +0.294, cuts and raises -0.014]  -> agree
+  bridge 4           READER+J/1e-4 against OFF/1e-3     survival +0.050 (7/3)  whole +0.447 +/- 0.042  [estate +0.421, cuts and raises -0.024]  -> agree
+  bridge 4           READER+J/0 against OFF/1e-3        survival +0.013 (6/5)  whole +0.440 +/- 0.044  [estate +0.465, cuts and raises -0.037]  -> agree
+  bridge 4           READER+J/0+L against OFF/1e-3      survival +0.288 (23/0)  whole +0.654 +/- 0.061  [estate +0.424, cuts and raises -0.058]  -> agree
+  S360               OFF/3e-4 against OFF/1e-3          survival -6.100 (9/497)  whole -6.992 +/- 0.311  [estate -0.450, cuts and raises -0.441]  -> agree
+  S360               OFF/1e-4 against OFF/1e-3          survival -6.100 (9/497)  whole -6.979 +/- 0.311  [estate -0.438, cuts and raises -0.441]  -> agree
+  S360               OFF/0 against OFF/1e-3             survival -6.100 (9/497)  whole -6.974 +/- 0.311  [estate -0.433, cuts and raises -0.441]  -> agree
+  S360               READER/1e-3 against OFF/1e-3       survival +11.613 (929/0)  whole +13.268 +/- 0.409  [estate +0.825, cuts and raises +0.830]  -> agree
+  S360               READER/3e-4 against OFF/1e-3       survival +11.625 (930/0)  whole +13.300 +/- 0.409  [estate +0.844, cuts and raises +0.832]  -> agree
+  S360               READER/1e-4 against OFF/1e-3       survival +11.625 (930/0)  whole +13.317 +/- 0.409  [estate +0.861, cuts and raises +0.832]  -> agree
+  S360               READER/0 against OFF/1e-3          survival +11.550 (924/0)  whole +13.246 +/- 0.408  [estate +0.870, cuts and raises +0.826]  -> agree
+  S360               OFF+J/1e-3 against OFF/1e-3        survival +0.013 (1/0)  whole +0.014 +/- 0.014  [estate +0.001, cuts and raises +0.000]  -> agree
+  S360               OFF+J/3e-4 against OFF/1e-3        survival -6.100 (9/497)  whole -6.992 +/- 0.311  [estate -0.450, cuts and raises -0.441]  -> agree
+  S360               OFF+J/1e-4 against OFF/1e-3        survival -6.100 (9/497)  whole -6.979 +/- 0.311  [estate -0.437, cuts and raises -0.441]  -> agree
+  S360               OFF+J/0 against OFF/1e-3           survival -6.100 (9/497)  whole -6.975 +/- 0.311  [estate -0.433, cuts and raises -0.441]  -> agree
+  S360               READER+J/1e-3 against OFF/1e-3     survival +11.613 (929/0)  whole +13.268 +/- 0.409  [estate +0.825, cuts and raises +0.830]  -> agree
+  S360               READER+J/3e-4 against OFF/1e-3     survival +11.625 (930/0)  whole +13.300 +/- 0.409  [estate +0.844, cuts and raises +0.832]  -> agree
+  S360               READER+J/1e-4 against OFF/1e-3     survival +11.625 (930/0)  whole +13.318 +/- 0.409  [estate +0.861, cuts and raises +0.832]  -> agree
+  S360               READER+J/0 against OFF/1e-3        survival +11.550 (924/0)  whole +13.243 +/- 0.408  [estate +0.868, cuts and raises +0.826]  -> agree
+  S360               READER+J/0+L against OFF/1e-3      survival +11.600 (928/0)  whole +13.296 +/- 0.409  [estate +0.867, cuts and raises +0.828]  -> agree
+  share 0.95         OFF/3e-4 against OFF/1e-3          survival +0.287 (23/0)  whole +0.368 +/- 0.062  [estate -0.008, cuts and raises +0.089]  -> agree
+  share 0.95         OFF/1e-4 against OFF/1e-3          survival +0.313 (25/0)  whole +0.485 +/- 0.065  [estate +0.072, cuts and raises +0.100]  -> agree
+  share 0.95         OFF/0 against OFF/1e-3             survival +12.287 (983/0)  whole +13.793 +/- 0.409  [estate +0.616, cuts and raises +0.890]  -> agree
+  share 0.95         READER/1e-3 against OFF/1e-3       survival +19.675 (1575/1)  whole +21.839 +/- 0.495  [estate +0.892, cuts and raises +1.272]  -> agree
+  share 0.95         READER/3e-4 against OFF/1e-3       survival +20.000 (1600/0)  whole +22.274 +/- 0.497  [estate +0.869, cuts and raises +1.405]  -> agree
+  share 0.95         READER/1e-4 against OFF/1e-3       survival +22.188 (1775/0)  whole +24.770 +/- 0.518  [estate +1.021, cuts and raises +1.561]  -> agree
+  share 0.95         READER/0 against OFF/1e-3          survival +22.162 (1773/0)  whole +24.786 +/- 0.518  [estate +1.072, cuts and raises +1.551]  -> agree
+  share 0.95         OFF+J/1e-3 against OFF/1e-3        survival +0.050 (4/0)  whole +0.043 +/- 0.025  [estate +0.005, cuts and raises -0.012]  -> agree
+  share 0.95         OFF+J/3e-4 against OFF/1e-3        survival +0.350 (28/0)  whole +0.424 +/- 0.068  [estate -0.026, cuts and raises +0.100]  -> agree
+  share 0.95         OFF+J/1e-4 against OFF/1e-3        survival +0.362 (29/0)  whole +0.534 +/- 0.070  [estate +0.069, cuts and raises +0.103]  -> agree
+  share 0.95         OFF+J/0 against OFF/1e-3           survival +12.350 (988/0)  whole +13.842 +/- 0.410  [estate +0.600, cuts and raises +0.892]  -> agree
+  share 0.95         READER+J/1e-3 against OFF/1e-3     survival +19.688 (1576/1)  whole +21.837 +/- 0.495  [estate +0.898, cuts and raises +1.252]  -> agree
+  share 0.95         READER+J/3e-4 against OFF/1e-3     survival +20.063 (1605/0)  whole +22.325 +/- 0.498  [estate +0.850, cuts and raises +1.413]  -> agree
+  share 0.95         READER+J/1e-4 against OFF/1e-3     survival +22.275 (1782/0)  whole +24.845 +/- 0.518  [estate +1.008, cuts and raises +1.563]  -> agree
+  share 0.95         READER+J/0 against OFF/1e-3        survival +22.237 (1779/0)  whole +24.846 +/- 0.518  [estate +1.056, cuts and raises +1.553]  -> agree
+  share 0.95         READER+J/0+L against OFF/1e-3      survival +22.337 (1787/0)  whole +24.901 +/- 0.519  [estate +1.019, cuts and raises +1.546]  -> agree
+  S194               OFF/3e-4 against OFF/1e-3          survival +0.500 (42/2)  whole +0.704 +/- 0.085  [estate +0.018, cuts and raises +0.186]  -> agree
+  S194               OFF/1e-4 against OFF/1e-3          survival +0.413 (39/6)  whole +0.726 +/- 0.086  [estate +0.152, cuts and raises +0.161]  -> agree
+  S194               OFF/0 against OFF/1e-3             survival +0.313 (35/10)  whole +0.687 +/- 0.086  [estate +0.276, cuts and raises +0.099]  -> agree
+  S194               OFF+J/1e-3 against OFF/1e-3        survival -0.025 (11/13)  whole -0.019 +/- 0.063  [estate +0.135, cuts and raises -0.128]  -> agree
+  S194               OFF+J/3e-4 against OFF/1e-3        survival +0.613 (52/3)  whole +0.751 +/- 0.095  [estate +0.036, cuts and raises +0.103]  -> agree
+  S194               OFF+J/1e-4 against OFF/1e-3        survival +0.550 (49/5)  whole +0.803 +/- 0.094  [estate +0.183, cuts and raises +0.070]  -> agree
+  S194               OFF+J/0 against OFF/1e-3           survival +0.325 (36/10)  whole +0.677 +/- 0.087  [estate +0.365, cuts and raises -0.013]  -> agree
+  S194               OFF+J/0+L against OFF/1e-3         survival +0.638 (53/2)  whole +0.914 +/- 0.094  [estate +0.371, cuts and raises -0.095]  -> agree
+  S172 down          OFF/3e-4 against OFF/1e-3          survival -0.025 (12/14)  whole +0.546 +/- 0.067  [estate +0.546, cuts and raises +0.025]  -> DISAGREE (whole clear)
+  S172 down          OFF/1e-4 against OFF/1e-3          survival -0.063 (15/20)  whole +0.802 +/- 0.079  [estate +0.848, cuts and raises +0.017]  -> DISAGREE (whole clear)
+  S172 down          OFF/0 against OFF/1e-3             survival -0.075 (13/19)  whole +0.839 +/- 0.075  [estate +0.914, cuts and raises -0.001]  -> DISAGREE (whole clear)
+  S172 down          OFF+J/1e-3 against OFF/1e-3        survival +0.075 (11/5)  whole +0.089 +/- 0.051  [estate +0.019, cuts and raises -0.004]  -> agree
+  S172 down          OFF+J/3e-4 against OFF/1e-3        survival -0.025 (15/17)  whole +0.567 +/- 0.075  [estate +0.575, cuts and raises +0.017]  -> DISAGREE (whole clear)
+  S172 down          OFF+J/1e-4 against OFF/1e-3        survival -0.025 (17/19)  whole +0.844 +/- 0.079  [estate +0.863, cuts and raises +0.006]  -> DISAGREE (whole clear)
+  S172 down          OFF+J/0 against OFF/1e-3           survival -0.037 (17/20)  whole +0.884 +/- 0.081  [estate +0.925, cuts and raises -0.004]  -> DISAGREE (whole clear)
+  S172 down          OFF+J/0+L against OFF/1e-3         survival +0.688 (68/13)  whole +1.432 +/- 0.113  [estate +0.955, cuts and raises -0.210]  -> agree
+  S172 up            OFF/3e-4 against OFF/1e-3          survival -0.138 (16/27)  whole +0.807 +/- 0.088  [estate +0.893, cuts and raises +0.052]  -> DISAGREE (whole clear)
+  S172 up            OFF/1e-4 against OFF/1e-3          survival -0.125 (18/28)  whole +1.038 +/- 0.090  [estate +1.112, cuts and raises +0.051]  -> DISAGREE (whole clear)
+  S172 up            OFF/0 against OFF/1e-3             survival -0.088 (19/26)  whole +1.133 +/- 0.089  [estate +1.180, cuts and raises +0.041]  -> DISAGREE (whole clear)
+  S172 up            OFF+J/1e-3 against OFF/1e-3        survival -0.112 (18/27)  whole +0.468 +/- 0.089  [estate +0.619, cuts and raises -0.038]  -> DISAGREE (whole clear)
+  S172 up            OFF+J/3e-4 against OFF/1e-3        survival -0.163 (16/29)  whole +0.866 +/- 0.090  [estate +1.036, cuts and raises -0.007]  -> DISAGREE (whole clear)
+  S172 up            OFF+J/1e-4 against OFF/1e-3        survival -0.200 (15/31)  whole +0.998 +/- 0.091  [estate +1.206, cuts and raises -0.008]  -> DISAGREE (whole clear)
+  S172 up            OFF+J/0 against OFF/1e-3           survival -0.100 (20/28)  whole +1.142 +/- 0.093  [estate +1.241, cuts and raises +0.001]  -> DISAGREE (whole clear)
+  S172 up            OFF+J/0+L against OFF/1e-3         survival +0.688 (72/17)  whole +1.756 +/- 0.118  [estate +1.271, cuts and raises -0.203]  -> agree
+  S330 mix3          OFF/3e-4 against OFF/1e-3          survival +0.512 (95/54)  whole +0.892 +/- 0.167  [estate +0.134, cuts and raises +0.245]  -> agree
+  S330 mix3          OFF/1e-4 against OFF/1e-3          survival +0.438 (106/71)  whole +0.806 +/- 0.181  [estate +0.159, cuts and raises +0.210]  -> agree
+  S330 mix3          OFF/0 against OFF/1e-3             survival +0.525 (105/63)  whole +0.893 +/- 0.176  [estate +0.127, cuts and raises +0.241]  -> agree
+  S330 mix3          OFF+J/1e-3 against OFF/1e-3        survival -0.050 (21/25)  whole -0.024 +/- 0.086  [estate +0.015, cuts and raises +0.011]  -> agree
+  S330 mix3          OFF+J/3e-4 against OFF/1e-3        survival +0.287 (83/60)  whole +0.728 +/- 0.163  [estate +0.147, cuts and raises +0.294]  -> agree
+  S330 mix3          OFF+J/1e-4 against OFF/1e-3        survival +0.475 (101/63)  whole +0.957 +/- 0.175  [estate +0.181, cuts and raises +0.300]  -> agree
+  S330 mix3          OFF+J/0 against OFF/1e-3           survival +0.537 (106/63)  whole +0.989 +/- 0.176  [estate +0.149, cuts and raises +0.302]  -> agree
+  S330 mix3          OFF+J/0+L against OFF/1e-3         survival +0.938 (132/57)  whole +1.831 +/- 0.185  [estate +0.171, cuts and raises +0.722]  -> agree
+  S330 mix5          OFF/3e-4 against OFF/1e-3          survival +0.563 (96/51)  whole +0.928 +/- 0.164  [estate +0.137, cuts and raises +0.228]  -> agree
+  S330 mix5          OFF/1e-4 against OFF/1e-3          survival +0.575 (103/57)  whole +0.973 +/- 0.172  [estate +0.158, cuts and raises +0.240]  -> agree
+  S330 mix5          OFF/0 against OFF/1e-3             survival +0.613 (101/52)  whole +0.986 +/- 0.168  [estate +0.135, cuts and raises +0.239]  -> agree
+  S330 mix5          OFF+J/1e-3 against OFF/1e-3        survival +0.000 (20/20)  whole +0.060 +/- 0.080  [estate +0.015, cuts and raises +0.045]  -> survival level
+  S330 mix5          OFF+J/3e-4 against OFF/1e-3        survival +0.513 (95/54)  whole +0.975 +/- 0.170  [estate +0.173, cuts and raises +0.289]  -> agree
+  S330 mix5          OFF+J/1e-4 against OFF/1e-3        survival +0.600 (103/55)  whole +1.049 +/- 0.173  [estate +0.174, cuts and raises +0.275]  -> agree
+  S330 mix5          OFF+J/0 against OFF/1e-3           survival +0.713 (106/49)  whole +1.139 +/- 0.170  [estate +0.152, cuts and raises +0.275]  -> agree
+  S330 mix5          OFF+J/0+L against OFF/1e-3         survival +1.175 (142/48)  whole +1.959 +/- 0.185  [estate +0.163, cuts and raises +0.620]  -> agree
+7w (6 legs)
+  share 0.95         READER@15/1e-3 against READER@5/1e-3 survival +2.400 (72/0)  whole +2.391 +/- 0.306  [estate -0.312, cuts and raises +0.304]  -> agree
+  share 0.95         READER+J@15/1e-3 against READER+J@5/1e-3 survival +2.367 (71/0)  whole +2.365 +/- 0.304  [estate -0.316, cuts and raises +0.315]  -> agree
+  S126               READER@5/1e-3+open against READER@5/0 survival +0.100 (3/0)  whole -0.396 +/- 0.063  [estate -0.534, cuts and raises +0.038]  -> DISAGREE (whole clear)
+  S194               OFF@5/1e-3+open against OFF@5/0    survival +0.167 (6/1)  whole -0.288 +/- 0.092  [estate -0.548, cuts and raises +0.094]  -> DISAGREE (whole clear)
+  S126               READER@5/1e-3 against READER@5/0   survival -0.400 (0/12)  whole -0.726 +/- 0.119  [estate -0.154, cuts and raises -0.172]  -> agree
+  S194               OFF@5/1e-3 against OFF@5/0         survival -0.367 (4/15)  whole -0.754 +/- 0.149  [estate -0.289, cuts and raises -0.098]  -> agree
+7x (10 legs)
+  S126               READER/H22/M3 against READER/H00/M3 survival +1.038 (83/0)  whole +0.859 +/- 0.118  [estate -0.531, cuts and raises +0.352]  -> agree
+  S126               READER/H22/M5 against READER/H00/M5 survival +1.038 (83/0)  whole +0.851 +/- 0.118  [estate -0.535, cuts and raises +0.349]  -> agree
+  S194               OFF/H22/M3 against OFF/H00/M3      survival +3.475 (278/0)  whole +3.046 +/- 0.210  [estate -0.871, cuts and raises +0.442]  -> agree
+  S194               OFF/H22/M5 against OFF/H00/M5      survival +3.487 (279/0)  whole +3.051 +/- 0.210  [estate -0.869, cuts and raises +0.433]  -> agree
+  share 0.95         READER/H22/M3 against READER/H00/M3 survival +2.987 (239/0)  whole +2.977 +/- 0.206  [estate -0.457, cuts and raises +0.447]  -> agree
+  share 0.95         READER/H22/M5 against READER/H00/M5 survival +2.975 (238/0)  whole +2.959 +/- 0.206  [estate -0.460, cuts and raises +0.444]  -> agree
+  bridge 4           READER/H22/M3 against READER/H00/M3 survival +1.425 (114/0)  whole +1.336 +/- 0.137  [estate -0.511, cuts and raises +0.422]  -> agree
+  bridge 4           READER/H22/M5 against READER/H00/M5 survival +1.512 (121/0)  whole +1.418 +/- 0.141  [estate -0.515, cuts and raises +0.421]  -> agree
+  S360               OFF/H22/M3 against OFF/H00/M3      survival -12.863 (0/1029)  whole -14.739 +/- 0.427  [estate -0.948, cuts and raises -0.929]  -> agree
+  S360               OFF/H22/M5 against OFF/H00/M5      survival -12.863 (0/1029)  whole -14.739 +/- 0.427  [estate -0.947, cuts and raises -0.929]  -> agree
+7y (10 legs)
+  S126 (reader)      TS against PRODUCT                 survival -0.050 (5/9)  whole +0.071 +/- 0.048  [estate +0.130, cuts and raises -0.009]  -> disagree (whole within 2 se)
+  S126 (reader)      TS-TIER against PRODUCT            survival -0.063 (0/5)  whole +0.048 +/- 0.029  [estate +0.126, cuts and raises -0.016]  -> disagree (whole within 2 se)
+  S126 (reader)      TS-REST against PRODUCT            survival +0.000 (5/5)  whole +0.011 +/- 0.040  [estate +0.005, cuts and raises +0.007]  -> survival level
+  S194 (off)         TS against PRODUCT                 survival -0.175 (2/16)  whole +0.014 +/- 0.054  [estate +0.180, cuts and raises +0.010]  -> disagree (whole within 2 se)
+  S194 (off)         TS-TIER against PRODUCT            survival -0.125 (2/12)  whole +0.065 +/- 0.048  [estate +0.201, cuts and raises -0.011]  -> disagree (whole within 2 se)
+  S194 (off)         TS-REST against PRODUCT            survival -0.050 (0/4)  whole -0.057 +/- 0.025  [estate -0.028, cuts and raises +0.021]  -> agree
+  share 0.95 (reader) TS against PRODUCT                 survival -0.037 (1/4)  whole +0.062 +/- 0.029  [estate +0.105, cuts and raises -0.005]  -> DISAGREE (whole clear)
+  bridge 4 (reader)  TS against PRODUCT                 survival -0.087 (0/7)  whole +0.173 +/- 0.035  [estate +0.264, cuts and raises -0.003]  -> DISAGREE (whole clear)
+  S360 (reader)      TS against PRODUCT                 survival +0.025 (3/1)  whole +0.041 +/- 0.028  [estate +0.014, cuts and raises +0.002]  -> agree
+  S360 (off)         TS against PRODUCT                 survival -0.087 (5/12)  whole -0.099 +/- 0.059  [estate -0.005, cuts and raises -0.006]  -> agree
+7z (4 legs)
+  share 0.95         READER+STEP against READER         survival +2.563 (-)  whole +2.556 +/- 0.193  [estate -0.318, cuts and raises +0.312]  -> agree
+  S126               READER+STEP against READER         survival +0.000 (-)  whole +0.000 +/- 0.000  [estate +0.000, cuts and raises +0.000]  -> both level
+  bridge 4           READER+STEP against READER         survival +0.000 (-)  whole +0.000 +/- 0.000  [estate +0.000, cuts and raises +0.000]  -> both level
+  S194               READER+STEP against READER         survival +0.000 (-)  whole +0.000 +/- 0.000  [estate +0.000, cuts and raises +0.000]  -> both level
+
+THE LEGS WHERE THE TWO DISAGREE IN SIGN: 34 of 201 (30 with the whole score beyond twice its standard error)
+  7t S126: READER+J/M0-OFF: survival -0.030, whole +0.400 +/- 0.021 -> DISAGREE (whole clear)
+  7t S126: READER+O-OFF+O: survival -0.100, whole +0.197 +/- 0.043 -> DISAGREE (whole clear)
+  7v S126: OFF/1e-4 against OFF/1e-3: survival -0.063, whole +0.388 +/- 0.031 -> DISAGREE (whole clear)
+  7v S126: OFF/0 against OFF/1e-3: survival -0.088, whole +0.406 +/- 0.036 -> DISAGREE (whole clear)
+  7v S126: READER/1e-4 against OFF/1e-3: survival -0.063, whole +0.388 +/- 0.031 -> DISAGREE (whole clear)
+  7v S126: READER/0 against OFF/1e-3: survival -0.088, whole +0.406 +/- 0.036 -> DISAGREE (whole clear)
+  7v S126: OFF+J/0 against OFF/1e-3: survival -0.025, whole +0.455 +/- 0.028 -> DISAGREE (whole clear)
+  7v S126: READER+J/0 against OFF/1e-3: survival -0.025, whole +0.455 +/- 0.028 -> DISAGREE (whole clear)
+  7v bridge 4: OFF/3e-4 against OFF/1e-3: survival -0.012, whole +0.278 +/- 0.016 -> DISAGREE (whole clear)
+  7v bridge 4: OFF/1e-4 against OFF/1e-3: survival -0.037, whole +0.375 +/- 0.025 -> DISAGREE (whole clear)
+  7v bridge 4: OFF/0 against OFF/1e-3: survival -0.063, whole +0.376 +/- 0.031 -> DISAGREE (whole clear)
+  7v bridge 4: READER/0 against OFF/1e-3: survival -0.050, whole +0.388 +/- 0.038 -> DISAGREE (whole clear)
+  7v bridge 4: OFF+J/0 against OFF/1e-3: survival -0.012, whole +0.403 +/- 0.036 -> DISAGREE (whole clear)
+  7v S172 down: OFF/3e-4 against OFF/1e-3: survival -0.025, whole +0.546 +/- 0.067 -> DISAGREE (whole clear)
+  7v S172 down: OFF/1e-4 against OFF/1e-3: survival -0.063, whole +0.802 +/- 0.079 -> DISAGREE (whole clear)
+  7v S172 down: OFF/0 against OFF/1e-3: survival -0.075, whole +0.839 +/- 0.075 -> DISAGREE (whole clear)
+  7v S172 down: OFF+J/3e-4 against OFF/1e-3: survival -0.025, whole +0.567 +/- 0.075 -> DISAGREE (whole clear)
+  7v S172 down: OFF+J/1e-4 against OFF/1e-3: survival -0.025, whole +0.844 +/- 0.079 -> DISAGREE (whole clear)
+  7v S172 down: OFF+J/0 against OFF/1e-3: survival -0.037, whole +0.884 +/- 0.081 -> DISAGREE (whole clear)
+  7v S172 up: OFF/3e-4 against OFF/1e-3: survival -0.138, whole +0.807 +/- 0.088 -> DISAGREE (whole clear)
+  7v S172 up: OFF/1e-4 against OFF/1e-3: survival -0.125, whole +1.038 +/- 0.090 -> DISAGREE (whole clear)
+  7v S172 up: OFF/0 against OFF/1e-3: survival -0.088, whole +1.133 +/- 0.089 -> DISAGREE (whole clear)
+  7v S172 up: OFF+J/1e-3 against OFF/1e-3: survival -0.112, whole +0.468 +/- 0.089 -> DISAGREE (whole clear)
+  7v S172 up: OFF+J/3e-4 against OFF/1e-3: survival -0.163, whole +0.866 +/- 0.090 -> DISAGREE (whole clear)
+  7v S172 up: OFF+J/1e-4 against OFF/1e-3: survival -0.200, whole +0.998 +/- 0.091 -> DISAGREE (whole clear)
+  7v S172 up: OFF+J/0 against OFF/1e-3: survival -0.100, whole +1.142 +/- 0.093 -> DISAGREE (whole clear)
+  7w S126: READER@5/1e-3+open against READER@5/0: survival +0.100, whole -0.396 +/- 0.063 -> DISAGREE (whole clear)
+  7w S194: OFF@5/1e-3+open against OFF@5/0: survival +0.167, whole -0.288 +/- 0.092 -> DISAGREE (whole clear)
+  7y S126 (reader): TS against PRODUCT: survival -0.050, whole +0.071 +/- 0.048 -> disagree (whole within 2 se)
+  7y S126 (reader): TS-TIER against PRODUCT: survival -0.063, whole +0.048 +/- 0.029 -> disagree (whole within 2 se)
+  7y S194 (off): TS against PRODUCT: survival -0.175, whole +0.014 +/- 0.054 -> disagree (whole within 2 se)
+  7y S194 (off): TS-TIER against PRODUCT: survival -0.125, whole +0.065 +/- 0.048 -> disagree (whole within 2 se)
+  7y share 0.95 (reader): TS against PRODUCT: survival -0.037, whole +0.062 +/- 0.029 -> DISAGREE (whole clear)
+  7y bridge 4 (reader): TS against PRODUCT: survival -0.087, whole +0.173 +/- 0.035 -> DISAGREE (whole clear)
+
+NOT CHECKABLE FROM THE RECORDS: 7e and 7s (no traces kept); 7r read its estate beside survival (results-7r.txt: the reader "buys estate" on S126 and bridge 4 while losing 15 and 12 paths) and 7t re-measured that pair with the whole score (READER-OFF above).

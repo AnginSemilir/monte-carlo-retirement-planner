@@ -34,6 +34,7 @@ export const TESTS = [
   { name: '7x (held-for-life tables: free switching or three worlds)', prediction: 'predictions/diag-7x.md', results: 'results-7x.txt' },
   { name: '7z (Q\'s fix alone: the reader\'s step integrated in the chooser)', prediction: 'predictions/diag-7z.md', results: 'results-7z.txt' },
   { name: '7y (the tier state: free switching in the tables)', prediction: 'predictions/diag-7y.md', results: 'results-7y.txt' },
+  { name: '7aa (the joint tier state at two settings: the pot off and on)', prediction: 'predictions/diag-7aa.md', results: 'results-7aa.txt' },
 ];
 
 export function credences(predText) {

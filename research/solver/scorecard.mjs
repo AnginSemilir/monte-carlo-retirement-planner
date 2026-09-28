@@ -36,6 +36,7 @@ export const TESTS = [
   { name: '7y (the tier state: free switching in the tables)', prediction: 'predictions/diag-7y.md', results: 'results-7y.txt' },
   { name: '7aa (the joint tier state at two settings: the pot off and on)', prediction: 'predictions/diag-7aa.md', results: 'results-7aa.txt' },
   { name: '7ab (the freed opening against TS+J and the product, the pot off and on)', prediction: 'predictions/diag-7ab.md', results: 'results-7ab.txt' },
+  { name: '7ac (the fourth cell: TS+J with the opening held in the plan\'s tier)', prediction: 'predictions/diag-7ac.md', results: 'results-7ac.txt' },
 ];
 
 export function credences(predText) {

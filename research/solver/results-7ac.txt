@@ -1,0 +1,75 @@
+ok   a log parsed and gated: four units, two runs and three worlds each, the gate passes: 4 true 0
+ok   the gate refuses a missing unit: true
+ok   the gate refuses a unit run twice: true
+ok   the gate refuses an unregistered unit (S360 off at W0): true
+ok   the gate refuses a ran line not 7aa's TS+J's: true
+ok   the gate refuses no tier state, even where 7aa's ran line has none: true
+ok   the gate refuses a held tier, Q's fix and the reader's reference: true,true,true
+ok   the gate refuses a held tier, Q's fix and the reader's reference even where 7aa's ran line carries the same: true,true,true
+ok   the gate refuses another table: true
+ok   the gate refuses another year-0 gap: true
+ok   the gate refuses a unit where TS+J opens in the plan's tier (7aa's the same): true
+ok   the gate refuses a unit where 7aa's PRODUCT opens tier 2 (not a registered opening apart): true
+ok   the gate refuses per-world tables (not one policy for every world): true
+ok   the gate refuses another solved margin: true
+ok   the gate refuses another scale: true
+ok   the gate refuses a mixture price not the gap (0.1% off): true
+ok   the gate takes a mixture price within the gap line's five figures: 0
+ok   the gate refuses a missing price line: true
+ok   the gate refuses two world lines: true
+ok   the gate refuses a world line whose TS+J survival is not 7aa's: true
+ok   the gate refuses TS+J's survival not 7aa's: true
+ok   the gate refuses a TS+J run that kept the plan's tiers in year 0 on any path: true
+ok   the gate refuses an OPEN0 run that left the plan's tiers in year 0 on any path: true
+ok   the gate refuses a missing TS+J run: true
+ok   the gate refuses a missing OPEN0 run: true
+ok   the gate refuses a missing solve line: true
+ok   the gate refuses a missing gap line: true
+ok   the gate refuses a missing done line: true
+ok   the gate refuses a unit with no 7aa unit to compare: true
+ok   the trace name is 7aa's form: bridge_4-reader-open0@w0.json.gz
+ok   the identity: the same trace passes; a flipped survival or a changed tier fails: true,false,false
+ok   cause 1 (OPEN0 as the product, the whole score half a point below TS+J): 1, 2 and 3 HELD: 1 HELD, 2 HELD, 3 HELD
+ok   cause 2 (OPEN0 as TS+J, the whole score level): 1 and 2 FALSIFIED, 3 HELD: 1 FALSIFIED, 2 FALSIFIED, 3 HELD
+ok   OPEN0 as TS on the product's survivors (losing the same 25): item 3 FALSIFIED: FALSIFIED
+ok   item 3 reads the product's survivors only: OPEN0 saving 30 of the product's failures does not count: 15800
+ok   item 3 FALSIFIED without a loss (OPEN0 as TS on the product's survivors): the no-loss branch: FALSIFIED WITHOUT A LOSS
+ok   item 3 FALSIFIED by a loss (OPEN0 losing 80 of the product's survivors that TS keeps): the loss branch, not the opening: FALSIFIED harm FALSIFIED BY A LOSS
+ok   item 3 FALSIFIED with a loss not ruled out (OPEN0 against TS 20 saved, 30 lost: the loss read inconclusive at the pooled margin 0.1, where 0.25 would read no material harm): FALSIFIED inconclusive FALSIFIED, A LOSS NOT RULED OUT
+ok   item 3 HELD carries no branch: 
+ok   item 3 at the pooled margin 0.1: OPEN0 saving 20 and losing 12 of the product's survivors against TS is INCONCLUSIVE (at 0.25 it would read no material gain): INCONCLUSIVE
+ok   item 1 split: OPEN0 losing 40 on S126, as TS+J on bridge 4: INCONCLUSIVE: INCONCLUSIVE
+ok   item 1 reads OPEN0 against TS+J, not PRODUCT: OPEN0 as PRODUCT and TS+J as PRODUCT is no harm, not harm: FALSIFIED
+ok   item 1's no material harm needs both intervals: OPEN0 losing 12 to TS+J on both (exact -0.15; unconditional past -0.25) is INCONCLUSIVE, not FALSIFIED: INCONCLUSIVE
+ok   item 2 on one case only (a loss on S126, level on S194): INCONCLUSIVE: INCONCLUSIVE
+ok   item 2 reads survival harm as a loss whatever the whole score says (OPEN0 losing 40 on both at W0.02): HELD
+ok   item 2 at W0.02, not W0: a whole-score loss planted at W0 does not count: FALSIFIED
+ok   the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5): OPEN0 losing 20 to TS+J there is no material harm, where at bridge 4's own 99% (margin 0.25) it is harm: no material harm harm
+planted (47): all read as they should
+
+7AC: DOES TS+J PRICE THE OPENING RIGHT? THE FOURTH CELL (predictions/diag-7ac.md; 8000 paths of seed 7002; the fair-test gates passed: both runs' stamps, 7aa's gate, 7ac's gate against 7aa's TS+J and PRODUCT, every trace, and 7ac's TS+J identical to 7aa's on every path)
+
+EVERY UNIT: survival of PRODUCT, TS and TS+J (7aa) and OPEN0; OPEN0 against PRODUCT and against TS+J saved/lost and the whole score (95%, the rule's interval at 0.05); the path-years OPEN0 and TS+J hold different tiers, in year 0 and after, and the paths that differ anywhere
+  S126 (reader) W0         PRODUCT 99.3500  TS 99.8125  TS+J 99.8500  OPEN0 99.8250 | OPEN0 v PRODUCT 38/0 whole +0.571 (0.405 to 0.786) | OPEN0 v TS+J 0/2 whole -0.059 (-0.144 to 0.013) | tiers differ from TS+J: year 0 8000, later 88514 path-years, 8000 paths
+  bridge 4 (reader) W0     PRODUCT 99.1875  TS 99.5875  TS+J 99.6500  OPEN0 99.3875 | OPEN0 v PRODUCT 16/0 whole +0.243 (0.123 to 0.393) | OPEN0 v TS+J 1/22 whole -0.333 (-0.504 to -0.196) | tiers differ from TS+J: year 0 8000, later 134797 path-years, 8000 paths
+  S126 (reader) W0.02      PRODUCT 99.2625  TS 99.2125  TS+J 99.8500  OPEN0 99.7875 | OPEN0 v PRODUCT 43/1 whole +0.634 (0.431 to 0.882) | OPEN0 v TS+J 0/5 whole -0.070 (-0.188 to 0.024) | tiers differ from TS+J: year 0 8000, later 61242 path-years, 8000 paths
+  S194 (off) W0.02         PRODUCT 98.2250  TS 98.0500  TS+J 98.7500  OPEN0 98.4125 | OPEN0 v PRODUCT 21/6 whole +0.387 (0.210 to 0.578) | OPEN0 v TS+J 3/30 whole -0.326 (-0.528 to -0.147) | tiers differ from TS+J: year 0 8000, later 22088 path-years, 8000 paths
+
+EACH WORLD: the world table's own price of the opening at the true year-0 position (its best move less its best plan's-tier move, points) against the survival TS+J and OPEN0 realise in that world (1,000 paths, the shift at the world's node), and the realised difference over the price; the mixture's price (the gap) beside
+  S126 (reader) W0         mixture price 0.1065 | world 0 price 0.388 realised 0.800 (x2.1) | world 1 price 0.054 realised 0.000 (x0.0) | world 2 price 0.056 realised 0.000 (x0.0)
+  bridge 4 (reader) W0     mixture price 0.1346 | world 0 price 0.532 realised 1.200 (x2.3) | world 1 price 0.063 realised 0.000 (x0.0) | world 2 price 0.077 realised 0.000 (x0.0)
+  S126 (reader) W0.02      mixture price 0.1060 | world 0 price 0.329 realised 0.200 (x0.6) | world 1 price 0.051 realised 0.000 (x0.0) | world 2 price 0.085 realised 0.000 (x0.0)
+  S194 (off) W0.02         mixture price 0.1052 | world 0 price 0.842 realised 1.600 (x1.9) | world 1 price 0.011 realised 0.000 (x0.0) | world 2 price 0.000 realised 0.000
+
+THE ITEMS (each a Holm family of its own, the regimen's reading deciding, the unconditional one beside it; item 2 by the whole-score rule read for a loss)
+1. W0, the opening carries TS+J's gain: on S126 (reader) and bridge 4 (reader), OPEN0 harms against TS+J by survival (FALSIFIED: no material harm on both, read by both intervals): INCONCLUSIVE
+     S126 (reader): OPEN0 against TS+J at W0 0 saved/2 lost -0.025 (exact -0.025 to 0.017; unconditional -0.090 to 0.029) no material harm
+     bridge 4 (reader): OPEN0 against TS+J at W0 1 saved/22 lost -0.263 (exact -0.287 to -0.161; unconditional -0.402 to -0.150) harm
+2. W0.02, by the whole score within the survival limit: on S126 (reader) and S194 (off), OPEN0 loses against TS+J (FALSIFIED: no material loss on both): INCONCLUSIVE
+     S126 (reader): OPEN0 against TS+J at W0.02: whole -0.070 (unconditional -0.208 to 0.040; exact -0.091 to 0.030; survival part -0.063, the rest -0.008 +/- 0.008); survival 0/5 no material harm (unconditional lower end -0.146); no material loss
+     S194 (off): OPEN0 against TS+J at W0.02: whole -0.326 (unconditional -0.556 to -0.125; exact -0.413 to -0.143; survival part -0.338, the rest +0.011 +/- 0.009); survival 3/30 harm (unconditional lower end -0.494); loss
+3. W0.02, O42's split: pooled over S126 and S194 on the paths PRODUCT survives at 0.02, OPEN0 survives more than TS (FALSIFIED: no material gain, the pooled margin 0.1): HELD
+     pooled over S126 and S194, on the paths PRODUCT survives: OPEN0 against TS at W0.02 21 saved/3 lost +0.114 (exact 0.054 to 0.144; unconditional 0.056 to 0.186) gain
+     the same cells read for a loss: OPEN0 against TS at W0.02 21 saved/3 lost +0.114 (exact 0.054 to 0.144; unconditional 0.056 to 0.186) no material harm
+
+OUTCOME: 1 INCONCLUSIVE, 2 INCONCLUSIVE, 3 HELD

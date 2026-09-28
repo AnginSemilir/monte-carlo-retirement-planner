@@ -15,6 +15,7 @@
  *   node research/solver/audit-s126.mjs diag7x [points] [paths] part k/n [seed] [world paths]  7x: held-for-life tables against their own runs
  *   node research/solver/audit-s126.mjs diag7z [points] [paths] part k/n [seed]  7z: Q's fix (bridgeStep 'exact') on against off, the reader on
  *   node research/solver/audit-s126.mjs diag7y [points] [paths] part k/n [seed]  7y: the tier state against the product, its tier and rest swapped, and held for life
+ *   node research/solver/audit-s126.mjs diag7aa [points] [paths] part k/n [seed] [world paths]  7aa: the joint tier state against the product and the tier state, the estate weight 0 and 0.02
  *   node research/solver/audit-s126.mjs refs360 [points] [paths] [seed]  O36 on S360 with the reader: held tables, the reader's reference at the plan's tiers and at the held tier
  *   node research/solver/audit-s126.mjs o41 [points] [paths] [seed]  O41's bound: the tier state per world against the joint tier state, tables only
  *
@@ -151,7 +152,8 @@ const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', {
  */
 // `lambda` and `forward` (7v, 27 Sep): a case's own dislike of cuts in place of S126's, and `forward: false` to solve and
 // return the tables without the held-path run (7v runs its own forward runs, one a switch margin); unset, as before
-function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint, mix, lambda = LAMBDA, forward = true, holdTier, bridgeStep, tierState, readerRef } = {}) {
+// `bequestWeight` (7aa, 28 Sep): the estate weight passed to solvePlan and printed on the ran line; unset, the product's default
+function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint, mix, lambda = LAMBDA, forward = true, holdTier, bridgeStep, tierState, readerRef, bequestWeight } = {}) {
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
@@ -161,7 +163,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   // re-run of an older mode (7c's f1v2, 7i's quad), now exact by default, cannot pass a ran-line gate against files that
   // ran it averaged. It sits BEFORE bridgeRead: smoke.sh's f1v2 check (locked) reads bridgeRead at the end of the line.
   const r = solvePlan(E, M, plan, { lambda, points: POINTS, bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
-    ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}), ...(joint ? { jointWorlds: true } : {}), ...(mix ? { mix } : {}), ...(holdTier ? { holdTier } : {}), ...(bridgeStep ? { bridgeStep } : {}), ...(tierState ? { tierState: true } : {}), ...(readerRef ? { readerRef } : {}) });   // F1 off is explicit, whatever the product default
+    ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}), ...(joint ? { jointWorlds: true } : {}), ...(mix ? { mix } : {}), ...(holdTier ? { holdTier } : {}), ...(bridgeStep ? { bridgeStep } : {}), ...(tierState ? { tierState: true } : {}), ...(readerRef ? { readerRef } : {}), ...(bequestWeight !== undefined ? { bequestWeight } : {}) });   // F1 off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
   const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
   let ok = 0, below = 0, tierYrs = 0; const paths = E.pathsForSeed(seed, NP, m.ctx.totalYears);
@@ -171,7 +173,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   const sim = forward ? 100 * ok / NP : NaN;
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
   // the held paths' seed and count sit after pts (added 25 Sep for 7e, which runs on held-out paths; smoke.sh's greps read around them)
-  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5}${holdTier ? ` holdTier ${holdTier.join('/')}` : ''}${r.meta.bridgeStep ? ` bridgeStep ${r.meta.bridgeStep}` : ''}${r.meta.tierState ? ` tierState ${r.meta.tierState}` : ''}${readerRef ? ` readerRef ${r.meta.readerRef}` : ''} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
+  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5}${holdTier ? ` holdTier ${holdTier.join('/')}` : ''}${r.meta.bridgeStep ? ` bridgeStep ${r.meta.bridgeStep}` : ''}${r.meta.tierState ? ` tierState ${r.meta.tierState}` : ''}${readerRef ? ` readerRef ${r.meta.readerRef}` : ''}${bequestWeight !== undefined ? ` bequestWeight ${+Number(r.meta.bequestWeight).toPrecision(10)}` : ''} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
   return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran, reader: r.meta.reader || null, r, paths };
 }
 if (mode === 'f1v2') {
@@ -969,6 +971,83 @@ if (mode === 'f1v2') {
     const within = ga === gb || (ga > 0 && gb > 0 && gb / ga <= 2 && ga / gb <= 2);
     console.log(`${id.padEnd(11)} the bound: TS+J opens in pair ${b.open[0]} at 1e-3, TS in ${a.open[0]}; gap ratio TS+J/TS ${ga > 0 && Number.isFinite(ga) && Number.isFinite(gb) ? (gb / ga).toFixed(3) : 'n/a'} -> ${b.open[0] === a.open[0] && within ? 'BOUNDED' : 'NOT BOUNDED'}`);
   }
+} else if (mode === 'diag7aa') {
+  /*
+   * 7AA: DOES THE JOINT TIER STATE (tierState with jointWorlds: the chooser's full rule, one move for every world) GAIN WHERE
+   * THE PER-WORLD TIER STATE DID NOT, WITH THE POT'S WEIGHT OFF AND ON? (PLAN.md 7aa; predictions/diag-7aa.md; the
+   * maintainer's go-ahead, 28 Sep; the deep review on both reads, 02:38 UK; O41, O42, O43.) Every solve at the product's
+   * settings (solvePlan, 30 points, 'auto' risk above, lambda held at 7t's to 7z's, 5 return points, margin 0.001) but for
+   * the estate weight, passed explicitly: 0 (the pot off, survival first) or 0.02 (the solver's default), run forward on
+   * the same NP paths. The arms: PRODUCT (free-switching tables), TS (the per-world tier state, 7y's), TS+J (the joint tier
+   * state, O41's). The units: each case (S126 and bridge 4 with the reader, S194 under off, S360 with the reader and under
+   * off), each weight and each arm, one solve and one run. Each solve's year-0 gap line as 7v's to 7y's; each world's
+   * opening table against the policy's run in that world on the first WP paths (the long-run shift set to the world's node).
+   *   node research/solver/audit-s126.mjs diag7aa [points=30] [paths] part k/n [seed=7002] [world paths=1000]
+   * Prints, per unit: a case line; a solve, ran, gap and joint line; a world line per world; a run line; a done line. The
+   * run's trace goes to results/diag7aa/<case>-<arm>-<label>.json.gz (DIAG7AA_OUT when set), stamped.
+   */
+  const CASES7AA = [['S126', 'reader'], ['S194', 'off'], ['bridge 4', 'reader'], ['S360', 'reader'], ['S360', 'off']];
+  const UNITS7AA = [];
+  for (const w of [0, 0.02]) for (const [id, arm] of CASES7AA) for (const tag of ['PRODUCT', 'TS', 'TS+J']) UNITS7AA.push([id, arm, tag, w]);
+  const ARM = { off: false, reader: 'reader' };
+  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
+  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002, WP = process.argv[8] ? Number(process.argv[8]) : 1000;
+  if (!(SEED >= 1) || !(WP >= 1)) { console.error(`audit-s126: bad seed or world paths ${process.argv[7]} ${process.argv[8]}`); process.exit(2); }
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  const OUT = process.env.DIAG7AA_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7aa');
+  mkdirSync(OUT, { recursive: true });
+  console.log(`7AA DIAGNOSIS, the product's settings (solvePlan) but the estate weight, ${POINTS} points, ${NP} paths (seed ${SEED}), ${WP} a world, margin 1e-3: PRODUCT, TS, TS+J at the estate weight 0 and 0.02; part ${pk}/${pn}`);
+  const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+  const chooseAt = (r, st, t, held, sm) => { const keep = r.switchMargin; r.switchMargin = sm; try { return chooseAction(r, st, t, held); } finally { r.switchMargin = keep; } };
+  const openGap = (r, zs) => {
+    let s0 = null, h0 = null;
+    runPolicy(r, zs, { choose: (t, st, held) => { if (t === 0 && !s0) { s0 = Float64Array.from(st); h0 = { ...held }; } return chooseAction(r, st, t, held); } });
+    const acts = r.c.acts, at = sm => acts[chooseAt(r, s0, 0, h0, sm)];
+    const stays = sm => { const a = at(sm); return a.tierPen === h0.pen && a.tierIsa === h0.isa; };
+    let gap;
+    if (stays(0)) gap = '0';
+    else if (!stays(1)) gap = '>1';
+    else { let lo = 0, hi = 1; for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (stays(mid)) hi = mid; else lo = mid; } gap = hi.toExponential(4); }
+    return { gap, open: [0.001, 0].map(sm => at(sm).tierPen).join(',') };
+  };
+  const run = (r, paths, trace) => {
+    const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = trace ? makeTrace(N, T + 1) : null;
+    let ok = 0, below = 0, tierYrs = 0, estate = 0, changes = 0;
+    const cap = r.meta.bequestCap;
+    paths.forEach((zs, k) => { if (tr) tr.row = k; const o = runPolicy(r, zs, tr ? { trace: tr } : {}); if (o.survived) { ok++; okArr[k] = 1; estate += Math.min(o.terminalNet, cap); } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; changes += o.tierChanges || 0; });
+    return { sim: 100 * ok / N, below: below / N, tierYrs: tierYrs / N, changes: changes / N, estate: estate / N, okArr, tr, secs: (Date.now() - t0) / 1000 };
+  };
+  const fileOf = (id, arm, label) => `${id.replace(/ /g, '_')}-${arm}-${label.toLowerCase().replace(/\+/g, '_').replace(/\//g, '@')}.json.gz`;
+  UNITS7AA.forEach(([id, arm, tag, w], i) => {
+    if (i % pn !== pk) return;
+    const h = byId(id)();
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const A = arm.toUpperCase(), label = `${tag}/W${w}`;
+    console.log(`${id.padEnd(16)} case | unit ${A}/${label} | lambda ${LAMBDA} tier own riskAbove auto mix 3`);
+    const res = measureV2(h, ARM[arm], 5, { trace: false, seed: SEED, lambda: LAMBDA, forward: false, bequestWeight: w, ...(tag !== 'PRODUCT' ? { tierState: true } : {}), ...(tag === 'TS+J' ? { joint: true } : {}) });
+    const r = res.r, s0 = M.initialState(r.m);
+    if ((tag !== 'PRODUCT') !== !!r.meta.tierState || (tag === 'TS+J') !== !!r.meta.jointWorlds) { console.error(`audit-s126: ${label} ran tierState ${r.meta.tierState} jointWorlds ${r.meta.jointWorlds}`); process.exit(2); }
+    if (!(Math.abs(r.meta.bequestWeight - w) < 1e-12)) { console.error(`audit-s126: ${label} ran the estate weight ${r.meta.bequestWeight}`); process.exit(2); }
+    const ra = r.meta.riskAbove ? r.meta.riskAbove.decision.replace(/ /g, '_') : 'unset';
+    console.log(`${''.padEnd(16)} solve ${A}/${label}: table ${res.table.toFixed(4)} secs ${Math.round(res.secs)}`);
+    console.log(`${''.padEnd(16)} ran ${A}/${label}: ${res.ran}`);
+    { const g = openGap(r, res.paths[0]); console.log(`${''.padEnd(16)} gap ${A}/${label}: ${g.gap} opening ${g.open}`); }
+    console.log(`${''.padEnd(16)} joint ${A}/${label}: ${!!r.meta.jointWorlds} switchMargin ${r.switchMargin} scale ${Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0)))} cap ${Math.round(r.meta.bequestCap)} deathTax ${r.m.ctx.pensionDeathTaxRate} tier own riskAbove ${ra}`);
+    r.mix.nodes.forEach((z, k) => {
+      const wpaths = res.paths.slice(0, WP).map(zs => { const c = Float64Array.from(zs); c[c.length - 1] = z; return c; });
+      const wr = run(r, wpaths, false), v = r.worlds[k].value(s0, 0);
+      console.log(`${''.padEnd(16)} world ${A}/${label} ${k} z ${z.toFixed(4)} weight ${r.mix.weights[k].toFixed(4)}: table ${(100 * v.survival).toFixed(4)} sim ${wr.sim.toFixed(4)} paths ${wpaths.length}`);
+    });
+    const f = run(r, res.paths, true);
+    console.log(`${''.padEnd(16)} run ${A}/${label}: sim ${f.sim.toFixed(4)} below ${f.below.toFixed(2)} tier-below ${f.tierYrs.toFixed(2)} changes ${f.changes.toFixed(3)} estate ${Math.round(f.estate)} secs ${Math.round(f.secs)}`);
+    const T = f.tr;
+    writeFileSync(join(OUT, fileOf(id, arm, label)), gzipSync(JSON.stringify({ id, arm: `${A}/${label}`, stamp: STAMP, N: NP, Y: T.Y, seed: SEED, sim: f.sim,
+      survived: b64(f.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
+    console.log(`${''.padEnd(16)} done ${A}/${label}`);
+  });
 } else if (mode === 'time') {
   /*
    * 7k: THE EXACT FINAL YEAR'S RUN TIME (PLAN.md 7k; a measurement, not a test). Times the solve only (solvePlan, no

@@ -507,7 +507,9 @@ The rules this adds:
    compared (its register items, its table-against-simulation gap, what its traces show it doing). Where it has them,
    the prediction names them and says how the comparison survives them.
 4. **The consistency invariant.** The tables must value the policy the forward chooser actually follows. A standing test
-   checks it on the chooser's own rule (research/tests/solver-joint.test.mjs, check D), and every candidate default is
+   checks it on the chooser's own rule (research/tests/solver-joint.test.mjs, check D - its known limit, 28 Sep: it runs with
+   no tier held, so it cannot see a hold decided by the margin (O30), nor a switch rule applied per world (O41); the tier
+   state's test checks the chooser on the three-world mixture, research/tests/solver-tierstate.test.mjs G), and every candidate default is
    calibrated table against simulation by slice - each world, each stage of the plan, each tier held - not only in
    aggregate, since compensating errors cancel in the aggregate.
 5. **Families of odd results.** Register items that point the same way are linked as a family (the register's "family"
@@ -521,7 +523,7 @@ The rules this adds:
    it). The second family's root-cause step for its T/Q member was 7w's items 1-3 (PLAN.md); the first's diagnosis step was
    7w's item 4 (the year-0 move freed at the product's margin, against margin 0). Both have run (7w read, 27 Sep 20:07 UK).
    The deep review after 7w (27 Sep 20:17 UK) proposes merging the two families on one signature (the tables' year-0 gap
-   5 to 100 times below what the de-risk realises); their shared root-cause step is 7x, held-for-life tables (FS against W). 7x read (27 Sep 22:17 UK): FS held on S126 and S194, W falsified. The deep review after 7x (27 Sep 22:32 UK) moved O32, O35 and O36 into a family of their own, "the reader at the bridge" (explained: Q in the chooser, the reader's reference p0 in the table), leaving O9, O20, O31 and O34 in the second family with no root-cause step scheduled, and O38 in the first.
+   5 to 100 times below what the de-risk realises); their shared root-cause step is 7x, held-for-life tables (FS against W). 7x read (27 Sep 22:17 UK): FS held on S126 and S194, W falsified. The deep review after 7x (27 Sep 22:32 UK) moved O32, O35 and O36 into a family of their own, "the reader at the bridge" (explained: Q in the chooser, the reader's reference p0 in the table), leaving O9, O20, O31 and O34 in the second family with no root-cause step scheduled, and O38 in the first. The deep review after 7z (28 Sep 00:38 UK) named a new family, "checks run where the fault cannot show" (O40 in the register; beside it the tier state's one-world check D, solver-joint's check D with no tier held, the parked patch's check C, 7x's item 3), with its root-cause step: every reducer prints the paths whose actions differ between arms, and every consistency check runs on the mixture (owner Claude; gate: before the next reducer is written and before any check is cited as no-harm evidence); and linked O41 to the first family and to the bad-world family (each world planning as if it knew its world).
 6. **Design premises are claims.** An approximation justified by argument (the mixture's no-learning premise, the switch
    margin at today's settings, the fold's horizon factor) is listed with its grade (D until tested) and the failure it
    would cause if wrong, and is tested before a decision rests on it.

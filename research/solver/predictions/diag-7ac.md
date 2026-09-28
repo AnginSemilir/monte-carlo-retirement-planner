@@ -110,6 +110,7 @@ case, estate weight, bridge read, solve settings, lambda and paths. The estate w
 
 ## Provenance
 
+- Item 3's branch power: derive-7ac-branch.mjs (results-derive-7ac-branch.txt), after the plan-auditor's MINOR 1 of 12:49 UK.
 - The build: audit-s126.mjs diag7ac (a7dc0d9: 7aa's TS+J unit again, run forward twice - TS+J and OPEN0 - with each world's
   price and both arms' world runs), reduce-7ac.mjs with mutate-reduce-7ac.py, derive-7ac.mjs, batch-7ac.sh, preflight-7ac.sh
   with preflight-parse-7ac.mjs (the identity against 7aa's preflight).
@@ -148,6 +149,18 @@ From results-derive-7ac.txt (20,000 draws a story; backgrounds 0.5, 5 and 15 pat
   0.409 (at 15 paths each way mostly inconclusive).
 - **Item 3:** OPEN0 as the product on its survivors HELD 1.000, 0.983 and 0.838; as TS+J HELD 0.997, 0.941 and 0.737; as TS
   (the opening carried 7aa's item 5) FALSIFIED 0.999, 0.951 and 0.503.
+- **Item 3's branches** (added before launch for the plan-auditor's MINOR 1 of 28 Sep 12:49 UK; derive-7ac-branch.mjs over
+  results-derive-7ac.txt, its hash checked against the derive line below and its guard shown refusing a planted copy with one
+  size changed; results-derive-7ac-branch.txt sha256 5a0e29303c6b1848; the same stories and draws as item 3's, read as
+  reduce-7ac.mjs reads the item and its branch): OPEN0 as TS lands in the no-loss branch - the reading "the opening carried
+  7aa's item 5" - 0.999, 0.908 and 0.048 at 0.5, 5 and 15 paths each way, and in "a loss not ruled out" 0.000, 0.040 and
+  0.427 (by a loss 0.000, 0.000 and 0.021). OPEN0 losing to TS what TS loses to the product there (9 and 16) lands in the
+  loss branch 0.972, 0.924 and 0.839 (a loss not ruled out 0.019, 0.076 and 0.154). So at 15 paths each way a FALSIFIED item 3
+  mostly reads "a loss not ruled out" whatever the truth: at about 60 discordant paths the exact interval is about +/-0.10
+  (the plan-auditor's check, stats.mjs survivalChange: 30 saved and 30 lost read -0.1002 to 0.1002), so the loss read cannot
+  come out as no material harm. That branch settles nothing (a register item and a sized follow-up), and it is
+  read against these figures. At the backgrounds 7aa suggests (TS+J against TS lost 0 and 2, results-derive-7ac.txt), 0.5 to 5
+  paths each way, the branches' power is 0.9 or more.
 - **Time:** from 7aa's TS+J units on these four (results/diag7aa's case logs): 737 to 838 s a solve and 633 to 650 s a run
   of 8,000 paths; a unit is one solve, two runs and six world runs of 1,000 paths (each world, both arms), about 40 to 45
   minutes; four units four at a time, plus the smoke run and the launcher's re-run of derive-7ac.mjs (over two minutes).

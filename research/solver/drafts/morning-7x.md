@@ -119,6 +119,19 @@ The order:
   but S126. The deep review's figures showed it up; it was fixed before any figure was used, and no other script has
   the pattern.
 
+## O41 measured, tables only (03:30 UK; results-o41.txt)
+
+- **Not bounded at the opening.** With the switch rule applied to the mixture (TS+J), the tables open **de-risked**
+  (pair 2) at the product's margin on S126 and S194, where the per-world tier state opens in the plan's tier. On share
+  0.95 both open in the plan's tier (bounded).
+- The gap ratios are 1.334 (S126) and 1.086 (S194), under the 2 times the rule reads. Those outcomes fall outside the
+  map written before the output, so, as agreed in advance, they are recorded as printed and **nothing is drawn from them
+  for the ranking**.
+- The joint tables read the bad world lower: S126's worst world 98.81 against 99.56, S194's 92.52 against 95.62.
+- It was checked first: each tier-state row reproduced 7y's gap, table and settings exactly.
+- What it means for you: the per-world rule changes the opening decision on the two main cases. Only the TS+J forward run
+  (the one next test, above) can say whether that saves paths.
+
 ## Things to tell you
 
 - **The order was changed.** The order first put to you for Q's fix in parallel was revised for its review (the ledger

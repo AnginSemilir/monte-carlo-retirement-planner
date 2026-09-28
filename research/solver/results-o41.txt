@@ -1,0 +1,32 @@
+=== a MEASUREMENT, not a test:  O41's tables-only bound (the 00:38 ledger row): TS against TS+J on S126 reader, S194 off and share 0.95 reader at 30 points; the year-0 gap and opening pair, read by O41's bare 2x rule as the o41 line prints it; no forward run, no survival read (its results cannot settle a test)
+seeds: 7002 (tuning)
+=== snapshot /tmp/solver-snap-JDrmrP   from 8a05037
+=== smoke run on code eb7b84680587 (smoke stamp e4f1f87d6422): the modes in smoke.sh once, tiny (about 2-3 minutes)
+  ok  solver only, fold, step-6 flags
+  ok  rival arms only, fold, cap
+  ok  solver and every arm, mixture
+  ok  risk above, plan at Medium, record
+  ok  F1 bridge read
+  ok  F1 v2 bridge read
+  ok  final year integrated exactly
+  ok  S126 audit scan (no solve)
+  ok  reduceFlex over the arms' files
+  ok  S126 audit, ids mode, at the settings it was given
+  ok  S126 audit, f1v2 mode, off against v2 in the mixture
+  ok  S126 audit, bridge7e mode, the bridge reader in the mixture
+  ok  S126 audit, diag7r mode, off against the reader, stamped traces in the smoke's own folder
+  ok  S126 audit, diag7t mode, the mixture against one policy for every world, stamped traces in the smoke's own folder
+  ok  7 result files carry the code and prediction stamps
+SMOKE PASSED
+stamp: code eb7b84680587 audit 00b7bdf0814a prediction none sha -
+O41'S BOUND: the tier state per world (TS) against the joint tier state (TS+J), tables only, 30 points (seed 7002 for the opening state); a measurement
+S126        reader TS    gap 7.9487e-4 opens 0 at 1e-3, 2 at 0 | table 99.8471 | worlds 99.5593 / 99.8843 / 99.9860 | secs 653 | ran mix 3 pts 30 seed 7002 paths 1 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 29000 quad 5 tierState 0/0,1/1,2/2 finalIntegral true bridgeRead reader
+S126        reader TS+J  gap 1.0600e-3 opens 2 at 1e-3, 2 at 0 | table 99.7887 | worlds 98.8119 / 99.9812 / 99.9956 | secs 674 | ran mix 3 pts 30 seed 7002 paths 1 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 29000 quad 5 tierState 0/0,1/1,2/2 finalIntegral true bridgeRead reader
+S126        the bound: TS+J opens in pair 2 at 1e-3, TS in 0; gap ratio TS+J/TS 1.334 -> NOT BOUNDED
+S194        off    TS    gap 9.6876e-4 opens 0 at 1e-3, 1 at 0 | table 98.9093 | worlds 95.6213 / 99.4715 / 99.9484 | secs 764 | ran mix 3 pts 30 seed 7002 paths 1 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 80000 quad 5 tierState 0/0,1/1,2/2 finalIntegral true bridgeRead false
+S194        off    TS+J  gap 1.0525e-3 opens 2 at 1e-3, 2 at 0 | table 98.6444 | worlds 92.5249 / 99.8371 / 99.9931 | secs 784 | ran mix 3 pts 30 seed 7002 paths 1 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 80000 quad 5 tierState 0/0,1/1,2/2 finalIntegral true bridgeRead false
+S194        the bound: TS+J opens in pair 2 at 1e-3, TS in 0; gap ratio TS+J/TS 1.086 -> NOT BOUNDED
+share 0.95  reader TS    gap 5.5302e-4 opens 0 at 1e-3, 2 at 0 | table 81.7716 | worlds 72.2721 / 82.2152 / 89.4964 | secs 669 | ran mix 3 pts 30 seed 7002 paths 1 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 29000 quad 5 tierState 0/0,1/1,2/2 finalIntegral true bridgeRead reader
+share 0.95  reader TS+J  gap 4.4836e-4 opens 0 at 1e-3, 2 at 0 | table 81.7357 | worlds 71.7296 / 82.2950 / 89.5051 | secs 679 | ran mix 3 pts 30 seed 7002 paths 1 grid total30x6x6 lambda 0.0223606797749979 levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 29000 quad 5 tierState 0/0,1/1,2/2 finalIntegral true bridgeRead reader
+share 0.95  the bound: TS+J opens in pair 0 at 1e-3, TS in 0; gap ratio TS+J/TS 0.811 -> BOUNDED
+=== snapshot kept at /tmp/solver-snap-JDrmrP for provenance; remove it when the results are written up

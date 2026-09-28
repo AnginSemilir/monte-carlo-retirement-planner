@@ -50,3 +50,4 @@
 28 Sep 12:15 UK | light | none:  7ac build check - one tiny diag7ac unit (4 points, 20 paths, 10 a world) to see the mode run and print its lines before the reducer is written; no figure read | code 14b43b8dc37d | 57238f0 | load 2.39 2.38 1.55 | node research/solver/audit-s126.mjs diag7ac 4 20 part 0/4 7002 10
 28 Sep 12:16 UK | main | research/solver/predictions/diag-7ab.md | code 14b43b8dc37d | 57238f0 | load 2.14 2.31 1.58 | bash research/solver/batch-7ab.sh
 28 Sep 12:30 UK | light | none:  7ac preflight, the diag7ac mode at 4 points and 20 paths, every unit through reduce-7ac's parse and gate against 7aa's preflight, TS+J's traces byte-identical to 7aa's preflight; no figure read | code 14b43b8dc37d | c60a084 | load 5.25 5.33 3.90 | bash research/solver/preflight-7ac.sh
+28 Sep 13:35 UK | main | research/solver/predictions/diag-7ac.md | code 14b43b8dc37d | e98b1ae | load 1.00 1.07 1.77 | bash research/solver/batch-7ac.sh

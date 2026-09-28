@@ -1446,6 +1446,80 @@ if (mode === 'f1v2') {
     }
     console.log(`${''.padEnd(16)} done ${A}/W${w}`);
   });
+} else if (mode === 'diag7af') {
+  /*
+   * 7AF: THE CANDIDATE BUNDLE AGAINST THE SHIPPING DEFAULT (PLAN.md 7af; predictions/diag-7af.md; the deep review after 7ae,
+   * deep-review-log.md 28 Sep 22:52 UK, which designed it under the maintainer's steer of 22:10 UK). Every solve at the
+   * product's settings (solvePlan, 30 points, 'auto' risk above, lambda held, 5 return points, margin 0.001) with the
+   * estate weight passed at the default, 0.02. The arms, per household:
+   *   CAND  - the bridge reader with the joint tier state (READER/TS+J/W0.02: 7aa's TS+J unit on the reader);
+   *   SHIP  - the shipping default: no bridge read, the product's per-world tables (OFF/PRODUCT/W0.02);
+   *   PRODR - the product's tables with the reader (READER/PRODUCT/W0.02), on households with a bridge only: it splits a
+   *           harm between the reader (PRODR against SHIP) and the tier state (CAND against PRODR).
+   * The panel: 7e's households in its registered order, the first 12 not reused, then S126, bridge 4, S360 and S194 (the
+   * units 7aa also ran, identity-checked by the reducer). Every unit runs on the same NP paths of the seed; its trace kept.
+   *   node research/solver/audit-s126.mjs diag7af [points=30] [paths] part k/n [seed=7002]
+   * Prints per unit 7aa's lines (reduce-7aa.mjs parse): a case line, solve, ran, gap, joint, run and done; no world lines.
+   * Units in the order CAND, SHIP, PRODR (the longest first); part k/n runs the units with index i % n === k.
+   */
+  const PANEL7AF = [['share 0.50', 2], ['share 0.70', 2], ['share 0.78', 2], ['share 0.90', 2], ['share 0.95', 2], ['bridge 0', 0], ['bridge 1', 1], ['bridge 6', 6],
+    ['wealth x0.5', 2], ['wealth x2', 2], ['S120', 2], ['S122', 2], ['S126', 2], ['bridge 4', 4], ['S360', 8], ['S194', 0]];
+  const UNITS7AF = [...PANEL7AF.map(([id]) => [id, 'reader', 'TS+J']), ...PANEL7AF.map(([id]) => [id, 'off', 'PRODUCT']),
+    ...PANEL7AF.filter(([, b]) => b > 0).map(([id]) => [id, 'reader', 'PRODUCT'])];
+  const W7AF = 0.02, ARM = { off: false, reader: 'reader' };
+  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
+  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002;
+  if (!(SEED >= 1)) { console.error(`audit-s126: bad seed ${process.argv[7]}`); process.exit(2); }
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  const OUT = process.env.DIAG7AF_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7af');
+  mkdirSync(OUT, { recursive: true });
+  console.log(`7AF, the candidate bundle (READER/TS+J) against the shipping default (OFF/PRODUCT) and the product with the reader (READER/PRODUCT) on bridge households, the product's settings (solvePlan) with the estate weight ${W7AF}, ${POINTS} points, ${NP} paths (seed ${SEED}), margin 1e-3; ${UNITS7AF.length} units; part ${pk}/${pn}`);
+  const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+  const chooseAt = (r, st, t, held, sm) => { const keep = r.switchMargin; r.switchMargin = sm; try { return chooseAction(r, st, t, held); } finally { r.switchMargin = keep; } };
+  const openGap = (r, zs) => {
+    let s0 = null, h0 = null;
+    runPolicy(r, zs, { choose: (t, st, held) => { if (t === 0 && !s0) { s0 = Float64Array.from(st); h0 = { ...held }; } return chooseAction(r, st, t, held); } });
+    const acts = r.c.acts, at = sm => acts[chooseAt(r, s0, 0, h0, sm)];
+    const stays = sm => { const a = at(sm); return a.tierPen === h0.pen && a.tierIsa === h0.isa; };
+    let gap;
+    if (stays(0)) gap = '0';
+    else if (!stays(1)) gap = '>1';
+    else { let lo = 0, hi = 1; for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (stays(mid)) hi = mid; else lo = mid; } gap = hi.toExponential(4); }
+    return { gap, open: [0.001, 0].map(sm => at(sm).tierPen).join(',') };
+  };
+  const run = (r, paths) => {
+    const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = makeTrace(N, T + 1);
+    let ok = 0, below = 0, tierYrs = 0, estate = 0, changes = 0;
+    const cap = r.meta.bequestCap;
+    paths.forEach((zs, k) => { tr.row = k; const o = runPolicy(r, zs, { trace: tr }); if (o.survived) { ok++; okArr[k] = 1; estate += Math.min(o.terminalNet, cap); } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; changes += o.tierChanges || 0; });
+    return { sim: 100 * ok / N, below: below / N, tierYrs: tierYrs / N, changes: changes / N, estate: estate / N, okArr, tr, secs: (Date.now() - t0) / 1000 };
+  };
+  const fileOf = (id, arm, label) => `${id.replace(/ /g, '_')}-${arm}-${label.toLowerCase().replace(/\+/g, '_').replace(/\//g, '@')}.json.gz`;
+  UNITS7AF.forEach(([id, arm, tag], i) => {
+    if (i % pn !== pk) return;
+    const h = byId(id)();
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const A = arm.toUpperCase(), label = `${tag}/W${W7AF}`;
+    console.log(`${id.padEnd(16)} case | unit ${A}/${label} | lambda ${LAMBDA} tier own riskAbove auto mix 3`);
+    const res = measureV2(h, ARM[arm], 5, { trace: false, seed: SEED, lambda: LAMBDA, forward: false, bequestWeight: W7AF, ...(tag === 'TS+J' ? { tierState: true, joint: true } : {}) });
+    const r = res.r;
+    if ((tag === 'TS+J') !== !!r.meta.tierState || (tag === 'TS+J') !== !!r.meta.jointWorlds) { console.error(`audit-s126: ${label} ran tierState ${r.meta.tierState} jointWorlds ${r.meta.jointWorlds}`); process.exit(2); }
+    if (!(Math.abs(r.meta.bequestWeight - W7AF) < 1e-12)) { console.error(`audit-s126: ${label} ran the estate weight ${r.meta.bequestWeight}`); process.exit(2); }
+    const ra = r.meta.riskAbove ? r.meta.riskAbove.decision.replace(/ /g, '_') : 'unset';
+    console.log(`${''.padEnd(16)} solve ${A}/${label}: table ${res.table.toFixed(4)} secs ${Math.round(res.secs)}`);
+    console.log(`${''.padEnd(16)} ran ${A}/${label}: ${res.ran}`);
+    { const g = openGap(r, res.paths[0]); console.log(`${''.padEnd(16)} gap ${A}/${label}: ${g.gap} opening ${g.open}`); }
+    console.log(`${''.padEnd(16)} joint ${A}/${label}: ${!!r.meta.jointWorlds} switchMargin ${r.switchMargin} scale ${Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0)))} cap ${Math.round(r.meta.bequestCap)} deathTax ${r.m.ctx.pensionDeathTaxRate} tier own riskAbove ${ra}`);
+    const f = run(r, res.paths);
+    console.log(`${''.padEnd(16)} run ${A}/${label}: sim ${f.sim.toFixed(4)} below ${f.below.toFixed(2)} tier-below ${f.tierYrs.toFixed(2)} changes ${f.changes.toFixed(3)} estate ${Math.round(f.estate)} secs ${Math.round(f.secs)}`);
+    const T = f.tr;
+    writeFileSync(join(OUT, fileOf(id, arm, label)), gzipSync(JSON.stringify({ id, arm: `${A}/${label}`, stamp: STAMP, N: NP, Y: T.Y, seed: SEED, sim: f.sim,
+      survived: b64(f.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
+    console.log(`${''.padEnd(16)} done ${A}/${label}`);
+  });
 } else if (mode === 'time') {
   /*
    * 7k: THE EXACT FINAL YEAR'S RUN TIME (PLAN.md 7k; a measurement, not a test). Times the solve only (solvePlan, no

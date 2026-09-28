@@ -1,0 +1,16 @@
+7AF'S POWER: 8000 paths a household, 16 households, read by reduce-7af.mjs items(); 20000 draws a story (seed 7002)
+
+ITEM 1 (no material harm, Holm across 16; the margin 0.25 on every household)
+  A: no household loses, churn 6 on every household                HELD 1.000
+  A: no household loses, churn 12 on every household               HELD 1.000
+  A: no household loses, churn 20 on every household               HELD 0.962  FALSIFIED 0.000  INCONCLUSIVE 0.038
+  A: no household loses, churn 50 on every household               HELD 0.027  FALSIFIED 0.029  INCONCLUSIVE 0.944
+  B: one household loses 0.4 points, churn 12 everywhere           HELD 0.001  FALSIFIED 0.974  INCONCLUSIVE 0.025
+  C: one household loses 0.25 points, churn 12 everywhere          HELD 0.080  FALSIFIED 0.531  INCONCLUSIVE 0.389
+  D: one household loses 0.2 points, churn 12 everywhere           HELD 0.275  FALSIFIED 0.244  INCONCLUSIVE 0.481
+  B at churn 20 everywhere                                         HELD 0.000  FALSIFIED 0.954  INCONCLUSIVE 0.046
+
+ITEM 2 (spending): S360 in 7aa's records, READER/TS+J/W0.02 (CAND) against OFF/PRODUCT/W0.02 (SHIP), through 7aa's gate
+  S360: spending 0.4345 -> 0.5427: 24.885% (se 0.767 points of a per cent); survival 34.3000 -> 45.9375
+
+The spending item's standard error on one household at 8,000 paths is the figure above; the 5% and 1% lines sit many standard errors from it, so item 2 reads by the size of the change, its uncertainty the credence.

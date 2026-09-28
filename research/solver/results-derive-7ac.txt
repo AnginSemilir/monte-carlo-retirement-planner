@@ -1,0 +1,50 @@
+7AC'S POWER: 8000 paths; 20000 draws a story (seed 7002); read by reduce-7ac.mjs's rule
+
+THE SIZES (7aa, through reduce-7aa.mjs's gates)
+  S126 (reader) W0       TS+J against PRODUCT 40/0; margin 0.25; PRODUCT fails 52
+  bridge 4 (reader) W0   TS+J against PRODUCT 38/1; margin 0.25; PRODUCT fails 65
+  S126 (reader) W0.02    TS+J against PRODUCT 47/0; margin 0.25; PRODUCT fails 59; the rest 0.116 +/- 0.016; on PRODUCT's survivors (7941) TS loses 9, TS+J against TS 9/0
+  S194 (off) W0.02       TS+J against PRODUCT 45/3; margin 0.25; PRODUCT fails 142; the rest 0.189 +/- 0.014; on PRODUCT's survivors (7858) TS loses 16, TS+J against TS 15/2
+
+BACKGROUND 0.5 PATHS EACH WAY ON EVERY LEG
+  item 1 (W0, OPEN0 against TS+J), cause 1: OPEN0 as the product (f 1)                             b 0.5  HELD 0.998  INCONCLUSIVE 0.002
+  item 1 (W0, OPEN0 against TS+J), half of TS+J's gain lost (f 0.5)                                b 0.5  FALSIFIED 0.002  HELD 0.209  INCONCLUSIVE 0.790
+  item 1 (W0, OPEN0 against TS+J), a quarter lost (f 0.25)                                         b 0.5  FALSIFIED 0.510  INCONCLUSIVE 0.490
+  item 1 (W0, OPEN0 against TS+J), cause 2: OPEN0 as TS+J (f 0)                                    b 0.5  FALSIFIED 1.000
+  item 1 (W0, OPEN0 against TS+J), cause 1 on S126 only                                            b 0.5  INCONCLUSIVE 1.000
+  item 2 (W0.02, the whole score), cause 1: OPEN0 as the product (f 1)                             b 0.5  HELD 1.000
+  item 2 (W0.02, the whole score), half (f 0.5)                                                    b 0.5  HELD 0.909  INCONCLUSIVE 0.091
+  item 2 (W0.02, the whole score), a quarter (f 0.25)                                              b 0.5  FALSIFIED 0.001  HELD 0.004  INCONCLUSIVE 0.995
+  item 2 (W0.02, the whole score), cause 2: OPEN0 as TS+J (f 0)                                    b 0.5  FALSIFIED 1.000
+  item 3 (W0.02, pooled against TS on PRODUCT's survivors), OPEN0 as the product on its survivors (saves TS's losses) b 0.5  HELD 1.000
+  item 3 (W0.02, pooled against TS on PRODUCT's survivors), OPEN0 as TS+J (TS+J's cells against TS) b 0.5  FALSIFIED 0.002  HELD 0.997  INCONCLUSIVE 0.001
+  item 3 (W0.02, pooled against TS on PRODUCT's survivors), OPEN0 as TS (the opening carried 7aa's item 5) b 0.5  FALSIFIED 0.999  HELD 0.001
+
+BACKGROUND 5 PATHS EACH WAY ON EVERY LEG
+  item 1 (W0, OPEN0 against TS+J), cause 1: OPEN0 as the product (f 1)                             b 5    HELD 0.994  INCONCLUSIVE 0.006
+  item 1 (W0, OPEN0 against TS+J), half of TS+J's gain lost (f 0.5)                                b 5    FALSIFIED 0.001  HELD 0.219  INCONCLUSIVE 0.780
+  item 1 (W0, OPEN0 against TS+J), a quarter lost (f 0.25)                                         b 5    FALSIFIED 0.283  HELD 0.000  INCONCLUSIVE 0.717
+  item 1 (W0, OPEN0 against TS+J), cause 2: OPEN0 as TS+J (f 0)                                    b 5    FALSIFIED 0.999  INCONCLUSIVE 0.001
+  item 1 (W0, OPEN0 against TS+J), cause 1 on S126 only                                            b 5    INCONCLUSIVE 1.000
+  item 2 (W0.02, the whole score), cause 1: OPEN0 as the product (f 1)                             b 5    HELD 1.000
+  item 2 (W0.02, the whole score), half (f 0.5)                                                    b 5    HELD 0.852  INCONCLUSIVE 0.148
+  item 2 (W0.02, the whole score), a quarter (f 0.25)                                              b 5    FALSIFIED 0.001  HELD 0.011  INCONCLUSIVE 0.988
+  item 2 (W0.02, the whole score), cause 2: OPEN0 as TS+J (f 0)                                    b 5    FALSIFIED 0.924  INCONCLUSIVE 0.076
+  item 3 (W0.02, pooled against TS on PRODUCT's survivors), OPEN0 as the product on its survivors (saves TS's losses) b 5    FALSIFIED 0.001  HELD 0.983  INCONCLUSIVE 0.016
+  item 3 (W0.02, pooled against TS on PRODUCT's survivors), OPEN0 as TS+J (TS+J's cells against TS) b 5    FALSIFIED 0.003  HELD 0.941  INCONCLUSIVE 0.056
+  item 3 (W0.02, pooled against TS on PRODUCT's survivors), OPEN0 as TS (the opening carried 7aa's item 5) b 5    FALSIFIED 0.951  HELD 0.030  INCONCLUSIVE 0.019
+
+BACKGROUND 15 PATHS EACH WAY ON EVERY LEG
+  item 1 (W0, OPEN0 against TS+J), cause 1: OPEN0 as the product (f 1)                             b 15   HELD 0.977  INCONCLUSIVE 0.023
+  item 1 (W0, OPEN0 against TS+J), half of TS+J's gain lost (f 0.5)                                b 15   FALSIFIED 0.001  HELD 0.227  INCONCLUSIVE 0.772
+  item 1 (W0, OPEN0 against TS+J), a quarter lost (f 0.25)                                         b 15   FALSIFIED 0.113  HELD 0.003  INCONCLUSIVE 0.884
+  item 1 (W0, OPEN0 against TS+J), cause 2: OPEN0 as TS+J (f 0)                                    b 15   FALSIFIED 0.867  INCONCLUSIVE 0.133
+  item 1 (W0, OPEN0 against TS+J), cause 1 on S126 only                                            b 15   HELD 0.000  INCONCLUSIVE 1.000
+  item 2 (W0.02, the whole score), cause 1: OPEN0 as the product (f 1)                             b 15   HELD 1.000  INCONCLUSIVE 0.000
+  item 2 (W0.02, the whole score), half (f 0.5)                                                    b 15   HELD 0.688  INCONCLUSIVE 0.312
+  item 2 (W0.02, the whole score), a quarter (f 0.25)                                              b 15   FALSIFIED 0.000  HELD 0.031  INCONCLUSIVE 0.969
+  item 2 (W0.02, the whole score), cause 2: OPEN0 as TS+J (f 0)                                    b 15   FALSIFIED 0.409  INCONCLUSIVE 0.591
+  item 3 (W0.02, pooled against TS on PRODUCT's survivors), OPEN0 as the product on its survivors (saves TS's losses) b 15   FALSIFIED 0.001  HELD 0.838  INCONCLUSIVE 0.160
+  item 3 (W0.02, pooled against TS on PRODUCT's survivors), OPEN0 as TS+J (TS+J's cells against TS) b 15   FALSIFIED 0.004  HELD 0.737  INCONCLUSIVE 0.260
+  item 3 (W0.02, pooled against TS on PRODUCT's survivors), OPEN0 as TS (the opening carried 7aa's item 5) b 15   FALSIFIED 0.503  HELD 0.038  INCONCLUSIVE 0.458
+

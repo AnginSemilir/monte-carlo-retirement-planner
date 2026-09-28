@@ -1,4 +1,4 @@
-true script: planted (63): all read as they should
+true script: planted (64): all read as they should
 caught  the gate accepts a missing job: the gate refuses a missing job: false (want true)
 caught  the gate accepts a job twice: the gate refuses a job run twice: false (want true)
 caught  the gate accepts an unregistered job: the gate refuses an unregistered job (S126 at 60x5): false (want true)
@@ -56,6 +56,7 @@ caught  item 2 at a 10% rise: item 2 at 20%, not 10%: a 15% rise with the price 
 caught  item 2's falsifier at 20%: item 2 falsified below 10%, not below 20%: a 15% rise on both, the mispricing stuck, is INCONCLUSIVE: FALSIFIED (want INCONCLUSIVE)
 caught  item 2's mispricing from any sign: item 2 on a negative mispricing growing more negative: INCONCLUSIVE, not HELD: HELD (want INCONCLUSIVE)
 caught  item 2's mispricing at 60x5 read from the 30x5 node: item 2 reads the mispricing at 60x5 on its own node run: the price stuck but the realised down to 0.6 is HELD: INCONCLUSIVE (want HELD)
+caught  item 2 counts a mispricing where TS+J keeps the held tiers: item 2 does not count a mispricing where TS+J keeps the held tiers (its node run is OPEN0's): the gap +30% and the price alone "closing" is INCONCLUSIVE: HELD (want INCONCLUSI
 caught  item 2 a half, not a third: item 2 at a third, not a half: the mispricing 0.7 -> 0.4 is HELD: INCONCLUSIVE (want HELD)
 caught  item 3 reads TS+J: item 3 reads the product, not TS+J: the product flat with TS+J +30% is FALSIFIED: HELD (want FALSIFIED)
 caught  item 4's comparison reversed: cause 1, numerical: 1, 2, 3 and 4 HELD: 1 HELD, 2 HELD, 3 HELD, 4 FALSIFIED (want 1 HELD, 2 HELD, 3 HELD, 4 HELD)
@@ -63,4 +64,4 @@ caught  item 4 reads the product: cause 1, numerical: 1, 2, 3 and 4 HELD: 1 HELD
 caught  three outcomes: never FALSIFIED: nothing moves 10% (the bug or structure branch): 2 and 3 FALSIFIED: 2 INCONCLUSIVE, 3 INCONCLUSIVE (want 2 FALSIFIED, 3 FALSIFIED)
 caught  three outcomes: HELD on either unit: item 1 split (low on bridge 4, right on S194): INCONCLUSIVE: HELD (want INCONCLUSIVE)
 
-63 mutations: every one caught
+64 mutations: every one caught

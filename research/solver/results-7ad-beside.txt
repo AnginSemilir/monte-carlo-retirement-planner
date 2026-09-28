@@ -14,3 +14,25 @@ READ BESIDE 7AD (reported, not registered; grade C): the gates passed - 7aa (its
   bridge 4 (reader) W0     share   0.0  13.7   9.9   8.7  20.2   3.5   1.3   2.6   1.1   0.1 | hazard   0.0  13.7  11.5  11.4  29.8   7.5   3.0   6.2   2.8   0.3
   S194 (off) W0.02         share   0.0  49.2  10.0  27.6   0.4   8.4   0.0   3.1   0.3   0.2 | hazard   0.0  49.2  19.7  67.5   2.9  65.4   0.8  69.7  18.7  17.2
   S126 (reader) W0         share   0.0  62.2   0.5   2.4   2.1   3.0   1.0   0.2   0.1   0.5 | hazard   0.0  62.2   1.3   6.5   5.9   9.3   3.4   0.7   0.2   1.6
+
+4. THE DEEP REVIEW AFTER 7AD, RECOMPUTED (grade C)
+  a. the bad node, price against realised (points), where TS+J leaves the held tiers
+     bridge 4 30x5    price 0.482 realised +1.100 ratio 0.44
+     bridge 4 60x5    price 0.454 realised +0.950 ratio 0.48
+     bridge 4 30x15   not measured: TS+J keeps the held tiers (its node run is OPEN0's)
+     S194 30x5        price 0.849 realised +1.125 ratio 0.75
+     S194 60x5        not measured: TS+J keeps the held tiers (its node run is OPEN0's)
+     S194 30x15       price 0.960 realised +1.400 ratio 0.69
+     S126 30x5        price 0.318 realised +0.475 ratio 0.67
+  b. pooled at 30x5: the three units price 1.648 realised 2.700 ratio 0.61 z -3.6; without bridge 4 price 1.167 realised 1.600 ratio 0.73 z -1.9
+  c. 7ac's paths less the node-weighted gain (points), with its z
+     bridge 4 (reader) W0     +0.046 z 0.6
+     S194 (off) W0.02         +0.150 z 1.9
+     S126 (reader) W0         -0.054 z -2.1
+  d. each solve's opening at margin 0 (the gap line's second tier): bridge 4 30x15 TS+J 2; bridge 4 30x15 PRODUCT 2; S194 30x15 TS+J 2; S194 30x15 PRODUCT 2; bridge 4 60x5 TS+J 2; bridge 4 60x5 PRODUCT 2; S194 60x5 TS+J 2; S194 60x5 PRODUCT 2; bridge 4 30x5 TS+J 2; bridge 4 30x5 PRODUCT 2; S194 30x5 TS+J 2; S194 30x5 PRODUCT 2; S126 30x5 TS+J 2
+  e. the bad node's gain by the year OPEN0 first leaves the plan's tiers (points: year 1 | later or never), where TS+J leaves the held tiers
+     bridge 4 30x5    year 1 +0.475 | later or never +0.625 | price 0.482
+     bridge 4 60x5    year 1 +0.675 | later or never +0.275 | price 0.454
+     S194 30x5        year 1 +1.025 | later or never +0.100 | price 0.849
+     S194 30x15       year 1 +1.100 | later or never +0.300 | price 0.960
+     S126 30x5        year 1 +0.400 | later or never +0.075 | price 0.318

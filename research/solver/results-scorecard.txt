@@ -12,10 +12,11 @@ THE SCORECARD: the author's stated credence against each item's outcome (PLAN.md
 7aa (the joint tier state at two settings: the pot off and on): Brier 0.260 over 6 (1 0.5 -> held; 2 0.45 -> not; 3 0.45 -> held; 4 0.5 -> held; 5 0.5 -> held; 6 0.45 -> held)
 7ab (the freed opening against TS+J and the product, the pot off and on): Brier 0.211 over 5 (1 0.5 -> not; 2 0.45 -> not; 3 0.8 -> held; 4 0.6 -> not; 5 0.55 -> held)
 7ac (the fourth cell: TS+J with the opening held in the plan's tier): Brier 0.261 over 3 (1 0.6 -> not; 2 0.6 -> not; 3 0.75 -> held)
+7ad (the refinement check: the bad world's price of the opening at its node and on finer grids): Brier 0.302 over 4 (1 0.65 -> not; 2 0.4 -> not; 3 0.45 -> not; 4 0.65 -> not)
 
-CUMULATIVE: Brier 0.219 over 86 items
+CUMULATIVE: Brier 0.222 over 90 items
 RELIABILITY (credence bin: items, mean credence, share held):
-  under 60%      48   0.44   0.60
-  60-75%         17   0.64   0.59
+  under 60%      50   0.44   0.58
+  60-75%         19   0.64   0.53
   75-90%         16   0.79   0.94
   90% and over    5   0.93   0.80

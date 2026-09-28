@@ -193,8 +193,12 @@ export function items(P, K) {
   // 2. stage 2, 60 points: the gap up 20% and world 0's mispricing (the node's realised survival over OPEN0 less the
   //    table's price, each at its own grid, on the same 4,000 paths) down by a third
   const g = (id, grid, tag) => Number(P(id, grid, tag).gap.gap);
-  const miss = (id, grid) => { const k = K(id, grid, 0); return survivalChange(k.lost, k.saved, k.N, ALPHA1).d - P(id, grid, 'TS+J').worlds[0].surv; };
-  const i2 = UNITS2.map(([id]) => { const g30 = g(id, '30x5', 'TS+J'), g60 = g(id, '60x5', 'TS+J'), m30 = miss(id, '30x5'), m60 = miss(id, '60x5'); return { id, g30, g60, rise: g60 / g30 - 1, m30, m60, closes: m30 > 0 && m60 <= (2 / 3) * m30 }; });
+    // a mispricing is measured only where TS+J's move leaves the held tiers, so its node run differs from OPEN0's; where it
+  // keeps them the two runs are equal by construction and the figure is the price alone (the deep review after 7ad, 28 Sep
+  // 19:09 UK): null, and that unit cannot close
+  const leaves = (id, grid) => { const u = P(id, grid, 'TS+J'); return !u.moves || u.moves.chosen !== u.moves.stay; };
+  const miss = (id, grid) => { if (!leaves(id, grid)) return null; const k = K(id, grid, 0); return survivalChange(k.lost, k.saved, k.N, ALPHA1).d - P(id, grid, 'TS+J').worlds[0].surv; };
+  const i2 = UNITS2.map(([id]) => { const g30 = g(id, '30x5', 'TS+J'), g60 = g(id, '60x5', 'TS+J'), m30 = miss(id, '30x5'), m60 = miss(id, '60x5'); return { id, g30, g60, rise: g60 / g30 - 1, m30, m60, closes: m30 !== null && m60 !== null && m30 > 0 && m60 <= (2 / 3) * m30 }; });
   out.push({ n: 2, text: '60 wealth points: TS+J\'s gap rises 20% or more AND world 0\'s mispricing (realised at the node less priced, each grid its own) falls by a third or more from a positive value, on both units (FALSIFIED: the gap rises less than 10% on both)', legs: i2, outcome: tri(i2, x => x.rise >= 0.2 && x.closes, x => x.rise < 0.1) });
   // 3. the product's gap with it
   const i3 = UNITS2.map(([id]) => { const g30 = g(id, '30x5', 'PRODUCT'), g60 = g(id, '60x5', 'PRODUCT'); return { id, g30, g60, rise: g60 / g30 - 1 }; });
@@ -292,7 +296,7 @@ function planted() {
   cases.push(['O47\'s yearly de-risk share: the first year each path leaves the plan\'s tiers, counted once', String(firstLeave({ N: 4, Y: 4, tier: Uint8Array.from([0, 8, 0, 8, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0, 4, 0]) }, 4)), '1,1,1,0']);
   cases.push(['the trace name is registered', traceName('bridge 4', 'READER', '60x5', 'TS+J', 0, '0'), 'bridge_4-reader-60x5-ts_j-world0@w0.json.gz']);
   // the items on planted stories
-  const mkP = spec => (id, grid, tag) => { const s = spec[`${id}|${grid}|${tag}`] || {}; return { gap: { gap: String(s.gap) }, worlds: [{ surv: s.p0 !== undefined ? s.p0 : 0.5 }] }; };
+  const mkP = spec => (id, grid, tag) => { const s = spec[`${id}|${grid}|${tag}`] || {}; return { gap: { gap: String(s.gap) }, worlds: [{ surv: s.p0 !== undefined ? s.p0 : 0.5 }], moves: { chosen: s.keeps ? 3 : 12, stay: 3 } }; };
   const mkK = spec => (id, grid, k) => { const s = spec[`${id}|${grid}`] || [48, 0]; return { saved: s[0], lost: s[1], a: WN - s[0] - s[1], d: 0, N: WN }; };
   // cause 1 numerical: priced 0.5 at 30x5 against 1.2 realised; at 60 the gap +30% and the price 0.9 (closes 0.4 >= 0.7/3)
   const num = { 'bridge 4|30x5|TS+J': { gap: 1.3456e-3, p0: 0.5 }, 'bridge 4|60x5|TS+J': { gap: 1.75e-3, p0: 0.9 }, 'bridge 4|30x15|TS+J': { gap: 1.4e-3 }, 'bridge 4|30x5|PRODUCT': { gap: 8e-4 }, 'bridge 4|60x5|PRODUCT': { gap: 1e-3 },
@@ -311,6 +315,7 @@ function planted() {
   cases.push(['item 2 at 20%, not 10%: a 15% rise with the price closing is INCONCLUSIVE', items(mkP({ ...num, 'bridge 4|60x5|TS+J': { gap: 1.3456e-3 * 1.15, p0: 0.9 } }), mkK(nodes))[1].outcome, 'INCONCLUSIVE']);
   cases.push(['item 2 falsified below 10%, not below 20%: a 15% rise on both, the mispricing stuck, is INCONCLUSIVE', items(mkP({ ...num, 'bridge 4|60x5|TS+J': { gap: 1.3456e-3 * 1.15, p0: 0.5 }, 'S194|60x5|TS+J': { gap: 1.0525e-3 * 1.15, p0: 0.6 } }), mkK({ ...nodes, 'bridge 4|60x5': [48, 0], 'S194|60x5': [64, 0] }))[1].outcome, 'INCONCLUSIVE']);
   cases.push(['item 2 on a negative mispricing growing more negative: INCONCLUSIVE, not HELD', items(mkP({ ...num, 'bridge 4|30x5|TS+J': { gap: 1.3456e-3, p0: 1.5 }, 'bridge 4|60x5|TS+J': { gap: 1.75e-3, p0: 1.7 } }), mkK(nodes))[1].outcome, 'INCONCLUSIVE']);
+    cases.push(['item 2 does not count a mispricing where TS+J keeps the held tiers (its node run is OPEN0\'s): the gap +30% and the price alone "closing" is INCONCLUSIVE', items(mkP({ ...num, 'S194|60x5|TS+J': { gap: 1.4e-3, p0: 1.0, keeps: true } }), mkK({ ...nodes, 'S194|60x5': [0, 0] }))[1].outcome, 'INCONCLUSIVE']);
   cases.push(['item 2 at a third, not a half: the mispricing 0.7 -> 0.4 is HELD', items(mkP({ ...num, 'bridge 4|60x5|TS+J': { gap: 1.75e-3, p0: 0.8 } }), mkK(nodes))[1].outcome, 'HELD']);
   cases.push(['item 3 reads the product, not TS+J: the product flat with TS+J +30% is FALSIFIED', items(mkP({ ...num, 'bridge 4|60x5|PRODUCT': { gap: 8.1e-4 }, 'S194|60x5|PRODUCT': { gap: 7.6e-4 } }), mkK(nodes))[2].outcome, 'FALSIFIED']);
   cases.push(['item 4: 15 return points moving more than 60 wealth points on both is FALSIFIED', items(mkP({ ...num, 'bridge 4|30x15|TS+J': { gap: 1.9e-3 }, 'S194|30x15|TS+J': { gap: 1.5e-3 } }), mkK(nodes))[3].outcome, 'FALSIFIED']);
@@ -365,7 +370,7 @@ export function reading(jobs, TR, out = console.log, wn = WN) {
   out('\nTHE ITEMS (each read by its registered rule)');
   for (const x of it) {
     out(`${x.n}. ${x.text}: ${x.outcome}`);
-    for (const l of x.legs) out(`     ${l.id}: ${x.n === 1 ? `price ${l.price.toFixed(3)} against the node's ${f3(l.iv.d)} (${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}): ${l.o}` : x.n === 2 ? `gap ${l.g30.toExponential(4)} -> ${l.g60.toExponential(4)} (${f3(100 * l.rise)}%); world 0's mispricing ${f3(l.m30)} -> ${f3(l.m60)}: ${l.closes ? 'falls by a third' : 'does not fall by a third from a positive value'}` : x.n === 3 ? `the product's gap ${l.g30.toExponential(4)} -> ${l.g60.toExponential(4)} (${f3(100 * l.rise)}%)` : `the gap's rise at 30x15 ${f3(100 * l.rq)}%, at 60x5 ${f3(100 * l.rp)}%`}`);
+    for (const l of x.legs) out(`     ${l.id}: ${x.n === 1 ? `price ${l.price.toFixed(3)} against the node's ${f3(l.iv.d)} (${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}): ${l.o}` : x.n === 2 ? `gap ${l.g30.toExponential(4)} -> ${l.g60.toExponential(4)} (${f3(100 * l.rise)}%); world 0's mispricing ${l.m30 === null ? 'not measured' : f3(l.m30)} -> ${l.m60 === null ? 'not measured (TS+J keeps the held tiers: its node run is OPEN0\'s)' : f3(l.m60)}: ${l.closes ? 'falls by a third' : 'does not fall by a third from a positive value'}` : x.n === 3 ? `the product's gap ${l.g30.toExponential(4)} -> ${l.g60.toExponential(4)} (${f3(100 * l.rise)}%)` : `the gap's rise at 30x15 ${f3(100 * l.rq)}%, at 60x5 ${f3(100 * l.rp)}%`}`);
   }
   const want60x15 = it[1].legs.every(l => l.rise >= 0.1) && it[3].legs.every(l => l.rq >= 0.1);
   out(`\nREPORTED: 60x15 warranted by the registered condition (both 60 points and 15 return points raise TS+J's gap by 10% or more on both units): ${want60x15 ? 'yes' : 'no'}`);

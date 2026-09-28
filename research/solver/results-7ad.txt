@@ -58,10 +58,11 @@ ok   item 2 needs a positive mispricing at 30x5: priced high at 30x5 with the ga
 ok   item 2 at 20%, not 10%: a 15% rise with the price closing is INCONCLUSIVE: INCONCLUSIVE
 ok   item 2 falsified below 10%, not below 20%: a 15% rise on both, the mispricing stuck, is INCONCLUSIVE: INCONCLUSIVE
 ok   item 2 on a negative mispricing growing more negative: INCONCLUSIVE, not HELD: INCONCLUSIVE
+ok   item 2 does not count a mispricing where TS+J keeps the held tiers (its node run is OPEN0's): the gap +30% and the price alone "closing" is INCONCLUSIVE: INCONCLUSIVE
 ok   item 2 at a third, not a half: the mispricing 0.7 -> 0.4 is HELD: HELD
 ok   item 3 reads the product, not TS+J: the product flat with TS+J +30% is FALSIFIED: FALSIFIED
 ok   item 4: 15 return points moving more than 60 wealth points on both is FALSIFIED: FALSIFIED
-planted (63): all read as they should
+planted (64): all read as they should
 
 7AD: THE REFINEMENT CHECK - IS THE BAD WORLD'S PRICE OF THE OPENING WRONG FOR NUMERICAL REASONS? (predictions/diag-7ad.md; 8000 paths of seed 7002, 4000 a node; the fair-test gates passed: the stamps, 7aa's gate, 7ac's gate, 7ad's gate against both - its 30x5 solves 7aa's, its 30x5 node runs' first 1000 paths 7ac's world lines - and every node trace)
 
@@ -129,7 +130,7 @@ THE ITEMS (each read by its registered rule)
      S194: price 0.849 against the node's +1.125 (0.711 to 1.403): priced right
 2. 60 wealth points: TS+J's gap rises 20% or more AND world 0's mispricing (realised at the node less priced, each grid its own) falls by a third or more from a positive value, on both units (FALSIFIED: the gap rises less than 10% on both): FALSIFIED
      bridge 4: gap 1.3456e-3 -> 1.2086e-3 (-10.181%); world 0's mispricing +0.618 -> +0.496: does not fall by a third from a positive value
-     S194: gap 1.0525e-3 -> 9.0137e-4 (-14.359%); world 0's mispricing +0.276 -> -0.648: falls by a third
+     S194: gap 1.0525e-3 -> 9.0137e-4 (-14.359%); world 0's mispricing +0.276 -> not measured (TS+J keeps the held tiers: its node run is OPEN0's): does not fall by a third from a positive value
 3. the product's gap rises 20% or more at 60 wealth points on both units (FALSIFIED: less than 10% on both): INCONCLUSIVE
      bridge 4: the product's gap 8.0106e-4 -> 6.8816e-4 (-14.094%)
      S194: the product's gap 7.5604e-4 -> 9.6988e-4 (+28.284%)

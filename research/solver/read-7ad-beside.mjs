@@ -85,10 +85,42 @@ for (const [id, arm, w] of UNITS) {
 // 3. O47's figures from a committed script (its gate: "its figures from a committed script over 7ac's OPEN0 traces"; done
 // after 7ad was read, the order recorded in the ledger): the share of 7ac's 8,000 OPEN0 paths first leaving the plan's tiers
 // in each year 0 to 9 (reduce-7ad.mjs firstLeave), and the yearly hazard (those leaving in year t over those still in the
-// plan's tiers at its start, failed paths counted as staying until their failure year)
+// plan's tiers at its start; failed paths are not removed from that count - their trace reads the plan's tier after failure -
+// which changes nothing before the first failure year, none in years 0 to 9 here: the plan-auditor's check, 28 Sep 19:03 UK)
 console.log('\n3. O47: 7AC\'S OPEN0 ON ITS 8,000 PATHS - the per cent first leaving the plan\'s tiers in years 0 to 9, then the yearly hazard (per cent of those still in the plan\'s tiers)');
 for (const [id, arm, w] of UNITS) {
   const O = TC[`${id}|OPEN0|${w}`], f = D.firstLeave(O, 10);
   let atRisk = O.N; const hz = f.map(x => { const h = atRisk ? 100 * x / atRisk : 0; atRisk -= x; return h; });
   console.log(`  ${`${id} (${arm.toLowerCase()}) W${w}`.padEnd(24)} share ${f.map(x => (100 * x / O.N).toFixed(1).padStart(5)).join(' ')} | hazard ${hz.map(x => x.toFixed(1).padStart(5)).join(' ')}`);
+}
+
+// 4. THE DEEP REVIEW AFTER 7AD's FIGURES, RECOMPUTED (its scripts were uncommitted; deep-review-log.md 28 Sep 19:09 UK): the
+// bad node's price against its realised gain at every grid where TS+J's move leaves the held tiers; pooled at 30x5 over the
+// three units (the z from each node's paired variance, 100^2 (saved + lost) / N^2, summed); 7ac's paths less the
+// node-weighted gain with its z; each solve's opening at margin 0 (the gap line's second tier); and the node gain split by
+// the year OPEN0 first leaves the plan's tiers (year 1 against later or never)
+console.log('\n4. THE DEEP REVIEW AFTER 7AD, RECOMPUTED (grade C)');
+const nodeOf = (id, grid) => { const u = jobs.find(j => j.id === id && j.grid === grid).tags['TS+J'], kk = cells(TD[`${id}|${grid}|OPEN0|0`].survived, TD[`${id}|${grid}|TS+J|0`].survived); return { u, kk, d: 100 * (kk.saved - kk.lost) / kk.N, v: 1e4 * (kk.saved + kk.lost) / kk.N ** 2, leaves: u.moves.chosen !== u.moves.stay }; };
+console.log('  a. the bad node, price against realised (points), where TS+J leaves the held tiers');
+for (const [id, grid] of [['bridge 4', '30x5'], ['bridge 4', '60x5'], ['bridge 4', '30x15'], ['S194', '30x5'], ['S194', '60x5'], ['S194', '30x15'], ['S126', '30x5']]) {
+  const n = nodeOf(id, grid);
+  console.log(`     ${`${id} ${grid}`.padEnd(16)} ${n.leaves ? `price ${n.u.worlds[0].surv.toFixed(3)} realised ${f3(n.d)} ratio ${(n.u.worlds[0].surv / n.d).toFixed(2)}` : 'not measured: TS+J keeps the held tiers (its node run is OPEN0\'s)'}`);
+}
+const pool = ids => { const ns = ids.map(id => nodeOf(id, '30x5')), p = ns.reduce((t, n) => t + n.u.worlds[0].surv, 0), d = ns.reduce((t, n) => t + n.d, 0), se = Math.sqrt(ns.reduce((t, n) => t + n.v, 0)); return `price ${p.toFixed(3)} realised ${d.toFixed(3)} ratio ${(p / d).toFixed(2)} z ${((p - d) / se).toFixed(1)}`; };
+console.log(`  b. pooled at 30x5: the three units ${pool(['bridge 4', 'S194', 'S126'])}; without bridge 4 ${pool(['S194', 'S126'])}`);
+console.log('  c. 7ac\'s paths less the node-weighted gain (points), with its z');
+for (const [id, arm, w] of UNITS) {
+  const u = jobs.find(j => j.id === id && j.grid === '30x5').tags['TS+J'];
+  const nv = [0, 1, 2].reduce((t, k) => { const kk = cells(TD[`${id}|30x5|OPEN0|${k}`].survived, TD[`${id}|30x5|TS+J|${k}`].survived); return t + u.worlds[k].w ** 2 * 1e4 * (kk.saved + kk.lost) / kk.N ** 2; }, 0);
+  const O = TC[`${id}|OPEN0|${w}`], J = TC[`${id}|TS+J|${w}`], kk = cells(O.survived, J.survived), dp = 100 * (kk.saved - kk.lost) / kk.N, vp = 1e4 * (kk.saved + kk.lost) / kk.N ** 2;
+  console.log(`     ${`${id} (${arm.toLowerCase()}) W${w}`.padEnd(24)} ${f3(dp - node[id])} z ${((dp - node[id]) / Math.sqrt(vp + nv)).toFixed(1)}`);
+}
+console.log(`  d. each solve's opening at margin 0 (the gap line's second tier): ${jobs.flatMap(j => Object.entries(j.tags).map(([tag, u]) => `${j.id} ${j.grid} ${tag} ${u.gap.open0}`)).join('; ')}`);
+console.log('  e. the bad node\'s gain by the year OPEN0 first leaves the plan\'s tiers (points: year 1 | later or never), where TS+J leaves the held tiers');
+for (const [id, grid] of [['bridge 4', '30x5'], ['bridge 4', '60x5'], ['S194', '30x5'], ['S194', '30x15'], ['S126', '30x5']]) {
+  const O = TD[`${id}|${grid}|OPEN0|0`], J = TD[`${id}|${grid}|TS+J|0`];
+  let y1 = 0, rest = 0;
+  for (let i = 0; i < O.N; i++) { const diff = J.survived[i] - O.survived[i]; if (!diff) continue; let first = -1; for (let t = 0; t < O.Y; t++) if (O.tier[i * O.Y + t] !== 0) { first = t; break; } if (first === 1) y1 += diff; else rest += diff; }
+  const n = nodeOf(id, grid);
+  console.log(`     ${`${id} ${grid}`.padEnd(16)} year 1 ${f3(100 * y1 / O.N)} | later or never ${f3(100 * rest / O.N)} | price ${n.u.worlds[0].surv.toFixed(3)}`);
 }

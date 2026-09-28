@@ -25,6 +25,7 @@ READ BESIDE 7AD (reported, not registered; grade C): the gates passed - 7aa (its
      S194 30x15       price 0.960 realised +1.400 ratio 0.69
      S126 30x5        price 0.318 realised +0.475 ratio 0.67
   b. pooled at 30x5: the three units price 1.648 realised 2.700 ratio 0.61 z -3.6; without bridge 4 price 1.167 realised 1.600 ratio 0.73 z -1.9
+     with the paths' covariance: the three units z -3.37; without bridge 4 z -1.89
   c. 7ac's paths less the node-weighted gain (points), with its z
      bridge 4 (reader) W0     +0.046 z 0.6
      S194 (off) W0.02         +0.150 z 1.9

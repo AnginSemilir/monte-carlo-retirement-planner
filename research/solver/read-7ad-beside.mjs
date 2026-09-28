@@ -108,6 +108,12 @@ for (const [id, grid] of [['bridge 4', '30x5'], ['bridge 4', '60x5'], ['bridge 4
 }
 const pool = ids => { const ns = ids.map(id => nodeOf(id, '30x5')), p = ns.reduce((t, n) => t + n.u.worlds[0].surv, 0), d = ns.reduce((t, n) => t + n.d, 0), se = Math.sqrt(ns.reduce((t, n) => t + n.v, 0)); return `price ${p.toFixed(3)} realised ${d.toFixed(3)} ratio ${(p / d).toFixed(2)} z ${((p - d) / se).toFixed(1)}`; };
 console.log(`  b. pooled at 30x5: the three units ${pool(['bridge 4', 'S194', 'S126'])}; without bridge 4 ${pool(['S194', 'S126'])}`);
+// the same pooled z with the paths' covariance: every unit runs on seed 7002's first 4,000 paths with the node's shift, so a
+// path's paired difference on two units may move together (the plan-auditor's MINOR 6, 28 Sep)
+const poolCov = ids => { const ns = ids.map(id => { const O = TD[`${id}|30x5|OPEN0|0`], J = TD[`${id}|30x5|TS+J|0`]; return { d: Array.from({ length: O.N }, (_, i) => J.survived[i] - O.survived[i]), p: jobs.find(j => j.id === id && j.grid === '30x5').tags['TS+J'].worlds[0].surv }; }), N = ns[0].d.length;
+  let v = 0; for (const a of ns) for (const b of ns) { let s2 = 0; for (let i = 0; i < N; i++) s2 += a.d[i] * b.d[i]; v += 1e4 * s2 / N ** 2; }
+  const p = ns.reduce((t, x) => t + x.p, 0), d = ns.reduce((t, x) => t + 100 * x.d.reduce((u, y) => u + y, 0) / N, 0); return `z ${((p - d) / Math.sqrt(v)).toFixed(2)}`; };
+console.log(`     with the paths' covariance: the three units ${poolCov(['bridge 4', 'S194', 'S126'])}; without bridge 4 ${poolCov(['S194', 'S126'])}`);
 console.log('  c. 7ac\'s paths less the node-weighted gain (points), with its z');
 for (const [id, arm, w] of UNITS) {
   const u = jobs.find(j => j.id === id && j.grid === '30x5').tags['TS+J'];

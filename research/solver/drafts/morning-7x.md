@@ -124,7 +124,7 @@ The order:
 - **Not bounded at the opening.** With the switch rule applied to the mixture (TS+J), the tables open **de-risked**
   (pair 2) at the product's margin on S126 and S194, where the per-world tier state opens in the plan's tier. On share
   0.95 both open in the plan's tier (bounded).
-- **How big the flips are.** S126's gap ratio is 1.334, and the margin it crosses sat 20.5% above the tier state's gap.
+- **How big the flips are.** S126's gap ratio is 1.334, across a margin the tier state sat 20.5% under.
   S194's ratio is 1.086, across a margin the tier state sat only 3.1% under. That is the knife-edge the deep review
   named before the output. S126's outcome falls outside the map written in advance. Both are recorded as printed, and
   **nothing is drawn from either for the ranking**.

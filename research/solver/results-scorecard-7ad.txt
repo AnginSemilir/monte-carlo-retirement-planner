@@ -1,0 +1,22 @@
+THE SCORECARD: the author's stated credence against each item's outcome (PLAN.md 8j). Brier target below 0.20; always 50% scores 0.25.
+
+7e (the bridge reader): Brier 0.166 over 10 (1 0.7 -> held; 2 0.8 -> held; 3 0.6 -> not; 4 0.65 -> held; 5 0.75 -> not; 6 0.8 -> held; 7 0.85 -> held; 8 0.75 -> held; 9 0.95 -> held; carried forward 0.6 -> not)
+7r (why the reader harms): Brier 0.331 over 6 (1 0.6 -> held; 2 0.9 -> not; 3 0.3 -> held; 4 0.55 -> held; 5 0.65 -> held; outcome HELD 0.55 -> held)
+7s (5 or 15 return points): Brier 0.098 over 6 (1 0.95 -> held; 2 0.45 -> held; 3 0.85 -> held; 4 0.6 -> held; 5 0.8 -> held; outcome HELD 0.25 -> not)
+7t (six suspected causes): Brier 0.261 over 18 (1 0.95 -> held; 10 0.7 -> held; 11 0.3 -> not; 12 0.5 -> not; 13 0.35 -> held; 14 0.8 -> held; 15 0.85 -> held; 16 0.75 -> held; 17 0.35 -> held; 2 0.25 -> not; 3 0.15 -> held; 4 0.2 -> not; 5 0.25 -> held; 6 0.15 -> held; 7 0.65 -> not; 8 0.5 -> not; 9 0.45 -> held; a cause HELD 0.55 -> held)
+7v (the switch margin): Brier 0.214 over 14 (1 0.45 -> held; 10 0.5 -> held; 11 0.5 -> held; 12 0.45 -> held; 13 0.4 -> not; 2 0.85 -> held; 3 0.4 -> not; 4 0.7 -> held; 5 0.55 -> not; 6 0.7 -> not; 7 0.3 -> not; 8 0.5 -> held; P named 0.35 -> not; a READER+J candidate by the whole score 0.55 -> held)
+7w (5 or 15 points at the bridge's last year): Brier 0.222 over 5 (1 0.65 -> held; 2 0.6 -> held; 3 0.55 -> held; 4 0.35 -> held; 5 0.55 -> held)
+7x (held-for-life tables: free switching or three worlds): Brier 0.218 over 4 (1 0.45 -> held; 2 0.55 -> held; 3 0.75 -> held; 4 0.55 -> not)
+7z (Q's fix alone: the reader's step integrated in the chooser): Brier 0.059 over 4 (1 0.8 -> held; 2 0.75 -> held; 3 0.65 -> held; 4 0.9 -> held)
+7y (the tier state: free switching in the tables): Brier 0.252 over 5 (1 0.55 -> not; 2 0.45 -> not; 3 0.5 -> not; 4 0.55 -> held; 5 0.55 -> not)
+7aa (the joint tier state at two settings: the pot off and on): Brier 0.260 over 6 (1 0.5 -> held; 2 0.45 -> not; 3 0.45 -> held; 4 0.5 -> held; 5 0.5 -> held; 6 0.45 -> held)
+7ab (the freed opening against TS+J and the product, the pot off and on): Brier 0.211 over 5 (1 0.5 -> not; 2 0.45 -> not; 3 0.8 -> held; 4 0.6 -> not; 5 0.55 -> held)
+7ac (the fourth cell: TS+J with the opening held in the plan's tier): Brier 0.261 over 3 (1 0.6 -> not; 2 0.6 -> not; 3 0.75 -> held)
+7ad (the refinement check: the bad world's price of the opening at its node and on finer grids): Brier 0.302 over 4 (1 0.65 -> not; 2 0.4 -> not; 3 0.45 -> not; 4 0.65 -> not)
+
+CUMULATIVE: Brier 0.222 over 90 items
+RELIABILITY (credence bin: items, mean credence, share held):
+  under 60%      50   0.44   0.58
+  60-75%         19   0.64   0.53
+  75-90%         16   0.79   0.94
+  90% and over    5   0.93   0.80

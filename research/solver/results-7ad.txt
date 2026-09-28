@@ -1,0 +1,142 @@
+ok   a log parsed and gated: seven jobs, the gate passes: 7 0
+ok   the gate refuses a missing job: true
+ok   the gate refuses a job run twice: true
+ok   the gate refuses an unregistered job (S126 at 60x5): true
+ok   the gate refuses a job run at other points than its grid: true
+ok   the gate refuses a 30x5 table not 7aa's: true
+ok   the gate refuses a 30x5 gap not 7aa's: true
+ok   the gate refuses a 30x5 product gap not 7aa's: true
+ok   the gate refuses a finer grid's ran line differing in more than its grid: true
+ok   the gate takes a finer grid's ran line differing only in its grid: 0
+ok   the gate refuses a ran line whose points are not the grid's: true
+ok   the gate refuses a missing solve line: true
+ok   the gate refuses like-for-like prices not summing to the mixture's (the world lines summing to them): true
+ok   the same, the world lines moved alone: refused by their sum: true
+ok   the gate refuses a STAY move leaving the held tiers: true
+ok   the gate refuses a missing node run at 30x5 (world 2): true
+ok   the gate refuses a node run of other than the registered paths: true
+ok   the gate refuses OPEN0 leaving the held tiers on a node path: true
+ok   the gate refuses TS+J keeping the held tiers where its chosen move leaves them: true
+ok   the gate refuses a 30x5 node's first 1000 paths not 7ac's world line: true
+ok   the gate refuses a missing done line: true
+ok   the gate refuses a job with no 7aa unit to compare: true
+ok   the gate refuses job line settings not the registered ones: true
+ok   the gate refuses an unregistered solve (the product in the S126 control): true
+ok   the fixture's shared fault alone passes (the helper plants nothing by itself): false
+ok   the gate refuses a solve at another estate weight (7aa's reference too): true
+ok   the gate refuses the product run with the tier state (7aa's reference too): true
+ok   the gate refuses a held tier, Q's fix or the reader's reference in a ran line (7aa's reference too): true
+ok   the gate refuses a ran line of other paths (7aa's reference too): true
+ok   the gate refuses TS+J solved per world: true
+ok   the gate refuses a solve at margin 0: true
+ok   the gate refuses a scale not 7aa's: true
+ok   the gate refuses a product scale not 7aa's: true
+ok   the gate refuses a missing moves line: true
+ok   the gate refuses a BEST move keeping the held tiers where the gap is above 0: true
+ok   the gate refuses BEST and STAY differing where the gap is 0: true
+ok   the gate refuses a missing price line: true
+ok   the gate refuses a mixture price not the gap (x100): the gap 0.14% away: true
+ok   the gate takes a gap 0.05% from the mixture price (its five figures): false
+ok   the gate refuses world lines not summing to the price line: true
+ok   the gate refuses two world lines (world 1, priced 0, missing): true
+ok   the gate refuses a node run away from its world's node: true
+ok   the gate refuses node runs for the product: true
+ok   the gate refuses an extra node run at a finer grid (world 1 at 60x5): true
+ok   the gate refuses a chosen move neither BEST nor STAY (a third leaving move): true
+ok   the gate refuses a chosen move keeping the held tiers that is not STAY: true
+ok   a trace agrees with the log to its four decimals, and not beyond: true false false
+ok   O47's yearly de-risk share: the first year each path leaves the plan's tiers, counted once: 1,1,1,0
+ok   the trace name is registered: bridge_4-reader-60x5-ts_j-world0@w0.json.gz
+ok   cause 1, numerical: 1, 2, 3 and 4 HELD: 1 HELD, 2 HELD, 3 HELD, 4 HELD
+ok   nothing moves 10% (the bug or structure branch): 2 and 3 FALSIFIED: 2 FALSIFIED, 3 FALSIFIED
+ok   cause 2: priced right at the node (price 1.2 against 48 of 4000): 1 FALSIFIED: FALSIFIED
+ok   item 1 split (low on bridge 4, right on S194): INCONCLUSIVE: INCONCLUSIVE
+ok   item 1 reads the interval at 0.025, not 0.05: a price just under the 0.05 lower end but above the 0.025 one is priced right: priced right
+ok   item 2 needs the price to close a third too: the gap +30% but the price stuck is INCONCLUSIVE: INCONCLUSIVE
+ok   item 2 reads the mispricing at 60x5 on its own node run: the price stuck but the realised down to 0.6 is HELD: HELD
+ok   item 2 needs a positive mispricing at 30x5: priced high at 30x5 with the gap +30% is INCONCLUSIVE: INCONCLUSIVE
+ok   item 2 at 20%, not 10%: a 15% rise with the price closing is INCONCLUSIVE: INCONCLUSIVE
+ok   item 2 falsified below 10%, not below 20%: a 15% rise on both, the mispricing stuck, is INCONCLUSIVE: INCONCLUSIVE
+ok   item 2 on a negative mispricing growing more negative: INCONCLUSIVE, not HELD: INCONCLUSIVE
+ok   item 2 at a third, not a half: the mispricing 0.7 -> 0.4 is HELD: HELD
+ok   item 3 reads the product, not TS+J: the product flat with TS+J +30% is FALSIFIED: FALSIFIED
+ok   item 4: 15 return points moving more than 60 wealth points on both is FALSIFIED: FALSIFIED
+planted (63): all read as they should
+
+7AD: THE REFINEMENT CHECK - IS THE BAD WORLD'S PRICE OF THE OPENING WRONG FOR NUMERICAL REASONS? (predictions/diag-7ad.md; 8000 paths of seed 7002, 4000 a node; the fair-test gates passed: the stamps, 7aa's gate, 7ac's gate, 7ad's gate against both - its 30x5 solves 7aa's, its 30x5 node runs' first 1000 paths 7ac's world lines - and every node trace)
+
+EVERY JOB: the year-0 gap (the mixture's price over 100), and by world the like-for-like price of the mixture's two year-0 moves (points, whole | survival)
+  bridge 4 (reader) W0 30x15 TS+J    gap 9.9237e-4 (opening 0,2) | world 0 0.4174 | 0.3764  world 1 0.0339 | 0.0062  world 2 0.0423 | 0.0001 | mixture survival 0.0669
+  bridge 4 (reader) W0 30x15 PRODUCT gap 6.6547e-4 (opening 0,2) | world 0 0.2219 | 0.1954  world 1 0.0333 | 0.0060  world 2 0.0444 | 0.0002 | mixture survival 0.0366
+  S194 (off) W0.02 30x15 TS+J        gap 1.2174e-3 (opening 2,2) | world 0 0.9511 | 0.9601  world 1 -0.0357 | 0.0338  world 2 -0.0780 | 0.0002 | mixture survival 0.1826
+  S194 (off) W0.02 30x15 PRODUCT     gap 7.4447e-4 (opening 0,2) | world 0 0.5159 | 0.5419  world 1 -0.0124 | 0.0244  world 2 -0.0196 | 0.0011 | mixture survival 0.1068
+  bridge 4 (reader) W0 60x5 TS+J     gap 1.2086e-3 (opening 2,2) | world 0 0.5173 | 0.4538  world 1 0.0400 | 0.0076  world 2 0.0480 | 0.0000 | mixture survival 0.0807
+  bridge 4 (reader) W0 60x5 PRODUCT  gap 6.8816e-4 (opening 0,2) | world 0 0.2216 | 0.1811  world 1 0.0369 | 0.0062  world 2 0.0438 | 0.0001 | mixture survival 0.0343
+  S194 (off) W0.02 60x5 TS+J         gap 9.0137e-4 (opening 0,2) | world 0 0.6246 | 0.6477  world 1 -0.0150 | 0.0308  world 2 -0.0236 | 0.0002 | mixture survival 0.1285
+  S194 (off) W0.02 60x5 PRODUCT      gap 9.6988e-4 (opening 0,2) | world 0 0.6052 | 0.6465  world 1 -0.0032 | 0.0246  world 2 -0.0103 | 0.0012 | mixture survival 0.1244
+  bridge 4 (reader) W0 30x5 TS+J     gap 1.3456e-3 (opening 2,2) | world 0 0.5319 | 0.4816  world 1 0.0545 | 0.0128  world 2 0.0573 | 0.0002 | mixture survival 0.0888
+  bridge 4 (reader) W0 30x5 PRODUCT  gap 8.0106e-4 (opening 0,2) | world 0 0.2389 | 0.2104  world 1 0.0485 | 0.0131  world 2 0.0477 | 0.0006 | mixture survival 0.0439
+  S194 (off) W0.02 30x5 TS+J         gap 1.0525e-3 (opening 2,2) | world 0 0.8423 | 0.8486  world 1 -0.0363 | 0.0310  world 2 -0.0658 | 0.0002 | mixture survival 0.1622
+  S194 (off) W0.02 30x5 PRODUCT      gap 7.5604e-4 (opening 0,2) | world 0 0.5441 | 0.5661  world 1 -0.0166 | 0.0251  world 2 -0.0240 | 0.0009 | mixture survival 0.1112
+  S126 (reader) W0 30x5 TS+J         gap 1.0649e-3 (opening 2,2) | world 0 0.3882 | 0.3183  world 1 0.0507 | 0.0058  world 2 0.0480 | 0.0001 | mixture survival 0.0569
+
+THE NODE RUNS: TS+J against OPEN0 at each node run (4,000 paths): saved/lost, the survival difference (points, exact 95% interval at 0.025), beside the world's like-for-like survival price; the whole score's difference (reduce-7aa.mjs wholeLeg at 0.05)
+  bridge 4 (reader) W0 30x15 world 0 0/0 +0.000 (0.000 to 0.000) against the price 0.376 | whole +0.000 (-0.118 to 0.118) against the price 0.417
+  S194 (off) W0.02 30x15 world 0     68/12 +1.400 (0.953 to 1.710) against the price 0.960 | whole +1.410 (0.888 to 1.959) against the price 0.951
+  bridge 4 (reader) W0 60x5 world 0  38/0 +0.950 (0.743 to 0.950) against the price 0.454 | whole +1.159 (0.815 to 1.579) against the price 0.517
+  S194 (off) W0.02 60x5 world 0      0/0 +0.000 (0.000 to 0.000) against the price 0.648 | whole +0.000 (-0.109 to 0.109) against the price 0.625
+  bridge 4 (reader) W0 30x5 world 0  48/4 +1.100 (0.774 to 1.255) against the price 0.482 | whole +1.370 (0.962 to 1.836) against the price 0.532
+  bridge 4 (reader) W0 30x5 world 1  2/0 +0.050 (-0.039 to 0.050) against the price 0.013 | whole +0.090 (-0.042 to 0.264) against the price 0.055
+  bridge 4 (reader) W0 30x5 world 2  0/0 +0.000 (0.000 to 0.000) against the price 0.000 | whole -0.007 (-0.135 to 0.122) against the price 0.057
+  S194 (off) W0.02 30x5 world 0      55/10 +1.125 (0.711 to 1.403) against the price 0.849 | whole +1.147 (0.673 to 1.646) against the price 0.842
+  S194 (off) W0.02 30x5 world 1      0/0 +0.000 (0.000 to 0.000) against the price 0.031 | whole -0.029 (-0.183 to 0.125) against the price -0.036
+  S194 (off) W0.02 30x5 world 2      0/0 +0.000 (0.000 to 0.000) against the price 0.000 | whole +0.031 (-0.110 to 0.173) against the price -0.066
+  S126 (reader) W0 30x5 world 0      19/0 +0.475 (0.279 to 0.475) against the price 0.318 | whole +0.610 (0.355 to 0.930) against the price 0.388
+  S126 (reader) W0 30x5 world 1      0/0 +0.000 (0.000 to 0.000) against the price 0.006 | whole +0.019 (-0.111 to 0.149) against the price 0.051
+  S126 (reader) W0 30x5 world 2      0/0 +0.000 (0.000 to 0.000) against the price 0.000 | whole +0.002 (-0.125 to 0.129) against the price 0.048
+
+O47, THE YEARLY DE-RISK SHARE AT THE NODES: the per cent of each node run's paths first leaving the plan's tiers in years 0 to 7 (the trace's tier byte), OPEN0 then TS+J
+  bridge 4 (reader) W0 30x15 world 0 OPEN0   0.0  31.0   9.3  33.3   7.3   0.1   4.3   0.6
+  bridge 4 (reader) W0 30x15 world 0 TS+J    0.0  31.0   9.3  33.3   7.3   0.1   4.3   0.6
+  S194 (off) W0.02 30x15 world 0 OPEN0       0.0  34.4  51.5   0.3  13.3   0.0   0.1   0.2
+  S194 (off) W0.02 30x15 world 0 TS+J      100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  bridge 4 (reader) W0 60x5 world 0 OPEN0    0.0  30.8  32.1   5.0   4.7   7.0   0.5   2.3
+  bridge 4 (reader) W0 60x5 world 0 TS+J   100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S194 (off) W0.02 60x5 world 0 OPEN0        0.0 100.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S194 (off) W0.02 60x5 world 0 TS+J         0.0 100.0   0.0   0.0   0.0   0.0   0.0   0.0
+  bridge 4 (reader) W0 30x5 world 0 OPEN0    0.0  19.3  14.1  12.5  22.0   4.3   1.4   3.4
+  bridge 4 (reader) W0 30x5 world 0 TS+J   100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  bridge 4 (reader) W0 30x5 world 1 OPEN0    0.0  13.9  10.0   8.8  19.9   3.5   1.5   2.3
+  bridge 4 (reader) W0 30x5 world 1 TS+J   100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  bridge 4 (reader) W0 30x5 world 2 OPEN0    0.0   9.5   5.8   5.5  16.5   2.4   0.8   1.8
+  bridge 4 (reader) W0 30x5 world 2 TS+J   100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S194 (off) W0.02 30x5 world 0 OPEN0        0.0  58.5  11.0  22.9   0.6   5.8   0.0   0.6
+  S194 (off) W0.02 30x5 world 0 TS+J       100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S194 (off) W0.02 30x5 world 1 OPEN0        0.0  49.9   9.8  27.3   0.6   8.3   0.0   2.9
+  S194 (off) W0.02 30x5 world 1 TS+J       100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S194 (off) W0.02 30x5 world 2 OPEN0        0.0  41.0   9.1  28.6   0.3  11.2   0.0   7.6
+  S194 (off) W0.02 30x5 world 2 TS+J       100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S126 (reader) W0 30x5 world 0 OPEN0        0.0  71.0   0.7   3.6   2.7   4.3   1.3   0.3
+  S126 (reader) W0 30x5 world 0 TS+J       100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S126 (reader) W0 30x5 world 1 OPEN0        0.0  62.6   0.6   2.6   2.3   3.3   1.0   0.3
+  S126 (reader) W0 30x5 world 1 TS+J       100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S126 (reader) W0 30x5 world 2 OPEN0        0.0  55.2   0.3   1.7   1.4   1.6   0.5   0.1
+  S126 (reader) W0 30x5 world 2 TS+J       100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+
+THE ITEMS (each read by its registered rule)
+1. stage 1 (30x5), the bad world: TS+J's survival price of its opening lies below the node's exact 95% interval (0.025 each) on bridge 4 and S194 (FALSIFIED: inside or above on both): INCONCLUSIVE
+     bridge 4: price 0.482 against the node's +1.100 (0.774 to 1.255): priced low
+     S194: price 0.849 against the node's +1.125 (0.711 to 1.403): priced right
+2. 60 wealth points: TS+J's gap rises 20% or more AND world 0's mispricing (realised at the node less priced, each grid its own) falls by a third or more from a positive value, on both units (FALSIFIED: the gap rises less than 10% on both): FALSIFIED
+     bridge 4: gap 1.3456e-3 -> 1.2086e-3 (-10.181%); world 0's mispricing +0.618 -> +0.496: does not fall by a third from a positive value
+     S194: gap 1.0525e-3 -> 9.0137e-4 (-14.359%); world 0's mispricing +0.276 -> -0.648: falls by a third
+3. the product's gap rises 20% or more at 60 wealth points on both units (FALSIFIED: less than 10% on both): INCONCLUSIVE
+     bridge 4: the product's gap 8.0106e-4 -> 6.8816e-4 (-14.094%)
+     S194: the product's gap 7.5604e-4 -> 9.6988e-4 (+28.284%)
+4. 15 return points raise TS+J's gap less than 60 wealth points do, on both units (FALSIFIED: more on both): INCONCLUSIVE
+     bridge 4: the gap's rise at 30x15 -26.251%, at 60x5 -10.181%
+     S194: the gap's rise at 30x15 +15.667%, at 60x5 -14.359%
+
+REPORTED: 60x15 warranted by the registered condition (both 60 points and 15 return points raise TS+J's gap by 10% or more on both units): no
+
+OUTCOME: 1 INCONCLUSIVE, 2 FALSIFIED, 3 INCONCLUSIVE, 4 INCONCLUSIVE

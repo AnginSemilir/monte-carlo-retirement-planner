@@ -1,0 +1,16 @@
+READ BESIDE 7AD (reported, not registered; grade C): the gates passed - 7aa (its gate), 7ac (its gate against 7aa, every trace), 7ad (its gate against both, every node trace)
+
+1. THE PRICE AGAINST THE NODES (points): the mixture's like-for-like survival price of the opening (7ad, 30x5) against the node-weighted realised gain of TS+J over OPEN0 (each world's weight times its node run's gain, 4,000 paths a node)
+  bridge 4 (reader) W0     price 0.089 | node-weighted realised 0.217 (world 0 0.1667 x +1.100, world 1 0.6667 x +0.050, world 2 0.1667 x +0.000) | ratio 2.44
+  S194 (off) W0.02         price 0.162 | node-weighted realised 0.188 (world 0 0.1667 x +1.125, world 1 0.6667 x +0.000, world 2 0.1667 x +0.000) | ratio 1.16
+  S126 (reader) W0         price 0.057 | node-weighted realised 0.079 (world 0 0.1667 x +0.475, world 1 0.6667 x +0.000, world 2 0.1667 x +0.000) | ratio 1.39
+
+2. THE PRICE AGAINST THE PATHS: 7ac's realised gain of TS+J over OPEN0 on its 8,000 paths (points), and its changed paths by long-run shift (saved/lost, and the share of all paths in the band)
+  bridge 4 (reader) W0     22/1 +0.263 against the price 0.089 (ratio 2.96) and the node-weighted 0.217 | by shift: below -sqrt3 11/1 (4.0% of paths); -sqrt3 to -1 8/0 (12.1% of paths); -1 to 0 3/0 (34.3% of paths); 0 and above 0/0 (49.6% of paths) | seed check 0.977
+  S194 (off) W0.02         30/3 +0.338 against the price 0.162 (ratio 2.08) and the node-weighted 0.188 | by shift: below -sqrt3 9/2 (4.2% of paths); -sqrt3 to -1 10/0 (11.9% of paths); -1 to 0 11/0 (34.1% of paths); 0 and above 0/1 (49.9% of paths) | seed check 0.982
+  S126 (reader) W0         2/0 +0.025 against the price 0.057 (ratio 0.44) and the node-weighted 0.079 | by shift: below -sqrt3 1/0 (3.5% of paths); -sqrt3 to -1 0/0 (12.1% of paths); -1 to 0 1/0 (34.3% of paths); 0 and above 0/0 (50.1% of paths) | seed check 0.977
+
+3. O47: 7AC'S OPEN0 ON ITS 8,000 PATHS - the per cent first leaving the plan's tiers in years 0 to 9, then the yearly hazard (per cent of those still in the plan's tiers)
+  bridge 4 (reader) W0     share   0.0  13.7   9.9   8.7  20.2   3.5   1.3   2.6   1.1   0.1 | hazard   0.0  13.7  11.5  11.4  29.8   7.5   3.0   6.2   2.8   0.3
+  S194 (off) W0.02         share   0.0  49.2  10.0  27.6   0.4   8.4   0.0   3.1   0.3   0.2 | hazard   0.0  49.2  19.7  67.5   2.9  65.4   0.8  69.7  18.7  17.2
+  S126 (reader) W0         share   0.0  62.2   0.5   2.4   2.1   3.0   1.0   0.2   0.1   0.5 | hazard   0.0  62.2   1.3   6.5   5.9   9.3   3.4   0.7   0.2   1.6

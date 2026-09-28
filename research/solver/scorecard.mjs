@@ -37,6 +37,7 @@ export const TESTS = [
   { name: '7aa (the joint tier state at two settings: the pot off and on)', prediction: 'predictions/diag-7aa.md', results: 'results-7aa.txt' },
   { name: '7ab (the freed opening against TS+J and the product, the pot off and on)', prediction: 'predictions/diag-7ab.md', results: 'results-7ab.txt' },
   { name: '7ac (the fourth cell: TS+J with the opening held in the plan\'s tier)', prediction: 'predictions/diag-7ac.md', results: 'results-7ac.txt' },
+  { name: '7ad (the refinement check: the bad world\'s price of the opening at its node and on finer grids)', prediction: 'predictions/diag-7ad.md', results: 'results-7ad.txt' },
 ];
 
 export function credences(predText) {
@@ -45,6 +46,10 @@ export function credences(predText) {
   // a test whose items each predict one of three outcomes (7v, added 27 Sep): "reads as predicted: 1 (INCONCLUSIVE), 0.45;
   // 2 (HELD), 0.85; ..." - the credence is that the item reads as the bracketed outcome, scored 1 when it does
   const predicted = {}, withLabels = {};
+  // one outcome named once for every item (7ad, added 28 Sep): "reads as predicted (HELD): 1, 0.65; 2, 0.40; ..." - each
+  // item's credence is that it reads as that outcome
+  const once = /reads as predicted \((HELD|FALSIFIED|INCONCLUSIVE)\):/.exec(m[1]);
+  if (once) for (const x of m[1].slice(once.index).matchAll(/(?:\):|;)\s*(\d+)\s*,\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) { predicted[x[1]] = once[1]; withLabels[x[1]] = Number(x[2]); }
   if (/reads as predicted:/.test(m[1])) for (const x of m[1].matchAll(/(?:predicted:|;)\s*(\d+)\s*\((HELD|FALSIFIED|INCONCLUSIVE)\),\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) { predicted[x[1]] = x[2]; withLabels[x[1]] = Number(x[3]); }
   const body = m[1].replace(/\([^)]*\)/g, ' ');   // drop the reasons in brackets
   const items = Object.keys(withLabels).length ? withLabels : {};
@@ -181,6 +186,9 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
     ['reliability bins: 0.7 in 60-75%, 0.8 in 75-90%, 0.9 and 0.6... ', JSON.stringify(reliability(scoreTest(P, R).pairs).map(b => b.n)), '[0,2,1,1]'],
   ];
   // a three-outcome test with numbered items (7v): each item scored against the outcome its credence names
+  cases.push(['7ad: one outcome named for every item, each numbered item scored against it', t(() => { const r = scoreTest(pred('The author\'s probability that each item reads as predicted (HELD): 1, 0.65; 2, 0.40; 3, 0.45. The reasons follow.'), 'OUTCOME: 1 INCONCLUSIVE, 2 FALSIFIED, 3 HELD'); return `${r.status} ${r.pairs.map(x => `${x.item} ${x.p} ${x.o}`).join(', ')}`; }), 'SCORED 1 0.65 0, 2 0.4 0, 3 0.45 1']);
+  cases.push(['7ad\'s form with another outcome named: every item against INCONCLUSIVE', t(() => { const r = scoreTest(pred('The author\'s probability that each item reads as predicted (INCONCLUSIVE): 1, 0.7; 2, 0.2.'), 'OUTCOME: 1 INCONCLUSIVE, 2 HELD'); return `${r.status} ${r.pairs.map(x => `${x.item} ${x.p} ${x.o}`).join(', ')}`; }), 'SCORED 1 0.7 1, 2 0.2 0']);
+  cases.push(['7ad: its real prediction\'s credences read, every item against HELD', t(() => { const c = credences(readFileSync(join(HERE, 'predictions/diag-7ad.md'), 'utf8')); return JSON.stringify([c.items, c.predicted]); }), '[{"1":0.65,"2":0.4,"3":0.45,"4":0.65},{"1":"HELD","2":"HELD","3":"HELD","4":"HELD"}]']);
   cases.push(['7v: items read as their bracketed outcome, NOT REPRODUCED against HELD a miss', t(() => { const r = scoreTest(pred('The author\'s probability that each item reads as predicted: 1 (INCONCLUSIVE), 0.40; 2 (HELD), 0.80; 3 (FALSIFIED), 0.70 (a reason). P named: about 0.35.'), 'x\nOUTCOME: 1 INCONCLUSIVE, 2 NOT REPRODUCED, 3 HELD\n'); return `${r.status} ${r.pairs.map(x => `${x.item}:${x.p}:${x.o}`).join(' ')} ${r.brier.toFixed(4)}`; }), 'SCORED 1:0.4:1 2:0.8:0 3:0.7:0 P named:0.35:0 0.4031']);
   cases.push(['7v: the two wholes scored from the attribution and the candidate list, and a numbered line with no NOT REPRODUCED still read as numbered', t(() => { const P7 = pred('The author\'s probability that each item reads as predicted: 1 (HELD), 0.60; 2 (FALSIFIED), 0.70. P named (alone or with C): about 0.35. At least one READER+J candidate by the whole score:\nabout 0.55.'); const r = scoreTest(P7, 'OUTCOME: 1 HELD, 2 FALSIFIED\n3. item 3 does not name P\nATTRIBUTION (x): HELD: N, table noise (item 4)\n  READER+J/0   survival CANDIDATE whole score CANDIDATE | x\n'); return `${r.status} ${r.pairs.map(x => `${x.p}:${x.o}`).join(' ')}`; }), 'SCORED 0.6:1 0.7:1 0.35:0 0.55:1']);
   const wrong = cases.filter(([, got, want]) => got !== want && !(want.startsWith('ERROR') && got.startsWith(want.trimEnd())));

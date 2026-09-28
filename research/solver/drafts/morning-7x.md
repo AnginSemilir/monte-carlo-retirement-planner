@@ -105,11 +105,14 @@ The order:
   the bad world by that world's own quick de-risk (O41). The same effect hides the value of opening de-risked. So the
   first-ranked cause is now **free switching and the per-world tier choice together**; the tier state removed only
   the first.
-- **The product's opening is wrong by its own objective:** opening de-risked (7v's lower margin) is worth about +0.7 on
-  the solver's own score on S126 and S194. The tier state captures only +0.07 and +0.01 of that.
+- **The product's opening looks wrong by its own objective** (grade C: a cross-read of 7v's runs, not fair-tested for
+  this question): opening de-risked (7v's lower margin) is worth about +0.7 on the solver's own score on S126 and S194.
+  On S126 that is the difference of two printed lines, with no standard error. The tier state scores only +0.07 and
+  +0.01 against the product.
 - **The one next test, for you to approve:** a forward run of the joint tier state (TS+J), against the product and the
   tier state, on S126, S194 and bridge 4, with S360 as harm legs. About 1 to 2.5 hours of runs plus about 1.5 hours
-  of build. Survival decides; the whole score is printed beside it. Nothing else in these two families until it is read.
+  of build, sized from tonight's runs (7y's fourteen units took 95 minutes on four cores; a tier-state solve takes
+  11 to 19 minutes). Survival decides; the whole score is printed beside it. Nothing else in these two families until it is read.
 - **Your call:** survival or the solver's whole score as the measure. They now disagree in sign on the tier state's
   legs.
 - **A bug of mine, caught:** my first slice script used one case's market paths for every case, which mis-sliced all

@@ -7,10 +7,10 @@ READ BESIDE 7AC (reported, not registered; grade C): the gates passed - 7aa (its
   S194 (off) W0.02         PRODUCT 7858  FREED 7901  OPEN0 7873  TS+J 7900 | the opening: on the product's tables +43, on TS+J's +27 | the tables: at the plan's-tier opening +15, at the de-risked opening -1 | interaction (TS+J-OPEN0)-(FREED-PRODUCT) -16
 
 2. OPEN0'S LOST PATHS AGAINST TS+J (TS+J survives, OPEN0 fails): the year OPEN0 first leaves the plan's pension tier (never = n), the year-0 draw z0 and the long-run shift (quartiles)
-  S126 (reader) W0         lost 2: first de-risk 1:1 2:0 3-5:1 6-10:0 11+:0 n:0; z0 quartiles 0.39/0.39/0.39, below -1 on 0; shift quartiles -0.87/-0.87/-0.87
-  bridge 4 (reader) W0     lost 22: first de-risk 1:5 2:5 3-5:8 6-10:1 11+:3 n:0; z0 quartiles -0.39/0.23/0.63, below -1 on 0; shift quartiles -0.45/-0.25/0.29
-  S126 (reader) W0.02      lost 5: first de-risk 1:3 2:0 3-5:1 6-10:0 11+:1 n:0; z0 quartiles -0.64/0.54/0.67, below -1 on 1; shift quartiles -0.87/-0.65/-0.08
-  S194 (off) W0.02         lost 30: first de-risk 1:22 2:5 3-5:3 6-10:0 11+:0 n:0; z0 quartiles -0.79/-0.23/0.33, below -1 on 5; shift quartiles -0.53/0.27/0.83
+  S126 (reader) W0         lost 2: first de-risk 1:1 2:0 3-5:1 6-10:0 11+:0 n:0; z0 quartiles -2.66/-2.66/-2.66, below -1 on 1; shift quartiles -2.91/-2.91/-2.91
+  bridge 4 (reader) W0     lost 22: first de-risk 1:5 2:5 3-5:8 6-10:1 11+:3 n:0; z0 quartiles -0.60/-0.18/0.00, below -1 on 4; shift quartiles -2.15/-1.81/-1.42
+  S126 (reader) W0.02      lost 5: first de-risk 1:3 2:0 3-5:1 6-10:0 11+:1 n:0; z0 quartiles -1.14/-0.65/1.51, below -1 on 2; shift quartiles -2.65/-2.60/-2.36
+  S194 (off) W0.02         lost 30: first de-risk 1:22 2:5 3-5:3 6-10:0 11+:0 n:0; z0 quartiles -1.65/-1.05/-0.07, below -1 on 16; shift quartiles -1.81/-1.36/-0.96
 
 3. THE WORLD-PRICE SUM: the weighted sum of the three world prices (points) against the mixture's price (the year-0 gap in points)
   S126 (reader) W0         weighted world prices 0.1104 (0.1667 x 0.3882 + 0.6667 x 0.0545 + 0.1667 x 0.0563) | the mixture's price 0.1065 | ratio 1.04

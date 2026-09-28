@@ -82,10 +82,24 @@ for (const [id, arm, w] of C.UNITS) {
 }
 const q = a => { if (!a.length) return '-'; const s = [...a].sort((x, y) => x - y); return [0.25, 0.5, 0.75].map(p => s[Math.floor(p * (s.length - 1))].toFixed(2)).join('/'); };
 console.log('\n2. OPEN0\'S LOST PATHS AGAINST TS+J (TS+J survives, OPEN0 fails): the year OPEN0 first leaves the plan\'s pension tier (never = n), the year-0 draw z0 and the long-run shift (quartiles)');
+// the seed as a number: reduce-7aa.mjs's SEED is the string '7002', and pathsForSeed's `seed + i * 7919` would concatenate
+// it (the deep review after 7ac, 28 Sep 14:47 UK, found section 2 read from unrelated paths that way). PLANT_STRING_SEED=1
+// passes the string, to show the check below fail on that fault (rule 6).
+const SEED_N = process.env.PLANT_STRING_SEED ? A.SEED : Number(A.SEED);
 const zsCache = {};
+// THE SEED CHECK: OPEN0 and TS+J differ only in the year-0 pension tier, so their year-0 wealth gap moves with the year-0
+// draw; on the right paths the two correlate strongly on every unit (0.977 to 0.982 by the deep review's check), on the
+// wrong ones not at all (0.007)
+const corr = (a, b) => { const n = a.length, ma = a.reduce((s, x) => s + x, 0) / n, mb = b.reduce((s, x) => s + x, 0) / n; let sab = 0, saa = 0, sbb = 0; for (let i = 0; i < n; i++) { sab += (a[i] - ma) * (b[i] - mb); saa += (a[i] - ma) ** 2; sbb += (b[i] - mb) ** 2; } return sab / Math.sqrt(saa * sbb); };
 for (const [id, arm, w] of C.UNITS) {
   const O = T[`${id}|${arm}|OPEN0|${w}`], J = T[`${id}|${arm}|TS+J|${w}`];
-  const zs = zsCache[O.Y] || (zsCache[O.Y] = pathsForSeed(A.SEED, O.N, O.Y - 1));
+  const zs = zsCache[O.Y] || (zsCache[O.Y] = pathsForSeed(SEED_N, O.N, O.Y - 1));
+  const r = corr(zs.map(z => z[0]), Array.from({ length: O.N }, (_, i) => O.wealth[i * O.Y] - J.wealth[i * J.Y]));
+  if (!(Math.abs(r) > 0.9)) { console.log(`SEED CHECK FAILED: ${id} W${w}: the year-0 draw and OPEN0's year-0 wealth gap to TS+J correlate ${r.toFixed(3)}, not beyond 0.9 - the paths are not the runs' paths`); process.exit(1); }
+}
+for (const [id, arm, w] of C.UNITS) {
+  const O = T[`${id}|${arm}|OPEN0|${w}`], J = T[`${id}|${arm}|TS+J|${w}`];
+  const zs = zsCache[O.Y];
   const idx = []; for (let i = 0; i < O.N; i++) if (J.survived[i] && !O.survived[i]) idx.push(i);
   const hist = {};
   for (const i of idx) { let y = 'n'; for (let t = 0; t < O.Y; t++) if ((O.tier[i * O.Y + t] >> 2) > 0) { y = t; break; } const k = y === 'n' ? 'n' : y <= 1 ? '1' : y <= 2 ? '2' : y <= 5 ? '3-5' : y <= 10 ? '6-10' : '11+'; hist[k] = (hist[k] || 0) + 1; }

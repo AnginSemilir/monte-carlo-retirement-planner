@@ -63,10 +63,26 @@ The order:
   suites pass on it). The plan-auditor needed three passes to accept the registration. On the way it found a real design
   limit (**O41**): the tier state applies the switching margin **per world**, while the chooser applies it to the
   mixture. So a negative 7y result will not clear free switching. The deep review after 7z said to launch as registered,
-  with that named as a premise, because rebuilding would add a second change. **Launched 00:40 UK.**
-- **Beside 7y:** a measurement of S360 with the reader, reading its bridge at the held tier (O36's gate). I am also
-  building a joint version of the tier state (TS+J) for a **tables-only** check that bounds O41 after 7y. It gets no
-  survival test tonight without you.
+  with that named as a premise, because rebuilding would add a second change. **Launched 00:41 UK.**
+- **7y: READ 28 Sep 02:17 UK; 1 FALSIFIED, 2 INCONCLUSIVE, 3 FALSIFIED, 4 HELD, 5 FALSIFIED** (results-7y.txt; the gate
+  passed; Brier 0.252 over 5; cumulative 0.214 over 72).
+  - **No gain.** Against the product the tier state saves 5 and loses 9 paths on S126, and saves 2 and loses 16 on S194.
+    Neither swap arm gains. Its year-0 gap barely moves (0.99 and 1.28 times the product's), and it opens in the plan's
+    tier, as the product does.
+  - **This does not clear free switching.** The tier state still applies the margin per world (O41), so free switching
+    stays a grade-C suspect. By the registered Decision fed, the fix for S126's and S194's opening (O30, O33) comes back
+    to you, and the per-world rule is the next thing to test.
+  - **No harm with the reader** on share 0.95, bridge 4 or S360. On S360 the feared sign flip (O36) did not show.
+  - **O37's feared harm under off did not happen.** The tier state opens in the plan's tier on S360 and does not take the
+    de-risk. The harm 7x found belongs to tables held for life.
+  - **A pattern, not registered (O42, grade C; results-7y-whole.txt):** over the six legs the tier state saves 16 paths
+    and loses 49. It holds the plan's riskier tier more, switches more and leaves a larger estate, so the solver's own
+    whole score goes **up** on five of six cases while survival goes down. So it may be doing what its objective asks,
+    trading a little survival for estate. Which measure should decide is your call, and it goes into any future design.
+  - H0 (the plan's tier held for life) loses to the product by 41 and 271 paths, as 7x suggested.
+- **Beside 7y:** a measurement of S360 with the reader, reading its bridge at the held tier (O36's gate). The joint
+  version of the tier state (TS+J) is built and tested. Its **tables-only** check that bounds O41 was launched at 02:10 UK
+  in the light lane. It gets no survival test tonight without you.
 - **S360 with the reader (O36, measured 01:05; results-refs360.txt):** the reader's opening reference uses the plan's
   tiers. That **flips the sign** on S360: the held tables rate lowering risk **+1.0** point better, where the runs lose
   **13.2** points (1,053 paths lost). With the reference at the held tier, the tables rate it **16.0** points worse, the

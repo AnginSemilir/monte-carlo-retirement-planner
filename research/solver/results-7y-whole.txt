@@ -1,0 +1,30 @@
+7Y'S TRACES, READ FURTHER (results/diag7y through reduce-7y's gates; reported, grade C, no test)
+
+THE TIER STATE AGAINST THE PRODUCT, EACH CASE (whole score = survival + estate + the rest, paired, per 100 paths)
+  S126 (reader)        TS       whole +0.071 +/- 0.048 = survival -0.050, estate +0.130, the rest -0.009 | saved/lost 5/9 | paths differing 3297 | switches 0.307 -> 0.544, below the plan's tier 7.76 -> 6.66, estate 2430759 -> 2492273
+  S126 (reader)        TS-TIER  whole +0.048 +/- 0.029 = survival -0.063, estate +0.126, the rest -0.016 | saved/lost 0/5 | paths differing 2707 | switches 0.307 -> 0.561, below the plan's tier 7.76 -> 6.84, estate 2430759 -> 2490793
+  S126 (reader)        TS-REST  whole +0.011 +/- 0.040 = survival +0.000, estate +0.005, the rest +0.007 | saved/lost 5/5 | paths differing 1270 | switches 0.307 -> 0.301, below the plan's tier 7.76 -> 7.46, estate 2430759 -> 2433039
+  S194 (off)           TS       whole +0.014 +/- 0.054 = survival -0.175, estate +0.180, the rest +0.010 | saved/lost 2/16 | paths differing 5180 | switches 0.781 -> 1.188, below the plan's tier 26.14 -> 25.41, estate 397761 -> 413931
+  S194 (off)           TS-TIER  whole +0.065 +/- 0.048 = survival -0.125, estate +0.201, the rest -0.011 | saved/lost 2/12 | paths differing 4049 | switches 0.781 -> 1.182, below the plan's tier 26.14 -> 25.62, estate 397761 -> 415833
+  S194 (off)           TS-REST  whole -0.057 +/- 0.025 = survival -0.050, estate -0.028, the rest +0.021 | saved/lost 0/4 | paths differing 2429 | switches 0.781 -> 0.779, below the plan's tier 26.14 -> 26.03, estate 397761 -> 395207
+  share 0.95 (reader)  TS       whole +0.062 +/- 0.029 = survival -0.037, estate +0.105, the rest -0.005 | saved/lost 1/4 | paths differing 2944 | switches 0.268 -> 0.513, below the plan's tier 6.74 -> 6.09, estate 2343183 -> 2392926
+  bridge 4 (reader)    TS       whole +0.173 +/- 0.035 = survival -0.087, estate +0.264, the rest -0.003 | saved/lost 0/7 | paths differing 4491 | switches 0.035 -> 0.605, below the plan's tier 41.93 -> 35.21, estate 2273145 -> 2398551
+  S360 (reader)        TS       whole +0.041 +/- 0.028 = survival +0.025, estate +0.014, the rest +0.002 | saved/lost 3/1 | paths differing 536 | switches 0.711 -> 0.763, below the plan's tier 19.32 -> 18.94, estate 304735 -> 305982
+  S360 (off)           TS       whole -0.099 +/- 0.059 = survival -0.087, estate -0.005, the rest -0.006 | saved/lost 5/12 | paths differing 196 | switches 0.012 -> 0.017, below the plan's tier 0.01 -> 0.03, estate 230466 -> 229994
+
+THE SIX TS LEGS POOLED (not registered; reported): saved 16, lost 49; exact two-sided sign test p 5.08e-5
+  of the six cases the tier state has: a larger mean estate 5; fewer path-years below the plan's tier 5; more switches a path 6
+
+THE TIER CODES HELD BY YEAR (pension x 4 + ISA; share of the 8,000 paths, per cent)
+  S126  year  0  PRODUCT 0:100.0                            TS 0:100.0
+  S126  year  1  PRODUCT 0:99.6 10:0.4                      TS 0:99.5 10:0.5
+  S126  year  2  PRODUCT 0:98.8 10:1.2                      TS 0:98.1 10:1.9
+  S126  year  5  PRODUCT 0:87.6 10:12.4                     TS 0:90.3 10:9.7
+  S126  year 10  PRODUCT 0:81.0 10:18.9                     TS 0:84.5 10:15.5
+  S126  year 20  PRODUCT 0:77.2 5:0.0 10:22.8               TS 0:80.0 5:0.0 10:19.9
+  S194  year  0  PRODUCT 0:100.0                            TS 0:100.0
+  S194  year  1  PRODUCT 0:70.9 10:29.1                     TS 0:57.0 5:12.0 10:31.0
+  S194  year  2  PRODUCT 0:55.2 10:44.8                     TS 0:47.8 5:12.2 10:40.0
+  S194  year  5  PRODUCT 0:39.3 10:60.7                     TS 0:36.9 5:12.4 10:50.7
+  S194  year 10  PRODUCT 0:34.0 10:66.0                     TS 0:32.3 5:11.3 10:56.4
+  S194  year 20  PRODUCT 0:32.0 5:0.1 10:67.9               TS 0:29.7 5:10.8 10:59.4

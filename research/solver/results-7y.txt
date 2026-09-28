@@ -1,0 +1,112 @@
+ok   a log parsed and gated: fourteen units, the gate passes: 14 0
+ok   the gate refuses 16 points on one solve: true
+ok   the gate refuses the tier state missing on a TS solve: true
+ok   the gate refuses the tier state on a PRODUCT solve: true
+ok   the gate refuses the held tier missing on H0: true
+ok   the gate refuses a held tier on PRODUCT: true
+ok   the gate refuses Q's fix on any solve: true
+ok   the gate refuses the reader off on a READER unit: true
+ok   the gate refuses the reader on an OFF unit: true
+ok   the gate refuses a second setting changed within a case (the minimum pot): true
+ok   the gate refuses the wrong seed on every solve: true
+ok   the gate refuses another path count on every solve: true
+ok   the gate refuses 16 points on every solve (the grid unchanged): true
+ok   the gate refuses 15 return points on every solve: true
+ok   the gate refuses an averaged final year on every solve: true
+ok   the gate refuses Q's fix on every solve: true
+ok   the gate refuses a missing H0 solve, its run still logged: true
+ok   the gate refuses a missing H0 run, its solve still logged: true
+ok   the gate refuses a missing unit: true
+ok   the gate refuses a unit run twice: true
+ok   the gate refuses a solve at another margin: true
+ok   the gate refuses a missing H0 solve on S126: true
+ok   the gate refuses a missing run: true
+ok   the gate refuses a missing swap line: true
+ok   the gate refuses a missing gap line: true
+ok   the gate refuses a missing done line: true
+ok   the gate refuses a swap unit whose PRODUCT re-solve differs from the P unit's: true
+ok   the gate refuses a swap unit whose TS re-solve differs from the T unit's: true
+ok   a trace agrees within 0.00005 of its four-decimal line, and no further: true,true,false,false,false
+ok   the trace name carries the case, the arm and the run: share_0.95-reader-ts-tier.json.gz
+ok   FS as the deep review states it: 1 to 5 HELD: 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD
+ok   the tier state doing nothing: 1, 2 and 3 not HELD, 5 FALSIFIED: 1 FALSIFIED, 2 INCONCLUSIVE, 3 FALSIFIED, 4 HELD, 5 FALSIFIED
+ok   the rest carries it: item 2 FALSIFIED: FALSIFIED
+ok   both carry some: item 2 INCONCLUSIVE: INCONCLUSIVE
+ok   the tier carries it on one case only: item 2 INCONCLUSIVE: INCONCLUSIVE
+ok   a gain on one case only: item 1 INCONCLUSIVE: INCONCLUSIVE
+ok   the gap three times on both: item 3 INCONCLUSIVE; five times on one: INCONCLUSIVE: INCONCLUSIVE INCONCLUSIVE
+ok   the product's gap 0 and the tier state's above it: unbounded, item 3 HELD: HELD
+ok   harm on bridge 4 with the reader: item 4 FALSIFIED: FALSIFIED
+ok   harm on S360 with the reader: item 4 FALSIFIED: FALSIFIED
+ok   S360 under off level: item 5 FALSIFIED: FALSIFIED
+ok   S360 under off saving 40 and losing 55: item 5 INCONCLUSIVE (neither harm nor under the margin): INCONCLUSIVE
+ok   bridge 4 losing 30 paths (0.375 points) is harm at its own margin, 0.25: item 4 FALSIFIED: FALSIFIED
+ok   the margin is the case's own: S126 at 0.25, 30 lost reads harm: harm
+planted (44): all read as they should
+
+7Y: DOES THE TIER STATE RECOVER WHAT FREE SWITCHING LOSES, AND IS IT THE TIER THAT CARRIES IT? (predictions/diag-7y.md; 8000 paths of seed 7002; the fair-test gate passed: the stamps, every unit's solves and settings, every run and trace, the re-solves reproducing)
+
+EVERY RUN: survival; against PRODUCT on the same case and arm saved/lost; pension switches a path; years below target; estate; the swaps
+S126 (reader)
+  PRODUCT   99.2625        0/0  switches 0.31  below 2.80  estate 2430759
+  TS        99.2125        5/9  switches 0.54  below 2.85  estate 2492273
+  TS-TIER   99.2000        0/5  switches 0.56  below 2.89  estate 2490793  swapped 82137 of 319865 path-years
+  TS-REST   99.2625        5/5  switches 0.30  below 2.76  estate 2433039  swapped 91110 of 319886 path-years
+  H0        98.7875       3/41  switches 0.00  below 3.61  estate 2498153
+  PRODUCT gap 8.0241e-4, opens 0 at 1e-3, 2 at 0
+  TS gap 7.9487e-4, opens 0 at 1e-3, 2 at 0
+S194 (off)
+  PRODUCT   98.2250        0/0  switches 0.78  below 8.28  estate 397761
+  TS        98.0500       2/16  switches 1.19  below 8.18  estate 413931
+  TS-TIER   98.1000       2/12  switches 1.18  below 8.30  estate 415833  swapped 58110 of 327882 path-years
+  TS-REST   98.1750        0/4  switches 0.78  below 8.16  estate 395207  swapped 60504 of 327882 path-years
+  H0        94.8500      1/271  switches 0.00  below 10.14  estate 475223
+  PRODUCT gap 7.5604e-4, opens 0 at 1e-3, 2 at 0
+  TS gap 9.6876e-4, opens 0 at 1e-3, 1 at 0
+share 0.95 (reader)
+  PRODUCT   93.0000        0/0  switches 0.27  below 3.39  estate 2343183
+  TS        92.9625        1/4  switches 0.51  below 3.41  estate 2392926
+  PRODUCT gap 2.2992e-4, opens 0 at 1e-3, 2 at 0
+  TS gap 5.5302e-4, opens 0 at 1e-3, 2 at 0
+bridge 4 (reader)
+  PRODUCT   99.5625        0/0  switches 0.04  below 3.92  estate 2273145
+  TS        99.4750        0/7  switches 0.60  below 3.93  estate 2398551
+  PRODUCT gap 1.0059e-3, opens 2 at 1e-3, 2 at 0
+  TS gap 1.0655e-3, opens 2 at 1e-3, 2 at 0
+S360 (reader)
+  PRODUCT   45.9125        0/0  switches 0.70  below 6.67  estate 304735
+  TS        45.9375        3/1  switches 0.76  below 6.67  estate 305982
+  PRODUCT gap 0, opens 0 at 1e-3, 0 at 0
+  TS gap 0, opens 0 at 1e-3, 0 at 0
+S360 (off)
+  PRODUCT   34.3000        0/0  switches 0.01  below 6.68  estate 230466
+  TS        34.2125       5/12  switches 0.02  below 6.67  estate 229994
+  PRODUCT gap 5.5644e-4, opens 0 at 1e-3, 2 at 0
+  TS gap 5.6446e-4, opens 0 at 1e-3, 2 at 0
+
+O39'S ARM (reported): the plan's tier held for life against PRODUCT, and the tier state against it, on S126 and S194 (saved/lost, the exact interval beside)
+  S126  H0 against PRODUCT: 3/41 -0.475 (exact -0.534 to -0.345)
+  S126  TS against H0: 37/3 +0.425 (exact 0.296 to 0.484)
+  S194  H0 against PRODUCT: 1/271 -3.375 (exact -3.399 to -3.262)
+  S194  TS against H0: 257/1 +3.200 (exact 3.087 to 3.224)
+
+THE ITEMS (each a Holm family of its own where it tests paths, the regimen's reading deciding, the unconditional one beside it; the gap item by its registered ratios)
+1. the gain: on S126 (reader) and S194 (off) the tier state gains against the product (FALSIFIED: no material gain on both): FALSIFIED
+     S126 (reader): TS against PRODUCT 5 saved/9 lost -0.050 (exact -0.130 to 0.052; unconditional -0.156 to 0.050) no material gain
+     S194 (off): TS against PRODUCT 2 saved/16 lost -0.175 (exact -0.219 to -0.069; unconditional -0.294 to -0.067) no material gain
+2. the tier carries it: on both, TS-TIER (the tier state's tiers, the product's rest) gains against the product and TS-REST (the product's tiers, the tier state's rest) shows no material gain (FALSIFIED: the reverse on both): INCONCLUSIVE
+     S126 (reader): TS-TIER against PRODUCT 0 saved/5 lost -0.063 (exact -0.063 to 0.003; unconditional -0.146 to 0.005) no material gain
+     S194 (off): TS-TIER against PRODUCT 2 saved/12 lost -0.125 (exact -0.169 to -0.025; unconditional -0.232 to -0.027) no material gain
+     S126 (reader): TS-REST against PRODUCT 5 saved/5 lost +0.000 (exact -0.078 to 0.078; unconditional -0.091 to 0.091) no material gain
+     S194 (off): TS-REST against PRODUCT 0 saved/4 lost -0.050 (exact -0.050 to 0.010; unconditional -0.128 to 0.015) no material gain
+3. free switching at the opening: on both, the tier state's year-0 gap is at least 5 times the product's (FALSIFIED: under 2 times on both): FALSIFIED
+     S126: gap 8.0241e-4 with the product, 7.9487e-4 with the tier state (ratio 0.99)
+     S194: gap 7.5604e-4 with the product, 9.6876e-4 with the tier state (ratio 1.28)
+4. no harm with the reader: on share 0.95, bridge 4 and S360, the tier state shows no material harm against the product (FALSIFIED: harm on any): HELD
+     share 0.95 (reader): TS against PRODUCT 1 saved/4 lost -0.037 (exact -0.062 to 0.027; unconditional -0.107 to 0.030) no material harm
+     bridge 4 (reader): TS against PRODUCT 0 saved/7 lost -0.087 (exact -0.087 to -0.016; unconditional -0.180 to -0.015) no material harm
+     S360 (reader): TS against PRODUCT 3 saved/1 lost +0.025 (exact -0.031 to 0.049; unconditional -0.024 to 0.074) no material harm
+5. O37's harm leg: on S360 under off the tier state harms against the product (FALSIFIED: no material harm): FALSIFIED
+     S360 (off): TS against PRODUCT 5 saved/12 lost -0.087 (exact -0.169 to 0.025; unconditional -0.190 to 0.015) no material harm
+
+OUTCOME: 1 FALSIFIED, 2 INCONCLUSIVE, 3 FALSIFIED, 4 HELD, 5 FALSIFIED

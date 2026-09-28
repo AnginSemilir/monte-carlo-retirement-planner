@@ -7,9 +7,9 @@
  * no household loses (m = 6, 12, 20, 50 on every household); B, one household loses 0.4 points; C, one loses 0.25; D, one
  * loses 0.2; each with m = 12 elsewhere. The margin 0.25 on every household (conservative: the panel's households below
  * 95% take 0.5). 20,000 draws a story, seeded.
- * ITEM 2 (spending): from 7aa's own runs of S360 - READER/TS+J/W0.02 and OFF/PRODUCT/W0.02 are 7af's CAND and SHIP on S360
- * (through 7aa's gate) - the relative spending change and its paired standard error (reduce-7af.mjs spendChange), the one
- * household the records hold both arms of.
+ * ITEM 2 (spending while both spend): from 7aa's own runs of S360 - READER/TS+J/W0.02 and OFF/PRODUCT/W0.02 are 7af's CAND
+ * and SHIP on S360 (through 7aa's gate) - the relative change on item 2's measure (reduce-7af.mjs spendBoth, spendChange)
+ * and, beside it, on the old one (a failed path's years 0), the one household the records hold both arms of.
  *   node research/solver/derive-7af.mjs > research/solver/results-derive-7af.txt
  */
 import { readFileSync, readdirSync } from 'node:fs';
@@ -19,7 +19,7 @@ import { gunzipSync } from 'node:zlib';
 import { requireFairLogs } from './fair-gate.mjs';
 import { decode } from './reduce-7t.mjs';
 import * as A from './reduce-7aa.mjs';
-import { N, PANEL, items, spendYears, spendPaths, spendChange } from './reduce-7af.mjs';
+import { N, PANEL, items, spendYears, spendPaths, spendBoth, spendChange } from './reduce-7af.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), DA = join(HERE, 'results', 'diag7aa');
 const LA = Object.fromEntries(readdirSync(DA).filter(f => /^case\d+\.txt$/.test(f)).sort().map(f => [f, readFileSync(join(DA, f), 'utf8')]));
@@ -50,6 +50,7 @@ for (const [nm, loss] of [['B', 0.4], ['C', 0.25], ['D', 0.2]]) story(`${nm}: on
 story('B at churn 20 everywhere', () => 20, j => (j === 10 ? 0.4 : 0));
 
 console.log('\nITEM 2 (spending): S360 in 7aa\'s records, READER/TS+J/W0.02 (CAND) against OFF/PRODUCT/W0.02 (SHIP), through 7aa\'s gate');
-{ const X = tr('S360', 'OFF', 'PRODUCT/W0.02'), Y = tr('S360', 'READER', 'TS+J/W0.02'), sy = spendYears(X.T, Y.T), c = spendChange(spendPaths(X.T, sy), spendPaths(Y.T, sy));
-  console.log(`  S360: spending ${c.a.toFixed(4)} -> ${c.b.toFixed(4)}: ${(100 * c.d).toFixed(3)}% (se ${(100 * c.se).toFixed(3)} points of a per cent); survival ${X.sim.toFixed(4)} -> ${Y.sim.toFixed(4)}`); }
+{ const X = tr('S360', 'OFF', 'PRODUCT/W0.02'), Y = tr('S360', 'READER', 'TS+J/W0.02'), sy = spendYears(X.T, Y.T), c = spendChange(spendPaths(X.T, sy), spendPaths(Y.T, sy)), sb = spendBoth(X.T, Y.T, sy), cb = spendChange(sb.a, sb.b);
+  console.log(`  S360, item 2's measure (spending while both spend, ${sb.a.length} paths): ${cb.a.toFixed(4)} -> ${cb.b.toFixed(4)}: ${(100 * cb.d).toFixed(3)}% (se ${(100 * cb.se).toFixed(3)} points of a per cent)`);
+  console.log(`  S360, reported beside (a failed path's years 0, survival and spending together): ${c.a.toFixed(4)} -> ${c.b.toFixed(4)}: ${(100 * c.d).toFixed(3)}% (se ${(100 * c.se).toFixed(3)}); survival ${X.sim.toFixed(4)} -> ${Y.sim.toFixed(4)}`); }
 console.log('\nThe spending item\'s standard error on one household at 8,000 paths is the figure above; the 5% and 1% lines sit many standard errors from it, so item 2 reads by the size of the change, its uncertainty the credence.');

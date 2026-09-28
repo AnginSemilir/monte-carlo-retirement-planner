@@ -18,11 +18,15 @@
  *      p, Holm across the 16 households, the exact 95% interval against the household's margin (0.25 points where SHIP
  *      simulates 95% or more, 0.5 below): stats.mjs outcome(). HELD when every household reads no material harm;
  *      FALSIFIED when any reads harm; else INCONCLUSIVE. The unconditional interval (survivalChangeU, guarded) beside.
- *   2. Spending delivered: each run's spending, the mean over paths of the mean spend level over the spending years (the
- *      years any path of either arm spends in; a failed path's later years 0), CAND against SHIP as a relative change
- *      with its paired 95% interval (per-path differences). HELD when every household's lower end is above -5% AND the
- *      panel mean's lower end above -1%; FALSIFIED when any household's upper end is below -5% OR the panel mean's upper
- *      end below -1%; else INCONCLUSIVE.
+ *   2. Spending while both spend (the plan-auditor's BLOCKING 1, 28 Sep 23:23 UK: a failed path's years counted as 0 made a
+ *      survival gain read as spending): on each path, the years of the spending years (any path of either arm spends in)
+ *      in which BOTH arms spend; each arm's mean spend level over them; paths with no such year left out. CAND against
+ *      SHIP as a relative change with its paired 95% interval (spendBoth, spendChange). HELD when every household's lower
+ *      end is above -5% AND the panel mean's lower end above -1%; FALSIFIED when any household's upper end is below -5% OR
+ *      the panel mean's upper end below -1%; else INCONCLUSIVE. The conditioning leaves out the years one arm has failed,
+ *      so it compares the spending of survivors: a policy that survives by trimming shows its trims here, and one that
+ *      survives longer is not credited with the extra years (they are item 1's). The old measure (a failed path's years
+ *      0: spending and survival together) is reported beside.
  * Reported, not items: every unit's table, survival, gap and opening (O44), estate, years below target, tier changes;
  * the reader's part (PRODR against SHIP) and the tier state's part (CAND against PRODR) on each bridge household, exact
  * intervals; the whole score (reduce-7aa.mjs wholeLeg at 0.05) of CAND against SHIP; and, where a household reads harm,
@@ -31,10 +35,11 @@
  *   node research/solver/reduce-7af.mjs [dir7af] [dir7aa] > research/solver/results-7af.txt
  *   node research/solver/reduce-7af.mjs --planted   the planted checks alone
  */
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { gunzipSync } from 'node:zlib';
+import { gunzipSync, gzipSync } from 'node:zlib';
 import { survivalChange, survivalChangeU, mcnemarHarmP, holm, outcome, marginFor, zFor } from './stats.mjs';
 import { requireFairLogs } from './fair-gate.mjs';
 import { decode } from './reduce-7t.mjs';
@@ -108,6 +113,17 @@ export function spendPaths(T, sy) {
   return out;
 }
 export const spendYears = (X, Y) => Array.from({ length: X.Y }, (_, t) => { for (const T of [X, Y]) for (let i = 0; i < T.N; i++) if (T.level[i * T.Y + t] > 0) return true; return false; });
+/* spending while both spend: on each path, the spending years `sy` in which both A and B spend (level above 0); each arm's
+   mean level over them; the paths with none left out. Returns the kept paths' two arrays and their indices. */
+export function spendBoth(X, Y, sy) {
+  const a = [], b = [], idx = [];
+  for (let i = 0; i < X.N; i++) {
+    let sa = 0, sb = 0, n = 0;
+    for (let t = 0; t < X.Y; t++) { if (!sy[t]) continue; const la = X.level[i * X.Y + t], lb = Y.level[i * Y.Y + t]; if (la > 0 && lb > 0) { sa += la / 100; sb += lb / 100; n++; } }
+    if (n) { a.push(sa / n); b.push(sb / n); idx.push(i); }
+  }
+  return { a: Float64Array.from(a), b: Float64Array.from(b), idx };
+}
 /* the relative change in spending of B against A on the same paths, with its paired 95% interval (delta method: the mean
    difference over A's mean) */
 export function spendChange(A0, B0) {
@@ -132,8 +148,8 @@ export function items(K, SIM, SP) {
       outcome: tri(legs.every(l => l.o === 'no material harm'), legs.some(l => l.o === 'harm')) }); }
   // 2. spending delivered
   { const legs = PANEL.map(([id]) => ({ id, ...SP(id).change })), diffs = PANEL.map(([id]) => SP(id));
-    // the panel mean of the relative changes, its se from the households' own (independent households: their paths are
-    // shared, so the se is the per-path mean of the households' relative differences' variance)
+    // the panel mean of the relative changes: the households share their paths, so its se is taken from the per-path mean
+    // of the households' relative differences (each household's rel scaled so its mean over all paths is its change)
     const nP = diffs[0].rel.length; const m = new Float64Array(nP);
     for (const x of diffs) for (let i = 0; i < nP; i++) m[i] += x.rel[i] / diffs.length;
     let mu = 0; for (let i = 0; i < nP; i++) mu += m[i]; mu /= nP; let v = 0; for (let i = 0; i < nP; i++) v += (m[i] - mu) ** 2;
@@ -203,6 +219,20 @@ function planted() {
     cases.push(['the gate refuses a unit whose ran line is not 7aa\'s', String(gate(U, (i, a, l) => { const r = ref(i, a, l); return r ? { ...r, ran: r.ran.replace('quad 5', 'quad 5 x') } : null; }).length > 0), 'true']); }
   { const ST = { code: 'c', audit: 'a', prediction: 'p', sha: 's' }, t = sim => ({ stamp: ST, N, seed: 7002, arm: 'READER/TS+J/W0.02', sim });
     cases.push(['a trace agrees with the log to four decimals, and not beyond', `${traceAgrees(t(99.30004), ST, 'READER', 'TS+J/W0.02', 99.3)} ${traceAgrees(t(99.3001), ST, 'READER', 'TS+J/W0.02', 99.3)} ${traceAgrees(t(99.3), ST, 'OFF', 'TS+J/W0.02', 99.3)}`, 'true false false']); }
+  // the identity against 7aa's trace, on files: one unit's 7af and 7aa traces written to a scratch folder, equal then one bit
+  // flipped (rule 6: the check must fail on a planted fault)
+  { const dir7af = mkdtempSync(join(tmpdir(), 'p7af-')), dir7aa = mkdtempSync(join(tmpdir(), 'p7aa-')), ST = { code: 'c', audit: 'a', prediction: 'p', sha: 's' }, STA = { code: 'c0', audit: 'a0', prediction: 'p0', sha: 's0' };
+    const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64'), surv = Uint8Array.from({ length: N }, (_, i) => (i % 3 ? 1 : 0)), sim = 100 * surv.reduce((t, x) => t + x, 0) / N;
+    const tr = (st, sv) => ({ id: 'S126', arm: 'READER/TS+J/W0.02', stamp: st, N, Y: 1, seed: 7002, sim, survived: b64(sv), level: b64(new Uint8Array(N)), tier: b64(new Uint8Array(N)), wealth: b64(new Float32Array(N)), taxPaid: b64(new Float32Array(N)), failYear: b64(new Int16Array(N).fill(-1)) });
+    const write = (d, st, sv) => writeFileSync(join(d, traceName('S126', 'READER', 'TS+J/W0.02')), gzipSync(JSON.stringify(tr(st, sv))));
+    const u = [{ id: 'S126', arm: 'READER', label: 'TS+J/W0.02', run: { sim } }], ref = () => ({ run: { sim } });
+    const run1 = () => { const bad = []; loadTraces(u, dir7af, ST, bad, dir7aa, STA, ref); return bad.length; };
+    write(dir7af, ST, surv); write(dir7aa, STA, surv);
+    const same = run1();
+    const flip = Uint8Array.from(surv); flip[0] = 1 - flip[0]; flip[1] = 1 - flip[1]; write(dir7aa, STA, flip);
+    const off = run1();
+    rmSync(dir7af, { recursive: true, force: true }); rmSync(dir7aa, { recursive: true, force: true });
+    cases.push(['the identity with 7aa\'s trace, on files: equal bits pass, two bits swapped (the survival unchanged) refused', `${same} ${off > 0}`, '0 true']); }
   cases.push(['bits compared path by path', `${sameBits(Uint8Array.from([1, 0, 1]), Uint8Array.from([1, 0, 1]))} ${sameBits(Uint8Array.from([1, 0, 1]), Uint8Array.from([1, 1, 1]))} ${sameBits(Uint8Array.from([1, 0]), Uint8Array.from([1, 0, 1]))}`, 'true false false']);
   // spending
   { const T = { N: 2, Y: 4, level: Uint8Array.from([100, 100, 0, 0, 100, 50, 0, 0]) }, T2 = { N: 2, Y: 4, level: Uint8Array.from([100, 110, 50, 0, 0, 0, 0, 0]) };
@@ -210,6 +240,9 @@ function planted() {
     cases.push(['spending years: those any path of either arm spends in (year 2 the second arm\'s alone)', sy.join(','), 'true,true,true,false']);
     cases.push(['spending per path: the mean level over the spending years, a failed path\'s years 0', Array.from(spendPaths(T, sy)).map(x => x.toFixed(3)).join(','), '0.667,0.500']);
     const c = spendChange(Float64Array.from([1, 1, 1, 1]), Float64Array.from([0.9, 1.0, 0.9, 1.0]));
+    { const X = { N: 3, Y: 3, level: Uint8Array.from([100, 0, 0, 100, 100, 100, 0, 0, 0]) }, Y = { N: 3, Y: 3, level: Uint8Array.from([100, 100, 100, 98, 98, 98, 100, 100, 100]) }, sy3 = spendYears(X, Y);
+      const old = spendChange(spendPaths(X, sy3), spendPaths(Y, sy3)), nb = spendBoth(X, Y, sy3), neu = spendChange(nb.a, nb.b);
+      cases.push(['survival is not spending: paths SHIP loses (after year 0; from the start) read +123.5% on the old measure, -1.0% while both spend, the path with no year both spend left out', `${(100 * old.d).toFixed(1)} ${(100 * neu.d).toFixed(1)} ${nb.idx.join(',')}`, '123.5 -1.0 0,1']); }
     cases.push(['a relative spending change with its paired se', `${c.d.toFixed(3)} ${c.se.toFixed(3)}`, '-0.050 0.029']); }
   // the items on planted stories
   const mkK = spec => (id, b, a) => { const [saved, lost] = spec[`${id}|${b}|${a}`] || [0, 0]; return { saved, lost, a: N - saved - lost, d: 0, N }; };
@@ -230,6 +263,7 @@ function planted() {
   cases.push(['spending 1.5% lower on every household: 2 FALSIFIED by the mean', items(mkK({}), SIM, mkSP(Object.fromEntries(PANEL.map(([id]) => [id, -0.015]))))[1].outcome, 'FALSIFIED']);
   cases.push(['spending 1% lower on every household (the mean at the line): 2 INCONCLUSIVE', items(mkK({}), SIM, mkSP(Object.fromEntries(PANEL.map(([id]) => [id, -0.01]))))[1].outcome, 'INCONCLUSIVE']);
   cases.push(['item 2 reads the interval, not the point: 4.9% lower with a wide interval (to about -6.9%) is INCONCLUSIVE', items(mkK({}), SIM, mkSP({ S120: -0.049 }, { S120: 0.2 }))[1].outcome, 'INCONCLUSIVE']);
+  cases.push(['one household\'s survival gain cannot carry the mean: S360 unchanged while both spend and 2% lower elsewhere: 2 FALSIFIED', items(mkK({}), SIM, mkSP(Object.fromEntries(PANEL.map(([id]) => [id, id === 'S360' ? 0 : -0.02]))))[1].outcome, 'FALSIFIED']);
   cases.push(['spending higher is never a fault: +6% on one household: 2 HELD', items(mkK({}), SIM, mkSP({ S120: 0.06 }))[1].outcome, 'HELD']);
   // the split
   cases.push(['the split: a loss of the margin in PRODR against SHIP is the reader\'s', split('S126', mkK({ 'S126|PRODR|SHIP': [0, 30], 'S126|CAND|PRODR': [0, 0] }), 0.25), 'the reader']);
@@ -260,7 +294,9 @@ export function loadTraces(units, DIR, ST, bad, DIRA, STA, refA, n = N) {
     if (refA(u.id, u.arm, u.label)) {
       const fa = join(DIRA, A.traceName(u.id, u.arm, u.label));
       if (!existsSync(fa)) bad.push(`no 7aa trace ${fa}`);
-      else { const ta = readTrace(fa); if (!A.traceAgrees(ta, STA, u.arm, u.label, ta.sim)) bad.push(`${fa}: 7aa's trace not as 7aa's reducer reads it`); else if (!sameBits(T.survived, decode(ta).survived)) bad.push(`${f}: its survival is not 7aa's, path by path`); }
+      // 7aa's trace as 7aa's reducer reads it (traceAgrees), at this run's path count: 7aa's helper holds 8,000 fixed, so the
+      // same checks are made here with n (the preflight's 20)
+      else { const ta = readTrace(fa), ra = refA(u.id, u.arm, u.label); if (!traceAgrees(ta, STA, u.arm, u.label, ra && ra.run ? ra.run.sim : NaN, n)) bad.push(`${fa}: 7aa's trace not as 7aa's reducer reads it`); else if (!sameBits(T.survived, decode(ta).survived)) bad.push(`${f}: its survival is not 7aa's, path by path`); }
     }
     TR[`${u.id}|${u.arm}|${u.label}`] = T;
   }
@@ -273,7 +309,8 @@ export function reading(units, TR, out = console.log, n = N) {
   const T = (id, k) => TR[`${id}|${ARMS[k][0]}|${ARMS[k][1]}`];
   const K = (id, b, a) => cells(T(id, a).survived, T(id, b).survived);
   const SIM = (id, k) => U(id, k).run.sim;
-  const SP = id => { const X = T(id, 'SHIP'), Y = T(id, 'CAND'), sy = spendYears(X, Y), a = spendPaths(X, sy), b = spendPaths(Y, sy), change = spendChange(a, b); let ma = 0; for (const x of a) ma += x; ma /= a.length; return { change, rel: Float64Array.from(b, (x, i) => (x - a[i]) / ma) }; };
+  // item 2's measure (spending while both spend) and, reported beside, the old one (a failed path's years 0)
+  const SP = id => { const X = T(id, 'SHIP'), Y = T(id, 'CAND'), sy = spendYears(X, Y), sb = spendBoth(X, Y, sy), change = spendChange(sb.a, sb.b), N0 = X.N, rel = new Float64Array(N0), k = sb.a.length; let ma = 0; for (const x of sb.a) ma += x; ma /= k; sb.idx.forEach((pi, j) => { rel[pi] = (sb.b[j] - sb.a[j]) / ma * N0 / k; }); return { change, rel, kept: k, old: spendChange(spendPaths(X, sy), spendPaths(Y, sy)) }; };
   out(`7AF: THE CANDIDATE BUNDLE (THE BRIDGE READER WITH THE JOINT TIER STATE) AGAINST THE SHIPPING DEFAULT (NO BRIDGE READ, THE PRODUCT'S TABLES) (predictions/diag-7af.md; ${n} paths of seed ${SEED}, the estate weight ${W}; the fair-test gates passed: the stamps, 7aa's gate, 7af's gate - every unit 7aa also ran equal to 7aa's, its trace path by path - and every trace)\n`);
   out('EVERY UNIT: the table, the simulated survival, the year-0 gap and opening (O44), years below target, tier changes and estate');
   for (const [id] of PANEL) for (const k of ['SHIP', 'PRODR', 'CAND']) { const u = U(id, k); if (!u) continue; out(`  ${`${id} ${k}`.padEnd(20)} table ${u.table} sim ${u.run.sim.toFixed(2)} gap ${u.gap.gap} (opening ${u.gap.open1e3},${u.gap.open0}) below ${u.run.below.toFixed(2)} changes ${u.run.changes.toFixed(3)} estate ${u.run.estate} | risk above ${u.joint.decided}`); }
@@ -286,7 +323,7 @@ export function reading(units, TR, out = console.log, n = N) {
   for (const x of it) {
     out(`${x.n}. ${x.text}: ${x.outcome}`);
     if (x.n === 1) for (const l of x.legs) { const u = guardedU(l.k); out(`     ${l.id.padEnd(14)} ${l.k.saved} saved/${l.k.lost} lost of ${l.k.N}  p ${l.p.toExponential(1)}  Holm ${l.pHolm.toExponential(1)}  change ${f3(l.iv.d)} (${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}; unconditional ${u.lo.toFixed(3)} to ${u.hi.toFixed(3)})  margin ${l.margin}  -> ${l.o}${l.o === 'harm' ? `; carried by ${split(l.id, K, l.margin)}` : ''}`); }
-    if (x.n === 2) { for (const l of x.legs) out(`     ${l.id.padEnd(14)} spending ${l.a.toFixed(4)} -> ${l.b.toFixed(4)}: ${f3(100 * l.d)}% (${(100 * l.lo).toFixed(3)} to ${(100 * l.hi).toFixed(3)})`); out(`     the panel mean ${f3(100 * x.mean.d)}% (${(100 * x.mean.lo).toFixed(3)} to ${(100 * x.mean.hi).toFixed(3)})`); }
+    if (x.n === 2) { for (const l of x.legs) { const o = SP(l.id); out(`     ${l.id.padEnd(14)} while both spend (${o.kept} paths) ${l.a.toFixed(4)} -> ${l.b.toFixed(4)}: ${f3(100 * l.d)}% (${(100 * l.lo).toFixed(3)} to ${(100 * l.hi).toFixed(3)}) | reported, a failed path's years 0: ${f3(100 * o.old.d)}%`); } out(`     the panel mean ${f3(100 * x.mean.d)}% (${(100 * x.mean.lo).toFixed(3)} to ${(100 * x.mean.hi).toFixed(3)})`); }
   }
   out(`\nOUTCOME: ${it.map(x => `${x.n} ${x.outcome}`).join(', ')}`);
   return it;

@@ -2,27 +2,27 @@
 
 - **Run:** `research/solver/batch-7af.sh` - results/diag7af/case0-45.txt and every unit's trace (audit-s126.mjs diag7af), read beside 7aa's (results/diag7aa, through 7aa's gate); reduced by `reduce-7af.mjs` into results-7af.txt
 - **Kind:** test
-- **Written:** 28 Sept, 23:07 UK, before the run; after 7ae was read (22:35 UK) and the deep review after it (22:52 UK), which designed this test under the maintainer's steer (22:10 UK: "aiming to get towards recommending a new default ... tests should think about how to get to conclusive answers") and his "Line up tasks until morning" (22:06 UK)
-- **Seeds:** 7002 tuning (8,000 paths, 7aa's own; every arm on the same paths). The product's 'auto' risk-above rule reads its own seed 7101 inside solvePlan (the gate requires its decision equal across a household's arms). No held-out seed is touched (7e ran its panel on its own held-out seed; this test does not). **Disclosed (RULES.md Known limits item 18):** two measurements ran this test's mode, each under "none": a build check in the light lane before this prediction existed (runs.log 28 Sep 23:05 UK, "7af build check"; S126's CAND unit at 4 points and 20 paths, in the scratchpad), and the preflight in the main lane as this prediction was written (preflight-7af.sh; results/preflight-7af.log). Their lines were read only to see that the mode prints them and that the reducer parses, gates and reads them; 4 wealth points are not a registered grid and no survival, spending or gap line of either is read before 7af is. derive-7af.mjs reads 7aa's own S360 units, which are 7af's CAND and SHIP on S360, through 7aa's gate (the records' one household with both arms; its figures are in the Power section).
-- **Unmasking:** the candidate bundle removes two known errors at once. The reader removes the bridge misread under off (O11, O32: S360's 931 paths saved against 0 lost at the bad bridge, results-7v.txt); the joint tier state removes the per-world tables' held-tier misvaluation (O41; 7ac: its tables beat the product's 16/0 and 21/6 at equal openings, results-7ac.txt). The reader alone harmed S126 and bridge 4 (7e: 14 and 26 paths lost, results-7e.txt), and the deep review after 7ae finds TS+J is what makes the reader safe there (grade C). What tells a harm the bundle carries from one it unmasks: the PRODR arm (the product with the reader) on every bridge household - the reader's part (PRODR against SHIP) and the tier state's part (CAND against PRODR) are reported, and where a household reads harm the registered split names which carries it.
+- **Written:** 28 Sept, 23:07 UK, before the run; after 7ae was read (22:35 UK) and the deep review after it (22:52 UK), which designed this test under the maintainer's steer (22:10 UK: "aiming to get towards recommending a new default ... tests should think about how to get to conclusive answers") and his "Line up tasks until morning" (22:06 UK); revised 23:40 UK after the plan-auditor's review (FAIL 23:24 UK, review-log.md: BLOCKING 1, item 2 counted survival as spending; 2, two outcomes without a branch; 3, no root-cause step scheduled for families 1 and 2; MINORs 4 to 8), before any run
+- **Seeds:** 7002 tuning (8,000 paths, 7aa's own; every arm on the same paths). The product's 'auto' risk-above rule reads its own seed 7101 inside solvePlan (the gate requires its decision equal across a household's arms). No held-out seed is touched (7e ran its panel on its own held-out seed; this test does not). **Disclosed (RULES.md Known limits item 18):** two measurements ran this test's mode, each under "none": a build check in the light lane before this prediction existed (runs.log 28 Sep 23:05 UK, "7af build check"; S126's CAND unit at 4 points and 20 paths, in the scratchpad), and the preflight in the main lane as this prediction was written (preflight-7af.sh; results/preflight-7af.log). Their lines were read only to see that the mode prints them and that the reducer parses, gates and reads them; 4 wealth points are not a registered grid and no survival, spending or gap line of either is read before 7af is. After the revision the preflight parse was re-run over the preflight's own files (no new run): PREFLIGHT PARSE PASSED, 46 units, 8 equal to 7aa's preflight path by path, the reading to its outcome line. derive-7af.mjs reads 7aa's own S360 units, which are 7af's CAND and SHIP on S360, through 7aa's gate (the records' one household with both arms; its figures are in the Power section).
+- **Unmasking:** the candidate bundle removes two known errors at once. The reader removes the bridge misread under off (O11, O32: S360's reader 929 paths saved against 0 lost, results-7v.txt; the bundle against the shipping default 931/0, deep-review-log.md 28 Sep 22:52 UK, grade C); the joint tier state removes the per-world tables' held-tier misvaluation (O41; 7ac: its tables beat the product's 16/0 and 21/6 at equal openings, results-7ac.txt). The reader alone harmed S126 and bridge 4 (7e: 14 and 26 paths lost, results-7e.txt), and the deep review after 7ae finds TS+J is what makes the reader safe there (grade C). What tells a harm the bundle carries from one it unmasks: the PRODR arm (the product with the reader) on every bridge household - the reader's part (PRODR against SHIP) and the tier state's part (CAND against PRODR) are reported, and where a household reads harm the registered split names which carries it.
 - **Plan section:** PLAN.md "7af"
 
 ## Question
 
-Is the candidate default - the bridge reader with the joint tier state (TS+J), at the product's settings and the 0.001 margin - safe against the default as it ships (no bridge read, the product's per-world tables) on a panel of households chosen by rule, and does it deliver the same spending? This is the question a default recommendation for Phase 4 rests on (the deep review after 7ae: TS+J's gains on S126 and bridge 4 were measured against the product with the reader, not the shipping default; against the shipping default they are 3/0 and 6/2, results-7aa.txt and results-7v.txt, grade C).
+Is the candidate default - the bridge reader with the joint tier state (TS+J), at the product's settings and the 0.001 margin - safe against the default as it ships (no bridge read, the product's per-world tables) on a panel of households chosen by rule, and does it deliver the same spending? This is the question a default recommendation for Phase 4 rests on (the deep review after 7ae: TS+J's gains on S126 and bridge 4 were measured against the product with the reader, not the shipping default; against the shipping default they are 3/0 and 6/2, the review's uncommitted script over 7aa's and 7v's traces, deep-review-log.md 28 Sep 22:52 UK, grade C).
 
 ## Derivation
 
-- **What the records say of the bundle against the shipping default** (the deep review after 7ae, deep-review-log.md 28 Sep 22:52 UK; its figures from uncommitted scripts, grade C): S126 3 saved/0 lost, bridge 4 6/2, S194 45/3, S360 931/0 (+11.6 points; its spending NOT CHECKED - derive-7af.mjs now reads it: +24.9% spending, results-derive-7af.txt). The other twelve households have no record of either TS+J or the bundle.
+- **What the records say of the bundle against the shipping default** (the deep review after 7ae, deep-review-log.md 28 Sep 22:52 UK; its figures from uncommitted scripts, grade C): S126 3 saved/0 lost, bridge 4 6/2, S194 45/3, S360 931/0 (+11.6 points; its spending, derive-7af.mjs over 7aa's units: +0.031% while both arms spend, +24.885% if a failed path's years count as 0 - that figure is survival, not spending; results-derive-7af.txt). The other twelve households have no record of either TS+J or the bundle.
 - **The reader's own record on the panel** (7e, results-7e.txt; 16 points, 1,000 held-out paths, look 2 at 3,000 or 8,000): harm on S126 (14 lost of 3,000) and bridge 4 (26 lost, 1 saved, of 8,000); share 0.95 +18.2, S360 +12.5, wealth x0.5 +0.68; every other panel household 0 lost 0 saved of 1,000 but bridge 6 (1/1). So on most of the panel the reader changes nothing, and any change there is TS+J's.
 - **TS+J's churn against the product** (results-7aa.txt, W0.02): 6 paths (bridge 4), 4 (S360 reader), 12 (S360 off) of 8,000 differ without a registered gain or loss. The power below sets the unknown households' churn from these.
-- **The spending** (derive-7af.mjs over 7aa's S360 units): CAND delivers 24.9% more spending than SHIP on S360, se 0.77 points of a per cent at 8,000 paths - the spending item is decided by the size of any change, not by noise.
-- **Why these households** (the review): 7e's panel in its registered order, the first twelve not already run by 7aa, then the four 7aa ran (S126, bridge 4, S360) and S194 (the review names it; an off-only household with no bridge, where the bundle's change is TS+J's alone). The rest of 7e's panel (S124, S128, S130, S366, S370, bridge 4+cost, S162, S172, S168) waits for a second session: the thin S128 and S130 (story B) are not in this panel, disclosed as the pre-mortem's third.
+- **The spending** (derive-7af.mjs over 7aa's S360 units): while both arms spend, CAND delivers +0.031% against SHIP on S360 (8,000 paths, every path spends in year 0 under both); counting a failed path's years as 0 reads +24.885%, which is S360's survival gain (34.3% to 45.9%), not spending. Item 2 is therefore read while both spend (the plan-auditor's BLOCKING 1): it compares survivors' spending, so a policy that survives by trimming shows its trims, and one that survives longer is not credited with the extra years (item 1's). The old measure is reported beside.
+- **Why these households** (the review): 7e's panel in its registered order, the first twelve not already run by 7aa, then the four 7aa ran (S126, bridge 4, S360) and S194 (the review names it; an off-only household with no bridge, where the bundle's change is TS+J's alone). The rest of 7e's panel (S124, S128, S130, S366, S370, bridge 4+cost, S162, S172, S168) waits for a second session: the thin S128 and S130 (story B) are not in this panel, nor S124, the one household outside it where 7e's reader read possible harm (28 lost, 11 saved of 3000, -0.57, inconclusive; results-7e.txt) - disclosed as the pre-mortem's third.
 
 ## Prediction
 
 1. **No material harm on every household:** the candidate against the shipping default, paired on the same 8,000 paths, reads "no material harm" by the regimen's exact rule with Holm across the 16 households.
-2. **Spending delivered:** no household's spending is more than 5% lower under the candidate, and the panel mean is not more than 1% lower, each by its 95% interval.
+2. **Spending while both spend:** on the path-years in which both arms spend, no household's spending is more than 5% lower under the candidate, and the panel mean is not more than 1% lower, each by its 95% interval.
 
 ## Falsified if
 
@@ -50,8 +50,8 @@ differ, by design. PRODR (READER/PRODUCT/W0.02) splits them on bridge households
 | 26 | Which rivals, and each one's rule and parameters (the guardrails' thresholds, Vanguard's bands, ARVA's rate) | none | none | N/A - the solver against its own default, no rival arm |
 | 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | none | none | N/A - no fixed arm |
 | 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | 7af's snapshot | the same | SAME - both arms in one run; the change since 7ae is audit-s126.mjs's diag7af mode alone; every unit 7aa also ran (8) must equal 7aa's, its trace path by path (the reducer's gate) |
-| 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | item 1: survival simulated (the floor paid every year and the minimum pot at the end); item 2: spending delivered (the mean spend level over the spending years, a failed path's years 0) | the same | SAME |
-| 30 | The reducer and its version | reduce-7af.mjs: requireFairLogs over 7af's and 7aa's stamps, 7aa's own gate, 7af's gate, every trace, the identity with 7aa; INCOMPLETE unless all 46 units are done; 52 planted checks, 43 planted faults each caught (mutate-reduce-7af.py, results-reduce-7af-mutations.txt); its reading run over the preflight's files | the same | SAME |
+| 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | item 1: survival simulated (the floor paid every year and the minimum pot at the end); item 2: spending while both spend (each path's mean spend level over the spending years both arms spend in; paths with none left out; the old measure, a failed path's years 0, reported) | the same | SAME |
+| 30 | The reducer and its version | reduce-7af.mjs: requireFairLogs over 7af's and 7aa's stamps, 7aa's own gate, 7af's gate, every trace, the identity with 7aa; INCOMPLETE unless all 46 units are done; 55 planted checks, 46 planted faults each caught (mutate-reduce-7af.py, results-reduce-7af-mutations.txt); its reading run over the preflight's files | the same | SAME |
 | 31 | Paired or not, and the standard error used | item 1 paired, the exact one-sided McNemar p with Holm across 16, the exact interval (stats.mjs outcome), the unconditional interval beside; item 2 paired per-path differences, a normal 95% interval | the same | SAME |
 | 32 | The table's number is never the result: survival is simulated | simulated | simulated | SAME |
 | 33 | For timings: what else the machine was running | printed, not read | the same | N/A - no timing is read |
@@ -66,10 +66,12 @@ differ, by design. PRODR (READER/PRODUCT/W0.02) splits them on bridge households
   least the margin; else inconclusive. HELD when all 16 read no material harm; FALSIFIED when any reads harm; else
   INCONCLUSIVE. The unconditional interval (survivalChangeU, guarded) is printed beside each and read by the maintainer's
   earlier rule (reported; it replaces the exact one only by the maintainer's decision).
-- **Item 2:** each run's spending = the mean over paths of the mean spend level over the spending years (any year a path of
-  either arm spends in; a failed path's later years 0); CAND's relative change against SHIP with a paired 95% interval
-  (the per-path differences over SHIP's mean); the panel mean of the 16 relative changes with its 95% interval from the
-  per-path means (the households share their paths). HELD when every household's lower end is above -5% AND the mean's
+- **Item 2:** on each path, the spending years (any year a path of either arm spends in) in which BOTH arms spend; each
+  arm's mean spend level over them; paths with no such year left out (reduce-7af.mjs spendBoth). CAND's relative change
+  against SHIP over the kept paths with a paired 95% interval (the per-path differences over SHIP's mean); the panel mean of
+  the 16 relative changes with its 95% interval from the per-path means (the households share their paths; each
+  household's per-path differences scaled so their mean over all paths is its change). The old measure (a failed path's
+  years 0: survival and spending together) is reported beside, never read as item 2. HELD when every household's lower end is above -5% AND the mean's
   above -1%; FALSIFIED when any household's upper end is below -5% OR the mean's upper end below -1%; else INCONCLUSIVE.
 - **Reported, not items:** every unit's table, survival, year-0 gap and opening (O44's gate on tuning households), estate,
   years below target and tier changes; the reader's part and the tier state's part on each bridge household; the whole
@@ -87,15 +89,23 @@ differ, by design. PRODR (READER/PRODUCT/W0.02) splits them on bridge households
 - **1 HELD and 2 HELD:** the bundle (the bridge reader with TS+J at 0.001, the estate weight 0.02) goes to the maintainer as
   the recommended candidate default for Phase 4's head-to-head, grade B on 16 tuning households at one seed, with the named
   risks: TS+J's solve time is 2.5 to 3 times the product's (7aa, B; gate 5's budget not yet sized); the rest of 7e's panel
-  (nine households, the thin S128 and S130 among them) unrun; confirmation on the held-out panel (7u's kind, seed 7013) is
-  the maintainer's to authorise. No default changes in code without the maintainer's decision.
+  (nine households, S124 and the thin S128 and S130 among them) unrun; families 1 and 2's root cause open (the
+  uncharged margin and the world-blind chooser; TS+J's opening on O44's knife edge) - the schedule's P row (a switch
+  charged in both passes) must read before a recommendation containing TS+J is final or goes to Phase 4; confirmation on
+  the held-out panel (7u's kind, seed 7013) is the maintainer's to authorise. No default changes in code without the
+  maintainer's decision.
+- **1 HELD and 2 INCONCLUSIVE:** no recommendation; the households left open on spending go to a registered follow-up on
+  fresh paths, sized from this run.
 - **1 FALSIFIED:** by the split - the reader carries the harm: TS+J with off is the next test (the reader waits for its O36
   or Q fix); the tier state carries it: no TS+J in the default; the margin design (P) or the root cause of family 1 first
-  (the deep review's list); both: both. The harmed household's opening line is read beside (O44).
+  (the deep review's list); both: both; neither alone (each part below the margin, the combination carrying it): the
+  combination is the harm's carrier, attribution grade C (RULES.md section 9 rules 1-2), a diagnosis of that household
+  next and no next fix of either kind until it reads. The harmed household's opening line is read beside (O44).
 - **1 INCONCLUSIVE:** each household left open goes to a registered test on fresh paths (seed 7002's paths 8,000 to 15,999
   or another tuning seed), sized from this run's churn; no recommendation until it reads.
-- **2 FALSIFIED:** the bundle delivers less spending where it saves survival: the trade is the maintainer's to price (the
-  dislike-of-cuts setting, O15), reported with the survival gained per point of spending lost; no recommendation until then.
+- **2 FALSIFIED:** the bundle's survivors spend less (item 2 is read while both spend, so this is trimming, not survival):
+  the trade is the maintainer's to price (the dislike-of-cuts setting, O15), reported with the survival gained per point of
+  spending lost; no recommendation until then.
 - **In every branch:** nothing to a default from 7af itself; no margin, grid or bridge-read default change; no 7u; no seed
   7013; no TS+J+Q build before the reader's cells are read (the deep review's holds).
 
@@ -112,35 +122,36 @@ differ, by design. PRODR (READER/PRODUCT/W0.02) splits them on bridge households
 
 ## Derivation script
 
-- `derive: research/solver/derive-7af.mjs > research/solver/results-derive-7af.txt sha256 f49f5358439f91c6`
+- `derive: research/solver/derive-7af.mjs > research/solver/results-derive-7af.txt sha256 0ed8b10d485097b9`
   (item 1 drawn as Poisson counts per household at the records' churn and a planted true loss, read by reduce-7af.mjs
-  items(); item 2's size and standard error from 7aa's S360 units, through 7aa's gate).
+  items(); item 2's size and standard error from 7aa's S360 units, through 7aa's gate, on item 2's measure and the old one).
 
 ## Point and interval
 
 80% intervals, the author's:
 - Item 1: the number of households reading no material harm, 15 (13 to 16); harm on any, probability 0.25.
-- Item 2: the panel mean's spending change +2% (-0.5% to +5%), S360 its largest (+25%, derive-7af.mjs).
+- Item 2: the panel mean's spending change while both spend 0% (-1.5% to +1%); S360 +0.031% (derive-7af.mjs).
 
 ## Credence
 
-The author's probability that each item reads as predicted (HELD): 1, 0.55; 2, 0.75. Item 1: on the four households with
+The author's probability that each item reads as predicted (HELD): 1, 0.55; 2, 0.65 (0.75 as first registered on the measure that counted survival; lowered with the measure, before any run). Item 1: on the four households with
 records the bundle does not lose (3/0, 6/2, 45/3, 931/0), and on most of the rest the reader changes nothing; against it,
 TS+J has never run on twelve of these households, its opening flips with the grid (7ad), and one harm or one household
-left open among 16 is enough to lose HELD. Item 2: TS+J and the reader save paths, and saved paths spend; a household where
-TS+J trims harder to survive would lower it. The scorecard stands at 0.227 over 93 items against its 0.20 target
+left open among 16 is enough to lose HELD. Item 2, read while both spend: S360 moves +0.031% (derive-7af.mjs); against it, TS+J
+may trim harder to survive on some households, and a 1% mean line is tight against 16 households' noise and small trims. The scorecard stands at 0.227 over 93 items against its 0.20 target
 (results-scorecard.txt); 7ae scored 0.357.
 
 ## Power
 
-From results-derive-7af.txt (20,000 draws a story; the margin 0.25 on every household, conservative):
+From results-derive-7af.txt (20,000 draws a story; the margin 0.25 on every household - conservative for HELD, not for FALSIFIED):
 - **Item 1:** no household loses - HELD 1.000 at churn 6 and 12, 0.962 at churn 20, 0.027 at churn 50 (INCONCLUSIVE 0.944);
-  one household loses 0.4 points - FALSIFIED 0.974 at churn 12, 0.954 at churn 20; loses 0.25 - FALSIFIED 0.531,
+  one household at the 0.25 margin loses 0.4 points - FALSIFIED 0.974 at churn 12, 0.954 at churn 20 (a household below 95% survival takes the 0.5 margin, where a 0.4 loss is not harm by the rule); loses 0.25 - FALSIFIED 0.531,
   INCONCLUSIVE 0.389; loses 0.2 - HELD 0.275, FALSIFIED 0.244, INCONCLUSIVE 0.481. So the design is conclusive (0.95 or more)
   under the leading stories at the records' churn (up to 12) and against a loss of 0.4; a loss near the margin, or churn
   near 50 paths a household, mostly reads INCONCLUSIVE (the pre-mortem's second).
-- **Item 2:** S360's spending +24.9% with a standard error of 0.77 points of a per cent at 8,000 paths: a household's
-  interval is about 1.5 points wide, so the 5% line is read by the change's size.
+- **Item 2:** S360 while both spend +0.031% with a standard error of 0.002 points of a per cent at 8,000 paths (the old
+  measure's +24.885%, se 0.767, is survival): a household's interval is far narrower than the 5% and 1% lines, so item 2
+  reads by the size of any trim.
 - **Time:** from 7aa's measured units at W0.02 under four-way load (results/diag7aa: TS+J solves 737 to 1,036 s, the
   product's 275 to 358 s; runs of 8,000 paths 632 to 686 s, S360's shorter): CAND about 1,600 s, SHIP and PRODR about 950 s
   each; 16 + 16 + 14 units about 54,000 core-seconds, about 3.7 hours on four cores, plus the smoke run and the launcher's
@@ -157,7 +168,7 @@ UK); the deep review after 7ae names this as the test that moves furthest toward
   20 paths, or a small loss) - no recommendation yet, the open households to a sized follow-up.
 - **Second:** a harm on a household where TS+J opens de-risked and the de-risk costs survival in the good world (O44's
   knife edge; 7ad's grid-flipped openings) - the split names the tier state; read with the opening line.
-- **Third:** the panel misses the households most at risk (the thin S128 and S130, O5; S366 and S370 with 8-year bridges):
+- **Third:** the panel misses the households most at risk (S124, where 7e's reader read possible harm; the thin S128 and S130, O5; S366 and S370 with 8-year bridges):
   a HELD here is grade B for these 16 only; the nine others are the next session's.
 - **Fourth:** a unit 7aa ran is not equal to 7aa's (the code changed a solve): NOT SETTLED, found before anything is read.
 - **Fifth:** spending falls on a household where the bundle saves survival by trimming (item 2 FALSIFIED with item 1 HELD):

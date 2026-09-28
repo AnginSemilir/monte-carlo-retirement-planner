@@ -1,4 +1,4 @@
-true script: planted (52): all read as they should
+true script: planted (55): all read as they should
 caught  the gate accepts a missing unit: the gate refuses a missing unit: false (want true)
 caught  the gate accepts a unit twice: the gate refuses a unit run twice: false (want true)
 caught  the gate accepts an unregistered unit: the gate refuses an unregistered unit (PRODR on bridge 0, no bridge): false (want true)
@@ -39,8 +39,11 @@ caught  item 2's mean at 2%, not 1%: spending 1.5% lower on every household: 2 F
 caught  item 2 held on the point, not the lower end: item 2 reads the interval, not the point: 4.9% lower with a wide interval (to about -6.9%) is INCONCLUSIVE: HELD (want INCONCLUSIVE)
 caught  item 2 without the mean: spending 1.5% lower on every household: 2 FALSIFIED by the mean: HELD (want FALSIFIED)
 caught  item 2 held with one household below: spending 6% lower on one household: 2 FALSIFIED: HELD (want FALSIFIED)
+caught  spending while EITHER arm spends: survival is not spending: paths SHIP loses (after year 0; from the start) read +123.5% on the old measure, -1.0% while both spend, the path with no year both spend left out: 1
+caught  spending keeps paths with no joint year: survival is not spending: paths SHIP loses (after year 0; from the start) read +123.5% on the old measure, -1.0% while both spend, the path with no year both spend left out: 1
+caught  the identity with 7aa's trace not compared path by path: the identity with 7aa's trace, on files: equal bits pass, two bits swapped (the survival unchanged) refused: 0 false (want 0 true)
 caught  the split ignores the reader: the split: a loss of the margin in PRODR against SHIP is the reader's: neither alone (each part below the margin) (want the reader)
 caught  the split ignores the tier state: the split: a loss of the margin in CAND against PRODR is the tier state's: neither alone (each part below the margin) (want the tier state)
 caught  the split without the no-bridge rule: the split: without a bridge, the tier state: neither alone (each part below the margin) (want the tier state (no bridge: the reader reads as off))
 
-43 mutations: every one caught
+46 mutations: every one caught

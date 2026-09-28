@@ -56,6 +56,9 @@ M = [
     ("item 2 held on the point, not the lower end", "outcome: tri(legs.every(l => l.lo > SPEND_H) && mean.lo > SPEND_M,", "outcome: tri(legs.every(l => l.d > SPEND_H) && mean.d > SPEND_M,"),
     ("item 2 without the mean", "outcome: tri(legs.every(l => l.lo > SPEND_H) && mean.lo > SPEND_M, legs.some(l => l.hi < SPEND_H) || mean.hi < SPEND_M) }); }", "outcome: tri(legs.every(l => l.lo > SPEND_H), legs.some(l => l.hi < SPEND_H)) }); }"),
     ("item 2 held with one household below", "outcome: tri(legs.every(l => l.lo > SPEND_H) && mean.lo", "outcome: tri(legs.filter(l => l.lo > SPEND_H).length >= 15 && mean.lo"),
+    ("spending while EITHER arm spends", "if (la > 0 && lb > 0) { sa += la / 100;", "if (la > 0 || lb > 0) { sa += la / 100;"),
+    ("spending keeps paths with no joint year", "if (n) { a.push(sa / n); b.push(sb / n); idx.push(i); }", "{ a.push(n ? sa / n : 0); b.push(n ? sb / n : 0); idx.push(i); }"),
+    ("the identity with 7aa's trace not compared path by path", "else if (!sameBits(T.survived, decode(ta).survived)) bad.push", "else if (false) bad.push"),
     # the split
     ("the split ignores the reader", "const who = [lr >= margin ? 'the reader' : null,", "const who = [null,"),
     ("the split ignores the tier state", "lt >= margin ? 'the tier state' : null].filter(Boolean);", "null].filter(Boolean);"),

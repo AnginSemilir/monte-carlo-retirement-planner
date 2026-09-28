@@ -68,7 +68,7 @@ arms of every leg.
   **No material harm is read by both intervals** (reduce-7ab.mjs bothReads): the regimen's exact reading stands, except that
   "no material harm" also needs the unconditional interval's lower end (stats.mjs survivalChangeU, guarded) above minus the
   margin; where it is not, the leg is inconclusive. A declared choice, stricter than the regimen alone (it can turn no
-  material harm into inconclusive, never the reverse), because items 1 and 3 claim "no worse", where the exact interval's
+  material harm into inconclusive, never the reverse), because items 1 and 5 claim "no worse", where the exact interval's
   end is the point estimate with one-sided changes (stats.mjs survivalChange's comment; the plan-auditor on 7aa's item 4).
   **Item 1** HELD when both legs show no material harm, FALSIFIED when either reads harm, else INCONCLUSIVE. **Items 3 and 5**
   read one harm family against PRODUCT: bridge 4 (reader), S360 (reader) and S360 (off) at W0 and W0.02, six legs, Holm over

@@ -137,7 +137,7 @@ export function lossRead(w, survO, unLo, m) {
   if (w.lo > -m && unLo > -m) return 'no material loss';
   return 'inconclusive';
 }
-/* NO MATERIAL HARM, READ BY BOTH INTERVALS (items 1 and 3): the regimen's exact reading of a leg (harmFamily) stands, except
+/* NO MATERIAL HARM, READ BY BOTH INTERVALS (items 1, 3 and 5; the "no worse" claims are items 1 and 5): the regimen's exact reading of a leg (harmFamily) stands, except
    that "no material harm" needs the unconditional interval's lower end above minus the margin too; where it is not, the
    leg is inconclusive. Stricter than the regimen alone - it can turn no material harm into inconclusive, never the reverse -
    because a claim of "no worse" is where the exact interval is kind (its end on a one-sided side is the point estimate;

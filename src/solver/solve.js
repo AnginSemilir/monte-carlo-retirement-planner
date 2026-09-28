@@ -1552,7 +1552,9 @@ export function solveFlex(E, M, plan, opts = {}) {
   return done(best, 'landed', vSteps);
 }
 
-function nearestIndex(g, s) {
+// exported for 7ae's decision log (research/solver/audit-s126.mjs diag7ae): the cell whose stored move the forward chooser is
+// compared with; the solver's own rule, not a copy
+export function nearestIndex(g, s) {
   const loc = locateVec(g, s);
   return g.index(Math.min(g.np - 1, loc.p.i + (loc.p.w > 0.5 ? 1 : 0)), Math.min(g.ni - 1, loc.i.i + (loc.i.w > 0.5 ? 1 : 0)),
     Math.min(g.nt - 1, loc.t.i + (loc.t.w > 0.5 ? 1 : 0)), loc.ig, loc.ic);

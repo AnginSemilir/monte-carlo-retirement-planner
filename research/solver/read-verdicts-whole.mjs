@@ -1,16 +1,21 @@
 /*
  * THE RECORDS CHECK: SURVIVAL AGAINST THE WHOLE SCORE ON EVERY PAST VERDICT (the maintainer's request, 28 Sep: a verdict read
  * by survival alone may blame a mechanism for survival the solver gave up, correctly, for the pot its objective weights at
- * 0.02). For each registered survival leg of 7r to 7z: the survival change and the realised whole score (reduce-7t.mjs
+ * 0.02). For each survival leg of 7t to 7z: the survival change and the realised whole score (reduce-7t.mjs
  * scorePaths: survival, the capped estate at 0.02, the dislike of cuts, the raise credit), paired on the same paths, and
  * whether they agree in sign. Reported, grade C, no test; the flag "whole clear" is descriptive (the whole score's
  * difference beyond twice its standard error), never a decision rule.
- *   7t and 7v: their gated reducers printed both measures for the same pairs (results-7t.txt, results-7v.txt): parsed.
+ *   7t: every leg of its paired survival table (results-7t.txt), computed here from the traces through reduce-7t.mjs's
+ *     stamp gate, fair-test gate and trace check; the recomputed saved/lost must equal the table's and the recomputed whole
+ *     score the 67 legs the reducer printed it for (a reproduction check), else the script stops. A first version parsed
+ *     only those 67 and skipped the other 19 legs silently (the plan-auditor's review of 5a94973, MINOR 2).
+ *   7v: its gated reducer printed both measures for every arm against OFF/1e-3 (results-7v.txt): parsed, all 104 counted.
  *   7y and 7z: read-7y-whole.mjs and read-7z-whole.mjs (each through its reducer's gates): parsed.
  *   7w and 7x: computed here from the traces, through each reducer's own INCOMPLETE check, stamp gate, fair-test gate,
  *     trace check and survival match.
- *   7r: its reducer read the estate beside survival (results-7r.txt); its question was re-measured with the whole score
- *     in 7t (READER-OFF on S126 and bridge 4). 7e and 7s: no traces were kept; not checkable from the records.
+ *   7r: not re-read (its logs print no scale for the estate); its reducer read the estate beside survival (results-7r.txt)
+ *     and its question was re-measured with the whole score in 7t (READER-OFF on S126 and bridge 4). 7e and 7s: no traces
+ *     were kept; not checkable from the records.
  *   node research/solver/read-verdicts-whole.mjs > research/solver/results-verdicts-whole.txt
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
@@ -22,6 +27,7 @@ import { decode, scorePaths, paired, WB } from './reduce-7t.mjs';
 import { cells, survivedShare } from './reduce-7v.mjs';
 import * as W from './reduce-7w.mjs';
 import * as X from './reduce-7x.mjs';
+import * as T7 from './reduce-7t.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const f3 = x => `${x >= 0 ? '+' : ''}${x.toFixed(3)}`;
@@ -51,14 +57,41 @@ const add = (test, cse, pair, ds, sl, dw, se, parts) => rows.push({ test, cse, p
     if (/^THE REALISED WHOLE SCORE/.test(l)) { inWhole = true; continue; }
     if (inWhole && !l.trim()) inWhole = false;
     let m;
-    if (!inWhole && (m = /^\s{2}(share 0\.95|bridge 4|S\d+)\s+(\S+)\s+(\d+)\/(\d+)\s+([+-]\d+\.\d+) \(/.exec(l))) surv[`${m[1]}|${m[2]}`] = { sl: `${m[3]}/${m[4]}`, d: Number(m[5]) };
+    if (!inWhole && (m = /^\s{2}(share 0\.95|bridge 4|S\d+)\s+(\S+)\s+(\d+)\/(\d+)\s+([+-]\d+\.\d+) \(/.exec(l))) surv[`${m[1]}|${m[2]}`] = { saved: +m[3], lost: +m[4] };
     if (inWhole && l.trim()) wholeLines++;
     if (inWhole && (m = /^\s{2}(share 0\.95|bridge 4|S\d+)\s+(\S+)\s+([+-]\d+\.\d+) \+\/- (\d+\.\d+)/.exec(l))) whole[`${m[1]}|${m[2]}`] = { d: Number(m[3]), se: Number(m[4]) };
   }
-  const nWhole = Object.keys(whole).length, unmatched = Object.keys(whole).filter(k => !surv[k]);
-  if (nWhole !== wholeLines) { console.log(`PARSE FAILED: 7t has ${wholeLines} whole-score lines, ${nWhole} parsed`); process.exit(1); }
+  if (Object.keys(whole).length !== wholeLines) { console.log(`PARSE FAILED: 7t has ${wholeLines} whole-score lines, ${Object.keys(whole).length} parsed`); process.exit(1); }
+  const unmatched = Object.keys(whole).filter(k => !surv[k]);
   if (unmatched.length) { console.log(`PARSE FAILED: 7t whole-score pairs with no survival line: ${unmatched.join(', ')}`); process.exit(1); }
-  for (const k of Object.keys(surv)) if (whole[k]) { const [c, p] = k.split('|'); add('7t', c, p, surv[k].d, surv[k].sl, whole[k].d, whole[k].se, null); }
+  // the traces, through reduce-7t.mjs's own gates (as its main)
+  const D = join(HERE, 'results', 'diag7t');
+  const files = readdirSync(D).filter(f => /^part\d+\.txt$/.test(f)).sort();
+  if (files.length !== 5) { console.log(`INCOMPLETE - ${files.length} of 5 7t logs`); process.exit(1); }
+  const logs = Object.fromEntries(files.map(f => [f, readFileSync(join(D, f), 'utf8')]));
+  requireFairLogs(logs, T7.PRED);
+  const cases = Object.values(logs).flatMap(T7.parse), bad = T7.gate(cases);
+  if (bad.length) { console.log(`FAIR-TEST GATE: FAILED (diag7t)\n  ${bad.join('\n  ')}`); process.exit(1); }
+  const st = /^stamp: code (\S+) audit (\S+) prediction (\S+) sha (\S+)$/m.exec(Object.values(logs)[0]);
+  const ST = { code: st[1], audit: st[2], prediction: st[3], sha: st[4] };
+  const tr = {};
+  const load = (id, label) => { const k = `${id}|${label}`; if (tr[k]) return tr[k]; const f = join(D, T7.traceName(id, label)); if (!existsSync(f)) { console.log(`no trace ${f}`); process.exit(1); } const j = JSON.parse(gunzipSync(readFileSync(f)).toString()); if (!T7.traceAgrees(j, ST, label)) { console.log(`${f}: the trace is not the logs'`); process.exit(1); } return (tr[k] = T7.decode(j)); };
+  let reproduced = 0;
+  for (const key of Object.keys(surv)) {
+    const [id, pair] = key.split('|'), [b, a] = pair.split('-'), c = cases.find(x => x.id === id);
+    if (!c || !b || !a) { console.log(`PARSE FAILED: 7t leg ${key}`); process.exit(1); }
+    const ran = c.ran[T7.PANEL[id][0]], jn = c.joint[T7.PANEL[id][0]], ref = load(id, T7.PANEL[id][0]);
+    const cfg = { lambda: Number(W.field(ran, 'lambda')), floor: Math.min(...W.field(ran, 'levels').split(',').map(Number)), scale: jn.scale, cap: jn.cap };
+    cfg.spendYears = Array.from({ length: ref.Y }, (_, t) => { for (let i = 0; i < ref.N; i++) if (ref.level[i * ref.Y + t] > 0) return true; return false; });
+    const A = load(id, a), B = load(id, b), k = cells(A.survived, B.survived);
+    if (k.saved !== surv[key].saved || k.lost !== surv[key].lost) { console.log(`REPRODUCTION FAILED: 7t ${key} saved/lost ${k.saved}/${k.lost}, the table ${surv[key].saved}/${surv[key].lost}`); process.exit(1); }
+    const part = (T, which) => { const o = new Float64Array(T.N); for (let i = 0; i < T.N; i++) { const alive = T.survived[i] === 1; o[i] = which === 's' ? (alive ? 100 : 0) : (alive ? 100 * WB * Math.min(T.wealth[i * T.Y + T.Y - 1], cfg.cap) / cfg.scale : 0); } return o; };
+    const w = paired(scorePaths(A, cfg), scorePaths(B, cfg)), ps = paired(part(A, 's'), part(B, 's')), pe = paired(part(A, 'e'), part(B, 'e'));
+    if (whole[key]) { if (Math.abs(w.d - whole[key].d) > 5e-4 || Math.abs(w.se - whole[key].se) > 5e-4) { console.log(`REPRODUCTION FAILED: 7t ${key} whole ${w.d} +/- ${w.se}, printed ${whole[key].d} +/- ${whole[key].se}`); process.exit(1); } reproduced++; }
+    add('7t', id, pair, ps.d, `${k.saved}/${k.lost}`, w.d, w.se, { s: ps.d, e: pe.d, r: w.d - ps.d - pe.d });
+  }
+  if (reproduced !== wholeLines) { console.log(`REPRODUCTION FAILED: ${reproduced} of 7t's ${wholeLines} printed whole-score legs checked`); process.exit(1); }
+  console.log(`7t: ${Object.keys(surv).length} legs computed from the traces; the saved/lost of every leg and the whole score of the ${reproduced} the reducer printed reproduced`);
   const v = readFileSync(join(HERE, 'results-7v.txt'), 'utf8').split('\n');
   let cse = null;
   for (const l of v) {

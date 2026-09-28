@@ -1,0 +1,63 @@
+7AB'S POWER: 8000 paths; 20000 draws a story (seed 7002); read by reduce-7ab.mjs's rule
+
+THE SIZES (see the header)
+  the freed opening against the product, S126  15/0 of 3000, the rest -0.170 +/- 0.025 -> 40.0/0.0 of 8000, the rest's error 0.016 at 8000
+  the freed opening against the product, S194  16/0 of 3000, the rest -0.068 +/- 0.020 -> 42.7/0.0 of 8000, the rest's error 0.013 at 8000
+  7y's product at 0.02, S126|READER     margin 0.25  fails 59 of 8000
+  7y's product at 0.02, S194|OFF        margin 0.25  fails 142 of 8000
+  7y's product at 0.02, bridge 4|READER margin 0.25  fails 35 of 8000
+  7y's product at 0.02, S360|READER     margin 0.5  fails 4327 of 8000
+  7y's product at 0.02, S360|OFF        margin 0.5  fails 5256 of 8000
+
+BACKGROUND 0.5 PATHS EACH WAY ON EVERY LEG
+  item 1 (W0, FREED against TS+J), FREED as TS+J                                               b 0.5  HELD 1.000
+  item 1 (W0, FREED against TS+J), TS+J saving 10 more on both (0.125 points)                  b 0.5  FALSIFIED 0.009  HELD 0.471  INCONCLUSIVE 0.520
+  item 1 (W0, FREED against TS+J), TS+J saving 20 more on both (0.25, the margin)              b 0.5  FALSIFIED 0.782  HELD 0.001  INCONCLUSIVE 0.217
+  item 1 (W0, FREED against TS+J), TS+J saving 40 more on S126 only (0.5)                      b 0.5  FALSIFIED 1.000  INCONCLUSIVE 0.000
+  item 1 (W0, FREED against TS+J), TS+J saving 40 more on both (0.5)                           b 0.5  FALSIFIED 1.000
+  item 2 (W0.02, the whole score), level                                                       b 0.5  HELD 1.000
+  item 2 (W0.02, the whole score), TS+J saving 20 more on both (the whole 0.25 below, the margin) b 0.5  FALSIFIED 0.796  INCONCLUSIVE 0.204
+  item 2 (W0.02, the whole score), TS+J saving 40 more on both                                 b 0.5  FALSIFIED 1.000
+  item 2 (W0.02, the whole score), survival level, the rest 0.25 below (the margin)            b 0.5  FALSIFIED 0.751  INCONCLUSIVE 0.249
+  item 2 (W0.02, the whole score), survival level, the rest 0.1 below                          b 0.5  HELD 0.856  INCONCLUSIVE 0.144
+  item 3 (both weights, against PRODUCT), all level                                            b 0.5  HELD 1.000
+  item 3 (both weights, against PRODUCT), bridge 4 loses 30 at W0.02 (0.375 points, margin 0.25) b 0.5  FALSIFIED 0.976  HELD 0.000  INCONCLUSIVE 0.024
+  item 3 (both weights, against PRODUCT), S360 under off loses 80 at W0.02 (1 point, margin 0.5) b 0.5  FALSIFIED 1.000
+  item 3 (both weights, against PRODUCT), S360 with the reader loses 80 at W0                  b 0.5  FALSIFIED 1.000
+  item 4 (W0, against PRODUCT; the 0.02 sizes assumed), FREED as the freed opening at 0.02     b 0.5  HELD 1.000
+  item 4 (W0, against PRODUCT; the 0.02 sizes assumed), half of it                             b 0.5  HELD 1.000  INCONCLUSIVE 0.000
+  item 4 (W0, against PRODUCT; the 0.02 sizes assumed), a quarter of it                        b 0.5  FALSIFIED 0.012  HELD 0.879  INCONCLUSIVE 0.108
+  item 4 (W0, against PRODUCT; the 0.02 sizes assumed), FREED doing nothing                    b 0.5  FALSIFIED 1.000  INCONCLUSIVE 0.000
+
+BACKGROUND 5 PATHS EACH WAY ON EVERY LEG
+  item 1 (W0, FREED against TS+J), FREED as TS+J                                               b 5    HELD 0.999  INCONCLUSIVE 0.001
+  item 1 (W0, FREED against TS+J), TS+J saving 10 more on both (0.125 points)                  b 5    FALSIFIED 0.038  HELD 0.266  INCONCLUSIVE 0.696
+  item 1 (W0, FREED against TS+J), TS+J saving 20 more on both (0.25, the margin)              b 5    FALSIFIED 0.767  HELD 0.001  INCONCLUSIVE 0.232
+  item 1 (W0, FREED against TS+J), TS+J saving 40 more on S126 only (0.5)                      b 5    FALSIFIED 0.999  INCONCLUSIVE 0.001
+  item 1 (W0, FREED against TS+J), TS+J saving 40 more on both (0.5)                           b 5    FALSIFIED 1.000
+  item 2 (W0.02, the whole score), level                                                       b 5    HELD 0.932  INCONCLUSIVE 0.068
+  item 2 (W0.02, the whole score), TS+J saving 20 more on both (the whole 0.25 below, the margin) b 5    FALSIFIED 0.796  INCONCLUSIVE 0.203
+  item 2 (W0.02, the whole score), TS+J saving 40 more on both                                 b 5    FALSIFIED 1.000
+  item 2 (W0.02, the whole score), survival level, the rest 0.25 below (the margin)            b 5    FALSIFIED 0.750  INCONCLUSIVE 0.250
+  item 2 (W0.02, the whole score), survival level, the rest 0.1 below                          b 5    FALSIFIED 0.000  HELD 0.188  INCONCLUSIVE 0.811
+  item 3 (both weights, against PRODUCT), all level                                            b 5    HELD 0.999  INCONCLUSIVE 0.001
+  item 3 (both weights, against PRODUCT), bridge 4 loses 30 at W0.02 (0.375 points, margin 0.25) b 5    FALSIFIED 0.952  HELD 0.000  INCONCLUSIVE 0.048
+  item 3 (both weights, against PRODUCT), S360 under off loses 80 at W0.02 (1 point, margin 0.5) b 5    FALSIFIED 1.000
+  item 3 (both weights, against PRODUCT), S360 with the reader loses 80 at W0                  b 5    FALSIFIED 1.000
+  item 4 (W0, against PRODUCT; the 0.02 sizes assumed), FREED as the freed opening at 0.02     b 5    HELD 1.000
+  item 4 (W0, against PRODUCT; the 0.02 sizes assumed), half of it                             b 5    FALSIFIED 0.001  HELD 0.969  INCONCLUSIVE 0.030
+  item 4 (W0, against PRODUCT; the 0.02 sizes assumed), a quarter of it                        b 5    FALSIFIED 0.182  HELD 0.468  INCONCLUSIVE 0.349
+  item 4 (W0, against PRODUCT; the 0.02 sizes assumed), FREED doing nothing                    b 5    FALSIFIED 0.980  HELD 0.001  INCONCLUSIVE 0.019
+
+BACKGROUND 15 PATHS EACH WAY ON EVERY LEG
+  item 1 (W0, FREED against TS+J), FREED as TS+J                                               b 15   FALSIFIED 0.000  HELD 0.871  INCONCLUSIVE 0.128
+  item 1 (W0, FREED against TS+J), TS+J saving 10 more on both (0.125 points)                  b 15   FALSIFIED 0.133  HELD 0.101  INCONCLUSIVE 0.766
+  item 1 (W0, FREED against TS+J), TS+J saving 20 more on both (0.25, the margin)              b 15   FALSIFIED 0.772  HELD 0.001  INCONCLUSIVE 0.227
+  item 1 (W0, FREED against TS+J), TS+J saving 40 more on S126 only (0.5)                      b 15   FALSIFIED 0.993  INCONCLUSIVE 0.007
+  item 1 (W0, FREED against TS+J), TS+J saving 40 more on both (0.5)                           b 15   FALSIFIED 1.000  INCONCLUSIVE 0.000
+  item 2 (W0.02, the whole score), level                                                       b 15   FALSIFIED 0.001  HELD 0.427  INCONCLUSIVE 0.572
+  item 2 (W0.02, the whole score), TS+J saving 20 more on both (the whole 0.25 below, the margin) b 15   FALSIFIED 0.778  INCONCLUSIVE 0.222
+  item 2 (W0.02, the whole score), TS+J saving 40 more on both                                 b 15   FALSIFIED 1.000
+  item 2 (W0.02, the whole score), survival level, the rest 0.25 below (the margin)            b 15   FALSIFIED 0.750  INCONCLUSIVE 0.250
+  item 2 (W0.02, the whole score), survival level, the rest 0.1 below                          b 15   FALSIFIED 0.034  HELD 0.028  INCONCLUSIVE 0.938
+

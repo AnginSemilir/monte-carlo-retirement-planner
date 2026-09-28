@@ -64,6 +64,9 @@ M = [
     ("a trace's survival read loosely", "Math.abs(j.sim - sim) <= SIM_TOL);", "Math.abs(j.sim - sim) <= 1e-3);"),
     ("a trace's world not read", "j.arm === `${arm}/${rule}/${grid}/W${w}/world${k}`", "j.arm.startsWith(`${arm}/${rule}/${grid}/W${w}`)"),
     ("the trace name without the grid", "export const traceName = (id, arm, grid, rule, k, w) => `${id.replace(/ /g, '_')}-${arm.toLowerCase()}-${grid}-", "export const traceName = (id, arm, grid, rule, k, w) => `${id.replace(/ /g, '_')}-${arm.toLowerCase()}-"),
+    # O47's yearly share
+    ("the de-risk share counts every year a path is off the plan's tiers", "if (T.tier[i * T.Y + t] !== 0) { out[t]++; break; }", "if (T.tier[i * T.Y + t] !== 0) { out[t]++; }"),
+    ("the de-risk share from year 1", "for (let t = 0; t < Math.min(years, T.Y); t++) if (T.tier", "for (let t = 1; t < Math.min(years, T.Y); t++) if (T.tier"),
     # the items
     ("item 1 at alpha 0.05", "ALPHA1 = 0.025", "ALPHA1 = 0.05"),
     ("item 1 priced low against the interval's upper end", "o: price < iv.lo ? 'priced low'", "o: price < iv.hi ? 'priced low'"),

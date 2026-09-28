@@ -30,7 +30,7 @@
  *   4. 15 return points move TS+J's gap less than 60 wealth points: on both units the 30x15 gap's rise over 30x5 is below the
  *      60x5 gap's rise. HELD on both; FALSIFIED if above on both; else INCONCLUSIVE.
  * Reported, not items: every job's prices by world (whole and survival), the node runs (survival and the whole score over
- * OPEN0 by reduce-7aa.mjs wholeLeg), the S126 control, and whether 60x15 is warranted (items 2 and 4's 15-point rise both
+ * OPEN0 by reduce-7aa.mjs wholeLeg), O47's yearly de-risk share at every node run (firstLeave), the S126 control, and whether 60x15 is warranted (items 2 and 4's 15-point rise both
  * at least 10%).
  *   node research/solver/reduce-7ad.mjs [dir7ad] [dir7ac] [dir7aa] > research/solver/results-7ad.txt
  *   node research/solver/reduce-7ad.mjs --planted   the planted checks alone
@@ -177,6 +177,13 @@ export const traceAgrees = (j, ST, arm, grid, rule, k, w, sim, wn = WN) => !!(j 
  * THE ITEMS. `P(id, grid, tag)` is a job's parsed tag (gap, price, worlds, nodes); `K(id, grid, k)` the paired cells of TS+J
  * against OPEN0 at node k (cells(OPEN0, TS+J): saved = TS+J survives where OPEN0 fails).
  */
+/* O47's gate: the yearly de-risk share - the paths whose held tiers (the trace's tier byte, pen * 4 + isa, the plan's 0/0 at
+   the start) first leave the plan's tiers in year t, t = 0 to `years` - 1, as counts over the run's paths */
+export function firstLeave(T, years = 8) {
+  const out = new Array(years).fill(0);
+  for (let i = 0; i < T.N; i++) for (let t = 0; t < Math.min(years, T.Y); t++) if (T.tier[i * T.Y + t] !== 0) { out[t]++; break; }
+  return out;
+}
 const tri = (xs, yes, no) => (xs.every(yes) ? 'HELD' : xs.every(no) ? 'FALSIFIED' : 'INCONCLUSIVE');
 export function items(P, K) {
   const out = [];
@@ -282,6 +289,7 @@ function planted() {
   cases.push(['the gate refuses a chosen move keeping the held tiers that is not STAY', refused(bent('S194', '60x5', { chosen: '4 0/0' })), 'true']);
   { const ST = { code: 'c', audit: 'a', prediction: 'p', sha: 's' }, t = sim => ({ stamp: ST, N: WN, seed: 7002, arm: 'READER/TS+J/60x5/W0/world0', sim });
     cases.push(['a trace agrees with the log to its four decimals, and not beyond', `${traceAgrees(t(99.30004), ST, 'READER', '60x5', 'TS+J', 0, '0', 99.3)} ${traceAgrees(t(99.3001), ST, 'READER', '60x5', 'TS+J', 0, '0', 99.3)} ${traceAgrees(t(99.3), ST, 'READER', '60x5', 'TS+J', 1, '0', 99.3)}`, 'true false false']); }
+  cases.push(['O47\'s yearly de-risk share: the first year each path leaves the plan\'s tiers, counted once', String(firstLeave({ N: 4, Y: 4, tier: Uint8Array.from([0, 8, 0, 8, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0, 4, 0]) }, 4)), '1,1,1,0']);
   cases.push(['the trace name is registered', traceName('bridge 4', 'READER', '60x5', 'TS+J', 0, '0'), 'bridge_4-reader-60x5-ts_j-world0@w0.json.gz']);
   // the items on planted stories
   const mkP = spec => (id, grid, tag) => { const s = spec[`${id}|${grid}|${tag}`] || {}; return { gap: { gap: String(s.gap) }, worlds: [{ surv: s.p0 !== undefined ? s.p0 : 0.5 }] }; };
@@ -316,6 +324,55 @@ const logsOf = D => (existsSync(D) ? Object.fromEntries(readdirSync(D).filter(f 
 const stampOf = logs => { const st = /^stamp: code (\S+) audit (\S+) prediction (\S+) sha (\S+)$/m.exec(Object.values(logs)[0] || ''); return st ? { code: st[1], audit: st[2], prediction: st[3], sha: st[4] } : null; };
 const f3 = x => `${x >= 0 ? '+' : ''}${x.toFixed(3)}`;
 
+/* THE TRACES: every node run's two traces, checked against the log (count, seed, arm, stamp, survival); `bad` gains every
+   refusal. Returns the decoded traces by `${id}|${grid}|${rule}|${k}`. */
+export function loadTraces(jobs, DIR, ST, bad, wn = WN) {
+  const TR = {};
+  for (const j of jobs) { const u = j.tags['TS+J']; for (const k of nodeWorlds(j.grid)) for (const [rule, sim] of [['TS+J', u.nodes[k].simJ], ['OPEN0', u.nodes[k].simO]]) {
+    const f = join(DIR, traceName(j.id, j.arm, j.grid, rule, k, j.w));
+    if (!existsSync(f)) { bad.push(`no trace ${f}`); continue; }
+    const t = JSON.parse(gunzipSync(readFileSync(f)).toString());
+    if (!traceAgrees(t, ST, j.arm, j.grid, rule, k, j.w, sim, wn)) { bad.push(`${f}: count, seed, arm, stamp or survival is not the log's`); continue; }
+    TR[`${j.id}|${j.grid}|${rule}|${k}`] = decode(t);
+  } }
+  return TR;
+}
+/* THE READING, after every gate has passed: every job's prices, the node runs, O47's yearly share, the items and the outcome,
+   printed by `out` (the preflight runs it over its own tiny logs, so it has run on files before the real ones) */
+export function reading(jobs, TR, out = console.log, wn = WN) {
+  const P = (id, grid, tag) => jobs.find(j => j.id === id && j.grid === grid).tags[tag];
+  const K = (id, grid, k) => cells(TR[`${id}|${grid}|OPEN0|${k}`].survived, TR[`${id}|${grid}|TS+J|${k}`].survived);
+  out(`7AD: THE REFINEMENT CHECK - IS THE BAD WORLD'S PRICE OF THE OPENING WRONG FOR NUMERICAL REASONS? (predictions/diag-7ad.md; ${N} paths of seed ${SEED}, ${wn} a node; the fair-test gates passed: the stamps, 7aa's gate, 7ac's gate, 7ad's gate against both - its 30x5 solves 7aa's, its 30x5 node runs' first 1000 paths 7ac's world lines - and every node trace)\n`);
+  out('EVERY JOB: the year-0 gap (the mixture\'s price over 100), and by world the like-for-like price of the mixture\'s two year-0 moves (points, whole | survival)');
+  for (const [id, arm, w, grid] of JOBS) for (const tag of tagsOf(id)) {
+    const u = P(id, grid, tag);
+    out(`  ${`${id} (${arm.toLowerCase()}) W${w} ${grid} ${tag}`.padEnd(34)} gap ${u.gap.gap} (opening ${u.gap.open1e3},${u.gap.open0}) | ${u.worlds.map((x, k) => `world ${k} ${x.whole.toFixed(4)} | ${x.surv.toFixed(4)}`).join('  ')} | mixture survival ${u.price.surv.toFixed(4)}`);
+  }
+  out('\nTHE NODE RUNS: TS+J against OPEN0 at each node run (4,000 paths): saved/lost, the survival difference (points, exact 95% interval at 0.025), beside the world\'s like-for-like survival price; the whole score\'s difference (reduce-7aa.mjs wholeLeg at 0.05)');
+  for (const [id, arm, w, grid] of JOBS) { const u = P(id, grid, 'TS+J'); for (const k of nodeWorlds(grid)) {
+    const kk = K(id, grid, k), iv = survivalChange(kk.lost, kk.saved, kk.N, ALPHA1), X = TR[`${id}|${grid}|TS+J|${k}`], O = TR[`${id}|${grid}|OPEN0|${k}`];
+    const cfg = { lambda: Number(field(u.ran, 'lambda')), floor: Math.min(...field(u.ran, 'levels').split(',').map(Number)), scale: u.joint.scale, cap: u.joint.cap, wb: Number(w) };
+    cfg.spendYears = Array.from({ length: X.Y }, (_, t) => { for (let i = 0; i < X.N; i++) if (X.level[i * X.Y + t] > 0) return true; return false; });
+    const wl = A.wholeLeg(O, X, cfg, 0.05);
+    out(`  ${`${id} (${arm.toLowerCase()}) W${w} ${grid} world ${k}`.padEnd(34)} ${kk.saved}/${kk.lost} ${f3(iv.d)} (${iv.lo.toFixed(3)} to ${iv.hi.toFixed(3)}) against the price ${u.worlds[k].surv.toFixed(3)} | whole ${f3(wl.d)} (${wl.lo.toFixed(3)} to ${wl.hi.toFixed(3)}) against the price ${u.worlds[k].whole.toFixed(3)}`);
+  } }
+  out('\nO47, THE YEARLY DE-RISK SHARE AT THE NODES: the per cent of each node run\'s paths first leaving the plan\'s tiers in years 0 to 7 (the trace\'s tier byte), OPEN0 then TS+J');
+  for (const [id, arm, w, grid] of JOBS) for (const k of nodeWorlds(grid)) for (const rule of ['OPEN0', 'TS+J']) {
+    const T = TR[`${id}|${grid}|${rule}|${k}`], f = firstLeave(T);
+    out(`  ${`${id} (${arm.toLowerCase()}) W${w} ${grid} world ${k} ${rule}`.padEnd(40)} ${f.map(x => (100 * x / T.N).toFixed(1).padStart(5)).join(' ')}`);
+  }
+  const it = items(P, K);
+  out('\nTHE ITEMS (each read by its registered rule)');
+  for (const x of it) {
+    out(`${x.n}. ${x.text}: ${x.outcome}`);
+    for (const l of x.legs) out(`     ${l.id}: ${x.n === 1 ? `price ${l.price.toFixed(3)} against the node's ${f3(l.iv.d)} (${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}): ${l.o}` : x.n === 2 ? `gap ${l.g30.toExponential(4)} -> ${l.g60.toExponential(4)} (${f3(100 * l.rise)}%); world 0's mispricing ${f3(l.m30)} -> ${f3(l.m60)}: ${l.closes ? 'falls by a third' : 'does not fall by a third from a positive value'}` : x.n === 3 ? `the product's gap ${l.g30.toExponential(4)} -> ${l.g60.toExponential(4)} (${f3(100 * l.rise)}%)` : `the gap's rise at 30x15 ${f3(100 * l.rq)}%, at 60x5 ${f3(100 * l.rp)}%`}`);
+  }
+  const want60x15 = it[1].legs.every(l => l.rise >= 0.1) && it[3].legs.every(l => l.rq >= 0.1);
+  out(`\nREPORTED: 60x15 warranted by the registered condition (both 60 points and 15 return points raise TS+J's gap by 10% or more on both units): ${want60x15 ? 'yes' : 'no'}`);
+  out(`\nOUTCOME: ${it.map(x => `${x.n} ${x.outcome}`).join(', ')}`);
+  return it;
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   try { planted(); } catch (e) { console.log(`PLANTED CHECK FAILED: the planted set threw (${e.message})`); process.exit(1); }
   if (process.argv.includes('--planted')) process.exit(0);
@@ -335,38 +392,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const logsD = logsOf(DIR), jobs = Object.values(logsD).flatMap(parse);
   if (JOBS.some(([id, a, w, g]) => !jobs.some(j => j.id === id && j.arm === a && j.w === w && j.grid === g && j.done))) { console.log(`INCOMPLETE - ${jobs.filter(j => j.done).length} of ${JOBS.length} jobs done in ${DIR}`); process.exit(1); }
   requireFairLogs(logsD, PRED);
-  const bad = gate(jobs, refA, refC), STD = stampOf(logsD), TR = {};
-  if (!bad.length) for (const j of jobs) { const u = j.tags['TS+J']; for (const k of nodeWorlds(j.grid)) for (const [rule, sim] of [['TS+J', u.nodes[k].simJ], ['OPEN0', u.nodes[k].simO]]) {
-    const f = join(DIR, traceName(j.id, j.arm, j.grid, rule, k, j.w));
-    if (!existsSync(f)) { bad.push(`no trace ${f}`); continue; }
-    const t = JSON.parse(gunzipSync(readFileSync(f)).toString());
-    if (!traceAgrees(t, STD, j.arm, j.grid, rule, k, j.w, sim)) { bad.push(`${f}: count, seed, arm, stamp or survival is not the log's`); continue; }
-    TR[`${j.id}|${j.grid}|${rule}|${k}`] = decode(t);
-  } }
+  const bad = gate(jobs, refA, refC), STD = stampOf(logsD);
+  const TR = bad.length ? {} : loadTraces(jobs, DIR, STD, bad);
   if (bad.length) { console.log(`FAIR-TEST GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
-  const P = (id, grid, tag) => jobs.find(j => j.id === id && j.grid === grid).tags[tag];
-  const K = (id, grid, k) => cells(TR[`${id}|${grid}|OPEN0|${k}`].survived, TR[`${id}|${grid}|TS+J|${k}`].survived);
-  console.log(`7AD: THE REFINEMENT CHECK - IS THE BAD WORLD'S PRICE OF THE OPENING WRONG FOR NUMERICAL REASONS? (predictions/diag-7ad.md; ${N} paths of seed ${SEED}, ${WN} a node; the fair-test gates passed: the stamps, 7aa's gate, 7ac's gate, 7ad's gate against both - its 30x5 solves 7aa's, its 30x5 node runs' first 1000 paths 7ac's world lines - and every node trace)\n`);
-  console.log('EVERY JOB: the year-0 gap (the mixture\'s price over 100), and by world the like-for-like price of the mixture\'s two year-0 moves (points, whole | survival)');
-  for (const [id, arm, w, grid] of JOBS) for (const tag of tagsOf(id)) {
-    const u = P(id, grid, tag);
-    console.log(`  ${`${id} (${arm.toLowerCase()}) W${w} ${grid} ${tag}`.padEnd(34)} gap ${u.gap.gap} (opening ${u.gap.open1e3},${u.gap.open0}) | ${u.worlds.map((x, k) => `world ${k} ${x.whole.toFixed(4)} | ${x.surv.toFixed(4)}`).join('  ')} | mixture survival ${u.price.surv.toFixed(4)}`);
-  }
-  console.log('\nTHE NODE RUNS: TS+J against OPEN0 at each node run (4,000 paths): saved/lost, the survival difference (points, exact 95% interval at 0.025), beside the world\'s like-for-like survival price; the whole score\'s difference (reduce-7aa.mjs wholeLeg at 0.05)');
-  for (const [id, arm, w, grid] of JOBS) { const u = P(id, grid, 'TS+J'); for (const k of nodeWorlds(grid)) {
-    const kk = K(id, grid, k), iv = survivalChange(kk.lost, kk.saved, kk.N, ALPHA1), X = TR[`${id}|${grid}|TS+J|${k}`], O = TR[`${id}|${grid}|OPEN0|${k}`];
-    const cfg = { lambda: Number(field(u.ran, 'lambda')), floor: Math.min(...field(u.ran, 'levels').split(',').map(Number)), scale: u.joint.scale, cap: u.joint.cap, wb: Number(w) };
-    cfg.spendYears = Array.from({ length: X.Y }, (_, t) => { for (let i = 0; i < X.N; i++) if (X.level[i * X.Y + t] > 0) return true; return false; });
-    const wl = A.wholeLeg(O, X, cfg, 0.05);
-    console.log(`  ${`${id} (${arm.toLowerCase()}) W${w} ${grid} world ${k}`.padEnd(34)} ${kk.saved}/${kk.lost} ${f3(iv.d)} (${iv.lo.toFixed(3)} to ${iv.hi.toFixed(3)}) against the price ${u.worlds[k].surv.toFixed(3)} | whole ${f3(wl.d)} (${wl.lo.toFixed(3)} to ${wl.hi.toFixed(3)}) against the price ${u.worlds[k].whole.toFixed(3)}`);
-  } }
-  const it = items(P, K);
-  console.log('\nTHE ITEMS (each read by its registered rule)');
-  for (const x of it) {
-    console.log(`${x.n}. ${x.text}: ${x.outcome}`);
-    for (const l of x.legs) console.log(`     ${l.id}: ${x.n === 1 ? `price ${l.price.toFixed(3)} against the node's ${f3(l.iv.d)} (${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}): ${l.o}` : x.n === 2 ? `gap ${l.g30.toExponential(4)} -> ${l.g60.toExponential(4)} (${f3(100 * l.rise)}%); world 0's mispricing ${f3(l.m30)} -> ${f3(l.m60)}: ${l.closes ? 'falls by a third' : 'does not fall by a third from a positive value'}` : x.n === 3 ? `the product's gap ${l.g30.toExponential(4)} -> ${l.g60.toExponential(4)} (${f3(100 * l.rise)}%)` : `the gap's rise at 30x15 ${f3(100 * l.rq)}%, at 60x5 ${f3(100 * l.rp)}%`}`);
-  }
-  const want60x15 = it[1].legs.every(l => l.rise >= 0.1) && it[3].legs.every(l => l.rq >= 0.1);
-  console.log(`\nREPORTED: 60x15 warranted by the registered condition (both 60 points and 15 return points raise TS+J's gap by 10% or more on both units): ${want60x15 ? 'yes' : 'no'}`);
-  console.log(`\nOUTCOME: ${it.map(x => `${x.n} ${x.outcome}`).join(', ')}`);
+  reading(jobs, TR);
 }

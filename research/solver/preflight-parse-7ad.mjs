@@ -7,14 +7,15 @@
  * moves and price lines, three world lines summing to the price, the node lines of the registered worlds, the done line; the
  * 30x5-named jobs' tables, ran lines and gaps 7aa's preflight units' (the solve.js change to scoreMoves - its optional
  * survival output - leaves the solve as it was) and their node runs' first paths 7ac's preflight world lines; every trace
- * named, counted, seeded, armed and stamped as the reducer reads it. No figure is read.
+ * named, counted, seeded, armed and stamped as the reducer reads it; and the reducer's reading (loadTraces, reading) runs over
+ * them to its outcome line, its lines counted, not printed. No figure is read.
  *   node research/solver/preflight-parse-7ad.mjs [dir] [dir7aa] [dir7ac]   defaults results/diag7ad-preflight, results/diag7aa-preflight, results/diag7ac-preflight
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
-import { parse, gate, traceName, traceAgrees, JOBS, nodeWorlds } from './reduce-7ad.mjs';
+import { parse, gate, traceName, traceAgrees, JOBS, nodeWorlds, loadTraces, reading } from './reduce-7ad.mjs';
 import * as A from './reduce-7aa.mjs';
 import * as C from './reduce-7ac.mjs';
 
@@ -70,5 +71,14 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const np = planted(texts, textsA, textsC, DIR);
   const r = check(texts, textsA, textsC, DIR);
   if (r.jobs !== JOBS.length || r.other.length) { console.log(`PREFLIGHT PARSE FAILED: ${r.jobs} jobs parsed; refusals other than the sizes:\n  ${r.other.join('\n  ')}`); process.exit(1); }
-  console.log(`PREFLIGHT PARSE PASSED: ${JOBS.length} jobs parsed; the gate against 7aa's and 7ac's preflights refused ${r.sizes} size lines and nothing else; the 30x5 jobs reproduce 7aa's preflight solves and 7ac's preflight world lines; every trace named and stamped as the reducer reads it (planted ${np})`);
+  // the reading itself, over the preflight's own logs and traces, its lines counted, never printed (no figure is read): it must
+  // run to its outcome line, so the reducer's reading has run on files before the real ones
+  let lines = 0, outcome = false;
+  try {
+    const jobs = texts.flatMap(parse), bad = [], TR = loadTraces(jobs, DIR, stampOf(texts[0]), bad, WN_PRE);
+    if (bad.length) throw new Error(`the traces: ${bad.join('; ')}`);
+    reading(jobs, TR, l => { lines++; if (/^\nOUTCOME: /.test(l)) outcome = true; }, WN_PRE);
+  } catch (e) { console.log(`PREFLIGHT READING FAILED: ${e.message}`); process.exit(1); }
+  if (!outcome) { console.log(`PREFLIGHT READING FAILED: no outcome line in ${lines} lines`); process.exit(1); }
+  console.log(`PREFLIGHT PARSE PASSED: ${JOBS.length} jobs parsed; the gate against 7aa's and 7ac's preflights refused ${r.sizes} size lines and nothing else; the 30x5 jobs reproduce 7aa's preflight solves and 7ac's preflight world lines; every trace named and stamped as the reducer reads it; the reducer's reading ran over them to its outcome line (${lines} lines, not printed) (planted ${np})`);
 }

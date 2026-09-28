@@ -1,4 +1,4 @@
-true script: planted (62): all read as they should
+true script: planted (63): all read as they should
 caught  the gate accepts a missing job: the gate refuses a missing job: false (want true)
 caught  the gate accepts a job twice: the gate refuses a job run twice: false (want true)
 caught  the gate accepts an unregistered job: the gate refuses an unregistered job (S126 at 60x5): false (want true)
@@ -44,6 +44,8 @@ caught  the gate accepts a missing done line: the gate refuses a missing done li
 caught  a trace's survival read loosely: a trace agrees with the log to its four decimals, and not beyond: true true false (want true false false)
 caught  a trace's world not read: a trace agrees with the log to its four decimals, and not beyond: true false true (want true false false)
 caught  the trace name without the grid: the trace name is registered: bridge_4-reader-ts_j-world0@w0.json.gz (want bridge_4-reader-60x5-ts_j-world0@w0.json.gz)
+caught  the de-risk share counts every year a path is off the plan's tiers: O47's yearly de-risk share: the first year each path leaves the plan's tiers, counted once: 1,2,2,2 (want 1,1,1,0)
+caught  the de-risk share from year 1: O47's yearly de-risk share: the first year each path leaves the plan's tiers, counted once: 0,2,1,0 (want 1,1,1,0)
 caught  item 1 at alpha 0.05: item 1 reads the interval at 0.025, not 0.05: a price just under the 0.05 lower end but above the 0.025 one is priced right: priced low (want priced right)
 caught  item 1 priced low against the interval's upper end: cause 2: priced right at the node (price 1.2 against 48 of 4000): 1 FALSIFIED: INCONCLUSIVE (want FALSIFIED)
 caught  item 1 on bridge 4 alone: item 1 split (low on bridge 4, right on S194): INCONCLUSIVE: HELD (want INCONCLUSIVE)
@@ -61,4 +63,4 @@ caught  item 4 reads the product: cause 1, numerical: 1, 2, 3 and 4 HELD: 1 HELD
 caught  three outcomes: never FALSIFIED: nothing moves 10% (the bug or structure branch): 2 and 3 FALSIFIED: 2 INCONCLUSIVE, 3 INCONCLUSIVE (want 2 FALSIFIED, 3 FALSIFIED)
 caught  three outcomes: HELD on either unit: item 1 split (low on bridge 4, right on S194): INCONCLUSIVE: HELD (want INCONCLUSIVE)
 
-61 mutations: every one caught
+63 mutations: every one caught

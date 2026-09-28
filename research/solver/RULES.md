@@ -182,6 +182,21 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    checked either way: a decision row not marked "(maintainer)" still counts, and a row whose result cell starts
    "(maintainer)" drops out even if it records a result read (fair-test: pass). The three rows it dropped on 27 Sep (26 Sep
    09:39, 27 Sep 07:06 and 10:12) all carry fair-test: n/a (the hundred-and-first review, MINOR 3).
+21. uncertainty.mjs l.69 counts a "FALSIFIED or harm verdict" by a pattern that matches "FALSIFIED" or "harm" anywhere in a
+   ledger row's bold span, so a title that says "no material harm" counts as a harm verdict (7aa's row, 28 Sep: "1
+   FALSIFIED or harm verdicts" before the deep review after it, a false positive; the deep review after 7aa and the
+   plan-auditor's review of 3ba2744, MINOR 7). Same pattern searched: a pattern alternating FALSIFIED and harm over
+   research/solver, research/tests and .claude/hooks is found only there. uncertainty.mjs is a locked file: its fix
+   (exclude "no material harm") waits on the maintainer's unlock; until then a reviewer reading the index checks the row it
+   counts.
+22. The launcher (run-from-snapshot.sh) re-runs a prediction's derivation script before it takes the lock and copies the
+   tree, so a file edited while the derivation runs is baked into the snapshot uncommitted (the launcher warns "uncommitted
+   changes are baked into this snapshot"). 7ab's relaunch, 28 Sep: derive-7ab.mjs ran about 12:01 to 12:06 UK and
+   audit-s126.mjs gained its diag7ac branch at 12:05 UK, so 7ab's snapshot (/tmp/solver-snap-bYVs0g) carries it; its
+   diag7ab branch is identical to the committed one, and the file was committed unchanged afterwards (a7dc0d9) so 7ab's
+   audit stamp matches a commit (the plan-auditor's review of 57238f0, MINOR 2). Until the launcher snapshots first: no
+   edit to a file the snapshot copies while a launch is in its derivation step, and a warned snapshot is recorded with the
+   file's commit.
 
 ---
 

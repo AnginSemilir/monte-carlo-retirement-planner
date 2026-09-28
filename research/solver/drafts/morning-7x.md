@@ -70,8 +70,9 @@ The order:
 - **S360 with the reader (O36, measured 01:05; results-refs360.txt):** the reader's opening reference uses the plan's
   tiers. That **flips the sign** on S360: the held tables rate lowering risk **+1.0** point better, where the runs lose
   **13.2** points (1,053 paths lost). With the reference at the held tier, the tables rate it **16.0** points worse, the
-  right way. So the tier state (7y), which reads every tier at the plan's reference, may well harm on S360 with the
-  reader. If it does, that harm is the reference's, not the tier state's (grade C).
+  right way. The tier state (7y) reads every tier at the plan's reference, so it *may* do the same on S360 with the
+  reader. That is an argument, not measured (grade D): 7y's S360 leg is the first measurement, and it cannot say whose
+  fault a harm is. A harm there is attributed at grade C.
 - **The combination of the two fixes** is registered only if every condition the deep review set holds by about 04:30.
   Otherwise it comes to you as a design.
 

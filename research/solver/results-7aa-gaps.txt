@@ -1,0 +1,32 @@
+source: results-7aa.txt sha256 e39ffb4d8a5b618e, its EVERY RUN lines (the year-0 gap and the opening pension tier at 1e-3 and at 0)
+percent = how far the gap sits from the switch margin 0.001 (positive: above it, so the chooser opens the tier margin 0 opens)
+
+THE GAPS BY WEIGHT, and the premise "W0 at least W0.02":
+   S126 (reader)      PRODUCT  W0  5.9469e-4 ( -40.53%, opens 0)   W0.02  8.0241e-4 ( -19.76%, opens 0)   premise FAILS
+   S126 (reader)      TS       W0  1.0055e-3 (  +0.55%, opens 2)   W0.02  7.9487e-4 ( -20.51%, opens 0)   premise holds
+   S126 (reader)      TS+J     W0  1.0649e-3 (  +6.49%, opens 2)   W0.02  1.0600e-3 (  +6.00%, opens 2)   premise holds
+   S194 (off)         PRODUCT  W0  1.0510e-3 (  +5.10%, opens 2)   W0.02  7.5604e-4 ( -24.40%, opens 0)   premise holds
+   S194 (off)         TS       W0  1.6482e-3 ( +64.82%, opens 2)   W0.02  9.6876e-4 (  -3.12%, opens 0)   premise holds
+   S194 (off)         TS+J     W0  1.1335e-3 ( +13.35%, opens 2)   W0.02  1.0525e-3 (  +5.25%, opens 2)   premise holds
+   bridge 4 (reader)  PRODUCT  W0  8.0106e-4 ( -19.89%, opens 0)   W0.02  1.0059e-3 (  +0.59%, opens 2)   premise FAILS
+   bridge 4 (reader)  TS       W0  1.2176e-3 ( +21.76%, opens 2)   W0.02  1.0655e-3 (  +6.55%, opens 2)   premise holds
+   bridge 4 (reader)  TS+J     W0  1.3456e-3 ( +34.56%, opens 2)   W0.02  1.4138e-3 ( +41.38%, opens 2)   premise FAILS
+   S360 (reader)      PRODUCT  W0  0.0000e+0 (   gap 0, opens 0)   W0.02  0.0000e+0 (   gap 0, opens 0)   premise both 0
+   S360 (reader)      TS       W0  0.0000e+0 (   gap 0, opens 0)   W0.02  0.0000e+0 (   gap 0, opens 0)   premise both 0
+   S360 (reader)      TS+J     W0  0.0000e+0 (   gap 0, opens 0)   W0.02  0.0000e+0 (   gap 0, opens 0)   premise both 0
+   S360 (off)         PRODUCT  W0  4.8212e-4 ( -51.79%, opens 0)   W0.02  5.5644e-4 ( -44.36%, opens 0)   premise FAILS
+   S360 (off)         TS       W0  4.8670e-4 ( -51.33%, opens 0)   W0.02  5.6446e-4 ( -43.55%, opens 0)   premise FAILS
+   S360 (off)         TS+J     W0  4.7239e-4 ( -52.76%, opens 0)   W0.02  5.5346e-4 ( -44.65%, opens 0)   premise FAILS
+   the premise holds on 6 and fails on 6 of the 12 arm/case pairs with a gap
+
+7AB'S LEGS WHERE THE FREED OPENING MUST MAKE THE PRODUCT'S YEAR-0 PENSION MOVE (the product already opens margin 0's tier, or the gap is 0):
+   S126 (reader)      W0     product gap  5.9469e-4 opens 0 at 1e-3, 2 at 0  -> the freed opening differs
+   S126 (reader)      W0.02  product gap  8.0241e-4 opens 0 at 1e-3, 2 at 0  -> the freed opening differs
+   S194 (off)         W0     product gap  1.0510e-3 opens 2 at 1e-3, 2 at 0  -> FREED = PRODUCT in year 0
+   S194 (off)         W0.02  product gap  7.5604e-4 opens 0 at 1e-3, 2 at 0  -> the freed opening differs
+   bridge 4 (reader)  W0     product gap  8.0106e-4 opens 0 at 1e-3, 2 at 0  -> the freed opening differs
+   bridge 4 (reader)  W0.02  product gap  1.0059e-3 opens 2 at 1e-3, 2 at 0  -> FREED = PRODUCT in year 0
+   S360 (reader)      W0     product gap  0.0000e+0 opens 0 at 1e-3, 0 at 0  -> FREED = PRODUCT in year 0
+   S360 (reader)      W0.02  product gap  0.0000e+0 opens 0 at 1e-3, 0 at 0  -> FREED = PRODUCT in year 0
+   S360 (off)         W0     product gap  4.8212e-4 opens 0 at 1e-3, 2 at 0  -> the freed opening differs
+   S360 (off)         W0.02  product gap  5.5644e-4 opens 0 at 1e-3, 2 at 0  -> the freed opening differs

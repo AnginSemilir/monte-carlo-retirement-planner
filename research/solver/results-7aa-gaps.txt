@@ -19,6 +19,14 @@ THE GAPS BY WEIGHT, and the premise "W0 at least W0.02":
    S360 (off)         TS+J     W0  4.7239e-4 ( -52.76%, opens 0)   W0.02  5.5346e-4 ( -44.65%, opens 0)   premise FAILS
    the premise holds on 6 and fails on 6 of the 12 arm/case pairs with a gap
 
+TS+J'S GAP AGAINST TS'S (the 02:38 deep review predicted at least 2 on S126 and S194):
+   S126 (reader)      W0     TS+J 1.0649e-3 / TS 1.0055e-3 = 1.06
+   S126 (reader)      W0.02  TS+J 1.0600e-3 / TS 7.9487e-4 = 1.33
+   S194 (off)         W0     TS+J 1.1335e-3 / TS 1.6482e-3 = 0.69
+   S194 (off)         W0.02  TS+J 1.0525e-3 / TS 9.6876e-4 = 1.09
+   bridge 4 (reader)  W0     TS+J 1.3456e-3 / TS 1.2176e-3 = 1.11
+   bridge 4 (reader)  W0.02  TS+J 1.4138e-3 / TS 1.0655e-3 = 1.33
+
 7AB'S LEGS WHERE THE FREED OPENING MUST MAKE THE PRODUCT'S YEAR-0 PENSION MOVE (the product already opens margin 0's tier, or the gap is 0):
    S126 (reader)      W0     product gap  5.9469e-4 opens 0 at 1e-3, 2 at 0  -> the freed opening differs
    S126 (reader)      W0.02  product gap  8.0241e-4 opens 0 at 1e-3, 2 at 0  -> the freed opening differs

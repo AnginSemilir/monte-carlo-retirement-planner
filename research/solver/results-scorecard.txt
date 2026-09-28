@@ -9,10 +9,11 @@ THE SCORECARD: the author's stated credence against each item's outcome (PLAN.md
 7x (held-for-life tables: free switching or three worlds): Brier 0.218 over 4 (1 0.45 -> held; 2 0.55 -> held; 3 0.75 -> held; 4 0.55 -> not)
 7z (Q's fix alone: the reader's step integrated in the chooser): Brier 0.059 over 4 (1 0.8 -> held; 2 0.75 -> held; 3 0.65 -> held; 4 0.9 -> held)
 7y (the tier state: free switching in the tables): Brier 0.252 over 5 (1 0.55 -> not; 2 0.45 -> not; 3 0.5 -> not; 4 0.55 -> held; 5 0.55 -> not)
+7aa (the joint tier state at two settings: the pot off and on): Brier 0.260 over 6 (1 0.5 -> held; 2 0.45 -> not; 3 0.45 -> held; 4 0.5 -> held; 5 0.5 -> held; 6 0.45 -> held)
 
-CUMULATIVE: Brier 0.214 over 72 items
+CUMULATIVE: Brier 0.217 over 78 items
 RELIABILITY (credence bin: items, mean credence, share held):
-  under 60%      39   0.43   0.59
+  under 60%      45   0.43   0.62
   60-75%         14   0.65   0.71
   75-90%         14   0.80   0.93
   90% and over    5   0.93   0.80

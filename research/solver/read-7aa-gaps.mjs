@@ -3,7 +3,8 @@
  * year-0 gap at the estate weight 0 and 0.02 as printed, how far each sits above or below the product's switch margin
  * (0.001) in per cent, the pension tier each opens in at 1e-3, and whether the gap at W0 is at least the gap at W0.02 (the
  * prediction's grade-D premise, predictions/diag-7aa.md: with the pot's weight off a de-risk costs nothing in the objective,
- * so the tables should favour it at least as much as at 0.02). Then, for 7ab's registered legs (predictions/diag-7ab.md),
+ * so the tables should favour it at least as much as at 0.02), and TS+J's gap against TS's (the deep review after 7y predicted
+ * at least 2 on S126 and S194). Then, for 7ab's registered legs (predictions/diag-7ab.md),
  * where the freed opening (margin 0 in year 0) must make the product's own year-0 pension move: the product already opens
  * the tier margin 0 opens (the chooser keeps the best move when it beats staying by more than the margin), or the gap is 0.
  * The gate: all ten case/weight blocks and all thirty arm lines must be found once, or the script refuses.
@@ -41,6 +42,12 @@ for (const id of cases) for (const arm of ['PRODUCT', 'TS', 'TS+J']) {
   console.log(`   ${id.padEnd(18)} ${arm.padEnd(8)} W0 ${a.gap.toExponential(4).padStart(10)} (${pct(a.gap).padStart(8)}, opens ${a.open3})   W0.02 ${b.gap.toExponential(4).padStart(10)} (${pct(b.gap).padStart(8)}, opens ${b.open3})   premise ${verdict}`);
 }
 console.log(`   the premise holds on ${holds} and fails on ${fails} of the ${holds + fails} arm/case pairs with a gap\n`);
+console.log("TS+J'S GAP AGAINST TS'S (the 02:38 deep review predicted at least 2 on S126 and S194):");
+for (const id of ['S126 (reader)', 'S194 (off)', 'bridge 4 (reader)']) for (const w of ['0', '0.02']) {
+  const j = get(id, w, 'TS+J'), t = get(id, w, 'TS');
+  console.log(`   ${id.padEnd(18)} W${w.padEnd(5)} TS+J ${j.gap.toExponential(4)} / TS ${t.gap.toExponential(4)} = ${(j.gap / t.gap).toFixed(2)}`);
+}
+console.log('');
 console.log("7AB'S LEGS WHERE THE FREED OPENING MUST MAKE THE PRODUCT'S YEAR-0 PENSION MOVE (the product already opens margin 0's tier, or the gap is 0):");
 for (const id of cases) for (const w of ['0', '0.02']) {
   const p = get(id, w, 'PRODUCT'), same = p.gap === 0 || p.open3 === p.open0;

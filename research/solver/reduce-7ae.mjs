@@ -24,10 +24,14 @@
  *      Σ price / Σ realised is at least 0.85 AND Σ price is at or above the interval's lower end; FALSIFIED if the ratio is
  *      below 0.75 AND Σ price is below the lower end; else INCONCLUSIVE (and INCONCLUSIVE if a unit's TS+J keeps the held
  *      tiers at margin 0, its node run then OPEN0's, or Σ realised is not above 0).
- *   2. At margin 1e-3 the forward run holds where the table's own cell leaves: on OPEN0's node runs (the STAY move's
- *      realisation), years 1 to 7, pooled over the three units, the share of the path-years holding the plan's tiers at
- *      which the forward move holds them and the nearest cell's stored move leaves. HELD at 10% or more; FALSIFIED below 2%;
- *      else INCONCLUSIVE.
+ *      Its attribution (registered, attribution()): each rule's paired change from 1e-3 to 0 on the same node paths - the
+ *      price rising by a quarter of the 1e-3 mispricing, OPEN0 rising, TS+J falling - read as the prediction says.
+ *   2. At margin 1e-3 the forward run holds where the table's own cell leaves, beyond the grid's own disagreement: on OPEN0's
+ *      node runs (the STAY move's realisation), years 1 to 7, pooled over the three units, the one-way share (the forward
+ *      holds, the nearest cell's stored move leaves) of the path-years holding the plan's tiers; the net excess the smaller
+ *      of it less the reverse share and it less the same share on OPEN0/M0 (where OPEN0/M0 holds MIN_GRID_PY path-years).
+ *      HELD at a one-way share of 10% or more with a net excess of 5 points or more; FALSIFIED at a net excess below 2
+ *      points; else INCONCLUSIVE (the plan-auditor's BLOCKING 1, 28 Sep 21:07 UK).
  *   3. Bridge 4 alone, at margin 0: its world-0 survival price at or above the node's exact 95% interval's lower end
  *      (survivalChange at 0.05). HELD if so; FALSIFIED if below it with the ratio price / realised below 0.75; else
  *      INCONCLUSIVE (and INCONCLUSIVE if TS+J keeps the held tiers at margin 0).
@@ -52,7 +56,7 @@ import * as D from './reduce-7ad.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-7ae.md';
 export const { N, SEED, LAMBDA, field } = A;
-export const WN = 8000, FIRST = 4000, YEARS = 10, LOGYEARS = 7, ALPHA3 = 0.05, Z95 = 1.959963984540054;
+export const WN = 8000, FIRST = 4000, YEARS = 10, LOGYEARS = 7, ALPHA3 = 0.05, Z95 = 1.959963984540054, MIN_GRID_PY = 1000;
 export const { PRICE_TOL, LFL_TOL, SIM_TOL, WTOL } = D;
 export const JOBS = [['bridge 4', 'READER', '0'], ['S194', 'OFF', '0.02'], ['S126', 'READER', '0']];
 export const MARGINS = ['1e-3', '0'];
@@ -227,6 +231,19 @@ export function pooled(ks) {
   const mean = s / n, v = (s2 / n - mean * mean) / n, d = 100 * mean, se = 100 * Math.sqrt(Math.max(0, v));
   return { d, se, lo: d - Z95 * se, hi: d + Z95 * se };
 }
+/* ITEM 1's ATTRIBUTION (registered; the plan-auditor's BLOCKING 2, 28 Sep 21:07 UK): which side closed the ratio. `KR(id, rule)`
+   is a rule's paired change from margin 1e-3 to 0 on the same node paths (cells(rule/1e-3, rule/M0), diff M0 less 1e-3).
+   priceRose: Σ price rose by at least a quarter of the 1e-3 pooled mispricing (Σ realised less Σ price at 1e-3; the tables'
+   own numbers); open0Rose: OPEN0's pooled change's 95% interval above 0 (its continuation no longer holds); tsjFell: TS+J's
+   pooled change's interval below 0 (margin 0's own switching). */
+export function attribution(P, K, KR) {
+  const at = m => ({ sp: JOBS.reduce((t, [id]) => t + P(id, m).worlds[0].surv, 0), sd: pooled(JOBS.map(([id]) => K(id, m))).d });
+  const a = at('1e-3'), b = at('0'), miss = Math.max(0, a.sd - a.sp), dO = pooled(JOBS.map(([id]) => KR(id, 'OPEN0'))), dJ = pooled(JOBS.map(([id]) => KR(id, 'TS+J')));
+  const priceRose = b.sp - a.sp >= 0.25 * miss && b.sp > a.sp, open0Rose = dO.lo > 0, tsjFell = dJ.hi < 0;
+  const reading = priceRose || open0Rose ? `${[priceRose ? 'the 0.001 tables under-value the de-risk (the price rose)' : null, open0Rose ? 'the 0.001 continuation holds where the tables\' valued one leaves (OPEN0 rose)' : null].filter(Boolean).join('; ')}${tsjFell ? '; TS+J fell at margin 0 too (reported beside: a margin design must also stop it)' : ''}`
+    : tsjFell ? 'TS+J fell at margin 0 alone: nothing attributed to the 0.001 tables or continuation (grade C; no margin design on it)' : 'no side moved beyond its threshold: nothing attributed';
+  return { priceBefore: a.sp, priceAfter: b.sp, miss, dO, dJ, priceRose, open0Rose, tsjFell, reading };
+}
 export function items(P, K, LOGS) {
   const out = [];
   // 1. margin 0, pooled
@@ -235,11 +252,15 @@ export function items(P, K, LOGS) {
     const ok = all && pl.d > 0;
     out.push({ n: 1, text: 'at margin 0, the three units pooled: Σ price / Σ realised at least 0.85 AND Σ price at or above the realised 95% interval\'s lower end (FALSIFIED: the ratio below 0.75 AND Σ price below the lower end)', legs, pooled: pl, sp, ratio, measured: ok,
       outcome: ok ? tri(ratio >= 0.85 && sp >= pl.lo, ratio < 0.75 && sp < pl.lo) : 'INCONCLUSIVE' }); }
-  // 2. margin 1e-3, OPEN0's log, years 1 to 7, pooled
-  { let held = 0, hc = 0; const legs = JOBS.map(([id]) => { const lg = LOGS(id, '1e-3', 'OPEN0'); let h = 0, x = 0; for (let y = 1; y <= LOGYEARS; y++) { h += lg[y].held; x += lg[y].fwdHoldCellLeave; } held += h; hc += x; return { id, held: h, fwdHoldCellLeave: x, share: h ? x / h : 0 }; });
-    const share = held ? hc / held : 0;
-    out.push({ n: 2, text: 'at margin 1e-3, on OPEN0\'s node runs, years 1 to 7, the three units pooled: the share of path-years holding the plan\'s tiers where the forward move holds and the nearest cell\'s stored move leaves is 10% or more (FALSIFIED: below 2%)', legs, held, hc, share,
-      outcome: held ? tri(share >= 0.10, share < 0.02) : 'INCONCLUSIVE' }); }
+  // 2. margin 1e-3, OPEN0's log, years 1 to 7, pooled: the one-way share (the forward holds, the cell leaves) net of the grid's
+  //    own disagreement - the reverse share at 1e-3, and the same one-way share at margin 0 (no margin: the nearest cell
+  //    against the interpolated state alone) where OPEN0/M0 holds MIN_GRID_PY path-years or more (the plan-auditor's
+  //    BLOCKING 1, 28 Sep 21:07 UK)
+  { const sh = m => { let held = 0, hc = 0, lc = 0; const legs = JOBS.map(([id]) => { const lg = LOGS(id, m, 'OPEN0'); let h = 0, x = 0, r = 0; for (let y = 1; y <= LOGYEARS; y++) { h += lg[y].held; x += lg[y].fwdHoldCellLeave; r += lg[y].fwdLeaveCellHold; } held += h; hc += x; lc += r; return { id, held: h, fwdHoldCellLeave: x, fwdLeaveCellHold: r, share: h ? x / h : 0 }; }); return { held, hc, lc, legs, one: held ? hc / held : 0, rev: held ? lc / held : 0 }; };
+    const a = sh('1e-3'), g = sh('0'), grid = g.held >= MIN_GRID_PY ? g.one : null;
+    const net = Math.min(a.one - a.rev, grid === null ? Infinity : a.one - grid);
+    out.push({ n: 2, text: `at margin 1e-3, on OPEN0's node runs, years 1 to 7, the three units pooled: the share of path-years holding the plan's tiers where the forward move holds and the nearest cell's stored move leaves is 10% or more AND exceeds by 5 points or more both the reverse share (the forward leaves, the cell holds) and the same one-way share at margin 0 (where OPEN0/M0 holds ${MIN_GRID_PY} path-years or more) (FALSIFIED: the net excess below 2 points)`, legs: a.legs, held: a.held, hc: a.hc, share: a.one, rev: a.rev, grid, gridHeld: g.held, net,
+      outcome: a.held ? tri(a.one >= 0.10 && net >= 0.05, net < 0.02) : 'INCONCLUSIVE' }); }
   // 3. bridge 4 at margin 0
   { const u = P('bridge 4', '0'), k = K('bridge 4', '0'), iv = survivalChange(k.lost, k.saved, k.N, ALPHA3), price = u.worlds[0].surv, ratio = iv.d > 0 ? price / iv.d : NaN, lv = leaves(u);
     out.push({ n: 3, text: 'bridge 4 at margin 0: its world-0 survival price at or above the node\'s exact 95% interval\'s lower end (FALSIFIED: below it, the ratio price / realised below 0.75)', legs: [{ id: 'bridge 4', price, iv, ratio, leaves: lv }],
@@ -350,7 +371,8 @@ function planted() {
   // the items on planted stories
   const mkP = spec => (id, m) => { const s = spec[`${id}|${m}`] || {}; return { worlds: [{ surv: s.p0 !== undefined ? s.p0 : 0.5 }], moves: { chosen: s.keeps ? 3 : 12, stay: 3 } }; };
   const mkK = spec => (id, m) => { const [saved, lost] = spec[`${id}|${m}`] || [48, 8]; const diff = new Int8Array(WN); for (let i = 0; i < saved; i++) diff[i] = 1; for (let i = 0; i < lost; i++) diff[WN - 1 - i] = -1; return { saved, lost, N: WN, diff }; };
-  const mkL = spec => (id, m, rule) => Array.from({ length: YEARS + 1 }, (_, y) => (y === 0 ? null : { held: 1000, fwdHoldCellLeave: (spec[`${id}|${m}|${rule}`] || 0) }));
+  // a log spec: a number (one-way a year of 1000 held) or { x, r, h } (one-way, reverse, held a year)
+  const mkL = spec => (id, m, rule) => Array.from({ length: YEARS + 1 }, (_, y) => { if (y === 0) return null; const v = spec[`${id}|${m}|${rule}`] || 0, o = typeof v === 'number' ? { x: v } : v; return { held: o.h !== undefined ? o.h : 1000, fwdHoldCellLeave: o.x || 0, fwdLeaveCellHold: o.r || 0 }; });
   // realised 0.5 points a unit (48 saved, 8 lost of 8000), pooled 1.5
   const right = { 'bridge 4|0': { p0: 0.5 }, 'S194|0': { p0: 0.5 }, 'S126|0': { p0: 0.5 } }, low = { 'bridge 4|0': { p0: 0.25 }, 'S194|0': { p0: 0.3 }, 'S126|0': { p0: 0.3 } };
   const chain = { 'bridge 4|1e-3|OPEN0': 150, 'S194|1e-3|OPEN0': 120, 'S126|1e-3|OPEN0': 100 }, none = { 'bridge 4|1e-3|OPEN0': 10, 'S194|1e-3|OPEN0': 5, 'S126|1e-3|OPEN0': 0 };
@@ -367,7 +389,23 @@ function planted() {
   cases.push(['item 2 at 10%: a pooled share of 7% is INCONCLUSIVE', items(mkP(right), mkK({}), mkL({ 'bridge 4|1e-3|OPEN0': 70, 'S194|1e-3|OPEN0': 70, 'S126|1e-3|OPEN0': 70 }))[1].outcome, 'INCONCLUSIVE']);
   cases.push(['item 2 falsified below 2%, not 5%: a pooled share of 3% is INCONCLUSIVE', items(mkP(right), mkK({}), mkL({ 'bridge 4|1e-3|OPEN0': 30, 'S194|1e-3|OPEN0': 30, 'S126|1e-3|OPEN0': 30 }))[1].outcome, 'INCONCLUSIVE']);
   cases.push(['item 2 reads OPEN0 at 1e-3, not TS+J or margin 0: the chain on those alone is FALSIFIED', items(mkP(right), mkK({}), mkL({ 'bridge 4|1e-3|TS+J': 200, 'S194|0|OPEN0': 200, 'S126|0|OPEN0': 200 }))[1].outcome, 'FALSIFIED']);
-  cases.push(['item 2 reads years 1 to 7 only: a chain in years 8 to 10 alone is FALSIFIED', (() => { const L = (id, m, rule) => Array.from({ length: YEARS + 1 }, (_, y) => (y === 0 ? null : { held: 1000, fwdHoldCellLeave: m === '1e-3' && rule === 'OPEN0' && y >= 8 ? 900 : 0 })); return items(mkP(right), mkK({}), L)[1].outcome; })(), 'FALSIFIED']);
+  cases.push(['item 2 reads years 1 to 7 only: a chain in years 8 to 10 alone is FALSIFIED', (() => { const L = (id, m, rule) => Array.from({ length: YEARS + 1 }, (_, y) => (y === 0 ? null : { held: 1000, fwdHoldCellLeave: m === '1e-3' && rule === 'OPEN0' && y >= 8 ? 900 : 0, fwdLeaveCellHold: 0 })); return items(mkP(right), mkK({}), L)[1].outcome; })(), 'FALSIFIED']);
+  { const o = (x, r, gx, gh) => items(mkP(right), mkK({}), mkL(Object.fromEntries(JOBS.flatMap(([id]) => [[`${id}|1e-3|OPEN0`, { x, r }], [`${id}|0|OPEN0`, { x: gx, h: gh }]]))))[1].outcome;
+    cases.push(['item 2 net of the reverse share: one-way 12% against reverse 9% is INCONCLUSIVE, not HELD', o(120, 90, 0, 1000), 'INCONCLUSIVE']);
+    cases.push(['item 2 net of margin 0\'s share (the grid alone): one-way 12% against 11% at margin 0 is FALSIFIED', o(120, 0, 110, 1000), 'FALSIFIED']);
+    cases.push(['item 2 needs 5 points net: one-way 12%, reverse 6% is HELD; reverse 8% INCONCLUSIVE', `${o(120, 60, 0, 1000)} ${o(120, 80, 0, 1000)}`, 'HELD INCONCLUSIVE']);
+    cases.push(['item 2 leaves margin 0 out where it holds under 1000 path-years (840 here): one-way 12% against 12% there is HELD', o(120, 0, 5, 40), 'HELD']);
+    cases.push(['item 2 counts margin 0 where it holds 1000 path-years or more (1050 here): one-way 12% against 12% there is FALSIFIED', o(120, 0, 6, 50), 'FALSIFIED']); }
+  // item 1's attribution
+  { const mkKR = spec => (id, rule) => { const [saved, lost] = spec[`${id}|${rule}`] || [0, 0]; const diff = new Int8Array(WN); for (let i = 0; i < saved; i++) diff[i] = 1; for (let i = 0; i < lost; i++) diff[WN - 1 - i] = -1; return { saved, lost, N: WN, diff }; };
+    const low3 = Object.fromEntries(JOBS.map(([id]) => [`${id}|1e-3`, { p0: 0.3 }])), at = (p0m0, kr) => attribution(mkP({ ...low3, ...Object.fromEntries(JOBS.map(([id]) => [`${id}|0`, { p0: p0m0 }])) }), mkK({}), mkKR(kr || {}));
+    const flags = a => `${a.priceRose} ${a.open0Rose} ${a.tsjFell}`;
+    cases.push(['attribution: the price up 0.2 a unit (0.6 of a 0.6 mispricing) is the tables\' under-value', flags(at(0.5)), 'true false false']);
+    cases.push(['attribution: the price up by less than a quarter of the mispricing (0.09 of 0.6) is not credited', flags(at(0.33)), 'false false false']);
+    cases.push(['attribution: OPEN0 up 40 paths a unit is the continuation', flags(at(0.3, Object.fromEntries(JOBS.map(([id]) => [`${id}|OPEN0`, [40, 0]])))), 'false true false']);
+    cases.push(['attribution: OPEN0 up inside its interval (2 paths a unit) is not credited', flags(at(0.3, Object.fromEntries(JOBS.map(([id]) => [`${id}|OPEN0`, [2, 0]])))), 'false false false']);
+    cases.push(['attribution: TS+J down 40 paths a unit alone attributes nothing', String(at(0.3, Object.fromEntries(JOBS.map(([id]) => [`${id}|TS+J`, [0, 40]]))).reading.startsWith('TS+J fell at margin 0 alone')), 'true']);
+    cases.push(['attribution: TS+J down with the price up names the tables, TS+J beside', ((a) => `${flags(a)} ${a.reading.includes('the 0.001 tables under-value') && a.reading.includes('TS+J fell at margin 0 too')}`)(at(0.5, Object.fromEntries(JOBS.map(([id]) => [`${id}|TS+J`, [0, 40]])))), 'true false true true']); }
   cases.push(['item 3 at the 0.05 interval, not 0.025: a price between the two lower ends is FALSIFIED', (() => { const lo5 = survivalChange(8, 48, WN, 0.05).lo, lo25 = survivalChange(8, 48, WN, 0.025).lo; return items(mkP({ ...right, 'bridge 4|0': { p0: (lo5 + lo25) / 2 } }), mkK({}), mkL(chain))[2].outcome; })(), 'FALSIFIED']);
   cases.push(['item 3 below the interval with the ratio at 0.8 is INCONCLUSIVE', items(mkP({ ...right, 'bridge 4|0': { p0: 8 } }), mkK({ 'bridge 4|0': [800, 0] }), mkL(chain))[2].outcome, 'INCONCLUSIVE']);
   cases.push(['item 3 reads bridge 4 alone: S194 low with bridge 4 right is HELD', items(mkP({ ...right, 'S194|0': { p0: 0.1 } }), mkK({}), mkL(chain))[2].outcome, 'HELD']);
@@ -411,6 +449,7 @@ export function reading(jobs, TR, out = console.log, wn = WN) {
   const P = (id, m) => jobs.find(j => j.id === id).tags[m];
   const K = (id, m) => { const O = TR[`${id}|${m}|OPEN0`].survived, J = TR[`${id}|${m}|TS+J`].survived, k = cells(O, J), diff = new Int8Array(O.length); for (let i = 0; i < O.length; i++) diff[i] = J[i] - O[i]; return { ...k, diff }; };
   const LOGS = (id, m, rule) => P(id, m).log[rule];
+  const KR = (id, rule) => { const a = TR[`${id}|1e-3|${rule}`].survived, b = TR[`${id}|0|${rule}`].survived, k = cells(a, b), diff = new Int8Array(a.length); for (let i = 0; i < a.length; i++) diff[i] = b[i] - a[i]; return { ...k, diff }; };
   out(`7AE: THE BAD NODE AT MARGIN 0 - DOES THE PER-YEAR SWITCH MARGIN MAKE THE TABLES PRICE THE BAD WORLD'S DE-RISK BELOW WHAT IT REALISES? (predictions/diag-7ae.md; ${N} paths of seed ${SEED}, ${wn} at world 0's node; the fair-test gates passed: the stamps, 7aa's, 7ac's and 7ad's gates, 7ae's gate against them - its 1e-3 solves 7aa's, its 1e-3 node runs' first ${Math.min(FIRST, wn)} paths 7ad's path by path - every node trace, and the decision log against its trace)\n`);
   out('EVERY UNIT AT BOTH MARGINS: the table, the year-0 gap, world 0\'s like-for-like survival price of the opening, and at world 0\'s node TS+J against OPEN0 (saved/lost, the survival difference in points with its exact 95% interval at 0.05) and the ratio price / realised');
   for (const [id, arm, w] of JOBS) for (const m of MARGINS) {
@@ -436,9 +475,17 @@ export function reading(jobs, TR, out = console.log, wn = WN) {
   for (const x of it) {
     out(`${x.n}. ${x.text}: ${x.outcome}`);
     if (x.n === 1) { out(`     Σ price ${x.sp.toFixed(3)} against Σ realised ${f3(x.pooled.d)} (${x.pooled.lo.toFixed(3)} to ${x.pooled.hi.toFixed(3)}): ratio ${Number.isFinite(x.ratio) ? x.ratio.toFixed(3) : 'n/a'}${x.measured ? '' : ' - not measured (a unit keeps the held tiers at margin 0, or no realised gain)'}`); for (const l of x.legs) out(`     ${l.id}: price ${l.price.toFixed(3)} realised ${f3(l.d)}${l.leaves ? '' : ' (keeps the held tiers)'}`); }
-    if (x.n === 2) { out(`     pooled ${x.hc} of ${x.held} held path-years: ${(100 * x.share).toFixed(2)}%`); for (const l of x.legs) out(`     ${l.id}: ${l.fwdHoldCellLeave} of ${l.held} (${(100 * l.share).toFixed(2)}%)`); }
+    if (x.n === 2) { out(`     pooled one-way ${x.hc} of ${x.held} held path-years: ${(100 * x.share).toFixed(2)}%; reverse ${(100 * x.rev).toFixed(2)}%; at margin 0 ${x.grid === null ? `not measured (${x.gridHeld} held path-years, under ${MIN_GRID_PY})` : `${(100 * x.grid).toFixed(2)}% (${x.gridHeld} held path-years)`}; net excess ${(100 * x.net).toFixed(2)} points`); for (const l of x.legs) out(`     ${l.id}: one-way ${l.fwdHoldCellLeave}, reverse ${l.fwdLeaveCellHold}, of ${l.held} (${(100 * l.share).toFixed(2)}%)`); }
     if (x.n === 3) { const l = x.legs[0]; out(`     bridge 4: price ${l.price.toFixed(3)} against ${f3(l.iv.d)} (${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}), ratio ${Number.isFinite(l.ratio) ? l.ratio.toFixed(3) : 'n/a'}${l.leaves ? '' : ' (keeps the held tiers)'}`); }
   }
+  // item 1's registered attribution: each rule's paired change from 1e-3 to 0 on the same node paths
+  { const at = attribution(P, K, KR), iv = d => `${f3(d.d)} (${d.lo.toFixed(3)} to ${d.hi.toFixed(3)})`;
+    out(`\nITEM 1'S ATTRIBUTION (registered: which side closed the ratio): Σ price ${at.priceBefore.toFixed(3)} -> ${at.priceAfter.toFixed(3)} (the 1e-3 mispricing ${at.miss.toFixed(3)}; risen by a quarter of it or more: ${at.priceRose ? 'yes' : 'no'}); OPEN0 from 1e-3 to 0 ${iv(at.dO)} (rose: ${at.open0Rose ? 'yes' : 'no'}); TS+J from 1e-3 to 0 ${iv(at.dJ)} (fell: ${at.tsjFell ? 'yes' : 'no'})`);
+    for (const [id] of JOBS) for (const rule of RULES) { const k = KR(id, rule), c = survivalChange(k.lost, k.saved, k.N, ALPHA3); out(`     ${id} ${rule}: ${k.saved}/${k.lost} ${f3(c.d)} (${c.lo.toFixed(3)} to ${c.hi.toFixed(3)})`); }
+    out(`     reading (${it[0].outcome === 'HELD' ? 'item 1 HELD' : `item 1 ${it[0].outcome}: reported only`}): ${at.reading}`); }
+  // reported: the one-way share at 1e-3 by year's parity (the review's "alternate years")
+  { const par = odd => { let h = 0, x = 0; for (const [id] of JOBS) { const lg = LOGS(id, '1e-3', 'OPEN0'); for (let y = 1; y <= LOGYEARS; y++) if ((y % 2 === 1) === odd) { h += lg[y].held; x += lg[y].fwdHoldCellLeave; } } return h ? `${(100 * x / h).toFixed(2)}% of ${h}` : 'none held'; };
+    out(`\nREPORTED: the one-way share at 1e-3 by year's parity, years 1 to 7 pooled: odd years ${par(true)}, even years ${par(false)}`); }
   // reported: the cause-2 signature at margin 0
   const r0 = id => { const u = P(id, '0'), k = K(id, '0'), d = 100 * (k.saved - k.lost) / k.N; return d > 0 ? u.worlds[0].surv / d : NaN; };
   const sig = r0('S194') >= 0.85 && r0('bridge 4') < 0.65 && r0('S126') < 0.65;

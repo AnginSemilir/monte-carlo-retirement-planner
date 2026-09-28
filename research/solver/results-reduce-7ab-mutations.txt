@@ -1,0 +1,43 @@
+true script: planted (36): all read as they should
+caught  the gate accepts a missing unit: the gate refuses a missing unit: false (want true)
+caught  the gate accepts a unit twice: the gate refuses a unit run twice: false (want true)
+caught  the gate ignores the table: the gate refuses another table: false (want true)
+caught  the gate ignores a ran line not 7aa's: the gate refuses a ran line not 7aa's (the minimum pot): false (want true)
+caught  the gate does not read the estate weight: the gate refuses the estate weight 0.02 on a W0 unit (7aa's ran line the same): false (want true)
+caught  the gate does not read the tier state, held tier, Q's fix or reference: the gate refuses the tier state, a held tier, Q's fix and the reader's reference even where 7aa's ran line carries the same: false,false,false,false (want true,true,true,true)
+caught  the gate ignores the gap: the gate refuses another year-0 gap: false (want true)
+caught  the gate ignores one policy for every world: the gate refuses one policy for every world: false (want true)
+caught  the gate ignores the solved margin: the gate refuses another solved margin: false (want true)
+caught  the gate ignores the scale: the gate refuses another scale: false (want true)
+caught  the gate ignores PRODUCT's survival against 7aa's: the gate refuses PRODUCT's survival not 7aa's: false (want true)
+caught  the gate accepts a missing solve line: the gate refuses a missing solve line: false (want true)
+caught  the gate accepts a missing gap line: the gate refuses a missing gap line: false (want true)
+caught  the gate accepts a missing PRODUCT run: PLANTED CHECK FAILED: the planted set threw (Cannot read properties of undefined (reading 'sim'))
+caught  the gate accepts a missing FREED run: the gate refuses a missing FREED run: false (want true)
+caught  the gate accepts a missing done line: the gate refuses a missing done line: false (want true)
+caught  the identity ignores the wealth: the identity: the same trace passes; a flipped survival, a changed wealth, a missing tax array, another count, or a tax array missing from both fail: true,false,true,false,fal
+caught  the identity ignores the survival: the identity: the same trace passes; a flipped survival, a changed wealth, a missing tax array, another count, or a tax array missing from both fail: true,true,false,false,fal
+caught  the identity accepts a missing array: the identity: the same trace passes; a flipped survival, a changed wealth, a missing tax array, another count, or a tax array missing from both fail: true,false,false,false,fa
+caught  the identity ignores the count: the identity: the same trace passes; a flipped survival, a changed wealth, a missing tax array, another count, or a tax array missing from both fail: true,false,false,false,tr
+caught  the tier read counts year 0 as later: tier differences: path 2 in year 0, path 3 in year 2, path 4 not counted after it fails in year 1: 0 2 2 (want 1 1 2)
+caught  the tier read counts past a failure: tier differences: path 2 in year 0, path 3 in year 2, path 4 not counted after it fails in year 1: 1 3 3 (want 1 1 2)
+caught  the loss read ignores survival harm: the loss read: level and tight is no material loss; harm is a loss; the whole interval below 0 with the point past the margin is a loss; wide is inconclusive; survival's uncon
+caught  the loss read ignores a whole-score loss: the loss read: level and tight is no material loss; harm is a loss; the whole interval below 0 with the point past the margin is a loss; wide is inconclusive; survival's uncon
+caught  the loss read ignores survival's unconditional end: the loss read: level and tight is no material loss; harm is a loss; the whole interval below 0 with the point past the margin is a loss; wide is inconclusive; survival's uncon
+caught  the loss read takes the point for the interval: the loss read: level and tight is no material loss; harm is a loss; the whole interval below 0 with the point past the margin is a loss; wide is inconclusive; survival's uncon
+caught  no material harm by the exact reading alone: FREED losing 12 to TS+J on S126 at W0, none the other way (exact: the point -0.15; unconditional past -0.25): item 1 INCONCLUSIVE, not HELD: HELD (want INCONCLUSIVE)
+caught  the legs the wrong way round: FREED as TS+J, both gaining: 1 to 4 HELD: 1 HELD, 2 HELD, 3 HELD, 4 FALSIFIED (want 1 HELD, 2 HELD, 3 HELD, 4 HELD)
+caught  the margin from TS+J's survival: the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5) and 20 lost there is no material harm (at 0.25 it would be harm), where 30 los
+caught  the margin from W0.02 on every leg: the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5) and 20 lost there is no material harm (at 0.25 it would be harm), where 30 los
+caught  item 1 against PRODUCT: TS+J saving 40 more than FREED on S126 at W0 (0.5 points, margin 0.25): item 1 FALSIFIED: HELD (want FALSIFIED)
+caught  item 1 held on one leg: TS+J saving 40 more than FREED on S126 at W0 (0.5 points, margin 0.25): item 1 FALSIFIED: HELD (want FALSIFIED)
+caught  item 2 survival against PRODUCT: item 2 reads TS+J's survival too: FREED losing 40 to TS+J on S126 at W0.02 is a loss whatever the whole score says: no material loss (want loss)
+caught  item 2's whole leg against PRODUCT: the whole score of FREED 0.4 below TS+J on S194 at W0.02, its interval below 0: item 2 FALSIFIED: HELD (want FALSIFIED)
+caught  item 2 held on one leg: the whole score of FREED 0.4 below TS+J on S194 at W0.02, its interval below 0: item 2 FALSIFIED: HELD (want FALSIFIED)
+caught  item 3 at W0 only: PLANTED CHECK FAILED: the planted set threw (Cannot read properties of undefined (reading 'o'))
+caught  item 3 against TS+J: the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5) and 20 lost there is no material harm (at 0.25 it would be harm), where 30 los
+caught  item 3 held on one leg: harm on S360 under off at W0.02 (80 lost, margin 0.25): item 3 FALSIFIED: HELD (want FALSIFIED)
+caught  item 4 against TS+J: FREED as TS+J, both gaining: 1 to 4 HELD: 1 HELD, 2 HELD, 3 HELD, 4 FALSIFIED (want 1 HELD, 2 HELD, 3 HELD, 4 HELD)
+caught  item 4 held on one case: nothing gains anywhere: 1, 2 and 3 HELD, 4 FALSIFIED: 1 HELD, 2 HELD, 3 HELD, 4 INCONCLUSIVE (want 1 HELD, 2 HELD, 3 HELD, 4 FALSIFIED)
+
+40 mutations: every one caught

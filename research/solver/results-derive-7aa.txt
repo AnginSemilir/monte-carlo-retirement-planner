@@ -1,13 +1,13 @@
 7AA'S POWER: 8000 paths; 20000 draws a story (seed 7002); read by reduce-7aa.mjs's rule
 
 THE SIZES (grade C; see the header)
-  the freed opening against the product, S126  15/0 of 3000, the rest -0.170 +/- 0.025 -> 40.0/0.0 of 8000, the rest's error 0.016 at 8000
-  the freed opening against the product, S194  16/0 of 3000, the rest -0.068 +/- 0.020 -> 42.7/0.0 of 8000, the rest's error 0.013 at 8000
-  7y TS against PRODUCT, S126|READER     5/9  margin 0.25
-  7y TS against PRODUCT, S194|OFF        2/16  margin 0.25
-  7y TS against PRODUCT, bridge 4|READER 0/7  margin 0.25
-  7y TS against PRODUCT, S360|READER     3/1  margin 0.5
-  7y TS against PRODUCT, S360|OFF        5/12  margin 0.5
+  the freed opening against the product, S126  15/0 of 3000 (5 failing in both), the rest -0.170 +/- 0.025 -> 40.0/0.0 of 8000, the rest's error 0.016 at 8000
+  the freed opening against the product, S194  16/0 of 3000 (36 failing in both), the rest -0.068 +/- 0.020 -> 42.7/0.0 of 8000, the rest's error 0.013 at 8000
+  7y TS against PRODUCT, S126|READER     5/9  margin 0.25  the product fails 59
+  7y TS against PRODUCT, S194|OFF        2/16  margin 0.25  the product fails 142
+  7y TS against PRODUCT, bridge 4|READER 0/7  margin 0.25  the product fails 35
+  7y TS against PRODUCT, S360|READER     3/1  margin 0.5  the product fails 4327
+  7y TS against PRODUCT, S360|OFF        5/12  margin 0.5  the product fails 5256
 
 BACKGROUND 0.5 PATHS EACH WAY ON EVERY LEG
   items 1 and 2 (W0; the 0.02 sizes assumed), TS+J as the freed opening                  b 0.5  HELD 1.000
@@ -18,30 +18,32 @@ BACKGROUND 0.5 PATHS EACH WAY ON EVERY LEG
   items 3 and 6, bridge 4 loses 30 paths (0.375 points)                                  b 0.5  FALSIFIED 0.975  HELD 0.017  INCONCLUSIVE 0.008
   items 3 and 6, S360 with the reader loses 80 (1 point)                                 b 0.5  FALSIFIED 1.000
   items 3 and 6, S360 under off loses 80                                                 b 0.5  FALSIFIED 1.000
-  item 4 (W0.02), TS+J as the freed opening, survival and the rest                       b 0.5  HELD 0.978  INCONCLUSIVE 0.022
+  item 4 (W0.02), TS+J as the freed opening, survival and the rest                       b 0.5  HELD 0.948  INCONCLUSIVE 0.052
   item 4 (W0.02), its survival only, the rest level                                      b 0.5  HELD 1.000
-  item 4 (W0.02), half of both                                                           b 0.5  FALSIFIED 0.037  HELD 0.479  INCONCLUSIVE 0.484
-  item 4 (W0.02), TS+J doing nothing                                                     b 0.5  FALSIFIED 0.995  INCONCLUSIVE 0.005
-  item 5 (W0.02, pooled against TS), TS+J as the freed opening and removing TS's losses  b 0.5  HELD 1.000
-  item 5 (W0.02, pooled against TS), removing TS's losses only                           b 0.5  FALSIFIED 0.012  HELD 0.988
-  item 5 (W0.02, pooled against TS), as the freed opening only                           b 0.5  HELD 1.000
-  item 5 (W0.02, pooled against TS), TS+J as TS                                          b 0.5  FALSIFIED 0.995  HELD 0.005
+  item 4 (W0.02), half of both                                                           b 0.5  FALSIFIED 0.000  HELD 0.349  INCONCLUSIVE 0.651
+  item 4 (W0.02), TS+J doing nothing                                                     b 0.5  FALSIFIED 1.000  INCONCLUSIVE 0.000
+  item 4 (W0.02), the calibration: the true whole change exactly at the margin on both legs b 0.5  HELD 0.647  INCONCLUSIVE 0.353
+  item 5 (W0.02, the product's survivors, against TS), removing TS's losses              b 0.5  HELD 1.000
+  item 5 (W0.02, the product's survivors, against TS), removing half of them             b 0.5  FALSIFIED 0.011  HELD 0.989
+  item 5 (W0.02, the product's survivors, against TS), keeping them (TS+J as TS, or as the freed opening only) b 0.5  FALSIFIED 0.995  HELD 0.005
+  item 5 (W0.02, the product's survivors, against TS), keeping them and losing 10 of its own b 0.5  FALSIFIED 1.000
 
 BACKGROUND 5 PATHS EACH WAY ON EVERY LEG
   items 1 and 2 (W0; the 0.02 sizes assumed), TS+J as the freed opening                  b 5    HELD 1.000
-  items 1 and 2 (W0; the 0.02 sizes assumed), half of it                                 b 5    FALSIFIED 0.001  HELD 0.970  INCONCLUSIVE 0.029
-  items 1 and 2 (W0; the 0.02 sizes assumed), a quarter of it                            b 5    FALSIFIED 0.182  HELD 0.472  INCONCLUSIVE 0.347
-  items 1 and 2 (W0; the 0.02 sizes assumed), TS+J doing nothing                         b 5    FALSIFIED 0.978  HELD 0.000  INCONCLUSIVE 0.022
+  items 1 and 2 (W0; the 0.02 sizes assumed), half of it                                 b 5    FALSIFIED 0.001  HELD 0.971  INCONCLUSIVE 0.029
+  items 1 and 2 (W0; the 0.02 sizes assumed), a quarter of it                            b 5    FALSIFIED 0.182  HELD 0.469  INCONCLUSIVE 0.349
+  items 1 and 2 (W0; the 0.02 sizes assumed), TS+J doing nothing                         b 5    FALSIFIED 0.980  HELD 0.000  INCONCLUSIVE 0.019
   items 3 and 6, all level                                                               b 5    HELD 1.000
-  items 3 and 6, bridge 4 loses 30 paths (0.375 points)                                  b 5    FALSIFIED 0.958  HELD 0.001  INCONCLUSIVE 0.041
+  items 3 and 6, bridge 4 loses 30 paths (0.375 points)                                  b 5    FALSIFIED 0.954  HELD 0.002  INCONCLUSIVE 0.044
   items 3 and 6, S360 with the reader loses 80 (1 point)                                 b 5    FALSIFIED 1.000
   items 3 and 6, S360 under off loses 80                                                 b 5    FALSIFIED 1.000
-  item 4 (W0.02), TS+J as the freed opening, survival and the rest                       b 5    HELD 0.858  INCONCLUSIVE 0.142
+  item 4 (W0.02), TS+J as the freed opening, survival and the rest                       b 5    HELD 0.850  INCONCLUSIVE 0.150
   item 4 (W0.02), its survival only, the rest level                                      b 5    HELD 0.999  INCONCLUSIVE 0.001
-  item 4 (W0.02), half of both                                                           b 5    FALSIFIED 0.012  HELD 0.173  INCONCLUSIVE 0.815
-  item 4 (W0.02), TS+J doing nothing                                                     b 5    FALSIFIED 0.999  INCONCLUSIVE 0.001
-  item 5 (W0.02, pooled against TS), TS+J as the freed opening and removing TS's losses  b 5    HELD 1.000
-  item 5 (W0.02, pooled against TS), removing TS's losses only                           b 5    FALSIFIED 0.098  HELD 0.902
-  item 5 (W0.02, pooled against TS), as the freed opening only                           b 5    HELD 1.000
-  item 5 (W0.02, pooled against TS), TS+J as TS                                          b 5    FALSIFIED 0.966  HELD 0.034
+  item 4 (W0.02), half of both                                                           b 5    FALSIFIED 0.000  HELD 0.171  INCONCLUSIVE 0.829
+  item 4 (W0.02), TS+J doing nothing                                                     b 5    FALSIFIED 0.932  INCONCLUSIVE 0.068
+  item 4 (W0.02), the calibration: the true whole change exactly at the margin on both legs b 5    HELD 0.395  INCONCLUSIVE 0.605
+  item 5 (W0.02, the product's survivors, against TS), removing TS's losses              b 5    FALSIFIED 0.002  HELD 0.992  INCONCLUSIVE 0.006
+  item 5 (W0.02, the product's survivors, against TS), removing half of them             b 5    FALSIFIED 0.220  HELD 0.730  INCONCLUSIVE 0.050
+  item 5 (W0.02, the product's survivors, against TS), keeping them (TS+J as TS, or as the freed opening only) b 5    FALSIFIED 0.964  HELD 0.036  INCONCLUSIVE 0.000
+  item 5 (W0.02, the product's survivors, against TS), keeping them and losing 10 of its own b 5    FALSIFIED 1.000  HELD 0.000  INCONCLUSIVE 0.000
 

@@ -18,17 +18,27 @@
  *   2. W0, the per-world rule (O41): on S126 and S194, TS+J gains against TS by survival
  *   3. W0, no harm: on bridge 4 (reader), S360 (reader) and S360 (off), TS+J shows no material harm against PRODUCT
  *   4. W0.02, the gain by the whole score within the survival limit: on S126 and S194, TS+J against PRODUCT
- *   5. W0.02, O42: pooled over S126, S194 and bridge 4, TS+J gains against TS by survival
+ *   5. W0.02, O42, TS's losses: pooled over S126, S194 and bridge 4, on the paths PRODUCT survives at 0.02, TS+J survives
+ *      more than TS (TS+J against TS by survival, the pooled margin 0.1: stats.mjs MARGINS.pooled). Read on the product's
+ *      survivors so that the opening's saves, which fall on paths the product fails (7w's freed opening: 15 and 16 saved, 0
+ *      lost, results-7w.txt), cannot carry it (the plan-auditor on the 7aa registration, 28 Sep, BLOCKING 2)
  *   6. W0.02, no harm: on bridge 4, S360 (reader) and S360 (off), TS+J shows no material harm against PRODUCT by survival
  * THE WHOLE-SCORE RULE (items 4, and printed beside every leg): the whole score per path is reduce-7t.mjs's (survival, the
  * capped estate at the run's own estate weight, the dislike of cuts, the raise credit), paired on the same paths. Its change
- * is split into the survival part (100 x (saved - lost) / N, exact: stats.mjs survivalChange) and the rest (estate, cuts and
- * raises, bounded per path: the paired mean with its normal interval); each part's interval is taken at half the leg's
- * error rate and the two are added, so the whole interval covers at least 1 - the leg's rate (the union bound). The leg's
- * rate is 0.05 over the item's legs (Bonferroni: Holm's step-down needs p-values the added interval does not give, and
+ * is split into the survival part (100 x (saved - lost) / N, read UNCONDITIONALLY: stats.mjs survivalChangeU with
+ * reduce-7v.mjs's one-sided guard, the plan's corrected form, drafts/whole-score-rule.md row 1) and the rest (estate, cuts
+ * and raises, bounded per path: the paired mean with its normal interval); each part's interval is taken at half the leg's
+ * error rate and the two are added. The union bound gives the whole interval 1 - the leg's rate only as far as each part
+ * holds its own: the unconditional interval is not exact (results-sim-unconditional.txt: at or below its rate from 95% to
+ * 99.8% survival but 4.1% against 2.5% at 95% and 8,000 paths, a little high below 95%) and the rest's interval is normal,
+ * so the planted calibration check measures the rule at the margin on S126- and S194-like legs instead of claiming it. The
+ * exact (conditional) survival part, the form registered first, is printed beside, marked where the two read differently:
+ * its no-material ends are the point estimate with one-sided changes (stats.mjs survivalChange's comment). The leg's rate
+ * is 0.05 over the item's legs (Bonferroni: Holm's step-down needs p-values the added interval does not give, and
  * Bonferroni is at least as strict). A leg GAINS when the whole interval's lower end is above 0 and survival shows no
- * material harm (harmFamily, Holm over the item's legs); shows NO MATERIAL GAIN when the whole interval's upper end is below
- * the case's margin; HARM when survival reads harm (the survival limit); else inconclusive.
+ * material harm by the unconditional interval (its lower end above minus the margin); shows NO MATERIAL GAIN when the whole
+ * interval's upper end is below the case's margin; HARM when survival reads harm (the survival limit: harmFamily's exact
+ * McNemar under Holm over the item's legs, the point loss at least the margin); else inconclusive.
  * Reported, not items: every run's survival, saved/lost against PRODUCT, switches, years below the plan's tier, estate; each
  * solve's gap and opening; each world's table against its run (the calibration by world, rule 4); the whole score by
  * long-run shift slice; the path-years the tier state holds a riskier or a safer tier than PRODUCT; S194's paths holding 1/1
@@ -40,7 +50,7 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
-import { marginFor, survivalChange, zFor, mcnemarHarmP } from './stats.mjs';
+import { marginFor, survivalChange, survivalChangeU, clopperPearson, zFor, mcnemarHarmP, MARGINS } from './stats.mjs';
 import { requireFairLogs } from './fair-gate.mjs';
 import { decode, scorePaths, MU, Z_BINS, binOf } from './reduce-7t.mjs';
 import { switching } from './read-7t-deep.mjs';
@@ -54,6 +64,7 @@ export const SIM_TOL = 5e-5 + 1e-9, ALPHA = 0.05;
 export const DECIDED = 'off:_no_tier_above_the_plan';
 export const WEIGHTS = ['0', '0.02'], TAGS = ['PRODUCT', 'TS', 'TS+J'];
 export const CASE_ARMS = [['S126', 'READER'], ['S194', 'OFF'], ['bridge 4', 'READER'], ['S360', 'READER'], ['S360', 'OFF']];
+export const POOL5 = [['S126', 'READER'], ['S194', 'OFF'], ['bridge 4', 'READER']];
 export const label = (tag, w) => `${tag}/W${w}`;
 // the registered units: [case, arm, label], in audit-s126.mjs diag7aa's order (weight, case, arm)
 export const UNITS = WEIGHTS.flatMap(w => CASE_ARMS.flatMap(([id, a]) => TAGS.map(t => [id, a, label(t, w)])));
@@ -138,22 +149,41 @@ export function wholePaths(T, { lambda, floor, scale, cap, spendYears, wb }) {
   }
   return out;
 }
-/* THE WHOLE-SCORE LEG: B against A on the same paths at error rate a: the survival part's exact interval and the rest's
-   normal interval, each at a/2, added. Returns the change, its interval and its parts. */
+// reduce-7v.mjs guarded() (read-o27-unconditional.mjs's, O27), copied: the unconditional interval, its end on a one-sided
+// side held at least as far out as the exact bound on that count of N
+const cpMemo = new Map();
+const cpUpper = (k, n, level) => { const key = `${k}|${n}|${level}`; if (!cpMemo.has(key)) cpMemo.set(key, clopperPearson(k, n, level)[1]); return cpMemo.get(key); };
+export function guarded(u, lost, saved, n, level) {
+  const bh = -100 * cpUpper(lost, n, level), bg = 100 * cpUpper(saved, n, level);
+  return { ...u, lo: saved === 0 ? Math.min(u.lo, bh) : u.lo, hi: lost === 0 ? Math.max(u.hi, bg) : u.hi };
+}
+/* THE WHOLE INTERVAL from a leg's paired survival cells k and the rest's mean and standard error, at error rate a: the
+   survival part unconditionally (guarded), the rest by its normal interval, each at a/2, added; the exact (conditional)
+   form beside (exLo, exHi) */
+export function wholeFrom(k, rest, restSe, a) {
+  const sv = guarded(survivalChangeU(k.a, k.lost, k.saved, k.d, a / 2), k.lost, k.saved, k.N, a / 2), ex = survivalChange(k.lost, k.saved, k.N, a / 2), z = zFor(a / 2);
+  return { d: sv.d + rest, lo: sv.lo + rest - z * restSe, hi: sv.hi + rest + z * restSe, sd: sv.d, rest, restSe, k, exLo: ex.lo + rest - z * restSe, exHi: ex.hi + rest + z * restSe };
+}
+/* THE WHOLE-SCORE LEG: B against A on the same paths at error rate a (wholeFrom on the paths' cells and the rest). Returns
+   the change, its interval and its parts. */
 export function wholeLeg(A, B, cfg, a) {
   const sa = wholePaths(A, cfg), sb = wholePaths(B, cfg), k = cells(A.survived, B.survived);
-  const sv = survivalChange(k.lost, k.saved, k.N, a / 2);
   let m = 0; const d = new Float64Array(A.N);
   for (let i = 0; i < A.N; i++) { d[i] = (sb[i] - 100 * B.survived[i]) - (sa[i] - 100 * A.survived[i]); m += d[i]; }
   m /= A.N; let v = 0; for (let i = 0; i < A.N; i++) v += (d[i] - m) ** 2;
-  const se = Math.sqrt(v / (A.N - 1) / A.N), z = zFor(a / 2);
-  return { d: sv.d + m, lo: sv.lo + m - z * se, hi: sv.hi + m + z * se, sd: sv.d, rest: m, restSe: se, k };
+  return wholeFrom(k, m, Math.sqrt(v / (A.N - 1) / A.N), a);
+}
+// THE PAIRED CELLS of B against A on the paths P survives alone (item 5: TS's losses against the product)
+export function cellsWhere(P, A, B) {
+  let a = 0, lost = 0, saved = 0, d = 0, n = 0;
+  for (let i = 0; i < P.length; i++) { if (!P[i]) continue; n++; if (A[i] && B[i]) a++; else if (A[i]) lost++; else if (B[i]) saved++; else d++; }
+  return { a, lost, saved, d, N: n };
 }
 
 const tri = (xs, yes, no) => (xs.every(yes) ? 'HELD' : xs.every(no) ? 'FALSIFIED' : 'INCONCLUSIVE');
 const f3 = x => `${x >= 0 ? '+' : ''}${x.toFixed(3)}`;
 const legText = x => `${x.label} ${x.k.saved} saved/${x.k.lost} lost ${f3(x.iv.d)} (exact ${x.iv.lo.toFixed(3)} to ${x.iv.hi.toFixed(3)}; unconditional ${x.un.lo.toFixed(3)} to ${x.un.hi.toFixed(3)}${x.disagree ? ' <-- the readings DISAGREE' : ''}) ${x.o}`;
-const wholeText = x => `${x.label}: whole ${f3(x.w.d)} (${x.w.lo.toFixed(3)} to ${x.w.hi.toFixed(3)}; survival part ${f3(x.w.sd)}, the rest ${f3(x.w.rest)} +/- ${x.w.restSe.toFixed(3)}); survival ${x.w.k.saved}/${x.w.k.lost} ${x.surv}; ${x.o}`;
+const wholeText = x => `${x.label}: whole ${f3(x.w.d)} (unconditional ${x.w.lo.toFixed(3)} to ${x.w.hi.toFixed(3)}; exact ${x.w.exLo.toFixed(3)} to ${x.w.exHi.toFixed(3)}; survival part ${f3(x.w.sd)}, the rest ${f3(x.w.rest)} +/- ${x.w.restSe.toFixed(3)}); survival ${x.w.k.saved}/${x.w.k.lost} ${x.surv} (exact ${x.survEx}); ${x.o}${x.o !== x.oEx ? ` <-- the exact form reads ${x.oEx}` : ''}`;
 
 /*
  * THE ITEMS. `S(id, arm, l)` is a run's survived array; `WL(id, arm, lb, la, a)` the whole-score leg of lb against la at
@@ -175,17 +205,18 @@ export function items(S, WL) {
   out.push({ n: 3, text: 'W0, no harm: on bridge 4 (reader), S360 (reader) and S360 (off), TS+J shows no material harm against PRODUCT (FALSIFIED: harm on any)', legs: i3, outcome: i3.every(x => x.o === 'no material harm') ? 'HELD' : i3.some(x => x.o === 'harm') ? 'FALSIFIED' : 'INCONCLUSIVE' });
   // 4. W0.02, the gain by the whole score within the survival limit
   const a4 = ALPHA / two.length, s4 = harmFamily(two.map(([id, arm]) => leg(id, arm, 'TS+J', 'PRODUCT', '0.02')));
+  const read4 = (surv, lo, hi, m) => (surv === 'harm' ? 'harm (the survival limit)' : lo > 0 && surv === 'no material harm' ? 'gain' : hi < m ? 'no material gain' : 'inconclusive');
   const i4 = two.map(([id, arm], j) => {
-    const w = WL(id, arm, label('TS+J', '0.02'), label('PRODUCT', '0.02'), a4), m = s4[j].margin, surv = s4[j].o;
-    const o = surv === 'harm' ? 'harm (the survival limit)' : w.lo > 0 && surv === 'no material harm' ? 'gain' : w.hi < m ? 'no material gain' : 'inconclusive';
-    return { label: `${id} (${arm.toLowerCase()}): TS+J against PRODUCT at W0.02`, w, surv, margin: m, o };
+    const w = WL(id, arm, label('TS+J', '0.02'), label('PRODUCT', '0.02'), a4), m = s4[j].margin, survEx = s4[j].o;
+    const surv = survEx === 'harm' ? 'harm' : s4[j].un.lo > -m ? 'no material harm' : 'inconclusive';
+    return { label: `${id} (${arm.toLowerCase()}): TS+J against PRODUCT at W0.02`, w, surv, survEx, margin: m, o: read4(surv, w.lo, w.hi, m), oEx: read4(survEx, w.exLo, w.exHi, m) };
   });
   out.push({ n: 4, text: 'W0.02, the gain by the whole score within the survival limit: on S126 and S194, TS+J against PRODUCT (FALSIFIED: no material gain or survival harm on both)', whole: i4, outcome: tri(i4, x => x.o === 'gain', x => x.o === 'no material gain' || x.o.startsWith('harm')) });
-  // 5. W0.02, O42: pooled TS+J against TS
-  const pool = [['S126', 'READER'], ['S194', 'OFF'], ['bridge 4', 'READER']].map(([id, arm]) => leg(id, arm, 'TS+J', 'TS', '0.02').k);
+  // 5. W0.02, O42, TS's losses: pooled TS+J against TS on the paths PRODUCT survives
+  const pool = POOL5.map(([id, arm]) => cellsWhere(S(id, arm, label('PRODUCT', '0.02')), S(id, arm, label('TS', '0.02')), S(id, arm, label('TS+J', '0.02'))));
   const kp = pool.reduce((t, k) => ({ a: t.a + k.a, lost: t.lost + k.lost, saved: t.saved + k.saved, d: t.d + k.d, N: t.N + k.N }), { a: 0, lost: 0, saved: 0, d: 0, N: 0 });
-  const i5 = gainFamily([{ id: 'pooled', label: 'pooled over S126, S194 and bridge 4: TS+J against TS at W0.02', k: kp, margin: 0.25 }]);
-  out.push({ n: 5, text: 'W0.02, O42: pooled over S126, S194 and bridge 4, TS+J gains against TS by survival (FALSIFIED: no material gain, the margin 0.25 of the pooled paths)', legs: i5, outcome: i5[0].o === 'gain' ? 'HELD' : i5[0].o === 'no material gain' ? 'FALSIFIED' : 'INCONCLUSIVE' });
+  const i5 = gainFamily([{ id: 'pooled', label: 'pooled over S126, S194 and bridge 4, on the paths PRODUCT survives: TS+J against TS at W0.02', k: kp, margin: MARGINS.pooled }]);
+  out.push({ n: 5, text: 'W0.02, O42, TS\'s losses: pooled over S126, S194 and bridge 4, on the paths PRODUCT survives at 0.02, TS+J survives more than TS (FALSIFIED: no material gain, the pooled margin 0.1)', legs: i5, cases: pool, outcome: i5[0].o === 'gain' ? 'HELD' : i5[0].o === 'no material gain' ? 'FALSIFIED' : 'INCONCLUSIVE' });
   // 6. W0.02, no harm on the harm legs
   const i6 = harmFamily(harmLegs.map(([id, arm]) => leg(id, arm, 'TS+J', 'PRODUCT', '0.02')));
   out.push({ n: 6, text: 'W0.02, no harm: on bridge 4 (reader), S360 (reader) and S360 (off), TS+J shows no material harm against PRODUCT by survival (FALSIFIED: harm on any)', legs: i6, outcome: i6.every(x => x.o === 'no material harm') ? 'HELD' : i6.some(x => x.o === 'harm') ? 'FALSIFIED' : 'INCONCLUSIVE' });
@@ -264,13 +295,32 @@ function planted() {
     cases.push(['its interval holds its point and covers both parts\' spreads', String(w.lo < w.d && w.d < w.hi && w.lo > 0), 'true']); }
   { const n = 8000, sa = Array(n).fill(1), wa = Array(n).fill(200000), wb2 = wa.map((x, i) => x + (i % 2 ? 50000 : -50000));
     const w = wholeLeg(mkT(sa, wa, [100, 100, 100]), mkT(sa, wb2, [100, 100, 100]), cfg0, 0.025);
-    cases.push(['with survival identical the interval is the rest\'s alone: 2 z se wide at a/2', String(Math.abs((w.hi - w.lo) - 2 * zFor(0.0125) * w.restSe) < 1e-9 && w.restSe > 0), 'true']); }
+    cases.push(['with survival identical the interval is the rest\'s 2 z se at a/2 plus the unconditional survival part\'s width at no differing path: 2 x 100 z^2/(N + z^2) = 0.1558 at 8,000 (the guard, 100 x 6.342e-4, inside it)', `${((w.hi - w.lo) - 2 * zFor(0.0125) * w.restSe).toFixed(4)} ${w.restSe > 0}`, '0.1558 true']); }
+  // the one-sided guard: 3 saved, none lost, 400 failing in both, of 8,000, the rest 0: the upper end is the exact bound on 3 of
+  // 8,000 at a/2 (clopperPearson here, beside the reducer's memoised copy), which the Newcombe interval alone falls short of
+  { const k = { a: 7597, lost: 0, saved: 3, d: 400, N: 8000 }, w = wholeFrom(k, 0, 0, 0.025), u = survivalChangeU(7597, 0, 3, 400, 0.0125), cp = 100 * clopperPearson(3, 8000, 0.0125)[1];
+    cases.push(['the guard holds a one-sided upper end at the exact bound on its count (3 saved of 8,000: Newcombe alone short of it; by hand, the Poisson bound chi2(0.99375, 8 df)/2 = 10.67 of 8,000 = 0.1334 points)', `${u.hi < cp} ${Math.abs(w.hi - cp) < 1e-12} ${cp.toFixed(4)}`, 'true true 0.1334']); }
+  // THE CALIBRATION (the plan-auditor on the 7aa registration, BLOCKING 1): a leg whose true whole change sits exactly at the
+  // margin 0.25 reads "no material gain" at most at its one-sided rate, a4/2 = 0.0125 (0.005 over it allowed for 2,000
+  // draws: about 3 standard errors): S126-like (the rest -0.170 +/- 0.016 at 8,000) and S194-like (-0.068 +/- 0.013), a
+  // background of 0.5 and 5 paths each way, the survival part's true change the rest of the margin (net saved paths). The
+  // exact form on the same draws (the review measured 0.24 and 0.26 at 0.5) shows the check can fail.
+  { let sd = 7002 >>> 0; const rnd = () => { sd = (sd + 0x6D2B79F5) >>> 0; let t = sd; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const pois = m => { const L = Math.exp(-m); let k = 0, q = 1; do { k++; q *= rnd(); } while (q > L); return k - 1; }, gauss = () => { let u = 0; for (let k = 0; k < 12; k++) u += rnd(); return u - 6; };
+    const rates = [];
+    for (const [rest, se] of [[-0.170, 0.016], [-0.068, 0.013]]) for (const b of [0.5, 5]) {
+      const net = (0.25 - rest) * N / 100; let un = 0, ex = 0;
+      for (let t = 0; t < 2000; t++) { const sv = pois(net + b), l = pois(b), w = wholeFrom({ a: N - sv - l - 200, lost: l, saved: sv, d: 200, N }, rest + se * gauss(), se, 0.025); if (w.hi < 0.25) un++; if (w.exHi < 0.25) ex++; }
+      rates.push([un / 2000, ex / 2000]);
+    }
+    cases.push([`the calibration at the margin: the rule reads no material gain at most 0.0175 on all four legs, the exact form over 0.1 at the background 0.5 (${rates.map(r => r.map(x => x.toFixed(4)).join('/')).join(', ')})`, `${rates.every(r => r[0] <= 0.0175)} ${rates.filter((r, i) => i % 2 === 0).every(r => r[1] > 0.1)}`, 'true true']); }
   // the items on planted stories: S from counts; WL from a table of whole legs
   const mkS = spec => (id, arm, l) => { const k = spec[`${id}|${arm}|${l}`] || [0, 0]; const a = new Uint8Array(N).fill(1); for (let i = 0; i < 100; i++) a[i] = 0; for (let i = 0; i < k[0]; i++) a[i] = 1; const o = k[2] || 100; for (let i = o; i < o + k[1]; i++) a[i] = 0; return a; };
-  const mkW = spec => (id, arm, lb, la) => { const x = spec[`${id}|${lb}`] || { d: 0, lo: -0.1, hi: 0.1 }; return { ...x, sd: 0, rest: x.d, restSe: 0.01, k: { saved: 0, lost: 0 } }; };
+  const mkW = spec => (id, arm, lb, la) => { const x = spec[`${id}|${lb}`] || { d: 0, lo: -0.1, hi: 0.1 }; return { exLo: x.lo, exHi: x.hi, ...x, sd: 0, rest: x.d, restSe: 0.01, k: { saved: 0, lost: 0 } }; };
   const outs = it => it.map(x => `${x.n} ${x.outcome}`).join(', ');
   // TS+J works: gains at W0 on both, over TS too; the whole score gains at 0.02; TS+J saves against TS pooled; no harm
-  const fsS = { [`S126|READER|${TJ0}`]: [40, 0], [`S194|OFF|${TJ0}`]: [43, 0], [`S126|READER|${TJ2}`]: [30, 0], [`S194|OFF|${TJ2}`]: [30, 0], [`bridge 4|READER|${TJ2}`]: [20, 0] };
+  const TS2 = label('TS', '0.02');
+  const fsS = { [`S126|READER|${TJ0}`]: [40, 0], [`S194|OFF|${TJ0}`]: [43, 0], [`S126|READER|${TJ2}`]: [30, 0], [`S194|OFF|${TJ2}`]: [30, 0], [`bridge 4|READER|${TJ2}`]: [20, 0], [`S126|READER|${TS2}`]: [0, 9], [`S194|OFF|${TS2}`]: [0, 16], [`bridge 4|READER|${TS2}`]: [0, 7] };
   const fsW = { [`S126|${TJ2}`]: { d: 0.6, lo: 0.3, hi: 0.9 }, [`S194|${TJ2}`]: { d: 0.7, lo: 0.4, hi: 1.0 } };
   cases.push(['TS+J as the first-ranked cause predicts: 1 to 6 HELD', outs(items(mkS(fsS), mkW(fsW))), '1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD, 6 HELD']);
   cases.push(['TS+J doing nothing: 1, 2, 4 and 5 FALSIFIED, 3 and 6 HELD', outs(items(mkS({}), mkW({}))), '1 FALSIFIED, 2 FALSIFIED, 3 HELD, 4 FALSIFIED, 5 FALSIFIED, 6 HELD']);
@@ -281,14 +331,18 @@ function planted() {
   cases.push(['the whole score gains but survival harms on S126 at W0.02: item 4 not HELD, its leg harm', (() => { const it = items(mkS({ ...fsS, [`S126|READER|${TJ2}`]: [0, 40] }), mkW(fsW)); return `${it[3].outcome} ${it[3].whole[0].o}`; })(), 'INCONCLUSIVE harm (the survival limit)']);
   cases.push(['the whole score gains but survival is inconclusive (3 saved, 20 lost): the leg inconclusive', items(mkS({ ...fsS, [`S126|READER|${TJ2}`]: [3, 20] }), mkW(fsW))[3].whole[0].o, 'inconclusive']);
   cases.push(['the whole score gains and survival loses within the margin (3 saved, 12 lost): the leg gains', items(mkS({ ...fsS, [`S126|READER|${TJ2}`]: [3, 12] }), mkW(fsW))[3].whole[0].o, 'gain']);
+  cases.push(['the survival limit read unconditionally: S126 losing 12 and saving none at W0.02 (exact: the point -0.15, no material harm; unconditional: -100 x the exact bound on 12 of 8,000, -0.262, past -0.25) leaves a whole-score gain inconclusive, where the exact form reads gain', (() => { const x = items(mkS({ ...fsS, [`S126|READER|${TJ2}`]: [0, 12] }), mkW(fsW))[3].whole[0]; return `${x.o} ${x.oEx}`; })(), 'inconclusive gain']);
   cases.push(['the whole score within the margin on both: item 4 FALSIFIED', items(mkS(fsS), mkW({ [`S126|${TJ2}`]: { d: 0.05, lo: -0.1, hi: 0.2 }, [`S194|${TJ2}`]: { d: 0, lo: -0.2, hi: 0.2 } }))[3].outcome, 'FALSIFIED']);
   cases.push(['the whole score\'s interval over 0 but its upper end past the margin: inconclusive', items(mkS(fsS), mkW({ ...fsW, [`S194|${TJ2}`]: { d: 0.1, lo: -0.1, hi: 0.3 } }))[3].whole[1].o, 'inconclusive']);
   cases.push(['the margin is the case\'s own at the leg\'s weight: bridge 4 at W0.02 losing 30 of PRODUCT at 98.75% reads harm at 0.25', harmFamily([{ label: 'x', k: cells(mkS({})('bridge 4', 'READER', P2), mkS({ [`bridge 4|READER|${TJ2}`]: [0, 30] })('bridge 4', 'READER', TJ2)), margin: marginFor(survivedShare(mkS({})('bridge 4', 'READER', P2))) }])[0].o, 'harm']);
   cases.push(['the margin is PRODUCT\'s at the leg\'s own weight: bridge 4\'s PRODUCT at W0 below 95% (margin 0.5) leaves W0.02\'s at 0.25, so 30 lost at W0.02 is harm', items(mkS({ ...fsS, [`bridge 4|READER|${P0}`]: [0, 350], [`bridge 4|READER|${TJ2}`]: [0, 30] }), mkW(fsW))[5].outcome, 'FALSIFIED']);
-  cases.push(['item 5 reads the pool: 30 saved on S126 alone is a pooled gain', items(mkS({ [`S126|READER|${TJ2}`]: [30, 0] }), mkW(fsW))[4].outcome, 'HELD']);
-  cases.push(['item 5: TS+J losing 60 to TS pooled is no material gain: FALSIFIED', items(mkS({ [`S126|READER|${label('TS', '0.02')}`]: [30, 0], [`S194|OFF|${label('TS', '0.02')}`]: [30, 0] }), mkW(fsW))[4].outcome, 'FALSIFIED']);
-  cases.push(['item 5: 600 saved and 550 lost against TS on S126 (p about 0.07, the upper end past 0.25): INCONCLUSIVE', items(mkS({ [`S126|READER|${label('TS', '0.02')}`]: [0, 1000, 100], [`S126|READER|${TJ2}`]: [0, 950, 700] }), mkW(fsW))[4].outcome, 'INCONCLUSIVE']);
-  cases.push(['item 5 pools the three cases: 24,000 paths, 20 saved on S126 and 25 lost on S194 summed', (() => { const k = items(mkS({ [`S126|READER|${TJ2}`]: [20, 0], [`S194|OFF|${label('TS', '0.02')}`]: [25, 0] }), mkW(fsW))[4].legs[0].k; return `${k.N} ${k.saved} ${k.lost}`; })(), '24000 20 25']);
+  cases.push(['the opening\'s saves do not carry item 5: TS+J saving 30 paths the product fails on S126, TS as the product: FALSIFIED', items(mkS({ [`S126|READER|${TJ2}`]: [30, 0] }), mkW(fsW))[4].outcome, 'FALSIFIED']);
+  cases.push(['item 5 reads TS\'s losses on the product\'s survivors: TS losing 30 on S126 alone, TS+J not, is a pooled gain', items(mkS({ [`S126|READER|${TS2}`]: [0, 30] }), mkW(fsW))[4].outcome, 'HELD']);
+  cases.push(['item 5: TS+J keeping TS\'s 30 losses: FALSIFIED', items(mkS({ [`S126|READER|${TS2}`]: [0, 30], [`S126|READER|${TJ2}`]: [0, 30] }), mkW(fsW))[4].outcome, 'FALSIFIED']);
+  cases.push(['item 5 at the pooled margin 0.1: 200 saved and 200 lost against TS on S126 (the upper end about 0.17, below 0.25): INCONCLUSIVE', items(mkS({ [`S126|READER|${TS2}`]: [0, 400, 100], [`S126|READER|${TJ2}`]: [0, 400, 300] }), mkW(fsW))[4].outcome, 'INCONCLUSIVE']);
+  cases.push(['item 5: TS+J losing 60 to TS on the product\'s survivors is no material gain: FALSIFIED', items(mkS({ [`S126|READER|${TJ2}`]: [0, 30], [`S194|OFF|${TJ2}`]: [0, 30] }), mkW(fsW))[4].outcome, 'FALSIFIED']);
+  cases.push(['item 5: 600 saved and 550 lost against TS on S126 (p about 0.07, the upper end past 0.1): INCONCLUSIVE', items(mkS({ [`S126|READER|${TS2}`]: [0, 1000, 100], [`S126|READER|${TJ2}`]: [0, 950, 700] }), mkW(fsW))[4].outcome, 'INCONCLUSIVE']);
+  cases.push(['item 5 pools the three cases\' product survivors: 23,700 paths (100 fail on each), 20 saved on S126 and 25 lost on S194 summed', (() => { const k = items(mkS({ [`S126|READER|${TS2}`]: [0, 20], [`S194|OFF|${TJ2}`]: [0, 25] }), mkW(fsW))[4].legs[0].k; return `${k.N} ${k.saved} ${k.lost}`; })(), '23700 20 25']);
   let nbad = 0;
   for (const [name, got, want] of cases) { const ok = got === want; if (!ok) nbad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${got}${ok ? '' : ` (want ${want})`}`); }
   if (nbad) { console.log(`PLANTED CHECK FAILED: ${nbad}`); process.exit(1); }
@@ -349,8 +403,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   for (const w of WEIGHTS) console.log(`  W${w}: ${TAGS.map(t => { const X = T[`S194|OFF|${label(t, w)}`].X; let n = 0; for (let i = 0; i < X.N; i++) if (X.tier[i * X.Y + 1] === 5) n++; return `${t} ${n}`; }).join('  ')}`);
   console.log('\nAT W0, THE WHOLE SCORE BESIDE SURVIVAL (reported; survival decides at W0)');
   for (const [id, arm] of CASE_ARMS) for (const a of ['PRODUCT', 'TS']) { const wl = WL(id, arm, label('TS+J', '0'), label(a, '0'), ALPHA); console.log(`  ${`${id} (${arm.toLowerCase()})`.padEnd(18)} TS+J against ${a.padEnd(7)} survival ${wl.k.saved}/${wl.k.lost}  whole ${f3(wl.d)} (${wl.lo.toFixed(3)} to ${wl.hi.toFixed(3)})`); }
+  console.log('\nITEM 5 BY CASE (reported): at W0.02, on the paths PRODUCT survives, TS+J against TS saved/lost; each arm\'s losses against PRODUCT; the pension tier each opens in (at 1e-3), marked where the two open alike (there the opening cannot carry the case); the whole score of TS+J against TS (95%, the rule\'s interval)');
+  for (const [id, arm] of POOL5) {
+    const P = S(id, arm, label('PRODUCT', '0.02')), A = S(id, arm, label('TS', '0.02')), B = S(id, arm, label('TS+J', '0.02')), k = cellsWhere(P, A, B);
+    const oA = T[`${id}|${arm}|${label('TS', '0.02')}`].u.gap.open1e3, oB = T[`${id}|${arm}|${label('TS+J', '0.02')}`].u.gap.open1e3, wl = WL(id, arm, label('TS+J', '0.02'), label('TS', '0.02'), ALPHA);
+    console.log(`  ${`${id} (${arm.toLowerCase()})`.padEnd(18)} ${`${k.saved}/${k.lost}`.padStart(7)} of ${k.N}  TS loses ${cells(P, A).lost}, TS+J loses ${cells(P, B).lost}  opens TS ${oA}, TS+J ${oB}${oA === oB ? ' (alike)' : ' (apart)'}  whole ${f3(wl.d)} (${wl.lo.toFixed(3)} to ${wl.hi.toFixed(3)})`);
+  }
   const it = items(S, WL);
-  console.log('\nTHE ITEMS (each a Holm family of its own where it tests paths, the regimen\'s reading deciding, the unconditional one beside it; item 4 by the whole-score rule)');
+  console.log('\nTHE ITEMS (each a Holm family of its own where it tests paths, the regimen\'s reading deciding, the unconditional one beside it; item 4 by the whole-score rule, the survival part unconditional, the exact form beside)');
   for (const x of it) {
     console.log(`${x.n}. ${x.text}: ${x.outcome}`);
     for (const l of x.legs || []) console.log(`     ${legText(l)}`);

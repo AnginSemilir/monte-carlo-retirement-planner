@@ -1,4 +1,4 @@
-true script: planted (56): all read as they should
+true script: planted (62): all read as they should
 caught  the gate accepts a missing unit: the gate refuses a missing unit: false (want true)
 caught  the gate accepts a unit twice: the gate refuses a unit run twice: false (want true)
 caught  the gate does not read the estate weight: the gate refuses the estate weight 0.02 on a W0 unit: false (want true)
@@ -31,8 +31,12 @@ caught  the estate uncapped: wholePaths at 0.02 is scorePaths to the bit; at 0 t
 caught  the failure charge dropped: wholePaths at 0.02 is scorePaths to the bit; at 0 the estate drops out: false 6.000000 (want true 6.000000)
 caught  the whole leg the wrong way round: a whole-score leg adds its parts: survival -2 paths; the rest +2 points a path, less the 3 lost paths' estate and failure charge, plus the saved one's: 1.9982: -0.0250 -1.9982
 caught  the survival part left out of the whole: its interval holds its point and covers both parts' spreads: false (want true)
-caught  the whole interval without the rest's spread: with survival identical the interval is the rest's alone: 2 z se wide at a/2: false (want true)
-caught  the legs the wrong way round: TS+J as the first-ranked cause predicts: 1 to 6 HELD: 1 FALSIFIED, 2 FALSIFIED, 3 HELD, 4 FALSIFIED, 5 FALSIFIED, 6 FALSIFIED (want 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD, 6 H
+caught  the whole interval without the rest's spread: with survival identical the interval is the rest's 2 z se at a/2 plus the unconditional survival part's width at no differing path: 2 x 100 z^2/(N + z^2) = 0.1558 at 8,000 (th
+caught  the survival part read conditionally (the exact form): with survival identical the interval is the rest's 2 z se at a/2 plus the unconditional survival part's width at no differing path: 2 x 100 z^2/(N + z^2) = 0.1558 at 8,000 (th
+caught  the one-sided guard dropped: the guard holds a one-sided upper end at the exact bound on its count (3 saved of 8,000: Newcombe alone short of it; by hand, the Poisson bound chi2(0.99375, 8 df)/2 = 10.67 o
+caught  the unconditional part at the leg's full rate: with survival identical the interval is the rest's 2 z se at a/2 plus the unconditional survival part's width at no differing path: 2 x 100 z^2/(N + z^2) = 0.1558 at 8,000 (th
+caught  item 4's survival limit read by the exact form: the survival limit read unconditionally: S126 losing 12 and saving none at W0.02 (exact: the point -0.15, no material harm; unconditional: -100 x the exact bound on 12 of 8,00
+caught  the legs the wrong way round: TS+J as the first-ranked cause predicts: 1 to 6 HELD: 1 FALSIFIED, 2 FALSIFIED, 3 HELD, 4 FALSIFIED, 5 HELD, 6 FALSIFIED (want 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD, 6 HELD)
 caught  the margin from the wrong weight: the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5) leaves W0.02's at 0.25, so 30 lost at W0.02 is harm: HELD (want FALSIFIED)
 caught  item 1 read at the weight 0.02: a gain at W0 on one case only: item 1 INCONCLUSIVE: HELD (want INCONCLUSIVE)
 caught  item 1 held on one case: TS+J doing nothing: 1, 2, 4 and 5 FALSIFIED, 3 and 6 HELD: 1 INCONCLUSIVE, 2 FALSIFIED, 3 HELD, 4 FALSIFIED, 5 FALSIFIED, 6 HELD (want 1 FALSIFIED, 2 FALSIFIED, 3 HELD, 4 FALS
@@ -43,10 +47,12 @@ caught  item 4 without the survival limit: the whole score gains but survival ha
 caught  item 4 gains on an inconclusive survival: the whole score gains but survival is inconclusive (3 saved, 20 lost): the leg inconclusive: gain (want inconclusive)
 caught  item 4 reads the whole score's point, not its interval: the whole score within the margin on both: item 4 FALSIFIED: INCONCLUSIVE (want FALSIFIED)
 caught  item 4 held on one case: TS+J doing nothing: 1, 2, 4 and 5 FALSIFIED, 3 and 6 HELD: 1 FALSIFIED, 2 FALSIFIED, 3 HELD, 4 INCONCLUSIVE, 5 FALSIFIED, 6 HELD (want 1 FALSIFIED, 2 FALSIFIED, 3 HELD, 4 FALS
-caught  item 5 reads one case: item 5 pools the three cases: 24,000 paths, 20 saved on S126 and 25 lost on S194 summed: 8000 20 0 (want 24000 20 25)
-caught  item 5 against PRODUCT: item 5: 600 saved and 550 lost against TS on S126 (p about 0.07, the upper end past 0.25): INCONCLUSIVE: FALSIFIED (want INCONCLUSIVE)
-caught  item 5 held without a gain: item 5: 600 saved and 550 lost against TS on S126 (p about 0.07, the upper end past 0.25): INCONCLUSIVE: HELD (want INCONCLUSIVE)
+caught  item 5 reads one case: item 5 pools the three cases' product survivors: 23,700 paths (100 fail on each), 20 saved on S126 and 25 lost on S194 summed: 7900 20 0 (want 23700 20 25)
+caught  item 5 against PRODUCT: TS+J as the first-ranked cause predicts: 1 to 6 HELD: 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 FALSIFIED, 6 HELD (want 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD, 6 HELD)
+caught  item 5 on every path, not the product's survivors (the opening's saves carry it): the opening's saves do not carry item 5: TS+J saving 30 paths the product fails on S126, TS as the product: FALSIFIED: HELD (want FALSIFIED)
+caught  item 5 at the margin 0.25: item 5 at the pooled margin 0.1: 200 saved and 200 lost against TS on S126 (the upper end about 0.17, below 0.25): INCONCLUSIVE: FALSIFIED (want INCONCLUSIVE)
+caught  item 5 held without a gain: item 5 at the pooled margin 0.1: 200 saved and 200 lost against TS on S126 (the upper end about 0.17, below 0.25): INCONCLUSIVE: HELD (want INCONCLUSIVE)
 caught  item 6 read at W0: bridge 4 losing 30 paths at W0.02 (0.375 points, margin 0.25): item 6 FALSIFIED: HELD (want FALSIFIED)
 caught  item 6 held on one leg: bridge 4 losing 30 paths at W0.02 (0.375 points, margin 0.25): item 6 FALSIFIED: HELD (want FALSIFIED)
 
-49 mutations: every one caught
+55 mutations: every one caught

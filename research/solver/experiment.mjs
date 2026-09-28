@@ -230,6 +230,10 @@ function paired(a, b, field = 'survived') {
 if (mode === 'select') {
   const lo = Number(process.argv[3] || 70), hi = Number(process.argv[4] || 98);
   const seedSearch = Number(process.argv[5] || 7001);
+  // never over an existing band: runs pick households from it by index (ONLY=k), and select re-scores with today's code.
+  // 27 Sep a parse check that imported this script ran this mode, its default, and rewrote the band (PLAN.md, bugs, 28 Sep)
+  const bandOut = join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`);
+  if (existsSync(bandOut)) { console.error(`experiment.mjs select: refused - ${bandOut} exists; the runs that read it by index would change households. Move it away first to rebuild it.`); process.exit(2); }
   console.log(`single-person households whose same-menu fixed arm scores ${lo}..${hi} survival on ${SEARCH_PATHS} search paths (seed ${seedSearch})`);
   const chosen = [];
   singles.forEach((sc, i) => {
@@ -242,7 +246,7 @@ if (mode === 'select') {
   });
   console.log(`${chosen.length} of ${singles.length} in the band`);
   mkdirSync(RESULTS, { recursive: true });
-  writeFileSync(join(RESULTS, `band-${lo}-${hi}-${seedSearch}.json`), JSON.stringify(chosen));
+  writeFileSync(bandOut, JSON.stringify(chosen));
 }
 
 // ---------------------------------------------------------------------------------------------------

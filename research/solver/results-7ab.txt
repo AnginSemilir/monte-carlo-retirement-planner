@@ -1,0 +1,75 @@
+ok   a log parsed and gated: ten units, two runs each, the gate passes: 10 true 0
+ok   the gate refuses a missing unit: true
+ok   the gate refuses a unit run twice: true
+ok   the gate refuses a ran line not 7aa's (the minimum pot): true
+ok   the gate refuses the estate weight 0.02 on a W0 unit (7aa's ran line the same): true
+ok   the gate refuses the tier state: true
+ok   the gate refuses one policy for every world: true
+ok   the gate refuses another solved margin: true
+ok   the gate refuses another scale: true
+ok   the gate refuses another table: true
+ok   the gate refuses another year-0 gap: true
+ok   the gate refuses PRODUCT's survival not 7aa's: true
+ok   the gate refuses a missing solve line: true
+ok   the gate refuses a missing gap line: true
+ok   the gate refuses a missing PRODUCT run: true
+ok   the gate refuses a missing FREED run: true
+ok   the gate refuses a missing done line: true
+ok   the gate refuses the tier state, a held tier, Q's fix and the reader's reference even where 7aa's ran line carries the same: true,true,true,true
+ok   the gate refuses a held tier, Q's fix and the reader's reference: true,true,true
+ok   the gate refuses a unit with no 7aa unit to compare: true
+ok   the trace name is 7aa's form: bridge_4-reader-freed@w0.02.json.gz
+ok   the identity: the same trace passes; a flipped survival, a changed wealth, a missing tax array, another count, or a tax array missing from both fail: true,false,false,false,false,false
+ok   tier differences: path 2 in year 0, path 3 in year 2, path 4 not counted after it fails in year 1: 1 1 2
+ok   the loss read: level and tight is no material loss; harm is a loss; the whole interval below 0 with the point past the margin is a loss; wide is inconclusive; survival's unconditional end past the margin is inconclusive: no material loss, loss, loss, inconclusive, inconclusive, inconclusive
+ok   FREED as TS+J, both gaining, no harm anywhere: 1, 2, 4 and 5 HELD, 3 FALSIFIED (no harm on S360 under off): 1 HELD, 2 HELD, 3 FALSIFIED, 4 HELD, 5 HELD
+ok   the expected case: FREED as TS+J and S360 under off losing 480 at W0.02: 1 to 5 HELD: 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD
+ok   nothing gains anywhere: 1, 2 and 5 HELD, 3 and 4 FALSIFIED: 1 HELD, 2 HELD, 3 FALSIFIED, 4 FALSIFIED, 5 HELD
+ok   TS+J saving 40 more than FREED on S126 at W0 (0.5 points, margin 0.25): item 1 FALSIFIED: FALSIFIED
+ok   FREED losing 12 to TS+J on S126 at W0, none the other way (exact: the point -0.15; unconditional past -0.25): item 1 INCONCLUSIVE, not HELD: INCONCLUSIVE
+ok   the whole score of FREED 0.4 below TS+J on S194 at W0.02, its interval below 0: item 2 FALSIFIED: FALSIFIED
+ok   the whole score level but wide on S126 at W0.02: item 2 INCONCLUSIVE: INCONCLUSIVE
+ok   item 2 reads TS+J's survival too: FREED losing 40 to TS+J on S126 at W0.02 is a loss whatever the whole score says: loss
+ok   harm on S360 under off at W0.02 (80 lost, margin 0.25): item 3 HELD, item 5 HELD: HELD HELD
+ok   harm on S360 under off at W0 only: item 3 reads W0.02 (FALSIFIED), the W0 leg printed beside as harm: FALSIFIED harm
+ok   harm on bridge 4 at W0 (30 lost): item 5 FALSIFIED; item 5 reads four legs, item 3 one: FALSIFIED 4 1
+ok   item 5 against PRODUCT, not TS+J: TS+J losing the same 30 on bridge 4 at W0 does not hide FREED's harm: FALSIFIED
+ok   item 4 against PRODUCT, not TS+J: FREED as TS+J but TS+J's gain gone from PRODUCT (PRODUCT saving as much): item 4 FALSIFIED: FALSIFIED
+ok   item 4 on one case only: INCONCLUSIVE: INCONCLUSIVE
+ok   the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5) and 20 lost there is no material harm (at 0.25 it would be harm), where 30 lost at W0.02 (98.75%, 0.25) is harm: no material harm harm
+planted (39): all read as they should
+
+7AB: IS THE FREED OPENING AS GOOD AS TS+J WITHOUT ITS SOLVE TIME? (predictions/diag-7ab.md; 8000 paths of seed 7002; the fair-test gates passed: both runs' stamps, 7aa's gate, 7ab's gate against 7aa's product, every trace, and 7ab's PRODUCT identical to 7aa's on every path)
+
+EVERY RUN: survival; FREED against PRODUCT and against TS+J saved/lost; the whole score of FREED against each (95%, the rule's interval at 0.05); the pension tier each opens in (FREED: the product's tables at margin 0; TS+J at 1e-3); the path-years FREED and TS+J hold different tiers, in year 0 and after, and the paths that differ anywhere
+  S126 (reader) W0         PRODUCT 99.3500  FREED 99.8125  TS+J 99.8500 | FREED v PRODUCT 37/0 whole +0.593 (0.427 to 0.808) | FREED v TS+J 0/3 whole -0.037 (-0.125 to 0.035) | opens FREED 2, TS+J 2 | tiers differ: year 0 0, later 22 path-years, 11 paths
+  S194 (off) W0            PRODUCT 98.2000  FREED 98.2000  TS+J 98.3750 | FREED v PRODUCT 0/0 whole +0.000 (-0.060 to 0.060) | FREED v TS+J 1/15 whole -0.131 (-0.268 to -0.009) | opens FREED 2, TS+J 2 | tiers differ: year 0 0, later 212 path-years, 100 paths
+  bridge 4 (reader) W0     PRODUCT 99.1875  FREED 99.5750  TS+J 99.6500 | FREED v PRODUCT 31/0 whole +0.501 (0.345 to 0.699) | FREED v TS+J 1/7 whole -0.074 (-0.185 to 0.019) | opens FREED 2, TS+J 2 | tiers differ: year 0 0, later 47 path-years, 29 paths
+  S360 (reader) W0         PRODUCT 45.9125  FREED 45.9125  TS+J 45.9125 | FREED v PRODUCT 0/0 whole +0.000 (-0.055 to 0.055) | FREED v TS+J 0/0 whole -0.000 (-0.055 to 0.055) | opens FREED 0, TS+J 0 | tiers differ: year 0 0, later 179 path-years, 45 paths
+  S360 (off) W0            PRODUCT 28.6000  FREED 27.7000  TS+J 28.6375 | FREED v PRODUCT 206/278 whole -1.017 (-1.676 to -0.358) | FREED v TS+J 206/281 whole -1.056 (-1.718 to -0.395) | opens FREED 2, TS+J 0 | tiers differ: year 0 8000, later 123131 path-years, 8000 paths
+  S126 (reader) W0.02      PRODUCT 99.2625  FREED 99.8125  TS+J 99.8500 | FREED v PRODUCT 44/0 whole +0.369 (0.166 to 0.623) | FREED v TS+J 0/3 whole -0.335 (-0.442 to -0.244) | opens FREED 2, TS+J 2 | tiers differ: year 0 0, later 58553 path-years, 4392 paths
+  S194 (off) W0.02         PRODUCT 98.2250  FREED 98.7625  TS+J 98.7500 | FREED v PRODUCT 43/0 whole +0.480 (0.275 to 0.722) | FREED v TS+J 3/2 whole -0.234 (-0.339 to -0.128) | opens FREED 2, TS+J 2 | tiers differ: year 0 0, later 39030 path-years, 4243 paths
+  bridge 4 (reader) W0.02  PRODUCT 99.5625  FREED 99.5625  TS+J 99.5875 | FREED v PRODUCT 0/0 whole +0.000 (-0.062 to 0.062) | FREED v TS+J 2/4 whole -0.313 (-0.429 to -0.203) | opens FREED 2, TS+J 2 | tiers differ: year 0 0, later 60973 path-years, 4242 paths
+  S360 (reader) W0.02      PRODUCT 45.9125  FREED 45.9125  TS+J 45.9375 | FREED v PRODUCT 0/0 whole +0.000 (-0.055 to 0.055) | FREED v TS+J 1/3 whole -0.050 (-0.116 to 0.016) | opens FREED 0, TS+J 0 | tiers differ: year 0 0, later 8787 path-years, 663 paths
+  S360 (off) W0.02         PRODUCT 34.3000  FREED 28.2000  TS+J 34.2500 | FREED v PRODUCT 9/497 whole -7.002 (-7.702 to -6.306) | FREED v TS+J 13/497 whole -6.958 (-7.661 to -6.258) | opens FREED 2, TS+J 0 | tiers differ: year 0 8000, later 118142 path-years, 8000 paths
+
+THE ITEMS (each a Holm family of its own, the regimen's reading deciding, the unconditional one beside it; item 2 by the whole-score rule read for a loss)
+1. W0, as good as TS+J: on S126 (reader) and S194 (off), FREED shows no material harm against TS+J by survival (FALSIFIED: harm on either): INCONCLUSIVE
+     S126 (reader): FREED against TS+J at W0 0 saved/3 lost -0.037 (exact -0.037 to 0.016; unconditional -0.110 to 0.019) no material harm
+     S194 (off): FREED against TS+J at W0 1 saved/15 lost -0.175 (exact -0.199 to -0.079; unconditional -0.289 to -0.073 <-- the readings DISAGREE) inconclusive (the exact reading alone: no material harm)
+2. W0.02, as good as TS+J: on S126 and S194, FREED shows no material loss against TS+J by the whole score within the survival limit (FALSIFIED: a loss on either): FALSIFIED
+     S126 (reader): FREED against TS+J at W0.02: whole -0.335 (unconditional -0.461 to -0.228; exact -0.357 to -0.251; survival part -0.038, the rest -0.297 +/- 0.009); survival 0/3 no material harm (unconditional lower end -0.110); loss
+     S194 (off): FREED against TS+J at W0.02: whole -0.234 (unconditional -0.356 to -0.110; exact -0.318 to -0.167; survival part +0.012, the rest -0.246 +/- 0.008); survival 3/2 no material harm (unconditional lower end -0.059); inconclusive
+3. W0.02, O37 unmasked: on S360 (off), FREED harms against PRODUCT by survival (in the six-leg harm family; FALSIFIED: no material harm): HELD
+     S360 (off): FREED against PRODUCT at W0.02 9 saved/497 lost -6.100 (exact -6.222 to -5.901; unconditional -6.636 to -5.566) harm
+     (reported, not the item) S360 (off): FREED against PRODUCT at W0 206 saved/278 lost -0.900 (exact -1.439 to -0.350; unconditional -1.439 to -0.361) harm
+4. W0, the gain: on S126 and S194, FREED gains against PRODUCT by survival (FALSIFIED: no material gain on both): INCONCLUSIVE
+     S126 (reader): FREED against PRODUCT at W0 37 saved/0 lost +0.463 (exact 0.375 to 0.463; unconditional 0.327 to 0.637) gain
+     S194 (off): FREED against PRODUCT at W0 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.046 to 0.046) no material gain
+5. no harm elsewhere: on bridge 4 (reader) and S360 (reader) at W0 and W0.02, FREED shows no material harm against PRODUCT by survival (in the six-leg harm family; FALSIFIED: harm on any): HELD
+     bridge 4 (reader): FREED against PRODUCT at W0 31 saved/0 lost +0.388 (exact 0.301 to 0.388; unconditional 0.260 to 0.550) no material harm
+     S360 (reader): FREED against PRODUCT at W0 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.046 to 0.046) no material harm
+     bridge 4 (reader): FREED against PRODUCT at W0.02 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.048 to 0.048) no material harm
+     S360 (reader): FREED against PRODUCT at W0.02 0 saved/0 lost +0.000 (exact 0.000 to 0.000; unconditional -0.046 to 0.046) no material harm
+
+OUTCOME: 1 INCONCLUSIVE, 2 FALSIFIED, 3 HELD, 4 INCONCLUSIVE, 5 HELD

@@ -1,0 +1,157 @@
+ok   a log parsed and gated: three jobs, the gate passes: 3 0
+ok   the gate refuses a missing job: true
+ok   the gate refuses a job run twice: true
+ok   the gate refuses an unregistered job (S194 at W0): true
+ok   the gate refuses a job run at other points than 30: true
+ok   the gate refuses a missing margin: true
+ok   the gate refuses a 1e-3 table not 7aa's: true
+ok   the gate takes a margin-0 table unlike 7aa's (its own solve): true
+ok   the gate refuses a 1e-3 gap not 7aa's: true
+ok   the gate refuses a margin-0 ran line without switchMargin 0 at its end: true
+ok   the gate refuses a 1e-3 ran line carrying a switchMargin: true
+ok   the gate refuses a ran line of other settings (minPot): true
+ok   the gate refuses a margin-0 solve whose joint line says 0.001: true
+ok   the gate refuses a 1e-3 solve whose joint line says 0: true
+ok   the gate refuses TS+J solved per world: true
+ok   the gate refuses a scale not 7aa's: true
+ok   the gate refuses a STAY move leaving the held tiers: true
+ok   the gate refuses a margin-0 chosen move that is STAY while BEST leaves: true
+ok   the gate refuses an opening holding other than the plan's tiers: true
+ok   the gate refuses a mixture price not the gap (x100): true
+ok   the gate refuses world lines not summing to the price line: true
+ok   the gate refuses a missing world line: true
+ok   the gate refuses a node run of other than the registered paths: true
+ok   the gate refuses a node run away from world 0's node: true
+ok   the gate refuses OPEN0 leaving the held tiers on a node path: true
+ok   the gate refuses TS+J keeping the held tiers where its chosen move leaves: true
+ok   the gate refuses a 1e-3 node's first 4000 paths not 7ad's: true
+ok   the gate takes a margin-0 node's first 4000 paths unlike 7ad's (its own tables): true
+ok   the gate refuses 7ad's node of another count than the first paths: true
+ok   the gate refuses a job with no 7ad job to compare: true
+ok   the gate refuses a job with no 7aa unit to compare: true
+ok   the gate refuses a missing decision-log year: true
+ok   the gate refuses a decision-log year 0 or 11: true
+ok   the gate refuses a decision-log year given twice: true
+ok   the gate refuses a decision log whose leaves do not split consistently: true
+ok   the gate refuses more leaves than paths held: true
+ok   the gate refuses a margin hold at margin 0: true
+ok   the gate takes a margin hold at margin 1e-3: false
+ok   the gate refuses more margin holds than holds (at margin 1e-3): true
+ok   the gate takes as many margin holds as holds (at margin 1e-3): false
+ok   the gate refuses a missing solve line (margin 0, whose table is compared with nothing): true
+ok   the gate refuses a missing world line priced 0 (world 1): true
+ok   the gate refuses a missing node line: true
+ok   the gate refuses a solve at another estate weight (7aa's reference too): true
+ok   the gate refuses more paths held than run: true
+ok   the gate refuses a line given twice (a solve): true
+ok   the gate refuses a missing done line: true
+ok   the gate refuses job line settings not the registered ones: true
+ok   a trace agrees with the log to its four decimals, and not beyond, and at its own margin: true false false
+ok   the trace name is registered: bridge_4-reader-m1e-3-open0-world0@w0.json.gz
+ok   the first paths' bits compared path by path: true false false
+ok   the log against the trace: the held and leaves as the trace says (the year-2 failure may count as either): 0 0
+ok   the log against the trace: a held count off by one is refused: 1
+ok   the log against the trace: fewer leaves than traced is refused: 1
+ok   the log against the trace: a path back in the plan's tiers is held again (year 3 held 1 is path 0 alone, path 3 at 8 after year 2): 1
+ok   pooled: the same sum either way, a wider interval where the units share their paths: 8.000 8.000 true
+ok   the margin is the cause: priced right at margin 0, the chain seen: all HELD: 1 HELD, 2 HELD, 3 HELD
+ok   nothing moves at margin 0 and no chain: all FALSIFIED: 1 FALSIFIED, 2 FALSIFIED, 3 FALSIFIED
+ok   item 1 at 0.85: a ratio of 0.8 is INCONCLUSIVE: INCONCLUSIVE
+ok   item 1 needs the price at or above the lower end: a ratio of 0.9 below a narrow interval is INCONCLUSIVE: INCONCLUSIVE
+ok   item 1 falsified below 0.75, not 0.85: a ratio of 0.8 below the lower end is INCONCLUSIVE: INCONCLUSIVE
+ok   item 1 falsified needs the price below the lower end too: a ratio of 0.6 inside a wide interval is INCONCLUSIVE: INCONCLUSIVE
+ok   item 1 is not measured where a unit keeps the held tiers at margin 0: INCONCLUSIVE: INCONCLUSIVE
+ok   item 1 reads margin 0, not 1e-3: priced right at 1e-3 alone is FALSIFIED: FALSIFIED
+ok   item 1 with no realised gain: INCONCLUSIVE: INCONCLUSIVE
+ok   item 2 at 10%: a pooled share of 7% is INCONCLUSIVE: INCONCLUSIVE
+ok   item 2 falsified below 2%, not 5%: a pooled share of 3% is INCONCLUSIVE: INCONCLUSIVE
+ok   item 2 reads OPEN0 at 1e-3, not TS+J or margin 0: the chain on those alone is FALSIFIED: FALSIFIED
+ok   item 2 reads years 1 to 7 only: a chain in years 8 to 10 alone is FALSIFIED: FALSIFIED
+ok   item 2 net of the reverse share: one-way 12% against reverse 9% is INCONCLUSIVE, not HELD: INCONCLUSIVE
+ok   item 2 net of margin 0's share (the grid alone): one-way 12% against 11% at margin 0 is FALSIFIED: FALSIFIED
+ok   item 2 needs 5 points net: one-way 12%, reverse 6% is HELD; reverse 8% INCONCLUSIVE: HELD INCONCLUSIVE
+ok   item 2 leaves margin 0 out where it holds under 1000 path-years (840 here): one-way 12% against 12% there is HELD: HELD
+ok   item 2 counts margin 0 where it holds 1000 path-years or more (1050 here): one-way 12% against 12% there is FALSIFIED: FALSIFIED
+ok   attribution: the price up 0.2 a unit (0.6 of a 0.6 mispricing) is the tables' under-value: true false false
+ok   attribution: the price up by less than a quarter of the mispricing (0.09 of 0.6) is not credited: false false false
+ok   attribution: OPEN0 up 40 paths a unit is the continuation: false true false
+ok   attribution: OPEN0 up inside its interval (2 paths a unit) is not credited: false false false
+ok   attribution: TS+J down 40 paths a unit alone attributes nothing: true
+ok   attribution: TS+J down with the price up names the tables, TS+J beside: true false true true
+ok   item 3 at the 0.05 interval, not 0.025: a price between the two lower ends is FALSIFIED: FALSIFIED
+ok   item 3 below the interval with the ratio at 0.8 is INCONCLUSIVE: INCONCLUSIVE
+ok   item 3 reads bridge 4 alone: S194 low with bridge 4 right is HELD: HELD
+ok   item 3 where bridge 4 keeps the held tiers at margin 0: INCONCLUSIVE: INCONCLUSIVE
+planted (84): all read as they should
+
+7AE: THE BAD NODE AT MARGIN 0 - DOES THE PER-YEAR SWITCH MARGIN MAKE THE TABLES PRICE THE BAD WORLD'S DE-RISK BELOW WHAT IT REALISES? (predictions/diag-7ae.md; 8000 paths of seed 7002, 8000 at world 0's node; the fair-test gates passed: the stamps, 7aa's, 7ac's and 7ad's gates, 7ae's gate against them - its 1e-3 solves 7aa's, its 1e-3 node runs' first 4000 paths 7ad's path by path - every node trace, and the decision log against its trace)
+
+EVERY UNIT AT BOTH MARGINS: the table, the year-0 gap, world 0's like-for-like survival price of the opening, and at world 0's node TS+J against OPEN0 (saved/lost, the survival difference in points with its exact 95% interval at 0.05) and the ratio price / realised
+  bridge 4 (reader) W0 M1e-3   table 99.7087 gap 1.3456e-3 (opening 2,2) leaves | price 0.482 | 92/6 +1.075 (0.910 to 1.169) | ratio 0.45 | node TS+J 98.06 OPEN0 96.99
+  bridge 4 (reader) W0 M0      table 99.7101 gap 9.3305e-4 (opening 0,2) leaves | price 0.351 | 49/13 +0.450 (0.261 to 0.594) | ratio 0.78 | node TS+J 98.04 OPEN0 97.59
+  S194 (off) W0.02 M1e-3       table 98.6444 gap 1.0525e-3 (opening 2,2) leaves | price 0.849 | 111/21 +1.125 (0.882 to 1.316) | ratio 0.75 | node TS+J 91.72 OPEN0 90.60
+  S194 (off) W0.02 M0          table 98.4843 gap 6.8314e-4 (opening 0,2) leaves | price 0.561 | 97/40 +0.713 (0.426 to 0.968) | ratio 0.79 | node TS+J 91.30 OPEN0 90.59
+  S126 (reader) W0 M1e-3       table 99.8514 gap 1.0649e-3 (opening 2,2) leaves | price 0.318 | 42/0 +0.525 (0.437 to 0.525) | ratio 0.61 | node TS+J 98.96 OPEN0 98.44
+  S126 (reader) W0 M0          table 99.8522 gap 7.7396e-4 (opening 0,2) leaves | price 0.230 | 34/3 +0.388 (0.260 to 0.447) | ratio 0.59 | node TS+J 98.95 OPEN0 98.56
+
+POOLED OVER THE THREE UNITS (Σ price against Σ realised, the interval from the per-path sums: the units share their paths)
+  M1e-3  Σ price 1.648 Σ realised +2.725 (2.302 to 3.148, se 0.216) ratio 0.60
+  M0     Σ price 1.142 Σ realised +1.550 (1.159 to 1.941, se 0.199) ratio 0.74
+  which side moved from 1e-3 to 0: Σ price -0.507, Σ realised -1.175 (a ratio can close by the price rising or the realised falling; the prediction says how each is read)
+
+THE DECISION LOG: by year, among the paths holding the plan's tiers at its start - held, the forward move leaving, the nearest cell's stored move leaving, forward holds while the cell leaves, forward leaves while the cell holds, the margin alone holding
+  bridge 4 (reader) W0 M1e-3 TS+J    y1 0/0/0/0/0/0 y2 0/0/0/0/0/0 y3 0/0/0/0/0/0 y4 0/0/0/0/0/0 y5 0/0/0/0/0/0 y6 0/0/0/0/0/0 y7 0/0/0/0/0/0 y8 0/0/0/0/0/0 y9 0/0/0/0/0/0 y10 0/0/0/0/0/0
+  bridge 4 (reader) W0 M1e-3 OPEN0   y1 8000/1507/4864/3357/0/6493 y2 6493/1121/4998/3877/0/5372 y3 5372/991/13/0/978/4381 y4 4381/1799/3297/1498/0/2582 y5 2582/325/851/528/2/2257 y6 2257/121/113/0/8/2136 y7 2136/268/685/417/0/1868 y8 1868/132/90/0/42/1736 y9 1736/19/22/10/7/1717 y10 1717/10/29/19/0/1707
+  bridge 4 (reader) W0 M0 TS+J       y1 0/0/0/0/0/0 y2 0/0/0/0/0/0 y3 0/0/0/0/0/0 y4 0/0/0/0/0/0 y5 0/0/0/0/0/0 y6 0/0/0/0/0/0 y7 0/0/0/0/0/0 y8 0/0/0/0/0/0 y9 0/0/0/0/0/0 y10 0/0/0/0/0/0
+  bridge 4 (reader) W0 M0 OPEN0      y1 8000/8000/8000/0/0/0 y2 0/0/0/0/0/0 y3 0/0/0/0/0/0 y4 0/0/0/0/0/0 y5 0/0/0/0/0/0 y6 0/0/0/0/0/0 y7 0/0/0/0/0/0 y8 0/0/0/0/0/0 y9 0/0/0/0/0/0 y10 0/0/0/0/0/0
+  S194 (off) W0.02 M1e-3 TS+J        y1 0/0/0/0/0/0 y2 0/0/0/0/0/0 y3 0/0/0/0/0/0 y4 0/0/0/0/0/0 y5 0/0/0/0/0/0 y6 0/0/0/0/0/0 y7 0/0/0/0/0/0 y8 0/0/0/0/0/0 y9 0/0/0/0/0/0 y10 0/0/0/0/0/0
+  S194 (off) W0.02 M1e-3 OPEN0       y1 8000/4620/2836/0/1784/3380 y2 3380/880/3190/2310/0/2500 y3 2500/1854/1805/438/487/646 y4 646/45/66/21/0/601 y5 601/486/446/0/40/115 y6 115/1/0/0/1/114 y7 114/64/80/16/0/50 y8 50/19/27/8/0/31 y9 31/5/13/13/5/26 y10 27/3/2/0/1/24
+  S194 (off) W0.02 M0 TS+J           y1 0/0/0/0/0/0 y2 0/0/0/0/0/0 y3 0/0/0/0/0/0 y4 0/0/0/0/0/0 y5 0/0/0/0/0/0 y6 0/0/0/0/0/0 y7 0/0/0/0/0/0 y8 0/0/0/0/0/0 y9 0/0/0/0/0/0 y10 0/0/0/0/0/0
+  S194 (off) W0.02 M0 OPEN0          y1 8000/8000/8000/0/0/0 y2 0/0/0/0/0/0 y3 0/0/0/0/0/0 y4 0/0/0/0/0/0 y5 0/0/0/0/0/0 y6 0/0/0/0/0/0 y7 0/0/0/0/0/0 y8 0/0/0/0/0/0 y9 0/0/0/0/0/0 y10 0/0/0/0/0/0
+  S126 (reader) W0 M1e-3 TS+J        y1 0/0/0/0/0/0 y2 0/0/0/0/0/0 y3 0/0/0/0/0/0 y4 0/0/0/0/0/0 y5 0/0/0/0/0/0 y6 0/0/0/0/0/0 y7 0/0/0/0/0/0 y8 0/0/0/0/0/0 y9 0/0/0/0/0/0 y10 0/0/0/0/0/0
+  S126 (reader) W0 M1e-3 OPEN0       y1 8000/5619/4857/0/762/2381 y2 2381/56/223/190/23/2325 y3 2325/277/791/514/0/2048 y4 2048/218/571/464/111/1830 y5 1830/314/791/480/3/1516 y6 1516/108/83/11/36/1408 y7 1408/23/66/47/4/1385 y8 1385/17/40/24/1/1368 y9 1368/46/184/139/1/1322 y10 1322/41/44/17/14/1281
+  S126 (reader) W0 M0 TS+J           y1 0/0/0/0/0/0 y2 0/0/0/0/0/0 y3 0/0/0/0/0/0 y4 0/0/0/0/0/0 y5 0/0/0/0/0/0 y6 0/0/0/0/0/0 y7 0/0/0/0/0/0 y8 0/0/0/0/0/0 y9 0/0/0/0/0/0 y10 0/0/0/0/0/0
+  S126 (reader) W0 M0 OPEN0          y1 8000/8000/8000/0/0/0 y2 0/0/0/0/0/0 y3 0/0/0/0/0/0 y4 0/0/0/0/0/0 y5 0/0/0/0/0/0 y6 0/0/0/0/0/0 y7 0/0/0/0/0/0 y8 0/0/0/0/0/0 y9 0/0/0/0/0/0 y10 0/0/0/0/0/0
+
+O47, THE YEARLY FIRST-LEAVE SHARE AT THE NODE: the per cent of the node run's paths first leaving the plan's tiers in years 0 to 7, OPEN0 then TS+J
+  bridge 4 (reader) W0 M1e-3 OPEN0     0.0  18.8  14.0  12.4  22.5   4.1   1.5   3.4
+  bridge 4 (reader) W0 M1e-3 TS+J    100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  bridge 4 (reader) W0 M0 OPEN0        0.0 100.0   0.0   0.0   0.0   0.0   0.0   0.0
+  bridge 4 (reader) W0 M0 TS+J       100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S194 (off) W0.02 M1e-3 OPEN0         0.0  57.8  11.0  23.2   0.6   6.1   0.0   0.8
+  S194 (off) W0.02 M1e-3 TS+J        100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S194 (off) W0.02 M0 OPEN0            0.0 100.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S194 (off) W0.02 M0 TS+J           100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S126 (reader) W0 M1e-3 OPEN0         0.0  70.2   0.7   3.5   2.7   3.9   1.4   0.3
+  S126 (reader) W0 M1e-3 TS+J        100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S126 (reader) W0 M0 OPEN0            0.0 100.0   0.0   0.0   0.0   0.0   0.0   0.0
+  S126 (reader) W0 M0 TS+J           100.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0
+
+THE ITEMS (each read by its registered rule)
+1. at margin 0, the three units pooled: Σ price / Σ realised at least 0.85 AND Σ price at or above the realised 95% interval's lower end (FALSIFIED: the ratio below 0.75 AND Σ price below the lower end): FALSIFIED
+     Σ price 1.142 against Σ realised +1.550 (1.159 to 1.941): ratio 0.737
+     bridge 4: price 0.351 realised +0.450
+     S194: price 0.561 realised +0.713
+     S126: price 0.230 realised +0.388
+2. at margin 1e-3, on OPEN0's node runs, years 1 to 7, the three units pooled: the share of path-years holding the plan's tiers where the forward move holds and the nearest cell's stored move leaves is 10% or more AND exceeds by 5 points or more both the reverse share (the forward leaves, the cell holds) and the same one-way share at margin 0 (where OPEN0/M0 holds 1000 path-years or more) (FALSIFIED: the net excess below 2 points): HELD
+     pooled one-way 14168 of 66085 held path-years: 21.44%; reverse 6.41%; at margin 0 0.00% (24000 held path-years); net excess 15.02 points
+     bridge 4: one-way 9677, reverse 988, of 31221 (31.00%)
+     S194: one-way 2785, reverse 2312, of 15356 (18.14%)
+     S126: one-way 1706, reverse 939, of 19508 (8.75%)
+3. bridge 4 at margin 0: its world-0 survival price at or above the node's exact 95% interval's lower end (FALSIFIED: below it, the ratio price / realised below 0.75): HELD
+     bridge 4: price 0.351 against +0.450 (0.261 to 0.594), ratio 0.779
+
+ITEM 1'S ATTRIBUTION (registered: which side closed the ratio): Σ price 1.648 -> 1.142 (the 1e-3 mispricing 1.077; risen by a quarter of it or more: no); OPEN0 from 1e-3 to 0 +0.713 (0.367 to 1.058) (rose: yes); TS+J from 1e-3 to 0 -0.462 (-0.693 to -0.232) (fell: yes)
+     bridge 4 TS+J: 1/3 -0.025 (-0.049 to 0.031)
+     bridge 4 OPEN0: 55/7 +0.600 (0.436 to 0.703)
+     S194 TS+J: 24/58 -0.425 (-0.620 to -0.198)
+     S194 OPEN0: 53/54 -0.013 (-0.275 to 0.251)
+     S126 TS+J: 1/2 -0.013 (-0.037 to 0.030)
+     S126 OPEN0: 12/2 +0.125 (0.025 to 0.169)
+     reading (item 1 FALSIFIED: reported only): the 0.001 continuation holds where the tables' valued one leaves (OPEN0 rose); TS+J fell at margin 0 too (reported beside: a margin design must also stop it)
+
+REPORTED: the one-way share at 1e-3 by year's parity, years 1 to 7 pooled: odd years 13.52% of 42868, even years 36.06% of 23217
+
+REPORTED: the cause-2 signature at margin 0 (S194's ratio at least 0.85, bridge 4's and S126's below 0.65): not seen (ratios bridge 4 0.78, S194 0.79, S126 0.59)
+
+OUTCOME: 1 FALSIFIED, 2 HELD, 3 HELD

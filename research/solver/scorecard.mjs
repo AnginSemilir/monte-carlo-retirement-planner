@@ -38,6 +38,7 @@ export const TESTS = [
   { name: '7ab (the freed opening against TS+J and the product, the pot off and on)', prediction: 'predictions/diag-7ab.md', results: 'results-7ab.txt' },
   { name: '7ac (the fourth cell: TS+J with the opening held in the plan\'s tier)', prediction: 'predictions/diag-7ac.md', results: 'results-7ac.txt' },
   { name: '7ad (the refinement check: the bad world\'s price of the opening at its node and on finer grids)', prediction: 'predictions/diag-7ad.md', results: 'results-7ad.txt' },
+  { name: '7ae (the bad node at margin 0: the per-year switch margin and the bad world\'s price)', prediction: 'predictions/diag-7ae.md', results: 'results-7ae.txt' },
 ];
 
 export function credences(predText) {

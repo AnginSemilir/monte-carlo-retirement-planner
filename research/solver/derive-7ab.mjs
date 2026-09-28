@@ -1,7 +1,8 @@
 /*
  * 7AB'S POWER (predictions/diag-7ab.md, Power; its output hashed in the prediction and re-run by the launcher). Items 1 and 3
  * read paired paths by survival with no material harm read by both intervals (reduce-7ab.mjs bothReads over reduce-7v.mjs's
- * harm family); item 2 reads the whole score for a loss (reduce-7ab.mjs lossRead on reduce-7aa.mjs wholeFrom); item 4 is a
+ * harm family; items 3 and 5 two readings of one six-leg family, split before launch for the plan-auditor's MINOR 1 on 7ab's
+ * registration); item 2 reads the whole score for a loss (reduce-7ab.mjs lossRead on reduce-7aa.mjs wholeFrom); item 4 is a
  * gain family. Each story fixes the true saved and lost counts, draws them as Poisson counts with a background of b paths
  * each way (b = 0.5 and 5, and 15 for items 1 and 2: two policies with different tables may differ on more paths than one
  * policy against its own freed opening), and for item 2 draws the rest of the whole score as a normal mean at its recorded
@@ -93,8 +94,15 @@ const item2 = (more, rest) => b => {
   const legs = two.map(([id, arm], j) => { const m = mar[`${id}|${arm}`], w = wholeFrom(ks[j], rest + rec[id].restSe * gauss(), rec[id].restSe, a); return lossRead(w, s[j].o, s[j].un.lo, m); });
   return legs.every(x => x === 'no material loss') ? 'HELD' : legs.some(x => x === 'loss') ? 'FALSIFIED' : 'INCONCLUSIVE';
 };
-// item 3: FREED against PRODUCT on the harm legs at both weights (six legs, one family), each leg losing `loss` paths
-const item3 = losses => b => { const h = bothReads(V.harmFamily(['0', '0.02'].flatMap((w, wi) => harms.map(([id, arm], j) => ({ label: `${id} ${w}`, k: drawK(0, losses[wi * 3 + j], b, pFail[`${id}|${arm}`]), margin: mar[`${id}|${arm}`] }))))); return h.every(x => x.o === 'no material harm') ? 'HELD' : h.some(x => x.o === 'harm') ? 'FALSIFIED' : 'INCONCLUSIVE'; };
+// items 3 and 5: FREED against PRODUCT on the harm legs at both weights (six legs, one family: W0 bridge 4, S360 reader,
+// S360 off, then W0.02 the same), each leg losing `loss` paths; item 3 reads S360 under off at W0.02 (HELD on harm), item 5
+// the four legs of bridge 4 and S360 with the reader (HELD on no material harm on all four)
+const item35 = losses => b => {
+  const h = bothReads(V.harmFamily(['0', '0.02'].flatMap((w, wi) => harms.map(([id, arm], j) => ({ label: `${id} ${w}`, k: drawK(0, losses[wi * 3 + j], b, pFail[`${id}|${arm}`]), margin: mar[`${id}|${arm}`] })))));
+  const o3 = h[5].o === 'harm' ? 'HELD' : h[5].o === 'no material harm' ? 'FALSIFIED' : 'INCONCLUSIVE', f = [h[0], h[1], h[3], h[4]];
+  const o5 = f.every(x => x.o === 'no material harm') ? 'HELD' : f.some(x => x.o === 'harm') ? 'FALSIFIED' : 'INCONCLUSIVE';
+  return `3 ${o3} / 5 ${o5}`;
+};
 // item 4: FREED against PRODUCT at W0, a gain family of two at the freed opening's sizes times f
 const item4 = f => b => tri(V.gainFamily(two.map(([id, arm]) => ({ label: id, k: drawK(f * rec[id].saved, f * rec[id].lost, b, pFail[`${id}|${arm}`]), margin: mar[`${id}|${arm}`] }))), x => x.o === 'gain', x => x.o === 'no material gain');
 for (const b of [0.5, 5, 15]) {
@@ -102,7 +110,7 @@ for (const b of [0.5, 5, 15]) {
   for (const [nm, more, one] of [['FREED as TS+J', 0, false], ['TS+J saving 10 more on both (0.125 points)', 10, false], ['TS+J saving 20 more on both (0.25, the margin)', 20, false], ['TS+J saving 40 more on S126 only (0.5)', 40, true], ['TS+J saving 40 more on both (0.5)', 40, false]]) tally(`item 1 (W0, FREED against TS+J), ${nm}`, b, item1(more, one));
   for (const [nm, more, rest] of [['level', 0, 0], ['TS+J saving 20 more on both (the whole 0.25 below, the margin)', 20, 0], ['TS+J saving 40 more on both', 40, 0], ['survival level, the rest 0.25 below (the margin)', 0, -0.25], ['survival level, the rest 0.1 below', 0, -0.1]]) tally(`item 2 (W0.02, the whole score), ${nm}`, b, item2(more, rest));
   if (b === 15) { console.log(''); continue; }
-  for (const [nm, l] of [['all level', [0, 0, 0, 0, 0, 0]], ['bridge 4 loses 30 at W0.02 (0.375 points, margin 0.25)', [0, 0, 0, 30, 0, 0]], ['S360 under off loses 80 at W0.02 (1 point, margin 0.5)', [0, 0, 0, 0, 0, 80]], ['S360 with the reader loses 80 at W0', [0, 80, 0, 0, 0, 0]]]) tally(`item 3 (both weights, against PRODUCT), ${nm}`, b, item3(l));
+  for (const [nm, l] of [['the expected: S360 under off loses 480 at W0.02, the rest level', [0, 0, 0, 0, 0, 480]], ['all level', [0, 0, 0, 0, 0, 0]], ['S360 under off loses 80 at W0.02 (1 point, margin 0.5)', [0, 0, 0, 0, 0, 80]], ['the expected, and bridge 4 loses 30 at W0.02 (0.375, margin 0.25)', [0, 0, 0, 30, 0, 480]], ['the expected, and S360 with the reader loses 80 at W0', [0, 80, 0, 0, 0, 480]]]) tally(`items 3 and 5 (against PRODUCT, one family), ${nm}`, b, item35(l));
   for (const [nm, f] of [['FREED as the freed opening at 0.02', 1], ['half of it', 0.5], ['a quarter of it', 0.25], ['FREED doing nothing', 0]]) tally(`item 4 (W0, against PRODUCT; the 0.02 sizes assumed), ${nm}`, b, item4(f));
   console.log('');
 }

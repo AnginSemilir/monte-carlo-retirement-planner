@@ -16,13 +16,17 @@
  * byte - so the code between the two runs changed nothing the product's solve and run touch.
  * THE ITEMS, each read by the regimen's rule (exact tests against the case's margin - marginFor() of PRODUCT's survival at
  * the leg's weight - Holm over the item's legs, three outcomes, the unconditional interval printed beside), the no-harm
- * reads of items 1 and 3 stricter (bothReads: no material harm needs the unconditional interval to agree):
+ * reads of items 1, 3 and 5 stricter (bothReads: no material harm needs the unconditional interval to agree):
  *   1. W0, as good as TS+J: on S126 (reader) and S194 (off), FREED shows no material harm against TS+J by survival
  *   2. W0.02, as good as TS+J: on S126 and S194, FREED shows no material loss against TS+J by the whole score within the
  *      survival limit
- *   3. no harm: on bridge 4 (reader), S360 (reader) and S360 (off) at both weights, FREED shows no material harm against
- *      PRODUCT by survival (one family of six legs)
+ *   3. W0.02, O37 unmasked: on S360 (off), FREED harms against PRODUCT by survival (predicted, O37); S360 (off) at W0 printed
+ *      beside, not an item
  *   4. W0, the gain: on S126 and S194, FREED gains against PRODUCT by survival
+ *   5. no harm elsewhere: on bridge 4 (reader) and S360 (reader) at both weights, FREED shows no material harm against
+ *      PRODUCT by survival
+ *   Items 3 and 5 read the legs of one harm family against PRODUCT (bridge 4, S360 reader and S360 off at both weights: six
+ *   legs, Holm over the six), split as the plan-auditor asked on 7ab's registration (MINOR 1), before launch.
  * THE WHOLE-SCORE RULE for item 2 is reduce-7aa.mjs's (wholeLeg: the survival part unconditional and guarded, the rest by its
  * normal interval, each at half the leg's rate, added; the leg's rate 0.05 over the item's two legs, Bonferroni), read for a
  * LOSS instead of a gain: NO MATERIAL LOSS when the whole interval's lower end is above minus the case's margin and survival
@@ -164,12 +168,19 @@ export function items(S, WL) {
     return { label: `${id} (${arm.toLowerCase()}): FREED against TS+J at W0.02`, w, survEx, unLo, margin: m, o: lossRead(w, survEx, unLo, m), oEx: lossRead(exW, survEx, survEx === 'no material harm' ? Infinity : -Infinity, m) };
   });
   out.push({ n: 2, text: 'W0.02, as good as TS+J: on S126 and S194, FREED shows no material loss against TS+J by the whole score within the survival limit (FALSIFIED: a loss on either)', whole: i2, outcome: i2.every(x => x.o === 'no material loss') ? 'HELD' : i2.some(x => x.o === 'loss') ? 'FALSIFIED' : 'INCONCLUSIVE' });
-  // 3. no harm against PRODUCT on the harm legs, both weights, one family
-  const i3 = bothReads(harmFamily(WEIGHTS.flatMap(w => harmLegs.map(([id, arm]) => leg(id, arm, 'FREED', 'PRODUCT', w)))));
-  out.push({ n: 3, text: 'no harm: on bridge 4 (reader), S360 (reader) and S360 (off) at W0 and W0.02, FREED shows no material harm against PRODUCT by survival (FALSIFIED: harm on any)', legs: i3, outcome: i3.every(x => x.o === 'no material harm') ? 'HELD' : i3.some(x => x.o === 'harm') ? 'FALSIFIED' : 'INCONCLUSIVE' });
+  // the harm family against PRODUCT: bridge 4, S360 (reader) and S360 (off) at W0 and W0.02, six legs, Holm over the six;
+  // items 3 and 5 read its legs (the registered split: the plan-auditor on 7ab's registration, MINOR 1)
+  const fam = bothReads(harmFamily(WEIGHTS.flatMap(w => harmLegs.map(([id, arm]) => leg(id, arm, 'FREED', 'PRODUCT', w)))));
+  const at = (id, arm, w) => fam.find(x => x.id === id && x.label.includes(`(${arm.toLowerCase()})`) && x.label.endsWith(`at W${w}`));
+  // 3. W0.02, O37 unmasked: FREED harms S360 under off against PRODUCT (predicted from 7v's openings in tier 2 and O37)
+  const i3 = [at('S360', 'OFF', '0.02')], besides3 = [at('S360', 'OFF', '0')];
+  out.push({ n: 3, text: 'W0.02, O37 unmasked: on S360 (off), FREED harms against PRODUCT by survival (in the six-leg harm family; FALSIFIED: no material harm)', legs: i3, besides: besides3, outcome: i3[0].o === 'harm' ? 'HELD' : i3[0].o === 'no material harm' ? 'FALSIFIED' : 'INCONCLUSIVE' });
   // 4. W0, FREED gains against PRODUCT
   const i4 = gainFamily(two.map(([id, arm]) => leg(id, arm, 'FREED', 'PRODUCT', '0')));
   out.push({ n: 4, text: 'W0, the gain: on S126 and S194, FREED gains against PRODUCT by survival (FALSIFIED: no material gain on both)', legs: i4, outcome: tri(i4, x => x.o === 'gain', x => x.o === 'no material gain') });
+  // 5. no harm elsewhere: bridge 4 (reader) and S360 (reader) at both weights, the four other legs of the family
+  const i5 = [at('bridge 4', 'READER', '0'), at('S360', 'READER', '0'), at('bridge 4', 'READER', '0.02'), at('S360', 'READER', '0.02')];
+  out.push({ n: 5, text: 'no harm elsewhere: on bridge 4 (reader) and S360 (reader) at W0 and W0.02, FREED shows no material harm against PRODUCT by survival (in the six-leg harm family; FALSIFIED: harm on any)', legs: i5, outcome: i5.every(x => x.o === 'no material harm') ? 'HELD' : i5.some(x => x.o === 'harm') ? 'FALSIFIED' : 'INCONCLUSIVE' });
   return out;
 }
 
@@ -230,18 +241,21 @@ function planted() {
   const mkW = spec => (id, arm, rb, ra, w) => { const x = spec[`${id}|${rb}|${ra}|${w}`] || { d: 0, lo: -0.1, hi: 0.1 }; return { exLo: x.lo, exHi: x.hi, ...x, sd: 0, rest: x.d, restSe: 0.01, k: { saved: 0, lost: 0 } }; };
   const outs = it => it.map(x => `${x.n} ${x.outcome}`).join(', ');
   const asTSJ = { 'S126|READER|FREED|0': [40, 0], 'S194|OFF|FREED|0': [43, 0], 'S126|READER|TS+J|0': [40, 0], 'S194|OFF|TS+J|0': [43, 0], 'S126|READER|FREED|0.02': [30, 0], 'S194|OFF|FREED|0.02': [30, 0], 'S126|READER|TS+J|0.02': [30, 0], 'S194|OFF|TS+J|0.02': [30, 0] };
-  cases.push(['FREED as TS+J, both gaining: 1 to 4 HELD', outs(items(mkS(asTSJ), mkW({}))), '1 HELD, 2 HELD, 3 HELD, 4 HELD']);
-  cases.push(['nothing gains anywhere: 1, 2 and 3 HELD, 4 FALSIFIED', outs(items(mkS({}), mkW({}))), '1 HELD, 2 HELD, 3 HELD, 4 FALSIFIED']);
+  cases.push(['FREED as TS+J, both gaining, no harm anywhere: 1, 2, 4 and 5 HELD, 3 FALSIFIED (no harm on S360 under off)', outs(items(mkS(asTSJ), mkW({}))), '1 HELD, 2 HELD, 3 FALSIFIED, 4 HELD, 5 HELD']);
+  cases.push(['the expected case: FREED as TS+J and S360 under off losing 480 at W0.02: 1 to 5 HELD', outs(items(mkS({ ...asTSJ, 'S360|OFF|FREED|0.02': [0, 480] }), mkW({}))), '1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD']);
+  cases.push(['nothing gains anywhere: 1, 2 and 5 HELD, 3 and 4 FALSIFIED', outs(items(mkS({}), mkW({}))), '1 HELD, 2 HELD, 3 FALSIFIED, 4 FALSIFIED, 5 HELD']);
   cases.push(['TS+J saving 40 more than FREED on S126 at W0 (0.5 points, margin 0.25): item 1 FALSIFIED', items(mkS({ ...asTSJ, 'S126|READER|FREED|0': [0, 0] }), mkW({}))[0].outcome, 'FALSIFIED']);
   cases.push(['FREED losing 12 to TS+J on S126 at W0, none the other way (exact: the point -0.15; unconditional past -0.25): item 1 INCONCLUSIVE, not HELD', items(mkS({ ...asTSJ, 'S126|READER|FREED|0': [40, 12] }), mkW({}))[0].outcome, 'INCONCLUSIVE']);
   cases.push(['the whole score of FREED 0.4 below TS+J on S194 at W0.02, its interval below 0: item 2 FALSIFIED', items(mkS(asTSJ), mkW({ 'S194|FREED|TS+J|0.02': { d: -0.4, lo: -0.6, hi: -0.2 } }))[1].outcome, 'FALSIFIED']);
   cases.push(['the whole score level but wide on S126 at W0.02: item 2 INCONCLUSIVE', items(mkS(asTSJ), mkW({ 'S126|FREED|TS+J|0.02': { d: 0, lo: -0.4, hi: 0.4 } }))[1].outcome, 'INCONCLUSIVE']);
   cases.push(['item 2 reads TS+J\'s survival too: FREED losing 40 to TS+J on S126 at W0.02 is a loss whatever the whole score says', items(mkS({ ...asTSJ, 'S126|READER|FREED|0.02': [0, 10] }), mkW({}))[1].whole[0].o, 'loss']);
-  cases.push(['harm on S360 under off at W0.02 (80 lost, margin 0.25): item 3 FALSIFIED', items(mkS({ ...asTSJ, 'S360|OFF|FREED|0.02': [0, 80] }), mkW({}))[2].outcome, 'FALSIFIED']);
-  cases.push(['harm on bridge 4 at W0 (30 lost): item 3 FALSIFIED; item 3 reads six legs', (() => { const it = items(mkS({ ...asTSJ, 'bridge 4|READER|FREED|0': [0, 30] }), mkW({})); return `${it[2].outcome} ${it[2].legs.length}`; })(), 'FALSIFIED 6']);
+  cases.push(['harm on S360 under off at W0.02 (80 lost, margin 0.25): item 3 HELD, item 5 HELD', (() => { const it = items(mkS({ ...asTSJ, 'S360|OFF|FREED|0.02': [0, 80] }), mkW({})); return `${it[2].outcome} ${it[4].outcome}`; })(), 'HELD HELD']);
+  cases.push(['harm on S360 under off at W0 only: item 3 reads W0.02 (FALSIFIED), the W0 leg printed beside as harm', (() => { const it = items(mkS({ ...asTSJ, 'S360|OFF|FREED|0': [0, 80] }), mkW({})); return `${it[2].outcome} ${it[2].besides[0].o}`; })(), 'FALSIFIED harm']);
+  cases.push(['harm on bridge 4 at W0 (30 lost): item 5 FALSIFIED; item 5 reads four legs, item 3 one', (() => { const it = items(mkS({ ...asTSJ, 'bridge 4|READER|FREED|0': [0, 30] }), mkW({})); return `${it[4].outcome} ${it[4].legs.length} ${it[2].legs.length}`; })(), 'FALSIFIED 4 1']);
+  cases.push(['item 5 against PRODUCT, not TS+J: TS+J losing the same 30 on bridge 4 at W0 does not hide FREED\'s harm', items(mkS({ ...asTSJ, 'bridge 4|READER|FREED|0': [0, 30], 'bridge 4|READER|TS+J|0': [0, 30] }), mkW({}))[4].outcome, 'FALSIFIED']);
   cases.push(['item 4 against PRODUCT, not TS+J: FREED as TS+J but TS+J\'s gain gone from PRODUCT (PRODUCT saving as much): item 4 FALSIFIED', items(mkS({ ...asTSJ, 'S126|READER|PRODUCT|0': [40, 0], 'S194|OFF|PRODUCT|0': [43, 0] }), mkW({}))[3].outcome, 'FALSIFIED']);
   cases.push(['item 4 on one case only: INCONCLUSIVE', items(mkS({ ...asTSJ, 'S194|OFF|FREED|0': [0, 0] }), mkW({}))[3].outcome, 'INCONCLUSIVE']);
-  cases.push(['the margin is PRODUCT\'s at the leg\'s own weight: bridge 4\'s PRODUCT at W0 below 95% (margin 0.5) and 20 lost there is no material harm (at 0.25 it would be harm), where 30 lost at W0.02 (98.75%, 0.25) is harm', (() => { const a = items(mkS({ 'bridge 4|READER|PRODUCT|0': [0, 350], 'bridge 4|READER|FREED|0': [0, 370] }), mkW({}))[2].legs[0].o, b = items(mkS({ 'bridge 4|READER|FREED|0.02': [0, 30] }), mkW({}))[2].legs[3].o; return `${a} ${b}`; })(), 'no material harm harm']);
+  cases.push(['the margin is PRODUCT\'s at the leg\'s own weight: bridge 4\'s PRODUCT at W0 below 95% (margin 0.5) and 20 lost there is no material harm (at 0.25 it would be harm), where 30 lost at W0.02 (98.75%, 0.25) is harm', (() => { const a = items(mkS({ 'bridge 4|READER|PRODUCT|0': [0, 350], 'bridge 4|READER|FREED|0': [0, 370] }), mkW({}))[4].legs[0].o, b = items(mkS({ 'bridge 4|READER|FREED|0.02': [0, 30] }), mkW({}))[4].legs[2].o; return `${a} ${b}`; })(), 'no material harm harm']);
   let nbad = 0;
   for (const [name, got, want] of cases) { const ok = got === want; if (!ok) nbad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${got}${ok ? '' : ` (want ${want})`}`); }
   if (nbad) { console.log(`PLANTED CHECK FAILED: ${nbad}`); process.exit(1); }
@@ -307,6 +321,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   for (const x of it) {
     console.log(`${x.n}. ${x.text}: ${x.outcome}`);
     for (const l of x.legs || []) console.log(`     ${legText(l)}`);
+    for (const l of x.besides || []) console.log(`     (reported, not the item) ${legText(l)}`);
     for (const l of x.whole || []) console.log(`     ${wholeText(l)}`);
   }
   console.log(`\nOUTCOME: ${it.map(x => `${x.n} ${x.outcome}`).join(', ')}`);

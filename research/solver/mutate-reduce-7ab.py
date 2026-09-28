@@ -53,7 +53,12 @@ M = [
     ("item 2 held on one leg", "outcome: i2.every(x => x.o === 'no material loss') ? 'HELD' : i2.some", "outcome: i2.some(x => x.o === 'no material loss') ? 'HELD' : i2.some"),
     ("item 3 at W0 only", "WEIGHTS.flatMap(w => harmLegs.map(([id, arm]) => leg(id, arm, 'FREED', 'PRODUCT', w)))", "['0'].flatMap(w => harmLegs.map(([id, arm]) => leg(id, arm, 'FREED', 'PRODUCT', w)))"),
     ("item 3 against TS+J", "harmLegs.map(([id, arm]) => leg(id, arm, 'FREED', 'PRODUCT', w))", "harmLegs.map(([id, arm]) => leg(id, arm, 'FREED', 'TS+J', w))"),
-    ("item 3 held on one leg", "outcome: i3.every(x => x.o === 'no material harm') ? 'HELD' : i3.some", "outcome: i3.some(x => x.o === 'no material harm') ? 'HELD' : i3.some"),
+    ("item 3 reads S360 under off at W0", "const i3 = [at('S360', 'OFF', '0.02')]", "const i3 = [at('S360', 'OFF', '0')]"),
+    ("item 3 held on no material harm", "outcome: i3[0].o === 'harm' ? 'HELD'", "outcome: i3[0].o !== 'inconclusive' ? 'HELD'"),
+    ("item 3 reads S360 with the reader", "const i3 = [at('S360', 'OFF', '0.02')]", "const i3 = [at('S360', 'READER', '0.02')]"),
+    ("item 5 held on one leg", "outcome: i5.every(x => x.o === 'no material harm') ? 'HELD' : i5.some", "outcome: i5.some(x => x.o === 'no material harm') ? 'HELD' : i5.some"),
+    ("item 5 leaves out bridge 4 at W0", "const i5 = [at('bridge 4', 'READER', '0'), ", "const i5 = ["),
+    ("item 5 reads S360 under off too", "at('S360', 'READER', '0.02')];", "at('S360', 'READER', '0.02'), at('S360', 'OFF', '0.02')];"),
     ("item 4 against TS+J", "const i4 = gainFamily(two.map(([id, arm]) => leg(id, arm, 'FREED', 'PRODUCT', '0')));", "const i4 = gainFamily(two.map(([id, arm]) => leg(id, arm, 'FREED', 'TS+J', '0')));"),
     ("item 4 held on one case", "outcome: tri(i4, x => x.o === 'gain', x => x.o === 'no material gain') });", "outcome: i4.some(x => x.o === 'gain') ? 'HELD' : 'INCONCLUSIVE' });"),
 ]

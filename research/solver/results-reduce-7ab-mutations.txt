@@ -1,4 +1,4 @@
-true script: planted (36): all read as they should
+true script: planted (39): all read as they should
 caught  the gate accepts a missing unit: the gate refuses a missing unit: false (want true)
 caught  the gate accepts a unit twice: the gate refuses a unit run twice: false (want true)
 caught  the gate ignores the table: the gate refuses another table: false (want true)
@@ -26,7 +26,7 @@ caught  the loss read ignores a whole-score loss: the loss read: level and tight
 caught  the loss read ignores survival's unconditional end: the loss read: level and tight is no material loss; harm is a loss; the whole interval below 0 with the point past the margin is a loss; wide is inconclusive; survival's uncon
 caught  the loss read takes the point for the interval: the loss read: level and tight is no material loss; harm is a loss; the whole interval below 0 with the point past the margin is a loss; wide is inconclusive; survival's uncon
 caught  no material harm by the exact reading alone: FREED losing 12 to TS+J on S126 at W0, none the other way (exact: the point -0.15; unconditional past -0.25): item 1 INCONCLUSIVE, not HELD: HELD (want INCONCLUSIVE)
-caught  the legs the wrong way round: FREED as TS+J, both gaining: 1 to 4 HELD: 1 HELD, 2 HELD, 3 HELD, 4 FALSIFIED (want 1 HELD, 2 HELD, 3 HELD, 4 HELD)
+caught  the legs the wrong way round: FREED as TS+J, both gaining, no harm anywhere: 1, 2, 4 and 5 HELD, 3 FALSIFIED (no harm on S360 under off): 1 HELD, 2 HELD, 3 FALSIFIED, 4 FALSIFIED, 5 HELD (want 1 HELD, 2 HE
 caught  the margin from TS+J's survival: the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5) and 20 lost there is no material harm (at 0.25 it would be harm), where 30 los
 caught  the margin from W0.02 on every leg: the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5) and 20 lost there is no material harm (at 0.25 it would be harm), where 30 los
 caught  item 1 against PRODUCT: TS+J saving 40 more than FREED on S126 at W0 (0.5 points, margin 0.25): item 1 FALSIFIED: HELD (want FALSIFIED)
@@ -35,9 +35,14 @@ caught  item 2 survival against PRODUCT: item 2 reads TS+J's survival too: FREED
 caught  item 2's whole leg against PRODUCT: the whole score of FREED 0.4 below TS+J on S194 at W0.02, its interval below 0: item 2 FALSIFIED: HELD (want FALSIFIED)
 caught  item 2 held on one leg: the whole score of FREED 0.4 below TS+J on S194 at W0.02, its interval below 0: item 2 FALSIFIED: HELD (want FALSIFIED)
 caught  item 3 at W0 only: PLANTED CHECK FAILED: the planted set threw (Cannot read properties of undefined (reading 'o'))
-caught  item 3 against TS+J: the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5) and 20 lost there is no material harm (at 0.25 it would be harm), where 30 los
-caught  item 3 held on one leg: harm on S360 under off at W0.02 (80 lost, margin 0.25): item 3 FALSIFIED: HELD (want FALSIFIED)
-caught  item 4 against TS+J: FREED as TS+J, both gaining: 1 to 4 HELD: 1 HELD, 2 HELD, 3 HELD, 4 FALSIFIED (want 1 HELD, 2 HELD, 3 HELD, 4 HELD)
-caught  item 4 held on one case: nothing gains anywhere: 1, 2 and 3 HELD, 4 FALSIFIED: 1 HELD, 2 HELD, 3 HELD, 4 INCONCLUSIVE (want 1 HELD, 2 HELD, 3 HELD, 4 FALSIFIED)
+caught  item 3 against TS+J: item 5 against PRODUCT, not TS+J: TS+J losing the same 30 on bridge 4 at W0 does not hide FREED's harm: HELD (want FALSIFIED)
+caught  item 3 reads S360 under off at W0: the expected case: FREED as TS+J and S360 under off losing 480 at W0.02: 1 to 5 HELD: 1 HELD, 2 HELD, 3 FALSIFIED, 4 HELD, 5 HELD (want 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD)
+caught  item 3 held on no material harm: FREED as TS+J, both gaining, no harm anywhere: 1, 2, 4 and 5 HELD, 3 FALSIFIED (no harm on S360 under off): 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD (want 1 HELD, 2 HELD, 3 FALS
+caught  item 3 reads S360 with the reader: the expected case: FREED as TS+J and S360 under off losing 480 at W0.02: 1 to 5 HELD: 1 HELD, 2 HELD, 3 FALSIFIED, 4 HELD, 5 HELD (want 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD)
+caught  item 5 held on one leg: harm on bridge 4 at W0 (30 lost): item 5 FALSIFIED; item 5 reads four legs, item 3 one: HELD 4 1 (want FALSIFIED 4 1)
+caught  item 5 leaves out bridge 4 at W0: harm on bridge 4 at W0 (30 lost): item 5 FALSIFIED; item 5 reads four legs, item 3 one: HELD 3 1 (want FALSIFIED 4 1)
+caught  item 5 reads S360 under off too: the expected case: FREED as TS+J and S360 under off losing 480 at W0.02: 1 to 5 HELD: 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 FALSIFIED (want 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD)
+caught  item 4 against TS+J: FREED as TS+J, both gaining, no harm anywhere: 1, 2, 4 and 5 HELD, 3 FALSIFIED (no harm on S360 under off): 1 HELD, 2 HELD, 3 FALSIFIED, 4 FALSIFIED, 5 HELD (want 1 HELD, 2 HE
+caught  item 4 held on one case: nothing gains anywhere: 1, 2 and 5 HELD, 3 and 4 FALSIFIED: 1 HELD, 2 HELD, 3 FALSIFIED, 4 INCONCLUSIVE, 5 HELD (want 1 HELD, 2 HELD, 3 FALSIFIED, 4 FALSIFIED, 5 HELD)
 
-40 mutations: every one caught
+45 mutations: every one caught

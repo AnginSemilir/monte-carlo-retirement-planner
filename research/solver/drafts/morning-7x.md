@@ -1,5 +1,22 @@
 # Morning summary: the night of 27 to 28 Sep (kept current through the night)
 
+## For you this morning (the details follow, in the night's order)
+
+1. **Approve, or not, the one next test:** a forward run of the joint tier state (TS+J) against the product and the
+   per-world tier state, on S126, S194 and bridge 4, with S360 as harm legs. It needs about 1.5 hours of build and 1 to
+   2.5 hours of runs. Nothing else in these two families of odd results runs until it is read. (The deep review, 02:38.)
+2. **Choose the deciding measure:** survival, or the solver's own whole score. They disagree in sign on the tier
+   state's results (O42).
+3. **The fix for S126's and S194's opening (O30, O33) is back with you.** The tier state (7y) did not recover those
+   paths. Tables-only, the joint version opens de-risked on both cases. That is a clear flip on S126 and a knife-edge on
+   S194 (O41).
+4. **Combining Q's fix with the tier state is closed tonight.** It could come back as a design only after TS+J gains on
+   survival.
+5. **Q's fix (7z) works on share 0.95** (205 paths saved, none lost). It is a research option; the decision on it (O32)
+   is yours.
+6. Nothing went to a default, nothing merged to main, and no enforcement file was touched. Every plan change has a
+   plan-auditor PASS.
+
 ## 7x: read (results-7x.txt; the gate passed; the ledger 27 Sep 22:17)
 
 **In one sentence:** tables held at one tier for life price lowering risk at 79% (S126) and 97% (S194) of what it
@@ -21,7 +38,7 @@ arms), so it is **not** evidence for the 5-point blind spot. That is tested sepa
 - Holding the plan's tier for life does worse than the product on three of the four cases. It does better on S360
   (results-7x-held.txt). So 7y's sizes come from the product's own arm, not from 7x.
 
-Scorecard for 7x: Brier 0.218 over 4 items. Cumulative: 0.221 over 63 (results-scorecard.txt).
+Scorecard for 7x: Brier 0.218 over 4 items. Cumulative then: 0.221 over 63 (results-scorecard-7x.txt).
 
 The reader's pessimism on share 0.95 (O36, results-7x-o36.txt) persists with the tier held for life: 15 of 16 worlds
 read more than 2 points low, and at worst 14.33 points low. So switching does not explain it, and neither does the
@@ -47,7 +64,8 @@ The order:
 2. The tier state is built; there is no 7y tonight if it is not pinned by 01:45.
 3. 7y runs and is read.
 4. A deep review on both reads.
-5. The combination is at most registered, **not run tonight**, because it can't be run and read by 7am.
+5. The combination is at most registered, **not run tonight**, because it can't be run and read by 7am. (Superseded:
+   closed after 7y's read, below.)
 
 ## Tonight's runs (kept current)
 
@@ -59,8 +77,8 @@ The order:
     nothing about the fix where it would act, and S126's own harm is untouched by it.
   - S194, with no bridge, is identical to the bit, as it should be.
   - It is a research option only; nothing goes to a default.
-- **7y (the tier state):** built as a research option (solve.js tierState; its test passes 15 of 15, and all 31 solver
-  suites pass on it). The plan-auditor needed three passes to accept the registration. On the way it found a real design
+- **7y (the tier state):** built as a research option (solve.js tierState; its test passed 15 of 15 at the build, 17 of 17 with
+  TS+J, and the solver suites pass on it). The plan-auditor needed three passes to accept the registration. On the way it found a real design
   limit (**O41**): the tier state applies the switching margin **per world**, while the chooser applies it to the
   mixture. So a negative 7y result will not clear free switching. The deep review after 7z said to launch as registered,
   with that named as a premise, because rebuilding would add a second change. **Launched 00:41 UK.**
@@ -85,7 +103,7 @@ The order:
   - H0 (the plan's tier held for life) saves 3 and 1 paths against the product and loses 41 and 271, as 7x suggested.
 - **Beside 7y:** a measurement of S360 with the reader, reading its bridge at the held tier (O36's gate). The joint
   version of the tier state (TS+J) is built and tested; all 29 solver test suites pass on its code (none failed). Its **tables-only** check that bounds O41 was launched at 02:19 UK
-  in the light lane. It gets no survival test tonight without you.
+  in the light lane and read at 03:30 (below). It gets no survival test tonight without you.
 - **S360 with the reader (O36, measured 01:05; results-refs360.txt):** the reader's opening reference uses the plan's
   tiers. That **flips the sign** on S360: the held tables rate lowering risk **+1.0** point better, where the runs lose
   **13.2** points (1,053 paths lost). With the reference at the held tier, the tables rate it **16.0** points worse, the

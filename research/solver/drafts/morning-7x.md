@@ -95,6 +95,27 @@ The order:
 - **The combination of the two fixes is not registered or run tonight; it comes to you as a design.** The overnight
   authority (the ledger's 21:34 row) ends where either fix is not HELD, and 7y's gain item is FALSIFIED.
 
+## The deep review on both reads (02:38 UK) and the one decision for you
+
+- **Where the tier state loses** (results-7y-slices.txt, grade C): on the four main cases it holds a riskier tier than
+  the product more often than a safer one, in every market slice. Of the 36 paths it loses there, 35 are in the
+  poorer-market half, 33 run short at the end, and in 29 it held more risk first. It gains in good markets, which is
+  where the estate goes up.
+- **Why, most likely:** each market world's table is solved knowing its own world, so a risky choice looks rescued in
+  the bad world by that world's own quick de-risk (O41). The same effect hides the value of opening de-risked. So the
+  first-ranked cause is now **free switching and the per-world tier choice together**; the tier state removed only
+  the first.
+- **The product's opening is wrong by its own objective:** opening de-risked (7v's lower margin) is worth about +0.7 on
+  the solver's own score on S126 and S194. The tier state captures only +0.07 and +0.01 of that.
+- **The one next test, for you to approve:** a forward run of the joint tier state (TS+J), against the product and the
+  tier state, on S126, S194 and bridge 4, with S360 as harm legs. About 1 to 2.5 hours of runs plus about 1.5 hours
+  of build. Survival decides; the whole score is printed beside it. Nothing else in these two families until it is read.
+- **Your call:** survival or the solver's whole score as the measure. They now disagree in sign on the tier state's
+  legs.
+- **A bug of mine, caught:** my first slice script used one case's market paths for every case, which mis-sliced all
+  but S126. The deep review's figures showed it up; it was fixed before any figure was used, and no other script has
+  the pattern.
+
 ## Things to tell you
 
 - **The order was changed.** The order first put to you for Q's fix in parallel was revised for its review (the ledger

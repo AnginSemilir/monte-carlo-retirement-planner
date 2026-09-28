@@ -1198,9 +1198,11 @@ function giaHoldCheck(r, s, t, held, ai) {
  * Exported so a probe can ask what EVERY action scores at a position, not just which one wins.
  * `chooseAction` returns the argmax and throws the rest away, which makes questions about the SHAPE of
  * the action set - is the score single-peaked in spending level? are most actions dominated? -
- * unanswerable from outside. Pure function, no state touched.
+ * unanswerable from outside. Pure function, no state touched. `SV`, when given, receives each move's expected survival
+ * alone (the score's survival part, before the estate, resilience and cut terms; 0 for an infeasible move): 7ad's
+ * like-for-like price of a move, survival and whole apart.
  */
-export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null) {
+export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null, SV = null) {
   const { g, c, actions, lsurv, lresil, beq, short, nodeRealOfAt, wB, wR, levelOf } = r;
   const nodeRealOf = nodeRealOfAt[t];
   const post = r._post || (r._post = new Float64Array(Math.max(7, s.length)));
@@ -1213,7 +1215,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null) {
     post.set(s);
     const unmet = F.flow(c, t, ai, post);
     TX[ai] = c.last.taxPaid + c.last.cgtPaid;
-    if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; continue; }
+    if (unmet > 1 || c.last.preNmpaInsolvent) { SC[ai] = -Infinity; BQ[ai] = 0; if (SV) SV[ai] = 0; continue; }
     // a move that changes tier pays the round trip on the slice traded before the year's growth
     if (held) F.chargeSwitch(c, post, held, variant ? variant.act : c.acts[ai], t);
     const cst = spendYear ? r.costOf(levelOf[ai]) : 0;
@@ -1240,6 +1242,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null) {
       }
       if (rz) h += rz * sv;
       SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
+      if (SV) SV[ai] = sv;
       continue;
     }
     // the tier state (solve's tierState): each move reads the next year's layer of the pair it moves to
@@ -1259,6 +1262,7 @@ export function scoreMoves(r, s, t, SC, TX, BQ, held = null, variant = null) {
     }
     if (rz) h += rz * sv;
     SC[ai] = sv + wR * rs + wB * bq - h; BQ[ai] = bq;
+    if (SV) SV[ai] = sv;
   }
 }
 

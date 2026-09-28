@@ -1,0 +1,55 @@
+7AD'S POWER: 4000 paths a node, the first 1000 7ac's; 20000 draws a story (seed 7002); read by reduce-7ad.mjs's rule
+
+THE SIZES (7ac world 0 at 30x5, through 7aa's and 7ac's gates)
+  bridge 4 (reader) W0   first 1000: TS+J 98.6 OPEN0 97.4, net 12 paths (1.2 points); world 0's whole-score price 0.5319
+  S194 (off) W0.02       first 1000: TS+J 93.4 OPEN0 91.8, net 16 paths (1.6 points); world 0's whole-score price 0.8423
+
+ITEM 1 (30x5, world 0: the survival price below the node's exact interval at 0.025, both units), the true rate drawn from the first 1000 (gamma, shape net + 0.5)
+  cause 1: the survival price the whole price (7ac's)                              b 0.5  HELD 0.921  FALSIFIED 0.002  INCONCLUSIVE 0.077
+  cause 1, weaker: the survival price 1.5 times the whole price                    b 0.5  HELD 0.474  FALSIFIED 0.093  INCONCLUSIVE 0.433
+  the survival price half the realised (the first 1000's net)                      b 0.5  HELD 0.900  FALSIFIED 0.002  INCONCLUSIVE 0.098
+  cause 2: the survival price the realised (the first 1000's net): priced right    b 0.5  HELD 0.068  FALSIFIED 0.550  INCONCLUSIVE 0.383
+  priced right on bridge 4 only                                                    b 0.5  HELD 0.237  FALSIFIED 0.030  INCONCLUSIVE 0.733
+  cause 1: the survival price the whole price (7ac's)                              b 5    HELD 0.798  FALSIFIED 0.012  INCONCLUSIVE 0.190
+  cause 1, weaker: the survival price 1.5 times the whole price                    b 5    HELD 0.296  FALSIFIED 0.206  INCONCLUSIVE 0.497
+  the survival price half the realised (the first 1000's net)                      b 5    HELD 0.763  FALSIFIED 0.014  INCONCLUSIVE 0.223
+  cause 2: the survival price the realised (the first 1000's net): priced right    b 5    HELD 0.032  FALSIFIED 0.680  INCONCLUSIVE 0.289
+  priced right on bridge 4 only                                                    b 5    HELD 0.151  FALSIFIED 0.079  INCONCLUSIVE 0.769
+  cause 1: the survival price the whole price (7ac's)                              b 15   HELD 0.600  FALSIFIED 0.052  INCONCLUSIVE 0.349
+  cause 1, weaker: the survival price 1.5 times the whole price                    b 15   HELD 0.162  FALSIFIED 0.357  INCONCLUSIVE 0.481
+  the survival price half the realised (the first 1000's net)                      b 15   HELD 0.565  FALSIFIED 0.055  INCONCLUSIVE 0.381
+  cause 2: the survival price the realised (the first 1000's net): priced right    b 15   HELD 0.014  FALSIFIED 0.787  INCONCLUSIVE 0.199
+  priced right on bridge 4 only                                                    b 15   HELD 0.080  FALSIFIED 0.183  INCONCLUSIVE 0.737
+
+ITEM 1 (30x5, world 0: the survival price below the node's exact interval at 0.025, both units), the true rate held at the first 1000's
+  cause 1: the survival price the whole price (7ac's)                              b 0.5  HELD 0.997  INCONCLUSIVE 0.003
+  cause 1, weaker: the survival price 1.5 times the whole price                    b 0.5  HELD 0.633  FALSIFIED 0.039  INCONCLUSIVE 0.328
+  the survival price half the realised (the first 1000's net)                      b 0.5  HELD 0.994  INCONCLUSIVE 0.006
+  cause 2: the survival price the realised (the first 1000's net): priced right    b 0.5  HELD 0.006  FALSIFIED 0.836  INCONCLUSIVE 0.158
+  priced right on bridge 4 only                                                    b 0.5  HELD 0.072  FALSIFIED 0.001  INCONCLUSIVE 0.927
+  cause 1: the survival price the whole price (7ac's)                              b 5    HELD 0.950  FALSIFIED 0.001  INCONCLUSIVE 0.049
+  cause 1, weaker: the survival price 1.5 times the whole price                    b 5    HELD 0.292  FALSIFIED 0.198  INCONCLUSIVE 0.510
+  the survival price half the realised (the first 1000's net)                      b 5    HELD 0.917  FALSIFIED 0.001  INCONCLUSIVE 0.082
+  cause 2: the survival price the realised (the first 1000's net): priced right    b 5    HELD 0.001  FALSIFIED 0.923  INCONCLUSIVE 0.075
+  priced right on bridge 4 only                                                    b 5    HELD 0.033  FALSIFIED 0.018  INCONCLUSIVE 0.948
+  cause 1: the survival price the whole price (7ac's)                              b 15   HELD 0.730  FALSIFIED 0.018  INCONCLUSIVE 0.252
+  cause 1, weaker: the survival price 1.5 times the whole price                    b 15   HELD 0.097  FALSIFIED 0.457  INCONCLUSIVE 0.446
+  the survival price half the realised (the first 1000's net)                      b 15   HELD 0.671  FALSIFIED 0.023  INCONCLUSIVE 0.306
+  cause 2: the survival price the realised (the first 1000's net): priced right    b 15   HELD 0.000  FALSIFIED 0.965  INCONCLUSIVE 0.035
+  priced right on bridge 4 only                                                    b 15   HELD 0.013  FALSIFIED 0.113  INCONCLUSIVE 0.873
+
+ITEM 2, THE MISPRICING HALF (m30 > 0 and m60 <= 2/3 m30, both units; the gap half read exactly): m30 from the first 1000's net and the whole price, its node noise from the draws above (b 5, the rate drawn); at 60x5 the true mispricing falls by f, the 60x5 node run k paths apart from the 30x5 one
+  k 10  the mispricing falls by 0  : the half reads 'falls by a third' on both units 0.000
+  k 10  the mispricing falls by 0.33: the half reads 'falls by a third' on both units 0.223
+  k 10  the mispricing falls by 0.50: the half reads 'falls by a third' on both units 0.609
+  k 10  the mispricing falls by all: the half reads 'falls by a third' on both units 0.990
+  k 30  the mispricing falls by 0  : the half reads 'falls by a third' on both units 0.006
+  k 30  the mispricing falls by 0.33: the half reads 'falls by a third' on both units 0.226
+  k 30  the mispricing falls by 0.50: the half reads 'falls by a third' on both units 0.535
+  k 30  the mispricing falls by all: the half reads 'falls by a third' on both units 0.979
+  k 60  the mispricing falls by 0  : the half reads 'falls by a third' on both units 0.018
+  k 60  the mispricing falls by 0.33: the half reads 'falls by a third' on both units 0.226
+  k 60  the mispricing falls by 0.50: the half reads 'falls by a third' on both units 0.468
+  k 60  the mispricing falls by all: the half reads 'falls by a third' on both units 0.952
+
+ITEMS 3 AND 4, AND ITEM 2'S GAP HALF: the tables' own numbers, no sampling error - power 1 against the thresholds; the uncertainty is the credence (no record holds the gap at another grid).

@@ -17,6 +17,7 @@
  *   node research/solver/audit-s126.mjs diag7y [points] [paths] part k/n [seed]  7y: the tier state against the product, its tier and rest swapped, and held for life
  *   node research/solver/audit-s126.mjs diag7aa [points] [paths] part k/n [seed] [world paths]  7aa: the joint tier state against the product and the tier state, the estate weight 0 and 0.02
  *   node research/solver/audit-s126.mjs diag7ab [points] [paths] part k/n [seed]  7ab: the freed opening beside 7aa's product, read against 7aa's TS+J
+ *   node research/solver/audit-s126.mjs diag7ac [points] [paths] part k/n [seed] [world paths]  7ac: TS+J and TS+J with the opening held in the plan's tier (OPEN0)
  *   node research/solver/audit-s126.mjs refs360 [points] [paths] [seed]  O36 on S360 with the reader: held tables, the reader's reference at the plan's tiers and at the held tier
  *   node research/solver/audit-s126.mjs o41 [points] [paths] [seed]  O41's bound: the tier state per world against the joint tier state, tables only
  *
@@ -31,7 +32,7 @@
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { solve, solvePlan, runPolicy, chooseAction } from '../../src/solver/solve.js';
+import { solve, solvePlan, runPolicy, chooseAction, scoreMoves } from '../../src/solver/solve.js';
 import { swapChooser, tsSwapChooser } from './swap.mjs';
 import { learningChooser, oracleChooser } from './learn.mjs';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
@@ -1118,6 +1119,98 @@ if (mode === 'f1v2') {
     for (const [tag, open] of [['PRODUCT', false], ['FREED', true]]) {
       const lb = `${tag}/W${w}`, f = run(r, res.paths, open);
       console.log(`${''.padEnd(16)} run ${A}/${lb}: sim ${f.sim.toFixed(4)} below ${f.below.toFixed(2)} tier-below ${f.tierYrs.toFixed(2)} changes ${f.changes.toFixed(3)} estate ${Math.round(f.estate)} secs ${Math.round(f.secs)}`);
+      const T = f.tr;
+      writeFileSync(join(OUT, fileOf(id, arm, lb)), gzipSync(JSON.stringify({ id, arm: `${A}/${lb}`, stamp: STAMP, N: NP, Y: T.Y, seed: SEED, sim: f.sim,
+        survived: b64(f.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
+    }
+    console.log(`${''.padEnd(16)} done ${A}/W${w}`);
+  });
+} else if (mode === 'diag7ac') {
+  /*
+   * 7AC: DOES TS+J PRICE THE OPENING RIGHT? THE FOURTH CELL (PLAN.md 7ac; predictions/diag-7ac.md; the deep review after 7aa,
+   * deep-review-log.md 28 Sep 11:44 UK; the maintainer, 28 Sep 11:59 UK). Each unit is 7aa's TS+J unit again - the product's
+   * settings (solvePlan, 30 points, 'auto' risk above, lambda held at 7t's to 7aa's, 5 return points, margin 0.001) with the
+   * tier state and one move for every world, the estate weight passed explicitly - solved once and run forward on the same
+   * NP paths twice: TS+J (7aa's rule; reduce-7ac.mjs requires its trace to equal 7aa's on every path) and OPEN0 (the year-0
+   * move held in the plan's tier: the chooser at an unbounded margin in year 0 takes the best move that keeps the held
+   * pension and ISA tiers, solve.js chooseAction; the product's 0.001 after). Only the four units where TS+J opens tier 2 and
+   * the product the plan's tier (7aa; results-7aa-gaps.txt): S126 (reader) at W0 and W0.02, bridge 4 (reader) at W0, S194
+   * (off) at W0.02. Each world: the world table's own price of the opening at the true year-0 position (its best move's
+   * score less its best plan's-tier move's score, in points), and TS+J's and OPEN0's survival on the first WP paths with the
+   * long-run shift at the world's node; beside it the mixture's price, which must equal the gap line's.
+   *   node research/solver/audit-s126.mjs diag7ac [points=30] [paths] part k/n [seed=7002] [world paths=1000]
+   * Prints, per unit: a case line; a solve, ran, gap and joint line (7aa's formats, labelled TS+J); a price line; a world
+   * line per world; a run line for TS+J and one for OPEN0 (with the paths whose year-0 move kept the plan's tiers); a done
+   * line. Each run's trace goes to results/diag7ac/<case>-<arm>-<label>.json.gz (DIAG7AC_OUT when set), stamped.
+   */
+  const UNITS7AC = [['S126', 'reader', 0], ['bridge 4', 'reader', 0], ['S126', 'reader', 0.02], ['S194', 'off', 0.02]];
+  const ARM = { off: false, reader: 'reader' };
+  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
+  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002, WP = process.argv[8] ? Number(process.argv[8]) : 1000;
+  if (!(SEED >= 1) || !(WP >= 1)) { console.error(`audit-s126: bad seed or world paths ${process.argv[7]} ${process.argv[8]}`); process.exit(2); }
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  const OUT = process.env.DIAG7AC_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7ac');
+  mkdirSync(OUT, { recursive: true });
+  console.log(`7AC DIAGNOSIS, the product's settings (solvePlan) but the estate weight, ${POINTS} points, ${NP} paths (seed ${SEED}), ${WP} a world, margin 1e-3: TS+J and OPEN0 (TS+J's tables, the year-0 move held in the plan's tier) on the four units where TS+J opens tier 2 and the product the plan's tier; part ${pk}/${pn}`);
+  const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+  const chooseAt = (r, st, t, held, sm) => { const keep = r.switchMargin; r.switchMargin = sm; try { return chooseAction(r, st, t, held); } finally { r.switchMargin = keep; } };
+  const opening = (r, zs) => { let s0 = null, h0 = null; runPolicy(r, zs, { choose: (t, st, held) => { if (t === 0 && !s0) { s0 = Float64Array.from(st); h0 = { ...held }; } return chooseAction(r, st, t, held); } }); return { s0, h0 }; };
+  const openGap = (r, zs) => {
+    const { s0, h0 } = opening(r, zs), acts = r.c.acts, at = sm => acts[chooseAt(r, s0, 0, h0, sm)];
+    const stays = sm => { const a = at(sm); return a.tierPen === h0.pen && a.tierIsa === h0.isa; };
+    let gap;
+    if (stays(0)) gap = '0';
+    else if (!stays(1)) gap = '>1';
+    else { let lo = 0, hi = 1; for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (stays(mid)) hi = mid; else lo = mid; } gap = hi.toExponential(4); }
+    return { gap, open: [0.001, 0].map(sm => at(sm).tierPen).join(',') };
+  };
+  // a table's price of the opening at (s0, h0): its best move's score less its best move keeping the held tiers (points)
+  const priceOf = (tabs, weights, s0, h0, acts) => {
+    const n = acts.length, SC = new Float64Array(n), S2 = new Float64Array(n), T2 = new Float64Array(n), B2 = new Float64Array(n);
+    tabs.forEach((tab, k) => { scoreMoves(tab, s0, 0, S2, T2, B2, h0); for (let ai = 0; ai < n; ai++) SC[ai] = S2[ai] === -Infinity || SC[ai] === -Infinity ? -Infinity : SC[ai] + weights[k] * S2[ai]; });
+    let best = -Infinity, stay = -Infinity;
+    for (let ai = 0; ai < n; ai++) { if (SC[ai] > best) best = SC[ai]; if (acts[ai].tierPen === h0.pen && acts[ai].tierIsa === h0.isa && SC[ai] > stay) stay = SC[ai]; }
+    return { price: 100 * (best - stay), best: 100 * best, stay: 100 * stay };
+  };
+  // one forward run on every path; `open0` holds the year-0 move in the plan's tiers (an unbounded margin in year 0); without
+  // it the call is 7aa's own. `held0` counts the paths whose year-0 move kept the held tiers.
+  const run = (r, paths, open0, trace) => {
+    const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = trace ? makeTrace(N, T + 1) : null, acts = r.c.acts;
+    let ok = 0, below = 0, tierYrs = 0, estate = 0, changes = 0, held0 = 0;
+    const cap = r.meta.bequestCap;
+    const choose = (t, st, held) => { const ai = t === 0 ? chooseAt(r, st, 0, held, open0 ? Infinity : r.switchMargin) : chooseAction(r, st, t, held); if (t === 0 && held && acts[ai].tierPen === held.pen && acts[ai].tierIsa === held.isa) held0++; return ai; };
+    paths.forEach((zs, k) => { if (tr) tr.row = k; const o = runPolicy(r, zs, { ...(tr ? { trace: tr } : {}), ...(open0 ? { choose } : { choose: (t, st, held) => { const ai = chooseAction(r, st, t, held); if (t === 0 && held && acts[ai].tierPen === held.pen && acts[ai].tierIsa === held.isa) held0++; return ai; } }) }); if (o.survived) { ok++; okArr[k] = 1; estate += Math.min(o.terminalNet, cap); } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; changes += o.tierChanges || 0; });
+    return { sim: 100 * ok / N, below: below / N, tierYrs: tierYrs / N, changes: changes / N, estate: estate / N, held0, okArr, tr, secs: (Date.now() - t0) / 1000 };
+  };
+  const fileOf = (id, arm, label) => `${id.replace(/ /g, '_')}-${arm}-${label.toLowerCase().replace(/\+/g, '_').replace(/\//g, '@')}.json.gz`;
+  UNITS7AC.forEach(([id, arm, w], i) => {
+    if (i % pn !== pk) return;
+    const h = byId(id)();
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const A = arm.toUpperCase(), label = `TS+J/W${w}`;
+    console.log(`${id.padEnd(16)} case | unit ${A}/${label} | lambda ${LAMBDA} tier own riskAbove auto mix 3`);
+    const res = measureV2(h, ARM[arm], 5, { trace: false, seed: SEED, lambda: LAMBDA, forward: false, bequestWeight: w, tierState: true, joint: true });
+    const r = res.r;
+    if (!r.meta.tierState || !r.meta.jointWorlds) { console.error(`audit-s126: ${label} ran tierState ${r.meta.tierState} jointWorlds ${r.meta.jointWorlds}`); process.exit(2); }
+    if (!(Math.abs(r.meta.bequestWeight - w) < 1e-12)) { console.error(`audit-s126: ${label} ran the estate weight ${r.meta.bequestWeight}`); process.exit(2); }
+    const ra = r.meta.riskAbove ? r.meta.riskAbove.decision.replace(/ /g, '_') : 'unset';
+    console.log(`${''.padEnd(16)} solve ${A}/${label}: table ${res.table.toFixed(4)} secs ${Math.round(res.secs)}`);
+    console.log(`${''.padEnd(16)} ran ${A}/${label}: ${res.ran}`);
+    { const g = openGap(r, res.paths[0]); console.log(`${''.padEnd(16)} gap ${A}/${label}: ${g.gap} opening ${g.open}`); }
+    console.log(`${''.padEnd(16)} joint ${A}/${label}: ${!!r.meta.jointWorlds} switchMargin ${r.switchMargin} scale ${Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0)))} cap ${Math.round(r.meta.bequestCap)} deathTax ${r.m.ctx.pensionDeathTaxRate} tier own riskAbove ${ra}`);
+    const { s0, h0 } = opening(r, res.paths[0]), acts = r.c.acts;
+    { const p = priceOf(r.mix.tables, r.mix.weights, s0, h0, acts); console.log(`${''.padEnd(16)} price ${A}/${label}: mixture ${p.price.toExponential(6)} best ${p.best.toFixed(6)} stay ${p.stay.toFixed(6)} held ${h0.pen}/${h0.isa}`); }
+    r.mix.nodes.forEach((z, k) => {
+      const wpaths = res.paths.slice(0, WP).map(zs => { const c = Float64Array.from(zs); c[c.length - 1] = z; return c; });
+      const p = priceOf([r.mix.tables[k]], [1], s0, h0, acts), a = run(r, wpaths, false, false), b = run(r, wpaths, true, false);
+      console.log(`${''.padEnd(16)} world ${A}/${label} ${k} z ${z.toFixed(4)} weight ${r.mix.weights[k].toFixed(4)}: price ${p.price.toFixed(4)} best ${p.best.toFixed(4)} stay ${p.stay.toFixed(4)} | sim TS+J ${a.sim.toFixed(4)} OPEN0 ${b.sim.toFixed(4)} paths ${wpaths.length}`);
+    });
+    for (const [tag, open0] of [['TS+J', false], ['OPEN0', true]]) {
+      const lb = `${tag}/W${w}`, f = run(r, res.paths, open0, true);
+      console.log(`${''.padEnd(16)} run ${A}/${lb}: sim ${f.sim.toFixed(4)} below ${f.below.toFixed(2)} tier-below ${f.tierYrs.toFixed(2)} changes ${f.changes.toFixed(3)} estate ${Math.round(f.estate)} held0 ${f.held0} secs ${Math.round(f.secs)}`);
       const T = f.tr;
       writeFileSync(join(OUT, fileOf(id, arm, lb)), gzipSync(JSON.stringify({ id, arm: `${A}/${lb}`, stamp: STAMP, N: NP, Y: T.Y, seed: SEED, sim: f.sim,
         survived: b64(f.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));

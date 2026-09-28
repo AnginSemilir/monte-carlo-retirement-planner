@@ -26,7 +26,11 @@
  *      on both; else INCONCLUSIVE)
  *   3. W0.02, O42's split: pooled over S126 and S194 on the paths 7aa's PRODUCT survives at W0.02, OPEN0 gains against TS
  *      (the two open alike there: the per-world rule's continuation against TS+J's; the pooled margin 0.1; HELD on a gain,
- *      FALSIFIED on no material gain, else INCONCLUSIVE)
+ *      FALSIFIED on no material gain, else INCONCLUSIVE). The same pooled cells are also read for a loss (a harm family of its
+ *      own, the pooled margin), and a FALSIFIED item 3 is printed in one of three branches: by a loss (OPEN0 harms against
+ *      TS: the joint rule's continuation worse than the per-world rule's from the same opening, O41's removal unmasking an
+ *      error - a register item and a diagnosis, not the opening), without a loss (no material harm: the opening carried
+ *      7aa's item 5, O42 re-read), or with a loss not ruled out (the harm read inconclusive)
  * Reported, not items: every unit's four runs (PRODUCT, TS and TS+J from 7aa; OPEN0) and OPEN0's cells and whole score
  * against PRODUCT and TS+J; the path-years OPEN0 and TS+J hold different tiers, in year 0 and after; each world's table price
  * of the opening against the survival TS+J and OPEN0 realise in that world, and their ratio.
@@ -157,7 +161,12 @@ export function items(S, WL) {
   // 3. W0.02, O42's split: pooled over S126 and S194 on the paths PRODUCT survives, OPEN0 against TS
   const kp = two.map(([id, arm]) => A.cellsWhere(S(id, arm, 'PRODUCT', '0.02'), S(id, arm, 'TS', '0.02'), S(id, arm, 'OPEN0', '0.02'))).reduce((s, k) => ({ a: s.a + k.a, lost: s.lost + k.lost, saved: s.saved + k.saved, d: s.d + k.d, N: s.N + k.N }), { a: 0, lost: 0, saved: 0, d: 0, N: 0 });
   const i3 = gainFamily([{ id: 'pooled', label: 'pooled over S126 and S194, on the paths PRODUCT survives: OPEN0 against TS at W0.02', k: kp, margin: MARGINS.pooled }]);
-  out.push({ n: 3, text: 'W0.02, O42\'s split: pooled over S126 and S194 on the paths PRODUCT survives at 0.02, OPEN0 survives more than TS (FALSIFIED: no material gain, the pooled margin 0.1)', legs: i3, outcome: i3[0].o === 'gain' ? 'HELD' : i3[0].o === 'no material gain' ? 'FALSIFIED' : 'INCONCLUSIVE' });
+  // the same cells read for a loss, so a FALSIFIED item 3 is not read as the opening when OPEN0 loses to TS (the plan-auditor's
+  // review of 7ac's registration, 28 Sep 12:36 UK, BLOCKING 1)
+  const h3 = harmFamily([{ id: 'pooled', label: 'the same cells read for a loss: OPEN0 against TS at W0.02', k: kp, margin: MARGINS.pooled }]);
+  const o3 = i3[0].o === 'gain' ? 'HELD' : i3[0].o === 'no material gain' ? 'FALSIFIED' : 'INCONCLUSIVE';
+  const branch3 = o3 !== 'FALSIFIED' ? '' : h3[0].o === 'harm' ? 'FALSIFIED BY A LOSS: OPEN0 harms against TS on the product\'s survivors - the joint rule\'s continuation does worse than the per-world rule\'s from the same opening (O41\'s removal unmasking an error): a register item and a diagnosis, not the opening' : h3[0].o === 'no material harm' ? 'FALSIFIED WITHOUT A LOSS: no material gain and no material harm - the opening, not the continuation, carried 7aa\'s item 5 (O42 re-read)' : 'FALSIFIED, A LOSS NOT RULED OUT: no material gain, the loss read inconclusive - a register item and the sized follow-up, neither reading settled';
+  out.push({ n: 3, text: 'W0.02, O42\'s split: pooled over S126 and S194 on the paths PRODUCT survives at 0.02, OPEN0 survives more than TS (FALSIFIED: no material gain, the pooled margin 0.1)', legs: i3, loss: h3, branch: branch3, outcome: o3 });
   return out;
 }
 
@@ -232,6 +241,12 @@ function planted() {
   cases.push(['cause 2 (OPEN0 as TS+J, the whole score level): 1 and 2 FALSIFIED, 3 HELD', outs(items(mkS(cause2), mkW({}))), '1 FALSIFIED, 2 FALSIFIED, 3 HELD']);
   cases.push(['OPEN0 as TS on the product\'s survivors (losing the same 25): item 3 FALSIFIED', items(mkS({ ...cause1, 'S126|READER|OPEN0|0.02': [0, 12, 200], 'S194|OFF|OPEN0|0.02': [0, 13, 200] }), mkW(loss))[2].outcome, 'FALSIFIED']);
   cases.push(['item 3 reads the product\'s survivors only: OPEN0 saving 30 of the product\'s failures does not count', items(mkS({ ...cause1, 'S126|READER|OPEN0|0.02': [30, 12, 200], 'S194|OFF|OPEN0|0.02': [0, 13, 200] }), mkW(loss))[2].legs[0].k.N.toString(), String(2 * (N - 100))]);
+  cases.push(['item 3 FALSIFIED without a loss (OPEN0 as TS on the product\'s survivors): the no-loss branch', items(mkS({ ...cause1, 'S126|READER|OPEN0|0.02': [0, 12, 200], 'S194|OFF|OPEN0|0.02': [0, 13, 200] }), mkW(loss))[2].branch.split(':')[0], 'FALSIFIED WITHOUT A LOSS']);
+  { const it = items(mkS({ ...cause1, 'S126|READER|TS|0.02': [0, 0], 'S194|OFF|TS|0.02': [0, 0], 'S126|READER|OPEN0|0.02': [0, 40, 200], 'S194|OFF|OPEN0|0.02': [0, 40, 200] }), mkW(loss))[2];
+    cases.push(['item 3 FALSIFIED by a loss (OPEN0 losing 80 of the product\'s survivors that TS keeps): the loss branch, not the opening', `${it.outcome} ${it.loss[0].o} ${it.branch.split(':')[0]}`, 'FALSIFIED harm FALSIFIED BY A LOSS']); }
+  { const it = items(mkS({ ...cause1, 'S126|READER|TS|0.02': [0, 20, 200], 'S194|OFF|TS|0.02': [0, 0], 'S126|READER|OPEN0|0.02': [0, 30, 300], 'S194|OFF|OPEN0|0.02': [0, 0] }), mkW(loss))[2];
+    cases.push(['item 3 FALSIFIED with a loss not ruled out (OPEN0 against TS 20 saved, 30 lost: the loss read inconclusive at the pooled margin 0.1, where 0.25 would read no material harm)', `${it.outcome} ${it.loss[0].o} ${it.branch.split(':')[0]}`, 'FALSIFIED inconclusive FALSIFIED, A LOSS NOT RULED OUT']); }
+  cases.push(['item 3 HELD carries no branch', items(mkS(cause1), mkW(loss))[2].branch, '']);
   cases.push(['item 3 at the pooled margin 0.1: OPEN0 saving 20 and losing 12 of the product\'s survivors against TS is INCONCLUSIVE (at 0.25 it would read no material gain)', items(mkS({ ...tsj, 'S126|READER|OPEN0|0.02': [0, 12, 300], 'S194|OFF|OPEN0|0.02': [0, 5, 204] }), mkW({}))[2].outcome, 'INCONCLUSIVE']);
   cases.push(['item 1 split: OPEN0 losing 40 on S126, as TS+J on bridge 4: INCONCLUSIVE', items(mkS({ ...cause2, 'S126|READER|OPEN0|0': [0, 0] }), mkW({}))[0].outcome, 'INCONCLUSIVE']);
   cases.push(['item 1 reads OPEN0 against TS+J, not PRODUCT: OPEN0 as PRODUCT and TS+J as PRODUCT is no harm, not harm', items(mkS({}), mkW({}))[0].outcome, 'FALSIFIED']);
@@ -310,6 +325,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   for (const x of it) {
     console.log(`${x.n}. ${x.text}: ${x.outcome}`);
     for (const l of x.legs || []) console.log(`     ${legText(l)}`);
+    for (const l of x.loss || []) console.log(`     ${legText(l)}`);
+    if (x.branch) console.log(`     ${x.branch}`);
     for (const l of x.whole || []) console.log(`     ${wholeText(l)}`);
   }
   console.log(`\nOUTCOME: ${it.map(x => `${x.n} ${x.outcome}`).join(', ')}`);

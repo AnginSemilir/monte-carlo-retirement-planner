@@ -51,7 +51,13 @@ M = [
     ("item 2 held on one leg", "outcome: tri(i2, x => x.o === 'loss', x => x.o === 'no material loss') });", "outcome: i2.some(x => x.o === 'loss') ? 'HELD' : i2.every(x => x.o === 'no material loss') ? 'FALSIFIED' : 'INCONCLUSIVE' });"),
     ("item 3 on every path, not the product's survivors", "A.cellsWhere(S(id, arm, 'PRODUCT', '0.02'), S(id, arm, 'TS', '0.02'), S(id, arm, 'OPEN0', '0.02'))", "A.cellsWhere(new Uint8Array(N).fill(1), S(id, arm, 'TS', '0.02'), S(id, arm, 'OPEN0', '0.02'))"),
     ("item 3 against TS+J", "A.cellsWhere(S(id, arm, 'PRODUCT', '0.02'), S(id, arm, 'TS', '0.02'), S(id, arm, 'OPEN0', '0.02'))", "A.cellsWhere(S(id, arm, 'PRODUCT', '0.02'), S(id, arm, 'TS+J', '0.02'), S(id, arm, 'OPEN0', '0.02'))"),
-    ("item 3 at the case margin, not the pooled", "k: kp, margin: MARGINS.pooled }]);", "k: kp, margin: 0.25 }]);"),
+    ("item 3 at the case margin, not the pooled", "OPEN0 against TS at W0.02', k: kp, margin: MARGINS.pooled }]);\n  // the same cells", "OPEN0 against TS at W0.02', k: kp, margin: 0.25 }]);\n  // the same cells"),
+    # item 3's loss read and its branches (the plan-auditor's review of 7ac's registration, 28 Sep 12:36 UK, BLOCKING 1)
+    ("item 3's loss read by the gain family", "const h3 = harmFamily([{ id: 'pooled'", "const h3 = gainFamily([{ id: 'pooled'"),
+    ("item 3's loss read at the case margin, not the pooled", "read for a loss: OPEN0 against TS at W0.02', k: kp, margin: MARGINS.pooled }]);", "read for a loss: OPEN0 against TS at W0.02', k: kp, margin: 0.25 }]);"),
+    ("item 3's branch ignores a loss", "h3[0].o === 'harm' ? 'FALSIFIED BY A LOSS", "false ? 'FALSIFIED BY A LOSS"),
+    ("item 3's no-loss branch on any read", "h3[0].o === 'no material harm' ? 'FALSIFIED WITHOUT", "true ? 'FALSIFIED WITHOUT"),
+    ("item 3's branch printed on every outcome", "const branch3 = o3 !== 'FALSIFIED' ? '' :", "const branch3 = false ? '' :"),
     ("item 3 on S126 alone", "const kp = two.map(([id, arm]) =>", "const kp = two.slice(0, 1).map(([id, arm]) =>"),
 ]
 def run(f):

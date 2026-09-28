@@ -1,4 +1,4 @@
-true script: planted (43): all read as they should
+true script: planted (47): all read as they should
 caught  the gate accepts a missing unit: the gate refuses a missing unit: false (want true)
 caught  the gate accepts a unit twice: the gate refuses a unit run twice: false (want true)
 caught  the gate accepts an unregistered unit: the gate refuses an unregistered unit (S360 off at W0): false (want true)
@@ -38,6 +38,11 @@ caught  item 2 held on one leg: item 2 on one case only (a loss on S126, level o
 caught  item 3 on every path, not the product's survivors: item 3 reads the product's survivors only: OPEN0 saving 30 of the product's failures does not count: 16000 (want 15800)
 caught  item 3 against TS+J: cause 1 (OPEN0 as the product, the whole score half a point below TS+J): 1, 2 and 3 HELD: 1 HELD, 2 HELD, 3 FALSIFIED (want 1 HELD, 2 HELD, 3 HELD)
 caught  item 3 at the case margin, not the pooled: item 3 at the pooled margin 0.1: OPEN0 saving 20 and losing 12 of the product's survivors against TS is INCONCLUSIVE (at 0.25 it would read no material gain): FALSIFIED (want 
+caught  item 3's loss read by the gain family: item 3 FALSIFIED without a loss (OPEN0 as TS on the product's survivors): the no-loss branch: FALSIFIED, A LOSS NOT RULED OUT (want FALSIFIED WITHOUT A LOSS)
+caught  item 3's loss read at the case margin, not the pooled: item 3 FALSIFIED with a loss not ruled out (OPEN0 against TS 20 saved, 30 lost: the loss read inconclusive at the pooled margin 0.1, where 0.25 would read no material harm): F
+caught  item 3's branch ignores a loss: item 3 FALSIFIED by a loss (OPEN0 losing 80 of the product's survivors that TS keeps): the loss branch, not the opening: FALSIFIED harm FALSIFIED, A LOSS NOT RULED OUT (want F
+caught  item 3's no-loss branch on any read: item 3 FALSIFIED with a loss not ruled out (OPEN0 against TS 20 saved, 30 lost: the loss read inconclusive at the pooled margin 0.1, where 0.25 would read no material harm): F
+caught  item 3's branch printed on every outcome: item 3 HELD carries no branch: FALSIFIED WITHOUT A LOSS: no material gain and no material harm - the opening, not the continuation, carried 7aa's item 5 (O42 re-read) (want )
 caught  item 3 on S126 alone: item 3 reads the product's survivors only: OPEN0 saving 30 of the product's failures does not count: 7900 (want 15800)
 
-40 mutations: every one caught
+45 mutations: every one caught

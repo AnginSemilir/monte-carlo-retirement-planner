@@ -59,3 +59,4 @@
 28 Sep 21:28 UK | main | research/solver/predictions/diag-7ae.md | code 4d91a3e1d649 | acd2465 | load 1.02 1.03 1.00 | bash research/solver/batch-7ae.sh
 28 Sep 23:05 UK | light | none:  7af build check - the diag7af mode prints every line for S126's candidate unit at 4 points and 20 paths; no figure read | code 4d91a3e1d649 | efee8a8 | load 1.39 1.40 1.17 | node research/solver/audit-s126.mjs diag7af 4 20 part 12/46 7002
 28 Sep 23:16 UK | main | none:  7af preflight - the diag7af mode on the final code, all 46 units at 4 wealth points and 20 paths, four at a time, parsed, gated and read by reduce-7af.mjs's own functions against 7aa's preflight; unit times for the estimate; no figure read | code 4d91a3e1d649 | efee8a8 | load 1.10 1.19 1.17 | bash research/solver/preflight-7af.sh
+28 Sep 23:52 UK | main | research/solver/predictions/diag-7af.md | code 4d91a3e1d649 | daf818d | load 1.00 1.00 1.29 | bash research/solver/batch-7af.sh

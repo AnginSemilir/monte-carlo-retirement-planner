@@ -9,8 +9,11 @@
  * bridge 1, S126, S194; 7ag: S162), each under
  *   CAND - the bridge reader with the joint tier state (READER/TS+J/W0.02), and
  *   SHIP - the shipping default (OFF/PRODUCT/W0.02),
- * each with the tiers as the import makes them (label as 7af's) and as the medians of their blends (label + '@logblend'):
- * 28 solves, no forward run (the opening is read on path 0 of seed 7002, as 7af's gap line reads it).
+ * each with the tiers as the import makes them (label as 7af's), as the medians of their blends (label + '@logblend'), and
+ * moved by the same amounts the other way (label + '@reversed': each blended tier's real at 2 x linear - blend; the deep
+ * review after P, 29 Sep 23:31: a same-size reference, so the test can fail): 42 solves, no forward run (the opening is
+ * read on path 0 of seed 7002, as 7af's gap line reads it). An opening2 line records both the pension's and the ISA's
+ * year-0 tier at the product's margin and at 0 (the review: the gap line's opening is the pension's alone).
  * THE TIER OVERRIDE: the plan's own normalised risk profiles with each of the five blended tiers' `real` replaced by its
  * blend median, rounded to 0.01 as the import rounds (engine.mjs applyCmaPreset), and riskSource '' so normalizePlan keeps
  * them; every other field (volatility, sigmaParam, the cash tier) untouched. Checked before any solve, or it stops: the
@@ -80,35 +83,39 @@ for (const k of TIERS) {
   if (!m) { console.error(`audit-7ai: results-o60.txt has no row for ${k}`); process.exit(2); }
   o60[k] = { linear: +m[1], blend: +m[2] };
 }
+export const realOf = (k, set) => (set === 'logblend' ? o60[k].blend : set === 'reversed' ? +(2 * o60[k].linear - o60[k].blend).toFixed(2) : o60[k].linear);
 const withTiers = (plan, set) => {
   const base = E.normalizePlan(plan);
   if (set === 'linear') return plan;
   const rp = {};
-  for (const [k, p] of Object.entries(base.riskProfiles)) rp[k] = TIERS.includes(k) ? { ...p, real: o60[k].blend } : { ...p };
+  for (const [k, p] of Object.entries(base.riskProfiles)) rp[k] = TIERS.includes(k) ? { ...p, real: realOf(k, set) } : { ...p };
   return { ...plan, riskProfiles: rp, riskSource: '' };
 };
 // before any solve: the linear profiles are O60's linear column, the override its blend column, and nothing else differs
 for (const id of HOUSEHOLDS) {
   const h = byId(id);
   if (!h) { console.error(`audit-7ai: no household ${id}`); process.exit(2); }
-  const lin = E.normalizePlan(h.plan).riskProfiles, bl = E.normalizePlan(withTiers(h.plan, 'logblend')).riskProfiles;
+  const lin = E.normalizePlan(h.plan).riskProfiles;
   const bad = [];
   for (const k of TIERS) {
     // the engine rounds the real from the import's rounded nominal (applyCmaPreset), look-o60.mjs from the unrounded blend,
     // so the two may differ by one rounding step (Low Risk: 2.60 against 2.59, the build check of 29 Sep)
     if (Math.abs(lin[k].real - o60[k].linear) > 0.01 + 1e-9) bad.push(`${k} linear ${lin[k].real} is not O60's ${o60[k].linear} to 0.01`);
-    if (Math.abs(bl[k].real - o60[k].blend) > 1e-9) bad.push(`${k} blend ${bl[k].real} is not O60's ${o60[k].blend}`);
   }
-  for (const k of Object.keys(lin)) for (const f of new Set([...Object.keys(lin[k]), ...Object.keys(bl[k] || {})])) if (!(TIERS.includes(k) && f === 'real') && JSON.stringify(lin[k][f]) !== JSON.stringify((bl[k] || {})[f])) bad.push(`${k}.${f} differs (${lin[k][f]} against ${(bl[k] || {})[f]})`);
+  for (const set of ['logblend', 'reversed']) {
+    const bl = E.normalizePlan(withTiers(h.plan, set)).riskProfiles;
+    for (const k of TIERS) if (Math.abs(bl[k].real - realOf(k, set)) > 1e-9) bad.push(`${k} ${set} ${bl[k].real} is not ${realOf(k, set)}`);
+    for (const k of Object.keys(lin)) for (const f of new Set([...Object.keys(lin[k]), ...Object.keys(bl[k] || {})])) if (!(TIERS.includes(k) && f === 'real') && JSON.stringify(lin[k][f]) !== JSON.stringify((bl[k] || {})[f])) bad.push(`${set}: ${k}.${f} differs (${lin[k][f]} against ${(bl[k] || {})[f]})`);
+  }
   if (bad.length) { console.error(`audit-7ai: ${id}'s tier override is not O60's: ${bad.join('; ')}`); process.exit(2); }
 }
 
 export const ARMS = [['READER', 'TS+J'], ['OFF', 'PRODUCT']];
-export const SETS = ['linear', 'logblend'];
+export const SETS = ['linear', 'logblend', 'reversed'];
 export const labelOf = (tag, set) => `${tag}/W${W}${set === 'linear' ? '' : '@' + set}`;
 export const UNITS = ARMS.flatMap(([A, tag]) => HOUSEHOLDS.flatMap(id => SETS.map(set => [id, A, tag, set])));
 if (process.argv[2] === '--units') { console.log(UNITS.length); process.exit(0); }
-console.log(`7AI, O60'S OPENINGS CHECK: the bundle (READER/TS+J) and the shipping default (OFF/PRODUCT) with the import's linear tier returns and with the medians of their blends (results-o60.txt), the product's settings (solvePlan) with the estate weight ${W}, ${POINTS} points, solves only (the opening on path 0 of seed ${SEED}); ${UNITS.length} units; part ${pk}/${pn}`);
+console.log(`7AI, O60'S OPENINGS CHECK: the bundle (READER/TS+J) and the shipping default (OFF/PRODUCT) with the import's linear tier returns and with the medians of their blends (results-o60.txt) and moved the other way, the product's settings (solvePlan) with the estate weight ${W}, ${POINTS} points, solves only (the opening on path 0 of seed ${SEED}); ${UNITS.length} units; part ${pk}/${pn}`);
 
 const chooseAt = (r, st, t, held, sm) => { const keep = r.switchMargin; r.switchMargin = sm; try { return chooseAction(r, st, t, held); } finally { r.switchMargin = keep; } };
 const openGap = (r, zs) => {
@@ -120,7 +127,7 @@ const openGap = (r, zs) => {
   if (stays(0)) gap = '0';
   else if (!stays(1)) gap = '>1';
   else { let lo = 0, hi = 1; for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (stays(mid)) hi = mid; else lo = mid; } gap = hi.toExponential(4); }
-  return { gap, open: [0.001, 0].map(sm => at(sm).tierPen).join(',') };
+  return { gap, open: [0.001, 0].map(sm => at(sm).tierPen).join(','), open2: [0.001, 0].map(sm => `${at(sm).tierPen},${at(sm).tierIsa}`).join(' ') };
 };
 
 UNITS.forEach(([id, A, tag, set], i) => {
@@ -145,7 +152,7 @@ UNITS.forEach(([id, A, tag, set], i) => {
   const ra = r.meta.riskAbove ? r.meta.riskAbove.decision.replace(/ /g, '_') : 'unset';
   console.log(`${''.padEnd(16)} solve ${A}/${label}: table ${table.toFixed(4)} secs ${Math.round(secs)}`);
   console.log(`${''.padEnd(16)} ran ${A}/${label}: ${ran}`);
-  { const zs = E.pathsForSeed(SEED, 1, m.ctx.totalYears)[0]; const g = openGap(r, zs); console.log(`${''.padEnd(16)} gap ${A}/${label}: ${g.gap} opening ${g.open}`); }
+  { const zs = E.pathsForSeed(SEED, 1, m.ctx.totalYears)[0]; const g = openGap(r, zs); console.log(`${''.padEnd(16)} gap ${A}/${label}: ${g.gap} opening ${g.open}`); console.log(`${''.padEnd(16)} opening2 ${A}/${label}: ${g.open2}`); }
   console.log(`${''.padEnd(16)} joint ${A}/${label}: ${!!r.meta.jointWorlds} switchMargin ${r.switchMargin} scale ${Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0)))} cap ${Math.round(r.meta.bequestCap)} deathTax ${r.m.ctx.pensionDeathTaxRate} tier own riskAbove ${ra}`);
   console.log(`${''.padEnd(16)} tiers ${A}/${label}: ${menu}`);
   console.log(`${''.padEnd(16)} done ${A}/${label}`);

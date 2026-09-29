@@ -1,4 +1,4 @@
-true script: planted (23): all read as they should
+true script: planted (29): all read as they should
 caught  the gate accepts a missing unit: PLANTED CHECK FAILED:
 caught  the gate accepts a unit twice: PLANTED CHECK FAILED:
 caught  the gate accepts an unregistered unit: PLANTED CHECK FAILED:
@@ -9,12 +9,19 @@ caught  the gate ignores the switch margin: PLANTED CHECK FAILED:
 caught  the gate ignores a death charge: PLANTED CHECK FAILED:
 caught  the gate ignores the reference's table: PLANTED CHECK FAILED:
 caught  the gate ignores the reference's gap: PLANTED CHECK FAILED:
-caught  the gate lets a blend ran line differ: PLANTED CHECK FAILED:
+caught  the gate lets a shifted ran line differ: PLANTED CHECK FAILED:
 caught  the gate ignores a tier that did not move: PLANTED CHECK FAILED:
 caught  the gate ignores linear tiers off O60's: PLANTED CHECK FAILED:
-caught  item 1 needs two moves: PLANTED CHECK FAILED:
-caught  item 2 reads rises as falls: PLANTED CHECK FAILED:
-caught  item 2's threshold at 9: PLANTED CHECK FAILED:
+caught  the gate ignores shifted tiers off their figures: PLANTED CHECK FAILED:
+caught  the gate ignores a missing opening2 line: PLANTED CHECK FAILED:
+caught  the reversed arm reads the blend's figures: PLANTED CHECK FAILED:
+caught  item 1 counts same as opposite: PLANTED CHECK FAILED:
+caught  item 1 counts ties: PLANTED CHECK FAILED:
+caught  item 1's HELD at 0.7: PLANTED CHECK FAILED:
+caught  item 1's FALSIFIED off: PLANTED CHECK FAILED:
+caught  the untied floor at 6: PLANTED CHECK FAILED:
+caught  item 2 reads down as up: PLANTED CHECK FAILED:
+caught  item 2 reads the reversed arm: PLANTED CHECK FAILED:
 caught  the gap order puts 0 last: PLANTED CHECK FAILED:
 
-17 mutations: every one caught
+24 mutations: every one caught

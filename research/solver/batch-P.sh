@@ -15,4 +15,6 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 seq 0 39 | xargs -P 4 -I{} sh -c \
   'timeout 18000 node research/solver/audit-s126.mjs diagP 30 16000 part {}/40 7002 16000 16000 > research/solver/results/diagP/case{}.txt 2>&1 || echo "job {} exited $?"'
 echo "P runs done $(TZ=Europe/London date +%H:%M) UK"
-node research/solver/reduce-P.mjs "$OUT"
+# inside the launcher's snapshot reduce-P.mjs refuses 7ae's records: 7ae's declared correction cannot be verified without git
+# there (O58); the registered read is reduce-P.mjs run in the real tree after the batch
+node research/solver/reduce-P.mjs "$OUT" || echo "=== reduce-P.mjs did not run to its outcome inside the snapshot (O58): reduce in the real tree"

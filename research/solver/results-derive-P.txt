@@ -43,3 +43,5 @@ P'S DERIVATION AND POWER, from 7ae's gated traces (the three units at world 0's 
     q 0.50: HELD 0.025  FALSIFIED 0.021  INCONCLUSIVE 0.954
     q 0.75: HELD 0.000  FALSIFIED 0.342  INCONCLUSIVE 0.658
     q 1.00: FALSIFIED 0.875  INCONCLUSIVE 0.125
+
+5. OPEN2'S PAIR: 7ae's TS+J at 1e-3 opened in 2/2 on all three units (bridge 4, S194, S126)

@@ -18,6 +18,10 @@
  *      8,000 (so every column carries sampling noise; the first derivation's 8,000 column did not resample and read 1.000 by
  *      construction at q = 1: the plan-auditor's BLOCKING 2 of 29 Sep, O56). Read by reduce-P.mjs's own thresholds (M1, M2,
  *      MW). 4,000 draws a story, seeded.
+ *   5. OPEN2'S PAIR: 7ae's TS+J at 1e-3 opened in the de-risked pair on all three units (reduce-P.mjs pairOn7ae, over the
+ *      gated full-size records). The gate checks it at the batch's sizes; at the preflight's 4 points it cannot (a 4-point
+ *      opening is not the registered one), and inside the launcher's snapshot 7ae's records cannot be loaded (no git there to
+ *      verify 7ae's declared correction: O58), so it is checked here, where the launcher re-runs this derivation before every launch.
  *   Items 4 and 5 (all worlds) have no record at margin 0 or P to draw from (every TS+J run across all worlds was at 0.001);
  *   their power is stated in the prediction from 7aa's own discordance, not simulated here. Items 6 and 7 are counts read
  *   without sampling error of this kind (the openings are solves; item 7's shares sit on thousands of path-years).
@@ -25,13 +29,13 @@
  */
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { M1, M2, MW, CORE, WN, churn, BANDS, pair, loadRefs, Z95 } from './reduce-P.mjs';
+import { M1, M2, MW, CORE, WN, churn, BANDS, pair, loadRefs, Z95, pairOn7ae, DERISK } from './reduce-P.mjs';
 import * as E from './reduce-7ae.mjs';
 import * as A from './reduce-7aa.mjs';
 import * as F from './reduce-7af.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), R_ = n => join(HERE, 'results', n);
-const { TRE, jobsE } = loadRefs(R_('diag7ae'), R_('diag7ad'), R_('diag7ac'), R_('diag7aa'), R_('diag7af'));
+const { R, TRE, jobsE } = loadRefs(R_('diag7ae'), R_('diag7ad'), R_('diag7ac'), R_('diag7aa'), R_('diag7af'));
 const tr = (id, m, rule) => TRE[`${id}|${m}|${rule}`];
 const f3 = x => `${x >= 0 ? '+' : ''}${x.toFixed(3)}`, iv = p => `${f3(p.d)} (${p.lo.toFixed(3)} to ${p.hi.toFixed(3)})`;
 
@@ -75,3 +79,8 @@ for (const [name, x, sign, read, scale] of [
   console.log(`  ${name}`);
   for (const q of [0, 0.25, 0.5, 0.75, 1]) console.log(`    q ${q.toFixed(2)}: ${story(x, q, sign, read, scale)}`);
 }
+
+// 5. OPEN2's pair on 7ae's gated full-size records
+const off = pairOn7ae(R);
+console.log(`\n5. OPEN2'S PAIR: 7ae's TS+J at 1e-3 opened in ${DERISK.join('/')} on ${off.length ? `all but ${off.join(', ')}` : `all three units (${CORE.map(([id]) => id).join(', ')})`}`);
+if (off.length) { console.log('OPEN2\'S PAIR IS NOT 7AE\'S OPENING'); process.exit(1); }

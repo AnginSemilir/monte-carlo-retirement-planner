@@ -7,6 +7,7 @@
  *   2. O60's size (results-o60.txt): the pension's de-risk (High Risk to Medium Risk) costs 1.10 points a year with the
  *      linear tiers and 0.79 with the blend medians - the linear figures overcharge it by 0.31, about 28% of its cost - and
  *      every tier's return rises by 0.17 to 0.49 points a year.
+ *   3. The reversed reference arm's tiers (2 x linear - blend) and its de-risk step.
  * No solve. Output hashed on the prediction's derive: line.
  *   node research/solver/derive-7ai.mjs > research/solver/results-derive-7ai.txt
  */
@@ -14,7 +15,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as A from './reduce-7aa.mjs';
-import { HOUSEHOLDS, FROM_AF, readO60 } from './reduce-7ai.mjs';
+import { HOUSEHOLDS, FROM_AF, readO60, reversedOf, TIERS } from './reduce-7ai.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const units = d => (existsSync(d) ? readdirSync(d).filter(f => /^case\d+\.txt$/.test(f)).sort().flatMap(f => A.parse(readFileSync(join(d, f), 'utf8'))) : []);
@@ -36,3 +37,5 @@ console.log(`\n${near} of ${n} pairs flip their 0.001 opening on a gap move of 1
 const o = readO60(readFileSync(join(HERE, 'results-o60.txt'), 'utf8'));
 const lin = o['High Risk'].linear - o['Medium Risk'].linear, bl = o['High Risk'].blend - o['Medium Risk'].blend;
 console.log(`O60 (results-o60.txt): the de-risk High to Medium costs ${lin.toFixed(2)} points a year linear, ${bl.toFixed(2)} with the blend medians - overcharged by ${(lin - bl).toFixed(2)}, ${(100 * (lin - bl) / lin).toFixed(0)}% of its cost; the tiers rise by ${Math.min(...Object.values(o).map(x => x.blend - x.linear)).toFixed(2)} to ${Math.max(...Object.values(o).map(x => x.blend - x.linear)).toFixed(2)} points a year`);
+const rv = Object.fromEntries(TIERS.map(k => [k, reversedOf(o, k)]));
+console.log(`the reversed reference (2 x linear - blend): ${TIERS.map(k => `${k} ${rv[k].toFixed(2)}`).join(', ')}; its de-risk High to Medium costs ${(rv['High Risk'] - rv['Medium Risk']).toFixed(2)} points a year`);

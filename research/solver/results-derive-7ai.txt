@@ -17,3 +17,4 @@
 
 7 of 14 pairs flip their 0.001 opening on a gap move of 10% or less; the smallest move needed 2.6%, the median 20.9%
 O60 (results-o60.txt): the de-risk High to Medium costs 1.10 points a year linear, 0.79 with the blend medians - overcharged by 0.31, 28% of its cost; the tiers rise by 0.17 to 0.49 points a year
+the reversed reference (2 x linear - blend): High Risk 4.61, Medium/High Risk 3.83, Medium Risk 3.20, Medium/Low Risk 2.73, Low Risk 2.42; its de-risk High to Medium costs 1.41 points a year

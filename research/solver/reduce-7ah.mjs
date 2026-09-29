@@ -211,6 +211,19 @@ export function loadMatched(matched, DIR, ST, TR, bad, n = N) {
 }
 const normRan = ran => ran.replace(/ tierState \S+/, '').replace(/ readerRef \S+/, '').replace(/(^| )bridgeRead \S+/, '$1bridgeRead X').replace(/(^| )paths \d+/, '$1paths X');
 export const sliceTrace = (T, n) => ({ ...T, N: n, survived: T.survived.subarray(0, n), level: T.level.subarray(0, n * T.Y), tier: T.tier.subarray(0, n * T.Y), wealth: T.wealth.subarray(0, n * T.Y), failYear: T.failYear.subarray(0, n), ...(T.taxPaid ? { taxPaid: T.taxPaid.subarray(0, n * T.Y) } : {}) });
+/* SHIP's joint line against ORDER/0.02's (the plan-auditor's MINOR 6 of 29 Sep 22:33): the product's per-world tables
+   (one policy per world: joint false), the switch margin 0.001, no pension death charge (O53: the whole score reads the
+   pot as the estate), the plan's own tier, and ORDER's scale, cap and risk-above decision */
+export function shipJointBad(u, O) {
+  const bad = [], j = u.joint, o = O && O.joint;
+  if (!j) return ['no joint line'];
+  if (j.joint) bad.push('one policy for every world');
+  if (j.margin !== '0.001') bad.push(`switch margin ${j.margin}`);
+  if (j.deathTax !== 0) bad.push(`a pension death charge ${j.deathTax}`);
+  if (j.tier !== 'own') bad.push(`plan tier ${j.tier}`);
+  if (!o || j.scale !== o.scale || j.cap !== o.cap || j.decided !== o.decided) bad.push('scale, cap or risk-above decision not ORDER\'s');
+  return bad;
+}
 /* SHIP: 7af's or 7ag's own unit, once and done, its ran line ORDER/0.02's but for the arm's own fields (no tier state, no
    reference, no bridge read, its path count); its trace its log's (stamp, count, survival), cut to the first n paths.
    `src(id)` = { units, DIR, ST, n } of the record the household came from */
@@ -221,6 +234,7 @@ export function loadShip(units, src, TR, bad, n = N) {
     const u = ss[0];
     if (!O || !O.ran || normRan(u.ran) !== normRan(O.ran)) { bad.push(`${id}: SHIP's ran line is not ORDER/W0.02's but for the arm`); continue; }
     if (field(u.ran, 'bridgeRead') !== 'false' || field(u.ran, 'tierState') !== null) { bad.push(`${id}: SHIP ran bridgeRead ${field(u.ran, 'bridgeRead')} tierState ${field(u.ran, 'tierState')}`); continue; }
+    { const jb = shipJointBad(u, O); if (jb.length) { bad.push(`${id}: SHIP's joint line: ${jb.join('; ')}`); continue; } }
     const f = join(S.DIR, traceName(id, 'OFF', 'PRODUCT/W0.02'));
     if (!existsSync(f)) { bad.push(`no trace ${f}`); continue; }
     const j = readTrace(f);
@@ -339,6 +353,8 @@ function planted() {
   cases.push(['item 8: a whole-score upper end below -0.25 against SHIP on bridge 6 is harm', sp({ WLS: id => (id === 'bridge 6' ? WL0(-0.5, -0.8, -0.3) : WL0(0, -0.1, 0.1)) }).find(i => i.n === 8).outcome, 'FALSIFIED']);
   { const X = { N: 4, Y: 2, survived: Uint8Array.from([1, 0, 1, 1]), level: Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]), tier: Uint8Array.from([0, 0, 5, 5, 10, 10, 0, 0]), wealth: Float32Array.from([1, 2, 3, 4, 5, 6, 7, 8]), failYear: Int16Array.from([-1, 1, -1, -1]) }, Z = sliceTrace(X, 2);
     cases.push(['a 16,000-path trace cut to its first paths keeps them whole', `${Z.N} ${Array.from(Z.survived)} ${Array.from(Z.tier)} ${Array.from(Z.failYear)}`, '2 1,0 0,0,5,5 -1,1']); }
+  { const O = { joint: { joint: true, margin: '0.001', deathTax: 0, tier: 'own', scale: 950000, cap: 3800000, decided: 'off' } }, S = o => ({ joint: { joint: false, margin: '0.001', deathTax: 0, tier: 'own', scale: 950000, cap: 3800000, decided: 'off', ...o } });
+    cases.push(['SHIP\'s joint line: its own passes; a death charge, another margin, one policy for every world, another cap or another risk-above decision is refused', [shipJointBad(S({}), O).length, ...[{ deathTax: 0.4 }, { margin: '0' }, { joint: true }, { cap: 1 }, { decided: 'on' }].map(o => shipJointBad(S(o), O).length > 0)].join(' '), '0 true true true true true']); }
   cases.push(['SHIP\'s ran line compares to ORDER\'s but for the arm\'s fields', [normRan(RAN('bridge 4', '0.02', ' readerRef order')) === normRan(RAN('bridge 4', '0.02').replace(' tierState 0/0,1/1,2/2', '').replace('bridgeRead reader', 'bridgeRead false').replace('paths 8000', 'paths 16000')), normRan(RAN('bridge 4', '0.02', ' readerRef order')) === normRan(RAN('bridge 4', '0.02').replace('minPot 29000', 'minPot 30000'))].join(' '), 'true false']);
   const wrong = cases.filter(([, got, want]) => got !== want);
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([nm, got, w]) => `${nm} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }

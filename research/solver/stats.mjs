@@ -161,7 +161,7 @@ export function pooledFE(cases) {
  * 7u and 8f). The households' paired cells added into one table, read by survivalChangeU: each household weighs by its
  * paths, not by its own counts, so a household that lost fewer by chance does not weigh more. At a true one-sided loss of
  * 0.1 on every one of 7e's 16 pool cases it holds 2.0% to 3.2% of the time, against 2.5% (results-pooled-fixed.txt);
- * pooledFE held 6.1% to 65.9%. `cases` [{ a, lost, saved, d }] (a both survive, d both fail); returns survivalChangeU's
+ * pooledFE held 7.1% at 7e's two looks (results-pooled-floor.txt) and 13.0% to 65.9% at a fixed count (results-pooled-fixed.txt). `cases` [{ a, lost, saved, d }] (a both survive, d both fail); returns survivalChangeU's
  * interval over the sum, in points (d, lo, hi), and the pooled cells.
  */
 export function pooledSummed(cases, level = 0.05) {

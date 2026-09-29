@@ -49,6 +49,8 @@ M = [
     ("the cut keeps every path", "survived: T.survived.subarray(0, n),", "survived: T.survived,"),
     ("SHIP's ran line compared to nothing", "const normRan = ran => ran.replace(/ tierState \\S+/, '')", "const normRan = ran => ''.replace(/ tierState \\S+/, '')"),
     ("a matched line's case not read", "if ((m = CASEL.exec(line))) { id = m[1].trim(); continue; }", "if ((m = CASEL.exec(line))) { continue; }"),
+    ("SHIP's death charge not read", "if (j.deathTax !== 0) bad.push(`a pension death charge ${j.deathTax}`);", ""),
+    ("SHIP's scale, cap and decision not read", "if (!o || j.scale !== o.scale || j.cap !== o.cap || j.decided !== o.decided) bad.push", "if (false) bad.push"),
 ]
 def run(f):
     p = subprocess.run(['node', f, '--planted'], capture_output=True, text=True)

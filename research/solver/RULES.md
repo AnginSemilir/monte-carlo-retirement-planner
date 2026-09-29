@@ -402,7 +402,10 @@ checked by the plan-auditor by hand.
    the guarded unconditional interval (stats.mjs survivalChangeU, Newcombe 1998 method 10, held at least as far out as the
    exact bound on a one-sided count: reduce-7aa.mjs guarded): a household passes only when the exact rule reads no
    material harm and the guarded interval's lower end is above minus the margin; harm as item 3 below. Calibrated at a
-   true loss at the margin: at most 1.5% false passes against 2.5% stated (results-sim-whole-harm.txt).
+   true loss at the margin (sim-survival-rule.mjs, results-sim-survival-rule.txt; the plan-auditor's BLOCKING 2 of 29 Sep
+   22:33 found the first citation calibrated the whole score instead): the rule passes it 1.72% to 2.67% of the time
+   against 2.5% stated, at survival 46% to 99.8% and 8,000 or 16,000 paths - about nominal; the exact rule alone passes it
+   47% to 48%.
 2. **Margins, set once:** 0.25 points where the comparison arm survives 95% or more, 0.5 points below, 0.1 points for a
    pooled mean. Gate 4's 1-point condition stays at the product level. They go into the decided-defaults block with a
    test pinning them (plan-defaults.test.mjs, since 25 Sep 21:54 UK).
@@ -421,7 +424,7 @@ checked by the plan-auditor by hand.
    is read by the households' paired cells summed into one table and read by the unconditional interval (stats.mjs
    pooledSummed): each household weighs by its paths, not its own counts, so one that lost fewer by chance does not weigh
    more. At a true loss of 0.1 on every one of 7e's 16 pool cases it holds 2.0% to 3.2% of the time against 2.5%
-   (results-pooled-fixed.txt), where the fixed-effect pool held 6.1% to 65.9% - the pooled gate of 7u and 8f.
+   (results-pooled-fixed.txt), where the fixed-effect pool held 7.1% at 7e's two looks (results-pooled-floor.txt; random effects 6.1%) and 13.0% to 65.9% at a fixed path count (results-pooled-fixed.txt) - the pooled gate of 7u and 8f.
 5. **One primary outcome per test;** everything else is descriptive.
 6. **Power before the run:** the paths needed so the interval fits the margin, N > 1.96^2 d / delta^2 (d the discordance
    rate), from the nearest earlier records, by a committed script.

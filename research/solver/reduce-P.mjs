@@ -172,7 +172,7 @@ export function gate(jobs, R, { n = N, wn = WN, na = NA, pts = null } = {}) {
     const ref = refOf(j, R, pts);
     if (!ref) bad.push(`${tagJ}: no reference to compare with (${core ? '7ae' : j.kind === 'grid' ? '7ad or 7af' : '7af or 7ag'})`);
     // OPEN2's pair is 7ae's 1e-3 opening at the registered 30x5; at the preflight's 4 points 7ae's preflight opens where a
-    // 4-point grid puts it, so there the pair is checked on 7ae's gated full-size records instead (preflight-parse-P.mjs, pairOn7ae)
+    // 4-point grid puts it, so there the pair is checked on 7ae's gated full-size records instead (derive-P.mjs section 5, pairOn7ae)
     if (core && ref && !pts && (!ref.t1e3 || !ref.t1e3.moves || !sameArr(ref.t1e3.moves.chosenTier, DERISK))) bad.push(`${tagJ}: 7ae's TS+J at 1e-3 did not open in the de-risked pair ${DERISK.join('/')}`);
     for (const mg of want) {
       const u = j.tags[mg], L = `${tagJ} M${mg}`;

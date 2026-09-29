@@ -176,8 +176,10 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    gate now takes a declared correction (fair-gate.mjs declaredCorrection) - the file may differ from its launch blob, which
    git gives back by its hash, only in UK time tokens ("HH:MM UK") and by an addition to its "Changes after seeing results"
    that declares the change; the declaration is printed with the figures. Anything else - a prediction, falsifier, rule,
-   fair-test row, figure or date - is still PREDICTION EDITED (research/tests/fair-gate.test.mjs, seven planted cases; each
-   of the gate's six new conditions shown to fail a test when broken). A substantive change after launch still goes to
+   fair-test row, figure or date - is still PREDICTION EDITED (research/tests/fair-gate.test.mjs, eight planted cases; each
+   of the gate's six new conditions shown to fail a test when broken; a declaration with no time changed is refused, the
+   plan-auditor's MINOR 3 of 29 Sep). Its limit: the declaration's words are not checked, and any "HH:MM UK" token may
+   move, the Written line's included - the review reads the declaration against the records. A substantive change after launch still goes to
    PLAN.md's ledger and the prediction stays at its launch blob.
 20. uncertainty.mjs counts a settled result as a ledger row that names its prediction; since 27 Sep a maintainer's decision
    row ("(maintainer)" in the result cell) is not counted even when it names one (the maintainer: two deep reviews were

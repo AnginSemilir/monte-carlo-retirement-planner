@@ -96,6 +96,7 @@ ok(missing.length === 0, `every reducer outside the legacy list calls requireFai
   ok(lc(fixed.replace('No harm at 0.25', 'No harm at 0.5')).some(e => /PREDICTION EDITED/.test(e)), 'planted: a declared correction that also changes the prediction is caught');
   ok(lc(L.replace('23:40 UK', '23:32 UK')).some(e => /PREDICTION EDITED/.test(e)), 'planted: a time corrected without a declaration is caught');
   ok(lc(fixed.replace('- **Written:** 28 Sept', '- **Written:** 27 Sept')).some(e => /PREDICTION EDITED/.test(e)), 'planted: a date (not a UK time) changed under a declaration is caught');
+  ok(lc(L.replace('\n## Changes after seeing results\n\nNone.\n', DECL)).some(e => /PREDICTION EDITED/.test(e)), 'planted: a declaration with no time changed is caught (a declaration alone is not a correction)');
   ok(checkLogStamps({ a: st() }, P, { blob: () => 'p2', textAt: () => null, textNow: () => fixed }).some(e => /PREDICTION EDITED/.test(e)), 'planted: a launch version git cannot give back is caught');
   { const L2 = L.replace('\nNone.\n', '\n- An earlier declaration.\n'), F2 = L2.replace('23:40 UK', '23:32 UK');
     ok(checkLogStamps({ a: st() }, P, { blob: () => 'p2', textAt: () => L2, textNow: () => F2.replace('- An earlier declaration.', '- Rewritten into a longer declaration than the one at launch.') }).some(e => /PREDICTION EDITED/.test(e)), 'planted: a declaration that rewrites the launch section is caught');

@@ -1531,53 +1531,58 @@ if (mode === 'f1v2') {
 } else if (mode === 'diagP') {
   /*
    * P: THE SWITCH CHARGED IN BOTH PASSES (PLAN.md P; predictions/diag-p.md; the deep review after 7ae, deep-review-log.md
-   * 28 Sep 22:52 UK, which proposed it; the deep review of 29 Sep 08:56 UK, which added the openings read and the O50 split;
-   * the maintainer's go-ahead, 29 Sep 07:49 UK). TS+J (7aa's unit: the product's settings, 'auto' risk above, lambda held,
-   * the tier state and one move for every world, the estate weight passed) solved with switchMargin 0 and the switch
-   * charged 0.001 in the score (solve.js switchCharge: in the backward pass's h, so the stored values carry every later
-   * switch's charge, and in the forward chooser at the true state). Setting P is that; settings 0 and 1e-3 are 7ae's two
-   * solves (switchMargin 0; the product's margin 0.001) solved again, to be identity-checked against 7ae's lines and, on
-   * the node's first 8,000 paths, 7ae's traces - so every arm runs on the same WN paths (16,000: twice 7ae's, for items 1
-   * and 2's power; derive-P.mjs). Three kinds of job:
+   * 28 Sep 22:52 UK, which proposed it; the deep reviews of 29 Sep 08:56 UK (the openings read) and 11:30 UK (the redesign:
+   * equal openings, the decision log, O50 by survival and the whole score across all worlds, the world-aware 2x2, share 0.95
+   * at three grids); the maintainer's go-ahead, 29 Sep 07:49 UK). TS+J (7aa's unit: the product's settings, 'auto' risk
+   * above, lambda held, the tier state and one move for every world, the estate weight passed) solved with switchMargin 0
+   * and the switch charged 0.001 in the score (solve.js switchCharge: in the backward pass's h, so the stored values carry
+   * every later switch's charge, and in the forward chooser at the true state). Setting P is that; settings 0 and 1e-3 are
+   * 7ae's two solves (switchMargin 0; the product's margin 0.001) solved again, to be identity-checked against 7ae's lines,
+   * 7ae's node traces on the first 8,000 node paths and 7aa's all-world traces - so every arm runs on the same paths. Jobs:
    *   core - one job a unit and setting, 7ae's three units at 30x5 (bridge 4 reader W0, S194 off W0.02, S126 reader W0):
-   *          the gap, moves, price and world lines (7ae's), and at world 0's node on the first WN paths TS+J, OPEN0 (the
-   *          year-0 move held in the plan's tiers, the setting's chooser after) and, at P and 0, WA (the world-aware
-   *          chooser: every move scored on world 0's table alone, the tables unchanged - the O50 split) forward, traces kept;
-   *   grid - bridge 4 and S194 at 30x15 and 60x5, at P: the gap, moves, price and world lines (the opening's robustness;
-   *          7ad's grids);
+   *          the gap, moves, price and world lines (7ae's); at world 0's node on the first WN paths four rules forward, each
+   *          with 7ae's decision log (years 1 to 10, the paths holding the plan's tiers) and its trace kept - TS+J (the
+   *          setting's chooser), OPEN0 (the year-0 move held in the plan's tiers), OPEN2 (the year-0 move forced to the
+   *          de-risked pair 2/2, the best such move), and WA (the world-aware chooser: every move scored on world 0's table
+   *          alone, the tables unchanged); and TS+J across all worlds on the first NA paths (the paths' own shifts), traced;
+   *   grid - bridge 4, S194 and share 0.95 (the bundle's unit) at 30x15 and 60x5, P: the gap, moves, price and world lines;
    *   open - the 25 households of 7e's panel read by 7af (sixteen) and 7ag (nine), the bundle's unit (READER/TS+J/W0.02) at
    *          P: the gap, moves and price lines (the openings read that feeds the maintainer's Q decision, and shows where P
    *          moves the bundle's opening on every household the recommendation covers).
-   *   node research/solver/audit-s126.mjs diagP [points] [paths] part k/n [seed=7002] [node paths=16000]
+   *   node research/solver/audit-s126.mjs diagP [points] [paths] part k/n [seed=7002] [node paths=16000] [all-world paths=8000]
    * The preflight: DIAGP_GRID=4 runs every job at 4 wealth points, the return points as named. Traces go to results/diagP
    * (DIAGP_OUT when set), stamped. Jobs in the order core, grid, open (the longest first); part k/n runs index i % n === k.
    */
   const CORE = [['bridge 4', 'reader', 0], ['S194', 'off', 0.02], ['S126', 'reader', 0]];
-  const GRIDS = [['bridge 4', 'reader', 0, 30, 15], ['S194', 'off', 0.02, 30, 15], ['bridge 4', 'reader', 0, 60, 5], ['S194', 'off', 0.02, 60, 5]];
+  const GRIDS = [['bridge 4', 'reader', 0, 30, 15], ['S194', 'off', 0.02, 30, 15], ['share 0.95', 'reader', 0.02, 30, 15], ['bridge 4', 'reader', 0, 60, 5], ['S194', 'off', 0.02, 60, 5], ['share 0.95', 'reader', 0.02, 60, 5]];
   const OPENS = ['share 0.50', 'share 0.70', 'share 0.78', 'share 0.90', 'share 0.95', 'bridge 0', 'bridge 1', 'bridge 6', 'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S126', 'bridge 4', 'S360', 'S194',
     'S124', 'S128', 'S130', 'S366', 'S370', 'bridge 4+cost', 'S162', 'S172', 'S168'];
   const JOBSP = [...['P', '0', '1e-3'].flatMap(m => CORE.map(([id, arm, w]) => [`core:${m}`, id, arm, w, 30, 5])), ...GRIDS.map(([id, arm, w, p, q]) => ['grid', id, arm, w, p, q]), ...OPENS.map(id => ['open', id, 'reader', 0.02, 30, 5])];
-  const CHARGE = 0.001;
+  const CHARGE = 0.001, YEARS = 10, DERISK = { pen: 2, isa: 2 };
   const SETTINGS = { P: { switchMargin: 0, switchCharge: CHARGE }, 0: { switchMargin: 0 }, '1e-3': {} }, MARGIN = { P: 0, 0: 0, '1e-3': 0.001 };
+  const RULESP = ['TS+J', 'OPEN0', 'OPEN2', 'WA'];
   const ARM = { off: false, reader: 'reader' };
   const known = [...F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]), ['bridge 4+cost', () => variant('bridge 4+cost', { bridge: 4, cost: [2, 30000] })]];
   const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
-  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002, WN = process.argv[8] ? Number(process.argv[8]) : 16000;
-  if (!(SEED >= 1) || !(WN >= 1) || WN > NP) { console.error(`audit-s126: bad seed or node paths ${process.argv[7]} ${process.argv[8]} (node paths at most the paths, ${NP})`); process.exit(2); }
+  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002, WN = process.argv[8] ? Number(process.argv[8]) : 16000, NA = process.argv[9] ? Number(process.argv[9]) : 8000;
+  if (!(SEED >= 1) || !(WN >= 1) || WN > NP || !(NA >= 1) || NA > NP) { console.error(`audit-s126: bad seed, node or all-world paths ${process.argv[7]} ${process.argv[8]} ${process.argv[9]} (each at most the paths, ${NP})`); process.exit(2); }
   const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
   const [pk, pn] = part.split('/').map(Number);
   if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
   const SMALL = process.env.DIAGP_GRID ? Number(process.env.DIAGP_GRID.split('x')[0]) : null;
   const OUT = process.env.DIAGP_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diagP');
   mkdirSync(OUT, { recursive: true });
-  console.log(`P, THE SWITCH CHARGED IN BOTH PASSES (switchCharge ${CHARGE}, switchMargin 0), the product's settings (solvePlan) but the estate weight, ${NP} paths (seed ${SEED}), ${WN} at the bad node: ${JOBSP.length} jobs (9 core at 30x5, P and 7ae's two settings again, 4 grid, 25 openings); part ${pk}/${pn}`);
+  console.log(`P, THE SWITCH CHARGED IN BOTH PASSES (switchCharge ${CHARGE}, switchMargin 0), the product's settings (solvePlan) but the estate weight, ${NP} paths (seed ${SEED}), ${WN} at the bad node, ${NA} across all worlds: ${JOBSP.length} jobs (9 core at 30x5, P and 7ae's two settings again; 6 grid; 25 openings); part ${pk}/${pn}`);
   const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
   const chooseAt = (r, st, t, held, sm) => { const keep = r.switchMargin; r.switchMargin = sm; try { return chooseAction(r, st, t, held); } finally { r.switchMargin = keep; } };
   // the world-aware chooser: every move scored on world 0's table alone (weight 1 there, 0 elsewhere; a move failing in any
-  // table still fails), the tables and the charge unchanged
+  // table still fails), the tables, the margin and the charge unchanged
   const worldAware = (r, f) => { const keep = r.mix.weights; r.mix.weights = keep.map((_, k) => (k === 0 ? 1 : 0)); try { return f(); } finally { r.mix.weights = keep; } };
+  // OPEN2's year-0 move: the best move whose tiers are the de-risked pair (scored as if that pair were held, so no charge
+  // or margin separates the pair's own moves)
+  const toDerisk = (r, st, held) => chooseAt(r, st, 0, { ...held, pen: DERISK.pen, isa: DERISK.isa }, Infinity);
   const opening = (r, zs) => { let s0 = null, h0 = null; runPolicy(r, zs, { choose: (t, st, held) => { if (t === 0 && !s0) { s0 = Float64Array.from(st); h0 = { ...held }; } return chooseAction(r, st, t, held); } }); return { s0, h0 }; };
-  // the gap: the least margin, on top of the charge, at which the chooser keeps the held tiers ('0' where the charge alone does)
+  // the gap: the least margin, on top of any charge, at which the chooser keeps the held tiers ('0' where it keeps them at 0)
   const openGap = (r, s0, h0) => {
     const acts = r.c.acts, at = sm => acts[chooseAt(r, s0, 0, h0, sm)];
     const stays = sm => { const a = at(sm); return a.tierPen === h0.pen && a.tierIsa === h0.isa; };
@@ -1602,22 +1607,32 @@ if (mode === 'f1v2') {
     return { whole: 100 * (S2[aB] - S2[aS]), surv: 100 * (V2[aB] - V2[aS]) };
   };
   const moves = (r, s0, h0) => { const bi = chooseAt(r, s0, 0, h0, 0), si = chooseAt(r, s0, 0, h0, Infinity), ci = chooseAction(r, s0, 0, h0), a = r.c.acts; return { bi, si, ci, txt: `best ${bi} ${a[bi].tierPen}/${a[bi].tierIsa} stay ${si} ${a[si].tierPen}/${a[si].tierIsa} chosen ${ci} ${a[ci].tierPen}/${a[ci].tierIsa} held ${h0.pen}/${h0.isa}` }; };
-  // a forward run at the node: TS+J the chooser as solved; OPEN0 its year-0 move held in the tiers held (STAY), the chooser
-  // after; WA the world-aware chooser every year
-  const run = (r, paths, rule) => {
-    const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = makeTrace(N, T + 1), acts = r.c.acts;
+  // a forward run at the node with 7ae's decision log: `plan` the plan's tiers; a year's log counts the paths holding them at
+  // its start - the forward move leaving, the nearest cell's stored move for that held layer leaving, both ways of
+  // disagreeing, and the margin alone holding (the best move at margin 0 leaves, the chosen one stays)
+  const run = (r, paths, rule, plan) => {
+    const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = makeTrace(N, T + 1), acts = r.c.acts, tab = r.mix.tables[0];
+    const layerOf = new Map(); acts.forEach((a, ai) => { const key = `${a.tierPen || 0}/${a.tierIsa || 0}`; if (!layerOf.has(key)) layerOf.set(key, tab.tsLayerOf[ai]); });
+    const log = Array.from({ length: YEARS + 1 }, () => ({ held: 0, fwdLeave: 0, cellLeave: 0, fwdHoldCellLeave: 0, fwdLeaveCellHold: 0, marginHold: 0 }));
     let ok = 0, held0 = 0;
     const leaves = (ai, held) => acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa;
+    const pick = (t, st, held) => (rule === 'WA' ? worldAware(r, () => chooseAction(r, st, t, held)) : chooseAction(r, st, t, held));
     const choose = (t, st, held) => {
-      const ai = rule === 'OPEN0' && t === 0 ? chooseAt(r, st, 0, held, Infinity) : rule === 'WA' ? worldAware(r, () => chooseAction(r, st, t, held)) : chooseAction(r, st, t, held);
+      const ai = t === 0 && rule === 'OPEN0' ? chooseAt(r, st, 0, held, Infinity) : t === 0 && rule === 'OPEN2' ? toDerisk(r, st, held) : pick(t, st, held);
       if (t === 0 && held && !leaves(ai, held)) held0++;
+      if (t >= 1 && t <= YEARS && held && held.pen === plan.pen && held.isa === plan.isa) {
+        const L = log[t], j = layerOf.get(`${held.pen}/${held.isa}`), cell = tab.tsLayers[j].pol[Math.min(t, T)][nearestIndex(r.g, st)];
+        const f = leaves(ai, held), c = leaves(cell, held);
+        L.held++; if (f) L.fwdLeave++; if (c) L.cellLeave++; if (!f && c) L.fwdHoldCellLeave++; if (f && !c) L.fwdLeaveCellHold++;
+        if (!f && r.switchMargin > 0 && leaves(chooseAt(r, st, t, held, 0), held)) L.marginHold++;
+      }
       return ai;
     };
     paths.forEach((zs, k) => { tr.row = k; const o = runPolicy(r, zs, { trace: tr, choose }); if (o.survived) { ok++; okArr[k] = 1; } });
-    return { sim: 100 * ok / N, held0, okArr, tr, secs: (Date.now() - t0) / 1000 };
+    return { sim: 100 * ok / N, held0, okArr, tr, log, secs: (Date.now() - t0) / 1000 };
   };
-  const fileOf = (id, arm, m, rule, w) => `${id.replace(/ /g, '_')}-${arm}-m${m.toLowerCase()}-${rule.toLowerCase().replace(/\+/g, '_')}-world0@w${w}.json.gz`;
-  const save = (id, A, arm, m, rule, w, z, f, n) => writeFileSync(join(OUT, fileOf(id, arm, m, rule, w)), gzipSync(JSON.stringify({ id, arm: `${A}/${rule}/M${m}/W${w}/world0`, stamp: STAMP, N: n, Y: f.tr.Y, seed: SEED, node: z, sim: f.sim,
+  const fileOf = (id, arm, m, rule, w, where) => `${id.replace(/ /g, '_')}-${arm}-m${m.toLowerCase()}-${rule.toLowerCase().replace(/\+/g, '_')}-${where}@w${w}.json.gz`;
+  const save = (id, A, arm, m, rule, w, where, z, f, n) => writeFileSync(join(OUT, fileOf(id, arm, m, rule, w, where)), gzipSync(JSON.stringify({ id, arm: `${A}/${rule}/M${m}/W${w}/${where}`, stamp: STAMP, N: n, Y: f.tr.Y, seed: SEED, node: z, sim: f.sim,
     survived: b64(f.okArr), level: b64(f.tr.level), tier: b64(f.tr.tier), wealth: b64(f.tr.wealth), taxPaid: b64(f.tr.taxPaid), failYear: b64(f.tr.failYear) })));
   JOBSP.forEach(([kind, id, arm, w, pts0, quad], i) => {
     if (i % pn !== pk) return;
@@ -1648,9 +1663,16 @@ if (mode === 'f1v2') {
       if (!kind.startsWith('core:')) continue;
       const z = r.mix.nodes[0];
       const npaths = res.paths.slice(0, WN).map(zs => { const c = Float64Array.from(zs); c[c.length - 1] = z; return c; });
-      const a = run(r, npaths, 'TS+J'), b = run(r, npaths, 'OPEN0'), c = m === '1e-3' ? null : run(r, npaths, 'WA');
-      console.log(`${''.padEnd(16)} node ${L} 0 z ${z.toFixed(4)}: sim TS+J ${a.sim.toFixed(4)} OPEN0 ${b.sim.toFixed(4)} WA ${c ? c.sim.toFixed(4) : '-'} held0 TS+J ${a.held0} OPEN0 ${b.held0} WA ${c ? c.held0 : '-'} paths ${npaths.length} secs ${Math.round(a.secs + b.secs + (c ? c.secs : 0))}`);
-      for (const [rule, f] of [['TS+J', a], ['OPEN0', b], ['WA', c]]) if (f) save(id, A, arm, m, rule, w, z, f, npaths.length);
+      const F = Object.fromEntries(RULESP.map(rule => [rule, run(r, npaths, rule, h0)]));
+      console.log(`${''.padEnd(16)} node ${L} 0 z ${z.toFixed(4)}: ${RULESP.map(rule => `${rule} ${F[rule].sim.toFixed(4)} held0 ${F[rule].held0}`).join(' ')} paths ${npaths.length} secs ${Math.round(RULESP.reduce((t, rule) => t + F[rule].secs, 0))}`);
+      for (const rule of RULESP) {
+        for (let t = 1; t <= YEARS; t++) { const g = F[rule].log[t]; console.log(`${''.padEnd(16)} log ${L} ${rule} year ${t}: held ${g.held} fwdLeave ${g.fwdLeave} cellLeave ${g.cellLeave} fwdHoldCellLeave ${g.fwdHoldCellLeave} fwdLeaveCellHold ${g.fwdLeaveCellHold} marginHold ${g.marginHold}`); }
+        save(id, A, arm, m, rule, w, 'world0', z, F[rule], npaths.length);
+      }
+      // TS+J across all worlds: the paths' own long-run shifts
+      const apaths = res.paths.slice(0, NA), a = run(r, apaths, 'TS+J', h0);
+      console.log(`${''.padEnd(16)} all ${L}: TS+J ${a.sim.toFixed(4)} held0 ${a.held0} paths ${apaths.length} secs ${Math.round(a.secs)}`);
+      save(id, A, arm, m, 'TS+J', w, 'all', null, a, apaths.length);
     }
     console.log(`${''.padEnd(16)} done ${kind} ${A}/${grid}/W${w}`);
   });

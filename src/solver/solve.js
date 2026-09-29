@@ -389,6 +389,17 @@ export function solve(E, M, plan, opts = {}) {
    * world, the margin on the mixture-weighted score - and each world's layer stores that world's value of the one move.
    */
   const TS = !!opts.tierState;
+  /*
+   * P, THE SWITCH CHARGED (`switchCharge`, score units; PLAN.md P; the deep review after 7ae, deep-review-log.md 28 Sep
+   * 22:52 UK; research only, off by default). `switchMargin` is a decision rule: a switch is suppressed unless it gains more
+   * than the margin, and the table stores the value of the move made, never charging the margin - so a value that assumes
+   * next year's stored move can disagree with a forward run that holds where the cell leaves (O44, O48, O50). Charged, a
+   * move that leaves the held tier pair pays the charge in its score: in the tier state's backward pass (in h, so the stored
+   * values carry every later switch's charge) and in the forward chooser at the true state. Needs the tier state.
+   */
+  const switchCharge = opts.switchCharge !== undefined ? opts.switchCharge : 0;
+  if (!(switchCharge >= 0) || !Number.isFinite(switchCharge)) throw new Error(`switchCharge must be a finite number of 0 or more, not ${opts.switchCharge}`);
+  if (switchCharge > 0 && !TS) throw new Error('switchCharge needs the tier state (tierState: true): only its tables know the tier held');
   let tsPairs = null, tsLayerOf = null, tsHeld = null, tsJ0 = 0;
   if (TS) {
     if (opts.holdTier) throw new Error('tierState and holdTier: a held tier is one layer, not a tier state');
@@ -877,6 +888,7 @@ export function solve(E, M, plan, opts = {}) {
                       if (failShort && fail) h = failCostAt[t];
                       else h += shortOfAction[ai];
                       if (raiseSurv) h += raiseOfAction[ai] * s;
+                      if (switchCharge > 0 && tsLayerOf[ai] !== j) h += switchCharge;
                       const score = s + wR * rs + wB * b - h;
                       if (JOINT) { jS[k][ai] = s; jB[k][ai] = b; jR[k][ai] = rs; jH[k][ai] = h; jV[k][ai] = score; continue; }
                       if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && b > bestB)) { bestScore = score; bestS = s; bestB = b; bestR = rs; bestH = h; bestA = ai; }
@@ -1023,6 +1035,7 @@ export function solve(E, M, plan, opts = {}) {
   }
 
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, readerRef: opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
+  if (switchCharge > 0) meta.switchCharge = switchCharge;
   if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, weights: g.reader.weights };
   if (JOINT) meta.jointWorlds = true;
   if (PROF) {
@@ -1038,7 +1051,7 @@ export function solve(E, M, plan, opts = {}) {
     meta.profile = PROF;
   }
   const r = {
-    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
+    m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, switchCharge, driftCostOf,
     quadWeights: QW, quadNodes: QZ,
     tieMargin: opts.tieMargin || 0,
     /* the end-of-plan rule the backward pass applies at t = T, so the final year can be scored exactly (see scoreMoves) */
@@ -1061,7 +1074,7 @@ export function solve(E, M, plan, opts = {}) {
     value(state, t) { const s = state instanceof Float64Array ? state : vecOf(m, state); const loc = locateVec(g, s); const k = Math.min(t, T); const sv = (g.bridge || g.reader) ? readValues(g, lsurv[k], beq[k], s, new Float64Array(4), null, null, k)[0] : interp(g, surv[k], loc, true), rs = interp(g, resil[k], loc, !shortfall), bq = interp(g, beq[k], loc, false); return { survival: sv, resilience: rs, bequest: bq, score: sv + wR * rs + wB * bq }; }
   };
   r.worlds = K === 1 ? [r] : cs.map((cc, k) => (k === centre ? r : {
-    m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, driftCostOf,
+    m, g, c: cc, actions, meta, M, eps, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, switchCharge, driftCostOf,
     surv: survW[k], lsurv: lsurvW[k], resil: resilW[k], lresil: lresilW[k], beq: beqW[k], short: shortW[k], pol: polW[k],
     nodeRealOfAt: nodeRealOfAtW[k], nodeReal: nodeRealOfAtW[k][0][0], quadWeights: QW, quadNodes: QZ,
     tieMargin: opts.tieMargin || 0, rich: null, worlds: null,
@@ -1141,6 +1154,14 @@ export function chooseAction(r, s, t, held = null) {
    * noise is not worth the trades and the bother. The moves that keep the tiers held are compared on
    * their own; if the best of them is within the margin of the best overall, it is chosen.
    */
+  // P: a move that leaves the held tiers pays the charge (the backward pass charged it too; see `switchCharge` in solve)
+  const sc = r.switchCharge || 0;
+  if (held && sc > 0) {
+    const acts = r.c.acts;
+    for (let ai = 0; ai < n; ai++) if (SC[ai] !== -Infinity && (acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa)) SC[ai] -= sc;
+    bestScore = -Infinity; bestB = -Infinity; best = 0;
+    for (let ai = 0; ai < n; ai++) { const score = SC[ai]; if (score > bestScore + eps || (Math.abs(score - bestScore) <= eps && BQ[ai] > bestB)) { bestScore = score; bestB = BQ[ai]; best = ai; } }
+  }
   const sm = r.switchMargin || 0;
   if (held && sm > 0) {
     const acts = r.c.acts;

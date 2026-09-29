@@ -1,0 +1,12 @@
+O62 FOR P: OPEN2 (the year-0 move forced to 2/2) against TS+J's own run at world 0's node, field by field (results/diagP)
+  S126-reader-m0@w0            16000 paths: identical (survived, level, tier, wealth, taxPaid, failYear)
+  S126-reader-m1e-3@w0         16000 paths: identical (survived, level, tier, wealth, taxPaid, failYear)
+  S126-reader-mp@w0            16000 paths: identical (survived, level, tier, wealth, taxPaid, failYear)
+  S194-off-m0@w0.02            16000 paths: identical (survived, level, tier, wealth, taxPaid, failYear)
+  S194-off-m1e-3@w0.02         16000 paths: identical (survived, level, tier, wealth, taxPaid, failYear)
+  S194-off-mp@w0.02            16000 paths: identical (survived, level, tier, wealth, taxPaid, failYear)
+  bridge_4-reader-m0@w0        16000 paths: identical (survived, level, tier, wealth, taxPaid, failYear)
+  bridge_4-reader-m1e-3@w0     16000 paths: identical (survived, level, tier, wealth, taxPaid, failYear)
+  bridge_4-reader-mp@w0        16000 paths: identical (survived, level, tier, wealth, taxPaid, failYear)
+
+9 of 9 OPEN2 runs identical to TS+J's own, every field (planted: a changed byte in level reads as differing)

@@ -1474,7 +1474,8 @@ if (mode === 'f1v2') {
    * and S360 from 7af; S366, S370 and bridge 4+cost from 7ag), each at the product's default estate weight 0.02 and its
    * lowest reachable 0.01 (the whole-score rule's two settings, the maintainer, 29 Sep 09:08 UK); the same lines and traces
    * as 7af, in results/diag7ah (DIAG7AH_OUT); READER/TS+J/W0.02 is 7af's and 7ag's CAND solved again on this code, held to
-   * theirs path by path by the reducer. No SHIP or PRODR units.
+   * theirs path by path by the reducer. No SHIP or PRODR units. On each ORDER unit, "matched" runs: the same solve with its
+   * year-0 move forced to 0/0 and to 2/2, whichever it did not take (the deep review, 29 Sep 21:08), a line and a trace each.
    *   node research/solver/audit-s126.mjs diag7ah [points=30] [paths] part k/n [seed=7002]
    */
   const AG = mode === 'diag7ag', AH = mode === 'diag7ah';
@@ -1536,6 +1537,24 @@ if (mode === 'f1v2') {
     const T = f.tr;
     writeFileSync(join(OUT, fileOf(id, arm, label)), gzipSync(JSON.stringify({ id, arm: `${A}/${label}`, stamp: STAMP, N: NP, Y: T.Y, seed: SEED, sim: f.sim,
       survived: b64(f.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
+    // 7AH's MATCHED OPENINGS (the deep review of 29 Sep 21:08: split an opening flip from the reference's effect on later
+    // choices): on each ORDER unit, the same solve run again with its year-0 move forced to the plan's tiers (0/0) and to the
+    // de-risked pair (2/2), whichever it did not take itself - the best move holding that pair, as P's OPEN2 forces it - and
+    // its own chooser after; the reducer pairs READER with the run whose opening is READER's
+    if (AH && arm === 'order') {
+      const own = T.tier[0];
+      for (const P of [0, 2]) {
+        if (own === P * 5) continue;
+        const t0 = Date.now(), N = res.paths.length, okArr = new Uint8Array(N), tr = makeTrace(N, T.Y);
+        let ok = 0, below = 0, tierYrs = 0, estate = 0, changes = 0;
+        const choose = (t, st, held) => (t === 0 ? chooseAt(r, st, 0, { ...held, pen: P, isa: P }, Infinity) : chooseAction(r, st, t, held));
+        res.paths.forEach((zs, k) => { tr.row = k; const o = runPolicy(r, zs, { trace: tr, choose }); if (o.survived) { ok++; okArr[k] = 1; estate += Math.min(o.terminalNet, r.meta.bequestCap); } below += (o.spendYears || 0) - (o.atTarget || 0); tierYrs += o.tierPenYears || 0; changes += o.tierChanges || 0; });
+        if (tr.tier[0] !== P * 5) { console.error(`audit-s126: ${A}/${label} forced to ${P}/${P} opened at code ${tr.tier[0]}`); process.exit(2); }
+        console.log(`${''.padEnd(16)} matched ${A}/${label} open ${P}/${P}: sim ${(100 * ok / N).toFixed(4)} below ${(below / N).toFixed(2)} tier-below ${(tierYrs / N).toFixed(2)} changes ${(changes / N).toFixed(3)} estate ${Math.round(estate / N)} secs ${Math.round((Date.now() - t0) / 1000)}`);
+        writeFileSync(join(OUT, fileOf(id, arm, label).replace(/\.json\.gz$/, `-open${P}${P}.json.gz`)), gzipSync(JSON.stringify({ id, arm: `${A}/${label}@open${P}/${P}`, stamp: STAMP, N: NP, Y: tr.Y, seed: SEED, sim: 100 * ok / N,
+          survived: b64(okArr), level: b64(tr.level), tier: b64(tr.tier), wealth: b64(tr.wealth), taxPaid: b64(tr.taxPaid), failYear: b64(tr.failYear) })));
+      }
+    }
     console.log(`${''.padEnd(16)} done ${A}/${label}`);
   });
 } else if (mode === 'diagP') {

@@ -23,6 +23,15 @@
  *   5. O36's pessimism on S360 (the only one of the six whose table misses its simulation by more than 5 points: 7af's
  *      32.67 against 45.94): at 0.02, ORDER's |table - simulated| at most half READER's (HELD); 0.9 of it or more
  *      (FALSIFIED); else INCONCLUSIVE.
+ *   6. THE SPLIT (the deep review of 29 Sep 21:08; reported, with a registered attribution): where READER and ORDER open
+ *      apart (their year-0 tier codes), ORDER with READER's opening forced (audit-s126.mjs's matched runs) against READER, by
+ *      survival (the exact rule, Holm across the split legs of the weight, and the guarded interval) and the whole score, at
+ *      the household's margin: a harm at items 1 to 4 on that household is the opening's (family 1) where this reads no
+ *      material harm on both, the reference's later choices' where it reads harm on either, else unsplit; with no flip, it
+ *      is the later choices'.
+ *   7. and 8. ORDER against SHIP (the shipping default, 7af's or 7ag's own unit and trace, cut to the first 8,000 paths) at
+ *      0.02, by survival (as item 1) and the whole score (as item 2): whether the bundle with the fix is still safe against
+ *      the product as it ships, without chaining two no-harm reads.
  * Reported, not items: every unit's table, simulation, table error, year-0 gap and opening; S370's table error (7ag's
  * READER table sits 4.80 above its simulation: an optimistic table the fix may push further) beside the other five.
  *   node research/solver/reduce-7ah.mjs [dir] [dir7af] [dir7ag]        node research/solver/reduce-7ah.mjs --planted
@@ -148,6 +157,107 @@ export function items(K, WL, err, margin = id => MARGIN[id]) {
   return out;
 }
 
+/* THE MATCHED OPENINGS AND THE SHIPPING DEFAULT (the deep review of 29 Sep 21:08). audit-s126.mjs diag7ah runs each ORDER
+   unit again with its year-0 move forced to 0/0 and to 2/2, whichever it did not take ("matched" lines, one trace each);
+   the reading pairs READER with the run whose opening is READER's. SHIP (OFF/PRODUCT/W0.02) is 7af's or 7ag's own unit and
+   trace, on the first 8,000 of their paths. */
+export const PAIRS = [0, 2];
+const MATCHL = /^\s+matched (\S+?)\/(TS\+J\/W\S+) open (\d)\/(\d): sim (\S+) below/;
+const CASEL = /^(\S.*?)\s+case \| unit /;
+export function parseMatched(text) {
+  const out = []; let id = null;
+  for (const line of text.split('\n')) {
+    let m;
+    if ((m = CASEL.exec(line))) { id = m[1].trim(); continue; }
+    if ((m = MATCHL.exec(line)) && id) out.push({ id, arm: m[1], label: m[2], P: +m[3], Q: +m[4], sim: Number(m[5]) });
+  }
+  return out;
+}
+export const matchedName = (id, label, P) => traceName(id, 'ORDER', label).replace(/\.json\.gz$/, `-open${P}${P}.json.gz`);
+/* the gate on the matched lines: only ORDER units, pairs 0/0 or 2/2, each at most once, one or two a unit */
+export function gateMatched(matched) {
+  const bad = [];
+  for (const m of matched) {
+    const tag = `${m.id} ${m.arm}/${m.label} matched ${m.P}/${m.Q}`;
+    if (m.arm !== 'ORDER') bad.push(`${tag}: a matched run on ${m.arm}, not ORDER`);
+    if (m.P !== m.Q || !PAIRS.includes(m.P)) bad.push(`${tag}: not the pair 0/0 or 2/2`);
+    if (!UNITS.some(([id, a, l]) => id === m.id && a === 'ORDER' && l === m.label)) bad.push(`${tag}: no registered ORDER unit`);
+  }
+  for (const [id, arm, l] of UNITS.filter(([, a]) => a === 'ORDER')) {
+    const ms = matched.filter(m => m.id === id && m.label === l && m.arm === 'ORDER');
+    if (ms.length < 1 || ms.length > 2) bad.push(`${id} ORDER/${l}: ${ms.length} matched runs, not 1 or 2`);
+    if (new Set(ms.map(m => m.P)).size !== ms.length) bad.push(`${id} ORDER/${l}: a matched pair run twice`);
+  }
+  return bad;
+}
+/* the matched traces: the pairs run are exactly those ORDER's own opening is not; each opens at its pair on every path */
+export function loadMatched(matched, DIR, ST, TR, bad, n = N) {
+  for (const [id, , l] of UNITS.filter(([, a]) => a === 'ORDER')) {
+    const O = TR[`${id}|ORDER|${l}`]; if (!O) continue;
+    const own = O.tier[0], want = PAIRS.filter(P => own !== P * 5), ms = matched.filter(m => m.id === id && m.label === l && m.arm === 'ORDER');
+    if (ms.map(m => m.P).sort().join(',') !== want.join(',')) { bad.push(`${id} ORDER/${l}: matched pairs ${ms.map(m => m.P).join(',')}, but ORDER opens at code ${own}, so ${want.join(',')}`); continue; }
+    for (const m of ms) {
+      const f = join(DIR, matchedName(id, l, m.P));
+      if (!existsSync(f)) { bad.push(`no trace ${f}`); continue; }
+      const j = readTrace(f);
+      if (!traceAgrees(j, ST, 'ORDER', `${l}@open${m.P}/${m.P}`, m.sim, n)) { bad.push(`${f}: count, seed, arm, stamp or survival is not the log's`); continue; }
+      const T = decode(j);
+      let off = 0; for (let i = 0; i < T.N; i++) if (T.tier[i * T.Y] !== m.P * 5) off++;
+      if (off) { bad.push(`${f}: ${off} paths not opening at ${m.P}/${m.P}`); continue; }
+      TR[`${id}|ORDER@${m.P}|${l}`] = T;
+    }
+  }
+}
+const normRan = ran => ran.replace(/ tierState \S+/, '').replace(/ readerRef \S+/, '').replace(/(^| )bridgeRead \S+/, '$1bridgeRead X').replace(/(^| )paths \d+/, '$1paths X');
+export const sliceTrace = (T, n) => ({ ...T, N: n, survived: T.survived.subarray(0, n), level: T.level.subarray(0, n * T.Y), tier: T.tier.subarray(0, n * T.Y), wealth: T.wealth.subarray(0, n * T.Y), failYear: T.failYear.subarray(0, n), ...(T.taxPaid ? { taxPaid: T.taxPaid.subarray(0, n * T.Y) } : {}) });
+/* SHIP: 7af's or 7ag's own unit, once and done, its ran line ORDER/0.02's but for the arm's own fields (no tier state, no
+   reference, no bridge read, its path count); its trace its log's (stamp, count, survival), cut to the first n paths.
+   `src(id)` = { units, DIR, ST, n } of the record the household came from */
+export function loadShip(units, src, TR, bad, n = N) {
+  for (const [id] of PANEL) {
+    const S = src(id), ss = S.units.filter(u => u.id === id && u.arm === 'OFF' && u.label === 'PRODUCT/W0.02'), O = units.find(u => u.id === id && u.arm === 'ORDER' && u.label === 'TS+J/W0.02');
+    if (ss.length !== 1 || !ss[0].done || !ss[0].run) { bad.push(`${id}: ${ss.length} SHIP units in its record, not 1 done`); continue; }
+    const u = ss[0];
+    if (!O || !O.ran || normRan(u.ran) !== normRan(O.ran)) { bad.push(`${id}: SHIP's ran line is not ORDER/W0.02's but for the arm`); continue; }
+    if (field(u.ran, 'bridgeRead') !== 'false' || field(u.ran, 'tierState') !== null) { bad.push(`${id}: SHIP ran bridgeRead ${field(u.ran, 'bridgeRead')} tierState ${field(u.ran, 'tierState')}`); continue; }
+    const f = join(S.DIR, traceName(id, 'OFF', 'PRODUCT/W0.02'));
+    if (!existsSync(f)) { bad.push(`no trace ${f}`); continue; }
+    const j = readTrace(f);
+    if (!traceAgrees(j, S.ST, 'OFF', 'PRODUCT/W0.02', u.run.sim, S.n)) { bad.push(`${f}: count, seed, arm, stamp or survival is not its log's`); continue; }
+    if (S.n < n) { bad.push(`${f}: ${S.n} paths, fewer than ${n}`); continue; }
+    TR[`${id}|SHIP|PRODUCT/W0.02`] = sliceTrace(decode(j), n);
+  }
+}
+/* ITEM 6, THE SPLIT (reported; registered attribution): on each household and weight where READER and ORDER open apart,
+   the matched run (ORDER with READER's opening) against READER, by survival (the exact rule, Holm across the split legs of
+   the weight, and the guarded interval) and the whole score, each at the household's margin. `open(id, arm, w)` the
+   opening's tier code; `Km(id, w, P)` and `WLm(id, w, P)` the matched run's cells and whole leg against READER.
+   The attribution of a harm at items 1 to 4: no flip - the reference's later choices; a flip and the matched run no
+   material harm on both - the opening (family 1); a flip and the matched run harm on either - the reference's later
+   choices; else unsplit. ITEMS 7 AND 8: ORDER against SHIP at 0.02, survival (as item 1) and the whole score (as item 2). */
+export function splitItems(open, Km, WLm, KS, WLS, margin = id => MARGIN[id]) {
+  const out = [];
+  for (const w of WS) {
+    const legs = PANEL.map(([id]) => { const r = open(id, 'READER', w), o = open(id, 'ORDER', w); return { id, w, r, o, flip: r !== o, P: PAIRS.find(P => P * 5 === r) }; });
+    const split = legs.filter(l => l.flip && l.P !== undefined);
+    split.forEach(l => { l.k = Km(l.id, w, l.P); l.p = mcnemarHarmP(l.k.lost, l.k.saved); l.margin = margin(l.id); l.wl = WLm(l.id, w, l.P); });
+    const adj = holm(split.map(l => l.p));
+    split.forEach((l, i) => { l.pHolm = adj[i]; const o = outcome({ b: l.k.lost, c: l.k.saved, N: l.k.N, margin: l.margin, pHolm: l.pHolm, level: ALPHA }); l.iv = o; l.u = guardedU(l.k); l.o = o.outcome;
+      const noHarm = o.outcome === 'no material harm' && l.u.lo > -l.margin && l.wl.lo > -l.margin, harm = o.outcome === 'harm' || l.wl.hi < -l.margin;
+      l.blame = noHarm ? 'the opening' : harm ? 'the later choices' : 'unsplit'; });
+    legs.filter(l => !l.flip).forEach(l => { l.blame = 'the later choices (no flip)'; });
+    legs.filter(l => l.flip && l.P === undefined).forEach(l => { l.blame = `unsplit (READER opens at code ${l.r}, no matched run)`; });
+    out.push({ n: 6, w, legs, text: `the split at ${w}: where READER and ORDER open apart, ORDER with READER's opening against READER (a harm at items 1 to 4 on a household is the opening's where this reads no material harm, the later choices' where it reads harm)` });
+  }
+  const s = PANEL.map(([id]) => { const k = KS(id); return { id, k, p: mcnemarHarmP(k.lost, k.saved), margin: margin(id) }; });
+  const adj = holm(s.map(l => l.p));
+  s.forEach((l, i) => { l.pHolm = adj[i]; const o = outcome({ b: l.k.lost, c: l.k.saved, N: l.k.N, margin: l.margin, pHolm: l.pHolm, level: ALPHA }); l.iv = o; l.u = guardedU(l.k); l.o = o.outcome; l.pass = o.outcome === 'no material harm' && l.u.lo > -l.margin; });
+  out.push({ n: 7, text: 'survival at 0.02: ORDER against SHIP (the shipping default), no material harm on every household (as item 1)', legs: s, outcome: tri(s.every(l => l.pass), s.some(l => l.o === 'harm')) });
+  const wl = PANEL.map(([id]) => ({ id, ...WLS(id), margin: margin(id) }));
+  out.push({ n: 8, text: 'the whole score at 0.02: ORDER against SHIP, no material harm on every household (as item 2)', legs: wl, outcome: tri(wl.every(l => l.lo > -l.margin), wl.some(l => l.hi < -l.margin)) });
+  return out;
+}
+
 /* THE PLANTED CHECKS (rule 6): the gate over built units, one fault at a time; the items over built cells */
 const RAN = (id, w, extra = '') => `mix 3 pts 30 seed 7002 paths ${N} grid total30x6x6 lambda ${LAMBDA} levels ${LEVELS} raiseSurv true failShort floor tiersAbove 0 minPot 29000 quad 5 tierState 0/0,1/1,2/2${extra} bequestWeight ${w} finalIntegral true bridgeRead reader`;
 function builtUnits(o = {}) {
@@ -194,6 +304,30 @@ function planted() {
   cases.push(['item 4: a lower end at -0.3 at 0.01 is INCONCLUSIVE', run({ WL: (id, w) => (w === '0.01' && id === 'S366' ? WL0(0, -0.3, 0.2) : WL0(0, -0.1, 0.1)) }).split(' ')[3], 'INCONCLUSIVE']);
   cases.push(['item 5: half the error HELD, 0.9 of it FALSIFIED, between INCONCLUSIVE', [[13.27, 6.6], [13.27, 12], [13.27, 9]].map(([r, o]) => run({ e: (id, arm) => (arm === 'READER' ? r : o) }).split(' ')[4]).join(' '), 'HELD FALSIFIED INCONCLUSIVE']);
   cases.push(['item 5 reads S360 alone', run({ e: (id, arm) => (id === 'S360' ? (arm === 'READER' ? 13.27 : 2) : (arm === 'READER' ? 1 : 50)) }).split(' ')[4], 'HELD']);
+  // the matched lines' gate
+  const M0 = () => UNITS.filter(([, a]) => a === 'ORDER').map(([id, , l]) => ({ id, arm: 'ORDER', label: l, P: 2, Q: 2, sim: 99 }));
+  cases.push(['the matched gate passes one 2/2 run on every ORDER unit', String(gateMatched(M0()).length), '0']);
+  cases.push(['the matched gate refuses an ORDER unit with none', String(gateMatched(M0().slice(1)).length > 0), 'true']);
+  cases.push(['the matched gate refuses a matched run on READER', String(gateMatched([...M0(), { ...M0()[0], arm: 'READER' }]).length > 0), 'true']);
+  cases.push(['the matched gate refuses the pair 1/1', String(gateMatched(M0().map((m, i) => (i ? m : { ...m, P: 1, Q: 1 }))).length > 0), 'true']);
+  cases.push(['the matched gate refuses a pair run twice', String(gateMatched([...M0(), M0()[0]]).length > 0), 'true']);
+  cases.push(['a matched line parses (id from its case line)', JSON.stringify(parseMatched('bridge 4         case | unit ORDER/TS+J/W0.02 | lambda x\n                 matched ORDER/TS+J/W0.02 open 2/2: sim 95.0000 below 7.15 x')), JSON.stringify([{ id: 'bridge 4', arm: 'ORDER', label: 'TS+J/W0.02', P: 2, Q: 2, sim: 95 }])]);
+  // the split and the shipping default over built cells
+  const sp = ({ open = () => 10, Km = () => K0(0, 0), WLm = () => WL0(0, -0.1, 0.1), KS = () => K0(0, 0), WLS = () => WL0(0, -0.1, 0.1) } = {}) => splitItems(open, Km, WLm, KS, WLS);
+  const blame = (r, id, w = '0.02') => r.find(i => i.n === 6 && i.w === w).legs.find(l => l.id === id).blame;
+  const flipB4 = (id, arm) => (id === 'bridge 4' && arm === 'ORDER' ? 0 : 10);
+  cases.push(['item 6: no flip anywhere - every harm the later choices\' (no flip)', blame(sp(), 'bridge 4'), 'the later choices (no flip)']);
+  cases.push(['item 6: a flip on bridge 4, the matched run no harm - the opening\'s', blame(sp({ open: flipB4 }), 'bridge 4'), 'the opening']);
+  cases.push(['item 6: a flip on bridge 4, the matched run losing 60 paths - the later choices\'', blame(sp({ open: flipB4, Km: () => K0(60, 0) }), 'bridge 4'), 'the later choices']);
+  cases.push(['item 6: a flip on bridge 4, the matched run\'s whole score harmed - the later choices\'', blame(sp({ open: flipB4, WLm: () => WL0(-0.6, -0.9, -0.3) }), 'bridge 4'), 'the later choices']);
+  cases.push(['item 6: READER opening at 1/1 - unsplit, no matched run', blame(sp({ open: (id, arm) => (id === 'bridge 4' && arm === 'READER' ? 5 : 10) }), 'bridge 4').startsWith('unsplit') ? 'true' : 'false', 'true']);
+  cases.push(['item 6 reads each weight apart: a flip at 0.01 only is not one at 0.02', [blame(sp({ open: (id, arm, w) => (id === 'S366' && arm === 'ORDER' && w === '0.01' ? 0 : 10) }), 'S366', '0.02'), blame(sp({ open: (id, arm, w) => (id === 'S366' && arm === 'ORDER' && w === '0.01' ? 0 : 10) }), 'S366', '0.01')].join(' | '), 'the later choices (no flip) | the opening']);
+  cases.push(['items 7 and 8: nothing changes - HELD HELD', sp().filter(i => i.n > 6).map(i => i.outcome).join(' '), 'HELD HELD']);
+  cases.push(['item 7: 60 lost against SHIP on S366 is harm', sp({ KS: id => (id === 'S366' ? K0(60, 0) : K0(0, 0)) }).find(i => i.n === 7).outcome, 'FALSIFIED']);
+  cases.push(['item 8: a whole-score upper end below -0.25 against SHIP on bridge 6 is harm', sp({ WLS: id => (id === 'bridge 6' ? WL0(-0.5, -0.8, -0.3) : WL0(0, -0.1, 0.1)) }).find(i => i.n === 8).outcome, 'FALSIFIED']);
+  { const X = { N: 4, Y: 2, survived: Uint8Array.from([1, 0, 1, 1]), level: Uint8Array.from([1, 2, 3, 4, 5, 6, 7, 8]), tier: Uint8Array.from([0, 0, 5, 5, 10, 10, 0, 0]), wealth: Float32Array.from([1, 2, 3, 4, 5, 6, 7, 8]), failYear: Int16Array.from([-1, 1, -1, -1]) }, Z = sliceTrace(X, 2);
+    cases.push(['a 16,000-path trace cut to its first paths keeps them whole', `${Z.N} ${Array.from(Z.survived)} ${Array.from(Z.tier)} ${Array.from(Z.failYear)}`, '2 1,0 0,0,5,5 -1,1']); }
+  cases.push(['SHIP\'s ran line compares to ORDER\'s but for the arm\'s fields', [normRan(RAN('bridge 4', '0.02', ' readerRef order')) === normRan(RAN('bridge 4', '0.02').replace(' tierState 0/0,1/1,2/2', '').replace('bridgeRead reader', 'bridgeRead false').replace('paths 8000', 'paths 16000')), normRan(RAN('bridge 4', '0.02', ' readerRef order')) === normRan(RAN('bridge 4', '0.02').replace('minPot 29000', 'minPot 30000'))].join(' '), 'true false']);
   const wrong = cases.filter(([, got, want]) => got !== want);
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([nm, got, w]) => `${nm} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }
   return cases.length;
@@ -220,9 +354,23 @@ export function reading(units, TR, out = console.log) {
     else out(`     S360: READER's error ${it.eR.toFixed(2)}, ORDER's ${it.eO.toFixed(2)}, ratio ${it.ratio.toFixed(3)}`);
     out(`   -> ${it.outcome}`);
   }
+  const T = (id, arm, w) => TR[`${id}|${arm}|TS+J/W${w}`];
+  const cfgPair = (id, w, X, Y) => ({ ...cfgOf(id, w), spendYears: F.spendYears(X, Y) });
+  const SP = splitItems((id, arm, w) => T(id, arm, w).tier[0],
+    (id, w, P) => cells(T(id, 'READER', w).survived, T(id, `ORDER@${P}`, w).survived),
+    (id, w, P) => A.wholeLeg(T(id, 'READER', w), T(id, `ORDER@${P}`, w), cfgPair(id, w, T(id, 'READER', w), T(id, `ORDER@${P}`, w)), ALPHA),
+    id => cells(TR[`${id}|SHIP|PRODUCT/W0.02`].survived, T(id, 'ORDER', '0.02').survived),
+    id => A.wholeLeg(TR[`${id}|SHIP|PRODUCT/W0.02`], T(id, 'ORDER', '0.02'), cfgPair(id, '0.02', TR[`${id}|SHIP|PRODUCT/W0.02`], T(id, 'ORDER', '0.02')), ALPHA));
+  for (const it of SP) {
+    out(`\nITEM ${it.n}${it.w ? ` (${it.w})` : ''}: ${it.text}`);
+    if (it.n === 6) for (const l of it.legs) out(`     ${l.id.padEnd(14)} opening READER ${l.r} ORDER ${l.o}${l.k ? `; matched ${l.P}/${l.P} against READER: ${l.k.saved} saved/${l.k.lost} lost  p ${l.pHolm.toExponential(1)} (exact ${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}; guarded ${l.u.lo.toFixed(3)} to ${l.u.hi.toFixed(3)}) ${l.o}; whole ${l.wl.d >= 0 ? '+' : ''}${l.wl.d.toFixed(3)} (${l.wl.lo.toFixed(3)} to ${l.wl.hi.toFixed(3)}) margin ${l.margin}` : ''} -> a harm here is ${l.blame}'s`);
+    else for (const l of it.legs) out(l.pHolm !== undefined ? `     ${l.id.padEnd(14)} ${l.k.saved} saved/${l.k.lost} lost  p ${l.pHolm.toExponential(1)}  change ${(100 * (l.k.saved - l.k.lost) / l.k.N).toFixed(3)} (exact ${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}; unconditional, guarded, ${l.u.lo.toFixed(3)} to ${l.u.hi.toFixed(3)}) margin ${l.margin}: ${l.o}` : `     ${l.id.padEnd(14)} ${l.d >= 0 ? '+' : ''}${l.d.toFixed(3)} (${l.lo.toFixed(3)} to ${l.hi.toFixed(3)})`);
+    if (it.outcome) out(`   -> ${it.outcome}`);
+  }
   out(`\nREPORTED: S370's table error, READER ${(Number(get('S370', 'READER', '0.02').table) - get('S370', 'READER', '0.02').run.sim).toFixed(2)}, ORDER ${(Number(get('S370', 'ORDER', '0.02').table) - get('S370', 'ORDER', '0.02').run.sim).toFixed(2)} (an optimistic table the fix may push further)`);
-  out(`\nOUTCOME: ${IT.map(i => `${i.n} ${i.outcome}`).join(', ')}`);
-  return IT;
+  const flips = SP.filter(i => i.n === 6).flatMap(i => i.legs.filter(l => l.flip).map(l => `${l.id} W${l.w} ${l.blame}`));
+  out(`\nOUTCOME: ${[...IT, ...SP.filter(i => i.n > 6)].map(i => `${i.n} ${i.outcome}`).join(', ')}; 6 (the split): ${flips.length ? flips.join('; ') : 'no opening flips'}`);
+  return [...IT, ...SP];
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
@@ -231,7 +379,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2).filter(x => !x.startsWith('--'));
   const R_ = (k, name) => args[k] || join(HERE, 'results', name);
   const DIR = R_(0, 'diag7ah'), DIRF = R_(1, 'diag7af'), DIRG = R_(2, 'diag7ag');
-  const logs = logsOf(DIR), units = Object.values(logs).flatMap(parse);
+  const logs = logsOf(DIR), units = Object.values(logs).flatMap(parse), matched = Object.values(logs).flatMap(parseMatched);
   if (UNITS.some(([id, a, l]) => !units.some(u => u.id === id && u.arm === a && u.label === l && u.done))) { console.log(`INCOMPLETE - ${units.filter(u => u.done).length} of ${UNITS.length} units done in ${DIR}`); process.exit(1); }
   requireFairLogs(logs, PRED);
   // the references through their own gates
@@ -239,8 +387,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   requireFairLogs(logsF, F.PRED); requireFairLogs(logsG, G.PRED);
   const refUnit = id => (FROM_AF.includes(id) ? unitsF.find(u => u.id === id && u.arm === F.CAND[0] && u.label === F.CAND[1]) : unitsG.find(u => u.id === id && u.arm === G.CAND[0] && u.label === G.CAND[1])) || null;
   const refT = id => { const d = FROM_AF.includes(id) ? DIRF : DIRG, f = join(d, traceName(id, 'READER', 'TS+J/W0.02')); return existsSync(f) ? decode(readTrace(f)) : null; };
-  const bad = gate(units, refUnit);
+  const bad = [...gate(units, refUnit), ...gateMatched(matched)];
   const TR = bad.length ? {} : loadTraces(units, DIR, stampOf(logs), bad, refT);
+  if (!bad.length) loadMatched(matched, DIR, stampOf(logs), TR, bad);
+  if (!bad.length) loadShip(units, id => (FROM_AF.includes(id) ? { units: unitsF, DIR: DIRF, ST: stampOf(logsF), n: F.N } : { units: unitsG, DIR: DIRG, ST: stampOf(logsG), n: G.N }), TR, bad);
   if (bad.length) { console.log(`FAIR-TEST GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
   reading(units, TR);
 }

@@ -11,7 +11,7 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
-import { parse, gate, UNITS, loadTraces, reading, FROM_AF, traceName, stampOf } from './reduce-7ah.mjs';
+import { parse, gate, UNITS, loadTraces, reading, FROM_AF, traceName, stampOf, parseMatched, gateMatched, loadMatched, loadShip } from './reduce-7ah.mjs';
 import { decode } from './reduce-7t.mjs';
 import * as F from './reduce-7af.mjs';
 import * as G from './reduce-7ag.mjs';
@@ -21,9 +21,11 @@ export const N_PRE = 20, PTS_PRE = '4';
 const logs = d => (existsSync(d) ? readdirSync(d).filter(f => /^case\d+\.txt$/.test(f)).sort().map(f => readFileSync(join(d, f), 'utf8')) : []);
 const asObj = texts => Object.fromEntries(texts.map((t, i) => [`case${i}.txt`, t]));
 function check(texts, X, dir) {
-  const units = texts.flatMap(parse), bad = gate(units, X.refUnit, { n: N_PRE, pts: PTS_PRE });
+  const units = texts.flatMap(parse), matched = texts.flatMap(parseMatched), bad = [...gate(units, X.refUnit, { n: N_PRE, pts: PTS_PRE }), ...gateMatched(matched)];
+  // SHIP's own ran line against ORDER's (the path count aside) is checked from the logs, before any trace
+  if (!bad.length && X.shipOf) loadShip(units, id => ({ ...X.shipOf(id), DIR: X.shipDir(id) }), {}, bad, N_PRE);
   let TR = null;
-  if (dir && !bad.length) TR = loadTraces(units, dir, stampOf(asObj(texts)), bad, X.refT, N_PRE);
+  if (dir && !bad.length) { TR = loadTraces(units, dir, stampOf(asObj(texts)), bad, X.refT, N_PRE); if (!bad.length) loadMatched(matched, dir, stampOf(asObj(texts)), TR, bad, N_PRE); if (!bad.length) loadShip(units, id => ({ ...X.shipOf(id), DIR: X.shipDir(id) }), TR, bad, N_PRE); }
   return { units, bad, TR };
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -32,10 +34,12 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const DIR = R_(0, 'diag7ah-preflight'), DIRF = R_(1, 'diag7af-preflight'), DIRG = R_(2, 'diag7ag-preflight');
   const texts = logs(DIR);
   if (texts.length !== UNITS.length) { console.log(`PREFLIGHT INCOMPLETE - ${texts.length} of ${UNITS.length} logs in ${DIR}`); process.exit(1); }
-  const unitsF = logs(DIRF).flatMap(F.parse), unitsG = logs(DIRG).flatMap(G.parse);
+  const textsF = logs(DIRF), textsG = logs(DIRG), unitsF = textsF.flatMap(F.parse), unitsG = textsG.flatMap(G.parse);
   const X = {
     refUnit: id => (FROM_AF.includes(id) ? unitsF.find(u => u.id === id && u.arm === F.CAND[0] && u.label === F.CAND[1]) : unitsG.find(u => u.id === id && u.arm === G.CAND[0] && u.label === G.CAND[1])) || null,
-    refT: id => { const f = join(FROM_AF.includes(id) ? DIRF : DIRG, traceName(id, 'READER', 'TS+J/W0.02')); return existsSync(f) ? decode(JSON.parse(gunzipSync(readFileSync(f)).toString())) : null; } };
+    refT: id => { const f = join(FROM_AF.includes(id) ? DIRF : DIRG, traceName(id, 'READER', 'TS+J/W0.02')); return existsSync(f) ? decode(JSON.parse(gunzipSync(readFileSync(f)).toString())) : null; },
+    shipOf: id => (FROM_AF.includes(id) ? { units: unitsF, ST: stampOf(asObj(textsF)), n: N_PRE } : { units: unitsG, ST: stampOf(asObj(textsG)), n: N_PRE }),
+    shipDir: id => (FROM_AF.includes(id) ? DIRF : DIRG) };
   const good = check(texts, X, DIR);
   // planted: each fault must change the logs and be refused (a check that ran on nothing is an error, not a pass)
   const plant = (f, why) => { const t = f(texts); if (t.join('\n') === texts.join('\n')) throw new Error(`the plant "${why}" changed nothing`); return String(check(t, X, null).bad.length > 0); };
@@ -44,6 +48,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     ['planted: a missing done line is refused', plant(ts => ts.map((t, i) => (i === 0 ? t.replace(/^\s+done .*$/m, '') : t)), 'no done'), 'true'],
     ['planted: a wrong seed is refused', plant(ts => ts.map(t => t.replace(/seed 7002/g, 'seed 7004')), 'a wrong seed'), 'true'],
     ['planted: ORDER without its reference is refused', plant(ts => ts.map(t => t.replace(/ readerRef order/g, '')), 'no readerRef'), 'true'],
+    ['planted: an ORDER unit without its matched run is refused', plant(ts => ts.map(t => t.replace(/^\s+matched .*$/m, '')), 'no matched run'), 'true'],
+    ['planted: a matched run on the pair 1/1 is refused', plant(ts => ts.map(t => t.replace(/ open (\d)\/\1:/, ' open 1/1:')), 'a 1/1 pair'), 'true'],
     ['planted: another table on a READER/W0.02 unit is refused', plant(ts => ts.map(t => t.replace(/(solve READER\/TS\+J\/W0\.02: table )(\d+\.\d+)/, (m, a, b) => `${a}${(Number(b) + 1).toFixed(4)}`)), 'another table'), 'true'],
   ];
   const wrong = cases.filter(([, got, want]) => got !== want);

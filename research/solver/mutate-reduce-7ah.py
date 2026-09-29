@@ -21,7 +21,8 @@ M = [
     ("the gate ignores the switch margin", "if (u.joint.margin !== '0.001')", "if (false)"),
     ("the gate ignores a death charge", "if (u.joint.deathTax !== 0)", "if (false)"),
     ("the gate ignores a unit not done", "if (!u.done) bad.push(`${tag}: no done line`);", ""),
-    ("item 1 passes on the exact rule alone", "l.pass = o.outcome === 'no material harm' && l.u.lo > -l.margin;", "l.pass = true;"),
+    ("item 1 passes on the exact rule alone", "l.u = guardedU(l.k); l.o = o.outcome; l.pass = o.outcome === 'no material harm' && l.u.lo > -l.margin; });\n    out.push({ n, text: `survival", "l.u = guardedU(l.k); l.o = o.outcome; l.pass = true; });\n    out.push({ n, text: `survival"),
+    ("item 7 passes on the exact rule alone", "l.pass = o.outcome === 'no material harm' && l.u.lo > -l.margin; });\n  out.push({ n: 7,", "l.pass = true; });\n  out.push({ n: 7,"),
     ("item 1 ignores harm", "legs.some(l => l.o === 'harm')", "false"),
     ("the margins are all 0.25", "const legs = PANEL.map(([id]) => { const k = K(id, w); return { id, k, p: mcnemarHarmP(k.lost, k.saved), margin: margin(id) }; });", "const legs = PANEL.map(([id]) => { const k = K(id, w); return { id, k, p: mcnemarHarmP(k.lost, k.saved), margin: 0.25 }; });"),
     ("items 1 and 3 read one setting", "surv(1, '0.02'); whole(2, '0.02'); surv(3, '0.01'); whole(4, '0.01');", "surv(1, '0.02'); whole(2, '0.02'); surv(3, '0.02'); whole(4, '0.01');"),
@@ -32,6 +33,20 @@ M = [
     ("item 5 reads another household", "const eR = err('S360', 'READER', '0.02'), eO = err('S360', 'ORDER', '0.02')", "const eR = err('S370', 'READER', '0.02'), eO = err('S370', 'ORDER', '0.02')"),
     ("item 5's HELD threshold loose", "tri(ratio <= R5.held, ratio >= R5.falsified)", "tri(ratio <= R5.falsified, ratio >= R5.falsified)"),
     ("item 5's FALSIFIED threshold off", "tri(ratio <= R5.held, ratio >= R5.falsified)", "tri(ratio <= R5.held, false)"),
+    # the matched runs, the split and the shipping default (the deep review of 29 Sep 21:08)
+    ("the matched gate accepts a run on READER", "if (m.arm !== 'ORDER') bad.push", "if (false) bad.push"),
+    ("the matched gate accepts any pair", "if (m.P !== m.Q || !PAIRS.includes(m.P)) bad.push", "if (false) bad.push"),
+    ("the matched gate accepts an ORDER unit with none", "if (ms.length < 1 || ms.length > 2) bad.push", "if (ms.length > 2) bad.push"),
+    ("the matched gate accepts a pair twice", "if (new Set(ms.map(m => m.P)).size !== ms.length) bad.push", "if (false) bad.push"),
+    ("the split's blame swapped", "l.blame = noHarm ? 'the opening' : harm ? 'the later choices' : 'unsplit';", "l.blame = harm ? 'the opening' : noHarm ? 'the later choices' : 'unsplit';"),
+    ("the split blind to the whole score's harm", "harm = o.outcome === 'harm' || l.wl.hi < -l.margin;", "harm = o.outcome === 'harm';"),
+    ("the split sees no flip", "flip: r !== o,", "flip: false,"),
+    ("the split reads every weight at 0.02", "const r = open(id, 'READER', w), o = open(id, 'ORDER', w);", "const r = open(id, 'READER', '0.02'), o = open(id, 'ORDER', '0.02');"),
+    ("item 7 blind to harm", "outcome: tri(s.every(l => l.pass), s.some(l => l.o === 'harm')) });", "outcome: tri(s.every(l => l.pass), false) });"),
+    ("item 8 blind to harm", "outcome: tri(wl.every(l => l.lo > -l.margin), wl.some(l => l.hi < -l.margin)) });", "outcome: tri(wl.every(l => l.lo > -l.margin), false) });"),
+    ("the cut keeps every path", "survived: T.survived.subarray(0, n),", "survived: T.survived,"),
+    ("SHIP's ran line compared to nothing", "const normRan = ran => ran.replace(/ tierState \\S+/, '')", "const normRan = ran => ''.replace(/ tierState \\S+/, '')"),
+    ("a matched line's case not read", "if ((m = CASEL.exec(line))) { id = m[1].trim(); continue; }", "if ((m = CASEL.exec(line))) { continue; }"),
 ]
 def run(f):
     p = subprocess.run(['node', f, '--planted'], capture_output=True, text=True)

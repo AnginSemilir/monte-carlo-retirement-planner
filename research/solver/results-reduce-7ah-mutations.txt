@@ -1,4 +1,4 @@
-true script: planted (23): all read as they should
+true script: planted (40): all read as they should
 caught  the gate accepts a missing unit: PLANTED CHECK FAILED: the gate refuses a missing unit read false, should read true
 caught  the gate accepts a unit twice: PLANTED CHECK FAILED: the gate refuses a unit twice read false, should read true
 caught  the gate accepts an unregistered unit: PLANTED CHECK FAILED: the gate refuses an unregistered unit read false, should read true
@@ -12,6 +12,7 @@ caught  the gate ignores the switch margin: PLANTED CHECK FAILED: the gate refus
 caught  the gate ignores a death charge: PLANTED CHECK FAILED: the gate refuses a pension death charge read false, should read true
 caught  the gate ignores a unit not done: PLANTED CHECK FAILED: the gate refuses a unit not done read false, should read true
 caught  item 1 passes on the exact rule alone: PLANTED CHECK FAILED: item 1: 60 lost paths on S366 at 0.02 is harm read HELD, should read FALSIFIED; item 3: 60 lost on S366 at 0.01 reads at item 3, not item 1 read HELD HELD HEL
+caught  item 7 passes on the exact rule alone: PLANTED CHECK FAILED: item 7: 60 lost against SHIP on S366 is harm read HELD, should read FALSIFIED
 caught  item 1 ignores harm: PLANTED CHECK FAILED: item 1: 60 lost paths on S366 at 0.02 is harm read INCONCLUSIVE, should read FALSIFIED; item 3: 60 lost on S366 at 0.01 reads at item 3, not item 1 read HELD 
 caught  the margins are all 0.25: PLANTED CHECK FAILED: item 1: S360 uses its 0.5 margin (30 lost is not harm there, 30 lost on bridge 4 at 0.25 is) read FALSIFIED FALSIFIED, should read INCONCLUSIVE FALSIFIED
 caught  items 1 and 3 read one setting: PLANTED CHECK FAILED: item 3: 60 lost on S366 at 0.01 reads at item 3, not item 1 read HELD HELD HELD, should read HELD HELD FALSIFIED
@@ -22,5 +23,18 @@ caught  the whole score's pass too loose: PLANTED CHECK FAILED: item 2: S360 and
 caught  item 5 reads another household: PLANTED CHECK FAILED: item 5 reads S360 alone read FALSIFIED, should read HELD
 caught  item 5's HELD threshold loose: PLANTED CHECK FAILED: item 5: half the error HELD, 0.9 of it FALSIFIED, between INCONCLUSIVE read HELD FALSIFIED HELD, should read HELD FALSIFIED INCONCLUSIVE
 caught  item 5's FALSIFIED threshold off: PLANTED CHECK FAILED: item 5: half the error HELD, 0.9 of it FALSIFIED, between INCONCLUSIVE read HELD INCONCLUSIVE INCONCLUSIVE, should read HELD FALSIFIED INCONCLUSIVE
+caught  the matched gate accepts a run on READER: PLANTED CHECK FAILED: the matched gate refuses a matched run on READER read false, should read true
+caught  the matched gate accepts any pair: PLANTED CHECK FAILED: the matched gate refuses the pair 1/1 read false, should read true
+caught  the matched gate accepts an ORDER unit with none: PLANTED CHECK FAILED: the matched gate refuses an ORDER unit with none read false, should read true
+caught  the matched gate accepts a pair twice: PLANTED CHECK FAILED: the matched gate refuses a pair run twice read false, should read true
+caught  the split's blame swapped: PLANTED CHECK FAILED: item 6: a flip on bridge 4, the matched run no harm - the opening's read the later choices, should read the opening; item 6: a flip on bridge 4, the matched r
+caught  the split blind to the whole score's harm: PLANTED CHECK FAILED: item 6: a flip on bridge 4, the matched run's whole score harmed - the later choices' read unsplit, should read the later choices
+caught  the split sees no flip: PLANTED CHECK FAILED: item 6: a flip on bridge 4, the matched run no harm - the opening's read the later choices (no flip), should read the opening; item 6: a flip on bridge 4, the
+caught  the split reads every weight at 0.02: PLANTED CHECK FAILED: item 6 reads each weight apart: a flip at 0.01 only is not one at 0.02 read the later choices (no flip) | the later choices (no flip), should read the later c
+caught  item 7 blind to harm: PLANTED CHECK FAILED: item 7: 60 lost against SHIP on S366 is harm read INCONCLUSIVE, should read FALSIFIED
+caught  item 8 blind to harm: PLANTED CHECK FAILED: item 8: a whole-score upper end below -0.25 against SHIP on bridge 6 is harm read INCONCLUSIVE, should read FALSIFIED
+caught  the cut keeps every path: PLANTED CHECK FAILED: a 16,000-path trace cut to its first paths keeps them whole read 2 1,0,1,1 0,0,5,5 -1,1, should read 2 1,0 0,0,5,5 -1,1
+caught  SHIP's ran line compared to nothing: PLANTED CHECK FAILED: SHIP's ran line compares to ORDER's but for the arm's fields read true true, should read true false
+caught  a matched line's case not read: PLANTED CHECK FAILED: a matched line parses (id from its case line) read [], should read [{"id":"bridge 4","arm":"ORDER","label":"TS+J/W0.02","P":2,"Q":2,"sim":95}]
 
-23 mutations: every one caught
+37 mutations: every one caught

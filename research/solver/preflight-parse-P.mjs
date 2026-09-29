@@ -62,7 +62,7 @@ function planted(texts, X, dir) {
     ['the preflight\'s own logs: every job, nothing refused, every trace as the reducer reads it', `${good.jobs.length} ${good.bad.length}`, `${JOBS.length} 0`],
     ['planted: a missing gap line is refused', plant(ts => ts.map(t => t.replace(/^\s+gap \S+: .*$/m, '')), 'no gap line'), 'true'],
     ['planted: a job run twice is refused', plant(ts => [...ts, ts[0]], 'a job twice'), 'true'],
-    ['planted: a wrong seed is refused', plant(ts => ts.map(t => t.replace(/seed 7002/g, 'seed 7003')), 'a wrong seed'), 'true'],
+    ['planted: a wrong seed is refused', plant(ts => ts.map(t => t.replace(/seed 7002/g, 'seed 7004')), 'a wrong seed'), 'true'],
     ['planted: another margin-0 table is refused', plant(ts => ts.map(t => t.replace(/(solve \S+\/M0\/30x5\/\S+: table )(\d+)/, (m, a, b) => `${a}${Number(b) + 1}`)), 'another table'), 'true'],
     ['planted: P without its charge on the ran line is refused', plant(ts => ts.map(t => t.replace(/ switchCharge 0\.001$/m, '')), 'no charge'), 'true'],
     ['planted: TS+J per world is refused', plant(ts => ts.map(t => t.replace(/(joint \S+\/TS\+J\/\S+: )true/, '$1false')), 'per-world tables'), 'true'],

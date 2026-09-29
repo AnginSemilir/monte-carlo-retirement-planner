@@ -1,0 +1,29 @@
+P'S SLICES (results/diagP, gated by reduce-P.mjs; the deep review after P, 29 Sep 23:31 UK)
+
+1. ITEM 7 BY UNIT: OPEN0 at world 0's node, the forward run holding where the cell leaves (one-way) against the reverse, of held path-years
+  bridge 4  core:P     years 1-7: held 27448, one-way 23.62%, reverse 9.02%, net 14.6 points
+                       by year (held one-way/reverse): 1: 16000 4352/0; 2: 4356 2023/0; 3: 3516 0/2446; 4: 1070 85/0; 5: 935 0/25; 6: 820 0/6; 7: 751 22/0
+  bridge 4  core:1e-3  years 1-7: held 62560, one-way 30.90%, reverse 3.11%, net 27.8 points
+                       by year (held one-way/reverse): 1: 16000 6788/0; 2: 13002 7724/0; 3: 10790 0/1933; 4: 8839 3017/0; 5: 5192 1015/3; 6: 4471 1/11; 7: 4266 787/0
+  S194      core:P     years 1-7: held 16000, one-way 0.00%, reverse 0.00%, net 0.0 points
+                       by year (held one-way/reverse): 1: 16000 0/0; 2: 0 0/0; 3: 0 0/0; 4: 0 0/0; 5: 0 0/0; 6: 0 0/0; 7: 0 0/0
+  S194      core:1e-3  years 1-7: held 30610, one-way 17.97%, reverse 15.26%, net 2.7 points
+                       by year (held one-way/reverse): 1: 16000 0/3670; 2: 6720 4553/0; 3: 4942 878/922; 4: 1296 42/0; 5: 1207 0/76; 6: 224 0/3; 7: 221 28/0
+  S126      core:P     years 1-7: held 17468, one-way 0.29%, reverse 0.48%, net -0.2 points
+                       by year (held one-way/reverse): 1: 16000 0/24; 2: 404 30/0; 3: 267 0/35; 4: 222 0/18; 5: 201 14/0; 6: 190 7/4; 7: 184 0/2
+  S126      core:1e-3  years 1-7: held 38566, one-way 8.46%, reverse 4.96%, net 3.5 points
+                       by year (held one-way/reverse): 1: 16000 0/1555; 2: 4671 372/41; 3: 4562 960/0; 4: 4027 918/227; 5: 3592 907/5; 6: 2960 19/74; 7: 2754 85/9
+
+2. THE YEAR-0 DE-RISK'S PRICE BY GRID (points of survival and of the whole score; each world's part, weight x its price)
+  bridge 4   grid READER/30x15/W0         whole 0.144 survival 0.060 | world 0 survival 0.335 | world 2 whole 0.086 survival 0.000, 10% of the whole price
+  bridge 4   core:P READER/30x5/W0        whole 0.157 survival 0.065 | world 0 survival 0.348 | world 2 whole 0.091 survival 0.000, 10% of the whole price
+  bridge 4   grid READER/60x5/W0          whole 0.145 survival 0.056 | world 0 survival 0.317 | world 2 whole 0.085 survival 0.000, 10% of the whole price
+  S194       grid OFF/30x15/W0.02         whole 0.167 survival 0.107 | world 0 survival 0.552 | world 2 whole 0.053 survival 0.000, 5% of the whole price
+  S194       core:P OFF/30x5/W0.02        whole 0.167 survival 0.109 | world 0 survival 0.566 | world 2 whole 0.047 survival 0.000, 5% of the whole price
+  S194       grid OFF/60x5/W0.02          whole 0.190 survival 0.128 | world 0 survival 0.644 | world 2 whole 0.077 survival 0.000, 7% of the whole price
+  share 0.95 grid READER/30x15/W0.02      whole 0.333 survival 0.303 | world 0 survival 0.073 | world 2 whole 1.783 survival 1.737, 89% of the whole price
+  share 0.95 open READER/30x5/W0.02       whole 0.000 survival 0.000 | world 0 survival 0.000 | world 2 whole 0.000 survival 0.000, NaN% of the whole price
+  share 0.95 grid READER/60x5/W0.02       whole 0.000 survival 0.000 | world 0 survival 0.000 | world 2 whole 0.000 survival 0.000, NaN% of the whole price
+
+3. THE POOLED PRICE TO REALISED (results-P.txt): margin 0 0.781 (0.66 to 0.96 over the realised interval), P 0.738 (0.63 to 0.89)
+planted: a built log reads back one-way 20%, reverse 5%, net 15 points

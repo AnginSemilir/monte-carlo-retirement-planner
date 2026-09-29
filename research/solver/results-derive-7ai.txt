@@ -1,0 +1,19 @@
+7AI'S DERIVATION: the recorded year-0 gaps against the product's margin 0.001 (7af's and 7ag's gap lines)
+  household     arm   gap          opening (0.001, 0)  the gap move that flips the 0.001 opening
+  share 0.50    CAND  9.3948e-4    0, 2                +6.4%
+  share 0.90    CAND  9.1220e-4    0, 2                +9.6%
+  bridge 0      CAND  1.0267e-3    2, 2                -2.6%
+  bridge 1      CAND  1.0332e-3    2, 2                -3.2%
+  S126          CAND  1.0600e-3    2, 2                -5.7%
+  S194          CAND  1.0525e-3    2, 2                -5.0%
+  S162          CAND  1.0735e-3    2, 2                -6.8%
+  share 0.50    SHIP  1.3351e-4    0, 2                +649.0%
+  share 0.90    SHIP  3.4884e-4    0, 2                +186.7%
+  bridge 0      SHIP  2.0976e-4    0, 2                +376.7%
+  bridge 1      SHIP  2.7563e-4    0, 2                +262.8%
+  S126          SHIP  9.9930e-3    2, 2                -90.0%
+  S194          SHIP  7.5604e-4    0, 2                +32.3%
+  S162          SHIP  4.8530e-4    0, 2                +106.1%
+
+7 of 14 pairs flip their 0.001 opening on a gap move of 10% or less; the smallest move needed 2.6%, the median 20.9%
+O60 (results-o60.txt): the de-risk High to Medium costs 1.10 points a year linear, 0.79 with the blend medians - overcharged by 0.31, 28% of its cost; the tiers rise by 0.17 to 0.49 points a year

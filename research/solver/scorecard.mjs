@@ -40,6 +40,7 @@ export const TESTS = [
   { name: '7ad (the refinement check: the bad world\'s price of the opening at its node and on finer grids)', prediction: 'predictions/diag-7ad.md', results: 'results-7ad.txt' },
   { name: '7ae (the bad node at margin 0: the per-year switch margin and the bad world\'s price)', prediction: 'predictions/diag-7ae.md', results: 'results-7ae.txt' },
   { name: '7af (the candidate bundle, the reader with TS+J, against the shipping default)', prediction: 'predictions/diag-7af.md', results: 'results-7af.txt' },
+  { name: '7ag (the bundle on the nine remaining panel households, and S126\'s attribution)', prediction: 'predictions/diag-7ag.md', results: 'results-7ag.txt' },
 ];
 
 export function credences(predText) {

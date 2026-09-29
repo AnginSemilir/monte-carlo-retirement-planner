@@ -1,0 +1,149 @@
+ok   a log parsed and gated: every registered unit, the gate passes: 28 0
+ok   the registered units: 9 candidates, 9 shipping defaults, 9 products with the reader, TSOFF on S126: 9 9 9 1
+ok   the gate refuses TSOFF at 16,000 paths (it pairs with 7af's 8,000): true
+ok   the gate refuses TSOFF without 7af's S126 units: true
+ok   the gate refuses TSOFF whose settings differ from 7af's S126 solves (minPot): true
+ok   the gate refuses TSOFF at another scale than 7af's S126: true
+ok   the gate refuses TSOFF solved per world: true
+ok   the gate refuses TSOFF with the reader on: true
+ok   every household has a registered margin of 0.25 or 0.5, S124 at 0.25: true 0.25
+ok   the gate refuses a missing unit: true
+ok   the gate refuses a unit run twice: true
+ok   the gate refuses an unregistered unit (a household 7af ran): true
+ok   the gate refuses another lambda on the unit line: true
+ok   the gate refuses another estate weight (on every unit of a household): true
+ok   the gate refuses 7af's 8,000 paths (on every unit of a household): true
+ok   the gate refuses other points (on every unit of a household): true
+ok   the gate refuses a points field alone off the registered one (the grid name unchanged): true
+ok   the gate refuses a switchMargin on every unit of a household: true
+ok   the gate refuses a missing solve line: true
+ok   the gate refuses the tier state on SHIP: true
+ok   the gate refuses the reader on SHIP: true
+ok   the gate refuses CAND solved per world: true
+ok   the gate refuses a solve at margin 0: true
+ok   the gate refuses a switchMargin on the ran line: true
+ok   the gate refuses a settings difference within a household (minPot): true
+ok   the gate refuses a pension death charge (on every unit of a household): true
+ok   the gate refuses another scale within a household: true
+ok   the gate refuses another risk-above decision within a household: true
+ok   the gate takes a risk-above decision that differs between households: false
+ok   the gate refuses a world line (not registered): true
+ok   the gate refuses a missing done line: true
+ok   a trace agrees with the log to four decimals, and not beyond; not at 8,000 paths; not on another arm: true false false false
+ok   the traces on files: an agreeing trace passes, one off the log's survival is refused, a missing one is refused: 0 true true
+ok   bits compared path by path (reduce-7af.mjs sameBits): true false
+ok   survival is not spending (7af's measure, reused): +123.5% on the old measure, -1.0% while both spend: 123.5 -1.0 0,1
+ok   nothing differs: 1 HELD, 2 HELD: 1 HELD, 2 HELD
+ok   a clear loss on one household (0 saved, 120 lost of 16,000 at 0.25): 1 FALSIFIED: FALSIFIED
+ok   S124 at 7e's reader rate (-0.57: 16 saved, 107 lost of 16,000) reads harm at its registered 0.25: harm
+ok   the margin is the registered one, not the run's survival: 0 saved, 60 lost (-0.375) reads harm on S124 (0.25) and no material harm on S128 (0.5): harm no material harm
+ok   a margin passed in is read: the same S124 loss at 0.5 reads no material harm (the reported beside): no material harm
+ok   a loss inside the margin whose interval reaches past it (10 saved, 44 lost of 16,000 at 0.25: -0.21, to -0.29): 1 INCONCLUSIVE: INCONCLUSIVE
+ok   a gain everywhere is no harm: 1 HELD: HELD
+ok   Holm across 9: 0 saved, 5 lost (p 0.031 alone) is not harm: not harm
+ok   Holm matters: 280 saved, 330 lost of 16,000 (-0.313, p 0.024 alone) is harm alone but not after Holm across 9: 1 INCONCLUSIVE: INCONCLUSIVE
+ok   item 1 reads CAND against SHIP, not PRODR: a loss against PRODR alone is HELD: HELD
+ok   spending 6% lower on one household: 2 FALSIFIED: FALSIFIED
+ok   spending 4% lower on one household (the mean -0.44%): 2 HELD: HELD
+ok   spending 1.5% lower on every household: 2 FALSIFIED by the mean: FALSIFIED
+ok   spending 1% lower on every household (the mean at the line): 2 INCONCLUSIVE: INCONCLUSIVE
+ok   item 2 reads the interval: 4.9% lower with a wide interval is INCONCLUSIVE: INCONCLUSIVE
+ok   spending higher is never a fault: +6% on one household: 2 HELD: HELD
+ok   item 3: the repair - TSOFF as SHIP (3 saved), CAND as TSOFF (0 differ): HELD: HELD
+ok   item 3: the harm masked - TSOFF gains 47 on SHIP, CAND loses 47 against TSOFF (3 saved): FALSIFIED: FALSIFIED
+ok   item 3: one-sided 19 lost of 8,000 against TSOFF (-0.24; the conditional interval ends at -0.237, the unconditional past -0.25): INCONCLUSIVE, not HELD: INCONCLUSIVE
+ok   item 3: TSOFF clearly below SHIP (30 lost), so CAND gains on TSOFF: HELD (no gain of the tier state's own): HELD
+ok   item 3 reads CAND against TSOFF, not TSOFF against SHIP: HELD
+ok   item 3: a loss of 0.3 against TSOFF with churn (10 saved, 34 lost): not HELD: not HELD
+ok   item 3: the unconditional interval printed beside TSOFF against SHIP too: true
+ok   TSOFF's code id must be 7af's: true false false
+ok   the split: a loss of the margin in PRODR against SHIP is the reader's: the reader
+ok   the split: a loss of the margin in CAND against PRODR is the tier state's: the tier state
+ok   the split: both: the reader and the tier state
+ok   the split: neither alone: neither alone (each part below the margin)
+planted (63): all read as they should
+
+FAIR-TEST GATE: research/solver/predictions/diag-7af.md was corrected after launch (f848990a at launch): only typed UK times changed, and the change declared (its words are not checked) - - 29 Sept, after 7af was read (the maintainer's "unlock enforcement" of 29 Sep, which let the stamp gate take a declared correction): two typed times in the Written line corrected from the records - the revision 23:40 to 23:32 UK (commit 0f3728e) and the plan-auditor's FAIL 23:24 to 23:23 UK (review-log.md) - per the plan-auditor's MINOR 1 of 28 Sep and BLOCKING 2 of 29 Sep. Nothing else changed: no prediction, falsifier, decision rule, fair-test row or figure.
+
+7AG: THE CANDIDATE BUNDLE (THE BRIDGE READER WITH THE JOINT TIER STATE) AGAINST THE SHIPPING DEFAULT (NO BRIDGE READ, THE PRODUCT'S TABLES) ON THE NINE REMAINING PANEL HOUSEHOLDS (predictions/diag-7ag.md; 16000 paths of seed 7002, the estate weight 0.02; the fair-test gates passed: the stamps, 7ag's gate and every trace)
+
+EVERY UNIT: the table, the simulated survival, the year-0 gap and opening (O44), years below target, tier changes and estate
+  S124 SHIP            table 11.2910 sim 94.26 gap 1.7328e-3 (opening 2,2) below 16.46 changes 0.283 estate 898062 | risk above off:_no_tier_above_the_plan
+  S124 PRODR           table 94.8530 sim 94.24 gap 4.6898e-3 (opening 2,2) below 16.46 changes 0.282 estate 897522 | risk above off:_no_tier_above_the_plan
+  S124 CAND            table 94.4277 sim 94.29 gap 4.6781e-3 (opening 2,2) below 16.75 changes 0.735 estate 933702 | risk above off:_no_tier_above_the_plan
+  S128 SHIP            table 1.2840 sim 68.71 gap 0 (opening 0,0) below 22.88 changes 2.024 estate 819481 | risk above off:_no_tier_above_the_plan
+  S128 PRODR           table 73.1712 sim 68.71 gap 5.9358e-5 (opening 0,2) below 22.88 changes 2.024 estate 819481 | risk above off:_no_tier_above_the_plan
+  S128 CAND            table 72.9878 sim 68.79 gap 1.8733e-4 (opening 0,2) below 22.98 changes 2.460 estate 920279 | risk above off:_no_tier_above_the_plan
+  S130 SHIP            table 6.1868 sim 82.57 gap 1.4311e-5 (opening 0,2) below 20.08 changes 1.705 estate 3202852 | risk above off:_no_tier_above_the_plan
+  S130 PRODR           table 91.3342 sim 83.02 gap 4.5616e-3 (opening 2,2) below 20.64 changes 0.688 estate 3122956 | risk above off:_no_tier_above_the_plan
+  S130 CAND            table 91.0726 sim 83.03 gap 4.7701e-3 (opening 2,2) below 20.76 changes 1.173 estate 3424963 | risk above off:_no_tier_above_the_plan
+  S366 SHIP            table 2.6079 sim 99.12 gap 1.3215e-3 (opening 2,2) below 8.61 changes 0.184 estate 2343302 | risk above off:_no_tier_above_the_plan
+  S366 PRODR           table 99.0992 sim 99.14 gap 1.7470e-3 (opening 2,2) below 8.58 changes 0.043 estate 2339889 | risk above off:_no_tier_above_the_plan
+  S366 CAND            table 98.8526 sim 99.17 gap 1.8458e-3 (opening 2,2) below 8.73 changes 0.573 estate 2472372 | risk above off:_no_tier_above_the_plan
+  S370 SHIP            table 0.0931 sim 70.09 gap 0 (opening 0,0) below 20.64 changes 1.699 estate 3450823 | risk above off:_no_tier_above_the_plan
+  S370 PRODR           table 79.6994 sim 74.69 gap 2.7073e-2 (opening 2,2) below 25.16 changes 1.202 estate 3254779 | risk above off:_no_tier_above_the_plan
+  S370 CAND            table 79.4918 sim 74.69 gap 2.7043e-2 (opening 2,2) below 25.27 changes 1.607 estate 3495976 | risk above off:_no_tier_above_the_plan
+  bridge 4+cost SHIP   table 1.9992 sim 95.23 gap 6.9853e-4 (opening 0,2) below 5.04 changes 0.369 estate 2299737 | risk above off:_no_tier_above_the_plan
+  bridge 4+cost PRODR  table 98.1701 sim 99.19 gap 1.6829e-2 (opening 2,2) below 4.13 changes 0.037 estate 2200647 | risk above off:_no_tier_above_the_plan
+  bridge 4+cost CAND   table 98.0216 sim 99.25 gap 1.7126e-2 (opening 2,2) below 4.25 changes 0.657 estate 2355004 | risk above off:_no_tier_above_the_plan
+  S162 SHIP            table 99.6778 sim 98.78 gap 4.8530e-4 (opening 0,2) below 2.76 changes 0.465 estate 2368371 | risk above off:_no_tier_above_the_plan
+  S162 PRODR           table 99.5636 sim 98.78 gap 6.1683e-4 (opening 0,2) below 2.76 changes 0.465 estate 2368371 | risk above off:_no_tier_above_the_plan
+  S162 CAND            table 99.2908 sim 99.22 gap 1.0735e-3 (opening 2,2) below 1.48 changes 0.726 estate 2352020 | risk above off:_no_tier_above_the_plan
+  S172 SHIP            table 99.0514 sim 98.67 gap 1.2160e-3 (opening 2,2) below 5.73 changes 0.042 estate 727286 | risk above off:_no_tier_above_the_plan
+  S172 PRODR           table 98.7759 sim 98.67 gap 1.3066e-3 (opening 2,2) below 5.73 changes 0.042 estate 727286 | risk above off:_no_tier_above_the_plan
+  S172 CAND            table 98.4786 sim 98.78 gap 1.2697e-3 (opening 2,2) below 6.13 changes 0.747 estate 819928 | risk above off:_no_tier_above_the_plan
+  S168 SHIP            table 99.9960 sim 100.00 gap 0 (opening 0,0) below 0.00 changes 0.045 estate 591960 | risk above off:_no_tier_above_the_plan
+  S168 PRODR           table 99.9960 sim 100.00 gap 0 (opening 0,0) below 0.00 changes 0.045 estate 591960 | risk above off:_no_tier_above_the_plan
+  S168 CAND            table 99.9960 sim 100.00 gap 0 (opening 0,0) below 0.00 changes 0.082 estate 592416 | risk above off:_no_tier_above_the_plan
+  S126 TSOFF           table 72.2606 sim 99.85 gap 3.0168e-2 (opening 2,2) below 1.67 changes 0.643 estate 2391696 | risk above off:_no_tier_above_the_plan
+
+THE PARTS on each household (exact 95% intervals, paired): the reader (PRODR against SHIP) and the tier state (CAND against PRODR)
+  S124           reader 6/10 -0.025 (-0.070 to 0.029) | tier state 14/6 +0.050 (-0.011 to 0.095)
+  S128           reader 0/0 +0.000 (0.000 to 0.000) | tier state 63/51 +0.075 (-0.062 to 0.208)
+  S130           reader 247/175 +0.450 (0.193 to 0.700) | tier state 25/23 +0.013 (-0.077 to 0.100)
+  S366           reader 5/1 +0.025 (-0.011 to 0.037) | tier state 8/3 +0.031 (-0.015 to 0.060)
+  S370           reader 1112/377 +4.594 (4.168 to 5.002) | tier state 25/24 +0.006 (-0.084 to 0.095)
+  bridge 4+cost  reader 635/2 +3.956 (3.891 to 3.978) | tier state 11/1 +0.063 (0.017 to 0.075)
+  S162           reader 0/0 +0.000 (0.000 to 0.000) | tier state 75/4 +0.444 (0.371 to 0.480)
+  S172           reader 0/0 +0.000 (0.000 to 0.000) | tier state 22/4 +0.113 (0.049 to 0.148)
+  S168           reader 0/0 +0.000 (0.000 to 0.000) | tier state 0/0 +0.000 (0.000 to 0.000)
+
+THE WHOLE SCORE, CAND against SHIP (reduce-7aa.mjs wholeLeg at 0.05; the estate weight the runs')
+  S124           +0.141 (0.053 to 0.229; survival part +0.025, the rest +0.116)
+  S128           +0.270 (0.109 to 0.432; survival part +0.075, the rest +0.195)
+  S130           +0.548 (0.248 to 0.850; survival part +0.462, the rest +0.086)
+  S366           +0.314 (0.248 to 0.387; survival part +0.056, the rest +0.258)
+  S370           +4.469 (3.896 to 5.044; survival part +4.600, the rest -0.131)
+  bridge 4+cost  +4.539 (4.162 to 4.942; survival part +4.019, the rest +0.521)
+  S162           +0.632 (0.488 to 0.792; survival part +0.444, the rest +0.188)
+  S172           +0.464 (0.374 to 0.560; survival part +0.112, the rest +0.351)
+  S168           +0.005 (-0.028 to 0.038; survival part +0.000, the rest +0.005)
+
+THE ITEMS (each read by its registered rule)
+1. no material harm: the candidate (READER/TS+J) against the shipping default (OFF/PRODUCT) on every household, the exact rule with Holm across the 9, each at its registered margin (FALSIFIED: harm on any): HELD
+     S124           16 saved/12 lost of 16000  p 8.3e-1  Holm 1.0e+0  change +0.025 (-0.045 to 0.089; unconditional -0.043 to 0.093)  margin 0.25  -> no material harm
+     S128           63 saved/51 lost of 16000  p 8.9e-1  Holm 1.0e+0  change +0.075 (-0.062 to 0.208; unconditional -0.056 to 0.206)  margin 0.5  -> no material harm
+     S130           242 saved/168 lost of 16000  p 1.0e+0  Holm 1.0e+0  change +0.463 (0.210 to 0.709; unconditional 0.214 to 0.711)  margin 0.5  -> no material harm
+     S366           10 saved/1 lost of 16000  p 1.0e+0  Holm 1.0e+0  change +0.056 (0.012 to 0.068; unconditional 0.012 to 0.105)  margin 0.25  -> no material harm
+     S370           1113 saved/377 lost of 16000  p 1.0e+0  Holm 1.0e+0  change +4.600 (4.174 to 5.008; unconditional 4.133 to 5.068)  margin 0.5  -> no material harm
+     bridge 4+cost  645 saved/2 lost of 16000  p 1.0e+0  Holm 1.0e+0  change +4.019 (3.954 to 4.041; unconditional 3.722 to 4.334)  margin 0.25  -> no material harm
+     S162           75 saved/4 lost of 16000  p 1.0e+0  Holm 1.0e+0  change +0.444 (0.371 to 0.480; unconditional 0.339 to 0.561)  margin 0.25  -> no material harm
+     S172           22 saved/4 lost of 16000  p 1.0e+0  Holm 1.0e+0  change +0.113 (0.049 to 0.148; unconditional 0.048 to 0.182)  margin 0.25  -> no material harm
+     S168           0 saved/0 lost of 16000  p 1.0e+0  Holm 1.0e+0  change +0.000 (0.000 to 0.000; unconditional -0.024 to 0.024)  margin 0.25  -> no material harm
+     reported beside, not the item: S124 at the 0.5 margin -> no material harm
+2. spending while both arms spend: no household's spending more than 5% lower and the mean of the 9 not more than 1% lower, each by its 95% interval (FALSIFIED: a household's upper end below -5% or the mean's below -1%): HELD
+     S124           while both spend (16000 paths) 0.9797 -> 0.9779: -0.183% (-0.189 to -0.178) | reported, a failed path's years 0: -0.186%
+     S128           while both spend (16000 paths) 0.8995 -> 0.8988: -0.074% (-0.085 to -0.063) | reported, a failed path's years 0: -0.086%
+     S130           while both spend (16000 paths) 0.9414 -> 0.9366: -0.507% (-0.537 to -0.477) | reported, a failed path's years 0: -0.147%
+     S366           while both spend (16000 paths) 1.0443 -> 1.0438: -0.051% (-0.057 to -0.046) | reported, a failed path's years 0: -0.043%
+     S370           while both spend (16000 paths) 0.9192 -> 0.9063: -1.404% (-1.450 to -1.359) | reported, a failed path's years 0: +7.215%
+     bridge 4+cost  while both spend (16000 paths) 1.0541 -> 1.0612: +0.672% (0.647 to 0.698) | reported, a failed path's years 0: +4.242%
+     S162           while both spend (16000 paths) 1.0808 -> 1.0898: +0.834% (0.806 to 0.862) | reported, a failed path's years 0: +0.846%
+     S172           while both spend (16000 paths) 1.0606 -> 1.0581: -0.242% (-0.249 to -0.235) | reported, a failed path's years 0: -0.241%
+     S168           while both spend (16000 paths) 1.1000 -> 1.1000: +0.000% (0.000 to 0.000) | reported, a failed path's years 0: +0.000%
+     the mean of the 9 -0.106% (-0.115 to -0.097)
+3. S126's attribution: the reader on top of the tier state (CAND against TSOFF, TS+J under off) - HELD (the repair) when the guarded unconditional interval's lower end is above -0.25; FALSIFIED (the reader's harm stands, masked by a gain of the tier state's own) on harm at 0.25 (exact p below 0.05, point loss 0.25 or more): HELD
+     CAND (7af's) against TSOFF, the reader on top of the tier state  0 saved/0 lost of 8000  p 1.0e+0  change +0.000 (exact 0.000 to 0.000; unconditional, guarded, -0.048 to 0.048)
+     reported beside: TSOFF against SHIP (7af's), the tier state's own gain  3 saved/0 lost  change +0.037 (exact -0.016 to 0.037; unconditional, guarded, -0.019 to 0.110)
+
+OUTCOME: 1 HELD, 2 HELD, 3 HELD

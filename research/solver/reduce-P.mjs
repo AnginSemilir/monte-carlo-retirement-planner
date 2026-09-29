@@ -1,16 +1,16 @@
 /*
  * THE P REDUCER: THE SWITCH CHARGED IN BOTH PASSES (predictions/diag-P.md; PLAN.md P). Reads results/diagP/case*.txt
- * (batch-P.sh: audit-s126.mjs diagP, 29 jobs) beside 7ae's, 7ad's and 7af's records, each read only through its own
- * reducer's gate (7ae's through 7aa's, 7ac's and 7ad's; 7af's through 7aa's). Every arm the items read is P's own, on the
+ * (batch-P.sh: audit-s126.mjs diagP, 38 jobs) beside 7ae's, 7ad's, 7af's and 7ag's records, each read only through its own
+ * reducer's gate (7ae's through 7aa's, 7ac's and 7ad's; 7af's through 7aa's; 7ag's beside 7af's). Every arm the items read is P's own, on the
  * same 16,000 node paths; 7ae is the identity reference for settings 0 and 1e-3.
  * THE GATE, before any figure:
  *   - the stamps (fair-gate.mjs requireFairLogs) and 7aa's, 7ac's, 7ad's, 7ae's and 7af's own gates;
  *   - every registered job once and done: core, one a unit and setting (7ae's three units at 30x5; settings P, 0 and 1e-3),
- *     grid (bridge 4 and S194 at 30x15 and 60x5, P), open (7af's sixteen households, the bundle's unit, P); each tag with its
+ *     grid (bridge 4 and S194 at 30x15 and 60x5, P), open (the 25 households 7af and 7ag read, the bundle's unit, P); each tag with its
  *     solve, ran, gap, joint, moves, price and three world lines, and a core tag its node line;
  *   - the ran line is its reference's, its path count this run's, with the settings named at its end: core P 7ae's margin-0
  *     ran line and " switchCharge 0.001"; core 0 and 1e-3 7ae's ran lines at those margins; grid 7ad's TS+J ran line at that
- *     grid and open 7af's CAND ran line, each with " switchMargin 0 switchCharge 0.001"; the joint line says the margin
+ *     grid and open 7af's or 7ag's CAND ran line, each with " switchMargin 0 switchCharge 0.001"; the joint line says the margin
  *     (0.001 at 1e-3, else 0) and the charge (0 but at P), a joint solve, no pension death charge (the scorer has none:
  *     O53), the reference's scale and cap;
  *   - SETTINGS 0 AND 1E-3 ARE 7AE'S SOLVES: their tables, gaps, openings, moves, prices and world lines are 7ae's, and on the
@@ -44,7 +44,7 @@
  * beside margin 0's (cause 3 predicts it unchanged); the churn table (switches and riskier moves a path, every rule); WA/P,
  * the 2x2's fourth cell; the openings on 7af's sixteen against the bundle's, with share 0.95's registered branch for the Q
  * decision; the solve seconds at P and at 0 (gate 5's record).
- *   node research/solver/reduce-P.mjs [dirP] [dir7ae] [dir7ad] [dir7ac] [dir7aa] [dir7af] > research/solver/results-P.txt
+ *   node research/solver/reduce-P.mjs [dirP] [dir7ae] [dir7ad] [dir7ac] [dir7aa] [dir7af] [dir7ag] > research/solver/results-P.txt
  *   node research/solver/reduce-P.mjs --planted   the planted checks alone
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
@@ -59,6 +59,7 @@ import * as C from './reduce-7ac.mjs';
 import * as D from './reduce-7ad.mjs';
 import * as E from './reduce-7ae.mjs';
 import * as F from './reduce-7af.mjs';
+import * as G from './reduce-7ag.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-P.md';
@@ -69,7 +70,7 @@ export const M1 = 0.35, M2 = 0.23;
 export const { PRICE_TOL, LFL_TOL, SIM_TOL, WTOL } = D;
 export const CORE = [['bridge 4', 'READER', '0'], ['S194', 'OFF', '0.02'], ['S126', 'READER', '0']];
 export const GRIDS = [['bridge 4', 'READER', '0', '30x15'], ['S194', 'OFF', '0.02', '30x15'], ['bridge 4', 'READER', '0', '60x5'], ['S194', 'OFF', '0.02', '60x5']];
-export const OPENS = F.PANEL.map(([id]) => id);
+export const OPENS = [...F.PANEL, ...G.PANEL].map(([id]) => id);
 export const SETTINGS = ['P', '0', '1e-3'];
 export const JOBS = [...SETTINGS.flatMap(m => CORE.map(([id, a, w]) => [`core:${m}`, id, a, w, '30x5'])), ...GRIDS.map(([id, a, w, g]) => ['grid', id, a, w, g]), ...OPENS.map(id => ['open', id, 'READER', '0.02', '30x5'])];
 export const RULES = { P: ['TS+J', 'OPEN0', 'WA'], 0: ['TS+J', 'OPEN0', 'WA'], '1e-3': ['TS+J', 'OPEN0'] };
@@ -112,7 +113,7 @@ export function parse(text) {
 }
 
 /* the reference a job's lines are held to: `R.e(id, arm, w)` 7ae's parsed job (reduce-7ae.mjs parse); `R.ad(id, arm, w, grid)`
-   7ad's parsed TS+J tag at that grid (reduce-7ad.mjs parse); `R.af(id)` 7af's parsed CAND unit (reduce-7aa.mjs parse) */
+   7ad's parsed TS+J tag at that grid (reduce-7ad.mjs parse); `R.af(id)` 7af's or 7ag's parsed CAND unit (reduce-7aa.mjs parse) */
 function refOf(j, R) {
   if (isCore(j.kind)) { const m = j.kind.slice(5), e = R.e(j.id, j.arm, j.w), t = e && e.tags[m === 'P' ? '0' : m]; return t ? { ran: t.ran, joint: t.joint, e: m === 'P' ? null : t, z: t.node ? t.node.z : null } : null; }
   if (j.kind === 'grid') { const t = R.ad(j.id, j.arm, j.w, j.grid); return t ? { ran: t.ran, joint: t.joint } : null; }
@@ -139,7 +140,7 @@ export function gate(jobs, R, { n = N, wn = WN, pts = null } = {}) {
     const want = tagsOf(j.kind);
     for (const mg of Object.keys(j.tags)) if (!want.includes(mg)) bad.push(`${tagJ}: an unregistered setting M${mg}`);
     const ref = refOf(j, R);
-    if (!ref) bad.push(`${tagJ}: no reference to compare with (${core ? '7ae' : j.kind === 'grid' ? '7ad' : '7af'})`);
+    if (!ref) bad.push(`${tagJ}: no reference to compare with (${core ? '7ae' : j.kind === 'grid' ? '7ad' : '7af or 7ag'})`);
     for (const mg of want) {
       const u = j.tags[mg], L = `${tagJ} M${mg}`;
       if (!u) { bad.push(`${L}: no lines`); continue; }
@@ -273,9 +274,9 @@ export function items(S, R, openings) {
   const out = [];
   const pooledOf = (ra, ma, rb, mb) => E.pooled(S(ra, ma).map((a, u) => pair(a, S(rb, mb)[u])));
   { const p = pooledOf('OPEN0', '0', 'OPEN0', 'P');
-    out.push({ n: 1, text: `OPEN0 under P against OPEN0 at margin 0 (7ae), pooled: the lower end above -${M1} (FALSIFIED: the upper end below -${M1})`, pooled: p, outcome: tri(p.lo > -M1, p.hi < -M1) }); }
+    out.push({ n: 1, text: `OPEN0 under P against OPEN0 at margin 0, pooled: the lower end above -${M1} (FALSIFIED: the upper end below -${M1})`, pooled: p, outcome: tri(p.lo > -M1, p.hi < -M1) }); }
   { const p = pooledOf('TS+J', '1e-3', 'TS+J', 'P');
-    out.push({ n: 2, text: `TS+J under P against TS+J at 1e-3 (7ae), pooled: the lower end above -${M2} (FALSIFIED: the upper end below -${M2})`, pooled: p, outcome: tri(p.lo > -M2, p.hi < -M2) }); }
+    out.push({ n: 2, text: `TS+J under P against TS+J at 1e-3, pooled: the lower end above -${M2} (FALSIFIED: the upper end below -${M2})`, pooled: p, outcome: tri(p.lo > -M2, p.hi < -M2) }); }
   const ex = pairedSum(R('TS+J', '0'), R('TS+J', '1e-3')), H3 = ex.d / 2, sep = ex.lo > 0;
   { const p = pairedSum(R('TS+J', 'P'), R('TS+J', '1e-3'));
     out.push({ n: 3, text: 'no re-risk churn under P: riskier moves a path summed over the units, TS+J/P less TS+J/1e-3, the upper end below H3, half margin 0\'s excess (FALSIFIED: the lower end above H3)', pooled: p, excess: ex, H3, measured: sep, outcome: sep ? tri(p.hi < H3, p.lo > H3) : 'INCONCLUSIVE' }); }
@@ -292,8 +293,8 @@ export const qBranch = open => (open === null ? 'not measured' : open ? 'P leave
 
 const f3 = x => `${x >= 0 ? '+' : ''}${x.toFixed(3)}`;
 const iv = p => `${f3(p.d)} (${p.lo.toFixed(3)} to ${p.hi.toFixed(3)})`;
-/* THE READING, after every gate has passed. `TR` P's traces, `unitsF` 7af's parsed units */
-export function reading(jobs, TR, unitsF, out = console.log, wn = WN) {
+/* THE READING, after every gate has passed. `TR` P's traces, `af(id)` the bundle's parsed unit (7af's or 7ag's) */
+export function reading(jobs, TR, af, out = console.log, wn = WN) {
   const J = (kind, id, g = '30x5') => jobs.find(j => j.kind === kind && j.id === id && j.grid === g);
   const tag = (id, m) => J(`core:${m}`, id).tags[m];
   const tr = (id, m, rule) => TR[`${id}|${m}|${rule}`];
@@ -331,10 +332,10 @@ export function reading(jobs, TR, unitsF, out = console.log, wn = WN) {
     const a = at('0'), b = at('P');
     out(`\nREPORTED: the pooled price / realised ratio (Σ world-0 survival price of the opening against Σ TS+J less OPEN0 at the node): margin 0 ${a.sp.toFixed(3)} / ${iv(a.pl)} = ${a.ratio.toFixed(3)}; P ${b.sp.toFixed(3)} / ${iv(b.pl)} = ${b.ratio.toFixed(3)}. Cause 3 (the share and gain axes) predicts P's within 0.10 of margin 0's: ${Number.isFinite(b.ratio) && Math.abs(b.ratio - a.ratio) <= 0.10 ? 'it is' : 'it is not'}`); }
   // REPORTED: the openings on 7af's sixteen
-  out('\nREPORTED: THE OPENINGS ON 7AF\'S SIXTEEN (the bundle\'s unit, READER/TS+J/W0.02): P\'s gap on top of the charge and its chosen year-0 tiers, against the bundle\'s (7af: the gap at 1e-3, the pension tier chosen at 1e-3 and at margin 0 on its tables)');
+  out('\nREPORTED: THE OPENINGS ON THE 25 HOUSEHOLDS 7AF AND 7AG READ (the bundle\'s unit, READER/TS+J/W0.02): P\'s gap on top of the charge and its chosen year-0 tiers, against the bundle\'s (7af\'s or 7ag\'s: the gap at 1e-3, the pension tier chosen at 1e-3 and at margin 0 on its tables)');
   let q = null;
   for (const id of OPENS) {
-    const u = J('open', id).tags.P, f = unitsF.find(x => x.id === id && x.arm === F.CAND[0] && x.label === F.CAND[1]), lv = leaves(u);
+    const u = J('open', id).tags.P, f = af(id), lv = leaves(u);
     if (id === 'share 0.95') q = lv;
     out(`  ${id.padEnd(12)} P gap ${u.gap.gap.padEnd(10)} opening ${u.moves.chosenTier.join('/')} ${lv ? 'leaves' : 'keeps '} | bundle gap ${f.gap.gap} opening ${f.gap.open1e3},${f.gap.open0} | solve ${Math.round(u.secs)} s`);
   }
@@ -352,28 +353,28 @@ function built(o = {}) {
   const ranOf = (id, g, w) => `mix 3 pts ${g.split('x')[0]} seed 7002 paths ${N} grid total${g.split('x')[0]}x6x6 lambda ${LAMBDA} levels 1 quad ${g.split('x')[1]} tierState 0/0,1/1,2/2 bequestWeight ${w} finalIntegral true bridgeRead x ${id.replace(/ /g, '')}`;
   for (const [kind, id, a, w, g] of JOBS) {
     if (o.skip === jobKey(kind, id, a, w, g)) continue;
-    const [gp, gq] = g.split('x');
+    const [gp, gq] = g.split('x'), start = lines.length, core = isCore(kind), one = kind === 'open' && id === 'S360';   // 'one': the job a single-job plant bends
     lines.push(`${id.padEnd(16)} case | job ${kind} ${a}/${g}/W${w} | lambda ${o.lambda || LAMBDA} tier own riskAbove auto mix 3 points ${pts || gp} quad ${gq}`);
     const base = ranOf(id, g, w), scale = 1000, cap = 4000;
-    const core = isCore(kind), refRan = core && kind !== 'core:1e-3' ? `${base} switchMargin 0` : base;
+    const refRan = core && kind !== 'core:1e-3' ? `${base} switchMargin 0` : base;
     for (const mg of tagsOf(kind)) {
       const L = `${a}/TS+J/M${mg}/${g}/W${w}`, gap = mg === 'P' ? (o.gapZero === id ? '0' : '5.0000e-4') : '8.0000e-4', leaveT = gap === '0' ? '0/0' : '2/2';
-      const c = mg === 'P' ? 0.001 : 0, g0 = Number(gap), mix = gap === '0' ? 5e-4 : 100 * (g0 + c), lfl = gap === '0' ? 0 : mix;
+      const c = mg === 'P' ? 0.001 : 0, g0 = Number(gap), mix = gap === '0' ? 5e-4 : 100 * (g0 + (o.noChargePrice && one ? 0 : c)), lfl = gap === '0' ? 0 : mix, lflW = o.lflOff && one ? lfl * 1.1 : lfl;
       const x = { table: mg === 'P' ? '99.1000' : '99.2000', ran: mg === 'P' ? (core ? `${refRan} switchCharge ${CHARGE}` : `${refRan} switchMargin 0 switchCharge ${CHARGE}`) : refRan };
       if (o.ranTail && mg === 'P' && core) x.ran += ' minPot 1';
-      lines.push(`${P} solve ${L}: table ${x.table} secs 700`);
+      if (!(o.noSolve && one)) lines.push(`${P} solve ${L}: table ${x.table} secs 700`);
       lines.push(`${P} ran ${L}: ${x.ran}`);
       if (!(o.noGap && mg === 'P' && kind === 'grid')) lines.push(`${P} gap ${L}: ${gap} opening ${gap === '0' ? '0,0' : (o.flip && g === '60x5' ? '1,1' : '2,2')}`);
       lines.push(`${P} joint ${L}: ${o.perWorld ? 'false' : 'true'} switchMargin ${o.margin && mg === 'P' ? o.margin : mg === '1e-3' ? (o.margin3 || '0.001') : '0'} switchCharge ${mg === 'P' ? (o.charge || CHARGE) : (o.charge0 || '0')} scale ${o.scale && kind === 'open' ? scale + 1 : scale} cap ${cap} deathTax ${o.death && kind === 'open' ? 0.4 : 0} tier own riskAbove off`);
       const bt = gap === '0' ? '0/0' : (o.flip && g === '60x5' ? '1/1' : '2/2'), bi = gap === '0' ? 3 : 7;
-      lines.push(`${P} moves ${L}: best ${bi} ${bt} stay ${o.stayLeaves && mg === 'P' ? '4 1/1' : '3 0/0'} chosen ${o.chosenStay && mg === 'P' && gap !== '0' ? '3 0/0' : `${bi} ${bt}`} held ${o.held && mg === 'P' ? '1/1' : '0/0'}`);
+      lines.push(`${P} moves ${L}: best ${bi} ${bt} stay ${o.stayLeaves && mg === 'P' ? '4 1/1' : o.held && one ? '3 1/1' : '3 0/0'} chosen ${o.chosenStay && one && gap !== '0' ? '3 0/0' : `${bi} ${bt}`} held ${o.held && one ? '1/1' : '0/0'}`);
       const mx = o.price && mg === 'P' ? mix * 1.5 : mix;
-      lines.push(`${P} price ${L}: mixture ${mx.toExponential(6)} like-for-like whole ${(o.lflOff && mg === 'P' ? lfl * 1.1 : lfl).toExponential(6)} survival ${lfl === 0 ? (0).toExponential(6) : (lfl / 2).toExponential(6)}`);
+      lines.push(`${P} price ${L}: mixture ${mx.toExponential(6)} like-for-like whole ${lflW.toExponential(6)} survival ${lfl === 0 ? (0).toExponential(6) : (lfl / 2).toExponential(6)}`);
       const ws = [[-1.7321, 1 / 6], [0, 2 / 3], [1.7321, 1 / 6]];
-      ws.forEach(([z, wt], k) => { if (!(o.noWorld && k === 1)) lines.push(`${P} world ${L} ${k} z ${z.toFixed(4)} weight ${wt.toFixed(4)}: whole ${(o.worldOff && k === 0 ? lfl * 2 : lfl).toFixed(6)} survival ${(lfl / 2).toFixed(6)}`); });
+      ws.forEach(([z, wt], k) => { if (!(o.noWorld && one && k === 1)) lines.push(`${P} world ${L} ${k} z ${z.toFixed(4)} weight ${wt.toFixed(4)}: whole ${(o.worldOff && one && k === 0 ? lfl * 2 : lflW).toFixed(6)} survival ${(lfl / 2).toFixed(6)}`); });
       if (core && !(o.noNode && mg === 'P')) {
-        const wa = mg === '1e-3' && !o.wa3 ? ['-', '-'] : ['97.5000', '3'];
-        lines.push(`${P} node ${L} 0 z ${mg === 'P' && o.nodeZ ? o.nodeZ : '-1.7321'}: sim TS+J 98.0000 OPEN0 97.0000 WA ${wa[0]} held0 TS+J ${o.tsjHeld && mg === 'P' ? 5 : 0} OPEN0 ${o.open0Held && mg === 'P' ? WN - 1 : WN} WA ${wa[1]} paths ${o.nodePaths && mg === 'P' ? o.nodePaths : WN} secs 100`);
+        const wa = mg === '1e-3' && !o.wa3 ? ['-', '-'] : ['97.5000', '3'], np = o.nodePaths && mg === 'P' ? o.nodePaths : WN;
+        lines.push(`${P} node ${L} 0 z ${mg === 'P' && o.nodeZ ? o.nodeZ : '-1.7321'}: sim TS+J 98.0000 OPEN0 97.0000 WA ${wa[0]} held0 TS+J ${o.tsjHeld && mg === 'P' ? 5 : 0} OPEN0 ${o.open0Held && mg === 'P' ? np - 1 : np} WA ${wa[1]} paths ${np} secs 100`);
       }
       if (core && mg !== 'P') (E0[id] || (E0[id] = {}))[mg] = { table: x.table, ran: refRan, gap: { gap, open1e3: 2, open0: 2 }, joint: { scale, cap }, moves: { best: bi, bestTier: bt.split('/').map(Number), stay: 3, stayTier: [0, 0], chosen: bi, chosenTier: bt.split('/').map(Number), held: [0, 0] }, price: { mixture: +mx.toExponential(6), whole: +lfl.toExponential(6), surv: +(lfl / 2).toExponential(6) }, worlds: ws.map(([z, wt]) => ({ z: +z.toFixed(4), w: +wt.toFixed(4), whole: +lfl.toFixed(6), surv: +(lfl / 2).toFixed(6) })), node: { z: -1.7321 } };
       if (core && mg !== 'P' && o.table0 === mg) E0[id][mg].table = '99.3000';
@@ -381,8 +382,8 @@ function built(o = {}) {
     if (kind === 'grid') AD[`${id}|${g}`] = { ran: base, joint: { scale, cap } };
     if (kind === 'open') AF[id] = { ran: base, joint: { scale, cap } };
     if (!(o.noDone && kind === 'open')) lines.push(`${P} done ${kind} ${a}/${g}/W${w}`);
+    if (o.twice && one) lines.push(...lines.slice(start));
   }
-  if (o.twice) lines.push(...lines.slice(0, 3));
   if (o.extra) lines.push('S999             case | job open READER/30x5/W0.02 | lambda x tier own riskAbove auto mix 3 points 30 quad 5');
   R.e = (id, arm, w) => (E0[id] ? { tags: E0[id] } : null);
   R.ad = (id, arm, w, g) => AD[`${id}|${g}`] || null;
@@ -393,7 +394,8 @@ export function planted() {
   const cases = [];
   const refused = (o, pts) => { const b = built(o); return String(gate(parse(b.text), b.R, pts ? { pts } : {}).length > 0); };
   { const b = built(); const bad = gate(parse(b.text), b.R); cases.push(['a built log parsed and gated: every job, the gate passes', `${parse(b.text).length} ${bad.length}${bad.length ? ` ${bad[0]}` : ''}`, `${JOBS.length} 0`]); }
-  cases.push(['the gate refuses a missing job', refused({ skip: jobKey(...JOBS[5]) }), 'true']);
+  cases.push(['the gate refuses a missing job', refused({ skip: jobKey(...JOBS[20]) }), 'true']);
+  cases.push(['the gate refuses a missing solve line', refused({ noSolve: true }), 'true']);
   cases.push(['the gate refuses a job run twice', refused({ twice: true }), 'true']);
   cases.push(['the gate refuses an unregistered job', refused({ extra: true }), 'true']);
   cases.push(['the gate refuses other job settings (lambda)', refused({ lambda: '0.05' }), 'true']);
@@ -417,12 +419,14 @@ export function planted() {
   cases.push(['the gate refuses a chosen move that is not BEST', refused({ chosenStay: true }), 'true']);
   cases.push(['the gate takes a gap of 0 with BEST as STAY and no like-for-like price', refused({ gapZero: 'S360' }), 'false']);
   cases.push(['the gate refuses a mixture price not the gap plus the charge', refused({ price: true }), 'true']);
+  cases.push(['the gate refuses a price that is the gap alone (the charge left out)', refused({ noChargePrice: true }), 'true']);
   cases.push(['the gate refuses a like-for-like sum not the mixture\'s', refused({ lflOff: true }), 'true']);
   cases.push(['the gate refuses world lines not summing to the price', refused({ worldOff: true }), 'true']);
-  cases.push(['the gate refuses a missing world line', refused({ noWorld: true }), 'true']);
+  cases.push(['the gate refuses a missing world line (on a gap-0 job, where every world line reads 0 and the sum cannot catch it)', refused({ noWorld: true, gapZero: 'S360' }), 'true']);
   cases.push(['the gate refuses a missing node line', refused({ noNode: true }), 'true']);
   cases.push(['the gate refuses a node run of other than the registered paths', refused({ nodePaths: 4000 }), 'true']);
-  cases.push(['the gate refuses a node away from 7ae\'s', refused({ nodeZ: '-1.7300' }), 'true']);
+  cases.push(['the gate refuses a node away from world 0\'s', refused({ nodeZ: '-1.7300' }), 'true']);
+  cases.push(['the gate refuses a node within world 0\'s printed figure but not 7ae\'s exactly', refused({ nodeZ: '-1.73205' }), 'true']);
   cases.push(['the gate refuses OPEN0 leaving the held tiers on a node path', refused({ open0Held: true }), 'true']);
   cases.push(['the gate refuses TS+J keeping the held tiers where its chosen move leaves', refused({ tsjHeld: true }), 'true']);
   cases.push(['the gate refuses a missing done line', refused({ noDone: true }), 'true']);
@@ -436,7 +440,7 @@ export function planted() {
     cases.push(['the churn: switches and riskier moves a path, the path alive only', `${Array.from(c.sw).join(',')} ${Array.from(c.rr).join(',')}`, '1,4,0 0,2,0']); }
   // pairedSum
   { const p = pairedSum([Int16Array.from([2, 2, 0, 0])], [Int16Array.from([1, 1, 0, 0])]);
-    cases.push(['the paired sum: the mean difference and its interval', `${p.d.toFixed(2)} ${p.se.toFixed(4)}`, '0.50 0.2500']); }
+    cases.push(['the paired sum: the mean difference and its interval', `${p.d.toFixed(2)} ${p.se.toFixed(4)} ${p.lo.toFixed(3)} ${p.hi.toFixed(3)}`, '0.50 0.2500 0.010 0.990']); }
   // the items over built arrays: n paths a unit, three units
   const n = 8000, U = 3;
   const bits = k => B(n, k), rr = m => { const a = new Int16Array(n), k = Math.round(m * n); for (let i = 0; i < k; i++) a[i] = 1; return a; };   // mean m exactly, the first paths
@@ -450,6 +454,7 @@ export function planted() {
   cases.push(['the items: P as cause 1 says (OPEN0 as at margin 0, TS+J as at 1e-3, no churn, WA no churn, a robust opening): all HELD', mk(), 'HELD HELD HELD HELD HELD']);
   cases.push(['the items: P as margin 0 (OPEN0 fallen to 1e-3, TS+J fallen, the churn, WA churning, the opening flipping on both): all FALSIFIED', mk({ oP: 7760 - 80, jP: 7840 - 60, cP: 1.0, w0: 1.0, open: { 'bridge 4': [[2, 2], [0, 0], [2, 2]], S194: [[2, 2], [2, 2], [1, 1]] } }), 'FALSIFIED FALSIFIED FALSIFIED FALSIFIED FALSIFIED']);
   cases.push(['item 1 at M1 0.35: OPEN0 down 24 paths a unit (0.9 pooled) is FALSIFIED, 8 paths (0.3 pooled) INCONCLUSIVE', `${mk({ oP: 7760 - 24 }).split(' ')[0]} ${mk({ oP: 7760 - 8 }).split(' ')[0]}`, 'FALSIFIED INCONCLUSIVE']);
+  cases.push(['item 1 at M1 0.35, not 0.5: OPEN0 down 6 paths a unit (0.225 pooled, lower end -0.405) is INCONCLUSIVE', mk({ oP: 7760 - 6 }).split(' ')[0], 'INCONCLUSIVE']);
   cases.push(['item 1 reads OPEN0/P against OPEN0/M0, not against 1e-3: OPEN0 at M0 lower than P by 0.5 a unit is HELD', mk({ o0: 7720 }).split(' ')[0], 'HELD']);
   cases.push(['item 2 at M2 0.23: TS+J down 20 paths a unit (0.75 pooled) is FALSIFIED, 4 paths (0.15 pooled) INCONCLUSIVE', `${mk({ jP: 7840 - 20 }).split(' ')[1]} ${mk({ jP: 7840 - 4 }).split(' ')[1]}`, 'FALSIFIED INCONCLUSIVE']);
   cases.push(['item 3 halfway: P churning at 0.6 of margin 0\'s (above H3) is FALSIFIED; at 0.4 HELD', `${mk({ cP: 0.64 }).split(' ')[2]} ${mk({ cP: 0.46 }).split(' ')[2]}`, 'FALSIFIED HELD']);
@@ -467,7 +472,7 @@ export function planted() {
 const logsOf = Dir => (existsSync(Dir) ? Object.fromEntries(readdirSync(Dir).filter(f => /^case\d+\.txt$/.test(f)).sort().map(f => [f, readFileSync(join(Dir, f), 'utf8')])) : {});
 export const stampOf = logs => { const st = /^stamp: code (\S+) audit (\S+) prediction (\S+) sha (\S+)$/m.exec(Object.values(logs)[0] || ''); return st ? { code: st[1], audit: st[2], prediction: st[3], sha: st[4] } : null; };
 /* 7ae with its whole chain (7aa, 7ac, 7ad), and 7af against 7aa, each through its own stamps and gate; exits on a refusal */
-export function loadRefs(DIR7AE, DIR7AD, DIR7AC, DIR7AA, DIR7AF) {
+export function loadRefs(DIR7AE, DIR7AD, DIR7AC, DIR7AA, DIR7AF, DIR7AG) {
   const fail = (who, bad) => { console.log(`FAIR-TEST GATE (${who}): FAILED\n  ${bad.join('\n  ')}`); process.exit(1); };
   const logsA = logsOf(DIR7AA), unitsA = Object.values(logsA).flatMap(A.parse);
   requireFairLogs(logsA, A.PRED);
@@ -489,9 +494,12 @@ export function loadRefs(DIR7AE, DIR7AD, DIR7AC, DIR7AA, DIR7AF) {
   const logsF = logsOf(DIR7AF), unitsF = Object.values(logsF).flatMap(F.parse);
   requireFairLogs(logsF, F.PRED);
   { const refA = (id, arm, l) => unitsA.find(u => u.id === id && u.arm === arm && u.label === l) || null, b = F.gate(unitsF, refA); if (b.length) fail('7af', b); }
+  const unitsG = DIR7AG ? Object.values(logsOf(DIR7AG)).flatMap(G.parse) : [];
+  if (DIR7AG) { requireFairLogs(logsOf(DIR7AG), G.PRED); const b = G.gate(unitsG, G.N, G.PTS, unitsF.filter(u => u.id === 'S126')); if (b.length) fail('7ag', b); }
+  const cand = id => unitsF.find(u => u.id === id && u.arm === F.CAND[0] && u.label === F.CAND[1]) || unitsG.find(u => u.id === id && u.arm === G.CAND[0] && u.label === G.CAND[1]) || null;
   const R = { e: (id, arm, w) => jobsE.find(x => x.id === id && x.arm === arm && x.w === w) || null, ad: (id, arm, w, g) => { const j = jobsD.find(x => x.id === id && x.arm === arm && x.w === w && x.grid === g); return j ? j.tags['TS+J'] : null; },
-    af: id => unitsF.find(u => u.id === id && u.arm === F.CAND[0] && u.label === F.CAND[1]) || null };
-  return { R, jobsE, TRE, unitsF };
+    af: cand };
+  return { R, jobsE, TRE, unitsF, unitsG };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
@@ -500,12 +508,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2).filter(x => !x.startsWith('--'));
   const d = (k, name) => args[k] || join(HERE, 'results', name);
   const DIR = d(0, 'diagP');
-  const { R, TRE, unitsF } = loadRefs(d(1, 'diag7ae'), d(2, 'diag7ad'), d(3, 'diag7ac'), d(4, 'diag7aa'), d(5, 'diag7af'));
+  const { R, TRE } = loadRefs(d(1, 'diag7ae'), d(2, 'diag7ad'), d(3, 'diag7ac'), d(4, 'diag7aa'), d(5, 'diag7af'), d(6, 'diag7ag'));
   const logs = logsOf(DIR), jobs = Object.values(logs).flatMap(parse);
   if (JOBS.some(([kind, id, a, w, g]) => !jobs.some(j => j.kind === kind && j.id === id && j.arm === a && j.w === w && j.grid === g && j.done))) { console.log(`INCOMPLETE - ${jobs.filter(j => j.done).length} of ${JOBS.length} jobs done in ${DIR}`); process.exit(1); }
   requireFairLogs(logs, PRED);
   const bad = gate(jobs, R), ST = stampOf(logs);
   const TR = bad.length ? {} : loadTraces(jobs, DIR, ST, bad, TRE);
   if (bad.length) { console.log(`FAIR-TEST GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
-  reading(jobs, TR, unitsF);
+  reading(jobs, TR, R.af);
 }

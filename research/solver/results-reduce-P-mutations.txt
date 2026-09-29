@@ -1,0 +1,55 @@
+true script: planted (53): all read as they should
+caught  the gate accepts a missing job: the gate refuses a missing job: false (should read true)
+caught  the gate accepts a job twice: the gate refuses a job run twice: false (should read true)
+caught  the gate accepts an unregistered job: the gate refuses an unregistered job: false (should read true)
+caught  the gate ignores the job line's settings: the gate refuses other job settings (lambda): false (should read true)
+caught  the gate ignores the points: the gate refuses a job at other points than its grid: false (should read true)
+caught  the gate accepts a missing reference: the gate refuses a missing reference (7af): false (should read true)
+caught  setting 1e-3 dropped from the jobs: the gate refuses setting 1e-3 whose table is not 7ae's: false (should read true)
+caught  the gate accepts a missing solve line: the gate refuses a missing solve line: false (should read true)
+caught  the gate ignores the ran line: the gate refuses a ran line with more at its end: false (should read true)
+caught  the ran line's charge not required at P: a built log parsed and gated: every job, the gate passes: 29 3 core:P bridge 4 READER/30x5/W0 MP: its ran line is not its reference's with the settings at its end (should read
+caught  the gate ignores the joint flag: the gate refuses a per-world solve: false (should read true)
+caught  the gate ignores the margin: the gate refuses a joint line at margin 0.001: false (should read true)
+caught  the gate ignores the charge: the gate refuses P without its charge: false (should read true)
+caught  the gate ignores a pension death charge: the gate refuses a pension death charge (O53): false (should read true)
+caught  the gate ignores the scale: the gate refuses a scale not the reference's: false (should read true)
+caught  the gate accepts a missing gap line: the gate refuses a missing gap line: false (should read true)
+caught  the gate accepts an opening off the plan's tiers: the gate refuses an opening holding other than the plan's tiers: false (should read true)
+caught  the gate accepts STAY leaving: the gate refuses a STAY move leaving the held tiers: false (should read true)
+caught  the gate accepts a chosen move not BEST at margin 0: the gate refuses a chosen move that is not BEST: false (should read true)
+caught  the price not the gap plus the charge: the gate refuses a price that is the gap alone (the charge left out): false (should read true)
+caught  the like-for-like sum unchecked: the gate refuses a like-for-like sum not the mixture's: false (should read true)
+caught  the world lines unchecked: the gate refuses world lines not summing to the price: false (should read true)
+caught  a missing world line accepted: the gate refuses a missing world line (on a gap-0 job, where every world line reads 0 and the sum cannot catch it): false (should read true)
+caught  settings 0 and 1e-3 not held to 7ae's table: the gate refuses setting 0 whose table is not 7ae's: false (should read true)
+caught  setting 1e-3 not held to 7ae: the gate refuses setting 1e-3 whose table is not 7ae's: false (should read true)
+caught  the gate accepts a missing node line: the gate refuses a missing node line: false (should read true)
+caught  the gate ignores the node's paths: the gate refuses a node run of other than the registered paths: false (should read true)
+caught  the gate ignores the node's z against 7ae's: the gate refuses a node within world 0's printed figure but not 7ae's exactly: false (should read true)
+caught  the gate accepts OPEN0 leaving the held tiers: the gate refuses OPEN0 leaving the held tiers on a node path: false (should read true)
+caught  the gate accepts TS+J against its chosen move: the gate refuses TS+J keeping the held tiers where its chosen move leaves: false (should read true)
+caught  the gate accepts a WA run at 1e-3: the gate refuses a WA run at 1e-3: false (should read true)
+caught  the done line not required: the gate refuses a missing done line: false (should read true)
+caught  the trace agreement ignores the count: a trace agrees with its log, and not at another count, arm, stamp or survival: true true false false false (should read true false false false false)
+caught  the trace agreement ignores the arm: a trace agrees with its log, and not at another count, arm, stamp or survival: true false true false false (should read true false false false false)
+caught  the trace agreement ignores the survival: a trace agrees with its log, and not at another count, arm, stamp or survival: true false false false true (should read true false false false false)
+caught  the trace name drops the setting: the trace name is the audit's: bridge_4-reader-ts_j-world0@w0.json.gz (should read bridge_4-reader-mp-ts_j-world0@w0.json.gz)
+caught  the churn counts a failed path's zero bytes: the churn: switches and riskier moves a path, the path alive only: 2,4,1 1,2,1 (should read 1,4,0 0,2,0)
+caught  the churn counts a de-risk as riskier: the churn: switches and riskier moves a path, the path alive only: 1,4,0 1,4,0 (should read 1,4,0 0,2,0)
+caught  the paired sum's interval without its standard error: the paired sum: the mean difference and its interval: 0.50 0.2500 0.500 0.500 (should read 0.50 0.2500 0.010 0.990)
+caught  item 1 at M1 0.5: item 1 at M1 0.35, not 0.5: OPEN0 down 6 paths a unit (0.225 pooled, lower end -0.405) is INCONCLUSIVE: HELD (should read INCONCLUSIVE)
+caught  item 2 at M2 0.35: item 2 at M2 0.23: TS+J down 20 paths a unit (0.75 pooled) is FALSIFIED, 4 paths (0.15 pooled) INCONCLUSIVE: FALSIFIED HELD (should read FALSIFIED INCONCLUSIVE)
+caught  item 1 against 1e-3's OPEN0: the items: P as margin 0 (OPEN0 fallen to 1e-3, TS+J fallen, the churn, WA churning, the opening flipping on both): all FALSIFIED: HELD FALSIFIED FALSIFIED FALSIFIED FALSIFIED
+caught  item 1 never falsified: the items: P as margin 0 (OPEN0 fallen to 1e-3, TS+J fallen, the churn, WA churning, the opening flipping on both): all FALSIFIED: INCONCLUSIVE FALSIFIED FALSIFIED FALSIFIED F
+caught  item 2 held on the point: item 2 at M2 0.23: TS+J down 20 paths a unit (0.75 pooled) is FALSIFIED, 4 paths (0.15 pooled) INCONCLUSIVE: FALSIFIED HELD (should read FALSIFIED INCONCLUSIVE)
+caught  item 2 against margin 0's TS+J: the items: P as margin 0 (OPEN0 fallen to 1e-3, TS+J fallen, the churn, WA churning, the opening flipping on both): all FALSIFIED: FALSIFIED HELD FALSIFIED FALSIFIED FALSIFIED
+caught  H3 the whole excess, not half: the items: P as margin 0 (OPEN0 fallen to 1e-3, TS+J fallen, the churn, WA churning, the opening flipping on both): all FALSIFIED: FALSIFIED FALSIFIED INCONCLUSIVE INCONCLUSIV
+caught  items 3 and 4 read with nothing to separate: items 3 and 4 need margin 0's excess above 0: none is INCONCLUSIVE on both: FALSIFIED INCONCLUSIVE (should read INCONCLUSIVE INCONCLUSIVE)
+caught  item 3 reads WA: the items: P as margin 0 (OPEN0 fallen to 1e-3, TS+J fallen, the churn, WA churning, the opening flipping on both): all FALSIFIED: FALSIFIED FALSIFIED HELD FALSIFIED FALSIFIED
+caught  item 4 reads TS+J at margin 0: the items: P as cause 1 says (OPEN0 as at margin 0, TS+J as at 1e-3, no churn, WA no churn, a robust opening): all HELD: HELD HELD HELD FALSIFIED HELD (should read HELD HELD H
+caught  item 5 compares the pension tier alone: item 5 compares both tiers: an ISA tier flip counts: HELD (should read FALSIFIED)
+caught  item 5 held on one unit: item 5: one unit flipping is INCONCLUSIVE; 30x15 alone flipping on bridge 4 counts: HELD (should read INCONCLUSIVE)
+caught  the Q branch inverted: the Q branch reads share 0.95 as registered: false false not measured (should read true true not measured)
+
+52 mutations: every one caught

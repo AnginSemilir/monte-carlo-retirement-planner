@@ -1545,20 +1545,22 @@ if (mode === 'f1v2') {
    *          chooser: every move scored on world 0's table alone, the tables unchanged - the O50 split) forward, traces kept;
    *   grid - bridge 4 and S194 at 30x15 and 60x5, at P: the gap, moves, price and world lines (the opening's robustness;
    *          7ad's grids);
-   *   open - 7af's sixteen households, the bundle's unit (READER/TS+J/W0.02) at P: the gap, moves and price lines (the
-   *          openings read that feeds the maintainer's Q decision).
+   *   open - the 25 households of 7e's panel read by 7af (sixteen) and 7ag (nine), the bundle's unit (READER/TS+J/W0.02) at
+   *          P: the gap, moves and price lines (the openings read that feeds the maintainer's Q decision, and shows where P
+   *          moves the bundle's opening on every household the recommendation covers).
    *   node research/solver/audit-s126.mjs diagP [points] [paths] part k/n [seed=7002] [node paths=16000]
    * The preflight: DIAGP_GRID=4 runs every job at 4 wealth points, the return points as named. Traces go to results/diagP
    * (DIAGP_OUT when set), stamped. Jobs in the order core, grid, open (the longest first); part k/n runs index i % n === k.
    */
   const CORE = [['bridge 4', 'reader', 0], ['S194', 'off', 0.02], ['S126', 'reader', 0]];
   const GRIDS = [['bridge 4', 'reader', 0, 30, 15], ['S194', 'off', 0.02, 30, 15], ['bridge 4', 'reader', 0, 60, 5], ['S194', 'off', 0.02, 60, 5]];
-  const OPENS = ['share 0.50', 'share 0.70', 'share 0.78', 'share 0.90', 'share 0.95', 'bridge 0', 'bridge 1', 'bridge 6', 'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S126', 'bridge 4', 'S360', 'S194'];
+  const OPENS = ['share 0.50', 'share 0.70', 'share 0.78', 'share 0.90', 'share 0.95', 'bridge 0', 'bridge 1', 'bridge 6', 'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S126', 'bridge 4', 'S360', 'S194',
+    'S124', 'S128', 'S130', 'S366', 'S370', 'bridge 4+cost', 'S162', 'S172', 'S168'];
   const JOBSP = [...['P', '0', '1e-3'].flatMap(m => CORE.map(([id, arm, w]) => [`core:${m}`, id, arm, w, 30, 5])), ...GRIDS.map(([id, arm, w, p, q]) => ['grid', id, arm, w, p, q]), ...OPENS.map(id => ['open', id, 'reader', 0.02, 30, 5])];
   const CHARGE = 0.001;
   const SETTINGS = { P: { switchMargin: 0, switchCharge: CHARGE }, 0: { switchMargin: 0 }, '1e-3': {} }, MARGIN = { P: 0, 0: 0, '1e-3': 0.001 };
   const ARM = { off: false, reader: 'reader' };
-  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const known = [...F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]), ['bridge 4+cost', () => variant('bridge 4+cost', { bridge: 4, cost: [2, 30000] })]];
   const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
   const SEED = process.argv[7] ? Number(process.argv[7]) : 7002, WN = process.argv[8] ? Number(process.argv[8]) : 16000;
   if (!(SEED >= 1) || !(WN >= 1) || WN > NP) { console.error(`audit-s126: bad seed or node paths ${process.argv[7]} ${process.argv[8]} (node paths at most the paths, ${NP})`); process.exit(2); }
@@ -1568,7 +1570,7 @@ if (mode === 'f1v2') {
   const SMALL = process.env.DIAGP_GRID ? Number(process.env.DIAGP_GRID.split('x')[0]) : null;
   const OUT = process.env.DIAGP_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diagP');
   mkdirSync(OUT, { recursive: true });
-  console.log(`P, THE SWITCH CHARGED IN BOTH PASSES (switchCharge ${CHARGE}, switchMargin 0), the product's settings (solvePlan) but the estate weight, ${NP} paths (seed ${SEED}), ${WN} at the bad node: ${JOBSP.length} jobs (9 core at 30x5, P and 7ae's two settings again, 4 grid, 16 openings); part ${pk}/${pn}`);
+  console.log(`P, THE SWITCH CHARGED IN BOTH PASSES (switchCharge ${CHARGE}, switchMargin 0), the product's settings (solvePlan) but the estate weight, ${NP} paths (seed ${SEED}), ${WN} at the bad node: ${JOBSP.length} jobs (9 core at 30x5, P and 7ae's two settings again, 4 grid, 25 openings); part ${pk}/${pn}`);
   const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
   const chooseAt = (r, st, t, held, sm) => { const keep = r.switchMargin; r.switchMargin = sm; try { return chooseAction(r, st, t, held); } finally { r.switchMargin = keep; } };
   // the world-aware chooser: every move scored on world 0's table alone (weight 1 there, 0 elsewhere; a move failing in any

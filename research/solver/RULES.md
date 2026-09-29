@@ -170,12 +170,15 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    runs.log 07:09 UK: S126 on 7v's own first 1,000 paths), and its lines were printed before registration (disclosed in
    predictions/diag-7v.md; the ninety-third review, BLOCKING 3, and the ninety-fourth, MINOR 8). Until a check exists, a
    timing measurement runs on a seed or paths the test will not read, or its lines are not read beyond the seconds.
-19. Rule 11's route for a change after launch (the prediction's "Changes after seeing results") is closed to a stamp-gated
-   test: requireFairLogs (fair-gate.mjs checkLogStamps) compares each log's prediction sha with the file as it stands and,
-   unlike requireFair (FAIR_ACCEPT "prediction-edited=<reason>", used for 7h), has no accept path, so any edit to the prediction after launch makes the gate refuse the whole batch (7v, 27 Sep:
-   54c05b1, restored in eede06a; the ninety-eighth review, BLOCKING 1, and the ninety-ninth, MINOR 2). Until the gate
-   takes a declared change, a decision made after a stamp-gated launch is recorded in PLAN.md's ledger and in the
-   reducer's own comment and printed label, and the prediction is left at its launch blob.
+19. Rule 11's route for a change after launch (the prediction's "Changes after seeing results") was closed to a stamp-gated
+   test until 29 Sep: requireFairLogs (fair-gate.mjs checkLogStamps) had no accept path, so any edit to the prediction after
+   launch made the gate refuse the whole batch (7v, 27 Sep; 7af, 29 Sep). **Closed by the maintainer's unlock, 29 Sep:** the
+   gate now takes a declared correction (fair-gate.mjs declaredCorrection) - the file may differ from its launch blob, which
+   git gives back by its hash, only in UK time tokens ("HH:MM UK") and by an addition to its "Changes after seeing results"
+   that declares the change; the declaration is printed with the figures. Anything else - a prediction, falsifier, rule,
+   fair-test row, figure or date - is still PREDICTION EDITED (research/tests/fair-gate.test.mjs, seven planted cases; each
+   of the gate's six new conditions shown to fail a test when broken). A substantive change after launch still goes to
+   PLAN.md's ledger and the prediction stays at its launch blob.
 20. uncertainty.mjs counts a settled result as a ledger row that names its prediction; since 27 Sep a maintainer's decision
    row ("(maintainer)" in the result cell) is not counted even when it names one (the maintainer: two deep reviews were
    triggered on 27 Sep by decision rows with no new result; a planted check fails on the old rule). The label is not

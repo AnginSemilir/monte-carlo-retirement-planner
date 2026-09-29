@@ -225,8 +225,33 @@ export function requireFair(pairs, { accept = parseAccept(), all = false, exit =
  * under the named prediction, whose git blob now is the one each log was launched under (else PREDICTION EDITED).
  */
 export const LOG_STAMP = /^stamp: code (\S+) audit (\S+) prediction (\S+) sha (\S+)$/gm;
-export function checkLogStamps(texts, prediction, { blob = blobOf } = {}) {
-  const bad = [], versions = new Set(), now = blob(prediction);
+/*
+ * A DECLARED CORRECTION (the maintainer's unlock, 29 Sep: RULES.md known limit 19 closed): a prediction may change after
+ * launch only in its UK time tokens ("HH:MM UK", a typed time corrected from the records) and by an addition to its
+ * "Changes after seeing results" section that declares the change. Everything else - the question, prediction,
+ * falsifier, decision rule, fair-test rows, every figure and field - must be byte-identical to the file the logs were
+ * launched under (git holds it by its blob hash). Returns the declaration (the section's text added since launch), or
+ * null when the change is anything more or is not declared.
+ */
+const CHANGES = /\n## Changes after seeing results\n([\s\S]*)$/;
+export function declaredCorrection(before, after) {
+  if (typeof before !== 'string' || typeof after !== 'string' || before === after) return null;
+  const times = t => t.replace(/\b\d{1,2}:\d[\dx] UK\b/g, 'HH:MM UK');
+  const body = t => times(t.replace(CHANGES, '\n## Changes after seeing results\n'));
+  if (!CHANGES.test(before) || !CHANGES.test(after) || body(before) !== body(after)) return null;
+  const was = CHANGES.exec(before)[1].trim(), now = CHANGES.exec(after)[1].trim(), none = x => !x || /^None\.?$/.test(x);
+  if (none(now)) return null;
+  // the launch section is kept as it was (a declaration adds to it, never rewrites it)
+  if (!none(was) && !now.startsWith(was)) return null;
+  const added = none(was) ? now : now.slice(was.length).trim();
+  return added || null;
+}
+function blobText(sha) {
+  try { return execSync(`git cat-file -p ${sha}`, { cwd: REPO, stdio: ['ignore', 'pipe', 'ignore'] }).toString(); } catch { return null; }
+}
+function fileText(file) { try { return readFileSync(join(REPO, file), 'utf8'); } catch { return null; } }
+export function checkLogStamps(texts, prediction, { blob = blobOf, textAt = blobText, textNow = fileText } = {}) {
+  const bad = [], versions = new Set(), now = blob(prediction), corrected = new Map();
   for (const [f, t] of Object.entries(texts)) {
     const all = [...String(t || '').matchAll(LOG_STAMP)];
     if (!all.length) { bad.push(`${f}: no stamp line (not written by the stamped audit-s126.mjs)`); continue; }
@@ -234,14 +259,20 @@ export function checkLogStamps(texts, prediction, { blob = blobOf } = {}) {
       versions.add(`code ${code} audit ${audit}`);
       if (pred === 'NOT-LAUNCHED') bad.push(`${f}: launched outside run-from-snapshot.sh`);
       else if (pred !== prediction) bad.push(`${f}: launched under ${pred}, not ${prediction}`);
-      else if (sha !== now) bad.push(`${f}: PREDICTION EDITED - ${sha.slice(0, 8)} at launch, ${String(now).slice(0, 8)} now`);
+      else if (sha !== now) {
+        if (!corrected.has(sha)) corrected.set(sha, declaredCorrection(textAt(sha), textNow(prediction)));
+        if (!corrected.get(sha)) bad.push(`${f}: PREDICTION EDITED - ${sha.slice(0, 8)} at launch, ${String(now).slice(0, 8)} now`);
+      }
     }
   }
   if (versions.size > 1) bad.push(`more than one version of the code across the logs: ${[...versions].join('; ')}`);
+  bad.corrections = [...corrected].filter(([, d]) => d).map(([sha, d]) => ({ sha, declared: d }));
   return bad;
 }
-export function requireFairLogs(texts, prediction, { exit = true, blob = blobOf } = {}) {
-  const bad = checkLogStamps(texts, prediction, { blob });
+export function requireFairLogs(texts, prediction, { exit = true, blob = blobOf, textAt = blobText, textNow = fileText } = {}) {
+  const bad = checkLogStamps(texts, prediction, { blob, textAt, textNow });
   if (bad.length) { console.log(`FAIR-TEST GATE: FAILED (stamps)\n  ${bad.join('\n  ')}`); if (exit) process.exit(1); }
+  // a declared correction is printed with the figures, never silent
+  for (const c of bad.corrections || []) console.log(`FAIR-TEST GATE: ${prediction} was corrected after launch (${c.sha.slice(0, 8)} at launch): only typed UK times, and declared - ${c.declared.replace(/\s+/g, ' ')}\n`);
   return bad.length === 0;
 }

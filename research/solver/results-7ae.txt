@@ -84,6 +84,8 @@ ok   item 3 reads bridge 4 alone: S194 low with bridge 4 right is HELD: HELD
 ok   item 3 where bridge 4 keeps the held tiers at margin 0: INCONCLUSIVE: INCONCLUSIVE
 planted (84): all read as they should
 
+FAIR-TEST GATE: research/solver/predictions/diag-7ae.md was corrected after launch (c79b4cbc at launch): only typed UK times, and declared - - 29 Sept, after 7ae was read (the maintainer's "unlock enforcement" of 29 Sep, which let the stamp gate take a declared correction): two typed times corrected from the records - the Written line's revision 21:10 to 21:12 UK (commit 4aef99f) and the Derivation's plan-auditor MINOR 1 of 21:1x to 21:13 UK (review-log.md). Nothing else changed: no prediction, falsifier, decision rule, fair-test row or figure.
+
 7AE: THE BAD NODE AT MARGIN 0 - DOES THE PER-YEAR SWITCH MARGIN MAKE THE TABLES PRICE THE BAD WORLD'S DE-RISK BELOW WHAT IT REALISES? (predictions/diag-7ae.md; 8000 paths of seed 7002, 8000 at world 0's node; the fair-test gates passed: the stamps, 7aa's, 7ac's and 7ad's gates, 7ae's gate against them - its 1e-3 solves 7aa's, its 1e-3 node runs' first 4000 paths 7ad's path by path - every node trace, and the decision log against its trace)
 
 EVERY UNIT AT BOTH MARGINS: the table, the year-0 gap, world 0's like-for-like survival price of the opening, and at world 0's node TS+J against OPEN0 (saved/lost, the survival difference in points with its exact 95% interval at 0.05) and the ratio price / realised

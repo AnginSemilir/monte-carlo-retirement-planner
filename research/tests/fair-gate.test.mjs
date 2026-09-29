@@ -85,6 +85,21 @@ ok(missing.length === 0, `every reducer outside the legacy list calls requireFai
   ok(lg({ a: st('c1', 'a1', 'NOT-LAUNCHED', '-') }).some(e => /outside run-from-snapshot/.test(e)), 'planted: a log launched outside the launcher is caught');
   ok(lg({ a: st('c1', 'a1', 'none', '-') }).some(e => /launched under none/.test(e)), 'planted: a measurement cannot settle a test');
   ok(lg({ a: 'S126 | OFF table 1' }).some(e => /no stamp/.test(e)), 'planted: a log with no stamp is caught');
+  // a declared correction (the maintainer's unlock, 29 Sep): only typed UK times may change after launch, and the change is
+  // declared under "Changes after seeing results"; anything else stays PREDICTION EDITED
+  const L = '# Prediction: x\n\n- **Written:** 28 Sept, 23:07 UK; revised 23:40 UK (FAIL 23:24 UK)\n\n## Prediction\n\n1. No harm at 0.25.\n\n## Changes after seeing results\n\nNone.\n';
+  const DECL = '\n## Changes after seeing results\n\n- Typed times corrected from the records: 23:40 to 23:32 UK, 23:24 to 23:23 UK.\n';
+  const fixed = L.replace('23:40 UK', '23:32 UK').replace('23:24 UK', '23:23 UK').replace('\n## Changes after seeing results\n\nNone.\n', DECL);
+  const lc = now => checkLogStamps({ a: st() }, P, { blob: () => 'p2', textAt: () => L, textNow: () => now });
+  const good = lc(fixed);
+  ok(good.length === 0 && good.corrections.length === 1 && /Typed times corrected/.test(good.corrections[0].declared), 'a correction of typed UK times, declared, passes the log gate and is reported');
+  ok(lc(fixed.replace('No harm at 0.25', 'No harm at 0.5')).some(e => /PREDICTION EDITED/.test(e)), 'planted: a declared correction that also changes the prediction is caught');
+  ok(lc(L.replace('23:40 UK', '23:32 UK')).some(e => /PREDICTION EDITED/.test(e)), 'planted: a time corrected without a declaration is caught');
+  ok(lc(fixed.replace('- **Written:** 28 Sept', '- **Written:** 27 Sept')).some(e => /PREDICTION EDITED/.test(e)), 'planted: a date (not a UK time) changed under a declaration is caught');
+  ok(checkLogStamps({ a: st() }, P, { blob: () => 'p2', textAt: () => null, textNow: () => fixed }).some(e => /PREDICTION EDITED/.test(e)), 'planted: a launch version git cannot give back is caught');
+  { const L2 = L.replace('\nNone.\n', '\n- An earlier declaration.\n'), F2 = L2.replace('23:40 UK', '23:32 UK');
+    ok(checkLogStamps({ a: st() }, P, { blob: () => 'p2', textAt: () => L2, textNow: () => F2.replace('- An earlier declaration.', '- Rewritten into a longer declaration than the one at launch.') }).some(e => /PREDICTION EDITED/.test(e)), 'planted: a declaration that rewrites the launch section is caught');
+    ok(checkLogStamps({ a: st() }, P, { blob: () => 'p2', textAt: () => L2, textNow: () => F2.replace('- An earlier declaration.', '- An earlier declaration.\n- Times corrected.') }).length === 0, 'a declaration added below an earlier one passes'); }
 }
 ok(LEGACY.every(f => reducers.includes(f)), 'the legacy list names only reducers that exist');
 

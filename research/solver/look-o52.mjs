@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 import { requireFairLogs } from './fair-gate.mjs';
 import * as A from './reduce-7aa.mjs';
+import { recordedYears } from './trace-mask.mjs';
 import * as F from './reduce-7af.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -56,7 +57,7 @@ console.log(`  a trace's failure year is the year the money runs out; -1 is a pa
 const firstAt = (T, i, code) => { for (let t = 0; t < T.Y; t++) if (T.tier[i * T.Y + t] === code) return t; return -1; };
 // a path's tiers as runs: "b0/0 x2, 0/0 x19, 2/2 x19" (b: the bridge years). Only RECORDED years: the trace has no record in
 // a path's run-out year or after (solve.js returns before tracing it), so those years are left out, never read as 0/0
-const recorded = (S, i) => (S.failYear[i] >= 0 ? S.failYear[i] : S.Y);
+const recorded = recordedYears;   // trace-mask.mjs (O59's shared helper)
 const runs = (S, i, upTo = recorded(S, i)) => { const out = []; let last = null, n = 0, br = null; const flush = () => { if (last !== null) out.push(`${br ? 'b' : ''}${pair(last)} x${n}`); };
   for (let t = 0; t < upTo; t++) { const c = S.tier[i * S.Y + t], b = t < BRIDGE; if (c === last && b === br) n++; else { flush(); last = c; br = b; n = 1; } } flush(); return out.join(', '); };
 // the last RECORDED year's wealth (a trace's wealth at index t is the end of year t)

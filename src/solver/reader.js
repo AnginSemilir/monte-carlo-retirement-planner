@@ -128,3 +128,68 @@ export function buildReaderTable(g, S, chance) {
   for (let i = 0; i < n; i++) R[i] = S[i] - p[i] * c[i];
   return { p, c, R, unsupported };
 }
+
+/*
+ * THE REFERENCE DRAWN IN THE MENU'S ORDER (`readerRef: 'order'`, research only; PLAN.md O36). `referenceChance` pays the
+ * bridge from one lognormal mix of the accessible pots at their opening weights - in proportion. The solver does not
+ * draw that way: a move takes its bill from the pots in a draw order (solve.js buildActions: cash, taxable, ISA; or ISA,
+ * cash, taxable), and on share 0.95 the proportional draw leaves 18.1% of bridges unpaid where ISA-first leaves 4.6% and
+ * the engine's own run 6.5% (research/solver/results-o36-order.txt). This is the chance the accessible money `acc`,
+ * split at the opening weights, pays every bill drawn pot by pot in the better of the menu's orders:
+ *   - one bill: exactly referenceChance's step (paid when acc covers it, in any order);
+ *   - more: simulated on `draws` seeded draws, the ISA and the taxable account on one return draw a year and cash on its
+ *     own (the solver's nodeRealOf: gross exp(ln(1 + R) + V z), R the median), money arriving (a negative bill) into cash;
+ *     tabulated over `points` levels of acc on common draws (so it is smooth in acc), made non-decreasing in acc (the
+ *     true chance is), and read by linear interpolation - a step (no spread) is smeared across one table cell, about 2% of
+ *     the later bills' total; above the table's top it is the top's value.
+ * `w` the opening weights { isa, gia, cash }; `rate[j]` for the year between bill j and bill j + 1:
+ * { isa: [R, V], gia: [R, V], cash: [R, V] }; `orders` lists of 'isa', 'gia', 'cash'.
+ */
+export function orderChance(bills, w, rate, orders, { draws = 12000, points = 160, seed = 7002, tol = 1 } = {}) {
+  const h = bills.length;
+  if (h === 0) return () => 1;
+  const d0 = bills[0];
+  if (h === 1) return (acc) => (acc - d0 < -tol ? 0 : 1);
+  let s = seed >>> 0;
+  const rnd = () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const gauss = () => { let u = 0, v = 0; while (u === 0) u = rnd(); while (v === 0) v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+  const zr = new Float64Array(draws * (h - 1)), zc = new Float64Array(draws * (h - 1));
+  for (let i = 0; i < zr.length; i++) { zr[i] = gauss(); zc[i] = gauss(); }
+  const later = bills.slice(1).reduce((t, b) => t + Math.max(0, b), 0);
+  const top = d0 + 3 * later + 1, grid = new Float64Array(points), val = new Float64Array(points);
+  // the first point at the first bill's edge and the second just above it (the chance can jump there, when money arrives
+  // later), the rest evenly to the top
+  grid[0] = d0 - tol; for (let g = 1; g < points; g++) grid[g] = d0 + tol + (top - d0 - tol) * (g - 1) / (points - 2);
+  const pot = { isa: 0, gia: 0, cash: 0 };
+  const paysAll = (acc, order, d) => {
+    pot.isa = acc * w.isa; pot.gia = acc * w.gia; pot.cash = acc * w.cash;
+    for (let j = 0; j < h; j++) {
+      if (j > 0) {
+        const r = rate[j - 1], a = zr[d * (h - 1) + j - 1], c = zc[d * (h - 1) + j - 1];
+        pot.isa *= Math.exp(Math.log(1 + r.isa[0]) + r.isa[1] * a);
+        pot.gia *= Math.exp(Math.log(1 + r.gia[0]) + r.gia[1] * a);
+        pot.cash *= r.cash[1] ? Math.exp(Math.log(1 + r.cash[0]) + r.cash[1] * c) : 1 + r.cash[0];
+      }
+      let need = bills[j];
+      if (need < 0) { pot.cash -= need; continue; }
+      for (const k of order) { const take = Math.min(pot[k], need); pot[k] -= take; need -= take; if (need <= 0) break; }
+      if (need > tol) return false;
+    }
+    return true;
+  };
+  for (let g = 0; g < points; g++) {
+    let best = 0;
+    for (const order of orders) { let ok = 0; for (let d = 0; d < draws; d++) if (paysAll(grid[g], order, d)) ok++; if (ok > best) best = ok; }
+    val[g] = Math.max(best / draws, g > 0 ? val[g - 1] : 0);
+  }
+  const f = (acc) => {
+    if (acc - d0 < -tol) return 0;
+    if (acc >= top) return val[points - 1];
+    let i = 0;
+    if (acc >= grid[1]) i = Math.min(points - 2, 1 + Math.floor((acc - grid[1]) / (grid[2] - grid[1])));
+    const u = (acc - grid[i]) / (grid[i + 1] - grid[i]);
+    return val[i] + (val[i + 1] - val[i]) * Math.max(0, Math.min(1, u));
+  };
+  f.table = { grid, val };
+  return f;
+}

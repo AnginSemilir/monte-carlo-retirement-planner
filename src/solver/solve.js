@@ -35,7 +35,7 @@
  * from the post-decision state so it costs one flow per move rather than one per move and node.
  */
 import { makeGrid, toVec, locateVec, interp, vecOf, readValues, toLogOdds, bridgeTable, Phi } from './grid.js';
-import { referenceChance, buildReaderTable } from './reader.js';
+import { referenceChance, orderChance, buildReaderTable } from './reader.js';
 import * as F from './fast.js';
 
 /*
@@ -618,6 +618,8 @@ export function solve(E, M, plan, opts = {}) {
      * move's own tiers, the premise the deep review after 7w put in doubt - kept to size that premise, never the default.
      */
     const refHeld = opts.holdTier && opts.readerRef === 'held';
+    // the menu's draw orders over the accessible pots (buildActions' middle steps), for readerRef 'order'
+    const orders = [...new Set(actions.map(a => a.steps.filter(x => x === 'isa' || x === 'cash' || x === 'other').map(x => (x === 'other' ? 'gia' : x)).join(',')))].map(x => x.split(','));
     const ai0 = opts.holdTier ? 0 : actions.findIndex(a => !(a.tierPen > 0) && !(a.tierIsa > 0));
     if (ai0 < 0) throw new Error('the bridge reader needs a move at the plan\'s tiers');
     const chanceOf = (k, t) => {
@@ -632,6 +634,14 @@ export function solve(E, M, plan, opts = {}) {
         const v = wi * vi + wg * vg + wc * vc;
         const gross = wi * (1 + act.real[1]) * Math.exp(vi * vi / 2) + wg * (1 + act.real[2]) * Math.exp(vg * vg / 2) + wc * (1 + act.real[3]) * Math.exp(vc * vc / 2);
         rho.push(Math.log(gross) - v * v / 2); vol.push(v);
+      }
+      if (opts.readerRef === 'order') {
+        // the reference drawn pot by pot in the better of the menu's draw orders (reader.js orderChance; PLAN.md O36)
+        const rate = [];
+        for (let j = t; j < t + bills.length - 1; j++) rate.push({ isa: [act.real[1], act.volEffAt[j][1]], gia: [act.real[2], act.volEffAt[j][2]], cash: [act.real[3], act.volEffAt[j][3] || 0] });
+        const f = orderChance(bills, { isa: wi, gia: wg, cash: wc }, rate, orders);
+        f.schedule = { bills, rate, orders, t, k, ai0 };
+        return f;
       }
       const f = referenceChance(bills, rho, vol);
       f.schedule = { bills, rho, vol, t, k, ai0 };   // kept for the checks (reader-solve.test.mjs)
@@ -1034,7 +1044,7 @@ export function solve(E, M, plan, opts = {}) {
     }
   }
 
-  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, readerRef: opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
+  const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, readerRef: g.reader && opts.readerRef === 'order' ? 'order' : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
   if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, weights: g.reader.weights };
   if (JOINT) meta.jointWorlds = true;

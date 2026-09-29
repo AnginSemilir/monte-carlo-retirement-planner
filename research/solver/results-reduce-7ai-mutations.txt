@@ -1,0 +1,20 @@
+true script: planted (23): all read as they should
+caught  the gate accepts a missing unit: PLANTED CHECK FAILED:
+caught  the gate accepts a unit twice: PLANTED CHECK FAILED:
+caught  the gate accepts an unregistered unit: PLANTED CHECK FAILED:
+caught  the gate ignores a unit not done: PLANTED CHECK FAILED:
+caught  the gate ignores the unit settings: PLANTED CHECK FAILED:
+caught  the gate ignores the bridge read: PLANTED CHECK FAILED:
+caught  the gate ignores the switch margin: PLANTED CHECK FAILED:
+caught  the gate ignores a death charge: PLANTED CHECK FAILED:
+caught  the gate ignores the reference's table: PLANTED CHECK FAILED:
+caught  the gate ignores the reference's gap: PLANTED CHECK FAILED:
+caught  the gate lets a blend ran line differ: PLANTED CHECK FAILED:
+caught  the gate ignores a tier that did not move: PLANTED CHECK FAILED:
+caught  the gate ignores linear tiers off O60's: PLANTED CHECK FAILED:
+caught  item 1 needs two moves: PLANTED CHECK FAILED:
+caught  item 2 reads rises as falls: PLANTED CHECK FAILED:
+caught  item 2's threshold at 9: PLANTED CHECK FAILED:
+caught  the gap order puts 0 last: PLANTED CHECK FAILED:
+
+17 mutations: every one caught

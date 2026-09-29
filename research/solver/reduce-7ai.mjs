@@ -154,20 +154,20 @@ export function reading(units, out = console.log) {
 
 /* PLANTED: built units and tiers that the gate must pass clean, and faults it must refuse; items over built pairs */
 function built(o = {}) {
-  const o60 = { 'High Risk': { linear: 4.79, blend: 4.97 }, 'Medium/High Risk': { linear: 4.24, blend: 4.65 }, 'Medium Risk': { linear: 3.69, blend: 4.18 }, 'Medium/Low Risk': { linear: 3.14, blend: 3.55 }, 'Low Risk': { linear: 2.59, blend: 2.76 } };
+  const o60 = { 'High Risk': { linear: 4.79, blend: 4.97 }, 'Medium/High Risk': { linear: 4.24, blend: 4.65 }, 'Medium Risk': { linear: 3.69, blend: o.smallMove ? 3.74 : 4.18 }, 'Medium/Low Risk': { linear: 3.14, blend: 3.55 }, 'Low Risk': { linear: 2.59, blend: 2.76 } };
   const ranOf = (a, tsj, n) => `mix 3 pts 30 seed 7002 paths ${n} grid total30x6x6 lambda ${LAMBDA} levels 1,1.1,0.95,0.9,0.8 raiseSurv true failShort floor tiersAbove 0 minPot 29000 quad 5${tsj ? ' tierState 0/0,1/1,2/2' : ''} bequestWeight 0.02 finalIntegral true bridgeRead ${a === 'READER' ? 'reader' : 'false'}`;
   const us = [], refs = [], tiers = [];
   for (const [id, a, l] of UNITS) {
-    if (o.skip === `${id}|${a}|${l}`) continue;
+    const skip = o.skip === `${id}|${a}|${l}`;
     const tsj = l.startsWith('TS+J'), bl = setOf(l) === 'logblend';
     const u = { id, arm: a, label: l, lambda: o.lambda ? '0.03' : LAMBDA, tier: 'own', riskAbove: 'auto', mix: '3', done: !(o.noDone && id === 'S126'), table: bl ? '99.9000' : '99.8000',
       ran: ranOf(a, tsj, 8000), gap: { gap: bl ? '1.1000e-3' : '1.0000e-3', open1e3: bl ? 2 : 0, open0: 2 }, joint: { joint: tsj, margin: o.margin && id === 'S194' ? '0' : '0.001', scale: 950000, cap: 3800000, deathTax: o.death && id === 'S194' ? 0.4 : 0, tier: 'own', decided: 'off:_no_tier_above_the_plan' } };
     if (o.blendRan && bl && id === 'bridge 0') u.ran = u.ran.replace('minPot 29000', 'minPot 30000');
     if (o.bridge && id === 'bridge 1' && a === 'OFF') u.ran = u.ran.replace('bridgeRead false', 'bridgeRead reader');
-    us.push(u);
-    if (!bl) refs.push({ ...u, table: o.table && id === 'S162' ? '99.7000' : u.table, ran: ranOf(a, tsj, id === 'S162' ? 16000 : 8000), gap: { ...u.gap, gap: o.gap && id === 'share 0.90' ? '9.0000e-4' : u.gap.gap } });
-    const menu = set => [['High Risk', 'Medium/High Risk', 'Medium Risk'], ['Medium/High Risk', 'Medium Risk', 'Medium/Low Risk']].map(c => c.map(n => [n, set === 'linear' ? (n === 'Low Risk' ? 2.6 : o60[n].linear) : o60[n].blend]));
-    const t = { id, arm: a, label: l, tiers: menu(bl ? (o.notMoved && id === 'S126' ? 'linear' : 'logblend') : (o.linAtBlend && id === 'S194' ? 'logblend' : 'linear')) };
+    if (!skip) us.push(u);
+    if (!bl) refs.push({ ...u, table: o.table && id === 'S162' ? '99.7000' : u.table, ran: u.ran.replace('paths 8000', `paths ${id === 'S162' ? 16000 : 8000}`), gap: { ...u.gap, gap: o.gap && id === 'share 0.90' ? '9.0000e-4' : u.gap.gap } });
+    const menu = set => [['High Risk', 'Medium/High Risk', 'Medium Risk'], ['Medium/High Risk', 'Medium Risk', 'Medium/Low Risk']].map(c => c.map(n => [n, set === 'linear' ? +(o60[n].linear + (o.linOff && id === 'S194' ? 0.05 : 0)).toFixed(2) : o60[n].blend]));
+    const t = { id, arm: a, label: l, tiers: menu(bl ? 'logblend' : 'linear') };
     tiers.push(t);
   }
   if (o.twice) us.push({ ...us[0] });
@@ -181,7 +181,7 @@ function planted() {
   for (const [nm, o] of [['a missing unit', { skip: 'S126|READER|TS+J/W0.02@logblend' }], ['a unit twice', { twice: true }], ['an unregistered unit', { extra: true }], ['other unit settings (lambda)', { lambda: true }],
     ['a unit not done', { noDone: true }], ['a linear table that is not the reference\'s', { table: true }], ['a linear gap that is not the reference\'s', { gap: true }],
     ['a blend ran line that is not the linear one\'s', { blendRan: true }], ['a switch margin of 0', { margin: true }], ['a pension death charge', { death: true }], ['the reader on SHIP', { bridge: true }],
-    ['blend tiers that did not move', { notMoved: true }], ['linear tiers at the blend\'s figures', { linAtBlend: true }]]) {
+    ['a blend tier moved under 0.1 point (the override short of the solve)', { smallMove: true }], ['linear tiers 0.05 off O60\'s', { linOff: true }]]) {
     const b = built(o); cases.push([`the gate refuses ${nm}`, String(gate(b.us, b.ref, b.tiers, b.o60).length > 0), 'true']);
   }
   const P = (lg, lo, bg, bo) => ({ id: 'x', arm: 'y', lin: { gap: lg, open1e3: lo, open0: 2, table: 99 }, bl: { gap: bg, open1e3: bo, open0: 2, table: 99 } });

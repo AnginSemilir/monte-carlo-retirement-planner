@@ -158,7 +158,7 @@ const F1_VARIANTS = [['S126', {}], ['share 0.50', { a0: 0.5 }], ['share 0.70', {
 // `bequestWeight` (7aa, 28 Sep): the estate weight passed to solvePlan and printed on the ran line; unset, the product's default
 // `switchMargin` (7ae, 28 Sep): the per-year switch margin passed to solvePlan and printed at the ran line's end; unset, the
 // product's (0.001) and the ran line as before
-function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint, mix, lambda = LAMBDA, forward = true, holdTier, bridgeStep, tierState, readerRef, bequestWeight, points = POINTS, switchMargin } = {}) {
+function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, seed = 7002, joint, mix, lambda = LAMBDA, forward = true, holdTier, bridgeStep, tierState, readerRef, bequestWeight, points = POINTS, switchMargin, switchCharge } = {}) {
   const f = facts(h.plan);
   const plan = E.resolveMpaa(E.normalizePlan({ ...h.plan, config: { ...h.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...h.plan.spending, floorSpend: Math.round(0.8 * E.num(h.plan.spending.targetSpend, 0)) } }));
   const t0 = Date.now();
@@ -167,7 +167,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   // Every mode's ran line records the final year it ran (until 25 Sep only the trace mode's did, after bridgeRead), so a
   // re-run of an older mode (7c's f1v2, 7i's quad), now exact by default, cannot pass a ran-line gate against files that
   // ran it averaged. It sits BEFORE bridgeRead: smoke.sh's f1v2 check (locked) reads bridgeRead at the end of the line.
-  const r = solvePlan(E, M, plan, { lambda, points, ...(switchMargin !== undefined ? { switchMargin } : {}), bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
+  const r = solvePlan(E, M, plan, { lambda, points, ...(switchMargin !== undefined ? { switchMargin } : {}), ...(switchCharge !== undefined ? { switchCharge } : {}), bridgeRead: bridgeRead || false, quadNodes: quad === 5 ? undefined : quad,
     ...(finalIntegral !== undefined ? { finalIntegral: !!finalIntegral } : {}), ...(riskAbove !== undefined ? { riskAbove } : {}), ...(joint ? { jointWorlds: true } : {}), ...(mix ? { mix } : {}), ...(holdTier ? { holdTier } : {}), ...(bridgeStep ? { bridgeStep } : {}), ...(tierState ? { tierState: true } : {}), ...(readerRef ? { readerRef } : {}), ...(bequestWeight !== undefined ? { bequestWeight } : {}) });   // F1 off is explicit, whatever the product default
   const m = r.m, s0 = M.initialState(m);
   const table = 100 * r.worlds.reduce((t, w, k) => t + r.mix.weights[k] * w.value(s0, 0).survival, 0);
@@ -178,7 +178,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   const sim = forward ? 100 * ok / NP : NaN;
   // what the solve actually ran with, printed so the fair-test table can be checked against the log
   // the held paths' seed and count sit after pts (added 25 Sep for 7e, which runs on held-out paths; smoke.sh's greps read around them)
-  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5}${holdTier ? ` holdTier ${holdTier.join('/')}` : ''}${r.meta.bridgeStep ? ` bridgeStep ${r.meta.bridgeStep}` : ''}${r.meta.tierState ? ` tierState ${r.meta.tierState}` : ''}${readerRef ? ` readerRef ${r.meta.readerRef}` : ''}${bequestWeight !== undefined ? ` bequestWeight ${+Number(r.meta.bequestWeight).toPrecision(10)}` : ''} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}${switchMargin !== undefined ? ` switchMargin ${r.switchMargin}` : ''}`;
+  const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${seed} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5}${holdTier ? ` holdTier ${holdTier.join('/')}` : ''}${r.meta.bridgeStep ? ` bridgeStep ${r.meta.bridgeStep}` : ''}${r.meta.tierState ? ` tierState ${r.meta.tierState}` : ''}${readerRef ? ` readerRef ${r.meta.readerRef}` : ''}${bequestWeight !== undefined ? ` bequestWeight ${+Number(r.meta.bequestWeight).toPrecision(10)}` : ''} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}${switchMargin !== undefined ? ` switchMargin ${r.switchMargin}` : ''}${switchCharge !== undefined ? ` switchCharge ${r.switchCharge}` : ''}`;
   return { ...f, table, sim, gap: table - sim, below: below / NP, tierYrs: tierYrs / NP, okArr, tr, secs: (Date.now() - t0) / 1000, ran, reader: r.meta.reader || null, r, paths };
 }
 if (mode === 'f1v2') {
@@ -1527,6 +1527,130 @@ if (mode === 'f1v2') {
     writeFileSync(join(OUT, fileOf(id, arm, label)), gzipSync(JSON.stringify({ id, arm: `${A}/${label}`, stamp: STAMP, N: NP, Y: T.Y, seed: SEED, sim: f.sim,
       survived: b64(f.okArr), level: b64(T.level), tier: b64(T.tier), wealth: b64(T.wealth), taxPaid: b64(T.taxPaid), failYear: b64(T.failYear) })));
     console.log(`${''.padEnd(16)} done ${A}/${label}`);
+  });
+} else if (mode === 'diagP') {
+  /*
+   * P: THE SWITCH CHARGED IN BOTH PASSES (PLAN.md P; predictions/diag-P.md; the deep review after 7ae, deep-review-log.md
+   * 28 Sep 22:52 UK, which proposed it; the deep review of 29 Sep 08:56 UK, which added the openings read and the O50 split;
+   * the maintainer's go-ahead, 29 Sep 07:49 UK). TS+J (7aa's unit: the product's settings, 'auto' risk above, lambda held,
+   * the tier state and one move for every world, the estate weight passed) solved with switchMargin 0 and the switch
+   * charged 0.001 in the score (solve.js switchCharge: in the backward pass's h, so the stored values carry every later
+   * switch's charge, and in the forward chooser at the true state). Setting P is that; settings 0 and 1e-3 are 7ae's two
+   * solves (switchMargin 0; the product's margin 0.001) solved again, to be identity-checked against 7ae's lines and, on
+   * the node's first 8,000 paths, 7ae's traces - so every arm runs on the same WN paths (16,000: twice 7ae's, for items 1
+   * and 2's power; derive-P.mjs). Three kinds of job:
+   *   core - one job a unit and setting, 7ae's three units at 30x5 (bridge 4 reader W0, S194 off W0.02, S126 reader W0):
+   *          the gap, moves, price and world lines (7ae's), and at world 0's node on the first WN paths TS+J, OPEN0 (the
+   *          year-0 move held in the plan's tiers, the setting's chooser after) and, at P and 0, WA (the world-aware
+   *          chooser: every move scored on world 0's table alone, the tables unchanged - the O50 split) forward, traces kept;
+   *   grid - bridge 4 and S194 at 30x15 and 60x5, at P: the gap, moves, price and world lines (the opening's robustness;
+   *          7ad's grids);
+   *   open - 7af's sixteen households, the bundle's unit (READER/TS+J/W0.02) at P: the gap, moves and price lines (the
+   *          openings read that feeds the maintainer's Q decision).
+   *   node research/solver/audit-s126.mjs diagP [points] [paths] part k/n [seed=7002] [node paths=16000]
+   * The preflight: DIAGP_GRID=4 runs every job at 4 wealth points, the return points as named. Traces go to results/diagP
+   * (DIAGP_OUT when set), stamped. Jobs in the order core, grid, open (the longest first); part k/n runs index i % n === k.
+   */
+  const CORE = [['bridge 4', 'reader', 0], ['S194', 'off', 0.02], ['S126', 'reader', 0]];
+  const GRIDS = [['bridge 4', 'reader', 0, 30, 15], ['S194', 'off', 0.02, 30, 15], ['bridge 4', 'reader', 0, 60, 5], ['S194', 'off', 0.02, 60, 5]];
+  const OPENS = ['share 0.50', 'share 0.70', 'share 0.78', 'share 0.90', 'share 0.95', 'bridge 0', 'bridge 1', 'bridge 6', 'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S126', 'bridge 4', 'S360', 'S194'];
+  const JOBSP = [...['P', '0', '1e-3'].flatMap(m => CORE.map(([id, arm, w]) => [`core:${m}`, id, arm, w, 30, 5])), ...GRIDS.map(([id, arm, w, p, q]) => ['grid', id, arm, w, p, q]), ...OPENS.map(id => ['open', id, 'reader', 0.02, 30, 5])];
+  const CHARGE = 0.001;
+  const SETTINGS = { P: { switchMargin: 0, switchCharge: CHARGE }, 0: { switchMargin: 0 }, '1e-3': {} }, MARGIN = { P: 0, 0: 0, '1e-3': 0.001 };
+  const ARM = { off: false, reader: 'reader' };
+  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
+  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002, WN = process.argv[8] ? Number(process.argv[8]) : 16000;
+  if (!(SEED >= 1) || !(WN >= 1) || WN > NP) { console.error(`audit-s126: bad seed or node paths ${process.argv[7]} ${process.argv[8]} (node paths at most the paths, ${NP})`); process.exit(2); }
+  const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
+  const [pk, pn] = part.split('/').map(Number);
+  if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
+  const SMALL = process.env.DIAGP_GRID ? Number(process.env.DIAGP_GRID.split('x')[0]) : null;
+  const OUT = process.env.DIAGP_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diagP');
+  mkdirSync(OUT, { recursive: true });
+  console.log(`P, THE SWITCH CHARGED IN BOTH PASSES (switchCharge ${CHARGE}, switchMargin 0), the product's settings (solvePlan) but the estate weight, ${NP} paths (seed ${SEED}), ${WN} at the bad node: ${JOBSP.length} jobs (9 core at 30x5, P and 7ae's two settings again, 4 grid, 16 openings); part ${pk}/${pn}`);
+  const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+  const chooseAt = (r, st, t, held, sm) => { const keep = r.switchMargin; r.switchMargin = sm; try { return chooseAction(r, st, t, held); } finally { r.switchMargin = keep; } };
+  // the world-aware chooser: every move scored on world 0's table alone (weight 1 there, 0 elsewhere; a move failing in any
+  // table still fails), the tables and the charge unchanged
+  const worldAware = (r, f) => { const keep = r.mix.weights; r.mix.weights = keep.map((_, k) => (k === 0 ? 1 : 0)); try { return f(); } finally { r.mix.weights = keep; } };
+  const opening = (r, zs) => { let s0 = null, h0 = null; runPolicy(r, zs, { choose: (t, st, held) => { if (t === 0 && !s0) { s0 = Float64Array.from(st); h0 = { ...held }; } return chooseAction(r, st, t, held); } }); return { s0, h0 }; };
+  // the gap: the least margin, on top of the charge, at which the chooser keeps the held tiers ('0' where the charge alone does)
+  const openGap = (r, s0, h0) => {
+    const acts = r.c.acts, at = sm => acts[chooseAt(r, s0, 0, h0, sm)];
+    const stays = sm => { const a = at(sm); return a.tierPen === h0.pen && a.tierIsa === h0.isa; };
+    let gap;
+    if (stays(0)) gap = '0';
+    else if (!stays(1)) gap = '>1';
+    else { let lo = 0, hi = 1; for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (stays(mid)) hi = mid; else lo = mid; } gap = hi.toExponential(4); }
+    return { gap, open: [0.001, 0].map(sm => at(sm).tierPen).join(',') };
+  };
+  // the mixture's uncharged price: its best move's score less its best staying move's (x100); with the charge, the gap is
+  // this less the charge where that is above 0
+  const priceOf = (tabs, weights, s0, h0, acts) => {
+    const n = acts.length, SC = new Float64Array(n), S2 = new Float64Array(n), T2 = new Float64Array(n), B2 = new Float64Array(n);
+    tabs.forEach((tab, k) => { scoreMoves(tab, s0, 0, S2, T2, B2, h0); for (let ai = 0; ai < n; ai++) SC[ai] = S2[ai] === -Infinity || SC[ai] === -Infinity ? -Infinity : SC[ai] + weights[k] * S2[ai]; });
+    let best = -Infinity, stay = -Infinity;
+    for (let ai = 0; ai < n; ai++) { if (SC[ai] > best) best = SC[ai]; if (acts[ai].tierPen === h0.pen && acts[ai].tierIsa === h0.isa && SC[ai] > stay) stay = SC[ai]; }
+    return { price: 100 * (best - stay) };
+  };
+  const likeForLike = (tab, s0, h0, aB, aS, n) => {
+    const S2 = new Float64Array(n), T2 = new Float64Array(n), B2 = new Float64Array(n), V2 = new Float64Array(n);
+    scoreMoves(tab, s0, 0, S2, T2, B2, h0, null, V2);
+    return { whole: 100 * (S2[aB] - S2[aS]), surv: 100 * (V2[aB] - V2[aS]) };
+  };
+  const moves = (r, s0, h0) => { const bi = chooseAt(r, s0, 0, h0, 0), si = chooseAt(r, s0, 0, h0, Infinity), ci = chooseAction(r, s0, 0, h0), a = r.c.acts; return { bi, si, ci, txt: `best ${bi} ${a[bi].tierPen}/${a[bi].tierIsa} stay ${si} ${a[si].tierPen}/${a[si].tierIsa} chosen ${ci} ${a[ci].tierPen}/${a[ci].tierIsa} held ${h0.pen}/${h0.isa}` }; };
+  // a forward run at the node: TS+J the chooser as solved; OPEN0 its year-0 move held in the tiers held (STAY), the chooser
+  // after; WA the world-aware chooser every year
+  const run = (r, paths, rule) => {
+    const t0 = Date.now(), N = paths.length, T = r.m.ctx.totalYears, okArr = new Uint8Array(N), tr = makeTrace(N, T + 1), acts = r.c.acts;
+    let ok = 0, held0 = 0;
+    const leaves = (ai, held) => acts[ai].tierPen !== held.pen || acts[ai].tierIsa !== held.isa;
+    const choose = (t, st, held) => {
+      const ai = rule === 'OPEN0' && t === 0 ? chooseAt(r, st, 0, held, Infinity) : rule === 'WA' ? worldAware(r, () => chooseAction(r, st, t, held)) : chooseAction(r, st, t, held);
+      if (t === 0 && held && !leaves(ai, held)) held0++;
+      return ai;
+    };
+    paths.forEach((zs, k) => { tr.row = k; const o = runPolicy(r, zs, { trace: tr, choose }); if (o.survived) { ok++; okArr[k] = 1; } });
+    return { sim: 100 * ok / N, held0, okArr, tr, secs: (Date.now() - t0) / 1000 };
+  };
+  const fileOf = (id, arm, m, rule, w) => `${id.replace(/ /g, '_')}-${arm}-m${m.toLowerCase()}-${rule.toLowerCase().replace(/\+/g, '_')}-world0@w${w}.json.gz`;
+  const save = (id, A, arm, m, rule, w, z, f, n) => writeFileSync(join(OUT, fileOf(id, arm, m, rule, w)), gzipSync(JSON.stringify({ id, arm: `${A}/${rule}/M${m}/W${w}/world0`, stamp: STAMP, N: n, Y: f.tr.Y, seed: SEED, node: z, sim: f.sim,
+    survived: b64(f.okArr), level: b64(f.tr.level), tier: b64(f.tr.tier), wealth: b64(f.tr.wealth), taxPaid: b64(f.tr.taxPaid), failYear: b64(f.tr.failYear) })));
+  JOBSP.forEach(([kind, id, arm, w, pts0, quad], i) => {
+    if (i % pn !== pk) return;
+    const h = byId(id)();
+    if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
+    const A = arm.toUpperCase(), pts = SMALL || pts0, grid = `${pts0}x${quad}`;
+    console.log(`${id.padEnd(16)} case | job ${kind} ${A}/${grid}/W${w} | lambda ${LAMBDA} tier own riskAbove auto mix 3 points ${pts} quad ${quad}`);
+    for (const m of kind.startsWith('core:') ? [kind.slice(5)] : ['P']) {
+      const L = `${A}/TS+J/M${m}/${grid}/W${w}`, S = SETTINGS[m];
+      const res = measureV2(h, ARM[arm], quad, { trace: false, seed: SEED, lambda: LAMBDA, forward: false, bequestWeight: w, points: pts, tierState: true, joint: true, ...S });
+      const r = res.r;
+      if (!r.meta.tierState || !r.meta.jointWorlds) { console.error(`audit-s126: ${L} ran tierState ${r.meta.tierState} jointWorlds ${r.meta.jointWorlds}`); process.exit(2); }
+      if (!(Math.abs(r.meta.bequestWeight - w) < 1e-12)) { console.error(`audit-s126: ${L} ran the estate weight ${r.meta.bequestWeight}`); process.exit(2); }
+      if (r.switchMargin !== MARGIN[m] || (r.switchCharge || 0) !== (S.switchCharge || 0) || (r.meta.switchCharge || 0) !== (S.switchCharge || 0)) { console.error(`audit-s126: ${L} ran switch margin ${r.switchMargin} charge ${r.switchCharge} (meta ${r.meta.switchCharge})`); process.exit(2); }
+      const ra = r.meta.riskAbove ? r.meta.riskAbove.decision.replace(/ /g, '_') : 'unset';
+      console.log(`${''.padEnd(16)} solve ${L}: table ${res.table.toFixed(4)} secs ${Math.round(res.secs)}`);
+      console.log(`${''.padEnd(16)} ran ${L}: ${res.ran}`);
+      const { s0, h0 } = opening(r, res.paths[0]), acts = r.c.acts, n = acts.length;
+      { const g = openGap(r, s0, h0); console.log(`${''.padEnd(16)} gap ${L}: ${g.gap} opening ${g.open}`); }
+      console.log(`${''.padEnd(16)} joint ${L}: ${!!r.meta.jointWorlds} switchMargin ${r.switchMargin} switchCharge ${r.switchCharge || 0} scale ${Math.round(Math.max(1, r.m.ctx.accounts.reduce((t, x) => t + x.balance, 0)))} cap ${Math.round(r.meta.bequestCap)} deathTax ${r.m.ctx.pensionDeathTaxRate} tier own riskAbove ${ra}`);
+      const mv = moves(r, s0, h0);
+      console.log(`${''.padEnd(16)} moves ${L}: ${mv.txt}`);
+      const p = priceOf(r.mix.tables, r.mix.weights, s0, h0, acts);
+      const lfl = r.mix.tables.map(tab => likeForLike(tab, s0, h0, mv.bi, mv.si, n));
+      const sumW = lfl.reduce((t, x, k) => t + r.mix.weights[k] * x.whole, 0), sumS = lfl.reduce((t, x, k) => t + r.mix.weights[k] * x.surv, 0);
+      console.log(`${''.padEnd(16)} price ${L}: mixture ${p.price.toExponential(6)} like-for-like whole ${sumW.toExponential(6)} survival ${sumS.toExponential(6)}`);
+      r.mix.nodes.forEach((z, k) => console.log(`${''.padEnd(16)} world ${L} ${k} z ${z.toFixed(4)} weight ${r.mix.weights[k].toFixed(4)}: whole ${lfl[k].whole.toFixed(6)} survival ${lfl[k].surv.toFixed(6)}`));
+      if (!kind.startsWith('core:')) continue;
+      const z = r.mix.nodes[0];
+      const npaths = res.paths.slice(0, WN).map(zs => { const c = Float64Array.from(zs); c[c.length - 1] = z; return c; });
+      const a = run(r, npaths, 'TS+J'), b = run(r, npaths, 'OPEN0'), c = m === '1e-3' ? null : run(r, npaths, 'WA');
+      console.log(`${''.padEnd(16)} node ${L} 0 z ${z.toFixed(4)}: sim TS+J ${a.sim.toFixed(4)} OPEN0 ${b.sim.toFixed(4)} WA ${c ? c.sim.toFixed(4) : '-'} held0 TS+J ${a.held0} OPEN0 ${b.held0} WA ${c ? c.held0 : '-'} paths ${npaths.length} secs ${Math.round(a.secs + b.secs + (c ? c.secs : 0))}`);
+      for (const [rule, f] of [['TS+J', a], ['OPEN0', b], ['WA', c]]) if (f) save(id, A, arm, m, rule, w, z, f, npaths.length);
+    }
+    console.log(`${''.padEnd(16)} done ${kind} ${A}/${grid}/W${w}`);
   });
 } else if (mode === 'time') {
   /*

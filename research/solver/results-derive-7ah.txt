@@ -22,3 +22,7 @@
   S366           +/-0.070 as recorded (16,000 paths), +/-0.10 at 8,000  margin 0.25
   S370           +/-0.574 as recorded (16,000 paths), +/-0.81 at 8,000  margin 0.5
   bridge 4+cost  +/-0.390 as recorded (16,000 paths), +/-0.55 at 8,000  margin 0.25
+
+4. POWER OF ITEM 7 (ORDER against SHIP), from the bundle against SHIP in the records (saved/lost per 8,000):
+   bridge 4 6.0/2.0, bridge 6 8.0/0.0, S360 931.0/0.0, S366 5.0/0.5, S370 556.5/188.5, bridge 4+cost 322.5/1.0
+   4000 draws: HELD 1.000  INCONCLUSIVE 0.000  FALSIFIED 0.000

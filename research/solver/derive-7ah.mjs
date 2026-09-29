@@ -15,7 +15,7 @@
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PANEL, MARGIN, N, items } from './reduce-7ah.mjs';
+import { PANEL, MARGIN, N, items, splitItems } from './reduce-7ah.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const text = readFileSync(join(HERE, 'results-7af.txt'), 'utf8') + readFileSync(join(HERE, 'results-7ag.txt'), 'utf8');
@@ -59,4 +59,23 @@ for (const [id] of PANEL) {
   if (!m) throw new Error(`no whole-score line for ${id}`);
   const half = (Number(m[2]) - Number(m[1])) / 2, at8 = half * Math.sqrt(1 / scale(id));
   console.log(`  ${id.padEnd(14)} +/-${half.toFixed(3)} as recorded${scale(id) < 1 ? ' (16,000 paths)' : ''}, +/-${at8.toFixed(2)} at 8,000  margin ${MARGIN[id]}`);
+}
+
+// 4. POWER OF ITEM 7 (ORDER against SHIP at 0.02; the deep review of 29 Sep 21:08): if the fix changes little, ORDER against
+// SHIP is the bundle against SHIP, whose counts 7af and 7ag recorded (their item 1 lines, "saved/lost of", 7ag's scaled to
+// 8,000). Drawn as Poisson counts about them, read by reduce-7ah.mjs's own splitItems (item 7: the exact rule, Holm across
+// six, and the guarded interval, at the margins). Item 8 (the whole score) is not simulated: 7af and 7ag read CAND against
+// SHIP's whole score as no material harm on all six (their item 2).
+const shipPair = id => { const re = new RegExp(`^ {5}${id.replace(/[+]/g, '\\+')} +(\\d+) saved/(\\d+) lost of (\\d+) `, 'm'), m = re.exec(text); if (!m) throw new Error(`no CAND against SHIP line for ${id}`); return [+m[1] * N / +m[3], +m[2] * N / +m[3], +m[3]]; };
+console.log('\n4. POWER OF ITEM 7 (ORDER against SHIP), from the bundle against SHIP in the records (saved/lost per 8,000):');
+console.log(`   ${PANEL.map(([id]) => { const [sv, l] = shipPair(id); return `${id} ${sv.toFixed(1)}/${l.toFixed(1)}`; }).join(', ')}`);
+{
+  const c = { HELD: 0, INCONCLUSIVE: 0, FALSIFIED: 0 };
+  for (let d = 0; d < DRAWS; d++) {
+    const draw = Object.fromEntries(PANEL.map(([id]) => { const [sv, l] = shipPair(id); return [id, { saved: poisson(sv), lost: poisson(l) }]; }));
+    const KS = id => { const x = draw[id], dd = both(id), a = N - x.saved - x.lost - dd; return { a, lost: x.lost, saved: x.saved, d: dd, N }; };
+    const it = splitItems(() => 10, () => null, () => null, KS, () => ({ d: 0, lo: -0.1, hi: 0.1 })).find(i => i.n === 7);
+    c[it.outcome]++;
+  }
+  console.log(`   ${DRAWS} draws: HELD ${(c.HELD / DRAWS).toFixed(3)}  INCONCLUSIVE ${(c.INCONCLUSIVE / DRAWS).toFixed(3)}  FALSIFIED ${(c.FALSIFIED / DRAWS).toFixed(3)}`);
 }

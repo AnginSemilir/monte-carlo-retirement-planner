@@ -9,6 +9,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SRC, DST = os.path.join(HERE, 'reduce-P.mjs'), os.path.join(HERE, 'zz-mut-P.mjs')
 base = open(SRC).read()
 M = [
+    ("the grid reference ignores the preflight's points", "withGrid(u.ran, pts ? `${pts}x${j.grid.split('x')[1]}` : j.grid)", "withGrid(u.ran, j.grid)"),
+    ("the gate does not pass the preflight's points to the reference", "const ref = refOf(j, R, pts);", "const ref = refOf(j, R);"),
+    ("the gate never checks OPEN2's pair", "if (core && ref && !pts && (!ref.t1e3", "if (false && core && ref && !pts && (!ref.t1e3"),
+    ("the gate checks OPEN2's pair at the preflight's 4 points", "if (core && ref && !pts && (!ref.t1e3", "if (core && ref && (!ref.t1e3"),
+    ("the full-size pair check names nothing", "return !(t && t.moves && sameArr(t.moves.chosenTier, DERISK)); }).map(([id]) => id);", "return false; }).map(([id]) => id);"),
     # the gate: the jobs
     ("the gate accepts a missing job", "if (k !== 1) bad.push(`${jobKey(kind, id, a, w, g)}: ${k} job lines, not 1`)", "if (k > 1) bad.push(`${jobKey(kind, id, a, w, g)}: ${k} job lines, not 1`)"),
     ("the gate accepts a job twice", "if (k !== 1) bad.push(`${jobKey(kind, id, a, w, g)}: ${k} job lines, not 1`)", "if (k < 1) bad.push(`${jobKey(kind, id, a, w, g)}: ${k} job lines, not 1`)"),
@@ -16,7 +21,6 @@ M = [
     ("the gate ignores the job line's settings", "if (j.lambda !== LAMBDA || j.tier !== 'own'", "if (false && j.tier !== 'own'"),
     ("the gate ignores the points", "if (j.points !== (pts ? Number(pts) : gp) || j.quad !== gq)", "if (j.quad !== gq)"),
     ("the gate accepts a missing reference", "if (!ref) bad.push(`${tagJ}: no reference to compare with", "if (false) bad.push(`${tagJ}: no reference to compare with"),
-    ("the gate ignores OPEN2's pair against 7ae's 1e-3 opening", "if (core && ref && (!ref.t1e3 || !ref.t1e3.moves || !sameArr(ref.t1e3.moves.chosenTier, DERISK))) bad.push", "if (false) bad.push"),
     ("setting 1e-3 dropped from the jobs", "export const SETTINGS = ['P', '0', '1e-3'];", "export const SETTINGS = ['P', '0'];"),
     # the lines and settings
     ("the gate accepts a missing solve line", "if (u.table === undefined) bad.push(`${L}: no solve line`);", ""),

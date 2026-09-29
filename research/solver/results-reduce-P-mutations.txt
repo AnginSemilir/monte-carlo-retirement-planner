@@ -1,14 +1,18 @@
-true script: planted (64): all read as they should
+true script: planted (67): all read as they should
+caught  the grid reference ignores the preflight's points: the gate takes the preflight's points where it is told them: true (should read false)
+caught  the gate does not pass the preflight's points to the reference: the gate takes the preflight's points where it is told them: true (should read false)
+caught  the gate never checks OPEN2's pair: the gate refuses 7ae's 1e-3 opening outside the de-risked pair (OPEN2 would not be its opening): false (should read true)
+caught  the gate checks OPEN2's pair at the preflight's 4 points: at the preflight's points the gate leaves OPEN2's pair to the full-size check (a 4-point opening is not the registered one): true (should read false)
+caught  the full-size pair check names nothing: the full-size pair check names every core unit whose 7ae 1e-3 opening is not the pair, and none when all are:  |  (should read bridge 4,S194,S126 | )
 caught  the gate accepts a missing job: the gate refuses a missing job: false (should read true)
 caught  the gate accepts a job twice: the gate refuses a job run twice: false (should read true)
 caught  the gate accepts an unregistered job: the gate refuses an unregistered job: false (should read true)
 caught  the gate ignores the job line's settings: the gate refuses other job settings (lambda): false (should read true)
-caught  the gate ignores the points: the gate refuses a job at other points than its grid: false (should read true)
+caught  the gate ignores the points: the gate refuses a job at other points than its grid (the job line alone bent): false (should read true)
 caught  the gate accepts a missing reference: the gate refuses a missing reference (7af): false (should read true)
-caught  the gate ignores OPEN2's pair against 7ae's 1e-3 opening: the gate refuses 7ae's 1e-3 opening outside the de-risked pair (OPEN2 would not be its opening): false (should read true)
 caught  setting 1e-3 dropped from the jobs: a built log parsed and gated: every job, the gate passes: 37 6 core:P bridge 4 READER/30x5/W0: 7ae's TS+J at 1e-3 did not open in the de-risked pair 2/2 (should read 37 0)
 caught  the gate accepts a missing solve line: the gate refuses a missing solve line: false (should read true)
-caught  the gate ignores the ran line: the gate refuses a ran line with more at its end: false (should read true)
+caught  the gate ignores the ran line: at the preflight's points, share 0.95's grid ran line at the grid's own points is refused: false (should read true)
 caught  the ran line's charge not required at P: a built log parsed and gated: every job, the gate passes: 40 3 core:P bridge 4 READER/30x5/W0 MP: its ran line is not its reference's with the settings at its end (should read
 caught  the gate ignores the joint flag: the gate refuses a per-world solve: false (should read true)
 caught  the gate ignores the margin: the gate refuses a joint line at margin 0.001: false (should read true)
@@ -69,4 +73,4 @@ caught  item 7 at 5 points to hold: item 7: net 3 points is INCONCLUSIVE, under 
 caught  the Q branch read where the opening flips: the Q branch reads share 0.95 as registered, and only where its opening is stable: true true false not measured (should read true true true not measured)
 caught  the Q branch inverted: the Q branch reads share 0.95 as registered, and only where its opening is stable: false false true not measured (should read true true true not measured)
 
-69 mutations: every one caught
+73 mutations: every one caught

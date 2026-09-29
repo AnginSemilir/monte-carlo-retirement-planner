@@ -16,7 +16,7 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse, gate, JOBS, loadTraces, reading, CORE } from './reduce-P.mjs';
+import { parse, gate, JOBS, loadTraces, reading, CORE, pairOn7ae, loadRefs } from './reduce-P.mjs';
 import { decode } from './reduce-7t.mjs';
 import * as A from './reduce-7aa.mjs';
 import * as D from './reduce-7ad.mjs';
@@ -66,6 +66,9 @@ function planted(texts, X, dir) {
     ['planted: a missing node run is refused', plant(ts => ts.map(t => t.replace(/^\s+node \S+ 0 z .*$/m, '')), 'no node run'), 'true'],
     ['planted: a missing all-world run is refused', plant(ts => ts.map(t => t.replace(/^\s+all \S+: .*$/m, '')), 'no all-world run'), 'true'],
     ['planted: a missing decision-log year is refused', plant(ts => ts.map(t => t.replace(/^\s+log \S+ OPEN2 year 4: .*$/m, '')), 'no log year'), 'true'],
+    // OPEN2's pair on 7ae's gated full-size records (the gate leaves it to this check at the preflight's 4 points)
+    ['7ae\'s full-size 1e-3 openings: every core unit in the pair', pairOn7ae(X.full).join(','), ''],
+    ['planted: a full-size 1e-3 opening outside the pair is named', pairOn7ae({ e: (id, arm, w) => { const e = X.full.e(id, arm, w); if (!e || id !== 'S194') return e; const t = e.tags['1e-3']; return { tags: { ...e.tags, '1e-3': { ...t, moves: { ...t.moves, chosenTier: [1, 1] } } } }; } }).join(','), 'S194'],
   ];
   const wrong = cases.filter(([, got, want]) => got !== want);
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([nm, got, w]) => `${nm} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }
@@ -80,6 +83,9 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (texts.length !== JOBS.length) { console.log(`PREFLIGHT INCOMPLETE - ${texts.length} of ${JOBS.length} logs in ${DIR}`); process.exit(1); }
   for (const [t, d, k] of [[textsE, DIRE, E.JOBS.length], [textsD, DIRD, D.JOBS.length], [textsF, DIRF, F.UNITS.length], [textsG, DIRG, G.UNITS.length], [textsA, DIRA, A.UNITS.length]]) if (t.length !== k) { console.log(`PREFLIGHT INCOMPLETE - ${t.length} of ${k} logs in ${d}`); process.exit(1); }
   const X = refs(textsE, textsD, textsF, textsG, textsA, DIRE, DIRD, DIRA);
+  // 7ae's, 7ad's, 7ac's, 7aa's, 7af's and 7ag's full-size records through their own gates (reduce-P.mjs loadRefs): the pair check's input
+  const RF = n => join(HERE, 'results', n);
+  X.full = loadRefs(RF('diag7ae'), RF('diag7ad'), RF('diag7ac'), RF('diag7aa'), RF('diag7af'), RF('diag7ag')).R;
   if (X.badE.length) { console.log(`PREFLIGHT PARSE FAILED (7ae's and 7aa's preflight traces):\n  ${X.badE.join('\n  ')}`); process.exit(1); }
   const { n, good } = planted(texts, X, DIR);
   if (good.bad.length) { console.log(`PREFLIGHT PARSE FAILED:\n  ${good.bad.join('\n  ')}`); process.exit(1); }

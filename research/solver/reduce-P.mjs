@@ -139,16 +139,19 @@ export function parse(text) {
    parse). share 0.95's grid jobs are held to 7af's CAND ran line with the grid's points and return points. */
 const withPaths = (ran, n) => ran.replace(/(^| )paths \d+(?= |$)/, `$1paths ${n}`);
 export const withGrid = (ran, g) => { const [p, q] = g.split('x'); return ran.replace(/(^| )pts \d+(?= |$)/, `$1pts ${p}`).replace(/(^| )grid total\d+x/, `$1grid total${p}x`).replace(/(^| )quad \d+(?= |$)/, `$1quad ${q}`); };
-function refOf(j, R) {
+function refOf(j, R, pts = null) {
   if (isCore(j.kind)) { const m = j.kind.slice(5), e = R.e(j.id, j.arm, j.w), t = e && e.tags[m === 'P' ? '0' : m]; return t ? { ran: t.ran, joint: t.joint, e: m === 'P' ? null : t, z: t.node ? t.node.z : null, t1e3: e.tags['1e-3'] || null } : null; }
   if (j.kind === 'grid') {
     const t = R.ad(j.id, j.arm, j.w, j.grid); if (t) return { ran: t.ran, joint: t.joint };
-    const u = R.af(j.id); return u ? { ran: withGrid(u.ran, j.grid), joint: u.joint } : null;
+    // at the preflight's sizes the job ran at `pts` wealth points, not its grid's: the reference takes the points it ran at
+    const u = R.af(j.id); return u ? { ran: withGrid(u.ran, pts ? `${pts}x${j.grid.split('x')[1]}` : j.grid), joint: u.joint } : null;
   }
   const u = R.af(j.id); return u ? { ran: u.ran, joint: u.joint } : null;
 }
 const sameArr = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 const sameMoves = (a, b) => !!a && !!b && a.best === b.best && a.stay === b.stay && a.chosen === b.chosen && sameArr(a.bestTier, b.bestTier) && sameArr(a.stayTier, b.stayTier) && sameArr(a.chosenTier, b.chosenTier) && sameArr(a.held, b.held);
+// OPEN2's pair on 7ae's gated records: the core units whose 1e-3 TS+J did not open in DERISK (empty when every one did)
+export const pairOn7ae = R => CORE.filter(([id, arm, w]) => { const e = R.e(id, arm, w), t = e && e.tags['1e-3']; return !(t && t.moves && sameArr(t.moves.chosenTier, DERISK)); }).map(([id]) => id);
 export const keeps = (t, held) => t[0] === held[0] && t[1] === held[1];
 export const leaves = u => !!u.moves && !keeps(u.moves.chosenTier, u.moves.held);
 
@@ -166,9 +169,11 @@ export function gate(jobs, R, { n = N, wn = WN, na = NA, pts = null } = {}) {
     if (j.points !== (pts ? Number(pts) : gp) || j.quad !== gq) bad.push(`${tagJ}: ran at ${j.points} points and ${j.quad} return points, not ${pts || gp}x${gq}`);
     const want = tagsOf(j.kind);
     for (const mg of Object.keys(j.tags)) if (!want.includes(mg)) bad.push(`${tagJ}: an unregistered setting M${mg}`);
-    const ref = refOf(j, R);
+    const ref = refOf(j, R, pts);
     if (!ref) bad.push(`${tagJ}: no reference to compare with (${core ? '7ae' : j.kind === 'grid' ? '7ad or 7af' : '7af or 7ag'})`);
-    if (core && ref && (!ref.t1e3 || !ref.t1e3.moves || !sameArr(ref.t1e3.moves.chosenTier, DERISK))) bad.push(`${tagJ}: 7ae's TS+J at 1e-3 did not open in the de-risked pair ${DERISK.join('/')}`);
+    // OPEN2's pair is 7ae's 1e-3 opening at the registered 30x5; at the preflight's 4 points 7ae's preflight opens where a
+    // 4-point grid puts it, so there the pair is checked on 7ae's gated full-size records instead (preflight-parse-P.mjs, pairOn7ae)
+    if (core && ref && !pts && (!ref.t1e3 || !ref.t1e3.moves || !sameArr(ref.t1e3.moves.chosenTier, DERISK))) bad.push(`${tagJ}: 7ae's TS+J at 1e-3 did not open in the de-risked pair ${DERISK.join('/')}`);
     for (const mg of want) {
       const u = j.tags[mg], L = `${tagJ} M${mg}`;
       if (!u) { bad.push(`${L}: no lines`); continue; }
@@ -421,17 +426,19 @@ const B = (n, k) => { const a = new Uint8Array(n); for (let i = 0; i < k; i++) a
 function built(o = {}) {
   const pts = o.pts || null, lines = [], R = { e: () => null, ad: () => null, af: () => null }, E0 = {}, AD = {}, AF = {};
   const P = '                ';
-  const ranOf = (id, g, w) => `mix 3 pts ${g.split('x')[0]} seed 7002 paths ${N} grid total${g.split('x')[0]}x6x6 lambda ${LAMBDA} levels 1 quad ${g.split('x')[1]} tierState 0/0,1/1,2/2 bequestWeight ${w} finalIntegral true bridgeRead x ${id.replace(/ /g, '')}`;
+  // the ran line carries the points the job ran at: the preflight's `pts` when given (as the audit prints it), else the grid's
+  const ranOf = (id, g, w) => `mix 3 pts ${pts || g.split('x')[0]} seed 7002 paths ${N} grid total${pts || g.split('x')[0]}x6x6 lambda ${LAMBDA} levels 1 quad ${g.split('x')[1]} tierState 0/0,1/1,2/2 bequestWeight ${w} finalIntegral true bridgeRead x ${id.replace(/ /g, '')}`;
   for (const [kind, id, a, w, g] of JOBS) {
     if (o.skip === jobKey(kind, id, a, w, g)) continue;
     const [gp, gq] = g.split('x'), start = lines.length, core = isCore(kind), one = kind === 'open' && id === 'S360';   // 'one': the job a single-job plant bends
-    lines.push(`${id.padEnd(16)} case | job ${kind} ${a}/${g}/W${w} | lambda ${o.lambda || LAMBDA} tier own riskAbove auto mix 3 points ${pts || gp} quad ${gq}`);
+    lines.push(`${id.padEnd(16)} case | job ${kind} ${a}/${g}/W${w} | lambda ${o.lambda || LAMBDA} tier own riskAbove auto mix 3 points ${o.jobPts || pts || gp} quad ${gq}`);   // jobPts: the job line alone at other points
     const base = kind === 'grid' && id === 'share 0.95' ? ranOf(id, '30x5', w) : ranOf(id, g, w), scale = 1000, cap = 4000;
     const refRan = core && kind !== 'core:1e-3' ? `${base} switchMargin 0` : base;
     for (const mg of tagsOf(kind)) {
       const L = `${a}/TS+J/M${mg}/${g}/W${w}`, gap = mg === 'P' ? (o.gapZero === id ? '0' : '5.0000e-4') : '8.0000e-4';
       const c = mg === 'P' ? 0.001 : 0, g0 = Number(gap), mix = gap === '0' ? 5e-4 : 100 * (g0 + (o.noChargePrice && one ? 0 : c)), lfl = gap === '0' ? 0 : mix, lflW = o.lflOff && one ? lfl * 1.1 : lfl;
-      const wantRan = mg === 'P' ? (core ? `${refRan} switchCharge ${CHARGE}` : `${withGrid(base, g)} switchMargin 0 switchCharge ${CHARGE}`) : refRan;
+      const gRan = pts && !o.ranGridPts ? `${pts}x${gq}` : g;   // ranGridPts: share 0.95's grid ran line at the grid's own points
+      const wantRan = mg === 'P' ? (core ? `${refRan} switchCharge ${CHARGE}` : `${withGrid(base, gRan)} switchMargin 0 switchCharge ${CHARGE}`) : refRan;
       const x = { table: mg === 'P' ? '99.1000' : '99.2000', ran: wantRan };
       if (o.ranTail && mg === 'P' && core) x.ran += ' minPot 1';
       if (!(o.noSolve && one)) lines.push(`${P} solve ${L}: table ${x.table} secs 700`);
@@ -477,8 +484,11 @@ export function planted() {
   cases.push(['the gate refuses a job run twice', refused({ twice: true }), 'true']);
   cases.push(['the gate refuses an unregistered job', refused({ extra: true }), 'true']);
   cases.push(['the gate refuses other job settings (lambda)', refused({ lambda: '0.05' }), 'true']);
-  cases.push(['the gate refuses a job at other points than its grid', refused({ pts: '4' }), 'true']);
+  cases.push(['the gate refuses a job at other points than its grid (the job line alone bent)', refused({ jobPts: '4' }), 'true']);
   cases.push(['the gate takes the preflight\'s points where it is told them', refused({ pts: '4' }, '4'), 'false']);
+  cases.push(['at the preflight\'s points, share 0.95\'s grid ran line at the grid\'s own points is refused', refused({ pts: '4', ranGridPts: true }, '4'), 'true']);
+  cases.push(['at the preflight\'s points the gate leaves OPEN2\'s pair to the full-size check (a 4-point opening is not the registered one)', refused({ pts: '4', e1e3Pair: true }, '4'), 'false']);
+  { const ids = o => pairOn7ae(built(o).R).join(','); cases.push(['the full-size pair check names every core unit whose 7ae 1e-3 opening is not the pair, and none when all are', `${ids({ e1e3Pair: true })} | ${ids({})}`, `${CORE.map(([id]) => id).join(',')} | `]); }
   cases.push(['the gate refuses a ran line with more at its end', refused({ ranTail: true }), 'true']);
   cases.push(['the gate refuses a missing reference (7af)', refused({ noAf: 'S360' }), 'true']);
   cases.push(['the gate refuses a missing gap line', refused({ noGap: true }), 'true']);

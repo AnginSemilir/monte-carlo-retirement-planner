@@ -14,7 +14,8 @@
  * THE TIER OVERRIDE: the plan's own normalised risk profiles with each of the five blended tiers' `real` replaced by its
  * blend median, rounded to 0.01 as the import rounds (engine.mjs applyCmaPreset), and riskSource '' so normalizePlan keeps
  * them; every other field (volatility, sigmaParam, the cash tier) untouched. Checked before any solve, or it stops: the
- * linear profiles' reals are results-o60.txt's "linear" column, the override's are its "blend median" column, and the
+ * linear profiles' reals are results-o60.txt's "linear" column to 0.01 (one rounding step: the engine rounds the real from
+ * the import's rounded nominal), the override's are its "blend median" column exactly, and the
  * override differs from the linear profiles in the five reals alone. Checked after each solve: the solve's tier menu
  * (r.c.tiers) carries the reals of the tier set it was given; printed on a tiers line.
  * Prints per unit 7aa's lines (reduce-7aa.mjs parse): a case line, solve, ran, gap and joint; then a tiers line and done.
@@ -93,7 +94,9 @@ for (const id of HOUSEHOLDS) {
   const lin = E.normalizePlan(h.plan).riskProfiles, bl = E.normalizePlan(withTiers(h.plan, 'logblend')).riskProfiles;
   const bad = [];
   for (const k of TIERS) {
-    if (Math.abs(lin[k].real - o60[k].linear) > 1e-9) bad.push(`${k} linear ${lin[k].real} is not O60's ${o60[k].linear}`);
+    // the engine rounds the real from the import's rounded nominal (applyCmaPreset), look-o60.mjs from the unrounded blend,
+    // so the two may differ by one rounding step (Low Risk: 2.60 against 2.59, the build check of 29 Sep)
+    if (Math.abs(lin[k].real - o60[k].linear) > 0.01 + 1e-9) bad.push(`${k} linear ${lin[k].real} is not O60's ${o60[k].linear} to 0.01`);
     if (Math.abs(bl[k].real - o60[k].blend) > 1e-9) bad.push(`${k} blend ${bl[k].real} is not O60's ${o60[k].blend}`);
   }
   for (const k of Object.keys(lin)) for (const f of new Set([...Object.keys(lin[k]), ...Object.keys(bl[k] || {})])) if (!(TIERS.includes(k) && f === 'real') && JSON.stringify(lin[k][f]) !== JSON.stringify((bl[k] || {})[f])) bad.push(`${k}.${f} differs (${lin[k][f]} against ${(bl[k] || {})[f]})`);
@@ -136,7 +139,8 @@ UNITS.forEach(([id, A, tag, set], i) => {
   if (!(Math.abs(r.meta.bequestWeight - W) < 1e-12)) { console.error(`audit-7ai: ${label} ran the estate weight ${r.meta.bequestWeight}`); process.exit(2); }
   // the tier menu the solve built carries the reals of the set it was given
   const menu = ['pen', 'isa'].map(cat => `${cat} ${(r.c.tiers[cat] || []).map(x => `${String(x.name).replace(/ /g, '_')}:${(100 * x.real).toFixed(2)}`).join(',')}`).join(' ');
-  for (const cat of ['pen', 'isa']) for (const x of r.c.tiers[cat] || []) if (TIERS.includes(x.name) && Math.abs(100 * x.real - o60[x.name][set === 'linear' ? 'linear' : 'blend']) > 1e-9) { console.error(`audit-7ai: ${label}'s ${cat} menu carries ${x.name} at ${100 * x.real}`); process.exit(2); }
+  const want = E.normalizePlan(src).riskProfiles;
+  for (const cat of ['pen', 'isa']) for (const x of r.c.tiers[cat] || []) if (TIERS.includes(x.name) && Math.abs(100 * x.real - want[x.name].real) > 1e-9) { console.error(`audit-7ai: ${label}'s ${cat} menu carries ${x.name} at ${100 * x.real}`); process.exit(2); }
   const ran = `mix ${r.meta.mixture} pts ${r.g.np} seed ${SEED} paths ${NP} grid ${String(r.meta.points).replace(/ /g, '')} lambda ${r.meta.lambda} levels ${r.meta.spendLevels.join(',')} raiseSurv ${r.meta.raiseSurvival} failShort ${r.meta.failureShortfall} tiersAbove ${m.tiersAbove || 0} minPot ${E.num(m.ctx.solvencyFloor, 0)} quad ${r.quadNodes ? r.quadNodes.length : 5}${r.meta.tierState ? ` tierState ${r.meta.tierState}` : ''} bequestWeight ${+Number(r.meta.bequestWeight).toPrecision(10)} finalIntegral ${r.meta.finalIntegral === true} bridgeRead ${r.meta.bridgeRead}`;
   const ra = r.meta.riskAbove ? r.meta.riskAbove.decision.replace(/ /g, '_') : 'unset';
   console.log(`${''.padEnd(16)} solve ${A}/${label}: table ${table.toFixed(4)} secs ${Math.round(secs)}`);

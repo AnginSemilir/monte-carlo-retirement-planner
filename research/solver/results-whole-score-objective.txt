@@ -1,0 +1,14 @@
+PASS  resilience weight 0: 0
+PASS  drift cost 0 on every move
+PASS  switch charge 0: 0
+PASS  the solver's death charge 0: 0
+PASS  a run-out charged at the floor (floor); a raise counted where the future survives (true)
+  S370, 400 paths: 306 survive, 92 run out, 2 end below the minimum pot; 400 with a trim, 307 with a raise (1 of them failing); 136 end above the estate cap; largest |wholePaths - objective| 4.01e-7 points
+PASS  every term exercised: a future that survives, one that runs out, one that ends below the minimum pot, a trim, a raise, a raise on a future that fails, and an estate above the cap
+PASS  wholePaths equals the solver's objective realised on every one of 400 paths (largest gap 4.01e-7 points; the trace keeps wealth in single precision)
+PASS  planted: wholePaths at twice the scale disagrees
+PASS  planted: wholePaths at twice lambda disagrees
+PASS  planted: the objective with a 40% charge on the end pot disagrees (O53: the whole score needs the charge off)
+PASS  planted: a raise counted on a future that fails disagrees
+
+whole-score-objective: 11 passed

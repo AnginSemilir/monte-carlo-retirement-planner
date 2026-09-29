@@ -20,6 +20,7 @@ M = [
     ("the gate ignores the gap", "else if (!r.gap || u.gap !== `${r.gap.gap} opening ${r.gap.open1e3},${r.gap.open0}`) bad.push", "else if (!r.gap) bad.push"),
     ("the gate ignores one policy for every world", "if (u.joint.joint) bad.push", "if (false) bad.push"),
     ("the gate ignores the solved margin", "if (u.joint.margin !== '0.001') bad.push", "if (false) bad.push"),
+    ("the gate ignores a pension death charge (O53)", "if (u.joint.deathTax !== 0) bad.push", "if (false) bad.push"),
     ("the gate ignores the scale", "if (!r.joint || u.joint.scale !== r.joint.scale || u.joint.cap !== r.joint.cap)", "if (!r.joint || u.joint.cap !== r.joint.cap)"),
     ("the gate ignores PRODUCT's survival against 7aa's", "else if (!r.run || Math.abs(u.runs.PRODUCT.sim - r.run.sim) > 1e-9) bad.push", "else if (!r.run) bad.push"),
     ("the gate accepts a missing solve line", "if (u.table === undefined) bad.push(`${tag}: no solve line`);\n    else if (u.table !== r.table)", "if (false) bad.push(`${tag}: no solve line`);\n    else if (u.table !== undefined && u.table !== r.table)"),

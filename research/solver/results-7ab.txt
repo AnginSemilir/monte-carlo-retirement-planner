@@ -6,6 +6,7 @@ ok   the gate refuses the estate weight 0.02 on a W0 unit (7aa's ran line the sa
 ok   the gate refuses the tier state: true
 ok   the gate refuses one policy for every world: true
 ok   the gate refuses another solved margin: true
+ok   the gate refuses a pension death charge (O53: the whole score read with the death tax on): true
 ok   the gate refuses another scale: true
 ok   the gate refuses another table: true
 ok   the gate refuses another year-0 gap: true
@@ -37,7 +38,7 @@ ok   item 5 against PRODUCT, not TS+J: TS+J losing the same 30 on bridge 4 at W0
 ok   item 4 against PRODUCT, not TS+J: FREED as TS+J but TS+J's gain gone from PRODUCT (PRODUCT saving as much): item 4 FALSIFIED: FALSIFIED
 ok   item 4 on one case only: INCONCLUSIVE: INCONCLUSIVE
 ok   the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5) and 20 lost there is no material harm (at 0.25 it would be harm), where 30 lost at W0.02 (98.75%, 0.25) is harm: no material harm harm
-planted (39): all read as they should
+planted (40): all read as they should
 
 7AB: IS THE FREED OPENING AS GOOD AS TS+J WITHOUT ITS SOLVE TIME? (predictions/diag-7ab.md; 8000 paths of seed 7002; the fair-test gates passed: both runs' stamps, 7aa's gate, 7ab's gate against 7aa's product, every trace, and 7ab's PRODUCT identical to 7aa's on every path)
 

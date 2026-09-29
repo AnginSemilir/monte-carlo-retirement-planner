@@ -34,6 +34,7 @@ M = [
     # the joint line
     ("the gate accepts TS+J per world", "if (u.joint.joint !== (tag === 'TS+J')) bad.push", "if (false) bad.push"),
     ("the gate ignores the solved margin", "if (u.joint.margin !== '0.001') bad.push", "if (false) bad.push"),
+    ("the gate ignores a pension death charge (O53)", "if (u.joint.deathTax !== 0) bad.push", "if (false) bad.push"),
     ("the gate ignores the scale", "if (!r.joint || u.joint.scale !== r.joint.scale || u.joint.cap !== r.joint.cap) bad.push", "if (!r.joint || u.joint.cap !== r.joint.cap) bad.push"),
     # the moves
     ("the gate accepts a missing moves line", "if (!u.moves) bad.push(`${L}: no moves line`);\n      else {", "if (false) bad.push(`${L}: no moves line`);\n      else if (u.moves) {"),

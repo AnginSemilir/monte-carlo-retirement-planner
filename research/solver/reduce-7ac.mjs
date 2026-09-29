@@ -76,7 +76,7 @@ export function parse(text) {
     if ((m = SOLVEL.exec(line)) && mine(m[1], m[2])) { cur.table = m[3]; continue; }
     if ((m = RANL.exec(line)) && mine(m[1], m[2])) { cur.ran = m[3]; continue; }
     if ((m = GAPL.exec(line)) && mine(m[1], m[2])) { cur.gap = { gap: m[3], open1e3: +m[4], open0: +m[5] }; continue; }
-    if ((m = JOINTL.exec(line)) && mine(m[1], m[2])) { cur.joint = { joint: m[3] === 'true', margin: m[4], scale: +m[5], cap: +m[6] }; continue; }
+    if ((m = JOINTL.exec(line)) && mine(m[1], m[2])) { cur.joint = { joint: m[3] === 'true', margin: m[4], scale: +m[5], cap: +m[6], deathTax: +m[7] }; continue; }
     if ((m = PRICEL.exec(line)) && mine(m[1], m[2])) { cur.price = { mixture: +m[3], best: +m[4], stay: +m[5], held: m[6] }; continue; }
     if ((m = WORLDL.exec(line)) && mine(m[1], m[2])) { cur.worlds[+m[3]] = { z: +m[4], w: +m[5], price: +m[6], best: +m[7], stay: +m[8], simJ: +m[9], simO: +m[10], paths: +m[11] }; continue; }
     if ((m = RUNL.exec(line)) && mine(m[1], m[3])) { cur.runs[m[2]] = { sim: +m[4], tier: +m[6], changes: +m[7], estate: +m[8], held0: +m[9] }; continue; }
@@ -113,6 +113,7 @@ export function gate(units, refJ, refP) {
     else {
       if (!u.joint.joint) bad.push(`${tag}: not one policy for every world`);
       if (u.joint.margin !== '0.001') bad.push(`${tag}: solved at margin ${u.joint.margin}`);
+      if (u.joint.deathTax !== 0) bad.push(`${tag}: a pension death charge ${u.joint.deathTax} (O53)`);
       if (!r.joint || u.joint.scale !== r.joint.scale || u.joint.cap !== r.joint.cap) bad.push(`${tag}: scale or cap not 7aa's`);
     }
     if (!u.price) bad.push(`${tag}: no price line`);
@@ -183,7 +184,7 @@ function planted() {
     if (!o.noSolve) lines.push(`${p} solve ${L}: table ${o.table || '99.8514'} secs 1`);
     lines.push(`${p} ran ${L}: ${o.ran || ranOf(id, arm, w)}`);
     if (!o.noGap) lines.push(`${p} gap ${L}: ${o.gap || '1.0649e-3 opening 2,2'}`);
-    lines.push(`${p} joint ${L}: ${o.joint === undefined ? true : o.joint} switchMargin ${o.margin || '0.001'} scale ${o.scale || 950000} cap 3800000 deathTax 0 tier own riskAbove off:_no_tier_above_the_plan`);
+    lines.push(`${p} joint ${L}: ${o.joint === undefined ? true : o.joint} switchMargin ${o.margin || '0.001'} scale ${o.scale || 950000} cap 3800000 deathTax ${o.deathTax || 0} tier own riskAbove off:_no_tier_above_the_plan`);
     if (!o.noPrice) lines.push(`${p} price ${L}: mixture ${o.price || '1.064900e-1'} best 99.900000 stay 99.793500 held 0/0`);
     for (let k = 0; k < (o.worlds === undefined ? 3 : o.worlds); k++) lines.push(`${p} world ${L} ${k} z 0.0000 weight 0.3333: price 0.1000 best 99.0000 stay 98.9000 | sim TS+J ${k === 0 && o.worldSim ? o.worldSim : worldsJ[k].sim.toFixed(4)} OPEN0 98.0000 paths ${WP}`);
     if (!o.noJ) lines.push(`${p} run ${arm}/TS+J/W${w}: sim ${o.sim || '99.8500'} below 1.00 tier-below 1.00 changes 0.100 estate 1 held0 ${o.heldJ === undefined ? 0 : o.heldJ} secs 1`);
@@ -207,6 +208,7 @@ function planted() {
   cases.push(['the gate refuses a unit where TS+J opens in the plan\'s tier (7aa\'s the same)', String(gate(parse(bent('S126', 'READER', '0', { gap: '1.0649e-3 opening 0,2' })), (id, arm, w) => ({ ...refUnitJ(id, arm, w), gap: id === 'S126' && w === '0' ? { gap: '1.0649e-3', open1e3: 0, open0: 2 } : refUnitJ(id, arm, w).gap }), refP).length > 0), 'true']);
   cases.push(['the gate refuses a unit where 7aa\'s PRODUCT opens tier 2 (not a registered opening apart)', String(gate(parse(good()), refJ, (id, arm, w) => ({ ...refUnitP(id, arm, w), gap: id === 'S194' ? { gap: '1.0510e-3', open1e3: 2, open0: 2 } : refUnitP(id, arm, w).gap })).length > 0), 'true']);
   cases.push(['the gate refuses per-world tables (not one policy for every world)', refused(bent('S194', 'OFF', '0.02', { joint: false })), 'true']);
+  cases.push(['the gate refuses a pension death charge (O53: the whole score read with the death tax on)', refused(bent('S126', 'READER', '0.02', { deathTax: 0.4 })), 'true']);
   cases.push(['the gate refuses another solved margin', refused(bent('S126', 'READER', '0.02', { margin: '0' })), 'true']);
   cases.push(['the gate refuses another scale', refused(bent('bridge 4', 'READER', '0', { scale: 950001 })), 'true']);
   cases.push(['the gate refuses a mixture price not the gap (0.1% off)', refused(bent('S126', 'READER', '0', { price: '1.066100e-1' })), 'true']);

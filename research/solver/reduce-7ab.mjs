@@ -74,7 +74,7 @@ export function parse(text) {
     if ((m = SOLVEL.exec(line)) && mine(m[1], m[2])) { cur.table = m[3]; continue; }
     if ((m = RANL.exec(line)) && mine(m[1], m[2])) { cur.ran = m[3]; continue; }
     if ((m = GAPL.exec(line)) && mine(m[1], m[2])) { cur.gap = m[3]; continue; }
-    if ((m = JOINTL.exec(line)) && mine(m[1], m[2])) { cur.joint = { joint: m[3] === 'true', margin: m[4], scale: +m[5], cap: +m[6] }; continue; }
+    if ((m = JOINTL.exec(line)) && mine(m[1], m[2])) { cur.joint = { joint: m[3] === 'true', margin: m[4], scale: +m[5], cap: +m[6], deathTax: +m[7] }; continue; }
     if ((m = RUNL.exec(line)) && mine(m[1], m[3])) { cur.runs[m[2]] = { sim: +m[4], tier: +m[6], changes: +m[7], estate: +m[8] }; continue; }
     if (line.trim() === `done ${cur.arm}/W${cur.w}`) { cur.done = true; continue; }
   }
@@ -106,6 +106,7 @@ export function gate(units, ref) {
     else {
       if (u.joint.joint) bad.push(`${tag}: one policy for every world`);
       if (u.joint.margin !== '0.001') bad.push(`${tag}: solved at margin ${u.joint.margin}`);
+      if (u.joint.deathTax !== 0) bad.push(`${tag}: a pension death charge ${u.joint.deathTax} (O53)`);
       if (!r.joint || u.joint.scale !== r.joint.scale || u.joint.cap !== r.joint.cap) bad.push(`${tag}: scale or cap not 7aa's`);
     }
     if (!u.runs.PRODUCT) bad.push(`${tag}: no PRODUCT run line`);
@@ -195,7 +196,7 @@ function planted() {
     if (!o.noSolve) lines.push(`${p} solve ${L}: table ${o.table || '90.0000'} secs 1`);
     lines.push(`${p} ran ${L}: ${o.ran || ranOf(id, arm, w)}`);
     if (!o.noGap) lines.push(`${p} gap ${L}: ${o.gap || '2.0000e-4 opening 0,2'}`);
-    lines.push(`${p} joint ${L}: ${o.joint || false} switchMargin ${o.margin || '0.001'} scale ${o.scale || 950000} cap 3800000 deathTax 0 tier own riskAbove off:_no_tier_above_the_plan`);
+    lines.push(`${p} joint ${L}: ${o.joint || false} switchMargin ${o.margin || '0.001'} scale ${o.scale || 950000} cap 3800000 deathTax ${o.deathTax || 0} tier own riskAbove off:_no_tier_above_the_plan`);
     if (!o.noProduct) lines.push(`${p} run ${arm}/PRODUCT/W${w}: sim ${o.sim || '98.7500'} below 1.00 tier-below 1.00 changes 0.100 estate 1 secs 1`);
     if (!o.noFreed) lines.push(`${p} run ${arm}/FREED/W${w}: sim 99.0000 below 1.00 tier-below 1.00 changes 0.100 estate 1 secs 1`);
     if (!o.noDone) lines.push(`${p} done ${arm}/W${w}`);
@@ -212,6 +213,7 @@ function planted() {
   cases.push(['the gate refuses the tier state', refused(bent('S360', 'OFF', '0', { ran: ranOf('S360', 'OFF', '0').replace(' quad 5', ' quad 5 tierState 0/0,1/1,2/2') })), 'true']);
   cases.push(['the gate refuses one policy for every world', refused(bent('bridge 4', 'READER', '0', { joint: true })), 'true']);
   cases.push(['the gate refuses another solved margin', refused(bent('S194', 'OFF', '0.02', { margin: '0' })), 'true']);
+  cases.push(['the gate refuses a pension death charge (O53: the whole score read with the death tax on)', refused(bent('S360', 'READER', '0.02', { deathTax: 0.4 })), 'true']);
   cases.push(['the gate refuses another scale', refused(bent('S126', 'READER', '0', { scale: 950001 })), 'true']);
   cases.push(['the gate refuses another table', refused(bent('S360', 'READER', '0.02', { table: '90.0001' })), 'true']);
   cases.push(['the gate refuses another year-0 gap', refused(bent('S126', 'READER', '0.02', { gap: '2.0000e-4 opening 2,2' })), 'true']);

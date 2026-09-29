@@ -1,4 +1,4 @@
-true script: planted (39): all read as they should
+true script: planted (40): all read as they should
 caught  the gate accepts a missing unit: the gate refuses a missing unit: false (want true)
 caught  the gate accepts a unit twice: the gate refuses a unit run twice: false (want true)
 caught  the gate ignores the table: the gate refuses another table: false (want true)
@@ -8,6 +8,7 @@ caught  the gate does not read the tier state, held tier, Q's fix or reference: 
 caught  the gate ignores the gap: the gate refuses another year-0 gap: false (want true)
 caught  the gate ignores one policy for every world: the gate refuses one policy for every world: false (want true)
 caught  the gate ignores the solved margin: the gate refuses another solved margin: false (want true)
+caught  the gate ignores a pension death charge (O53): the gate refuses a pension death charge (O53: the whole score read with the death tax on): false (want true)
 caught  the gate ignores the scale: the gate refuses another scale: false (want true)
 caught  the gate ignores PRODUCT's survival against 7aa's: the gate refuses PRODUCT's survival not 7aa's: false (want true)
 caught  the gate accepts a missing solve line: the gate refuses a missing solve line: false (want true)
@@ -45,4 +46,4 @@ caught  item 5 reads S360 under off too: the expected case: FREED as TS+J and S3
 caught  item 4 against TS+J: FREED as TS+J, both gaining, no harm anywhere: 1, 2, 4 and 5 HELD, 3 FALSIFIED (no harm on S360 under off): 1 HELD, 2 HELD, 3 FALSIFIED, 4 FALSIFIED, 5 HELD (want 1 HELD, 2 HE
 caught  item 4 held on one case: nothing gains anywhere: 1, 2 and 5 HELD, 3 and 4 FALSIFIED: 1 HELD, 2 HELD, 3 FALSIFIED, 4 INCONCLUSIVE, 5 HELD (want 1 HELD, 2 HELD, 3 FALSIFIED, 4 FALSIFIED, 5 HELD)
 
-45 mutations: every one caught
+46 mutations: every one caught

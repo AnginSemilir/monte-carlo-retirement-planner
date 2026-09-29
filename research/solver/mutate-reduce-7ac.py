@@ -24,6 +24,7 @@ M = [
     ("the gate accepts TS+J opening in the plan's tier", "else if (u.gap.open1e3 === 0) bad.push", "else if (false) bad.push"),
     ("the gate accepts per-world tables", "if (!u.joint.joint) bad.push", "if (false) bad.push"),
     ("the gate ignores the solved margin", "if (u.joint.margin !== '0.001') bad.push", "if (false) bad.push"),
+    ("the gate ignores a pension death charge (O53)", "if (u.joint.deathTax !== 0) bad.push", "if (false) bad.push"),
     ("the gate ignores the scale", "if (!r.joint || u.joint.scale !== r.joint.scale || u.joint.cap !== r.joint.cap)", "if (!r.joint || u.joint.cap !== r.joint.cap)"),
     ("the gate ignores the mixture's price", "else if (u.gap && !(Math.abs(u.price.mixture / 100 - Number(u.gap.gap)) <= PRICE_TOL * Number(u.gap.gap))) bad.push", "else if (false) bad.push"),
     ("the gate's price tolerance ten times looser", "export const PRICE_TOL = 1e-3;", "export const PRICE_TOL = 1e-2;"),

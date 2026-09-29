@@ -20,6 +20,7 @@ ok   the gate refuses TS+J keeping the held tiers where its chosen move leaves t
 ok   the gate refuses a 30x5 node's first 1000 paths not 7ac's world line: true
 ok   the gate refuses a missing done line: true
 ok   the gate refuses a job with no 7aa unit to compare: true
+ok   the gate refuses a pension death charge (O53: the whole score read with the death tax on): true
 ok   the gate refuses job line settings not the registered ones: true
 ok   the gate refuses an unregistered solve (the product in the S126 control): true
 ok   the fixture's shared fault alone passes (the helper plants nothing by itself): false
@@ -62,7 +63,7 @@ ok   item 2 does not count a mispricing where TS+J keeps the held tiers (its nod
 ok   item 2 at a third, not a half: the mispricing 0.7 -> 0.4 is HELD: HELD
 ok   item 3 reads the product, not TS+J: the product flat with TS+J +30% is FALSIFIED: FALSIFIED
 ok   item 4: 15 return points moving more than 60 wealth points on both is FALSIFIED: FALSIFIED
-planted (64): all read as they should
+planted (65): all read as they should
 
 7AD: THE REFINEMENT CHECK - IS THE BAD WORLD'S PRICE OF THE OPENING WRONG FOR NUMERICAL REASONS? (predictions/diag-7ad.md; 8000 paths of seed 7002, 4000 a node; the fair-test gates passed: the stamps, 7aa's gate, 7ac's gate, 7ad's gate against both - its 30x5 solves 7aa's, its 30x5 node runs' first 1000 paths 7ac's world lines - and every node trace)
 

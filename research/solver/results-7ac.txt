@@ -11,6 +11,7 @@ ok   the gate refuses another year-0 gap: true
 ok   the gate refuses a unit where TS+J opens in the plan's tier (7aa's the same): true
 ok   the gate refuses a unit where 7aa's PRODUCT opens tier 2 (not a registered opening apart): true
 ok   the gate refuses per-world tables (not one policy for every world): true
+ok   the gate refuses a pension death charge (O53: the whole score read with the death tax on): true
 ok   the gate refuses another solved margin: true
 ok   the gate refuses another scale: true
 ok   the gate refuses a mixture price not the gap (0.1% off): true
@@ -45,7 +46,7 @@ ok   item 2 on one case only (a loss on S126, level on S194): INCONCLUSIVE: INCO
 ok   item 2 reads survival harm as a loss whatever the whole score says (OPEN0 losing 40 on both at W0.02): HELD
 ok   item 2 at W0.02, not W0: a whole-score loss planted at W0 does not count: FALSIFIED
 ok   the margin is PRODUCT's at the leg's own weight: bridge 4's PRODUCT at W0 below 95% (margin 0.5): OPEN0 losing 20 to TS+J there is no material harm, where at bridge 4's own 99% (margin 0.25) it is harm: no material harm harm
-planted (47): all read as they should
+planted (48): all read as they should
 
 7AC: DOES TS+J PRICE THE OPENING RIGHT? THE FOURTH CELL (predictions/diag-7ac.md; 8000 paths of seed 7002; the fair-test gates passed: both runs' stamps, 7aa's gate, 7ac's gate against 7aa's TS+J and PRODUCT, every trace, and 7ac's TS+J identical to 7aa's on every path)
 

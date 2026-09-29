@@ -82,7 +82,7 @@ export function parse(text) {
     if ((m = SOLVEL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { t.table = m[5]; continue; }
     if ((m = RANL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { t.ran = m[5]; continue; }
     if ((m = GAPL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { t.gap = { gap: m[5], open1e3: +m[6], open0: +m[7] }; continue; }
-    if ((m = JOINTL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { t.joint = { joint: m[5] === 'true', margin: m[6], scale: +m[7], cap: +m[8] }; continue; }
+    if ((m = JOINTL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { t.joint = { joint: m[5] === 'true', margin: m[6], scale: +m[7], cap: +m[8], deathTax: +m[9] }; continue; }
     if ((m = MOVESL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { t.moves = { best: +m[5], bestTier: [+m[6], +m[7]], stay: +m[8], stayTier: [+m[9], +m[10]], chosen: +m[11], chosenTier: [+m[12], +m[13]], held: [+m[14], +m[15]] }; continue; }
     if ((m = PRICEL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { t.price = { mixture: +m[5], whole: +m[6], surv: +m[7] }; continue; }
     if ((m = WORLDL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { t.worlds[+m[5]] = { z: +m[6], w: +m[7], whole: +m[8], surv: +m[9] }; continue; }
@@ -128,6 +128,7 @@ export function gate(jobs, refA, refC, wn = WN) {
       else {
         if (u.joint.joint !== (tag === 'TS+J')) bad.push(`${L}: one policy for every world ${u.joint.joint}`);
         if (u.joint.margin !== '0.001') bad.push(`${L}: solved at margin ${u.joint.margin}`);
+        if (u.joint.deathTax !== 0) bad.push(`${L}: a pension death charge ${u.joint.deathTax} (O53)`);
         if (!r.joint || u.joint.scale !== r.joint.scale || u.joint.cap !== r.joint.cap) bad.push(`${L}: scale or cap not 7aa's`);
       }
       if (!u.moves) bad.push(`${L}: no moves line`);
@@ -262,6 +263,7 @@ function planted() {
   cases.push(['the gate refuses a 30x5 node\'s first 1000 paths not 7ac\'s world line', refused(bent('S126', '30x5', { first: '99.2000' })), 'true']);
   cases.push(['the gate refuses a missing done line', refused(bent('bridge 4', '60x5', { noDone: true })), 'true']);
   cases.push(['the gate refuses a job with no 7aa unit to compare', String(gate(parse(good()), (id, arm, tag, w) => (id === 'S194' ? null : refA(id, arm, tag, w)), refC).length > 0), 'true']);
+  cases.push(['the gate refuses a pension death charge (O53: the whole score read with the death tax on)', sub('S194', '30x15', ['cap 3800000 deathTax 0 tier', 'cap 3800000 deathTax 0.4 tier']), 'true']);
   cases.push(['the gate refuses job line settings not the registered ones', sub('S194', '30x15', [`lambda ${LAMBDA} tier own`, 'lambda 0.03 tier own']), 'true']);
   cases.push(['the gate refuses an unregistered solve (the product in the S126 control)', sub('S126', '30x5', ['solve READER/TS+J/30x5/W0: table', `solve READER/PRODUCT/30x5/W0: table 99.5000 secs 1\n${''.padEnd(16)} solve READER/TS+J/30x5/W0: table`]), 'true']);
   // a fault in a 30x5 ran line that 7aa's reference carries too (a wrong lookup): the ran line's own fields must catch it

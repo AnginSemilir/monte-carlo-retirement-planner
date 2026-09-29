@@ -1,4 +1,4 @@
-true script: planted (47): all read as they should
+true script: planted (48): all read as they should
 caught  the gate accepts a missing unit: the gate refuses a missing unit: false (want true)
 caught  the gate accepts a unit twice: the gate refuses a unit run twice: false (want true)
 caught  the gate accepts an unregistered unit: the gate refuses an unregistered unit (S360 off at W0): false (want true)
@@ -11,6 +11,7 @@ caught  the gate ignores the gap: the gate refuses another year-0 gap: false (wa
 caught  the gate accepts TS+J opening in the plan's tier: the gate refuses a unit where TS+J opens in the plan's tier (7aa's the same): false (want true)
 caught  the gate accepts per-world tables: the gate refuses per-world tables (not one policy for every world): false (want true)
 caught  the gate ignores the solved margin: the gate refuses another solved margin: false (want true)
+caught  the gate ignores a pension death charge (O53): the gate refuses a pension death charge (O53: the whole score read with the death tax on): false (want true)
 caught  the gate ignores the scale: the gate refuses another scale: false (want true)
 caught  the gate ignores the mixture's price: the gate refuses a mixture price not the gap (0.1% off): false (want true)
 caught  the gate's price tolerance ten times looser: the gate refuses a mixture price not the gap (0.1% off): false (want true)
@@ -45,4 +46,4 @@ caught  item 3's no-loss branch on any read: item 3 FALSIFIED with a loss not ru
 caught  item 3's branch printed on every outcome: item 3 HELD carries no branch: FALSIFIED WITHOUT A LOSS: no material gain and no material harm - the opening, not the continuation, carried 7aa's item 5 (O42 re-read) (want )
 caught  item 3 on S126 alone: item 3 reads the product's survivors only: OPEN0 saving 30 of the product's failures does not count: 7900 (want 15800)
 
-45 mutations: every one caught
+46 mutations: every one caught

@@ -26,4 +26,6 @@ P'S SLICES (results/diagP, gated by reduce-P.mjs; the deep review after P, 29 Se
   share 0.95 grid READER/60x5/W0.02       whole 0.000 survival 0.000 | world 0 survival 0.000 | world 2 whole 0.000 survival 0.000, NaN% of the whole price
 
 3. THE POOLED PRICE TO REALISED (results-P.txt): margin 0 0.781 (0.66 to 0.96 over the realised interval), P 0.738 (0.63 to 0.89)
+
+4. THE OPENINGS ON THE 25 (results-P.txt): P de-risks 18, of them 1 with a gap on top of the charge under 10% of it (share 0.50); 7 of 25 bundle gaps within 10% of the margin (share 0.50, share 0.90, bridge 0, bridge 1, S126, S194, S162)
 planted: a built log reads back one-way 20%, reverse 5%, net 15 points

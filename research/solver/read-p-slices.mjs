@@ -6,6 +6,8 @@
  *      path-years, the forward holding where the cell leaves (one-way), the reverse, and the net in points;
  *   2. world 0's survival price and the mixture's prices of the year-0 de-risk at each grid run (30x5 from the core or
  *      opening job, 30x15 and 60x5 from the grid jobs), each world's part, and world 2's share of the whole price;
+ *   4. (below 3) the openings on the 25: how many of P's de-risked openings sit within 10% of the charge, and how many of
+ *      the bundle's gaps within 10% of the margin (results-P.txt's openings table);
  *   3. the pooled price-to-realised ratio under P and at margin 0 with the realised interval's ends (results-P.txt's
  *      REPORTED line), as ratios.
  * Planted: a built log with known counts must read back its one-way, reverse and net shares.
@@ -52,4 +54,13 @@ for (const id of ['bridge 4', 'S194', 'share 0.95']) {
 const R = readFileSync(join(HERE, 'results-P.txt'), 'utf8'), m = /margin 0 (\S+) \/ \+(\S+) \((\S+) to (\S+)\) = (\S+); P (\S+) \/ \+(\S+) \((\S+) to (\S+)\) = (\S+)/.exec(R);
 if (!m) { console.log('CHECK FAILED: no ratio line in results-P.txt'); process.exit(1); }
 console.log(`\n3. THE POOLED PRICE TO REALISED (results-P.txt): margin 0 ${m[5]} (${(+m[1] / +m[4]).toFixed(2)} to ${(+m[1] / +m[3]).toFixed(2)} over the realised interval), P ${m[10]} (${(+m[6] / +m[9]).toFixed(2)} to ${(+m[6] / +m[8]).toFixed(2)})`);
+const OPN = /^  (\S.*?)\s+P gap (\S+)\s+opening (\d)\/\d (leaves|keeps)\s+\| bundle gap (\S+) opening/;
+const rows = R.split('\n').map(l => OPN.exec(l)).filter(Boolean);
+if (rows.length !== 25) { console.log(`CHECK FAILED: ${rows.length} opening rows in results-P.txt, not 25`); process.exit(1); }
+// the bundle's gap is the margin's to beat (knife edge: within 10% of 0.001); P's is printed on top of the charge (margin 0),
+// so its knife edge is a gap above 0 by under 10% of the charge
+const nearMargin = g => { const x = Number(g); return x > 0 && Math.abs(x - 0.001) <= 0.1 * 0.001; };
+const nearCharge = g => { const x = Number(g); return x > 0 && x <= 0.1 * 0.001; };
+const pLeave = rows.filter(r => r[4] === 'leaves'), pNear = pLeave.filter(r => nearCharge(r[2])), bNear = rows.filter(r => nearMargin(r[5]));
+console.log(`\n4. THE OPENINGS ON THE 25 (results-P.txt): P de-risks ${pLeave.length}, of them ${pNear.length} with a gap on top of the charge under 10% of it (${pNear.map(r => r[1]).join(', ')}); ${bNear.length} of 25 bundle gaps within 10% of the margin (${bNear.map(r => r[1]).join(', ')})`);
 console.log('planted: a built log reads back one-way 20%, reverse 5%, net 15 points');

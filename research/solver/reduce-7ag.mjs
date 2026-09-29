@@ -25,11 +25,15 @@
  *      upper end below -1%; else INCONCLUSIVE. The old measure (a failed path's years 0) reported beside.
  *   3. S126's attribution (the plan-auditor's BLOCKING 1 of 29 Sep, O51): TSOFF, TS+J under off on S126 (OFF/TS+J/W0.02),
  *      run alone at 7af's 8,000 paths of seed 7002 so it pairs path by path with 7af's S126 units (read through 7af's own
- *      gates: the stamps, 7aa's gate, 7af's gate, 7af's traces). t = TSOFF against SHIP (the tier state alone, no bridge
- *      read), exact 95% interval. HELD (the tier state repairs the reader's error: no gain of its own the margin's size)
- *      when t's interval lies inside -0.25 to +0.25; FALSIFIED (a gain of its own beside the reader's harm) when t's lower
- *      end is above +0.25; else INCONCLUSIVE. CAND against TSOFF (the reader on top of the tier state) reported beside, and
- *      TSOFF's ran line gated equal to 7af's S126 solves once the tier state and the bridge read are taken out.
+ *      gates: the stamps, 7aa's gate, 7af's gate, 7af's traces; TSOFF's code id gated equal to 7af's). The item reads CAND
+ *      against TSOFF - the reader on top of the tier state, the two candidates on S126 - at the margin 0.25 (the
+ *      plan-auditor's FAIL of the first registration, 29 Sep: the question is whether the reader's harm survives under the
+ *      tier state, and the conditional interval reads too kindly when the change is one-sided, RULES.md 8.1). HELD (the
+ *      repair: the reader does no material harm under the tier state) when the guarded unconditional interval's lower end
+ *      is above -0.25; FALSIFIED (the reader's harm stands, masked by a gain of the tier state's own) when the exact
+ *      one-sided p is below 0.05 and the point loss is at least 0.25 (stats.mjs outcome's harm); else INCONCLUSIVE. TSOFF
+ *      against SHIP (the tier state's own gain) reported beside with both intervals, and TSOFF's ran line gated equal to
+ *      7af's S126 solves once the tier state and the bridge read are taken out.
  * Reported, not items: every unit's table, survival, gap and opening (O44), estate, years below target, tier changes;
  * the reader's part (PRODR against SHIP) and the tier state's part (CAND against PRODR) on each household, exact
  * intervals; the whole score (reduce-7aa.mjs wholeLeg at 0.05) of CAND against SHIP; and, where a household reads harm,
@@ -132,13 +136,15 @@ export function items(K, SP, margin = id => MARGIN[id]) {
       outcome: tri(legs.every(l => l.lo > SPEND_H) && mean.lo > SPEND_M, legs.some(l => l.hi < SPEND_H) || mean.hi < SPEND_M) }); }
   return out;
 }
-/* ITEM 3: S126's attribution. `t` the cells of TSOFF against SHIP, `r` of CAND against TSOFF (7af's paths) */
+/* ITEM 3: S126's attribution. `r` the cells of CAND against TSOFF (the item), `t` of TSOFF against SHIP (beside); 7af's paths */
 export const M3 = 0.25;
 export function item3(t, r) {
-  const it = survivalChange(t.lost, t.saved, t.N, ALPHA), ir = survivalChange(r.lost, r.saved, r.N, ALPHA);
-  return { n: 3, text: 'S126\'s attribution: TS+J under off (TSOFF) against the shipping default - HELD (the tier state repairs the reader\'s error) when its exact interval lies inside -0.25 to +0.25; FALSIFIED (a gain of its own beside the reader\'s harm) when its lower end is above +0.25', t, r, it, ir,
-    outcome: tri(it.lo > -M3 && it.hi < M3, it.lo > M3) };
+  const it = survivalChange(t.lost, t.saved, t.N, ALPHA), ut = guardedU(t), ir = survivalChange(r.lost, r.saved, r.N, ALPHA), ur = guardedU(r);
+  const p = mcnemarHarmP(r.lost, r.saved), o = outcome({ b: r.lost, c: r.saved, N: r.N, margin: M3, pHolm: p, level: ALPHA });
+  return { n: 3, text: 'S126\'s attribution: the reader on top of the tier state (CAND against TSOFF, TS+J under off) - HELD (the repair) when the guarded unconditional interval\'s lower end is above -0.25; FALSIFIED (the reader\'s harm stands, masked by a gain of the tier state\'s own) on harm at 0.25 (exact p below 0.05, point loss 0.25 or more)', t, r, it, ut, ir, ur, p,
+    outcome: tri(ur.lo > -M3, o.outcome === 'harm') };
 }
+export const sameCode = (ST, STF) => !!ST && !!STF && ST.code === STF.code;
 /* the registered split of a household's harm (reduce-7af.mjs's rule; every household here has a bridge) */
 export function split(id, K, margin) {
   const r = K(id, 'PRODR', 'SHIP'), t = K(id, 'CAND', 'PRODR'), lr = 100 * (r.lost - r.saved) / r.N, lt = 100 * (t.lost - t.saved) / t.N;
@@ -231,14 +237,16 @@ function planted() {
   cases.push(['spending 1% lower on every household (the mean at the line): 2 INCONCLUSIVE', items(mkK({}), mkSP(Object.fromEntries(PANEL.map(([id]) => [id, -0.01]))))[1].outcome, 'INCONCLUSIVE']);
   cases.push(['item 2 reads the interval: 4.9% lower with a wide interval is INCONCLUSIVE', items(mkK({}), mkSP({ S168: -0.049 }, { S168: 0.2 }))[1].outcome, 'INCONCLUSIVE']);
   cases.push(['spending higher is never a fault: +6% on one household: 2 HELD', items(mkK({}), mkSP({ S168: 0.06 }))[1].outcome, 'HELD']);
-  // item 3 at 7af's 8,000 paths
+  // item 3 at 7af's 8,000 paths: CAND against TSOFF is the item
   const c8 = (saved, lost) => ({ saved, lost, a: N_S126 - saved - lost, d: 0, N: N_S126 });
-  cases.push(['item 3: TSOFF as SHIP but 3 paths (7af\'s CAND against SHIP): HELD (the repair)', item3(c8(3, 0), c8(0, 0)).outcome, 'HELD']);
-  cases.push(['item 3: TSOFF gains 47 paths on SHIP (+0.59, the tier state\'s part in 7af): FALSIFIED (a gain of its own)', item3(c8(47, 0), c8(0, 44)).outcome, 'FALSIFIED']);
-  cases.push(['item 3: a gain whose interval reaches over +0.25 from below (20 saved: +0.25): INCONCLUSIVE', item3(c8(20, 0), c8(0, 0)).outcome, 'INCONCLUSIVE']);
-  cases.push(['item 3: 20 saved, 4 lost (+0.200, 0.076 to 0.272): neither inside the band nor above it: INCONCLUSIVE', item3(c8(20, 4), c8(0, 0)).outcome, 'INCONCLUSIVE']);
-  cases.push(['item 3: TSOFF loses 30 paths (-0.375): INCONCLUSIVE, not the repair', item3(c8(0, 30), c8(30, 0)).outcome, 'INCONCLUSIVE']);
-  cases.push(['item 3 reads TSOFF against SHIP, not CAND against TSOFF', item3(c8(0, 0), c8(47, 0)).outcome, 'HELD']);
+  cases.push(['item 3: the repair - TSOFF as SHIP (3 saved), CAND as TSOFF (0 differ): HELD', item3(c8(3, 0), c8(0, 0)).outcome, 'HELD']);
+  cases.push(['item 3: the harm masked - TSOFF gains 47 on SHIP, CAND loses 47 against TSOFF (3 saved): FALSIFIED', item3(c8(47, 0), c8(3, 47)).outcome, 'FALSIFIED']);
+  cases.push(['item 3: one-sided 19 lost of 8,000 against TSOFF (-0.24; the conditional interval ends at -0.237, the unconditional past -0.25): INCONCLUSIVE, not HELD', item3(c8(19, 0), c8(0, 19)).outcome, 'INCONCLUSIVE']);
+  cases.push(['item 3: TSOFF clearly below SHIP (30 lost), so CAND gains on TSOFF: HELD (no gain of the tier state\'s own)', item3(c8(0, 30), c8(30, 0)).outcome, 'HELD']);
+  cases.push(['item 3 reads CAND against TSOFF, not TSOFF against SHIP', item3(c8(47, 0), c8(0, 0)).outcome, 'HELD']);
+  cases.push(['item 3: a loss of 0.3 against TSOFF with churn (10 saved, 34 lost): not HELD', item3(c8(0, 0), c8(10, 34)).outcome === 'HELD' ? 'HELD' : 'not HELD', 'not HELD']);
+  cases.push(['item 3: the unconditional interval printed beside TSOFF against SHIP too', String(Number.isFinite(item3(c8(19, 0), c8(0, 0)).ut.lo)), 'true']);
+  cases.push(['TSOFF\'s code id must be 7af\'s', `${sameCode({ code: 'x' }, { code: 'x' })} ${sameCode({ code: 'x' }, { code: 'y' })} ${sameCode(null, { code: 'x' })}`, 'true false false']);
   cases.push(['the split: a loss of the margin in PRODR against SHIP is the reader\'s', split('S124', mkK({ 'S124|PRODR|SHIP': [0, 60], 'S124|CAND|PRODR': [0, 0] }), 0.25), 'the reader']);
   cases.push(['the split: a loss of the margin in CAND against PRODR is the tier state\'s', split('S124', mkK({ 'S124|PRODR|SHIP': [0, 0], 'S124|CAND|PRODR': [0, 60] }), 0.25), 'the tier state']);
   cases.push(['the split: both', split('S370', mkK({ 'S370|PRODR|SHIP': [0, 100], 'S370|CAND|PRODR': [0, 100] }), 0.5), 'the reader and the tier state']);
@@ -294,8 +302,8 @@ export function reading(units, TR, out = console.log, n = N, T126 = null) {
   }
   { const Tt = TR[`S126|${TSOFF[0]}|${TSOFF[1]}`], t = cells(T126.SHIP.survived, Tt.survived), r = cells(Tt.survived, T126.CAND.survived), x = item3(t, r);
     out(`${x.n}. ${x.text}: ${x.outcome}`);
-    out(`     TSOFF against SHIP (7af's)  ${t.saved} saved/${t.lost} lost of ${t.N}  change ${f3(x.it.d)} (${x.it.lo.toFixed(3)} to ${x.it.hi.toFixed(3)})`);
-    out(`     reported beside: CAND (7af's) against TSOFF, the reader on top of the tier state  ${r.saved} saved/${r.lost} lost  change ${f3(x.ir.d)} (${x.ir.lo.toFixed(3)} to ${x.ir.hi.toFixed(3)})`);
+    out(`     CAND (7af's) against TSOFF, the reader on top of the tier state  ${r.saved} saved/${r.lost} lost of ${r.N}  p ${x.p.toExponential(1)}  change ${f3(x.ir.d)} (exact ${x.ir.lo.toFixed(3)} to ${x.ir.hi.toFixed(3)}; unconditional, guarded, ${x.ur.lo.toFixed(3)} to ${x.ur.hi.toFixed(3)})`);
+    out(`     reported beside: TSOFF against SHIP (7af's), the tier state's own gain  ${t.saved} saved/${t.lost} lost  change ${f3(x.it.d)} (exact ${x.it.lo.toFixed(3)} to ${x.it.hi.toFixed(3)}; unconditional, guarded, ${x.ut.lo.toFixed(3)} to ${x.ut.hi.toFixed(3)})`);
     it.push(x); }
   out(`\nOUTCOME: ${it.map(x => `${x.n} ${x.outcome}`).join(', ')}`);
   return it;
@@ -322,6 +330,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const T126 = { SHIP: TRF[`S126|${SHIP[0]}|${SHIP[1]}`], CAND: TRF[`S126|${CAND[0]}|${CAND[1]}`] };
   requireFairLogs(logs, PRED);
   const bad = gate(units, N, PTS, u126), ST = stampOf(logs);
+  if (!sameCode(ST, stampOf(logsF))) bad.push(`TSOFF's code id ${ST && ST.code} is not 7af's ${stampOf(logsF) && stampOf(logsF).code}: item 3's pairing across the two runs needs the same solver code`);
   const TR = bad.length ? {} : loadTraces(units, DIR, ST, bad);
   if (bad.length) { console.log(`FAIR-TEST GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
   reading(units, TR, console.log, N, T126);

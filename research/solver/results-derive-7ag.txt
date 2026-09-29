@@ -11,6 +11,9 @@ ITEM 1 (no material harm, Holm across 9)
   E: S128 (margin 0.5) loses 0.75 points, churn 300 everywhere             FALSIFIED 0.976  INCONCLUSIVE 0.024
   F: the records' churn and gains as counts (lost/saved: S124 104/104, S370 272/1040, bridge 4+cost 8/576, 8/8 elsewhere) HELD 0.780  FALSIFIED 0.003  INCONCLUSIVE 0.216
 
-ITEM 3 (S126, TSOFF against SHIP on 7af's 8,000 paths)
-  the repair: 3 saved, 0 lost, churn 6                                     HELD 1.000  INCONCLUSIVE 0.000
-  a gain of its own: 47 saved, 0 lost, churn 6                             FALSIFIED 0.987  INCONCLUSIVE 0.013
+ITEM 3 (S126, CAND against TSOFF on 7af's 8,000 paths; HELD on the guarded unconditional interval)
+  the repair: CAND as TSOFF (saved and lost each Poisson 3)                HELD 1.000
+  the reader's harm masked, 0.25 points                                    HELD 0.020  FALSIFIED 0.527  INCONCLUSIVE 0.453
+  masked, 0.30 points                                                      HELD 0.003  FALSIFIED 0.792  INCONCLUSIVE 0.205
+  masked, 0.35 points                                                      HELD 0.000  FALSIFIED 0.932  INCONCLUSIVE 0.068
+  masked, 0.59 points (the tier state's part in 7af)                       FALSIFIED 1.000  INCONCLUSIVE 0.000

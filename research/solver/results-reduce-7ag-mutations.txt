@@ -1,4 +1,4 @@
-true script: planted (60): all read as they should
+true script: planted (62): all read as they should
 caught  the gate accepts a missing unit: the gate refuses a missing unit: false (want true)
 caught  the gate accepts a unit twice: the gate refuses a unit run twice: false (want true)
 caught  the gate accepts an unregistered unit: the gate refuses an unregistered unit (a household 7af ran): false (want true)
@@ -44,13 +44,15 @@ caught  TSOFF not required against 7af's S126 units: the gate refuses TSOFF with
 caught  TSOFF's settings not compared with 7af's: the gate refuses TSOFF whose settings differ from 7af's S126 solves (minPot): false (want true)
 caught  TSOFF's scale not compared with 7af's: the gate refuses TSOFF at another scale than 7af's S126: false (want true)
 caught  TSOFF dropped from the registered units: the registered units: 9 candidates, 9 shipping defaults, 9 products with the reader, TSOFF on S126: 9 9 9 0 (want 9 9 9 1)
-caught  item 3 without the lower bound: item 3: TSOFF loses 30 paths (-0.375): INCONCLUSIVE, not the repair: HELD (want INCONCLUSIVE)
-caught  item 3 falsified on the upper end: item 3: 20 saved, 4 lost (+0.200, 0.076 to 0.272): neither inside the band nor above it: INCONCLUSIVE: FALSIFIED (want INCONCLUSIVE)
-caught  item 3 at the margin 0.5: item 3: TSOFF gains 47 paths on SHIP (+0.59, the tier state's part in 7af): FALSIFIED (a gain of its own): INCONCLUSIVE (want FALSIFIED)
-caught  item 3 reads CAND against TSOFF: item 3: TSOFF gains 47 paths on SHIP (+0.59, the tier state's part in 7af): FALSIFIED (a gain of its own): INCONCLUSIVE (want FALSIFIED)
-caught  item 3 reads the cells the wrong way round: item 3: TSOFF gains 47 paths on SHIP (+0.59, the tier state's part in 7af): FALSIFIED (a gain of its own): INCONCLUSIVE (want FALSIFIED)
+caught  item 3 HELD on the conditional interval: item 3: one-sided 19 lost of 8,000 against TSOFF (-0.24; the conditional interval ends at -0.237, the unconditional past -0.25): INCONCLUSIVE, not HELD: HELD (want INCONCLUSIV
+caught  item 3 never falsified: item 3: the harm masked - TSOFF gains 47 on SHIP, CAND loses 47 against TSOFF (3 saved): FALSIFIED: INCONCLUSIVE (want FALSIFIED)
+caught  item 3 at the margin 0.5: item 3: one-sided 19 lost of 8,000 against TSOFF (-0.24; the conditional interval ends at -0.237, the unconditional past -0.25): INCONCLUSIVE, not HELD: HELD (want INCONCLUSIV
+caught  item 3's unconditional interval from TSOFF against SHIP: item 3: the harm masked - TSOFF gains 47 on SHIP, CAND loses 47 against TSOFF (3 saved): FALSIFIED: HELD (want FALSIFIED)
+caught  item 3's harm read the wrong way round: item 3: the harm masked - TSOFF gains 47 on SHIP, CAND loses 47 against TSOFF (3 saved): FALSIFIED: INCONCLUSIVE (want FALSIFIED)
+caught  item 3's harm read on TSOFF against SHIP: item 3: the harm masked - TSOFF gains 47 on SHIP, CAND loses 47 against TSOFF (3 saved): FALSIFIED: INCONCLUSIVE (want FALSIFIED)
+caught  TSOFF's code id not compared: TSOFF's code id must be 7af's: true true true (want true false false)
 caught  the split ignores the reader: the split: a loss of the margin in PRODR against SHIP is the reader's: neither alone (each part below the margin) (want the reader)
 caught  the split ignores the tier state: the split: a loss of the margin in CAND against PRODR is the tier state's: neither alone (each part below the margin) (want the tier state)
 caught  the split reads the reader against PRODR: the split: a loss of the margin in PRODR against SHIP is the reader's: neither alone (each part below the margin) (want the reader)
 
-53 mutations: every one caught
+55 mutations: every one caught

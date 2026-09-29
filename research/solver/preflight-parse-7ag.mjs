@@ -11,7 +11,7 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse, gate, UNITS, loadTraces, reading, SHIP, CAND } from './reduce-7ag.mjs';
+import { parse, gate, UNITS, loadTraces, reading, SHIP, CAND, sameCode } from './reduce-7ag.mjs';
 import * as F from './reduce-7af.mjs';
 import * as A from './reduce-7aa.mjs';
 
@@ -56,6 +56,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (texts.length !== UNITS.length) { console.log(`PREFLIGHT INCOMPLETE - ${texts.length} of ${UNITS.length} logs in ${DIR}`); process.exit(1); }
   if (textsF.length !== F.UNITS.length) { console.log(`PREFLIGHT INCOMPLETE - ${textsF.length} of ${F.UNITS.length} 7af preflight logs in ${DIRF}`); process.exit(1); }
   const R = ref126(textsF, textsA, DIRF, DIRA);
+  if (!sameCode(stampOf(texts[0]), stampOf(textsF[0]))) { console.log('PREFLIGHT PARSE FAILED: TSOFF\'s code id is not 7af\'s preflight\'s'); process.exit(1); }
   if (R.bad.length) { console.log(`PREFLIGHT PARSE FAILED (7af's preflight):\n  ${R.bad.join('\n  ')}`); process.exit(1); }
   const { n, good } = planted(texts, R, DIR);
   if (good.bad.length) { console.log(`PREFLIGHT PARSE FAILED:\n  ${good.bad.join('\n  ')}`); process.exit(1); }

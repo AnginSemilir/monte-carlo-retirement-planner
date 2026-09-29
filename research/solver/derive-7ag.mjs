@@ -11,8 +11,9 @@
  * and 0.25 points (m = 50); E, S128 (margin 0.5) loses 0.75 points at m = 300; F, the records' own churn and gains, no
  * loss: S124 104 lost/104 saved (7e's 39 of 3,000 scaled, no net loss), S370 its 7e counts scaled to 16,000 (272 lost,
  * 1,040 saved), bridge 4+cost 8/576 (7e's 0/36 of 1,000 scaled), 8/8 on the rest. 20,000 draws a story, seeded.
- * ITEM 3 (S126's attribution, 8,000 paths): the repair as 7af read it (TSOFF like CAND: 3 saved, 0 lost against SHIP, with
- * 6 paths of churn) and a gain of its own (TSOFF like CAND against PRODR: 47 saved, 0 lost), each drawn Poisson.
+ * ITEM 3 (S126's attribution, 8,000 paths; the item reads CAND against TSOFF): the repair (CAND as TSOFF: saved and lost
+ * each Poisson 3, churn 6) and the reader's harm masked under the tier state at 0.25, 0.30, 0.35 and 0.59 points (lost
+ * Poisson 3 + the loss in paths, saved Poisson 3; 0.59 is the tier state's part in 7af, 47 of 8,000), read by item3().
  * ITEM 2 reads by the size of the change: 7af's household standard errors at 8,000 paths were under 0.04 points of a per
  * cent (results-7af.txt), at 16,000 about 0.7 of that; the 5% and 1% lines sit many standard errors away.
  *   node research/solver/derive-7ag.mjs > research/solver/results-derive-7ag.txt
@@ -49,9 +50,9 @@ story('E: S128 (margin 0.5) loses 0.75 points, churn 300 everywhere', () => 300,
     tally[items((id) => { const d = draw[id]; return { saved: d.saved, lost: d.lost, a: N - d.saved - d.lost, d: 0, N }; }, noSpend)[0].outcome]++;
   }
   console.log(`  ${'F: the records\' churn and gains as counts (lost/saved: S124 104/104, S370 272/1040, bridge 4+cost 8/576, 8/8 elsewhere)'.padEnd(72)} ${Object.entries(tally).filter(([, v]) => v).map(([k, v]) => `${k} ${(v / DRAWS).toFixed(3)}`).join('  ')}`); }
-console.log('\nITEM 3 (S126, TSOFF against SHIP on 7af\'s 8,000 paths)');
-for (const [name, g, l] of [['the repair: 3 saved, 0 lost, churn 6', 6, 3], ['a gain of its own: 47 saved, 0 lost, churn 6', 50, 3]]) {
+console.log('\nITEM 3 (S126, CAND against TSOFF on 7af\'s 8,000 paths; HELD on the guarded unconditional interval)');
+for (const [name, loss] of [['the repair: CAND as TSOFF (saved and lost each Poisson 3)', 0], ['the reader\'s harm masked, 0.25 points', 0.25], ['masked, 0.30 points', 0.30], ['masked, 0.35 points', 0.35], ['masked, 0.59 points (the tier state\'s part in 7af)', 0.59]]) {
   const tally = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 };
-  for (let i = 0; i < DRAWS; i++) { const saved = pois(g), lost = pois(l), c = { saved, lost, a: N_S126 - saved - lost, d: 0, N: N_S126 }; tally[item3(c, c).outcome]++; }
+  for (let i = 0; i < DRAWS; i++) { const saved = pois(3), lost = pois(3 + loss * N_S126 / 100), c = { saved, lost, a: N_S126 - saved - lost, d: 0, N: N_S126 }; tally[item3(c, c).outcome]++; }
   console.log(`  ${name.padEnd(72)} ${Object.entries(tally).filter(([, v]) => v).map(([k, v]) => `${k} ${(v / DRAWS).toFixed(3)}`).join('  ')}`);
 }

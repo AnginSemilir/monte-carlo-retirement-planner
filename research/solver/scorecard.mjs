@@ -41,6 +41,7 @@ export const TESTS = [
   { name: '7ae (the bad node at margin 0: the per-year switch margin and the bad world\'s price)', prediction: 'predictions/diag-7ae.md', results: 'results-7ae.txt' },
   { name: '7af (the candidate bundle, the reader with TS+J, against the shipping default)', prediction: 'predictions/diag-7af.md', results: 'results-7af.txt' },
   { name: '7ag (the bundle on the nine remaining panel households, and S126\'s attribution)', prediction: 'predictions/diag-7ag.md', results: 'results-7ag.txt' },
+  { name: 'P (the switch charged in both passes: which explanation carries families 1 and 2)', prediction: 'predictions/diag-p.md', results: 'results-P.txt' },
 ];
 
 export function credences(predText) {

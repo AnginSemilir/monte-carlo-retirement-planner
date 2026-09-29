@@ -1,7 +1,7 @@
 #!/bin/bash
-# P: the switch charged in both passes (PLAN.md P; predictions/diag-P.md; the deep review after 7ae, deep-review-log.md
+# P: the switch charged in both passes (PLAN.md P; predictions/diag-p.md; the deep review after 7ae, deep-review-log.md
 # 28 Sep 22:52 UK, and of 29 Sep 08:56 UK; the maintainer's go-ahead, 29 Sep 07:49 UK). Launched only through the
-# launcher with PREDICTION=research/solver/predictions/diag-P.md.
+# launcher with PREDICTION=research/solver/predictions/diag-p.md.
 #   audit-s126.mjs's diagP mode at the product's settings but the estate weight ('auto' risk above, lambda held), 38 jobs:
 #   nine core jobs - 7ae's three units (bridge 4 reader W0, S194 off W0.02, S126 reader W0) at 30x5, each at P (switchCharge
 #   0.001, switchMargin 0), at 0 and at 1e-3 (7ae's two solves again) - each one solve and, at world 0's node on 16,000

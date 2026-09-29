@@ -1530,7 +1530,7 @@ if (mode === 'f1v2') {
   });
 } else if (mode === 'diagP') {
   /*
-   * P: THE SWITCH CHARGED IN BOTH PASSES (PLAN.md P; predictions/diag-P.md; the deep review after 7ae, deep-review-log.md
+   * P: THE SWITCH CHARGED IN BOTH PASSES (PLAN.md P; predictions/diag-p.md; the deep review after 7ae, deep-review-log.md
    * 28 Sep 22:52 UK, which proposed it; the deep review of 29 Sep 08:56 UK, which added the openings read and the O50 split;
    * the maintainer's go-ahead, 29 Sep 07:49 UK). TS+J (7aa's unit: the product's settings, 'auto' risk above, lambda held,
    * the tier state and one move for every world, the estate weight passed) solved with switchMargin 0 and the switch

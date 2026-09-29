@@ -1,5 +1,5 @@
 /*
- * THE P REDUCER: THE SWITCH CHARGED IN BOTH PASSES (predictions/diag-P.md; PLAN.md P). Reads results/diagP/case*.txt
+ * THE P REDUCER: THE SWITCH CHARGED IN BOTH PASSES (predictions/diag-p.md; PLAN.md P). Reads results/diagP/case*.txt
  * (batch-P.sh: audit-s126.mjs diagP, 38 jobs) beside 7ae's, 7ad's, 7af's and 7ag's records, each read only through its own
  * reducer's gate (7ae's through 7aa's, 7ac's and 7ad's; 7af's through 7aa's; 7ag's beside 7af's). Every arm the items read is P's own, on the
  * same 16,000 node paths; 7ae is the identity reference for settings 0 and 1e-3.
@@ -62,7 +62,7 @@ import * as F from './reduce-7af.mjs';
 import * as G from './reduce-7ag.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-export const PRED = 'research/solver/predictions/diag-P.md';
+export const PRED = 'research/solver/predictions/diag-p.md';
 export const { LAMBDA, field } = A;
 export const N = 16000, WN = 16000, SEED = '7002', CHARGE = '0.001', Z95 = 1.959963984540054;
 // the margins: half 7ae's own pooled shifts from 1e-3 to 0 (OPEN0 +0.713, TS+J -0.462; results-7ae.txt; derive-P.mjs)
@@ -303,7 +303,7 @@ export function reading(jobs, TR, af, out = console.log, wn = WN) {
   const R = (rule, m) => CORE.map(([id]) => chOf(id, m, rule).rr);
   const openings = Object.fromEntries(['bridge 4', 'S194'].map(id => [id, Object.fromEntries(['30x5', '30x15', '60x5'].map(g => { const j = J(g === '30x5' ? 'core:P' : 'grid', id, g); return [g, j.tags.P.moves.chosenTier]; }))]));
   const IT = items(S, R, openings);
-  out(`P: THE SWITCH CHARGED IN BOTH PASSES (switchCharge ${CHARGE}, switchMargin 0) - DOES THE UNCHARGED MARGIN CARRY FAMILIES 1 AND 2? (predictions/diag-P.md; ${N} paths of seed ${SEED}, ${wn} at world 0's node; the fair-test gates passed: the stamps, 7aa's, 7ac's, 7ad's, 7ae's and 7af's own gates, settings 0 and 1e-3 as 7ae's solves to their printed lines and on 7ae's node paths path by path)`);
+  out(`P: THE SWITCH CHARGED IN BOTH PASSES (switchCharge ${CHARGE}, switchMargin 0) - DOES THE UNCHARGED MARGIN CARRY FAMILIES 1 AND 2? (predictions/diag-p.md; ${N} paths of seed ${SEED}, ${wn} at world 0's node; the fair-test gates passed: the stamps, 7aa's, 7ac's, 7ad's, 7ae's and 7af's own gates, settings 0 and 1e-3 as 7ae's solves to their printed lines and on 7ae's node paths path by path)`);
   out('\nTHE CORE UNITS AT 30x5: the table, the year-0 gap on top of the charge, the opening, world 0\'s survival price of the opening, and at world 0\'s node each rule\'s survival');
   for (const [id, arm, w] of CORE) for (const m of ['1e-3', '0', 'P']) {
     const u = tag(id, m), sims = `TS+J ${u.node.sim['TS+J'].toFixed(2)} OPEN0 ${u.node.sim.OPEN0.toFixed(2)}${u.node.sim.WA === null ? '' : ` WA ${u.node.sim.WA.toFixed(2)}`}`;

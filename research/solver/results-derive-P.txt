@@ -1,0 +1,35 @@
+FAIR-TEST GATE: research/solver/predictions/diag-7ae.md was corrected after launch (c79b4cbc at launch): only typed UK times changed, and the change declared (its words are not checked) - - 29 Sept, after 7ae was read (the maintainer's "unlock enforcement" of 29 Sep, which let the stamp gate take a declared correction): two typed times corrected from the records - the Written line's revision 21:10 to 21:12 UK (commit 4aef99f) and the Derivation's plan-auditor MINOR 1 of 21:1x to 21:13 UK (review-log.md). Nothing else changed: no prediction, falsifier, decision rule, fair-test row or figure.
+
+FAIR-TEST GATE: research/solver/predictions/diag-7af.md was corrected after launch (f848990a at launch): only typed UK times changed, and the change declared (its words are not checked) - - 29 Sept, after 7af was read (the maintainer's "unlock enforcement" of 29 Sep, which let the stamp gate take a declared correction): two typed times in the Written line corrected from the records - the revision 23:40 to 23:32 UK (commit 0f3728e) and the plan-auditor's FAIL 23:24 to 23:23 UK (review-log.md) - per the plan-auditor's MINOR 1 of 28 Sep and BLOCKING 2 of 29 Sep. Nothing else changed: no prediction, falsifier, decision rule, fair-test row or figure.
+
+P'S DERIVATION AND POWER, from 7ae's gated traces (the three units at world 0's node, 8,000 paths each)
+
+1. THE MARGINS: half 7ae's pooled shift from 1e-3 to margin 0, rounded down to two places
+  OPEN0 +0.713 (0.367 to 1.058): half 0.3563 -> 0.35; reduce-P.mjs M1 0.35: agrees
+  TS+J  -0.462 (-0.693 to -0.232): half 0.2312 -> 0.23; reduce-P.mjs M2 0.23: agrees
+
+2. THE CHURN AT THE NODE: switches / moves to a riskier tier a path (the path alive), by unit
+  bridge 4  TS+J/1e-3 0.048/0.035  TS+J/0 1.409/1.267  OPEN0/1e-3 0.896/0.055  OPEN0/0 2.422/1.263
+  S194      TS+J/1e-3 0.689/0.527  TS+J/0 4.203/2.596  OPEN0/1e-3 1.737/0.564  OPEN0/0 5.227/2.615
+  S126      TS+J/1e-3 0.026/0.020  TS+J/0 1.419/1.296  OPEN0/1e-3 0.900/0.029  OPEN0/0 2.427/1.290
+  summed over the units: TS+J/1e-3 0.582, TS+J/0 5.158; margin 0's excess +4.577 (4.525 to 4.628), se 0.0265; H3 = 2.2883 (86.5 standard errors of the excess)
+
+3. POWER at 16000 node paths (4000 draws a story; q the share of paths taking the alternative's difference, the rest the records' discordance as noise with no shift; at 7ae's 8,000 beside)
+  ITEM 1 (OPEN0/P against OPEN0/M0; the alternative OPEN0 falling back to 1e-3's)
+    q 0.00: HELD 0.799  INCONCLUSIVE 0.201   | at 8,000: HELD 0.503  INCONCLUSIVE 0.497
+    q 0.25: HELD 0.265  FALSIFIED 0.001  INCONCLUSIVE 0.735   | at 8,000: HELD 0.144  FALSIFIED 0.001  INCONCLUSIVE 0.855
+    q 0.50: HELD 0.023  FALSIFIED 0.033  INCONCLUSIVE 0.945   | at 8,000: HELD 0.009  FALSIFIED 0.009  INCONCLUSIVE 0.982
+    q 0.75: HELD 0.001  FALSIFIED 0.314  INCONCLUSIVE 0.685   | at 8,000: FALSIFIED 0.068  INCONCLUSIVE 0.932
+    q 1.00: FALSIFIED 0.837  INCONCLUSIVE 0.163   | at 8,000: FALSIFIED 1.000
+  ITEM 2 (TS+J/P against TS+J/1e-3; the alternative TS+J falling as at margin 0)
+    q 0.00: HELD 0.790  INCONCLUSIVE 0.209   | at 8,000: HELD 0.501  INCONCLUSIVE 0.499
+    q 0.25: HELD 0.281  INCONCLUSIVE 0.719   | at 8,000: HELD 0.149  FALSIFIED 0.004  INCONCLUSIVE 0.847
+    q 0.50: HELD 0.024  FALSIFIED 0.022  INCONCLUSIVE 0.954   | at 8,000: HELD 0.014  FALSIFIED 0.013  INCONCLUSIVE 0.973
+    q 0.75: FALSIFIED 0.277  INCONCLUSIVE 0.723   | at 8,000: FALSIFIED 0.092  INCONCLUSIVE 0.907
+    q 1.00: FALSIFIED 0.801  INCONCLUSIVE 0.199   | at 8,000: FALSIFIED 1.000
+  ITEMS 3 AND 4 (riskier moves against TS+J/1e-3; the alternative margin 0's churn)
+    q 0.00: HELD 1.000   | at 8,000: HELD 1.000
+    q 0.25: HELD 1.000   | at 8,000: HELD 1.000
+    q 0.50: HELD 0.024  FALSIFIED 0.023  INCONCLUSIVE 0.954   | at 8,000: HELD 0.024  FALSIFIED 0.023  INCONCLUSIVE 0.954
+    q 0.75: FALSIFIED 1.000   | at 8,000: FALSIFIED 1.000
+    q 1.00: FALSIFIED 1.000   | at 8,000: FALSIFIED 1.000

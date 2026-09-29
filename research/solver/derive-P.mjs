@@ -1,5 +1,5 @@
 /*
- * P'S DERIVATION AND POWER (predictions/diag-P.md; its output hashed in the prediction and re-run by the launcher). Every
+ * P'S DERIVATION AND POWER (predictions/diag-p.md; its output hashed in the prediction and re-run by the launcher). Every
  * figure is from 7ae's traces, read through 7ae's own gate chain (reduce-P.mjs loadRefs: 7aa, 7ac, 7ad, 7ae; 7af beside).
  *   1. THE MARGINS. Items 1 and 2 are read against half 7ae's own pooled shifts from 1e-3 to margin 0 (OPEN0 and TS+J at world
  *      0's node, the three units, 8,000 paths, 7ae's pooled interval): M1 and M2 in reduce-P.mjs must be those halves rounded

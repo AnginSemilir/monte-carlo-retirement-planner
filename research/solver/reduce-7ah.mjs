@@ -43,6 +43,7 @@ import { gunzipSync } from 'node:zlib';
 import { survivalChangeU, mcnemarHarmP, holm, outcome } from './stats.mjs';
 import { requireFairLogs } from './fair-gate.mjs';
 import { decode } from './reduce-7t.mjs';
+import { countTier } from './trace-mask.mjs';
 import { cells } from './reduce-7v.mjs';
 import * as A from './reduce-7aa.mjs';
 import * as F from './reduce-7af.mjs';
@@ -235,7 +236,13 @@ export function loadShip(units, src, TR, bad, n = N) {
    The attribution of a harm at items 1 to 4: no flip - the reference's later choices; a flip and the matched run no
    material harm on both - the opening (family 1); a flip and the matched run harm on either - the reference's later
    choices; else unsplit. ITEMS 7 AND 8: ORDER against SHIP at 0.02, survival (as item 1) and the whole score (as item 2). */
-export function splitItems(open, Km, WLm, KS, WLS, margin = id => MARGIN[id]) {
+// THE RE-FLIP GUARD (the second deep review, 29 Sep 22:09): the matched run forces the pair at year 0 only, and ORDER's
+// chooser may leave it at year 1; then the run tests "the opening delayed a year", not the opening. A leg reads unsplit
+// (re-flip) where the matched run holds READER's pair on fewer than REFLIP of READER's own share of living paths in year 1
+// or year 5 (trace-mask.mjs countTier: recorded paths only). `hold(id, w, which, t)` the share holding READER's pair,
+// which 'READER' or the matched pair P; null skips the guard (the planted stories that do not test it).
+export const REFLIP = 0.9, HOLD_YEARS = [1, 2, 5];
+export function splitItems(open, Km, WLm, KS, WLS, margin = id => MARGIN[id], hold = null) {
   const out = [];
   for (const w of WS) {
     const legs = PANEL.map(([id]) => { const r = open(id, 'READER', w), o = open(id, 'ORDER', w); return { id, w, r, o, flip: r !== o, P: PAIRS.find(P => P * 5 === r) }; });
@@ -244,7 +251,9 @@ export function splitItems(open, Km, WLm, KS, WLS, margin = id => MARGIN[id]) {
     const adj = holm(split.map(l => l.p));
     split.forEach((l, i) => { l.pHolm = adj[i]; const o = outcome({ b: l.k.lost, c: l.k.saved, N: l.k.N, margin: l.margin, pHolm: l.pHolm, level: ALPHA }); l.iv = o; l.u = guardedU(l.k); l.o = o.outcome;
       const noHarm = o.outcome === 'no material harm' && l.u.lo > -l.margin && l.wl.lo > -l.margin, harm = o.outcome === 'harm' || l.wl.hi < -l.margin;
-      l.blame = noHarm ? 'the opening' : harm ? 'the later choices' : 'unsplit'; });
+      l.blame = noHarm ? 'the opening (the matched run within the margin)' : harm ? 'the later choices' : 'unsplit';
+      if (hold) { l.hold = HOLD_YEARS.map(t => ({ t, r: hold(l.id, w, 'READER', t), m: hold(l.id, w, l.P, t) }));
+        if (l.hold.some(h => (h.t === 1 || h.t === 5) && h.m < REFLIP * h.r)) l.blame = 'unsplit (re-flip: the matched run leaves READER\'s tiers)'; } });
     legs.filter(l => !l.flip).forEach(l => { l.blame = 'the later choices (no flip)'; });
     legs.filter(l => l.flip && l.P === undefined).forEach(l => { l.blame = `unsplit (READER opens at code ${l.r}, no matched run)`; });
     out.push({ n: 6, w, legs, text: `the split at ${w}: where READER and ORDER open apart, ORDER with READER's opening against READER (a harm at items 1 to 4 on a household is the opening's where this reads no material harm, the later choices' where it reads harm)` });
@@ -313,15 +322,18 @@ function planted() {
   cases.push(['the matched gate refuses a pair run twice', String(gateMatched([...M0(), M0()[0]]).length > 0), 'true']);
   cases.push(['a matched line parses (id from its case line)', JSON.stringify(parseMatched('bridge 4         case | unit ORDER/TS+J/W0.02 | lambda x\n                 matched ORDER/TS+J/W0.02 open 2/2: sim 95.0000 below 7.15 x')), JSON.stringify([{ id: 'bridge 4', arm: 'ORDER', label: 'TS+J/W0.02', P: 2, Q: 2, sim: 95 }])]);
   // the split and the shipping default over built cells
-  const sp = ({ open = () => 10, Km = () => K0(0, 0), WLm = () => WL0(0, -0.1, 0.1), KS = () => K0(0, 0), WLS = () => WL0(0, -0.1, 0.1) } = {}) => splitItems(open, Km, WLm, KS, WLS);
+  const sp = ({ open = () => 10, Km = () => K0(0, 0), WLm = () => WL0(0, -0.1, 0.1), KS = () => K0(0, 0), WLS = () => WL0(0, -0.1, 0.1), hold = null } = {}) => splitItems(open, Km, WLm, KS, WLS, undefined, hold);
   const blame = (r, id, w = '0.02') => r.find(i => i.n === 6 && i.w === w).legs.find(l => l.id === id).blame;
   const flipB4 = (id, arm) => (id === 'bridge 4' && arm === 'ORDER' ? 0 : 10);
   cases.push(['item 6: no flip anywhere - every harm the later choices\' (no flip)', blame(sp(), 'bridge 4'), 'the later choices (no flip)']);
-  cases.push(['item 6: a flip on bridge 4, the matched run no harm - the opening\'s', blame(sp({ open: flipB4 }), 'bridge 4'), 'the opening']);
+  cases.push(['item 6: a flip on bridge 4, the matched run no harm - the opening\'s', blame(sp({ open: flipB4 }), 'bridge 4'), 'the opening (the matched run within the margin)']);
   cases.push(['item 6: a flip on bridge 4, the matched run losing 60 paths - the later choices\'', blame(sp({ open: flipB4, Km: () => K0(60, 0) }), 'bridge 4'), 'the later choices']);
   cases.push(['item 6: a flip on bridge 4, the matched run\'s whole score harmed - the later choices\'', blame(sp({ open: flipB4, WLm: () => WL0(-0.6, -0.9, -0.3) }), 'bridge 4'), 'the later choices']);
   cases.push(['item 6: READER opening at 1/1 - unsplit, no matched run', blame(sp({ open: (id, arm) => (id === 'bridge 4' && arm === 'READER' ? 5 : 10) }), 'bridge 4').startsWith('unsplit') ? 'true' : 'false', 'true']);
-  cases.push(['item 6 reads each weight apart: a flip at 0.01 only is not one at 0.02', [blame(sp({ open: (id, arm, w) => (id === 'S366' && arm === 'ORDER' && w === '0.01' ? 0 : 10) }), 'S366', '0.02'), blame(sp({ open: (id, arm, w) => (id === 'S366' && arm === 'ORDER' && w === '0.01' ? 0 : 10) }), 'S366', '0.01')].join(' | '), 'the later choices (no flip) | the opening']);
+  cases.push(['item 6 reads each weight apart: a flip at 0.01 only is not one at 0.02', [blame(sp({ open: (id, arm, w) => (id === 'S366' && arm === 'ORDER' && w === '0.01' ? 0 : 10) }), 'S366', '0.02'), blame(sp({ open: (id, arm, w) => (id === 'S366' && arm === 'ORDER' && w === '0.01' ? 0 : 10) }), 'S366', '0.01')].join(' | '), 'the later choices (no flip) | the opening (the matched run within the margin)']);
+  cases.push(['item 6: the matched run holding READER\'s pair as READER does - the opening stands', blame(sp({ open: flipB4, hold: () => 0.97 }), 'bridge 4'), 'the opening (the matched run within the margin)']);
+  cases.push(['item 6: the matched run leaving READER\'s pair by year 1 - unsplit (re-flip)', blame(sp({ open: flipB4, hold: (id, w, which, t) => (which === 'READER' ? 0.97 : t >= 1 ? 0.2 : 1) }), 'bridge 4').startsWith('unsplit (re-flip') ? 'true' : 'false', 'true']);
+  cases.push(['item 6: a re-flip by year 5 only is caught; year 2 alone is reported, not read', [blame(sp({ open: flipB4, hold: (id, w, which, t) => (which === 'READER' ? 0.97 : t === 5 ? 0.5 : 0.97) }), 'bridge 4').startsWith('unsplit (re-flip') , blame(sp({ open: flipB4, hold: (id, w, which, t) => (which === 'READER' ? 0.97 : t === 2 ? 0.5 : 0.97) }), 'bridge 4').startsWith('unsplit (re-flip')].join(' '), 'true false']);
   cases.push(['items 7 and 8: nothing changes - HELD HELD', sp().filter(i => i.n > 6).map(i => i.outcome).join(' '), 'HELD HELD']);
   cases.push(['item 7: 60 lost against SHIP on S366 is harm', sp({ KS: id => (id === 'S366' ? K0(60, 0) : K0(0, 0)) }).find(i => i.n === 7).outcome, 'FALSIFIED']);
   cases.push(['item 8: a whole-score upper end below -0.25 against SHIP on bridge 6 is harm', sp({ WLS: id => (id === 'bridge 6' ? WL0(-0.5, -0.8, -0.3) : WL0(0, -0.1, 0.1)) }).find(i => i.n === 8).outcome, 'FALSIFIED']);
@@ -356,14 +368,16 @@ export function reading(units, TR, out = console.log) {
   }
   const T = (id, arm, w) => TR[`${id}|${arm}|TS+J/W${w}`];
   const cfgPair = (id, w, X, Y) => ({ ...cfgOf(id, w), spendYears: F.spendYears(X, Y) });
+  const shareHolding = (X, code, t) => { const c = countTier(X, t, code); return c.recorded ? c.holding / c.recorded : 0; };
+  const holdOf = (id, w, which, t) => shareHolding(which === 'READER' ? T(id, 'READER', w) : T(id, `ORDER@${which}`, w), T(id, 'READER', w).tier[0], t);
   const SP = splitItems((id, arm, w) => T(id, arm, w).tier[0],
     (id, w, P) => cells(T(id, 'READER', w).survived, T(id, `ORDER@${P}`, w).survived),
     (id, w, P) => A.wholeLeg(T(id, 'READER', w), T(id, `ORDER@${P}`, w), cfgPair(id, w, T(id, 'READER', w), T(id, `ORDER@${P}`, w)), ALPHA),
     id => cells(TR[`${id}|SHIP|PRODUCT/W0.02`].survived, T(id, 'ORDER', '0.02').survived),
-    id => A.wholeLeg(TR[`${id}|SHIP|PRODUCT/W0.02`], T(id, 'ORDER', '0.02'), cfgPair(id, '0.02', TR[`${id}|SHIP|PRODUCT/W0.02`], T(id, 'ORDER', '0.02')), ALPHA));
+    id => A.wholeLeg(TR[`${id}|SHIP|PRODUCT/W0.02`], T(id, 'ORDER', '0.02'), cfgPair(id, '0.02', TR[`${id}|SHIP|PRODUCT/W0.02`], T(id, 'ORDER', '0.02')), ALPHA), undefined, holdOf);
   for (const it of SP) {
     out(`\nITEM ${it.n}${it.w ? ` (${it.w})` : ''}: ${it.text}`);
-    if (it.n === 6) for (const l of it.legs) out(`     ${l.id.padEnd(14)} opening READER ${l.r} ORDER ${l.o}${l.k ? `; matched ${l.P}/${l.P} against READER: ${l.k.saved} saved/${l.k.lost} lost  p ${l.pHolm.toExponential(1)} (exact ${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}; guarded ${l.u.lo.toFixed(3)} to ${l.u.hi.toFixed(3)}) ${l.o}; whole ${l.wl.d >= 0 ? '+' : ''}${l.wl.d.toFixed(3)} (${l.wl.lo.toFixed(3)} to ${l.wl.hi.toFixed(3)}) margin ${l.margin}` : ''} -> a harm here is ${l.blame}'s`);
+    if (it.n === 6) for (const l of it.legs) out(`     ${l.id.padEnd(14)} opening READER ${l.r} ORDER ${l.o}${l.k ? `; matched ${l.P}/${l.P} against READER: ${l.k.saved} saved/${l.k.lost} lost  p ${l.pHolm.toExponential(1)} (exact ${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}; guarded ${l.u.lo.toFixed(3)} to ${l.u.hi.toFixed(3)}) ${l.o}; whole ${l.wl.d >= 0 ? '+' : ''}${l.wl.d.toFixed(3)} (${l.wl.lo.toFixed(3)} to ${l.wl.hi.toFixed(3)}) margin ${l.margin}; holding READER's tiers, READER / matched, years ${l.hold.map(h => `${h.t} ${(100 * h.r).toFixed(1)}/${(100 * h.m).toFixed(1)}%`).join(', ')}; year-0 spend level READER ${T(l.id, 'READER', l.w).level[0]} ORDER ${T(l.id, 'ORDER', l.w).level[0]} matched ${T(l.id, `ORDER@${l.P}`, l.w).level[0]}` : ''} -> a harm here is ${l.blame}'s`);
     else for (const l of it.legs) out(l.pHolm !== undefined ? `     ${l.id.padEnd(14)} ${l.k.saved} saved/${l.k.lost} lost  p ${l.pHolm.toExponential(1)}  change ${(100 * (l.k.saved - l.k.lost) / l.k.N).toFixed(3)} (exact ${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}; unconditional, guarded, ${l.u.lo.toFixed(3)} to ${l.u.hi.toFixed(3)}) margin ${l.margin}: ${l.o}` : `     ${l.id.padEnd(14)} ${l.d >= 0 ? '+' : ''}${l.d.toFixed(3)} (${l.lo.toFixed(3)} to ${l.hi.toFixed(3)})`);
     if (it.outcome) out(`   -> ${it.outcome}`);
   }

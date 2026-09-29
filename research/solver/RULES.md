@@ -397,9 +397,12 @@ checked by the plan-auditor by hand.
    where the prediction declares it. **The interval** for the survival change is Clopper-Pearson on the lost share,
    mapped to points. That interval conditions on the number of paths that differ, so with one-sided changes its
    no-material-harm and no-material-gain ends read too kindly (a true loss at the margin reads "no material harm" about
-   half the time: the eighty-fourth review, 26 Sep; the plan's bugs list and O27). The harm test is sound. The
-   unconditional interval (stats.mjs survivalChangeU, Newcombe 1998 method 10) is reported beside it; replacing it is the
-   maintainer's decision (drafts/whole-score-rule.md).
+   half the time: the eighty-fourth review, 26 Sep; the plan's bugs list and O27). The harm test is sound. **Decided
+   (the maintainer, 29 Sep 22:12 UK, regimen item 1): every new test reads survival by both** - the exact rule above AND
+   the guarded unconditional interval (stats.mjs survivalChangeU, Newcombe 1998 method 10, held at least as far out as the
+   exact bound on a one-sided count: reduce-7aa.mjs guarded): a household passes only when the exact rule reads no
+   material harm and the guarded interval's lower end is above minus the margin; harm as item 3 below. Calibrated at a
+   true loss at the margin: at most 1.5% false passes against 2.5% stated (results-sim-whole-harm.txt).
 2. **Margins, set once:** 0.25 points where the comparison arm survives 95% or more, 0.5 points below, 0.1 points for a
    pooled mean. Gate 4's 1-point condition stays at the product level. They go into the decided-defaults block with a
    test pinning them (plan-defaults.test.mjs, since 25 Sep 21:54 UK).
@@ -414,7 +417,11 @@ checked by the plan-auditor by hand.
    results-pooled-floor.txt). Its price: a small loss spread over three to six cases is caught 8 to 10 points less
    often; the per-case tests catch a loss on one or two cases well only at about twice the margin
    (at about the margin: 43 to 46%, the whole falsifier 48 to 60%), and only 28 to 53% of a small spread one.
-   Each test's prediction names which.
+   Each test's prediction names which. **Superseded for new tests (the maintainer, 29 Sep 22:12 UK, O28):** a pooled floor
+   is read by the households' paired cells summed into one table and read by the unconditional interval (stats.mjs
+   pooledSummed): each household weighs by its paths, not its own counts, so one that lost fewer by chance does not weigh
+   more. At a true loss of 0.1 on every one of 7e's 16 pool cases it holds 2.0% to 3.2% of the time against 2.5%
+   (results-pooled-fixed.txt), where the fixed-effect pool held 6.1% to 65.9% - the pooled gate of 7u and 8f.
 5. **One primary outcome per test;** everything else is descriptive.
 6. **Power before the run:** the paths needed so the interval fits the margin, N > 1.96^2 d / delta^2 (d the discordance
    rate), from the nearest earlier records, by a committed script.

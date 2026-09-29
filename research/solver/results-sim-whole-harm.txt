@@ -89,3 +89,22 @@ THE HARM SIDE, THE REST TIED TO THE SURVIVAL PART (correlation 1): how often a t
     70.0%  0.50  16000   1.0             |   1.5%    1.4%    1.5%
     70.0%  0.50  16000   0.5             |   0.7%    0.7%    0.8%
 LARGEST RATE, CORRELATED: 1.5% against the nominal 2.5%
+
+THE PRICE WITH CHURN BELOW 90% SURVIVAL (the 0.5 margin): a true change of 0 - how often it reads "no material harm"
+  survival  margin  paths  churn per 8,000       | the rest's se at 8,000 paths: 0.02 / 0.05 / 0.10
+    75.0%  0.50   8000  1 (median)           | 100.0%  100.0%   98.1%
+    75.0%  0.50   8000  2 (upper quartile)   | 100.0%  100.0%   97.7%
+    75.0%  0.50   8000  25.5 (90th percentile) |  99.7%   96.4%   70.9%
+    75.0%  0.50   8000  188.5 (largest)      |  35.8%   26.3%   15.1%
+    75.0%  0.50  16000  1 (median)           | 100.0%  100.0%  100.0%
+    75.0%  0.50  16000  2 (upper quartile)   | 100.0%  100.0%  100.0%
+    75.0%  0.50  16000  25.5 (90th percentile) | 100.0%  100.0%   98.1%
+    75.0%  0.50  16000  188.5 (largest)      |  67.7%   58.0%   41.0%
+    45.0%  0.50   8000  1 (median)           | 100.0%  100.0%   98.4%
+    45.0%  0.50   8000  2 (upper quartile)   | 100.0%  100.0%   98.0%
+    45.0%  0.50   8000  25.5 (90th percentile) |  99.7%   96.4%   71.1%
+    45.0%  0.50   8000  188.5 (largest)      |  35.7%   26.8%   15.4%
+    45.0%  0.50  16000  1 (median)           | 100.0%  100.0%  100.0%
+    45.0%  0.50  16000  2 (upper quartile)   | 100.0%  100.0%  100.0%
+    45.0%  0.50  16000  25.5 (90th percentile) | 100.0%  100.0%   97.9%
+    45.0%  0.50  16000  188.5 (largest)      |  68.6%   58.5%   40.8%

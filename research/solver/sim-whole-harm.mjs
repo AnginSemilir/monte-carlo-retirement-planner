@@ -92,3 +92,9 @@ for (const [surv, margin] of ROWS) for (const N of PATHS) for (const share of [1
   console.log(`  ${(100 * surv).toFixed(1).padStart(6)}%  ${margin.toFixed(2)}  ${String(N).padStart(5)}  ${share.toFixed(1).padStart(4)}             | ${rs.map(x => `${(100 * x).toFixed(1).padStart(5)}%`).join('  ')}`);
 }
 console.log(`LARGEST RATE, CORRELATED: ${(100 * worstC).toFixed(1)}% against the nominal ${(100 * A / 2).toFixed(1)}%`);
+
+// THE PRICE WITH CHURN BELOW 90% SURVIVAL (the second deep review, 29 Sep 22:09: S360 at 45.94 and S370 at 74.69 sit
+// below every churn row above), at the 0.5 margin, the same churn levels
+console.log('\nTHE PRICE WITH CHURN BELOW 90% SURVIVAL (the 0.5 margin): a true change of 0 - how often it reads "no material harm"');
+console.log('  survival  margin  paths  churn per 8,000       | the rest\'s se at 8,000 paths: 0.02 / 0.05 / 0.10');
+for (const surv of [0.75, 0.45]) for (const N of PATHS) for (const [nm, c] of LEVELS) console.log(`  ${(100 * surv).toFixed(1).padStart(6)}%  0.50  ${String(N).padStart(5)}  ${`${c} (${nm})`.padEnd(20)} | ${SES.map(se => `${(100 * rate(surv, N, 0.5, 1, se, 0, { churn: c * N / 8000 })).toFixed(1).padStart(5)}%`).join('  ')}`);

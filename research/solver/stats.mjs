@@ -156,6 +156,20 @@ export function pooledFE(cases) {
   const w = v.map(x => 1 / x), sw = w.reduce((a, b) => a + b, 0), mean = w.reduce((a, x, i) => a + x * d[i], 0) / sw, se = Math.sqrt(1 / sw);
   return { mean, lo: mean - 1.96 * se, hi: mean + 1.96 * se, k };
 }
+/*
+ * THE POOLED FLOOR, SUMMED (the maintainer, 29 Sep 22:12 UK, O28: it replaces pooledFE and pooledRE as the pooled gate in
+ * 7u and 8f). The households' paired cells added into one table, read by survivalChangeU: each household weighs by its
+ * paths, not by its own counts, so a household that lost fewer by chance does not weigh more. At a true one-sided loss of
+ * 0.1 on every one of 7e's 16 pool cases it holds 2.0% to 3.2% of the time, against 2.5% (results-pooled-fixed.txt);
+ * pooledFE held 6.1% to 65.9%. `cases` [{ a, lost, saved, d }] (a both survive, d both fail); returns survivalChangeU's
+ * interval over the sum, in points (d, lo, hi), and the pooled cells.
+ */
+export function pooledSummed(cases, level = 0.05) {
+  if (!cases.length) return null;
+  let a = 0, lost = 0, saved = 0, d = 0;
+  for (const x of cases) { a += x.a; lost += x.lost; saved += x.saved; d += x.d; }
+  return { ...survivalChangeU(a, lost, saved, d, level), cells: { a, lost, saved, d }, N: a + lost + saved + d, k: cases.length };
+}
 /* the two-sided sign test over households' changes (zeros dropped) */
 export function signTest(ds) {
   const pos = ds.filter(x => x > 0).length, neg = ds.filter(x => x < 0).length, n = pos + neg;

@@ -5,7 +5,7 @@
  *   node research/tests/stats.test.mjs
  */
 import assert from 'node:assert/strict';
-import { mcnemarHarmP, clopperPearson, survivalChange, holm, outcome, pathsNeeded, binomUpperHalf, pooledRE, pooledFE, signTest,
+import { mcnemarHarmP, clopperPearson, survivalChange, holm, outcome, pathsNeeded, binomUpperHalf, pooledRE, pooledFE, pooledSummed, signTest,
   normUpper, zFor, wilson, survivalChangeU } from '../solver/stats.mjs';
 
 let n = 0; const ok = (c, msg) => { assert.ok(c, msg); n++; console.log(`PASS  ${msg}`); };
@@ -80,4 +80,13 @@ ok(near(normUpper(1.96), 0.0249979, 2e-7) && near(normUpper(5), 2.8665e-7, 1e-10
     if (survivalChangeU(survA - b, b, 0, failA).lo > -0.25) nmhU++;
     if (survivalChange(b, 0, N).lo > -0.25) nmhC++; }
   ok(nmhU / R < 0.035 && nmhC / R > 0.4, `calibration at a true one-sided loss at the margin, ${R} draws at 3,000 paths: the unconditional interval reads "no material harm" ${(100 * nmhU / R).toFixed(1)}% of the time, the conditional ${(100 * nmhC / R).toFixed(1)}% (nominal 2.5%)`); }
+// THE POOLED FLOOR, SUMMED (O28; the maintainer, 29 Sep 22:12 UK): the cells add, and the interval is survivalChangeU's
+// over the sum; planted - the fixed-effect pool, weighting a household that lost fewer by chance more, reads a loss spread
+// unevenly as smaller than the summed one does
+{ const cases = [{ a: 7900, lost: 30, saved: 0, d: 70 }, { a: 7950, lost: 2, saved: 0, d: 48 }, { a: 7950, lost: 2, saved: 0, d: 48 }];
+  const p = pooledSummed(cases), u = survivalChangeU(23800, 34, 0, 166);
+  ok(p.cells.lost === 34 && p.N === 24000 && p.k === 3 && near(p.lo, u.lo, 1e-12) && near(p.d, u.d, 1e-12), `the summed pool is survivalChangeU over the added cells (${p.cells.lost} lost of ${p.N}; ${p.d.toFixed(3)}, ${p.lo.toFixed(3)} to ${p.hi.toFixed(3)})`);
+  const fe = pooledFE(cases.map(x => ({ b: x.lost, c: x.saved, N: x.a + x.lost + x.saved + x.d })));
+  ok(fe.mean > p.d, `planted: the fixed-effect pool reads the uneven loss as smaller (${fe.mean.toFixed(3)}) than the summed one (${p.d.toFixed(3)}) - the bias O28 found`);
+  ok(pooledSummed([]) === null, 'an empty pool is null, not a pass'); }
 console.log(`\nstats: ${n} passed`);

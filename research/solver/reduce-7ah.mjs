@@ -16,8 +16,9 @@
  *      six, each at its margin (0.25 where READER survives 95% or more at 0.02 in 7af's or 7ag's record, else 0.5), and the
  *      guarded unconditional interval's lower end above minus the margin. HELD if every household passes; FALSIFIED on harm
  *      on any; else INCONCLUSIVE.
- *   2. the whole score at 0.02 (reduce-7aa.mjs wholeLeg at 0.05): no material harm on every household at 0.25. HELD if
- *      every lower end is above -0.25; FALSIFIED if any upper end is below -0.25; else INCONCLUSIVE.
+ *   2. the whole score at 0.02 (reduce-7aa.mjs wholeLeg at 0.05): no material harm on every household, each at its margin
+ *      (item 1's: the regimen's, as the adopted rule reads it). HELD if every lower end is above minus the margin;
+ *      FALSIFIED if any upper end is below it; else INCONCLUSIVE.
  *   3. and 4. items 1 and 2 at 0.01.
  *   5. O36's pessimism on S360 (the only one of the six whose table misses its simulation by more than 5 points: 7af's
  *      32.67 against 45.94): at 0.02, ORDER's |table - simulated| at most half READER's (HELD); 0.9 of it or more
@@ -41,7 +42,7 @@ import * as G from './reduce-7ag.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-7ah.md';
 export const { field, LAMBDA, LEVELS } = A;
-export const N = 8000, SEED = '7002', PTS = '30', ALPHA = 0.05, SIM_TOL = 5e-5 + 1e-9, MW = 0.25, R5 = { held: 0.5, falsified: 0.9 };
+export const N = 8000, SEED = '7002', PTS = '30', ALPHA = 0.05, SIM_TOL = 5e-5 + 1e-9, R5 = { held: 0.5, falsified: 0.9 };
 export const PANEL = [['bridge 4', 4], ['bridge 6', 6], ['S360', 8], ['S366', 8], ['S370', 8], ['bridge 4+cost', 4]];
 export const FROM_AF = ['bridge 4', 'bridge 6', 'S360'];
 // READER's survival at 0.02 in 7af's and 7ag's records (results-7af.txt, results-7ag.txt): 99.59, 99.40, 45.94, 99.17, 74.69, 99.25
@@ -138,8 +139,8 @@ export function items(K, WL, err, margin = id => MARGIN[id]) {
     out.push({ n, text: `survival at the estate weight ${w}: ORDER against READER, no material harm on every household (the exact rule with Holm across ${PANEL.length}, each at its margin, and the guarded unconditional interval's lower end above minus it; FALSIFIED: harm on any)`, legs, outcome: tri(legs.every(l => l.pass), legs.some(l => l.o === 'harm')) });
   };
   const whole = (n, w) => {
-    const legs = PANEL.map(([id]) => ({ id, ...WL(id, w) }));
-    out.push({ n, text: `the whole score at the estate weight ${w}: no material harm on every household at ${MW} (FALSIFIED: an upper end below -${MW})`, legs, outcome: tri(legs.every(l => l.lo > -MW), legs.some(l => l.hi < -MW)) });
+    const legs = PANEL.map(([id]) => ({ id, ...WL(id, w), margin: margin(id) }));
+    out.push({ n, text: `the whole score at the estate weight ${w}: no material harm on every household, each at its margin (FALSIFIED: an upper end below minus it)`, legs, outcome: tri(legs.every(l => l.lo > -l.margin), legs.some(l => l.hi < -l.margin)) });
   };
   surv(1, '0.02'); whole(2, '0.02'); surv(3, '0.01'); whole(4, '0.01');
   { const eR = err('S360', 'READER', '0.02'), eO = err('S360', 'ORDER', '0.02'), ratio = eR > 0 ? eO / eR : Infinity;
@@ -188,8 +189,9 @@ function planted() {
   cases.push(['item 1: 60 lost paths on S366 at 0.02 is harm', run({ K: (id, w) => (id === 'S366' && w === '0.02' ? K0(60, 0) : K0(0, 0)) }).split(' ')[0], 'FALSIFIED']);
   cases.push(['item 3: 60 lost on S366 at 0.01 reads at item 3, not item 1', run({ K: (id, w) => (id === 'S366' && w === '0.01' ? K0(60, 0) : K0(0, 0)) }).split(' ').slice(0, 3).join(' '), 'HELD HELD FALSIFIED']);
   cases.push(['item 1: S360 uses its 0.5 margin (30 lost is not harm there, 30 lost on bridge 4 at 0.25 is)', [run({ K: (id, w) => (id === 'S360' && w === '0.02' ? K0(30, 0) : K0(0, 0)) }).split(' ')[0], run({ K: (id, w) => (id === 'bridge 4' && w === '0.02' ? K0(30, 0) : K0(0, 0)) }).split(' ')[0]].join(' '), 'INCONCLUSIVE FALSIFIED']);
-  cases.push(['item 2: a whole-score upper end below -0.25 is harm', run({ WL: (id, w) => (id === 'S370' && w === '0.02' ? WL0(-0.5, -0.8, -0.3) : WL0(0, -0.1, 0.1)) }).split(' ')[1], 'FALSIFIED']);
-  cases.push(['item 4: a lower end at -0.3 at 0.01 is INCONCLUSIVE', run({ WL: (id, w) => (w === '0.01' && id === 'S360' ? WL0(0, -0.3, 0.2) : WL0(0, -0.1, 0.1)) }).split(' ')[3], 'INCONCLUSIVE']);
+  cases.push(['item 2: a whole-score upper end below -0.25 is harm', run({ WL: (id, w) => (id === 'bridge 4' && w === '0.02' ? WL0(-0.5, -0.8, -0.3) : WL0(0, -0.1, 0.1)) }).split(' ')[1], 'FALSIFIED']);
+  cases.push(['item 2: S360 and S370 read the whole score at their 0.5 margin (an interval -0.4 to -0.3 is no harm there, harm on bridge 4 at 0.25)', ['S360', 'S370', 'bridge 4'].map(x => run({ WL: (id, w) => (id === x && w === '0.02' ? WL0(-0.35, -0.4, -0.3) : WL0(0, -0.1, 0.1)) }).split(' ')[1]).join(' '), 'HELD HELD FALSIFIED']);
+  cases.push(['item 4: a lower end at -0.3 at 0.01 is INCONCLUSIVE', run({ WL: (id, w) => (w === '0.01' && id === 'S366' ? WL0(0, -0.3, 0.2) : WL0(0, -0.1, 0.1)) }).split(' ')[3], 'INCONCLUSIVE']);
   cases.push(['item 5: half the error HELD, 0.9 of it FALSIFIED, between INCONCLUSIVE', [[13.27, 6.6], [13.27, 12], [13.27, 9]].map(([r, o]) => run({ e: (id, arm) => (arm === 'READER' ? r : o) }).split(' ')[4]).join(' '), 'HELD FALSIFIED INCONCLUSIVE']);
   cases.push(['item 5 reads S360 alone', run({ e: (id, arm) => (id === 'S360' ? (arm === 'READER' ? 13.27 : 2) : (arm === 'READER' ? 1 : 50)) }).split(' ')[4], 'HELD']);
   const wrong = cases.filter(([, got, want]) => got !== want);

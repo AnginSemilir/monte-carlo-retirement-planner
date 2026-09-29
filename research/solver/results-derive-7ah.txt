@@ -8,7 +8,17 @@
   S370           reader 556.0/188.5  tier state 12.5/12.0  margin 0.5
   bridge 4+cost  reader 317.5/1.0  tier state 5.5/0.5  margin 0.25
 
+   the paths failing in both arms (READER's recorded failures): bridge 4 33, bridge 6 48, S360 4325, S366 66, S370 2025, bridge 4+cost 60
+
 2. POWER OF ITEM 1 (item 3 alike), 4000 draws a story: the share read HELD / INCONCLUSIVE / FALSIFIED
   SMALL (the tier state's discordance): HELD 1.000  INCONCLUSIVE 0.000  FALSIFIED 0.000
   CHURN (S360 and S370 move as many paths both ways as the reader alone did): HELD 0.026  INCONCLUSIVE 0.956  FALSIFIED 0.018
-  HARM (SMALL, and S360 loses 40 paths net: its margin): HELD 0.045  INCONCLUSIVE 0.555  FALSIFIED 0.400
+  HARM (SMALL, and S360 loses 40 paths net: its margin): HELD 0.064  INCONCLUSIVE 0.536  FALSIFIED 0.400
+
+3. THE SCALE OF ITEMS 2 AND 4: 7af's and 7ag's whole-score interval half-widths (CAND against SHIP), at 8,000 paths
+  bridge 4       +/-0.121 as recorded, +/-0.12 at 8,000  margin 0.25
+  bridge 6       +/-0.122 as recorded, +/-0.12 at 8,000  margin 0.25
+  S360           +/-0.931 as recorded, +/-0.93 at 8,000  margin 0.5
+  S366           +/-0.070 as recorded (16,000 paths), +/-0.10 at 8,000  margin 0.25
+  S370           +/-0.574 as recorded (16,000 paths), +/-0.81 at 8,000  margin 0.5
+  bridge 4+cost  +/-0.390 as recorded (16,000 paths), +/-0.55 at 8,000  margin 0.25

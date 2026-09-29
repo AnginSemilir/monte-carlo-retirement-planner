@@ -4,7 +4,7 @@
 - **Kind:** test
 - **Written:** 29 Sept, before the run (its time is its registering commit's, git log); after O36's cause was located (results-o36-order.txt), bounded by the plan-auditor to bridges of three years or more (O36 "where it can move a choice", grade B, confirmed in the solver by research/tests/reader-order-solve.test.mjs: 6 passed), and the fix built behind an option (07eb52e; research/tests/reader-order.test.mjs, 12 passed)
 - **Seeds:** 7002 tuning (every unit's 8,000 paths, the first 8,000 of 7ag's 16,000 and all of 7af's 8,000; the solves' opening path). The product's 'auto' risk-above rule reads its own seed 7101 inside solvePlan. No held-out seed is touched. **Disclosed (RULES.md Known limits item 18):** one build check ran this test's mode under "none" before this prediction was final: runs.log 29 Sep, "7ah build check" (the first unit, ORDER bridge 4 at W0.02, at 4 wealth points and 20 paths; its lines read only to see they print and parse); 4 wealth points are not a registered grid, and no figure of it is read.
-- **Unmasking:** the order reference removes a known error, the reader's proportional draw (O36: it pays the bridge from the accessible pots in proportion, where the solver draws in an order its menu chooses; on share 0.95 18.1% of bridges unpaid by the reference against 4.6% ISA-first and 6.5% in the engine's own run, results-o36-order.txt). What the error drives in the baseline: on bridges of three years or more year 1's reference holds two or more bills, so the chooser reads a table built on a too-pessimistic reference; S360's year-0 table reads 32.67 against 45.94 simulated (results-7af.txt), the only one of the six more than 5 points off. What removing it may unmask: an optimistic table where the reference was pessimistic but something else was optimistic - S370's table already reads 4.80 above its simulation (results-7ag.txt), and a more generous reference may push it further (reported); and choices that move many paths both ways on S360 and S370, where the reader alone moved hundreds (the pre-mortem). What tells a harm from an unmasking: item 5 reads the table error the fix targets; a harm in items 1 to 4 with item 5 HELD is read beside S370's reported table error and each household's opening before it is charged to the fix (RULES.md section 9 rules 1 and 2).
+- **Unmasking:** the order reference removes a known error, the reader's proportional draw (O36: it pays the bridge from the accessible pots in proportion, where the solver draws in an order its menu chooses; on share 0.95 18.1% of bridges unpaid by the reference against 4.6% ISA-first and 6.5% in the engine's own run, results-o36-order.txt). What the error drives in the baseline: on bridges of three years or more year 1's reference holds two or more bills, so the chooser reads a table built on a too-pessimistic reference; S360's year-0 table reads 32.67 against 45.94 simulated (results-7af.txt), the only one of the six more than 5 points off. What removing it may unmask: an optimistic table where the reference was pessimistic but something else was optimistic - S370's table already reads 4.80 above its simulation (results-7ag.txt), and a more generous reference may push it further (reported); and choices that move many paths both ways on S360 and S370, where the reader alone moved hundreds (the pre-mortem). What tells a harm from an unmasking: no separating arm is run - no decomposition and no second reference free of the error (RULES.md section 9 rule 2(c)); item 5 reads the table error the fix targets, and S370's table error and each household's opening are reported beside any harm, for diagnosis only. A harm in items 1 to 4 is therefore not charged to the fix by this test: under the Decision fed it keeps the fix out until a decomposition splits the blame (section 9 rules 1 and 2).
 - **Plan section:** PLAN.md "7ah"
 
 ## Question
@@ -18,7 +18,7 @@ On the six panel households whose bridge is three years or more, does drawing th
 - **The tables against their simulations** (results-7af.txt, results-7ag.txt, READER/TS+J/W0.02): bridge 4 +0.04, bridge 6 -0.08, S360 -13.27, S366 -0.32, S370 +4.80, bridge 4+cost -1.23 points. O36's pessimism shows on S360 alone.
 - **The order reference** (reader.js orderChance): one bill - referenceChance's step exactly; more - seeded simulation, pot by pot, the better of the menu's two orders, tabulated over 160 levels of accessible money and interpolated (a step smeared across one cell, under 2% of the later bills; research/tests/reader-order.test.mjs).
 - **Prior tests of the same mechanism** (RULES.md section 9 rule 7): none - no run holds a reference drawn in order; 7x's readerRef 'held' (the held tier, not the order) is the nearest, and it overshot (O36).
-- **Claude's choices, before any run:** the six households (every panel household with a bridge of three years or more, by the rule above - chosen from the bridge length alone, never from a result); 8,000 paths (7af's count; prefix-consistent with 7ag's 16,000); the regimen's margins (0.25 where READER survives 95% or more, 0.5 below: S360 45.94, S370 74.69); item 5's thresholds (half; 0.9).
+- **Claude's choices, before any run:** the six households (every panel household with a bridge of three years or more, by the rule above - chosen from the bridge length alone, never from a result); 8,000 paths (7af's count; prefix-consistent with 7ag's 16,000); the regimen's margins (0.25 where READER survives 95% or more, 0.5 below: S360 45.94, S370 74.69), for survival and the whole score alike (the adopted rule reads the whole score at the regimen's margin); item 5's thresholds (half; 0.9).
 
 ## Prediction
 
@@ -26,7 +26,7 @@ The fix is safe on all six and cures S360's pessimism: survival no material harm
 
 ## Falsified if
 
-Item 1 or 3: harm on any household (the exact rule with Holm across six at its margin). Item 2 or 4: any household's whole-score upper end below -0.25. Item 5: ORDER's S360 table error 0.9 of READER's or more.
+Item 1 or 3: harm on any household (the exact rule with Holm across six at its margin). Item 2 or 4: any household's whole-score upper end below minus its margin (0.25; S360 and S370 0.5). Item 5: ORDER's S360 table error 0.9 of READER's or more.
 
 ## Fair-test table
 
@@ -49,12 +49,12 @@ Arm A is READER/TS+J (the bundle: the reader, the joint tier state, the product'
 
 - **Single look, every item; intervals at 95%.**
 - **Item 1:** at 0.02, ORDER against READER on each of the six: the exact rule with Holm across six (stats.mjs outcome) at the household's margin (bridge 4, bridge 6, S366, bridge 4+cost 0.25; S360, S370 0.5), passing when it reads no material harm AND the guarded unconditional interval's lower end is above minus the margin. HELD if all six pass; FALSIFIED if any reads harm; else INCONCLUSIVE.
-- **Item 2:** at 0.02, the whole score (wholeLeg at 0.05) on each: HELD if every lower end is above -0.25; FALSIFIED if any upper end is below -0.25; else INCONCLUSIVE.
+- **Item 2:** at 0.02, the whole score (wholeLeg at 0.05) on each, at the household's margin (item 1's: 0.25; S360 and S370 0.5): HELD if every lower end is above minus the margin; FALSIFIED if any upper end is below it; else INCONCLUSIVE.
 - **Items 3 and 4:** items 1 and 2 at 0.01.
 - **Item 5:** at 0.02 on S360, the ratio of ORDER's |table - simulated| to READER's: HELD at 0.5 or less; FALSIFIED at 0.9 or more; else INCONCLUSIVE.
 - **Reported, not items:** every unit's table, simulation, table error, year-0 gap and opening; S370's table error under both arms.
 - **NOT SETTLED:** any gate fails (the stamps; a unit missing, twice or unregistered; ORDER not READER's solve with readerRef order; a 0.01 solve not its 0.02 solve with the weight changed; READER/W0.02 not 7af's or 7ag's CAND by ran line, table and trace).
-- **Declared choices, not derived:** the margins (the regimen's); the whole-score margin 0.25 (the regimen's); item 5's half and 0.9.
+- **Declared choices, not derived:** the margins (the regimen's, for survival and the whole score alike - corrected before registration from a flat 0.25 on the whole score, the plan-auditor's BLOCKING 1 of 29 Sep); item 5's half and 0.9.
 
 ## Decision fed
 
@@ -72,14 +72,14 @@ Arm A is READER/TS+J (the bundle: the reader, the joint tier state, the product'
 
 ## Derivation script
 
-- `derive: research/solver/derive-7ah.mjs > research/solver/results-derive-7ah.txt sha256 825b99ac4ed6f503`
+- `derive: research/solver/derive-7ah.mjs > research/solver/results-derive-7ah.txt sha256 71af4ae452c5fd5e`
   (7af's and 7ag's records read by pattern; the power of item 1 - item 3 alike - under three stories, read by reduce-7ah.mjs's own items()).
 
 ## Point and interval
 
 80% intervals, the author's:
 - Items 1 and 3: on bridge 4, bridge 6, S366 and bridge 4+cost, fewer than 10 paths changed each way; on S360 and S370 up to a few hundred, the net within the margin.
-- Items 2 and 4: every household's whole score within 0.25 of READER's; S360 above it (a gain) if its choices move.
+- Items 2 and 4: every household's whole score within its margin of READER's (0.25; S360 and S370 0.5); S360 above it (a gain) if its choices move.
 - Item 5: S360's table error from 13.27 to 3 (0 to 8).
 
 ## Credence
@@ -88,14 +88,14 @@ The author's probability that each item reads as predicted: 1 (HELD), 0.60; 2 (H
 
 ## Power
 
-- **Items 1 and 3** (results-derive-7ah.txt): SMALL (the tier state's discordance on each household) HELD 1.000; CHURN (S360 and S370 moving as many paths both ways as the reader alone did) HELD 0.026, INCONCLUSIVE 0.956; HARM (S360 losing 40 paths net, its margin) FALSIFIED 0.400, INCONCLUSIVE 0.555 - an effect exactly at the margin is caught four times in ten.
-- **Items 2 and 4:** no record of this contrast; 7af's and 7ag's whole-score intervals on these households for arms far more different were about ±0.12 (bridge 4, bridge 6), ±0.07 (S366), ±0.4 (bridge 4+cost, S370) and ±0.93 (S360); a small change should read HELD on the four, S360 and S370 wider.
+- **Items 1 and 3** (results-derive-7ah.txt): SMALL (the tier state's discordance on each household) HELD 1.000; CHURN (S360 and S370 moving as many paths both ways as the reader alone did) HELD 0.026, INCONCLUSIVE 0.956; HARM (S360 losing 40 paths net, its margin) HELD 0.064, INCONCLUSIVE 0.536, FALSIFIED 0.400 - an effect exactly at the margin is caught four times in ten. Each household's paths failing in both arms are READER's recorded failures (S360 4,325, S370 2,025; the rest 33 to 66), which the unconditional interval reads (corrected before registration from a flat 100, the plan-auditor's MINOR 4).
+- **Items 2 and 4:** no record of this contrast; 7af's and 7ag's whole-score interval half-widths on these households, for arms far more different (CAND against SHIP), at 8,000 paths (results-derive-7ah.txt section 3; 7ag's 16,000 scaled by 1.41): bridge 4 and bridge 6 0.12, S366 0.10, bridge 4+cost 0.55, S360 0.93, S370 0.81. Against the margins, a small change should read HELD on bridge 4, bridge 6 and S366; bridge 4+cost (0.55 against 0.25), S360 (0.93 against 0.5) and S370 (0.81 against 0.5) may read INCONCLUSIVE even with no change, if this contrast's interval is as wide as that one's - its arms are far closer, so it should be narrower, by how much NOT CHECKED.
 - **Item 5** reads one number against another (the table and the simulation on 8,000 paths, its se about 0.56 points on S360): a halving from 13.27 is well outside the noise.
-- **Time:** 24 units at 30 points and 8,000 paths; a TS+J solve about 850 to 930 s under four-way load (P's measured solves) and a run of 8,000 paths about 300 s: about 1,200 s a unit, about 29,000 core-seconds, 8 core-hours, about 2 hours on four cores. Each process is stopped at 5 hours.
+- **Time:** 24 units at 30 points and 8,000 paths; a TS+J solve 723 to 1,019 s on these six households (7af's and 7ag's CAND) and a run of 8,000 paths in this mode 311 to 694 s (results/diag7af, most 530 to 600); the order reference adds little (the build check's ORDER bridge 4, 103 s at 4 points, against READER's 96 s in 7af's preflight): about 1,400 s a unit, about 34,000 core-seconds, 9 to 10 core-hours, 2.3 to 2.5 hours on four cores (corrected before registration, the plan-auditor's MINOR 3). Each process is stopped at 5 hours.
 
 ## Budget line
 
-O36's fix, asked for by the maintainer ("can it be built and tested whilst P is running?", 29 Sep): it decides whether the reference drawn in order is safe on the longer bridges and cures the table where O36 showed, before the bundle goes to 7u; about 8 core-hours, about 2 hours on four cores, after P.
+O36's fix, asked for by the maintainer ("can it be built and tested whilst P is running?", 29 Sep): it decides whether the reference drawn in order is safe on the longer bridges and cures the table where O36 showed, before the bundle goes to 7u; 9 to 10 core-hours, 2.3 to 2.5 hours on four cores, after P.
 
 ## Pre-mortem
 

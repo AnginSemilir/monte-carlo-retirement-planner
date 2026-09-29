@@ -1,4 +1,4 @@
-true script: planted (22): all read as they should
+true script: planted (23): all read as they should
 caught  the gate accepts a missing unit: PLANTED CHECK FAILED: the gate refuses a missing unit read false, should read true
 caught  the gate accepts a unit twice: PLANTED CHECK FAILED: the gate refuses a unit twice read false, should read true
 caught  the gate accepts an unregistered unit: PLANTED CHECK FAILED: the gate refuses an unregistered unit read false, should read true
@@ -16,10 +16,11 @@ caught  item 1 ignores harm: PLANTED CHECK FAILED: item 1: 60 lost paths on S366
 caught  the margins are all 0.25: PLANTED CHECK FAILED: item 1: S360 uses its 0.5 margin (30 lost is not harm there, 30 lost on bridge 4 at 0.25 is) read FALSIFIED FALSIFIED, should read INCONCLUSIVE FALSIFIED
 caught  items 1 and 3 read one setting: PLANTED CHECK FAILED: item 3: 60 lost on S366 at 0.01 reads at item 3, not item 1 read HELD HELD HELD, should read HELD HELD FALSIFIED
 caught  items 2 and 4 read one setting: PLANTED CHECK FAILED: item 4: a lower end at -0.3 at 0.01 is INCONCLUSIVE read HELD, should read INCONCLUSIVE
-caught  the whole score's harm test off: PLANTED CHECK FAILED: item 2: a whole-score upper end below -0.25 is harm read INCONCLUSIVE, should read FALSIFIED
-caught  the whole score's pass too loose: PLANTED CHECK FAILED: item 4: a lower end at -0.3 at 0.01 is INCONCLUSIVE read HELD, should read INCONCLUSIVE
+caught  the whole score's harm test off: PLANTED CHECK FAILED: item 2: a whole-score upper end below -0.25 is harm read INCONCLUSIVE, should read FALSIFIED; item 2: S360 and S370 read the whole score at their 0.5 margin (
+caught  the whole score at 0.25 everywhere: PLANTED CHECK FAILED: item 2: S360 and S370 read the whole score at their 0.5 margin (an interval -0.4 to -0.3 is no harm there, harm on bridge 4 at 0.25) read FALSIFIED FALSIFIED 
+caught  the whole score's pass too loose: PLANTED CHECK FAILED: item 2: S360 and S370 read the whole score at their 0.5 margin (an interval -0.4 to -0.3 is no harm there, harm on bridge 4 at 0.25) read HELD HELD HELD, shou
 caught  item 5 reads another household: PLANTED CHECK FAILED: item 5 reads S360 alone read FALSIFIED, should read HELD
 caught  item 5's HELD threshold loose: PLANTED CHECK FAILED: item 5: half the error HELD, 0.9 of it FALSIFIED, between INCONCLUSIVE read HELD FALSIFIED HELD, should read HELD FALSIFIED INCONCLUSIVE
 caught  item 5's FALSIFIED threshold off: PLANTED CHECK FAILED: item 5: half the error HELD, 0.9 of it FALSIFIED, between INCONCLUSIVE read HELD INCONCLUSIVE INCONCLUSIVE, should read HELD FALSIFIED INCONCLUSIVE
 
-22 mutations: every one caught
+23 mutations: every one caught

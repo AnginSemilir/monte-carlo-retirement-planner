@@ -1446,7 +1446,7 @@ if (mode === 'f1v2') {
     }
     console.log(`${''.padEnd(16)} done ${A}/W${w}`);
   });
-} else if (mode === 'diag7af') {
+} else if (mode === 'diag7af' || mode === 'diag7ag') {
   /*
    * 7AF: THE CANDIDATE BUNDLE AGAINST THE SHIPPING DEFAULT (PLAN.md 7af; predictions/diag-7af.md; the deep review after 7ae,
    * deep-review-log.md 28 Sep 22:52 UK, which designed it under the maintainer's steer of 22:10 UK). Every solve at the
@@ -1461,22 +1461,30 @@ if (mode === 'f1v2') {
    *   node research/solver/audit-s126.mjs diag7af [points=30] [paths] part k/n [seed=7002]
    * Prints per unit 7aa's lines (reduce-7aa.mjs parse): a case line, solve, ran, gap, joint, run and done; no world lines.
    * Units in the order CAND, SHIP, PRODR (the longest first); part k/n runs the units with index i % n === k.
+   * 7AG (PLAN.md 7ag; predictions/diag-7ag.md; the deep review after 7af, deep-review-log.md 29 Sep 03:07 UK): the same
+   * arms and lines on the nine households of 7e's panel 7af did not run, every one with a bridge (so PRODR on all nine),
+   * its traces in results/diag7ag (DIAG7AG_OUT); the path count is the command's (the batch passes 16,000). One more unit,
+   * the last (index 27): TS+J under off on S126 (OFF/TS+J/W0.02), which the batch runs alone at 8,000 paths so it pairs with
+   * 7af's S126 units path by path (the plan-auditor's BLOCKING 1 of 29 Sep: does the tier state repair the reader's error
+   * on S126, or add a gain of its own beside it?).
+   *   node research/solver/audit-s126.mjs diag7ag [points=30] [paths] part k/n [seed=7002]
    */
-  const PANEL7AF = [['share 0.50', 2], ['share 0.70', 2], ['share 0.78', 2], ['share 0.90', 2], ['share 0.95', 2], ['bridge 0', 0], ['bridge 1', 1], ['bridge 6', 6],
+  const AG = mode === 'diag7ag';
+  const PANEL7AF = AG ? [['S124', 2], ['S128', 2], ['S130', 2], ['S366', 8], ['S370', 8], ['bridge 4+cost', 4], ['S162', 2], ['S172', 2], ['S168', 2]] : [['share 0.50', 2], ['share 0.70', 2], ['share 0.78', 2], ['share 0.90', 2], ['share 0.95', 2], ['bridge 0', 0], ['bridge 1', 1], ['bridge 6', 6],
     ['wealth x0.5', 2], ['wealth x2', 2], ['S120', 2], ['S122', 2], ['S126', 2], ['bridge 4', 4], ['S360', 8], ['S194', 0]];
   const UNITS7AF = [...PANEL7AF.map(([id]) => [id, 'reader', 'TS+J']), ...PANEL7AF.map(([id]) => [id, 'off', 'PRODUCT']),
-    ...PANEL7AF.filter(([, b]) => b > 0).map(([id]) => [id, 'reader', 'PRODUCT'])];
+    ...PANEL7AF.filter(([, b]) => b > 0).map(([id]) => [id, 'reader', 'PRODUCT']), ...(AG ? [['S126', 'off', 'TS+J']] : [])];
   const W7AF = 0.02, ARM = { off: false, reader: 'reader' };
-  const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);
+  const known = [...F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]), ['bridge 4+cost', () => variant('bridge 4+cost', { bridge: 4, cost: [2, 30000] })]];
   const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
   const SEED = process.argv[7] ? Number(process.argv[7]) : 7002;
   if (!(SEED >= 1)) { console.error(`audit-s126: bad seed ${process.argv[7]}`); process.exit(2); }
   const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
   const [pk, pn] = part.split('/').map(Number);
   if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
-  const OUT = process.env.DIAG7AF_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7af');
+  const OUT = AG ? (process.env.DIAG7AG_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7ag')) : (process.env.DIAG7AF_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7af'));
   mkdirSync(OUT, { recursive: true });
-  console.log(`7AF, the candidate bundle (READER/TS+J) against the shipping default (OFF/PRODUCT) and the product with the reader (READER/PRODUCT) on bridge households, the product's settings (solvePlan) with the estate weight ${W7AF}, ${POINTS} points, ${NP} paths (seed ${SEED}), margin 1e-3; ${UNITS7AF.length} units; part ${pk}/${pn}`);
+  console.log(`${AG ? '7AG, on the nine remaining panel households, ' : '7AF, '}the candidate bundle (READER/TS+J) against the shipping default (OFF/PRODUCT) and the product with the reader (READER/PRODUCT) on bridge households, the product's settings (solvePlan) with the estate weight ${W7AF}, ${POINTS} points, ${NP} paths (seed ${SEED}), margin 1e-3; ${UNITS7AF.length} units; part ${pk}/${pn}`);
   const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
   const chooseAt = (r, st, t, held, sm) => { const keep = r.switchMargin; r.switchMargin = sm; try { return chooseAction(r, st, t, held); } finally { r.switchMargin = keep; } };
   const openGap = (r, zs) => {

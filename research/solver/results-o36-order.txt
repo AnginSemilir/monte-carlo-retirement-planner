@@ -1,0 +1,7 @@
+O36'S PREMISE BY DRAW ORDER: share 0.95's bridge at the plan's tiers (accessible money 47499: ISA 25333, taxable 6333, cash 15833); 200000 draws a world; grade C, a description
+  world z -1.732 (weight 0.167): bills 23200, 23200; paid (a) the reference 72.59%, (b) its model simulated 72.64%; (c) cash, taxable, ISA 66.88%; ISA, cash, taxable 86.04%
+  world z 0.000 (weight 0.667): bills 23200, 23200; paid (a) the reference 82.31%, (b) its model simulated 82.30%; (c) cash, taxable, ISA 74.53%; ISA, cash, taxable 96.67%
+  world z 1.732 (weight 0.167): bills 23200, 23200; paid (a) the reference 89.51%, (b) its model simulated 89.42%; (c) cash, taxable, ISA 80.94%; ISA, cash, taxable 99.60%
+
+WEIGHTED OVER THE WORLDS, the chance the bridge is NOT paid: the reference 18.11% (its model simulated 18.12%); cash first 25.68%; ISA first 4.62%
+THE ENGINE (7x, READER/H00/M3, 8000 paths, the solver's own draw order): the bridge not paid on 517 paths, 6.46%

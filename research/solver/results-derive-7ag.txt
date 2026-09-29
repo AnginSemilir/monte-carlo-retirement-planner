@@ -1,0 +1,16 @@
+7AG'S POWER: 16000 paths a household, 9 households, read by reduce-7ag.mjs items() at the registered margins (S124 0.25, S128 0.5, S130 0.5, S366 0.25, S370 0.5, bridge 4+cost 0.25, S162 0.25, S172 0.25, S168 0.25); 20000 draws a story (seed 7002)
+
+ITEM 1 (no material harm, Holm across 9)
+  A: no household loses, churn 12 on every household                       HELD 1.000
+  A: no household loses, churn 50 on every household                       HELD 1.000  INCONCLUSIVE 0.000
+  A: no household loses, churn 300 on every household                      HELD 0.057  FALSIFIED 0.028  INCONCLUSIVE 0.915
+  A: no household loses, churn 1300 on every household                     HELD 0.000  FALSIFIED 0.044  INCONCLUSIVE 0.956
+  B: S124 loses 0.57 points (7e's reader rate), churn 208 there, 50 elsewhere FALSIFIED 0.996  INCONCLUSIVE 0.004
+  C: S162 (margin 0.25) loses 0.4 points, churn 50 everywhere              FALSIFIED 0.989  INCONCLUSIVE 0.011
+  D: S162 (margin 0.25) loses 0.25 points, churn 50 everywhere             HELD 0.036  FALSIFIED 0.519  INCONCLUSIVE 0.445
+  E: S128 (margin 0.5) loses 0.75 points, churn 300 everywhere             FALSIFIED 0.976  INCONCLUSIVE 0.024
+  F: the records' churn and gains as counts (lost/saved: S124 104/104, S370 272/1040, bridge 4+cost 8/576, 8/8 elsewhere) HELD 0.780  FALSIFIED 0.003  INCONCLUSIVE 0.216
+
+ITEM 3 (S126, TSOFF against SHIP on 7af's 8,000 paths)
+  the repair: 3 saved, 0 lost, churn 6                                     HELD 1.000  INCONCLUSIVE 0.000
+  a gain of its own: 47 saved, 0 lost, churn 6                             FALSIFIED 0.987  INCONCLUSIVE 0.013

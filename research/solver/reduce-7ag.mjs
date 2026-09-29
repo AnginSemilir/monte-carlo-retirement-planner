@@ -94,6 +94,8 @@ export function gate(units, n = N, pts = PTS, ref126 = null) {
     else {
       if (u.joint.joint !== ts) bad.push(`${tag}: ran jointWorlds ${u.joint.joint}`);
       if (u.joint.margin !== '0.001') bad.push(`${tag}: solved with switch margin ${u.joint.margin}`);
+      // the whole score reads the pot as the estate: a pension death charge would make it gross, not net (reduce-7aa.mjs's guard; the deep review of 29 Sep 08:56 UK)
+      if (u.joint.deathTax !== 0) bad.push(`${tag}: a pension death charge ${u.joint.deathTax}`);
       if (u.joint.tier !== 'own') bad.push(`${tag}: plan tier ${u.joint.tier}`);
     }
     if (u.worlds.length) bad.push(`${tag}: world lines, not registered`);
@@ -160,7 +162,7 @@ function planted() {
     const p = ''.padEnd(16), L = `${arm}/${l}`, ts = l.startsWith('TS+J');
     const lines = [`${id.padEnd(16)} case | unit ${L} | lambda ${o.lambda || LAMBDA} tier own riskAbove auto mix 3`,
       `${p} solve ${L}: table ${o.table || '99.5000'} secs 1`, `${p} ran ${L}: ${o.ran || ranOf(id, arm, l, o)}`, `${p} gap ${L}: ${o.gap || '1.0000e-3'} opening 2,2`,
-      `${p} joint ${L}: ${o.joint !== undefined ? o.joint : ts} switchMargin ${o.margin || '0.001'} scale ${o.scale || 950000} cap 3800000 deathTax 0 tier own riskAbove ${o.decided || 'off:_no_tier_above_the_plan'}`,
+      `${p} joint ${L}: ${o.joint !== undefined ? o.joint : ts} switchMargin ${o.margin || '0.001'} scale ${o.scale || 950000} cap 3800000 deathTax ${o.deathTax || 0} tier own riskAbove ${o.decided || 'off:_no_tier_above_the_plan'}`,
       ...(o.world ? [`${p} world ${L} 0 z -1.7321 weight 0.1667: table 99.0 sim 98.0 paths 1000`] : []),
       `${p} run ${L}: sim ${o.sim || '99.5000'} below 0.10 tier-below 1.00 changes 0.500 estate 100000 secs 1`];
     if (!o.noDone) lines.push(`${p} done ${L}`);
@@ -197,6 +199,7 @@ function planted() {
   cases.push(['the gate refuses a solve at margin 0', bent('bridge 4+cost', ...CAND, { margin: '0' }), 'true']);
   cases.push(['the gate refuses a switchMargin on the ran line', bent('S162', ...SHIP, { ran: `${ranOf('S162', 'OFF', 'PRODUCT/W0.02')} switchMargin 0` }), 'true']);
   cases.push(['the gate refuses a settings difference within a household (minPot)', bent('S128', ...PRODR, { ran: ranOf('S128', 'READER', 'PRODUCT/W0.02').replace('minPot 29000', 'minPot 30000') }), 'true']);
+  cases.push(['the gate refuses a pension death charge (on every unit of a household)', refused(all({ deathTax: 0.45 }, i => i === 'S128')), 'true']);
   cases.push(['the gate refuses another scale within a household', bent('S168', ...SHIP, { scale: 950001 }), 'true']);
   cases.push(['the gate refuses another risk-above decision within a household', bent('S366', ...CAND, { decided: 'on:_tier_above' }), 'true']);
   cases.push(['the gate takes a risk-above decision that differs between households', refused(all({ decided: 'on:_tier_above' }, i => i === 'S366')), 'false']);

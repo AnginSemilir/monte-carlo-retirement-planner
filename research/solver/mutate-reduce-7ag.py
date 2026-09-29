@@ -26,6 +26,7 @@ M = [
     ("the gate accepts a switchMargin on the ran line", "for (const k of ['holdTier', 'bridgeStep', 'readerRef', 'switchMargin'])", "for (const k of ['holdTier', 'bridgeStep', 'readerRef'])"),
     ("the gate ignores the joint flag", "if (u.joint.joint !== ts) bad.push", "if (false) bad.push"),
     ("the gate ignores the margin", "if (u.joint.margin !== '0.001') bad.push", "if (false) bad.push"),
+    ("the gate ignores a pension death charge", "if (u.joint.deathTax !== 0) bad.push", "if (false) bad.push"),
     ("the gate accepts world lines", "if (u.worlds.length) bad.push", "if (false) bad.push"),
     ("the done line is not required", "if (!u.done) bad.push(`${tag}: no done line`);", ""),
     ("the gate strips more within a household (minPot)", "const strip = s => (s || '').replace(/ tierState \\S+/, '').replace(/ bridgeRead \\S+/, '');", "const strip = s => (s || '').replace(/ tierState \\S+/, '').replace(/ bridgeRead \\S+/, '').replace(/ minPot \\S+/, '');"),

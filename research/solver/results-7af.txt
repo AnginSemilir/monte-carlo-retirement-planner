@@ -16,6 +16,7 @@ ok   the gate refuses CAND solved per world: true
 ok   the gate refuses a solve at margin 0: true
 ok   the gate refuses a switchMargin on the ran line: true
 ok   the gate refuses a settings difference within a household (minPot): true
+ok   the gate refuses a pension death charge (on every unit of a household): true
 ok   the gate refuses another scale within a household: true
 ok   the gate refuses another risk-above decision within a household: true
 ok   the gate takes a risk-above decision that differs between households: false
@@ -53,7 +54,7 @@ ok   the split: a loss of the margin in PRODR against SHIP is the reader's: the 
 ok   the split: a loss of the margin in CAND against PRODR is the tier state's: the tier state
 ok   the split: both: the reader and the tier state
 ok   the split: without a bridge, the tier state: the tier state (no bridge: the reader reads as off)
-planted (55): all read as they should
+planted (56): all read as they should
 
 FAIR-TEST GATE: research/solver/predictions/diag-7af.md was corrected after launch (f848990a at launch): only typed UK times changed, and the change declared (its words are not checked) - - 29 Sept, after 7af was read (the maintainer's "unlock enforcement" of 29 Sep, which let the stamp gate take a declared correction): two typed times in the Written line corrected from the records - the revision 23:40 to 23:32 UK (commit 0f3728e) and the plan-auditor's FAIL 23:24 to 23:23 UK (review-log.md) - per the plan-auditor's MINOR 1 of 28 Sep and BLOCKING 2 of 29 Sep. Nothing else changed: no prediction, falsifier, decision rule, fair-test row or figure.
 

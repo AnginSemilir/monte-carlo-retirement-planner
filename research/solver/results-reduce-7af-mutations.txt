@@ -1,4 +1,4 @@
-true script: planted (55): all read as they should
+true script: planted (56): all read as they should
 caught  the gate accepts a missing unit: the gate refuses a missing unit: false (want true)
 caught  the gate accepts a unit twice: the gate refuses a unit run twice: false (want true)
 caught  the gate accepts an unregistered unit: the gate refuses an unregistered unit (PRODR on bridge 0, no bridge): false (want true)
@@ -13,6 +13,7 @@ caught  the gate ignores the tier state: the gate refuses the tier state on SHIP
 caught  the gate accepts a switchMargin on the ran line: the gate refuses a switchMargin on every unit of a household: false (want true)
 caught  the gate ignores the joint flag: the gate refuses CAND solved per world: false (want true)
 caught  the gate ignores the margin: the gate refuses a solve at margin 0: false (want true)
+caught  the gate ignores a pension death charge: the gate refuses a pension death charge (on every unit of a household): false (want true)
 caught  the gate accepts world lines: the gate refuses a world line (not registered): false (want true)
 caught  the done line is not required: the gate refuses a missing done line: false (want true)
 caught  the gate strips more within a household (minPot): the gate refuses a settings difference within a household (minPot): false (want true)
@@ -46,4 +47,4 @@ caught  the split ignores the reader: the split: a loss of the margin in PRODR a
 caught  the split ignores the tier state: the split: a loss of the margin in CAND against PRODR is the tier state's: neither alone (each part below the margin) (want the tier state)
 caught  the split without the no-bridge rule: the split: without a bridge, the tier state: neither alone (each part below the margin) (want the tier state (no bridge: the reader reads as off))
 
-46 mutations: every one caught
+47 mutations: every one caught

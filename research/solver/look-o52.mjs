@@ -54,20 +54,30 @@ console.log(`  counts against SHIP (saved/lost): the reader alone ${got.R.join('
 console.log(`  a trace's failure year is the year the money runs out; -1 is a path that reaches the plan's end below the minimum pot (solve.js l.1359)`);
 
 const firstAt = (T, i, code) => { for (let t = 0; t < T.Y; t++) if (T.tier[i * T.Y + t] === code) return t; return -1; };
-// a path's tiers over the whole plan, as runs: "b0/0 x2, 0/0 x19, 2/2 x19" (b: the bridge years)
-const runs = (S, i) => { const out = []; let last = null, n = 0, br = null; const flush = () => { if (last !== null) out.push(`${br ? 'b' : ''}${pair(last)} x${n}`); };
-  for (let t = 0; t < S.Y; t++) { const c = S.tier[i * S.Y + t], b = t < BRIDGE; if (c === last && b === br) n++; else { flush(); last = c; br = b; n = 1; } } flush(); return out.join(', '); };
-const fin = (S, i) => S.wealth[i * S.Y + S.Y - 1];
+// a path's tiers as runs: "b0/0 x2, 0/0 x19, 2/2 x19" (b: the bridge years). Only RECORDED years: the trace has no record in
+// a path's run-out year or after (solve.js returns before tracing it), so those years are left out, never read as 0/0
+const recorded = (S, i) => (S.failYear[i] >= 0 ? S.failYear[i] : S.Y);
+const runs = (S, i, upTo = recorded(S, i)) => { const out = []; let last = null, n = 0, br = null; const flush = () => { if (last !== null) out.push(`${br ? 'b' : ''}${pair(last)} x${n}`); };
+  for (let t = 0; t < upTo; t++) { const c = S.tier[i * S.Y + t], b = t < BRIDGE; if (c === last && b === br) n++; else { flush(); last = c; br = b; n = 1; } } flush(); return out.join(', '); };
+// the last RECORDED year's wealth (a trace's wealth at index t is the end of year t)
+const fin = (S, i) => S.wealth[i * S.Y + recorded(S, i) - 1];
 for (const [name, tag, T, L] of [['THE BUNDLE (CAND)', 'CAND ', C, lc.lost], ['THE READER ALONE (PRODR)', 'PRODR', R, lr.lost]]) {
   console.log(`\n${name}: ${L.length} paths lost where SHIP survives; each path's tiers over the plan as runs, SHIP's beneath`);
   for (const i of L) {
     const f = T.failYear[i];
-    console.log(`  path ${i}: ${f < 0 ? 'ends below the minimum pot' : `runs out in year ${f}`}; first de-risked (2/2) year ${firstAt(T, i, 10)}; wealth at year 0 ${k(T.wealth[i * T.Y])}, at the bridge's end ${k(T.wealth[i * T.Y + BRIDGE])}, in the last year ${k(fin(T, i))} (SHIP ${k(fin(X, i))})`);
+    const fd = firstAt(T, i, 10);
+    console.log(`  path ${i}: ${f < 0 ? 'ends below the minimum pot' : `runs out in year ${f} (no record from then)`}; first de-risked (2/2) in year ${fd}, ${fd - BRIDGE} years after the bridge; wealth at the end of year 0 ${k(T.wealth[i * T.Y])}, at the bridge's end (year ${BRIDGE - 1}) ${k(T.wealth[i * T.Y + BRIDGE - 1])}, in its last recorded year ${k(fin(T, i))} (SHIP in the same year ${k(X.wealth[i * X.Y + recorded(T, i) - 1])})`);
     console.log(`    ${tag} ${runs(T, i)}`);
-    console.log(`    SHIP  ${runs(X, i)}`);
+    console.log(`    SHIP  ${runs(X, i, recorded(T, i))}`);
   }
 }
 const both = lc.lost.filter(i => lr.lost.includes(i));
+const range = (T, L, f) => { const v = L.map(f); return `${k(Math.min(...v))} to ${k(Math.max(...v))}`; };
+const after = (T, L) => { const v = L.map(i => firstAt(T, i, 10) - BRIDGE); return `${Math.min(...v)} to ${Math.max(...v)}`; };
+// the late move back to 0/0 after holding 2/2: its length in RECORDED years (0 where the path never returns)
+const lateBack = (T, i) => { const end = recorded(T, i); let n = 0; for (let t = end - 1; t >= 0 && T.tier[i * T.Y + t] === 0; t--) n++; return firstAt(T, i, 10) >= 0 && firstAt(T, i, 10) < end - n ? n : 0; };
+for (const [nm, T, L] of [['the bundle', C, lc.lost], ['the reader alone', R, lr.lost]])
+  console.log(`${nm.toUpperCase()}: wealth at the bridge's end ${range(T, L, i => T.wealth[i * T.Y + BRIDGE - 1])}; first de-risked ${after(T, L)} years after the bridge; back at 0/0 in its last recorded years on ${L.filter(i => lateBack(T, i) > 0).length} of ${L.length} (${L.map(i => lateBack(T, i)).join(', ')} years)`);
 console.log(`\nOVERLAP: ${both.length} of the bundle's ${lc.lost.length} lost paths are also lost by the reader alone (${both.join(', ')})`);
 const kinds = (T, L) => `${L.filter(i => T.failYear[i] < 0).length} end below the minimum pot, ${L.filter(i => T.failYear[i] >= 0).length} run out (years ${L.filter(i => T.failYear[i] >= 0).map(i => T.failYear[i]).join(', ') || 'none'})`;
 console.log(`HOW THEY FAIL: the bundle ${kinds(C, lc.lost)}; the reader alone ${kinds(R, lr.lost)}`);

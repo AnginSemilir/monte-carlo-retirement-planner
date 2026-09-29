@@ -8,50 +8,52 @@ O52'S LOOK: wealth x2's lost paths, 7af's gated traces (8,000 paths, seed 7002; 
   a trace's failure year is the year the money runs out; -1 is a path that reaches the plan's end below the minimum pot (solve.js l.1359)
 
 THE BUNDLE (CAND): 5 paths lost where SHIP survives; each path's tiers over the plan as runs, SHIP's beneath
-  path 925: ends below the minimum pot; first de-risked (2/2) year 22; wealth at year 0 1659k, at the bridge's end 1491k, in the last year 13k (SHIP 90k)
+  path 925: ends below the minimum pot; first de-risked (2/2) in year 22, 20 years after the bridge; wealth at the end of year 0 1659k, at the bridge's end (year 1) 1624k, in its last recorded year 13k (SHIP in the same year 90k)
     CAND  b0/0 x2, 0/0 x20, 2/2 x10, 0/0 x1, 2/2 x3, 0/0 x4
     SHIP  b2/2 x2, 2/2 x38
-  path 1028: runs out in year 38; first de-risked (2/2) year 9; wealth at year 0 2044k, at the bridge's end 1290k, in the last year 0k (SHIP 33k)
-    CAND  b0/0 x2, 0/0 x7, 2/2 x23, 0/0 x8
-    SHIP  b2/2 x2, 2/2 x38
-  path 5145: ends below the minimum pot; first de-risked (2/2) year 22; wealth at year 0 1640k, at the bridge's end 1943k, in the last year 28k (SHIP 121k)
+  path 1028: runs out in year 38 (no record from then); first de-risked (2/2) in year 9, 7 years after the bridge; wealth at the end of year 0 2044k, at the bridge's end (year 1) 1929k, in its last recorded year 0k (SHIP in the same year 59k)
+    CAND  b0/0 x2, 0/0 x7, 2/2 x23, 0/0 x6
+    SHIP  b2/2 x2, 2/2 x36
+  path 5145: ends below the minimum pot; first de-risked (2/2) in year 22, 20 years after the bridge; wealth at the end of year 0 1640k, at the bridge's end (year 1) 1809k, in its last recorded year 28k (SHIP in the same year 121k)
     CAND  b0/0 x2, 0/0 x20, 2/2 x16, 0/0 x2
     SHIP  b2/2 x2, 2/2 x38
-  path 5351: ends below the minimum pot; first de-risked (2/2) year 21; wealth at year 0 1817k, at the bridge's end 2243k, in the last year 20k (SHIP 161k)
+  path 5351: ends below the minimum pot; first de-risked (2/2) in year 21, 19 years after the bridge; wealth at the end of year 0 1817k, at the bridge's end (year 1) 1865k, in its last recorded year 20k (SHIP in the same year 161k)
     CAND  b0/0 x2, 0/0 x19, 2/2 x18, 0/0 x1
     SHIP  b2/2 x2, 2/2 x38
-  path 6507: runs out in year 38; first de-risked (2/2) year 16; wealth at year 0 1814k, at the bridge's end 1970k, in the last year 0k (SHIP 37k)
-    CAND  b0/0 x2, 0/0 x14, 2/2 x15, 0/0 x1, 2/2 x2, 1/1 x1, 0/0 x5
-    SHIP  b2/2 x2, 2/2 x38
+  path 6507: runs out in year 38 (no record from then); first de-risked (2/2) in year 16, 14 years after the bridge; wealth at the end of year 0 1814k, at the bridge's end (year 1) 1631k, in its last recorded year 12k (SHIP in the same year 64k)
+    CAND  b0/0 x2, 0/0 x14, 2/2 x15, 0/0 x1, 2/2 x2, 1/1 x1, 0/0 x3
+    SHIP  b2/2 x2, 2/2 x36
 
 THE READER ALONE (PRODR): 9 paths lost where SHIP survives; each path's tiers over the plan as runs, SHIP's beneath
-  path 440: ends below the minimum pot; first de-risked (2/2) year 15; wealth at year 0 2518k, at the bridge's end 2425k, in the last year 29k (SHIP 152k)
+  path 440: ends below the minimum pot; first de-risked (2/2) in year 15, 13 years after the bridge; wealth at the end of year 0 2518k, at the bridge's end (year 1) 2557k, in its last recorded year 29k (SHIP in the same year 152k)
     PRODR b0/0 x2, 0/0 x13, 2/2 x25
     SHIP  b2/2 x2, 2/2 x38
-  path 925: ends below the minimum pot; first de-risked (2/2) year 22; wealth at year 0 1659k, at the bridge's end 1491k, in the last year 3k (SHIP 90k)
+  path 925: ends below the minimum pot; first de-risked (2/2) in year 22, 20 years after the bridge; wealth at the end of year 0 1659k, at the bridge's end (year 1) 1624k, in its last recorded year 3k (SHIP in the same year 90k)
     PRODR b0/0 x2, 0/0 x20, 2/2 x10, 0/0 x1, 2/2 x2, 1/1 x1, 0/0 x4
     SHIP  b2/2 x2, 2/2 x38
-  path 1028: runs out in year 39; first de-risked (2/2) year 9; wealth at year 0 2044k, at the bridge's end 1290k, in the last year 0k (SHIP 33k)
-    PRODR b0/0 x2, 0/0 x7, 2/2 x17, 0/0 x1, 2/2 x6, 0/0 x7
-    SHIP  b2/2 x2, 2/2 x38
-  path 1839: ends below the minimum pot; first de-risked (2/2) year 23; wealth at year 0 1521k, at the bridge's end 1118k, in the last year 24k (SHIP 132k)
+  path 1028: runs out in year 39 (no record from then); first de-risked (2/2) in year 9, 7 years after the bridge; wealth at the end of year 0 2044k, at the bridge's end (year 1) 1929k, in its last recorded year 1k (SHIP in the same year 48k)
+    PRODR b0/0 x2, 0/0 x7, 2/2 x17, 0/0 x1, 2/2 x6, 0/0 x6
+    SHIP  b2/2 x2, 2/2 x37
+  path 1839: ends below the minimum pot; first de-risked (2/2) in year 23, 21 years after the bridge; wealth at the end of year 0 1521k, at the bridge's end (year 1) 1575k, in its last recorded year 24k (SHIP in the same year 132k)
     PRODR b0/0 x2, 0/0 x21, 2/2 x16, 0/0 x1
     SHIP  b2/2 x2, 2/2 x38
-  path 3748: ends below the minimum pot; first de-risked (2/2) year 27; wealth at year 0 1847k, at the bridge's end 1498k, in the last year 28k (SHIP 162k)
+  path 3748: ends below the minimum pot; first de-risked (2/2) in year 27, 25 years after the bridge; wealth at the end of year 0 1847k, at the bridge's end (year 1) 1628k, in its last recorded year 28k (SHIP in the same year 162k)
     PRODR b0/0 x2, 0/0 x25, 2/2 x12, 0/0 x1
     SHIP  b2/2 x2, 2/2 x38
-  path 5145: ends below the minimum pot; first de-risked (2/2) year 22; wealth at year 0 1640k, at the bridge's end 1943k, in the last year 28k (SHIP 121k)
+  path 5145: ends below the minimum pot; first de-risked (2/2) in year 22, 20 years after the bridge; wealth at the end of year 0 1640k, at the bridge's end (year 1) 1809k, in its last recorded year 28k (SHIP in the same year 121k)
     PRODR b0/0 x2, 0/0 x20, 2/2 x16, 0/0 x2
     SHIP  b2/2 x2, 2/2 x38
-  path 5351: ends below the minimum pot; first de-risked (2/2) year 21; wealth at year 0 1817k, at the bridge's end 2243k, in the last year 20k (SHIP 161k)
+  path 5351: ends below the minimum pot; first de-risked (2/2) in year 21, 19 years after the bridge; wealth at the end of year 0 1817k, at the bridge's end (year 1) 1865k, in its last recorded year 20k (SHIP in the same year 161k)
     PRODR b0/0 x2, 0/0 x19, 2/2 x18, 0/0 x1
     SHIP  b2/2 x2, 2/2 x38
-  path 6507: runs out in year 38; first de-risked (2/2) year 16; wealth at year 0 1814k, at the bridge's end 1970k, in the last year 0k (SHIP 37k)
-    PRODR b0/0 x2, 0/0 x14, 2/2 x15, 0/0 x9
-    SHIP  b2/2 x2, 2/2 x38
-  path 7280: ends below the minimum pot; first de-risked (2/2) year 11; wealth at year 0 1781k, at the bridge's end 1237k, in the last year 27k (SHIP 138k)
+  path 6507: runs out in year 38 (no record from then); first de-risked (2/2) in year 16, 14 years after the bridge; wealth at the end of year 0 1814k, at the bridge's end (year 1) 1631k, in its last recorded year 7k (SHIP in the same year 64k)
+    PRODR b0/0 x2, 0/0 x14, 2/2 x15, 0/0 x7
+    SHIP  b2/2 x2, 2/2 x36
+  path 7280: ends below the minimum pot; first de-risked (2/2) in year 11, 9 years after the bridge; wealth at the end of year 0 1781k, at the bridge's end (year 1) 1477k, in its last recorded year 27k (SHIP in the same year 138k)
     PRODR b0/0 x2, 0/0 x9, 2/2 x27, 0/0 x2
     SHIP  b2/2 x2, 2/2 x38
+THE BUNDLE: wealth at the bridge's end 1624k to 1929k; first de-risked 7 to 20 years after the bridge; back at 0/0 in its last recorded years on 5 of 5 (4, 6, 2, 1, 3 years)
+THE READER ALONE: wealth at the bridge's end 1477k to 2557k; first de-risked 7 to 25 years after the bridge; back at 0/0 in its last recorded years on 8 of 9 (0, 4, 6, 1, 1, 2, 1, 7, 2 years)
 
 OVERLAP: 5 of the bundle's 5 lost paths are also lost by the reader alone (925, 1028, 5145, 5351, 6507)
 HOW THEY FAIL: the bundle 3 end below the minimum pot, 2 run out (years 38, 38); the reader alone 7 end below the minimum pot, 2 run out (years 39, 38)

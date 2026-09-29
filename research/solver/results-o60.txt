@@ -1,0 +1,10 @@
+O60: EACH TIER'S RETURN (the import's linear blend) AGAINST THE MEDIAN OF ITS BLEND REBALANCED YEARLY (BlackRock Capital Market Assumptions, 30-year horizon; Global ex-UK large cap equities and UK gilts (all maturities), correlation 0.03; real at 2.5% inflation)
+  tier                equity  linear (the model)  blend median  gap (points a year)
+  High Risk              0.9               4.79%         4.97%      0.18
+  Medium/High Risk       0.7               4.24%         4.65%      0.41
+  Medium Risk            0.5               3.69%         4.18%      0.49
+  Medium/Low Risk        0.3               3.14%         3.55%      0.41
+  Low Risk               0.1               2.59%         2.76%      0.17
+
+THE PANEL'S DE-RISK (the pension from High Risk to Medium Risk): the model's step 1.10 points a year; the blend medians' step 0.79; the model overcharges it by 0.31 points a year
+checks: the linear blend reproduces the import's 5 tier nominal figures to 0.01; the gap is 0 at an equity weight of 0 and 1

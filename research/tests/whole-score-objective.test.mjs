@@ -7,7 +7,9 @@
  * scored twice:
  *   - by wholePaths, with its configuration built from the fields the audit mode logs, as the reducers build it;
  *   - by the solver's own objective, s + wR rs + wB b - h (solve.js scoreMoves), realised on the path with the solver's own
- *     closures: r.costOf on each lived spend year's chosen level (a trim's charge, or a raise's credit counted only in a
+ *     closures where it exposes them (costOf, terminal.beqOf, wB, levelOf, lambda, shortExp); the run-out charge and survival
+ *     are this test's restatement of solve.js's failCostAt (l.711-713) and its terminal rule, which it does not expose (the
+ *     plan-auditor's MINOR 3 of 29 Sep; failureShortfall 'floor' is asserted, so they cannot drift unseen today): r.costOf on each lived spend year's chosen level (a trim's charge, or a raise's credit counted only in a
  *     future that survives: raiseSurvival), a run-out charged at the lowest level from its year on (failureShortfall
  *     'floor', solve.js failCostAt), the estate as r.terminal.beqOf of the end pot net of the death charge at r.wB, and
  *     nothing for a future that ends below the minimum pot (finalYearExact: survival and estate 0).

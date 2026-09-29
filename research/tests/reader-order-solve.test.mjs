@@ -3,7 +3,8 @@
  * choice"). Stated before it ran (29 Sep): the plan says, from the code (grade B), that on a 2-year bridge the draw-order
  * reference cannot move a choice - the chooser reads year t + 1's table and year 1's reference is a one-bill step, the
  * same in any order. So on S126 (a 2-year bridge) every world's survival and bequest table in every year must be bit for
- * bit the default reader's, and only year 0's reader split (its p, and so its c and R) may differ; planted: that split
+ * bit the default reader's, and only year 0's reader split (its p, and so its c and R) may differ (and, in the bundle's own
+ * mode, TS+J, every move on 200 paths is the same); planted: that split
  * must differ, or the comparison is a solve against itself. On S360 (an 8-year bridge) year 1's reference has several
  * bills, so the option must change some table before the bridge ends. And meta names the reference.
  *   node research/tests/reader-order-solve.test.mjs
@@ -45,5 +46,21 @@ const splits = g => { const by = new Map(); for (const T of g.reader.of.values()
   let moved = false;
   for (let k = 0; k < base.worlds.length; k++) for (let t = 0; t < last; t++) if (!same(base.worlds[k].lsurv[t], ord.worlds[k].lsurv[t])) moved = true;
   ok(last >= 2 && moved, `S360 (bridge years 0 to ${last}): the option changes some survival table before the bridge ends`);
+}
+// THE BUNDLE'S OWN MODE (the deep review, 29 Sep 21:08: the claim above was tested on the plain reader only): with the tier
+// state and one policy for every world (TS+J), on S126 (a 2-year bridge) the order reference must choose the same move as the
+// default reader in every year on every one of 200 paths; planted: on S360 (an 8-year bridge) some choice must differ, or the
+// comparison cannot see a moved choice
+{
+  const { runPolicy } = await import('../../src/solver/solve.js');
+  const moves = (r, id) => { const T = r.m.ctx.totalYears, out = []; E.pathsForSeed(7002, 200, T).forEach(zs => { const m = []; runPolicy(r, zs, { visit: (t, s, held, ai) => { m.push(ai); } }); out.push(m.join(',')); }); return out; };
+  const TSJ = { ...OPTS, tierState: true, jointWorlds: true };
+  for (const [id, same] of [['S126', true], ['S360', false]]) {
+    const plan = prep(id), base = solvePlan(E, M, plan, TSJ), ord = solvePlan(E, M, plan, { ...TSJ, readerRef: 'order' });
+    ok(!!base.meta.tierState && !!base.meta.jointWorlds && ord.meta.readerRef === 'order', `${id}: both solves in the bundle's mode (tier state ${base.meta.tierState}, one policy ${base.meta.jointWorlds}), the option named`);
+    const a = moves(base, id), b = moves(ord, id), diff = a.filter((x, i) => x !== b[i]).length;
+    if (same) ok(diff === 0, `S126 in the bundle's mode: the order reference chooses the same move in every year on all 200 paths (${diff} differ)`);
+    else ok(diff > 0, `planted: S360 in the bundle's mode - ${diff} of 200 paths take a different move somewhere, so a moved choice would show`);
+  }
 }
 console.log(`\nreader-order-solve: ${n} passed`);

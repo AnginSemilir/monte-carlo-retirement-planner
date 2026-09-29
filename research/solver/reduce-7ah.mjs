@@ -216,7 +216,7 @@ export function reading(units, TR, out = console.log) {
   const IT = items(K, WL, err);
   for (const it of IT) {
     out(`\nITEM ${it.n}: ${it.text}`);
-    if (it.legs) for (const l of it.legs) out(l.k ? `     ${l.id.padEnd(14)} ${l.k.saved} saved/${l.k.lost} lost  p ${l.pHolm.toExponential(1)}  change ${(100 * (l.k.saved - l.k.lost) / l.k.N).toFixed(3)} (exact ${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}; unconditional, guarded, ${l.u.lo.toFixed(3)} to ${l.u.hi.toFixed(3)}) margin ${l.margin}: ${l.o}` : `     ${l.id.padEnd(14)} ${l.d >= 0 ? '+' : ''}${l.d.toFixed(3)} (${l.lo.toFixed(3)} to ${l.hi.toFixed(3)})`);
+    if (it.legs) for (const l of it.legs) out(l.pHolm !== undefined ? `     ${l.id.padEnd(14)} ${l.k.saved} saved/${l.k.lost} lost  p ${l.pHolm.toExponential(1)}  change ${(100 * (l.k.saved - l.k.lost) / l.k.N).toFixed(3)} (exact ${l.iv.lo.toFixed(3)} to ${l.iv.hi.toFixed(3)}; unconditional, guarded, ${l.u.lo.toFixed(3)} to ${l.u.hi.toFixed(3)}) margin ${l.margin}: ${l.o}` : `     ${l.id.padEnd(14)} ${l.d >= 0 ? '+' : ''}${l.d.toFixed(3)} (${l.lo.toFixed(3)} to ${l.hi.toFixed(3)})`);
     else out(`     S360: READER's error ${it.eR.toFixed(2)}, ORDER's ${it.eO.toFixed(2)}, ratio ${it.ratio.toFixed(3)}`);
     out(`   -> ${it.outcome}`);
   }

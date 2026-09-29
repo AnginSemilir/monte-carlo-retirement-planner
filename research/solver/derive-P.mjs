@@ -2,27 +2,36 @@
  * P'S DERIVATION AND POWER (predictions/diag-p.md; its output hashed in the prediction and re-run by the launcher). Every
  * figure is from 7ae's traces, read through 7ae's own gate chain (reduce-P.mjs loadRefs: 7aa, 7ac, 7ad, 7ae; 7af beside).
  *   1. THE MARGINS. Items 1 and 2 are read against half 7ae's own pooled shifts from 1e-3 to margin 0 (OPEN0 and TS+J at world
- *      0's node, the three units, 8,000 paths, 7ae's pooled interval): M1 and M2 in reduce-P.mjs must be those halves rounded
+ *      0's node, the three units, 8,000 paths, 7ae's pooled interval; TS+J opened in the de-risked pair at both margins, so
+ *      its shift is the continuation's at equal openings, item 2's): M1 and M2 in reduce-P.mjs must be those halves rounded
  *      down to two places.
- *   2. THE CHURN. Moves to a riskier tier a path (reduce-P.mjs churn: a lower tier code, the path alive), TS+J at 1e-3 and at
- *      margin 0 and OPEN0 at both, by unit and summed over the three; margin 0's excess over 1e-3 paired, and H3, half of it
- *      (items 3 and 4). Switches a path beside (the deep review's O50 count, which included failed paths' zero bytes).
- *   3. POWER, by simulation over 7ae's own per-path differences (x_i: a path's margin-0 less 1e-3 figure summed over the
- *      units). A story q: each path takes -x_i (for items 1 and 2: the fall back to 1e-3's) or x_i (items 3 and 4: margin 0's
- *      churn) with probability q, else a random sign of |x_i| (noise of the same size with no shift) - so q = 0 is P as its
- *      prediction says with the records' own discordance as noise, q = 1 P as the alternative, q = 0.5 halfway (the margin).
- *      Read by reduce-P.mjs's own thresholds (M1, M2, H3; the pooled interval of reduce-7ae.mjs pooled / reduce-P.mjs
- *      pairedSum). P runs every arm on WN = 16,000 node paths (twice 7ae's), so each draw takes 16,000 paths drawn with
- *      replacement from 7ae's 8,000; 7ae's own 8,000 beside, for the comparison. 4,000 draws a story, seeded.
+ *   2. THE WHOLE SCORE AT THE NODE (item 3's scale): S194, TS+J at margin 0 against 1e-3 (reduce-7aa.mjs wholeLeg at 0.05),
+ *      and its per-path whole-score differences.
+ *   3. THE CHURN by year band (reduce-P.mjs churn), TS+J and OPEN0 at 1e-3 and at margin 0, by unit - reported: the churn is
+ *      no longer an item (the deep review after 7ag: most of margin 0's extra riskier moves are end-of-plan moves that cost
+ *      nothing).
+ *   4. POWER, by simulation over 7ae's own per-path differences (x_i: a path's margin-0 less 1e-3 figure, summed over the
+ *      units for items 1 and 2; S194's whole score for item 3). A story q: each path takes the alternative's difference (the
+ *      fall back to 1e-3's for item 1, -x_i; margin 0's fall for items 2 and 3, +x_i) with probability q, else a random sign
+ *      of |x_i| (noise of the same size with no shift) - so q = 0 is P as predicted with the records' own discordance as
+ *      noise, q = 1 the alternative, q = 0.5 halfway (the margin). Every draw takes WN paths drawn with replacement from 7ae's
+ *      8,000 (so every column carries sampling noise; the first derivation's 8,000 column did not resample and read 1.000 by
+ *      construction at q = 1: the plan-auditor's BLOCKING 2 of 29 Sep, O56). Read by reduce-P.mjs's own thresholds (M1, M2,
+ *      MW). 4,000 draws a story, seeded.
+ *   Items 4 and 5 (all worlds) have no record at margin 0 or P to draw from (every TS+J run across all worlds was at 0.001);
+ *   their power is stated in the prediction from 7aa's own discordance, not simulated here. Items 6 and 7 are counts read
+ *   without sampling error of this kind (the openings are solves; item 7's shares sit on thousands of path-years).
  *   node research/solver/derive-P.mjs > research/solver/results-derive-P.txt
  */
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { M1, M2, CORE, WN, churn, pairedSum, pair, loadRefs, Z95 } from './reduce-P.mjs';
+import { M1, M2, MW, CORE, WN, churn, BANDS, pair, loadRefs, Z95 } from './reduce-P.mjs';
 import * as E from './reduce-7ae.mjs';
+import * as A from './reduce-7aa.mjs';
+import * as F from './reduce-7af.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), R_ = n => join(HERE, 'results', n);
-const { TRE } = loadRefs(R_('diag7ae'), R_('diag7ad'), R_('diag7ac'), R_('diag7aa'), R_('diag7af'));
+const { TRE, jobsE } = loadRefs(R_('diag7ae'), R_('diag7ad'), R_('diag7ac'), R_('diag7aa'), R_('diag7af'));
 const tr = (id, m, rule) => TRE[`${id}|${m}|${rule}`];
 const f3 = x => `${x >= 0 ? '+' : ''}${x.toFixed(3)}`, iv = p => `${f3(p.d)} (${p.lo.toFixed(3)} to ${p.hi.toFixed(3)})`;
 
@@ -36,30 +45,33 @@ console.log(`  OPEN0 ${iv(sO)}: half ${(Math.abs(sO.d) / 2).toFixed(4)} -> ${hal
 console.log(`  TS+J  ${iv(sJ)}: half ${(Math.abs(sJ.d) / 2).toFixed(4)} -> ${half(sJ.d)}; reduce-P.mjs M2 ${M2}: ${half(sJ.d) === M2 ? 'agrees' : 'DISAGREES'}`);
 if (half(sO.d) !== M1 || half(sJ.d) !== M2) { console.log('MARGINS DISAGREE WITH THE REDUCER'); process.exit(1); }
 
-// 2. the churn
-console.log('\n2. THE CHURN AT THE NODE: switches / moves to a riskier tier a path (the path alive), by unit');
-const CH = {}; const ch = (id, m, rule) => CH[`${id}|${m}|${rule}`] || (CH[`${id}|${m}|${rule}`] = churn(tr(id, m, rule)));
-const mean = a => a.reduce((t, x) => t + x, 0) / a.length;
-for (const [id] of CORE) console.log(`  ${id.padEnd(9)} ${[['TS+J', '1e-3'], ['TS+J', '0'], ['OPEN0', '1e-3'], ['OPEN0', '0']].map(([r, m]) => `${r}/${m} ${mean(ch(id, m, r).sw).toFixed(3)}/${mean(ch(id, m, r).rr).toFixed(3)}`).join('  ')}`);
-const RR = (rule, m) => CORE.map(([id]) => ch(id, m, rule).rr);
-const ex = pairedSum(RR('TS+J', '0'), RR('TS+J', '1e-3')), H3 = ex.d / 2;
-console.log(`  summed over the units: TS+J/1e-3 ${(RR('TS+J', '1e-3').reduce((t, a) => t + mean(a), 0)).toFixed(3)}, TS+J/0 ${(RR('TS+J', '0').reduce((t, a) => t + mean(a), 0)).toFixed(3)}; margin 0's excess ${iv(ex)}, se ${ex.se.toFixed(4)}; H3 = ${H3.toFixed(4)} (${(H3 / ex.se).toFixed(1)} standard errors of the excess)`);
+// 2. the whole score at the node, S194
+const e194 = jobsE.find(j => j.id === 'S194').tags['0'];
+const X = tr('S194', '1e-3', 'TS+J'), Y = tr('S194', '0', 'TS+J');
+const cfg = { lambda: Number(A.field(e194.ran, 'lambda')), floor: Math.min(...A.field(e194.ran, 'levels').split(',').map(Number)), scale: e194.joint.scale, cap: e194.joint.cap, wb: 0.02, spendYears: F.spendYears(X, Y) };
+const w194 = A.wholeLeg(X, Y, cfg, 0.05), wa = A.wholePaths(X, cfg), wb = A.wholePaths(Y, cfg), xW = Float64Array.from(wa, (a, i) => wb[i] - a);
+console.log(`\n2. THE WHOLE SCORE AT THE NODE, S194: TS+J at margin 0 against 1e-3 ${iv(w194)} (survival part ${f3(w194.sd)}, the rest ${f3(w194.rest)}); item 3's margin MW ${MW}`);
 
-// 3. power
+// 3. the churn by band (reported)
+console.log(`\n3. THE CHURN AT THE NODE by year band (${BANDS.map(([a, b]) => `${a}-${b > 100 ? 'end' : b}`).join(', ')}): switches / moves to a riskier tier a path (the path alive)`);
+const mean = a => a.reduce((t, x) => t + x, 0) / a.length;
+for (const [id] of CORE) for (const [r, m] of [['TS+J', '1e-3'], ['TS+J', '0'], ['OPEN0', '1e-3'], ['OPEN0', '0']]) { const c = churn(tr(id, m, r)); console.log(`  ${`${id} ${r}/${m}`.padEnd(20)} ${BANDS.map((_, k) => `${mean(c.sw[k]).toFixed(3)}/${mean(c.rr[k]).toFixed(3)}`).join('  ')}`); }
+
+// 4. power
 let s = 7002 >>> 0;
 const rnd = () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 const sumsOf = (xs, ys) => { const n = xs[0].length, out = new Float64Array(n); for (let i = 0; i < n; i++) { let d = 0; for (let u = 0; u < xs.length; u++) d += xs[u][i] - ys[u][i]; out[i] = d; } return out; };
 const DRAWS = 4000;
-const story = (x, q, sign, read, n = WN) => { const c = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 }, boot = n !== x.length;
-  for (let k = 0; k < DRAWS; k++) { let a = 0, a2 = 0; for (let i = 0; i < n; i++) { const xi = boot ? x[Math.floor(rnd() * x.length)] : x[i]; const d = rnd() < q ? sign * xi : (rnd() < 0.5 ? -1 : 1) * Math.abs(xi); a += d; a2 += d * d; } const m = a / n, se = Math.sqrt(Math.max(0, (a2 / n - m * m) / n)); c[read(m, m - Z95 * se, m + Z95 * se)]++; }
+const story = (x, q, sign, read, scale) => { const n = WN, c = { HELD: 0, FALSIFIED: 0, INCONCLUSIVE: 0 };
+  for (let k = 0; k < DRAWS; k++) { let a = 0, a2 = 0; for (let i = 0; i < n; i++) { const xi = x[Math.floor(rnd() * x.length)]; const d = rnd() < q ? sign * xi : (rnd() < 0.5 ? -1 : 1) * Math.abs(xi); a += d; a2 += d * d; } const m = a / n, se = Math.sqrt(Math.max(0, (a2 / n - m * m) / n)); c[read(scale * m, scale * (m - Z95 * se), scale * (m + Z95 * se))]++; }
   return Object.entries(c).filter(([, v]) => v).map(([o, v]) => `${o} ${(v / DRAWS).toFixed(3)}`).join('  '); };
 const svOf = rule => sumsOf(CORE.map(([id]) => tr(id, '0', rule).survived), CORE.map(([id]) => tr(id, '1e-3', rule).survived));
-const readM = M => (m, lo, hi) => (100 * lo > -M ? 'HELD' : 100 * hi < -M ? 'FALSIFIED' : 'INCONCLUSIVE');
-const read3 = (m, lo, hi) => (hi < H3 ? 'HELD' : lo > H3 ? 'FALSIFIED' : 'INCONCLUSIVE');
-console.log(`\n3. POWER at ${WN} node paths (${DRAWS} draws a story; q the share of paths taking the alternative's difference, the rest the records' discordance as noise with no shift; at 7ae's 8,000 beside)`);
-const xO = svOf('OPEN0'), xJ = svOf('TS+J'), xR = sumsOf(RR('TS+J', '0'), RR('TS+J', '1e-3'));
-for (const [name, x, sign, read] of [['ITEM 1 (OPEN0/P against OPEN0/M0; the alternative OPEN0 falling back to 1e-3\'s)', xO, -1, readM(M1)], ['ITEM 2 (TS+J/P against TS+J/1e-3; the alternative TS+J falling as at margin 0)', xJ, 1, readM(M2)], ['ITEMS 3 AND 4 (riskier moves against TS+J/1e-3; the alternative margin 0\'s churn)', xR, 1, read3]]) {
+const readM = M => (m, lo, hi) => (lo > -M ? 'HELD' : hi < -M ? 'FALSIFIED' : 'INCONCLUSIVE');
+console.log(`\n4. POWER at ${WN} node paths drawn with replacement from 7ae's 8,000 (${DRAWS} draws a story; q the share of paths taking the alternative's difference, the rest the records' discordance as noise with no shift)`);
+for (const [name, x, sign, read, scale] of [
+  ['ITEM 1 (OPEN0/P against OPEN0/M0; the alternative OPEN0 falling back to 1e-3\'s)', svOf('OPEN0'), -1, readM(M1), 100],
+  ['ITEM 2 (OPEN2/P against OPEN2/1e-3; the alternative the continuation falling as at margin 0 - 7ae\'s TS+J, which opened in the pair at both margins)', svOf('TS+J'), 1, readM(M2), 100],
+  ['ITEM 3 (S194 at the node by the whole score; the alternative margin 0\'s fall)', xW, 1, readM(MW), 1]]) {
   console.log(`  ${name}`);
-  // for items 1 and 2 the x are margin 0 less 1e-3: OPEN0 rose (x > 0 on net), so P falling back is -x; TS+J fell (x < 0 on net), so P falling as margin 0 did is +x
-  for (const q of [0, 0.25, 0.5, 0.75, 1]) console.log(`    q ${q.toFixed(2)}: ${story(x, q, sign, read)}   | at 8,000: ${story(x, q, sign, read, x.length)}`);
+  for (const q of [0, 0.25, 0.5, 0.75, 1]) console.log(`    q ${q.toFixed(2)}: ${story(x, q, sign, read, scale)}`);
 }

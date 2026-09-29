@@ -1,0 +1,124 @@
+# Prediction: diag-p
+
+- **Run:** `research/solver/batch-P.sh` - results/diagP/case0-39.txt and every core run's trace (audit-s126.mjs diagP), read beside 7aa's (results/diag7aa), 7ae's (results/diag7ae, through 7ac's and 7ad's), 7ad's, 7af's and 7ag's records; reduced by `reduce-P.mjs` into results-P.txt
+- **Kind:** test
+- **Written:** 29 Sept, before the run (its time is its registering commit's, git log); after 7ag was read (the ledger's 11:15 row), the deep review after it (deep-review-log.md 29 Sep 11:30 UK), which found the first draft of P unable to separate the explanations and set the amendments this design carries, and the plan-auditor's FAIL on the review's record (review-log.md, 29 Sep: BLOCKING 2, the first derivation's unresampled column, O56; BLOCKING 3, the Q branch qualified, O55)
+- **Seeds:** 7002 tuning (the solves' opening path and every run's paths: the node runs on its first 16,000 paths with each path's long-run shift set to world 0's node, the first 8,000 7ae's; the all-world runs on its first 16,000 paths, the first 8,000 7aa's). The product's 'auto' risk-above rule reads its own seed 7101 inside solvePlan. No held-out seed is touched. **Disclosed (RULES.md Known limits item 18):** measurements ran this test's mode under "none" before this prediction was final: two build checks and two preflights of the first draft (runs.log 29 Sep, the "diagP" lines; both stopped in the launcher's smoke run or before any job finished, no line read), and the preflight of this design (runs.log 29 Sep, "P preflight - the redesigned diagP mode"; preflight-P.sh, every job at 4 wealth points and 20 paths; results/preflight-P.log), whose lines were read only to see that the mode prints them and that the reducer parses, gates and reads them; 4 wealth points are not a registered grid, and no figure of it is read before P is.
+- **Unmasking:** P removes a known error, the uncharged switch margin (a hold rule the tables never value: O44, O48, O49; families 1 and 2), and the deep review after 7ae ranks what it may unmask: the world-blind chooser's re-risking in the bad world (O50; 7t's L), and an opening decided on a knife edge at the charge's own size (O44). What tells a harm from an unmasking: items 2 and 3 read the continuation from the same de-risked opening at the node, item 4 whether margin 0's node loss is a loss across all worlds, item 5 P's own effect across all worlds, item 6 whether P's opening still flips with the grid; the world-aware 2x2 is reported, not read as evidence for an explanation (an oracle at world 0's node).
+- **Plan section:** PLAN.md "P"
+
+## Question
+
+Does charging the switch in both passes - a 0.001 charge in the backward pass's score, so every stored value carries later switches' cost, and the same charge in the forward chooser at the true state, with no margin - give a continuation that is margin 0's from the plan's tiers without margin 0's fall from the de-risked opening (the uncharged margin, explanation 1), or does the fall stay (the world-blind chooser, explanation 2), and does the forward move agree with its own stored cells (1) or keep disagreeing (the share and gain axes, explanation 3)? And across all worlds: is margin 0's node loss a population loss, and does P do no material harm?
+
+## Derivation
+
+- **What 7ae measured** (results-7ae.txt, grade A; results-derive-P.txt, grade A, over 7ae's gated traces): from 1e-3 to margin 0 at world 0's node, pooled over bridge 4, S194 and S126, OPEN0 rose +0.713 (0.367 to 1.058) and TS+J fell -0.462 (-0.693 to -0.232); TS+J opened in the de-risked pair 2/2 at both margins, so its fall is the continuation's at equal openings. S194's whole score at the node fell -0.500 (-0.780 to -0.227; survival -0.425, the rest -0.075): O50 is not the objective's trade. Its extra riskier moves sit in years 6 to 25 (1.410 a path at margin 0 against 0.056 at 1e-3) and 26 on (1.185 against 0.471); bridge 4's and S126's are all 26 on (1.256 and 1.290 against 0.026 and 0.016) and cost them nothing measurable (results-derive-P.txt, section 3).
+- **Why the charge can do it** (solve.js: switchCharge in the tier state's backward pass l.891 and the chooser l.1157-1163; a reading of the code, D; research/tests/solver-switchcharge.test.mjs, 10 passed, grade A for the mechanics): with no margin, a move leaving the held tiers pays the charge in the score where the table is built and where the move is chosen, so the stored decision and the forward decision are the same rule, and the value of STAY carries every later switch's cost. The hold the margin imposed without valuing it is gone (explanation 1's error); what is left is a real friction, valued.
+- **Against** (the deep review after 7ag, the 11:30 row): a 0.001 charge suppresses churn about as a 0.001 margin does, so churn items read the same under every explanation - they are not items here; and P's own year-0 opening sits on a knife edge at the charge's size (7ae's margin-0 gaps 6.8314e-4 to 9.3305e-4, all below 0.001), which is why items 1 and 2 read OPEN0 and OPEN2 - both openings fixed - and item 6 reads P's opening across grids.
+- **The ranked explanations** (the deep review after 7ag): (1) the uncharged margin; (2) the world-blind, fixed-weight chooser; (3) the share and gain axes and nearest-cell reads; (4) the objective's trade, ruled out for O50 by the whole score above.
+- **Prior tests of the same mechanism** (RULES.md section 9 rule 7): 7v (results-7v.txt) and 7ae (results-7ae.txt) moved the margin, never charged it; no record holds a charged run.
+- **Claude's choices, before any run:** the charge equal to the product's margin, 0.001 (the review: set, not derived - a diagnosis of the margin's structure at its own size, not a tuned value; grade D); the margins M1 and M2 half 7ae's own shifts; the whole-score margin 0.25, the regimen's; 16,000 paths at the node and across all worlds for power; OPEN2's pair 2/2, the pair 7ae's TS+J opened in at 1e-3 on all three units (the gate checks it).
+
+## Prediction
+
+Explanation 1 carries the continuation, and P is safe: from the plan's tiers P's continuation is near margin 0's (item 1 HELD); from the de-risked opening it does not fall as margin 0's does (item 2 HELD) and S194 loses no material whole score there (item 3 HELD); margin 0's node loss is no material loss across all worlds, being about a sixth of the paths (item 4 HELD); P does no material harm across all worlds on the three units (item 5 HELD); P's opening is one across the three grids (item 6 HELD); and P's forward move agrees with its own cells (item 7 HELD).
+
+## Falsified if
+
+Item 1: OPEN0 under P falls back toward 1e-3's (the upper end below -0.35). Item 2: OPEN2 under P falls as margin 0 did (the upper end below -0.23). Item 3: S194's whole score under P from the de-risked opening falls by more than 0.25 (the upper end). Item 4: margin 0's loss is a material loss across all worlds (the whole score's upper end below -0.25). Item 5: P harms any unit across all worlds (exact, Holm, or the whole score's upper end below -0.25). Item 6: P's opening flips with the grid on all three units. Item 7: P's forward move holds where its cell leaves, net of the reverse, on 5 points or more of the held path-years.
+
+## Fair-test table
+
+Arm A is the 1e-3 and margin-0 solves (7ae's two, re-solved on P's code and held to 7ae's lines and first 8,000 node paths, and at 1e-3 to 7aa's all-world paths); arm B is P (switchCharge 0.001, switchMargin 0), on the same paths. The rules (TS+J, OPEN0, OPEN2, the world-aware chooser) run under every setting.
+
+| # | Variable | Arm A | Arm B | Status (SAME / TESTED / ONE ARM ONLY / N/A) and why |
+|---|---|---|---|---|
+| 6 | The search paths (landings, and the rival arms' choice of order), and that nothing chosen on them is reported from them | none | none | N/A - no landing and no rival: lambda is held and the solver runs against itself |
+| 17 | The grid: points, shares, gain buckets | 30 wealth points (total30x6x6), 5 return points | the same at 30x5; P alone also at 30x15 and 60x5 on bridge 4, S194 and share 0.95 | ONE ARM ONLY - item 6 reads P's opening across grids against itself; the 1e-3 openings at those grids are 7ad's (reported) |
+| 19 | The switch margin and switching cost | 0.001 or 0 in the backward pass and the chooser; no charge; the cost 0.25% of the slice traded | margin 0; the switch charged 0.001 in the score in both passes; the cost 0.25% of the slice traded | TESTED |
+| 26 | Which rivals, and each one's rule and parameters (the guardrails' thresholds, Vanguard's bands, ARVA's rate) | none | none | N/A - the solver against itself; the world-aware chooser is a rule run under every setting, not a rival |
+| 27 | How a fixed arm's withdrawal order is picked (the app's picker on the search paths) | none | none | N/A - no fixed arm |
+| 28 | Every file of a comparison made by the same code, or the change between them is the thing tested | P's snapshot, re-solving 7ae's settings; 7ae's (node), 7aa's (all worlds), 7ad's, 7af's and 7ag's records as identity references | P's snapshot | ACCEPTED - every figure the items read is P's snapshot's; the references are held to the bit (lines, and survival path by path) and read for identity only; M1 and M2 are fixed numbers from 7ae's records (results-derive-P.txt) |
+| 29 | The statistic and its definition (survival is the floor rate or fully funded; years below target; total cut; failure includes falling below the minimum pot; the table's reading or the simulated outcome) | items 1 and 2: survival at the node; items 3 to 5: the whole score (reduce-7aa.mjs wholeLeg) and survival; item 6: the chosen year-0 tiers; item 7: the decision log's shares | the same | SAME - declared here because the test reads several statistics |
+| 31 | Paired or not, and the standard error used | paired on the same paths; items 1 and 2 pooled over the three units with 7ae's normal interval from the per-path sums (declared, not exact); item 5's survival exact McNemar with Holm across 3 and the guarded unconditional interval; the whole score's interval wholeLeg's at 0.05 | the same | SAME - declared |
+| 33 | For timings: what else the machine was running | the solve seconds are printed and reported for gate 5, not read by an item | the same | N/A - no timing is read |
+- **All other rows: SAME**
+
+## Decision rule (registered before launch)
+
+- **Single look, every item; pooled intervals at 95%.**
+- **Item 1:** pooled OPEN0/P less OPEN0/M0 (7ae's pooled interval). HELD if the lower end is above -0.35; FALSIFIED if the upper end is below -0.35; else INCONCLUSIVE.
+- **Item 2:** pooled OPEN2/P less OPEN2/1e-3. HELD if the lower end is above -0.23; FALSIFIED if the upper end is below -0.23; else INCONCLUSIVE.
+- **Item 3:** S194 at the node, OPEN2/P against OPEN2/1e-3 by the whole score (wholeLeg at 0.05). HELD if the lower end is above -0.25; FALSIFIED if the upper end is below -0.25; else INCONCLUSIVE.
+- **Item 4:** S194 across all worlds, TS+J/M0 against TS+J/1e-3 by the whole score. HELD if the lower end is above -0.25; FALSIFIED if the upper end is below -0.25; else INCONCLUSIVE.
+- **Item 5:** across all worlds, TS+J/P against TS+J/1e-3 on each unit: survival by the exact rule with Holm across 3 at 0.25 (stats.mjs outcome), passing only if it reads no material harm AND the guarded unconditional interval's lower end is above -0.25, AND the whole score's lower end above -0.25. HELD if every unit passes; FALSIFIED if any unit reads harm (exact, Holm) or its whole score's upper end is below -0.25; else INCONCLUSIVE.
+- **Item 6:** P's chosen year-0 tiers at 30x5, 30x15 and 60x5 on bridge 4, S194 and share 0.95 (share 0.95's 30x5 from its openings job). HELD if one on all three units; FALSIFIED if not one on all three; else INCONCLUSIVE.
+- **Item 7:** on OPEN0/P's node runs, years 1 to 7 pooled over the three units, the share of path-years holding the plan's tiers where the forward move holds and the nearest cell's stored move leaves, less the reverse share. HELD below 2 points; FALSIFIED at 5 points or more; INCONCLUSIVE between, or where OPEN0/P holds fewer than 1,000 path-years (it may leave the plan's tiers on nearly every path in year 1, as OPEN0 did at margin 0: then the comparator is unmeasured, O49 stays open).
+- **Reported, not items:** every core unit's table, gap, opening, price, survival by rule and across all worlds, and solve seconds; the node pairs (the world-aware 2x2 among them); TS+J at P and at 0 against 1e-3 across all worlds on every unit; the churn by year band; the 1e-3 decision log's net share (7ae's item 2 on these paths); the pooled price / realised ratio (not separating: the review); the openings on the 25 households against the bundle's; share 0.95's Q branch, read only if item 6's share 0.95 leg is one across grids, and qualified (O55): P leaving the plan's tiers there takes Q's year-0 de-risk only if P ships.
+- **NOT SETTLED:** any gate fails (the stamps; 7aa's, 7ac's, 7ad's, 7ae's, 7af's or 7ag's; settings 0 or 1e-3 not 7ae's to their printed lines or path by path; the 1e-3 all-world run not 7aa's path by path; OPEN2's pair not 7ae's 1e-3 opening).
+- **Declared choices, not derived:** the charge 0.001; the whole-score and item 5 margins 0.25 (the regimen's); item 7's 2 and 5 points (7ae's item 2 thresholds); the 1,000 path-years floor (7ae's).
+
+## Decision fed
+
+- **Items 1 and 2 HELD** (with item 3 HELD): explanation 1 carries the continuation - the margin's holds cost the plan's-tier continuation, and valuing the switch removes margin 0's fall from the de-risked opening (grade B at the node, one seed). P goes forward as a candidate design only through its own tests: gate 5's timing (the tier state must more than halve its solve time) and a panel test against the bundle, registered after this; no default.
+- **Item 2 FALSIFIED** (P falls as margin 0 does from the de-risked opening): valuing the switch does not stop the fall - O50 is the world-blind chooser's (explanation 2), and a learning or world-weight design (7t's L) is next for family 2; item 4 says whether it matters across all worlds.
+- **Item 1 FALSIFIED** (OPEN0/P falls back toward 1e-3's): the charge's own friction reproduces the margin's holds - the continuation's cost is friction, valued or not, and the margin's holds are not an inconsistency the charge removes; family 1's explanation 1 is weakened.
+- **Item 3** beside item 2: a whole-score harm with survival level is a trade; read with the whole-score rule's legs.
+- **Item 4 HELD:** margin 0's node loss is not a material loss across all worlds - O50's severity for a default falls (margin 0 is not a candidate either way). **FALSIFIED:** it is a population loss; O50 stays a harm any margin design must avoid.
+- **Item 5 HELD:** P is safe across all worlds on the three units (grade B at one seed, three units) - eligible for a panel test after gate 5. **FALSIFIED:** no P; its item-5 harm is named by unit. **INCONCLUSIVE:** a sized follow-up before any P panel test.
+- **Item 6 HELD:** P's opening does not sit on the grid's knife edge; **FALSIFIED or INCONCLUSIVE:** it does - the opening decision needs its own design (O44) and the Q branch is not read.
+- **Item 7 HELD:** the 1e-3 forward-against-cell disagreement was the margin's (O49 answered, grade B). **FALSIFIED:** the grid's own disagreement (explanation 3): finer share and gain axes next (30x12x12). **INCONCLUSIVE:** O49 stays open.
+- **In every branch:** nothing to a default; no margin or charge default; P not a candidate before gate 5; no 7u; no seed 7013; Q by O55 and the maintainer.
+
+## Provenance
+
+- The design: the deep review after 7ae (deep-review-log.md, 28 Sep 22:52 UK) proposed P; the deep review of 29 Sep 08:56 UK added the openings read and the O50 split; the deep review after 7ag (29 Sep 11:30 UK) redesigned it (OPEN2, the decision log, O50 by survival and the whole score across all worlds, the world-aware 2x2, share 0.95 at three grids); the plan-auditor widened the openings to the 25 (review-log.md, 29 Sep, BLOCKING 1 on 7ag's record); the maintainer's go-ahead (PLAN.md, the ledger, 29 Sep 07:49 UK).
+- The build: solve.js switchCharge (3c2c84c) with research/tests/solver-switchcharge.test.mjs; audit-s126.mjs measureV2's switchCharge option and the diagP mode (73d1e1a and after); reduce-P.mjs with mutate-reduce-P.py; derive-P.mjs; batch-P.sh; preflight-P.sh with preflight-parse-P.mjs.
+- The records: results-7ae.txt, results-7ad.txt, results-7af.txt, results-7ag.txt, results-derive-P.txt; 7aa's, 7ac's, 7ad's, 7ae's, 7af's and 7ag's runs (read only through their reducers' gates).
+
+## Derivation script
+
+- `derive: research/solver/derive-P.mjs > research/solver/results-derive-P.txt sha256 e856248ce5cb1261`
+  (7ae's gated node traces: the margins' halves checked against the reducer's M1 and M2; S194's whole score at the node; the churn by band; power for items 1 to 3 by resampling 7ae's per-path differences to 16,000 paths, read by the reducer's thresholds).
+
+## Point and interval
+
+80% intervals, the author's:
+- Item 1: OPEN0/P less OPEN0/M0 pooled +0.1 (-0.3 to +0.5).
+- Item 2: OPEN2/P less OPEN2/1e-3 pooled -0.05 (-0.35 to +0.15).
+- Item 3: S194's whole score -0.05 (-0.35 to +0.15).
+- Item 4: S194's whole score across all worlds at margin 0 -0.08 (-0.3 to +0.1).
+- Item 5: every unit within 0.1 of 1e-3 across all worlds (survival and whole).
+- Item 7: the net share 1 point (-2 to 6).
+
+## Credence
+
+The author's probability that each item reads as predicted: 1 (HELD), 0.55; 2 (HELD), 0.55; 3 (HELD), 0.55; 4 (HELD), 0.45; 5 (HELD), 0.50; 6 (HELD), 0.55; 7 (HELD), 0.40. Items 1 to 3: the charge is the margin valued, and at margin 0 OPEN0 left in year 1 on every path, so P's plan-tier continuation should follow margin 0's; from the de-risked opening a valued switch should damp the mid-life re-risking O50 found - against it, the churn may be the world-blind chooser's whatever the friction (explanation 2), and power is about 0.8 at the prediction's truth. Item 4: world 0 is about a sixth of the paths, so the node's -0.500 dilutes to about -0.08; against it, the other worlds churn late too, and the interval across all worlds may reach past -0.25 (INCONCLUSIVE). Item 5: P and 1e-3 open alike on the three units at 30x5 in 7ae's gaps, but P changes every later decision's value; unmeasured. Item 6: at margin 0 TS+J opened de-risked at every grid 7ad ran (the gap lines' second tier), and P's residual gap should sit near margin 0's; share 0.95 has no grid record. Item 7: the nearest cell's read disagrees with the interpolated state both ways at any setting (solve.js l.1084-1087), and 7ae's year-1 split under 1e-3 was 14.0% against 10.6%; whether a consistent charge brings the net under 2 points is unmeasured. The scorecard stands at 0.224 over 98 items (results-scorecard.txt).
+
+## Power
+
+From results-derive-P.txt (4,000 draws a story; 16,000 paths drawn with replacement from 7ae's 8,000; q the share of paths taking the alternative's difference):
+- **Item 1:** P as predicted (q 0) HELD 0.799; the alternative (q 1) FALSIFIED 0.826; halfway (q 0.5) INCONCLUSIVE 0.946.
+- **Item 2:** q 0 HELD 0.795; q 1 FALSIFIED 0.810; q 0.5 INCONCLUSIVE 0.947.
+- **Item 3:** q 0 HELD 0.858; q 1 FALSIFIED 0.875.
+- **Items 4 and 5** (all worlds): no record at margin 0 or P across all worlds to draw from. 7af's whole-score intervals across all worlds at 8,000 paths on these units had half-widths near 0.1 to 0.25 (results-7af.txt: S126 0.244 to 0.442, bridge 4 0.223 to 0.465, S194 0.495 to 0.961, for arms far more different than these); at 16,000 about 0.7 of that. A true -0.08 on S194 then reads HELD only if the pair differs less than the bundle and the default did; INCONCLUSIVE is the likely reading otherwise (the pre-mortem).
+- **Item 6** reads solves (no sampling error); **item 7** reads thousands of path-years a unit where OPEN0/P holds (the 1,000 floor), a share's standard error well under a point.
+- **Time:** from 7ae's and 7ad's measured jobs under four-way load (a TS+J solve about 750 s; a rule on 8,000 node paths about 600 s; a 30x15 solve about 2,400 s, 60x5 about 2,000 s; 7af's openings solves about 850 s): a core job is a solve and four node rules on 16,000 paths with the decision log (assumed +30%) and an all-world run on 16,000 - about 8,200 s; nine of them, six grid jobs and 25 openings about 108,000 core-seconds, about 30 core-hours: about 7.5 hours on four cores. Each process is stopped at 5 hours; the longest job about 2.3 hours.
+
+## Budget line
+
+The maintainer's go-ahead for P (29 Sep 07:49 UK, the ledger); the redesign the deep review after 7ag asked for (the 11:30 row) - it decides which explanation carries families 1 and 2 and whether P is safe across all worlds, before any margin or charge design and before P could be a candidate; about 30 core-hours, about 7.5 hours on four cores.
+
+## Pre-mortem
+
+- **Most likely:** a mixed read - items 1 and 2 HELD with item 4 INCONCLUSIVE (the all-world interval reaching past -0.25) and item 7 INCONCLUSIVE because OPEN0/P leaves the plan's tiers in year 1 on nearly every path (the comparator unmeasured, as at margin 0 in 7ae).
+- **Second:** item 2 FALSIFIED - the charge damps late churn but not S194's mid-life re-risking: the world-blind chooser carries O50 (explanation 2).
+- **Third:** P's opening flips on share 0.95 across grids (item 6 INCONCLUSIVE): the Q branch unread, the opening a separate design.
+- **Fourth:** settings 0 or 1e-3 not 7ae's or 7aa's to the bit (the charge option changed a path it should not): NOT SETTLED, found before anything is read.
+- **Fifth:** the run takes longer than 7.5 hours (the decision log's cost on four rules is assumed): re-sized from the first finished jobs; each job's 5-hour stop is far above its estimate.
+- **The smoke run:** smoke.sh (locked) does not run diagP; the preflight through the launcher (every job at 4 points, every line through the reducer's parse and gate against the references' preflights, every trace's name, stamp and decision log, settings 0 and 1e-3 path by path against 7ae's and 7aa's preflights) covers it.
+
+## Changes after seeing results
+
+None.

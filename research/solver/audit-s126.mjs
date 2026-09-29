@@ -1544,12 +1544,13 @@ if (mode === 'f1v2') {
    *          with 7ae's decision log (years 1 to 10, the paths holding the plan's tiers) and its trace kept - TS+J (the
    *          setting's chooser), OPEN0 (the year-0 move held in the plan's tiers), OPEN2 (the year-0 move forced to the
    *          de-risked pair 2/2, the best such move), and WA (the world-aware chooser: every move scored on world 0's table
-   *          alone, the tables unchanged); and TS+J across all worlds on the first NA paths (the paths' own shifts), traced;
+   *          alone, the tables unchanged); and TS+J across all worlds on the first NA paths (the paths' own shifts; the first 8,000
+   *          7aa's), traced;
    *   grid - bridge 4, S194 and share 0.95 (the bundle's unit) at 30x15 and 60x5, P: the gap, moves, price and world lines;
    *   open - the 25 households of 7e's panel read by 7af (sixteen) and 7ag (nine), the bundle's unit (READER/TS+J/W0.02) at
    *          P: the gap, moves and price lines (the openings read that feeds the maintainer's Q decision, and shows where P
    *          moves the bundle's opening on every household the recommendation covers).
-   *   node research/solver/audit-s126.mjs diagP [points] [paths] part k/n [seed=7002] [node paths=16000] [all-world paths=8000]
+   *   node research/solver/audit-s126.mjs diagP [points] [paths] part k/n [seed=7002] [node paths=16000] [all-world paths=16000]
    * The preflight: DIAGP_GRID=4 runs every job at 4 wealth points, the return points as named. Traces go to results/diagP
    * (DIAGP_OUT when set), stamped. Jobs in the order core, grid, open (the longest first); part k/n runs index i % n === k.
    */
@@ -1564,7 +1565,7 @@ if (mode === 'f1v2') {
   const ARM = { off: false, reader: 'reader' };
   const known = [...F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]), ['bridge 4+cost', () => variant('bridge 4+cost', { bridge: 4, cost: [2, 30000] })]];
   const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
-  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002, WN = process.argv[8] ? Number(process.argv[8]) : 16000, NA = process.argv[9] ? Number(process.argv[9]) : 8000;
+  const SEED = process.argv[7] ? Number(process.argv[7]) : 7002, WN = process.argv[8] ? Number(process.argv[8]) : 16000, NA = process.argv[9] ? Number(process.argv[9]) : 16000;
   if (!(SEED >= 1) || !(WN >= 1) || WN > NP || !(NA >= 1) || NA > NP) { console.error(`audit-s126: bad seed, node or all-world paths ${process.argv[7]} ${process.argv[8]} ${process.argv[9]} (each at most the paths, ${NP})`); process.exit(2); }
   const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
   const [pk, pn] = part.split('/').map(Number);

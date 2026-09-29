@@ -18,7 +18,8 @@
  *     and cap;
  *   - SETTINGS 0 AND 1E-3 ARE 7AE'S SOLVES: their tables, gaps, openings, moves, prices and world lines are 7ae's; on the
  *     node's first 8,000 paths their TS+J and OPEN0 runs' survival is 7ae's traces', path by path; and the 1e-3 all-world
- *     run's survival is 7aa's TS+J unit's, path by path (the code changed: the charge option; the path count doubled);
+ *     run's first 8,000 paths' survival is 7aa's TS+J unit's, path by path (the code changed: the charge option; the path
+ *     counts doubled);
  *   - OPEN2's pair is the one 7ae's TS+J opened in at 1e-3 on all three units (2/2);
  *   - the moves: the opening holds the plan's tiers, STAY keeps them, the chosen move is BEST at margin 0 (at 1e-3 BEST where
  *     it leaves, STAY where it keeps), BEST equals STAY where the gap is 0 and leaves where it is above 0; the price: where
@@ -40,8 +41,9 @@
  *   3. O50's harm by the whole score, S194 at the node: OPEN2/P against OPEN2/1e-3 (reduce-7aa.mjs wholeLeg at 0.05). HELD if
  *      the lower end is above -MW; FALSIFIED if the upper end is below -MW; MW = 0.25.
  *   4. O50 across all worlds (the world-blind chooser's trade), S194: TS+J/M0 against TS+J/1e-3 by the whole score. HELD
- *      (the bad world's loss bought back elsewhere) if the lower end is above -MW; FALSIFIED (a loss the mixture does not buy
- *      back) if the upper end is below -MW.
+ *      (no material loss across all worlds: the bad world's loss diluted - world 0 carries about a sixth of the paths - or
+ *      bought back elsewhere, which this run does not split) if the lower end is above -MW; FALSIFIED
+ *      (a material loss across all worlds) if the upper end is below -MW.
  *   5. P across all worlds does no material harm: TS+J/P against TS+J/1e-3 on the three units, survival by the exact rule
  *      with Holm across 3 at 0.25 (HELD needs the guarded unconditional interval's lower end above -0.25 too) AND the whole
  *      score's lower end above -MW. HELD if every unit passes both; FALSIFIED if any reads harm (exact, Holm) or its whole
@@ -78,7 +80,7 @@ import * as G from './reduce-7ag.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-p.md';
 export const { LAMBDA, field } = A;
-export const N = 16000, WN = 16000, NA = 8000, SEED = '7002', CHARGE = '0.001', Z95 = 1.959963984540054, ALPHA = 0.05;
+export const N = 16000, WN = 16000, NA = 16000, SEED = '7002', CHARGE = '0.001', Z95 = 1.959963984540054, ALPHA = 0.05;
 // the margins: half 7ae's own pooled shifts from 1e-3 to 0 (OPEN0 +0.713, TS+J -0.462; results-7ae.txt; derive-P.mjs); the
 // whole score's and item 5's survival margin the regimen's 0.25
 export const M1 = 0.35, M2 = 0.23, MW = 0.25, M5 = 0.25;
@@ -286,7 +288,7 @@ export function loadTraces(jobs, DIR, ST, bad, TRE, TRA, wn = WN, na = NA) {
         if (mg === '1e-3') {
           const RA = TRA && TRA[`${j.id}|${j.arm}|${A.label('TS+J', j.w)}`];
           if (!RA) bad.push(`${f}: no 7aa TS+J unit to check it against`);
-          else if (RA.N !== na || !E.sameFirst(T.survived, RA.survived, na)) bad.push(`${f}: its survival is not 7aa's TS+J/W${j.w} unit's, path by path`);
+          else if (RA.N > na || !E.sameFirst(T.survived, RA.survived, RA.N)) bad.push(`${f}: its first ${RA.N} paths' survival is not 7aa's TS+J/W${j.w} unit's, path by path`);
         }
         TR[`${j.id}|${mg}|all`] = T;
       }
@@ -336,7 +338,7 @@ export function items(S, W, K, openings, LOG) {
   { const w = W('S194', 'world0', ['OPEN2', '1e-3'], ['OPEN2', 'P']);
     out.push({ n: 3, text: `O50's harm by the whole score, S194 at the node: OPEN2/P against OPEN2/1e-3 - the lower end above -${MW} (FALSIFIED: the upper end below -${MW})`, whole: w, outcome: tri(w.lo > -MW, w.hi < -MW) }); }
   { const w = W('S194', 'all', ['TS+J', '1e-3'], ['TS+J', '0']);
-    out.push({ n: 4, text: `O50 across all worlds, S194: TS+J at margin 0 against 1e-3 by the whole score - the lower end above -${MW}, the bad world's loss bought back (FALSIFIED: the upper end below -${MW}, a loss the mixture does not buy back)`, whole: w, outcome: tri(w.lo > -MW, w.hi < -MW) }); }
+    out.push({ n: 4, text: `O50 across all worlds, S194: TS+J at margin 0 against 1e-3 by the whole score - the lower end above -${MW}, no material loss across all worlds (the bad world's loss diluted or bought back; FALSIFIED: the upper end below -${MW}, a material loss across all worlds)`, whole: w, outcome: tri(w.lo > -MW, w.hi < -MW) }); }
   { const legs = CORE.map(([id]) => { const k = K(id, '1e-3', 'P'); return { id, k, p: mcnemarHarmP(k.lost, k.saved), w: W(id, 'all', ['TS+J', '1e-3'], ['TS+J', 'P']) }; });
     const adj = holm(legs.map(l => l.p));
     legs.forEach((l, i) => { l.pHolm = adj[i]; l.o = outcome({ b: l.k.lost, c: l.k.saved, N: l.k.N, margin: M5, pHolm: l.pHolm, level: ALPHA }); l.u = guardedU(l.k);
@@ -352,7 +354,7 @@ export function items(S, W, K, openings, LOG) {
 /* the Q branch (registered; the deep review of 29 Sep 08:56 UK, decision 2; read only where share 0.95's opening is one across
    the three grids, the deep review of 11:30): share 0.95's opening under P */
 export const qBranch = (open, stable) => (open === null ? 'not measured' : !stable ? 'not decided by this read: share 0.95\'s opening under P flips with the grid (item 6)'
-  : open ? 'P leaves the plan\'s tiers on share 0.95 at year 0, as margin 0 and Q do, at all three grids: Q\'s year-0 de-risk is P\'s to take; the bundle/+Q/+O36-fix 2x2 is not triggered by this read (the maintainer decides Q)'
+  : open ? 'P leaves the plan\'s tiers on share 0.95 at year 0, as margin 0 and Q do, at all three grids: Q\'s year-0 de-risk would be P\'s to take only if P ships (gate 5); until then the bundle/+Q/+O36-fix 2x2 stands before 7u unless the maintainer decides otherwise (O55)'
     : 'P keeps the plan\'s tiers on share 0.95 at year 0 at all three grids: the bundle/+Q/+O36-fix 2x2 is triggered before 7u (the deep review\'s decision 2; the maintainer decides Q)');
 
 const f3 = x => `${x >= 0 ? '+' : ''}${x.toFixed(3)}`;
@@ -436,7 +438,7 @@ function built(o = {}) {
       lines.push(`${P} ran ${L}: ${x.ran}`);
       if (!(o.noGap && mg === 'P' && kind === 'grid')) lines.push(`${P} gap ${L}: ${gap} opening ${gap === '0' ? '0,0' : (o.flip && g === '60x5' ? '1,1' : '2,2')}`);
       lines.push(`${P} joint ${L}: ${o.perWorld ? 'false' : 'true'} switchMargin ${o.margin && mg === 'P' ? o.margin : mg === '1e-3' ? (o.margin3 || '0.001') : '0'} switchCharge ${mg === 'P' ? (o.charge || CHARGE) : (o.charge0 || '0')} scale ${o.scale && kind === 'open' ? scale + 1 : scale} cap ${cap} deathTax ${o.death && kind === 'open' ? 0.4 : 0} tier own riskAbove off`);
-      const bt = gap === '0' ? '0/0' : (o.flip && g === '60x5' ? '1/1' : '2/2'), bi = gap === '0' ? 3 : 7;
+      const bt = gap === '0' ? '0/0' : (o.flip && g === '60x5' ? '1/1' : o.e1e3Pair && mg === '1e-3' ? '1/1' : '2/2'), bi = gap === '0' ? 3 : 7;
       lines.push(`${P} moves ${L}: best ${bi} ${bt} stay ${o.stayLeaves && mg === 'P' ? '4 1/1' : o.held && one ? '3 1/1' : '3 0/0'} chosen ${o.chosenStay && one && gap !== '0' ? '3 0/0' : `${bi} ${bt}`} held ${o.held && one ? '1/1' : '0/0'}`);
       const mx = o.price && mg === 'P' ? mix * 1.5 : mix;
       lines.push(`${P} price ${L}: mixture ${mx.toExponential(6)} like-for-like whole ${lflW.toExponential(6)} survival ${lfl === 0 ? (0).toExponential(6) : (lfl / 2).toExponential(6)}`);
@@ -452,7 +454,7 @@ function built(o = {}) {
         }
         if (!(o.noAll && pl)) lines.push(`${P} all ${L}: TS+J 99.0000 held0 ${o.allHeld && pl ? 7 : 0} paths ${o.allPaths && pl ? o.allPaths : NA} secs 60`);
       }
-      if (core && mg !== 'P') (E0[id] || (E0[id] = {}))[mg] = { table: x.table, ran: refRan, gap: { gap, open1e3: 2, open0: 2 }, joint: { scale, cap }, moves: { best: bi, bestTier: bt.split('/').map(Number), stay: 3, stayTier: [0, 0], chosen: bi, chosenTier: (mg === '1e-3' && o.e1e3Stay ? '0/0' : bt).split('/').map(Number), held: [0, 0] }, price: { mixture: +mx.toExponential(6), whole: +lfl.toExponential(6), surv: +(lfl / 2).toExponential(6) }, worlds: ws.map(([z, wt]) => ({ z: +z.toFixed(4), w: +wt.toFixed(4), whole: +lfl.toFixed(6), surv: +(lfl / 2).toFixed(6) })), node: { z: -1.7321 } };
+      if (core && mg !== 'P') (E0[id] || (E0[id] = {}))[mg] = { table: x.table, ran: refRan, gap: { gap, open1e3: 2, open0: 2 }, joint: { scale, cap }, moves: { best: bi, bestTier: bt.split('/').map(Number), stay: 3, stayTier: [0, 0], chosen: bi, chosenTier: bt.split('/').map(Number), held: [0, 0] }, price: { mixture: +mx.toExponential(6), whole: +lfl.toExponential(6), surv: +(lfl / 2).toExponential(6) }, worlds: ws.map(([z, wt]) => ({ z: +z.toFixed(4), w: +wt.toFixed(4), whole: +lfl.toFixed(6), surv: +(lfl / 2).toFixed(6) })), node: { z: -1.7321 } };
       if (core && mg !== 'P' && o.table0 === mg) E0[id][mg].table = '99.3000';
     }
     if (kind === 'grid' && id !== 'share 0.95') AD[`${id}|${g}`] = { ran: base, joint: { scale, cap } };
@@ -489,7 +491,7 @@ export function planted() {
   cases.push(['the gate refuses setting 0 whose table is not 7ae\'s', refused({ table0: '0' }), 'true']);
   cases.push(['the gate refuses setting 1e-3 whose table is not 7ae\'s', refused({ table0: '1e-3' }), 'true']);
   cases.push(['the gate refuses setting 1e-3 solved at margin 0', refused({ margin3: '0' }), 'true']);
-  cases.push(['the gate refuses 7ae\'s 1e-3 opening outside the de-risked pair (OPEN2 would not be its opening)', refused({ e1e3Stay: true }), 'true']);
+  cases.push(['the gate refuses 7ae\'s 1e-3 opening outside the de-risked pair (OPEN2 would not be its opening)', refused({ e1e3Pair: true }), 'true']);
   cases.push(['the gate refuses an opening holding other than the plan\'s tiers', refused({ held: true }), 'true']);
   cases.push(['the gate refuses a STAY move leaving the held tiers', refused({ stayLeaves: true }), 'true']);
   cases.push(['the gate refuses a chosen move that is not BEST', refused({ chosenStay: true }), 'true']);
@@ -534,10 +536,11 @@ export function planted() {
     const surv = { 'OPEN0|0': o0, 'OPEN0|P': oP, 'OPEN2|1e-3': a3, 'OPEN2|P': aP };
     const S = (rule, m) => Array.from({ length: U }, () => B(n, surv[`${rule}|${m}`]));
     const W = (id, where, a, b) => { const d = where === 'world0' ? wOff : a[1] === '1e-3' && b[1] === '0' ? w4 : w5; return { d, lo: d - 0.1, hi: d + 0.1, sd: d, rest: 0 }; };
-    const K = () => ({ a: n - 50 - k5.lost - k5.saved, lost: k5.lost, saved: k5.saved, d: 50, N: n });
+    const K = (id, ma, mb) => (ma === '1e-3' && mb === 'P' ? { a: n - 50 - k5.lost - k5.saved, lost: k5.lost, saved: k5.saved, d: 50, N: n } : { a: n - 50 - k5.lost - k5.saved, lost: k5.saved, saved: k5.lost, d: 50, N: n });   // the other order swaps the cells
     const op = Object.fromEntries(Object.entries(open).map(([id, g]) => [id, { '30x5': g[0], '30x15': g[1], '60x5': g[2] }]));
     const lg = Array.from({ length: 11 }, (_, y) => (y ? { held: held / 7, fwdHoldCellLeave: (held / 7) * (0.02 + net), fwdLeaveCellHold: (held / 7) * 0.02 } : null));
-    const LOG = () => [lg];
+    const other = Array.from({ length: 11 }, (_, y) => (y ? { held: 1000, fwdHoldCellLeave: 120, fwdLeaveCellHold: 20 } : null));
+    const LOG = (m, rule) => (m === 'P' && rule === 'OPEN0' ? [lg] : [other]);   // any other log reads a net of 10 points
     return items(S, W, K, op, LOG).map(i => i.outcome).join(' ');
   };
   cases.push(['the items: P as the uncharged-margin explanation says, and robust: all HELD', mk(), 'HELD HELD HELD HELD HELD HELD HELD']);
@@ -550,6 +553,7 @@ export function planted() {
   cases.push(['item 4 reads margin 0 against 1e-3 across all worlds, not P: margin 0 at -0.6 is FALSIFIED with P level', `${mk({ w4: -0.6 }).split(' ')[3]} ${mk({ w4: -0.6 }).split(' ')[4]}`, 'FALSIFIED HELD']);
   cases.push(['item 5 needs the whole score too: survival level but P\'s whole at -0.2 is INCONCLUSIVE, at -0.4 FALSIFIED', `${mk({ w5: -0.2 }).split(' ')[4]} ${mk({ w5: -0.4 }).split(' ')[4]}`, 'INCONCLUSIVE FALSIFIED']);
   cases.push(['item 5 by survival: 60 lost of 8,000 against none saved is harm', mk({ k5: { lost: 60, saved: 0 } }).split(' ')[4], 'FALSIFIED']);
+  cases.push(['item 5 with Holm across 3: 55 lost, 35 saved (one-sided p under 0.05 alone, over it after Holm) is not harm', mk({ k5: { lost: 55, saved: 35 } }).split(' ')[4], 'INCONCLUSIVE']);
   cases.push(['item 5 HELD needs the guarded unconditional end: 12 lost, 0 saved (exact inside, unconditional not) is not HELD', mk({ k5: { lost: 12, saved: 0 } }).split(' ')[4] !== 'HELD' ? 'not HELD' : 'HELD', 'not HELD']);
   cases.push(['item 6: one unit flipping is INCONCLUSIVE; an ISA tier flip counts', `${mk({ open: { 'bridge 4': [[2, 2], [0, 0], [2, 2]], S194: [[2, 2], [2, 2], [2, 2]], 'share 0.95': [[2, 2], [2, 2], [2, 2]] } }).split(' ')[5]} ${mk({ open: { 'bridge 4': [[2, 2], [2, 1], [2, 2]], S194: [[2, 2], [2, 2], [2, 1]], 'share 0.95': [[2, 1], [2, 2], [2, 2]] } }).split(' ')[5]}`, 'INCONCLUSIVE FALSIFIED']);
   cases.push(['item 7: net 3 points is INCONCLUSIVE, under the held path-years floor INCONCLUSIVE', `${mk({ net: 0.03 }).split(' ')[6]} ${mk({ held: 700 }).split(' ')[6]}`, 'INCONCLUSIVE INCONCLUSIVE']);

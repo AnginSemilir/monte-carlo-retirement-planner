@@ -157,7 +157,7 @@ THE ITEMS (each read by its registered rule)
      bridge 4       6 saved/2 lost of 8000  p 9.6e-1  Holm 1.0e+0  change +0.050 (-0.030 to 0.094; unconditional -0.030 to 0.138)  margin 0.25  -> no material harm
      S360           931 saved/0 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +11.637 (11.545 to 11.637; unconditional 10.934 to 12.360)  margin 0.5  -> no material harm
      S194           45 saved/3 lost of 8000  p 1.0e+0  Holm 1.0e+0  change +0.525 (0.394 to 0.584; unconditional 0.361 to 0.711)  margin 0.25  -> no material harm
-2. spending delivered: no household's spending more than 5% lower and the panel mean not more than 1% lower, each by its 95% interval (FALSIFIED: a household's upper end below -5% or the mean's below -1%): HELD
+2. spending while both arms spend: no household's spending more than 5% lower and the panel mean not more than 1% lower, each by its 95% interval (FALSIFIED: a household's upper end below -5% or the mean's below -1%): HELD
      share 0.50     while both spend (8000 paths) 1.0913 -> 1.0931: +0.163% (0.145 to 0.182) | reported, a failed path's years 0: +0.175%
      share 0.70     while both spend (8000 paths) 1.0888 -> 1.0955: +0.611% (0.571 to 0.650) | reported, a failed path's years 0: +0.635%
      share 0.78     while both spend (8000 paths) 1.0890 -> 1.0885: -0.044% (-0.052 to -0.037) | reported, a failed path's years 0: -0.043%

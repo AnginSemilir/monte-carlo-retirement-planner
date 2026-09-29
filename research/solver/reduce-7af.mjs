@@ -105,7 +105,7 @@ export const traceName = A.traceName;
 export const traceAgrees = (j, ST, arm, l, sim, n = N) => !!(j && ST && j.stamp && j.N === n && String(j.seed) === SEED && j.arm === `${arm}/${l}` && ['code', 'audit', 'prediction', 'sha'].every(k => j.stamp[k] === ST[k]) && Math.abs(j.sim - sim) <= SIM_TOL);
 export const sameBits = (a, b) => !!a && !!b && a.length === b.length && a.every((x, i) => x === b[i]);
 
-/* spending delivered: the mean over paths of each path's mean spend level (0 to 1.1) over the spending years `sy` */
+/* spending (item 2 reads it while both arms spend): the mean over paths of each path's mean spend level (0 to 1.1) over the spending years `sy` */
 export function spendPaths(T, sy) {
   const n = sy.reduce((t, x) => t + (x ? 1 : 0), 0), out = new Float64Array(T.N);
   if (!n) return out;
@@ -146,7 +146,7 @@ export function items(K, SIM, SP) {
     legs.forEach((l, i) => { l.pHolm = adj[i]; const o = outcome({ b: l.k.lost, c: l.k.saved, N: l.k.N, margin: l.margin, pHolm: l.pHolm, level: ALPHA }); l.iv = o; l.o = o.outcome; });
     out.push({ n: 1, text: 'no material harm: the candidate (READER/TS+J) against the shipping default (OFF/PRODUCT) on every household, the exact rule with Holm across the 16 (FALSIFIED: harm on any)', legs,
       outcome: tri(legs.every(l => l.o === 'no material harm'), legs.some(l => l.o === 'harm')) }); }
-  // 2. spending delivered
+  // 2. spending while both arms spend
   { const legs = PANEL.map(([id]) => ({ id, ...SP(id).change })), diffs = PANEL.map(([id]) => SP(id));
     // the panel mean of the relative changes: the households share their paths, so its se is taken from the per-path mean
     // of the households' relative differences (each household's rel scaled so its mean over all paths is its change)
@@ -154,7 +154,7 @@ export function items(K, SIM, SP) {
     for (const x of diffs) for (let i = 0; i < nP; i++) m[i] += x.rel[i] / diffs.length;
     let mu = 0; for (let i = 0; i < nP; i++) mu += m[i]; mu /= nP; let v = 0; for (let i = 0; i < nP; i++) v += (m[i] - mu) ** 2;
     const se = Math.sqrt(v / (nP - 1) / nP), z = zFor(ALPHA), mean = { d: mu, lo: mu - z * se, hi: mu + z * se };
-    out.push({ n: 2, text: 'spending delivered: no household\'s spending more than 5% lower and the panel mean not more than 1% lower, each by its 95% interval (FALSIFIED: a household\'s upper end below -5% or the mean\'s below -1%)', legs, mean,
+    out.push({ n: 2, text: 'spending while both arms spend: no household\'s spending more than 5% lower and the panel mean not more than 1% lower, each by its 95% interval (FALSIFIED: a household\'s upper end below -5% or the mean\'s below -1%)', legs, mean,
       outcome: tri(legs.every(l => l.lo > SPEND_H) && mean.lo > SPEND_M, legs.some(l => l.hi < SPEND_H) || mean.hi < SPEND_M) }); }
   return out;
 }

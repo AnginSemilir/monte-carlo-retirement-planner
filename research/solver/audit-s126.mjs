@@ -1446,7 +1446,7 @@ if (mode === 'f1v2') {
     }
     console.log(`${''.padEnd(16)} done ${A}/W${w}`);
   });
-} else if (mode === 'diag7af' || mode === 'diag7ag') {
+} else if (mode === 'diag7af' || mode === 'diag7ag' || mode === 'diag7ah') {
   /*
    * 7AF: THE CANDIDATE BUNDLE AGAINST THE SHIPPING DEFAULT (PLAN.md 7af; predictions/diag-7af.md; the deep review after 7ae,
    * deep-review-log.md 28 Sep 22:52 UK, which designed it under the maintainer's steer of 22:10 UK). Every solve at the
@@ -1468,13 +1468,21 @@ if (mode === 'f1v2') {
    * 7af's S126 units path by path (the plan-auditor's BLOCKING 1 of 29 Sep: does the tier state repair the reader's error
    * on S126, or add a gain of its own beside it?).
    *   node research/solver/audit-s126.mjs diag7ag [points=30] [paths] part k/n [seed=7002]
+   * 7AH (PLAN.md 7ah; predictions/diag-7ah.md; O36's fix, the reader's reference drawn pot by pot in the menu's better
+   * order, solve.js readerRef 'order'): the bundle (READER/TS+J) and the bundle with the order reference (ORDER/TS+J, the
+   * same solve with readerRef 'order') on the six panel households whose bridge is three years or more (bridge 4, bridge 6
+   * and S360 from 7af; S366, S370 and bridge 4+cost from 7ag), each at the product's default estate weight 0.02 and its
+   * lowest reachable 0.01 (the whole-score rule's two settings, the maintainer, 29 Sep 09:08 UK); the same lines and traces
+   * as 7af, in results/diag7ah (DIAG7AH_OUT); READER/TS+J/W0.02 is 7af's and 7ag's CAND solved again on this code, held to
+   * theirs path by path by the reducer. No SHIP or PRODR units.
+   *   node research/solver/audit-s126.mjs diag7ah [points=30] [paths] part k/n [seed=7002]
    */
-  const AG = mode === 'diag7ag';
-  const PANEL7AF = AG ? [['S124', 2], ['S128', 2], ['S130', 2], ['S366', 8], ['S370', 8], ['bridge 4+cost', 4], ['S162', 2], ['S172', 2], ['S168', 2]] : [['share 0.50', 2], ['share 0.70', 2], ['share 0.78', 2], ['share 0.90', 2], ['share 0.95', 2], ['bridge 0', 0], ['bridge 1', 1], ['bridge 6', 6],
+  const AG = mode === 'diag7ag', AH = mode === 'diag7ah';
+  const PANEL7AF = AH ? [['bridge 4', 4], ['bridge 6', 6], ['S360', 8], ['S366', 8], ['S370', 8], ['bridge 4+cost', 4]] : AG ? [['S124', 2], ['S128', 2], ['S130', 2], ['S366', 8], ['S370', 8], ['bridge 4+cost', 4], ['S162', 2], ['S172', 2], ['S168', 2]] : [['share 0.50', 2], ['share 0.70', 2], ['share 0.78', 2], ['share 0.90', 2], ['share 0.95', 2], ['bridge 0', 0], ['bridge 1', 1], ['bridge 6', 6],
     ['wealth x0.5', 2], ['wealth x2', 2], ['S120', 2], ['S122', 2], ['S126', 2], ['bridge 4', 4], ['S360', 8], ['S194', 0]];
-  const UNITS7AF = [...PANEL7AF.map(([id]) => [id, 'reader', 'TS+J']), ...PANEL7AF.map(([id]) => [id, 'off', 'PRODUCT']),
+  const UNITS7AF = AH ? [0.02, 0.01].flatMap(w => ['order', 'reader'].flatMap(arm => PANEL7AF.map(([id]) => [id, arm, 'TS+J', w]))) : [...PANEL7AF.map(([id]) => [id, 'reader', 'TS+J']), ...PANEL7AF.map(([id]) => [id, 'off', 'PRODUCT']),
     ...PANEL7AF.filter(([, b]) => b > 0).map(([id]) => [id, 'reader', 'PRODUCT']), ...(AG ? [['S126', 'off', 'TS+J']] : [])];
-  const W7AF = 0.02, ARM = { off: false, reader: 'reader' };
+  const W7AF = 0.02, ARM = { off: false, reader: 'reader', order: 'reader' };
   const known = [...F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]), ['bridge 4+cost', () => variant('bridge 4+cost', { bridge: 4, cost: [2, 30000] })]];
   const byId = id => { const k = known.find(x => x[0] === id); return k ? k[1] : () => all.find(s => s.id === id); };
   const SEED = process.argv[7] ? Number(process.argv[7]) : 7002;
@@ -1482,9 +1490,10 @@ if (mode === 'f1v2') {
   const part = process.argv[5] === 'part' ? process.argv[6] : '0/1';
   const [pk, pn] = part.split('/').map(Number);
   if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-s126: bad part ${part}`); process.exit(2); }
-  const OUT = AG ? (process.env.DIAG7AG_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7ag')) : (process.env.DIAG7AF_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7af'));
+  const OUT = AH ? (process.env.DIAG7AH_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7ah')) : AG ? (process.env.DIAG7AG_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7ag')) : (process.env.DIAG7AF_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diag7af'));
   mkdirSync(OUT, { recursive: true });
-  console.log(`${AG ? '7AG, on the nine remaining panel households, ' : '7AF, '}the candidate bundle (READER/TS+J) against the shipping default (OFF/PRODUCT) and the product with the reader (READER/PRODUCT) on bridge households, the product's settings (solvePlan) with the estate weight ${W7AF}, ${POINTS} points, ${NP} paths (seed ${SEED}), margin 1e-3; ${UNITS7AF.length} units; part ${pk}/${pn}`);
+  if (AH) console.log(`7AH, O36's fix: the bundle (READER/TS+J) against the bundle with the reader's reference drawn pot by pot in the menu's better order (ORDER/TS+J, readerRef 'order') on the six households whose bridge is three years or more, at the estate weights 0.02 and 0.01, ${NP} paths (seed ${SEED}); part ${part}`);
+  else console.log(`${AG ? '7AG, on the nine remaining panel households, ' : '7AF, '}the candidate bundle (READER/TS+J) against the shipping default (OFF/PRODUCT) and the product with the reader (READER/PRODUCT) on bridge households, the product's settings (solvePlan) with the estate weight ${W7AF}, ${POINTS} points, ${NP} paths (seed ${SEED}), margin 1e-3; ${UNITS7AF.length} units; part ${pk}/${pn}`);
   const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
   const chooseAt = (r, st, t, held, sm) => { const keep = r.switchMargin; r.switchMargin = sm; try { return chooseAction(r, st, t, held); } finally { r.switchMargin = keep; } };
   const openGap = (r, zs) => {
@@ -1506,16 +1515,17 @@ if (mode === 'f1v2') {
     return { sim: 100 * ok / N, below: below / N, tierYrs: tierYrs / N, changes: changes / N, estate: estate / N, okArr, tr, secs: (Date.now() - t0) / 1000 };
   };
   const fileOf = (id, arm, label) => `${id.replace(/ /g, '_')}-${arm}-${label.toLowerCase().replace(/\+/g, '_').replace(/\//g, '@')}.json.gz`;
-  UNITS7AF.forEach(([id, arm, tag], i) => {
+  UNITS7AF.forEach(([id, arm, tag, wU = W7AF], i) => {
     if (i % pn !== pk) return;
     const h = byId(id)();
     if (!h) { console.error(`audit-s126: no case ${id}`); process.exit(2); }
-    const A = arm.toUpperCase(), label = `${tag}/W${W7AF}`;
+    const A = arm.toUpperCase(), label = `${tag}/W${wU}`;
     console.log(`${id.padEnd(16)} case | unit ${A}/${label} | lambda ${LAMBDA} tier own riskAbove auto mix 3`);
-    const res = measureV2(h, ARM[arm], 5, { trace: false, seed: SEED, lambda: LAMBDA, forward: false, bequestWeight: W7AF, ...(tag === 'TS+J' ? { tierState: true, joint: true } : {}) });
+    const res = measureV2(h, ARM[arm], 5, { trace: false, seed: SEED, lambda: LAMBDA, forward: false, bequestWeight: wU, ...(tag === 'TS+J' ? { tierState: true, joint: true } : {}), ...(arm === 'order' ? { readerRef: 'order' } : {}) });
     const r = res.r;
     if ((tag === 'TS+J') !== !!r.meta.tierState || (tag === 'TS+J') !== !!r.meta.jointWorlds) { console.error(`audit-s126: ${label} ran tierState ${r.meta.tierState} jointWorlds ${r.meta.jointWorlds}`); process.exit(2); }
-    if (!(Math.abs(r.meta.bequestWeight - W7AF) < 1e-12)) { console.error(`audit-s126: ${label} ran the estate weight ${r.meta.bequestWeight}`); process.exit(2); }
+    if ((arm === 'order') !== (r.meta.readerRef === 'order')) { console.error(`audit-s126: ${A}/${label} ran the reference ${r.meta.readerRef}`); process.exit(2); }
+    if (!(Math.abs(r.meta.bequestWeight - wU) < 1e-12)) { console.error(`audit-s126: ${label} ran the estate weight ${r.meta.bequestWeight}`); process.exit(2); }
     const ra = r.meta.riskAbove ? r.meta.riskAbove.decision.replace(/ /g, '_') : 'unset';
     console.log(`${''.padEnd(16)} solve ${A}/${label}: table ${res.table.toFixed(4)} secs ${Math.round(res.secs)}`);
     console.log(`${''.padEnd(16)} ran ${A}/${label}: ${res.ran}`);

@@ -10,7 +10,7 @@
  *   and OFF/PRODUCT on S194 (the shipping default, where O66 was seen; the deep review after 7ai, 30 Sep 18:03 UK, its (3)).
  * The tier convention is the import's linear one, as 7ah, 7ag and 7af solved (O66's size under the blend NOT CHECKED).
  * Per unit:
- *   1. THE REFERENCE AGAINST THE ENGINE (the first item; 7ah's Decision fed's by-world calibration): for each market world
+ *   1. THE REFERENCE AGAINST THE ENGINE (reported, not an item: predictions/diag-7al.md's declared choice; the reviews' first item; 7ah's Decision fed's by-world calibration): for each market world
  *      k, the reader's year-0 reference chance at the opening accessible money (r.g.reader.chanceOf(k, 0), the solve's own)
  *      against the share of the engine's paths at world k's node that pay every bridge bill (no failure before access),
  *      and beside both the reference's OWN draw on the same paths (the deep review after 7ai, its (1): the policy spends
@@ -75,7 +75,7 @@ const bandOf = c => BANDS.find(([lo, hi]) => c >= lo && c < hi)[2];
 if (process.argv[2] === '--units') { console.log(UNITS.length); process.exit(0); }
 console.log(`7AL, THE STAGE-BY-STAGE CALIBRATION: TS+J (and the shipping default on S194) at the estate weight ${W}, ${POINTS} points, ${NPW} paths a world at each world's node (seed ${SEED}): the reader's year-0 reference against its own draw and the engine's bridge payment by world, and each world's table claim against its next along the policy's own paths, by year, stage, share and wealth position and claim band; ${UNITS.length} units; part ${pk}/${pn}`);
 
-// the reference's own draw on the node paths (item 1): the schedule chanceOf kept (bills from year 0, the linear
+// the reference's own draw on the node paths (reading 1 above, reported): the schedule chanceOf kept (bills from year 0, the linear
 // reference's rho and vol, or 'order''s per-pot rates and draw orders), the path's own yearly shock; paths paying every
 // bill to within 1 (orderChance's tol), counted; for 'order' the best order's count
 export const ownDraw = (sc, wt, v0, zpaths, tol = 1) => {

@@ -32,8 +32,9 @@
  *   3. THE STAGE RESIDUAL PER PATH (the test's unit: path-years on one path are not independent, but the residual summed
  *      over a stage telescopes to the claim at the stage's start less the claim at its end, one value a path): the bridge
  *      stage, each path's claim at year 0 less its claim at access (0 when it failed before access, as the outcome is);
- *      the after stage, each path alive at access, its claim there less its outcome (100 or 0). Mean and standard
- *      deviation over the stage's paths, per world.
+ *      the after stage, each path alive at access, its claim there less its outcome (100 or 0). Per world: the stage's
+ *      paths, the mean claim at its start and at its end, the residual's mean and standard deviation, and the paths that
+ *      come through it (alive at access for the bridge; surviving the plan for the after stage: the exact test's count).
  * Prints per unit: case, solve, ran, gap, joint (7aa's lines, for the identity gate), access, bridgeref per world (the
  * reference, its own draw and the engine's payment), node per world, resid per world and year, cell per world, stage and
  * share position, wcell per world, stage and wealth position, band per world, stage and claim band, stage per world
@@ -193,21 +194,21 @@ UNITS.forEach(([id, A, SET], i) => {
     for (let t = 0; t <= T; t++) { const y = byYear[t]; console.log(`${''.padEnd(16)} resid ${L} world ${k} year ${t}: paths ${y.n} table ${y.n ? (y.c / y.n).toFixed(4) : '-'} next ${y.n ? (y.nx / y.n).toFixed(4) : '-'}`); }
     // the per-path stage residual (item 3 above)
     for (const stg of ['bridge', 'after']) {
-      const v = [];
+      const v = []; let c0 = 0, c1 = 0, thru = 0;
       for (let j = 0; j < N; j++) {
         const at = t => claim[j * (T + 2) + t];
         if (stg === 'bridge') {
           if (!(access > 0) || at(0) !== at(0)) continue;
           const e = access <= T && at(access) === at(access) ? at(access) : (access > T ? 100 * ok[j] : 0);
-          v.push(at(0) - e);
+          v.push(at(0) - e); c0 += at(0); c1 += e; if (access > T ? ok[j] : at(access) === at(access)) thru++;
         } else {
           if (!(access <= T) || at(access) !== at(access)) continue;
-          v.push(at(access) - 100 * ok[j]);
+          v.push(at(access) - 100 * ok[j]); c0 += at(access); c1 += 100 * ok[j]; if (ok[j]) thru++;
         }
       }
       const mean = v.length ? v.reduce((t, x) => t + x, 0) / v.length : NaN;
       const sd = v.length > 1 ? Math.sqrt(v.reduce((t, x) => t + (x - mean) * (x - mean), 0) / (v.length - 1)) : NaN;
-      console.log(`${''.padEnd(16)} stage ${L} world ${k} ${stg}: paths ${v.length} mean ${v.length ? mean.toFixed(4) : '-'} sd ${v.length > 1 ? sd.toFixed(4) : '-'}`);
+      console.log(`${''.padEnd(16)} stage ${L} world ${k} ${stg}: paths ${v.length} start ${v.length ? (c0 / v.length).toFixed(4) : '-'} end ${v.length ? (c1 / v.length).toFixed(4) : '-'} through ${thru} mean ${v.length ? mean.toFixed(4) : '-'} sd ${v.length > 1 ? sd.toFixed(4) : '-'}`);
     }
     for (const [tag, set] of [['cell', cells], ['wcell', wcells], ['band', bands]]) for (const [key, q] of Object.entries(set)) console.log(`${''.padEnd(16)} ${tag} ${L} world ${k} ${key}: pathyears ${q.n} table ${q.n ? (q.c / q.n).toFixed(4) : '-'} next ${q.n ? (q.nx / q.n).toFixed(4) : '-'}`);
   }

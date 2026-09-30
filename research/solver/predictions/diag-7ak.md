@@ -69,7 +69,7 @@ The "arms" are the chooser re-scored at the path's own state and at the state wi
 ## Provenance
 
 - The design: the deep review after P (deep-review-log.md, 29 Sep 23:31 UK); P's records (results-P.txt, results-P-slices.txt); the plan's 7ak row.
-- The build: grid.js g.readerAcc (research hook, unset in every other path), research/solver/snap.mjs, audit-7ak.mjs, reduce-7ak.mjs (planted 24; mutations 13 of 13 caught on the first build, results-reduce-7ak-mutations.txt, and each check added since - the resid and access gate, the stage split, the empty-line and empty-class handling - caught by its own mutation, 30 Sep), preflight-7ak.sh, preflight-parse-7ak.mjs, batch-7ak.sh, derive-7ak.mjs; research/tests/snap-7ak.test.mjs (8 passed, results-snap-7ak.txt).
+- The build: grid.js g.readerAcc (research hook, unset in every other path), research/solver/snap.mjs, audit-7ak.mjs, reduce-7ak.mjs (planted 25; mutations 13 of 13 caught on the first build, results-reduce-7ak-mutations.txt, and each check added since - the resid and access gate, the stage split, the empty-line and empty-class handling, reading() on an empty class - caught by its own mutation, 30 Sep), preflight-7ak.sh, preflight-parse-7ak.mjs, batch-7ak.sh, derive-7ak.mjs; research/tests/snap-7ak.test.mjs (8 passed, results-snap-7ak.txt).
 - The records: P's runs (results/diagP), read through their stamps and held by the gate.
 
 ## Derivation script

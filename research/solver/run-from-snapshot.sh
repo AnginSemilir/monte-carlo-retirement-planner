@@ -57,6 +57,8 @@ else
     node "$DS" | cmp -s - "$DO" || { echo "=== REFUSED: $DS no longer prints $DO: the derivation moved after the prediction recorded it" >&2; exit 1; }
     echo "=== derivation $DS reproduced (sha256 $DH)"
   done < <(sed -n 's/^[[:space:]]*-\{0,1\}[[:space:]]*`\{0,1\}derive: \([^ ]*\) > \([^ ]*\) sha256 \([0-9a-f]\{16\}\)`\{0,1\}.*$/\1 \2 \3/p' "$PRED")
+  # OUTCOME COVERAGE (RULES.md section 10; the maintainer's unlock of 30 Sep): the reducer's plants reach every outcome
+  node research/solver/check-prediction.mjs --outcomes "$PRED" >&2 || { echo "=== REFUSED: outcome coverage (check-prediction.mjs --outcomes)" >&2; exit 1; }
   export PREDICTION_FILE="$PRED" PREDICTION_SHA="$(git hash-object "$PRED")"
   echo "=== prediction $PRED, registered in $(git log -1 --format='%h' -- "$PRED") at $(TZ=Europe/London git log -1 --format='%cd' --date=format-local:'%d %b %H:%M UK' -- "$PRED")"
 fi

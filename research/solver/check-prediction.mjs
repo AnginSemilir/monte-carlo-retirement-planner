@@ -24,10 +24,17 @@
  * in the scripts it names (lines that are not comments) and refuses a reserved seed under any other prediction or under
  * a measurement, and a seed the prediction's Seeds field does not declare:
  *   node research/solver/check-prediction.mjs --seeds <prediction.md | none> --text "<command>" [script ...]
+ * OUTCOME COVERAGE (RULES.md section 10, the feedback loop's amendment 7; the maintainer's unlock of 30 Sep): a test first
+ * committed from OUTCOMES_FROM on names its reducer on the Run line (reduce-<name>.mjs), and that reducer's --planted run
+ * prints "OUTCOMES REACHED: item <n>: <outcome>, ..." for each item: each item reaches 3 outcomes or more by a plant, and
+ * every one of HELD, FALSIFIED and INCONCLUSIVE its Decision fed names is reached (7al's first design could never read
+ * FALSIFIED, and nothing noticed). The launcher runs it:
+ *   node research/solver/check-prediction.mjs --outcomes <prediction.md>
  * Its limit: a seed a script takes by default (audit-s126.mjs and experiment.mjs default to 7002) is not in any text
  * the launcher reads; no reserved seed is anyone's default.
  */
 import { readFileSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VARIABLES } from './fair-variables.mjs';
@@ -152,6 +159,21 @@ export function checkPredictionText(text, { name } = {}) {
   return errs;
 }
 
+export const OUTCOMES_FROM = Date.parse('2026-09-30T19:30:00+01:00');
+export const OUTCOME_WORDS = ['HELD', 'FALSIFIED', 'INCONCLUSIVE'];
+/* the reducer's plants against the prediction's outcomes; returns the problems */
+export function outcomeProblems(predText, plantedOutput) {
+  const items = [...String(plantedOutput).matchAll(/^OUTCOMES REACHED: item (\S+): (.+)$/gm)].map(m => ({ item: m[1], outcomes: new Set(m[2].split(',').map(x => x.trim()).filter(Boolean)) }));
+  if (!items.length) return ['the reducer\'s --planted run prints no "OUTCOMES REACHED: item <n>: ..." line'];
+  const P = [];
+  for (const it of items) if (it.outcomes.size < 3) P.push(`item ${it.item}: its plants reach ${[...it.outcomes].join(', ') || 'nothing'}, fewer than 3 outcomes`);
+  const fed = (/^## Decision fed[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(String(predText)) || [])[1] || '';
+  const all = new Set(items.flatMap(it => [...it.outcomes]));
+  for (const w of OUTCOME_WORDS) if (new RegExp(`\\b${w}\\b`).test(fed) && !all.has(w)) P.push(`the Decision fed names ${w}, which no plant reaches`);
+  return P;
+}
+export const reducerOf = predText => (/^- \*\*Run:\*\*.*?\b(reduce-[\w-]+\.mjs)/m.exec(String(predText)) || [])[1] || null;
+
 export function checkPredictionFile(file) {
   if (!existsSync(file)) return [`no such file: ${file}`];
   return checkPredictionText(readFileSync(file, 'utf8'), { name: file });
@@ -170,6 +192,21 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1] && pro
   const errs = seedLaunchProblems({ name, predText: name ? readFileSync(name, 'utf8') : '', texts });
   if (errs.length) { console.log(`the seed registry refuses this launch:\n${errs.map(e => `  - ${e}`).join('\n')}`); process.exit(1); }
   console.log(`seeds: ${seedsIn(texts.join('\n')).map(s => `${s} (${SEED_REGISTRY[s]})`).join(', ') || 'none registered in the command or its scripts'}`);
+  process.exit(0);
+}
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1] && process.argv[2] === '--outcomes') {
+  const pred = process.argv[3];
+  if (!pred || !existsSync(pred)) { console.error('usage: check-prediction.mjs --outcomes <prediction.md>'); process.exit(2); }
+  const text = readFileSync(pred, 'utf8');
+  let first = null; try { first = Date.parse(execFileSync('git', ['log', '--diff-filter=A', '--format=%cI', '--', pred]).toString().trim().split('\n').pop()); } catch { first = null; }
+  if (first !== null && !Number.isNaN(first) && first < OUTCOMES_FROM) { console.log(`outcomes: ${basename(pred)} was registered before outcome coverage (exempt)`); process.exit(0); }
+  if (!/^- \*\*Kind:\*\*\s*test/mi.test(text)) { console.log('outcomes: a measurement has no outcomes to reach'); process.exit(0); }
+  const red = reducerOf(text);
+  if (!red || !existsSync(`research/solver/${red}`)) { console.log(`outcome coverage refuses this launch: the Run line names no reducer (reduce-<name>.mjs) that exists${red ? ` (${red})` : ''}`); process.exit(1); }
+  let out = ''; try { out = execFileSync('node', [`research/solver/${red}`, '--planted']).toString(); } catch (e) { console.log(`outcome coverage refuses this launch: ${red} --planted failed\n${String(e.stdout || '')}`); process.exit(1); }
+  const P = outcomeProblems(text, out);
+  if (P.length) { console.log(`outcome coverage refuses this launch (${red}):\n${P.map(e => `  - ${e}`).join('\n')}`); process.exit(1); }
+  console.log(`outcomes: ${red} reaches every registered outcome (${out.split('\n').filter(l => l.startsWith('OUTCOMES REACHED')).join('; ')})`);
   process.exit(0);
 }
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

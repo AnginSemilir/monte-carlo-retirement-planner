@@ -39,7 +39,7 @@
  * their own world's policy while the paths run the mixture's, so its residual carries that policy gap too; the residual
  * pooled by share position, wealth position and claim band; and the per-year residual.
  *   node research/solver/reduce-7al.mjs [dir] [dir7ah] [dir7ag] [dir7aa] [dir7af] > research/solver/results-7al.txt
- *   node research/solver/reduce-7al.mjs --planted   the planted checks alone
+ *   node research/solver/reduce-7al.mjs --planted   the planted checks alone, and the outcomes they reach (OUTCOMES REACHED)
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -268,6 +268,9 @@ export function builtLog(o = {}) {
   if (o.extra) lines.push(`S999             case | unit READER/TS+J/W0.02 | lambda ${LAMBDA} tier own riskAbove auto mix 3`);
   return lines.join('\n') + '\n';
 }
+// the outcomes the plants reach (RULES.md section 10, amendment 7: every registered outcome reachable by a plant)
+const REACHED = new Set();
+const itemOut = u => { const o = item1(u).outcome; REACHED.add(o); return o; };
 function planted() {
   const cases = [];
   const IDENT = ['table', 'refTable', 'gap'];
@@ -286,16 +289,16 @@ function planted() {
   const calib = (id, a, k) => row(id, a, k, 1800, 80, 1440);   // 80.00 claimed, 80.00 survive
   const opt = (id, a, k) => row(id, a, k, 1800, 80, 1350);     // 80 claimed, 75 survive
   const unitRead = (I, id, a) => I.units.find(u => u.id === id && u.arm === a).read;
-  cases.push(['all calibrated, 1,800 a world: FALSIFIED (O66\'s pool of 21,600 inside 2 points)', item1(all(calib)).outcome, 'FALSIFIED']);
+  cases.push(['all calibrated, 1,800 a world: FALSIFIED (O66\'s pool of 21,600 inside 2 points)', itemOut(all(calib)), 'FALSIFIED']);
   cases.push(['a calibrated unit (5,400 paths, CP low 78.9) reads NO MATERIAL OPTIMISM', unitRead(item1(all(calib)), 'S128', 'READER'), 'NO MATERIAL OPTIMISM']);
-  cases.push(['S128 and S130 optimistic by 5 points: HELD', item1(all((id, a, k) => (['S128', 'S130'].includes(id) ? opt(id, a, k) : calib(id, a, k)))).outcome, 'HELD']);
-  cases.push(['only S128 optimistic: INCONCLUSIVE', item1(all((id, a, k) => (id === 'S128' ? opt(id, a, k) : calib(id, a, k)))).outcome, 'INCONCLUSIVE']);
-  cases.push(['S360 and S370 ORDER optimistic, O66\'s units calibrated: INCONCLUSIVE, not FALSIFIED', item1(all((id, a, k) => (a === 'ORDER' ? opt(id, a, k) : calib(id, a, k)))).outcome, 'INCONCLUSIVE']);
-  cases.push(['every unit 1.8 points optimistic (78.2 survive): no unit OPTIMISTIC, O66\'s pool NOT SHOWN: INCONCLUSIVE', item1(all((id, a, k) => row(id, a, k, 1800, 80, 1408))).outcome, 'INCONCLUSIVE']);
+  cases.push(['S128 and S130 optimistic by 5 points: HELD', itemOut(all((id, a, k) => (['S128', 'S130'].includes(id) ? opt(id, a, k) : calib(id, a, k)))), 'HELD']);
+  cases.push(['only S128 optimistic: INCONCLUSIVE', itemOut(all((id, a, k) => (id === 'S128' ? opt(id, a, k) : calib(id, a, k)))), 'INCONCLUSIVE']);
+  cases.push(['S360 and S370 ORDER optimistic, O66\'s units calibrated: INCONCLUSIVE, not FALSIFIED', itemOut(all((id, a, k) => (a === 'ORDER' ? opt(id, a, k) : calib(id, a, k)))), 'INCONCLUSIVE']);
+  cases.push(['every unit 1.8 points optimistic (78.2 survive): no unit OPTIMISTIC, O66\'s pool NOT SHOWN: INCONCLUSIVE', itemOut(all((id, a, k) => row(id, a, k, 1800, 80, 1408))), 'INCONCLUSIVE']);
   cases.push(['a pessimistic table reads NO MATERIAL OPTIMISM (99 claimed, all survive)', unitRead(item1(all((id, a, k) => row(id, a, k, 1800, 99, 1800))), 'S128', 'READER'), 'NO MATERIAL OPTIMISM']);
   cases.push(['80 claimed, 1,550 of 2,000 survive (77.5): p at 78 is 0.3, not OPTIMISTIC (p at 80 would be 0.003)', unitRead(item1([row('S128', 'READER', 0, 2000, 80, 1550)]), 'S128', 'READER'), 'INCONCLUSIVE']);
   cases.push(['1 point optimistic on 500 paths (CP low 75.2): INCONCLUSIVE, not NO MATERIAL OPTIMISM on the point', unitRead(item1([row('S128', 'READER', 0, 500, 80, 395)]), 'S128', 'READER'), 'INCONCLUSIVE']);
-  cases.push(['S128 and S130 optimistic in worlds 1 and 2 only, world 0 calibrated: the pooled units read HELD', item1(all((id, a, k) => (['S128', 'S130'].includes(id) && k > 0 ? row(id, a, k, 1800, 80, 1300) : calib(id, a, k)))).outcome, 'HELD']);
+  cases.push(['S128 and S130 optimistic in worlds 1 and 2 only, world 0 calibrated: the pooled units read HELD', itemOut(all((id, a, k) => (['S128', 'S130'].includes(id) && k > 0 ? row(id, a, k, 1800, 80, 1300) : calib(id, a, k)))), 'HELD']);
   cases.push(['one unit at p 0.02 among 7: Holm lifts it over 0.05, not OPTIMISTIC', unitRead(item1(all((id, a, k) => (id === 'S128' ? row(id, a, k, 1800, 80, 1383 + (k === 2)) : calib(id, a, k)))), 'S128', 'READER'), 'INCONCLUSIVE']);
   // the arithmetic
   cases.push(['binomLower: P(Bin(10, 0.5) <= 2) = 56/1024', binomLower(2, 10, 0.5).toFixed(7), (56 / 1024).toFixed(7)]);
@@ -321,7 +324,7 @@ const logsOf = Dir => (existsSync(Dir) ? Object.fromEntries(readdirSync(Dir).fil
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const np = planted();
-  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should`); process.exit(0); }
+  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should\nOUTCOMES REACHED: item 1: ${[...REACHED].sort().join(', ')}`); process.exit(0); }
   const args = process.argv.slice(2).filter(x => !x.startsWith('--'));
   const R_ = (k, name) => args[k] || join(HERE, 'results', name);
   const DIR = R_(0, 'diag7al'), dirs = { '7ah': R_(1, 'diag7ah'), '7ag': R_(2, 'diag7ag'), '7aa': R_(3, 'diag7aa'), '7af': R_(4, 'diag7af') };

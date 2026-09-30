@@ -32,7 +32,8 @@
  *      OFF, all TS+J) are also pooled into one (about 24,000 paths). The item: HELD when 2 or more of O66's four units
  *      read OPTIMISTIC; FALSIFIED when none of the 7 units reads OPTIMISTIC and O66's pool reads NO MATERIAL OPTIMISM;
  *      else INCONCLUSIVE. Each unit-world is read the same way and reported, not an item (S194's O66 is its bad world's).
- * Reported, not items (the review after 7ai: 'report'): the reference against its own draw and the engine's bridge
+ * Reported, not items (a declared choice, predictions/diag-7al.md: both reviews made the reference's calibration the
+ * first item; here it is reported beside the primary item): the reference against its own draw and the engine's bridge
  * payment by world, with Clopper-Pearson intervals; the bridge stage's per-path mean with a normal 95% band (not an exact
  * test); ORDER beside READER on S360 and S370; the shipping default (OFF/PRODUCT on S194), whose world tables each hold
  * their own world's policy while the paths run the mixture's, so its residual carries that policy gap too; the residual

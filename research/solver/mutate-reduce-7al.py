@@ -45,6 +45,7 @@ def run(f):
     p = subprocess.run(['node', f, '--planted'], capture_output=True, text=True)
     return p.stdout.strip() + p.stderr.strip()
 bad = 0
+escaped = []
 out = run(SRC)
 last = out.splitlines()[-1] if out else ''
 if not last.startswith('planted (') or 'FAIL' in out:
@@ -53,14 +54,20 @@ print(f'true script: {last}')
 try:
     for name, a, b in M:
         if base.count(a) != 1:
-            print(f'FAIL  {name}: the mutation does not apply ({base.count(a)} matches)'); bad = 1; continue
+            print(f'FAIL  {name}: the mutation does not apply ({base.count(a)} matches)'); bad = 1; escaped.append(name + ' (did not apply)'); continue
         open(DST, 'w').write(base.replace(a, b))
         o = run(DST)
         if 'PLANTED CHECK FAILED' in o:
             first = next((l[5:180] for l in o.splitlines() if l.startswith('FAIL')), next((l[:180] for l in o.splitlines() if 'PLANTED CHECK FAILED' in l), ''))
             print(f'caught  {name}: {first}')
-        else: print(f'FAIL  {name}: NOT CAUGHT'); bad = 1
+        else: print(f'FAIL  {name}: NOT CAUGHT'); bad = 1; escaped.append(name)
 finally:
     if os.path.exists(DST): os.remove(DST)
 print(f'\n{len(M)} mutations: ' + ('every one caught' if not bad else 'SOME NOT CAUGHT'))
+# every run, first ones included, appended to the shared history (drafts/framework-feedback-review.md, S2: the first-run
+# escapes are the lesson, and the committed receipt above keeps only the last run)
+import datetime, hashlib
+sha = hashlib.sha256(open(SRC, 'rb').read()).hexdigest()[:12]
+with open(os.path.join(HERE, 'results-mutation-history.txt'), 'a') as h:
+    h.write(f"{datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M')} UTC | reduce-7al.mjs {sha} | {len(M) - len(escaped)} of {len(M)} caught | escaped: {'; '.join(escaped) or 'none'}\n")
 sys.exit(bad)

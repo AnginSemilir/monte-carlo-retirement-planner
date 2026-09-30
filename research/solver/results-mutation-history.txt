@@ -1,0 +1,5 @@
+# Every mutation run's result, first runs included (the review's S2): date, reducer and hash, caught, and what escaped.
+# The lines dated by a commit are transcribed from the session's printed output (grade C), the rest appended by the scripts.
+before 4bbd404 | reduce-7al.mjs (first draft, never committed) | 19 of 28 caught | escaped: the gate accepts a unit twice; the gate ignores the tier state; the gate ignores readerRef; the gate ignores the engine's paid count; the margin a flat 0.5; the test at c, not c less the margin; no Holm; OPTIMISTIC without the point at the margin (equivalent); FALSIFIED despite an OPTIMISTIC unit-world
+before 6af031c | reduce-7al.mjs (the per-household item, before its two added plants) | 28 of 30 caught | escaped: NO MATERIAL OPTIMISM on the point; a unit's worlds not pooled
+2026-09-30 17:54 UTC | reduce-7al.mjs fd6482e9dcdc | 30 of 30 caught | escaped: none

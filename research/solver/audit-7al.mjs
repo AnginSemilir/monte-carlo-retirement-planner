@@ -26,7 +26,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, runPolicy, chooseAction, scoreMoves } from '../../src/solver/solve.js';
-import { locateState } from '../../src/solver/grid.js';
+import { locateVec } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 import { makeTrace } from './record.mjs';
 import { readFileSync } from 'node:fs';
@@ -107,7 +107,7 @@ UNITS.forEach(([id, A], i) => {
       if (held && t <= T) {
         scoreMoves(tab, st, t, S2, T2, B2, held, null, V2);
         claim[row * (T + 2) + t] = 100 * V2[ai];
-        const loc = locateState(r.g, st), w = loc.i.w;
+        const loc = locateVec(r.g, st), w = loc.i.w;   // the chooser's state is the vector (grid.js vecOf's slots)
         mid[row * (T + 2) + t] = w >= MID[0] && w <= MID[1] ? 1 : 0;
       }
       return ai;

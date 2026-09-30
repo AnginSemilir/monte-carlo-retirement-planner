@@ -3,3 +3,5 @@
 before 4bbd404 | reduce-7al.mjs (first draft, never committed) | 19 of 28 caught | escaped: the gate accepts a unit twice; the gate ignores the tier state; the gate ignores readerRef; the gate ignores the engine's paid count; the margin a flat 0.5; the test at c, not c less the margin; no Holm; OPTIMISTIC without the point at the margin (equivalent); FALSIFIED despite an OPTIMISTIC unit-world
 before 6af031c | reduce-7al.mjs (the per-household item, before its two added plants) | 28 of 30 caught | escaped: NO MATERIAL OPTIMISM on the point; a unit's worlds not pooled
 2026-09-30 17:54 UTC | reduce-7al.mjs fd6482e9dcdc | 30 of 30 caught | escaped: none
+2026-09-30 18:43 UTC | reduce-7am.mjs 20f3a87d9e14 | 21 of 28 caught | escaped: the gate ignores P's margin and charge on the ran line; the gate lets the bundle name a charge; the gate ignores the tier state; the gate ignores a tier that did not move; a tie counts as opposite; item 1's smooth bound loosened; item 1 FALSIFIED at 4
+2026-09-30 18:44 UTC | reduce-7am.mjs 0f8eb3c68cbc | 28 of 28 caught | escaped: none

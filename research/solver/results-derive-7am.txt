@@ -1,0 +1,15 @@
+7AM'S DERIVATION
+1. item 1's rule on 7ai's records (results-7ai.txt): opposite, ratio under 0.3, ratio 0.55 or more, of 7
+   READER/TS+J  opposite 3, ratio < 0.3 on 0, ratio >= 0.55 on 6 (ratios 0.99 1.28 1.86 0.62 1.80 0.55 1.23) -> by item 1's rule FALSIFIED (jittery)
+   OFF/PRODUCT  opposite 6, ratio < 0.3 on 6, ratio >= 0.55 on 1 (ratios 0.28 0.03 0.06 0.12 2.52 0.24 0.28) -> by item 1's rule HELD (smooth, answers the sign)
+2. P's linear gaps (results/diagP, the open job) against its charge 0.001, and the pension tier opened at margin 0
+   share 0.50  gap  5.7824e-5 =   5.8% of the charge; opens 2 at margin 0 (0 at 0.001)
+   share 0.90  gap  1.4698e-4 =  14.7% of the charge; opens 2 at margin 0 (0 at 0.001)
+   bridge 0    gap  3.0413e-4 =  30.4% of the charge; opens 2 at margin 0 (0 at 0.001)
+   bridge 1    gap  4.3258e-4 =  43.3% of the charge; opens 2 at margin 0 (0 at 0.001)
+   S126        gap  6.3024e-4 =  63.0% of the charge; opens 2 at margin 0 (0 at 0.001)
+   S194        gap  6.7057e-4 =  67.1% of the charge; opens 2 at margin 0 (0 at 0.001)
+   S162        gap  7.4500e-4 =  74.5% of the charge; opens 2 at margin 0 (0 at 0.001)
+   the knife edge (the smallest gap): share 0.50 (the registered knife edge)
+3. item 3's reference points: q = 0.25 smooth to second order, 0.5 a kink, 1 a jump; FALSIFIED (curved) at q <= 0.33, HELD (non-smooth) at q >= 0.4, on 5 of 7
+4. the time: P's open-job solves 770 to 1594 s (1170, 1213, 1196, 1128, 1594, 1435, 770); 14 P solves and the anchor at those times 18182 s; the bundle's 14 blend and reversed solves in 7ai 1422 to 2144 s, 24643 s (results-7ai-secs.txt; the half shifts sized by them); together 42825 core-seconds, 11.90 core-hours, 2.97 hours on four cores at those times

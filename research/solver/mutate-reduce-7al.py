@@ -47,7 +47,7 @@ def run(f):
 bad = 0
 escaped = []
 out = run(SRC)
-last = out.splitlines()[-1] if out else ''
+last = next((l for l in out.splitlines() if l.startswith('planted (')), out.splitlines()[-1] if out else '')
 if not last.startswith('planted (') or 'FAIL' in out:
     print(f'FAIL: the true script does not pass its planted set: {last[:200]}'); sys.exit(1)
 print(f'true script: {last}')

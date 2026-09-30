@@ -1,0 +1,31 @@
+true script: planted (38): all read as they should
+caught  the gate accepts a missing unit: PLANTED CHECK FAILED:
+caught  the gate accepts a unit twice: PLANTED CHECK FAILED:
+caught  the gate accepts an unregistered unit: PLANTED CHECK FAILED:
+caught  the gate ignores a unit not done: PLANTED CHECK FAILED:
+caught  the gate ignores the unit settings: PLANTED CHECK FAILED:
+caught  the gate ignores P's margin and charge on the ran line: PLANTED CHECK FAILED:
+caught  the gate lets the bundle name a charge: PLANTED CHECK FAILED:
+caught  the gate ignores the tier state: PLANTED CHECK FAILED:
+caught  the gate ignores the joint line's margin and charge: PLANTED CHECK FAILED:
+caught  the gate ignores a death charge: PLANTED CHECK FAILED:
+caught  the gate ignores the reference's ran line: PLANTED CHECK FAILED:
+caught  the gate ignores a missing reference: PLANTED CHECK FAILED:
+caught  the gate ignores the anchor's table: PLANTED CHECK FAILED:
+caught  the gate ignores the anchor's gap: PLANTED CHECK FAILED:
+caught  the gate ignores a tier real off its set: PLANTED CHECK FAILED:
+caught  the gate ignores a tier that did not move: PLANTED CHECK FAILED:
+caught  parse drops the charge: PLANTED CHECK FAILED:
+caught  the half sets at a third: PLANTED CHECK FAILED:
+caught  the blind part without the linear gap: PLANTED CHECK FAILED:
+caught  a tie counts as opposite: PLANTED CHECK FAILED:
+caught  a gap of 0 read as a number: PLANTED CHECK FAILED:
+caught  item 1 HELD without the opposite count: PLANTED CHECK FAILED:
+caught  item 1's smooth bound loosened: PLANTED CHECK FAILED:
+caught  item 1 FALSIFIED at 4: PLANTED CHECK FAILED:
+caught  item 2 counts the knife edge: PLANTED CHECK FAILED:
+caught  item 2 FALSIFIED at 1: PLANTED CHECK FAILED:
+caught  item 3's kink bound at 0.2: PLANTED CHECK FAILED:
+caught  item 3 FALSIFIED at 1: PLANTED CHECK FAILED:
+
+28 mutations: every one caught

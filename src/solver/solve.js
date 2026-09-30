@@ -1606,7 +1606,10 @@ export function solveFlex(E, M, plan, opts = {}) {
 export function nearestIndex(g, s) {
   const loc = locateVec(g, s);
   return g.index(Math.min(g.np - 1, loc.p.i + (loc.p.w > 0.5 ? 1 : 0)), Math.min(g.ni - 1, loc.i.i + (loc.i.w > 0.5 ? 1 : 0)),
-    Math.min(g.nt - 1, loc.t.i + (loc.t.w > 0.5 ? 1 : 0)), loc.ig, loc.ic);
+    Math.min(g.nt - 1, loc.t.i + (loc.t.w > 0.5 ? 1 : 0)),
+    // with the gain or allowance axis interpolated (research only), ig and ic are the LOWER bracket: round by the weight above
+    // (the plan-auditor's MINOR 3 of 30 Sep 23:32 UK); off, both weights are 0 and this is the snap as before
+    loc.ig + (loc.igw > 0.5 ? 1 : 0), loc.ic + (loc.icw > 0.5 ? 1 : 0));
 }
 
 /*

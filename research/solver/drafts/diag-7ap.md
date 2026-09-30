@@ -68,7 +68,7 @@ Item 1: both S370 and S130 read NOT HALVED - more than half the DEFAULT arm's op
 
 - The design: the deep review after 7al (deep-review-log.md, 30 Sep 22:51 UK); O71, O66, O69, O70 (PLAN.md); the plan's 7ap row; the plan-auditor's MINOR 3 of 30 Sep 23:04 UK.
 - The records: results-7al.txt and results/diag7al (the DEFAULT arm, its times; derive-7ap.mjs).
-- The build: src/solver/grid.js `pclsInterp` (research only, default off; research/tests/solver-gridfidelity.test.mjs E1 to E9, and 5 planted faults in the option all caught); audit-7ap.mjs; reduce-7ap.mjs (planted 49; mutations 35 of 35 caught after the first run's 7 escapes, results-reduce-7ap-mutations.txt and results-mutation-history.txt); batch-7ap.sh, preflight-7ap.sh, preflight-parse-7ap.mjs, derive-7ap.mjs.
+- The build: src/solver/grid.js `pclsInterp` (research only, default off; research/tests/solver-gridfidelity.test.mjs E1 to E11; 7 planted faults in the option and in nearestIndex's rounding all caught, mutate-grid-pclsinterp.py, results-grid-pclsinterp-mutations.txt); solve.js nearestIndex and snap.mjs nearestOf round an interpolated axis's lower bracket by its weight (the plan-auditor's MINOR 3 of 30 Sep 23:32 UK: off, bit for bit the snap); audit-7ap.mjs; reduce-7ap.mjs (planted 49; mutations 35 of 35 caught after the first run's 7 escapes, results-reduce-7ap-mutations.txt and results-mutation-history.txt); batch-7ap.sh, preflight-7ap.sh, preflight-parse-7ap.mjs, derive-7ap.mjs.
 
 ## Derivation script
 
@@ -78,7 +78,7 @@ Item 1: both S370 and S130 read NOT HALVED - more than half the DEFAULT arm's op
 ## Point and interval
 
 80% intervals, the author's, the after stage's optimism c - survived in points, three worlds pooled:
-- PCLSI: S370 +2.5 (-0.5 to +6); S130 +2.5 (-0.5 to +6); S194 0 (-1 to +1.5).
+- PCLSI: S370 +2.0 (-0.5 to +5); S130 +2.0 (-0.5 to +5); S194 0 (-1 to +1.5). At +2.0 item 1 reads HALVED on both (HALVED needs about 2.36 or less on S370 and 2.39 on S130, results-derive-7ap.txt's 0.34 and 0.35 of the optimism left) and item 2 INCONCLUSIVE (the point at the margin): the point agrees with the prediction (the plan-auditor's MINOR 1 of 30 Sep 23:32 UK, which found the first draft's +2.5 reading INCONCLUSIVE on item 1).
 - DEFAULT: 7al's figures exactly (the gate).
 
 ## Credence
@@ -96,7 +96,7 @@ O71's step (the deep review after 7al's decisive test; 7ao and so 7u wait on it)
 
 ## Pre-mortem
 
-- **Most likely:** item 1 INCONCLUSIVE - the interpolated tables remove a third to two thirds of the optimism, the rest carried by share-axis interpolation on the same path-years; the reported pcell split then sizes the two.
+- **The likeliest miss:** item 1 INCONCLUSIVE - the interpolated tables remove a third to two thirds of the optimism, the rest carried by share-axis interpolation on the same path-years; the reported pcell split then sizes the two.
 - **Second:** NOT SETTLED by the identity gate: the option off must be bit-identical to the code 7al ran (test A1 checks one household at 14 points, not these at 30); any drift in grid.js's read with the option off stops the whole read.
 - **Third:** item 3 FALSIFIED by the lump-taken flag's blend between buckets 0 and 0.5, which changes S194's early-plan valuation.
 - **The smoke run:** smoke.sh (locked) does not run audit-7ap.mjs; the preflight through the launcher (preflight-7ap.sh: all six units at 4 points and 20 paths, read by preflight-parse-7ap.mjs through the reducer's own parse, gate and reading, with three planted faults) stands in.

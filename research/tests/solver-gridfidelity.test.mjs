@@ -11,7 +11,7 @@
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
-import { solve } from '../../src/solver/solve.js';
+import { solve, nearestIndex } from '../../src/solver/solve.js';
 import { makeGrid, locateVec, interp, vecOf, readValues } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
@@ -26,8 +26,9 @@ const LSA = m.P.lsa;
 /* a probe vector: pen, isa, taxable, gain fraction, allowance used, lump taken, cash ISA */
 const vec = (gf, used) => Float64Array.from([300000, 120000, 90000, gf, used, used > 0 ? 1 : 0, 0]);
 
+const ONLY = process.env.GRIDFID_ONLY || '';   // 'E': section E alone (research/solver/mutate-grid-pclsinterp.py)
 console.log('=========== A. THE SHIPPED BUILD DID NOT MOVE ===========');
-{
+if (!ONLY || ONLY.includes('A')) {
   const a = solve(E, M, plan, { points: 14 });
   const b = solve(E, M, plan, { points: 14, gainInterp: false, pclsStrict: false, pclsInterp: false });
   const s0 = a.value(M.initialState(a.m), 0), s1 = b.value(M.initialState(b.m), 0);
@@ -39,7 +40,7 @@ console.log('=========== A. THE SHIPPED BUILD DID NOT MOVE ===========');
 }
 
 console.log('=========== B. THE GAIN AXIS ===========');
-{
+if (!ONLY || ONLY.includes('B')) {
   const gS = makeGrid(m, {}), gI = makeGrid(m, { gainInterp: true });
   ok('B1  snapping puts 0.39 on the 0.25 bucket and 0.41 on the 0.55 one - a 30-point step on one pound',
     locateVec(gS, vec(0.39, 0)).ig === 1 && locateVec(gS, vec(0.41, 0)).ig === 2);
@@ -68,7 +69,7 @@ console.log('=========== B. THE GAIN AXIS ===========');
 }
 
 console.log('=========== C. THE LUMP-SUM AXIS ===========');
-{
+if (!ONLY || ONLY.includes('C')) {
   const gN = makeGrid(m, {}), gP = makeGrid(m, { pclsStrict: true });
   const used = 0.191 * LSA;   // S112's real figure: 19.1% of the allowance spent
   ok('C1  as shipped, a household that has spent 19.1% of its allowance reads as having spent NOTHING',
@@ -83,7 +84,7 @@ console.log('=========== C. THE LUMP-SUM AXIS ===========');
 }
 
 console.log('=========== D. EVERY ARM STILL SOLVES TO A FINITE ANSWER ===========');
-{
+if (!ONLY || ONLY.includes('D')) {
   const arms = [
     ['current', {}],
     ['re-spaced', { gainBuckets: [0.10, 0.45, 0.80] }],
@@ -127,6 +128,14 @@ console.log('=========== E. THE ALLOWANCE AXIS INTERPOLATED (7ap; PLAN.md O71) =
   ok('E8  both axes interpolated: the corner weights sum to one (a table of ones reads one)', Math.abs(out[1] - 1) < 1e-12, String(out[1]));
   readValues(gB, t.ls, t.bq, vec(0.4, 0.74 * LSA), out);
   ok('E9  and the allowance read is still the used share', Math.abs(out[1] - 0.74) < 1e-12, String(out[1]));
+  /* the stored-policy lookup (nearestIndex, solve.js): the nearest cell, so an interpolated axis's lower bracket is
+     rounded by its weight - the same buckets as the snap (the plan-auditor's MINOR 3 of 30 Sep 23:32 UK) */
+  const cOf = (g, v) => Math.floor(nearestIndex(g, v) / g.stride.pcls), gOf = (g, v) => Math.floor(nearestIndex(g, v) / g.stride.gain) % g.gain.length;
+  const gG = makeGrid(m, { gainInterp: true });
+  ok('E10 nearestIndex under the interpolated allowance picks the snap\'s bucket (0.2 -> 0, 0.3 and 0.74 -> 0.5, 0.76 -> 1)',
+    fs.every(f => cOf(gI, vec(0.25, f * LSA)) === cOf(gN, vec(0.25, f * LSA))), fs.map(f => `${f}->${gI.pcls[cOf(gI, vec(0.25, f * LSA))]}`).join(' '));
+  ok('E11 and under the interpolated gain axis, the snap\'s gain bucket (0.39 -> 0.25, 0.41 -> 0.55)',
+    [0.05, 0.2, 0.39, 0.41, 0.6].every(f => gOf(gG, vec(f, 0)) === gOf(gN, vec(f, 0))), [0.05, 0.2, 0.39, 0.41, 0.6].map(f => `${f}->${gG.gain[gOf(gG, vec(f, 0))]}`).join(' '));
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

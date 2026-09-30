@@ -9,7 +9,7 @@ export const SNAPS = ['W', 'a', 'b', 'gain', 'pcls', 'reader', 'all'];
 // the nearest cell's coordinates (nearestIndex's own rounding) and the snapped states
 export function nearestOf(g, s) {
   const loc = locateVec(g, s);
-  return { ip: Math.min(g.np - 1, loc.p.i + (loc.p.w > 0.5 ? 1 : 0)), ii: Math.min(g.ni - 1, loc.i.i + (loc.i.w > 0.5 ? 1 : 0)), it: Math.min(g.nt - 1, loc.t.i + (loc.t.w > 0.5 ? 1 : 0)), ig: loc.ig, ic: loc.ic };
+  return { ip: Math.min(g.np - 1, loc.p.i + (loc.p.w > 0.5 ? 1 : 0)), ii: Math.min(g.ni - 1, loc.i.i + (loc.i.w > 0.5 ? 1 : 0)), it: Math.min(g.nt - 1, loc.t.i + (loc.t.w > 0.5 ? 1 : 0)), ig: loc.ig + (loc.igw > 0.5 ? 1 : 0), ic: loc.ic + (loc.icw > 0.5 ? 1 : 0) };   // nearestIndex's rounding, the interpolated axes' lower bracket rounded by their weight
 }
 export const shares = s => { const W = s[0] + s[1] + s[2], rest = W - s[0]; return { W, a: W > 0 ? s[0] / W : 0, b: rest > 0 ? s[1] / rest : 0 }; };
 export const build = (s, W, a, b) => { const o = Float64Array.from(s), pen = a * W, rest = W - pen, isa = b * rest; o[0] = pen; o[1] = isa; o[2] = rest - isa; return o; };

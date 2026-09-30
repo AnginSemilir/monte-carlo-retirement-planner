@@ -87,3 +87,4 @@
 30 Sep 16:42 UK | light | none: 7ak preflight (the original preflight-7ak.sh, restored), both units at 4 points and 20 paths against P's preflight, before registration | code 05be10bd7b34 | a577e46 | load 5.03 5.13 5.08 | bash research/solver/preflight-7ak.sh
 30 Sep 17:16 UK | light | none: 7al build check, the S360 ORDER unit at 4 points and 30 paths a world, before its prediction | code 05be10bd7b34 | 0bcdb2f | load 5.03 5.05 5.00 | node research/solver/audit-7al.mjs 4 30 part 1/7 7002
 30 Sep 17:43 UK | light | none: 7al build check again after the locateVec fix, the S360 ORDER unit at 4 points and 30 paths a world | code 05be10bd7b34 | 3951645 | load 5.02 5.05 5.06 | node research/solver/audit-7al.mjs 4 30 part 1/7 7002
+30 Sep 17:52 UK | main | research/solver/predictions/diag-7ak.md | code 05be10bd7b34 | a9a30ff | load 1.45 3.55 4.48 | bash research/solver/batch-7ak.sh

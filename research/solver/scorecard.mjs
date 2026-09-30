@@ -43,6 +43,7 @@ export const TESTS = [
   { name: '7ag (the bundle on the nine remaining panel households, and S126\'s attribution)', prediction: 'predictions/diag-7ag.md', results: 'results-7ag.txt' },
   { name: 'P (the switch charged in both passes: which explanation carries families 1 and 2)', prediction: 'predictions/diag-p.md', results: 'results-P.txt' },
   { name: '7ah (O36\'s fix: the reader\'s reference drawn in the menu\'s order, on the six longer bridges)', prediction: 'predictions/diag-7ah.md', results: 'results-7ah.txt' },
+  { name: '7ai (O60\'s openings check: the tier returns as their blends\' medians, and reversed)', prediction: 'predictions/diag-7ai.md', results: 'results-7ai.txt' },
 ];
 
 export function credences(predText) {

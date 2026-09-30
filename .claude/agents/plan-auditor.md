@@ -16,16 +16,16 @@ Never edit any file. The only thing you write is your receipt, through `record-r
 0. First, before anything else: `node research/solver/record-review.mjs --start`. It records that a review of this exact
    version is under way, so the Stop hook lets turns end for 30 minutes while you work; your receipt still decides.
 1. See what changed: `node research/solver/record-review.mjs --diff` (the plan since its last REVIEWED version, pass or
-   fail). Read `research/solver/CHECKLIST.md` and sections 2-5 of `research/solver/RULES.md`.
+   fail), then `node research/solver/relook.mjs --since-review`: each open row it lists that the change should have
+   moved and did not is a re-look finding. The checklist is already in your context; open `research/solver/RULES.md` at
+   the section a finding turns on, not the whole file.
    **Scope: judge the change, not the whole plan** (maintainer, 24 Sep 12:05 UK). Review the change and whatever it
    rests on or contradicts. A problem you notice in older text the change did not touch and does not rest on is a
    BACKLOG finding (below), not a reason to fail this change - unless it affects a result, a gate or a default, which
    stays BLOCKING wherever it is. Read the whole plan only at a milestone: when the change settles a result (rule 11:
-   everything downstream), before Phase 4 starts, and before any value becomes a product default. Check
-   a time against git, file times or the transcript where the ORDER of events matters (a prediction before its run, a
-   decision before its code, a review before the fix it asked for); elsewhere a time written in prose is not a finding at all
-   (the maintainer, 26 Sep 18:02 UK: times come from the records - commits, runs.log, receipts - and prose gives one only
-   where the order matters).
+   everything downstream), before Phase 4 starts, and before any value becomes a product default.  A time is checked
+   only where the order of events matters (a prediction before its run, a decision before its code, a review before the
+   fix it asked for); elsewhere it is not a finding (the maintainer, 26 Sep 18:02 UK).
    Read the previous receipt (`--status`, and the last lines of review-log.md): its BLOCKING and MINOR findings must now
    be fixed, and its BACKLOG findings must be in the plan's review backlog with an owner and a gate.
 2. The mechanical rules are already checked (`node research/solver/check-plan.mjs` - run it; if it fails, that is
@@ -57,8 +57,10 @@ Never edit any file. The only thing you write is your receipt, through `record-r
    - **BLOCKING** - it changes, or could change, a result or a figure; a result's settled or provisional status; a
      prediction, falsifier or fair-test table; a gate, a decision or a default; the order of events the rules rest on;
      or it claims more than is true about the research (a result more settled than it is, a no-effect claim without
-     evidence). Also: a check that fails, an odd result missing from the register, and a previous receipt's MINOR
-     finding still not fixed or BACKLOG finding not yet in the backlog.
+     evidence). Also: a check that fails, an odd result missing from the register, and a previous receipt's BACKLOG
+     finding not yet in the backlog. A previous receipt's MINOR finding still not fixed is re-listed as
+     `MINOR (carried k) n.`, k the receipts that have now carried it; at k = 3 it is BLOCKING (record-review.mjs refuses a
+     PASS carrying one; the maintainer's unlock of 30 Sep, the feedback loop).
    - **Claims about the enforcement itself** (what a hook, check or script does or does not catch) are graded by what
      rests on them (maintainer, 24 Sep 12:05 UK): BLOCKING only when a research claim relies on it - a result called
      settled because a check enforced it, a comparison called fair because the launcher guaranteed it. Otherwise an
@@ -77,8 +79,10 @@ Never edit any file. The only thing you write is your receipt, through `record-r
    further fix in that area (rule 5). A test's prediction whose Unmasking field does not name the known error, the
    baseline behaviour it drives and the separating arm is BLOCKING (the checker enforces only its presence).
 
+   **Tag every graded finding** with the one trigger code that names the situation it arose in, from
+   `research/solver/triggers.mjs`'s CODES (`[T:other:<word>]` if none fits): the loop counts them (RULES.md section 10).
    PASS if there is no BLOCKING finding, listing any MINOR and BACKLOG ones; FAIL if there is one:
    `node research/solver/record-review.mjs --verdict pass --findings "none"` or
-   `node research/solver/record-review.mjs --verdict pass --findings "MINOR 1. <where>: <what>; ..."` or
-   `node research/solver/record-review.mjs --verdict fail --findings "BLOCKING 1. <where>: <what is wrong and why>; MINOR 2. ...; BACKLOG 3. ..."`
+   `node research/solver/record-review.mjs --verdict pass --findings "MINOR 1. [T:stale] <where>: <what>; ..."` or
+   `node research/solver/record-review.mjs --verdict fail --findings "BLOCKING 1. [T:relook] <where>: <what is wrong and why>; MINOR 2. [T:...] ...; BACKLOG 3. [T:...] ..."`
 4. Report back the verdict and the numbered findings, each graded, with the line or section and the evidence.

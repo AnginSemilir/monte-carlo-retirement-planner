@@ -16,6 +16,15 @@ research/tests suites and small read-only scripts over saved traces are allowed.
 
 ## What to do
 
+0. **The retirement pass, when due** (RULES.md section 10; before the research, so it does not dilute it):
+   `node research/solver/triggers.mjs`. If it prints RETIREMENT PASS DUE, read only its output and research/solver/lessons.md's
+   entries since the last pass, and propose: for each slip code seen 3 or more times in the last 5 closes, the automation
+   that makes it impossible (a named script or check); for each rule, check or checklist line with a zero catch in 20
+   closes by a MECHANICAL source (review-log.md tags, gate or launcher refusals in the logs, the mutation history, CI's
+   check-plan failures - never the absence of a self-reported catch), or whose failure mode a check now makes impossible,
+   its retirement; and the follow-through debt - each AUTOMATE lesson whose named file does not exist and each REPLACE
+   lesson whose quoted text is still there, each to be built or dropped with its reason. Record it:
+   `node research/solver/record-deep-review.mjs --retirement "<proposals, each with source: ...; debt: ...>"`.
 1. `node research/solver/record-deep-review.mjs --start` (the Stop hook lets turns end for 30 minutes while you work), then
    `node research/solver/uncertainty.mjs` - the index, why it is due, and the last receipt. Your window is everything
    after that receipt (all of the record if there is none).
@@ -34,7 +43,8 @@ research/tests suites and small read-only scripts over saved traces are allowed.
 7. **Root causes, ranked.** For the largest family: each candidate cause with the evidence for and against it (cite the
    files and grades), what each predicts that the others do not, and the one test that would separate them - its arms,
    its cases and roughly its cost. Say what you would stop doing until it is answered.
-8. Record the receipt: `node research/solver/record-deep-review.mjs --findings "<families>; <unmasking flags>; <premises at
+8. Tag each family, flag and cause with the trigger code of the situation it arose in, where one fits
+   (`[T:<code>]`, research/solver/triggers.mjs CODES), and a root cause you found with `[T:c-deep]`. Record the receipt: `node research/solver/record-deep-review.mjs --findings "<families>; <unmasking flags>; <premises at
    risk>; <the ranked causes and the decisive test, in a few sentences>"`. It appends one line to
    research/solver/deep-review-log.md with the time from the clock (UK), the last test in results-scorecard.txt and the
    level from uncertainty.mjs, and refuses findings under 200 characters. Report the same in your answer.

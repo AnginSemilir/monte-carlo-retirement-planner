@@ -5,6 +5,9 @@
 // register's open rows (| O.. |) and the schedule's rows not yet read, done or dropped. The ledger is history. Read each row it prints and say, in the change, whether it moves.
 //   node research/solver/relook.mjs                 ids from `git diff @{u}` of PLAN.md (the unpushed change, working tree)
 //   node research/solver/relook.mjs --base <rev>    ids from `git diff <rev>` of PLAN.md (<a>..<b>: that range alone)
+//   node research/solver/relook.mjs --since-review  ids from the change since the plan's last receipt (review-log.md), the
+//                                                   plan-auditor's step 1: exits 2 on an empty diff while the plan is
+//                                                   NOT REVIEWED (a re-look that ran on nothing is an error, not a pass)
 //   node research/solver/relook.mjs O60 7u          these ids
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -14,14 +17,26 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url)), PLAN = join(HERE, 'PLAN.md');
 export const ID = /\b(O\d{1,3}|[78][a-z]{1,2}|E[1-4]|P|Q|M\d{1,2}|K\d)\b/g;
 const argv = process.argv.slice(2), bi = argv.indexOf('--base');
+const SINCE = argv.includes('--since-review');
 const base = bi >= 0 ? argv[bi + 1] : '@{u}', given = argv.filter((x, i) => !x.startsWith('--') && (bi < 0 || i !== bi + 1));
 const lines = readFileSync(PLAN, 'utf8').split('\n');
 // the change's added lines, and the rows they sit in (a table row is one line)
 let added = [];
 if (!given.length) {
   let diff;
-  try { diff = execFileSync('git', ['diff', '-U0', ...base.split('..'), '--', PLAN], { cwd: HERE, encoding: 'utf8', maxBuffer: 64 << 20 }); }
-  catch (e) { console.error(`relook: git diff ${base} failed: ${e.message.split('\n')[0]}`); process.exit(2); }
+  if (SINCE) {
+    // the last receipt's plan blob against the working tree's, as record-review.mjs --diff does
+    const { receipts, planBlob } = await import('./record-review.mjs');
+    const last = receipts().slice(-1)[0], now = planBlob(true);
+    if (!last) { console.error('relook: no receipt in review-log.md to diff from'); process.exit(2); }
+    if (last.blob === now) { console.log(`relook: PLAN.md is unchanged since its last receipt (${last.verdict}, ${last.when}): nothing to re-look`); process.exit(0); }
+    try { diff = execFileSync('git', ['diff', '-U0', last.blob, now], { cwd: HERE, encoding: 'utf8', maxBuffer: 64 << 20 }); }
+    catch (e) { console.error(`relook: git diff of the last receipt's plan failed: ${e.message.split('\n')[0]}`); process.exit(2); }
+    if (!diff.trim()) { console.error('relook: the plan is not reviewed but the diff from its last receipt is empty: a re-look on nothing is an error'); process.exit(2); }
+  } else {
+    try { diff = execFileSync('git', ['diff', '-U0', ...base.split('..'), '--', PLAN], { cwd: HERE, encoding: 'utf8', maxBuffer: 64 << 20 }); }
+    catch (e) { console.error(`relook: git diff ${base} failed: ${e.message.split('\n')[0]}`); process.exit(2); }
+  }
   added = diff.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).map(l => l.slice(1));
   if (!added.length) { console.log(`relook: PLAN.md has no change against ${base}: nothing to re-look`); process.exit(0); }
 }

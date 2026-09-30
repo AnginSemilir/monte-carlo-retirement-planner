@@ -53,7 +53,7 @@ The "arms" are the chooser re-scored at the path's own state and at the state wi
 - **Item 3 (the pension-share axis a):** the same for the a snap.
 - **Item 4 (switching boundaries):** at year 1, OPEN0 and TS+J on both units pooled, (table - realised) on boundary cells less (table - realised) on interior cells, in points, with a 95% interval from the realised shares' binomial variance (the table's averages fixed). HELD when its lower end is above 0.5; FALSIFIED when its upper end is below 0.5; else INCONCLUSIVE.
 - **NOT SETTLED:** any gate fails (the stamps of 7ak and P; a unit missing or not done; a solve not P's table and ran line; a run not P's first 8,000 node paths field by field; inconsistent counts), or the all-snap - the cell's own state - turns under 0.95 of the live disagreements to the cell's move (the premise fails in the field).
-- **Reported, not items:** each snap's share by year; the W, b, gain and lump-bucket snaps; S194's lines; the level lines by rule and unit.
+- **Reported, not items:** each snap's share by year; the W, b, gain and lump-bucket snaps; S194's lines; the level lines by rule and unit; and world 0's table survival of the chosen move against realised survival by year, on the paths alive that year, pooled by stage - the bridge (years before access) and after access (added before registration by the deep review after 7ah, 30 Sep 14:39 UK, adopted by the maintainer 30 Sep 15:19 UK: so a level error, O66 - S194's bad world reads +8.16 under OFF, results-7t.txt - can be located by year; it decides nothing here). The reducer gates it: an access line, a line for every year for both rules, and year 1's paths equal to the year-1 level lines' paths.
 - **Declared choices, not derived:** the thresholds (0.5 and 0.2; 0.5 points for item 4; 0.95 for the premise); dead under 0.02; the pooled years 1 to 7.
 
 ## Decision fed
@@ -94,11 +94,11 @@ The author's probability that each item reads as predicted: 1 (FALSIFIED), 0.70;
 
 - **Items 1 to 3** (results-derive-7ak.txt): about 4,480 disagreements on bridge 4 at 8,000 paths; a share's standard error 0.60 to 0.75 points, the thresholds about 40 standard errors apart - decisive if half or more are live. If most are dead (item 1 HELD), items 2 and 3 read on few and may be INCONCLUSIVE; item 1's branch then decides.
 - **Item 4:** resolves about +/- 0.5 points split evenly, +/- 0.8 at one in ten on a boundary (too narrow by up to 1.4 times, the rules sharing paths); an excess under about 1 point will read INCONCLUSIVE.
-- **Time:** two solves at P's measured 699 to 814 s (results-P.txt), two runs of 8,000 node paths a unit at about 600 s each (7ae's and 7ad's measured rules), the snaps about 4,480 x 7 chooser calls on bridge 4 (a few minutes), both units at once: about 45 minutes, about 1.2 core-hours.
+- **Time:** on last week's host: two solves at P's measured 699 to 814 s (results-P.txt), two runs of 8,000 node paths a unit at about 600 s each (7ae's and 7ad's measured rules), the snaps about 4,480 x 7 chooser calls on bridge 4 (a few minutes): about 45 minutes, about 1.2 core-hours. On this session's machine TS+J solves run about 2.1 times slower (7ah's 1,525 to 2,287 s against 7af's and 7ag's 723 to 1,019 s on the same households; results-7ah-secs.txt, predictions/diag-7ah.md), and the per-year table read adds one scoreMoves a path-year beside the chooser's own (its cost NOT MEASURED at 30 points; perhaps a third more run time): about 1.5 to 2 hours with both units at once, about 3 to 4 core-hours.
 
 ## Budget line
 
-The families' root-cause step after P (the deep review after P; section 9 rule 5): which part of the table carries the forward-against-cell disagreement and whether the tier state misprices on switching boundaries; about 1.2 core-hours, about 45 minutes on two cores, after 7ai.
+The families' root-cause step after P (the deep review after P; section 9 rule 5): which part of the table carries the forward-against-cell disagreement and whether the tier state misprices on switching boundaries; about 3 to 4 core-hours, about 1.5 to 2 hours on two cores on this machine (the Time line), after 7ai.
 
 ## Pre-mortem
 
@@ -106,7 +106,7 @@ The families' root-cause step after P (the deep review after P; section 9 rule 5
 - **Second:** item 1 HELD - the bridge's last years put the forward states near the cliff, where the cells are dead and their ties arbitrary; the disagreement is then a reading artefact.
 - **Third:** NOT SETTLED by the premise - the all-snap under 0.95 in the field (the unit test ran at 6 points; at 30 points the cells differ): the attribution is then unsound as designed.
 - **Fourth:** NOT SETTLED by the gate - a solve not P's (a code change since P touched TS+J: E3's option is off and the reader hook unset, both held by tests; the gate would catch any drift).
-- **The smoke run:** smoke.sh (locked) does not run audit-7ak.mjs; the preflight through the launcher and the unit tests stand in.
+- **The smoke run:** smoke.sh (locked) does not run audit-7ak.mjs; the preflight through the launcher (preflight-7ak.sh: both units at 6 points and 60 paths, the reducer's parse and gate read on its output) and the unit tests stand in.
 
 ## Changes after seeing results
 

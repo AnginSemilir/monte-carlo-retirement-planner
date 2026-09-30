@@ -56,9 +56,13 @@ const live = k => isItem(k);
 const out = [];
 lines.forEach((l, i) => {
   const k = key(l);
-  if (!live(k) || touched.has(l) || !open(l)) return;
+  if (!live(k) || touched.has(l)) return;
+  // an item's own row is listed even when it reads DONE or READ: a change to the item's reading must reach its own
+  // status too (30 Sep 20:14: 7ak's row still read item 4 INCONCLUSIVE after the correction; lessons.md, 7al)
+  const own = ids.has(k);
+  if (!own && !open(l)) return;
   const named = [...new Set([...l.matchAll(ID)].map(m => m[1]))].filter(x => ids.has(x));
-  if (named.length) out.push({ n: i + 1, k, named });
+  if (named.length) out.push({ n: i + 1, k, named: own && !named.includes(k) ? [k, ...named] : named, own });
 });
 console.log(`RE-LOOK: ${ids.size} item(s) named by the change (${[...ids].sort().join(', ') || 'none'}); ${out.length} live row(s) name one and were not touched:`);
-for (const r of out) console.log(`  PLAN.md:${r.n}  ${r.k.padEnd(6)}  names ${r.named.join(', ')}`);
+for (const r of out) console.log(`  PLAN.md:${r.n}  ${r.k.padEnd(6)}  names ${r.named.join(", ")}${r.own ? "  (its own row, DONE or READ)" : ""}`);

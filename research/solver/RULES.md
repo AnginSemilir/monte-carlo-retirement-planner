@@ -209,6 +209,13 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    The same review adds to the family "checks run where the fault cannot show" the unchecked seed of read-7ac-beside.mjs
    (the plan's bug list, fixed in fc12bea). Until the unlock fixes the pattern: a family count the index prints is checked
    against the register by hand at each deep review.
+24. The launcher keeps no record of a smoke run that fails or never finishes: run-from-snapshot.sh exits (or dies with its
+   machine) before its runs.log append, and smoke.sh's FAILED lines go only to the caller's output. So a refused launch
+   (O64: 30 Sep 07:17 UK, its reason lost to a filtered output) and a launch lost mid-smoke (7ah's fourth, 30 Sep 07:40
+   UK, the VM reclaimed; O65) leave no trace in runs.log. Until an unlock adds a refusal line (run-from-snapshot.sh
+   appending a runs.log line marked REFUSED, with smoke.sh's failing mode, before it exits): every launch keeps the
+   launcher's whole output in a log file (7ah-launch4.log and 7ah-launch5.log do), and a refusal or loss goes in the
+   register with that log (the plan-auditor, review-log.md 30 Sep 08:37 UK; added with the maintainer's agreement, 30 Sep).
 
 ---
 

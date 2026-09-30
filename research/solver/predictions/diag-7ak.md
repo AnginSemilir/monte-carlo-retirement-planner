@@ -106,7 +106,7 @@ The families' root-cause step after P (the deep review after P; section 9 rule 5
 - **Second:** item 1 HELD - the bridge's last years put the forward states near the cliff, where the cells are dead and their ties arbitrary; the disagreement is then a reading artefact.
 - **Third:** NOT SETTLED by the premise - the all-snap under 0.95 in the field (the unit test ran at 6 points; at 30 points the cells differ): the attribution is then unsound as designed.
 - **Fourth:** NOT SETTLED by the gate - a solve not P's (a code change since P touched TS+J: E3's option is off and the reader hook unset, both held by tests; the gate would catch any drift).
-- **The smoke run:** smoke.sh (locked) does not run audit-7ak.mjs; the preflight through the launcher (preflight-7ak.sh: both units at 6 points and 60 paths, the reducer's parse and gate read on its output) and the unit tests stand in.
+- **The smoke run:** smoke.sh (locked) does not run audit-7ak.mjs; the preflight through the launcher (preflight-7ak.sh: both units at 4 points and 20 paths, read by preflight-parse-7ak.mjs through the reducer's own parse, gate and reading against P's preflight) and the unit tests stand in.
 
 ## Changes after seeing results
 

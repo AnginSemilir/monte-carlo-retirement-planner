@@ -112,13 +112,15 @@ export function stageOf(u, r) {
   for (const [t, x] of Object.entries(u.resid[r])) { if (!x.n) continue; const k = +t < u.access.year ? o.bridge : o.after; k.n += x.n; k.g += x.n * (x.table - x.realised); }
   return ['bridge', 'after'].map(st => ({ stage: st === 'bridge' ? 'bridge' : 'after access', n: o[st].n, gap: o[st].n ? o[st].g / o[st].n : NaN }));
 }
+const f2 = x => (Number.isFinite(x) ? x.toFixed(2) : '-');
 const tri = (x, held, fals) => (x >= held ? 'HELD' : x < fals ? 'FALSIFIED' : 'INCONCLUSIVE');
 export function pool(u) { const o = { held: 0, dis: 0, dead: 0, agree: Object.fromEntries(SNAPS.map(k => [k, 0])) }; for (let t = 1; t <= YEARS; t++) { const S = u.snap[t]; o.held += S.held; o.dis += S.dis; o.dead += S.dead; for (const k of SNAPS) o.agree[k] += S.agree[k]; } o.live = o.dis - o.dead; return o; }
 export function levelGap(units) {
   const c = { boundary: { n: 0, t: 0, ok: 0 }, interior: { n: 0, t: 0, ok: 0 } };
   for (const u of units) for (const r of ['OPEN0', 'TS+J']) for (const k of ['boundary', 'interior']) { const x = u.level[`${r} ${k}`]; if (!x.n) continue; c[k].n += x.n; c[k].t += x.n * x.table; c[k].ok += x.n * x.realised / 100; }   // a line with no paths prints its table as '-' (NaN) and adds nothing (the plan-auditor's BLOCKING 1, 30 Sep)
   const B = c.boundary, I = c.interior;
-  if (!B.n || !I.n) return { d: NaN, lo: NaN, hi: NaN, B, I };
+  // a whole class with no paths: item 4 is NOT SETTLED; its figures are undefined and print '-' (the plan-auditor's BLOCKING 1, 30 Sep 16:29)
+  if (!B.n || !I.n) return { d: NaN, lo: NaN, hi: NaN, B: { n: B.n, table: NaN, realised: NaN }, I: { n: I.n, table: NaN, realised: NaN } };
   const tb = B.t / B.n, ti = I.t / I.n, rb = 100 * B.ok / B.n, ri = 100 * I.ok / I.n;
   const se = Math.sqrt((rb * (100 - rb)) / B.n + (ri * (100 - ri)) / I.n), d = (tb - rb) - (ti - ri);
   return { d, lo: d - Z95 * se, hi: d + Z95 * se, B: { n: B.n, table: tb, realised: rb }, I: { n: I.n, table: ti, realised: ri } };
@@ -143,7 +145,7 @@ export function reading(units, out = console.log) {
     out(`\n${u.id} (${u.label}): held path-years ${p.held}, disagreements ${p.dis} (dead cells ${p.dead}, live ${p.live}); node survival OPEN0 ${u.node.open0.toFixed(4)} TS+J ${u.node.tsj.toFixed(4)}`);
     out(`  pooled, the share of live disagreements each snap turns to the cell's move: ${SNAPS.map(k => `${k} ${p.live ? (100 * p.agree[k] / p.live).toFixed(1) : '-'}%`).join(', ')}`);
     for (let t = 1; t <= YEARS; t++) { const S = u.snap[t], lv = S.dis - S.dead; out(`  year ${t}: held ${S.held} disagree ${S.dis} (one-way ${S.oneWay}, reverse ${S.reverse}, dead ${S.dead}) | ${SNAPS.map(k => `${k} ${lv ? (100 * S.agree[k] / lv).toFixed(0) : '-'}%`).join(' ')}`); }
-    for (const r of ['OPEN0', 'TS+J']) for (const c of ['boundary', 'interior']) { const x = u.level[`${r} ${c}`]; out(`  year-1 ${r} ${c}: paths ${x.n}, table ${x.table.toFixed(2)} realised ${x.realised.toFixed(2)}`); }
+    for (const r of ['OPEN0', 'TS+J']) for (const c of ['boundary', 'interior']) { const x = u.level[`${r} ${c}`]; out(`  year-1 ${r} ${c}: paths ${x.n}, table ${f2(x.table)} realised ${f2(x.realised)}`); }
     out(`  REPORTED, world 0's table against realised survival by year (access in year ${u.access.year}; the paths alive and holding a tier state that year):`);
     for (const r of ['OPEN0', 'TS+J']) out(`    ${r}: ${stageOf(u, r).map(x => `${x.stage} ${x.n ? `${x.gap >= 0 ? '+' : ''}${x.gap.toFixed(2)} over ${x.n} path-years` : '-'}`).join('; ')}; by year ${Object.entries(u.resid[r]).filter(([, x]) => x.n).map(([t, x]) => `${t}:${(x.table - x.realised).toFixed(1)}`).join(' ')}`);
   }
@@ -151,7 +153,7 @@ export function reading(units, out = console.log) {
   out(`\nITEM 1 (dead cells carry bridge 4's disagreement): ${(100 * i1.x).toFixed(1)}% of ${R.pooled.dis} at a dead cell (HELD at ${100 * CARRY}%, FALSIFIED under ${100 * NONE}%) -> ${i1.outcome}`);
   out(`ITEM 2 (the reader): ${(100 * i2.x).toFixed(1)}% of ${R.pooled.live} live disagreements turned by the reader snap -> ${i2.outcome}`);
   out(`ITEM 3 (the pension-share axis a): ${(100 * i3.x).toFixed(1)}% turned by the a snap -> ${i3.outcome}`);
-  out(`ITEM 4 (switching boundaries, both units, OPEN0 and TS+J, year 1): boundary ${i4.lg.B.n} paths, table ${i4.lg.B.table.toFixed(2)} realised ${i4.lg.B.realised.toFixed(2)}; interior ${i4.lg.I.n}, table ${i4.lg.I.table.toFixed(2)} realised ${i4.lg.I.realised.toFixed(2)}; the boundary's excess mispricing ${i4.lg.d.toFixed(2)} points (${i4.lg.lo.toFixed(2)} to ${i4.lg.hi.toFixed(2)}; HELD above ${LEVEL_M}) -> ${i4.outcome}`);
+  out(`ITEM 4 (switching boundaries, both units, OPEN0 and TS+J, year 1): boundary ${i4.lg.B.n} paths, table ${f2(i4.lg.B.table)} realised ${f2(i4.lg.B.realised)}; interior ${i4.lg.I.n}, table ${f2(i4.lg.I.table)} realised ${f2(i4.lg.I.realised)}; the boundary's excess mispricing ${f2(i4.lg.d)} points (${f2(i4.lg.lo)} to ${f2(i4.lg.hi)}; HELD above ${LEVEL_M}) -> ${i4.outcome}`);
   out(`THE PREMISE: the all-snap turns ${(100 * R.allShare).toFixed(1)}% of the live disagreements (at least ${100 * ALLMIN}% needed) -> ${R.settled ? 'holds' : 'FAILS: NOT SETTLED'}`);
   out(`\nOUTCOME: ${R.settled ? R.items.map(i => `${i.n} ${i.outcome}`).join(', ') : 'NOT SETTLED'}`);
   return R;
@@ -190,6 +192,7 @@ function planted() {
   cases.push(['the all-snap under 0.95: NOT SETTLED', out({ allLow: true }), 'NOT SETTLED']);
   cases.push(['one year-1 level line with no paths (table -) adds nothing: item 4 still reads from the rest', out({ emptyLine: true, bnd: true }).split(' ')[3], 'HELD']);
   cases.push(['a whole pooled class with no paths: item 4 NOT SETTLED, not an INCONCLUSIVE from NaN', out({ noBoundary: true }).split(' ').slice(3).join(' '), 'NOT SETTLED']);
+  cases.push(['reading() runs to its OUTCOME on a whole empty class, item 4 NOT SETTLED and its figures printed "-"', (() => { const lines = []; try { reading(built({ noBoundary: true }).us, x => lines.push(x)); } catch (e) { return `THREW ${e.message}`; } const o = lines.find(x => x.startsWith('\nOUTCOME:') || x.startsWith('OUTCOME:')) || 'no OUTCOME'; return `${/ITEM 4 .*table - realised -.*-> NOT SETTLED/.test(lines.join('\n'))} ${o.trim()}`; })(), 'true OUTCOME: 1 FALSIFIED, 2 FALSIFIED, 3 FALSIFIED, 4 NOT SETTLED']);
   cases.push(['stageOf skips a year with no paths (table -) instead of turning the stage NaN', (() => { const u = built().us[0]; u.resid.OPEN0[11] = { n: 0, table: NaN, realised: NaN }; return JSON.stringify(stageOf(u, 'OPEN0').map(x => [x.n, +x.gap.toFixed(4)])); })(), '[[22000,-2],[49000,2]]']);
   cases.push(['stageOf splits the bridge from after access', JSON.stringify(stageOf(built().us[0], 'OPEN0').map(x => [x.stage, x.n, +x.gap.toFixed(4)])), '[["bridge",22000,-2],["after access",49000,2]]']);
   cases.push(['parse reads access and resid lines', JSON.stringify((u => [u.access, u.resid['TS+J'][3], u.resid.OPEN0[40]])(parse('S194             case | unit OFF/TS+J/MP/30x5/W0.02 | lambda x\n                 access OFF/TS+J/MP/30x5/W0.02: year 0 years 45\n                 resid OFF/TS+J/MP/30x5/W0.02 TS+J year 3: paths 7990 table 97.1234 realised 96.5000\n                 resid OFF/TS+J/MP/30x5/W0.02 OPEN0 year 40: paths 0 table - realised -\n')[0])), '[{"year":0,"years":45},{"n":7990,"table":97.1234,"realised":96.5},{"n":0,"table":null,"realised":null}]']);

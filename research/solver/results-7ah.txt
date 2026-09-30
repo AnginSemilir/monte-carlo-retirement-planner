@@ -1,0 +1,107 @@
+FAIR-TEST GATE: research/solver/predictions/diag-7af.md was corrected after launch (f848990a at launch): only typed UK times changed, and the change declared (its words are not checked) - - 29 Sept, after 7af was read (the maintainer's "unlock enforcement" of 29 Sep, which let the stamp gate take a declared correction): two typed times in the Written line corrected from the records - the revision 23:40 to 23:32 UK (commit 0f3728e) and the plan-auditor's FAIL 23:24 to 23:23 UK (review-log.md) - per the plan-auditor's MINOR 1 of 28 Sep and BLOCKING 2 of 29 Sep. Nothing else changed: no prediction, falsifier, decision rule, fair-test row or figure.
+
+7AH: O36'S FIX - THE READER'S REFERENCE DRAWN IN THE MENU'S ORDER, ON THE SIX LONGER BRIDGES (the fair-test gate passed)
+
+EVERY UNIT: table, simulated survival, table error, year-0 gap and opening
+  bridge 4       READER W0.02  table 99.6340 sim 99.59 error 0.05 gap 1.4138e-3 (opening 2,2)
+  bridge 4       ORDER  W0.02  table 99.6340 sim 99.59 error 0.05 gap 1.4137e-3 (opening 2,2)
+  bridge 6       READER W0.02  table 99.3211 sim 99.40 error -0.08 gap 1.5919e-3 (opening 2,2)
+  bridge 6       ORDER  W0.02  table 99.3211 sim 99.40 error -0.08 gap 1.5918e-3 (opening 2,2)
+  S360           READER W0.02  table 32.6715 sim 45.94 error -13.27 gap 0 (opening 0,0)
+  S360           ORDER  W0.02  table 41.4533 sim 45.96 error -4.51 gap 0 (opening 0,0)
+  S366           READER W0.02  table 98.8526 sim 99.20 error -0.35 gap 1.8458e-3 (opening 2,2)
+  S366           ORDER  W0.02  table 98.8526 sim 99.20 error -0.35 gap 1.8461e-3 (opening 2,2)
+  S370           READER W0.02  table 79.4918 sim 74.49 error 5.00 gap 2.7043e-2 (opening 2,2)
+  S370           ORDER  W0.02  table 82.3476 sim 74.46 error 7.89 gap 2.8638e-2 (opening 2,2)
+  bridge 4+cost  READER W0.02  table 98.0216 sim 99.20 error -1.18 gap 1.7126e-2 (opening 2,2)
+  bridge 4+cost  ORDER  W0.02  table 99.1913 sim 99.22 error -0.03 gap 1.4124e-2 (opening 2,2)
+  bridge 4       READER W0.01  table 99.6713 sim 99.64 error 0.03 gap 1.1084e-3 (opening 2,2)
+  bridge 4       ORDER  W0.01  table 99.6713 sim 99.64 error 0.03 gap 1.1082e-3 (opening 2,2)
+  bridge 6       READER W0.01  table 99.3640 sim 99.36 error 0.00 gap 1.6172e-3 (opening 2,2)
+  bridge 6       ORDER  W0.01  table 99.3641 sim 99.36 error 0.00 gap 1.6170e-3 (opening 2,2)
+  S360           READER W0.01  table 32.6715 sim 45.94 error -13.27 gap 0 (opening 0,0)
+  S360           ORDER  W0.01  table 41.4532 sim 45.99 error -4.53 gap 0 (opening 0,0)
+  S366           READER W0.01  table 98.9017 sim 99.21 error -0.31 gap 1.8284e-3 (opening 2,2)
+  S366           ORDER  W0.01  table 98.9017 sim 99.21 error -0.31 gap 1.8287e-3 (opening 2,2)
+  S370           READER W0.01  table 79.4550 sim 74.40 error 5.05 gap 2.7147e-2 (opening 2,2)
+  S370           ORDER  W0.01  table 82.3092 sim 74.38 error 7.93 gap 2.8741e-2 (opening 2,2)
+  bridge 4+cost  READER W0.01  table 98.0332 sim 99.20 error -1.17 gap 1.7072e-2 (opening 2,2)
+  bridge 4+cost  ORDER  W0.01  table 99.2058 sim 99.20 error 0.01 gap 1.4068e-2 (opening 2,2)
+
+ITEM 1: survival at the estate weight 0.02: ORDER against READER, no material harm on every household (the exact rule with Holm across 6, each at its margin, and the guarded unconditional interval's lower end above minus it; FALSIFIED: harm on any)
+     bridge 4       0 saved/0 lost  p 1.0e+0  change 0.000 (exact 0.000 to 0.000; unconditional, guarded, -0.048 to 0.048) margin 0.25: no material harm
+     bridge 6       0 saved/0 lost  p 1.0e+0  change 0.000 (exact 0.000 to 0.000; unconditional, guarded, -0.047 to 0.047) margin 0.25: no material harm
+     S360           29 saved/27 lost  p 1.0e+0  change 0.025 (exact -0.168 to 0.215; unconditional, guarded, -0.158 to 0.208) margin 0.5: no material harm
+     S366           0 saved/0 lost  p 1.0e+0  change 0.000 (exact 0.000 to 0.000; unconditional, guarded, -0.047 to 0.047) margin 0.25: no material harm
+     S370           0 saved/2 lost  p 1.0e+0  change -0.025 (exact -0.025 to 0.017; unconditional, guarded, -0.090 to 0.017) margin 0.5: no material harm
+     bridge 4+cost  2 saved/0 lost  p 1.0e+0  change 0.025 (exact -0.017 to 0.025; unconditional, guarded, -0.031 to 0.090) margin 0.25: no material harm
+   -> HELD
+
+ITEM 2: the whole score at the estate weight 0.02: no material harm on every household, each at its margin (FALSIFIED: an upper end below minus it)
+     bridge 4       +0.000 (-0.062 to 0.062)
+     bridge 6       +0.000 (-0.062 to 0.062)
+     S360           +0.025 (-0.214 to 0.265)
+     S366           +0.000 (-0.062 to 0.062)
+     S370           -0.026 (-0.106 to 0.027)
+     bridge 4+cost  +0.025 (-0.046 to 0.103)
+   -> HELD
+
+ITEM 3: survival at the estate weight 0.01: ORDER against READER, no material harm on every household (the exact rule with Holm across 6, each at its margin, and the guarded unconditional interval's lower end above minus it; FALSIFIED: harm on any)
+     bridge 4       0 saved/0 lost  p 1.0e+0  change 0.000 (exact 0.000 to 0.000; unconditional, guarded, -0.048 to 0.048) margin 0.25: no material harm
+     bridge 6       0 saved/0 lost  p 1.0e+0  change 0.000 (exact 0.000 to 0.000; unconditional, guarded, -0.047 to 0.047) margin 0.25: no material harm
+     S360           29 saved/25 lost  p 1.0e+0  change 0.050 (exact -0.140 to 0.235; unconditional, guarded, -0.130 to 0.230) margin 0.5: no material harm
+     S366           0 saved/0 lost  p 1.0e+0  change 0.000 (exact 0.000 to 0.000; unconditional, guarded, -0.047 to 0.047) margin 0.25: no material harm
+     S370           0 saved/2 lost  p 1.0e+0  change -0.025 (exact -0.025 to 0.017; unconditional, guarded, -0.090 to 0.017) margin 0.5: no material harm
+     bridge 4+cost  1 saved/1 lost  p 1.0e+0  change 0.000 (exact -0.024 to 0.024; unconditional, guarded, -0.059 to 0.059) margin 0.25: no material harm
+   -> HELD
+
+ITEM 4: the whole score at the estate weight 0.01: no material harm on every household, each at its margin (FALSIFIED: an upper end below minus it)
+     bridge 4       +0.000 (-0.062 to 0.062)
+     bridge 6       +0.000 (-0.062 to 0.062)
+     S360           +0.052 (-0.175 to 0.280)
+     S366           +0.000 (-0.062 to 0.062)
+     S370           -0.025 (-0.104 to 0.027)
+     bridge 4+cost  +0.000 (-0.074 to 0.074)
+   -> HELD
+
+ITEM 5: O36's pessimism on S360 at 0.02: ORDER's |table - simulated| at most 0.5 of READER's (FALSIFIED: 0.9 of it or more)
+     S360: READER's error 13.27, ORDER's 4.51, ratio 0.340
+   -> HELD
+
+ITEM 6 (0.02): the split at 0.02: where READER and ORDER open apart, ORDER with READER's opening against READER (a harm at items 1 to 4 on a household is the opening's where this reads no material harm, the later choices' where it reads harm)
+     bridge 4       opening READER 10 ORDER 10 -> a harm here is the later choices (no flip)'s
+     bridge 6       opening READER 10 ORDER 10 -> a harm here is the later choices (no flip)'s
+     S360           opening READER 0 ORDER 0 -> a harm here is the later choices (no flip)'s
+     S366           opening READER 10 ORDER 10 -> a harm here is the later choices (no flip)'s
+     S370           opening READER 10 ORDER 10 -> a harm here is the later choices (no flip)'s
+     bridge 4+cost  opening READER 10 ORDER 10 -> a harm here is the later choices (no flip)'s
+
+ITEM 6 (0.01): the split at 0.01: where READER and ORDER open apart, ORDER with READER's opening against READER (a harm at items 1 to 4 on a household is the opening's where this reads no material harm, the later choices' where it reads harm)
+     bridge 4       opening READER 10 ORDER 10 -> a harm here is the later choices (no flip)'s
+     bridge 6       opening READER 10 ORDER 10 -> a harm here is the later choices (no flip)'s
+     S360           opening READER 0 ORDER 0 -> a harm here is the later choices (no flip)'s
+     S366           opening READER 10 ORDER 10 -> a harm here is the later choices (no flip)'s
+     S370           opening READER 10 ORDER 10 -> a harm here is the later choices (no flip)'s
+     bridge 4+cost  opening READER 10 ORDER 10 -> a harm here is the later choices (no flip)'s
+
+ITEM 7: survival at 0.02: ORDER against SHIP (the shipping default), no material harm on every household (as item 1)
+     bridge 4       6 saved/2 lost  p 1.0e+0  change 0.050 (exact -0.030 to 0.094; unconditional, guarded, -0.030 to 0.138) margin 0.25: no material harm
+     bridge 6       8 saved/0 lost  p 1.0e+0  change 0.100 (exact 0.026 to 0.100; unconditional, guarded, 0.024 to 0.197) margin 0.25: no material harm
+     S360           933 saved/0 lost  p 1.0e+0  change 11.662 (exact 11.570 to 11.662; unconditional, guarded, 10.958 to 12.386) margin 0.5: no material harm
+     S366           5 saved/1 lost  p 1.0e+0  change 0.050 (exact -0.021 to 0.074; unconditional, guarded, -0.023 to 0.130) margin 0.25: no material harm
+     S370           569 saved/205 lost  p 1.0e+0  change 4.550 (exact 3.919 to 5.146; unconditional, guarded, 3.876 to 5.225) margin 0.5: no material harm
+     bridge 4+cost  315 saved/0 lost  p 1.0e+0  change 3.938 (exact 3.846 to 3.938; unconditional, guarded, 3.529 to 4.387) margin 0.25: no material harm
+   -> HELD
+
+ITEM 8: the whole score at 0.02: ORDER against SHIP, no material harm on every household (as item 2)
+     bridge 4       +0.338 (0.223 to 0.465)
+     bridge 6       +0.404 (0.292 to 0.536)
+     S360           +13.343 (12.422 to 14.286)
+     S366           +0.303 (0.196 to 0.419)
+     S370           +4.439 (3.611 to 5.268)
+     bridge 4+cost  +4.450 (3.929 to 5.022)
+   -> HELD
+
+REPORTED: S370's table error, READER 5.00, ORDER 7.89 (an optimistic table the fix may push further)
+
+OUTCOME: 1 HELD, 2 HELD, 3 HELD, 4 HELD, 5 HELD, 7 HELD, 8 HELD; 6 (the split): no opening flips

@@ -42,6 +42,7 @@ export const TESTS = [
   { name: '7af (the candidate bundle, the reader with TS+J, against the shipping default)', prediction: 'predictions/diag-7af.md', results: 'results-7af.txt' },
   { name: '7ag (the bundle on the nine remaining panel households, and S126\'s attribution)', prediction: 'predictions/diag-7ag.md', results: 'results-7ag.txt' },
   { name: 'P (the switch charged in both passes: which explanation carries families 1 and 2)', prediction: 'predictions/diag-p.md', results: 'results-P.txt' },
+  { name: '7ah (O36\'s fix: the reader\'s reference drawn in the menu\'s order, on the six longer bridges)', prediction: 'predictions/diag-7ah.md', results: 'results-7ah.txt' },
 ];
 
 export function credences(predText) {
@@ -54,7 +55,7 @@ export function credences(predText) {
   // item's credence is that it reads as that outcome
   const once = /reads as predicted \((HELD|FALSIFIED|INCONCLUSIVE)\):/.exec(m[1]);
   if (once) for (const x of m[1].slice(once.index).matchAll(/(?:\):|;)\s*(\d+)\s*,\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) { predicted[x[1]] = once[1]; withLabels[x[1]] = Number(x[2]); }
-  if (/reads as predicted:/.test(m[1])) for (const x of m[1].matchAll(/(?:predicted:|;)\s*(\d+)\s*\((HELD|FALSIFIED|INCONCLUSIVE)\),\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) { predicted[x[1]] = x[2]; withLabels[x[1]] = Number(x[3]); }
+  if (/reads as predicted:/.test(m[1])) for (const x of m[1].matchAll(/(?:predicted:|;|\):)\s*(\d+)\s*\((HELD|FALSIFIED|INCONCLUSIVE)\),\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) { predicted[x[1]] = x[2]; withLabels[x[1]] = Number(x[3]); }
   const body = m[1].replace(/\([^)]*\)/g, ' ');   // drop the reasons in brackets
   const items = Object.keys(withLabels).length ? withLabels : {};
   if (!Object.keys(withLabels).length) for (const x of body.matchAll(/(?:holds:|;)\s*(\d+)\s*,\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) items[x[1]] = Number(x[2]);   // a space before the comma: a bracketed label dropped (7t's "2 (J HELD), 0.25")
@@ -80,7 +81,7 @@ export function outcomes(resultsText) {
   // the verdict: 7e's "=> NOT FALSIFIED" or "=> FALSIFIED", or a three-outcome reducer's "OUTCOME: HELD|FALSIFIED|INCONCLUSIVE"
   const v = /^=>\s*(NOT FALSIFIED|FALSIFIED)/m.exec(resultsText) || /^OUTCOME:\s*(HELD|FALSIFIED|INCONCLUSIVE|NOT SETTLED)\b/m.exec(resultsText);   // NOT SETTLED (7s): the whole scored 0, the items as printed, so a missed reproduction is scored (the seventy-fourth review, MINOR 2)
   // a several-cause reducer's "OUTCOME: J INCONCLUSIVE, L HELD, ..." (reduce-7t.mjs): the whole holds when any cause HELD
-  const numbered0 = v ? null : /^OUTCOME:\s*(\d+\s+[A-Z][A-Z ]*[A-Z](?:,\s*\d+\s+[A-Z][A-Z ]*[A-Z])*)\s*$/m.exec(resultsText);   // read before the several-cause form, which also matches digit labels (the hundred-and-tenth review, MINOR 6; 7t's labels include 5L)
+  const numbered0 = v ? null : /^OUTCOME:\s*(\d+\s+[A-Z][A-Z ]*[A-Z](?:,\s*\d+\s+[A-Z][A-Z ]*[A-Z])*)\s*(?:;[^\n]*)?$/m.exec(resultsText);   // a trailing '; note' (7ah's '; 6 (the split): no opening flips', an item with no credence) is not scored   // read before the several-cause form, which also matches digit labels (the hundred-and-tenth review, MINOR 6; 7t's labels include 5L)
   const many = v || numbered0 ? null : /^OUTCOME:\s*((?:[\w/+]+\s+(?:HELD|FALSIFIED|INCONCLUSIVE)(?:,\s*|\s*$))+)$/m.exec(resultsText);
   // a numbered-items reducer's "OUTCOME: 1 INCONCLUSIVE, 2 HELD, ..., 7 NOT REPRODUCED" (reduce-7v.mjs): each item's outcome
   // as printed, scored against the outcome its credence names (scoreTest)
@@ -195,6 +196,8 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
   cases.push(['7ad: its real prediction\'s credences read, every item against HELD', t(() => { const c = credences(readFileSync(join(HERE, 'predictions/diag-7ad.md'), 'utf8')); return JSON.stringify([c.items, c.predicted]); }), '[{"1":0.65,"2":0.4,"3":0.45,"4":0.65},{"1":"HELD","2":"HELD","3":"HELD","4":"HELD"}]']);
   cases.push(['7v: items read as their bracketed outcome, NOT REPRODUCED against HELD a miss', t(() => { const r = scoreTest(pred('The author\'s probability that each item reads as predicted: 1 (INCONCLUSIVE), 0.40; 2 (HELD), 0.80; 3 (FALSIFIED), 0.70 (a reason). P named: about 0.35.'), 'x\nOUTCOME: 1 INCONCLUSIVE, 2 NOT REPRODUCED, 3 HELD\n'); return `${r.status} ${r.pairs.map(x => `${x.item}:${x.p}:${x.o}`).join(' ')} ${r.brier.toFixed(4)}`; }), 'SCORED 1:0.4:1 2:0.8:0 3:0.7:0 P named:0.35:0 0.4031']);
   cases.push(['7v: the two wholes scored from the attribution and the candidate list, and a numbered line with no NOT REPRODUCED still read as numbered', t(() => { const P7 = pred('The author\'s probability that each item reads as predicted: 1 (HELD), 0.60; 2 (FALSIFIED), 0.70. P named (alone or with C): about 0.35. At least one READER+J candidate by the whole score:\nabout 0.55.'); const r = scoreTest(P7, 'OUTCOME: 1 HELD, 2 FALSIFIED\n3. item 3 does not name P\nATTRIBUTION (x): HELD: N, table noise (item 4)\n  READER+J/0   survival CANDIDATE whole score CANDIDATE | x\n'); return `${r.status} ${r.pairs.map(x => `${x.p}:${x.o}`).join(' ')}`; }), 'SCORED 0.6:1 0.7:1 0.35:0 0.55:1']);
+  cases.push(['7ah: a numbered line with a trailing "; note" reads its items and leaves the note unscored', t(() => { const r = scoreTest(pred('The author\'s probability that each item reads as predicted: 1 (HELD), 0.60; 2 (HELD), 0.30.'), 'x\nOUTCOME: 1 HELD, 2 FALSIFIED; 6 (the split): no opening flips\n'); return `${r.status} ${r.pairs.map(x => `${x.item}:${x.p}:${x.o}`).join(' ')}`; }), 'SCORED 1:0.6:1 2:0.3:0']);
+  cases.push(['7ah: a revised list after a bracket and colon ("...0.026): 1 (HELD), 0.35; ...") overrides the first list, item 1 included', t(() => { const c = credences(readFileSync(join(HERE, 'predictions/diag-7ah.md'), 'utf8')); return JSON.stringify(c.items); }), '{"1":0.35,"2":0.45,"3":0.3,"4":0.4,"5":0.5,"7":0.75,"8":0.7}']);
   const wrong = cases.filter(([, got, want]) => got !== want && !(want.startsWith('ERROR') && got.startsWith(want.trimEnd())));
   if (wrong.length) { console.log(`PLANTED CHECK FAILED: ${wrong.map(([n, got, w]) => `${n} read ${got}, should read ${w}`).join('; ')}`); process.exit(1); }
   if (process.argv.includes('--planted')) { console.log(`planted (${cases.length}): all read as they should`); process.exit(0); }

@@ -19,13 +19,15 @@ caught  the gate ignores the paths through the bridge: PLANTED CHECK FAILED:
 caught  the gate ignores the after stage's paths: PLANTED CHECK FAILED:
 caught  the gate ignores the node's survivors: PLANTED CHECK FAILED:
 caught  the gate ignores the telescoping: PLANTED CHECK FAILED:
-caught  the margin a flat 0.5: PLANTED CHECK FAILED:
+caught  the margin at 1 point: PLANTED CHECK FAILED:
 caught  the test at c, not c less the margin: PLANTED CHECK FAILED:
 caught  no Holm: PLANTED CHECK FAILED:
 caught  NO MATERIAL OPTIMISM on the point: PLANTED CHECK FAILED:
 caught  HELD at one unit: PLANTED CHECK FAILED:
 caught  HELD counts any unit: PLANTED CHECK FAILED:
-caught  FALSIFIED despite an OPTIMISTIC unit-world: PLANTED CHECK FAILED:
+caught  FALSIFIED despite an OPTIMISTIC unit: PLANTED CHECK FAILED:
+caught  FALSIFIED without O66's pool: PLANTED CHECK FAILED:
+caught  a unit's worlds not pooled (its first world alone): PLANTED CHECK FAILED:
 caught  the lower tail read as the upper: PLANTED CHECK FAILED:
 
-28 mutations: every one caught
+30 mutations: every one caught

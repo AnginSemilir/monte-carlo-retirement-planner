@@ -20,16 +20,18 @@
  *     path claims at year 0; and each stage's per-path mean, times its paths, is the resid lines' sum over the stage's
  *     years (the telescoping) to their rounding.
  * THE ITEM, by the registered rule (the one primary outcome):
- *   1. POST-ACCESS OPTIMISM (O66; the 14:39 review's hypothesis (1)): on each TS+J unit and world, the paths alive at
- *      access (n), their mean claim there (c, the table's survival for the rest of the plan) and the paths that survive
- *      (s). The margin m is stats.mjs marginFor(c): 0.25 where c is 95 or more, else 0.5. The p-value is the binomial
- *      lower tail P(Bin(n, (c - m)/100) <= s): exact for equal chances and conservative for unequal ones (the paths'
- *      true chances differ; Hoeffding 1956, Theorem 4: the Poisson-binomial tail at or below the mean less one is at most
- *      the binomial's at the mean chance), Holm across the 21 unit-worlds. Per unit-world: OPTIMISTIC when the Holm p is
- *      below 0.05 and the point c - 100 s/n is m or more; NO MATERIAL OPTIMISM when the Clopper-Pearson 95% lower end of
- *      s/n, in points, is c - m or more; else INCONCLUSIVE. The item: HELD when 2 or more of O66's four units (S128,
- *      S130 and S370 READER, S194 OFF, all TS+J) read OPTIMISTIC in a world; FALSIFIED when no unit-world of the 21 reads
- *      OPTIMISTIC and all 12 of O66's units' unit-worlds read NO MATERIAL OPTIMISM; else INCONCLUSIVE.
+ *   1. POST-ACCESS OPTIMISM (O66; the 14:39 review's hypothesis (1)): on each TS+J unit, its three worlds pooled - the
+ *      paths alive at access (n, about 6,000), their mean claim there (c, the table's survival for the rest of the plan)
+ *      and the paths that survive (s). The margin D is 2 points, declared (about half the smallest of O66's reported
+ *      table errors, S128's +4.20; a post-access optimism under it would not carry them). The p-value is the binomial
+ *      lower tail P(Bin(n, (c - D)/100) <= s): exact for equal chances and conservative for unequal ones (the paths' true
+ *      chances differ; Hoeffding 1956, Theorem 4: the Poisson-binomial tail at or below the mean less one is at most the
+ *      binomial's at the mean chance), Holm across the 7 units. Per unit: OPTIMISTIC when the Holm p is below 0.05 and the
+ *      point c - 100 s/n is D or more; NO MATERIAL OPTIMISM when the Clopper-Pearson 95% lower end of s/n, in points, is
+ *      c - D or more (conservative the same way); else INCONCLUSIVE. O66's four units (S128, S130 and S370 READER, S194
+ *      OFF, all TS+J) are also pooled into one (about 24,000 paths). The item: HELD when 2 or more of O66's four units
+ *      read OPTIMISTIC; FALSIFIED when none of the 7 units reads OPTIMISTIC and O66's pool reads NO MATERIAL OPTIMISM;
+ *      else INCONCLUSIVE. Each unit-world is read the same way and reported, not an item (S194's O66 is its bad world's).
  * Reported, not items (the review after 7ai: 'report'): the reference against its own draw and the engine's bridge
  * payment by world, with Clopper-Pearson intervals; the bridge stage's per-path mean with a normal 95% band (not an exact
  * test); ORDER beside READER on S360 and S370; the shipping default (OFF/PRODUCT on S194), whose world tables each hold
@@ -42,14 +44,14 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireFairLogs } from './fair-gate.mjs';
-import { clopperPearson, holm, betaInc, marginFor } from './stats.mjs';
+import { clopperPearson, holm, betaInc } from './stats.mjs';
 import * as A from './reduce-7aa.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-7al.md';
 const PRED_AH = 'research/solver/predictions/diag-7ah.md', PRED_AG = 'research/solver/predictions/diag-7ag.md', PRED_AF = 'research/solver/predictions/diag-7af.md';
 export const { field, LAMBDA } = A;
-export const PTS = '30', SEED = '7002', W = '0.02', NPW = 2000, K = 3, ALPHA = 0.05;
+export const PTS = '30', SEED = '7002', W = '0.02', NPW = 2000, K = 3, ALPHA = 0.05, D = 2;
 // audit-7al.mjs's units, in its order ([case, arm, setting]); a planted check holds the two lists together
 export const UNITS7 = [['S360', 'READER', 'TS+J'], ['S360', 'ORDER', 'TS+J'], ['S370', 'READER', 'TS+J'], ['S370', 'ORDER', 'TS+J'], ['S128', 'READER', 'TS+J'], ['S130', 'READER', 'TS+J'], ['S194', 'OFF', 'TS+J'], ['S194', 'OFF', 'PRODUCT']];
 export const UNITS = UNITS7.map(([id, a, s]) => [id, a, `${s}/W${W}`]);
@@ -146,21 +148,21 @@ export function gate(units, ref) {
 /* the binomial lower tail P(Bin(n, q) <= s) (betaInc: P(X <= s) = I_{1-q}(n - s, s + 1)) */
 export const binomLower = (s, n, q) => (s >= n ? 1 : q <= 0 ? 1 : q >= 1 ? (s >= n ? 1 : 0) : betaInc(n - s, s + 1, 1 - q));
 
-/* ITEM 1 over the TS+J units' after stages: [{ id, arm, k, n, c, s }] */
+/* one after stage read against its claim: n paths alive at access, c their mean claim (points), s survivors */
+export const readOf = (n, c, s) => ({ n, c, s, pt: n > 0 ? c - 100 * s / n : NaN, p: n > 0 ? binomLower(s, n, Math.max(0, (c - D) / 100)) : 1, lo: n > 0 ? 100 * clopperPearson(s, n)[0] : NaN });
+export const poolOf = xs => { const n = xs.reduce((t, x) => t + x.n, 0), s = xs.reduce((t, x) => t + x.s, 0); return readOf(n, n ? xs.reduce((t, x) => t + x.n * x.c, 0) / n : NaN, s); };
+const isO66 = x => O66.some(([id, a]) => id === x.id && a === x.arm);
+/* ITEM 1 over the TS+J units' after stages, one row a unit-world: [{ id, arm, k, n, c, s }] */
 export function item1(rows) {
-  const r = rows.map(x => {
-    const m = marginFor(x.c), pt = x.n > 0 ? x.c - 100 * x.s / x.n : NaN;
-    const p = x.n > 0 ? binomLower(x.s, x.n, Math.max(0, (x.c - m) / 100)) : 1;
-    const lo = x.n > 0 ? 100 * clopperPearson(x.s, x.n)[0] : NaN;
-    return { ...x, m, pt, p, lo };
-  });
-  const adj = holm(r.map(x => x.p));
-  r.forEach((x, i) => { x.pH = adj[i]; x.read = x.pH < ALPHA && x.pt >= x.m ? 'OPTIMISTIC' : x.lo >= x.c - x.m ? 'NO MATERIAL OPTIMISM' : 'INCONCLUSIVE'; });
-  const isO66 = x => O66.some(([id, a]) => id === x.id && a === x.arm);
-  const held = O66.filter(([id, a]) => r.some(x => x.id === id && x.arm === a && x.read === 'OPTIMISTIC')).length;
-  const o66 = r.filter(isO66);
-  const outcome = held >= 2 ? 'HELD' : !r.some(x => x.read === 'OPTIMISTIC') && o66.length === O66.length * K && o66.every(x => x.read === 'NO MATERIAL OPTIMISM') ? 'FALSIFIED' : 'INCONCLUSIVE';
-  return { rows: r, held, outcome };
+  const units = UNITS.filter(([, , l]) => l.startsWith('TS+J')).map(([id, arm]) => ({ id, arm, ...poolOf(rows.filter(x => x.id === id && x.arm === arm)) }));
+  const adj = holm(units.map(u => u.p));
+  units.forEach((u, i) => { u.pH = adj[i]; u.read = u.pH < ALPHA && u.pt >= D ? 'OPTIMISTIC' : u.lo >= u.c - D ? 'NO MATERIAL OPTIMISM' : 'INCONCLUSIVE'; });
+  const worlds = rows.map(x => { const r = { ...x, ...readOf(x.n, x.c, x.s) }; r.read = r.p < ALPHA && r.pt >= D ? 'optimistic' : r.lo >= r.c - D ? 'no material optimism' : 'inconclusive'; return r; });
+  const o66 = rows.filter(isO66), pool = poolOf(o66);
+  pool.read = pool.lo >= pool.c - D ? 'NO MATERIAL OPTIMISM' : 'NOT SHOWN';
+  const held = O66.filter(([id, a]) => units.some(u => u.id === id && u.arm === a && u.read === 'OPTIMISTIC')).length;
+  const outcome = held >= 2 ? 'HELD' : !units.some(u => u.read === 'OPTIMISTIC') && o66.length === O66.length * K && pool.read === 'NO MATERIAL OPTIMISM' ? 'FALSIFIED' : 'INCONCLUSIVE';
+  return { units, worlds, pool, held, outcome };
 }
 
 const f4 = x => (Number.isFinite(x) ? x.toFixed(4) : '-'), f2 = x => (Number.isFinite(x) ? x.toFixed(2) : '-');
@@ -174,10 +176,13 @@ export function reading(units, out = console.log) {
     for (let k = 0; k < K; k++) { const s = u.stage.find(x => x.k === k && x.stage === 'after'); rows.push({ id, arm: a, k, n: s.n, c: s.start, s: s.through }); }
   }
   const I = item1(rows);
-  out(`\nITEM 1 (post-access optimism, O66): the paths alive at access, their mean claim there (c) against the share that survive; margin 0.25 at c 95 or more, else 0.5; binomial lower tail at (c - margin), Holm over ${rows.length}`);
-  out('  household  arm     world |   paths  claim c  survived  c - surv | CP 95% low   p        Holm p   | reading');
-  for (const x of I.rows) out(`  ${x.id.padEnd(9)}  ${x.arm.padEnd(6)}  ${String(x.k).padStart(5)} | ${String(x.n).padStart(7)}  ${f4(x.c).padStart(7)}  ${f4(x.n ? 100 * x.s / x.n : NaN).padStart(8)}  ${f4(x.pt).padStart(8)} | ${f4(x.lo).padStart(9)}  ${x.p.toExponential(2).padStart(8)}  ${x.pH.toExponential(2).padStart(8)} | ${x.read}`);
-  out(`  O66's four units OPTIMISTIC in a world: ${I.held} (HELD at 2 or more; FALSIFIED when none of the ${rows.length} is OPTIMISTIC and all ${O66.length * K} of O66's read NO MATERIAL OPTIMISM) -> ${I.outcome}`);
+  out(`\nITEM 1 (post-access optimism, O66): each TS+J unit's three worlds pooled - the paths alive at access, their mean claim there (c) against the share that survive; margin ${D} points; binomial lower tail at (c - ${D}), Holm over ${I.units.length}`);
+  out('  household  arm    |   paths  claim c  survived  c - surv | CP 95% low   p         Holm p   | reading');
+  const line = (x, tag) => `${tag} | ${String(x.n).padStart(7)}  ${f4(x.c).padStart(7)}  ${f4(x.n ? 100 * x.s / x.n : NaN).padStart(8)}  ${f4(x.pt).padStart(8)} | ${f4(x.lo).padStart(9)}  ${x.p.toExponential(2).padStart(8)}  ${x.pH === undefined ? '       -' : x.pH.toExponential(2).padStart(8)} | ${x.read}`;
+  for (const x of I.units) out(line(x, `  ${x.id.padEnd(9)}  ${x.arm.padEnd(6)}`));
+  out(line(I.pool, `  O66's four pooled `));
+  out(`  O66's four units OPTIMISTIC: ${I.held} (HELD at 2 or more; FALSIFIED when none of the ${I.units.length} is OPTIMISTIC and O66's pool reads NO MATERIAL OPTIMISM) -> ${I.outcome}`);
+  out(`  by world (reported; unadjusted p): ${I.worlds.map(x => `${x.id} ${x.arm} w${x.k} ${f2(x.pt)} [${x.read}]`).join('; ')}`);
   // reported
   out(`\nREPORTED (not items):`);
   out(`  THE REFERENCE, ITS OWN DRAW AND THE ENGINE'S BRIDGE PAYMENT, by world (year 0, the opening accessible money; CP 95% on the draws):`);
@@ -278,17 +283,18 @@ function planted() {
   const all = (f) => UNITS.filter(([, , l]) => l.startsWith('TS+J')).flatMap(([id, a]) => [0, 1, 2].map(k => f(id, a, k)));
   const calib = (id, a, k) => row(id, a, k, 1800, 80, 1440);   // 80.00 claimed, 80.00 survive
   const opt = (id, a, k) => row(id, a, k, 1800, 80, 1350);     // 80 claimed, 75 survive
-  cases.push(['all calibrated at 1,800 paths (CP low 78.1 under 80 - 0.5): INCONCLUSIVE', item1(all(calib)).outcome, 'INCONCLUSIVE']);
-  cases.push(['all calibrated at 99.9 claimed of 1,800, 1,799 survive: FALSIFIED', item1(all((id, a, k) => row(id, a, k, 1800, 99.9, 1799))).outcome, 'FALSIFIED']);
-  cases.push(['S128 and S130 optimistic by 5 points in world 0: HELD', item1(all((id, a, k) => (k === 0 && ['S128', 'S130'].includes(id) && a === 'READER' ? opt(id, a, k) : calib(id, a, k)))).outcome, 'HELD']);
-  cases.push(['only S128 optimistic: INCONCLUSIVE', item1(all((id, a, k) => (k === 0 && id === 'S128' ? opt(id, a, k) : calib(id, a, k)))).outcome, 'INCONCLUSIVE']);
-  cases.push(['S360 and S370 ORDER optimistic, not O66\'s units: INCONCLUSIVE', item1(all((id, a, k) => (a === 'ORDER' ? opt(id, a, k) : calib(id, a, k)))).outcome, 'INCONCLUSIVE']);
-  cases.push(['an optimism under the margin reads not OPTIMISTIC (80 claimed, 79.8 survive at 1,800)', item1(all((id, a, k) => row(id, a, k, 1800, 80, 1436))).rows[0].read, 'INCONCLUSIVE']);
-  cases.push(['a pessimistic table reads NO MATERIAL OPTIMISM (99 claimed, all 1,800 survive)', item1(all((id, a, k) => row(id, a, k, 1800, 99, 1800))).rows[0].read, 'NO MATERIAL OPTIMISM']);
-  cases.push(['99.5 claimed, 1,990 of 2,000 survive: CP low 99.08, inside 0.5 but not the 0.25 margin at 95 or more: INCONCLUSIVE', item1([row('S128', 'READER', 0, 2000, 99.5, 1990)]).rows[0].read, 'INCONCLUSIVE']);
-  cases.push(['80 claimed, 1,565 of 2,000 survive (78.25): p at 79.5 is 0.09, not OPTIMISTIC (p at 80 would be 0.03)', item1([row('S128', 'READER', 0, 2000, 80, 1565)]).rows[0].read, 'INCONCLUSIVE']);
-  cases.push(['one unit-world at p 0.01 among 21: Holm lifts it over 0.05, not OPTIMISTIC', item1(all((id, a, k) => (id === 'S128' && k === 0 ? row(id, a, k, 2000, 80, 1548) : calib(id, a, k)))).rows.find(x => x.id === 'S128' && x.k === 0).read, 'INCONCLUSIVE']);
-  cases.push(['ORDER optimistic while O66\'s units read NO MATERIAL OPTIMISM: INCONCLUSIVE, not FALSIFIED', item1(all((id, a, k) => (a === 'ORDER' ? opt(id, a, k) : row(id, a, k, 1800, 99.9, 1799)))).outcome, 'INCONCLUSIVE']);
+  const unitRead = (I, id, a) => I.units.find(u => u.id === id && u.arm === a).read;
+  cases.push(['all calibrated, 1,800 a world: FALSIFIED (O66\'s pool of 21,600 inside 2 points)', item1(all(calib)).outcome, 'FALSIFIED']);
+  cases.push(['a calibrated unit (5,400 paths, CP low 78.9) reads NO MATERIAL OPTIMISM', unitRead(item1(all(calib)), 'S128', 'READER'), 'NO MATERIAL OPTIMISM']);
+  cases.push(['S128 and S130 optimistic by 5 points: HELD', item1(all((id, a, k) => (['S128', 'S130'].includes(id) ? opt(id, a, k) : calib(id, a, k)))).outcome, 'HELD']);
+  cases.push(['only S128 optimistic: INCONCLUSIVE', item1(all((id, a, k) => (id === 'S128' ? opt(id, a, k) : calib(id, a, k)))).outcome, 'INCONCLUSIVE']);
+  cases.push(['S360 and S370 ORDER optimistic, O66\'s units calibrated: INCONCLUSIVE, not FALSIFIED', item1(all((id, a, k) => (a === 'ORDER' ? opt(id, a, k) : calib(id, a, k)))).outcome, 'INCONCLUSIVE']);
+  cases.push(['every unit 1.8 points optimistic (78.2 survive): no unit OPTIMISTIC, O66\'s pool NOT SHOWN: INCONCLUSIVE', item1(all((id, a, k) => row(id, a, k, 1800, 80, 1408))).outcome, 'INCONCLUSIVE']);
+  cases.push(['a pessimistic table reads NO MATERIAL OPTIMISM (99 claimed, all survive)', unitRead(item1(all((id, a, k) => row(id, a, k, 1800, 99, 1800))), 'S128', 'READER'), 'NO MATERIAL OPTIMISM']);
+  cases.push(['80 claimed, 1,550 of 2,000 survive (77.5): p at 78 is 0.3, not OPTIMISTIC (p at 80 would be 0.003)', unitRead(item1([row('S128', 'READER', 0, 2000, 80, 1550)]), 'S128', 'READER'), 'INCONCLUSIVE']);
+  cases.push(['1 point optimistic on 500 paths (CP low 75.2): INCONCLUSIVE, not NO MATERIAL OPTIMISM on the point', unitRead(item1([row('S128', 'READER', 0, 500, 80, 395)]), 'S128', 'READER'), 'INCONCLUSIVE']);
+  cases.push(['S128 and S130 optimistic in worlds 1 and 2 only, world 0 calibrated: the pooled units read HELD', item1(all((id, a, k) => (['S128', 'S130'].includes(id) && k > 0 ? row(id, a, k, 1800, 80, 1300) : calib(id, a, k)))).outcome, 'HELD']);
+  cases.push(['one unit at p 0.02 among 7: Holm lifts it over 0.05, not OPTIMISTIC', unitRead(item1(all((id, a, k) => (id === 'S128' ? row(id, a, k, 1800, 80, 1383 + (k === 2)) : calib(id, a, k)))), 'S128', 'READER'), 'INCONCLUSIVE']);
   // the arithmetic
   cases.push(['binomLower: P(Bin(10, 0.5) <= 2) = 56/1024', binomLower(2, 10, 0.5).toFixed(7), (56 / 1024).toFixed(7)]);
   cases.push(['binomLower: P(Bin(20, 0.9) <= 20) = 1', String(binomLower(20, 20, 0.9)), '1']);

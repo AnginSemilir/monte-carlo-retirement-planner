@@ -1,0 +1,31 @@
+true script: planted (40): all read as they should
+caught  the gate accepts a missing unit: PLANTED CHECK FAILED:
+caught  the gate accepts a unit twice: PLANTED CHECK FAILED:
+caught  the gate accepts an unregistered unit: PLANTED CHECK FAILED:
+caught  the gate ignores a unit not done: PLANTED CHECK FAILED:
+caught  the gate ignores the unit settings: PLANTED CHECK FAILED:
+caught  the gate ignores the path count: PLANTED CHECK FAILED:
+caught  the gate ignores the tier state: PLANTED CHECK FAILED:
+caught  the gate ignores readerRef: PLANTED CHECK FAILED:
+caught  the gate ignores the switch margin: PLANTED CHECK FAILED:
+caught  the gate ignores a death charge: PLANTED CHECK FAILED:
+caught  the gate ignores the reference's table: PLANTED CHECK FAILED:
+caught  the gate ignores the reference's gap: PLANTED CHECK FAILED:
+caught  the gate ignores a missing access line: PLANTED CHECK FAILED:
+caught  the gate ignores the world count: PLANTED CHECK FAILED:
+caught  the gate ignores a missing resid year: PLANTED CHECK FAILED:
+caught  the gate ignores missing cell lines: PLANTED CHECK FAILED:
+caught  the gate ignores the paths through the bridge: PLANTED CHECK FAILED:
+caught  the gate ignores the after stage's paths: PLANTED CHECK FAILED:
+caught  the gate ignores the node's survivors: PLANTED CHECK FAILED:
+caught  the gate ignores the telescoping: PLANTED CHECK FAILED:
+caught  the margin a flat 0.5: PLANTED CHECK FAILED:
+caught  the test at c, not c less the margin: PLANTED CHECK FAILED:
+caught  no Holm: PLANTED CHECK FAILED:
+caught  NO MATERIAL OPTIMISM on the point: PLANTED CHECK FAILED:
+caught  HELD at one unit: PLANTED CHECK FAILED:
+caught  HELD counts any unit: PLANTED CHECK FAILED:
+caught  FALSIFIED despite an OPTIMISTIC unit-world: PLANTED CHECK FAILED:
+caught  the lower tail read as the upper: PLANTED CHECK FAILED:
+
+28 mutations: every one caught

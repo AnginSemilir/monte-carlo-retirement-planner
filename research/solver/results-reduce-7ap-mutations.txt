@@ -1,0 +1,38 @@
+true script: planted (49): all read as they should
+caught  the gate accepts a missing unit: PLANTED CHECK FAILED:
+caught  the gate accepts a unit twice: PLANTED CHECK FAILED:
+caught  the gate accepts an unregistered unit: PLANTED CHECK FAILED:
+caught  the gate ignores a unit not done: PLANTED CHECK FAILED:
+caught  the gate ignores the unit settings: PLANTED CHECK FAILED:
+caught  the gate ignores the ran line's path count: PLANTED CHECK FAILED:
+caught  the gate ignores the tier state: PLANTED CHECK FAILED:
+caught  the gate ignores readerRef: PLANTED CHECK FAILED:
+caught  the gate ignores the switch margin: PLANTED CHECK FAILED:
+caught  the gate ignores a death charge: PLANTED CHECK FAILED:
+caught  the gate ignores a missing axis line: PLANTED CHECK FAILED:
+caught  the gate ignores which arm is interpolated: PLANTED CHECK FAILED:
+caught  the gate ignores the buckets: PLANTED CHECK FAILED:
+caught  the gate skips identity with 7al: PLANTED CHECK FAILED:
+caught  the gate's identity skips the table: PLANTED CHECK FAILED:
+caught  the gate's identity skips the stage lines: PLANTED CHECK FAILED:
+caught  the gate ignores a PCLSI ran line off its twin's: PLANTED CHECK FAILED:
+caught  the gate ignores a missing access line: PLANTED CHECK FAILED:
+caught  the gate ignores a missing lsa year: PLANTED CHECK FAILED:
+caught  the gate ignores missing pcell lines: PLANTED CHECK FAILED:
+caught  the gate ignores pcell path-years off the resid lines: PLANTED CHECK FAILED:
+caught  the gate ignores a residual sum off the resid lines: PLANTED CHECK FAILED:
+caught  the gate ignores lsa paths off the resid paths: PLANTED CHECK FAILED:
+caught  the gate ignores the paid count: PLANTED CHECK FAILED:
+caught  the gate ignores the node sim: PLANTED CHECK FAILED:
+caught  item 1: h the whole point, not half: PLANTED CHECK FAILED:
+caught  item 1: HALVED on the point, not the CP low end: PLANTED CHECK FAILED:
+caught  item 1: NOT HALVED without Holm: PLANTED CHECK FAILED:
+caught  item 1: HELD on one unit: PLANTED CHECK FAILED:
+caught  item 1: no optimism counts as halved: PLANTED CHECK FAILED:
+caught  item 2/3: the margin at 1: PLANTED CHECK FAILED:
+caught  item 2: FALSIFIED on one unit: PLANTED CHECK FAILED:
+caught  item 3: INCONCLUSIVE read as HELD: PLANTED CHECK FAILED:
+caught  parse drops the pcell position: PLANTED CHECK FAILED:
+caught  parse drops the axis flag: PLANTED CHECK FAILED:
+
+35 mutations: every one caught

@@ -128,12 +128,28 @@ export function makeGrid(m, opts = {}) {
     m, mode: total ? 'total' : 'pots', n: Math.max(n1, n2, n3), np: n1, ni: n2, nt: n3, spend, axes, gain, pcls, size, stride, open,
     /* Phase 6e arms 3 and 4. Both default off, so the shipped build is bit-identical to before. */
     gainInterp: !!opts.gainInterp, pclsStrict: !!opts.pclsStrict,
+    /* 7ap (the deep review after 7al, O71): the allowance axis interpolated, not snapped. Research only, default off. */
+    pclsInterp: pclsInterpOf(opts),
     /* #106: how a survival read treats a corner that is dead along a SHARE axis (see shareDeadAdjust) */
     shareDead: opts.shareDead === 'drop' || opts.shareDead === 'linear' ? opts.shareDead : null,
     /* F1, the cliff-aware read of a bridge year (see bridgeAdjust); set by `solve` when `bridgeRead` is on */
     bridge: null,
     index: (i1, i2, i3, ig, ic) => i1 + i2 * stride.isa + i3 * stride.tax + ig * stride.gain + ic * stride.pcls
   };
+}
+
+/*
+ * 7AP, THE INTERPOLATED ALLOWANCE AXIS (`pclsInterp`; PLAN.md O71 and 7ap). Snapped by `nearest`, the used-allowance
+ * axis is absorbing: a year using under a quarter of the allowance reads back on the bucket it started from, so the
+ * tables value the tax-free part of every later draw as lasting for ever, while a real path's use grows until it crosses
+ * 0.75 and its read jumps to the last bucket. This brackets the used fraction between two buckets as `gainInterp`
+ * brackets the gain, blending the corners one bucket apart. Between buckets 0 and 0.5 the blend also mixes the
+ * lump-taken flag that `toVec` derives from the bucket (a cell on bucket 0 may still take the whole lump; one on 0.5
+ * has taken it) - stated, not hidden: the arm removes the snap, not the flag's coarseness. Excludes `pclsStrict`.
+ */
+function pclsInterpOf(opts) {
+  if (opts.pclsInterp && opts.pclsStrict) throw new Error('grid: pclsInterp and pclsStrict are two readings of the same axis; set one');
+  return !!opts.pclsInterp;
 }
 
 /* Nearest bucket, for the two dimensions that are not interpolated. */
@@ -232,16 +248,19 @@ export function toVec(g, ip, ii, it, ig, ic, out) {
 /* Where a six-slot vector sits on the grid. */
 export function locateVec(g, s) {
   const pf = Math.min(1, s[4] / g.m.P.lsa);
-  const ic = g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);
+  // when the allowance axis is interpolated (7ap), `ic` is the LOWER bracket and `icw` the weight on the one above
+  const cb = g.pclsInterp ? bracket(g.pcls, pf) : null;
+  const ic = cb ? cb.i : g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);
+  const icw = cb ? cb.w : 0;
   // when the gain axis is interpolated, `ig` is the LOWER bracket and `igw` the weight on the one above
   const gb = g.gainInterp ? bracket(g.gain, s[3]) : null;
   const ig = gb ? gb.i : nearest(g.gain, s[3]);
   const igw = gb ? gb.w : 0;
   if (g.mode === 'total') {
     const W = s[0] + s[1] + s[2], rest = W - s[0];
-    return { p: locate(g.axes.W, W), i: locateLin(g.axes.a, W > 0 ? s[0] / W : 0), t: locateLin(g.axes.b, rest > 0 ? s[1] / rest : 0), ig, ic, igw };
+    return { p: locate(g.axes.W, W), i: locateLin(g.axes.a, W > 0 ? s[0] / W : 0), t: locateLin(g.axes.b, rest > 0 ? s[1] / rest : 0), ig, ic, igw, icw };
   }
-  return { p: locate(g.axes.pen, s[0]), i: locate(g.axes.isa, s[1]), t: locate(g.axes.tax, s[2]), ig, ic, igw };
+  return { p: locate(g.axes.pen, s[0]), i: locate(g.axes.isa, s[1]), t: locate(g.axes.tax, s[2]), ig, ic, igw, icw };
 }
 
 /*
@@ -254,8 +273,8 @@ export function locateVec(g, s) {
  * `out[0]` is survival, `out[1]` bequest.
  */
 const LOC = new Float64Array(6);     // i, w for each of the three axes
-const IDX = new Int32Array(16);   // 8 corners, or 16 when the gain axis is interpolated too (Phase 6e arm 3)
-const W = new Float64Array(16);
+const IDX = new Int32Array(32);   // 8 corners; 16 with the gain axis interpolated too (Phase 6e arm 3); 32 with the allowance axis as well (7ap)
+const W = new Float64Array(32);
 function locInto(ax, v, k) {
   if (!(v > 0)) { LOC[k] = 0; LOC[k + 1] = 0; return; }
   if (v <= ax.pts[1]) { LOC[k] = 0; LOC[k + 1] = v / ax.pts[1]; return; }
@@ -277,7 +296,8 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
     locInto(g.axes.pen, s[0], 0); locInto(g.axes.isa, s[1], 2); locInto(g.axes.tax, s[2], 4);
   }
   const pf = Math.min(1, s[4] / g.m.P.lsa);
-  const ic = g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);
+  const cb = g.pclsInterp ? bracket(g.pcls, pf) : null;
+  const ic = cb ? cb.i : g.pclsStrict ? nearestPclsStrict(g.pcls, pf) : nearest(g.pcls, pf);
   const gb = g.gainInterp ? bracket(g.gain, s[3]) : null;
   const ig = gb ? gb.i : nearest(g.gain, s[3]);
   const n = g.stride.isa, nn = g.stride.tax;
@@ -305,6 +325,12 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
       for (let k = 0; k < 8; k++) { IDX[k + 8] = IDX[k] + step; W[k + 8] = W[k] * gw; W[k] *= 1 - gw; }
       NC = 16;
     }
+  }
+  // 7ap: the allowance axis interpolated - every corner so far read again one allowance bucket up, and the sets blended
+  if (cb && cb.w > 0) {
+    const cw = cb.w, step = g.stride.pcls;
+    for (let k = 0; k < NC; k++) { IDX[k + NC] = IDX[k] + step; W[k + NC] = W[k] * cw; W[k] *= 1 - cw; }
+    NC *= 2;
   }
   /*
    * THE BRIDGE READER (`bridgeRead: 'reader'`; src/solver/reader.js): in a retired bridge year, survival is
@@ -527,6 +553,8 @@ export function interp(g, arr, loc, survival) {
   const { p, i, t, ig, ic } = loc;
   // Phase 6e arm 3: when the gain axis is interpolated, loc carries the weight on the bucket above
   const gw = g.gainInterp && loc.igw > 0 && ig + 1 < g.gain.length ? loc.igw : 0;
+  // 7ap: and when the allowance axis is, the weight on the allowance bucket above
+  const cw = g.pclsInterp && loc.icw > 0 && ic + 1 < g.pcls.length ? loc.icw : 0;
   let acc = 0;
   for (let dp = 0; dp < 2; dp++) {
     const wp = dp ? p.w : 1 - p.w; if (wp === 0) continue;
@@ -535,11 +563,14 @@ export function interp(g, arr, loc, survival) {
       for (let dt = 0; dt < 2; dt++) {
         const wt = dt ? t.w : 1 - t.w; if (wt === 0) continue;
         const w3 = wp * wi * wt;
-        const v = arr[g.index(p.i + dp, i.i + di, t.i + dt, ig, ic)];
-        acc += w3 * (1 - gw) * (survival ? logit(v) : v);
-        if (gw > 0) {
-          const v2 = arr[g.index(p.i + dp, i.i + di, t.i + dt, ig + 1, ic)];
-          acc += w3 * gw * (survival ? logit(v2) : v2);
+        for (let dc = 0; dc < 2; dc++) {
+          const wc = dc ? cw : 1 - cw; if (wc === 0) continue;
+          const v = arr[g.index(p.i + dp, i.i + di, t.i + dt, ig, ic + dc)];
+          acc += w3 * wc * (1 - gw) * (survival ? logit(v) : v);
+          if (gw > 0) {
+            const v2 = arr[g.index(p.i + dp, i.i + di, t.i + dt, ig + 1, ic + dc)];
+            acc += w3 * wc * gw * (survival ? logit(v2) : v2);
+          }
         }
       }
     }

@@ -12,7 +12,7 @@
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solve } from '../../src/solver/solve.js';
-import { makeGrid, locateVec, interp, vecOf } from '../../src/solver/grid.js';
+import { makeGrid, locateVec, interp, vecOf, readValues } from '../../src/solver/grid.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
 
 let pass = 0, fail = 0;
@@ -29,13 +29,13 @@ const vec = (gf, used) => Float64Array.from([300000, 120000, 90000, gf, used, us
 console.log('=========== A. THE SHIPPED BUILD DID NOT MOVE ===========');
 {
   const a = solve(E, M, plan, { points: 14 });
-  const b = solve(E, M, plan, { points: 14, gainInterp: false, pclsStrict: false });
+  const b = solve(E, M, plan, { points: 14, gainInterp: false, pclsStrict: false, pclsInterp: false });
   const s0 = a.value(M.initialState(a.m), 0), s1 = b.value(M.initialState(b.m), 0);
   ok('A1  the flags off are the flags absent, bit for bit',
     s0.survival === s1.survival && s0.bequest === s1.bequest && s0.resilience === s1.resilience,
     `${s0.survival} vs ${s1.survival}`);
   const g = makeGrid(m, {});
-  ok('A2  a grid built with no options has both arms off', g.gainInterp === false && g.pclsStrict === false);
+  ok('A2  a grid built with no options has every arm off', g.gainInterp === false && g.pclsStrict === false && g.pclsInterp === false);
 }
 
 console.log('=========== B. THE GAIN AXIS ===========');
@@ -88,16 +88,45 @@ console.log('=========== D. EVERY ARM STILL SOLVES TO A FINITE ANSWER ==========
     ['current', {}],
     ['re-spaced', { gainBuckets: [0.10, 0.45, 0.80] }],
     ['interpolated', { gainInterp: true }],
-    ['flag-fixed', { pclsStrict: true }]
+    ['flag-fixed', { pclsStrict: true }],
+    ['allowance-interpolated', { pclsInterp: true }]
   ];
   const vals = arms.map(([, o]) => {
     const r = solve(E, M, plan, { points: 14, ...o });
     return r.value(M.initialState(r.m), 0).survival;
   });
-  ok('D1  all four arms return a finite survival in (0, 1)', vals.every(v => Number.isFinite(v) && v > 0 && v < 1),
+  ok('D1  all five arms return a finite survival in (0, 1)', vals.every(v => Number.isFinite(v) && v > 0 && v < 1),
     arms.map(([n], i) => `${n} ${(100 * vals[i]).toFixed(2)}`).join(', '));
   ok('D2  and the three arms are not all identical to current, or the screen has nothing to measure',
     vals.slice(1).some(v => v !== vals[0]));
+}
+
+console.log('=========== E. THE ALLOWANCE AXIS INTERPOLATED (7ap; PLAN.md O71) ===========');
+{
+  const gN = makeGrid(m, {}), gI = makeGrid(m, { pclsInterp: true });
+  /* a table whose every cell holds its own allowance bucket's value, in the bequest slot (read linearly), survival flat */
+  const table = g => { const ls = new Float64Array(g.size), bq = new Float64Array(g.size); for (let i = 0; i < g.size; i++) bq[i] = g.pcls[Math.floor(i / g.stride.pcls)]; return { ls, bq }; };
+  const read = (g, f) => { const t = table(g), out = new Float64Array(4); readValues(g, t.ls, t.bq, vec(0.25, f * LSA), out); return out[1]; };
+  const fs = [0, 0.1, 0.2, 0.3, 0.5, 0.6, 0.69, 0.74, 0.76, 0.9, 1];
+  ok('E1  the snap is absorbing: 0, 0.1 and 0.2 of the allowance used all read as none used, and 0.74 as half',
+    read(gN, 0) === 0 && read(gN, 0.1) === 0 && read(gN, 0.2) === 0 && read(gN, 0.74) === 0.5 && read(gN, 0.76) === 1,
+    fs.map(f => `${f}->${read(gN, f)}`).join(' '));
+  ok('E2  interpolated, the read is the used share itself on a table linear in it (to 1e-12), across the 0.75 wall',
+    fs.every(f => Math.abs(read(gI, f) - f) < 1e-12), fs.map(f => `${f}->${read(gI, f).toFixed(3)}`).join(' '));
+  ok('E3  on a bucket the interpolated read is the snapped read', [0, 0.5, 1].every(f => read(gI, f) === read(gN, f)));
+  ok('E4  above the allowance the axis stays at its top bucket', read(gI, 1.3) === 1 && locateVec(gI, vec(0.25, 1.3 * LSA)).ic === 1);
+  const l = locateVec(gI, vec(0.25, 0.74 * LSA));
+  ok('E5  locateVec brackets 0.74 between the 0.5 and 1 buckets with weight 0.48 above, and interp agrees with readValues',
+    l.ic === 1 && Math.abs(l.icw - 0.48) < 1e-12 && Math.abs(interp(gI, table(gI).bq, l, false) - 0.74) < 1e-12, `ic ${l.ic} icw ${l.icw}`);
+  ok('E6  the snapped grid reports no allowance weight', locateVec(gN, vec(0.25, 0.74 * LSA)).icw === 0);
+  let threw = false; try { makeGrid(m, { pclsInterp: true, pclsStrict: true }); } catch { threw = true; }
+  ok('E7  pclsInterp and pclsStrict together are refused (two readings of one axis)', threw);
+  /* with the gain axis interpolated too: 32 corners, the weights still sum to one */
+  const gB = makeGrid(m, { pclsInterp: true, gainInterp: true }), t = table(gB), one = new Float64Array(gB.size).fill(1), out = new Float64Array(4);
+  readValues(gB, t.ls, one, vec(0.4, 0.74 * LSA), out);
+  ok('E8  both axes interpolated: the corner weights sum to one (a table of ones reads one)', Math.abs(out[1] - 1) < 1e-12, String(out[1]));
+  readValues(gB, t.ls, t.bq, vec(0.4, 0.74 * LSA), out);
+  ok('E9  and the allowance read is still the used share', Math.abs(out[1] - 0.74) < 1e-12, String(out[1]));
 }
 
 console.log(`\n=========== ${pass} passed, ${fail} failed ===========`);

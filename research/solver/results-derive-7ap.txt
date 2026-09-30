@@ -1,0 +1,20 @@
+7AP'S DERIVATION (7al's records, results/diag7al, read through reduce-7al.mjs's parse; stamps checked)
+1. the DEFAULT arm after access, three worlds pooled: n, claim c, survived, the point c - survived, h = half of it
+   S370 READER n 5870  c 78.7792  survived 71.8399  point 6.9393  h 3.4696
+   S130 READER n 6000  c 85.3624  survived 78.5333  point 6.8291  h 3.4145
+   S194 OFF    n 6000  c 97.4413  survived 97.3667  point 0.0747  h 0.0373
+2. the power: a PCLSI arm leaving a share f of each crossing unit's optimism (the same n and c, the expected survivors), items 1 and 2 as registered (margin 2 points)
+   f 0.00: item 1 S370 HALVED, S130 HALVED -> HELD; item 2 S370 NO MATERIAL OPTIMISM, S130 NO MATERIAL OPTIMISM
+   f 0.25: item 1 S370 HALVED, S130 HALVED -> HELD; item 2 S370 INCONCLUSIVE, S130 INCONCLUSIVE
+   f 0.50: item 1 S370 INCONCLUSIVE, S130 INCONCLUSIVE -> INCONCLUSIVE; item 2 S370 OPTIMISTIC, S130 OPTIMISTIC
+   f 0.75: item 1 S370 NOT HALVED, S130 NOT HALVED -> FALSIFIED; item 2 S370 OPTIMISTIC, S130 OPTIMISTIC
+   f 1.00: item 1 S370 NOT HALVED, S130 NOT HALVED -> FALSIFIED; item 2 S370 OPTIMISTIC, S130 OPTIMISTIC
+   S370: HALVED up to f 0.34 of the optimism left, NOT HALVED from f 0.66 (beside a unit fully cured, Holm over 2); between, INCONCLUSIVE
+   S130: HALVED up to f 0.35 of the optimism left, NOT HALVED from f 0.65 (beside a unit fully cured, Holm over 2); between, INCONCLUSIVE
+3. the time: 7al's measured seconds on the DEFAULT units (the solve and the three worlds' node runs)
+   S370 READER (case2.txt): solve 1618 s, nodes 323 + 397 + 421 s, 2759 s
+   S130 READER (case5.txt): solve 1308 s, nodes 309 + 338 + 342 s, 2297 s
+   S194 OFF    (case6.txt): solve 1597 s, nodes 336 + 353 + 357 s, 2643 s
+   PCLSI at 1 x the DEFAULT's cost: 15398 core-seconds, 4.28 core-hours; on four cores (longest first) 1.37 hours
+   PCLSI at 2 x the DEFAULT's cost: 23097 core-seconds, 6.42 core-hours; on four cores (longest first) 1.91 hours
+   the DEFAULT units alone: 7699 core-seconds, 2.14 core-hours

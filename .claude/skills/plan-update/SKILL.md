@@ -22,6 +22,8 @@ launcher, the reducers and CI enforce them. This is the order to work in.
    `PREDICTION=research/solver/predictions/<name>.md research/solver/run-from-snapshot.sh bash research/solver/<batch>.sh`
    as a tracked background task. A measurement with no test: `PREDICTION="none:<why>"`.
 5. Estimate the time from a measured cell under the same load, and revise it when the first cells land.
+6. Build order: the reducer's parser and gate before the audit's print lines, then the audit to match; `node --check`
+   each script before a run (7al's build checks 3-5 were relaunched when the lines changed under the parser).
 
 ## Analysing a result
 1. Run the reducer. Its fair-test gate runs first; if it refuses, fix the runs or accept a named variable with a real
@@ -41,6 +43,13 @@ launcher, the reducers and CI enforce them. This is the order to work in.
    "Same pattern searched:" and what was found. A claim of no effect carries `evidence:` or NOT CHECKED.
 4. A decision that changes a default changes the code and the decided-defaults block in the same commit.
 5. Finished work moves to `PLAN-HISTORY.md` verbatim.
-6. `node research/solver/check-plan.mjs`, then run the **plan-auditor** agent on the change at its tier (0 labels and history moves, 1 a result or
+6. Before committing, `node research/solver/relook.mjs`: every open row it lists that the change should move, move.
+7. **The close** (RULES.md section 10), in the commit that scores the test in results-scorecard.txt: its lessons in
+   lessons.md (`## <test> (closed <the ledger row's time>)`, 1-5 coded lines, each AUTOMATE, REPLACE or DROP, naming
+   every BLOCKING code since the last close). When `node research/solver/triggers.mjs --due` says the retirement pass is
+   due, the next deep review does it first.
+8. `node research/solver/check-plan.mjs`, then run the **plan-auditor** agent on the change at its tier (0 labels and history moves, 1 a result or
    prediction, 2 a default or a gate: two sources and an outside review) and fix what it finds: a BLOCKING finding before the turn ends, a MINOR one by the next review.
-7. Commit and push (the pre-commit hook and CI run the checks again). Report evidence - the command and its output.
+9. At a close, after the auditor's PASS: `node research/solver/archive-plan.mjs --apply`, then
+   `node research/solver/record-review.mjs --moved` (it verifies the move against that PASS and receipts it).
+10. Commit and push (the pre-commit hook and CI run the checks again). Report evidence - the command and its output.

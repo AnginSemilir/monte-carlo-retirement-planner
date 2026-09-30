@@ -41,7 +41,10 @@ export const PROTECTED = [
   'research/solver/review-log.md', 'research/tests/plan-checker.test.mjs', 'research/tests/fair-gate.test.mjs',
   'research/tests/plan-defaults.test.mjs', 'research/tests/hooks.test.mjs',
   // the deep review's gate (RULES.md section 9; the maintainer's unlock of 26 Sep): its index, its reviewer, its receipts
-  'research/solver/uncertainty.mjs', 'research/solver/record-deep-review.mjs', 'research/solver/deep-review-log.md', '.claude/agents/deep-reviewer.md'
+  'research/solver/uncertainty.mjs', 'research/solver/record-deep-review.mjs', 'research/solver/deep-review-log.md', '.claude/agents/deep-reviewer.md',
+  // the feedback loop (RULES.md section 10; the maintainer's unlock of 30 Sep): its codes and counts, their test, and the
+  // skill, which the Edit tool could change while only the shell was refused
+  'research/solver/triggers.mjs', 'research/tests/triggers.test.mjs', '.claude/skills/'
 ];
 const isProtected = rel => PROTECTED.some(p => (p.endsWith('/') ? rel.startsWith(p) : rel === p));
 

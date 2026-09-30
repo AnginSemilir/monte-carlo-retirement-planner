@@ -4,6 +4,7 @@
  */
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decide as pre, shellCode, lastHumanText, UNLOCK, segments, unlockedFrom, shellHeredocs } from '../../.claude/hooks/pre-tool.mjs';
@@ -24,6 +25,7 @@ ok(is(edit('research/solver/review-log.md'), 'deny'), 'an edit to the review log
 ok(['research/solver/uncertainty.mjs', 'research/solver/record-deep-review.mjs', '.claude/agents/deep-reviewer.md'].every(f => is(edit(f), 'deny')), 'planted: an edit to the deep review\'s index, recorder or reviewer is refused while locked');
 ok(is(edit('research/solver/deep-review-log.md'), 'deny') && is(bash('echo "- 26 Sep 17:00 UK | covered x | level LOW | y" >> research/solver/deep-review-log.md'), 'deny'), 'planted: writing the deep review log by hand is refused (receipts come from record-deep-review.mjs)');
 ok(is(bash('node research/solver/record-deep-review.mjs --start'), null) && is(bash('node research/solver/uncertainty.mjs --due'), null), 'the deep review\'s recorder and index run');
+ok(['research/solver/triggers.mjs', 'research/tests/triggers.test.mjs', '.claude/skills/plan-update/SKILL.md'].every(f => is(edit(f), 'deny')) && is(bash('node research/solver/triggers.mjs --due'), null), 'planted: an edit to the feedback loop\'s codes, their test or the skill is refused while locked; triggers.mjs runs');
 ok(is(edit('research/solver/predictions/m14b.md'), 'ask'), 'an edit to a registered (committed) prediction asks');
 ok(is(edit('research/solver/predictions/new-one.md'), null), 'an unregistered prediction can be written freely');
 ok(is(edit(join(ROOT, 'research/solver/PLAN.md')), null), 'an edit to the plan itself goes ahead (the checks run after)');
@@ -303,6 +305,7 @@ for (const f of ['uncertainty.mjs', 'record-deep-review.mjs']) ok(/all read as t
 const out = execFileSync('bash', [join(ROOT, '.claude/hooks/session-start.sh')], { input: '{"source":"compact"}', env: { ...process.env, CLAUDE_PROJECT_DIR: ROOT } }).toString();
 ok(/COMPACTED/.test(out) && /1\. Before a run/.test(out) && /12\. Times in UK time/.test(out), 'after a compaction the session-start hook restates the whole checklist');
 const out2 = execFileSync('bash', [join(ROOT, '.claude/hooks/session-start.sh')], { input: '{"source":"startup"}', env: { ...process.env, CLAUDE_PROJECT_DIR: ROOT } }).toString();
-ok(!/COMPACTED/.test(out2) && /1\. Before a run/.test(out2), 'at startup it states the checklist without the compaction warning');
+ok(!/COMPACTED/.test(out2) && !/1\. Before a run/.test(out2), 'at startup it prints nothing: CLAUDE.md already imports the checklist (the feedback loop: no second copy in the window)');
+ok(/@research\/solver\/CHECKLIST\.md/.test(readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8')), 'CLAUDE.md imports the checklist, so startup still has it');
 
 console.log(`\n${n} passed`);

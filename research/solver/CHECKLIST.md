@@ -10,5 +10,5 @@
 8. A decision changes the code default in the same commit, and the decided-defaults block; a test pins the two together.
 9. After a bug, search for the same pattern elsewhere and write "Same pattern searched:" with what was found.
 10. Log every odd result in the register with an owner and a gate, or as "noted, below materiality" with its size estimate. Never note it and move on.
-11. After a settled result: re-derive everything downstream, add a ledger row with its evidence, run the plan-auditor at the change's tier, and the deep-reviewer when `uncertainty.mjs` says it is due.
+11. After a settled result: re-derive everything downstream, add a ledger row with its evidence, run the plan-auditor at the change's tier, and the deep-reviewer when `uncertainty.mjs` says it is due; when it is scored, write its lessons (lessons.md) and archive (`archive-plan.mjs`).
 12. Times in UK time, taken from the records (commits, runs.log, receipts), never typed; prose gives a time only where the order of events matters. Report evidence (the command and its output), not claims.

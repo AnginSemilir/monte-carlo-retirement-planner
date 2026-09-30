@@ -601,6 +601,15 @@ records its receipt with `record-deep-review.mjs`, which takes the time from the
 from the records. The index, the recorder, the log and the agent are locked (planted tests in hooks.test.mjs, which also
 runs both scripts' own planted checks).
 
+## 10. The feedback loop: each test's lessons change the framework, adding or removing (the maintainer, 30 Sep)
+
+Every review finding carries a trigger code (`[T:<code>]`, research/solver/triggers.mjs, whose header is the rule in full).
+Each test scored after lessons.md's seed closes with 1 to 5 lessons in lessons.md, each coded and disposed (AUTOMATE,
+REPLACE or DROP), naming every BLOCKING code since the close before (check-plan.mjs's retro check). Every 5 closes the deep
+reviewer's retirement pass turns a code seen 3 times into a check and retires what a mechanical source shows never
+catches. The always-read files have budgets (check-plan.mjs); finished rows move to PLAN-HISTORY.md at each close
+(archive-plan.mjs, receipted by `record-review.mjs --moved`).
+
 ## 7. Where the approach came from (24 Sep)
 
 - Anthropic, "Best practices for Claude Code": CLAUDE.md is advisory, hooks are deterministic; keep CLAUDE.md short;

@@ -390,6 +390,13 @@ export function solve(E, M, plan, opts = {}) {
    */
   const TS = !!opts.tierState;
   /*
+   * E3 (PLAN.md E3; research, off by default): in total coordinates a cell whose taxable pot is empty - the pension holds
+   * everything (share a = 1) or the ISA holds all the rest (share b = 1) - has no gain to read, so every gain bucket's cell
+   * is its zero-gain twin's; with `e3` those cells are copied from the twin instead of solved. Exact only if the solve
+   * never reads the gain of an empty pot: research/tests/solver-e3.test.mjs holds every table bit for bit against e3 off.
+   */
+  const E3 = !!opts.e3;
+  /*
    * P, THE SWITCH CHARGED (`switchCharge`, score units; PLAN.md P; the deep review after 7ae, deep-review-log.md 28 Sep
    * 22:52 UK; research only, off by default). `switchMargin` is a decision rule: a switch is suppressed unless it gains more
    * than the margin, and the table stores the value of the move made, never charging the margin - so a value that assumes
@@ -680,7 +687,7 @@ export function solve(E, M, plan, opts = {}) {
   const postBuf = new Float64Array(A * 7);     // every action's post-decision state at this cell
   const tsPost = new Float64Array(7);          // the tier state: a move's post-decision state after its switch is charged
   const failBuf = new Uint8Array(A);
-  let evaluated = 0;
+  let evaluated = 0, e3Copied = 0;
   const profT0 = PROF ? now() : 0;
   const shortOfAction = new Float64Array(A);
   /*
@@ -754,6 +761,15 @@ export function solve(E, M, plan, opts = {}) {
           for (let ii = 0; ii < g.ni; ii++) {
             for (let ip = 0; ip < g.np; ip++) {
               const idx = g.index(ip, ii, it, ig, ic);
+              if (E3 && ig > 0 && g.mode === 'total' && (ii === g.ni - 1 || it === g.nt - 1)) {
+                // `e3PlantedWrongTwin` (tests only): copy from the ISA-share neighbour, so the identity test is shown to fail
+                const src = opts.e3PlantedWrongTwin ? g.index(ip, ii, Math.max(0, it - 1), 0, ic) : g.index(ip, ii, it, 0, ic);
+                for (let k = 0; k < K; k++) for (const L of (TS ? layW[k] : [{ surv: survW[k], beq: beqW[k], resil: resilW[k], pol: polW[k], short: shortW[k] }])) {
+                  L.surv[t][idx] = L.surv[t][src]; L.beq[t][idx] = L.beq[t][src]; L.resil[t][idx] = L.resil[t][src]; L.pol[t][idx] = L.pol[t][src]; L.short[t][idx] = L.short[t][src];
+                }
+                e3Copied++;
+                continue;
+              }
               toVec(g, ip, ii, it, ig, ic, base);
               if (TERN) {
                 cellStamp++;
@@ -1046,6 +1062,7 @@ export function solve(E, M, plan, opts = {}) {
 
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, readerRef: g.reader && opts.readerRef === 'order' ? 'order' : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
+  if (E3) meta.e3 = { copied: e3Copied };
   if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, weights: g.reader.weights };
   if (JOINT) meta.jointWorlds = true;
   if (PROF) {
@@ -1061,6 +1078,7 @@ export function solve(E, M, plan, opts = {}) {
     meta.profile = PROF;
   }
   const r = {
+    tablesW: { survW, beqW, resilW, polW, shortW, layW: TS ? layW : null },
     m, g, c, actions, surv, lsurv, resil, lresil, beq, short, pol, meta, M, eps, nodeReal, nodeRealOfAt, wB, wR, lambda, levelOf, shortExp, costOf, switchMargin, switchCharge, driftCostOf,
     quadWeights: QW, quadNodes: QZ,
     tieMargin: opts.tieMargin || 0,

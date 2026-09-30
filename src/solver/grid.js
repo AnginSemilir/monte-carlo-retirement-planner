@@ -331,7 +331,9 @@ export function readValues(g, lsArr, bArr, s, out, lrArr = null, shArr = null, y
   if (RD) {
     let cc = 0, rr = 0;
     for (let k = 0; k < NC; k++) { const w = W[k]; if (w === 0) continue; cc += w * RD.c[IDX[k]]; rr += w * RD.R[IDX[k]]; }
-    const v = RD.chance(s[1] + s[2]) * cc + rr;
+    // `g.readerAcc` (research only, 7ak's attribution: unset in every product path): the accessible money the reader's
+    // chance is read at, in place of this position's own ISA plus taxable pot
+    const v = RD.chance(g.readerAcc ? g.readerAcc(s) : s[1] + s[2]) * cc + rr;
     out[0] = v < CLAMP ? CLAMP : (v > 1 - CLAMP ? 1 - CLAMP : v);
   } else if (linearRead) { let p = 0; for (let k = 0; k < NC; k++) { const w = W[k]; if (w !== 0) p += w * expit(lsArr[IDX[k]]); } out[0] = p; }
   else out[0] = expit(ls);

@@ -1,0 +1,6 @@
+7AK'S DERIVATION (P's records, results/diagP): the disagreements 7ak re-scores, and its power
+  bridge 4  P's 16,000 node paths, years 1 to 7: held 27448, disagreements 8959; about 4480 on 7ak's 8,000
+            a share's standard error at 4480 disagreements: 0.60 points at 0.2, 0.75 at 0.5 - the thresholds 42 standard errors apart (if every one were live)
+  S194      P's 16,000 node paths, years 1 to 7: held 16000, disagreements 0; about 0 on 7ak's 8,000
+  item 4 at 32000 year-1 paths split evenly: the boundary's excess mispricing resolved to +/- 0.49 points (node survival about 94.6%)
+  item 4 at 32000 year-1 paths split one path in ten on a boundary: the boundary's excess mispricing resolved to +/- 0.82 points (node survival about 94.6%)

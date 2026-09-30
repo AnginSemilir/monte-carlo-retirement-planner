@@ -46,7 +46,8 @@ launcher, the reducers and CI enforce them. This is the order to work in.
 6. Before committing, `node research/solver/relook.mjs`: every open row it lists that the change should move, move.
 7. **The close** (RULES.md section 10), in the commit that scores the test in results-scorecard.txt: its lessons in
    lessons.md (`## <test> (closed <the ledger row's time>)`, 1-5 coded lines, each AUTOMATE, REPLACE or DROP, naming
-   every BLOCKING code since the last close). When `node research/solver/triggers.mjs --due` says the retirement pass is
+   every BLOCKING code since the last close). Save the scorecard twice, `results-scorecard.txt` and
+   `results-scorecard-<test>.txt`, and cite the copy (a later scorecard changes the cumulative figures). When `node research/solver/triggers.mjs --due` says the retirement pass is
    due, the next deep review does it first.
 8. `node research/solver/check-plan.mjs`, then run the **plan-auditor** agent on the change at its tier (0 labels and history moves, 1 a result or
    prediction, 2 a default or a gate: two sources and an outside review) and fix what it finds: a BLOCKING finding before the turn ends, a MINOR one by the next review.

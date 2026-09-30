@@ -7,8 +7,8 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
 import { CODES, tagsIn, minuteKey, lessonsOf, findingsOf, receiptsOf, blockingCodesBetween, passesOf, passDue, windowStats, report } from '../solver/triggers.mjs';
-import { tagProblems, movedProblems } from '../solver/record-review.mjs';
-import { planMoves, applyMoves, cutoffOf, LEDGER_KEEP, POINTER } from '../solver/archive-plan.mjs';
+import { tagProblems, movedProblems, startedBlob } from '../solver/record-review.mjs';
+import { planMoves, applyMoves, cutoffOf, archiveOpts, LEDGER_KEEP, POINTER } from '../solver/archive-plan.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 let n = 0;
@@ -49,6 +49,8 @@ ok(passesOf(deep).length === 1 && !passDue(lessonsOf(lessonsText(5)).closes, pas
 // the success measure
 const data = { receipts: R, closes: lessonsOf('Seed: after 7ai (30 Sep 09:00)\n## a (closed 30 Sep 11:00)\n## b (closed 30 Sep 14:00)').closes, launches: [minuteKey('30 Sep 12:30'), minuteKey('30 Sep 12:40')], tagged: [{ at: minuteKey('30 Sep 12:00'), tags: ['c-gate'], words: [], unknown: [] }] };
 const w1 = windowStats(data, 1);
+const ws = windowStats({ ...data, seedAt: minuteKey('30 Sep 11:30') }, 5);
+ok(ws.receipts === 2 && windowStats(data, 5).receipts === 3, 'with n closes or fewer the window opens at the seed, not at the first receipt (the auditor\'s MINOR 5)');
 ok(w1.receipts === 2 && w1.fails === 1 && w1.blocking === 1 && w1.backlog === 1 && w1.launchesPerClose === 2 && w1.catches.get('c-gate') === 1, 'the last-close window counts receipts, FAILs, primary BLOCKINGs, BACKLOGs, launches and catches');
 const rep = report(data, { 'PLAN.md': 1 });
 ok(rep.length <= 40 && rep.some(l => /review cycles/.test(l)) && rep.some(l => /always-read bytes: PLAN.md 1/.test(l)), 'the report prints the measure and the bytes');
@@ -66,21 +68,30 @@ try { execFileSync('node', [join(HERE, '../solver/record-review.mjs'), '--check-
 ok(refused, 'the CLI refuses an untagged finding');
 execFileSync('node', [join(HERE, '../solver/record-review.mjs'), '--check-only', '--verdict', 'pass', '--findings', 'MINOR 1. [T:stale] tagged'], { stdio: 'pipe' });
 ok(true, 'the CLI accepts a tagged finding (check only, nothing written)');
+// a verdict binds to the version its review started on (30 Sep 19:36: a plan edited during a review)
+{ const S = (r, v, b) => ({ reviewer: r, verdict: v, blob: b });
+  ok(startedBlob([S('plan-auditor', 'STARTED', 'a'), S('archive-plan (verified)', 'PASS', 'b')], 'plan-auditor') === 'a', 'the receipt names the blob the reviewer started on, another reviewer\'s line between');
+  ok(startedBlob([S('plan-auditor', 'STARTED', 'a'), S('plan-auditor', 'PASS', 'a')], 'plan-auditor') === null && startedBlob([], 'plan-auditor') === null, 'a start already receipted, or none, binds nothing (the file as it stands)'); }
+
 // the archive (archive-plan.mjs) and its verified move (record-review.mjs --moved)
 ok(cutoffOf(lessonsText(2)) === '28 Sep' && cutoffOf('Seed: after 7ai (30 Sep 17:53)\n## a (closed 1 Oct 09:00)\n- x\n## b (closed 2 Oct 09:00)\n- x\n## c (closed 3 Oct 09:00)\n- x') === '1 Oct', 'the cut-off is the newest-but-two close, 28 Sep before three');
 {
   const led = Array.from({ length: LEDGER_KEEP + 2 }, (_, i) => `| ${29 - Math.floor(i / 10)} Sep ${String(10 + (i % 10)).padStart(2, '0')}:00 | **${i === 5 ? 'The deep review after 7x' : `result ${i}`}** | c | e |`);
   const plan = ['## Odd results register', '', '| id | a | b | c | d | status |', '|---|---|---|---|---|---|', '| O1 | x | y | z | w | resolved: kept |', '| O8 | x | y | z | w | resolved: by 7x |', '| O9 | x | y | z | w | open |', '',
     '**The re-look ledger**', '', '| date | the settled result | what it changed | evidence |', '|---|---|---|---|', ...led, '',
-    '## The schedule', '', '| # | step | status |', '|---|---|---|', '| 7x | a | DONE: read |', '| 7y | b | REGISTERED |', '', '## After'].join('\n');
-  const m = planMoves(plan, '29 Sep');
+    '## The schedule', '', '| # | step | status |', '|---|---|---|', '| 7x | a | DONE: read |', '| 7y | b | REGISTERED |', '| 7z | c | **READ** (x) |', '| 7w | d | READ (y) |', '', '## After'].join('\n');
+  const lz = 'Seed: after 7w (29 Sep 09:00)\n## 7z (closed 29 Sep 10:00)\n- x\n## 7q (closed 29 Sep 11:00)\n- x\n## 7r (closed 29 Sep 12:00)\n- x\n';
+  const deepLog = '- 29 Sep 20:00 UK | covered 7r (x) | level HIGH | y\n';
+  const m = planMoves(plan, '29 Sep', archiveOpts(lz, deepLog));
   ok(J(m.reg.map(i => m.lines[i].slice(0, 6))) === '["| O8 |"]', 'the register moves resolved rows, never O1, O2 or O7, never open ones');
   ok(m.led.length === 3 && m.led.some(i => /deep review/.test(m.lines[i])), `the ledger moves the rows beyond its newest ${LEDGER_KEEP} and the deep-review rows to the cut-off`);
   ok(planMoves(plan, '28 Sep').led.length === 2, 'a deep-review row after the cut-off stays');
-  ok(J(m.sch.map(i => m.lines[i].slice(0, 6))) === '["| 7x |"]', 'the schedule moves DONE rows only');
+  ok(J(m.sch.map(i => m.lines[i].slice(0, 6))) === '["| 7x |","| 7z |","| 7w |"]', 'the schedule moves finished rows (DONE, READ) two closes old; an unfinished row stays');
+  ok(planMoves(plan, '29 Sep', archiveOpts(lz.replace(/## 7r[\s\S]*$/, ''), deepLog)).sch.map(i => m.lines[i].slice(0, 6)).join() === '| 7x |,| 7w |', 'a finished row closed only one close ago (7z) stays');
+  ok(planMoves(plan, '29 Sep', archiveOpts(lz, '- 29 Sep 13:00 UK | covered 7r (x) | level HIGH | y\n')).led.length === 2 && planMoves(plan, '29 Sep', archiveOpts(lz, '- 28 Sep 13:00 UK | covered 7r (x) | level HIGH | y\n')).led.length === 0, 'ledger rows after the last deep review stay, for uncertainty.mjs\'s count (the auditor\'s MINOR 6)');
   const r = applyMoves(m, '2026-09-30');
   const pointers = r.plan.split('\n').filter(l => POINTER.test(l));
-  ok(pointers.length === 3 && r.moved === 5, 'one pointer line per table that lost rows');
+  ok(pointers.length === 3 && r.moved === 7, 'one pointer line per table that lost rows');
   ok(movedProblems(plan, r.plan, r.hist).length === 0, '--moved: the archive\'s own move verifies');
   ok(movedProblems(plan, r.plan.replace('| O9 | x |', '| O9 | X |'), r.hist).length === 2, '--moved: a reworded live row is refused (removed and added)');
   ok(movedProblems(plan, r.plan, r.hist.replace('| O8 | x', '| O8 | q')).length === 1, '--moved: a row missing from the history is refused');

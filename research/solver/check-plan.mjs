@@ -41,7 +41,7 @@ import { fileURLToPath } from 'node:url';
 import { markdownTable } from './fair-variables.mjs';
 import { checkPredictionText } from './check-prediction.mjs';
 import { tagsIn, lessonsOf, receiptsOf, blockingCodesBetween } from './triggers.mjs';
-import { planMoves, cutoffOf } from './archive-plan.mjs';
+import { planMoves, cutoffOf, archiveOpts } from './archive-plan.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '../..');
@@ -252,7 +252,7 @@ export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, 
   const rb = Buffer.byteLength(rules ?? ''), pb = Buffer.byteLength(plan);
   if (rb > RULES_BUDGET) err('budget', `RULES.md is ${rb} bytes, over its ${RULES_BUDGET}: cut or retire a rule before adding one`);
   if (pb > PLAN_BUDGET) {
-    let m = null; try { m = planMoves(plan, cutoffOf(lessonsText ?? '')); } catch (e) { err('budget', `PLAN.md is ${pb} bytes and archive-plan.mjs cannot read it (${e.message})`); }
+    let m = null; try { m = planMoves(plan, cutoffOf(lessonsText ?? ''), archiveOpts(lessonsText ?? '', opt('deep-review-log.md') ?? '')); } catch (e) { err('budget', `PLAN.md is ${pb} bytes and archive-plan.mjs cannot read it (${e.message})`); }
     const k = m ? m.reg.length + m.led.length + m.sch.length : 0;
     if (m && k) err('budget', `PLAN.md is ${pb} bytes, over its ${PLAN_BUDGET}, and archive-plan.mjs has ${k} rows to move: node research/solver/archive-plan.mjs --apply`);
     else if (m) warnings.push(`PLAN.md is ${pb} bytes, over its ${PLAN_BUDGET}, with nothing archivable: shorten live rows`);

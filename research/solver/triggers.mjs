@@ -92,9 +92,11 @@ export function passDue(closes, passes, every = PASS_EVERY) {
   return { due: since >= every, since };
 }
 /* the success measure over the last n closes: everything after the close before the window */
-export function windowStats({ receipts, closes, launches, tagged }, n) {
+export function windowStats({ receipts, closes, launches, tagged, seedAt = null }, n) {
   const sorted = [...closes].sort((a, b) => a.at - b.at);
-  const from = sorted.length > n ? sorted[sorted.length - n - 1].at : null, inw = t => t !== null && (from === null || t > from);
+  // the window opens at the close before the last n, or at the seed while there are n closes or fewer (the plan-auditor's
+  // MINOR 5 of 30 Sep 19:36: with no start, "the last 5" counted every receipt since 24 Sep)
+  const from = sorted.length > n ? sorted[sorted.length - n - 1].at : seedAt, inw = t => t !== null && (from === null || t > from);
   const rs = receipts.filter(r => inw(r.at)), byCode = new Map(), add = (m, k) => m.set(k, (m.get(k) || 0) + 1);
   let blocking = 0, backlog = 0;
   for (const r of rs) for (const f of r.findings) {
@@ -136,7 +138,7 @@ export function load() {
   for (const l of read('deep-review-log.md').split('\n')) { const t = tagsIn(l); if (t.tags.length || t.unknown.length) tagged.push({ at: minuteKey(l), ...t }); }
   for (const l of read('results-mutation-history.txt').split('\n')) { const t = tagsIn(l); if (t.tags.length || t.unknown.length) tagged.push({ at: minuteKey(l), ...t }); }
   for (const c of lessons.closes) for (const l of c.lines) tagged.push({ at: c.at, ...tagsIn(l) });
-  return { lessons, receipts, launches, tagged, closes: lessons.closes, passes: passesOf(read('deep-review-log.md')) };
+  return { lessons, receipts, launches, tagged, closes: lessons.closes, seedAt: lessons.seed ? lessons.seed.at : null, passes: passesOf(read('deep-review-log.md')) };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

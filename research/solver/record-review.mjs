@@ -60,6 +60,15 @@ export function movedProblems(before, after, history) {
   if (!removed) P.push('nothing was removed: not a move');
   return P;
 }
+/* the blob a reviewer's latest start names, when no receipt of its own followed it */
+export function startedBlob(list, reviewer) {
+  for (let i = list.length - 1; i >= 0; i--) {
+    const e = list[i];
+    if (e.reviewer !== reviewer) continue;
+    return e.verdict === 'STARTED' ? e.blob : null;
+  }
+  return null;
+}
 export function receipts() { return entries().filter(e => e.verdict !== 'STARTED'); }
 export function status() {
   const blob = planBlob();
@@ -107,7 +116,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const tp = tagProblems(f, v);
     if (tp.length) { console.error(`every graded finding carries a trigger code [T:<code>] (triggers.mjs CODES):\n  ${tp.join('\n  ')}\ncodes: ${Object.keys(CODES).join(', ')}`); process.exit(2); }
     if (a.includes('--check-only')) { console.log('findings tagged: ok (nothing written)'); process.exit(0); }
-    const blob = planBlob(true);
+    // the receipt names the version the review STARTED on (its --start hashed and stored it), not the file as it stands
+    // when the review ends: a plan edited during a review is not the plan reviewed (30 Sep 19:36: a PASS bound to a blob
+    // carrying a row nobody had reviewed; lessons.md, 7ak)
+    const now = planBlob(true), started = startedBlob(entries(), opt('reviewer') || 'plan-auditor');
+    const blob = started || now;
+    if (started && started !== now) console.error(`note: PLAN.md changed during the review; the receipt names the version reviewed, ${started.slice(0, 10)}, not ${now.slice(0, 10)}`);
     const when = new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' UK';
     if (!existsSync(LOG)) appendFileSync(LOG, '# Plan reviews\n\nOne line per review of research/solver/PLAN.md by the plan-auditor agent (RULES.md, layer 4), written by\n`record-review.mjs`. The Stop hook requires a PASS for the plan as it stands (its git blob hash).\n\n');
     appendFileSync(LOG, `- ${when} | plan ${blob} | ${v} | ${opt('reviewer') || 'plan-auditor'} | ${f}\n`);

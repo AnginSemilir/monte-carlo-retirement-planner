@@ -1,0 +1,45 @@
+FAIR-TEST GATE: passed - both units P's own solve (table, ran line) and their OPEN0 and TS+J runs P's first 8000 node paths field by field; the counts consistent (planted 25)
+
+7AK: THE ATTRIBUTION TEST - under P, world 0's node, 8000 of P's paths: OPEN0's forward-against-cell disagreements re-scored with one thing snapped to the nearest cell, and the year-1 table against realised survival by boundary and interior cells
+
+bridge 4 (READER/TS+J/MP/30x5/W0): held path-years 13767, disagreements 4600 (dead cells 1266, live 3334); node survival OPEN0 97.5125 TS+J 98.1625
+  pooled, the share of live disagreements each snap turns to the cell's move: W 5.2%, a 98.4%, b 1.1%, gain 0.0%, pcls 0.0%, reader 18.1%, all 100.0%
+  year 1: held 8000 disagree 2217 (one-way 2217, reverse 0, dead 0) | W 0% a 99% b 2% gain 0% pcls 0% reader 27% all 100%
+  year 2: held 2217 disagree 1052 (one-way 1052, reverse 0, dead 0) | W 10% a 100% b 0% gain 0% pcls 0% reader 0% all 100%
+  year 3: held 1788 disagree 1266 (one-way 0, reverse 1266, dead 1266) | W -% a -% b -% gain -% pcls -% reader -% all -%
+  year 4: held 522 disagree 39 (one-way 39, reverse 0, dead 0) | W 100% a 44% b 0% gain 0% pcls 0% reader 0% all 100%
+  year 5: held 467 disagree 13 (one-way 0, reverse 13, dead 0) | W 100% a 0% b 0% gain 0% pcls 0% reader 0% all 100%
+  year 6: held 406 disagree 4 (one-way 0, reverse 4, dead 0) | W 100% a 0% b 0% gain 0% pcls 0% reader 0% all 100%
+  year 7: held 367 disagree 9 (one-way 9, reverse 0, dead 0) | W 100% a 89% b 0% gain 0% pcls 0% reader 0% all 100%
+  year-1 OPEN0 boundary: paths 8000, table 98.52 realised 97.51
+  year-1 OPEN0 interior: paths 0, table - realised -
+  year-1 TS+J boundary: paths 0, table - realised -
+  year-1 TS+J interior: paths 8000, table 98.85 realised 98.16
+  REPORTED, world 0's table against realised survival by year (access in year 4; the paths alive and holding a tier state that year):
+    OPEN0: bridge +1.05 over 24000 path-years; after access +0.67 over 303449 path-years; by year 1:1.0 2:1.1 3:1.0 4:1.0 5:0.9 6:0.9 7:0.9 8:0.9 9:0.9 10:0.9 11:0.9 12:0.9 13:0.8 14:0.8 15:0.8 16:0.8 17:0.8 18:0.8 19:0.7 20:0.8 21:0.8 22:0.7 23:0.7 24:0.6 25:0.6 26:0.6 27:0.6 28:0.6 29:0.6 30:0.6 31:0.6 32:0.6 33:0.5 34:0.6 35:0.5 36:0.4 37:0.4 38:0.3 39:0.3 40:0.2 41:-0.0
+    TS+J: bridge +0.74 over 24000 path-years; after access +0.44 over 303618 path-years; by year 1:0.7 2:0.8 3:0.7 4:0.7 5:0.7 6:0.6 7:0.6 8:0.6 9:0.6 10:0.6 11:0.6 12:0.6 13:0.6 14:0.6 15:0.5 16:0.5 17:0.5 18:0.5 19:0.5 20:0.5 21:0.5 22:0.5 23:0.4 24:0.4 25:0.4 26:0.4 27:0.4 28:0.4 29:0.3 30:0.3 31:0.4 32:0.3 33:0.3 34:0.4 35:0.3 36:0.3 37:0.3 38:0.3 39:0.2 40:0.1 41:0.0
+
+S194 (OFF/TS+J/MP/30x5/W0.02): held path-years 8000, disagreements 0 (dead cells 0, live 0); node survival OPEN0 90.8500 TS+J 91.4625
+  pooled, the share of live disagreements each snap turns to the cell's move: W -%, a -%, b -%, gain -%, pcls -%, reader -%, all -%
+  year 1: held 8000 disagree 0 (one-way 0, reverse 0, dead 0) | W -% a -% b -% gain -% pcls -% reader -% all -%
+  year 2: held 0 disagree 0 (one-way 0, reverse 0, dead 0) | W -% a -% b -% gain -% pcls -% reader -% all -%
+  year 3: held 0 disagree 0 (one-way 0, reverse 0, dead 0) | W -% a -% b -% gain -% pcls -% reader -% all -%
+  year 4: held 0 disagree 0 (one-way 0, reverse 0, dead 0) | W -% a -% b -% gain -% pcls -% reader -% all -%
+  year 5: held 0 disagree 0 (one-way 0, reverse 0, dead 0) | W -% a -% b -% gain -% pcls -% reader -% all -%
+  year 6: held 0 disagree 0 (one-way 0, reverse 0, dead 0) | W -% a -% b -% gain -% pcls -% reader -% all -%
+  year 7: held 0 disagree 0 (one-way 0, reverse 0, dead 0) | W -% a -% b -% gain -% pcls -% reader -% all -%
+  year-1 OPEN0 boundary: paths 0, table - realised -
+  year-1 OPEN0 interior: paths 8000, table 91.61 realised 90.85
+  year-1 TS+J boundary: paths 0, table - realised -
+  year-1 TS+J interior: paths 8000, table 92.19 realised 91.46
+  REPORTED, world 0's table against realised survival by year (access in year 3; the paths alive and holding a tier state that year):
+    OPEN0: bridge +0.76 over 16000 path-years; after access +1.33 over 303642 path-years; by year 1:0.8 2:0.8 3:0.7 4:0.8 5:0.9 6:1.0 7:1.1 8:1.2 9:1.3 10:1.4 11:1.4 12:1.5 13:1.5 14:1.5 15:1.5 16:1.5 17:1.6 18:1.6 19:1.6 20:1.7 21:1.7 22:1.7 23:1.7 24:1.7 25:1.7 26:1.7 27:1.6 28:1.6 29:1.6 30:1.6 31:1.5 32:1.5 33:1.4 34:1.3 35:1.1 36:1.1 37:1.1 38:0.9 39:0.6 40:-0.1
+    TS+J: bridge +0.73 over 16000 path-years; after access +1.41 over 303760 path-years; by year 1:0.7 2:0.7 3:0.7 4:0.8 5:0.9 6:1.0 7:1.1 8:1.2 9:1.4 10:1.4 11:1.4 12:1.5 13:1.5 14:1.5 15:1.6 16:1.6 17:1.6 18:1.7 19:1.7 20:1.8 21:1.8 22:1.8 23:1.8 24:1.8 25:1.8 26:1.8 27:1.8 28:1.8 29:1.7 30:1.7 31:1.7 32:1.6 33:1.5 34:1.4 35:1.3 36:1.3 37:1.2 38:1.0 39:0.7 40:0.1
+
+ITEM 1 (dead cells carry bridge 4's disagreement): 27.5% of 4600 at a dead cell (HELD at 50%, FALSIFIED under 20%) -> INCONCLUSIVE
+ITEM 2 (the reader): 18.1% of 3334 live disagreements turned by the reader snap -> FALSIFIED
+ITEM 3 (the pension-share axis a): 98.4% turned by the a snap -> HELD
+ITEM 4 (switching boundaries, both units, OPEN0 and TS+J, year 1): boundary 8000 paths, table 98.52 realised 97.51; interior 24000, table 94.22 realised 93.49; the boundary's excess mispricing 0.28 points (-0.18 to 0.74; HELD above 0.5) -> INCONCLUSIVE
+THE PREMISE: the all-snap turns 100.0% of the live disagreements (at least 95% needed) -> holds
+
+OUTCOME: 1 INCONCLUSIVE, 2 FALSIFIED, 3 HELD, 4 INCONCLUSIVE

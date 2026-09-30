@@ -166,6 +166,12 @@ export function outcomeProblems(predText, plantedOutput) {
   const items = [...String(plantedOutput).matchAll(/^OUTCOMES REACHED: item (\S+): (.+)$/gm)].map(m => ({ item: m[1], outcomes: new Set(m[2].split(',').map(x => x.trim()).filter(Boolean)) }));
   if (!items.length) return ['the reducer\'s --planted run prints no "OUTCOMES REACHED: item <n>: ..." line'];
   const P = [];
+  // the prediction's own items (its Credence section's "N (OUTCOME)", else "Item N" in its Decision rule or Prediction):
+  // each needs its line, so a reducer cannot pass by printing only the items it covers (the plan-auditor's MINOR 2, 30 Sep)
+  const sec = h => (new RegExp(`^## ${h}[^\\n]*\\n([\\s\\S]*?)(?=^## |(?![\\s\\S]))`, 'm').exec(String(predText)) || [])[1] || '';
+  let want = [...sec('Credence').matchAll(/(?:^|[:;]\s*)(\d+)\s*\((?:HELD|FALSIFIED|INCONCLUSIVE)\)/gm)].map(m => m[1]);
+  if (!want.length) want = [...`${sec('Decision rule')}\n${sec('Prediction')}`.matchAll(/\bItem (\d+)\b/g)].map(m => m[1]);
+  for (const n of new Set(want)) if (!items.some(it => it.item === n)) P.push(`item ${n}: the reducer prints no OUTCOMES REACHED line for it`);
   for (const it of items) if (it.outcomes.size < 3) P.push(`item ${it.item}: its plants reach ${[...it.outcomes].join(', ') || 'nothing'}, fewer than 3 outcomes`);
   const fed = (/^## Decision fed[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(String(predText)) || [])[1] || '';
   const all = new Set(items.flatMap(it => [...it.outcomes]));

@@ -231,6 +231,8 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(outcomeProblems(fed, 'planted (40): ok\n').length === 1, 'planted: a reducer with no OUTCOMES REACHED line is refused');
   ok(outcomeProblems(fed, 'OUTCOMES REACHED: item 1: HELD, INCONCLUSIVE\n').length === 2, 'planted: an item that can never read FALSIFIED is refused, twice (under 3, and the Decision fed names it)');
   ok(outcomeProblems(fed, 'OUTCOMES REACHED: item 1: HELD, INCONCLUSIVE, FALSIFIED\nOUTCOMES REACHED: item 2: HARM, NO MATERIAL HARM\n').length === 1, 'planted: a second item short of 3 is refused on its own');
+  ok(outcomeProblems(`## Credence\nreads as predicted: 1 (HELD), 0.5; 2 (FALSIFIED), 0.4\n\n${fed}`, 'OUTCOMES REACHED: item 1: FALSIFIED, HELD, INCONCLUSIVE\n').length === 1, 'planted: a prediction item the reducer prints no line for is refused (the auditor\'s MINOR 2)');
+  ok(outcomeProblems(`## Decision rule\nItem 1 reads ...; Item 2 reads ...\n\n${fed}`, 'OUTCOMES REACHED: item 1: FALSIFIED, HELD, INCONCLUSIVE\nOUTCOMES REACHED: item 2: FALSIFIED, HELD, INCONCLUSIVE\n').length === 0, 'the items read from the Decision rule when the Credence names none; both covered pass');
   ok(reducerOf('- **Run:** `batch-7al.sh`; reduced by `reduce-7al.mjs` in the real tree') === 'reduce-7al.mjs' && reducerOf('- **Run:** batch.sh') === null, 'the reducer is read from the Run line');
   const REPO = join(S, '../..'), dir = mkdtempSync(join(tmpdir(), 'outc-'));
   const pred = t => { const f = join(dir, `p${Math.random().toString(36).slice(2)}.md`); writeFileSync(f, t); return f; };

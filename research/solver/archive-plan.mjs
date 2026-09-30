@@ -4,8 +4,11 @@
 //   - the register's resolved and closed rows (their status cell starts "resolved" or "closed");
 //   - the ledger's rows beyond its newest LEDGER_KEEP, and its deep-review rows dated on or before the cut-off (their bold
 //     headline starts "The ... deep review"; each review's receipt is deep-review-log.md);
-//   - the schedule's rows whose status starts DONE, CANCELLED, SUPERSEDED or EXPIRED.
-// The cut-off is the date of the newest-but-two close in lessons.md (28 Sep until there are three). Nothing is reworded.
+//   - the schedule's finished rows (status DONE, CANCELLED, SUPERSEDED, EXPIRED or READ) two closes ago: at least two
+//     closes in lessons.md dated after the row's test's own close (a test before the seed: after the seed).
+// The cut-off is the date of the newest-but-two close in lessons.md (28 Sep until there are three). Ledger rows dated after
+// the last deep review's receipt stay whatever their age: uncertainty.mjs counts them from PLAN.md to say when the next
+// review is due (the plan-auditor's MINOR 6 of 30 Sep 19:36). Nothing is reworded.
 // Run at every close (the plan-update skill); the plan checker's budget refuses an over-budget PLAN.md only when this
 // has something to move. record-review.mjs --moved records the move's receipt when it is verified verbatim.
 //   node research/solver/archive-plan.mjs [--cutoff "28 Sep"] [--apply]
@@ -13,7 +16,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { lessonsOf } from './triggers.mjs';
+import { lessonsOf, minuteKey } from './triggers.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)), PLAN = join(HERE, 'PLAN.md'), HIST = join(HERE, 'PLAN-HISTORY.md');
 export const LEDGER_KEEP = 15;
@@ -31,8 +34,14 @@ export function cutoffOf(lessonsText) {
 const key = l => (/^\| ([^|]+?) \|/.exec(l) || [])[1];
 const last = l => { const c = l.split(' | '); return (c[c.length - 1] || '').replace(/\|\s*$/, '').replace(/\*\*/g, '').trim(); };
 function tableAt(lines, test) { const i = lines.findIndex(test); if (i < 0) return null; let a = i; while (a < lines.length && !lines[a].startsWith('|')) a++; let b = a; while (b < lines.length && lines[b].startsWith('|')) b++; return [a, b]; }
+/* the ages: the closes' and the seed's times by test, and the last deep review's receipt time */
+export function archiveOpts(lessonsText = '', deepLogText = '') {
+  const L = lessonsOf(lessonsText), at = new Map(L.closes.filter(c => c.at !== null).map(c => [c.test, c.at]));
+  const reviews = [...String(deepLogText).matchAll(/^- (\d{1,2} [A-Z][a-z]{2,3},? \d{1,2}:\d{2}) UK \| covered /gm)].map(m => minuteKey(m[1])).filter(x => x !== null);
+  return { closeAt: at, seedAt: L.seed ? L.seed.at : null, closeTimes: L.closes.map(c => c.at).filter(x => x !== null), keepAfter: reviews.length ? Math.max(...reviews) : null };
+}
 /* what would move: { reg, led, sch } as line indexes, each table's [start, end), and the cut-off used */
-export function planMoves(text, cutoff = '28 Sep') {
+export function planMoves(text, cutoff = '28 Sep', { closeAt = new Map(), seedAt = null, closeTimes = [], keepAfter = null } = {}) {
   const lines = text.split('\n'), CUT = dayOf(cutoff);
   if (!CUT) throw new Error(`archive-plan: bad cut-off ${cutoff}`);
   const REG = tableAt(lines, l => l.startsWith('## Odd results register'));
@@ -45,9 +54,15 @@ export function planMoves(text, cutoff = '28 Sep') {
     const k = key(lines[i]) || '', d = dayOf(k); if (!d) continue;
     n++;
     const head = (/\*\*([^*]+)\*\*/.exec(lines[i]) || [])[1] || '';
+    const t = minuteKey(k);
+    if (keepAfter !== null && t !== null && t > keepAfter) continue;
     if (n > LEDGER_KEEP || (d <= CUT && /^The (\w+ )?deep review/i.test(head.trim()))) led.push(i);
   }
-  if (SCH) for (let i = SCH[0] + 2; i < SCH[1]; i++) if (/^(DONE|CANCELLED|SUPERSEDED|EXPIRED)\b/.test(last(lines[i]))) sch.push(i);
+  if (SCH) for (let i = SCH[0] + 2; i < SCH[1]; i++) {
+    if (!/^(DONE|CANCELLED|SUPERSEDED|EXPIRED|READ)\b/.test(last(lines[i]))) continue;
+    const since = closeAt.get(key(lines[i])) ?? seedAt;
+    if (since !== null && closeTimes.filter(t => t > since).length >= 2) sch.push(i);
+  }
   return { lines, reg, led, sch, tables: { REG, LED, SCH }, cutoff };
 }
 export const bytesOf = (lines, is) => is.reduce((t, i) => t + lines[i].length + 1, 0);
@@ -71,7 +86,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const argv = process.argv.slice(2), ci = argv.indexOf('--cutoff'), APPLY = argv.includes('--apply');
   const lessons = existsSync(join(HERE, 'lessons.md')) ? readFileSync(join(HERE, 'lessons.md'), 'utf8') : '';
   const cutoff = ci >= 0 ? argv[ci + 1] : cutoffOf(lessons);
-  const text = readFileSync(PLAN, 'utf8'), m = planMoves(text, cutoff);
+  const deep = existsSync(join(HERE, 'deep-review-log.md')) ? readFileSync(join(HERE, 'deep-review-log.md'), 'utf8') : '';
+  const text = readFileSync(PLAN, 'utf8'), m = planMoves(text, cutoff, archiveOpts(lessons, deep));
   console.log(`ARCHIVE (${APPLY ? 'applying' : 'dry run'}; the deep-review cut-off ${cutoff}; the ledger keeps its newest ${LEDGER_KEEP}):`);
   console.log(`  register: ${m.reg.length} rows, ${bytesOf(m.lines, m.reg)} bytes; ledger: ${m.led.length} rows, ${bytesOf(m.lines, m.led)} bytes; schedule: ${m.sch.length} rows, ${bytesOf(m.lines, m.sch)} bytes`);
   const total = m.reg.length + m.led.length + m.sch.length;

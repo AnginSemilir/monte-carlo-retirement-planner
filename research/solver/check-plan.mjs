@@ -21,6 +21,11 @@
  *   predictions every prediction file the plan names exists and passes check-prediction.mjs
  *   finished    no "COMPLETED" section is left in PLAN.md (it moves to PLAN-HISTORY.md)
  *   defaults    the decided-defaults block parses (plan-defaults.test.mjs compares it with the code)
+ *   retro       every test in results-scorecard.txt after lessons.md's seed has its close in lessons.md ("## <test>
+ *               (closed <D Mon HH:MM>)"), 1 to 5 lines, each with a trigger code and a disposition (AUTOMATE, REPLACE or
+ *               DROP), naming every code of the BLOCKING findings receipted since the close before (RULES.md section 10)
+ *   budget      RULES.md at most RULES_BUDGET bytes; PLAN.md over PLAN_BUDGET is refused when archive-plan.mjs has rows to
+ *               move, and only warned about when it has none
  * NEW-LINE CHECKS (lines this change adds to PLAN.md)
  *   no-effect   "unaffected", "does not change", "no effect" ... carry "evidence:" of grade A or B (RULES.md section 8), or
  *               "NOT CHECKED", on the same line
@@ -35,11 +40,15 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { markdownTable } from './fair-variables.mjs';
 import { checkPredictionText } from './check-prediction.mjs';
+import { tagsIn, lessonsOf, receiptsOf, blockingCodesBetween } from './triggers.mjs';
+import { planMoves, cutoffOf } from './archive-plan.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '../..');
 export const MAX_CHECKLIST = 12;
-export const BUG_SWEEP_FROM = 24;   // bug entries dated this day of Sep 2026 and later need the sweep line
+export const BUG_SWEEP_FROM = 24;
+export const PLAN_BUDGET = 650000, RULES_BUDGET = 72000;   // bytes (the feedback loop, 30 Sep: the always-read files)
+export const LESSON_LINES = [1, 5];   // bug entries dated this day of Sep 2026 and later need the sweep line
 
 const norm = s => s.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
 const between = (text, a, b) => { const i = text.indexOf(a); if (i < 0) return null; const j = text.indexOf(b, i + a.length); return j < 0 ? null : text.slice(i + a.length, j); };
@@ -85,7 +94,36 @@ export const CLAIM = /\b(?:is|are|was|were|now|thus|so|hence)\s+(settled)\b|\b(s
 const NOT_A_CLAIM = /\b(?:not|never|nothing|until|once|when|if|before|whether|is it|was it)\s+(?:yet\s+|been\s+|be\s+|is\s+|was\s+)?settled\b|\bsettles nothing\b|\bunsettled\b/gi;
 const GRADE_AB = /\bgrade [AB]\b/i;
 
-export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, solverFileExists }) {
+/* the retro: each scored test after the seed has its close; returns the problems as strings */
+export function retroProblems({ lessons, scorecard, reviewLog }) {
+  const P = [], tests = [...String(scorecard ?? '').matchAll(/^(\w+) \(.*\): Brier /gm)].map(m => m[1]);
+  if (lessons === null) return tests.length ? ['lessons.md is missing (RULES.md section 10: it holds the seed and every close)'] : [];
+  const L = lessonsOf(lessons);
+  if (!L.seed || L.seed.at === null) return ['lessons.md has no seed line "Seed: after <test> (<D Mon HH:MM>)"'];
+  const from = tests.indexOf(L.seed.test);
+  if (from < 0) return [`lessons.md's seed names ${L.seed.test}, which is not in results-scorecard.txt`];
+  const receipts = receiptsOf(reviewLog ?? '');
+  let prev = L.seed.at;
+  for (const t of tests.slice(from + 1)) {
+    const c = L.closes.find(x => x.test === t);
+    if (!c) { P.push(`${t} is scored but lessons.md has no "## ${t} (closed <D Mon HH:MM>)" entry: write its lessons`); continue; }
+    if (c.at === null) { P.push(`${t}: the close's time "${c.when}" does not parse`); continue; }
+    if (c.lines.length < LESSON_LINES[0] || c.lines.length > LESSON_LINES[1]) P.push(`${t}: ${c.lines.length} lesson lines, need ${LESSON_LINES[0]} to ${LESSON_LINES[1]}`);
+    const named = new Set();
+    for (const l of c.lines) {
+      const g = tagsIn(l);
+      if (g.unknown.length) P.push(`${t}: "${l.slice(0, 50)}" has an unknown code (${g.unknown.join(', ')})`);
+      if (!g.tags.length && !g.unknown.length) P.push(`${t}: "${l.slice(0, 50)}" names no trigger code [T:<code>]`);
+      if (!/\b(AUTOMATE|REPLACE|DROP)\b/.test(l)) P.push(`${t}: "${l.slice(0, 50)}" has no disposition (AUTOMATE, REPLACE or DROP)`);
+      g.tags.forEach(x => named.add(x));
+    }
+    const missed = [...blockingCodesBetween(receipts, prev, c.at)].filter(x => !named.has(x));
+    if (missed.length) P.push(`${t}: the BLOCKING findings since the last close carry ${missed.map(x => `[T:${x}]`).join(', ')}, which no lesson names`);
+    prev = Math.max(prev, c.at);
+  }
+  return P;
+}
+export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, solverFileExists, lessons, scorecard, reviewLog, warnings = [] }) {
   const E = [];
   const err = (check, msg) => E.push(`[${check}] ${msg}`);
 
@@ -205,6 +243,21 @@ export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, 
   if (dd === null) err('defaults', 'PLAN.md has no <!-- decided-defaults {json} --> block');
   else { try { JSON.parse(dd); } catch (e) { err('defaults', `the decided-defaults block is not JSON: ${e.message}`); } }
 
+  // the retro (RULES.md section 10)
+  const opt = f => (solverFileExists(f) ? readSolverFile(f) : null);
+  const lessonsText = lessons !== undefined ? lessons : opt('lessons.md');
+  for (const p of retroProblems({ lessons: lessonsText, scorecard: scorecard !== undefined ? scorecard : opt('results-scorecard.txt'), reviewLog: reviewLog !== undefined ? reviewLog : opt('review-log.md') })) err('retro', p);
+
+  // the budget of the always-read files
+  const rb = Buffer.byteLength(rules ?? ''), pb = Buffer.byteLength(plan);
+  if (rb > RULES_BUDGET) err('budget', `RULES.md is ${rb} bytes, over its ${RULES_BUDGET}: cut or retire a rule before adding one`);
+  if (pb > PLAN_BUDGET) {
+    let m = null; try { m = planMoves(plan, cutoffOf(lessonsText ?? '')); } catch (e) { err('budget', `PLAN.md is ${pb} bytes and archive-plan.mjs cannot read it (${e.message})`); }
+    const k = m ? m.reg.length + m.led.length + m.sch.length : 0;
+    if (m && k) err('budget', `PLAN.md is ${pb} bytes, over its ${PLAN_BUDGET}, and archive-plan.mjs has ${k} rows to move: node research/solver/archive-plan.mjs --apply`);
+    else if (m) warnings.push(`PLAN.md is ${pb} bytes, over its ${PLAN_BUDGET}, with nothing archivable: shorten live rows`);
+  }
+
   // new lines
   const planLines = plan.split('\n');
   const LR = tableAfter(plan, '**The re-look ledger**'), ledgerRow = new Map((LR ? LR.rows : []).map(r => [r.raw.trim(), r.cells]));
@@ -252,7 +305,9 @@ export function runCli(argv = process.argv.slice(2)) {
     }
   } catch (e) { console.error(`check-plan: git failed (${e.message.split('\n')[0]})`); return 2; }
   const read = source(mode, rev), has = exists(mode, rev);
-  const errs = checkPlan({ plan: read('PLAN.md'), rules: read('RULES.md'), checklist: read('CHECKLIST.md'), added, readSolverFile: read, solverFileExists: has });
+  const warnings = [];
+  const errs = checkPlan({ plan: read('PLAN.md'), rules: read('RULES.md'), checklist: read('CHECKLIST.md'), added, readSolverFile: read, solverFileExists: has, warnings });
+  for (const w of warnings) console.log(`WARNING: ${w}`);
   if (errs.length) {
     console.log(`PLAN CHECK FAILED (${errs.length}) - ${mode === 'rev' ? `commit ${rev}` : mode}${base ? `, new lines against ${/^[0-9a-f]{40}$/.test(base) ? base.slice(0, 12) : base}` : ''}:`);
     for (const e of errs) console.log(`  ${e}`);

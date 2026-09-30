@@ -10,6 +10,10 @@
  *   node research/solver/record-review.mjs --diff                           what changed since the last reviewed version
  *   node research/solver/record-review.mjs --verdict pass|fail --findings "..." [--reviewer plan-auditor]
  *                                         [--check-only: check the findings' tags and write nothing]
+ *   node research/solver/record-review.mjs --moved                          an archive-plan.mjs move, verified: against the
+ *                                         last PASS, every removed line is in PLAN-HISTORY.md verbatim and every added line
+ *                                         is a pointer line; recorded as a PASS by "archive-plan (verified)" (RULES.md
+ *                                         section 10: a move is not a change for a reviewer to judge)
  * Every graded finding (BLOCKING n., MINOR n., MINOR (carried k) n., BACKLOG n.) carries a trigger code, [T:<code>], from
  * triggers.mjs's CODES (RULES.md section 10, the feedback loop): the record is then countable (triggers.mjs).
  */
@@ -18,6 +22,7 @@ import { execSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CODES, findingsOf } from './triggers.mjs';
+import { POINTER } from './archive-plan.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '../..');
@@ -45,6 +50,16 @@ export function tagProblems(findings, verdict = 'PASS') {
   }
   return bad;
 }
+/* a pure move: what the plan lost is in the history verbatim, and what it gained is only pointer lines (and blanks) */
+export function movedProblems(before, after, history) {
+  const count = t => { const m = new Map(); for (const l of t.split('\n')) m.set(l, (m.get(l) || 0) + 1); return m; };
+  const A = count(before), B = count(after), P = [];
+  let removed = 0;
+  for (const [l, k] of A) if (k > (B.get(l) || 0)) { removed++; if (l.trim() && !history.includes(l)) P.push(`removed but not in PLAN-HISTORY.md: "${l.slice(0, 70)}"`); }
+  for (const [l, k] of B) if (k > (A.get(l) || 0) && l.trim() && !POINTER.test(l)) P.push(`added and not a pointer line: "${l.slice(0, 70)}"`);
+  if (!removed) P.push('nothing was removed: not a move');
+  return P;
+}
 export function receipts() { return entries().filter(e => e.verdict !== 'STARTED'); }
 export function status() {
   const blob = planBlob();
@@ -68,6 +83,15 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const when = new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' UK';
     appendFileSync(LOG, `- ${when} | plan ${blob} | STARTED | ${opt('reviewer') || 'plan-auditor'} | started ${new Date().toISOString()}\n`);
     console.log(`review of PLAN.md ${blob.slice(0, 10)} started`);
+  } else if (a.includes('--moved')) {
+    const now = planBlob(true), last = receipts().slice(-1)[0];
+    if (!last || last.verdict !== 'PASS') { console.error('--moved: the last receipt is not a PASS; a move is verified against a passed plan'); process.exit(2); }
+    let before; try { before = git(`cat-file -p ${last.blob}`); } catch { console.error(`--moved: no stored copy of ${last.blob.slice(0, 10)}`); process.exit(2); }
+    const P = movedProblems(before, readFileSync(join(HERE, 'PLAN.md'), 'utf8'), readFileSync(join(HERE, 'PLAN-HISTORY.md'), 'utf8'));
+    if (P.length) { console.error(`--moved: not a pure move (${P.length}):\n  ${P.slice(0, 10).join('\n  ')}`); process.exit(1); }
+    const when = new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' UK';
+    appendFileSync(LOG, `- ${when} | plan ${now} | PASS | archive-plan (verified) | none. A move from ${last.blob.slice(0, 10)} (${last.verdict}, ${last.when}): every removed line is in PLAN-HISTORY.md verbatim and every added line is a pointer line.\n`);
+    console.log(`recorded the verified move for PLAN.md ${now.slice(0, 10)}`);
   } else if (a.includes('--diff')) {
     // the change since the last REVIEWED version, pass or fail: each review judges the change, and checks that the
     // previous receipt's findings are fixed (maintainer, 24 Sep 12:05 UK)

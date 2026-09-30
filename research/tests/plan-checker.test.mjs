@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { checkPlan, MAX_CHECKLIST } from '../solver/check-plan.mjs';
+import { checkPlan, MAX_CHECKLIST, PLAN_BUDGET, RULES_BUDGET } from '../solver/check-plan.mjs';
 import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS } from '../solver/check-prediction.mjs';
 import { VARIABLES } from '../solver/fair-variables.mjs';
 
@@ -175,7 +175,7 @@ caught(run({ added: ['The cap does not change the cutting (evidence: results-k5-
 ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-targets.txt, grade A).'] }).some(e => e.startsWith('[no-effect]')), 'the same claim with grade A evidence passes');
 {
   const row = '| 26 Sep 09:00 | **A planted result** | nothing | results: results-reader-checks.txt; fair-test: n/a (a planted row for the test); prediction: none (a planted row) |';
-  const ledgerAt = base.plan.indexOf('| 25 Sep 20:31 |');
+  const ledgerAt = base.plan.indexOf('\n', base.plan.indexOf('|---|---|---|---|', base.plan.indexOf('**The re-look ledger**'))) + 1;   // the ledger's first row (rows get archived)
   const withRow = base.plan.slice(0, ledgerAt) + row + '\n' + base.plan.slice(ledgerAt);
   caught(run({ plan: withRow, added: [row] }), 'grade', 'a new ledger row with no evidence grade');
   const graded = row.replace('prediction: none (a planted row) |', 'prediction: none (a planted row); grade C |');
@@ -187,6 +187,38 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(!run({ plan: base.plan.replace(o7, noted) }).some(e => e.startsWith('[register]')), 'a register row "noted, below materiality" with its estimate and evidence passes');
   caught(run({ plan: base.plan.replace(o7, noted.replace('0.02 points', '0.3 points')) }), 'register', 'a noted row whose estimate is not below materiality (0.3 points)');
   caught(run({ plan: base.plan.replace(o7, noted.replace(' (evidence: results-o19.txt)', '')) }), 'register', 'a noted row with no evidence');
+}
+
+// the retro and the budget (RULES.md section 10, the feedback loop)
+{
+  const card = s => `THE SCORECARD\n\n7ai (x): Brier 0.3 over 2 (1 0.6 -> held)\n${s}`;
+  const seed = 'Seed: after 7ai (30 Sep 17:53)\n';
+  const rlog = '- 30 Sept, 20:00 UK | plan ' + 'a'.repeat(40) + ' | FAIL | plan-auditor | BLOCKING 1. [T:relook] x; BLOCKING (carried 1) 2. [T:stale] y\n';
+  const retro = (lessons, s = '7zz (y): Brier 0.2 over 1 (1 0.5 -> held)\n', reviewLog = rlog) => run({ lessons, scorecard: card(s), reviewLog });
+  const good = seed + '## 7zz (closed 30 Sep 21:00)\n- [T:relook] the row was missed -> AUTOMATE relook.mjs\n';
+  ok(!retro(good).some(e => e.startsWith('[retro]')), 'a close with a tagged, disposed lesson naming the window\'s BLOCKING code passes');
+  ok(!retro(seed, '').some(e => e.startsWith('[retro]')), 'nothing scored after the seed needs nothing');
+  caught(retro(seed), 'retro', 'a test scored after the seed with no close in lessons.md');
+  caught(retro(null), 'retro', 'lessons.md missing');
+  caught(retro(good.replace('Seed: after 7ai', 'Seed: after 7nope')), 'retro', 'a seed naming a test not in the scorecard');
+  caught(retro(good.replace(seed, '')), 'retro', 'no seed line');
+  caught(retro(good.replace(' -> AUTOMATE relook.mjs', '')), 'retro', 'a lesson with no disposition');
+  caught(retro(good.replace('[T:relook] ', '')), 'retro', 'a lesson with no trigger code (and so the BLOCKING code unnamed)');
+  caught(retro(good.replace('[T:relook]', '[T:bogus] [T:relook]')), 'retro', 'a lesson with an unknown code');
+  caught(retro(good.replace('[T:relook]', '[T:figure]')), 'retro', 'a close whose lessons miss the window\'s BLOCKING code');
+  ok(!retro(good.replace('[T:relook]', '[T:figure]'), undefined, rlog.replace('30 Sept, 20:00', '30 Sept, 17:00')).some(e => e.startsWith('[retro]')), 'a BLOCKING before the seed is not the close\'s to name; a carried one never is');
+  caught(retro(good + '- [T:c-gate] a -> DROP: x\n'.repeat(5)), 'retro', 'six lesson lines, over the five');
+  caught(retro(good.replace('(closed 30 Sep 21:00)', '(closed later)')), 'retro', 'a close whose time does not parse');
+  // the budget
+  caught(run({ rules: base.rules + 'x'.repeat(RULES_BUDGET) }), 'budget', 'RULES.md over its budget');
+  const big = base.plan + '\n<!-- ' + 'x'.repeat(PLAN_BUDGET) + ' -->\n';
+  const w = [], bigErrs = run({ plan: big, warnings: w });
+  caught(bigErrs, 'budget', 'PLAN.md over its budget while archive-plan.mjs has rows to move');
+  const tiny = pad => `## Odd results register\n\n| id | x | y | z | w | status |\n|---|---|---|---|---|---|\n| O5 | a | b | c | d | open |\n\n**The re-look ledger**\n\n| date | the settled result | what it changed | evidence |\n|---|---|---|---|\n| 30 Sep 10:00 | r | c | e |\n\n<!-- ${'x'.repeat(pad)} -->\n`;
+  const w2 = [], e2 = run({ plan: tiny(PLAN_BUDGET), warnings: w2 });
+  ok(!e2.some(e => e.startsWith('[budget]')) && w2.length === 1 && /nothing archivable/.test(w2[0]), 'over the budget with nothing to move: a warning, not a refusal');
+  const w3 = []; run({ plan: tiny(10), warnings: w3 });
+  ok(w3.length === 0, 'under the budget: no warning');
 }
 
 console.log(`\n${n} passed`);

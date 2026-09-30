@@ -10,14 +10,14 @@
  *   node research/solver/record-review.mjs --diff                           what changed since the last reviewed version
  *   node research/solver/record-review.mjs --verdict pass|fail --findings "..." [--reviewer plan-auditor]
  *                                         [--check-only: check the findings' tags and write nothing]
- * Every graded finding (BLOCKING n., MINOR n., MINOR (carried) n., BACKLOG n.) carries one trigger code, [T:<code>], from
+ * Every graded finding (BLOCKING n., MINOR n., MINOR (carried k) n., BACKLOG n.) carries a trigger code, [T:<code>], from
  * triggers.mjs's CODES (RULES.md section 10, the feedback loop): the record is then countable (triggers.mjs).
  */
 import { readFileSync, appendFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CODES } from './triggers.mjs';
+import { CODES, findingsOf } from './triggers.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '../..');
@@ -31,18 +31,17 @@ export function entries() {
   return readFileSync(LOG, 'utf8').split('\n').map(l => /^- (.+?) \| plan ([0-9a-f]{40}) \| (PASS|FAIL|STARTED) \| ([^|]+) \| (.*)$/.exec(l)).filter(Boolean)
     .map(m => ({ when: m[1], blob: m[2], verdict: m[3], reviewer: m[4].trim(), findings: m[5] }));
 }
-/* the graded findings that carry no known trigger code (none for "none") */
-export function tagProblems(findings) {
-  const f = String(findings || '').trim();
-  if (/^none\b/i.test(f)) return [];
-  const parts = f.split(/(?=\b(?:BLOCKING|MINOR|BACKLOG)\b(?: \(carried\))? \d+\.)/).filter(x => /^(BLOCKING|MINOR|BACKLOG)\b/.test(x.trim()));
-  if (!parts.length) return ['no graded finding (BLOCKING n., MINOR n. or BACKLOG n.), and not "none"'];
-  const bad = [];
+/* the problems with a receipt's findings: a graded finding (BLOCKING n., MINOR n., BACKLOG n., "n:" as well; "(carried k)"
+   after the grade) with no trigger code or an unknown one; findings that are not "none" but have no graded finding; and a
+   PASS carrying a finding carried by 3 receipts or more, which is BLOCKING by rule (the deep review of the loop, amendment 4) */
+export function tagProblems(findings, verdict = 'PASS') {
+  const f = String(findings || '').trim(), parts = findingsOf(f), bad = [];
+  if (!parts.length) return /^none\b/i.test(f) ? [] : ['no graded finding (BLOCKING n., MINOR n. or BACKLOG n.), and not "none"'];
   for (const p of parts) {
-    const tags = [...p.matchAll(/\[T:([a-z-]+)\]/g)].map(m => m[1]);
-    const head = p.trim().slice(0, 40);
-    if (!tags.length) bad.push(`"${head}...": no trigger code [T:<code>]`);
-    else if (tags.some(t => !CODES[t])) bad.push(`"${head}...": unknown code ${tags.filter(t => !CODES[t]).join(', ')}`);
+    const head = p.text.slice(0, 40);
+    if (p.unknown.length) bad.push(`"${head}...": unknown code ${p.unknown.join(', ')}`);
+    else if (!p.tags.length) bad.push(`"${head}...": no trigger code [T:<code>]`);
+    if (verdict === 'PASS' && p.carried >= 3) bad.push(`"${head}...": carried by ${p.carried} receipts, so BLOCKING: the verdict cannot be PASS`);
   }
   return bad;
 }
@@ -81,7 +80,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   } else {
     const v = (opt('verdict') || '').toUpperCase(), f = (opt('findings') || '').replace(/\s+/g, ' ').replace(/\|/g, '/').trim();
     if (!/^(PASS|FAIL)$/.test(v) || !f) { console.error('usage: --verdict pass|fail --findings "<numbered findings, or none>" [--reviewer <name>]'); process.exit(2); }
-    const tp = tagProblems(f);
+    const tp = tagProblems(f, v);
     if (tp.length) { console.error(`every graded finding carries a trigger code [T:<code>] (triggers.mjs CODES):\n  ${tp.join('\n  ')}\ncodes: ${Object.keys(CODES).join(', ')}`); process.exit(2); }
     if (a.includes('--check-only')) { console.log('findings tagged: ok (nothing written)'); process.exit(0); }
     const blob = planBlob(true);

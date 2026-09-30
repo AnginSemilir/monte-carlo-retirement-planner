@@ -1,49 +1,65 @@
-// triggers.mjs and record-review.mjs's tag rule (RULES.md section 10, the feedback loop): the counts, the retirement pass's
-// due rule and the receipt's tag check, each shown able to fail on a planted case.
+// triggers.mjs and record-review.mjs's tag rule (RULES.md section 10, the feedback loop; amended by the deep review of the
+// loop, drafts/feedback-loop-review.md): the parsing, the windows and the success measure, the retirement pass's due rule,
+// and the receipt's tag rule - each shown able to fail on a planted case.
 //   node research/tests/triggers.test.mjs
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
-import { CODES, parseTags, closesOf, passDue, counts, report, dayKey } from '../solver/triggers.mjs';
+import { CODES, tagsIn, minuteKey, lessonsOf, findingsOf, receiptsOf, blockingCodesBetween, passesOf, passDue, windowStats, report } from '../solver/triggers.mjs';
 import { tagProblems } from '../solver/record-review.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 let n = 0;
 const ok = (c, name) => { assert.ok(c, name); n++; console.log(`PASS  ${name}`); };
+const J = x => JSON.stringify(x);
 
-// parsing
-ok(JSON.stringify(parseTags('BLOCKING 1. [T:relook] x; MINOR 2. [T:figure] y')) === '{"tags":["relook","figure"],"unknown":[]}', 'two known codes parse in order');
-ok(parseTags('[T:nonsense]').unknown[0] === 'nonsense' && parseTags('[T:nonsense]').tags.length === 0, 'an unknown code is reported, not counted');
+// codes and tags
 ok(Object.keys(CODES).every(k => /^[a-z-]+$/.test(k)), 'every code is a plain lower-case word the tag pattern reads');
+ok(!CODES.carried && !CODES['c-review'] && CODES.code, 'carried is a modifier, not a code; c-review is gone; code is in');
+ok(J(tagsIn('[T:relook] [T:figure]').tags) === '["relook","figure"]', 'known codes parse in order');
+ok(tagsIn('[T:nonsense]').unknown[0] === 'nonsense', 'an unknown code is reported, not counted');
+ok(tagsIn('[T:other]').unknown.length === 1 && J(tagsIn('[T:other:vague]').words) === '["other:vague"]', 'other needs its word, and the word is kept');
 
-// closes and the retirement pass
-const L = k => Array.from({ length: k }, (_, i) => `## 7x${i} (closed 30 Sep)\n- [T:relook] a -> DROP: once`).join('\n');
-ok(closesOf(L(3)).filter(e => e.kind === 'close').length === 3, 'closes are read from their headings');
-ok(!passDue(L(4)).due && passDue(L(5)).due, 'the pass is due at the 5th close and not the 4th');
-ok(!passDue(L(5) + '\n## Retirement pass 30 Sep\n').due, 'a retirement pass resets the count');
-ok(passDue(L(5) + '\n## Retirement pass 30 Sep\n' + L(5)).due, 'and it is due again 5 closes later');
+// times
+ok(minuteKey('30 Sept, 19:08 UK') === minuteKey('30 Sep 19:08 UK') && minuteKey('30 Sep 19:08') === 202609301908, 'the logs\' two date forms read alike');
+ok(minuteKey('2026-09-30 17:54 UTC') === 202609301854, 'a UTC time reads as UK summer time');
 
-// the windows
-const src = [{ name: 'log', lines: [
-  { when: '1 Sep', day: dayKey('1 Sep'), text: '[T:figure] old' },
-  { when: '29 Sep', day: dayKey('29 Sep'), text: '[T:relook] [T:relook]' },
-  { when: '30 Sep', day: dayKey('30 Sep'), text: '[T:c-relook]' }] }];
-const lessons = ['## a (closed 28 Sep)', '## b (closed 29 Sep)', '## c (closed 29 Sep)', '## d (closed 30 Sep)', '## e (closed 30 Sep)'].join('\n');
-const c = counts(src, lessons, [5, 20]);
-ok(c.win[0].get('relook') === 2 && !c.win[0].get('figure') && c.all.get('figure') === 1, 'the last-5 window starts at the 5th-last close and drops older lines');
-ok(c.win[1].get('figure') === 1, 'with fewer closes than the window, everything counts');
-ok(report(c).length <= 40 && report({ ...c, all: new Map(Object.keys(CODES).map(k => [k, 1])), win: [new Map(), new Map()], last: new Map() }, 40).length <= 40, 'the report holds its 40-line cap');
-ok(report(c).some(l => /catches never recorded:.*c-gate/.test(l)), 'a catch never recorded is listed');
+// findings and receipts
+const f = findingsOf('BLOCKING 1. [T:relook] a; MINOR 2: [T:stale] b; MINOR (carried 2) 3. [T:figure] c; BACKLOG 4. [T:register] d');
+ok(J(f.map(x => [x.grade, x.carried, x.tags[0]])) === '[["BLOCKING",0,"relook"],["MINOR",0,"stale"],["MINOR",2,"figure"],["BACKLOG",0,"register"]]', 'graded findings split on "n." and "n:", with the carried count');
+const log = [
+  '- 29 Sept, 10:00 UK | plan ' + 'a'.repeat(40) + ' | FAIL | plan-auditor | BLOCKING 1. [T:figure] old',
+  '- 30 Sept, 12:00 UK | plan ' + 'b'.repeat(40) + ' | FAIL | plan-auditor | BLOCKING 1. [T:relook] x; BLOCKING (carried 1) 2. [T:stale] y; BACKLOG 3. [T:register] z',
+  '- 30 Sept, 13:00 UK | plan ' + 'c'.repeat(40) + ' | PASS | plan-auditor | none',
+  '- 30 Sept, 13:00 UK | plan ' + 'c'.repeat(40) + ' | STARTED | plan-auditor | started x'].join('\n');
+const R = receiptsOf(log);
+ok(R.length === 3, 'receipts are read, starts are not');
+ok(J([...blockingCodesBetween(R, minuteKey('30 Sep 11:00'), minuteKey('30 Sep 14:00'))]) === '["relook"]', 'the window\'s BLOCKING codes exclude carried ones and those before the window');
 
-// the receipt's tags (record-review.mjs)
-ok(tagProblems('none').length === 0, '"none" needs no tag');
-ok(tagProblems('BLOCKING 1. [T:relook] O60: stale; MINOR 2. [T:figure] x').length === 0, 'tagged findings pass');
-ok(tagProblems('BLOCKING 1. O60: stale').length === 1, 'a finding with no tag is refused');
-ok(tagProblems('MINOR 1. [T:bogus] x').length === 1, 'a finding with an unknown code is refused');
-ok(tagProblems('BLOCKING 1. [T:relook] a; MINOR 2. b; BACKLOG 3. [T:stale] c').length === 1, 'one untagged finding among tagged ones is refused');
-ok(tagProblems('MINOR (carried) 1. [T:carried] x').length === 0, 'a carried finding carries its code');
-// end to end: the CLI refuses an untagged verdict before it writes anything (no --verdict write: --check-only)
+// lessons, closes, the retirement pass
+const lessonsText = n => ['Seed: after 7ai (30 Sep 17:52)', ...Array.from({ length: n }, (_, i) => `## 7x${i} (closed 30 Sep ${String(18 + Math.floor(i / 6)).padStart(2, '0')}:${String(10 * (i % 6)).padStart(2, '0')})\n- [T:relook] a -> DROP: once`)].join('\n');
+const L = lessonsOf(lessonsText(3));
+ok(L.seed.test === '7ai' && L.closes.length === 3 && L.closes[0].lines.length === 1, 'the seed and the closes, with their lines');
+ok(!passDue(lessonsOf(lessonsText(4)).closes, []).due && passDue(lessonsOf(lessonsText(5)).closes, []).due, 'the pass is due at the 5th close and not the 4th');
+const deep = '- 30 Sep 18:25 UK | retirement | proposals';
+ok(passesOf(deep).length === 1 && !passDue(lessonsOf(lessonsText(5)).closes, passesOf(deep)).due, 'a retirement line in the locked deep-review log resets the count (lessons.md cannot)');
+
+// the success measure
+const data = { receipts: R, closes: lessonsOf('Seed: after 7ai (30 Sep 09:00)\n## a (closed 30 Sep 11:00)\n## b (closed 30 Sep 14:00)').closes, launches: [minuteKey('30 Sep 12:30'), minuteKey('30 Sep 12:40')], tagged: [{ at: minuteKey('30 Sep 12:00'), tags: ['c-gate'], words: [], unknown: [] }] };
+const w1 = windowStats(data, 1);
+ok(w1.receipts === 2 && w1.fails === 1 && w1.blocking === 1 && w1.backlog === 1 && w1.launchesPerClose === 2 && w1.catches.get('c-gate') === 1, 'the last-close window counts receipts, FAILs, primary BLOCKINGs, BACKLOGs, launches and catches');
+const rep = report(data, { 'PLAN.md': 1 });
+ok(rep.length <= 40 && rep.some(l => /review cycles/.test(l)) && rep.some(l => /always-read bytes: PLAN.md 1/.test(l)), 'the report prints the measure and the bytes');
+ok(report({ ...data, tagged: [{ at: 1, tags: [], words: [], unknown: ['bogus'] }] }, {})[0].startsWith('UNKNOWN CODES'), 'the UNKNOWN line comes first, so the cap cannot drop it');
+
+// the receipt's tag rule (record-review.mjs)
+ok(tagProblems('none').length === 0, '"none" alone needs no tag');
+ok(tagProblems('none. CHECKED AND SOUND. MINOR 1. PLAN.md l.3: stale').length === 1, '"none." followed by an untagged MINOR is refused (the hole the review found)');
+ok(tagProblems('MINOR 1: x [T:other:foo]; MINOR 2: y').length === 1, 'colon-numbered findings are split, and the untagged one refused');
+ok(tagProblems('MINOR 1. [T:bogus] x').length === 1 && tagProblems('MINOR 1. [T:other] x').length === 1, 'an unknown code, or other without its word, is refused');
+ok(tagProblems('MINOR (carried 3) 1. [T:stale] x', 'PASS').length === 1 && tagProblems('MINOR (carried 3) 1. [T:stale] x', 'FAIL').length === 0, 'a finding carried by 3 receipts cannot sit in a PASS');
+ok(tagProblems('BLOCKING 1. [T:relook] a; MINOR 2. [T:stale] b').length === 0, 'tagged findings pass');
 let refused = false;
 try { execFileSync('node', [join(HERE, '../solver/record-review.mjs'), '--check-only', '--verdict', 'pass', '--findings', 'MINOR 1. untagged'], { stdio: 'pipe' }); } catch { refused = true; }
 ok(refused, 'the CLI refuses an untagged finding');

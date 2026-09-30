@@ -155,11 +155,13 @@ for (const [c, what] of [
   ['echo x > ~/../..' + ROOT + '/research/solver/uncertainty.mjs', 'a ~ path into the repository']])
   ok(is(bashIn(ROOT, c), 'deny') && is(bashIn(ROOT, c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);
 ok(is(bashIn(ROOT, 'cat <<<"cd x" && ls'), null), 'a here-string is not a here-document opening');
-for (const [what, big, old] of [["280,000 '(' before bash <<a", '('.repeat(280000) + " bash <<a\nls\na\nrm research/solver/uncertainty.mjs", '42 s'],
-  ["100,000 '{' then an rm of the index", '{'.repeat(100000) + ' ; rm research/solver/uncertainty.mjs', '38 s'],
+// the '{' case's bound is 6 s (the maintainer's unlock, 30 Sep: it read 4.2 to 4.4 s on the machine after the 30 Sep restart,
+// idle and loaded alike, against about 2.0 s before; the fault it guards against took 38 s, so 6 s still catches it)
+for (const [what, big, old, limit = 2] of [["280,000 '(' before bash <<a", '('.repeat(280000) + " bash <<a\nls\na\nrm research/solver/uncertainty.mjs", '42 s'],
+  ["100,000 '{' then an rm of the index", '{'.repeat(100000) + ' ; rm research/solver/uncertainty.mjs', '38 s', 6],
   ['140,000 unclosed \\" then an rm of the index', '"\\'.repeat(140000) + '\n; rm research/solver/uncertainty.mjs', '19 s']]) {
   const t0 = Date.now(), d = bashIn(ROOT, big), secs = (Date.now() - t0) / 1000;
-  ok(d && d.decision === 'deny' && secs < 2, `planted: ${what}: refused in ${secs.toFixed(2)} s (under 2 s; 9729d3c took about ${old})`);
+  ok(d && d.decision === 'deny' && secs < limit, `planted: ${what}: refused in ${secs.toFixed(2)} s (under ${limit} s; 9729d3c took about ${old})`);
 }
 for (const w of ['env', 'make', 'git']) {
   const big = Array(70000).fill(w).join(' ') + ' ; rm research/solver/uncertainty.mjs', t0 = Date.now(), d = bashIn(ROOT, big), secs = (Date.now() - t0) / 1000;

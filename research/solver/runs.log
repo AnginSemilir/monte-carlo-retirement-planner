@@ -80,3 +80,4 @@
 29 Sep 23:53 UK | light | none:  7ai second preflight - the redesigned audit-7ai.mjs (the reversed arm, the opening2 line), all 42 units at 4 wealth points, one at a time in the light lane beside 7ah, parsed, gated and read by reduce-7ai.mjs's own functions against 7af's and 7ag's preflights; no figure read | code 1376ccad8e99 | 8538ce6 | load 6.55 6.09 5.57 | bash research/solver/preflight-7ai.sh
 30 Sep 00:59 UK | main | research/solver/predictions/diag-7ah.md | code 1376ccad8e99 | 3fc2724 | load 1.28 0.83 0.38 | bash research/solver/batch-7ah.sh
 30 Sep 06:15 UK | main | research/solver/predictions/diag-7ah.md | code 1376ccad8e99 | fbe63e9 | load 0.70 0.23 0.08 | bash research/solver/batch-7ah.sh
+30 Sep 08:28 UK | main | research/solver/predictions/diag-7ah.md | code 05be10bd7b34 | 41971be | load 1.19 1.08 0.81 | bash research/solver/batch-7ah.sh

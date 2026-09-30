@@ -191,9 +191,9 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    ledger row's bold span, so a title that says "no material harm" counts as a harm verdict (7aa's row, 28 Sep: "1
    FALSIFIED or harm verdicts" before the deep review after it, a false positive; the deep review after 7aa and the
    plan-auditor's review of 3ba2744, MINOR 7). Same pattern searched: a pattern alternating FALSIFIED and harm over
-   research/solver, research/tests and .claude/hooks is found only there. uncertainty.mjs is a locked file: its fix
-   (exclude "no material harm") waits on the maintainer's unlock; until then a reviewer reading the index checks the row it
-   counts.
+   research/solver, research/tests and .claude/hooks is found only there. FIXED 30 Sep on the maintainer's unlock (15:19
+   UK, the ledger): "no harm" and "no material harm" are removed from the bold span before the test, so a harm beside them
+   still counts; a planted case reads 1 on the fix and 3 on the old pattern (it recurred on 7ah's row before the fix).
 22. The launcher (run-from-snapshot.sh) re-runs a prediction's derivation script before it takes the lock and copies the
    tree, so a file edited while the derivation runs is baked into the snapshot uncommitted (the launcher warns "uncommitted
    changes are baked into this snapshot"). 7ab's relaunch, 28 Sep: derive-7ab.mjs ran about 12:01 to 12:06 UK and

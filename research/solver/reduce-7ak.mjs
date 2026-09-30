@@ -6,7 +6,8 @@
  *   - the stamps (fair-gate.mjs requireFairLogs) of 7ak and P;
  *   - both units once and done, each with its solve, ran, joint and node lines, snap lines for years 1 to 7 and four level
  *     lines; the counts consistent (disagree = oneWay + reverse, deadCell <= disagree, every snap's agreements at most
- *     disagree - deadCell);
+ *     disagree - deadCell); an access line, and a resid line for every year from 1 to the plan's years for both rules, year
+ *     1's paths the year-1 level lines' boundary and interior paths together;
  *   - IDENTITY: each unit's solve is P's core:P solve (its table and its ran line but the path count), and its OPEN0 and TS+J
  *     traces are P's first NP paths at world 0's node, field by field (survived, tier, level, wealth) - so the snaps re-score
  *     P's own run.
@@ -23,7 +24,9 @@
  *      is below 0.5; else INCONCLUSIVE.
  * NOT SETTLED (whatever the items read) when the all-snap - the cell's own state - turns under 0.95 of the live-cell
  * disagreements to the cell's move: the attribution's premise (research/tests/snap-7ak.test.mjs) fails in the field.
- * Reported, not items: every snap's share by year; the W, b, gain and lump-bucket snaps; S194's lines; the level lines.
+ * Reported, not items: every snap's share by year; the W, b, gain and lump-bucket snaps; S194's lines; the level lines; the
+ * per-year table against realised survival at world 0 by stage, bridge or after access (the deep review after 7ah, 30 Sep
+ * 14:39 UK: to locate a level error, O66).
  *   node research/solver/reduce-7ak.mjs [dir] [dirP] > research/solver/results-7ak.txt
  *   node research/solver/reduce-7ak.mjs --planted   the planted checks alone
  */
@@ -45,7 +48,7 @@ export function parse(text) {
   const out = []; let cur = null;
   for (const line of text.split('\n')) {
     let m;
-    if ((m = CASEL.exec(line))) { cur = { id: m[1].trim(), label: m[2], snap: {}, level: {}, done: false }; out.push(cur); continue; }
+    if ((m = CASEL.exec(line))) { cur = { id: m[1].trim(), label: m[2], snap: {}, level: {}, resid: { OPEN0: {}, 'TS+J': {} }, done: false }; out.push(cur); continue; }
     if (!cur) continue;
     const L = cur.label.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
     if ((m = new RegExp(`^\\s+solve ${L}: table (\\S+) secs`).exec(line))) cur.table = m[1];
@@ -55,6 +58,8 @@ export function parse(text) {
       const ag = {}; m[7].trim().split(/\s+/).forEach((x, i, a) => { if (i % 2 === 0) ag[x] = +a[i + 1]; });
       cur.snap[+m[1]] = { held: +m[2], dis: +m[3], oneWay: +m[4], reverse: +m[5], dead: +m[6], agree: ag };
     } else if ((m = new RegExp(`^\\s+level ${L} (OPEN0|TS\\+J) year 1 (boundary|interior): paths (\\d+) table (\\S+) realised (\\S+)$`).exec(line))) cur.level[`${m[1]} ${m[2]}`] = { n: +m[3], table: +m[4], realised: +m[5] };
+    else if ((m = new RegExp(`^\\s+access ${L}: year (\\d+) years (\\d+)$`).exec(line))) cur.access = { year: +m[1], years: +m[2] };
+    else if ((m = new RegExp(`^\\s+resid ${L} (OPEN0|TS\\+J) year (\\d+): paths (\\d+) table (\\S+) realised (\\S+)$`).exec(line))) cur.resid[m[1]][+m[2]] = { n: +m[3], table: m[4] === '-' ? NaN : +m[4], realised: m[5] === '-' ? NaN : +m[5] };
     else if (line.trim() === `done ${cur.label}`) cur.done = true;
   }
   return out;
@@ -81,6 +86,12 @@ export function gate(units, refP, traces, { np = NP } = {}) {
       for (const k of SNAPS) if (!(S.agree[k] >= 0 && S.agree[k] <= S.dis - S.dead)) bad.push(`${tag}: year ${t}'s ${k} agreements ${S.agree[k]} outside 0 to ${S.dis - S.dead}`);
     }
     for (const r of ['OPEN0', 'TS+J']) for (const c of ['boundary', 'interior']) if (!u.level[`${r} ${c}`]) bad.push(`${tag}: no level line ${r} ${c}`);
+    if (!u.access || !(u.access.years >= 1)) bad.push(`${tag}: no access line`);
+    else for (const r of ['OPEN0', 'TS+J']) {
+      for (let t = 1; t <= u.access.years; t++) if (!u.resid[r][t]) { bad.push(`${tag}: no resid line ${r} year ${t}`); break; }
+      const y1 = u.resid[r][1], lb = u.level[`${r} boundary`], li = u.level[`${r} interior`];
+      if (y1 && lb && li && y1.n !== lb.n + li.n) bad.push(`${tag}: ${r}'s year-1 resid paths ${y1.n}, the level lines' ${lb.n + li.n}`);
+    }
     for (const rule of ['OPEN0', 'TS+J']) {
       const tp = traces(u.id, reg[1], reg[2], rule);
       if (!tp || !tp[0] || !tp[1]) { bad.push(`${tag}: ${rule}'s trace or P's missing`); continue; }
@@ -95,6 +106,12 @@ export function gate(units, refP, traces, { np = NP } = {}) {
   return bad;
 }
 
+/* the table less realised survival, path-year weighted, in the bridge (years before access) and after it */
+export function stageOf(u, r) {
+  const o = { bridge: { n: 0, g: 0 }, after: { n: 0, g: 0 } };
+  for (const [t, x] of Object.entries(u.resid[r])) { if (!x.n) continue; const k = +t < u.access.year ? o.bridge : o.after; k.n += x.n; k.g += x.n * (x.table - x.realised); }
+  return ['bridge', 'after'].map(st => ({ stage: st === 'bridge' ? 'bridge' : 'after access', n: o[st].n, gap: o[st].n ? o[st].g / o[st].n : NaN }));
+}
 const tri = (x, held, fals) => (x >= held ? 'HELD' : x < fals ? 'FALSIFIED' : 'INCONCLUSIVE');
 export function pool(u) { const o = { held: 0, dis: 0, dead: 0, agree: Object.fromEntries(SNAPS.map(k => [k, 0])) }; for (let t = 1; t <= YEARS; t++) { const S = u.snap[t]; o.held += S.held; o.dis += S.dis; o.dead += S.dead; for (const k of SNAPS) o.agree[k] += S.agree[k]; } o.live = o.dis - o.dead; return o; }
 export function levelGap(units) {
@@ -127,6 +144,8 @@ export function reading(units, out = console.log) {
     out(`  pooled, the share of live disagreements each snap turns to the cell's move: ${SNAPS.map(k => `${k} ${p.live ? (100 * p.agree[k] / p.live).toFixed(1) : '-'}%`).join(', ')}`);
     for (let t = 1; t <= YEARS; t++) { const S = u.snap[t], lv = S.dis - S.dead; out(`  year ${t}: held ${S.held} disagree ${S.dis} (one-way ${S.oneWay}, reverse ${S.reverse}, dead ${S.dead}) | ${SNAPS.map(k => `${k} ${lv ? (100 * S.agree[k] / lv).toFixed(0) : '-'}%`).join(' ')}`); }
     for (const r of ['OPEN0', 'TS+J']) for (const c of ['boundary', 'interior']) { const x = u.level[`${r} ${c}`]; out(`  year-1 ${r} ${c}: paths ${x.n}, table ${x.table.toFixed(2)} realised ${x.realised.toFixed(2)}`); }
+    out(`  REPORTED, world 0's table against realised survival by year (access in year ${u.access.year}; the paths alive and holding a tier state that year):`);
+    for (const r of ['OPEN0', 'TS+J']) out(`    ${r}: ${stageOf(u, r).map(x => `${x.stage} ${x.n ? `${x.gap >= 0 ? '+' : ''}${x.gap.toFixed(2)} over ${x.n} path-years` : '-'}`).join('; ')}; by year ${Object.entries(u.resid[r]).filter(([, x]) => x.n).map(([t, x]) => `${t}:${(x.table - x.realised).toFixed(1)}`).join(' ')}`);
   }
   const [i1, i2, i3, i4] = R.items;
   out(`\nITEM 1 (dead cells carry bridge 4's disagreement): ${(100 * i1.x).toFixed(1)}% of ${R.pooled.dis} at a dead cell (HELD at ${100 * CARRY}%, FALSIFIED under ${100 * NONE}%) -> ${i1.outcome}`);
@@ -145,7 +164,9 @@ function built(o = {}) {
     const snap = {}; for (let t = 1; t <= YEARS; t++) { const dis = 100, dead = o.dead ? 60 : 10, live = dis - dead; snap[t] = { held: 1000, dis, oneWay: 70, reverse: 30, dead, agree: { W: 5, a: o.aCarry ? 60 : 5, b: 5, gain: 0, pcls: 0, reader: o.readerCarry ? Math.min(live, 60) : o.readerHalf ? live / 2 : 10, all: o.allLow ? 50 : live } }; }
     if (o.badCount && id === 'bridge 4') snap[3].oneWay = 71;
     const lv = (tb, rb) => ({ n: 4000, table: tb, realised: rb });
-    return { id, label: labelOf(A, w), table: '99.7135', ran: o.ranOff && id === 'S194' ? ran.replace('minPot', 'minPot') + ' extra' : ran, node: { open0: 97.7, tsj: 98.2, paths: o.paths && id === 'S194' ? 16000 : NP }, snap, done: !(o.noDone && id === 'bridge 4'),
+    const resid = {}; for (const r of ['OPEN0', 'TS+J']) { resid[r] = {}; for (let t = 1; t <= 10; t++) resid[r][t] = { n: t === 1 ? (o.residCount && id === 'S194' && r === 'TS+J' ? 7999 : 8000) : 7000, table: 95, realised: t < 4 ? 97 : 93 }; }
+    if (o.noResid && id === 'bridge 4') delete resid.OPEN0[6];
+    return { id, label: labelOf(A, w), table: '99.7135', access: o.noAccess && id === 'S194' ? undefined : { year: 4, years: 10 }, resid, ran: o.ranOff && id === 'S194' ? ran.replace('minPot', 'minPot') + ' extra' : ran, node: { open0: 97.7, tsj: 98.2, paths: o.paths && id === 'S194' ? 16000 : NP }, snap, done: !(o.noDone && id === 'bridge 4'),
       level: { 'OPEN0 boundary': lv(o.bnd ? 99 : 98, 97), 'OPEN0 interior': lv(98, 97), 'TS+J boundary': lv(o.bnd ? 99 : 98, 97), 'TS+J interior': lv(98, 97) } };
   });
   const refP = (id, label) => (o.noRef ? null : { table: o.table && id === 'bridge 4' ? '99.7000' : '99.7135', ran: ran.replace('paths 8000', 'paths 16000') });
@@ -157,7 +178,7 @@ function planted() {
   const cases = [];
   const refused = o => { const b = built(o); return String(gate(b.us, b.refP, b.traces).length > 0); };
   { const b = built(); const bad = gate(b.us, b.refP, b.traces); cases.push(['a built set gates clean', `${bad.length}${bad.length ? ` ${bad[0]}` : ''}`, '0']); }
-  for (const [nm, o] of [['a unit not done', { noDone: true }], ['a table not P\'s', { table: true }], ['a ran line not P\'s', { ranOff: true }], ['no P unit', { noRef: true }], ['other node paths', { paths: true }], ['inconsistent counts', { badCount: true }], ['a trace not P\'s', { traceOff: true }]])
+  for (const [nm, o] of [['a missing resid year', { noResid: true }], ['no access line', { noAccess: true }], ['year-1 resid paths not the level lines\' paths', { residCount: true }], ['a unit not done', { noDone: true }], ['a table not P\'s', { table: true }], ['a ran line not P\'s', { ranOff: true }], ['no P unit', { noRef: true }], ['other node paths', { paths: true }], ['inconsistent counts', { badCount: true }], ['a trace not P\'s', { traceOff: true }]])
     cases.push([`the gate refuses ${nm}`, refused(o), 'true']);
   const out = o => { const R = items(built(o).us); return R.settled ? R.items.map(i => i.outcome).join(' ') : 'NOT SETTLED'; };
   cases.push(['the base: dead 10%, reader 11%, a 6%, no boundary excess', out({}), 'FALSIFIED FALSIFIED FALSIFIED FALSIFIED']);
@@ -167,6 +188,8 @@ function planted() {
   cases.push(['the a snap turns 60 of 90: item 3 HELD', out({ aCarry: true }).split(' ')[2], 'HELD']);
   cases.push(['the boundary mispriced by a point more: item 4 HELD', out({ bnd: true }).split(' ')[3], 'HELD']);
   cases.push(['the all-snap under 0.95: NOT SETTLED', out({ allLow: true }), 'NOT SETTLED']);
+  cases.push(['stageOf splits the bridge from after access', JSON.stringify(stageOf(built().us[0], 'OPEN0').map(x => [x.stage, x.n, +x.gap.toFixed(4)])), '[["bridge",22000,-2],["after access",49000,2]]']);
+  cases.push(['parse reads access and resid lines', JSON.stringify((u => [u.access, u.resid['TS+J'][3], u.resid.OPEN0[40]])(parse('S194             case | unit OFF/TS+J/MP/30x5/W0.02 | lambda x\n                 access OFF/TS+J/MP/30x5/W0.02: year 0 years 45\n                 resid OFF/TS+J/MP/30x5/W0.02 TS+J year 3: paths 7990 table 97.1234 realised 96.5000\n                 resid OFF/TS+J/MP/30x5/W0.02 OPEN0 year 40: paths 0 table - realised -\n')[0])), '[{"year":0,"years":45},{"n":7990,"table":97.1234,"realised":96.5},{"n":0,"table":null,"realised":null}]']);
   cases.push(['parse reads a snap line', JSON.stringify(parse('bridge 4         case | unit READER/TS+J/MP/30x5/W0 | lambda x\n                 snap READER/TS+J/MP/30x5/W0 OPEN0 year 2: held 50 disagree 9 oneWay 6 reverse 3 deadCell 2 | W 1 a 2 b 0 gain 0 pcls 0 reader 5 all 7\n')[0].snap[2]), '{"held":50,"dis":9,"oneWay":6,"reverse":3,"dead":2,"agree":{"W":1,"a":2,"b":0,"gain":0,"pcls":0,"reader":5,"all":7}}']);
   const fails = cases.filter(([, got, want]) => got !== want);
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }

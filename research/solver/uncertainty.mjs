@@ -66,7 +66,9 @@ export function index({ scorecard, plan, log }) {
   const fams = registerFamilies(plan), family = Math.max(0, ...Object.values(fams));
   const rows = ledgerAfter(plan, since);
   const weak = rows.filter(r => /grade [CD]\b/.test(r.line.split(' | ').slice(-1)[0] || '')).length;
-  const unmask = rows.filter(r => /\*\*[^*]*(FALSIFIED|harm)[^*]*\*\*/.test(r.line)).length;
+  // a verdict in the bold result: FALSIFIED, or harm - but "no harm" and "no material harm" are the opposite verdict and do
+  // not count (the deep review after 7ah, 30 Sep 14:39 UK: 7ah's "no material harm" title was counted as a harm)
+  const unmask = rows.filter(r => (/\*\*([^*]*)\*\*/.exec(r.line) || [])[1] !== undefined && /FALSIFIED|harm/.test(/\*\*([^*]*)\*\*/.exec(r.line)[1].replace(/\bno (material )?harm\b/gi, ''))).length;
   // a settled result names its prediction; a maintainer's decision row ("(maintainer)" in the result cell) may name one
   // too but settles nothing (the maintainer, 27 Sep: 54c05b1's decision row triggered a deep review with no new result)
   const settled = rows.filter(r => /prediction: predictions\/\S+\.md/.test(r.line) && !/^\s*\(maintainer\)/.test(r.line.split(' | ')[1] || '')).length;
@@ -93,6 +95,7 @@ function planted() {
     ['LOW with few settled results is not due; LOW at six is', (() => { const a = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: '', log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); const rows = Array.from({ length: 6 }, (_, i) => `| 26 Sep 13:0${i} | r | y | prediction: predictions/p${i}.md; grade B |`).join('\n'); const b = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: rows, log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); return `${a.level} ${a.due} ${b.level} ${b.due}`; })(), 'LOW false LOW true'],
     ['no receipt yet: every test counts as after it', String(index({ scorecard: sc, plan: '', log: '' }).surprises.length), '2'],
     ['HIGH with nothing settled since the receipt is not due (a family of 3 does not reset)', (() => { const fam = ['| O1 | a; family: r | 1 Sep | C | g | open |', '| O2 | b; family: r | 1 Sep | C | g | open |', '| O3 | c; family: r | 1 Sep | C | g | open |', '| 26 Sep 11:00 | **7s** | y | prediction: predictions/a.md; grade B |'].join('\n'); const v = index({ scorecard: sc, plan: fam, log: '- 26 Sep 12:00 UK | covered 7r (b) | x' }); return `${v.level} ${v.settled} ${v.due}`; })(), 'HIGH 0 false'],
+    ['"no material harm" and "no harm" are not harm verdicts; a harm beside them still is', (() => { const rows = ['| 30 Sep 14:20 | **7ah READ: no material harm on the six households** | y | prediction: predictions/a.md; grade B |', '| 30 Sep 14:10 | **7x READ: no harm to survival** | y | prediction: predictions/a.md; grade B |', '| 30 Sep 14:00 | **7y READ: no material harm on five, harm on S126** | y | prediction: predictions/a.md; grade B |'].join('\n'); return String(index({ scorecard: sc, plan: rows, log: '- 30 Sep 13:00 UK | covered 7r (b) | x' }).unmask); })(), '1'],
     ['a maintainer\'s decision row naming a prediction is not a settled result; a read row is', (() => { const rows = ['| 27 Sep 10:12 | (maintainer) **"re-read item 4"** | y | fair-test: n/a (a decision); prediction: predictions/a.md; grade A |', '| 27 Sep 09:00 | **7v read** | y | fair-test: pass; prediction: predictions/a.md; grade B |'].join('\n'); return String(index({ scorecard: sc, plan: rows, log: '- 27 Sep 08:00 UK | covered 7r (b) | x' }).settled); })(), '1'],
   ];
   const wrong = cases.filter(([, got, want]) => got !== want);

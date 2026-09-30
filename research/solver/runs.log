@@ -94,3 +94,4 @@
 30 Sep 21:06 UK | main | research/solver/predictions/diag-7al.md | code 05be10bd7b34 | 3354689 | load 2.40 3.90 4.14 | bash research/solver/batch-7al.sh
 30 Sep 22:41 UK | light | none: 7am preflight - all 29 units at 4 points through the reducer's parse, gate and reading, before launch (predictions/diag-7am.md, the smoke run line) | code 05be10bd7b34 | cfcd2d5 | load 0.60 0.90 2.07 | bash research/solver/preflight-7am.sh
 30 Sep 23:01 UK | main | research/solver/predictions/diag-7am.md | code 05be10bd7b34 | 1d312f4 | load 1.78 3.38 3.49 | bash research/solver/batch-7am.sh
+30 Sep 23:52 UK | main | research/solver/predictions/diag-7am.md | code bd34d3259ad9 | 940818a | load 1.14 1.07 0.76 | bash research/solver/batch-7am.sh

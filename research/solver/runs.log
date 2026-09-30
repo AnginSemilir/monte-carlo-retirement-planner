@@ -84,3 +84,4 @@
 30 Sep 14:21 UK | main | research/solver/predictions/diag-7ai.md | code 05be10bd7b34 | 941a778 | load 0.49 1.62 2.72 | bash research/solver/batch-7ai.sh
 30 Sep 15:39 UK | light | none: build check of 7ak's new resid and access lines, tiny grid, before registration | code 05be10bd7b34 | 136b02c | load 5.39 5.48 5.10 | node research/solver/audit-7ak.mjs 6 60 part 1/2 7002
 30 Sep 16:05 UK | light | none: 7ak preflight, both units at a tiny grid, so the reducer's parse and gate can be checked on real output before registration | code 05be10bd7b34 | b82c48e | load 5.12 5.10 5.09 | bash research/solver/preflight-7ak.sh
+30 Sep 16:42 UK | light | none: 7ak preflight (the original preflight-7ak.sh, restored), both units at 4 points and 20 paths against P's preflight, before registration | code 05be10bd7b34 | a577e46 | load 5.03 5.13 5.08 | bash research/solver/preflight-7ak.sh

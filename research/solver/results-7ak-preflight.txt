@@ -1,0 +1,1 @@
+PREFLIGHT PARSE PASSED: both units parsed and gated at the preflight's size with nothing refused - each solve P's preflight solve (table, ran line), each run P's preflight node paths field by field; the reading ran to its outcome line (39 lines, not printed) (planted 3)

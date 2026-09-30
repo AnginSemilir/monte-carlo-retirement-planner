@@ -34,7 +34,11 @@
  *      a kink about 0.5, a jump about 1. HELD (non-smooth) when q >= 0.4 on 5 or more of 7; FALSIFIED (smooth and curved)
  *      when q <= 0.33 on 5 or more; else INCONCLUSIVE.
  * Reported, not items: every household's gaps, openings and split for P and for the bundle at both step sizes, and the
- * tables.
+ * tables; P's split grouped by whether the year-0 choice reads any reader year (NOREADER: bridge 0 and bridge 1, access at
+ * year 0 and 1 - solve.js l.617 flags t < accessAt, and a year-0 choice reads the layers from t = 1 - against the rest),
+ * since the stored margin predicts P smooth in both groups and the reader's reassembly along the a axis predicts P jittery
+ * only where reader years are read; and P's |blind| as a share of its charge beside the ratio, P's gaps being small (the
+ * deep review after 7ak, 30 Sep 19:56 UK).
  *   node research/solver/reduce-7am.mjs [dir] [dirP] [dir7ai] > research/solver/results-7am.txt
  *   node research/solver/reduce-7am.mjs --planted   the planted checks alone, and the outcomes they reach
  */
@@ -53,6 +57,7 @@ export const PTS = '30', SEED = '7002', W = '0.02', CHARGE = '0.001';
 export const OPP_MIN = 6, SMOOTH = 0.3, JITTERY = 0.55, K_OF = 5, Q_KINK = 0.4, Q_CURVED = 0.33;
 export const HOUSEHOLDS = ['share 0.50', 'share 0.90', 'bridge 0', 'bridge 1', 'S126', 'S194', 'S162'];
 export const KNIFE = 'share 0.50';
+export const NOREADER = ['bridge 0', 'bridge 1'];
 export const PTAG = 'TS+J/MP/30x5', BTAG = 'TS+J';
 export const labelOf = (tag, set) => `${tag}/W${W}${set === 'linear' ? '' : '@' + set}`;
 export const UNITS = [[KNIFE, 'READER', labelOf(PTAG, 'linear')],
@@ -150,6 +155,11 @@ export function items(pairs) {
     { n: 3, kink, curved, outcome: kink >= K_OF ? 'HELD' : curved >= K_OF ? 'FALSIFIED' : 'INCONCLUSIVE' }];
 }
 
+/* P's split by group: no reader year read at year 0 (NOREADER) against the rest */
+export function groupLine(pairs) {
+  const g = ids => { const xs = pairs.filter(x => ids(x.id)).map(x => split(x.p.l, x.p.b, x.p.r)); return `${xs.filter(s => s && s.ratio < SMOOTH).length} smooth, ${xs.filter(s => s && s.ratio >= JITTERY).length} jittery, of ${xs.length}`; };
+  return `P's split by whether the year-0 choice reads a reader year: none read (${NOREADER.join(', ')}) ${g(id => NOREADER.includes(id))}; reader years read (the rest) ${g(id => !NOREADER.includes(id))}`;
+}
 export function reading(units, pref, bref, out = console.log) {
   const get = (id, l) => units.find(u => u.id === id && u.arm === 'READER' && u.label === l);
   const pairs = HOUSEHOLDS.map(id => {
@@ -161,7 +171,7 @@ export function reading(units, pref, bref, out = console.log) {
   const f = s => (s ? `following ${s.F.toExponential(3)} blind ${s.C.toExponential(3)} ratio ${Number.isFinite(s.ratio) ? s.ratio.toFixed(2) : 'inf'}` : 'not split (a gap 0 or >1)');
   out(`7AM: THE STORED MARGIN - P (READER/TS+J, switchCharge ${CHARGE}, switchMargin 0) under 7ai's tier shift each way, and the bundle (READER/TS+J/W${W}) at half that shift each way, 30 points; P's linear gaps are P's records (the anchor on ${KNIFE} re-solved and held to its record), the bundle's full shift 7ai's`);
   out('  P (gaps linear / blend / reversed; the pension tier at margin 0 in each; the split)');
-  for (const x of pairs) out(`    ${x.id.padEnd(11)} ${x.p.l.padStart(10)} ${x.p.b.padStart(10)} ${x.p.r.padStart(10)}  open ${x.p.o.join('/')}  ${opposite(x.p.l, x.p.b, x.p.r) ? 'opposite' : 'not opposite'}  ${f(split(x.p.l, x.p.b, x.p.r))}`);
+  for (const x of pairs) { const sp = split(x.p.l, x.p.b, x.p.r); out(`    ${x.id.padEnd(11)} ${x.p.l.padStart(10)} ${x.p.b.padStart(10)} ${x.p.r.padStart(10)}  open ${x.p.o.join('/')}  ${opposite(x.p.l, x.p.b, x.p.r) ? 'opposite' : 'not opposite'}  ${f(sp)}${sp ? `  |blind|/charge ${(100 * Math.abs(sp.C) / Number(CHARGE)).toFixed(1)}%` : ''}`); }
   out('  the bundle (gaps linear / blend / reversed / half blend / half reversed; the sign-blind part at the full and half step, and q)');
   for (const x of pairs) {
     const a = split(x.c.l, x.c.b, x.c.r), h = split(x.c.l, x.c.hb, x.c.hr);
@@ -171,6 +181,7 @@ export function reading(units, pref, bref, out = console.log) {
   out(`\nITEM 1 (P's gap answers the sign): opposite on ${IT[0].opp} of 7 (HELD at ${OPP_MIN} with the ratio under ${SMOOTH} on ${K_OF} or more: ${IT[0].smooth}); the ratio ${JITTERY} or more on ${IT[0].jit} (FALSIFIED at ${K_OF} or more) -> ${IT[0].outcome}`);
   out(`ITEM 2 (P's openings move only on its knife edge, ${KNIFE}): moved on ${IT[1].moved.length} of 6 (${IT[1].moved.join(', ') || 'none'}; HELD at 0, FALSIFIED at 2 or more) -> ${IT[1].outcome}`);
   out(`ITEM 3 (the bundle at half the step: non-smooth or curved): q ${Q_KINK} or more on ${IT[2].kink} of 7 (HELD at ${K_OF}); q ${Q_CURVED} or less on ${IT[2].curved} (FALSIFIED at ${K_OF}) -> ${IT[2].outcome}`);
+  out(`REPORTED: ${groupLine(pairs)}`);
   out(`REPORTED: P's tables linear / blend / reversed: ${pairs.map(x => `${x.id} ${x.p.t.join('/')}`).join('; ')}`);
   out(`\nOUTCOME: 1 ${IT[0].outcome}, 2 ${IT[1].outcome}, 3 ${IT[2].outcome}`);
   return IT;
@@ -238,6 +249,7 @@ export function planted() {
   cases.push(["7ai's bundle split reproduces look-7ai-split's share 0.50 ratio (0.99)", (() => { const t = readFileSync(join(HERE, 'results-7ai.txt'), 'utf8'); const m = /^\s+share 0\.50\s+READER\/TS\+J\s+\|\s+(\S+)\s.*?\|\s+(\S+)\s.*?\|\s+(\S+)\s/m.exec(t); return m ? split(m[1], m[2], m[3]).ratio.toFixed(2) : 'no row'; })(), '0.99']);
   cases.push(['parse reads P\'s joint line with its charge, and the bundle\'s without', JSON.stringify(parse('S126             case | unit READER/TS+J/MP/30x5/W0.02@reversed | lambda x tier own riskAbove auto mix 3\n                 joint READER/TS+J/MP/30x5/W0.02@reversed: true switchMargin 0 switchCharge 0.001 scale 9 cap 36 deathTax 0 tier own riskAbove off:_x\nS126             case | unit READER/TS+J/W0.02@halfblend | lambda x tier own riskAbove auto mix 3\n                 joint READER/TS+J/W0.02@halfblend: true switchMargin 0.001 scale 9 cap 36 deathTax 0 tier own riskAbove off:_x\n').map(u => [u.joint.margin, u.joint.charge])), '[["0","0.001"],["0.001",null]]']);
   cases.push(['the half sets: Medium Risk halfblend 3.935, halfreversed 3.445', `${realOf(built().o60, 'Medium Risk', 'halfblend').toFixed(3)} ${realOf(built().o60, 'Medium Risk', 'halfreversed').toFixed(3)}`, '3.935 3.445']);
+  cases.push(['the grouped report: bridge 0 and 1 jittery, the rest smooth', groupLine(HOUSEHOLDS.map(id => X(id, NOREADER.includes(id) ? JT : SM, [2, 2, 2], KINK))), "P's split by whether the year-0 choice reads a reader year: none read (bridge 0, bridge 1) 0 smooth, 2 jittery, of 2; reader years read (the rest) 5 smooth, 0 jittery, of 5"]);
   cases.push(['the units are audit-7am.mjs\'s (29)', String(UNITS.length), '29']);
   const fails = cases.filter(([, got, want]) => got !== want);
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }

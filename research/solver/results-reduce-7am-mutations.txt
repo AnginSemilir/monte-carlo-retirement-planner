@@ -1,4 +1,4 @@
-true script: planted (38): all read as they should
+true script: planted (39): all read as they should
 caught  the gate accepts a missing unit: PLANTED CHECK FAILED:
 caught  the gate accepts a unit twice: PLANTED CHECK FAILED:
 caught  the gate accepts an unregistered unit: PLANTED CHECK FAILED:

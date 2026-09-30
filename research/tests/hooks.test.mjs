@@ -301,6 +301,11 @@ ok(!deepRunning('- started garbage\n', T0) && !deepRunning(`- started ${iso(-5)}
 // the deep review's own planted checks run here, so CI and the pre-commit hook run them (rule 6)
 for (const f of ['uncertainty.mjs', 'record-deep-review.mjs']) ok(/all read as they should/.test(execFileSync('node', [join(ROOT, 'research/solver', f), '--planted']).toString()), `${f}'s planted checks read as they should`);
 
+// the launcher parses its whole body before running any of it (lessons.md, 7ak: an edit while it ran made bash run garbage)
+{ const L = readFileSync(join(ROOT, 'research/solver/run-from-snapshot.sh'), 'utf8');
+  const lines = L.split('\n'), first = lines.findIndex(l => l.trim() && !l.startsWith('#') && !l.startsWith('#!'));
+  ok(lines[first].trim() === '{' && /\nexit\n}\n?$/.test(L), 'the launcher\'s body is one block ending in exit, read whole before it runs'); }
+
 // session start, as a process: the checklist comes back after a compaction
 const out = execFileSync('bash', [join(ROOT, '.claude/hooks/session-start.sh')], { input: '{"source":"compact"}', env: { ...process.env, CLAUDE_PROJECT_DIR: ROOT } }).toString();
 ok(/COMPACTED/.test(out) && /1\. Before a run/.test(out) && /12\. Times in UK time/.test(out), 'after a compaction the session-start hook restates the whole checklist');

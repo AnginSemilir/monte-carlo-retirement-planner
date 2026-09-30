@@ -15,6 +15,10 @@
 #   PREDICTION="none:<why this is a measurement, not a test>" research/solver/run-from-snapshot.sh <command...>
 #   LANE=light ...   one single-process job beside the main batch (its own lock; it costs the batch about a core)
 #
+# THE WHOLE BODY IS ONE BLOCK, parsed before any of it runs, and it exits before bash reads further: bash reads a
+# script as it goes, so an edit to this file while a batch ran from it once ran garbage at its end (30 Sep, 7ak's
+# launch: "line 145: n,: command not found"; lessons.md, 7ak).
+{
 set -euo pipefail
 REAL="$(cd "$(dirname "$0")/../.." && pwd)"
 #
@@ -145,3 +149,5 @@ fi
 echo "$(TZ=Europe/London date '+%d %b %H:%M UK') | ${LANE:-main} | ${PREDICTION_FILE}${PREDICTION_REASON:+: $PREDICTION_REASON} | code $HASH | $REV | load $(cut -d' ' -f1-3 /proc/loadavg) | $*" >> "$REAL/research/solver/runs.log"
 "$@"
 echo "=== snapshot kept at $SNAP for provenance; remove it when the results are written up"
+exit
+}

@@ -1,4 +1,6 @@
-FAIR-TEST GATE: passed - both units P's own solve (table, ran line) and their OPEN0 and TS+J runs P's first 8000 node paths field by field; the counts consistent (planted 25)
+FAIR-TEST GATE: research/solver/predictions/diag-7ak.md was corrected after launch (24281bac at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - - 30 Sept, after 7ak was read (the plan-auditor's BLOCKING 1 of 30 Sep 19:49 UK; the maintainer's unlock of 30 Sep 19:03 UK lets the stamp gate take a declared correction): item 4's pooling is corrected in reduce-7ak.mjs to pool only (unit, rule) lines with paths in both classes. As run, every year-1 line fell wholly in one class (bridge 4 OPEN0 all boundary; bridge 4 TS+J and both S194 lines all interior), so the classes were the units and rules, not the cells, and the item compared one household and rule against the others. Corrected, no line has both classes and item 4 reads NOT SETTLED (it was printed INCONCLUSIVE). The question, prediction, falsifier, decision rule's thresholds, fair-test rows and every other item are unchanged; the scorecard scores item 4 as printed now, not as predicted (the 7s precedent: a NOT SETTLED item is a miss).
+
+FAIR-TEST GATE: passed - both units P's own solve (table, ran line) and their OPEN0 and TS+J runs P's first 8000 node paths field by field; the counts consistent (planted 26)
 
 7AK: THE ATTRIBUTION TEST - under P, world 0's node, 8000 of P's paths: OPEN0's forward-against-cell disagreements re-scored with one thing snapped to the nearest cell, and the year-1 table against realised survival by boundary and interior cells
 
@@ -39,7 +41,7 @@ S194 (OFF/TS+J/MP/30x5/W0.02): held path-years 8000, disagreements 0 (dead cells
 ITEM 1 (dead cells carry bridge 4's disagreement): 27.5% of 4600 at a dead cell (HELD at 50%, FALSIFIED under 20%) -> INCONCLUSIVE
 ITEM 2 (the reader): 18.1% of 3334 live disagreements turned by the reader snap -> FALSIFIED
 ITEM 3 (the pension-share axis a): 98.4% turned by the a snap -> HELD
-ITEM 4 (switching boundaries, both units, OPEN0 and TS+J, year 1): boundary 8000 paths, table 98.52 realised 97.51; interior 24000, table 94.22 realised 93.49; the boundary's excess mispricing 0.28 points (-0.18 to 0.74; HELD above 0.5) -> INCONCLUSIVE
+ITEM 4 (switching boundaries, both units, OPEN0 and TS+J, year 1): boundary 0 paths, table - realised -; interior 0, table - realised -; the boundary's excess mispricing - points (- to -; HELD above 0.5) -> NOT SETTLED
 THE PREMISE: the all-snap turns 100.0% of the live disagreements (at least 95% needed) -> holds
 
-OUTCOME: 1 INCONCLUSIVE, 2 FALSIFIED, 3 HELD, 4 INCONCLUSIVE
+OUTCOME: 1 INCONCLUSIVE, 2 FALSIFIED, 3 HELD, 4 NOT SETTLED

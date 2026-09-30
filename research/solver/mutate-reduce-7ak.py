@@ -21,6 +21,7 @@ M = [
     ("the carry threshold at 0.6", "CARRY = 0.5, NONE = 0.2,", "CARRY = 0.6, NONE = 0.2,"),
     ("item 4 ignores the interior", "const se = Math.sqrt((rb * (100 - rb)) / B.n + (ri * (100 - ri)) / I.n), d = (tb - rb) - (ti - ri);", "const se = Math.sqrt((rb * (100 - rb)) / B.n + (ri * (100 - ri)) / I.n), d = (tb - rb);"),
     ("the premise check off", "settled: p.live > 0 && share('all') >= ALLMIN,", "settled: true,"),
+    ("item 4 pools a line wholly in one class", "if (u.level[`${r} boundary`].n && u.level[`${r} interior`].n) for", "if (true) for"),
 ]
 def run(f):
     p = subprocess.run(['node', f, '--planted'], capture_output=True, text=True)

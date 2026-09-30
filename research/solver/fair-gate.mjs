@@ -239,14 +239,16 @@ export function declaredCorrection(before, after) {
   const times = t => t.replace(/\b\d{1,2}:\d[\dx] UK\b/g, 'HH:MM UK');
   const body = t => times(t.replace(CHANGES, '\n## Changes after seeing results\n'));
   if (!CHANGES.test(before) || !CHANGES.test(after) || body(before) !== body(after)) return null;
-  // a correction corrects something: at least one time token changed (a declaration alone is not a correction)
   const outside = t => t.replace(CHANGES, '\n## Changes after seeing results\n');
-  if (outside(before) === outside(after)) return null;
   const was = CHANGES.exec(before)[1].trim(), now = CHANGES.exec(after)[1].trim(), none = x => !x || /^None\.?$/.test(x);
   if (none(now)) return null;
   // the launch section is kept as it was (a declaration adds to it, never rewrites it)
   if (!none(was) && !now.startsWith(was)) return null;
   const added = none(was) ? now : now.slice(was.length).trim();
+  // a correction corrects something: a time token changed, or the declaration names the reducer it corrects (a reducer
+  // corrected after the read leaves the prediction's text as registered; the plan-auditor's BLOCKING 1 of 30 Sep 19:49 on
+  // 7ak's item 4). A declaration alone, naming nothing it corrects, is not a correction
+  if (outside(before) === outside(after) && !/\breduce-[\w-]+\.mjs\b/.test(added)) return null;
   return added || null;
 }
 function blobText(sha) {
@@ -276,6 +278,6 @@ export function requireFairLogs(texts, prediction, { exit = true, blob = blobOf,
   const bad = checkLogStamps(texts, prediction, { blob, textAt, textNow });
   if (bad.length) { console.log(`FAIR-TEST GATE: FAILED (stamps)\n  ${bad.join('\n  ')}`); if (exit) process.exit(1); }
   // a declared correction is printed with the figures, never silent
-  for (const c of bad.corrections || []) console.log(`FAIR-TEST GATE: ${prediction} was corrected after launch (${c.sha.slice(0, 8)} at launch): only typed UK times changed, and the change declared (its words are not checked) - ${c.declared.replace(/\s+/g, ' ')}\n`);
+  for (const c of bad.corrections || []) console.log(`FAIR-TEST GATE: ${prediction} was corrected after launch (${c.sha.slice(0, 8)} at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - ${c.declared.replace(/\s+/g, ' ')}\n`);
   return bad.length === 0;
 }

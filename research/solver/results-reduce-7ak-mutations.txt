@@ -1,4 +1,4 @@
-true script: planted (16): all read as they should
+true script: planted (26): all read as they should
 caught  the gate accepts a unit not done: PLANTED CHECK FAILED:
 caught  the gate ignores P's table: PLANTED CHECK FAILED:
 caught  the gate ignores P's ran line: PLANTED CHECK FAILED:
@@ -12,5 +12,6 @@ caught  item 3 reads the b snap: PLANTED CHECK FAILED:
 caught  the carry threshold at 0.6: PLANTED CHECK FAILED:
 caught  item 4 ignores the interior: PLANTED CHECK FAILED:
 caught  the premise check off: PLANTED CHECK FAILED:
+caught  item 4 pools a line wholly in one class: PLANTED CHECK FAILED:
 
-13 mutations: every one caught
+14 mutations: every one caught

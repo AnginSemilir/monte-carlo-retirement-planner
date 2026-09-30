@@ -21,7 +21,8 @@
  *   4. Switching boundaries: at year 1, OPEN0 and TS+J on both units pooled, the table's survival less the realised on
  *      boundary cells against interior cells, (tb - rb) - (ti - ri) in points, its 95% interval from the realised shares'
  *      binomial variance (the table's averages fixed). HELD when the lower end is above 0.5; FALSIFIED when the upper end
- *      is below 0.5; else INCONCLUSIVE.
+ *      is below 0.5; else INCONCLUSIVE. Only lines (unit, rule) with paths in both classes are pooled; with none, NOT SETTLED
+ *      (a declared correction after the read, predictions/diag-7ak.md).
  * NOT SETTLED (whatever the items read) when the all-snap - the cell's own state - turns under 0.95 of the live-cell
  * disagreements to the cell's move: the attribution's premise (research/tests/snap-7ak.test.mjs) fails in the field.
  * Reported, not items: every snap's share by year; the W, b, gain and lump-bucket snaps; S194's lines; the level lines; the
@@ -117,7 +118,10 @@ const tri = (x, held, fals) => (x >= held ? 'HELD' : x < fals ? 'FALSIFIED' : 'I
 export function pool(u) { const o = { held: 0, dis: 0, dead: 0, agree: Object.fromEntries(SNAPS.map(k => [k, 0])) }; for (let t = 1; t <= YEARS; t++) { const S = u.snap[t]; o.held += S.held; o.dis += S.dis; o.dead += S.dead; for (const k of SNAPS) o.agree[k] += S.agree[k]; } o.live = o.dis - o.dead; return o; }
 export function levelGap(units) {
   const c = { boundary: { n: 0, t: 0, ok: 0 }, interior: { n: 0, t: 0, ok: 0 } };
-  for (const u of units) for (const r of ['OPEN0', 'TS+J']) for (const k of ['boundary', 'interior']) { const x = u.level[`${r} ${k}`]; if (!x.n) continue; c[k].n += x.n; c[k].t += x.n * x.table; c[k].ok += x.n * x.realised / 100; }   // a line with no paths prints its table as '-' (NaN) and adds nothing (the plan-auditor's BLOCKING 1, 30 Sep)
+  // only a (unit, rule) line with paths in both classes enters: a line whose paths all fall in one class makes the classes
+  // its units and rules, not its cells (the plan-auditor's BLOCKING 1 of 30 Sep 19:49: on 7ak's own lines every line fell
+  // wholly in one class; a declared correction, predictions/diag-7ak.md)
+  for (const u of units) for (const r of ['OPEN0', 'TS+J']) if (u.level[`${r} boundary`].n && u.level[`${r} interior`].n) for (const k of ['boundary', 'interior']) { const x = u.level[`${r} ${k}`]; if (!x.n) continue; c[k].n += x.n; c[k].t += x.n * x.table; c[k].ok += x.n * x.realised / 100; }   // a line with no paths prints its table as '-' (NaN) and adds nothing (the plan-auditor's BLOCKING 1, 30 Sep)
   const B = c.boundary, I = c.interior;
   // a whole class with no paths: item 4 is NOT SETTLED; its figures are undefined and print '-' (the plan-auditor's BLOCKING 1, 30 Sep 16:29)
   if (!B.n || !I.n) return { d: NaN, lo: NaN, hi: NaN, B: { n: B.n, table: NaN, realised: NaN }, I: { n: I.n, table: NaN, realised: NaN } };
@@ -188,6 +192,8 @@ function planted() {
   cases.push(['the reader snap turns 60 of 90: item 2 HELD', out({ readerCarry: true }).split(' ')[1], 'HELD']);
   cases.push(['the reader snap turns exactly half (45 of 90): item 2 HELD at the edge', out({ readerHalf: true }).split(' ')[1], 'HELD']);
   cases.push(['the a snap turns 60 of 90: item 3 HELD', out({ aCarry: true }).split(' ')[2], 'HELD']);
+  { const b = built({}); for (const u of b.us) { u.level['OPEN0 interior'] = { n: 0, table: NaN, realised: NaN }; u.level['TS+J boundary'] = { n: 0, table: NaN, realised: NaN }; }
+    cases.push(['every line wholly in one class (OPEN0 all boundary, TS+J all interior): item 4 NOT SETTLED, the classes being the rules', items(b.us).items[3].outcome, 'NOT SETTLED']); }
   cases.push(['the boundary mispriced by a point more: item 4 HELD', out({ bnd: true }).split(' ')[3], 'HELD']);
   cases.push(['the all-snap under 0.95: NOT SETTLED', out({ allLow: true }), 'NOT SETTLED']);
   cases.push(['one year-1 level line with no paths (table -) adds nothing: item 4 still reads from the rest', out({ emptyLine: true, bnd: true }).split(' ')[3], 'HELD']);

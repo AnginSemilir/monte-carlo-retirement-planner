@@ -88,8 +88,9 @@ export function parse(text) {
 export const normRan = ran => (ran || '').replace(/(^| )paths \d+/, '$1paths X');
 const one = (xs, f) => xs.filter(f);
 
-/* THE GATE. `ref(id, arm, label)` the reference record's parsed unit (7ah's, 7ag's, 7aa's or 7af's) */
-export function gate(units, ref) {
+/* THE GATE. `ref(id, arm, label)` the reference record's parsed unit (7ah's, 7ag's, 7aa's or 7af's); `pts` and `npw` the
+   run's size, the registered 30 points and 2,000 paths unless the preflight names its own */
+export function gate(units, ref, { pts = PTS, npw = NPW } = {}) {
   const bad = [];
   for (const [id, a, l] of UNITS) { const k = units.filter(u => u.id === id && u.arm === a && u.label === l).length; if (k !== 1) bad.push(`${id} ${a}/${l}: ${k} unit lines, not 1`); }
   for (const u of units) {
@@ -99,7 +100,7 @@ export function gate(units, ref) {
     if (u.lambda !== LAMBDA || u.tier !== 'own' || u.riskAbove !== 'auto' || u.mix !== '3') bad.push(`${tag}: unit line settings ${u.lambda} ${u.tier} ${u.riskAbove} ${u.mix}`);
     if (u.table === undefined || !u.ran || !u.gap || !u.joint) { bad.push(`${tag}: a solve, ran, gap or joint line missing`); continue; }
     const TSJ = u.label.startsWith('TS+J');
-    const want = { pts: PTS, seed: SEED, paths: String(NPW), bequestWeight: W, finalIntegral: 'true', bridgeRead: u.arm === 'OFF' ? 'false' : 'reader', mix: '3' };
+    const want = { pts, seed: SEED, paths: String(npw), bequestWeight: W, finalIntegral: 'true', bridgeRead: u.arm === 'OFF' ? 'false' : 'reader', mix: '3' };
     for (const [k, v] of Object.entries(want)) if (field(u.ran, k) !== v) bad.push(`${tag}: ran ${k} ${field(u.ran, k)}, not ${v}`);
     if (TSJ !== (field(u.ran, 'tierState') !== null)) bad.push(`${tag}: the tier state ${field(u.ran, 'tierState')} on ${u.label}`);
     if ((u.arm === 'ORDER') !== (field(u.ran, 'readerRef') === 'order') || (u.arm !== 'ORDER' && field(u.ran, 'readerRef') !== null)) bad.push(`${tag}: readerRef ${field(u.ran, 'readerRef')} on ${u.arm}`);
@@ -125,16 +126,16 @@ export function gate(units, ref) {
       const rs = one(u.resid, x => x.k === k), cl = one(u.cells, x => x.k === k);
       if (br.length !== 1 || nd.length !== 1 || sb.length !== 1 || sa.length !== 1) { bad.push(`${tag} world ${k}: ${br.length} bridgeref, ${nd.length} node, ${sb.length} and ${sa.length} stage lines, not 1 each`); continue; }
       if ((u.arm === 'OFF') !== (br[0].ref === null)) bad.push(`${tag} world ${k}: a reference on the bridgeref line ${br[0].ref} with the arm ${u.arm}`);
-      if (nd[0].paths !== NPW || br[0].N !== NPW || (br[0].of !== null && br[0].of !== NPW)) bad.push(`${tag} world ${k}: ${nd[0].paths} node paths, bridgeref of ${br[0].N}, not ${NPW}`);
+      if (nd[0].paths !== npw || br[0].N !== npw || (br[0].of !== null && br[0].of !== npw)) bad.push(`${tag} world ${k}: ${nd[0].paths} node paths, bridgeref of ${br[0].N}, not ${npw}`);
       for (let t = 0; t <= ac.years; t++) if (rs.filter(x => x.t === t).length !== 1) { bad.push(`${tag} world ${k}: ${rs.filter(x => x.t === t).length} resid lines for year ${t}, not 1`); break; }
       if (cl.length !== 16) bad.push(`${tag} world ${k}: ${cl.length} cell, wcell and band lines, not 16`);
       // consistent
       const y0 = rs.find(x => x.t === 0);
-      if (y0 && y0.n !== NPW) bad.push(`${tag} world ${k}: ${y0.n} paths claim at year 0, not ${NPW}`);
-      if (sb[0].n !== NPW) bad.push(`${tag} world ${k}: the bridge stage has ${sb[0].n} paths, not ${NPW}`);
+      if (y0 && y0.n !== npw) bad.push(`${tag} world ${k}: ${y0.n} paths claim at year 0, not ${npw}`);
+      if (sb[0].n !== npw) bad.push(`${tag} world ${k}: the bridge stage has ${sb[0].n} paths, not ${npw}`);
       if (sb[0].through !== br[0].paid) bad.push(`${tag} world ${k}: ${sb[0].through} through the bridge, the engine paid ${br[0].paid}`);
       if (sa[0].n !== br[0].paid) bad.push(`${tag} world ${k}: the after stage has ${sa[0].n} paths, ${br[0].paid} alive at access`);
-      if (Math.abs(100 * sa[0].through / NPW - nd[0].sim) > 5e-5 + 1e-9) bad.push(`${tag} world ${k}: ${sa[0].through} survive the after stage, the node line's sim ${nd[0].sim}`);
+      if (Math.abs(100 * sa[0].through / npw - nd[0].sim) > 5e-5 + 1e-9) bad.push(`${tag} world ${k}: ${sa[0].through} survive the after stage, the node line's sim ${nd[0].sim}`);
       for (const [st, s] of [['bridge', sb[0]], ['after', sa[0]]]) {
         const ys = rs.filter(x => (st === 'bridge' ? x.t < ac.year : x.t >= ac.year) && x.n > 0);
         const sum = ys.reduce((t, x) => t + x.n * (x.table - x.next), 0), tol = ys.reduce((t, x) => t + x.n, 0) * 1e-4 + s.n * 1e-4 + 1e-6;

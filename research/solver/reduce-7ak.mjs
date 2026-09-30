@@ -116,7 +116,7 @@ const tri = (x, held, fals) => (x >= held ? 'HELD' : x < fals ? 'FALSIFIED' : 'I
 export function pool(u) { const o = { held: 0, dis: 0, dead: 0, agree: Object.fromEntries(SNAPS.map(k => [k, 0])) }; for (let t = 1; t <= YEARS; t++) { const S = u.snap[t]; o.held += S.held; o.dis += S.dis; o.dead += S.dead; for (const k of SNAPS) o.agree[k] += S.agree[k]; } o.live = o.dis - o.dead; return o; }
 export function levelGap(units) {
   const c = { boundary: { n: 0, t: 0, ok: 0 }, interior: { n: 0, t: 0, ok: 0 } };
-  for (const u of units) for (const r of ['OPEN0', 'TS+J']) for (const k of ['boundary', 'interior']) { const x = u.level[`${r} ${k}`]; c[k].n += x.n; c[k].t += x.n * x.table; c[k].ok += x.n * x.realised / 100; }
+  for (const u of units) for (const r of ['OPEN0', 'TS+J']) for (const k of ['boundary', 'interior']) { const x = u.level[`${r} ${k}`]; if (!x.n) continue; c[k].n += x.n; c[k].t += x.n * x.table; c[k].ok += x.n * x.realised / 100; }   // a line with no paths prints its table as '-' (NaN) and adds nothing (the plan-auditor's BLOCKING 1, 30 Sep)
   const B = c.boundary, I = c.interior;
   if (!B.n || !I.n) return { d: NaN, lo: NaN, hi: NaN, B, I };
   const tb = B.t / B.n, ti = I.t / I.n, rb = 100 * B.ok / B.n, ri = 100 * I.ok / I.n;
@@ -132,7 +132,7 @@ export function items(units) {
       { n: 1, x: deadShare, outcome: tri(deadShare, CARRY, NONE) },
       { n: 2, x: share('reader'), outcome: tri(share('reader'), CARRY, NONE) },
       { n: 3, x: share('a'), outcome: tri(share('a'), CARRY, NONE) },
-      { n: 4, lg, outcome: lg.lo > LEVEL_M ? 'HELD' : lg.hi < LEVEL_M ? 'FALSIFIED' : 'INCONCLUSIVE' }]
+      { n: 4, lg, outcome: !(lg.B.n && lg.I.n) ? 'NOT SETTLED' : lg.lo > LEVEL_M ? 'HELD' : lg.hi < LEVEL_M ? 'FALSIFIED' : 'INCONCLUSIVE' }]
   };
 }
 export function reading(units, out = console.log) {
@@ -167,7 +167,7 @@ function built(o = {}) {
     const resid = {}; for (const r of ['OPEN0', 'TS+J']) { resid[r] = {}; for (let t = 1; t <= 10; t++) resid[r][t] = { n: t === 1 ? (o.residCount && id === 'S194' && r === 'TS+J' ? 7999 : 8000) : 7000, table: 95, realised: t < 4 ? 97 : 93 }; }
     if (o.noResid && id === 'bridge 4') delete resid.OPEN0[6];
     return { id, label: labelOf(A, w), table: '99.7135', access: o.noAccess && id === 'S194' ? undefined : { year: 4, years: 10 }, resid, ran: o.ranOff && id === 'S194' ? ran.replace('minPot', 'minPot') + ' extra' : ran, node: { open0: 97.7, tsj: 98.2, paths: o.paths && id === 'S194' ? 16000 : NP }, snap, done: !(o.noDone && id === 'bridge 4'),
-      level: { 'OPEN0 boundary': lv(o.bnd ? 99 : 98, 97), 'OPEN0 interior': lv(98, 97), 'TS+J boundary': lv(o.bnd ? 99 : 98, 97), 'TS+J interior': lv(98, 97) } };
+      level: { 'OPEN0 boundary': o.noBoundary ? { n: 0, table: NaN, realised: NaN } : lv(o.bnd ? 99 : 98, 97), 'OPEN0 interior': o.emptyLine && id === 'S194' ? { n: 0, table: NaN, realised: NaN } : lv(98, 97), 'TS+J boundary': o.noBoundary ? { n: 0, table: NaN, realised: NaN } : lv(o.bnd ? 99 : 98, 97), 'TS+J interior': lv(98, 97) } };
   });
   const refP = (id, label) => (o.noRef ? null : { table: o.table && id === 'bridge 4' ? '99.7000' : '99.7135', ran: ran.replace('paths 8000', 'paths 16000') });
   const tr = (N, v) => ({ N, Y: 3, survived: new Uint8Array(N).fill(1), tier: new Uint8Array(N * 3).fill(v), level: new Uint8Array(N * 3).fill(100), wealth: new Float32Array(N * 3).fill(1) });
@@ -188,6 +188,9 @@ function planted() {
   cases.push(['the a snap turns 60 of 90: item 3 HELD', out({ aCarry: true }).split(' ')[2], 'HELD']);
   cases.push(['the boundary mispriced by a point more: item 4 HELD', out({ bnd: true }).split(' ')[3], 'HELD']);
   cases.push(['the all-snap under 0.95: NOT SETTLED', out({ allLow: true }), 'NOT SETTLED']);
+  cases.push(['one year-1 level line with no paths (table -) adds nothing: item 4 still reads from the rest', out({ emptyLine: true, bnd: true }).split(' ')[3], 'HELD']);
+  cases.push(['a whole pooled class with no paths: item 4 NOT SETTLED, not an INCONCLUSIVE from NaN', out({ noBoundary: true }).split(' ').slice(3).join(' '), 'NOT SETTLED']);
+  cases.push(['stageOf skips a year with no paths (table -) instead of turning the stage NaN', (() => { const u = built().us[0]; u.resid.OPEN0[11] = { n: 0, table: NaN, realised: NaN }; return JSON.stringify(stageOf(u, 'OPEN0').map(x => [x.n, +x.gap.toFixed(4)])); })(), '[[22000,-2],[49000,2]]']);
   cases.push(['stageOf splits the bridge from after access', JSON.stringify(stageOf(built().us[0], 'OPEN0').map(x => [x.stage, x.n, +x.gap.toFixed(4)])), '[["bridge",22000,-2],["after access",49000,2]]']);
   cases.push(['parse reads access and resid lines', JSON.stringify((u => [u.access, u.resid['TS+J'][3], u.resid.OPEN0[40]])(parse('S194             case | unit OFF/TS+J/MP/30x5/W0.02 | lambda x\n                 access OFF/TS+J/MP/30x5/W0.02: year 0 years 45\n                 resid OFF/TS+J/MP/30x5/W0.02 TS+J year 3: paths 7990 table 97.1234 realised 96.5000\n                 resid OFF/TS+J/MP/30x5/W0.02 OPEN0 year 40: paths 0 table - realised -\n')[0])), '[{"year":0,"years":45},{"n":7990,"table":97.1234,"realised":96.5},{"n":0,"table":null,"realised":null}]']);
   cases.push(['parse reads a snap line', JSON.stringify(parse('bridge 4         case | unit READER/TS+J/MP/30x5/W0 | lambda x\n                 snap READER/TS+J/MP/30x5/W0 OPEN0 year 2: held 50 disagree 9 oneWay 6 reverse 3 deadCell 2 | W 1 a 2 b 0 gain 0 pcls 0 reader 5 all 7\n')[0].snap[2]), '{"held":50,"dis":9,"oneWay":6,"reverse":3,"dead":2,"agree":{"W":1,"a":2,"b":0,"gain":0,"pcls":0,"reader":5,"all":7}}']);

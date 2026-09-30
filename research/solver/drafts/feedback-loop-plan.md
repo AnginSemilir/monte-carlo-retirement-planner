@@ -76,3 +76,51 @@ proposal changes. Locked proposals go to the maintainer in one list for one unlo
 Build rows 1-2 with triggers.test.mjs first (the consumer before the producers: M4); then 3, 4, 6 with their planted
 tests; then 5, 7, 8, 9, 10, 11; run every suite; the plan-auditor on the plan's ledger row recording the change; then
 seed lessons.md with today's lessons (7ai's close and the framework day).
+
+---
+
+## 6. AMENDED after the deep review (drafts/feedback-loop-review.md, 30 Sep): all 13 amendments adopted
+
+This section supersedes sections 1-5 where they differ. In the review's order:
+
+1. **Rows 1-2 (committed f27c04c), fixed:** the tag rule splits on `(BLOCKING|MINOR|BACKLOG)( \(carried \d+\))? \d+[.:]`
+   with no early return for "none"; `carried` becomes a modifier (`MINOR (carried 2) 1. [T:stale] ...`), and
+   record-review refuses a PASS with `(carried 3)` or more; `other` must be written `other:<word>`. The codes gain
+   `code` (a claim about the code the code contradicts); `figure` becomes "a figure not what its cited output says";
+   `stale` is within the rows the change touched and `relook` the rows it did not; `c-review` is dropped.
+   triggers.mjs prints the success measure per window of closes (bounded by the close's minute): receipts, FAILs,
+   primary BLOCKINGs by code (carried excluded), BACKLOGs (the leniency guard), launches per close (runs.log), and the
+   bytes of PLAN.md, RULES.md, CLAUDE.md and CHECKLIST.md; the UNKNOWN line first.
+2. **`relook.mjs --since-review`:** the last receipt's blob against the working tree; an empty diff while the plan is
+   NOT REVIEWED exits 2. The auditor's step 1 runs it.
+3. **The prompts:** the auditor gets relook, tags, the carried rule, and a replacement sentence for prose times. It stops
+   re-reading the checklist, which is already in its context, and RULES.md sections 2-5 (about 4.5k tokens a run).
+   Instead it opens RULES.md at the section a finding turns on. The deep reviewer does the retirement pass at step 0,
+   when triggers.mjs says it is due, and records it with `record-deep-review.mjs --retirement`: a locked `retirement |`
+   line that triggers.mjs counts closes from.
+   - A retirement must cite a zero from a mechanical source: tags, gate or launcher refusals in the logs, the mutation
+     history, or check-plan in CI. The absence of a self-reported catch never retires anything.
+   - The pass also lists the follow-through debt: AUTOMATE lines whose named file does not exist, and REPLACE lines whose
+     quoted text is still present. Each is built or turned into a DROP with its reason.
+4. **Row 6, with amendments 1 and 6:**
+   - A close is each test in results-scorecard.txt after a seed line. Each needs a lessons.md entry
+     `## <test> (closed <ledger row time>)` whose codes include every code on a BLOCKING in review-log.md between the
+     previous close and this one.
+   - archive-plan.mjs's cut-off defaults to the newest-but-two close. It also archives ledger rows beyond the newest 15,
+     and schedule rows read, done or dropped two closes ago.
+   - The PLAN.md budget refuses only when PLAN.md is over budget and the dry run has something to move; over budget with
+     nothing to move only warns.
+   - `record-review.mjs --moved` records a PASS by "archive-plan (verified)" when every removed line reappears verbatim
+     in PLAN-HISTORY.md and every added line is a pointer line.
+   - The always-loaded 4 KB budget is cut: bytes are printed by triggers.mjs instead.
+5. **Rows 7-11:**
+   - session-start.sh prints the checklist on compact only; hooks.test.mjs's startup case is inverted in the same commit.
+   - The SKILL is locked explicitly. The stated reason was wrong: the Edit tool could change it; only the shell was
+     refused.
+   - RULES.md section 10 is about 400 bytes, pointing to triggers.mjs's header.
+6. **Amendment 7, outcome coverage:** a reducer registered from now on prints `OUTCOMES REACHED: item <n>: <outcomes>`
+   under `--planted`. The launcher refuses a prediction registered after this change if the reducer named on its Run line
+   leaves a registered outcome unreached by a plant. reduce-7al.mjs is the first.
+7. **Hook narrowing:** deferred, agreed; its false refusals are counted as `[T:lock]`.
+8. **Seed lessons.md** from the closes in the scorecard's window, today's receipts giving `relook`, `sentinel`, `figure`
+   and `stale`.

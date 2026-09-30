@@ -16,8 +16,12 @@
  *   2. OPEN0 and TS+J at year 1: every path's year-1 cell classed as on a switching boundary (a neighbour along W, a or b
  *      holding the layer where the cell leaves, or the other way) or interior, with world 0's table survival of the
  *      chosen move there (scoreMoves) against the path's realised survival.
+ *   3. OPEN0 and TS+J at every year from 1 (the deep review after 7ah, 30 Sep 14:39 UK: so a level error, O66, can be
+ *      located by year - in the bridge or after access): world 0's table survival of the chosen move (scoreMoves) on
+ *      every path alive and holding a tier state that year, against those paths' realised survival; the access year
+ *      (the first year the pension can be drawn, ctx.nmpa less the opening age) printed beside.
  * Prints per unit P's lines (solve, ran, joint) and: snap lines per year, level lines per rule and class, a node line;
- * each run's trace to results/diag7ak (DIAG7AK_OUT).
+ * resid lines per rule and year, an access line; each run's trace to results/diag7ak (DIAG7AK_OUT).
  *   node research/solver/audit-7ak.mjs [points=30] [paths=8000] part k/n [seed=7002]
  */
 import * as E from '../engine.mjs';
@@ -95,12 +99,15 @@ UNITS.forEach(([id, A, w], i) => {
     const t1 = Date.now(), N = npaths.length, okArr = new Uint8Array(N), tr = makeTrace(N, T + 1);
     const snap = Array.from({ length: YEARS + 1 }, () => ({ held: 0, dis: 0, oneWay: 0, reverse: 0, deadCell: 0, agree: Object.fromEntries(SNAPS.map(k => [k, 0])) }));
     const lvl = { boundary: { n: 0, table: 0, ok: 0 }, interior: { n: 0, table: 0, ok: 0 } }, klass = new Int8Array(N).fill(-1), predicted = new Float64Array(N);
+    const pred = new Float32Array(N * (T + 1)).fill(NaN);   // world 0's table survival of the chosen move, by path and year
     let row = 0;
     const choose = (t, st, held) => {
       const ai = t === 0 && rule === 'OPEN0' ? chooseAt(r, st, 0, held, Infinity) : chooseAction(r, st, t, held);
       if (t >= 1 && held) {
         const j = layerOf.get(`${held.pen}/${held.isa}`), pol = tab.tsLayers[j].pol[Math.min(t, T)], nc = nearestOf(g, st), cell = pol[g.index(nc.ip, nc.ii, nc.it, nc.ig, nc.ic)];
         if (cell !== pol[nearestIndex(g, st)]) { console.error('audit-7ak: nearestOf is not nearestIndex'); process.exit(2); }
+        scoreMoves(tab, st, t, S2, T2, B2, held, null, V2);
+        if (t <= T) pred[row * (T + 1) + t] = 100 * V2[ai];
         if (t === 1) {
           // a switching boundary: a neighbour along W, a or b whose stored move leaves the layer where this cell's holds, or the other way
           const c = leaves(cell, held); let bnd = false;
@@ -109,7 +116,6 @@ UNITS.forEach(([id, A, w], i) => {
             if (p2 < 0 || i2 < 0 || t2 < 0 || p2 >= g.np || i2 >= g.ni || t2 >= g.nt) continue;
             if (leaves(pol[g.index(p2, i2, t2, nc.ig, nc.ic)], held) !== c) { bnd = true; break; }
           }
-          scoreMoves(tab, st, t, S2, T2, B2, held, null, V2);
           klass[row] = bnd ? 1 : 0; predicted[row] = 100 * V2[ai];
         }
         if (rule === 'OPEN0' && t <= YEARS && held.pen === h0.pen && held.isa === h0.isa) {
@@ -128,12 +134,16 @@ UNITS.forEach(([id, A, w], i) => {
     };
     npaths.forEach((zs, k) => { row = k; tr.row = k; const o = runPolicy(r, zs, { trace: tr, choose }); if (o.survived) okArr[k] = 1; });
     for (let k = 0; k < N; k++) { if (klass[k] < 0) continue; const c = klass[k] ? lvl.boundary : lvl.interior; c.n++; c.table += predicted[k]; c.ok += okArr[k]; }
-    return { sim: 100 * okArr.reduce((t, x) => t + x, 0) / N, okArr, tr, snap, lvl, secs: (Date.now() - t1) / 1000 };
+    const resid = [];   // by year from 1: paths with a table read, their mean table survival and realised survival
+    for (let t = 1; t <= T; t++) { let n = 0, tb = 0, ok = 0; for (let k = 0; k < N; k++) { const v = pred[k * (T + 1) + t]; if (v === v) { n++; tb += v; ok += okArr[k]; } } resid.push({ t, n, table: n ? tb / n : NaN, realised: n ? 100 * ok / n : NaN }); }
+    return { sim: 100 * okArr.reduce((t, x) => t + x, 0) / N, okArr, tr, snap, lvl, resid, secs: (Date.now() - t1) / 1000 };
   };
   const F = { OPEN0: run('OPEN0'), 'TS+J': run('TS+J') };
   console.log(`${''.padEnd(16)} node ${L} 0 z ${z.toFixed(4)}: OPEN0 ${F.OPEN0.sim.toFixed(4)} TS+J ${F['TS+J'].sim.toFixed(4)} paths ${npaths.length} secs ${Math.round(F.OPEN0.secs + F['TS+J'].secs)}`);
   for (let t = 1; t <= YEARS; t++) { const S = F.OPEN0.snap[t]; console.log(`${''.padEnd(16)} snap ${L} OPEN0 year ${t}: held ${S.held} disagree ${S.dis} oneWay ${S.oneWay} reverse ${S.reverse} deadCell ${S.deadCell} | ${SNAPS.map(k => `${k} ${S.agree[k]}`).join(' ')}`); }
   for (const rule of ['OPEN0', 'TS+J']) for (const cls of ['boundary', 'interior']) { const c = F[rule].lvl[cls]; console.log(`${''.padEnd(16)} level ${L} ${rule} year 1 ${cls}: paths ${c.n} table ${c.n ? (c.table / c.n).toFixed(4) : '-'} realised ${c.n ? (100 * c.ok / c.n).toFixed(4) : '-'}`); }
+  console.log(`${''.padEnd(16)} access ${L}: year ${Math.max(0, m.ctx.nmpa - m.ctx.ageSelf0)} years ${T}`);
+  for (const rule of ['OPEN0', 'TS+J']) for (const x of F[rule].resid) console.log(`${''.padEnd(16)} resid ${L} ${rule} year ${x.t}: paths ${x.n} table ${x.n ? x.table.toFixed(4) : '-'} realised ${x.n ? x.realised.toFixed(4) : '-'}`);
   for (const rule of ['OPEN0', 'TS+J']) {
     const f = F[rule];
     writeFileSync(join(OUT, `${id.replace(/ /g, '_')}-${A.toLowerCase()}-${rule.toLowerCase().replace(/\+/g, '_')}-world0@w${w}.json.gz`), gzipSync(JSON.stringify({ id, arm: `${A}/${rule}/MP/W${w}/world0`, stamp: STAMP, N: npaths.length, Y: f.tr.Y, seed: SEED, node: z, sim: f.sim,

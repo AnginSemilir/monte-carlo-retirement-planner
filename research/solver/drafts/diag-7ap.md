@@ -88,7 +88,7 @@ The author's probability that each item reads as predicted: 1 (HELD), 0.45; 2 (I
 ## Power
 
 - **Item 1** (results-derive-7ap.txt): at 7al's n and c, HALVED up to 0.34 and 0.35 of the optimism left, NOT HALVED from 0.66 and 0.65; INCONCLUSIVE between.
-- **Time** (results-derive-7ap.txt): the DEFAULT units 7,699 core-seconds in 7al (2.14 core-hours); the PCLSI units at the same cost to twice it (the interpolated read touches up to twice the corners, NOT CHECKED which): 4.28 to 6.42 core-hours, 1.37 to 1.91 hours on four cores.
+- **Time** (results-derive-7ap.txt): the DEFAULT units 7,699 core-seconds in 7al (2.14 core-hours), measured on the host before the 30 Sep 23:35 UK restart; on the 2.10 GHz host (results-host.txt) perhaps a third longer, NOT CHECKED; the PCLSI units at the same cost to twice it (the interpolated read touches up to twice the corners, NOT CHECKED which): 4.28 to 6.42 core-hours, 1.37 to 1.91 hours on four cores.
 
 ## Budget line
 

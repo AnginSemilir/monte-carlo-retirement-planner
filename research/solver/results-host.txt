@@ -1,0 +1,2 @@
+# the solver research's host, as read (the plan-auditor's MINOR 1 of 30 Sep 23:56 UK: a host claim needs a record)
+30 Sep 23:56 UK | Intel(R) Xeon(R) Processor @ 2.10GHz | cores 4 | up since 2026-09-30 22:35:16 UTC

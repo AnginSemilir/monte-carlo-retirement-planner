@@ -221,6 +221,13 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    appending a runs.log line marked REFUSED, with smoke.sh's failing mode, before it exits): every launch keeps the
    launcher's whole output in a log file (7ah-launch4.log and 7ah-launch5.log do), and a refusal or loss goes in the
    register with that log (the plan-auditor, review-log.md 30 Sep 08:37 UK; added with the maintainer's agreement, 30 Sep).
+25. A withdrawn archive's receipt stays the review base: record-review.mjs --moved records a verified move as a PASS
+   receipt (review-log.md, locked), so a move then withdrawn (1 Oct 02:12 UK, O72: the locked plan-checker test failed on
+   the archived plan) leaves its line as the newest receipt, and record-review.mjs --status and --diff and relook.mjs
+   --since-review take the withdrawn blob as their base until the next receipt is recorded - each then shows more than the
+   real change and hides nothing (the plan-auditor's MINOR 2 of 1 Oct 02:17 UK). The Stop hook (keyed to the plan's blob)
+   and check-plan's retro check (BLOCKING codes only) are not misled. Until an unlock lets --moved be undone or the archive
+   run its own check first: the reviewer is told the real base (relook --base <commit>), as at 02:17 UK.
 
 ---
 

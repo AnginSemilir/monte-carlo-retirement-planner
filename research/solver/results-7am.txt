@@ -1,0 +1,27 @@
+FAIR-TEST GATE: passed - 29 units; the anchor is P's own solve (table, ran line, gap, opening, joint line); each P unit P's record but for the tier returns, each half 7ai's linear bundle unit but for them; the tiers moved by O60's figures (planted 39)
+
+7AM: THE STORED MARGIN - P (READER/TS+J, switchCharge 0.001, switchMargin 0) under 7ai's tier shift each way, and the bundle (READER/TS+J/W0.02) at half that shift each way, 30 points; P's linear gaps are P's records (the anchor on share 0.50 re-solved and held to its record), the bundle's full shift 7ai's
+  P (gaps linear / blend / reversed; the pension tier at margin 0 in each; the split)
+    share 0.50   5.7824e-5  2.4769e-4          0  open 2/2/0  opposite  not split (a gap 0 or >1)
+    share 0.90   1.4698e-4          0  4.9014e-4  open 2/0/2  opposite  not split (a gap 0 or >1)
+    bridge 0     3.0413e-4  3.7651e-4          0  open 2/2/0  opposite  not split (a gap 0 or >1)
+    bridge 1     4.3258e-4  4.6690e-4  3.1358e-4  open 2/2/2  opposite  following 7.666e-5 blind -4.234e-5 ratio 0.55  |blind|/charge 4.2%
+    S126         6.3024e-4  4.0995e-4  8.8381e-4  open 2/2/2  opposite  following -2.369e-4 blind 1.664e-5 ratio 0.07  |blind|/charge 1.7%
+    S194         6.7057e-4  5.4646e-4  7.5412e-4  open 2/2/2  opposite  following -1.038e-4 blind -2.028e-5 ratio 0.20  |blind|/charge 2.0%
+    S162         7.4500e-4  7.1829e-4  7.1405e-4  open 2/2/2  not opposite  following 2.120e-6 blind -2.883e-5 ratio 13.60  |blind|/charge 2.9%
+  the bundle (gaps linear / blend / reversed / half blend / half reversed; the sign-blind part at the full and half step, and q)
+    share 0.50   9.3948e-4  9.4033e-4  7.6850e-4  1.0469e-3  8.2463e-4  full following 8.591e-5 blind -8.507e-5 ratio 0.99; half following 1.111e-4 blind -3.715e-6 ratio 0.03; q 0.04
+    share 0.90   9.1220e-4  9.7733e-4  1.4457e-3  1.3088e-3  1.7163e-3  full following -2.342e-4 blind 2.993e-4 ratio 1.28; half following -2.038e-4 blind 6.004e-4 ratio 2.95; q 2.01
+    bridge 0     1.0267e-3  7.6313e-4  9.4747e-4  1.1012e-3  1.1380e-3  full following -9.217e-5 blind -1.714e-4 ratio 1.86; half following -1.840e-5 blind 9.290e-5 ratio 5.05; q 0.54
+    bridge 1     1.0332e-3  1.1051e-3  7.2468e-4  4.8728e-4  9.5216e-4  full following 1.902e-4 blind -1.183e-4 ratio 0.62; half following -2.324e-4 blind -3.135e-4 ratio 1.35; q 2.65
+    S126         1.0600e-3  1.2191e-3  1.6147e-3  1.5461e-3  1.8649e-3  full following -1.978e-4 blind 3.569e-4 ratio 1.80; half following -1.594e-4 blind 6.455e-4 ratio 4.05; q 1.81
+    S194         1.0525e-3  9.8992e-4  1.2652e-3  9.5452e-4  8.9223e-4  full following -1.376e-4 blind 7.506e-5 ratio 0.55; half following 3.115e-5 blind -1.291e-4 ratio 4.15; q 1.72
+    S162         1.0735e-3  1.3592e-3  1.1025e-3  1.0390e-3  1.2341e-3  full following 1.284e-4 blind 1.573e-4 ratio 1.23; half following -9.755e-5 blind 6.305e-5 ratio 0.65; q 0.40
+
+ITEM 1 (P's gap answers the sign): opposite on 6 of 7 (HELD at 6 with the ratio under 0.3 on 5 or more: 2); the ratio 0.55 or more on 2 (FALSIFIED at 5 or more) -> INCONCLUSIVE
+ITEM 2 (P's openings move only on its knife edge, share 0.50): moved on 2 of 6 (share 0.90, bridge 0; HELD at 0, FALSIFIED at 2 or more) -> FALSIFIED
+ITEM 3 (the bundle at half the step: non-smooth or curved): q 0.4 or more on 6 of 7 (HELD at 5); q 0.33 or less on 1 (FALSIFIED at 5) -> HELD
+REPORTED: P's split by whether the year-0 choice reads a reader year: none read (bridge 0, bridge 1) 0 smooth, 1 jittery, of 2; reader years read (the rest) 2 smooth, 1 jittery, of 5
+REPORTED: P's tables linear / blend / reversed: share 0.50 99.7585/99.8813/99.5449; share 0.90 99.7438/99.8565/99.5705; bridge 0 99.8511/99.9211/99.5629; bridge 1 99.7998/99.8895/99.6016; S126 99.7438/99.8565/99.5704; S194 98.5933/99.1619/97.8693; S162 99.2909/99.5764/98.8515
+
+OUTCOME: 1 INCONCLUSIVE, 2 FALSIFIED, 3 HELD

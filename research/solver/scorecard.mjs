@@ -46,6 +46,7 @@ export const TESTS = [
   { name: '7ai (O60\'s openings check: the tier returns as their blends\' medians, and reversed)', prediction: 'predictions/diag-7ai.md', results: 'results-7ai.txt' },
   { name: '7ak (the attribution test: which snap turns P\'s forward-against-cell disagreements, and the switching boundaries)', prediction: 'predictions/diag-7ak.md', results: 'results-7ak.txt' },
   { name: '7al (the stage-by-stage calibration: post-access optimism by household, O66)', prediction: 'predictions/diag-7al.md', results: 'results-7al.txt' },
+  { name: '7am (the stored margin: P and the bundle under the tier shift, O67)', prediction: 'predictions/diag-7am.md', results: 'results-7am.txt' },
 ];
 
 export function credences(predText) {

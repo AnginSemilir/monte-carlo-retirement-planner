@@ -231,6 +231,11 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    record-review.mjs --withdraw-move <blob> --reason records a WITHDRAWN line, and liveReceipts drops the withdrawn move
    from every base lookup (research/tests/triggers.test.mjs, three cases, shown to fail with the filter removed); the
    move of 1 Oct 02:12 UK is withdrawn so (review-log.md 06:50 UK).
+26. The hooks test's timing override is unbounded: HOOKS_TIMING_SCALE (the hooks test, 2ccef75) multiplies its
+   wall-clock bounds by any factor, so a scale of 100 gives the '{' case 600 s against the 38 s fault it guards (the
+   plan-auditor's BLOCKING 1 of 1 Oct 10:44 UK and MINOR 2 of 10:46 UK; O54). The maintainer kept the doubling under load
+   (1 Oct 11:04 UK); the override is to accept only a scale below 1 (the planted case needs no more), which needs an
+   unlock. Until then: nothing sets the variable but a planted run by hand, and CI and the pre-commit hook run without it.
 
 ---
 

@@ -12,3 +12,6 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-01 01:04 UTC | reduce-7ap.mjs 7bf007da79b2 | 41 of 42 caught | escaped: item 2/3: the margin at 1
 2026-10-01 01:05 UTC | reduce-7ap.mjs 39a3cb3deef8 | 41 of 42 caught | escaped: item 2/3: the margin at 1
 2026-10-01 01:05 UTC | reduce-7ap.mjs 39a3cb3deef8 | 41 of 41 caught | escaped: none
+2026-10-01 06:12 UTC | reduce-7aq.mjs d29fadb58dd1 | 34 of 42 caught | escaped: the gate ignores a missing signed line; the gate ignores the reader; the gate ignores the joint line's charge; the pair check ignores a missing P record; pos() takes 0 as positive; the tiers check ignores the move's size; item 2 FALSIFIED on one family; parse misses the signed line
+2026-10-01 06:13 UTC | reduce-7aq.mjs 50956efb5f87 | 41 of 41 caught | escaped: none
+2026-10-01 06:13 UTC | reduce-7aq.mjs 50956efb5f87 | 41 of 41 caught | escaped: none

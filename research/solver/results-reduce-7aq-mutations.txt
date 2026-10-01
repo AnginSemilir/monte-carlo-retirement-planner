@@ -1,0 +1,44 @@
+true script: planted (46): all read as they should
+caught  the gate accepts a missing unit: PLANTED CHECK FAILED:
+caught  the gate accepts a unit twice: PLANTED CHECK FAILED:
+caught  the gate accepts an unregistered unit: PLANTED CHECK FAILED:
+caught  the gate ignores a unit not done: PLANTED CHECK FAILED:
+caught  the gate ignores the unit settings: PLANTED CHECK FAILED:
+caught  the gate ignores a missing signed line: PLANTED CHECK FAILED:
+caught  the gate ignores two signed lines: PLANTED CHECK FAILED:
+caught  the gate ignores the ran line's charge: PLANTED CHECK FAILED:
+caught  the gate ignores the reader: PLANTED CHECK FAILED:
+caught  the gate ignores the joint line's margin: PLANTED CHECK FAILED:
+caught  the gate ignores the joint line's charge: PLANTED CHECK FAILED:
+caught  the gate ignores a death charge: PLANTED CHECK FAILED:
+caught  the gate skips the signed cross-check: PLANTED CHECK FAILED:
+caught  the gate skips identity with 7am: PLANTED CHECK FAILED:
+caught  the identity ignores a missing 7am record: PLANTED CHECK FAILED:
+caught  the identity skips the table: PLANTED CHECK FAILED:
+caught  the identity skips the ran line: PLANTED CHECK FAILED:
+caught  the identity skips the gap: PLANTED CHECK FAILED:
+caught  the identity skips the opening: PLANTED CHECK FAILED:
+caught  the pair check ignores a missing P record: PLANTED CHECK FAILED:
+caught  the pair check skips the half ran line: PLANTED CHECK FAILED:
+caught  the record check ignores P's linear gap: PLANTED CHECK FAILED:
+caught  the record check ignores 7am's full-step gaps: PLANTED CHECK FAILED:
+caught  the record check ignores the bundle's half gaps: PLANTED CHECK FAILED:
+caught  the tiers check ignores a value off its set: PLANTED CHECK FAILED:
+caught  the tiers check ignores the move's size: PLANTED CHECK FAILED:
+caught  split's blind part is (B - R)/2: PLANTED CHECK FAILED:
+caught  q reads the half against the half: PLANTED CHECK FAILED:
+caught  item 2 compares with the bundle's full step: PLANTED CHECK FAILED:
+caught  smooth at q 0.4: PLANTED CHECK FAILED:
+caught  non-smooth at q 0.33: PLANTED CHECK FAILED:
+caught  under at two thirds: PLANTED CHECK FAILED:
+caught  not under at a third: PLANTED CHECK FAILED:
+caught  a family's majority is any member: PLANTED CHECK FAILED:
+caught  item 1 HELD on any family: PLANTED CHECK FAILED:
+caught  item 1 FALSIFIED on one family: PLANTED CHECK FAILED:
+caught  item 2 HELD on any family: PLANTED CHECK FAILED:
+caught  item 2 FALSIFIED on one family: PLANTED CHECK FAILED:
+caught  parse misses the signed line: PLANTED CHECK FAILED:
+caught  the families drop share 0.90: PLANTED CHECK FAILED:
+caught  a unit dropped from UNITS: PLANTED CHECK FAILED:
+
+41 mutations: every one caught

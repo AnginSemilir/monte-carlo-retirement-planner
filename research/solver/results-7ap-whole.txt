@@ -1,0 +1,13 @@
+7AP'S WHOLE PLAN (results/diag7ap; claim = the bridge stage's start, sim = the world's node simulation; the mixture 1/6, 2/3, 1/6; points)
+  S370  READER/TS+J/W0.02            world 0: claim - sim 16.16 (bridge 3.36, after 13.46); world 1: claim - sim 4.69 (bridge -1.98, after 6.75); world 2: claim - sim -0.12 (bridge -1.02, after 0.90)
+                                     mixture: claim - sim 5.80; table 79.4918 - sim 3.30; claim 81.99 - table 2.50; sim 76.19
+  S370  READER/TS+J/W0.02/PCLSI      world 0: claim - sim 10.12 (bridge 8.40, after 1.82); world 1: claim - sim 1.16 (bridge 1.08, after 0.08); world 2: claim - sim -0.46 (bridge -0.72, after 0.26)
+                                     mixture: claim - sim 2.38; table 77.0673 - sim -0.17; claim 79.62 - table 2.56; sim 77.24
+  S130  READER/TS+J/W0.02            world 0: claim - sim 17.44 (bridge 3.01, after 14.44); world 1: claim - sim 5.97 (bridge 0.48, after 5.49); world 2: claim - sim 0.55 (bridge -0.00, after 0.56)
+                                     mixture: claim - sim 6.98; table 91.0726 - sim 6.83; claim 91.22 - table 0.15; sim 84.24
+  S130  READER/TS+J/W0.02/PCLSI      world 0: claim - sim 6.96 (bridge 5.18, after 1.78); world 1: claim - sim 1.96 (bridge 1.36, after 0.60); world 2: claim - sim 0.25 (bridge 0.05, after 0.20)
+                                     mixture: claim - sim 2.51; table 89.0730 - sim 2.35; claim 89.23 - table 0.16; sim 86.72
+  S194  OFF/TS+J/W0.02               world 0: claim - sim 0.20 (bridge 0.12, after 0.08); world 1: claim - sim 0.14 (bridge -0.00, after 0.15); world 2: claim - sim -0.01 (bridge -0.00, after -0.01)
+                                     mixture: claim - sim 0.13; table 98.6444 - sim 0.11; claim 98.66 - table 0.02; sim 98.53
+  S194  OFF/TS+J/W0.02/PCLSI         world 0: claim - sim 0.26 (bridge 0.12, after 0.13); world 1: claim - sim 0.14 (bridge -0.00, after 0.15); world 2: claim - sim -0.01 (bridge -0.00, after -0.01)
+                                     mixture: claim - sim 0.14; table 98.6679 - sim 0.14; claim 98.66 - table -0.01; sim 98.53

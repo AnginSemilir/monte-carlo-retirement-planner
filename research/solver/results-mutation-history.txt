@@ -9,3 +9,6 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-09-30 22:16 UTC | reduce-7ap.mjs e4de80316db0 | 28 of 35 caught | escaped: the gate ignores the ran line's path count; the gate ignores the tier state; the gate ignores readerRef; the gate ignores the switch margin; the gate ignores a death charge; the gate ignores the paid count; item 1: NOT HALVED without Holm
 2026-09-30 22:17 UTC | reduce-7ap.mjs 06e9c9613e75 | 35 of 35 caught | escaped: none
 2026-09-30 22:18 UTC | reduce-7ap.mjs 06e9c9613e75 | 35 of 35 caught | escaped: none
+2026-10-01 01:04 UTC | reduce-7ap.mjs 7bf007da79b2 | 41 of 42 caught | escaped: item 2/3: the margin at 1
+2026-10-01 01:05 UTC | reduce-7ap.mjs 39a3cb3deef8 | 41 of 42 caught | escaped: item 2/3: the margin at 1
+2026-10-01 01:05 UTC | reduce-7ap.mjs 39a3cb3deef8 | 41 of 41 caught | escaped: none

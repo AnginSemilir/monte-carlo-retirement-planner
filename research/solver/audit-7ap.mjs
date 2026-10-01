@@ -13,7 +13,8 @@
  *   axis: the allowance axis as solved (pclsInterp, its buckets, pclsStrict); and per unit and world:
  *   lsa: per year, the paths alive with a claim, the mean used share of the allowance (the state's slot 4 over the
  *        allowance), the paths at the wall (0.6 to under 0.75) and over it (0.75 or more), and the paths whose SNAPPED
- *        bucket changes between t and t + 1 (the default grid's reading, in both arms, so the split is one definition);
+ *        bucket changes between t and t + 1 (the default grid's reading, in both arms, so the split is one definition),
+ *        and the stalls - paths at the wall whose used allowance does not grow to t + 1 (the deep review after 7am, 1 Oct 02:00 UK);
  *   pcell: the one-step residual's path-years by stage, bucket change (chg: the snapped bucket at t + 1 differs from t's;
  *        same: it does not, or t + 1 has no state) and the share axis's cell position (mid or near, 7al's split): the
  *        concentration split by the share axis (the plan-auditor's MINOR 3 of 30 Sep 23:04 UK);
@@ -179,7 +180,7 @@ UNITS.forEach(([id, A, SET, X], i) => {
       for (const q of [cells[`${stg} ${mid[j * (T + 2) + t] === 1 ? 'mid' : 'near'}`], wcells[`${stg} ${wmid[j * (T + 2) + t] === 1 ? 'mid' : 'near'}`], bands[`${stg} ${bandOf(c)}`]]) { q.n++; q.c += c; q.nx += next; }
     }
     // 7ap: the used allowance by year, and the residual by bucket change and share position, and by the wall
-    const lsa = Array.from({ length: T + 1 }, () => ({ n: 0, u: 0, wall: 0, over: 0, chg: 0 })), pcell = {}, wall = {};
+    const lsa = Array.from({ length: T + 1 }, () => ({ n: 0, u: 0, wall: 0, over: 0, chg: 0, stall: 0 })), pcell = {}, wall = {};
     for (const st of ['bridge', 'after']) { for (const cg of ['chg', 'same']) for (const p of ['mid', 'near']) pcell[`${st} ${cg} ${p}`] = { n: 0, c: 0, nx: 0 }; for (const w of ['wall', 'off']) wall[`${st} ${w}`] = { n: 0, c: 0, nx: 0 }; }
     for (let j = 0; j < N; j++) for (let t = 0; t <= T; t++) {
       const c = claim[j * (T + 2) + t];
@@ -188,10 +189,11 @@ UNITS.forEach(([id, A, SET, X], i) => {
       const c1 = claim[j * (T + 2) + t + 1], next = c1 === c1 ? c1 : 100 * ok[j];
       const chg = u1 === u1 && snapOf(u1) !== snapOf(u), atWall = u >= WALL[0] && u < WALL[1];
       const y = lsa[t]; y.n++; y.u += u; if (atWall) y.wall++; if (u >= WALL[1]) y.over++; if (chg) y.chg++;
+      if (atWall && u1 === u1 && u1 <= u + 1e-9) y.stall++;   // the draw stall: at the wall, the used allowance not growing to t + 1 (the deep review after 7am)
       const stg = t < access ? 'bridge' : 'after';
       for (const q of [pcell[`${stg} ${chg ? 'chg' : 'same'} ${mid[j * (T + 2) + t] === 1 ? 'mid' : 'near'}`], wall[`${stg} ${atWall ? 'wall' : 'off'}`]]) { q.n++; q.c += c; q.nx += next; }
     }
-    for (let t = 0; t <= T; t++) { const y = lsa[t]; console.log(`${''.padEnd(16)} lsa ${L} world ${k} year ${t}: paths ${y.n} used ${y.n ? (y.u / y.n).toFixed(4) : '-'} wall ${y.wall} over ${y.over} chg ${y.chg}`); }
+    for (let t = 0; t <= T; t++) { const y = lsa[t]; console.log(`${''.padEnd(16)} lsa ${L} world ${k} year ${t}: paths ${y.n} used ${y.n ? (y.u / y.n).toFixed(4) : '-'} wall ${y.wall} over ${y.over} chg ${y.chg} stall ${y.stall}`); }
     for (let t = 0; t <= T; t++) { const y = byYear[t]; console.log(`${''.padEnd(16)} resid ${L} world ${k} year ${t}: paths ${y.n} table ${y.n ? (y.c / y.n).toFixed(4) : '-'} next ${y.n ? (y.nx / y.n).toFixed(4) : '-'}`); }
     // the per-path stage residual (item 3 above)
     for (const stg of ['bridge', 'after']) {

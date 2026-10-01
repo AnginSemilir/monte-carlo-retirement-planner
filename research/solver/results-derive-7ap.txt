@@ -4,7 +4,7 @@
    S130 READER n 6000  c 85.3624  survived 78.5333  point 6.8291  h 3.4145
    S194 OFF    n 6000  c 97.4413  survived 97.3667  point 0.0747  h 0.0373
 2. the power: a PCLSI arm leaving a share f of each crossing unit's optimism (the same n and c, the expected survivors), items 1 and 2 as registered (margin 2 points)
-   f 0.00: item 1 S370 HALVED, S130 HALVED -> HELD; item 2 S370 NO MATERIAL OPTIMISM, S130 NO MATERIAL OPTIMISM
+   f 0.00: item 1 S370 HALVED, S130 HALVED -> HELD; item 2 S370 CALIBRATED, S130 CALIBRATED
    f 0.25: item 1 S370 HALVED, S130 HALVED -> HELD; item 2 S370 INCONCLUSIVE, S130 INCONCLUSIVE
    f 0.50: item 1 S370 INCONCLUSIVE, S130 INCONCLUSIVE -> INCONCLUSIVE; item 2 S370 OPTIMISTIC, S130 OPTIMISTIC
    f 0.75: item 1 S370 NOT HALVED, S130 NOT HALVED -> FALSIFIED; item 2 S370 OPTIMISTIC, S130 OPTIMISTIC

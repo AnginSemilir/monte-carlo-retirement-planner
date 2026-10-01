@@ -31,14 +31,16 @@
  *      stated limit). The PCLSI unit reads HALVED when the Clopper-Pearson 95% lower end of its s/n, in points, is c - h or
  *      more; NOT HALVED when the binomial lower tail P(Bin(n, (c - h)/100) <= s) is under 0.05 after Holm over the 2 units
  *      and its point is h or more; else INCONCLUSIVE (the tail conservative for unequal chances: Hoeffding 1956, as 7al).
+ *      A unit whose PCLSI arm overshoots into pessimism (the upper tail P(Bin(n, (c + D)/100) >= s) under 0.05 after Holm
+ *      over the 2, its point -D or less) reads OVERSHOT whatever its halving (the deep review after 7am, 1 Oct 02:00 UK).
  *      The item: HELD when both read HALVED; FALSIFIED when both read NOT HALVED; else INCONCLUSIVE.
- *   2. THE CURE: does the PCLSI arm read calibrated after access? 7al's rule on the PCLSI crossing units (OPTIMISTIC: the
- *      binomial tail at (c - D) under 0.05 after Holm over 2 and the point D or more; NO MATERIAL OPTIMISM: the CP lower
- *      end c - D or more; else INCONCLUSIVE). HELD when both read NO MATERIAL OPTIMISM; FALSIFIED when both read
- *      OPTIMISTIC; else INCONCLUSIVE.
- *   3. THE CONTROL: S194 OFF under PCLSI (a household that cannot cross 0.75 of the allowance): 7al's rule, one unit.
- *      HELD when it reads NO MATERIAL OPTIMISM (the option adds no optimism where the snap has none to remove); FALSIFIED
- *      when it reads OPTIMISTIC; else INCONCLUSIVE.
+ *   2. THE CURE: does the PCLSI arm read calibrated after access? 7al's rule made two-sided on the PCLSI crossing units
+ *      (calib(): OPTIMISTIC, the lower tail at c - D under 0.05 after Holm over 2 and the point D or more; PESSIMISTIC, the
+ *      upper tail at c + D likewise and the point -D or less; CALIBRATED, the CP 95% interval inside c - D to c + D; else
+ *      INCONCLUSIVE). HELD when both read CALIBRATED; FALSIFIED when both read OPTIMISTIC; else INCONCLUSIVE.
+ *   3. THE CONTROL: S194 OFF under PCLSI (a household that cannot cross 0.75 of the allowance): the same two-sided rule,
+ *      one unit. HELD when it reads CALIBRATED (the option adds no error where the snap has none to remove); FALSIFIED
+ *      when it reads OPTIMISTIC or PESSIMISTIC; else INCONCLUSIVE.
  * Reported, not items: both arms' per-unit and per-world after-stage reads side by side; the bridge stage; the residual
  * by bucket change and share position (pcell: the auditor's MINOR 3 of 30 Sep 23:04 UK - the concentration on bucket-change
  * path-years does not by itself separate the causes, so it is split by the share axis's cell position) and by the wall;
@@ -66,7 +68,7 @@ export const CROSSING = ['S370', 'S130'], CONTROL = 'S194';
 const isP = l => l.endsWith('/PCLSI'), twinOf = l => l.replace(/\/PCLSI$/, '');
 
 const AXISL = /^\s+axis (\S+?)\/(\S+): pclsInterp (true|false) pcls (\S+) pclsStrict (true|false)$/;
-const LSAL = /^\s+lsa (\S+?)\/(\S+) world (\d+) year (\d+): paths (\d+) used (\S+) wall (\d+) over (\d+) chg (\d+)$/;
+const LSAL = /^\s+lsa (\S+?)\/(\S+) world (\d+) year (\d+): paths (\d+) used (\S+) wall (\d+) over (\d+) chg (\d+) stall (\d+)$/;
 const PCELLL = /^\s+pcell (\S+?)\/(\S+) world (\d+) (bridge|after) (chg|same) (mid|near): pathyears (\d+) table (\S+) next (\S+)$/;
 const WALLL = /^\s+wall (\S+?)\/(\S+) world (\d+) (bridge|after) (wall|off): pathyears (\d+) table (\S+) next (\S+)$/;
 const CASEL = /^(\S.*?)\s+case \| unit (\S+?)\/(\S+) \| lambda /;
@@ -82,7 +84,7 @@ export function parse(text) {
     let m;
     const mine = (a, l) => a === cur.arm && l === cur.label;
     if ((m = AXISL.exec(line)) && mine(m[1], m[2])) cur.axis = { interp: m[3] === 'true', pcls: m[4], strict: m[5] === 'true' };
-    else if ((m = LSAL.exec(line)) && mine(m[1], m[2])) cur.lsa.push({ k: +m[3], t: +m[4], n: +m[5], used: num(m[6]), wall: +m[7], over: +m[8], chg: +m[9] });
+    else if ((m = LSAL.exec(line)) && mine(m[1], m[2])) cur.lsa.push({ k: +m[3], t: +m[4], n: +m[5], used: num(m[6]), wall: +m[7], over: +m[8], chg: +m[9], stall: +m[10] });
     else if ((m = PCELLL.exec(line)) && mine(m[1], m[2])) cur.pcell.push({ k: +m[3], stage: m[4], chg: m[5], pos: m[6], n: +m[7], table: num(m[8]), next: num(m[9]) });
     else if ((m = WALLL.exec(line)) && mine(m[1], m[2])) cur.wall.push({ k: +m[3], stage: m[4], at: m[5], n: +m[6], table: num(m[7]), next: num(m[8]) });
   }
@@ -163,7 +165,7 @@ export function gate(units, ref, { pts = PTS, npw = NPW } = {}) {
           else if (!(Math.abs(s2 - sum) <= xs.reduce((t, x) => t + x.n, 0) * 1e-4 + n * 1e-4 + 1e-6)) bad.push(`${tag} world ${k}: the ${st} stage's ${nm} residual sum ${s2.toFixed(2)}, the resid lines' ${sum.toFixed(2)}`);
         }
       }
-      if (!gap) for (const l of ls) { const r = rs.find(x => x.t === l.t); if (r && r.n !== l.n) { bad.push(`${tag} world ${k} year ${l.t}: ${l.n} lsa paths, ${r.n} resid paths`); break; } if (l.wall + l.over > l.n || l.chg > l.n) { bad.push(`${tag} world ${k} year ${l.t}: wall ${l.wall}, over ${l.over}, chg ${l.chg} of ${l.n} paths`); break; } }
+      if (!gap) for (const l of ls) { const r = rs.find(x => x.t === l.t); if (r && r.n !== l.n) { bad.push(`${tag} world ${k} year ${l.t}: ${l.n} lsa paths, ${r.n} resid paths`); break; } if (l.wall + l.over > l.n || l.chg > l.n || l.stall > l.wall) { bad.push(`${tag} world ${k} year ${l.t}: wall ${l.wall}, over ${l.over}, chg ${l.chg}, stall ${l.stall} of ${l.n} paths`); break; } }
     }
   }
   return bad;
@@ -176,22 +178,28 @@ export function item1(rows) {
   const us = rows.map(r => {
     const d = readOf(r.def.n, r.def.c, r.def.s), h = d.pt / 2, x = readOf(r.pcl.n, r.pcl.c, r.pcl.s);
     const p = x.n > 0 && h > 0 ? binomLower(x.s, x.n, Math.max(0, (x.c - h) / 100)) : 1;
-    return { id: r.id, def: d, pcl: x, h, p };
+    const pUp = x.n > 0 ? binomUpper(x.s, x.n, Math.min(1, (x.c + D) / 100)) : 1;   // the overshoot side (the deep review after 7am)
+    return { id: r.id, def: d, pcl: x, h, p, pUp };
   });
-  const adj = holm(us.map(u => u.p));
-  us.forEach((u, i) => { u.pH = adj[i]; u.read = !(u.h > 0) ? 'NO OPTIMISM TO HALVE' : u.pcl.lo >= u.pcl.c - u.h ? 'HALVED' : u.pH < ALPHA && u.pcl.pt >= u.h ? 'NOT HALVED' : 'INCONCLUSIVE'; });
+  const adj = holm(us.map(u => u.p)), adjUp = holm(us.map(u => u.pUp));
+  us.forEach((u, i) => { u.pH = adj[i]; u.pHUp = adjUp[i]; u.read = !(u.h > 0) ? 'NO OPTIMISM TO HALVE' : u.pHUp < ALPHA && u.pcl.pt <= -D ? 'OVERSHOT' : u.pcl.lo >= u.pcl.c - u.h ? 'HALVED' : u.pH < ALPHA && u.pcl.pt >= u.h ? 'NOT HALVED' : 'INCONCLUSIVE'; });
   const outcome = us.length === CROSSING.length && us.every(u => u.read === 'HALVED') ? 'HELD' : us.length === CROSSING.length && us.every(u => u.read === 'NOT HALVED') ? 'FALSIFIED' : 'INCONCLUSIVE';
   return { units: us, outcome };
 }
-/* 7al's rule on a set of units { id, n, c, s }, Holm over them */
+/* the binomial upper tail P(Bin(n, q) >= s), for the pessimistic side */
+export const binomUpper = (s, n, q) => (s <= 0 ? 1 : 1 - binomLower(s - 1, n, q));
+/* 7al's rule made two-sided (the deep review after 7am, 1 Oct 02:00 UK: an interpolated arm may overshoot into pessimism) on a
+   set of units { id, n, c, s }, Holm over them on each side: OPTIMISTIC (the lower tail at c - D under 0.05 after Holm, the
+   point D or more); PESSIMISTIC (the upper tail at c + D under 0.05 after Holm, the point -D or less); CALIBRATED (the
+   Clopper-Pearson 95% interval of s/n, in points, inside c - D to c + D); else INCONCLUSIVE */
 export function calib(xs) {
-  const us = xs.map(x => ({ id: x.id, ...readOf(x.n, x.c, x.s) }));
-  const adj = holm(us.map(u => u.p));
-  us.forEach((u, i) => { u.pH = adj[i]; u.read = u.pH < ALPHA && u.pt >= D ? 'OPTIMISTIC' : u.lo >= u.c - D ? 'NO MATERIAL OPTIMISM' : 'INCONCLUSIVE'; });
+  const us = xs.map(x => ({ id: x.id, ...readOf(x.n, x.c, x.s), hi: x.n > 0 ? 100 * clopperPearson(x.s, x.n)[1] : NaN, pUp: x.n > 0 ? binomUpper(x.s, x.n, Math.min(1, (x.c + D) / 100)) : 1 }));
+  const adj = holm(us.map(u => u.p)), adjUp = holm(us.map(u => u.pUp));
+  us.forEach((u, i) => { u.pH = adj[i]; u.pHUp = adjUp[i]; u.read = u.pH < ALPHA && u.pt >= D ? 'OPTIMISTIC' : u.pHUp < ALPHA && u.pt <= -D ? 'PESSIMISTIC' : u.lo >= u.c - D && u.hi <= u.c + D ? 'CALIBRATED' : 'INCONCLUSIVE'; });
   return us;
 }
-export function item2(xs) { const us = calib(xs); return { units: us, outcome: us.length === CROSSING.length && us.every(u => u.read === 'NO MATERIAL OPTIMISM') ? 'HELD' : us.length === CROSSING.length && us.every(u => u.read === 'OPTIMISTIC') ? 'FALSIFIED' : 'INCONCLUSIVE' }; }
-export function item3(x) { const [u] = calib([x]); return { units: [u], outcome: u.read === 'NO MATERIAL OPTIMISM' ? 'HELD' : u.read === 'OPTIMISTIC' ? 'FALSIFIED' : 'INCONCLUSIVE' }; }
+export function item2(xs) { const us = calib(xs); return { units: us, outcome: us.length === CROSSING.length && us.every(u => u.read === 'CALIBRATED') ? 'HELD' : us.length === CROSSING.length && us.every(u => u.read === 'OPTIMISTIC') ? 'FALSIFIED' : 'INCONCLUSIVE' }; }
+export function item3(x) { const [u] = calib([x]); return { units: [u], outcome: u.read === 'CALIBRATED' ? 'HELD' : u.read === 'OPTIMISTIC' || u.read === 'PESSIMISTIC' ? 'FALSIFIED' : 'INCONCLUSIVE' }; }
 
 const f4 = x => (Number.isFinite(x) ? x.toFixed(4) : '-'), f2 = x => (Number.isFinite(x) ? x.toFixed(2) : '-');
 export function reading(units, out = console.log) {
@@ -209,19 +217,21 @@ export function reading(units, out = console.log) {
     out(line(u.def, `  ${u.id.padEnd(9)} DEFAULT`));
     out(line(u.pcl, `  ${u.id.padEnd(9)} PCLSI  `, ` | ${f4(u.h).padStart(6)}  ${u.p.toExponential(2).padStart(8)}  ${u.pH.toExponential(2).padStart(8)} | ${u.read}`));
   }
-  out(`  -> ${I1.outcome} (HELD when both read HALVED; FALSIFIED when both read NOT HALVED)`);
+  out(`  -> ${I1.outcome} (HELD when both read HALVED; FALSIFIED when both read NOT HALVED; a unit OVERSHOT when its PCLSI arm reads pessimistic beyond ${D} points)`);
   // item 2
   const I2 = item2(CROSSING.map(id => ({ id, ...afterOf(get(id, 'READER', L1)) })));
-  out(`\nITEM 2 (the cure): 7al's rule (margin ${D} points, binomial lower tail at (c - ${D}), Holm over ${I2.units.length}) on the PCLSI crossing units`);
-  for (const u of I2.units) out(line(u, `  ${u.id.padEnd(9)} PCLSI  `, ` | p ${u.p.toExponential(2)} Holm ${u.pH.toExponential(2)} | ${u.read}`));
-  out(`  -> ${I2.outcome} (HELD when both read NO MATERIAL OPTIMISM; FALSIFIED when both read OPTIMISTIC)`);
+  out(`\nITEM 2 (the cure): 7al's rule made two-sided (margin ${D} points; the lower tail at (c - ${D}) and the upper at (c + ${D}), Holm over ${I2.units.length} on each side; CALIBRATED when the CP 95% interval is inside c +/- ${D}) on the PCLSI crossing units`);
+  for (const u of I2.units) out(line(u, `  ${u.id.padEnd(9)} PCLSI  `, ` | CP high ${f4(u.hi)} | p ${u.p.toExponential(2)} Holm ${u.pH.toExponential(2)}; upper p ${u.pUp.toExponential(2)} Holm ${u.pHUp.toExponential(2)} | ${u.read}`));
+  out(`  -> ${I2.outcome} (HELD when both read CALIBRATED; FALSIFIED when both read OPTIMISTIC)`);
   // item 3
   const I3 = item3({ id: CONTROL, ...afterOf(get(CONTROL, 'OFF', L1)) });
-  out(`\nITEM 3 (the control): 7al's rule on S194 OFF under PCLSI (it cannot cross 0.75 of the allowance)`);
-  for (const u of I3.units) out(line(u, `  ${u.id.padEnd(9)} PCLSI  `, ` | p ${u.p.toExponential(2)} | ${u.read}`));
-  out(`  -> ${I3.outcome} (HELD when it reads NO MATERIAL OPTIMISM; FALSIFIED when it reads OPTIMISTIC)`);
+  out(`\nITEM 3 (the control): the two-sided rule on S194 OFF under PCLSI (it cannot cross 0.75 of the allowance)`);
+  for (const u of I3.units) out(line(u, `  ${u.id.padEnd(9)} PCLSI  `, ` | CP high ${f4(u.hi)} | p ${u.p.toExponential(2)}; upper p ${u.pUp.toExponential(2)} | ${u.read}`));
+  out(`  -> ${I3.outcome} (HELD when it reads CALIBRATED; FALSIFIED when it reads OPTIMISTIC or PESSIMISTIC)`);
   // reported
   out(`\nREPORTED (not items):`);
+  out(`  THE PAIRED READING (the deep review after 7am: for power; the optimism DEFAULT less PCLSI, three worlds pooled, with a 95% band treating the arms as independent - the arms share their paths, so the band is wider than a paired one; descriptive):`);
+  for (const u of I1.units) { const v = x => (x.n ? (x.s / x.n) * (1 - x.s / x.n) / x.n * 1e4 : NaN), dd = u.def.pt - u.pcl.pt; out(`    ${u.id}: ${f2(dd)} +/- ${f2(1.96 * Math.sqrt(v(u.def) + v(u.pcl)))} points (DEFAULT ${f2(u.def.pt)}, PCLSI ${f2(u.pcl.pt)}; the share of the optimism removed ${u.def.pt > 0 ? f2(dd / u.def.pt) : '-'})`); }
   out(`  BOTH ARMS BY WORLD (the after stage: c - survived, points; the bridge stage's per-path mean, descriptive):`);
   for (const id of [...CROSSING, CONTROL]) for (let k = 0; k < K; k++) {
     const st = (l, s) => get(id, arm(id), l).stage.find(x => x.k === k && x.stage === s), af = s => (s.n ? s.start - 100 * s.through / s.n : NaN);
@@ -235,10 +245,12 @@ export function reading(units, out = console.log) {
     for (const w of ['wall', 'off']) parts.push(`${w} ${pool(u.wall.filter(x => x.stage === 'after' && x.at === w))}`);
     out(`    ${id.padEnd(5)} ${isP(l) ? 'PCLSI  ' : 'DEFAULT'} ${parts.join('; ')}`);
   }
-  out(`  THE USED ALLOWANCE BY PLAN YEAR (world 0; mean used share / paths at the wall / over 0.75 / bucket changes to t+1, of the paths alive; access named):`);
+  out(`  THE DRAW STALL (the deep review after 7am: path-years at the wall, 0.6 to under 0.75 of the allowance, whose used allowance does not grow to t + 1; after access, the three worlds pooled - the snap as cause predicts the stall gone under PCLSI, share-axis interpolation that it stays):`);
+  for (const id of [...CROSSING, CONTROL]) out(`    ${id.padEnd(5)} ${[L0, L1].map(l => { const u = get(id, arm(id), l), xs = u.lsa.filter(x => x.t >= u.access.year); return `${isP(l) ? 'PCLSI' : 'DEFAULT'} stall ${xs.reduce((t, x) => t + x.stall, 0)} of ${xs.reduce((t, x) => t + x.wall, 0)} at the wall`; }).join('; ')}`);
+  out(`  THE USED ALLOWANCE BY PLAN YEAR (world 0; mean used share / paths at the wall / over 0.75 / bucket changes to t+1 / stalls, of the paths alive; access named):`);
   for (const id of [...CROSSING, CONTROL]) for (const l of [L0, L1]) {
     const u = get(id, arm(id), l);
-    out(`    ${id.padEnd(5)} ${isP(l) ? 'PCLSI  ' : 'DEFAULT'} access year ${u.access.year}: ${u.lsa.filter(x => x.k === 0).sort((x, y) => x.t - y.t).map(x => `y${x.t} ${x.n ? `${f2(x.used)}/${x.wall}/${x.over}/${x.chg}` : '.'}`).join(' ')}`);
+    out(`    ${id.padEnd(5)} ${isP(l) ? 'PCLSI  ' : 'DEFAULT'} access year ${u.access.year}: ${u.lsa.filter(x => x.k === 0).sort((x, y) => x.t - y.t).map(x => `y${x.t} ${x.n ? `${f2(x.used)}/${x.wall}/${x.over}/${x.chg}/${x.stall}` : '.'}`).join(' ')}`);
   }
   out(`  THE PER-YEAR RESIDUAL (table - next, points, by plan year from 0; access is year A, named), by world:`);
   for (const id of [...CROSSING, CONTROL]) for (const l of [L0, L1]) {
@@ -270,7 +282,7 @@ export function builtLog(o = {}) {
       for (let t = 0; t <= T; t++) {
         const n = t < AC ? NPW : 1800, c = t < AC ? 90 - 2 * t : 80, nx = t < AC ? (t < 4 ? 88 - 2 * t : (1800 * 80) / NPW) : t < T ? 80 : 100 * surv / 1800;
         if (!(o.noResid && id === 'S194' && P && k === 0 && t === 7)) lines.push(`${''.padEnd(16)} resid ${L} world ${k} year ${t}: paths ${n} table ${c.toFixed(4)} next ${nx.toFixed(4)}`);
-        if (!(o.noLsa && id === 'S370' && !P && k === 1 && t === 9)) lines.push(`${''.padEnd(16)} lsa ${L} world ${k} year ${t}: paths ${o.lsaOff && id === 'S130' && P && k === 0 && t === 3 ? n - 1 : n} used ${(t / T).toFixed(4)} wall ${t === 20 ? 100 : 0} over ${t > 22 ? n : 0} chg ${t === 22 ? 50 : 0}`);
+        if (!(o.noLsa && id === 'S370' && !P && k === 1 && t === 9)) lines.push(`${''.padEnd(16)} lsa ${L} world ${k} year ${t}: paths ${o.lsaOff && id === 'S130' && P && k === 0 && t === 3 ? n - 1 : n} used ${(t / T).toFixed(4)} wall ${t === 20 ? 100 : 0} over ${t > 22 ? n : 0} chg ${t === 22 ? 50 : 0} stall ${t === 20 ? (o.stallOff && id === 'S194' && P && k === 2 ? 101 : 60) : 0}`);
       }
       const bm = 18;
       lines.push(`${''.padEnd(16)} stage ${L} world ${k} bridge: paths ${NPW} start 90.0000 end ${(1800 * 80 / NPW).toFixed(4)} through ${paid} mean ${bm.toFixed(4)} sd 25.0000`);
@@ -314,7 +326,7 @@ function planted() {
     ['1,000 paths a world', { paths: true }], ['a unit without the tier state', { tsOff: true }], ['readerRef on a unit', { ref: true }], ['a PCLSI ran line off its twin\'s', { ranTwin: true }],
     ['a switch margin of 0', { margin: true }], ['a pension death charge', { death: true }], ['no access line', { noAccess: true }], ['no axis line', { noAxis: true }], ['a PCLSI unit solved snapped', { axisOff: true }],
     ['a DEFAULT unit solved interpolated', { axisOn: true }], ['other buckets', { buckets: true }], ['a missing resid year', { noResid: true }], ['a missing lsa year', { noLsa: true }], ['an lsa count off the resid paths', { lsaOff: true }],
-    ['a missing pcell line', { noPcell: true }], ['pcell path-years off the resid lines', { pcellOff: true }], ['a wall residual off the resid lines', { wallOff: true }],
+    ['a missing pcell line', { noPcell: true }], ['more stalls than path-years at the wall', { stallOff: true }], ['pcell path-years off the resid lines', { pcellOff: true }], ['a wall residual off the resid lines', { wallOff: true }],
     ['the after stage\'s paths off the engine\'s paid count', { paidOff: true }], ['the node sim off the survivors', { simOff: true }]]) cases.push([`the gate refuses ${nm}`, refused(o), 'true']);
   // the items
   const R = (n, c, s) => ({ n, c, s });
@@ -329,7 +341,13 @@ function planted() {
     cases.push(['item 1: p 0.036 at (c - h) beside a unit at p 1: Holm lifts it to 0.07, not NOT HALVED', `${u.p < 0.05 && u.pH >= 0.05} ${u.read}`, 'true INCONCLUSIVE']); }
   { const u = item1([{ id: 'S370', def: R(6000, 80, 4800), pcl: R(6000, 80, 4800) }]).units[0]; cases.push(['item 1: a DEFAULT with no optimism has none to halve', u.read, 'NO OPTIMISM TO HALVE']); }
   cases.push(['item 1: a unit with no optimism to halve is not HALVED: INCONCLUSIVE', it1(R(6000, 80, 4800), R(6000, 80, 4800), opt5, R(6000, 80, 4800)), 'INCONCLUSIVE']);
+  { const u = item1([{ id: 'S370', def: opt7, pcl: R(6000, 79, 4980) }, { id: 'S130', def: opt5, pcl: R(6000, 80, 4800) }]).units[0]; cases.push(['item 1: a PCLSI arm 4 points pessimistic (79 claimed, 83 survive) reads OVERSHOT, not HALVED', u.read, 'OVERSHOT']); }
+  cases.push(['item 1: one OVERSHOT, one HALVED: INCONCLUSIVE, not HELD', it1(opt7, R(6000, 79, 4980), opt5, R(6000, 80, 4800)), 'INCONCLUSIVE']);
   const it2 = xs => { const o = item2(xs).outcome; REACHED[2].add(o); return o; };
+  cases.push(['item 2: both 5 points pessimistic: INCONCLUSIVE, not HELD', it2([{ id: 'S370', ...R(6000, 80, 5100) }, { id: 'S130', ...R(6000, 80, 5100) }]), 'INCONCLUSIVE']);
+  cases.push(['item 2: a pessimistic unit reads PESSIMISTIC', item2([{ id: 'S370', ...R(6000, 80, 5100) }, { id: 'S130', ...R(6000, 80, 4800) }]).units[0].read, 'PESSIMISTIC']);
+  cases.push(['item 2: 1.5 points pessimistic on 6,000 paths (CP high 82.5 over 82): not CALIBRATED, INCONCLUSIVE', item2([{ id: 'S370', ...R(6000, 80, 4890) }, { id: 'S130', ...R(6000, 80, 4800) }]).units[0].read, 'INCONCLUSIVE']);
+  cases.push(['binomUpper: P(Bin(10, 0.5) >= 8) = 56/1024', binomUpper(8, 10, 0.5).toFixed(7), (56 / 1024).toFixed(7)]);
   cases.push(['item 2: both calibrated: HELD', it2([{ id: 'S370', ...R(6000, 80, 4800) }, { id: 'S130', ...R(6000, 80, 4800) }]), 'HELD']);
   cases.push(['item 2: both 5 points optimistic: FALSIFIED', it2([{ id: 'S370', ...R(6000, 80, 4500) }, { id: 'S130', ...R(6000, 80, 4500) }]), 'FALSIFIED']);
   cases.push(['item 2: one each: INCONCLUSIVE', it2([{ id: 'S370', ...R(6000, 80, 4800) }, { id: 'S130', ...R(6000, 80, 4500) }]), 'INCONCLUSIVE']);
@@ -337,6 +355,8 @@ function planted() {
   cases.push(['item 3: the control calibrated: HELD', it3({ id: 'S194', ...R(6000, 97, 5820) }), 'HELD']);
   cases.push(['item 3: the control 4 points optimistic: FALSIFIED', it3({ id: 'S194', ...R(6000, 97, 5580) }), 'FALSIFIED']);
   cases.push(['item 3: the control 1.5 points optimistic on 1,000 paths: INCONCLUSIVE', it3({ id: 'S194', ...R(1000, 97, 955) }), 'INCONCLUSIVE']);
+  cases.push(['item 3: the control 4 points pessimistic (90 claimed, 94 survive): FALSIFIED', it3({ id: 'S194', ...R(6000, 90, 5640) }), 'FALSIFIED']);
+  cases.push(['item 3: 1.75 points optimistic on 20,000 paths (the tail at c - 2 not small, CP low under c - 2): INCONCLUSIVE, not OPTIMISTIC at a 1-point margin', it3({ id: 'S194', ...R(20000, 80, 15650) }), 'INCONCLUSIVE']);
   // the arithmetic, and the lists held together
   cases.push(['binomLower: P(Bin(10, 0.5) <= 2) = 56/1024', binomLower(2, 10, 0.5).toFixed(7), (56 / 1024).toFixed(7)]);
   cases.push(['the CP 95% interval of 4800 of 6000 holds 0.8', String(clopperPearson(4800, 6000)[0] < 0.8 && clopperPearson(4800, 6000)[1] > 0.8), 'true']);
@@ -349,7 +369,7 @@ function planted() {
     cases.push(['every DEFAULT unit is a 7al unit', String(UNITS7.filter(u => u[3] === 'DEFAULT').every(([id, a, s]) => al.some(x => x[0] === id && x[1] === a && x[2] === s))), 'true']);
   }
   cases.push(['parse reads a pcell line', JSON.stringify(parse('S130             case | unit READER/TS+J/W0.02/PCLSI | lambda x tier own riskAbove auto mix 3\n                 pcell READER/TS+J/W0.02/PCLSI world 1 after chg mid: pathyears 120 table 83.1000 next 80.0000\n')[0].pcell), JSON.stringify([{ k: 1, stage: 'after', chg: 'chg', pos: 'mid', n: 120, table: 83.1, next: 80 }])]);
-  cases.push(['parse reads an lsa line and an axis line', JSON.stringify((u => [u.lsa, u.axis])(parse('S130             case | unit READER/TS+J/W0.02/PCLSI | lambda x tier own riskAbove auto mix 3\n                 axis READER/TS+J/W0.02/PCLSI: pclsInterp true pcls 0,0.5,1 pclsStrict false\n                 lsa READER/TS+J/W0.02/PCLSI world 0 year 17: paths 1900 used 0.7012 wall 812 over 301 chg 95\n')[0])), JSON.stringify([[{ k: 0, t: 17, n: 1900, used: 0.7012, wall: 812, over: 301, chg: 95 }], { interp: true, pcls: '0,0.5,1', strict: false }])]);
+  cases.push(['parse reads an lsa line and an axis line', JSON.stringify((u => [u.lsa, u.axis])(parse('S130             case | unit READER/TS+J/W0.02/PCLSI | lambda x tier own riskAbove auto mix 3\n                 axis READER/TS+J/W0.02/PCLSI: pclsInterp true pcls 0,0.5,1 pclsStrict false\n                 lsa READER/TS+J/W0.02/PCLSI world 0 year 17: paths 1900 used 0.7012 wall 812 over 301 chg 95 stall 400\n')[0])), JSON.stringify([[{ k: 0, t: 17, n: 1900, used: 0.7012, wall: 812, over: 301, chg: 95, stall: 400 }], { interp: true, pcls: '0,0.5,1', strict: false }])]);
   cases.push(['7al\'s parse keeps a PCLSI unit\'s stage line on its own label', String(parse('S130             case | unit READER/TS+J/W0.02/PCLSI | lambda x tier own riskAbove auto mix 3\n                 stage READER/TS+J/W0.02/PCLSI world 2 after: paths 1799 start 83.1234 end 80.0000 through 1440 mean 3.1234 sd 40.0000\n')[0].stage.length), '1']);
   const fails = cases.filter(([, got, want]) => got !== want);
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }

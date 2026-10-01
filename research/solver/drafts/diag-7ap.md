@@ -25,11 +25,11 @@ Is the post-access optimism on the crossing households (7al: S370 +6.94 and S130
 
 ## Prediction
 
-Item 1 HELD: interpolating the allowance axis leaves no more than half of the post-access optimism on both S370 and S130 (both read HALVED). Item 2 INCONCLUSIVE: some optimism is left, under the margin on neither unit or on one. Item 3 HELD: S194 under PCLSI reads NO MATERIAL OPTIMISM.
+Item 1 HELD: interpolating the allowance axis leaves no more than half of the post-access optimism on both S370 and S130 (both read HALVED). Item 2 INCONCLUSIVE: some optimism is left, under the margin on neither unit or on one. Item 3 HELD: S194 under PCLSI reads CALIBRATED (its interval inside 2 points either side of its claim).
 
 ## Falsified if
 
-Item 1: both S370 and S130 read NOT HALVED - more than half the DEFAULT arm's optimism survives the interpolated axis (the binomial tail at c - h under 0.05 after Holm, and the point h or more): the snap is not the main cause. Item 3: S194 under PCLSI reads OPTIMISTIC: the option adds optimism where no crossing exists.
+Item 1: both S370 and S130 read NOT HALVED - more than half the DEFAULT arm's optimism survives the interpolated axis (the binomial tail at c - h under 0.05 after Holm, and the point h or more): the snap is not the main cause. Item 3: S194 under PCLSI reads OPTIMISTIC or PESSIMISTIC: the option adds an error where no crossing exists.
 
 ## Fair-test table
 
@@ -49,30 +49,31 @@ Item 1: both S370 and S130 read NOT HALVED - more than half the DEFAULT arm's op
 
 ## Decision rule (registered before launch)
 
-- **Item 1 (the snap's share, primary):** on S370 and S130 READER, each unit's three worlds pooled as 7al pooled them (n the paths alive at access, c their mean claim there, s the survivors). h is half the DEFAULT unit's point c - 100 s/n (the gate holds it to 7al's record). The PCLSI unit reads HALVED when the Clopper-Pearson 95% lower end of its s/n, in points, is c - h or more; NOT HALVED when P(Bin(n, (c - h)/100) <= s) is under 0.05 after Holm over the 2 units and its point is h or more; else INCONCLUSIVE (the tail exact for equal chances, conservative for unequal ones: Hoeffding 1956, Theorem 4). HELD when both read HALVED; FALSIFIED when both read NOT HALVED; else INCONCLUSIVE.
-- **Item 2 (the cure):** 7al's rule on the PCLSI crossing units (margin 2 points; OPTIMISTIC: the tail at c - 2 under 0.05 after Holm over 2 and the point 2 or more; NO MATERIAL OPTIMISM: the CP lower end c - 2 or more; else INCONCLUSIVE). HELD when both read NO MATERIAL OPTIMISM; FALSIFIED when both read OPTIMISTIC; else INCONCLUSIVE.
-- **Item 3 (the control):** 7al's rule on S194 OFF under PCLSI (one unit). HELD when NO MATERIAL OPTIMISM; FALSIFIED when OPTIMISTIC; else INCONCLUSIVE.
+- **Item 1 (the snap's share, primary):** on S370 and S130 READER, each unit's three worlds pooled as 7al pooled them (n the paths alive at access, c their mean claim there, s the survivors). h is half the DEFAULT unit's point c - 100 s/n (the gate holds it to 7al's record). The PCLSI unit reads HALVED when the Clopper-Pearson 95% lower end of its s/n, in points, is c - h or more; NOT HALVED when P(Bin(n, (c - h)/100) <= s) is under 0.05 after Holm over the 2 units and its point is h or more; else INCONCLUSIVE (the tail exact for equal chances, conservative for unequal ones: Hoeffding 1956, Theorem 4). A unit whose PCLSI arm overshoots into pessimism (P(Bin(n, (c + 2)/100) >= s) under 0.05 after Holm over the 2, and its point -2 or less) reads OVERSHOT whatever its halving (the deep review after 7am, 1 Oct 02:00 UK). HELD when both read HALVED; FALSIFIED when both read NOT HALVED; else INCONCLUSIVE.
+- **Item 2 (the cure):** 7al's rule made two-sided on the PCLSI crossing units (margin 2 points; OPTIMISTIC: the lower tail at c - 2 under 0.05 after Holm over 2 and the point 2 or more; PESSIMISTIC: the upper tail at c + 2 likewise and the point -2 or less; CALIBRATED: the CP 95% interval inside c - 2 to c + 2; else INCONCLUSIVE). HELD when both read CALIBRATED; FALSIFIED when both read OPTIMISTIC; else INCONCLUSIVE.
+- **Item 3 (the control):** the same two-sided rule on S194 OFF under PCLSI (one unit). HELD when CALIBRATED; FALSIFIED when OPTIMISTIC or PESSIMISTIC; else INCONCLUSIVE.
 - **NOT SETTLED:** any gate fails (the stamps of 7ap and 7al; a unit missing, twice or not done; any setting off the registered ones; a missing or wrong axis line; a DEFAULT unit not 7al's line for line; a PCLSI unit's ran, joint or access line not its twin's; a line missing; the lines computed apart disagreeing - the paths through the bridge, the after stage's paths and survivors, the telescoping, and the pcell, wall and lsa lines against the resid lines).
-- **Reported, not items:** both arms' after and bridge stages by world; the residual by bucket change and share position (pcell) and by the wall; the used allowance by plan year; the per-year residual by plan year with access named.
+- **Reported, not items:** the paired reading (the optimism DEFAULT less PCLSI per crossing unit, a 95% band treating the arms as independent, wider than a paired one; for power); the draw stall (path-years at the wall whose used allowance does not grow to t + 1, after access, both arms: the snap as cause predicts it gone under PCLSI, share-axis interpolation that it stays); both arms' after and bridge stages by world; the residual by bucket change and share position (pcell) and by the wall; the used allowance by plan year; the per-year residual by plan year with access named.
 - **Declared choices, not derived:** h = half the DEFAULT point; D = 2 points (7al's); the pooling of worlds within a unit; the wall at 0.6 to 0.75 of the allowance; the bucket change read on the snapped buckets in both arms.
 
 ## Decision fed
 
 - **Item 1 HELD:** O71's attribution rises to grade B on S370 and S130 (the snap carries at least half their post-access optimism; one run, one seed); O66 and O69 are re-filed under O71; 7ao's hold is reviewed (one-action tables would need the interpolated axis); a design for the product (the interpolated axis or more allowance buckets, with its solve cost and a product-level check of the draw stalls) goes to the maintainer. No default change here.
-- **Item 1 FALSIFIED:** the snap is not the main cause on these households: O71 stays a mechanism (grade A) with its attribution D; share-axis interpolation (cause 2) and the optimizer's curse rise; the next step is designed by a deep review (7ao's hold lifted or recast).
+- **Item 1 FALSIFIED:** interpolating the three buckets does not remove the optimism - which tests the absorbing snap, not whether three buckets are enough (the deep review after 7am): the next arm is a finer allowance axis (more buckets, interpolated) before O71's attribution drops to D; share-axis interpolation (cause 2) and the optimizer's curse rise; the next step is designed by a deep review (7ao's hold lifted or recast).
 - **Item 1 INCONCLUSIVE:** reported with the share left on each unit; the split by bucket change and share position sizes the rest; to the maintainer with the sizes.
-- **Item 3 FALSIFIED:** the option adds optimism where no crossing exists (the lump-taken flag's blend between buckets 0 and 0.5 the first suspect): item 1's read is qualified, and the option is not a candidate fix as built.
+- **A unit OVERSHOT (item 1) or PESSIMISTIC (item 2):** interpolation moves the tables past calibration - the snap is a lever but the interpolated read is no fix as built (the lump-taken flag's blend between buckets 0 and 0.5, and the value's linearity between buckets 0.5 and 1, NOT CHECKED, the first suspects); reported to the maintainer with the paired reading.
+- **Item 3 FALSIFIED:** the option adds an error where no crossing exists (the lump-taken flag's blend between buckets 0 and 0.5 the first suspect): item 1's read is qualified, and the option is not a candidate fix as built.
 - **In every branch:** no default change; no 7u; no seed 7013; the draw-stall product question stays with the maintainer.
 
 ## Provenance
 
 - The design: the deep review after 7al (deep-review-log.md, 30 Sep 22:51 UK); O71, O66, O69, O70 (PLAN.md); the plan's 7ap row; the plan-auditor's MINOR 3 of 30 Sep 23:04 UK.
 - The records: results-7al.txt and results/diag7al (the DEFAULT arm, its times; derive-7ap.mjs).
-- The build: src/solver/grid.js `pclsInterp` (research only, default off; research/tests/solver-gridfidelity.test.mjs E1 to E11; 7 planted faults in the option and in nearestIndex's rounding all caught, mutate-grid-pclsinterp.py, results-grid-pclsinterp-mutations.txt); solve.js nearestIndex and snap.mjs nearestOf round an interpolated axis's lower bracket by its weight (the plan-auditor's MINOR 3 of 30 Sep 23:32 UK: off, bit for bit the snap); audit-7ap.mjs; reduce-7ap.mjs (planted 49; mutations 35 of 35 caught after the first run's 7 escapes, results-reduce-7ap-mutations.txt and results-mutation-history.txt); batch-7ap.sh, preflight-7ap.sh, preflight-parse-7ap.mjs, derive-7ap.mjs.
+- The build, amended after the deep review after 7am (deep-review-log.md, 1 Oct 02:00 UK: a two-sided read with the overshoot branch, the finer-axis consequence, the stall count, the paired reading): src/solver/grid.js `pclsInterp` (research only, default off; research/tests/solver-gridfidelity.test.mjs E1 to E11; 7 planted faults in the option and in nearestIndex's rounding all caught, mutate-grid-pclsinterp.py, results-grid-pclsinterp-mutations.txt); solve.js nearestIndex and snap.mjs nearestOf round an interpolated axis's lower bracket by its weight (the plan-auditor's MINOR 3 of 30 Sep 23:32 UK: off, bit for bit the snap); audit-7ap.mjs; reduce-7ap.mjs (planted 58; mutations 41 of 41 caught - 7 escaped on the first run and 1 after the amendment, an equivalent mutation now noted in the runner; results-reduce-7ap-mutations.txt and results-mutation-history.txt); batch-7ap.sh, preflight-7ap.sh, preflight-parse-7ap.mjs, derive-7ap.mjs.
 
 ## Derivation script
 
-- `derive: research/solver/derive-7ap.mjs > research/solver/results-derive-7ap.txt sha256 6adec961d290b526`
+- `derive: research/solver/derive-7ap.mjs > research/solver/results-derive-7ap.txt sha256 ce9f80fd80e6f988`
   (the DEFAULT arm's after-stage figures from 7al's records, the items' power, the time).
 
 ## Point and interval
@@ -83,7 +84,7 @@ Item 1: both S370 and S130 read NOT HALVED - more than half the DEFAULT arm's op
 
 ## Credence
 
-The author's probability that each item reads as predicted: 1 (HELD), 0.45; 2 (INCONCLUSIVE), 0.45; 3 (HELD), 0.70. Item 1: the spike years line up with the allowance crossing 0.75 on both households, the claim falls while almost no path dies (the 22:51 review, grade C), and the mechanism is in the code; against it, the interpolated tables change the policy as well as its valuation, the share axis leans mid-cell after access (7al: S130 0.40 against 0.12), and the traces' stalled draws move the share axis on the same path-years, so part of the optimism may be share-axis interpolation that the PCLSI arm leaves. Item 3: S194 cannot cross 0.75, but it may use part of the allowance, where the PCLSI read blends the lump-taken flag between buckets 0 and 0.5.
+The author's probability that each item reads as predicted: 1 (HELD), 0.45; 2 (INCONCLUSIVE), 0.45; 3 (HELD), 0.65. Item 1: the spike years line up with the allowance crossing 0.75 on both households, the claim falls while almost no path dies (the 22:51 review, grade C), and the mechanism is in the code; against it, the interpolated tables change the policy as well as its valuation, the share axis leans mid-cell after access (7al: S130 0.40 against 0.12), and the traces' stalled draws move the share axis on the same path-years, so part of the optimism may be share-axis interpolation that the PCLSI arm leaves. Item 3: S194 cannot cross 0.75, but it may use part of the allowance, where the PCLSI read blends the lump-taken flag between buckets 0 and 0.5.
 
 ## Power
 

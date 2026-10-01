@@ -1,4 +1,4 @@
-true script: planted (49): all read as they should
+true script: planted (58): all read as they should
 caught  the gate accepts a missing unit: PLANTED CHECK FAILED:
 caught  the gate accepts a unit twice: PLANTED CHECK FAILED:
 caught  the gate accepts an unregistered unit: PLANTED CHECK FAILED:
@@ -29,10 +29,16 @@ caught  item 1: HALVED on the point, not the CP low end: PLANTED CHECK FAILED:
 caught  item 1: NOT HALVED without Holm: PLANTED CHECK FAILED:
 caught  item 1: HELD on one unit: PLANTED CHECK FAILED:
 caught  item 1: no optimism counts as halved: PLANTED CHECK FAILED:
-caught  item 2/3: the margin at 1: PLANTED CHECK FAILED:
 caught  item 2: FALSIFIED on one unit: PLANTED CHECK FAILED:
 caught  item 3: INCONCLUSIVE read as HELD: PLANTED CHECK FAILED:
+caught  item 1: the overshoot branch dropped: PLANTED CHECK FAILED:
+caught  calib: the pessimistic side dropped: PLANTED CHECK FAILED:
+caught  calib: CALIBRATED on the lower end alone: PLANTED CHECK FAILED:
+caught  item 3: a pessimistic control not FALSIFIED: PLANTED CHECK FAILED:
+caught  binomUpper off by one: PLANTED CHECK FAILED:
+caught  the gate ignores stalls over the wall: PLANTED CHECK FAILED:
+caught  parse drops the stall: PLANTED CHECK FAILED:
 caught  parse drops the pcell position: PLANTED CHECK FAILED:
 caught  parse drops the axis flag: PLANTED CHECK FAILED:
 
-35 mutations: every one caught
+41 mutations: every one caught

@@ -1,13 +1,8 @@
 # Prediction: diag-7ap
 
-DRAFT, NOT REGISTERED: 7ap waits for the maintainer's answer on O60's order (PLAN.md 7ap's Conditional-on cell: whether
-7ap runs on 7al's linear tier convention, as drafted here, or after the switch to the blend medians - which would drop the
-DEFAULT arm's identity with 7al and need a DEFAULT arm of its own). It registers by moving to predictions/diag-7ap.md in
-its own commit, after check-prediction.mjs passes on it there.
-
 - **Run:** `research/solver/batch-7ap.sh` - results/diag7ap/case0-5.txt (audit-7ap.mjs, six units), read beside 7al's records (results/diag7al); reduced by `reduce-7ap.mjs` in the real tree into results-7ap.txt
 - **Kind:** test
-- **Written:** 1 Oct, before the run (its time is its registering commit's, git log); designed by the deep review after 7al (deep-review-log.md, 30 Sep 22:51 UK) as its decisive test for O66, O69 and O71; its decision rule rests on the interpolated arm (the plan-auditor's MINOR 3 of 30 Sep 23:04 UK)
+- **Written:** 1 Oct, before the run (its time is its registering commit's, git log); registered after the maintainer's answer of 1 Oct 06:45 UK (on 7al's linear tier convention, before O60's switch); designed by the deep review after 7al (deep-review-log.md, 30 Sep 22:51 UK) as its decisive test for O66, O69 and O71; its decision rule rests on the interpolated arm (the plan-auditor's MINOR 3 of 30 Sep 23:04 UK)
 - **Seeds:** 7002 tuning (its first 2,000 paths, the long-run shift set to each world's node: 7al's paths). The product's 'auto' risk-above rule reads its own seed 7101 inside solvePlan. No held-out seed is touched.
 - **Unmasking:** the PCLSI arm removes a known error - the used-allowance axis's absorbing snap (O71; grid.js, three buckets read by nearest snap) - and the chooser then runs on tables that value the allowance differently, so its policy changes too: a PCLSI residual may carry errors the snap hid (share-axis interpolation, O66's second cause; the lump-taken flag, which the PCLSI read blends between buckets 0 and 0.5). Item 3 (the control, which cannot cross 0.75 of the allowance) and the reported split by bucket change and share position tell a fix that unmasks another error from one that adds its own; a PCLSI arm that reads worse is not the option's fault until that split names it (RULES.md section 9).
 - **Plan section:** PLAN.md "7ap"

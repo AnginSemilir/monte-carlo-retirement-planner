@@ -54,6 +54,9 @@ launcher, the reducers and CI enforce them. This is the order to work in.
    due, the next deep review does it first.
 8. `node research/solver/check-plan.mjs`, then run the **plan-auditor** agent on the change at its tier (0 labels and history moves, 1 a result or
    prediction, 2 a default or a gate: two sources and an outside review) and fix what it finds: a BLOCKING finding before the turn ends, a MINOR one by the next review.
+   A PASS that carries only MINORs is a PASS: fold the MINOR fixes into the next plan change rather than a PLAN.md edit of
+   their own, since every edit of the plan needs a fresh receipt (the maintainer's unlock of 1 Oct 10:37 UK; a MINOR in a
+   prediction or another file outside the plan may be fixed at once).
 9. At a close, after the auditor's PASS: `node research/solver/archive-plan.mjs --apply`, then
    `node research/solver/record-review.mjs --moved` (it verifies the move against that PASS and receipts it).
 10. Commit and push (the pre-commit hook and CI run the checks again). Report evidence - the command and its output.

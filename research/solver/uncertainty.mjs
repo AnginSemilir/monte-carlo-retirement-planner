@@ -48,8 +48,10 @@ export function registerFamilies(plan) {
     if (!/^\| O\d+ \|/.test(line)) continue;
     const cells = line.split(' | '), status = (cells[cells.length - 1] || '').replace(/\|\s*$/, '').trim();
     if (!/^open/i.test(status)) continue;
-    const f = /family: ([\w -]+?)\s*(?:[;.,)|]|$)/i.exec(line);
-    if (f) fam[f[1].trim()] = (fam[f[1].trim()] || 0) + 1;
+    // every family a row names, once each: a note may run on into a bracket ('family: the reader at the bridge (O32, ...)',
+    // missed before the deep review after 7ap, 1 Oct 09:38 UK) or name a second family (O66, O76)
+    const names = new Set([...line.matchAll(/family: ([\w -]+?)\s*(?:[;.,()'|]|$)/gi)].map(f => f[1].trim()));
+    for (const n of names) if (!/^none\b/i.test(n)) fam[n] = (fam[n] || 0) + 1;   // 'family: none' names no family
   }
   return fam;
 }
@@ -90,6 +92,7 @@ function planted() {
     ['calibration over the last items', u.cal.toFixed(4), (((0.7 - 1) ** 2 + 0.9 ** 2 + 0.6 ** 2 + (0.3 - 1) ** 2 + (0.55 - 1) ** 2) / 5).toFixed(4)],
     ['surprises after the covered test: 7r\'s item at 0.3 held (7e\'s 0.9 miss is before it)', u.surprises.join('|'), '7r (b) 0.3 held'],
     ['families count open items only: risk 2 (O4 is resolved)', JSON.stringify(u.fams), '{"risk":2}'],
+    ['a family note running into a bracket counts; a row naming two families counts in each, a family named twice in one row once; "family: none" names none', JSON.stringify(registerFamilies(['| O5 | x. Family: the reader at the bridge (O32, O36) | 1 Sep | C | g | open |', '| O6 | y; family: the reader at the bridge; family: risk | 1 Sep | C | g | open |', '| O7 | z; family: risk (w); again family: risk | 1 Sep | C | g | open |', '| O8 | q; family: none (a one-off) | 1 Sep | C | g | open |'].join('\n'))), '{"the reader at the bridge":2,"risk":2}'],
     ['ledger rows after the receipt: 2 settled, 1 weak (grade C), 1 unmasking flag (FALSIFIED in the title); the 25 Sep row is before it', `${u.settled} ${u.weak} ${u.unmask}`, '2 1 1'],
     ['the level: calibration 0.40 is HIGH, so a review is due', `${u.level} ${u.due}`, 'HIGH true'],
     ['LOW with few settled results is not due; LOW at six is', (() => { const a = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: '', log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); const rows = Array.from({ length: 6 }, (_, i) => `| 26 Sep 13:0${i} | r | y | prediction: predictions/p${i}.md; grade B |`).join('\n'); const b = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: rows, log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); return `${a.level} ${a.due} ${b.level} ${b.due}`; })(), 'LOW false LOW true'],

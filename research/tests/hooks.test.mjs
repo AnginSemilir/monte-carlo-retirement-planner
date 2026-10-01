@@ -7,6 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadavg, cpus } from 'node:os';
 import { decide as pre, shellCode, lastHumanText, UNLOCK, segments, unlockedFrom, shellHeredocs } from '../../.claude/hooks/pre-tool.mjs';
 import { decide as stop, MAX_REPEATS, PENDING_MINUTES, deepRunning } from '../../.claude/hooks/stop-check.mjs';
 
@@ -159,15 +160,21 @@ for (const [c, what] of [
 ok(is(bashIn(ROOT, 'cat <<<"cd x" && ls'), null), 'a here-string is not a here-document opening');
 // the '{' case's bound is 6 s (the maintainer's unlock, 30 Sep: it read 4.2 to 4.4 s on the machine after the 30 Sep restart,
 // idle and loaded alike, against about 2.0 s before; the fault it guards against took 38 s, so 6 s still catches it)
+// the wall-clock bounds are doubled while the machine is loaded (the 1-minute load average at or above its cores): they read
+// 6.12 and 6.15 s against 6 s with a batch on all four cores (O54; 30 Sep 16:07 and 1 Oct 09:56 UK) and pass on the next try,
+// and the faults they guard against took 10 to 42 s, so a doubled bound still catches them (the maintainer's unlock, 1 Oct
+// 10:37 UK). HOOKS_TIMING_SCALE overrides the factor (a planted fault: a tiny scale must fail these checks).
+const LOADED = loadavg()[0] >= cpus().length;
+const TSCALE = Number(process.env.HOOKS_TIMING_SCALE) || (LOADED ? 2 : 1);
 for (const [what, big, old, limit = 2] of [["280,000 '(' before bash <<a", '('.repeat(280000) + " bash <<a\nls\na\nrm research/solver/uncertainty.mjs", '42 s'],
   ["100,000 '{' then an rm of the index", '{'.repeat(100000) + ' ; rm research/solver/uncertainty.mjs', '38 s', 6],
   ['140,000 unclosed \\" then an rm of the index', '"\\'.repeat(140000) + '\n; rm research/solver/uncertainty.mjs', '19 s']]) {
   const t0 = Date.now(), d = bashIn(ROOT, big), secs = (Date.now() - t0) / 1000;
-  ok(d && d.decision === 'deny' && secs < limit, `planted: ${what}: refused in ${secs.toFixed(2)} s (under ${limit} s; 9729d3c took about ${old})`);
+  ok(d && d.decision === 'deny' && secs < limit * TSCALE, `planted: ${what}: refused in ${secs.toFixed(2)} s (under ${limit * TSCALE} s${TSCALE !== 1 ? `, ${limit} s x ${TSCALE}${LOADED ? ' while loaded' : ''}` : ''}; 9729d3c took about ${old})`);
 }
 for (const w of ['env', 'make', 'git']) {
   const big = Array(70000).fill(w).join(' ') + ' ; rm research/solver/uncertainty.mjs', t0 = Date.now(), d = bashIn(ROOT, big), secs = (Date.now() - t0) / 1000;
-  ok(is(d, 'deny') && secs < 2, `planted: 70,000 '${w}' words then an rm of the index are refused in ${secs.toFixed(2)} s (under 2 s; d62f947 took over 10 s)`);
+  ok(is(d, 'deny') && secs < 2 * TSCALE, `planted: 70,000 '${w}' words then an rm of the index are refused in ${secs.toFixed(2)} s (under ${2 * TSCALE} s; d62f947 took over 10 s)`);
 }
 
 for (const [cwd, c, what] of R) ok(is(bashIn(cwd, c), 'deny') && is(bashIn(cwd, c, true), null), `planted: ${what} is refused while locked, and goes ahead unlocked`);

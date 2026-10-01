@@ -214,10 +214,12 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   caught(retro(good.replace('(closed 30 Sep 21:00)', '(closed later)')), 'retro', 'a close whose time does not parse');
   // the budget
   caught(run({ rules: base.rules + 'x'.repeat(RULES_BUDGET) }), 'budget', 'RULES.md over its budget');
-  const big = base.plan + '\n<!-- ' + 'x'.repeat(PLAN_BUDGET) + ' -->\n';
-  const w = [], bigErrs = run({ plan: big, warnings: w });
-  caught(bigErrs, 'budget', 'PLAN.md over its budget while archive-plan.mjs has rows to move');
-  const tiny = pad => `## Odd results register\n\n| id | x | y | z | w | status |\n|---|---|---|---|---|---|\n| O5 | a | b | c | d | open |\n\n**The re-look ledger**\n\n| date | the settled result | what it changed | evidence |\n|---|---|---|---|\n| 30 Sep 10:00 | r | c | e |\n\n<!-- ${'x'.repeat(pad)} -->\n`;
+  // its own fixture, not the live plan (O72: a full archive left the live plan nothing to move, so a plant on it planted
+  // nothing and this case failed - the maintainer's unlock of 1 Oct 06:45 UK): a ledger of n rows, one past the newest 15
+  // when n is 16, padded past the budget
+  const tiny = (pad, n = 1) => `## Odd results register\n\n| id | x | y | z | w | status |\n|---|---|---|---|---|---|\n| O5 | a | b | c | d | open |\n\n**The re-look ledger**\n\n| date | the settled result | what it changed | evidence |\n|---|---|---|---|\n${Array.from({ length: n }, (_, i) => `| ${29 - Math.floor(i / 10)} Sep ${String(10 + (i % 10)).padStart(2, '0')}:00 | r${i} | c | e |`).join('\n')}\n\n<!-- ${'x'.repeat(pad)} -->\n`;
+  const w = [], bigErrs = run({ plan: tiny(PLAN_BUDGET, 16), warnings: w });
+  caught(bigErrs, 'budget', 'PLAN.md over its budget while archive-plan.mjs has rows to move (a 16-row ledger: one past the newest 15)');
   const w2 = [], e2 = run({ plan: tiny(PLAN_BUDGET), warnings: w2 });
   ok(!e2.some(e => e.startsWith('[budget]')) && w2.length === 1 && /nothing archivable/.test(w2[0]), 'over the budget with nothing to move: a warning, not a refusal');
   const w3 = []; run({ plan: tiny(10), warnings: w3 });

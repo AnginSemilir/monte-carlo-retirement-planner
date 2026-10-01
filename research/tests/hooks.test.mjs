@@ -304,7 +304,11 @@ for (const f of ['uncertainty.mjs', 'record-deep-review.mjs']) ok(/all read as t
 // the launcher parses its whole body before running any of it (lessons.md, 7ak: an edit while it ran made bash run garbage)
 { const L = readFileSync(join(ROOT, 'research/solver/run-from-snapshot.sh'), 'utf8');
   const lines = L.split('\n'), first = lines.findIndex(l => l.trim() && !l.startsWith('#') && !l.startsWith('#!'));
-  ok(lines[first].trim() === '{' && /\nexit\n}\n?$/.test(L), 'the launcher\'s body is one block ending in exit, read whole before it runs'); }
+  ok(lines[first].trim() === '{' && /\nexit\n}\n?$/.test(L), 'the launcher\'s body is one block ending in exit, read whole before it runs');
+  // the runs.log line names the host (the maintainer's unlock of 1 Oct 06:45 UK: the 7am close's lesson - a restart moved a run to
+  // a slower machine and no record said so)
+  const logLine = lines.find(l => /runs\.log"$/.test(l.trim()) && /^echo /.test(l.trim())) || '';
+  ok(/\| host \$\(grep -m1 'model name' \/proc\/cpuinfo/.test(logLine) && /x\$\(nproc/.test(logLine), 'the launcher\'s runs.log line carries the host\'s CPU model and cores'); }
 
 // session start, as a process: the checklist comes back after a compaction
 const out = execFileSync('bash', [join(ROOT, '.claude/hooks/session-start.sh')], { input: '{"source":"compact"}', env: { ...process.env, CLAUDE_PROJECT_DIR: ROOT } }).toString();

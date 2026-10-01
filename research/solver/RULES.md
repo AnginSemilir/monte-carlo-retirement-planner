@@ -227,7 +227,10 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    --since-review take the withdrawn blob as their base until the next receipt is recorded - each then shows more than the
    real change and hides nothing (the plan-auditor's MINOR 2 of 1 Oct 02:17 UK). The Stop hook (keyed to the plan's blob)
    and check-plan's retro check (BLOCKING codes only) are not misled. Until an unlock lets --moved be undone or the archive
-   run its own check first: the reviewer is told the real base (relook --base <commit>), as at 02:17 UK.
+   run its own check first: the reviewer is told the real base (relook --base <commit>), as at 02:17 UK. **Closed by the maintainer's unlock, 1 Oct 06:45 UK:**
+   record-review.mjs --withdraw-move <blob> --reason records a WITHDRAWN line, and liveReceipts drops the withdrawn move
+   from every base lookup (research/tests/triggers.test.mjs, three cases, shown to fail with the filter removed); the
+   move of 1 Oct 02:12 UK is withdrawn so (review-log.md 06:50 UK).
 
 ---
 

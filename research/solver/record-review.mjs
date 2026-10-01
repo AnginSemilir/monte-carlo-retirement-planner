@@ -14,6 +14,11 @@
  *                                         last PASS, every removed line is in PLAN-HISTORY.md verbatim and every added line
  *                                         is a pointer line; recorded as a PASS by "archive-plan (verified)" (RULES.md
  *                                         section 10: a move is not a change for a reviewer to judge)
+ *   node research/solver/record-review.mjs --withdraw-move <blob> --reason "..."  a verified move that was then withdrawn
+ *                                         (its plan reverted before it was committed): recorded as WITHDRAWN, so no base
+ *                                         lookup (--status, --diff, --moved, relook --since-review) takes the withdrawn move's
+ *                                         blob as the last reviewed plan (RULES.md known limit 25, closed by the maintainer's
+ *                                         unlock of 1 Oct 06:45 UK)
  * Every graded finding (BLOCKING n., MINOR n., MINOR (carried k) n., BACKLOG n.) carries a trigger code, [T:<code>], from
  * triggers.mjs's CODES (RULES.md section 10, the feedback loop): the record is then countable (triggers.mjs).
  */
@@ -30,10 +35,11 @@ const LOG = join(HERE, 'review-log.md');
 const git = cmd => execSync(`git ${cmd}`, { cwd: REPO, stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 << 20 }).toString();
 
 export function planBlob(write = false) { return git(`hash-object ${write ? '-w ' : ''}research/solver/PLAN.md`).trim(); }
-/* every line of the log: receipts (PASS, FAIL) and starts (STARTED, with the moment as an ISO time) */
+/* every line of the log: receipts (PASS, FAIL), starts (STARTED, with the moment as an ISO time) and withdrawals of a move
+   (WITHDRAWN, naming the moved blob) */
 export function entries() {
   if (!existsSync(LOG)) return [];
-  return readFileSync(LOG, 'utf8').split('\n').map(l => /^- (.+?) \| plan ([0-9a-f]{40}) \| (PASS|FAIL|STARTED) \| ([^|]+) \| (.*)$/.exec(l)).filter(Boolean)
+  return readFileSync(LOG, 'utf8').split('\n').map(l => /^- (.+?) \| plan ([0-9a-f]{40}) \| (PASS|FAIL|STARTED|WITHDRAWN) \| ([^|]+) \| (.*)$/.exec(l)).filter(Boolean)
     .map(m => ({ when: m[1], blob: m[2], verdict: m[3], reviewer: m[4].trim(), findings: m[5] }));
 }
 /* the problems with a receipt's findings: a graded finding (BLOCKING n., MINOR n., BACKLOG n., "n:" as well; "(carried k)"
@@ -69,11 +75,16 @@ export function startedBlob(list, reviewer) {
   }
   return null;
 }
-export function receipts() { return entries().filter(e => e.verdict !== 'STARTED'); }
+/* the receipts that stand: no starts, no withdrawal lines, and no verified move a later WITHDRAWN line names (pure, for tests) */
+export function liveReceipts(list) {
+  const gone = new Set(list.filter(e => e.verdict === 'WITHDRAWN').map(e => e.blob));
+  return list.filter(e => e.verdict !== 'STARTED' && e.verdict !== 'WITHDRAWN' && !(gone.has(e.blob) && /^archive-plan/.test(e.reviewer)));
+}
+export function receipts() { return liveReceipts(entries()); }
 export function status() {
   const blob = planBlob();
   const mine = entries().filter(r => r.blob === blob);
-  const done = mine.filter(r => r.verdict !== 'STARTED');
+  const done = liveReceipts(entries()).filter(r => r.blob === blob);
   const latest = mine[mine.length - 1];
   // a review of this version started after its last receipt, still to report
   const pending = latest && latest.verdict === 'STARTED' ? { at: (/started (\S+)/.exec(latest.findings) || [])[1] || null, reviewer: latest.reviewer } : null;
@@ -101,6 +112,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     const when = new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' UK';
     appendFileSync(LOG, `- ${when} | plan ${now} | PASS | archive-plan (verified) | none. A move from ${last.blob.slice(0, 10)} (${last.verdict}, ${last.when}): every removed line is in PLAN-HISTORY.md verbatim and every added line is a pointer line.\n`);
     console.log(`recorded the verified move for PLAN.md ${now.slice(0, 10)}`);
+  } else if (a.includes('--withdraw-move')) {
+    const target = opt('withdraw-move') || '', reason = (opt('reason') || '').replace(/\s+/g, ' ').replace(/\|/g, '/').trim();
+    const e = entries().find(x => x.blob.startsWith(target) && target.length >= 10 && x.verdict === 'PASS' && /^archive-plan/.test(x.reviewer));
+    if (!e || !reason) { console.error('usage: --withdraw-move <blob, 10 hex or more, of a verified move> --reason "<why>"'); process.exit(2); }
+    if (planBlob() === e.blob) { console.error(`--withdraw-move: PLAN.md is still the moved version ${e.blob.slice(0, 10)}; revert it first`); process.exit(2); }
+    const when = new Date().toLocaleString('en-GB', { timeZone: 'Europe/London', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' UK';
+    appendFileSync(LOG, `- ${when} | plan ${e.blob} | WITHDRAWN | archive-plan | the verified move of ${e.when} withdrawn: ${reason}\n`);
+    console.log(`recorded the withdrawal of the move ${e.blob.slice(0, 10)}`);
   } else if (a.includes('--diff')) {
     // the change since the last REVIEWED version, pass or fail: each review judges the change, and checks that the
     // previous receipt's findings are fixed (maintainer, 24 Sep 12:05 UK)

@@ -11,6 +11,9 @@ launcher, the reducers and CI enforce them. This is the order to work in.
 ## Planning a run
 1. Derive first: can the mathematics state the answer? Do the existing records already contain it (fair-test those
    files before reading them)? Only then run.
+   An attribution test that snaps or swaps one piece to blame it checks that the snap moves only that piece; a snap
+   that moves two (an input and its blend, say) is paired with one that holds the other fixed, or its attribution is
+   a combination, grade C (lessons.md, the 7ak close: the a-axis snap moved the reader's input and its blend together).
 2. `node research/solver/new-prediction.mjs <name> <batch-script>`; fill the question, derivation, prediction,
    falsifier and the fair-test table's rows (arm A, arm B, SAME / TESTED / ONE ARM ONLY / N/A / ACCEPTED; rows that are SAME
    may be left out behind the line "- **All other rows: SAME**"), and the

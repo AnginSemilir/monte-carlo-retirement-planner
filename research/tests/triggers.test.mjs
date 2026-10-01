@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
 import { CODES, tagsIn, minuteKey, lessonsOf, findingsOf, receiptsOf, blockingCodesBetween, passesOf, passDue, windowStats, report } from '../solver/triggers.mjs';
-import { tagProblems, movedProblems, startedBlob } from '../solver/record-review.mjs';
+import { tagProblems, movedProblems, startedBlob, liveReceipts } from '../solver/record-review.mjs';
 import { planMoves, applyMoves, cutoffOf, archiveOpts, LEDGER_KEEP, POINTER } from '../solver/archive-plan.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -72,6 +72,13 @@ ok(true, 'the CLI accepts a tagged finding (check only, nothing written)');
 { const S = (r, v, b) => ({ reviewer: r, verdict: v, blob: b });
   ok(startedBlob([S('plan-auditor', 'STARTED', 'a'), S('archive-plan (verified)', 'PASS', 'b')], 'plan-auditor') === 'a', 'the receipt names the blob the reviewer started on, another reviewer\'s line between');
   ok(startedBlob([S('plan-auditor', 'STARTED', 'a'), S('plan-auditor', 'PASS', 'a')], 'plan-auditor') === null && startedBlob([], 'plan-auditor') === null, 'a start already receipted, or none, binds nothing (the file as it stands)'); }
+  // a withdrawn move (the maintainer's unlock of 1 Oct 06:45 UK; RULES.md known limit 25): no base lookup takes its blob
+  { const S = (r, v, b) => ({ reviewer: r, verdict: v, blob: b });
+    const L = [S('plan-auditor', 'PASS', 'a'), S('archive-plan (verified)', 'PASS', 'm'), S('plan-auditor', 'STARTED', 'b')];
+    ok(liveReceipts(L).slice(-1)[0].blob === 'm', 'a verified move stands as the last receipt until withdrawn');
+    const W = [...L, S('archive-plan', 'WITHDRAWN', 'm')];
+    ok(liveReceipts(W).slice(-1)[0].blob === 'a' && liveReceipts(W).length === 1, 'once withdrawn, the move and the withdrawal line drop out, and the base is the receipt before it');
+    ok(liveReceipts([S('plan-auditor', 'PASS', 'm'), S('archive-plan', 'WITHDRAWN', 'm')]).length === 1, 'a withdrawal drops only the move, not a reviewer\'s receipt of the same blob'); }
 
 // the archive (archive-plan.mjs) and its verified move (record-review.mjs --moved)
 ok(cutoffOf(lessonsText(2)) === '28 Sep' && cutoffOf('Seed: after 7ai (30 Sep 17:53)\n## a (closed 1 Oct 09:00)\n- x\n## b (closed 2 Oct 09:00)\n- x\n## c (closed 3 Oct 09:00)\n- x') === '1 Oct', 'the cut-off is the newest-but-two close, 28 Sep before three');

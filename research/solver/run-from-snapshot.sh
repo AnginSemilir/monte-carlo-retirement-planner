@@ -145,8 +145,9 @@ if [ ! -f "$STAMP" ]; then
   bash research/solver/smoke.sh || { echo "=== REFUSED: the smoke run failed on this code. Fix it before any batch." >&2; exit 1; }
   mkdir -p "$(dirname "$STAMP")"; date -u +%FT%TZ > "$STAMP"
 fi
-# the run log (committed with the results): when, which lane, under which prediction, on which code, and how busy the box was
-echo "$(TZ=Europe/London date '+%d %b %H:%M UK') | ${LANE:-main} | ${PREDICTION_FILE}${PREDICTION_REASON:+: $PREDICTION_REASON} | code $HASH | $REV | load $(cut -d' ' -f1-3 /proc/loadavg) | $*" >> "$REAL/research/solver/runs.log"
+# the run log (committed with the results): when, which lane, under which prediction, on which code, how busy the box was,
+# and the host (its CPU model and cores: a restart can move the run to a slower machine; lessons.md, the 7am close)
+echo "$(TZ=Europe/London date '+%d %b %H:%M UK') | ${LANE:-main} | ${PREDICTION_FILE}${PREDICTION_REASON:+: $PREDICTION_REASON} | code $HASH | $REV | load $(cut -d' ' -f1-3 /proc/loadavg) | host $(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | sed 's/.*: //') x$(nproc 2>/dev/null) | $*" >> "$REAL/research/solver/runs.log"
 "$@"
 echo "=== snapshot kept at $SNAP for provenance; remove it when the results are written up"
 exit

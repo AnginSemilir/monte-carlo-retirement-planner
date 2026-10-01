@@ -25,8 +25,12 @@
  * gaps (linear L, shifted up B, shifted down R): following F = (B - R)/2, blind C = (B + R)/2 - L (look-7ai-split.mjs's
  * split). Counted in O73's families: the S126 family (share 0.50, share 0.90, bridge 0, bridge 1, S126: S126 re-weighted or
  * re-aged), S194, S162; a family reads a way when a majority of its members do (3 of 5, 1 of 1).
- *   1. P smooth (the stored margin, O67's (A)): q = |C at half| / |C at full| for P. A member reads smooth at q <= 0.33,
- *      non-smooth at q >= 0.4 (7am's item 3 bounds). HELD when all three families read smooth; FALSIFIED when two or more
+ *   1. P smooth (the stored margin, O67's (A)): q = |C at half| / |C at full| for P, and r = F at half / F at full where
+ *      |F at full| >= |C at full| (else r is not read). C is even in the step, so a response smooth to second order gives
+ *      q about 0.25 and r about 0.5; a snap between the half and the full step leaves C at half near 0 (q near 0) and r
+ *      off 0.5 (the plan-auditor's BLOCKING 1 of 1 Oct 07:22 UK). A member reads smooth at 0.15 <= q <= 0.33 with r, where
+ *      read, in 0.35 to 0.65; non-smooth at q >= 0.4 (a kink or jump within the half step), q < 0.15 (a feature beyond
+ *      it) or r, where read, outside 0.25 to 0.75. HELD when all three families read smooth; FALSIFIED when two or more
  *      read non-smooth; else INCONCLUSIVE.
  *   2. P's sign-blind part well under the bundle's at the half step: a member reads under when |C_P at half| <= |C_bundle
  *      at half| / 3 (7am's half units), not under when it is 2/3 of it or more. HELD when all three families read under;
@@ -53,7 +57,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-7aq.md';
 export const { field, LAMBDA } = A;
 export const PTS = '30', SEED = '7002', W = '0.02', CHARGE = '0.001';
-export const Q_SMOOTH = 0.33, Q_KINK = 0.4, UNDER = 1 / 3, NOT_UNDER = 2 / 3;
+export const Q_SMOOTH = 0.33, Q_KINK = 0.4, Q_BEYOND = 0.15, F_IN = [0.35, 0.65], F_OUT = [0.25, 0.75], UNDER = 1 / 3, NOT_UNDER = 2 / 3;
 export const HOUSEHOLDS = AM.HOUSEHOLDS, NOREADER = AM.NOREADER;
 export const UNSPLIT = ['share 0.50', 'share 0.90', 'bridge 0'];
 export const FAMILIES = [['the S126 family', ['share 0.50', 'share 0.90', 'bridge 0', 'bridge 1', 'S126']], ['S194', ['S194']], ['S162', ['S162']]];
@@ -140,8 +144,10 @@ export function readRow(x) {
   const full = splitN(x.p.l, x.p.b, x.p.r), half = splitN(x.p.l, x.p.hb, x.p.hr), bf = splitN(x.c.l, x.c.b, x.c.r), bh = splitN(x.c.l, x.c.hb, x.c.hr);
   const q = full && half && full.C !== 0 ? Math.abs(half.C) / Math.abs(full.C) : null;
   const vs = half && bh && bh.C !== 0 ? Math.abs(half.C) / Math.abs(bh.C) : null;
-  return { id: x.id, full, half, bf, bh, q, qb: bf && bh && bf.C !== 0 ? Math.abs(bh.C) / Math.abs(bf.C) : null, vs,
-    smooth: q !== null && q <= Q_SMOOTH + 1e-9, kink: q !== null && q >= Q_KINK - 1e-9, under: vs !== null && vs <= UNDER + 1e-9, notUnder: vs !== null && vs >= NOT_UNDER - 1e-9 };
+  const r = full && half && full.F !== 0 && Math.abs(full.F) >= Math.abs(full.C) ? half.F / full.F : null;
+  const beyond = q !== null && q < Q_BEYOND - 1e-9, fOff = r !== null && (r < F_OUT[0] - 1e-9 || r > F_OUT[1] + 1e-9), fIn = r === null || (r >= F_IN[0] - 1e-9 && r <= F_IN[1] + 1e-9);
+  return { id: x.id, full, half, bf, bh, q, r, beyond, fOff, qb: bf && bh && bf.C !== 0 ? Math.abs(bh.C) / Math.abs(bf.C) : null, vs,
+    smooth: q !== null && q >= Q_BEYOND - 1e-9 && q <= Q_SMOOTH + 1e-9 && fIn, kink: (q !== null && q >= Q_KINK - 1e-9) || beyond || fOff, under: vs !== null && vs <= UNDER + 1e-9, notUnder: vs !== null && vs >= NOT_UNDER - 1e-9 };
 }
 export function items(rows) {
   const R = Object.fromEntries(rows.map(x => [x.id, readRow(x)]));
@@ -162,12 +168,12 @@ export function reading(units, pref, mref, bref, out = console.log) {
   const e = x => (x === null || x === undefined ? '-' : x.toExponential(4)), f2 = x => (x === null ? 'n/a' : x.toFixed(2));
   out(`7AQ: P AT HALF THE STEP - P (READER/TS+J, switchCharge ${CHARGE}, switchMargin 0) under half of 7ai's tier shift each way on 7am's seven households, and the full shift re-solved on the three 7am left unsplit, 30 points, every gap signed (negative: the held pair wins at margin 0 by that much); P's linear gaps are P's records, its other full-step gaps 7am's; the bundle's 7ai's (full) and 7am's (half)`);
   out('  P (signed gaps linear / blend / reversed / half blend / half reversed; the split at the full and half step; q; F at half over F at full)');
-  for (const x of rows) { const r = R[x.id]; out(`    ${x.id.padEnd(11)} ${[x.p.l, x.p.b, x.p.r, x.p.hb, x.p.hr].map(g => e(g).padStart(11)).join(' ')}  full F ${e(r.full.F)} C ${e(r.full.C)}; half F ${e(r.half.F)} C ${e(r.half.C)}; q ${f2(r.q)}; F half/full ${r.full.F !== 0 ? f2(r.half.F / r.full.F) : 'n/a'}`); }
+  for (const x of rows) { const r = R[x.id]; out(`    ${x.id.padEnd(11)} ${[x.p.l, x.p.b, x.p.r, x.p.hb, x.p.hr].map(g => e(g).padStart(11)).join(' ')}  full F ${e(r.full.F)} C ${e(r.full.C)}; half F ${e(r.half.F)} C ${e(r.half.C)}; q ${f2(r.q)}; F half/full ${r.full.F !== 0 ? f2(r.half.F / r.full.F) : 'n/a'}${r.r === null ? ' (not read: |F| under |C|)' : ''}; ${r.smooth ? 'smooth' : r.kink ? `non-smooth (${[r.q !== null && r.q >= Q_KINK - 1e-9 ? 'q within the half step' : '', r.beyond ? 'q beyond the half step' : '', r.fOff ? 'F off one half' : ''].filter(Boolean).join(', ')})` : 'neither'}`); }
   out("  the bundle's blind part (full, half; q) against P's (the share P's |C| is of the bundle's at each step)");
   for (const x of rows) { const r = R[x.id]; out(`    ${x.id.padEnd(11)} bundle C ${e(r.bf.C)} / ${e(r.bh.C)}  q ${f2(r.qb)}   P/bundle full ${f2(Math.abs(r.full.C) / Math.abs(r.bf.C))} half ${f2(r.vs)}`); }
   const fl = fs => fs.map(f => `${f.name} ${f.k} of ${f.of}`).join(', ');
   const [I1, I2] = it;
-  out(`\nITEM 1 (P smooth: q <= ${Q_SMOOTH}; non-smooth at q >= ${Q_KINK}; a family by its majority): smooth ${fl(I1.sm)}; non-smooth ${fl(I1.kk)} (HELD when all three families read smooth, FALSIFIED when two or more read non-smooth) -> ${I1.outcome}`);
+  out(`\nITEM 1 (P smooth: ${Q_BEYOND} <= q <= ${Q_SMOOTH} and F half/full in ${F_IN.join(' to ')} where read; non-smooth at q >= ${Q_KINK}, q < ${Q_BEYOND} or F half/full outside ${F_OUT.join(' to ')}; a family by its majority): smooth ${fl(I1.sm)}; non-smooth ${fl(I1.kk)} (HELD when all three families read smooth, FALSIFIED when two or more read non-smooth) -> ${I1.outcome}`);
   out(`ITEM 2 (P's blind part at half the step a third of the bundle's or less; not under at two thirds or more): under ${fl(I2.un)}; not under ${fl(I2.nu)} (HELD when all three read under, FALSIFIED when two or more read not under) -> ${I2.outcome}`);
   const g = ids => { const xs = ids.map(id => R[id]); return `${xs.filter(r => r.smooth).length} smooth, ${xs.filter(r => r.kink).length} non-smooth, of ${xs.length}`; };
   out(`REPORTED: P's q by whether the year-0 choice reads a reader year (O67's (C)): none read (${NOREADER.join(', ')}) ${g(NOREADER)}; reader years read (the rest) ${g(HOUSEHOLDS.filter(id => !NOREADER.includes(id)))}`);
@@ -243,7 +249,12 @@ export function planted() {
   cases.push(['non-smooth on 3 of the S126 family, smooth in S194 and S162: 1 INCONCLUSIVE (one family non-smooth; FALSIFIED needs two)', one(rows(id => (['share 0.50', 'share 0.90', 'bridge 0'].includes(id) ? Pq(1) : Pq(0.25))), 1), 'INCONCLUSIVE']);
   cases.push(['non-smooth in S194 and S162 only: 1 FALSIFIED (two families)', one(rows(id => (['S194', 'S162'].includes(id) ? Pq(0.5) : Pq(0.25))), 1), 'FALSIFIED']);
   cases.push(['q 0.36 everywhere (neither bound): 1 INCONCLUSIVE', one(rows(() => Pq(0.36)), 1), 'INCONCLUSIVE']);
-  cases.push(['q exactly 0.33 reads smooth, 0.4 non-smooth', `${readRow({ id: 'x', p: Pq(0.33), c: B }).smooth} ${readRow({ id: 'x', p: Pq(0.4), c: B }).kink}`, 'true true']);
+  cases.push(['q exactly 0.33 reads smooth, 0.4 non-smooth, 0.15 smooth', `${readRow({ id: 'x', p: Pq(0.33), c: B }).smooth} ${readRow({ id: 'x', p: Pq(0.4), c: B }).kink} ${readRow({ id: 'x', p: Pq(0.15), c: B }).smooth}`, 'true true true']);
+  cases.push(['q 0.05 (a snap beyond the half step) reads non-smooth, not smooth', `${readRow({ id: 'x', p: Pq(0.05), c: B }).smooth} ${readRow({ id: 'x', p: Pq(0.05), c: B }).kink}`, 'false true']);
+  cases.push(['snaps beyond the half step in all families: 1 FALSIFIED', one(rows(() => Pq(0.05)), 1), 'FALSIFIED']);
+  const Fr = (fr, Cf = 4e-5, Ff = 1e-4) => ({ l: 5e-4, b: 5e-4 + Ff + Cf, r: 5e-4 - Ff + Cf, hb: 5e-4 + fr * Ff + Cf / 4, hr: 5e-4 - fr * Ff + Cf / 4 });
+  cases.push(['q 0.25 with F half/full 0.2 (|F| over |C|) reads non-smooth; 0.3 neither; 0.5 smooth', ['kink', 'smooth'].map(k => [0.2, 0.3, 0.5].map(f => readRow({ id: 'x', p: Fr(f), c: B })[k] ? 1 : 0).join('')).join(' '), '100 001']);
+  cases.push(['F half/full 0.2 where |F| is under |C| is not read: smooth', String(readRow({ id: 'x', p: Fr(0.2, 4e-5, 2e-5), c: B }).smooth), 'true']);
   cases.push(['P\'s half blind half the bundle\'s everywhere: 2 INCONCLUSIVE', one(rows(() => Pv(0.5)), 2), 'INCONCLUSIVE']);
   cases.push(['P\'s half blind 0.8 of the bundle\'s in S194 and S162 only: 2 FALSIFIED', one(rows(id => (['S194', 'S162'].includes(id) ? Pv(0.8) : Pv(0.2))), 2), 'FALSIFIED']);
   cases.push(['not under in S194 only: 2 INCONCLUSIVE (FALSIFIED needs two families)', one(rows(id => (id === 'S194' ? Pv(0.8) : Pv(0.5))), 2), 'INCONCLUSIVE']);

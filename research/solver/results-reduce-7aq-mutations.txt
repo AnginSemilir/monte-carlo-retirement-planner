@@ -1,4 +1,4 @@
-true script: planted (46): all read as they should
+true script: planted (50): all read as they should
 caught  the gate accepts a missing unit: PLANTED CHECK FAILED:
 caught  the gate accepts a unit twice: PLANTED CHECK FAILED:
 caught  the gate accepts an unregistered unit: PLANTED CHECK FAILED:
@@ -40,5 +40,11 @@ caught  item 2 FALSIFIED on one family: PLANTED CHECK FAILED:
 caught  parse misses the signed line: PLANTED CHECK FAILED:
 caught  the families drop share 0.90: PLANTED CHECK FAILED:
 caught  a unit dropped from UNITS: PLANTED CHECK FAILED:
+caught  the beyond band dropped: PLANTED CHECK FAILED:
+caught  smooth ignores the lower bound: PLANTED CHECK FAILED:
+caught  smooth ignores F: PLANTED CHECK FAILED:
+caught  F off ignored: PLANTED CHECK FAILED:
+caught  F read where |F| is under |C|: PLANTED CHECK FAILED:
+caught  F's smooth band widened to F's outer band: PLANTED CHECK FAILED:
 
-41 mutations: every one caught
+47 mutations: every one caught

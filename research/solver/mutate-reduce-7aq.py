@@ -40,7 +40,7 @@ M = [
     ("q reads the half against the half", "Math.abs(half.C) / Math.abs(full.C) : null;", "Math.abs(half.C) / Math.abs(half.C) : null;"),
     ("item 2 compares with the bundle's full step", "Math.abs(half.C) / Math.abs(bh.C) : null;", "Math.abs(half.C) / Math.abs(bf.C) : null;"),
     ("smooth at q 0.4", "q <= Q_SMOOTH + 1e-9", "q <= Q_KINK + 1e-9"),
-    ("non-smooth at q 0.33", "q >= Q_KINK - 1e-9", "q >= Q_SMOOTH - 1e-9"),
+    ("non-smooth at q 0.33", "kink: (q !== null && q >= Q_KINK - 1e-9)", "kink: (q !== null && q >= Q_SMOOTH - 1e-9)"),
     ("under at two thirds", "vs <= UNDER + 1e-9", "vs <= NOT_UNDER + 1e-9"),
     ("not under at a third", "vs >= NOT_UNDER - 1e-9", "vs >= UNDER - 1e-9"),
     ("a family's majority is any member", "maj: k > ids.length / 2", "maj: k > 0"),
@@ -51,6 +51,12 @@ M = [
     ("parse misses the signed line", "const SIGNL = /^\\s+signed ", "const SIGNL = /^\\s+signd "),
     ("the families drop share 0.90", "['share 0.50', 'share 0.90', 'bridge 0', 'bridge 1', 'S126']]", "['share 0.50', 'bridge 0', 'bridge 1', 'S126']]"),
     ("a unit dropped from UNITS", "['halfblend', 'halfreversed'].map(set => [id, 'READER', labelOf(PTAG, set)]))];", "['halfblend'].map(set => [id, 'READER', labelOf(PTAG, set)]))];"),
+    ("the beyond band dropped", "const beyond = q !== null && q < Q_BEYOND - 1e-9,", "const beyond = false,"),
+    ("smooth ignores the lower bound", "smooth: q !== null && q >= Q_BEYOND - 1e-9 && q <= Q_SMOOTH", "smooth: q !== null && q <= Q_SMOOTH"),
+    ("smooth ignores F", "&& q <= Q_SMOOTH + 1e-9 && fIn,", "&& q <= Q_SMOOTH + 1e-9,"),
+    ("F off ignored", "|| beyond || fOff,", "|| beyond,"),
+    ("F read where |F| is under |C|", "Math.abs(full.F) >= Math.abs(full.C) ? half.F / full.F : null", "true ? half.F / full.F : null"),
+    ("F's smooth band widened to F's outer band", "(r >= F_IN[0] - 1e-9 && r <= F_IN[1] + 1e-9)", "(r >= F_OUT[0] - 1e-9 && r <= F_OUT[1] + 1e-9)"),
 ]
 def run(f):
     p = subprocess.run(['node', f, '--planted'], capture_output=True, text=True)

@@ -1,0 +1,13 @@
+# The solver suites that read the grid, re-run on 940818a (pclsInterp and nearestIndex's rounding; checklist item 7), 1 Oct UK, the 2.10 GHz host
+solver-gridfidelity rc=0 62s :: =========== 24 passed, 0 failed ===========
+solver-fast rc=0 0s :: =========== 15 passed, 0 failed ===========
+solver-bridge rc=0 64s :: =========== 27 passed, 0 failed ===========
+solver-e3 rc=0 1573s :: solver-e3: 11 passed
+solver-mixture rc=0 88s :: =========== 8 passed, 0 failed ===========
+solver-f1 rc=0 6s :: 19 passed
+solver-model rc=0 2s :: =========== 35 passed, 0 failed ===========
+solver-joint rc=0 257s :: 10 passed, 0 failed
+solver-tiers rc=0 93s :: =========== 21 passed, 0 failed ===========
+solver-final rc=0 43s :: solver-final: 4 passed
+solver-hold rc=0 123s :: 18 passed, 0 failed
+solver-switchcharge rc=0 602s :: 10 passed, 0 failed

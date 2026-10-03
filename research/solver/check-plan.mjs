@@ -97,8 +97,10 @@ const GRADE_AB = /\bgrade [AB]\b/i;
 // 5 closes, 7 BLOCKINGs): 'ruled out', 'excluded', 'clean' (a household, control or unit), 'cured', 'calibrated', 'not jitter',
 // 'no harm' - each, in lower case (an item's printed outcome, CALIBRATED, is not one), needs a grade A or B citation on the
 // same line or NOT CHECKED / PROVISIONAL; a negated form ('not ruled out', 'uncalibrated') is not a claim
-export const STRONG = /\b(ruled out|excluded|clean (?:households?|controls?|units?)|cured|calibrated|not jitter|no harm)\b/;
-const NOT_STRONG = /\b(?:not|never|nor|cannot be|can't be)\s+(?:yet\s+|be\s+|been\s+)?(?:ruled out|excluded|cured|calibrated)\b|\buncalibrated\b/g;
+export const STRONG = /\b(ruled out|excluded|clean (?:households?|controls?|units?)|cured|calibrated|not jitter|no harm)\b/i;   // any case: 'Ruled out:' and 'EXCLUDED' count (the plan-auditor's MINOR 2 of 3 Oct 18:42 UK)
+const NOT_STRONG = /\b(?:not|never|nor|cannot be|can't be)\s+(?:yet\s+|be\s+|been\s+)?(?:ruled out|excluded|cured|calibrated)\b|\buncalibrated\b/gi;
+// a reducer's printed outcome in capitals beside its item ('reads CALIBRATED', '-> CALIBRATED') is the rule's word, not a claim
+const OUTCOME_WORD = /(?:\breads?|->|:)\s*CALIBRATED\b/g;
 
 /* the retro: each scored test after the seed has its close; returns the problems as strings */
 export function retroProblems({ lessons, scorecard, reviewLog }) {
@@ -273,7 +275,7 @@ export function checkPlan({ plan, rules, checklist, added = [], removed = [], re
     if (NO_EFFECT.test(line) && !EVIDENCED.test(raw)) err('no-effect', `"${raw.trim().slice(0, 90)}": a claim of no effect needs "evidence: <file or proof>" or "NOT CHECKED" on the same line`);
     else if (NO_EFFECT.test(line) && !/not checked/i.test(raw) && !GRADE_AB.test(raw)) err('no-effect', `"${raw.trim().slice(0, 90)}": a claim of no effect needs evidence of grade A or B, named on the same line ("grade A" or "grade B"; RULES.md section 8)`);
     if (CLAIM.test(line.replace(NOT_A_CLAIM, ' ')) && !GRADE_AB.test(raw) && !/not checked|provisional/i.test(raw)) err('claims', `"${raw.trim().slice(0, 90)}": "${CLAIM.exec(line.replace(NOT_A_CLAIM, ' ')).slice(1).find(Boolean)}" is a claim: name its grade A or B evidence on the same line, or write NOT CHECKED or PROVISIONAL (RULES.md section 8)`);
-    { const st = STRONG.exec(line.replace(NOT_STRONG, ' ')); if (st && !GRADE_AB.test(raw) && !/not checked|provisional/i.test(raw)) err('claims', `"${raw.trim().slice(0, 90)}": "${st[1]}" is a strong claim: name its grade A or B evidence on the same line, or write NOT CHECKED or PROVISIONAL (the deep review's retirement pass, 3 Oct 18:09 UK)`); }
+    { const st = STRONG.exec(line.replace(OUTCOME_WORD, ' ').replace(NOT_STRONG, ' ')); if (st && !GRADE_AB.test(raw) && !/not checked|provisional/i.test(raw)) err('claims', `"${raw.trim().slice(0, 90)}": "${st[1]}" is a strong claim: name its grade A or B evidence on the same line, or write NOT CHECKED or PROVISIONAL (the deep review's retirement pass, 3 Oct 18:09 UK)`); }
     const lc = ledgerRow.get(raw.trim());
     if (lc && lc.length === 4 && !(/\bdecision:/i.test(lc[3]) && !/results:/i.test(lc[3])) && !/\bgrade [ABCD]\b/i.test(lc[3])) err('grade', `row "${(lc[0] || '').slice(0, 20)}": a new ledger row names its evidence grade in the evidence cell ("grade A" to "grade D"; RULES.md section 8)`);
     if (/\b\d{1,2}:\d{2}\b/.test(raw) && /\bUTC\b/.test(raw) && !/\bUK\b/.test(raw)) err('clock', `"${raw.trim().slice(0, 70)}": write times in UK time, not UTC`);

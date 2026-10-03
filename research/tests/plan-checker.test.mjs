@@ -180,8 +180,10 @@ caught(run({ added: ['The exact final year costs nothing.'] }), 'claims', 'an un
 caught(run({ added: ['The flag blend is ruled out for the bridge stage.'] }), 'claims', 'an ungraded "ruled out" (the retirement pass, 3 Oct)');
 caught(run({ added: ['S194 is the clean household.'] }), 'claims', 'an ungraded "clean household"');
 caught(run({ added: ['Both units read calibrated after access.'] }), 'claims', 'an ungraded "calibrated"');
+for (const w of ['Ruled out: the flag blend.', 'EXCLUDED: S126, grade C.', 'The arm is cured.', 'The response is not jitter.', 'No harm to S194.', 'S194 is a clean control.', 'The read is excluded from the family.'])
+  caught(run({ added: [w] }), 'claims', `an ungraded strong word in any case: "${w}" (the plan-auditor's MINOR 2 of 3 Oct 18:42 UK)`);
 ok(!run({ added: ['The flag blend is ruled out as a direct read (grade A).'] }).some(e => /strong claim/.test(e)), 'a graded "ruled out" passes');
-ok(!run({ added: ['The flag blend is not ruled out; S194 reads CALIBRATED (the reducer\'s outcome); uncalibrated tables.'] }).some(e => /strong claim/.test(e)), 'a negated "not ruled out", the outcome CALIBRATED and "uncalibrated" are not claims');
+ok(!run({ added: ['The flag blend is not ruled out; S194 reads CALIBRATED (the reducer\'s outcome), item 2 -> CALIBRATED; uncalibrated tables.'] }).some(e => /strong claim/.test(e)), 'a negated "not ruled out", the outcome ("reads CALIBRATED") and "uncalibrated" are not claims');
 ok(!run({ added: ['Whether the S126 family crosses is NOT CHECKED, so it is not clean households yet; ruled out NOT CHECKED.'] }).some(e => /strong claim/.test(e)), 'NOT CHECKED on the line lets a strong word stand');
 ok(!run({ added: ['7c shows that v2 costs survival (grade B: results-f1v2.txt).'] }).some(e => e.startsWith('[claims]')), 'the same claim with a grade B citation passes');
 ok(!run({ added: ['After a settled result, re-derive; the table shows the gap; it is not settled until 7e.'] }).some(e => e.startsWith('[claims]')), 'a noun use ("a settled result", "the table shows") and "not settled" are not claims');
@@ -253,7 +255,8 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   const REPO = join(S, '../..'), dir = mkdtempSync(join(tmpdir(), 'outc-'));
   const pred = t => { const f = join(dir, `p${Math.random().toString(36).slice(2)}.md`); writeFileSync(f, t); return f; };
   const cli = f => { try { execFileSync('node', [join(S, 'check-prediction.mjs'), '--outcomes', f], { cwd: REPO, stdio: 'pipe' }); return 0; } catch (e) { return e.status; } };
-  ok(cli(pred(`# x\n- **Run:** reduced by reduce-7al.mjs\n- **Kind:** test\n\n${fed}`)) === 1, 'the CLI refuses a new test whose reducer (reduce-7al.mjs) reaches its outcomes but prints no EDGES line (a new test is held to EDGES from 3 Oct; reduce-7al.mjs itself, registered before, is exempt by its commit date)');
+  ok(cli(pred(`# x\n- **Run:** reduced by reduce-7al.mjs\n- **Kind:** test\n\n${fed}`)) === 1, 'the CLI refuses a new (uncommitted) test whose reducer (reduce-7al.mjs) reaches its outcomes but prints no EDGES line - EDGES binds a prediction first committed from 3 Oct 19:00 UK');
+  ok(cli(join(S, 'predictions', 'diag-7aq.md')) === 0, 'the CLI passes diag-7aq.md, first committed 1 Oct (before EDGES_FROM): its reducer reaches every outcome, and EDGES does not apply (the plan-auditor\'s MINOR 3 of 3 Oct 18:42 UK)');
   ok(cli(pred(`# x\n- **Run:** batch.sh\n- **Kind:** test\n\n${fed}`)) === 1, 'planted: the CLI refuses a new test that names no reducer');
   ok(cli(pred(`# x\n- **Run:** reduced by reduce-nope.mjs\n- **Kind:** test\n\n${fed}`)) === 1, 'planted: the CLI refuses a reducer that does not exist');
   ok(cli(pred(`# x\n- **Run:** batch.sh\n- **Kind:** measurement\n`)) === 0, 'a measurement has no outcomes to reach');

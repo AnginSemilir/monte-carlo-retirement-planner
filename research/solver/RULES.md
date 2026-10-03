@@ -237,6 +237,12 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    (1 Oct 11:04 UK); the override is to accept only a scale below 1 (the planted case needs no more), which needs an
    unlock. Until then: nothing sets the variable but a planted run by hand, and CI and the pre-commit hook run without it. **Closed by the maintainer's unlock, 3 Oct:** the
    override only tightens - a scale below 1 is used, any other ignored (a scale of 100 leaves the '{' case at 6 s).
+27. The stale-phrase report (check-plan.mjs stalePhrases, 3 Oct) sees only a clause of 40 characters or more copied word for
+   word into another line: a stale phrase left in the same table line as the edit (the line is added again, carrying it),
+   or a shorter or reworded survivor, is not reported - run over the 10:08 and 18:13 FAILs' own commits it reports nothing
+   (the plan-auditor's MINOR 1 of 3 Oct 18:42 UK). The plan-auditor's grep of the corrected phrase stays the check that
+   catches those; the report is an aid, not a guard. The EDGES requirement binds predictions first committed from 3 Oct
+   19:00 UK, so one committed between its build (18:35 UK) and then would be exempt (none was).
 
 ---
 

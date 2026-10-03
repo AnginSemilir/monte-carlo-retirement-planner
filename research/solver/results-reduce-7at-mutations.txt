@@ -28,8 +28,13 @@ caught: items 3 and 4's premise ignores p
 caught: items 3 and 4's HELD side at a half
 caught: items 3 and 4's FALSIFIED side at a half
 caught: items 3 and 4 read read (b)'s rise as the part taken away
+caught: the partial-read guard dropped (a read (b) that did not act can falsify)
+caught: the left-flat bound at 1
+caught: the overshoot flag dropped
+caught: the gate ignores read (b) leaving more than the unsupported weight flat
 caught: extrapolate copies flat (the reader's own rule)
 caught: extrapolate does not clip at 1
 caught: extrapolate leaves R as the reader's (S not reproduced)
+caught: extrapolate marks no node it extrapolated
 caught: extrapolate from one node on each side, not two on the near side
-34 of 34 mutations caught
+39 of 39 mutations caught

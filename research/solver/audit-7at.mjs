@@ -12,12 +12,15 @@
  *            the share row in place of its flat copy, extrap-7at.mjs, less the claim at t + 1), and over the reads the
  *            stencil's weighted flat copy (the sum of w_i c_i over unsupported nodes), its extrapolated value (the same with
  *            read (b)'s c_i) and the unsupported corners' own survival (the sum of w_i S_i over unsupported nodes), in points;
- *            and the reads where (b) moved the read by more than 1e-9 (the read's responsiveness, O79's root-cause step);
+ *            and the reads where (b) moved the read by more than 1e-9 (the read's responsiveness, O79's root-cause step); and
+ *            the stencil's weight on unsupported nodes read (b) left as the reader had them (a row with one supported node on the
+ *            near side, or none: 'left'), so a read (b) that acts on only part of the copied weight is seen (the plan-auditor's
+ *            BLOCKING 1 of 3 Oct 22:45 UK);
  *   pbstage: each path's bridge-stage read-(b) term (4 decimals), in path order, so arms and reads pair;
  *   pafter:  each path's after-access residual (the claim at access less the outcome; '-' for a path with no claim at access),
  *            in path order (item 2's paired comparison).
  * Read (c) of the deep review (the claim at the path's position with its share moved to the last supported node) is not
- * built: moving the share moves money between pots and so the year's tax path, not only the read (the prediction says so).
+ * built (the prediction says why); read (b)'s FALSIFIED side is guarded by the weight it left flat instead.
  *   node research/solver/audit-7at.mjs [points=30] [paths per world=2000] part k/n [seed=7002]
  */
 import * as E from '../engine.mjs';
@@ -139,11 +142,11 @@ const XB = new Map();
 export const XCOUNT = { extrapolated: 0, flat: 0, tables: 0 };
 const extrapOf = (g, RD) => {
   if (XB.has(RD)) return XB.get(RD);
-  const x = extrapolate(g, RD), n = g.size, uc = new Float64Array(n), ub = new Float64Array(n), us = new Float64Array(n), z = new Float64Array(n);
+  const x = extrapolate(g, RD), n = g.size, uc = new Float64Array(n), ub = new Float64Array(n), us = new Float64Array(n), ul = new Float64Array(n), z = new Float64Array(n);
   XCOUNT.extrapolated += x.extrapolated; XCOUNT.flat += x.flat; XCOUNT.tables++;
-  for (let i = 0; i < n; i++) if (RD.p[i] < 0.5) { uc[i] = RD.c[i]; ub[i] = x.c[i]; us[i] = x.S[i]; }
+  for (let i = 0; i < n; i++) if (RD.p[i] < 0.5) { uc[i] = RD.c[i]; ub[i] = x.c[i]; us[i] = x.S[i]; ul[i] = x.ex[i] ? 0 : 1; }
   const one = () => 1, mk = c => ({ ...g, readerAcc: null, reader: { ...g.reader, of: { get: () => ({ chance: one, c, R: z }) } } });
-  const y = { gb: { ...g, reader: { ...g.reader, of: { get: () => ({ ...RD, c: x.c, R: x.R }) } } }, gc: mk(uc), gx: mk(ub), gs: mk(us) };
+  const y = { gb: { ...g, reader: { ...g.reader, of: { get: () => ({ ...RD, c: x.c, R: x.R }) } } }, gc: mk(uc), gx: mk(ub), gs: mk(us), gl: mk(ul) };
   XB.set(RD, y);
   return y;
 };
@@ -153,13 +156,13 @@ const readAt = (tab, ai, st, t) => {
   readValues(g, ls, Ln.beq[t], st, RDB, Ln.lresil[t], Ln.short[t], t);
   const v = 100 * RDB[0];
   const RD = g.reader && g.reader.years[t] ? g.reader.of.get(ls) : null;
-  if (!RD) return { v, u: 0, rc: 0, vb: v, fc: 0, xc: 0, su: 0 };
+  if (!RD) return { v, u: 0, rc: 0, vb: v, fc: 0, xc: 0, su: 0, lf: 0 };
   const { gu, gr } = indicatorsOf(g, RD), cl = x => (x <= 2e-6 ? 0 : x >= 1 - 2e-6 ? 1 : x);
   const u = cl(readValues(gu, ls, Ln.beq[t], st, RDB, Ln.lresil[t], Ln.short[t], t)[0]);
   const rc = cl(readValues(gr, ls, Ln.beq[t], st, RDB, Ln.lresil[t], Ln.short[t], t)[0]);
   const X = extrapOf(g, RD), rd = gg => 100 * readValues(gg, ls, Ln.beq[t], st, RDB, Ln.lresil[t], Ln.short[t], t)[0];
-  const vb = rd(X.gb), fc = u > 0 ? rd(X.gc) : 0, xc = u > 0 ? rd(X.gx) : 0, su = u > 0 ? rd(X.gs) : 0;
-  return { v, u, rc, vb, fc, xc, su };
+  const vb = rd(X.gb), fc = u > 0 ? rd(X.gc) : 0, xc = u > 0 ? rd(X.gx) : 0, su = u > 0 ? rd(X.gs) : 0, lf = u > 0 ? cl(readValues(X.gl, ls, Ln.beq[t], st, RDB, Ln.lresil[t], Ln.short[t], t)[0]) : 0;
+  return { v, u, rc, vb, fc, xc, su, lf };
 };
 export const UBINS = [[0, 1e-9, 'u0'], [1e-9, 0.25, 'ulo'], [0.25, Infinity, 'uhi']];
 const ubinOf = u => UBINS.find(([lo, hi]) => u >= lo && u < hi)[2];
@@ -203,7 +206,7 @@ UNITS.forEach(([id, A, SET, X], i) => {
     // weights, and the move at t
     const rdAt = new Float32Array(N * (T + 2)).fill(NaN), uw = new Float32Array(N * (T + 2)).fill(NaN), rw = new Float32Array(N * (T + 2)).fill(NaN), mv = new Int16Array(N * (T + 2)).fill(-1);
     // 7at: read (b) and the three unsupported-node sums, stored as the read is
-    const rbAt = new Float64Array(N * (T + 2)).fill(NaN), fcAt = new Float32Array(N * (T + 2)).fill(NaN), xcAt = new Float32Array(N * (T + 2)).fill(NaN), suAt = new Float32Array(N * (T + 2)).fill(NaN), raAt = new Float64Array(N * (T + 2)).fill(NaN);
+    const rbAt = new Float64Array(N * (T + 2)).fill(NaN), fcAt = new Float32Array(N * (T + 2)).fill(NaN), xcAt = new Float32Array(N * (T + 2)).fill(NaN), suAt = new Float32Array(N * (T + 2)).fill(NaN), raAt = new Float64Array(N * (T + 2)).fill(NaN), lfAt = new Float32Array(N * (T + 2)).fill(NaN);
     let row = 0;
     const choose = (t, st, held) => {
       const ai = chooseAction(r, st, t, held);
@@ -211,7 +214,7 @@ UNITS.forEach(([id, A, SET, X], i) => {
         if (t >= 1 && mv[row * (T + 2) + t - 1] >= 0) {
           const x = readAt(tab, mv[row * (T + 2) + t - 1], st, t);
           rdAt[row * (T + 2) + t] = x.v; uw[row * (T + 2) + t] = x.u; rw[row * (T + 2) + t] = x.rc;
-          raAt[row * (T + 2) + t] = x.v; rbAt[row * (T + 2) + t] = x.vb; fcAt[row * (T + 2) + t] = x.fc; xcAt[row * (T + 2) + t] = x.xc; suAt[row * (T + 2) + t] = x.su;
+          raAt[row * (T + 2) + t] = x.v; rbAt[row * (T + 2) + t] = x.vb; fcAt[row * (T + 2) + t] = x.fc; xcAt[row * (T + 2) + t] = x.xc; suAt[row * (T + 2) + t] = x.su; lfAt[row * (T + 2) + t] = x.lf;
         }
         mv[row * (T + 2) + t] = ai;
         scoreMoves(tab, st, t, S2, T2, B2, held, null, V2);
@@ -309,16 +312,16 @@ UNITS.forEach(([id, A, SET, X], i) => {
     if (access > 0) console.log(`${''.padEnd(16)} pstage ${L} world ${k}: ${Array.from({ length: N }, (_, j) => `${pq[j].toFixed(4)},${pd[j].toFixed(4)},${pe[j].toFixed(4)}`).join(';')}`);
     // 7at: the read-(b) term by year, the unsupported-node sums and the responsiveness count; each path's bridge-stage
     // read-(b) term; each path's after-access residual
-    const bd = Array.from({ length: T + 1 }, () => ({ nr: 0, db: 0, fc: 0, xc: 0, su: 0, moved: 0 })), pdb = new Float64Array(N);
+    const bd = Array.from({ length: T + 1 }, () => ({ nr: 0, db: 0, fc: 0, xc: 0, su: 0, lf: 0, moved: 0 })), pdb = new Float64Array(N);
     for (let j = 0; j < N; j++) for (let t = 0; t <= T; t++) {
       const c = claim[j * (T + 2) + t], c1 = claim[j * (T + 2) + t + 1];
       if (c !== c || c1 !== c1) continue;
       const o = j * (T + 2) + t + 1, rb = rbAt[o];
       if (rb !== rb) { console.error(`audit-7at: ${L} world ${k} path ${j} year ${t + 1}: a read without a read (b)`); process.exit(2); }
-      const y = bd[t]; y.nr++; y.db += rb - c1; y.fc += fcAt[o]; y.xc += xcAt[o]; y.su += suAt[o]; if (Math.abs(rb - raAt[o]) > 1e-9) y.moved++;
+      const y = bd[t]; y.nr++; y.db += rb - c1; y.fc += fcAt[o]; y.xc += xcAt[o]; y.su += suAt[o]; y.lf += lfAt[o]; if (Math.abs(rb - raAt[o]) > 1e-9) y.moved++;
       if (t < access) pdb[j] += rb - c1;
     }
-    for (let t = 0; t <= T; t++) { const y = bd[t]; console.log(`${''.padEnd(16)} bdec ${L} world ${k} year ${t}: reads ${y.nr} readb ${f4(y.db, y.nr)} flat ${f4(y.fc, y.nr)} extra ${f4(y.xc, y.nr)} unsS ${f4(y.su, y.nr)} moved ${y.moved}`); }
+    for (let t = 0; t <= T; t++) { const y = bd[t]; console.log(`${''.padEnd(16)} bdec ${L} world ${k} year ${t}: reads ${y.nr} readb ${f4(y.db, y.nr)} flat ${f4(y.fc, y.nr)} extra ${f4(y.xc, y.nr)} unsS ${f4(y.su, y.nr)} left ${f4(y.lf, y.nr)} moved ${y.moved}`); }
     if (access > 0) console.log(`${''.padEnd(16)} pbstage ${L} world ${k}: ${Array.from({ length: N }, (_, j) => pdb[j].toFixed(4)).join(';')}`);
     if (access <= T) console.log(`${''.padEnd(16)} pafter ${L} world ${k}: ${Array.from({ length: N }, (_, j) => { const c = claim[j * (T + 2) + access]; return c === c ? (c - 100 * ok[j]).toFixed(4) : '-'; }).join(';')}`);
   }

@@ -63,7 +63,7 @@ import { extrapolate } from './extrap-7at.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-7at.md';
-export const PTS = '30', SEED = '7002', W = '0.02', NPW = 2000, K = 3, ALPHA = 0.05, B = 20000, WORLD = 0, M = 1;
+export const PTS = '30', SEED = '7002', W = '0.02', NPW = 2000, K = 3, ALPHA = 0.05, B = 20000, WORLD = 0, M = 1, LEFT_MAX = 0.25;
 // [household, reader, setting, the allowance axis], audit-7at.mjs's UNITS
 export const UNITS7 = [['S370', 'READER', 'TS+J', 'DEFAULT'], ['S370', 'READER', 'TS+J', 'PCLSI'], ['S370', 'READER', 'TS+J', 'WALL'], ['S130', 'READER', 'TS+J', 'DEFAULT'], ['S130', 'READER', 'TS+J', 'PCLSI'], ['S130', 'READER', 'TS+J', 'WALL']];
 export const labelOf = (s, x = 'DEFAULT') => `${s}/W${W}${x === 'DEFAULT' ? '' : `/${x}`}`;
@@ -72,7 +72,7 @@ export const axisOf = l => (l.endsWith('/WALL') ? 'WALL' : l.endsWith('/PCLSI') 
 export const BUCKETS = { DEFAULT: '0,0.5,1', PCLSI: '0,0.5,1', WALL: '0,0.5,0.75,1' };
 export const HH = ['S130', 'S370'];
 
-const BDECL = /^\s+bdec (\S+?)\/(\S+) world (\d+) year (\d+): reads (\d+) readb (\S+) flat (\S+) extra (\S+) unsS (\S+) moved (\d+)$/;
+const BDECL = /^\s+bdec (\S+?)\/(\S+) world (\d+) year (\d+): reads (\d+) readb (\S+) flat (\S+) extra (\S+) unsS (\S+) left (\S+) moved (\d+)$/;
 const PBSTAGEL = /^\s+pbstage (\S+?)\/(\S+) world (\d+): (.*)$/;
 const PAFTERL = /^\s+pafter (\S+?)\/(\S+) world (\d+): (.*)$/;
 const XCOUNTL = /^\s+xcount (\S+?)\/(\S+): tables (\d+) extrapolated (\d+) flat (\d+)$/;
@@ -88,7 +88,7 @@ export function parse(text) {
     if (!cur) continue;
     let m;
     const mine = (a, l) => a === cur.arm && l === cur.label;
-    if ((m = BDECL.exec(line)) && mine(m[1], m[2])) cur.bdec.push({ k: +m[3], t: +m[4], reads: +m[5], db: num(m[6]), flat: num(m[7]), extra: num(m[8]), unsS: num(m[9]), moved: +m[10] });
+    if ((m = BDECL.exec(line)) && mine(m[1], m[2])) cur.bdec.push({ k: +m[3], t: +m[4], reads: +m[5], db: num(m[6]), flat: num(m[7]), extra: num(m[8]), unsS: num(m[9]), left: num(m[10]), moved: +m[11] });
     else if ((m = PBSTAGEL.exec(line)) && mine(m[1], m[2])) cur.pbstage.push({ k: +m[3], paths: m[4].split(';').map(Number) });
     else if ((m = PAFTERL.exec(line)) && mine(m[1], m[2])) cur.pafter.push({ k: +m[3], paths: m[4].split(';').map(x => (x === '-' ? null : Number(x))) });
     else if ((m = XCOUNTL.exec(line)) && mine(m[1], m[2])) cur.xcount = { tables: +m[3], extrapolated: +m[4], flat: +m[5] };
@@ -151,6 +151,7 @@ export function gate(units, refAr, refAp, { pts = PTS, npw = NPW } = {}) {
         if (none && y.reads > 0 && !(Math.abs(y.db * y.reads - d.d * d.n) <= tol(y.reads) + 5e-4 * d.n)) { bad.push(`${tag} world ${k} year ${y.t}: read (b) ${(y.db * y.reads).toFixed(2)} where the read has no unsupported weight, the read ${(d.d * d.n).toFixed(2)}`); break; }
         if (none && y.moved !== 0) { bad.push(`${tag} world ${k} year ${y.t}: read (b) moved ${y.moved} reads with no unsupported weight`); break; }
         if (y.moved > y.reads) { bad.push(`${tag} world ${k} year ${y.t}: read (b) moved ${y.moved} of ${y.reads} reads`); break; }
+        if (y.reads > 0 && !(y.left >= -1e-4 && y.left <= (none ? 1e-4 : d.unsup + 1e-4))) { bad.push(`${tag} world ${k} year ${y.t}: read (b) left ${y.left} of the unsupported weight ${d.unsup} flat`); break; }
         if (y.reads > 0 && [y.flat, y.extra, y.unsS].some(v => !(v >= -1e-4 && v <= 100 + 1e-4) || (none && Math.abs(v) > 1e-4))) { bad.push(`${tag} world ${k} year ${y.t}: the unsupported sums flat ${y.flat} extra ${y.extra} unsS ${y.unsS} (unsupported weight ${d.unsup})`); break; }
       }
       const P = pb[0].paths, sum = P.reduce((t, x) => t + x, 0), bsum = bd.filter(x => x.t < ac.year && x.reads > 0).reduce((t, x) => t + x.reads * x.db, 0);
@@ -184,11 +185,17 @@ export function item2(byHH, { b = B } = {}) {
   return { hs, outcome };
 }
 /* ITEMS 3 and 4: one household's world-0 per-path read terms under DEFAULT and PCLSI, for the read and read (b) */
-export function itemB({ dD, dP, bD, bP }, { b = B } = {}) {
+export function itemB({ dD, dP, bD, bP, leftShare = 0 }, { b = B } = {}) {
   const Rd = dP.map((x, j) => x - dD[j]), Rb = bP.map((x, j) => x - bD[j]), X = Rd.map((x, j) => x - Rb[j]);
   const r = mean(Rd), pR = flipP(Rd, b, 7001), rise = pR < ALPHA && r > 0;
-  const it = rise ? twoWay(X.map((x, j) => x - (2 / 3) * Rd[j]), X.map((x, j) => Rd[j] / 3 - x), { b }) : { read: 'INCONCLUSIVE', note: 'NO RISE' };
-  return { rise: { r, pR, there: rise, sd: sdOf(Rd) }, rb: mean(Rb), share: mean(X) / r, it, levelD: mean(dP), levelB: mean(bP) };
+  let it = rise ? twoWay(X.map((x, j) => x - (2 / 3) * Rd[j]), X.map((x, j) => Rd[j] / 3 - x), { b }) : { read: 'INCONCLUSIVE', note: 'NO RISE' };
+  // FALSIFIED only when read (b) acted on the copied weight: left flat on more than LEFT_MAX of it, a FALSIFIED side reads
+  // INCONCLUSIVE (PARTIAL READ) - a read that did not act cannot clear the flat copy (the plan-auditor's BLOCKING 1 of 3 Oct
+  // 22:45 UK); and a HELD side that takes away more than four thirds of the rise is flagged OVERSHOT (MINOR 4)
+  if (it.read === 'FALSIFIED' && !(leftShare <= LEFT_MAX)) it = { ...it, read: 'INCONCLUSIVE', note: 'PARTIAL READ' };
+  const pOver = rise ? flipP(X.map((x, j) => x - (4 / 3) * Rd[j]), b, 7015) : 1;
+  if (it.read === 'HELD' && pOver < ALPHA) it = { ...it, note: 'OVERSHOT' };
+  return { rise: { r, pR, there: rise, sd: sdOf(Rd) }, rb: mean(Rb), share: mean(X) / r, it, pOver, leftShare, levelD: mean(dP), levelB: mean(bP) };
 }
 
 const f4 = x => (Number.isFinite(x) ? x.toFixed(4) : '-'), f2 = x => (Number.isFinite(x) ? x.toFixed(2) : '-'), pe = x => (Number.isFinite(x) ? x.toExponential(2) : '-');
@@ -210,14 +217,16 @@ export function reading(units, out = console.log, { b = B } = {}) {
   for (const h of I2.hs) out(`  ${h.id.padEnd(5)} paths ${h.n} mean D ${f4(h.m)} (sd ${f2(h.sd)}) | TOST p ${pe(h.pLo)} and ${pe(h.pHi)} | beyond: above p ${pe(h.pAbove)} Holm ${pe(h.hAbove)}, below p ${pe(h.pBelow)} Holm ${pe(h.hBelow)} | ${h.read}`);
   out(`  -> ${I2.outcome} (HELD when both read EQUIVALENT; FALSIFIED when either DIFFERS)`);
   // items 3 and 4
+  // the share of the world-0 bridge reads' unsupported weight read (b) left flat (the bdec lines' left over the dec lines' unsup)
+  const leftOf = (id, x) => { const u = get(id, x), A = u.access.year; let w = 0, l = 0; for (const y of u.bdec.filter(z => z.k === WORLD && z.t < A && z.reads > 0)) { const d = u.dec.find(z => z.k === WORLD && z.t === y.t); w += y.reads * d.unsup; l += y.reads * y.left; } return w > 0 ? l / w : 0; };
   const termsOf = (id, x, k) => ({ d: get(id, x).pstage.find(p => p.k === k).paths.map(p => p[1]), bb: get(id, x).pbstage.find(p => p.k === k).paths });
   const IB = {};
   for (const [n, id] of [[3, 'S130'], [4, 'S370']]) {
     const D_ = termsOf(id, 'DEFAULT', WORLD), P_ = termsOf(id, 'PCLSI', WORLD);
-    const I = IB[id] = itemB({ dD: D_.d, dP: P_.d, bD: D_.bb, bP: P_.bb }, { b });
-    out(`\nITEM ${n} (O76's read (b) on ${id}${n === 3 ? ', the decisive read' : ''}; world ${WORLD}, the bridge stage, per path PCLSI less DEFAULT): the read term's rise Rd ${f4(I.rise.r)} points a path (sd ${f2(I.rise.sd)}, p ${pe(I.rise.pR)}: ${I.rise.there ? 'THERE' : 'NOT SHOWN'}); read (b)'s rise Rb ${f4(I.rb)}; X = Rd - Rb, the share read (b) takes away ${f2(I.share)}`);
+    const I = IB[id] = itemB({ dD: D_.d, dP: P_.d, bD: D_.bb, bP: P_.bb, leftShare: Math.max(leftOf(id, 'DEFAULT'), leftOf(id, 'PCLSI')) }, { b });
+    out(`\nITEM ${n} (O76's read (b) on ${id}${n === 3 ? ', the decisive read' : ''}; world ${WORLD}, the bridge stage, per path PCLSI less DEFAULT): the read term's rise Rd ${f4(I.rise.r)} points a path (sd ${f2(I.rise.sd)}, p ${pe(I.rise.pR)}: ${I.rise.there ? 'THERE' : 'NOT SHOWN'}); read (b)'s rise Rb ${f4(I.rb)}; X = Rd - Rb, the share read (b) takes away ${f2(I.share)}; the share of the unsupported weight read (b) left flat ${f2(I.leftShare)} (FALSIFIED needs ${LEFT_MAX} or less); overshoot p (X above 4Rd/3) ${pe(I.pOver)}`);
     if (I.it.note) out(`  -> ${I.it.read} (${I.it.note})`);
-    else { out(`  HELD side: mean(X - 2Rd/3) ${f4(I.it.mU)}, p ${pe(I.it.pU)}, Holm ${pe(I.it.hU)}; FALSIFIED side: mean(Rd/3 - X) ${f4(I.it.mD)}, p ${pe(I.it.pD)}, Holm ${pe(I.it.hD)}`); out(`  -> ${I.it.read}`); }
+    else { out(`  HELD side: mean(X - 2Rd/3) ${f4(I.it.mU)}, p ${pe(I.it.pU)}, Holm ${pe(I.it.hU)}; FALSIFIED side: mean(Rd/3 - X) ${f4(I.it.mD)}, p ${pe(I.it.pD)}, Holm ${pe(I.it.hD)}`); out(`  -> ${I.it.read}${I.it.note ? ` (${I.it.note})` : ''}`); }
   }
   // reported
   out(`\nREPORTED (not items):`);
@@ -265,7 +274,7 @@ export function builtLog(o = {}) {
         const db = reads ? (per - s + (o.readbOff && X === 'WALL' && k === 1 && t === 3 ? 0.5 : 0)).toFixed(4) : '-';
         const moved = bridge && reads ? (o.noMove && X === 'PCLSI' ? 0 : reads) : (o.movedAfter && X === 'DEFAULT' && t === 4 && k === 0 ? 1 : 0);
         if (o.noBdec && X === 'WALL' && k === 2 && t === 5) continue;
-        add.push(`${''.padEnd(16)} bdec ${L} world ${k} year ${t}: reads ${o.bdecReads && X === 'PCLSI' && k === 0 && t === 3 ? reads - 1 : reads} readb ${db} flat ${reads ? (o.flatHigh && X === 'DEFAULT' && t === 0 ? '120.0000' : bridge ? '20.0000' : '0.0000') : '-'} extra ${reads ? (bridge ? '15.0000' : '0.0000') : '-'} unsS ${reads ? (bridge ? '1.0000' : '0.0000') : '-'} moved ${moved}`);
+        add.push(`${''.padEnd(16)} bdec ${L} world ${k} year ${t}: reads ${o.bdecReads && X === 'PCLSI' && k === 0 && t === 3 ? reads - 1 : reads} readb ${db} flat ${reads ? (o.flatHigh && X === 'DEFAULT' && t === 0 ? '120.0000' : bridge ? '20.0000' : '0.0000') : '-'} extra ${reads ? (bridge ? '15.0000' : '0.0000') : '-'} unsS ${reads ? (bridge ? '1.0000' : '0.0000') : '-'} left ${reads ? (bridge ? (o.leftHigh && X === 'WALL' && t === 0 ? '0.4000' : '0.0500') : '0.0000') : '-'} moved ${moved}`);
       }
       if (!(o.noPb && X === 'WALL' && k === 0)) {
         const pp = Array.from({ length: N }, (_, j) => (j < fail ? 6 - sh : 4 - 2 * sh) + (o.pbOff && X === 'DEFAULT' && k === 1 && j === 3 ? 0.5 : 0));
@@ -295,7 +304,7 @@ function planted() {
   for (const [nm, o, ro] of [['an unregistered unit', { extra: true }], ['a missing unit', { skip: 'S370|WALL' }], ['a WALL unit on three buckets', { wallBuckets: true }],
     ['a missing bdec year', { noBdec: true }], ['bdec reads off the dec reads', { bdecReads: true }], ['a flat-copy sum above 100', { flatHigh: true }],
     ['no pbstage line', { noPb: true }], ['a pbstage path off the bdec sums', { pbOff: true }], ['no pafter line', { noPa: true }], ['a pafter claim off the after stage\'s mean', { paOff: true }],
-    ['a pafter count off the after stage\'s paths', { paShort: true }], ['no xcount line', { noX: true }], ['(7ar\'s checks alone, on a WALL unit) a missing dbin line', { noDbinWall: true }], ['read (b) that moves no bridge read (O79)', { noMove: true }],
+    ['a pafter count off the after stage\'s paths', { paShort: true }], ['no xcount line', { noX: true }], ['read (b) leaving more weight flat than is unsupported', { leftHigh: true }], ['(7ar\'s checks alone, on a WALL unit) a missing dbin line', { noDbinWall: true }], ['read (b) that moves no bridge read (O79)', { noMove: true }],
     ['an S130 table that is not 7ar\'s', {}, { refTable: true }], ['an S130 pstage line that is not 7ar\'s', {}, { refPstage: true }], ['an S370 node line that is not 7ap\'s', {}, { refApNode: true }]]) cases.push([`the gate refuses ${nm}`, refused(o, ro || {}), 'true']);
   // the built set's READER years carry unsupported weight 0.3 everywhere (7ar's built log), so the 'no unsupported weight'
   // checks are shown on a built set with the after-access years' weight set to 0, as the real runs have it
@@ -311,12 +320,15 @@ function planted() {
   const it3 = (o, b = 2000) => { const I = itemB(o, { b }); REACHED[3].add(I.it.read); REACHED[4].add(I.it.read); return I; };
   { const I = it3({ dD: base, dP: add(base, 2, 1), bD: base, bP: add(base, 0.1, 1, 2.9) }); cases.push(['read (b) takes the whole rise away: HELD', I.it.read, 'HELD']); }
   { const I = it3({ dD: base, dP: add(base, 2, 1), bD: base, bP: add(base, 2, 1) }); cases.push(['read (b) rises as the read does: FALSIFIED', I.it.read, 'FALSIFIED']); }
+  { const I = it3({ dD: base, dP: add(base, 2, 1), bD: base, bP: add(base, 2, 1), leftShare: 0.6 }); cases.push(['read (b) rises as the read does but left 0.6 of the copied weight flat: INCONCLUSIVE (PARTIAL READ)', `${I.it.read} ${I.it.note}`, 'INCONCLUSIVE PARTIAL READ']); EDGES.push('a partial read (b)'); }
+  { const I = it3({ dD: base, dP: add(base, 2, 1), bD: base, bP: add(base, 2, 1), leftShare: 0.25 }); cases.push(['read (b) left exactly a quarter flat: FALSIFIED stands', I.it.read, 'FALSIFIED']); EDGES.push('left flat at the bound'); }
   { const I = it3({ dD: base, dP: add(base, 2, 1), bD: base, bP: add(base, 1, 1, 2.9) }); cases.push(['read (b) takes half the rise away: INCONCLUSIVE', I.it.read, 'INCONCLUSIVE']); }
   { const I = it3({ dD: base, dP: add(base, 0, 1), bD: base, bP: base }); cases.push(['no rise in the read term: NO RISE', `${I.rise.there} ${I.it.read} ${I.it.note}`, 'false INCONCLUSIVE NO RISE']); EDGES.push('no rise'); }
   { const I = it3({ dD: base, dP: add(base, 0.05, 5), bD: base, bP: add(base, -3, 0) }); cases.push(['a rise too small to show (p above 0.05) with read (b) far below: NO RISE, not HELD', `${I.rise.r > 0} ${I.rise.there} ${I.it.read}`, 'true false INCONCLUSIVE']); EDGES.push('a positive rise not shown'); }
   { const I = it3({ dD: base, dP: add(base, 3, 0), bD: base, bP: add(base, 1, 0) }); cases.push(['read (b) takes away exactly two thirds, no noise: not HELD', I.it.read, 'INCONCLUSIVE']); EDGES.push('read (b) at exactly 2/3'); }
   { const I = it3({ dD: base, dP: add(base, 3, 0), bD: base, bP: add(base, 2, 0) }); cases.push(['read (b) takes away exactly a third, no noise: not FALSIFIED', I.it.read, 'INCONCLUSIVE']); EDGES.push('read (b) at exactly 1/3'); }
-  { const I = it3({ dD: base, dP: add(base, 2, 1), bD: base, bP: add(base, -1, 1, 2.9) }); cases.push(['read (b) overshoots (takes away more than the rise): HELD', I.it.read, 'HELD']); EDGES.push('read (b) overshooting'); }
+  { const I = it3({ dD: base, dP: add(base, 2, 1), bD: base, bP: add(base, -1, 1, 2.9) }); cases.push(['read (b) overshoots (takes away 1.5 times the rise): HELD, flagged OVERSHOT', `${I.it.read} ${I.it.note}`, 'HELD OVERSHOT']); EDGES.push('read (b) overshooting'); }
+  { const I = it3({ dD: base, dP: add(base, 2, 1), bD: base, bP: add(base, 0.1, 1, 2.9) }); cases.push(['read (b) takes nearly the whole rise away: HELD, not flagged', `${I.it.read} ${I.it.note || '-'}`, 'HELD -']); }
   const it2 = (byHH, b = 2000) => { const I = item2(byHH, { b }); REACHED[2].add(I.outcome); return I; };
   { const I = it2([{ id: 'S130', D: noise(0.5) }, { id: 'S370', D: noise(0.5, 2.3) }]); cases.push(['WALL within 1 point of PCLSI on both: HELD', I.outcome, 'HELD']); }
   { const I = it2([{ id: 'S130', D: add(noise(0.5), 2) }, { id: 'S370', D: noise(0.5, 2.3) }]); cases.push(['WALL 2 points above PCLSI on S130: FALSIFIED', `${I.hs[0].read} ${I.outcome}`, 'DIFFERS FALSIFIED']); }
@@ -337,6 +349,7 @@ function planted() {
     cases.push(['extrapolate: the unsupported nodes follow the last two supported (0.6, 0.5, 0.4)', JSON.stringify(Array.from(x.c).map(v => +v.toFixed(6))), JSON.stringify([0.9, 0.8, 0.7, 0.6, 0.5, 0.4])]);
     cases.push(['extrapolate: every node still reproduces S', String(Array.from(x.c).every((cv, i) => Math.abs(p[i] * cv + x.R[i] - S[i]) < 1e-12)), 'true']);
     cases.push(['extrapolate: 3 nodes extrapolated, none left flat', `${x.extrapolated} ${x.flat}`, '3 0']);
+    cases.push(['extrapolate: the nodes extrapolated are marked (the left-flat weight reads them)', Array.from(x.ex).join(''), '000111']);
     const x1 = extrapolate(g, { p: [1, 0.1, 0.1, 0.1, 0.1, 0.1], c: [0.9, 0.9, 0.9, 0.9, 0.9, 0.9], R: S.map(() => 0) });
     cases.push(['extrapolate: one supported node leaves the row flat (nothing to extrapolate from)', `${x1.extrapolated} ${x1.flat} ${Array.from(x1.c).every(v => v === 0.9)}`, '0 5 true']); EDGES.push('one supported node in a row');
     const x2 = extrapolate(g, { p: [1, 1, 0.1, 0.1, 0.1, 0.1], c: [0.2, 0.9, 0.9, 0.9, 0.9, 0.9], R: S.map(() => 0) });
@@ -350,7 +363,7 @@ function planted() {
     cases.push(['the WALL buckets are audit-7at.mjs\'s', m ? String(JSON.parse(m[1]).join(',') === BUCKETS.WALL) : 'no WALLB line', 'true']); }
   cases.push(['every S130 DEFAULT and PCLSI unit is a 7ar unit', String(UNITS7.filter(u => u[0] === 'S130' && u[3] !== 'WALL').every(([id, a, s, x]) => AR.UNITS7.some(y => y[0] === id && y[1] === a && y[2] === s && y[3] === x))), 'true']);
   cases.push(['every S370 DEFAULT and PCLSI unit is a 7ap unit', String(UNITS7.filter(u => u[0] === 'S370' && u[3] !== 'WALL').every(([id, a, s, x]) => AP.UNITS7.some(y => y[0] === id && y[1] === a && y[2] === s && y[3] === x))), 'true']);
-  cases.push(['parse reads a bdec line', JSON.stringify(parse('S130             case | unit READER/TS+J/W0.02/WALL | lambda x tier own riskAbove auto mix 3\n                 bdec READER/TS+J/W0.02/WALL world 0 year 1: reads 1990 readb 1.2000 flat 20.5000 extra 15.0000 unsS 0.1000 moved 1200\n')[0].bdec), JSON.stringify([{ k: 0, t: 1, reads: 1990, db: 1.2, flat: 20.5, extra: 15, unsS: 0.1, moved: 1200 }])]);
+  cases.push(['parse reads a bdec line', JSON.stringify(parse('S130             case | unit READER/TS+J/W0.02/WALL | lambda x tier own riskAbove auto mix 3\n                 bdec READER/TS+J/W0.02/WALL world 0 year 1: reads 1990 readb 1.2000 flat 20.5000 extra 15.0000 unsS 0.1000 left 0.0500 moved 1200\n')[0].bdec), JSON.stringify([{ k: 0, t: 1, reads: 1990, db: 1.2, flat: 20.5, extra: 15, unsS: 0.1, left: 0.05, moved: 1200 }])]);
   const fails = cases.filter(([, got, want]) => got !== want);
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }
   return cases.length;

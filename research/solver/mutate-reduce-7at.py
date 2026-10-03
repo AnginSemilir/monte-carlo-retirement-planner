@@ -35,17 +35,22 @@ M = [
     ("item 2's TOST on one side only", "Math.max(h.pLo, h.pHi) < ALPHA ? 'EQUIVALENT'", "h.pLo < ALPHA ? 'EQUIVALENT'"),
     ("item 2 without Holm on DIFFERS", "const adj = holm(hs.flatMap(h => [h.pAbove, h.pBelow]));", "const adj = hs.flatMap(h => [h.pAbove, h.pBelow]);"),
     ("item 2 ignores a WALL arm below PCLSI", "h.hAbove < ALPHA || h.hBelow < ALPHA ? 'DIFFERS'", "h.hAbove < ALPHA ? 'DIFFERS'"),
-    ("item 2's margin at 3 points", "WORLD = 0, M = 1;", "WORLD = 0, M = 3;"),
+    ("item 2's margin at 3 points", "WORLD = 0, M = 1, LEFT_MAX", "WORLD = 0, M = 3, LEFT_MAX"),
     ("items 3 and 4's premise ignores p", "rise = pR < ALPHA && r > 0;", "rise = r > 0;"),
     ("items 3 and 4's HELD side at a half", "X.map((x, j) => x - (2 / 3) * Rd[j])", "X.map((x, j) => x - (1 / 2) * Rd[j])"),
     ("items 3 and 4's FALSIFIED side at a half", "X.map((x, j) => Rd[j] / 3 - x)", "X.map((x, j) => Rd[j] / 2 - x)"),
     ("items 3 and 4 read read (b)'s rise as the part taken away", "X = Rd.map((x, j) => x - Rb[j])", "X = Rb.map((x, j) => x)"),
+    ("the partial-read guard dropped (a read (b) that did not act can falsify)", "if (it.read === 'FALSIFIED' && !(leftShare <= LEFT_MAX))", "if (false)"),
+    ("the left-flat bound at 1", "LEFT_MAX = 0.25;", "LEFT_MAX = 1;"),
+    ("the overshoot flag dropped", "if (it.read === 'HELD' && pOver < ALPHA)", "if (false)"),
+    ("the gate ignores read (b) leaving more than the unsupported weight flat", "if (y.reads > 0 && !(y.left >= -1e-4 && y.left <= (none ? 1e-4 : d.unsup + 1e-4))) {", "if (false) {"),
 ]
 # extrap-7at.mjs's mutations, run through the reducer's planted set (it imports the module)
 XM = [
     ("extrapolate copies flat (the reader's own rule)", "c[idx(ii)] = Math.min(1, Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1)));", "c[idx(ii)] = c1;"),
     ("extrapolate does not clip at 1", "Math.min(1, Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1)))", "Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1))"),
     ("extrapolate leaves R as the reader's (S not reproduced)", "for (let i = 0; i < n; i++) R[i] = S[i] - RD.p[i] * c[i];", "for (let i = 0; i < n; i++) R[i] = RD.R[i];"),
+    ("extrapolate marks no node it extrapolated", "ex[idx(ii)] = 1; extrapolated++;", "extrapolated++;"),
     ("extrapolate from one node on each side, not two on the near side", "for (let jj = j1 + dir; jj >= 0 && jj < ni; jj += dir) if (sup(idx(jj))) { j2 = jj; break; }", "for (let jj = j1 - dir; jj >= 0 && jj < ni; jj -= dir) if (sup(idx(jj))) { j2 = jj; break; }"),
 ]
 r = subprocess.run(['node', SRC, '--planted'], capture_output=True, text=True)

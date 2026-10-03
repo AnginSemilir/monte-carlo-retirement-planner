@@ -9,11 +9,12 @@
  * g.axes.a.pts); R_i = S_i - p_i c_i with S_i = p_i c_i(reader) + R_i(reader), so every node still reproduces S_i. A row with
  * one supported node on the near side keeps the flat copy (nothing to extrapolate from). Research only: no solver file reads
  * this.
- *   extrapolate(g, RD) -> { c, R, extrapolated, flat }: the read-(b) arrays and the counts of unsupported nodes extrapolated
- *   and left flat (rows without support excluded: the reader's row copy stands)
+ *   extrapolate(g, RD) -> { c, R, S, ex, extrapolated, flat }: the read-(b) arrays, ex[i] = 1 on each node extrapolated (so a
+ *   read can say how much of its unsupported weight read (b) left as the reader had it), and the counts of unsupported nodes
+ *   extrapolated and left flat (rows without support excluded: the reader's row copy stands)
  */
 export function extrapolate(g, RD) {
-  const n = g.size, c = Float64Array.from(RD.c), R = new Float64Array(n), S = new Float64Array(n);
+  const n = g.size, c = Float64Array.from(RD.c), R = new Float64Array(n), S = new Float64Array(n), ex = new Uint8Array(n);
   const { np, ni, nt } = g, NG = g.gain.length, NCL = g.pcls.length, A = g.axes.a.pts;
   for (let i = 0; i < n; i++) S[i] = RD.p[i] * RD.c[i] + RD.R[i];
   const sup = i => RD.p[i] >= 0.5;
@@ -36,9 +37,9 @@ export function extrapolate(g, RD) {
       if (j2 < 0) { flat++; continue; }
       const c1 = RD.c[idx(j1)], c2 = RD.c[idx(j2)], a1 = A[j1], a2 = A[j2];
       c[idx(ii)] = Math.min(1, Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1)));
-      extrapolated++;
+      ex[idx(ii)] = 1; extrapolated++;
     }
   }
   for (let i = 0; i < n; i++) R[i] = S[i] - RD.p[i] * c[i];
-  return { c, R, S, extrapolated, flat };
+  return { c, R, S, ex, extrapolated, flat };
 }

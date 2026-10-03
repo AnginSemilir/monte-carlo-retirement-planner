@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+# 7AT'S REDUCER'S PLANTED CHECKS, SHOWN TO FAIL (rule 6): each line breaks one part of reduce-7at.mjs's gate, items or
+# arithmetic (or extrap-7at.mjs's extrapolation) in a scratch copy beside it, runs the planted set on the copy, and must see
+# PLANTED CHECK FAILED. Every mutation must apply exactly as written; the true script must pass. Any mutation not applied or
+# not caught fails the script (exit 1).
+#   python3 research/solver/mutate-reduce-7at.py > research/solver/results-reduce-7at-mutations.txt
+import os, subprocess, sys
+HERE = os.path.dirname(os.path.abspath(__file__))
+SRC, DST = os.path.join(HERE, 'reduce-7at.mjs'), os.path.join(HERE, 'zz-mut-7at.mjs')
+XSRC, XDST = os.path.join(HERE, 'extrap-7at.mjs'), os.path.join(HERE, 'zz-mut-extrap-7at.mjs')
+base, xbase = open(SRC).read(), open(XSRC).read()
+M = [
+    ("the gate accepts an unregistered unit", "{ bad.push(`${tag}: not a registered unit`); continue; }", "{ continue; }"),
+    ("the gate ignores a missing unit", "if (k !== 1) bad.push(`${id} ${a}/${l}: ${k} unit lines, not 1`);", ""),
+    ("the gate ignores the axis's buckets", " || u.axis.pcls !== BUCKETS[X]", ""),
+    ("the WALL buckets read as three", "WALL: '0,0.5,0.75,1' };", "WALL: '0,0.5,1' };"),
+    ("the identity skips the table", "for (const f of ['table', 'ran', 'gap', 'joint', 'access', 'axis'])", "for (const f of ['ran', 'gap', 'joint', 'access', 'axis'])"),
+    ("the S130 identity skips 7ar's pstage lines", "AR_LINES = [...AP_LINES, 'dec', 'dbin', 'moves', 'pstage'];", "AR_LINES = [...AP_LINES, 'dec', 'dbin', 'moves'];"),
+    ("the S370 identity skips the node lines", "const AP_LINES = ['bref', 'node', ", "const AP_LINES = ['bref', "),
+    ("the gate skips 7ar's own checks", "if (arBad.length) bad.push(", "if (false) bad.push("),
+    ("the gate ignores a missing bdec year", "if (bd.filter(x => x.t === t).length !== 1) {", "if (bd.filter(x => x.t === t).length > 1) {"),
+    ("the gate ignores bdec reads off the dec reads", "if (!d || d.reads !== y.reads) {", "if (!d) {"),
+    ("read (b) not held to the read where there is no unsupported weight", "if (none && y.reads > 0 && !(Math.abs(y.db * y.reads - d.d * d.n) <= tol(y.reads) + 5e-4 * d.n)) {", "if (false) {"),
+    ("read (b) allowed to move a read with no unsupported weight", "if (none && y.moved !== 0) {", "if (false) {"),
+    ("the unsupported sums not bounded", "[y.flat, y.extra, y.unsS].some(v => !(v >= -1e-4 && v <= 100 + 1e-4) || (none && Math.abs(v) > 1e-4))", "false"),
+    ("the gate ignores a missing pbstage line", "if (pb.length !== 1 || pb[0].paths.length !== npw", "if (pb.length > 1 || (pb.length && pb[0].paths.length !== npw)"),
+    ("the pbstage sums not checked", "if (!(Math.abs(sum - bsum) <= tol(npw * Math.max(1, ac.year)))) bad.push", "if (false) bad.push"),
+    ("the gate ignores a missing pafter line", "if (pa.length !== 1 || pa[0].paths.length !== npw", "if (pa.length > 1 || (pa.length && pa[0].paths.length !== npw)"),
+    ("the pafter count not checked", "if (!sa || A.length !== sa.n) bad.push", "if (!sa) bad.push"),
+    ("the pafter mean not checked", "else if (A.length && !(Math.abs(A.reduce((t, x) => t + x, 0) / A.length - sa.mean) <= 5e-4 + 1e-4 * Math.abs(sa.mean))) bad.push", "else if (false) bad.push"),
+    ("the gate ignores a missing xcount line", "if (!u.xcount) bad.push(`${tag}: no xcount line`);", ""),
+    ("the responsiveness check dropped (O79)", "if (k === WORLD && !bd.some(y => y.t < ac.year && y.moved > 0)) bad.push", "if (false) bad.push"),
+    ("item 1 reads either unit calibrated as HELD", "us.every(u => u.read === 'CALIBRATED') ? 'HELD'", "us.some(u => u.read === 'CALIBRATED') ? 'HELD'"),
+    ("item 1 ignores a pessimistic unit", "us.some(u => u.read === 'OPTIMISTIC' || u.read === 'PESSIMISTIC') ? 'FALSIFIED'", "us.some(u => u.read === 'OPTIMISTIC') ? 'FALSIFIED'"),
+    ("item 2's TOST on one side only", "Math.max(h.pLo, h.pHi) < ALPHA ? 'EQUIVALENT'", "h.pLo < ALPHA ? 'EQUIVALENT'"),
+    ("item 2 without Holm on DIFFERS", "const adj = holm(hs.flatMap(h => [h.pAbove, h.pBelow]));", "const adj = hs.flatMap(h => [h.pAbove, h.pBelow]);"),
+    ("item 2 ignores a WALL arm below PCLSI", "h.hAbove < ALPHA || h.hBelow < ALPHA ? 'DIFFERS'", "h.hAbove < ALPHA ? 'DIFFERS'"),
+    ("item 2's margin at 3 points", "WORLD = 0, M = 1;", "WORLD = 0, M = 3;"),
+    ("items 3 and 4's premise ignores p", "rise = pR < ALPHA && r > 0;", "rise = r > 0;"),
+    ("items 3 and 4's HELD side at a half", "X.map((x, j) => x - (2 / 3) * Rd[j])", "X.map((x, j) => x - (1 / 2) * Rd[j])"),
+    ("items 3 and 4's FALSIFIED side at a half", "X.map((x, j) => Rd[j] / 3 - x)", "X.map((x, j) => Rd[j] / 2 - x)"),
+    ("items 3 and 4 read read (b)'s rise as the part taken away", "X = Rd.map((x, j) => x - Rb[j])", "X = Rb.map((x, j) => x)"),
+]
+# extrap-7at.mjs's mutations, run through the reducer's planted set (it imports the module)
+XM = [
+    ("extrapolate copies flat (the reader's own rule)", "c[idx(ii)] = Math.min(1, Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1)));", "c[idx(ii)] = c1;"),
+    ("extrapolate does not clip at 1", "Math.min(1, Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1)))", "Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1))"),
+    ("extrapolate leaves R as the reader's (S not reproduced)", "for (let i = 0; i < n; i++) R[i] = S[i] - RD.p[i] * c[i];", "for (let i = 0; i < n; i++) R[i] = RD.R[i];"),
+    ("extrapolate from one node on each side, not two on the near side", "for (let jj = j1 + dir; jj >= 0 && jj < ni; jj += dir) if (sup(idx(jj))) { j2 = jj; break; }", "for (let jj = j1 - dir; jj >= 0 && jj < ni; jj -= dir) if (sup(idx(jj))) { j2 = jj; break; }"),
+]
+r = subprocess.run(['node', SRC, '--planted'], capture_output=True, text=True)
+if r.returncode != 0: print('THE TRUE SCRIPT FAILS ITS PLANTED SET:\n' + r.stdout); sys.exit(1)
+caught, bad = 0, []
+for name, old, new in M:
+    if base.count(old) != 1: bad.append(f'NOT APPLIED ({base.count(old)} matches): {name}'); continue
+    open(DST, 'w').write(base.replace(old, new))
+    r = subprocess.run(['node', DST, '--planted'], capture_output=True, text=True)
+    if 'PLANTED CHECK FAILED' in r.stdout: caught += 1; print(f'caught: {name}')
+    else: bad.append(f'NOT CAUGHT: {name}')
+for name, old, new in XM:
+    if xbase.count(old) != 1: bad.append(f'NOT APPLIED ({xbase.count(old)} matches): {name}'); continue
+    open(XDST, 'w').write(xbase.replace(old, new))
+    open(DST, 'w').write(base.replace("from './extrap-7at.mjs';", "from './zz-mut-extrap-7at.mjs';"))
+    r = subprocess.run(['node', DST, '--planted'], capture_output=True, text=True)
+    if 'PLANTED CHECK FAILED' in r.stdout: caught += 1; print(f'caught: {name}')
+    else: bad.append(f'NOT CAUGHT: {name}')
+for f in (DST, XDST):
+    if os.path.exists(f): os.remove(f)
+for b in bad: print(b)
+print(f'{caught} of {len(M) + len(XM)} mutations caught')
+sys.exit(1 if bad else 0)

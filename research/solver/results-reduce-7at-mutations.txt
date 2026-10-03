@@ -1,0 +1,35 @@
+caught: the gate accepts an unregistered unit
+caught: the gate ignores a missing unit
+caught: the gate ignores the axis's buckets
+caught: the WALL buckets read as three
+caught: the identity skips the table
+caught: the S130 identity skips 7ar's pstage lines
+caught: the S370 identity skips the node lines
+caught: the gate skips 7ar's own checks
+caught: the gate ignores a missing bdec year
+caught: the gate ignores bdec reads off the dec reads
+caught: read (b) not held to the read where there is no unsupported weight
+caught: read (b) allowed to move a read with no unsupported weight
+caught: the unsupported sums not bounded
+caught: the gate ignores a missing pbstage line
+caught: the pbstage sums not checked
+caught: the gate ignores a missing pafter line
+caught: the pafter count not checked
+caught: the pafter mean not checked
+caught: the gate ignores a missing xcount line
+caught: the responsiveness check dropped (O79)
+caught: item 1 reads either unit calibrated as HELD
+caught: item 1 ignores a pessimistic unit
+caught: item 2's TOST on one side only
+caught: item 2 without Holm on DIFFERS
+caught: item 2 ignores a WALL arm below PCLSI
+caught: item 2's margin at 3 points
+caught: items 3 and 4's premise ignores p
+caught: items 3 and 4's HELD side at a half
+caught: items 3 and 4's FALSIFIED side at a half
+caught: items 3 and 4 read read (b)'s rise as the part taken away
+caught: extrapolate copies flat (the reader's own rule)
+caught: extrapolate does not clip at 1
+caught: extrapolate leaves R as the reader's (S not reproduced)
+caught: extrapolate from one node on each side, not two on the near side
+34 of 34 mutations caught

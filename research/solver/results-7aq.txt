@@ -1,0 +1,27 @@
+FAIR-TEST GATE: passed - 20 units; 7am's records pass 7am's gate; each full-step unit is 7am's own solve (table, ran line, gap, opening, joint line); each half unit P's record but for the tier returns; every signed gap agrees with its bisected gap; the gaps read from the records positive; the tiers moved by O60's figures (planted 50)
+
+7AQ: P AT HALF THE STEP - P (READER/TS+J, switchCharge 0.001, switchMargin 0) under half of 7ai's tier shift each way on 7am's seven households, and the full shift re-solved on the three 7am left unsplit, 30 points, every gap signed (negative: the held pair wins at margin 0 by that much); P's linear gaps are P's records, its other full-step gaps 7am's; the bundle's 7ai's (full) and 7am's (half)
+  P (signed gaps linear / blend / reversed / half blend / half reversed; the split at the full and half step; q; F at half over F at full)
+    share 0.50    5.7824e-5   2.4769e-4  -1.9106e-4   1.8228e-4  -5.9502e-5  full F 2.1938e-4 C -2.9507e-5; half F 1.2089e-4 C 3.5671e-6; q 0.12; F half/full 0.55; non-smooth (q beyond the half step)
+    share 0.90    1.4698e-4  -2.9787e-5   4.9014e-4   6.1909e-5   2.2902e-4  full F -2.5996e-4 C 8.3194e-5; half F -8.3556e-5 C -1.5148e-6; q 0.02; F half/full 0.32; non-smooth (q beyond the half step)
+    bridge 0      3.0413e-4   3.7651e-4  -9.9109e-5   3.5613e-4   1.3803e-4  full F 2.3781e-4 C -1.6543e-4; half F 1.0905e-4 C -5.7045e-5; q 0.34; F half/full 0.46; neither
+    bridge 1      4.3258e-4   4.6690e-4   3.1358e-4   4.4804e-4   3.9229e-4  full F 7.6660e-5 C -4.2340e-5; half F 2.7876e-5 C -1.2418e-5; q 0.29; F half/full 0.36; smooth
+    S126          6.3024e-4   4.0995e-4   8.8381e-4   5.2256e-4   7.3350e-4  full F -2.3693e-4 C 1.6640e-5; half F -1.0547e-4 C -2.2131e-6; q 0.13; F half/full 0.45; non-smooth (q beyond the half step)
+    S194          6.7057e-4   5.4646e-4   7.5412e-4   6.0898e-4   7.1098e-4  full F -1.0383e-4 C -2.0280e-5; half F -5.0999e-5 C -1.0587e-5; q 0.52; F half/full 0.49; non-smooth (q within the half step)
+    S162          7.4500e-4   7.1829e-4   7.1405e-4   7.3578e-4   7.3820e-4  full F 2.1200e-6 C -2.8830e-5; half F -1.2104e-6 C -8.0074e-6; q 0.28; F half/full -0.57 (not read: |F| under |C|); smooth
+  the bundle's blind part (full, half; q) against P's (the share P's |C| is of the bundle's at each step)
+    share 0.50  bundle C -8.5065e-5 / -3.7150e-6  q 0.04   P/bundle full 0.35 half 0.96
+    share 0.90  bundle C 2.9932e-4 / 6.0035e-4  q 2.01   P/bundle full 0.28 half 0.00
+    bridge 0    bundle C -1.7140e-4 / 9.2900e-5  q 0.54   P/bundle full 0.97 half 0.61
+    bridge 1    bundle C -1.1831e-4 / -3.1348e-4  q 2.65   P/bundle full 0.36 half 0.04
+    S126        bundle C 3.5690e-4 / 6.4550e-4  q 1.81   P/bundle full 0.05 half 0.00
+    S194        bundle C 7.5060e-5 / -1.2913e-4  q 1.72   P/bundle full 0.27 half 0.08
+    S162        bundle C 1.5735e-4 / 6.3050e-5  q 0.40   P/bundle full 0.18 half 0.13
+
+ITEM 1 (P smooth: 0.15 <= q <= 0.33 and F half/full in 0.35 to 0.65 where read; non-smooth at q >= 0.4, q < 0.15 or F half/full outside 0.25 to 0.75; a family by its majority): smooth the S126 family 1 of 5, S194 0 of 1, S162 1 of 1; non-smooth the S126 family 3 of 5, S194 1 of 1, S162 0 of 1 (HELD when all three families read smooth, FALSIFIED when two or more read non-smooth) -> FALSIFIED
+ITEM 2 (P's blind part at half the step a third of the bundle's or less; not under at two thirds or more): under the S126 family 3 of 5, S194 1 of 1, S162 1 of 1; not under the S126 family 1 of 5, S194 0 of 1, S162 0 of 1 (HELD when all three read under, FALSIFIED when two or more read not under) -> HELD
+REPORTED: P's q by whether the year-0 choice reads a reader year (O67's (C)): none read (bridge 0, bridge 1) 1 smooth, 0 non-smooth, of 2; reader years read (the rest) 1 smooth, 4 non-smooth, of 5
+REPORTED: P's q above 1 (a jump, O67's (B)) on none
+REPORTED: O75 - bridge 0's P blind part at the full step |C| 1.6543e-4 (the bound 1.159e-4: met), 0.97 of the bundle's 1.714e-4
+
+OUTCOME: 1 FALSIFIED, 2 HELD

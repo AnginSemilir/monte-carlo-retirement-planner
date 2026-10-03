@@ -48,6 +48,7 @@ export const TESTS = [
   { name: '7al (the stage-by-stage calibration: post-access optimism by household, O66)', prediction: 'predictions/diag-7al.md', results: 'results-7al.txt' },
   { name: '7am (the stored margin: P and the bundle under the tier shift, O67)', prediction: 'predictions/diag-7am.md', results: 'results-7am.txt' },
   { name: '7ap (the allowance test: the used-allowance axis snapped against interpolated, O71)', prediction: 'predictions/diag-7ap.md', results: 'results-7ap.txt' },
+  { name: '7aq (P at half the step with a signed gap: is P smooth where the bundle is not, O67)', prediction: 'predictions/diag-7aq.md', results: 'results-7aq.txt' },
 ];
 
 export function credences(predText) {

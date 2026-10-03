@@ -35,8 +35,9 @@
  *      the upper end is below -MW; else INCONCLUSIVE.
  *   3. THE SPLIT (O50; redesigned before launch, the plan-auditor's FAIL of 3 Oct 20:14 UK: WA alone cannot split O50 - an
  *      informed chooser barely switches in the bad world - so the split is the contrast at the same charge, path by path):
- *      at S194's node, each path's whole score (reduce-7aa.mjs wholePaths) under OPEN2 at 0.002 less under OPEN2 at 1e-3 (o,
- *      the slice) and under WA at 0.002 less under WA at 1e-3 (a, the charge's move on a chooser that knows the world). The
+ *      at S194's node, each path's whole score (reduce-7aa.mjs wholePaths) under OPEN2 at 0.0005 less under OPEN2 at 1e-3
+ *      (o, the slice; at 0.0005, where the slice is largest - the plan-auditor's FAIL of 3 Oct 20:23 UK) and under WA at
+ *      0.0005 less under WA at 1e-3 (a, the charge's move on a chooser that knows the world). The
  *      premise: a slice (the test of mean(-o) above 0, p under 0.05); without it INCONCLUSIVE (NO SLICE). HELD (the slice
  *      is the world-blind chooser's: WA's move a third of it or less) when the test of mean(a - o/3) above 0 is under 0.05
  *      after Holm over the two directions; FALSIFIED (the charge's own: WA loses two thirds of the slice or more) when the
@@ -231,7 +232,7 @@ export function items(K, W, NL, SP, mar) {
   });
   const o1 = legs.every(l => l.read === 'FLAT') ? 'HELD' : legs.some(l => l.read === 'CHANGES') ? 'FALSIFIED' : 'INCONCLUSIVE';
   const w2 = NL(2, 'C2'), o2 = w2.lo > -MW ? 'HELD' : w2.hi < -MW ? 'FALSIFIED' : 'INCONCLUSIVE';
-  const s3 = SP('C2'), o3 = s3.read;
+  const s3 = SP('C05'), o3 = s3.read;   // the split where the slice is largest (the plan-auditor's FAIL of 3 Oct 20:23 UK)
   return { legs, o1, w2, o2, s3, o3 };
 }
 
@@ -256,9 +257,9 @@ export function reading(TR, tagP, tag, out = console.log) {
   out(`  -> ${I.o1} (HELD when all six legs are FLAT; FALSIFIED when any CHANGES)`);
   out(`\nITEM 2 (S194's slice at double the charge): OPEN2 at 0.002 against OPEN2 at 1e-3 at the node, the whole score: ${iv(I.w2)} (survival part ${f3(I.w2.sd)}, the rest ${f3(I.w2.rest)})`);
   out(`  -> ${I.o2} (HELD when the lower end is above -${MW}; FALSIFIED when the upper end is below -${MW}; a dose-response - more switching friction against the re-risking - that attributes nothing by itself)`);
-  { const t = I.s3; out(`\nITEM 3 (the split, O50): at the node, path by path, OPEN2's move (0.002 less the margin; the slice ${f3(-t.L)} a path, its test p ${t.pSlice.toExponential(2)}) against WA's move (${f3(-t.A)} a path): WA's share of the slice ${Number.isFinite(t.share) ? t.share.toFixed(2) : '-'}${t.note ? '' : `; HELD side mean(a - o/3) p ${t.pU.toExponential(2)} Holm ${t.hU.toExponential(2)}; FALSIFIED side mean(2o/3 - a) p ${t.pD.toExponential(2)} Holm ${t.hD.toExponential(2)}`}`);
+  { const t = I.s3; out(`\nITEM 3 (the split, O50): at the node, path by path, OPEN2's move (0.0005 less the margin; the slice ${f3(-t.L)} a path, its test p ${t.pSlice.toExponential(2)}) against WA's move (${f3(-t.A)} a path): WA's share of the slice ${Number.isFinite(t.share) ? t.share.toFixed(2) : '-'}${t.note ? '' : `; HELD side mean(a - o/3) p ${t.pU.toExponential(2)} Holm ${t.hU.toExponential(2)}; FALSIFIED side mean(2o/3 - a) p ${t.pD.toExponential(2)} Holm ${t.hD.toExponential(2)}`}`);
     out(`  -> ${t.read}${t.note ? ` (${t.note})` : ''} (HELD: WA's move a third of the slice or less, the slice the world-blind chooser's; FALSIFIED: two thirds or more, the charge's own)`); }
-  out('  the same contrast at the other charges (reported): ' + ['C05', 'P'].map(m => { const t = SP(m); return `${m === 'P' ? '0.001' : '0.0005'}: slice ${f3(-t.L)}, WA ${f3(-t.A)}, share ${Number.isFinite(t.share) ? t.share.toFixed(2) : '-'} (${t.read}${t.note ? ', ' + t.note : ''})`; }).join('; '));
+  out('  the same contrast at the other charges (reported): ' + ['P', 'C2'].map(m => { const t = SP(m); return `${m === 'P' ? '0.001' : '0.002'}: slice ${f3(-t.L)}, WA ${f3(-t.A)}, share ${Number.isFinite(t.share) ? t.share.toFixed(2) : '-'} (${t.read}${t.note ? ', ' + t.note : ''})`; }).join('; '));
   out('\nREPORTED: S194\'S NODE SLICE BY CHARGE (against OPEN2 at 1e-3, P\'s; saved/lost, survival, the whole score), and TS+J against TS+J at 1e-3 beside it');
   for (const [c, m] of [['0 (margin 0)', '0'], ['0.0005', 'C05'], ['0.001', 'P'], ['0.002', 'C2']]) {
     const row = RULES.map(rule => { const X = TR[`S194|1e-3|${rule}`], Y = TR[`S194|${m}|${rule}`], k = cells(X.survived, Y.survived), w = leg('S194', X, Y); return `${rule} ${k.saved}/${k.lost} whole ${iv(w)}`; });
@@ -312,7 +313,7 @@ function planted() {
   const k = (lost, saved, n = 8000) => ({ a: n - lost - saved - 100, lost, saved, d: 100, N: n });
   const w = (d, h = 0.1) => ({ d, lo: d - h, hi: d + h, sd: d, rest: 0 });
   // a node leg read at any charge but 0.002 reads -9, so a misread charge shows
-  const run = (K, W, w2, mg = 0.25, w3 = { read: 'HELD' }) => { const I = items(K, W, (n, m) => (m !== 'C2' ? w(-9) : n === 2 ? w2 : null), m => (m !== 'C2' ? { read: 'WRONG' } : w3), () => mg); REACHED[1].add(I.o1); REACHED[2].add(I.o2); REACHED[3].add(I.o3); return I; };
+  const run = (K, W, w2, mg = 0.25, w3 = { read: 'HELD' }) => { const I = items(K, W, (n, m) => (m !== 'C2' ? w(-9) : n === 2 ? w2 : null), m => (m !== 'C05' ? { read: 'WRONG' } : w3), () => mg); REACHED[1].add(I.o1); REACHED[2].add(I.o2); REACHED[3].add(I.o3); return I; };
   { const I = run(() => k(2, 2), () => w(0), w(0)); cases.push(['every leg level, the slice gone at 0.002: 1 HELD, 2 HELD', `${I.o1} ${I.o2}`, 'HELD HELD']); }
   { const I = run((id, m) => (id === 'S194' && m === 'C2' ? k(60, 0) : k(2, 2)), () => w(0), w(-0.5)); cases.push(['0.002 loses 60 paths of 8,000 on S194 (harm), the slice stays at -0.5: 1 FALSIFIED, 2 FALSIFIED', `${I.o1} ${I.o2}`, 'FALSIFIED FALSIFIED']); }
   { const I = run((id, m) => (id === 'S126' && m === 'C05' ? k(0, 60) : k(2, 2)), () => w(0), w(0)); cases.push(['0.0005 saves 60 paths on S126: harm the other way, so the value matters: 1 FALSIFIED', I.o1, 'FALSIFIED']); }

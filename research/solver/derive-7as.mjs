@@ -44,6 +44,7 @@ console.log("1. S194's slice at world 0's node, OPEN2 against OPEN2 at the margi
 console.log(`   charge 0 (margin 0): ${p0.saved}/${p0.lost} survival ${p0.d} (${p0.lo} to ${p0.hi})`);
 console.log(`   charge 0.001 (P):    ${p1.saved}/${p1.lost} survival ${p1.d} (${p1.lo} to ${p1.hi}); the whole score ${w3[0]} (${w3[1]} to ${w3[2]})`);
 const slope = (p1.d - p0.d) / 0.001;
+const p0line = c => p0.d + slope * c;
 console.log(`   the line through the two: ${slope.toFixed(1)} points per unit of charge; at 0.0005 ${(p0.d + slope * 0.0005).toFixed(3)}, at 0.002 ${(p0.d + slope * 0.002).toFixed(3)} (survival; two points, not a model)`);
 console.log(`   item 2's band: HELD needs the whole score's lower end above -${P.MW}, so a point above about -${(P.MW - (w3[2] - w3[1]) / 2).toFixed(3)} at P's half-width ${((w3[2] - w3[1]) / 2).toFixed(3)}; FALSIFIED a point below about -${(P.MW + (w3[2] - w3[1]) / 2).toFixed(3)}`);
 { const m = /S194 \(off\) W0\.02 M1e-3 .*?WA (\S+)/.exec(R), z = /S194 \(off\) W0\.02 M0 .*?WA (\S+)/.exec(R), p = /S194 \(off\) W0\.02 MP .*?WA (\S+)/.exec(R);
@@ -61,6 +62,12 @@ console.log(`   item 2's band: HELD needs the whole score's lower end above -${P
   console.log(`   OPEN2 at 0.001 against 1e-3: whole ${f3(op.d)} (${op.lo.toFixed(3)} to ${op.hi.toFixed(3)}), half-width ${((op.hi - op.lo) / 2).toFixed(3)}`);
   console.log(`   WA at 0.001 against 1e-3:    whole ${f3(wa1.d)} (${wa1.lo.toFixed(3)} to ${wa1.hi.toFixed(3)}), half-width ${((wa1.hi - wa1.lo) / 2).toFixed(3)}; WA at margin 0 against 1e-3: ${f3(wa0.d)} (${wa0.lo.toFixed(3)} to ${wa0.hi.toFixed(3)}), half-width ${((wa0.hi - wa0.lo) / 2).toFixed(3)}`);
   const sp = splitItem(per(O1, OP), per(W1, WP));
+  // item 3's power at 0.0005: P's per-path spread of the two test statistics at 0.001, with the slice at the line's value at
+  // 0.0005 and WA's share as at 0.001 (a model, not a measurement): z = mean / (sd / sqrt n)
+  { const o = per(O1, OP), a = per(W1, WP), n = o.length, mean = xs => xs.reduce((t, x) => t + x, 0) / n, sd = xs => { const m = mean(xs); return Math.sqrt(xs.reduce((t, x) => t + (x - m) ** 2, 0) / (n - 1)); };
+    const L1 = -mean(o), A1 = -mean(a), share = A1 / L1, Lq = -(p0line(0.0005)), sH = sd(a.map((x, j) => x - o[j] / 3)), sF = sd(a.map((x, j) => (2 / 3) * o[j] - x)), sS = sd(o);
+    const zH = (Lq / 3 - share * Lq) / (sH / Math.sqrt(n)), zS = Lq / (sS / Math.sqrt(n)), zH1 = (L1 / 3 - A1) / (sH / Math.sqrt(n));
+    console.log(`   item 3's power at 0.0005 (P's per-path spread at 0.001: sd of a - o/3 ${sH.toFixed(3)}, of 2o/3 - a ${sF.toFixed(3)}, of o ${sS.toFixed(3)}; the slice at the line's ${Lq.toFixed(3)}, WA's share as at 0.001, ${share.toFixed(2)}): the premise's z ${zS.toFixed(2)}, the HELD side's z ${zH.toFixed(2)} (at 0.001: ${zH1.toFixed(2)}); Holm over two needs a one-sided p under 0.025, z about 1.96, power 0.8 at about 2.8 - a model (the line through two points, the spread unscaled), NOT CHECKED`); }
   console.log(`   the contrast path by path (reduce-7as.mjs splitItem): the slice ${f3(-sp.L)} a path (p ${sp.pSlice.toExponential(2)}), WA's move ${f3(-sp.A)}, WA's share of the slice ${Number.isFinite(sp.share) ? sp.share.toFixed(2) : '-'}; ${sp.note ? sp.note : `HELD side p ${sp.pU.toExponential(2)} (Holm ${sp.hU.toExponential(2)}), FALSIFIED side p ${sp.pD.toExponential(2)} (Holm ${sp.hD.toExponential(2)})`}: ${sp.read}`);
 }
 console.log('2. across all worlds, P against the margin (TS+J, 16,000 paths): the whole score and its half-width; at 8,000 the half-width times sqrt 2');

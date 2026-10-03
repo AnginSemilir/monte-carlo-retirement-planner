@@ -8,6 +8,7 @@
 1c. the split at P's charge, from P's traces (S194's node, 16000 paths; grade C, post hoc)
    OPEN2 at 0.001 against 1e-3: whole -0.261 (-0.395 to -0.131), half-width 0.132
    WA at 0.001 against 1e-3:    whole -0.019 (-0.108 to 0.068), half-width 0.088; WA at margin 0 against 1e-3: -0.039 (-0.167 to 0.089), half-width 0.128
+   item 3's power at 0.0005 (P's per-path spread at 0.001: sd of a - o/3 4.896, of 2o/3 - a 6.303, of o 7.066; the slice at the line's 0.385, WA's share as at 0.001, 0.07): the premise's z 6.88, the HELD side's z 2.58 (at 0.001: 1.75); Holm over two needs a one-sided p under 0.025, z about 1.96, power 0.8 at about 2.8 - a model (the line through two points, the spread unscaled), NOT CHECKED
    the contrast path by path (reduce-7as.mjs splitItem): the slice -0.261 a path (p 5.00e-5), WA's move -0.019, WA's share of the slice 0.07; HELD side p 3.93e-2 (Holm 7.87e-2), FALSIFIED side p 9.99e-1 (Holm 9.99e-1): INCONCLUSIVE
 2. across all worlds, P against the margin (TS+J, 16,000 paths): the whole score and its half-width; at 8,000 the half-width times sqrt 2
    bridge 4  2/3 whole -0.007 (-0.052 to 0.037): half-width 0.044, at 8,000 about 0.063; FLAT (inside +/-0.25) needs a point within about 0.187 of 0

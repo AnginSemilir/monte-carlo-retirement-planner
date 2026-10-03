@@ -36,7 +36,7 @@ M = [
     ("item 2 HELD at the margin", "o2 = w2.lo > -MW ? 'HELD'", "o2 = w2.lo >= -MW ? 'HELD'"),
     ("item 2 FALSIFIED on the lower end", "w2.hi < -MW ? 'FALSIFIED'", "w2.lo < -MW ? 'FALSIFIED'"),
     ("item 3 reads OPEN2, not WA", "3: ['S194|1e-3|WA', 'WA'] };   // item 3's", "3: ['S194|1e-3|OPEN2', 'OPEN2'] };   // item 3's"),
-    ("item 3 reads 0.0005", "  const s3 = SP('C2'), o3 = s3.read;", "  const s3 = SP('C05'), o3 = s3.read;"),
+    ("item 3 reads 0.002", "  const s3 = SP('C05'), o3 = s3.read;", "  const s3 = SP('C2'), o3 = s3.read;"),
     ("the split without its premise", "slice = pSlice < ALPHA && mean(o) < 0;", "slice = true;"),
     ("the split's HELD side at a half", "flipP(a.map((x, j) => x - o[j] / 3), b, 7102)", "flipP(a.map((x, j) => x - o[j] / 2), b, 7102)"),
     ("the split's FALSIFIED side at a third", "flipP(a.map((x, j) => (2 / 3) * o[j] - x), b, 7103)", "flipP(a.map((x, j) => (1 / 3) * o[j] - x), b, 7103)"),

@@ -1,0 +1,38 @@
+caught: the gate accepts an unregistered unit
+caught: 7ap's checks miss the switch margin (the margin is 7ap's check alone)
+caught: 7ap's checks miss the axis line (the axis line's presence is 7ap's check alone)
+caught: the gate ignores the axis's interpolation
+caught: the gate ignores the axis's buckets
+caught: the identity skips READER PCLSI
+caught: the identity skips the table
+caught: the identity skips the lsa lines
+caught: the twins skip the ran line
+caught: the gate skips 7ap's own checks
+caught: 7ap's checks see the unit under its own label
+caught: the gate ignores a missing dec year
+caught: the gate ignores a missing dbin line
+caught: the gate ignores a missing pstage line
+caught: the gate ignores a short pstage line
+caught: the gate ignores dec paths off the resid paths
+caught: the gate ignores terms off the residual
+caught: the gate ignores more reads than paths
+caught: the pstage terms' sums not checked
+caught: the gate ignores a row copy above the unsupported weight
+caught: the gate ignores an unsupported weight with no reader
+caught: the gate ignores a quad term in the end bin
+caught: the gate ignores a moves count off the paths
+caught: readTwo without Holm
+caught: the premise ignores p (any positive mean is a rise)
+caught: the premise ignores the sign
+caught: item 1's HELD side at a half, not two thirds
+caught: item 1's FALSIFIED side at a half, not a third
+caught: item 1 reads the quad term
+caught: item 2 reads READER, not OFF
+caught: item 3's F reversed
+caught: readTwo's sides swapped
+caught: flipP counts ties as below
+caught: flipP without the +1
+caught: flipP flips nothing
+caught: the units are not audit-7ar.mjs's
+caught: the PCLSF buckets differ
+37 of 37 mutations caught

@@ -1,0 +1,21 @@
+7AR'S DERIVATION (7ap's S130 READER records through their stamps; no solve)
+1. the bridge stage by world (per path, points; access at year 2 of 39)
+   world 0: DEFAULT mean 3.0059 sd 12.0129 through 2000; PCLSI mean 5.1787 sd 11.8583 through 2000; rise 2.1728
+   world 1: DEFAULT mean 0.4810 sd 3.3389 through 2000; PCLSI mean 1.3592 sd 4.3871 through 2000; rise 0.8782
+   world 2: DEFAULT mean -0.0032 sd 0.2376 through 2000; PCLSI mean 0.0529 sd 0.3856 through 2000; rise 0.0561
+   the per-year residual (table - next) at the named plan years, world 0:
+     DEFAULT y0 2.98 y1 0.03 y16 0.82 y17 2.66 y18 4.56 y19 3.71
+     PCLSI   y0 5.19 y1 -0.01 y16 0.00 y17 0.23 y18 0.12 y19 -0.20
+2. the thresholds (world 0): r 2.1728; r/3 0.7243; 2r/3 1.4485 points a path
+3. power at 2000 paired paths (z = effect / (sd / sqrt(n)); one-sided at 0.05 after Holm over two needs z about 1.96 or more, power 0.8 at about 2.8)
+   correlation 0.0: sd(R) 16.88, the rise's z 5.76; item 1 at a share of 1 or 0, z 5.76 (no noise) or 3.19 (noise sd(R)/2)
+   correlation 0.5: sd(R) 11.94, the rise's z 8.14; item 1 at a share of 1 or 0, z 8.14 (no noise) or 4.52 (noise sd(R)/2)
+   correlation 0.8: sd(R) 7.55, the rise's z 12.87; item 1 at a share of 1 or 0, z 12.87 (no noise) or 7.14 (noise sd(R)/2)
+   correlation 0.9: sd(R) 5.34, the rise's z 18.20; item 1 at a share of 1 or 0, z 18.20 (no noise) or 10.09 (noise sd(R)/2)
+4. the time (7ap's measured seconds, the 1 Oct 2.80 GHz boot, times 0.89 for the current host)
+   READER DEFAULT  2156 s
+   READER PCLSI    2459 s
+   READER PCLSF    3028 s
+   OFF DEFAULT     2156 s
+   OFF PCLSI       2459 s
+   5 units: 3.40 core-hours; on four cores (longest first) 1.20 hours (the OFF units at READER's time: NOT CHECKED; the decomposition's extra reads not measured)

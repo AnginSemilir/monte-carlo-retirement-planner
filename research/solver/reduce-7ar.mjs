@@ -37,13 +37,14 @@
  *      mean(d - 2R/3) above 0 is under 0.05 after Holm; FALSIFIED (a third or less) when the test of mean(R/3 - d) above 0
  *      is under 0.05 after Holm; else INCONCLUSIVE.
  *   2. THE READER'S PART (the no-reader control on S130 itself; O70's gap declared): O_j = S_OFF-PCLSI - S_OFF-DEFAULT, against
- *      the READER rise's point r (mean R, taken as known - its sampling error a stated limit, as 7ap took h). HELD (the
- *      rise needs the reader) when the test of mean(r/3 - O) above 0 is under 0.05 after Holm; FALSIFIED (OFF rises by two
- *      thirds of r or more) when the test of mean(O - 2r/3) above 0 is; else INCONCLUSIVE.
+ *      the READER rise path by path (paired, as item 1; amended before launch, the plan-auditor's MINOR 2 of 3 Oct 19:35 UK:
+ *      first written against r taken as known). HELD (the rise needs the reader) when the test of mean(R/3 - O) above 0 is
+ *      under 0.05 after Holm; FALSIFIED (OFF rises by two thirds of the READER rise or more) when the test of
+ *      mean(O - 2R/3) above 0 is; else INCONCLUSIVE.
  *   3. THE FLAG (cause 4, the lump-taken flag blended between buckets 0 and 0.5, acting through the tables the bridge reads):
- *      F_j = S_PCLSI - S_PCLSF, the part of the rise the blend makes, against r. HELD (not the flag) when the test of
- *      mean(r/3 - F) above 0 is under 0.05 after Holm; FALSIFIED (the flag carries two thirds or more) when the test of
- *      mean(F - 2r/3) above 0 is; else INCONCLUSIVE.
+ *      F_j = S_PCLSI - S_PCLSF, the part of the rise the blend makes, against R path by path. HELD (not the flag) when the
+ *      test of mean(R/3 - F) above 0 is under 0.05 after Holm; FALSIFIED (the flag carries two thirds or more) when the test
+ *      of mean(F - 2R/3) above 0 is; else INCONCLUSIVE.
  * Reported, not items: the three terms' paired means by world and arm with a descriptive 95% band (paired, normal; not a
  * reading); the read term by year with its unsupported and row-copy weights; the read term by the unsupported weight
  * (dbin) and the share of the read term's rise from path-years at 0.25 or more (the plan's prediction 1 names it); the
@@ -214,9 +215,9 @@ export function items({ rd, ri, rf, od, oi }, { b = B } = {}) {
   const dd = ri.map((p, j) => p[1] - rd[j][1]);
   const i1 = rise ? twoWay(dd.map((x, j) => x - (2 / 3) * R[j]), dd.map((x, j) => R[j] / 3 - x), { b }) : NO;
   const O = oi.map((p, j) => S(p) - S(od[j]));
-  const i2 = rise ? twoWay(O.map(x => r / 3 - x), O.map(x => x - (2 / 3) * r), { b }) : NO;
+  const i2 = rise ? twoWay(O.map((x, j) => R[j] / 3 - x), O.map((x, j) => x - (2 / 3) * R[j]), { b }) : NO;
   const F = ri.map((p, j) => S(p) - S(rf[j]));
-  const i3 = rise ? twoWay(F.map(x => r / 3 - x), F.map(x => x - (2 / 3) * r), { b }) : NO;
+  const i3 = rise ? twoWay(F.map((x, j) => R[j] / 3 - x), F.map((x, j) => x - (2 / 3) * R[j]), { b }) : NO;
   return { rise: { r, pR, there: rise, sd: sdOf(R) }, share: mean(dd) / r, i1, i2, i3, O: mean(O), F: mean(F) };
 }
 
@@ -235,8 +236,8 @@ export function reading(units, out = console.log, { b = B } = {}) {
     out(`  -> ${it.read}`);
   };
   show(1, `the read term's share, primary: d = read PCLSI less read DEFAULT; the share of the rise mean(d)/r = ${f2(I.share)}`, I.i1, 'd - 2R/3', 'R/3 - d');
-  show(2, `the reader's part: O = S OFF-PCLSI less S OFF-DEFAULT, mean ${f4(I.O)}, against r = ${f4(I.rise.r)} (O70's gap declared)`, I.i2, 'r/3 - O', 'O - 2r/3');
-  show(3, `the flag: F = S PCLSI less S PCLSF, mean ${f4(I.F)}, against r`, I.i3, 'r/3 - F', 'F - 2r/3');
+  show(2, `the reader's part: O = S OFF-PCLSI less S OFF-DEFAULT, mean ${f4(I.O)}, against R path by path (r = ${f4(I.rise.r)}; O70's gap declared)`, I.i2, 'R/3 - O', 'O - 2R/3');
+  show(3, `the flag: F = S PCLSI less S PCLSF, mean ${f4(I.F)}, against R path by path`, I.i3, 'R/3 - F', 'F - 2R/3');
   out(`\nREPORTED (not items):`);
   out(`  THE THREE TERMS BY WORLD (bridge stage, points a path; paired with READER DEFAULT, or OFF DEFAULT for OFF PCLSI, with a descriptive 95% band, paired and normal - not a reading):`);
   for (let k = 0; k < K; k++) for (const [a, x] of ARMS) {
@@ -370,6 +371,11 @@ function planted() {
     cases.push(['the rise all in the quad term, as large without the reader, all from the flag: FALSIFIED three times', `${I.i1.read} ${I.i2.read} ${I.i3.read}`, 'FALSIFIED FALSIFIED FALSIFIED']); }
   { const I = it({ rd: base, ri: shift(base, 1, 1, 1), rf: shift(base, 0.5, 0.5, 1), od: base, oi: shift(base, 0.5, 0.5, 1) });
     cases.push(['half the rise in each term, OFF and the flag at half: INCONCLUSIVE three times', `${I.i1.read} ${I.i2.read} ${I.i3.read}`, 'INCONCLUSIVE INCONCLUSIVE INCONCLUSIVE']); }
+  { // pairing decides: OFF's rise is a third of READER's on every path less 0.05, READER's rise noisy (sd about 7): paired,
+    // R/3 - O is 0.05 on every path (HELD); against r taken as known it would carry R's noise and read INCONCLUSIVE
+    const ri = shift(base, 2, 0, 7), S = p => p[0] + p[1] + p[2], R = ri.map((p, j) => S(p) - S(base[j]));
+    const I = it({ rd: base, ri, rf: ri, od: base, oi: base.map((p, j) => [p[0] + R[j] / 3 - 0.05, p[1], p[2]]) });
+    cases.push(['item 2 paired path by path: OFF at a third of each path\'s rise less 0.05, the rise noisy: HELD', `${I.rise.there} ${I.i2.read}`, 'true HELD']); EDGES.push('a noisy rise read path by path'); }
   { const I = it({ rd: base, ri: shift(base, 0, 0, 1), rf: base, od: base, oi: base });
     cases.push(['no rise (noise about 0): NO RISE, every item INCONCLUSIVE', `${I.rise.there} ${I.i1.read} ${I.i1.note} ${I.i2.read} ${I.i3.read}`, 'false INCONCLUSIVE NO RISE INCONCLUSIVE INCONCLUSIVE']);
     EDGES.push('no rise'); }

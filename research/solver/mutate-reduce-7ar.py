@@ -38,6 +38,7 @@ M = [
     ("item 1's FALSIFIED side at a half, not a third", "dd.map((x, j) => R[j] / 3 - x)", "dd.map((x, j) => R[j] / 2 - x)"),
     ("item 1 reads the quad term", "const dd = ri.map((p, j) => p[1] - rd[j][1]);", "const dd = ri.map((p, j) => p[0] - rd[j][0]);"),
     ("item 2 reads READER, not OFF", "const O = oi.map((p, j) => S(p) - S(od[j]));", "const O = ri.map((p, j) => S(p) - S(rd[j]));"),
+    ("item 2 against r taken as known", "twoWay(O.map((x, j) => R[j] / 3 - x), O.map((x, j) => x - (2 / 3) * R[j])", "twoWay(O.map(x => r / 3 - x), O.map(x => x - (2 / 3) * r)"),
     ("item 3's F reversed", "const F = ri.map((p, j) => S(p) - S(rf[j]));", "const F = rf.map((p, j) => S(p) - S(ri[j]));"),
     ("readTwo's sides swapped", "read: hU < ALPHA ? 'HELD' : hD < ALPHA ? 'FALSIFIED' : 'INCONCLUSIVE'", "read: hD < ALPHA ? 'HELD' : hU < ALPHA ? 'FALSIFIED' : 'INCONCLUSIVE'"),
     ("flipP counts ties as below", "if (s >= obs - 1e-9 * Math.max(1, Math.abs(obs))) ge++;", "if (s > obs + 1e-9 * Math.max(1, Math.abs(obs))) ge++;"),

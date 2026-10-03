@@ -13,11 +13,11 @@
  *     the joint line one move for every world, the margin 0, the job's charge, no pension death charge, P's scale and cap;
  *   - IDENTITY (the code changed since P ran): every ident:P job's table, ran, gap and opening, joint, moves, price and world
  *     lines are P's core:P lines for the unit;
- *   - COMPLETE: every core job's all-world line on NA paths; S194's core jobs' node line on WN paths with TS+J and OPEN2, and
+ *   - COMPLETE: every core job's all-world line on NA paths; S194's core jobs' node line on WN paths with TS+J, OPEN2 and WA, and
  *     ten decision-log lines a rule; no node line on bridge 4 or S126;
  *   - THE TRACES: every core job's all-world trace, and S194's node traces, present and agreeing with their log (count, seed,
- *     arm, stamp, survival); P's traces read (P's all-world TS+J at P on the three units; S194's node TS+J and OPEN2 at P, 0
- *     and 1e-3) agreeing with P's logs; this run's node traces' and all-world traces' paths are P's first paths (the same
+ *     arm, stamp, survival); P's traces read (P's all-world TS+J at P and 1e-3 on the three units; S194's node TS+J, OPEN2 and WA
+ *     at P, 0 and 1e-3) agreeing with P's logs; this run's node traces' and all-world traces' paths are P's first paths (the same
  *     seed's paths; the gate checks the trace's seed and count, and pairs on the first NA of P's all-world paths).
  * THE ITEMS (exact rule and whole score as P read them: survival by the exact conditional McNemar with Holm and the guarded
  * unconditional interval, regimen item 1; the whole score by reduce-7aa.mjs wholeLeg at 0.05; MW 0.25, P's):
@@ -33,10 +33,16 @@
  *      node, OPEN2 at 0.002 against OPEN2 at 1e-3 (P's) by the whole score. HELD (more switching friction suppresses the
  *      re-risking at the node) when the lower end is above -MW; FALSIFIED (a material loss stays at twice the charge) when
  *      the upper end is below -MW; else INCONCLUSIVE.
- *   3. THE SPLIT (O50): the world-aware chooser WA (every move scored on world 0's table alone) at 0.002 against WA at 1e-3
- *      (P's) at the node by the whole score. HELD (the charge costs an informed chooser nothing, so the slice needs the
- *      world-blind chooser: what removing the margin unmasked) when the interval lies inside -MW to +MW; FALSIFIED (the
- *      charge itself moves an informed chooser at the node) when it lies wholly beyond -MW or +MW; else INCONCLUSIVE.
+ *   3. THE SPLIT (O50; redesigned before launch, the plan-auditor's FAIL of 3 Oct 20:14 UK: WA alone cannot split O50 - an
+ *      informed chooser barely switches in the bad world - so the split is the contrast at the same charge, path by path):
+ *      at S194's node, each path's whole score (reduce-7aa.mjs wholePaths) under OPEN2 at 0.002 less under OPEN2 at 1e-3 (o,
+ *      the slice) and under WA at 0.002 less under WA at 1e-3 (a, the charge's move on a chooser that knows the world). The
+ *      premise: a slice (the test of mean(-o) above 0, p under 0.05); without it INCONCLUSIVE (NO SLICE). HELD (the slice
+ *      is the world-blind chooser's: WA's move a third of it or less) when the test of mean(a - o/3) above 0 is under 0.05
+ *      after Holm over the two directions; FALSIFIED (the charge's own: WA loses two thirds of the slice or more) when the
+ *      test of mean(2o/3 - a) above 0 is; else INCONCLUSIVE. Fisher's paired randomization test (reduce-7ar.mjs flipP, B
+ *      20,000). The limit, stated: the contrast assumes the charge's own cost to a chooser does not depend on whether the
+ *      chooser knows the world.
  * Reported, not items: the all-world legs at each charge against the margin (P's 1e-3); S194's node slice at every charge (0, P's margin-0 run; 0.0005; 0.001; 0.002) against OPEN2 at 1e-3,
  * by the whole score and survival, and TS+J beside it; every all-world leg's cells, survival and whole score; each job's
  * table, gap and opening by charge.
@@ -54,6 +60,7 @@ import { cells } from './reduce-7v.mjs';
 import * as A from './reduce-7aa.mjs';
 import * as F from './reduce-7af.mjs';
 import * as P from './reduce-P.mjs';
+import { flipP, readTwo } from './reduce-7ar.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-7as.md';
@@ -63,7 +70,7 @@ export const CORE = P.CORE;   // [['bridge 4', 'READER', '0'], ['S194', 'OFF', '
 export const NODE_UNITS = ['S194'];
 export const RULES = ['TS+J', 'OPEN2', 'WA'];
 // the traces items 2 and 3 read at S194's node: [the reference (P's, at the margin 1e-3), the run's rule]
-export const NODE_ITEMS = { 2: ['S194|1e-3|OPEN2', 'OPEN2'], 3: ['S194|1e-3|WA', 'WA'] };
+export const NODE_ITEMS = { 2: ['S194|1e-3|OPEN2', 'OPEN2'], 3: ['S194|1e-3|WA', 'WA'] };   // item 3's contrast: its OPEN2 half is item 2's, its WA half this
 export const JOBS = [...['C2', 'C05'].flatMap(m => CORE.map(([id, a, w]) => [`core:${m}`, id, a, w])), ...CORE.map(([id, a, w]) => ['ident:P', id, a, w])];
 const settingOf = kind => kind.split(':')[1];
 
@@ -192,6 +199,16 @@ export function loadTraces(jobs, DIR, ST, jobsP, DIRP, STP, bad, { wn = WN, na =
   return TR;
 }
 
+/* THE SPLIT: `o` and `a` per-path whole-score differences (the charge less the margin) under OPEN2 and under WA */
+export const B = 20000;
+export function splitItem(o, a, { b = B } = {}) {
+  const mean = xs => xs.reduce((t, x) => t + x, 0) / (xs.length || 1);
+  const pSlice = flipP(o.map(x => -x), b, 7101), slice = pSlice < ALPHA && mean(o) < 0;
+  const L = -mean(o), A = -mean(a);
+  if (!slice) return { L, A, share: NaN, pSlice, read: 'INCONCLUSIVE', note: 'NO SLICE' };
+  const r = readTwo(flipP(a.map((x, j) => x - o[j] / 3), b, 7102), flipP(a.map((x, j) => (2 / 3) * o[j] - x), b, 7103));
+  return { L, A, share: A / L, pSlice, ...r };
+}
 /* THE ITEMS over pure inputs, so the planted set reaches them. K(id, m) - the all-world paired cells of TS+J at m against
    TS+J at P ({a, lost, saved, d, N}: lost = P survives and m fails); W(id, m) - wholeLeg of TS+J at m against TS+J at P across
    all worlds; NL(n, m) - item n's node leg at S194 (NODE_ITEMS: 2 OPEN2, 3 the world-aware chooser) at m against
@@ -202,7 +219,7 @@ export function readLeg(l, mg) {
   const changes = l.down.outcome === 'harm' || l.up.outcome === 'harm' || l.w.hi < -MW || l.w.lo > MW;
   return changes ? 'CHANGES' : flat ? 'FLAT' : 'INCONCLUSIVE';
 }
-export function items(K, W, NL, mar) {
+export function items(K, W, NL, SP, mar) {
   const legs = CORE.flatMap(([id]) => Object.keys(CHARGES).map(m => ({ id, m, k: K(id, m), w: W(id, m), mg: mar(id) })));
   // each direction's exact one-sided harm p, Holm over the six legs a direction
   legs.forEach(l => { l.pDown = mcnemarHarmP(l.k.lost, l.k.saved); l.pUp = mcnemarHarmP(l.k.saved, l.k.lost); });
@@ -214,8 +231,8 @@ export function items(K, W, NL, mar) {
   });
   const o1 = legs.every(l => l.read === 'FLAT') ? 'HELD' : legs.some(l => l.read === 'CHANGES') ? 'FALSIFIED' : 'INCONCLUSIVE';
   const w2 = NL(2, 'C2'), o2 = w2.lo > -MW ? 'HELD' : w2.hi < -MW ? 'FALSIFIED' : 'INCONCLUSIVE';
-  const w3 = NL(3, 'C2'), o3 = w3.lo > -MW && w3.hi < MW ? 'HELD' : w3.hi < -MW || w3.lo > MW ? 'FALSIFIED' : 'INCONCLUSIVE';
-  return { legs, o1, w2, o2, w3, o3 };
+  const s3 = SP('C2'), o3 = s3.read;
+  return { legs, o1, w2, o2, s3, o3 };
 }
 
 const f3 = x => `${x >= 0 ? '+' : ''}${x.toFixed(3)}`;
@@ -227,8 +244,10 @@ export function reading(TR, tagP, tag, out = console.log) {
   const K = (id, m) => cells(TR[`${id}|P|all`].survived, TR[`${id}|${m}|all`].survived);
   const W = (id, m) => leg(id, TR[`${id}|P|all`], TR[`${id}|${m}|all`]);
   const NL = (n, m) => leg('S194', TR[NODE_ITEMS[n][0]], TR[`S194|${m}|${NODE_ITEMS[n][1]}`]);
+  const perPath = (X, Y) => { const c = cfgOf('S194', X, Y), x = A.wholePaths(X, c), y = A.wholePaths(Y, c); return Array.from(y, (v, j) => v - x[j]); };
+  const SP = m => splitItem(perPath(TR[NODE_ITEMS[2][0]], TR[`S194|${m}|${NODE_ITEMS[2][1]}`]), perPath(TR[NODE_ITEMS[3][0]], TR[`S194|${m}|${NODE_ITEMS[3][1]}`]));
   const mar = id => { const s = TR[`${id}|P|all`].survived; let k = 0; for (let i = 0; i < s.length; i++) k += s[i]; return marginFor(100 * k / s.length); };
-  const I = items(K, W, NL, mar);
+  const I = items(K, W, NL, SP, mar);
   out(`7AS: THE CHARGE'S SIZE AND S194'S BAD-WORLD SLICE (predictions/diag-7as.md): P's three units at switchCharge 0.0005 and 0.002 (margin 0) against P's 0.001, ${NA} paths of seed ${SEED} across all worlds, ${WN} at S194's bad node; P's records through P's gate, P's 0.001 solved again and identical`);
   out('\nTHE JOBS: the table, the year-0 gap on top of the charge, the opening, by charge');
   for (const [id] of CORE) out(`  ${id.padEnd(9)} ${[['0.0005', tag(id, 'C05')], ['0.001', tagP(id, 'P')], ['0.002', tag(id, 'C2')]].map(([c, u]) => `${c}: table ${u.table} gap ${u.gap.gap} opening ${u.gap.open0}`).join(' | ')}`);
@@ -237,8 +256,9 @@ export function reading(TR, tagP, tag, out = console.log) {
   out(`  -> ${I.o1} (HELD when all six legs are FLAT; FALSIFIED when any CHANGES)`);
   out(`\nITEM 2 (S194's slice at double the charge): OPEN2 at 0.002 against OPEN2 at 1e-3 at the node, the whole score: ${iv(I.w2)} (survival part ${f3(I.w2.sd)}, the rest ${f3(I.w2.rest)})`);
   out(`  -> ${I.o2} (HELD when the lower end is above -${MW}; FALSIFIED when the upper end is below -${MW}; a dose-response - more switching friction against the re-risking - that attributes nothing by itself)`);
-  out(`\nITEM 3 (the split, O50): the world-aware chooser at 0.002 against the world-aware chooser at 1e-3 at the node, the whole score: ${iv(I.w3)} (survival part ${f3(I.w3.sd)}, the rest ${f3(I.w3.rest)})`);
-  out(`  -> ${I.o3} (HELD when the interval lies inside -${MW} to +${MW}: the charge costs an informed chooser nothing, so the slice needs the world-blind chooser; FALSIFIED when it lies wholly beyond either end: the charge itself moves an informed chooser at the node)`);
+  { const t = I.s3; out(`\nITEM 3 (the split, O50): at the node, path by path, OPEN2's move (0.002 less the margin; the slice ${f3(-t.L)} a path, its test p ${t.pSlice.toExponential(2)}) against WA's move (${f3(-t.A)} a path): WA's share of the slice ${Number.isFinite(t.share) ? t.share.toFixed(2) : '-'}${t.note ? '' : `; HELD side mean(a - o/3) p ${t.pU.toExponential(2)} Holm ${t.hU.toExponential(2)}; FALSIFIED side mean(2o/3 - a) p ${t.pD.toExponential(2)} Holm ${t.hD.toExponential(2)}`}`);
+    out(`  -> ${t.read}${t.note ? ` (${t.note})` : ''} (HELD: WA's move a third of the slice or less, the slice the world-blind chooser's; FALSIFIED: two thirds or more, the charge's own)`); }
+  out('  the same contrast at the other charges (reported): ' + ['C05', 'P'].map(m => { const t = SP(m); return `${m === 'P' ? '0.001' : '0.0005'}: slice ${f3(-t.L)}, WA ${f3(-t.A)}, share ${Number.isFinite(t.share) ? t.share.toFixed(2) : '-'} (${t.read}${t.note ? ', ' + t.note : ''})`; }).join('; '));
   out('\nREPORTED: S194\'S NODE SLICE BY CHARGE (against OPEN2 at 1e-3, P\'s; saved/lost, survival, the whole score), and TS+J against TS+J at 1e-3 beside it');
   for (const [c, m] of [['0 (margin 0)', '0'], ['0.0005', 'C05'], ['0.001', 'P'], ['0.002', 'C2']]) {
     const row = RULES.map(rule => { const X = TR[`S194|1e-3|${rule}`], Y = TR[`S194|${m}|${rule}`], k = cells(X.survived, Y.survived), w = leg('S194', X, Y); return `${rule} ${k.saved}/${k.lost} whole ${iv(w)}`; });
@@ -292,7 +312,7 @@ function planted() {
   const k = (lost, saved, n = 8000) => ({ a: n - lost - saved - 100, lost, saved, d: 100, N: n });
   const w = (d, h = 0.1) => ({ d, lo: d - h, hi: d + h, sd: d, rest: 0 });
   // a node leg read at any charge but 0.002 reads -9, so a misread charge shows
-  const run = (K, W, w2, mg = 0.25, w3 = w2) => { const I = items(K, W, (n, m) => (m !== 'C2' ? w(-9) : n === 2 ? w2 : n === 3 ? w3 : null), () => mg); REACHED[1].add(I.o1); REACHED[2].add(I.o2); REACHED[3].add(I.o3); return I; };
+  const run = (K, W, w2, mg = 0.25, w3 = { read: 'HELD' }) => { const I = items(K, W, (n, m) => (m !== 'C2' ? w(-9) : n === 2 ? w2 : null), m => (m !== 'C2' ? { read: 'WRONG' } : w3), () => mg); REACHED[1].add(I.o1); REACHED[2].add(I.o2); REACHED[3].add(I.o3); return I; };
   { const I = run(() => k(2, 2), () => w(0), w(0)); cases.push(['every leg level, the slice gone at 0.002: 1 HELD, 2 HELD', `${I.o1} ${I.o2}`, 'HELD HELD']); }
   { const I = run((id, m) => (id === 'S194' && m === 'C2' ? k(60, 0) : k(2, 2)), () => w(0), w(-0.5)); cases.push(['0.002 loses 60 paths of 8,000 on S194 (harm), the slice stays at -0.5: 1 FALSIFIED, 2 FALSIFIED', `${I.o1} ${I.o2}`, 'FALSIFIED FALSIFIED']); }
   { const I = run((id, m) => (id === 'S126' && m === 'C05' ? k(0, 60) : k(2, 2)), () => w(0), w(0)); cases.push(['0.0005 saves 60 paths on S126: harm the other way, so the value matters: 1 FALSIFIED', I.o1, 'FALSIFIED']); }
@@ -307,8 +327,16 @@ function planted() {
     cases.push(['12 lost, none saved: the exact rule reads no material harm, the guarded interval does not (lower end under -0.25): not FLAT, INCONCLUSIVE', `${l.down.outcome} ${l.u.lo < -0.25} ${I.o1}`, 'no material harm true INCONCLUSIVE']); }
   { const I = run((id, m) => (id === 'S126' && m === 'C05' ? k(34, 37) : k(2, 2)), () => w(0), w(0)); const l = I.legs.find(x => x.id === 'S126' && x.m === 'C05');
     cases.push(['34 lost against 37 saved: the guarded interval inside the margin, the exact rule the other way (up) not no material harm: not FLAT, INCONCLUSIVE', `${l.u.lo > -0.25 && l.u.hi < 0.25} ${l.up.outcome} ${I.o1}`, 'true inconclusive INCONCLUSIVE']); }
-  { const a = run(() => k(2, 2), () => w(0), w(0), 0.25, w(0)), b = run(() => k(2, 2), () => w(0), w(0), 0.25, w(-0.5)), c = run(() => k(2, 2), () => w(0), w(0), 0.25, w(-0.2)), d = run(() => k(2, 2), () => w(0), w(0), 0.25, w(0.5));
-    cases.push(['item 3: the world-aware chooser level at 0.002 HELD; 0.5 below FALSIFIED; 0.2 below (its interval reaching -0.3) INCONCLUSIVE; 0.5 above FALSIFIED', `${a.o3} ${b.o3} ${c.o3} ${d.o3}`, 'HELD FALSIFIED INCONCLUSIVE FALSIFIED']); }
+  { // item 3 over built per-path differences (400 paths): o the slice, a WA's move
+    const n = 400, noise = j => 0.3 * Math.sin(j * 1.7), o = Array.from({ length: n }, (_, j) => -0.3 + noise(j)), mk = f => Array.from({ length: n }, (_, j) => f(j));
+    const r = (oo, aa) => { const t = splitItem(oo, aa, { b: 2000 }); REACHED[3].add(t.read); return t; };
+    cases.push(['item 3: WA unmoved, the slice -0.3: HELD (the world-blind chooser\'s)', r(o, mk(j => 0.1 * Math.cos(j * 2.3))).read, 'HELD']);
+    cases.push(['item 3: WA moves as OPEN2 does: FALSIFIED (the charge\'s own)', r(o, mk(j => o[j] + 0.02 * Math.cos(j * 2.3))).read, 'FALSIFIED']);
+    cases.push(['item 3: WA moves half the slice: INCONCLUSIVE', r(o, mk(j => o[j] / 2)).read, 'INCONCLUSIVE']);
+    cases.push(['item 3: WA gains while OPEN2 loses: HELD, not FALSIFIED (the charge helps an informed chooser)', r(o, mk(j => 0.3 + 0.05 * Math.cos(j))).read, 'HELD']);
+    { const t = r(mk(j => noise(j)), mk(() => 0)); cases.push(['item 3: no slice (OPEN2 noise about 0): INCONCLUSIVE, NO SLICE', `${t.read} ${t.note}`, 'INCONCLUSIVE NO SLICE']); EDGES.push('no slice to split'); }
+    { const t = r(o, mk(j => o[j] / 3)); cases.push(['item 3: WA exactly a third of the slice on every path: not HELD (the mean of a - o/3 is 0)', t.read, 'INCONCLUSIVE']); EDGES.push('WA at exactly a third of the slice'); }
+    cases.push(['items carries item 3\'s split through', run(() => k(2, 2), () => w(0), w(0), 0.25, { read: 'FALSIFIED' }).o3, 'FALSIFIED']); }
   cases.push(['item 2 reads OPEN2 against P\'s OPEN2 at the margin, item 3 the world-aware chooser against P\'s at the margin', JSON.stringify(NODE_ITEMS), JSON.stringify({ 2: ['S194|1e-3|OPEN2', 'OPEN2'], 3: ['S194|1e-3|WA', 'WA'] })]);
   cases.push(['chargeRan swaps the charge at the ran line\'s end only', chargeRan('a switchCharge 0.001 b switchCharge 0.001', '0.002'), 'a switchCharge 0.001 b switchCharge 0.002']);
   cases.push(['slice keeps the first paths', (() => { const T = { N: 3, Y: 2, survived: Uint8Array.from([1, 0, 1]), level: Uint8Array.from([1, 2, 3, 4, 5, 6]), tier: null, wealth: Float32Array.from([1, 2, 3, 4, 5, 6]), failYear: Int16Array.from([-1, 1, -1]) }; const S = slice(T, 2); return `${S.N} ${[...S.survived]} ${[...S.level]} ${[...S.failYear]}`; })(), '2 1,0 1,2,3,4 -1,1']);

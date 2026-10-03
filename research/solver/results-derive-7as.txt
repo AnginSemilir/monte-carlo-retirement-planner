@@ -4,7 +4,11 @@
    charge 0.001 (P):    18/59 survival -0.256 (-0.364 to -0.149); the whole score -0.261 (-0.395 to -0.131)
    the line through the two: 257.0 points per unit of charge; at 0.0005 -0.385, at 0.002 0.001 (survival; two points, not a model)
    item 2's band: HELD needs the whole score's lower end above -0.25, so a point above about -0.118 at P's half-width 0.132; FALSIFIED a point below about -0.382
-1b. the world-aware chooser at S194's node (survival, 16,000 paths): margin 1e-3 93.85, margin 0 93.84, the charge 0.001 93.80 - item 3 reads the charge 0.002 against the margin's 93.85 by the whole score (no paired WA leg is printed in results-P.txt: its half-width taken as item 2's, NOT CHECKED)
+1b. the world-aware chooser at S194's node (survival, 16,000 paths): margin 1e-3 93.85, margin 0 93.84, the charge 0.001 93.80 (its paired legs from P's traces in 1c)
+1c. the split at P's charge, from P's traces (S194's node, 16000 paths; grade C, post hoc)
+   OPEN2 at 0.001 against 1e-3: whole -0.261 (-0.395 to -0.131), half-width 0.132
+   WA at 0.001 against 1e-3:    whole -0.019 (-0.108 to 0.068), half-width 0.088; WA at margin 0 against 1e-3: -0.039 (-0.167 to 0.089), half-width 0.128
+   the contrast path by path (reduce-7as.mjs splitItem): the slice -0.261 a path (p 5.00e-5), WA's move -0.019, WA's share of the slice 0.07; HELD side p 3.93e-2 (Holm 7.87e-2), FALSIFIED side p 9.99e-1 (Holm 9.99e-1): INCONCLUSIVE
 2. across all worlds, P against the margin (TS+J, 16,000 paths): the whole score and its half-width; at 8,000 the half-width times sqrt 2
    bridge 4  2/3 whole -0.007 (-0.052 to 0.037): half-width 0.044, at 8,000 about 0.063; FLAT (inside +/-0.25) needs a point within about 0.187 of 0
    S194      6/8 whole +0.086 (0.016 to 0.155): half-width 0.070, at 8,000 about 0.098; FLAT (inside +/-0.25) needs a point within about 0.152 of 0

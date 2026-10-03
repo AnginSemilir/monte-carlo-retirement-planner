@@ -7,6 +7,11 @@
  *      charge 0.002 and 0.0005 (a reading of two points, not a model).
  *   1b. The world-aware chooser WA at S194's node under the margin, margin 0 and the charge 0.001 (P's node line): item 3's
  *      reference, and P's own read of it (the deep review after P: WA scores the same with or without the charge).
+ *   1c. THE SPLIT AT P'S CHARGE, FROM P'S TRACES (what the records already contain; RULES.md: derive first; CHECKLIST 3: a
+ *      reuse is a new question, so P's traces are read only through P's stamps and held to P's logs): at S194's node, path
+ *      by path, OPEN2 at 0.001 less OPEN2 at 1e-3 (the slice) against WA at 0.001 less WA at 1e-3, by reduce-7as.mjs's own
+ *      splitItem - and WA's paired whole-score leg and half-width (wholeLeg) at 0.001 and at margin 0, item 3's power. Grade C
+ *      for the attribution: computed after the plan-auditor's receipt of 3 Oct 20:14 UK had shown WA's leg at 0.001 (post hoc).
  *   2. Across all worlds, P's legs against the margin (the whole score and its half-width at 16,000 paths), and the
  *      half-width at 8,000 (the square root of two wider), against item 1's band (+/-0.25).
  *   3. The time: P's measured seconds per unit (solve, the node at 4 rules on 16,000 paths, all worlds on 16,000), scaled to
@@ -21,6 +26,11 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireFairLogs } from './fair-gate.mjs';
 import * as P from './reduce-P.mjs';
+import * as A from './reduce-7aa.mjs';
+import * as F from './reduce-7af.mjs';
+import { splitItem } from './reduce-7as.mjs';
+import { gunzipSync } from 'node:zlib';
+import { decode } from './reduce-7t.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const R = readFileSync(join(HERE, 'results-P.txt'), 'utf8');
@@ -37,7 +47,22 @@ const slope = (p1.d - p0.d) / 0.001;
 console.log(`   the line through the two: ${slope.toFixed(1)} points per unit of charge; at 0.0005 ${(p0.d + slope * 0.0005).toFixed(3)}, at 0.002 ${(p0.d + slope * 0.002).toFixed(3)} (survival; two points, not a model)`);
 console.log(`   item 2's band: HELD needs the whole score's lower end above -${P.MW}, so a point above about -${(P.MW - (w3[2] - w3[1]) / 2).toFixed(3)} at P's half-width ${((w3[2] - w3[1]) / 2).toFixed(3)}; FALSIFIED a point below about -${(P.MW + (w3[2] - w3[1]) / 2).toFixed(3)}`);
 { const m = /S194 \(off\) W0\.02 M1e-3 .*?WA (\S+)/.exec(R), z = /S194 \(off\) W0\.02 M0 .*?WA (\S+)/.exec(R), p = /S194 \(off\) W0\.02 MP .*?WA (\S+)/.exec(R);
-  console.log(`1b. the world-aware chooser at S194's node (survival, 16,000 paths): margin 1e-3 ${m[1]}, margin 0 ${z[1]}, the charge 0.001 ${p[1]} - item 3 reads the charge 0.002 against the margin's ${m[1]} by the whole score (no paired WA leg is printed in results-P.txt: its half-width taken as item 2's, NOT CHECKED)`); }
+  console.log(`1b. the world-aware chooser at S194's node (survival, 16,000 paths): margin 1e-3 ${m[1]}, margin 0 ${z[1]}, the charge 0.001 ${p[1]} (its paired legs from P's traces in 1c)`); }
+{
+  const jobsP = Object.values(logs).flatMap(P.parse), ST = P.stampOf(logs), j = mg => jobsP.find(x => x.kind === `core:${mg}` && x.id === 'S194');
+  const tr = (mg, rule) => { const u = j(mg).tags[mg], f = join(HERE, 'results', 'diagP', P.traceName('S194', 'OFF', mg, rule, '0.02', 'world0')), t = JSON.parse(gunzipSync(readFileSync(f)).toString());
+    if (!P.traceAgrees(t, ST, 'OFF', mg, rule, '0.02', u.node.sim[rule], P.WN, 'world0')) throw new Error(`${f}: not P's log's`); return decode(t); };
+  const u = j('P').tags.P, cfg = (X, Y) => ({ lambda: Number(P.field(u.ran, 'lambda')), floor: Math.min(...P.field(u.ran, 'levels').split(',').map(Number)), scale: u.joint.scale, cap: u.joint.cap, wb: 0.02, spendYears: F.spendYears(X, Y) });
+  const per = (X, Y) => { const c = cfg(X, Y), x = A.wholePaths(X, c), y = A.wholePaths(Y, c); return Array.from(y, (v, k) => v - x[k]); };
+  const O1 = tr('1e-3', 'OPEN2'), OP = tr('P', 'OPEN2'), W1 = tr('1e-3', 'WA'), WP = tr('P', 'WA'), W0 = tr('0', 'WA');
+  const lw = (X, Y) => A.wholeLeg(X, Y, cfg(X, Y), 0.05), f3 = x => `${x >= 0 ? '+' : ''}${x.toFixed(3)}`;
+  const wa1 = lw(W1, WP), wa0 = lw(W1, W0), op = lw(O1, OP);
+  console.log(`1c. the split at P's charge, from P's traces (S194's node, ${O1.N} paths; grade C, post hoc)`);
+  console.log(`   OPEN2 at 0.001 against 1e-3: whole ${f3(op.d)} (${op.lo.toFixed(3)} to ${op.hi.toFixed(3)}), half-width ${((op.hi - op.lo) / 2).toFixed(3)}`);
+  console.log(`   WA at 0.001 against 1e-3:    whole ${f3(wa1.d)} (${wa1.lo.toFixed(3)} to ${wa1.hi.toFixed(3)}), half-width ${((wa1.hi - wa1.lo) / 2).toFixed(3)}; WA at margin 0 against 1e-3: ${f3(wa0.d)} (${wa0.lo.toFixed(3)} to ${wa0.hi.toFixed(3)}), half-width ${((wa0.hi - wa0.lo) / 2).toFixed(3)}`);
+  const sp = splitItem(per(O1, OP), per(W1, WP));
+  console.log(`   the contrast path by path (reduce-7as.mjs splitItem): the slice ${f3(-sp.L)} a path (p ${sp.pSlice.toExponential(2)}), WA's move ${f3(-sp.A)}, WA's share of the slice ${Number.isFinite(sp.share) ? sp.share.toFixed(2) : '-'}; ${sp.note ? sp.note : `HELD side p ${sp.pU.toExponential(2)} (Holm ${sp.hU.toExponential(2)}), FALSIFIED side p ${sp.pD.toExponential(2)} (Holm ${sp.hD.toExponential(2)})`}: ${sp.read}`);
+}
 console.log('2. across all worlds, P against the margin (TS+J, 16,000 paths): the whole score and its half-width; at 8,000 the half-width times sqrt 2');
 for (const id of ['bridge 4', 'S194', 'S126']) {
   const m = new RegExp(`${id.replace(' ', '\\s')}\\s+TS\\+J\\/P against TS\\+J\\/1e-3\\s+(\\d+)\\/(\\d+)\\s+whole (\\S+) \\((\\S+) to (\\S+)\\)`).exec(R);

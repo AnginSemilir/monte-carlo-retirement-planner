@@ -28,11 +28,16 @@
  *      reads harm or the whole score's interval lies wholly beyond -MW or +MW; else it is INCONCLUSIVE. HELD (the value
  *      does not matter within the margins from 0.0005 to 0.002) when all six are FLAT; FALSIFIED when any CHANGES; else
  *      INCONCLUSIVE.
- *   2. S194'S SLICE AT DOUBLE THE CHARGE: at world 0's node, OPEN2 at 0.002 against OPEN2 at 1e-3 (P's) by the whole score.
- *      HELD (a larger charge buys the slice back at the node: the slice is the hold's protection, O50's masking) when the
- *      lower end is above -MW; FALSIFIED (a material loss stays at twice the charge: what P costs at the node, the
- *      mixture's trade) when the upper end is below -MW; else INCONCLUSIVE.
- * Reported, not items: S194's node slice at every charge (0, P's margin-0 run; 0.0005; 0.001; 0.002) against OPEN2 at 1e-3,
+ *   2. S194'S SLICE AT DOUBLE THE CHARGE (a dose-response, attributing nothing by itself: the world-blind chooser is in both
+ *      arms, and the margin and the charge change together; the plan-auditor's BLOCKING 1 of 3 Oct 20:06 UK): at world 0's
+ *      node, OPEN2 at 0.002 against OPEN2 at 1e-3 (P's) by the whole score. HELD (more switching friction suppresses the
+ *      re-risking at the node) when the lower end is above -MW; FALSIFIED (a material loss stays at twice the charge) when
+ *      the upper end is below -MW; else INCONCLUSIVE.
+ *   3. THE SPLIT (O50): the world-aware chooser WA (every move scored on world 0's table alone) at 0.002 against WA at 1e-3
+ *      (P's) at the node by the whole score. HELD (the charge costs an informed chooser nothing, so the slice needs the
+ *      world-blind chooser: what removing the margin unmasked) when the interval lies inside -MW to +MW; FALSIFIED (the
+ *      charge itself moves an informed chooser at the node) when it lies wholly beyond -MW or +MW; else INCONCLUSIVE.
+ * Reported, not items: the all-world legs at each charge against the margin (P's 1e-3); S194's node slice at every charge (0, P's margin-0 run; 0.0005; 0.001; 0.002) against OPEN2 at 1e-3,
  * by the whole score and survival, and TS+J beside it; every all-world leg's cells, survival and whole score; each job's
  * table, gap and opening by charge.
  *   node research/solver/reduce-7as.mjs [dir] [dirP] [dir7ae] [dir7ad] [dir7ac] [dir7aa] [dir7af] [dir7ag] > research/solver/results-7as.txt
@@ -56,7 +61,9 @@ export const N = 16000, WN = 16000, NA = 8000, SEED = '7002', ALPHA = 0.05, MW =
 export const CHARGES = { C05: '0.0005', C2: '0.002' };
 export const CORE = P.CORE;   // [['bridge 4', 'READER', '0'], ['S194', 'OFF', '0.02'], ['S126', 'READER', '0']]
 export const NODE_UNITS = ['S194'];
-export const RULES = ['TS+J', 'OPEN2'];
+export const RULES = ['TS+J', 'OPEN2', 'WA'];
+// the traces items 2 and 3 read at S194's node: [the reference (P's, at the margin 1e-3), the run's rule]
+export const NODE_ITEMS = { 2: ['S194|1e-3|OPEN2', 'OPEN2'], 3: ['S194|1e-3|WA', 'WA'] };
 export const JOBS = [...['C2', 'C05'].flatMap(m => CORE.map(([id, a, w]) => [`core:${m}`, id, a, w])), ...CORE.map(([id, a, w]) => ['ident:P', id, a, w])];
 const settingOf = kind => kind.split(':')[1];
 
@@ -69,8 +76,8 @@ const JOINTL = new RegExp(`^\\s+joint ${LBL}: (true|false) switchMargin (\\S+) s
 const MOVESL = new RegExp(`^\\s+moves ${LBL}: (.*)$`);
 const PRICEL = new RegExp(`^\\s+price ${LBL}: (.*)$`);
 const WORLDL = new RegExp(`^\\s+world ${LBL} (\\d+) (.*)$`);
-const NODEL = new RegExp(`^\\s+node ${LBL} 0 z (\\S+): TS\\+J (\\S+) held0 (\\d+) OPEN2 (\\S+) held0 (\\d+) paths (\\d+) secs (\\S+)$`);
-const LOGL = new RegExp(`^\\s+log ${LBL} (TS\\+J|OPEN2) year (\\d+): (.*)$`);
+const NODEL = new RegExp(`^\\s+node ${LBL} 0 z (\\S+): TS\\+J (\\S+) held0 (\\d+) OPEN2 (\\S+) held0 (\\d+) WA (\\S+) held0 (\\d+) paths (\\d+) secs (\\S+)$`);
+const LOGL = new RegExp(`^\\s+log ${LBL} (TS\\+J|OPEN2|WA) year (\\d+): (.*)$`);
 const ALLL = new RegExp(`^\\s+all ${LBL}: TS\\+J (\\S+) held0 (\\d+) paths (\\d+) secs (\\S+)$`);
 
 /* 7as's logs: one job a case line, its lines by setting tag (the job's own), raw where 7as compares them with P's */
@@ -80,7 +87,7 @@ export function parse(text) {
     let m;
     if ((m = CASEL.exec(line))) { cur = { kind: m[2], id: m[1].trim(), arm: m[3], grid: m[4], w: m[5], lambda: m[6], tier: m[7], riskAbove: m[8], mix: m[9], points: +m[10], quad: +m[11], tags: {}, dup: [], done: false }; jobs.push(cur); continue; }
     if (!cur) continue;
-    const T = (a, mg, g, w) => (a === cur.arm && g === cur.grid && w === cur.w ? (cur.tags[mg] || (cur.tags[mg] = { worlds: [], log: { 'TS+J': [], OPEN2: [] } })) : null);
+    const T = (a, mg, g, w) => (a === cur.arm && g === cur.grid && w === cur.w ? (cur.tags[mg] || (cur.tags[mg] = { worlds: [], log: { 'TS+J': [], OPEN2: [], WA: [] } })) : null);
     const set = (t, k, v, name) => { if (t[k] !== undefined) cur.dup.push(name); t[k] = v; };
     let t;
     if ((m = SOLVEL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { set(t, 'table', m[5], 'solve'); t.secs = +m[6]; continue; }
@@ -90,7 +97,7 @@ export function parse(text) {
     if ((m = MOVESL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { set(t, 'movesRaw', m[5], 'moves'); continue; }
     if ((m = PRICEL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { set(t, 'priceRaw', m[5], 'price'); continue; }
     if ((m = WORLDL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { if (t.worlds[+m[5]]) cur.dup.push(`world ${m[5]}`); t.worlds[+m[5]] = m[6]; continue; }
-    if ((m = NODEL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { set(t, 'node', { z: +m[5], sim: { 'TS+J': +m[6], OPEN2: +m[8] }, held0: { 'TS+J': +m[7], OPEN2: +m[9] }, paths: +m[10] }, 'node'); continue; }
+    if ((m = NODEL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { set(t, 'node', { z: +m[5], sim: { 'TS+J': +m[6], OPEN2: +m[8], WA: +m[10] }, held0: { 'TS+J': +m[7], OPEN2: +m[9], WA: +m[11] }, paths: +m[12] }, 'node'); continue; }
     if ((m = LOGL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { const L = t.log[m[5]], y = +m[6]; if (L[y]) cur.dup.push(`log ${m[5]} year ${y}`); L[y] = m[7]; continue; }
     if ((m = ALLL.exec(line)) && (t = T(m[1], m[2], m[3], m[4]))) { set(t, 'all', { sim: +m[5], held0: +m[6], paths: +m[7] }, 'all'); continue; }
     if (line.trim() === `done ${cur.kind} ${cur.arm}/${cur.grid}/W${cur.w}`) { cur.done = true; continue; }
@@ -175,11 +182,11 @@ export function loadTraces(jobs, DIR, ST, jobsP, DIRP, STP, bad, { wn = WN, na =
   }
   for (const [id, arm, w] of CORE) {
     const jp = mg => jobsP.find(x => x.kind === `core:${mg}` && x.id === id && x.arm === arm && x.w === w);
-    { const x = jp('P'), u = x && x.tags.P; if (!u) { bad.push(`no P core:P job for ${id}`); continue; } one(DIRP, STP, id, arm, w, 'P', 'TS+J', 'all', P.NA, u.all.sim, `${id}|P|all`); }
+    for (const mg of ['P', '1e-3']) { const x = jp(mg), u = x && x.tags[mg]; if (!u) { bad.push(`no P core:${mg} job for ${id}`); continue; } one(DIRP, STP, id, arm, w, mg, 'TS+J', 'all', P.NA, u.all.sim, `${id}|${mg}|all`); }
     if (NODE_UNITS.includes(id)) for (const mg of ['P', '0', '1e-3']) { const x = jp(mg), u = x && x.tags[mg]; if (!u) { bad.push(`no P core:${mg} job for ${id}`); continue; } for (const rule of RULES) one(DIRP, STP, id, arm, w, mg, rule, 'world0', P.WN, u.node.sim[rule], `${id}|${mg}|${rule}`); }
   }
   // the pairing: this run's paths are P's first paths (seed and count are checked above); the all-world legs read P's first na
-  for (const k of Object.keys(TR)) if (k.endsWith('|P|all') && TR[k].N >= na) TR[k] = slice(TR[k], na);
+  for (const k of Object.keys(TR)) if ((k.endsWith('|P|all') || k.endsWith('|1e-3|all')) && TR[k].N > na) TR[k] = slice(TR[k], na);
   // P's node traces at the run's node paths (equal at the registered size, WN = P's 16,000; the preflight's fewer)
   for (const k of Object.keys(TR)) { const [id, m, rule] = k.split('|'); if (NODE_UNITS.includes(id) && ['P', '0', '1e-3'].includes(m) && rule !== 'all' && TR[k].N > wn) TR[k] = slice(TR[k], wn); }
   return TR;
@@ -187,14 +194,15 @@ export function loadTraces(jobs, DIR, ST, jobsP, DIRP, STP, bad, { wn = WN, na =
 
 /* THE ITEMS over pure inputs, so the planted set reaches them. K(id, m) - the all-world paired cells of TS+J at m against
    TS+J at P ({a, lost, saved, d, N}: lost = P survives and m fails); W(id, m) - wholeLeg of TS+J at m against TS+J at P across
-   all worlds; WN2(m) - wholeLeg of OPEN2 at m against OPEN2 at 1e-3 at S194's node; mar(id) - the unit's survival margin */
+   all worlds; NL(n, m) - item n's node leg at S194 (NODE_ITEMS: 2 OPEN2, 3 the world-aware chooser) at m against
+   P's at 1e-3; mar(id) - the unit's survival margin */
 const guardedU = k => A.guarded(survivalChangeU(k.a, k.lost, k.saved, k.d, ALPHA), k.lost, k.saved, k.N, ALPHA);
 export function readLeg(l, mg) {
   const flat = l.down.outcome === 'no material harm' && l.up.outcome === 'no material harm' && l.u.lo > -mg && l.u.hi < mg && l.w.lo > -MW && l.w.hi < MW;
   const changes = l.down.outcome === 'harm' || l.up.outcome === 'harm' || l.w.hi < -MW || l.w.lo > MW;
   return changes ? 'CHANGES' : flat ? 'FLAT' : 'INCONCLUSIVE';
 }
-export function items(K, W, WN2, mar) {
+export function items(K, W, NL, mar) {
   const legs = CORE.flatMap(([id]) => Object.keys(CHARGES).map(m => ({ id, m, k: K(id, m), w: W(id, m), mg: mar(id) })));
   // each direction's exact one-sided harm p, Holm over the six legs a direction
   legs.forEach(l => { l.pDown = mcnemarHarmP(l.k.lost, l.k.saved); l.pUp = mcnemarHarmP(l.k.saved, l.k.lost); });
@@ -205,8 +213,9 @@ export function items(K, W, WN2, mar) {
     l.u = guardedU(l.k); l.read = readLeg(l, l.mg);
   });
   const o1 = legs.every(l => l.read === 'FLAT') ? 'HELD' : legs.some(l => l.read === 'CHANGES') ? 'FALSIFIED' : 'INCONCLUSIVE';
-  const w2 = WN2('C2'), o2 = w2.lo > -MW ? 'HELD' : w2.hi < -MW ? 'FALSIFIED' : 'INCONCLUSIVE';
-  return { legs, o1, w2, o2 };
+  const w2 = NL(2, 'C2'), o2 = w2.lo > -MW ? 'HELD' : w2.hi < -MW ? 'FALSIFIED' : 'INCONCLUSIVE';
+  const w3 = NL(3, 'C2'), o3 = w3.lo > -MW && w3.hi < MW ? 'HELD' : w3.hi < -MW || w3.lo > MW ? 'FALSIFIED' : 'INCONCLUSIVE';
+  return { legs, o1, w2, o2, w3, o3 };
 }
 
 const f3 = x => `${x >= 0 ? '+' : ''}${x.toFixed(3)}`;
@@ -217,9 +226,9 @@ export function reading(TR, tagP, tag, out = console.log) {
   const leg = (id, X, Y) => A.wholeLeg(X, Y, cfgOf(id, X, Y), ALPHA);
   const K = (id, m) => cells(TR[`${id}|P|all`].survived, TR[`${id}|${m}|all`].survived);
   const W = (id, m) => leg(id, TR[`${id}|P|all`], TR[`${id}|${m}|all`]);
-  const WN2 = m => leg('S194', TR['S194|1e-3|OPEN2'], TR[`S194|${m}|OPEN2`]);
+  const NL = (n, m) => leg('S194', TR[NODE_ITEMS[n][0]], TR[`S194|${m}|${NODE_ITEMS[n][1]}`]);
   const mar = id => { const s = TR[`${id}|P|all`].survived; let k = 0; for (let i = 0; i < s.length; i++) k += s[i]; return marginFor(100 * k / s.length); };
-  const I = items(K, W, WN2, mar);
+  const I = items(K, W, NL, mar);
   out(`7AS: THE CHARGE'S SIZE AND S194'S BAD-WORLD SLICE (predictions/diag-7as.md): P's three units at switchCharge 0.0005 and 0.002 (margin 0) against P's 0.001, ${NA} paths of seed ${SEED} across all worlds, ${WN} at S194's bad node; P's records through P's gate, P's 0.001 solved again and identical`);
   out('\nTHE JOBS: the table, the year-0 gap on top of the charge, the opening, by charge');
   for (const [id] of CORE) out(`  ${id.padEnd(9)} ${[['0.0005', tag(id, 'C05')], ['0.001', tagP(id, 'P')], ['0.002', tag(id, 'C2')]].map(([c, u]) => `${c}: table ${u.table} gap ${u.gap.gap} opening ${u.gap.open0}`).join(' | ')}`);
@@ -227,18 +236,22 @@ export function reading(TR, tagP, tag, out = console.log) {
   for (const l of I.legs) out(`  ${l.id.padEnd(9)} ${CHARGES[l.m].padEnd(6)} ${l.k.saved} saved/${l.k.lost} lost of ${l.k.N} | survival ${f3(l.down.d)} (exact ${l.down.lo.toFixed(3)} to ${l.down.hi.toFixed(3)}; guarded ${l.u.lo.toFixed(3)} to ${l.u.hi.toFixed(3)}; margin ${l.mg}) down ${l.down.outcome}, up ${l.up.outcome} | whole ${iv(l.w)} | ${l.read}`);
   out(`  -> ${I.o1} (HELD when all six legs are FLAT; FALSIFIED when any CHANGES)`);
   out(`\nITEM 2 (S194's slice at double the charge): OPEN2 at 0.002 against OPEN2 at 1e-3 at the node, the whole score: ${iv(I.w2)} (survival part ${f3(I.w2.sd)}, the rest ${f3(I.w2.rest)})`);
-  out(`  -> ${I.o2} (HELD when the lower end is above -${MW}; FALSIFIED when the upper end is below -${MW})`);
+  out(`  -> ${I.o2} (HELD when the lower end is above -${MW}; FALSIFIED when the upper end is below -${MW}; a dose-response - more switching friction against the re-risking - that attributes nothing by itself)`);
+  out(`\nITEM 3 (the split, O50): the world-aware chooser at 0.002 against the world-aware chooser at 1e-3 at the node, the whole score: ${iv(I.w3)} (survival part ${f3(I.w3.sd)}, the rest ${f3(I.w3.rest)})`);
+  out(`  -> ${I.o3} (HELD when the interval lies inside -${MW} to +${MW}: the charge costs an informed chooser nothing, so the slice needs the world-blind chooser; FALSIFIED when it lies wholly beyond either end: the charge itself moves an informed chooser at the node)`);
   out('\nREPORTED: S194\'S NODE SLICE BY CHARGE (against OPEN2 at 1e-3, P\'s; saved/lost, survival, the whole score), and TS+J against TS+J at 1e-3 beside it');
   for (const [c, m] of [['0 (margin 0)', '0'], ['0.0005', 'C05'], ['0.001', 'P'], ['0.002', 'C2']]) {
     const row = RULES.map(rule => { const X = TR[`S194|1e-3|${rule}`], Y = TR[`S194|${m}|${rule}`], k = cells(X.survived, Y.survived), w = leg('S194', X, Y); return `${rule} ${k.saved}/${k.lost} whole ${iv(w)}`; });
     out(`  ${c.padEnd(13)} ${row.join(' | ')}`);
   }
-  out(`\nOUTCOME: 1 ${I.o1}; 2 ${I.o2}`);
+  out('\nREPORTED: ACROSS ALL WORLDS AGAINST THE MARGIN (TS+J at each charge against TS+J at 1e-3, P\'s first paths; saved/lost and the whole score)');
+  for (const [id] of CORE) out(`  ${id.padEnd(9)} ${[['0.0005', 'C05'], ['0.001', 'P'], ['0.002', 'C2']].map(([c, m]) => { const X = TR[`${id}|1e-3|all`], Y = TR[`${id}|${m}|all`], k = cells(X.survived, Y.survived); return `${c}: ${k.saved}/${k.lost} whole ${iv(leg(id, X, Y))}`; }).join(' | ')}`);
+  out(`\nOUTCOME: 1 ${I.o1}; 2 ${I.o2}; 3 ${I.o3}`);
   return I;
 }
 
 /* PLANTED */
-const REACHED = { 1: new Set(), 2: new Set() }, EDGES = [];
+const REACHED = { 1: new Set(), 2: new Set(), 3: new Set() }, EDGES = [];
 export function builtLog(o = {}) {
   const lines = [], ranP = id => `mix 3 pts 30 seed 7002 paths ${N} grid total30x5x5 lambda ${P.LAMBDA} levels 1,0.9,0.8 quad 5 tierState true bequestWeight ${CORE.find(c => c[0] === id)[2]} finalIntegral true bridgeRead x switchMargin 0 switchCharge 0.001`;
   for (const [kind, id, a, w] of JOBS) {
@@ -254,7 +267,7 @@ export function builtLog(o = {}) {
     for (let k = 0; k < 3; k++) if (!(o.noWorld && kind === 'core:C2' && id === 'S126' && k === 2)) lines.push(`${''.padEnd(16)} world ${L} ${k} z 0.0000 weight 0.3333: whole 0.1 survival 0.1`);
     if (kind.startsWith('core:')) {
       if (NODE_UNITS.includes(id) || (o.extraNode && id === 'bridge 4' && m === 'C2')) {
-        if (!(o.noNode && m === 'C05')) lines.push(`${''.padEnd(16)} node ${L} 0 z -1.7321: TS+J 91.0000 held0 0 OPEN2 91.0000 held0 ${o.held && m === 'C2' ? 5 : 0} paths ${o.nodePaths && m === 'C2' ? 8000 : WN} secs 10`);
+        if (!(o.noNode && m === 'C05')) lines.push(`${''.padEnd(16)} node ${L} 0 z -1.7321: TS+J 91.0000 held0 0 OPEN2 91.0000 held0 ${o.held && m === 'C2' ? 5 : 0} WA 93.0000 held0 0 paths ${o.nodePaths && m === 'C2' ? 8000 : WN} secs 10`);
         for (const rule of RULES) for (let y = 1; y <= 10; y++) if (!(o.noLog && m === 'C2' && rule === 'OPEN2' && y === 4)) lines.push(`${''.padEnd(16)} log ${L} ${rule} year ${y}: held 10 fwdLeave 1 cellLeave 1 fwdHoldCellLeave 0 fwdLeaveCellHold 0 marginHold 0`);
       }
       if (!(o.noAll && m === 'C2' && id === 'bridge 4')) lines.push(`${''.padEnd(16)} all ${L}: TS+J 98.0000 held0 0 paths ${o.allPaths && m === 'C05' && id === 'S126' ? 16000 : NA} secs 10`);
@@ -278,7 +291,8 @@ function planted() {
   // the items, on built cells and legs
   const k = (lost, saved, n = 8000) => ({ a: n - lost - saved - 100, lost, saved, d: 100, N: n });
   const w = (d, h = 0.1) => ({ d, lo: d - h, hi: d + h, sd: d, rest: 0 });
-  const run = (K, W, w2, mg = 0.25) => { const I = items(K, W, () => w2, () => mg); REACHED[1].add(I.o1); REACHED[2].add(I.o2); return I; };
+  // a node leg read at any charge but 0.002 reads -9, so a misread charge shows
+  const run = (K, W, w2, mg = 0.25, w3 = w2) => { const I = items(K, W, (n, m) => (m !== 'C2' ? w(-9) : n === 2 ? w2 : n === 3 ? w3 : null), () => mg); REACHED[1].add(I.o1); REACHED[2].add(I.o2); REACHED[3].add(I.o3); return I; };
   { const I = run(() => k(2, 2), () => w(0), w(0)); cases.push(['every leg level, the slice gone at 0.002: 1 HELD, 2 HELD', `${I.o1} ${I.o2}`, 'HELD HELD']); }
   { const I = run((id, m) => (id === 'S194' && m === 'C2' ? k(60, 0) : k(2, 2)), () => w(0), w(-0.5)); cases.push(['0.002 loses 60 paths of 8,000 on S194 (harm), the slice stays at -0.5: 1 FALSIFIED, 2 FALSIFIED', `${I.o1} ${I.o2}`, 'FALSIFIED FALSIFIED']); }
   { const I = run((id, m) => (id === 'S126' && m === 'C05' ? k(0, 60) : k(2, 2)), () => w(0), w(0)); cases.push(['0.0005 saves 60 paths on S126: harm the other way, so the value matters: 1 FALSIFIED', I.o1, 'FALSIFIED']); }
@@ -293,10 +307,13 @@ function planted() {
     cases.push(['12 lost, none saved: the exact rule reads no material harm, the guarded interval does not (lower end under -0.25): not FLAT, INCONCLUSIVE', `${l.down.outcome} ${l.u.lo < -0.25} ${I.o1}`, 'no material harm true INCONCLUSIVE']); }
   { const I = run((id, m) => (id === 'S126' && m === 'C05' ? k(34, 37) : k(2, 2)), () => w(0), w(0)); const l = I.legs.find(x => x.id === 'S126' && x.m === 'C05');
     cases.push(['34 lost against 37 saved: the guarded interval inside the margin, the exact rule the other way (up) not no material harm: not FLAT, INCONCLUSIVE', `${l.u.lo > -0.25 && l.u.hi < 0.25} ${l.up.outcome} ${I.o1}`, 'true inconclusive INCONCLUSIVE']); }
+  { const a = run(() => k(2, 2), () => w(0), w(0), 0.25, w(0)), b = run(() => k(2, 2), () => w(0), w(0), 0.25, w(-0.5)), c = run(() => k(2, 2), () => w(0), w(0), 0.25, w(-0.2)), d = run(() => k(2, 2), () => w(0), w(0), 0.25, w(0.5));
+    cases.push(['item 3: the world-aware chooser level at 0.002 HELD; 0.5 below FALSIFIED; 0.2 below (its interval reaching -0.3) INCONCLUSIVE; 0.5 above FALSIFIED', `${a.o3} ${b.o3} ${c.o3} ${d.o3}`, 'HELD FALSIFIED INCONCLUSIVE FALSIFIED']); }
+  cases.push(['item 2 reads OPEN2 against P\'s OPEN2 at the margin, item 3 the world-aware chooser against P\'s at the margin', JSON.stringify(NODE_ITEMS), JSON.stringify({ 2: ['S194|1e-3|OPEN2', 'OPEN2'], 3: ['S194|1e-3|WA', 'WA'] })]);
   cases.push(['chargeRan swaps the charge at the ran line\'s end only', chargeRan('a switchCharge 0.001 b switchCharge 0.001', '0.002'), 'a switchCharge 0.001 b switchCharge 0.002']);
   cases.push(['slice keeps the first paths', (() => { const T = { N: 3, Y: 2, survived: Uint8Array.from([1, 0, 1]), level: Uint8Array.from([1, 2, 3, 4, 5, 6]), tier: null, wealth: Float32Array.from([1, 2, 3, 4, 5, 6]), failYear: Int16Array.from([-1, 1, -1]) }; const S = slice(T, 2); return `${S.N} ${[...S.survived]} ${[...S.level]} ${[...S.failYear]}`; })(), '2 1,0 1,2,3,4 -1,1']);
   { const src = readFileSync(join(HERE, 'audit-7as.mjs'), 'utf8');
-    cases.push(['the jobs are audit-7as.mjs\'s: C2 and C05 on the three units, then P\'s identity', String(/\['C2', 'C05'\]\.flatMap/.test(src) && /'ident:P'/.test(src) && /C05: \{ switchMargin: 0, switchCharge: 0\.0005 \}/.test(src) && /C2: \{ switchMargin: 0, switchCharge: 0\.002 \}/.test(src) && /NODE_UNITS = \['S194'\]/.test(src) && /RULESP = \['TS\+J', 'OPEN2'\]/.test(src)), 'true']); }
+    cases.push(['the jobs are audit-7as.mjs\'s: C2 and C05 on the three units, then P\'s identity', String(/\['C2', 'C05'\]\.flatMap/.test(src) && /'ident:P'/.test(src) && /C05: \{ switchMargin: 0, switchCharge: 0\.0005 \}/.test(src) && /C2: \{ switchMargin: 0, switchCharge: 0\.002 \}/.test(src) && /NODE_UNITS = \['S194'\]/.test(src) && /RULESP = \['TS\+J', 'OPEN2', 'WA'\]/.test(src)), 'true']); }
   const fails = cases.filter(([, got, want]) => got !== want);
   if (fails.length) { console.log(`PLANTED CHECK FAILED:\n  ${fails.map(([nm, got, want]) => `${nm}: got ${got}, want ${want}`).join('\n  ')}`); process.exit(1); }
   return cases.length;
@@ -305,7 +322,7 @@ const logsOf = Dir => (existsSync(Dir) ? Object.fromEntries(readdirSync(Dir).fil
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const np = planted();
-  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should\n${[1, 2].map(i => `OUTCOMES REACHED: item ${i}: ${[...REACHED[i]].sort().join(', ')}`).join('\n')}\nEDGES: ${EDGES.join(', ')}`); process.exit(0); }
+  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should\n${[1, 2, 3].map(i => `OUTCOMES REACHED: item ${i}: ${[...REACHED[i]].sort().join(', ')}`).join('\n')}\nEDGES: ${EDGES.join(', ')}`); process.exit(0); }
   const args = process.argv.slice(2).filter(x => !x.startsWith('--'));
   const d = (k, name) => args[k] || join(HERE, 'results', name);
   const DIR = d(0, 'diag7as'), DIRP = d(1, 'diagP');

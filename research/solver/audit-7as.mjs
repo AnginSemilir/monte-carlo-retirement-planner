@@ -6,8 +6,9 @@
  * three units (bridge 4 reader W0, S194 off W0.02, S126 reader W0, 30x5), and P's own 0.001 solved again (ident: the solve
  * and its lines, no runs) so reduce-7as.mjs can hold P's records to today's code. Each core job: the solve, gap, moves,
  * price and world lines (P's); TS+J across all worlds on the first NA paths (traced); and on S194 alone, at world 0's node on
- * the first WN paths, TS+J and OPEN2 (the year-0 move forced to the de-risked pair 2/2) with P's decision log, traced -
- * paired path by path with P's traces of the same rules and paths (results/diagP). P's other node rules (OPEN0, WA) and
+ * the first WN paths, TS+J, OPEN2 (the year-0 move forced to the de-risked pair 2/2) and WA (the world-aware chooser: every
+ * move scored on world 0's table alone) with P's decision log, traced - paired path by path with P's traces of the same
+ * rules and paths (results/diagP). P's other node rule (OPEN0) and
  * its node runs on bridge 4 and S126 are not run (7as's items do not read them).
  *   node research/solver/audit-7as.mjs [points=30] [paths=16000] part k/n [seed=7002] [node paths=16000] [all-world paths=8000]
  * The preflight: DIAG7AS_GRID=4 runs every job at 4 wealth points; traces go to results/diag7as (DIAG7AS_OUT when set).
@@ -126,7 +127,7 @@ function measureV2(h, bridgeRead, quad = 5, { finalIntegral, riskAbove, trace, s
   const JOBSP = [...['C2', 'C05'].flatMap(m => CORE.map(([id, arm, w]) => [`core:${m}`, id, arm, w, 30, 5])), ...CORE.map(([id, arm, w]) => ['ident:P', id, arm, w, 30, 5])];
   const YEARS = 10, DERISK = { pen: 2, isa: 2 };
   const SETTINGS = { C05: { switchMargin: 0, switchCharge: 0.0005 }, P: { switchMargin: 0, switchCharge: 0.001 }, C2: { switchMargin: 0, switchCharge: 0.002 } }, MARGIN = { C05: 0, P: 0, C2: 0 };
-  const RULESP = ['TS+J', 'OPEN2'];   // 7as: the chooser and the de-risked opening at the node (P's other two rules not run)
+  const RULESP = ['TS+J', 'OPEN2', 'WA'];   // 7as: the chooser, the de-risked opening and the world-aware chooser at the node (P's OPEN0 not run; WA added before launch, the plan-auditor's BLOCKING 1 of 3 Oct 20:06 UK: the arm that splits O50)
   const NODE_UNITS = ['S194'];       // 7as: the node runs on S194 alone (item 2, S194's slice); every unit runs across all worlds
   const ARM = { off: false, reader: 'reader' };
   const known = F1_VARIANTS.map(([id, o]) => [id, () => variant(id, o)]);

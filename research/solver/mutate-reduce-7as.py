@@ -35,6 +35,11 @@ M = [
     ("item 1 HELD on any FLAT", "legs.every(l => l.read === 'FLAT') ? 'HELD'", "legs.some(l => l.read === 'FLAT') ? 'HELD'"),
     ("item 2 HELD at the margin", "o2 = w2.lo > -MW ? 'HELD'", "o2 = w2.lo >= -MW ? 'HELD'"),
     ("item 2 FALSIFIED on the lower end", "w2.hi < -MW ? 'FALSIFIED'", "w2.lo < -MW ? 'FALSIFIED'"),
+    ("item 3 HELD without the upper end", "o3 = w3.lo > -MW && w3.hi < MW ? 'HELD'", "o3 = w3.lo > -MW ? 'HELD'"),
+    ("item 3 FALSIFIED only below", "w3.hi < -MW || w3.lo > MW ? 'FALSIFIED'", "w3.hi < -MW ? 'FALSIFIED'"),
+    ("item 3 reads OPEN2, not WA", "3: ['S194|1e-3|WA', 'WA'] };\nexport const JOBS", "3: ['S194|1e-3|OPEN2', 'OPEN2'] };\nexport const JOBS"),
+    ("item 3 reads item 2's leg", "  const w3 = NL(3, 'C2'),", "  const w3 = NL(2, 'C2'),"),
+    ("item 3 reads 0.0005", "  const w3 = NL(3, 'C2'),", "  const w3 = NL(3, 'C05'),"),
     ("chargeRan replaces the first charge", "ran.replace(/ switchCharge 0\\.001$/, ` switchCharge ${c}`)", "ran.replace(/ switchCharge 0\\.001/, ` switchCharge ${c}`)"),
     ("slice keeps the levels whole", "level: T.level.subarray(0, n * T.Y)", "level: T.level"),
 ]

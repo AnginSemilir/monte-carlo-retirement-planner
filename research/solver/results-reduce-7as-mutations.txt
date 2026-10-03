@@ -25,6 +25,11 @@ caught: no Holm on the down direction
 caught: item 1 HELD on any FLAT
 caught: item 2 HELD at the margin
 caught: item 2 FALSIFIED on the lower end
+caught: item 3 HELD without the upper end
+caught: item 3 FALSIFIED only below
+caught: item 3 reads OPEN2, not WA
+caught: item 3 reads item 2's leg
+caught: item 3 reads 0.0005
 caught: chargeRan replaces the first charge
 caught: slice keeps the levels whole
-29 of 29 mutations caught
+34 of 34 mutations caught

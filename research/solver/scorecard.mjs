@@ -49,6 +49,7 @@ export const TESTS = [
   { name: '7am (the stored margin: P and the bundle under the tier shift, O67)', prediction: 'predictions/diag-7am.md', results: 'results-7am.txt' },
   { name: '7ap (the allowance test: the used-allowance axis snapped against interpolated, O71)', prediction: 'predictions/diag-7ap.md', results: 'results-7ap.txt' },
   { name: '7aq (P at half the step with a signed gap: is P smooth where the bundle is not, O67)', prediction: 'predictions/diag-7aq.md', results: 'results-7aq.txt' },
+  { name: '7ar (O76\'s decomposition: where the bridge stage\'s rise under the interpolated allowance axis sits)', prediction: 'predictions/diag-7ar.md', results: 'results-7ar.txt' },
 ];
 
 export function credences(predText) {

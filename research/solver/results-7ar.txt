@@ -1,0 +1,77 @@
+FAIR-TEST GATE: passed - 5 units; READER DEFAULT and PCLSI 7ap's line for line (table, ran, gap, joint, access, axis, bridgeref, node, stage, resid, cell, lsa, pcell and wall lines); PCLSF its DEFAULT twin's ran, joint and access lines on the buckets 0,0.01,0.5,1; OFF PCLSI its twin's; every line present; 7ap's checks on every unit; the three terms summing to the residual by year, by bin and by path
+7AR: O76'S DECOMPOSITION - S130 under TS+J, W0.02, the switch margin 0.001, 30 points, 2000 paths a world at each world's node (seed 7002); the reader under the allowance axis snapped (DEFAULT), interpolated (PCLSI) and interpolated without the flag blend (PCLSF), and no reader (OFF) snapped and interpolated; READER DEFAULT and PCLSI held line for line to 7ap's records
+
+THE RISE (the items' premise; world 0, per path PCLSI less DEFAULT, READER): r = 2.1727 points a path (sd 0.69), the randomization p (mean above 0) 5.00e-5: THERE
+
+ITEM 1 (the read term's share, primary: d = read PCLSI less read DEFAULT; the share of the rise mean(d)/r = 1.02)
+  HELD side: mean(d - 2R/3) 0.7569, p 5.00e-5, Holm 1.00e-4; FALSIFIED side: mean(R/3 - d) -1.4811, p 1.00e+0, Holm 1.00e+0
+  -> HELD
+
+ITEM 2 (the reader's part: O = S OFF-PCLSI less S OFF-DEFAULT, mean 7.5756, against R path by path (r = 2.1727; O70's gap declared))
+  HELD side: mean(R/3 - O) -6.8514, p 1.00e+0, Holm 1.00e+0; FALSIFIED side: mean(O - 2R/3) 6.1271, p 5.00e-5, Holm 1.00e-4
+  -> FALSIFIED
+
+ITEM 3 (the flag: F = S PCLSI less S PCLSF, mean 0.0069, against R path by path)
+  HELD side: mean(R/3 - F) 0.7173, p 5.00e-5, Holm 1.00e-4; FALSIFIED side: mean(F - 2R/3) -1.4415, p 1.00e+0, Holm 1.00e+0
+  -> HELD
+
+REPORTED (not items):
+  THE THREE TERMS BY WORLD (bridge stage, points a path; paired with READER DEFAULT, or OFF DEFAULT for OFF PCLSI, with a descriptive 95% band, paired and normal - not a reading):
+    world 0 READER DEFAULT quad 0.29  read 2.71  end 0.00  S 3.01
+    world 0 READER PCLSI   quad 0.26 (-0.03 +/- 0.03)  read 4.92 (+2.21 +/- 0.01)  end 0.00 (+0.00 +/- 0.00)  S 5.18 (+2.17 +/- 0.03)
+    world 0 READER PCLSF   quad 0.26 (-0.03 +/- 0.03)  read 4.91 (+2.20 +/- 0.01)  end 0.00 (+0.00 +/- 0.00)  S 5.17 (+2.17 +/- 0.03)
+    world 0 OFF    DEFAULT quad -0.06 (-0.35 +/- 0.37)  read -59.34 (-62.05 +/- 0.62)  end 0.00 (+0.00 +/- 0.00)  S -59.40 (-62.40 +/- 0.25)
+    world 0 OFF    PCLSI   quad -0.02 (+0.03 +/- 0.04)  read -51.80 (+7.54 +/- 0.04)  end 0.00 (+0.00 +/- 0.00)  S -51.82 (+7.58 +/- 0.06)
+    world 1 READER DEFAULT quad 0.11  read 0.37  end 0.00  S 0.48
+    world 1 READER PCLSI   quad 0.13 (+0.02 +/- 0.04)  read 1.23 (+0.86 +/- 0.01)  end 0.00 (+0.00 +/- 0.00)  S 1.36 (+0.88 +/- 0.05)
+    world 1 READER PCLSF   quad 0.13 (+0.02 +/- 0.04)  read 1.23 (+0.86 +/- 0.01)  end 0.00 (+0.00 +/- 0.00)  S 1.36 (+0.88 +/- 0.05)
+    world 1 OFF    DEFAULT quad -0.04 (-0.15 +/- 0.11)  read -91.97 (-92.34 +/- 0.20)  end 0.00 (+0.00 +/- 0.00)  S -92.01 (-92.49 +/- 0.11)
+    world 1 OFF    PCLSI   quad -0.04 (-0.01 +/- 0.04)  read -90.06 (+1.91 +/- 0.06)  end 0.00 (+0.00 +/- 0.00)  S -90.11 (+1.90 +/- 0.07)
+    world 2 READER DEFAULT quad 0.00  read -0.00  end 0.00  S -0.00
+    world 2 READER PCLSI   quad 0.00 (-0.00 +/- 0.01)  read 0.05 (+0.06 +/- 0.00)  end 0.00 (+0.00 +/- 0.00)  S 0.05 (+0.06 +/- 0.01)
+    world 2 READER PCLSF   quad 0.00 (-0.00 +/- 0.01)  read 0.05 (+0.06 +/- 0.00)  end 0.00 (+0.00 +/- 0.00)  S 0.05 (+0.06 +/- 0.01)
+    world 2 OFF    DEFAULT quad -0.01 (-0.01 +/- 0.04)  read -83.78 (-83.77 +/- 0.05)  end 0.00 (+0.00 +/- 0.00)  S -83.79 (-83.79 +/- 0.02)
+    world 2 OFF    PCLSI   quad -0.01 (+0.00 +/- 0.02)  read -86.69 (-2.91 +/- 0.02)  end 0.00 (+0.00 +/- 0.00)  S -86.70 (-2.91 +/- 0.01)
+  THE READ TERM BY YEAR (world 0 and 1, to access and the year after: mean read term, quad term, the unsupported weight and the row-copy weight of the read, points and shares):
+    world 0 READER DEFAULT y0 read 2.63 quad 0.35 end 0.00 unsup 0.40 row 0.00; y1 read 0.08 quad -0.06 end 0.00 unsup 0.00 row 0.00; y2(A) read 0.08 quad 0.09 end 0.00 unsup 0.00 row 0.00; y3 read -0.08 quad 0.02 end 0.00 unsup 0.00 row 0.00
+    world 0 READER PCLSI   y0 read 4.89 quad 0.30 end 0.00 unsup 0.40 row 0.00; y1 read 0.03 quad -0.04 end 0.00 unsup 0.00 row 0.00; y2(A) read 0.02 quad 0.08 end 0.00 unsup 0.00 row 0.00; y3 read -0.20 quad 0.01 end 0.00 unsup 0.00 row 0.00
+    world 0 READER PCLSF   y0 read 4.89 quad 0.30 end 0.00 unsup 0.40 row 0.00; y1 read 0.02 quad -0.04 end 0.00 unsup 0.00 row 0.00; y2(A) read 0.01 quad 0.08 end 0.00 unsup 0.00 row 0.00; y3 read -0.20 quad 0.01 end 0.00 unsup 0.00 row 0.00
+    world 0 OFF    DEFAULT y0 read -59.41 quad -0.00 end 0.00 unsup 0.00 row 0.00; y1 read 0.07 quad -0.05 end 0.00 unsup 0.00 row 0.00; y2(A) read 0.08 quad 0.10 end 0.00 unsup 0.00 row 0.00; y3 read -0.07 quad 0.02 end 0.00 unsup 0.00 row 0.00
+    world 0 OFF    PCLSI   y0 read -51.80 quad -0.00 end 0.00 unsup 0.00 row 0.00; y1 read 0.01 quad -0.02 end 0.00 unsup 0.00 row 0.00; y2(A) read 0.01 quad 0.07 end 0.00 unsup 0.00 row 0.00; y3 read -0.21 quad 0.02 end 0.00 unsup 0.00 row 0.00
+    world 1 READER DEFAULT y0 read 0.32 quad 0.15 end 0.00 unsup 0.41 row 0.00; y1 read 0.04 quad -0.04 end 0.00 unsup 0.00 row 0.00; y2(A) read 0.05 quad 0.05 end 0.00 unsup 0.00 row 0.00; y3 read 0.02 quad -0.04 end 0.00 unsup 0.00 row 0.00
+    world 1 READER PCLSI   y0 read 1.18 quad 0.18 end 0.00 unsup 0.41 row 0.00; y1 read 0.05 quad -0.04 end 0.00 unsup 0.00 row 0.00; y2(A) read 0.04 quad 0.07 end 0.00 unsup 0.00 row 0.00; y3 read -0.01 quad -0.04 end 0.00 unsup 0.00 row 0.00
+    world 1 READER PCLSF   y0 read 1.18 quad 0.18 end 0.00 unsup 0.41 row 0.00; y1 read 0.05 quad -0.04 end 0.00 unsup 0.00 row 0.00; y2(A) read 0.04 quad 0.07 end 0.00 unsup 0.00 row 0.00; y3 read -0.01 quad -0.04 end 0.00 unsup 0.00 row 0.00
+    world 1 OFF    DEFAULT y0 read -92.02 quad -0.01 end 0.00 unsup 0.00 row 0.00; y1 read 0.05 quad -0.03 end 0.00 unsup 0.00 row 0.00; y2(A) read 0.05 quad 0.05 end 0.00 unsup 0.00 row 0.00; y3 read 0.03 quad -0.06 end 0.00 unsup 0.00 row 0.00
+    world 1 OFF    PCLSI   y0 read -90.12 quad -0.01 end 0.00 unsup 0.00 row 0.00; y1 read 0.06 quad -0.03 end 0.00 unsup 0.00 row 0.00; y2(A) read 0.04 quad 0.07 end 0.00 unsup 0.00 row 0.00; y3 read -0.01 quad -0.08 end 0.00 unsup 0.00 row 0.00
+  THE BRIDGE STAGE BY THE READ'S UNSUPPORTED WEIGHT (world 0; path-years, and the terms summed over them per path of the world, points):
+    READER DEFAULT u0 2000: quad -0.06 read 0.08 end 0.00; ulo 0: quad 0.00 read 0.00 end 0.00; uhi 2000: quad 0.35 read 2.63 end 0.00; end 0: quad 0.00 read 0.00 end 0.00
+    READER PCLSI   u0 2000: quad -0.04 read 0.03 end 0.00; ulo 0: quad 0.00 read 0.00 end 0.00; uhi 2000: quad 0.30 read 4.89 end 0.00; end 0: quad 0.00 read 0.00 end 0.00
+    READER PCLSF   u0 2000: quad -0.04 read 0.02 end 0.00; ulo 0: quad 0.00 read 0.00 end 0.00; uhi 2000: quad 0.30 read 4.89 end 0.00; end 0: quad 0.00 read 0.00 end 0.00
+    OFF    DEFAULT u0 4000: quad -0.06 read -59.34 end 0.00; ulo 0: quad 0.00 read 0.00 end 0.00; uhi 0: quad 0.00 read 0.00 end 0.00; end 0: quad 0.00 read 0.00 end 0.00
+    OFF    PCLSI   u0 4000: quad -0.02 read -51.80 end 0.00; ulo 0: quad 0.00 read 0.00 end 0.00; uhi 0: quad 0.00 read 0.00 end 0.00; end 0: quad 0.00 read 0.00 end 0.00
+    the read term's rise (PCLSI less DEFAULT, world 0) 2.21 points a path, from path-years at an unsupported weight of 0.25 or more 2.26: a share of 1.02 (the plan's prediction 1 names 2/3 or more there; descriptive, the bins differ between arms)
+  THE MOVES TO ACCESS (cause 3; world 0, the four commonest a year: move:pPENiISAlLEVEL x paths):
+    READER DEFAULT y0: p2i2l0.8x2000; y1: p2i2l0.8x2000; y2: p2i2l0.8x1651 p2i2l0.8x345 p0i0l0.8x3 p2i2l0.9x1
+    READER PCLSI   y0: p2i2l0.8x2000; y1: p2i2l0.8x2000; y2: p2i2l0.8x1977 p0i0l0.8x23
+    READER PCLSF   y0: p2i2l0.8x2000; y1: p2i2l0.8x2000; y2: p2i2l0.8x1977 p0i0l0.8x23
+    OFF    DEFAULT y0: p0i0l0.8x2000; y1: p2i2l0.8x1940 p0i0l0.8x50 p2i2l0.9x6 p2i2l1.1x4; y2: p2i2l0.8x1474 p2i2l0.8x432 p0i0l0.8x63 p2i2l0.9x20
+    OFF    PCLSI   y0: p0i0l0.8x2000; y1: p2i2l0.8x1744 p1i1l0.8x182 p0i0l0.8x74; y2: p2i2l0.8x1751 p1i1l0.8x134 p0i0l0.8x101 p0i0l0.8x8
+  THE SPIKE PLAN YEARS (O69; table - next by world at the plan years the prediction names, 0, 1, 16, 17, 18, 19):
+    READER DEFAULT world 0 (A = year 2): y0 2.98 y1 0.03 y16 0.82 y17 2.66 y18 4.56 y19 3.71
+    READER DEFAULT world 1 (A = year 2): y0 0.47 y1 0.01 y16 0.42 y17 0.69 y18 1.41 y19 1.47
+    READER DEFAULT world 2 (A = year 2): y0 0.00 y1 -0.00 y16 0.01 y17 0.10 y18 0.14 y19 0.11
+    READER PCLSI   world 0 (A = year 2): y0 5.19 y1 -0.01 y16 0.00 y17 0.23 y18 0.12 y19 -0.20
+    READER PCLSI   world 1 (A = year 2): y0 1.35 y1 0.00 y16 0.17 y17 0.12 y18 -0.18 y19 0.12
+    READER PCLSI   world 2 (A = year 2): y0 0.06 y1 -0.01 y16 -0.04 y17 0.03 y18 0.05 y19 0.04
+    READER PCLSF   world 0 (A = year 2): y0 5.19 y1 -0.02 y16 -0.00 y17 0.23 y18 0.12 y19 -0.21
+    READER PCLSF   world 1 (A = year 2): y0 1.35 y1 0.00 y16 0.17 y17 0.11 y18 -0.18 y19 0.12
+    READER PCLSF   world 2 (A = year 2): y0 0.06 y1 -0.01 y16 -0.04 y17 0.03 y18 0.05 y19 0.04
+    OFF    DEFAULT world 0 (A = year 2): y0 -59.41 y1 0.02 y16 0.84 y17 2.49 y18 4.24 y19 3.41
+    OFF    DEFAULT world 1 (A = year 2): y0 -92.03 y1 0.02 y16 0.40 y17 0.80 y18 1.26 y19 1.56
+    OFF    DEFAULT world 2 (A = year 2): y0 -83.79 y1 -0.00 y16 -0.01 y17 0.10 y18 0.19 y19 0.10
+    OFF    PCLSI   world 0 (A = year 2): y0 -51.81 y1 -0.01 y16 -0.00 y17 0.17 y18 0.11 y19 -0.10
+    OFF    PCLSI   world 1 (A = year 2): y0 -90.13 y1 0.02 y16 0.13 y17 0.09 y18 -0.16 y19 0.20
+    OFF    PCLSI   world 2 (A = year 2): y0 -86.69 y1 -0.00 y16 -0.01 y17 0.01 y18 0.07 y19 0.03
+  THE TABLES AND THE OPENINGS: READER DEFAULT table 91.0726 gap 4.7701e-3 opening undefined; READER PCLSI table 89.0730 gap 4.6173e-3 opening undefined; READER PCLSF table 89.0751 gap 4.6186e-3 opening undefined; OFF DEFAULT table 9.4197 gap 5.1383e-4 opening undefined; OFF PCLSI table 7.6993 gap 7.6662e-5 opening undefined
+
+OUTCOME: 1 HELD; 2 FALSIFIED; 3 HELD

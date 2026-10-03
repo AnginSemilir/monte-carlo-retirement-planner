@@ -180,6 +180,8 @@ export function loadTraces(jobs, DIR, ST, jobsP, DIRP, STP, bad, { wn = WN, na =
   }
   // the pairing: this run's paths are P's first paths (seed and count are checked above); the all-world legs read P's first na
   for (const k of Object.keys(TR)) if (k.endsWith('|P|all') && TR[k].N >= na) TR[k] = slice(TR[k], na);
+  // P's node traces at the run's node paths (equal at the registered size, WN = P's 16,000; the preflight's fewer)
+  for (const k of Object.keys(TR)) { const [id, m, rule] = k.split('|'); if (NODE_UNITS.includes(id) && ['P', '0', '1e-3'].includes(m) && rule !== 'all' && TR[k].N > wn) TR[k] = slice(TR[k], wn); }
   return TR;
 }
 

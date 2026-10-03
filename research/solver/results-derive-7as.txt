@@ -1,0 +1,15 @@
+7AS'S DERIVATION (P's registered read, results-P.txt, and P's case files through their stamps; no solve)
+1. S194's slice at world 0's node, OPEN2 against OPEN2 at the margin 1e-3 (16,000 paths)
+   charge 0 (margin 0): 44/126 survival -0.513 (-0.672 to -0.353)
+   charge 0.001 (P):    18/59 survival -0.256 (-0.364 to -0.149); the whole score -0.261 (-0.395 to -0.131)
+   the line through the two: 257.0 points per unit of charge; at 0.0005 -0.385, at 0.002 0.001 (survival; two points, not a model)
+   item 2's band: HELD needs the whole score's lower end above -0.25, so a point above about -0.118 at P's half-width 0.132; FALSIFIED a point below about -0.382
+2. across all worlds, P against the margin (TS+J, 16,000 paths): the whole score and its half-width; at 8,000 the half-width times sqrt 2
+   bridge 4  2/3 whole -0.007 (-0.052 to 0.037): half-width 0.044, at 8,000 about 0.063; FLAT (inside +/-0.25) needs a point within about 0.187 of 0
+   S194      6/8 whole +0.086 (0.016 to 0.155): half-width 0.070, at 8,000 about 0.098; FLAT (inside +/-0.25) needs a point within about 0.152 of 0
+   S126      0/0 whole -0.000 (-0.032 to 0.031): half-width 0.032, at 8,000 about 0.045; FLAT (inside +/-0.25) needs a point within about 0.205 of 0
+3. the time: P's measured seconds per unit (results/diagP), scaled
+   bridge 4  P: solve 731 s, node (4 rules, 16,000) 5132 s, all worlds (16,000) 1266 s; a 7as charged job about 2120 s, an identity solve about 1136 s (times 1.55)
+   S194      P: solve 784 s, node (4 rules, 16,000) 4444 s, all worlds (16,000) 1221 s; a 7as charged job about 5622 s, an identity solve about 1219 s (times 1.55)
+   S126      P: solve 699 s, node (4 rules, 16,000) 4715 s, all worlds (16,000) 1171 s; a 7as charged job about 1997 s, an identity solve about 1087 s (times 1.55)
+   9 jobs: 6.37 core-hours; on four cores (longest first) 1.76 hours (P's own host unrecorded: NOT CHECKED)

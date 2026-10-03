@@ -235,7 +235,8 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    wall-clock bounds by any factor, so a scale of 100 gives the '{' case 600 s against the 38 s fault it guards (the
    plan-auditor's BLOCKING 1 of 1 Oct 10:44 UK and MINOR 2 of 10:46 UK; O54). The maintainer kept the doubling under load
    (1 Oct 11:04 UK); the override is to accept only a scale below 1 (the planted case needs no more), which needs an
-   unlock. Until then: nothing sets the variable but a planted run by hand, and CI and the pre-commit hook run without it.
+   unlock. Until then: nothing sets the variable but a planted run by hand, and CI and the pre-commit hook run without it. **Closed by the maintainer's unlock, 3 Oct:** the
+   override only tightens - a scale below 1 is used, any other ignored (a scale of 100 leaves the '{' case at 6 s).
 
 ---
 

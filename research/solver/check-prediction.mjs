@@ -162,6 +162,17 @@ export function checkPredictionText(text, { name } = {}) {
 export const OUTCOMES_FROM = Date.parse('2026-09-30T19:30:00+01:00');
 export const OUTCOME_WORDS = ['HELD', 'FALSIFIED', 'INCONCLUSIVE'];
 /* the reducer's plants against the prediction's outcomes; returns the problems */
+// EDGES (the deep review's first retirement pass, 3 Oct 18:09 UK: design in 5 of 5 closes - a gap clipped at 0, an empty class
+// read as data, a band a snap falls past): a test first committed from EDGES_FROM on has a reducer whose --planted run prints
+// "EDGES: <case>, <case>, ..." naming at least two planted boundary cases it reads correctly (a missing or zero value, an empty
+// class, a value at or past a threshold); what they are is the reviewer's to judge, that they exist is checked here
+export const EDGES_FROM = Date.parse('2026-10-03T19:00:00+01:00');
+export function edgeProblems(plantedOutput) {
+  const m = /^EDGES: (.+)$/m.exec(String(plantedOutput));
+  if (!m) return ['the reducer\'s --planted run prints no "EDGES: <case>, <case>, ..." line (planted boundary cases)'];
+  const cases = m[1].split(',').map(x => x.trim()).filter(Boolean);
+  return cases.length >= 2 ? [] : [`the EDGES line names ${cases.length} planted boundary case, fewer than 2`];
+}
 export function outcomeProblems(predText, plantedOutput) {
   const items = [...String(plantedOutput).matchAll(/^OUTCOMES REACHED: item (\S+): (.+)$/gm)].map(m => ({ item: m[1], outcomes: new Set(m[2].split(',').map(x => x.trim()).filter(Boolean)) }));
   if (!items.length) return ['the reducer\'s --planted run prints no "OUTCOMES REACHED: item <n>: ..." line'];
@@ -210,7 +221,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1] && pro
   const red = reducerOf(text);
   if (!red || !existsSync(`research/solver/${red}`)) { console.log(`outcome coverage refuses this launch: the Run line names no reducer (reduce-<name>.mjs) that exists${red ? ` (${red})` : ''}`); process.exit(1); }
   let out = ''; try { out = execFileSync('node', [`research/solver/${red}`, '--planted']).toString(); } catch (e) { console.log(`outcome coverage refuses this launch: ${red} --planted failed\n${String(e.stdout || '')}`); process.exit(1); }
-  const P = outcomeProblems(text, out);
+  const P = [...outcomeProblems(text, out), ...(first === null || Number.isNaN(first) || first >= EDGES_FROM ? edgeProblems(out) : [])];
   if (P.length) { console.log(`outcome coverage refuses this launch (${red}):\n${P.map(e => `  - ${e}`).join('\n')}`); process.exit(1); }
   console.log(`outcomes: ${red} reaches every registered outcome (${out.split('\n').filter(l => l.startsWith('OUTCOMES REACHED')).join('; ')})`);
   process.exit(0);

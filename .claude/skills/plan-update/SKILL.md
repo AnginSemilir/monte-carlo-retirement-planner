@@ -28,6 +28,10 @@ launcher, the reducers and CI enforce them. This is the order to work in.
 6. Build order: the reducer's parser and gate before the audit's print lines, then the audit to match; `node --check`
    each script before a run (7al's build checks 3-5 were relaunched when the lines changed under the parser).
 
+7. A new test's reducer prints, in its `--planted` output, `EDGES: <case>, <case>, ...` naming at least two planted
+   boundary cases it reads correctly (a missing or zero value, an empty class, a value at or past a threshold); the
+   launcher's outcome check refuses a test registered from 3 Oct 19:00 UK without it (the deep review's retirement pass).
+
 ## Analysing a result
 1. Run the reducer. Its fair-test gate runs first; if it refuses, fix the runs or accept a named variable with a real
    reason (`FAIR_ACCEPT="28=<why>"`) - the reason is printed with the figures.

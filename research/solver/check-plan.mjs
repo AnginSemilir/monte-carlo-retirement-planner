@@ -93,6 +93,12 @@ const EVIDENCED = /(evidence:|not checked|proof:)/i;
 export const CLAIM = /\b(?:is|are|was|were|now|thus|so|hence)\s+(settled)\b|\b(settled)\s*(?::|\bby\b|\bthat\b)|\b(shows)\s+(?:that|no)\b|(?<!\bthe\s)\b(causes)\b|\b(costs nothing)\b/i;
 const NOT_A_CLAIM = /\b(?:not|never|nothing|until|once|when|if|before|whether|is it|was it)\s+(?:yet\s+|been\s+|be\s+|is\s+|was\s+)?settled\b|\bsettles nothing\b|\bunsettled\b/gi;
 const GRADE_AB = /\bgrade [AB]\b/i;
+// strong words the deep review's first retirement pass found behind most overclaim findings (3 Oct 18:09 UK: overclaim in 4 of
+// 5 closes, 7 BLOCKINGs): 'ruled out', 'excluded', 'clean' (a household, control or unit), 'cured', 'calibrated', 'not jitter',
+// 'no harm' - each, in lower case (an item's printed outcome, CALIBRATED, is not one), needs a grade A or B citation on the
+// same line or NOT CHECKED / PROVISIONAL; a negated form ('not ruled out', 'uncalibrated') is not a claim
+export const STRONG = /\b(ruled out|excluded|clean (?:households?|controls?|units?)|cured|calibrated|not jitter|no harm)\b/;
+const NOT_STRONG = /\b(?:not|never|nor|cannot be|can't be)\s+(?:yet\s+|be\s+|been\s+)?(?:ruled out|excluded|cured|calibrated)\b|\buncalibrated\b/g;
 
 /* the retro: each scored test after the seed has its close; returns the problems as strings */
 export function retroProblems({ lessons, scorecard, reviewLog }) {
@@ -123,7 +129,7 @@ export function retroProblems({ lessons, scorecard, reviewLog }) {
   }
   return P;
 }
-export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, solverFileExists, lessons, scorecard, reviewLog, warnings = [] }) {
+export function checkPlan({ plan, rules, checklist, added = [], removed = [], readSolverFile, solverFileExists, lessons, scorecard, reviewLog, warnings = [] }) {
   const E = [];
   const err = (check, msg) => E.push(`[${check}] ${msg}`);
 
@@ -258,6 +264,7 @@ export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, 
     else if (m) warnings.push(`PLAN.md is ${pb} bytes, over its ${PLAN_BUDGET}, with nothing archivable: shorten live rows`);
   }
 
+  for (const w of stalePhrases({ plan, added, removed })) warnings.push(`stale? ${w}`);
   // new lines
   const planLines = plan.split('\n');
   const LR = tableAfter(plan, '**The re-look ledger**'), ledgerRow = new Map((LR ? LR.rows : []).map(r => [r.raw.trim(), r.cells]));
@@ -266,6 +273,7 @@ export function checkPlan({ plan, rules, checklist, added = [], readSolverFile, 
     if (NO_EFFECT.test(line) && !EVIDENCED.test(raw)) err('no-effect', `"${raw.trim().slice(0, 90)}": a claim of no effect needs "evidence: <file or proof>" or "NOT CHECKED" on the same line`);
     else if (NO_EFFECT.test(line) && !/not checked/i.test(raw) && !GRADE_AB.test(raw)) err('no-effect', `"${raw.trim().slice(0, 90)}": a claim of no effect needs evidence of grade A or B, named on the same line ("grade A" or "grade B"; RULES.md section 8)`);
     if (CLAIM.test(line.replace(NOT_A_CLAIM, ' ')) && !GRADE_AB.test(raw) && !/not checked|provisional/i.test(raw)) err('claims', `"${raw.trim().slice(0, 90)}": "${CLAIM.exec(line.replace(NOT_A_CLAIM, ' ')).slice(1).find(Boolean)}" is a claim: name its grade A or B evidence on the same line, or write NOT CHECKED or PROVISIONAL (RULES.md section 8)`);
+    { const st = STRONG.exec(line.replace(NOT_STRONG, ' ')); if (st && !GRADE_AB.test(raw) && !/not checked|provisional/i.test(raw)) err('claims', `"${raw.trim().slice(0, 90)}": "${st[1]}" is a strong claim: name its grade A or B evidence on the same line, or write NOT CHECKED or PROVISIONAL (the deep review's retirement pass, 3 Oct 18:09 UK)`); }
     const lc = ledgerRow.get(raw.trim());
     if (lc && lc.length === 4 && !(/\bdecision:/i.test(lc[3]) && !/results:/i.test(lc[3])) && !/\bgrade [ABCD]\b/i.test(lc[3])) err('grade', `row "${(lc[0] || '').slice(0, 20)}": a new ledger row names its evidence grade in the evidence cell ("grade A" to "grade D"; RULES.md section 8)`);
     if (/\b\d{1,2}:\d{2}\b/.test(raw) && /\bUTC\b/.test(raw) && !/\bUK\b/.test(raw)) err('clock', `"${raw.trim().slice(0, 70)}": write times in UK time, not UTC`);
@@ -286,27 +294,42 @@ function exists(mode, rev) {
   return p => existsSync(join(HERE, p));
 }
 function addedLines(diffText) { return diffText.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).map(l => l.slice(1)); }
+function removedLines(diffText) { return diffText.split('\n').filter(l => l.startsWith('-') && !l.startsWith('---')).map(l => l.slice(1)); }
+/* STALE PHRASES (the deep review's first retirement pass, 3 Oct 18:09 UK: stale in 3 of 5 closes; the 10:08 and 18:13 FAILs
+   were a correction made in one row while the same phrase stood in another): a clause of 40 characters or more that an edit
+   removed from a line, that no added line carries, but that still stands elsewhere in the plan. A report, not a refusal
+   (an old ledger row may quote it on purpose): each is listed for the author and the reviewer to look at */
+export function stalePhrases({ plan, added = [], removed = [] }) {
+  const out = [], seen = new Set(), now = String(plan), addedText = added.join('\n');
+  for (const line of removed) for (const frag of line.split(/[.;:|()]\s+|\s+-\s+|\*\*/).map(x => x.trim()).filter(x => x.length >= 40)) {
+    if (seen.has(frag) || addedText.includes(frag) || !now.includes(frag)) continue;
+    seen.add(frag);
+    const where = now.split('\n').find(l => l.includes(frag)) || '';
+    out.push(`"${frag.slice(0, 80)}" was edited out of a line and still stands in "${where.trim().slice(0, 30)}"`);
+  }
+  return out;
+}
 
 export function runCli(argv = process.argv.slice(2)) {
-  let mode = 'tree', rev = null, added = [], base = null;
+  let mode = 'tree', rev = null, added = [], removed = [], base = null;
   const PLAN = 'research/solver/PLAN.md';
   try {
-    if (argv.includes('--staged')) { mode = 'staged'; added = addedLines(git(`diff --cached -U0 -- ${PLAN}`)); base = 'HEAD'; }
+    if (argv.includes('--staged')) { mode = 'staged'; const d = git(`diff --cached -U0 -- ${PLAN}`); added = addedLines(d); removed = removedLines(d); base = 'HEAD'; }
     else if (argv.find(a => a.startsWith('--range'))) {
       const r = (argv.find(a => a.startsWith('--range=')) || '').slice(8) || argv[argv.indexOf('--range') + 1];
       const [a, b] = r.split('..');
       mode = 'rev'; rev = b || 'HEAD';
       if (a && !/^0+$/.test(a)) { try { git(`cat-file -e ${a}^{commit}`); base = a; } catch { base = null; } }
       if (!base) { try { base = git(`merge-base origin/main ${rev}`).trim(); } catch { base = null; } }
-      added = base ? addedLines(git(`diff -U0 ${base} ${rev} -- ${PLAN}`)) : [];
+      const d = base ? git(`diff -U0 ${base} ${rev} -- ${PLAN}`) : ''; added = addedLines(d); removed = removedLines(d);
     } else {
       try { base = git('rev-parse --abbrev-ref --symbolic-full-name @{upstream}').trim(); } catch { base = 'HEAD'; }
-      added = addedLines(git(`diff -U0 ${base} -- ${PLAN}`));
+      const d = git(`diff -U0 ${base} -- ${PLAN}`); added = addedLines(d); removed = removedLines(d);
     }
   } catch (e) { console.error(`check-plan: git failed (${e.message.split('\n')[0]})`); return 2; }
   const read = source(mode, rev), has = exists(mode, rev);
   const warnings = [];
-  const errs = checkPlan({ plan: read('PLAN.md'), rules: read('RULES.md'), checklist: read('CHECKLIST.md'), added, readSolverFile: read, solverFileExists: has, warnings });
+  const errs = checkPlan({ plan: read('PLAN.md'), rules: read('RULES.md'), checklist: read('CHECKLIST.md'), added, removed, readSolverFile: read, solverFileExists: has, warnings });
   for (const w of warnings) console.log(`WARNING: ${w}`);
   if (errs.length) {
     console.log(`PLAN CHECK FAILED (${errs.length}) - ${mode === 'rev' ? `commit ${rev}` : mode}${base ? `, new lines against ${/^[0-9a-f]{40}$/.test(base) ? base.slice(0, 12) : base}` : ''}:`);

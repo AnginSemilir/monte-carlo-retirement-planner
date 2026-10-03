@@ -6,8 +6,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { checkPlan, MAX_CHECKLIST, PLAN_BUDGET, RULES_BUDGET } from '../solver/check-plan.mjs';
-import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, reducerOf } from '../solver/check-prediction.mjs';
+import { checkPlan, stalePhrases, MAX_CHECKLIST, PLAN_BUDGET, RULES_BUDGET } from '../solver/check-plan.mjs';
+import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, edgeProblems, reducerOf } from '../solver/check-prediction.mjs';
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -172,6 +172,17 @@ ok(Object.values(SEED_OWNERS).flat().filter(o => typeof o === 'string').every(o 
 caught(run({ added: ['The reader is settled by 7e.'] }), 'claims', 'an ungraded "settled by"');
 caught(run({ added: ['7c shows that v2 costs survival.'] }), 'claims', 'an ungraded "shows that"');
 caught(run({ added: ['The exact final year costs nothing.'] }), 'claims', 'an ungraded "costs nothing"');
+{ const plan = '| O1 | the flag blend is ruled out for the bridge stage, grade A for that only | x |\n| O2 | the flag blend is a direct read only, grade A | y |';
+  const w = stalePhrases({ plan, added: ['| O2 | the flag blend is a direct read only, grade A | y |'], removed: ['| O2 | the flag blend is ruled out for the bridge stage, grade A for that only | y |'] });
+  ok(w.length === 1 && /still stands in "\| O1/.test(w[0]), 'planted: a clause edited out of one row that still stands in another is reported (the 10:08 and 18:13 FAILs)');
+  ok(stalePhrases({ plan: '| O2 | new words entirely | y |', added: ['| O2 | new words entirely | y |'], removed: ['| O2 | the flag blend is ruled out for the bridge stage, grade A for that only | y |'] }).length === 0, 'a clause edited out everywhere is not reported');
+  ok(stalePhrases({ plan, added: ['| O1 | the flag blend is ruled out for the bridge stage, grade A for that only | x |'], removed: ['| O9 | the flag blend is ruled out for the bridge stage, grade A for that only | z |'] }).length === 0, 'a clause moved into an added line is not reported'); }
+caught(run({ added: ['The flag blend is ruled out for the bridge stage.'] }), 'claims', 'an ungraded "ruled out" (the retirement pass, 3 Oct)');
+caught(run({ added: ['S194 is the clean household.'] }), 'claims', 'an ungraded "clean household"');
+caught(run({ added: ['Both units read calibrated after access.'] }), 'claims', 'an ungraded "calibrated"');
+ok(!run({ added: ['The flag blend is ruled out as a direct read (grade A).'] }).some(e => /strong claim/.test(e)), 'a graded "ruled out" passes');
+ok(!run({ added: ['The flag blend is not ruled out; S194 reads CALIBRATED (the reducer\'s outcome); uncalibrated tables.'] }).some(e => /strong claim/.test(e)), 'a negated "not ruled out", the outcome CALIBRATED and "uncalibrated" are not claims');
+ok(!run({ added: ['Whether the S126 family crosses is NOT CHECKED, so it is not clean households yet; ruled out NOT CHECKED.'] }).some(e => /strong claim/.test(e)), 'NOT CHECKED on the line lets a strong word stand');
 ok(!run({ added: ['7c shows that v2 costs survival (grade B: results-f1v2.txt).'] }).some(e => e.startsWith('[claims]')), 'the same claim with a grade B citation passes');
 ok(!run({ added: ['After a settled result, re-derive; the table shows the gap; it is not settled until 7e.'] }).some(e => e.startsWith('[claims]')), 'a noun use ("a settled result", "the table shows") and "not settled" are not claims');
 caught(run({ added: ['The cap does not change the cutting (evidence: results-k5-targets.txt).'] }), 'no-effect', 'a no-effect claim whose evidence names no grade');
@@ -230,6 +241,9 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
 {
   const fed = '## Decision fed\n- HELD: a. FALSIFIED: b. INCONCLUSIVE: c.\n\n## Provenance\nx\n';
   ok(outcomeProblems(fed, 'OUTCOMES REACHED: item 1: FALSIFIED, HELD, INCONCLUSIVE\n').length === 0, 'an item whose plants reach all three outcomes passes');
+  ok(edgeProblems('planted (40): ok\nEDGES: a gap of 0, an empty class, q at 0.15\n').length === 0, 'an EDGES line naming planted boundary cases passes');
+  ok(edgeProblems('planted (40): ok\n').length === 1, 'planted: a reducer with no EDGES line is refused (the retirement pass, 3 Oct)');
+  ok(edgeProblems('EDGES: a gap of 0\n').length === 1, 'planted: an EDGES line naming one case is refused');
   ok(outcomeProblems(fed, 'planted (40): ok\n').length === 1, 'planted: a reducer with no OUTCOMES REACHED line is refused');
   ok(outcomeProblems(fed, 'OUTCOMES REACHED: item 1: HELD, INCONCLUSIVE\n').length === 2, 'planted: an item that can never read FALSIFIED is refused, twice (under 3, and the Decision fed names it)');
   ok(outcomeProblems(fed, 'OUTCOMES REACHED: item 1: HELD, INCONCLUSIVE, FALSIFIED\nOUTCOMES REACHED: item 2: HARM, NO MATERIAL HARM\n').length === 1, 'planted: a second item short of 3 is refused on its own');
@@ -239,7 +253,7 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   const REPO = join(S, '../..'), dir = mkdtempSync(join(tmpdir(), 'outc-'));
   const pred = t => { const f = join(dir, `p${Math.random().toString(36).slice(2)}.md`); writeFileSync(f, t); return f; };
   const cli = f => { try { execFileSync('node', [join(S, 'check-prediction.mjs'), '--outcomes', f], { cwd: REPO, stdio: 'pipe' }); return 0; } catch (e) { return e.status; } };
-  ok(cli(pred(`# x\n- **Run:** reduced by reduce-7al.mjs\n- **Kind:** test\n\n${fed}`)) === 0, 'the CLI passes a new test whose reducer (reduce-7al.mjs) reaches its outcomes');
+  ok(cli(pred(`# x\n- **Run:** reduced by reduce-7al.mjs\n- **Kind:** test\n\n${fed}`)) === 1, 'the CLI refuses a new test whose reducer (reduce-7al.mjs) reaches its outcomes but prints no EDGES line (a new test is held to EDGES from 3 Oct; reduce-7al.mjs itself, registered before, is exempt by its commit date)');
   ok(cli(pred(`# x\n- **Run:** batch.sh\n- **Kind:** test\n\n${fed}`)) === 1, 'planted: the CLI refuses a new test that names no reducer');
   ok(cli(pred(`# x\n- **Run:** reduced by reduce-nope.mjs\n- **Kind:** test\n\n${fed}`)) === 1, 'planted: the CLI refuses a reducer that does not exist');
   ok(cli(pred(`# x\n- **Run:** batch.sh\n- **Kind:** measurement\n`)) === 0, 'a measurement has no outcomes to reach');

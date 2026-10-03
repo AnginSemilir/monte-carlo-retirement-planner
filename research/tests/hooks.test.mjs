@@ -165,7 +165,10 @@ ok(is(bashIn(ROOT, 'cat <<<"cd x" && ls'), null), 'a here-string is not a here-d
 // and the faults they guard against took 10 to 42 s, so a doubled bound still catches them (the maintainer's unlock, 1 Oct
 // 10:37 UK). HOOKS_TIMING_SCALE overrides the factor (a planted fault: a tiny scale must fail these checks).
 const LOADED = loadavg()[0] >= cpus().length;
-const TSCALE = Number(process.env.HOOKS_TIMING_SCALE) || (LOADED ? 2 : 1);
+// the override only tightens (a scale below 1, for the planted case); a larger one is ignored (RULES.md known limit 26, closed
+// by the maintainer's unlock of 3 Oct)
+const OVERRIDE = Number(process.env.HOOKS_TIMING_SCALE);
+const TSCALE = OVERRIDE > 0 && OVERRIDE < 1 ? OVERRIDE : (LOADED ? 2 : 1);
 for (const [what, big, old, limit = 2] of [["280,000 '(' before bash <<a", '('.repeat(280000) + " bash <<a\nls\na\nrm research/solver/uncertainty.mjs", '42 s'],
   ["100,000 '{' then an rm of the index", '{'.repeat(100000) + ' ; rm research/solver/uncertainty.mjs', '38 s', 6],
   ['140,000 unclosed \\" then an rm of the index', '"\\'.repeat(140000) + '\n; rm research/solver/uncertainty.mjs', '19 s']]) {

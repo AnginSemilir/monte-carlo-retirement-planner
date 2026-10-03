@@ -33,8 +33,8 @@
  *      node, OPEN2 at 0.002 against OPEN2 at 1e-3 (P's) by the whole score. HELD (more switching friction suppresses the
  *      re-risking at the node) when the lower end is above -MW; FALSIFIED (a material loss stays at twice the charge) when
  *      the upper end is below -MW; else INCONCLUSIVE.
- *   3. THE SPLIT (O50; redesigned before launch, the plan-auditor's FAIL of 3 Oct 20:14 UK: WA alone cannot split O50 - an
- *      informed chooser barely switches in the bad world - so the split is the contrast at the same charge, path by path):
+ *   3. THE SPLIT (O50; redesigned before launch, the plan-auditor's FAIL of 3 Oct 20:14 UK: WA's move alone cannot split O50
+ *      - O50, 'the world-aware chooser cannot split O50 alone' - so the split is the contrast at the same charge, path by path):
  *      at S194's node, each path's whole score (reduce-7aa.mjs wholePaths) under OPEN2 at 0.0005 less under OPEN2 at 1e-3
  *      (o, the slice; at 0.0005, where the slice is largest - the plan-auditor's FAIL of 3 Oct 20:23 UK) and under WA at
  *      0.0005 less under WA at 1e-3 (a, the charge's move on a chooser that knows the world). The

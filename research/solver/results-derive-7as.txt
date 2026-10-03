@@ -8,8 +8,9 @@
 1c. the split at P's charge, from P's traces (S194's node, 16000 paths; grade C, post hoc)
    OPEN2 at 0.001 against 1e-3: whole -0.261 (-0.395 to -0.131), half-width 0.132
    WA at 0.001 against 1e-3:    whole -0.019 (-0.108 to 0.068), half-width 0.088; WA at margin 0 against 1e-3: -0.039 (-0.167 to 0.089), half-width 0.128
-   item 3's power at 0.0005 (P's per-path spread at 0.001: sd of a - o/3 4.896, of 2o/3 - a 6.303, of o 7.066; the slice at the line's 0.385, WA's share as at 0.001, 0.07): the premise's z 6.88, the HELD side's z 2.58 (at 0.001: 1.75); Holm over two needs a one-sided p under 0.025, z about 1.96, power 0.8 at about 2.8 - a model (the line through two points, the spread unscaled), NOT CHECKED
-   the contrast path by path (reduce-7as.mjs splitItem): the slice -0.261 a path (p 5.00e-5), WA's move -0.019, WA's share of the slice 0.07; HELD side p 3.93e-2 (Holm 7.87e-2), FALSIFIED side p 9.99e-1 (Holm 9.99e-1): INCONCLUSIVE
+   item 3's power at 0.0005, from both ends (the whole-score slice, WA's share, the sd of a - o/3): margin 0 0.589, 0.066, 7.676 (the HELD side's z 2.59); 0.001 0.261, 0.074, 4.896 (z 1.75); at 0.0005, taken between, 0.425, 0.070, 6.286: the premise's z 6.12, the HELD side's z 2.25; Holm over two needs a one-sided p under 0.025, z about 1.96, power 0.8 at about 2.8 - a model of two points, NOT CHECKED
+   the contrast at margin 0 (O50's own setting; reduce-7as.mjs splitItem; grade C, post hoc - the plan-auditor's receipt of 20:29 UK had computed it): the slice -0.589 a path (p 5.00e-5), WA's move -0.039, WA's share 0.07; HELD side p 5.50e-3 (Holm 1.10e-2), FALSIFIED side p 1.00e+0 (Holm 1.00e+0): HELD
+   the contrast at P's charge path by path (reduce-7as.mjs splitItem): the slice -0.261 a path (p 5.00e-5), WA's move -0.019, WA's share of the slice 0.07; HELD side p 3.93e-2 (Holm 7.87e-2), FALSIFIED side p 9.99e-1 (Holm 9.99e-1): INCONCLUSIVE
 2. across all worlds, P against the margin (TS+J, 16,000 paths): the whole score and its half-width; at 8,000 the half-width times sqrt 2
    bridge 4  2/3 whole -0.007 (-0.052 to 0.037): half-width 0.044, at 8,000 about 0.063; FLAT (inside +/-0.25) needs a point within about 0.187 of 0
    S194      6/8 whole +0.086 (0.016 to 0.155): half-width 0.070, at 8,000 about 0.098; FLAT (inside +/-0.25) needs a point within about 0.152 of 0

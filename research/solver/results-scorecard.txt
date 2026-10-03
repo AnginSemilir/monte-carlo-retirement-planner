@@ -24,10 +24,11 @@ P (the switch charged in both passes: which explanation carries families 1 and 2
 7am (the stored margin: P and the bundle under the tier shift, O67): Brier 0.222 over 3 (1 0.4 -> not; 2 0.55 -> not; 3 0.55 -> held)
 7ap (the allowance test: the used-allowance axis snapped against interpolated, O71): Brier 0.209 over 3 (1 0.45 -> held; 2 0.45 -> not; 3 0.65 -> held)
 7aq (P at half the step with a signed gap: is P smooth where the bundle is not, O67): Brier 0.132 over 2 (1 0.25 -> not; 2 0.55 -> held)
+7ar (O76's decomposition: where the bridge stage's rise under the interpolated allowance axis sits): Brier 0.222 over 3 (1 0.45 -> held; 2 0.45 -> not; 3 0.6 -> held)
 
-CUMULATIVE: Brier 0.231 over 127 items
+CUMULATIVE: Brier 0.231 over 130 items
 RELIABILITY (credence bin: items, mean credence, share held):
-  under 60%      80   0.45   0.57
-  60-75%         24   0.65   0.54
+  under 60%      82   0.45   0.57
+  60-75%         25   0.64   0.56
   75-90%         18   0.79   0.94
   90% and over    5   0.93   0.80

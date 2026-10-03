@@ -29,6 +29,7 @@ caught: item 1's FALSIFIED side at a half, not a third
 caught: item 1 reads the quad term
 caught: item 2 reads READER, not OFF
 caught: item 2 against r taken as known
+caught: item 3 against r taken as known
 caught: item 3's F reversed
 caught: readTwo's sides swapped
 caught: flipP counts ties as below
@@ -36,4 +37,4 @@ caught: flipP without the +1
 caught: flipP flips nothing
 caught: the units are not audit-7ar.mjs's
 caught: the PCLSF buckets differ
-38 of 38 mutations caught
+39 of 39 mutations caught

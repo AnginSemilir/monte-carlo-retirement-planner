@@ -1,0 +1,30 @@
+caught: the gate accepts a missing job
+caught: the gate accepts an unregistered job
+caught: the gate ignores a job not done
+caught: the gate ignores the ran line
+caught: the gate ignores the joint line's margin
+caught: the gate ignores the joint line's charge
+caught: the gate ignores the joint line's scale
+caught: the gate ignores a missing world line
+caught: the identity skips the table
+caught: the identity skips the gap
+caught: the identity lets an identity job run forward
+caught: the gate ignores the all-world paths
+caught: the gate ignores a missing all-world line
+caught: the gate ignores the node paths
+caught: the gate ignores a missing node line
+caught: the gate ignores a missing log year
+caught: the gate ignores OPEN2 holding
+caught: the gate allows a node line on bridge 4
+caught: a leg FLAT without the up direction
+caught: a leg CHANGES without the up direction
+caught: a leg FLAT without the whole score
+caught: a leg CHANGES without the whole score above
+caught: a leg FLAT without the guarded interval
+caught: no Holm on the down direction
+caught: item 1 HELD on any FLAT
+caught: item 2 HELD at the margin
+caught: item 2 FALSIFIED on the lower end
+caught: chargeRan replaces the first charge
+caught: slice keeps the levels whole
+29 of 29 mutations caught

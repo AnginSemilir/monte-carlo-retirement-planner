@@ -376,6 +376,11 @@ function planted() {
     const ri = shift(base, 2, 0, 7), S = p => p[0] + p[1] + p[2], R = ri.map((p, j) => S(p) - S(base[j]));
     const I = it({ rd: base, ri, rf: ri, od: base, oi: base.map((p, j) => [p[0] + R[j] / 3 - 0.05, p[1], p[2]]) });
     cases.push(['item 2 paired path by path: OFF at a third of each path\'s rise less 0.05, the rise noisy: HELD', `${I.rise.there} ${I.i2.read}`, 'true HELD']); EDGES.push('a noisy rise read path by path'); }
+  { // the same for item 3 (the plan-auditor's MINOR 1 of 3 Oct 19:57 UK: the item-2 plant set rf = ri, so F = 0 read HELD
+    // either way): the flag's part a third of each path's rise less 0.05, the rise noisy - paired HELD
+    const ri = shift(base, 2, 0, 7), S = p => p[0] + p[1] + p[2], R = ri.map((p, j) => S(p) - S(base[j]));
+    const I = it({ rd: base, ri, rf: ri.map((p, j) => [p[0] - (R[j] / 3 - 0.05), p[1], p[2]]), od: base, oi: base });
+    cases.push(['item 3 paired path by path: the flag\'s part a third of each path\'s rise less 0.05, the rise noisy: HELD', `${I.rise.there} ${I.i3.read}`, 'true HELD']); }
   { const I = it({ rd: base, ri: shift(base, 0, 0, 1), rf: base, od: base, oi: base });
     cases.push(['no rise (noise about 0): NO RISE, every item INCONCLUSIVE', `${I.rise.there} ${I.i1.read} ${I.i1.note} ${I.i2.read} ${I.i3.read}`, 'false INCONCLUSIVE NO RISE INCONCLUSIVE INCONCLUSIVE']);
     EDGES.push('no rise'); }

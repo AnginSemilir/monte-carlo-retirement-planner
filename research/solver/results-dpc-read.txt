@@ -1,0 +1,4 @@
+near-cliff share: SNAP 0.3338, PCLSI 0.0761, SHIFT 0.364; SNAP over PCLSI 4.39; SHIFT over SNAP 1.09
+SNAP: plateau paths 10263 on 22 households, their pension share pooled 0.9220; households with a plateau pension share of a half or more 16; households with a State Pension drop in the band 2 of 25
+PCLSI: plateau paths 6770 on 22 households, their pension share pooled 0.9153; households with a plateau pension share of a half or more 16; households with a State Pension drop in the band 2 of 25
+SHIFT: plateau paths 10618 on 23 households, their pension share pooled 0.9136; households with a plateau pension share of a half or more 17; households with a State Pension drop in the band 2 of 25

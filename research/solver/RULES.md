@@ -190,6 +190,9 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    HIGH made the next due). Labels are not checked: an unmarked decision row counts, and a marked row drops out even if it
    reads a result (fair-test: pass). Every row dropped so far carries fair-test: n/a (27 Sep: 26 Sep 09:39, 27 Sep 07:06
    and 10:12; 4 Oct: 11:41 and 12:09; the hundred-and-first review's MINOR 3, the plan-auditor's MINOR 5 of 4 Oct 12:34 UK).
+20a. check-plan's figure check on register and schedule rows (4 Oct) reads decimals only: a whole number ("9999 s") is never
+   checked, and a rule reference with a decimal ("rule 9.2c") is read as a figure and needs rewording (the plan-auditor's
+   MINOR 3 of 4 Oct 15:14 UK). Its sources are a cited results file, prediction, runs.log or results/<dir>/<file>.
 21. uncertainty.mjs l.69 counts a "FALSIFIED or harm verdict" by a pattern that matches "FALSIFIED" or "harm" anywhere in a
    ledger row's bold span, so a title that says "no material harm" counts as a harm verdict (7aa's row, 28 Sep: "1
    FALSIFIED or harm verdicts" before the deep review after it, a false positive; the deep review after 7aa and the
@@ -635,7 +638,7 @@ Unlock enforcement"). A test registered from 4 Oct 14:30 UK carries a decision t
 quarter or more (else a waiver), and a Mechanism field anchored in the code with a derive line of the cause's incidence
 (check-prediction.mjs). A plan commit answers every row relook.mjs lists (.githooks/commit-msg). A REPLACE lesson names its
 target and lands there by the next close (check-plan's retro). A new plan row is at most 3,000 bytes and a longer row may
-not grow (detail to items/<id>.md); a new figure in a register or schedule row is in a results file the row cites; the
+not grow (detail to items/<id>.md); a new decimal figure in a register or schedule row is in a results file, prediction or runs.log the row cites (known limit 20a); the
 premises at risk carry code anchors that must match their files; a status restated outside its item's row is warned of.
 
 ## 7. Where the approach came from (24 Sep)

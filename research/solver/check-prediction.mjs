@@ -155,7 +155,8 @@ export const committedAt = name => (addedMap().has(basename(name)) ? addedMap().
 // (fixtures checked by name only, and texts with no name, are not; `decision: true` forces it)
 // a name is found as given or under research/solver (check-plan passes 'predictions/x.md'; the plan-auditor's MINOR 3 of 4 Oct)
 const onDisk = name => !!name && (existsSync(name) || existsSync(REPO + 'research/solver/' + name));
-export const heldToDecision = (name, opts = {}) => opts.decision === true || (onDisk(name) && (t => t === null || Number.isNaN(t) || t >= DECISION_FROM)(committedAt(name)));
+// `at` stands in for the first-commit time in a test (no prediction is committed after DECISION_FROM yet)
+export const heldToDecision = (name, opts = {}) => opts.decision === true || (onDisk(name) && (t => t === null || Number.isNaN(t) || t >= DECISION_FROM)('at' in opts ? opts.at : committedAt(name)));
 
 export function checkPredictionText(text, { name, decision } = {}) {
   const errs = [];

@@ -288,6 +288,9 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
     ok(heldToDecision(abs) === false && heldToDecision('predictions/diag-7au.md') === false, 'a committed prediction (before 4 Oct 14:30 UK) is exempt, by its full path and by the name check-plan passes');
     const dir = mkdtempSync(join(S, 'predictions', 'zz-dec-')), f = join(dir, 'zz-new-test.md'); writeFileSync(f, '# Prediction: x\n');
     ok(heldToDecision(f) === true, 'an uncommitted prediction on disk is held to the decision rules');
+    const relName = f.slice(join(S, '/').length);
+    ok(heldToDecision(relName) === true, 'a name relative to research/solver (as check-plan passes it) is found on disk');
+    ok(heldToDecision(f, { at: Date.parse('2026-10-04T14:31:00+01:00') }) === true && heldToDecision(f, { at: Date.parse('2026-10-04T14:29:00+01:00') }) === false, 'EDGE: a prediction first committed after 4 Oct 14:30 UK is held, one before is exempt');
     rmSync(dir, { recursive: true, force: true });
     ok(heldToDecision(null) === false && heldToDecision('k6-spread.md') === false && heldToDecision(null, { decision: true }) === true, 'fixtures by name and nameless texts are exempt unless forced');
   }
@@ -359,6 +362,9 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(sh({ added: [long.replace('| 7zz |', '| ~~7zz~~ |')], removed: [long] }).every(e => !/at most/.test(e)), 'EDGE: striking a long row through keeps its key (no cap on a struck row that did not grow)');
   ok(sh({ added: ['| O1 | now 0.404 (results-x.txt) | y | z | g | open |'], removed: ['| O1 | old | y | z | g | open |'] }).some(e => /0\.404/.test(e)), 'planted: 0.404 does not pass against 0.4045 (a whole-number match)');
   ok(sh({ added: ['| O1 | now 0.4045 (results-x.txt) | y | z | g | open |'], removed: ['| O1 | old | y | z | g | open |'] }).length === 0, 'the exact figure passes');
+  { const f2 = { ...files, 'predictions/p.md': 'the power 0.8123', 'runs.log': 'load 5.38' }; const rs2 = f => f2[f.replace(/^(\.\.\/)+(src\/solver\/)?/, '')], ex2 = f => rs2(f) !== undefined;
+    const sh2 = a => shapeProblems({ readSolverFile: rs2, solverFileExists: ex2, plan, added: [a], removed: ['| O1 | old | y | z | g | open |'] }).problems;
+    ok(sh2('| O1 | power 0.8123 (predictions/p.md) | y | z | g | open |').length === 0 && sh2('| O1 | load 5.38 (runs.log) | y | z | g | open |').length === 0, 'a figure from a cited prediction or runs.log passes'); }
   const L = t => lessonsOf(`Seed: after x (1 Oct 10:00)\n${t}`);
   ok(replaceProblems(L('## 7zz (closed 4 Oct 15:00)\n- [T:relook] x -> REPLACE "r" in a.md with: some text the file never came to hold at any time at all\n## 7zy (closed 4 Oct 16:00)\n- [T:design] y -> DROP\n## 7zx (closed 4 Oct 17:00)\n- [T:design] z -> DROP\n'), () => '').length === 0, 'EDGE: a REPLACE two closes back is not re-checked (a later rewording is allowed)');
 }

@@ -16,7 +16,11 @@
  *            under SHIFT; run-down predicts plateaus spread across the band with the pension near 0, alike in every arm;
  *   plateau: the paths that reach 0.6 and never reach c and are alive at the plan's end: their count, and at the plan's end
  *            their mean used share (where the plateau sits), pension share and pension in years of the target spend;
- * Not recorded (declared in the registration): the move's order per path-year; the readings above do not use it.
+ * Saved for SNAP alone (the deep review's 'SNAP re-run with traces'): a per-path trace, <household>-snap.json.gz in DIAGDPC_OUT
+ *   (default results/diagdpc), of the used share, the pension and the non-pension balances (ISA, taxable account and cash) at
+ *   every path-year alive, and a trace line naming it; reduce-dpc.mjs holds each trace to its unit's dp line (reach, cross).
+ * Not recorded (declared in the registration): the move's order and the State Pension on or off per path-year (the State
+ *   Pension's year is printed); the readings above do not use them.
  *   sp:      the plan year the State Pension starts, and the mean yearly growth of u in that year and the year before,
  *            for path-years under 0.6 and in [0.6, c) - the State Pension's onset predicts a drop at that year at any u,
  *            alike in every arm.
@@ -26,7 +30,9 @@ import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
 import { solvePlan, runPolicy, chooseAction } from '../../src/solver/solve.js';
 import { buildScenarios } from '../policy-study/scenarios.mjs';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { gzipSync } from 'node:zlib';
+import { join, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { codeId } from './code-id.mjs';
@@ -101,10 +107,10 @@ UNITS.forEach(([id, arm], i) => {
   console.log(`${''.padEnd(16)} ran ${L}: ${ran}`);
   console.log(`${''.padEnd(16)} access ${L}: year ${access} years ${T} lsa ${lsa}`);
   const paths = E.pathsForSeed(SEED, NP, T), t1 = Date.now();
-  const U = new Float32Array(NP * (T + 1)).fill(NaN), PS = new Float32Array(NP * (T + 1)).fill(NaN), PV = new Float32Array(NP * (T + 1)).fill(NaN);
+  const U = new Float32Array(NP * (T + 1)).fill(NaN), PS = new Float32Array(NP * (T + 1)).fill(NaN), PV = new Float32Array(NP * (T + 1)).fill(NaN), NV = new Float32Array(NP * (T + 1)).fill(NaN);
   let row = 0, ok = 0;
   // the used share and, beside it, the pension's share of the wealth and the pension itself (grid.js vecOf's slots 0 to 2)
-  const choose = (t, st, held) => { if (t <= T) { const o = row * (T + 1) + t, w = st[0] + st[1] + st[2]; U[o] = Math.min(1, st[4] / lsa); PS[o] = w > 0 ? st[0] / w : 0; PV[o] = st[0]; } return chooseAction(r, st, t, held); };
+  const choose = (t, st, held) => { if (t <= T) { const o = row * (T + 1) + t, w = st[0] + st[1] + st[2]; U[o] = Math.min(1, st[4] / lsa); PS[o] = w > 0 ? st[0] / w : 0; PV[o] = st[0]; NV[o] = st[1] + st[2]; } return chooseAction(r, st, t, held); };
   paths.forEach((zs, j) => { row = j; const o = runPolicy(r, zs, { choose }); if (o.survived) ok++; });
   // the per-path measures
   let reach = 0, cross = 0, dwellSum = 0, pause = 0, wallPY = 0, wallG = 0, prePY = 0, preG = 0, stall = 0;
@@ -158,5 +164,15 @@ UNITS.forEach(([id, arm], i) => {
   console.log(`${''.padEnd(16)} dist ${L}: cliff ${CLIFF} ${Object.entries(bins).map(([k, b]) => `${k} ${b.n} ${b.n ? f4(b.ps / b.n) : '-'}`).join(' ')}`);
   console.log(`${''.padEnd(16)} plateau ${L}: paths ${plN} u ${plN ? f4(plU / plN) : '-'} pshare ${plN ? f4(plPs / plN) : '-'} pyears ${plN ? f4(plPv / plN) : '-'}`);
   console.log(`${''.padEnd(16)} sp ${L}: year ${spYear} lo ${spg.lo[1]} ${spg.lo[1] ? f4(spg.lo[0] / spg.lo[1]) : '-'} before ${spg.lo[3]} ${spg.lo[3] ? f4(spg.lo[2] / spg.lo[3]) : '-'} band ${spg.band[1]} ${spg.band[1] ? f4(spg.band[0] / spg.band[1]) : '-'} before ${spg.band[3]} ${spg.band[3] ? f4(spg.band[2] / spg.band[3]) : '-'}`);
+  // SNAP's per-path traces (the deep review after DP: 'SNAP re-run with traces'): the used share, the pension and the
+  // non-pension balances (ISA, taxable account and cash) at every path-year alive (NaN where the path is dead), so the library
+  // question - which households hold a substitute pot at the wall - can be read from them and the fixtures
+  if (arm === 'SNAP') {
+    const OUT = process.env.DIAGDPC_OUT || join(dirname(fileURLToPath(import.meta.url)), 'results', 'diagdpc'), file = `${id.replace(/[ +]/g, '_')}-snap.json.gz`;
+    mkdirSync(OUT, { recursive: true });
+    const b64 = x => Buffer.from(x.buffer, x.byteOffset, x.byteLength).toString('base64');
+    writeFileSync(join(OUT, file), gzipSync(JSON.stringify({ id, arm, stamp: STAMP, N: NP, Y: T + 1, seed: SEED, u: b64(U), pen: b64(PV), non: b64(NV) })));
+    console.log(`${''.padEnd(16)} trace ${L}: file ${file} paths ${NP} years ${T + 1}`);
+  }
   console.log(`${''.padEnd(16)} done ${L}`);
 });

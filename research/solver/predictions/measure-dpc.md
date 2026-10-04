@@ -121,8 +121,9 @@ No product change before Phase 4 (the maintainer's answer of 1 Oct 06:45 UK).
 - **The design:** the deep review after DP (4 Oct 04:41 UK), its decisive test and its two registered households; the maintainer's go-ahead of 4 Oct (the 08:17 row); DP (predictions/measure-dp.md, results-dp.txt).
 - **The build:**
   - audit-dpc.mjs: audit-dp.mjs's unit with the arm's axis options, plus the pension share and the pension recorded at every path-year beside the used share, and the dist, plateau and sp lines;
-  - reduce-dpc.mjs: stamps; the gate; the SNAP identity against DP under DP's stamp gate; the reading with S128's class; 28 planted cases and an EDGES line;
+  - reduce-dpc.mjs: stamps; the gate; the SNAP identity against DP under DP's stamp gate; SNAP's traces held to their dp lines; the reading with S128's class; 35 planted cases and an EDGES line;
   - batch-dpc.sh, preflight-dpc.sh, preflight-parse-dpc.mjs (the preflight holds SNAP to DP's own audit run at the preflight's size).
+- **Saved:** SNAP's per-path traces (amended before launch: the plan-auditor's BLOCKING 1 of 4 Oct 09:02 UK found the build saved none, though the Decision fed relies on them). For each household, <household>-snap.json.gz in results/diagdpc holds the used share, the pension and the non-pension balances (ISA, taxable account and cash) at every path-year alive. reduce-dpc.mjs requires each trace, holds its stamp to the logs', and holds the reach and cross recomputed from its used shares to the unit's dp line (planted: a trace one reaching path short, another stamp, 1,999 paths and a missing trace are each refused).
 - **Not recorded:** the deep review asked for the move's order per path-year and the State Pension on or off per path-year. The State Pension's year is printed, and no registered reading uses the move's order.
 
 ## Point and interval

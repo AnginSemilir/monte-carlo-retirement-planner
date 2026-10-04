@@ -120,8 +120,8 @@ Arm A is P's own runs at P's settings (OPEN2, WA and TS+J; P's traces). Arm B is
 
 ## Derivation script
 
-- `derive: research/solver/derive-7au.mjs > research/solver/results-derive-7au.txt sha256 30b4a7bce104b530`
-  (the slice; item 1's and item 2's power; the time; the learner's pace at the node)
+- `derive: research/solver/derive-7au.mjs > research/solver/results-derive-7au.txt sha256 b96a80b074bf08b4`
+  (the slice; item 1's and item 2's power, the latter also from the nearest learner records, 7t's; the time; the learner's pace at the node)
 
 ## Point and interval
 
@@ -144,7 +144,10 @@ From results-derive-7au.txt sections 2 and 3:
   - FALSIFIED is read with probability 1.000 at s = 0 and 0.985 at s = 0.2;
   - HELD is read with probability 0.7775 at s = 0.75, 0.9975 at s = 0.8 and 1.000 at s = 1;
   - at exactly a third or two thirds, the wrong side is read 0.035 and 0.030 of the time.
-- **Item 2:** under a true change of 0 with the churn of P's TS+J at 0.001 against the margin (2/3, 6/8 and 0/0 discordant of 16,000), each leg reads no material harm with probability 1.000. The whole score's half-widths are 0.045, 0.070 and 0.031, against MW 0.25.
+- **Item 2:** two bases, both in results-derive-7au.txt.
+  - **The nearest records of a learner** (section 3b, the basis RULES.md section 8 rule 6 asks for; the plan-auditor's MINOR 4 of 4 Oct 09:02 UK): 7t's learner arms on these units (bridge 4 READER+L 9 saved/6 lost, S194 OFF+L 38/2, S126 READER+L 0/10 of 8,000; results-7t-vs-product.txt, older settings), scaled to 16,000 paths at the same rates and split at the observed proportion. Each leg reads no material harm by the exact rule with probability 1.000. S126's 20 lost of 16,000 also keeps the guarded interval's lower end above -0.25 (reduce-7au.mjs's plant: 24 lost and none saved reads SAFE).
+  - **A true change of 0** with the churn of P's TS+J at 0.001 against the margin (2/3, 6/8 and 0/0 discordant of 16,000; section 3): 1.000 on each leg.
+  - The whole score's half-widths from that pair are 0.045, 0.070 and 0.031, against MW 0.25.
 
 ## Budget line
 

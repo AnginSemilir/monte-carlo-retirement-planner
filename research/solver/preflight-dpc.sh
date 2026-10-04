@@ -8,7 +8,7 @@ set -u
 OUT=research/solver/results/diagdpc-preflight REF=research/solver/results/diagdp-preflight-dpc
 rm -rf "$OUT" "$REF"; mkdir -p "$OUT" "$REF"
 seq 0 74 | xargs -P "${PAR:-1}" -I{} sh -c \
-  'node research/solver/audit-dpc.mjs 4 20 part {}/75 7002 > research/solver/results/diagdpc-preflight/case{}.txt 2>&1 || echo "unit {} failed"'
+  'DIAGDPC_OUT=research/solver/results/diagdpc-preflight node research/solver/audit-dpc.mjs 4 20 part {}/75 7002 > research/solver/results/diagdpc-preflight/case{}.txt 2>&1 || echo "unit {} failed"'
 seq 0 24 | xargs -P "${PAR:-1}" -I{} sh -c \
   'node research/solver/audit-dp.mjs 4 20 part {}/25 7002 > research/solver/results/diagdp-preflight-dpc/case{}.txt 2>&1 || echo "DP household {} failed"'
 grep -h "solve \|done \|Error" "$OUT"/case*.txt | sed 's/^ *//' | awk '{print $1, $2, $NF}' | sort | uniq -c | sort -rn | head -5

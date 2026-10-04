@@ -8,7 +8,9 @@
  * 0,0.6,1 snapped); DP's dp line consistent as reduce-dp.mjs holds it and the dwell line summing to reach; the access line
  * the same in a household's three arms; the dist line's bins counted and their pension shares within 0 and 1 (a '-' exactly
  * when a bin is empty), the cliff the arm's; the plateau paths no more than reach (and no more than reach less cross where
- * the cliff is DP's 0.75), their used share in [0.6, the cliff); the sp line's year the same in every arm and its counts whole.
+ * the cliff is DP's 0.75), their used share in [0.6, the cliff); the sp line's year the same in every arm and its counts whole;
+ * SNAP's per-path trace (a trace line on SNAP and on no other arm; the file present, its stamp the logs', its paths and
+ * years the unit's, and the reach and cross recomputed from its used shares equal to the dp line's).
  * THE IDENTITY (checklist 3: DP's files re-used, so fair-tested first): SNAP is DP's unit re-run, so each household's SNAP ran,
  * access, dp and dwell lines must equal DP's in results/diagdp (read under DP's own stamp gate, predictions/measure-dp.md) to
  * the character. A difference is not settled: the gate refuses.
@@ -23,6 +25,7 @@
  *   node research/solver/reduce-dpc.mjs --planted   the planted checks alone
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireFairLogs } from './fair-gate.mjs';
@@ -38,7 +41,7 @@ export const BINS = ['d0', 'd05', 'd1', 'd2', 'd4', 'nopace'];
 const BASE = `OFF/PRODUCT/W${W}`, labelOf = a => (a === 'SNAP' ? BASE : `${BASE}/${a}`), armOf = l => (l === BASE ? 'SNAP' : l.slice(BASE.length + 1));
 const esc = s => s.replace(/[/+.]/g, m => `\\${m}`), LBL = `(${esc(BASE)}(?:\\/(?:PCLSI|SHIFT))?)`;
 const CASEL = new RegExp(`^(\\S.*?)\\s+case \\| unit ${LBL} \\| lambda (\\S+)$`);
-const LINE = new RegExp(`^\\s+(ran|access|dp|dwell|dist|plateau|sp) ${LBL}: (.*)$`), DONEL = new RegExp(`^\\s+done ${LBL}$`);
+const LINE = new RegExp(`^\\s+(ran|access|dp|dwell|dist|plateau|sp|trace) ${LBL}: (.*)$`), DONEL = new RegExp(`^\\s+done ${LBL}$`);
 const field = (s, k) => { const m = new RegExp(`(?:^| )${k} (\\S+)`).exec(s); return m ? m[1] : null; };
 const num = (s, k) => { const v = field(s, k); return v === null || v === '-' ? NaN : Number(v); };
 
@@ -54,6 +57,7 @@ export function parse(text) {
     cur.raw[kind] = s;
     if (kind === 'ran') cur.ran = s;
     else if (kind === 'access') cur.access = s;
+    else if (kind === 'trace') { const x = /^file (\S+) paths (\d+) years (\d+)$/.exec(s); cur.trace = x ? { file: x[1], paths: +x[2], years: +x[3] } : { bad: s }; }
     else if (kind === 'dp') cur.dp = Object.fromEntries(['paths', 'survived', 'reach', 'cross', 'dwell', 'pause'].map(k => [k, num(s, k)]));
     else if (kind === 'dwell') cur.dwell = s === '-' ? [] : s.split(' ').map(x => x.split(':').map(Number));
     else if (kind === 'dist') {
@@ -114,6 +118,7 @@ export function gate(units, { pts = PTS, npw = NPW, dp = null } = {}) {
     const p = u.plateau;
     if (!(Number.isInteger(p.paths) && p.paths >= 0 && p.paths <= d.reach && (A.cliff !== 0.75 || p.paths <= d.reach - d.cross))) bad.push(`${tag}: ${p.paths} plateau paths, reach ${d.reach} cross ${d.cross}`);
     else if (p.paths > 0 ? !(p.u >= 0.6 && p.u < A.cliff && p.pshare >= 0 && p.pshare <= 1 && p.pyears >= 0) : [p.u, p.pshare, p.pyears].some(Number.isFinite)) bad.push(`${tag}: plateau u ${p.u} pshare ${p.pshare} pyears ${p.pyears} on ${p.paths} paths`);
+    if (u.arm === 'SNAP' ? !(u.trace && u.trace.file && u.trace.paths === npw) : !!u.trace) bad.push(`${tag}: ${u.arm === 'SNAP' ? `trace line ${u.trace ? JSON.stringify(u.trace) : 'missing'} (one of ${npw} paths wanted)` : 'a trace line off SNAP'}`);
     for (const k of ['lo', 'band']) for (const at of [0, 2]) { const [c, g] = [u.sp[k][at], u.sp[k][at + 1]]; if (!(Number.isInteger(c) && c >= 0) || (c === 0) !== !Number.isFinite(g)) bad.push(`${tag}: sp ${k} ${at ? 'before' : 'year'} ${c} with growth ${g}`); }
   }
   // a household's arms share the access line and the State Pension's year
@@ -130,6 +135,31 @@ export function gate(units, { pts = PTS, npw = NPW, dp = null } = {}) {
   } else bad.push('no DP records: the SNAP identity was not checked (a check that ran on nothing is an error)');
   return bad;
 }
+
+/* SNAP's per-path trace against its unit: `t` the decoded trace, `u` the unit, `st` the logs' stamp */
+const f32 = b => new Float32Array(Buffer.from(b, 'base64').buffer.slice(0));
+export function checkTrace(t, u, st) {
+  const tag = `${u.id} SNAP trace`, years = Number((/ years (\d+) /.exec(u.access) || [])[1]) + 1;
+  if (!t) return [`${tag}: missing`];
+  const bad = [];
+  if (!st || !t.stamp || ['code', 'audit', 'prediction', 'sha'].some(k => t.stamp[k] !== st[k])) bad.push(`${tag}: its stamp is not the logs'`);
+  if (t.id !== u.id || t.arm !== 'SNAP' || t.N !== u.dp.paths || t.Y !== years) bad.push(`${tag}: id ${t.id} arm ${t.arm} paths ${t.N} years ${t.Y}, not ${u.id} SNAP ${u.dp.paths} ${years}`);
+  const U = t.u instanceof Float32Array ? t.u : f32(t.u), pen = t.pen instanceof Float32Array ? t.pen : f32(t.pen), non = t.non instanceof Float32Array ? t.non : f32(t.non);
+  if (U.length !== t.N * t.Y || pen.length !== U.length || non.length !== U.length) { bad.push(`${tag}: arrays ${U.length}, ${pen.length}, ${non.length}, not ${t.N * t.Y}`); return bad; }
+  let reach = 0, cross = 0;
+  for (let j = 0; j < t.N; j++) { let r = false, c = false; for (let y = 0; y < t.Y; y++) { const x = U[j * t.Y + y]; if (x >= 0.6) r = true; if (x >= 0.75) c = true; } if (r) reach++; if (c) cross++; }
+  if (reach !== u.dp.reach || cross !== u.dp.cross) bad.push(`${tag}: reach ${reach} cross ${cross} from its used shares, the dp line ${u.dp.reach} ${u.dp.cross}`);
+  return bad;
+}
+export function loadTraces(units, dir, st) {
+  const bad = [];
+  for (const u of units.filter(x => x.arm === 'SNAP' && x.trace && x.trace.file)) {
+    const f = join(dir, u.trace.file);
+    bad.push(...checkTrace(existsSync(f) ? JSON.parse(gunzipSync(readFileSync(f)).toString()) : null, u, st));
+  }
+  return bad;
+}
+export const stampOf = text => { const m = /^stamp: code (\S+) audit (\S+) prediction (\S+) sha (\S+)$/m.exec(text || ''); return m ? { code: m[1], audit: m[2], prediction: m[3], sha: m[4] } : null; };
 
 const f2 = x => (Number.isFinite(x) ? x.toFixed(2) : '-'), f4 = x => (Number.isFinite(x) ? x.toFixed(4) : '-');
 const near = u => { const b = u.dist.bins, n = BINS.reduce((t, k) => t + b[k].n, 0), k = b.d0.n + b.d05.n; return { n, k, share: n ? k / n : NaN, ps: k ? ((b.d0.n ? b.d0.n * b.d0.ps : 0) + (b.d05.n ? b.d05.n * b.d05.ps : 0)) / k : NaN }; };
@@ -180,6 +210,7 @@ function builtLog(o = {}) {
     const pls = s128 ? (o.s128 === 'rundown' ? '0.0200' : '0.5000') : '0.1000';
     lines.push(`${''.padEnd(16)} plateau ${L}: paths ${o.plateauOver && s128 && a === 'SNAP' ? 301 : 50} u ${o.plateauU && s130 && a === 'SHIFT' ? '0.8100' : '0.6800'} pshare ${pls} pyears 2.0000`);
     lines.push(`${''.padEnd(16)} sp ${L}: year ${o.spOff && s130 && a === 'PCLSI' ? 13 : 12} lo 100 0.0100 before 90 0.0200 band ${o.spDash && s130 && a === 'SNAP' ? '0 0.0100' : '50 0.0050'} before 40 0.0090`);
+    if ((a === 'SNAP' && !(o.noTrace && s130)) || (o.traceOff && s130 && a === 'PCLSI')) lines.push(`${''.padEnd(16)} trace ${L}: file ${id.replace(/[ +]/g, '_')}-snap.json.gz paths 2000 years 40`);
     if (!(o.notDone && id === 'S194' && a === 'PCLSI')) lines.push(`${''.padEnd(16)} done ${L}`);
   }
   if (o.extra) lines.push(`S999             case | unit ${BASE} | lambda 0.0223606797749979`);
@@ -187,6 +218,7 @@ function builtLog(o = {}) {
 }
 /* DP's records as built: SNAP's lines of a built log, optionally with one character changed */
 const builtDp = (o = {}) => { const r = dpRecords([builtLog()]); if (o.dpOff) r.S130.dp = r.S130.dp.replace('survived 1900', 'survived 1901'); if (o.dpMissing) delete r.S126; return r; };
+const EDGES2 = [];
 function planted() {
   const cases = [], SZ = { pts: '30', npw: 2000 };
   const g = (o, d = {}) => String(gate(parse(builtLog(o)), { ...SZ, dp: builtDp(d) }).length > 0);
@@ -194,10 +226,18 @@ function planted() {
   for (const [nm, o] of [['a missing unit', { skip: 'S126 SHIFT' }], ['an extra household', { extra: true }], ['a unit not done', { notDone: true }], ['a reader in an arm', { reader: true }],
     ['SHIFT on the default buckets', { wrongAxis: true }], ['an arm\'s access line off the others', { accessOff: true }], ['more crossing than reaching paths', { crossOver: true }], ['a dwell line off reach', { dwellOff: true }],
     ['a dist cliff not the arm\'s', { cliffOff: true }], ['a dist bin missing', { binMissing: true }], ['a pension share above 1', { shareOver: true }], ['an empty bin with a share', { emptyDash: true }],
-    ['more plateau paths than reach less cross', { plateauOver: true }], ['a plateau sitting at or past its cliff', { plateauU: true }], ['an arm\'s State Pension year off the others', { spOff: true }], ['an empty sp count with a growth', { spDash: true }]]) cases.push([`the gate refuses ${nm}`, g(o), 'true']);
+    ['more plateau paths than reach less cross', { plateauOver: true }], ['a plateau sitting at or past its cliff', { plateauU: true }], ['an arm\'s State Pension year off the others', { spOff: true }], ['an empty sp count with a growth', { spDash: true }], ['SNAP without its trace line', { noTrace: true }], ['a trace line off SNAP', { traceOff: true }]]) cases.push([`the gate refuses ${nm}`, g(o), 'true']);
   cases.push(['the gate refuses SNAP off DP by one character', g({}, { dpOff: true }), 'true']);
   cases.push(['the gate refuses a household with no DP record', g({}, { dpMissing: true }), 'true']);
   cases.push(['the gate refuses a run with no DP records at all', String(gate(parse(builtLog()), SZ).length > 0), 'true']);
+  { // the trace against its unit: a built trace whose reach and cross are the dp line's (300, 200 on 2,000 paths, 40 years)
+    const u = parse(builtLog()).find(x => x.id === 'S130' && x.arm === 'SNAP'), st = { code: 'abc', audit: 'def', prediction: 'none', sha: '-' };
+    const mk = (reach, cross, o = {}) => { const N = o.N || 2000, Y = 40, U = new Float32Array(N * Y).fill(NaN); for (let j = 0; j < N; j++) for (let y = 0; y < 10; y++) U[j * Y + y] = j < cross ? 0.8 : j < reach ? 0.65 : 0.3; return { id: 'S130', arm: 'SNAP', stamp: o.st || st, N, Y, u: U, pen: new Float32Array(N * Y), non: new Float32Array(N * Y) }; };
+    cases.push(['a trace whose reach and cross are its dp line\'s is accepted', String(checkTrace(mk(300, 200), u, st).length), '0']);
+    cases.push(['a trace one reaching path short is refused', String(checkTrace(mk(299, 200), u, st).length > 0), 'true']);
+    cases.push(['a trace with another stamp is refused', String(checkTrace(mk(300, 200, { st: { ...st, audit: 'zzz' } }), u, st).length > 0), 'true']);
+    cases.push(['a trace on 1,999 paths is refused', String(checkTrace(mk(300, 200, { N: 1999 }), u, st).length > 0), 'true']);
+    cases.push(['a missing trace is refused', String(checkTrace(null, u, st).length > 0), 'true']); EDGES2.push('a trace one reaching path short'); }
   const rd = o => reading(parse(builtLog(o)), () => {});
   { const r = rd({}); cases.push(['the reading gives S130 dwell 10 to 3 and S128 SNAP-HOLD (dwell 10 to 5, pension share 0.6 near the cliff)', `${r.s130.join(' ')} ${r.cls}`, '10 3 SNAP-HOLD']); }
   cases.push(['S128 RUN-DOWN (dwell 10 to 9.5, plateau pension share 0.02)', rd({ s128: 'rundown' }).cls, 'RUN-DOWN']);
@@ -218,7 +258,7 @@ const logsOf = Dir => (existsSync(Dir) ? Object.fromEntries(readdirSync(Dir).fil
 export { builtLog, logsOf };
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const np = planted();
-  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should\nEDGES: a fall of exactly 0.25, a fall of exactly 0.1 with plateau shares of exactly 0.05, a zero SNAP dwell, no plateau paths, an empty bin with a share, a plateau at its cliff`); process.exit(0); }
+  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should\nEDGES: a fall of exactly 0.25, a fall of exactly 0.1 with plateau shares of exactly 0.05, a zero SNAP dwell, no plateau paths, an empty bin with a share, a plateau at its cliff, ${EDGES2.join(', ')}`); process.exit(0); }
   const args = process.argv.slice(2).filter(x => !x.startsWith('--'));
   const DIR = args[0] || join(HERE, 'results', 'diagdpc'), npw = Number(args[1] || NPW), pts = args[2] || PTS, DPDIR = args[3] || join(HERE, 'results', 'diagdp');
   const logs = logsOf(DIR), units = Object.values(logs).flatMap(parse), want = PANEL.length * Object.keys(ARMS).length;
@@ -230,7 +270,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   requireFairLogs(dpLogs, PRED_DP);
   if (PANEL.some(id => !Object.values(dpLogs).flatMap(parseDp).some(u => u.id === id && u.done))) { console.log('DP RECORDS: a household not done in DP\'s logs'); process.exit(1); }
   const bad = gate(units, { pts, npw, dp: dpRecords(Object.values(dpLogs)) });
+  if (!bad.length) bad.push(...loadTraces(units, DIR, stampOf(Object.values(logs)[0])));
   if (bad.length) { console.log(`GATE: FAILED\n  ${bad.join('\n  ')}`); process.exit(1); }
-  console.log(`GATE: passed - ${PANEL.length} households in ${Object.keys(ARMS).length} arms, each once and done, the arm's axis and the shipping default's settings on every ran line, the counts consistent; SNAP equal to DP's ran, access, dp and dwell lines on every household (DP's logs under DP's stamp gate)`);
+  console.log(`GATE: passed - ${PANEL.length} households in ${Object.keys(ARMS).length} arms, each once and done, the arm's axis and the shipping default's settings on every ran line, the counts consistent; SNAP equal to DP's ran, access, dp and dwell lines on every household (DP's logs under DP's stamp gate); every SNAP trace present, stamped and holding its dp line's reach and cross`);
   reading(units);
 }

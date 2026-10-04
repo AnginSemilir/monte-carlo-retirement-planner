@@ -76,6 +76,26 @@ for (let r = 0; r < R2; r++) {
 }
 legs.forEach((l, i) => console.log(`   ${l.id.padEnd(9)} survival ${l.sv.toFixed(3)} margin ${l.mg}; churn ${l.k.saved} saved/${l.k.lost} lost of ${l.k.N}; P(no material harm) ${f4(perLeg[i] / R2)}; whole score ${f3(l.wl.d)} (${l.wl.lo.toFixed(3)} to ${l.wl.hi.toFixed(3)}), half-width ${((l.wl.hi - l.wl.lo) / 2).toFixed(3)}`));
 console.log(`   all three legs no material harm by survival: ${f4(allNo / R2)}`);
+// 3b. the nearest records of a learner (RULES.md section 8 rule 6; the plan-auditor's MINOR 4 of 4 Oct 09:02 UK): 7t's learner
+// arms on these units (results-7t-vs-product.txt; 16 points, lambda held at S126's: older settings than P's) - the reader's
+// +L on bridge 4 and S126, off's +L on S194 - saved/lost of 8,000 against 7t's OFF, scaled to 16,000 at the same rates; 4,000
+// replicates drawing the discordant split at the observed proportion, the exact rule with Holm over the three legs
+{
+  const txt = readFileSync(join(HERE, 'results-7t-vs-product.txt'), 'utf8').split('\n');
+  const cellOf = (unit, arm) => { const i = txt.findIndex(l => l.trim() === unit); if (i < 0) return null; for (let k = i + 1; k < txt.length && /^\s/.test(txt[k]); k++) { const m = new RegExp(`^\\s+${arm.replace(/\+/g, '\\+')}\\s+(\\d+)/(\\d+)\\s`).exec(txt[k]); if (m) return { saved: +m[1], lost: +m[2] }; } return null; };
+  const L7 = [['bridge 4', 'READER+L'], ['S194', 'OFF+L'], ['S126', 'READER+L']].map(([id, arm], i) => ({ id, arm, c: cellOf(id, arm), mg: legs[i].mg }));
+  if (L7.some(l => !l.c)) { console.log('   3b: a 7t learner line not found'); process.exit(1); }
+  let ok3 = 0; const per = L7.map(() => 0);
+  for (let r = 0; r < R2; r++) {
+    const sims = L7.map(l => { const d = 2 * (l.c.saved + l.c.lost), pl = (l.c.lost) / Math.max(1, l.c.saved + l.c.lost); let lost = 0; for (let i = 0; i < d; i++) if (rnd() < pl) lost++; return { lost, saved: d - lost, N: 16000, mg: l.mg }; });
+    const h = holm(sims.map(x => mcnemarHarmP(x.lost, x.saved)));
+    const ok = sims.map((x, i) => outcome({ b: x.lost, c: x.saved, N: x.N, margin: x.mg, pHolm: h[i], level: 0.05 }).outcome === 'no material harm');
+    ok.forEach((v, i) => { if (v) per[i]++; }); if (ok.every(Boolean)) ok3++;
+  }
+  console.log('\n3b. ITEM 2\'S POWER FROM THE NEAREST LEARNER RECORDS (7t, results-7t-vs-product.txt; older settings), scaled to 16,000 paths:');
+  L7.forEach((l, i) => console.log(`   ${l.id.padEnd(9)} 7t's ${l.arm} ${l.c.saved} saved/${l.c.lost} lost of 8,000 (discordance rate ${((l.c.saved + l.c.lost) / 8000).toFixed(4)}); P(no material harm) at those rates ${f4(per[i] / R2)}`));
+  console.log(`   all three legs no material harm by survival: ${f4(ok3 / R2)}`);
+}
 // 4. the time
 const secs = logs(DIRS).join('\n');
 const grab = re => [...secs.matchAll(re)].map(m => Number(m[1]));

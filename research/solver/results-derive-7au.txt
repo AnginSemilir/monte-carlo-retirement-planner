@@ -20,6 +20,12 @@
    S126      survival 99.794 margin 0.25; churn 0 saved/0 lost of 16000; P(no material harm) 1.0000; whole score -0.000 (-0.032 to 0.031), half-width 0.031
    all three legs no material harm by survival: 1.0000
 
+3b. ITEM 2'S POWER FROM THE NEAREST LEARNER RECORDS (7t, results-7t-vs-product.txt; older settings), scaled to 16,000 paths:
+   bridge 4  7t's READER+L 9 saved/6 lost of 8,000 (discordance rate 0.0019); P(no material harm) at those rates 1.0000
+   S194      7t's OFF+L 38 saved/2 lost of 8,000 (discordance rate 0.0050); P(no material harm) at those rates 1.0000
+   S126      7t's READER+L 0 saved/10 lost of 8,000 (discordance rate 0.0013); P(no material harm) at those rates 1.0000
+   all three legs no material harm by survival: 1.0000
+
 4. THE TIME (7as's seconds, the same code): a solve 1439 s (9 solves); a node rule 115.7 ms a path; an all-world run 134.5 ms a path (the learner's overhead NOT CHECKED: the posterior is a few operations a year beside chooseAction's scoring)
    node:L (two rules on 16,000, two on 2,000) 1.56 h; each all:L (two rules on 16,000, one on 2,000) 1.67 h; total 6.6 core-hours, the longest job 1.67 h on four cores
 

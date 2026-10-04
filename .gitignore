@@ -30,3 +30,4 @@ research/policy-study/results/
 confirm-list.json
 research/simplePlan.mjs
 research/solver/results/
+__pycache__/

@@ -126,3 +126,37 @@ tau wide moves; the harm read may be underpowered).
 The review's deciding test: flows at a few thousand off-node states across the four households, today's reader against
 readerTax's tau (prototyped in the script, not the solver), a few minutes a household on the light lane. It decides
 whether the revised tau removes the optimism or leaves a straddle as large as the error.
+
+## The misclassification print (results-rtaxmis.txt; audit-rtaxmis.mjs, second run with the edge band, launched 4 Oct 22:00 UK)
+
+- On the 48600 nodes RTAX misreads none; on 15000 off-node states today's reader misreads 4 and RTAX none - the first
+  run's sample put almost nothing in the band, so its "bar met" said nothing.
+- On 15000 edge-band states (accessible money 0.97 to 1.06 of d0): today's reader misreads 207, all false support
+  (optimistic); RTAX misreads 61, 7 false support and 54 false failure (pessimistic). Per year: S130 56 against 14,
+  S370 63 and 73 against 9 and 14, bridge 4 6 against 14, S126 9 against 10. The bar (under a tenth of today's, at most
+  1% of positions) is NOT MET: 0.2947 of today's, 0.0041 of positions.
+- Reading: the interpolated tau overstates the tax between nodes (false failure) - tax is kinked in the ISA share
+  (capital gains tax starts where the ISA no longer covers the bill) and proportional to the gain, so a straight line
+  between nodes sits above it, and the dead side's flat edge tax is pulled into live cells. RTAX as designed swaps
+  optimism for pessimism; on bridge 4 and S126 it misreads as often or more.
+
+## RTAX v2 (proposed): support decided by the flow, near the edge only
+
+- At nodes of a step year: p_i = 1 when some floor move pays the year from the node (the flow, exactly), else 0 - no tau.
+- At a read in a step year: when accessible money A lies in [d0 - tol, d0 + tauBar_t], p = 1 when some floor draw order
+  pays from the read's own state (the distinct floor orders flowed, two or three: tier variants reuse the base move's
+  flow, solve.js l.866-870), else 0; outside the band p = chance(A) as now. tauBar_t bounds the year's tax at paying
+  states near the edge (the largest node tau with A_i within 1.5 d0, plus a margin), and the misclassification print
+  re-run on v2 checks that no state above the band fails (the bound's own test).
+- Exact by construction inside the band; the cost is the band's reads times the floor orders' flows, measured, not
+  assumed (the band is narrow: PMAP put 0.0085 of the supported step reads within 10% of the threshold,
+  results-pmap.txt).
+
+## The deep review after 7au on RTAX (deep-review-log.md, 4 Oct 22:08 UK, Q4)
+
+RTAX first is right as the prerequisite that places COV-B's node, but RTAX-STEP alone would be a test where the fault
+can barely show: today's reader misreads few states and PMAP put 0.0085 of the supported step reads within 10% of the
+threshold. Its recommendation: size RTAX from PMAP's step-read histograms weighted by paths; unless that shows weight,
+fold readerTax into COV-B-STEP's run. Proposed form, keeping the maintainer's order (the tax fixed first) and the
+attribution: COV-B-STEP with three arms - PMAP's unit, the unit with readerTax (v2), and readerTax with the node - so
+the tax fix is read on its own arm first, in the same run.

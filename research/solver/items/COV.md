@@ -163,3 +163,16 @@ How B's step-year node goes into the grid. Three ways were weighed; the third is
   the first 8); readValues without the year throwing; the copy complete (survW only); a spread year planted as a step
   year refused; round trips at a = 1, a*_j, an edge 1e-12 from a node and the W = 0 row. Declared: the reader meters
   change in every reader year, and audits checking `g.ni === SH` refuse.
+
+## The flow-at-edge print (results-covflow.txt; audit-covflow.mjs, launched 4 Oct 20:41 UK on the light lane under "none:")
+
+Every move flowed from each step year's edge state (a*_j at d0 - tol/2) on the 30-point unit's wealth rows, every ISA
+share, gain and allowance bucket; the planted checks (a = 1 fails every move, a = 0 on the richest row passes) held, 10.
+- S130 year 1, S370 years 3 and 7 (d0 83200): 240 of 1080 edge cells dead (every move fails), all at ISA share b 0 or
+  0.2 with gain 0.25 or 0.55, 60 each; the largest unmet 2497, equal to the tax on the best move.
+- bridge 4 year 3 and S126 year 1 (d0 23200): 63 of 1134 dead, all at gain 0.55 and b 0; the largest unmet 307, the tax.
+- Bridge 0: no step year. In all 846 of 5508 edge cells dead.
+
+So BLOCKING 1 holds, and not only at the top gain bucket: the middle bucket (0.25) at a low ISA share fails on S130 and
+S370. The maintainer's decision for this outcome (4 Oct, the session: "Many fail - fix the tax in the reader first"):
+COV-B-STEP is held behind a fix of the reader's tax (items/RTAX.md), which becomes family 3's root-cause step.

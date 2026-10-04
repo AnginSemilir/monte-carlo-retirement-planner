@@ -1,0 +1,29 @@
+stamp: code 5e1edac08e4b audit 861ca0731ded prediction none sha -
+COV'S FLOW-AT-EDGE PRINT: READER/TS+J/W0.02/PCLSI at 6 share points; edge states on the 30-point unit's wealth rows; per household and step year: rows with an edge, cells, cells where the floor moves all fail, cells where every move fails (dead)
+S130             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | moves 360 (floor level 0.8: 72) | rows 30 | reader yes | secs 155
+                 year 0: spread (no node)
+                 year 1: step | d0 83200 | rows with an edge 20 | cells 1080 | floor moves all fail 240 | dead 240 | largest unmet among the dead 2497 (tax on its best move 2497) | dead by gain 0.25 b 0.0: 60, gain 0.55 b 0.0: 60, gain 0.25 b 0.2: 60, gain 0.55 b 0.2: 60
+                 done
+S370             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | moves 360 (floor level 0.8: 72) | rows 30 | reader yes | secs 179
+                 year 0: spread (no node)
+                 year 1: spread (no node)
+                 year 2: spread (no node)
+                 year 3: step | d0 83200 | rows with an edge 20 | cells 1080 | floor moves all fail 240 | dead 240 | largest unmet among the dead 2497 (tax on its best move 2497) | dead by gain 0.25 b 0.0: 60, gain 0.55 b 0.0: 60, gain 0.25 b 0.2: 60, gain 0.55 b 0.2: 60
+                 year 4: spread (no node)
+                 year 5: spread (no node)
+                 year 6: spread (no node)
+                 year 7: step | d0 83200 | rows with an edge 20 | cells 1080 | floor moves all fail 240 | dead 240 | largest unmet among the dead 2497 (tax on its best move 2497) | dead by gain 0.25 b 0.0: 60, gain 0.55 b 0.0: 60, gain 0.25 b 0.2: 60, gain 0.55 b 0.2: 60
+                 done
+bridge 4         case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | moves 360 (floor level 0.8: 72) | rows 30 | reader yes | secs 158
+                 year 0: spread (no node)
+                 year 1: spread (no node)
+                 year 2: spread (no node)
+                 year 3: step | d0 23200 | rows with an edge 21 | cells 1134 | floor moves all fail 63 | dead 63 | largest unmet among the dead 307 (tax on its best move 307) | dead by gain 0.55 b 0.0: 63
+                 done
+S126             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | moves 360 (floor level 0.8: 72) | rows 30 | reader yes | secs 152
+                 year 0: spread (no node)
+                 year 1: step | d0 23200 | rows with an edge 21 | cells 1134 | floor moves all fail 63 | dead 63 | largest unmet among the dead 307 (tax on its best move 307) | dead by gain 0.55 b 0.0: 63
+                 done
+bridge 0         case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | moves 360 (floor level 0.8: 72) | rows 30 | reader yes | secs 146
+                 done
+TOTAL: 5508 edge cells flowed, 846 dead; 10 planted checks held

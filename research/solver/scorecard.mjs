@@ -51,6 +51,7 @@ export const TESTS = [
   { name: '7aq (P at half the step with a signed gap: is P smooth where the bundle is not, O67)', prediction: 'predictions/diag-7aq.md', results: 'results-7aq.txt' },
   { name: '7ar (O76\'s decomposition: where the bridge stage\'s rise under the interpolated allowance axis sits)', prediction: 'predictions/diag-7ar.md', results: 'results-7ar.txt' },
   { name: '7as (the charge\'s size and S194\'s bad-world slice)', prediction: 'predictions/diag-7as.md', results: 'results-7as.txt' },
+  { name: '7at (the allowance axis with a bucket at the wall, and O76\'s read (b))', prediction: 'predictions/diag-7at.md', results: 'results-7at.txt' },
 ];
 
 export function credences(predText) {

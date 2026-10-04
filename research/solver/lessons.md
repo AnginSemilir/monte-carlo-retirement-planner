@@ -66,3 +66,8 @@ Seed: after 7ai (30 Sep 17:53)
 - [T:c-preflight] preflight-7as.sh left DIAG7AS_GRID unset, so the preflight solved at 30 points (about an hour of four cores) and the parse refused it on its size; it passed at the size it ran (results-7as-preflight-parse.txt). Same pattern searched: preflight-P.sh and preflight-7ad.sh set their grid variables -> AUTOMATE a preflight script that runs an audit with a grid variable sets it (the parse's size check caught it as built; the scripts now set it)
 - [T:c-falsify] item 3 split O50 on its first look at the charge where the slice is largest (0.0005), as its amended power derivation said it should -> DROP: the amendments worked
 
+## 7at (closed 4 Oct 03:08)
+- [T:relook] 7as's record said twice that 7u waited only for the maintainer's release, then listed its remaining conditions as a closed list missing O60's switch (the 4 Oct 01:50 and 01:58 FAILs): a row's gate restated from memory, not from the row -> REPLACE "restate a gate" with: quote the gate row's own conditions when restating a gate, and write any list of remaining conditions as 'among them'
+- [T:design] read (b) was built as a linear extrapolation with a guard against acting too little (the 22:45 FAIL) but none against acting too much; on S370 it overshot to a pessimism as large as the optimism it removed (O80), flagged only after the fact by the OVERSHOT note -> REPLACE "a diagnostic read with one-sided guards" with: a substitute read registers a bracket - a read known to under-correct and one known to over-correct - so the item locates the truth between them
+- [T:c-falsify] item 1's prediction (INCONCLUSIVE at the band's edge) missed: WALL read CALIBRATED on both -> DROP: a predicted miss, recorded
+

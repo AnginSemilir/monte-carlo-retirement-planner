@@ -1,0 +1,67 @@
+FAIR-TEST GATE: passed - 6 units; S130 DEFAULT and PCLSI 7ar's line for line, S370 DEFAULT and PCLSI 7ap's; WALL its DEFAULT twin's ran, joint and access lines on the buckets 0,0.5,0.75,1; 7ar's checks (and 7ap's) on every unit; read (b) equal to the read where the read has no unsupported weight, its path sums and the after-access paths consistent, and read (b) moving the bridge reads on every unit (O79)
+7AT: THE ALLOWANCE AXIS WITH A BUCKET AT THE WALL, AND O76'S READ (b) - S370 and S130 (READER, TS+J, W0.02, the switch margin 0.001), 30 points, 2000 paths a world at each world's node (seed 7002); the used-allowance axis snapped (DEFAULT), interpolated on 0, 0.5, 1 (PCLSI) and interpolated with a bucket at the wall on 0, 0.5, 0.75, 1 (WALL); DEFAULT and PCLSI held line for line to 7ar's records (S130) and 7ap's (S370); read (b) beside every read
+
+ITEM 1 (the allowance part, primary): 7ap's two-sided rule on the WALL units, after access, three worlds pooled (margin 2 points; the lower tail at (c - 2) and the upper at (c + 2), Holm over 2 on each side; CALIBRATED when the CP 95% interval is inside c +/- 2)
+  household arm    |  paths     claim c  survived  c - surv | CP 95% low
+  S130      WALL    |   6000   81.8757   80.9833   0.8924 |  79.9671 | CP high 81.9694 | p 9.85e-1 Holm 1.00e+0; upper p 1.00e+0 Holm 1.00e+0 | CALIBRATED
+  S370      WALL    |   5861   73.6564   72.8886   0.7679 |  71.7308 | CP high 74.0236 | p 9.83e-1 Holm 1.00e+0; upper p 1.00e+0 Holm 1.00e+0 | CALIBRATED
+  -> HELD (HELD when both read CALIBRATED; FALSIFIED when either reads OPTIMISTIC or PESSIMISTIC)
+
+ITEM 2 (the bucket's own part): D = the after-access residual under WALL less under PCLSI, per path with a claim at access in both, the three worlds pooled; margin 1 point; EQUIVALENT when both one-sided tests (mean(1 - D) > 0, mean(D + 1) > 0) are under 0.05; DIFFERS when mean(D - 1) > 0 or mean(-1 - D) > 0 is under 0.05 after Holm over 4
+  S130  paths 6000 mean D 0.0315 (sd 4.47) | TOST p 5.00e-5 and 5.00e-5 | beyond: above p 1.00e+0 Holm 1.00e+0, below p 1.00e+0 Holm 1.00e+0 | EQUIVALENT
+  S370  paths 5859 mean D 0.0575 (sd 3.94) | TOST p 5.00e-5 and 5.00e-5 | beyond: above p 1.00e+0 Holm 1.00e+0, below p 1.00e+0 Holm 1.00e+0 | EQUIVALENT
+  -> HELD (HELD when both read EQUIVALENT; FALSIFIED when either DIFFERS)
+
+ITEM 3 (O76's read (b) on S130, the decisive read; world 0, the bridge stage, per path PCLSI less DEFAULT): the read term's rise Rd 2.2054 points a path (sd 0.31, p 5.00e-5: THERE); read (b)'s rise Rb 0.7870; X = Rd - Rb, the share read (b) takes away 0.64; the share of the unsupported weight read (b) left flat 0.00 (FALSIFIED needs 0.25 or less); overshoot p (X above 4Rd/3) 1.00e+0
+  HELD side: mean(X - 2Rd/3) -0.0519, p 1.00e+0, Holm 1.00e+0; FALSIFIED side: mean(Rd/3 - X) -0.6832, p 1.00e+0, Holm 1.00e+0
+  -> INCONCLUSIVE
+
+ITEM 4 (O76's read (b) on S370; world 0, the bridge stage, per path PCLSI less DEFAULT): the read term's rise Rd 5.0969 points a path (sd 2.40, p 5.00e-5: THERE); read (b)'s rise Rb -2.4544; X = Rd - Rb, the share read (b) takes away 1.48; the share of the unsupported weight read (b) left flat 0.00 (FALSIFIED needs 0.25 or less); overshoot p (X above 4Rd/3) 5.00e-5
+  -> HELD (OVERSHOT)
+
+REPORTED (not items):
+  THE AFTER STAGE BY WORLD (c - survived, points; paths alive at access):
+    S130 world 0: DEFAULT 14.44 (2000)  PCLSI 1.78 (2000)  WALL 1.72 (2000)
+    S130 world 1: DEFAULT 5.49 (2000)  PCLSI 0.60 (2000)  WALL 0.70 (2000)
+    S130 world 2: DEFAULT 0.56 (2000)  PCLSI 0.20 (2000)  WALL 0.26 (2000)
+    S370 world 0: DEFAULT 13.46 (1903)  PCLSI 1.82 (1895)  WALL 1.81 (1897)
+    S370 world 1: DEFAULT 6.75 (1975)  PCLSI 0.08 (1974)  WALL 0.27 (1974)
+    S370 world 2: DEFAULT 0.90 (1992)  PCLSI 0.26 (1990)  WALL 0.27 (1990)
+  THE AFTER STAGE, THREE WORLDS POOLED (7ap's rule on every arm, for comparison; c - survived): S130 DEFAULT 6.83 OPTIMISTIC; S130 PCLSI 0.86 CALIBRATED; S130 WALL 0.89 CALIBRATED; S370 DEFAULT 6.94 OPTIMISTIC; S370 PCLSI 0.70 CALIBRATED; S370 WALL 0.77 CALIBRATED
+  THE BRIDGE STAGE BY WORLD (the three terms and read (b)'s term, points a path):
+    S130 world 0 DEFAULT quad 0.29 read 2.71 end 0.00 S 3.01 | read (b) 0.60
+    S130 world 0 PCLSI   quad 0.26 read 4.92 end 0.00 S 5.18 | read (b) 1.39
+    S130 world 0 WALL    quad 0.26 read 4.92 end 0.00 S 5.18 | read (b) 1.40
+    S130 world 1 DEFAULT quad 0.11 read 0.37 end 0.00 S 0.48 | read (b) -0.16
+    S130 world 1 PCLSI   quad 0.13 read 1.23 end 0.00 S 1.36 | read (b) 0.28
+    S130 world 1 WALL    quad 0.13 read 1.22 end 0.00 S 1.35 | read (b) 0.28
+    S130 world 2 DEFAULT quad 0.00 read -0.00 end 0.00 S -0.00 | read (b) -0.04
+    S130 world 2 PCLSI   quad 0.00 read 0.05 end 0.00 S 0.05 | read (b) -0.01
+    S130 world 2 WALL    quad 0.00 read 0.05 end 0.00 S 0.05 | read (b) -0.01
+    S370 world 0 DEFAULT quad 0.08 read 3.28 end 0.00 S 3.36 | read (b) -6.25
+    S370 world 0 PCLSI   quad 0.03 read 8.37 end 0.00 S 8.40 | read (b) -8.71
+    S370 world 0 WALL    quad 0.00 read 8.35 end 0.00 S 8.35 | read (b) -8.67
+    S370 world 1 DEFAULT quad 0.04 read -2.01 end 0.00 S -1.98 | read (b) -6.63
+    S370 world 1 PCLSI   quad -0.01 read 1.08 end 0.00 S 1.08 | read (b) -7.57
+    S370 world 1 WALL    quad -0.00 read 1.06 end 0.00 S 1.06 | read (b) -7.53
+    S370 world 2 DEFAULT quad 0.16 read -1.18 end 0.00 S -1.02 | read (b) -1.76
+    S370 world 2 PCLSI   quad 0.25 read -0.97 end 0.00 S -0.72 | read (b) -2.07
+    S370 world 2 WALL    quad 0.25 read -0.97 end 0.00 S -0.72 | read (b) -2.06
+  THE READ TERM'S LEVEL AND READ (b)'S (world 0, PCLSI): S130 read 4.92 read (b) 1.39 (the share of the level taken away 0.72); S370 read 8.37 read (b) -8.71 (the share of the level taken away 2.04)
+  WALL'S RISE AGAINST DEFAULT, SPLIT THE SAME WAY (world 0): S130 Rd 2.21 Rb 0.80 share taken away 0.64; S370 Rd 5.07 Rb -2.42 share taken away 1.48 (descriptive)
+  READ (b) BY YEAR (world 0, the bridge years and access: read term, read (b)'s term, the unsupported weight, the flat copy's stencil sum, its extrapolation, the corners' own survival (points), and the reads read (b) moved):
+    S130 DEFAULT y0 read 2.63 (b) 0.52 unsup 0.40 flat 25.86 extra 23.75 S 0.00 moved 2000/2000; y1 read 0.08 (b) 0.08 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/2000; y2(A) read 0.08 (b) 0.08 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/2000
+    S130 PCLSI   y0 read 4.89 (b) 1.36 unsup 0.40 flat 23.47 extra 19.94 S 0.00 moved 2000/2000; y1 read 0.03 (b) 0.03 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/2000; y2(A) read 0.02 (b) 0.02 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/2000
+    S130 WALL    y0 read 4.89 (b) 1.37 unsup 0.40 flat 23.52 extra 20.01 S 0.00 moved 2000/2000; y1 read 0.03 (b) 0.03 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/2000; y2(A) read 0.02 (b) 0.02 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/2000
+    S370 DEFAULT y0 read -1.88 (b) -2.84 unsup 0.40 flat 20.66 extra 19.61 S 0.00 moved 2000/2000; y1 read -0.91 (b) -2.53 unsup 0.57 flat 28.91 extra 27.21 S 0.00 moved 1989/2000; y2 read 2.57 (b) -0.13 unsup 0.74 flat 37.44 extra 34.67 S 0.00 moved 1903/2000; y3 read 0.07 (b) 0.07 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/1903; y4 read 0.06 (b) -0.71 unsup 0.26 flat 14.15 extra 13.37 S 0.00 moved 1875/1903; y5 read 0.04 (b) -1.36 unsup 0.40 flat 20.90 extra 19.50 S 0.00 moved 1899/1903; y6 read 3.54 (b) 1.27 unsup 0.56 flat 27.93 extra 25.65 S 0.00 moved 1903/1903; y7 read -0.04 (b) -0.04 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/1903; y8(A) read -0.00 (b) -0.00 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/1903
+    S370 PCLSI   y0 read -1.60 (b) -3.20 unsup 0.40 flat 18.68 extra 16.93 S 0.00 moved 2000/2000; y1 read -0.73 (b) -3.44 unsup 0.57 flat 26.05 extra 23.22 S 0.00 moved 1989/2000; y2 read 4.11 (b) -0.23 unsup 0.74 flat 33.70 extra 29.22 S 0.00 moved 1895/2000; y3 read 0.28 (b) 0.28 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/1895; y4 read 0.20 (b) -1.40 unsup 0.26 flat 12.42 extra 10.82 S 0.00 moved 1850/1895; y5 read 0.14 (b) -2.68 unsup 0.40 flat 18.13 extra 15.31 S 0.00 moved 1891/1895; y6 read 6.27 (b) 1.78 unsup 0.55 flat 24.04 extra 19.56 S 0.00 moved 1895/1895; y7 read 0.08 (b) 0.08 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/1895; y8(A) read 0.01 (b) 0.01 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/1895
+    S370 WALL    y0 read -1.60 (b) -3.20 unsup 0.40 flat 18.72 extra 16.99 S 0.00 moved 2000/2000; y1 read -0.74 (b) -3.43 unsup 0.57 flat 26.11 extra 23.30 S 0.00 moved 1989/2000; y2 read 4.12 (b) -0.21 unsup 0.74 flat 33.78 extra 29.33 S 0.00 moved 1897/2000; y3 read 0.27 (b) 0.27 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/1897; y4 read 0.19 (b) -1.40 unsup 0.26 flat 12.43 extra 10.84 S 0.00 moved 1852/1897; y5 read 0.13 (b) -2.68 unsup 0.40 flat 18.16 extra 15.35 S 0.00 moved 1893/1897; y6 read 6.26 (b) 1.79 unsup 0.55 flat 24.10 extra 19.63 S 0.00 moved 1897/1897; y7 read 0.08 (b) 0.08 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/1897; y8(A) read 0.01 (b) 0.01 unsup 0.00 flat 0.00 extra 0.00 S 0.00 moved 0/1897
+  THE WHOLE PLAN, BESIDE THE YEAR-0 READ TERM (reported, not judged: the year-0 read leans on unsupported nodes; mixture-weighted claim at year 0 less the simulated survival, by world, and the year-0 read term):
+    S130: DEFAULT w0 17.44 (y0 read 2.63) w1 5.97 (y0 read 0.32) w2 0.55 (y0 read -0.00); PCLSI w0 6.96 (y0 read 4.89) w1 1.96 (y0 read 1.18) w2 0.25 (y0 read 0.05); WALL w0 6.90 (y0 read 4.89) w1 2.05 (y0 read 1.17) w2 0.31 (y0 read 0.05)
+    S370: DEFAULT w0 16.16 (y0 read -1.88) w1 4.69 (y0 read -1.71) w2 -0.12 (y0 read -0.57); PCLSI w0 10.12 (y0 read -1.60) w1 1.16 (y0 read -1.65) w2 -0.46 (y0 read -0.58); WALL w0 10.07 (y0 read -1.60) w1 1.32 (y0 read -1.65) w2 -0.45 (y0 read -0.58)
+  THE WALL (after access, three worlds pooled; table - next over path-years at 0.6 to under 0.75 of the allowance; and the draw stall):
+    S130: DEFAULT 0.69 (59722) stall 748 of 59722; PCLSI -0.14 (13438) stall 0 of 13438; WALL -0.12 (14326) stall 0 of 14326
+    S370: DEFAULT 2.23 (16606) stall 808 of 16606; PCLSI -0.03 (8645) stall 0 of 8645; WALL -0.01 (8644) stall 0 of 8644
+  THE TABLES AND THE EXTRAPOLATION: S130 DEFAULT table 91.0726 gap 4.7701e-3 (tables 3, nodes extrapolated 5022, left flat 0); S130 PCLSI table 89.0730 gap 4.6173e-3 (tables 3, nodes extrapolated 5022, left flat 0); S130 WALL table 89.1257 gap 4.6103e-3 (tables 3, nodes extrapolated 6696, left flat 0); S370 DEFAULT table 79.4918 gap 2.7043e-2 (tables 54, nodes extrapolated 66960, left flat 6210); S370 PCLSI table 77.0673 gap 2.5472e-2 (tables 54, nodes extrapolated 66960, left flat 6210); S370 WALL table 77.1278 gap 2.5530e-2 (tables 54, nodes extrapolated 89280, left flat 8280)
+
+OUTCOME: 1 HELD; 2 HELD; 3 INCONCLUSIVE; 4 HELD

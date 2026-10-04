@@ -88,7 +88,7 @@ One arm (7av's READER/TS+J/W0.02/PCLSI unit at 6 share points); the other grids 
 7an's design:
 - **The arms, by the top-cell split** (the reducer's THE TOP-CELL SPLIT line: the top node's share of the panel's stepsup unsupported weight, at 6 and at 11 points). TOP CELL (two thirds or more): 7an reads its share-count arms as top-cell width (which counts clear each household's edge), per top-cell weight, not as resolution or placement. INTERIOR (a third or less): 7an reads by unsupported-weight group, and the top-cell story is logged as not the main cause. MIXED: both readings, each on its own share of the weight. NONE (no unsupported weight at that count): nothing to split there.
 - **The replicates:** the clusters per household, world and year, not the reads.
-- **COV:** the coverage node's weight against the 6-point weight, and the histograms of a and own money over acc*, size option A (coverage as a coordinate); option B's leftover span sizes option B. Neither is read as COV's effect: COV is tested at 6 points after 7an.
+- **COV:** the coverage node's weight against the 6-point weight and the histogram of own money over acc* size option A (coverage as a coordinate); option B's leftover span and its exposure size option B. The histogram of a in tenths is a coarse view only: every top-cell boundary from 6 to 16 points (0.80 to 0.94) falls in one bin, so the top-cell share at each count (`tc`) answers where the boundaries fall (the plan-auditor's MINOR 2 of 4 Oct 12:34 UK). Neither is read as COV's effect: COV is tested at 6 points after 7an.
 
 No default, no product change.
 

@@ -184,12 +184,12 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    this prediction or changed after launch (the log stamp hashes the audit scripts, not reducers) - and any "HH:MM UK" token may
    move, the Written line's included - the review reads the declaration against the records. A substantive change after launch still goes to
    PLAN.md's ledger and the prediction stays at its launch blob.
-20. uncertainty.mjs counts a settled result as a ledger row that names its prediction; since 27 Sep a maintainer's decision
-   row ("(maintainer)" in the result cell) is not counted even when it names one (the maintainer: two deep reviews were
-   triggered on 27 Sep by decision rows with no new result; a planted check fails on the old rule). The label is not
-   checked either way: a decision row not marked "(maintainer)" still counts, and a row whose result cell starts
-   "(maintainer)" drops out even if it records a result read (fair-test: pass). The three rows it dropped on 27 Sep (26 Sep
-   09:39, 27 Sep 07:06 and 10:12) all carry fair-test: n/a (the hundred-and-first review, MINOR 3).
+20. uncertainty.mjs counts a settled result as a ledger row that names its prediction, except a maintainer's decision row
+   ("(maintainer)" in the result cell; since 27 Sep: two reviews were triggered by decision rows) and, since 4 Oct (the
+   maintainer's unlock, 46d2225), a row whose evidence cell opens "deep review: deep-review-log.md" (recording a review at
+   HIGH made the next due). Labels are not checked: an unmarked decision row counts, and a marked row drops out even if it
+   reads a result (fair-test: pass). Every row dropped so far carries fair-test: n/a (27 Sep: 26 Sep 09:39, 27 Sep 07:06
+   and 10:12; 4 Oct: 11:41 and 12:09; the hundred-and-first review's MINOR 3, the plan-auditor's MINOR 5 of 4 Oct 12:34 UK).
 21. uncertainty.mjs l.69 counts a "FALSIFIED or harm verdict" by a pattern that matches "FALSIFIED" or "harm" anywhere in a
    ledger row's bold span, so a title that says "no material harm" counts as a harm verdict (7aa's row, 28 Sep: "1
    FALSIFIED or harm verdicts" before the deep review after it, a false positive; the deep review after 7aa and the

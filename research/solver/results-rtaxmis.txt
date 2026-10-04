@@ -1,31 +1,32 @@
-stamp: code 5e1edac08e4b audit 0420e8087f6c prediction none sha -
+stamp: code 5e1edac08e4b audit 3744a26fbdc3 prediction none sha -
 RTAX'S MISCLASSIFICATION PRINT: READER/TS+J/W0.02/PCLSI at 6 share points; tau on the 30-point unit's nodes; 3000 off-node states a step year; false support (reader says supported, every floor move fails) and false failure (reader says unsupported, a floor move pays)
-S130             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 158
+S130             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 150
                  year 0: spread (not read)
-                 year 1: step | d0 83200 | rows bisected 1080 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 3 false failure 0 | RTAX false support 0 false failure 0 | edge band 3000: TODAY false support 56 false failure 0 | RTAX false support 2 false failure 12
+                 year 1: step | d0 83200 | rows bisected 1080 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 3 false failure 0 | RTAX false support 0 false failure 0 | tauBar 3121 | V2 off-node false support 0 false failure 0, edge band 0 and 0 | edge band 3000: TODAY false support 56 false failure 0 | RTAX false support 2 false failure 12
                  done
 S370             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 178
                  year 0: spread (not read)
                  year 1: spread (not read)
                  year 2: spread (not read)
-                 year 3: step | d0 83200 | rows bisected 1080 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 1 false failure 0 | RTAX false support 0 false failure 0 | edge band 3000: TODAY false support 63 false failure 0 | RTAX false support 2 false failure 7
+                 year 3: step | d0 83200 | rows bisected 1080 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 1 false failure 0 | RTAX false support 0 false failure 0 | tauBar 3121 | V2 off-node false support 0 false failure 0, edge band 0 and 0 | edge band 3000: TODAY false support 63 false failure 0 | RTAX false support 2 false failure 7
                  year 4: spread (not read)
                  year 5: spread (not read)
                  year 6: spread (not read)
-                 year 7: step | d0 83200 | rows bisected 1080 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 0 false failure 0 | RTAX false support 0 false failure 0 | edge band 3000: TODAY false support 73 false failure 0 | RTAX false support 3 false failure 11
+                 year 7: step | d0 83200 | rows bisected 1080 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 0 false failure 0 | RTAX false support 0 false failure 0 | tauBar 3121 | V2 off-node false support 0 false failure 0, edge band 0 and 0 | edge band 3000: TODAY false support 73 false failure 0 | RTAX false support 3 false failure 11
                  done
-bridge 4         case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 159
+bridge 4         case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 157
                  year 0: spread (not read)
                  year 1: spread (not read)
                  year 2: spread (not read)
-                 year 3: step | d0 23200 | rows bisected 1134 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 0 false failure 0 | RTAX false support 0 false failure 0 | edge band 3000: TODAY false support 6 false failure 0 | RTAX false support 0 false failure 14
+                 year 3: step | d0 23200 | rows bisected 1134 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 0 false failure 0 | RTAX false support 0 false failure 0 | tauBar 384 | V2 off-node false support 0 false failure 0, edge band 0 and 0 | edge band 3000: TODAY false support 6 false failure 0 | RTAX false support 0 false failure 14
                  done
-S126             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 151
+S126             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 155
                  year 0: spread (not read)
-                 year 1: step | d0 23200 | rows bisected 1134 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 0 false failure 0 | RTAX false support 0 false failure 0 | edge band 3000: TODAY false support 9 false failure 0 | RTAX false support 0 false failure 10
+                 year 1: step | d0 23200 | rows bisected 1134 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 0 false failure 0 | RTAX false support 0 false failure 0 | tauBar 384 | V2 off-node false support 0 false failure 0, edge band 0 and 0 | edge band 3000: TODAY false support 9 false failure 0 | RTAX false support 0 false failure 10
                  done
-bridge 0         case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 143
+bridge 0         case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 145
                  done
 TOTAL: nodes 48600: RTAX false support 0 false failure 0 | off-node 15000: TODAY 4 (false support 4, false failure 0), RTAX 0 (false support 0, false failure 0)
 EDGE BAND: 15000 states: TODAY 207 (false support 207, false failure 0), RTAX 61 (false support 7, false failure 54); the bar on the band: NOT MET (RTAX/TODAY 0.2947, RTAX share 0.0041)
+RTAX V2 (support by the flow in the band): off-node 0 of 15000 misread, edge band 0 of 15000; the bar on the band: MET
 BAR (items/RTAX.md test 6: RTAX under a tenth of TODAY's off-node cases and at most 1% of the positions): MET (RTAX/TODAY 0.0000, RTAX share 0.0000)

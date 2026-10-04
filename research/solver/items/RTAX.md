@@ -160,3 +160,10 @@ threshold. Its recommendation: size RTAX from PMAP's step-read histograms weight
 fold readerTax into COV-B-STEP's run. Proposed form, keeping the maintainer's order (the tax fixed first) and the
 attribution: COV-B-STEP with three arms - PMAP's unit, the unit with readerTax (v2), and readerTax with the node - so
 the tax fix is read on its own arm first, in the same run.
+
+## RTAX v2's print (results-rtaxmis.txt, third run; audit-rtaxmis.mjs at 05c7361, launched 4 Oct on the light lane)
+
+v2 (support by the floor flows inside [d0 - tol, d0 + tauBar], chance(A) outside) misreads 0 of 15000 off-node states
+and 0 of 15000 edge-band states (today 4 and 207; the interpolated tau 0 and 61): the bar is MET. tauBar 3121 on S130's
+and S370's step years (d0 83200), 384 on bridge 4's and S126's (d0 23200). Exact inside the band by construction; the
+print shows the band's bound loses nothing outside it on these households. The build follows v2.

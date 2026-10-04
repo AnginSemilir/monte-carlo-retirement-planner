@@ -153,7 +153,9 @@ const addedMap = () => {
 export const committedAt = name => (addedMap().has(basename(name)) ? addedMap().get(basename(name)) : null);
 // held to the decision table and the mechanism: a file on disk first committed from DECISION_FROM on or not yet committed
 // (fixtures checked by name only, and texts with no name, are not; `decision: true` forces it)
-export const heldToDecision = (name, opts = {}) => opts.decision === true || (!!name && existsSync(name) && (t => t === null || Number.isNaN(t) || t >= DECISION_FROM)(committedAt(name)));
+// a name is found as given or under research/solver (check-plan passes 'predictions/x.md'; the plan-auditor's MINOR 3 of 4 Oct)
+const onDisk = name => !!name && (existsSync(name) || existsSync(REPO + 'research/solver/' + name));
+export const heldToDecision = (name, opts = {}) => opts.decision === true || (onDisk(name) && (t => t === null || Number.isNaN(t) || t >= DECISION_FROM)(committedAt(name)));
 
 export function checkPredictionText(text, { name, decision } = {}) {
   const errs = [];

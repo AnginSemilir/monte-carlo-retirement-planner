@@ -45,6 +45,8 @@ launcher, the reducers and CI enforce them. This is the order to work in.
 11. An item split over households states its thresholds over the households it can be computed on, prints that count,
    and plants a case where a gap reaches 0 (REPLACE of the 7am close). A reducer's per-year label names the year it
    counts from (REPLACE of the 7al close).
+   A substitute read is registered and read by read kind (step or spread), never on an aggregate term alone (REPLACE of
+   the 7at close).
 12. Builds that need no cores (an option behind a flag, its unit tests, a reducer) go ahead while the cores run; only
    the launch waits (the process review: F2 was designed 24 Sep to be "built in the run gaps" and was not).
 

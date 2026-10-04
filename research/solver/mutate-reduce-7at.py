@@ -45,5 +45,13 @@ M = [
     ("the overshoot flag dropped", "if (it.read === 'HELD' && pOver < ALPHA)", "if (false)"),
     ("the gate ignores read (b) leaving more than the unsupported weight flat", "if (y.reads > 0 && !(y.left >= -1e-4 && y.left <= (none ? 1e-4 : d.unsup + 1e-4))) {", "if (false) {"),
 ]
+# extrap-7at.mjs's mutations, run through the reducer's planted set (it imports the module)
+XM = [
+    ("extrapolate copies flat (the reader's own rule)", "c[idx(ii)] = Math.min(1, Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1)));", "c[idx(ii)] = c1;"),
+    ("extrapolate does not clip at 1", "Math.min(1, Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1)))", "Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1))"),
+    ("extrapolate leaves R as the reader's (S not reproduced)", "for (let i = 0; i < n; i++) R[i] = S[i] - RD.p[i] * c[i];", "for (let i = 0; i < n; i++) R[i] = RD.R[i];"),
+    ("extrapolate marks no node it extrapolated", "ex[idx(ii)] = 1; extrapolated++;", "extrapolated++;"),
+    ("extrapolate from one node on each side, not two on the near side", "for (let jj = j1 + dir; jj >= 0 && jj < ni; jj += dir) if (sup(idx(jj))) { j2 = jj; break; }", "for (let jj = j1 - dir; jj >= 0 && jj < ni; jj -= dir) if (sup(idx(jj))) { j2 = jj; break; }"),
+]
 from mutate_lib import run
-run('reduce-7at.mjs', M)
+run('reduce-7at.mjs', M, modules=[('extrap-7at.mjs', XM)])

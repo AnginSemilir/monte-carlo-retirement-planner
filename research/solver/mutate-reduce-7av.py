@@ -60,5 +60,15 @@ M = [
     ("item 5's FALSIFIED band at 0.7", "pD: flipP(lin(L12, 1, F12, -0.9 * r6), b, 7042)", "pD: flipP(lin(L12, 1, F12, -0.7 * r6), b, 7042)"),
     ("item 5's premise ignores F12", "premise: pP < ALPHA && mean(F12) > 0 && mean(F6) > 0 && r6 > 0,", "premise: mean(F6) > 0 && r6 > 0,"),
 ]
+# extrap-7av.mjs's mutations, run through the reducer's planted set (it imports the module)
+XM = [
+    ("order 1 drops extrap-7at's arithmetic (the Lagrange line instead)", "      if (js.length === 2) v = RD.c[idx(js[0])] + (RD.c[idx(js[0])] - RD.c[idx(js[1])]) / (A[js[0]] - A[js[1]]) * (x - A[js[0]]);", "      if (js.length === 2) v = v * (1 + 1e-12);"),
+    ("the quadratic takes two nodes (a straight line)", "js.length < order + 1; jj += dir)", "js.length < 2; jj += dir)"),
+    ("no clip at 0", "c[idx(ii)] = Math.min(1, Math.max(0, v));", "c[idx(ii)] = Math.min(1, v);"),
+    ("the clip counts dropped", "if (v < 0) clipLo++; else if (v > 1) clipHi++;", ""),
+    ("the fall-back count dropped", "if (order === 2 && js.length < 3) fellBack++;", ""),
+    ("R left as the reader's (S not reproduced)", "for (let i = 0; i < n; i++) R[i] = S[i] - RD.p[i] * c[i];", "for (let i = 0; i < n; i++) R[i] = RD.R[i];"),
+    ("isStep takes a half chance as a step", "if (!(q <= 1e-12 || q >= 1 - 1e-12)) return false;", "if (!(q <= 1e-12 || q >= 0.5)) return false;"),
+]
 from mutate_lib import run
-run('reduce-7av.mjs', M)
+run('reduce-7av.mjs', M, modules=[('extrap-7av.mjs', XM)])

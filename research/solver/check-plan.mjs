@@ -54,22 +54,26 @@ export const PLAN_BUDGET = 650000, RULES_BUDGET = 72000;   // bytes (the feedbac
 // is in a results file the row cites, as the ledger's are; the premise register's code anchors match the files; and a
 // status word written about another item outside its own row is reported (one source for each item's status)
 export const ROW_CAP = 3000;
-const rowKey = l => (/^\| ([^|]+?) \|/.exec(l) || [])[1];
+// a struck-through key (~~7x~~, read as cancelled at the schedule check) is the same row (the plan-auditor's MINOR 6 of 4 Oct)
+const rowKey = l => { const k = (/^\| ([^|]+?) \|/.exec(l) || [])[1]; return k && k.replace(/~~/g, '').trim(); };
+// a figure matches as a whole number in the source: 0.404 does not pass against 0.4045 (the plan-auditor's MINOR 5)
+const hasFig = (text, x) => [x, x.replace(/^[-+]/, '')].some(y => new RegExp(`(?<![\\d.])${y.replace(/[.+-]/g, '\\$&')}(?![\\d])`).test(text));
 const FIG = /[-+]?\d+\.\d+/g;
 export function shapeProblems({ added = [], removed = [], readSolverFile, solverFileExists, plan = '' }) {
   const P = [], W = [], old = new Map(removed.filter(l => l.startsWith('|')).map(l => [rowKey(l), l]));
   const regKeys = new Set((tableAfter(plan, '## Odd results register')?.rows || []).map(r => r.cells[0]));
   const S = between(plan, '## The schedule', '\n## ') ?? '', schKeys = new Set(S.split('\n').filter(l => l.startsWith('|')).map(rowKey).filter(Boolean));
   for (const raw of added.filter(l => l.startsWith('|'))) {
-    const k = rowKey(raw), was = old.get(k), n = Buffer.byteLength(raw);
-    if (n > ROW_CAP && (!was || n > Buffer.byteLength(was))) P.push(`row "${String(k).slice(0, 20)}" is ${n} bytes${was ? `, grown from ${Buffer.byteLength(was)}` : ''}: a new row is at most ${ROW_CAP} and a longer row may not grow - move its detail to research/solver/items/<id>.md and keep a pointer`);
+    const k = rowKey(raw), was = old.get(k), bl = x => Buffer.byteLength(x.replace(/~~/g, '')), n = bl(raw);
+    if (n > ROW_CAP && (!was || n > bl(was))) P.push(`row "${String(k).slice(0, 20)}" is ${n} bytes${was ? `, grown from ${bl(was)}` : ''}: a new row is at most ${ROW_CAP} and a longer row may not grow - move its detail to research/solver/items/<id>.md and keep a pointer`);
     if (regKeys.has(k) || schKeys.has(k)) {
       const before = new Set(((was || '').replace(/−/g, '-').match(FIG)) || []);
       const fresh = [...new Set((raw.replace(/−/g, '-').match(FIG)) || [])].filter(x => !before.has(x) && !before.has(x.replace(/^[-+]/, '')));
       if (fresh.length) {
-        const files = [...raw.matchAll(/results-[\w.-]+\.txt/g)].map(m => m[0]).filter(f => solverFileExists(f));
+        // sources: a results file, a prediction, runs.log or a results/<dir>/<file> the row cites
+        const files = [...new Set([...raw.matchAll(/\b(?:results-[\w.-]+\.txt|predictions\/[\w.-]+\.md|runs\.log|results\/[\w.-]+\/[\w.-]+)/g)].map(m => m[0]))].filter(f => solverFileExists(f));
         const text = files.map(f => readSolverFile(f)).join('\n').replace(/−/g, '-');
-        const miss = fresh.filter(x => !text.includes(x) && !text.includes(x.replace(/^[-+]/, '')));
+        const miss = fresh.filter(x => !hasFig(text, x));
         if (miss.length) P.push(`row "${k}": the new figure${miss.length > 1 ? 's' : ''} ${miss.slice(0, 4).join(', ')} ${files.length ? `not in ${files.join(', ')}` : 'with no results file cited in the row'} (figures come from a script's output)`);
       }
       // a status word about another item, written outside that item's own row
@@ -156,7 +160,8 @@ export function replaceProblems(L, readFile) {
     for (const l of c.lines.filter(x => /\bREPLACE\b/.test(x))) {
       const tgt = (/\bin ([\w./-]+\.(?:md|mjs|js|sh|cjs))\b/.exec(l.split('REPLACE')[1] || '') || [])[1], w = (/\bwith:\s*(.{40,})/.exec(l) || [])[1];
       if (!tgt || !w) { P.push(`${c.test}: a REPLACE line needs "in <target file>" and "with: <the new text, 40 characters or more>" ("${l.slice(0, 50)}")`); continue; }
-      if (i === L.closes.length - 1) continue;
+      // checked at the next close only: a later rewording of the target is the next change's business (the auditor's MINOR 6)
+      if (i !== L.closes.length - 2) continue;
       const txt = readFile ? readFile(tgt) : null;
       if (txt === null) P.push(`${c.test}: the REPLACE target ${tgt} does not exist`);
       else if (!norm(txt).includes(norm(w).slice(0, 40))) P.push(`${c.test}: its REPLACE text has not landed in ${tgt} by the next close ("${norm(w).slice(0, 40)}")`);

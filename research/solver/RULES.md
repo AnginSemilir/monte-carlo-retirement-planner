@@ -545,7 +545,7 @@ about. We need to take this into account when assigning responsibility." How it 
 
 - **The baseline was treated as right because it was the product.** Off misread S126's bridge by 44 points and, because
   of that misread, held the pension two tiers down for all 40 years (7r's traces: 0.03 switches a path). Every fix that
-  read the bridge accurately (F1 v2, the reader, F2 by design) stopped that accidental de-risking and lost survival on the
+  read the bridge more accurately (F1 v2, the reader, F2 by design; the reader not at top-cell step reads, PLAN.md PR1) stopped that accidental de-risking and lost survival on the
   same households. The fair-test table checked that the arms differed only in the bridge read - they did - but nothing
   asked whether the baseline's better outcome came from the very error being fixed. Equal settings are not equal errors.
 - **The decision rule turned harm straight into blame.** 7e's registered consequence of harm on any case was "not carried

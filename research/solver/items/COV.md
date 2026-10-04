@@ -1,7 +1,7 @@
 # COV: the coverage coordinate - design note before the build (4 Oct)
 
-Written under the process review's item 2 (deep-review-log.md 4 Oct 13:52 UK: "build COV option A now, behind a research
-option, register after PMAP") and the pre-launch review's list of what COV's registration must carry (the 4 Oct 12:09
+Written under item 2 of the process review's list (its report of 4 Oct 13:52 UK: build option A behind a research option
+now; the maintainer's yes, 'Agree, do all'; the row registers it after 7an) and the pre-launch review's list of what COV's registration must carry (the 4 Oct 12:09
 row). The PLAN.md row is the one source for COV's status; this file holds the design.
 
 ## The mechanism (anchored in the code)

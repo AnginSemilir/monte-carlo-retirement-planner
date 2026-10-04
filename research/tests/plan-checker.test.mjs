@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { checkPlan, stalePhrases, MAX_CHECKLIST, PLAN_BUDGET, RULES_BUDGET } from '../solver/check-plan.mjs';
 import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, edgeProblems, reducerOf, decisionTableProblems, mechanismProblems, heldToDecision } from '../solver/check-prediction.mjs';
 import { execFileSync } from 'node:child_process';
-import { writeFileSync, mkdtempSync } from 'node:fs';
+import { writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { VARIABLES } from '../solver/fair-variables.mjs';
 
@@ -283,7 +283,22 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(mechanismProblems('## Question\nwhich cause carries the harm: decompose it\n\n- **Mechanism:** none: nothing is attributed by this run at all\n').some(e => /not accepted/.test(e)), 'planted: "none:" on an attribution test is refused');
   ok(mechanismProblems('- **Mechanism:** none: a confirmation; no cause is attributed\n\n## Question\ndoes the bundle harm survival on the panel\n').length === 0, 'EDGE: "none:" with a reason on a confirmation passes');
   ok(mechanismProblems('## Question\nx\n').some(e => /missing "- \*\*Mechanism/.test(e)), 'planted: no Mechanism field is refused');
-  ok(heldToDecision('predictions/diag-7au.md') === false && heldToDecision(null) === false && heldToDecision('k6-spread.md') === false && heldToDecision(null, { decision: true }) === true, 'the decision rules bind new files on disk only: committed predictions, fixtures by name and nameless texts are exempt');
+  {
+    const abs = join(S, 'predictions', 'diag-7au.md');
+    ok(heldToDecision(abs) === false && heldToDecision('predictions/diag-7au.md') === false, 'a committed prediction (before 4 Oct 14:30 UK) is exempt, by its full path and by the name check-plan passes');
+    const dir = mkdtempSync(join(S, 'predictions', 'zz-dec-')), f = join(dir, 'zz-new-test.md'); writeFileSync(f, '# Prediction: x\n');
+    ok(heldToDecision(f) === true, 'an uncommitted prediction on disk is held to the decision rules');
+    rmSync(dir, { recursive: true, force: true });
+    ok(heldToDecision(null) === false && heldToDecision('k6-spread.md') === false && heldToDecision(null, { decision: true }) === true, 'fixtures by name and nameless texts are exempt unless forced');
+  }
+  // the commit-msg check: listed rows must be answered (relook.mjs --msg, here with given ids)
+  {
+    const m = join(tmpdir(), `relook-msg-${process.pid}.txt`), run = () => { try { execFileSync('node', [join(S, 'relook.mjs'), 'O67', '--msg', m], { stdio: 'pipe' }); return 0; } catch (e) { return e.status; } };
+    writeFileSync(m, 'x\n'); ok(run() === 1, 'planted: a commit message that answers no listed row is refused');
+    const ids = execFileSync('node', [join(S, 'relook.mjs'), 'O67']).toString().match(/PLAN\.md:\d+\s+(\S+)/g).map(x => x.split(/\s+/)[1]);
+    writeFileSync(m, `x\n\nrelook: ${[...new Set(ids)].join(', ')} unchanged: a test fixture, nothing moves here\n`); ok(run() === 0, 'a commit message answering every listed row passes');
+    writeFileSync(m, `x\n\nrelook: ${[...new Set(ids)].join(', ')} unchanged: short\n`); ok(run() === 1, 'EDGE: an answer with a reason under ten characters is refused');
+  }
 }
 
 // THE REPLACE FOLLOW-THROUGH (the process review, 4 Oct; the maintainer's unlock of 4 Oct)
@@ -330,6 +345,22 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(exists('rev', 'HEAD')('../../src/solver/reader.js') === true && /buildReaderTable/.test(source('rev', 'HEAD')('../../src/solver/reader.js')), 'rev mode finds and reads a file outside research/solver');
   ok(exists('rev', 'HEAD')('../../src/solver/no-such-file.js') === false, 'rev mode reports a missing file as missing');
   ok(exists('staged')('../../src/solver/reader.js') === true, 'staged mode finds a file outside research/solver');
+}
+
+// the audit's MINORs 5 and 6 of 4 Oct: a struck key is the same row; a figure matches whole; a REPLACE is checked at the next close only
+{
+  const { shapeProblems, replaceProblems, ROW_CAP } = await import('../solver/check-plan.mjs');
+  const { lessonsOf } = await import('../solver/triggers.mjs');
+  const files = { 'results-x.txt': 'figure 0.4045 here', 'reader.js': 'a\nb\nlet unsupported = 0;\nc\n' };
+  const rs = f => files[f.replace(/^(\.\.\/)+(src\/solver\/)?/, '')], ex = f => rs(f) !== undefined;
+  const plan = `## Premises at risk\n\n| id | premise | code anchor | test | status |\n|---|---|---|---|---|\n| PR1 | p | reader.js:3 "let unsupported = 0;" | t | open |\n\n## Odd results register\n\n| id | what | found | owner | resolve by | status |\n|---|---|---|---|---|---|\n| O1 | x | y | z | g | open |\n\n## The schedule\n\n| 7zz | a | b | c | d |\n\n## End\n`;
+  const sh = o => shapeProblems({ readSolverFile: rs, solverFileExists: ex, plan, ...o }).problems;
+  const long = `| 7zz | ${'x'.repeat(ROW_CAP + 10)} | b | c | d |`;
+  ok(sh({ added: [long.replace('| 7zz |', '| ~~7zz~~ |')], removed: [long] }).every(e => !/at most/.test(e)), 'EDGE: striking a long row through keeps its key (no cap on a struck row that did not grow)');
+  ok(sh({ added: ['| O1 | now 0.404 (results-x.txt) | y | z | g | open |'], removed: ['| O1 | old | y | z | g | open |'] }).some(e => /0\.404/.test(e)), 'planted: 0.404 does not pass against 0.4045 (a whole-number match)');
+  ok(sh({ added: ['| O1 | now 0.4045 (results-x.txt) | y | z | g | open |'], removed: ['| O1 | old | y | z | g | open |'] }).length === 0, 'the exact figure passes');
+  const L = t => lessonsOf(`Seed: after x (1 Oct 10:00)\n${t}`);
+  ok(replaceProblems(L('## 7zz (closed 4 Oct 15:00)\n- [T:relook] x -> REPLACE "r" in a.md with: some text the file never came to hold at any time at all\n## 7zy (closed 4 Oct 16:00)\n- [T:design] y -> DROP\n## 7zx (closed 4 Oct 17:00)\n- [T:design] z -> DROP\n'), () => '').length === 0, 'EDGE: a REPLACE two closes back is not re-checked (a later rewording is allowed)');
 }
 
 console.log(`\n${n} passed`);

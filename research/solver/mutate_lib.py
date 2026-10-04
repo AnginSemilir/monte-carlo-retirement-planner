@@ -14,7 +14,9 @@ def history(target, sha, caught, total, escaped):
     with open(HISTORY, 'a') as h:
         h.write(f"{datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M')} UTC | {target} {sha} | {caught} of {total} caught | escaped: {'; '.join(escaped) or 'none'}\n")
 
-def run(target, M, args=('--planted',), marker='PLANTED CHECK FAILED', exit=True):
+def run(target, M, args=('--planted',), marker='PLANTED CHECK FAILED', exit=True, modules=()):
+    # modules: [(module file the target imports as './<module>', its mutations)] - each mutation is written to a scratch copy
+    # of the module and the target's import pointed at it, so a helper's own faults are run through the target's plants
     src = os.path.join(HERE, target)
     dst = os.path.join(HERE, 'zz-mut-' + os.path.basename(target))
     base = open(src).read()
@@ -34,10 +36,25 @@ def run(target, M, args=('--planted',), marker='PLANTED CHECK FAILED', exit=True
             r = subprocess.run(['node', dst, *args], capture_output=True, text=True)
             if marker in r.stdout or r.returncode != 0: caught += 1; print(f'caught: {name}')
             else: bad.append(f'NOT CAUGHT: {name}')
+        for mod, XM in modules:
+            xsrc, xdst = os.path.join(HERE, mod), os.path.join(HERE, 'zz-mut-' + mod)
+            xbase = open(xsrc).read()
+            try:
+                for name, old, new in XM:
+                    n = xbase.count(old)
+                    if n != 1: bad.append(f'NOT APPLIED ({n} matches): {mod}: {name}'); continue
+                    open(xdst, 'w').write(xbase.replace(old, new))
+                    open(dst, 'w').write(base.replace(f"from './{mod}';", f"from './zz-mut-{mod}';"))
+                    r = subprocess.run(['node', dst, *args], capture_output=True, text=True)
+                    if marker in r.stdout or r.returncode != 0: caught += 1; print(f'caught: {mod}: {name}')
+                    else: bad.append(f'NOT CAUGHT: {mod}: {name}')
+            finally:
+                if os.path.exists(xdst): os.remove(xdst)
     finally:
         if os.path.exists(dst): os.remove(dst)
     for b in bad: print(b)
-    print(f'{caught} of {len(M)} mutations caught')
-    history(target, sha, caught, len(M), bad)
+    total = len(M) + sum(len(XM) for _, XM in modules)
+    print(f'{caught} of {total} mutations caught')
+    history(target, sha, caught, total, bad)
     if exit: sys.exit(1 if bad else 0)
     return not bad

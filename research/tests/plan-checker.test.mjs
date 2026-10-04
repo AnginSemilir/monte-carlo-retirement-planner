@@ -287,6 +287,7 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
     const abs = join(S, 'predictions', 'diag-7au.md');
     ok(heldToDecision(abs) === false && heldToDecision('predictions/diag-7au.md') === false, 'a committed prediction (before 4 Oct 14:30 UK) is exempt, by its full path and by the name check-plan passes');
     const dir = mkdtempSync(join(S, 'predictions', 'zz-dec-')), f = join(dir, 'zz-new-test.md'); writeFileSync(f, '# Prediction: x\n');
+    process.on('exit', () => rmSync(dir, { recursive: true, force: true }));   // removed even when an assertion throws
     ok(heldToDecision(f) === true, 'an uncommitted prediction on disk is held to the decision rules');
     const relName = f.slice(join(S, '/').length);
     ok(heldToDecision(relName) === true, 'a name relative to research/solver (as check-plan passes it) is found on disk');

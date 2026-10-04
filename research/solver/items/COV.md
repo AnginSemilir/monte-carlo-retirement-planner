@@ -80,3 +80,18 @@ registration; S126 has no 12-point read, so its reference is set there too); a s
   needing a band of world-free nodes (A1 on req gives it in one build); c concave near the edge, so the chord from 0.8 to
   the edge over-corrects.
 - Not read as harm: unsupported weight is exposure; at the 141 reads below their own edge the chance multiplies c out.
+
+## The edge print (results-covedge.txt; audit-covedge.mjs, launched 4 Oct on the light lane under "none:", a measurement)
+
+PMAP's unit at 4 wealth points on PMAP's five households (the reference chance depends on the bills and each world's rates,
+not on the grid's resolution). Every reader year and world:
+- **Step years** (one bill left, or the last bill before an inflow: S130 and S126 year 1, bridge 4 year 3, S370 years 3 and
+  7): acc* = d0 - 1 = req in all three worlds, exactly - the edge is world-free (PR6, now measured).
+- **Spread years**: acc* differs by world, the largest over the least 1.0276 to 1.0843, and sits below req at 0.9169 to
+  0.9977 of it (growth before the later bills lowers the money needed now); S370 year 4 (an inflow year, req negative) has
+  acc* 0.
+- **Bridge 0**: no reader year (the identity control holds).
+
+So B's step-year node is one node a row in every world, as the deep review proposed; in spread years a per-world edge
+would be three nodes 3-8% apart (A2's problem under TS+J), while A1 on req puts its c = 1 node within 0.92 to 1.00 of
+every world's edge. COV-B-STEP stays in step years; spread years are A1-on-req's if they are ever touched.

@@ -48,6 +48,47 @@ const REPO = join(HERE, '../..');
 export const MAX_CHECKLIST = 12;
 export const BUG_SWEEP_FROM = 24;
 export const PLAN_BUDGET = 650000, RULES_BUDGET = 72000;   // bytes (the feedback loop, 30 Sep: the always-read files)
+// THE PLAN'S SHAPE (the process review, deep-review-log.md 4 Oct 13:52 UK, item 9; the maintainer's unlock of 4 Oct): a new
+// table row is at most ROW_CAP bytes and an edited row over it may not grow (detail goes to research/solver/items/<id>.md,
+// the row keeping a pointer; the 7u row had reached 18,685 characters); a new figure in an edited register or schedule row
+// is in a results file the row cites, as the ledger's are; the premise register's code anchors match the files; and a
+// status word written about another item outside its own row is reported (one source for each item's status)
+export const ROW_CAP = 3000;
+const rowKey = l => (/^\| ([^|]+?) \|/.exec(l) || [])[1];
+const FIG = /[-+]?\d+\.\d+/g;
+export function shapeProblems({ added = [], removed = [], readSolverFile, solverFileExists, plan = '' }) {
+  const P = [], W = [], old = new Map(removed.filter(l => l.startsWith('|')).map(l => [rowKey(l), l]));
+  const regKeys = new Set((tableAfter(plan, '## Odd results register')?.rows || []).map(r => r.cells[0]));
+  const S = between(plan, '## The schedule', '\n## ') ?? '', schKeys = new Set(S.split('\n').filter(l => l.startsWith('|')).map(rowKey).filter(Boolean));
+  for (const raw of added.filter(l => l.startsWith('|'))) {
+    const k = rowKey(raw), was = old.get(k), n = Buffer.byteLength(raw);
+    if (n > ROW_CAP && (!was || n > Buffer.byteLength(was))) P.push(`row "${String(k).slice(0, 20)}" is ${n} bytes${was ? `, grown from ${Buffer.byteLength(was)}` : ''}: a new row is at most ${ROW_CAP} and a longer row may not grow - move its detail to research/solver/items/<id>.md and keep a pointer`);
+    if (regKeys.has(k) || schKeys.has(k)) {
+      const before = new Set(((was || '').replace(/−/g, '-').match(FIG)) || []);
+      const fresh = [...new Set((raw.replace(/−/g, '-').match(FIG)) || [])].filter(x => !before.has(x) && !before.has(x.replace(/^[-+]/, '')));
+      if (fresh.length) {
+        const files = [...raw.matchAll(/results-[\w.-]+\.txt/g)].map(m => m[0]).filter(f => solverFileExists(f));
+        const text = files.map(f => readSolverFile(f)).join('\n').replace(/−/g, '-');
+        const miss = fresh.filter(x => !text.includes(x) && !text.includes(x.replace(/^[-+]/, '')));
+        if (miss.length) P.push(`row "${k}": the new figure${miss.length > 1 ? 's' : ''} ${miss.slice(0, 4).join(', ')} ${files.length ? `not in ${files.join(', ')}` : 'with no results file cited in the row'} (figures come from a script's output)`);
+      }
+      // a status word about another item, written outside that item's own row
+      for (const m of raw.matchAll(/\b(7[a-z]{1,2}|PMAP|COV|DPC|E3c)\b (REGISTERED|LAUNCHED|RUNNING|BUILT)\b/g)) if (m[1] !== k) W.push(`row "${k}" restates ${m[1]}'s status (${m[2]}): one source for each item's status is its own schedule row - point to it instead`);
+    }
+  }
+  // the premise register
+  const PR = tableAfter(plan, '## Premises at risk');
+  if (!PR) P.push('no table under "## Premises at risk" (| id | premise | code anchor | the test or diagnostic that would falsify it | status |; the process review, 4 Oct)');
+  else for (const { cells } of PR.rows) {
+    const [id, , anchor = ''] = cells, a = /([\w./-]+\.(?:m?js|cjs|sh)):(\d+)\s+"([^"]{6,})"/.exec(anchor);
+    if (!a) { P.push(`premise ${id}: its code anchor reads <path>:<line> "<snippet>"`); continue; }
+    const f = [a[1], `../../${a[1]}`, `../../src/solver/${a[1]}`].find(x => solverFileExists(x));
+    if (!f) { P.push(`premise ${id}: ${a[1]} does not exist`); continue; }
+    const L = readSolverFile(f).split('\n'), ln = Number(a[2]);
+    if (!L.slice(Math.max(0, ln - 6), ln + 5).join('\n').includes(a[3])) P.push(`premise ${id}: "${a[3].slice(0, 40)}" is not within five lines of ${a[1]}:${ln} (the code moved: re-anchor it, or the premise changed)`);
+  }
+  return { problems: P, warnings: W };
+}
 export const LESSON_LINES = [1, 5];   // bug entries dated this day of Sep 2026 and later need the sweep line
 
 const norm = s => s.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
@@ -287,6 +328,7 @@ export function checkPlan({ plan, rules, checklist, added = [], removed = [], re
   }
 
   for (const w of stalePhrases({ plan, added, removed })) warnings.push(`stale? ${w}`);
+  { const sh = shapeProblems({ added, removed, readSolverFile, solverFileExists, plan }); for (const p of sh.problems) err('shape', p); for (const w of sh.warnings) warnings.push(w); }
   // new lines
   const planLines = plan.split('\n');
   const LR = tableAfter(plan, '**The re-look ledger**'), ledgerRow = new Map((LR ? LR.rows : []).map(r => [r.raw.trim(), r.cells]));

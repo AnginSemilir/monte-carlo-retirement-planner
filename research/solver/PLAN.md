@@ -75,6 +75,17 @@ Ledger rows archived 2026-09-30, verbatim, in PLAN-HISTORY.md ("Archived from PL
 
 Deep-review rows to 28 Sep archived 2026-09-30, verbatim, in PLAN-HISTORY.md ("Archived from PLAN.md"); a live row citing "the <time> row" of these dates, or a moved register id, points there: 28 Sep 22:52; 28 Sep 19:09; 28 Sep 14:47; 28 Sep 13:56; 28 Sep 11:44; 28 Sep 02:38; 28 Sep 00:38; 27 Sep 22:32.
 
+## Premises at risk
+
+The design premises a result rests on, each anchored to the code it lives in (check-plan.mjs checks every anchor against its file, so a premise whose code moves is re-read), with the diagnostic or test that would falsify it (RULES.md section 9 rule 6; the process review, deep-review-log.md 4 Oct 13:52 UK, and the maintainer's unlock of 4 Oct: the flat copy stayed at grade D for nine days, and '6 share points never swept' was repeated across reviews without becoming a step).
+
+| id | premise | code anchor | the test or diagnostic that would falsify it | status |
+|---|---|---|---|---|
+| PR1 | The reader's flat copy of the continuation across an unsupported share node does no material harm at the bridge's step reads | reader.js:110 "c[i] = c[g.index(ip, lo, it, ig, ic)]" | PMAP's incidence (the top node's weight per household), then 7an's 6 against 11 nested share points per top-cell weight with a fixed-policy re-read | open: falsified in part - the mechanism grade A, its size grade C (the 4 Oct 12:09 and 12:27 rows) |
+| PR2 | The top share node a = 1 is supported in a bridge year | reader.js:61 "if (x < -tol) return 0;" | none needed: false by construction (no accessible money at a = 1); PMAP's top-node weight sizes it | open: false, grade A; COV option A would remove it |
+| PR3 | The reader's meta count of unsupported nodes shows the copies | reader.js:116 "let unsupported = 0;" | the reader meter fix: copied nodes and the top-cell weight per year in the solver's meta | open: false - it counts only rows with no support anywhere (the process review; results-7e.txt printed 0) |
+| PR4 | Six share points are enough for the shipping grid | grid.js:118 "(pts && pts.share)" | 7an's 6 against 11 nested share points | open: NOT CHECKED - never swept |
+
 ## Odd results register
 
 Every result nobody can yet explain, with an owner and the gate by which it is explained, fixed or closed (RULES.md,

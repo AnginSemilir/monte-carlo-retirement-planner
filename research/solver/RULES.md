@@ -610,19 +610,12 @@ tests in research/tests/plan-checker.test.mjs); the plan-auditor's section 9 che
 of a known error with no decomposition, a "next fix of the same kind" consequence, a family at three with no scheduled
 root-cause step); and the deep review below.
 
-**The deep review, paced by uncertainty** (the maintainer, 26 Sep: "automated deep thought review on a periodic basis
-based on the level of uncertainty of the model"). `research/solver/uncertainty.mjs` reads an index from the records
-(calibration over the last 10 scored items, surprises and settled results since the last deep review, register
-families, decisions on grade C or D evidence, FALSIFIED or harm verdicts) and says a deep review is due after 6 settled
-results when LOW, 3 when MEDIUM and every one when HIGH. The Stop hook refuses to end a turn while one is due, except for
-30 minutes after `record-deep-review.mjs --start` (a review under way).
-**The two departures from the draft** (the seventy-seventh review, MINOR 1): (d) the 30-minute pass after a start, copied from
-the plan review's; the draft blocked while a review was due and no receipt followed the trigger, so this loosens it; (e) a
-review is due by settled results only - the draft also made 2 surprises, a family of 3 or a Brier score over 0.25 due at
-once; here they raise the level to HIGH, which makes every settled result due, because a level alone never resets at a
-receipt and would have kept the Stop hook blocked for ever (uncertainty.mjs's planted check fails on the old rule). Also
-beyond the four things named at the unlock: the smoke run's diag7t line, fair-gate.mjs's comment, and locking the deep
-review's index, recorder, log and agent - each only adds a refusal or a comment. The `deep-reviewer` agent steps back across the
+**The deep review, after every settled result** (the maintainer, 26 Sep, paced by an uncertainty index; since 4 Oct a fixed
+rule, the process review having found all 36 receipts at HIGH, where the index already asked for one per result).
+`research/solver/uncertainty.mjs` still prints the index (calibration over the last 10 scored items, surprises, register
+families, grade C or D foundations, FALSIFIED or harm verdicts) for the review to read; a review is due after each settled
+result, and the Stop hook refuses to end a turn while one is due, except for 30 minutes after `record-deep-review.mjs
+--start`. A deep review gets no ledger row: its findings go into the rows they move (the plan-update skill). The `deep-reviewer` agent steps back across the
 record - families, unmasking, premises, calibration by slice, the ranked root causes and the one decisive test - and
 records its receipt with `record-deep-review.mjs`, which takes the time from the clock and the level and the test covered
 from the records. The index, the recorder, the log and the agent are locked (planted tests in hooks.test.mjs, which also
@@ -637,20 +630,16 @@ reviewer's retirement pass turns a code seen 3 times into a check and retires wh
 catches. The always-read files have budgets (check-plan.mjs); finished rows move to PLAN-HISTORY.md at each close
 (archive-plan.mjs, receipted by `record-review.mjs --moved`).
 
+**The process mechanisms of 4 Oct** (the process review, deep-review-log.md 4 Oct 13:52 UK; the maintainer: "Agree, do all
+Unlock enforcement"). A test registered from 4 Oct 14:30 UK carries a decision table whose action changes with chance a
+quarter or more (else a waiver), and a Mechanism field anchored in the code with a derive line of the cause's incidence
+(check-prediction.mjs). A plan commit answers every row relook.mjs lists (.githooks/commit-msg). A REPLACE lesson names its
+target and lands there by the next close (check-plan's retro). A new plan row is at most 3,000 bytes and a longer row may
+not grow (detail to items/<id>.md); a new figure in a register or schedule row is in a results file the row cites; the
+premises at risk carry code anchors that must match their files; a status restated outside its item's row is warned of.
+
 ## 7. Where the approach came from (24 Sep)
 
-- Anthropic, "Best practices for Claude Code": CLAUDE.md is advisory, hooks are deterministic; keep CLAUDE.md short;
-  give the agent a check it can run; a verification subagent so "the agent doing the work isn't the one grading it";
-  the Stop hook gives up after 8 consecutive blocks. https://code.claude.com/docs/en/best-practices
-- Rule compliance falls as the number of instructions grows (Jaroslawicz et al. 2025, "How many instructions can LLMs
-  follow at once?"). https://arxiv.org/abs/2507.11538
-- Rules present after a compaction but no longer followed, while an imperative session-start hook was (claude-code
-  issue 95745). https://github.com/anthropics/claude-code/issues/95745
-- A research agent that edited its own time limit instead of speeding up (Sakana's AI Scientist): protect the checks.
-  https://sakana.ai/ai-scientist/
-- Pre-registration by a pushed git commit: "local history can be rewritten; a public push cannot be quietly
-  backdated". https://github.com/levi909-create/open-subject-prereg
-- The regimen of section 8: the outside review of 25 Sep, "Solver research: review, new findings and the updated
-  regimen" (the claude.ai document the maintainer shared, 25 Sep 20:42 UK), with its sources (Appendix B there).
-- Compare runs by what differs; the commonest cause of unreproducible results is a silent default.
-  https://launchdarkly.com/blog/ml-experiment-tracking/
+The sources (Anthropic's Claude Code practices, instruction-count studies, pre-registration by a pushed commit, the outside
+review of 25 Sep): research/solver/drafts/rules-sources.md.
+

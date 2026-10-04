@@ -302,4 +302,25 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(replaceProblems(L('## 7zz (closed 3 Oct 15:00)\n- [T:relook] x -> REPLACE "restate" with nothing\n## 7zy (closed 4 Oct 16:00)\n- [T:design] y -> DROP\n'), rf).length === 0, 'EDGE: a close before 4 Oct 14:30 UK is exempt');
 }
 
+// THE PLAN'S SHAPE (the process review, 4 Oct, item 9; the maintainer's unlock of 4 Oct)
+{
+  const { shapeProblems, ROW_CAP } = await import('../solver/check-plan.mjs');
+  const files = { 'results-x.txt': 'figure 1.2345 here', 'reader.js': 'a\nb\nlet unsupported = 0;\nc\n' };
+  const rs = f => files[f.replace(/^(\.\.\/)+(src\/solver\/)?/, '')], ex = f => rs(f) !== undefined;
+  const prem = (anchor) => `## Premises at risk\n\n| id | premise | code anchor | test | status |\n|---|---|---|---|---|\n| PR1 | p | ${anchor} | t | open |\n\n## Odd results register\n\n| id | what | found | owner | resolve by | status |\n|---|---|---|---|---|---|\n| O1 | x | y | z | g | open |\n\n## The schedule\n\n| 7zz | a | b | c | d |\n\n## End\n`;
+  const plan = prem('reader.js:3 "let unsupported = 0;"');
+  const sh = o => shapeProblems({ readSolverFile: rs, solverFileExists: ex, plan, ...o }).problems;
+  ok(sh({}).length === 0, 'a premise whose anchor matches its file passes');
+  ok(shapeProblems({ readSolverFile: rs, solverFileExists: ex, plan: prem('reader.js:3 "not in this file at all"') }).problems.some(e => /not within five lines/.test(e)), 'planted: a premise whose code moved is refused');
+  ok(shapeProblems({ readSolverFile: rs, solverFileExists: ex, plan: '## Odd results register\n' }).problems.some(e => /Premises at risk/.test(e)), 'planted: a plan with no premise register is refused');
+  const big = `| O1 | ${'x'.repeat(ROW_CAP)} | y | z | g | open |`;
+  ok(sh({ added: [big] }).some(e => /at most 3000/.test(e)), 'planted: a new row over the cap is refused');
+  ok(sh({ added: [big], removed: [`| O1 | ${'x'.repeat(ROW_CAP + 50)} | y | z | g | open |`] }).every(e => !/at most/.test(e)), 'EDGE: an over-cap row that shrinks may be edited');
+  ok(sh({ added: [big + 'more'], removed: [big] }).some(e => /grown from/.test(e)), 'planted: an over-cap row that grows is refused');
+  ok(sh({ added: ['| O1 | a new figure 9.8765 here | y | z | g | open |'], removed: ['| O1 | old | y | z | g | open |'] }).some(e => /9.8765/.test(e)), 'planted: a new figure in a register row with no results file is refused');
+  ok(sh({ added: ['| O1 | figure 1.2345 (results-x.txt) | y | z | g | open |'], removed: ['| O1 | old | y | z | g | open |'] }).length === 0, 'a new figure found in the cited results file passes');
+  ok(sh({ added: ['| O1 | kept 3.1416 and more | y | z | g | open |'], removed: ['| O1 | kept 3.1416 | y | z | g | open |'] }).length === 0, 'EDGE: a figure the row already carried is not re-checked');
+  ok(shapeProblems({ readSolverFile: rs, solverFileExists: ex, plan, added: ['| 7zz | waits on 7au REGISTERED | b | c | d |'] }).warnings.some(w => /restates 7au/.test(w)), 'a status word about another item in a schedule row is reported');
+}
+
 console.log(`\n${n} passed`);

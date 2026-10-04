@@ -45,32 +45,5 @@ M = [
     ("the overshoot flag dropped", "if (it.read === 'HELD' && pOver < ALPHA)", "if (false)"),
     ("the gate ignores read (b) leaving more than the unsupported weight flat", "if (y.reads > 0 && !(y.left >= -1e-4 && y.left <= (none ? 1e-4 : d.unsup + 1e-4))) {", "if (false) {"),
 ]
-# extrap-7at.mjs's mutations, run through the reducer's planted set (it imports the module)
-XM = [
-    ("extrapolate copies flat (the reader's own rule)", "c[idx(ii)] = Math.min(1, Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1)));", "c[idx(ii)] = c1;"),
-    ("extrapolate does not clip at 1", "Math.min(1, Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1)))", "Math.max(0, c1 + (c1 - c2) / (a1 - a2) * (A[ii] - a1))"),
-    ("extrapolate leaves R as the reader's (S not reproduced)", "for (let i = 0; i < n; i++) R[i] = S[i] - RD.p[i] * c[i];", "for (let i = 0; i < n; i++) R[i] = RD.R[i];"),
-    ("extrapolate marks no node it extrapolated", "ex[idx(ii)] = 1; extrapolated++;", "extrapolated++;"),
-    ("extrapolate from one node on each side, not two on the near side", "for (let jj = j1 + dir; jj >= 0 && jj < ni; jj += dir) if (sup(idx(jj))) { j2 = jj; break; }", "for (let jj = j1 - dir; jj >= 0 && jj < ni; jj -= dir) if (sup(idx(jj))) { j2 = jj; break; }"),
-]
-r = subprocess.run(['node', SRC, '--planted'], capture_output=True, text=True)
-if r.returncode != 0: print('THE TRUE SCRIPT FAILS ITS PLANTED SET:\n' + r.stdout); sys.exit(1)
-caught, bad = 0, []
-for name, old, new in M:
-    if base.count(old) != 1: bad.append(f'NOT APPLIED ({base.count(old)} matches): {name}'); continue
-    open(DST, 'w').write(base.replace(old, new))
-    r = subprocess.run(['node', DST, '--planted'], capture_output=True, text=True)
-    if 'PLANTED CHECK FAILED' in r.stdout: caught += 1; print(f'caught: {name}')
-    else: bad.append(f'NOT CAUGHT: {name}')
-for name, old, new in XM:
-    if xbase.count(old) != 1: bad.append(f'NOT APPLIED ({xbase.count(old)} matches): {name}'); continue
-    open(XDST, 'w').write(xbase.replace(old, new))
-    open(DST, 'w').write(base.replace("from './extrap-7at.mjs';", "from './zz-mut-extrap-7at.mjs';"))
-    r = subprocess.run(['node', DST, '--planted'], capture_output=True, text=True)
-    if 'PLANTED CHECK FAILED' in r.stdout: caught += 1; print(f'caught: {name}')
-    else: bad.append(f'NOT CAUGHT: {name}')
-for f in (DST, XDST):
-    if os.path.exists(f): os.remove(f)
-for b in bad: print(b)
-print(f'{caught} of {len(M) + len(XM)} mutations caught')
-sys.exit(1 if bad else 0)
+from mutate_lib import run
+run('reduce-7at.mjs', M)

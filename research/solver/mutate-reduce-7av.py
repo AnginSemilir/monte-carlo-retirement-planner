@@ -60,34 +60,5 @@ M = [
     ("item 5's FALSIFIED band at 0.7", "pD: flipP(lin(L12, 1, F12, -0.9 * r6), b, 7042)", "pD: flipP(lin(L12, 1, F12, -0.7 * r6), b, 7042)"),
     ("item 5's premise ignores F12", "premise: pP < ALPHA && mean(F12) > 0 && mean(F6) > 0 && r6 > 0,", "premise: mean(F6) > 0 && r6 > 0,"),
 ]
-# extrap-7av.mjs's mutations, run through the reducer's planted set (it imports the module)
-XM = [
-    ("order 1 drops extrap-7at's arithmetic (the Lagrange line instead)", "      if (js.length === 2) v = RD.c[idx(js[0])] + (RD.c[idx(js[0])] - RD.c[idx(js[1])]) / (A[js[0]] - A[js[1]]) * (x - A[js[0]]);", "      if (js.length === 2) v = v * (1 + 1e-12);"),
-    ("the quadratic takes two nodes (a straight line)", "js.length < order + 1; jj += dir)", "js.length < 2; jj += dir)"),
-    ("no clip at 0", "c[idx(ii)] = Math.min(1, Math.max(0, v));", "c[idx(ii)] = Math.min(1, v);"),
-    ("the clip counts dropped", "if (v < 0) clipLo++; else if (v > 1) clipHi++;", ""),
-    ("the fall-back count dropped", "if (order === 2 && js.length < 3) fellBack++;", ""),
-    ("R left as the reader's (S not reproduced)", "for (let i = 0; i < n; i++) R[i] = S[i] - RD.p[i] * c[i];", "for (let i = 0; i < n; i++) R[i] = RD.R[i];"),
-    ("isStep takes a half chance as a step", "if (!(q <= 1e-12 || q >= 1 - 1e-12)) return false;", "if (!(q <= 1e-12 || q >= 0.5)) return false;"),
-]
-r = subprocess.run(['node', SRC, '--planted'], capture_output=True, text=True)
-if r.returncode != 0: print('THE TRUE SCRIPT FAILS ITS PLANTED SET:\n' + r.stdout); sys.exit(1)
-caught, bad = 0, []
-for name, old, new in M:
-    if base.count(old) != 1: bad.append(f'NOT APPLIED ({base.count(old)} matches): {name}'); continue
-    open(DST, 'w').write(base.replace(old, new))
-    r = subprocess.run(['node', DST, '--planted'], capture_output=True, text=True)
-    if 'PLANTED CHECK FAILED' in r.stdout: caught += 1; print(f'caught: {name}')
-    else: bad.append(f'NOT CAUGHT: {name}')
-for name, old, new in XM:
-    if xbase.count(old) != 1: bad.append(f'NOT APPLIED ({xbase.count(old)} matches): {name}'); continue
-    open(XDST, 'w').write(xbase.replace(old, new))
-    open(DST, 'w').write(base.replace("from './extrap-7av.mjs';", "from './zz-mut-extrap-7av.mjs';"))
-    r = subprocess.run(['node', DST, '--planted'], capture_output=True, text=True)
-    if 'PLANTED CHECK FAILED' in r.stdout: caught += 1; print(f'caught: {name}')
-    else: bad.append(f'NOT CAUGHT: {name}')
-for f in (DST, XDST):
-    if os.path.exists(f): os.remove(f)
-for b in bad: print(b)
-print(f'{caught} of {len(M) + len(XM)} mutations caught')
-sys.exit(1 if bad else 0)
+from mutate_lib import run
+run('reduce-7av.mjs', M)

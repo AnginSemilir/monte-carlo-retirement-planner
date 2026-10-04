@@ -33,7 +33,9 @@ const all = buildScenarios();
 const prep = id => { const sc = all.find(s => s.id === id); return E.resolveMpaa(E.normalizePlan({ ...sc.plan, config: { ...sc.plan.config, guardrails: false, lookaheadYears: 0 }, spending: { ...sc.plan.spending, floorSpend: Math.round(0.8 * E.num(sc.plan.spending.targetSpend, 0)) } })); };
 const OPTS = { lambda: 0.0223606797749979, points: 4, riskAbove: true };
 
-// 2. the trap, on a two-node share row (no solve needed)
+// 2. the trap, on a two-node share row (no solve needed). It PINS A PREMISE, it does not test one: the flat copy (0.40
+// three quarters toward the dead node) is asserted as the designed read; whether that read is right at a bridge's step
+// reads is PLAN.md's premise PR1, open (the process review, deep-review-log.md 4 Oct 13:52 UK)
 {
   const g = { mode: 'total', np: 1, ni: 2, nt: 1, gain: [0], pcls: [0], size: 2, m: { P: { lsa: 268275 } },
     axes: { W: { pts: [100000] }, a: { pts: [0.8, 1.0] }, b: { pts: [0.5] } }, index: (i1, i2) => i1 + i2 };
@@ -41,6 +43,7 @@ const OPTS = { lambda: 0.0223606797749979, points: 4, riskAbove: true };
   const S = Float64Array.from([0.4, 0]);
   const tb = buildReaderTable(g, S, chance);
   const w1 = 0.75, read = (c, R) => 1 * ((1 - w1) * c[0] + w1 * c[1]) + ((1 - w1) * R[0] + w1 * R[1]);
+  ok(tb.copied === 1 && tb.copiedTop === 1 && tb.nodes === 2 && tb.unsupported === 0, `the meter: the dead top node is counted as copied (copied ${tb.copied}, at the top ${tb.copiedTop}, of ${tb.nodes}), where the old count of rows with no support reads ${tb.unsupported}`);
   ok(Math.abs(read(tb.c, tb.R) - 0.4) < 1e-12, `the trap: a query that can pay, three quarters toward the dead node, reads ${read(tb.c, tb.R).toFixed(2)} (c ${Array.from(tb.c).join('/')}, R ${Array.from(tb.R).join('/')})`);
   const cu = Float64Array.from([1, 1]), Ru = Float64Array.from([S[0] - 1, S[1] - 0]);
   ok(Math.abs(read(cu, Ru) - 0.85) < 1e-12 && Math.abs(read(cu, Ru) - 0.4) > 0.1, `planted: the unit template reads ${read(cu, Ru).toFixed(2)} there and fails the 0.40 check`);

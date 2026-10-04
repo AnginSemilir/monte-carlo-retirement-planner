@@ -654,7 +654,7 @@ export function solve(E, M, plan, opts = {}) {
       f.schedule = { bills, rho, vol, t, k, ai0 };   // kept for the checks (reader-solve.test.mjs)
       return f;
     };
-    g.reader = { years, of: new Map(), chanceOf, unsupported: 0, built: 0, weights: { isa: wi, gia: wg, cash: wc } };
+    g.reader = { years, of: new Map(), chanceOf, unsupported: 0, copied: 0, copiedTop: 0, nodes: 0, built: 0, weights: { isa: wi, gia: wg, cash: wc } };
   } else if (opts.bridgeRead) g.bridge = bridgeTable(E, m, c, Math.min(...levelOf), opts.bridgeRead === 2 ? 2 : 1);
 
   /*
@@ -1055,7 +1055,7 @@ export function solve(E, M, plan, opts = {}) {
         for (let i = 0; i < ls.length; i++) Sc[i] = 1 / (1 + Math.exp(-ls[i]));
         const chance = g.reader.chanceOf(k, t), tb = buildReaderTable(g, Sc, chance);
         g.reader.of.set(ls, { chance, c: tb.c, R: tb.R, p: tb.p, t, k });
-        g.reader.unsupported += tb.unsupported; g.reader.built++;
+        g.reader.unsupported += tb.unsupported; g.reader.copied += tb.copied; g.reader.copiedTop += tb.copiedTop; g.reader.nodes += tb.nodes; g.reader.built++;
       }
     }
   }
@@ -1063,7 +1063,7 @@ export function solve(E, M, plan, opts = {}) {
   const meta = { ms: Date.now() - t0, size: g.size, years: T + 1, actions: actions.length, evaluated, lump: !!opts.lump, points: g.mode === 'total' ? `total ${g.np} x ${g.ni} x ${g.nt}` : (g.np === g.ni && g.ni === g.nt ? g.np : `${g.np}/${g.ni}/${g.nt}`), coords: g.mode, wR, bequestWeight: wB * scale, resilienceAt: resilK, bequestCap: beqCap, bequestShape: beqShape, resilience: shortfall ? 'shortfall' : 'indicator', lambda, raiseWeight: mu, driftWeight: driftW, spendLevels: [...new Set(levelOf)], levelSearch: TERN ? 'ternary' : 'exhaustive', tiers: Object.keys(byCombo).length > 1 ? Object.keys(byCombo) : null, switchCost: c.switchCost, switchMargin, raiseSurvival: raiseSurv, failureShortfall: failShort ? (opts.failureShortfall === 'zero' ? 'zero' : 'floor') : false, giaTiers: !!c.tiers.gia, bridgeRead: g.reader ? 'reader' : g.bridge ? (g.bridge.version === 2 ? 2 : true) : false, finalIntegral: FINT, bridgeStep: STEPX ? 'exact' : null, tierState: TS ? tsPairs.map(x => x.join('/')).join(',') : null, holdTier: opts.holdTier ? opts.holdTier.join('/') : null, readerRef: g.reader && opts.readerRef === 'order' ? 'order' : opts.holdTier && g.reader ? (opts.readerRef === 'held' ? 'held' : 'plan') : null, solverVersion: SOLVER_VERSION };
   if (switchCharge > 0) meta.switchCharge = switchCharge;
   if (E3) meta.e3 = { copied: e3Copied };
-  if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, weights: g.reader.weights };
+  if (g.reader) meta.reader = { tables: g.reader.built, unsupported: g.reader.unsupported, copied: g.reader.copied, copiedTop: g.reader.copiedTop, nodes: g.reader.nodes, weights: g.reader.weights };
   if (JOINT) meta.jointWorlds = true;
   if (PROF) {
     PROF.total = now() - profT0;

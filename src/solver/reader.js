@@ -97,14 +97,20 @@ export function buildReaderTable(g, S, chance) {
     if (p[i] >= 0.5) { sup[i] = 1; c[i] = Math.min(1, Math.max(0, S[i] / p[i])); }
   }
   const rowHas = new Uint8Array(np * nt * NG * NCL);
+  // THE METER (the process review, deep-review-log.md 4 Oct 13:52 UK: `unsupported` below counts only rows with no support
+  // anywhere, so 7e printed 0 while every bridge year's top share node was copied): `copied` counts the nodes that take c
+  // from a supported neighbour along their share row, `copiedTop` those at the top share node (a = 1, no accessible money,
+  // so unsupported in every year with a bill), and `nodes` the nodes in rows that have support. Counted only; no value changes.
+  let copied = 0, copiedTop = 0, nodes = 0;
   for (let ic = 0; ic < NCL; ic++) for (let ig = 0; ig < NG; ig++) for (let it = 0; it < nt; it++) for (let ip = 0; ip < np; ip++) {
     let any = false;
     for (let ii = 0; ii < ni; ii++) if (sup[g.index(ip, ii, it, ig, ic)]) { any = true; break; }
     if (!any) continue;
-    rowHas[row(ip, it, ig, ic)] = 1;
+    rowHas[row(ip, it, ig, ic)] = 1; nodes += ni;
     for (let ii = 0; ii < ni; ii++) {
       const i = g.index(ip, ii, it, ig, ic);
       if (sup[i]) continue;
+      copied++; if (ii === ni - 1) copiedTop++;
       for (let d = 1; d < ni; d++) {
         const lo = ii - d, hi = ii + d;
         if (lo >= 0 && sup[g.index(ip, lo, it, ig, ic)]) { c[i] = c[g.index(ip, lo, it, ig, ic)]; break; }
@@ -126,7 +132,7 @@ export function buildReaderTable(g, S, chance) {
     }
   }
   for (let i = 0; i < n; i++) R[i] = S[i] - p[i] * c[i];
-  return { p, c, R, unsupported };
+  return { p, c, R, unsupported, copied, copiedTop, nodes };
 }
 
 /*

@@ -44,16 +44,5 @@ M = [
     ("chargeRan replaces the first charge", "ran.replace(/ switchCharge 0\\.001$/, ` switchCharge ${c}`)", "ran.replace(/ switchCharge 0\\.001/, ` switchCharge ${c}`)"),
     ("slice keeps the levels whole", "level: T.level.subarray(0, n * T.Y)", "level: T.level"),
 ]
-r = subprocess.run(['node', SRC, '--planted'], capture_output=True, text=True)
-if r.returncode != 0: print('THE TRUE SCRIPT FAILS ITS PLANTED SET:\n' + r.stdout); sys.exit(1)
-caught, bad = 0, []
-for name, old, new in M:
-    if base.count(old) != 1: bad.append(f'NOT APPLIED ({base.count(old)} matches): {name}'); continue
-    open(DST, 'w').write(base.replace(old, new))
-    r = subprocess.run(['node', DST, '--planted'], capture_output=True, text=True)
-    if 'PLANTED CHECK FAILED' in r.stdout: caught += 1; print(f'caught: {name}')
-    else: bad.append(f'NOT CAUGHT: {name}')
-if os.path.exists(DST): os.remove(DST)
-for b in bad: print(b)
-print(f'{caught} of {len(M)} mutations caught')
-sys.exit(1 if bad else 0)
+from mutate_lib import run
+run('reduce-7as.mjs', M)

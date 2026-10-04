@@ -18,3 +18,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-01 06:25 UTC | reduce-7aq.mjs 5ec5f09bb524 | 46 of 47 caught | escaped: non-smooth at q 0.33 (did not apply)
 2026-10-01 06:25 UTC | reduce-7aq.mjs 5ec5f09bb524 | 47 of 47 caught | escaped: none
 2026-10-01 06:25 UTC | reduce-7aq.mjs 6f16dd379da1 | 47 of 47 caught | escaped: none
+2026-10-04 13:39 UTC | reduce-7au.mjs 5cacd2fe0bcc | 33 of 33 caught | escaped: none

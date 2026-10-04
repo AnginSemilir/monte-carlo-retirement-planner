@@ -10,7 +10,8 @@
 //     share less the year before's, as results-dpc.txt prints it), and the households where the arms
 //     differ by 0.001 or more (O88; the drops are printed to 4 places, so a difference of 0.0005 is rounding's size).
 //   - per arm, the mean unit time (its solve's secs plus its dp line's) and from it ADOPT-PI's cost (SNAP against PCLSI on the
-//     25 households: their two mean unit times x 25) and the hybrid's (three PCLSI units, S130, S370 and S128), in core-hours.
+//     25 households: their two mean unit times x 25) the hybrid's (three PCLSI units, S130, S370 and S128) and PR5's death-tax arm (S130, S370 and S128 under both axes), in
+//     core-hours.
 //   node research/solver/derive-dpc-traces.mjs > research/solver/results-derive-dpc-traces.txt
 import { gunzipSync } from 'node:zlib';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -81,4 +82,4 @@ console.log(`printed on ${printed} households; the arms within less than 0.001 o
 const usec = a => ids.reduce((t, id) => t + unit[id][a].ssecs + unit[id][a].dsecs, 0) / ids.length;
 const us = Object.fromEntries(Object.values(ARMS).map(a => [a, usec(a)]));
 console.log(`\nmean unit time (solve plus forward, secs): ${Object.entries(us).map(([a, v]) => `${a} ${v.toFixed(0)}`).join(', ')}`);
-console.log(`ADOPT-PI (SNAP against PCLSI on the 25 households): ${(25 * (us.SNAP + us.PCLSI) / 3600).toFixed(1)} core-hours; the hybrid (three PCLSI units): ${(3 * us.PCLSI / 3600).toFixed(1)} core-hours`);
+console.log(`ADOPT-PI (SNAP against PCLSI on the 25 households): ${(25 * (us.SNAP + us.PCLSI) / 3600).toFixed(1)} core-hours; the hybrid (three PCLSI units): ${(3 * us.PCLSI / 3600).toFixed(1)} core-hours; PR5's death-tax arm (pension death tax 0.4; three households, both axes): ${(3 * (us.SNAP + us.PCLSI) / 3600).toFixed(1)} core-hours`);

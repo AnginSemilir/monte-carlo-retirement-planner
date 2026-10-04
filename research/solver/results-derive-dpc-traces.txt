@@ -85,4 +85,4 @@ State Pension year, the drop under 0.6 (its growth less the growth a year before
 printed on 24 households; the arms within less than 0.001 on 21; differing by 0.001 or more on 3: S130 0.0037, S366 0.0012, bridge 4+cost 0.0016
 
 mean unit time (solve plus forward, secs): SNAP 968, PCLSI 1122, SHIFT 959
-ADOPT-PI (SNAP against PCLSI on the 25 households): 14.5 core-hours; the hybrid (three PCLSI units): 0.9 core-hours
+ADOPT-PI (SNAP against PCLSI on the 25 households): 14.5 core-hours; the hybrid (three PCLSI units): 0.9 core-hours; PR5's death-tax arm (pension death tax 0.4; three households, both axes): 1.7 core-hours

@@ -10,10 +10,10 @@
  *   - unmasking flags: ledger rows after the last receipt reading FALSIFIED or harm on a fix (their title);
  *   - settled results: ledger rows after the last receipt that name a prediction file.
  * The level is HIGH when calibration is over 0.25, there are 2 surprises or a family of 3; MEDIUM when calibration is over
- * 0.20, there is a surprise, an unmasking flag, or 2 weak foundations; else LOW. A deep review is DUE when the settled
- * results since the last receipt reach 6 (LOW), 3 (MEDIUM) or 1 (HIGH): at HIGH every settled result gets one, and a
- * receipt with nothing settled after it is not due again (calibration and families do not reset at a receipt, so a level
- * alone would keep the Stop hook blocked for ever).
+ * 0.20, there is a surprise, an unmasking flag, or 2 weak foundations; else LOW. A deep review is DUE after every settled
+ * result (the process review, deep-review-log.md 4 Oct 13:52 UK, and the maintainer's unlock of 4 Oct: all 36 receipts had
+ * been at HIGH, so the pacing by level - 6 at LOW, 3 at MEDIUM, 1 at HIGH - was in practice this fixed rule); the level is
+ * still printed, for the review to read, and a receipt with nothing settled after it is not due again.
  * The last receipt: the newest line of deep-review-log.md, "- <dd Mon HH:MM> UK | covered <test name> | ...".
  *   node research/solver/uncertainty.mjs            the index and whether a review is due
  *   node research/solver/uncertainty.mjs --due      exit 1 when a review is due (for a hook), else 0
@@ -79,7 +79,7 @@ export function index({ scorecard, plan, log }) {
   const settled = rows.filter(r => /prediction: predictions\/\S+\.md/.test(r.line) && !/^\s*\(maintainer\)/.test(r.line.split(' | ')[1] || '') && !/^\s*deep review: deep-review-log\.md/.test(r.line.split(' | ').slice(-1)[0] || '')).length;
   const level = (cal !== null && cal > 0.25) || surprises.length >= 2 || family >= 3 ? 'HIGH'
     : (cal !== null && cal > 0.20) || surprises.length >= 1 || unmask >= 1 || weak >= 2 ? 'MEDIUM' : 'LOW';
-  const every = { LOW: 6, MEDIUM: 3, HIGH: 1 }[level];
+  const every = 1;
   return { cal, surprises, fams, family, weak, unmask, settled, level, every, due: settled >= every, last, covered };
 }
 
@@ -98,7 +98,7 @@ function planted() {
     ['a family note running into a bracket counts; a row naming two families counts in each, a family named twice in one row once; "family: none" names none', JSON.stringify(registerFamilies(['| O5 | x. Family: the reader at the bridge (O32, O36) | 1 Sep | C | g | open |', '| O6 | y; family: the reader at the bridge; family: risk | 1 Sep | C | g | open |', '| O7 | z; family: risk (w); again family: risk | 1 Sep | C | g | open |', '| O8 | q; family: none (a one-off) | 1 Sep | C | g | open |'].join('\n'))), '{"the reader at the bridge":2,"risk":2}'],
     ['ledger rows after the receipt: 2 settled, 1 weak (grade C), 1 unmasking flag (FALSIFIED in the title); the 25 Sep row is before it', `${u.settled} ${u.weak} ${u.unmask}`, '2 1 1'],
     ['the level: calibration 0.40 is HIGH, so a review is due', `${u.level} ${u.due}`, 'HIGH true'],
-    ['LOW with few settled results is not due; LOW at six is', (() => { const a = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: '', log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); const rows = Array.from({ length: 6 }, (_, i) => `| 26 Sep 13:0${i} | r | y | prediction: predictions/p${i}.md; grade B |`).join('\n'); const b = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: rows, log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); return `${a.level} ${a.due} ${b.level} ${b.due}`; })(), 'LOW false LOW true'],
+    ['LOW with nothing settled is not due; LOW with one settled result is (a review after every result, 4 Oct)', (() => { const a = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: '', log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); const rows = Array.from({ length: 1 }, (_, i) => `| 26 Sep 13:0${i} | r | y | prediction: predictions/p${i}.md; grade B |`).join('\n'); const b = index({ scorecard: '7x (c): Brier 0 over 1 (1 0.9 -> held)', plan: rows, log: '- 26 Sep 12:00 UK | covered 7x (c) | x' }); return `${a.level} ${a.due} ${b.level} ${b.due}`; })(), 'LOW false LOW true'],
     ['no receipt yet: every test counts as after it', String(index({ scorecard: sc, plan: '', log: '' }).surprises.length), '2'],
     ['HIGH with nothing settled since the receipt is not due (a family of 3 does not reset)', (() => { const fam = ['| O1 | a; family: r | 1 Sep | C | g | open |', '| O2 | b; family: r | 1 Sep | C | g | open |', '| O3 | c; family: r | 1 Sep | C | g | open |', '| 26 Sep 11:00 | **7s** | y | prediction: predictions/a.md; grade B |'].join('\n'); const v = index({ scorecard: sc, plan: fam, log: '- 26 Sep 12:00 UK | covered 7r (b) | x' }); return `${v.level} ${v.settled} ${v.due}`; })(), 'HIGH 0 false'],
     ['"no material harm" and "no harm" are not harm verdicts; a harm beside them still is', (() => { const rows = ['| 30 Sep 14:20 | **7ah READ: no material harm on the six households** | y | prediction: predictions/a.md; grade B |', '| 30 Sep 14:10 | **7x READ: no harm to survival** | y | prediction: predictions/a.md; grade B |', '| 30 Sep 14:00 | **7y READ: no material harm on five, harm on S126** | y | prediction: predictions/a.md; grade B |'].join('\n'); return String(index({ scorecard: sc, plan: rows, log: '- 30 Sep 13:00 UK | covered 7r (b) | x' }).unmask); })(), '1'],

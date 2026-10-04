@@ -9,6 +9,11 @@
 //                                                   plan-auditor's step 1: exits 2 on an empty diff while the plan is
 //                                                   NOT REVIEWED (a re-look that ran on nothing is an error, not a pass)
 //   node research/solver/relook.mjs O60 7u          these ids
+//   node research/solver/relook.mjs --staged --msg <commit message file>   THE COMMIT CHECK (.githooks/commit-msg; the process
+//     review, deep-review-log.md 4 Oct 13:52 UK, and the maintainer's unlock of 4 Oct): ids from the staged change; every row
+//     listed must be answered in the message on a line "relook: <id>[, <id> ...] unchanged: <reason>" (or touched by the
+//     change); exits 1 naming the rows unanswered. Relook findings were 9 BLOCKINGs and 27 MINORs in 20 closes, and 7ar's
+//     REPLACE asked for this; --msg also works with given ids or --base, for a test
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
@@ -17,8 +22,8 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url)), PLAN = join(HERE, 'PLAN.md');
 export const ID = /\b(O\d{1,3}|[78][a-z]{1,2}|E[1-4]|P|Q|M\d{1,2}|K\d)\b/g;
 const argv = process.argv.slice(2), bi = argv.indexOf('--base');
-const SINCE = argv.includes('--since-review');
-const base = bi >= 0 ? argv[bi + 1] : '@{u}', given = argv.filter((x, i) => !x.startsWith('--') && (bi < 0 || i !== bi + 1));
+const SINCE = argv.includes('--since-review'), STAGED = argv.includes('--staged'), mi = argv.indexOf('--msg'), MSG = mi >= 0 ? argv[mi + 1] : null;
+const base = bi >= 0 ? argv[bi + 1] : '@{u}', given = argv.filter((x, i) => !x.startsWith('--') && (bi < 0 || i !== bi + 1) && (mi < 0 || i !== mi + 1));
 const lines = readFileSync(PLAN, 'utf8').split('\n');
 // the change's added lines, and the rows they sit in (a table row is one line)
 let added = [];
@@ -33,12 +38,15 @@ if (!given.length) {
     try { diff = execFileSync('git', ['diff', '-U0', last.blob, now], { cwd: HERE, encoding: 'utf8', maxBuffer: 64 << 20 }); }
     catch (e) { console.error(`relook: git diff of the last receipt's plan failed: ${e.message.split('\n')[0]}`); process.exit(2); }
     if (!diff.trim()) { console.error('relook: the plan is not reviewed but the diff from its last receipt is empty: a re-look on nothing is an error'); process.exit(2); }
+  } else if (STAGED) {
+    try { diff = execFileSync('git', ['diff', '--cached', '-U0', '--', PLAN], { cwd: HERE, encoding: 'utf8', maxBuffer: 64 << 20 }); }
+    catch (e) { console.error(`relook: git diff --cached failed: ${e.message.split('\n')[0]}`); process.exit(2); }
   } else {
     try { diff = execFileSync('git', ['diff', '-U0', ...base.split('..'), '--', PLAN], { cwd: HERE, encoding: 'utf8', maxBuffer: 64 << 20 }); }
     catch (e) { console.error(`relook: git diff ${base} failed: ${e.message.split('\n')[0]}`); process.exit(2); }
   }
   added = diff.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).map(l => l.slice(1));
-  if (!added.length) { console.log(`relook: PLAN.md has no change against ${base}: nothing to re-look`); process.exit(0); }
+  if (!added.length) { console.log(`relook: PLAN.md has no change against ${STAGED ? 'HEAD (staged)' : base}: nothing to re-look`); process.exit(0); }
 }
 const touched = new Set(added);
 // the items a change is about: the ids in a new ledger row's bold headline (its settled result or decision) and the
@@ -66,3 +74,11 @@ lines.forEach((l, i) => {
 });
 console.log(`RE-LOOK: ${ids.size} item(s) named by the change (${[...ids].sort().join(', ') || 'none'}); ${out.length} live row(s) name one and were not touched:`);
 for (const r of out) console.log(`  PLAN.md:${r.n}  ${r.k.padEnd(6)}  names ${r.named.join(", ")}${r.own ? "  (its own row, DONE or READ)" : ""}`);
+// the commit check: each listed row answered in the message, "relook: <id>[, <id> ...] unchanged: <reason>"
+if (MSG) {
+  const msg = readFileSync(MSG, 'utf8').split('\n').filter(l => !l.startsWith('#'));
+  const answered = new Set(msg.flatMap(l => { const m = /^relook:\s*(.+?)\s+unchanged:\s*(\S.{9,})$/i.exec(l.trim()); return m ? m[1].split(/[,\s]+/).filter(Boolean) : []; }));
+  const missing = [...new Set(out.map(r => r.k))].filter(k => !answered.has(k));
+  if (missing.length) { console.log(`RELOOK UNANSWERED (${missing.length}): ${missing.join(', ')} - move each row in the change, or add to the commit message a line "relook: ${missing.slice(0, 3).join(', ')}${missing.length > 3 ? ', ...' : ''} unchanged: <reason, ten characters or more>"`); process.exit(1); }
+  console.log(`relook: every listed row answered (${out.length})`);
+}

@@ -7,7 +7,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkPlan, stalePhrases, MAX_CHECKLIST, PLAN_BUDGET, RULES_BUDGET } from '../solver/check-plan.mjs';
-import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, edgeProblems, reducerOf } from '../solver/check-prediction.mjs';
+import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, edgeProblems, reducerOf, decisionTableProblems, mechanismProblems, heldToDecision } from '../solver/check-prediction.mjs';
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -261,6 +261,45 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(cli(pred(`# x\n- **Run:** reduced by reduce-nope.mjs\n- **Kind:** test\n\n${fed}`)) === 1, 'planted: the CLI refuses a reducer that does not exist');
   ok(cli(pred(`# x\n- **Run:** batch.sh\n- **Kind:** measurement\n`)) === 0, 'a measurement has no outcomes to reach');
   ok(cli(join(S, 'predictions/diag-7ak.md')) === 0, 'a test registered before outcome coverage is exempt');
+}
+
+// THE DECISION TABLE AND THE MECHANISM (the process review, 4 Oct 13:52 UK; the maintainer's unlock of 4 Oct)
+{
+  const dt = rows => `## Decision table\n| outcomes | action | credence |\n|---|---|---|\n${rows}\n\n## Next\n`;
+  ok(decisionTableProblems(dt('| 1 HELD | build COV | 0.5 |\n| 1 FALSIFIED | drop COV | 0.4 |\n| 1 INCONCLUSIVE | build COV | 0.1 |')).length === 0, 'a decision table whose action changes with chance 0.4 passes');
+  ok(decisionTableProblems('## Question\nx\n').some(e => /missing section "## Decision table"/.test(e)), 'planted: a test with no decision table is refused');
+  ok(decisionTableProblems(dt('| 1 HELD | build COV | 0.85 |\n| 1 FALSIFIED | drop COV | 0.15 |')).some(e => /under a quarter/.test(e)), 'planted: a test whose action changes with chance 0.15 is refused (7av\'s pattern)');
+  ok(decisionTableProblems(dt('| 1 HELD | build COV | 0.85 |\n| 1 FALSIFIED | drop COV | 0.15 |\n- **Waiver:** the maintainer asked for this confirmation before Phase 4') ).length === 0, 'a waiver with its reason lets a low-value test through');
+  ok(decisionTableProblems(dt('| 1 HELD | build COV | 0.5 |\n| 1 FALSIFIED | build COV | 0.5 |')).some(e => /one action only/.test(e)), 'planted: a table with one action is refused');
+  ok(decisionTableProblems(dt('| 1 HELD | a | 0.5 |\n| 1 FALSIFIED | b | 0.3 |')).some(e => /sum to 0.800/.test(e)), 'planted: credences that do not sum to 1 are refused');
+  ok(decisionTableProblems(dt('| 1 HELD | a | 0.75 |\n| 1 FALSIFIED | b | 0.25 |')).length === 0, 'EDGE: a chance of exactly a quarter passes');
+  const mech = (f, extra = '') => `## Question\nhow often does the top cell straddle\n\n- **Mechanism:** ${f}\n\n## Derivation script\n${extra}\n`;
+  const DER = '- derive: research/solver/derive-x.mjs > research/solver/results-x.txt sha256 0123456789abcdef';
+  ok(mechanismProblems(mech('src/solver/grid.js:60 "linAxis"', DER)).length === 0 || mechanismProblems(mech('src/solver/grid.js:60 "linAxis"', DER)).every(e => !/no such file/.test(e)), 'an anchor in an existing file is looked up');
+  ok(mechanismProblems(mech('src/solver/nope.js:1 "anything here"', DER)).some(e => /no such file/.test(e)), 'planted: an anchor in a missing file is refused');
+  ok(mechanismProblems(mech('src/solver/grid.js:1 "zzzz-not-in-the-file-zzzz"', DER)).some(e => /not within five lines/.test(e)), 'planted: a snippet the file does not hold near that line is refused');
+  ok(mechanismProblems(mech('research/solver/check-prediction.mjs:1 "THE PREDICTION FILE CHECK"', '- none: no arithmetic')).some(e => /needs a "derive:" line/.test(e)), 'planted: anchors without a derive line are refused');
+  ok(mechanismProblems(mech('research/solver/check-prediction.mjs:1 "THE PREDICTION FILE CHECK"', DER)).length === 0, 'an anchor that matches, with a derive line, passes');
+  ok(mechanismProblems('## Question\nwhich cause carries the harm: decompose it\n\n- **Mechanism:** none: nothing is attributed by this run at all\n').some(e => /not accepted/.test(e)), 'planted: "none:" on an attribution test is refused');
+  ok(mechanismProblems('- **Mechanism:** none: a confirmation; no cause is attributed\n\n## Question\ndoes the bundle harm survival on the panel\n').length === 0, 'EDGE: "none:" with a reason on a confirmation passes');
+  ok(mechanismProblems('## Question\nx\n').some(e => /missing "- \*\*Mechanism/.test(e)), 'planted: no Mechanism field is refused');
+  ok(heldToDecision('predictions/diag-7au.md') === false && heldToDecision(null) === false && heldToDecision('k6-spread.md') === false && heldToDecision(null, { decision: true }) === true, 'the decision rules bind new files on disk only: committed predictions, fixtures by name and nameless texts are exempt');
+}
+
+// THE REPLACE FOLLOW-THROUGH (the process review, 4 Oct; the maintainer's unlock of 4 Oct)
+{
+  const { replaceProblems } = await import('../solver/check-plan.mjs');
+  const { lessonsOf } = await import('../solver/triggers.mjs');
+  const files = { 'a.md': 'the skill now says: quote the gate row\'s own conditions when restating any gate at all' };
+  const rf = f => (f in files ? files[f] : null);
+  const L = t => lessonsOf(`Seed: after x (1 Oct 10:00)\n${t}`);
+  const landed = L('## 7zz (closed 4 Oct 15:00)\n- [T:relook] x -> REPLACE "restate" in a.md with: quote the gate row\'s own conditions when restating any gate at all\n## 7zy (closed 4 Oct 16:00)\n- [T:design] y -> DROP\n');
+  ok(replaceProblems(landed, rf).length === 0, 'a REPLACE whose text landed in its target by the next close passes');
+  const not = L('## 7zz (closed 4 Oct 15:00)\n- [T:relook] x -> REPLACE "restate" in a.md with: some other text entirely that the file never came to hold\n## 7zy (closed 4 Oct 16:00)\n- [T:design] y -> DROP\n');
+  ok(replaceProblems(not, rf).some(e => /has not landed/.test(e)), 'planted: a REPLACE text missing from its target at the next close is refused');
+  ok(replaceProblems(L('## 7zz (closed 4 Oct 15:00)\n- [T:relook] x -> REPLACE "restate" with nothing named\n'), rf).some(e => /needs "in <target file>"/.test(e)), 'planted: a REPLACE with no target or new text is refused');
+  ok(replaceProblems(L('## 7zz (closed 4 Oct 15:00)\n- [T:relook] x -> REPLACE "restate" in a.md with: text not yet landed but this is the latest close of all\n'), rf).length === 0, 'EDGE: the latest close is not yet held to landing');
+  ok(replaceProblems(L('## 7zz (closed 3 Oct 15:00)\n- [T:relook] x -> REPLACE "restate" with nothing\n## 7zy (closed 4 Oct 16:00)\n- [T:design] y -> DROP\n'), rf).length === 0, 'EDGE: a close before 4 Oct 14:30 UK is exempt');
 }
 
 console.log(`\n${n} passed`);

@@ -30,6 +30,18 @@
  * every one of HELD, FALSIFIED and INCONCLUSIVE its Decision fed names is reached (7al's first design could never read
  * FALSIFIED, and nothing noticed). The launcher runs it:
  *   node research/solver/check-prediction.mjs --outcomes <prediction.md>
+ * THE DECISION TABLE AND THE MECHANISM (the process review, deep-review-log.md 4 Oct 13:52 UK; the maintainer's unlock of 4 Oct:
+ * 'Agree, do all'): a test registered from DECISION_FROM on (its file first committed then or later, or not yet committed)
+ * carries
+ *   - "## Decision table": rows "| <outcome combination> | <action> | <credence> |", the credences summing to 1 (0.95 to
+ *     1.05), two actions or more; the chance the action changes - one less the credence of the most likely action - is a
+ *     quarter or more, or the section carries "- **Waiver:** <why the test is worth running anyway>" (7av's decision fed sent
+ *     most of its mass to one action in every branch; a test that cannot change what is done is a diagnostic's job);
+ *   - "- **Mechanism:**" naming code anchors, each "<path>:<line> \"<snippet>\"" with the snippet within five lines of that
+ *     line in that file, and then a "derive:" line in the Derivation script (the arithmetic of how often the leading
+ *     cause applies, per unit; "none:" not accepted), or "none: <why the test attributes nothing>" - refused when the
+ *     Question or Prediction speaks of attribution, decomposition or a root cause (the top-cell copy sat in the code for
+ *     nine days while 7ar, 7at and 7av decomposed its symptom: the review's grade-A finding).
  * Its limit: a seed a script takes by default (audit-s126.mjs and experiment.mjs default to 7002) is not in any text
  * the launcher reads; no reserved seed is anyone's default.
  */
@@ -86,7 +98,64 @@ function section(text, name, { note = false } = {}) {
   return (next < 0 ? rest : rest.slice(0, next)).trim();
 }
 
-export function checkPredictionText(text, { name } = {}) {
+export const DECISION_FROM = Date.parse('2026-10-04T14:30:00+01:00');
+const REPO = fileURLToPath(new URL('../../', import.meta.url));
+const ATTRIBUTION = /\b(attribut\w*|decompos\w*|root[- ]cause|which (?:part|piece|snap|term|cause)\b|split\w* the (?:blame|harm|gap))/i;
+/* the decision table's problems (a test registered from DECISION_FROM on) */
+export function decisionTableProblems(text) {
+  const sec = section(text, 'Decision table', { note: true });
+  if (sec === null) return ['missing section "## Decision table" (rows: outcome combination | action | credence; the process review, 4 Oct)'];
+  const rows = sec.split('\n').filter(l => /^\|/.test(l) && !/^\|\s*-/.test(l)).map(l => l.split('|').slice(1, -1).map(c => c.trim())).filter(c => c.length >= 3 && /^0?\.\d+$|^1(\.0+)?$/.test(c[c.length - 1]));
+  if (rows.length < 2) return ['"## Decision table" needs two rows or more of "| outcomes | action | credence |" with the credence a number from 0 to 1'];
+  const P = [], tot = rows.reduce((t, c) => t + Number(c[c.length - 1]), 0), mass = new Map();
+  for (const c of rows) { const a = c[c.length - 2].toLowerCase().replace(/\s+/g, ' '); mass.set(a, (mass.get(a) || 0) + Number(c[c.length - 1])); }
+  if (!(tot >= 0.95 && tot <= 1.05)) P.push(`"## Decision table": the credences sum to ${tot.toFixed(3)}, not 1`);
+  if (mass.size < 2) P.push('"## Decision table" names one action only: no outcome changes what is done');
+  const change = 1 - Math.max(...mass.values()) / (tot || 1);
+  const waiver = /^\s*-?\s*\*\*Waiver:\*\*\s*(.{20,})$/m.test(sec);
+  if (mass.size >= 2 && change < 0.25 && !waiver) P.push(`"## Decision table": the chance the action changes is ${change.toFixed(3)}, under a quarter - run a cheaper diagnostic, or add "- **Waiver:** <why>" to the section`);
+  return P;
+}
+/* the mechanism field's problems: anchors checked against the files, a derive line after them */
+export function mechanismProblems(text, { root = REPO } = {}) {
+  const m = /^-\s+\*\*Mechanism:\*\*\s*(.+)$/mi.exec(text);
+  if (!m) return ['missing "- **Mechanism:** <path>:<line> \"<snippet>\" ... (code anchors for the cause, with a derive line printing how often it applies per unit)" or "none: <why the test attributes nothing>" (the process review, 4 Oct)'];
+  const f = m[1].trim(), asks = ATTRIBUTION.test(`${section(text, 'Question') || ''}\n${section(text, 'Prediction') || ''}`);
+  if (/^none:/i.test(f)) {
+    if (f.replace(/^none:\s*/i, '').length < 20) return ['"Mechanism: none:" needs a reason'];
+    return asks ? ['"Mechanism: none:" is not accepted: the Question or Prediction attributes, decomposes or names a root cause - anchor the mechanism in the code and derive its incidence first'] : [];
+  }
+  const anchors = [...f.matchAll(/([\w./-]+\.(?:m?js|sh|cjs)):(\d+)\s+"([^"]{6,})"/g)];
+  if (!anchors.length) return ['"Mechanism" names no anchor of the form <path>:<line> "<snippet>"'];
+  const P = [];
+  for (const [, path, line, snip] of anchors) {
+    const file = [path, `src/solver/${path}`, `research/solver/${path}`].map(x => root + x).find(x => existsSync(x));
+    if (!file) { P.push(`Mechanism anchor ${path}: no such file`); continue; }
+    const L = readFileSync(file, 'utf8').split('\n'), n = Number(line);
+    if (!L.slice(Math.max(0, n - 6), n + 5).join('\n').includes(snip)) P.push(`Mechanism anchor ${path}:${line}: "${snip.slice(0, 40)}" is not within five lines of line ${line}`);
+  }
+  const der = section(text, 'Derivation script', { note: true }) || '';
+  if (![...der.matchAll(DERIVE)].length) P.push('a Mechanism with anchors needs a "derive:" line in the Derivation script (how often the cause applies, per unit; "none:" not accepted)');
+  return P;
+}
+// every prediction's first-commit time, from one git call per process (a call per file took minutes under load)
+let ADDED = null;
+const addedMap = () => {
+  if (ADDED) return ADDED;
+  ADDED = new Map();
+  try {
+    const out = execFileSync('git', ['log', '--diff-filter=A', '--name-only', '--format=@%cI', '--', 'research/solver/predictions'], { cwd: REPO, stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 << 20 }).toString();
+    let at = null;
+    for (const l of out.split('\n')) { if (l.startsWith('@')) at = Date.parse(l.slice(1)); else if (l.trim()) ADDED.set(basename(l.trim()), at); }
+  } catch { /* not a git checkout: every file reads as uncommitted */ }
+  return ADDED;
+};
+export const committedAt = name => (addedMap().has(basename(name)) ? addedMap().get(basename(name)) : null);
+// held to the decision table and the mechanism: a file on disk first committed from DECISION_FROM on or not yet committed
+// (fixtures checked by name only, and texts with no name, are not; `decision: true` forces it)
+export const heldToDecision = (name, opts = {}) => opts.decision === true || (!!name && existsSync(name) && (t => t === null || Number.isNaN(t) || t >= DECISION_FROM)(committedAt(name)));
+
+export function checkPredictionText(text, { name, decision } = {}) {
   const errs = [];
   if (!/^#\s+Prediction:\s+\S/m.test(text)) errs.push('the first heading must be "# Prediction: <name>"');
   const field = f => { const m = new RegExp(`^-\\s+\\*\\*${f}:\\*\\*\\s*(.+)$`, 'mi').exec(text); return m ? m[1].trim() : null; };
@@ -135,6 +204,7 @@ export function checkPredictionText(text, { name } = {}) {
       }
     }
   }
+  if ((!kind || /^test/i.test(kind)) && heldToDecision(name, { decision })) errs.push(...decisionTableProblems(text), ...mechanismProblems(text));
   const table = section(text, 'Fair-test table');
   if (table === null) { errs.push('missing section "## Fair-test table"'); return errs; }
   const rows = table.split('\n').filter(l => /^\|\s*\d+\s*\|/.test(l));

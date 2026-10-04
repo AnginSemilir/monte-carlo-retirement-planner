@@ -31,6 +31,22 @@ launcher, the reducers and CI enforce them. This is the order to work in.
 7. A new test's reducer prints, in its `--planted` output, `EDGES: <case>, <case>, ...` naming at least two planted
    boundary cases it reads correctly (a missing or zero value, an empty class, a value at or past a threshold); the
    launcher's outcome check refuses a test registered from 3 Oct 19:00 UK without it (the deep review's retirement pass).
+8. MECHANISM FIRST (the process review, 4 Oct 13:52 UK): before an attribution or decomposition test, anchor the cause
+   in the code (`- **Mechanism:** <path>:<line> "<snippet>"`, checked against the file) and derive, per unit, how often it
+   applies - a derive line printing the incidence (PMAP is the pattern). check-prediction refuses a test registered from
+   4 Oct 14:30 UK without it, and "none:" when the question attributes. A diagnostic that answers it replaces the test.
+9. DECISION TABLE FIRST (REPLACE of the 7as close): write `## Decision table` before the items - one row per outcome of
+   every item and every pair that can disagree: `| outcomes | action | credence |`, credences summing to 1. If the chance
+   the action changes is under a quarter, run a cheaper diagnostic or write `- **Waiver:** <why>`. Then derive each
+   item's power from the records, then the rule.
+10. A control arm's prediction prints that arm's own per-path residual and sd from the nearest records (a derive line)
+   beside the bands it is read against, and says why a control far larger than the effect still answers the item, or
+   drops it (REPLACE of the 7ar close: OFF on S130 carried a 60-point read error against a 2-point effect).
+11. An item split over households states its thresholds over the households it can be computed on, prints that count,
+   and plants a case where a gap reaches 0 (REPLACE of the 7am close). A reducer's per-year label names the year it
+   counts from (REPLACE of the 7al close).
+12. Builds that need no cores (an option behind a flag, its unit tests, a reducer) go ahead while the cores run; only
+   the launch waits (the process review: F2 was designed 24 Sep to be "built in the run gaps" and was not).
 
 ## Analysing a result
 1. Run the reducer. Its fair-test gate runs first; if it refuses, fix the runs or accept a named variable with a real
@@ -43,6 +59,14 @@ launcher, the reducers and CI enforce them. This is the order to work in.
 ## Updating the plan
 1. A ledger row, newest first: the settled result, what it changed, and the evidence cell
    (`results: results-x.txt; fair-test: pass|fail|n/a (why)|accepted (why); prediction: predictions/x.md; grade A-D`).
+   A deep review gets no ledger row of its own (the maintainer, 4 Oct): its receipt is in deep-review-log.md; its findings
+   go straight into the rows they move - the register (a new O-row or an open row's note), the schedule rows and the
+   predictions - each citing "the deep review of <time>". A decision the maintainer takes on it does get a row.
+   Every decision fed that names a fix, a default, a candidacy or a part the maintainer has kept reads 'put to the
+   maintainer with Claude's recommendation' (REPLACE of the 7as close). Restating a gate quotes the gate row's own
+   conditions, and a list of remaining conditions is written 'among them' (REPLACE of the 7at close). Before a record
+   says 'clean control', 'ruled out' or 'can't happen', the evidence line rule applies: grade A or B, or NOT CHECKED
+   (REPLACE of the 7ap close).
 2. The re-look: list every later step, prediction, gate and default the result touches; re-derive each; change them in
    place; update the mathematician's page and any affected artifact.
 3. Anything unexplained goes in the odd results register with an owner and a gate, or as "noted, below materiality"
@@ -50,7 +74,10 @@ launcher, the reducers and CI enforce them. This is the order to work in.
    "Same pattern searched:" and what was found. A claim of no effect carries `evidence:` or NOT CHECKED.
 4. A decision that changes a default changes the code and the decided-defaults block in the same commit.
 5. Finished work moves to `PLAN-HISTORY.md` verbatim.
-6. Before committing, `node research/solver/relook.mjs`: every open row it lists that the change should move, move.
+6. Before committing, `node research/solver/relook.mjs`: every open row it lists that the change should move, move; answer
+   the rest in the commit message, `relook: <id>[, <id> ...] unchanged: <reason>` - the commit-msg hook refuses a plan
+   commit that leaves a listed row unanswered (REPLACE of the 7ar close; the maintainer's unlock of 4 Oct). Before editing
+   a locked file under an unlock, quote the agreed item beside the diff in the commit message (REPLACE of the 7ap close).
 7. **The close** (RULES.md section 10), in the commit that scores the test in results-scorecard.txt: its lessons in
    lessons.md (`## <test> (closed <the ledger row's time>)`, 1-5 coded lines, each AUTOMATE, REPLACE or DROP, naming
    every BLOCKING code since the last close). Save the scorecard twice, `results-scorecard.txt` and

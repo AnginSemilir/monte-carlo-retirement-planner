@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# THE RELOOK CHECK AT COMMIT (research/solver/relook.mjs --staged --msg; the process review, deep-review-log.md 4 Oct 13:52
+# UK, and the maintainer's unlock of 4 Oct). When PLAN.md is staged, every live row the change's items name and the change
+# did not touch must be answered in the commit message: "relook: <id>[, <id> ...] unchanged: <reason>". Relook findings
+# were the most common FAIL class after design (9 BLOCKINGs and 27 MINORs in 20 closes). Do not bypass it with --no-verify.
+#
+if git diff --cached --name-only | grep -qE '^research/solver/PLAN\.md$'; then
+  node research/solver/relook.mjs --staged --msg "$1" || {
+    echo "commit-msg: answer each listed row (move it in the change, or a 'relook: <id> unchanged: <reason>' line). Do not bypass the hook." >&2
+    exit 1
+  }
+fi

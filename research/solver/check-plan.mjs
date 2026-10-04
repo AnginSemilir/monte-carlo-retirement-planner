@@ -40,7 +40,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { markdownTable } from './fair-variables.mjs';
 import { checkPredictionText } from './check-prediction.mjs';
-import { tagsIn, lessonsOf, receiptsOf, blockingCodesBetween } from './triggers.mjs';
+import { tagsIn, lessonsOf, receiptsOf, blockingCodesBetween, minuteKey } from './triggers.mjs';
 import { planMoves, cutoffOf, archiveOpts } from './archive-plan.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -103,7 +103,27 @@ const NOT_STRONG = /\b(?:not|never|nor|cannot be|can't be)\s+(?:yet\s+|be\s+|bee
 const OUTCOME_WORD = /(?:\breads?|->|:)\s*CALIBRATED\b/g;
 
 /* the retro: each scored test after the seed has its close; returns the problems as strings */
-export function retroProblems({ lessons, scorecard, reviewLog }) {
+// THE REPLACE FOLLOW-THROUGH (the process review, deep-review-log.md 4 Oct 13:52 UK: seven REPLACE texts from the 7aq to 7at
+// closes landed in no file; the maintainer's unlock of 4 Oct): a REPLACE line in a close from REPLACE_FROM on names its
+// target ("in <path>") and its new text ("with: <text>"), and once a later close exists the target holds that text's first
+// 40 characters (spaces collapsed); the lines before it were written into the skill under the same unlock
+export const REPLACE_FROM = minuteKey('4 Oct 14:30 UK');
+export function replaceProblems(L, readFile) {
+  const P = [], norm = x => String(x).replace(/\s+/g, ' ').trim();
+  L.closes.forEach((c, i) => {
+    if (c.at === null || c.at < REPLACE_FROM) return;
+    for (const l of c.lines.filter(x => /\bREPLACE\b/.test(x))) {
+      const tgt = (/\bin ([\w./-]+\.(?:md|mjs|js|sh|cjs))\b/.exec(l.split('REPLACE')[1] || '') || [])[1], w = (/\bwith:\s*(.{40,})/.exec(l) || [])[1];
+      if (!tgt || !w) { P.push(`${c.test}: a REPLACE line needs "in <target file>" and "with: <the new text, 40 characters or more>" ("${l.slice(0, 50)}")`); continue; }
+      if (i === L.closes.length - 1) continue;
+      const txt = readFile ? readFile(tgt) : null;
+      if (txt === null) P.push(`${c.test}: the REPLACE target ${tgt} does not exist`);
+      else if (!norm(txt).includes(norm(w).slice(0, 40))) P.push(`${c.test}: its REPLACE text has not landed in ${tgt} by the next close ("${norm(w).slice(0, 40)}")`);
+    }
+  });
+  return P;
+}
+export function retroProblems({ lessons, scorecard, reviewLog, readFile }) {
   const P = [], tests = [...String(scorecard ?? '').matchAll(/^(\w+) \(.*\): Brier /gm)].map(m => m[1]);
   if (lessons === null) return tests.length ? ['lessons.md is missing (RULES.md section 10: it holds the seed and every close)'] : [];
   const L = lessonsOf(lessons);
@@ -129,7 +149,7 @@ export function retroProblems({ lessons, scorecard, reviewLog }) {
     if (missed.length) P.push(`${t}: the BLOCKING findings since the last close carry ${missed.map(x => `[T:${x}]`).join(', ')}, which no lesson names`);
     prev = Math.max(prev, c.at);
   }
-  return P;
+  return [...P, ...replaceProblems(L, readFile)];
 }
 export function checkPlan({ plan, rules, checklist, added = [], removed = [], readSolverFile, solverFileExists, lessons, scorecard, reviewLog, warnings = [] }) {
   const E = [];
@@ -254,7 +274,7 @@ export function checkPlan({ plan, rules, checklist, added = [], removed = [], re
   // the retro (RULES.md section 10)
   const opt = f => (solverFileExists(f) ? readSolverFile(f) : null);
   const lessonsText = lessons !== undefined ? lessons : opt('lessons.md');
-  for (const p of retroProblems({ lessons: lessonsText, scorecard: scorecard !== undefined ? scorecard : opt('results-scorecard.txt'), reviewLog: reviewLog !== undefined ? reviewLog : opt('review-log.md') })) err('retro', p);
+  for (const p of retroProblems({ readFile: f => { for (const c of [f, `../../${f}`]) { try { if (solverFileExists(c)) return readSolverFile(c); } catch { /* not readable */ } } return null; }, lessons: lessonsText, scorecard: scorecard !== undefined ? scorecard : opt('results-scorecard.txt'), reviewLog: reviewLog !== undefined ? reviewLog : opt('review-log.md') })) err('retro', p);
 
   // the budget of the always-read files
   const rb = Buffer.byteLength(rules ?? ''), pb = Buffer.byteLength(plan);

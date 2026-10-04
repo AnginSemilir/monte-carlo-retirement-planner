@@ -90,6 +90,9 @@ export function dpRecords(texts) {
   return rec;
 }
 
+// the forward run's wall-clock seconds (the dp line's secs field) vary between runs and are not a result: the identity reads
+// every other field (found by the preflight of 4 Oct: four households differed in secs alone)
+export const noTime = x => (typeof x === 'string' ? x.replace(/ secs \d+(?= |$)/, '') : x);
 export function gate(units, { pts = PTS, npw = NPW, dp = null } = {}) {
   const bad = [];
   for (const id of PANEL) for (const a of Object.keys(ARMS)) { const k = units.filter(u => u.id === id && u.arm === a).length; if (k !== 1) bad.push(`${id} ${a}: ${k} unit lines, not 1`); }
@@ -131,13 +134,14 @@ export function gate(units, { pts = PTS, npw = NPW, dp = null } = {}) {
     const u = units.find(x => x.id === id && x.arm === 'SNAP'), r = dp[id];
     if (!u) continue;
     if (!r) { bad.push(`${id} SNAP: no DP record to hold it to`); continue; }
-    for (const k of ['ran', 'access', 'dp', 'dwell']) if (u.raw[k] !== r[k]) bad.push(`${id} SNAP: its ${k} line is not DP's (${String(u.raw[k]).slice(0, 60)} against ${String(r[k]).slice(0, 60)})`);
+    for (const k of ['ran', 'access', 'dp', 'dwell']) if (noTime(u.raw[k]) !== noTime(r[k])) bad.push(`${id} SNAP: its ${k} line is not DP's (${String(u.raw[k]).slice(0, 60)} against ${String(r[k]).slice(0, 60)})`);
   } else bad.push('no DP records: the SNAP identity was not checked (a check that ran on nothing is an error)');
   return bad;
 }
 
 /* SNAP's per-path trace against its unit: `t` the decoded trace, `u` the unit, `st` the logs' stamp */
-const f32 = b => new Float32Array(Buffer.from(b, 'base64').buffer.slice(0));
+// a small decoded Buffer sits inside Node's shared pool: copy its own bytes, not the pool (found by the DPC preflight, 4 Oct)
+const f32 = b => { const x = Buffer.from(b, 'base64'); return new Float32Array(x.buffer.slice(x.byteOffset, x.byteOffset + x.byteLength)); };
 export function checkTrace(t, u, st) {
   const tag = `${u.id} SNAP trace`, years = Number((/ years (\d+) /.exec(u.access) || [])[1]) + 1;
   if (!t) return [`${tag}: missing`];
@@ -200,7 +204,7 @@ function builtLog(o = {}) {
     lines.push(`${''.padEnd(16)} access ${L}: year ${o.accessOff && s130 && a === 'SHIFT' ? 3 : 2} years 39 lsa 268275`);
     const dw = s130 ? (a === 'PCLSI' ? 3 : 10) : s128 ? (a === 'PCLSI' ? (o.s128 === 'rundown' ? 9.5 : o.s128 === 'mixed' ? 8 : 5) : 10) : 4;
     const reach = 300, cross = s128 && o.plateauOver && a === 'SNAP' ? 0 : 200;
-    lines.push(`${''.padEnd(16)} dp ${L}: paths 2000 survived 1900 reach ${o.crossOver && s130 && a === 'PCLSI' ? 199 : reach} cross ${cross} dwell ${dw.toFixed(4)} wallpy 900 wallgrowth 0.0100 prepy 800 pregrowth 0.0300 pause ${s130 && a === 'SNAP' ? 40 : 10} pausedwell 5.0000 pausemedian 5 pausemax 9 stall 20`);
+    lines.push(`${''.padEnd(16)} dp ${L}: paths 2000 survived 1900 reach ${o.crossOver && s130 && a === 'PCLSI' ? 199 : reach} cross ${cross} dwell ${dw.toFixed(4)} wallpy 900 wallgrowth 0.0100 prepy 800 pregrowth 0.0300 pause ${s130 && a === 'SNAP' ? 40 : 10} pausedwell 5.0000 pausemedian 5 pausemax 9 stall 20 secs 200`);
     lines.push(`${''.padEnd(16)} dwell ${L}: ${o.dwellOff && s130 && a === 'SHIFT' ? `${dw}:299` : `${dw}:300`}`);
     const ps0 = s128 ? (o.s128 === 'rundown' ? '0.0300' : '0.6000') : '0.4000';
     const bins = { d0: [o.emptyDash && s130 && a === 'SNAP' ? 0 : 50, ps0], d05: [40, ps0], d1: [30, '0.3000'], d2: [20, '0.2000'], d4: [10, '0.1000'], nopace: [0, '-'] };
@@ -217,7 +221,7 @@ function builtLog(o = {}) {
   return lines.join('\n') + '\n';
 }
 /* DP's records as built: SNAP's lines of a built log, optionally with one character changed */
-const builtDp = (o = {}) => { const r = dpRecords([builtLog()]); if (o.dpOff) r.S130.dp = r.S130.dp.replace('survived 1900', 'survived 1901'); if (o.dpMissing) delete r.S126; return r; };
+const builtDp = (o = {}) => { const r = dpRecords([builtLog()]); if (o.dpOff) r.S130.dp = r.S130.dp.replace('survived 1900', 'survived 1901'); if (o.dpSecs) r.S130.dp = r.S130.dp.replace(/ secs \d+/, ' secs 99'); if (o.dpMissing) delete r.S126; return r; };
 const EDGES2 = [];
 function planted() {
   const cases = [], SZ = { pts: '30', npw: 2000 };
@@ -228,6 +232,8 @@ function planted() {
     ['a dist cliff not the arm\'s', { cliffOff: true }], ['a dist bin missing', { binMissing: true }], ['a pension share above 1', { shareOver: true }], ['an empty bin with a share', { emptyDash: true }],
     ['more plateau paths than reach less cross', { plateauOver: true }], ['a plateau sitting at or past its cliff', { plateauU: true }], ['an arm\'s State Pension year off the others', { spOff: true }], ['an empty sp count with a growth', { spDash: true }], ['SNAP without its trace line', { noTrace: true }], ['a trace line off SNAP', { traceOff: true }]]) cases.push([`the gate refuses ${nm}`, g(o), 'true']);
   cases.push(['the gate refuses SNAP off DP by one character', g({}, { dpOff: true }), 'true']);
+  cases.push(['the gate accepts SNAP off DP in its forward seconds alone', g({}, { dpSecs: true }), 'false']);
+  cases.push(['noTime strips the secs field only', noTime('reach 4 secs 3 pause 1'), 'reach 4 pause 1']);
   cases.push(['the gate refuses a household with no DP record', g({}, { dpMissing: true }), 'true']);
   cases.push(['the gate refuses a run with no DP records at all', String(gate(parse(builtLog()), SZ).length > 0), 'true']);
   { // the trace against its unit: a built trace whose reach and cross are the dp line's (300, 200 on 2,000 paths, 40 years)

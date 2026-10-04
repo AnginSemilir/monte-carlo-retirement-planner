@@ -144,7 +144,8 @@ export function sameRuns(X, Y, n) {
   return eq(X.survived, Y.survived, n) && eq(X.level, Y.level, n * X.Y) && eq(X.tier, Y.tier, n * X.Y);
 }
 const readTrace = f => JSON.parse(gunzipSync(readFileSync(f)).toString());
-const shiftOf = t => (t.shift ? new Float32Array(Buffer.from(t.shift, 'base64').buffer.slice(0)) : null);
+// a small decoded Buffer sits inside Node's shared pool: copy its own bytes, not the pool (the same bug found in reduce-dpc.mjs, 4 Oct)
+const shiftOf = t => { if (!t.shift) return null; const x = Buffer.from(t.shift, 'base64'); return new Float32Array(x.buffer.slice(x.byteOffset, x.byteOffset + x.byteLength)); };
 // `ident: false` only from preflight-parse-7au.mjs: at the preflight's 4 points the run cannot equal P's 30-point traces (the
 // identity with P's records is the registered run's, as 7as's preflight declared); the reducer's own call never passes it
 export function loadTraces(jobs, DIR, ST, jobsP, DIRP, STP, bad, { wn = WN, na = NA, inn = IN, ident = true } = {}) {

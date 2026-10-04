@@ -67,8 +67,8 @@ export const UNITS = ['S130', 'S370', 'bridge 4', 'S126', 'bridge 0'];
 const BUILT = { 'bridge 4': { bridge: 4 }, 'bridge 0': { bridge: 0 } };
 const caseOf = id => (BUILT[id] ? variant(id, BUILT[id]) : all.find(s => s.id === id));
 const L = 'READER/TS+J/W0.02/PCLSI', TOL = 1, N = Number(process.argv[2] || 3000);
-// a fixed generator for the off-node states (mulberry32, seed 7011: no study seed)
-let seed = 7011; const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+// a fixed generator for the off-node states (mulberry32, seed 7002, the tuning seed: a design measurement)
+let seed = 7002; const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 console.log(`RTAX'S MISCLASSIFICATION PRINT: ${L} at ${SH} share points; tau on the 30-point unit's nodes; ${N} off-node states a step year; false support (reader says supported, every floor move fails) and false failure (reader says unsupported, a floor move pays)`);
 const tot = { off: 0, todayFS: 0, todayFF: 0, rtaxFS: 0, rtaxFF: 0, nodeFS: 0, nodeFF: 0, nodes: 0 };
 for (const id of UNITS) {
@@ -133,7 +133,7 @@ for (const id of UNITS) {
     // off the nodes
     const rows = []; for (let ip = 0; ip < g30.np; ip++) { const Wt = g30.axes.W.pts[ip]; if (Wt > d0) rows.push(ip); }
     const lgLo = Math.log(g30.axes.W.pts[Math.max(1, rows[0] - 1)]), lgHi = Math.log(g30.axes.W.pts[g30.np - 1]);
-    const runOff = (zero) => { seed = 7011 + t; let fsT = 0, ffT = 0, fsR = 0, ffR = 0, n = 0; for (let q = 0; q < N; q++) { const Wt = Math.exp(lgLo + (lgHi - lgLo) * rnd()), a = 0.5 + 0.5 * rnd(), b = rnd(), gain = 0.05 + 0.5 * rnd(), pf = rnd(); const s = Float64Array.from(stateAt(Wt, a, b, gain, pf)); const A = s[1] + s[2]; const truth = best(t, s).pays; const supT = chance(A) >= 0.5, supR = chance(A - tauAt(s, zero)) >= 0.5; n++; if (supT && !truth) fsT++; if (!supT && truth) ffT++; if (supR && !truth) fsR++; if (!supR && truth) ffR++; } return { fsT, ffT, fsR, ffR, n }; };
+    const runOff = (zero) => { seed = 7002 * 1000 + t; let fsT = 0, ffT = 0, fsR = 0, ffR = 0, n = 0; for (let q = 0; q < N; q++) { const Wt = Math.exp(lgLo + (lgHi - lgLo) * rnd()), a = 0.5 + 0.5 * rnd(), b = rnd(), gain = 0.05 + 0.5 * rnd(), pf = rnd(); const s = Float64Array.from(stateAt(Wt, a, b, gain, pf)); const A = s[1] + s[2]; const truth = best(t, s).pays; const supT = chance(A) >= 0.5, supR = chance(A - tauAt(s, zero)) >= 0.5; n++; if (supT && !truth) fsT++; if (!supT && truth) ffT++; if (supR && !truth) fsR++; if (!supR && truth) ffR++; } return { fsT, ffT, fsR, ffR, n }; };
     const off = runOff(false), z = runOff(true);
     if (z.fsR !== z.fsT || z.ffR !== z.ffT) { console.log(`AUDIT-RTAXMIS FAILED: ${id} year ${t}: with tau 0 RTAX's counts ${z.fsR}/${z.ffR} differ from TODAY's ${z.fsT}/${z.ffT}`); process.exit(1); }
     const s0 = Float64Array.from(stateAt(g30.axes.W.pts[g30.np - 1], 1, 0.5, 0.25, 0)); if (chance(0) >= 0.5 || chance(0 - tauAt(s0, false)) >= 0.5) { console.log(`AUDIT-RTAXMIS FAILED: ${id} year ${t}: no accessible money read as supported`); process.exit(1); }

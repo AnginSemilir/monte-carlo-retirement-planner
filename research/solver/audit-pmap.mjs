@@ -21,6 +21,10 @@
  * left between the read's own edge and its lower row's (a*(W) - a*(W_j)); histograms of a (tenths) and of own money over acc*;
  * e3 pinned off; and two self-checks - the coverage weight never above the 6-point weight, and the chance at acc* at least one
  * half and below it just under.
+ * AMENDED AGAIN BEFORE LAUNCH (the post-amendment review, deep-review-log.md 4 Oct 12:21 UK): the weight on the top node a = 1 at
+ * each n (tw) and the share of reads in the top cell at each n (tc), the top cell's weight being what the decision reads; the
+ * last histogram bin closed at infinity (a read with acc* = 0 was dropped); option B's span over the finite wealth rows only,
+ * and its exposure span x coverage weight (spanx).
  * Lines a household, world and year (stepsup, stepuns, all): reads, clusters, the mean measured and arithmetic weights at 6 and
  * their largest difference, the mean weight and the share of reads carrying any at n = 6 to 16 and with the coverage node, the
  * top-cell shares and the span; a hist line beside it; a checks line a household.
@@ -90,6 +94,10 @@ const IND = new Map();
 const indOf = (g, RD) => { if (IND.has(RD)) return IND.get(RD); const n = g.size, un = new Float64Array(n), z = new Float64Array(n); for (let i = 0; i < n; i++) un[i] = RD.p[i] < 0.5 ? 1 : 0; const one = () => 1, gu = { ...g, readerAcc: null, reader: { ...g.reader, of: { get: () => ({ chance: one, c: un, R: z }) } } }; IND.set(RD, gu); return gu; };
 const RDB = new Float64Array(4);
 // the bins of a read's own accessible money over the threshold acc*
+// a fault planted in the audit itself (preflight only: PMAP_PLANT=acc moves acc* above the half point, =cov lifts the coverage
+// weight over the 6-point weight); printed on its own line, which the reducer's gate refuses in any real run
+const PLANT = process.env.PMAP_PLANT || '';
+if (PLANT) console.log(`plant ${PLANT}`);
 const RB = [[0, 0.5], [0.5, 0.9], [0.9, 1], [1, 1.1], [1.1, 1.5], [1.5, Infinity]];
 const cl = x => (x <= 2e-6 ? 0 : x >= 1 - 2e-6 ? 1 : x);
 
@@ -113,6 +121,7 @@ UNITS.forEach((id, ui) => {
     const f = g.reader.chanceOf(k, t); let lo = 0, hi = Math.max(1, ax.hi), v;
     if (f(0) >= 0.5) v = 0; else { while (f(hi) < 0.5 && hi < 1e12) hi *= 2; if (f(hi) < 0.5) v = Infinity; else { for (let i = 0; i < 200 && hi - lo > 1e-6 * Math.max(1, hi); i++) { const mid = (lo + hi) / 2; if (f(mid) >= 0.5) hi = mid; else lo = mid; } v = hi; } }
     // the threshold's own check: the chance reaches one half at acc* and not just below it
+    if (PLANT === 'acc' && v > 0 && Number.isFinite(v)) v *= 1.01;
     if (v > 0 && Number.isFinite(v)) { CHK.acc++; if (!(f(v) >= 0.5 && f(v * (1 - 1e-5)) < 0.5)) CHK.accBad++; }
     const o = { acc: v, f }; ACC.set(key, o); return o;
   };
@@ -131,7 +140,7 @@ UNITS.forEach((id, ui) => {
     const z = r.mix.nodes[k], tab = r.mix.tables[k];
     const zpaths = paths.map(zs => { const c = Float64Array.from(zs); c[c.length - 1] = z; return c; });
     const Y = Array.from({ length: T + 1 }, () => ({ all: null, step: null }));
-    const blank = () => ({ n: 0, um: 0, ua: 0, dmax: 0, cl: new Set(), un: NS.map(() => 0), any: NS.map(() => 0), uc: 0, anyc: 0, top: 0, edgeTop: 0, span: 0, nspan: 0, ha: Array(10).fill(0), hr: Array(RB.length).fill(0) });
+    const blank = () => ({ n: 0, um: 0, ua: 0, dmax: 0, cl: new Set(), un: NS.map(() => 0), any: NS.map(() => 0), uc: 0, anyc: 0, top: 0, edgeTop: 0, span: 0, nspan: 0, spanx: 0, tw: NS.map(() => 0), tc: NS.map(() => 0), ha: Array(10).fill(0), hr: Array(RB.length).fill(0) });
     let prev = -1, hist = '';
     const choose = (t, st, held) => {
       const ai = chooseAction(r, st, t, held);
@@ -145,21 +154,27 @@ UNITS.forEach((id, ui) => {
           const uAt = n => { const [ia, wa] = locA(n, a); let u = 0; for (const [j, ww] of rowsW) { if (!ww) continue; for (const [i, w2] of [[ia, 1 - wa], [ia + 1, wa]]) { if (!w2) continue; if (f(ax.pts[j] * (1 - i / (n - 1))) < 0.5) u += ww * w2; } } return u; };
           // the coverage node: the 6-point share axis with each row's edge a*(W_j) added; a node at the edge is supported
           const uCov = () => { let u = 0; for (const [j, ww] of rowsW) { if (!ww) continue; const Wj = ax.pts[j], aStar = Wj > 0 && Number.isFinite(acc) ? 1 - acc / Wj : -Infinity; const nodes = Array.from({ length: SH }, (_, i) => i / (SH - 1)); if (aStar > 0 && aStar < 1 && !nodes.some(x => Math.abs(x - aStar) < 1e-12)) nodes.push(aStar); nodes.sort((x, y) => x - y); let lo = 0; while (lo < nodes.length - 2 && nodes[lo + 1] <= a) lo++; const span = nodes[lo + 1] - nodes[lo], w2 = span > 0 ? Math.min(1, Math.max(0, (a - nodes[lo]) / span)) : 0; for (const [x, w3] of [[nodes[lo], 1 - w2], [nodes[lo + 1], w2]]) { if (!w3) continue; if (f(Wj * (1 - x)) < 0.5) u += ww * w3; } } return u; };
+          // the weight on the top node a = 1 at n share points, when it is unsupported (the post-amendment review, 4 Oct 12:21 UK:
+          // the top cell's weight, not its read count)
+          const tAt = n => { const [ia, wa] = locA(n, a); let u = 0; for (const [j, ww] of rowsW) { if (!ww) continue; for (const [i, w2] of [[ia, 1 - wa], [ia + 1, wa]]) { if (!w2 || i !== n - 1) continue; if (f(ax.pts[j] * (1 - i / (n - 1))) < 0.5) u += ww * w2; } } return u; };
+          const twAll = NS.map(tAt), tcAll = NS.map(n => (a > 1 - 1 / (n - 1) ? 1 : 0));
           const ua = uAt(SH), step = isStep(RD), unAll = NS.map(n => (n === SH ? ua : uAt(n))), uc = uCov();
-          CHK.cov++; if (uc > ua + 1e-12) CHK.covBad++;
+          const ucChk = PLANT === 'cov' ? ua + 0.01 : uc;
+          CHK.cov++; if (ucChk > ua + 1e-12) CHK.covBad++;
           // the read's own support (its own accessible money against the threshold), the top share cell at 6 points, and under
           // a node on each wealth row's edge (option B) the span left between the read's own edge and its lower row's
           const As = st[1] + st[2], own = f(As) >= 0.5, rA = Number.isFinite(acc) && acc > 0 ? As / acc : Infinity, topLo = 1 - 1 / (SH - 1);
-          const aOwn = Wt > 0 && Number.isFinite(acc) ? 1 - acc / Wt : -Infinity, aRows = rowsW.filter(([, ww]) => ww > 0).map(([j]) => (ax.pts[j] > 0 && Number.isFinite(acc) ? 1 - acc / ax.pts[j] : -Infinity));
-          const span = uc > 1e-9 && aRows.length ? Math.max(0, aOwn - Math.min(...aRows)) : 0;
+          const aOwn = Wt > 0 && Number.isFinite(acc) ? 1 - acc / Wt : -Infinity, aRows = rowsW.filter(([j, ww]) => ww > 0 && ax.pts[j] > 0 && Number.isFinite(acc)).map(([j]) => 1 - acc / ax.pts[j]);
+          const span = uc > 1e-9 && aRows.length && Number.isFinite(aOwn) ? Math.max(0, aOwn - Math.min(...aRows)) : 0;
           const keys = ['all']; if (step) keys.push(own ? 'stepsup' : 'stepuns');
           for (const key of keys) {
             const B = Y[t][key] || (Y[t][key] = blank());
             B.n++; B.um += um; B.ua += ua; B.dmax = Math.max(B.dmax, Math.abs(um - ua)); B.cl.add(hist);
             unAll.forEach((u, q) => { B.un[q] += u; if (u > 1e-9) B.any[q]++; });
-            B.uc += uc; if (uc > 1e-9) { B.anyc++; B.span += span; B.nspan++; }
+            B.uc += uc; B.spanx += span * uc; if (uc > 1e-9) { B.anyc++; B.span += span; B.nspan++; }
+            twAll.forEach((u, q) => { B.tw[q] += u; B.tc[q] += tcAll[q]; });
             if (a > topLo) B.top++; if (aOwn > topLo) B.edgeTop++;
-            B.ha[Math.min(9, Math.max(0, Math.floor(a * 10)))]++; B.hr[RB.findIndex(([lo, hi]) => rA >= lo && rA < hi)]++;
+            B.ha[Math.min(9, Math.max(0, Math.floor(a * 10)))]++; B.hr[RB.findIndex(([lo, hi]) => rA >= lo && (rA < hi || hi === Infinity))]++;
           }
         }
       }
@@ -171,7 +186,7 @@ UNITS.forEach((id, ui) => {
     for (let t = 0; t <= T; t++) for (const key of ['stepsup', 'stepuns', 'all']) {
       const B = Y[t][key]; if (!B) continue;
       const f4 = x => (x / B.n).toFixed(4);
-      console.log(`${''.padEnd(16)} pmap ${L} world ${k} year ${t} ${key}: reads ${B.n} clusters ${B.cl.size} um ${f4(B.um)} ua ${f4(B.ua)} dmax ${B.dmax.toExponential(2)} un ${B.un.map(f4).join(',')} any ${B.any.map(f4).join(',')} cov ${f4(B.uc)} anycov ${f4(B.anyc)} top ${f4(B.top)} edgetop ${f4(B.edgeTop)} span ${B.nspan ? (B.span / B.nspan).toFixed(4) : '-'}`);
+      console.log(`${''.padEnd(16)} pmap ${L} world ${k} year ${t} ${key}: reads ${B.n} clusters ${B.cl.size} um ${f4(B.um)} ua ${f4(B.ua)} dmax ${B.dmax.toExponential(2)} un ${B.un.map(f4).join(',')} any ${B.any.map(f4).join(',')} cov ${f4(B.uc)} anycov ${f4(B.anyc)} top ${f4(B.top)} edgetop ${f4(B.edgeTop)} span ${B.nspan ? (B.span / B.nspan).toFixed(4) : '-'} spanx ${f4(B.spanx)} tw ${B.tw.map(f4).join(',')} tc ${B.tc.map(f4).join(',')}`);
       console.log(`${''.padEnd(16)} hist ${L} world ${k} year ${t} ${key}: a ${B.ha.join(',')} r ${B.hr.join(',')}`);
     }
     console.log(`${''.padEnd(16)} world ${L} ${k} z ${z.toFixed(4)}: paths ${zpaths.length} secs ${Math.round((Date.now() - t1) / 1000)}`);

@@ -9,6 +9,9 @@ rm -rf "$OUT"; mkdir -p "$OUT"
 seq 0 4 | xargs -P "${PAR:-1}" -I{} sh -c \
   'node research/solver/audit-pmap.mjs 4 20 part {}/5 7002 > research/solver/results/diagpmap-preflight/case{}.txt 2>&1 || echo "household {} failed"'
 grep -h "Error" "$OUT"/case*.txt | head -3
+# faults planted in the audit itself (checklist item 6): household 0 with acc* moved above the half point, and with the coverage
+# weight lifted over the 6-point weight; each must be refused by its own self-check, not only by the plant line
+for P in acc cov; do PMAP_PLANT=$P node research/solver/audit-pmap.mjs 4 20 part 0/5 7002 > "$OUT/plant-$P.txt" 2>&1 || echo "plant $P failed"; done
 node -e "
 import('./research/solver/reduce-pmap.mjs').then(R => {
   const fs = require('fs'), d = '$OUT', ts = fs.readdirSync(d).filter(f => /^case\d+\.txt$/.test(f)).map(f => fs.readFileSync(d + '/' + f, 'utf8'));
@@ -23,7 +26,11 @@ import('./research/solver/reduce-pmap.mjs').then(R => {
   if (!R.gate(ab).length) { console.log('PREFLIGHT PARSE FAILED: a threshold off not refused'); process.exit(1); }
   const nc = ts.map(t => t.replace(/^.*checks .*$/m, '')).flatMap(R.parse);
   if (!R.gate(nc).length) { console.log('PREFLIGHT PARSE FAILED: a missing checks line not refused'); process.exit(1); }
+  for (const [P, re] of [['acc', /: [1-9][0-9]* thresholds off/], ['cov', /and [1-9][0-9]* reads with the coverage weight above/]]) {
+    const pb = R.gate(R.parse(fs.readFileSync(d + '/plant-' + P + '.txt', 'utf8')));
+    if (!pb.some(x => re.test(x) && !/^\\S+: \\d+ case lines/.test(x))) { console.log('PREFLIGHT PARSE FAILED: the audit plant ' + P + ' was not refused by its own self-check:\n  ' + pb.slice(0, 4).join('\n  ')); process.exit(1); }
+  }
   let n = 0, p = false; R.reading(us, l => { n++; if (/^PANEL/.test(l.trim())) p = true; });
   if (!p) { console.log('PREFLIGHT PARSE FAILED: the reading did not reach its panel line'); process.exit(1); }
-  console.log('PREFLIGHT PARSE PASSED: ' + us.length + ' households gated (the arithmetic held to the measured weight on every read, the node check, the self-checks, the histograms, the control); a planted arithmetic difference, a coverage weight over the 6-point weight, a threshold off and a missing checks line refused; the reading reached its panel line (' + n + ' lines, not read)');
+  console.log('PREFLIGHT PARSE PASSED: ' + us.length + ' households gated (the arithmetic held to the measured weight on every read, the node check, the self-checks, the histograms, the control); a planted arithmetic difference, a coverage weight over the 6-point weight, a threshold off and a missing checks line refused; the audit's own planted faults (acc*, the coverage weight) refused by their self-checks; the reading reached its panel line (' + n + ' lines, not read)');
 });"

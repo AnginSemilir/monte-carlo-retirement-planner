@@ -35,6 +35,15 @@ Over the bridge households, the questions are:
 
 All the reading is over `stepsup` reads; `stepuns` is printed beside it.
 
+**Amended again before launch** (the post-amendment review, deep-review-log.md 4 Oct 12:21 UK):
+- the top cell is read by its weight, not its read count: each line carries the weight on the top node a = 1 at each n (`tw`) and the share of reads in the top cell at each n (`tc`);
+- the last bin of the own-money histogram is closed at infinity (a read with acc* = 0 was dropped);
+- option B's span uses the finite wealth rows only, and its exposure, span times coverage weight (`spanx`), is printed;
+- clusters are replicates per household, world and year, never summed across years (one lineage would count once a year);
+- a fault planted in the audit itself (`PMAP_PLANT=acc`, `=cov`) must be refused by its own self-check in the preflight, and any log carrying a plant is refused by the gate.
+
+Years are numbered by the read: a bridge read in year t is the year-t table read after the year-(t - 1) move, so S130's read, which 7av labelled year 0 (its move), is PMAP's year 1.
+
 **From the records:**
 - At 6 points S130's step reads carry 0.4045 unsupported weight, and none at 12. S370's carry 0.7443 and 0.5545 by year, against 0.4398 and 0.0741 at 12 (results-7av-observed.txt).
 - Every S130 path takes one year-0 move (results/diag7av, the moves lines).
@@ -45,15 +54,15 @@ No derivation script: no figure is computed before the run.
 
 ## Prediction
 
-- **S130:** one cluster in year 0, all in the top share cell at 6 points with its own edge there, carrying about 0.4 unsupported weight. That weight is above zero at 6 to 9 points and zero from 10 (the top cell narrowing past the edge), not irregular. The coverage node takes it to about 0.
+- **S130:** one cluster in its bridge read (PMAP's year 1), all in the top share cell at 6 points with its own edge there, carrying about 0.4 unsupported weight, almost all of it on the top node. That weight falls with the count as the top cell narrows past the edge: above 0.03 at 6 to 9 points, under 0.01 from 10 (a few tail reads may cross: cash is a third of S130's accessible money, so a drifts with the equity return, and on paths down 30 to 40% the lower row's edge drops). The coverage node takes it to about 0.
 - **S370, bridge 4 and S126:** more clusters (paths differ by year 2). Most of their weight is in the top cell too, so it falls with the count, in steps where the cell passes the edges. The interior's share is the part the top-cell story does not explain. The coverage node removes most of it.
 - **Bridge 0 (the control):** no reader year and no read.
 
 ## Falsified if
 
 A measurement settles nothing. It is read against this description. These would each be logged in the register:
-- S130 straddling at 10 points or more, or not at 6 to 9 (the top-cell story wrong for it);
-- most of the panel's weight in the interior, not the top cell;
+- S130's mean weight 0.01 or more at any count from 10 points, or 0.03 or less at any count from 6 to 9 (the top-cell story wrong for it);
+- the top-cell split INTERIOR at 6 points (the top node carrying a third or less of the panel's unsupported weight);
 - a coverage node that leaves much weight;
 - an arithmetic that cannot reproduce the measured weight.
 
@@ -77,7 +86,7 @@ One arm (7av's READER/TS+J/W0.02/PCLSI unit at 6 share points); the other grids 
 ## Decision fed
 
 7an's design:
-- **The arms.** If the weight is the top cell's, 7an reads its share-count arms as top-cell width (which counts clear each household's edge), not as resolution or placement. If much is interior, 7an reads by unsupported-weight group.
+- **The arms, by the top-cell split** (the reducer's THE TOP-CELL SPLIT line: the top node's share of the panel's stepsup unsupported weight, at 6 and at 11 points). TOP CELL (two thirds or more): 7an reads its share-count arms as top-cell width (which counts clear each household's edge), per top-cell weight, not as resolution or placement. INTERIOR (a third or less): 7an reads by unsupported-weight group, and the top-cell story is logged as not the main cause. MIXED: both readings, each on its own share of the weight. NONE (no unsupported weight at that count): nothing to split there.
 - **The replicates:** the clusters per household, world and year, not the reads.
 - **COV:** the coverage node's weight against the 6-point weight, and the histograms of a and own money over acc*, size option A (coverage as a coordinate); option B's leftover span sizes option B. Neither is read as COV's effect: COV is tested at 6 points after 7an.
 
@@ -88,13 +97,14 @@ No default, no product change.
 - **The design:** the deep review after 7av (4 Oct 11:37 UK), adopted in the ledger's 11:41 row; 7av's records (results-7av-observed.txt, results/diag7av).
 - **The build:**
   - audit-pmap.mjs: 7av's READER PCLSI unit at 6 share points, e3 pinned off; the read's position; the indicator read as 7av's; the threshold and the arithmetic at 6 to 16 and with the coverage node; the node check; amended before launch (the 12:01 review): clusters by move history, the stepsup/stepuns split, the top-cell shares, option B's span, the histograms, the self-checks;
-  - reduce-pmap.mjs: stamps; the gate holding the arithmetic to the measured weight within 1e-6 on every line, the node check, the self-checks (each run on more than nothing), the histograms against their reads, the coverage weight under the 6-point weight on every line, and the control; the reading split by own support with the top-cell shares; 21 planted cases and an EDGES line;
+  - reduce-pmap.mjs: stamps; the gate holding the arithmetic to the measured weight within 1e-6 on every line, the node check, the self-checks (each run on more than nothing), the histograms against their reads, the coverage weight under the 6-point weight on every line, the top node's weight under the unsupported weight, a finite exposure, no audit plant, and the control; the reading split by own support with the top-cell weights and the top-cell split; 26 planted cases and an EDGES line; amended again (the 12:21 review): the top node's weight, the closed histogram bin, the finite span and its exposure, clusters per year, the audit plants;
   - batch-pmap.sh, preflight-pmap.sh.
 
 ## Point and interval
 
 80% intervals, the author's:
-- **S130's year-0 step reads:** 1 cluster (1 to 3), all in the top cell at 6 points. The weight at 6 points is 0.4045 (as 7av measured). Above zero at 6 to 9 points, zero at 10 to 16.
+- **S130's bridge reads (PMAP's year 1):** 1 cluster (1 to 3), all in the top cell at 6 points. The weight at 6 points is 0.4045 (as 7av measured), 0.38 to 0.41 of it on the top node. Above 0.03 at 6 to 9 points, under 0.01 at 10 to 16.
+- **The top-cell split at 6 points:** TOP CELL, the top node's share 0.85 (0.6 to 1).
 - **The panel's share of stepsup reads in the top cell at 6 points:** 0.8 (0.5 to 1).
 - **The panel's mean weight with the coverage node:** 0.02 (0 to 0.1).
 
@@ -104,4 +114,4 @@ Five 6-point solves with forward runs at 30 points, about 30 to 45 minutes each 
 
 ## Changes after seeing results
 
-None. Amended before launch (the pre-launch review, 4 Oct 12:01 UK): the question and prediction corrected from placement to the top cell's width; replicates as clusters; the stepsup/stepuns split, top-cell shares, option B's span, histograms and self-checks added; e3 pinned off. No result had been seen.
+None. Amended before launch (the pre-launch review, 4 Oct 12:01 UK): the question and prediction corrected from placement to the top cell's width; replicates as clusters; the stepsup/stepuns split, top-cell shares, option B's span, histograms and self-checks added; e3 pinned off. No result had been seen. Amended again before launch (the post-amendment review, 4 Oct 12:21 UK): the top cell read by weight with a numeric cut, the falsifier given a tolerance (the hard zero was the review's overclaim), the histogram bin, the span, clusters per year, the audit plants, the year labels. No result had been seen.

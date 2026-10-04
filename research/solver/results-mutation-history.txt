@@ -21,3 +21,8 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-04 13:39 UTC | reduce-7au.mjs 5cacd2fe0bcc | 33 of 33 caught | escaped: none
 2026-10-04 13:58 UTC | reduce-7at.mjs a1e39e1ed9cf | 39 of 39 caught | escaped: none
 2026-10-04 14:01 UTC | reduce-7av.mjs 455621eba103 | 56 of 56 caught | escaped: none
+2026-10-04 16:56 UTC | reduce-adoptpi.mjs d6cd6bd96991 | 22 of 27 caught | escaped: NOT CAUGHT: 2: if (!UNIT_KEYS.includes(tag)) { bad.push(; NOT CAUGHT: 17: const ph = holm(ids.map(id => mcnemarHarmP(pairs[id].b, pair; NOT APPLIED (0 matches): 20: const margin = marginFor(100 * p.snap);; NOT CAUGHT: 22: gain: p.c > p.b && pg[i] < 0.05; NOT CAUGHT: 26: if (x >= 0.75) c = true;
+2026-10-04 16:57 UTC | reduce-adoptpi.mjs 822aa32791be | 25 of 26 caught | escaped: NOT CAUGHT: 2: if (!UNIT_KEYS.includes(tag)) { bad.push(
+2026-10-04 16:57 UTC | reduce-adoptpi.mjs 62ebdf69e8cd | 26 of 26 caught | escaped: none
+2026-10-04 17:00 UTC | reduce-adoptpi.mjs 2141d43647d0 | 28 of 29 caught | escaped: NOT CAUGHT: 20: pool.lo > -pool.margin ? 'HELD'
+2026-10-04 17:01 UTC | reduce-adoptpi.mjs daec61af0d6e | 29 of 29 caught | escaped: none

@@ -1,0 +1,30 @@
+caught: 1: if (n !== 1) bad.push(`${k}: ${n} unit lines, not 1`);
+caught: 2: if (!UNIT_KEYS.includes(tag)) { bad.push(
+caught: 3: if (!u.done) bad.push(`${tag}: not done`);
+caught: 4: bridgeRead: 'false', switchMargin
+caught: 5: const want = { pts, seed: SEED,
+caught: 6: pclsInterp: ARMS[u.arm], mix
+caught: 7: deathTax: u.dt ? DT_RATE : '0' }
+caught: 8: if (new Set(us.map(u => u.access)).size > 1)
+caught: 9: if (new Set(us.map(u => u.sum.pathsum)).size > 1)
+caught: 10: if (s !== u.sum.survived) bad.push(
+caught: 11: ['code', 'audit', 'prediction', 'sha'].some(k => t.stamp[k] 
+caught: 12: if (!t) return [`${tag}: missing`];
+caught: 13: if (x && y) a++; else if (x) b++; else if (y) c++; else d++;
+caught: 14: const dt = B.tax[j] - A.tax[j], dn = B.net[j] - A.net[j];
+caught: 15: return { a, b, c, d, N, snap: (a + b) / N,
+caught: 16: s2 / N - (s / N) ** 2
+caught: 17: const ph = holm(ids.map(id => mcnemarHarmP(pairs[id].b, pair
+caught: 18: one.some(r => r.outcome === 'harm') || pool.hi < -pool.margi
+caught: 19: || pool.hi < -pool.margin ? 'FALSIFIED'
+caught: 20: pool.lo > -pool.margin ? 'HELD'
+caught: 21: margin: MARGINS.pooled,
+caught: 22: survivalChange(sb, sc, sN)
+caught: 23: margin = marginFor(100 * p.snap)
+caught: 24: binomUpperHalf(pairs[id].c, pairs[id].b + pairs[id].c)
+caught: 25: two.some(r => r.c <= r.b) ? 'FALSIFIED'
+caught: 26: const v2 = two.every(r => r.gain) ? 'HELD'
+caught: 27: ${sign(z.net.m) !== sign(q.net.m) ? ' FLIPS' : ''}
+caught: 28: if (x >= 0.75) c = true;
+caught: 29: if (r) { reach++; yrs += y; }
+29 of 29 mutations caught

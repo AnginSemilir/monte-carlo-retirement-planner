@@ -1,0 +1,47 @@
+DPC (seed 7002), survivors of 2000:  household        SNAP   PCLSI  net
+  share 0.50        1987   1986    -1
+  share 0.70        1981   1980    -1
+  share 0.78        1995   1995     0
+  share 0.90        1986   1986     0
+  share 0.95        1444   1444     0
+  bridge 0          1985   1986     1
+  bridge 1          1982   1982     0
+  bridge 6          1987   1989     2
+  wealth x0.5       1907   1911     4
+  wealth x2         2000   2000     0
+  S120              2000   2000     0
+  S122              1992   1992     0
+  S126              1995   1995     0
+  bridge 4          1987   1987     0
+  S360               669    669     0
+  S194              1961   1961     0
+  S124              1891   1892     1
+  S128              1375   1377     2
+  S130              1666   1734    68
+  S366              1983   1982    -1
+  S370              1399   1412    13
+  bridge 4+cost     1894   1893    -1
+  S162              1976   1976     0
+  S172              1974   1974     0
+  S168              2000   2000     0
+
+the items read at DPC's net changes with k lost-and-saved pairs a 2,000 paths on each side:
+  paths 2000 k  0 a 2,000: item 1 HELD (no material harm 25, inconclusive 0 [], harm 0); item 2 HELD (S130 change 3.400 p Holm 0.00e+0 GAIN; S370 change 0.650 p Holm 1.22e-4 GAIN)
+  paths 2000 k  5 a 2,000: item 1 HELD (no material harm 8, inconclusive 17 [share 0.50, share 0.70, share 0.78, share 0.90, bridge 0, bridge 1, bridge 6, wealth x2, S120, S122, S126, bridge 4, S194, S366, S162, S172, S168], harm 0); item 2 HELD (S130 change 3.400 p Holm 0.00e+0 GAIN; S370 change 0.650 p Holm 5.31e-3 GAIN)
+  paths 2000 k 15 a 2,000: item 1 HELD (no material harm 3, inconclusive 22 [share 0.50, share 0.70, share 0.78, share 0.90, share 0.95, bridge 0, bridge 1, bridge 6, wealth x0.5, wealth x2, S120, S122, S126, bridge 4, S360, S194, S124, S366, bridge 4+cost, S162, S172, S168], harm 0); item 2 HELD (S130 change 3.400 p Holm 1.39e-12 GAIN; S370 change 0.650 p Holm 3.30e-2 GAIN)
+  paths 2000 k 40 a 2,000: item 1 HELD (no material harm 2, inconclusive 23 [share 0.50, share 0.70, share 0.78, share 0.90, share 0.95, bridge 0, bridge 1, bridge 6, wealth x0.5, wealth x2, S120, S122, S126, bridge 4, S360, S194, S124, S128, S366, bridge 4+cost, S162, S172, S168], harm 0); item 2 INCONCLUSIVE (S130 change 3.400 p Holm 2.07e-8 GAIN; S370 change 0.650 p Holm 1.07e-1 not shown)
+  paths 6000 k  0 a 2,000: item 1 HELD (no material harm 25, inconclusive 0 [], harm 0); item 2 HELD (S130 change 3.400 p Holm 0.00e+0 GAIN; S370 change 0.650 p Holm 1.82e-12 GAIN)
+  paths 6000 k  5 a 2,000: item 1 HELD (no material harm 25, inconclusive 0 [], harm 0); item 2 HELD (S130 change 3.400 p Holm 0.00e+0 GAIN; S370 change 0.650 p Holm 1.31e-6 GAIN)
+  paths 6000 k 15 a 2,000: item 1 HELD (no material harm 9, inconclusive 16 [share 0.50, share 0.70, share 0.78, share 0.90, bridge 0, bridge 1, wealth x2, S120, S122, S126, bridge 4, S194, S366, S162, S172, S168], harm 0); item 2 HELD (S130 change 3.400 p Holm 0.00e+0 GAIN; S370 change 0.650 p Holm 3.78e-4 GAIN)
+  paths 6000 k 40 a 2,000: item 1 HELD (no material harm 4, inconclusive 21 [share 0.50, share 0.70, share 0.78, share 0.90, share 0.95, bridge 0, bridge 1, bridge 6, wealth x0.5, wealth x2, S120, S122, S126, bridge 4, S360, S194, S366, bridge 4+cost, S162, S172, S168], harm 0); item 2 HELD (S130 change 3.400 p Holm 0.00e+0 GAIN; S370 change 0.650 p Holm 1.14e-2 GAIN)
+  paths 8000 k  0 a 2,000: item 1 HELD (no material harm 25, inconclusive 0 [], harm 0); item 2 HELD (S130 change 3.400 p Holm 0.00e+0 GAIN; S370 change 0.650 p Holm 0.00e+0 GAIN)
+  paths 8000 k  5 a 2,000: item 1 HELD (no material harm 25, inconclusive 0 [], harm 0); item 2 HELD (S130 change 3.400 p Holm 0.00e+0 GAIN; S370 change 0.650 p Holm 2.30e-8 GAIN)
+  paths 8000 k 15 a 2,000: item 1 HELD (no material harm 10, inconclusive 15 [share 0.50, share 0.70, share 0.78, share 0.90, bridge 1, wealth x2, S120, S122, S126, bridge 4, S194, S366, S162, S172, S168], harm 0); item 2 HELD (S130 change 3.400 p Holm 0.00e+0 GAIN; S370 change 0.650 p Holm 4.50e-5 GAIN)
+  paths 8000 k 40 a 2,000: item 1 HELD (no material harm 6, inconclusive 19 [share 0.50, share 0.70, share 0.78, share 0.90, bridge 0, bridge 1, bridge 6, wealth x0.5, wealth x2, S120, S122, S126, bridge 4, S194, S366, bridge 4+cost, S162, S172, S168], harm 0); item 2 HELD (S130 change 3.400 p Holm 0.00e+0 GAIN; S370 change 0.650 p Holm 4.05e-3 GAIN)
+
+the hold's incidence (results-dpc.txt): TOTALS SNAP: near 0.3338 (83751 of 250902 path-years); pausing paths (DP's definition, DP's band) 3440; plateau paths 10263 | TOTALS PCLSI: near 0.0761 (13532 of 177882 path-years); pausing paths (DP's definition, DP's band) 678; plateau paths 6770
+the cost (results-derive-dpc-traces.txt): ADOPT-PI (SNAP against PCLSI on the 25 households): 14.5 core-hours; the hybrid (three PCLSI units): 0.9 core-hours; PR5's death-tax arm (pension death tax 0.4; three households, both axes): 1.7 core-hours
+DPC's mean unit (SNAP and PCLSI, 50 units): solve 711 s, forward 333 s at 2,000 paths
+  at 2000 paths: 16.2 core-hours for the 56 units, about 4.1 hours on four cores
+  at 6000 paths: 26.6 core-hours for the 56 units, about 6.7 hours on four cores
+  at 8000 paths: 31.8 core-hours for the 56 units, about 8.0 hours on four cores

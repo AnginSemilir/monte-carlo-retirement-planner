@@ -30,5 +30,5 @@ for (const text of Object.values(logs)) {
 rows.sort((a, b) => (a.id + a.unit).localeCompare(b.id + b.unit));
 for (const r of rows) {
   const s = k => r.ys.reduce((t, y) => t + y[k] * y.n / r.np, 0);
-  console.log(`  ${r.id.padEnd(6)} ${r.unit.padEnd(32)} ${r.ys.map(y => `year ${y.t} (${y.n} of ${r.np}): flat ${y.flat.toFixed(4)} line ${y.lin.toFixed(4)} quad ${y.quad.toFixed(4)} unsup ${y.unsup.toFixed(4)}`).join(' | ')} || per path flat ${s('flat').toFixed(4)} line ${s('lin').toFixed(4)} quad ${s('quad').toFixed(4)} quad/line ${s('lin') !== 0 ? (s('quad') / s('lin')).toFixed(2) : '-'}`);
+  console.log(`  ${r.id.padEnd(6)} ${r.unit.padEnd(32)} ${r.ys.map(y => `year ${y.t} (${y.n} of ${r.np}): flat ${y.flat.toFixed(4)} line ${y.lin.toFixed(4)} quad ${y.quad.toFixed(4)} unsup ${y.unsup.toFixed(4)}`).join(' | ')} || per path flat ${s('flat').toFixed(4)} line ${s('lin').toFixed(4)} quad ${s('quad').toFixed(4)} quad/line ${s('lin') !== 0 ? (s('quad') / s('lin')).toFixed(2) : '-'} line/flat ${s('flat') !== 0 && s('lin') !== s('flat') ? (s('lin') / s('flat')).toFixed(4) : '-'}`);
 }

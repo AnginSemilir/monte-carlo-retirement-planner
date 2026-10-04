@@ -73,7 +73,10 @@ export function index({ scorecard, plan, log }) {
   const unmask = rows.filter(r => (/\*\*([^*]*)\*\*/.exec(r.line) || [])[1] !== undefined && /FALSIFIED|harm/.test(/\*\*([^*]*)\*\*/.exec(r.line)[1].replace(/\bno (material )?harm\b/gi, ''))).length;
   // a settled result names its prediction; a maintainer's decision row ("(maintainer)" in the result cell) may name one
   // too but settles nothing (the maintainer, 27 Sep: 54c05b1's decision row triggered a deep review with no new result)
-  const settled = rows.filter(r => /prediction: predictions\/\S+\.md/.test(r.line) && !/^\s*\(maintainer\)/.test(r.line.split(' | ')[1] || '')).length;
+  // nor does a row recording a deep review (its evidence cell opens 'deep review: deep-review-log.md'): it names the
+  // predictions it touches, but counting it made every review at HIGH call for the next (the maintainer, 4 Oct: the 12:09
+  // row recording the 12:01 review made a review due again); a read row that cites a review later in its cell still counts
+  const settled = rows.filter(r => /prediction: predictions\/\S+\.md/.test(r.line) && !/^\s*\(maintainer\)/.test(r.line.split(' | ')[1] || '') && !/^\s*deep review: deep-review-log\.md/.test(r.line.split(' | ').slice(-1)[0] || '')).length;
   const level = (cal !== null && cal > 0.25) || surprises.length >= 2 || family >= 3 ? 'HIGH'
     : (cal !== null && cal > 0.20) || surprises.length >= 1 || unmask >= 1 || weak >= 2 ? 'MEDIUM' : 'LOW';
   const every = { LOW: 6, MEDIUM: 3, HIGH: 1 }[level];
@@ -99,6 +102,7 @@ function planted() {
     ['no receipt yet: every test counts as after it', String(index({ scorecard: sc, plan: '', log: '' }).surprises.length), '2'],
     ['HIGH with nothing settled since the receipt is not due (a family of 3 does not reset)', (() => { const fam = ['| O1 | a; family: r | 1 Sep | C | g | open |', '| O2 | b; family: r | 1 Sep | C | g | open |', '| O3 | c; family: r | 1 Sep | C | g | open |', '| 26 Sep 11:00 | **7s** | y | prediction: predictions/a.md; grade B |'].join('\n'); const v = index({ scorecard: sc, plan: fam, log: '- 26 Sep 12:00 UK | covered 7r (b) | x' }); return `${v.level} ${v.settled} ${v.due}`; })(), 'HIGH 0 false'],
     ['"no material harm" and "no harm" are not harm verdicts; a harm beside them still is', (() => { const rows = ['| 30 Sep 14:20 | **7ah READ: no material harm on the six households** | y | prediction: predictions/a.md; grade B |', '| 30 Sep 14:10 | **7x READ: no harm to survival** | y | prediction: predictions/a.md; grade B |', '| 30 Sep 14:00 | **7y READ: no material harm on five, harm on S126** | y | prediction: predictions/a.md; grade B |'].join('\n'); return String(index({ scorecard: sc, plan: rows, log: '- 30 Sep 13:00 UK | covered 7r (b) | x' }).unmask); })(), '1'],
+    ['a deep review\'s row naming predictions is not a settled result; a read row citing a review later in its cell is', (() => { const rows = ['| 4 Oct 12:09 | **The pre-launch review** | y | deep review: deep-review-log.md (4 Oct 12:01 UK); fair-test: n/a (a review); prediction: predictions/a.md; grade A |', '| 4 Oct 12:30 | **7x read** | y | results: results-7x.txt; fair-test: pass; prediction: predictions/a.md; deep review: deep-review-log.md; grade B |'].join('\n'); return String(index({ scorecard: sc, plan: rows, log: '- 4 Oct 12:01 UK | covered 7r (b) | x' }).settled); })(), '1'],
     ['a maintainer\'s decision row naming a prediction is not a settled result; a read row is', (() => { const rows = ['| 27 Sep 10:12 | (maintainer) **"re-read item 4"** | y | fair-test: n/a (a decision); prediction: predictions/a.md; grade A |', '| 27 Sep 09:00 | **7v read** | y | fair-test: pass; prediction: predictions/a.md; grade B |'].join('\n'); return String(index({ scorecard: sc, plan: rows, log: '- 27 Sep 08:00 UK | covered 7r (b) | x' }).settled); })(), '1'],
   ];
   const wrong = cases.filter(([, got, want]) => got !== want);

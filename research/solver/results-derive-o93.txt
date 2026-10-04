@@ -1,3 +1,5 @@
 O93: 7au's learner's weights at S194's node against derive-7au.mjs's method at matched updates (results-7au.txt: 0.481, 0.503, 0.015 after 40.0 updates a path)
   S/V 0.125: expected-evidence weight on world 0 at 25 updates 0.301, at 40 updates 0.386; mean posterior after 40 updates over 100000 unselected world-0 paths 0.414, 0.558, 0.028; 7au's node less that on world 0 0.067
   S/V 0.13: expected-evidence weight on world 0 at 25 updates 0.312, at 40 updates 0.405; mean posterior after 40 updates over 100000 unselected world-0 paths 0.429, 0.547, 0.024; 7au's node less that on world 0 0.052
+  S/V 0.145: expected-evidence weight on world 0 at 25 updates 0.350, at 40 updates 0.467; mean posterior after 40 updates over 100000 unselected world-0 paths 0.478, 0.507, 0.015; 7au's node less that on world 0 0.003
+  S/V 0.15: expected-evidence weight on world 0 at 25 updates 0.363, at 40 updates 0.490; mean posterior after 40 updates over 100000 unselected world-0 paths 0.493, 0.494, 0.013; 7au's node less that on world 0 -0.012

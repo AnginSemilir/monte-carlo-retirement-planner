@@ -1,0 +1,3 @@
+7an's solve cost from 7av's solves (results/diag7av); the share cells at n points over 6: 11 3.3611, 12 4.0000
+  S370   6 points 2195 s, 12 points 8888 s: ratio x4.05, exponent in the cells 1.009; 11 points by the cells x3.36 (7378 s), by its exponent x3.40 (7457 s)
+  S130   6 points 1584 s, 12 points 7799 s: ratio x4.92, exponent in the cells 1.150; 11 points by the cells x3.36 (5324 s), by its exponent x4.03 (6385 s)

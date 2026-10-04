@@ -1,0 +1,30 @@
+THE DRAW-PAUSE SHARES (derive-dp-shares.mjs over results-dp.txt)
+  household        reach  pause  pause/reach  stall/wall-py
+  bridge 1           604    304        0.503          0.357
+  S194                12      6        0.500          0.739
+  bridge 0           524    223        0.426          0.295
+  wealth x2          196     68        0.347          0.134
+  S168               212     73        0.344          0.437
+  bridge 4+cost     1393    449        0.322          0.397
+  share 0.90        1305    420        0.322          0.356
+  share 0.95        1296    350        0.270          0.065
+  share 0.70         543    122        0.225          0.282
+  share 0.78         135     30        0.222          0.129
+  S130              2000    443        0.222          0.042
+  S172                18      3        0.167          0.128
+  S126               432     68        0.157          0.172
+  S120               108     15        0.139          0.151
+  S162               425     52        0.122          0.114
+  S366              1801    219        0.122          0.133
+  S124                67      8        0.119          0.098
+  bridge 4          1112    124        0.112          0.161
+  S360               436     44        0.101          0.199
+  share 0.50         443     44        0.099          0.061
+  bridge 6          1582    153        0.097          0.109
+  wealth x0.5        138     13        0.094          0.165
+  S128              1836    163        0.089          0.005
+  S122               400     34        0.085          0.104
+  S370              1756     12        0.007          0.024
+TOTALS: reaching paths 18774, pausing 3440, share of reaching 0.183; mean pausing dwell 13.75 years; households with any pause 25 of 25
+AGAINST THE DESCRIPTION: any pause 25 (registered 5, 2 to 10) ABOVE; share 0.183 (0.05, 0.01 to 0.20) INSIDE; dwell 13.75 (4, 2.5 to 7) ABOVE
+OVER A QUARTER OF THE REACHING PATHS (the registered line for the register): share 0.90, share 0.95, bridge 0, bridge 1, wealth x2, S194, bridge 4+cost, S168

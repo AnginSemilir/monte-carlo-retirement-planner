@@ -1,0 +1,34 @@
+caught: the gate ignores a missing job
+caught: the gate accepts an unregistered job
+caught: the gate ignores a job not done
+caught: the gate ignores foreign labels
+caught: the gate ignores a missing world line
+caught: the ran line not held to P's
+caught: the joint line's margin not read
+caught: the identity skips the table
+caught: the identity skips the moves
+caught: the joint cap not held to P's
+caught: the node count not read
+caught: the year-0 hold on the node rules not read
+caught: the ident line not required
+caught: the node weights line not required
+caught: a missing decision-log year ignored
+caught: an all line on the node job allowed
+caught: the all-world count not read
+caught: the ident-all line not required
+caught: a node line on an all-world job allowed
+caught: sameRuns skips the tier
+caught: sameRuns reads past the first paths
+caught: sameRuns accepts too few paths
+caught: item 1's premise ignores p
+caught: item 1's HELD band at a half
+caught: item 1's FALSIFIED band at a half
+caught: item 1's directions swapped
+caught: item 2 harm ignores the whole score
+caught: item 2 safe ignores the guarded interval
+caught: item 2 safe at the margin's end
+caught: item 2 without Holm
+caught: item 2 HELD on any safe leg
+caught: item 2 reads the gain direction as harm
+caught: the jobs check reads a different charge
+33 of 33 mutations caught

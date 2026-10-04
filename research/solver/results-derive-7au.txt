@@ -1,0 +1,28 @@
+7AU DERIVATION (predictions/diag-7au.md): from P's records (results/diagP) and 7as's seconds (results/diag7as)
+
+1. S194'S NODE SLICE AT P'S CHARGE (WA less OPEN2, 16000 node paths): whole +1.781 a path (sd 16.065, se 0.1270); survival WA 93.8000 against OPEN2 91.7000 (saved 372, lost 36)
+   paths whose whole score differs: 15678 of 16000
+
+2. ITEM 1'S POWER (400 replicates a share; d_L = B d_W, B ~ Bernoulli(s); the normal approximation, Holm over the two directions):
+   share s   premise  LEARNABLE  NOT LEARNABLE  INCONCLUSIVE
+     0.000   1.0000   0.0000     1.0000         0.0000
+     0.200   1.0000   0.0000     0.9850         0.0150
+     0.333   1.0000   0.0000     0.0350         0.9650
+     0.500   1.0000   0.0000     0.0000         1.0000
+     0.667   1.0000   0.0300     0.0000         0.9700
+     0.750   1.0000   0.7775     0.0000         0.2225
+     0.800   1.0000   0.9975     0.0000         0.0025
+     1.000   1.0000   1.0000     0.0000         0.0000
+
+3. ITEM 2'S POWER (a true change of 0 with the churn of P's TS+J at 0.001 against 1e-3 across all worlds, 16,000 paths; 4,000 replicates; the exact rule with Holm over three legs; the whole score's half-width):
+   bridge 4  survival 99.600 margin 0.25; churn 2 saved/3 lost of 16000; P(no material harm) 1.0000; whole score -0.007 (-0.052 to 0.037), half-width 0.045
+   S194      survival 98.631 margin 0.25; churn 6 saved/8 lost of 16000; P(no material harm) 1.0000; whole score +0.086 (0.016 to 0.155), half-width 0.070
+   S126      survival 99.794 margin 0.25; churn 0 saved/0 lost of 16000; P(no material harm) 1.0000; whole score -0.000 (-0.032 to 0.031), half-width 0.031
+   all three legs no material harm by survival: 1.0000
+
+4. THE TIME (7as's seconds, the same code): a solve 1439 s (9 solves); a node rule 115.7 ms a path; an all-world run 134.5 ms a path (the learner's overhead NOT CHECKED: the posterior is a few operations a year beside chooseAction's scoring)
+   node:L (two rules on 16,000, two on 2,000) 1.56 h; each all:L (two rules on 16,000, one on 2,000) 1.67 h; total 6.6 core-hours, the longest job 1.67 h on four cores
+
+5. THE LEARNER'S PACE AT WORLD 0'S NODE (the expected-evidence path; S/V from learn.mjs's header):
+   S/V 0.125: a year's log-odds gain over world 1 0.0234; the weight on world 0: year 1 0.172, year 5 0.193, year 10 0.219, year 15 0.246, year 25 0.301 (WA's: 1)
+   S/V 0.13: a year's log-odds gain over world 1 0.0254; the weight on world 0: year 1 0.172, year 5 0.195, year 10 0.224, year 15 0.253, year 25 0.312 (WA's: 1)

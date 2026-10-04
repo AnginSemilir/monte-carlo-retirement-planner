@@ -130,3 +130,36 @@ How B's step-year node goes into the grid. Three ways were weighed; the third is
   - **What would make it wrong**: a wealth row whose edge falls between two rows' edges is still straddled along W
     (the bilinear read across the two rows' own nodes leaves the chord between two edges; PMAP's span sizes it); the
     copied seventh slot in non-step years changing a value through the backward pass (the second unit test pins it).
+
+## The deep review of the implementation (deep-review-log.md, 4 Oct 20:19 UK, level HIGH): do not build yet
+
+- **BLOCKING 1, the reference carries no tax.** The node sits where the reference says support starts (d0 - tol/2), but
+  the reference's bills (grid.js l.504-505, needY) carry no tax, while the flow's year pays savings, dividend and unpaid
+  capital gains tax (fast.js l.405-407, l.527-543); a year fails at unmet > 1 (solve.js l.783, l.864). In cells with a
+  high gain bucket and a low ISA share the edge node can fail every move: its survival the clamp, its c 0, copied to
+  every node above it, so step reads in [0.8, a*] slide c towards 0 - a pessimistic swing that would read as cause (2),
+  the overshoot. Before the build: the flow-at-edge print (audit-covflow.mjs, launched 4 Oct under "none:"); if any
+  edge cell is dead, where the node goes is decided again and "the reference carries no tax" registered with an owner.
+  A tax-aware edge would vary with b and the gain bucket, breaking the per-row-only edge the stencil relies on.
+- **BLOCKING 2, two more readers.** `interp` (grid.js l.552; value() at solve.js l.1102, l.1117) and `nearestIndex`
+  (solve.js l.1606: policy(), runPolicy's stored policy l.1363, chooseAction at T l.1145, the audits 7ak, 7as, 7au,
+  s126) index the share slot with one locate. Both join the call sites; readValues without the year throws under
+  `coverage`. COV-B-STEP's measurement needs per-row versions of audit-pmap.mjs l.134 and l.154 and audit-7av.mjs l.245.
+- **BLOCKING 3, two tests wrong.** Test 4 restricted to reads exactly on a wealth row (between rows the straddle is
+  accepted). The fast.js item dropped (fast.js never reads the grid); in its place the grid readers: levelSearch's
+  ternary (solve.js l.774), tier state and joint worlds, stepExpect, holdTier.
+- **The rejections restated.** Stretch: rejected because it moves the supported nodes (its second reason fails: B's
+  blend and the stretch's clamp both read about 1e-6 above the edge, every move failing at a = 1). Snap: its survival
+  read matches B to 1e-6; insertion is kept because a = 1 stays the last slot (e3's copy, solve.js l.764, and the
+  copiedTop meter rely on it) and the region above the edge stays defined for the bequest, resilience and shortfall
+  reads. "The node" includes its effect on all five tables, which feed the chooser: the fixed-policy re-read separates it.
+- **Guards and tests added to the build list:** W_j = 0 (a* = -Infinity) and the W = 0 row; an edge within 1e-9 of a
+  node merged with it; the hot read's per-wealth-corner share index and weight with the corner order kept, through the
+  gain and allowance layers (pclsInterp is on in the unit); coverage only with bridgeRead 'reader'; the 7-slot axis
+  locating with 6-node arithmetic in non-step years; the copy reaching all five tables, every tier layer and world
+  before toLogOdds and the reader build; zero-width cells without NaN. Tests, each with its planted fault: the edge node
+  not dead (gain 0.55, b = 0); every old node bit-identical to coverage off in a step year; interp and nearestIndex
+  agreeing with readValues on step-year tables (a single locate); the per-row stencil in all 32 corners (indices only in
+  the first 8); readValues without the year throwing; the copy complete (survW only); a spread year planted as a step
+  year refused; round trips at a = 1, a*_j, an edge 1e-12 from a node and the W = 0 row. Declared: the reader meters
+  change in every reader year, and audits checking `g.ni === SH` refuse.

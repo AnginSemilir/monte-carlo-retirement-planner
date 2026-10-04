@@ -349,6 +349,22 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(exists('rev', 'HEAD')('../../src/solver/reader.js') === true && /buildReaderTable/.test(source('rev', 'HEAD')('../../src/solver/reader.js')), 'rev mode finds and reads a file outside research/solver');
   ok(exists('rev', 'HEAD')('../../src/solver/no-such-file.js') === false, 'rev mode reports a missing file as missing');
   ok(exists('staged')('../../src/solver/reader.js') === true, 'staged mode finds a file outside research/solver');
+  // staged mode reads the index, not only the working tree (the plan-auditor's carried finding of 4 Oct: the test above passes
+  // through the working-tree fallback alone): a path staged in a scratch index and absent from disk must be found
+  const R = join(S, '../..'), dir = mkdtempSync(join(tmpdir(), 'cp-index-')), idx = join(dir, 'index'), name = 'zz-staged-only-check.txt';
+  const was = process.env.GIT_INDEX_FILE, env = { ...process.env, GIT_INDEX_FILE: idx };
+  try {
+    execFileSync('git', ['read-tree', 'HEAD'], { cwd: R, env });
+    const blob = execFileSync('git', ['hash-object', '-w', '--stdin'], { cwd: R, input: 'staged only\n' }).toString().trim();
+    execFileSync('git', ['update-index', '--add', '--cacheinfo', `100644,${blob},research/solver/${name}`], { cwd: R, env });
+    ok(!existsSync(join(S, name)), 'EDGE: the staged-only path is absent from the working tree');
+    process.env.GIT_INDEX_FILE = idx;
+    ok(exists('staged')(name) === true, 'staged mode finds a path that is in the index and not on disk');
+    ok(exists('staged')('zz-in-neither-check.txt') === false, 'EDGE: staged mode reports a path in neither the index nor the tree as missing');
+  } finally {
+    if (was === undefined) delete process.env.GIT_INDEX_FILE; else process.env.GIT_INDEX_FILE = was;
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 // the audit's MINORs 5 and 6 of 4 Oct: a struck key is the same row; a figure matches whole; a REPLACE is checked at the next close only

@@ -30,6 +30,6 @@ const planted = [
 for (const [nm, f] of planted) if (!(f().length > 0)) { console.log(`PREFLIGHT PARSE FAILED: the gate does not refuse ${nm}`); process.exit(1); }
 const { files } = loadTraces(us, DIR, ST);
 let lines = 0, reached = false;
-reading(files, l => { lines++; if (/^OUTCOME:/.test(l)) reached = true; });
+reading(files, l => { lines++; if (/^\n?OUTCOME:/.test(l)) reached = true; });
 if (!reached) { console.log('PREFLIGHT PARSE FAILED: the reading did not reach its outcome'); process.exit(1); }
 console.log(`PREFLIGHT PARSE PASSED: ${us.length} units parsed and gated at the preflight's size, every per-path file held to its sum line; ${planted.length} planted faults refused; the reading ran to its outcome (${lines} lines, not read)`);

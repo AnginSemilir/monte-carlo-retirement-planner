@@ -67,3 +67,62 @@ harm, until a decomposition splits it (RULES.md section 9).
   above the floor): the support is a floor statement, as the bills are.
 - tau's interpolation across a band edge (CGT allowance) leaving a straddle as large as the error removed: test 6.
 - The later-bill tax mattering more than this year's in spread years: out of scope, owner named.
+
+## The deep review of the design (deep-review-log.md, 4 Oct 21:04 UK, level HIGH): four blocking, the design revised
+
+Its answers: the floor level is right (every dead cell is a cell whose floor moves all fail: 240/240, 63/63,
+results-covflow.txt); tau is tier-free (tier variants reuse the base move's flow, solve.js l.866-870; the switch cost
+is charged after the fail test, l.889) and world-free (solve.js l.369, l.282-286). The fixes, each now the design:
+
+- **tau's definition (BLOCKING 2).** Not taxPaid + cgtPaid: taxPaid includes income tax on guaranteed income
+  (fast.js l.559) that the bills already net off (grid.js l.504). tau_i = max(0, A_i - d0 - L_i), L_i the best over the
+  floor moves of (accessible money after the flow less unmet). On this menu it equals the least tax; it is immune to the
+  income-tax double count and to menus whose moves skip a pot.
+- **tau at failing nodes (BLOCKING 1).** A failing node's own tau is the drain tax, falling to 0 at a = 1, so a linear
+  read across the edge's cell understates the tax at the edge. Instead: along each share row (ip, it, ig, ic) the edge
+  is found by bisection on a (the best floor move just paying), its tau_edge taken there, and every failing node of the
+  row carries tau_edge (flat on the dead side). The same pass gives tauMax_j, the largest row-edge tax over a wealth
+  row, for COV-B (below).
+- **The gain snap.** PMAP's unit runs gainInterp off, and capital gains tax is proportional to the gain: the tau read
+  brackets the gain axis on its own (its own gain weight, whatever gainInterp), and test 6 measures what is left.
+- **Scope: step years only.** In a step year there are no later bills (the last bridge year, or later bills that are
+  net inflows), so the fix is complete there; in spread years it would be a half-fix beside O81's pessimism. readerTax
+  acts in step years; tax on later bills is its own option (registered, off, not in this build). "Would move in the other
+  direction" is NOT CHECKED.
+- **COV-B after RTAX.** B's node at the untaxed edge is dead on the taxed rows. The node goes at d0 - tol/2 + tauMax_j,
+  one a wealth row (the product structure kept), supported on every share row; the flat span left to each row's true
+  edge is at most tauMax_j / W_j. Its support test: the flow-at-edge print re-run at the new node, 0 dead expected.
+- **Throws.** readerTax with bridgeStep 'exact' (stepAtOf puts the step at the untaxed bills[0] - 1, solve.js l.266)
+  and with readerAcc (grid.js l.362). The tau pass flows every node itself, so e3's copies and the ternary level search
+  do not reach it (stated, and test 7 pins it).
+
+## The tests, revised (each with its planted fault, the fault in the build only)
+
+1. readerTax off: bit-identical (golden and reader tests).
+2. tau against a hand-worked case: one taxable account, a known gain and dividend yield, computed in the test without
+   the build's helper (planted: tau from taxPaid + cgtPaid, which includes income tax).
+3. No supported node (p >= 0.5) where every floor move fails, and its converse, no unsupported node where a floor move
+   pays; on the four households and on one with taxable guaranteed income in the bridge (planted: income tax in tau;
+   tau = 0).
+4. Node reproduction p_i c_i + R_i = S_i with readerTax on (planted in the build: p from untaxed A at the split only).
+5. An all-ISA household with reader years: on equals off to the bit (planted: a non-zero tau floor).
+6. Two-sided misclassification, a registered bar: at off-node positions (the top share cell included) and off-bucket
+   gains on the four households, the read's p (>= 0.5 or not) against the floor flows' pass or fail at that state;
+   today's reader and readerTax side by side. Bar: readerTax misclassifies under a tenth of today's off-node cases
+   and no more than 1% of the positions.
+7. e3 on and the ternary level search on: the tau table equal to theirs off (planted: tau taken from the cell loop).
+
+## RTAX-STEP, revised
+
+Step years only (readerTax acts nowhere else); the control an all-ISA household with reader years (tau 0: a check
+that does something), bridge 0 kept as the no-reader identity. Read as non-inferiority on paired survival (exact,
+Holm, the household's margin) plus the mechanism prints: supported nodes failing every floor move before and after
+(0 after), alive-but-unsupported nodes before and after, step-read p and c by cell, decisions changed, the fixed-policy
+re-read. COV-B-STEP carries the efficacy read. Sized before it is registered (on the 6-share grid only the band about
+tau wide moves; the harm read may be underpowered).
+
+## Before the build: the misclassification print (test 6 as a measurement, no solve)
+
+The review's deciding test: flows at a few thousand off-node states across the four households, today's reader against
+readerTax's tau (prototyped in the script, not the solver), a few minutes a household on the light lane. It decides
+whether the revised tau removes the optimism or leaves a straddle as large as the error.

@@ -6,3 +6,41 @@ step reads by own accessible money over acc* (pooled over worlds and years): hou
   S126 stepsup           | 0 0 0 0 0 6000 | 6000 | 0.0000
 PANEL stepsup: 0 0 0 253 2434 27031 | 29718 reads | share in 0.9-1.1 0.0085 | share at 1.5 or over 0.9096
 PANEL stepuns: 1 68 72 0 0 0 | 141 reads | share in 0.9-1.1 0.5106 | share at 1.5 or over 0.0000
+
+every read (step and spread) by household, world and year: <0.5 0.5-0.9 0.9-1 1-1.1 1.1-1.5 >=1.5
+  S130       world 0 year 1: 0 0 0 0 0 2000 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (2000) | below 0.9 0
+  S130       world 1 year 1: 0 0 0 0 0 2000 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (2000) | below 0.9 0
+  S130       world 2 year 1: 0 0 0 0 0 2000 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (2000) | below 0.9 0
+  S370       world 0 year 1: 0 0 50 744 1206 0 | 2000 reads | within 10% 0.3970 (794) | at 1.5 or over 0.0000 (0) | below 0.9 0
+  S370       world 0 year 2: 0 19 74 388 1492 27 | 2000 reads | within 10% 0.2310 (462) | at 1.5 or over 0.0135 (27) | below 0.9 19
+  S370       world 0 year 3: 1 45 59 177 1047 671 | 2000 reads | within 10% 0.1180 (236) | at 1.5 or over 0.3355 (671) | below 0.9 46
+  S370       world 0 year 4: 0 0 0 0 0 1895 | 1895 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (1895) | below 0.9 0
+  S370       world 0 year 5: 0 0 0 1 725 1169 | 1895 reads | within 10% 0.0005 (1) | at 1.5 or over 0.6169 (1169) | below 0.9 0
+  S370       world 0 year 6: 0 0 0 0 173 1722 | 1895 reads | within 10% 0.0000 (0) | at 1.5 or over 0.9087 (1722) | below 0.9 0
+  S370       world 0 year 7: 0 0 0 0 12 1883 | 1895 reads | within 10% 0.0000 (0) | at 1.5 or over 0.9937 (1883) | below 0.9 0
+  S370       world 1 year 1: 0 0 10 269 1721 0 | 2000 reads | within 10% 0.1395 (279) | at 1.5 or over 0.0000 (0) | below 0.9 0
+  S370       world 1 year 2: 0 6 17 154 1722 101 | 2000 reads | within 10% 0.0855 (171) | at 1.5 or over 0.0505 (101) | below 0.9 6
+  S370       world 1 year 3: 0 15 11 58 855 1061 | 2000 reads | within 10% 0.0345 (69) | at 1.5 or over 0.5305 (1061) | below 0.9 15
+  S370       world 1 year 4: 0 0 0 0 0 1974 | 1974 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (1974) | below 0.9 0
+  S370       world 1 year 5: 0 0 0 0 290 1684 | 1974 reads | within 10% 0.0000 (0) | at 1.5 or over 0.8531 (1684) | below 0.9 0
+  S370       world 1 year 6: 0 0 0 0 50 1924 | 1974 reads | within 10% 0.0000 (0) | at 1.5 or over 0.9747 (1924) | below 0.9 0
+  S370       world 1 year 7: 0 0 0 0 1 1973 | 1974 reads | within 10% 0.0000 (0) | at 1.5 or over 0.9995 (1973) | below 0.9 0
+  S370       world 2 year 1: 0 0 1 49 1947 3 | 2000 reads | within 10% 0.0250 (50) | at 1.5 or over 0.0015 (3) | below 0.9 0
+  S370       world 2 year 2: 0 1 8 39 1671 281 | 2000 reads | within 10% 0.0235 (47) | at 1.5 or over 0.1405 (281) | below 0.9 1
+  S370       world 2 year 3: 0 8 2 18 519 1453 | 2000 reads | within 10% 0.0100 (20) | at 1.5 or over 0.7265 (1453) | below 0.9 8
+  S370       world 2 year 4: 0 0 0 0 0 1990 | 1990 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (1990) | below 0.9 0
+  S370       world 2 year 5: 0 0 0 0 60 1930 | 1990 reads | within 10% 0.0000 (0) | at 1.5 or over 0.9698 (1930) | below 0.9 0
+  S370       world 2 year 6: 0 0 0 0 7 1983 | 1990 reads | within 10% 0.0000 (0) | at 1.5 or over 0.9965 (1983) | below 0.9 0
+  S370       world 2 year 7: 0 0 0 0 0 1990 | 1990 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (1990) | below 0.9 0
+  bridge 4   world 0 year 1: 0 0 0 0 45 1955 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 0.9775 (1955) | below 0.9 0
+  bridge 4   world 0 year 2: 0 0 0 0 2 1998 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 0.9990 (1998) | below 0.9 0
+  bridge 4   world 0 year 3: 0 0 0 0 0 2000 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (2000) | below 0.9 0
+  bridge 4   world 1 year 1: 0 0 0 0 10 1990 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 0.9950 (1990) | below 0.9 0
+  bridge 4   world 1 year 2: 0 0 0 0 1 1999 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 0.9995 (1999) | below 0.9 0
+  bridge 4   world 1 year 3: 0 0 0 0 0 2000 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (2000) | below 0.9 0
+  bridge 4   world 2 year 1: 0 0 0 0 2 1998 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 0.9990 (1998) | below 0.9 0
+  bridge 4   world 2 year 2: 0 0 0 0 0 2000 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (2000) | below 0.9 0
+  bridge 4   world 2 year 3: 0 0 0 0 0 2000 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (2000) | below 0.9 0
+  S126       world 0 year 1: 0 0 0 0 0 2000 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (2000) | below 0.9 0
+  S126       world 1 year 1: 0 0 0 0 0 2000 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (2000) | below 0.9 0
+  S126       world 2 year 1: 0 0 0 0 0 2000 | 2000 reads | within 10% 0.0000 (0) | at 1.5 or over 1.0000 (2000) | below 0.9 0

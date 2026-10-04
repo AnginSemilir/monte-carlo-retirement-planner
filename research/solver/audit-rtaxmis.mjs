@@ -15,7 +15,8 @@
  * off the gain buckets). Prints false support (p >= 0.5, every floor move fails) and false failure (p < 0.5, a floor
  * move pays) for each reader, and the items/RTAX.md bar (RTAX under a tenth of TODAY's off-node cases and at most 1% of
  * the positions) as met or not. Planted (each must hold or the print stops): with tau forced to 0, RTAX's counts equal
- * TODAY's; a state with no accessible money is false support for neither reader.
+ * TODAY's; a state with no accessible money is false support for neither reader. A second sample of N states a step
+ * year sits on the edge band (accessible money 0.97 to 1.06 of d0), where the readers can disagree; the bar is read on it too.
  *   node research/solver/audit-rtaxmis.mjs [N]
  */
 import * as E from '../engine.mjs';
@@ -70,7 +71,7 @@ const L = 'READER/TS+J/W0.02/PCLSI', TOL = 1, N = Number(process.argv[2] || 3000
 // a fixed generator for the off-node states (mulberry32, seed 7002, the tuning seed: a design measurement)
 let seed = 7002; const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 console.log(`RTAX'S MISCLASSIFICATION PRINT: ${L} at ${SH} share points; tau on the 30-point unit's nodes; ${N} off-node states a step year; false support (reader says supported, every floor move fails) and false failure (reader says unsupported, a floor move pays)`);
-const tot = { off: 0, todayFS: 0, todayFF: 0, rtaxFS: 0, rtaxFF: 0, nodeFS: 0, nodeFF: 0, nodes: 0 };
+const tot = { edge: 0, eTodayFS: 0, eTodayFF: 0, eRtaxFS: 0, eRtaxFF: 0, off: 0, todayFS: 0, todayFF: 0, rtaxFS: 0, rtaxFF: 0, nodeFS: 0, nodeFF: 0, nodes: 0 };
 for (const id of UNITS) {
   const h = caseOf(id);
   if (!h) { console.error(`audit-rtaxmis: no case ${id}`); process.exit(2); }
@@ -134,15 +135,22 @@ for (const id of UNITS) {
     const rows = []; for (let ip = 0; ip < g30.np; ip++) { const Wt = g30.axes.W.pts[ip]; if (Wt > d0) rows.push(ip); }
     const lgLo = Math.log(g30.axes.W.pts[Math.max(1, rows[0] - 1)]), lgHi = Math.log(g30.axes.W.pts[g30.np - 1]);
     const runOff = (zero) => { seed = 7002 * 1000 + t; let fsT = 0, ffT = 0, fsR = 0, ffR = 0, n = 0; for (let q = 0; q < N; q++) { const Wt = Math.exp(lgLo + (lgHi - lgLo) * rnd()), a = 0.5 + 0.5 * rnd(), b = rnd(), gain = 0.05 + 0.5 * rnd(), pf = rnd(); const s = Float64Array.from(stateAt(Wt, a, b, gain, pf)); const A = s[1] + s[2]; const truth = best(t, s).pays; const supT = chance(A) >= 0.5, supR = chance(A - tauAt(s, zero)) >= 0.5; n++; if (supT && !truth) fsT++; if (!supT && truth) ffT++; if (supR && !truth) fsR++; if (!supR && truth) ffR++; } return { fsT, ffT, fsR, ffR, n }; };
-    const off = runOff(false), z = runOff(true);
+    // the edge band (the first run put 4 of 15000 off-node states in it): accessible money uniform on 0.97 to 1.06 of d0,
+    // wealth log-uniform from 1.1 d0 to the top row, b, gain and allowance uniform
+    const runEdge = (zero) => { seed = 7002 * 1000 + 500 + t; let fsT = 0, ffT = 0, fsR = 0, ffR = 0, n = 0; const lo = Math.log(1.1 * d0); for (let q = 0; q < N; q++) { const Wt = Math.exp(lo + (lgHi - lo) * rnd()), A0 = d0 * (0.97 + 0.09 * rnd()), a = 1 - A0 / Wt, b = rnd(), gain = 0.05 + 0.5 * rnd(), pf = rnd(); const s = Float64Array.from(stateAt(Wt, a, b, gain, pf)); const A = s[1] + s[2]; const truth = best(t, s).pays; const supT = chance(A) >= 0.5, supR = chance(A - tauAt(s, zero)) >= 0.5; n++; if (supT && !truth) fsT++; if (!supT && truth) ffT++; if (supR && !truth) fsR++; if (!supR && truth) ffR++; } return { fsT, ffT, fsR, ffR, n }; };
+    const off = runOff(false), z = runOff(true), edge = runEdge(false), ze = runEdge(true);
+    if (ze.fsR !== ze.fsT || ze.ffR !== ze.ffT) { console.log(`AUDIT-RTAXMIS FAILED: ${id} year ${t}: with tau 0 RTAX's edge counts differ from TODAY's`); process.exit(1); }
+    tot.edge += edge.n; tot.eTodayFS += edge.fsT; tot.eTodayFF += edge.ffT; tot.eRtaxFS += edge.fsR; tot.eRtaxFF += edge.ffR;
     if (z.fsR !== z.fsT || z.ffR !== z.ffT) { console.log(`AUDIT-RTAXMIS FAILED: ${id} year ${t}: with tau 0 RTAX's counts ${z.fsR}/${z.ffR} differ from TODAY's ${z.fsT}/${z.ffT}`); process.exit(1); }
     const s0 = Float64Array.from(stateAt(g30.axes.W.pts[g30.np - 1], 1, 0.5, 0.25, 0)); if (chance(0) >= 0.5 || chance(0 - tauAt(s0, false)) >= 0.5) { console.log(`AUDIT-RTAXMIS FAILED: ${id} year ${t}: no accessible money read as supported`); process.exit(1); }
     tot.off += off.n; tot.todayFS += off.fsT; tot.todayFF += off.ffT; tot.rtaxFS += off.fsR; tot.rtaxFF += off.ffR; tot.nodeFS += nFS; tot.nodeFF += nFF; tot.nodes += nodes;
-    console.log(`${''.padEnd(16)} year ${t}: step | d0 ${d0.toFixed(0)} | rows bisected ${bisected} | nodes ${nodes}: RTAX false support ${nFS} false failure ${nFF} | off-node ${off.n}: TODAY false support ${off.fsT} false failure ${off.ffT} | RTAX false support ${off.fsR} false failure ${off.ffR}`);
+    console.log(`${''.padEnd(16)} year ${t}: step | d0 ${d0.toFixed(0)} | rows bisected ${bisected} | nodes ${nodes}: RTAX false support ${nFS} false failure ${nFF} | off-node ${off.n}: TODAY false support ${off.fsT} false failure ${off.ffT} | RTAX false support ${off.fsR} false failure ${off.ffR} | edge band ${edge.n}: TODAY false support ${edge.fsT} false failure ${edge.ffT} | RTAX false support ${edge.fsR} false failure ${edge.ffR}`);
   }
   console.log(`${''.padEnd(16)} done`);
 }
 if (!tot.off) { console.log('AUDIT-RTAXMIS FAILED: no step-year state was read: a print of nothing is an error'); process.exit(1); }
 const today = tot.todayFS + tot.todayFF, rtax = tot.rtaxFS + tot.rtaxFF;
 console.log(`TOTAL: nodes ${tot.nodes}: RTAX false support ${tot.nodeFS} false failure ${tot.nodeFF} | off-node ${tot.off}: TODAY ${today} (false support ${tot.todayFS}, false failure ${tot.todayFF}), RTAX ${rtax} (false support ${tot.rtaxFS}, false failure ${tot.rtaxFF})`);
+const eT = tot.eTodayFS + tot.eTodayFF, eR = tot.eRtaxFS + tot.eRtaxFF;
+console.log(`EDGE BAND: ${tot.edge} states: TODAY ${eT} (false support ${tot.eTodayFS}, false failure ${tot.eTodayFF}), RTAX ${eR} (false support ${tot.eRtaxFS}, false failure ${tot.eRtaxFF}); the bar on the band: ${eR < eT / 10 && eR <= 0.01 * tot.edge ? 'MET' : 'NOT MET'} (RTAX/TODAY ${eT ? (eR / eT).toFixed(4) : '-'}, RTAX share ${(eR / tot.edge).toFixed(4)})`);
 console.log(`BAR (items/RTAX.md test 6: RTAX under a tenth of TODAY's off-node cases and at most 1% of the positions): ${rtax < today / 10 && rtax <= 0.01 * tot.off ? 'MET' : 'NOT MET'} (RTAX/TODAY ${today ? (rtax / today).toFixed(4) : '-'}, RTAX share ${(rtax / tot.off).toFixed(4)})`);

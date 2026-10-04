@@ -31,3 +31,17 @@ const any = rows.filter(r => r.pause > 0).length, over = rows.filter(r => r.reac
 console.log(`TOTALS: reaching paths ${R}, pausing ${P}, share of reaching ${f(P / R)}; mean pausing dwell ${f(dw, 2)} years; households with any pause ${any} of 25`);
 console.log(`AGAINST THE DESCRIPTION: any pause ${any} (registered 5, 2 to 10) ${any > 10 ? 'ABOVE' : any < 2 ? 'BELOW' : 'INSIDE'}; share ${f(P / R)} (0.05, 0.01 to 0.20) ${P / R > 0.2 ? 'ABOVE' : P / R < 0.01 ? 'BELOW' : 'INSIDE'}; dwell ${f(dw, 2)} (4, 2.5 to 7) ${dw > 7 ? 'ABOVE' : dw < 2.5 ? 'BELOW' : 'INSIDE'}`);
 console.log(`OVER A QUARTER OF THE REACHING PATHS (the registered line for the register): ${over.length ? over.join(', ') : 'none'}`);
+// the households the description named as pausing (predictions/measure-dp.md: S130, S370, S366, wealth x2 and the high-share
+// built ones, share 0.90 and share 0.95), each with its rank of 25 by pause/reach, beside the pooled share and the median
+const ranked = rows.slice().sort((a, b) => b.pause / b.reach - a.pause / a.reach);
+const median = ranked[12];
+console.log(`THE NAMED HOUSEHOLDS (rank of 25 by pause/reach; pooled ${f(P / R)}, median ${f(median.pause / median.reach)} ${median.name}): ` +
+  ['S130', 'S370', 'S366', 'wealth x2', 'share 0.90', 'share 0.95'].map(n => { const k = ranked.findIndex(r => r.name === n); return `${n} ${f(ranked[k].pause / ranked[k].reach)} (${k + 1})`; }).join(', '));
+// the run's own time (results/diagdp/case*.txt: every 'secs N' on a solve or dp line), and the library-wide count scaled from it
+let secs = 0, files = 0;
+for (let i = 0; i < 25; i++) {
+  const t = readFileSync(join(here, 'results', 'diagdp', `case${i}.txt`), 'utf8'); files++;
+  for (const m of t.matchAll(/ secs (\d+)/g)) secs += +m[1];
+}
+const ch = secs / 3600, perH = secs / 25 / 60;
+console.log(`THE RUN'S TIME: ${secs} s over ${files} households, ${f(ch, 2)} core-hours (registered budget about 12), ${f(perH, 1)} minutes a household; the library's 210 single households at that rate ${f(210 * perH / 60, 0)} core-hours`);

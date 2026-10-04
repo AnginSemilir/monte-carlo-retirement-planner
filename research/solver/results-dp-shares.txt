@@ -28,3 +28,5 @@ THE DRAW-PAUSE SHARES (derive-dp-shares.mjs over results-dp.txt)
 TOTALS: reaching paths 18774, pausing 3440, share of reaching 0.183; mean pausing dwell 13.75 years; households with any pause 25 of 25
 AGAINST THE DESCRIPTION: any pause 25 (registered 5, 2 to 10) ABOVE; share 0.183 (0.05, 0.01 to 0.20) INSIDE; dwell 13.75 (4, 2.5 to 7) ABOVE
 OVER A QUARTER OF THE REACHING PATHS (the registered line for the register): share 0.90, share 0.95, bridge 0, bridge 1, wealth x2, S194, bridge 4+cost, S168
+THE NAMED HOUSEHOLDS (rank of 25 by pause/reach; pooled 0.183, median 0.157 S126): S130 0.222 (11), S370 0.007 (25), S366 0.122 (16), wealth x2 0.347 (4), share 0.90 0.322 (7), share 0.95 0.270 (8)
+THE RUN'S TIME: 16919 s over 25 households, 4.70 core-hours (registered budget about 12), 11.3 minutes a household; the library's 210 single households at that rate 39 core-hours

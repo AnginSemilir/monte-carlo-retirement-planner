@@ -1,7 +1,7 @@
 # COV: the coverage coordinate - design note before the build (4 Oct)
 
 Written under item 2 of the process review's list (its report of 4 Oct 13:52 UK: build option A behind a research option
-now; the maintainer's yes, 'Agree, do all'; the row registered it after 7an; since the maintainer's go-ahead of 4 Oct 18:49 UK COV-B-STEP registers before 7an as family 3's root-cause step, and 7an runs on its arm) and the pre-launch review's list of what COV's registration must carry (the 4 Oct 12:09
+now; the maintainer's yes, 'Agree, do all'; the row registered it after 7an; since the maintainer's go-ahead of 4 Oct 18:49 UK COV-B-STEP registers before 7an and 7an runs on its arm; as family 3's root-cause step it is superseded by RTAX, the 4 Oct 21:57 row, items/RTAX.md) and the pre-launch review's list of what COV's registration must carry (the 4 Oct 12:09
 row). The PLAN.md row is the one source for COV's status; this file holds the design.
 
 ## The mechanism (anchored in the code)

@@ -33,6 +33,7 @@ caught: item 4's bar at 1
 caught: item 4's TOST one-sided
 caught: item 4 OVER on one read
 caught: item 4 ignores the negative side
+caught: the mixed world-year check dropped
 caught: the class check across units dropped
 caught: the class rule lets any unit turn spread into step
 caught: the class rule lets ORDER turn step into spread
@@ -53,4 +54,4 @@ caught: the clip counts dropped
 caught: the fall-back count dropped
 caught: R left as the reader's (S not reproduced)
 caught: isStep takes a half chance as a step
-55 of 55 mutations caught
+56 of 56 mutations caught

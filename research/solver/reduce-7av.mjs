@@ -217,6 +217,9 @@ export function gate(units, refAt, { pts = PTS, npw = NPW, stepYears = STEPY } =
         if (offp >= 0) bad.push(`${tag} world ${k} path ${offp}: its pyear terms do not sum to its pstage read term`);
         for (const y of bridge) { const c = PY.reduce((t, p) => t + p[y.t], 0), w = (y.ns ? y.ns * y.sf : 0) + (y.np ? y.np * y.pf : 0) + (y.no ? y.no * y.of : 0); if (!(Math.abs(c - w) <= tol(npw))) { bad.push(`${tag} world ${k} year ${y.t}: the pyear column sums to ${c.toFixed(2)}, the sdec line's flat reads ${w.toFixed(2)}`); break; } }
       }
+      // one class a world-year: every layer of a world-year reads one chance function (solve.js chanceOf(k, t), built from the
+      // plan's-tier move whatever the layer), so a year with step and spread reads together is a fault, not a case to read
+      { const mx = bridge.find(y => y.ns > 0 && y.np > 0); if (mx) bad.push(`${tag} world ${k} year ${mx.t}: ${mx.ns} step and ${mx.np} spread reads in one world-year - one chance function serves every layer of a world-year, so a mixed year is a fault`); }
       if (k === WORLD && !bridge.some(y => y.ns > 0)) bad.push(`${tag} world ${k}: no step read in the bridge - the items read step reads`);
       if (k === WORLD && u.arm === 'READER' && X === 'PCLSI' && !bridge.some(y => y.qm > 0)) bad.push(`${tag} world ${k}: the quadratic moved no bridge step read - a read that cannot move cannot answer item 2`);
     }
@@ -419,6 +422,14 @@ function planted() {
     ['a 12-point unit classing a bridge year differently from its 6-point twin', { class12Off: true }], ['step years off the deep review\'s (every S130 unit alike)', { stepAll: true }],
     ['a 6-point S130 PCLSI table that is not 7at\'s', {}, { refTable: true }], ['a 6-point S370 DEFAULT bdec line that is not 7at\'s', {}, { refBdec: true }]]) cases.push([`the gate refuses ${nm}`, refused(o, ro || {}), 'true']);
   cases.push(['the gate accepts ORDER reading a reader spread year as step (item 3 reads the same years by pyear)', refused({ classOff: true }), 'false']);
+  // a mixed world-year (step and spread reads together), built at the object level so that every sum still holds: world 1 of
+  // S130 PCLSI at 6, path 0's year-0 step read moved to the spread class
+  { const us = parse(builtLog()), u = us.find(x => x.id === 'S130' && x.arm === 'READER' && x.label === labelOf('TS+J', 'PCLSI', 6));
+    const y = u.sdec.find(z => z.k === 1 && z.t === 0), P = u.psplit.find(z => z.k === 1).paths, p0 = P[0], r = y.ns;
+    const c0 = p0[0], c1 = p0[1], c2 = p0[2];
+    Object.assign(y, { ns: r - 1, sf: (r * y.sf - c0) / (r - 1), sl: (r * y.sl - c1) / (r - 1), sq: (r * y.sq - c2) / (r - 1), qm: Math.min(y.qm, r - 1), np: 1, pf: c0, pl: c1 });
+    p0[3] += c0; p0[4] += c1; p0[0] = 0; p0[1] = 0; p0[2] = 0;
+    const bad = gate(us, refOf(), SZ); cases.push(['the gate refuses a mixed world-year (and nothing else)', `${bad.length > 0} ${bad.every(x => /in one world-year/.test(x))}`, 'true true']); EDGES.push('a mixed world-year'); }
   cases.push(['the gate accepts a quadratic equal to the line (item 2 reads it as data)', refused({ qAsLin: true }), 'false']);
   { let note = 'none'; try { const R = reading(parse(builtLog({ qNoAct: true })), () => {}, { b: 200 }); note = R.I2.hs.find(h => h.id === 'S130').note; } catch (e) { note = `crash: ${e.message}`; } cases.push(['the reading takes a 6-point quadratic that fell back at every node as not acted (S130, from qcount)', note, 'QUADRATIC DID NOT ACT']); }
   { let note = 'none'; try { const R = reading(parse(builtLog({ qAsLin: true })), () => {}, { b: 200 }); note = R.I2.hs.find(h => h.id === 'S130').note; } catch (e) { note = `crash: ${e.message}`; } cases.push(['the reading takes a quadratic equal to the line, with true quadratic nodes, as acted', String(note !== 'QUADRATIC DID NOT ACT'), 'true']); }

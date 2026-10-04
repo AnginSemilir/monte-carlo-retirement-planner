@@ -45,6 +45,7 @@ M = [
     ("item 4's TOST one-sided", "pT: Math.max(flipP(X.map(x => BAR - x), b, s), flipP(X.map(x => x + BAR), b, s + 1))", "pT: flipP(X.map(x => BAR - x), b, s)"),
     ("item 4 OVER on one read", "h.L.read === 'OVER' && h.Q.read === 'OVER' ? 'OVER'", "h.L.read === 'OVER' || h.Q.read === 'OVER' ? 'OVER'"),
     ("item 4 ignores the negative side", "Math.min(X.hA, X.hB) < ALPHA ? 'OVER'", "X.hA < ALPHA ? 'OVER'"),
+    ("the mixed world-year check dropped", "if (mx) bad.push", "if (false) bad.push"),
     ("the class check across units dropped", "if (!classCompat(patOf(ua), patOf(ub), ab === 'ORDER')) bad.push", "if (false) bad.push"),
     ("the class rule lets any unit turn spread into step", "if (!classCompat(patOf(ua), patOf(ub), ab === 'ORDER'))", "if (!classCompat(patOf(ua), patOf(ub), true))"),
     ("the class rule lets ORDER turn step into spread", "x.split(':')[1] === 'p' && xb[i].split(':')[1] === 's'", "x.split(':')[1] !== xb[i].split(':')[1]"),

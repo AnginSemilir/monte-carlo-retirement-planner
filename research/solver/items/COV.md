@@ -26,7 +26,9 @@ in its own coordinates, and the backward pass forms each cell's money state with
 Under TS+J the move at a cell is one for every world, so a cell must be one money state in every world. acc* - the
 accessible money at which the reader's chance reaches one half - depends on the world in a year with later bills
 (reader.js referenceChance takes the later bills' return moments), and equals d0 less the tolerance in a world-free way
-only in the last bill year. So:
+only in the last bill year [corrected by the deep review after PMAP: at every step read - a year whose reference is a
+pure step, S370's pre-inflow year 3 included - it is d0 less the tolerance in all three worlds (PR6); only spread reads
+differ by world]. So:
 
 - **A1: coverage on the world-free remaining need** N_t (the zero-growth bridge need from year t, F2's own definition,
   grid.js zeroGrowthNeed - WRONG, corrected by the deep review after PMAP, deep-review-log.md 4 Oct 18:35 UK: zeroGrowthNeed, grid.js l.597-611, is the whole-plan need to totalYears; the bridge need is bridgeTable v2's req[t], grid.js l.518-527, the worst zero-growth prefix net of inflows): c = (ISA + taxable and cash) / N_t, nodes dense around 1. One state per cell in every world.
@@ -45,7 +47,7 @@ only in the last bill year. So:
   matter, A1 puts the boundary close to a node in every world; if spread, A1 leaves a straddle B would not.
 - Option B's leftover span and exposure: small means B is near-exact per row.
 
-## The build (behind `coverage`, research only, default off)
+## The build (behind `coverage`, research only, default off) [written for A1; the recommendation recorded below is B]
 
 1. A1's axis in reader years: the share axis a replaced by c on fixed nodes (for example 0, 0.5, 0.9, 1, 1.1, 2 and the
    row's maximum), a cell with c N_t above W clipped to the row; after access and in years with no reader, unchanged.
@@ -69,9 +71,11 @@ only in the last bill year. So:
 - Its decisive test, COV-B-STEP: PMAP's unit (READER/TS+J/W0.02/PCLSI, 6 points) against the same with the node, on S130,
   S126, bridge 4 and S370 with bridge 0 the identity control; the step read less the claim at t + 1 by world and year, the
   spread reads' residual at fixed policy, a fixed-policy re-read, decisions changed, paired survival (exact, Holm) as the
-  harm item; about 3.5 core-hours an arm. What separates the causes: the dead node's flat copy predicts S130 and S126 near
-  their 12-point read; a steepening continuation, an overshoot; O81, S370's aggregate bridge term turning negative; the
-  chooser moving, a gap between the fixed-policy and re-solved reads.
+  harm item; about 3.8 core-hours an arm (PMAP's own unit on its five households: the solve and world lines' secs in
+  results/diagpmap sum to 13,556 s). What separates the causes: the dead node's flat copy predicts S130's step read near 7av's 12-point read (grade C, NOT SETTLED: a reference to be replaced, and squared with O86's gate, at COV's
+registration; S126 has no 12-point read, so its reference is set there too); a steepening continuation, an overshoot; O81, S370's aggregate bridge term turning negative; the
+  chooser moving, a gap between the fixed-policy and re-solved reads. With it, O81's own test (its gate: before any
+  step-read fix is read): S370 PCLSI with readerRef 'order', one more unit (the plan-auditor's MINOR 1 of 4 Oct 18:44 UK).
 - What would make it wrong: the per-row locate breaking fast.js's flow, e3's identity or the cost; the spread channel
   needing a band of world-free nodes (A1 on req gives it in one build); c concave near the edge, so the chord from 0.8 to
   the edge over-corrects.

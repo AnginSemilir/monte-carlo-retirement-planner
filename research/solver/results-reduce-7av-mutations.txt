@@ -25,6 +25,7 @@ caught: item 2's HELD side one-sided
 caught: item 2's FALSIFIED band at a third
 caught: item 2 without Holm
 caught: item 2's overshoot flag dropped
+caught: the acted test reads the line against the quadratic, not the fall-backs
 caught: item 3's premise sign flipped
 caught: item 3's HELD band at a quarter
 caught: item 3's FALSIFIED band at a half
@@ -33,8 +34,13 @@ caught: item 4's TOST one-sided
 caught: item 4 OVER on one read
 caught: item 4 ignores the negative side
 caught: the class check across units dropped
+caught: the class rule lets any unit turn spread into step
+caught: the class rule lets ORDER turn step into spread
+caught: the pyear path sums not checked
+caught: the pyear columns not checked
+caught: the gate ignores a missing pyear line
+caught: item 2 reads a quadratic that never acted
 caught: the step years not held to the review's
-caught: a quadratic that only fell back counts as acting
 caught: item 1's overshoot flag dropped
 caught: item 3's overshoot flag dropped
 caught: item 5's HELD band at 0.9
@@ -47,4 +53,4 @@ caught: the clip counts dropped
 caught: the fall-back count dropped
 caught: R left as the reader's (S not reproduced)
 caught: isStep takes a half chance as a step
-49 of 49 mutations caught
+55 of 55 mutations caught

@@ -20,6 +20,9 @@
  *   psplit: each path's bridge-stage terms (4 decimals), in path order: step flat, step straight line, step quadratic,
  *           spread flat, spread straight line, other (so arms and reads pair; step flat + spread flat + other is 7ar's read
  *           term, step straight line + spread straight line + other 7at's read (b) term);
+ *   pyear:  each path's flat read term by bridge year (4 decimals), in path order, whatever the year's class (so item 3 reads
+ *           the same years in both its units when a year's class differs between them: the preflight of 4 Oct found S370's
+ *           year-3 read a step read under 'order' and a spread read under the reader's reference);
  *   qcount: per unit, the tables read, the step tables among them, and over the step tables the nodes the straight line and
  *           the quadratic extrapolated, the quadratic's fall-backs to a straight line, and each one's clips at 0 and at 1.
  *   node research/solver/audit-7av.mjs [points=30] [paths per world=2000] part k/n [seed=7002]
@@ -346,19 +349,21 @@ UNITS.forEach(([id, A, SET, X, SH], i) => {
     // 7av: the reads split into step and spread, each read four ways (flat, straight line on every table, straight line at
     // step reads, quadratic at step reads); by year, and each path's bridge-stage sums
     const sd = Array.from({ length: T + 1 }, () => ({ nr: 0, ns: 0, sf: 0, sl: 0, sq: 0, su: 0, qm: 0, np: 0, pf: 0, pl: 0, no: 0, of: 0 }));
-    const ps = Array.from({ length: N }, () => [0, 0, 0, 0, 0, 0]);
+    const ps = Array.from({ length: N }, () => [0, 0, 0, 0, 0, 0]), py = Array.from({ length: N }, () => new Float64Array(Math.max(0, Math.min(access, T + 1))));
     for (let j = 0; j < N; j++) for (let t = 0; t <= T; t++) {
       const c = claim[j * (T + 2) + t], c1 = claim[j * (T + 2) + t + 1];
       if (c !== c || c1 !== c1) continue;
       const o = j * (T + 2) + t + 1, kd = kdAt[o], ra = raAt[o], rb = rbAt[o], rq = rqAt[o];
       if (kd === -2 || ra !== ra || rq !== rq) { console.error(`audit-7av: ${L} world ${k} path ${j} year ${t + 1}: a read without its class or quadratic`); process.exit(2); }
       const y = sd[t]; y.nr++;
+      if (t < access) py[j][t] += ra - c1;   // the flat read term by bridge year, whatever its class
       if (kd === 1) { y.ns++; y.sf += ra - c1; y.sl += rb - c1; y.sq += rq - c1; y.su += uw[o]; if (Math.abs(rq - ra) > 1e-9) y.qm++; if (t < access) { ps[j][0] += ra - c1; ps[j][1] += rb - c1; ps[j][2] += rq - c1; } }
       else if (kd === 0) { y.np++; y.pf += ra - c1; y.pl += rb - c1; if (t < access) { ps[j][3] += ra - c1; ps[j][4] += rb - c1; } }
       else { y.no++; y.of += ra - c1; if (t < access) ps[j][5] += ra - c1; }   // a read of a table with no reader (the access year's, or after): every read is the flat one
     }
     for (let t = 0; t <= T; t++) { const y = sd[t]; console.log(`${''.padEnd(16)} sdec ${L} world ${k} year ${t}: reads ${y.nr} step ${y.ns} flat ${f4(y.sf, y.ns)} lin ${f4(y.sl, y.ns)} quad ${f4(y.sq, y.ns)} unsup ${f4(y.su, y.ns)} qmoved ${y.qm} spread ${y.np} flat ${f4(y.pf, y.np)} lin ${f4(y.pl, y.np)} other ${y.no} flat ${f4(y.of, y.no)}`); }
     if (access > 0) console.log(`${''.padEnd(16)} psplit ${L} world ${k}: ${ps.map(p => p.map(x => x.toFixed(4)).join(',')).join(';')}`);
+    if (access > 0) console.log(`${''.padEnd(16)} pyear ${L} world ${k}: ${py.map(p => Array.from(p, x => x.toFixed(4)).join(',')).join(';')}`);
   }
   console.log(`${''.padEnd(16)} xcount ${L}: tables ${XCOUNT.tables} extrapolated ${XCOUNT.extrapolated} flat ${XCOUNT.flat}`);
   XCOUNT.tables = 0; XCOUNT.extrapolated = 0; XCOUNT.flat = 0; XB.clear();

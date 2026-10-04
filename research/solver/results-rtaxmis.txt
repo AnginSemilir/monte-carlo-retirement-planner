@@ -1,0 +1,30 @@
+stamp: code 5e1edac08e4b audit 9429951cd401 prediction none sha -
+RTAX'S MISCLASSIFICATION PRINT: READER/TS+J/W0.02/PCLSI at 6 share points; tau on the 30-point unit's nodes; 3000 off-node states a step year; false support (reader says supported, every floor move fails) and false failure (reader says unsupported, a floor move pays)
+S130             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 150
+                 year 0: spread (not read)
+                 year 1: step | d0 83200 | rows bisected 1080 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 3 false failure 0 | RTAX false support 0 false failure 0
+                 done
+S370             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 177
+                 year 0: spread (not read)
+                 year 1: spread (not read)
+                 year 2: spread (not read)
+                 year 3: step | d0 83200 | rows bisected 1080 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 1 false failure 0 | RTAX false support 0 false failure 0
+                 year 4: spread (not read)
+                 year 5: spread (not read)
+                 year 6: spread (not read)
+                 year 7: step | d0 83200 | rows bisected 1080 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 0 false failure 0 | RTAX false support 0 false failure 0
+                 done
+bridge 4         case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 158
+                 year 0: spread (not read)
+                 year 1: spread (not read)
+                 year 2: spread (not read)
+                 year 3: step | d0 23200 | rows bisected 1134 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 0 false failure 0 | RTAX false support 0 false failure 0
+                 done
+S126             case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 151
+                 year 0: spread (not read)
+                 year 1: step | d0 23200 | rows bisected 1134 | nodes 9720: RTAX false support 0 false failure 0 | off-node 3000: TODAY false support 0 false failure 0 | RTAX false support 0 false failure 0
+                 done
+bridge 0         case | unit READER/TS+J/W0.02/PCLSI | worlds 3 | floor moves 72 | reader yes | secs 144
+                 done
+TOTAL: nodes 48600: RTAX false support 0 false failure 0 | off-node 15000: TODAY 4 (false support 4, false failure 0), RTAX 0 (false support 0, false failure 0)
+BAR (items/RTAX.md test 6: RTAX under a tenth of TODAY's off-node cases and at most 1% of the positions): MET (RTAX/TODAY 0.0000, RTAX share 0.0000)

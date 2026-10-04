@@ -34,6 +34,7 @@ writeFileSync(file, `# Prediction: ${name}
 ## Derivation
 
 What the mathematics and the existing records say, with the scripts that computed any figure.
+Every check this prediction names (a gate, a count, a power model) is run once on a planted case of exactly its claim before registration, and that output is quoted here. A quantity derived at a conditioned node (a selected slice of paths) is computed on that slice's own paths, not on the unconditioned expectation.
 
 ## Prediction
 

@@ -1,0 +1,23 @@
+FAIR-TEST GATE: research/solver/predictions/diag-7ae.md was corrected after launch (c79b4cbc at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - - 29 Sept, after 7ae was read (the maintainer's "unlock enforcement" of 29 Sep, which let the stamp gate take a declared correction): two typed times corrected from the records - the Written line's revision 21:10 to 21:12 UK (commit 4aef99f) and the Derivation's plan-auditor MINOR 1 of 21:1x to 21:13 UK (review-log.md). Nothing else changed: no prediction, falsifier, decision rule, fair-test row or figure.
+
+FAIR-TEST GATE: research/solver/predictions/diag-7af.md was corrected after launch (f848990a at launch): nothing but typed UK times changed, and the change declared (a time, or a reducer the declaration names; its words are not checked) - - 29 Sept, after 7af was read (the maintainer's "unlock enforcement" of 29 Sep, which let the stamp gate take a declared correction): two typed times in the Written line corrected from the records - the revision 23:40 to 23:32 UK (commit 0f3728e) and the plan-auditor's FAIL 23:24 to 23:23 UK (review-log.md) - per the plan-auditor's MINOR 1 of 28 Sep and BLOCKING 2 of 29 Sep. Nothing else changed: no prediction, falsifier, decision rule, fair-test row or figure.
+
+FAIR-TEST GATE: passed - 4 jobs; P's records through P's gate; every job's solve lines P's (table, ran, gap, joint, moves, price, worlds); every line and trace present and agreeing with its log; today's OPEN2, WA and TS+J on 2000 paths identical to P's; the learner's and the oracle's shifts the same paths
+7AU: THE LEARNER AT P'S SETTINGS (predictions/diag-7au.md): P's three units at switchCharge 0.001 (margin 0, TS+J, 30x5), the learner (learn.mjs: one risky pot a year) and the oracle against P's own runs; 16000 paths of seed 7002 at S194's bad node, 16000 across all worlds; P's records through P's gate; this run's solves and its OPEN2, WA and TS+J on 2000 paths identical to P's
+
+ITEM 1 (primary; the learner's share of S194's node slice): survival OPEN2 91.700, OPEN2+L 92.681, WA 93.800 (OPEN2+O 93.800, reported); the whole score a path: the slice (WA less OPEN2) +1.781 (test p 5.00e-5), the learner (OPEN2+L less OPEN2) +0.872; the learner's share 0.49; Holm p: above two thirds 1.00e+0, under a third 1.00e+0; the learner's end weights at the node 0.481,0.503,0.015 (40.0 updates a path)
+  -> INCONCLUSIVE (HELD: learnable in time, more than two thirds recovered; FALSIFIED: not learnable in time, under a third)
+  reported: by survival, the learner 211 saved/54 lost against OPEN2, WA 372/36, the oracle with OPEN2's opening 372/36 (its whole score +1.781 a path, 1.00 of the slice); share by survival 0.47
+
+ITEM 2 (no material harm across all worlds): TS+J+L against P's TS+J, 16000 paths paired; survival by the exact rule (Holm over 3) and the guarded interval at the unit's margin, the whole score's lower end above -0.25
+  bridge 4  27 saved/0 lost of 16000 | survival +0.169 (exact 0.126 to 0.169; guarded 0.108 to 0.245; margin 0.25) no material harm | whole +0.132 (0.060 to 0.223) -> SAFE
+  S194      33 saved/13 lost of 16000 | survival +0.125 (exact 0.038 to 0.196; guarded 0.041 to 0.213; margin 0.25) no material harm | whole +0.067 (-0.040 to 0.179) -> SAFE
+  S126      14 saved/0 lost of 16000 | survival +0.087 (exact 0.047 to 0.087; guarded 0.043 to 0.147; margin 0.25) no material harm | whole +0.064 (0.010 to 0.135) -> SAFE
+  -> HELD (HELD when all three are SAFE; FALSIFIED when any is HARM)
+
+REPORTED: ACROSS ALL WORLDS, THE ORACLE (the bound) AND EVERY ARM BY LONG-RUN-SHIFT BIN (survival %, n; the shift under -0.866, between, above 0.866)
+  bridge 4  TS+J+O 27 saved/0 lost, whole +0.139 (0.067 to 0.231) | by bin TS+J/+L/+O: 98.17/98.91/98.97 (n 3114) | 99.93/99.97/99.95 (n 9852) | 100.00/100.00/100.00 (n 3034) | end weights +L 0.165,0.666,0.169, +O 0.221,0.562,0.217
+  S194      TS+J+O 48 saved/20 lost, whole +0.305 (0.171 to 0.445) | by bin TS+J/+L/+O: 93.90/94.36/95.14 (n 3065) | 99.67/99.73/99.57 (n 9799) | 100.00/100.00/100.00 (n 3136) | end weights +L 0.165,0.664,0.172, +O 0.219,0.558,0.223
+  S126      TS+J+O 16 saved/0 lost, whole +0.081 (0.026 to 0.156) | by bin TS+J/+L/+O: 98.99/99.45/99.48 (n 3069) | 99.98/99.98/99.99 (n 9804) | 100.00/100.00/100.00 (n 3127) | end weights +L 0.165,0.664,0.171, +O 0.220,0.558,0.222
+
+OUTCOME: 1 INCONCLUSIVE; 2 HELD

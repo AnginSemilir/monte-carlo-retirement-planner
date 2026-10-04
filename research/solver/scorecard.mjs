@@ -52,6 +52,7 @@ export const TESTS = [
   { name: '7ar (O76\'s decomposition: where the bridge stage\'s rise under the interpolated allowance axis sits)', prediction: 'predictions/diag-7ar.md', results: 'results-7ar.txt' },
   { name: '7as (the charge\'s size and S194\'s bad-world slice)', prediction: 'predictions/diag-7as.md', results: 'results-7as.txt' },
   { name: '7at (the allowance axis with a bucket at the wall, and O76\'s read (b))', prediction: 'predictions/diag-7at.md', results: 'results-7at.txt' },
+  { name: '7au (the learner at P\'s settings)', prediction: 'predictions/diag-7au.md', results: 'results-7au.txt' },
 ];
 
 export function credences(predText) {
@@ -66,6 +67,9 @@ export function credences(predText) {
   if (once) for (const x of m[1].slice(once.index).matchAll(/(?:\):|;)\s*(\d+)\s*,\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) { predicted[x[1]] = once[1]; withLabels[x[1]] = Number(x[2]); }
   // one item named alone (7al, added 30 Sep): "that item 1 reads as predicted (HELD): 0.55"
   for (const x of m[1].matchAll(/item (\d+) reads as predicted \((HELD|FALSIFIED|INCONCLUSIVE)\):\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) { predicted[x[1]] = x[2]; withLabels[x[1]] = Number(x[3]); }
+  // every outcome given a probability, item by item (7au, added 4 Oct): "- **Item 1:** FALSIFIED 0.55, INCONCLUSIVE 0.35,
+  // HELD 0.10." - the first outcome named is the one predicted, scored 1 when the item reads as it
+  for (const x of m[1].matchAll(/\*\*Item (\d+):\*\*\s*(HELD|FALSIFIED|INCONCLUSIVE)\s+(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) { predicted[x[1]] = x[2]; withLabels[x[1]] = Number(x[3]); }
   if (/reads as predicted:/.test(m[1])) for (const x of m[1].matchAll(/(?:predicted:|;|\):)\s*(\d+)\s*\((HELD|FALSIFIED|INCONCLUSIVE)\),\s*(\d+(?:\.\d+)?|\.\d+)(?!\d)(?!\.\d)/g)) { predicted[x[1]] = x[2]; withLabels[x[1]] = Number(x[3]); }
   const body = m[1].replace(/\([^)]*\)/g, ' ');   // drop the reasons in brackets
   const items = Object.keys(withLabels).length ? withLabels : {};
@@ -192,6 +196,7 @@ SECONDARY, REPORTED - the reader against v1 and against v2 (look 1, Holm across 
     ['planted: an outcome with no credence stops the scorecard', t(() => scoreTest(P, res(['1. a -> held', '2. b -> held', '3. c -> held', '4. d -> held']))), 'ERROR items do not match: credence '],
     ['planted: no Credence section stops the scorecard', t(() => credences('# Prediction: x\n\n## Power\n\nx\n')), 'ERROR no "## Credence" section'],
     ['planted: a credence above 1 stops the scorecard', t(() => credences(pred('each item holds: 1, 1.5.'))), 'ERROR item 1: credence 1.5 is not a probability'],
+    ['planted: every outcome given a probability scores the first-named (7au\'s form)', t(() => { const c = credences(pred('- **Item 1:** FALSIFIED 0.55, INCONCLUSIVE 0.35, HELD 0.10.\n- **Item 2:** HELD 0.85, INCONCLUSIVE 0.12, FALSIFIED 0.03.')); return `${c.items[1]}:${c.predicted[1]} ${c.items[2]}:${c.predicted[2]}`; }), '0.55:FALSIFIED 0.85:HELD'],
     ['a three-outcome prediction: the HELD share is the whole', JSON.stringify(credences(pred('each item holds: 1, 0.60; 2, 0.90. The outcome: HELD 0.55, FALSIFIED 0.15, INCONCLUSIVE 0.30.')).overall), '0.55'],
     ['a three-outcome verdict: HELD scores 1, INCONCLUSIVE and FALSIFIED 0', ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].map(v => outcomes(`THE PREDICTION'S ITEMS:\n1. a: x -> held\n\nOUTCOME: ${v} - why`).overall).join(','), '1,0,0'],
     ['7r, its real prediction against its saved results-7r.txt, scored', t(() => { const r = scoreTest(readFileSync(join(HERE, 'predictions/diag-7r.md'), 'utf8'), readFileSync(join(HERE, 'results-7r.txt'), 'utf8')); return `${r.status} ${r.pairs.length} ${r.pairs.map(x => x.o).join('')}`; }), 'SCORED 6 101111'],

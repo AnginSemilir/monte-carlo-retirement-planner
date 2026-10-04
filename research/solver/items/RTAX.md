@@ -118,7 +118,7 @@ Step years only (readerTax acts nowhere else); the control an all-ISA household 
 that does something), bridge 0 kept as the no-reader identity. Read as non-inferiority on paired survival (exact,
 Holm, the household's margin) plus the mechanism prints: supported nodes failing every floor move before and after
 (0 after), alive-but-unsupported nodes before and after, step-read p and c by cell, decisions changed, the fixed-policy
-re-read. COV-B-STEP carries the efficacy read. Sized before it is registered (on the 6-share grid only the band about
+re-read. COV-B-STEP carries the efficacy read. O81's readerRef 'order' unit (S370 PCLSI) runs beside it: O81's gate is before any step-read fix is read, and RTAX is the first. Sized before it is registered (on the 6-share grid only the band about
 tau wide moves; the harm read may be underpowered).
 
 ## Before the build: the misclassification print (test 6 as a measurement, no solve)

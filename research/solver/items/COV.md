@@ -95,3 +95,38 @@ not on the grid's resolution). Every reader year and world:
 So B's step-year node is one node a row in every world, as the deep review proposed; in spread years a per-world edge
 would be three nodes 3-8% apart (A2's problem under TS+J), while A1 on req puts its c = 1 node within 0.92 to 1.00 of
 every world's edge. COV-B-STEP stays in step years; spread years are A1-on-req's if they are ever touched.
+
+## The implementation (proposed 4 Oct, for a deep review before any solver code)
+
+How B's step-year node goes into the grid. Three ways were weighed; the third is proposed.
+
+- **Stretch the share axis per row** (keep six nodes, top node moved from a = 1 to the row's edge a*_j, the rest spread
+  evenly below it). Rejected: it moves every supported node too (the resolution changes with the node, so the test would
+  blame a combination, lessons.md's 7ak close), and it removes the region above the edge, so the 141 reads below their own
+  edge would read the edge node's residual (about 0) clamped, where B blends towards the dead node's own survival.
+- **Snap the first unsupported node onto the edge** (shape kept; only a dead node moves). Exactly B where the edge is below
+  0.8, since every node above the edge copies the edge node (reader.js l.116). Rejected: PMAP puts the unsupported weight
+  in the top cell [0.8, 1], where the only dead node to move is a = 1 itself, and moving it loses the dead region as above.
+- **Proposed: insert the node, ni + 1 share slots, per-row nodes in step years.** With `coverage` on, the share axis has
+  seven slots. In a step year t the nodes of wealth row j are 0, 0.2, ..., 0.8, 1 with a*_j(t) inserted in order (a*_j at
+  or below 0, at or above 1, or on a node: the seventh slot repeats a = 1). In every other year the seventh slot repeats
+  a = 1 and is never located into (a zero-width cell); the solve copies it rather than solving it. That is B exactly, the
+  old nodes all kept.
+  - **The edge**: a*_j(t) = 1 - (d0 - tol/2) / W_j, half the tolerance inside the band so W_j (1 - a*_j) rounds to a
+    supported position (reader.js l.61: zero only below d0 - tol). A year is a step year when every world's reference
+    chance is 1 at d0 - tol/2 and 0 at d0 - 2 tol (the edge print's own test, made exact); all worlds' d0 are equal (a
+    TS+J cell is one money state). A year where they differ throws.
+  - **Where it reaches**: toVec(g, ..., yr) reads the row's own node; locateVec and readValues locate a once per wealth
+    corner (two locates, the two rows' own nodes) in a step year, the old single locate otherwise; buildReaderTable
+    already walks every slot through toVec. The twelve call sites listed above pass the year (readValues has it).
+  - **Cost**: step years are one or two a household (results-covedge.txt), so about 1/6 more cells in those years and
+    the second locate there; memory 7/6 throughout. Measured in the preflight against PMAP's unit, not assumed.
+  - **Unit tests before the build is used**: coverage off bit-identical (the golden tests); coverage on in a plan with
+    no reader year bit-identical in values to off (the seventh slot never read); round trip toVec -> locateVec returns
+    the node in every slot of a step year; in a step year the inserted node is supported in every world and no read at
+    a supported position touches a node above the edge (the planted fault: the node placed at d0 - 2 tol, which must
+    fail it); the access transition reads the next year's table in its own nodes; e3 and fast.js's flow refuse
+    `coverage` until each is shown bit-identical with it (both off in PMAP's unit).
+  - **What would make it wrong**: a wealth row whose edge falls between two rows' edges is still straddled along W
+    (the bilinear read across the two rows' own nodes leaves the chord between two edges; PMAP's span sizes it); the
+    copied seventh slot in non-step years changing a value through the backward pass (the second unit test pins it).

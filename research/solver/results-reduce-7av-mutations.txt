@@ -32,6 +32,14 @@ caught: item 4's bar at 1
 caught: item 4's TOST one-sided
 caught: item 4 OVER on one read
 caught: item 4 ignores the negative side
+caught: the class check across units dropped
+caught: the step years not held to the review's
+caught: a quadratic that only fell back counts as acting
+caught: item 1's overshoot flag dropped
+caught: item 3's overshoot flag dropped
+caught: item 5's HELD band at 0.9
+caught: item 5's FALSIFIED band at 0.7
+caught: item 5's premise ignores F12
 caught: order 1 drops extrap-7at's arithmetic (the Lagrange line instead)
 caught: the quadratic takes two nodes (a straight line)
 caught: no clip at 0
@@ -39,4 +47,4 @@ caught: the clip counts dropped
 caught: the fall-back count dropped
 caught: R left as the reader's (S not reproduced)
 caught: isStep takes a half chance as a step
-41 of 41 mutations caught
+49 of 49 mutations caught

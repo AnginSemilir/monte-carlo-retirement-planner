@@ -22,7 +22,13 @@
  *     other equal to its pstage read term and step line + spread line + other to its pbstage term, and each column summing to
  *     the sdec lines' bridge years; one qcount line a unit (steps at most the tables, its straight-line nodes at most xcount's);
  *     and RESPONSIVENESS (CHECKLIST item 6): in world 0 every unit has a step read in the bridge, and on every PCLSI READER unit
- *     the quadratic moved at least one bridge step read - a read that cannot move cannot answer item 2.
+ *     the quadratic moved at least one bridge step read and differs from the straight line on at least one bridge step year (a
+ *     quadratic that only fell back to the line has not acted) - a read that cannot move cannot answer item 2;
+ *   - THE CLASS, across units (the plan-auditor's BLOCKING 1 and the pre-launch deep review of 4 Oct 07:06 UK): each item's
+ *     paired units put the same world-0 bridge years in the same classes (step, spread, other) - PCLSI at 6 against PCLSI at 12
+ *     and against DEFAULT at 6 on each household, and S370's ORDER against its PCLSI at 6 - so no item compares different sets
+ *     of reads; and the READER units at 6 share points read their step years where the deep review found them (S130 plan year
+ *     0, S370 years 2 and 6), so the run's class agrees with the review's before any item is read.
  * THE ITEMS (registered rule; ALPHA 0.05; Fisher's paired randomization test as 7ar's, B = 20,000 flips, one-sided; world 0,
  * the bridge stage, per path, paired across arms on the same paths; psplit's columns):
  *   1. RESOLUTION (the deep review's cause 1 against cause 3): F6, F12 = the step reads' flat-copy term under PCLSI at 6 and at
@@ -46,10 +52,24 @@
  *      mean(0.5 - X) above 0 and mean(X + 0.5) above 0 are under 0.05 (the larger p), Holm over its household's two reads; OVER
  *      when mean(X - 0.5) above 0 or mean(-0.5 - X) above 0 is under 0.05 after Holm over 8 (two households, two reads, two
  *      directions). HELD (the bridge part not needed) when on both households a read is UNDER; FALSIFIED (needed) when on either
- *      household both reads are OVER; else INCONCLUSIVE.
+ *      household both reads are OVER; else INCONCLUSIVE. Item 4 reads 12-point tables: 'not needed' holds at 12 share points
+ *      only (the pre-launch deep review).
+ *   5. CURVATURE OR A BOUNDARY LAYER (the pre-launch deep review's registered prediction): the straight line's residual fraction
+ *      within each unit, r = mean L / mean F at the step reads, r6 at 6 share points and r12 at 12 - a ratio within one solve,
+ *      largely free of the policy moving between solves. Premise per household: mean F12 above 0 and r6 above 0. HELD (smooth
+ *      curvature: the residual fraction shrinks with the cell, 0.7 of r6 or less) when the test of mean(0.7 r6 F12 - L12) above 0
+ *      is under 0.05 after Holm over 4; FALSIFIED (a boundary layer narrower than a cell: 0.9 of r6 or more) when the test of
+ *      mean(L12 - 0.9 r6 F12) above 0 is; else INCONCLUSIVE; r6 taken as known from the 6-point unit (its own noise not
+ *      carried; declared). The item as item 1.
+ *   Overshoot flags: item 1 flagged OVERSHOT when mean(-0.6 F6 - F12) above 0 is under 0.05 (the step error turns the other
+ *   way at 12); item 3 flagged OVERSHOT when mean(O6 + P6/2) above 0 is ('order' turns the spread reads optimistic by more than
+ *   half the pessimism it removes).
  * Reported, not items: each unit's bridge-stage step, spread and other terms by world under each read; the step and spread
  * terms by year; the straight line at step reads' share of the whole rise at 6 points (the review's 0.73 on S370 and 0.64 on
- * S130 from 7at's lines, to be reproduced); the 12-point rise; the extrapolation's node and clip counts.
+ * S130 from 7at's lines, reproduced: the 6-point units are 7at's); the spread term at 12 points over 6 beside item 3 (if share
+ * spacing also shrinks the spread pessimism, O81 is partly the flat copy's); S370's reference against its own draw and the
+ * engine's paid share under the reader's reference and 'order''s (O36 is named only if 'order' sits nearer the engine); the
+ * extrapolation's node, fall-back and clip counts.
  *   node research/solver/reduce-7av.mjs [dir] [dir7at] > research/solver/results-7av.txt
  *   node research/solver/reduce-7av.mjs --planted   the planted checks alone, the outcomes they reach (OUTCOMES REACHED)
  *                                                     and the boundary cases (EDGES)
@@ -105,7 +125,8 @@ export const normRan = ran => (ran || '').replace(/ grid total(\d+)x\d+x\d+/, ' 
 const IDENT_7AT = /unit lines, not 1|no unit in 7ar's records|no unit in 7ap's records|is not 7ar's|is not 7ap's|lines are not 7ar's|lines are not 7ap's/;
 
 /* THE GATE. `refAt(id, arm, label)` 7at's parsed unit; `pts` and `npw` the run's size */
-export function gate(units, refAt, { pts = PTS, npw = NPW } = {}) {
+export const STEPY = { S130: [0], S370: [2, 6] };   // the deep review's step years (deep-review-log.md 4 Oct 03:18 UK)
+export function gate(units, refAt, { pts = PTS, npw = NPW, stepYears = STEPY } = {}) {
   const bad = [];
   for (const [id, a, l] of UNITS) { const k = units.filter(u => u.id === id && u.arm === a && u.label === l).length; if (k !== 1) bad.push(`${id} ${a}/${l}: ${k} unit lines, not 1`); }
   const get = (id, a, l) => units.find(u => u.id === id && u.arm === a && u.label === l);
@@ -173,8 +194,24 @@ export function gate(units, refAt, { pts = PTS, npw = NPW } = {}) {
       const ci = cols.findIndex((c, i) => !(Math.abs(c - want[i]) <= tol(npw * Math.max(1, ac.year))));
       if (ci >= 0) bad.push(`${tag} world ${k}: psplit column ${['step flat', 'step line', 'step quadratic', 'spread flat', 'other'][ci]} sums to ${cols[ci].toFixed(2)}, the sdec lines' bridge years ${want[ci].toFixed(2)}`);
       if (k === WORLD && !bridge.some(y => y.ns > 0)) bad.push(`${tag} world ${k}: no step read in the bridge - the items read step reads`);
+      if (k === WORLD && u.arm === 'READER' && X === 'PCLSI' && !bridge.some(y => y.ns > 0 && Number.isFinite(y.sq) && Number.isFinite(y.sl) && Math.abs(y.sq - y.sl) > 5e-5)) bad.push(`${tag} world ${k}: the quadratic equals the straight line on every bridge step year - a quadratic that only fell back has not acted, so it cannot answer item 2`);
       if (k === WORLD && u.arm === 'READER' && X === 'PCLSI' && !bridge.some(y => y.qm > 0)) bad.push(`${tag} world ${k}: the quadratic moved no bridge step read - a read that cannot move cannot answer item 2`);
     }
+  }
+  // the class across units: the same world-0 bridge years in the same classes on each item's paired units; the 6-point READER
+  // units' step years the deep review's
+  const patOf = u => (u && u.access ? u.sdec.filter(y => y.k === WORLD && y.t < u.access.year).sort((p, q) => p.t - q.t).map(y => `y${y.t}:${y.ns > 0 ? 's' : ''}${y.np > 0 ? 'p' : ''}${y.no > 0 ? 'o' : ''}`).join(' ') : null);
+  const pairs = [...HH.flatMap(id => [[id, 'READER', 'PCLSI', 12], [id, 'READER', 'DEFAULT', 6]].map(b => [[id, 'READER', 'PCLSI', 6], b])), [['S370', 'READER', 'PCLSI', 6], ['S370', 'ORDER', 'PCLSI', 6]]];
+  for (const [[ia, aa, xa, sa], [ib, ab, xb, sb]] of pairs) {
+    const ua = get(ia, aa, labelOf('TS+J', xa, sa)), ub = get(ib, ab, labelOf('TS+J', xb, sb));
+    if (!ua || !ub) continue;
+    if (patOf(ua) !== patOf(ub)) bad.push(`${ib} ${ab}/${ub.label}: its world-0 bridge classes by year (${patOf(ub)}) are not ${ia} ${aa}/${ua.label}'s (${patOf(ua)}) - the item would compare different sets of reads`);
+  }
+  for (const id of HH) for (const x of ['DEFAULT', 'PCLSI']) {
+    const u = get(id, 'READER', labelOf('TS+J', x, 6));
+    if (!u || !u.access) continue;
+    const ys = u.sdec.filter(y => y.k === WORLD && y.t < u.access.year && y.ns > 0).map(y => y.t).sort((p, q) => p - q);
+    if (JSON.stringify(ys) !== JSON.stringify(stepYears[id] || [])) bad.push(`${id} READER/${u.label}: its world-0 bridge step years ${ys.join(', ') || 'none'}, not the deep review's ${(stepYears[id] || []).join(', ')}`);
   }
   return bad;
 }
@@ -187,9 +224,9 @@ const both = hs => (hs.length === HH.length && hs.every(h => h.read === 'HELD') 
 
 /* ITEM 1: per household { id, F6, F12 } */
 export function item1(xs, { b = B } = {}) {
-  const hs = xs.map(({ id, F6, F12 }) => { const pP = flipP(F6, b, 7001); return { id, m6: mean(F6), m12: mean(F12), pP, premise: pP < ALPHA && mean(F6) > 0, pU: flipP(lin(F6, 0.6, F12, -1), b, 7002), pD: flipP(lin(F12, 1, F6, -0.9), b, 7003) }; });
+  const hs = xs.map(({ id, F6, F12 }) => { const pP = flipP(F6, b, 7001); return { id, m6: mean(F6), m12: mean(F12), pP, premise: pP < ALPHA && mean(F6) > 0, pU: flipP(lin(F6, 0.6, F12, -1), b, 7002), pD: flipP(lin(F12, 1, F6, -0.9), b, 7003), pO: flipP(lin(F6, -0.6, F12, -1), b, 7012) }; });
   const adj = holm(hs.flatMap(h => [h.pU, h.pD]));
-  hs.forEach((h, i) => { h.hU = adj[2 * i]; h.hD = adj[2 * i + 1]; h.ratio = h.m12 / h.m6; h.read = !h.premise ? 'INCONCLUSIVE' : h.hU < ALPHA ? 'HELD' : h.hD < ALPHA ? 'FALSIFIED' : 'INCONCLUSIVE'; if (!h.premise) h.note = 'NO STEP ERROR'; });
+  hs.forEach((h, i) => { h.hU = adj[2 * i]; h.hD = adj[2 * i + 1]; h.ratio = h.m12 / h.m6; h.read = !h.premise ? 'INCONCLUSIVE' : h.hU < ALPHA ? 'HELD' : h.hD < ALPHA ? 'FALSIFIED' : 'INCONCLUSIVE'; h.note = !h.premise ? 'NO STEP ERROR' : h.pO < ALPHA ? 'OVERSHOT' : ''; });
   return { hs, outcome: both(hs) };
 }
 /* ITEM 2: per household { id, L6, Q6 } */
@@ -203,7 +240,16 @@ export function item2(xs, { b = B } = {}) {
 export function item3({ P6, O6 }, { b = B } = {}) {
   const pP = flipP(P6.map(x => -x), b, 7009), premise = pP < ALPHA && mean(P6) < 0;
   const r = premise ? readTwo(flipP(lin(O6, 1, P6, -0.5), b, 7010), flipP(lin(P6, 0.75, O6, -1), b, 7011)) : { read: 'INCONCLUSIVE', note: 'NO SPREAD PESSIMISM' };
-  return { mP: mean(P6), mO: mean(O6), pP, premise, share: 1 - mean(O6) / mean(P6), it: r, outcome: r.read };
+  const pO = premise ? flipP(lin(O6, 1, P6, 0.5), b, 7013) : 1;
+  if (r.read === 'HELD' && pO < ALPHA) r.note = 'OVERSHOT';
+  return { mP: mean(P6), mO: mean(O6), pP, pO, premise, share: 1 - mean(O6) / mean(P6), it: r, outcome: r.read };
+}
+/* ITEM 5: per household { id, F6, L6, F12, L12 }: the straight line's residual fraction within each unit, r6 taken as known */
+export function item5(xs, { b = B } = {}) {
+  const hs = xs.map(({ id, F6, L6, F12, L12 }) => { const r6 = mean(L6) / mean(F6), pP = flipP(F12, b, 7040); return { id, r6, r12: mean(L12) / mean(F12), pP, premise: pP < ALPHA && mean(F12) > 0 && mean(F6) > 0 && r6 > 0, pU: flipP(lin(F12, 0.7 * r6, L12, -1), b, 7041), pD: flipP(lin(L12, 1, F12, -0.9 * r6), b, 7042) }; });
+  const adj = holm(hs.flatMap(h => [h.pU, h.pD]));
+  hs.forEach((h, i) => { h.hU = adj[2 * i]; h.hD = adj[2 * i + 1]; h.read = !h.premise ? 'INCONCLUSIVE' : h.hU < ALPHA ? 'HELD' : h.hD < ALPHA ? 'FALSIFIED' : 'INCONCLUSIVE'; h.note = !h.premise ? 'NO STEP ERROR AT 12' : ''; });
+  return { hs, outcome: both(hs) };
 }
 /* ITEM 4: per household { id, L12, Q12 } */
 export function item4(xs, { b = B } = {}) {
@@ -237,12 +283,17 @@ export function reading(units, out = console.log, { b = B } = {}) {
   out(`  -> ${I2.outcome}`);
   const I3 = item3({ P6: col(get('S370', 'READER', 'PCLSI', 6), 3), O6: col(get('S370', 'ORDER', 'PCLSI', 6), 3) }, { b });
   out(`\nITEM 3 (O81 on S370, O36's proportional reference at the spread reads): the spread reads' flat term, PCLSI at 6, the reader's reference P6 ${f4(I3.mP)} (premise mean P6 < 0, p ${pe(I3.pP)}) and 'order''s O6 ${f4(I3.mO)}; the share of the pessimism 'order' removes ${f2(I3.share)}`);
-  if (I3.it.note) out(`  -> ${I3.outcome} (${I3.it.note})`);
-  else out(`  HELD side mean(O6 - P6/2) > 0: p ${pe(I3.it.pU)} Holm ${pe(I3.it.hU)}; FALSIFIED side mean(0.75 P6 - O6) > 0: p ${pe(I3.it.pD)} Holm ${pe(I3.it.hD)}\n  -> ${I3.outcome}`);
+  if (!I3.premise) out(`  -> ${I3.outcome} (${I3.it.note})`);
+  else out(`  HELD side mean(O6 - P6/2) > 0: p ${pe(I3.it.pU)} Holm ${pe(I3.it.hU)}; FALSIFIED side mean(0.75 P6 - O6) > 0: p ${pe(I3.it.pD)} Holm ${pe(I3.it.hD)}; overshoot p ${pe(I3.pO)}\n  -> ${I3.outcome}${I3.it.note ? ` (${I3.it.note})` : ''}`);
+  { const P12 = mean(col(get('S370', 'READER', 'PCLSI', 12), 3)); out(`  beside it (reported): the spread term at 12 share points P12 ${f4(P12)}, P12 / P6 ${f2(P12 / I3.mP)}; S370 world ${WORLD}'s reference against its own draw and the engine's paid share: ${[['READER', 'reader'], ['ORDER', 'order']].map(([a, nm]) => { const r = get('S370', a, 'PCLSI', 6).bref.find(x => x.k === WORLD); return r ? `${nm} reference ${f2(r.ref)} own ${f2(r.own)} engine ${f2(r.engine)}` : `${nm} -`; }).join('; ')}`); }
   const I4 = item4(HH.map(id => ({ id, L12: col(get(id, 'READER', 'PCLSI', 12), 1), Q12: col(get(id, 'READER', 'PCLSI', 12), 2) })), { b });
   out(`\nITEM 4 (the bridge part): the step reads' straight-line and quadratic terms, PCLSI at 12; UNDER when inside +/- ${BAR} by both one-sided tests (Holm over the household's two reads), OVER when beyond (Holm over 8)`);
   for (const h of I4.hs) out(`  ${h.id.padEnd(5)} ${[['line', h.L], ['quadratic', h.Q]].map(([nm, X]) => `${nm} ${f4(X.m)} (sd ${f2(X.sd)}) inside p ${pe(X.pT)} Holm ${pe(X.hT)}, above p ${pe(X.pA)} Holm ${pe(X.hA)}, below p ${pe(X.pB)} Holm ${pe(X.hB)} ${X.read}`).join(' | ')} | ${h.read}`);
-  out(`  -> ${I4.outcome} (HELD: the bridge part not needed; FALSIFIED: needed)`);
+  out(`  -> ${I4.outcome} (HELD: the bridge part not needed at 12 share points; FALSIFIED: needed)`);
+  const I5 = item5(HH.map(id => { const u6 = get(id, 'READER', 'PCLSI', 6), u12 = get(id, 'READER', 'PCLSI', 12); return { id, F6: col(u6, 0), L6: col(u6, 1), F12: col(u12, 0), L12: col(u12, 1) }; }), { b });
+  out(`\nITEM 5 (curvature or a boundary layer): r = mean L / mean F at the step reads within each unit, PCLSI; HELD (smooth curvature) when mean(0.7 r6 F12 - L12) > 0, FALSIFIED (a boundary layer) when mean(L12 - 0.9 r6 F12) > 0, each under ${ALPHA} after Holm over 4; r6 taken as known`);
+  for (const h of I5.hs) out(`  ${h.id.padEnd(5)} r6 ${f4(h.r6)} r12 ${f4(h.r12)} (premise p ${pe(h.pP)}) | HELD side p ${pe(h.pU)} Holm ${pe(h.hU)}; FALSIFIED side p ${pe(h.pD)} Holm ${pe(h.hD)} | ${h.read}${h.note ? ` (${h.note})` : ''}`);
+  out(`  -> ${I5.outcome}`);
   out(`\nREPORTED (not items):`);
   out(`  THE BRIDGE STAGE BY WORLD (points a path: step flat / line / quadratic, spread flat / line, other):`);
   for (const [id, a, x, sh] of UNITS7.map(([id, a, , x, sh]) => [id, a, x, sh])) for (let k = 0; k < K; k++) { const u = get(id, a, x, sh), m = c => f2(mean(col(u, c, k))); out(`    ${id} ${a} ${x} S${sh} world ${k}: step ${m(0)} / ${m(1)} / ${m(2)}  spread ${m(3)} / ${m(4)}  other ${m(5)}`); }
@@ -252,8 +303,9 @@ export function reading(units, out = console.log, { b = B } = {}) {
   for (const id of HH) { const P = get(id, 'READER', 'PCLSI', 6), D = get(id, 'READER', 'DEFAULT', 6), rd = j => (u => u.psplit.find(p => p.k === WORLD).paths[j]); const n = P.psplit.find(p => p.k === WORLD).paths.length; let R = 0, Ls = 0; for (let j = 0; j < n; j++) { const p = rd(j)(P), d = rd(j)(D); R += (p[0] + p[3] + p[5]) - (d[0] + d[3] + d[5]); Ls += (p[1] + p[3] + p[5]) - (d[1] + d[3] + d[5]); } out(`    ${id}: the rise ${f4(R / n)}, under the straight line at step reads ${f4(Ls / n)}, the share taken away ${f2((R - Ls) / R)}`); }
   out(`  THE EXTRAPOLATION'S COUNTS: ${UNITS7.map(([id, a, , x, sh]) => { const q = get(id, a, x, sh).qcount; return `${id} ${a} ${x} S${sh} tables ${q.tables} steps ${q.steps} line ${q.lin} (clipped ${q.linLo} low, ${q.linHi} high) quadratic ${q.quad} (fell back ${q.back}, clipped ${q.quadLo} low, ${q.quadHi} high)`; }).join('; ')}`);
   out(`  THE TABLES: ${UNITS7.map(([id, a, , x, sh]) => `${id} ${a} ${x} S${sh} ${get(id, a, x, sh).table}`).join('; ')}`);
-  out(`\nOUTCOME: 1 ${I1.outcome}; 2 ${I2.outcome}; 3 ${I3.outcome}; 4 ${I4.outcome}`);
-  return { I1, I2, I3, I4 };
+  out(`  THE QUADRATIC'S FALL-BACKS: ${UNITS7.filter(u => u[3] === 'PCLSI' && u[1] === 'READER').map(([id, a, , x, sh]) => { const q = get(id, a, x, sh).qcount; return `${id} S${sh} ${q.back} of ${q.quad} (${f2(q.quad ? q.back / q.quad : NaN)})`; }).join('; ')}`);
+  out(`\nOUTCOME: 1 ${I1.outcome}; 2 ${I2.outcome}; 3 ${I3.outcome}; 4 ${I4.outcome}; 5 ${I5.outcome}`);
+  return { I1, I2, I3, I4, I5 };
 }
 
 /* PLANTED: 7at's built log turned into 7av's units, with 7av's lines added consistently from the built values */
@@ -284,17 +336,23 @@ export function builtLog(o = {}) {
       const spf = d1 && d1.reads ? (d1.d * d1.n) / N : 0, spl = b1 && b1.reads ? (b1.db * b1.reads) / N : 0;
       const quadShift = -0.25;
       const P = Array.from({ length: N }, (_, j) => { const sf = pst[j][1] - spf, sl = pbs[j] - spl; return [sf, sl, sf + quadShift, spf, spl, 0]; });
+      // year 1 read as a step year (classOff: on S370 ORDER alone; stepAll: on every S130 unit) - the step columns take the year-1 terms
+      const y1step = k === 0 && ((o.classOff && id === 'S370' && a === 'ORDER') || (o.stepAll && id === 'S130'));
+      if (y1step) P.forEach(p => { p[0] += p[3]; p[1] += p[4]; p[2] += p[3]; p[3] = 0; p[4] = 0; });
+      if (o.qAsLin && id === 'S130' && X === 'PCLSI' && SH === 6 && k === 0) P.forEach(p => { p[2] = p[1]; });
       if (o.psplitOff && id === 'S370' && a === 'ORDER' && k === 1) P[2][3] += 0.5;
       if (o.psplitSwap && id === 'S370' && a === 'ORDER' && k === 1) { P[2][3] += 0.5; P[3][3] -= 0.5; }   // the column sums kept: the per-path check alone
-      const sq0 = P.reduce((t, p) => t + p[2], 0) / Math.max(1, d0.reads);
+      const sq1 = y1step ? spf * N / Math.max(1, (bd.find(x => x.t === 1) || {}).reads || 1) : 0;
+      const sq0 = (P.reduce((t, p) => t + p[2], 0) - (y1step ? sq1 * ((bd.find(x => x.t === 1) || {}).reads || 0) : 0)) / Math.max(1, d0.reads);
       for (let t = 0; t <= n; t++) {
         const d = dc.find(x => x.t === t), b = bd.find(x => x.t === t);
         if (o.noSdec && SH === 12 && id === 'S130' && k === 2 && t === 4) continue;
         if (!b || !b.reads) { add.push(`${''.padEnd(16)} sdec ${L} world ${k} year ${t}: reads 0 step 0 flat - lin - quad - unsup - qmoved 0 spread 0 flat - lin - other 0 flat -`); continue; }
         if (t === 0) {
           const qm = o.noQMove && X === 'PCLSI' && SH === 12 ? 0 : b.reads;
-          add.push(`${''.padEnd(16)} sdec ${L} world ${k} year ${t}: reads ${b.reads} step ${o.splitOff && SH === 6 && X === 'DEFAULT' && k === 0 ? b.reads - 1 : b.reads} flat ${(d.d * d.n / b.reads).toFixed(4)} lin ${(o.linOff && id === 'S370' && SH === 12 && k === 0 ? b.db + 1 : b.db).toFixed(4)} quad ${sq0.toFixed(4)} unsup ${d.unsup.toFixed(4)} qmoved ${qm} spread 0 flat - lin - other 0 flat -`);
-        } else if (t === 1) add.push(`${''.padEnd(16)} sdec ${L} world ${k} year ${t}: reads ${b.reads} step 0 flat - lin - quad - unsup - qmoved 0 spread ${b.reads} flat ${(d.d * d.n / b.reads).toFixed(4)} lin ${b.db.toFixed(4)} other 0 flat -`);
+          add.push(`${''.padEnd(16)} sdec ${L} world ${k} year ${t}: reads ${b.reads} step ${o.splitOff && SH === 6 && X === 'DEFAULT' && k === 0 ? b.reads - 1 : b.reads} flat ${(d.d * d.n / b.reads).toFixed(4)} lin ${(o.linOff && id === 'S370' && SH === 12 && k === 0 ? b.db + 1 : b.db).toFixed(4)} quad ${(o.qAsLin && id === 'S130' && X === 'PCLSI' && SH === 6 && k === 0 ? b.db : sq0).toFixed(4)} unsup ${d.unsup.toFixed(4)} qmoved ${qm} spread 0 flat - lin - other 0 flat -`);
+        } else if (t === 1 && y1step) add.push(`${''.padEnd(16)} sdec ${L} world ${k} year ${t}: reads ${b.reads} step ${b.reads} flat ${(d.d * d.n / b.reads).toFixed(4)} lin ${b.db.toFixed(4)} quad ${sq1.toFixed(4)} unsup ${d.unsup.toFixed(4)} qmoved ${b.reads} spread 0 flat - lin - other 0 flat -`);
+        else if (t === 1) add.push(`${''.padEnd(16)} sdec ${L} world ${k} year ${t}: reads ${b.reads} step 0 flat - lin - quad - unsup - qmoved 0 spread ${b.reads} flat ${(d.d * d.n / b.reads).toFixed(4)} lin ${b.db.toFixed(4)} other 0 flat -`);
         // the isolating plants after access (no psplit column reads them): one read dropped from the split, a spread flat read
         // off the read term alone, a spread straight-line read off read (b) alone
         else if (t === 3 && SH === 12 && id === 'S370' && k === 0 && (o.splitOnly || o.flatOnly || o.linOnly)) add.push(`${''.padEnd(16)} sdec ${L} world ${k} year ${t}: reads ${b.reads} step 0 flat - lin - quad - unsup - qmoved 0 ${o.splitOnly ? `spread 0 flat - lin - other ${b.reads - 1} flat ${(d.d * d.n / b.reads).toFixed(4)}` : `spread ${b.reads} flat ${o.flatOnly ? '0.5000' : (d.d * d.n / b.reads).toFixed(4)} lin ${o.linOnly ? '0.5000' : b.db.toFixed(4)} other 0 flat -`}`);
@@ -309,10 +367,10 @@ export function builtLog(o = {}) {
   if (o.extra) out.push(`S999             case | unit READER/TS+J/W0.02/S9 | lambda ${AR.LAMBDA} tier own riskAbove auto mix 3\n`);
   return out.join('');
 }
-const REACHED = { 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set() }, EDGES = [];
+const REACHED = { 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set(), 5: new Set() }, EDGES = [];
 function planted() {
   const cases = [];
-  const SZ = { pts: '30', npw: 8 };
+  const SZ = { pts: '30', npw: 8, stepYears: { S130: [0], S370: [0] } };
   const clean = parse(builtLog());
   const refOf = (ro = {}) => (id, a, l) => { const r = clean.find(u => u.id === id && u.arm === a && u.label === l) || null; if (r && ro.refTable && id === 'S130' && l === labelOf('TS+J', 'PCLSI')) return { ...r, table: '91.0000' }; if (r && ro.refBdec && id === 'S370' && l === labelOf('TS+J')) return { ...r, bdec: r.bdec.map(y => (y.k === 0 && y.t === 0 ? { ...y, db: y.db + 1 } : y)) }; return r; };
   const refused = (o, ro = {}) => { try { return String(gate(parse(builtLog(o)), refOf(ro), SZ).length > 0); } catch (e) { return `crash: ${e.message}`; } };
@@ -322,7 +380,8 @@ function planted() {
     ['a missing sdec year', { noSdec: true }], ['a step-spread split off the reads', { splitOff: true }], ['straight-line reads off read (b)', { linOff: true }],
     ['no psplit line', { noPsplit: true }], ['a psplit path off its pstage and pbstage terms', { psplitOff: true }], ['two psplit paths off by opposite amounts (the columns kept)', { psplitSwap: true }],
     ['(7at\'s checks alone, on a 12-point unit) a missing dbin line', { noDbin12: true }], ['a read dropped from the split after access', { splitOnly: true }], ['a spread flat read off the read term alone', { flatOnly: true }], ['a spread straight-line read off read (b) alone', { linOnly: true }], ['no qcount line', { noQ: true }], ['more step tables than tables', { qSteps: true }],
-    ['a quadratic that moved no step read on a PCLSI unit', { noQMove: true }],
+    ['a quadratic that moved no step read on a PCLSI unit', { noQMove: true }], ['a quadratic that only fell back to the straight line', { qAsLin: true }],
+    ['ORDER classing a bridge year differently from its PCLSI twin', { classOff: true }], ['step years off the deep review\'s (every S130 unit alike)', { stepAll: true }],
     ['a 6-point S130 PCLSI table that is not 7at\'s', {}, { refTable: true }], ['a 6-point S370 DEFAULT bdec line that is not 7at\'s', {}, { refBdec: true }]]) cases.push([`the gate refuses ${nm}`, refused(o, ro || {}), 'true']);
   // the 'no unsupported weight' check: the built set's year-0 reads carry weight; a copy with its weight 0 must refuse a quadratic off the flat read
   { const noW = t => t.replace(/^(\s+dec \S+ world \d+ year 0: .* unsup )0\.3000( rowcopy )0\.1000$/gm, '$10.0000$20.0000').replace(/^(\s+sdec \S+ world \d+ year 0: .* unsup )0\.3000/gm, '$10.0000');
@@ -346,7 +405,9 @@ function planted() {
   { const I = it2([{ id: 'S130', L6: nz(1), Q6: nz(1, 2.3) }, { id: 'S370', L6: base, Q6: nz(0.2, 2.3) }]); cases.push(['no straight-line residual on S130: NO RESIDUAL', `${I.hs[0].read} ${I.hs[0].note}`, 'INCONCLUSIVE NO RESIDUAL']); EDGES.push('no residual to remove'); }
   { const I = it2([{ id: 'S130', L6: base, Q6: sc(base, 0.5, 0.2) }, { id: 'S370', L6: base, Q6: nz(0.2, 2.3) }]); cases.push(['the quadratic leaves half on S130: INCONCLUSIVE', `${I.hs[0].read} ${I.outcome}`, 'INCONCLUSIVE INCONCLUSIVE']); }
   { const I = it2([{ id: 'S130', L6: base, Q6: base.map((x, j) => (2 / 3) * x + 0.04 + 0.6 * Math.sin(j * 2.9)) }, { id: 'S370', L6: base, Q6: nz(0.2, 2.3) }]); cases.push(['the quadratic just past two thirds on S130 (raw p near 0.03, Holm over 4 lifts it): not FALSIFIED', `${I.hs[0].pD < 0.05} ${I.hs[0].read} ${I.outcome}`, 'true INCONCLUSIVE INCONCLUSIVE']); EDGES.push('FALSIFIED at the Holm boundary'); }
+  { const I = it1([{ id: 'S130', F6: base, F12: sc(base, -0.9, 0.3) }, { id: 'S370', F6: base, F12: sc(base, 0.45, 0.3) }]); cases.push(['the step error turns the other way at 12 on S130: HELD, flagged OVERSHOT', `${I.hs[0].read} ${I.hs[0].note}`, 'HELD OVERSHOT']); EDGES.push('a step error of the other sign at 12'); }
   const it3 = o => { const I = item3(o, { b: 2000 }); REACHED[3].add(I.outcome); return I; };
+  { const I = it3({ P6: sc(base, -1), O6: sc(base, 0.9, 0.3) }); cases.push(['order turns the spread reads optimistic by 0.9 of the pessimism: HELD, flagged OVERSHOT', `${I.outcome} ${I.it.note}`, 'HELD OVERSHOT']); EDGES.push('order overshooting'); }
   { const I = it3({ P6: sc(base, -1), O6: sc(base, -0.2, 0.3) }); cases.push(['order removes four fifths of the spread pessimism: HELD', I.outcome, 'HELD']); }
   { const I = it3({ P6: sc(base, -1), O6: sc(base, -0.95, 0.3) }); cases.push(['order removes a twentieth: FALSIFIED', I.outcome, 'FALSIFIED']); }
   { const I = it3({ P6: sc(base, -1), O6: sc(base, -0.62, 0.3) }); cases.push(['order removes 0.38 (between the bands): INCONCLUSIVE', I.outcome, 'INCONCLUSIVE']); }
@@ -357,6 +418,11 @@ function planted() {
   { const I = it4([{ id: 'S130', L12: sc(base, -1), Q12: sc(base, -1.2) }, { id: 'S370', L12: nz(0.3), Q12: nz(0.3, 2.3) }]); cases.push(['both reads beyond -0.5 on S130: FALSIFIED', `${I.hs[0].read} ${I.outcome}`, 'OVER FALSIFIED']); EDGES.push('beyond the bar on the negative side'); }
   { const I = it4([{ id: 'S130', L12: sc(base, 1), Q12: nz(8) }, { id: 'S370', L12: nz(0.3), Q12: nz(0.3, 2.3) }]); cases.push(['one read beyond, one too noisy on S130: INCONCLUSIVE', `${I.hs[0].read} ${I.outcome}`, 'NEITHER INCONCLUSIVE']); }
   { const I = it4([{ id: 'S130', L12: base.map(() => 0.5), Q12: base.map(() => 0.5) }, { id: 'S370', L12: nz(0.3), Q12: nz(0.3, 2.3) }]); cases.push(['both reads exactly at the bar on every path: neither UNDER nor OVER', I.hs[0].read, 'NEITHER']); EDGES.push('reads at the bar'); }
+  const it5 = xs => { const I = item5(xs, { b: 2000 }); REACHED[5].add(I.outcome); return I; };
+  { const I = it5([{ id: 'S130', F6: sc(base, 2), L6: sc(base, 0.6), F12: base, L12: sc(base, 0.13, 0.02) }, { id: 'S370', F6: sc(base, 2), L6: sc(base, 0.3), F12: base, L12: sc(base, 0.07, 0.02) }]); cases.push(['the residual fraction falls to under half at 12 on both: HELD', I.outcome, 'HELD']); }
+  { const I = it5([{ id: 'S130', F6: sc(base, 2), L6: sc(base, 0.6), F12: base, L12: sc(base, 0.3, 0.02) }, { id: 'S370', F6: sc(base, 2), L6: sc(base, 0.3), F12: base, L12: sc(base, 0.07, 0.02) }]); cases.push(['the residual fraction unchanged at 12 on S130 (a boundary layer): FALSIFIED', `${I.hs[0].read} ${I.outcome}`, 'FALSIFIED FALSIFIED']); }
+  { const I = it5([{ id: 'S130', F6: sc(base, 2), L6: sc(base, 0.6), F12: base, L12: sc(base, 0.24, 0.02) }, { id: 'S370', F6: sc(base, 2), L6: sc(base, 0.3), F12: base, L12: sc(base, 0.07, 0.02) }]); cases.push(['the residual fraction at 0.8 of r6 on S130: INCONCLUSIVE', `${I.hs[0].read} ${I.outcome}`, 'INCONCLUSIVE INCONCLUSIVE']); }
+  { const I = it5([{ id: 'S130', F6: sc(base, 2), L6: sc(base, 0.6), F12: nz(1), L12: nz(1, 2.3) }, { id: 'S370', F6: sc(base, 2), L6: sc(base, 0.3), F12: base, L12: sc(base, 0.07, 0.02) }]); cases.push(['no step error at 12 on S130: NO STEP ERROR AT 12', `${I.hs[0].read} ${I.hs[0].note}`, 'INCONCLUSIVE NO STEP ERROR AT 12']); EDGES.push('no step error at 12 to take a fraction of'); }
   // the extrapolations, on a built row
   { const ni = 6, pts = [0, 0.2, 0.4, 0.6, 0.8, 1], g = { size: ni, np: 1, ni, nt: 1, gain: [0], pcls: [0], axes: { a: { pts } }, index: (ip, ii) => ii };
     const p = [1, 1, 1, 0.2, 0.1, 0], c = [0.9, 0.85, 0.7, 0.7, 0.7, 0.7], S = [0.9, 0.85, 0.7, 0.05, 0.02, 0.001], R = S.map((s, i) => s - p[i] * c[i]);
@@ -382,7 +448,7 @@ const logsOf = Dir => (existsSync(Dir) ? Object.fromEntries(readdirSync(Dir).fil
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const np = planted();
-  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should\n${[1, 2, 3, 4].map(i => `OUTCOMES REACHED: item ${i}: ${[...REACHED[i]].sort().join(', ')}`).join('\n')}\nEDGES: ${EDGES.join(', ')}`); process.exit(0); }
+  if (process.argv.includes('--planted')) { console.log(`planted (${np}): all read as they should\n${[1, 2, 3, 4, 5].map(i => `OUTCOMES REACHED: item ${i}: ${[...REACHED[i]].sort().join(', ')}`).join('\n')}\nEDGES: ${EDGES.join(', ')}`); process.exit(0); }
   const args = process.argv.slice(2).filter(x => !x.startsWith('--'));
   const DIR = args[0] || join(HERE, 'results', 'diag7av'), DIR_AT = args[1] || join(HERE, 'results', 'diag7at');
   const logs = logsOf(DIR), units = Object.values(logs).flatMap(parse);

@@ -36,7 +36,7 @@ M = [
     ("item 2's HELD side one-sided", "pU: Math.max(flipP(lin(L6, 1 / 3, Q6, -1), b, 7005), flipP(lin(Q6, 1, L6, 1 / 3), b, 7006))", "pU: flipP(lin(L6, 1 / 3, Q6, -1), b, 7005)"),
     ("item 2's FALSIFIED band at a third", "pD: flipP(lin(Q6, 1, L6, -2 / 3), b, 7007)", "pD: flipP(lin(Q6, 1, L6, -1 / 3), b, 7007)"),
     ("item 2 without Holm", "const adj = holm(hs.flatMap(h => [h.pU, h.pD]));\n  hs.forEach((h, i) => { h.hU = adj[2 * i]; h.hD = adj[2 * i + 1]; h.read = !h.premise ? 'INCONCLUSIVE' : h.hU < ALPHA ? 'HELD' : h.hD < ALPHA ? 'FALSIFIED' : 'INCONCLUSIVE'; h.note = !h.premise ? 'NO RESIDUAL'", "const adj = hs.flatMap(h => [h.pU, h.pD]);\n  hs.forEach((h, i) => { h.hU = adj[2 * i]; h.hD = adj[2 * i + 1]; h.read = !h.premise ? 'INCONCLUSIVE' : h.hU < ALPHA ? 'HELD' : h.hD < ALPHA ? 'FALSIFIED' : 'INCONCLUSIVE'; h.note = !h.premise ? 'NO RESIDUAL'"),
-    ("item 2's overshoot flag dropped", "h.pO < ALPHA ? 'OVERSHOT' : ''", "''"),
+    ("item 2's overshoot flag dropped", "h.note = !h.premise ? 'NO RESIDUAL' : h.pO < ALPHA ? 'OVERSHOT' : ''", "h.note = !h.premise ? 'NO RESIDUAL' : ''"),
     ("item 3's premise sign flipped", "premise = pP < ALPHA && mean(P6) < 0;", "premise = pP < ALPHA || mean(P6) > 0;"),
     ("item 3's HELD band at a quarter", "flipP(lin(O6, 1, P6, -0.5), b, 7010)", "flipP(lin(O6, 1, P6, -0.75), b, 7010)"),
     ("item 3's FALSIFIED band at a half", "flipP(lin(P6, 0.75, O6, -1), b, 7011)", "flipP(lin(P6, 0.5, O6, -1), b, 7011)"),
@@ -44,6 +44,14 @@ M = [
     ("item 4's TOST one-sided", "pT: Math.max(flipP(X.map(x => BAR - x), b, s), flipP(X.map(x => x + BAR), b, s + 1))", "pT: flipP(X.map(x => BAR - x), b, s)"),
     ("item 4 OVER on one read", "h.L.read === 'OVER' && h.Q.read === 'OVER' ? 'OVER'", "h.L.read === 'OVER' || h.Q.read === 'OVER' ? 'OVER'"),
     ("item 4 ignores the negative side", "Math.min(X.hA, X.hB) < ALPHA ? 'OVER'", "X.hA < ALPHA ? 'OVER'"),
+    ("the class check across units dropped", "if (patOf(ua) !== patOf(ub)) bad.push", "if (false) bad.push"),
+    ("the step years not held to the review's", "if (JSON.stringify(ys) !== JSON.stringify(stepYears[id] || [])) bad.push", "if (false) bad.push"),
+    ("a quadratic that only fell back counts as acting", "Math.abs(y.sq - y.sl) > 5e-5)) bad.push", "true)) bad.push"),
+    ("item 1's overshoot flag dropped", "h.pO < ALPHA ? 'OVERSHOT' : ''; });\n  return { hs, outcome: both(hs) };\n}\n/* ITEM 2", "''; });\n  return { hs, outcome: both(hs) };\n}\n/* ITEM 2"),
+    ("item 3's overshoot flag dropped", "if (r.read === 'HELD' && pO < ALPHA) r.note = 'OVERSHOT';", ""),
+    ("item 5's HELD band at 0.9", "pU: flipP(lin(F12, 0.7 * r6, L12, -1), b, 7041)", "pU: flipP(lin(F12, 0.9 * r6, L12, -1), b, 7041)"),
+    ("item 5's FALSIFIED band at 0.7", "pD: flipP(lin(L12, 1, F12, -0.9 * r6), b, 7042)", "pD: flipP(lin(L12, 1, F12, -0.7 * r6), b, 7042)"),
+    ("item 5's premise ignores F12", "premise: pP < ALPHA && mean(F12) > 0 && mean(F6) > 0 && r6 > 0,", "premise: mean(F6) > 0 && r6 > 0,"),
 ]
 # extrap-7av.mjs's mutations, run through the reducer's planted set (it imports the module)
 XM = [

@@ -7,6 +7,8 @@
    S370 PCLSI  : step flat F6 10.0493 straight line L6 1.4610 | spread flat P6 -1.6745 straight line -10.1670 | step years 2, 6 of the bridge years 0 to 7
    S130: the rise (PCLSI less DEFAULT, step and spread flat; the years with no reader excluded) 2.2054, under the straight line at step reads 0.7870, the share taken away 0.64 (the review's: S370 0.73, S130 0.64)
    S370: the rise (PCLSI less DEFAULT, step and spread flat; the years with no reader excluded) 5.0968, under the straight line at step reads 1.3752, the share taken away 0.73 (the review's: S370 0.73, S130 0.64)
+   S130: item 5's residual fraction within the unit r6 = L6 / F6 = 0.2779 (PCLSI); smooth curvature predicts it scales with the share cell, 5/11 at 12 points: r12 0.1263 (item 5's HELD band 0.7 r6 = 0.1945); a boundary layer narrower than a cell predicts r12 near r6 (the FALSIFIED band 0.9 r6 = 0.2501)
+   S370: item 5's residual fraction within the unit r6 = L6 / F6 = 0.1454 (PCLSI); smooth curvature predicts it scales with the share cell, 5/11 at 12 points: r12 0.0661 (item 5's HELD band 0.7 r6 = 0.1018); a boundary layer narrower than a cell predicts r12 near r6 (the FALSIFIED band 0.9 r6 = 0.1308)
 
 2. THE PER-PATH SPREAD (world 0, PCLSI, the bridge stage):
    S130: the read term's sd 0.34 (mean 4.9172), read (b)'s sd 0.26 (mean 1.3870) over 2000 paths
@@ -15,9 +17,11 @@
 3. THE POWER (z of each side at the effect a cause predicts; unpaired noise, a lower bound; z above 2.5 reads at the Holm-adjusted 0.05 with room):
    S130 item 1: F6 4.8888; cause 1 (F12 = F6/2): the HELD side mean(0.6 F6 - F12) = 0.4889, z 81.69; at F12 = F6/4: z 343.57; cause 3 (F12 = F6): the FALSIFIED side mean(F12 - 0.9 F6) = 0.4889, z 47.43
    S130 item 2: L6 1.3586; cause 2 (Q6 = 0): the HELD sides mean(L6/3 - Q6) = mean(Q6 + L6/3) = 0.4529, z 73.94; not cause 2 (Q6 = L6): the FALSIFIED side mean(Q6 - 2 L6/3) = 0.4529, z 64.85
+   S130 item 5 (F12 taken as F6/2 = 2.4444, L12's noise read (b)'s sd; NOT CHECKED at 12): smooth curvature (r12 = 5/11 r6): the HELD side mean(0.7 r6 F12 - L12) = 0.1667, z 28.70; a boundary layer (r12 = r6): the FALSIFIED side mean(L12 - 0.9 r6 F12) = 0.0679, z 11.69
    S130 item 4: the bar 0.5; a read at 0 with the noise of read (b): the TOST sides' z 86.06; a read at 1.4 (the review's straight line left at 6): the OVER side's z 154.90
    S370 item 1: F6 10.0493; cause 1 (F12 = F6/2): the HELD side mean(0.6 F6 - F12) = 1.0049, z 11.36; at F12 = F6/4: z 47.76; cause 3 (F12 = F6): the FALSIFIED side mean(F12 - 0.9 F6) = 1.0049, z 6.59
    S370 item 2: L6 1.4610; cause 2 (Q6 = 0): the HELD sides mean(L6/3 - Q6) = mean(Q6 + L6/3) = 0.4870, z 7.47; not cause 2 (Q6 = L6): the FALSIFIED side mean(Q6 - 2 L6/3) = 0.4870, z 6.55
+   S370 item 5 (F12 taken as F6/2 = 5.0246, L12's noise read (b)'s sd; NOT CHECKED at 12): smooth curvature (r12 = 5/11 r6): the HELD side mean(0.7 r6 F12 - L12) = 0.1793, z 2.90; a boundary layer (r12 = r6): the FALSIFIED side mean(L12 - 0.9 r6 F12) = 0.0730, z 1.18
    S370 item 4: the bar 0.5; a read at 0 with the noise of read (b): the TOST sides' z 8.08; a read at 1.4 (the review's straight line left at 6): the OVER side's z 14.55
    S370 item 3: P6 -1.6745; O36 the cause (O6 = 0): the HELD side mean(O6 - P6/2) = 0.8373, z 6.61; not (O6 = P6): the FALSIFIED side mean(0.75 P6 - O6) = 0.4186, z 2.96
 

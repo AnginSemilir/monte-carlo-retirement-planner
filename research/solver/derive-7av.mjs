@@ -7,7 +7,8 @@
  * (extrap-7av.mjs isStep), so this split is the derivation's input, not the run's.
  *   1. The levels at 6 points (world 0, per path over the bridge, from the bdec and dec lines by year): the step reads' flat
  *      term F6 and straight-line term L6 under PCLSI and DEFAULT, and the spread reads' flat term P6; the straight line at
- *      step reads' share of the whole rise (the review's 0.73 and 0.64).
+ *      step reads' share of the whole rise (the review's 0.73 and 0.64, reproduced); item 5's residual fraction r6 = L6 / F6 and
+ *      the 12-point values the two shapes predict (the pre-launch deep review, deep-review-log.md 4 Oct 07:06 UK).
  *   2. The per-path spread: the bridge-stage read term's sd (pstage) and read (b)'s (pbstage), the items' noise bound (the
  *      step part's own sd is NOT CHECKED: on S130 the bridge read term is almost all its one step read, on S370 it mixes).
  *   3. The power, z for each item's HELD and FALSIFIED sides at the causes' predicted effects, the noise of each difference
@@ -52,6 +53,10 @@ for (const id of ['S130', 'S370']) {
   const R = (p.F + p.P) - (d.F + d.P), Ls = (p.L + p.P) - (d.L + d.P);
   console.log(`   ${id}: the rise (PCLSI less DEFAULT, step and spread flat; the years with no reader excluded) ${f4(R)}, under the straight line at step reads ${f4(Ls)}, the share taken away ${f2((R - Ls) / R)} (the review's: S370 0.73, S130 0.64)`);
 }
+for (const id of ['S130', 'S370']) {
+  const p = lv[`${id} PCLSI`], r6 = p.L / p.F;
+  console.log(`   ${id}: item 5's residual fraction within the unit r6 = L6 / F6 = ${f4(r6)} (PCLSI); smooth curvature predicts it scales with the share cell, 5/11 at 12 points: r12 ${f4(r6 * 5 / 11)} (item 5's HELD band 0.7 r6 = ${f4(0.7 * r6)}); a boundary layer narrower than a cell predicts r12 near r6 (the FALSIFIED band 0.9 r6 = ${f4(0.9 * r6)})`);
+}
 
 console.log('\n2. THE PER-PATH SPREAD (world 0, PCLSI, the bridge stage):');
 const sds = {};
@@ -67,6 +72,8 @@ for (const id of ['S130', 'S370']) {
   const p = lv[`${id} PCLSI`], s = sds[id].d, sb = sds[id].b;
   console.log(`   ${id} item 1: F6 ${f4(p.F)}; cause 1 (F12 = F6/2): the HELD side mean(0.6 F6 - F12) = ${f4(0.1 * p.F)}, z ${f2(z(0.1 * p.F, s * Math.sqrt(0.36 + 0.25)))}; at F12 = F6/4: z ${f2(z(0.35 * p.F, s * Math.sqrt(0.36 + 0.0625)))}; cause 3 (F12 = F6): the FALSIFIED side mean(F12 - 0.9 F6) = ${f4(0.1 * p.F)}, z ${f2(z(0.1 * p.F, s * Math.sqrt(1 + 0.81)))}`);
   console.log(`   ${id} item 2: L6 ${f4(p.L)}; cause 2 (Q6 = 0): the HELD sides mean(L6/3 - Q6) = mean(Q6 + L6/3) = ${f4(p.L / 3)}, z ${f2(z(p.L / 3, sb * Math.sqrt(1 / 9 + 1)))}; not cause 2 (Q6 = L6): the FALSIFIED side mean(Q6 - 2 L6/3) = ${f4(p.L / 3)}, z ${f2(z(p.L / 3, sb * Math.sqrt(1 + 4 / 9)))}`);
+  { const r6 = p.L / p.F, F12 = p.F / 2;
+    console.log(`   ${id} item 5 (F12 taken as F6/2 = ${f4(F12)}, L12's noise read (b)'s sd; NOT CHECKED at 12): smooth curvature (r12 = 5/11 r6): the HELD side mean(0.7 r6 F12 - L12) = ${f4((0.7 - 5 / 11) * r6 * F12)}, z ${f2(z((0.7 - 5 / 11) * r6 * F12, sb))}; a boundary layer (r12 = r6): the FALSIFIED side mean(L12 - 0.9 r6 F12) = ${f4(0.1 * r6 * F12)}, z ${f2(z(0.1 * r6 * F12, sb))}`); }
   console.log(`   ${id} item 4: the bar 0.5; a read at 0 with the noise of read (b): the TOST sides' z ${f2(z(0.5, sb))}; a read at 1.4 (the review's straight line left at 6): the OVER side's z ${f2(z(0.9, sb))}`);
 }
 { const p = lv['S370 PCLSI'], s = sds.S370.d;

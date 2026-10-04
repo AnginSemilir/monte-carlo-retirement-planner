@@ -20,6 +20,8 @@ ok(Object.keys(CODES).every(k => /^[a-z-]+$/.test(k)), 'every code is a plain lo
 ok(!CODES.carried && !CODES['c-review'] && CODES.code, 'carried is a modifier, not a code; c-review is gone; code is in');
 ok(J(tagsIn('[T:relook] [T:figure]').tags) === '["relook","figure"]', 'known codes parse in order');
 ok(tagsIn('[T:nonsense]').unknown[0] === 'nonsense', 'an unknown code is reported, not counted');
+ok(J(tagsIn('[T:other:decision-fed] [T:decision-fed]').tags) === '["decision-fed","decision-fed"]' && tagsIn('[T:other:decision-fed]').words.length === 0, 'a word promoted to its own code counts as that code, and is no longer an other word');
+ok(J(tagsIn('[T:other:c-deep]').words) === '["other:c-deep"]' && tagsIn('[T:other:c-deep]').tags[0] === 'other', 'a catch code is never taken from an other word');
 ok(tagsIn('[T:other]').unknown.length === 1 && J(tagsIn('[T:other:vague]').words) === '["other:vague"]', 'other needs its word, and the word is kept');
 
 // times

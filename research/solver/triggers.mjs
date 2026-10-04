@@ -26,7 +26,9 @@ export const CODES = Object.freeze({
   code: 'a claim about the code that the code contradicts', overclaim: 'a claim stronger than its grade', format: 'an output or ran-line format its consumer does not match',
   order: 'a step before what it depends on', import: 'a check that runs what it checks', lock: 'a hook refusal of a legitimate command',
   time: 'a clock slip where the order matters', register: 'an odd result not registered', enforce: 'a claim about the enforcement',
-  design: 'a prediction\'s rule or power unsound otherwise', other: 'none of these: written other:<word>; a word seen 3 times gets its own code',
+  design: 'a prediction\'s rule or power unsound otherwise',
+  'decision-fed': 'a decision fed ill-posed, unreachable from its rule, or contrary to a standing decision or STOP list (promoted from other:decision-fed, seen 9 times; the maintainer, 4 Oct)',
+  other: 'none of these: written other:<word>; a word seen 3 times gets its own code',
   'c-gate': 'a fair-test or identity gate refused a run', 'c-plant': 'a planted check caught a fault', 'c-mutation': 'a mutation run exposed a gap',
   'c-preflight': 'a build check or preflight failed early', 'c-check': 'check-plan or check-prediction refused', 'c-deep': 'a deep review found a root cause',
   'c-relook': 'relook.mjs listed a row that had to move', 'c-falsify': 'a prediction usefully falsified',
@@ -39,6 +41,8 @@ export function tagsIn(text) {
   for (const m of String(text).matchAll(TAG)) {
     if (!CODES[m[1]]) { unknown.push(m[1]); continue; }
     if (m[1] === 'other' && !m[2]) { unknown.push('other (write other:<word>)'); continue; }
+    // a word since promoted to its own code counts as that code, so the old other:<word> tags join its history
+    if (m[1] === 'other' && CODES[m[2]] && !m[2].startsWith('c-') && m[2] !== 'other') { tags.push(m[2]); continue; }
     tags.push(m[1]); if (m[2]) words.push(`${m[1]}:${m[2]}`);
   }
   return { tags, words, unknown };

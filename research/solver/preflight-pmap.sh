@@ -1,7 +1,8 @@
 #!/bin/bash
 # PMAP's preflight (PREDICTION="none:..."): audit-pmap.mjs on the 5 households at 4 wealth points and 20 paths a world, PAR at a
 # time (default 1, the light lane), into results/diagpmap-preflight; then reduce-pmap.mjs's parse, gate (the arithmetic held
-# to the measured weight read by read, the node check, the control) and reading. No figure is read.
+# to the measured weight read by read, the node check, the self-checks (acc* and the coverage weight, each run on more than
+# nothing), the histograms, the control) and reading. No figure is read.
 set -u
 OUT=research/solver/results/diagpmap-preflight
 rm -rf "$OUT"; mkdir -p "$OUT"
@@ -16,7 +17,13 @@ import('./research/solver/reduce-pmap.mjs').then(R => {
   if (bad.length) { console.log('PREFLIGHT PARSE FAILED:\n  ' + bad.join('\n  ')); process.exit(1); }
   const off = ts.map((t, i) => t.replace(/dmax 0\.00e\+00/, 'dmax 5.00e-3')).flatMap(R.parse);
   if (!R.gate(off).length) { console.log('PREFLIGHT PARSE FAILED: an arithmetic off the measured weight not refused'); process.exit(1); }
+  const cb = ts.map(t => t.replace(/covbad 0$/m, 'covbad 3')).flatMap(R.parse);
+  if (!R.gate(cb).length) { console.log('PREFLIGHT PARSE FAILED: a coverage weight above the 6-point weight not refused'); process.exit(1); }
+  const ab = ts.map(t => t.replace(/accbad 0 /, 'accbad 1 ')).flatMap(R.parse);
+  if (!R.gate(ab).length) { console.log('PREFLIGHT PARSE FAILED: a threshold off not refused'); process.exit(1); }
+  const nc = ts.map(t => t.replace(/^.*checks .*$/m, '')).flatMap(R.parse);
+  if (!R.gate(nc).length) { console.log('PREFLIGHT PARSE FAILED: a missing checks line not refused'); process.exit(1); }
   let n = 0, p = false; R.reading(us, l => { n++; if (/^PANEL/.test(l.trim())) p = true; });
   if (!p) { console.log('PREFLIGHT PARSE FAILED: the reading did not reach its panel line'); process.exit(1); }
-  console.log('PREFLIGHT PARSE PASSED: ' + us.length + ' households gated (the arithmetic held to the measured weight on every read, the node check, the control); a planted arithmetic difference refused; the reading reached its panel line (' + n + ' lines, not read)');
+  console.log('PREFLIGHT PARSE PASSED: ' + us.length + ' households gated (the arithmetic held to the measured weight on every read, the node check, the self-checks, the histograms, the control); a planted arithmetic difference, a coverage weight over the 6-point weight, a threshold off and a missing checks line refused; the reading reached its panel line (' + n + ' lines, not read)');
 });"

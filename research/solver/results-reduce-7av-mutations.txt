@@ -1,0 +1,42 @@
+caught: the gate accepts an unregistered unit
+caught: the gate ignores a missing unit
+caught: the gate ignores the share points
+caught: the gate ignores the reference
+caught: the identity skips the table
+caught: the identity skips 7at's bdec lines
+caught: the twins skip the ran line
+caught: normRan keeps the reference
+caught: the gate skips 7at's own checks
+caught: the gate ignores a missing sdec year
+caught: the gate ignores a step-spread split off the reads
+caught: the flat reads not held to the read term
+caught: the straight-line reads not held to read (b)
+caught: the quadratic not held to the flat read where there is no unsupported weight
+caught: the gate ignores a missing psplit line
+caught: the psplit paths not held to pstage and pbstage
+caught: the gate ignores a missing qcount line
+caught: the qcount steps not bounded
+caught: the quadratic's responsiveness check dropped
+caught: item 1's premise ignores p
+caught: item 1's HELD band at 0.8
+caught: item 1's FALSIFIED band at 0.7
+caught: item 1 HELD on either household
+caught: item 2's HELD side one-sided
+caught: item 2's FALSIFIED band at a third
+caught: item 2 without Holm
+caught: item 2's overshoot flag dropped
+caught: item 3's premise sign flipped
+caught: item 3's HELD band at a quarter
+caught: item 3's FALSIFIED band at a half
+caught: item 4's bar at 1
+caught: item 4's TOST one-sided
+caught: item 4 OVER on one read
+caught: item 4 ignores the negative side
+caught: order 1 drops extrap-7at's arithmetic (the Lagrange line instead)
+caught: the quadratic takes two nodes (a straight line)
+caught: no clip at 0
+caught: the clip counts dropped
+caught: the fall-back count dropped
+caught: R left as the reader's (S not reproduced)
+caught: isStep takes a half chance as a step
+41 of 41 mutations caught

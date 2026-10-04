@@ -243,6 +243,8 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    (the plan-auditor's MINOR 1 of 3 Oct 18:42 UK). The plan-auditor's grep of the corrected phrase stays the check that
    catches those; the report is an aid, not a guard. The EDGES requirement binds predictions first committed from 3 Oct
    19:00 UK, so one committed between its build (18:35 UK) and then would be exempt (none was).
+28. triggers.mjs drops a malformed tag silently: a tag with spaces (deep-review-log.md 4 Oct 04:41 UK) is neither
+   counted nor listed as an unknown code (the plan-auditor's MINOR 2 of 4 Oct 04:49 UK). No claim rests on the count.
 
 ---
 

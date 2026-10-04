@@ -1,0 +1,32 @@
+7AV: THE DERIVATION FROM THE RECORDS (7at: results/diag7at, through its stamps)
+
+1. THE LEVELS AT 6 SHARE POINTS (world 0, points a path over the bridge; step years the deep review's):
+   S130 DEFAULT: step flat F6 2.6291 straight line L6 0.5173 | spread flat P6 0.0827 straight line 0.0827 | step years 0 of the bridge years 0 to 1
+   S130 PCLSI  : step flat F6 4.8888 straight line L6 1.3586 | spread flat P6 0.0284 straight line 0.0284 | step years 0 of the bridge years 0 to 1
+   S370 DEFAULT: step flat F6 5.9386 straight line L6 1.0720 | spread flat P6 -2.6607 straight line -7.3238 | step years 2, 6 of the bridge years 0 to 7
+   S370 PCLSI  : step flat F6 10.0493 straight line L6 1.4610 | spread flat P6 -1.6745 straight line -10.1670 | step years 2, 6 of the bridge years 0 to 7
+   S130: the rise (PCLSI less DEFAULT, step and spread flat; the years with no reader excluded) 2.2054, under the straight line at step reads 0.7870, the share taken away 0.64 (the review's: S370 0.73, S130 0.64)
+   S370: the rise (PCLSI less DEFAULT, step and spread flat; the years with no reader excluded) 5.0968, under the straight line at step reads 1.3752, the share taken away 0.73 (the review's: S370 0.73, S130 0.64)
+
+2. THE PER-PATH SPREAD (world 0, PCLSI, the bridge stage):
+   S130: the read term's sd 0.34 (mean 4.9172), read (b)'s sd 0.26 (mean 1.3870) over 2000 paths
+   S370: the read term's sd 5.07 (mean 8.3747), read (b)'s sd 2.77 (mean -8.7061) over 2000 paths
+
+3. THE POWER (z of each side at the effect a cause predicts; unpaired noise, a lower bound; z above 2.5 reads at the Holm-adjusted 0.05 with room):
+   S130 item 1: F6 4.8888; cause 1 (F12 = F6/2): the HELD side mean(0.6 F6 - F12) = 0.4889, z 81.69; at F12 = F6/4: z 343.57; cause 3 (F12 = F6): the FALSIFIED side mean(F12 - 0.9 F6) = 0.4889, z 47.43
+   S130 item 2: L6 1.3586; cause 2 (Q6 = 0): the HELD sides mean(L6/3 - Q6) = mean(Q6 + L6/3) = 0.4529, z 73.94; not cause 2 (Q6 = L6): the FALSIFIED side mean(Q6 - 2 L6/3) = 0.4529, z 64.85
+   S130 item 4: the bar 0.5; a read at 0 with the noise of read (b): the TOST sides' z 86.06; a read at 1.4 (the review's straight line left at 6): the OVER side's z 154.90
+   S370 item 1: F6 10.0493; cause 1 (F12 = F6/2): the HELD side mean(0.6 F6 - F12) = 1.0049, z 11.36; at F12 = F6/4: z 47.76; cause 3 (F12 = F6): the FALSIFIED side mean(F12 - 0.9 F6) = 1.0049, z 6.59
+   S370 item 2: L6 1.4610; cause 2 (Q6 = 0): the HELD sides mean(L6/3 - Q6) = mean(Q6 + L6/3) = 0.4870, z 7.47; not cause 2 (Q6 = L6): the FALSIFIED side mean(Q6 - 2 L6/3) = 0.4870, z 6.55
+   S370 item 4: the bar 0.5; a read at 0 with the noise of read (b): the TOST sides' z 8.08; a read at 1.4 (the review's straight line left at 6): the OVER side's z 14.55
+   S370 item 3: P6 -1.6745; O36 the cause (O6 = 0): the HELD side mean(O6 - P6/2) = 0.8373, z 6.61; not (O6 = P6): the FALSIFIED side mean(0.75 P6 - O6) = 0.4186, z 2.96
+
+4. THE TIME (seconds a unit, the solve plus the three node runs; 7at's as measured, scaled as stated):
+   S370 PCLSI S12: 8239
+   S370 DEFAULT S6: 2402
+   S370 PCLSI S6: 2709
+   S370 ORDER PCLSI S6: 2709
+   S130 PCLSI S12: 7163
+   S130 DEFAULT S6: 2060
+   S130 PCLSI S6: 2385
+   total 27666 s = 7.68 core-hours; on four cores, longest first, about 2.29 hours (ORDER's solve taken as PCLSI's; its own extra cost NOT CHECKED)

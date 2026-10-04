@@ -27,3 +27,4 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-04 17:00 UTC | reduce-adoptpi.mjs 2141d43647d0 | 28 of 29 caught | escaped: NOT CAUGHT: 20: pool.lo > -pool.margin ? 'HELD'
 2026-10-04 17:01 UTC | reduce-adoptpi.mjs daec61af0d6e | 29 of 29 caught | escaped: none
 2026-10-04 17:11 UTC | reduce-adoptpi.mjs 3f5a7b0f88ad | 31 of 31 caught | escaped: none
+2026-10-04 17:24 UTC | reduce-adoptpi.mjs 4378e1b1115f | 31 of 31 caught | escaped: none

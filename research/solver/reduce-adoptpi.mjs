@@ -244,7 +244,7 @@ function planted() {
   // interval straddles -0.1 (point -0.1); the gain pair's 80 saved paths are outside the floor and cannot pay for it
   const lose = n => Object.fromEntries(PANEL.filter(id => !GAIN_PANEL.includes(id)).map(id => [id, [n, 0]]));
   { const r = R({ scen: { ...lose(2), S130: [0, 40], S370: [0, 40] } }); cases.push(['23 households losing 2 paths each reads no harm and the floor INCONCLUSIVE', `${r.one.filter(x => x.outcome === 'harm').length} ${r.v1}`, '0 INCONCLUSIVE']); }
-  { const r = R({ scen: { ...lose(2), S130: [0, 400], S370: [0, 400] } }); cases.push(['the gain pair saving 800 paths does not move the floor (still INCONCLUSIVE)', `${r.pool.k} ${r.v1}`, '23 INCONCLUSIVE']); }
+  { const r = R({ scen: { ...lose(2), S130: [0, 100], S370: [0, 100] } }); cases.push(['the gain pair saving 200 paths (every SNAP failure) does not move the floor (still INCONCLUSIVE)', `${r.pool.k} ${r.v1}`, '23 INCONCLUSIVE']); }
   // 22 losing 2 and one losing 1: the floor's point -0.098 is inside the margin but its lower end is not -> INCONCLUSIVE
   { const r = R({ scen: { ...lose(2), S168: [1, 0], S130: [0, 40], S370: [0, 40] } }); cases.push(['a panel point inside the margin with its lower end outside reads INCONCLUSIVE', `${r.pool.d > -0.1 && r.pool.lo < -0.1} ${r.v1}`, 'true INCONCLUSIVE']); }
   // 23 losing 4 each (raw p 0.0625: no household harm) -> the floor's point -0.2, its upper end below -0.1: FALSIFIED

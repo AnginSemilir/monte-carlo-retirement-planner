@@ -22,14 +22,23 @@ if (PANEL.some(id => !sv[id] || !sv[id].SNAP || !sv[id].PCLSI)) { console.error(
 console.log('DPC (seed 7002), survivors of 2000:  household        SNAP   PCLSI  net');
 for (const id of PANEL) console.log(`  ${id.padEnd(16)} ${String(sv[id].SNAP.s).padStart(5)}  ${String(sv[id].PCLSI.s).padStart(5)}  ${String(sv[id].PCLSI.s - sv[id].SNAP.s).padStart(4)}`);
 // a household as items() reads it, its paths built to DPC's survivors and the k pairs
-const pairsAt = (k, x = 1) => Object.fromEntries(PANEL.map(id => {
-  const N = x * sv[id].SNAP.N, S = x * sv[id].SNAP.s, net = x * (sv[id].PCLSI.s - sv[id].SNAP.s), b = x * k + Math.max(0, -net), c = x * k + Math.max(0, net), a = S - b;
-  return [id, { a, b, c, d: N - a - b - c, N, snap: S / N }];
-}));
-console.log('\nthe items read at DPC\'s net changes with k lost-and-saved pairs a 2,000 paths on each side:');
+// the pairs capped per household at what its table allows: a saved path needs a SNAP failure and a lost path a SNAP
+// survivor (the plan-auditor's BLOCKING 1 of 4 Oct 18:21 UK: uncapped, d went negative where SNAP fails fewer than k paths)
+const pairsAt = (k, x = 1) => {
+  const cap = [], pairs = Object.fromEntries(PANEL.map(id => {
+    const N = x * sv[id].SNAP.N, S = x * sv[id].SNAP.s, net = x * (sv[id].PCLSI.s - sv[id].SNAP.s);
+    const kc = Math.max(0, Math.min(x * k, N - S - Math.max(0, net), S - Math.max(0, -net)));
+    if (kc < x * k) cap.push(id);
+    const b = kc + Math.max(0, -net), c = kc + Math.max(0, net), a = S - b;
+    return [id, { a, b, c, d: N - a - b - c, N, snap: S / N }];
+  }));
+  return { pairs, cap };
+};
+console.log('\nthe items read at DPC\'s net changes with k lost-and-saved pairs a 2,000 paths on each side, capped per household at its SNAP failures and survivors:');
 for (const x of [1, 2, 3, 4]) for (const k of [0, 5, 15, 40]) {
-  const r = items(pairsAt(k, x)), n = o => r.one.filter(x => x.outcome === o).length;
-  console.log(`  paths ${2000 * x} k ${String(k).padStart(2)} a 2,000: item 1 ${r.v1} (no material harm ${n('no material harm')}, inconclusive ${n('inconclusive')} [${r.one.filter(x => x.outcome === 'inconclusive').map(x => x.id).join(', ')}], harm ${n('harm')}; the floor's lower end ${r.pool.lo.toFixed(3)}); item 2 ${r.v2} (${r.two.map(x => `${x.id} change ${x.d.toFixed(3)} p Holm ${x.pHolm.toExponential(2)} ${x.gain ? 'GAIN' : 'not shown'}`).join('; ')})`);
+  const { pairs, cap } = pairsAt(k, x), r = items(pairs), n = o => r.one.filter(x => x.outcome === o).length;
+  if (PANEL.some(id => pairs[id].a < 0 || pairs[id].d < 0)) { console.error('derive-adoptpi: an infeasible table'); process.exit(1); }
+  console.log(`  paths ${2000 * x} k ${String(k).padStart(2)} a 2,000 (capped on ${cap.length}${cap.length ? `: ${cap.join(', ')}` : ''}): item 1 ${r.v1} (no material harm ${n('no material harm')}, inconclusive ${n('inconclusive')} [${r.one.filter(x => x.outcome === 'inconclusive').map(x => x.id).join(', ')}], harm ${n('harm')}; the floor's lower end ${r.pool.lo.toFixed(3)}); item 2 ${r.v2} (${r.two.map(x => `${x.id} change ${x.d.toFixed(3)} p Holm ${x.pHolm.toExponential(2)} ${x.gain ? 'GAIN' : 'not shown'}`).join('; ')})`);
 }
 // the hold's incidence per unit (DPC's TOTALS) and the cost
 const tot = readFileSync(new URL('./results-dpc.txt', import.meta.url), 'utf8').match(/^TOTALS (SNAP|PCLSI): .*$/gm);

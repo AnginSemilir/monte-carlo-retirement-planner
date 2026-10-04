@@ -323,4 +323,13 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
   ok(shapeProblems({ readSolverFile: rs, solverFileExists: ex, plan, added: ['| 7zz | waits on 7au REGISTERED | b | c | d |'] }).warnings.some(w => /restates 7au/.test(w)), 'a status word about another item in a schedule row is reported');
 }
 
+// --range and --staged read files outside research/solver by a normalised path (the plan-auditor's BLOCKING 1 of 4 Oct:
+// git resolves no '..' inside a commit, and CI's --range failed on every push from 2f20a76)
+{
+  const { exists, source } = await import('../solver/check-plan.mjs');
+  ok(exists('rev', 'HEAD')('../../src/solver/reader.js') === true && /buildReaderTable/.test(source('rev', 'HEAD')('../../src/solver/reader.js')), 'rev mode finds and reads a file outside research/solver');
+  ok(exists('rev', 'HEAD')('../../src/solver/no-such-file.js') === false, 'rev mode reports a missing file as missing');
+  ok(exists('staged')('../../src/solver/reader.js') === true, 'staged mode finds a file outside research/solver');
+}
+
 console.log(`\n${n} passed`);

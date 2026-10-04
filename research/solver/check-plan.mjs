@@ -36,7 +36,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { join, dirname } from 'node:path';
+import { join, dirname, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { markdownTable } from './fair-variables.mjs';
 import { checkPredictionText } from './check-prediction.mjs';
@@ -347,14 +347,19 @@ export function checkPlan({ plan, rules, checklist, added = [], removed = [], re
 
 /* ---- reading the tree, the index or a commit ---- */
 const git = (cmd, opts = {}) => execSync(`git ${cmd}`, { cwd: REPO, stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 << 20, ...opts }).toString();
-function source(mode, rev) {
-  const rel = p => `research/solver/${p}`;
+// the paths are normalised: git resolves no '..' inside a commit's tree, and the premise anchors and REPLACE targets name
+// files outside research/solver (../../src/solver/reader.js); unnormalised, --range failed on every push from 2f20a76 (the
+// plan-auditor's BLOCKING 1 of 4 Oct)
+const relOf = p => posix.normalize(`research/solver/${p}`);
+export function source(mode, rev) {
+  const rel = relOf;
   if (mode === 'staged') return p => { try { return git(`show :${rel(p)}`); } catch { return readFileSync(join(HERE, p), 'utf8'); } };
   if (mode === 'rev') return p => git(`show ${rev}:${rel(p)}`);
   return p => readFileSync(join(HERE, p), 'utf8');
 }
-function exists(mode, rev) {
-  if (mode === 'rev') return p => { try { git(`cat-file -e ${rev}:research/solver/${p}`); return true; } catch { return false; } };
+export function exists(mode, rev) {
+  if (mode === 'rev') return p => { try { git(`cat-file -e ${rev}:${relOf(p)}`); return true; } catch { return false; } };
+  if (mode === 'staged') return p => { try { git(`cat-file -e :${relOf(p)}`); return true; } catch { return existsSync(join(HERE, p)); } };
   return p => existsSync(join(HERE, p));
 }
 function addedLines(diffText) { return diffText.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).map(l => l.slice(1)); }

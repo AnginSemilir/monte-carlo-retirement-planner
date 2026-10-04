@@ -1,0 +1,8 @@
+step reads by own accessible money over acc* (pooled over worlds and years): household kind | <0.5 0.5-0.9 0.9-1 1-1.1 1.1-1.5 >=1.5 | reads | share in 0.9-1.1
+  S130 stepsup           | 0 0 0 0 0 6000 | 6000 | 0.0000
+  S370 stepsup           | 0 0 0 253 2434 9031 | 11718 | 0.0216
+  S370 stepuns           | 1 68 72 0 0 0 | 141 | 0.5106
+  bridge 4 stepsup       | 0 0 0 0 0 6000 | 6000 | 0.0000
+  S126 stepsup           | 0 0 0 0 0 6000 | 6000 | 0.0000
+PANEL stepsup: 0 0 0 253 2434 27031 | 29718 reads | share in 0.9-1.1 0.0085 | share at 1.5 or over 0.9096
+PANEL stepuns: 1 68 72 0 0 0 | 141 reads | share in 0.9-1.1 0.5106 | share at 1.5 or over 0.0000

@@ -1,11 +1,11 @@
 /*
  * ADOPT-PI'S REDUCER (PLAN.md ADOPT-PI; audit-adoptpi.mjs; predictions/adopt-pi.md). A TEST: the interpolated allowance axis
- * (PCLSI) against today's snap (SNAP) in the shipping default on DP's panel (25 households) at seed 7004, every path paired
+ * (PCLSI) against today's snap (SNAP) in the shipping default on DP's panel (25 households) at seed 7005, every path paired
  * (both arms of a household run the same paths), and PR5's death-tax arm (S130, S370 and S128 at a pension death tax of 40%,
  * both axes).
  * THE GATE: the stamps (fair-gate.mjs requireFairLogs against predictions/adopt-pi.md); every unit once and done (25
  * households x 2 arms, and the 3 death-tax households x 2 arms); each ran line the shipping default's (no reader, 30 points,
- * seed 7004, 2,000 paths, the estate weight 0.02, the switch margin 0.001, buckets 0,0.5,1) with its arm's interpolation and
+ * seed 7005, 6,000 paths, the estate weight 0.02, the switch margin 0.001, buckets 0,0.5,1) with its arm's interpolation and
  * its unit's death tax (0, or 0.4 in DT); a household's units with one access line and one pathsum (the pairing: the same
  * paths); the sum line's survived no more than its paths; every per-path file present, stamped as the logs, its paths and
  * years the unit's, and its survived count, mean tax and mean terminal net equal to the sum line's. Anything else differing
@@ -14,12 +14,12 @@
  *   ITEM 1 (primary, the panel): the paired survival change PCLSI less SNAP per household, b paths lost (SNAP survives,
  *     PCLSI fails) and c saved; stats.mjs outcome() at the household's margin (0.25 points where SNAP survives 95% or
  *     more, else 0.5; stats.mjs marginFor), harm's exact McNemar p Holm-adjusted over the 25: no material harm / harm /
- *     inconclusive, printed for every household; and the panel's change, the lost and saved paths summed over the 25, its
- *     exact interval (stats.mjs survivalChange) against the pooled margin (MARGINS.pooled, 0.1 points; Newcombe's
- *     unconditional interval printed beside it). HELD when no household reads harm and the pooled interval's lower end is
- *     above minus the margin; FALSIFIED when any household reads harm or the pooled interval's upper end is below minus
- *     the margin; else INCONCLUSIVE. (Not 'no material harm on every household': at 2,000 paths a household reads
- *     inconclusive at its margin once about 10 of its paths change outcome each way - results-derive-adoptpi.txt.)
+ *     inconclusive, printed for every household; and the pooled floor over the 23 households outside the gain pair (RULES.md
+ *     section 8 item 4: a floor over the cases expected unchanged, so item 2's gains cannot pay for their losses): the paired
+ *     cells summed over the 23, read by the unconditional interval (stats.mjs pooledSummed; the maintainer's decision of
+ *     29 Sep 22:12 UK) against the pooled margin (MARGINS.pooled, 0.1 points), the exact conditional interval printed beside
+ *     it, not read. HELD when no household reads harm and the floor's lower end is above minus the margin; FALSIFIED when any
+ *     household reads harm or the floor's upper end is below minus the margin; else INCONCLUSIVE.
  *   ITEM 2 (primary, S130 and S370): the gain, the exact one-sided McNemar p of c saved in b + c, Holm over the 2: GAIN when
  *     the adjusted p is under 0.05 with c > b. HELD when both read GAIN; FALSIFIED when either household's point change is
  *     0 or below; else INCONCLUSIVE.
@@ -36,11 +36,11 @@ import { gunzipSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { requireFairLogs } from './fair-gate.mjs';
-import { outcome, mcnemarHarmP, binomUpperHalf, holm, marginFor, survivalChange, survivalChangeU, MARGINS } from './stats.mjs';
+import { outcome, mcnemarHarmP, binomUpperHalf, holm, marginFor, survivalChange, pooledSummed, MARGINS } from './stats.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/adopt-pi.md';
-export const PTS = '30', SEED = '7004', NPW = 2000, W = '0.02', DT_RATE = '0.4';
+export const PTS = '30', SEED = '7005', NPW = 6000, W = '0.02', DT_RATE = '0.4';
 export const PANEL = ['share 0.50', 'share 0.70', 'share 0.78', 'share 0.90', 'share 0.95', 'bridge 0', 'bridge 1', 'bridge 6', 'wealth x0.5', 'wealth x2', 'S120', 'S122', 'S126', 'bridge 4', 'S360', 'S194',
   'S124', 'S128', 'S130', 'S366', 'S370', 'bridge 4+cost', 'S162', 'S172', 'S168'];
 export const DT_PANEL = ['S130', 'S370', 'S128'], GAIN_PANEL = ['S130', 'S370'];
@@ -142,9 +142,8 @@ export function items(pairs) {
   const ids = PANEL.filter(id => pairs[id]);
   const ph = holm(ids.map(id => mcnemarHarmP(pairs[id].b, pairs[id].c)));
   const one = ids.map((id, i) => { const p = pairs[id], margin = marginFor(100 * p.snap); return { id, margin, pHolm: ph[i], ...outcome({ b: p.b, c: p.c, N: p.N, margin, pHolm: ph[i] }) }; });
-  const sb = ids.reduce((t, id) => t + pairs[id].b, 0), sc = ids.reduce((t, id) => t + pairs[id].c, 0), sN = ids.reduce((t, id) => t + pairs[id].N, 0);
-  const sa = ids.reduce((t, id) => t + pairs[id].a, 0), sd = ids.reduce((t, id) => t + pairs[id].d, 0);
-  const pool = { b: sb, c: sc, N: sN, margin: MARGINS.pooled, ...survivalChange(sb, sc, sN), u: survivalChangeU(sa, sb, sc, sd) };
+  const fl = ids.filter(id => !GAIN_PANEL.includes(id)), ps = pooledSummed(fl.map(id => ({ a: pairs[id].a, lost: pairs[id].b, saved: pairs[id].c, d: pairs[id].d })));
+  const pool = { b: ps.cells.lost, c: ps.cells.saved, N: ps.N, k: fl.length, margin: MARGINS.pooled, d: ps.d, lo: ps.lo, hi: ps.hi, x: survivalChange(ps.cells.lost, ps.cells.saved, ps.N) };
   const v1 = ids.length !== PANEL.length ? 'NOT READ' : one.some(r => r.outcome === 'harm') || pool.hi < -pool.margin ? 'FALSIFIED' : pool.lo > -pool.margin ? 'HELD' : 'INCONCLUSIVE';
   const pg = holm(GAIN_PANEL.map(id => binomUpperHalf(pairs[id].c, pairs[id].b + pairs[id].c)));
   const two = GAIN_PANEL.map((id, i) => { const p = pairs[id], n = p.b + p.c; return { id, b: p.b, c: p.c, d: 100 * (p.c - p.b) / p.N, p: binomUpperHalf(p.c, n), pHolm: pg[i], gain: p.c > p.b && pg[i] < 0.05 }; });
@@ -171,8 +170,8 @@ export function reading(files, out = console.log) {
   out(`\nITEM 1 (primary): the paired survival change PCLSI less SNAP per household, b lost and c saved; the household's margin (0.25 points at SNAP survival of 95% or more, else 0.5); harm's exact McNemar p, Holm over ${PANEL.length}; no material harm when the exact interval's lower end is above minus the margin, harm when the adjusted p is under 0.05 and the point loss at least the margin, else inconclusive`);
   out('  household        SNAP %   b     c     change   [95% interval]     margin  p Holm     outcome');
   for (const x of r.one) { const p = pairs[x.id]; out(`  ${x.id.padEnd(16)} ${f2(100 * p.snap).padStart(6)}  ${String(p.b).padStart(4)}  ${String(p.c).padStart(4)}  ${f3(x.d).padStart(7)}  [${f3(x.lo)}, ${f3(x.hi)}]`.padEnd(77) + `${x.margin.toFixed(2)}    ${pv(x.pHolm)}  ${x.outcome}`); }
-  out(`  panel            b ${r.pool.b} c ${r.pool.c} of ${r.pool.N}: change ${f3(r.pool.d)} points, exact [${f3(r.pool.lo)}, ${f3(r.pool.hi)}] against minus ${r.pool.margin} (Newcombe [${f3(r.pool.u.lo)}, ${f3(r.pool.u.hi)}], reported)`);
-  out(`  -> ${r.v1} (HELD when no household reads harm and the panel's lower end is above minus ${r.pool.margin}; FALSIFIED when any household reads harm or the panel's upper end is below minus ${r.pool.margin}; else INCONCLUSIVE)`);
+  out(`  the floor (the ${r.pool.k} outside ${GAIN_PANEL.join(' and ')}): b ${r.pool.b} c ${r.pool.c} of ${r.pool.N}: change ${f3(r.pool.d)} points, unconditional [${f3(r.pool.lo)}, ${f3(r.pool.hi)}] against minus ${r.pool.margin} (exact conditional [${f3(r.pool.x.lo)}, ${f3(r.pool.x.hi)}], reported)`);
+  out(`  -> ${r.v1} (HELD when no household reads harm and the floor's lower end is above minus ${r.pool.margin}; FALSIFIED when any household reads harm or the floor's upper end is below minus ${r.pool.margin}; else INCONCLUSIVE)`);
   out(`\nITEM 2 (primary): the gain on ${GAIN_PANEL.join(' and ')}, the exact one-sided McNemar p of c saved in b + c, Holm over ${GAIN_PANEL.length}; GAIN when the adjusted p is under 0.05 with c > b`);
   for (const x of r.two) out(`  ${x.id.padEnd(16)} b ${x.b} c ${x.c} change ${f3(x.d)} points | p ${pv(x.p)} Holm ${pv(x.pHolm)} | ${x.gain ? 'GAIN' : 'NOT SHOWN'}`);
   out(`  -> ${r.v2} (HELD when both read GAIN; FALSIFIED when either change is 0 or below; else INCONCLUSIVE)`);
@@ -204,7 +203,7 @@ function builtLog(o = {}) {
     if (o.skip === k) continue;
     const dt = k.includes(' DT '), arm = k.slice(k.lastIndexOf(' ') + 1), id = k.slice(0, k.length - arm.length - 1).replace(/ DT$/, ''), L = labelOf(arm, dt);
     lines.push(`${id.padEnd(16)} case | unit ${L} | lambda 0.0223606797749979`);
-    lines.push(`${''.padEnd(16)} ran ${L}: mix 3 pts 30 seed ${o.seedOff && id === 'S130' && arm === 'PCLSI' && !dt ? 7002 : 7004} paths 2000 grid total30x6x6 lambda 0.0223606797749979 bequestWeight 0.02 finalIntegral true bridgeRead ${o.reader && id === 'S370' && arm === 'PCLSI' ? 'reader' : 'false'} switchMargin 0.001 pcls 0,0.5,1 pclsInterp ${o.wrongInterp && id === 'S128' && arm === 'SNAP' ? 'true' : ARMS[arm]} deathTax ${dt && !o.dtOff ? '0.4' : '0'}`);
+    lines.push(`${''.padEnd(16)} ran ${L}: mix 3 pts 30 seed ${o.seedOff && id === 'S130' && arm === 'PCLSI' && !dt ? 7002 : SEED} paths 2000 grid total30x6x6 lambda 0.0223606797749979 bequestWeight 0.02 finalIntegral true bridgeRead ${o.reader && id === 'S370' && arm === 'PCLSI' ? 'reader' : 'false'} switchMargin 0.001 pcls 0,0.5,1 pclsInterp ${o.wrongInterp && id === 'S128' && arm === 'SNAP' ? 'true' : ARMS[arm]} deathTax ${dt && !o.dtOff ? '0.4' : '0'}`);
     lines.push(`${''.padEnd(16)} access ${L}: year ${o.accessOff && id === 'S126' && arm === 'PCLSI' ? 3 : 2} years 39 lsa 268275`);
     const f = builtFile(id, arm, dt, o);
     let s = 0, tx = 0, nt = 0; for (let j = 0; j < f.N; j++) { s += f.survived[j]; tx += f.tax[j]; nt += f.net[j]; }
@@ -212,7 +211,7 @@ function builtLog(o = {}) {
     lines.push(`${''.padEnd(16)} trace ${L}: file ${id.replace(/[ +]/g, '_')}-${dt ? 'dt-' : ''}${arm.toLowerCase()}.json.gz paths 2000 years 40`);
     if (!(o.notDone && id === 'S168' && arm === 'PCLSI')) lines.push(`${''.padEnd(16)} done ${L}`);
   }
-  if (o.extra) { const L = labelOf('SNAP', false); lines.push(`S999             case | unit ${L} | lambda 0.0223606797749979`, `${''.padEnd(16)} ran ${L}: mix 3 pts 30 seed 7004 paths 2000 grid total30x6x6 lambda 0.0223606797749979 bequestWeight 0.02 finalIntegral true bridgeRead false switchMargin 0.001 pcls 0,0.5,1 pclsInterp false deathTax 0`, `${''.padEnd(16)} access ${L}: year 2 years 39 lsa 268275`, `${''.padEnd(16)} sum ${L}: paths 2000 survived 1900 tax 100.00 net 1000.00 pathsum 999 secs 10`, `${''.padEnd(16)} trace ${L}: file S999-snap.json.gz paths 2000 years 40`, `${''.padEnd(16)} done ${L}`); }
+  if (o.extra) { const L = labelOf('SNAP', false); lines.push(`S999             case | unit ${L} | lambda 0.0223606797749979`, `${''.padEnd(16)} ran ${L}: mix 3 pts 30 seed ${SEED} paths 2000 grid total30x6x6 lambda 0.0223606797749979 bequestWeight 0.02 finalIntegral true bridgeRead false switchMargin 0.001 pcls 0,0.5,1 pclsInterp false deathTax 0`, `${''.padEnd(16)} access ${L}: year 2 years 39 lsa 268275`, `${''.padEnd(16)} sum ${L}: paths 2000 survived 1900 tax 100.00 net 1000.00 pathsum 999 secs 10`, `${''.padEnd(16)} trace ${L}: file S999-snap.json.gz paths 2000 years 40`, `${''.padEnd(16)} done ${L}`); }
   return lines.join('\n') + '\n';
 }
 /* a built per-path file: 2,000 paths, 40 years; survival from a scenario (o.scen: id -> [b, c] lost and saved under PCLSI,
@@ -229,7 +228,7 @@ function builtRead(o) { const fs = builtFiles(o); return f => { const k = UNIT_K
 const EDGES = [];
 function planted() {
   const cases = [];
-  const G = o => { const us = parse(builtLog(o)); const g = gate(us); return g.length ? g : loadTraces(us, '/x', ST, builtRead(o)).bad; };
+  const G = o => { const us = parse(builtLog(o)); const g = gate(us, { npw: 2000 }); return g.length ? g : loadTraces(us, '/x', ST, builtRead(o)).bad; };
   cases.push(['a built set gates clean', String(G({}).length), '0']);
   for (const [nm, o] of [['a missing unit', { skip: 'S126 SNAP' }], ['an extra household', { extra: true }], ['a unit not done', { notDone: true }], ['a reader in an arm', { reader: true }],
     ['another seed in an arm', { seedOff: true }], ['SNAP interpolated', { wrongInterp: true }], ['a death-tax unit at death tax 0', { dtOff: true }], ['a household\'s access lines differing', { accessOff: true }],
@@ -241,13 +240,15 @@ function planted() {
   cases.push(['60 lost, none saved on one household reads item 1 FALSIFIED', R({ scen: { S168: [60, 0], S130: [0, 40], S370: [0, 40] } }).v1, 'FALSIFIED']);
   // a loss too small to be harm and too wide to be no harm: 8 lost, 2 saved -> inconclusive
   { const r = R({ scen: { S168: [8, 2], S130: [0, 40], S370: [0, 40] } }); cases.push(['8 lost, 2 saved reads that household inconclusive, the panel positive, item 1 HELD', `${r.one.find(x => x.id === 'S168').outcome} ${r.v1}`, 'inconclusive HELD']); }
-  // the panel: 23 households losing 6 each (no household harm) against 80 saved -> the panel's interval straddles -0.1
+  // the floor over the 23 outside the gain pair (46,000 paths): 23 households losing 2 each (no household harm) -> its
+  // interval straddles -0.1 (point -0.1); the gain pair's 80 saved paths are outside the floor and cannot pay for it
   const lose = n => Object.fromEntries(PANEL.filter(id => !GAIN_PANEL.includes(id)).map(id => [id, [n, 0]]));
-  { const r = R({ scen: { ...lose(6), S130: [0, 40], S370: [0, 40] } }); cases.push(['23 households losing 6 paths each reads no harm and the panel INCONCLUSIVE', `${r.one.filter(x => x.outcome === 'harm').length} ${r.v1}`, '0 INCONCLUSIVE']); }
-  // 23 losing 5 each: the panel's point change -0.07 is inside the margin but its interval's lower end is not -> INCONCLUSIVE
-  { const r = R({ scen: { ...lose(5), S130: [0, 40], S370: [0, 40] } }); cases.push(['a panel point inside the margin with its lower end outside reads INCONCLUSIVE', `${r.pool.d > -0.1 && r.pool.lo < -0.1} ${r.v1}`, 'true INCONCLUSIVE']); }
-  // 23 losing 8 each (raw p 0.0039, 0.098 after Holm: no household harm) -> the panel's upper end below -0.1: FALSIFIED
-  { const r = R({ scen: { ...lose(8), S130: [0, 40], S370: [0, 40] } }); cases.push(['23 households losing 8 paths each reads no household harm but the panel FALSIFIED', `${r.one.filter(x => x.outcome === 'harm').length} ${r.v1}`, '0 FALSIFIED']); } EDGES.push('a panel interval straddling minus the pooled margin');
+  { const r = R({ scen: { ...lose(2), S130: [0, 40], S370: [0, 40] } }); cases.push(['23 households losing 2 paths each reads no harm and the floor INCONCLUSIVE', `${r.one.filter(x => x.outcome === 'harm').length} ${r.v1}`, '0 INCONCLUSIVE']); }
+  { const r = R({ scen: { ...lose(2), S130: [0, 400], S370: [0, 400] } }); cases.push(['the gain pair saving 800 paths does not move the floor (still INCONCLUSIVE)', `${r.pool.k} ${r.v1}`, '23 INCONCLUSIVE']); }
+  // 22 losing 2 and one losing 1: the floor's point -0.098 is inside the margin but its lower end is not -> INCONCLUSIVE
+  { const r = R({ scen: { ...lose(2), S168: [1, 0], S130: [0, 40], S370: [0, 40] } }); cases.push(['a panel point inside the margin with its lower end outside reads INCONCLUSIVE', `${r.pool.d > -0.1 && r.pool.lo < -0.1} ${r.v1}`, 'true INCONCLUSIVE']); }
+  // 23 losing 4 each (raw p 0.0625: no household harm) -> the floor's point -0.2, its upper end below -0.1: FALSIFIED
+  { const r = R({ scen: { ...lose(4), S130: [0, 40], S370: [0, 40] } }); cases.push(['23 households losing 4 paths each reads no household harm but the floor FALSIFIED', `${r.one.filter(x => x.outcome === 'harm').length} ${r.v1}`, '0 FALSIFIED']); } EDGES.push('a panel interval straddling minus the pooled margin');
   // Holm: 12 lost, 2 saved (raw harm p 0.0065, a 0.5-point loss at a 0.25 margin) is harm alone but not over 25 households
   { const r = R({ scen: { S168: [12, 2], S130: [0, 40], S370: [0, 40] } }); cases.push(['12 lost, 2 saved reads inconclusive after Holm over 25, not harm (item 1 HELD)', `${r.one.find(x => x.id === 'S168').outcome} ${r.v1}`, 'inconclusive HELD']); }
   // ITEM 2: 40 saved and none lost on both -> GAIN; equal lost and saved on one -> FALSIFIED (the EDGE: a change of exactly 0)

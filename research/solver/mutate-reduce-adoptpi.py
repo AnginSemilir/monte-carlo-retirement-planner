@@ -29,7 +29,9 @@ M = [
   ("|| pool.hi < -pool.margin ? 'FALSIFIED'", "? 'FALSIFIED'"),
   ("pool.lo > -pool.margin ? 'HELD'", "pool.d > -pool.margin ? 'HELD'"),
   ("margin: MARGINS.pooled,", "margin: 0.5,"),
-  ("survivalChange(sb, sc, sN)", "survivalChange(sc, sb, sN)"),
+  ("const fl = ids.filter(id => !GAIN_PANEL.includes(id))", "const fl = ids"),
+  ("lost: pairs[id].b, saved: pairs[id].c", "lost: pairs[id].c, saved: pairs[id].b"),
+  ("d: ps.d, lo: ps.lo, hi: ps.hi", "d: ps.d, lo: ps.d, hi: ps.hi"),
   ("margin = marginFor(100 * p.snap)", "margin = 5"),
   # item 2
   ("binomUpperHalf(pairs[id].c, pairs[id].b + pairs[id].c)", "binomUpperHalf(pairs[id].b, pairs[id].b + pairs[id].c)"),

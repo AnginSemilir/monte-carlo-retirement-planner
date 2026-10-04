@@ -7,6 +7,6 @@ set -u
 OUT=research/solver/results/diagadoptpi-preflight
 rm -rf "$OUT"; mkdir -p "$OUT"
 seq 0 55 | xargs -P "${PAR:-1}" -I{} sh -c \
-  'DIAGADOPTPI_OUT=research/solver/results/diagadoptpi-preflight node research/solver/audit-adoptpi.mjs 4 20 part {}/56 7004 > research/solver/results/diagadoptpi-preflight/case{}.txt 2>&1 || echo "unit {} failed"'
+  'DIAGADOPTPI_OUT=research/solver/results/diagadoptpi-preflight node research/solver/audit-adoptpi.mjs 4 20 part {}/56 7005 > research/solver/results/diagadoptpi-preflight/case{}.txt 2>&1 || echo "unit {} failed"'
 grep -h "solve \|done \|Error" "$OUT"/case*.txt | sed 's/^ *//' | awk '{print $1, $2, $NF}' | sort | uniq -c | sort -rn | head -5
 node research/solver/preflight-parse-adoptpi.mjs "$OUT"

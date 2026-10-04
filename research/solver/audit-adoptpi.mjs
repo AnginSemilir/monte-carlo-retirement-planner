@@ -15,7 +15,7 @@
  * and saves results/diagadoptpi/<household>-[dt-]<arm>.json.gz: per path survived (0/1), lifetime tax and terminal net,
  * and the used share, the pension and the non-pension balances at every path-year alive (NaN where dead) - O88's split by
  * the year a path enters the band, in both arms.
- *   node research/solver/audit-adoptpi.mjs [points=30] [paths=2000] part k/n [seed=7004]
+ *   node research/solver/audit-adoptpi.mjs [points=30] [paths=2000] part k/n [seed=7005]
  */
 import * as E from '../engine.mjs';
 import * as M from '../../src/solver/model.js';
@@ -39,7 +39,7 @@ if (!(POINTS >= 4) || !(NP >= 1)) { console.error(`audit-adoptpi: bad grid size 
 const part = process.argv[4] === 'part' ? process.argv[5] : '0/1';
 const [pk, pn] = part.split('/').map(Number);
 if (!(pn >= 1 && pk >= 0 && pk < pn)) { console.error(`audit-adoptpi: bad part ${part}`); process.exit(2); }
-const SEED = process.argv[6] ? Number(process.argv[6]) : 7004;
+const SEED = process.argv[6] ? Number(process.argv[6]) : 7005;
 if (!(SEED >= 1)) { console.error(`audit-adoptpi: bad seed ${process.argv[6]}`); process.exit(2); }
 const LAMBDA = 0.0223606797749979, W = 0.02, DEATH_TAX = 40;
 // the arms: [name, solvePlan's allowance options]; the death-tax households run both

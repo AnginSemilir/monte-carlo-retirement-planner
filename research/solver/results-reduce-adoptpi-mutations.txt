@@ -19,12 +19,14 @@ caught: 18: one.some(r => r.outcome === 'harm') || pool.hi < -pool.margi
 caught: 19: || pool.hi < -pool.margin ? 'FALSIFIED'
 caught: 20: pool.lo > -pool.margin ? 'HELD'
 caught: 21: margin: MARGINS.pooled,
-caught: 22: survivalChange(sb, sc, sN)
-caught: 23: margin = marginFor(100 * p.snap)
-caught: 24: binomUpperHalf(pairs[id].c, pairs[id].b + pairs[id].c)
-caught: 25: two.some(r => r.c <= r.b) ? 'FALSIFIED'
-caught: 26: const v2 = two.every(r => r.gain) ? 'HELD'
-caught: 27: ${sign(z.net.m) !== sign(q.net.m) ? ' FLIPS' : ''}
-caught: 28: if (x >= 0.75) c = true;
-caught: 29: if (r) { reach++; yrs += y; }
-29 of 29 mutations caught
+caught: 22: const fl = ids.filter(id => !GAIN_PANEL.includes(id))
+caught: 23: lost: pairs[id].b, saved: pairs[id].c
+caught: 24: d: ps.d, lo: ps.lo, hi: ps.hi
+caught: 25: margin = marginFor(100 * p.snap)
+caught: 26: binomUpperHalf(pairs[id].c, pairs[id].b + pairs[id].c)
+caught: 27: two.some(r => r.c <= r.b) ? 'FALSIFIED'
+caught: 28: const v2 = two.every(r => r.gain) ? 'HELD'
+caught: 29: ${sign(z.net.m) !== sign(q.net.m) ? ' FLIPS' : ''}
+caught: 30: if (x >= 0.75) c = true;
+caught: 31: if (r) { reach++; yrs += y; }
+31 of 31 mutations caught

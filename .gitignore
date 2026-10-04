@@ -31,3 +31,4 @@ confirm-list.json
 research/simplePlan.mjs
 research/solver/results/
 __pycache__/
+research/solver/zz-mut-*

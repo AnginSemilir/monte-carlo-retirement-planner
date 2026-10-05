@@ -5,8 +5,10 @@
  *     D = the sum over the year's reads of (read - va) (what the supported edge node removes) and P = the sum of
  *     (read - ex5) (the representation error XAS measured); the share s = sum D / sum P. Two one-sided paired sign-flip
  *     tests a year (reduce-7ar.mjs flipP, B 20,000 from fixed seeds): LO, mean(D - 0.3 P) above 0 (s above 0.3), and HI,
- *     mean(0.6 P - D) above 0 (s below 0.6); Holm over the four. A year reads COPY when LO shows and s >= 0.6, GRID when
- *     HI shows and s <= 0.3, else MID. HELD (YB-COPY) when both years read COPY, FALSIFIED (YB-GRID) when both read GRID,
+ *     mean(0.6 P - D) above 0 (s below 0.6); Holm over the four. A year reads CONSTRUCT when s lies outside [S_MIN, S_MAX]
+ *     (the construct moving the reads past the one-step value, or adding to the error: its own error, not the copy's or the
+ *     grid's - amended before launch on the plan-auditor's BLOCKING 1 of 5 Oct, the build check's overshoot); else COPY when
+ *     LO shows and s >= 0.6, GRID when HI shows and s <= 0.3, else MID. A CONSTRUCT year makes item 1 INCONCLUSIVE. HELD (YB-COPY) when both years read COPY, FALSIFIED (YB-GRID) when both read GRID,
  *     else INCONCLUSIVE.
  *   ITEM 2 (S126-BLEND): S126's opening scores, each arm's mixture score of BASE's and COV's opening moves split into
  *     survival, resilience, bequest and shortfall; per move the rise COV less BASE and q = the part of the score's rise the
@@ -16,8 +18,10 @@
  *     taking; a ran line off XAS's unit; a self-check failed or run on nothing; a per-read file missing, unstamped or short;
  *     a read unclassed for the top cell; XAS's files failing their own gate (reduce-xas.mjs, with COV-B-STEP's under it);
  *     a read or ex5 off XAS's at the same path, world and year, or a different count of reads; S126's opening moves or
- *     BASE's opening score off XAS's; and THE BASE GUARD: under BASE, (v-a)'s mean (va - ex5) in either year above
- *     GUARD (the construct adding optimism where there is none to remove).
+ *     BASE's opening score off XAS's; and THE BASE GUARD, two-sided, on S370 and bridge 4: under BASE, (v-a)'s mean
+ *     |va - ex5| in a year more than GUARD past the reader's own |read - ex5| (the construct moving reads away from the
+ *     one-step value, either way, where there is little to remove; amended before launch on the plan-auditor's BLOCKING 1
+ *     and 2 of 5 Oct: at the build check's 4 points (v-a) moved S370's BASE reads to -2.7e-2 and bridge 4's to +6.5e-2).
  *   REPORTED, deciding nothing: (v-b)'s share overall and by the 0.9 node's support (the review's corroboration: under
  *     YB-GRID within 0.15 of (v-a)'s whatever the support); the plain read's share; each read's pass-through slope of
  *     COV's step-year correction (COV less BASE, the read on ex5) and the share of the gap to 0.93 it closes; bridge 4 the
@@ -37,7 +41,7 @@ import { parse as parseX, gate as gateX, checkFile as checkX, drawCheck as drawX
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const PRED = 'research/solver/predictions/diag-xasr.md';
 export const PTS = '30', SEED = '7002', NPW = 2000, B = 20000, ALPHA = 0.05;
-export const LO = 0.3, HI = 0.6, Q_HELD = 0.8, Q_FALS = 0.5, GUARD = 5e-3, VB_NEAR = 0.15, SLOPE_REF = 0.93;
+export const LO = 0.3, HI = 0.6, Q_HELD = 0.8, Q_FALS = 0.5, GUARD = 5e-3, VB_NEAR = 0.15, SLOPE_REF = 0.93, S_MIN = -0.2, S_MAX = 1.2;
 export const UNITS = ['S370', 'bridge 4', 'S126'], READ_UNITS = ['S370', 'bridge 4'], ARMS = ['BASE', 'COV'];
 const fileOf = id => `${id.replace(/\s+/g, '_')}.json.gz`;
 const field = (s, k) => { const m = new RegExp(`(?:^| )${k} (\\S+)`).exec(s); return m ? m[1] : null; };
@@ -133,12 +137,16 @@ export function openCheck(u, xu) {
   if (!tb || !(Math.abs(tb.score - xu.scoreBase) <= 1e-4)) bad.push(`S126: BASE's score of its own opening ${tb ? tb.score : '-'}, XAS's ${xu.scoreBase}`);
   return bad;
 }
-// THE BASE GUARD: (v-a) adds no optimism under BASE (mean va - ex5 per year at most GUARD)
+// THE BASE GUARD, two-sided: under BASE, (v-a) moves no household's year-before reads more than GUARD further from the
+// one-step value than the reader's own read sits (|mean va - ex5| at most |mean read - ex5| + GUARD), S370 and bridge 4
 export function guard(files) {
-  const t = files.S370, bad = [];
-  for (const y of [...new Set(t.t)].sort((a, b) => a - b)) {
-    const J = t.t.map((_, j) => j).filter(j => t.t[j] === y), A = t.arms.BASE, m = mean(J.map(j => A.va[j] - A.ex5[j]));
-    if (!(m <= GUARD + 1e-12)) bad.push(`the BASE guard: S370 year ${y} BASE's mean (va - ex5) ${f4(m)} above ${GUARD}`);
+  const bad = [];
+  for (const id of READ_UNITS) {
+    const t = files[id]; if (!t) continue;
+    for (const y of [...new Set(t.t)].sort((a, b) => a - b)) {
+      const J = t.t.map((_, j) => j).filter(j => t.t[j] === y), A = t.arms.BASE, m = mean(J.map(j => A.va[j] - A.ex5[j])), r = mean(J.map(j => A.read[j] - A.ex5[j]));
+      if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(`the BASE guard: ${id} year ${y} BASE's mean (va - ex5) ${f4(m)} against the reader's (read - ex5) ${f4(r)}: more than ${GUARD} further from the one-step value`);
+    }
   }
   return bad;
 }
@@ -155,7 +163,7 @@ export function items(files, units) {
     return { y, n: D.length, s, lo: D.map((d, i) => d - LO * P[i]), hi: D.map((d, i) => HI * P[i] - d) };
   });
   const h = holm(per.flatMap((r, i) => [flipP(r.lo, B, 7002 + 2 * i), flipP(r.hi, B, 7003 + 2 * i)]));
-  per.forEach((r, i) => { r.pLo = h[2 * i]; r.pHi = h[2 * i + 1]; r.read = r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < ALPHA && r.s <= LO ? 'GRID' : 'MID'; });
+  per.forEach((r, i) => { r.pLo = h[2 * i]; r.pHi = h[2 * i + 1]; r.read = !(r.s >= S_MIN && r.s <= S_MAX) ? 'CONSTRUCT' : r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < ALPHA && r.s <= LO ? 'GRID' : 'MID'; });
   const one = { per, v: per.length && per.every(r => r.read === 'COPY') ? 'HELD' : per.length && per.every(r => r.read === 'GRID') ? 'FALSIFIED' : 'INCONCLUSIVE' };
   const u = units.find(x => x.id === 'S126'), mv = ['BASE-move', 'COV-move'].map(lab => {
     const b = u.terms[`BASE ${lab}`], c = u.terms[`COV ${lab}`], d = k => c[k] - b[k];
@@ -242,7 +250,7 @@ function built(id, o = {}) {
     t.p.push(p); t.t.push(yr); t.k.push(k); t.top.push(o.unclassed && id === 'S370' ? -1 : 1);
     for (const a of ARMS) {
       const A = t.arms[a], ex5 = 0.5, noise = o.noisy ? (p % 2 ? 0.03 : -0.03) : 0;
-      const read = a === 'COV' ? ex5 + 0.02 : ex5, va = a === 'COV' ? read - sh[yr] * 0.02 + noise : ex5 + (o.baseVa || 0);
+      const read = a === 'COV' ? ex5 + 0.02 : ex5, va = a === 'COV' ? read - sh[yr] * 0.02 + noise : ex5 + (o.baseVa || 0) + (id === 'bridge 4' ? (o.baseVaB4 || 0) : 0);
       A.read.push(read); A.ex5.push(ex5); A.rr.push(read); A.plain.push(read - 0.01); A.va.push(va); A.vb.push(a === 'COV' ? read - sh[yr] * 0.01 + noise : va); A.vaw.push(0.5); A.vbs.push(p % 2);
     }
   }
@@ -276,8 +284,9 @@ function planted() {
     ['another seed', { seedOff: true }], ['a failed node check', { nodesBad: true }], ['a node check run on nothing', { nodesNone: true }], ['a failed replica check', { replicaBad: true }], ['a missing file', { missing: true }],
     ['a file with another stamp', { stOff: true }], ['a read column of the wrong length', { lenOff: true }], ['an xasr line off the file', { readsOff: true }], ['a read unclassed for the top cell', { unclassed: true }],
     ['a read off XAS\'s (the identity)', { identOff: true }], ['a read XAS has that XAS-R lacks', { extraRead: true }], ['an S126 opening off XAS\'s', { openOff: true }], ['BASE\'s opening score off XAS\'s', { scoreOff: true }],
-    ['a failed terms check', { termsBad: true }], ['(v-a) adding optimism under BASE (the guard)', { baseVa: 6e-3 }]]) cases.push([`the gate refuses ${nm}`, String(G(o).length > 0), 'true']);
+    ['a failed terms check', { termsBad: true }], ['(v-a) adding optimism under BASE (the guard)', { baseVa: 6e-3 }], ['(v-a) moving BASE\'s reads pessimistic past the margin (the guard, two-sided)', { baseVa: -6e-3 }], ['(v-a) moving bridge 4\'s BASE reads alone (the guard on both households)', { baseVaB4: 6e-3 }]]) cases.push([`the gate refuses ${nm}`, String(G(o).length > 0), 'true']);
   cases.push(['the guard passes at its margin', String(G({ baseVa: 5e-3 }).length), '0']);
+  cases.push(['the guard passes at its margin, pessimistic', String(G({ baseVa: -5e-3 }).length), '0']);
   EDGES.push('a node check run on nothing', 'a read 1e-6 off XAS\'s', 'the BASE guard at its margin (5e-3) and just past it');
   const us = parse(builtLog({}));
   const Rd = (o, uo = {}) => { const r = reading(builtFiles(o), parse(builtLog(uo)), () => {}); REACHED[1].add(r.one.v); REACHED[2].add(r.two.v); return r; };
@@ -288,6 +297,9 @@ function planted() {
   { const r = Rd({ sh: { 2: 0.6, 6: 0.6 } }); cases.push(['a share exactly at 0.6 reads COPY', r.one.per.map(x => x.read).join(','), 'COPY,COPY']); } EDGES.push('a share exactly at the 0.6 threshold');
   { const r = Rd({ sh: { 2: 0.3, 6: 0.3 } }); cases.push(['a share exactly at 0.3 reads GRID', r.one.per.map(x => x.read).join(','), 'GRID,GRID']); } EDGES.push('a share exactly at the 0.3 threshold');
   cases.push(['a noisy 0.65 share (LO not shown) reads item 1 INCONCLUSIVE', Rd({ sh: { 2: 0.65, 6: 0.65 }, noisy: true }).one.v, 'INCONCLUSIVE']); EDGES.push('a share past its threshold that the test does not show');
+  { const r = Rd({ sh: { 2: 2.0, 6: 2.0 } }); cases.push(['(v-a) overshooting past the one-step value (s 2.0) reads CONSTRUCT and item 1 INCONCLUSIVE, never HELD', `${r.one.per.map(x => x.read).join(',')} ${r.one.v}`, 'CONSTRUCT,CONSTRUCT INCONCLUSIVE']); } EDGES.push('an overshoot past the one-step value (the build check\'s case)');
+  { const r = Rd({ sh: { 2: -0.5, 6: -0.5 } }); cases.push(['(v-a) adding to the error (s -0.5) reads CONSTRUCT, never GRID', `${r.one.per.map(x => x.read).join(',')} ${r.one.v}`, 'CONSTRUCT,CONSTRUCT INCONCLUSIVE']); }
+  { const r = Rd({ sh: { 2: 1.2, 6: 1.2 } }); cases.push(['a share exactly at 1.2 is still COPY', r.one.per.map(x => x.read).join(','), 'COPY,COPY']); } EDGES.push('a share exactly at the 1.2 bound');
   // item 2: built terms (the defaults: beq carries the rise, 0.04 and 0.045 of 0.0405 and 0.0451)
   cases.push(['the bequest term carrying the rise reads item 2 HELD', Rd({}).two.v, 'HELD']);
   const T2 = { 'BASE BASE-move': [59, 1.0, 0.9, 0.05, 0.2, 0.15], 'BASE COV-move': [5, 1.0, 0.9, 0.05, 0.2, 0.15], 'COV BASE-move': [59, 1.04, 0.94, 0.05, 0.2, 0.15], 'COV COV-move': [5, 1.04, 0.94, 0.05, 0.2, 0.15] };

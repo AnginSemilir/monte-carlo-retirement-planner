@@ -20,8 +20,8 @@ GATE: passed - XAS's 4 households through reduce-xas.mjs's gate, the identity ag
   all three: 4.61 core-hours; one process a household, three at once: the longest household's time
 
 4. THE CREDENCES, DERIVED FROM STATED PRIORS (grade C: the priors are judged, the arithmetic is not)
-  item 1, story YB-COPY (weight 0.275): a year COPY 0.841, GRID 0.001; both years COPY 0.708, both GRID 0.000
-  item 1, story YB-GRID (weight 0.2): a year COPY 0.000, GRID 0.933; both years COPY 0.000, both GRID 0.871
+  item 1, story YB-COPY (weight 0.275): a year COPY 0.840, GRID 0.001; both years COPY 0.706, both GRID 0.000
+  item 1, story YB-GRID (weight 0.2): a year COPY 0.000, GRID 0.933; both years COPY 0.000, both GRID 0.870
   item 1, story neither (weight 0.525): a year COPY 0.400, GRID 0.300; both years COPY 0.160, both GRID 0.090
   item 1: HELD 0.28 INCONCLUSIVE 0.50 FALSIFIED 0.22; the share's expectation 0.50
 CREDENCE item 1: point 0.50 HELD 0.28 INCONCLUSIVE 0.50 FALSIFIED 0.22

@@ -56,3 +56,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-05 18:07 UTC | reduce-xasr.mjs 470b2d72fd46 | 29 of 35 caught | escaped: NOT CAUGHT: 1: if (n !== 1) bad.push(`${id}: ${n} unit lines, not 1`);; NOT CAUGHT: 21: const D = perPath(S, J, j => A.read[j] - A.va[j]),; NOT CAUGHT: 30: q: (d('beq') - d('short')) / d('score'); NOT CAUGHT: 31: q: (d('beq') - d('short')) / d('score'); NOT CAUGHT: 34: const b = u.terms[`BASE ${lab}`], c = u.terms[`COV ${lab}`]; NOT CAUGHT: 35: out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}`);
 2026-10-05 18:08 UTC | reduce-xasr.mjs cc83235137a7 | 35 of 35 caught | escaped: none
 2026-10-05 18:09 UTC | reduce-xasr.mjs 5251d44a28ec | 36 of 36 caught | escaped: none
+2026-10-05 19:39 UTC | reduce-xasr.mjs 06f33fcc15b1 | 38 of 41 caught | escaped: NOT APPLIED (0 matches): 29: r.read = r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < ALPHA; NOT APPLIED (0 matches): 30: r.read = r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < ALPHA; NOT APPLIED (0 matches): 31: r.read = r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < ALPHA
+2026-10-05 19:40 UTC | reduce-xasr.mjs 06f33fcc15b1 | 41 of 41 caught | escaped: none

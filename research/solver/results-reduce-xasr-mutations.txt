@@ -16,22 +16,28 @@ caught: 15: Math.abs(X.arms[a].read[i] - t.arms[a].read[j]) > 2e-9 ||
 caught: 16: if (off) bad.push(`${tag}: ${off} reads differ
 caught: 17: for (const a of ARMS) if (u.open[a] !== xu.open[a]) bad.push
 caught: 18: if (!tb || !(Math.abs(tb.score - xu.scoreBase) <= 1e-4)) bad
-caught: 19: if (!(m <= GUARD + 1e-12)) bad.push(
-caught: 20: const J = t.t.map((_, j) => j).filter(j => t.t[j] === y), A 
-caught: 21: const D = perPath(S, J, j => A.read[j] - A.va[j]),
-caught: 22: const S = files.S370, A = S.arms.COV,
-caught: 23: lo: D.map((d, i) => d - LO * P[i]), hi: D.map((d, i) => HI *
-caught: 24: r.read = r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < ALPHA
-caught: 25: r.read = r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < ALPHA
-caught: 26: r.read = r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < ALPHA
-caught: 27: v: per.length && per.every(r => r.read === 'COPY') ? 'HELD'
-caught: 28: per.length && per.every(r => r.read === 'GRID') ? 'FALSIFIED
-caught: 29: const key = t.k[j] * 1e6 + t.p[j];
-caught: 30: q: (d('resil') + d('beq') - d('short')) / d('score')
-caught: 31: q: (d('resil') + d('beq') - d('short')) / d('score')
-caught: 32: q: (d('resil') + d('beq') - d('short')) / d('score')
-caught: 33: two = { mv, v: mv.every(x => x.q >= Q_HELD) ? 'HELD'
-caught: 34: mv.every(x => x.q <= Q_FALS) ? 'FALSIFIED'
-caught: 35: const b = u.terms[`BASE ${lab}`], c = u.terms[`COV ${lab}`]
-caught: 36: out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}`);
-36 of 36 mutations caught
+caught: 19: if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(
+caught: 20: if (!(Math.abs(m) <= Math.abs(r) + GUARD + 1e-12)) bad.push(
+caught: 21: const J = t.t.map((_, j) => j).filter(j => t.t[j] === y), A 
+caught: 22: for (const id of READ_UNITS) {
+    const t = files[id]; if (
+caught: 23: r.read = !(r.s >= S_MIN && r.s <= S_MAX) ? 'CONSTRUCT' :
+caught: 24: S_MIN = -0.2, S_MAX = 1.2;
+caught: 25: S_MIN = -0.2, S_MAX = 1.2;
+caught: 26: const D = perPath(S, J, j => A.read[j] - A.va[j]),
+caught: 27: const S = files.S370, A = S.arms.COV,
+caught: 28: lo: D.map((d, i) => d - LO * P[i]), hi: D.map((d, i) => HI *
+caught: 29: 'CONSTRUCT' : r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < 
+caught: 30: 'CONSTRUCT' : r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < 
+caught: 31: 'CONSTRUCT' : r.pLo < ALPHA && r.s >= HI ? 'COPY' : r.pHi < 
+caught: 32: v: per.length && per.every(r => r.read === 'COPY') ? 'HELD'
+caught: 33: per.length && per.every(r => r.read === 'GRID') ? 'FALSIFIED
+caught: 34: const key = t.k[j] * 1e6 + t.p[j];
+caught: 35: q: (d('resil') + d('beq') - d('short')) / d('score')
+caught: 36: q: (d('resil') + d('beq') - d('short')) / d('score')
+caught: 37: q: (d('resil') + d('beq') - d('short')) / d('score')
+caught: 38: two = { mv, v: mv.every(x => x.q >= Q_HELD) ? 'HELD'
+caught: 39: mv.every(x => x.q <= Q_FALS) ? 'FALSIFIED'
+caught: 40: const b = u.terms[`BASE ${lab}`], c = u.terms[`COV ${lab}`]
+caught: 41: out(`\nOUTCOME: 1 ${R.one.v}; 2 ${R.two.v}`);
+41 of 41 mutations caught

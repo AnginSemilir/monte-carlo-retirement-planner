@@ -13,7 +13,7 @@
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { xasFiles, LO, HI, Q_HELD, Q_FALS } from './reduce-xasr.mjs';
+import { xasFiles, LO, HI, Q_HELD, Q_FALS, S_MIN, S_MAX } from './reduce-xasr.mjs';
 import { logsOf } from './reduce-xas.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -72,15 +72,16 @@ console.log('\n4. THE CREDENCES, DERIVED FROM STATED PRIORS (grade C: the priors
 // item 1: the share s (v-a) removes, in each of S370's two years, from three stories - YB-COPY (s ~ normal(0.75, 0.15)),
 // YB-GRID (s ~ normal(0.15, 0.10)) and neither (s uniform on [0, 1]) - weighted by the review's ranking shaded halfway to the
 // deep-review record's rate (YB-COPY (0.45 + 0.10) / 2, YB-GRID (0.30 + 0.10) / 2, the rest to neither). Given a story the
-// two years are drawn independently; a year reads COPY when s is at least 0.6 and past 0.3 by the detectable distance,
-// GRID when s is at most 0.3 and short of 0.6 by it (section 2 at twice the assumed spread).
+// two years are drawn independently; a year reads COPY when s is at least 0.6 and past 0.3 by the detectable distance
+// and at most S_MAX, GRID when s is at most 0.3 and short of 0.6 by it and at least S_MIN (section 2 at twice the assumed
+// spread); outside [S_MIN, S_MAX] it reads CONSTRUCT (the bounds amended before launch, the plan-auditor's BLOCKING 1).
 {
   const ys = before(X.files.S370), d = Math.max(...ys.map(y => MDD[`${y} 2`]));
   const stories = [['YB-COPY', 0.275, 0.75, 0.15], ['YB-GRID', 0.2, 0.15, 0.1], ['neither', 0.525, null, null]];
   const pr = (mu, s, lo, hi) => (mu === null ? Math.max(0, Math.min(1, hi) - Math.max(0, lo)) : Phi((hi - mu) / s) - Phi((lo - mu) / s));
   let H = 0, F = 0, pt = 0;
   for (const [nm, w, mu, s] of stories) {
-    const c = pr(mu, s, Math.max(HI, LO + d), Infinity), g = pr(mu, s, -Infinity, Math.min(LO, HI - d));
+    const c = pr(mu, s, Math.max(HI, LO + d), S_MAX), g = pr(mu, s, S_MIN, Math.min(LO, HI - d));
     const h = c ** ys.length, f = g ** ys.length;
     H += w * h; F += w * f; pt += w * (mu === null ? 0.5 : mu);
     console.log(`  item 1, story ${nm} (weight ${w}): a year COPY ${c.toFixed(3)}, GRID ${g.toFixed(3)}; both years COPY ${h.toFixed(3)}, both GRID ${f.toFixed(3)}`);

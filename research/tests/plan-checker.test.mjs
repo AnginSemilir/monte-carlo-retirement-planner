@@ -7,7 +7,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkPlan, stalePhrases, MAX_CHECKLIST, PLAN_BUDGET, RULES_BUDGET } from '../solver/check-plan.mjs';
-import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, edgeProblems, reducerOf, decisionTableProblems, mechanismProblems, heldToDecision, credenceProblems, heldToCredence, CREDENCE_FROM } from '../solver/check-prediction.mjs';
+import { checkPredictionText, seedLaunchProblems, SEED_REGISTRY, SEED_OWNERS, outcomeProblems, edgeProblems, reducerOf, decisionTableProblems, mechanismProblems, heldToDecision, credenceProblems, heldToCredence, CREDENCE_FROM, heldToJudged, exemptBy, judgedOrderProblems, baseRateProblems, CREDENCE_BOUNDARY, JUDGED_BOUNDARY } from '../solver/check-prediction.mjs';
 import { execFileSync } from 'node:child_process';
 import { writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -286,6 +286,46 @@ ok(!run({ added: ['The cap does not change the cutting (evidence: results-k5-tar
     ok(cp(good, '- **Item 1:** about 0.55 (0.3 to 0.9).').some(e => /not the derivation's 0\.5/.test(e)), 'EDGE: 0.55 does not pass for the point 0.5 (a whole-number match)');
     ok(credenceProblems(pr(good), { readOut: () => 'no credence lines' }).some(e => /prints no "CREDENCE item 1/.test(e)), 'planted: a derivation printing no CREDENCE line is refused');
     ok(credenceProblems(pr(good).replace(/- `derive:[^\n]*\n/, ''), { readOut: rd }).some(e => /no "derive:" line/.test(e)), 'planted: no derive line is refused');
+    // THE CHECK'S OWN GAPS CLOSED (the second unlock of 5 Oct; the plan-auditor's MINOR 1 of 11:37 UK)
+    ok(cp(good.replace('FALSIFIED 0.34.', 'FALSIFIED 0.34, HELD 0.30.')).some(e => /HELD named twice/.test(e)), 'planted: an outcome named twice on one credence line is refused');
+    ok(cp(good).every(e => !/named twice/.test(e)), 'EDGE: each outcome named once is not read as a repeat');
+    const withRule = rule => credenceProblems(pr(good).replace('## Credence', `## Decision rule\n\n${rule}\n\n## Credence`), { readOut: rd });
+    ok(withRule('- **Item 1** decides. **Item 2** is a leg.').some(e => /item 2: the Decision rule names it/.test(e)), 'planted: an item the Decision rule names with no credence line is refused');
+    ok(withRule('- **Item 1** decides.').length === 0, 'EDGE: a Decision rule naming only the items with credence lines passes');
+    ok(cp(good, '- **Item 1:** on S130 about 0.5 (0.2 to 0.8).').length === 0, 'EDGE: a number inside a name (S130) is not the point; the first standalone number is');
+    ok(cp(good, '- **Item 1:** about 0.6, or 0.5 on S128.').some(e => /its first number, 0\.6/.test(e)), 'planted: the derivation\'s point later on the line, behind another number, is refused');
+    ok(cp(good, '- **Item 1:** about .5 (0.2 to 0.8).').length === 0, 'EDGE: a point written without its leading zero (.5) reads as 0.5');
+    // the boundary by ancestry, not the commit date
+    ok(exemptBy('aaa', new Set(['aaa', 'bbb'])) === true && exemptBy('ccc', new Set(['aaa'])) === false && exemptBy(undefined, new Set(['aaa'])) === false && exemptBy(null, new Set()) === false, 'exemptBy: only a commit inside the boundary\'s ancestry exempts; an uncommitted file (no commit) never does');
+    ok(CREDENCE_BOUNDARY === 'd4487bd' && JUDGED_BOUNDARY === 'ed5db5c', 'the two boundaries are the first unlock\'s commit and the second unlock\'s base');
+    ok(heldToCredence('research/solver/predictions/diag-edge.md') === true && heldToCredence('research/solver/predictions/diag-xas.md') === false, 'by ancestry: diag-edge (added after d4487bd) is held to the credence rule, diag-xas (added before it) is not');
+    ok(heldToJudged('research/solver/predictions/diag-edge.md') === false && heldToJudged('x.md', { judged: true }) === true && heldToJudged('no-such-prediction.md') === false, 'by ancestry: diag-edge (added before ed5db5c) is exempt from the judged rules; judged: true forces them; a file not on disk is not held');
+    { const tmp = join(S, 'predictions', 'zz-planted-uncommitted.md');
+      writeFileSync(tmp, '# planted\n');
+      try { ok(heldToCredence(tmp) === true && heldToJudged(tmp) === true, 'planted: an uncommitted prediction is held to both rules (no commit can exempt it)'); } finally { rmSync(tmp, { force: true }); } }
+    // JUDGED BEFORE DERIVED: a stand-in git (args -> output, null for a failed command)
+    const jg = ({ J = null, D = null, anc = true }) => args => args.includes('-S') ? (J ? `${J}\n` : '') : args.includes('--diff-filter=A') ? (D ? `${D}\n` : '') : args[0] === 'merge-base' ? (anc ? '' : null) : null;
+    const jt = pr(good);
+    ok(judgedOrderProblems('p.md', jt, { git: jg({ J: 'aaa1111', D: 'bbb2222' }) }).length === 0, 'judged committed before the derivation\'s output passes');
+    ok(judgedOrderProblems('p.md', jt, { git: jg({ J: 'aaa1111', D: 'aaa1111' }) }).some(e => /arrive in one commit/.test(e)), 'planted: the judged lines and the derivation\'s output in one commit are refused');
+    ok(judgedOrderProblems('p.md', jt, { git: jg({ J: 'bbb2222', D: 'aaa1111', anc: false }) }).some(e => /committed after the derivation/.test(e)), 'planted: judged lines committed after the derivation\'s output are refused');
+    ok(judgedOrderProblems('p.md', jt, { git: jg({}) }).some(e => /both uncommitted/.test(e)), 'planted: judged lines and output both uncommitted are refused (commit the judgement alone first)');
+    ok(judgedOrderProblems('p.md', jt, { git: jg({ D: 'bbb2222' }) }).some(e => /committed but the "Judged, item" lines are not/.test(e)), 'planted: the output committed and the judged lines not are refused');
+    ok(judgedOrderProblems('p.md', jt, { git: jg({ J: 'aaa1111' }) }).length === 0, 'EDGE: judged lines committed and the derivation not yet run passes');
+    ok(judgedOrderProblems('p.md', jt.replace('## Credence\n', '## Credence\n\n- **Judged:** none\n'), { git: jg({ J: 'aaa1111', D: 'aaa1111' }) }).length === 0, '"Judged: none" declines to judge and passes (the decisive check leaves it out)');
+    // A BASE RATE ON EVERY ITEM
+    const sc = 'x\nKIND BASE RATES (a new item\'s starting credence): NOHARM 0.80 (27 of 33), ATTRIB 0.50 (14 of 28); an item leaning on a deep review\'s cause or story 0.10 (1 of 19, deep-review-log.md)\n';
+    const br = v => baseRateProblems(pr(v === null ? good : `- **Base rate, item 1:** ${v}\n${good}`), { scorecard: sc });
+    ok(br('0.50').length === 0 && br('0.10').length === 0, 'a kind\'s base rate, or the deep-review record\'s, passes');
+    ok(br(null).some(e => /no "- \*\*Base rate, item 1/.test(e)), 'planted: an item with no base rate is refused');
+    ok(br('0.65').some(e => /0\.65 is no rate on the KIND BASE RATES line/.test(e)), 'planted: a base rate on no kind is refused');
+    ok(br('0.51').length === 0 && br('0.52').length > 0, 'EDGE: 0.01 from a rate passes, 0.02 does not');
+    ok(baseRateProblems(pr(good), { scorecard: 'no such line' }).some(e => /no KIND BASE RATES line/.test(e)), 'planted: a scorecard with no KIND BASE RATES line is refused, not passed');
+    // the wiring: checkPredictionText calls the checks when a prediction is held to them, and not when it is not
+    const wired = (o, re) => checkPredictionText(pr(good), { name: 'not-on-disk-x.md', ...o }).some(e => re.test(e));
+    ok(wired({ credence: true }, /no "derive:" line|CREDENCE item 1|Derivation script/) || wired({ credence: true }, /Judged, item 1|derivation/), 'the wiring: checkPredictionText runs credenceProblems on a prediction held to it');
+    ok(!wired({}, /CREDENCE item 1|prints no "CREDENCE/), 'the wiring: a prediction held to no credence rule is not checked for one');
+    ok(wired({ judged: true }, /Base rate, item 1/) && !wired({}, /Base rate, item 1/), 'the wiring: checkPredictionText runs the base-rate check on a prediction held to the judged rules, and only then');
     ok(heldToCredence('x.md', { at: CREDENCE_FROM - 60000 }) === false && heldToCredence('research/solver/predictions/diag-xas.md', { at: CREDENCE_FROM }) === true, 'a prediction committed before CREDENCE_FROM is exempt, one at it or after is held'); }
   ok(decisionTableProblems(dt('| 1 HELD | build COV | 0.5 |\n| 1 FALSIFIED | build COV | 0.5 |')).some(e => /one action only/.test(e)), 'planted: a table with one action is refused');
   ok(decisionTableProblems(dt('| 1 HELD | a | 0.5 |\n| 1 FALSIFIED | b | 0.3 |')).some(e => /sum to 0.800/.test(e)), 'planted: credences that do not sum to 1 are refused');

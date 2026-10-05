@@ -168,9 +168,11 @@ export const heldToDecision = (name, opts = {}) => opts.decision === true || (on
 export const CREDENCE_FROM = Date.parse('2026-10-05T11:20:00+01:00');
 export const CREDENCE_TOL = 0.05;
 const NUM = String.raw`(\d+(?:\.\d+)?|\.\d+)`;
-const distOf = s => { const d = {}; for (const m of String(s).matchAll(new RegExp(String.raw`\b(HELD|INCONCLUSIVE|FALSIFIED)\s+` + NUM, 'g'))) d[m[1]] = Number(m[2]); return d; };
+// a repeated outcome on one line is marked (the plan-auditor's MINOR 1 of 5 Oct 11:37 UK: checked at its last value, scored at its first)
+const distOf = s => { const d = {}; for (const m of String(s).matchAll(new RegExp(String.raw`\b(HELD|INCONCLUSIVE|FALSIFIED)\s+` + NUM, 'g'))) { if (m[1] in d) Object.defineProperty(d, 'twice', { value: m[1], enumerable: false }); else d[m[1]] = Number(m[2]); } return d; };
 const fullDist = d => ['HELD', 'INCONCLUSIVE', 'FALSIFIED'].every(k => k in d);
-const hasNum = (s, x) => new RegExp(String.raw`(?<![\d.])` + String(x).replace('.', '\\.') + String.raw`(?![\d])`).test(s);
+// the point is the first standalone number on the item's line (a number inside a name, S130, is not one), not any number on it
+const firstNum = s => { const m = /(?<![\w.])(\d+(?:\.\d+)?|\.\d+)(?![\w])/.exec(String(s)); return m ? Number(m[1]) : NaN; };
 export function credenceProblems(text, { root = REPO, readOut = null } = {}) {
   const cred = section(text, 'Credence', { note: true });
   if (cred === null) return ['missing section "## Credence"'];
@@ -179,7 +181,10 @@ export function credenceProblems(text, { root = REPO, readOut = null } = {}) {
   for (const m of cred.matchAll(/^\s*-\s*\*\*Judged, item (\d+):\*\*\s*([^\n]*)$/gm)) judged.set(m[1], distOf(m[2]));
   if (!items.size) return ['"## Credence" gives no "- **Item N:** HELD p, INCONCLUSIVE q, FALSIFIED r" line (credences derived, the maintainer\'s unlock of 5 Oct)'];
   const P = [];
+  // every item the Decision rule names has a credence line (an item with none went unchecked)
+  for (const m of (section(text, 'Decision rule', { note: true }) || '').matchAll(/\*\*Item (\d+)\b/g)) if (!items.has(m[1])) P.push(`item ${m[1]}: the Decision rule names it but "## Credence" gives no "- **Item ${m[1]}:**" line`);
   for (const [k, d] of items) {
+    if (d.twice) P.push(`item ${k}: ${d.twice} named twice on its credence line (it would be checked at one value and scored at another)`);
     if (!fullDist(d)) { P.push(`item ${k}: its credence names ${Object.keys(d).join(', ') || 'no outcome'}, not all three outcomes`); continue; }
     const s = d.HELD + d.INCONCLUSIVE + d.FALSIFIED;
     if (Math.abs(s - 1) > 0.011) P.push(`item ${k}: its three outcomes sum to ${s.toFixed(3)}, not 1`);
@@ -200,14 +205,78 @@ export function credenceProblems(text, { root = REPO, readOut = null } = {}) {
     if (g.point !== '-') {
       const line = (new RegExp(String.raw`^\s*-\s*\*\*Item ${k}:\*\*([^\n]*)$`, 'm').exec(pt) || [])[1];
       if (!line) P.push(`item ${k}: "## Point and interval" has no "- **Item ${k}:**" line for the derivation's point ${g.point}`);
-      else if (!hasNum(line, g.point)) P.push(`item ${k}: the point stated in "## Point and interval" is not the derivation's ${g.point} (a credence contradicting its own point)`);
+      else if (firstNum(line) !== Number(g.point)) P.push(`item ${k}: the point stated in "## Point and interval" (its first number, ${firstNum(line)}) is not the derivation's ${g.point} (a credence contradicting its own point)`);
     }
   }
   return P;
 }
-export const heldToCredence = (name, opts = {}) => opts.credence === true || (onDisk(name) && (t => t === null || Number.isNaN(t) || t >= CREDENCE_FROM)('at' in opts ? opts.at : committedAt(name)));
+/* THE BOUNDARY BY ANCESTRY (the maintainer's 'unlock enforcement' of 5 Oct, the second; the plan-auditor's MINOR 1 of 11:37 UK:
+   a back-dated commit or a reused file name exempted a prediction from the date rule). A prediction is exempt only if the
+   commit that last added its exact path is an ancestor of the boundary commit - the unlock's own (d4487bd) for the credence
+   rule, the second unlock's base (ed5db5c) for the judged-order and base-rate rules; a file re-added after the boundary is
+   held, whatever its commit date. `at` stands in for the commit time in the date-based planted cases. */
+export const CREDENCE_BOUNDARY = 'd4487bd', JUDGED_BOUNDARY = 'ed5db5c';
+const PRED_DIR = 'research/solver/predictions/';
+let LATEST = null; const ANC = new Map();
+const latestAdd = () => {
+  if (LATEST) return LATEST;
+  LATEST = new Map();
+  try {
+    const out = execFileSync('git', ['log', '--diff-filter=A', '--name-only', '--format=@%H', '--', PRED_DIR], { cwd: REPO, stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 << 20 }).toString();
+    let c = null;   // newest first: the first commit seen for a path is its latest add
+    for (const l of out.split('\n')) { if (l.startsWith('@')) c = l.slice(1); else if (l.trim() && !LATEST.has(l.trim())) LATEST.set(l.trim(), c); }
+  } catch { /* not a git checkout: every file reads as uncommitted */ }
+  return LATEST;
+};
+const ancestorsOf = b => {
+  if (!ANC.has(b)) { let s = new Set(); try { s = new Set(execFileSync('git', ['rev-list', b], { cwd: REPO, stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 << 20 }).toString().split('\n').filter(Boolean)); } catch { /* no such commit: nothing is exempt */ } ANC.set(b, s); }
+  return ANC.get(b);
+};
+export const exemptBy = (commit, ancestors) => !!commit && ancestors.has(commit);
+const pathOf = name => PRED_DIR + basename(String(name));
+const heldBy = (name, boundary) => !exemptBy(latestAdd().get(pathOf(name)), ancestorsOf(boundary));
+export const heldToCredence = (name, opts = {}) => opts.credence === true || (onDisk(name) && ('at' in opts ? (t => t === null || Number.isNaN(t) || t >= CREDENCE_FROM)(opts.at) : heldBy(name, CREDENCE_BOUNDARY)));
+export const heldToJudged = (name, opts = {}) => opts.judged === true || (onDisk(name) && heldBy(name, JUDGED_BOUNDARY));
 
-export function checkPredictionText(text, { name, decision, credence } = {}) {
+/* JUDGED BEFORE DERIVED (the second unlock): the commit that first carries the prediction's "- **Judged, item" lines is a
+   strict ancestor of the commit that first adds its derivation's output file; judged lines arriving with or after the
+   derivation are refused, and lines not yet committed are refused once the derivation's output is committed (commit the
+   judgement alone first). "Judged: none" declines to judge; the decisive check (O29) then leaves the test out. `git` is the
+   runner (a stand-in in the planted cases). */
+const gitRun = args => { try { return execFileSync('git', args, { cwd: REPO, stdio: ['ignore', 'pipe', 'ignore'] }).toString(); } catch { return null; } };
+export function judgedOrderProblems(name, text, { git = gitRun } = {}) {
+  if (/^\s*-\s*\*\*Judged:\*\*\s*none\b/mi.test(text)) return [];
+  const outs = [...(section(text, 'Derivation script', { note: true }) || '').matchAll(DERIVE)].map(m => m[2]);
+  if (!outs.length) return [];   // credenceProblems names the missing derive line
+  const first = args => { const o = git(args); return o === null ? null : (o.trim().split('\n').filter(Boolean)[0] || null); };
+  const J = first(['log', '--reverse', '--format=%H', '-S', '**Judged, item', '--', pathOf(name)]);
+  const out = outs[0].startsWith('research/') ? outs[0] : `research/solver/${outs[0]}`;
+  const D = first(['log', '--diff-filter=A', '--reverse', '--format=%H', '--', out]);
+  if (!J && !D) return [`the judged credences and the derivation's output (${out}) are both uncommitted: commit the "Judged, item" lines alone first, then run the derivation (judged before derived, the second unlock of 5 Oct)`];
+  if (!J) return [`the derivation's output (${out}) is committed but the "Judged, item" lines are not: a judgement written after the derivation tells the decisive check nothing (or write "- **Judged:** none")`];
+  if (!D) return [];
+  if (J === D) return [`the "Judged, item" lines and the derivation's output arrive in one commit (${J.slice(0, 7)}): commit the judgement first`];
+  if (git(['merge-base', '--is-ancestor', J, D]) === null) return [`the "Judged, item" lines (${J.slice(0, 7)}) were committed after the derivation's output (${D.slice(0, 7)}): judged before derived`];
+  return [];
+}
+/* A BASE RATE ON EVERY ITEM (the second unlock): each item carries "- **Base rate, item N:** p", p within 0.01 of a rate on
+   results-scorecard.txt's KIND BASE RATES line (a kind's, or the deep-review record's) - the derivation starts there */
+export function baseRateProblems(text, { scorecard = null } = {}) {
+  const cred = section(text, 'Credence', { note: true }) || '';
+  const sc = scorecard ?? (existsSync(REPO + 'research/solver/results-scorecard.txt') ? readFileSync(REPO + 'research/solver/results-scorecard.txt', 'utf8') : '');
+  const line = (/^KIND BASE RATES[^:]*: (.*)$/m.exec(sc) || [])[1];
+  if (!line) return ['results-scorecard.txt has no KIND BASE RATES line to take a base rate from'];
+  const rates = [...line.matchAll(/\b(\d\.\d\d) \(\d+ of \d+/g)].map(m => Number(m[1]));
+  const P = [];
+  for (const m of cred.matchAll(/^\s*-\s*\*\*Item (\d+):\*\*/gm)) {
+    const b = new RegExp(String.raw`^\s*-\s*\*\*Base rate, item ${m[1]}:\*\*\s*` + NUM, 'm').exec(cred);
+    if (!b) P.push(`item ${m[1]}: no "- **Base rate, item ${m[1]}:** p" line (its kind's rate from results-scorecard.txt's KIND BASE RATES)`);
+    else if (!rates.some(r => Math.abs(r - Number(b[1])) <= 0.01 + 1e-9)) P.push(`item ${m[1]}: its base rate ${b[1]} is no rate on the KIND BASE RATES line (${rates.join(', ')})`);
+  }
+  return P;
+}
+
+export function checkPredictionText(text, { name, decision, credence, judged } = {}) {
   const errs = [];
   if (!/^#\s+Prediction:\s+\S/m.test(text)) errs.push('the first heading must be "# Prediction: <name>"');
   const field = f => { const m = new RegExp(`^-\\s+\\*\\*${f}:\\*\\*\\s*(.+)$`, 'mi').exec(text); return m ? m[1].trim() : null; };
@@ -258,6 +327,7 @@ export function checkPredictionText(text, { name, decision, credence } = {}) {
   }
   if ((!kind || /^test/i.test(kind)) && heldToDecision(name, { decision })) errs.push(...decisionTableProblems(text), ...mechanismProblems(text));
   if ((!kind || /^test/i.test(kind)) && heldToCredence(name, { credence })) errs.push(...credenceProblems(text));
+  if ((!kind || /^test/i.test(kind)) && heldToJudged(name, { judged })) errs.push(...baseRateProblems(text), ...judgedOrderProblems(name, text));
   const table = section(text, 'Fair-test table');
   if (table === null) { errs.push('missing section "## Fair-test table"'); return errs; }
   const rows = table.split('\n').filter(l => /^\|\s*\d+\s*\|/.test(l));

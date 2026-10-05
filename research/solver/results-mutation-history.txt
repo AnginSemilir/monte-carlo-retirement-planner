@@ -47,3 +47,5 @@ before 6af031c | reduce-7al.mjs (the per-household item, before its two added pl
 2026-10-05 11:12 UTC | reduce-edge.mjs 83b0a480c6fc | 22 of 22 caught | escaped: none
 2026-10-05 11:36 UTC | reduce-edge.mjs 6e892401625e | 26 of 27 caught | escaped: NOT CAUGHT: 27: hi = share(diff(F('S-HI'), F('SNAP')), diff(F('S-INT'), F('S
 2026-10-05 11:41 UTC | reduce-edge.mjs d5fb638eb4ef | 27 of 27 caught | escaped: none
+2026-10-05 11:53 UTC | reduce-edge.mjs d319f05f253e | 29 of 30 caught | escaped: NOT APPLIED (0 matches): 24: v !== 'HELD' ? 'NOT APPLICABLE'
+2026-10-05 12:00 UTC | reduce-edge.mjs d319f05f253e | 30 of 30 caught | escaped: none

@@ -1778,7 +1778,12 @@ export const PRODUCT_BASELINE = Object.freeze({
   // 19:25 UK, since the files do not show that (v2 lost 0.8 +/- 0.32 on bridge 4, results-f1v2.txt, where v1 lost
   // nothing beyond two se, results-f1-verdict.txt, in a different setting) and the F1 v2 test's registered consequence
   // (predictions/f1v2-test.md) is that v2 is not carried forward. Callers pass `bridgeRead: 1` or `2` to read with F1.
-  bridgeRead: false
+  bridgeRead: false,
+  // E3 (the empty-pot copy): OFF in the product. E3c held every table bit for bit with it on and off on the 25 panel
+  // households (results-e3c.txt: EXACT), so it is the research default only (research/solver/research-opts.mjs); a
+  // product default would be a separate decision. Pinned with PLAN.md's decided-defaults block by
+  // research/tests/e3-default.test.mjs.
+  e3: false
   // no levelSearch: the full scan. The ternary search lost 0.20 points on S112 and S390 at 2.4 paired standard errors in
   // the step-2 re-check (none gained), so by the rule written before it the full scan stays. No shareDead: neither #106
   // option passed its test on S126 (results-step2.txt).

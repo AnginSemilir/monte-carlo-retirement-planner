@@ -1,0 +1,17 @@
+stamp: code 0fcc3273d6a1 audit 395aaf80e341 prediction none sha -
+share 0.90: PCLSI, 30 points, 500 paths (seed 7002), solve 344 s; years 39; margin 0: survived 498, mean tax 95556.81, mean net 10969667.17
+  margin 1e-10  tax changed on  500 of 500 | lost 0 saved 1 | mean tax  -18098.98 net -6225867.55 | the bound by algebra: 0.00 points of survival a path at most (39 decisions x 1e-10)
+  margin 1e-8   tax changed on  500 of 500 | lost 0 saved 1 | mean tax  -18234.03 net -6225341.51 | the bound by algebra: 0.00 points of survival a path at most (39 decisions x 1e-8)
+  margin 1e-7   tax changed on  500 of 500 | lost 0 saved 1 | mean tax  -19595.08 net -6212589.20 | the bound by algebra: 0.00 points of survival a path at most (39 decisions x 1e-7)
+  margin 1e-6   tax changed on  500 of 500 | lost 0 saved 1 | mean tax  -23653.62 net -6177265.05 | the bound by algebra: 0.00 points of survival a path at most (39 decisions x 0.000001)
+  margin 1e-5   tax changed on  500 of 500 | lost 0 saved 1 | mean tax  -25017.77 net -6169776.40 | the bound by algebra: 0.04 points of survival a path at most (39 decisions x 0.00001)
+  margin 1e-4   tax changed on  500 of 500 | lost 0 saved 0 | mean tax  -25377.56 net -5630647.01 | the bound by algebra: 0.39 points of survival a path at most (39 decisions x 0.0001)
+  margin 1e-3   tax changed on  500 of 500 | lost 0 saved 0 | mean tax  -71240.19 net -4686367.54 | the bound by algebra: 3.90 points of survival a path at most (39 decisions x 0.001)
+S130: PCLSI, 30 points, 500 paths (seed 7002), solve 321 s; years 39; margin 0: survived 444, mean tax 842587.07, mean net 5200501.83
+  margin 1e-10  tax changed on  500 of 500 | lost 8 saved 6 | mean tax   12664.87 net   797021.39 | the bound by algebra: 0.00 points of survival a path at most (39 decisions x 1e-10)
+  margin 1e-8   tax changed on  500 of 500 | lost 8 saved 6 | mean tax   12650.33 net   796575.43 | the bound by algebra: 0.00 points of survival a path at most (39 decisions x 1e-8)
+  margin 1e-7   tax changed on  500 of 500 | lost 8 saved 6 | mean tax   10975.68 net   799204.20 | the bound by algebra: 0.00 points of survival a path at most (39 decisions x 1e-7)
+  margin 1e-6   tax changed on  500 of 500 | lost 8 saved 6 | mean tax    6840.33 net   857509.81 | the bound by algebra: 0.00 points of survival a path at most (39 decisions x 0.000001)
+  margin 1e-5   tax changed on  500 of 500 | lost 8 saved 6 | mean tax   10979.50 net   802267.28 | the bound by algebra: 0.04 points of survival a path at most (39 decisions x 0.00001)
+  margin 1e-4   tax changed on  500 of 500 | lost 8 saved 6 | mean tax  107560.76 net  1156997.90 | the bound by algebra: 0.39 points of survival a path at most (39 decisions x 0.0001)
+  margin 1e-3   tax changed on  500 of 500 | lost 7 saved 6 | mean tax   -7498.93 net  2850420.38 | the bound by algebra: 3.90 points of survival a path at most (39 decisions x 0.001)

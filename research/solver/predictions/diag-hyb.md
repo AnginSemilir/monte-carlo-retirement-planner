@@ -71,7 +71,7 @@ Arms: SNAP, HYB and PCLSI on each household, paired by path; every unit at the l
 
 ## Derivation script
 
-- `derive: research/solver/derive-hyb.mjs > research/solver/results-derive-hyb.txt sha256 fc619756d7ddd65a`
+- `derive: research/solver/derive-hyb.mjs > research/solver/results-derive-hyb.txt sha256 892b97282892cd2a`
   (item 1 at modelled table shares over ADOPT-PI's cells; the cost)
 
 ## Point and interval
@@ -84,7 +84,7 @@ Arms: SNAP, HYB and PCLSI on each household, paired by path; every unit at the l
 
 ## Power
 
-From results-derive-hyb.txt, HYB built from ADOPT-PI's paths with a share s of the discordant paths given to the tables: S130 reads READ (HELD) at s 0, 0.10 and 0.25, SPLIT (INCONCLUSIVE) at 0.40 to 0.60, TABLES (FALSIFIED) at 0.75 and 1. S370 reads READ only to s 0.10 and TABLES only at 1; S128 (49 lost, 73 saved) reads SPLIT at every s - its gain is too small to split at 6,000 paths, so it is reported, not read. With a flip floor (the deep review after COV-B-STEP, 5 Oct 09:27 UK: a null perturbation flips paths too - S130 lost 25 under PCLSI in ADOPT-PI, and 14 of 500 moved under a 1e-10 tie margin), HYB also flipping f paths each way where SNAP and PCLSI agree (results-derive-hyb.txt section 1b): at f 25 S130 still reads READ to s 0.25; at f 75 only to s 0.10, SPLIT from 0.25; at f 150 the fixed flip pattern reads READ to s 0.40, a property of that one pattern, not more power - so the HELD region narrows to a tables' share of about 0.1 to 0.25 depending on how much HYB flips by itself.
+From results-derive-hyb.txt, HYB built from ADOPT-PI's paths with a share s of the discordant paths given to the tables: S130 reads READ (HELD) at s 0, 0.10 and 0.25, SPLIT (INCONCLUSIVE) at 0.40 to 0.60, TABLES (FALSIFIED) at 0.75 and 1. S370 reads READ only to s 0.10 and TABLES only at 1; S128 (49 lost, 73 saved) reads SPLIT at every s - its gain is too small to split at 6,000 paths, so it is reported, not read. With a flip floor (the deep review after COV-B-STEP, 5 Oct 09:27 UK: a null perturbation flips paths too - S130 lost 25 under PCLSI in ADOPT-PI, and 14 of 500 moved under a 1e-10 tie margin), HYB also flipping f paths each way where SNAP and PCLSI agree (results-derive-hyb.txt section 1b): the flips symmetric, the same count lost and saved, spread evenly over the paths both arms survive and both lose (the plan-auditor's BLOCKING 1 of 5 Oct: the first pattern flipped more paths lost than saved at f 150 on S130, a shift toward READ): at f 25 S130 still reads READ to s 0.25; at f 75 and at f 150 only to s 0.10, SPLIT from 0.25 - so the HELD region narrows to a tables' share of about 0.1 to 0.25 depending on how much HYB flips by itself.
 
 ## Budget line
 

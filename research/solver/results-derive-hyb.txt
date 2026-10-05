@@ -11,21 +11,24 @@ GATE: passed (reduce-adoptpi.mjs's gate and the fair-gate stamp check over resul
   s 0.75: S130 TABLES, S370 SPLIT, S128 SPLIT -> FALSIFIED
   s 1.00: S130 TABLES, S370 TABLES, S128 SPLIT -> FALSIFIED
 
-1b. ITEM 1 WITH A FLIP FLOOR: as 1, and HYB also flips f paths each way (lost and saved) among the paths SNAP and PCLSI agree on
+1b. ITEM 1 WITH A FLIP FLOOR: as 1, and HYB also flips f paths each way (lost and saved, the same count) among the paths SNAP and PCLSI agree on
+  f 25: flipped each way S130 25 (of 4949 both survived, 858 both lost), S370 25 (of 4157 both survived, 1709 both lost), S128 25 (of 4024 both survived, 1854 both lost)
   f  25 s 0.00: S130 READ, S370 READ, S128 SPLIT -> HELD
   f  25 s 0.10: S130 READ, S370 READ, S128 SPLIT -> HELD
   f  25 s 0.25: S130 READ, S370 SPLIT, S128 SPLIT -> HELD
   f  25 s 0.40: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
   f  25 s 0.50: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
+  f 75: flipped each way S130 75 (of 4949 both survived, 858 both lost), S370 75 (of 4157 both survived, 1709 both lost), S128 75 (of 4024 both survived, 1854 both lost)
   f  75 s 0.00: S130 READ, S370 SPLIT, S128 SPLIT -> HELD
   f  75 s 0.10: S130 READ, S370 SPLIT, S128 SPLIT -> HELD
   f  75 s 0.25: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
   f  75 s 0.40: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
   f  75 s 0.50: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
+  f 150: flipped each way S130 150 (of 4949 both survived, 858 both lost), S370 150 (of 4157 both survived, 1709 both lost), S128 150 (of 4024 both survived, 1854 both lost)
   f 150 s 0.00: S130 READ, S370 SPLIT, S128 SPLIT -> HELD
   f 150 s 0.10: S130 READ, S370 SPLIT, S128 SPLIT -> HELD
-  f 150 s 0.25: S130 READ, S370 SPLIT, S128 SPLIT -> HELD
-  f 150 s 0.40: S130 READ, S370 SPLIT, S128 SPLIT -> HELD
+  f 150 s 0.25: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
+  f 150 s 0.40: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
   f 150 s 0.50: S130 SPLIT, S370 SPLIT, S128 SPLIT -> INCONCLUSIVE
 
 2. THE COST (ADOPT-PI's solve and forward seconds a unit at 6,000 paths)

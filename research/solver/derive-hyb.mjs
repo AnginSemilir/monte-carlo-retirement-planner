@@ -39,21 +39,34 @@ for (const s of [0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75, 1]) {
 
 // 1b. the same with a flip floor (the deep review after COV-B-STEP, 5 Oct 09:27 UK: a null perturbation also flips paths - S130
 // lost 25 under PCLSI in ADOPT-PI, and 14 of 500 moved under a 1e-10 tie margin): HYB additionally takes the other outcome on f
-// paths each way among those where SNAP and PCLSI agree (every k-th, fixed), so its own noise is in both of its comparisons
-console.log('\n1b. ITEM 1 WITH A FLIP FLOOR: as 1, and HYB also flips f paths each way (lost and saved) among the paths SNAP and PCLSI agree on');
-for (const f of [25, 75, 150]) for (const s of [0, 0.1, 0.25, 0.4, 0.5]) {
-  const ys = PANEL.map(id => {
-    const S = F[`${id} SNAP`].survived, P = F[`${id} PCLSI`].survived; let acc = 0, up = 0, dn = 0;
-    return Array.from({ length: S.length }, (_, j) => {
-      let H = S[j];
-      if (S[j] !== P[j]) { acc += s; if (acc >= 1 - 1e-9) { acc -= 1; H = P[j]; } }
-      else if (j % 7 === 3) { if (S[j] === 1 && dn < f) { H = 0; dn++; } else if (S[j] === 0 && up < f) { H = 1; up++; } }
-      return P[j] - 2 * H + S[j];
-    });
+// paths each way among those where SNAP and PCLSI agree, so its own noise is in both of its comparisons. The two ways are
+// symmetric (the plan-auditor's BLOCKING 1 of 5 Oct): f lost from the paths both arms survive and f saved from the paths both
+// lose, each spread evenly over its class by index; where a class holds fewer than f, both ways are capped at the smaller, and
+// the counts are printed
+const spread = (idx, f) => { const out = new Set(); for (let q = 0; q < f; q++) out.add(idx[Math.floor((q + 0.5) * idx.length / f)]); return out; };
+console.log('\n1b. ITEM 1 WITH A FLIP FLOOR: as 1, and HYB also flips f paths each way (lost and saved, the same count) among the paths SNAP and PCLSI agree on');
+for (const f of [25, 75, 150]) {
+  const flips = PANEL.map(id => {
+    const S = F[`${id} SNAP`].survived, P = F[`${id} PCLSI`].survived, both1 = [], both0 = [];
+    for (let j = 0; j < S.length; j++) if (S[j] === P[j]) (S[j] === 1 ? both1 : both0).push(j);
+    const n = Math.min(f, both1.length, both0.length);
+    return { dn: spread(both1, n), up: spread(both0, n), n, c1: both1.length, c0: both0.length };
   });
-  const h = holm(ys.flatMap(y => [flipP(y, B, 7002), flipP(y.map(x => -x), B, 7003)]));
-  const reads = PANEL.map((id, i) => (h[2 * i] < ALPHA ? 'READ' : h[2 * i + 1] < ALPHA ? 'TABLES' : 'SPLIT'));
-  console.log(`  f ${String(f).padStart(3)} s ${s.toFixed(2)}: ${PANEL.map((id, i) => `${id} ${reads[i]}`).join(', ')} -> ${reads[0] === 'READ' ? 'HELD' : reads[0] === 'TABLES' ? 'FALSIFIED' : 'INCONCLUSIVE'}`);
+  console.log(`  f ${f}: flipped each way ${PANEL.map((id, i) => `${id} ${flips[i].n} (of ${flips[i].c1} both survived, ${flips[i].c0} both lost)`).join(', ')}`);
+  for (const s of [0, 0.1, 0.25, 0.4, 0.5]) {
+    const ys = PANEL.map((id, i) => {
+      const S = F[`${id} SNAP`].survived, P = F[`${id} PCLSI`].survived, { dn, up } = flips[i]; let acc = 0;
+      return Array.from({ length: S.length }, (_, j) => {
+        let H = S[j];
+        if (S[j] !== P[j]) { acc += s; if (acc >= 1 - 1e-9) { acc -= 1; H = P[j]; } }
+        else if (dn.has(j)) H = 0; else if (up.has(j)) H = 1;
+        return P[j] - 2 * H + S[j];
+      });
+    });
+    const h = holm(ys.flatMap(y => [flipP(y, B, 7002), flipP(y.map(x => -x), B, 7003)]));
+    const reads = PANEL.map((id, i) => (h[2 * i] < ALPHA ? 'READ' : h[2 * i + 1] < ALPHA ? 'TABLES' : 'SPLIT'));
+    console.log(`  f ${String(f).padStart(3)} s ${s.toFixed(2)}: ${PANEL.map((id, i) => `${id} ${reads[i]}`).join(', ')} -> ${reads[0] === 'READ' ? 'HELD' : reads[0] === 'TABLES' ? 'FALSIFIED' : 'INCONCLUSIVE'}`);
+  }
 }
 
 console.log('\n2. THE COST (ADOPT-PI\'s solve and forward seconds a unit at 6,000 paths)');

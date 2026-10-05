@@ -135,7 +135,7 @@ export function drawCheck(files) {
 // + 0.8416 over 2 tests one-sided, 2.2414 + 0.8416 over 4), so a SPLIT is read against the test's achieved power (the
 // plan-auditor's BLOCKING 1 of 5 Oct 10:09 UK: sd(y) is not bounded by sd(D)). A SPLIT is CLOSE (the two terms within a
 // fifth of the error they split) only where that detectable size is at most a fifth of |mean D| over the same paths;
-// otherwise WEAK - the test could not have told a gap of that size (the plan-auditor's BLOCKING 1 of 5 Oct 10:17 UK)
+// otherwise WEAK - the test could not have told a gap of that size (the plan-auditor's BLOCKING 1 of 5 Oct 10:14 UK)
 const Z2 = 1.96 + 0.8416, Z4 = 2.2414 + 0.8416;
 export const detect = (y, z) => { const s = sdOf(y); return { sd: s, mdd: z * s / Math.sqrt(y.length) }; };
 export const splitKind = (y, d, z) => (detect(y, z).mdd <= Math.abs(mean(d)) / 5 ? 'CLOSE' : 'WEAK');

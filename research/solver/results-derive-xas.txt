@@ -37,3 +37,11 @@ GATE: passed (reduce-covb.mjs's gate and the fair-gate stamp check over results/
   bridge 4  solves 880 + 1092 s; re-read 956 s x 4; 1.61 core-hours
   S126      solves 836 + 1008 s; re-read 846 s x 4; swap 2752 s; 2.22 core-hours
   total 7.5 core-hours; one process a household on four cores: 2.28 hours (an upper estimate, grade C)
+
+4. THE CREDENCES, DERIVED FROM STATED PRIORS (grade C: the priors are judged, the arithmetic is not)
+  item 1 at 1x the assumed spread: detectable fraction 0.129 of D; HELD when s > 0.565, FALSIFIED when s < 0.435: HELD 0.391 INCONCLUSIVE 0.218 FALSIFIED 0.391
+  item 1 at 2x the assumed spread: detectable fraction 0.259 of D; HELD when s > 0.629, FALSIFIED when s < 0.371: HELD 0.290 INCONCLUSIVE 0.420 FALSIFIED 0.290
+  item 1 (prior s ~ normal(0.5, 0.234), the 80% interval 0.2 to 0.8): HELD 0.34 INCONCLUSIVE 0.32 FALSIFIED 0.34
+  item 2 S370: story (a) REP 0.85 SPLIT 0.12 QUAD 0.03, mixed with a coin at weight 0.3: REP 0.695 SPLIT 0.184 QUAD 0.121
+  item 2 S130: story (a) REP 0.9 SPLIT 0.08 QUAD 0.02, mixed with a coin at weight 0.3: REP 0.730 SPLIT 0.156 QUAD 0.114
+  item 2 (both REP for HELD, either QUAD for FALSIFIED): HELD 0.51 INCONCLUSIVE 0.27 FALSIFIED 0.22

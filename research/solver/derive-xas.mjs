@@ -67,3 +67,38 @@ for (const f of readdirSync(DIR).filter(x => /^case\d+\.txt$/.test(x)).sort()) {
   console.log(`  ${id.trim().padEnd(9)} solves ${sec('BASE')} + ${sec('COV')} s; re-read ${mv} s x 4; ${id.trim() === 'S126' ? `swap ${2 * fw} s; ` : ''}${(t / 3600).toFixed(2)} core-hours`);
 }
 console.log(`  total ${(tot / 3600).toFixed(1)} core-hours; one process a household on four cores: ${(longest / 3600).toFixed(2)} hours (an upper estimate, grade C)`);
+
+// 4. THE CREDENCES, DERIVED (the deep review of the prediction record, deep-review-log.md 5 Oct 10:16 UK: credences were
+// judged, never computed from the Power section's stories, and XAS item 1's contradicted its own point). Each item's
+// outcome probabilities as a mixture over stated priors, mapped through the decision bands:
+//   item 1: the representation's share s of read - exF in S370's years before the steps, prior normal (point, sd from the
+//     80% interval). y = rep - quad has mean (2s - 1) x D, so REP (HELD) when 2s - 1 is above the detectable fraction f of
+//     D, QUAD (FALSIFIED) when below -f, SPLIT otherwise. f is not known before the run (sd(y) is not bounded by sd(D), the
+//     plan-auditor's BLOCKING 1 of 5 Oct 10:09 UK): an even mixture of f at section 2's assumed spread and at twice it.
+//   item 2: per household the probability that the step reads read REP, from two stories - (a) at the last step year the
+//     next year has no reader step, so the 5-point quadrature crosses no cliff and quad is small (the build check at 4
+//     points printed quad 3.3e-6 against rep 1.5e-1 on S370 and -3.4e-9 against 2.3e-1 on S130; grade C: 4 points, 9
+//     paths a world); (b) the anchoring discount: a deep review's ranked cause read as ranked in 1 of 19 items, so with
+//     weight w the household reads as a coin among the three outcomes. HELD needs both households (a conjunction,
+//     the households' stories taken as independent - an upper bound on the spread, not on HELD).
+console.log('\n4. THE CREDENCES, DERIVED FROM STATED PRIORS (grade C: the priors are judged, the arithmetic is not)');
+const Phi = x => 0.5 * (1 + erf(x / Math.SQRT2));
+{
+  const point = 0.5, lo80 = 0.2, hi80 = 0.8, sdS = (hi80 - lo80) / (2 * 1.2816);
+  const F = C.files.S370.fixed, steps = [...new Set(F.t.filter((_, j) => F.kind[j] === 1))], before = steps.map(s => s - 1);
+  const s1 = before.reduce((s, t) => s + SD[`S370 COV ${t}`], 0), mdd1 = (z(0.05 / 2) + z(0.2)) * s1 / Math.sqrt(6000);
+  const Dsum = before.reduce((acc, t) => { const J = F.t.map((x, j) => (x === t ? j : -1)).filter(j => j >= 0); return acc + mean(J.map(j => F.arms.COV.read[j] - F.arms.COV.claim[j])); }, 0);
+  const out = [0, 0, 0];
+  for (const mult of [1, 2]) {
+    const f = Math.min(0.99, mult * mdd1 / Math.abs(Dsum)), up = (1 + f) / 2, dn = (1 - f) / 2;
+    const pH = 1 - Phi((up - point) / sdS), pF = Phi((dn - point) / sdS);
+    out[0] += pH / 2; out[1] += (1 - pH - pF) / 2; out[2] += pF / 2;
+    console.log(`  item 1 at ${mult}x the assumed spread: detectable fraction ${f.toFixed(3)} of D; HELD when s > ${up.toFixed(3)}, FALSIFIED when s < ${dn.toFixed(3)}: HELD ${pH.toFixed(3)} INCONCLUSIVE ${(1 - pH - pF).toFixed(3)} FALSIFIED ${pF.toFixed(3)}`);
+  }
+  console.log(`  item 1 (prior s ~ normal(${point}, ${sdS.toFixed(3)}), the 80% interval ${lo80} to ${hi80}): HELD ${out[0].toFixed(2)} INCONCLUSIVE ${out[1].toFixed(2)} FALSIFIED ${out[2].toFixed(2)}`);
+  const w = 0.3, story = { S370: [0.85, 0.12, 0.03], S130: [0.9, 0.08, 0.02] }, coin = [1 / 3, 1 / 3, 1 / 3];
+  const per = Object.fromEntries(Object.entries(story).map(([id, p]) => [id, p.map((x, i) => (1 - w) * x + w * coin[i])]));
+  const H = per.S370[0] * per.S130[0], Fz = 1 - (1 - per.S370[2]) * (1 - per.S130[2]);
+  for (const [id, p] of Object.entries(per)) console.log(`  item 2 ${id}: story (a) REP ${story[id][0]} SPLIT ${story[id][1]} QUAD ${story[id][2]}, mixed with a coin at weight ${w}: REP ${p[0].toFixed(3)} SPLIT ${p[1].toFixed(3)} QUAD ${p[2].toFixed(3)}`);
+  console.log(`  item 2 (both REP for HELD, either QUAD for FALSIFIED): HELD ${H.toFixed(2)} INCONCLUSIVE ${(1 - H - Fz).toFixed(2)} FALSIFIED ${Fz.toFixed(2)}`);
+}

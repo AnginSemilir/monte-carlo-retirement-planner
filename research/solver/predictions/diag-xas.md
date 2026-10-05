@@ -16,13 +16,13 @@ Under COV (the step-year edge node), is the optimism that moves to the year befo
 
 - **The split is exact.** At a read, read - claim = (read - ex5) + (ex5 - exF) + (exF - claim). The claim is the arm's read next year at BASE's realised next state, so its expectation given the state and BASE's move is the one-step value; exF integrates it at 41 points, so (exF - claim) has mean 0 up to exF's own error, and the gate checks that on every household, arm and kind (4 se). rep and quad are functions of the state alone: no draw enters them.
 - **The sizes** (results-derive-xas.txt section 1, COV-B-STEP's fixed reads through its own gate): COV's mean D on S370 in the years before the steps, 1.304e-2 (year 2) and 2.517e-2 (year 6); BASE's at the step years, S370 2.033e-2 and 3.206e-2, S130 2.010e-2.
-- **What each outcome would say.** If the year-before table cannot represent the value near the step (6 share nodes, the top cell copied), rep carries the error (REP): the fix is the table's - the edge node extended to the year before, or the chooser reading the exact one-step value there. If 5 points miss the next year's step, quad carries it (QUAD): the fix is the expectation's - Q's stepExpect (bridgeStep 'exact'), which today refuses the reader's tax (solve.js l.672). SPLIT: both.
+- **What each outcome would say.** If the year-before table cannot represent the value near the step (6 share nodes, the top cell copied), rep carries the error (REP): the fix is the table's - the edge node extended to the year before, or the chooser reading the exact one-step value there. If 5 points miss the next year's step, quad carries it (QUAD): the fix is the expectation's - Q's stepExpect (bridgeStep 'exact'), which today refuses the reader's tax (solve.js l.672). A CLOSE SPLIT: both; a WEAK one says nothing about the split (see Power).
 - **The checks, each failed on a planted fault first:** reduce-xas.mjs's 24 planted checks (every outcome of both items reached; EDGES named: a self-check run on nothing, a read 1e-6 off COV-B-STEP's, rep equal to quad on every path, a split shown alone but not at the 0.05 line, a SPLIT whose detectable size exceeds a fifth of D, a split on a household the item does not read, the detectable size on a balanced y) and 33 of 33 mutations caught (results-reduce-xas-mutations.txt); the gate refuses a missing household, one not done, BASE with the reader's tax, COV without coverage, another seed, a failed self-check (either), a self-check run on nothing, another stamp, a missing file, a short read column, a read off COV-B-STEP's, and a draw off its expectation. The audit's own self-checks (the copied rates against the solve's at its 5 points; the 5-point variant path against scoreMoves; BASE's move's mixture score re-summed against chooseAction's) refuse the run on any miss; the build check (preflight-xas.sh, 4 points, 3 paths a world) runs them through the launcher.
 
 ## Prediction
 
-- **Item 1 HELD:** on S370 under COV, the representation carries more of the year-before error than the quadrature (point: rep about 0.6 of read - exF there).
-- **Item 2 HELD:** at BASE's step reads on S370 and S130, the representation carries more than the quadrature (point: rep about 0.9).
+- **Item 1 HELD:** on S370 under COV, the representation carries more of the year-before error than the quadrature - stated as the registered direction only; the derived credence puts HELD and FALSIFIED level (point: rep about half of read - exF there; results-derive-xas.txt section 4).
+- **Item 2 HELD:** at BASE's step reads on S370 and S130, the representation carries more than the quadrature (point: rep about 0.9; derived credence below, a conjunction of two households).
 
 ## Falsified if
 
@@ -57,9 +57,9 @@ Arms: BASE and COV, COV-B-STEP's, at the same states (BASE's paths and moves: a 
 
 | outcomes | action | credence |
 |---|---|---|
-| item 1 HELD | the year-before optimism is the table's representation: design the family-3 fix as the edge node carried to the year before each step (or the chooser's exact one-step read there), tested against COV on S370 and S130 before 7an | 0.45 |
-| item 1 INCONCLUSIVE | CLOSE: both terms carry it, so the fix design takes both (the node in the year before and stepExpect), each tested apart first. WEAK: no design decision; XAS's item 1 re-run on S370 with three times the paths (seed 7002, 6,000 a world) before any family-3 fix is designed | 0.20 |
-| item 1 FALSIFIED | the year-before optimism is the quadrature across the next year's step: Q's stepExpect with COV is family 3's fix candidate, after making it run with the reader's tax (solve.js l.672) | 0.35 |
+| item 1 HELD | the year-before optimism is the table's representation: design the family-3 fix as the edge node carried to the year before each step (or the chooser's exact one-step read there), tested against COV on S370 and S130 before 7an | 0.34 |
+| item 1 INCONCLUSIVE | CLOSE: both terms carry it, so the fix design takes both (the node in the year before and stepExpect), each tested apart first. WEAK: no design decision; XAS's item 1 re-run on S370 with three times the paths, on paths XAS did not read and registered as its own test (a second look on the same paths would inflate the one-sided Holm alpha; the plan-auditor's MINOR 3 of 5 Oct 10:18 UK), before any family-3 fix is designed | 0.32 |
+| item 1 FALSIFIED | the year-before optimism is the quadrature across the next year's step: Q's stepExpect with COV is family 3's fix candidate, after making it run with the reader's tax (solve.js l.672) | 0.34 |
 
 ## Decision fed
 
@@ -73,27 +73,28 @@ Arms: BASE and COV, COV-B-STEP's, at the same states (BASE's paths and moves: a 
 
 - **The design:** the deep review after COV-B-STEP (deep-review-log.md 5 Oct 09:27 UK: XAS, exact one-step values at BASE's saved states, representation against quadrature, by world, top cell and straddle; S126's opening swap and year-0 gaps); PLAN.md XAS.
 - **The build:** audit-xas.mjs; reduce-xas.mjs (planted checks; mutations: results-reduce-xas-mutations.txt); preflight-xas.sh; derive-xas.mjs; batch-xas.sh.
-- **Amended after registration, before launch:** the Power section's spread restated as an assumption (grade C), not a bound, and the reducer's item lines given the realised sd(y) and detectable size (the plan-auditor's BLOCKING 1 of 5 Oct 10:09 UK); the planted checks 23, mutations 29 of 29; then each SPLIT labelled CLOSE or WEAK with its own action (the plan-auditor's BLOCKING 1 of 5 Oct 10:17 UK), planted checks 24, mutations 33 of 33.
+- **Credences derived before launch:** the deep review of the prediction record (deep-review-log.md 5 Oct 10:16 UK; the maintainer's question) found every credence judged, never computed from the Power section's stories, and item 1's (HELD 0.45, FALSIFIED 0.35) inconsistent with its own point (0.6, inside HELD); both items' credences are now computed from stated priors in derive-xas.mjs section 4 and the item 1 point restated as no lean. Item 2 was 0.70, the highest credence yet on a review-ranked cause.
+- **Amended after registration, before launch:** the Power section's spread restated as an assumption (grade C), not a bound, and the reducer's item lines given the realised sd(y) and detectable size (the plan-auditor's BLOCKING 1 of 5 Oct 10:09 UK); the planted checks 23, mutations 29 of 29; then each SPLIT labelled CLOSE or WEAK with its own action (the plan-auditor's BLOCKING 1 of 5 Oct 10:14 UK), planted checks 24, mutations 33 of 33.
 - **Changed before registration:** the deep review's 5-point 'exact' value was split into ex5 (the solve's own points, which the table's nodes are built from) and exF (41 points), so representation and quadrature are separate terms; S370's years 2, 3, 6 and 7 widened to every reader year of the four households (the items read the step years and the years before them).
 
 ## Derivation script
 
-- `derive: research/solver/derive-xas.mjs > research/solver/results-derive-xas.txt sha256 2ceff3089ba9ea57`
+- `derive: research/solver/derive-xas.mjs > research/solver/results-derive-xas.txt sha256 4c1e61596da9490c`
   (the sizes each item splits; the power; the cost)
 
 ## Point and interval
 
-- **Item 1:** rep's share of read - exF in S370's years before each step under COV about 0.6 (0.3 to 0.9).
+- **Item 1:** rep's share of read - exF in S370's years before each step under COV about 0.5 (0.2 to 0.8): no lean between the deep review's two ranked causes, its ranked causes having read as ranked in 1 of 19 items (deep-review-log.md 5 Oct 10:16 UK).
 - **Item 2:** rep's share at BASE's step reads about 0.9 (0.6 to 1.0).
 
 ## Credence
 
-- **Item 1:** HELD 0.45, INCONCLUSIVE 0.20, FALSIFIED 0.35.
-- **Item 2:** HELD 0.70, INCONCLUSIVE 0.20, FALSIFIED 0.10.
+- **Item 1:** HELD 0.34, INCONCLUSIVE 0.32, FALSIFIED 0.34 (derived, results-derive-xas.txt section 4: the point and interval above through the decision bands, at the assumed spread and at twice it).
+- **Item 2:** HELD 0.51, INCONCLUSIVE 0.27, FALSIFIED 0.22 (derived, section 4: per household REP 0.695 on S370 and 0.730 on S130 - the no-cliff story at the last step year mixed with a coin at weight 0.3 for the deep reviews' record - and both needed for HELD).
 
 ## Power
 
-From results-derive-xas.txt section 2, at an ASSUMED spread (grade C): if y = rep - quad has a per-path sd equal to D's, the test shows after Holm, at 80% power, |mean y| of 4.944e-3 a path for item 1 (against COV's summed D of 3.821e-2 in S370's years before the steps) and 5.238e-3 (S370) and 2.169e-3 (S130) for item 2 (against BASE's D of 2.033e-2 to 3.206e-2). That is not a bound: rep and quad share ex5 with opposite signs, so their covariance is negative where the 5-point value errs and sd(y) can exceed it (the plan-auditor's BLOCKING 1 of 5 Oct 10:09 UK). So reduce-xas.mjs prints the realised sd(y) and the detectable |mean y| at 80% power beside each item, and labels every SPLIT: CLOSE where that detectable size is at most a fifth of |mean D| over the same paths (the two terms are within a fifth of the error they split), WEAK otherwise (the test could not have shown a gap of that size; the plan-auditor's BLOCKING 1 of 5 Oct 10:17 UK). Only a CLOSE split feeds a design decision.
+From results-derive-xas.txt section 2, at an ASSUMED spread (grade C): if y = rep - quad has a per-path sd equal to D's, the test shows after Holm, at 80% power, |mean y| of 4.944e-3 a path for item 1 (against COV's summed D of 3.821e-2 in S370's years before the steps) and 5.238e-3 (S370) and 2.169e-3 (S130) for item 2 (against BASE's D of 2.033e-2 to 3.206e-2). That is not a bound: rep and quad share ex5 with opposite signs, so their covariance is negative where the 5-point value errs and sd(y) can exceed it (the plan-auditor's BLOCKING 1 of 5 Oct 10:09 UK). So reduce-xas.mjs prints the realised sd(y) and the detectable |mean y| at 80% power beside each item, and labels every SPLIT: CLOSE where that detectable size is at most a fifth of |mean D| over the same paths (the two terms are within a fifth of the error they split), WEAK otherwise (the test could not have shown a gap of that size; the plan-auditor's BLOCKING 1 of 5 Oct 10:14 UK). Only a CLOSE split feeds a design decision.
 
 ## Budget line
 

@@ -244,8 +244,7 @@ against it; a gap here is MINOR unless a research claim relies on it. The fixes 
    19:00 UK, so one committed between its build (18:35 UK) and then would be exempt (none was).
 28. triggers.mjs drops a malformed tag silently: a tag with spaces (deep-review-log.md 4 Oct 04:41 UK) is neither
    counted nor listed as an unknown code (the plan-auditor's MINOR 2 of 4 Oct 04:49 UK). No claim rests on the count.
-29. The retro reads any test name without a space and orders the closes, and the REPLACE check's next close, by date
-   (check-plan.mjs, the second unlock of 5 Oct; it found COV-B-STEP's close missing four codes, now named).
+29. Closed by the second unlock (5 Oct): the retro reads hyphenated names and orders closes by date (check-plan.mjs).
 30. The pre-commit and Stop hooks check the working tree, untracked files included, not the commit; CI checks the
    commit (MINOR 3 of 5 Oct 10:09 UK).
 31. The credence rule binds predictions added after d4487bd, judged-before-derived and the base rate those after ed5db5c
@@ -639,7 +638,7 @@ catches. The always-read files have budgets (check-plan.mjs); finished rows move
 **The process mechanisms of 4 Oct** (the process review, deep-review-log.md 4 Oct 13:52 UK; the maintainer: "Agree, do all
 Unlock enforcement"). A test registered from 4 Oct 14:30 UK carries a decision table whose action changes with chance a
 quarter or more (else a waiver), and a Mechanism field anchored in the code with a derive line of the cause's incidence
-(check-prediction.mjs). A plan commit answers every row relook.mjs lists (.githooks/commit-msg), except the dependants of a row whose only edit is a label declared in the message and checked exactly - short, no figure, no status, grade or verdict word (relook-label.mjs; the unlock of 5 Oct, the third). A REPLACE lesson names its
+(check-prediction.mjs). A plan commit answers every row relook.mjs lists (.githooks/commit-msg), except the dependants of a row whose only edit is a label declared in the message and checked exactly - short, no figure, no status, grade or verdict word (relook-label.mjs; the unlock of 5 Oct, the third). Known limit: a word off the list, or a substring, can still carry a change of standing. A REPLACE lesson names its
 target and lands there by the next close (check-plan's retro). A new plan row is at most 3,000 bytes and a longer row may
 not grow (detail to items/<id>.md); a new decimal figure in a register or schedule row is in a results file, prediction or runs.log the row cites (known limit 20a); the
 premises at risk carry code anchors that must match their files; a status restated outside its item's row is warned of.
